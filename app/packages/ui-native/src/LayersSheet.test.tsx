@@ -117,9 +117,9 @@ describe("the Layers sheet, mounted", () => {
     const tile = (name: string) => screen.getByRole("radio", { name }).textContent;
     const row = (name: string) => screen.getByRole("switch", { name }).textContent;
     expect([tile("Corridors"), tile("Stocked"), tile("Depth"), row("Pools and runs"), row("Relief")]).toEqual([
-      "CorridorsDetail imagery along a streamCOMING SOON",
-      "StockedWhen a lake was last stockedNO DATA YET",
-      "DepthWhich lakes were surveyedNO DATA YET",
+      "CorridorsClose-up photos along rivers, download for offlineCOMING SOON",
+      "StockedWhen a lake was last stockedCOMING SOON",
+      "DepthWhich lakes were surveyedCOMING SOON",
       "Pools and runsSlow and fast water, read from lidarCOMING SOON",
       "ReliefLidar hillshadeCOMING SOON",
     ]);
@@ -178,7 +178,7 @@ describe("the Layers sheet, mounted", () => {
     render(<Wired facts={{ ...NONE, online: false }} start={{ ...LAYER_DEFAULTS, ground: "ground.satellite" }} out={{}} />);
     expect([radios().slice(0, 2), screen.getByRole("radio", { name: "Map" }).textContent,
             screen.getByRole("radio", { name: "Satellite" }).textContent, text("basemap-note")]).toEqual([
-      ["Map", "Satellite * (off)"], "MapDrawn · works offlineSHOWING", "SatelliteEsri imagery · online onlyNEEDS A CONNECTION",
+      ["Map", "Satellite * (off)"], "MapWorks offlineSHOWING", "SatellitePhoto map · needs internetNEEDS A CONNECTION",
       "Satellite needs a connection. Showing the map until you are back online; satellite returns by itself."]);
   });
 

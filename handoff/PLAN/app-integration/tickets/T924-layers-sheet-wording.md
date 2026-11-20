@@ -13,3 +13,9 @@ Ask the owner (batched) which words read weird, with a proposal: plain words per
 internet)", Corridors "Close-up photos along rivers — download for offline (coming soon)", Stocked / Depth "Coming soon"
 in place of "NO DATA YET". Pictures before/after.
 Depends: none. Size: S. Owner: yes (which words). Default: the proposal above, shown as pictures first.
+
+## Owner 2026-11-20 00:53 (main chat): picked "Plain words (Recommended)"
+Map "Works offline"; Satellite "Photo map · needs internet"; Corridors "Close-up photos along rivers, download for
+offline" [COMING SOON]; Stocked / Depth tag COMING SOON (was NO DATA YET). The "Needs a connection" tag (offline) stays.
+## Built (lane/t924)
+`core/src/layers.ts` notes + the no-data tag; layers.test.ts + LayersSheet.test.tsx pins. Pictures before landing.

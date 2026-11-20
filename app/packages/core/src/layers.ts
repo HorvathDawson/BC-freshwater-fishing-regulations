@@ -93,7 +93,7 @@ export const LAYER_WORDS = {
   railLabel: (changed: number) => (changed > 0 ? `${MAP_RAIL.layersLabel}, ${changed} changed` : MAP_RAIL.layersLabel),
   tags: {
     showing: "Showing",
-    "no-data": "No data yet",
+    "no-data": "Coming soon",
     "online-only": "Needs a connection",
     "coming-soon": "Coming soon",
   },
@@ -139,11 +139,11 @@ export const LAYERS: readonly LayerEntry[] = [
     sets: { show: "temperature" }, label: "Temperature", note: "At the gauges that measure it; the rivers stay plain" },
   // ── Map (the ground) ──
   { id: "ground.map", kind: "ground", views: ["map", "water", "conditions"], default: true,
-    sets: { basemap: "map" }, label: "Map", note: "Drawn · works offline" },
+    sets: { basemap: "map" }, label: "Map", note: "Works offline" },
   { id: "ground.satellite", kind: "ground", views: ["map", "water", "conditions"], default: false,
-    sets: { basemap: "satellite" }, needs: { network: true }, label: "Satellite", note: "Esri imagery · online only" },
+    sets: { basemap: "satellite" }, needs: { network: true }, label: "Satellite", note: "Photo map · needs internet" },
   { id: "ground.corridors", kind: "ground", views: ["map", "water"], default: false,
-    needs: { built: false }, label: "Corridors", note: "Detail imagery along a stream" },
+    needs: { built: false }, label: "Corridors", note: "Close-up photos along rivers, download for offline" },
   // ── Colour the water by (streams, lakes and wetlands together) ──
   { id: "water.regulations", kind: "water", views: ["map", "water"], default: true,
     sets: { water: "regulations" }, label: "Regulations", note: "Open, closed or its own rules, on the day" },

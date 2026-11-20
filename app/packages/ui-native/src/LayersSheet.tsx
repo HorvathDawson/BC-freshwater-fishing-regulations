@@ -7,7 +7,7 @@
  *
  *  - ONE water colouring for every feature (no lake-only choice): the legend under it says which waters it does not
  *    cover, drawn neutral.
- *  - Greyed tiles say why in their own tag: NO DATA YET (Stocked, Depth: prepared, not fed), NEEDS A CONNECTION
+ *  - Greyed tiles say why in their own tag: COMING SOON (Stocked, Depth: prepared, not fed; T924), NEEDS A CONNECTION
  *    (Satellite offline, with SHOWING on the drawn map), COMING SOON (declared, not built).
  *  - NOT HERE any more: the data sources, live data and credits (the menu's Data sources & dates page, and the map's own
  *    attribution) and the app's colours (the menu's Display page).
