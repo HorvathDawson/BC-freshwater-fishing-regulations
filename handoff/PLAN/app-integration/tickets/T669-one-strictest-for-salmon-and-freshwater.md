@@ -47,3 +47,4 @@ Dropped: item 2. Not doing it. Item 3 stays. owner 2026-11-20 01:56 (lane-plan b
 Status line before this answer: IN PROGRESS — item 1 done (91398f801); left (Claude): items 2 and 3 (feed format change: worker + app + live.compose together); the shared comparison landed in T668 (dfb4ea7c1)
 
 Owner 2026-11-20 11:11 (dialog), after the Qualcho Creek before/after pictures (lane L9, `lane/l9-strictest`): item 3 **"Ship it (Recommended)"**.
+Then (owner, same dialog round): coho "only 1 over 50" looked wrong (5B's own line says 2): it is Region 6's cap, the stricter. Owner: **"Name the region (Recommended)"**: a mixed line names each number's region, e.g. "… MU 5-6 to 5-11 combined (Region 5B) · only 1 over 50 cm (Region 6)". Built on lane/l9-strictest before merge.
