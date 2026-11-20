@@ -1729,14 +1729,14 @@ def build_registry(b: _Build) -> None:
         _on = _coast.record_tidal(out, graph, _owners, getattr(b, "coast_whole", {}))
         print(f"  tidal record: {len(_owners):,} section(s) -> {out / _coast.TIDAL_RECORD} (rank 1 covers the same "
               f"water as the coast cut was decided on: {len(_cov)} line(s)/lake(s)){'; on the graph nodes' if _on else ''}")
-    # T679 #1 (prepared; `border.ONE_OUTSIDE_FLAG`, off until the wave-4 build): ONE outside-B.C. flag — every node in
+    # T679 #1 (`border.ONE_OUTSIDE_FLAG`, ON since the wave-4 build): ONE outside-B.C. flag — every node in
     # no region polygon stamped `out_of_bc` too, before graph.pkl is written, so the reach, the tiles and the walk read
     # one answer
     # one answer. Measured on every build (the count the flip would stamp), written to `step10_report.json`.
     from pipeline.atlas.splits import border as _border
     _rless = _border.regionless(graph, registry)
     _unstamped = sorted(n for n in _rless if not graph.nodes[n].out_of_bc)
-    # T679 #6 (prepared; `registry.build.NAMED_NODES_ARE_IN_ITEMS`, off until the wave-4 build): a node no registry
+    # T679 #6 (`registry.build.NAMED_NODES_ARE_IN_ITEMS`, ON since the wave-4 build): a node no registry
     # water holds carries no name, so the map never names water a tap opens as unnamed. Measured on every build.
     from pipeline.atlas.registry import build as _rb
     _unheld = _rb.unheld_named(graph, registry)

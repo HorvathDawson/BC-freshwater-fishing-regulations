@@ -570,13 +570,13 @@ def build_registry(graph: StreamGraph, prof=None, pinned: dict[str, str] | None 
     return registry
 
 
-#: T679 #6 (prepared 2026-11-20 for the wave-4 atlas build; False until that build): THE REGISTRY OWNS EVERY NAMED
+#: T679 #6 (prepared 2026-11-20; ON since the wave-4 atlas build, owner 2026-11-20 11:11 "Turn both on"): THE REGISTRY OWNS EVERY NAMED
 #: NODE. A section of no registry water still carried its FWA name: the tiles labelled it (`Owners.label` falls back
 #: to `node.display_name`), the bundle's span words named a cut with it, and the app opened it as unnamed on a tap. On:
 #: the build clears `display_name` on every node no stream / lake / wetland item holds (`clear_unheld_names`), after
 #: the final registry and before graph.pkl is written; `name_tuples` stay (provenance, and the passes `atlas.sidecars`
 #: re-runs read them). Measured on every build (`step10_report.json`). Flipping it changes labels: rebuild + diff.
-NAMED_NODES_ARE_IN_ITEMS = False
+NAMED_NODES_ARE_IN_ITEMS = True
 
 
 def _held(registry: dict) -> set[str]:

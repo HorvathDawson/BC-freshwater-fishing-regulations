@@ -1,5 +1,5 @@
-"""T679 step 10, prepared for the wave-4 atlas build (2026-11-20): the switches are off until that build, and each is
-pinned here both ways on a hand-made graph. No data.
+"""T679 step 10 (2026-11-20): both switches are ON since the wave-4 atlas build (owner 11:11 "Turn both on"), and each
+is pinned here both ways on a hand-made graph. No data.
 
   #1  ONE outside-B.C. flag (`border.ONE_OUTSIDE_FLAG`): the atlas stamps `out_of_bc` on every node in no region polygon
       (`border.mark_regionless`); the reach then reads the flag alone and refuses an atlas that left one unstamped.
@@ -36,9 +36,13 @@ def _world():
     return g, reg
 
 
-def test_1_off_the_reach_adds_the_regionless_sliver_itself():
+def test_1_is_on():
+    assert BD.ONE_OUTSIDE_FLAG is True                      # flipped with the wave-4 rebuild
+
+
+def test_1_off_the_reach_adds_the_regionless_sliver_itself(monkeypatch):
     g, reg = _world()
-    assert BD.ONE_OUTSIDE_FLAG is False                     # wave 4 flips it, with the rebuild
+    monkeypatch.setattr(BD, "ONE_OUTSIDE_FLAG", False)
     assert O.outside_bc(reg, g) == {"S:0", "X:0"}
     assert BD.regionless(g, reg) == {"S:0", "X:0"}
 
@@ -62,7 +66,7 @@ def test_1_a_registry_with_no_region_says_nothing():
 
 def test_6_the_named_node_no_water_holds_is_listed_and_on_loses_its_name():
     g, reg = _world()
-    assert RB.NAMED_NODES_ARE_IN_ITEMS is False
+    assert RB.NAMED_NODES_ARE_IN_ITEMS is True              # flipped with the wave-4 rebuild
     assert RB.unheld_named(g, reg) == ["D:0"]                # an area item is no water
     assert RB.count_by_kind(g, ["D:0"]) == {"stream": 1}
     assert RB.clear_unheld_names(g, reg) == 1

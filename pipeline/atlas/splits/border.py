@@ -186,14 +186,14 @@ def mark_out_of_bc(graph: StreamGraph, geoms: dict, outline, blks=None) -> int:
     return n
 
 
-#: T679 #1 (prepared 2026-11-20 for the wave-4 atlas build; False until that build): ONE "OUTSIDE B.C." FLAG. The
+#: T679 #1 (prepared 2026-11-20; ON since the wave-4 atlas build, owner 2026-11-20 11:11 "Turn both on"): ONE "OUTSIDE B.C." FLAG. The
 #: reach counted a section outside when it is `out_of_bc` OR in no region polygon (`reach.outside.outside_bc`), while
 #: the tiles and the tributary walk read `out_of_bc` alone, so the border slivers no region claims were drawn,
 #: tappable, ruleless and "outside B.C." on a tap. On: the atlas stamps `out_of_bc` on every node in no region too
 #: (`mark_regionless`, once the registry's regions exist, before graph.pkl is written), and the reach reads the flag
 #: alone (refusing an atlas that left one regionless node unstamped). Flipping it changes output: a rebuild + a
 #: binding diff by place (AGENTS 63) + the tiles' drawn set against `undrawn.json`.
-ONE_OUTSIDE_FLAG = False
+ONE_OUTSIDE_FLAG = True
 
 
 def regionless(graph: StreamGraph, registry) -> frozenset[str]:
