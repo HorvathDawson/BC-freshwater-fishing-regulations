@@ -254,6 +254,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T974 | Classified Waters "may need" note: clean up (firm unit or drop, remove the optional file and note) once a CO answers T973 | BLOCKED (owner) | | owner 2026-11-20 12:38 |
 | T975 | Remove the old-format data readers/writers (near/1, down/1, climate/1, paint/5, the SHIP_PACKED_FORMATS switch) once packed formats are live in production | OPEN | | owner 2026-11-20 13:37 (after T686 switch-on) |
 | T976 | The photo viewer's counter ("2 of 3") can't be read over a light photo: white text, no backing (the buttons have a disc) | OPEN | | lane L6 2026-11-20, T836 iPhone simulator shots |
+| T977 | Push wake carry-over: two feed runs at once both read it (duplicate silent pushes, or a wake's circle overwritten); no small fix, a lease when worth it | OPEN | | lane LF 2026-11-20, T739 review |
 
 ## Next after closed testing
 
