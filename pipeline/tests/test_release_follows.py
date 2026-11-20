@@ -32,8 +32,9 @@ def test_every_row_names_paths_that_exist_and_no_two_rows_share_one():
 
 
 def test_the_table_is_the_source_the_release_and_the_tools_agree_with():
-    """One table: the release's in-season file, the goldens check's taps.json and the re-cut's own outputs are rows."""
-    assert RF.paths_of(RF.INSEASON) == (str(Path(R.INSEASON).resolve().relative_to(REPO.resolve())),)
+    """One table: the release's in-season resolve, the goldens check's taps.json and the re-cut's own outputs are rows.
+    (T679 #11) The in-season row commits nothing: the resolve writes the generated resolution, never a tracked path."""
+    assert RF.paths_of(RF.INSEASON) == ()
     recut = RF.paths_of(RF.RECUT)
     sync = (REPO / "app/tools/regs-recut/sync.mjs").read_text(encoding="utf-8")
     for p in recut:                                           # every re-cut path is one sync.mjs says it writes

@@ -377,7 +377,10 @@ def test_the_tiles_stage_key_is_geometry_only(tmp_path, monkeypatch):
     build.mkdir()
     (build / "section_handles.txt").write_text("blk:1:0\nblk:1:100\n")
     (build / "splits.resolved.json").write_text("[]")
-    (build / "tidal.resolved.json").write_text("[]")
+    from pipeline.atlas.splits import coast as C
+    coast_cut = '{"rule": "' + C.RULE + '", "runs": []}'
+    (build / "shore_cuts.json").write_text(coast_cut)
+    C.write_record(build, {}, {})
     gpkg = tmp_path / "fwa.gpkg"
     gpkg.write_bytes(b"x")
     monkeypatch.setattr(B, "sources", lambda: {"gpkg": gpkg})
@@ -386,13 +389,18 @@ def test_the_tiles_stage_key_is_geometry_only(tmp_path, monkeypatch):
     assert B.tiles_key(build)["obstacles"] is None          # (T173) not fetched: the stage runs and names the fetch
     obstacles.write_bytes(b"x")
     before = B.tiles_key(build)
-    assert set(before) == {"handles", "gpkg", "areas", "code", "obstacles", "tidal", "tidal_waters"}
+    assert set(before) == {"handles", "gpkg", "areas", "code", "obstacles", "tidal_record"}
     (build / "registry.json").write_text('{"items": {"renamed": 1}}')
     assert B.tiles_key(build) == before
-    # (T166/T326) a new tidal limit takes a piece off the map: the tiles rerun
-    (build / "tidal.resolved.json").write_text('[{"blk": "1", "limit": "split", "split_id": "r__tide"}]')
+    # (T166 -> T678) a new tidal section in the atlas's record takes a piece off the map: the tiles rerun
+    C.write_record(build, {"blk:1:0": "split:r__tide"}, {})
     assert B.tiles_key(build) != before
-    (build / "tidal.resolved.json").write_text("[]")
+    C.write_record(build, {}, {})
+    assert B.tiles_key(build) == before
+    (build / "shore_cuts.json").write_text('{"rule": "polygon/1", "runs": []}')         # a pre-T678 atlas: refused
+    with pytest.raises(SystemExit, match="not cut by the coast rule"):
+        B.tiles_key(build)
+    (build / "shore_cuts.json").write_text(coast_cut)
     (build / "section_handles.txt").write_text("blk:1:0\nblk:1:50\nblk:1:100\n")      # new sids: new geometry
     assert B.tiles_key(build) != before
 

@@ -200,7 +200,8 @@ def test_the_hwy_19_bridge_note_is_on_the_bridge_not_the_eve_river_confluence():
 MARK_ROUTE = {("POST", "/api/marks")}
 #: ... and THE ONE EXCEPTION (T230, owner 2026-10-28: "this file is Claude/owner tooling, not marks; keep a
 #: history note per edit"): the in-season matches file, data/curated/inseason/notice_waters.json
-#: (T520) and its Re-resolve after a release promote: the same file, the same writes.commit
+#: (T520) and its Re-resolve after a release promote, the same writes.commit — (T679 #11) the resolution is the
+#: GENERATED data/generated/inseason/resolved.json: the save writes both, the Re-resolve only the generated one
 INSEASON_ROUTE = {("POST", "/api/inseason/matches"), ("POST", "/api/inseason/resolve")}
 WRITE_ROUTES = MARK_ROUTE | INSEASON_ROUTE
 #: what the retired editors were asked, so a request to one is shown refused
@@ -325,11 +326,12 @@ def test_the_only_file_write_is_the_mark_s_commit():
     # T55: a slough batch ("accept all visible") is several marks in that same one commit
     assert "writes.commit([(MARKS_PATH, M.appended(MARKS_PATH, marks))], \"mark\")" in src
     assert "marks = batch or [mark]" in src
-    # T230: the in-season write names exactly the matches file, as one commit
+    # T230: the in-season write names exactly the matches file (T679 #11: and its generated resolution), as one commit
     ins = (BACKEND / "inseason.py").read_text(encoding="utf-8")
-    # the match save, and (T520) the Re-resolve of the same file — both the in-season matches file only
-    assert ins.count("writes.commit(") == 2 and 'writes.commit([(path, text)], "inseason-match")' in ins
-    assert 'writes.commit([(matches_path(), M.dumps(new))], "inseason-resolve")' in ins
+    # the match save, and (T520) the Re-resolve — the generated resolution only (T679 #11)
+    assert ins.count("writes.commit(") == 2
+    assert 'writes.commit([(path, text), (M.resolved_path(), M.dumps_resolved(new))], "inseason-match")' in ins
+    assert 'writes.commit([(dst, out)], "inseason-resolve")' in ins and "out, dst = M.dumps_resolved(new), M.resolved_path()" in ins
     assert "path = matches_path()" in ins and "with writes.LOCK:" in ins
 
 

@@ -24,11 +24,15 @@ keyed by) is untouched: the registry pass changes item MEMBERSHIP and KIND, neve
 it, the files are written into `--build` in place, which is refused for a promoted atlas unless
 `--force` (`vintage.promoted_atlas`).
 
-This is a MIGRATION for an atlas built before the fields existed: a new build writes all of them
-itself, by the same functions. It reads the same inputs the build does, so the two cannot disagree;
-a curated file edited since the atlas was built is refused where the atlas and the file disagree
-(a part that is not an item, a curated split the atlas did not resolve). Running it on an atlas
-that already has them changes nothing (the registry pass is idempotent).
+A SUPPORTED LABEL-ONLY PATH, NOT A SECOND BUILD (T679 #15, owner kept 2026-11-20). It began as a MIGRATION for an atlas
+built before the fields existed, and it is now also how a curated label, name or offset edit reaches an atlas without a
+rebuild (`--splits-only`; a review proposal points at it; T926's `finish_names`). The atlas build writes every one of
+these files itself, by the same functions, from the same inputs, and THE TWO WRITERS MUST AGREE: on an atlas built by
+this code from today's curated files, a sidecar run writes every file of `SIDECARS` byte for byte as the build did
+(`disagreements`; `--check OUT`, exit 1 naming the files; `test_sidecars_agree.py` on the served atlas, `-m slow`). A
+curated file edited since the atlas was built is refused where the atlas and the file disagree (a part that is not an
+item, a curated split the atlas did not resolve). Running it on an atlas that already has them changes nothing (the
+registry pass is idempotent). It never changes a section: anything that moves a cut is an atlas build.
 """
 from __future__ import annotations
 
@@ -41,9 +45,24 @@ from pathlib import Path
 from pipeline.common.curated import CURATED, GENERATED
 from pipeline.atlas.splits.splits import dump_resolved, order_resolved
 
+#: every file a sidecar run writes. (T679 #15) `widening_fold_report.json` was missing: with `--out` it was LINKED to
+#: the build's own and then written through the link, into the source atlas.
 SIDECARS = ("region_home.json", "registry.json", "item_points.json", "merge_report.json", "slough_fold_report.json",
             "one_water_report.json", "splits.resolved.json", "lake_loop_report.json", "wbk_variant_report.json",
-            "shown_name_report.json")
+            "shown_name_report.json", "widening_fold_report.json")
+
+
+def disagreements(build: Path, out: Path) -> list[str]:
+    """T679 #15: the files of `SIDECARS` a sidecar run into `out` wrote otherwise than the atlas build did into `build`
+    (`<name>: missing in <dir>` when one side has it and the other not), sorted. Empty: the two writers agree."""
+    bad = []
+    for name in SIDECARS:
+        a, b = Path(build) / name, Path(out) / name
+        if a.exists() != b.exists():
+            bad.append(f"{name}: missing in {out if a.exists() else build}")
+        elif a.exists() and a.read_bytes() != b.read_bytes():
+            bad.append(name)
+    return sorted(bad)
 
 
 def enrich_resolved(rows: list[dict], curated_defs, *, strict: bool = True) -> list[dict]:
@@ -224,11 +243,22 @@ def main(argv=None) -> int:
                     help="write a new build dir here (symlinks + the three sidecars) instead of in "
                          "place")
     ap.add_argument("--force", action="store_true", help="write in place into a promoted atlas")
+    ap.add_argument("--check", type=Path, default=None, metavar="OUT",
+                    help="T679 #15: write the sidecars into OUT (a new dir) and compare them with the build's own; "
+                         "exit 1 naming every file the two writers disagree on")
     ap.add_argument("--splits-only", action="store_true",
                     help="with --out: link everything, write only splits.resolved.json (a curated "
                          "split label or offset edit)")
     a = ap.parse_args(argv)
     build = a.build or GENERATED.require_build()
+    if a.check is not None:
+        if Path(a.check).exists() and any(Path(a.check).iterdir()):
+            raise SystemExit(f"sidecars: --check {a.check} is not empty — name a new directory")
+        write_sidecars(build, a.check)
+        bad = disagreements(build, a.check)
+        print(f"sidecars --check: {'the two writers agree' if not bad else 'DISAGREE on ' + ', '.join(bad)} "
+              f"({len(SIDECARS)} file(s) compared)")
+        return 1 if bad else 0
     if a.splits_only:
         if a.out is None:
             raise SystemExit("sidecars: --splits-only needs --out")

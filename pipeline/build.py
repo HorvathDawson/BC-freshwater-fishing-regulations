@@ -157,7 +157,9 @@ def code_digest(roots) -> str:
 #: overrides, the owner's found-name calls — `tools.mined_names` turns those into `found_names.json`, which IS hashed —
 #: the closed-domains list) and the hand worklist with no build reader (`unmapped_waters`).
 NOT_DELIVER_INPUTS = ("base", "review.proposal_overrides", "review.closed",
-                      "waters.slough_page_calls", "waters.found_name_calls", "waters.unmapped_waters")
+                      "waters.slough_page_calls", "waters.found_name_calls", "waters.unmapped_waters",
+                      # T679 #13: read by the added-streams generator only (its output, added_streams.json, is read)
+                      "waters.added_stream_calls")
 
 
 def curated_digest() -> str:
@@ -251,7 +253,17 @@ def deliver_sources(missing_ok: bool = False) -> dict:
     out["clim"] = hashlib.sha256(Path(CLIM_PATH).read_bytes()).hexdigest()[:16]
     # (T211) the DFO salmon rules the bundle snapshots (the typed feed), by content
     out["dfo"] = dfo_feed_digest()
+    # (T679 #11) the in-season notices' end tokens `display.ends` holds words for: read from the matches' GENERATED
+    # resolution (no longer in the curated digest)
+    out["inseason_ends"] = inseason_ends_digest()
     return out
+
+
+def inseason_ends_digest() -> str:
+    """The end tokens of the resolved in-season matches (`matches.end_tokens`, all deliver reads of them). A missing
+    resolution raises, naming the command (`matches.load`)."""
+    from pipeline.regs.inseason import matches as M
+    return _sha(M.end_tokens(M.load()))
 
 
 def dfo_feed_digest() -> str | None:
@@ -325,22 +337,11 @@ def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
 
 
 def _tidal_key(build_dir: Path) -> dict:
-    """The reach stage's tidal inputs: `{"tidal_record": digest}` of an atlas cut by the coast rule (T678), else the
-    pre-T678 sidecar keys exactly as they were."""
-    from pipeline.atlas.reach.outside import tidal_splits, tidal_waters
+    """The tidal stage input of the reach and the tiles: `{"tidal_record": digest}` of the atlas's one tidal record
+    (T678). An atlas cut before the coast rule is refused (`coast.require_coast_cut`): its sidecars are no longer read."""
     from pipeline.atlas.splits import coast as _coast
-    if _coast.built_by_coast_rule(build_dir):
-        return {"tidal_record": _sha(sorted(_coast.read_record(build_dir).items()))}
-    return {"tidal": _sha(tidal_splits(build_dir)), "tidal_waters": _sha(tidal_waters(build_dir)),
-            **_inside_key(build_dir)}
-
-
-def _inside_key(build_dir: Path) -> dict:
-    """(T665) `{"inside_tidal": digest}` of the atlas's lines wholly in tidal water, or {} when it lists none (an atlas
-    cut before the polygon rule), so an older atlas's stage keys stay what they were."""
-    from pipeline.atlas.reach.outside import inside_lines
-    got = inside_lines(build_dir)
-    return {"inside_tidal": _sha(got)} if got else {}
+    _coast.require_coast_cut(build_dir)
+    return {"tidal_record": _sha(sorted(_coast.read_record(build_dir).items()))}
 
 
 def tiles_key(build_dir: Path) -> dict:
@@ -351,14 +352,10 @@ def tiles_key(build_dir: Path) -> dict:
     areas = Path(CURATED.waters.areas)
     # (T173) the fish obstacles' own fetched file; missing, the key says so and the stage runs (and names the fetch)
     ob = obstacles_source()
-    from pipeline.atlas.reach.outside import tidal_splits, tidal_waters
     return {"handles": digest_for(build_dir), "gpkg": stamp(sources()["gpkg"]),
-            # T166: the tidal boundaries — the pieces below them come off the map
-            "tidal": _sha(tidal_splits(build_dir)),
-            # T212: whole tidal waters come off the map too
-            "tidal_waters": _sha(tidal_waters(build_dir)),
-            # T665: lines wholly in tidal water come off the map too (absent on an older atlas)
-            **_inside_key(build_dir),
+            # T166 -> T678: the atlas's tidal water comes off the map (its one record; the pre-T678 sidecar keys
+            # `tidal` / `tidal_waters` / `inside_tidal` are retired, 2026-11-20)
+            **_tidal_key(build_dir),
             "areas": hashlib.sha256(areas.read_bytes()).hexdigest()[:16], "code": code_digest(CODE["tiles"]),
             "obstacles": stamp(ob) if ob.exists() else None}
 

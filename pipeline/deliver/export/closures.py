@@ -2,7 +2,7 @@
 
 `closures_combine` (a water's own closure and its zone's both hold), the gotchas added to `guide.gotchas`
 (`with_closure_gotchas`), and the release/quota-under-closure scans (`_closure_scan`) the export refuses unless
-each finding is listed as known (`RELEASE_UNDER_CLOSURE_KNOWN`, `QUOTA_UNDER_CLOSURE_KNOWN`).
+each finding is listed as known (the owner's rulings, `regulations/under_closure_calls.json`).
 """
 from __future__ import annotations
 
@@ -115,104 +115,40 @@ def with_closure_gotchas(g: dict, d: dict, bundle: Path) -> dict:
     return g
 
 
-#: A DATED WATER RELEASE THAT SPEAKS WHILE A BLANKET CLOSURE OF ITS REGION ALSO SPEAKS can never
-#: apply — it is exactly how a missed exemption shows (the Nicola, RU-2). The
-#: export refuses one unless it is listed here with why it is benign: `(entry_id, rule_id)`.
-RELEASE_UNDER_CLOSURE_KNOWN: dict[tuple[str, str], str] = {
-    ("r4:duck_lake_permit_required_see_note_on_page_34@4-6", "duck_lake.r3"):
-        "the Duck Lake row's bass catch and release (May 15-Jun 15) binds the STREAM sections of "
-        "the entry's water (its tributary creeks), under Region 4's Apr 1-Jun 14 stream "
-        "closure: both hold, and the creeks stay closed to Jun 14 (user decision 2026-10-05: "
-        "the row's release does not lift the stream closure); the lake itself is not a stream",
-}
+#: THE OWNER'S RULINGS ON THE TWO CLOSURE SCANS (T679 #12: curated data, no longer code), `regulations/
+#: under_closure_calls.json`: `release` — a DATED WATER RELEASE THAT SPEAKS WHILE A BLANKET CLOSURE OF ITS REGION ALSO
+#: SPEAKS can never apply, exactly how a missed exemption shows (the Nicola, RU-2); `quota` — A WATER ROW'S KEEPING
+#: QUOTA, IN FORCE, SILENCED WHILE A BLANKET ZONE CLOSURE SPEAKS (review F5: since RU-7 a full closure silences the
+#: keepers it beats whatever their key, so a missed exemption shaped like a quota simply vanishes from the page). The
+#: export refuses a finding unless it is listed there with why it is benign, keyed `(entry_id, rule_id)`.
+UNDER_CLOSURE_FORMAT = "under_closure_calls/1"
 
-#: A WATER ROW'S KEEPING QUOTA, IN FORCE, SILENCED WHILE A BLANKET ZONE CLOSURE SPEAKS (review F5).
-#: Since RU-7 a full closure silences the keepers it beats whatever their key, so a missed
-#: exemption shaped like a QUOTA (a row's "2 per day" the book means to hold through the zone's
-#: closure) no longer shows as a contradiction on the page — it simply vanishes. The export
-#: refuses one unless it is listed here with why the silence is the book: `(entry_id, rule_id)`.
-QUOTA_UNDER_CLOSURE_KNOWN: dict[tuple[str, str], str] = {
-    # Every reason below is read under the STRICT LIFT RULING (2026-10-05): a zone closure and a
-    # water's row both hold — closed on the union of their dates — and a row beats the closure
-    # only where the book prints an exemption or a dated release/opening/quota INSIDE it.
-    ("r3:thompson_river_downstream_of_signs_at_kamloops_lake_outlet_t@3-13+3-14+3-18",
-     "thompson_river_downstream_of_kamloops_lake.r2"):
-        "the row's own Oct 1-May 31 closure and Region 3's Jan 1-Jun 30 spring stream closure "
-        "both hold (the user's own example of the union); only the printed 'Additional opening "
-        "May 1-31' lifts, on exactly those dates — so June is closed and the 2 per day holds "
-        "from Jul 1",
-    ("r3:nahatlatch_river@3-15", "nahatlatch_river.r3"):
-        "Region 3's Jan 1-Jun 30 spring stream closure holds on the whole river: below the lake "
-        "beside the row's own 'No Fishing Jan 1-May 31' (closed to Jun 30 — the p.28 list is a "
-        "steelhead closure list, no exemption; user decision 2026-10-05), above it alone; the "
-        "quota holds Jul 1-Dec 31",
-    # (Mahood River r2 left this list 2026-10-06: under the DENETIAH ruling the row's own 'No
-    # Fishing Jan 1-June 30' silences its quota — the water closing itself, not a zone closure
-    # hiding a missed exemption; `_closure_scan` counts such a quota as speaking.)
-    ("r6:west_road_blackwater_river_s_tributaries@6-1", "west_road_river_tributaries.r1"):
-        "tributaries only: the mainstem row prints 'tributaries subject to spring closure', so "
-        "Region 6's Fraser-watershed stream closure (Apr 1-Jun 30) holds on them and no lift "
-        "reaches a tributary (user decision 2026-10-05); the 1 per day holds the rest of the "
-        "year",
-    ("r7:west_road_blackwater_river_s_tributaries@7-10",
-     "west_road_blackwater_rivers_tributaries.r1"):
-        "tributaries only: as Region 6's — Zone 7A's spring stream closure holds on them ("
-        "'tributaries subject to spring closure'); the 1 per day holds the rest of the year",
-    # (Duncan River r4/r5 left this list 2026-10-13: under T13 (owner D4, 2026-10-12, commit
-    # ce74eaef) the ✱ row's "Exempt from spring closure" walks to its tributaries with its quotas,
-    # so Region 4's stream closure no longer silences the 5 rainbow / 2 bull trout there.)
-    ("r5:bowron_lake_park_waters_other_than_bowron_lake@5-16", "bowron_lake_park_waters.r1"):
-        "the park's streams lying in Zone 7A fall under Zone 7A's spring stream closure: Region "
-        "5's page exception (p.42) lifts only Region 5's closure, and the row prints no "
-        "exemption Zone 7A's tables list; its lakes keep the 1 per day",
-    ("r4:creston_valley_wildlife_management_area_cvwma_waters@4-6",
-     "creston_valley_wma_waters.r1"):
-        "bass 'no limit' on all CVWMA waters, undated: it lifts Region 4's bass CLOSURE (named "
-        "fish), never the Apr 1-Jun 14 stream closure on its stream/slough sections (sloughs "
-        "are streams, 2026-10-02) — both hold",
-    ("r8:okanagan_river@8-1", "okanagan_river.r2"):
-        "bass 8 per day, undated, on a stream under Region 8's spring stream closure outside "
-        "the reaches the row prints exempt: both hold, closed Apr 1-Jun 30",
-    ("r8:christina_creek@8-15", "christina_creek.r1"):
-        "bass 8 per day, undated, under Region 8's spring stream closure: no printed exemption, "
-        "both hold",
-    ("r4:duck_lake_permit_required_see_note_on_page_34@4-6", "duck_lake.r1"):
-        "the Duck Lake row's bass quota on its tributary creeks (STREAM sections) under Region "
-        "4's Apr 1-Jun 14 stream closure: both hold, the creeks are closed to Jun 14 (user "
-        "decision 2026-10-05: leave as built); the lake is not a stream",
-    ("r4:duck_lake_permit_required_see_note_on_page_34@4-6", "duck_lake.r2"):
-        "the same Duck Lake creeks: the bass size clause under the stream closure",
-    ("r4:french_slough@4-7", "french_slough.r1"):
-        "a slough is a stream (2026-10-02): Region 4's Apr 1-Jun 14 stream closure holds; the "
-        "row's undated quota lifts the bass CLOSURE (named fish), not the stream closure",
-    ("r4:lewis_cameron_slough@4-21", "lewis_cameron_slough.r1"):
-        "a slough is a stream (2026-10-02): as French Slough",
-    ("r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3", "kitimat_river.r5"):
-        "the hatchery steelhead 2 is silenced by the row's OWN Mar 16-May 31 closure (RU-3) on "
-        "the days Region 6's steelhead stream closure (May 15-Jun 15, its own exemption list "
-        "printed — the Kitimat is not on it) also holds",
-    # found by the every-day / every-fish sampling (review F6), the same class: a group-named
-    # quota, for one fish, under a full zone closure OF THAT FISH on its dates
-    ("r5:west_road_blackwater_river@5-12+5-13", "west_road_blackwater_river.r2"):
-        "the trout/char 1 per day, asked for a steelhead May 15-Jun 15: Region 6's steelhead "
-        "stream closure holds on the river's Region 6 pieces (its exemptions are the Skeena, "
-        "Nass, Iskut, Stikine and Taku mainstems only, p.49); the row lifts nothing for it",
-    ("r6:station_creek@6-9", "station_creek.r2"):
-        "the trout/char 1 per day, for a steelhead under Region 6's May 15-Jun 15 steelhead "
-        "stream closure: 'open all year' lifts only the full winter closure, never a species "
-        "closure (G4, user decision 2026-10-05)",
-    ("r6:hevenor_mcqueen_creek@6-30", "hevenor_creek.r2"):
-        "as Station Creek: 'open all year' never lifts Region 6's steelhead stream closure",
-    ("r6:two_mile_creek@6-8", "two_mile_creek.r2"):
-        "as Station Creek: 'open all year' never lifts Region 6's steelhead stream closure",
-    ("r5:bowron_lake_park_waters_other_than_bowron_lake@5-16", "bowron_lake_park_waters.r2"):
-        "the park's possession clause beside its 1 per day (r1, above): the same Zone 7A spring "
-        "stream closure on the park's streams",
-    ("r4:creston_valley_wildlife_management_area_cvwma_waters@4-6",
-     "creston_valley_wma_waters.r2"):
-        "yellow perch 'no limit' beside the bass (r1, above): the same Region 4 Apr 1-Jun 14 "
-        "stream closure on the CVWMA's stream/slough sections",
-}
+
+def under_closure_calls(path=None) -> tuple[dict[tuple[str, str], str], dict[tuple[str, str], str]]:
+    """`(release_known, quota_known)`: `{(entry_id, rule_id): why}` each, read from the curated file (a fresh dict
+    each call). A missing file raises (AGENTS 37: absent rulings are not "nothing is known"), as do a wrong format,
+    a row without its three fields and a key listed twice."""
+    if path is None:
+        from pipeline.common.curated import CURATED
+        path = CURATED.regulations.under_closure_calls
+    p = Path(path)
+    if not p.exists():
+        raise FileNotFoundError(f"{p}: the owner's under-closure rulings are missing (T679 #12) — restore it from git")
+    doc = json.loads(p.read_text(encoding="utf-8"))
+    if doc.get("format") != UNDER_CLOSURE_FORMAT:
+        raise SystemExit(f"{p}: format {doc.get('format')!r}, expected {UNDER_CLOSURE_FORMAT!r}")
+    out: list[dict] = []
+    for kind in ("release", "quota"):
+        got: dict = {}
+        for r in doc[kind]:
+            if not (r.get("entry_id") and r.get("rule_id") and r.get("why")):
+                raise SystemExit(f"{p}: a `{kind}` row needs entry_id, rule_id and why: {r}")
+            k = (r["entry_id"], r["rule_id"])
+            if k in got:
+                raise SystemExit(f"{p}: `{kind}` lists {k} twice")
+            got[k] = r["why"]
+        out.append(got)
+    return out[0], out[1]
 
 
 _SCAN: dict = {}
@@ -399,8 +335,8 @@ def closures_combine(bundle: Path) -> dict:
                      catch and release Jan 1-Feb 28; the Thompson's May opening, on the sections
                      it binds);
       `row_rule`     a row's dated release or keeping quota the reader silences under a zone
-                     full closure (`_closure_scan`, the rows of `QUOTA_UNDER_CLOSURE_KNOWN` /
-                     `RELEASE_UNDER_CLOSURE_KNOWN`): the row's rule does not open the water;
+                     full closure (`_closure_scan`, the rows of the curated rulings,
+                     `under_closure_calls`): the row's rule does not open the water;
       `subject_to`   a row printing that its water, or its tributaries, are "subject to" a zone
                      closure (West Road River's "tributaries subject to spring closure").
     `closures_combine_problems` checks every `zone_holds` claim against the reader."""
@@ -790,8 +726,8 @@ def release_under_closure(bundle: Path) -> list[dict]:
     rule set it binds, every start day of it and of the closures, every fish it names —
     `_closure_scan`). Such a release can never apply (the water is closed), so it is a missed
     exemption or a curation slip, never a reading. `problems` refuses any not in
-    `RELEASE_UNDER_CLOSURE_KNOWN`."""
-    return _known(_closure_scan(bundle)["release"], RELEASE_UNDER_CLOSURE_KNOWN)
+    the curated `release` rulings (`under_closure_calls`)."""
+    return _known(_closure_scan(bundle)["release"], under_closure_calls()[0])
 
 
 def quota_under_closure(bundle: Path) -> list[dict]:
@@ -800,8 +736,8 @@ def quota_under_closure(bundle: Path) -> list[dict]:
     a full blanket closure of a zone table speaks (`_closure_scan`). The page shows the closure
     alone; were the row meant to keep its quota through the closure (a missed exemption shaped
     like a quota, as the Stein's was a release), nothing else would say so. `problems` refuses
-    any not in `QUOTA_UNDER_CLOSURE_KNOWN`."""
-    return _known(_closure_scan(bundle)["quota"], QUOTA_UNDER_CLOSURE_KNOWN)
+    any not in the curated `quota` rulings (`under_closure_calls`)."""
+    return _known(_closure_scan(bundle)["quota"], under_closure_calls()[1])
 
 
 def _known(found: list[dict], known: dict) -> list[dict]:

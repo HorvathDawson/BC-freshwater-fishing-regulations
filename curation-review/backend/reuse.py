@@ -298,40 +298,26 @@ def _rowed_waters() -> dict[str, tuple[str, ...]]:
 
 def _tidal() -> dict[str, str]:
     """ALL THE TIDAL WATER the reach CLI takes out of every binding (`outside.tidal_water`), `{section: owner}`: the rows
-    marked `tidal` (Nitinat Lake) read from the corpus as it is NOW, then the piece below every tidal split this atlas
-    resolved (T166, `split:<id>`) and every whole tidal water (T212, `water:<item_id>`). The owners matter: a row marked
-    tidal keeps its own water only (`build.tidal_limit`). It read the rows alone while the owner was still marking
-    (T166 phase 1), so a rule reviewed here kept water below a tidal cut that ships without it."""
+    marked `tidal` (Nitinat Lake) read from the corpus as it is NOW, then the atlas's tidal water (T678: its one tidal
+    record, `coast.read_tidal`; `split:<id>`, `water:<item_id>`, `inside:<blk>`, `crossing:<section>`). The owners
+    matter: a row marked tidal keeps its own water only (`build.tidal_limit`). It read the rows alone while the owner
+    was still marking (T166 phase 1), so a rule reviewed here kept water below a tidal cut that ships without it."""
     from pipeline.atlas.reach.outside import tidal_owner
     out = dict(tidal_owner([e for _, e in _all_entries()], _registry(), strict=False))
     from pipeline.atlas.splits.coast import TIDAL_RECORD
-    from pipeline.atlas.splits.shore import INSIDE, RECORD
-    from pipeline.atlas.splits.tidal import RESOLVED
-    for s, o in _tidal_pieces_for(_stamp((Path(_BUILD) / RESOLVED, Path(_BUILD) / RECORD,
-                                          Path(_BUILD) / INSIDE, Path(_BUILD) / TIDAL_RECORD))).items():
+    from pipeline.atlas.splits.shore import RECORD
+    for s, o in _tidal_pieces_for(_stamp((Path(_BUILD) / RECORD, Path(_BUILD) / TIDAL_RECORD))).items():
         out.setdefault(s, o)
     return out
 
 
 @lru_cache(maxsize=1)
 def _tidal_pieces_for(_key: tuple) -> dict[str, str]:
-    """The atlas's tidal pieces (below each tidal split) and its whole tidal waters — keyed on the atlas's tidal
-    sidecar (T326), so a rewritten sidecar is read on the next request. Not strict:
-    a piece the run would refuse is left freshwater here, as the review app reads a corpus mid-edit. T678: an atlas cut
-    by the coast rule carries THE tidal record, read as it is (the review app recomputes nothing)."""
+    """The atlas's tidal water, keyed on its tidal record's stamp, so a rebuilt atlas is read on the next request. Read
+    as the reach CLI reads it (`coast.read_tidal`: the graph's nodes on an atlas built since T678 plan 5, the record
+    checking them); the review app recomputes nothing, and an atlas cut before the coast rule is refused."""
     from pipeline.atlas.splits import coast as _coast
-    if _coast.built_by_coast_rule(_BUILD):
-        return dict(_coast.read_record(_BUILD))
-    from pipeline.atlas.reach.outside import tidal_cut_owner, tidal_splits, tidal_waters, tidal_whole_owner
-    out = dict(tidal_cut_owner(_registry(), _graph(), tidal_splits(_BUILD), strict=False))
-    for s, o in tidal_whole_owner(_registry(), tidal_waters(_BUILD), strict=False).items():
-        out.setdefault(s, o)
-    # T665: the lines wholly in tidal water the atlas lists
-    from pipeline.atlas.reach.outside import inside_lines, tidal_inside_owner
-    inside = inside_lines(_BUILD)
-    for s, o in (tidal_inside_owner(_graph(), inside, strict=False) if inside else {}).items():
-        out.setdefault(s, o)
-    return out
+    return dict(_coast.read_tidal(_BUILD, _graph() if _coast.record_on_nodes(_BUILD) else None))
 
 
 @lru_cache(maxsize=1)

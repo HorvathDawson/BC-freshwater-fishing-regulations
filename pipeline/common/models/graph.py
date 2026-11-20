@@ -78,6 +78,11 @@ class StreamNode:
     # Stamped once by the atlas build; the reach takes the node out of every binding and the tiles
     # draw it in no water layer. A pickle from before the field reads the default.
     not_fishing: str = ""
+    # TIDAL WATER (T678 plan 5, owner B 2026-11-11: "keep them in the graph and mark them tidal in the build"): the
+    # owner of this section's tidal water (`split:<id>`, `water:<item>`, `inside:<blk>`, `crossing:<section>`), else "".
+    # Stamped once by the atlas build from its one tidal record (`atlas.splits.coast.stamp_nodes`) before graph.pkl is
+    # written; the reach and the tiles read it (`coast.read_tidal`). A pickle from before the field reads the default.
+    tidal: str = ""
 
     @property
     def is_barrier(self) -> bool:

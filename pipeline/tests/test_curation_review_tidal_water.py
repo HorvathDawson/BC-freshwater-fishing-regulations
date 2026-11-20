@@ -26,32 +26,27 @@ class _Item:
         self.section_ids = tuple(secs)
 
 
-def test_the_app_takes_out_the_rows_the_cut_pieces_and_the_whole_waters(reuse, monkeypatch):
-    import pipeline.atlas.reach.outside as O
+def test_the_app_takes_out_the_rows_and_the_atlas_record(reuse, monkeypatch):
+    """T678: the atlas's tidal water is read as the reach CLI reads it (`coast.read_tidal`), nothing recomputed; an
+    atlas cut before the coast rule is refused (the pre-T678 resolvers are retired)."""
     reg = {"lake:nitinat": _Item(["n1"]), "gnis:fraser": _Item(["f1", "f2"]), "gnis:annacis": _Item(["a1"])}
     monkeypatch.setattr(reuse, "_registry", lambda: reg)
     monkeypatch.setattr(reuse, "_graph", lambda: object())
     monkeypatch.setattr(reuse, "_all_entries", lambda: [("2", {"entry_id": "r1:nitinat", "tidal": True,
                                                                "matched": ["lake:nitinat"]})])
-    monkeypatch.setattr(O, "tidal_splits", lambda _b: ("fraser__cpr",))
-    monkeypatch.setattr(O, "tidal_cut_owner", lambda _r, _g, ids, strict: {"f2": f"split:{ids[0]}"})
-    monkeypatch.setattr(O, "tidal_waters", lambda _b: ("gnis:annacis",))
-    monkeypatch.setattr(O, "inside_lines", lambda _b: ())      # this test's atlas lists no line tidal whole
     from pipeline.atlas.splits import coast as C
-    monkeypatch.setattr(C, "built_by_coast_rule", lambda _b: False)     # an atlas cut before T678
+    monkeypatch.setattr(C, "built_by_coast_rule", lambda _b: True)
+    monkeypatch.setattr(C, "record_on_nodes", lambda _b: False)
+    monkeypatch.setattr(C, "read_record", lambda _b: {"f2": "split:fraser__cpr", "a1": "water:gnis:annacis",
+                                                      "k1": "crossing:k1"})
     reuse._tidal_pieces_for.cache_clear()
     got = reuse._tidal()
-    assert got == {"n1": "r1:nitinat", "f2": "split:fraser__cpr", "a1": "water:gnis:annacis"}
-    # T678: an atlas cut by the coast rule: its one tidal record is read, nothing recomputed (the resolvers are not asked)
-    monkeypatch.setattr(C, "built_by_coast_rule", lambda _b: True)
-    monkeypatch.setattr(C, "read_record", lambda _b: {"f2": "split:fraser__cpr", "k1": "crossing:k1"})
-    monkeypatch.setattr(O, "tidal_cut_owner", lambda *a, **k: (_ for _ in ()).throw(AssertionError("recomputed")))
-    reuse._tidal_pieces_for.cache_clear()
-    assert reuse._tidal() == {"n1": "r1:nitinat", "f2": "split:fraser__cpr", "k1": "crossing:k1"}
-    monkeypatch.setattr(C, "built_by_coast_rule", lambda _b: False)
-    monkeypatch.setattr(O, "tidal_cut_owner", lambda _r, _g, ids, strict: {"f2": f"split:{ids[0]}"})
-    reuse._tidal_pieces_for.cache_clear()
-    # and the owners do their work: the tidal row keeps its own lake, every other row loses all three
+    assert got == {"n1": "r1:nitinat", "f2": "split:fraser__cpr", "a1": "water:gnis:annacis", "k1": "crossing:k1"}
+    # and the owners do their work: the tidal row keeps its own lake, every other row loses all of it
     from pipeline.atlas.reach.build import tidal_limit
-    assert set(tidal_limit({"entry_id": "r1:nitinat", "tidal": True}, got)) == {"f2", "a1"}
-    assert set(tidal_limit({"entry_id": "r2:fraser"}, got)) == {"n1", "f2", "a1"}
+    assert set(tidal_limit({"entry_id": "r1:nitinat", "tidal": True}, got)) == {"f2", "a1", "k1"}
+    assert set(tidal_limit({"entry_id": "r2:fraser"}, got)) == {"n1", "f2", "a1", "k1"}
+    monkeypatch.setattr(C, "built_by_coast_rule", lambda _b: False)          # an atlas cut before T678: refused
+    reuse._tidal_pieces_for.cache_clear()
+    with pytest.raises(SystemExit, match="not cut by the coast rule"):
+        reuse._tidal()

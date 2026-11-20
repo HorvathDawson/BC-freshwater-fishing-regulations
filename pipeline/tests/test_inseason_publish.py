@@ -92,8 +92,9 @@ def test_a_file_resolved_on_an_older_release_publishes_and_a_release_not_on_disk
     from pipeline.deliver.answers.display import name_check
     doc = _doc({"is-aaaaaaaaaaaa": _m(waters={"wbk:9": {"all": True},
                                               "gnis:1": {"runs": [[7, 150, 250]], "ends": [["x", "source"]]}})})
-    src = tmp_path / "m.json"
-    src.write_text(M.dumps(doc))
+    src, res = tmp_path / "m.json", tmp_path / "resolved.json"       # (T679 #11) curated + its generated resolution
+    src.write_text(M.dumps_curated(doc))
+    res.write_text(M.dumps_resolved(doc))
     monkeypatch.setattr(M, "problems", lambda *a, **k: [])
     monkeypatch.setattr(R, "read_release", lambda d: _rel(name=d.name))
     monkeypatch.setattr(name_check, "release_waters", lambda d: ({}, {"x": ["X"]}))
@@ -104,21 +105,21 @@ def test_a_file_resolved_on_an_older_release_publishes_and_a_release_not_on_disk
     (rel / "r-2").mkdir()
     (rel / "r-2" / "manifest.json").write_text("{}")
     (rel / "LATEST").write_text("r-2\n")
-    assert PUB.main(["--matches", str(src), "--out", str(tmp_path / "ok")]) == 0
+    assert PUB.main(["--matches", str(src), "--resolved", str(res), "--out", str(tmp_path / "ok")]) == 0
     assert "resolved on r-1, this release is r-2" in capsys.readouterr().err
     out = json.loads((tmp_path / "ok" / "matches.json").read_text())
     assert out["format"] == "inseason-links/4" and "release" not in out
     # the same file read as if r-2 were the release it was resolved on: 150 / 250 are no section boundaries there
     monkeypatch.setattr(R, "read_release", lambda d: _rel(name="r-1"))
     with pytest.raises(PUB.Refused, match="does not start and end on its sections' boundaries"):
-        PUB.main(["--matches", str(src), "--out", str(tmp_path / "out")])
+        PUB.main(["--matches", str(src), "--resolved", str(res), "--out", str(tmp_path / "out")])
     # (T560 item 6) LATEST naming a folder with no manifest is refused by the one live-release reader
     (rel / "LATEST").write_text("r-1\n")
     with pytest.raises(SystemExit, match="names r-1, which has no manifest"):
-        PUB.main(["--matches", str(src), "--out", str(tmp_path / "out")])
+        PUB.main(["--matches", str(src), "--resolved", str(res), "--out", str(tmp_path / "out")])
     # a side release not on disk is still refused by name
     with pytest.raises(PUB.Refused, match="not on disk"):
-        PUB.main(["--matches", str(src), "--out", str(tmp_path / "out"), "--side-release", str(tmp_path / "nowhere")])
+        PUB.main(["--matches", str(src), "--resolved", str(res), "--out", str(tmp_path / "out"), "--side-release", str(tmp_path / "nowhere")])
     assert not (tmp_path / "out" / "matches.json").exists()
 
 
@@ -203,8 +204,10 @@ def test_span_is_cores_rule(case):
         assert (not (frm and frm > day) and not (to and to < day)) == want, day
 
 
+@pytest.mark.needs_bundle
 def test_the_curated_file_publishes():
-    """The committed notice_waters.json is resolved, stamped, and formats with no atlas."""
+    """The committed notice_waters.json, with its generated resolution (T679 #11: made beside the release, so this
+    reads generated data), is resolved, stamped, and formats with no atlas."""
     doc = M.load()
     links = PUB.compile_links(doc, "d")
     assert links["notices"] and "release" not in links
@@ -234,6 +237,48 @@ def test_the_curated_ranges_resolve_on_the_release_under_test(request):
     if exact:
         shifted = {"notices": {rid: {"waters": {item: {**w, "runs": [[blk, m0 + 1, m1]]}}}}}
         assert any("a shifted measure" in b for b in PUB.exact_problems(shifted, rel))
+
+
+# --------------------------------------------------------------------------- T679 #11: curated matches, generated ranges
+
+def test_the_curated_file_holds_only_the_owners_matches_and_the_two_files_read_back_as_one():
+    """(T679 #11) the curated file (`inseason-matches/3`) holds what the owner matched; what a resolve derives (release,
+    words, each match's waters / unresolved / stamp) is the generated resolution. Read together they are the one
+    document they were (byte for byte: publish's digest is of that text). MUTATION: a derived field in the curated file
+    is refused, naming the generated file; a match the resolution does not hold reads unresolved (publish refuses
+    it); a resolution of a match the owner cleared is dropped."""
+    doc = _doc({"is-aaaaaaaaaaaa": _m(waters={"gnis:1": {"runs": [[7, 100, 300]], "ends": [["x", "source"]]}}),
+                "is-bbbbbbbbbbbb": _m(unresolved="selects no section")})
+    cur, res = M.dumps_curated(doc), M.dumps_resolved(doc)
+    raw = json.loads(cur)
+    assert raw["format"] == M.CURATED_FORMAT and not {"release", "words"} & set(raw)
+    assert all(not {"waters", "unresolved", "stamp"} & set(m) for m in raw["matches"].values())
+    assert json.loads(res)["format"] == M.RESOLVED_FORMAT and json.loads(res)["release"] == "r-1"
+    assert M.dumps(M.merge(M.parse_curated(cur), json.loads(res))) == M.dumps(doc)
+    with pytest.raises(ValueError, match="belong in the generated resolution"):
+        M.parse_curated(json.dumps({**raw, "release": "r-1"}))
+    bad = json.loads(cur)
+    bad["matches"]["is-aaaaaaaaaaaa"]["waters"] = {}
+    with pytest.raises(ValueError, match=r"is-aaaaaaaaaaaa\.waters"):
+        M.parse_curated(json.dumps(bad))
+    with pytest.raises(ValueError, match="not 'inseason-matches/3'"):
+        M.parse_curated(M.dumps(doc))
+    r = json.loads(res)
+    del r["matches"]["is-aaaaaaaaaaaa"]
+    r["matches"]["is-cccccccccccc"] = {"waters": {"gnis:1": {"all": True}}}
+    got = M.merge(M.parse_curated(cur), r)
+    assert "not resolved yet" in got.matches["is-aaaaaaaaaaaa"].unresolved and "is-cccccccccccc" not in got.matches
+    with pytest.raises(PUB.Refused, match="not resolved yet"):
+        PUB.compile_links(got, "d")
+
+
+def test_a_missing_resolution_is_refused_naming_the_command(tmp_path):
+    """(T679 #11, AGENTS 37) no generated resolution is never "nothing resolved": `load` raises naming the resolve."""
+    src = tmp_path / "m.json"
+    src.write_text(M.dumps_curated(_doc({"is-aaaaaaaaaaaa": _m()})))
+    with pytest.raises(FileNotFoundError, match="python -m pipeline.regs.inseason.resolve"):
+        M.load(src, resolved=tmp_path / "nope.json", split_ids=())
+    assert M.load_curated(src, split_ids=()).matches["is-aaaaaaaaaaaa"].waters == {}
 
 
 # --------------------------------------------------------------------------- T623 F7, F20: own region, fresh water only

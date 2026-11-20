@@ -28,7 +28,8 @@ backend module but `writes.py` writes a file, its one caller being the mark.
 `test_curation_review_screen` calls every route and proves nothing under `data/curated` changed.
 The one exception (T230, owner 2026-10-28): the **In-season** tab (`#inseason/`) edits
 `data/curated/inseason/notice_waters.json` through `POST /api/inseason/matches` (Claude/owner tooling, not a mark;
-a history note per edit), by the same `writes.commit`.
+a history note per edit), by the same `writes.commit` — with (T679 #11) the match's GENERATED resolution
+`data/generated/inseason/resolved.json`, which `POST /api/inseason/resolve` alone rewrites.
 
 **DFO salmon extents (T164).** The top bar's "DFO salmon extents" (or `#dfo/<location_id>`) opens
 the second queue: every scraped DFO location, its notice words and rows, its extent on the map. A

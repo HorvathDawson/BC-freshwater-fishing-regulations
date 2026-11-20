@@ -92,7 +92,7 @@ def test_a_zone_tables_restatement_holds_on_its_own_region_only(db):
 
 @pytest.mark.needs_bundle
 def test_every_dated_water_release_under_a_blanket_closure_is_listed_as_known(db):
-    """The export refuses one that is not (`RELEASE_UNDER_CLOSURE_KNOWN`); on a bundle from before
+    """The export refuses one that is not (the curated `release` rulings, `under_closure_calls`); on a bundle from before
     the Nicola lift (RU-2) the Nicola is the one unlisted finding."""
     got = export_closures.release_under_closure(BUNDLE)
     unlisted = [x["rule"] for x in got if not x.get("known")]
@@ -111,16 +111,18 @@ def test_every_dated_water_release_under_a_blanket_closure_is_listed_as_known(db
 def test_every_water_quota_silenced_under_a_blanket_closure_is_listed_as_known(db, monkeypatch):
     """Review F5: since RU-7 a full closure silences a water row's group-named quota on its days,
     so a missed exemption shaped like a quota would vanish from the page. The export lists every
-    one (`quota_under_closure`) and refuses any not in `QUOTA_UNDER_CLOSURE_KNOWN`. Every finding
+    one (`quota_under_closure`) and refuses any not in the curated `quota` rulings. Every finding
     is known AND every known entry is found (a stale entry is a list that stopped meaning
     anything). MUTATION: drop one known entry and the export refuses it."""
     got = export_closures.quota_under_closure(BUNDLE)
     assert len(got) >= 14, got                  # not vacuous: the review's 14 at least
     assert [x["rule"] for x in got if not x.get("known")] == []
-    assert {x["rule"] for x in got} == {f"{e}::{r}" for e, r in export_closures.QUOTA_UNDER_CLOSURE_KNOWN}
+    release, quota = export_closures.under_closure_calls()
+    assert {x["rule"] for x in got} == {f"{e}::{r}" for e, r in quota}
     assert export_closures.release_under_closure_problems({"about": {"quota_under_closure": got}}) == []
     k = ("r3:nahatlatch_river@3-15", "nahatlatch_river.r3")
-    monkeypatch.delitem(export_closures.QUOTA_UNDER_CLOSURE_KNOWN, k)
+    del quota[k]
+    monkeypatch.setattr(export_closures, "under_closure_calls", lambda path=None: (release, quota))
     probs = export_closures.release_under_closure_problems(
         {"about": {"quota_under_closure": export_closures.quota_under_closure(BUNDLE)}})
     assert len(probs) == 1 and "nahatlatch_river.r3" in probs[0], probs
@@ -190,3 +192,24 @@ def test_a_zone_7a_or_7b_table_is_region_7_to_the_rows():
     assert EID.book_region(R.base_region("z7a:classified")) == EID.region_of("r7:x@7-1") == "7"
     assert EID.book_region(R.base_region("z7b:classified")) == "7"
     assert EID.book_region(R.base_region("z4:classified")) == "4"
+
+
+def test_the_under_closure_rulings_are_curated_data_and_refuse_a_bad_file(tmp_path):
+    """T679 #12: the owner's rulings on the two closure scans are a curated file, read by `under_closure_calls`;
+    the code holds no copy. A missing file, a wrong format, a row short of a field and a key listed twice are
+    refused (AGENTS 37), never read as "nothing is known"."""
+    import json
+    assert not hasattr(export_closures, "RELEASE_UNDER_CLOSURE_KNOWN")
+    assert not hasattr(export_closures, "QUOTA_UNDER_CLOSURE_KNOWN")
+    p = tmp_path / "under_closure_calls.json"
+    row = {"entry_id": "r1:x@1-1", "rule_id": "x.r1", "why": "the book"}
+    p.write_text(json.dumps({"_about": "t", "format": "under_closure_calls/1", "release": [row], "quota": []}))
+    assert export_closures.under_closure_calls(p) == ({("r1:x@1-1", "x.r1"): "the book"}, {})
+    with pytest.raises(FileNotFoundError):
+        export_closures.under_closure_calls(tmp_path / "gone.json")
+    for bad in ({"format": "under_closure_calls/0", "release": [], "quota": []},
+                {"format": "under_closure_calls/1", "release": [{**row, "why": ""}], "quota": []},
+                {"format": "under_closure_calls/1", "release": [], "quota": [row, row]}):
+        p.write_text(json.dumps(bad))
+        with pytest.raises(SystemExit):
+            export_closures.under_closure_calls(p)

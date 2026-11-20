@@ -1,9 +1,9 @@
 """T166 step 5 (owner 2026-10-28, RULINGS C-2): THE PIECE BELOW A TIDAL BOUNDARY IS TIDAL WATER.
 
-  limit     a `split` / `cut` row of waters/tidal_limits.json (T326) -> the atlas's `tidal.resolved.json`
-            -> the reach run reads the ids from the atlas (`outside.tidal_splits`)
+  limit     a `split` / `cut` row of waters/tidal_limits.json (T326) -> resolved BY THE ATLAS (T678 plan 2,
+            `atlas.splits.tidal.tidal_cut_owner`) into its one tidal record -> the reach run reads the record
   piece     `downstream_of` the cut on every item that carries it — no tributary
-            (`outside.TIDAL_PIECE_HAS_NO_TRIBUTARIES`, `tidal_cut_owner`)
+            (`tidal.TIDAL_PIECE_HAS_NO_TRIBUTARIES`, `tidal_cut_owner`)
   order     the tributary walk runs on the FULL network; the tidal piece leaves each binding AFTER
             it, so a creek entering tidal water stays its river's tributary (tributary-impact.md)
   loud      a rule left with no water is unresolved `tidal` and LISTED (`report.tidal_emptied`) —
@@ -19,14 +19,15 @@ import json
 import pytest
 
 from pipeline.atlas.reach import outside as O
+from pipeline.atlas.splits import tidal as T
 from pipeline.atlas.reach.build import build_reach, build_reaches, tidal_limit
 from pipeline.atlas.reach.models import Outcome, Reason
-from pipeline.atlas.splits.splits import RESOLVED_KEYS, order_resolved, write_resolved
+from pipeline.atlas.splits.splits import RESOLVED_KEYS, order_resolved
 from pipeline.common.models import FlowEdge, NodeKind, StreamGraph, StreamNode
 from pipeline.common.models.enums import AnchorType, BoundaryKind
 from pipeline.common.models.registry import RegistryBoundary, RegistryItem
 from pipeline.common.models.sections import SectionBoundary
-from pipeline.common.models.splits import SplitDef, SplitPoint
+from pipeline.common.models.splits import SplitDef
 
 TIDE = "river__tidal_boundary"
 
@@ -83,7 +84,7 @@ def _row(eid, rules, **kw):
 def test_the_tidal_piece_is_the_water_below_the_cut_and_no_tributary(estuary):
     g, reg = estuary
     rows: list = []
-    got = O.tidal_cut_owner(reg, g, [TIDE], report=rows)
+    got = T.tidal_cut_owner(reg, g, [TIDE], report=rows)
     assert got == {"R:0": f"split:{TIDE}"}                  # T1:0 joins it, and is not tidal
     assert rows == [{"split": TIDE, "items": ["gnis:1"], "sections": 1, "unplaced": [],
                      "ambiguous_cut": []}]
@@ -93,22 +94,31 @@ def test_the_tidal_piece_is_the_water_below_the_cut_and_no_tributary(estuary):
 def test_a_row_marked_tidal_keeps_its_claim_where_both_hold(estuary):
     g, reg = estuary
     row = {"entry_id": "r1:river@1-1", "matched": ["gnis:1"], "tidal": True}
-    got = O.tidal_water([row], reg, g, [TIDE])
+    got = O.tidal_water([row], reg, g, record=T.tidal_cut_owner(reg, g, [TIDE]))
     assert got == {"R:0": "r1:river@1-1", "R:1000": "r1:river@1-1", "R:3000": "r1:river@1-1"}
 
 
 def test_a_tidal_split_no_item_carries_stops_the_run(estuary):
     g, reg = estuary
     with pytest.raises(SystemExit, match="no registry item carries it"):
-        O.tidal_cut_owner(reg, g, ["not_cut"])
-    assert O.tidal_cut_owner(reg, g, ["not_cut"], strict=False) == {}
+        T.tidal_cut_owner(reg, g, ["not_cut"])
+    assert T.tidal_cut_owner(reg, g, ["not_cut"], strict=False) == {}
 
 
 # ------------------------------------------------------------- walk first, then drop the piece
 
+def _record(reg, g, splits=(TIDE,), whole=()):
+    """the atlas's tidal record for these limits (T678: the atlas resolves, the reach reads)"""
+    out = dict(T.tidal_cut_owner(reg, g, list(splits)))
+    for s, o in T.tidal_whole_owner(reg, list(whole)).items():
+        out.setdefault(s, o)
+    return out
+
+
 def _run(estuary, rules, tidal_splits=(TIDE,), **kw):
     g, reg = estuary
-    res = build_reaches([_row("r1:river@1-1", rules, **kw)], reg, g, tidal_splits=tidal_splits)
+    res = build_reaches([_row("r1:river@1-1", rules, **kw)], reg, g,
+                        tidal_record=_record(reg, g, tidal_splits) if tidal_splits else None)
     return res, {b.rule_id: b for b in res.bindings}
 
 
@@ -155,7 +165,7 @@ def test_zone_rules_stop_at_the_tidal_boundary(estuary):
     g, reg = estuary
     zone = {"entry_id": "z1:quota", "matched": [],
             "rules": [{"rule_id": "z", "extents": [{"op": "within", "area_id": "area:region:1"}]}]}
-    res = build_reaches([zone], reg, g, tidal_splits=(TIDE,))
+    res = build_reaches([zone], reg, g, tidal_record=_record(reg, g))
     assert set(res.bindings[0].sections) == {"R:1000", "R:3000", "T1:0", "T2:0"}
 
 
@@ -174,22 +184,12 @@ def test_a_row_marked_tidal_still_loses_the_piece_below_a_cut(estuary):
 
 # ------------------------------------------------------------------- the flag through the atlas
 
-def _sidecar(tmp_path, rows):
-    from pipeline.atlas.splits.tidal import write_resolved as write_tidal
-    write_tidal(tmp_path, rows)
-
-
-def test_the_tidal_limits_reach_the_run_through_the_atlas_sidecar(tmp_path):
-    """T326: which cut is tidal is a row of waters/tidal_limits.json, resolved by the atlas into `tidal.resolved.json`; the
-    run reads the `split` / `cut` ids and the `whole` items from it — never a flag on splits.json."""
-    _sidecar(tmp_path, [{"blk": "1", "limit": "split", "split_id": TIDE},
-                        {"blk": "2", "limit": "cut", "split_id": "creek__tidal_boundary"},
-                        {"blk": "3", "limit": "mouth", "alias": "x__tidal_boundary"},
-                        {"blk": "4", "limit": "whole", "item": "gnis:2"}])
-    assert O.tidal_splits(tmp_path) == ("creek__tidal_boundary", TIDE)
-    assert O.tidal_waters(tmp_path) == ("gnis:2",)
-    with pytest.raises(SystemExit, match="missing"):
-        O.tidal_splits(tmp_path / "nowhere")
+def test_the_rank1_ids_are_the_split_and_cut_ids_and_the_whole_items():
+    """T326/T678: which cut is tidal is a row of waters/tidal_limits.json; the atlas resolves the `split` / `cut` ids
+    (a `cut` row by its minted id) and the `whole` items (`tidal.rank1_ids`) — never a flag on splits.json."""
+    rows = [T.Limit(blk="1", limit="split", split=TIDE), T.Limit(blk="2", limit="cut"),
+            T.Limit(blk="3", limit="mouth"), T.Limit(blk="4", limit="whole", item="gnis:2")]
+    assert T.rank1_ids(rows, {"2": "creek__tidal_boundary"}) == (["creek__tidal_boundary", TIDE], ["gnis:2"])
     assert "tidal" not in RESOLVED_KEYS
     with pytest.raises(ValueError, match="carries"):
         order_resolved({"split_id": TIDE, "tidal": True})
@@ -236,15 +236,25 @@ def test_the_preview_lists_a_rule_wholly_below_a_cut(tmp_path):
 
 # ------------------------------------------------- off the map: the tiles, the area, the bundle's proof
 
-def test_the_tiles_leave_off_the_reach_runs_own_set(estuary, tmp_path):
-    from pipeline.deliver.tiles.tidal import tidal_pieces
+def test_the_tiles_leave_off_the_atlas_record_and_on_plan_5_read_the_node(estuary, tmp_path):
+    """T678: the tiles read the atlas's one tidal record (`tidal_pieces`), and on an atlas whose nodes carry the owner
+    (plan 5) the exporter's graph is the fact, refused unless the record says the same (`on_the_graph`)."""
+    from pipeline.atlas.splits import coast as C
+    from pipeline.deliver.tiles.tidal import on_the_graph, tidal_pieces
     g, reg = estuary
-    _sidecar(tmp_path, [{"blk": "R", "limit": "split", "split_id": TIDE}])
-    assert tidal_pieces(tmp_path, graph=g, registry=reg, whole=()) == frozenset(O.tidal_cut_owner(reg, g, [TIDE]))
-    _sidecar(tmp_path, [])
-    assert tidal_pieces(tmp_path, graph=g, registry=reg, whole=()) == frozenset()
-    # T212: a whole tidal water comes off the map too
-    assert tidal_pieces(tmp_path, graph=g, registry=reg, whole=("gnis:2",)) == frozenset({"T1:0"})
+    rec = _record(reg, g, whole=("gnis:2",))
+    (tmp_path / "shore_cuts.json").write_text(json.dumps({"rule": C.RULE, "runs": []}))
+    C.write_record(tmp_path, rec, {})
+    assert tidal_pieces(tmp_path) == frozenset({"R:0", "T1:0"})
+    assert on_the_graph(tmp_path, g, tidal_pieces(tmp_path)) == frozenset({"R:0", "T1:0"})   # pre-plan-5: the record
+    C.stamp_nodes(g, rec)
+    C.write_record(tmp_path, rec, {}, on_nodes=True)
+    assert on_the_graph(tmp_path, g, tidal_pieces(tmp_path)) == frozenset({"R:0", "T1:0"})
+    with pytest.raises(SystemExit, match="not the tidal pieces"):
+        on_the_graph(tmp_path, g, frozenset({"R:0"}))
+    (tmp_path / "shore_cuts.json").write_text(json.dumps({"rule": "polygon/1", "runs": []}))
+    with pytest.raises(SystemExit, match="not cut by the coast rule"):                    # pre-T678: retired
+        tidal_pieces(tmp_path)
 
 
 def test_the_tidal_area_is_the_dfo_polygon_plus_pieces_outside_it():
@@ -286,14 +296,14 @@ def test_a_whole_tidal_water_is_every_section_of_it_and_off_the_map(estuary):
     """Parsons / Annacis / Cannery / Morey Channels: "this entire channel is tidal"."""
     g, reg = estuary
     rows: list = []
-    got = O.tidal_whole_owner(reg, ["gnis:2"], report=rows)
+    got = T.tidal_whole_owner(reg, ["gnis:2"], report=rows)
     assert got == {"T1:0": "water:gnis:2"} and O.is_cut_owner("water:gnis:2")
     assert rows[0]["sections"] == 1
     with pytest.raises(SystemExit, match="not in the registry"):
-        O.tidal_whole_owner(reg, ["gnis:404"])
+        T.tidal_whole_owner(reg, ["gnis:404"])
     res = build_reaches([_row("r1:river@1-1", [{"rule_id": "r1", "extents": [{"op": "whole"}],
                                                 "includes_tributaries": True}])],
-                        reg, g, tidal_splits=(), tidal_waters=("gnis:2",))
+                        reg, g, tidal_record=_record(reg, g, (), ("gnis:2",)))
     b = res.bindings[0]
     assert "T1:0" not in b.sections and {"R:0", "R:1000", "T2:0"} <= set(b.sections)
     assert res.tidal == {"T1:0": "water:gnis:2"}
@@ -303,7 +313,7 @@ def test_a_rule_on_a_whole_tidal_water_is_unresolved_and_listed(estuary):
     g, reg = estuary
     res = build_reaches([{"entry_id": "r1:one@1-1", "matched": ["gnis:2"],
                           "rules": [{"rule_id": "c", "extents": [{"op": "whole"}]}]}],
-                        reg, g, tidal_waters=("gnis:2",))
+                        reg, g, tidal_record=_record(reg, g, (), ("gnis:2",)))
     assert res.bindings[0].reason is Reason.tidal
     assert res.report.tidal_emptied == [{"entry_id": "r1:one@1-1", "rule_id": "c", "splits": ["water:gnis:2"]}]
 
@@ -329,95 +339,24 @@ def test_a_row_marked_tidal_keeps_its_own_water_when_a_cut_exists_elsewhere(estu
     g, reg = estuary
     row = {"entry_id": "r1:two@1-1", "matched": ["gnis:3"], "tidal": True,
            "rules": [{"rule_id": "n", "extents": [{"op": "whole"}]}]}
-    res = build_reaches([row], reg, g, tidal_splits=(TIDE,))
+    res = build_reaches([row], reg, g, tidal_record=_record(reg, g))
     b = res.bindings[0]
     assert b.outcome is Outcome.bound and set(b.sections) == {"T2:0"}
     assert res.tidal["T2:0"] == "r1:two@1-1" and res.tidal["R:0"] == f"split:{TIDE}"
 
 
-# ------------------------------------------- T660: a stream entering tidal water ends at its own shore
+# ------------------------------------------- T660 -> T678: the piece below a coast cut, from the atlas's record
 
-SHORE = "split:shore:C1:300"
-
-
-def _shore(m, sid=SHORE):
-    return SectionBoundary(boundary_id=sid, kind=BoundaryKind("split"), route_measure=m, source="shore")
-
-
-@pytest.fixture
-def crossings(estuary):
-    """The estuary plus three creeks drawn on across the water to the river's line (FWA's water crossing):
-    C1 enters the TIDAL piece R:0 (its crossing 0-300 m cut at its shore), C2 enters the FRESH piece R:1000 the
-    same way, C3 enters C1's crossing (a crossing into a crossing). Their edge types are the parent's, mixed, as
-    every cut piece's are (`sectionizer._split_one`); only the shore cut says where the crossing ends."""
+def test_a_zone_rule_keeps_the_creek_and_loses_its_crossing(estuary):
+    """The atlas's record names the pieces below a line's coast cut (`crossing:<section>`, `coast.tidal_owners`); the
+    reach takes them out after the walk and COUNTS them in the rule's diagnostic, never listed as cuts."""
     g, reg = estuary
-    mixed = ("1000", "1450")
-    up1, up2 = _shore(300), _shore(250, "split:shore:C2:250")
-    nodes = list(g.nodes.values()) + [
-        _s("C1:0", "C1", 0, 300, upper=up1, wsc="900-100000-020000", order=1),
-        _s("C1:300", "C1", 300, 2300, lower=up1, wsc="900-100000-020000", order=1),
-        _s("C2:0", "C2", 0, 250, upper=up2, wsc="900-100000-500000", order=1),
-        _s("C2:250", "C2", 250, 1250, lower=up2, wsc="900-100000-500000", order=1),
-        _s("C3:0", "C3", 0, 120, wsc="900-100000-020000-001000", order=1),
-    ]
-    nodes = [n if not n.blk.startswith("C") else
-             StreamNode(**{**n.__dict__, "edge_types": ("1450",) if n.blk == "C3" else mixed}) for n in nodes]
-    edges = [(e.from_node, e.to_node, e.kind, e.at_measure) for e in g.edges] + [
-        ("C1:300", "C1:0", "continuation", 300), ("C1:0", "R:0", "confluence", 400),
-        ("C2:250", "C2:0", "continuation", 250), ("C2:0", "R:1000", "confluence", 2500),
-        ("C3:0", "C1:0", "confluence", 100)]
-    reg = dict(reg, **{"area:region:1": RegistryItem(
-        id="area:region:1", name="Region 1", kind="area",
-        section_ids=tuple(sorted(set(reg["area:region:1"].section_ids) | {n.node_id for n in nodes})))})
-    return _graph(nodes, edges), reg
-
-
-def test_a_crossing_into_tidal_water_is_tidal_and_the_creek_above_its_shore_is_not(crossings):
-    g, reg = crossings
-    got = O.tidal_water([], reg, g, [TIDE])
-    assert got == {"R:0": f"split:{TIDE}", "C1:0": "crossing:C1:0", "C3:0": "crossing:C3:0"}
-    assert O.is_cut_owner("crossing:C1:0") and O.is_crossing_owner("crossing:C1:0")
-    assert not O.is_crossing_owner(f"split:{TIDE}")
-    # C2's crossing ends in FRESH water (above the tidal boundary): it stays freshwater, as does every creek above
-    assert O.crossing_pieces(g) == frozenset({"C1:0", "C2:0", "C3:0"})
-
-
-def test_a_zone_rule_keeps_the_creek_and_loses_its_crossing(crossings):
-    g, reg = crossings
+    rec = {**_record(reg, g), "T1:0": "crossing:T1:0"}
     zone = {"entry_id": "z1:quota", "matched": [],
             "rules": [{"rule_id": "z", "extents": [{"op": "within", "area_id": "area:region:1"}]}]}
-    res = build_reaches([zone], reg, g, tidal_splits=(TIDE,))
-    assert set(res.bindings[0].sections) == {"R:1000", "R:3000", "T1:0", "T2:0", "C1:300", "C2:0", "C2:250"}
+    res = build_reaches([zone], reg, g, tidal_record=rec)
+    assert set(res.bindings[0].sections) == {"R:1000", "R:3000", "T2:0"}
     diag = [d.payload for d in res.diagnostics if d.kind == "tidal"][0]
-    assert diag["splits"] == [TIDE] and diag["crossings"] == 2          # counted, never listed as cuts
-    assert {"split": O.CROSSING_REPORT, "items": [], "sections": 2, "unplaced": [],
-            "ambiguous_cut": []} in res.report.tidal_cuts
-
-
-def test_mutation_without_the_shore_cut_the_mixed_creek_stays_freshwater(crossings):
-    """A cut piece carries its parent's edge types: they cannot say where the crossing ends. Take the shore
-    boundary away and only the line that is a crossing through and through (C3) is one."""
-    g, reg = crossings
-    bare = {nid: StreamNode(**{**n.__dict__, "upper_bound": None, "lower_bound": None}) if n.blk in ("C1", "C2")
-            else n for nid, n in g.nodes.items()}
-    g2 = _graph(list(bare.values()), [(e.from_node, e.to_node, e.kind, e.at_measure) for e in g.edges])
-    assert O.crossing_pieces(g2) == frozenset({"C3:0"})
-    # C3 now enters C1:0, which is fresh: nothing but the tidal piece is tidal
-    assert O.tidal_water([], reg, g2, [TIDE]) == {"R:0": f"split:{TIDE}"}
-
-
-def test_a_crossing_into_a_row_marked_tidal_is_not_taken(crossings):
-    """A row marked tidal (Nitinat Lake) stays drawn, so the tiles cannot take its crossings: neither does the run."""
-    g, reg = crossings
-    row = {"entry_id": "r1:river@1-1", "matched": ["gnis:1"], "tidal": True}
-    got = O.tidal_water([row], reg, g, ())
-    assert not any(O.is_crossing_owner(o) for o in got.values())
-
-
-def test_the_tiles_leave_off_the_crossings_too(crossings, tmp_path):
-    from pipeline.deliver.tiles.tidal import tidal_pieces
-    g, reg = crossings
-    _sidecar(tmp_path, [{"blk": "R", "limit": "split", "split_id": TIDE}])
-    run = O.tidal_water([], reg, g, [TIDE])
-    assert tidal_pieces(tmp_path, graph=g, registry=reg, whole=()) == frozenset(run) == \
-        frozenset({"R:0", "C1:0", "C3:0"})
+    assert diag["splits"] == [TIDE] and diag["crossings"] == 1
+    assert O.is_cut_owner("crossing:T1:0") and O.is_crossing_owner("crossing:T1:0")
+    assert not O.is_crossing_owner(f"split:{TIDE}")

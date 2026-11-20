@@ -593,7 +593,8 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
     bundle → status index → export (each still runs alone); the index header (version 2) carries the
     bundle's `reach_digest` beside the handles, and the app refuses a mismatch. An atlas built before
     the sidecars existed gets them from `python -m pipeline.atlas.sidecars` (same inputs, never a
-    rebuild). THE READER RUNS ONCE (DATAFLOW, 2026-10-08): the bundle decides the rule order
+    rebuild; T679 #15: the supported label-only path, whose files must equal the build's own — `--check OUT`,
+    `test_sidecars_agree.py`). THE READER RUNS ONCE (DATAFLOW, 2026-10-08): the bundle decides the rule order
     (`rule_ix`), each section's rule key (`section_ruleset.key_ix`), every rule's `closure_grade`
     and THE PARTS of every named water (`part`/`part_section`); `python -m pipeline.deliver
     verdicts` writes `verdicts.sqlite` beside it (the traced reader per rule key × reading × fish ×
@@ -686,7 +687,7 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
     possession". 224 answers over every key changed (all keepers, under 27 such closures of 26
     waters);
     status index byte-identical; `_closure_scan` counts a quota the water's own closure silences
-    as speaking (Mahood r2 left `QUOTA_UNDER_CLOSURE_KNOWN`). LOSERS (gap G1):
+    as speaking (Mahood r2 left the `quota` rulings). LOSERS (gap G1):
     `effective_rules(trace=True)` also returns every rule that took part and lost — `state`
     lifted / displaced / moot, `reason` (`read.LOSS_REASONS`, the step that removed it first),
     `by` (the winner's rid); the steps remove rules only through `lose`, so the speakers ARE the
@@ -708,9 +709,9 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
     competition sets only the same subject against itself (`test_answers_gear.py`). FEB 29: a range
     printed to Feb 28 runs through Feb 29 (`catalogue.range_days`, the one place dates become days;
     `test_feb29.py`). The export REFUSES a dated water release that speaks under a blanket closure unless
-    listed as known (`export.closures.RELEASE_UNDER_CLOSURE_KNOWN` — how RU-2 would have been
+    listed as known (the owner's `release` rulings, curated `regulations/under_closure_calls.json` since T679 #12 — how RU-2 would have been
     caught), AND a water row's keeping quota in force that a blanket zone closure silences
-    (`QUOTA_UNDER_CLOSURE_KNOWN`, 20 as built: RU-7 hides such a quota from the page, so a missed
+    (its `quota` rulings, 19 as built: RU-7 hides such a quota from the page, so a missed
     exemption shaped like a quota would otherwise vanish). Both read every set, every start day of
     the rule and of the closures, every fish (`_closure_scan`).
 58. **The UI export ships ENCODED; the model is `export.model.build()`.** (Phase 4, 2026-10-05.)
@@ -888,7 +889,10 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
     `data/curated/inseason/notice_waters.json` (Claude/owner tooling, not a mark), written only via `writes.commit` by
     two routes: `POST /api/inseason/matches` (T230, owner 2026-10-28: an edit, a history note per edit) and
     `POST /api/inseason/resolve` (T520, 2026-11-09: re-derives the saved matches' ranges on the shipped release, never
-    changes a match; the screen test pins it to that one file). The verdict is `marks.verdict_from_answers`, the
+    changes a match). (T679 #11) The ranges are GENERATED, not curated: `data/generated/inseason/resolved.json`
+    (`inseason.matches.resolved_path()`, never committed; `matches.load` reads the two as one and raises on a missing
+    resolution); the save writes the curated match and its resolution in one `writes.commit`, the Re-resolve writes
+    ONLY the resolution (the screen test pins it to that one file). The verdict is `marks.verdict_from_answers`, the
     tiers `regs/review/tiers.py`, the coverage strip `regs/review/coverage.py` (its fold IS `squash`) — one function each.
 67. **The review queue has one order and one reader of the run** (T135). The order is `tiers.queue_rank` (tier, the
     most urgent risk factor `tiers.RISKS`, the severity-A pre-checks). ENTRIES ONLY (T184): no split is a review

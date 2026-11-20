@@ -384,23 +384,6 @@ def _place_id(p: dict) -> str:
     return f"{p['name']}@{p['lat']:.4f},{p['lon']:.4f}"
 
 
-def _in_bc(boundary: Path):
-    """A predicate: is this lon/lat inside British Columbia?
-
-    The Overpass query is a bounding box whose corners are Alberta, Alaska, Washington and
-    the Pacific — 1,872 of the 4,677 places it returns are not in BC. Calgary is not a
-    place from which to ask about BC fishing regulations, and an out-of-province label on
-    the map is a claim we cannot back.
-    """
-    import geopandas as gpd
-    from shapely.geometry import Point
-    from shapely.prepared import prep
-
-    gdf = gpd.read_file(boundary).to_crs(4326)
-    poly = prep(gdf.geometry.union_all())
-    return lambda lon, lat: poly.contains(Point(lon, lat))
-
-
 def _places(db: sqlite3.Connection, places_json: Path, boundary: Path,
             cov: Coverage) -> list[dict]:
     """The gazetteer: what a person types when they mean "near here"."""
@@ -411,13 +394,11 @@ def _places(db: sqlite3.Connection, places_json: Path, boundary: Path,
     # answers to "is this in British Columbia" and one of them eventually goes stale.
     from pipeline.common.licence import entries
     kept = entries(json.loads(places_json.read_text()), "places")   # `_licence` (ODbL) beside the list
-    rows = kept
+    # (T679 #18) no "outside BC dropped" count here: the fetch clipped the file, so it could only ever print nothing
     db.executemany("INSERT INTO place VALUES (?,?,?,?,?,?,?)",
                    ((n, _place_id(p), p["name"], p.get("place"), p.get("pop"),
                      p["lat"], p["lon"]) for n, p in enumerate(kept, 1)))
     cov.filled("place", len(kept))
-    if len(kept) < len(rows):
-        print(f"     ({len(rows) - len(kept):,} places outside BC dropped)")
     return kept
 
 
