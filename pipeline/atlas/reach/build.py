@@ -278,7 +278,8 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     licensing, narrowed = on_designations(licensing, rec_of, designations)
     lic_diags.extend(narrowed)
     # (T973) one carried unit per section, none where a final designation holds the section
-    carried, report.licensing_carried = carried_units(carried, licensing)
+    carried, report.licensing_carried = carried_units(
+        carried, licensing, lambda k: (designations[k].unit, designations[k].classified) if k in designations else k)
     report.licensing_carried["sections"] = len(carried)
     for d in narrowed:
         k = f"requirement:{d.kind}"

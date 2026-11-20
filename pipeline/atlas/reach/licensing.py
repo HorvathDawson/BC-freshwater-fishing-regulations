@@ -328,19 +328,21 @@ class CarriedUnit:
             raise ValueError(f"{self.section}: a carried unit passed no rowed water — it is an ordinary placement")
 
 
-def carried_units(carried: list[CarriedUnit], placements: list[LicensingPlacement]
+def carried_units(carried: list[CarriedUnit], placements: list[LicensingPlacement], unit_of=None
                   ) -> tuple[list[CarriedUnit], dict[str, int]]:
     """The carried units that stand: ONE PER SECTION, and none on a section any final designation holds (a section one
     walk drops and another places has its unit; the note would contradict it). Two walks dropping one section reach the
     same unit through the same waters (the walk down from a section does not depend on who walked it, beyond the walker's
     own water); where they do not, the first in (section, entry, record, through) order is kept and counted
-    (`disagree`). Sorted by section."""
+    (`disagree`; `disagree_unit` where `unit_of((entry, record))` — the unit and class — differs too: two rows of one
+    water printing one unit, the Stellako's in Regions 6 and 7, are no disagreement in what the note says). Sorted by
+    section."""
     held = {s for p in placements if p.kind == "designation" and p.placement == "sections" for s in p.sections}
     by_section: dict[str, set[CarriedUnit]] = {}
     for c in carried:
         by_section.setdefault(c.section, set()).add(c)
     out: list[CarriedUnit] = []
-    stats = {"placed_elsewhere": 0, "disagree": 0}
+    stats = {"placed_elsewhere": 0, "disagree": 0, **({"disagree_unit": 0} if unit_of else {})}
     for s in sorted(by_section):
         if s in held:
             stats["placed_elsewhere"] += 1
@@ -348,6 +350,8 @@ def carried_units(carried: list[CarriedUnit], placements: list[LicensingPlacemen
         cs = sorted(by_section[s], key=lambda c: (c.entry_id, c.record_id, c.through))
         if len({(c.entry_id, c.record_id, c.through) for c in cs}) > 1:
             stats["disagree"] += 1
+            if unit_of and len({unit_of((c.entry_id, c.record_id)) for c in cs}) > 1:
+                stats["disagree_unit"] += 1
         out.append(cs[0])
     return out, stats
 
