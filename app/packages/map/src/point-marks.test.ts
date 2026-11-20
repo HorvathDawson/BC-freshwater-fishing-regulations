@@ -36,7 +36,7 @@ describe("T317 point marks", () => {
       .toEqual(["bottom", "bottom", "bottom"]);
   });
   it("(T929) the label layer hangs each label by its feature's anchor; nothing else moves it sideways", () => {
-    const label = marksLayers({ ink: "#000000", card: "#ffffff" }, "box")[1] as { layout: Record<string, unknown> };
+    const label = marksLayers({ ink: colour("light", "color.ui.ink"), card: colour("light", "color.ui.card") }, "box")[1] as { layout: Record<string, unknown> };
     expect(label.layout["text-anchor"]).toEqual(["get", "anchor"]);
     expect((label.layout["text-offset"] as number[])[0]).toBe(0);
   });
