@@ -39,9 +39,7 @@ describe("<SpotScreen>", () => {
     // A gauge that does not speak for this water is not a missing value — it is an answer.
     const { getByText, queryByText } = render(
       <SpotScreen spot={spot()} palette={LIGHT} onBack={() => {}} />);
-    expect(getByText("No gauge is entitled to speak for this water, so no reading was recorded. A station " +
-                     "draining a far larger watershed would have given a number, and the number would have been " +
-                     "wrong.")).toBeTruthy();
+    expect(getByText("There is no gauge on this water, so no conditions were recorded. The nearest gauges are on much bigger rivers, so their numbers would be wrong here.")).toBeTruthy();
     expect(queryByText("m³/s")).toBeNull();
   });
 

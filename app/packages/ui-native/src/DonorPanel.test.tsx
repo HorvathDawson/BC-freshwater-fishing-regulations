@@ -212,14 +212,14 @@ describe("the donor panel", () => {
 
   it("says what each gauge contributes, as a number and not only as a bar", () => {
     draw({ value: answer() });
-    expect(screen.getByText("60% of this estimate")).toBeTruthy();
-    expect(screen.getByText("40% of this estimate")).toBeTruthy();
+    expect(screen.getByText("counts for 60% of the estimate")).toBeTruthy();
+    expect(screen.getByText("counts for 40% of the estimate")).toBeTruthy();
   });
 
   it("never rounds a real contribution down to nothing", () => {
     const v = answer();
     draw({ value: { ...v, rows: [row("08MH001", { weight: 0.003 })] } });
-    expect(screen.getByText("<1% of this estimate")).toBeTruthy();
+    expect(screen.getByText("counts for <1% of the estimate")).toBeTruthy();
   });
 
   it("explains the contribution in the model's own terms", () => {
@@ -264,8 +264,8 @@ describe("the donor panel", () => {
     ] } });
     expect(screen.getByTestId("donor-detail-08MH001").textContent).toBe("Reads below normal · lower than 9 days in 10 · upstream · drains 120 km² · 2.4× apart · 2 reaches away");
     expect(screen.getByTestId("donor-detail-08MH024").textContent).toBe("Reads below normal · lower than 9 days in 10 · upstream · drains 120 km² · 2.4× apart · on this reach");
-    expect(screen.getByTestId("donor-share-08MH001").textContent).toBe("60% of this estimate");
-    expect(screen.getByTestId("donor-share-08MH024").textContent).toBe("60% of this estimate");   // both rows weigh 0.6 here
+    expect(screen.getByTestId("donor-share-08MH001").textContent).toBe("counts for 60% of the estimate");
+    expect(screen.getByTestId("donor-share-08MH024").textContent).toBe("counts for 60% of the estimate");   // both rows weigh 0.6 here
   });
 
   it("draws no map when the caller has no tiles, and still lists the gauges", () => {
@@ -279,7 +279,7 @@ describe("the donor panel", () => {
     draw({ value: { ...v, rows: [row("08MH001", { percentile: null, weight: 0,
                                                    observedAt: new Date(2026, 8, 4, 8).toISOString() })] } });
     expect(screen.getByText("not counted today")).toBeTruthy();
-    expect(screen.queryByText("0% of this estimate")).toBeNull();
+    expect(screen.queryByText("counts for 0% of the estimate")).toBeNull();
   });
 
   it("draws no map until the routes are in", () => {

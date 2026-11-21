@@ -67,7 +67,7 @@ async function draw(src: WaterSource) {
 /** (T367) the card's title is the gauge switch: a press opens the list; a pick closes it */
 const pickDam = () => {
   fireEvent.click(screen.getByTestId("gauge-pick"));
-  fireEvent.click(screen.getByRole("radio", { name: "Chart DAM, Dam Creek below the Dam, 20% of this estimate" }));
+  fireEvent.click(screen.getByRole("radio", { name: "Chart DAM, Dam Creek below the Dam, counts for 20% of the estimate" }));
 };
 const title = () => screen.getByTestId("gauge-title").textContent;
 
@@ -98,7 +98,7 @@ describe("switching gauges", () => {
     expect(title()).toBe("Dam Creek below the Dam");
     expect(screen.queryByTestId("gauge-list")).toBeNull();               // the pick closed the list
     fireEvent.click(screen.getByTestId("gauge-pick"));
-    expect(screen.getByRole("radio", { name: "Showing DAM, Dam Creek below the Dam, 20% of this estimate" })
+    expect(screen.getByRole("radio", { name: "Showing DAM, Dam Creek below the Dam, counts for 20% of the estimate" })
       .getAttribute("aria-checked")).toBe("true");
     expect(screen.getByLabelText(chartLabel("72h"))).toBeTruthy();
     expect(screen.queryByText(LOADING_NOTE)).toBeNull();

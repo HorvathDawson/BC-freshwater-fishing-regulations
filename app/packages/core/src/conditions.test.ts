@@ -117,8 +117,8 @@ describe("donorShare: what a donor contributed", () => {
     expect(donorShare(row({ weight: 0.6 }))).toBe("60%");
   });
   it("says it as a labelled line under the bar", () => {
-    expect(donorWeightLine(row())).toBe("60% of this estimate");
-    expect(donorWeightLine(row({ weight: 0.003 }))).toBe("<1% of this estimate");
+    expect(donorWeightLine(row())).toBe("counts for 60% of the estimate");
+    expect(donorWeightLine(row({ weight: 0.003 }))).toBe("counts for <1% of the estimate");
     expect(donorWeightLine(row({ percentile: null }))).toBe("not counted today");
   });
 });
@@ -338,9 +338,7 @@ describe("the gauge reading under the estimate", () => {
   });
 
   it("refuses in words when no gauge may speak", () => {
-    expect(noGaugeSentence()).toBe("No gauge is entitled to speak for this water. A station "
-      + "draining a far larger watershed would have given a number, and the number would "
-      + "have been wrong.");
+    expect(noGaugeSentence()).toBe("There is no gauge on this water, so no conditions were recorded. The nearest gauges are on much bigger rivers, so their numbers would be wrong here.");
   });
 });
 
@@ -470,7 +468,7 @@ describe("the chart's read-out and controls", () => {
     expect(CONDITIONS_WORDS.zoom).toEqual({ in: "Zoom in", out: "Zoom out", fit: "Whole chart", group: "Chart zoom" });
     expect(CONDITIONS_WORDS.chartGauge).toBe("CHART THIS GAUGE");
     // (T920) one short faint line over the plot, in the read-out's place
-    expect(CONDITIONS_WORDS.zoomHint).toEqual({ touch: "Pinch to zoom, tap to read a value",
+    expect(CONDITIONS_WORDS.zoomHint).toEqual({ touch: "Pinch to zoom, tap or drag the bar to read",
                                                 pointer: "Scroll to zoom, point to read a value" });
   });
 });

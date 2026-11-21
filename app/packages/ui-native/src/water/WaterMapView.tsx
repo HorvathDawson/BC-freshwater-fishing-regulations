@@ -196,7 +196,7 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
       {/* THE BAR spans the canvas's width (the map is full-bleed under the water frame's header, T44); its words are on
           the frame's column, at the gutter every view's content starts at */}
       <View style={split ? { paddingTop: 14, paddingBottom: 14, backgroundColor: palette.card, flexShrink: 1, minHeight: 0 }
-                         : { paddingTop: 10, paddingBottom: 14, borderTopWidth: 1.5, borderTopColor: palette.ink,
+                         : { paddingTop: 10, paddingBottom: 4, borderTopWidth: 1.5, borderTopColor: palette.ink,
                              backgroundColor: palette.card, minHeight: floor.minHeight, justifyContent: "flex-end" }}
             testID="water-map-bar"
             onLayout={split ? undefined : floor.onLayout}
@@ -232,7 +232,7 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
                 flows into another the place is held at every part, empty or not, so nothing moves under a finger.
                 (T875 review) On the phone it is held on EVERY water: it lies between the steps and the foot the bar stands
                 on, so a step into a water with no exit (a headwater, the Cowichan) would drop the steps by its height. */}
-            {(dv.exitHeld || !split) && (
+            {dv.exitHeld && (
               <View style={{ minHeight: EXIT_SLOT, marginTop: 8 }} testID="water-map-exit-slot">
                 {/* (T345) the mouth meets tidal water: the line is said, with no way into it */}
                 {dv.exit?.tidal && (
@@ -249,6 +249,8 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
                 )}
               </View>
             )}
+            {/* (T979) PHONE: the report link is the bar's foot, not a row of its own under it (the map takes that height) */}
+            {!split && <View style={{ marginTop: 4 }}>{report}</View>}
           </>
         ) : dt ? (
           <>

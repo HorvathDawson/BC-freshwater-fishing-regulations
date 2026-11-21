@@ -59,7 +59,7 @@ export function donorMapLabel(r: MapFacts, o: DonorAsk = {}): string {
 
 /**
  * A choice in the chart's gauge switcher, for a screen reader: "Chart 08MH016, Chilliwack River at outlet of
- * Chilliwack Lake, 35% of this estimate" — "Showing …" for the one on the chart. A member that does not count says its
+ * Chilliwack Lake, counts for 35% of the estimate" — "Showing …" for the one on the chart. A member that does not count says its
  * state in the words its dot and its row say (T157: "flow forecast only" on a flow-only day under Level, never "not
  * counted today").
  */
@@ -67,7 +67,7 @@ export function gaugeChoiceLabel(r: MapFacts & Pick<DonorFacts, "station" | "rou
                                  o: DonorAsk = {}): string {
   const name = r.route?.name ? `, ${r.route.name}` : "";
   const said = donorMapLabel(r, o);
-  const what = donorState(r, o).kind === "reads" ? `${said} of this estimate` : said;
+  const what = donorState(r, o).kind === "reads" ? `counts for ${said} of the estimate` : said;
   return `${on ? "Showing" : "Chart"} ${r.station}${name}, ${what}`;
 }
 
