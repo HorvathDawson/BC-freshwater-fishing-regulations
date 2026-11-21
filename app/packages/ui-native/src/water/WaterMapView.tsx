@@ -1,7 +1,7 @@
 /**
  * THE WATER'S MAP VIEW (P15), drawn to the prototype's water map (`design/regs-v11.html` `mapHtml` / `markPop`): the real
  * map with the part you are on lit (`selected`) and the rest of the water lit as `water`, the camera on the part's box,
- * the boundary marks, ⤢ Whole river / lake, and under the map the bar — where the part sits, its name, ▼ Downstream /
+ * the boundary marks (T985: and the mouth's, "Flows into <water>" on the mouth part), ⤢ Whole river / lake, and under the map the bar — where the part sits, its name, ▼ Downstream /
  * ▲ Upstream (the ends disabled: "Lowest part" / "Highest part"), "Flows into <water> ›" at the mouth, and "Show
  * regulations for this part".
  *
@@ -21,7 +21,7 @@ import { Pressable } from "../Pressable";
 import { PART_FIT_MAX_ZOOM, WATER_MAP_WORDS, DAY_LABELS, bcNow } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { inSeasonSections, useAsync, useBackLayer, useInSeasonCovers, useKeptWhilePending, useRegsStore, useReleaseLines, useSalmonKey, useTidalWaterMap, useWaterMap,
+import { inSeasonSections, markTap, useAsync, useBackLayer, useInSeasonCovers, useKeptWhilePending, useRegsStore, useReleaseLines, useSalmonKey, useTidalWaterMap, useWaterMap,
          type WaterMapPartVM, type WaterMapVM, type WaterMapAction } from "@app/ui";
 import { MapScreen } from "../MapScreen";
 import { useSplitReport, useWaterMapSplit, WaterInset, WaterSplit } from "../WaterFrame";
@@ -151,7 +151,14 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
                    // (T459) step mode: every other water grey, the receiving water kept
                    focus near={d.near ?? NO_NEAR}
                    marks={dv?.marks.map((m) => ({ lon: m.lon, lat: m.lat, label: m.label, a11y: m.a11y, on: m.on })) ?? []}
-                   onPressMark={(i) => { const m = dv?.marks[i]; if (m && !kept) d.act({ type: "mark", ix: m.ix }); }}
+                   onPressMark={(i) => {
+                     const m = dv?.marks[i];
+                     if (!m || kept) return;
+                     // (T985) a boundary opens its words; the mouth what the bar's "Flows into" link opens (tidal: nothing)
+                     const t = markTap(m);
+                     if (t && "open" in t) onOpenWater(t.open.item as ItemId, t.open.part);
+                     else if (t) d.act(t.act);
+                   }}
                    // (T443) a part in its country, framed the same however it was reached (the first open, a step)
                    fit={dv ? { key: dv.fitKey, bbox: dv.bounds, refine: false, maxZoom: PART_FIT_MAX_ZOOM }
                      : dt ? { key: dt.fitKey, bbox: dt.bounds, refine: false, maxZoom: PART_FIT_MAX_ZOOM } : null}

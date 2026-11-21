@@ -23,7 +23,7 @@
  */
 import { useMemo, useRef, useState } from "react";
 import {
-  reportOnce, crossLabel, crossDown, crossUp, entryNames, entryPieces, exitLabel, groupBounds, mergeNav, itemNote, markA11y, markLabel, navSections, partAt, partBounds,
+  reportOnce, crossLabel, crossDown, crossUp, entryNames, entryPieces, exitLabel, groupBounds, mergeNav, itemNote, markA11y, markLabel, mouthA11y, mouthLabel, navSections, partAt, partBounds,
   onePartLabel, partName, partOfSection, partRowAria, partWhere, stepDown, stepUp, TIDAL_SHEET_WORDS, WATER_MAP_WORDS, wholeAria, wholeLabel, type Bbox,
   type NavCross, type NavExit, type WaterGroup,
 } from "@app/core";
@@ -104,10 +104,15 @@ export interface WaterMapPartVM {
   readonly note: string;
 }
 
-/** A boundary mark the map draws (only the marks the release places: a split lake's item boundaries have none). */
+/** A boundary mark the map draws (only the marks the release places: a split lake's item boundaries have none) — and
+ *  (T985) the water's MOUTH (`mouth`), last, where the release places it (`NavExit.at`). */
 export interface WaterMapMarkVM {
-  /** Its index in the group's marks: what a tap hands back. */
+  /** Its index in the group's marks: what a tap hands back. The mouth is no boundary: -1. */
   readonly ix: number;
+  /** (T985, owner 2026-11-21) The water's mouth: labelled "Flows into <water>" on the mouth part, as a boundary is on the
+   *  parts it ends. A tap opens `into` (the receiving water at the part the mouth meets, the bar's "Flows into" link);
+   *  `into` null: tidal water, nothing to open (T345). */
+  readonly mouth?: { readonly into: { readonly item: string; readonly part: number | null } | null };
   readonly lon: number;
   readonly lat: number;
   /** Shown beside the ring at the current part's ends and on the open mark; else null (a ring alone). */
@@ -216,6 +221,27 @@ function oneLabelPerPlace(marks: readonly WaterMapMarkVM[], same: ReadonlyMap<nu
   return marks.map((m) => (drop.has(m.ix) ? { ...m, label: null } : m));
 }
 
+/**
+ * (T985, owner 2026-11-21: "Label the mouth end") THE MOUTH'S MARK: a water with an exit is labelled "Flows into
+ * <water>" at its downstream end — on the mouth part, as the boundary marks are labelled at the current part's ends; a
+ * ring alone on the others. Only where the release places the mouth (`exit.at`); a release cut before it has none.
+ */
+function mouthMark(g: WaterGroup, onMouthPart: boolean): WaterMapMarkVM[] {
+  const e = g.exit;
+  if (!e?.at) return [];
+  return [{ ix: -1, lon: e.at[0], lat: e.at[1], label: onMouthPart ? mouthLabel(e) : null, a11y: mouthA11y(e), on: false,
+            mouth: { into: e.tidal ? null : { item: e.item, part: e.part } } }];
+}
+
+/** (T985) What a tap on a drawn mark does: a boundary opens (or closes) its words (`act`); the mouth opens the receiving
+ *  water at the part it meets (`open`, the bar's "Flows into" link); the mouth on tidal water: nothing (null). */
+type MarkTap = { readonly act: WaterMapAction }
+  | { readonly open: { readonly item: string; readonly part: number | null } } | null;
+export function markTap(m: WaterMapMarkVM): MarkTap {
+  if (!m.mouth) return { act: { type: "mark", ix: m.ix } };
+  return m.mouth.into ? { open: m.mouth.into } : null;
+}
+
 const partVM = (g: WaterGroup, i: number): WaterMapPartVM => {
   const p = g.parts[i]!;
   return { ix: i, item: p.item, partIx: p.partIx, name: partName(g, i), note: itemNote(g, i) };
@@ -253,8 +279,9 @@ export function waterMapView(g: WaterGroup, s: WaterMapState): WaterMapVM | null
     where: partWhere(g, at),
     down: step("down", down, crossDown(g, at)),
     up: step("up", up, crossUp(g, at)),
-    marks: oneLabelPerPlace(marks, new Map(g.marks.flatMap((m, ix) => (m.token === null ? [] : [[ix, placeOf(m.token)] as const]))),
-                            new Map(g.marks.flatMap((m, ix) => (m.token === null ? [] : [[ix, m.token] as const])))),
+    marks: [...oneLabelPerPlace(marks, new Map(g.marks.flatMap((m, ix) => (m.token === null ? [] : [[ix, placeOf(m.token)] as const]))),
+                                new Map(g.marks.flatMap((m, ix) => (m.token === null ? [] : [[ix, m.token] as const])))),
+            ...mouthMark(g, down === null)],
     // a mark with no named place (no end token) is titled "Boundary" — the words it has, nothing composed
     pop: open ? { title: markLabel(g, open) ?? W.boundary, close: W.close,
                   upLabel: W.upstreamSide, up: open.up.map((i) => partVM(g, i)),

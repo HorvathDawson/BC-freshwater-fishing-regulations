@@ -172,7 +172,10 @@ export interface NavRows {
                              readonly confidence?: Confidence }[];
   readonly sections: readonly { readonly sid: number; readonly partIx: number }[];
   readonly exit: { readonly ord: number; readonly part: number | null; readonly item: string;
-                   readonly name: string } | null;
+                   readonly name: string;
+                   /** (T985) the mouth's place, [lon, lat] in degrees (`water_exit.lon` / `lat`): where the map labels
+                    *  "Flows into <water>". Absent: a release cut before it (ADDITIVE in water/3) */
+                   readonly at?: readonly [number, number] } | null;
   /** `water_continue`: the other water (named from core; one core does not hold: damaged), this water's part at the
    *  junction (`part`) and the other's (`otherPart`). */
   readonly continuesAs: ContinueRow | null;
@@ -252,6 +255,15 @@ const nn = (c: Cell): number | null => (c === null || c === undefined ? null : N
 const json = <T>(c: Cell): T => JSON.parse(String(c)) as T;
 /** A microdegree column (`PACK_UNITS` geo.part_geo / water.part_mark) in degrees. */
 const micro = (c: Cell): number => Number(c) / 1e6;
+/** (T985) A `water_exit` row's mouth place (`{ at: [lon, lat] }`, degrees), or nothing for a release cut before the
+ *  columns (ADDITIVE in water/3: the row has no `lon`). A release that has them always fills them (NOT NULL): an empty
+ *  one is damaged, said. */
+const mouthAt = (ord: number, r: Row): { at?: readonly [number, number] } => {
+  if (!("lon" in r) && !("lat" in r)) return {};
+  const none = (c: Cell) => c === null || c === undefined;
+  if (none(r.lon) || none(r.lat)) throw damaged(`water ${ord}'s water_exit has no mouth place (lon, lat)`);
+  return { at: [micro(r.lon), micro(r.lat)] as const };
+};
 
 export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
   const caches = new Map<string, Map<string | number, Promise<unknown>>>();
@@ -674,7 +686,9 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
         g.all("SELECT part_ix, mid_sid, mid_lon, mid_lat, w, s, e, n FROM part_geo WHERE ord = ? ORDER BY part_ix", ord),
         w.all("SELECT lon, lat, token, down_part, up_parts, confidence FROM part_mark WHERE ord = ? ORDER BY mark_ix", ord),
         w.all("SELECT sid, part_ix FROM part_section WHERE ord = ? ORDER BY sid", ord),
-        w.get("SELECT down_ord, down_part FROM water_exit WHERE ord = ?", ord)]);
+        // (T985) every column: `lon` / `lat` (the mouth's place) are ADDITIVE in water/3, so whether this release has
+        // them is the row's own columns (one keyed read, a slice answers it), never a failed read
+        w.get("SELECT * FROM water_exit WHERE ord = ?", ord)]);
       const core = await base.core();
       // the other water of an exit or a continuation is core's; one core does not hold is a damaged release (said)
       const named = async (o: number, what: string) => {
@@ -704,7 +718,7 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
                    down: n(m.down_part), up: json<number[]>(m.up_parts), ...(c ? { confidence: c } : {}) };
         }),
         sections: sections.map((r) => ({ sid: n(r.sid), partIx: n(r.part_ix) })),
-        exit: exit ? { ord: n(exit.down_ord), part: nn(exit.down_part), ...down! } : null,
+        exit: exit ? { ord: n(exit.down_ord), part: nn(exit.down_part), ...down!, ...mouthAt(ord, exit) } : null,
         continuesAs: await cont(as), continuesFrom: await cont(from),
       };
     }),
