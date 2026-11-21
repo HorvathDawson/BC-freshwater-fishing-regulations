@@ -468,7 +468,7 @@ def test_t182_every_file_has_its_own_gate_and_the_total_is_the_phones(tmp_path):
     assert problems(ok | {"water": {"bytes": 1, "gz": B.SIZE_GATES["water"] + 1}}) == \
         [f"water: {B.SIZE_GATES['water'] + 1:,} B gzip > {B.SIZE_GATES['water']:,}"]
     # the total alone: gated files each under their gate, together over the phone's
-    big = {k: {"bytes": 1, "gz": B.SIZE_GATES[k]} for k in C.FILES}
+    big = {k: {"bytes": 1, "gz": B.size_gates()[k]} for k in C.FILES}
     assert sum(v["gz"] for v in big.values()) > B.OFFLINE_GATE
     assert [p.split(":")[0] for p in problems(big)] == ["offline total"]
 
@@ -586,7 +586,7 @@ def app_paint_fixture() -> dict:
     from pipeline.tests.test_status_index import _tiny
     db = _tiny_bundle()
     status = SI.encode(_tiny())
-    paint, area = P.encode(status, db), P.encode_area(db)
+    paint, area = P.encode(status, db, version=P.VERSION), P.encode_area(db)   # paint/5 whatever the switch (paint6 below)
     access = P.encode_access(db, handles=_tiny()["handles"])
     small = P.encode_small(db, 5.0)
     # (T679 #16) paint/6: the union no-access share decides "mostly inside" (its tiny world agrees with the summed rows)

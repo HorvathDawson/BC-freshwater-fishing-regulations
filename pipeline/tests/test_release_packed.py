@@ -134,10 +134,10 @@ def test_an_app_that_reads_only_the_old_formats_is_held_back_never_broken():
         assert reads[name][0] == C.FILES[name]["format"] and fmt in reads[name]
 
 
-def test_the_switch_is_off_until_084_is_in_the_production_stores():
-    """Owner 2026-11-20 09:59: this release's data (staging and production) stays near/1, down/1, climate/1. Flipping
-    it is a reviewed one-line change (packed.py), made in the first data release after app 0.8.4 is in production."""
-    assert P.SHIP_PACKED_FORMATS is False
+def test_the_switch_is_on_from_the_085_data_release():
+    """Owner 2026-11-20 09:59: off until app 0.8.4 was in production; 0.8.4 shipped to both stores, and the owner said
+    yes to the flip for the 0.8.5 data release (2026-11-21 plan). The release now needs app 0.8.4 (`app_gate`)."""
+    assert P.SHIP_PACKED_FORMATS is True
 
 
 @pytest.mark.parametrize("on", [False, True])

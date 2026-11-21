@@ -31,7 +31,8 @@ from typing import Iterable, List, Optional, Sequence, Tuple
 #: 0.8.4 (`app_gate`). Flip it to True in the FIRST data release cut after app 0.8.4 is live in BOTH production stores
 #: (Google Play production and the App Store) — never before: an older app keeps its data and is asked to update.
 #: App 0.8.4 reads both forms, whichever this says.
-SHIP_PACKED_FORMATS = False
+#: ON since the 0.8.5 data release (owner yes, 2026-11-21 plan): 0.8.4 is in both production stores.
+SHIP_PACKED_FORMATS = True
 
 #: (T679 #8, owner 2026-11-20 09:59 "Ranking's rule, list first") THE OWN-GAUGE FLAG (`flow-own`): OFF until the owner
 #: has seen the list of gauges that move between "ON THIS WATER" and "ESTIMATING FROM OTHER WATERS"

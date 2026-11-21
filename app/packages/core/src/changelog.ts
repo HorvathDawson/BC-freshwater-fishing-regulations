@@ -36,6 +36,15 @@ export function notesOn(e: ChangelogEntry, os: "android" | "ios" | "web"): reado
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.8.5", date: null, draft: true, notes: [
+      "Regulations: one Sources button at the foot of the page lists every source behind the rules",
+      "Conditions: plainer words for how a river compares with normal, and a clear note where no gauge can speak for the water",
+      "In-season changes that already ended no longer come back as New after an update",
+      "Opening a water from a web link and going back now returns to that water, not the last place you looked",
+      "The guided tour only shows the way, and Lost Lagoon in Stanley Park shows as closed, with the park bylaw named",
+    ],
+  },
+  {
     version: "0.8.4", date: null, draft: true, notes: [
       "Licence: a creek under a classified river shows that river's Classified Waters licence, with a note on why it may not apply where the creek has its own line in the book",
       "Salmon: where two regions' limits mix, each number names its region",
