@@ -21,6 +21,7 @@
   - lane/085-t988: table test of every close; finding the Android cause on the emulator.
   - lane/085-t981: building the curated local-closures path + Lost Lagoon.
   - lane/085-mouth: T985 #2 mouth label (pipeline export + app).
+  - lane/085-t989: T989 deep link then back lands on the water (owner 11-21).
 - Then: merge all into redesign/stream-sections (conflicts: T979/T982 ticket files, core words), ONE combined review
   (independent agent), after-shots from the main checkout, Android emulator walk (T984 testbed, T985 #1/#3, T988),
   version 0.8.5 + changelog (app/packages/core/src/changelog.ts), T686 flip (`packed.py`), data to staging, T975
