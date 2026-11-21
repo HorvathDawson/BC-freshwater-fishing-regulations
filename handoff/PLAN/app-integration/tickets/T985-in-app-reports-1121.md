@@ -1,6 +1,6 @@
 # T985 — In-app reports 2026-11-21 (4 items)
 
-Status: OPEN — joins the 0.8.5 batch (restart page step 1: "any new item joins the batch").
+Status: IN PROGRESS. Lane 085-ui reproduced on the web build (staging data, 390 px): #1 NOT reproduced (Chipmunk Creek, Conditions: a legend model click drew the new line with no spinner and no dim; the only blank-ish path is the dimmed held chart, opacity 0.45, when a model's series is not in hand: native cold start only). #2 REPRODUCED in part: Chilliwack part 1 labels only its upstream end (Tamihi Rapids Bridge); the mouth end has no mark, so no label (the group's `exit` carries no coordinates; text 'Flows into Vedder River' and the step button exist). A fix needs the mouth's place in the release: data + owner pick, not a UI guess. #3 NOT reproduced on web (Conditions -> Map coloured at 0.5 s and 4.5 s); the T451 colouring queue is native-only, so it needs the Android emulator / iOS sim (not run). left (Claude): emulator check for #1/#3, owner pick for #2.
 
 Source: `GET /reports` on the production feeds worker, read 2026-11-21 12:50. The fifth report (2026-11-20 23:38,
 Squamish River, "make the map a lot bigger") is T979.
