@@ -265,6 +265,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T985 | In-app reports 2026-11-21 (4 items: chart flicker on model change, Chilliwack downstream label, map uncoloured after Conditions, drag the chart date bar) | OPEN | | prod /reports, read 2026-11-21 |
 | T986 | Trout / Salmon switch: which one is on is hard to tell (bar sits between the two) | OPEN | | tester via owner 2026-11-21 |
 | T987 | Repo README and docs up to date; clean-up pass (dead scripts, stale files, merged branches) | POSTPONED (owner 2026-11-21: next release, not 0.8.5) | | owner 2026-11-21 |
+| T988 | The Sources menu's Done button doesn't close the menu; audit every menu/sheet's closing buttons | OPEN | | owner 2026-11-21 |
 
 ## Next after closed testing
 
