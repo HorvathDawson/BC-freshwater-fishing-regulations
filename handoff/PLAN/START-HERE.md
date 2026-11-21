@@ -4,10 +4,12 @@ One page, one pointer (T437): a new chat reads, in order,
 
 1. `AGENTS.md` (every rule), then `CLAUDE.md`.
 2. The newest restart page: **`handoff/PLAN/NEXT-SESSION-2026-11-21.md`** (written 2026-11-21 10:40: 0.8.4 is
-   out (production data, Play Internal, TestFlight, website); next: store checks, T980, T978, T982, T979).
+   out (production data, Play Internal, TestFlight, website); the job: the easy batch incl. all tester feedback, released to production, then a new chat).
 3. The top entry of `handoff/PLAN/STATUS.md` (what changed last), and `handoff/PLAN/OWNER-TODO.md` (what only the
    owner can do).
-4. The work list: `handoff/PLAN/app-integration/tickets/README.md` (the ledger; tickets are the sole source of work).
+4. Chat length (owner 2026-11-21): recommend a new chat at natural breaks (a release shipped, a batch done) and /compact
+   before a heavy step when the context is long. Update the restart page first.
+5. The work list: `handoff/PLAN/app-integration/tickets/README.md` (the ledger; tickets are the sole source of work).
 
 A second chat working the parked tickets (T667 rest, T686, T602, loose nits) reads `handoff/PLAN/PARKED-TICKETS.md` instead of step 2; iOS: `handoff/PLAN/ios/START-HERE-ios.md`.
 
