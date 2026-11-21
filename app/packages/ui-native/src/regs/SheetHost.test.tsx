@@ -227,3 +227,17 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     expect(screen.getByTestId("sheet-sub").textContent).toBe("Vedder River · Oct 10");
   });
 });
+
+describe("the Regulations page's foot Sources button (T990)", () => {
+  it("sits after the page's sections and opens the every-source sheet; Done closes it", () => {
+    const sheet = vi.fn((k: SheetKey): SheetVM | null => (k === "src:all"
+      ? { key: k, title: "Sources", sub: null, blocks: [{ k: "para", text: [{ t: "text", s: "every source" }] }] } : null));
+    const page = { ...VEDDER, sheet } as RegsPage;
+    render(<RegsScreen page={page} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} }} onDate={() => {}} />);
+    expect(screen.getByTestId("regs-all-sources").compareDocumentPosition(screen.getByTestId("regs-legal")) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
+    fireEvent.click(screen.getByTestId("regs-all-sources-button"));
+    expect(screen.getByRole("heading", { name: "Sources" })).toBeTruthy();
+    fireEvent.click(screen.getByLabelText("Done"));
+    expect(sheet).toHaveBeenCalledWith("src:all");
+  });
+});

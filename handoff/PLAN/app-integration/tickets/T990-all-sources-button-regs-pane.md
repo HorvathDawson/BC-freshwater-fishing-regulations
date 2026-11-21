@@ -1,9 +1,11 @@
 # T990 — Regulations pane: one "Sources" button at the bottom listing every source for this water
 
-Status: IN PROGRESS — lane/085-t990 (0.8.5 batch).
+Status: IN PROGRESS — lane/085-t990 built; left (Claude): merge + review + device walk
 
 Source: owner 2026-11-21, verbatim: "in the regulation pane we should have a source button at button with all regulation
 sources in one consistent spot. Keep the one sources too but this is in addition".
+Placement, owner 2026-11-21, verbatim: "It will be at bottom of page of regs". So it is the last item at the END of the
+scrolled Regulations page content (after the last section, by "Report a problem"), not a pinned/floating footer.
 
 ## Work
 - At the foot of the water page's Regulations tab, always in the same place, one "Sources" button.

@@ -430,6 +430,14 @@ export const TROUT_SHEET = Object.freeze({
   ALL_SOURCES: "All sources ›",
 } as const);
 
+/** (T990) the page-foot "Sources" button and its every-source sheet's group heads (app words; none states a rule). */
+export const ALL_SOURCES = Object.freeze({
+  BUTTON: "Sources", ARIA: "All sources for this page",
+  TITLE: "Sources", NONE: "No rule on this page cites a source.",
+  BOOK: "Fishing regulations synopsis", INSEASON: "Province in-season changes", DFO: "DFO salmon notices",
+  LOCAL: "Local authority", PROVINCE_SITE: "Province",
+} as const);
+
 /** "Mon" … "Sun" (Monday first, as the calendar). */
 export const WD3: readonly string[] = WEEKDAYS.map((w) => w.slice(0, 3));
 /** "J", "F", … — the strip's month initials. */
