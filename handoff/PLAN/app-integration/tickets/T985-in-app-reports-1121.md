@@ -20,3 +20,6 @@ Squamish River, "make the map a lot bigger") is T979.
 
 ## Acceptance
 #1–#3 reproduced, fixed, and checked on the platform reported. #4 is a design proposal: the owner picks.
+
+## Owner pick 2026-11-21 (#4)
+B (a handle on the date bar to scrub, pan on an axis strip under the chart, pinch zooms, one-finger drag on the chart scrolls the page), owner verbatim: "b but have it also use the hold and drag gesture on top of it" (touch-and-hold anywhere, then drag, also scrubs).
