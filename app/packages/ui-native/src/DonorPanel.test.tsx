@@ -235,7 +235,7 @@ describe("the donor panel", () => {
 
   it("leads with a sentence, not a percentile", () => {
     draw({ value: answer({ percentile: 0.15 }) });
-    expect(screen.getByText("Below normal for the time of year")).toBeTruthy();
+    expect(screen.getByText("Lower than normal for the time of year")).toBeTruthy();
     expect(screen.getByText("Lower than 9 days in 10 at this time of year — fairly "
                             + "confident, from 2 gauges nearby.")).toBeTruthy();
   });
@@ -262,8 +262,8 @@ describe("the donor panel", () => {
       row("08MH024", { route: { station: "08MH024" as never, name: null, lat: 49,
                                 lon: -122, role: "up", path: ["a"] as never } }),
     ] } });
-    expect(screen.getByTestId("donor-detail-08MH001").textContent).toBe("Reads below normal · lower than 9 days in 10 · upstream · drains 120 km² · 2.4× apart · 2 reaches away");
-    expect(screen.getByTestId("donor-detail-08MH024").textContent).toBe("Reads below normal · lower than 9 days in 10 · upstream · drains 120 km² · 2.4× apart · on this reach");
+    expect(screen.getByTestId("donor-detail-08MH001").textContent).toBe("Reads lower than normal · lower than 9 days in 10 · upstream · drains 120 km² · 2.4× apart · 2 reaches away");
+    expect(screen.getByTestId("donor-detail-08MH024").textContent).toBe("Reads lower than normal · lower than 9 days in 10 · upstream · drains 120 km² · 2.4× apart · on this reach");
     expect(screen.getByTestId("donor-share-08MH001").textContent).toBe("60% of this estimate");
     expect(screen.getByTestId("donor-share-08MH024").textContent).toBe("60% of this estimate");   // both rows weigh 0.6 here
   });
@@ -295,7 +295,7 @@ describe("the donor panel", () => {
 
   it("(T920 round 3, owner: \"we lost other detil in the gauge legend\") says what each gauge reads on its legend row", () => {
     draw({ value: { ...answer(), rows: [row("08MH001", { percentile: 0.2 })] } });
-    expect(screen.getByTestId("donor-detail-08MH001").textContent).toBe("Reads below normal · lower than 8 days in 10 · upstream · drains 120 km² · 2.4× apart");
+    expect(screen.getByTestId("donor-detail-08MH001").textContent).toBe("Reads lower than normal · lower than 8 days in 10 · upstream · drains 120 km² · 2.4× apart");
   });
 
   const DAM = "This water is controlled by a dam. The reading is real, but it follows a "

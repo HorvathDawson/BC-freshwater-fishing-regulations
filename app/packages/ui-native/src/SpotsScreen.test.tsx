@@ -96,7 +96,7 @@ describe("<SpotsScreen>", () => {
     mount([spot({ reading: { station: "08MH001", discharge: 15.7, level: null, percentile: 0.038, at: null },
                   weather: { window: null, tempC: 14, windKph: null, windDir: null, rain3h: null, pressureHpa: null,
                              code: null, at: null } })]);
-    expect(screen.getByTestId("spot-row-s1").textContent).toBe("Sun 30 Aug\nMuch below normal");
+    expect(screen.getByTestId("spot-row-s1").textContent).toBe("Sun 30 Aug\nFar lower than normal");
   });
 
   it("draws a spot's first photo from its reference, through the photo store", async () => {

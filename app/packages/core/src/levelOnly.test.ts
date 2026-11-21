@@ -42,7 +42,7 @@ describe("ownGaugeMap: a gauged lake's own station on its route map", () => {
   const seen = "2026-11-16T20:30:00-08:00";
   it("says where its reading stands, or in a donor's words why it says nothing; its key line names it", () => {
     expect(ownGaugeMap("08MG012", { percentile: 0.93, observedAt: seen }, { ref: REF }))
-      .toEqual({ label: "Much above normal", key: "08MG012 · this lake's own gauge" });
+      .toEqual({ label: "Far higher than normal", key: "08MG012 · this lake's own gauge" });
     expect(ownGaugeMap("08MG012", { percentile: 0.5, observedAt: seen }, { ref: REF }).label).toBe("Normal");
     expect(ownGaugeMap("08MG012", { percentile: null, observedAt: seen }, { ref: REF }).label).toBe("reporting, not ranked");
     expect(ownGaugeMap("08MG012", { percentile: null, observedAt: null }, { ref: REF }).label).toBe("not reporting");

@@ -75,7 +75,7 @@ describe("the conditions panel", () => {
     expect(screen.getByText("m³/s")).toBeTruthy();
     expect(screen.getByText(`· ${stageLine(1.2)}`)).toBeTruthy();   // (T367) beside the figure, after a dot
     expect(screen.getByText(standingLong(0.15, "below"))).toBeTruthy();
-    expect(screen.getByText("Below normal · lower than 9 days in 10 for the date")).toBeTruthy();
+    expect(screen.getByText("Lower than normal · lower than 9 days in 10 for the date")).toBeTruthy();
     // The donor panel above it is drawn for the CHOSEN day.
     expect(screen.getByText("Lower than 7 to 9 days in 10 for early September · this spot drains "
                             + "50 km²")).toBeTruthy();

@@ -1,6 +1,6 @@
 # T982 — TestFlight tester feedback, 2026-11-20 (0.8.3, iPhone): 6 items
 
-Status: OPEN
+Status: IN PROGRESS, left (Claude): merge + combined review (lane/085-picks built #2 dot C, #3 steps, #4 photo buttons, #6 offer; #1 and #5 are lane/085-ui)
 
 Source: TestFlight feedback from an external tester (iPhone15,4, iOS 26.6.1), read 2026-11-21 with
 `node deploy/staging/testflight-feedback.mjs --days 30 --shots <dir>` (owner: "is there a way to have an agent get it?").

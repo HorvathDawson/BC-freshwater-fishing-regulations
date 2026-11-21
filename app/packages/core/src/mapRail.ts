@@ -21,6 +21,8 @@ export const MAP_RAIL = {
  */
 export const MY_LOCATION = {
   label: "My location",
+  /** (T982, owner pick 2026-11-21) the one-line card on the map after the open's location ask was dismissed or refused: a tap asks again (or, refused for good, says how to turn it on) */
+  offer: "Show my location",
   /** the button's label while the dot is shown and the map is, or is not, following it */
   labelOn: "Follow my location",
   labelFollowing: "Stop following my location",

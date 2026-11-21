@@ -143,7 +143,7 @@ describe("donorBecause: the model's three factors in words", () => {
 
 describe("the donor row's other lines", () => {
   it("says what the gauge itself reads", () => {
-    expect(donorReads(row({ percentile: 0.2 }))).toBe("Reads below normal · lower than 8 days in 10.");
+    expect(donorReads(row({ percentile: 0.2 }))).toBe("Reads lower than normal · lower than 8 days in 10.");
     expect(donorReads(row({ percentile: null }))).toBe("Not reporting today.");
   });
 
@@ -182,7 +182,7 @@ describe("the donor row's other lines", () => {
 
 describe("the estimate's headline, sentence and range", () => {
   it("leads with plain words", () => {
-    expect(estimateHeadline(est())).toBe("Below normal for the time of year");
+    expect(estimateHeadline(est())).toBe("Lower than normal for the time of year");
   });
 
   it("says now and forecast, one gauge and several", () => {
@@ -306,9 +306,9 @@ describe("the gauge reading under the estimate", () => {
   });
 
   it("ranks it with core's band word, or says there is nothing to rank against", () => {
-    expect(standingLong(0.15, "below")).toBe("Below normal · lower than 9 days in 10 for the date");
+    expect(standingLong(0.15, "below")).toBe("Lower than normal · lower than 9 days in 10 for the date");
     expect(standingLong(0.004, null))
-      .toBe("Much below normal · lower than almost every day on record for the date");
+      .toBe("Far lower than normal · lower than almost every day on record for the date");
     expect(standingLong(null, "below"))
       .toBe("There is a reading here, but no record to compare it against.");
   });
@@ -316,7 +316,7 @@ describe("the gauge reading under the estimate", () => {
   it("(T585 F8, F14) a figure the index did not rank says which reading was ranked and which this is, never 'no record'", () => {
     const VAN = "America/Vancouver";
     // the reading IS the ranked one (no rankedAt): its standing, or the true admission that the station has no record
-    expect(readingStanding({ percentile: 0.15, standing: "below" })).toBe("Below normal · lower than 9 days in 10 for the date");
+    expect(readingStanding({ percentile: 0.15, standing: "below" })).toBe("Lower than normal · lower than 9 days in 10 for the date");
     expect(readingStanding({ percentile: null, observedAt: "2026-09-01T11:30:00Z" }))
       .toBe("There is a reading here, but no record to compare it against.");
     // another publisher run's reading (or, offline, a newer kept row): both times
@@ -329,7 +329,7 @@ describe("the gauge reading under the estimate", () => {
       .toBe("This reading has not been ranked yet.");
     // a rank always wins: rankedAt beside a percentile cannot happen, and would still say the standing
     expect(readingStanding({ percentile: 0.15, standing: "below", rankedAt: "2026-09-01T10:30:00Z" }))
-      .toBe("Below normal · lower than 9 days in 10 for the date");
+      .toBe("Lower than normal · lower than 9 days in 10 for the date");
   });
 
   it("gives the stage beside the flow", () => {
@@ -424,7 +424,7 @@ describe("a quiet gauge: what it says and when it last spoke (owner 2026-10-21)"
     expect(donorReads(row({ percentile: null }), { ref: REF, horizon: 3 }))
       .toBe("No forecast for this gauge that far ahead.");
     expect(donorReads(row({ percentile: 0.2 }), { ref: REF, horizon: 3 }))
-      .toBe("Reads below normal · lower than 8 days in 10.");
+      .toBe("Reads lower than normal · lower than 8 days in 10.");
   });
   it("names the last report local and labelled, or says it is not known", () => {
     expect(donorLastReport("2026-10-18T20:30:00-08:00", VAN)).toBe("Last reported 2026-10-18 at 21:30 PDT.");

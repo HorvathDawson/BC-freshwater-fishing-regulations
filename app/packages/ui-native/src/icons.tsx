@@ -26,7 +26,9 @@ export type IconName =
   // (T284) the sky, for a day of weather
   | "sun" | "cloud" | "cloudSun" | "cloudRain" | "cloudDrizzle" | "cloudSnow" | "cloudFog" | "cloudStorm"
   // (T878) the day's sunrise and sunset under the date (the rise / set look)
-  | "sunrise" | "sunset";
+  | "sunrise" | "sunset"
+  // (T982) the photo buttons: the library and the camera
+  | "image" | "camera";
 
 /** Which Lucide icon (lucide-static@0.460.0, `icons/<name>.svg`) each app icon is a copy of. */
 export const LUCIDE_NAME: Readonly<Record<IconName, string>> = {
@@ -56,6 +58,7 @@ export const LUCIDE_NAME: Readonly<Record<IconName, string>> = {
   sun: "sun", cloud: "cloud", cloudSun: "cloud-sun", cloudRain: "cloud-rain", cloudDrizzle: "cloud-drizzle",
   cloudSnow: "cloud-snow", cloudFog: "cloud-fog", cloudStorm: "cloud-lightning",
   sunrise: "sunrise", sunset: "sunset",
+  image: "image", camera: "camera",
 };
 
 /** The owner's stroke (Lucide ships 2): round caps and joins on the 24 grid. */
@@ -193,6 +196,13 @@ export const ICONS: Readonly<Record<IconName, readonly Shape[]>> = {
   sunset: [
     { path: "M12 10V2" }, { path: "m4.93 10.93 1.41 1.41" }, { path: "M2 18h2" }, { path: "M20 18h2" },
     { path: "m19.07 10.93-1.41 1.41" }, { path: "M22 22H2" }, { path: "m16 6-4 4-4-4" }, { path: "M16 18a4 4 0 0 0-8 0" },
+  ],
+  image: [
+    { rect: [3, 3, 18, 18, 2] }, { circle: [9, 9, 2] }, { path: "m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" },
+  ],
+  camera: [
+    { path: "M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" },
+    { circle: [12, 13, 3] },
   ],
 };
 

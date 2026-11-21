@@ -28,7 +28,7 @@ describe("BasinDays", () => {
     expect(screen.getByText("Chilliwack River watershed")).toBeTruthy();
     const days = screen.getAllByRole("button");
     expect(days).toHaveLength(11);
-    expect(days[0]!.getAttribute("aria-label")).toBe("Conditions now: much below normal");
+    expect(days[0]!.getAttribute("aria-label")).toBe("Conditions now: far lower than normal");
     expect(days[1]!.getAttribute("aria-label")).toBe("Forecast 1 day ahead: normal, showing");
     expect(days[1]!.getAttribute("aria-pressed")).toBe("true");
     // (T427) the day shown, in words, on the title row's right: one row, the watershed left
@@ -67,9 +67,9 @@ describe("BasinDays", () => {
     expect(toggle.getAttribute("role")).toBe("button");
     expect(toggle.getAttribute("aria-expanded")).toBe("false");
     expect(toggle.getAttribute("aria-label"))
-      .toBe("Chilliwack River watershed, by day: Now: Much below normal · Normal from Wed 4 · No gauge reading from Thu 5");
+      .toBe("Chilliwack River watershed, by day: Now: Far lower than normal · Normal from Wed 4 · No gauge reading from Thu 5");
     expect(toggle.textContent)
-      .toBe("Chilliwack River watershedNow: Much below normal · Normal from Wed 4 · No gauge reading from Thu 5");
+      .toBe("Chilliwack River watershedNow: Far lower than normal · Normal from Wed 4 · No gauge reading from Thu 5");
     // shut: no day rows, no scale, no dash key — the card is two lines
     expect(screen.queryAllByRole("button")).toHaveLength(1);
     expect(screen.queryByText("Flow vs. past years, by day")).toBeNull();

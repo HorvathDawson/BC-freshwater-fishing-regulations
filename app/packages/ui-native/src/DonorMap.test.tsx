@@ -76,11 +76,11 @@ describe("<DonorMap>", () => {
   it("marks the spot as a pin and each gauge as a dot labelled with its share", () => {
     draw();
     expect(seen.at(-1)!.trace!.pins).toEqual([
-      { lat: 49.2, lon: -121.5, kind: "gauge", tone: LIGHT.donor[0], label: "60%", rank: 0 },
+      { lat: 49.2, lon: -121.5, kind: "gauge", tone: LIGHT.donor[0], label: "60%", rank: 0, share: 0.6 },
       { lat: 49.0, lon: -121.5, kind: "gauge", tone: LIGHT.quiet, label: "reporting, not ranked",
-        rank: 1 },
+        rank: 1, share: null },
       { lat: 49.1, lon: -122, kind: "here", tone: LIGHT.accent, label: "you are here",
-        rank: -1 },
+        rank: -1, share: null },
     ]);
     // The old DOM teardrops are gone: one kind of mark per thing, drawn by the overlay.
     expect(seen.at(-1)!.pins).toBeUndefined();

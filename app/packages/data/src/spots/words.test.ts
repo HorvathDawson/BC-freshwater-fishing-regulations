@@ -112,7 +112,7 @@ describe("spotRowLines — the list row (T819 item 11): the water and the visit'
     expect([row({ reading: { station: "08MH001", discharge: 15.7, level: null, percentile: 0.038, at: null } })[1],
             row({ reading: { station: "08MH001", discharge: 15.7, level: null, percentile: 0.5, at: null } })[1],
             row({ reading: { station: "08MH001", discharge: 15.7, level: null, percentile: null, at: null } })[1]])
-      .toEqual(["Much below normal", "Normal", "15.7 m³/s"]);
+      .toEqual(["Far lower than normal", "Normal", "15.7 m³/s"]);
   });
 
   it("a trip on an earlier day than the save: that day's flow, never the save day's reading (Q161)", () => {
@@ -123,7 +123,7 @@ describe("spotRowLines — the list row (T819 item 11): the water and the visit'
                                        percentile: 0.038, place: 0.038, source: "feed", filledAt: 0 } })[1],
             row({ ...later, dayFlow: { state: "none", station: "08MH001", date: "2026-08-30", why: "no-discharge",
                                        askedAt: 0 } })[1]])
-      .toEqual(["Flow that day not read yet", "Much below normal", "No flow that day"]);
+      .toEqual(["Flow that day not read yet", "Far lower than normal", "No flow that day"]);
   });
 
   it("ranks the quantity the reading declares (T106); no number under the wrong unit", () => {

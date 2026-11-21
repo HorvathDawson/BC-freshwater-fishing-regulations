@@ -48,6 +48,13 @@ export interface MyLocation {
   press(): void;
   /** (T384) the open's centre: as a press from off, at `OPEN_ZOOM`; a refusal or no fix is said as a press's is */
   open(): void;
+  /**
+   * (T982) the open's ask was dismissed or refused, so the map offers "Show my location" (a card; `MY_LOCATION.offer`)
+   * instead of staying silently at the default. Cleared by a press or once the dot is on.
+   */
+  offered: boolean;
+  /** (T982) put the offer up (`useOpenAtMe`, when the open could not centre on the reader) */
+  offer(): void;
   /** the reader moved the map by hand: following stops (the dot stays) */
   release(): void;
   dismiss(): void;
@@ -66,6 +73,7 @@ export function useMyLocation(locate: Locate | null): MyLocation | null {
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [zoom, setZoom] = useState<number | null>(null);
+  const [offered, setOffered] = useState(false);
   const stop = useRef<(() => void) | null>(null);
   const alive = useRef(true);
   useEffect(() => () => { alive.current = false; stop.current?.(); }, []);
@@ -91,12 +99,14 @@ export function useMyLocation(locate: Locate | null): MyLocation | null {
     }, (e) => {
       if (!alive.current) return;
       setOn(false); setBusy(false); setNotice(refusedLine(e));
+      // (T982) the open's own ask came to nothing (dismissed, refused, no fix): offered again, not left at the default in silence
+      if (z === OPEN_ZOOM) setOffered(true);
     });
   };
 
   const press = useCallback(() => {
     if (!locate || busy) return;
-    setNotice(null);
+    setNotice(null); setOffered(false);
     if (on && !following) { setFollowing(true); setZoom(null); setCentre((n) => n + 1); return; }
     if (on && following) { setFollowing(false); return; }
     start(null);
@@ -109,9 +119,10 @@ export function useMyLocation(locate: Locate | null): MyLocation | null {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locate, busy, on]);
 
+  const offer = useCallback(() => setOffered(true), []);
   const release = useCallback(() => { setFollowing(false); }, []);
   const dismiss = useCallback(() => setNotice(null), []);
-  return locate ? { on, following, fix, centre, zoom, notice, busy, press, open, release, dismiss } : null;
+  return locate ? { on, following, fix, centre, zoom, notice, busy, offered: offered && !on, offer, press, open, release, dismiss } : null;
 }
 
 /** (T384) Where "asked on the first open" is kept (`@app/data` `openLocationAskStore`): "asked", or nothing yet. */
@@ -132,7 +143,9 @@ export function opensAtMe(initial: Route | undefined, arrive: unknown, heldCamer
 /**
  * (T384) THE OPEN AT MY LOCATION: once, when `ready` (nothing else is up first — the first-run notice), if `opens`.
  * Granted: `me.open()`. Not yet asked and never asked on an open before: the store says so first, then `me.open()` (the
- * platform's prompt). Refused for good, no location here, or asked on an earlier open: nothing — today's default.
+ * platform's prompt; if that ask is dismissed or refused, `me.open()` puts the offer up). (T982) Refused for good, or
+ * asked on an earlier open and still not granted: today's default, WITH the offer ("Show my location", `me.offered`) so
+ * the map is never silently somewhere else. No location here (no `locate`): nothing.
  * No store: never asks by itself (a test, a tool); a permission already given still centres.
  */
 export function useOpenAtMe(me: MyLocation | null, locate: Locate | null, store: LocationAskStore | null,
@@ -147,7 +160,8 @@ export function useOpenAtMe(me: MyLocation | null, locate: Locate | null, store:
     // not cancelled by a later render: asked once, answered once (the hook's own `alive` guards an unmounted map)
     locate.permission().then((p) => {
       if (p === "granted") { meNow.current?.open(); return; }
-      if (p !== "prompt" || !store || store.read() === ASKED) return;
+      if (p === "denied" || (p === "prompt" && store?.read() === ASKED)) { meNow.current?.offer(); return; }
+      if (p !== "prompt" || !store) return;
       store.write(ASKED);
       meNow.current?.open();
     }, reportFailure);

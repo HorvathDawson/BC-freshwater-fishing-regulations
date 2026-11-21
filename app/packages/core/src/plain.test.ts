@@ -34,7 +34,7 @@ describe("saying a percentile in plain words", () => {
   });
 
   it("gives a headline in words a person would use", () => {
-    expect(standingHeadline(standing(0.03))).toBe("Much below normal for the time of year");
+    expect(standingHeadline(standing(0.03))).toBe("Far lower than normal for the time of year");
     expect(standingHeadline(standing(0.5))).toBe("Normal for the time of year");
     expect(standingHeadline(standing(null))).toBe("No record to compare against");
   });

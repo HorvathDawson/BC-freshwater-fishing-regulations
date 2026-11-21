@@ -182,7 +182,7 @@ describe("the native style", () => {
     for (const theme of ["light", "dark"]) {
       const s = nativeStyle({ ...base, theme, tracePins: pins }).style as unknown as S;
       const onPins = (s.layers as (L & { source?: string })[]).filter((l) => l.source === "trace-pins").map((l) => l.id);
-      expect([theme, onPins]).toEqual([theme, ["trace-gauge-halo", "trace-gauge", "trace-label", "trace-here", "trace-here-label"]]);
+      expect([theme, onPins]).toEqual([theme, ["trace-gauge-halo", "trace-gauge", "trace-share", "trace-label", "trace-here", "trace-here-label"]]);
       const here = layer(s, "trace-here").layout!["icon-image"] as string;
       expect([theme, here, here in nativeImages(theme)]).toEqual([theme, nativeImageName("trace-here", theme), true]);
       expect([theme, s.sources["trace-pins"]!.data]).toEqual([theme, { type: "FeatureCollection", features: [

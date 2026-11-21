@@ -163,9 +163,9 @@ describe("donorView", () => {
     if (!vm.ok || !vm.map) throw new Error("expected a map");
     expect(vm.map.pins).toEqual([
       { lat: 49, lon: -122, row: 0, kind: "gauge", title: donorPinTitle(v.rows[0]!, true),
-        label: "60%", rank: 0 },
+        label: "60%", rank: 0, share: 0.6 },
       { lat: 49, lon: -122, row: null, kind: "here", title: "you are here",
-        label: "you are here", rank: -1 },
+        label: "you are here", rank: -1, share: null },
     ]);
     expect(vm.map.keys).toEqual([{ row: null, label: "you are here" },
                                  { row: 0, label: "08MH001 · 60%" }]);

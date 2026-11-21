@@ -27,7 +27,7 @@ describe("a gauged lake's route map (T817)", () => {
     // (T881) without its own station it would hold "you are here" alone: no map
     expect(before.map).toBeNull();
     expect(after.map.pins.map((p) => [p.kind, p.row, p.title, p.label])).toEqual([
-      ["gauge", 0, "Harrison Lake Near Harrison Hot Springs", "Much above normal"],
+      ["gauge", 0, "Harrison Lake Near Harrison Hot Springs", "Far higher than normal"],
       ["here", null, "you are here", "you are here"],
     ]);
     expect(after.map.keys).toEqual([{ row: null, label: "you are here" }, { row: 0, label: "08MG012 · this lake's own gauge" }]);
