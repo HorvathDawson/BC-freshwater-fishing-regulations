@@ -266,7 +266,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T986 | Trout / Salmon switch: which one is on is hard to tell (bar sits between the two) | IN PROGRESS (merged to dev 2026-11-21; left (Claude): combined review + device walk + 0.8.5 release) | | tester via owner 2026-11-21 |
 | T987 | Repo README and docs up to date; clean-up pass (dead scripts, stale files, merged branches) | POSTPONED (owner 2026-11-21: next release, not 0.8.5) | | owner 2026-11-21 |
 | T988 | The Sources menu's Done button doesn't close the menu; audit every menu/sheet's closing buttons | IN PROGRESS (merged to dev 2026-11-21; left (Claude): combined review + device walk + 0.8.5 release) | | owner 2026-11-21 |
-| T989 | Opened from a Google result, back (top right) goes to the default map instead of the water | OPEN | | owner 2026-11-21 |
+| T989 | Opened from a Google result, back (top right) goes to the default map instead of the water | IN PROGRESS (merged to dev 2026-11-21; left (Claude): combined review + device walk + 0.8.5 release) | | owner 2026-11-21 |
 
 ## Next after closed testing
 
