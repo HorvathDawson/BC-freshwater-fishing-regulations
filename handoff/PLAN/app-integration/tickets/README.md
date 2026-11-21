@@ -260,6 +260,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T980 | Three follow tests skipped to ship r-fec3fab4c5aa (two T286 page-read budgets, the unnamed trib-closed fixture): fix them | OPEN | | 2026-11-20 release |
 | T981 | Municipal / park-bylaw no-fishing waters (Lost Lagoon, Beaver Lake in Stanley Park, others) shown closed with the bylaw cited | OPEN | | owner 2026-11-20 |
 | T982 | TestFlight tester feedback 2026-11-20 (6 items: % of estimate, normal wording, gauge-absent sentence, photo icons, gauge boxes, open at my location) | OPEN | | TestFlight feedback, read 2026-11-21 |
+| T983 | After updating to 0.8.4, 7 expired in-season notices show as New (Nov 19): notice ids stable across releases; ended notices not current | OPEN | | owner 2026-11-21 (Android 0.8.4) |
 
 ## Next after closed testing
 
