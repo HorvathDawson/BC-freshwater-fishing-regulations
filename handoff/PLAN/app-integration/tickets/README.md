@@ -270,6 +270,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T990 | Regulations pane: one Sources button at the foot listing every source (per-section buttons kept) | IN PROGRESS (merged to dev 2026-11-21; left (Claude): device walk + 0.8.5 release) | | owner 2026-11-21 |
 | T991 | Sources display audit: one consistent way sources are shown across the app (next release) | POSTPONED | T990 | owner 2026-11-21 |
 | T992 | Explain how golden pages, fixture re-cuts and the release command's gates work (and maybe simplify them) | POSTPONED | | owner 2026-11-21 |
+| T993 | Make the release run smoother: one rehearsal that finds every problem before `pipeline release` (0.8.5 stopped nine times) | POSTPONED | T992 | owner 2026-11-21 |
 
 ## Next after closed testing
 
