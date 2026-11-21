@@ -1,6 +1,6 @@
 # T990 — Regulations pane: one "Sources" button at the bottom listing every source for this water
 
-Status: IN PROGRESS — lane/085-t990 built; left (Claude): merge + review + device walk
+Status: IN PROGRESS — merged to dev 2026-11-21 (combined review done); left (Claude): device walk + 0.8.5 release
 
 Source: owner 2026-11-21, verbatim: "in the regulation pane we should have a source button at button with all regulation
 sources in one consistent spot. Keep the one sources too but this is in addition".

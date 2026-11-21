@@ -60,7 +60,7 @@ describe("<WaterScreen> regulations", () => {
     // bound to the Fraser watershed at rank 0) is no row of the Chilliwack's; its own row (p.22) is linked by its rules
     expect(screen.getByTestId("keep-tab").textContent).toMatch(/p\.22/);
     expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")))
-      .toEqual(["keep-tab", "regs-legal"]);
+      .toEqual(["keep-tab", "regs-legal", "regs-all-sources"]);
   }, 30_000);
 
   it("a release past its valid_until: the page leads with core's out-of-date sentence (none on an unstamped release)", async () => {
