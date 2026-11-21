@@ -9,6 +9,7 @@
   (OWNER-TODO 2026-11-20).
 
 ## IN FLIGHT (chat of 2026-11-21 afternoon; read this first after a /compact)
+- 14:02 SCOPE LOCK (owner): 0.8.5 takes nothing new except bugs found during the release work; every new mention goes to the next release (new ticket, POSTPONED/next).
 - 14:01 STATE: ALL lanes merged into redesign/stream-sections (t984, t983, ui, picks, t988, t989, t981, mouth; mini release
   re-cut). Unpushed. Running in background: fast-fail + smoke + full vitest (post-merge), and ONE combined review agent
   (diff 97a9abcd4..HEAD). NOT yet merged: lane/085-t990 (all-sources button at the END of the regs page, 2 commits,
