@@ -13,6 +13,16 @@ Owner: "we want all feedback items targetted in it … do a release all the way 
 chat for rest". Credits are tight, so stay lean. Lanes on Sonnet for UI work; ONE combined independent review before
 the merge; long jobs as background scripts; pictures only where the owner picks.
 
+0. **Ask the owner first, ONE ticket at a time, whether to add it to this batch** (owner 2026-11-21). Use one short
+   question each, with a one-line plain summary and your recommendation:
+   - T978 (build checks; MapLibre from upstream main);
+   - T940 (send its side-by-sides first);
+   - T686, then T975 (packed formats; only possible once 0.8.4 is live in both stores' production);
+   - T981 (municipal closed waters);
+   - T977 (push carry race);
+   - T709 and T715 (postponed by the owner).
+   Record each answer in the ticket and in OWNER-TODO in the same turn. A "yes" joins the batch; the rest wait for the
+   next chat.
 1. **Store checks** (cheap):
    - TestFlight review state: `node deploy/staging/testflight-distribute.mjs --version 0.8.4 --build <the iPhone build in STATUS>`.
    - New tester feedback: `node deploy/staging/testflight-feedback.mjs --days 7 --shots <dir>`.
@@ -37,7 +47,7 @@ the merge; long jobs as background scripts; pictures only where the owner picks.
    - iPhone: TestFlight internal and external.
    - The production website.
    - Write the 0.8.5 changelog BEFORE the builds; the store notes are copied from it.
-4. **Then tell the owner to start a new chat** for the rest:
+4. **Then tell the owner to start a new chat** for whatever step 0 left out:
    - T978 (build checks; MapLibre from upstream main, PR #4919 merged);
    - T940 (show the side-by-sides, ask the swatch rim question);
    - T686 then T975 (packed formats, only after 0.8.4 is live in both stores' production);
