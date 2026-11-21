@@ -9,6 +9,9 @@
   (OWNER-TODO 2026-11-20).
 
 ## IN FLIGHT (chat of 2026-11-21 afternoon; read this first after a /compact)
+- 13:31 merged t989 + fixed the full check's 3 reds (a0ec66149). RELEASE NOTE: the PRODUCTION feeds worker must be redeployed
+  with 0.8.5 (owner command) so gauge cards say the new band words; until then the site reads the old ones (PRIOR_BAND_WORDS).
+  T989 is the APP link path (website re-tested: lands); confirm in the emulator walk (adb VIEW intent, close).
 - Step 0 done (answers in OWNER-TODO "0.8.5 batch scope"): IN = T686 flip, T975, T981 (path + Lost Lagoon only);
   next chat = T978, T940, T977, T987 (docs/clean-up, postponed); T709/T715 postponed; no Google Group.
 - Store checks done; new tickets T985 (in-app reports), T986 (species switch), T988 (trout-table Sources Done, Android).
