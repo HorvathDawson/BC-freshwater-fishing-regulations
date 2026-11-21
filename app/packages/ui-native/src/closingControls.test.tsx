@@ -8,7 +8,8 @@ import { afterEach, describe, it, expect } from "vitest";
 import { useState, type ReactNode } from "react";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { BackLayerContext, historySync, LayoutWidthContext, useBack, useRoute, type HistoryPort } from "@app/ui";
-import { dayRange, joinTestAsk, SHEET_WORDS, WEB_SPOTS_WORDS, type RegsPage, type SheetKey, type SheetVM } from "@app/core";
+import { TROUT_SHEET, TROUT_SOURCES_KEY, troutFishSheet, troutOf, troutSourcesSheet, type RegsInputs, type RuleIndex, type TroutValue, type TroutVM,
+         dayRange, joinTestAsk, SHEET_WORDS, WEB_SPOTS_WORDS, type RegsPage, type SheetKey, type SheetVM } from "@app/core";
 import { DaySheet } from "./regs/DaySheet";
 import { SpotDropSheet } from "./SpotDropSheet";
 import { SyncErrorSheet } from "./SyncErrorSheet";
@@ -19,6 +20,7 @@ import { MenuPage } from "./menu/MenuPage";
 import { FirstRunNotice } from "./FirstRunNotice";
 import { InSeasonNotice } from "./InSeasonNotice";
 import { LIGHT } from "./theme";
+import vectors from "../../../fixtures/trout/trout-vectors.generated.json";
 import vedder1010 from "./regs/fixtures/vedder_1010.json";
 
 afterEach(cleanup);
@@ -110,6 +112,29 @@ function settle() {
   }
 }
 
+// the trout table's sheets, over the shared vectors (as SheetHost.test builds them): the table's "Sources" menu
+interface TroutCase { readonly day: string; readonly frame: TroutValue | null }
+const TROUT: TroutVM = (() => {
+  const c = (vectors as unknown as { cases: readonly TroutCase[] }).cases.find((x) => x.frame !== null)!;
+  const [month, day] = c.day.split("-").map(Number) as [number, number];
+  const inp = { trout: c.frame, rules: { has: () => true }, frames: { rows: { rows: { length: 1e6 } } } } as unknown as RegsInputs;
+  const vm = troutOf(inp, { month, day }, { month, day });
+  if (vm?.kind !== "table") throw new Error("no trout table in the vectors");
+  return vm;
+})();
+const RULES = { get: (ix: number) => ({ rix: ix, key: `k${ix}`, missing: false, export: { verbatim: `words of ${ix}` },
+  facts: { title: `Rule ${ix}`, book: [[40, 42]] } }) } as unknown as RuleIndex;
+const TROUT_PAGE = { ...VEDDER, sheet: (k: SheetKey) =>
+  k === TROUT_SOURCES_KEY ? troutSourcesSheet(k, TROUT, RULES, "Water . Day")
+  : k.startsWith("tf:") ? troutFishSheet(k, TROUT, k.slice(3), RULES)
+  : k.startsWith("rule:") ? { key: k, title: "A rule", sub: null, blocks: [{ k: "para", text: [{ t: "words" }] }] }
+  : null } as unknown as RegsPage;
+/** the host as RegsScreen owns it: the open key, a press inside opens the next sheet in its place */
+function TroutOwner({ start }: { start: SheetKey }) {
+  const [key, setKey] = useState<SheetKey | null>(start);
+  return <SheetHost page={TROUT_PAGE} open={key} onOpen={setKey} onClose={() => setKey(null)} palette={P} />;
+}
+
 /** Shell's first-run notice and its "Sources and licences" page, wired as Shell wires them */
 function NoticeAndPage() {
   const [notice, setNotice] = useState(true);
@@ -122,6 +147,26 @@ function NoticeAndPage() {
     </>
   );
 }
+
+describe("T988 the trout table's Sources menu (Android report, 0.8.4)", () => {
+  const rowKey = TROUT.boxes.flatMap((b) => b.rows)[0]!.key;
+  const flows: [string, SheetKey, (() => void)[]][] = [
+    ["Sources opened from the table", TROUT_SOURCES_KEY, []],
+    ["Sources opened from a fish sheet (All sources)", `tf:${rowKey}` as SheetKey, [() => fireEvent.click(screen.getByText(TROUT_SHEET.ALL_SOURCES))]],
+    ["Sources, then one of its rules", TROUT_SOURCES_KEY, [() => fireEvent.click(screen.getByText(`Rule ${TROUT.src[0]}`))]],
+  ];
+  for (const system of ["layers", "browser history"] as const) for (const [name, start, steps] of flows) for (const control of DONE_AND_SCRIM) {
+    it(`${system}: ${name}: ${control} closes it`, async () => {
+      web = system === "browser history" ? browser() : null;
+      render(<Layers><TroutOwner start={start} /></Layers>);
+      for (const st of steps) { act(() => { st(); }); web?.flush(); }
+      act(() => { fireEvent.click(screen.getAllByLabelText(control)[0]!); });
+      web?.flush();
+      await waitFor(() => { settle(); web?.flush(); expect(screen.queryAllByLabelText(control)).toHaveLength(0); }, { timeout: 3000 });
+      if (web) expect(web.at()).toBe(0);
+    });
+  }
+});
 
 describe("T988 the first-run notice's Sources page and its Done", () => {
   for (const system of ["layers", "browser history"] as const) {
