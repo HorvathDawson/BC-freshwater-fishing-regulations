@@ -179,6 +179,8 @@ describe("the fixed words", () => {
     });
     expect(PHOTO_WORDS).toEqual({
       heading: "Photographs",
+      libraryShort: "Photos",
+      cameraShort: "Camera",
       library: "Add from photos",
       camera: "Take a photo",
       remove: "Remove photo",

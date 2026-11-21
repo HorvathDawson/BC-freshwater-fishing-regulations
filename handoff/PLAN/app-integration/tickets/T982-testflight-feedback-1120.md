@@ -1,6 +1,6 @@
 # T982 — TestFlight tester feedback, 2026-11-20 (0.8.3, iPhone): 6 items
 
-Status: IN PROGRESS. Lane 085-ui built #1 (gauge share now reads "counts for 70% of the estimate", also the chart-switcher aria label) and #5 (gauge-absent sentence, both places: "There is no gauge on this water, so no conditions were recorded. The nearest gauges are on much bigger rivers, so their numbers would be wrong here."). #2-#4, #6 untouched (owner picks). left (Claude): merge + combined review.
+Status: IN PROGRESS, left (Claude): merge + combined review. lane/085-picks built #2 dot C, #3 steps, #4 photo buttons, #6 offer. Lane 085-ui built #1 (gauge share now reads "counts for 70% of the estimate", also the chart-switcher aria label) and #5 (gauge-absent sentence, both places: "There is no gauge on this water, so no conditions were recorded. The nearest gauges are on much bigger rivers, so their numbers would be wrong here."). #2-#4, #6 untouched (owner picks). left (Claude): merge + combined review.
 
 Source: TestFlight feedback from an external tester (iPhone15,4, iOS 26.6.1), read 2026-11-21 with
 `node deploy/staging/testflight-feedback.mjs --days 30 --shots <dir>` (owner: "is there a way to have an agent get it?").

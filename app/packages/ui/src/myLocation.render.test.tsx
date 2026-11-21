@@ -122,4 +122,44 @@ describe("(T303) my location", () => {
         .toEqual([1, false, 0, MY_LOCATION.far]);
     });
   });
+
+  describe("(T982) the offer after a dismissed or refused ask", () => {
+    const flush = async () => { await act(async () => { await Promise.resolve(); }); await act(async () => { await Promise.resolve(); }); };
+    const run = (permission: () => Promise<"granted" | "prompt" | "denied">, here: Locate["here"], asked: string | null) => {
+      const store = { read: () => asked, write: vi.fn() };
+      const loc: Locate = { permission, here };
+      return renderHook(() => { const me = useMyLocation(loc); useOpenAtMe(me, loc, store, true, true); return me; });
+    };
+
+    it("refused for good: the map offers it at once, with nothing asked", async () => {
+      const here = vi.fn(async () => fix);
+      const { result } = run(async () => "denied", here, null);
+      await flush();
+      expect([here.mock.calls.length, result.current!.offered]).toEqual([0, true]);
+    });
+
+    it("the first ask dismissed: offered after it; a tap asks again and the dot takes over", async () => {
+      let allow = false;
+      const here = vi.fn(async () => { if (!allow) throw new Error("permission denied"); return fix; });
+      const { result } = run(async () => "prompt", here, null);
+      await flush();
+      expect([here.mock.calls.length, result.current!.offered]).toEqual([1, true]);
+      allow = true;
+      await act(async () => { result.current!.press(); });
+      expect([here.mock.calls.length, result.current!.offered, result.current!.on]).toEqual([2, false, true]);
+    });
+
+    it("asked on an earlier open and still not granted: offered, not asked again by itself", async () => {
+      const here = vi.fn(async () => fix);
+      const { result } = run(async () => "prompt", here, "asked");
+      await flush();
+      expect([here.mock.calls.length, result.current!.offered]).toEqual([0, true]);
+    });
+
+    it("granted and found: no offer", async () => {
+      const { result } = run(async () => "granted", async () => fix, null);
+      await flush();
+      expect([result.current!.on, result.current!.offered]).toEqual([true, false]);
+    });
+  });
 });

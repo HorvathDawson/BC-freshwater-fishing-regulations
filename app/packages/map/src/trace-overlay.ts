@@ -27,6 +27,8 @@ import type { TraceCollection, TraceRoute } from "./trace-geometry";
 export const TRACE_SOURCE = "trace";
 export const TRACE_PINS_SOURCE = "trace-pins";
 export const HERE_IMAGE = "trace-here";
+/** (T982) a share dot's radius at a share of 0 (px); it grows by 9 px at a share of 1: 10% is 11.9 px, 70% 17.3 px */
+const SHARE_R = 11;
 
 /** A marked point on the route map. */
 export interface TracePin {
@@ -40,6 +42,8 @@ export interface TracePin {
   label: string | null;
   /** 0 is the heaviest gauge: places its label first. */
   rank: number;
+  /** (T982) A counted gauge's share of the estimate, 0-1: its dot's shade and size, its number inside. Null/absent: no share (a state word is drawn beside a small dot instead). */
+  share?: number | null;
 }
 
 /** What a screen hands the map: the routes to copy out of the tiles, and the pins. */
@@ -55,7 +59,7 @@ export const EMPTY_TRACE: TraceCollection = { type: "FeatureCollection", feature
 export interface PinCollection {
   type: "FeatureCollection";
   features: { type: "Feature";
-              properties: { kind: TracePin["kind"]; tone: string; rank: number; label?: string };
+              properties: { kind: TracePin["kind"]; tone: string; rank: number; label?: string; share?: number };
               geometry: { type: "Point"; coordinates: [number, number] } }[];
 }
 
@@ -63,9 +67,9 @@ export interface PinCollection {
 export function pinCollection(pins: readonly TracePin[]): PinCollection {
   return {
     type: "FeatureCollection",
-    features: pins.map(({ lat, lon, label, kind, tone, rank }) => ({
+    features: pins.map(({ lat, lon, label, kind, tone, rank, share }) => ({
       type: "Feature",
-      properties: label === null ? { kind, tone, rank } : { kind, tone, rank, label },
+      properties: { kind, tone, rank, ...(label === null ? {} : { label }), ...(share == null ? {} : { share }) },
       geometry: { type: "Point", coordinates: [lon, lat] },
     })),
   };
@@ -79,12 +83,20 @@ export function tracePaint(theme: string): Record<string, Record<string, unknown
   const t = resolveTheme(theme);
   const paper = t["color.outside"] as string;
   const ink = t["color.ui.ink"] as string;
+  const tint = t["color.ui.tint"] as string;
+  const accent = t["color.ui.accent"] as string;
+  const onAccent = t["color.ui.on-accent"] as string;
+  /** (T982) a share's dot: the shade deepens from the tint to the accent as the share grows (0 -> 0.7); its number turns to the on-accent ink once the fill is deep enough to need it */
+  const shareFill = ["interpolate", ["linear"], ["get", "share"], 0, tint, 0.7, accent];
   return {
     "trace-line-down": { "line-color": ["get", "tone"] },
     "trace-line-up": { "line-color": ["get", "tone"] },
     "trace-arrows": { "text-color": ["get", "tone"], "text-halo-color": paper },
     "trace-gauge-halo": { "circle-color": ink },
-    "trace-gauge": { "circle-color": ["get", "tone"], "circle-stroke-color": paper },
+    "trace-gauge": { "circle-color": ["case", ["has", "share"], shareFill, ["get", "tone"]],
+                     // a share's dot keeps its donor tone as a RING (the link to its line and its row); a state dot keeps the paper edge
+                     "circle-stroke-color": ["case", ["has", "share"], ["get", "tone"], paper] },
+    "trace-share": { "text-color": ["step", ["get", "share"], ink, 0.3, onAccent] },
     "trace-here-label": { "text-color": t["color.ui.accent"] as string, "text-halo-color": paper },
     "trace-label": { "text-color": ink },
     "trace-join": { "circle-color": paper, "circle-stroke-color": ["get", "tone"] },
@@ -95,7 +107,7 @@ export function tracePaint(theme: string): Record<string, Record<string, unknown
 /** The overlay's layer ids, in draw order. */
 export const TRACE_LAYER_IDS = [
   "trace-line-down", "trace-line-up", "trace-arrows", "trace-join", "trace-join-label", "trace-gauge-halo", "trace-gauge",
-  "trace-label", "trace-here", "trace-here-label"] as const;
+  "trace-share", "trace-label", "trace-here", "trace-here-label"] as const;
 
 /**
  * The overlay's layers. Appended LAST to the style, so the route and its marks sit on top
@@ -166,14 +178,22 @@ export function traceLayers(theme: string):
      */
     { id: "trace-gauge-halo", type: "circle", source: TRACE_PINS_SOURCE,
       filter: ["==", ["get", "kind"], "gauge"],
-      paint: { ...p["trace-gauge-halo"], "circle-radius": 10.5, "circle-opacity": 0.6 } },
+      paint: { ...p["trace-gauge-halo"], "circle-radius": ["case", ["has", "share"], ["+", SHARE_R + 3.5, ["*", 9, ["get", "share"]]], 10.5], "circle-opacity": 0.6 } },
     // EVERY GAUGE A ROUND DOT in its donor tone.
     { id: "trace-gauge", type: "circle", source: TRACE_PINS_SOURCE,
       filter: ["==", ["get", "kind"], "gauge"],
-      paint: { ...p["trace-gauge"], "circle-radius": 7, "circle-stroke-width": 2.5 } },
+      paint: { ...p["trace-gauge"], "circle-radius": ["case", ["has", "share"], ["+", SHARE_R, ["*", 9, ["get", "share"]]], 7],
+               "circle-stroke-width": ["case", ["has", "share"], 3, 2.5] } },
+    // (T982, owner pick C) A COUNTED GAUGE'S SHARE IS INSIDE ITS DOT, no box: shade + size + the number say it three ways, so
+    // colour is never the only carrier (T467). Centred, always drawn (a share is never dropped).
+    { id: "trace-share", type: "symbol", source: TRACE_PINS_SOURCE,
+      filter: ["all", ["==", ["get", "kind"], "gauge"], ["has", "share"], ["has", "label"]],
+      layout: { "text-field": ["get", "label"], "text-font": ["Noto Sans Medium"], "text-size": 11,
+                "text-allow-overlap": true, "text-ignore-placement": true, "symbol-sort-key": ["get", "rank"] },
+      paint: { ...p["trace-share"] } },
     // ITS SHARE beside it, on whichever side is free; the heaviest places first.
     { id: "trace-label", type: "symbol", source: TRACE_PINS_SOURCE,
-      filter: ["all", ["==", ["get", "kind"], "gauge"], ["has", "label"]],
+      filter: ["all", ["==", ["get", "kind"], "gauge"], ["has", "label"], ["!", ["has", "share"]]],
       layout: {
         "text-field": ["get", "label"], "text-font": ["Noto Sans Medium"], "text-size": 12.5,
         "symbol-sort-key": ["get", "rank"],

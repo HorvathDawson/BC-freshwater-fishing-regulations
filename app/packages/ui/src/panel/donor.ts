@@ -59,6 +59,8 @@ export interface DonorRowVM {
 export interface DonorPinVM {
   lat: number; lon: number; row: number | null; title: string;
   kind: "here" | "gauge"; label: string | null; rank: number;
+  /** (T982) a counted gauge's share of the estimate, 0-1: the map draws its dot by it (shade and size). Null: no share to draw. */
+  share: number | null;
 }
 export interface DonorKeyVM { row: number | null; label: string }
 
@@ -317,13 +319,14 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
       ...placed.map((r): DonorPinVM => {
         const row = toneOf(r);
         return { lat: r.route!.lat!, lon: r.route!.lon!, row, kind: "gauge",
-                 title: donorPinTitle(r, r === atSpot), label: donorMapLabel(r, ask), rank: sides ? rankOf.get(r) ?? row : row };
+                 title: donorPinTitle(r, r === atSpot), label: donorMapLabel(r, ask), rank: sides ? rankOf.get(r) ?? row : row,
+                 share: donorState(r, ask).kind === "reads" ? r.weight : null };
       }),
       // (T817) a gauged lake's own station, in the first gauge tone (a lake has no donors to share the tones with)
-      ...(own ? [{ lat: own.lat, lon: own.lon, row: 0, kind: "gauge" as const, title: own.name, label: own.label, rank: 0 }] : []),
+      ...(own ? [{ lat: own.lat, lon: own.lon, row: 0, kind: "gauge" as const, title: own.name, label: own.label, rank: 0, share: null }] : []),
       // LAST, so it draws over a gauge at the same place.
       ...(from ? [{ lat: from.lat, lon: from.lon, row: null, title: here, kind: "here" as const,
-                    label: hereMapLabel(), rank: -1 }] : []),
+                    label: hereMapLabel(), rank: -1, share: null }] : []),
     ],
     keys: [
       ...(from ? [{ row: null, label: here }] : []),

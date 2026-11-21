@@ -90,7 +90,8 @@ describe("the route overlay's layers", () => {
     expect(halo.type).toBe("circle");
     expect(halo.filter).toEqual(["==", ["get", "kind"], "gauge"]);
     expect(halo.paint).toEqual({ "circle-color": resolveTheme("dark")["color.ui.ink"],
-                                 "circle-radius": 10.5, "circle-opacity": 0.6 });
+                                 "circle-radius": ["case", ["has", "share"], ["+", 14.5, ["*", 9, ["get", "share"]]], 10.5],
+                                 "circle-opacity": 0.6 });
     // Under the dot, never over it.
     const ids = traceLayers("dark").map((l) => l.id);
     expect(ids.indexOf("trace-gauge-halo")).toBe(ids.indexOf("trace-gauge") - 1);
@@ -134,5 +135,24 @@ describe("the you-are-here pin", () => {
       .toBe(colour("light", "color.outside").toLowerCase());
     expect(hex(px(w / 2 - Math.round(w * 0.3), head)).toLowerCase())
       .toBe(colour("light", "color.ui.accent").toLowerCase());
+  });
+
+  it("(T982) a counted gauge is one dot: shade and size by its share, the number inside, no box; a state word stays beside a small dot", () => {
+    const by = Object.fromEntries(traceLayers("light").map((l) => [l.id, l]));
+    // the share is a feature property, left out when the pin has none
+    const fc = pinCollection([{ lat: 49, lon: -122, kind: "gauge", tone: "t", label: "70%", rank: 0, share: 0.7 },
+                              { lat: 49, lon: -122, kind: "gauge", tone: "t", label: "quiet", rank: 1, share: null }]);
+    expect(fc.features.map((f) => f.properties.share)).toEqual([0.7, undefined]);
+    // the number is its own centred text layer over the dot, never the pill; the pill is for pins with no share
+    expect(by["trace-share"]!.filter).toEqual(["all", ["==", ["get", "kind"], "gauge"], ["has", "share"], ["has", "label"]]);
+    expect((by["trace-share"]!.layout as Record<string, unknown>)["icon-image"]).toBeUndefined();
+    expect(by["trace-label"]!.filter).toEqual(["all", ["==", ["get", "kind"], "gauge"], ["has", "label"], ["!", ["has", "share"]]]);
+    // shade by share, from the tokens (never a literal): tint -> accent
+    const t = resolveTheme("light");
+    expect(tracePaint("light")["trace-gauge"]!["circle-color"])
+      .toEqual(["case", ["has", "share"], ["interpolate", ["linear"], ["get", "share"], 0, t["color.ui.tint"], 0.7, t["color.ui.accent"]],
+                ["get", "tone"]]);
+    // size by share, and the dot is never smaller than its number
+    expect((by["trace-gauge"]!.paint as Record<string, unknown>)["circle-radius"]).toEqual(["case", ["has", "share"], ["+", 11, ["*", 9, ["get", "share"]]], 7]);
   });
 });

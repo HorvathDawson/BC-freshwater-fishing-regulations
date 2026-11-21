@@ -32,7 +32,7 @@ describe("the y range always includes the normal band", () => {
       .map((pt) => Number(pt.split(",")[1]));
     expect(Math.min(...ys)).toBeGreaterThanOrEqual(plotTop - 0.5);
     expect(Math.max(...ys)).toBeLessThanOrEqual(plotBottom + 0.5);
-    // and today sits below the middle of the frame, because it is below normal
+    // and today sits below the middle of the frame, because it is lower than normal
     expect(h.now!.y).toBeGreaterThan((plotTop + plotBottom) / 2);
   });
 });

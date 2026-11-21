@@ -28,7 +28,7 @@ walk(SRC);
 
 /** the files that fill a control with the accent for a reason of their own (a chosen segment, a day, a badge, a mark) */
 const ON_ACCENT = new Set(["Button.tsx", "Chip.tsx", "CornerStrip.tsx", "DayCalendar.tsx", "Sheet.tsx", "LayersSheet.tsx", "MapRail.tsx",
-  "SpotCapture.tsx", "shell/MapLegend.tsx", "regs/SalmonCard.tsx", "menu/ReportPage.tsx", "water/WaterMapView.tsx",
+  "SpotCapture.tsx", "shell/MapLegend.tsx", "shell/RegsLayerToggle.tsx", "regs/SalmonCard.tsx", "menu/ReportPage.tsx", "water/WaterMapView.tsx",
   // the Runs tab's play button (run-timing v2 lane, in flight 2026-10-29)
   "RunsControls.tsx",
   // (T367, owner-approved rounds 5–5b) the forecast day list's chosen day, filled as the strip's own segments are

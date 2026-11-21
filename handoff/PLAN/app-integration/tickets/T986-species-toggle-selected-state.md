@@ -1,6 +1,6 @@
 # T986 — Trout / Salmon switch: which one is on is hard to tell
 
-Status: OPEN — joins the 0.8.5 batch (owner 2026-11-21: "Another feedback to add to this build").
+Status: IN PROGRESS, left (Claude): merge + combined review (built on lane/085-picks, option C filled; shots not taken) — joins the 0.8.5 batch (owner 2026-11-21: "Another feedback to add to this build").
 
 Source: a tester, via the owner's messages 2026-11-21 12:43 (shot: `T986-shots/species-toggle-tester.png`, the app part
 only). Verbatim: "Its hard to tell which one is toggled for the trout/salmon … Because when the trout is toggled it could

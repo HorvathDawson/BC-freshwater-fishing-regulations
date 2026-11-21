@@ -15,7 +15,7 @@ describe("basinDaysVM", () => {
   it("the group's name as sourced, core's word around it; the scale by quantity", () => {
     expect(vm.title).toBe("Chilliwack River watershed");
     expect(vm.scale).toBe("Flow vs. past years, by day");
-    expect(vm.verdict).toBe("Fri 6 · above normal");
+    expect(vm.verdict).toBe("Fri 6 · higher than normal");
     expect(basinDaysVM("Chilliwack River", st, "change", "discharge", TUE).verdict).toBeNull();
     expect(basinDaysVM("Chilliwack River", st, 0, "level", TUE).scale).toBe("Water level vs. past years, by day");
     expect(vm.list).toBe("Chilliwack River watershed, standing by day");
@@ -28,9 +28,9 @@ describe("basinDaysVM", () => {
 
   it("each day in the standing words the map's bands use; the whole name aloud", () => {
     expect(vm.days.slice(0, 5).map((d) => d.word))
-      .toEqual(["Much below normal", "Below normal", "Normal", "Above normal", "Much above normal"]);
-    expect(vm.days[0]!.label).toBe("Conditions now: much below normal");
-    expect(vm.days[3]!.label).toBe("Forecast 3 days ahead: above normal, showing");
+      .toEqual(["Far lower than normal", "Lower than normal", "Normal", "Higher than normal", "Far higher than normal"]);
+    expect(vm.days[0]!.label).toBe("Conditions now: far lower than normal");
+    expect(vm.days[3]!.label).toBe("Forecast 3 days ahead: higher than normal, showing");
     expect(vm.days.filter((d) => d.on).map((d) => d.day)).toEqual([3]);
   });
 
@@ -55,13 +55,13 @@ describe("basinDaysVM", () => {
     const run = (ps: readonly (number | null)[]) =>
       basinDaysVM("Squamish River", new Map(ps.map((p, i) => [DAY_HORIZONS[i]!, p] as const)), 0, "discharge", WED18);
 
-    it("the owner's Mamquam card: seven days Normal, three Much above normal, one with no reading", () => {
+    it("the owner's Mamquam card: seven days Normal, three Far higher than normal, one with no reading", () => {
       const vm = run([0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.95, 0.95, 0.95, null]);
       expect(vm.days.map((d) => d.chip)).toEqual(["Now", "Thu 19", "Fri 20", "Sat 21", "Sun 22", "Mon 23", "Tue 24",
                                                    "Wed 25", "Thu 26", "Fri 27", "Sat 28"]);
-      expect(vm.summary).toBe("Now: Normal · Much above normal from Wed 25 · No gauge reading from Sat 28");
+      expect(vm.summary).toBe("Now: Normal · Far higher than normal from Wed 25 · No gauge reading from Sat 28");
       expect(vm.toggle)
-        .toBe("Squamish River watershed, by day: Now: Normal · Much above normal from Wed 25 · No gauge reading from Sat 28");
+        .toBe("Squamish River watershed, by day: Now: Normal · Far higher than normal from Wed 25 · No gauge reading from Sat 28");
     });
 
     it("one standing all the way says so, to the last day", () => {
@@ -71,14 +71,14 @@ describe("basinDaysVM", () => {
 
     it("no reading now is said first; a return to an earlier band is a change of its own", () => {
       expect(run([null, 0.2, 0.2, 0.5, 0.5, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2]).summary)
-        .toBe("Now: No gauge reading · Below normal from Thu 19 · Normal from Sat 21 · Below normal from Mon 23");
+        .toBe("Now: No gauge reading · Lower than normal from Thu 19 · Normal from Sat 21 · Lower than normal from Mon 23");
     });
 
     it("past three changes the rest are counted, never listed", () => {
       expect(run([0.5, 0.95, 0.5, 0.95, 0.5, 0.95, 0.5, 0.5, 0.5, 0.5, 0.5]).summary)
-        .toBe("Now: Normal · Much above normal from Thu 19 · Normal from Fri 20 · Much above normal from Sat 21 · 3 more changes");
+        .toBe("Now: Normal · Far higher than normal from Thu 19 · Normal from Fri 20 · Far higher than normal from Sat 21 · 3 more changes");
       expect(run([0.5, 0.95, 0.5, 0.95, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]).summary)
-        .toBe("Now: Normal · Much above normal from Thu 19 · Normal from Fri 20 · Much above normal from Sat 21 · 1 more change");
+        .toBe("Now: Normal · Far higher than normal from Thu 19 · Normal from Fri 20 · Far higher than normal from Sat 21 · 1 more change");
     });
 
     it("the folded line does not move with the day shown", () => {

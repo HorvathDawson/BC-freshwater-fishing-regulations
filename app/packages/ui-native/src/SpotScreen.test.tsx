@@ -375,7 +375,7 @@ describe("<SpotScreen> shows the estimate it recorded", () => {
   it("renders the estimate as the app rendered it", () => {
     const r = render(<SpotScreen spot={spot({ panel: frozen } as never)}
                                 palette={LIGHT} onBack={() => {}} />);
-    expect(r.getByText("Below normal for the time of year")).toBeTruthy();
+    expect(r.getByText("Lower than normal for the time of year")).toBeTruthy();
     // (T920) the gauges behind it, in their fold
     fireEvent.click(r.getByTestId("gauges-fold").querySelector("[role=button]")!);
     expect(r.getByText("08MH001")).toBeTruthy();
@@ -393,7 +393,7 @@ describe("<SpotScreen> shows the estimate it recorded", () => {
     const r = render(<SpotScreen spot={spot({ panel: null })} palette={LIGHT}
                                 onBack={() => {}} />);
     // Still a true record of that day — just less of one.
-    expect(r.queryByText("Below normal for the time of year")).toBeNull();
+    expect(r.queryByText("Lower than normal for the time of year")).toBeNull();
   });
 });
 
@@ -533,10 +533,12 @@ describe("<SpotScreen> photographs (S1)", () => {
 
   it("adds from the library or the camera, and removes one photo, while editing", () => {
     const pe = edit();
-    const { getByLabelText } = render(
+    const { getByLabelText, getByText } = render(
       <SpotScreen palette={LIGHT} mode="edit" title="t" notes="" onTitle={() => {}} onNotes={() => {}}
                   onSave={() => {}} onDiscard={() => {}} photoStore={store} photoEdit={pe}
                   spot={spot({ photos: ["photos/s1-1.jpg"] })} />);
+    // (T982) each button is an icon and ONE word; the full meaning is its accessible label
+    expect([getByText("Photos"), getByText("Camera")].length).toBe(2);
     fireEvent.click(getByLabelText("Add from photos"));
     fireEvent.click(getByLabelText("Take a photo"));
     fireEvent.click(getByLabelText("Remove photo 2"));

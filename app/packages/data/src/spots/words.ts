@@ -270,6 +270,9 @@ export function dayFlowLine(df: Spot["dayFlow"]): string | null {
 
 export const PHOTO_WORDS = {
   heading: "Photographs",
+  /** (T982, owner pick B) the buttons' one word, beside an icon; the full meaning below stays their accessible label */
+  libraryShort: "Photos",
+  cameraShort: "Camera",
   library: "Add from photos",
   camera: "Take a photo",
   remove: "Remove photo",

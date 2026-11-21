@@ -44,7 +44,7 @@ const FALL: RunChange = {
 describe("one model's expected change, said whole", () => {
   it("a spike between the sampled days: dated, and when it is back down", () => {
     expect(changeLine("CLEVER", SPIKE, TODAY)).toBe(
-      "CLEVER: rises to about 25× today's flow on Mon (higher than 8 days in 10, above normal for the time of year), back down by Tue.");
+      "CLEVER: rises to about 25× today's flow on Mon (higher than 8 days in 10, higher than normal for the time of year), back down by Tue.");
   });
 
   it("a step: dated, and that it stays up", () => {
@@ -54,14 +54,14 @@ describe("one model's expected change, said whole", () => {
 
   it("a fall a week or more out names the date as well as the day", () => {
     expect(changeLine("ELF", FALL, TODAY)).toBe(
-      "ELF: falls to about 60% of today's flow by Sun 1 Nov (lower than 8 days in 10, below normal for the time of year).");
+      "ELF: falls to about 60% of today's flow by Sun 1 Nov (lower than 8 days in 10, lower than normal for the time of year).");
   });
 
   it("a move still going on the last day shown is never said to stay up: the forecast stops there (T52 review)", () => {
     // 08EE020's ELF run as read: its window ends Sun 1 Nov, the very day of its lowest
     const fallDays: RunChange["days"] = [["2026-10-31", 6.7, 6.7], ["2026-11-01", 6.5968, 6.5968]];
     expect(changeLine("ELF", { ...FALL, days: fallDays }, TODAY)).toBe(
-      "ELF: falls to about 60% of today's flow by Sun 1 Nov (lower than 8 days in 10, below normal for the time of year), still falling on the last day "
+      "ELF: falls to about 60% of today's flow by Sun 1 Nov (lower than 8 days in 10, lower than normal for the time of year), still falling on the last day "
       + "shown.");
     // a COFFEE run (five days) still climbing on its last
     const open: RunChange = { ...STEP, days: [["2026-10-27", 1.5, 1.6], ["2026-10-28", 2.0, 2.127]] };
@@ -81,14 +81,14 @@ describe("one model's expected change, said whole", () => {
     const both: RunChange = { ...SPIKE, dir: "both",
       trough: { day: "2026-10-30", ratio: 0.4, value: 0.19, back: null } };
     expect(changeLine("CLEVER", both, TODAY)).toBe(
-      "CLEVER: rises to about 25× today's flow by Mon (higher than 8 days in 10, above normal for the time of year), "
+      "CLEVER: rises to about 25× today's flow by Mon (higher than 8 days in 10, higher than normal for the time of year), "
       + "then falls to about 40% of today's flow by Fri 30 Oct.");
   });
 
   it("(T367) the end's percentile is said whenever the station has a record, a small move too; never without one", () => {
     const small = { ...SPIKE, peak: { ...SPIKE.peak, points: CHANGE_POLICY.bigPoints - 0.01 } };
     expect(changeLine("CLEVER", small, TODAY)).toBe(
-      "CLEVER: rises to about 25× today's flow on Mon (higher than 8 days in 10, above normal for the time of year), back down by Tue.");
+      "CLEVER: rises to about 25× today's flow on Mon (higher than 8 days in 10, higher than normal for the time of year), back down by Tue.");
     const unranked = { ...SPIKE, peak: { ...SPIKE.peak, percentile: undefined, points: undefined } };
     expect(changeLine("CLEVER", unranked, TODAY)).toBe("CLEVER: rises to about 25× today's flow on Mon, back down by Tue.");
   });
@@ -292,7 +292,7 @@ describe("the station's change, by the models the publisher chose (T144)", () =>
 
   it("says a joined change as one line", () => {
     expect(changeSourceLine(JOINED, TODAY)).toBe(
-      "CLEVER and COFFEE together: rises to more than 100× today's flow on Sun (higher than almost every day on record, much above normal for the time of year), "
+      "CLEVER and COFFEE together: rises to more than 100× today's flow on Sun (higher than almost every day on record, far higher than normal for the time of year), "
       + "back down by Mon.");
   });
 

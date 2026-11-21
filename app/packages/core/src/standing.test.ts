@@ -12,19 +12,19 @@ import {
 describe("one standing, every form", () => {
   const p = 0.2;
   it("says a low rank in the card's family", () => {
-    expect(bandWord(standing(p))).toBe("Below normal");
-    expect(standingHeadline(standing(p))).toBe("Below normal for the time of year");
-    expect(standingShort(p)).toBe("Below normal · lower than 8 days in 10");
-    expect(standingLong(p)).toBe("Below normal · lower than 8 days in 10 for the date");
-    expect(standingReads(p)).toBe("Reads below normal · lower than 8 days in 10.");
+    expect(bandWord(standing(p))).toBe("Lower than normal");
+    expect(standingHeadline(standing(p))).toBe("Lower than normal for the time of year");
+    expect(standingShort(p)).toBe("Lower than normal · lower than 8 days in 10");
+    expect(standingLong(p)).toBe("Lower than normal · lower than 8 days in 10 for the date");
+    expect(standingReads(p)).toBe("Reads lower than normal · lower than 8 days in 10.");
     expect(daysInTen(p)).toBe("lower than 8 days in 10");
     expect(daysShort(p)).toBe("8 in 10 days higher");
     expect(daysNear(p)).toBe("about 8 in 10 days higher");
   });
   it("says every band", () => {
     expect([0.1, 0.2, 0.5, 0.8, 0.9].map((x) => standingShort(x))).toEqual([
-      "Below normal · lower than 9 days in 10", "Below normal · lower than 8 days in 10", "Normal · lower than 5 days in 10",
-      "Above normal · higher than 8 days in 10", "Much above normal · higher than 9 days in 10"]);
+      "Lower than normal · lower than 9 days in 10", "Lower than normal · lower than 8 days in 10", "Normal · lower than 5 days in 10",
+      "Higher than normal · higher than 8 days in 10", "Far higher than normal · higher than 9 days in 10"]);
     expect(standingHeadline("no-record")).toBe("No record to compare against");
     expect(standingShort(null)).toBeNull();
     expect(standingLong(null)).toBe("There is a reading here, but no record to compare it against.");
@@ -56,7 +56,7 @@ describe("one standing, every form", () => {
     for (let i = 0; i <= 100; i++) {
       for (const s of [daysInTen(i / 100), daysShort(i / 100)]) expect(s).not.toMatch(/\b(?:10|0) (?:days )?in 10|\bin 10 days.*\b10 in 10/);
     }
-    expect(standingShort(0.004)).toBe("Much below normal · lower than almost every day on record");
+    expect(standingShort(0.004)).toBe("Far lower than normal · lower than almost every day on record");
   });
   it("says a day's place, edges included", () => {
     expect(placeChip("below")).toBe("9+ in 10 days higher");

@@ -6,8 +6,8 @@
  * one handler the legend's switch had): the salmon chains are already on every tile, so it is instant. (T182) On the web
  * the first press of Salmon reads the salmon file: the choice is busy until the map can paint it (T257: the fish turns in
  * its picture's place). Bait ban and fly only are no choice here: they are marks on Standard (`@app/map` `gearPaint`).
- * Same card look as the rail: 44 wide, square corners, the lift; the chosen one wears the rail's selected tint and an
- * accent bar. Absent the art (a test, a build without it) the app's `fish` icon stands in.
+ * Same card look as the rail: 44 wide, square corners, the lift; the chosen one is FILLED with the accent (T986: a bar on the
+ * line between the two read as belonging to either) and its art/word turn to the on-accent ink. Absent the art (a test, a build without it) the app's `fish` icon stands in.
  */
 import { Image, View } from "react-native";
 import { SALMON_WORDS } from "@app/core";
@@ -69,20 +69,19 @@ export function RegsLayerToggle({ col, palette, fishImages, look }: {
       {keys.map((k, i) => {
         const on = col.regsLayer === k;
         const busy = (k === "salmon" && col.salmonLoading === true) || (on && painting);
+        const ink = on ? palette.onAccent : palette.ink;
         const art = fishImages?.[W.art[k]]?.[0]?.thumb;
         return (
           <Pressable key={k} testID={`regs-paint-${k}`} onPress={() => col.setRegsLayer(k)} accessibilityRole="radio"
                      aria-checked={on} aria-busy={busy} accessibilityLabel={W.said[k]} accessibilityHint={W.hint} {...HIT}
                      style={{ width: SIZE, height: SIZE, alignItems: "center", justifyContent: "center", gap: 1,
-                              backgroundColor: on ? palette.tint : palette.card,
+                              backgroundColor: on ? palette.accent : palette.card,
                               borderTopWidth: i ? 1 : 0, borderTopColor: palette.line }}>
-            {busy ? <LoadingState palette={palette} size={15} colour={palette.ink} />
+            {busy ? <LoadingState palette={palette} size={15} colour={ink} />
               : art ? <Image source={art} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 32, height: 16 }} />
-              : <Icon name="fish" colour={palette.ink} size={16} />}
+              : <Icon name="fish" colour={ink} size={16} />}
             <Text style={{ ...TYPE.micro, fontSize: 9, lineHeight: 11, fontWeight: on ? "800" : "600", letterSpacing: 0.4,
-                           textTransform: "uppercase", color: palette.ink }}>{W.rail[k]}</Text>
-            {on && <View testID={`regs-paint-bar-${k}`} aria-hidden style={{ position: "absolute", left: 0, right: 0, bottom: 0,
-                                                                              height: 3, backgroundColor: palette.accent }} />}
+                           textTransform: "uppercase", color: ink }}>{W.rail[k]}</Text>
           </Pressable>
         );
       })}

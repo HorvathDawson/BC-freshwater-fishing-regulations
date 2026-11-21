@@ -42,8 +42,8 @@ describe("useBasinDays", () => {
     await waitFor(() => expect(h.result.current.state).toBe("ready"));
     const s = h.result.current as Extract<BasinDaysState, { state: "ready" }>;
     expect(s.vm.title).toBe("Chilliwack River watershed");
-    expect(words(s)).toEqual(["Much below normal", "Much above normal", "No gauge reading"]);
-    expect(s.vm.days[1]!.label).toBe("Forecast 1 day ahead: much above normal, showing");
+    expect(words(s)).toEqual(["Far lower than normal", "Far higher than normal", "No gauge reading"]);
+    expect(s.vm.days[1]!.label).toBe("Forecast 1 day ahead: far higher than normal, showing");
     expect(s.vm.days[2]!.label).toBe("Forecast 2 days ahead: no gauge reading");
   });
 
@@ -102,7 +102,7 @@ describe("useBasinDays", () => {
     h.rerender({ b: LFRA });
     // the Lower Fraser's days are not in yet: the Chilliwack's stay up, as the Chilliwack's
     expect(h.result.current).toMatchObject({ state: "ready", basin: CHWK, vm: { title: "Chilliwack River watershed" } });
-    expect(words(h.result.current)).toEqual(["Much below normal", "Much above normal", "No gauge reading"]);
+    expect(words(h.result.current)).toEqual(["Far lower than normal", "Far higher than normal", "No gauge reading"]);
     release!();
     await waitFor(() => expect((h.result.current as { basin?: Basin }).basin).toEqual(LFRA));
     const s = h.result.current as Extract<BasinDaysState, { state: "ready" }>;
@@ -113,7 +113,7 @@ describe("useBasinDays", () => {
       expect(x.got.state).toBe("ready");
       const r = x.got as Extract<BasinDaysState, { state: "ready" }>;
       expect(r.vm.title).toBe(`${r.basin.name} watershed`);
-      expect(words(r)).toEqual(r.basin.id === "CHWK" ? ["Much below normal", "Much above normal", "No gauge reading"]
+      expect(words(r)).toEqual(r.basin.id === "CHWK" ? ["Far lower than normal", "Far higher than normal", "No gauge reading"]
                                                      : ["Normal", "No gauge reading", "Normal"]);
     }
   });

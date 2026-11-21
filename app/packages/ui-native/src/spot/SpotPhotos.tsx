@@ -63,7 +63,9 @@ export function SpotPhotos({ photos, uris, pe, palette }: {
         <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
           {pe.sources.map((from) => (
             <Button key={from} palette={palette} kind="ghost" grow={false}
-                    label={from === "camera" ? PHOTO_WORDS.camera : PHOTO_WORDS.library}
+                    icon={from === "camera" ? "camera" : "image"}
+                    label={from === "camera" ? PHOTO_WORDS.cameraShort : PHOTO_WORDS.libraryShort}
+                    a11yLabel={from === "camera" ? PHOTO_WORDS.camera : PHOTO_WORDS.library}
                     onPress={pe.busy ? undefined : () => { void pe.add(from); }} />
           ))}
         </View>

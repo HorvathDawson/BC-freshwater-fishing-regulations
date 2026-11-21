@@ -46,7 +46,7 @@ export function MapRail({ palette, onLayers, layersChanged = 0, top = 0, me, chi
    * (T303) My location, above Layers (under the zoom): the dot is `on` once asked, the map `following` it; the line says why
    * it could not be shown. Absent: no button (no location on this platform).
    */
-  me?: { on: boolean; following: boolean; busy: boolean; notice: string | null; press: () => void; dismiss: () => void } | null;
+  me?: { on: boolean; following: boolean; busy: boolean; notice: string | null; offered?: boolean; press: () => void; dismiss: () => void } | null;
   /**
    * any further map switch, stacked under the rail, right-aligned with it: the Trout / Salmon colouring on the regulations
    * map (T425, owner 2026-11-05: back from the legend bar; `shell/RegsLayerToggle`).
@@ -90,6 +90,17 @@ export function MapRail({ palette, onLayers, layersChanged = 0, top = 0, me, chi
         </Pressable>
       ))}
     </View>
+    {me?.offered && !me.on && !me.busy && !me.notice && (
+      // (T982) the open's location ask was dismissed or refused: one line, a card, a tap asks again (refused for good, it says how)
+      <Pressable testID="my-location-offer" onPress={me.press} accessibilityRole="button" accessibilityLabel={MY_LOCATION.offer}
+                 {...hitProps({ w: 44, h: 44 })}
+                 style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 10, paddingHorizontal: 10,
+                          backgroundColor: palette.card, borderWidth: 1, borderColor: palette.line2,
+                          borderRadius: palette.r.box, ...palette.lift }}>
+        <Icon name="locate" colour={palette.accent} size={16} />
+        <Text style={{ ...TYPE.small, fontWeight: "600", color: palette.ink }}>{MY_LOCATION.offer}</Text>
+      </Pressable>
+    )}
     {me?.notice && (
       // why it is not shown, and how to turn it on; a tap on the line puts it away, the button retries
       <Pressable testID="my-location-notice" onPress={me.dismiss} accessibilityRole="alert"

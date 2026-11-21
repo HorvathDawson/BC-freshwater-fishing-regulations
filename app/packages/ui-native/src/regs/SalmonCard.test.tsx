@@ -192,11 +192,9 @@ describe("(T425) the Trout / Salmon switch (the map rail, under locate + layers)
     expect(getComputedStyle(within(std).getByText("Trout")).textTransform).toBe("uppercase");
     expect(screen.getByTestId("regs-paint").getAttribute("role")).toBe("radiogroup");
     expect([std, sal].map((e) => e!.getAttribute("role"))).toEqual(["radio", "radio"]);
-    // named and hinted aloud; the chosen one wears the accent bar
+    // named and hinted aloud; the chosen one is filled (T986)
     expect([std, sal].map((e) => e!.getAttribute("aria-label")))
       .toEqual(["Colour by trout and other species' rules", "Colour by salmon openings"]);
-    expect(screen.getByTestId("regs-paint-bar-standard")).toBeTruthy();
-    expect(screen.queryByTestId("regs-paint-bar-salmon")).toBeNull();
     // 44 x 44 to the touch
     expect([std, sal].map((e) => hitArea(e!.getAttribute("data-hitslop")!))).toEqual([{ w: 44, h: 44 }, { w: 44, h: 44 }]);
     expect(screen.queryByTestId("regs-paint-method")).toBeNull();

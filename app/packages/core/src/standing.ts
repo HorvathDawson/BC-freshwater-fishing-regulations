@@ -35,11 +35,11 @@ import { standing, type Standing } from "./flow";
 
 /** The six bands, once. `band` is the sentence-case word; `headline` is what the water is doing, in a screen's first line. */
 const BAND_WORDS: Record<Standing, { band: string; headline: string }> = {
-  "much-below": { band: "Much below normal", headline: "Much below normal for the time of year" },
-  below:        { band: "Below normal",      headline: "Below normal for the time of year" },
+  "much-below": { band: "Far lower than normal", headline: "Far lower than normal for the time of year" },
+  below:        { band: "Lower than normal",      headline: "Lower than normal for the time of year" },
   normal:       { band: "Normal",            headline: "Normal for the time of year" },
-  above:        { band: "Above normal",      headline: "Above normal for the time of year" },
-  "much-above": { band: "Much above normal", headline: "Much above normal for the time of year" },
+  above:        { band: "Higher than normal",      headline: "Higher than normal for the time of year" },
+  "much-above": { band: "Far higher than normal", headline: "Far higher than normal for the time of year" },
   "no-record":  { band: "No record",         headline: "No record to compare against" },
 };
 
