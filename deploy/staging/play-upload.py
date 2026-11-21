@@ -43,6 +43,9 @@ def main():
     ap.add_argument("--status", default="completed", choices=["completed", "draft"])
     ap.add_argument("--key", default=os.path.expanduser("~/.canifishthis/play-service-account.json"))
     ap.add_argument("--max-version-code", action="store_true")
+    ap.add_argument("--promote", metavar="VERSION_CODE",
+                    help="promote this versionCode (already on Play) to --track; no AAB, no upload")
+    ap.add_argument("--from-track", default="internal", help="with --promote: the track whose release notes it takes")
     a = ap.parse_args()
     if not os.path.isfile(a.key):
         die(f"no service-account key at {a.key} (owner step: create it in Google Cloud, grant it in Play Console)")
@@ -60,14 +63,26 @@ def main():
         print(max(codes or [0]))
         return
 
-    if not a.aab or not os.path.isfile(a.aab):
-        die(f"no AAB at {a.aab}")
-    with open(a.aab, "rb") as f:
-        r = s.post(f"{UPLOAD}/{a.package}/edits/{edit}/bundles", params={"uploadType": "media"},
-                   data=f, headers={"Content-Type": "application/octet-stream"}, timeout=900)
-    code = ok(r, "bundles.upload")["versionCode"]
-    print(f"uploaded versionCode {code}")
-    notes = open(a.notes_file).read().strip()[:500] if a.notes_file else ""
+    if a.promote:
+        # (owner 2026-11-21) promote a versionCode Play already holds to --track: no upload; its notes come from the
+        # track it is on now (--from-track) unless --notes-file is given
+        code = a.promote
+        src = ok(s.get(f"{base}/{edit}/tracks/{a.from_track}"), f"tracks.get {a.from_track}")
+        rels = [r for r in src.get("releases", []) if str(code) in r.get("versionCodes", [])]
+        if not rels:
+            s.delete(f"{base}/{edit}")
+            die(f"versionCode {code} is not on track '{a.from_track}'")
+        notes = open(a.notes_file).read().strip()[:500] if a.notes_file else \
+            next((n["text"] for n in rels[0].get("releaseNotes", []) if n.get("language") == "en-US"), "")
+    else:
+        if not a.aab or not os.path.isfile(a.aab):
+            die(f"no AAB at {a.aab}")
+        with open(a.aab, "rb") as f:
+            r = s.post(f"{UPLOAD}/{a.package}/edits/{edit}/bundles", params={"uploadType": "media"},
+                       data=f, headers={"Content-Type": "application/octet-stream"}, timeout=900)
+        code = ok(r, "bundles.upload")["versionCode"]
+        print(f"uploaded versionCode {code}")
+        notes = open(a.notes_file).read().strip()[:500] if a.notes_file else ""
 
     def release(status):
         rel = {"versionCodes": [str(code)], "status": status}

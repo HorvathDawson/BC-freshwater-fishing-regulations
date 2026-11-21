@@ -9,6 +9,11 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-21 11:24: 0.8.4 promoted to Play Closed testing (owner)
+
+- Owner, verbatim: "promote now please (not enough tokens to fix it)": versionCode 42 Internal → Closed (track alpha),
+  knowing T983 (old in-season notices show as New after updating) is not fixed yet.
+
 ## 2026-11-20 17:13: production data, one-time agent override (owner)
 
 - Owner, verbatim: "Add one time override then remove it after" (leaving the computer, wants the release out; "We have
