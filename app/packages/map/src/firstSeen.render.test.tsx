@@ -142,3 +142,16 @@ describe("the web map is built when it is first seen (T409)", () => {
     expect(shown).toEqual({ built, log });
   });
 });
+
+describe("T989: a fit sent while the map is unbuilt is applied when it is built", () => {
+  it("a landing arrival fit, sent behind the water, frames the water the moment the map is shown", async () => {
+    width(390);
+    const fit = { key: "arrive:gnis:3062:1", bbox: [-122.1, 49.0, -121.8, 49.2] as const };
+    const { rerender } = render(<Box behind p={props({ fit })} />);
+    await settle();
+    expect(log.filter((l) => l.startsWith("fit"))).toEqual([]);
+    rerender(<Box behind={false} p={props({ fit })} />);
+    await settle();
+    expect(log.filter((l) => l.startsWith("fit"))).toHaveLength(1);
+  });
+});

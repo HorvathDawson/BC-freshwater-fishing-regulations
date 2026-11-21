@@ -55,6 +55,36 @@ describe("the map behind a landing", () => {
     expect([screen.getByTestId("map").closest('[aria-hidden="true"]'), mounts.n]).toEqual([null, 1]);   // the same map, shown
   });
 
+  it("T989: a cold deep link, then back: the map is framed on the water (an arrival fit), not left at the default", async () => {
+    vi.useFakeTimers();
+    const CHIL = "gnis:8634" as ItemId;
+    mount(reduce(HOME, openWater({ item: CHIL, part: null, view: "regs" })), CHIL);
+    await idle();
+    await act(async () => { fireEvent.click(screen.getByTestId("water-back")); });
+    await act(async () => {});
+    expect(screen.getByTestId("map").textContent).toBe(`map fit arrive:${CHIL}:1`);
+  });
+
+  it("T989: the top-right close of a cold deep link frames the water too", async () => {
+    vi.useFakeTimers();
+    const CHIL = "gnis:8634" as ItemId;
+    mount(reduce(HOME, openWater({ item: CHIL, part: null, view: "regs" })), CHIL);
+    await idle();
+    await act(async () => { fireEvent.click(screen.getByTestId("water-close")); });
+    await act(async () => {});
+    expect(screen.getByTestId("map").textContent).toBe(`map fit arrive:${CHIL}:1`);
+  });
+
+  it("T989: closed before the page went idle (no map behind yet): the map built then is framed on the water", async () => {
+    vi.useFakeTimers();
+    const CHIL = "gnis:8634" as ItemId;
+    mount(reduce(HOME, openWater({ item: CHIL, part: null, view: "regs" })), CHIL);
+    await act(async () => { await Promise.resolve(); });
+    await act(async () => { fireEvent.click(screen.getByTestId("water-close")); });
+    await act(async () => {});
+    expect(screen.getByTestId("map").textContent).toBe(`map fit arrive:${CHIL}:1`);
+  });
+
   it("not before the water's own page is up: a landing whose page has not applied its start yet mounts no map", async () => {
     vi.useFakeTimers();
     mount(onVedder, VEDDER, { tab: "keep", sheet: null, scroll: 0 });   // no release here: the page never comes up
@@ -71,5 +101,23 @@ describe("the map behind a landing", () => {
     mount(HOME, null);
     await idle();
     expect(mounts.n).toBe(1);                                            // the map tab's own map, as before
+  });
+});
+
+describe("T989: a water opened by a phone link or tap (openRequest)", () => {
+  it("leaving it (the close) frames the map on that water, as a start link's landing does", async () => {
+    const CHIL = "gnis:8634" as ItemId;
+    const tree = (openRequest: { item: string; n: number } | null) => (
+      <GestureHandlerRootView>
+        <Shell source={makeFixtureSource()} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}
+               tiles={{ atlas: "a", basemap: "b" } as never} initialRoute={HOME} openRequest={openRequest} />
+      </GestureHandlerRootView>);
+    const { rerender } = render(tree(null));
+    await act(async () => {});
+    rerender(tree({ item: CHIL, n: 1 }));
+    await act(async () => { await Promise.resolve(); });
+    await act(async () => { fireEvent.click(screen.getByTestId("water-close")); });
+    await act(async () => {});
+    expect(screen.getByTestId("map").textContent).toBe(`map fit arrive:${CHIL}:1`);
   });
 });
