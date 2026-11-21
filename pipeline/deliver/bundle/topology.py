@@ -32,6 +32,9 @@ THE RULES (stated, pinned in test_part_geo.py), moved here from `pipeline/tools/
             T59: the Fraser "flowed into" Annacis Channel, its own side channel; a creek into the headwater lake it
             runs out of). Where a water drains into several, the receiver whose part lies nearest this water's mouth
             part (rank 0); `down_part` is that part. None left (the Fraser, a coastal creek): no exit row.
+  mouth     (T985) the exit's `lon` / `lat`: the point of this water's mouth part nearest the receiving part
+            (`mouth_place`: its main stem's where the stem comes as near, else the whole part's — a braid that reaches
+            the receiver first never moves it off the stem). Where the map labels "Flows into <water>".
 
 Geometry is the atlas's (`geometries.pkl`, EPSG:3005 metres), kept for the NAMED sections only, from the moment it is
 loaded until these tables are written. Never key on `ord` across bundles (it is the insertion order).
@@ -646,13 +649,16 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
         if best is None:                                # (T517 review: no silent exit with no part — 0 on 2026-11-08)
             raise SystemExit(f"water_exit: {name.get(o)} (ord {o}) drains into {[name.get(d) for d in cands]}, "
                              f"none of which has a drawn part")
-        exits.append((o, best[1], best[2], name.get(best[1])))
+        # (T985) the mouth's place: where the map labels "Flows into <receiver>" (the stem: the part's main-stem sections)
+        mouth_stem = [geo[s] for s in sids[(o, mouth[o])] if s in geo and s in span and not span[s][4]]
+        place = mouth_place(here, unary_union(mouth_stem) if mouth_stem else None, shapes[(best[1], best[2])])
+        exits.append((o, best[1], best[2], name.get(best[1]), *ll(place)))
 
     db.executemany("INSERT INTO part_geo (ord, part_ix, mid_sid, mid_lon, mid_lat, w, s, e, n) "
                    "VALUES (?,?,?,?,?,?,?,?,?)", part_rows)
     db.executemany("INSERT INTO part_mark (ord, mark_ix, lon, lat, label, down_part, up_parts, confidence, alt, token) "
                    "VALUES (?,?,?,?,?,?,?,?,?,?)", mark_rows)
-    db.executemany("INSERT INTO water_exit (ord, down_ord, down_part, label) VALUES (?,?,?,?)", exits)
+    db.executemany("INSERT INTO water_exit (ord, down_ord, down_part, label, lon, lat) VALUES (?,?,?,?,?,?)", exits)
     db.executemany("INSERT INTO item_exit_down (ord, down_ord) VALUES (?,?)", exit_down)
     cov.filled("item_exit_down", len(exit_down))
     # T228 DIAGNOSTIC: a salmon difference where no named split stands — a DFO place's edge not yet placed as a split.
@@ -908,6 +914,16 @@ def _measure_at(x: int, p, stem: List[int], span: Dict[int, tuple], geo: Dict[in
     f = g.project(p, normalized=True)
     forward = _end_point(x, "lo", stem, span, geo).distance(g.interpolate(0.0)) < 1e-6
     return span[x][0] + (f if forward else 1.0 - f) * (span[x][1] - span[x][0])
+
+
+def mouth_place(here: Geometry, stem: Optional[Geometry], there: Geometry) -> object:
+    """(T985) THE MOUTH'S PLACE: the point of a water's mouth part `here` nearest the receiving part `there` — on the
+    part's main stem `stem` where the stem comes within TOUCH_M of as near (a side channel that reaches the receiver
+    first is not the mouth), else on the whole part (a lake, a part of side channels only). EPSG:3005, as given."""
+    from shapely.ops import nearest_points
+    on = stem if stem is not None and not stem.is_empty and \
+        stem.distance(there) <= here.distance(there) + TOUCH_M else here
+    return nearest_points(on, there)[0]
 
 
 def _mouths(part_rows: Sequence[tuple]) -> Dict[int, int]:

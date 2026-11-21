@@ -452,7 +452,10 @@ CREATE TABLE part_mark (ord INTEGER NOT NULL, mark_ix INTEGER NOT NULL, lon REAL
                         -- ships it where the parts' own ends say nothing there (`release.build.mark_token`)
                         token TEXT,
                         PRIMARY KEY (ord, mark_ix)) WITHOUT ROWID;
-CREATE TABLE water_exit (ord INTEGER PRIMARY KEY, down_ord INTEGER NOT NULL, down_part INTEGER, label TEXT);
+-- (T985) `lon` / `lat`: THE MOUTH'S PLACE, where this water's mouth part comes nearest the receiving part (its main stem
+-- where that reaches it; `topology.mouth_place`): where the map labels "Flows into <water>"
+CREATE TABLE water_exit (ord INTEGER PRIMARY KEY, down_ord INTEGER NOT NULL, down_part INTEGER, label TEXT,
+                         lon REAL NOT NULL, lat REAL NOT NULL);
 -- (T517) the nearest named feature to a gauge cut a part ends at (`topology.gauge_near`): the end token its words come
 -- from (a tributary's `confluence:<item>`, or a named cut of the water) and how far it stands, metres
 CREATE TABLE split_near (split_id TEXT PRIMARY KEY, token TEXT NOT NULL, m REAL NOT NULL) WITHOUT ROWID;
