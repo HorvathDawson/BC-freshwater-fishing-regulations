@@ -112,7 +112,9 @@ SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_650_000, "lakes":
               **{f"salmon-{r}": 320_000 for r in (*SH.REGIONS, "x")}, "salmon-6": 460_000, "method": 600_000,
               # (T388) water + `part_line` (79,253 B gz measured alone on the 2026-11-04 bundle; water was 2,409,579 in
               # r-b86b60ca533b → ~2.49 MB, too close to 2.5 MB) → 2,650,000
-              "water": 2_650_000, **UNPACKED_GATES, "regs-sid": 1_400_000, "conditions": 1_060_000, "geo": 700_000, "flow-area": 220_000,
+              # (T985 #2) + `water_exit.lon/lat`, the mouth's place (two microdegree ints on 17,854 rows): water 2,594,027 in
+              # r-fec3fab4c5aa → 2,734,935 on the 0.8.5 candidate (+140,908; T686 took ~2.25 MB off near/down/climate) → 2,850,000
+              "water": 2_850_000, **UNPACKED_GATES, "regs-sid": 1_400_000, "conditions": 1_060_000, "geo": 700_000, "flow-area": 220_000,
               # (T823) `flow-small`: one bitmask varint per paint section, measured 2026-11-16 on the live bundle (141,189
               # sections): 21,396 B gz at x50 (x200: 27,444)
               "flow-small": 32_000,
