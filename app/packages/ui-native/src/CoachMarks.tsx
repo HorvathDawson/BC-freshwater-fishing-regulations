@@ -34,7 +34,6 @@ export const CoachContext = createContext<CoachRegistry | null>(null);
  * (T456) The water the walkthrough is about (its item): search's row for it registers itself ("search:hit") and its open
  * arrow ("search:go"), so the steps that say "tap it in the list" ring the row they mean.
  */
-export const CoachItemContext = createContext<string | null>(null);
 
 export function useCoachRegistry(): CoachRegistry {
   return useMemo(() => {

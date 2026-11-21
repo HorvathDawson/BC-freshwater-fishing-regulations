@@ -15,7 +15,6 @@ import { LineText, TermText, type KeepActions } from "./LineText";
 import { RegsPress } from "./RegsPress";
 import type { FishImages } from "./types";
 import { useCoachTarget } from "../CoachMarks";
-import { useGuideControl } from "../guideControls";
 
 /** (T40) a full-width press row at least 44 tall (`minHeight: 44`): its known box */
 const ROW = { w: 44, h: 44 } as const;
@@ -293,7 +292,6 @@ function FoldRow({ f, palette, images, coach }: { f: GlanceFold; palette: Palett
   coach?: string }) {
   const [open, setOpen] = useState(false);
   const ring = useCoachTarget(coach);
-  useGuideControl(coach, open, setOpen);
   const tone = f.row.tone === "release" ? palette.restricted : f.row.tone === "closed" ? palette.closed : palette.ink;
   // (T227) nothing more to see: a plain row, its word and no "Details"
   if (f.row.fold === false) return (

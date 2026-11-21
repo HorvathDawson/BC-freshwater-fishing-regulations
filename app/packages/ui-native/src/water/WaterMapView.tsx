@@ -31,7 +31,6 @@ import { CAPPED_SCALE, TYPE } from "../type";
 import { useCappedScale } from "../textScale";
 import { SPACE, type Palette } from "../theme";
 import { useCoachTarget } from "../CoachMarks";
-import { useGuideControl } from "../guideControls";
 import { useBarFloor } from "./useBarFloor";
 import { PANE_HOLD_MS, usePaneMap, usePaneReady } from "../shell/paneReveal";
 
@@ -106,8 +105,6 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
     if (!st || st.disabled) return;
     if (st.cross) onCross(st.cross.item as ItemId, st.cross.part); else act({ type: dir });
   };
-  useGuideControl(vm ? "map:up" : null, vm ? !vm.up.disabled : false, () => step("up"));
-  useGuideControl(vm ? "map:regs" : null, true, () => { if (vm) onShowRegs(vm.regs.item as ItemId, vm.regs.partIx); });
   const regsRing = useCoachTarget("map:regs");
   // (T688) a wholly tidal water lists no part, so the map has no view model: it frames the water itself and says what is
   // true (a tidal water), instead of keeping the last water's camera under "not available"

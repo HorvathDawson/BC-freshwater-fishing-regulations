@@ -44,7 +44,6 @@ import { Icon, IconText, type IconName } from "./icons";
 import { hitProps } from "./regs/hit";
 import { Chip } from "./Chip";
 import { CoachSpot } from "./CoachMarks";
-import { useGuideControl } from "./guideControls";
 
 type Step = "water" | "point" | "when" | "details" | "saving";
 /** Where one back goes from each step: the step before it (a read in flight goes back to the hour it was asked for). */
@@ -144,21 +143,6 @@ function SpotCaptureFlow(props: SpotCaptureProps) {
   };
   const ready = step === "water" ? water !== null : point !== null;
   const onNext = () => setStep(step === "water" && !preset ? "point" : "when");
-  /*
-   * (T466) THE WALKTHROUGH SEES WHICH STEP THIS IS, and its "Show me" takes the reader's own moves: the water picked by
-   * its section (`{ pick }`, the walk's water under its pin), Next, Save, a name typed. Outside the walk: nothing.
-   */
-  useGuideControl<unknown>("capture", step, (v) => {
-    if (v === "save") { if (step === "details") void cap.save(title, notes, props.onSaved); return; }
-    if (v === "next") { if (step === "when") void toDetails(); else if ((step === "water" || step === "point") && ready) onNext(); return; }
-    const pick = (v as { pick?: number } | null)?.pick;
-    if (step === "water" && typeof pick === "number")
-      void pickWater("", String(pick) as SectionKey).then(() => setStep(preset ? "when" : "point"));
-  });
-  // a name of the reader's own (not the water's, which it starts as)
-  const named = title.trim() !== "" && title !== (water?.name ?? "");
-  useGuideControl(step === "details" ? "capture:title" : null, named, (v) => setTitle(String(v)));
-
   if (step === "when") {
     return (
       <WhenScreen palette={palette} steps={cap.steps} onShiftDay={cap.shiftDay} onDay={cap.toDay}

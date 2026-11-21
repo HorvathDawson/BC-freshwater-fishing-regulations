@@ -51,7 +51,7 @@ const SEARCH_BACK = '9%,11%', PAGE_BACK = '10%,10%';
 // the Map tab, by place: the text "Map" is also a water page's back link and a Layers tile, and Maestro took the first
 // one it found (ios-t313g: the page reopened and every later scenario started on it)
 const MAP_TAB = '10%,92%';
-/** the walkthrough card's count line ("FIND A WATER · 1 OF 10") */
+/** the walkthrough card's count line ("FIND A WATER · 1 OF 5") */
 const GUIDE = /\d+ of \d+$/i;
 /** a water's page is up: its back link by id (iOS reads "‹ Map" as the label "Back"; the tab bar can stay in the tree) */
 const onPage = (w) => (w.ids ?? []).includes('water-back') || (w.includes('Regulations') && w.includes('Conditions') && !hasTabs(w));
@@ -348,11 +348,11 @@ const SCENARIOS = [
         return device.screenText().slice(0, 6).join(' | ').slice(0, 200);
       });
     } },
-  { id: 'walkthrough', title: 'The guided walkthrough replayed from Help, walked to its end',
+  { id: 'walkthrough', title: 'The guided walkthrough (T984) replayed from Help: five look-only cards, the app exactly as it was after the end and after a skip',
     async run(ctx) {
       const COUNT = /(\d+) of (\d+)$/i;
-      await ctx.step('More → Help → Replay the walkthrough', async () => {
-        await coldStart(ctx);
+      const words = () => device.screenText().slice().sort().join('\n');
+      const replay = async () => {
         ctx.flow('tab', { TAB: 'More' });
         await sleep(1500);
         ctx.flow('scroll-to', { TEXT: 'Help' });
@@ -364,35 +364,49 @@ const SCENARIOS = [
         const c = device.screenText().find((x) => COUNT.test(x));
         if (!c) throw new Error('no walkthrough card');
         return c;
+      };
+      let baseline = '';
+      await ctx.step('the Map tab with no tour: its words are the baseline', async () => {
+        await coldStart(ctx);                                  // the notice and the tour closed
+        await sleep(2000);
+        baseline = words();
+        return `${baseline.split('\n').length} words`;
       });
-      await ctx.step('every step: its primary button, until the card closes', async () => {
-        const seen = []; let last = null, same = 0, total = 0, reached = 0, closed = false;
-        for (let i = 0; i < 70; i++) {
-          const w = device.screenText();
-          let c = w.find((x) => COUNT.test(x));
-          if (!c) {                                          // a read mid-animation can come back empty: look twice
-            await sleep(2500);
-            const w2 = device.screenText();
-            c = w2.find((x) => COUNT.test(x));
-            if (!c && w2.includes('Layers') && w2.includes('Done')) {
-              // (T336, fixed) the card over the Layers sheet missing from the accessibility tree: a failure again
-              shot(ctx, 'walk-hidden');
-              ctx.finding(`T336: after ${reached} of ${total} the walkthrough card over the Layers sheet is missing from the accessibility tree`);
-              await coldStart(ctx);                         // appUp closes the sheet and skips the walk
-              throw new Error(`walked 1–${reached} of ${total}; step ${reached + 1} (over the Layers sheet) is unreachable by accessibility (T336)`);
-            }
-            if (!c) { closed = true; break; }
+      await ctx.step('replay from Help: five steps with Next; the dim takes a tap on the search field', async () => {
+        await replay();
+        const seen = [];
+        for (let n = 1; n <= 5; n++) {
+          const c = device.screenText().find((x) => COUNT.test(x));
+          if (!c) throw new Error(`the card closed before step ${n} (${seen.join(' / ')})`);
+          const [, at, total] = COUNT.exec(c).map(Number);
+          if (at !== n || total !== 5) throw new Error(`expected ${n} of 5, saw ${c}`);
+          seen.push(c); shot(ctx, `walk-${String(n).padStart(2, '0')}`);
+          if (n === 1) {                                        // a tap on the highlighted search field reaches nothing
+            ctx.flow('tap-id', { ID: 'search-field' });
+            await sleep(1500);
+            const again = device.screenText().find((x) => COUNT.test(x));
+            if (!again || Number(COUNT.exec(again)[1]) !== 1) throw new Error('a tap under the dim moved or closed the tour');
           }
-          const [, at, n] = COUNT.exec(c).map(Number);
-          total = n; reached = Math.max(reached, at);
-          if (c !== last) { seen.push(c); shot(ctx, `walk-${String(at).padStart(2, '0')}`); last = c; same = 0; }
-          else if (++same > 4) throw new Error(`stuck at ${c} (${seen.slice(-4).join(' / ')})`);
           ctx.flow('tap-id', { ID: 'guide-primary' });
-          await sleep(3500);
+          await sleep(1500);
         }
-        if (!closed) throw new Error(`the card never closed (${seen.slice(-3).join(' / ')})`);
-        if (reached < total) throw new Error(`closed at ${reached} of ${total}`);
-        return `${reached} of ${total}`;
+        if (device.screenText().some((x) => COUNT.test(x))) throw new Error('the card did not close on the last card');
+        return seen.join(' / ');
+      });
+      await ctx.step('after the end: the app exactly as before the tour', async () => {
+        await sleep(1500);
+        const now = words();
+        if (now !== baseline) throw new Error(`not as before the tour.\nbefore: ${baseline.replace(/\n/g, ' | ').slice(0, 500)}\nafter:  ${now.replace(/\n/g, ' | ').slice(0, 500)}`);
+        return 'same words as the baseline';
+      });
+      await ctx.step('replay, skip at step 3: the app exactly as before the tour', async () => {
+        await replay();
+        for (let i = 0; i < 2; i++) { ctx.flow('tap-id', { ID: 'guide-primary' }); await sleep(1500); }
+        ctx.flow('tap-id', { ID: 'guide-skip' });
+        await sleep(2000);
+        if (device.screenText().some((x) => COUNT.test(x))) throw new Error('the card is still up after Skip');
+        if (words() !== baseline) throw new Error('not as before the tour after Skip');
+        return 'same words as the baseline';
       });
     } },
   { id: 'pdf', title: 'The synopsis PDF opens from a "Rule book p.N ↗" link',

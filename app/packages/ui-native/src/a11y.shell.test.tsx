@@ -157,11 +157,10 @@ const STATES_T258: [string, (width: number) => Promise<void>, RegExp][] = [
     const reg = await coachRegistry();
     reg.set("search", { measureInWindow: (cb: (...n: number[]) => void) => cb(14, 10, 362, 46) } as never);
     const noop = () => {};
-    render(<GuideCard guide={{ open: true, pending: true, at: 0, paused: false, reopen: noop, finish: noop, next: noop, go: noop, back: noop, resume: noop, pass: noop }}
-      facts={{ water: { item: "w", name: "Vedder River" }, searching: false, query: "", selected: null, open: null }}
+    render(<GuideCard guide={{ open: true, pending: true, at: 0, reopen: noop, finish: noop, next: noop, back: noop }}
       palette={LIGHT} registry={reg} top={60} bottom={64} />);
     await screen.findByTestId("guide-ring", {}, { timeout: 3000 });
-  }, /Search for it/],
+  }, /Find a water/],
   ["a water's Conditions with a gauge, donors and the day", async () => {
     clearPanelCache();
     const { ConditionsPanel } = await import("./ConditionsPanel");

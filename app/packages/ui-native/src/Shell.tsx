@@ -24,7 +24,7 @@
  * The Shell holds only the state more than one of these needs (the camera, the day, which sheet is open) and hands it
  * down. Every answer on every screen comes from a hook (rule 25).
  */
-import { GUIDE_WATER, WATER_SCREEN_WORDS, appTooOld, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, guideDay, syncVM, type NotFishingKind, bcNow, now as clockNow, reportFailure } from "@app/core";
+import { WATER_SCREEN_WORDS, appTooOld, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM, type NotFishingKind, bcNow, now as clockNow } from "@app/core";
 import { openProbe, type ItemId, type SectionId } from "@app/data";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
@@ -66,9 +66,8 @@ import { useEscapeBack } from "./escapeBack";
 import { useShellSearch } from "./shell/useShellSearch";
 import { FirstRunNotice, useFirstRun } from "./FirstRunNotice";
 import { AppUpdatePopup } from "./AppUpdatePopup";
-import { GuideCard, useGuide, type GuideActs, type GuideFacts } from "./Walkthrough";
-import { CoachContext, CoachItemContext, useCoachRegistry } from "./CoachMarks";
-import { GuideControlContext, useGuideControlHost } from "./guideControls";
+import { GuideCard, useGuide } from "./Walkthrough";
+import { CoachContext, useCoachRegistry } from "./CoachMarks";
 import { part, preloadParts } from "./part";
 import { LoadingState } from "./LoadingState";
 
@@ -101,26 +100,6 @@ const keptStyle = (tabsH: number) => ({ ...BEHIND, bottom: tabsH }) as const;
 
 /** (T293) The room the bottom tab bar takes, kept clear by the walkthrough's card docked at the foot. */
 const TAB_BAR_ROOM = 64;
-
-/**
- * (T293) THE WALKTHROUGH'S WATER (`GUIDE_WATER`): found by its name in the release once, a stream of exactly that name.
- * Not found (a release without it): null, and the walkthrough takes any water the reader picks. Asked only once the
- * walkthrough is due or replayed (`wanted`): the search reads `core` and the whole `water` file, which a first paint
- * must never fetch (the request walk, T129).
- */
-function useGuideWater(source: ShellProps["source"], wanted: boolean): { item: string; name: string } | null {
-  const [w, setW] = useState<{ item: string; name: string } | null>(null);
-  useEffect(() => {
-    if (!wanted) return;
-    let live = true;
-    void source.searchNames(GUIDE_WATER.name, 10).then((hits) => {
-      const h = hits.find((x) => x.name === GUIDE_WATER.name && x.kind === GUIDE_WATER.kind) ?? hits.find((x) => x.name === GUIDE_WATER.name);
-      if (live && h) setW({ item: h.item, name: h.name });
-    }).catch(reportFailure);   // (T368) the walk goes on with any water the reader picks
-    return () => { live = false; };
-  }, [source, wanted]);
-  return w;
-}
 
 /** (T234) The last notification tap opened, outside React: it outlives a remount of the Shell. */
 const openedTap = { n: 0, update: 0 };
@@ -389,26 +368,12 @@ export function Shell(p: ShellProps) {
   useOpenAtMe(me, locate, p.locationAsk ?? null, opensHere, !firstRun.open);
   /*
    * (T293) THE GUIDED WALKTHROUGH comes SECOND: held while the notice is up, and the in-season notice waits for it. It
-   * starts on the Map tab (where its first step, search, is) and, once started, follows the reader wherever its steps
-   * take them — a water, its Conditions, back to the map. It reads what is on screen (`guideFacts`) and does a step on
-   * request (the card's Next, T874; "Show me" before it: `guideActs`) through the route, search and the opener: nothing of
-   * its own. More → Help replays it from the Map tab. (T824) Ten steps, then (T842) six: back to the map and Trout / Salmon
-   * are the last card's words, not acts.
+   * starts on the Map tab (where its steps' controls are). (T984) It only points and describes: it reads nothing of the
+   * app and does nothing to it (no route move, search, day, tab or mode), and its dim takes every touch. More -> Help
+   * replays it from the Map tab.
    */
   const coach = useCoachRegistry();
   const onMapTab = route.mode === "browse" && tab === "map" && !rail.picking;
-  const [guideWanted, setGuideWanted] = useState(false);
-  const guideWater = useGuideWater(source, guideWanted);
-  const picked = searchMemory.pick.selected;
-  // (T456) the controls a screen keeps to itself (a fold's Details, the chart's toggles, the panel's forecast day)
-  const guideCtl = useGuideControlHost();
-  const guideFacts: GuideFacts = {
-    water: guideWater, searching, query: searchMemory.q,
-    selected: picked?.kind === "water" ? picked.item : null,
-    open: frame ? { item: frame.item, view: frame.view, part: frame.part } : null,
-    onMap: tab === "map" && frame === null && !searching && adding === null && openSpot === null && !rail.picking,
-    dayPicked: mapDay !== null, controls: guideCtl.values,
-  };
   // (T234) A NOTIFICATION'S TAP: a gauge alert opens its water's Conditions (an unnamed reach's: the Conditions map)
   const openReq = p.openRequest ?? null;
   useEffect(() => {
@@ -426,31 +391,7 @@ export function Shell(p: ShellProps) {
     openedTap.update = n;
     setBellOpen(true);
   }, [p.openUpdate]);
-  const guideActs: GuideActs = {
-    search: () => { go({ type: "close" }); if (tab !== "map") nav.toTab("map"); go({ type: "search", open: true });
-                    search.searchType(guideWater?.name ?? GUIDE_WATER.name); },
-    select: () => {
-      if (guideWater) search.searchAct({ t: "select", target: { kind: "water", item: guideWater.item as ItemId, name: guideWater.name } });
-    },
-    openWater: (v) => {
-      if (!guideWater) return;
-      if (searching) { go({ type: "search", open: false }); search.searchType(""); }
-      nav.opener.item(guideWater.item as ItemId, v);
-    },
-    view: (v) => go({ type: "view", view: v }),
-    toMap: () => { setLayersOpen(false); go({ type: "close" }); if (searching) { go({ type: "search", open: false }); search.searchType(""); }
-                   if (tab !== "map") nav.toTab("map"); },
-    // (T874) the day after; the day before on the data's last day (`guideDay`); false: no day to pick (Next moves on)
-    pickDay: () => {
-      const d = guideDay(mapDay, bcNow(), dayRange(bcNow(), loader?.manifest?.regulations?.valid_until ?? null));
-      if (d === undefined) return false;
-      setMapDay(d);
-      return true;
-    },
-    today: () => setMapDay(null),
-    control: guideCtl.set,
-  };
-  const guide = useGuide(p.walkthrough ?? null, firstRun.open || !onMapTab, guideFacts, guideActs);
+  const guide = useGuide(p.walkthrough ?? null, firstRun.open || !onMapTab);
   /** (T230, T700) the bell's sheet is up: from the bell, or by itself once for an in-season notice not on the map yet
    *  (the same expression as `InSeasonNotice`'s `open`, below) */
   const bellUp = (inbox.open && !firstRun.open && !guide.open) || bellOpen;
@@ -473,14 +414,13 @@ export function Shell(p: ShellProps) {
                                    bell: bellUp });
   const appVM = appUpdate?.vm ?? null;
   const releaseCount = (releaseVM?.counts ? 1 : 0) + (appVM?.counts ? 1 : 0);
-  useEffect(() => { if (guide.open || guide.pending) setGuideWanted(true); }, [guide.open, guide.pending]);
   // from the start, on the Map tab, with no water open and nothing typed in search
   const replayTour = () => { go({ type: "close" }); nav.toTab("map"); search.searchType(""); guide.reopen(); };
   /** (T466) the drop sheet (a pin down, Continue to come) is its own window: the card (its Resume chip) goes in it */
   const dropUp = route.mode === "browse" && rail.drop !== null;
   /** the walkthrough's card, over whatever is on screen (a spot and the capture included) */
   const guideCard = (
-    <GuideCard guide={guide} facts={guideFacts} palette={palette} registry={coach}
+    <GuideCard guide={guide} palette={palette} registry={coach}
                top={(route.mode === "browse" && !adding && !openSpot ? topBarBottom() : 0) + 8}
                bottom={bottomBarShown(route) && !tabsRail ? TAB_BAR_ROOM : 0}
                left={tabsRail && bottomBarShown(route) ? NAV_RAIL.width : 0} />
@@ -488,9 +428,7 @@ export function Shell(p: ShellProps) {
   /** (T293, T456) what the walk reads from the screens: the controls' places, their own state, and which water is its */
   const coached = (n: React.ReactNode) => (
     <CoachContext.Provider value={coach}>
-      <GuideControlContext.Provider value={guideCtl.sink}>
-        <CoachItemContext.Provider value={guideWater?.item ?? null}>{n}</CoachItemContext.Provider>
-      </GuideControlContext.Provider>
+      {n}
     </CoachContext.Provider>
   );
   const withGuide = (n: React.ReactNode) => coached(<View style={{ flex: 1 }}>{n}{guideCard}</View>);

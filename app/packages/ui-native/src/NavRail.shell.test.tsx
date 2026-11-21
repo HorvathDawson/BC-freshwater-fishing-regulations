@@ -71,20 +71,17 @@ describe("(T839) where the tabs are drawn", () => {
 
 describe("(T839) the walkthrough card keeps clear of the rail", () => {
   const noop = () => {};
-  async function card(left?: number, paused = false) {
+  async function card(left?: number) {
     const { GuideCard } = await import("./Walkthrough");
     const { useCoachRegistry } = await import("./CoachMarks");
     const { renderHook } = await import("@testing-library/react");
     const reg = renderHook(() => useCoachRegistry()).result.current;
-    render(<GuideCard guide={{ open: true, pending: true, at: 1, paused, reopen: noop, finish: noop, next: noop, go: noop, back: noop, resume: noop, pass: noop }}
-      facts={{ water: null, searching: false, query: "", selected: null, open: null }}
+    render(<GuideCard guide={{ open: true, pending: true, at: 1, reopen: noop, finish: noop, next: noop, back: noop }}
       palette={LIGHT} registry={reg} top={60} bottom={0} {...(left === undefined ? {} : { left })} />);
     return getComputedStyle(screen.getByTestId("guide")).left;
   }
   it("starts right of the rail when told the rail's width, and at 0 by default (phone, tablet)", async () => {
     expect(await card(NAV_RAIL.width)).toBe(`${NAV_RAIL.width}px`);
-    cleanup();
-    expect(await card(NAV_RAIL.width, true)).toBe(`${NAV_RAIL.width}px`);   // the paused chip's layer too
     cleanup();
     expect(await card()).toBe("0px");
   });
