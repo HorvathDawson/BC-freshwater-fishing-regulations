@@ -18,6 +18,7 @@ with the default Claude uses until you answer). Newest first inside each section
 - T981 (municipal / park-bylaw closed waters): IN this batch ("Yes, add it", against my recommendation). Claude drafts the inventory; you accept each row before it ships.
 - T977 (push carry race): NOT in this batch, next chat.
 - T709 + T715 (store video): stay postponed.
+- Website "join the Android test" button: leave it as it is; no Google Group (owner, verbatim: "we will just leave join android as it is for now. no google group").
 - Store checks 12:50: TestFlight 0.8.4 (43) external APPROVED, in beta testing; no new TestFlight feedback beyond T982's 6; 5 in-app reports: one is T979, four are T985. Your tester's Trout/Salmon switch note is T986. All join the batch.
 
 ## 2026-11-21 11:24: 0.8.4 promoted to Play Closed testing (owner)
