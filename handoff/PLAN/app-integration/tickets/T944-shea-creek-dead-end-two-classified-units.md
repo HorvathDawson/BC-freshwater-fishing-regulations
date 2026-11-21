@@ -92,3 +92,9 @@ into the sink) is no outlet of it. A side-channel dead end (Shea Creek's 1100 pi
   switch off).
 - Not changed: a side-channel dead end NEAR a mouth (the Fraser delta's Morey Channel, `355994874:0`) still takes the
   code's exit, which is upstream of it: it is a dead end, not a mouth, so this guard leaves it (a possible follow-up).
+
+## Classified-waters pins re-cut (lane W4, 2026-11-20, release r-fec3fab4c5aa)
+The T841 gate stopped the release on exactly this ticket's moves: the Elk rows (`r4:elk_river_s_tributaries_see_exceptions`,
+`r4:elk_river_upstream_of_elko_dam`) no longer reach Harmer Creek (gnis:15289) and Brownie Creek (gnis:39245); the
+Bulkley and Morice rows no longer reach Shea Creek (gnis:22080). Nothing else moved. Pins re-cut from the candidate
+bundle (`python -m pipeline.regs.classified_waters --write-pins`), 74 designations (coordinator OK, owner had seen the moves).
