@@ -9,6 +9,14 @@
   (OWNER-TODO 2026-11-20).
 
 ## IN FLIGHT (chat of 2026-11-21 afternoon; read this first after a /compact)
+- 14:01 STATE: ALL lanes merged into redesign/stream-sections (t984, t983, ui, picks, t988, t989, t981, mouth; mini release
+  re-cut). Unpushed. Running in background: fast-fail + smoke + full vitest (post-merge), and ONE combined review agent
+  (diff 97a9abcd4..HEAD). NOT yet merged: lane/085-t990 (all-sources button at the END of the regs page, 2 commits,
+  tests pass) — merge after the checks/review. T991 sources audit = POSTPONED, next release.
+  Next: fix review findings -> merge t990 -> push -> emulator walk (T984, T985 #1/#3, T988 Done on src:trout, T989 adb
+  VIEW intent) -> bump 0.8.5 + changelog -> T686 flip -> bundle rebuild needed (mouth columns: `python -m pipeline.deliver`;
+  T981 needs the reach step too) -> staging -> T975 lane -> owner prod commands (+ PROD FEEDS WORKER redeploy) -> Play
+  Internal/Closed, TestFlight, prod website. Owner wants a PushNotification with every question.
 - 13:31 merged t989 + fixed the full check's 3 reds (a0ec66149). RELEASE NOTE: the PRODUCTION feeds worker must be redeployed
   with 0.8.5 (owner command) so gauge cards say the new band words; until then the site reads the old ones (PRIOR_BAND_WORDS).
   T989 is the APP link path (website re-tested: lands); confirm in the emulator walk (adb VIEW intent, close).
