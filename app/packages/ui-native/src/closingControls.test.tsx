@@ -16,6 +16,7 @@ import { SyncErrorSheet } from "./SyncErrorSheet";
 import { JoinTestCard } from "./JoinTestCard";
 import { Sheet } from "./Sheet";
 import { SheetHost } from "./regs/SheetHost";
+import { RegsScreen } from "./regs/RegsScreen";
 import { MenuPage } from "./menu/MenuPage";
 import { FirstRunNotice } from "./FirstRunNotice";
 import { InSeasonNotice } from "./InSeasonNotice";
@@ -160,6 +161,24 @@ describe("T988 the trout table's Sources menu (Android report, 0.8.4)", () => {
       web = system === "browser history" ? browser() : null;
       render(<Layers><TroutOwner start={start} /></Layers>);
       for (const st of steps) { act(() => { st(); }); web?.flush(); }
+      act(() => { fireEvent.click(screen.getAllByLabelText(control)[0]!); });
+      web?.flush();
+      await waitFor(() => { settle(); web?.flush(); expect(screen.queryAllByLabelText(control)).toHaveLength(0); }, { timeout: 3000 });
+      if (web) expect(web.at()).toBe(0);
+    });
+  }
+});
+
+describe("T990 the Regulations page's foot Sources button and its Done", () => {
+  const ALL: SheetVM = { key: "src:all", title: "Sources", sub: null, blocks: [{ k: "para", text: [{ t: "text", s: "every source" }] }] };
+  const PAGE = { ...VEDDER, sheet: (k: SheetKey) => (k === "src:all" ? ALL : null) } as unknown as RegsPage;
+  for (const system of ["layers", "browser history"] as const) for (const control of DONE_AND_SCRIM) {
+    it(`${system}: the foot button opens the every-source sheet, ${control} closes it`, async () => {
+      web = system === "browser history" ? browser() : null;
+      render(<Layers><RegsScreen page={PAGE} palette={P} actions={{ onSheet() {}, onDay() {}, onBook() {} }} onDate={() => {}} /></Layers>);
+      act(() => { fireEvent.click(screen.getByTestId("regs-all-sources-button")); });
+      web?.flush();
+      expect(screen.getByRole("heading", { name: "Sources" })).toBeTruthy();
       act(() => { fireEvent.click(screen.getAllByLabelText(control)[0]!); });
       web?.flush();
       await waitFor(() => { settle(); web?.flush(); expect(screen.queryAllByLabelText(control)).toHaveLength(0); }, { timeout: 3000 });
