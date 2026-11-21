@@ -222,7 +222,7 @@ PART_GROWN_IS: dict = {
     'x14p0_1010': ('From the Hwy 37 bridge up to the top of the river', 28),
     'x27p0_1010': ('Two stretches: from Region 7A boundary up to Region 6 boundary (through 4 lakes), and from Region 6 boundary up to the top of the river (through 1 lake)', 72),
     'x27p2_1010': ('From the mouth up to Region 5 boundary', 3),
-    'x19p1_1010': ("From the Exchamsiks River confluence up to the top of Hell's Gate (1.5 km above the Kitsumkalum)", 55),
+    'x19p1_1010': ("Mainstem only · From the Exchamsiks River confluence up to the top of Hell's Gate (1.5 km above the Kitsumkalum)", 55),
     'x13p4_1010': ('From Anahim Lake up to the top of the river (through 3 lakes)', 27),
     'x9p1_1010': ('Upstream of Koocanusa Reservoir · From the Koocanusa Reservoir upstream end up to the White River confluence', 56),
     'x9p0_1010': ('From the B.C. border up to the Lake Koocanusa outlet', 1),
@@ -339,6 +339,9 @@ def grown_why(sid):
     return v[1] if isinstance(v, tuple) else v
 
 
+MAINSTEM = "Mainstem only · "
+
+
 def golden_part(st):
     """(label or None, section count) of the golden state's part, from its `sub`."""
     m = _SUB.match(st["sub"])
@@ -354,6 +357,10 @@ def same_part(golden, store):
     if lab is None or lab == "closed all year":
         return None
     slab, sn = store
+    # (T973 / owner 2026-11-20 12:54) a mainstem-only part's label gained the "Mainstem only · " scope prefix (Skeena
+    # sections 2 and 4); the part, its sections and its rows are the same
+    if slab is not None and slab.startswith(MAINSTEM) and not lab.startswith(MAINSTEM):
+        slab = slab[len(MAINSTEM):]
     return sn == n and (slab is not None and (slab.startswith(lab[:-1]) if lab.endswith("…") else slab == lab))
 
 
