@@ -243,6 +243,29 @@ class _Fraser:
         down_adj.setdefault(e.from_node, []).append(i)
 
 
+def test_t985_the_mouths_place_is_on_the_main_stem_where_it_meets_the_receiver_never_on_a_braid_that_gets_there_first():
+    """(T985, owner 2026-11-21: "Label the mouth end") the point of the mouth part nearest the receiving part: a river
+    whose stem ends ON the receiver is placed at that junction; a side channel that comes nearer the receiver elsewhere
+    does not move it off the stem; a lake (no stem) is placed on its own shore nearest the river it drains into."""
+    from shapely.geometry import LineString, Point
+    from shapely.ops import unary_union
+    receiver = LineString([(0, 0), (0, 10_000)])                       # the receiving river, south to north
+    stem = LineString([(5_000, 2_000), (3, 2_000)])                     # the mouth part's stem: ends 3 m from it
+    braid = LineString([(4_000, 2_000), (0.5, 6_000)])                  # a side channel: 0.5 m from it at (0.5, 6000)
+    here = unary_union([stem, braid])
+    p = T.mouth_place(here, stem, receiver)
+    assert (round(p.x, 3), round(p.y, 3)) == (3, 2_000)
+    # MUTATION: with no stem the whole part answers, and the braid's near end would be the mouth
+    q = T.mouth_place(here, None, receiver)
+    assert (round(q.x, 3), round(q.y, 3)) == (0.5, 6_000)
+    # a stem that never comes as near (the part's nearest piece is a braid by a long way): the whole part answers
+    far = LineString([(5_000, 2_000), (3_000, 2_000)])
+    assert round(T.mouth_place(unary_union([far, braid]), far, receiver).y) == 6_000
+    lake = Point(-3_000, 5_000).buffer(1_000)                          # a lake beside it: its shore nearest the river
+    s = T.mouth_place(lake, None, receiver)
+    assert (round(s.x), round(s.y)) == (-2_000, 5_000)
+
+
 def test_a_water_exits_where_its_mouth_flows_never_into_its_own_side_channel():
     ids = ["F:0", "F:100", "F:200", "A:0", "A:50", "C:0", "U:0", "G:0", "H:0", "L:0", "V:0", "V:1",
            "K:0", "B:0", "D:0", "M:0", "M:90", "lake:9", "R:0"]                                  # handles 1..19
@@ -413,6 +436,15 @@ def test_the_chilliwack_flows_into_the_vedder_at_vedder_crossing(request):
                      "JOIN item d ON d.ord = x.down_ord WHERE i.item_id = 'gnis:8634'").fetchone()
     # (T517) the Vedder's parts are in river order: Vedder Crossing is its TOP part
     assert row == ("gnis:3062", 1, "Vedder River")
+    # (T985) the mouth's place, where the map labels "Flows into Vedder River": where the Chilliwack's mouth part and the
+    # Vedder's top part meet — inside both parts' boxes (each widened by ~TOUCH_M)
+    (lon, lat), = db.execute("SELECT x.lon, x.lat FROM water_exit x JOIN item i ON i.ord = x.ord "
+                             "WHERE i.item_id = 'gnis:8634'").fetchall()
+    eps = 1e-3
+    for item, part in (("gnis:8634", 0), ("gnis:3062", 1)):
+        w, s, e, n = db.execute("SELECT g.w, g.s, g.e, g.n FROM part_geo g JOIN item i ON i.ord = g.ord "
+                                "WHERE i.item_id = ? AND g.part_ix = ?", (item, part)).fetchone()
+        assert w - eps <= lon <= e + eps and s - eps <= lat <= n + eps, (item, part, lon, lat)
 
 
 @pytest.mark.needs_bundle

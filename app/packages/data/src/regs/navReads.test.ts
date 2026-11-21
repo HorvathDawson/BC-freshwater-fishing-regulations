@@ -71,6 +71,25 @@ describe("the water map's reads", () => {
       .rejects.toThrow("regs store: water 1's water_continue names item 98, which core does not hold");
   });
 
+  it("(T985) navRows: the mouth's place where the release carries it (microdegrees as degrees); none in one cut before it; an empty one is damaged", async () => {
+    const w = (rows: string) => openInMemory(`
+      CREATE TABLE part_geo (ord INTEGER, part_ix INTEGER, mid_sid INTEGER, mid_lon INTEGER, mid_lat INTEGER, w INTEGER,
+        s INTEGER, e INTEGER, n INTEGER);
+      CREATE TABLE part_mark (ord INTEGER, mark_ix INTEGER, lon INTEGER, lat INTEGER, token TEXT, down_part INTEGER,
+        up_parts TEXT, confidence TEXT, alt TEXT);
+      CREATE TABLE part_section (ord INTEGER, sid INTEGER, part_ix INTEGER);
+      CREATE TABLE water_exit (ord INTEGER PRIMARY KEY, down_ord INTEGER NOT NULL, down_part INTEGER, lon INTEGER, lat INTEGER);
+      CREATE TABLE water_continue (ord INTEGER PRIMARY KEY, part INTEGER NOT NULL, next_ord INTEGER NOT NULL UNIQUE,
+        next_part INTEGER NOT NULL);`, rows);
+    const r = (d: ReturnType<typeof w>) => makeReads({ core: async () => core, water: async () => d, geo: async () => d } as unknown as ReadBase);
+    expect((await r(w("INSERT INTO water_exit VALUES (1, 2, 3, -121960000, 49100000);")).navRows(1)).exit).toEqual(
+      { ord: 2, part: 3, item: "gnis:2", name: "Receiving River", at: [-121.96, 49.1] });
+    // the release before the columns (the fixture `water` above): no place, never a guessed one
+    expect("at" in (await reads().navRows(1)).exit!).toBe(false);
+    await expect(r(w("INSERT INTO water_exit VALUES (1, 2, 3, NULL, NULL);")).navRows(1))
+      .rejects.toThrow("regs store: water 1's water_exit has no mouth place (lon, lat)");
+  });
+
   it("navRows: `water_continue` both ways — the water it goes on as, the one it goes on from, none", async () => {
     const r = reads();
     expect([(await r.navRows(2)).continuesFrom, (await r.navRows(2)).continuesAs, (await r.navRows(10)).continuesAs,

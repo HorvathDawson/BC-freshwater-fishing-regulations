@@ -10,7 +10,7 @@ import { openRegsFixtureWithLines, sectionNames, type SectionNames } from "@app/
 import type { ItemId } from "@app/data";
 import { HOME, reduce, type Route } from "./route";
 import {
-  crossAction, exitAction, partAction, showRegsActions, waterMapStart, waterMapStartIx, waterMapStep, waterMapView,
+  crossAction, exitAction, markTap, partAction, showRegsActions, waterMapStart, waterMapStartIx, waterMapStep, waterMapView,
   type WaterMapAction,
   type WaterMapState,
 } from "./waterMap";
@@ -496,6 +496,48 @@ describe("(T345) the Coquitlam: parts meet at the Lougheed bridge; the tidal Fra
     // the receiving part IS the Fraser's tidal piece, which its map does not list
     const fraser = await loadWaterGroup(st, "gnis:39325");
     expect(fraser.parts.some((p) => p.partIx === 0)).toBe(false);
+  });
+});
+
+// (T985 #2, owner 2026-11-21: "Label the mouth end") the in-app report: the Chilliwack's mouth part labelled only its upper
+// end (Tamihi Rapids Bridge). The fixture release was cut before the mouth's place (`water_exit.lon` / `lat`), so the
+// group is given one here: a release that carries it is a group whose exit has `at`
+describe("(T985) the mouth: 'Flows into <water>' at the downstream end of every water with an exit", () => {
+  const AT = [-121.96, 49.1] as const;
+  const withMouth = (g: WaterGroup): WaterGroup => ({ ...g, exit: { ...g.exit!, at: AT } });
+
+  it("the Chilliwack's mouth part: its upper end and its mouth both labelled; a ring alone at the mouth one part up", async () => {
+    const g = withMouth(await loadWaterGroup(st, "gnis:8634"));
+    const labels = (at: number) => view(g, waterMapStart(at)).marks.filter((m) => m.label !== null).map((m) => m.label);
+    const top = markLabel(g, g.marks.find((m) => m.down === 0)!);
+    expect(labels(0)).toEqual([top, "Flows into Vedder River"]);
+    expect(view(g, waterMapStart(0)).marks.at(-1)).toEqual({ ix: -1, lon: -121.96, lat: 49.1, label: "Flows into Vedder River",
+      a11y: "Mouth: Flows into Vedder River", on: false, mouth: { into: { item: "gnis:3062", part: 1 } } });
+    expect(view(g, waterMapStart(1)).marks.at(-1)).toMatchObject({ ix: -1, label: null, a11y: "Mouth: Flows into Vedder River" });
+    expect(labels(1)).not.toContain("Flows into Vedder River");
+  });
+
+  it("a tap on the mouth opens the receiving water at the part it meets (the bar's link); a boundary's tap opens its words", async () => {
+    const g = withMouth(await loadWaterGroup(st, "gnis:8634"));
+    const v = view(g, waterMapStart(0));
+    expect([markTap(v.marks.at(-1)!), markTap(v.marks[0]!)]).toEqual([
+      { open: { item: "gnis:3062", part: 1 } }, { act: { type: "mark", ix: 0 } }]);
+    // the mouth is no boundary: a "mark" action naming it changes nothing
+    expect(run(g, waterMapStart(0), { type: "mark", ix: -1 })).toEqual(waterMapStart(0));
+  });
+
+  it("on tidal water: 'Flows into the tidal Fraser River', and a tap opens nothing", async () => {
+    const g = withMouth(await loadWaterGroup(st, "gnis:19986"));
+    const m = view(g, waterMapStart(0)).marks.at(-1)!;
+    expect([m.label, m.a11y, m.mouth, markTap(m)]).toEqual(["Flows into the tidal Fraser River",
+      "Mouth: Flows into the tidal Fraser River", { into: null }, null]);
+  });
+
+  it("a release cut before the mouth's place draws no mouth; a water with no exit has none", async () => {
+    const g = await loadWaterGroup(st, "gnis:8634");
+    expect(view(g, waterMapStart(0)).marks.some((m) => m.mouth)).toBe(false);
+    const none = { ...g, exit: null };
+    expect(view(none, waterMapStart(0)).marks.some((m) => m.mouth)).toBe(false);
   });
 });
 

@@ -224,7 +224,10 @@ FILES = {
         "static": ["k", "j"],
         "str": ["id", "text"],
         "water_continue": ["ord", "part", "next_ord", "next_part"],
-        "water_exit": ["ord", "down_ord", "down_part"],
+        # (T985) `lon` / `lat`: the mouth's place (microdegrees), where the map labels "Flows into <water>". ADDITIVE,
+        # last, so still water/3: an app before it reads only the columns it names; a release cut before it has none,
+        # and the app draws no mouth label (`@app/data/regs` navRows reads the row's own columns)
+        "water_exit": ["ord", "down_ord", "down_part", "lon", "lat"],
         "xpart": _FRAME,
         "zdict": ["tbl", "d"]}},
     **{f"regs-{r}": {"format": REGS_REGION_FORMAT, "kind": "sqlite", "tables": _REGION_TABLES} for r in SH.REGIONS},
@@ -251,7 +254,8 @@ FILES = {
         "part_line": ["ord", "part_ix", "blk", "m0", "m1"],                        # (T388) by ord, as part_section
         "part_section": ["ord", "sid", "part_ix", "m"], "picker": _FRAME, "str": ["id", "text"],
         "water_continue": ["ord", "part", "next_ord", "next_part"],
-        "water_exit": ["ord", "down_ord", "down_part"], "xpart": _FRAME}} for r in SH.REGIONS},
+        # (T985) ADDITIVE, still water-slice/4: the whole file's rows, columns and all (slices.py copies them)
+        "water_exit": ["ord", "down_ord", "down_part", "lon", "lat"], "xpart": _FRAME}} for r in SH.REGIONS},
     # (T370) THE REGION-WIDE WATER TABLES, ONE WEB FILE: byte-identical in all nine water slices before (623 of ~780 kB
     # gz each, 2026-11-04); fetched once, a second region then costs only its own rows. Web-only (`slice_of` water).
     "water-shared": {"format": "water-shared/1", "kind": "sqlite", "tables": {
@@ -287,6 +291,7 @@ UNITS = {
     "geo.part_geo.w": "microdegrees", "geo.part_geo.s": "microdegrees", "geo.part_geo.e": "microdegrees",
     "geo.part_geo.n": "microdegrees",
     "water.part_mark.lon": "microdegrees", "water.part_mark.lat": "microdegrees",
+    "water.water_exit.lon": "microdegrees", "water.water_exit.lat": "microdegrees",
     "climate.gauge_clim.bands": "clim/3: u8 N, N pentad bytes, then per p10/p25/p50/p75/p90 the N float16 bit deltas "
                                 "(mod 2^16, the first from 0) as 5N low bytes then 5N high bytes; decoded, clim/2's "
                                 "[u8 pentad, 5 x float16 LE] records (pipeline/deliver/release/packed.py)",

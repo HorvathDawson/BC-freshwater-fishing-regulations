@@ -6,6 +6,7 @@
 import { describe, expect, it } from "vitest";
 import { buildSearchIndex, queryIndex } from "@app/core";
 import { makeReleaseSource } from "../../release/source";
+import { loadWaterGroup, openRegsStore } from "../../regs";
 import { MINI_RELEASE_ROOT, miniReleaseDir, openMiniRelease, sectionNames } from "./releaseDir";
 
 describe("the mini release (T667 slice 8)", () => {
@@ -26,6 +27,13 @@ describe("the mini release (T667 slice 8)", () => {
     const s = sectionNames(loader);
     const [mouth, low] = await s.streams([[900000001, 0], [900000001, 1000]]);
     expect(mouth).not.toBe(low);
+  }, 30_000);
+
+  it("(T985) a water's mouth place, built by the pipeline, reaches the water map's group: Mock Creek's into Fixture River", async () => {
+    const g = await loadWaterGroup(await openRegsStore(openMiniRelease()), "gnis:990002");
+    // the bottom of Mock Creek's mouth part (its box's south-west corner: it runs due north from Fixture River)
+    const box = g.parts[0]!.box!;
+    expect([g.exit?.name, g.exit?.at]).toEqual(["Fixture River", [box[0], box[1]]]);
   }, 30_000);
 
   it("(T927) its boundary place reaches search through the release reader: core's cut_place, as the index reads it", async () => {

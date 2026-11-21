@@ -733,9 +733,16 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
                                          "confidence, alt, token FROM part_mark ORDER BY ord, mark_ix").fetchall()])
             con.execute("DROP TABLE part_mark")
             con.execute("ALTER TABLE part_mark_e6 RENAME TO part_mark")
-            # the exit's label is the receiving water's name, which `item` already holds
-            con.execute("CREATE TABLE water_exit_k (ord INTEGER PRIMARY KEY, down_ord INTEGER NOT NULL, down_part INTEGER)")
-            con.execute("INSERT INTO water_exit_k SELECT ord, down_ord, down_part FROM water_exit ORDER BY ord")
+            # the exit's label is the receiving water's name, which `item` already holds. (T985) `lon` / `lat`: the
+            # mouth's place (`topology.mouth_place`), microdegrees as part_mark's — where the map labels "Flows into …".
+            # ADDITIVE, last (still water/3): a bundle built before it has none, and is refused, never shipped without
+            if not {"lon", "lat"} <= {r[1] for r in con.execute("PRAGMA table_info(water_exit)")}:
+                raise SystemExit("release: the bundle's water_exit has no mouth place (lon, lat; T985): it was built "
+                                 "before them — rebuild it (python -m pipeline.deliver bundle)")
+            con.execute("CREATE TABLE water_exit_k (ord INTEGER PRIMARY KEY, down_ord INTEGER NOT NULL, down_part INTEGER, "
+                        "lon INTEGER NOT NULL, lat INTEGER NOT NULL)")
+            con.execute(f"INSERT INTO water_exit_k SELECT ord, down_ord, down_part, {e6('lon')}, {e6('lat')} "
+                        "FROM water_exit ORDER BY ord")
             con.execute("DROP TABLE water_exit")
             con.execute("ALTER TABLE water_exit_k RENAME TO water_exit")
             # which stream goes on as another (the Chilliwack as the Vedder): keyed both ways, for ▲ and ▼

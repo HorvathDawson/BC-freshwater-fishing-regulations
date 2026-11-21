@@ -1856,7 +1856,9 @@ export const PACK_FILES: Record<string, PackFile> = {
       "water_exit": [
         "ord",
         "down_ord",
-        "down_part"
+        "down_part",
+        "lon",
+        "lat"
       ],
       "xpart": [
         "id",
@@ -1950,7 +1952,9 @@ export const PACK_FILES: Record<string, PackFile> = {
       "water_exit": [
         "ord",
         "down_ord",
-        "down_part"
+        "down_part",
+        "lon",
+        "lat"
       ],
       "xpart": [
         "id",
@@ -2040,7 +2044,9 @@ export const PACK_FILES: Record<string, PackFile> = {
       "water_exit": [
         "ord",
         "down_ord",
-        "down_part"
+        "down_part",
+        "lon",
+        "lat"
       ],
       "xpart": [
         "id",
@@ -2130,7 +2136,9 @@ export const PACK_FILES: Record<string, PackFile> = {
       "water_exit": [
         "ord",
         "down_ord",
-        "down_part"
+        "down_part",
+        "lon",
+        "lat"
       ],
       "xpart": [
         "id",
@@ -2220,7 +2228,9 @@ export const PACK_FILES: Record<string, PackFile> = {
       "water_exit": [
         "ord",
         "down_ord",
-        "down_part"
+        "down_part",
+        "lon",
+        "lat"
       ],
       "xpart": [
         "id",
@@ -2310,7 +2320,9 @@ export const PACK_FILES: Record<string, PackFile> = {
       "water_exit": [
         "ord",
         "down_ord",
-        "down_part"
+        "down_part",
+        "lon",
+        "lat"
       ],
       "xpart": [
         "id",
@@ -2400,7 +2412,9 @@ export const PACK_FILES: Record<string, PackFile> = {
       "water_exit": [
         "ord",
         "down_ord",
-        "down_part"
+        "down_part",
+        "lon",
+        "lat"
       ],
       "xpart": [
         "id",
@@ -2490,7 +2504,9 @@ export const PACK_FILES: Record<string, PackFile> = {
       "water_exit": [
         "ord",
         "down_ord",
-        "down_part"
+        "down_part",
+        "lon",
+        "lat"
       ],
       "xpart": [
         "id",
@@ -2580,7 +2596,9 @@ export const PACK_FILES: Record<string, PackFile> = {
       "water_exit": [
         "ord",
         "down_ord",
-        "down_part"
+        "down_part",
+        "lon",
+        "lat"
       ],
       "xpart": [
         "id",
@@ -2670,7 +2688,9 @@ export const PACK_FILES: Record<string, PackFile> = {
       "water_exit": [
         "ord",
         "down_ord",
-        "down_part"
+        "down_part",
+        "lon",
+        "lat"
       ],
       "xpart": [
         "id",
@@ -2885,7 +2905,9 @@ export const PACK_UNITS: Record<string, string> = {
   "salmon-8": "salmon-shard/1: 'BCSR', u8 1, 8 bytes section_handles, u8 region length + region, LEB128 run count, then per run LEB128 sid gap, count, chain (pipeline/deliver/salmon.py)",
   "salmon-x": "salmon-shard/1: 'BCSR', u8 1, 8 bytes section_handles, u8 region length + region, LEB128 run count, then per run LEB128 sid gap, count, chain (pipeline/deliver/salmon.py)",
   "water.part_mark.lat": "microdegrees",
-  "water.part_mark.lon": "microdegrees"
+  "water.part_mark.lon": "microdegrees",
+  "water.water_exit.lat": "microdegrees",
+  "water.water_exit.lon": "microdegrees"
 };
 
 /** One file in the manifest (`files.<name>`): the url of its gzip form, raw and gzip bytes, the raw sha256. */

@@ -26,3 +26,13 @@ B (a handle on the date bar to scrub, pan on an axis strip under the chart, pinc
 
 ## Owner pick 2026-11-21 (#2)
 Label the mouth end: the map labels "Flows into <water>" at the downstream end of every water with an exit; the mouth's place goes in the release.
+
+Status #2 (lane/085-mouth, 2026-11-21): BUILT, not merged. The bundle's `water_exit` carries the mouth's place (`lon` /
+`lat`, `topology.mouth_place`: the mouth part's main stem nearest the receiving part); the release ships it in `water` /
+`water-<r>` as microdegrees, ADDITIVE (still water/3, water-slice/4: app 0.8.4 reads the new release; a bump would have
+raised minAppVersion to 0.8.5). The app reads the row's own columns: a release before them draws no mouth label. The Map
+labels "Flows into <water>" at the mouth on the mouth part (ring elsewhere; tap = the bar's link; tidal said, not linked).
+Tests: vitest (waterMap, navReads, mini release), pytest test_part_geo, mini release re-cut, fast-fail app gates.
+Left: the release build REFUSES a bundle built before the columns, so the 0.8.5 data needs a bundle rebuild
+(`python -m pipeline.deliver`); `test_the_chilliwack_flows_into_the_vedder_at_vedder_crossing` (needs_bundle) then pins
+the Chilliwack's mouth at Vedder Crossing. Not seen on a device or the web map (no bundle with the columns yet).

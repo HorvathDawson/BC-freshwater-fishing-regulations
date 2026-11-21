@@ -89,7 +89,12 @@ export interface NavMark {
 /** Where the group's mouth flows: the receiving water and the part of it the mouth meets (null: not stored). `tidal`
  *  (T345, owner 2026-10-31: "we aren't doing tidal"): that part is tidal water (the release's tidal cut piece, which no
  *  water map lists) — the line is said, never a way into the receiving water. */
-export interface NavExit { readonly item: string; readonly name: string; readonly part: number | null; readonly tidal?: boolean }
+export interface NavExit {
+  readonly item: string; readonly name: string; readonly part: number | null; readonly tidal?: boolean;
+  /** (T985) The mouth's place, [lon, lat] (`water_exit.lon` / `lat`): where the map labels "Flows into <water>"
+   *  (`mouthLabel`). Absent: a release cut before it, which draws no mouth label. */
+  readonly at?: readonly [number, number];
+}
 
 /** The same watercourse going on as another water (`water_continue`): that water, its part there, and where — `at`,
  *  the index in this group's `parts` — this water meets it. */
@@ -137,7 +142,9 @@ export interface ItemNavRows {
   readonly exit: { readonly ord: number; readonly part: number | null; readonly item: string;
                    readonly name: string;
                    /** (T345) the receiving part is tidal (its `part` row: no key, `province_except` "tidal") */
-                   readonly tidal?: boolean } | null;
+                   readonly tidal?: boolean;
+                   /** (T985) the mouth's place, [lon, lat] (absent: a release cut before it) */
+                   readonly at?: readonly [number, number] } | null;
   /** `water_continue`: the water this one goes on as (`continuesAs`) and the one it goes on from (`continuesFrom`). */
   readonly continuesAs?: ContinueRow | null;
   readonly continuesFrom?: ContinueRow | null;
@@ -213,7 +220,8 @@ export function waterGroup(all: readonly ItemNavRows[], ends: EndsTable): WaterG
   }
   const low = placed[0];
   const exit = low?.exit && !byOrd.has(low.exit.ord)
-    ? { item: low.exit.item, name: low.exit.name, part: low.exit.part, ...(low.exit.tidal ? { tidal: true } : {}) } : null;
+    ? { item: low.exit.item, name: low.exit.name, part: low.exit.part, ...(low.exit.tidal ? { tidal: true } : {}),
+        ...(low.exit.at ? { at: low.exit.at } : {}) } : null;
   // across waters: only into a water outside the group (a sibling is the same water), from a part this group holds
   const cross = (i: ItemNavRows | undefined, c: ContinueRow | null | undefined): NavCross | null => {
     if (!i || !c || byOrd.has(c.ord)) return null;
@@ -473,6 +481,10 @@ export const WATER_MAP_WORDS = {
   exit: (name: string) => `Flows into ${name} ›`,
   /** (T345) The mouth meets TIDAL water: said, not linked (owner 2026-10-31: "we aren't doing tidal"). */
   exitTidal: (name: string) => `Flows into the tidal ${name}`,
+  /** (T985, owner 2026-11-21) The words on the map at the mouth: "Flows into Vedder River" (a label, not a link). */
+  mouth: (name: string) => `Flows into ${name}`,
+  /** (T985) The mouth's mark, to a screen reader ("Mouth: Flows into Vedder River"). */
+  mouthA11y: "Mouth",
   loading: "Loading the parts of this water",
   /** No release to read the parts from, or it could not be read: the map is drawn, unlit. */
   unavailable: "The parts of this water are not available",
@@ -518,6 +530,17 @@ export function crossLabel(dir: "up" | "down", c: NavCross): string {
  *  plain words "Flows into the tidal Fraser River": no link, so no chevron. */
 export function exitLabel(e: NavExit): string {
   return e.tidal ? WATER_MAP_WORDS.exitTidal(e.name) : WATER_MAP_WORDS.exit(e.name);
+}
+
+/** (T985) The words the map shows at the water's mouth (`NavExit.at`): "Flows into Vedder River", or "Flows into the
+ *  tidal Fraser River" where the mouth meets tidal water — the exit's own words without the link's chevron. */
+export function mouthLabel(e: NavExit): string {
+  return e.tidal ? WATER_MAP_WORDS.exitTidal(e.name) : WATER_MAP_WORDS.mouth(e.name);
+}
+
+/** (T985) The mouth's mark, for a screen reader: "Mouth: Flows into Vedder River". */
+export function mouthA11y(e: NavExit): string {
+  return `${WATER_MAP_WORDS.mouthA11y}: ${mouthLabel(e)}`;
 }
 
 /** What a boundary's mark says, for a screen reader. */
