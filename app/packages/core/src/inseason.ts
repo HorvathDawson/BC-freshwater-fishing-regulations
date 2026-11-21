@@ -197,6 +197,9 @@ export interface InSeasonChange {
 
 /**
  * Every row of the feed in effect on `day` ("YYYY-MM-DD"), split into matched and not. Removed rows are never in.
+ * (T983) `ended`: the ids of the rows still on the page whose `to` has passed (begun and over). The inbox counts them as
+ * met (`inboxMerge`'s `known`), so a row that comes back into force because the in-force rule or a curated date moved
+ * (as T548 did to the seven "July 30 to September 15" closures in 0.8.4) is not news.
  *
  * (T693, owner 2026-11-12 "Fix gap 1 only") `absent`: the water ids the links name that THIS device's release does not
  * hold (the one links file may be newer than the release, T673). A notice whose every water is absent has no page on this phone, so
@@ -205,22 +208,23 @@ export interface InSeasonChange {
  */
 export function joinInSeason(feed: InSeasonFeed | null, links: InSeasonLinks | null, day: string,
                              absent: ReadonlySet<string> | null = null):
-  { matched: InSeasonChange[]; unmatched: InSeasonChange[] } {
-  const matched: InSeasonChange[] = [], unmatched: InSeasonChange[] = [];
-  if (!feed) return { matched, unmatched };
+  { matched: InSeasonChange[]; unmatched: InSeasonChange[]; ended: string[] } {
+  const matched: InSeasonChange[] = [], unmatched: InSeasonChange[] = [], ended: string[] = [];
+  if (!feed) return { matched, unmatched, ended };
   const gone = new Set(feed.removed.map((r) => r.id));
   for (const r of feed.rows) {
     if (gone.has(r.id)) continue;
     const link = links?.notices[r.id];
     const span = inSeasonSpan(r, link);
-    if ((span.from && span.from > day) || (span.to && span.to < day)) continue;
+    if (span.from && span.from > day) continue;
+    if (span.to && span.to < day) { ended.push(r.id); continue; }
     const here = link?.waters ?? null;
     const held = here !== null && !(absent && Object.keys(here).length > 0 && Object.keys(here).every((i) => absent.has(i)));
     const c: InSeasonChange = { id: r.id, region: r.region, water: r.water, text: r.change, ...span,
                                 source: feed.source, waters: held ? here : null };
     (c.waters ? matched : unmatched).push(c);
   }
-  return { matched, unmatched };
+  return { matched, unmatched, ended };
 }
 
 /** (T693) The water ids a matched change names that this release does not hold (`absent`): what the report names. */

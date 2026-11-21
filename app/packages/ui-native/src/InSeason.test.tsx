@@ -208,7 +208,7 @@ describe("T700: the bell's in-season inbox", () => {
        firstSeen: "2026-11-12T00:00:00Z", ...o });
   const feed = (rows: InSeasonRow[]): InSeasonFeed => ({ format: "inseason-feed/1", fetchedAt: "x", source: SRC, rows, removed: [] });
   const links = { format: "inseason-links/4" as const, notices: { "is-a": { waters: { "gnis:1": { all: true as const } } } } };
-  const s0 = inboxMerge(null, feed([]), { matched: [], unmatched: [] }, TODAY);
+  const s0 = inboxMerge(null, feed([]), { matched: [], unmatched: [], ended: [] }, TODAY);
   const f = feed([row("is-a", "Kaslo River"), row("is-b", "Okanagan River", { region: "8", firstSeen: "2026-11-13T00:00:00Z" }),
                   row("is-c", "Slocan River", { firstSeen: "2026-11-01T00:00:00Z" })]);
   const state = inboxRead(inboxMerge(s0, f, joinInSeason(f, links, TODAY), TODAY), ["is-c"]);

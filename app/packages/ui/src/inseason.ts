@@ -31,6 +31,8 @@ export const INSEASON_POLL_MS = 60 * 60_000;
 export interface InSeasonNow {
   readonly matched: readonly InSeasonChange[];
   readonly unmatched: readonly InSeasonChange[];
+  /** (T983) the rows on the page whose end has passed (`joinInSeason`): the inbox counts them as met */
+  readonly ended: readonly string[];
   /** the feed + links read (null: none yet, or none captured) — the day's join is per page (`useInSeasonBanners`) */
   readonly data: InSeasonData | null;
   /** this device's data release (T693: which matched waters it holds is asked per release) */
@@ -41,7 +43,7 @@ export interface InSeasonNow {
   readonly failureRows?: { readonly unread: number; readonly of: number } | null;
 }
 
-const NONE: InSeasonNow = { matched: [], unmatched: [], data: null, release: null };
+const NONE: InSeasonNow = { matched: [], unmatched: [], ended: [], data: null, release: null };
 export const InSeasonContext = createContext<InSeasonNow>(NONE);
 
 /** (T693) Whether this device's release holds a water, by its item id (the release's `core.item`, `itemOrd`). */
