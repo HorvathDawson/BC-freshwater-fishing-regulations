@@ -9,6 +9,23 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 ---
 
 
+## 2026-11-21 10:40: 0.8.4 released (data, Play Internal, TestFlight, website)
+
+- **Production data:** r-fec3fab4c5aa (published 2026-11-20, min app 0.8.0, old formats). It passed staging smoke 18/0.
+  Three follow tests were skipped to ship [T980].
+- **App 0.8.4:** Android build 42 is on Play Internal. iPhone build 43 is on TestFlight internal; external is waiting
+  for Apple's beta review.
+- **Website:** canifishthis.ca serves r-fec3fab4c5aa.
+- **What shipped:**
+  - the Classified Waters carried unit with its "why" fold [T973];
+  - dead-end creek licensing [T944];
+  - the map rebuild: #1 outside B.C., #6 names, #8 gauge walk [T679];
+  - names [T926];
+  - salmon region labels [T669];
+  - iPhone fixes [T723 T760 T836 T938];
+  - review leftovers [LF].
+- **New tickets:** T977 to T982. Tester feedback is read by `deploy/staging/testflight-feedback.mjs` [T982].
+
 ## 2026-11-19 22:04: the batch landed; staging and production websites live from 1fd3e94f0
 
 - Landed on redesign/stream-sections (pushed): the Conditions card redesign [T920], the website page build 1,136 s →

@@ -1,20 +1,16 @@
 # Next session (written 2026-11-21 10:40): 0.8.4 is out; start the post-release list
 
 ## State
-- **Production data:** r-fec3fab4c5aa, published 2026-11-20. Its min app is 0.8.0, and production data stays in the old
-  (unpacked) formats.
-- **App 0.8.4:**
-  - Android build 42 is on Play INTERNAL.
-  - iPhone build 43 is on TestFlight internal. External is WAITING_FOR_BETA_REVIEW ("testers ext").
-  - Never Play Closed; an App Store submission is the owner's.
-- **Production website:** canifishthis.ca serves r-fec3fab4c5aa (`/site-release.json`, commit 15113531a).
+- **Release IDs and builds:** in the STATUS.md top entry (2026-11-21). 0.8.4 is out: production data in the old
+  formats, Android on Play Internal, iPhone on TestFlight internal with external waiting for Apple's beta review, and the
+  production website. Never Play Closed; an App Store submission is the owner's.
 - **dev** `redesign/stream-sections` is pushed. Every release lane is merged; T940 stays unmerged on purpose (below).
 - **The one-time agent override** of `release --prod` was used once and reverted. Production data is human-only again
   (OWNER-TODO 2026-11-20).
 
 ## Do next, in this order
 1. **Check the stores:**
-   - TestFlight external review: `node deploy/staging/testflight-distribute.mjs --version 0.8.4 --build 43` prints the
+   - TestFlight external review: `node deploy/staging/testflight-distribute.mjs --version 0.8.4 --build <the iPhone build in STATUS>` prints the
      state.
    - New tester feedback: `node deploy/staging/testflight-feedback.mjs --days 7 --shots <dir>`. Put new items on a ticket
      like T982.
