@@ -32,7 +32,7 @@ import { Place } from "./regs/RegsHeader";
 import { LoadingState } from "./LoadingState";
 import { ErrorState } from "./ErrorState";
 import { type Palette } from "./theme";
-import { SplitReportContext, useWaterMapSplit, WaterFrame, WaterInset, WaterTitle } from "./WaterFrame";
+import { SplitReportContext, useWaterMapSplit, WaterFrame, WaterTitle } from "./WaterFrame";
 import { WaterReportLink } from "./menu/ReportLink";
 import { BasinDays } from "./BasinDays";
 import { usePaneReady } from "./shell/paneReveal";
@@ -172,11 +172,9 @@ export function WaterMap({ source, item, palette, children }: {
       {/* (T342) the map and its chrome are never selectable text */}
       <View style={{ flex: 1 }}>
       <View style={{ flex: 1 }}>
-        {/* (T752) a split carries the report link in its text column (`SplitReportContext`) */}
-        <SplitReportContext.Provider value={split ? report : null}><Selectable on={false}>{children}</Selectable></SplitReportContext.Provider>
+        {/* (T752, T979) the report link is drawn by the map's bar: the text column in a split, the bar's foot on a phone (`SplitReportContext`) */}
+        <SplitReportContext.Provider value={report}><Selectable on={false}>{children}</Selectable></SplitReportContext.Provider>
       </View>
-      {/* (T569) the report entry on the Map view too: a slim row under the canvas, at the column's gutter */}
-      {!split && <WaterInset column>{report}</WaterInset>}
       </View>
     </WaterFrame>
   );

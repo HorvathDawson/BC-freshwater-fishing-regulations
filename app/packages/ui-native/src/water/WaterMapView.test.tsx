@@ -424,7 +424,7 @@ describe("<WaterMapView>", () => {
     expect([atMouth.chip, up.chip]).toEqual([true, false]);
     // the same children in the same order, the slot the same height (the chip fills it, never enlarges it), the name's room the same
     expect([up.order, up.slot, up.name]).toEqual([atMouth.order, atMouth.slot, atMouth.name]);
-    expect(atMouth.order.slice(-3)).toEqual(["steps", "regs", "slot"]);
+    expect(atMouth.order.slice(-4)).toEqual(["steps", "regs", "slot", "?"]);   // (T979) the last child is the report's foot
     expect(atMouth.slot).toBe("44px");
     expect(atMouth.name).toBe("46px");
     fireEvent.click(screen.getByRole("button", { name: "Downstream" }));
