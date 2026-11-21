@@ -26,7 +26,7 @@ cache/
 # data/.gitignore ignores. Deliberately NOT ignored any more: if a tool recreates output/,
 # it should show up in `git status` and be fixed, not vanish quietly the way six phantom
 # output/pipeline/* directories did.
-**/node_modules/
+**/node_modules
 
 # Vite build cache / dep pre-bundling
 **/.vite/

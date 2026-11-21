@@ -99,6 +99,15 @@ conflict_markers() {
 }
 step "no conflict markers" conflict_markers
 
+# caught (2026-11-21, 0.8.5 merge): a lane committed its worktree's node_modules SYMLINKS ("node_modules/" in .gitignore
+# matches only directories); merging one replaced the main checkout's real app/packages/ui/node_modules with a link to itself
+no_tracked_node_modules() {
+  if git ls-files | grep -E '(^|/)node_modules(/|$)'; then
+    echo "fast-fail: node_modules tracked above — git rm --cached it" >&2; return 1
+  fi
+}
+step "no tracked node_modules" no_tracked_node_modules
+
 # caught (T540, 2026-11-12): STATUS.md grew to 155 KB with nobody moving the old days out; the fix is one command
 # (`scripts/status_archive.py --move`); < 0.1 s
 step "STATUS.md under its size limit (older days archived)" python3 scripts/status_archive.py --check
