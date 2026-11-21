@@ -258,6 +258,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T978 | Release build checks never fail on this machine's state (worktree links, stale export, marks, mini release), only on code | OPEN | | owner 2026-11-20, 0.8.4 build stops |
 | T979 | iPhone: the water page's Map tab could show a much bigger map (too much white space; Squamish) | OPEN | | owner in-app report 2026-11-20 (0.8.3) |
 | T980 | Three follow tests skipped to ship r-fec3fab4c5aa (two T286 page-read budgets, the unnamed trib-closed fixture): fix them | OPEN | | 2026-11-20 release |
+| T981 | Municipal / park-bylaw no-fishing waters (Lost Lagoon, Beaver Lake in Stanley Park, others) shown closed with the bylaw cited | OPEN | | owner 2026-11-20 |
 
 ## Next after closed testing
 
