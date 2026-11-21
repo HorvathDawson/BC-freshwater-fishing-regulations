@@ -9,6 +9,7 @@
   (OWNER-TODO 2026-11-20).
 
 ## IN FLIGHT (chat of 2026-11-21 afternoon; read this first after a /compact)
+- 14:23 STATE: review fixes in (T979 report link all states, T983 legacy inbox); t990 merged + page-order tests; full check + fast-fail green; pushed. 0.8.5 bump + DRAFT changelog + T686 flip committed (5dcfffd). RUNNING: `pipeline release --staging --push` (log scratchpad rel-staging.log; build includes reach+bundle) and the T975 lane (worktree; merge only after staging smoke + review). Next: staging smoke -> emulator walk on staging data -> T975 merge -> owner prod commands. NOTE: T975 drops near/1 readers, so the 0.8.5 PROD WEBSITE must deploy only after the owner's prod data release.
 - 14:02 SCOPE LOCK (owner): 0.8.5 takes nothing new except bugs found during the release work; every new mention goes to the next release (new ticket, POSTPONED/next).
 - 14:01 STATE: ALL lanes merged into redesign/stream-sections (t984, t983, ui, picks, t988, t989, t981, mouth; mini release
   re-cut). Unpushed. Running in background: fast-fail + smoke + full vitest (post-merge), and ONE combined review agent
