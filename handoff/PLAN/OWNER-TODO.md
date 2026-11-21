@@ -15,6 +15,7 @@ with the default Claude uses until you answer). Newest first inside each section
   minimal users"). `pipeline/release.py prod()`: an agent may publish the ONE release named in OWNER_ONE_TIME_PROD (=
   CONFIRM_PROD = the id), today only; checked, staged, fingerprint and "staging serves it" all still hold. Reverted
   right after that release ships.
+- USED 19:00 for r-fec3fab4c5aa only (published to production), then REVERTED (the guard is human-only again).
 
 ## 2026-11-20 15:11: 0.8.4 production builds approved
 
