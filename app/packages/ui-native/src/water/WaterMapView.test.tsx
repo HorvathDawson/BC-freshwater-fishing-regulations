@@ -159,7 +159,8 @@ describe("<WaterMapView>", () => {
       maxZoom: 12 });
     // (T768) every mark's words are the group's (markLabel); only the part's own ends are labelled, the rest are rings
     const chw = await groupOf("gnis:8634");
-    expect(seen.props?.marks?.map((m) => `${m.label ?? "(ring)"} ${m.a11y}`)).toEqual(chw.marks.map((m) => {
+    // (T985 #2) the boundaries only: a release with the mouth's place adds the mouth mark last
+    expect(seen.props?.marks?.filter((m) => !m.a11y.startsWith("Mouth: ")).map((m) => `${m.label ?? "(ring)"} ${m.a11y}`)).toEqual(chw.marks.map((m) => {
       const w = markLabel(chw, m);
       return `${m.down === 0 || m.up.includes(0) ? w ?? "(ring)" : "(ring)"} Boundary: ${w}`;
     }));
@@ -379,7 +380,7 @@ describe("<WaterMapView>", () => {
     const calls = mount("wbk:-20", 0);
     await ready();
     expect(bar()).toBe(`${await lead("wbk:-20", "top")} | Downstream | Highest part (off)`);
-    expect([screen.getByTestId("water-map-whole").textContent, seen.props?.marks]).toEqual(["⤢ Whole lake", []]);
+    expect([screen.getByTestId("water-map-whole").textContent, seen.props?.marks?.filter((m) => !m.a11y.startsWith("Mouth: "))]).toEqual(["⤢ Whole lake", []]);
     fireEvent.click(screen.getByRole("button", { name: "Downstream" }));
     fireEvent.click(screen.getByRole("button", { name: "Show regulations for this part" }));
     expect([bar(), calls]).toEqual([`${await lead(KLWA_ITEM, 1)} | Downstream | Upstream`,

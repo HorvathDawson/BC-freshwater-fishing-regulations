@@ -97,7 +97,8 @@ describe("the Chilliwack: ▼ / ▲ through its five parts, the ends disabled, t
 
   it("the marks: a ring at each placed boundary, the current part's two ends labelled", async () => {
     const g = await loadWaterGroup(st, "gnis:8634");
-    const marks = (s: WaterMapState) => view(g, s).marks.map((m) => `${m.ix} ${m.label ?? "(ring)"}${m.on ? " (open)" : ""}`);
+    // (T985 #2) the boundaries only: a release with the mouth's place adds the mouth mark last (its own tests below)
+    const marks = (s: WaterMapState) => view(g, s).marks.filter((m) => !m.mouth).map((m) => `${m.ix} ${m.label ?? "(ring)"}${m.on ? " (open)" : ""}`);
     // a ring at every placed boundary; a part's two ends carry the words the group says (markLabel), never typed here
     const said = (at: number) => g.marks.map((m, ix) =>
       `${ix} ${m.down === at || m.up.includes(at) ? markLabel(g, m) ?? "(ring)" : "(ring)"}`);
@@ -121,7 +122,7 @@ describe("the Chilliwack: ▼ / ▲ through its five parts, the ends disabled, t
         name: partName(g, m + 1) }],
       downLabel: "Downstream", down: { ix: m, item: "gnis:8634", partIx: g.parts[m]!.partIx, note: "Chilliwack River",
         name: partName(g, m) } });
-    expect(view(g, s).marks.map((m) => [m.ix, m.on, m.label !== null]))
+    expect(view(g, s).marks.filter((m) => !m.mouth).map((m) => [m.ix, m.on, m.label !== null]))
       .toEqual([[0, false, true], [1, false, false], [2, true, true], [3, false, false]]);
     expect(run(g, s, { type: "mark", ix: 2 }).mark).toBeNull();
     expect(run(g, s, { type: "mark", ix: null }).mark).toBeNull();
@@ -377,7 +378,7 @@ describe("Cowichan, Vedder and the Kootenay Lake West Arm", () => {
       `${lead(g, 0)} | Lowest part (off) | Upstream | Flows into Kootenay River ›`,
       `${lead(g, 1)} | Downstream | Upstream`,
       `${lead(g, 2)} | Downstream | Highest part (off)`]);
-    expect([view(g, waterMapStart(2)).marks, view(g, waterMapStart(2)).whole.label]).toEqual([[], "⤢ Whole lake"]);
+    expect([view(g, waterMapStart(2)).marks.filter((m) => !m.mouth), view(g, waterMapStart(2)).whole.label]).toEqual([[], "⤢ Whole lake"]);
     // Show regulations for a closure area names THAT item
     expect(view(g, waterMapStart(0)).regs).toEqual({ label: "Show regulations for this part", item: "wbk:-22", partIx: 0 });
   });
@@ -534,7 +535,9 @@ describe("(T985) the mouth: 'Flows into <water>' at the downstream end of every 
   });
 
   it("a release cut before the mouth's place draws no mouth; a water with no exit has none", async () => {
-    const g = await loadWaterGroup(st, "gnis:8634");
+    const got = await loadWaterGroup(st, "gnis:8634");
+    const { at: _at, ...exit } = got.exit!;
+    const g: WaterGroup = { ...got, exit };   // as a release cut before the place reads (whichever release this runs on)
     expect(view(g, waterMapStart(0)).marks.some((m) => m.mouth)).toBe(false);
     const none = { ...g, exit: null };
     expect(view(none, waterMapStart(0)).marks.some((m) => m.mouth)).toBe(false);

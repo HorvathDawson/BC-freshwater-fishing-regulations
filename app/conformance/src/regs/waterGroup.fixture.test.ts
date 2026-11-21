@@ -42,7 +42,9 @@ describe("the water map's group from the fixture release", () => {
     // the first piece's lower end and the last piece's upper end (T517, owner 2026-11-09)
     expect(g.parts.slice(0, 2).map((p) => [p.grp, p.run])).toEqual([[1, 0], [1, 0]]);
     expect(spanName(g.ends, "Chilliwack River", g.parts[0]!, g.parts[1]!)).toBe("Vedder Crossing Bridge → Tamihi Rapids Bridge");
-    expect(g.exit).toEqual({ item: "gnis:3062", name: "Vedder River", part: 1 });
+    // (T985 #2) a release from 0.8.5 also carries the mouth's place (`at`); the exit itself is the same either way
+    const { at: _at, ...exit } = g.exit!;
+    expect(exit).toEqual({ item: "gnis:3062", name: "Vedder River", part: 1 });
     // (T441) named by stream key + start metre (Vedder 355999181:0, 356363467:0/4738/12723) and its lake's part
     // (T220, r-46be3c135e68) a restored braid piece joined part 0 (9 -> 10 sections; taps.py PART_RECOUNTED chw1_1010)
     // (T441) the sections are named by what they are (stream key + start metre), never by id
