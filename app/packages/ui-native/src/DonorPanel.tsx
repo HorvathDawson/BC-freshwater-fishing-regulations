@@ -48,7 +48,6 @@ import type { StationId } from "@app/data";
 import { useDonorView, useHeldHeight, type DonorRowVM, type DonorViewOptions, type GaugeSides, type Horizon, type HorizonChipVM, type PanelAnswer,
          type Quantity } from "@app/ui";
 import { DonorMap, routeMapHeight } from "./DonorMap";
-import { useGuideControl } from "./guideControls";
 import { HorizonPicker } from "./HorizonPicker";
 import { useCoachTarget } from "./CoachMarks";
 import { GaugeGroups } from "./GaugeGroups";
@@ -389,8 +388,6 @@ export function DonorPanel({ palette, value, day, askedAt, at, theme, from, sele
 function HorizonHeader({ palette, chips, onPick }: {
   palette: Palette; chips: readonly HorizonChipVM[]; onPick: (d: Horizon) => void;
 }) {
-  // (T456) the walkthrough's forecast step sees the day picked here (and Show me picks one the same way)
-  useGuideControl<Horizon>("cond:horizons", chips.find((c) => c.on)?.day ?? 0, onPick);
   return (
     <View style={{ flexDirection: "row" }}>
       <HorizonPicker palette={palette} testID="panel-horizons" coach="cond:horizons" chips={chips} onPick={onPick} changeIcon />

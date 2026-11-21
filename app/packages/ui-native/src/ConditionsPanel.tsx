@@ -47,7 +47,6 @@ import { flowRampStops, GUTTER, SPACE, type Palette, round } from "./theme";
 import { hitProps } from "./regs/hit";
 import { NoneLine } from "./EmptyState";
 import { CoachScrollContext, useCoachScroller, useCoachTarget } from "./CoachMarks";
-import { useGuideControl } from "./guideControls";
 
 /** (T584) the body's wrapper: fills the frame as the bare body did; dimmed while the next part's speaker is looked up */
 const KEPT_STYLE = { flexGrow: 1, flexShrink: 1 } as const;
@@ -202,8 +201,6 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
 
   // (T456) the walkthrough: its Flow / Level and 72 h / Year steps see (and Show me sets) the chart's two toggles, and the
   // page scrolls a step's control into view
-  useGuideControl(options.length > 1 ? "cond:quantity" : null, shown, pick);
-  useGuideControl("cond:span", span, setSpan);
   const coachScroll = useCoachScroller();
   const readingRing = useCoachTarget("cond:reading"), chartRing = useCoachTarget("cond:chart");
 
