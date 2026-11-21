@@ -5,6 +5,7 @@
  * side of the visit) so that no component types a number of its own (`tools/data-vs-ui.test.ts`).
  */
 import { standingLong } from "./standing";
+import { NO_GAUGE_SENTENCE } from "./gaugeSide";
 export const SPOT_WINDOW = {
   /** The column heads: the hour before, the visit, the hour after. */
   before: "−1 h", at: "visit", after: "+1 h",
@@ -87,7 +88,7 @@ export const SPOT_CONFIRM_WORDS = {
 /** What a saved spot recorded: the water's block and the weather's, and what each says when nothing was recorded. */
 export const SPOT_RECORD_WORDS = {
   water: "What the water was doing",
-  noReading: "There is no gauge on this water, so no conditions were recorded. The nearest gauges are on much bigger rivers, so their numbers would be wrong here.",
+  noReading: NO_GAUGE_SENTENCE,
   /** the reading's standing, said plainly: "42nd percentile for the time of year" */
   standing: (percentile: number) => standingLong(percentile),
   weather: "Weather",

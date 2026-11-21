@@ -43,10 +43,18 @@ const BAND_WORDS: Record<Standing, { band: string; headline: string }> = {
   "no-record":  { band: "No record",         headline: "No record to compare against" },
 };
 
-/** (T908) the band a band word names ("Above normal" -> "above"), or null for a word that is none of the six. */
+/**
+ * (T982 #3, 0.8.5) the band words before the rewording. A gauge card is written by the feeds worker with the core it was
+ * deployed with, and the worker is redeployed on its own; until it is, its cards say these. Read, never written.
+ */
+const PRIOR_BAND_WORDS: Record<string, Standing> = {
+  "Much below normal": "much-below", "Below normal": "below", "Above normal": "above", "Much above normal": "much-above",
+};
+
+/** (T908) the band a band word names ("Higher than normal" -> "above"; the prior wording too), or null for a word that is none of the six. */
 export function bandOfWord(word: string): Standing | null {
   for (const k of Object.keys(BAND_WORDS) as Standing[]) if (BAND_WORDS[k].band === word) return k;
-  return null;
+  return PRIOR_BAND_WORDS[word] ?? null;
 }
 
 /** (T908) THE GAUGE PAGE'S ONE LINE, "Above normal for Nov 19 · rising": the band word, the day, and (when there is one) the trend word. */

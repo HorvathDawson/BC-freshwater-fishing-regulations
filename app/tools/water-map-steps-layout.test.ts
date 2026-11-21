@@ -193,6 +193,15 @@ function moved(m: Record<string, M>): string[] {
   for (const [k, v] of Object.entries(m)) {
     const [where] = k.split(" "), ref = m[`${where} vedder`]!;
     if (!/Archivo/.test(v.fonts)) out.push(`${k}: the app's faces did not load (${v.fonts})`);
+    // (T979, owner pick 2026-11-21) on the phone the exit's room is held only where the water has an exit: a water with
+    // none gives that room to the map, so its steps and bar sit lower than the Vedder's by the one slot (not anywhere else)
+    if (where.startsWith(`${SIZES.phone[0]}`) && k.endsWith("no-exit")) {
+      const slot = v.step === null ? null : v.step - ref.step!;
+      if (slot === null || slot <= 0 || slot > 80) out.push(`${k}: steps at ${v.step}, not one exit slot below the Vedder's ${ref.step}`);
+      if (where === `${SIZES.phone[0]}` && (v.bar === null || Math.abs(v.bar - ref.bar! - slot!) > 0.5))
+        out.push(`${k}: the bar at ${v.bar} ≠ the Vedder's ${ref.bar} + the slot ${slot}`);
+      continue;
+    }
     if (v.step === null || Math.abs(v.step - ref.step!) > 0.5) out.push(`${k}: steps at ${v.step} ≠ the Vedder's ${ref.step}`);
     // the map's foot on the phone, at 1×: the tall floor IS a taller bar (T731 keeps the one just left, its list open),
     // and at 200 % text a name or where line that wraps takes room from the map (above the steps: they stay)
@@ -202,7 +211,7 @@ function moved(m: Record<string, M>): string[] {
   return out;
 }
 
-describe("(T875) the ▼ / ▲ steps stay at one place on screen, part to part and water to water", () => {
+describe("(T875) the ▼ / ▲ steps stay at one place on screen, part to part and water to water (T979: on the phone, a water with no exit one slot lower)", () => {
   it("at 390 and 1280, 1× to 200 % text: one part, five parts, a two-line name, no exit and a floored bar put the steps on one pixel", async () => {
     const m = await measure();
     // the cases are what they say: the Vedder's name is one line and the Chilliwack's longest two (cut there), at both widths

@@ -17,7 +17,7 @@
  * needs (the weather URL, attributions, the sky words) arrives in the page's config.
  */
 import { BC_TIME_LABEL, bandOfWord, bcDayWords, daysNear, FLOW_LEGEND, FORECAST_MODEL_CONTROL, forecastDash, forecastDrawn, forecastModelOption, NORMAL_BAND, NO_MODEL_PICK, pickModel, realtimeOnly, REALTIME_ONLY, bcIsoDayWords, bcMidnight, bcStampWords, bcWeekdayAbbr, figure, freshness, layoutDayMarks, niceTicks,
-         normalRangeOf, observedTrend, readingAgeBrief, gaugeSummaryLine, standingNowLine } from "@app/core";
+         normalRangeOf, observedTrend, readingAgeBrief, gaugeSummaryLine, standingNowLine, bandWord } from "@app/core";
 
 export interface GaugeConfig {
   readonly station: string;
@@ -97,7 +97,7 @@ export function headlineHtml(f: Facts, now: number): string {
   let before: [number, number] | undefined;
   if (last) for (const p of f.week) if (p[0] <= last[0] - DAY && (!before || p[0] > before[0])) before = p;
   const trend = last && before ? observedTrend(before[1], last[1]) : null;
-  return `<p class="standing nowline b-${band}">${esc(standingNowLine(lead, bcDayWords(now), trend))}</p>`;
+  return `<p class="standing nowline b-${band}">${esc(standingNowLine(bandWord(band), bcDayWords(now), trend))}</p>`;
 }
 
 /**

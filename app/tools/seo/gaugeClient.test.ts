@@ -26,7 +26,9 @@ describe("T487 the gauge page's live half", () => {
   it("a fresh reading: value, standing, and the APP'S age line; a copy past its time says so in the app's words; no reading is said, never blank", () => {
     const fresh = text(readingHtml(facts(), NOW));
     // (T908, owner 2026-11-19: "a lot of text up in this area") three rows: the headline with the figure; the bar; ONE small line, pinned whole
-    expect(fresh).toBe(" Much below normal for Nov 8 · steady 22.2 m³/s Lower than almost every day on record for the date · rises to 1.8× (Tue) · read 4:00 a.m. PT ");
+    expect(fresh).toBe(" Far lower than normal for Nov 8 · steady 22.2 m³/s Lower than almost every day on record for the date · rises to 1.8× (Tue) · read 4:00 a.m. PT ");
+    // (T982 #3) a card from a worker on the prior words (the fixture above) reads the same as one on today's words
+    expect(text(readingHtml(facts({ standing: "Far lower than normal · lower than almost every day on record for the date" }), NOW))).toBe(fresh);
     expect(readingHtml(facts(), NOW)).not.toContain("class=\"warn");
     // (G7) the reading itself is old but OUR copy is not: the app's rule says nothing is wrong
     expect(readingHtml(facts({ at: "2026-11-07T15:00:00Z" }), NOW)).not.toContain("class=\"warn");

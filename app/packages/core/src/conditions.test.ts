@@ -12,9 +12,10 @@ import {
   donorKeyLabel, donorPinTitle, donorReads, donorReason, donorRowLabel, donorShare,
   donorWeightLine, estimateHeadline, estimateRange, estimateSentence, forecastChartLabel,
   forecastModelOption, forecastRunLine, HORIZON_LABELS, HORIZONS, horizonChipLabel,
-  noChartSentence, noGaugeSentence, readingHeading, readingStanding, regulatedNote,
+  noChartSentence, readingHeading, readingStanding, regulatedNote,
   shortRecordNote, sizeApart, stageLine, TIDAL_NOTE, tidalNote, BACKWATER_NOTE, backwaterNote, DIVERSION_NOTE, diversionNote, unplacedNote, type DonorFacts,
 } from "./conditions";
+import { noGaugeSentence } from "./gaugeSide";
 import { figure as chartFigure, standingLong } from "./standing";
 import type { Estimate, NoEstimate } from "./trust";
 

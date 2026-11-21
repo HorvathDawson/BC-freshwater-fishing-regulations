@@ -149,3 +149,12 @@ export function gaugeCountLine(gs: readonly CountedGauge[], horizon: Horizon = 0
 
 /** Is this side the donors' (a gauge on another water, estimating for this one)? The one test of it. */
 export const isDonorSide = (s: GaugeSide): boolean => s === "donor";
+
+/** The refusal where no gauge may speak for the water (T982 #5); a saved spot's record says the same. */
+export const NO_GAUGE_SENTENCE =
+  "There is no gauge on this water, so no conditions were recorded. The nearest gauges are on much bigger rivers, so their numbers would be wrong here.";
+
+/** The refusal where no gauge may speak for the water. */
+export function noGaugeSentence(): string {
+  return NO_GAUGE_SENTENCE;
+}

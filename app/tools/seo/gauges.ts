@@ -80,7 +80,7 @@ export const CORE_INLINE: readonly (readonly [file: string, names: readonly stri
   ["alerts.ts", ["normalRangeOf"]],
   ["change.ts", ["STEADY_RATIO", "OBSERVED_TREND", "observedTrend", "FORECAST_DASH", "OTHER_MODEL_DASH", "forecastDash", "NO_MODEL_PICK", "pickModel", "realtimeOnly", "forecastDrawn"]],
   ["freshness.ts", ["AGO_WORDS", "ageWords", "freshness", "MAY_BE_OLD", "READING_LEAD", "readingAgeParts", "readingAgeWords", "readingAgeBrief"]],
-  ["standing.ts", ["figure", "BAND_WORDS", "bandOfWord", "standingNowLine", "gaugeSummaryLine", "side", "daysShort", "daysNear"]],
+  ["standing.ts", ["figure", "BAND_WORDS", "PRIOR_BAND_WORDS", "bandOfWord", "bandWord", "standingNowLine", "gaugeSummaryLine", "side", "daysShort", "daysNear"]],
 ];
 const plain = (ts_: string): string =>
   ts.transpileModule(ts_, { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.ESNext, removeComments: true } }).outputText

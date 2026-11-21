@@ -909,10 +909,6 @@ export function stageLine(level: number): string {
   return `${figureIn(level, "level")} ${CONDITIONS_WORDS.unit.level} stage`;
 }
 
-/** The refusal where no gauge may speak for the water. */
-export function noGaugeSentence(): string {
-  return "There is no gauge on this water, so no conditions were recorded. The nearest gauges are on much bigger rivers, so their numbers would be wrong here.";
-}
 
 /* ------------------------------------------------------------------ the chart ---- */
 
