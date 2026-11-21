@@ -15,3 +15,11 @@ back at top right it goes to default location instead of the location of the wat
 
 ## Acceptance
 From a cold deep link, back shows the map at the water, on web and in the app.
+
+## Repro on the live website (Claude, 2026-11-21)
+Live site, phone size, /water/big-lagoon cold: first-run disclaimer → I understand → top-right close lands on Big
+Lagoon; walkthrough Skip keeps it; with location granted (Vancouver) close still lands on the water. The website
+does NOT show the bug. Most likely the owner's case is the installed app opened from a Google result (Android
+App Links / iOS universal links → `openRequest`, no `landOn`) — the path lane/085-t989 fixes. Confirm in the
+emulator walk: `adb shell am start -a android.intent.action.VIEW -d https://canifishthis.ca/water/big-lagoon`,
+then close → camera on the water.
