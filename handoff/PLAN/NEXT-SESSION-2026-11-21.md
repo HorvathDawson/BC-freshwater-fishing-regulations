@@ -8,6 +8,24 @@
 - **The one-time agent override** of `release --prod` was used once and reverted. Production data is human-only again
   (OWNER-TODO 2026-11-20).
 
+## IN FLIGHT (chat of 2026-11-21 afternoon; read this first after a /compact)
+- Step 0 done (answers in OWNER-TODO "0.8.5 batch scope"): IN = T686 flip, T975, T981 (path + Lost Lagoon only);
+  next chat = T978, T940, T977, T987 (docs/clean-up, postponed); T709/T715 postponed; no Google Group.
+- Store checks done; new tickets T985 (in-app reports), T986 (species switch), T988 (trout-table Sources Done, Android).
+- Owner design picks all recorded in the tickets (T982 #2/#3/#4/#6, T985 #2/#4, T986, T979, T983).
+- Lane branches (worktrees under .claude/worktrees/agent-*), none merged yet:
+  - lane/085-t984: T984 built + testbed scenarios rewritten (emulator not run). 2 regs colour-count vitest failures to check vs base.
+  - lane/085-t983: T983 fix + T980 un-skipped (fixture re-cut); finishing the inbox own-date pick. Ledger rows → IN PROGRESS at merge.
+  - lane/085-ui: T982 #1/#5, T985 #4 (chart handle + hold-drag), T979 (phone map fills); T985 #1/#3 not reproduced on web (native-only: emulator).
+  - lane/085-picks: T986, T982 #2/#3/#4/#6 built; no after-shots; delete untracked node_modules/data symlinks before merge.
+  - lane/085-t988: table test of every close; finding the Android cause on the emulator.
+  - lane/085-t981: building the curated local-closures path + Lost Lagoon.
+  - lane/085-mouth: T985 #2 mouth label (pipeline export + app).
+- Then: merge all into redesign/stream-sections (conflicts: T979/T982 ticket files, core words), ONE combined review
+  (independent agent), after-shots from the main checkout, Android emulator walk (T984 testbed, T985 #1/#3, T988),
+  version 0.8.5 + changelog (app/packages/core/src/changelog.ts), T686 flip (`packed.py`), data to staging, T975
+  lane, then the release steps in "This chat's job" step 3.
+
 ## This chat's job: the EASY BATCH, released all the way to production, then a NEW CHAT (owner 2026-11-21)
 Owner: "we want all feedback items targetted in it … do a release all the way to prod then it will ask to start a new
 chat for rest". Credits are tight, so stay lean. Lanes on Sonnet for UI work; ONE combined independent review before
