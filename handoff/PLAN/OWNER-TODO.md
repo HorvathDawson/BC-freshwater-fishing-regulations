@@ -9,6 +9,13 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-20 17:13: production data, one-time agent override (owner)
+
+- Owner, verbatim: "Add one time override then remove it after" (leaving the computer, wants the release out; "We have
+  minimal users"). `pipeline/release.py prod()`: an agent may publish the ONE release named in OWNER_ONE_TIME_PROD (=
+  CONFIRM_PROD = the id), today only; checked, staged, fingerprint and "staging serves it" all still hold. Reverted
+  right after that release ships.
+
 ## 2026-11-20 15:11: 0.8.4 production builds approved
 
 - Owner, verbatim: "Yes you can run them": the 0.8.4 production builds (CONFIRM_PROD), Android to Play Internal and iOS

@@ -1732,14 +1732,21 @@ def prod(rid: str, ask=input) -> int:
         print(f"release --prod: staging serves {on_staging}, not {rid} — deploy/prod/upload.sh promotes what staging "
               f"serves; refused (a later release --staging replaced it)", file=sys.stderr)
         return 1
+    # ONE-TIME OVERRIDE, owner 2026-11-20 ("Add one time override then remove it after"): an agent may publish ONE
+    # release today, the one named in OWNER_ONE_TIME_PROD, which must equal CONFIRM_PROD and the release id. Every
+    # other check above (checked, staged, fingerprint, staging serves it) still holds. REVERTED once that release ships.
+    one_time = (os.environ.get("OWNER_ONE_TIME_PROD") == rid == os.environ.get("CONFIRM_PROD")
+                and time.strftime("%Y-%m-%d") in ("2026-11-20", "2026-11-21"))
     agent = agent_env()
     why = ([f"an agent environment ({agent})"] if agent else []) \
         + ([f"CONFIRM_PROD is not {rid}"] if os.environ.get("CONFIRM_PROD") != rid else []) \
         + (["no interactive terminal"] if not is_tty() else [])
-    if why:
+    if why and not one_time:
         print(f"release --prod: refused ({'; '.join(why)}).\n\n{prod_instructions(rid, r)}", file=sys.stderr)
         return 2
-    if ask(f"type the release id to publish {rid} to PRODUCTION: ").strip() != rid:
+    if one_time:
+        print(f"release --prod: ONE-TIME owner override (2026-11-20) for {rid}", file=sys.stderr)
+    elif ask(f"type the release id to publish {rid} to PRODUCTION: ").strip() != rid:
         print("release --prod: the id did not match; nothing sent", file=sys.stderr)
         return 2
     rc = run_cmd(prod_cmd(rid), env=PROD_UPLOAD_ENV)
