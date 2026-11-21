@@ -18,7 +18,9 @@
   - lane/085-t983: T983 fix + T980 un-skipped (fixture re-cut); finishing the inbox own-date pick. Ledger rows → IN PROGRESS at merge.
   - lane/085-ui: T982 #1/#5, T985 #4 (chart handle + hold-drag), T979 (phone map fills); T985 #1/#3 not reproduced on web (native-only: emulator).
   - lane/085-picks: T986, T982 #2/#3/#4/#6 built; no after-shots; delete untracked node_modules/data symlinks before merge.
-  - lane/085-t988: table test of every close; finding the Android cause on the emulator.
+  - lane/085-t988: table test of every close (61 pass, no source change); cause NOT found. Suspect: Sheet.tsx phone path, the
+    RNGH pull GestureDetector round the handle row swallows Done on the tall Sources sheet (SHEET_BODY_CAP). Repro in the
+    post-merge emulator walk (adb tap Done on src:trout vs a short sheet), then move Done out of the detector.
   - lane/085-t981: building the curated local-closures path + Lost Lagoon.
   - lane/085-mouth: T985 #2 mouth label (pipeline export + app).
   - lane/085-t989: T989 deep link then back lands on the water (owner 11-21).
