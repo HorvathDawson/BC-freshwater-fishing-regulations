@@ -26,7 +26,7 @@ GUIDE_NAME = "ui-rules-guide.json"
 #: `rule.unresolved` is why a rule could not be placed, and `rule.exempts` is what a rule lifts,
 #: resolved to the entry each lift reaches — it left `conditions` for a column of its own, so a
 #: bundle without the column is one whose lifts this export would silently drop.
-REQUIRED_COLUMNS = {"entry": ("matched", "see"),
+REQUIRED_COLUMNS = {"entry": ("matched", "see", "authority"),
                     "rule": ("unresolved", "exempts", "undrawn_part", "parts"),
                     **{t: ("parts",) for t in ("designation", "not_classified", "requirement",
                                               "licence_terms", "exemption", "alternative")},

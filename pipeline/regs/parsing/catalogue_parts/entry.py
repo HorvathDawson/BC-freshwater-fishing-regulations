@@ -26,6 +26,24 @@ from pipeline.common import entry_id as EID
 # Entries
 # --------------------------------------------------------------------------------------- #
 
+class LocalAuthority(BaseModel):
+    """(T981) WHO CLOSED THIS WATER, WHEN IT IS NOT THE SYNOPSIS: a city, park board or other local authority, and
+    where it says so. Only an entry of the local-closures source carries one (`pipeline.regs.local_closures`); it
+    stands in for `source_pages` (such an entry prints on no synopsis page) and the app cites it with its link."""
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    #: the authority, as a reader names it ("Vancouver Board of Parks and Recreation")
+    body: str = Field(..., min_length=1)
+    #: the bylaw, regulation or published rule that closes it ("Parks Control By-law", "posted park rules")
+    instrument: str = Field(..., min_length=1)
+    #: its section, when the instrument has one
+    section: Optional[str] = Field(default=None, min_length=1)
+    #: the page that says so: the instrument's text or the authority's own page
+    url: str = Field(..., pattern=r"^https://\S+$")
+    #: what that page says, copied as written
+    quote: str = Field(..., min_length=1)
+
+
 #: The book's "includes tributaries" glyph, as the extractor writes it into `symbols`
 #: (`pipeline.regs.parsing.rows.TRIBUTARIES_SYMBOL`). `CatalogueEntry._glyph_walks` holds the row to it.
 GLYPH_INCLUDES_TRIBUTARIES = "Incl. Tribs"
@@ -123,6 +141,18 @@ class CatalogueEntry(BaseModel):
     #: way it takes out water past the border. The row itself carries only its note: every rule is an
     #: `advisory` and it has no licensing (user ruling 2026-09-29).
     tidal: bool = False
+    #: (T981) CLOSED BY A LOCAL AUTHORITY, NOT THE BOOK (`LocalAuthority`): set on the local-closures source's entries
+    #: only, which print on no synopsis page — `_authority_cites` holds the pair.
+    authority: Optional[LocalAuthority] = None
+
+    @model_validator(mode="after")
+    def _authority_cites(self) -> "CatalogueEntry":
+        """An entry cites the book's pages OR a local authority, never both: a local closure prints on no synopsis
+        page, and a book row that carried an authority would hide which of the two closed the water."""
+        if self.authority is not None and self.source_pages:
+            raise ValueError(f"{self.entry_id}: a local authority's closure prints on no synopsis page "
+                             f"(source_pages {list(self.source_pages)})")
+        return self
 
     @property
     def pointer_only(self) -> bool:

@@ -178,6 +178,7 @@ curated:
     reference: "data/curated/regulations/reference"   # the book's text, verbatim (definitions, legend, licensing)
     word_reads: "data/curated/regulations/word_reads.json"   # accepted — the printed-word reads that matched (T679 D4)
     under_closure_calls: "data/curated/regulations/under_closure_calls.json"   # authored — the owner's rulings on the export's closure scans (T679 #12)
+    local_closures: "data/curated/regulations/local_closures"   # authored, accepted rows only — waters a local bylaw closes (T981)
 
   # --- review: the review app's state ----------------------------------------------
   review:

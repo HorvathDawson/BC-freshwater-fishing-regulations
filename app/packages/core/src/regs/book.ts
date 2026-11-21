@@ -19,11 +19,17 @@ export function bookLine(pages: readonly (readonly [number, number])[], boxes?: 
   return out;
 }
 
-/** A rule's book runs (`facts.book`); a rule with no facts (the noRule stand-in) has none. */
-export const ruleBook = (r: RuleView): Line => bookLine(r.facts?.book ?? [], r.facts?.book_box);
+/** (T981) A local authority's closure cites no book page: its one "<site> ↗" run to the page that says so (`facts.cited`). */
+const citedLine = (r: RuleView | null): Line | null => {
+  const c = r?.facts?.cited;
+  return c ? [{ t: "web", s: c.link, url: c.url }] : null;
+};
 
-/** A rule's book runs, or none for no rule (the banner's and group head's "Rule book p.N ↗"). */
-export const ruleBookLine = (r: RuleView | null): Line => bookLine(r?.facts?.book ?? [], r?.facts?.book_box);
+/** A rule's book runs (`facts.book`), or its cited page (T981); a rule with no facts (the noRule stand-in) has none. */
+export const ruleBook = (r: RuleView): Line => citedLine(r) ?? bookLine(r.facts?.book ?? [], r.facts?.book_box);
+
+/** A rule's book runs, or none for no rule (the banner's and group head's "Rule book p.N ↗"); a cited page (T981). */
+export const ruleBookLine = (r: RuleView | null): Line => citedLine(r) ?? bookLine(r?.facts?.book ?? [], r?.facts?.book_box);
 
 /** `[...line, " ", ...book]` — a sentence and its book links as separate elements (contracts.md §1: one space); no book: the line. */
 export function withBook(line: Line, book: Line): Line {

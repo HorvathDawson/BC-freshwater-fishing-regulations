@@ -1,0 +1,45 @@
+{
+ "_about": "T981: waters a local authority closes to fishing, Region 2. AUTHORED, ACCEPTED ROWS ONLY (owner 2026-11-21: Lost Lagoon only for now). A second entry source beside synopsis/ (pipeline.regs.local_closures): one water's whole closure per entry, its authority cited. Written by pipeline.regs.local_closures.write_region.",
+ "region": "2",
+ "entries": [
+  {
+   "entry_id": "r2:lost_lagoon_local@2-8",
+   "name": "LOST LAGOON",
+   "display_name": "Lost Lagoon",
+   "region": "2",
+   "regs_verbatim": "No Fishing",
+   "matched": [
+    "wbk:329532481"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "lost_lagoon_local.r1",
+     "type": "retention_limit",
+     "verbatim": "No Fishing",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "take": 0,
+     "may_target": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "authority": "superior"
+    }
+   ],
+   "authority": {
+    "body": "Vancouver Board of Parks and Recreation",
+    "instrument": "Stanley Park rules, as StanleyParkVan.com gives them",
+    "url": "https://stanleyparkvan.com/stanley-park-van-location-lost-lagoon.html",
+    "quote": "Boating, swimming, and fishing are prohibited in Lost Lagoon."
+   }
+  }
+ ]
+}

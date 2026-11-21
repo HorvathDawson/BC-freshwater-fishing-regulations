@@ -23,6 +23,19 @@ describe("bookText (T43): the one spelling of a book run", () => {
   });
 });
 
+describe("ruleBook (T981): a local authority's closure links the page it cites, never a book page", () => {
+  it("one \"<site> ↗\" run to `facts.cited.url`; a book rule keeps its pages", async () => {
+    const { ruleBook, ruleBookLine } = await import("./book");
+    const { plain } = await import("./line");
+    const cited = { facts: { book: [], cited: { link: "StanleyParkVan.com", url: "https://stanleyparkvan.com/x.html", quote: "q" } } };
+    const line = ruleBook(cited as never);
+    expect(line).toEqual([{ t: "web", s: "StanleyParkVan.com", url: "https://stanleyparkvan.com/x.html" }]);
+    expect(ruleBookLine(cited as never)).toEqual(line);
+    expect(plain(line)).toBe("StanleyParkVan.com ↗");
+    expect(ruleBook({ facts: { book: [[21, 23]] } } as never)).toEqual([{ t: "book", printed: 21, pdf: 23 }]);
+  });
+});
+
 describe("bookLine (T215): the entry's row boxes ride on the run of their PDF page", () => {
   const b = { pdf: 23, box: [10, 20, 30, 40] as [number, number, number, number], size: [576, 756] as [number, number] };
   it("a run whose PDF page has a box carries it; others and no-box lines are unchanged", async () => {

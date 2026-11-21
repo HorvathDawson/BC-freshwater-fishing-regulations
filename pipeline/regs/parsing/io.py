@@ -130,6 +130,9 @@ def read_all_entries(registry=None) -> dict[str, dict]:
                     f"has to be renamed at the source rather than resolved here.")
             merged[eid] = entry
             origin[eid] = name
+    # T981: the local-closures source is REQUIRED (missing raises), each entry in its one shape, none beside a book row
+    from pipeline.regs import local_closures
+    local_closures.check_source(merged, origin)
     return merged
 
 

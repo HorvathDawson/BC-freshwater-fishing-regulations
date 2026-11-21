@@ -210,6 +210,10 @@ class Regulations(BaseModel):
     #: AUTHORED (T679 #12): the owner's rulings on the export's two closure scans, a dated water release / a water
     #: row's quota under a blanket closure (`pipeline.deliver.export.closures.under_closure_calls`).
     under_closure_calls: FilePath
+    #: AUTHORED, ACCEPTED ROWS ONLY (T981): waters closed to fishing by a city, park board or other local authority, not
+    #: by the synopsis (`region-*.json`, each entry a water's closure with its `authority` cited). A second ENTRY SOURCE
+    #: beside `synopsis` (`parsing.io.entry_sources`); read and checked by `pipeline.regs.local_closures`.
+    local_closures: DirectoryPath
 
     _abs = field_validator("*", mode="before")(_absolute)
 

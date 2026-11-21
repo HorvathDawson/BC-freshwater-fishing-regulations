@@ -24,7 +24,9 @@ What it holds (pinned by `test_mini_release.py::test_the_mini_world_holds_the_pl
 tidal mouth 1 km into the sea, Fixture Lake on it, Twofold Lake across the region line, a braid, a gauge, Sample
 Reserve 1 over it), Mock Creek (its falls a cut, closed all year above them) with an unnamed trib, Stub Creek (its own
 release beside the zone's 50 cm clause, its row lifting the zone's summer closure; Mock Range no-access land over it)
-with the added Mockup Creek (closed whole), Sample Lake, Mockup Marsh, one unnamed wetland, one reservoir; 27 entries.
+with the added Mockup Creek (closed whole), Sample Lake, Mockup Marsh, one unnamed wetland, one reservoir, and Bylaw Pond
+closed whole by an invented parks board (T981: the local-closures source, `curated/regulations/local_closures/`); 28
+entries.
 
 Build it into scratch only. `--twice` builds it two times and checks that the digests agree:
 
