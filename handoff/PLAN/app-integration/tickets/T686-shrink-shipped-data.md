@@ -178,3 +178,6 @@ scratchpad):
   because the side run shipped no synopsis PDF. Derived app floor 0.8.0, the same as live. Gates pass.
 - ON: near / down / climate decoded equal to live. paint/6 decodes to paint/5 plus the flag (3,597 sections, the same set
   the summed rows give). Gates pass, app floor 0.8.4. Phone total 17,482,831 → 15,229,939 B gz (paint +282 B).
+
+## Owner 2026-11-21 12:43
+Joins the 0.8.5 batch: flip `SHIP_PACKED_FORMATS` in the 0.8.5 data release. Owner, verbatim: "0.8.4 is available to testers on android closed test and apple as all users on 0.8.4 so yes add it".

@@ -34,3 +34,6 @@ exists), holding the run's id and an expiry, taken before `sendWake` reads the c
 write. A run that does not get the lease leaves the wake to the run that holds it (its reason is told on the next
 run: the carry stays). Needs: a test double that honours the conditions, a stale-lease rule (expiry over the longest
 run), and the subrequest count (`PUSH_FIXED_SUBREQUESTS` +2).
+
+## Owner 2026-11-21 12:46
+Asked for the 0.8.5 batch: "No, next chat".

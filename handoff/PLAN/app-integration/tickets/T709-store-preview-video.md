@@ -106,3 +106,6 @@ and after (and the June closure by its colour), then cuts 864x1920 / 30 fps / H.
 Owner picked "Postpone" for the store video (with T715) until after this release.
 
 Status line before this answer: IN PROGRESS (step 1, Android, built 2026-11-13: `node app/tools/store-video/run.mjs`; the owner sees the clip before any upload; step 2, iOS, benched)
+
+## Owner 2026-11-21 12:47
+Asked for the 0.8.5 batch: "No, stay postponed".

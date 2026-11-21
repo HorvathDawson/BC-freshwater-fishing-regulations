@@ -28,3 +28,6 @@ allowed.
 - Every accepted row ships in a data release.
 
 Depends: —. Size: M. Owner: yes (accept the inventory rows).
+
+## Owner 2026-11-21 12:45
+Joins the 0.8.5 batch ("Yes, add it"). Inventory drafted as proposals; the owner accepts each row before it ships.

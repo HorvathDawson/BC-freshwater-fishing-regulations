@@ -262,6 +262,8 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T982 | TestFlight tester feedback 2026-11-20 (6 items: % of estimate, normal wording, gauge-absent sentence, photo icons, gauge boxes, open at my location) | OPEN | | TestFlight feedback, read 2026-11-21 |
 | T983 | After updating to 0.8.4, 7 expired in-season notices show as New (Nov 19): notice ids stable across releases; ended notices not current | OPEN | | owner 2026-11-21 (Android 0.8.4) |
 | T984 | ASAP: the guided walkthrough only walks through (no state changes, instant highlights, can't be broken by zooming) | OPEN | | owner 2026-11-21 |
+| T985 | In-app reports 2026-11-21 (4 items: chart flicker on model change, Chilliwack downstream label, map uncoloured after Conditions, drag the chart date bar) | OPEN | | prod /reports, read 2026-11-21 |
+| T986 | Trout / Salmon switch: which one is on is hard to tell (bar sits between the two) | OPEN | | tester via owner 2026-11-21 |
 
 ## Next after closed testing
 

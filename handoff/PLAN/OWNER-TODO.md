@@ -9,6 +9,17 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-21 12:40: 0.8.5 batch scope, asked one ticket at a time (dialog)
+
+- T978 (build checks; MapLibre from upstream main): NOT in this batch, next chat.
+- T940 (satellite water-line colours): NOT in this batch, next chat (pictures + swatch rim question there).
+- T686 switch-on (packed formats): IN this batch. Owner, verbatim: "0.8.4 is available to testers on android closed test and apple as all users on 0.8.4 so yes add it".
+- T975 (remove old-format readers/writers + the switch): IN this batch, after T686 is flipped and staging data passes smoke; data min app 0.8.4; 0.8.5 data reaches production before the 0.8.5 apps.
+- T981 (municipal / park-bylaw closed waters): IN this batch ("Yes, add it", against my recommendation). Claude drafts the inventory; you accept each row before it ships.
+- T977 (push carry race): NOT in this batch, next chat.
+- T709 + T715 (store video): stay postponed.
+- Store checks 12:50: TestFlight 0.8.4 (43) external APPROVED, in beta testing; no new TestFlight feedback beyond T982's 6; 5 in-app reports: one is T979, four are T985. Your tester's Trout/Salmon switch note is T986. All join the batch.
+
 ## 2026-11-21 11:24: 0.8.4 promoted to Play Closed testing (owner)
 
 - Owner, verbatim: "promote now please (not enough tokens to fix it)": versionCode 42 Internal → Closed (track alpha),

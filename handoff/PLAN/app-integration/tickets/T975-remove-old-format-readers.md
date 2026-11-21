@@ -30,3 +30,6 @@ After production data ships packed, with the contract's oldest supported app at 
 - The release diff against the last packed release is byte-identical, apart from the removed switch.
 
 Depends: T686 switch-on in production. Size: M. Owner: no.
+
+## Owner 2026-11-21 12:44
+Joins the 0.8.5 batch ("Yes, add it"): app/worker readers + the switch, one lane after T686 is flipped and staging data passes smoke; data min app 0.8.4; data ships before the apps.

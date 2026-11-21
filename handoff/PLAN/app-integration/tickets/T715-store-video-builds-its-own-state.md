@@ -46,3 +46,6 @@ shared and only the device driving differs.
 Postponed with T709 (owner 2026-11-20).
 
 Status line before this answer: OPEN (after closed testing (owner 2026-11-13: "these are after closed"); before the next time the video is regenerated for a store upload)
+
+## Owner 2026-11-21 12:47
+Asked for the 0.8.5 batch: "No, stay postponed".

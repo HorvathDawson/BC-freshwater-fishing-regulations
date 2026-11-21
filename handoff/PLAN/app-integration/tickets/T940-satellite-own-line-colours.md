@@ -15,3 +15,6 @@ colour checks; pictures first (light and dark the same, over forest, river grave
 ## Acceptance
 Satellite looks the same in every theme; every status reads on the photo; the drawn map is unchanged; the owner approves
 the pictures.
+
+## Owner 2026-11-21 12:41
+Asked for the 0.8.5 batch: "No, next chat". No side-by-sides exist yet; build them first there.

@@ -40,3 +40,6 @@ Eleven no-data tests read this machine's state, so CI (and the fresh clone) fail
   test reads the mini tree's notices, as its chain does. The export's refusal of a missing resolution is unchanged.
 - 2 (test_answers_27 t517, test_t801_mainstem_tag): hand-made waters lacked the export's `grp_runs` (T679 #17 moved the
   join into the export); each test now gives its water `export.read.group_runs(parts)`, as the export writes it.
+
+## Owner 2026-11-21 12:40
+Asked for the 0.8.5 batch: "No, next chat". Waits for the chat after 0.8.5.
