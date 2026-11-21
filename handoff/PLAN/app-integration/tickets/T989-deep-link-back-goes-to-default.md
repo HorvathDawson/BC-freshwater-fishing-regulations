@@ -23,3 +23,9 @@ does NOT show the bug. Most likely the owner's case is the installed app opened 
 App Links / iOS universal links → `openRequest`, no `landOn`) — the path lane/085-t989 fixes. Confirm in the
 emulator walk: `adb shell am start -a android.intent.action.VIEW -d https://canifishthis.ca/water/big-lagoon`,
 then close → camera on the water.
+
+## Owner detail (2026-11-21)
+"the user clicked a link but had viewed app before then went back and it went to chilliwack which might have been
+where they were before" · "it was clicked from google search". Fits the app link path: a warm app at Chilliwack, the
+link opens the water with no landing, close keeps the held camera. Website re-tested with location granted at
+Chilliwack: lands on the water.
