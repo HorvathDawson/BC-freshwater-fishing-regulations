@@ -410,6 +410,8 @@ vitest_changed() {
   local tests=() f b t
   while IFS= read -r f; do
     [[ $f == app/* && $f != */node_modules/* && -f $f && $f =~ \.(ts|tsx|mjs|js)$ ]] || continue
+    # the feeds worker has its own vitest root (its step above); the app's projects find none of its files
+    [[ $f == app/workers/* ]] && continue
     if [[ $f =~ \.test\.(ts|tsx)$ ]]; then tests+=("${f#app/}"); continue; fi
     b=${f%.*}
     for t in "$b.test.ts" "$b.test.tsx"; do [[ -f $t ]] && tests+=("${t#app/}"); done
