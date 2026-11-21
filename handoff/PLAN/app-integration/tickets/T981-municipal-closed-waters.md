@@ -31,3 +31,6 @@ Depends: —. Size: M. Owner: yes (accept the inventory rows).
 
 ## Owner 2026-11-21 12:45
 Joins the 0.8.5 batch ("Yes, add it"). Inventory drafted as proposals; the owner accepts each row before it ships.
+
+## Owner 2026-11-21 (dialog)
+In 0.8.5. Verbatim: "https://stanleyparkvan.com/stanley-park-van-location-lost-lagoon.html is only one I know for sure. Maybe add other info to a ticket but only create the way to ban lost lagoon for now with a nice curated data path to list these. Then put all the info found for the other water bodies in the ticket and we will review for the next release." Build: the curated local-closures path + Lost Lagoon only. The other rows stay here for review next release.
