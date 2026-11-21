@@ -23,6 +23,8 @@ with the default Claude uses until you answer). Newest first inside each section
 - T979 (dialog with picture): "1 and maybe remove some white space ? Only on mobile does it matter" (owner, verbatim): the map takes the free height, the exit + report rows sit in the bar's foot (held height only where the water has an exit), trim other white space; phone layout only.
 - T985 #2: label the mouth end ("Flows into …" at the downstream end, every water with an exit; the mouth's place goes in the release).
 - T981 (dialog): IN 0.8.5, built now. Owner, verbatim: "https://stanleyparkvan.com/stanley-park-van-location-lost-lagoon.html is only one I know for sure. Maybe add other info to a ticket but only create the way to ban lost lagoon for now with a nice curated data path to list these. Then put all the info found for the other water bodies in the ticket and we will review for the next release." So: the curated local-bylaw path + Lost Lagoon only; every other row (Goodacre, Fountain, Swan, Deer, Burnaby, Green Timbers, Beaver) waits in the ticket for review next release.
+- T983 (dialog): the 7 "July 30" closures keep showing while the Province lists them (T548 stands); no automatic repair for phones on 0.8.4 ("Mark all read" is enough); the inbox shows the notice's own date (first-seen only when it has none, labelled so).
+- T988: the Done that does not close is on the trout table's Sources menu, on Android.
 - Store checks 12:50: TestFlight 0.8.4 (43) external APPROVED, in beta testing; no new TestFlight feedback beyond T982's 6; 5 in-app reports: one is T979, four are T985. Your tester's Trout/Salmon switch note is T986. All join the batch.
 
 ## 2026-11-21 11:24: 0.8.4 promoted to Play Closed testing (owner)

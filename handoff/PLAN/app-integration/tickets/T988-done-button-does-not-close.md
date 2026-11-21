@@ -12,3 +12,6 @@ Source: owner 2026-11-21: "the done button in sources menu doesnt close menu che
 
 ## Acceptance
 Every Done/Close button closes its menu on every platform; the test fails if one stops closing.
+
+## Owner 2026-11-21
+Where: the trout table's Sources menu. Platform: Android (0.8.4).

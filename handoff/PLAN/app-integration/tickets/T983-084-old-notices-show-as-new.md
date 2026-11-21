@@ -27,3 +27,8 @@ Updating 0.8.3 → 0.8.4 (or any release → the next) shows no old notice as Ne
 Both are pinned by tests.
 
 Depends: —. Size: M. Owner: yes (whether to hot-fix the data).
+
+## Owner picks 2026-11-21 (dialog)
+- The 7 "July 30" closures: "Keep showing" (T548: shown while the Province lists them).
+- Phones already on 0.8.4: no automatic repair ("Mark all read" is fine).
+- Inbox date: the notice's own date; first-seen only when it has none, labelled as such.
