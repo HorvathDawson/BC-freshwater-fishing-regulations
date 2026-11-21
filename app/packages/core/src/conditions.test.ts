@@ -468,7 +468,7 @@ describe("the chart's read-out and controls", () => {
     expect(CONDITIONS_WORDS.zoom).toEqual({ in: "Zoom in", out: "Zoom out", fit: "Whole chart", group: "Chart zoom" });
     expect(CONDITIONS_WORDS.chartGauge).toBe("CHART THIS GAUGE");
     // (T920) one short faint line over the plot, in the read-out's place
-    expect(CONDITIONS_WORDS.zoomHint).toEqual({ touch: "Pinch to zoom, tap to read a value",
+    expect(CONDITIONS_WORDS.zoomHint).toEqual({ touch: "Pinch to zoom, tap or drag the bar to read",
                                                 pointer: "Scroll to zoom, point to read a value" });
   });
 });

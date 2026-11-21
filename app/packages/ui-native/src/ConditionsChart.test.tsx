@@ -231,6 +231,34 @@ describe("the chart zooms and reads out", () => {
     expect(wheel(100), "zoom out from the narrowest: the chart takes it").toBe(true);
   });
 
+  it("(T985 #4) the date bar has a handle: a drag scrubs, the arrows step, a hold-then-drag scrubs the body; the axis strip pans", async () => {
+    await ready();
+    expect(screen.queryByTestId("chart-handle")).toBeNull();
+    act(() => { fireGestureHandler(getByGestureTestId("chart-tap"), [{ x: 200, y: 80 }, { x: 200, y: 80 }]); });
+    const handle = await screen.findByTestId("chart-handle");
+    expect(handle.getAttribute("role")).toBe("slider");
+    expect(handle.getAttribute("aria-label")).toBe(CONDITIONS_WORDS.scrub.handle);
+    const said = () => screen.getByTestId("chart-handle").getAttribute("aria-valuetext");
+    const first = said();
+    expect(first).toMatch(/^\d{4}-\d\d-\d\d at \d\d:\d\d/);
+    act(() => { fireGestureHandler(getByGestureTestId("chart-handle"), [{ translationX: 0 }, { translationX: 60 }]); });
+    await waitFor(() => expect(said()).not.toBe(first));
+    const dragged = said();
+    fireEvent.keyDown(screen.getByTestId("chart-handle"), { key: "ArrowLeft" });
+    await waitFor(() => expect(said()).not.toBe(dragged));
+    const keyed = said();
+    act(() => { fireGestureHandler(getByGestureTestId("chart-hold"), [{ x: 120, y: 80 }, { x: 140, y: 80 }]); });
+    await waitFor(() => expect(said()).not.toBe(keyed));
+    // the axis strip is there only while zoomed, and a drag on it pans (no one-finger pan on the body any more)
+    expect(screen.queryByTestId("chart-axis")).toBeNull();
+    act(() => { fireGestureHandler(getByGestureTestId("chart-pinch"),
+      [{ scale: 1, focalX: 180 }, { scale: 1.5, focalX: 180 }, { scale: 3, focalX: 180 }]); });
+    await screen.findByTestId("chart-axis");
+    expect(screen.getByTestId("chart-axis").textContent).toBe(CONDITIONS_WORDS.scrub.axisHint);
+    expect(() => getByGestureTestId("chart-pan")).toThrow();
+    act(() => { fireGestureHandler(getByGestureTestId("chart-axis"), [{ translationX: 0 }, { translationX: -50 }]); });
+  });
+
   it("a pinch zooms in", async () => {
     await ready();
     act(() => { fireGestureHandler(getByGestureTestId("chart-pinch"),

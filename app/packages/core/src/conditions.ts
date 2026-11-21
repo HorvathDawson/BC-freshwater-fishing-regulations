@@ -301,8 +301,10 @@ export const CONDITIONS_WORDS = {
    * How to work the chart, one short faint line in the read-out's place over the plot until a value is read — touch and
    * pointer each in their own words. (T920: the long paragraph under the plot went; drag and double-tap still work.)
    */
+  /** (T985 #4) the date bar's handle and the axis strip: their spoken names and the strip's words */
+  scrub: { handle: "Date bar", earlier: "Earlier", later: "Later", axis: "Move along the chart", axisHint: "← drag here to move along →" },
   zoomHint: {
-    touch: "Pinch to zoom, tap to read a value",
+    touch: "Pinch to zoom, tap or drag the bar to read",
     pointer: "Scroll to zoom, point to read a value",
   },
   quantity: { discharge: "Flow", level: "Level" },

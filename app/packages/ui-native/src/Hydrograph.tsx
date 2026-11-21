@@ -12,14 +12,13 @@
  * is core's (`chartZoom.ts`), the state is @app/ui's (`useChartView`), and the words are core's.
  */
 import { useId, useMemo, useRef } from "react";
-import { withWebProps } from "./gestureWeb";
+import { useChartGestures } from "./chartGestures";
 import { CONDITIONS_WORDS, isForecastModel, wheelFactor } from "@app/core";
 import { forecastDash, MARK_FONT, type ChartView, type Hydrograph as Shape } from "@app/ui";
 import { View, type ViewInstance } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
-import { GestureDetector, useExclusiveGestures, usePanGesture, usePinchGesture, useSimultaneousGestures, useTapGesture,
-         type PanGestureConfig, type PinchGestureConfig, type TapGestureConfig } from "react-native-gesture-handler";
+import { GestureDetector } from "react-native-gesture-handler";
 import Svg, { Circle, ClipPath, Defs, G, Line, Path, Rect, Text as SvgText } from "react-native-svg";
 import { chartPointer, useChartHover, useChartWheel } from "./chartInput";
 import { TYPE } from "./type";
@@ -29,6 +28,9 @@ import { hitProps } from "./regs/hit";
 
 /** The axis labels' size: the chart is built at the width it is drawn, so a label is drawn at its own size. */
 const TICK = 11;
+/** (T985 #4) `touch-action` for the body (the page keeps vertical scrolling) and for what owns every touch */
+const BODY_TOUCH = { touchAction: "pan-y" } as const;
+const OWN_TOUCH = { touchAction: "none" } as const;
 
 /** What the chart can be asked to do: `useChartView`'s actions, its read-out, and whether it is zoomed. */
 export type ChartActions = Pick<ChartView, "zoomed" | "readout" | "zoomIn" | "zoomOut" | "fit" | "zoomAt" | "zooms" | "panBy"
@@ -199,7 +201,7 @@ export function Hydrograph({ shape, palette, colour, label, unit,
       <View>
         <SwipeShield>
           <View accessibilityRole="image" accessibilityLabel={label ?? CONDITIONS_WORDS.hydrograph.label}>
-            {view ? <Gestures view={view} plotX={shape.plot.x}>{svg}</Gestures> : svg}
+            {view ? <Gestures view={view} plotX={shape.plot.x} box={box} palette={palette}>{svg}</Gestures> : svg}
           </View>
         </SwipeShield>
         <PlotBand palette={palette} view={view} unit={unit} height={box.padTop} />
@@ -327,12 +329,14 @@ function ZoomButton({ palette, label, glyph, onPress }: {
  * the value under it; a double-tap shows the whole chart; a mouse reads as it moves and its wheel zooms where it
  * points — only while there is zoom left to do, else the page scrolls (both `chartInput.web.ts`). `touchAction` leaves vertical scrolling to the browser.
  */
-/** The browser keeps vertical scrolling over the chart (every recogniser carries it: see gestureWeb.ts). */
-const CHART_WEB = { touchAction: "pan-y" } as const;
+/** (T985 #4) the handle on the date bar: its visible disc, and the 44-wide touch strip around it */
+const HANDLE = 18;
+const HANDLE_HIT = 44;
 
-function Gestures({ view, plotX, children }: { view: ChartActions; plotX: number; children: React.ReactNode }) {
+function Gestures({ view, plotX, box, palette, children }: {
+  view: ChartActions; plotX: number; box: Shape["box"]; palette: Palette; children: React.ReactNode;
+}) {
   const ref = useRef<ViewInstance>(null);
-  // The latest actions, read at event time: the gestures are rebuilt per zoom state, not per render.
   const live = useRef(view);
   live.current = view;
   // A wheel the window cannot use (out at the whole chart, in at the narrowest) is NOT taken: the page scrolls on.
@@ -346,49 +350,47 @@ function Gestures({ view, plotX, children }: { view: ChartActions; plotX: number
   // A MOUSE READS AS IT MOVES (the browser's own pointer events: RNGH's Hover never fired under a desktop mouse here).
   const hover = useMemo(() => (x: number | null) => live.current.probeAt(x === null || x < plotX ? null : x), [plotX]);
   useChartHover(ref, hover, true);
-  const zoomed = view.zoomed;
-  // (T250) RNGH 3's hook API: each recogniser a hook over one memoised config (a new object reconfigures the native
-  // handler); `onStart`/`onEnd` are `onActivate`/`onDeactivate`, and a failed or cancelled end says `canceled`
-  const pinchConfig = useMemo((): PinchGestureConfig => {
-    let lastScale = 1;
-    return withWebProps({
-      runOnJS: true, disableReanimated: true, testID: "chart-pinch",
-      onActivate: () => { lastScale = 1; },
-      onUpdate: (e) => {
-        const f = e.scale / (lastScale || 1);
-        lastScale = e.scale;
-        live.current.zoomAt(e.focalX, f);
-      },
-    } satisfies PinchGestureConfig, CHART_WEB);
-  }, []);
-  const panConfig = useMemo((): PanGestureConfig => {
-    let lastX = 0;
-    return withWebProps({
-      runOnJS: true, disableReanimated: true, testID: "chart-pan", enabled: zoomed, maxPointers: 1,
-      activeOffsetX: [-8, 8], failOffsetY: [-12, 12],
-      onActivate: () => { lastX = 0; },
-      onUpdate: (e) => { live.current.panBy(e.translationX - lastX); lastX = e.translationX; },
-    } satisfies PanGestureConfig, CHART_WEB);
-  }, [zoomed]);
-  const doubleConfig = useMemo((): TapGestureConfig => withWebProps({
-    runOnJS: true, disableReanimated: true, testID: "chart-double-tap", numberOfTaps: 2,
-    onDeactivate: (e) => { if (!e.canceled) live.current.fit(); },
-  } satisfies TapGestureConfig, CHART_WEB), []);
-  const tapConfig = useMemo((): TapGestureConfig => withWebProps({
-    runOnJS: true, disableReanimated: true, testID: "chart-tap",
-    onDeactivate: (e) => { if (!e.canceled && e.x >= plotX) live.current.probeAt(e.x); },
-  } satisfies TapGestureConfig, CHART_WEB), [plotX]);
-  const pinch = usePinchGesture(pinchConfig);
-  const pan = usePanGesture(panConfig);
-  const taps = useExclusiveGestures(useTapGesture(doubleConfig), useTapGesture(tapConfig));
-  const gesture = useSimultaneousGestures(pinch, pan, taps);
+  const plotWidth = box.width - box.padRight - plotX;
+  const { body, handle, axis, step } = useChartGestures(view, plotX, plotWidth);
+  const r = view.readout;
+  const W = CONDITIONS_WORDS.scrub;
   return (
     // The browser listeners hang on an OUTER view: GestureDetector takes its child's ref for its own handlers, and a ref
     // shared with it was never set here (the wheel and the mouse read-out did nothing in a browser).
     <View ref={ref} collapsable={false}>
-      <GestureDetector gesture={gesture} {...CHART_WEB}>
-        <View collapsable={false}>{children}</View>
-      </GestureDetector>
+      <View>
+        <GestureDetector gesture={body} {...BODY_TOUCH}>
+          <View collapsable={false}>{children}</View>
+        </GestureDetector>
+        {r && (
+          // THE DATE BAR'S HANDLE: drag it to scrub; arrows (keyboard) and increment / decrement (screen reader) step it
+          <GestureDetector gesture={handle} {...OWN_TOUCH}>
+            <View testID="chart-handle" role="slider" tabIndex={0} aria-label={W.handle} aria-valuetext={r.line}
+                  accessibilityActions={[{ name: "increment", label: W.later }, { name: "decrement", label: W.earlier }]}
+                  onAccessibilityAction={(e) => { step(e.nativeEvent.actionName === "increment" ? 1 : -1); }}
+                  {...{ onKeyDown: (e: { nativeEvent: { key: string }; preventDefault?: () => void }) => {
+                    const k = e.nativeEvent.key;
+                    if (k !== "ArrowRight" && k !== "ArrowLeft") return;
+                    e.preventDefault?.();
+                    step(k === "ArrowRight" ? 1 : -1);
+                  } }}
+                  style={{ position: "absolute", left: r.x - HANDLE_HIT / 2, top: box.padTop - 6, width: HANDLE_HIT, height: HANDLE_HIT,
+                           alignItems: "center", justifyContent: "flex-start" }}>
+              <View style={{ width: HANDLE, height: HANDLE, borderRadius: HANDLE / 2, backgroundColor: palette.accent,
+                             borderWidth: 2, borderColor: palette.ink }} />
+            </View>
+          </GestureDetector>
+        )}
+      </View>
+      {view.zoomed && (
+        // THE AXIS STRIP: a drag along it moves the zoomed window (the body's one-finger drag scrolls the page instead)
+        <GestureDetector gesture={axis} {...OWN_TOUCH}>
+          <View testID="chart-axis" accessibilityLabel={W.axis} style={{ height: 30, alignItems: "center", justifyContent: "center",
+                                                                       borderTopWidth: 1, borderTopColor: palette.line }}>
+            <Text style={{ ...TYPE.micro, fontSize: 11, color: palette.faint }}>{W.axisHint}</Text>
+          </View>
+        </GestureDetector>
+      )}
     </View>
   );
 }
