@@ -9,6 +9,7 @@
   (OWNER-TODO 2026-11-20).
 
 ## IN FLIGHT (chat of 2026-11-21 afternoon; read this first after a /compact)
+- 15:18 STATE: staging release attempt 3 running (rel-staging3.log). Fixed so far: mini release re-cut for T686; water gate 2.65->2.85 MB (T985 #2 mouth place, +141 KB). T975 lane BUILT on lane/T975-old-format-readers (5f25e08e5, worktree agent-a084f071d6b6919e6); owner said SHIP IN 0.8.5. Merge only after staging smoke, and NOT while a release build runs in the main checkout (conflicts expected: build.py gates, mini release -> re-cut). After merge: 8 live-release tests need the packed LATEST.
 - 14:23 STATE: review fixes in (T979 report link all states, T983 legacy inbox); t990 merged + page-order tests; full check + fast-fail green; pushed. 0.8.5 bump + DRAFT changelog + T686 flip committed (5dcfffd). RUNNING: `pipeline release --staging --push` (log scratchpad rel-staging.log; build includes reach+bundle) and the T975 lane (worktree; merge only after staging smoke + review). Next: staging smoke -> emulator walk on staging data -> T975 merge -> owner prod commands. NOTE: T975 drops near/1 readers, so the 0.8.5 PROD WEBSITE must deploy only after the owner's prod data release.
 - 14:02 SCOPE LOCK (owner): 0.8.5 takes nothing new except bugs found during the release work; every new mention goes to the next release (new ticket, POSTPONED/next).
 - 14:01 STATE: ALL lanes merged into redesign/stream-sections (t984, t983, ui, picks, t988, t989, t981, mouth; mini release
