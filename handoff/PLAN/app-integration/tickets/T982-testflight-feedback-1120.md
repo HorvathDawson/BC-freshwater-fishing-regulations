@@ -14,6 +14,19 @@ Screenshots are in `T982-shots/`.
 5. 2026-11-20T05:21Z, shot `T982-shots/AESP9xaJHS_PAy0HlgFfj6M-1.png`. Verbatim: "I’m ESL what does this mean? Can you simplify the language to say that conditions weren’t recorded because gauge was absent? Especially that second sentence… what do you mean?"
 6. 2026-11-20T05:23Z, shot `T982-shots/ANJDU7QLExzIK8BT7ivyyPM-1.png`. Verbatim: "When I open the app, it doesn’t default to where I’m located?"
 
+## Owner 2026-11-21: proposals, not decisions
+Owner, verbatim: "We don't blindly take it". Every item is one tester's suggestion. The owner decides each one; build
+nothing until then. Look at each screenshot first. Main chat's first read, still to confirm with the owner:
+1. "% of this estimate": likely a real labelling problem. Reword or add a one-line explanation.
+2. Gauge % boxes → symbol or colour shades: mixed. The numbers are deliberate, and colour alone fails colourblind users
+   (T467). Owner pick with pictures; default: keep.
+3. "Much below normal" → "lower/higher": the five steps carry meaning (two steps would merge "a little" and "very").
+   Default: keep the steps, maybe use plainer words; owner pick.
+4. Photo buttons as icons: text is clearer and more accessible. Default: keep; owner pick.
+5. The gauge-absent sentence (ESL reader): agree. Rewrite it in short, plain words.
+6. The app doesn't open at my location: reproduce first (permission timing on first launch, or the last place
+   remembered on purpose), then decide.
+
 ## Work
 - Triage each item into a fix or a reply. Several are plain-language wording: the "% of this estimate" label, "much
   below normal" vs "lower than normal", and the gauge-absent sentence for an ESL reader.
