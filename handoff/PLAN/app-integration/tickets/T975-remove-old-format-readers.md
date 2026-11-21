@@ -33,3 +33,8 @@ Depends: T686 switch-on in production. Size: M. Owner: no.
 
 ## Owner 2026-11-21 12:44
 Joins the 0.8.5 batch ("Yes, add it"): app/worker readers + the switch, one lane after T686 is flipped and staging data passes smoke; data min app 0.8.4; data ships before the apps.
+
+## Owner 2026-11-21 (answer)
+Asked: 0.8.5 without the old readers cannot open offline on a phone still holding unpacked data. Hold to 0.8.6?
+Owner: "Everybody is on new versions already (at least 0.8.4) so ship in 0.8.5". Ships in 0.8.5. Strict order kept:
+production data (packed) first, then the 0.8.5 apps and the production website.
