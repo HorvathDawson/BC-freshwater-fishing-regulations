@@ -256,16 +256,16 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T976 | The photo viewer's counter ("2 of 3") can't be read over a light photo: white text, no backing (the buttons have a disc) | OPEN | | lane L6 2026-11-20, T836 iPhone simulator shots |
 | T977 | Push wake carry-over: two feed runs at once both read it (duplicate silent pushes, or a wake's circle overwritten); no small fix, a lease when worth it | OPEN | | lane LF 2026-11-20, T739 review |
 | T978 | Release build checks never fail on this machine's state (worktree links, stale export, marks, mini release), only on code | OPEN | | owner 2026-11-20, 0.8.4 build stops |
-| T979 | iPhone: the water page's Map tab could show a much bigger map (too much white space; Squamish) | OPEN | | owner in-app report 2026-11-20 (0.8.3) |
-| T980 | Three follow tests skipped to ship r-fec3fab4c5aa (two T286 page-read budgets, the unnamed trib-closed fixture): fix them | OPEN | | 2026-11-20 release |
+| T979 | iPhone: the water page's Map tab could show a much bigger map (too much white space; Squamish) | IN PROGRESS (merged to dev 2026-11-21; left (Claude): combined review + device walk + 0.8.5 release) | | owner in-app report 2026-11-20 (0.8.3) |
+| T980 | Three follow tests skipped to ship r-fec3fab4c5aa (two T286 page-read budgets, the unnamed trib-closed fixture): fix them | IN PROGRESS (merged to dev 2026-11-21; left (Claude): combined review + device walk + 0.8.5 release) | | 2026-11-20 release |
 | T981 | Municipal / park-bylaw no-fishing waters (Lost Lagoon, Beaver Lake in Stanley Park, others) shown closed with the bylaw cited | OPEN | | owner 2026-11-20 |
-| T982 | TestFlight tester feedback 2026-11-20 (6 items: % of estimate, normal wording, gauge-absent sentence, photo icons, gauge boxes, open at my location) | OPEN | | TestFlight feedback, read 2026-11-21 |
-| T983 | After updating to 0.8.4, 7 expired in-season notices show as New (Nov 19): notice ids stable across releases; ended notices not current | OPEN | | owner 2026-11-21 (Android 0.8.4) |
-| T984 | ASAP: the guided walkthrough only walks through (no state changes, instant highlights, can't be broken by zooming) | OPEN | | owner 2026-11-21 |
-| T985 | In-app reports 2026-11-21 (4 items: chart flicker on model change, Chilliwack downstream label, map uncoloured after Conditions, drag the chart date bar) | OPEN | | prod /reports, read 2026-11-21 |
-| T986 | Trout / Salmon switch: which one is on is hard to tell (bar sits between the two) | OPEN | | tester via owner 2026-11-21 |
+| T982 | TestFlight tester feedback 2026-11-20 (6 items: % of estimate, normal wording, gauge-absent sentence, photo icons, gauge boxes, open at my location) | IN PROGRESS (merged to dev 2026-11-21; left (Claude): combined review + device walk + 0.8.5 release) | | TestFlight feedback, read 2026-11-21 |
+| T983 | After updating to 0.8.4, 7 expired in-season notices show as New (Nov 19): notice ids stable across releases; ended notices not current | IN PROGRESS (merged to dev 2026-11-21; left (Claude): combined review + device walk + 0.8.5 release) | | owner 2026-11-21 (Android 0.8.4) |
+| T984 | ASAP: the guided walkthrough only walks through (no state changes, instant highlights, can't be broken by zooming) | IN PROGRESS (merged to dev 2026-11-21; left (Claude): combined review + device walk + 0.8.5 release) | | owner 2026-11-21 |
+| T985 | In-app reports 2026-11-21 (4 items: chart flicker on model change, Chilliwack downstream label, map uncoloured after Conditions, drag the chart date bar) | IN PROGRESS (merged to dev 2026-11-21; left (Claude): combined review + device walk + 0.8.5 release) | | prod /reports, read 2026-11-21 |
+| T986 | Trout / Salmon switch: which one is on is hard to tell (bar sits between the two) | IN PROGRESS (merged to dev 2026-11-21; left (Claude): combined review + device walk + 0.8.5 release) | | tester via owner 2026-11-21 |
 | T987 | Repo README and docs up to date; clean-up pass (dead scripts, stale files, merged branches) | POSTPONED (owner 2026-11-21: next release, not 0.8.5) | | owner 2026-11-21 |
-| T988 | The Sources menu's Done button doesn't close the menu; audit every menu/sheet's closing buttons | OPEN | | owner 2026-11-21 |
+| T988 | The Sources menu's Done button doesn't close the menu; audit every menu/sheet's closing buttons | IN PROGRESS (merged to dev 2026-11-21; left (Claude): combined review + device walk + 0.8.5 release) | | owner 2026-11-21 |
 | T989 | Opened from a Google result, back (top right) goes to the default map instead of the water | OPEN | | owner 2026-11-21 |
 
 ## Next after closed testing
