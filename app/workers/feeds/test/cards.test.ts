@@ -67,7 +67,7 @@ describe("the card's letters and colours are the app's", () => {
     for (const v of [0, 0.123, 4.567, 22.24, 99.95, 100.4, 1060.4, -3.2]) expect(figure(v)).toBe(coreFigure(v));
     const st = cardModel("08MH001", "X", station(), NOW).standing;
     expect(st).toBe(standingLong(0.05, standing(0.05)));
-    expect(st).toBe("Much below normal · lower than almost every day on record for the date");
+    expect(st).toBe("Far lower than normal · lower than almost every day on record for the date");
     expect(cardModel("08MH001", "X", station({ now: { discharge: 22.2, level: null, at: iso(NOW - H), percentile: 0.2, parameter: "discharge" } }), NOW).standing)
       .toBe(standingLong(0.2, standing(0.2)));
     expect(standingLong(0.2, standing(0.2))).toMatch(/ · lower than 8 days in 10 for the date$/);

@@ -296,6 +296,12 @@ step "format pairs (Python writer = app / worker reader)" "$PY" scripts/check-fo
 step "every curated cut label names a place" "$PY" -m pytest -q -p no:cacheprovider \
   pipeline/tests/test_splits.py::test_every_curated_label_names_a_place
 
+# caught (2026-11-21, 0.8.5): core reworded the band words (T982 #3); `pnpm check` passed, but the feeds worker's card test
+# pinned the old words and only GitHub's app-ci ran it (red on 4eece8ec, stopping the staging release). The worker
+# imports core, so its suite runs here too (~15 s)
+feeds_worker_tests() { (cd app/workers/feeds && npx vitest run --root . >/dev/null 2>&1) || (cd app/workers/feeds && npx vitest run --root . 2>&1 | tail -30; exit 1); }
+step "feeds worker tests (it imports core)" feeds_worker_tests
+
 # caught (T556, 2026-11-11): the live feeds' formats were hand-copied per side (the 2026-11-09 failure above), and no
 # test held the worker's DFO parser / fingerprint / row typing to the Python's since T431. The formats are generated
 # from one table, and the Python's reading of the saved DFO pages is a committed vector file the worker's test must
