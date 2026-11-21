@@ -562,7 +562,7 @@ export function donorDetailLine(reads: string, lastReport: string | null, facts:
 }
 
 export function donorWeightLine(r: DonorFacts): string {
-  return donorCounted(r) ? `${donorShare(r)} of this estimate` : "not counted today";
+  return donorCounted(r) ? `counts for ${donorShare(r)} of the estimate` : "not counted today";
 }
 
 /**
@@ -909,8 +909,7 @@ export function stageLine(level: number): string {
 
 /** The refusal where no gauge may speak for the water. */
 export function noGaugeSentence(): string {
-  return "No gauge is entitled to speak for this water. A station draining a far larger "
-    + "watershed would have given a number, and the number would have been wrong.";
+  return "There is no gauge on this water, so no conditions were recorded. The nearest gauges are on much bigger rivers, so their numbers would be wrong here.";
 }
 
 /* ------------------------------------------------------------------ the chart ---- */

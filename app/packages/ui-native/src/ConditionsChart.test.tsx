@@ -110,19 +110,19 @@ describe("the gauge switch sits by the plot", () => {
     expect(screen.getByTestId("gauge-pick").getAttribute("aria-expanded")).toBe("true");
     expect(list.getAttribute("role")).toBe("radiogroup");
     expect(precedes(screen.getByTestId("gauge-title"), list)).toBe(true);
-    expect(screen.getByRole("radio", { name: "Showing LEAD, Lead Creek near Town, 80% of this estimate" })).toBeTruthy();
+    expect(screen.getByRole("radio", { name: "Showing LEAD, Lead Creek near Town, counts for 80% of the estimate" })).toBeTruthy();
     expect(screen.getByRole("radio", { name: "Chart QUIET, Quiet River, not reporting" })).toBeTruthy();
   });
 
   it("charts the gauge picked there, and marks it", async () => {
     await draw();
     openList();
-    fireEvent.click(screen.getByRole("radio", { name: "Chart DAM, Dam Creek below the Dam, 20% of this estimate" }));
+    fireEvent.click(screen.getByRole("radio", { name: "Chart DAM, Dam Creek below the Dam, counts for 20% of the estimate" }));
     await waitFor(() => expect(title()).toBe("Dam Creek below the Dam"));
     // a pick closes the list; opened again, the picked gauge is the one marked
     expect(screen.queryByTestId("gauge-list")).toBeNull();
     openList();
-    expect(screen.getByRole("radio", { name: "Showing DAM, Dam Creek below the Dam, 20% of this estimate" })
+    expect(screen.getByRole("radio", { name: "Showing DAM, Dam Creek below the Dam, counts for 20% of the estimate" })
       .getAttribute("aria-checked")).toBe("true");
   });
 

@@ -149,13 +149,13 @@ const SAYS: Readonly<Record<"estimate" | "none", readonly string[]>> = {
     "3 gauges behind this estimate",                      // (T920) the gauge legend's fold, opened by `draw`
     "LEAD",
     "Lead Creek near Town",
-    "80% of this estimate",
+    "counts for 80% of the estimate",
     // (T920 round 3) the legend row's second line: what it reads and its facts, one line
     "Reads below normal · lower than 9 days in 10 · upstream · drains 60 km² · same size · on this reach",
     "Counts this much because it drains almost exactly the same country.",
     "DAM",
     "Dam Creek below the Dam",
-    "20% of this estimate",
+    "counts for 20% of the estimate",
     "Reads above normal · higher than 8 days in 10 · downstream · drains 55 km² · same size · dam-controlled · on this reach",
     "Counts this much because it drains almost exactly the same country; it sits downstream, so it carries extra water; it has only 6 years of record, so it counts 30%.",
     "This water is controlled by a dam. The reading is real, but it follows a release schedule as much as the weather — a low river here can mean the gate is shut rather than that the country is dry.",
@@ -179,7 +179,7 @@ const SAYS: Readonly<Record<"estimate" | "none", readonly string[]>> = {
   none: [
     "NO ESTIMATE",
     "No gauge on this water is close enough in size to speak for it.",
-    "No gauge is entitled to speak for this water. A station draining a far larger watershed would have given a number, and the number would have been wrong.",
+    "There is no gauge on this water, so no conditions were recorded. The nearest gauges are on much bigger rivers, so their numbers would be wrong here.",
     "SOURCES",
     "Hydrometric data: Environment and Climate Change Canada",
     "Forecast data provided by the BC River Forecast Centre",

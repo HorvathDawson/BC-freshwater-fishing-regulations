@@ -105,7 +105,7 @@ describe("the chart's gauge switcher", () => {
     expect(gaugeChoices(rows, "STALE" as StationId, { ref: DAY.getTime(), horizon: 0 })
       .map((g) => [g.station, g.share, g.on, g.quiet, g.row, g.label]))
       .toEqual([
-        ["LEAD", "100%", false, false, 0, "Chart LEAD, 100% of this estimate"],
+        ["LEAD", "100%", false, false, 0, "Chart LEAD, counts for 100% of the estimate"],
         ["STALE", "not reporting", true, true, 1, "Showing STALE, not reporting"],
         ["RANKLESS", "reporting, not ranked", false, true, 2, "Chart RANKLESS, reporting, not ranked"],
         ["GONE", "not reporting", false, true, 3, "Chart GONE, not reporting"],

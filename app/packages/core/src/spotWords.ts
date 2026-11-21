@@ -87,8 +87,7 @@ export const SPOT_CONFIRM_WORDS = {
 /** What a saved spot recorded: the water's block and the weather's, and what each says when nothing was recorded. */
 export const SPOT_RECORD_WORDS = {
   water: "What the water was doing",
-  noReading: "No gauge is entitled to speak for this water, so no reading was recorded. A station draining a far "
-    + "larger watershed would have given a number, and the number would have been wrong.",
+  noReading: "There is no gauge on this water, so no conditions were recorded. The nearest gauges are on much bigger rivers, so their numbers would be wrong here.",
   /** the reading's standing, said plainly: "42nd percentile for the time of year" */
   standing: (percentile: number) => standingLong(percentile),
   weather: "Weather",

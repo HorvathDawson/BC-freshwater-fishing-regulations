@@ -137,7 +137,7 @@ describe("one donor state: core's donorState decides, every label switches over 
                same: line.toLowerCase().includes(word) && map.toLowerCase().includes(word) };
     });
     expect(got).toEqual([
-      { kind: "reads", line: "62% of this estimate", map: "62%", key: "08MH024 · 62%", silent: false,
+      { kind: "reads", line: "counts for 62% of the estimate", map: "62%", key: "08MH024 · 62%", silent: false,
         label: "08MH024, upstream, 2.4× apart, 62 per cent of the answer", same: true },
       { kind: "not-realtime", line: "Not a real-time gauge.", map: "not a real-time gauge",
         key: "08MH024 · not a real-time gauge", silent: true,
