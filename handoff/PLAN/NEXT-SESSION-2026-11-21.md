@@ -9,6 +9,7 @@
   (OWNER-TODO 2026-11-20).
 
 ## Do next, in this order
+0. **T984 (ASAP, owner):** the walkthrough must only walk through and change no state. Do it with T983.
 0. **T983 (urgent):** after updating to 0.8.4, 7 expired in-season notices showed as New. Measure the cause first.
 1. **Check the stores:**
    - TestFlight external review: `node deploy/staging/testflight-distribute.mjs --version 0.8.4 --build <the iPhone build in STATUS>` prints the
