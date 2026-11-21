@@ -54,6 +54,7 @@ REPO = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO))
 from pipeline.deliver.store.release import province_store  # noqa: E402
 from pipeline.deliver.answers import encode as E           # noqa: E402
+from pipeline.deliver.answers.display.builders import closers_of  # noqa: E402
 from pipeline.deliver.calendar import day_of, reading_day_of  # noqa: E402
 from pipeline.common.calendar_spec import weekday_of        # noqa: E402
 
@@ -687,6 +688,30 @@ def main():
         alt = next(((h, nm) for h, nm in streams if base_only(h) and (h, nm) not in pick[0]), None)
         if alt is not None:
             pick[0] = pick[0][:-1] + [alt]
+
+    def trib_closed(h: int) -> bool:
+        """(T980) Closed all year by its tributary rules (WaterScreen.unnamed.test.tsx `tribClosedUnnamed`): every
+        segment's display is closed, and every rule that closes it (`closers_of`, the banner's chain) is one of the
+        section's tributary rules."""
+        k = s.akey_of(h)
+        (rs,) = s.con.execute("SELECT ruleset FROM akey WHERE akey = ?", (k,)).fetchone()
+        row = s.con.execute("SELECT j FROM ruleset WHERE set_id = ?", (rs,)).fetchone()
+        trib = set((s.val("ruleset", row[0]).get("trib") or []) if row is not None else [])
+        frames = [s.val("display_frame", s.con.execute("SELECT j FROM display_frame WHERE id = ?", (d,)).fetchone()[0])
+                  for (d,) in s.con.execute("SELECT display FROM cell WHERE akey = ? ORDER BY s", (k,))]
+        return bool(trib) and bool(frames) and all(
+            f.get("status") == "closed" and set(closers_of(f.get("closing") or [])) <= trib for f in frames)
+    # (T980, r-fec3fab4c5aa) the even sample can hold no unnamed stream that a tributary rule closes all year, which
+    # WaterScreen.unnamed.test.tsx taps (r-6258ffded676's sample held 844024; this one's 844054 is open part of the
+    # year): then the first such stream of the pool takes the last stream slot that is not on its region's base alone
+    # (that one the edge_unnamed fixture needs). None in the pool is an error, never a sample without one.
+    if pick[0] and not any(trib_closed(h) for h, _ in pick[0]):
+        alt = next(((h, nm) for h, nm in streams if trib_closed(h) and (h, nm) not in pick[0]), None)
+        if alt is None:
+            raise SystemExit("taps: the unnamed pool holds no stream a tributary rule closes all year "
+                             "(WaterScreen.unnamed.test.tsx needs one)")
+        slot = max(i for i, (h, _) in enumerate(pick[0]) if not base_only(h))
+        pick[0] = pick[0][:slot] + [alt] + pick[0][slot + 1:]
     for h, name in sorted(pick[0] + pick[1]):
         out["unnamed"].append({"handle": h, "akey": s.akey_of(h), "place": s.place_of(h), "name": name})
     Path(a.out).write_text(json.dumps(out, indent=1))

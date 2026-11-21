@@ -12,6 +12,13 @@
  * read. A first read on a device (no history yet) starts quiet: what is matched to a water is read; what is not on the map
  * yet is unread unless the old notice already showed it (`inSeasonSeen`, T230) — as the notice always opened for it.
  *
+ * NEWS IS A NOTICE THAT BEGAN, NOT ONE THE APP STARTED COUNTING (T983, 2026-11-21: 0.8.4 stopped inferring an end from a
+ * printed window (T548), and seven summer closures this device had met as ended since September came back as "New · Nov
+ * 19"). The history keeps `known`: every feed row this device has met begun (in effect, or ended). A row that enters the
+ * history and is `known` (the in-force rule, a curated date or the history's retention moved, not the notice) enters as a
+ * first read does: quiet when matched. A history written before `known` (0.8.4 and earlier) reads the feed's own word
+ * once: a row the feed does not call "new" or "changed" was on the page before, so it is known.
+ *
  * ENDS: when it leaves the page (the feed's `removed`), its `to` passes, or it is no longer in effect. KEPT: until
  * `INBOX_KEEP_DAYS_AFTER_END` days after it ended, and at most `INBOX_MAX_ITEMS` notices (the newest).
  *
@@ -53,7 +60,13 @@ export interface InboxItem {
   readonly ended: string | null;
 }
 
-export interface InboxState { readonly format: typeof INBOX_FORMAT; readonly items: readonly InboxItem[] }
+export interface InboxState {
+  readonly format: typeof INBOX_FORMAT;
+  readonly items: readonly InboxItem[];
+  /** (T983) the feed rows (ids, sorted) this device has met begun — in effect or ended — while they are on the page.
+   *  Absent: a history an app before 0.8.5 wrote (`inboxMerge` reads the feed's statuses once in its place). */
+  readonly known?: readonly string[];
+}
 
 const isDay = isIsoDay;
 const isStr = (x: unknown): x is string => typeof x === "string";
@@ -79,7 +92,9 @@ export function parseInbox(text: string | null): InboxState | null {
     throw new Error(`in-season inbox: ${(j as { format?: unknown } | null)?.format ?? "no format"}, but this app reads ${INBOX_FORMAT}`);
   const bad = j.items.findIndex((i) => !isItem(i));
   if (bad >= 0) throw new Error(`in-season inbox: item ${bad} cannot be read`);
-  return { format: INBOX_FORMAT, items: j.items };
+  if (j.known === undefined) return { format: INBOX_FORMAT, items: j.items };
+  if (!Array.isArray(j.known) || !j.known.every(isStr)) throw new Error("in-season inbox: its known notices cannot be read");
+  return { format: INBOX_FORMAT, items: j.items, known: j.known };
 }
 
 export const inboxText = (s: InboxState): string => JSON.stringify(s);
@@ -95,13 +110,19 @@ const newestFirst = (a: InboxItem, b: InboxItem) => (a.at === b.at ? (a.id < b.i
 /**
  * (T700, T694) THE HISTORY AFTER A FEED READ: `live` is today's join (`joinInSeason`, with this release's absent waters),
  * `feed` the feed it came from (statuses, links, firstSeen / changedAt, removed). `seen`: the ids T230's notice showed.
+ * (T983) `live.ended`: the rows on the page whose end has passed — met, so never news if they come back into force.
  */
 export function inboxMerge(state: InboxState | null, feed: InSeasonFeed,
-                           live: { readonly matched: readonly InSeasonChange[]; readonly unmatched: readonly InSeasonChange[] },
+                           live: { readonly matched: readonly InSeasonChange[]; readonly unmatched: readonly InSeasonChange[];
+                                   readonly ended: readonly string[] },
                            today: string, seen: ReadonlySet<string> = new Set()): InboxState {
   const first = state === null;
+  // (T983) met begun before this read: the history's own list, or — for a history written before it — the feed's word
+  // that the row was on the page before ("unchanged": neither "new" nor "changed")
+  const knew = state?.known ? new Set(state.known) : null;
   const was = new Map((state?.items ?? []).map((i) => [i.id, i] as const));
   const rows = new Map(feed.rows.map((r) => [r.id, r] as const));
+  const known = (id: string) => (knew ? knew.has(id) : state !== null && rows.get(id)?.status === "unchanged");
   const removedAt = new Map(feed.removed.map((r) => [r.id, dayOf((r as { removedAt?: string }).removedAt)] as const));
   const current = [...live.matched, ...live.unmatched];
   const liveIds = new Set(current.map((c) => c.id));
@@ -124,7 +145,8 @@ export function inboxMerge(state: InboxState | null, feed: InSeasonFeed,
         : { ...e, ...now });
       continue;
     }
-    const quiet = first && (waters !== null || seen.has(c.id));
+    // a first read, or (T983) a notice met begun before that enters again (not an amendment the feed links): quiet
+    const quiet = (first || (!linked && known(c.id))) && (waters !== null || seen.has(c.id));
     out.set(c.id, { ...now, arrived: linked ? "updated" : "new",
                     at: dayOf(linked ? r?.changedAt : r?.firstSeen) ?? today,
                     read: quiet, prompted: quiet || seen.has(c.id) });
@@ -141,7 +163,10 @@ export function inboxMerge(state: InboxState | null, feed: InSeasonFeed,
   const items = [...out.values()]
     .filter((i) => !i.ended || addDays(i.ended, INBOX_KEEP_DAYS_AFTER_END) >= today)
     .sort(newestFirst).slice(0, INBOX_MAX_ITEMS);
-  return { format: INBOX_FORMAT, items };
+  // (T983) what this device has met begun, while it is on the page (a row gone from it is forgotten)
+  const gone = new Set(feed.removed.map((r) => r.id));
+  const met = [...new Set([...(state?.known ?? []), ...liveIds, ...live.ended])].filter((id) => rows.has(id) && !gone.has(id)).sort();
+  return { format: INBOX_FORMAT, items, known: met };
 }
 
 /** these ids read (a row opened, a mark seen on its page) */
@@ -177,6 +202,8 @@ export const INBOX_WORDS = {
   markAll: "Mark all as read",
   ended: "Ended",
   posted: "Posted",
+  /** (T983) a notice that prints no date of its own: when it was first seen */
+  firstSeen: (day: string) => `first seen ${day}`,
   notOnMap: "Not on the map yet",
   empty: "No notifications",
   emptySub: "In-season changes posted by BC Fish and Wildlife appear here.",
@@ -201,6 +228,15 @@ function dayWords(day: string, today: string): string {
   const [y, m, d] = day.split("-").map(Number);
   return `${MONTHS[m! - 1]} ${d}${day.slice(0, 4) === today.slice(0, 4) ? "" : `, ${y}`}`;
 }
+/**
+ * (T983, owner 2026-11-21) A row's date: an ended notice, the day it ended; else THE NOTICE'S OWN DATE (the Province's
+ * effective date, `from`); a notice that prints none, the day it was first seen, said as that ("first seen Nov 19") —
+ * never the feeds worker's first-seen day passed off as the notice's.
+ */
+function rowDate(i: InboxItem, today: string): string {
+  if (i.ended) return dayWords(i.ended, today);
+  return i.from ? dayWords(i.from, today) : INBOX_WORDS.firstSeen(dayWords(i.at, today));
+}
 /** a read new notice is "Posted": "New" is only ever an unread one */
 const tagOf = (i: InboxItem) => (i.ended ? INBOX_WORDS.ended : i.arrived === "new" && i.read ? INBOX_WORDS.posted : INSEASON_WORDS.marks[i.arrived]);
 
@@ -209,7 +245,8 @@ export interface InboxRowVM {
   readonly unread: boolean;
   /** "New" (unread), "Posted" (read), "Updated", "Ended" */
   readonly tag: string;
-  /** "Nov 12" (another year: "Nov 12, 2025") */
+  /** the notice's own date "Jul 30" (another year: "Jul 30, 2025"); ended: the day it ended; none printed: "first seen
+   *  Nov 19" (`rowDate`) */
   readonly date: string;
   readonly water: string;
   /** "Region 4" */
@@ -229,7 +266,7 @@ export interface InboxVM {
 
 export function inboxVM(s: InboxState | null, today: string): InboxVM {
   const rows = (s?.items ?? []).map((i): InboxRowVM => {
-    const tag = tagOf(i), date = dayWords(i.ended ?? i.at, today), region = regionWords(i.region);
+    const tag = tagOf(i), date = rowDate(i, today), region = regionWords(i.region);
     const note = i.waters === null && !i.ended ? INBOX_WORDS.notOnMap : null;
     return { id: i.id, unread: !i.read, tag, date, water: i.water, region, text: i.text, note,
              label: `${i.read ? "" : "Unread. "}${tag}: ${i.water}, ${region}, ${date}${note ? `. ${note}` : ""}. ${i.text}` };

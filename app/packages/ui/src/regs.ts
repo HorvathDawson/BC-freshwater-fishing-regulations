@@ -24,8 +24,8 @@ import { downstreamWater, openProbe, type ItemId, type WaterSource, type Section
 import type { ReleaseLoader } from "@app/data/release";
 /** a bundle region, as the loader names it */
 type Region = Awaited<ReturnType<ReleaseLoader["regionsOf"]>>[number];
-import { itemsOfSections, loadRegsInputs, openRegsStore, RegsStoreError, siblingItems, targetFor, type RegsExpect, type RegsLoader,
-         type RegsStore } from "@app/data/regs";
+import { itemsOfSections, loadRegsInputs, openRegsStore, RegsStoreError, siblingItems, targetFor, warmRegsStore, type RegsExpect,
+         type RegsLoader, type RegsStore } from "@app/data/regs";
 import { useAsync, type Async } from "./async";
 import { askOnce, peekAnswer } from "./answers";
 
@@ -70,14 +70,14 @@ export function loadRegsStore(loader: RegsLoader, expect: RegsExpect = {}): Prom
 
 /**
  * (T286) THE FIRST TAP AS FAST AS THE NEXT: what any tap's page needs, done before the reader taps — the store opened and
- * paired, its statics, rules and licensing read (all of them, once), regs-sid / core / geo opened, and (`files`, a
+ * paired, what every page reads whole once (data `warmRegsStore`: statics, rules, licensing, section notes, carried
+ * units; regs-sid / core open), geo opened, and (`files`, a
  * phone, where every file is already on the device) every region file opened too. Before this the first tap of a
  * session paid for all of it (~0.5 s on the emulator, the spinner's threshold). A failure is dropped: the tap asks again.
  */
 export async function prewarmRegs(loader: RegsLoader, { files = false }: { files?: boolean } = {}): Promise<void> {
   const st = await loadRegsStore(loader);
-  await Promise.all([st.statics(), st.rules(), st.lics(), st.sid(), st.core(),
-                    loader.manifest.files.geo ? loader.db("geo").catch(() => null) : null]);
+  await Promise.all([warmRegsStore(st), loader.manifest.files.geo ? loader.db("geo").catch(() => null) : null]);
   if (!files) return;
   for (const name of Object.keys(loader.manifest.files))
     if (/^regs-(?!sid$)/.test(name)) await loader.db(name as never).catch(() => null);

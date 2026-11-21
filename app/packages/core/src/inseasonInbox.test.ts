@@ -105,6 +105,7 @@ describe("in-season inbox (T700)", () => {
     expect(() => parseInbox(JSON.stringify({ format: "inseason-inbox/9", items: [] })))
       .toThrow("in-season inbox: inseason-inbox/9, but this app reads inseason-inbox/1");
     expect(() => parseInbox(JSON.stringify({ format: "inseason-inbox/1", items: [{ id: 1 }] }))).toThrow("in-season inbox: item 0 cannot be read");
+    expect(() => parseInbox(JSON.stringify({ format: "inseason-inbox/1", items: [], known: [3] }))).toThrow("in-season inbox: its known notices cannot be read");
   });
 
   it("where a row goes: its one water's page; several waters, none, or ended: its text", () => {
@@ -118,15 +119,81 @@ describe("in-season inbox (T700)", () => {
 
   it("the list: New (unread) ahead of Earlier (read), newest first, each row's words whole", () => {
     const s0 = read(null, feed([row({ id: "is-old", water: "Slocan River", firstSeen: "2025-09-02T00:00:00Z" })]), links({ "is-old": ["gnis:9"] }), "2026-11-12");
-    const s = read(s0, feed([row({ id: "is-old", water: "Slocan River", firstSeen: "2025-09-02T00:00:00Z" }), { ...A, firstSeen: "2026-11-12T00:00:00Z" },
+    // (T983, owner 2026-11-21) the date is the notice's own (Kaslo: effective Nov 1, first seen Nov 12); one that prints
+    // none says when it was first seen, as that
+    const s = read(s0, feed([row({ id: "is-old", water: "Slocan River", firstSeen: "2025-09-02T00:00:00Z" }),
+                             { ...A, from: "2026-11-01", firstSeen: "2026-11-12T00:00:00Z" },
                              { ...B, firstSeen: "2026-11-13T00:00:00Z" }]), links({ "is-old": ["gnis:9"], "is-a": ["gnis:1"] }), "2026-11-13");
     const vm = inboxVM(s, "2026-11-13");
     expect(vm.groups.map((g) => [g.title, g.rows.map((r) => r.id)])).toEqual([["New", ["is-b", "is-a"]], ["Earlier", ["is-old"]]]);
     expect(vm.groups[0]!.rows.map((r) => r.label)).toEqual([
-      "Unread. New: Okanagan River, Region 8, Nov 13. Not on the map yet. Closed to all fishing",
-      "Unread. New: Kaslo River, Region 4, Nov 12. No fishing"]);
-    expect(vm.groups[1]!.rows[0]!.label).toBe("Posted: Slocan River, Region 4, Sep 2, 2025. No fishing");
+      "Unread. New: Okanagan River, Region 8, first seen Nov 13. Not on the map yet. Closed to all fishing",
+      "Unread. New: Kaslo River, Region 4, Nov 1. No fishing"]);
+    expect(vm.groups[0]!.rows.map((r) => r.date)).toEqual(["first seen Nov 13", "Nov 1"]);
+    expect(vm.groups[1]!.rows[0]!.label).toBe("Posted: Slocan River, Region 4, first seen Sep 2, 2025. No fishing");
     expect([vm.unread, vm.empty]).toEqual([2, false]);
     expect(inboxVM(null, "2026-11-13")).toEqual({ groups: [], unread: 0, empty: true });
+  });
+});
+
+describe("(T983) a notice this device met begun is never news again", () => {
+  // the production feed's row (2026-11-21): 0.8.3 ended it on Sept 15 from its printed window; 0.8.4 (T548) stopped
+  // inferring that end, so it came back into force and showed as "New · Nov 19" (the feeds worker's firstSeen)
+  const OK = row({ id: "is-2fa458fef3c3", region: "8", water: "Okanagan River", effective: "July 30, 2026", from: "2026-07-30",
+                   change: "No fishing July 30 to September 15.", firstSeen: "2026-11-19T05:14:57.566Z", changedAt: "2026-11-19T05:14:57.566Z" });
+  const A = row({ id: "is-a", water: "Kaslo River" });
+  const L = links({ "is-a": ["gnis:1"], "is-2fa458fef3c3": ["gnis:2"] });
+  /** the links with a curated end on the Okanagan row: the in-force rule ends it on Sept 15, as 0.8.3's did */
+  const ended: InSeasonLinks = { ...L, notices: { ...L.notices, "is-2fa458fef3c3": { ...L.notices["is-2fa458fef3c3"]!, to: "2026-09-15" } } };
+
+  it("ended by the in-force rule, then in force again when the rule moved: it enters read, no bell, no mark", () => {
+    expect(joinInSeason(feed([A, OK]), ended, "2026-11-20").ended).toEqual(["is-2fa458fef3c3"]);
+    const s0 = read(null, feed([A, OK]), ended, "2026-09-20");
+    const s1 = read(s0, feed([A, OK]), ended, "2026-11-20");
+    expect([s1.items.map((i) => i.id), s1.known]).toEqual([["is-a"], ["is-2fa458fef3c3", "is-a"]]);
+    // the history survives the update (the saved text) and the next release reads the rule without the end
+    const s2 = read(parseInbox(inboxText(s1)), feed([A, OK]), L, "2026-11-21");
+    const ok = s2.items.find((i) => i.id === "is-2fa458fef3c3")!;
+    expect([ok.read, ok.ended, inboxUnread(s2), inboxMark(s2, ok.id), inboxWantsOpen(s2)]).toEqual([true, null, 0, null, false]);
+    expect(inboxVM(s2, "2026-11-21").groups.map((g) => [g.title, g.rows.map((r) => r.tag)])).toEqual([["Earlier", ["Posted", "Posted"]]]);
+    // the notice's own date (the Province's "July 30, 2026"), not the worker's Nov 19
+    expect(inboxVM(s2, "2026-11-21").groups[0]!.rows[0]!.label)
+      .toBe("Posted: Okanagan River, Region 8, Jul 30. No fishing July 30 to September 15.");
+  });
+
+  it("dropped from the history after its 30 days, then in force again: still not news", () => {
+    const s0 = read(null, feed([A, OK]), L, "2026-08-01");
+    const s1 = read(read(s0, feed([A, OK]), ended, "2026-09-16"), feed([A, OK]), ended, "2026-10-20");
+    expect(s1.items.map((i) => i.id)).toEqual(["is-a"]);
+    const s2 = read(s1, feed([A, OK]), L, "2026-11-21");
+    expect(inboxUnread(s2)).toBe(0);
+  });
+
+  it("a notice met BEFORE it began is news the day it begins (known is begun only)", () => {
+    const H = row({ id: "is-h", water: "Heber Creek", effective: "November 25, 2026", from: "2026-11-25", firstSeen: "2026-11-19T00:00:00Z" });
+    const LH = links({ "is-a": ["gnis:1"], "is-h": ["gnis:3"] });
+    const s0 = read(null, feed([A, H]), LH, "2026-11-21");
+    expect([s0.items.map((i) => i.id), s0.known]).toEqual([["is-a"], ["is-a"]]);
+    const s1 = read(s0, feed([A, H]), LH, "2026-11-25");
+    expect([inboxUnread(s1), inboxMark(s1, "is-h")]).toEqual([1, "new"]);
+  });
+
+  it("a history an older app wrote (no known: 0.8.4 and before) reads the feed's word once: unchanged rows are not news", () => {
+    // what 0.8.3 left on a phone: Kaslo read; the Okanagan row ended before it ever entered
+    const old = JSON.stringify({ format: "inseason-inbox/1", items: [{ id: "is-a", region: "4", water: "Kaslo River",
+      text: "No fishing", effective: "Nov 1, 2026", from: null, to: null, url: SRC, arrived: "new", at: "2026-11-01",
+      waters: ["gnis:1"], read: true, prompted: true, ended: null }] });
+    const N = row({ id: "is-n", water: "Duncan River", status: "new", firstSeen: "2026-11-21T08:00:00Z" });
+    const s = read(parseInbox(old), feed([A, OK, N]), links({ "is-a": ["gnis:1"], "is-2fa458fef3c3": ["gnis:2"], "is-n": ["gnis:4"] }), "2026-11-21");
+    expect(s.items.map((i) => [i.id, i.read])).toEqual([["is-n", false], ["is-2fa458fef3c3", true], ["is-a", true]]);
+    expect([inboxUnread(s), s.known]).toEqual([1, ["is-2fa458fef3c3", "is-a", "is-n"]]);
+  });
+
+  it("an amendment the feed links is news even for a known id; a row gone from the page is forgotten", () => {
+    const s0 = read(null, feed([A, OK]), L, "2026-11-01");
+    const Ad = row({ id: "is-a", effective: "Nov 5, 2026", status: "changed", previous: { change: "No fishing", effective: "Nov 1, 2026" },
+                     changedAt: "2026-11-12T09:00:00Z" });
+    expect(inboxMark(read(s0, feed([Ad, OK]), L, "2026-11-12"), "is-a")).toBe("updated");
+    expect(read(s0, feed([OK], [{ id: "is-a", removedAt: "2026-11-12T09:00:00Z" }]), L, "2026-11-12").known).toEqual(["is-2fa458fef3c3"]);
   });
 });

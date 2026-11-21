@@ -10,7 +10,7 @@ import { describe, expect, it } from "vitest";
 import { tapDay } from "@app/core";
 import type { Db } from "@app/data";
 import { makeReleaseSource } from "@app/data/release";
-import { itemsOfSections, loadRawWaterGroup, loadRegsInputs, openRegsStore, targetFor } from "@app/data/regs";
+import { itemsOfSections, loadRawWaterGroup, loadRegsInputs, openRegsStore, targetFor, warmRegsStore } from "@app/data/regs";
 import { liveRelease, openReleaseDir } from "../fixtureRelease";
 
 const LIVE = liveRelease();
@@ -19,6 +19,10 @@ const LIVE = liveRelease();
 // which took Cultus Lake's page to 31 against 30. The budgets stand: two reads held behind an `await` were a second
 // batch of the same family (ladder_verdict, rows_decided; reads.ts, pinned in reads.test.ts), and asking them together
 // gives those calls back — measured on the 0.8.0 candidate: page 26 / 30 / 29, whole tap 40 / 41 / 43.
+// (T980, r-fec3fab4c5aa) T973's carried units took Norrish to 31 and Cultus to 34: `cw-through` was opened and read
+// whole (5 calls, once a store) by the first tap, as the prewarm did not ask it. The page's whole-once reads are now
+// one list the prewarm asks and this count follows (`warmRegsStore`, + the section notes): page 24 / 28 / 27, whole
+// tap 38 / 39 / 41 on r-fec3fab4c5aa and r-6258ffded676 alike.
 const CASES = [
   { id: "small stream (Norrish Creek)", item: "gnis:23402", page: 30, all: 50 },
   { id: "the Fraser (17 parts)", item: "gnis:39325", page: 40, all: 60 },
@@ -42,7 +46,8 @@ describe.skipIf(!LIVE)(`T286 a tap's SQLite calls on the live release (${LIVE ??
     const ord = (await store.itemOrd(c.item))!;
     const sid = (await store.navRows(ord)).sections[0]!.sid;
     const st = await openRegsStore(loader);
-    await Promise.all([st.statics(), st.rules(), st.lics(), st.sid(), st.core(), st.water()]);
+    // (T980) the phone's prewarm, the same list (`warmRegsStore`), then the tap's own water and region files
+    await Promise.all([warmRegsStore(st), st.water()]);
     for (const p of await store.parts(ord)) if (p.akey !== null) await st.region(p.akey);
     calls = 0;
     const d = { month: 6, day: 15 }, y = 2026;

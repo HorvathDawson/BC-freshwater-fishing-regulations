@@ -180,7 +180,7 @@ describe("useInSeasonCovers (T520): one load path for the banner and the water m
     const l = links(release);
     const data = o.ends ? { feed, links: { ...l, notices: { "is-a": { waters: { "gnis:1": { runs: [[7, 100, 300]] as const, ends: [o.ends] } } } } } }
       : { feed, links: l };
-    render(<InSeasonContext.Provider value={{ matched: [], unmatched: [], release: deviceRelease, data }}>
+    render(<InSeasonContext.Provider value={{ matched: [], unmatched: [], ended: [], release: deviceRelease, data }}>
       <Covers pieces={partIx === null ? null : typeof partIx === "number" ? [partIx] : partIx} out={out} st={o.st} /></InSeasonContext.Provider>);
     return out;
   };
@@ -235,7 +235,7 @@ describe("useInSeasonCovers (T520): one load path for the banner and the water m
       out.v = useInSeasonCovers(store2, lines2, { item, ord, pieces: null }, null);
       return null;
     }
-    const wrap = (n: React.ReactNode) => <InSeasonContext.Provider value={{ matched: [], unmatched: [], release: "r-1",
+    const wrap = (n: React.ReactNode) => <InSeasonContext.Provider value={{ matched: [], unmatched: [], ended: [], release: "r-1",
                                                                             data: { feed, links: both } }}>{n}</InSeasonContext.Provider>;
     const r = render(wrap(<P item="gnis:1" ord={5} />));
     await waitFor(() => expect(out.v![0]!.cover.sections).toEqual([2, 3]));

@@ -18,6 +18,7 @@ import {
 } from "@app/core";
 import { RegsStoreError } from "./errors";
 import type { CarriedNote, PartRow, RegsReads, StoreStatics, StoredCell, StoredRule } from "./reads";
+import type { RegsStore } from "./store";
 
 /** A tap the store cannot answer: no such water, no such part, an unnamed section the store names no place for. */
 export class RegsInputsError extends Error {
@@ -66,6 +67,17 @@ async function keyed(store: InputsStore, key: AkeyRow, day: Day, weekday: Weekda
   // (T810 M, S) today's trout table (the section is required from rows 34): a NULL cell is null, never read
   const trout = { trout: cell.trout === null ? null : await store.trout(a, cell.trout) };
   return { s, cell, year, frames, ruleset: { reach: ruleset.reach, trib: ruleset.trib }, trout };
+}
+
+/**
+ * (T286, T980) WHAT EVERY TAP'S PAGE READS WHOLE, ONCE PER STORE (`loadRegsInputs`' first reads): statics, rules,
+ * licensing, the section notes (T796) and the carried units (T973), with regs-sid and core open. The phone's prewarm
+ * (ui `prewarmRegs`) asks it before the reader taps, and the T286 count (`openCost.release.test.ts`) counts a tap after
+ * it: ONE list, so the two cannot drift (T980: T973's `cw-through` was opened and read whole by the first tap, +5 calls,
+ * because it was on neither).
+ */
+export async function warmRegsStore(st: RegsStore): Promise<void> {
+  await Promise.all([st.statics(), st.rules(), st.lics(), st.sid(), st.core(), st.sectionNotes(), st.carriedUnits()]);
 }
 
 /** The tap → `RegsInputs`. Throws `RegsInputsError` for a water or part the store does not hold, a `RegsStoreError` for a
