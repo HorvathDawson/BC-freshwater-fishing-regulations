@@ -69,19 +69,7 @@ export const withGuideAt = (stored: string | null | undefined, key: string | nul
  * What a step points at: the surface registers each control under its key (`useCoachTarget`); a control that is not on
  * screen leaves the step without a spotlight.
  */
-export type WalkthroughTarget = "days" | "modes" | "map" | "tab:conditions" | "tab:runs" | "tab:spots" | "tab:more" | "sync"
-  | "bell" | "runs:species" | "runs:slider" | "horizons" | "search"
-  | "search:hit" | "search:go"
-  | "view:regs" | "view:conditions" | "water:back"
-  | "regs:answer" | "regs:date" | "regs:keep" | "regs:tabs" | "regs:place" | "regs:book"
-  | "regs:salmon" | "regs:trout" | "regs:both"
-  | "cond:headline" | "cond:horizons" | "cond:reading" | "cond:quantity" | "cond:span" | "cond:chart"
-  | "spot:days" | "spot:best"
-  | "locate" | "layers" | "layers:ground" | "layers:obstacles"
-  // (T466) the water's Map view (its ▲ and "Show regulations"), and each step of adding a spot
-  | "view:map" | "map:up" | "map:regs"
-  | "spots:pick" | "spot:pick" | "spot:drop" | "capture:water" | "capture:when" | "capture:title" | "capture:save"
-  | "spot:show";
+export type WalkthroughTarget = "search" | "map" | "days" | "modes";
 
 export interface WalkthroughCard {
   readonly key: string;
@@ -92,92 +80,56 @@ export interface WalkthroughCard {
 }
 
 /**
- * (T293, owner 2026-10-29: "walked the user through finding a regulation using the map and search and then how to read
- * the regulations and how to look at conditions") THE ONE GUIDED WALKTHROUGH, hands-on, on a real water the app chooses
- * (`GUIDE_WATER`). Each step is either SHOW (read it, Next) or DO (the reader does it with a real tap; it moves on by
- * itself once done, and "Show me" does it for them).
- *
- * (T874, owner 2026-11-18 ~20:34: "The tour should have only next and back and every next should be show me logic. Person
- * can skip if they want. Otherwise it is weird") THE CARD HAS BACK, NEXT AND SKIP, NOTHING ELSE: Next on a DO step does the
- * step for the reader (what "Show me" did), then moves on; on a SHOW step it moves on. So a DO step's words say what Next
- * will do, and that the reader may tap the highlighted control instead. "Show me" is gone.
- *
- * (T824, owner 2026-11-16: "the tutorial should be much much small 41 is way to many cut it down to like 8 or 10 items
- * and make it super clean") ten steps; the longer walk's words are in `git show ed61d5de4`.
- *
- * (T842, owner 2026-11-17: "could reduce steps even more. This is a user first look so we need to make sure it is clean
- * and not buggy"; his pick, "6 steps") SIX STEPS: search for it (the welcome folded in), open its page, open or closed,
- * another day, how the river is (its dot folded in), and a last card that SAYS where the map, Trout / Salmon, Spots and
- * Help are (no taps). The 10-step words are in `git show 5dbd45396`.
- *
- * `{water}` in a title or body is the chosen water's name, `{letters}` the first letters to type (`guideText`).
+ * (T293, owner 2026-10-29) THE WALKTHROUGH, on the Map tab. (T984, owner 2026-11-21) It only points and describes: see
+ * `GuideStepWords`. History: 41 steps, then ten (T824), six (T842), five hands-on-free (T984); the hands-on words are in
+ * `git show d17c80d2c`.
  */
 export type GuidePhase = "find" | "rules" | "conditions" | "end";
 export interface GuideStepWords extends Omit<WalkthroughCard, "targets"> {
   readonly phase: GuidePhase;
-  readonly kind: "show" | "do";
   readonly targets: readonly WalkthroughTarget[];
   /** where the card sits when nothing is highlighted: over the top of the screen, or (default) at its foot */
   readonly dock?: "top";
   /**
-   * (T842, owner: "the keyboard covers vedder in the walk through") the keyboard is closed as the step comes up, so a list
-   * row it is about is not under it
-   */
-  readonly keyboard?: "closed";
-  /**
-   * (T456) The controls the step's words name, as their own labels say them (`WATER_VIEW_LABEL` …): each is inside the
-   * highlighted control (its words or its spoken name), so the words never name a control that is not on screen and
-   * highlighted (a test renders each target and looks).
+   * (T456) The controls the step's words name, as their own labels say them: each is inside the highlighted control (its
+   * words or its spoken name), so the words never name a control that is not on screen and highlighted (a test renders
+   * each target and looks).
    */
   readonly names?: readonly string[];
-  /**
-   * (T456) The highlighted control is not always drawn: an optional step whose control is not drawn is passed, never shown
-   * pointing at nothing (T824: "reading", when no live reading arrived; any other step whose control is missing shows its
-   * card with nothing highlighted).
-   */
-  readonly optional?: boolean;
 }
 
-/** The water the walkthrough uses: a well-known one, found by name in the release; any water stands in without it. */
-export const GUIDE_WATER = { name: "Vedder River", kind: "stream", letters: "ved" } as const;
+/**
+ * (T984, owner 2026-11-21: "the tutorial should be only a walk through not modify the state") THE TOUR ONLY POINTS AND
+ * DESCRIBES. Every step is a card about a control the Map tab already draws (search, the map, the day, the colour mode);
+ * nothing is tapped, opened, searched or moved for the reader, and nothing the reader does during it reaches the app (the
+ * dim takes every touch). What a water's page looks like is said in the card's words, never shown by opening one. A step
+ * whose control is not drawn shows its card with nothing highlighted.
+ */
 
-const step = (key: string, phase: GuidePhase, kind: "show" | "do", targets: readonly WalkthroughTarget[], title: string,
-              body: string, more: Pick<GuideStepWords, "dock" | "names" | "optional" | "keyboard"> = {}): GuideStepWords =>
-  ({ key, phase, kind, targets, title, body, ...more });
+const step = (key: string, phase: GuidePhase, targets: readonly WalkthroughTarget[], title: string,
+              body: string, more: Pick<GuideStepWords, "dock" | "names"> = {}): GuideStepWords =>
+  ({ key, phase, targets, title, body, ...more });
 
 const V = WATER_VIEW_LABEL, RAIL = SALMON_WORDS.toggle.rail;
 
-/*
- * (T456) EVERY STEP ABOUT A CONTROL ASKS THE READER TO USE IT (a DO step: it moves on when they do); a SHOW step reads a
- * real line on the screen. (T824) One short sentence a card; the first card says how the walk works.
- */
-/** (T842) the last card's first sentence: the 10-step walk's "Back to the map" and "Trout or salmon", said, not tapped */
-const MAP_BACK = `${V.map} at the top left returns to the map; ${RAIL.standard} / ${RAIL.salmon} there colours it by trout or salmon openings.`;
-
+/** (T984) one short sentence a card; the first card says how the walk works */
 const GUIDE_STEPS: readonly GuideStepWords[] = [
-  // (T842) the welcome folded into the first step: it still says how the walk works
-  // (T874) a DO step's words say what Next does; the reader may still tap the highlighted control
-  step("search", "find", "do", ["search"], "Search for it",
-    "I'll walk you through the {water}: Next searches for it, or tap the search bar and type “{letters}” yourself. "
-      + "On every step, Next does what is highlighted."),
-  step("pick", "find", "do", ["search:hit", "search:go"], "Open its page",
-    "Next opens its page, or tap {water} in the list yourself.", { keyboard: "closed" }),
-  step("answer", "rules", "show", ["regs:answer"], "Open or closed",
-    "The big word is the answer for the day shown; the bar under it is the whole year."),
-  step("day", "rules", "do", ["regs:date"], "Pick another day",
-    "Next picks tomorrow, or tap the date and pick the day you plan to go."),
-  // (T842) the old "Higher or lower than usual" folded in: the dot is named here
-  step("conditions", "conditions", "do", ["view:conditions"], "How is the river?",
-    `Next opens ${V.conditions}, how high the river runs; its dot says low, normal or high for this date.`,
-    { names: [V.conditions] }),
-  // (T842) said in words, no taps: what the 10-step walk's last three steps had the reader do
-  step("done", "end", "show", [], "You're all set",
-    `${MAP_BACK} Spots keeps the places you fish, and Help, under More, can replay this tour.`),
+  step("search", "find", ["search"], "Find a water",
+    "This quick look only points things out. Type a water's name here, like “ved”, and tap it to open its page."),
+  step("map", "find", ["map"], "Or tap it on the map",
+    "Tap any stream or lake to open its page, with its rules for the day shown."),
+  step("days", "rules", ["days"], "Pick the day you plan to go",
+    "The map's colours and every page are for the day shown here."),
+  step("modes", "rules", ["modes"], "Trout or salmon",
+    `${RAIL.standard} / ${RAIL.salmon} here colours the map by trout or salmon openings.`,
+    { names: [RAIL.standard, RAIL.salmon] }),
+  step("done", "end", [], "You're all set",
+    `${V.conditions}, on a water's page, shows how high the river runs. Spots keeps your places; Help, under More, replays this tour.`),
 ];
 
 /** The web's last step: a browser keeps no spots (they live in the phone app), so it names Help alone. */
-const WEB_DONE = step("done", "end", "show", [], "You're all set",
-  `${MAP_BACK} Help, under More, explains the map and can replay this tour.`);
+const WEB_DONE = step("done", "end", [], "You're all set",
+  `${V.conditions}, on a water's page, shows how high the river runs. Help, under More, explains the map and replays this tour.`);
 
 export const WALKTHROUGH_WORDS = {
   /** the walkthrough's name aloud */
@@ -188,36 +140,18 @@ export const WALKTHROUGH_WORDS = {
   /** Skip, said aloud: what it skips */
   skipLabel: "Skip the walkthrough",
   done: "Start exploring",
-  /** before a DO step's title once the reader has done it */
-  tick: "✓",
   step: (i: number, n: number) => `${i} of ${n}`,
   /** each phase's name, over its steps */
-  phases: { find: "Find a water", rules: "Read the rules", conditions: "Conditions",
+  phases: { find: "Find a water", rules: "Read the map", conditions: "Conditions",
             end: "That's it" } satisfies Record<GuidePhase, string>,
   /** the Help page's button that starts the walkthrough again */
   again: "Replay the walkthrough",
-  /**
-   * (T456) THE PAUSED WALK: the reader left the step's screen some other way (a tab, the system back, closing the page or
-   * a sheet). The card steps aside for a chip; the chip puts the app back where the step was and shows it again.
-   */
-  resume: "Resume walkthrough",
-  /** the chip's spoken name, with the step it goes back to */
-  resumeLabel: (title: string) => `Resume walkthrough at “${title}”`,
-  /** the chip's way out: the walk ends (counts as seen) */
-  endLabel: "End the walkthrough",
 } as const;
 
 /** (T293) The walkthrough's steps for the platform: the app's last step says works-offline, the web's does not. */
 export function guideSteps(platform: "web" | "app"): readonly GuideStepWords[] {
   // (T302) the web keeps no spots (they live in the phone app): its last card names Help alone
   return platform === "web" ? GUIDE_STEPS.map((s) => (s.key === "done" ? WEB_DONE : s)) : GUIDE_STEPS;
-}
-
-/** A step's words with the chosen water's name in (`{water}`) and the letters to type (`{letters}`). */
-export function guideText(s: string, water: { name: string; letters: string } | null): string {
-  return s.replace(/the \{water\}/g, water ? `the ${water.name}` : "a water near you")
-    .replace(/\{water\}/g, water?.name ?? "the water you want")
-    .replace(/\{letters\}/g, water?.letters ?? "the first few letters of a water");
 }
 
 // ── the Help page ────────────────────────────────────────────────────────────────────────────────────────────────
