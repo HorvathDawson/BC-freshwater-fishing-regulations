@@ -60,3 +60,6 @@ Owner the same message: his Android 0.8.2 (Play build 38) reads staging data —
 production phone builds come after `release --prod` (his).
 **Uploaded 11:29:** 0.8.2 as iOS build 39 (staging data) to App Store Connect; version files app/ios/0.8.2.json + appstore.json on the staging bucket. Owner: add 39 to the internal group.
 **11:45:** owner filled TestFlight Test Information, made the External group and submitted build 39 for Beta App Review; he tests internal meanwhile and waits for the external approval (owner: "i will wait for external i already testing internal").
+
+## Owner 2026-11-21
+Website "join the Android test" button stays as it is; no Google Group (verbatim: "we will just leave join android as it is for now. no google group").

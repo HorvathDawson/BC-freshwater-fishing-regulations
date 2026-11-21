@@ -16,3 +16,6 @@ or a filled selected button. Keep `aria-selected` / role=tab (AGENTS 34). Same o
 
 ## Acceptance
 The owner picks a look; the selected mode is unambiguous in light and dark.
+
+## Owner pick 2026-11-21
+C: the selected button is filled (picture: scratchpad mock T986-species-toggle.png, options A current / B left-edge bar / C filled).

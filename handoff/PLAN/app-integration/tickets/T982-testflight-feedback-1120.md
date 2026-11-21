@@ -39,3 +39,9 @@ nothing until then. Look at each screenshot first. Main chat's first read, still
 Every item is fixed, ticketed, or answered with the owner's decision, and each is noted here.
 
 Depends: —. Size: M. Owner: yes (the design picks).
+
+## Owner picks 2026-11-21 (dialog with pictures)
+- #2: C, a dot with shade + size + the number inside, no boxes (per-gauge colour becomes a ring or goes).
+- #3: B, same five steps: "Far lower than normal" / "Lower than normal" / "Normal" / "Higher than normal" / "Far higher than normal".
+- #4: B, icon + one word ("Photos" / "Camera").
+- #6: after a dismissed or denied first location ask, a one-line "Show my location" prompt on the map instead of a silent default (cause read from code: `useOpenAtMe` asks once, never again).

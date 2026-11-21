@@ -65,3 +65,6 @@ Kamloops, Prince George.
 - **Guards:** refuse a bylaw entry on an item that has a synopsis water row (those rows stay owner calls), refuse any rule but the
   closure, and keep the book-only gates (classified waters, extraction baseline, word reads, page map) on the synopsis source.
   Not built: it needs a schema field, a bundle column, an answers line and an app link, and no row is accepted yet.
+
+## Owner 2026-11-21 (dialog)
+In 0.8.5. Verbatim: "https://stanleyparkvan.com/stanley-park-van-location-lost-lagoon.html is only one I know for sure. Maybe add other info to a ticket but only create the way to ban lost lagoon for now with a nice curated data path to list these. Then put all the info found for the other water bodies in the ticket and we will review for the next release." Build: the curated local-closures path + Lost Lagoon only. The other rows stay here for review next release.
