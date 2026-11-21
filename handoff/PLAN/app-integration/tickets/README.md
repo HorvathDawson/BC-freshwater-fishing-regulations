@@ -258,7 +258,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T978 | Release build checks never fail on this machine's state (worktree links, stale export, marks, mini release), only on code | OPEN | | owner 2026-11-20, 0.8.4 build stops |
 | T979 | iPhone: the water page's Map tab could show a much bigger map (too much white space; Squamish) | OPEN | | owner in-app report 2026-11-20 (0.8.3) |
 | T980 | Three follow tests skipped to ship r-fec3fab4c5aa (two T286 page-read budgets, the unnamed trib-closed fixture): fix them | OPEN | | 2026-11-20 release |
-| T981 | Municipal / park-bylaw no-fishing waters (Lost Lagoon, Beaver Lake in Stanley Park, others) shown closed with the bylaw cited | OPEN | | owner 2026-11-20 |
+| T981 | Municipal / park-bylaw no-fishing waters (Lost Lagoon, Beaver Lake in Stanley Park, others) shown closed with the bylaw cited | IN PROGRESS | | owner 2026-11-20; inventory on lane/085-t981 (`data/generated/review/t981_local_closures_proposals.json`: 3 proposed, 2 owner calls, 2 need a source); mechanism proposed, not built; left (Claude): owner accepts rows |
 | T982 | TestFlight tester feedback 2026-11-20 (6 items: % of estimate, normal wording, gauge-absent sentence, photo icons, gauge boxes, open at my location) | OPEN | | TestFlight feedback, read 2026-11-21 |
 | T983 | After updating to 0.8.4, 7 expired in-season notices show as New (Nov 19): notice ids stable across releases; ended notices not current | OPEN | | owner 2026-11-21 (Android 0.8.4) |
 | T984 | ASAP: the guided walkthrough only walks through (no state changes, instant highlights, can't be broken by zooming) | OPEN | | owner 2026-11-21 |
