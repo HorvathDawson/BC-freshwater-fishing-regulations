@@ -200,6 +200,9 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
             # EVERY water matched; `item_id` above is only the first.
             json.dumps(matched, separators=(",", ":")),
             see_of.get(ce.entry_id),
+            # T981: a local authority's closure cites that authority, not a page (`CatalogueEntry.authority`)
+            json.dumps(ce.authority.model_dump(exclude_none=True), ensure_ascii=False, separators=(",", ":"))
+            if ce.authority else None,
         ))
         # A rule may name another in its entry (`suspended_while`), and its label says what
         # that rule is in words — so each label is built with its siblings to hand.
@@ -222,8 +225,8 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     # — which then wrote a 42 MB bundle with zero entries in it. Naming the columns makes that
     # failure impossible rather than merely tested.
     db.executemany("INSERT INTO entry (entry_id, item_id, name, full_name, verbatim, symbols,"
-                   "                   mus, pages, scope_note, extents, matched, see)"
-                   " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                   "                   mus, pages, scope_note, extents, matched, see, authority)"
+                   " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
                    entry_rows)
     cov.filled("entry", len(entry_rows))
     pointers = see_pointer_rows(entries_by_id)

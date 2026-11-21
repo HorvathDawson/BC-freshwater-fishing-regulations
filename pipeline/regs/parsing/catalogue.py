@@ -90,7 +90,7 @@ from .catalogue_parts.licensing_labels import (  # noqa: F401
     licensing_parts, compose_licensing, licensing_label
 )
 from .catalogue_parts.entry import (  # noqa: F401
-    GLYPH_INCLUDES_TRIBUTARIES, _extent_errors, CatalogueEntry, CatalogueFile
+    GLYPH_INCLUDES_TRIBUTARIES, _extent_errors, CatalogueEntry, CatalogueFile, LocalAuthority
 )
 
 

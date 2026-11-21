@@ -115,6 +115,15 @@ class BookBox(Model):
     size: Tuple[StrictFloat, StrictFloat]
 
 
+class Cited(Model):
+    """(T981) WHO CLOSED THIS WATER, when it is a local authority and not the synopsis (the entry's `authority`): `link`
+    the words of the link to the page that says so (its site, "StanleyParkVan.com"), `url` that page, `quote` what it
+    says. The rule's `applies` names the authority; its `book` is empty (it prints on no page)."""
+    link: StrictStr = Field(min_length=1)
+    url: StrictStr = Field(pattern=r"^https://\S+$")
+    quote: StrictStr = Field(min_length=1)
+
+
 class RuleFacts(Model):
     kind: _enum(T.DisplayKind, "DisplayKind")
     #: ROUND16 3: every rule's title, its effect in words ("Release all steelhead", "Release lake trout,
@@ -134,7 +143,8 @@ class RuleFacts(Model):
     #: answers 2.6, HOW THIS WAS DECIDED: [[printed page, PDF page]] of the rule's entry (open the
     #: official synopsis at `#page=<PDF page>`), why it applies (its scope, and what a lift lifts),
     #: and — for a water row's rule the tributary walk carries — the same said where it is inherited
-    book: Tuple[Tuple[Positive, Positive], ...] = Field(min_length=1)
+    #: (T981) empty exactly when `cited` is set: a local authority's closure prints on no page
+    book: Tuple[Tuple[Positive, Positive], ...]
     applies: StrictStr = Field(min_length=1)
     applies_trib: Optional[StrictStr] = None
     #: T215: the entry's row on the PDF page, to highlight (absent: the entry is no table row, or no sidecar)
@@ -145,6 +155,17 @@ class RuleFacts(Model):
     #: "This water in the rule book" line links only a row's pages (core `waterBookOf`). Optional within display 20 (T892's
     #: precedent): a release before it has no row, and the line is then empty, never a province page.
     row: Optional[Literal[True]] = None
+    #: (T981) a local authority's closure: who says so and the link (`Cited`); absent on every rule of the book. Optional
+    #: within display 20 (T892's precedent): an app before it shows the rule with no book link
+    cited: Optional[Cited] = None
+
+    @model_validator(mode="after")
+    def _book_or_cited(self):
+        if bool(self.book) == bool(self.cited):
+            raise ValueError("a rule cites its book pages or a local authority (`cited`), exactly one")
+        if self.cited and self.row:
+            raise ValueError("a local authority's closure is no row of the book (`row`)")
+        return self
 
     @model_validator(mode="after")
     def _closure_is_a_gate(self):

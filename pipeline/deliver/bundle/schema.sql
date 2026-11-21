@@ -195,7 +195,10 @@ CREATE TABLE cut_place (split_id TEXT PRIMARY KEY, blk INTEGER NOT NULL, m INTEG
 -- the reader follows `entry_ids` ("see Lonzo Creek") instead.
 CREATE TABLE entry (entry_id TEXT PRIMARY KEY, item_id TEXT, name TEXT, full_name TEXT,
                     verbatim TEXT, symbols TEXT, mus TEXT, pages TEXT, scope_note TEXT,
-                    extents TEXT, matched TEXT NOT NULL DEFAULT '[]', see TEXT);
+                    extents TEXT, matched TEXT NOT NULL DEFAULT '[]', see TEXT, authority TEXT);
+-- (T981) `authority`: a LOCAL AUTHORITY's closure (the local-closures entry source, `pipeline.regs.local_closures`):
+-- JSON {body, instrument, section?, url, quote}, cited where a book row cites its `pages` (it prints on none); NULL
+-- for every synopsis row.
 -- A GROUP NAME THAT ONLY POINTS (owner 2026-10-22): a row whose only content is "See …" ("TEE PEE
 -- LAKES  See Friday, Saturday, and Sunday Lakes"; "CAMERON LAKES  See North and South Cameron
 -- lakes") binds nothing and draws no line on the waters it names; the reader who looks the group

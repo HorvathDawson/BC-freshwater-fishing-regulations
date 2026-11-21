@@ -610,6 +610,8 @@ def read(bundle: Path) -> dict:
             "rules": [], "licensing": [],
             # POINTERS ("See Lonzo Creek") — only on a row that prints one (see `guide.entries`).
             **({"see": _j(e["see"], [])} if e["see"] else {}),
+            # T981: who closed it, on a local authority's closure only (it prints on no page)
+            **({"authority": _j(e["authority"], None)} if e["authority"] else {}),
         }
 
     rules = {}

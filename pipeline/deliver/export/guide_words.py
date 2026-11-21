@@ -1077,6 +1077,8 @@ ENTRY_TEXT = {
     "rules": "its rule ids", "licensing": "its licensing record ids",
     "see": "its pointers, when it prints any: [{verbatim, entry_ids, relation}] or "
            "[{verbatim, unresolved}] — see `entries.pointers`",
+    "authority": "(T981) on a water a LOCAL AUTHORITY closes, not the synopsis: {body, instrument, section?, url, "
+                 "quote}: who closed it and the page that says so; such an entry prints on no page (`pages` empty)",
 }
 
 

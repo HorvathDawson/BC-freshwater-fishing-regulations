@@ -6,11 +6,12 @@
 import { createContext, useContext } from "react";
 import { useWindowDimensions } from "react-native";
 import { Text } from "../Text";
-import { WORDS, type Line, type SourceBox, type SheetKey, type Day, type Tab } from "@app/core";
+import { WORDS, plain, type Line, type SourceBox, type SheetKey, type Day, type Tab } from "@app/core";
 import { CAPPED_SCALE, TYPE, type TextStyle } from "../type";
 import type { Palette } from "../theme";
 import { lineRun } from "./hit";
 import { RuleBookLink } from "./RuleBookLink";
+import { linkTo } from "../openLink";
 
 /** What a tap on a Keep link does. Sheets (T36/T37) are not built yet: `onSheet` may be a no-op. */
 export interface KeepActions {
@@ -93,6 +94,10 @@ export function LineText({ line, style, color, palette, actions, num = TYPE.nume
             const go = () => (typeof o === "string" ? actions.onSheet(o) : "day" in o ? actions.onDay(o.day) : actions.onTab(o.tab));
             return <Text key={i} accessibilityRole="link" accessibilityLabel={r.label} onPress={go} {...lineRun} style={[linkStyle ?? {}, { color: palette.accent }]}>{r.s}</Text>;
           }
+          case "web":    // (T981) a local authority's page, opened outside the app (`openLink`: a refused open is said + reported)
+            return <Text key={i} accessibilityRole="link" onPress={linkTo(r.url)} {...lineRun}
+                         style={[linkStyle ?? { fontFamily: TYPE.metaBold.fontFamily, fontSize: TYPE.metaBold.fontSize }, { color: palette.accent }]}>
+              {plain([r])}</Text>;
         }
       })}
     </Text>

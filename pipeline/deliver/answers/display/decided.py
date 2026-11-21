@@ -321,6 +321,25 @@ def licensing_books(doc: dict, lic_ids: Sequence[str]) -> List[dict]:
     return out
 
 
+def cited_applies(auth: dict) -> str:
+    """(T981) `applies` of a local authority's closure: who closed the water, by what ("Closed to fishing by the
+    Vancouver Board of Parks and Recreation: Stanley Park rules, as StanleyParkVan.com gives them.")."""
+    by = auth["body"]
+    by = by if by.lower().startswith("the ") else f"the {by}"
+    what = auth["instrument"] + (f", {auth['section']}" if auth.get("section") else "")
+    return f"Closed to fishing by {by}: {what.rstrip('.')}."
+
+
+def cited_of(auth: dict) -> dict:
+    """(T981) `cited` (the model's `Cited`): the link's words are the page's site ("StanleyParkVan.com" when the
+    instrument names it so, else the host without www.), its url, and the page's words."""
+    from urllib.parse import urlparse
+    host = urlparse(auth["url"]).hostname or ""
+    host = host[4:] if host.startswith("www.") else host
+    named = re.search(re.escape(host), auth["instrument"], re.I)
+    return {"link": named.group(0) if named else host, "url": auth["url"], "quote": auth["quote"]}
+
+
 def add_sources(facts: List[dict], doc: dict, order: Sequence[str]) -> None:
     """Each rule's book pages and why it applies (`book`, `applies`, `applies_trib`) onto its
     display facts, in the export's rule order (`order`: rule ids). Only the rules a part reaches
@@ -328,6 +347,15 @@ def add_sources(facts: List[dict], doc: dict, order: Sequence[str]) -> None:
     walked = {k for rs in doc["rulesets"].values() for k in rs.get("trib") or []}
     for f, rid in zip(facts, order):
         x = doc["rules"][rid]
+        auth = (doc["entries"].get(x["entry_id"]) or {}).get("authority")
+        if auth:
+            # T981: a LOCAL AUTHORITY's closure prints on no page: it names the authority and links the page that says so
+            if rid in walked:
+                raise AnswersError(f"display: {rid}, a local authority's closure, reaches a part by the walk")
+            f["book"] = []
+            f["applies"] = cited_applies(auth)
+            f["cited"] = cited_of(auth)
+            continue
         f["book"] = book_pages(x, doc)
         if (doc["entries"].get(x["entry_id"]) or {}).get("kind") == "water":
             f["row"] = True          # T916: a water table's row, the water's own entry (the model's `RuleFacts.row`)

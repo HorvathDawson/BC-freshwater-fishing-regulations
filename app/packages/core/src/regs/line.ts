@@ -21,7 +21,8 @@ export type Run =
   | { t: "book"; printed: number; pdf: number | null; bare?: true; box?: readonly BookBox[] }   // "Rule book p.<printed> ↗"; bare: "p.<printed> ↗"; pdf null → "p.<printed>" unlinked
   | { t: "link"; s: string; open: SheetKey | { day: Day } | { tab: Tab };  // "How to tell ›", "Source ›", "See the rules from then ›"; {tab}: "Steelhead stamp ›"
       /** (T475) what a screen reader says where `s` is a glyph (the headline's ⓘ) */
-      label?: string };
+      label?: string }
+  | { t: "web"; s: string; url: string };   // (T981) "<site> ↗": the page a local authority's closure cites (`RuleFacts.cited`), data both
 
 export type Line = readonly Run[];
 
@@ -40,6 +41,7 @@ function runText(r: Run): string {
     case "text": case "num": case "link": return r.s;
     case "term": return r.ids.length >= 2 ? WORDS.TERMS_MANY : WORDS.TERM_ONE;
     case "book": return bookText(r);
+    case "web": return `${r.s} ${WORDS.LINK_OUT}`;
   }
 }
 

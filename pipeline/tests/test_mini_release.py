@@ -323,8 +323,13 @@ def test_the_mini_world_holds_the_plans_inventory(chain):
     # the land a section crosses (T54), a gauge, and the corpus size
     assert {t for (t,) in q("SELECT tier FROM access_area")} == {"no_access", "reserve", "private"}
     assert q("SELECT station, item_id FROM gauge") == [("99MA001", river)]
-    # 17 entries of the mini's own and 10 of the book's provincial rows the answers' glossary needs (copied)
-    assert q("SELECT COUNT(*) FROM entry")[0][0] == 27
+    # (T981) a local authority's closure: Bylaw Pond, closed whole by the second entry source, citing its page
+    assert len(bound("r2:bylaw_pond_local@2-1", "bylaw_pond_local.r1")) == len(secs("wbk:800000007")) == 1
+    assert json.loads(q("SELECT authority FROM entry WHERE entry_id = 'r2:bylaw_pond_local@2-1'")[0][0])["url"] \
+        == "https://example.org/mini-east/parks-bylaw"
+    # 18 entries of the mini's own (one of them the local closure) and 10 of the book's provincial rows the answers'
+    # glossary needs (copied)
+    assert q("SELECT COUNT(*) FROM entry")[0][0] == 28
 
 
 def test_under_test_mini_is_the_committed_release_and_ci_no_build_hides_none_of_it():

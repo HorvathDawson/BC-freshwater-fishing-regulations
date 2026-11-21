@@ -31,7 +31,8 @@
   {"wbk": 800000003, "layer": "wetlands", "gnis_id": null, "name": null, "wsc": null, "box": [5000, -9000, 5300, -8800]},
   {"wbk": 800000006, "layer": "lakes", "gnis_id": 990106, "name": "Twofold Lake", "wsc": "", "box": [24000, -700, 26000, 700]},
   {"wbk": 800000005, "layer": "wetlands", "gnis_id": 990105, "name": "Mockup Marsh", "wsc": null, "box": [44000, -9000, 44400, -8700]},
-  {"wbk": 800000004, "layer": "manmade", "gnis_id": null, "name": null, "wsc": null, "box": [20000, -9000, 20200, -8850]}
+  {"wbk": 800000004, "layer": "manmade", "gnis_id": null, "name": null, "wsc": null, "box": [20000, -9000, 20200, -8850]},
+  {"wbk": 800000007, "layer": "lakes", "gnis_id": 990107, "name": "Bylaw Pond", "wsc": null, "box": [36000, 10000, 36300, 10200]}
  ],
  "watersheds": [
   {"gnis_id": 990001, "name": "Fixture River", "blk": 900000001, "wsc": "", "order": 3, "magnitude": 4,

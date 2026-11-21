@@ -380,6 +380,34 @@
      "title": "BookBox",
      "type": "object"
     },
+    "Cited": {
+     "additionalProperties": false,
+     "description": "(T981) WHO CLOSED THIS WATER, when it is a local authority and not the synopsis (the entry's `authority`): `link`\nthe words of the link to the page that says so (its site, \"StanleyParkVan.com\"), `url` that page, `quote` what it\nsays. The rule's `applies` names the authority; its `book` is empty (it prints on no page).",
+     "properties": {
+      "link": {
+       "minLength": 1,
+       "title": "Link",
+       "type": "string"
+      },
+      "quote": {
+       "minLength": 1,
+       "title": "Quote",
+       "type": "string"
+      },
+      "url": {
+       "pattern": "^https://\\S+$",
+       "title": "Url",
+       "type": "string"
+      }
+     },
+     "required": [
+      "link",
+      "url",
+      "quote"
+     ],
+     "title": "Cited",
+     "type": "object"
+    },
     "RuleFacts": {
      "additionalProperties": false,
      "properties": {
@@ -469,7 +497,6 @@
         ],
         "type": "array"
        },
-       "minItems": 1,
        "title": "Book",
        "type": "array"
       },
@@ -488,6 +515,17 @@
        ],
        "default": null,
        "title": "Book Box"
+      },
+      "cited": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/Cited"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null
       },
       "closure": {
        "anyOf": [

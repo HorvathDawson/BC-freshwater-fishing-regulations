@@ -1,0 +1,46 @@
+{
+ "_about": "MINI WORLD (T981): an invented local authority's closure of the invented Bylaw Pond, the local-closures entry source's one row here (pipeline.regs.local_closures).",
+ "region": "2",
+ "entries": [
+  {
+   "entry_id": "r2:bylaw_pond_local@2-1",
+   "name": "BYLAW POND",
+   "display_name": "Bylaw Pond",
+   "region": "2",
+   "regs_verbatim": "No Fishing",
+   "matched": [
+    "wbk:800000007"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "bylaw_pond_local.r1",
+     "type": "retention_limit",
+     "verbatim": "No Fishing",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "take": 0,
+     "may_target": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "authority": "superior"
+    }
+   ],
+   "authority": {
+    "body": "Mini East Parks Board",
+    "instrument": "Parks Bylaw No. 1, as example.org gives it",
+    "section": "s.4",
+    "url": "https://example.org/mini-east/parks-bylaw",
+    "quote": "No person shall fish in Bylaw Pond."
+   }
+  }
+ ]
+}
