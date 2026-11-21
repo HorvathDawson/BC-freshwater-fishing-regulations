@@ -202,6 +202,8 @@ export const INBOX_WORDS = {
   markAll: "Mark all as read",
   ended: "Ended",
   posted: "Posted",
+  /** (T983) a notice that prints no date of its own: when it was first seen */
+  firstSeen: (day: string) => `first seen ${day}`,
   notOnMap: "Not on the map yet",
   empty: "No notifications",
   emptySub: "In-season changes posted by BC Fish and Wildlife appear here.",
@@ -226,6 +228,15 @@ function dayWords(day: string, today: string): string {
   const [y, m, d] = day.split("-").map(Number);
   return `${MONTHS[m! - 1]} ${d}${day.slice(0, 4) === today.slice(0, 4) ? "" : `, ${y}`}`;
 }
+/**
+ * (T983, owner 2026-11-21) A row's date: an ended notice, the day it ended; else THE NOTICE'S OWN DATE (the Province's
+ * effective date, `from`); a notice that prints none, the day it was first seen, said as that ("first seen Nov 19") —
+ * never the feeds worker's first-seen day passed off as the notice's.
+ */
+function rowDate(i: InboxItem, today: string): string {
+  if (i.ended) return dayWords(i.ended, today);
+  return i.from ? dayWords(i.from, today) : INBOX_WORDS.firstSeen(dayWords(i.at, today));
+}
 /** a read new notice is "Posted": "New" is only ever an unread one */
 const tagOf = (i: InboxItem) => (i.ended ? INBOX_WORDS.ended : i.arrived === "new" && i.read ? INBOX_WORDS.posted : INSEASON_WORDS.marks[i.arrived]);
 
@@ -234,7 +245,8 @@ export interface InboxRowVM {
   readonly unread: boolean;
   /** "New" (unread), "Posted" (read), "Updated", "Ended" */
   readonly tag: string;
-  /** "Nov 12" (another year: "Nov 12, 2025") */
+  /** the notice's own date "Jul 30" (another year: "Jul 30, 2025"); ended: the day it ended; none printed: "first seen
+   *  Nov 19" (`rowDate`) */
   readonly date: string;
   readonly water: string;
   /** "Region 4" */
@@ -254,7 +266,7 @@ export interface InboxVM {
 
 export function inboxVM(s: InboxState | null, today: string): InboxVM {
   const rows = (s?.items ?? []).map((i): InboxRowVM => {
-    const tag = tagOf(i), date = dayWords(i.ended ?? i.at, today), region = regionWords(i.region);
+    const tag = tagOf(i), date = rowDate(i, today), region = regionWords(i.region);
     const note = i.waters === null && !i.ended ? INBOX_WORDS.notOnMap : null;
     return { id: i.id, unread: !i.read, tag, date, water: i.water, region, text: i.text, note,
              label: `${i.read ? "" : "Unread. "}${tag}: ${i.water}, ${region}, ${date}${note ? `. ${note}` : ""}. ${i.text}` };

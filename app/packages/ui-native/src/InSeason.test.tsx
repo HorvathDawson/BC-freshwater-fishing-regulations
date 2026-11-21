@@ -226,12 +226,12 @@ describe("T700: the bell's in-season inbox", () => {
     expect(screen.getByText("Notifications")).toBeTruthy();
     expect(screen.getAllByTestId("inbox-group").map((g) => g.textContent)).toEqual(["New", "Earlier"]);
     expect(screen.getAllByTestId("inbox-row").map((r) => r.textContent)).toEqual([
-      "NewNov 13Okanagan River · Region 8No fishing on Okanagan RiverNot on the map yet",
-      "NewNov 12Kaslo River · Region 4No fishing on Kaslo River",
-      "PostedNov 1Slocan River · Region 4No fishing on Slocan RiverNot on the map yet"]);
+      "Newfirst seen Nov 13Okanagan River · Region 8No fishing on Okanagan RiverNot on the map yet",
+      "Newfirst seen Nov 12Kaslo River · Region 4No fishing on Kaslo River",
+      "Postedfirst seen Nov 1Slocan River · Region 4No fishing on Slocan RiverNot on the map yet"]);
     expect(screen.getAllByTestId("inbox-unread-dot")).toHaveLength(2);
     expect(screen.getAllByTestId("inbox-row")[0]!.getAttribute("aria-label"))
-      .toBe("Unread. New: Okanagan River, Region 8, Nov 13. Not on the map yet. No fishing on Okanagan River");
+      .toBe("Unread. New: Okanagan River, Region 8, first seen Nov 13. Not on the map yet. No fishing on Okanagan River");
   });
   it("a row's tap and Mark all as read go to the hook", () => {
     const seen = draw();

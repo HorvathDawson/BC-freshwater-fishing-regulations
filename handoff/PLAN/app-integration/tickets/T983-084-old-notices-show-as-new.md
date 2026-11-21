@@ -1,6 +1,8 @@
 # T983 — After updating to 0.8.4, 7 expired in-season notices show as "New" (dated Nov 19)
 
-Status: IN PROGRESS — fixed on lane/085-t983; left (Claude): merge + combined review. Owner: two picks (below).
+Status: IN PROGRESS — fixed on lane/085-t983, owner picks built (the 7 keep showing; no auto-repair; the inbox row's date
+is the notice's own effective date, else "first seen Nov 19": core `rowDate` / `INBOX_WORDS.firstSeen`, whole-string
+tests); left (Claude): merge + combined review.
 
 ## Measured (2026-11-21, against the live feeds data.canifishthis.ca + data-staging, and git)
 1. **Ids did not change.** The 32 rows carry the same ids in production and staging (content hashes, worker `rowId`,

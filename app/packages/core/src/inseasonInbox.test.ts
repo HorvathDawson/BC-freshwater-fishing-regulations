@@ -119,14 +119,18 @@ describe("in-season inbox (T700)", () => {
 
   it("the list: New (unread) ahead of Earlier (read), newest first, each row's words whole", () => {
     const s0 = read(null, feed([row({ id: "is-old", water: "Slocan River", firstSeen: "2025-09-02T00:00:00Z" })]), links({ "is-old": ["gnis:9"] }), "2026-11-12");
-    const s = read(s0, feed([row({ id: "is-old", water: "Slocan River", firstSeen: "2025-09-02T00:00:00Z" }), { ...A, firstSeen: "2026-11-12T00:00:00Z" },
+    // (T983, owner 2026-11-21) the date is the notice's own (Kaslo: effective Nov 1, first seen Nov 12); one that prints
+    // none says when it was first seen, as that
+    const s = read(s0, feed([row({ id: "is-old", water: "Slocan River", firstSeen: "2025-09-02T00:00:00Z" }),
+                             { ...A, from: "2026-11-01", firstSeen: "2026-11-12T00:00:00Z" },
                              { ...B, firstSeen: "2026-11-13T00:00:00Z" }]), links({ "is-old": ["gnis:9"], "is-a": ["gnis:1"] }), "2026-11-13");
     const vm = inboxVM(s, "2026-11-13");
     expect(vm.groups.map((g) => [g.title, g.rows.map((r) => r.id)])).toEqual([["New", ["is-b", "is-a"]], ["Earlier", ["is-old"]]]);
     expect(vm.groups[0]!.rows.map((r) => r.label)).toEqual([
-      "Unread. New: Okanagan River, Region 8, Nov 13. Not on the map yet. Closed to all fishing",
-      "Unread. New: Kaslo River, Region 4, Nov 12. No fishing"]);
-    expect(vm.groups[1]!.rows[0]!.label).toBe("Posted: Slocan River, Region 4, Sep 2, 2025. No fishing");
+      "Unread. New: Okanagan River, Region 8, first seen Nov 13. Not on the map yet. Closed to all fishing",
+      "Unread. New: Kaslo River, Region 4, Nov 1. No fishing"]);
+    expect(vm.groups[0]!.rows.map((r) => r.date)).toEqual(["first seen Nov 13", "Nov 1"]);
+    expect(vm.groups[1]!.rows[0]!.label).toBe("Posted: Slocan River, Region 4, first seen Sep 2, 2025. No fishing");
     expect([vm.unread, vm.empty]).toEqual([2, false]);
     expect(inboxVM(null, "2026-11-13")).toEqual({ groups: [], unread: 0, empty: true });
   });
@@ -152,6 +156,9 @@ describe("(T983) a notice this device met begun is never news again", () => {
     const ok = s2.items.find((i) => i.id === "is-2fa458fef3c3")!;
     expect([ok.read, ok.ended, inboxUnread(s2), inboxMark(s2, ok.id), inboxWantsOpen(s2)]).toEqual([true, null, 0, null, false]);
     expect(inboxVM(s2, "2026-11-21").groups.map((g) => [g.title, g.rows.map((r) => r.tag)])).toEqual([["Earlier", ["Posted", "Posted"]]]);
+    // the notice's own date (the Province's "July 30, 2026"), not the worker's Nov 19
+    expect(inboxVM(s2, "2026-11-21").groups[0]!.rows[0]!.label)
+      .toBe("Posted: Okanagan River, Region 8, Jul 30. No fishing July 30 to September 15.");
   });
 
   it("dropped from the history after its 30 days, then in force again: still not news", () => {
