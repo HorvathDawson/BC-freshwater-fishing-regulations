@@ -37,6 +37,10 @@ export function notesOn(e: ChangelogEntry, os: "android" | "ios" | "web"): reado
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
     version: "0.8.4", date: null, draft: true, notes: [
+      "Licence: a creek under a classified river shows that river's Classified Waters licence, with a note on why it may not apply where the creek has its own line in the book",
+      "Salmon: where two regions' limits mix, each number names its region",
+      "Conditions: the flow estimate always follows Flow, and gauges count as on the water across small unnamed ponds",
+      "iPhone: Save rides above the keyboard on a spot, the map no longer sits off to the side after a swipe back, and swiping photos keeps the buttons",
       "Smaller data updates: town search, river flow charts and the walk downstream from a stream take about 2 MB less to download",
     ],
   },
