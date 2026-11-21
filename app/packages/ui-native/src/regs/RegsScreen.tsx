@@ -21,7 +21,7 @@ import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, u
 import { openProbe } from "@app/data";
 import { AccessibilityInfo, Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
 import { Text } from "../Text";
-import { LEGAL_WORDS, parseSheetKey, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type Line, type RegsPage, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
+import { ALL_SOURCES, ALL_SOURCES_KEY, LEGAL_WORDS, parseSheetKey, withInSeason, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type Line, type RegsPage, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
 import { FreshDot } from "../menu/Fresh";
 import { WaterInset } from "../WaterFrame";
@@ -36,6 +36,7 @@ import { createTabStore, type TabStore } from "./tabStore";
 import { RegsHeader } from "./RegsHeader";
 import { ReadingColumn, RegsSide } from "./RegsWide";
 import { SheetHost } from "./SheetHost";
+import { RegsPress } from "./RegsPress";
 import { recallRegsScroll, rememberRegsScroll } from "./scrollMemory";
 import type { LayoutClass, RegsStart } from "@app/ui";
 import { AnchorContext, useAnchors } from "./useAnchors";
@@ -214,6 +215,8 @@ export function RegsScreen({ page, palette, images, actions, onDate,
   // (T227) a tab whose section is not drawn (Gear / Methods on a day nothing may be fished) is not offered
   const header = useMemo(() => ({ ...page.header, tabs: page.header.tabs.filter((t) =>
     (t.tab !== "gear" || !!gear) && (t.tab !== "methods" || !!methods)) }), [page.header, gear, methods]);
+  // (T990) `src:all` also lists the Province's in-season changes this water shows (the screen's, not the page's)
+  const hostPage = useMemo(() => ({ ...page, sheet: withInSeason(page.sheet, inSeason) }), [page, inSeason]);
   const head = <RegsHeader header={header} palette={palette} tabs={store} onDate={onDate} onTab={toTab} onTerm={(id) => openSheet(`gl:${id}`)}
                            side={layout === "desktop"} nameSource={nameSource} sun={sun} />;
   const sec = (tab: "gear" | "methods" | "licence", slot: Slot) => {
@@ -271,6 +274,14 @@ export function RegsScreen({ page, palette, images, actions, onDate,
           </View>
         )}
       </WaterInset>
+      {/* (T990, owner 2026-11-21: "It will be at bottom of page of regs") the last thing at the end of the scrolled page, same
+          place on every water, just above "Report a problem": every source of the page in one sheet (the sections keep theirs) */}
+      <WaterInset testID="regs-all-sources" style={{ marginTop: 8 }}>
+        <RegsPress testID="regs-all-sources-button" accessibilityRole="button" accessibilityLabel={ALL_SOURCES.ARIA}
+                   onPress={() => openSheet(ALL_SOURCES_KEY)} box={{ w: 44, h: 44 }} style={{ minHeight: 44, justifyContent: "center", alignSelf: "flex-start" }}>
+          <Text style={[TYPE.metaBold, { color: palette.accent }]}>{ALL_SOURCES.BUTTON} ›</Text>
+        </RegsPress>
+      </WaterInset>
       {/* (T41 Q3) once, at the page's foot: the report is about the whole page (it names no tab) */}
       <ReportLink page={page} palette={palette} />
       {/* (owner 2026-10-29) the fish pictures are credited on More → Sources and licences only, not at the page's foot */}
@@ -313,7 +324,7 @@ export function RegsScreen({ page, palette, images, actions, onDate,
           {pageScroll}
         </View>
       ) : pageScroll}
-      <SheetHost page={page} open={sheet} onOpen={openSheet} onClose={() => setSheet(null)} palette={palette} fish={images}
+      <SheetHost page={hostPage} open={sheet} onOpen={openSheet} onClose={() => setSheet(null)} palette={palette} fish={images}
                  onTab={(t) => { setSheet(null); toTab(t); }} onBook={actions.onBook} layout={layout} />
     </View>
     </TermTitles.Provider>

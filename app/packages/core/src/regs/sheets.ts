@@ -27,6 +27,7 @@ import type { TreeTier } from "../answers.generated";
 import { srcSheet, srcsSheet } from "./sheets/sources";
 import { fishSheet } from "./sheets/fish";
 import { otherSheet } from "./sheets/other";
+import { ALL_SOURCES_KEY, allSourcesSheet } from "./sheets/allsources";
 import { TROUT_SOURCES_KEY, troutFishSheet, troutSourcesSheet } from "./sheets/trout";
 import { fmtDay } from "./strip";
 import { tableCovers } from "./others";
@@ -165,6 +166,7 @@ export function sheetOf(ctx: SheetCtx, key: SheetKey): SheetVM | null {
   if (key.startsWith("gl:")) return glossSheet(key, ctx.inp, key.slice(3).split(","));
   if (key === "pos:pos") return possessionSheet(key, ctx);
   if (key === "hatch") return hatchSheet(key, ctx.inp);
+  if (key === ALL_SOURCES_KEY) return allSourcesSheet(ctx);
   if (key.startsWith("srcs:")) return srcsSheet(ctx, key);
   if (key.startsWith("tf:") || key === TROUT_SOURCES_KEY) {
     // (T810 P) the trout table's sheets: only where today's table is drawn (a table, not refused)

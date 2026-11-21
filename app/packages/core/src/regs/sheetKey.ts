@@ -17,7 +17,9 @@ export type SheetKey =
   /** (T810 P) a trout table row's fish sheet: `tf:ST`, `tf:ST/hatchery` (the row key, `model/trout.py` RowKey) */
   | `tf:${string}`
   /** (T810 P) the trout table's every rule (`TroutTable.src`): its "Sources ›" and the fish sheet's "All sources ›" */
-  | "src:trout";
+  | "src:trout"
+  /** (T990) the page's every source, from the button at the Regulations page's foot */
+  | "src:all";
 /** (T810 P) a trout row key after `tf:` (trout.ts ROW_KEY): the "/" of a twin row is part of the key */
 const TF = /^tf:(?:CT|DV|EB|GB|LT|RB|ST)(?:\/(?:wild|hatchery))?$/;
 const SRCS = /^srcs:(?:bait|ways|always|boats|gear|gl\|(?:mode|lines|hook|weight))$/;
@@ -30,7 +32,7 @@ export function parseSheetKey(k: string): SheetKey | null {
   if (/^gl:[a-z0-9_]+(?:,[a-z0-9_]+)*$/.test(k)) return k as SheetKey;
   if (/^sp:[A-Za-z0-9_]+$/.test(k)) return k as SheetKey;
   if (SRCS.test(k)) return k as SheetKey;
-  if (TF.test(k) || k === "src:trout") return k as SheetKey;
+  if (TF.test(k) || k === "src:trout" || k === "src:all") return k as SheetKey;
   if (/^other:o\d+$/.test(k) || /^src:r\d+$/.test(k) || /^share:r\d+$/.test(k) || /^multi:r\d+$/.test(k)) return k as SheetKey;
   return null;   // `licsrc:` (the licence sources sheet) is no key: removed, owner 2026-11-04
 }
