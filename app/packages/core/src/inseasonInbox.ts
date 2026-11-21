@@ -122,7 +122,19 @@ export function inboxMerge(state: InboxState | null, feed: InSeasonFeed,
   const knew = state?.known ? new Set(state.known) : null;
   const was = new Map((state?.items ?? []).map((i) => [i.id, i] as const));
   const rows = new Map(feed.rows.map((r) => [r.id, r] as const));
-  const known = (id: string) => (knew ? knew.has(id) : state !== null && rows.get(id)?.status === "unchanged");
+  // (T983 review) a legacy history knows an "unchanged" row only if it began, or the feed first saw it, by the history's
+  // newest day: the feed's status is against the page before its LAST change, so a notice posted since this phone last
+  // read would pass as met. (The begun date too: the feed's firstSeen can be later than the row's months on the page, the
+  // Okanagan row's Nov 19.) A history with no items has no day to go by and keeps the feed's word.
+  const lastRead = (state?.items ?? []).reduce<string | null>((m, i) => (i.at && (m === null || i.at > m) ? i.at : m), null);
+  const known = (id: string) => {
+    if (knew) return knew.has(id);
+    const r = rows.get(id);
+    if (state === null || r?.status !== "unchanged") return false;
+    if (lastRead === null) return true;
+    const by = (d: string | null | undefined) => { const x = dayOf(d); return x !== null && x <= lastRead; };
+    return by(r.from) || by(r.firstSeen);
+  };
   const removedAt = new Map(feed.removed.map((r) => [r.id, dayOf((r as { removedAt?: string }).removedAt)] as const));
   const current = [...live.matched, ...live.unmatched];
   const liveIds = new Set(current.map((c) => c.id));

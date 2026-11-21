@@ -256,8 +256,6 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
                 )}
               </View>
             )}
-            {/* (T979) PHONE: the report link is the bar's foot, not a row of its own under it (the map takes that height) */}
-            {!split && <View style={{ marginTop: 4 }}>{report}</View>}
           </>
         ) : dt ? (
           <>
@@ -281,6 +279,9 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
             <Text style={{ ...TYPE.body, color: palette.sub }} testID="water-map-status">{d.status}</Text>
           </View>
         )}
+        {/* (T979) PHONE: the report link is the bar's foot, not a row of its own under it (the map takes that height);
+            on EVERY state (review: the tidal, loading and unavailable bars lost it) */}
+        {!split && <View style={{ marginTop: 4 }}>{report}</View>}
         </BarInset>
       </View>
       </>

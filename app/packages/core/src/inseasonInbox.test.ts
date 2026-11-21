@@ -189,6 +189,16 @@ describe("(T983) a notice this device met begun is never news again", () => {
     expect([inboxUnread(s), s.known]).toEqual([1, ["is-2fa458fef3c3", "is-a", "is-n"]]);
   });
 
+  it("(review) a legacy history does not take a notice posted since its last read as met, though the page changed since", () => {
+    const old = JSON.stringify({ format: "inseason-inbox/1", items: [{ id: "is-a", region: "4", water: "Kaslo River",
+      text: "No fishing", effective: "Nov 1, 2026", from: null, to: null, url: SRC, arrived: "new", at: "2026-11-01",
+      waters: ["gnis:1"], read: true, prompted: true, ended: null }] });
+    // posted Nov 10, after this phone's last read; a later page change turned its status to "unchanged"
+    const X = row({ id: "is-x", water: "Duncan River", effective: "Nov 10, 2026", from: "2026-11-10", firstSeen: "2026-11-10T08:00:00Z" });
+    const s = read(parseInbox(old), feed([A, X]), links({ "is-a": ["gnis:1"], "is-x": ["gnis:4"] }), "2026-11-21");
+    expect([s.items.find((i) => i.id === "is-x")!.read, inboxUnread(s), inboxMark(s, "is-x")]).toEqual([false, 1, "new"]);
+  });
+
   it("an amendment the feed links is news even for a known id; a row gone from the page is forgotten", () => {
     const s0 = read(null, feed([A, OK]), L, "2026-11-01");
     const Ad = row({ id: "is-a", effective: "Nov 5, 2026", status: "changed", previous: { change: "No fishing", effective: "Nov 1, 2026" },
