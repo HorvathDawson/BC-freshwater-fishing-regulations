@@ -15,3 +15,6 @@ space".
 On iPhone and Android, the Map tab's map fills the tab with no empty band. The before and after shots are in this ticket.
 
 Depends: —. Size: S. Owner: look at the after shots.
+
+## Owner pick 2026-11-21 (dialog with picture)
+Owner, verbatim: "1 and maybe remove some white space ? Only on mobile does it matter" — option 1: the map fills the free height; exit + report sit in the bar's foot, held height kept only when the water has an exit; trim other white space. Phone layout only.

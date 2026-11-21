@@ -23,3 +23,6 @@ Squamish River, "make the map a lot bigger") is T979.
 
 ## Owner pick 2026-11-21 (#4)
 B (a handle on the date bar to scrub, pan on an axis strip under the chart, pinch zooms, one-finger drag on the chart scrolls the page), owner verbatim: "b but have it also use the hold and drag gesture on top of it" (touch-and-hold anywhere, then drag, also scrubs).
+
+## Owner pick 2026-11-21 (#2)
+Label the mouth end: the map labels "Flows into <water>" at the downstream end of every water with an exit; the mouth's place goes in the release.

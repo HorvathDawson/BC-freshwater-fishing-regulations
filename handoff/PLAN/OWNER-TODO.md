@@ -20,6 +20,8 @@ with the default Claude uses until you answer). Newest first inside each section
 - T709 + T715 (store video): stay postponed.
 - Website "join the Android test" button: leave it as it is; no Google Group (owner, verbatim: "we will just leave join android as it is for now. no google group").
 - Design picks (dialog with pictures, 13:2x): T986 = C filled selected button; T982 #2 = C dot with shade + size + number, no boxes; T982 #3 = B "Far lower than normal" / "Lower than normal" / "Normal" / "Higher than normal" / "Far higher than normal"; T982 #4 = B icon + one word ("Photos" / "Camera"); T985 #4 = B (handle on the date bar to scrub, pan on an axis strip, pinch zooms) "but have it also use the hold and drag gesture on top of it" (owner, verbatim); T982 #6 = after a dismissed/denied first location ask, show a one-line "Show my location" prompt on the map.
+- T979 (dialog with picture): "1 and maybe remove some white space ? Only on mobile does it matter" (owner, verbatim): the map takes the free height, the exit + report rows sit in the bar's foot (held height only where the water has an exit), trim other white space; phone layout only.
+- T985 #2: label the mouth end ("Flows into …" at the downstream end, every water with an exit; the mouth's place goes in the release).
 - Store checks 12:50: TestFlight 0.8.4 (43) external APPROVED, in beta testing; no new TestFlight feedback beyond T982's 6; 5 in-app reports: one is T979, four are T985. Your tester's Trout/Salmon switch note is T986. All join the batch.
 
 ## 2026-11-21 11:24: 0.8.4 promoted to Play Closed testing (owner)
