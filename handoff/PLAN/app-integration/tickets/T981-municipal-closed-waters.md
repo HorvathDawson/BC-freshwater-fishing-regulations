@@ -86,3 +86,12 @@ In 0.8.5. Verbatim: "https://stanleyparkvan.com/stanley-park-van-location-lost-l
   - App: `book.test.ts`.
   - The live bundle was not rebuilt. Lost Lagoon reaches the app with the next data release, whose binding diff will show
     the one new water (attributed: T981).
+
+## Owner 2026-11-21 (answer, source check)
+Claude looked for an official source to replace StanleyParkVan.com. Found:
+- The Parks Control By-law bans fishing only at posted bathing beaches (s.22(f)).
+- The Park Board's Wildlife page (vancouver.ca/parks-recreation-culture/wildlife.aspx) says fishing is permitted except
+  at bathing beaches.
+- No official page closes Lost Lagoon. The Park Board's by-law PDF and its Lost Lagoon page refused automated fetches.
+
+Asked: keep, pull, or keep and say unofficial? Owner: "Keep it, current source". It ships in 0.8.5 as built.
