@@ -9,6 +9,7 @@ import { parseManifest, type Manifest } from "../manifest";
 import type { Db, Row } from "../sql/db";
 import type { ItemId } from "../index";
 import { releaseLoader, type DbName } from "./loader";
+import { encodeDownBlock } from "./packed";
 import { CROSS } from "./queries";
 import { makeReleaseSource } from "./source";
 
@@ -110,7 +111,8 @@ describe("T182: a release with the split files reads each moved table from its o
         asked.push([name, sql]);
         const m = /name = '(\w+)'/.exec(sql);
         if (sql.includes("sqlite_master")) return (tables[name] ?? []).includes(m![1]!) ? [{ x: 1 }] : [];
-        if (sql.includes("FROM section_down")) return p[0] === 5 ? [{ down_sid: 6 }] : [];
+        // (T975) down/2 only: section 5 points to 6, in block 0
+        if (sql.includes("FROM section_down")) return p[0] === 0 ? [{ b: encodeDownBlock(0, [[5, 6, null, null]]) }] : [];
         if (sql.includes("FROM lake_section")) return [{ sid: 7, station: "08MH103" }];
         if (sql.includes("FROM item_section s JOIN item i")) return [{ sid: 7, item_id: "wbk:1" }];
         if (sql.includes("FROM lake_gauge")) return [{ item_id: "wbk:1", station: "08MH090" }];

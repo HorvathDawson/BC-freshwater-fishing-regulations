@@ -11,12 +11,12 @@
    "url": "r-cc200b480be5/access-24ec53f37494.bin.gz"
   },
   "conditions": {
-   "bytes": 94208,
+   "bytes": 73728,
    "format": "conditions/1",
-   "gz": 25695,
+   "gz": 15106,
    "section_handles": "c512dcacaac77da5",
-   "sha256": "87bfa84658b5d3f808d1278ddebf5d8e08c5711b5f66419ad809eece18348fd5",
-   "url": "r-cc200b480be5/conditions-87bfa84658b5.sqlite.gz"
+   "sha256": "e967cbea5d86ad54582a409c611f547d2f101c4212f5d2c9f2e2a99d8e8e0bd6",
+   "url": "r-cc200b480be5/conditions-e967cbea5d86.sqlite.gz"
   },
   "core": {
    "bytes": 196608,
@@ -35,12 +35,12 @@
    "url": "r-cc200b480be5/flow-area-8499017c7f64.bin.gz"
   },
   "near": {
-   "bytes": 57344,
-   "format": "near/1",
-   "gz": 20908,
+   "bytes": 24576,
+   "format": "near/2",
+   "gz": 7955,
    "section_handles": "c512dcacaac77da5",
-   "sha256": "3285084f36fe8d1a00f507eb203105de485b555b2dbc5d853bae5db12ce702c4",
-   "url": "r-cc200b480be5/near-3285084f36fe.sqlite.gz"
+   "sha256": "8db7e2ce7a9ec447ee0558b42e2cf5a24c2387ab8558922d0596f5c4ef738f51",
+   "url": "r-cc200b480be5/near-8db7e2ce7a9e.sqlite.gz"
   },
   "paint": {
    "bytes": 4826,

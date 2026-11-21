@@ -62,6 +62,7 @@ def test_paint_and_flow_area_round_trip():
     # `lead` (paint/2): 08MH016 is its section's own gauge and leads; 08MH001 does not. (T110, paint/4) the record per
     # quantity, discharge then level — distinct values, so a swapped or dropped column fails here
     # (T296, paint/5) `lake`: 08MH016's route to its section crosses a lake; 08MH001's does not
+    # (T679 #16, paint/6) `mostly`: this bundle's `section_no_access` is empty, so no section is mostly inside
     assert d["panel_member"] == [(2, 0, "08MH016", "down", 4840.015, 66, 12, 0, 1, 1, 1),
                                  (7, 0, "08MH001", "up", 12.5, 3, 0, 1, 0, 0, 0)]
     assert d["basin_member"] == [("ADMS", "08MH001", 70.41000366210938, 33, 7), ("BABL", "08MH016", None, 0, 4)]
@@ -72,6 +73,7 @@ def test_paint_and_flow_area_round_trip():
     assert a == {"handles": "0123456789abcdef",
                  "areas": [("permit", "UBC Malcolm Knapp Research Forest"), ("reserve", "Capilano 5"), ("private", "")],
                  "rows": [(4, 2, 1000), (5, 1, 200), (5, 2, 12), (301, 0, 999)]}
+    assert d["mostly"] == []
     with pytest.raises(ValueError, match="not an access/1 file"):
         P.decode_access(b"BCAX\x02" + bytes(8))
     assert P.decode_area(P.encode_area(db), 4) == [1.044, 1.883, 2.659, 64000.5]
@@ -288,8 +290,7 @@ def contract_problems(d: Path, tmp: Path, every_file: bool = True) -> list:
     answers section ALL OR NOTHING — its version in the manifest's `regulations.versions` and the water file's layout,
     its `cell` column and tables in every regs file (`contract.region_tables`), or none of them. `every_file` False: a
     file the release lacks is not counted (the mini release has no `salmon-x`: no section of it lies in no region)."""
-    from pipeline.deliver.release.contract import OPTIONAL, OPTIONAL_SECTION_TABLES, region_tables, written_files
-    FILES = written_files()             # (T686) near / down / climate as `packed.SHIP_PACKED_FORMATS` says
+    from pipeline.deliver.release.contract import FILES, OPTIONAL, OPTIONAL_SECTION_TABLES, region_tables
     m = json.loads((d / "manifest.json").read_text())
     out = []
     built = (set(FILES) - OPTIONAL) | {"flow-small"}     # (T823) `flow-small`: optional to READ, always built
@@ -468,7 +469,7 @@ def test_t182_every_file_has_its_own_gate_and_the_total_is_the_phones(tmp_path):
     assert problems(ok | {"water": {"bytes": 1, "gz": B.SIZE_GATES["water"] + 1}}) == \
         [f"water: {B.SIZE_GATES['water'] + 1:,} B gzip > {B.SIZE_GATES['water']:,}"]
     # the total alone: gated files each under their gate, together over the phone's
-    big = {k: {"bytes": 1, "gz": B.size_gates()[k]} for k in C.FILES}
+    big = {k: {"bytes": 1, "gz": B.SIZE_GATES[k]} for k in C.FILES}
     assert sum(v["gz"] for v in big.values()) > B.OFFLINE_GATE
     assert [p.split(":")[0] for p in problems(big)] == ["offline total"]
 
@@ -586,12 +587,11 @@ def app_paint_fixture() -> dict:
     from pipeline.tests.test_status_index import _tiny
     db = _tiny_bundle()
     status = SI.encode(_tiny())
-    paint, area = P.encode(status, db, version=P.VERSION), P.encode_area(db)   # paint/5 whatever the switch (paint6 below)
-    access = P.encode_access(db, handles=_tiny()["handles"])
-    small = P.encode_small(db, 5.0)
     # (T679 #16) paint/6: the union no-access share decides "mostly inside" (its tiny world agrees with the summed rows)
     db.execute("INSERT INTO section_no_access VALUES (3, 1000), (4, 600), (300, 1000), (5, 20)")
-    paint6 = P.encode(status, db, version=P.MOSTLY_VERSION)
+    paint, area = P.encode(status, db), P.encode_area(db)      # (T975) paint/6, the one form written
+    access = P.encode_access(db, handles=_tiny()["handles"])
+    small = P.encode_small(db, 5.0)
     # (T679 #8) flow-own: sections 3 and 9 have their panel's member 0 on their own water
     db.executescript("CREATE TABLE section_own (sid INTEGER PRIMARY KEY, bits INTEGER NOT NULL);"
                      "INSERT INTO section_own VALUES (3, 1), (9, 1);")
@@ -610,8 +610,8 @@ def app_paint_fixture() -> dict:
             # (T823) flow-small at a ratio that flags some sections and not others in this tiny world (the release's
             # own is `small_water.ratio_for()`; the format does not depend on it)
             "small": base64.b64encode(small).decode(), "smalls": P.decode_small(small, len(d["section_panel"])),
-            # (T679 #16) the same world as paint/6 (written once packed.SHIP_PACKED_FORMATS is on) and its flag
-            "paint6": base64.b64encode(paint6).decode(), "mostly": P.decode(paint6)["mostly"],
+            # (T679 #16) paint/6's one access flag: the sections mostly inside no-access land
+            "mostly": d["mostly"],
             # (T679 #8) flow-own (written once packed.SHIP_OWN_GAUGE_FLAG is on) and its masks
             "own": base64.b64encode(own).decode(), "owns": P.decode_own(own, len(d["section_panel"]))}
 

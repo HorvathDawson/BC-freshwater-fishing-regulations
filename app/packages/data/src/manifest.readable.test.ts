@@ -30,12 +30,25 @@ describe("readsRelease", () => {
       reason: "release r-test is not one this app reads: salmon is salmon/3, not salmon/4" });
   });
 
-  it("takes paint/4 beside the contract's paint/5 (the decoder reads both), and no other paint", () => {
+  it("takes paint/4 beside the contract's paint/6 (the frozen fixture releases' paint), and no other paint", () => {
     const m = release();
+    expect(m.files.paint!.format).toBe("paint/6");
     m.files.paint = spec("paint/4");
     expect(readsRelease(m, "web").ok).toBe(true);
-    m.files.paint = spec("paint/3");
-    expect(readsRelease(m, "web").ok).toBe(false);
+    for (const old of ["paint/3", "paint/5"]) {
+      m.files.paint = spec(old);
+      expect(readsRelease(m, "web").ok).toBe(false);
+    }
+  });
+
+  it("(T975) refuses a release cut before the packed formats: near/1, down/1, climate/1 and paint/5 are not read", () => {
+    const m = release();
+    m.files.near = spec("near/1");
+    m.files.down = spec("down/1");
+    m.files.climate = spec("climate/1");
+    m.files.paint = spec("paint/5");
+    expect(readsRelease(m, "phone")).toEqual({ ok: false, reason: "release r-test is not one this app reads: "
+      + "climate is climate/1, not climate/2; down is down/1, not down/2; near is near/1, not near/2; paint is paint/5, not paint/6" });
   });
 
   it("refuses a PUBLISHED release missing a contract file (the 0.4.0 one had no lines)", () => {

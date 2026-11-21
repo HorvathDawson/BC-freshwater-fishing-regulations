@@ -34,7 +34,7 @@ export interface SectionAccess {
   of(section: SectionKey): readonly AccessRow[];
   /**
    * (T679 #16) paint/6: whether the section is MOSTLY inside no-access land — the pipeline's one decision (its union
-   * share, `bundle.access`), read as it is. Absent (paint/4–5, the `access` file): the summed rows decide, as before.
+   * share, `bundle.access`), read as it is. Absent (paint/4, the `access` file): the summed rows decide, as before.
    */
   mostly?(section: SectionKey): boolean;
 }

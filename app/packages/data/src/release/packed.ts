@@ -9,18 +9,15 @@
  *   down/2      `section_down (block, b)`: one row per 4096 sids; `b` each sid's down_sid, len and lake
  *   clim/3      `gauge_clim.bands` of a climate/2 file: clim/2's float16 bits transposed + delta
  *
- * The app reads the old formats too (`*_ALSO_READS`, the manifest's `readsRelease`): a release cut before T686 (the live
- * one when this app ships, the committed fixture releases) is read the old way, by its manifest's format.
+ * (T975) These are the ONLY forms the app reads: near/1, down/1 and climate/1 (clim/2 blobs) were retired once the
+ * packed formats were live (data release 0.8.5, oldest supported app 0.8.4). A release naming an old form is refused by
+ * the manifest's `readsRelease` and never opened (`boot.ts`, T403: a held one is installed over before the map opens).
  */
 
 export const NEAR_FORMAT = "near/2";
 export const DOWN_FORMAT = "down/2";
 export const CLIMATE_FORMAT = "climate/2";
 export const CLIM_CODEC = "clim/3";
-/** The older formats this app still reads (the manifest's ALSO_READS; pipeline/tools/emit/app_reads.py reads these). */
-export const NEAR_ALSO_READS: readonly string[] = ["near/1"];
-export const DOWN_ALSO_READS: readonly string[] = ["down/1"];
-export const CLIMATE_ALSO_READS: readonly string[] = ["climate/1"];
 
 export const DOWN_BLOCK_BITS = 12;
 const CKM_MAX = 2500;
@@ -108,8 +105,8 @@ export function encodeNear(rows: readonly (readonly [number, number])[]): Uint8A
 }
 
 /**
- * EVERY town's waters, inverted: per water ord, the towns it comes near (`place`, `ckm`) — what near/1 answered by a
- * scan (`RINGS_FOR_ORDS`, `TOWNS_FOR_ORDS`). Built once from all the blobs; typed arrays, ~2.4 MB for 392k pairs.
+ * EVERY town's waters, inverted: per water ord, the towns it comes near (`place`, `ckm`) — what near/1 once answered
+ * by a scan. Built once from all the blobs; typed arrays, ~2.4 MB for 392k pairs.
  */
 export interface NearByOrd {
   /** The towns of water `ord`, as [from, to) into `place` / `ckm` (in town order: place_id ascending). */

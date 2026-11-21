@@ -63,32 +63,10 @@ def region_tables(sections=()) -> dict:
 #: never shows a carried unit as a plain requirement. Absent: no "may need" note anywhere.
 OPTIONAL = frozenset({"lakes", "flow-small", "flow-own", "cw-through"})
 
-#: (T686, owner 2026-11-20 09:59: "Ship readers now, formats later") THE OLD FORMS of the switched files: what a
-#: release WRITES while `packed.SHIP_PACKED_FORMATS` is off (`written_files`). `FILES` below stays the app's contract (the
-#: packed forms; app 0.8.4 reads these too, `ALSO_READS`).
-UNPACKED = {
-    # (T679 #16, the same switch, owner 2026-11-20 10:00: every left-over on this release) paint/5, no access flag
-    "paint": {"format": PAINT.FORMAT, "kind": "bin", "tables": {}},
-    "near": {"format": "near/1", "kind": "sqlite", "tables": {
-        "meta": ["k", "v"], "place_water": ["place_id", "ckm", "ord"]}},
-    "down": {"format": "down/1", "kind": "sqlite", "tables": {
-        "meta": ["k", "v"], "section_down": ["sid", "down_sid", "len", "lake"]}},
-    "climate": {"format": "climate/1", "kind": "sqlite", "tables": {
-        "meta": ["k", "v"], "gauge_clim": ["station", "parameter", "bands"]}},
-}
-
-
-def written_files(packed: bool | None = None) -> dict:
-    """The files a release writes: `FILES`, with the three packed ones in their old form (`UNPACKED`) unless `packed`
-    (default: `packed.SHIP_PACKED_FORMATS`, read at call time)."""
-    on = PACKED.SHIP_PACKED_FORMATS if packed is None else packed
-    return dict(FILES) if on else {**FILES, **UNPACKED}
-
-
 #: {file: {"format", "kind": "sqlite" | "bin", "tables": {table: [columns]}}}
 FILES = {
-    # (T679 #16) paint/6 (+ the one access flag), written once `packed.SHIP_PACKED_FORMATS` is on (`UNPACKED`: paint/5)
-    "paint": {"format": PAINT.MOSTLY_FORMAT, "kind": "bin", "tables": {}},
+    # (T679 #16) paint/6 (+ the one access flag); (T975) the only paint form a release writes
+    "paint": {"format": PAINT.FORMAT, "kind": "bin", "tables": {}},
     "flow-area": {"format": PAINT.AREA_FORMAT, "kind": "bin", "tables": {}},
     # (T823) per paint section, which of its panel's members drain so much more than it that their reading carries the
     # small-water warning (the conditions meta's `small_water_text`): pipeline/gauges/consume/small_water.py
@@ -151,8 +129,7 @@ FILES = {
         # finds no places (the app asks `HAS_CUT_PLACE` first)
         "cut_place": ["ord", "words", "alt", "generic", "blk", "m", "lon", "lat"]}},
     # (T686) near/2: one row per town, its waters packed (`packed.py`: ords ascending as gaps, then ckm as byte planes).
-    # near/1 was (place_id, ckm, ord), one row per town and water; the app still reads it (`NEAR_READS`), so an app
-    # built from this contract opens a release cut before it
+    # near/1 was (place_id, ckm, ord), one row per town and water; (T975) no longer written or read
     "near": {"format": PACKED.NEAR_FORMAT, "kind": "sqlite", "tables": {
         "meta": ["k", "v"], "place_water": PACKED.NEAR_COLUMNS}},
     # (T182) the tables T129 measured riding in a file a moment did not otherwise need moved into files of their own:
@@ -178,11 +155,11 @@ FILES = {
         "basin_frame": ["w", "s", "dlon", "dlat", "cols", "rows"],
         "basin_grid": ["row", "b"]}},
     # (T686) down/2: blocks of 4096 sids (`packed.py`), each row's down_sid, len and lake inside. down/1 was (sid,
-    # down_sid, len, lake) per row (`len` T252, `lake` T296 additive in it); the app still reads it (`DOWN_READS`)
+    # down_sid, len, lake) per row (`len` T252, `lake` T296 additive in it); (T975) no longer written or read
     "down": {"format": PACKED.DOWN_FORMAT, "kind": "sqlite", "tables": {
         "meta": ["k", "v"], "section_down": PACKED.DOWN_COLUMNS}},
     # (T686) climate/2: the same table, `bands` clim/3 (clim/2's float16 bits transposed + delta, `packed.py`).
-    # climate/1 carried clim/2; the app still reads it (`CLIMATE_READS`)
+    # climate/1 carried clim/2 as it is; (T975) no longer written or read
     "climate": {"format": PACKED.CLIMATE_FORMAT, "kind": "sqlite", "tables": {
         "meta": ["k", "v"], "gauge_clim": ["station", "parameter", "bands"]}},
     # (T517) geo/2: a part is one connected run numbered in river order, so `part_stretch` is gone and `rank` (always
@@ -304,7 +281,7 @@ UNITS = {
     "flow-small": "flow-small/1: 'BCFS', u8 1, one LEB128 varint per paint section (sid order) = bitmask over its panel's "
                   "members by ord: bit i set where member i drains at least the conditions meta's small_water_ratio times "
                   "the section's target area (show small_water_text beside that member's reading)",
-    "paint": "paint/6 (paint/5 while packed.SHIP_PACKED_FORMATS is off): see pipeline/deliver/release/paint.py",
+    "paint": "paint/6: see pipeline/deliver/release/paint.py",
     "flow-own": "flow-own/1: 'BCFO', u8 1, one LEB128 varint per paint section (sid order) = bitmask over its panel's "
                 "members by ord: bit i set where member i stands on the section's own water (along the water, across a "
                 "water_continue, a lake on the way ends it: the bundle's section_own)",

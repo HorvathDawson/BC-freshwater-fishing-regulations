@@ -1,6 +1,6 @@
-"""PAINT (P08, MINIMAL-PACKAGING §2): the one file a web reader needs before the first coloured map. Format `paint/5`:
+"""PAINT (P08, MINIMAL-PACKAGING §2): the one file a web reader needs before the first coloured map. Format `paint/6`:
 
-    "BCPT"  u8 version (5)
+    "BCPT"  u8 version (6)
     u32le   n, then the status index (BCSI v2, `pipeline.deliver.status_index`), exactly the bytes of status_index.bin
     the FLOW half, every column a run of LEB128 varints unless said otherwise:
       stations   u32le byte length, then the station ids sorted, UTF-8, joined by "\\n" (the index every column uses)
@@ -20,6 +20,10 @@
                  `pipeline.deliver.bundle.access.TIERS`), name byte length, then the name's UTF-8 ("" for a nameless one)
       rows       count; then THREE COLUMNS of `count` varints, rows in (sid, area) order: sid gap (sid - the previous
                  row's sid, 0 for a second area of one section), area index, permille (1..1000)
+    (T679 #16) THE ONE ACCESS FLAG, after the access half:
+      mostly     count; then per section in sid order, sid gap (sid - the previous one's, the first from 0): the sections
+                 MOSTLY inside no-access land by the bundle's UNION share (`section_no_access.permille` >
+                 `bundle.access.MOSTLY_INSIDE_PERMILLE`) — the app's fourth colour and banner read it, never summing rows
 
 THE GENTLER TIERS (permit / reserve / private, `FILE_TIERS`) ARE NOT HERE: only a Regulations page reads them, and they
 are 144,596 rows (224 KB gzip) against paint's 1 MB gate. They are the file `access` (`access/1`: "BCAX", u8 version 1,
@@ -33,17 +37,12 @@ column beside paint's runs, 0.19 MB.
 `decode` is the reference decoder, and `test_release.py` proves it reproduces `section_panel`, `panel_member` and
 `basin_member` row for row, and the status half byte for byte.
 
-(T679 #16) paint/6 = paint/5 + one more column after the access half, THE ONE ACCESS FLAG:
-      mostly     count; then per section in sid order, sid gap (sid - the previous one's, the first from 0): the sections
-                 MOSTLY inside no-access land by the bundle's UNION share (`section_no_access.permille` >
-                 `bundle.access.MOSTLY_INSIDE_PERMILLE`) — the app's fourth colour and banner read it, never summing rows
-written only while `packed.SHIP_PACKED_FORMATS` is on (it switches on with the packed formats, owner 2026-11-20); off,
-paint/5 byte for byte.
-
 paint/1 had no `lead`, paint/2 no access half, paint/3 one `years` per member and basin row (the longest record, or
-the last one read) where paint/4 carries the record per quantity, paint/4 no member `lake` (T296); a reader refuses
-another version by its version byte (the app reads 4 and 5; an older app refuses 5, so a release carrying it is
-published with `minAppVersion` — the app says "update the app" and keeps its data).
+the last one read) where paint/4 carries the record per quantity, paint/4 no member `lake` (T296), paint/5 no `mostly`
+column (paint/6 = paint/5 + that column, T679 #16, shipped with the packed formats in the 0.8.5 data release). A reader
+refuses another version by its version byte; (T975) only paint/6 is written, and the app reads 6 (and 4, for its frozen
+fixture releases). An older app refuses 6, so a release carrying it is published with `minAppVersion` — the app says
+"update the app" and keeps its data.
 """
 from __future__ import annotations
 
@@ -55,17 +54,9 @@ from pipeline.deliver.binary import put_varint, read_varint
 from pipeline.deliver.bundle.access import TIERS as ACCESS_TIERS
 
 MAGIC = b"BCPT"
-VERSION = 5
-FORMAT = "paint/5"
-#: (T679 #16) paint/6: + the sections mostly inside no-access land (module doc); written behind the T686 switch
-MOSTLY_VERSION = 6
-MOSTLY_FORMAT = "paint/6"
-
-
-def written_version() -> int:
-    """The paint version a release writes: 6 once `packed.SHIP_PACKED_FORMATS` is on, else 5 (call time)."""
-    from pipeline.deliver.release import packed as PACKED
-    return MOSTLY_VERSION if PACKED.SHIP_PACKED_FORMATS else VERSION
+#: (T679 #16) paint/6: paint/5 + the sections mostly inside no-access land (module doc); (T975) the only one written
+VERSION = 6
+FORMAT = "paint/6"
 
 #: Which access tiers ride in paint (the colour and the banner), and which in the `access` file (the gentle note).
 PAINT_TIERS: Tuple[str, ...] = ("no_access",)
@@ -95,15 +86,12 @@ def _milli(x) -> int:
     return int(round(float(x) * 1000))
 
 
-def encode(status_index: bytes, bundle: sqlite3.Connection, version: int | None = None) -> bytes:
-    """paint/5, or (T679 #16) paint/6 with the one access flag; `version` None: `written_version()` (the switch)."""
-    version = written_version() if version is None else version
-    if version not in (VERSION, MOSTLY_VERSION):
-        raise ValueError(f"paint: no writer for version {version}")
+def encode(status_index: bytes, bundle: sqlite3.Connection) -> bytes:
+    """paint/6 (module doc): the flow half, the no-access half and (T679 #16) the one access flag."""
     stations = [s for (s,) in bundle.execute("SELECT station FROM gauge ORDER BY station")]
     six = {s: i for i, s in enumerate(stations)}
     out = bytearray(MAGIC)
-    out.append(version)
+    out.append(VERSION)
     out += struct.pack("<I", len(status_index)) + status_index
     names = "\n".join(stations).encode("utf-8")
     out += struct.pack("<I", len(names)) + names
@@ -147,13 +135,12 @@ def encode(status_index: bytes, bundle: sqlite3.Connection, version: int | None 
         _uv(out, dy)
         _uv(out, ly)
     out += access_half(bundle, PAINT_TIERS)
-    if version == MOSTLY_VERSION:
-        out += mostly_column(bundle)
+    out += mostly_column(bundle)
     return bytes(out)
 
 
 def mostly_column(bundle: sqlite3.Connection) -> bytes:
-    """(T679 #16) paint/6's last column: the sections whose UNION no-access share is over half (`section_no_access`, the
+    """(T679 #16) paint's last column: the sections whose UNION no-access share is over half (`section_no_access`, the
     bundle's one decision; `access.MOSTLY_INSIDE_PERMILLE`). A bundle without the table is refused."""
     from pipeline.deliver.bundle.access import MOSTLY_INSIDE_PERMILLE
     if not bundle.execute("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'section_no_access'").fetchone():
@@ -319,8 +306,8 @@ def decode_own(b: bytes, n: int) -> List[int]:
 def decode(b: bytes) -> Dict[str, object]:
     """{status: bytes, stations, section_panel: [(sid, panel_id)], panel_member: [...], basin_member: [...],
     access: {areas: [(tier, name)], rows: [(sid, area, permille)]}}"""
-    if b[:4] != MAGIC or b[4] not in (VERSION, MOSTLY_VERSION):
-        raise ValueError(f"paint: not a {FORMAT} or {MOSTLY_FORMAT} file")
+    if b[:4] != MAGIC or b[4] != VERSION:
+        raise ValueError(f"paint: not a {FORMAT} file")
     (n,) = struct.unpack_from("<I", b, 5)
     status = b[9:9 + n]
     r = _Reader(b, 9 + n)
@@ -348,14 +335,11 @@ def decode(b: bytes) -> Dict[str, object]:
         dy = r.uv()
         basin_member.append((bid, stations[si], area, dy, r.uv()))
     access = _read_access(r)
-    mostly = None
-    if b[4] == MOSTLY_VERSION:
-        mostly, prev = [], 0
-        for _ in range(r.uv()):
-            prev += r.uv()
-            mostly.append(prev)
+    mostly, prev = [], 0
+    for _ in range(r.uv()):
+        prev += r.uv()
+        mostly.append(prev)
     if r.i != len(b):
         raise ValueError(f"paint: {len(b) - r.i} trailing bytes")
     return {"status": status, "stations": stations, "section_panel": section_panel,
-            "panel_member": panel_member, "basin_member": basin_member, "access": access,
-            **({"mostly": mostly} if mostly is not None else {})}
+            "panel_member": panel_member, "basin_member": basin_member, "access": access, "mostly": mostly}

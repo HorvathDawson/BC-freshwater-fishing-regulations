@@ -7,8 +7,9 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { clim3, decodeDownBlock, decodeNear, downSlot, encodeDownBlock, encodeNear, invertNear, unclim3,
-         type DownRow } from "../packages/data/src/release/packed";
+import { CLIMATE_FORMAT, clim3, decodeDownBlock, decodeNear, DOWN_FORMAT, downSlot, encodeDownBlock, encodeNear,
+         invertNear, NEAR_FORMAT, unclim3, type DownRow } from "../packages/data/src/release/packed";
+import { PACK_FILES } from "../packages/data/src/pack.generated";
 import { pentadsOf } from "../packages/data/src/sql/shared";
 
 const fx = JSON.parse(readFileSync(join(__dirname, "../packages/data/dev/packed-parity.json"), "utf8")) as {
@@ -18,6 +19,13 @@ const fx = JSON.parse(readFileSync(join(__dirname, "../packages/data/dev/packed-
 };
 const hex = (b: Uint8Array) => Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
 const bytes = (h: string) => Uint8Array.from(h.match(/../g) ?? [], (x) => parseInt(x, 16));
+
+describe("(T975) the decoders' formats are the contract's, the only ones read", () => {
+  it("near, down and climate: the release contract names exactly the packed formats these decode", () => {
+    expect([PACK_FILES.near!.format, PACK_FILES.down!.format, PACK_FILES.climate!.format])
+      .toEqual([NEAR_FORMAT, DOWN_FORMAT, CLIMATE_FORMAT]);
+  });
+});
 
 describe("near/2 parity with the pipeline writer (T686)", () => {
   it("encodeNear writes the pipeline's bytes; the pipeline's blob reads back in (ckm, ord) order", () => {
