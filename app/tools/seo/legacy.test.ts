@@ -34,13 +34,13 @@ describe("v1 redirects on the fixture release", () => {
   let built: Built;
   const FIXTURE_OLD = ["w-one", "w-two", "gone-with-region", "gone-region-text", "unknown"];
   beforeAll(async () => {
-    const probe = await buildAll({ loader: openRegsFixture(), on: TODAY });
+    const probe = await buildAll({ loader: openRegsFixture(), on: TODAY, bare: true });
     const [a, b] = probe.build.models;
     const crosswalk: Crosswalk = {
       "w-one": [a!.id], "w-two": ["nope:1", b!.id, "r3"], "gone-with-region": ["nope:2", `r${a!.region}`],
       "gone-region-text": String(a!.region), "unknown": null,
     };
-    built = await buildAll({ loader: openRegsFixture(), on: TODAY, crosswalk });
+    built = await buildAll({ loader: openRegsFixture(), on: TODAY, crosswalk, bare: true });
   }, 240_000);
 
   it("every v1 path is one 301 to a page that was built (no chain, no 404)", () => {

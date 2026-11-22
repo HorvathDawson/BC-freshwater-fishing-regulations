@@ -17,7 +17,7 @@ const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " "
 let built: Built, rows: GaugeRows, ids: string[];
 
 beforeAll(async () => {
-  const probe = await buildAll({ loader: openRegsFixture(), on: TODAY, gauges: null });
+  const probe = await buildAll({ loader: openRegsFixture(), on: TODAY, gauges: null, bare: true });
   ids = probe.build.models.slice(0, 4).map((m) => m.id);
   rows = {
     gauges: [

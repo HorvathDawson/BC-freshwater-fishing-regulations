@@ -13,7 +13,7 @@ import { appSiteAssociationFile, assetLinksFile, headersFile } from "./hosting";
 import { openInAppControl } from "./gauges";
 
 let built: Built;
-beforeAll(async () => { built = await buildAll({ loader: openRegsFixture(), on: TODAY, gauges: null }); }, 300_000);
+beforeAll(async () => { built = await buildAll({ loader: openRegsFixture(), on: TODAY, gauges: null, bare: true }); }, 300_000);
 
 describe("T625 assetlinks.json", () => {
   it("the site build writes it, naming the app's package and the Play app-signing fingerprint the owner recorded", () => {
@@ -52,7 +52,7 @@ describe("T625 assetlinks.json", () => {
 describe("T724 apple-app-site-association", () => {
   const TEAM = "ABCDE12345";   // a test value, never a real account
   it("with a Team ID the site build writes it: appID <team>.<bundle>, the same pages as the Android filter, JSON headers", async () => {
-    const withIos = await buildAll({ loader: openRegsFixture(), on: TODAY, gauges: null, iosTeamId: TEAM });
+    const withIos = await buildAll({ loader: openRegsFixture(), on: TODAY, gauges: null, iosTeamId: TEAM, bare: true });
     const text = withIos.files.get(".well-known/apple-app-site-association")!;
     expect(text).toBe(appSiteAssociationFile(TEAM));
     expect(JSON.parse(text)).toEqual({ applinks: { details: [{ appIDs: ["ABCDE12345.ca.canifishthis.app"], components: [{ "/": "/water/*" }, { "/": "/" }] }] } });

@@ -337,8 +337,12 @@ def backend_mods(monkeypatch):
 
 def test_pages_render_from_many_threads_at_once(backend_mods):
     """PDFIUM IS NOT THREAD-SAFE and FastAPI serves these routes from a thread pool: the screen asks
-    for a crop and a page at once. Every render holds `synopsis_pages.PDFIUM_LOCK`."""
+    for a crop and a page at once. Every render holds `synopsis_pages.PDFIUM_LOCK`.
+    (T866) The printed -> PDF page map is read once first: left cold, all 8 threads read every footer at once (pdfplumber,
+    no pdfium, under the GIL), 73 of the test's 83 s. The renders race the same with it warm: with the lock removed, every
+    thread fails on both routes, at scale 1.0 and 0.25 alike (2026-11-22: 10 of 10 runs; this test failed 5 of 5)."""
     evidence, pages = backend_mods
+    assert pages.printed_to_pdf()
     assert _render_in_threads(lambda n: evidence._render.__wrapped__(n, 1.0)) == []
     assert _render_in_threads(lambda n: pages.page_png.__wrapped__(n + 2, 1.0)) == []
 
