@@ -2,7 +2,7 @@
  * (T420) THE MAP LAB: live A/B switches for judging map performance ON THE OWNER'S PHONE, where the GPU and fill costs
  * the emulator cannot show are real. Each switch changes one thing; flipping it back restores today's map exactly.
  *
- * NEVER IN PRODUCTION (owner/builder 2026-11-06, COORD-068; T476 owner 2026-11-07): on in a development or staging build,
+ * NEVER IN PRODUCTION (owner/builder 2026-11-06, COORD-068, git show caf593bb6:handoff/PLAN/COORD-068.md; T476 owner 2026-11-07): on in a development or staging build,
  * i.e. any build that does not say `EXPO_PUBLIC_APP_ENV=production` (production must be named: a build never defaults to it).
  * No flag, no tap-code, no runtime unlock. It is the gate of the Developer card (T476) as a whole. The switches last for
  * the session only — module state, never saved — so a restart is today's map.

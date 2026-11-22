@@ -22,7 +22,7 @@ if (production && !process.env.EXPO_PUBLIC_CONTACT?.trim()) {
   throw new Error("app.config.js: a production build needs EXPO_PUBLIC_CONTACT (support@canifishthis.ca; eas.json sets it)");
 }
 
-// (T420) the map lab is a staging/test-bed tool (COORD-068): a production build carrying its flag is not made
+// (T420) the map lab is a staging/test-bed tool (COORD-068: git show caf593bb6:handoff/PLAN/COORD-068.md): a production build carrying its flag is not made
 if (production && process.env.EXPO_PUBLIC_MAP_LAB) {
   throw new Error("app.config.js: EXPO_PUBLIC_MAP_LAB is for staging and test-bed builds only; unset it for production");
 }
