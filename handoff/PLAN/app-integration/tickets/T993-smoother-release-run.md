@@ -80,3 +80,21 @@ T661 item 3), faster suites (T866, T931, T736, T485 step 3). Plus, verbatim: "Yo
 basic audit for non standard practices or issues with the flow of data etc. we want to make our code production
 level. Also clean up gha workflows and make sure we just waste less time with bad ci/cd of failed runs." The audit is
 T994; the GitHub Actions cleanup (fewer failed and wasted runs) is in this ticket's inventory.
+
+## Inventory done 2026-11-21 (read-only agent)
+Report: `handoff/PLAN/audit-2026-11-21/t993-inventory.md` (process inventory, 30-day GitHub Actions waste, every 0.8.4 /
+0.8.5 stop traced to the check that should have caught it, the gate glossary for T992, a 17-item ranked plan).
+Headlines: app-ci is 71 % of Actions time; 210 of its runs (1,578 min) were docs-only pushes run for the ticket guard;
+one failing app-ci step skips the worker suite and bundles (it hid 0.8.5 stop 4 for 20.9 h); the rehearsal sees stages
+4-5 only on a built candidate and the minimum app is never derived (stops 2, 3, 5, 7, 8, 9 were post-build only);
+heavy.sh does not run fast-fail though five places say it does.
+
+Lanes (plan item numbers):
+- **G1 GitHub workflows:** 1 (ledger guard own job), 3 (app-ci parallel jobs, no masking), 12 (flakes, TZ), 13
+  (housekeeping, partial clone); with T994 findings 6, 7.
+- **G2 release command:** 2 (derive minimum app pre-build), 4 (three-step rehearsal), 7 (one before-push command,
+  T791 #2; the hook stays the owner's call), 8 (auto-accept renumber-only + attributable diffs), 9 (size headroom),
+  15 (no duplicate runs), 16 (data tier on the candidate, T791 #4); T788 #2, #8, #10.
+- **G3 deploy gates:** 14; T788 #1, #4, #5, #11; T994 findings 9, 10, 18, 19, 20, 28.
+- **After T978 lands:** 5 (heavy.sh gate, T661 #3), 6 (tests never read machine state: T777, T792 B), 10 (T768), T866,
+  T987, then 11 (the one human runbook + the T992 explanation), last, once the code settles; 17 with T485 / T736.
