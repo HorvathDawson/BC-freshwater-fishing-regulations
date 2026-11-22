@@ -205,21 +205,16 @@ def test_the_roster_shown_is_the_default_path_for_the_default_file():
     assert pub.roster_shown(Path(CUSTOM)) == CUSTOM
 
 
-def test_update_hydat_ends_with_the_upload_step():
-    # T68: the script used to stop at the bundle; the new release has to reach R2 before any app reads it. The step
-    # after the build prints the upload plan (spends nothing, sends nothing) and the exact command; it uploads only
-    # when the owner asked with --upload, and then through the release publisher, which reads R2_* from the env.
+def test_update_hydat_ends_with_the_release_command_and_uploads_nothing():
+    # T68 made the new release reach R2 from this script (`--upload` -> `release.publish --yes`, to whatever R2_BUCKET
+    # named, past every deploy gate). (T994 #1) The script now uploads nothing: after the build (the release waits in
+    # CANDIDATE) it prints the one release path, `pipeline release --staging`; production stays the owner's `--prod`.
     text = (Path(__file__).resolve().parents[2] / pub.HYDAT_ACTION).read_text()
     body = text[text.index("set -euo pipefail"):]
-    build = body.index("scripts/heavy.sh build 40 -- $PY -m pipeline build")
-    plan = body.index('$PY -m pipeline.deliver.release.publish --release "$REL"\n')
-    upload = body.index('$PY -m pipeline.deliver.release.publish --release "$REL" --yes')
-    assert build < plan < upload
-    # the only --yes sits behind the owner's flag
-    assert body.count("pipeline.deliver.release.publish --release \"$REL\" --yes") == 1
-    gate = body.rindex('if [ "$UPLOAD" = 1 ]', 0, upload)
-    assert build < gate < upload
-    assert "R2_ACCOUNT_ID R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY R2_BUCKET" in body
+    build = body.index("scripts/heavy.sh build 40 -- $PY -m pipeline build --hold-latest")
+    hand = body.index("$PY -m pipeline release --staging")
+    assert build < hand
+    assert "pipeline.deliver.release.publish" not in body and "boto3" not in body and "R2_BUCKET" not in body
 
 
 def test_update_hydat_parses():

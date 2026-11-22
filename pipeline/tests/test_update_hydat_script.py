@@ -13,7 +13,6 @@ import os
 import shutil
 import stat
 import subprocess
-import sys
 from pathlib import Path
 
 import pytest
@@ -26,13 +25,14 @@ here=$(pwd); echo "${here#$TREE}|$*" >> "$TREE/log"
 case "$*" in
   *"fetch_data.py --layers hydat"*) [ -n "$LANDS" ] && printf %s "$LANDS" > source/hydat.release ;;
   *hydat_latest_release*) printf '%s\\n' "$LISTED" ;;
-  # (T156) step 5 asks THE release on disk: answered by the real `manifest.latest` over the sandbox's data/release
-  *"pipeline.deliver.release.manifest import latest"*) PYTHONPATH="$REPO" exec "$REAL_PY" "$@" ;;
 esac
 exit 0
 """
 HEAVY_STUB = """#!/usr/bin/env bash
 echo "heavy|$*" >> "$TREE/log"
+# the build with --hold-latest names its release in CANDIDATE (LATEST untouched); BUILT empty = it named none
+if [ -n "${BUILT:-}" ]; then printf '%s\\n' "$BUILT" > data/release/CANDIDATE; fi
+exit 0
 """
 
 
@@ -50,12 +50,11 @@ def tree(tmp_path):
     _exe(tmp_path / "scripts/heavy.sh", HEAVY_STUB)
     (tmp_path / "data/source").mkdir(parents=True)
     (tmp_path / "data/source/hydat.release").write_text("20260717")
-    # (T68) step 5 uploads the NEWEST release by time: r-old is made second but its manifest is dated older.
-    # (T156) a release is a folder holding a manifest (`manifest.latest`); without one the script says "no release"
+    # the live release (LATEST) and the one the build makes (named in CANDIDATE by the heavy stub)
     for rel in ("r-new", "r-old"):
         (tmp_path / f"data/release/{rel}").mkdir(parents=True)
         (tmp_path / f"data/release/{rel}/manifest.json").write_text("{}")
-    os.utime(tmp_path / "data/release/r-old/manifest.json", (1_000_000, 1_000_000))
+    (tmp_path / "data/release/LATEST").write_text("r-old\n")
     return tmp_path
 
 
@@ -65,8 +64,7 @@ R2 = ("R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET")
 def _run(tree: Path, lands: str, listed: str, *args: str, r2: bool = False, **env) -> subprocess.CompletedProcess:
     # the owner's own R2 credentials never reach a test run; `r2` sets dummies (the stubs send nothing)
     e = {**{k: v for k, v in os.environ.items() if k not in R2}, "TREE": str(tree), "LANDS": lands, "LISTED": listed,
-         "REPO": str(ROOT), "REAL_PY": sys.executable,
-         **({k: "x" for k in R2} if r2 else {}), **env}
+         "BUILT": "r-new", **({k: "x" for k in R2} if r2 else {}), **env}
     return subprocess.run(["bash", str(tree / "scripts/update-hydat.sh"), *args], env=e, capture_output=True,
                           text=True)
 
@@ -74,9 +72,7 @@ def _run(tree: Path, lands: str, listed: str, *args: str, r2: bool = False, **en
 def _log(tree: Path) -> list[str]:
     lines = (tree / "log").read_text().splitlines()
     # the listing check is a python -c one-liner: pin that it asks hydat_latest_release, not its exact text
-    # and so is the release lookup: pin that it asks `manifest.latest`
-    return ["|-c <latest>" if "|-c " in ln and "hydat_latest_release" in ln
-            else "|-c <release>" if "|-c " in ln and "manifest import latest" in ln else ln for ln in lines]
+    return ["|-c <latest>" if "|-c " in ln and "hydat_latest_release" in ln else ln for ln in lines]
 
 
 def test_a_new_hydat_reruns_every_consumer_in_order_on_the_served_feed(tree):
@@ -86,12 +82,12 @@ def test_a_new_hydat_reruns_every_consumer_in_order_on_the_served_feed(tree):
         "/data|fetch_data.py --layers hydat",
         "|-c <latest>",
         f"|-m pipeline.gauges.feed.climatology --hydat data/source/hydat.sqlite3 --out {SERVED}/clim.json",
-        "heavy|build 40 -- .venv/bin/python -m pipeline build",
-        "|-c <release>",
-        # (T68) step 4 without --upload: the publisher's PLAN of the newest release; nothing is sent
-        "|-m pipeline.deliver.release.publish --release data/release/r-new",
+        # (T994 #1) the release waits in CANDIDATE for the release command's checks; nothing after the build runs
+        "heavy|build 40 -- .venv/bin/python -m pipeline build --hold-latest",
     ]
-    assert "  .venv/bin/python -m pipeline.deliver.release.publish --release data/release/r-new --yes" in r.stdout
+    assert "release r-new waits in data/release/CANDIDATE, NOT uploaded" in r.stdout
+    assert "       .venv/bin/python -m pipeline release --staging" in r.stdout
+    assert (tree / "data/release/LATEST").read_text() == "r-old\n"
 
 
 def test_another_feed_dir_is_not_honoured(tree):
@@ -125,40 +121,31 @@ def test_an_unreadable_listing_stops_before_any_rebuild(tree):
     assert "could not read the HYDAT listing" in r.stderr
 
 
-# T68 review: the R2 upload step, run.
-PLAN = "|-m pipeline.deliver.release.publish --release data/release/r-new"
-
-
-def test_upload_sends_the_planned_release_once_after_the_build(tree):
+# T994 #1: the script uploads nothing. Its old `--upload` sent the release to whatever R2_BUCKET named, past every
+# deploy gate (`pipeline.deliver.release.publish --yes`). Mutation: put the publish call back -> both tests fail.
+def test_upload_is_refused_and_runs_nothing(tree):
     r = _run(tree, "20261020", "20261020", "--upload", r2=True)
-    assert r.returncode == 0, r.stderr
-    log = _log(tree)
-    # boto3 is checked up front AND again right before the send (the credentials are checked both times too)
-    assert log[0] == "|-c import boto3"
-    assert log[-5:] == ["heavy|build 40 -- .venv/bin/python -m pipeline build", "|-c <release>", PLAN, "|-c import boto3",
-                        PLAN + " --yes"]
-    assert "release uploaded to R2 (data/release/r-new)" in r.stdout
-
-
-def test_upload_without_credentials_stops_before_any_work(tree):
-    r = _run(tree, "20261020", "20261020", "--upload")
-    assert r.returncode == 1
+    assert r.returncode == 2
     assert not (tree / "log").exists()
-    assert "--upload: R2_ACCOUNT_ID is not set; nothing uploaded." in r.stderr
+    assert "--upload is gone (T994 #1)" in r.stderr and "pipeline release --staging" in r.stderr
+
+
+def test_no_publisher_runs_even_with_r2_credentials_set(tree):
+    r = _run(tree, "20261020", "20261020", r2=True)
+    assert r.returncode == 0, r.stderr
+    assert not any("pipeline.deliver.release.publish" in ln or "boto3" in ln for ln in _log(tree))
+    assert "--yes" not in r.stdout
 
 
 def test_an_unknown_flag_is_usage_and_runs_nothing(tree):
     r = _run(tree, "20261020", "20261020", "--yes")
     assert r.returncode == 2
     assert not (tree / "log").exists()
-    assert "usage: scripts/update-hydat.sh [--upload]" in r.stderr
+    assert "usage: scripts/update-hydat.sh" in r.stderr
 
 
 def test_no_release_after_the_build_says_so(tree):
-    # the build wrote no release: the script must SAY it (under `set -euo pipefail` an empty `ls` glob used to end
-    # the script silently, exit 1 and no word, right after the half-hour build)
-    shutil.rmtree(tree / "data/release")
-    r = _run(tree, "20261020", "20261020")
+    # the build named no release: the script must SAY it (never end silently right after the half-hour build)
+    r = _run(tree, "20261020", "20261020", BUILT="")
     assert r.returncode == 1
-    assert "no release under data/release; nothing to upload." in r.stderr
-    assert not any("pipeline.deliver.release.publish" in ln for ln in _log(tree))
+    assert "the build named no release in data/release/CANDIDATE; nothing to hand over." in r.stderr

@@ -866,8 +866,9 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
 
 ## Runbook: upstream updates the owner runs
 
-64. **A newer HYDAT: `scripts/update-hydat.sh`** (fetch HYDAT → rebuild `clim.json` into the feed dir → `pipeline build`
-    through `scripts/heavy.sh`; T557: no feed republish — the feeds worker is the one gauge publisher and re-ranks once
+64. **A newer HYDAT: `scripts/update-hydat.sh`** (fetch HYDAT → rebuild `clim.json` into the feed dir → `pipeline build
+    --hold-latest` through `scripts/heavy.sh` → it prints `pipeline release --staging`; T994 #1: it uploads nothing, the
+    release command is the only way a release reaches R2; T557: no feed republish — the feeds worker is the one gauge publisher and re-ranks once
     clim.json is on R2; `pipeline/gauges/feed/publish.py` is its parity spec and the local dev feed only). Every feed run checks HYDAT's listing and ECCC's
     real-time list and writes what is due into `index.json` `maintenance` (`{kind, since, current, latest, action}`;
     kinds `hydat`, `roster`; `action` is the exact command); a notice clears itself on the next run once current ==

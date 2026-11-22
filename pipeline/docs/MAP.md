@@ -26,7 +26,9 @@ a copy of the live release's reach run → `pipeline build --hold-latest` via he
 against the live release) → follows (T666, `pipeline/release_follows.py`: the in-season matches, the app's fixtures
 re-cut and the tests that read the release, all on the candidate) → LATEST → `deploy/staging/upload.sh`. Preflight
 lists every failure at once; `--dry-run` rehearses every stage's checks. Its ledger is `data/generated/release/ledger.json`;
-`--prod <r-id>` (human-only) re-uploads that same release through `deliver/release/publish.py`. After the production pointer moves,
+`--prod <r-id>` (human-only) re-uploads that same release through `deploy/prod/upload.sh` (T404: it promotes what staging
+serves). `deliver/release/publish.py` is the upload's PLAN only (`plan`, the order; T994 #1: it sends nothing, `--yes` is
+refused), and `scripts/update-hydat.sh` uploads nothing either. After the production pointer moves,
 `deploy/prod/upload.sh` prunes the bucket (T865, `deliver/release/prod_prune.py`): release-scoped objects neither pointer
 names (the v1 layout only by `deploy/prod/drop-v1.sh`, at the switch).
 
