@@ -939,7 +939,8 @@ export default {
       if (!/^[0-9a-f]{16}$/.test(id)) return new Response("id must be the report's 16 hex characters", { status: 400 });
       if (!env.BACKUP) return Response.json({ ok: false, error: "no BACKUP binding: the backup copies were not deleted" }, { status: 500 });
       try {
-        const r = await forgetReport(env.BUCKET as unknown as SrcBucket & { delete(k: string): Promise<void> }, env.BACKUP, id, new Date());
+        const r = await forgetReport(env.BUCKET as unknown as SrcBucket & { delete(k: string): Promise<void> }, env.BACKUP, id, new Date(),
+                                     r2Store(env.BUCKET, STATUS_PREFIX));
         return Response.json({ ok: true, id, ...r });
       } catch (e) {
         return Response.json({ ok: false, id, error: String((e as Error)?.message ?? e) }, { status: 500 });

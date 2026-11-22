@@ -105,11 +105,14 @@ def test_nothing_due_sends_nothing_even_when_off(tmp_path, capsys, monkeypatch):
     assert capsys.readouterr().out == ""
 
 
-def test_an_unreadable_state_file_resends_rather_than_crashing(tmp_path):
+def test_an_unreadable_state_file_sends_nothing_and_says_so(tmp_path):
+    # (T994 #26) it re-sent every reminder; now nothing is sent and `error` names the file (test_feed_state_reads.py)
     out = tmp_path / "feeds"
     notify.state_path(out).write_text("{not json")
     send = Sender()
-    assert notify.send_due([HYDAT], out, url="u", sender=send)["sent"] == ["hydat:20261020"]
+    got = notify.send_due([HYDAT], out, url="u", sender=send)
+    assert (got["sent"], got["failed"], send.sent) == ([], ["hydat:20261020"], [])
+    assert "feeds.notified.json is stored but does not parse" in got["error"]
 
 
 def test_the_body_shape_follows_the_url():

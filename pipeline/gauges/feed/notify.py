@@ -25,6 +25,8 @@ import urllib.request
 from pathlib import Path
 from typing import Callable
 
+from pipeline.common.curated_write import atomic_write
+
 ENV = "FEED_NOTIFY_URL"
 TIMEOUT = 15
 
@@ -75,11 +77,21 @@ def post(url: str, text: str) -> None:
 
 
 def _sent(path: Path) -> list[str]:
-    try:
-        got = json.loads(path.read_text(encoding="utf-8")).get("sent")
-        return [str(k) for k in got] if isinstance(got, list) else []
-    except Exception:                                           # noqa: BLE001 — missing or unreadable: none sent
+    """The keys already sent: none ONLY when there is no file. (T994 #26) One that cannot be read, does not parse or
+    holds no `sent` list RAISES naming it: read as "none sent", every notice went to the owner again. The worker's twin
+    (`app/workers/feeds/src/notify.ts` sendDue) answers the same on the shared fixture
+    (`app/workers/feeds/test/fixtures/state-reads.json`)."""
+    if not path.exists():
         return []
+    text = path.read_text(encoding="utf-8")
+    try:
+        got = json.loads(text)
+    except ValueError as exc:
+        raise ValueError(f"{path.name} is stored but does not parse ({exc})") from exc
+    sent = got.get("sent") if isinstance(got, dict) else None
+    if not isinstance(sent, list):
+        raise ValueError(f"{path.name} holds no sent list")
+    return [str(k) for k in sent]
 
 
 def send_due(notices: list[dict], out: Path, url: str | None = None, sender: Sender | None = None, *,
@@ -88,6 +100,8 @@ def send_due(notices: list[dict], out: Path, url: str | None = None, sender: Sen
 
     `url` defaults to FEED_NOTIFY_URL; `sender` to `post` (tests inject one). `key_of` / `message_of` let another
     feed (the DFO salmon feed, T211) send its own notices through the same dedupe and webhook shapes.
+    (T994 #26) A sent-keys file that does not read sends NOTHING: every due key is `failed`, and `error` (printed) says
+    why. What was sent is recorded atomically, so a torn write cannot be left behind.
     """
     url = url if url is not None else os.environ.get(ENV) or None
     if not url:
@@ -97,7 +111,12 @@ def send_due(notices: list[dict], out: Path, url: str | None = None, sender: Sen
         return {"sent": [], "failed": [], "off": True}
     send = sender or post
     path = state_path(out)
-    done = _sent(path)
+    try:
+        done = _sent(path)
+    except (OSError, ValueError) as exc:
+        error = f"notify: {exc}; nothing sent this run (what was sent before is unknown: fix or delete it)"
+        print(f"  {error}", file=sys.stderr)
+        return {"sent": [], "failed": list(dict.fromkeys(key_of(n) for n in notices)), "off": False, "error": error}
     sent: list[str] = []
     failed: list[str] = []
     for n in notices:
@@ -112,7 +131,23 @@ def send_due(notices: list[dict], out: Path, url: str | None = None, sender: Sen
             print(f"  notify: {k} not sent ({exc}); retried next run", file=sys.stderr)
     if sent:
         try:
-            path.write_text(json.dumps({"sent": done + sent}), encoding="utf-8")
+            # (a failed record is printed: the keys may be sent again, never lost)
+            atomic_write(path, json.dumps({"sent": done + sent}))
         except Exception as exc:                                # noqa: BLE001
             print(f"  notify: could not record what was sent ({exc}); it may be sent again", file=sys.stderr)
     return {"sent": sent, "failed": failed, "off": False}
+
+
+class NotifyStateError(RuntimeError):
+    """The sent-keys file did not read: no reminder was sent, and the run fails saying so."""
+
+
+def send_due_checked(notices: list[dict], out: Path, url: str | None = None, sender: Sender | None = None, *,
+                     key_of: Callable[[dict], str] = key, message_of: Callable[[dict], str] = message) -> dict:
+    """(T994 #26, review) What every feed calls: `send_due`, and a sent-keys file that did not read RAISES after the send
+    was skipped, so the run fails and says why (its feed is already written) and the owner's reminders never stop with
+    only a printed line. The worker's twin is `sendDueChecked` (app/workers/feeds/src/notify.ts)."""
+    got = send_due(notices, out, url, sender, key_of=key_of, message_of=message_of)
+    if got.get("error"):
+        raise NotifyStateError(f"{got['error']}. The feed was written; the reminders wait until the file is fixed or deleted")
+    return got

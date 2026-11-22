@@ -844,7 +844,7 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
         return {"index": index, "unplaced": unplaced, "notices": notices, "sent": None, "previews": previews}
     _write(out / "index.json", index)
     _write(out / "unplaced.json", sorted(unplaced, key=lambda u: (u["region"], u["fingerprint"])))
-    sent = notify.send_due(notices, out, url=notify_url, sender=sender, key_of=notice_key, message_of=notice_text)
+    sent = notify.send_due_checked(notices, out, url=notify_url, sender=sender, key_of=notice_key, message_of=notice_text)
     return {"index": index, "unplaced": unplaced, "notices": notices, "sent": sent, "previews": previews}
 
 

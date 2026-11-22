@@ -16,7 +16,7 @@
 // (wrangler.toml [[ratelimits]], 1 per 10 s per IP at the edge) as the cheap first gate when it is bound.
 // PRIVACY: what is stored is the payload and the time it arrived — no IP, no User-Agent, no country.
 import type { FeedEvent } from "./events";
-import type { R2BucketLike } from "./io";
+import { jsonResponse, readJsonBody, type R2BucketLike } from "./io";
 
 export const REPORTS_PREFIX = "private/reports/";
 /** (T291) reports a TOOL sent (the test bed, smoke runs) carry `test: true` and are stored apart: not in the digest, not in the
@@ -85,8 +85,7 @@ export const CORS: Record<string, string> = {
   "Access-Control-Allow-Headers": "Content-Type",
   "Access-Control-Max-Age": "86400",
 };
-const json = (body: unknown, status: number) =>
-  new Response(JSON.stringify(body), { status, headers: { ...CORS, "Content-Type": "application/json", "Cache-Control": "no-store" } });
+const json = (body: unknown, status: number) => jsonResponse(body, status, CORS);
 
 /** The payload, checked and normalised — or the reason it is refused (a 400 the app shows, never queued). */
 export function validateReport(raw: unknown): { ok: true; report: Omit<StoredReport, "received"> } | { ok: false; error: string } {
@@ -178,7 +177,17 @@ export async function dailyTotal(bucket: R2BucketLike, limitsPrefix: string, now
 export async function capEvents(bucket: R2BucketLike, now: Date, at: string): Promise<FeedEvent[]> {
   const out: FeedEvent[] = [];
   const days2 = [0, 1].map((i) => new Date(now.getTime() - i * 86_400_000).toISOString().slice(0, 10));
-  for (const [what, prefix, cap] of [["problem reports", LIMIT_PREFIXES[0], REPORTS_PER_DAY_TOTAL], ["new error kinds", LIMIT_PREFIXES[1], CRASH_KINDS_PER_DAY_TOTAL]] as const) {
+  // [what, its limits prefix, the cap, the route refused, what the app does with a refusal, where to look]
+  const CAPS = [
+    ["problem reports", LIMIT_PREFIXES[0], REPORTS_PER_DAY_TOTAL, "report", "The app keeps a refused report and sends it again later",
+     `GET /reports?since=<day> (Bearer RUN_TOKEN)`],
+    ["new error kinds", LIMIT_PREFIXES[1], CRASH_KINDS_PER_DAY_TOTAL, "crash", "The app keeps a refused report and sends it again later",
+     `GET /crashes?since=<day> (Bearer RUN_TOKEN)`],
+    // (T994 #25) new push tokens: junk from rotating addresses would fill the token store and take send slots
+    ["new push tokens", LIMIT_PREFIXES[2], PUSH_NEW_TOKENS_PER_DAY_TOTAL, "push/register", "A refused iPhone registers again at its next start",
+     "the token store (wrangler r2 object list on private/push/tokens/, newest first)"],
+  ] as const;
+  for (const [what, prefix, cap, route, kept, look] of CAPS) {
     for (const day of days2) {
       const o = await bucket.get(totalKey(prefix, day));
       if (!o) continue;
@@ -186,9 +195,9 @@ export async function capEvents(bucket: R2BucketLike, now: Date, at: string): Pr
       if (!t.capped) continue;
       out.push({ key: `cap:${prefix}:${day}`, kind: "health", urgent: true, at,
         title: `${day}: the day's limit of ${cap} ${what} was reached at ${t.capped}`,
-        text: `POST /${what === "problem reports" ? "report" : "crash"} refused everything past ${cap} ${what} on ${day} (UTC), from ${t.capped}: someone is ` +
-          `probably flooding it. The app keeps a refused report and sends it again later; nothing real is lost unless it lasts.\n\n` +
-          `Look: GET /${what === "problem reports" ? "reports" : "crashes"}?since=${day} (Bearer RUN_TOKEN) and wrangler tail on the feeds worker.` });
+        text: `POST /${route} refused everything past ${cap} ${what} on ${day} (UTC), from ${t.capped}: someone is ` +
+          `probably flooding it. ${kept}; nothing real is lost unless it lasts.\n\n` +
+          `Look: ${look.replace("<day>", day)} and wrangler tail on the feeds worker.` });
     }
   }
   return out;
@@ -200,28 +209,10 @@ export const TEST_TOTAL_PREFIX = (limitsPrefix: string) => `${limitsPrefix}test-
 
 /** (T609 W1) at most this many NEW error kinds stored a day (a repeat of a known kind adds no object) */
 export const CRASH_KINDS_PER_DAY_TOTAL = 500;
-
-/**
- * (T609 W11) The body as text, read with a BYTE cap: null when it is longer than `max` bytes (UTF-8), however it was
- * sent (no Content-Length, or a false one). The old check counted characters after reading everything.
- */
-export async function readCapped(req: Request, max: number): Promise<string | null> {
-  if (!req.body) return "";
-  const reader = req.body.getReader();
-  const parts: Uint8Array[] = [];
-  let n = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    n += value.byteLength;
-    if (n > max) { await reader.cancel().catch(() => {}); return null; }
-    parts.push(value);
-  }
-  const all = new Uint8Array(n);
-  let o = 0;
-  for (const p of parts) { all.set(p, o); o += p.byteLength; }
-  return new TextDecoder("utf-8", { fatal: true }).decode(all);
-}
+/** (T994 #25) at most this many NEW push tokens stored a day, from everyone (a phone registering its known token again,
+ *  every 7 days or on an address change, adds no object and is not counted). Push's own cap lives here beside the
+ *  others so `capEvents` can name it (push.ts imports reports.ts, never the other way) */
+export const PUSH_NEW_TOKENS_PER_DAY_TOTAL = 1_000;
 
 export async function sha256hex(s: string): Promise<string> {
   const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
@@ -270,22 +261,9 @@ export const reportKey = (day: string, id: string) => `${REPORTS_PREFIX}${day}/$
 export async function handleReport(req: Request, env: ReportEnv, now: Date = new Date()): Promise<Response> {
   const unset = noSalt(env);
   if (unset) return unset;
-  const len = Number(req.headers.get("Content-Length") ?? NaN);
-  if (Number.isFinite(len) && len > LIMITS.bytes) return json({ ok: false, error: "report too large" }, 413);
-  let raw: string | null;
-  try {
-    raw = await readCapped(req, LIMITS.bytes);
-  } catch {
-    return json({ ok: false, error: "unreadable body" }, 400);
-  }
-  if (raw === null) return json({ ok: false, error: "report too large" }, 413);
-  let body: unknown;
-  try {
-    body = JSON.parse(raw);
-  } catch {
-    return json({ ok: false, error: "not JSON" }, 400);
-  }
-  const v = validateReport(body);
+  const b = await readJsonBody(req, LIMITS.bytes, "report too large");
+  if (!b.ok) return json({ ok: false, error: b.error }, b.status);
+  const v = validateReport(b.body);
   if (!v.ok) return json({ ok: false, error: v.error }, 400);
   const day = now.toISOString().slice(0, 10);
   // (T291) the tag counts on staging only; anywhere else it is dropped and the report is an ordinary one

@@ -250,14 +250,10 @@ async function publishFeed(
   pageChanged: boolean,
   now: Date,
 ): Promise<InSeasonResult["feed"]> {
-  let prev: InSeasonFeed | null = null;
-  try {
-    const t = await deps.feed!.get("index.json");
-    prev = t === null ? null : JSON.parse(t);
-    if (prev && prev.format !== FEED_FORMAT) prev = null;
-  } catch {
-    prev = null;
-  }
+  // (T994 #4) absent, or another format, is a first feed; a failed read or a body that does not parse THROWS (readStored):
+  // read as "first run" it restamped every changedAt, dropped the removed history and skipped the links guard below
+  let prev = await readStored<InSeasonFeed>(deps.feed!, "index.json");
+  if (prev && prev.format !== FEED_FORMAT) prev = null;
   // (T520) the true matched / unmatched counts: the curated links beside this file. Unreadable links are a FAILED run
   // (shown on the status page), never a feed claiming every row unmatched
   // (T609 W14) a MISSING links file once a feed has been published is a failed run too: published, every notice would

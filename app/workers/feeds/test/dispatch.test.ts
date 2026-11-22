@@ -207,4 +207,30 @@ describe("(T413) the token check", async () => {
     expect(await checkToken({ GITHUB_DISPATCH_TOKEN: "bad" }, async () => Response.json({ message: "Bad credentials" }, { status: 401 })))
       .toEqual({ ok: false, status: 401, says: "Bad credentials" });
   });
+  // T994 #30: a network error threw out of the route, a bare 500 instead of the {ok: false} its siblings answer
+  it("a network error is an answer that says so, never a throw", async () => {
+    expect(await checkToken({ GITHUB_DISPATCH_TOKEN: "t" }, async () => { throw new TypeError("fetch failed"); }))
+      .toEqual({ ok: false, status: null, says: "GitHub not reached: fetch failed" });
+  });
+});
+
+// T994 #30: the JSON answer and the capped body read were copied into each public route; one copy now (io.ts)
+describe("the public routes share one body reader and one JSON answer (T994 #30)", () => {
+  it("reports.ts, crashes.ts and push.ts build no Response of their own and read no body themselves", async () => {
+    const { readFileSync } = await import("node:fs");
+    for (const f of ["reports", "crashes", "push"]) {
+      const src = readFileSync(new URL(`../src/${f}.ts`, import.meta.url), "utf-8");
+      expect(src, f).not.toMatch(/new Response\(JSON\.stringify/);
+      expect(src, f).not.toMatch(/readCapped\(|JSON\.parse\(raw\)/);
+      expect(src, f).toMatch(/readJsonBody\(req, /);
+    }
+  });
+  it("readJsonBody: a declared or a real body over the cap is 413, junk is 400, JSON is the value", async () => {
+    const { readJsonBody } = await import("../src/io");
+    const post = (body: string, h: Record<string, string> = {}) => new Request("https://w/x", { method: "POST", body, headers: h });
+    expect(await readJsonBody(post("{}", { "Content-Length": "99" }), 10, "too large")).toEqual({ ok: false, error: "too large", status: 413 });
+    expect(await readJsonBody(post('{"a":"' + "x".repeat(20) + '"}'), 10, "too large")).toEqual({ ok: false, error: "too large", status: 413 });
+    expect(await readJsonBody(post("{nope"), 100, "too large")).toEqual({ ok: false, error: "not JSON", status: 400 });
+    expect(await readJsonBody(post('{"a":1}'), 100, "too large")).toEqual({ ok: true, body: { a: 1 } });
+  });
 });

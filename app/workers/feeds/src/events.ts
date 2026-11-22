@@ -69,6 +69,14 @@ export interface NotifyState {
   lastDigest: string | null;
 }
 export const NOTIFY_STATE = "notify/state.json";
+/**
+ * (T994 #3) The event kinds whose text is what a person sent: a problem report's words (and its install id, its place), an
+ * error kind's message and stack. Queued in `pending` until the digest, they are personal data under the privacy page's
+ * dates (180 days for a report, 90 for an error kind), so a BACKUP copy of the outbox never holds them (backup.ts
+ * `scrubOutbox`; monthly/ copies live 400 days). Nothing is lost on a restore: an event that is neither told nor pending
+ * is raised again from its stored record (`reportEvents`, `crashEvents`).
+ */
+export const PERSONAL_EVENT_KINDS: readonly EventKind[] = ["report", "crash"];
 const FORGET_MS = 366 * 86_400_000;
 const KIND_TITLE: Record<EventKind, string> = {
   card: "Gauge share cards",
@@ -261,6 +269,20 @@ export async function deliver(
     throw new Error(`notify: the outbox was not written (${e instanceof Error ? e.message : String(e)}); messages may repeat`);
   }
   return res;
+}
+
+/**
+ * (T994 #3) Take one queued event out of the outbox, unsent: a report deleted on request (backup.ts `forgetReport`) is not
+ * emailed afterwards from the queue. true = it was queued. Written over the state read (etag), merged as `deliver` merges;
+ * an outbox that cannot be read or written THROWS.
+ */
+export async function dropPending(store: Store, key: string): Promise<boolean> {
+  const { st, etag } = await readStateAt(store);
+  if (!st.pending.some((e) => e.key === key)) return false;
+  const orig: NotifyState = JSON.parse(JSON.stringify(st));
+  st.pending = st.pending.filter((e) => e.key !== key);
+  await writeMerged(store, NOTIFY_STATE, st, etag, (fresh) => mergeState(checkState(fresh), orig, st), { contentType: "application/json" });
+  return true;
 }
 
 /** One clearly-labelled test message through the configured channel (POST /notify/test): no dedupe, no state. */

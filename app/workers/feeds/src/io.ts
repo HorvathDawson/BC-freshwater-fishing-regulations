@@ -216,3 +216,45 @@ export async function loadManifest(priv: Store, key: string): Promise<WriteManif
     return {};
   }
 }
+
+// ── the public routes' answers and bodies (T994 #30: one copy; it was repeated in reports.ts, crashes.ts, push.ts) ────
+
+/** A JSON answer, never cached; `headers` adds the route's own (CORS on POST /report and /crash). */
+export const jsonResponse = (body: unknown, status: number, headers: Record<string, string> = {}): Response =>
+  new Response(JSON.stringify(body), { status, headers: { ...headers, "Content-Type": "application/json", "Cache-Control": "no-store" } });
+
+/**
+ * (T609 W11) The body as text, read with a BYTE cap: null when it is longer than `max` bytes (UTF-8), however it was
+ * sent (no Content-Length, or a false one). The old check counted characters after reading everything.
+ */
+export async function readCapped(req: Request, max: number): Promise<string | null> {
+  if (!req.body) return "";
+  const reader = req.body.getReader();
+  const parts: Uint8Array[] = [];
+  let n = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    n += value.byteLength;
+    if (n > max) { await reader.cancel().catch(() => {}); return null; }
+    parts.push(value);
+  }
+  const all = new Uint8Array(n);
+  let o = 0;
+  for (const p of parts) { all.set(p, o); o += p.byteLength; }
+  return new TextDecoder("utf-8", { fatal: true }).decode(all);
+}
+
+/**
+ * A public route's JSON body: refused 413 (`tooLarge`) on a Content-Length or a body over `max` bytes, 400 when it cannot
+ * be read as UTF-8 or is not JSON; else the parsed value, its shape still to check. The route answers a refusal as is.
+ */
+export async function readJsonBody(req: Request, max: number, tooLarge: string):
+    Promise<{ ok: true; body: unknown } | { ok: false; error: string; status: 400 | 413 }> {
+  const len = Number(req.headers.get("Content-Length") ?? NaN);
+  if (Number.isFinite(len) && len > max) return { ok: false, error: tooLarge, status: 413 };
+  let raw: string | null;
+  try { raw = await readCapped(req, max); } catch { return { ok: false, error: "unreadable body", status: 400 }; }
+  if (raw === null) return { ok: false, error: tooLarge, status: 413 };
+  try { return { ok: true, body: JSON.parse(raw) }; } catch { return { ok: false, error: "not JSON", status: 400 }; }
+}

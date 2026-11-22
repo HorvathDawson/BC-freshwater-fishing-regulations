@@ -40,7 +40,7 @@ export interface SendDueOptions {
 export async function sendDue(
   notices: Notice[],
   o: SendDueOptions,
-): Promise<{ sent: string[]; failed: string[]; off: boolean }> {
+): Promise<{ sent: string[]; failed: string[]; off: boolean; error?: string }> {
   const log = o.log ?? (() => {});
   const keyOf = o.keyOf ?? key;
   const messageOf = o.messageOf ?? message;
@@ -48,12 +48,22 @@ export async function sendDue(
     if (notices.length) log(`notify: off (FEED_NOTIFY_URL unset); ${notices.length} notice${notices.length !== 1 ? "s" : ""}`);
     return { sent: [], failed: [], off: true };
   }
-  let done: string[] = [];
+  // (T994 #26) the sent keys: none ONLY when no state is stored. One that cannot be read, does not parse or holds no
+  // `sent` list sends NOTHING this run and says so (`error`): read as "none sent", every notice went to the owner again.
+  // publish.py's twin (notify.send_due) does the same on the shared fixture (test/fixtures/state-reads.json).
+  let done: string[];
   try {
-    const got = JSON.parse((await o.state.get(o.stateKey)) ?? "{}").sent;
-    if (Array.isArray(got)) done = got.map(String);
-  } catch {
-    done = [];
+    const t = await o.state.get(o.stateKey);
+    let got: { sent?: unknown } = { sent: [] };
+    if (t !== null) {
+      try { got = JSON.parse(t); } catch (e) { throw new Error(`${o.stateKey} is stored but does not parse (${e instanceof Error ? e.message : String(e)})`); }
+    }
+    if (!got || typeof got !== "object" || !Array.isArray(got.sent)) throw new Error(`${o.stateKey} holds no sent list`);
+    done = got.sent.map(String);
+  } catch (e) {
+    const error = `notify: ${e instanceof Error ? e.message : String(e)}; nothing sent this run (what was sent before is unknown: fix or delete it)`;
+    log(error);
+    return { sent: [], failed: [...new Set(notices.map(keyOf))], off: false, error };
   }
   const sent: string[] = [];
   const failed: string[] = [];
@@ -82,4 +92,15 @@ export async function sendDue(
     }
   }
   return { sent, failed, off: false };
+}
+
+/**
+ * (T994 #26, review) What every feed calls: `sendDue`, and a sent-keys state that did not read THROWS after the send was
+ * skipped — the run fails and says why (its feed is already written), so the owner's reminders never stop with only a
+ * log line. A failed send stays a `failed` key, retried next run. publish.py / live.py call notify.py's twin.
+ */
+export async function sendDueChecked(notices: Notice[], o: SendDueOptions): Promise<{ sent: string[]; failed: string[]; off: boolean }> {
+  const r = await sendDue(notices, o);
+  if (r.error) throw new Error(`${r.error}. The feed was written; the reminders wait until the file is fixed or deleted`);
+  return r;
 }

@@ -21,8 +21,8 @@
 // Stored at private/push/tokens/<sha256(token)>.json — never backed up (backup.ts `personalKind`: "never"): a lost store
 // is rebuilt by the phones: one with notifications on registers its token again when it changed, or when its last
 // register is over PUSH_REFRESH_MS (7 days) old (packages/data notify/push.ts).
-import type { R2BucketLike } from "./io";
-import { LIMIT_PREFIXES, listKeys, rateLimit, readCapped, sha256hex, noSalt, type ReportEnv } from "./reports";
+import { jsonResponse, readJsonBody, type R2BucketLike } from "./io";
+import { dailyTotal, LIMIT_PREFIXES, listKeys, PUSH_NEW_TOKENS_PER_DAY_TOTAL, rateLimit, sha256hex, noSalt, type ReportEnv } from "./reports";
 
 export const PUSH_PREFIX = "private/push/";
 export const TOKENS_PREFIX = `${PUSH_PREFIX}tokens/`;
@@ -60,7 +60,8 @@ export interface PushEnv extends ReportEnv {
  * environment or our address changed, or once its last register is 7 days old (review 2026-11-20, L1: it was every
  * app start, and phones behind one address relaunching together on a wake met the 2 s gap), plus a switch turned on or
  * off. Over the limit the app is answered 429, waits once, then says "pending" and registers again at its next start.
- * Unregister is counted the same way.
+ * Unregister is counted the same way. (T994 #25) A NEW token also counts against PUSH_NEW_TOKENS_PER_DAY_TOTAL from
+ * everyone; reaching it tells the owner once (reports.ts `capEvents`).
  */
 export const PUSH_GAP_MS = 2_000;
 export const PUSH_PER_DAY = 200;
@@ -70,8 +71,7 @@ const PARALLEL = 20;
 /** first errors kept per platform in the status */
 const KEEP_ERRORS = 5;
 
-const json = (body: unknown, status: number) =>
-  new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
+const json = jsonResponse;
 
 /** The payload, checked — or why it is refused (a 400). APNs tokens are hex (32 bytes today). Android is refused (no push). */
 export function validatePush(raw: unknown): { ok: true; platform: PushPlatform; token: string; env: PushEnvName } | { ok: false; error: string } {
@@ -96,12 +96,9 @@ export const tokenKey = async (token: string) => `${TOKENS_PREFIX}${(await sha25
 export async function handlePush(req: Request, env: PushEnv, action: "register" | "unregister", now: Date = new Date()): Promise<Response> {
   const unset = noSalt(env);
   if (unset) return unset;
-  let raw: string | null;
-  try { raw = await readCapped(req, MAX_BODY); } catch { return json({ ok: false, error: "unreadable body" }, 400); }
-  if (raw === null) return json({ ok: false, error: "too large" }, 413);
-  let body: unknown;
-  try { body = JSON.parse(raw); } catch { return json({ ok: false, error: "not JSON" }, 400); }
-  const v = validatePush(body);
+  const b = await readJsonBody(req, MAX_BODY, "too large");
+  if (!b.ok) return json({ ok: false, error: b.error }, b.status);
+  const v = validatePush(b.body);
   if (!v.ok) return json({ ok: false, error: v.error }, 400);
   const ip = req.headers.get("CF-Connecting-IP") ?? "unknown";
   let refused: string | null;
@@ -113,6 +110,19 @@ export async function handlePush(req: Request, env: PushEnv, action: "register" 
   }
   if (refused) return json({ ok: false, error: refused.replace("reports", "changes") }, 429);
   const key = await tokenKey(v.token);
+  if (action === "register") {
+    // (T994 #25) a NEW token counts against the day's total from everyone (the per-address limit alone let rotating
+    // addresses fill the store with junk that takes send slots ahead of real phones); a known one re-registering does not.
+    // A total or a token that cannot be read is a 503, never "not counted"
+    let full: string | null = null;
+    try {
+      if ((await env.BUCKET.head(key)) === null) full = await dailyTotal(env.BUCKET, PUSH_LIMITS_PREFIX, now, PUSH_NEW_TOKENS_PER_DAY_TOTAL);
+    } catch (e) {
+      console.error(JSON.stringify({ job: "push", totalError: String(e) }));
+      return json({ ok: false, error: "could not count" }, 503);
+    }
+    if (full) return json({ ok: false, error: "too many new phones today; try again tomorrow" }, 429);
+  }
   try {
     if (action === "unregister") { await env.BUCKET.delete(key); return json({ ok: true }, 200); }
     const rec: PushRecord = { format: "push-token/1", platform: v.platform, token: v.token, env: v.env, at: now.toISOString() };
@@ -154,6 +164,38 @@ export async function apnsJwt(e: { APNS_KEY: string; APNS_KEY_ID: string; APNS_T
   const key = await crypto.subtle.importKey("pkcs8", pemBytes(e.APNS_KEY), { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"]);
   return signJwt({ alg: "ES256", kid: e.APNS_KEY_ID }, { iss: e.APNS_TEAM_ID, iat: Math.floor(now.getTime() / 1000) }, key,
                  { name: "ECDSA", hash: "SHA-256" });
+}
+
+/**
+ * (T994 #23) THE PROVIDER TOKEN IS KEPT BETWEEN WAKES. Apple: refresh it "no more than once every 20 minutes and no less
+ * than once every 60" — a token made more often is answered 429 TooManyProviderTokenUpdates. Wakes come from runs 10 min
+ * apart (the :05 / :15 / :35 / :45 crons, hand runs), so one token a wake broke that rule and each refusal counted against
+ * RELEASE_WAKE_TRIES. It is kept at APNS_JWT_KEY (never backed up: backup.ts `personalKind`) and reused while it is under
+ * APNS_JWT_REUSE_S old and was made with the same key id and team; APNs calling it expired or invalid drops it.
+ */
+export const APNS_JWT_KEY = `${PUSH_PREFIX}apns-jwt.json`;
+/** reuse for 50 minutes: past the 20-minute floor, inside APNs' one-hour life */
+export const APNS_JWT_REUSE_S = 50 * 60;
+interface KeptJwt { format: "apns-jwt/1"; kid: string; iss: string; iat: number; jwt: string }
+type ApnsSecrets = { APNS_KEY: string; APNS_KEY_ID: string; APNS_TEAM_ID: string };
+
+/** The provider token to send with: the kept one while it may be reused, else a new one (then kept). A kept record that
+ *  does not parse is our own cache: said in the log, replaced by a new token. A failed read or write THROWS. */
+export async function apnsProviderToken(bucket: R2BucketLike, e: ApnsSecrets, now: Date): Promise<{ jwt: string; minted: boolean }> {
+  const t = Math.floor(now.getTime() / 1000);
+  const o = await bucket.get(APNS_JWT_KEY);
+  if (o) {
+    let k: Partial<KeptJwt> | null = null;
+    try { k = JSON.parse(await o.text()); } catch (err) {
+      console.error(JSON.stringify({ job: "push", apnsJwtUnreadable: String((err as Error)?.message ?? err) }));
+    }
+    if (k?.format === "apns-jwt/1" && k.kid === e.APNS_KEY_ID && k.iss === e.APNS_TEAM_ID && typeof k.jwt === "string"
+        && typeof k.iat === "number" && t >= k.iat && t - k.iat < APNS_JWT_REUSE_S) return { jwt: k.jwt, minted: false };
+  }
+  const jwt = await apnsJwt(e, now);
+  const kept: KeptJwt = { format: "apns-jwt/1", kid: e.APNS_KEY_ID, iss: e.APNS_TEAM_ID, iat: t, jwt };
+  await bucket.put(APNS_JWT_KEY, JSON.stringify(kept), { httpMetadata: { contentType: "application/json" } });
+  return { jwt, minted: true };
 }
 
 // ── the requests, whole ─────────────────────────────────────────────────────────────────────────────────────────────
@@ -228,8 +270,9 @@ export const GAUGE_RUN_SUBREQUESTS_WORST = 3_000;
 /** phones told per run (3 subrequests each at most) */
 export const PUSH_SENDS_PER_RUN = 1_500;
 /** the fixed reads and writes of a wake: the carry read + write/delete, the status, the release state read + write,
- *  the manifest read, the last DFO index read, and the run's own look for a carry */
-const PUSH_FIXED_SUBREQUESTS = 10;
+ *  the manifest read, the last DFO index read, the run's own look for a carry, and (T994 #23) the kept provider token's
+ *  read + write, and its delete when APNs refused it */
+const PUSH_FIXED_SUBREQUESTS = 13;
 /** the subrequests a wake makes at most with `registered` phones listed */
 export const pushSubrequests = (registered: number, perRun = PUSH_SENDS_PER_RUN): number =>
   Math.max(1, Math.ceil(registered / 1000)) + 3 * Math.min(perRun, registered) + PUSH_FIXED_SUBREQUESTS;
@@ -308,11 +351,12 @@ export async function sendWake(env: PushEnv, fetch_: Fetch, now: Date, asked: st
     }
   }
   out.ios.tokens = recs.length;
-  // one credential per send (made only when there is someone to send to)
+  // one credential per send (made only when there is someone to send to); (T994 #23) the kept one while it may be reused
   let apns: string | null = null;
+  let tokenRefused = false;
   const fail = (p: PlatformSend, why: string) => { p.failed++; if (p.errors.length < KEEP_ERRORS) p.errors.push(why.slice(0, 200)); };
   try {
-    if (out.ios.configured && out.ios.tokens) apns = await apnsJwt(env as Required<Pick<PushEnv, "APNS_KEY" | "APNS_KEY_ID" | "APNS_TEAM_ID">>, now);
+    if (out.ios.configured && out.ios.tokens) apns = (await apnsProviderToken(env.BUCKET, env as ApnsSecrets, now)).jwt;
   } catch (e) {
     out.ios.errors.push(`APNs key: ${String((e as Error)?.message ?? e).slice(0, 200)}`); out.ios.failed = out.ios.tokens;
     console.error(JSON.stringify({ job: "push", apnsKey: String((e as Error)?.message ?? e) }));
@@ -328,9 +372,18 @@ export async function sendWake(env: PushEnv, fetch_: Fetch, now: Date, asked: st
     } catch (e) { r = { failed: `network: ${String((e as Error)?.message ?? e)}` }; }
     if (r === "sent") p.sent++;
     else if (r === "dead") { p.dead++; await env.BUCKET.delete(key); }
-    else fail(p, r.failed);
+    else { fail(p, r.failed); if (/^APNs 403 (ExpiredProviderToken|InvalidProviderToken)\b/.test(r.failed)) tokenRefused = true; }
   };
   for (let i = 0; i < recs.length; i += PARALLEL) await Promise.all(recs.slice(i, i + PARALLEL).map(one));
+  // (T994 #23) APNs refused the provider token: the next wake makes a new one (the failures are counted above). A delete
+  // that fails is said in this send's errors and never stops the carry-over or the status below from being kept
+  if (tokenRefused) {
+    try { await env.BUCKET.delete(APNS_JWT_KEY); } catch (e) {
+      const why = `the refused APNs token was not dropped (${String((e as Error)?.message ?? e)}); it is made again after ${APNS_JWT_REUSE_S / 60} min`;
+      console.error(JSON.stringify({ job: "push", apnsJwtDrop: why }));
+      if (out.ios.errors.length < KEEP_ERRORS) out.ios.errors.push(why.slice(0, 200));
+    }
+  }
   out.ok = !out.ios.failed && !out.unreadable && !carryError;
   // (T739 L3) the place kept for the next run, or the carry-over done. A carry that cannot be kept THROWS, as a lost
   // status does: the rest of the phones would silently never be told

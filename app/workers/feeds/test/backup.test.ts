@@ -3,9 +3,13 @@
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { BACKUP_STATUS_KEY, DAILY_KEEP_DAYS, forgetReport, goneBy, LIFECYCLE_SLACK_DAYS, MAX_BYTES, mayCopy, personalKind, pruneBackups, runBackup, type DstBucket, type SrcBucket } from "../src/backup";
-import { RETENTION_DAYS } from "../src/reports";
-import { CRASH_RETENTION_DAYS } from "../src/crashes";
+import { WORKER_SUBREQUESTS } from "../src/push";
+import { BACKUP_STATUS_KEY, BACKUP_SUBREQUESTS, DAILY_KEEP_DAYS, PRUNE_RESERVE, forgetReport, goneBy, LIFECYCLE_SLACK_DAYS, MAX_BYTES, mayCopy, OUTBOX_KEY, personalKind, pruneBackups, runBackup, type DstBucket, type SrcBucket } from "../src/backup";
+import { NOTIFY_STATE, PERSONAL_EVENT_KINDS } from "../src/events";
+import { MemStore } from "./dfo.scenario";
+import { handleReport, reportEvents, RETENTION_DAYS } from "../src/reports";
+import { CRASH_RETENTION_DAYS, crashEvents, handleCrash } from "../src/crashes";
+import type { R2BucketLike } from "../src/io";
 
 type Obj = { body: Uint8Array; meta: Record<string, string> };
 const src = (keys: Record<string, string | Uint8Array>, sizes: Record<string, number> = {}) => {
@@ -40,6 +44,25 @@ const dst = () => {
   return d;
 };
 const sha = (b: Uint8Array) => createHash("sha256").update(b).digest("hex");
+
+/** (T994 #3) the live bucket as the routes see it (R2BucketLike), and the same bucket as the backup reads it */
+class MemBucket implements R2BucketLike {
+  m = new Map<string, string>();
+  async head(k: string) { return this.m.has(k) ? {} : null; }
+  async get(k: string) { const v = this.m.get(k); return v === undefined ? null : { text: async () => v }; }
+  async put(k: string, b: string) { this.m.set(k, b); }
+  async delete(k: string) { this.m.delete(k); }
+  async list(o: { prefix: string }) {
+    return { objects: [...this.m.keys()].filter((k) => k.startsWith(o.prefix)).sort().map((key) => ({ key })), truncated: false };
+  }
+}
+const liveSrc = (b: MemBucket): SrcBucket => ({
+  async list({ prefix }) {
+    return { objects: [...b.m].filter(([k]) => k.startsWith(prefix)).map(([key, v]) => ({ key, size: new TextEncoder().encode(v).byteLength })), truncated: false };
+  },
+  async get(k) { const v = b.m.get(k); return v === undefined ? null : { arrayBuffer: async () => new TextEncoder().encode(v).buffer as ArrayBuffer, httpMetadata: { contentType: "application/json" } }; },
+  async put(k, body) { b.m.set(k, body); },
+});
 
 const STATE = {
   "private/feeds/status.json": '{"feeds":{}}',
@@ -100,6 +123,10 @@ describe("the daily backup (T246)", () => {
     const r = await runBackup(src(STATE, { "private/feeds/status.json": MAX_BYTES + 1 }), d, new Date("2026-10-29T09:25:00Z"));
     expect(r.skipped).toEqual([{ key: "private/feeds/status.json", why: expect.stringMatching(/bytes >/) }]);
     expect(d.m.has("daily/2026-10-29/private/feeds/status.json")).toBe(false);
+    // (T994 #24) an object left out is a failed run, told; the rest of the snapshot and its manifest are written
+    expect(r.ok).toBe(false);
+    expect(r.error).toMatch(/private\/feeds\/status\.json was not backed up: \d+ bytes >/);
+    expect(d.m.has("daily/2026-10-29/_manifest.json")).toBe(true);
 
     const broken: DstBucket = { ...dst(), put: async (k) => { if (k.includes("runs")) throw new Error("R2 down"); } };
     const s = src(STATE);
@@ -200,12 +227,154 @@ describe("personal data in the backups (T559)", () => {
     await d.put(`daily/2026-11-03/private/reports/2026-11-02/${id}.json`, "{}");
     await d.put(`monthly/2026-11/private/reports/2026-11-02/${id}.json`, "{}");
     await d.put("daily/2026-11-03/_manifest.json", JSON.stringify({ objects: { [`private/reports/2026-11-02/${id}.json`]: {} } }));
-    const r = await forgetReport(live, d, id, NOW);
-    expect(r).toEqual({ live: 1, backups: 2 });
+    // (T994 #3) its event still queued in the outbox goes too; another report's stays
+    const outbox = new MemStore();
+    outbox.m.set(NOTIFY_STATE, JSON.stringify({ told: {}, lastDigest: null, pending: [
+      { key: `report:${id}`, kind: "report", title: "t", text: "my email is a@b.ca", at: "2026-11-02T00:00:00Z" },
+      { key: "report:bbbbbbbbbbbbbbbb", kind: "report", title: "t", text: "other", at: "2026-11-02T00:00:00Z" }] }));
+    const r = await forgetReport(live, d, id, NOW, outbox);
+    expect(r).toEqual({ live: 1, backups: 2, queued: true, outboxCopies: 0 });
+    expect(JSON.parse(outbox.m.get(NOTIFY_STATE)!).pending.map((e: { key: string }) => e.key)).toEqual(["report:bbbbbbbbbbbbbbbb"]);
     expect([...live.m.keys()]).toEqual(["private/reports/2026-11-02/bbbbbbbbbbbbbbbb.json"]);
     expect([...d.m.keys()]).toEqual(["daily/2026-11-03/_manifest.json"]);
     expect(JSON.parse(new TextDecoder().decode(d.m.get("daily/2026-11-03/_manifest.json")!.body)).objects).toEqual({});
-    await expect(forgetReport(live, d, "nope", NOW)).rejects.toThrow(/16 hex/);
+    await expect(forgetReport(live, d, "nope", NOW, outbox)).rejects.toThrow(/16 hex/);
+  });
+});
+
+// T994 #3: the owner outbox's queue holds a report's words (and an error kind's message) until the digest. Copied whole on
+// the 1st into monthly/ (400 days) it outlived the page's 180 (and 90) days. Every copy is taken without those events.
+describe("the outbox in the backups (T994 #3)", () => {
+  const NOW = new Date("2026-12-01T09:25:00Z");          // the 1st: daily/ and monthly/ both written
+  const ev = (key: string, kind: string, text: string) => ({ key, kind, title: text.slice(0, 20), text, at: "2026-11-30T22:00:00Z", data: { words: text } });
+  const OUTBOX = { told: { "hydat:1": "2026-11-01T00:00:00Z" }, lastDigest: "2026-11-30T15:00:00Z", pending: [
+    ev("report:aaaaaaaaaaaaaaaa", "report", "Wrong rule. Reach me at someone@example.com"),
+    ev("crash:1111111111111111", "crash", "TypeError: x at water Cowichan"),
+    ev("hydat:20261120", "hydat", "HYDAT 20261120 is out"),
+  ] };
+  const text = (d: ReturnType<typeof dst>, k: string) => new TextDecoder().decode(d.m.get(k)!.body);
+
+  it("every copy (daily and monthly) leaves out the report and error-kind events; the rest of the outbox is kept", async () => {
+    const d = dst();
+    const r = await runBackup(src({ ...STATE, [OUTBOX_KEY]: JSON.stringify(OUTBOX) }), d, NOW);
+    expect(r.ok).toBe(true);
+    for (const p of ["daily/2026-12-01/", "monthly/2026-12/"]) {
+      const copy = text(d, p + OUTBOX_KEY);
+      expect(copy).not.toMatch(/someone@example\.com|Cowichan/);
+      const st = JSON.parse(copy);
+      expect(st.pending.map((e: { key: string }) => e.key)).toEqual(["hydat:20261120"]);
+      expect(st.told).toEqual(OUTBOX.told);
+      expect(st.lastDigest).toBe(OUTBOX.lastDigest);
+      // the manifest's hash is the scrubbed copy's
+      expect(JSON.parse(text(d, `${p}_manifest.json`)).objects[OUTBOX_KEY].sha256).toBe(sha(d.m.get(p + OUTBOX_KEY)!.body));
+    }
+    expect(r.personalHeldBack).toBe(2);
+    expect(PERSONAL_EVENT_KINDS).toEqual(["report", "crash"]);
+  });
+
+  it("a RESTORE loses nothing: the daily snapshot's outbox has no report words, and the restored bucket raises the same events again", async () => {
+    // the live bucket as the worker fills it: a report and an error kind through their public routes
+    const T0 = new Date("2026-12-01T20:00:00Z"), NEXT = new Date("2026-12-02T09:25:00Z");
+    const live = new MemBucket();
+    const words = "Wrong rule here. Reach me at someone@example.com";
+    expect((await handleReport(new Request("https://w/report", { method: "POST", headers: { "CF-Connecting-IP": "203.0.113.5" }, body: JSON.stringify({
+      format: "report/1", id: "0123456789abcdef", created: T0.toISOString(), reason: "rule", text: words, email: null, contact: false,
+      context: { place: "Vedder River", app: "0.1.0", env: "staging", platform: "web", release: "r-000000000001" } }) }),
+      { BUCKET: live, REPORT_SALT: "s" }, T0)).status).toBe(201);
+    expect((await handleCrash(new Request("https://w/crash", { method: "POST", headers: { "CF-Connecting-IP": "203.0.113.6" }, body: JSON.stringify({
+      format: "crash/1", created: T0.toISOString(), kind: "js", fatal: true, route: "water", app: "0.1.0+12", env: "staging", platform: "android 35",
+      release: "r-000000000001", name: "TypeError", message: "undefined is not an object (evaluating 'x.items')",
+      stack: "TypeError: boom\n    at render (address at index.android.bundle:1:123456)" }) }), { BUCKET: live, REPORT_SALT: "s" }, T0)).status).toBe(201);
+    // the gauge run queues them for the digest (not yet told)
+    const raise = async (b: MemBucket, known: (k: string) => boolean) =>
+      [...await reportEvents(b, known, NEXT, "x"), ...await crashEvents(b, known, NEXT, "x")];
+    const queued = await raise(live, () => false);
+    expect(queued.map((e) => e.kind).sort()).toEqual(["crash", "report"]);
+    await live.put(OUTBOX_KEY, JSON.stringify({ told: {}, pending: queued, lastDigest: null }));
+    // the daily backup, then a restore of that snapshot into an empty bucket
+    const d = dst();
+    expect((await runBackup(liveSrc(live), d, NEXT)).ok).toBe(true);
+    const restored = new MemBucket();
+    const snap = "daily/2026-12-02/";
+    for (const [k, v] of d.m) if (k.startsWith(snap) && !k.endsWith("_manifest.json")) await restored.put(k.slice(snap.length), new TextDecoder().decode(v.body));
+    const outbox = JSON.parse((await (await restored.get(OUTBOX_KEY))!.text()));
+    expect(JSON.stringify(outbox)).not.toContain("someone@example.com");
+    expect(outbox.pending).toEqual([]);
+    // the restored worker raises the very events the copy left out, from the restored records
+    const pend = new Set(outbox.pending.map((e: { key: string }) => e.key));
+    const again = await raise(restored, (k) => !!outbox.told[k] || pend.has(k));
+    expect(again.map((e) => e.key).sort()).toEqual(queued.map((e) => e.key).sort());
+    expect(again.find((e) => e.kind === "report")!.text).toContain(words);
+  });
+
+  it("an outbox that does not parse is not copied: skipped, named, the run failed; everything else is in the snapshot", async () => {
+    const d = dst();
+    const r = await runBackup(src({ ...STATE, [OUTBOX_KEY]: '{"pending": [' }), d, NOW);
+    expect(r.ok).toBe(false);
+    expect(r.error).toMatch(/notify\/state\.json was not backed up: .*does not parse/);
+    expect(d.m.has(`daily/2026-12-01/${OUTBOX_KEY}`)).toBe(false);
+    expect(d.m.has("daily/2026-12-01/private/feeds/status.json")).toBe(true);
+    expect(d.m.has("daily/2026-12-01/_manifest.json")).toBe(true);
+  });
+
+  it("the prune scrubs a copy made before the rule (manifest corrected); a copy that does not parse is deleted", async () => {
+    const d = dst();
+    await d.put(`monthly/2026-11/${OUTBOX_KEY}`, JSON.stringify(OUTBOX));
+    await d.put("monthly/2026-11/_manifest.json", JSON.stringify({ objects: { [OUTBOX_KEY]: { size: 1, sha256: "x", contentType: "application/json" } } }));
+    await d.put(`daily/2026-11-20/${OUTBOX_KEY}`, "{torn");
+    await d.put(`daily/2026-11-21/${OUTBOX_KEY}`, JSON.stringify({ ...OUTBOX, pending: [OUTBOX.pending[2]] }));   // clean: untouched
+    const clean = text(d, `daily/2026-11-21/${OUTBOX_KEY}`);
+    const r = await pruneBackups(d, NOW);
+    expect(r).toEqual({ deleted: 1, scrubbed: 1 });
+    expect(text(d, `monthly/2026-11/${OUTBOX_KEY}`)).not.toMatch(/someone@example\.com|Cowichan/);
+    const man = JSON.parse(text(d, "monthly/2026-11/_manifest.json"));
+    expect(man.objects[OUTBOX_KEY].sha256).toBe(sha(d.m.get(`monthly/2026-11/${OUTBOX_KEY}`)!.body));
+    expect(man.scrubbed).toEqual([{ key: OUTBOX_KEY, dropped: 2, at: NOW.toISOString() }]);
+    expect(d.m.has(`daily/2026-11-20/${OUTBOX_KEY}`)).toBe(false);
+    expect(text(d, `daily/2026-11-21/${OUTBOX_KEY}`)).toBe(clean);
+  });
+});
+
+// T994 #24: every kept report is copied again each day and the prune reads per copy, so the run's R2 calls grow with the
+// stores; past the Workers subrequest cap the run died part-way, with no manifest, and `skipped` never failed it.
+describe("the backup's subrequest budget (T994 #24)", () => {
+  const NOW = new Date("2026-12-02T09:25:00Z");
+  const reports = Object.fromEntries(Array.from({ length: 40 }, (_, i) => {
+    const id = i.toString(16).padStart(16, "0");
+    return [`private/reports/2026-11-30/${id}.json`, JSON.stringify({ id, received: "2026-11-30T12:00:00Z" })];
+  }));
+  const counting = () => { const d = dst(); let n = 0; const w: DstBucket & { m: typeof d.m; calls: () => number } = {
+    m: d.m, calls: () => n,
+    put: (k, b, o) => (n++, d.put(k, b, o)), list: (o) => (n++, d.list(o)), get: (k) => (n++, d.get(k)), delete: (k) => (n++, d.delete(k)) }; return w; };
+
+  it("the state is copied first; at the budget the copying stops, the manifest says what was left, and the run fails, told", async () => {
+    const d = counting();
+    const r = await runBackup(src({ ...STATE, ...reports }), d, NOW, null, { budget: 60, reserve: 10 });
+    expect(r.ok).toBe(false);
+    expect(r.partial).toMatchObject({ left: expect.any(Number), from: expect.stringMatching(/^private\/reports\//) });
+    expect(r.error).toMatch(/the snapshot is PARTIAL: \d+ object\(s\) from private\/reports\/.* were not copied/);
+    // every state object is in the snapshot; only report copies were left
+    for (const k of ["private/feeds/status.json", "feeds/dfo/index.json", "release/manifest.json", "runtiming/index.json"])
+      expect(d.m.has(`daily/2026-12-02/${k}`), k).toBe(true);
+    const man = JSON.parse(new TextDecoder().decode(d.m.get("daily/2026-12-02/_manifest.json")!.body));
+    expect(man.partial).toEqual(r.partial);
+    expect(Object.keys(man.objects).filter((k) => k.startsWith("private/reports/2026-11-30/")).length).toBe(40 - r.partial!.left);
+    expect(r.subrequests).toBeLessThanOrEqual(60);
+  });
+
+  it("a prune that would pass the budget stops and fails the run naming it (the manifest is already written)", async () => {
+    const d = counting();
+    for (let i = 0; i < 30; i++) await d.put(`daily/2026-11-${String(i % 28 + 1).padStart(2, "0")}/private/crashes/${i.toString(16).padStart(16, "0")}.json`, JSON.stringify({ last: "2026-12-01T00:00:00Z" }));
+    const r = await runBackup(src(STATE), d, NOW, null, { budget: 35, reserve: 15 });
+    expect(r.ok).toBe(false);
+    expect(r.error).toMatch(/subrequest budget \(35\) is spent; this run's prune did not finish/);
+    expect(d.m.has("daily/2026-12-02/_manifest.json")).toBe(true);
+    expect(r.subrequests).toBe(36);              // the call that would pass it is refused, never made
+  });
+
+  it("the production budget leaves the purge its share of the invocation", () => {
+    expect(BACKUP_SUBREQUESTS).toBeLessThan(WORKER_SUBREQUESTS / 2 + 1_500);
+    expect(PRUNE_RESERVE).toBeLessThan(BACKUP_SUBREQUESTS);
   });
 });
 

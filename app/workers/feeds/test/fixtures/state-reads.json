@@ -1,0 +1,38 @@
+{
+  "_about": "T994 #5 / #26 (AGENTS 40: a rule in both languages has ONE shared fixture). What the feeds worker and its Python twin do with a STORED STATE FILE that is absent, torn or the wrong shape: absent is a first run; anything else that does not read fails, naming the file, and nothing empty is written back. Read by app/workers/feeds/test/state-reads.test.ts (src/gauges/publish.ts tempHistoryOf / stationFileOf, src/notify.ts sendDue) and pipeline/tests/test_feed_state_reads.py (pipeline/gauges/feed/publish.py _stored_json, notify.py send_due). `stored` null = no file. `error` is a substring of the raised message (the parser's own words follow it in parentheses and differ by language).",
+  "tempHistory": {
+    "temps": { "08MH001": 16.3 },
+    "pent": 49,
+    "cases": [
+      { "name": "absent: a first run", "stored": null, "result": { "08MH001": { "49": [16.3] } } },
+      { "name": "kept: today's sample appended", "stored": "{\"08MH001\":{\"49\":[15.5]},\"08MF005\":{\"12\":[4.25]}}",
+        "result": { "08MH001": { "49": [15.5, 16.3] }, "08MF005": { "12": [4.25] } } },
+      { "name": "torn", "stored": "{\"08MH001\":{\"49\":[15.5", "error": "temp_history.json is stored but does not parse (" },
+      { "name": "a list, not an object", "stored": "[]", "error": "temp_history.json is not {station: {pentad: [samples]}}; fix or delete it" },
+      { "name": "null", "stored": "null", "error": "temp_history.json is not {station: {pentad: [samples]}}; fix or delete it" }
+    ]
+  },
+  "stationFile": {
+    "station": "08MH001",
+    "cases": [
+      { "name": "absent: a station starting from nothing", "stored": null, "result": null },
+      { "name": "kept", "stored": "{\"daily\":[[\"2026-11-01\",1.5,20.0]]}", "result": { "daily": [["2026-11-01", 1.5, 20.0]] } },
+      { "name": "torn", "stored": "{\"daily\":[[\"2026-11-01\"", "error": "08MH001.json is stored but does not parse (" },
+      { "name": "not an object", "stored": "[1]", "error": "08MH001.json is not a station file; fix or delete it" }
+    ]
+  },
+  "notified": {
+    "notices": [
+      { "kind": "hydat", "latest": "20261020", "current": "20260717", "action": "scripts/update-hydat.sh" },
+      { "kind": "roster", "latest": "07FA008", "current": "roster", "action": "x" }
+    ],
+    "cases": [
+      { "name": "absent: nothing sent yet", "stored": null, "sent": ["hydat:20261020", "roster:07FA008"], "failed": [], "recorded": ["hydat:20261020", "roster:07FA008"] },
+      { "name": "one sent before", "stored": "{\"sent\":[\"hydat:20261020\"]}", "sent": ["roster:07FA008"], "failed": [], "recorded": ["hydat:20261020", "roster:07FA008"] },
+      { "name": "torn: nothing sent, every due key failed", "stored": "{\"sent\": [\"hydat:2026", "sent": [], "failed": ["hydat:20261020", "roster:07FA008"],
+        "error": "notified.json is stored but does not parse (" },
+      { "name": "no sent list", "stored": "{\"sent\": 3}", "sent": [], "failed": ["hydat:20261020", "roster:07FA008"], "error": "notified.json holds no sent list" },
+      { "name": "not an object", "stored": "[\"hydat:20261020\"]", "sent": [], "failed": ["hydat:20261020", "roster:07FA008"], "error": "notified.json holds no sent list" }
+    ]
+  }
+}

@@ -4,10 +4,13 @@
 import { describe, expect, it } from "vitest";
 import worker from "../src/index";
 import {
-  APNS_PAYLOAD, apnsJwt, apnsRequest, handlePush, markReleaseSeen, newRelease, PUSH_STATE_KEY, PUSH_STATUS_KEY, pushMissing,
+  APNS_JWT_KEY, APNS_PAYLOAD, apnsJwt, apnsRequest, PUSH_CARRY_KEY, handlePush, markReleaseSeen, newRelease, PUSH_STATE_KEY, PUSH_STATUS_KEY, pushMissing,
   sendWake, TOKENS_PREFIX, tokenKey, validatePush, wakeReason, MANIFEST_KEY,
 } from "../src/push";
 import type { R2BucketLike } from "../src/io";
+import { personalKind } from "../src/backup";
+import { capEvents, PUSH_NEW_TOKENS_PER_DAY_TOTAL, totalKey } from "../src/reports";
+import { PUSH_LIMITS_PREFIX } from "../src/push";
 
 const SALT = "test-salt";
 class MemBucket implements R2BucketLike {
@@ -113,6 +116,37 @@ describe("POST /push/register and /push/unregister (T739)", () => {
   });
 });
 
+// T994 #25: register had a per-address limit only; junk tokens from rotating addresses filled the store and took send
+// slots ahead of real phones. A NEW token counts against the day's total from everyone, and reaching it tells the owner.
+describe("POST /push/register: the day's total of new tokens (T994 #25)", () => {
+  it("past the total a new token is refused 429 and not stored, a known one still re-registers, and the owner is told once", async () => {
+    const BUCKET = new MemBucket();
+    const env = { BUCKET, REPORT_SALT: SALT };
+    const now = at("2026-11-14T12:00:00Z");
+    expect((await handlePush(req("/push/register", { platform: "ios", token: IOS, env: "sandbox" }), env, "register", now)).status).toBe(201);
+    BUCKET.m.set(totalKey(PUSH_LIMITS_PREFIX, "2026-11-14"), JSON.stringify({ day: "2026-11-14", n: PUSH_NEW_TOKENS_PER_DAY_TOTAL }));
+    const r = await handlePush(req("/push/register", { platform: "ios", token: IOS2, env: "sandbox" }, "198.51.100.7"), env, "register", now);
+    expect(r.status).toBe(429);
+    expect(await r.json()).toEqual({ ok: false, error: "too many new phones today; try again tomorrow" });
+    expect(tokens(BUCKET).map((t) => t.token)).toEqual([IOS]);
+    // a phone re-registering its known token (every 7 days, or a new address) is not a new token
+    expect((await handlePush(req("/push/register", { platform: "ios", token: IOS, env: "production" }, "198.51.100.8"), env, "register", now)).status).toBe(201);
+    // unregister is never held back by the total
+    expect((await handlePush(req("/push/unregister", { platform: "ios", token: IOS, env: "production" }, "198.51.100.9"), env, "unregister", now)).status).toBe(200);
+    const ev = await capEvents(BUCKET, at("2026-11-14T13:00:00Z"), "x");
+    expect(ev.map((e) => [e.key, e.urgent])).toEqual([[`cap:${PUSH_LIMITS_PREFIX}:2026-11-14`, true]]);
+    expect(ev[0]!.text).toMatch(/^POST \/push\/register refused everything past 1000 new push tokens on 2026-11-14/);
+  });
+  it("a total that cannot be read is a 503, never 'not counted'", async () => {
+    const BUCKET = new MemBucket();
+    const get = BUCKET.get.bind(BUCKET);
+    BUCKET.get = async (k: string) => { if (k.includes("_total-")) throw new Error("R2 down"); return get(k); };
+    const r = await handlePush(req("/push/register", { platform: "ios", token: IOS, env: "sandbox" }), { BUCKET, REPORT_SALT: SALT }, "register", at("2026-11-14T12:00:00Z"));
+    expect(r.status).toBe(503);
+    expect(tokens(BUCKET)).toEqual([]);
+  });
+});
+
 describe("the APNs provider token and request (T739)", () => {
   it("is an ES256 JWT (kid, iss, iat) whose signature the key's public half verifies", async () => {
     const k = await ecKey();
@@ -206,6 +240,50 @@ describe("sendWake (T739)", () => {
     expect(BUCKET.m.has(`${TOKENS_PREFIX}broken.json`)).toBe(false);
     const h = await (await worker.fetch(new Request("https://w.example/status"), { BUCKET } as never)).text();
     expect(h).toContain('<b class="failing">1 stored token record(s) did not parse or were not an iPhone\'s (deleted)</b>');
+  });
+
+  // T994 #23: a new provider token was made on every wake; wakes come 10 min apart and Apple answers 429
+  // TooManyProviderTokenUpdates to a token refreshed more often than every 20 minutes
+  it("the provider token is kept: reused for 50 minutes with the same key id and team, then made again; APNs refusing it drops it", async () => {
+    const k = await ecKey();
+    const BUCKET = new MemBucket();
+    await seed(BUCKET, [{ platform: "ios", token: IOS, env: "sandbox" }]);
+    const auth: string[] = [];
+    let status = 200, reason = "";
+    const send = (env: Record<string, string>, when: string) => sendWake({ BUCKET, APNS_KEY: k.pem, APNS_KEY_ID: "KID", APNS_TEAM_ID: "TEAM", ...env },
+      async (_u, i) => { auth.push((i!.headers as Record<string, string>).authorization!); return new Response(reason ? JSON.stringify({ reason }) : null, { status }); }, at(when), "gauges");
+    await send({}, "2026-11-14T12:05:00Z");
+    await send({}, "2026-11-14T12:15:00Z");                      // 10 minutes on: the same token
+    await send({}, "2026-11-14T12:54:59Z");                      // 49m59s: still the same
+    expect(new Set(auth).size).toBe(1);
+    expect(parts(auth[0]!.slice(7)).c.iat).toBe(Date.parse("2026-11-14T12:05:00Z") / 1000);
+    await send({}, "2026-11-14T12:55:00Z");                      // 50 minutes: a new one
+    expect(new Set(auth).size).toBe(2);
+    expect(parts(auth[3]!.slice(7)).c.iat).toBe(Date.parse("2026-11-14T12:55:00Z") / 1000);
+    await send({ APNS_KEY_ID: "KID2" }, "2026-11-14T12:56:00Z");   // another key id: never the old key's token
+    expect(parts(auth[4]!.slice(7)).h.kid).toBe("KID2");
+    expect(JSON.parse(BUCKET.m.get(APNS_JWT_KEY)!)).toMatchObject({ format: "apns-jwt/1", kid: "KID2", iss: "TEAM" });
+    status = 403; reason = "ExpiredProviderToken";
+    const r = await send({ APNS_KEY_ID: "KID2" }, "2026-11-14T12:57:00Z");
+    expect(r.ios.errors).toEqual(["APNs 403 ExpiredProviderToken"]);
+    expect(BUCKET.m.has(APNS_JWT_KEY)).toBe(false);              // the next wake makes a new one
+    expect(personalKind(APNS_JWT_KEY)).toBe("never");             // a credential: never in a backup
+  });
+
+  // (review) the refused token's delete ran before the carry-over and status writes: a throw there lost both
+  it("a refused token that cannot be dropped is said in the send's errors; the carry-over and the status are still kept", async () => {
+    const k = await ecKey();
+    const BUCKET = new MemBucket();
+    await seed(BUCKET, [{ platform: "ios", token: IOS, env: "sandbox" }, { platform: "ios", token: IOS2, env: "sandbox" }]);
+    const del = BUCKET.delete.bind(BUCKET);
+    BUCKET.delete = async (key: string) => { if (key === APNS_JWT_KEY) throw new Error("R2 DELETE 500"); return del(key); };
+    const r = await sendWake({ BUCKET, APNS_KEY: k.pem, APNS_KEY_ID: "KID", APNS_TEAM_ID: "TEAM" },
+      async () => new Response(JSON.stringify({ reason: "ExpiredProviderToken" }), { status: 403 }), at("2026-11-14T12:00:00Z"), "gauges", { perRun: 1 });
+    expect(r.ok).toBe(false);
+    expect(r.ios.errors).toEqual(["APNs 403 ExpiredProviderToken", expect.stringMatching(/^the refused APNs token was not dropped \(R2 DELETE 500\)/)]);
+    expect(r.carry).toEqual({ part: 1, left: 1, since: "2026-11-14T12:00:00.000Z" });
+    expect(BUCKET.m.has(PUSH_CARRY_KEY)).toBe(true);
+    expect(JSON.parse(BUCKET.m.get(PUSH_STATUS_KEY)!)).toEqual(r);
   });
 
   it("a key that cannot be read fails every token, said (never a silent skip)", async () => {
