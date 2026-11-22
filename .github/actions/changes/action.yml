@@ -1,0 +1,29 @@
+name: changes
+description: >
+  (T995) Does this run's change touch the workflow's area? `run` = "true" | "false", from scripts/ci_paths.py (the one
+  list of every workflow's paths; `before_push.py --changed` reads it too). A pull request runs every workflow; this
+  says which of its jobs apply (the others are skipped by their `if:`, which counts as a pass for the required `ok`
+  job). A push or a manual run: always "true" (the workflow's own `on: push: paths:` already chose it). Plain
+  `git diff --name-only <base>...<head>`, no third-party action. Run it after `actions/checkout` with full history
+  (`fetch-depth: 0`, `filter: blob:none`: the merge base must be there; no old file contents are read).
+inputs:
+  area:
+    description: 'the area in scripts/ci_paths.py AREAS: docs | app | feeds-worker | pipeline'
+    required: true
+outputs:
+  run:
+    description: '"true" when the area changed (or the run is not a pull request)'
+    value: ${{ steps.c.outputs.run }}
+runs:
+  using: composite
+  steps:
+    - id: c
+      name: What changed in this area
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      env:
+        AREA: ${{ inputs.area }}
+        EVENT_NAME: ${{ github.event_name }}
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      run: python3 scripts/ci_paths.py github "$AREA"

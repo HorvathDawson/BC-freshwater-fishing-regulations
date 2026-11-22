@@ -15,18 +15,18 @@ name: pipeline
 # pipeline/docs/HANDOFF-curated-layout.md §8 for the two-tier split.
 
 on:
+  # (T995) a push to the trunk or a release branch runs this only when its area changed: these paths are
+  # scripts/ci_paths.py AREAS["pipeline"], word for word (test_workflow_pins.py); lanes get CI through their PR
   push:
-    paths: ["pipeline/**", "data/**", "config.yaml", "project_config.py",
-            "requirements.txt", "constraints.txt", ".github/workflows/pipeline-ci.yml",
-            "app/packages/core/src/*.generated.*", "app/packages/data/dev/mini-release/**",
-            # (T535) the review app's backend tests and the path gate's own dirs live here; fast-fail runs both too
-            "curation-review/**", "scripts/**"]
+    branches: [main, "release/**"]
+    paths: ["pipeline/**", "data/**", "config.yaml", "project_config.py", "requirements.txt", "constraints.txt",
+            ".github/workflows/pipeline-ci.yml", "app/packages/core/src/*.generated.*",
+            "app/packages/data/dev/mini-release/**", "curation-review/**", "scripts/**", ".github/actions/changes/**",
+            "scripts/ci_paths.py"]
+  # (T995) EVERY pull request runs this workflow, with no path filter: a required check from a workflow that did not
+  # run stays pending forever. Its `changes` job asks scripts/ci_paths.py whether the PR touched this area; the jobs
+  # run only then (`if:`, a skip counts as a pass), and `pipeline ok`, the required check, always reports.
   pull_request:
-    paths: ["pipeline/**", "data/**", "config.yaml", "project_config.py",
-            "requirements.txt", "constraints.txt", ".github/workflows/pipeline-ci.yml",
-            "app/packages/core/src/*.generated.*", "app/packages/data/dev/mini-release/**",
-            # (T535) the review app's backend tests and the path gate's own dirs live here; fast-fail runs both too
-            "curation-review/**", "scripts/**"]
   workflow_dispatch:
 
 # (T994 6) least privilege: the job reads the repo and nothing else
@@ -38,7 +38,22 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # (T995) which of this workflow's jobs a pull request needs (scripts/ci_paths.py AREAS["pipeline"]); a push: all
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs: { run: "${{ steps.c.outputs.run }}" }
+    steps:
+      # full history, no file contents: the PR's merge base must be in the clone
+      - uses: actions/checkout@v5
+        with: { fetch-depth: 0, filter: "blob:none" }
+      - id: c
+        uses: ./.github/actions/changes
+        with: { area: pipeline }
+
   check:
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     # (T667) the interpreter scripts/test-env.sh runs: setup-python's `python` (on PATH from the step below). A hosted
@@ -167,3 +182,18 @@ jobs:
           check "quoted data/<tree>/… literal as a value" '[=(,]\s*(Path\()?"data/(curated|generated|source)/[^"]*"' "$ALLOWED"
           check "quoted cache/dfo_salmon… literal"        '"cache/dfo_salmon[^"]*"' "$ALLOWED"
           exit $fail
+
+  # (T995) THE REQUIRED CHECK for main's branch protection (scripts/ci_paths.py REQUIRED): it always runs, and passes
+  # only when every job above passed or was skipped by its `if:` (a failed or cancelled one fails it)
+  ok:
+    name: pipeline ok
+    if: always()
+    needs: [changes, check]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with: { sparse-checkout: scripts/ci_paths.py, sparse-checkout-cone-mode: false }
+      - name: Every job passed or was skipped
+        env: { NEEDS: "${{ toJSON(needs) }}" }
+        run: python3 scripts/ci_paths.py verdict
