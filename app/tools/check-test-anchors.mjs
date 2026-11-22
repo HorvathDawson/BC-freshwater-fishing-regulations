@@ -62,6 +62,26 @@
  *   digest      a string that IS a build digest: 12-64 hex digits (6+ different, letters and digits both), or a tiles
  *               id `<16 hex>.<12 hex>`. A counting run (`0123456789abcdef`) is invented and fine, and so is a tiles id
  *               whose two halves are both counting runs (`0123456789abcdef.0123456789ab`).
+ *   absent      (T768 / T993 item 10; 0.8.5 stop 9: seven water-map tests held the old release's missing mouth place
+ *               and failed only on the candidate, after a 25-minute build) an assertion of a value's SHAPE — which
+ *               fields it has — rather than of a value: a format gains fields within its version (T985: `water_exit`
+ *               lon/lat, additive in water/3), so the next release fails a test that asserted one absent. The spellings:
+ *                 `expect(x).not.toHaveProperty("f")`;
+ *                 `expect("f" in x)` / `expect(Object.hasOwn(x, "f"))` / `expect(x.hasOwnProperty("f"))` (also
+ *                 `Object.prototype.hasOwnProperty.call(x, "f")`, `Reflect.has(x, "f")`, `Object.keys(x).includes("f")`) with
+ *                 `.toBe(false)` / `.toEqual(false)` / `.toStrictEqual(false)` / `.toBeFalsy()` (`.not.toBe(true)`,
+ *                 `.not.toBeTruthy()`);
+ *                 `expect(Object.keys(x))` (also `Object.getOwnPropertyNames`, and after `.sort()` / `.filter(…)`) with
+ *                 `.toEqual([…])` / `.toStrictEqual([…])` of a TYPED list (every element a string literal): the whole
+ *                 set of fields, so every other one's absence; or with `.not.toContain("f")`: one field's absence.
+ *               Write instead the fields the test needs, present: `expect(x).toHaveProperty("f")`,
+ *               `expect(Object.keys(x)).toEqual(expect.arrayContaining([…]))`, `toMatchObject`; a list the CODE declares
+ *               (`[...CELL_COLUMNS]`, not every element a literal) is the contract, not a typed shape, and is no hit. A
+ *               test ABOUT a release without a field builds that shape itself (`const { at, ...old } = g.exit`,
+ *               2ccf1ea45). Not one: a value — `expect(x.f).toBeUndefined()` / `.toBeNull()` says what the reader
+ *               got, and JavaScript reads an absent field and an empty one alike (measured 2026-11-22: 3 such reads in
+ *               release-following blocks, none a column); a whole record typed (`expect(g.exit).toEqual({…})`) is the
+ *               composed-value pin rule 33 asks for and is left to the candidate-shaped run (the release's follows).
  *
  * Not scanned here (later T667 slices): literal counts on live data (D3), golden file reads past `taps()`.
  *
@@ -85,7 +105,7 @@ import ts from "typescript";
 const APP = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 export const READ_KINDS = ["path", "pointer", "env"];
-export const PIN_KINDS = ["raw-section", "raw-part", "release-id", "digest"];
+export const PIN_KINDS = ["raw-section", "raw-part", "release-id", "digest", "absent"];
 export const KINDS = [...READ_KINDS, ...PIN_KINDS];
 
 /** names that make the code using them release-following, wherever they come from */
@@ -117,7 +137,42 @@ export const INSTEAD = {
   "raw-part": `name the part: await sectionNames(loader).part(item, <lo end>, <hi end>), or .partAt(item, <stream key>, <metre>)`,
   "release-id": `regsFixtureDir() / FIXTURE_RELEASES name a committed release; the live one is liveRelease().id; an invented id is r-000000000001`,
   digest: `read it from the release (its manifest / store meta); an invented one is a counting run: "0123456789abcdef"`,
+  absent: `assert the fields the test needs, present: toHaveProperty("f") / expect(Object.keys(x)).toEqual(expect.arrayContaining([…])) / toMatchObject; a release without a field is a shape the test builds itself (const { f, ...old } = x)`,
 };
+
+/** (absent) the matchers that say "false" of their subject, by whether the chain holds a `.not` */
+const FALSY = { false: new Set(["toBeFalsy"]), true: new Set(["toBeTruthy"]) };
+const EQUAL = new Set(["toBe", "toEqual", "toStrictEqual"]);
+const KEYS = /^Object\.(?:keys|getOwnPropertyNames)\(/;
+
+/**
+ * (absent) `[line, "absent", what]` when the call `n` is a matcher asserting a SHAPE (header): its `expect(...)` subject
+ * and the matcher read through any `.not` / `.resolves` / `.rejects`; null otherwise.
+ */
+function shapeAssertion(n, sf) {
+  if (!ts.isCallExpression(n) || !ts.isPropertyAccessExpression(n.expression)) return null;
+  const m = n.expression.name.text;
+  let e = n.expression.expression, not = false;
+  while (ts.isPropertyAccessExpression(e) && ["not", "resolves", "rejects"].includes(e.name.text)) {
+    if (e.name.text === "not") not = !not;
+    e = e.expression;
+  }
+  if (!ts.isCallExpression(e) || !ts.isIdentifier(e.expression) || e.expression.text !== "expect" || !e.arguments[0]) return null;
+  let s = e.arguments[0];
+  while (ts.isAwaitExpression(s) || ts.isParenthesizedExpression(s) || ts.isNonNullExpression(s)) s = s.expression;
+  const arg = n.arguments[0], said = arg?.kind === ts.SyntaxKind.FalseKeyword ? false : arg?.kind === ts.SyntaxKind.TrueKeyword ? true : null;
+  // `.toBe(false)`, or `.not.toBe(true)`: the subject is said false
+  const sayingFalse = FALSY[String(not)].has(m) || (EQUAL.has(m) && said === not);
+  const callee = ts.isCallExpression(s) ? s.expression.getText(sf).replace(/\s+/g, "") : null;
+  const has = (ts.isBinaryExpression(s) && s.operatorToken.kind === ts.SyntaxKind.InKeyword) ||
+    (ts.isCallExpression(s) && ((ts.isPropertyAccessExpression(s.expression) && s.expression.name.text === "hasOwnProperty") ||
+      ["Object.hasOwn", "Reflect.has", "Object.prototype.hasOwnProperty.call"].includes(callee) ||
+      (ts.isPropertyAccessExpression(s.expression) && s.expression.name.text === "includes" && KEYS.test(s.expression.expression.getText(sf)))));
+  const typedList = arg && ts.isArrayLiteralExpression(arg) && arg.elements.length > 0 && arg.elements.every(ts.isStringLiteralLike);
+  const hit = (not && m === "toHaveProperty") || (has && sayingFalse) || (not && m === "toContain" && KEYS.test(s.getText(sf))) ||
+    (!not && (m === "toEqual" || m === "toStrictEqual") && typedList && KEYS.test(s.getText(sf)));
+  return hit ? n.getText(sf).replace(/\s+/g, " ").slice(0, 70) : null;
+}
 
 /** The release ids in `text` that look real (5+ different hex digits). */
 export function realReleaseIds(text) {
@@ -282,6 +337,8 @@ export function scanSource(source, name = "x.test.tsx", committed = []) {
           cur.pins.push([line(x), "raw-part", `"${a[i - 1].text}", ${x.getText(sf)}`]);
       });
     }
+    const shape = shapeAssertion(n, sf);
+    if (shape) cur.pins.push([line(n), "absent", shape]);
     if (ts.isPropertyAssignment(n) && named(n.initializer)) {
       const k = keyName(n);
       if (k && SECTION_KEYS.has(k)) cur.pins.push([line(n), "raw-section", n.getText(sf).slice(0, 50)]);

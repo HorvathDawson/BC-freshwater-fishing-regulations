@@ -31,6 +31,7 @@ describe("T667 test anchors: what is found", () => {
       "raw-part": inFixture(`mount("gnis:2936", 2, l);`),
       "release-id": inFixture(`expect(l.manifest.data_release).toBe("r-303b4007a70a");`),
       digest: inFixture(`expect(l.manifest.handles).toBe("d5242c0c9f1e77aa");`),
+      absent: inFixture(`expect(g.exit).not.toHaveProperty("at");`),
     };
     expect(Object.keys(planted).sort()).toEqual([...KINDS].sort());
     for (const [kind, src] of Object.entries(planted)) expect(kinds(src), kind).toContain(kind);
@@ -58,6 +59,52 @@ describe("T667 test anchors: what is found", () => {
                 [6, "raw-part", '" part 3" typed where `regs on ${p.item} part ${p.part}` puts it']]);
     // inside a longer expected string, and in a template's literal text too
     expect(kinds(mock + inFixture("expect(x).toBe(`Map | panel for 586 at ${lat} | no bar`);"))).toEqual(["raw-section"]);
+  });
+
+  it("(T768 / T993 item 10, 0.8.5 stop 9) a field's absence asserted on what a release holds: every spelling", () => {
+    // the next release adds the field within its format (T985 water_exit lon/lat, additive in water/3) and fails these
+    const said = [
+      `expect(g.exit).not.toHaveProperty("at");`,
+      `expect("at" in g.exit).toBe(false);`,
+      `expect("at" in g.exit).toEqual(false);`,
+      `expect("at" in g.exit).toBeFalsy();`,
+      `expect("at" in g.exit).not.toBe(true);`,
+      `expect("at" in g.exit).not.toBeTruthy();`,
+      `expect(Object.hasOwn(g.exit, "at")).toBe(false);`,
+      `expect(g.exit.hasOwnProperty("at")).toStrictEqual(false);`,
+      `expect(Object.keys(g.exit)).toEqual(["item", "name", "part"]);`,
+      `expect(Object.keys(row).sort()).toStrictEqual(["down_ord", "down_part", "ord"]);`,
+      `expect(Object.getOwnPropertyNames(await read())).toEqual(["ord"]);`,
+      `await expect(load()).resolves.not.toHaveProperty("at");`,
+      // (review) the spellings the first cut missed
+      `expect(Object.keys(g.exit)).not.toContain("at");`,
+      `expect(Object.keys(g.exit).includes("at")).toBe(false);`,
+      `expect(Reflect.has(g.exit, "at")).toBe(false);`,
+      `expect(Object.prototype.hasOwnProperty.call(g.exit, "at")).toBe(false);`,
+    ];
+    for (const s of said) expect(hits(inFixture(s)), s).toEqual([[3, "absent", s.replace(/^await |;$/g, "").slice(0, 70)]]);
+  });
+
+  it("(T768 / T993 item 10) the near misses: a field present, a value, a list the code declares, a test on its own data", () => {
+    const fine = [
+      `expect(g.exit).toHaveProperty("at");`,                                   // present
+      `expect("at" in g.exit).toBe(true);`,
+      `expect("at" in g.exit).not.toBe(false);`,
+      `expect(Object.keys(g.exit)).toEqual(expect.arrayContaining(["item", "name", "part"]));`,
+      `expect(g.exit).toMatchObject({ item: "gnis:3062", part: 1 });`,
+      `expect(Object.keys(c)).toEqual([...CELL_COLUMNS.slice(2)]);`,            // the code's own list is the contract
+      `expect(Object.keys(c)).toEqual([]);`,                                     // nothing typed
+      `expect(g.exit?.at).toBeUndefined();`,                                     // a value (header: not one)
+      `expect(Object.keys(names)).toEqual(Object.keys(want));`,
+      `expect(Object.keys(g.exit)).toContain("at");`,                          // present
+      `expect(Object.keys(g.exit).includes("at")).toBe(true);`,
+      `expect(names).not.toContain("Vedder River");`,                            // a value list, not a field list
+      `expect(g.exit).toEqual({ item: "gnis:3062", name: "Vedder River", part: 1 });`,
+    ];
+    for (const s of fine) expect(hits(inFixture(s)), s).toEqual([]);
+    // the same shape assertions in a block on its own data name that data (a pin counts only where a release is followed)
+    expect(hits(`describe("own", () => { const row = { ord: 1 }; expect(row).not.toHaveProperty("at");\n` +
+      `expect(Object.keys(row)).toEqual(["ord"]); expect("at" in row).toBe(false); });`)).toEqual([]);
   });
 
   it("a committed fixture release's id typed out is found in any file", () => {

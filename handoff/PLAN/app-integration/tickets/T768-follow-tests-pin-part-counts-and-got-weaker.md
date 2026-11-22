@@ -1,6 +1,7 @@
 # T768 — App follow tests pin part counts and names by hand, and three got weaker on 2026-11-16
 
-Status: PARTIAL — merged (ac3eb388f, in 0.8.2); left (Claude): the made-up-part-end proof is NOT met, see below.
+Status: DONE — the made-up-part-end proof is met and rerunnable (`app/tools/part-end-proof.mjs`, 1716bcb87, f8916d70f);
+the three weaker tests are mutation-checked; T993 item 10 (ff946c86e, c5d66fccc). See "Done, 2026-11-22" at the end.
 
 Source: `handoff/PLAN/audit-2026-11-16/guards.md` and `code.md`. Area: app tests.
 
@@ -81,3 +82,36 @@ the part / whole-river frames (checked to hold the parts' own boxes instead of t
 number of ▲ taps and the top fit key. Typed content left: the Skeena names (T750, ends), part-0 stream keys and bbox
 (`CHW0_LIT`, geometry), `waterNav.test.ts` row tables. The "made-up part end fails exactly one file" proof is still NOT
 run; fix item 3 was already settled.
+
+## Done, 2026-11-22 (lane test/T768-follow-tests; with T993 plan items 10 and 12)
+- **The proof, as a tool** (1716bcb87): `scripts/heavy.sh t768-proof 30 -- node app/tools/part-end-proof.mjs` writes a
+  copy of the regs fixture with ONE made-up part end (the Chilliwack's Slesse-signs → Ecological Reserve part cut at
+  Chilliwack Lake: `lake_outlet` / `lake_inlet`, both existing end tokens; `part`, `part_section`, `part_line`,
+  `part_mark`, the picker choice, `part_geo` and the manifest follow) and runs the whole app suite on it through
+  `REGS_FIXTURE_MUTANT` (the node-only driver honours it only for a folder holding the tool's `MUTANT.json`). Exit 0 iff
+  the one counted failure is the content pin; `tools/regs-fixture.test.ts` (bytes = a rebuild from the source release)
+  is listed as provenance, never counted. `tools/part-end-proof.test.ts` pins that the mutant reads whole (one more
+  part, every other water as committed), the verdict, and the variable's guard.
+- **What it found** (run 1: 4 files besides the pin; run 2: 1; run 3, 780 files: **only the pin**): `waterMap.test.ts`
+  typed the whole part list by ends (`CH_ENDS`), the four boundary marks and the five parts' crossings; `WaterMode`
+  named the Slesse part by both its ends (a new end inside a part removes such a part: both now name it by a place on
+  it, `partAt`); `WaterMapView` typed part numbers into expected calls (4, 2, 1: now the group's); `golden.test` held
+  the copy's folder shape (the copy now sits at `…/regs-release/<id>`). f8916d70f.
+- **The three weaker tests, a mutation each** (in `core/src/regs/header.ts`, reverted): the unnamed reach's name with
+  its region digit swapped ("Region 1" for "Region 2", which the old `/^Unnamed stream · Regions? \d/` accepted) fails
+  `WaterMode` T53 and both `WaterScreen.unnamed` tests; "Tributary of" worded "Flows into" fails `WaterScreen.unnamed`
+  (2 tests); `unnamedStreams()` was proven on 11-16 (above).
+- **T993 item 10.** The anchor scanner's new `absent` kind (ff946c86e): a release-following test may not assert a
+  value's SHAPE (`not.toHaveProperty`, `"f" in x` / `hasOwn` false, `Object.keys(x)` equal to a typed list); every
+  spelling and the near misses pinned, mutation-checked (detection off: 2 tests fail); the 3 live hits rewritten. A
+  column the writer adds without a mini re-cut: `test_mini_release.py` pins that `--check` fails naming the file and
+  `python -m pipeline.tools.mini_release --write` (c5d66fccc); proven end to end with a planted `water_exit` column in
+  `pipeline/deliver/release/build.py` (exit 1, the re-cut named; reverted). Before a push it runs in fast-fail's mini
+  chain (any pipeline source) and in `scripts/before_push.py` (pipeline-ci's step).
+- **T993 item 12.** `WaterMode` "across waters" is not a live flake: every CI log since T849 (36559a549, 11-18 21:04Z)
+  that lists it, 9 runs, has it passing in 1.3–2.3 s; the post-T849 `WaterScreen.unnamed` failures (11-21) were the
+  T980 fixture-shape error, not a timeout (fixed in 8c1228707).
+- Not done, moved to **T1002**: a whole record typed (`expect(g.exit).toEqual({…})`) and `toBeUndefined()` on a release field are not
+  scannable without refusing legitimate value pins (header of `check-test-anchors.mjs`); the pipeline scanner
+  (`pipeline/tests/anchors.py`, another lane's file this round) has no `absent` kind; the in-text rule misses a part
+  number typed after a short-named slot (`onPart={(i, p) => …\`part ${i} ${p}\`}` let "part gnis:8634 4" through).

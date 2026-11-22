@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import fnmatch
 import functools
+import os
 import re
 import subprocess
 from pathlib import Path, PurePosixPath
@@ -154,7 +155,9 @@ def test_feeds_worker_ci_watches_everything_the_worker_tests_import_or_read():
         text = f.read_text()
         # a relative path in an import, or in any quoted string (a readFileSync / new URL / join of "../../..")
         for m in re.finditer(r"[\"'](\.{1,2}/[^\"'`$]+)[\"']", text):
-            target = (f.parent / m.group(1)).resolve()
+            # LEXICAL, never .resolve(): a worktree's node_modules / .venv is often a symlink to the main checkout's,
+            # and resolving it left the repo (ValueError) before the node_modules filter below could drop it
+            target = Path(os.path.normpath(f.parent / m.group(1)))
             rel = target.relative_to(root).as_posix()
             real = any((root / (rel + sfx)).is_file() for sfx in ("", ".ts", ".tsx", ".mjs", ".js", "/index.ts"))
             if real and "node_modules" not in rel and not _covered(rel, paths) and not _covered(rel + ".ts", paths):

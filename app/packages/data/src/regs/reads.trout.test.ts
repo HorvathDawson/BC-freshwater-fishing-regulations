@@ -49,7 +49,8 @@ describe.each([
         if (c.trout === null) { nulls++; continue; }
         expect(Number.isInteger(c.trout) && c.trout >= 0, `akey ${akey} trout ${c.trout}`).toBe(true);   // frame 0 is a frame
         const v = await st.trout(akey, c.trout);
-        expect(Object.keys(v).sort()).toEqual(["covers", "dates", "table"]);
+        // (T768 / T993 item 10) the fields the reader needs, present: a frame may gain one within its version
+        expect(Object.keys(v)).toEqual(expect.arrayContaining(["covers", "dates", "table"]));
         expect(v.covers.length).toBeGreaterThan(0);
         for (const b of v.table.boxes) {
           for (const r of b.rows) expect(typeof r.sheet.head, `akey ${akey} trout ${c.trout} row ${r.key}`).toBe("string");

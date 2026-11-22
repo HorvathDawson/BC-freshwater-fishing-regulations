@@ -92,3 +92,24 @@ patch (no longer the whole lean patch). iOS: the patch was never in the iOS buil
 Left (Claude): the MapLibre switch once the owner picks; the TestFlight build still runs no fast-fail of its own (AGENTS
 20a says it should; not added here); `pnpm check`'s vitest tests that use `liveRelease()` still read LATEST when a checkout
 has one (a fresh worktree has none; T777's ground).
+
+## MapLibre 0002 measured (lane/t978-maplibre-measure, e69df5274, 2026-11-22)
+Owner, verbatim: "Can we measure the different of patch 2 I think we thought it wasn't worth it". Render-thread CPU,
+seconds, mean [range], 3 blocks per build alternated in one boot (Android emulator; 1 core at the 60 fps cap: the Mac
+was at load 18-40 from six orphaned headless Chrome trees, so T420's E-core stress was not usable):
+
+| place | lean (shipped: 0001 + 0002 on the release) | upstream main, 0001 only | main + 0002 |
+|---|---|---|---|
+| Coquitlam z13, held | 25.5 [25.3-25.7] | 20.5 [19.7-22.1] | 20.1 [18.6-21.6] |
+| Coquitlam z13, 160 flings | 96.7 | 67.1 [66.8-67.3] | 67.5 [59.3-79.4] |
+| Fraser Valley z11, held | 22.6 | 15.4 [14.1-16.2] | 14.6 [12.9-15.5] |
+
+0002 is within noise (-2% / -5%, ranges overlap; upload share 19.5-21.7% vs 21.4-23.0%). Upstream main is 20-32%
+cheaper than the shipped lean AAR from upstream's own changes. On main: colours after Map -> Conditions -> Map correct,
+0 ANRs in tap-glide, build-id proof PASS. Build: full AAR 703 s, rebuild 264 s, APK 67-93 s; `build.sh` needs only the
+tag -> a pinned upstream commit, no patch. Owner decides (OWNER-TODO): build from a pinned upstream main commit with no
+patch (recommended), or keep the lean AAR.
+
+## Owner 2026-11-22, dialog: MapLibre for 0.8.6
+"Pinned upstream main (Recommended)": build from one pinned upstream main commit, no patch of ours; move to a release
+tag once upstream releases one containing 0001. The switch: branch `build/T978-maplibre-upstream-main` (in progress).
