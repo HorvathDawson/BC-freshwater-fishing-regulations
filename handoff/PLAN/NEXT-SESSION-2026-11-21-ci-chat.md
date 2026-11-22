@@ -16,6 +16,12 @@ practice. No release is cut in this chat; 0.8.6 comes later.
 - GitHub cleanup: 8,399 runs of deleted workflows being deleted (background script in the chat's scratchpad,
   `gha-clean/delete.log`); caches 10.4 → 1.24 GB; retention 30 days; Copilot environment removed.
 
+## Since (2026-11-22)
+- **T995 landed:** `main` is the protected trunk (PRs, four required checks, merge commits, admins bypass only on a PR
+  merge); `redesign/stream-sections` is read-only until 0.8.6 redeploys the production feeds worker. Every change now
+  goes by PR from a `feat/ fix/ ci/ docs/ chore/ test/` + ticket branch. T788 + T791 DONE; T931 reviewed (T1000 tile
+  gap left); T998 (versioning) and T999 (worker backups) filed.
+
 ## In flight when written
 - GitHub's first runs of the new workflows on the pushed head: read `gh run list --commit <head>`.
 - MapLibre 0002 measurement (T978, on lane `lane/t978-maplibre-measure`, emulator on heavy lane 1): owner decides on
