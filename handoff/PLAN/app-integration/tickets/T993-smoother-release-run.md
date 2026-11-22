@@ -106,3 +106,11 @@ Owner, verbatim: "generally we want to change stuff to be best practice in indus
   PRs once green. Built after G1's job split lands (the required check names come from it).
 - **Pre-push hook:** "Yes, versioned hook (Recommended)": a hook checked into the repo (`core.hooksPath`), so every
   checkout and worktree gets it, running G2's before-push command; `git push --no-verify` is the emergency skip.
+
+## GitHub Actions cleanup (main chat, 2026-11-21; owner: "clean up the old workflows and old gha. We want a nice clean repo")
+- 8,399 runs of removed workflows (update-hydro 7,651, update-in-season 731, update-stocking 13, feeds-sync-inputs 4)
+  being deleted (throttled background script); runs of live workflows kept. `feeds-sync-inputs` disabled.
+- Caches: 36 stale deleted (10.4 GB → 1.24 GB, 4 left). Artifact and log retention 90 → 30 days.
+- Owner dialog: staging-security.yml + staging-smoke.yml "Delete both (Recommended)" (they never ran; the deploy
+  scripts run the same checks) — deleted after G1 merges. Copilot agent "No, remove it (Recommended)": its environment
+  and one run deleted; turning the agent off in the repo's Copilot settings is the owner's (not reachable by API).
