@@ -31,3 +31,22 @@ Fix lanes (disjoint files):
 - **F2 pipeline + review backend:** 1, 2, 14, 15, 16, 17, 21, 27.
 - **F3 app data seam:** 8, 11, 12, 13, 22.
 - **With T993 (workflows, deploy scripts):** 6, 7, 9, 10, 18, 19, 20, 28, 29.
+
+## Fixed by T993 lane G3 (`lane/t993-g3-deploy` a3ca419e2; tests in `pipeline/tests/test_deploy_gates.py`)
+- **9** (format gate fails open): fixed. `input-formats.sh` refuses a staged file jq cannot read, stops without jq
+  (and both `sync-inputs.sh` look before staging), and keeps the worker's cause (curl's words, a body that is not JSON).
+- **10** (no prod site-version gate): fixed. `deploy/prod/upload.sh` runs `site_gate --site https://canifishthis.ca`
+  before any copy, with its own `PROD_SITE_CHECK_SKIP`; a rehearsal bucket asks `SITE_URL` or says it did not ask.
+  The refusal names the production site and PRODUCTION.md step 6; the runbook order (site first) is noted there.
+- **18** (`--dry-run` from `$1` only; lock race): fixed. Prod's argument loop (unknown = exit 2); a dead holder's lock
+  is taken over under a mutex with `mv`, as heavy.sh.
+- **19** (`|| true` / `2>/dev/null`): fixed. Removed in staging `site.sh` (hub rewrite, now post-checked; bundle and
+  water page said), both `site.sh` bundle reads, staging `upload.sh` run-timing read (`deploy/lib/r2-object.sh`:
+  absent vs rclone failed), `restore-test.sh` (one check read for counts; diff exit 2 said), both `feeds.sh` secret
+  lists (read once, exit checked) and staging's deploy log (whole on failure), `rotate-run-token.sh`, `sync-inputs.sh`'s
+  resolved.json read. The rest are justified and pinned by `test_every_hiding_left_in_the_deploy_scripts_is_justified`
+  (lock probes, log filters after a checked copy, the feeds gate's empty-means-unread). The build scripts are T978's.
+- **20** (gh blip after an accepted dispatch): fixed. `start-workflow.sh` says each failed look and exits 76 ("may be
+  running: look before a rerun"), also for the old accepted-but-no-run case; `upload.sh` words 76 apart from 75.
+- **28** (prod precondition after the uploads): fixed. HYDAT is checked beside the manifest in both uploads, before any
+  copy; staging's optional `if -d` is gone (the pair agree).
