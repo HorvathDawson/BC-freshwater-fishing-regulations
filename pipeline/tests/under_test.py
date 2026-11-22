@@ -196,10 +196,12 @@ def release(request=None) -> Path:
     """The release folder under test (`needs_bundle`, the marker a release read has always carried); fails when there
     is none, naming what is missing."""
     import pytest
+    # the marker check, and the root itself, BEFORE anything is read (T777: reading LATEST first let the suite's guard,
+    # `machine_state`, refuse an unmarked test with its own message; one refusal, the accessor's, as every accessor)
+    C.need(request, "bundle", release_root(), RELEASE_HINT)
     try:
         d = release_at()
     except LookupError as e:
-        C.need(request, "bundle", release_root(), RELEASE_HINT)      # the marker check, and the root itself
         pytest.fail(str(e), pytrace=False)
     return C.need(request, "bundle", d, RELEASE_HINT)
 

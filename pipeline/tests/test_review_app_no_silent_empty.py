@@ -13,13 +13,14 @@ from pathlib import Path
 import pytest
 
 from pipeline.regs.review import proposals as P
-from pipeline.tests.conftest import curated_root
+from pipeline.tests.conftest import curated_root, no_served_build
 
 BACKEND = Path(__file__).resolve().parents[2] / "curation-review" / "backend"
 
 
 @pytest.fixture()
 def app(tmp_path, monkeypatch):
+    no_served_build(monkeypatch, tmp_path)  # (T777) the app serves no atlas, as on CI
     curated_root(monkeypatch, tmp_path / "curated")
     monkeypatch.setenv("CURATION_BACKUP_DIR", str(tmp_path / "backups"))
     monkeypatch.syspath_prepend(str(BACKEND))

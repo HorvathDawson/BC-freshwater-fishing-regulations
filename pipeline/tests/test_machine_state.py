@@ -147,7 +147,7 @@ def planted(tmp_path_factory):
     tmp = tmp_path_factory.mktemp("planted")
     (tmp / "pytest.ini").write_text(INI)
     (tmp / "test_planted.py").write_text(PLANTED)
-    tracked = M._git_files(Path(C.load_generated().base).resolve().relative_to(REPO).as_posix())
+    tracked = M._git_files(Path(os.path.abspath(C.load_generated().base)).relative_to(REPO).as_posix())
     assert tracked, "git tracks no generated file: the tracked-file twin has nothing to read"
     name = f"zz-planted-{os.getpid()}.txt"
     env = os.environ | {"PLANT_REPO": str(REPO), "PLANT_NAME": name, "PLANT_TRACKED": tracked[0],

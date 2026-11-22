@@ -156,6 +156,10 @@ def world(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(R, "classified_problems", lambda rid: w["classified_problems"])
     w["atlas_behind"] = []
     monkeypatch.setattr(R, "atlas_behind", lambda: list(w["atlas_behind"]))
+    # (T777) the dry run's informational review line reads the served atlas's registry and the corpus on disk
+    # (`pending.pending_on_disk`, pinned in test_curation_review_vintage.py): this world has nothing waiting on a rebuild
+    from pipeline.regs.review import pending as PENDING
+    monkeypatch.setattr(PENDING, "pending_on_disk", lambda target=None: {"entries": [], "splits": []})
     monkeypatch.setattr(R, "binding_diff", diff)
     # (T555 item 4) what each app version reads: a small table in place of the committed one (pinned in test_app_reads.py),
     # so these releases' made-up formats are judged the same whatever the real apps read today

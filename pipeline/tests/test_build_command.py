@@ -113,6 +113,8 @@ def inputs(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(B, "sources", lambda: src)
     monkeypatch.setattr(B, "CLIM_PATH", clim)
     monkeypatch.setattr(B, "inseason_ends_digest", lambda: "ends")      # (T679 #11) pinned on its own below
+    # (T777) the typed DFO feed is generated (absent on CI): a stand-in digest, never this machine's feed
+    monkeypatch.setattr(B, "dfo_feed_digest", lambda: "dfo")
     return src, clim
 
 

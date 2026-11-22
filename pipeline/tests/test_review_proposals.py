@@ -27,7 +27,7 @@ import pytest
 from pipeline.tests import under_test
 
 from pipeline.common.curated import CURATED
-from pipeline.tests.conftest import curated_root
+from pipeline.tests.conftest import curated_root, no_served_build
 from pipeline.regs.review import apply_proposals as A
 from pipeline.regs.review import marks as M
 from pipeline.regs.review import proposals as P
@@ -252,7 +252,7 @@ def test_a_mark_whose_edit_is_already_in_the_file_proposes_nothing(src, tmp_path
 def test_building_and_writing_never_touches_curated_data(tmp_path):
     root = Path(CURATED.waters.cuts).parents[1]
     before = {p: p.read_bytes() for p in sorted(root.rglob("*")) if p.is_file()}
-    src = P.Sources.live()
+    src = P.Sources.live(build=tmp_path / "no-atlas")   # (T777) the curated files, no served atlas (as on CI)
     props = P.build(owner_marks(), src)
     P.write(props, tmp_path / "out", src, marks_path=tmp_path / "marks.jsonl")
     assert {p: p.read_bytes() for p in sorted(root.rglob("*")) if p.is_file()} == before
@@ -385,6 +385,7 @@ def test_the_app_refuses_a_proposal_decision(src, tmp_path, monkeypatch):
     props = P.build(owner_marks(), src)
     out = tmp_path / "proposals"
     P.write(props, out, src, marks_path=tmp_path / "marks.jsonl")
+    no_served_build(monkeypatch, tmp_path)  # (T777) the app serves no atlas, as on CI
     curated_root(monkeypatch, tmp_path / "curated")           # T422: the whole curated tree, its marks store empty
     store = Path(CURATED.review.marks)
     monkeypatch.setenv("CURATION_PROPOSALS_DIR", str(out))

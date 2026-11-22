@@ -100,6 +100,17 @@ def curated_root(mp: pytest.MonkeyPatch, dst: Path, *, fresh_review: bool = True
     return root
 
 
+def no_served_build(mp: pytest.MonkeyPatch, dst: Path) -> Path:
+    """(T777) THE REVIEW APP WITH NO ATLAS TO SERVE, as CI runs it: `CURATION_BUILD` named to a folder under `dst` that
+    does not exist, set through `mp` BEFORE the backend is imported (`reuse._BUILD` is read at import). A no-data test
+    of the app then never reads this machine's served build (the registry `applied_keys` resolves new points on,
+    `splits.resolved.json`); without it the test read the live atlas wherever one was built, and the suite's guard
+    (`machine_state`) refuses that. Returns the path."""
+    p = Path(dst) / "no-served-atlas"
+    mp.setenv("CURATION_BUILD", str(p))
+    return p
+
+
 @pytest.fixture(autouse=True)
 def _refused_saves_to_temp(tmp_path, monkeypatch):
     """No test writes the review app's real refused-saves log (owner 2026-10-28)."""

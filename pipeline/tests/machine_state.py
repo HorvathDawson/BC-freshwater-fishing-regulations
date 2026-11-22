@@ -34,11 +34,19 @@ A directory LISTING is not refused: it reads no content, and two kinds of code l
 scanners that walk the repo, the mini build's before/after listing of the live folders it must not write); what a test
 then opens is refused as above.
 
-What it cannot see: a read by native code (GDAL, PROJ, a node child) that does not go through Python's `open`; a
-`stat` / `exists()` probe (no audit event); work done while no test runs (collection, module imports: a module that
-writes a folder on import is caught only when a test imports it first). `test_machine_state.py` plants each case (a
-read of `data/curated`, an untracked generated read, a write by a no-data and by a data test, a swallowed read, the
-marked twin and the listing that pass) and holds the guard to them.
+KNOWN LIMITS (what it cannot see, said plainly):
+  * CHILD PROCESSES: the hook lives in this interpreter only. A `cat`, `git show`, `node` or `python -c` the test starts
+    reads and writes unseen (the child inherits the sandbox's `CURATED_ROOT`, nothing more).
+  * PATH ALIASES: a path is matched as written (`os.path.abspath`, no `realpath` per event: that is a stat per open, too
+    dear on a hook every open passes through). The trees' own names are matched both as written and resolved, so the
+    checkout's path and the target of a linked `data/generated` are caught; a path that reaches them through ANOTHER
+    alias (`/tmp` vs `/private/tmp`, a symlink placed elsewhere that points into the trees) is not.
+  * native code (GDAL, PROJ, sqlite's own file handles after connect) that does not go through Python's `open`; a
+    `stat` / `exists()` probe (no audit event); work done while no test runs (collection, module imports: a module that
+    writes a folder on import is caught only when a test imports it first).
+
+`test_machine_state.py` plants each case it does see (a read of `data/curated`, an untracked generated read, a write by
+a no-data and by a data test, a swallowed read, the marked twin and the listing that pass) and holds the guard to them.
 """
 from __future__ import annotations
 
