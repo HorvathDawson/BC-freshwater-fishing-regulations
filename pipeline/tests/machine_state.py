@@ -318,22 +318,28 @@ def pytest_report_header(config):
 def pytest_runtest_protocol(item, nextitem):
     from pipeline.common.curated import ROOT_ENV
     data = smoke.needs_data(item)
-    saved = os.environ.get(ROOT_ENV)
-    if data:                                  # a data test reads the live tree (the caller's root, if it named one)
-        if STATE.live_env is None:
-            os.environ.pop(ROOT_ENV, None)
-        else:
-            os.environ[ROOT_ENV] = STATE.live_env
+    # The run's own values (the sandbox; the caller's root or none, which a data test reads). Any OTHER value is a
+    # fixture's root (`curated_root` in a module-scoped fixture) and is left alone, here and after the test: restoring
+    # the value saved at the start undid it after the module's first test, so the rest of the module ran on the
+    # session sandbox (no-data) or the LIVE tree (data) instead of its own copy (T777 review).
+    ours = {str(STATE.sandbox), STATE.live_env, None}
+    if os.environ.get(ROOT_ENV) in ours:
+        _put_root(ROOT_ENV, STATE.live_env if data else str(STATE.sandbox))
     STATE.found = []
     STATE.item, STATE.data = item, data
     try:
         return (yield)
     finally:
         STATE.item, STATE.data = None, False
-        if saved is None:
-            os.environ.pop(ROOT_ENV, None)
-        else:
-            os.environ[ROOT_ENV] = saved
+        if os.environ.get(ROOT_ENV) in ours:  # between tests (and after a fixture's teardown) the run's sandbox
+            _put_root(ROOT_ENV, str(STATE.sandbox))
+
+
+def _put_root(name: str, value: str | None) -> None:
+    if value is None:
+        os.environ.pop(name, None)
+    else:
+        os.environ[name] = value
 
 
 @pytest.hookimpl(wrapper=True)

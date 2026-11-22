@@ -97,6 +97,29 @@ def test_the_sandbox_review_is_empty():
 
 def test_reads_a_tracked_generated_file():
     REPO.joinpath(os.environ["PLANT_TRACKED"]).read_bytes()
+
+
+@pytest.fixture(scope="module")
+def own_root(tmp_path_factory):
+    """(T777 review) a module-scoped fixture's own curated root holds for EVERY test of the module, not only the first"""
+    from pipeline.tests.conftest import curated_root
+    mp = pytest.MonkeyPatch()
+    root = curated_root(mp, tmp_path_factory.mktemp("own") / "curated")
+    yield str(root)
+    mp.undo()
+
+
+def test_zz_a_module_root_holds_for_its_first_test(own_root):
+    assert os.environ.get("CURATED_ROOT") == own_root
+
+
+def test_zz_a_module_root_holds_for_a_later_test(own_root):
+    assert os.environ.get("CURATED_ROOT") == own_root
+
+
+@pytest.mark.needs_bundle
+def test_zz_a_module_root_holds_for_a_data_test(own_root):
+    assert os.environ.get("CURATED_ROOT") == own_root
 '''
 
 #: planted test -> what its failure must say (None: it must pass)
@@ -113,6 +136,9 @@ WANT = {
     "test_curated_reads_go_to_the_sandbox": None,
     "test_the_sandbox_review_is_empty": None,
     "test_reads_a_tracked_generated_file": None,
+    "test_zz_a_module_root_holds_for_its_first_test": None,
+    "test_zz_a_module_root_holds_for_a_later_test": None,
+    "test_zz_a_module_root_holds_for_a_data_test": None,
 }
 
 
