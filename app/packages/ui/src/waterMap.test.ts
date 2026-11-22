@@ -120,8 +120,9 @@ describe("the Chilliwack: ▼ / ▲ through its five parts, the ends disabled, t
         name: partName(g, m + 1) }],
       downLabel: "Downstream", down: { ix: m, item: "gnis:8634", partIx: g.parts[m]!.partIx, note: "Chilliwack River",
         name: partName(g, m) } });
+    // (T768) every boundary of the group, never a typed list: the open one and the ends of the part shown carry words
     expect(view(g, s).marks.filter((m) => !m.mouth).map((m) => [m.ix, m.on, m.label !== null]))
-      .toEqual([[0, false, true], [1, false, false], [2, true, true], [3, false, false]]);
+      .toEqual(g.marks.map((k, ix) => [ix, ix === m, ix === m || k.down === 0 || k.up.includes(0)]));
     expect(run(g, s, { type: "mark", ix: 2 }).mark).toBeNull();
     expect(run(g, s, { type: "mark", ix: null }).mark).toBeNull();
     expect(run(g, s, { type: "mark", ix: 9 })).toBe(s);
@@ -330,8 +331,9 @@ describe("across waters: the Vedder goes on from the Chilliwack (`water_continue
     expect([view(g, waterMapStart(0)).down, view(g, waterMapStart(0)).exit?.label]).toEqual([
       { label: "Downstream into Vedder River", aria: "Downstream into Vedder River", disabled: false,
         cross: { item: "gnis:3062", part: 1 } }, "Flows into Vedder River ›"]);
+    // (T768) only the lowest part crosses, however many parts the group has
     expect(g.parts.map((_, i) => [view(g, waterMapStart(i)).down.cross, view(g, waterMapStart(i)).up.cross]))
-      .toEqual([[{ item: "gnis:3062", part: 1 }, null], [null, null], [null, null], [null, null], [null, null]]);
+      .toEqual(g.parts.map((_, i) => (i === 0 ? [{ item: "gnis:3062", part: 1 }, null] : [null, null])));
   });
 
   it("a water with no continuation gets no cross-water step (the Cowichan, the KLWA lake, the Zymoetz)", async () => {
