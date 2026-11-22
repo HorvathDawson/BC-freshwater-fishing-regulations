@@ -213,7 +213,7 @@ Q1 what you keep here; Q2 "between/among them" (box number: "up to the N"); Q3a 
 - Tests: `store.test.ts` and `manifest.readable.test.ts`. New `reads.trout.test.ts` checks the trout fixture (every
   cell decodes, NULL stays null, the SELECT is `CELL_COLUMNS` plus `trout`) and the normal regs fixture (no `trout`
   anywhere). `cellIds.test.ts` checks the keys. `inputs.release.test.ts` checks the G proof: on all 53 vectors,
-  `inp.s` and `inp.trout` equal Python's. 10 mutations of the new guards each fail a test.
+  `inp.s` and `inp.trout` equal Python's (T866: moved into `trout.release.test.ts` "T810 N"). 10 mutations of the new guards each fail a test.
 - Next for the main chat: `scripts/trout-refresh.sh` step 4 (the golden sync) now RUNS, because `versions.ts` lists
   `trout`. The conformance checks of the golden versions now accept an optional section at `OPTIONAL_VERSIONS`.
 
