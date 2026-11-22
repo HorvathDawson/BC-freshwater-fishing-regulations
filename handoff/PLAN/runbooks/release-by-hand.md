@@ -16,13 +16,17 @@ never runs from a worktree.
 
 Each step is marked with who may run it.
 
-- **[you]** — only you. Production data, the production app builds, the Play production track, the App Store, your
-  phones, a rollback. These refuse without `CONFIRM_PROD`, and `release --prod` also refuses inside a Claude session.
+- **[you]** — only you. Everything that needs `CONFIRM_PROD`: the production data, the production website, the
+  production feeds worker, the production data worker, the production app builds, a rollback; and the Play production
+  track, the App Store and your phones. Your rule (2026-11-22): "only me unless i say otherwise that time". Claude
+  prepares each one (staging, tests, smoke, the dry run) and hands you the exact command; it runs one only when you say
+  so, that one time. `release --prod` also refuses inside a Claude session.
 - **[Claude]** — Claude may run it, and so may you. Everything on staging (data, website, workers, the staging-data
-  store builds); every rehearsal (`--dry-run`); promoting a build already on Play to Closed testing; the production
-  website once it is tested; the production feeds worker as a release step.
+  store builds); every rehearsal (`--dry-run`, production's too: they send nothing); building the production web export
+  and water pages (local files); promoting a production build already on Play to Closed testing; the production smoke
+  test.
 - **[you, or Claude on your word]** — the command is safe to run, but you decide (the version number, the changelog
-  words, the production data worker).
+  words).
 
 ## What a release is made of
 
@@ -91,7 +95,8 @@ Never use `git stash` or `git reset --hard` in this folder: your review files li
 
    It prints the version, the commits that decided it, and how many it counted. Read the "decided by" lines. If one of
    them is not a change anglers get, stop and ask Claude: the rule needs fixing in code. You cannot type a different
-   number past it.
+   number past it. (The next release computes 0.9.0 from T998's tooling commit, which touched `app/package.json`; you
+   accepted that on 2026-11-22: "let it be 0.9", released once the next chat's work is in. Settled for this release.)
    - It says **"no app release"**: nothing since the last version bumps the app. This is a data-only release: go to
      [A data-only release](#a-data-only-release).
 2. **Cut the branch** at scope lock, when the batch is complete:
@@ -157,9 +162,12 @@ release's stamp, raised to what the code's data formats need. The rehearsal says
 rise leaves behind (they keep the data they hold and say "Update the app to get new regulations"; they never break).
 You do not pass `--min-app-version` unless you want a higher one.
 
-**The staging website must be new enough first.** If the rehearsal stops on the `site` check (the staging site is
-older than the release's minimum app), deploy the staging site from the release branch first (Step 4's command), then
-rehearse again.
+**Two things on staging may have to go first.** Both are Step 4 commands, run before Step 3 when the rehearsal asks:
+
+- the `site` check stops (the staging site is older than the release's minimum app): deploy the staging site from the
+  release branch first (`deploy/staging/site-all.sh`), then rehearse again;
+- the `pieces` check stops (the release binds closed-area pieces the staging feeds worker does not serve): deploy the
+  staging feeds worker first (`deploy/staging/feeds.sh`), then rehearse again.
 
 ## Step 3: the data release to staging
 
@@ -242,6 +250,10 @@ the same gates first (the precheck list, CI, fast-fail), so a missing secret or 
 
 ### Android: Play Internal, then Closed testing
 
+Closed testing gets the **production** build (your answer 2026-11-22: "Production build (Rec.)"): the production
+app bundle goes to Internal, and that same build is promoted to Closed. A staging-data build on Closed (0.8.5's build
+43) was the exception, not the rule.
+
 1. **Rehearse** **[Claude]** (builds and uploads nothing, needs no confirmation): `deploy/prod/build-apk.sh --dry-run`
    prints the plan and the precheck list (every missing secret, link or changelog entry at once, `WOULD STOP` when
    one is missing).
@@ -255,10 +267,11 @@ the same gates first (the precheck list, CI, fast-fail), so a missing secret or 
    it to the Internal track with this version's bullets, writes the production version files, and emails the tester
    link. Then push its commit: `git push origin release/<x.y.z>`. If the upload worked but a later step failed:
    `CONFIRM_PROD=canifishthis.ca deploy/prod/build-apk.sh --publish-only`.
-   A build that reads **staging** data for Internal testers is `deploy/staging/build-apk.sh --play` **[Claude]**.
+   A build that reads **staging** data for Internal testers is `deploy/staging/build-apk.sh --play` **[Claude]**;
+   it is never the one promoted to Closed.
 3. **Install it from Play** on your phone **[you]**. About shows no environment badge on a production build.
-4. **Promote the same build to Closed testing** **[Claude]** (track `alpha`; no new upload, the notes come from
-   Internal):
+4. **Promote the same production build to Closed testing** **[Claude]** (track `alpha`; no new upload, the notes
+   come from Internal):
 
    ```
    .venv/bin/python deploy/staging/play-upload.py --package ca.canifishthis.app --max-version-code
@@ -295,20 +308,24 @@ the same gates first (the precheck list, CI, fast-fail), so a missing secret or 
 
 ## Step 7: production
 
-Do it after you have checked staging. The data goes first unless a gate says otherwise.
+Do it after you have checked staging. The data goes first unless a gate says otherwise. Every production deploy below
+is yours: Claude gets each one ready and hands you the command (your rule, 2026-11-22: "only me unless i say otherwise
+that time").
 
-1. **Rehearse** **[Claude]** (sends nothing):
+1. **Rehearse** **[Claude]** (sends nothing, needs no confirmation):
 
    ```
    .venv/bin/python -m pipeline release --prod <r-id> --dry-run
    deploy/prod/upload.sh <r-id> --bucket bc-fishing-regulations-staging --dry-run
+   deploy/prod/feeds.sh --dry-run          # only when the feeds worker changed or closed areas were added
    ```
 
    The first says whether staging still serves `<r-id>` and whether its tags are right. The second walks the upload.
+   The third runs the worker's tests and builds its bundle.
 2. **Only if the release needs it first:**
-   - **The website first** **[Claude]**, when the release's minimum app is newer than the production site. The data
-     upload refuses with "the production site is app X, older than Y". Use item 5's commands, then come back.
-   - **The feeds worker first** **[Claude]**, when the release adds closed-area pieces the production worker does not
+   - **The website first** **[you]**, when the release's minimum app is newer than the production site. The data
+     upload refuses with "the production site is app X, older than Y". Item 5, then come back.
+   - **The feeds worker first** **[you]**, when the release adds closed-area pieces the production worker does not
      serve yet. The data upload's pieces gate refuses otherwise. `CONFIRM_PROD=bc-fishing-feeds deploy/prod/feeds.sh`.
 3. **The data** **[you]**, in your own terminal (it refuses inside a Claude session):
 
@@ -322,22 +339,24 @@ Do it after you have checked staging. The data goes first unless a gate says oth
    `data/release/PUBLISHED`, and prunes releases neither pointer names. Done when it prints
    `release: <r-id> published to production`.
 4. **Smoke test** **[Claude]**: `node app/tools/smoke-staging.mjs --production`.
-5. **The website** **[Claude]**, after the full test tier and the staging smoke pass, with each app version so the two
-   match (skip if item 2 did it). Build both halves on the same release, then deploy:
+5. **The website**, with each app version so the two match (skip if item 2 did it):
+   - **[Claude]** after the full test tier and the staging smoke pass, builds both halves on the same release and
+     rehearses the deploy:
 
-   ```
-   (cd app/apps/mobile && EXPO_PUBLIC_CONTACT=support@canifishthis.ca EXPO_PUBLIC_APP_ENV=production \
-     pnpm exec expo export --clear --platform web --output-dir ../../dist/web-prod --source-maps \
-     && node ../../tools/web-shell.mjs ../../dist/web-prod && node ../../tools/sourcemaps.mjs keep-web ../../dist/web-prod)
-   scripts/heavy.sh seo-prod 30 -- node app/tools/build-seo.mjs --release-dir data/release/<r-id> \
-     --app app/dist/web-prod --threads 4 --out app/dist/seo-prod
-   CONFIRM_PROD=canifishthis.ca deploy/prod/site.sh
-   ```
+     ```
+     (cd app/apps/mobile && EXPO_PUBLIC_CONTACT=support@canifishthis.ca EXPO_PUBLIC_APP_ENV=production \
+       pnpm exec expo export --clear --platform web --output-dir ../../dist/web-prod --source-maps \
+       && node ../../tools/web-shell.mjs ../../dist/web-prod && node ../../tools/sourcemaps.mjs keep-web ../../dist/web-prod)
+     scripts/heavy.sh seo-prod 30 -- node app/tools/build-seo.mjs --release-dir data/release/<r-id> \
+       --app app/dist/web-prod --threads 4 --out app/dist/seo-prod
+     deploy/prod/site.sh --dry-run
+     ```
 
-   `deploy/prod/site.sh` refuses uncommitted changes under `app/`; `deploy/prod/site.sh --dry-run` deploys nothing.
-6. **The feeds worker** **[Claude]**, after the data and the matching website, when its code changed (skip if item 2
-   did it): `CONFIRM_PROD=bc-fishing-feeds deploy/prod/feeds.sh` (`--dry-run` deploys nothing).
-7. **The data worker** **[you, or Claude on your word]**, only when `deploy/staging/data-worker.js` changed:
+   - **[you]** deploy it: `CONFIRM_PROD=canifishthis.ca deploy/prod/site.sh`. It refuses uncommitted changes under
+     `app/`.
+6. **The feeds worker** **[you]**, after the data and the matching website, when its code changed (skip if item 2 did
+   it): `CONFIRM_PROD=bc-fishing-feeds deploy/prod/feeds.sh`.
+7. **The data worker** **[you]**, only when `deploy/staging/data-worker.js` changed:
    `npx --prefix app wrangler deploy -c deploy/prod/data.wrangler.toml`.
 8. **The phones** **[you]**: Play Production (Step 6, Android 5) and the App Store (Step 6, iPhone 3). Before you
    update the Play listing, **[Claude]** re-shoots the store pictures from the staging site:
@@ -353,11 +372,11 @@ Do it after you have checked staging. The data goes first unless a gate says oth
 - **Tags** are made by Step 3 (`data/<r-id>`, and `v<x.y.z>` on the version's first ship). Nothing to do unless it
   stopped there; then rerun Step 3's command: everything done is skipped and only the tags are left.
 - **Merge the release branch back into `main`** by a pull request, so its own commits (fixtures, matches, the
-  versionCode, the changelog) reach the trunk. Step 3 prints the exact command; it is:
+  versionCode, the changelog) reach the trunk. Step 3 prints the first command; the second turns on auto-merge:
 
   ```
-  gh pr create --base main --head release/<x.y.z> --title "chore(release): merge release/<x.y.z> back into main" --body "The release's own commits back on main."
-  gh pr merge --auto --merge
+  gh pr create --base main --head release/<x.y.z> --title "chore(release): merge release/<x.y.z> back into main" --body "The release's own commits (in-season matches, re-cut fixtures, cherry-picks) back on main."
+  gh pr merge release/<x.y.z> --auto --merge
   ```
 
   It merges itself once the four required checks pass. Then `git switch main && git pull --ff-only`.
@@ -428,5 +447,6 @@ Staging has no rollback. The next release replaces it.
 - [ ] Step 5: check web and phone on staging
 - [ ] Step 6: Android production build → Internal → Closed (`play-upload.py --promote`); iPhone production build
       (external group automatic)
-- [ ] Step 7: rehearse; data (you); smoke; website; feeds worker; phones (you); watch a day
+- [ ] Step 7: rehearse (Claude); data, website, feeds worker (you, with the commands Claude hands you); smoke;
+      phones (you); watch a day
 - [ ] Step 8: merge the release branch back by PR; `git switch main && git pull --ff-only`

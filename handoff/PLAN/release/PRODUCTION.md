@@ -3,12 +3,12 @@
 Production is canifishthis.ca (site), data.canifishthis.ca (bucket `bc-fishing-regulations`, worker `bc-fishing-r2`),
 the feeds worker `bc-fishing-feeds` and the Play app built with `EXPO_PUBLIC_APP_ENV=production`.
 
-**Who does what** (the runbook marks each step): the production DATA (`release --prod`, `deploy/prod/upload.sh`),
-the production app builds, the Play production track, the App Store and a rollback are the OWNER's; they refuse without
-`CONFIRM_PROD`, and `release --prod` refuses any agent. Claude may deploy the production website once it is tested
-(memory 11-18) and the production feeds worker as a release step (memory 11-21); the headers of `deploy/prod/site.sh`
-and `deploy/prod/feeds.sh` say so. Every rehearsal (`--dry-run`, or `--bucket <non-prod>`) writes nothing to production
-and needs no confirmation.
+**Who does what** (the runbook marks each step): everything that needs `CONFIRM_PROD` is the OWNER's: the production
+data (`release --prod`, `deploy/prod/upload.sh`), the production website (`deploy/prod/site.sh`), the production feeds
+and data workers, the production app builds and a rollback; so are the Play production track and the App Store. Owner
+2026-11-22: "only me unless i say otherwise that time". Claude prepares each (staging, tests, smoke, the dry run) and
+hands over the command; it runs one only when the owner says so, that one time. `release --prod` refuses any agent.
+Every rehearsal (`--dry-run`, or `--bucket <non-prod>`) writes nothing to production and needs no confirmation.
 
 **The one switch.** The app picks its environment from `EXPO_PUBLIC_APP_ENV` (eas.json, `build-apk.sh --production`).
 Every host comes from `app/apps/mobile/src/env.ts` (data, tiles, map assets, feeds, synopsis, sql.js, `play.json`,
@@ -31,7 +31,7 @@ anywhere else in app code.
 The steps, in order, with who runs each: `handoff/PLAN/runbooks/release-by-hand.md`, Step 7 (and Step 6 for the
 phones). The order rules the gates enforce:
 
-- **The data goes first**, then the website, then the feeds worker when its code changed (memory 11-21).
+- **The data goes first**, then the website, then the feeds worker when its code changed (owner 2026-11-21).
 - **The website goes before the data** when the release's minimum app is newer than the production site:
   `deploy/prod/upload.sh` asks the production site's version first (T994 #10) and refuses ("the production site is app
   X, older than Y"). `PROD_SITE_CHECK_SKIP=<reason>` skips it, printed (a staging `SITE_CHECK_SKIP` never does).

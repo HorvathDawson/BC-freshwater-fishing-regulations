@@ -237,8 +237,8 @@ a whole record typed or `toBeUndefined()` on a release field stays unscannable (
   min app, the site first); Step 3 the data release; Step 4 staging site / feeds / data worker; Step 5 the owner's look;
   Step 6 phones (production AAB to Internal, `play-upload.py --promote … --track alpha` to Closed, Play production;
   TestFlight `--production` with the external group automatic, App Store); Step 7 production (rehearse, the site / feeds
-  worker first when their gates say so, data by the owner, smoke, site and feeds worker as Claude steps, data worker,
-  phones, watch); Step 8 tags and the merge-back PR; a fix during the release (cherry-pick); a data-only release
+  worker first when their gates say so, data, smoke, site, feeds worker, data worker, phones, watch; every deploy the
+  owner's, below); Step 8 tags and the merge-back PR; a fix during the release (cherry-pick); a data-only release
   (`--cut --data-only`); when something breaks; rollback; checklist. Every command checked against the code.
 - `release.md` keeps the flag detail (links to the runbook and the gates page; the stale "hook is the owner's call"
   line fixed). `PRODUCTION.md`: the first transition removed (history: the file at a3ca419e2), its one open owner item
@@ -247,3 +247,21 @@ a whole record typed or `toBeUndefined()` on a release field stays unscannable (
 - T992's explanation: `handoff/PLAN/runbooks/release-gates-explained.md`.
 - Not done here: the claude.ai doc twin of the runbook (https://claude.ai/artifact/5r4yEqNwqygin1oKo5Zxjk) still has
   the 2026-11-18 text; it is synced when this lands. T1003 (R8) changes no release step yet.
+
+## Owner answers 2026-11-22 (applied to the runbook pages in the review of plan item 11)
+1. CONFIRM_PROD, verbatim: "only me unless i say otherwise that time". The production website (`deploy/prod/site.sh`)
+   and the production feeds worker (`deploy/prod/feeds.sh`) are owner steps like the production data: Claude prepares
+   and verifies (staging, tests, smoke, `--dry-run`, the exact command) and hands it over; it runs one only when the
+   owner says so that one time. AGENTS W46 stands as written; the "W46 vs permissions" conflict is settled. Changed:
+   `release-by-hand.md` (who runs what, Step 7, checklist), `release-gates-explained.md`, `release.md`,
+   `PRODUCTION.md`, and the header comments of `deploy/prod/site.sh`, `deploy/prod/feeds.sh`, `deploy/staging/feeds.sh`.
+2. Closed testing gets the PRODUCTION Android build ("Production build (Rec.)"): the production AAB to Internal, then
+   that build promoted to Closed. 0.8.5's staging build 43 on Closed was the exception. Said in Step 6.
+3. Version: "let it be 0.9 but we wont release yet until we have more stuff from next chat in it". The next release is
+   0.9.0 as computed (from T998's tooling commit touching `app/package.json`); no tool change. Step 0 says it is
+   settled for this release; the "stop and ask when a deciding commit is not an angler change" advice stays.
+
+Review of plan item 11 (2026-11-22, second agent): the code pointers to PRODUCTION.md's removed steps were moved
+(`site_gate.redeploy_steps` and its test, `deploy/prod/site.sh`, `deploy/prod/drop-v1.sh`); the runbook's Step 2 now
+names the `pieces` stop beside `site` (staging feeds worker before the data); the merge-back commands match what the
+release prints; the gates page gained the staging fingerprint stop, the tag stops and the push gate's someone-else case.

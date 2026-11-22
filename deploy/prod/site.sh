@@ -1,7 +1,7 @@
 #!/bin/bash
-# PRODUCTION. WHO RUNS IT (owner 2026-11-18, memory prod-web-deploy-allowed): Claude deploys the production website as a
-# release step, once it is tested (the full CI tier + the staging smoke), with each app version so the two match; the
-# owner may too. Production DATA (deploy/prod/upload.sh) stays the owner's. CONFIRM_PROD is still typed for a real run.
+# PRODUCTION. WHO RUNS IT: THE OWNER (owner 2026-11-22 on CONFIRM_PROD: "only me unless i say otherwise that time").
+# Claude prepares it (the full CI tier, the staging smoke, the two builds below, `--dry-run`) and hands over the command;
+# it runs it only when the owner says so, that one time. Deployed with each app version so the two match.
 # Assemble app/dist/web-prod (the production web export) and
 # app/dist/seo-prod (build-seo.mjs on the SAME release, `--app app/dist/web-prod --out app/dist/seo-prod`) into
 # app/dist/prod-site and deploy it to canifishthis.ca. Unlike deploy/staging/site.sh there are NO staging edits: tools/seo's
@@ -14,7 +14,7 @@ cd "$(dirname "$0")/../.."
 DRY=; [[ " $* " == *" --dry-run "* ]] && DRY=1
 [[ -n $DRY || "${CONFIRM_PROD:-}" == canifishthis.ca ]] || { echo "site.sh (prod): set CONFIRM_PROD=canifishthis.ca to deploy production" >&2; exit 2; }
 W=app/dist/web-prod; S=app/dist/seo-prod; O=app/dist/prod-site; K=app/dist/prod-site-worker; H=app/dist/prod-host-worker
-# (2026-11-14) PRODUCTION IS BUILT FROM A COMMIT: run this, and the two builds before it (PRODUCTION.md step 6), in a tree
+# (2026-11-14) PRODUCTION IS BUILT FROM A COMMIT: run this, and the two builds before it (handoff/PLAN/runbooks/release-by-hand.md Step 7 item 5), in a tree
 # whose app/ has no uncommitted edits (a clean worktree: `git worktree add --detach <dir> <sha>`). A dirty app/ is refused
 # unless SITE_DIRTY_OK=<reason>, printed. (T788 #4) The commit stamped in /site-release.json is the EXPORT's (read from its
 # bundle), not HEAD at deploy time; the dirty flag is app/ now. One copy with staging: deploy/lib/site-stamp.sh.
@@ -23,7 +23,7 @@ SITE_DIRTY=   # never taken from the shell here: production looks itself
 js=$(site_bundle "site.sh (prod)" "$W")   # (T910) named three times: its preload and the after-paint loader
 site_stamp "site.sh (prod)" "$W" "$js"
 one=$(find "$S/water" -name index.html.gz -print -quit)
-[[ -n $one ]] || { echo "site.sh (prod): $S/water holds no water page (index.html.gz): run build-seo (PRODUCTION.md step 6)" >&2; exit 1; }
+[[ -n $one ]] || { echo "site.sh (prod): $S/water holds no water page (index.html.gz): run build-seo (release-by-hand.md Step 7 item 5)" >&2; exit 1; }
 gunzip -c "$one" | grep -c "$js" >/dev/null || { echo "site.sh: $S's water pages were built against another app export (not $js): rebuild with --app $W" >&2; exit 1; }
 # (T304) the app focuses the region a water page names; a page without `cift:region` is from an older SEO build (every
 # landing would read the whole files AND report it): rebuild the pages, not just relink them

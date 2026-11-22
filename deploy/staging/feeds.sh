@@ -3,8 +3,8 @@
 # release's new output is in the feeds now, not at the next cron (owner 2026-11-05: the forecast detail stayed old after a
 # worker release). The deployed version is in every job's reuse key (src/io.ts `rev`), so these runs recompute everything.
 #   deploy/staging/feeds.sh
-# Exit 1 when a job fails (its JSON is printed). Production: the same with its own worker, deploy/prod/feeds.sh (a
-# release step Claude may run since 2026-11-21; see its header).
+# Exit 1 when a job fails (its JSON is printed). Production: the same with its own worker, deploy/prod/feeds.sh (the
+# owner's step since 2026-11-22; see its header).
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 URL=https://bc-fishing-feeds-staging.horvath-dawson.workers.dev

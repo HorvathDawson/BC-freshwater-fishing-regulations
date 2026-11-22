@@ -159,7 +159,9 @@ candidate the release made when nothing a build reads was committed since (T788 
 
 The whole production run, in order with who runs each step (data, site, feeds worker, phones), is
 `handoff/PLAN/runbooks/release-by-hand.md` Step 7; the hosts, rollback and clean-up are `handoff/PLAN/release/PRODUCTION.md`
-(T404). The data step (`--prod <r-id> --dry-run` rehearses it: staging still serves it, its tags):
+(T404). Every production step there (data, website, feeds and data workers, app builds) is the owner's (2026-11-22:
+"only me unless i say otherwise that time"). The data step (`--prod <r-id> --dry-run` rehearses it: staging still
+serves it, its tags):
 
 ```bash
 deploy/prod/upload.sh <r-id> --bucket bc-fishing-regulations-staging --dry-run   # rehearse: nothing sent
@@ -169,11 +171,14 @@ CONFIRM_PROD=<r-id> .venv/bin/python -m pipeline release --prod <r-id>
 `--prod` refuses unless every one of these holds:
 
 - the ledger shows the release passed its checks and reached staging;
+- staging still serves it (a later staging release replaced it: ship that one);
+- its tags `data/<r-id>` and `v<version>` are on GitHub at the commit it shipped from (missing: rerun `--staging`, which
+  tags and skips the rest);
 - the release folder is unchanged since then (content fingerprint; the upload stamps `published` and `minAppVersion`
   are ignored);
 - `CONFIRM_PROD` names the release;
 - it runs in an interactive terminal, and you type the id again;
-- there is no agent environment (`CLAUDECODE`, `AI_AGENT`).
+- there is no agent environment (`CLAUDECODE`, `AI_AGENT`, `CLAUDE_CODE_ENTRYPOINT`).
 
 It then runs `CONFIRM_PROD=canifishthis.ca deploy/prod/upload.sh <r-id>`: it refuses unless staging serves the same
 manifest bytes, copies the files (and staging's run timing for the same tiles), keeps the old pointer as

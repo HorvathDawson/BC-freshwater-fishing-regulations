@@ -275,10 +275,13 @@ live counts.
 **push gate**
 - Protects: the upload's workflow runs GitHub's copy, so the release's own commits must be on GitHub first.
 - Stops when: commits are not pushed. Do: the one `git push` it prints, or rerun with `--push` (it pushes only the
-  release's own commits). Safe: always.
+  release's own commits). Safe: always. When someone else's commits are there too, `--push` refuses to push: read
+  them, then push by hand. If the release branch moved on GitHub since preflight: `git pull --ff-only`, then rerun.
 
 ### Stage 7: staging
 
+- **Changed on disk**: the release folder's content no longer matches what its checks passed (the fingerprint
+  moved). Never ship it: rebuild (`python -m pipeline build --force deliver --hold-latest`) and rerun. No escape.
 - **Upload prechecks**: the run-timing base matches the release's tiles, `gh` is logged in, the `r2:` remote exists.
   Fix what it names; the earlier stages are skipped on the rerun.
 - **Upload failed**, or **GitHub did not start the run-timing workflow** (exit 75): fix the login, or wait for GitHub
@@ -286,11 +289,15 @@ live counts.
   `gh run list --workflow feeds-runtiming.yml` first; do not start it again; rerun once it has finished.
 - **Smoke test**: the live staging site does not serve the release correctly. Read its FAIL lines and screenshots;
   fix and rerun (only the smoke runs again).
-- **Tags**: `data/<r-id>` or `v<version>` already exists at another commit. Read why; a release id names one release.
+- **Tags**: `data/<r-id>` already exists on GitHub at another commit, or a local-only tag points elsewhere. Read why
+  (a release id names one release; a stale local tag: `git tag -d <tag>`), then rerun: only the tags are left. A
+  release staged before the upload commit was recorded cannot be tagged by the command: it prints the `git tag`
+  command to run by hand. A `v<version>` an earlier ship already put on GitHub is left as it is (a data-only ship).
 
 ### Production (`release --prod` and `deploy/prod/upload.sh`)
 
-These are guards, not judgment calls. None has an escape except the site gate's.
+These are guards, not judgment calls. None has an escape except the site gate's. Every production step is the
+owner's (2026-11-22: "only me unless i say otherwise that time"); the rehearsals (`--dry-run`) are anyone's.
 
 - The release passed its checks and reached staging (the ledger), and is unchanged on disk since (its fingerprint).
 - Staging still serves it (a later staging release replaced it: ship that one instead).
