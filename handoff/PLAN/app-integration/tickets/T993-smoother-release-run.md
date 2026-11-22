@@ -147,7 +147,7 @@ checked on every app push as before.
 - F2-owned, left on the shrinking ALLOWLIST in pipeline-ci's grep (remove an entry when fixed): every
   `cache/dfo_salmon` default in `pipeline/regs/dfo_salmon/` (fetch.py:94, wording.py:174-175, untangle.py:619,
   splitwork.py:35-36, churn.py:55, validate.py:202, entries.py:1204) and `closure_mouths.py:164`
-  (`data/source/bc_fisheries_data.gpkg`); `scripts/update-hydat.sh`, `pipeline/deliver/release/publish.py` and
+  (`data/source/bc_fisheries_data.gpkg`); `scripts/update-hydat.sh` (shell: the gate scans only *.py, so not checked), `pipeline/deliver/release/publish.py` and
   `curation-review/backend/` held no hit for the new pattern. Also allowlisted, by reason: `gauges/feed/publish.py:194`
   ROSTER_PATH (printed in a command for the owner) and `regs/review/tidal.py:146` DEFAULT_CACHE (a provenance label in
   the output). Not caught by the pattern, for G3/F2: `pieces_gate.py:156` `Path("data/release")` default.
