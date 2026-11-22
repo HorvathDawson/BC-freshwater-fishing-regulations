@@ -104,6 +104,68 @@ def answer_paths(changed: list[str]) -> list[str]:
     return sorted(p for p in changed if (row_of(p) or Follow("", "", (), None)).answers)
 
 
+#: (T993 item 8) the keys whose int lists are SOURCE INDEXES on a golden page (`src`: rows of the release's own source
+#: table, ascending). A rule added before them renumbers every one after it — 0.8.5's nine pages (1363 -> 1364, 3144 ->
+#: 3145) — while nothing an angler reads changes
+SOURCE_INDEX_KEYS = frozenset({"src"})
+
+
+def _index_list(v) -> bool:
+    return isinstance(v, list) and all(isinstance(x, int) and not isinstance(x, bool) for x in v)
+
+
+def renumbered_only(paths: list[str], rev: str = "HEAD") -> tuple[bool, str]:
+    """(T993 item 8) do the golden pages `paths` differ from `rev` ONLY in source indexes renumbered one for one? The
+    page at `rev` and on disk must be the same JSON once each `SOURCE_INDEX_KEYS` int list is read through ONE mapping
+    old -> new, shared by every page (one source table) and one-to-one (two sources never become one, one never
+    becomes two). (True, the note naming the mapping) or (False, the first difference). A page added or removed is
+    never a renumber."""
+    mapping: dict[int, int] = {}
+    diff: list[str] = []
+
+    def same(a, b, where: str, key: str | None = None) -> bool:
+        if key in SOURCE_INDEX_KEYS and _index_list(a) and _index_list(b):
+            if len(a) != len(b):
+                diff.append(f"{where}: {len(a)} source(s) -> {len(b)}")
+                return False
+            for x, y in zip(a, b):
+                if mapping.setdefault(x, y) != y:
+                    diff.append(f"{where}: source {x} is {mapping[x]} elsewhere, {y} here")
+                    return False
+            return True
+        if type(a) is not type(b):
+            diff.append(f"{where}: {type(a).__name__} -> {type(b).__name__}")
+            return False
+        if isinstance(a, dict):
+            if set(a) != set(b):
+                diff.append(f"{where}: keys {sorted(set(a) ^ set(b))[:3]}")
+                return False
+            return all(same(a[k], b[k], f"{where}.{k}", k) for k in sorted(a))
+        if isinstance(a, list):
+            if len(a) != len(b):
+                diff.append(f"{where}: {len(a)} item(s) -> {len(b)}")
+                return False
+            return all(same(x, y, f"{where}[{i}]", key) for i, (x, y) in enumerate(zip(a, b)))
+        if a != b:
+            diff.append(f"{where}: {str(a)[:60]!r} -> {str(b)[:60]!r}")
+            return False
+        return True
+
+    for p in sorted(paths):
+        got = subprocess.run(["git", "show", f"{rev}:{p}"], cwd=REPO_ROOT, capture_output=True, text=True)
+        f = Path(REPO_ROOT) / p
+        if got.returncode or not f.is_file():
+            return False, f"{p}: {'added' if got.returncode else 'removed'} (never a renumber)"
+        if not same(json.loads(got.stdout), json.loads(f.read_text(encoding="utf-8")), p):
+            return False, diff[0] if diff else p
+    moved = {a: b for a, b in mapping.items() if a != b}
+    if len(set(mapping.values())) != len(mapping):
+        return False, "two sources renumbered to one (not one-to-one)"
+    sample = ", ".join(f"{a}->{b}" for a, b in sorted(moved.items())[:4])
+    return True, (f"{len(paths)} golden page(s) differ only in source indexes renumbered one for one "
+                  f"({len(moved)} index(es): {sample}{' …' if len(moved) > 4 else ''})")
+
+
 # ------------------------------------------------------------------------------------------------- the working tree
 def changed(key: str) -> list[str]:
     """The paths under `paths_of(key)` that differ from HEAD in the working tree (changed, new or deleted)."""

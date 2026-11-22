@@ -705,6 +705,23 @@ def live_counts(before_rid: str | None, after_rid: str, led: dict) -> tuple[dict
     return after, LC.diff_text(before, after, before_rid or "(no live release)", after_rid)
 
 
+def attribute_diff(js: Path, since: str | None) -> tuple[bool, list[str], list[str]]:
+    """(T993 item 8) is every change of the binding diff `js` explained by a curated row changed in the commits since
+    `since` (the commit LATEST was built from; `pipeline.release_attribute`)? (all explained, explained, not explained).
+    No commit recorded, or not in this clone: nothing is explained (the diff stops, as it always did)."""
+    if not since or not git_has_commit(since):
+        return False, [], [f"no commit is recorded for the live release (or it is not in this clone: {since}): "
+                           "nothing can be attributed"]
+    from pipeline.release_attribute import attribute
+    return attribute(json.loads(Path(js).read_text(encoding="utf-8")), since)
+
+
+def recut_renumbered(pages: list[str]) -> tuple[bool, str]:
+    """(T993 item 8) do the changed golden pages differ from HEAD only in renumbered source indexes
+    (`release_follows.renumbered_only`)?"""
+    return RF.renumbered_only(pages)
+
+
 def diff_summary(rep: dict) -> str:
     from pipeline.atlas.reach.binding_diff import summary
     return summary(rep)
@@ -1187,7 +1204,14 @@ def stage_checks(ctx: Ctx) -> str:
     else:
         diff_key, same_run = run_diff_key(base, reach_dir(), before_digest, after_digest)
     done = r.get("binding_diff") or {}
-    if done.get("key") != diff_key:
+    # (T788 #8) a rerun AFTER the promote compares the release with itself: the record its checks made before the
+    # promote (an accepted diff, its json) stands — r-741815c6090d's accept of Lost Lagoon +1 was overwritten with
+    # "same reach run" this way
+    keep = rid == ctx.live and bool(done.get("status"))
+    if keep:
+        print(f"    binding diff: as checked before the promote ({done['status']}"
+              + (f", {done['json']}" if done.get("json") else "") + ")", flush=True)
+    if done.get("key") != diff_key and not keep:
         if same_run:
             done = {"key": diff_key, "status": "same", "note": "same reach run (digest and files)"}
         else:
@@ -1208,17 +1232,32 @@ def stage_checks(ctx: Ctx) -> str:
         want = done.get("content") or (diff_content_sha(Path(done["json"]))
                                        if Path(done["json"]).is_file() and file_sha(Path(done["json"])) == done["sha"]
                                        else None)
+        since = ((ctx.led.get("releases") or {}).get(ctx.live or "") or {}).get("commit")
         if ctx.accept_diff is not None and Path(ctx.accept_diff).is_file() and want is not None \
                 and diff_content_sha(Path(ctx.accept_diff)) == want:
             done.update(status="accepted", accepted_at=now())
             save_ledger(ctx.led)
         else:
-            print(Path(done["summary"]).read_text(encoding="utf-8"))
-            why = ("" if ctx.accept_diff is None else
-                   f" (--accept-diff {ctx.accept_diff} is not this diff: its content differs from {done['json']})")
-            raise Stop("checks", f"the rule bindings differ from the live release {ctx.live}{why}",
-                       f"read {done['summary']} (full: {done['json']}); if every change is intended, rerun with\n"
-                       f"    --accept-diff {done['json']}\n  otherwise fix the cause, commit, and rerun")
+            all_ok, explained, unexplained = attribute_diff(Path(done["json"]), since)
+            if all_ok:
+                # (T993 item 8) every change names a curated row the batch changed since LATEST's commit: it passes,
+                # said, and the ledger keeps what explained it
+                print(f"    binding diff AUTO-ACCEPTED (T993 item 8): every change is explained by a curated row "
+                      f"changed since {since[:12]} ({ctx.live}'s commit):" + "".join(f"\n      {x}" for x in explained),
+                      flush=True)
+                done.update(status="accepted", accepted_at=now(), auto="attributable", explained=explained)
+                save_ledger(ctx.led)
+            else:
+                print(Path(done["summary"]).read_text(encoding="utf-8"))
+                if unexplained:
+                    print("  not explained by a curated row changed since LATEST's commit (T993 item 8):"
+                          + "".join(f"\n    {x}" for x in unexplained[:40])
+                          + (f"\n    … {len(unexplained) - 40} more" if len(unexplained) > 40 else ""), flush=True)
+                why = ("" if ctx.accept_diff is None else
+                       f" (--accept-diff {ctx.accept_diff} is not this diff: its content differs from {done['json']})")
+                raise Stop("checks", f"the rule bindings differ from the live release {ctx.live}{why}",
+                           f"read {done['summary']} (full: {done['json']}); if every change is intended, rerun with\n"
+                           f"    --accept-diff {done['json']}\n  otherwise fix the cause, commit, and rerun")
     # (T555 item 5) ids a reader may have kept (a spot's water, an alert's, a link) that this release neither holds nor
     # aliases: LISTED, never a stop (ids do go between builds; whether one needed an alias is read off the list)
     n_gone = 0
@@ -1285,6 +1324,13 @@ def stage_recut(ctx: Ctx, rid: str, r: dict) -> str:
     token = recut_token(changed)
     print(f"    the re-cut changed {len(changed)} path(s): " + ", ".join(
         f"{row.name} {n}" for row in RF.FOLLOWS for n in [sum(RF.row_of(x) is row for x in changed)] if n), flush=True)
+    renumbered, note = recut_renumbered(pages) if pages else (False, "")
+    if renumbered:
+        # (T993 item 8; 0.8.5 stop 8: nine pages whose source indexes only renumbered) the same page, its sources
+        # renumbered one for one: nothing an angler reads changed — committed, said, never a stop
+        print(f"    golden pages: {note} — AUTO-ACCEPTED as a renumber (T993 item 8)", flush=True)
+        f["renumbered"] = note
+        pages = []
     if pages and token not in (ctx.accept_fixtures, f.get("accepted")):
         why = "" if ctx.accept_fixtures is None else f" (--accept-fixtures {ctx.accept_fixtures} is not this re-cut)"
         raise Stop("follows", f"the re-cut on {rid} changed {len(pages)} golden page(s) — what an angler is told "
@@ -1293,7 +1339,7 @@ def stage_recut(ctx: Ctx, rid: str, r: dict) -> str:
                    "read `git diff -- " + " ".join(x for row in RF.FOLLOWS if row.answers for x in row.paths)
                    + "`; if every change is intended, "
                    f"rerun with\n    --accept-fixtures {token}\n  otherwise fix the cause, commit, and rerun")
-    kind = "golden pages accepted" if pages else "renumber only"
+    kind = "golden pages accepted" if pages else "renumber only (source indexes)" if renumbered else "renumber only"
     if pages:
         f["accepted"] = token
     head = commit_recut(rid, kind)
@@ -1370,7 +1416,9 @@ def rehearse_follows(ctx: Ctx, cand: str) -> dict:
             if rc:
                 return {"recut_rc": rc}
             changed = recut_changed()
-            got = {"recut_rc": 0, "changed": changed, "pages": RF.answer_paths(changed),
+            pages = RF.answer_paths(changed)
+            renumbered, note = recut_renumbered(pages) if pages else (False, "")
+            got = {"recut_rc": 0, "changed": changed, "pages": [] if renumbered else pages, "renumbered": note,
                    "token": recut_token(changed) if changed else None}
             got["failures"] = candidate_failures(cand, {**ctx.heavy_env, **RF.test_env(release_root() / cand)})
             return got
@@ -1777,9 +1825,16 @@ def dry_run(ctx: Ctx) -> int:
         done = r.get("binding_diff") or {}
         key, same_run = (run_diff_key(baseline_dir(live), reach_dir(), live_digest, after_digest) if kept
                          else (None, False))
+        since_live = ((led.get("releases") or {}).get(live or "") or {}).get("commit")
         if key is not None and done.get("key") == key:
-            said = done["status"] if done["status"] != "differs" else stop(
-                f"the rule bindings differ from {live}: read {done.get('summary')}, then --accept-diff {done.get('json')}")
+            said = done["status"]
+            if done["status"] == "differs":
+                all_ok, explained, _not = (attribute_diff(Path(done["json"]), since_live)
+                                           if Path(done.get("json") or "").is_file() else (False, [], []))
+                said = ("differs, every change explained by a curated row changed since LATEST's commit — the real run "
+                        "AUTO-ACCEPTS it (T993 item 8)" if all_ok else stop(
+                            f"the rule bindings differ from {live}: read {done.get('summary')}, then --accept-diff "
+                            f"{done.get('json')}"))
         elif not kept:
             said = "not rehearsed: no baseline copy is kept (the baseline stage's stop, above)"
         elif same_run:
@@ -1790,9 +1845,20 @@ def dry_run(ctx: Ctx) -> int:
         else:
             from pipeline.atlas.reach.binding_diff import differs as _differs
             rep = binding_diff(baseline_dir(live), reach_dir())          # in memory: the rehearsal writes no diff file
-            said = (stop(f"the rule bindings differ from {live} (the real run writes the diff and stops for "
-                         f"--accept-diff):\n{P}" + diff_summary(rep).replace("\n", "\n" + P))
-                    if _differs(rep) else "same bindings")
+            said = "same bindings"
+            if _differs(rep):
+                import tempfile
+                with tempfile.TemporaryDirectory(prefix="release-rehearsal-diff-") as td:
+                    js = Path(td) / "binding_diff.json"
+                    js.write_text(json.dumps(rep), encoding="utf-8")
+                    all_ok, explained, unexplained = attribute_diff(
+                        js, since_live)
+                said = (f"differs, every change explained by a curated row changed since {live}'s commit — the real "
+                        "run AUTO-ACCEPTS it with this note (T993 item 8):" + "".join(f"\n{P}  {x}" for x in explained)
+                        if all_ok else
+                        stop(f"the rule bindings differ from {live} (the real run writes the diff and stops for "
+                             f"--accept-diff):\n{P}" + diff_summary(rep).replace("\n", "\n" + P)
+                             + "".join(f"\n{P}  not explained: {x}" for x in unexplained[:20])))
         print(f"{P}binding diff: {said}")
     if r.get("checks"):
         print(f"{P}ledger for {target}: {r.get('checks')}")
@@ -1823,6 +1889,9 @@ def dry_run(ctx: Ctx) -> int:
                 print(f"{P}fixtures: " + stop(f"the re-cut fails on {cand} (rc={rehearsed['recut_rc']}, above)"))
             else:
                 ch, pages = rehearsed["changed"], rehearsed["pages"]
+                if rehearsed.get("renumbered"):
+                    print(f"{P}golden pages: {rehearsed['renumbered']} — the real run commits them as a renumber, "
+                          "with this note (T993 item 8)")
                 print(f"{P}fixtures: the re-cut would change {len(ch)} path(s)" + (
                     "" if not pages else "; " + stop(
                         f"{len(pages)} golden page(s) change — what an angler is told:" + "".join(

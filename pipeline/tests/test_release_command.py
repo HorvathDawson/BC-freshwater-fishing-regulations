@@ -167,6 +167,16 @@ def world(tmp_path: Path, monkeypatch):
     # (T993 item 9) the size headroom reads a real manifest's sizes (pinned in test_release_min_app.py)
     w["headroom"] = [("water", 2_750_000, 2_850_000, 0.035), ("core", 1_500_000, 1_650_000, 0.091)]
     monkeypatch.setattr(R, "size_headroom", lambda rid: list(w["headroom"]))
+    # (T993 item 8) the auto-accepts read git (pinned in test_release_auto_accept.py): by default nothing is explained
+    w["attributed"] = (False, [], ["rule r2:x::x.r1: no curated row changed since abc names entry r2:x"])
+    w["attribute_asked"] = []
+
+    def attribute(js, since):
+        w["attribute_asked"].append(since)
+        return w["attributed"]
+    monkeypatch.setattr(R, "attribute_diff", attribute)
+    w["renumbered"] = (False, "a page changed")
+    monkeypatch.setattr(R, "recut_renumbered", lambda pages: w["renumbered"])
     # (T537; T679 #11) the in-season resolve writes the generated resolution only: no commit of its own
     # (T666 items 1-2) the follows stage: the re-cut's changed paths, its commit, the tests found by rule, the push
     w["recut_changed"], w["recuts_committed"], w["unpushed"], w["pushes"] = [], [], [], 0
@@ -1360,3 +1370,75 @@ def test_dry_run_build_builds_the_candidate_and_rehearses_on_it(world, capsys):
     assert _latest(world) == LIVE and (R.HOME / "baseline" / LIVE / "report.json").is_file()
     with pytest.raises(SystemExit):
         R.main(["--staging", "--build"])                           # a rehearsal flag only
+
+
+# ------------------------------------------------------------------- (T993 item 8, T788 #8) what is safe passes, said
+
+def test_a_diff_every_change_of_which_a_committed_row_explains_passes_with_a_note(world, capsys):
+    """0.8.5 stop 7: Lost Lagoon +1, the T981 entry added on purpose. Explained by the rows changed since LATEST's
+    commit, it passes — printed, and the ledger keeps what explained it."""
+    R.save_ledger({"releases": {LIVE: {"commit": "base0"}}})
+    world["commits"], world["differs"] = {"base0"}, True
+    world["attributed"] = (True, ["rule r2:lost_lagoon_local@2-8::lost_lagoon_local.r1: entry r2:lost_lagoon_local@2-8 "
+                                  "changed in data/curated/regulations/local_closures/region-2.json (7ce79dcf0)"], [])
+    assert _staging() == 0 and world["attribute_asked"] == ["base0"]
+    out = capsys.readouterr().out
+    assert "binding diff AUTO-ACCEPTED (T993 item 8)" in out and "entry r2:lost_lagoon_local@2-8 changed" in out
+    rec = json.loads(R.LEDGER.read_text())["releases"][NEW]
+    assert rec["binding_diff"]["status"] == "accepted" and rec["binding_diff"]["auto"] == "attributable"
+    assert rec["checks"]["binding_diff"] == "accepted"
+
+
+def test_mutation_a_change_nothing_explains_still_stops(world, capsys):
+    R.save_ledger({"releases": {LIVE: {"commit": "base0"}}})
+    world["commits"], world["differs"] = {"base0"}, True
+    world["attributed"] = (False, ["rule a::a.r1: entry a changed"], ["rule b::b.r1: no curated row changed since base0"])
+    assert _staging() == 1
+    got = capsys.readouterr()
+    assert "STOPPED at checks" in got.err and "--accept-diff" in got.err
+    assert "not explained by a curated row changed since LATEST's commit" in got.out and "rule b::b.r1" in got.out
+    assert _latest(world) == LIVE
+
+
+def test_an_accepted_diff_keeps_its_record_on_a_rerun_after_the_promote(world, capsys):
+    """T788 #8: r-741815c6090d's accept (Lost Lagoon +1) read "same reach run" after a rerun past the promote."""
+    world["differs"] = True
+    assert _staging() == 1
+    js = R.HOME / "checks" / NEW / "binding_diff.json"
+    world["fail"] = {"upload"}
+    assert _staging(accept_diff=js) == 1 and _latest(world) == NEW          # promoted, the upload failed
+    world["fail"] = set()
+    assert _staging() == 0                                                  # the rerun after the promote
+    rec = json.loads(R.LEDGER.read_text())["releases"][NEW]
+    assert rec["binding_diff"]["status"] == "accepted" and rec["binding_diff"]["json"] == str(js)
+    assert rec["checks"]["binding_diff"] == "accepted"
+    assert "binding diff: as checked before the promote (accepted" in capsys.readouterr().out
+
+
+def test_mutation_without_the_keep_the_rerun_overwrites_the_accept(world, capsys, monkeypatch):
+    """The mutation of T788 #8's fix: the key alone decides, and the post-promote rerun writes "same"."""
+    world["differs"] = True
+    assert _staging() == 1
+    js = R.HOME / "checks" / NEW / "binding_diff.json"
+    world["fail"] = {"upload"}
+    assert _staging(accept_diff=js) == 1
+    led = json.loads(R.LEDGER.read_text())
+    led["releases"][NEW]["binding_diff"].pop("status")                     # what the fix keeps on, taken away
+    R.save_ledger(led)
+    world["fail"] = set()
+    assert _staging() == 0
+    assert json.loads(R.LEDGER.read_text())["releases"][NEW]["binding_diff"]["status"] == "same"
+
+
+def test_golden_pages_that_only_renumber_their_sources_are_committed_with_a_note(world, capsys):
+    """0.8.5 stop 8: nine pages, all renumbered source indexes, stopped for --accept-fixtures."""
+    world["recut_changed"] = ["app/fixtures/golden/taps.json", "app/packages/ui-native/src/regs/fixtures/glenn_501.json"]
+    world["renumbered"] = (True, "1 golden page(s) differ only in source indexes renumbered one for one (2 index(es): "
+                                 "1363->1364, 3144->3145)")
+    assert R.main(["--staging", "--push"]) == 0
+    out = capsys.readouterr().out
+    assert "AUTO-ACCEPTED as a renumber (T993 item 8)" in out and "1363->1364" in out
+    assert world["recuts_committed"] == [(NEW, "renumber only (source indexes)")]
+    rec = json.loads(R.LEDGER.read_text())["releases"][NEW]["follows"]
+    assert rec["recut"]["kind"] == "renumber only (source indexes)" and "1363->1364" in rec["renumbered"]
+    # the mutation (the same re-cut, not a renumber, stops) is test_a_changed_golden_page_stops_uncommitted_…
