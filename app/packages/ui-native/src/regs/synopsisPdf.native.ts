@@ -11,7 +11,7 @@ import { appendHighlight } from "./appendPdf";
 import { showPdf } from "./pdfView";
 import { getSynopsisNet, type SynopsisSource } from "./synopsisSource";
 import type { LoadHooks } from "./synopsisLoad";
-import { now } from "@app/core";
+import { now, reportFailure } from "@app/core";
 
 // (T285) the document directory, not the cache: the OS may empty the cache, and the rule book must open offline
 // (owner 2026-10-29) the same file a first install streams it to (`synopsisPath`): the book opens offline from the start
@@ -59,7 +59,7 @@ async function downloadSynopsis(s: SynopsisSource, hooks: Partial<LoadHooks> = {
       // (T285) 404: this release's copy is gone (a newer release replaced it); the same bytes are under the live one
       if (!moved && s.alternate && /404/.test(String((e as Error)?.message ?? e) + String((e as Error)?.cause ?? ""))) {
         moved = true;
-        const alt = await s.alternate().catch(() => null);
+        const alt = await s.alternate().catch((err) => { reportFailure(err); return null; });
         if (alt && alt !== url) { url = alt; i--; }
       }
     } finally { try { task.release(); } catch { /* already released */ } }

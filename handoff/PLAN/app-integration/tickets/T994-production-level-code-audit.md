@@ -31,3 +31,11 @@ Fix lanes (disjoint files):
 - **F2 pipeline + review backend:** 1, 2, 14, 15, 16, 17, 21, 27.
 - **F3 app data seam:** 8, 11, 12, 13, 22.
 - **With T993 (workflows, deploy scripts):** 6, 7, 9, 10, 18, 19, 20, 28, 29.
+
+## Lane F3 (app data seam): all five confirmed against the code and fixed
+- **8** (no timeout on salmon / in-season / run-timing / HYDAT-day / weather reads): ONE helper `timedFetch` (`app/packages/data/src/net/timeout.ts`, 30 s, headers and body, an environment error so it is shown and not reported); `App.tsx` wraps those five reads and the manifest recovery. The gauge feed and release files keep their own limits. `conditionalJson` rides the injected fetch, so in-season/run-timing/salmon conditional reads are covered. Commit: see git log "T994 F3: timed fetch".
+- **11** (synopsis-PDF recovery swallowed): the alternate reads through `loadManifest` (ok check, parse, timed); the native catch reports (`reportFailure`); `tools/failures.test.ts` FINE count for `synopsisPdf.native.ts` 4 to 3. Same commit as 8.
+- **12** (`storedHydat` format): `parseHydatDaily` checks `hydat-daily/1`, an integer `from`, `q` as arrays of arrays; named throw. Commit: "T994 F3: validate at the seam".
+- **13** (`parseManifest`): each file entry checked for url, bytes, sha256, format; `parseManifestText` makes a non-JSON body a `ManifestError`; the four JSON.parse-then-parse call sites use it. Same commit as 12.
+- **22** (`release/previous`, `release/refused`): `readHeld` shape-checks the files map; both boot reads get the OPENED pattern (report, then absent). Same commit as 12. The boot catches have no test (boot has no harness for these reads); `readHeld` is tested.
+- `pnpm check` stops at `build-coho` here (no `.venv` in the lane worktree); `tsc -b`, the data package and `tools/` vitest run pass, apart from `regs-fixture` (also needs `.venv`).
