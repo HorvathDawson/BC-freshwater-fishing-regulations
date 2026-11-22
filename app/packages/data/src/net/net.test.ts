@@ -309,12 +309,13 @@ describe("a release file through the gate, the download and the check (fetchVeri
     const net = createNet();
     const seen: number[] = [];
     net.activity.subscribe(() => { const d = net.activity.snapshot().downloads[0]; if (d) seen.push(d.loaded); });
-    const out = await fetchVerifiedVia("u", spec, { net, key: "water", priority: 0, fetchImpl: s.impl });
+    // (T866) the fast limits its fetchResilient neighbours use: the cut is a 100 ms stall, not the real ~21 s one
+    const out = await fetchVerifiedVia("u", spec, { net, key: "water", priority: 0, fetchImpl: s.impl, limits: FAST, sleep: noSleep });
     expect(out).toEqual(raw);
     expect(s.calls.map((c) => c.range)).toEqual([null, "bytes=12-"]);
     expect(Math.max(...seen)).toBeGreaterThan(0);
     expect(net.activity.snapshot().downloads).toEqual([]);
-  }, 30_000);
+  });
   it("bytes that do not verify are fetched once more WHOLE, then refused (and the failure is said)", async () => {
     const bad = gzipSync(new Uint8Array(3000));
     const s = server([{ body: bad }, { body: bad }]);

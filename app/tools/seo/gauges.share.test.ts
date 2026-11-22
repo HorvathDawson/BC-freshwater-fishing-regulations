@@ -13,7 +13,7 @@ import { TODAY } from "./fixture";
 let built: Built, rows: GaugeRows, ids: string[], pageIds: Set<string>;
 beforeAll(async () => {
   const loader = openRegsFixture();
-  const probe = await buildAll({ loader, on: TODAY, gauges: null });
+  const probe = await buildAll({ loader, on: TODAY, gauges: null, bare: true });
   ids = probe.build.models.slice(0, 4).map((m) => m.id);
   rows = {
     gauges: [
@@ -29,7 +29,7 @@ beforeAll(async () => {
       { station: "08ZZ001", item: "gnis:999999999", trust: "own" }, { station: "08XX002", item: ids[3]!, trust: "lake" },
     ],
   };
-  built = await buildAll({ loader, on: TODAY, gauges: rows });
+  built = await buildAll({ loader, on: TODAY, gauges: rows, bare: true });
   // the app's side: ask the one rule of the same release's store, for the waters the stations serve
   const store = await openRegsStore(loader);
   pageIds = new Set();
