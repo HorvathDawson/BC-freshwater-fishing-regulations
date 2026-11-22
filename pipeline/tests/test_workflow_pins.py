@@ -60,7 +60,7 @@ def test_ci_jobs_have_timeouts_and_the_ci_workflows_cancel_superseded_runs():
     app, pipe = _load("app-ci.yml"), _load("pipeline-ci.yml")
     assert {j: d["timeout-minutes"] for j, d in app["jobs"].items()} == {"changes": 5, "gates": 20, "vitest": 25,
                                                                          "bundles": 15, "ok": 5}
-    assert pipe["jobs"]["check"]["timeout-minutes"] == 20
+    assert pipe["jobs"]["check"]["timeout-minutes"] == 30
     for name in ("app-ci.yml", "docs-ci.yml", "feeds-worker-ci.yml"):
         assert _load(name)["concurrency"]["cancel-in-progress"] is True, name
     for f in sorted(WF.glob("*.yml")):
