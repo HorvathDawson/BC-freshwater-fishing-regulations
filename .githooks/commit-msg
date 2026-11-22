@@ -1,0 +1,5 @@
+#!/bin/sh
+# (T995) THE VERSIONED COMMIT-MSG HOOK: a stub. T998 adds the Conventional Commits check here (commitlint, pinned, with
+# the ticket-id scope checked against the ledger: handoff/PLAN/app-integration/tickets/T998-*.md). Until then every
+# message passes. Turned on with the pre-push hook: git config core.hooksPath .githooks
+exit 0

@@ -5,11 +5,12 @@
 // Without it nothing is started and the email keeps today's "press the button" steps. A start is recorded per workflow +
 // version in R2 (private/feeds/dispatch/<workflow>.json), so one version starts one run; a failed start is retried at
 // most every RETRY_MS and the email says why it failed (never silent).
+import { REPO, TRUNK } from "../../../packages/core/src/repo";
 import { readStored, type Store } from "./io";
 
-export const REPO = "HorvathDawson/BC-freshwater-fishing-regulations";
-/** workflow_dispatch runs the file as it is on this ref (the dev branch until the workflows are on main) */
-export const DEFAULT_REF = "redesign/stream-sections";
+export { REPO };
+/** workflow_dispatch runs the file as it is on this ref: the trunk (T995; `GITHUB_DISPATCH_REF` names another) */
+export const DEFAULT_REF = TRUNK;
 export const RETRY_MS = 6 * 3600_000;
 /**
  * (T554 item 5) GitHub's 204 means "request accepted", not "the run succeeded". A caller that is still asking this long

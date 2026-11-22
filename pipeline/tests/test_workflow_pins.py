@@ -5,7 +5,10 @@ never a GitHub cron), every workflow declares least privilege and takes no input
 caught (workflow review 2026-11-09): four installs ignored constraints.txt (T416: a fresh venv got Pillow 13 /
 shapely 2.2 and its release differed); app-ci had no timeout; a pipeline-only push ran no worker parity test.
 caught (2026-11-21 audit, T993/T994): one failing app-ci step skipped the worker suite and the bundles; docs-only pushes
-ran the whole app workflow; no workflow had `permissions:`; a dispatch input was spliced into a shell line."""
+ran the whole app workflow; no workflow had `permissions:`; a dispatch input was spliced into a shell line.
+(T995) `main` is protected with required checks: a check from a path-filtered workflow that did not run stays pending
+forever, so every CI workflow runs on every pull request and ends in one always-run `ok` job; the paths live once, in
+scripts/ci_paths.py."""
 from __future__ import annotations
 
 import re
@@ -15,6 +18,17 @@ import yaml
 
 WF = Path(__file__).resolve().parents[2] / ".github" / "workflows"
 ACTIONS = WF.parent / "actions"
+
+
+def _ci_paths():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("ci_paths", WF.parents[1] / "scripts" / "ci_paths.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+CP = _ci_paths()
 
 
 def _load(name: str) -> dict:
@@ -40,7 +54,8 @@ def test_no_workflow_has_a_schedule():
 
 def test_ci_jobs_have_timeouts_and_the_ci_workflows_cancel_superseded_runs():
     app, pipe = _load("app-ci.yml"), _load("pipeline-ci.yml")
-    assert {j: d["timeout-minutes"] for j, d in app["jobs"].items()} == {"gates": 20, "vitest": 25, "bundles": 15}
+    assert {j: d["timeout-minutes"] for j, d in app["jobs"].items()} == {"changes": 5, "gates": 20, "vitest": 25,
+                                                                         "bundles": 15, "ok": 5}
     assert pipe["jobs"]["check"]["timeout-minutes"] == 20
     for name in ("app-ci.yml", "docs-ci.yml", "feeds-worker-ci.yml"):
         assert _load(name)["concurrency"]["cancel-in-progress"] is True, name
@@ -50,15 +65,17 @@ def test_ci_jobs_have_timeouts_and_the_ci_workflows_cancel_superseded_runs():
 
 
 def test_ci_paths_cover_what_the_jobs_read():
-    for ev in ("push", "pull_request"):
+    for ev in ("push",):                    # (T995) a pull request has no path filter: its `changes` job reads the same
         for name in ("pipeline-ci.yml", "feeds-worker-ci.yml"):
             assert "constraints.txt" in _on(_load(name))[ev]["paths"], (name, ev)
         # (T993) the worker parity tests read the Python: their own workflow watches it (they left app-ci's one job)
         paths = _on(_load("feeds-worker-ci.yml"))[ev]["paths"]
         for p in ("pipeline/regs/dfo_salmon/**", "pipeline/gauges/**", "requirements.txt", "app/workers/feeds/**"):
             assert p in paths, (ev, p)
-        # a docs-only push runs the ledger / docs guard alone, never the app's jobs
-        assert not any(p.startswith("handoff") for p in _on(_load("app-ci.yml"))[ev]["paths"]), ev
+        # a docs-only push runs the ledger / docs guard alone, never the app's jobs — but for the one runbook an app
+        # test reads (no-silent-skips.test.ts, T995 review): a named file, never a handoff folder
+        handoff = [p for p in _on(_load("app-ci.yml"))[ev]["paths"] if p.startswith("handoff")]
+        assert handoff == ["handoff/PLAN/runbooks/release.md"], ev
         assert "handoff/**" in _on(_load("docs-ci.yml"))[ev]["paths"], ev
 
 
@@ -72,8 +89,9 @@ def test_app_ci_is_parallel_jobs_and_no_step_masks_another():
     """(T993) one failing step used to skip the worker suite and the bundles (a red `pnpm check` hid 0.8.5 stop 4 for
     20.9 h): the checks are jobs of their own, and the two bundle steps both run."""
     app = _load("app-ci.yml")["jobs"]
-    assert set(app) == {"gates", "vitest", "bundles"}
-    assert all("needs" not in d for d in app.values())
+    assert set(app) == {"changes", "gates", "vitest", "bundles", "ok"}
+    assert all(d["needs"] == "changes" for j, d in app.items() if j not in ("changes", "ok"))   # no job waits on another
+    app = {j: d for j, d in app.items() if j not in ("changes", "ok")}
     runs = {j: [s.get("run", "") for s in d["steps"]] for j, d in app.items()}
     assert "pnpm run check:fast" in runs["gates"] and "pnpm run test" in runs["vitest"]
     native = [s for s in app["bundles"]["steps"] if "expo export" in s.get("run", "")]
@@ -126,8 +144,8 @@ def test_feeds_worker_ci_watches_everything_the_worker_tests_import_or_read():
     (app/ pipeline/ data/ deploy/ scripts/) in the sources."""
     root = WF.parents[1]
     w = root / "app" / "workers" / "feeds"
-    paths = _on(_load("feeds-worker-ci.yml"))["push"]["paths"]
-    assert _on(_load("feeds-worker-ci.yml"))["pull_request"]["paths"] == paths
+    paths = CP.AREAS["feeds-worker"]
+    assert _on(_load("feeds-worker-ci.yml"))["push"]["paths"] == paths
     miss = set()
     for f in [*(w / "test").rglob("*.ts"), *(w / "parity").rglob("*.ts"), *(w / "src").rglob("*.ts")]:
         text = f.read_text()
@@ -142,3 +160,125 @@ def test_feeds_worker_ci_watches_everything_the_worker_tests_import_or_read():
             if not _covered(m.group(1), paths):
                 miss.add(f"{f.relative_to(root)} reads {m.group(1)}")
     assert not miss, "\n" + "\n".join(sorted(miss))
+
+
+def test_every_ci_workflow_runs_on_every_pr_and_ends_in_one_required_check():
+    """(T995) main's required checks are each workflow's `ok` job. Per workflow: a push to main / release/** is
+    path-filtered by exactly its scripts/ci_paths.py area; a pull request is not filtered at all; the first job
+    (`changes`) asks ci_paths whether the PR touched the area; every real job needs it and runs only on its `run`; the
+    last job, named as in `REQUIRED`, always runs, needs every job, and gives the verdict."""
+    assert set(CP.WORKFLOWS) == set(CP.AREAS) == set(CP.REQUIRED)
+    assert len(set(CP.REQUIRED.values())) == 4                                # four distinct check names
+    for area, name in CP.WORKFLOWS.items():
+        doc = _load(name)
+        on = _on(doc)
+        assert on["push"]["branches"] == [CP.TRUNK, CP.RELEASE_PREFIX + "**"], name
+        assert on["push"]["paths"] == CP.AREAS[area], name                   # the area, word for word
+        assert on["pull_request"] is None, name                               # no filter: it always runs
+        jobs = doc["jobs"]
+        ch = jobs["changes"]
+        assert "needs" not in ch and "if" not in ch and ch["outputs"] == {"run": "${{ steps.c.outputs.run }}"}
+        use = [s for s in ch["steps"] if s.get("uses") == "./.github/actions/changes"]
+        assert len(use) == 1 and use[0]["id"] == "c" and use[0]["with"] == {"area": area}, name
+        assert ch["steps"][0]["with"]["fetch-depth"] == 0, name                # the PR's merge base is in the clone
+        real = [j for j in jobs if j not in ("changes", "ok")]
+        assert real, name
+        for j in real:
+            assert jobs[j]["needs"] == "changes" and jobs[j]["if"] == "needs.changes.outputs.run == 'true'", (name, j)
+        ok = jobs["ok"]
+        assert list(jobs)[-1] == "ok" and ok["name"] == CP.REQUIRED[area], name
+        assert ok["if"] == "always()" and ok["needs"] == ["changes", *real], name
+        last = ok["steps"][-1]
+        assert last["run"] == "python3 scripts/ci_paths.py verdict" and last["env"] == {"NEEDS": "${{ toJSON(needs) }}"}
+
+
+def test_the_changes_action_reads_ci_paths_and_takes_no_event_field_through_shell():
+    doc = yaml.safe_load((ACTIONS / "changes" / "action.yml").read_text())
+    step = doc["runs"]["steps"][0]
+    assert step["run"] == 'python3 scripts/ci_paths.py github "$AREA"'
+    assert step["env"]["BASE_SHA"] == "${{ github.event.pull_request.base.sha }}"
+    assert step["env"]["HEAD_SHA"] == "${{ github.event.pull_request.head.sha }}"
+    assert doc["outputs"]["run"]["value"] == "${{ steps.c.outputs.run }}"
+    # no third-party action anywhere in it (T995: plain git diff)
+    assert not [s for s in doc["runs"]["steps"] if "uses" in s]
+
+
+# (T995 review) THE AREAS COVER WHAT THE TESTS READ. A PR touching only a file a test reads, outside the test's area,
+# skipped every job and passed all four `ok` checks (feeds-hydat.yml, deploy/staging/upload.sh: false green). Derived
+# from the test sources: quoted repo-relative paths, and `ROOT / "a" / "b"` / `join(REPO, "a", "b")` chains, that exist
+# in the tree (a file, a folder, or a glob that matches). Only these may stay out, each with why:
+_TOP = r"(?:\.github|\.githooks|app|data|deploy|scripts|curation-review|handoff|pipeline)"
+_FILES = (r"(?:README\.md|AGENTS\.md|config\.yaml|project_config\.py|requirements\.txt|constraints\.txt|pytest\.ini"
+          r"|conftest\.py|\.gitignore)")
+_LIT = re.compile(rf"""["']({_TOP}/[\w./*{{}}-]*|{_FILES})["']""")
+_CHAIN = re.compile(r"""(?:ROOT|REPO|REPO_ROOT|_ROOT|parents\[\d\])\s*((?:/\s*["'][^"'\n]+["']\s*)+)""")
+_JOIN = re.compile(r"""join\(\s*(?:REPO|ROOT)\s*,\s*((?:["'][^"'\n]+["']\s*,?\s*)+)\)""")
+NOT_READ = {
+    ("test_before_push.py", "AGENTS.md"): "a made-up changed path (the --changed plan)",
+    ("test_before_push.py", "handoff/PLAN/STATUS.md"): "a made-up changed path (the --changed plan)",
+    ("test_ci_paths.py", "AGENTS.md"): "a made-up path the glob and the areas are matched against",
+    ("test_ci_paths.py", "handoff/PLAN/STATUS.md"): "a made-up path the areas are matched against",
+    ("test_release_command.py", "handoff/PLAN/STATUS.md"): "a made-up committed path (the rebuild decision)",
+    ("test_ci_status.py", "handoff/PLAN/STATUS.md"): "a made-up changed path (the --strict area rule)",
+    ("test_workflow_pins.py", "handoff/**"): "the docs filter's own entry, compared as text",
+    ("test_workflow_pins.py", "AGENTS.md"): "a key of this table",
+    ("test_workflow_pins.py", "handoff/PLAN/STATUS.md"): "a key of this table",
+    ("check-test-anchors.test.ts", "data/curated/waters/cuts.json"): "the scanner's own input text, never read",
+}
+#: tests that docs-ci runs too: their reads are covered by the docs area as well as their own
+DOCS_RUN = {"check-tickets.test.ts", "start-here.test.ts"}
+
+
+def _repo_reads(files: list[Path]) -> set[tuple[str, str]]:
+    root = WF.parents[1]
+    out = set()
+    for f in files:
+        text = f.read_text(encoding="utf-8")
+        found = {m.group(1) for m in _LIT.finditer(text)}
+        for rx in (_CHAIN, _JOIN):
+            for m in rx.finditer(text):
+                found.add("/".join(re.findall(r"""["']([^"']+)["']""", m.group(1))))
+        for x in found:
+            x = x.rstrip("/")
+            if not re.match(rf"^(?:{_TOP}(?:/|$)|{_FILES}$)", x):
+                continue
+            if (root / x).exists() or ("*" in x and any(root.glob(x))):
+                out.add((f.name, x))
+    return out
+
+
+def _uncovered(reads: set[tuple[str, str]], patterns_of) -> list[str]:
+    miss = []
+    for name, x in sorted(reads):
+        probe = re.sub(r"\{[^}]*\}", "x", x).replace("**", "x").replace("*", "x")
+        if (name, x) in NOT_READ or any(CP.matches(pr, patterns_of(name)) for pr in (probe, probe + "/x")):
+            continue
+        miss.append(f"{name} reads {x}")
+    return miss
+
+
+def test_the_pipeline_area_covers_what_the_pipeline_tests_read():
+    root = WF.parents[1]
+    reads = _repo_reads(sorted((root / "pipeline" / "tests").rglob("*.py")))
+    assert ("test_deploy_gates.py", "deploy/staging/upload.sh") in reads            # the scan sees a real read
+    miss = _uncovered(reads, lambda name: CP.AREAS["pipeline"])
+    assert not miss, "add these to scripts/ci_paths.py AREAS['pipeline']:\n" + "\n".join(miss)
+
+
+def test_the_app_area_covers_what_the_app_tools_tests_read():
+    root = WF.parents[1]
+    reads = _repo_reads(sorted((root / "app" / "tools").glob("*.test.ts")))
+    miss = _uncovered(reads, lambda name: CP.AREAS["app"] + (CP.AREAS["docs"] if name in DOCS_RUN else []))
+    assert not miss, "add these to scripts/ci_paths.py AREAS['app']:\n" + "\n".join(miss)
+
+
+def test_the_area_pin_fails_on_a_read_its_area_misses(tmp_path):
+    """Mutation: a test reading deploy/staging/upload.sh, judged against an area without deploy/**, is named."""
+    f = tmp_path / "test_x.py"
+    f.write_text('S = ROOT / "deploy" / "staging" / "upload.sh"\nW = ".github/workflows/feeds-hydat.yml"\n')
+    reads = _repo_reads([f])
+    assert reads == {("test_x.py", "deploy/staging/upload.sh"), ("test_x.py", ".github/workflows/feeds-hydat.yml")}
+    assert _uncovered(reads, lambda name: ["pipeline/**"]) == [
+        "test_x.py reads .github/workflows/feeds-hydat.yml", "test_x.py reads deploy/staging/upload.sh"]
+    assert _uncovered(reads, lambda name: CP.AREAS["pipeline"]) == []
+

@@ -25,8 +25,8 @@ name: feeds — HYDAT → climatology → R2
 #                                             allowed Object Read & Write on bc-fishing-regulations-staging. It may be
 #                                             account-wide: the bucket guard below is what keeps this staging-only.
 #
-# NOTE: GitHub only lists a workflow_dispatch workflow in the Actions tab once the file is on the default branch
-# (main); until then run it with `gh workflow run feeds-hydat.yml --ref redesign/stream-sections -f upload=false`.
+# NOTE: GitHub lists a workflow_dispatch workflow in the Actions tab from the default branch, main (the trunk, T995);
+# by hand: `gh workflow run feeds-hydat.yml --ref main -f upload=false` (a release's own run names its release branch).
 
 on:
   workflow_dispatch:
