@@ -24,5 +24,9 @@ if [ -z "$py" ]; then
 fi
 export PIPELINE_PY="$py"
 cd "$root"
+# (T995) git runs a hook with GIT_DIR and friends set; a test's `git init <tmp>` would then re-initialise THIS
+# repository (core.bare = true, 2026-11-22). Drop git's repository variables: the checks find the repo from the cwd.
+# shellcheck disable=SC2046
+unset $(git rev-parse --local-env-vars) GIT_QUARANTINE_PATH
 # git sends the refs on stdin (local ref, local sha, remote ref, remote sha): --pre-push checks what they push
 exec "$py" scripts/before_push.py --changed --pre-push

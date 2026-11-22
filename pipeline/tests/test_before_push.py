@@ -4,6 +4,7 @@ step list read from pipeline-ci.yml, every failure listed, the hook printed and 
 from __future__ import annotations
 
 import importlib.util
+import os
 import sys
 from pathlib import Path
 
@@ -199,3 +200,33 @@ def test_the_hook_checks_the_pushed_commits_not_the_tree(tmp_path, monkeypatch, 
     assert ran == ["ticket guard (node app/tools/check-tickets.mjs)",
                    "docs: the ticket guard's tests and the start-here page (docs-ci)"]     # docs only, not the tree
 
+
+
+def test_a_step_runs_without_gits_repository_variables(tmp_path):
+    """(T995, 2026-11-22) A pre-push hook run from a LINKED WORKTREE has GIT_DIR=<repo>/.git/worktrees/<name>. A step's
+    test making its scratch clone (`git init <tmp>/here`, test_before_push / test_release_command) then re-initialised
+    THAT gitdir instead, as bare, and the write landed in the shared config: core.bare = true, every worktree broke. Here: with the
+    hook's env the hazard is real; through `step_env` it is not. Mutation: return the env unstripped -> fails."""
+    import subprocess as sp
+    clean = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+    a, wt = tmp_path / "a", tmp_path / "wt"
+    git = lambda *x, env=clean: sp.run(["git", *x], env=env, check=True, capture_output=True, text=True).stdout.strip()
+    git("init", "-q", str(a))
+    git("-C", str(a), "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "--allow-empty", "-m", "x")
+    git("-C", str(a), "worktree", "add", "-q", str(wt), "-b", "side")
+    hook_env = {**os.environ, "GIT_DIR": str(a / ".git" / "worktrees" / "wt")}   # what git sets for the hook
+    bare = lambda: git("-C", str(a), "config", "core.bare")
+    git("init", "-q", str(tmp_path / "here1"), env=hook_env)                   # the hazard, as the tests met it
+    assert bare() == "true"
+    git("-C", str(a), "config", "core.bare", "false")
+    env = BP.step_env(hook_env)
+    assert "GIT_DIR" not in env and not (set(env) & BP._git_local_vars())
+    git("init", "-q", str(tmp_path / "here2"), env=env)
+    assert bare() == "false" and (tmp_path / "here2" / ".git").is_dir()
+
+
+def test_the_pre_push_hook_drops_gits_repository_variables():
+    """The hook itself unsets them before it starts before_push.py (the same set, git's own list)."""
+    hook = (Path(__file__).resolve().parents[2] / ".githooks" / "pre-push").read_text()
+    assert "unset $(git rev-parse --local-env-vars) GIT_QUARANTINE_PATH" in hook
+    assert hook.index("unset $(git rev-parse --local-env-vars)") < hook.index("exec ")
