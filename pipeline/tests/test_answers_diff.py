@@ -26,7 +26,7 @@ from pipeline.tools.audit import answers_diff as AD
 # ------------------------------------------------------------------------------------------------------- helpers
 
 #: (T810 L) the K tool's anchor: the committed mini release as it was BEFORE the cutover (rows 33, no trout section, the
-#: trout groups on the rows), frozen from redesign/stream-sections at the merge — the committed mini release is now the
+#: trout groups on the rows), frozen from the old dev branch at the merge — the committed mini release is now the
 #: cutover form, and these tests plant on the groups and cut a copy over themselves (`_cut_over`)
 PRE_CUTOVER_MINI = Path(__file__).resolve().parent / "fixtures" / "pre-cutover-mini-release"
 

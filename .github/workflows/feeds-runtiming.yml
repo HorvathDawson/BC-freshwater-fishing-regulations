@@ -39,8 +39,8 @@ name: feeds — run timing (PSF + DFO) → R2 runtiming/
 #   R2_SECRET_ACCESS_KEY             bucket guard below is what keeps this staging-only
 #   (prod, later) PROD_R2_ACCESS_KEY_ID / PROD_R2_SECRET_ACCESS_KEY
 #
-# NOTE: GitHub only lists a workflow_dispatch workflow in the Actions tab once the file is on the default branch
-# (main); until then run it with `gh workflow run feeds-runtiming.yml --ref redesign/stream-sections -f upload=false`.
+# NOTE: GitHub lists a workflow_dispatch workflow in the Actions tab from the default branch, main (the trunk, T995);
+# by hand: `gh workflow run feeds-runtiming.yml --ref main -f upload=false` (a release's own run names its release branch).
 
 on:
   workflow_dispatch:

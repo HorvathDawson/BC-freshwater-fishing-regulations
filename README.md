@@ -7,9 +7,10 @@ BC's rules are spread across the synopsis PDF, its zone and water tables, DFO in
 licensing schedules. This project reads them once, binds every rule to the stretches of water it
 covers, and decides every answer ahead of time, so the app only looks answers up.
 
-> This branch (`redesign/stream-sections`) is **v2**. `main` still runs v1 (its copy here,
-> `archive/`, was removed in T335: `git show d1b36ca44:archive/…`). Nothing is merged to `main` until the owner decides to (an owner call, not a build step);
-> the dev branch is where all work lands.
+> `main` is the trunk (T995): protected, changed only by pull requests whose required checks pass, merged with a merge
+> commit. Work happens on short-lived branches (`feat/`, `fix/`, `ci/`, `docs/`, `chore/` + the ticket id); a release is
+> cut from `main` as `release/<version>` and ships from there. The rules are in [`AGENTS.md`](AGENTS.md) (W47). The v1
+> code (`archive/`) was removed in T335: `git show d1b36ca44:archive/…`.
 
 ## How it works
 
@@ -69,6 +70,10 @@ python data/fetch_data.py                 # source data (~30 min the first time)
 ```
 
 The synopsis PDF goes at `data/source/fishing_synopsis.pdf`.
+
+The git hooks are versioned (T995): turn them on once per clone with `git config core.hooksPath .githooks`. The
+pre-push hook runs `scripts/before_push.py --changed` (only the checks for the areas the branch changed, the ones CI
+asks); `git push --no-verify` is an emergency skip, said in the commit or PR.
 
 ### Regulations (only when the synopsis changes)
 

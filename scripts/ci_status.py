@@ -2,6 +2,8 @@
 
     python scripts/ci_status.py [--sha SHA] [--branch B] [--skip REASON]
 
+The branch is the one HEAD is on (T995: a release branch, a lane's PR branch, or `main`), `--branch` names another.
+
 Recorded: CI was red from 10-29 to 11-09 and nobody saw it (29 pipeline tests and two app checks), and two more CI-only
 reds came on 2026-11-09; no release or APK script asked GitHub. Release preflight (and its --dry-run), build-apk.sh
 (before the heavy lock) and deploy/staging/upload.sh ask here.
@@ -23,12 +25,15 @@ import json
 import os
 import subprocess
 import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))      # beside it, however it is loaded (the tests: by path)
+from ci_paths import TRUNK  # noqa: E402  (T995) the one place the trunk is named: scripts/ci_paths.py
 
 # (T993) app-ci split into jobs of one workflow (their conclusions roll up to the run) and two small workflows with
 # their own path filters: the ticket ledger / docs guard (docs-ci.yml, on handoff/**) and the feeds worker's suites
 # (feeds-worker-ci.yml). A workflow with no run for the sha falls back to its newest finished run, as below.
 WORKFLOWS = ("app-ci.yml", "pipeline-ci.yml", "docs-ci.yml", "feeds-worker-ci.yml")
-BRANCH = "redesign/stream-sections"
 RED = {"failure", "timed_out", "startup_failure", "action_required"}
 FIELDS = "databaseId,headSha,status,conclusion,url,createdAt,event"
 
@@ -75,7 +80,15 @@ def judge(workflow: str, runs: list[dict], sha: str) -> tuple[str, str]:
                     f"({last.get('headSha', '')[:12]}) is green")
 
 
-def check(sha: str, branch: str = BRANCH, runs_of=gh_runs) -> tuple[int, list[str]]:
+def current_branch() -> str:
+    """(T995) the branch HEAD is on — a release branch, a lane's PR branch (its pull_request runs list under it) or the
+    trunk; the trunk when HEAD is detached."""
+    got = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True, check=True)
+    name = got.stdout.strip()
+    return TRUNK if name in ("", "HEAD") else name
+
+
+def check(sha: str, branch: str = TRUNK, runs_of=gh_runs) -> tuple[int, list[str]]:
     """(exit code, lines) over every workflow."""
     lines, worst = [], 0
     for wf in WORKFLOWS:
@@ -91,7 +104,7 @@ def check(sha: str, branch: str = BRANCH, runs_of=gh_runs) -> tuple[int, list[st
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--sha", default=None, help="the commit to judge (default HEAD)")
-    ap.add_argument("--branch", default=BRANCH)
+    ap.add_argument("--branch", default=None, help="whose runs to read (default: the branch HEAD is on, T995)")
     ap.add_argument("--skip", default=os.environ.get("CI_CHECK_SKIP"), metavar="REASON",
                     help="pass without asking, printing the reason (also CI_CHECK_SKIP)")
     a = ap.parse_args(argv)
@@ -102,7 +115,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ci-status: SKIPPED (not asked): {a.skip}")
         return 0
     sha = a.sha or subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
-    rc, lines = check(sha, a.branch)
+    rc, lines = check(sha, a.branch or current_branch())
     for ln in lines:
         print(f"ci-status: {ln}")
     if rc:

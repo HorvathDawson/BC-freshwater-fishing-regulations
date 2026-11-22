@@ -1,6 +1,6 @@
 // T413: a new HYDAT starts the HYDAT workflow once (with the owner's token); without it, today's button email.
 import { describe, expect, it } from "vitest";
-import { dispatchOnce, dispatchSteps, MAX_STARTS, OVERDUE_MS, RETRY_MS, unfinished } from "../src/dispatch";
+import { DEFAULT_REF, dispatchOnce, dispatchSteps, MAX_STARTS, OVERDUE_MS, RETRY_MS, unfinished } from "../src/dispatch";
 import { hydatSection } from "../src/email";
 import { gaugeEvents, hydatUnfinished } from "../src/index";
 
@@ -19,6 +19,10 @@ const gh = (status: number) => {
 const T0 = new Date("2026-11-05T12:00:00Z");
 
 describe("dispatchOnce", () => {
+  it("(T995) starts the workflow on the trunk, main", () => {
+    expect(DEFAULT_REF).toBe("main");
+  });
+
   it("does nothing without the token", async () => {
     const g = gh(204);
     expect(await dispatchOnce({}, g.f, mem(), "feeds-hydat.yml", "20261019", { upload: "true" }, T0)).toEqual({ state: "no-token" });
@@ -30,7 +34,7 @@ describe("dispatchOnce", () => {
     const a = await dispatchOnce(env, g.f, s, "feeds-hydat.yml", "20261019", { upload: "true" }, T0);
     expect(a.state).toBe("started");
     expect(g.calls[0]!.url).toContain("/actions/workflows/feeds-hydat.yml/dispatches");
-    expect(JSON.parse(String(g.calls[0]!.init!.body))).toEqual({ ref: "redesign/stream-sections", inputs: { upload: "true" } });
+    expect(JSON.parse(String(g.calls[0]!.init!.body))).toEqual({ ref: DEFAULT_REF, inputs: { upload: "true" } });
     await dispatchOnce(env, g.f, s, "feeds-hydat.yml", "20261019", { upload: "true" }, new Date(T0.getTime() + 60_000));
     expect(g.calls).toHaveLength(1);
     await dispatchOnce(env, g.f, s, "feeds-hydat.yml", "20270115", { upload: "true" }, T0);
@@ -69,11 +73,11 @@ describe("(T554 item 5) a started run that did not do its work", () => {
 
   it("still asked for after OVERDUE_MS: started ONE more time, then never again (overdue)", async () => {
     const g = gh(204), s = mem();
-    expect(await go(g, s, 0)).toEqual({ state: "started", at: at(0).toISOString(), workflow: "feeds-hydat.yml", ref: "redesign/stream-sections" });
+    expect(await go(g, s, 0)).toEqual({ state: "started", at: at(0).toISOString(), workflow: "feeds-hydat.yml", ref: DEFAULT_REF });
     expect(unfinished(await go(g, s, 5.9))).toBe(false);                 // inside the window: the run may still be going
     expect(g.calls).toHaveLength(1);
     const again = await go(g, s, 6);
-    expect(again).toEqual({ state: "started", at: at(6).toISOString(), workflow: "feeds-hydat.yml", ref: "redesign/stream-sections", starts: 2, first: at(0).toISOString() });
+    expect(again).toEqual({ state: "started", at: at(6).toISOString(), workflow: "feeds-hydat.yml", ref: DEFAULT_REF, starts: 2, first: at(0).toISOString() });
     expect(g.calls).toHaveLength(2);
     expect(unfinished(again)).toBe(true);
     expect(await go(g, s, 8)).toEqual({ ...again, version: "20261019" });   // the second run's own window: the record
@@ -187,7 +191,7 @@ describe("(T412) the weekly run-timing source check", async () => {
       return record(["All Areas NuSEDS_20270101.zip"])(url);
     };
     await checkRunTiming({ GITHUB_DISPATCH_TOKEN: "t" }, f, bucket("20260601"), mem(), T0);
-    expect(bodies).toEqual([{ ref: "redesign/stream-sections", inputs: { upload: "true", refresh: "true", expect_dfo: "20270101" } }]);
+    expect(bodies).toEqual([{ ref: DEFAULT_REF, inputs: { upload: "true", refresh: "true", expect_dfo: "20270101" } }]);
   });
 });
 

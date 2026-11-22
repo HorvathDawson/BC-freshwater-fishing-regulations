@@ -6,6 +6,7 @@
  *
  * Words only, no dates: each source's freshness is the More tab's (freshness.ts).
  */
+import { REPO, TRUNK } from "../repo";
 import { MENU_WORDS } from "./words";
 
 /** The licences, named and linked once. */
@@ -36,10 +37,10 @@ export type LicenceKey = keyof typeof LICENCES;
 /**
  * (owner 2026-10-28) THE REPO IS PUBLIC, so the OpenStreetMap-derived data in it is offered under the ODbL from there:
  * each file carries its own `_licence` record and `data/LICENSE-ODbL.md` lists exactly which files and entries. These are
- * links to those files on GitHub. The branch is the one the data lives on; change `REPO_BLOB` when it merges.
+ * links to those files on GitHub, on the trunk (`TRUNK`, T995: `main`).
  */
-export const REPO_URL = "https://github.com/HorvathDawson/BC-freshwater-fishing-regulations";
-export const REPO_BLOB = `${REPO_URL}/blob/redesign/stream-sections`;
+export const REPO_URL = `https://github.com/${REPO}`;
+export const REPO_BLOB = `${REPO_URL}/blob/${TRUNK}`;
 const repoFile = (path: string, label = path.split("/").pop()!) => ({ label, url: `${REPO_BLOB}/${path}` });
 
 /** A data file in the repo a row's licence applies to, linked. */
