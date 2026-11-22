@@ -5,6 +5,7 @@
   "exempt": {
     "ca7c0cce7ae88f5257646388b8a4fb7ba0da326a": "the T995 switch (2026-11-18): the old main's one commit d6a5ca528 (2026-08-04, superseded) merged under the dev branch's tree; it joined the trunk's history through c374b91fd, after the cutover",
     "b65cc81cc2232d9e7eedd78bf4cdc9352ead9dbc": "the T866 speedups (#16, merged 2026-11-22 18:04:14Z) joined main 2 min 41 s before T998 (#14, 18:06:55Z) turned the check on; its 4 headers (a29b5130f, 5d84d3847, 11e4f0b1a, b65cc81cc) run 121-157 characters",
+    "14df54738dfa9806d7d1c2992b356231f0fbd993": "the T978 MapLibre branch (#15): its 3 commits 7eef1f12f, 24452f0bf, 14df54738 were made 2026-11-22 13:28Z-17:04Z, before T998 (#14, 18:06:55Z) turned the check on; headers 103, 107 and 127 characters",
     "5a5262eaaec0cf0149084351766276fadca110b8": "the T866 owner-pick note (#12, merged 2026-11-22 16:53Z, before T998 turned the check on); its header is 101 characters"
   },
   "bump": {
