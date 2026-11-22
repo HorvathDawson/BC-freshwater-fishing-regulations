@@ -469,7 +469,9 @@ describe("no channel (T558 item 3)", () => {
   it("both deploy scripts refuse a worker without NOTIFY_EMAIL_TO", () => {
     for (const env of ["staging", "prod"]) {
       const sh = readFileSync(join(__dirname, `../../../../deploy/${env}/feeds.sh`), "utf-8");
-      expect(sh).toMatch(/secret list[^\n]*\|\s*grep -q 'NOTIFY_EMAIL_TO'/);
+      // (T994 #19) the list is read once with its exit checked, then searched: a failed list is not "not set"
+      expect(sh).toMatch(/^SECRETS=\$\(npx --prefix app wrangler secret list[^\n]*\) \|\| \{/m);
+      expect(sh).toMatch(/grep -q 'NOTIFY_EMAIL_TO' <<<"\$SECRETS"/);
       expect(sh.indexOf("NOTIFY_EMAIL_TO")).toBeLessThan(sh.lastIndexOf("wrangler deploy -c"));
     }
   });

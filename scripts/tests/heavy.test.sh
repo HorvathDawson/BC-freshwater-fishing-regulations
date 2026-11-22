@@ -223,7 +223,7 @@ check "mid-run below the kill floor: exit 73 + message" \
   bash -c "[ $rc = 73 ] && grep -q 'STOPPED: 1 GB free on /System/Volumes/Data < 3 GB (HEAVY_KILL_DISK_GB)' '$T/df1.out'"
 check "  … job gone, lock gone" bash -c "! kill -0 $j 2>/dev/null && [ ! -d '$L' ]"
 H --status > "$T/st2.out" 2>&1
-check "--status shows free disk" grep -q 'free disk: 1 GB on /System/Volumes/Data' "$T/st2.out"
+check "--status shows free disk, once" grep -q 'free disk: 1 GB on /System/Volumes/Data   pause file' "$T/st2.out"
 
 echo "heavy.test: $fails failed in $((SECONDS - t0)) s"
 (( fails == 0 ))

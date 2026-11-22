@@ -105,7 +105,7 @@ status() {
   local lock pid pgid started log q f d
   f=$(free_pct)
   d=$(free_disk)
-  echo "free memory: ${f:-UNREADABLE (memory_pressure -Q)}%   free disk: ${d:+${d%% *} GB on ${d#* }}${d:-UNREADABLE (df)}   pause file: $([[ -e ${HEAVY_PAUSE:-$HOME/.claude/heavy-job.pause} ]] && echo PRESENT || echo none)"
+  echo "free memory: ${f:-UNREADABLE (memory_pressure -Q)}%   free disk: $(if [[ -n $d ]]; then echo "${d%% *} GB on ${d#* }"; else echo "UNREADABLE (df)"; fi)   pause file: $([[ -e ${HEAVY_PAUSE:-$HOME/.claude/heavy-job.pause} ]] && echo PRESENT || echo none)"
   for lock in "${LANES[@]}"; do
     echo "── $lock"
     if [[ ! -d $lock ]]; then echo "   free"
