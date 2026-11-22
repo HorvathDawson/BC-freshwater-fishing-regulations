@@ -1,6 +1,6 @@
 # T931 — Live-data test tier: ~55 stale pins after the 11-15..11-19 rulings, and one invariant break
 
-Status: IN PROGRESS — groups A, B, C, E built on lane/t936-t931 (3 tests refused as suspected data bugs, 1 waits for the bundle rebuild); left (Claude): main chat review + merge.
+Status: IN PROGRESS — lane merged (bff397878, 11-20); reviewed 2026-11-22: 3 pins fixed (a6f2a47cd Skutz Falls copied removed review words + unlabelled marks 25→22 by T944; 7e126231a T981's local-authority closure has no book page by design; 2f8d3b72e the Babine hand placement check had become always-true). The 3 refusals (T942, T944) and the panel invariant pass now. Left: T1000 (Adskwatim tile gap, 2 live tests red until the next tile build); `test_answers_one_kind_group.py` ~533 (Beattie: bull trout and lake trout became separate trout-group entries with no ruling named) needs its ruling or commit cited.
 
 Source: main chat 2026-11-19 21:28. The first `scripts/test-full.sh` run in days (on lane/t920-batch) finished red. A
 read-only diagnosis (scratchpad `diag-a.log`, `diag-b.log`) found none of it comes from that branch: the 0.8.3 and 0.8.2
