@@ -106,8 +106,8 @@ describe("the guard fires (mutation)", () => {
   });
 
   it("on a T-number in a commit subject that the ledger lacks", () => {
-    const input = { ...real, subjects: [...real.subjects, "T999: work nobody ticketed"] };
-    expect(checkLedger(input)).toEqual(["T999: named in a commit subject but missing from the ledger"]);
+    const input = { ...real, subjects: [...real.subjects, "T99999: work nobody ticketed"] };
+    expect(checkLedger(input)).toEqual(["T99999: named in a commit subject but missing from the ledger"]);
   });
 
   it("does not read an owner-question label (Q-T57a) or other hyphen-joined id as a ticket", () => {

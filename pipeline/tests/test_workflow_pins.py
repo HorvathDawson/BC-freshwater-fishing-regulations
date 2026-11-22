@@ -11,8 +11,11 @@ forever, so every CI workflow runs on every pull request and ends in one always-
 scripts/ci_paths.py."""
 from __future__ import annotations
 
+import fnmatch
+import functools
 import re
-from pathlib import Path
+import subprocess
+from pathlib import Path, PurePosixPath
 
 import yaml
 
@@ -229,8 +232,26 @@ NOT_READ = {
 DOCS_RUN = {"check-tickets.test.ts", "start-here.test.ts"}
 
 
+@functools.lru_cache(maxsize=1)
+def _tracked() -> tuple[frozenset[str], frozenset[str]]:
+    """The TRACKED files and their parent dirs. A path a test reads that git ignores (data/release, the built bundle)
+    is machine state: no PR can change it, CI never has it, so no area needs it. Judging by the disk instead made this
+    pin pass in a fresh worktree and fail in a checkout holding a release (T995 merge, 2026-11-22)."""
+    files = subprocess.run(["git", "ls-files", "-z"], cwd=WF.parents[1], capture_output=True, check=True,
+                           text=True).stdout.split("\0")
+    files = frozenset(f for f in files if f)
+    dirs = frozenset(str(PurePosixPath(f).parents[i]) for f in files for i in range(len(PurePosixPath(f).parents) - 1))
+    return files, dirs
+
+
+def _is_tracked(x: str) -> bool:
+    files, dirs = _tracked()
+    if "*" in x:
+        return any(fnmatch.fnmatch(f, x) for f in files)
+    return x in files or x in dirs
+
+
 def _repo_reads(files: list[Path]) -> set[tuple[str, str]]:
-    root = WF.parents[1]
     out = set()
     for f in files:
         text = f.read_text(encoding="utf-8")
@@ -242,7 +263,7 @@ def _repo_reads(files: list[Path]) -> set[tuple[str, str]]:
             x = x.rstrip("/")
             if not re.match(rf"^(?:{_TOP}(?:/|$)|{_FILES}$)", x):
                 continue
-            if (root / x).exists() or ("*" in x and any(root.glob(x))):
+            if _is_tracked(x):
                 out.add((f.name, x))
     return out
 
