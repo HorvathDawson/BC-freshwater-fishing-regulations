@@ -109,3 +109,47 @@ cheaper than the shipped lean AAR from upstream's own changes. On main: colours 
 0 ANRs in tap-glide, build-id proof PASS. Build: full AAR 703 s, rebuild 264 s, APK 67-93 s; `build.sh` needs only the
 tag -> a pinned upstream commit, no patch. Owner decides (OWNER-TODO): build from a pinned upstream main commit with no
 patch (recommended), or keep the lean AAR.
+
+## Owner 2026-11-22, dialog: MapLibre for 0.8.6
+Owner, verbatim: "Pinned upstream main (Recommended)": build from one pinned upstream main commit, no patch of ours;
+switch back to a release tag once upstream releases one containing 0001.
+
+## Built: the pinned upstream MapLibre (build/T978-maplibre-upstream-main, 2026-11-22)
+- **The pin, in one place:** `app/tools/maplibre-android/pin.env`: `MLN_COMMIT=3a6b955796b3509f184e9bf719e82cb2b432b958`
+  (upstream main, 2026-11-21; holds PR 4919 = 9cf8446d), `MLN_VERSION=13.7.1-main.3a6b955` (the local artifact's version,
+  naming the commit). Its header says why main (no android-v* release holds 9cf8446d; the newest, android-v13.7.1 of
+  2026-10-15, does not) and when to move (the first release tag that contains it: `git merge-base --is-ancestor`).
+- **No patch:** `app/tools/maplibre-patch/` became `app/tools/maplibre-android/`. `build.sh` clones the pinned commit,
+  refuses a source tree with any local change (the version file aside), applies nothing, and publishes to
+  `cache/maplibre/<MLN_VERSION>/` with `SOURCE.txt` (the commit). The T420 patches, their upstream drafts and
+  `tests.sh` moved to `archive-t420/` (no build reads it; its README says so).
+- **Selection + proof:** `deploy/staging/build-apk.sh` (every mode, `--production` too) and `app/tools/testbed/session.sh`
+  default `MLN_LOCAL_MAVEN` to `cache/maplibre/<MLN_VERSION>`; build-apk's precheck (`deploy/lib/build-links.sh`
+  `build_links_mln`) refuses an AAR that is not the pinned version (the old `fslean-m2`, an experiment), so nothing can
+  silently ship the lean patch; the APK/AAB build-id proof is unchanged and its line now reads `libmaplibre.so build id
+  <id> (pinned upstream 13.7.1-main.3a6b955)`. The test-bed stamp says `pinned upstream <version>`, an experiment repo
+  (with `TESTBED_APK_TAG`) `LOCAL AAR …, not the pin`; `patched` is only read back from old stamps.
+  `--stock-maplibre=<reason>` stays (refused with `--production`).
+- **iOS: unchanged.** The iOS build never had the patch (T893): it takes MapLibre iOS 6.31.0 from the binding's pod;
+  `build-ios-testflight.sh` reads no `MLN_*`, and app.config.js only touches the Android native version and Gradle
+  repositories. The fix reaches iOS only with an upstream iOS release.
+- **Docs:** `app/tools/maplibre-android/README.md` (new), `app/tools/testbed/README.md`, `app/deps.md`,
+  `handoff/PLAN/ios/START-HERE-ios.md` (its commands read the pin), comments in app.config.js / with-local-maplibre.js.
+  AGENTS has no MapLibre line. The auto-memory note "MapLibre patched always" is the main chat's to update.
+- **Tests:** `app/tools/maplibre-pin.test.ts` (new: the pin's form, build.sh applies nothing and refuses a changed tree,
+  every build path reads the pin, no build file names fslean / maplibre-patch / the patches), `testbed-stamp.test.ts`
+  (pinned/local/stock stamps), `test_staging_scripts_fail_safe.py` (a lean AAR refused by the precheck and by
+  `--check-maplibre`; the default repo named from the pin; build-links' worktree link and pinned check).
+- **Cache:** the main checkout's `cache/maplibre/13.7.1-main.3a6b955/` (built by the new build.sh). `fslean-m2` is left
+  in place, unused (refused by every build); delete it when 0.8.6 is out.
+- **Fixed on the way:** the worktree fix the precheck prints (`ln -s <main>/cache/maplibre/… cache/maplibre/…`) never
+  worked: a bare `find` does not descend into a symlinked folder, so the link still read "found: none" (latent since
+  the fslean link). `find -L` in build-links.sh, build-apk.sh and session.sh; a test links a worktree's repo.
+- **Proven (2026-11-22):** `build.sh` on the pin: 187 s (a reused source tree; full build measured 703 s), AAR build id
+  adb668b692a7… = the measured m0001 build's (same source). Test-bed APK by the default `session.sh --build` (commit
+  06179d9fe clean; stamp "libmaplibre build id adb668b6… (pinned upstream 13.7.1-main.3a6b955)"), emulator: 
+  `check-loaded.sh` PASS (installed APK = the pinned AAR's build id, `SOURCE.txt` names 3a6b9557, mapped executable in
+  the app); colours after Map → Conditions → Map at Coquitlam z13 and Fraser Valley z11: coloured, nothing grey
+  (`out/runs/t978-pin-verify/`). Tests: `maplibre-pin.test.ts` + `testbed-stamp.test.ts` + `r8-config.test.ts` 40/40;
+  `test_staging_scripts_fail_safe.py` + `test_deploy_gates.py` + the heavy-precheck test 66/66; check-tickets green.
+  Not run: a build-apk.sh build (the Play/production paths are covered by the precheck and `--check-maplibre` tests only).
