@@ -202,7 +202,10 @@ export function writeMutant(out) {
 /** where `ProofRunEnd` writes the run's end (`{errors, reason}`): set by `main` for the vitest it starts */
 const END = "PART_END_PROOF_END";
 
-/** vitest reporter: what the JSON report leaves out — the run's unhandled errors and why it ended. */
+/**
+ * vitest reporter: what the JSON report leaves out — the run's unhandled errors and why it ended.
+ * @public — vitest loads it by file path (`--reporter=<this file>` in `main`), which knip cannot see.
+ */
 export default class ProofRunEnd {
   onTestRunEnd(_modules, errors, reason) {
     if (process.env[END]) writeFileSync(process.env[END], JSON.stringify({ errors: errors.length, reason }) + "\n");
