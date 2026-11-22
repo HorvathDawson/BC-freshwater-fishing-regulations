@@ -109,3 +109,7 @@ cheaper than the shipped lean AAR from upstream's own changes. On main: colours 
 0 ANRs in tap-glide, build-id proof PASS. Build: full AAR 703 s, rebuild 264 s, APK 67-93 s; `build.sh` needs only the
 tag -> a pinned upstream commit, no patch. Owner decides (OWNER-TODO): build from a pinned upstream main commit with no
 patch (recommended), or keep the lean AAR.
+
+## Owner 2026-11-22, dialog: MapLibre for 0.8.6
+"Pinned upstream main (Recommended)": build from one pinned upstream main commit, no patch of ours; move to a release
+tag once upstream releases one containing 0001. The switch: branch `build/T978-maplibre-upstream-main` (in progress).
