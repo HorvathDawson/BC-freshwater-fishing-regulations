@@ -1804,6 +1804,10 @@ def test_the_version_commit_sets_the_version_opens_the_entry_and_writes_the_chan
     for rel in (R.APP_JSON_REL, R.APP_PKG_REL, R.CHANGELOG_TS):
         (here / rel).parent.mkdir(parents=True, exist_ok=True)
         (here / rel).write_text((real / rel).read_text())
+    # the code under test runs its own git (commit-tree) without the -c flags above: the fixture repo carries the
+    # identity itself, as a CI runner has none of its own (no global user.name / user.email)
+    for key, value in (("user.email", "t@t"), ("user.name", "t"), ("commit.gpgsign", "false")):
+        run("config", key, value)
     run("add", ".")
     run("commit", "-qm", "base", "--no-verify")
     run("update-ref", "refs/remotes/origin/main", "HEAD")
