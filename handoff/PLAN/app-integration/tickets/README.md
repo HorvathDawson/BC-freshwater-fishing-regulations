@@ -274,6 +274,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T994 | Production-level audit: non-standard practices and data-flow issues across the code | IN PROGRESS | | owner 2026-11-21 |
 | T995 | Branch structure: `main` is the protected trunk; PRs with required checks; release branches and tags | IN PROGRESS | T993 | owner 2026-11-21 |
 | T996 | Test the Apple push service end to end (registration, wake-up delivery, token reuse over 1 h+) | OPEN | T994 | owner 2026-11-21, next release |
+| T997 | Water map: two boundary labels at almost the same place draw on top of each other (Nicomekl River Part 2) | OPEN | | owner 2026-11-21, next chat |
 
 ## Next after closed testing
 
