@@ -11,9 +11,11 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## 2026-11-21 evening: build/CI streamlining chat (T993, T978, T994; no release) — open decisions, asked at the end
 
-- **T978 MapLibre (decide):** upstream PR 4919 holds only our patch 0001; upstream main (3a6b9557) still lacks 0002 (the
-  bucket re-upload fix the lean T420 patch also carries). Choose: (a) post 0002 upstream and keep the lean patch until it
-  merges (recommended default: nothing changes meanwhile), or (b) build upstream main + 0002 locally now.
+- **T978 MapLibre:** asked; owner, verbatim: "Can we measure the different of patch 2 I think we thought it wasn't worth
+  it". Claude measures upstream main (0001 only) vs the lean patch (0001 + 0002) on the stressed emulator; the owner
+  decides on the numbers.
+- **Merging (answered):** PRs + required checks into redesign/stream-sections. **Push hook (answered):** versioned
+  pre-push hook running the before-push command.
 
 ## 2026-11-21 12:40: 0.8.5 batch scope, asked one ticket at a time (dialog)
 

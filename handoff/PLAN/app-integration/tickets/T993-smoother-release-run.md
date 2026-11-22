@@ -98,3 +98,11 @@ Lanes (plan item numbers):
 - **G3 deploy gates:** 14; T788 #1, #4, #5, #11; T994 findings 9, 10, 18, 19, 20, 28.
 - **After T978 lands:** 5 (heavy.sh gate, T661 #3), 6 (tests never read machine state: T777, T792 B), 10 (T768), T866,
   T987, then 11 (the one human runbook + the T992 explanation), last, once the code settles; 17 with T485 / T736.
+
+## Owner 2026-11-21, dialog (best practice)
+Owner, verbatim: "generally we want to change stuff to be best practice in industry".
+- **How work lands:** "PRs + required checks (Recommended)": every lane opens a GitHub PR into
+  redesign/stream-sections; branch protection requires the CI checks green before it merges; agents open and merge the
+  PRs once green. Built after G1's job split lands (the required check names come from it).
+- **Pre-push hook:** "Yes, versioned hook (Recommended)": a hook checked into the repo (`core.hooksPath`), so every
+  checkout and worktree gets it, running G2's before-push command; `git push --no-verify` is the emergency skip.
