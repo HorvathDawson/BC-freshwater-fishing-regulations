@@ -44,11 +44,6 @@ mapbox-vector-tile
 pyyaml
 python-dotenv
 
-# Cloud storage (R2 S3-compatible I/O for the hydro cron jobs entrypoint)
-boto3
-
-# AI/LLM API
-
 # HTTP (feeds, gauges)
 requests
 

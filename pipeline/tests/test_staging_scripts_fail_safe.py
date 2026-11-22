@@ -520,8 +520,9 @@ def test_build_links_frontend_fails_on_a_git_error_never_skips(tmp_path):
     subprocess.run([*git, "add", "f"], cwd=repo, check=True)
     subprocess.run([*git, "commit", "-qm", "one"], cwd=repo, check=True)
     one = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True, check=True).stdout.strip()
-    got = _links(repo, 'build_links_frontend ""')                   # no origin/redesign/stream-sections here
-    assert "FAIL cannot tell whether fast-fail typechecks the review app: git merge-base" in got.stdout, got.stdout
+    got = _links(repo, 'build_links_frontend ""')                   # no origin/main (the trunk, T995) here
+    assert "FAIL cannot tell whether fast-fail typechecks the review app: git merge-base HEAD origin/main" in got.stdout, \
+        got.stdout
     got = _links(repo, "build_links_frontend deadbeefdeadbeef")
     assert "FAIL cannot tell whether fast-fail typechecks the review app: git diff --name-only deadbeef" in got.stdout
     assert _links(repo, f"build_links_frontend {one}").stdout == ""   # nothing of the frontend changed

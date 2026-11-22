@@ -20,8 +20,9 @@
 #   build_links_frontend <base>   the review app's node_modules, when fast-fail will typecheck it (a frontend file
 #                                 changed since <base>)
 
-# the main checkout (the worktrees' common git dir's parent); BUILD_HERE = this checkout
+# the main checkout (the worktrees' common git dir's parent); BUILD_HERE = this checkout; BUILD_LINKS_DIR = this file's
 BUILD_HERE=$(pwd -P)
+BUILD_LINKS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
 BUILD_MAIN=$(cd "$(git rev-parse --path-format=absolute --git-common-dir)/.." && pwd -P)
 
 # build_fix <repo path> <command that makes it>: the fix to print — a link to the main checkout's copy from a worktree
@@ -76,8 +77,12 @@ build_links_frontend() {
   local base=$1 out rc
   # (T978 review) a git failure is a failed item with its cause, never a skipped check
   if [[ -z $base ]]; then
-    out=$(git merge-base HEAD origin/redesign/stream-sections 2>&1); rc=$?
-    if (( rc )); then bad "cannot tell whether fast-fail typechecks the review app: git merge-base HEAD origin/redesign/stream-sections failed (rc=$rc: ${out: -200}); git fetch origin redesign/stream-sections"; return 0; fi
+    local trunk
+    # (T995) the trunk, named once: scripts/ci_paths.py
+    trunk=$(python3 "$BUILD_LINKS_DIR/../../scripts/ci_paths.py" trunk 2>&1) \
+      || { bad "cannot tell whether fast-fail typechecks the review app: scripts/ci_paths.py trunk failed (${trunk: -200})"; return 0; }
+    out=$(git merge-base HEAD "origin/$trunk" 2>&1); rc=$?
+    if (( rc )); then bad "cannot tell whether fast-fail typechecks the review app: git merge-base HEAD origin/$trunk failed (rc=$rc: ${out: -200}); git fetch origin $trunk"; return 0; fi
     base=$out
   fi
   out=$(git diff --name-only "$base" -- curation-review/frontend 2>&1); rc=$?

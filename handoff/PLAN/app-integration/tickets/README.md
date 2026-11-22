@@ -231,7 +231,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T928 | iPhone: the main map fills only 2/3 of the screen after tab changes (tester via owner) | DONE | c71429593, 54b256e06 | — |
 | T929 | Water map: boundary labels don't line up with the place they name; the part looks mis-framed (Chilliwack) (tester via owner) | DONE | 65691d11d, 752b5596e, 819419ebb | — |
 | T930 | First Nations names as search names in name_variants.json (hand list of big waters, then BC Geographical Names) (owner) | POSTPONED (deferred, owner 2026-11-19: after bathy map, stocked lakes, charts; T200/T201/T634) | | owner 2026-11-19 "add to name_variants JSON in future" |
-| T931 | Live-data test tier: ~55 stale pins after the 11-15..11-19 rulings, one lake-loop invariant break (T753), env flakes | IN PROGRESS — left (Claude): main chat review + merge (3 refused pins = suspected bugs; panel invariant waits for the rebuild) | 68224fd7d, 0d2effc0f, 9f4f53e97, 89fcc181e | main chat 2026-11-19 tier diagnosis |
+| T931 | Live-data test tier: ~55 stale pins after the 11-15..11-19 rulings, one lake-loop invariant break (T753), env flakes | IN PROGRESS — reviewed + fixed 2026-11-22; left: T1000 tile gap (2 live tests), Beattie group split needs its ruling cited | 68224fd7d, 0d2effc0f, 9f4f53e97, 89fcc181e, a6f2a47cd, 7e126231a, 2f8d3b72e | main chat 2026-11-19 tier diagnosis |
 | T932 | Audit name_variants.json: joined multi-lake lines, wrong targets, twins, book-print forms (owner) | POSTPONED (deferred with T930: after bathy map, stocked lakes, charts) | | owner 2026-11-20 "audit the name variants" |
 | T933 | A dataset for OpenStreetMap of the 324 streams we added (licence per city, missing-only, OSM import process) (owner) | POSTPONED (deferred with T930: after bathy map, stocked lakes, charts) | | owner 2026-11-20 "dataset for OSM" |
 | T934 | The salmon year bar shows the B.C. bait ban and fly-only days too (owner) | DONE | 05dacb264 bb7b5ec53 40b7a90ae 2be00455c | owner 2026-11-20 "Bait ban needs to apply to salmon" |
@@ -272,10 +272,12 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T992 | Explain how golden pages, fixture re-cuts and the release command's gates work (and maybe simplify them) | POSTPONED | | owner 2026-11-21 |
 | T993 | Document + clean up every release / CI / CD process so a human can release from one runbook; checks do the remembering (0.8.5 stopped nine times) | IN PROGRESS | T992 | owner 2026-11-21 |
 | T994 | Production-level audit: non-standard practices and data-flow issues across the code | IN PROGRESS | | owner 2026-11-21 |
-| T995 | Branch structure: `main` is the protected trunk; PRs with required checks; release branches and tags | IN PROGRESS | T993 | owner 2026-11-21 |
+| T995 | Branch structure: `main` is the protected trunk; PRs with required checks; release branches and tags | PARTIAL (switch landed c374b91fd 2026-11-22; left (Claude): prune branches, delete the old branch after 0.8.6 redeploys the prod worker) | c374b91fd, d4eae5b46 | owner 2026-11-21 |
 | T996 | Test the Apple push service end to end (registration, wake-up delivery, token reuse over 1 h+) | OPEN | T994 | owner 2026-11-21, next release |
 | T997 | Water map: two boundary labels at almost the same place draw on top of each other (Nicomekl River Part 2) | OPEN | | owner 2026-11-21, next chat |
 | T998 | Meaningful versions: SemVer for the app, the bump derived from Conventional Commits (1.0.0 at public launch) | OPEN | T995 | owner 2026-11-21 |
+| T999 | Feeds worker backup copies reports incrementally (the daily backup fails, told, past ~4,500 reports) | OPEN | | T994 finding 24 (a6d97778a note) |
+| T1000 | Tiles: an Adskwatim Creek stream polygon draws in the lake layer, not the stream layer (2 live tests red) | OPEN | | T931 review 2026-11-22 |
 | T1002 | Test-anchor scanners: an `absent` rule for pipeline/tests/anchors.py; the record-equality and toBeUndefined gaps; part numbers after short template slots | OPEN | T768 | T768's lane, 2026-11-22 |
 
 ## Next after closed testing

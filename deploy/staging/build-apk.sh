@@ -304,7 +304,8 @@ if [[ -z ${BUILD_APK_INNER:-} ]]; then
   # (T533) CI on HEAD, before the lock: red (or the newest finished run red when HEAD has none) stops; running / no run
   # warns (scripts/ci_status.py). --no-ci-check=<reason> goes on, printed. A dry run shows it and goes on.
   if [[ -n $NOCI ]]; then echo "build-apk: CI check SKIPPED (--no-ci-check): $NOCI"; export CI_CHECK_SKIP="build-apk --no-ci-check: $NOCI"
-  elif ! .venv/bin/python scripts/ci_status.py; then
+  # (T995 review) production: --strict (no finished green run at HEAD, or unchanged since one, stops)
+  elif ! .venv/bin/python scripts/ci_status.py ${PROD:+--strict}; then
     if [[ -n $DRY ]]; then echo "[dry-run] WOULD STOP: CI (above)"
     else echo "build-apk: CI is red or unreadable (above) — nothing was built; --no-ci-check=<reason> goes on" >&2; exit 1; fi
   fi

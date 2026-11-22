@@ -410,8 +410,10 @@ def test_the_chilliwack_and_the_cowichan_are_runs_in_river_order_with_a_named_ma
     # (T931 B; T743, the owner's DFO save of 2026-11-15 "from CNR Trestle at mile 70.2 to Skutz Falls") the Cowichan
     # is six parts: DFO's Skutz Falls cut splits the Mile 66 trestle to CNR bridge stretch (one rule set, two salmon places)
     assert len(parts) == 6 and [(m[1], m[2]) for m in marks] == [(k, f"[{k + 1}]") for k in range(5)]
-    assert [m[0] for m in marks][1:] == ["CNR Mile 66 Trestle", "Skutz Falls, approximate location (medium confidence)",
-                                         "CNR Bridge (mile 70.2)", "Greendale Trestle"]
+    # (T931 review, 2026-11-22) T780 (owner 2026-11-20: part names never carry the cut's review words; live on
+    # r-741815c6090d): the mark says the place alone — "Skutz Falls", never "…, approximate location (medium confidence)"
+    assert [m[0] for m in marks][1:] == ["CNR Mile 66 Trestle", "Skutz Falls", "CNR Bridge (mile 70.2)",
+                                         "Greendale Trestle"]
 
 
 @pytest.mark.needs_bundle
@@ -502,7 +504,12 @@ def test_keep_named_reads_the_1_based_handle_and_the_lake_polygons(tmp_path):
 #: leaves its river at no named place, so neither side has an end the other shares. Pinned as a KNOWN COUNT on the
 #: side build (2026-11-08, r-… T517 fix lane); a change moves this number and must say why. The assert in
 #: `topology.mark_words` (a mark's words are the parts' end words) is not weakened: it holds wherever two main stems meet.
-UNLABELLED_MARKS = 25                  # 112 before two parts meeting across a lake were said by the lake (5)
+UNLABELLED_MARKS = 22                  # 112 before two parts meeting across a lake were said by the lake (5)
+# (T931 review, 2026-11-22) 25 -> 22, MEASURED mark by mark between the side bundles of 2026-11-20 (t926-t927,
+# l9-strictest: registry 636ffa91, 25 pairs) and the live one of r-741815c6090d (registry 7caa748d, 22): Harmer Creek
+#   (gnis:15289), Shea Creek (gnis:22080) and Brownie Creek (gnis:39245) each lose their one mark, by T944 d23bbc9b6
+#   ("a dead end flows where its water flows": the dead-end side part takes its water's classified-waters units and
+#   joins the main part; the three waters 8b8cc5275 names). No water gained one.
 # (T931 B, 2026-11-20) 110 -> 25, MEASURED mark by mark between the bundle before the 11-15 rebuild
 # (`bundle.pre_t743`, reach 4f1bdab9d319246f, 110 pairs) and the live one (r-6258ffded676, reach 6ca9a300dad3d95e):
 #   76 by 93a481b71 (2026-11-15, `tributaries.A_DEAD_END_GOES_WITH_ITS_WATER`, AGENTS 63): the side part (a dead
