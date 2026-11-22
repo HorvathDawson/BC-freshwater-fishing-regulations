@@ -48,3 +48,7 @@ Risk: medium (a missing keep rule crashes only on the path that needs it; T749's
 modules added since raise it). Size: M. Depends: T749 (done), T978 (the MapLibre switch, also edits `app.config.js`:
 land after it or merge carefully). Owner: no decision needed; the deadline date from Play Console, and the usual phone
 check on the release build.
+
+## Related
+T1009 (owner 2026-11-22, Play card "DEX code optimization: Low"): the other two categories Play scores (optimization,
+shrinking), the per-build measurement and the floors; it starts once this ticket has R8 on.

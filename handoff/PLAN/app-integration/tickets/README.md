@@ -286,6 +286,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1006 | One read-only command lists every new report (both workers, TestFlight, Play reviews); every chat runs it first | OPEN | | owner 2026-11-22 |
 | T1007 | Website: Chrome warns "StorageType.persistent is deprecated" (first party); not in our code or the two bundles: find the source | OPEN — next release batch | | owner 2026-11-22 (Lighthouse) |
 | T1008 | Website: Lighthouse "missing source maps" — maps are kept private on purpose (T352); serve them (repo is public) or keep hidden | OPEN — owner picks (default: serve) | | owner 2026-11-22 (Lighthouse) |
+| T1009 | Android: Play "DEX code optimization: Low": measure optimization / shrinking / obfuscation every build, narrow broad library keep rules, floors in a build check (after T1003) | OPEN — next release batch (0.9.0), after T1003 | | owner 2026-11-22 (Play Console card) |
 
 ## Next after closed testing
 
