@@ -73,9 +73,16 @@ build_links_file() {
 
 # build_links_frontend <base>: fast-fail typechecks the review app's frontend when a file of it changed since <base>
 build_links_frontend() {
-  local base=$1
-  [[ -n $base ]] || base=$(git merge-base HEAD origin/redesign/stream-sections 2>/dev/null) || return 0
-  git diff --name-only "$base" -- curation-review/frontend 2>/dev/null | grep -qE '\.(ts|tsx|json)$' || return 0
+  local base=$1 out rc
+  # (T978 review) a git failure is a failed item with its cause, never a skipped check
+  if [[ -z $base ]]; then
+    out=$(git merge-base HEAD origin/redesign/stream-sections 2>&1); rc=$?
+    if (( rc )); then bad "cannot tell whether fast-fail typechecks the review app: git merge-base HEAD origin/redesign/stream-sections failed (rc=$rc: ${out: -200}); git fetch origin redesign/stream-sections"; return 0; fi
+    base=$out
+  fi
+  out=$(git diff --name-only "$base" -- curation-review/frontend 2>&1); rc=$?
+  if (( rc )); then bad "cannot tell whether fast-fail typechecks the review app: git diff --name-only $base failed (rc=$rc: ${out: -200})"; return 0; fi
+  grep -qE '\.(ts|tsx|json)$' <<<"$out" || return 0
   if [[ -x curation-review/frontend/node_modules/.bin/tsc ]]; then ok "curation-review/frontend/node_modules"
   else bad "no curation-review/frontend/node_modules (fast-fail typechecks the review app: a frontend file changed since ${base:0:12}): (cd curation-review/frontend && npm ci)"; fi
 }

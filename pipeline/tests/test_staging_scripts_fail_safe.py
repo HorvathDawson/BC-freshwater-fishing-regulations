@@ -509,6 +509,29 @@ def test_build_links_fix_a_worktree_by_linking_the_main_checkout(tmp_path):
     assert "must hold exactly one android-sdk-vulkan AAR" in got.stdout and "AAR=[]" in got.stdout
 
 
+def test_build_links_frontend_fails_on_a_git_error_never_skips(tmp_path):
+    """(T978 review, lane G3) a failed `git merge-base` / `git diff` once returned quietly, skipping the check: now each
+    is a failed item naming its cause; a real frontend change with no node_modules asks for `npm ci`; none, nothing."""
+    repo = tmp_path / "r"
+    (repo / "curation-review/frontend").mkdir(parents=True)
+    git = ["git", "-c", "user.email=t@t", "-c", "user.name=t"]
+    subprocess.run([*git, "init", "-q"], cwd=repo, check=True)
+    (repo / "f").write_text("x")
+    subprocess.run([*git, "add", "f"], cwd=repo, check=True)
+    subprocess.run([*git, "commit", "-qm", "one"], cwd=repo, check=True)
+    one = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True, check=True).stdout.strip()
+    got = _links(repo, 'build_links_frontend ""')                   # no origin/redesign/stream-sections here
+    assert "FAIL cannot tell whether fast-fail typechecks the review app: git merge-base" in got.stdout, got.stdout
+    got = _links(repo, "build_links_frontend deadbeefdeadbeef")
+    assert "FAIL cannot tell whether fast-fail typechecks the review app: git diff --name-only deadbeef" in got.stdout
+    assert _links(repo, f"build_links_frontend {one}").stdout == ""   # nothing of the frontend changed
+    (repo / "curation-review/frontend/a.ts").write_text("x")
+    subprocess.run([*git, "add", "."], cwd=repo, check=True)
+    subprocess.run([*git, "commit", "-qm", "two"], cwd=repo, check=True)
+    got = _links(repo, f"build_links_frontend {one}")
+    assert "FAIL no curation-review/frontend/node_modules" in got.stdout and "npm ci" in got.stdout
+
+
 def test_testflight_precheck_lists_every_missing_secret_before_the_lock(tmp_path):
     """(T978) the first missing secret ended the TestFlight build after the lock wait; now every one is listed at once,
     before `exec scripts/heavy.sh`."""
