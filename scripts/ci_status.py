@@ -1,8 +1,15 @@
 """Is CI green on HEAD? (T533) — the newest `app-ci`, `pipeline-ci`, `docs-ci` and `feeds-worker-ci` runs for the branch, read with `gh`.
 
-    python scripts/ci_status.py [--sha SHA] [--branch B] [--skip REASON]
+    python scripts/ci_status.py [--sha SHA] [--branch B] [--strict] [--skip REASON]
 
-The branch is the one HEAD is on (T995: a release branch, a lane's PR branch, or `main`), `--branch` names another.
+(T995 review) Runs are found BY COMMIT first (`gh run list --commit <sha>`, any branch: a fresh release/x has no runs
+of its own, but its cut commit has main's), then by the branch HEAD is on (`--branch` names another).
+
+`--strict` (production builds: `build-apk.sh --production`): a workflow with no FINISHED, GREEN run at the sha is a STOP
+— unless its newest finished run at an ANCESTOR of the sha is green and nothing in its area (scripts/ci_paths.py AREAS)
+changed since (a push to main / release/** is path-filtered, so an unchanged area has no run of its own). A running or
+cancelled run is a STOP too. Staging (release preflight, `build-apk.sh` without --production, upload.sh) keeps the rules
+below: a stricter staging would stop every release whose branch tip left one area untouched by a path filter.
 
 Recorded: CI was red from 10-29 to 11-09 and nobody saw it (29 pipeline tests and two app checks), and two more CI-only
 reds came on 2026-11-09; no release or APK script asked GitHub. Release preflight (and its --dry-run), build-apk.sh
@@ -28,7 +35,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))      # beside it, however it is loaded (the tests: by path)
-from ci_paths import TRUNK  # noqa: E402  (T995) the one place the trunk is named: scripts/ci_paths.py
+import ci_paths as CP  # noqa: E402  (T995) the trunk and the areas, typed once: scripts/ci_paths.py
+from ci_paths import TRUNK  # noqa: E402
 
 # (T993) app-ci split into jobs of one workflow (their conclusions roll up to the run) and two small workflows with
 # their own path filters: the ticket ledger / docs guard (docs-ci.yml, on handoff/**) and the feeds worker's suites
@@ -42,10 +50,12 @@ class CannotTell(Exception):
     pass
 
 
-def gh_runs(workflow: str, branch: str, limit: int = 30) -> list[dict]:
-    """The workflow's newest runs on the branch, newest first (the one place `gh` is called; tests replace it)."""
+def gh_runs(workflow: str, branch: str | None = None, commit: str | None = None, limit: int = 30) -> list[dict]:
+    """The workflow's newest runs, newest first: at a commit (any branch), on a branch, or (neither) anywhere. The one
+    place `gh` is called; tests replace it."""
+    sel = [*(["--commit", commit] if commit else []), *(["--branch", branch] if branch else [])]
     try:
-        got = subprocess.run(["gh", "run", "list", "--workflow", workflow, "--branch", branch, "--limit", str(limit),
+        got = subprocess.run(["gh", "run", "list", "--workflow", workflow, *sel, "--limit", str(limit),
                               "--json", FIELDS], capture_output=True, text=True, timeout=60)
     except (OSError, subprocess.TimeoutExpired) as e:
         raise CannotTell(f"gh run list --workflow {workflow}: {e}") from e
@@ -88,12 +98,59 @@ def current_branch() -> str:
     return TRUNK if name in ("", "HEAD") else name
 
 
-def check(sha: str, branch: str = TRUNK, runs_of=gh_runs) -> tuple[int, list[str]]:
-    """(exit code, lines) over every workflow."""
+def _git_ok(*args: str) -> subprocess.CompletedProcess:
+    return subprocess.run(["git", *args], capture_output=True, text=True)
+
+
+def git_is_ancestor(a: str, b: str) -> bool:
+    return _git_ok("merge-base", "--is-ancestor", a, b).returncode == 0
+
+
+def git_changed(a: str, b: str) -> list[str]:
+    got = _git_ok("diff", "--name-only", "--no-renames", a, b)
+    if got.returncode:
+        raise CannotTell(f"git diff --name-only {a[:12]} {b[:12]} failed: {got.stderr.strip()[-200:]}")
+    return [x for x in got.stdout.splitlines() if x]
+
+
+AREA_OF = {wf: area for area, wf in CP.WORKFLOWS.items()}
+
+
+def strict_judge(workflow: str, sha: str, runs_of, is_ancestor=git_is_ancestor, changed=git_changed) -> tuple[str, str]:
+    """(T995 review) production's rule: a green finished run at the sha, or at its nearest ancestor with a finished run
+    when nothing in the workflow's area changed since; anything else is red."""
+    mine = runs_of(workflow, commit=sha)
+    if mine:
+        r = mine[0]
+        if r.get("status") == "completed" and r.get("conclusion") == "success":
+            return "ok", f"{workflow}: green on {sha[:12]}"
+        return "red", (f"{workflow}: {r.get('status')}/{r.get('conclusion') or '-'} on {sha[:12]} — production builds "
+                       f"only on a finished green run (--strict): {r.get('url')}")
+    done = [r for r in runs_of(workflow) if r.get("status") == "completed" and r.get("conclusion") in RED | {"success"}]
+    for r in done:
+        anc = r.get("headSha", "")
+        if not anc or not is_ancestor(anc, sha):
+            continue
+        hit = [x for x in changed(anc, sha) if CP.matches(x, CP.AREAS[AREA_OF[workflow]])]
+        if hit:
+            return "red", (f"{workflow}: no run on {sha[:12]}, and its area changed since its last run ({anc[:12]}: "
+                           f"{', '.join(hit[:4])}) — production needs a run that saw them (--strict)")
+        if r.get("conclusion") == "success":
+            return "ok", f"{workflow}: no run on {sha[:12]}; nothing in its area changed since its green run on {anc[:12]}"
+        return "red", f"{workflow}: RED on {anc[:12]} ({r.get('conclusion')}), unchanged since: {r.get('url')}"
+    return "red", f"{workflow}: no finished run on {sha[:12]} or any commit before it (--strict)"
+
+
+def check(sha: str, branch: str = TRUNK, runs_of=gh_runs, strict: bool = False, **git) -> tuple[int, list[str]]:
+    """(exit code, lines) over every workflow. Runs at the sha (any branch) first, then the branch's (T995 review);
+    `strict`: production's rule (`strict_judge`)."""
     lines, worst = [], 0
     for wf in WORKFLOWS:
         try:
-            verdict, said = judge(wf, runs_of(wf, branch), sha)
+            if strict:
+                verdict, said = strict_judge(wf, sha, runs_of, **git)
+            else:
+                verdict, said = judge(wf, runs_of(wf, commit=sha) or runs_of(wf, branch=branch), sha)
         except CannotTell as e:
             verdict, said = "cannot", f"{wf}: CANNOT TELL — {e}"
         lines.append(("ok    " if verdict == "ok" else "WARN  " if verdict == "warn" else "STOP  ") + said)
@@ -105,6 +162,8 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--sha", default=None, help="the commit to judge (default HEAD)")
     ap.add_argument("--branch", default=None, help="whose runs to read (default: the branch HEAD is on, T995)")
+    ap.add_argument("--strict", action="store_true",
+                    help="(T995 review) production: no finished green run at the sha (or unchanged since one) stops")
     ap.add_argument("--skip", default=os.environ.get("CI_CHECK_SKIP"), metavar="REASON",
                     help="pass without asking, printing the reason (also CI_CHECK_SKIP)")
     a = ap.parse_args(argv)
@@ -115,7 +174,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ci-status: SKIPPED (not asked): {a.skip}")
         return 0
     sha = a.sha or subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
-    rc, lines = check(sha, a.branch or current_branch())
+    rc, lines = check(sha, a.branch or current_branch(), strict=a.strict)
     for ln in lines:
         print(f"ci-status: {ln}")
     if rc:

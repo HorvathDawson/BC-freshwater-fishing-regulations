@@ -23,11 +23,11 @@ def run(sha, status="completed", conclusion="success", n=1):
 
 
 def fake(per_workflow):
-    def runs_of(wf, branch):
+    def runs_of(wf, branch=None, commit=None):
         got = per_workflow.get(wf, [])      # (T993) a workflow a test does not name has no runs
         if isinstance(got, Exception):
             raise got
-        return got
+        return [r for r in got if r["headSha"] == commit] if commit else got
     return runs_of
 
 
@@ -89,3 +89,46 @@ def test_the_escape_prints_its_reason_and_an_empty_one_is_refused():
     bad = subprocess.run([sys.executable, str(ROOT / "scripts/ci_status.py")], env={**env, "CI_CHECK_SKIP": " "},
                          capture_output=True, text=True)
     assert bad.returncode == 2 and "needs a reason" in bad.stderr
+
+
+def test_runs_are_found_by_commit_first_then_by_branch():
+    """(T995 review) a fresh release branch has no runs of its own: its cut commit's runs (main's) are found by commit."""
+    asked = []
+
+    def runs_of(wf, branch=None, commit=None):
+        asked.append((wf, branch, commit))
+        return [run(HEAD, conclusion="failure", n=3)] if commit == HEAD and wf == "pipeline-ci.yml" else []
+    rc, lines = CI.check(HEAD, branch="release/0.9.0", runs_of=runs_of)
+    assert rc == 1 and "STOP  pipeline-ci.yml: RED on aaaaaaaaaaaa (failure): https://github.com/x/actions/runs/3" in lines
+    assert ("pipeline-ci.yml", None, HEAD) in asked and ("pipeline-ci.yml", "release/0.9.0", None) not in asked
+    assert ("app-ci.yml", "release/0.9.0", None) in asked                  # no run at the sha: the branch's
+
+
+def test_strict_needs_a_green_run_at_the_sha_or_an_unchanged_area_since_one():
+    """(T995 review) production: "no run" is a stop, unless nothing in the workflow's area changed since a green run
+    at an ancestor (a path-filtered push). Running is a stop too."""
+    anc = "c" * 40
+    git = {"is_ancestor": lambda a, b: a == anc, "changed": lambda a, b: changed}
+    green = {wf: [run(HEAD, n=i)] for i, wf in enumerate(CI.WORKFLOWS)}
+    assert CI.check(HEAD, runs_of=fake(green), strict=True, **git)[0] == 0
+    per = {**green, "docs-ci.yml": [run(anc, n=9)]}                       # docs ran last on an ancestor
+    changed = ["pipeline/release.py"]                                      # … and nothing of docs changed since
+    rc, lines = CI.check(HEAD, runs_of=fake(per), strict=True, **git)
+    assert rc == 0 and any("docs-ci.yml: no run on aaaaaaaaaaaa; nothing in its area changed since its green run on "
+                           "cccccccccccc" in ln for ln in lines)
+    changed = ["handoff/PLAN/STATUS.md"]                                   # mutation: docs changed, no run saw it
+    rc, lines = CI.check(HEAD, runs_of=fake(per), strict=True, **git)
+    assert rc == 1 and any("its area changed since its last run (cccccccccccc: handoff/PLAN/STATUS.md)" in ln
+                           for ln in lines)
+    assert CI.check(HEAD, runs_of=fake({**green, "docs-ci.yml": []}), strict=True, **git)[0] == 1     # none at all
+    rc, _ = CI.check(HEAD, runs_of=fake({**green, "app-ci.yml": [run(HEAD, status="in_progress", conclusion="")]}),
+                     strict=True, **git)
+    assert rc == 1
+    # the same "no run" without --strict (staging) only warns
+    assert CI.check(HEAD, runs_of=fake({**green, "docs-ci.yml": []}))[0] == 0
+
+
+def test_the_production_apk_build_asks_strictly():
+    text = (ROOT / "deploy/staging/build-apk.sh").read_text()
+    assert ".venv/bin/python scripts/ci_status.py ${PROD:+--strict}" in text
+
