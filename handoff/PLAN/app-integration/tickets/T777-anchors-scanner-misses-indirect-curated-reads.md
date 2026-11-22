@@ -1,6 +1,6 @@
 # T777 — The test-anchors scanner misses tests that read live curated state through app code
 
-Status: DONE — 64325c44a, cde142554 (lane test/T777-test-isolation, 2026-11-22; merge pending). The two data-tier
+Status: DONE — 64325c44a, cde142554, de0ff6c1f, 9888858d7, 8afba1746 (lane test/T777-test-isolation, then review/T777 after the review, 2026-11-22; merge pending). The two data-tier
 items of 2026-11-16 (the Deadman stretch-end test, the in-season tests between a promote and a release) moved to T1001.
 
 Source: the full CI tier red on chat 13's head, 2026-11-15 night (4 tests), then `test_dfo_closures` the same way
