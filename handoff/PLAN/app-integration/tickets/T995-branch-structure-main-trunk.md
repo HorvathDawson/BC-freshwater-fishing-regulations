@@ -66,3 +66,9 @@ Depends: T993 G1 (check names), G2 (before-push command). Size: M. Owner: no (de
   `handoff/PLAN/PARKED-TICKETS.md` and `ios/START-HERE-ios.md` still name the old branch (history pages, left as is).
   actionlint was not run (not installed). Open question for T998: a data-only release after the merge-back runs from
   which branch (app.json's version names an already-merged `release/<v>`)?
+- **Review fixes (branch `review/T995`, 2026-11-22):** AREAS now cover what the tests read, derived and pinned
+  (`test_workflow_pins.py`: pipeline area gained every workflow/action, the hooks, deploy/, app/, README, the pytest
+  setup and two handoff folders — so app PRs now run pipeline-ci too); HEAD must BE the release branch's tip
+  (preflight + upload.sh); tags name the uploaded commit and are judged on origin; `ci_status.py` finds runs by commit,
+  and `--strict` (production APK) stops on no green run unless the area is unchanged since one; the pre-push hook
+  checks the pushed refs (`--pre-push`); `ci_paths.REPO`.
