@@ -394,6 +394,12 @@ def follow_tests() -> tuple[list[str], list[str]]:
     return RF.pipeline_tests(), RF.app_tests()
 
 
+def data_tier_cmd() -> list[str]:
+    """(T993 item 16) the pipeline's live-data tier in chunks (`RF.refresh_cmd(RF.DATA_TIER)`), RELEASE_DIR from the
+    environment the follows stage sets (the candidate)."""
+    return RF.data_tier_cmd(follow_tests()[0])
+
+
 def app_check_steps() -> list[str]:
     """(T680) the `pnpm check:fast` gates, one by one (`RF.app_check_steps`)."""
     return RF.app_check_steps()
@@ -407,7 +413,8 @@ def follow_tests_cmds(py: list[str], out: Path) -> list[tuple[str, list[str], Pa
     return ([("pipeline", heavy + RF.pipeline_tests_cmd(py, out / "pipeline.xml"), out / "pipeline.xml")] if py else []) \
         + [("app", heavy + RF.app_suite_cmd(out / "app.json"), out / "app.json"),
            ("worker", heavy + RF.worker_suite_cmd(out / "worker.json"), out / "worker.json")] \
-        + [(f"app gate {s}", RF.app_check_cmd(s), None) for s in app_check_steps()]
+        + [(f"app gate {s}", RF.app_check_cmd(s), None) for s in app_check_steps()] \
+        + [("pipeline data tier", heavy + data_tier_cmd(), None)]
 
 
 def candidate_failures(rid: str, env: dict) -> list[str]:
@@ -744,6 +751,7 @@ class Ctx:
     no_follow_tests: str | None = None   # (T666) why the tests on the candidate are skipped (printed); None runs them
     rehearse_follows: bool = False       # (T680) --dry-run: re-cut + the whole check on the candidate, put back after
     build: bool = False                  # (T993 item 4) --dry-run --build: build the candidate first (LATEST stays)
+    rehearsal: bool = False              # the run is `--dry-run` (T993 item 15: what fast-fail leaves to the follows)
     no_fresh_copy: str | None = None     # (T666) why the fresh-copy test run is skipped (printed); None runs it
     forget: bool = False                 # (T666) drop the remembered flags of the release in flight
     heavy_env: dict = field(default_factory=dict)   # (T535) tells heavy.sh fast-fail ran: FAST_FAIL_DONE / HEAVY_NO_FAST_FAIL
@@ -1002,6 +1010,25 @@ def fast_fail_base(ctx: Ctx) -> str | None:
 FRESH_COPY_NEXT = "FAST_FAIL_FRESH_COPY_NEXT"
 
 
+#: (T993 item 15) the variable fast-fail reads: the follows stage runs its app gates and the worker suite on the
+#: candidate later in this release (`scripts/fast-fail.sh` `follows_next`)
+FOLLOWS_NEXT = "FAST_FAIL_FOLLOWS_NEXT"
+
+
+def follows_run_them(ctx: Ctx) -> bool:
+    """(T993 item 15) will THIS run's follows stage run the app gates and the worker suite on a candidate? The real
+    run: yes, unless `--no-follow-tests` or the candidate's tests passed already. The rehearsal: only with
+    `--rehearse-follows` on a candidate (or one `--build` makes) — a bare rehearsal keeps them in fast-fail, so it
+    still lists their failures before any build."""
+    if ctx.no_follow_tests is not None:
+        return False
+    cand = built_candidate(ctx)
+    if ctx.rehearsal:
+        return ctx.rehearse_follows and (cand is not None or ctx.build)
+    tests = ((((ctx.led.get("releases") or {}).get(cand or "") or {}).get("follows") or {}).get("tests") or {})
+    return not (cand and tests.get("release") == cand)
+
+
 def check_fast_fail(ctx: Ctx) -> Finding:
     """(T535) fast-fail, after the instant checks. (T666 item 5) keyed on the tree's content: a rerun on the same
     content skips it whatever HEAD is; the build's heavy.sh is told it ran (FAST_FAIL_DONE) or why not."""
@@ -1013,9 +1040,18 @@ def check_fast_fail(ctx: Ctx) -> Finding:
     under = env.get(RF.RELEASE_ENV)
     done = ctx.led.get("fast_fail") or {}
     ctx.heavy_env = {"FAST_FAIL_DONE": head}
-    if done.get("key") == key and done.get("release_dir") == under:
+    later = follows_run_them(ctx)
+    scope = "follows-next" if later else "all"
+    # a pass that left the app gates and the worker suite to the follows stage covers only a run that does the same
+    if done.get("key") == key and done.get("release_dir") == under and done.get("scope", "all") in ("all", scope):
         return Finding(True, f"fast-fail passed for this tree's content ({key}, at {done.get('head', '')[:12]}, "
                        f"{done.get('at')}): not rerun")
+    if later:
+        # (T993 item 15) the follows stage runs every check:fast gate and the worker suite on the candidate, after the
+        # re-cut, in this same release: they run once, there (FAST_FAIL_FOLLOWS_NEXT)
+        print("    fast-fail leaves the app gates (check:fast) and the feeds worker suite to the follows stage, which "
+              "runs them on the candidate in this release", flush=True)
+        env = {**env, FOLLOWS_NEXT: "1"}
     if under:
         print(f"    fast-fail reads the release under test: {RF.RELEASE_ENV}={rel(under)} (the fixtures were re-cut "
               "on the candidate)", flush=True)
@@ -1030,7 +1066,8 @@ def check_fast_fail(ctx: Ctx) -> Finding:
         return Finding(False, f"scripts/fast-fail.sh failed (rc={rc}): {len(failed)} step(s){steps}",
                        "read each failed step's output above and fix it (one alone: FAST_FAIL_ONLY='<part of its "
                        "name>' scripts/fast-fail.sh); --no-fast-fail REASON skips it and prints the reason")
-    ctx.led["fast_fail"] = {"head": head, "key": key, "at": now(), "dirty": dirty_paths(), "release_dir": under}
+    ctx.led["fast_fail"] = {"head": head, "key": key, "at": now(), "dirty": dirty_paths(), "release_dir": under,
+                            "scope": scope}
     save_ledger(ctx.led)
     return Finding(True, "fast-fail passed")
 
@@ -1148,7 +1185,27 @@ def stage_baseline(ctx: Ctx) -> str:
     return msg
 
 
+def built_by_this_release(ctx: Ctx) -> tuple[str, str] | None:
+    """(T788 #10) (the candidate, what was built) when this release built it already and nothing a build reads
+    (`COMMITTED`) was committed or left dirty since its commit — only the release's own fixtures, docs, the app. A
+    rerun then does not rebuild: r-741815c6090d's own in-season step reran deliver for 9 minutes for the same release
+    id (the generated in-season resolution is a deliver input, and the follows stage rewrites it on the candidate)."""
+    cand = built_candidate(ctx)
+    r = ((ctx.led.get("releases") or {}).get(cand or "") or {})
+    c = r.get("commit")
+    if not (cand and r.get("built_at") and c and git_has_commit(c)):
+        return None
+    if git_dirty() or any(RF.under(x, COMMITTED) for x in committed_since(c)):
+        return None
+    return cand, f"built {r['built_at']} at {c[:12]}"
+
+
 def stage_build(ctx: Ctx) -> str:
+    done = built_by_this_release(ctx)
+    if done:
+        ctx.rid = done[0]
+        return (f"release {ctx.rid} ({done[1]}): nothing a build reads was committed since — not rebuilt (T788 #10; "
+                "`python -m pipeline build --hold-latest` rebuilds by hand)")
     rc = run_cmd(build_cmd(jobs=ctx.jobs), env=ctx.heavy_env or None)
     if rc:
         raise Stop("build", f"`pipeline build` failed (rc={rc})",
@@ -1365,9 +1422,10 @@ def stage_follow_tests(ctx: Ctx, rid: str, r: dict) -> str:
                    f"fix them together, commit, rerun; one check alone: {RF.RELEASE_ENV}={rel(release_root() / rid)} "
                    "REGS_STORE_REQUIRED=1 in front of its command (above). --no-follow-tests REASON skips them and "
                    "prints the reason")
-    f["tests"] = {"release": rid, "at": now(), "pipeline": len(py), "app": "all", "gates": len(app_check_steps())}
+    f["tests"] = {"release": rid, "at": now(), "pipeline": len(py), "app": "all", "gates": len(app_check_steps()),
+                  "data_tier": True}
     save_ledger(ctx.led)
-    return f"{len(py)} pipeline test file(s) + the whole app check passed on {rid}"
+    return f"{len(py)} pipeline test file(s) + the whole app check + the pipeline data tier passed on {rid}"
 
 
 def failures_said(rid: str, bad: list[str], cap: int = 80) -> str:
@@ -1738,6 +1796,7 @@ def dry_run(ctx: Ctx) -> int:
     shows it: `--build` runs stage 3's own build first (the baseline kept as stage 2 does; LATEST stays, nothing is
     committed, promoted or uploaded), so one rehearsal covers every stage."""
     ctx.led = load_ledger()
+    ctx.rehearsal = True
     led = ctx.led
     P = "             "
     stops: list[str] = []

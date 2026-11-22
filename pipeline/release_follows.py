@@ -56,6 +56,8 @@ class Follow:
 RECUT = "recut"
 #: the in-season notice matches, re-resolved on the release (T537)
 INSEASON = "inseason"
+#: (T791 #4, T993 item 16) the pipeline's live-data tier, run on the release
+DATA_TIER = "data-tier"
 
 FOLLOWS: tuple[Follow, ...] = (
     Follow("goldens", "the tap oracle: every golden state's answer keys on the release's own store",
@@ -70,13 +72,36 @@ FOLLOWS: tuple[Follow, ...] = (
     Follow("inseason", "the in-season notice matches, their ranges re-derived on the release (T679 #11: into the "
            "generated resolution, data/generated/inseason/resolved.json; not in git — the curated matches are only read)",
            (), INSEASON),
+    # (T791 #4, T993 item 16; T931: ~55 stale pins accumulated where nothing ran the data tier) a test RUN, not an
+    # artifact: no paths; the follows stage runs it with the other checks on the candidate, once per release
+    Follow("data-tier", "the pipeline's live-data tests (every needs_* tier, not slow) run on the candidate in chunks, "
+           "once per release, the files found by rule above left out (they run whole)", (), DATA_TIER),
     Follow("baseline", "the reach run the live release was cut from (the binding diff's \"before\"; not in git: "
            "data/generated/release/baseline/<LATEST>/, kept by the baseline stage and by `pipeline build`)", (), None),
 )
 
 
+def data_tier_markers(ini: Path | None = None) -> str:
+    """(T993 item 16) the live-data tier's marker expression: every `needs_*` marker (`tests.tiers.data_markers`, from
+    pytest.ini), never `slow` — the tests CI's no-data tier leaves out and nothing else ran."""
+    from pipeline.tests.tiers import data_markers
+    needs = [m for m in (data_markers(ini) if ini else data_markers()) if m != "slow"]
+    return "not slow and (" + " or ".join(needs) + ")"
+
+
+def data_tier_cmd(whole: list[str]) -> list[str]:
+    """(T993 item 16) the live-data tier in chunks (scripts/pytest-chunked.sh: one process for the suite grew to
+    ~111 GB). The files in `whole` (found by rule) run whole in their own step, so they are deselected here — nothing
+    runs twice in one release (T993 item 15)."""
+    return ["bash", "scripts/pytest-chunked.sh", "--", "-q", "-p", "no:cacheprovider", "-m", data_tier_markers(),
+            *(f"--deselect={f}" for f in whole)]
+
+
 def refresh_cmd(key: str, release_dir: Path) -> list[str]:
-    """The ONE command that refreshes every row with `refresh == key`, against the release at `release_dir`."""
+    """The ONE command that refreshes every row with `refresh == key`, against the release at `release_dir` (the data
+    tier reads it as RELEASE_DIR, `test_env`, so the command itself does not name it)."""
+    if key == DATA_TIER:
+        return data_tier_cmd(pipeline_tests())
     if key == RECUT:
         return ["node", "app/tools/regs-recut/sync.mjs", "--release", str(release_dir)]
     if key == INSEASON:
@@ -318,6 +343,7 @@ def main() -> int:
     print(f"  app ({len(app)}):" + "".join(f"\n    app/{p}" for p in app))
     print("\n(T680) then the whole app check on the candidate, every failure listed together:\n  the app suite, the "
           "feeds worker suite, and each check:fast gate: " + ", ".join(app_check_steps()))
+    print(f"\n(T993 item 16) and the pipeline's live-data tier: -m \"{data_tier_markers()}\" in chunks, on the candidate")
     return 0
 
 

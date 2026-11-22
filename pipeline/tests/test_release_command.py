@@ -49,6 +49,7 @@ def world(tmp_path: Path, monkeypatch):
 
     def run_cmd(cmd, env=None):
         name = "inseason" if "pipeline.regs.inseason.resolve" in cmd else \
+            "data-tier" if any("pytest-chunked" in c for c in cmd) else \
             "recut" if any("regs-recut/sync.mjs" in c for c in cmd) else \
             "taps" if any("regs-recut/taps.py" in c for c in cmd) else \
             "follow-py" if "pytest" in cmd else "follow-worker" if "workers/feeds" in cmd else \
@@ -218,7 +219,8 @@ def _latest(w) -> str:
     return (w["root"] / "LATEST").read_text().strip()
 
 
-ALL = ["build", "inseason", "recut", "follow-py", "follow-app", "follow-worker", "app-gate", "upload", "smoke"]
+ALL = ["build", "inseason", "recut", "follow-py", "follow-app", "follow-worker", "app-gate", "data-tier", "upload",
+       "smoke"]
 
 
 def _env_of(w, name) -> dict:
@@ -793,12 +795,15 @@ def test_fast_fail_reads_the_candidate_once_the_fixtures_are_cut_for_it(world):
     assert _staging() == 1                                                   # re-cut + committed: the push gate
     world["pushed"], world["unpushed"] = True, []
     assert _staging() == 0
-    assert world["fast_fail_env"] == {"RELEASE_DIR": str(world["root"] / NEW), **NEXT}
+    # (T993 item 15) the candidate's tests passed on the run before: the follows stage will not run them again, so
+    # fast-fail keeps its app gates and worker suite (no FOLLOWS_NEXT)
+    assert world["fast_fail_env"] == {"RELEASE_DIR": str(world["root"] / NEW), R.FRESH_COPY_NEXT: "1"}
     assert json.loads(R.LEDGER.read_text())["fast_fail"]["release_dir"] == str(world["root"] / NEW)
 
 
-#: (T791) the fresh copy runs next in the same preflight: fast-fail leaves it the whole tier
-NEXT = {R.FRESH_COPY_NEXT: "1"}
+#: (T791) the fresh copy runs next in the same preflight: fast-fail leaves it the whole tier; (T993 item 15) and the
+#: follows stage runs the app gates and the worker suite on the candidate: fast-fail leaves those to it
+NEXT = {R.FRESH_COPY_NEXT: "1", R.FOLLOWS_NEXT: "1"}
 
 
 def test_fast_fail_leaves_the_whole_tier_to_the_fresh_copy_that_follows(world):
@@ -806,7 +811,7 @@ def test_fast_fail_leaves_the_whole_tier_to_the_fresh_copy_that_follows(world):
     clean clone minutes later. Fast-fail is told the fresh copy follows; with --no-fresh-copy it is not (it runs them)."""
     assert _staging() == 0 and world["fast_fail_env"] == NEXT and world["fresh_copies"] == 1
     world["tree"] = "t2"
-    assert _staging(no_fresh_copy="the clone is down") == 0 and world["fast_fail_env"] == {}
+    assert _staging(no_fresh_copy="the clone is down") == 0 and world["fast_fail_env"] == {R.FOLLOWS_NEXT: "1"}
 
 
 def test_fast_fail_sh_skips_the_in_place_tier_and_its_subsets_when_told():
@@ -1082,7 +1087,7 @@ def test_the_inseason_resolve_makes_no_commit_and_the_run_stops_once_for_the_pus
     assert world["recuts_committed"] == [(NEW, "renumber only")]
     assert "STOPPED at follows" in io.err and "1 commit(s) are not on origin/redesign/stream-sections: 1 the release made" in io.err
     assert "next: git push origin HEAD:redesign/stream-sections, then rerun" in io.err and "--push" in io.err
-    assert _latest(world) == LIVE and [c for c, _ in world["calls"]] == ALL[:7]
+    assert _latest(world) == LIVE and [c for c, _ in world["calls"]] == ALL[:8]
     world["pushed"], world["unpushed"] = True, []                                    # the human pushed
     assert _staging() == 0                                     # resolved, re-cut and tested for NEW: none run again
     names = [c for c, _ in world["calls"]]
@@ -1442,3 +1447,73 @@ def test_golden_pages_that_only_renumber_their_sources_are_committed_with_a_note
     rec = json.loads(R.LEDGER.read_text())["releases"][NEW]["follows"]
     assert rec["recut"]["kind"] == "renumber only (source indexes)" and "1363->1364" in rec["renumbered"]
     # the mutation (the same re-cut, not a renumber, stops) is test_a_changed_golden_page_stops_uncommitted_…
+
+
+# ------------------------------------------------- (T993 items 15, 16; T788 #10) each check once per release, no more
+
+def test_fast_fail_sh_leaves_the_app_gates_and_the_worker_suite_to_the_follows_when_told():
+    from pipeline.common.curated import REPO_ROOT
+    sh = (REPO_ROOT / "scripts" / "fast-fail.sh").read_text(encoding="utf-8")
+    assert f'${{{R.FOLLOWS_NEXT}:-}} == 1' in sh
+    for fn in ("feeds_worker_tests", "app_gates"):
+        body = sh[sh.index(f"{fn}() {{"):]
+        assert body[:body.index("\n")].count("follows_next && return 0") == 1, fn
+    assert 'step "app gates (pnpm check:fast: every pnpm check gate but vitest)" app_gates' in sh
+
+
+def test_a_bare_rehearsal_keeps_the_app_gates_in_fast_fail_and_a_narrower_pass_does_not_cover_it(world):
+    """The real run leaves them to the follows stage; a rehearsal with no follows run keeps them (so it still lists
+    their failures before any build), and a pass that left them out is not taken for one that ran them."""
+    world["fail"] = {"upload"}
+    assert _staging() == 1 and world["fast_fail_env"].get(R.FOLLOWS_NEXT) == "1"
+    assert json.loads(R.LEDGER.read_text())["fast_fail"]["scope"] == "follows-next"
+    n = world["fast_fails"]
+    assert R.main(["--staging", "--dry-run"]) == 0
+    assert world["fast_fails"] == n + 1 and R.FOLLOWS_NEXT not in world["fast_fail_env"]   # rerun, and in full
+    assert R.main(["--staging", "--dry-run"]) == 0 and world["fast_fails"] == n + 1         # a full pass covers it
+
+
+def test_the_rehearsal_on_a_candidate_with_rehearse_follows_leaves_them_to_it(world):
+    world["differs"] = True
+    assert _staging() == 1                                                  # a candidate, stopped at the diff
+    world["tree"] = "t2"
+    assert R.main(["--staging", "--dry-run", "--rehearse-follows"]) == 0
+    assert world["fast_fail_env"].get(R.FOLLOWS_NEXT) == "1"
+
+
+def test_the_live_data_tier_runs_once_on_the_candidate_in_chunks(world):
+    """T791 #4 / T993 item 16 (T931: ~55 stale pins in the data tier, which nothing ran): a follows row, run with the
+    other checks on the candidate (RELEASE_DIR), the files found by rule deselected (they run whole)."""
+    assert _staging() == 0
+    tier = [e for c, e in world["calls"] if c == "data-tier"]
+    assert len(tier) == 1 and tier[0]["RELEASE_DIR"] == str(world["root"] / NEW)
+    cmd = R.data_tier_cmd()
+    assert "scripts/pytest-chunked.sh" in cmd and "--deselect=pipeline/tests/test_x.py" in cmd
+    assert json.loads(R.LEDGER.read_text())["releases"][NEW]["follows"]["tests"]["data_tier"] is True
+    assert "data-tier" in [r.name for r in R.RF.FOLLOWS]
+
+
+def test_the_data_tier_selects_every_needs_marker_and_never_slow_or_no_data():
+    from _pytest.mark.expression import Expression
+    from pipeline.tests.tiers import data_markers
+    expr = Expression.compile(R.RF.data_tier_markers())
+    for m in data_markers():
+        if m != "slow":
+            assert expr.evaluate(lambda name, /, m=m, **kw: name == m), m
+    assert not expr.evaluate(lambda name, /, **kw: False)                                # a no-data test: CI's
+    assert not expr.evaluate(lambda name, /, **kw: name in ("slow", "needs_bundle"))     # slow stays out
+
+
+def test_a_rerun_does_not_rebuild_what_this_release_built(world, capsys):
+    """T788 #10: r-741815c6090d's own in-season step reran deliver for 9 minutes for the same release id. A candidate
+    this release built, with nothing a build reads committed since, is not rebuilt; a code commit rebuilds it."""
+    world["commits"] = {"abc123"}
+    world["recut_changed"] = ["app/packages/ui-native/src/regs/fixtures/glenn_501.json"]
+    assert _staging() == 1 and [c for c, _ in world["calls"]].count("build") == 1     # stopped at the golden page
+    world["committed_since"] = {"app/fixtures/golden/taps.json", "handoff/PLAN/STATUS.md"}
+    capsys.readouterr()
+    assert _staging(accept_fixtures="tok-1") == 1 and [c for c, _ in world["calls"]].count("build") == 1
+    assert "nothing a build reads was committed since — not rebuilt (T788 #10" in capsys.readouterr().out
+    world["committed_since"] |= {"pipeline/deliver/x.py"}                            # the mutation: a build input
+    world["pushed"], world["unpushed"] = True, []
+    assert _staging() == 0 and [c for c, _ in world["calls"]].count("build") == 2

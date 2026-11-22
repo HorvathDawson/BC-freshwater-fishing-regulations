@@ -27,8 +27,9 @@ def test_every_row_names_paths_that_exist_and_no_two_rows_share_one():
             assert p in tracked or any(t.startswith(p + "/") for t in tracked), f"{row.name}: {p} is not in git"
             assert p not in seen, f"{p} is in two rows ({seen.get(p)}, {row.name})"
             seen[p] = row.name
-        assert row.refresh in (RF.RECUT, RF.INSEASON, None)
-    assert [r.name for r in RF.FOLLOWS] == ["goldens", "page-oracle", "regs-fixture", "golden-pages", "inseason", "baseline"]
+        assert row.refresh in (RF.RECUT, RF.INSEASON, RF.DATA_TIER, None)
+    assert [r.name for r in RF.FOLLOWS] == ["goldens", "page-oracle", "regs-fixture", "golden-pages", "inseason",
+                                            "data-tier", "baseline"]
 
 
 def test_the_table_is_the_source_the_release_and_the_tools_agree_with():
