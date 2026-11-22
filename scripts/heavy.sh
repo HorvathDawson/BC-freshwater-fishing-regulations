@@ -121,6 +121,11 @@ again=0
 label=$1; need=$2; shift 2; [[ $1 == -- ]] && shift
 (( $# )) || usage
 [[ $need =~ ^[0-9]+$ ]] && (( need <= 100 )) || { echo "[heavy:$label] min free % must be 0-100, got '$need'" >&2; exit 2; }
+# (owner 2026-11-21: "We should use lower memory threshold") the start gate is capped: a lane asked for 90 % free (it meant
+# minutes) and waited an hour at 80 %, which this Mac rarely passes. The kill guards below (KILL_PCT, the footprint cap)
+# are what keep the machine up once a job runs; the start gate only spaces jobs out. HEAVY_MAX_GATE overrides the cap.
+MAX_GATE=${HEAVY_MAX_GATE:-30}
+if (( need > MAX_GATE )); then echo "[heavy:$label] start gate $need % lowered to $MAX_GATE % (the cap; HEAVY_MAX_GATE)" >&2; need=$MAX_GATE; fi
 LOCK=${HEAVY_LOCK:-${LANES[0]}}
 known=0; for l in "${LANES[@]}"; do [[ $LOCK == "$l" ]] && known=1; done
 if (( ! known )); then
