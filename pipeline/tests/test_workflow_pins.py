@@ -93,7 +93,7 @@ def test_every_workflow_has_least_privilege_and_no_input_is_spliced_into_shell()
 
 
 def test_no_register_only_push_trigger_and_actions_are_off_node_20():
-    for name in ("feeds-hydat.yml", "feeds-runtiming.yml", "staging-smoke.yml", "staging-security.yml"):
+    for name in ("feeds-hydat.yml", "feeds-runtiming.yml"):
         assert list(_on(_load(name))) == ["workflow_dispatch"], name
     old = re.compile(r"actions/(checkout|setup-node)@v[1-4]\b|actions/setup-python@v[1-5]\b|upload-artifact@v[1-5]\b"
                      r"|pnpm/action-setup@v[1-4]\b")
@@ -113,3 +113,32 @@ def test_the_run_timing_report_upload_cannot_fail_the_run_but_says_so():
     assert up["continue-on-error"] is True and up["id"] == "report"
     said = steps[steps.index(up) + 1]
     assert said["if"] == "steps.report.outcome == 'failure'" and "::warning::" in said["run"]
+
+
+def _covered(path: str, patterns: list[str]) -> bool:
+    import fnmatch
+    return any(path == p or (p.endswith("/**") and path.startswith(p[:-2])) or fnmatch.fnmatch(path, p) for p in patterns)
+
+
+def test_feeds_worker_ci_watches_everything_the_worker_tests_import_or_read():
+    """(T993 review) a worker test that imports or reads a file outside the workflow's path filter lets a change to it
+    through unrun. Derived from the test files themselves: relative imports resolved to repo paths, and quoted repo paths
+    (app/ pipeline/ data/ deploy/ scripts/) in the sources."""
+    root = WF.parents[1]
+    w = root / "app" / "workers" / "feeds"
+    paths = _on(_load("feeds-worker-ci.yml"))["push"]["paths"]
+    assert _on(_load("feeds-worker-ci.yml"))["pull_request"]["paths"] == paths
+    miss = set()
+    for f in [*(w / "test").rglob("*.ts"), *(w / "parity").rglob("*.ts"), *(w / "src").rglob("*.ts")]:
+        text = f.read_text()
+        # a relative path in an import, or in any quoted string (a readFileSync / new URL / join of "../../..")
+        for m in re.finditer(r"[\"'](\.{1,2}/[^\"'`$]+)[\"']", text):
+            target = (f.parent / m.group(1)).resolve()
+            rel = target.relative_to(root).as_posix()
+            real = any((root / (rel + sfx)).is_file() for sfx in ("", ".ts", ".tsx", ".mjs", ".js", "/index.ts"))
+            if real and "node_modules" not in rel and not _covered(rel, paths) and not _covered(rel + ".ts", paths):
+                miss.add(f"{f.relative_to(root)} imports {rel}")
+        for m in re.finditer(r"[\"']((?:app|pipeline|data|deploy|scripts)/[\w./-]+)[\"']", text):
+            if not _covered(m.group(1), paths):
+                miss.add(f"{f.relative_to(root)} reads {m.group(1)}")
+    assert not miss, "\n" + "\n".join(sorted(miss))

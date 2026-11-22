@@ -139,9 +139,7 @@ checked on every app push as before.
 ### Owner decisions and notes
 - `feeds-sync-inputs` (workflow deleted from the tree, still "active" with its 4 old failed runs): disabling needs the
   token, so it is NOT done here. Command: `gh workflow disable feeds-sync-inputs.yml` (or the Actions tab).
-- `staging-smoke.yml`: choice for the owner, changed nothing about it except the T994 6 hardening. Options: keep
-  (manual, runs the headless-Chrome smoke on staging; 0 runs in 30 days) / delete (the smoke is also runnable by hand:
-  `node app/tools/smoke-staging.mjs`) / fold into the release's staging step.
+- `staging-smoke.yml` and `staging-security.yml`: DELETED (owner 2026-11-21: never run; the deploy scripts run the same checks). The T994 6 hardening of both is moot.
 - A red `docs-ci` stays the newest finished run for that workflow until a `handoff/**` push goes green (ci_status falls
   back to it when a sha has no docs run). A ledger fix is always such a push.
 - F2-owned, left on the shrinking ALLOWLIST in pipeline-ci's grep (remove an entry when fixed): every

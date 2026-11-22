@@ -15,7 +15,7 @@
 // production instead (canifishthis.ca, data.canifishthis.ca, the bc-fishing-feeds worker) — read-only GETs, run by the
 // OWNER after a prod step (handoff/PLAN/release/PRODUCTION.md); there a page must NOT say noindex.
 // `--slug nope` is the deliberate break (the /water/ page check then FAILs). Runs at the end of deploy/staging/site.sh
-// and upload.sh (SMOKE=0 skips), and by hand in GitHub Actions (.github/workflows/staging-smoke.yml).
+// and upload.sh (SMOKE=0 skips), and by hand (the GitHub workflow was deleted 2026-11-21, owner).
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';

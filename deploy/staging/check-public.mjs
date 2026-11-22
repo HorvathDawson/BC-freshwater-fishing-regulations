@@ -13,7 +13,7 @@
 //      by SHAPE — a Bearer token, a PEM private key, a "token|secret|password|api_key": "<long>" field.
 //    A hit prints the object key and the secret's NAME, never its value.
 // 4. --site-dir: the same by-value scan over the built site folder (what staging.canifishthis.ca serves).
-// Exit 1 on any finding. Runs by hand, after upload.sh, and in .github/workflows/staging-security.yml.
+// Exit 1 on any finding. Runs by hand, after upload.sh, and by the deploy scripts (the workflow was deleted 2026-11-21, owner).
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';

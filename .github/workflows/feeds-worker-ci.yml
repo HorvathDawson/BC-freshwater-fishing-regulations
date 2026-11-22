@@ -12,11 +12,21 @@ on:
   push:
     paths: ["app/workers/feeds/**", "app/packages/core/**", "app/tools/test-tmp.ts", "app/package.json", "app/pnpm-lock.yaml",
             "pipeline/regs/dfo_salmon/**", "pipeline/gauges/**", "pipeline/tests/fixtures/**",
+            # (review) what the worker's tests import or read outside the worker and core: derived by
+            # pipeline/tests/test_workflow_pins.py, which fails when a test reaches a path this list misses
+            "app/conformance/**", "app/tools/gauge-feed-contract*", "app/tools/seo/**", "app/packages/map/style/**",
+            "data/curated/dfo_salmon/**", "data/source/bc_hydrometric_stations.json", "scripts/update-hydat.sh",
+            "deploy/**",
             "requirements.txt", "constraints.txt",
             ".github/workflows/feeds-worker-ci.yml", ".github/actions/app-setup/**"]
   pull_request:
     paths: ["app/workers/feeds/**", "app/packages/core/**", "app/tools/test-tmp.ts", "app/package.json", "app/pnpm-lock.yaml",
             "pipeline/regs/dfo_salmon/**", "pipeline/gauges/**", "pipeline/tests/fixtures/**",
+            # (review) what the worker's tests import or read outside the worker and core: derived by
+            # pipeline/tests/test_workflow_pins.py, which fails when a test reaches a path this list misses
+            "app/conformance/**", "app/tools/gauge-feed-contract*", "app/tools/seo/**", "app/packages/map/style/**",
+            "data/curated/dfo_salmon/**", "data/source/bc_hydrometric_stations.json", "scripts/update-hydat.sh",
+            "deploy/**",
             "requirements.txt", "constraints.txt",
             ".github/workflows/feeds-worker-ci.yml", ".github/actions/app-setup/**"]
 
