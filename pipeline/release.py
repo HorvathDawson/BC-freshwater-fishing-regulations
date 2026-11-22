@@ -148,6 +148,9 @@ STAGES = ("preflight", "baseline", "build", "checks", "follows", "promote", "sta
 #: (T666 item 6) deploy/staging/upload.sh's exit when GitHub would not START the run-timing workflow
 #: (`scripts/start-workflow.sh`, after its bounded retries): nothing that moves the pointer was sent
 RC_WORKFLOW_NOT_STARTED = 75
+#: (T993 lane G3, `scripts/start-workflow.sh`) the dispatch was ACCEPTED but its run could not be read: it may be
+#: running, so a rerun must not dispatch it again
+RC_WORKFLOW_UNREADABLE = 76
 #: (T666 item 4) the flags a rerun need not repeat (ledger `run`); the escapes are never remembered
 REMEMBERED = ("baseline", "accept_diff", "accept_fixtures", "min_app", "push")
 #: the branch GitHub's workflows run (the staging upload starts feeds-runtiming.yml there); HEAD must be on it
@@ -1590,6 +1593,13 @@ def stage_staging(ctx: Ctx) -> str:
                    "GitHub's side (build 27: it recovered in ~30 minutes): rerun when Actions answers — preflight's "
                    "fast-fail is skipped on the same tree, and the build, checks, follows and promote are done, so "
                    "only the upload runs; WF_START_TRIES / WF_START_WAIT widen the retry")
+    if rc == RC_WORKFLOW_UNREADABLE:
+        # (T993 lane G3) GitHub ACCEPTED the dispatch but its run could not be read: it may be running — a rerun that
+        # dispatches again would start a second one
+        raise Stop("staging", f"the run-timing workflow for {rid} was dispatched (GitHub accepted it) but its run could "
+                   "not be read: it may be running; the release pointer was not written",
+                   "check it, don't re-dispatch: `gh run list --workflow feeds-runtiming.yml` (or the Actions page); "
+                   "once that run has finished and published, rerun — only the upload's remaining steps run")
     if rc:
         raise Stop("staging", f"deploy/staging/upload.sh {rid} failed (rc={rc})",
                    "read its output above (rclone remote `r2:`, the run-timing feed); fix it and rerun "

@@ -897,6 +897,17 @@ def test_a_workflow_that_would_not_start_stops_saying_only_the_upload_is_left(wo
     assert 'exit "$rc"' in up                                                      # its 75 reaches the release
 
 
+def test_a_dispatch_accepted_whose_run_cannot_be_read_says_check_it_never_redispatch(world, capsys):
+    """T993 lane G3: start-workflow.sh exits 76 when GitHub accepted the dispatch but its run cannot be read (it may
+    be running). Read as a plain upload failure, a rerun would dispatch a second run."""
+    world["rc"] = {"upload": R.RC_WORKFLOW_UNREADABLE}
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert "STOPPED at staging" in err and "dispatched (GitHub accepted it) but its run could not be read" in err
+    assert "check it, don't re-dispatch" in err and "failed (rc=76)" not in err
+    assert _latest(world) == NEW and "uploaded_at" not in json.loads(R.LEDGER.read_text())["releases"][NEW]
+
+
 def test_the_uploads_first_refusals_are_asked_before_it_starts(world, capsys):
     world["staging_prechecks"] = ["`gh auth status` failed (rc=1)", "the rclone remote `r2:` is not configured"]
     assert _staging() == 1
