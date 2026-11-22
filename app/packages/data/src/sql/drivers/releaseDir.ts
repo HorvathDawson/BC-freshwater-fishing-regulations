@@ -48,8 +48,24 @@ function openFile(path: string): Db {
   };
 }
 
+/**
+ * (T768) THE PART-END PROOF's copy: `tools/part-end-proof.mjs` runs the suite on a copy of this fixture with one made-up
+ * part end and names the copy's root in this variable. It is honoured only for a folder holding the tool's
+ * `MUTANT.json`, so it can never put another release under the tests by mistake; the committed root is the default.
+ */
+const REGS_FIXTURE_MUTANT = "REGS_FIXTURE_MUTANT";
+
+function fixtureRoot(root: string): string {
+  const mutant = process.env[REGS_FIXTURE_MUTANT];
+  if (!mutant || root !== REGS_FIXTURE_ROOT) return root;
+  if (!existsSync(join(mutant, "MUTANT.json")))
+    throw new Error(`regs fixture: ${REGS_FIXTURE_MUTANT}=${mutant} holds no MUTANT.json — only tools/part-end-proof.mjs sets it`);
+  return mutant;
+}
+
 /** The committed fixture release's folder (`<root>/<release id>`); throws when it is missing or not alone. */
 export function regsFixtureDir(root: string = REGS_FIXTURE_ROOT): string {
+  root = fixtureRoot(root);
   const dirs = existsSync(root)
     ? readdirSync(root).filter((n) => /^r-[0-9a-f]{12}$/.test(n) && existsSync(join(root, n, "manifest.json"))) : [];
   if (dirs.length !== 1)

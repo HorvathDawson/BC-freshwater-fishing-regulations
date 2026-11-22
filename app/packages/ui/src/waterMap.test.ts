@@ -17,19 +17,17 @@ import {
 
 let st: RegsStore;
 let sec: SectionNames;
-// (T667) parts are named by their ENDS, never typed as numbers (`part_ix` is river order: one more cut renumbers the ones
-// above it): the Chilliwack's five parts in river order, and the three Skeena parts the tests name
-const CH_ENDS = [["continues:gnis:3062", "chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_upstream"],
-  ["chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_upstream", "chilliwack_vedder_rivers__tamihi_rapids_bridge"],
-  ["chilliwack_vedder_rivers__tamihi_rapids_bridge", "chilliwack_vedder_rivers__boundary_signs_below_slesse_creek"],
-  ["chilliwack_vedder_rivers__boundary_signs_below_slesse_creek", "area:CHILLIWACK RIVER ECOLOGICAL RESERVE"],
-  ["area:CHILLIWACK RIVER ECOLOGICAL RESERVE", "source"]] as const;
+// (T667) parts are named by their ENDS or by a place on them, never typed as numbers (`part_ix` is river order: one more
+// cut renumbers the ones above it). (T768) Nor is a water's whole list of parts typed here: that is the content pin's
+// (conformance/src/regs/waterGroup.fixture.test.ts); `tools/part-end-proof.mjs` proves a new end fails only there.
+/** the Chilliwack's main stem (its FWA stream key) and a place on it 1.7 km above the Slesse Creek signs */
+const CH_STEM = 380887781, CH_ABOVE_SLESSE = 25_000;
 const SKEENA_HOST_CHANNEL = 360216952;   // the Exchamsiks host channel's FWA stream key (a key is a name; its part number is not)
-let CH: number[];
+let CH_SLESSE: number;
 let SK_RESERVE: number, SK_RESERVE_UP: number, SK_EXCHAMSIKS_UP: number, SK_SIDE: number;
 beforeAll(async () => {
   const loader = openRegsFixtureWithLines(); st = await openRegsStore(loader); sec = sectionNames(loader);
-  CH = await Promise.all(CH_ENDS.map(([lo, hi]) => sec.part("gnis:8634", lo, hi)));
+  CH_SLESSE = await sec.partAt("gnis:8634", CH_STEM, CH_ABOVE_SLESSE);   // the part above the Slesse Creek signs
   // (T678 junctions, r-adc4e248a163) the main stem just above the Reserve is a part of its own: the false junction that
   // joined it to the stretch below the Reserve is gone (same rule key as that stretch)
   SK_RESERVE = await sec.part("gnis:2936", "area:SKEENA RIVER ECOLOGICAL RESERVE@km63.5",
@@ -162,7 +160,8 @@ describe("the Chilliwack: ▼ / ▲ through its five parts, the ends disabled, t
 
   it("Show regulations for this part names the part's item and part_ix", async () => {
     const g = await loadWaterGroup(st, "gnis:8634");
-    expect(view(g, waterMapStart(3)).regs).toEqual({ label: "Show regulations for this part", item: "gnis:8634", partIx: CH[3] });
+    const slesse = g.parts.findIndex((p) => p.partIx === CH_SLESSE);
+    expect(view(g, waterMapStart(slesse)).regs).toEqual({ label: "Show regulations for this part", item: "gnis:8634", partIx: CH_SLESSE });
     // where the map's index is not the part's (the Skeena: its tidal part 0 is no entry), the part's own part_ix
     const sk = await loadWaterGroup(st, "gnis:2936");
     expect(view(sk, waterMapStart(SK_EXCHAMSIKS_UP - 1)).regs).toEqual({ label: "Show regulations for this part", item: "gnis:2936", partIx: SK_EXCHAMSIKS_UP });

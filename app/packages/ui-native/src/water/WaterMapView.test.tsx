@@ -66,7 +66,7 @@ const CHW0_WATER = [[355993454, 0], [355993455, 0], [355993456, 0], [355998527, 
                     [356000264, 0], [380887781, 200], [380887817, 0],
                     [380887781, 11988], [380887818, 0], [380887822, 0], [355992631, 0], [355992677, 0], [355995896, 0],
                     [356000359, 0], [380887781, 23325], [380887781, 28231], [380887781, 57967], [380887781, 58646]] as const;
-/** the Chilliwack's part 4 (the source): 380887781 from 58646 m */
+/** the Chilliwack's top part (the source): 380887781 from 58646 m */
 const CHW_SOURCE = [380887781, 58646] as const;
 const MAP = { at: { atlas: "a", basemap: "b" } as never, theme: "light", camera: { lon: -122, lat: 49, zoom: 8 }, view: "plain" };
 
@@ -127,7 +127,7 @@ describe("<WaterMapView> (T150 / T151)", () => {
     fireEvent.click(radios[2]!);
     const third = await where(CHW_ITEM, 2);
     await waitFor(() => expect(screen.getByTestId("water-map-where").textContent).toBe(third));
-    expect([calls, screen.queryByTestId("water-map-parts-list")]).toEqual([["part gnis:8634 2"], null]);
+    expect([calls, screen.queryByTestId("water-map-parts-list")]).toEqual([[`part gnis:8634 ${gc.parts[2]!.partIx}`], null]);
     // (T150 review) the picked row is gone with the list: focus is on the toggle, not dropped to the page
     expect(document.activeElement?.getAttribute("data-testid")).toBe("water-map-parts-toggle");
   });
@@ -215,8 +215,10 @@ describe("<WaterMapView>", () => {
     expect(screen.queryByTestId("water-map-exit")).toBeNull();           // only at the lowest part
     fireEvent.click(screen.getByRole("button", { name: "Show regulations for this part" }));
     // the step is handed on as the frame's part (one water screen), before Show regulations names it
-    // (T517) the mouth meets the Vedder's top part (1)
-    expect(calls).toEqual(["open gnis:3062 at 1", "part gnis:8634 1", "regs gnis:8634 part 1"]);
+    // (T517) the mouth meets the part of the Vedder the group's exit names; ▲ is the part above the lowest (T768: the
+    // group's numbers, never typed)
+    const chw = await groupOf("gnis:8634"), up = chw.parts[1]!.partIx;
+    expect(calls).toEqual([`open gnis:3062 at ${chw.exit!.part}`, `part gnis:8634 ${up}`, `regs gnis:8634 part ${up}`]);
   }, 30_000);
 
   it("⤢ frames the whole river and back to the part", async () => {
@@ -248,7 +250,7 @@ describe("<WaterMapView>", () => {
     expect(screen.getByTestId("water-map-where").textContent).toBe(await where("gnis:8634", "top"));
     act(() => seen.props!.onPressFeature!("stream", VEDDER));
     expect([screen.getByTestId("water-map-where").textContent, calls]).toEqual([await where("gnis:8634", "top"),
-      ["part gnis:8634 4", `other ${VEDDER}`]]);
+      [`part gnis:8634 ${(await groupOf("gnis:8634")).parts.at(-1)!.partIx}`, `other ${VEDDER}`]]);
   }, 30_000);
 
   // (T750, owner 2026-11-14: "navigating up the skeena it gives a branching option. we should only have up or downastream
