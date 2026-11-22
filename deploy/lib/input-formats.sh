@@ -21,10 +21,16 @@
 #                  the flag says. Staging never sets it.
 PLACEHOLDER_SAYS="feeds (production) is not live yet"
 input_formats_filter() {
-  local manifest=$1 out=$2 put=$3 key cache fmt accept="" asked=0 absent=0
+  local manifest=$1 out=$2 put=$3 key cache fmt accept="" asked=0 absent=0 said="" prc=0 why=""
+  # (T994 #9) THE GATE FAILS CLOSED: a missing jq, or a staged file jq cannot read, read as "no format" and the file was
+  # put unasked (`jq … 2>/dev/null || true`). Now a missing jq stops the sync, and an unreadable file is refused, named.
+  command -v jq >/dev/null || { echo "input formats: jq is not installed (brew install jq): no input can be checked, none put" >&2; return 1; }
   : > "$put"
   while IFS=$'\t' read -r key cache; do
-    fmt=$(jq -r 'if type == "object" then (.format // "") else "" end' "$out/$key" 2>/dev/null || true)
+    if ! fmt=$(jq -r 'if type == "object" then (.format // "") else "" end' "$out/$key" 2>&1); then
+      refuse "$key: the staged file cannot be read as JSON, so its format is not known (jq: $(head -c 200 <<<"$fmt" | tr '\n' ' ')): not put"
+      continue
+    fi
     if [[ -n "$fmt" ]]; then
       if [[ -z "${FEEDS_URL:-}" ]]; then
         refuse "$key: no feeds worker was named for this bucket (set FEEDS_URL to the worker that reads it): $fmt not put"
@@ -32,12 +38,19 @@ input_formats_filter() {
       fi
       if [[ $asked == 0 ]]; then
         asked=1
-        accept=$(curl -sS --max-time 20 "$FEEDS_URL/status.json" 2>/dev/null | jq -c '.inputs // empty' 2>/dev/null || true)
+        # ONE question, its cause kept (T788 #1's twin: `2>/dev/null || true` turned a 403, a DNS failure and a body that is
+        # not JSON into the same "unreachable")
+        said=$(curl -sS --max-time 20 "$FEEDS_URL/status.json" 2>&1) || prc=$?
+        if [[ $prc != 0 ]]; then
+          why="no answer: curl exit $prc, $(head -c 200 <<<"$said" | tr '\n' ' ')"
+        elif ! accept=$(jq -c '.inputs // empty' 2>&1 <<<"$said"); then
+          accept=""; why="its answer is not a JSON object (it begins: $(head -c 120 <<<"$said" | tr '\n' ' '))"
+        elif [[ -z "$accept" ]]; then
+          why="its answer lists no inputs: a worker deployed before T597"
+        fi
         if [[ -z "$accept" && "${NO_WORKER_YET:-}" == 1 ]]; then
           # no HTTP answer of any kind (no such host, refused, timed out: curl fails), or the placeholder's one line.
           # Any other answer means a worker is deployed there, and the claim does not apply.
-          local said prc=0
-          said=$(curl -sS --max-time 20 "$FEEDS_URL/status.json" 2>/dev/null) || prc=$?
           if [[ $prc != 0 || "$said" == "$PLACEHOLDER_SAYS" ]]; then
             absent=1
             echo "input formats: NOT CHECKED — no feeds worker reads this bucket yet ($FEEDS_URL: $([[ $prc != 0 ]] && echo "no answer" || echo "the placeholder")). Deploy it next ($DEPLOY_HINT): it refuses a format it does not read and says so on its /status" >&2
@@ -51,7 +64,7 @@ input_formats_filter() {
         continue
       fi
       if [[ -z "$accept" ]]; then
-        refuse "$key: $FEEDS_URL/status.json does not say which input formats the worker reads (unreachable, or deployed before T597): $fmt not put. Deploy the worker ($DEPLOY_HINT), then sync again"
+        refuse "$key: $FEEDS_URL/status.json does not say which input formats the worker reads ($why): $fmt not put. Deploy the worker ($DEPLOY_HINT), then sync again"
         continue
       fi
       if ! jq -e --arg k "$key" --arg f "$fmt" '(.[$k] // []) | index($f) != null' <<<"$accept" >/dev/null; then

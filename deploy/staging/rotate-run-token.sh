@@ -14,7 +14,8 @@ cd "$(dirname "$0")/../.."
 WORKER=bc-fishing-feeds-staging
 URL=https://bc-fishing-feeds-staging.horvath-dawson.workers.dev
 F=app/workers/feeds/.run-token
-OLD=$(tr -d '\n' < "$F" 2>/dev/null || true)
+# (T994 #19) no token file yet (a first rotation) is said; one that exists but cannot be read stops (it read as "none")
+if [[ -e $F ]]; then OLD=$(tr -d '\n' < "$F"); else OLD=""; echo "rotate-run-token: no $F yet: a first token" >&2; fi
 NEW=$(openssl rand -hex 24)
 umask 077
 # (T609 W7) the old token is held in $OLD only: no .run-token.prev file is written any more (it was not git-ignored and

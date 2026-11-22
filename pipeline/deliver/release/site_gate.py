@@ -25,12 +25,24 @@ from pathlib import Path
 from pipeline.deliver.release.app_gate import oldest_reader, ver
 
 STAGING_SITE = "https://staging.canifishthis.ca"
+#: (T994 #10) deploy/prod/upload.sh asks the production site the same question
+PROD_SITE = "https://canifishthis.ca"
 BUNDLE_RE = re.compile(r'/_expo/static/js/web/index-[0-9a-f]+\.js')
 VERSION_RE = re.compile(r'resolveAppVersion\)?\(\{version:"(\d+\.\d+\.\d+[^"]*)",build:"([^"]*)"')
 
 
-def redeploy_steps(rid: str | None) -> str:
+def site_name(site: str) -> str:
+    """how a refusal names the site asked"""
+    s = site.rstrip("/")
+    return ("the staging site" if s == STAGING_SITE else "the production site" if s == PROD_SITE
+            else f"the site {s}")
+
+
+def redeploy_steps(rid: str | None, site: str = STAGING_SITE) -> str:
     del rid     # (T544) the one command builds on LATEST, which is the release about to be uploaded
+    if site.rstrip("/") == PROD_SITE:
+        return ("deploy the production site first (handoff/PLAN/release/PRODUCTION.md step 6: the web export and SEO "
+                "pages on this release, then CONFIRM_PROD=canifishthis.ca deploy/prod/site.sh), then promote again")
     return ("redeploy the staging site first (export, SEO pages on LATEST, deploy, smoke), then upload again:\n"
             "    deploy/staging/site-all.sh")
 
@@ -74,14 +86,16 @@ def required(manifest: dict | None, min_app: str | None, apps: dict | None = Non
     return max(needs, key=ver) if needs else None
 
 
-def problems(site_ver: str | None, how: str, need: str | None, rid: str | None = None) -> list[str]:
+def problems(site_ver: str | None, how: str, need: str | None, rid: str | None = None,
+             site: str = STAGING_SITE) -> list[str]:
     """[] when the site may take the release; else what is wrong and the commands that fix it."""
+    name, skip = site_name(site), ("PROD_SITE_CHECK_SKIP" if site.rstrip("/") == PROD_SITE else "SITE_CHECK_SKIP")
     if site_ver is None:
-        return [f"the staging site's app version is unknown: {how}. {redeploy_steps(rid)}\n"
-                "(SITE_CHECK_SKIP=<reason> skips this gate and prints the reason)"]
+        return [f"{name}'s app version is unknown: {how}. {redeploy_steps(rid, site)}\n"
+                f"({skip}=<reason> skips this gate and prints the reason)"]
     if need and ver(site_ver) < ver(need):
-        return [f"the staging site is app {site_ver}, older than {need} (the oldest app this release lets apply it): "
-                f"its app would refuse the release (\"The map data could not be loaded\"). {redeploy_steps(rid)}"]
+        return [f"{name} is app {site_ver}, older than {need} (the oldest app this release lets apply it): "
+                f"its app would refuse the release (\"The map data could not be loaded\"). {redeploy_steps(rid, site)}"]
     return []
 
 
@@ -93,7 +107,7 @@ def check(manifest: dict | None, min_app: str | None, *, site: str = STAGING_SIT
         return [], f"site check SKIPPED (SITE_CHECK_SKIP): {skip}"
     need = required(manifest, min_app)
     v, how = site_version(site, fetch)
-    return problems(v, how, need, rid), f"{how}; the release needs app >= {need or 'any'}"
+    return problems(v, how, need, rid, site), f"{how}; the release needs app >= {need or 'any'}"
 
 
 def main(argv=None) -> int:

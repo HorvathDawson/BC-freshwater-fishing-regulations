@@ -12,8 +12,9 @@ mkdir -p "$T/bin"
 fails=0
 
 # the stand-in gh: its script is $T/plan, one line per `gh workflow run` call:
-#   refuse | run <id> <conclusion> | accept-no-run
-# `gh run list` answers with the run the LAST dispatch made; `gh run view` with that run's conclusion.
+#   refuse | run <id> <conclusion> | accept-no-run | list-blip | view-blip <id>
+# `gh run list` answers with the run the LAST dispatch made; `gh run view` with that run's conclusion. (T994 #20)
+# list-blip: every `gh run list` fails (a GitHub blip after an accepted dispatch); view-blip: `gh run view` fails.
 cat > "$T/bin/gh" <<EOF
 #!/bin/bash
 n=\$(cat "$T/calls" 2>/dev/null || echo 0)
@@ -26,10 +27,12 @@ case "\$1 \$2" in
     exit 0 ;;
   "run list")
     read -r kind id _ < "$T/last"
-    [[ \$kind == run ]] && echo "\$id"
+    [[ \$kind == list-blip ]] && { echo "HTTP 502: Server Error" >&2; exit 1; }
+    [[ \$kind == run || \$kind == view-blip ]] && echo "\$id"
     exit 0 ;;
   "run view")
-    read -r _ _ concl < "$T/last"
+    read -r kind _ concl < "$T/last"
+    [[ \$kind == view-blip ]] && { echo "error connecting to api.github.com" >&2; exit 1; }
     echo "\$concl"; exit 0 ;;
 esac
 echo "stand-in gh: unexpected \$*" >&2; exit 9
@@ -67,8 +70,20 @@ check "the bound holds: three tries, then exit 75 and no run id" test "$RC $CALL
 check "  … saying nothing ran" has "was NOT started after 3 tries"
 
 run "accept-no-run" "run 106 "
-check "an accepted dispatch with no run in sight is NOT retried (no double run)" test "$RC $CALLS" = "75 1" -a -z "$OUT"
+check "an accepted dispatch with no run in sight is NOT retried (no double run), exit 76 not 75" \
+  test "$RC $CALLS" = "76 1" -a -z "$OUT"
 check "  … and says to look first" has "NOT retried"
+check "  … never that it did not start" bash -c "! grep -qF 'did not start' <<<\"\$1\"" _ "$ERR"
+
+# (T994 #20) a gh blip AFTER an accepted dispatch: gh's bare rc 1 under set -e read as "did not start" upstream
+run "list-blip" "run 108 "
+check "gh run list failing after an accepted dispatch: exit 76, no retry, no run id" test "$RC $CALLS" = "76 1" -a -z "$OUT"
+check "  … each failed look said with gh's words" has "gh could not list its runs (look 1 of 2): HTTP 502: Server Error"
+check "  … and it may be running" has "it may be running"
+
+run "view-blip 109" "run 110 "
+check "gh run view failing on the run it made: exit 76, no retry" test "$RC $CALLS" = "76 1" -a -z "$OUT"
+check "  … naming the run and gh's words" has "made run 109, but gh could not read it (error connecting to api.github.com"
 
 run "run 107 failure"
 check "a run that merely failed later is not a start failure (the caller watches it)" test "$RC $CALLS $OUT" = "0 1 107"

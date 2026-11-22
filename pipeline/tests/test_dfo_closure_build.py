@@ -426,7 +426,7 @@ def test_the_release_gate_refuses_bound_pieces_to_a_worker_that_does_not_emit_th
 def test_the_release_gate_names_its_client_when_it_asks_the_worker(monkeypatch):
     """2026-11-16: the worker's host answered Python's default user agent with 403 (error code 1010), the gate read
     that as "cannot be asked" and refused a staging upload while the worker was up. The request names its client, and
-    a refused request is still "no answer", never a raise."""
+    (T788 #1) a refused request is "no answer" WITH its cause, said in the refusal."""
     import urllib.error
     import urllib.request
     from pipeline.deliver.release import pieces_gate as G
@@ -439,8 +439,63 @@ def test_the_release_gate_names_its_client_when_it_asks_the_worker(monkeypatch):
         seen.append(r)
         raise urllib.error.HTTPError(r.full_url, 403, "error code: 1010", None, None)
     monkeypatch.setattr(urllib.request, "urlopen", refuse)
-    assert G.fetch_status("https://feeds.example") is None
+    with pytest.raises(G.StatusUnread, match="HTTP 403"):
+        G.fetch_status("https://feeds.example")
     assert seen and seen[0].get_header("User-agent") == req.get_header("User-agent"), "the fetch sends that request"
+
+
+@pytest.mark.parametrize("answer,cause", [
+    ("403", "https://w.example/status.json answered HTTP 403 error code: 1010"),
+    ("dns", "https://w.example/status.json could not be reached ([Errno 8] nodename nor servname provided)"),
+    ("timeout", "https://w.example/status.json could not be read (TimeoutError: timed out)"),
+    (b"<html>gateway</html>", "https://w.example/status.json is not JSON ("),
+    (b"[1, 2]", "https://w.example/status.json is JSON but not an object (list)")])
+def test_the_release_gate_says_why_the_worker_cannot_be_asked(monkeypatch, answer, cause):
+    """(T788 #1) a 403, a DNS failure, a timeout and a body that is not JSON each read "cannot be asked" with NO cause:
+    the refusal names it. Mutation: catch everything in `fetch_status` and return None — the cause is gone."""
+    import io
+    import socket
+    import urllib.error
+    import urllib.request
+    from pipeline.deliver.release import pieces_gate as G
+
+    def answer_with(r, timeout=None):
+        if answer == "403":
+            raise urllib.error.HTTPError(r.full_url, 403, "error code: 1010", None, None)
+        if answer == "dns":
+            raise urllib.error.URLError(socket.gaierror(8, "nodename nor servname provided"))
+        if answer == "timeout":
+            raise TimeoutError("timed out")
+        return io.BytesIO(answer)
+    monkeypatch.setattr(urllib.request, "urlopen", answer_with)
+    (only,) = G.problems(GATE_PAYLOAD, "https://w.example")
+    assert f"the feeds worker https://w.example cannot be asked ({cause}" in only
+
+
+def test_the_release_gate_says_what_a_pass_rests_on(monkeypatch, tmp_path, capsys):
+    """(T788 #1) it printed nothing on a pass: now the bound pieces and the worker asked, or that none was asked."""
+    import io
+    import urllib.request
+    from pipeline.deliver import salmon as S
+    from pipeline.deliver.release import pieces_gate as G
+    monkeypatch.setattr(S, "read_release", lambda d: GATE_PAYLOAD)
+    monkeypatch.setattr(urllib.request, "urlopen", lambda r, timeout=None: io.BytesIO(b'{"dfo": {"pieces": 1}}'))
+    assert G.main([str(tmp_path / "manifest.json"), "--feeds-url", "https://w.example"]) == 0
+    assert "pieces gate: 1 bound closed-area piece(s); https://w.example emits dfo.pieces >= 1" in capsys.readouterr().out
+    monkeypatch.setattr(S, "read_release", lambda d: {"p": {}})
+    assert G.main([str(tmp_path / "manifest.json")]) == 0
+    assert "pieces gate: the release binds no closed-area piece (no worker asked)" in capsys.readouterr().out
+
+
+def test_the_uploads_name_their_own_feeds_worker():
+    """(T788 #1) staging's upload took FEEDS_URL from the caller's shell: a stray value asked another worker. Each
+    upload names its own (production's rehearsal bucket is the one place a caller names it)."""
+    import re
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[2]
+    body = (root / "deploy/staging/upload.sh").read_text()
+    assert "${FEEDS_URL:-" not in body and "${FEEDS_URL-" not in body
+    assert re.search(r'^FEEDS_URL=https://bc-fishing-feeds-staging\.horvath-dawson\.workers\.dev \\\n', body, re.M)
 
 
 def test_the_release_gate_asks_nothing_without_bound_pieces_and_refuses_with_no_worker_named():

@@ -34,6 +34,8 @@ D="r2:$BUCKET"
 REL=${REL:-$(cat data/release/LATEST)}
 R=data/release; M=$R/$REL/manifest.json
 [[ -f $M ]] || { echo "upload (prod): no $M" >&2; exit 1; }
+# (T994 #28) every local input is checked before anything is sent (this one ran after the tiles and data had gone up)
+[[ -d data/generated/gauges/hydat_daily ]] || { echo "upload (prod): no data/generated/gauges/hydat_daily (scripts/update-hydat.sh)" >&2; exit 1; }
 say() { echo "== $*${DRY[*]:+ (dry run)}"; }
 q() { python3 -c "import json,sys;m=json.load(open('$M'));print(eval(sys.argv[1]))" "$1"; }
 
@@ -46,6 +48,17 @@ MIN_APP_VERSION= .venv/bin/python -m pipeline.deliver.release.app_gate "$M"
 # (T573/T757) bound closed-area pieces need a worker that emits them: production's, or FEEDS_URL for a rehearsal bucket
 if [[ $BUCKET == "$PROD_BUCKET" ]]; then PIECES_FEEDS=https://feeds.canifishthis.ca; else PIECES_FEEDS=${FEEDS_URL:-}; fi
 FEEDS_URL=$PIECES_FEEDS .venv/bin/python -m pipeline.deliver.release.pieces_gate "$M"
+# (T994 #10) the staging upload's site-version gate, on production: the live site must be at least the oldest app this
+# release lets apply it, or the production web app refuses it ("The map data could not be loaded"; staging, 2026-11-09).
+# So the production site goes up BEFORE the data when the release needs a newer app (PRODUCTION.md). Its own escape,
+# PROD_SITE_CHECK_SKIP=<reason> (printed): a SITE_CHECK_SKIP left in the shell from a staging run never skips this one.
+# A rehearsal bucket names the site that reads it with SITE_URL; with none, the gate is not asked, and says so.
+if [[ $BUCKET == "$PROD_BUCKET" ]]; then SITE=https://canifishthis.ca; else SITE=${SITE_URL:-}; fi
+if [[ -n $SITE ]]; then
+  SITE_CHECK_SKIP=${PROD_SITE_CHECK_SKIP:-} MIN_APP_VERSION= .venv/bin/python -m pipeline.deliver.release.site_gate "$M" --site "$SITE"
+else
+  echo "site gate: NOT ASKED — the rehearsal bucket $BUCKET names no site (SITE_URL=<the site that reads it> asks it)"
+fi
 say "promote $REL to $D (staging serves the same manifest)"
 IMM="Cache-Control: public, max-age=31536000, immutable"
 cp_() { rclone copyto "$1" "$D/$2" --s3-no-check-bucket ${DRY[@]+"${DRY[@]}"} "${@:3}"; }
@@ -85,7 +98,6 @@ CG=0; "$CLIM_PY" -m pipeline.gauges.feed.clim_guard --local data/generated/gauge
 [[ $CG == 0 || $CG == 3 ]] || { echo "upload: clim.json could not be compared with R2's (above); stopped" >&2; exit 1; }
 [[ $CG == 0 ]] && cp_ data/generated/gauges/feeds/clim.json feeds/live/clim.json --checksum \
   --header-upload "Cache-Control: public, max-age=300" --header-upload "Content-Type: application/json"
-[[ -d data/generated/gauges/hydat_daily ]] || { echo "upload (prod): no data/generated/gauges/hydat_daily (scripts/update-hydat.sh)" >&2; exit 1; }
 cpr data/generated/gauges/hydat_daily "$D/feeds/hydat" --transfers 32 --include "*.json" \
   --header-upload "Cache-Control: public, max-age=86400" --header-upload "Content-Type: application/json"
 cpr data/generated/regs/dfo_salmon/feed "$D/feeds/dfo" --include "*.json" --ignore-existing --exclude "feed.notified.json" \
