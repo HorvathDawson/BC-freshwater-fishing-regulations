@@ -67,7 +67,7 @@ fi
 # the workflow runs the code on GitHub: refuse a local commit it would not see. (T995) A release ships from its own
 # branch, release/<app.json's version> (scripts/ci_paths.py names it; `python -m pipeline release --cut` makes it), and
 # the workflow runs that branch's copy.
-GH_REPO=HorvathDawson/BC-freshwater-fishing-regulations; GH_REF=$(python3 scripts/ci_paths.py release-branch)
+GH_REPO=$(python3 scripts/ci_paths.py repo); GH_REF=$(python3 scripts/ci_paths.py release-branch)
 git fetch -q origin "$GH_REF" \
   || { echo "upload: cannot fetch $GH_REF from origin (above): a release ships from its release branch — python -m pipeline release --cut <version> makes it" >&2; exit 1; }
 RT_RUN=""
@@ -75,7 +75,10 @@ if [[ -n "$RT_SAME" ]]; then
   echo "run timing: staging already has it for $TILES with the same binding base — workflow not started (T485)"
 else
 rclone copyto "$RT/$RT_BASE" "$D/$RT_KEY" --s3-no-check-bucket --checksum
-git merge-base --is-ancestor HEAD "origin/$GH_REF" || { echo "upload: push $GH_REF first (the run-timing workflow runs GitHub's copy)"; exit 1; }
+# (T995 review) HEAD must BE the branch's tip: an ancestor (a pre-cut main commit, a stale checkout) would upload other
+# code than the workflow runs
+[[ $(git rev-parse HEAD) == "$(git rev-parse "origin/$GH_REF")" ]] \
+  || { echo "upload: HEAD is not the tip of origin/$GH_REF (the run-timing workflow runs GitHub's copy): git switch $GH_REF && git pull --ff-only, or push the release's own commits" >&2; exit 1; }
 # (T666 item 6) the START is retried on its own, bounded and said out loud (scripts/start-workflow.sh: WF_START_TRIES,
 # default 3, WF_START_WAIT s apart; build 27: GitHub refused the start and the only retry was the whole release
 # command). Exit 75 = nothing was started; (T994 #20) 76 = GitHub accepted the dispatch but its run could not be named

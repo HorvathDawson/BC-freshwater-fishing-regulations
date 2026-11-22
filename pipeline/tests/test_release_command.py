@@ -84,7 +84,7 @@ def world(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(R, "HOME", tmp_path / "home")
     monkeypatch.setattr(R, "LEDGER", tmp_path / "home" / "ledger.json")
     monkeypatch.setattr(R, "git_dirty", lambda: list(w["dirty"]))
-    monkeypatch.setattr(R, "git_head", lambda: "abc123")
+    monkeypatch.setattr(R, "git_head", lambda: w.get("head", "abc123"))
     monkeypatch.setattr(R, "run_cmd", run_cmd)
 
     def fast_fail(base=None, env=None):
@@ -118,13 +118,17 @@ def world(tmp_path: Path, monkeypatch):
     def pushed():
         if w["pushed"] == "no-branch":                       # (T995) origin has no release/<version>
             raise R.NoReleaseBranch(R.release_branch())
+        if w["pushed"] in ("behind", "diverged"):            # (T995 review) HEAD is not the branch's tip
+            raise R.ReleaseBranchMoved(w["pushed"])
         return w["pushed"]
     monkeypatch.setattr(R, "git_pushed", pushed)
-    # (T995) the app version names the release branch and the `v<version>` tag; the tags live in w["tag_at"]
-    w["version"], w["tag_at"], w["made_tags"], w["pushed_tags"] = "0.9.0", {}, [], []
+    monkeypatch.setattr(R, "current_branch", lambda: w.get("branch", "release/" + w["version"]))
+    # (T995) the app version names the release branch and the `v<version>` tag. The tags: w["tag_at"] local,
+    # w["remote_tags"] on origin (a push copies a local tag there)
+    w["version"], w["tag_at"], w["remote_tags"], w["made_tags"], w["pushed_tags"] = "0.9.0", {}, {}, [], []
     monkeypatch.setattr(R, "app_version", lambda: w["version"])
-    monkeypatch.setattr(R, "fetch_tags", lambda: None)
     monkeypatch.setattr(R, "tag_commit", lambda tag: w["tag_at"].get(tag))
+    monkeypatch.setattr(R, "remote_tag_commit", lambda tag: w["remote_tags"].get(tag))
     monkeypatch.setattr(R, "is_ancestor", lambda a, b: (a, b) in w.get("ancestors", set()))
 
     def make_tag(tag, commit, message):
@@ -135,7 +139,10 @@ def world(tmp_path: Path, monkeypatch):
 
     def push_tags(tags):
         w["pushed_tags"].append(list(tags))
-        return w["rc"].get("push-tags", 0)
+        rc = w["rc"].get("push-tags", 0)
+        if not rc:
+            w["remote_tags"].update({x: w["tag_at"][x] for x in tags})
+        return rc
     monkeypatch.setattr(R, "push_tags", push_tags)
     w["landed"] = (True, "review marks: every mark in force has landed")
     monkeypatch.setattr(R, "marks_landed", lambda: w["landed"])
@@ -451,7 +458,7 @@ def test_one_failure_reads_as_it_always_did(world, capsys):
     assert _staging() == 1
     err = capsys.readouterr().err
     assert "[1/7] preflight FAILED: HEAD abc123 is not on origin/release/0.9.0" in err
-    assert "problems" not in err and "  next: git push origin HEAD:release/0.9.0" in err
+    assert "problems" not in err and "  next: git push origin release/0.9.0 (after" in err
 
 
 def test_a_rerun_skips_fast_fail_on_the_same_tree_content_and_tells_heavy(world, capsys):
@@ -1565,6 +1572,24 @@ def test_preflight_wants_the_release_branch_of_app_jsons_version(world, capsys):
     assert _staging() == 1 and "not on origin/release/1.4.2" in capsys.readouterr().err
 
 
+def test_preflight_wants_head_to_be_the_branch_tip_and_never_says_push_from_another_branch(world, capsys):
+    """(T995 review) an ancestor of the tip (a pre-cut main commit, a stale checkout) passed: HEAD must BE the tip.
+    The hint never pushes another branch's HEAD onto the release branch."""
+    for state in ("behind", "diverged"):
+        world["pushed"] = state
+        assert _staging() == 1
+        err = capsys.readouterr().err
+        assert f"HEAD abc123 is not the tip of origin/release/0.9.0 ({state}:" in err
+        assert "next: git switch release/0.9.0 && git pull --ff-only" in err and "HEAD:release" not in err
+    world["pushed"], world["branch"] = False, "main"                         # ahead, but on main
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert "next: git switch release/0.9.0 && git pull --ff-only (HEAD is on main" in err and "git push" not in err
+    world["branch"] = "release/0.9.0"                                        # ahead on the branch itself: push it
+    assert _staging() == 1 and "next: git push origin release/0.9.0" in capsys.readouterr().err
+    assert world["calls"] == []
+
+
 def test_the_ship_tags_data_and_the_app_version_and_names_the_merge_back(world, capsys):
     """(T995) at ship: data/<r-id> and v<version> on the pushed HEAD, pushed, recorded; the merge-back PR printed.
     Mutation: drop the tagging from stage 7 and every line below fails."""
@@ -1575,6 +1600,7 @@ def test_the_ship_tags_data_and_the_app_version_and_names_the_merge_back(world, 
     rec = json.loads(R.LEDGER.read_text())["releases"][NEW]
     assert rec["tags"] == {f"data/{NEW}": "abc123", "v0.9.0": "abc123"} and rec["ship_commit"] == "abc123"
     assert f"tagged data/{NEW}, v0.9.0 at abc123, pushed data/{NEW}, v0.9.0" in out
+    assert rec["uploaded_commit"] == "abc123"
     assert ('gh pr create --base main --head release/0.9.0 --title "chore(release): merge release/0.9.0 back into '
             'main"') in out
     world["made_tags"].clear()
@@ -1584,7 +1610,7 @@ def test_the_ship_tags_data_and_the_app_version_and_names_the_merge_back(world, 
 
 def test_a_data_only_release_tags_only_its_data(world, capsys):
     """(T995) the app version was tagged by an earlier ship: it stays there; only data/<r-id> is made."""
-    world["tag_at"]["v0.9.0"] = "0ld0000"
+    world["remote_tags"]["v0.9.0"] = world["tag_at"]["v0.9.0"] = "0ld0000"
     assert _staging() == 0
     out = capsys.readouterr().out
     assert world["made_tags"] == [(f"data/{NEW}", "abc123")] and world["pushed_tags"] == [[f"data/{NEW}"]]
@@ -1593,31 +1619,60 @@ def test_a_data_only_release_tags_only_its_data(world, capsys):
 
 
 def test_a_data_tag_on_another_commit_stops_and_a_failed_tag_push_reruns_only_the_tags(world, capsys):
-    world["tag_at"][f"data/{NEW}"] = "e1sewhere"
+    world["remote_tags"][f"data/{NEW}"] = "e1sewhere"
     assert _staging() == 1
     err = capsys.readouterr().err
-    assert f"STOPPED at staging" in err and f"the tag data/{NEW} exists already at e1sewhere, not at HEAD abc123" in err
+    assert "STOPPED at staging" in err
+    assert f"the tag data/{NEW} exists on origin already at e1sewhere, not at the uploaded commit abc123" in err
     assert world["made_tags"] == [] and "tags" not in json.loads(R.LEDGER.read_text())["releases"][NEW]
-    del world["tag_at"][f"data/{NEW}"]
+    del world["remote_tags"][f"data/{NEW}"]
     world["rc"]["push-tags"] = 1
     assert _staging() == 1 and "only the tags are left" in capsys.readouterr().err
-    world["rc"]["push-tags"] = 0
+    assert world["remote_tags"] == {}                                        # made here, never assumed pushed
+    world["rc"]["push-tags"], world["head"] = 0, "n3whead"                   # (T995 review) HEAD moved since the upload
     world["calls"].clear()
     assert _staging() == 0 and [c for c, _ in world["calls"]] == ["build"]   # no second upload or smoke
     assert world["pushed_tags"][-1] == [f"data/{NEW}", "v0.9.0"]            # the tags made before are pushed now
+    assert world["remote_tags"] == {f"data/{NEW}": "abc123", "v0.9.0": "abc123"}   # at the UPLOADED commit
+    assert json.loads(R.LEDGER.read_text())["releases"][NEW]["ship_commit"] == "abc123"
+
+
+def test_a_local_only_tag_elsewhere_stops_and_one_at_the_shipped_commit_is_pushed(world, capsys):
+    """(T995 review) a local tag is never taken as pushed: at the uploaded commit it is pushed, elsewhere it stops."""
+    world["tag_at"]["v0.9.0"] = "st4le"
+    assert _staging() == 1
+    assert "a local-only tag v0.9.0 points at st4le, not at the uploaded commit abc123" in capsys.readouterr().err
+    world["tag_at"]["v0.9.0"] = "abc123"
+    assert _staging() == 0 and world["made_tags"] == [(f"data/{NEW}", "abc123")]
+    assert world["remote_tags"] == {f"data/{NEW}": "abc123", "v0.9.0": "abc123"}
+
+
+def test_a_release_with_no_upload_commit_is_not_tagged_at_a_guess(world, capsys):
+    assert _staging() == 0
+    led = json.loads(R.LEDGER.read_text())
+    for k in ("tags", "uploaded_commit"):
+        led["releases"][NEW].pop(k)
+    R.save_ledger(led)
+    world["made_tags"].clear()
+    assert _staging() == 1 and "has no recorded upload commit" in capsys.readouterr().err
+    assert world["made_tags"] == []
 
 
 def test_prod_checks_the_tags_point_at_the_shipped_commit(staged, monkeypatch, capsys):
     """(T995) production ships only what its tags name. Mutation: drop `tag_problems` from prod and the upload runs."""
     monkeypatch.setenv("CONFIRM_PROD", NEW)
-    del staged["tag_at"][f"data/{NEW}"]
+    del staged["remote_tags"][f"data/{NEW}"]                                # only the local tag is left
     assert R.prod(NEW, ask=lambda _: NEW) == 1
     err = capsys.readouterr().err
-    assert f"no tag data/{NEW} (on origin too): git tag -a data/{NEW}" in err and staged["calls"] == []
-    staged["tag_at"][f"data/{NEW}"] = "m0ved"
+    assert f"no tag data/{NEW} on origin (only a local one: git push origin refs/tags/data/{NEW})" in err
+    assert staged["calls"] == []
+    del staged["tag_at"][f"data/{NEW}"]
+    assert R.prod(NEW, ask=lambda _: NEW) == 1
+    assert f"no tag data/{NEW} on origin: git tag -a data/{NEW}" in capsys.readouterr().err
+    staged["remote_tags"][f"data/{NEW}"] = "m0ved"
     assert R.prod(NEW, ask=lambda _: NEW) == 1
     assert f"data/{NEW} points at m0ved, not at the commit {NEW} shipped from (abc123)" in capsys.readouterr().err
-    staged["tag_at"][f"data/{NEW}"], staged["tag_at"]["v0.9.0"] = "abc123", "later99"
+    staged["remote_tags"][f"data/{NEW}"], staged["remote_tags"]["v0.9.0"] = "abc123", "later99"
     assert R.prod(NEW, ask=lambda _: NEW) == 1 and "v0.9.0 points at later99" in capsys.readouterr().err
     staged["ancestors"] = {("later99", "abc123")}                          # a version tag before the ship commit
     assert R.prod(NEW, ask=lambda _: NEW) == 0 and staged["calls"] == [("upload", {"CONFIRM_PROD": "canifishthis.ca"})]
@@ -1638,7 +1693,7 @@ def cutting(monkeypatch):
     w = {"cuts": [], "remote": set(), "main_version": "0.8.5", "fetched": 0}
     monkeypatch.setattr(R, "fetch_trunk", lambda: w.__setitem__("fetched", w["fetched"] + 1))
     monkeypatch.setattr(R, "remote_ref_exists", lambda ref: ref in w["remote"])
-    monkeypatch.setattr(R, "trunk_app_version", lambda: w["main_version"])
+    monkeypatch.setattr(R, "trunk_app_version", lambda: (w["main_version"], w.get("why", "")))
     monkeypatch.setattr(R, "cut_branch", lambda b: w["cuts"].append(b) or 0)
     return w
 
@@ -1649,6 +1704,9 @@ def test_cut_makes_the_release_branch_from_a_fresh_main(cutting, capsys):
     assert cutting["fetched"] == 1 and cutting["cuts"] == ["release/0.9.0"]
     assert "release: release/0.9.0 cut from origin/main and pushed. Next: git switch release/0.9.0" in out
     assert "app.json on main says 0.8.5: the branch's first commit sets expo.version 0.9.0" in out
+    cutting["main_version"], cutting["why"], cutting["remote"] = None, "git show origin/main:… failed (rc=128)", set()
+    assert R.main(["--cut", "0.9.1"]) == 0
+    assert "could not read the app version on main (git show origin/main:… failed (rc=128))" in capsys.readouterr().out
 
 
 def test_cut_refuses_an_existing_branch_a_shipped_version_and_a_bad_version(cutting, capsys):
@@ -1694,10 +1752,28 @@ def test_git_pushed_reads_the_release_branch_on_a_real_remote(tmp_path, monkeypa
     with pytest.raises(R.NoReleaseBranch):
         R.git_pushed()
     run("push", "-q", "origin", "HEAD:refs/heads/release/0.9.0")
-    assert R.git_pushed() is True
+    assert R.git_pushed() is True and R.current_branch() == "main"
     (here / "f").write_text("y")
     run("commit", "-qam", "two")
-    assert R.git_pushed() is False and len(R.git_unpushed()) == 1
+    assert R.git_pushed() is False and len(R.git_unpushed()) == 1          # ahead: commits to push
+    run("push", "-q", "origin", "HEAD:refs/heads/release/0.9.0")
+    run("checkout", "-q", "HEAD~1")                                          # (T995 review) a pre-cut / stale commit
+    with pytest.raises(R.ReleaseBranchMoved, match="behind"):
+        R.git_pushed()
+    (here / "g").write_text("z")
+    run("add", "g")
+    run("commit", "-qm", "off the branch")
+    with pytest.raises(R.ReleaseBranchMoved, match="diverged"):
+        R.git_pushed()
+    # (T995 review) tags are read on origin, annotated or not; a local-only tag is not there
+    run("tag", "-a", "data/r-a", "-m", "a")
+    run("tag", "v9.9.9")
+    run("push", "-q", "origin", "refs/tags/data/r-a")
+    head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=here, capture_output=True, text=True).stdout.strip()
+    assert R.remote_tag_commit("data/r-a") == head and R.tag_commit("data/r-a") == head
+    assert R.remote_tag_commit("v9.9.9") is None and R.tag_commit("v9.9.9") == head
+    run("push", "-q", "origin", "refs/tags/v9.9.9")
+    assert R.remote_tag_commit("v9.9.9") == head
 
 
 def test_the_rehearsal_names_the_tags_and_the_merge_back(world, capsys):
@@ -1705,3 +1781,11 @@ def test_the_rehearsal_names_the_tags_and_the_merge_back(world, capsys):
     out = capsys.readouterr().out
     assert "then (T995) tags data/<r-id> + v0.9.0 (if not tagged yet) on the pushed HEAD, pushes them" in out
     assert "gh pr create --base main --head release/0.9.0" in out
+
+
+def test_the_upload_wants_head_to_be_the_release_branch_tip():
+    """(T995 review) upload.sh's own refusal matches preflight's: HEAD == origin/<release branch>, not an ancestor."""
+    text = (Path(R.REPO_ROOT) / "deploy/staging/upload.sh").read_text()
+    assert '[[ $(git rev-parse HEAD) == "$(git rev-parse "origin/$GH_REF")" ]]' in text
+    assert 'merge-base --is-ancestor HEAD "origin/$GH_REF"' not in text
+    assert "GH_REPO=$(python3 scripts/ci_paths.py repo); GH_REF=$(python3 scripts/ci_paths.py release-branch)" in text

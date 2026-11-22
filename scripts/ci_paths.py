@@ -6,6 +6,7 @@ runner (no venv), and `scripts/before_push.py --changed`, `scripts/ci_status.py`
     python3 scripts/ci_paths.py verdict            # CI's `ok` job: NEEDS (toJSON(needs)) all passed or skipped
     python3 scripts/ci_paths.py areas PATH...      # which areas these paths touch (a check by hand)
     python3 scripts/ci_paths.py trunk              # `main`: the shell scripts read the name here
+    python3 scripts/ci_paths.py repo               # owner/name on GitHub (deploy/staging/upload.sh)
     python3 scripts/ci_paths.py release-branch     # release/<app.json's version>: the branch a release ships from
 
 THE TRUNK is `main` (owner 2026-11-21, T995): protected, PRs with required checks, merge commits only. A release is cut
@@ -31,6 +32,8 @@ ROOT = Path(__file__).resolve().parents[1]
 #: the app's version lives here (expo.version); the release branch and the `v<version>` tag are named from it
 APP_JSON = ROOT / "app" / "apps" / "mobile" / "app.json"
 
+#: the repository on GitHub (owner/name: the workflow starts, the licence links); TypeScript: core/src/repo.ts
+REPO = "HorvathDawson/BC-freshwater-fishing-regulations"
 #: the protected trunk; the remote every script fetches it from
 TRUNK, REMOTE = "main", "origin"
 #: a release branch is RELEASE_PREFIX + the app version (app/apps/mobile/app.json expo.version)
@@ -193,6 +196,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if ok else 1
     if argv == ["trunk"]:
         print(TRUNK)
+        return 0
+    if argv == ["repo"]:
+        print(REPO)
         return 0
     if argv == ["release-branch"]:
         print(release_branch(app_version()))

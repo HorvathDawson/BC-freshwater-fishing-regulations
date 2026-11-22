@@ -141,6 +141,8 @@ def test_typescript_names_the_same_trunk():
     """AGENTS 40: a value on both sides of the boundary may not drift. TypeScript's one copy is core/src/repo.ts."""
     ts = (ROOT / "app" / "packages" / "core" / "src" / "repo.ts").read_text(encoding="utf-8")
     assert re.search(r'^export const TRUNK = "([^"]+)";$', ts, re.M).group(1) == CP.TRUNK
+    assert re.search(r'^export const REPO = "([^"]+)";$', ts, re.M).group(1) == CP.REPO
+    assert CP.main(["repo"]) == 0
 
 
 def test_no_script_or_doc_names_the_old_dev_branch():
