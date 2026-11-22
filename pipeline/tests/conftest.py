@@ -24,9 +24,17 @@ for a run against an old side build, and only then does it skip.
 from __future__ import annotations
 
 import os
+import subprocess
 from pathlib import Path
 
 import pytest
+
+# (T995, 2026-11-22) git's REPOSITORY variables leave the test session before any test runs. Run from a git hook in a
+# linked worktree, GIT_DIR names that worktree's gitdir; a test's `git init <tmp>` then re-initialised the REAL
+# repository as bare (core.bare = true: every worktree broke). The hook and before_push.py strip them too.
+for _k in subprocess.run(["git", "rev-parse", "--local-env-vars"], capture_output=True, text=True).stdout.split() + [
+        "GIT_QUARANTINE_PATH"]:
+    os.environ.pop(_k, None)
 
 KINDS = ("bundle", "atlas", "reach_run", "tiles", "source", "cache")
 

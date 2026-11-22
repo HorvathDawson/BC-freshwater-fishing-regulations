@@ -449,7 +449,7 @@ W47. **`main` is the protected trunk; every change reaches it through a pull req
       tags `data/<r-id>` and `v<version>` and prints the PR merging the release branch back into `main`;
       `--prod` refuses a release whose tags are missing or point elsewhere.
     - **Hooks are versioned** in `.githooks/`: turn them on once per clone with `git config core.hooksPath .githooks`
-      (pre-push = `scripts/before_push.py --changed`, only the areas the branch changed; commit-msg = T998's).
+      (pre-push = `scripts/before_push.py --changed --no-tier`, only the areas the branch changed, the no-data tier left to the PR's required check; commit-msg = T998's).
       `--no-verify` is an emergency skip only, and the commit or PR says so.
 
 ## Reading the regulations
