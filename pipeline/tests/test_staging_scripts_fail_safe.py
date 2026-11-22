@@ -513,10 +513,21 @@ def test_testflight_precheck_lists_every_missing_secret_before_the_lock(tmp_path
     """(T978) the first missing secret ended the TestFlight build after the lock wait; now every one is listed at once,
     before `exec scripts/heavy.sh`."""
     env = {k: v for k, v in os.environ.items() if k not in ("CONFIRM_PROD", "BUILD_IOS_INNER")}
-    r = subprocess.run(["bash", str(ROOT / "deploy/staging/build-ios-testflight.sh"), "--precheck", "--no-upload"],
+    # stand-ins for the tools (a CI runner has no Xcode, CocoaPods or Node): only the two secrets are missing here
+    for tool in ("xcodebuild", "pod", "node"):
+        _exe(tmp_path / "bin" / tool, "#!/usr/bin/env bash\nexit 0\n")
+    env["PATH"] = f"{tmp_path / 'bin'}{os.pathsep}{env.get('PATH', '')}"
+    script = str(ROOT / "deploy/staging/build-ios-testflight.sh")
+    r = subprocess.run(["bash", script, "--precheck", "--no-upload"],
                        env={**env, "HOME": str(tmp_path)}, capture_output=True, text=True, timeout=60, cwd=ROOT)
     assert r.returncode == 1, r.stdout + r.stderr
     assert f"FAIL no {tmp_path}/.canifishthis/ios-team-id" in r.stdout
     assert f"FAIL no {tmp_path}/.canifishthis/asc-api-key.json" in r.stdout and "precheck FAILED (2)" in r.stderr
+    # ... and a missing tool is listed beside them, not instead of them
+    (tmp_path / "bin" / "pod").unlink()
+    r = subprocess.run(["bash", script, "--precheck", "--no-upload"], env={**env, "HOME": str(tmp_path),
+                       "PATH": f"{tmp_path / 'bin'}{os.pathsep}/usr/bin{os.pathsep}/bin"},
+                       capture_output=True, text=True, timeout=60, cwd=ROOT)
+    assert "FAIL no pod on PATH" in r.stdout and "precheck FAILED (3)" in r.stderr, r.stdout + r.stderr
     code = _no_comments("deploy/staging/build-ios-testflight.sh")
     assert code.index("precheck (before the heavy lock)") < code.index("exec scripts/heavy.sh build-ios-testflight")

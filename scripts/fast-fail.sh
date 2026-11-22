@@ -224,7 +224,9 @@ step "watershed codes read only in wsc.py (a pipeline Python file changed)" wsc_
 # — so the lane's own run and the run after a merge (the default base: every unpushed commit) re-check it.
 # pipeline-ci.yml's "The committed mini release matches a rebuild" is the same check on every push.
 mini_inputs_changed() {
-  grep -vE '\.md$' <<<"$CHANGED" | grep -E '^pipeline/' | grep -vE '^pipeline/tests/' | grep -q . && return 0
+  # one reader of the whole list (no `| grep -q`: under pipefail its early exit SIGPIPEs the grep before it, and a big
+  # base read as "nothing changed" — review of T978)
+  awk '/^pipeline\// && !/^pipeline\/tests\// && !/\.md$/ {f = 1} END {exit !f}' <<<"$CHANGED" && return 0
   grep -qE '^pipeline/tests/fixtures/mini/|^app/packages/data/dev/mini-release/|^data/curated/|^(config\.yaml|project_config\.py|requirements\.txt|constraints\.txt)$' <<<"$CHANGED"
 }
 mini_chain() {

@@ -201,6 +201,28 @@ def test_a_data_state_step_runs_only_for_the_data_release():
     assert data.returncode == 1 and "left to the data release" not in data.stdout
 
 
+def test_the_mini_chain_trigger_reads_a_big_change_list_whole(tmp_path):
+    """T978 review: `… | grep -q .` under pipefail exited early, SIGPIPEd the grep before it and read a base of >= 500
+    changed paths as "no input changed" (2,000 paths: 0 of 20 runs saw it). The trigger, run as fast-fail runs it
+    (set -euo pipefail), on 2,000 changed pipeline sources (the old form said "no" 20 times of 20), must say yes every
+    time."""
+    sh = (REPO / "scripts" / "fast-fail.sh").read_text(encoding="utf-8")
+    fn = sh[sh.index("mini_inputs_changed() {"):]
+    fn = fn[:fn.index("\n}\n") + 3]
+    def asks(paths: list[str]) -> list[str]:
+        f = tmp_path / "changed.txt"
+        f.write_text("\n".join(paths) + "\n")
+        script = (f"set -euo pipefail\n{fn}\nCHANGED=$(cat {f})\n"
+                  "for i in $(seq 20); do if mini_inputs_changed; then echo yes; else echo no; fi; done")
+        got = subprocess.run(["bash", "-c", script], capture_output=True, text=True, timeout=60)
+        assert got.returncode == 0, got.stderr
+        return got.stdout.split()
+    assert asks([f"pipeline/deliver/some/longer/module/path_{i:04d}.py" for i in range(2000)]) == ["yes"] * 20
+    assert asks(["pipeline/deliver/x.py"] + [f"app/packages/ui/src/f{i:04d}.ts" for i in range(2000)]) == ["yes"] * 20
+    assert asks([f"pipeline/tests/test_{i}.py" for i in range(2000)] + ["pipeline/docs/MAP.md"]) == ["no"] * 20
+    assert asks([f"app/x{i}.ts" for i in range(2000)] + ["data/curated/waters/cuts.json"]) == ["yes"] * 20
+
+
 def test_the_steps_that_read_this_machines_data_are_data_steps():
     """T978: each check that reads what git does not hold (the review marks, the live atlas registry, LATEST, the kept
     SEO snapshot) is a "data: …" step in scripts/fast-fail.sh, so an app build's run never reaches it."""
