@@ -24,8 +24,8 @@
 //                       background OS kill is never told: it is not a crash.
 //   purge               kinds not seen for CRASH_RETENTION_DAYS are deleted (privacy page: "90 days after the last time").
 import type { FeedEvent } from "./events";
-import type { R2BucketLike } from "./io";
-import { CORS, CRASH_KINDS_PER_DAY_TOTAL, dailyTotal, readCapped, TEST_PER_DAY_TOTAL, TEST_TOTAL_PREFIX, LIMIT_PREFIXES, listKeys, noSalt, rateLimit, sha256hex, type ReportEnv } from "./reports";
+import { jsonResponse, readJsonBody, type R2BucketLike } from "./io";
+import { CORS, CRASH_KINDS_PER_DAY_TOTAL, dailyTotal, TEST_PER_DAY_TOTAL, TEST_TOTAL_PREFIX, LIMIT_PREFIXES, listKeys, noSalt, rateLimit, sha256hex, type ReportEnv } from "./reports";
 
 export const CRASHES_PREFIX = "private/crashes/";
 /** (T559) the per-address counters: `purgeLimits` (reports.ts) deletes them once their day is over */
@@ -92,8 +92,7 @@ export interface CrashKind {
   sample: Omit<CrashPayloadV1, "format"> | Omit<CrashPayloadV2, "format">;
 }
 
-const json = (body: unknown, status: number) =>
-  new Response(JSON.stringify(body), { status, headers: { ...CORS, "Content-Type": "application/json", "Cache-Control": "no-store" } });
+const json = (body: unknown, status: number) => jsonResponse(body, status, CORS);
 
 const V1_KEYS = ["format", "created", "kind", "fatal", "route", "name", "message", "stack", "test", ...STR_FIELDS] as const;
 const V2_KEYS = [...V1_KEYS, "background", "install", "water", "view", "part", "whole", "sheet"] as const;
@@ -193,14 +192,9 @@ export const crashKey = (hash: string) => `${CRASHES_PREFIX}${hash}.json`;
 export async function handleCrash(req: Request, env: ReportEnv, now: Date = new Date()): Promise<Response> {
   const unset = noSalt(env);
   if (unset) return unset;
-  const len = Number(req.headers.get("Content-Length") ?? NaN);
-  if (Number.isFinite(len) && len > CRASH_LIMITS.bytes) return json({ ok: false, error: "too large" }, 413);
-  let raw: string | null;
-  try { raw = await readCapped(req, CRASH_LIMITS.bytes); } catch { return json({ ok: false, error: "unreadable body" }, 400); }
-  if (raw === null) return json({ ok: false, error: "too large" }, 413);
-  let body: unknown;
-  try { body = JSON.parse(raw); } catch { return json({ ok: false, error: "not JSON" }, 400); }
-  const v = validateCrash(body);
+  const b = await readJsonBody(req, CRASH_LIMITS.bytes, "too large");
+  if (!b.ok) return json({ ok: false, error: b.error }, b.status);
+  const v = validateCrash(b.body);
   if (!v.ok) return json({ ok: false, error: v.error }, 400);
   // (T352) a developer's own build is not a tester: answered (so it does not retry) and not stored, wherever it was sent
   if (v.crash.env === "local") return json({ ok: true, stored: false }, 202);

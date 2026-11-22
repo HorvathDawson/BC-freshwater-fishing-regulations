@@ -16,7 +16,7 @@
 // (wrangler.toml [[ratelimits]], 1 per 10 s per IP at the edge) as the cheap first gate when it is bound.
 // PRIVACY: what is stored is the payload and the time it arrived — no IP, no User-Agent, no country.
 import type { FeedEvent } from "./events";
-import type { R2BucketLike } from "./io";
+import { jsonResponse, readJsonBody, type R2BucketLike } from "./io";
 
 export const REPORTS_PREFIX = "private/reports/";
 /** (T291) reports a TOOL sent (the test bed, smoke runs) carry `test: true` and are stored apart: not in the digest, not in the
@@ -85,8 +85,7 @@ export const CORS: Record<string, string> = {
   "Access-Control-Allow-Headers": "Content-Type",
   "Access-Control-Max-Age": "86400",
 };
-const json = (body: unknown, status: number) =>
-  new Response(JSON.stringify(body), { status, headers: { ...CORS, "Content-Type": "application/json", "Cache-Control": "no-store" } });
+const json = (body: unknown, status: number) => jsonResponse(body, status, CORS);
 
 /** The payload, checked and normalised — or the reason it is refused (a 400 the app shows, never queued). */
 export function validateReport(raw: unknown): { ok: true; report: Omit<StoredReport, "received"> } | { ok: false; error: string } {
@@ -215,28 +214,6 @@ export const CRASH_KINDS_PER_DAY_TOTAL = 500;
  *  others so `capEvents` can name it (push.ts imports reports.ts, never the other way) */
 export const PUSH_NEW_TOKENS_PER_DAY_TOTAL = 1_000;
 
-/**
- * (T609 W11) The body as text, read with a BYTE cap: null when it is longer than `max` bytes (UTF-8), however it was
- * sent (no Content-Length, or a false one). The old check counted characters after reading everything.
- */
-export async function readCapped(req: Request, max: number): Promise<string | null> {
-  if (!req.body) return "";
-  const reader = req.body.getReader();
-  const parts: Uint8Array[] = [];
-  let n = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    n += value.byteLength;
-    if (n > max) { await reader.cancel().catch(() => {}); return null; }
-    parts.push(value);
-  }
-  const all = new Uint8Array(n);
-  let o = 0;
-  for (const p of parts) { all.set(p, o); o += p.byteLength; }
-  return new TextDecoder("utf-8", { fatal: true }).decode(all);
-}
-
 export async function sha256hex(s: string): Promise<string> {
   const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
   return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, "0")).join("");
@@ -284,22 +261,9 @@ export const reportKey = (day: string, id: string) => `${REPORTS_PREFIX}${day}/$
 export async function handleReport(req: Request, env: ReportEnv, now: Date = new Date()): Promise<Response> {
   const unset = noSalt(env);
   if (unset) return unset;
-  const len = Number(req.headers.get("Content-Length") ?? NaN);
-  if (Number.isFinite(len) && len > LIMITS.bytes) return json({ ok: false, error: "report too large" }, 413);
-  let raw: string | null;
-  try {
-    raw = await readCapped(req, LIMITS.bytes);
-  } catch {
-    return json({ ok: false, error: "unreadable body" }, 400);
-  }
-  if (raw === null) return json({ ok: false, error: "report too large" }, 413);
-  let body: unknown;
-  try {
-    body = JSON.parse(raw);
-  } catch {
-    return json({ ok: false, error: "not JSON" }, 400);
-  }
-  const v = validateReport(body);
+  const b = await readJsonBody(req, LIMITS.bytes, "report too large");
+  if (!b.ok) return json({ ok: false, error: b.error }, b.status);
+  const v = validateReport(b.body);
   if (!v.ok) return json({ ok: false, error: v.error }, 400);
   const day = now.toISOString().slice(0, 10);
   // (T291) the tag counts on staging only; anywhere else it is dropped and the report is an ordinary one

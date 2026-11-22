@@ -21,8 +21,8 @@
 // Stored at private/push/tokens/<sha256(token)>.json — never backed up (backup.ts `personalKind`: "never"): a lost store
 // is rebuilt by the phones: one with notifications on registers its token again when it changed, or when its last
 // register is over PUSH_REFRESH_MS (7 days) old (packages/data notify/push.ts).
-import type { R2BucketLike } from "./io";
-import { dailyTotal, LIMIT_PREFIXES, listKeys, PUSH_NEW_TOKENS_PER_DAY_TOTAL, rateLimit, readCapped, sha256hex, noSalt, type ReportEnv } from "./reports";
+import { jsonResponse, readJsonBody, type R2BucketLike } from "./io";
+import { dailyTotal, LIMIT_PREFIXES, listKeys, PUSH_NEW_TOKENS_PER_DAY_TOTAL, rateLimit, sha256hex, noSalt, type ReportEnv } from "./reports";
 
 export const PUSH_PREFIX = "private/push/";
 export const TOKENS_PREFIX = `${PUSH_PREFIX}tokens/`;
@@ -71,8 +71,7 @@ const PARALLEL = 20;
 /** first errors kept per platform in the status */
 const KEEP_ERRORS = 5;
 
-const json = (body: unknown, status: number) =>
-  new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
+const json = jsonResponse;
 
 /** The payload, checked — or why it is refused (a 400). APNs tokens are hex (32 bytes today). Android is refused (no push). */
 export function validatePush(raw: unknown): { ok: true; platform: PushPlatform; token: string; env: PushEnvName } | { ok: false; error: string } {
@@ -97,12 +96,9 @@ export const tokenKey = async (token: string) => `${TOKENS_PREFIX}${(await sha25
 export async function handlePush(req: Request, env: PushEnv, action: "register" | "unregister", now: Date = new Date()): Promise<Response> {
   const unset = noSalt(env);
   if (unset) return unset;
-  let raw: string | null;
-  try { raw = await readCapped(req, MAX_BODY); } catch { return json({ ok: false, error: "unreadable body" }, 400); }
-  if (raw === null) return json({ ok: false, error: "too large" }, 413);
-  let body: unknown;
-  try { body = JSON.parse(raw); } catch { return json({ ok: false, error: "not JSON" }, 400); }
-  const v = validatePush(body);
+  const b = await readJsonBody(req, MAX_BODY, "too large");
+  if (!b.ok) return json({ ok: false, error: b.error }, b.status);
+  const v = validatePush(b.body);
   if (!v.ok) return json({ ok: false, error: v.error }, 400);
   const ip = req.headers.get("CF-Connecting-IP") ?? "unknown";
   let refused: string | null;
