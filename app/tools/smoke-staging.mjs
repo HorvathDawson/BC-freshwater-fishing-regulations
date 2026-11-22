@@ -21,6 +21,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { open } from './regs-web/cdp.mjs';
 import { project, TARGETS, HOME } from './map-tap.mjs';
+import { waitForRuleBook } from './smoke-rulebook.mjs';
 
 const args = process.argv.slice(2);
 const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
@@ -308,11 +309,12 @@ async function browser() {
       const before = b.requests.length;
       await until(b, `[...document.querySelectorAll('[aria-label^="Rule book page"]')].some((e) => e.getBoundingClientRect().width > 0)`, 20000, 'a "Rule book page N" link');
       must(await press(b, 'Rule book page', { prefix: true }), 'no "Rule book page" link');
-      await until(b, `typeof window.__pdf === 'string' && window.__pdf.startsWith('blob:') && window.__pdf.includes('#page=')`, 60000, 'the PDF to open (a blob URL at #page=N)');
+      // (T736) on a slow line the app asks before fetching 11.7 MB: answered like a user would, and said in the line
+      const asked = await waitForRuleBook(b, { press, sleep, ms: 60000 });
       const pdf = b.requests.slice(before).find((r) => /synopsis-[0-9a-f]+\.pdf/.test(r.url));
       must(!pdf || pdf.status === 200 || pdf.status === 304 || pdf.status === null, `synopsis request ${pdf?.url} → ${pdf?.status}`);
       await shot(b, '08-pdf');
-      return (await b.evaluate('window.__pdf')).replace(/^blob:[^#]+/, 'blob:…');
+      return `${(await b.evaluate('window.__pdf')).replace(/^blob:[^#]+/, 'blob:…')}${asked ? ` (${asked})` : ''}`;
     });
     const ex = b.errors.filter((e) => !/favicon/.test(e));
     // (T494) a TypeError is our code (or the map's) breaking, never the network: a FAIL. Anything else stays a WARN.
