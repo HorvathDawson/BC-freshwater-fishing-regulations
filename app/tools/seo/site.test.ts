@@ -136,10 +136,39 @@ describe("T193 + T269 water pages (the app's own pane) and About", () => {
   });
 
   it("pages refresh with each release: a new release id and date are in the page", async () => {
-    const next = await buildAll({ loader: openRegsFixture(), on: buildDayOf(new Date(2026, 10, 3, 12)) });
+    const next = await buildAll({ loader: openRegsFixture(), on: buildDayOf(new Date(2026, 10, 3, 12)), bare: true });
     const a = built.build.pages.find((p) => p.kind === "region")!, b = next.build.pages.find((p) => p.path === a.path)!;
     expect(text(b.html)).toContain("2026-11-03");
     expect(text(a.html)).toContain("2026-10-27");
+  }, 120_000);
+});
+
+/**
+ * (T866 S2) The builds of this file (and of gauges, gauges.share, legacy, appLinks) that read no water-page HTML, pane
+ * stylesheet or share picture are BARE (`bare: true`: no pane is drawn, no PNG; ~1.5 s, not ~9 s). That is sound only
+ * while a bare build is the full build minus exactly those: this pins it, over everything the bare-built tests read (each
+ * call was also checked against a full build with its own arguments when it switched, T866 notes).
+ * The full build `built` stays for what bare skips: the panes, their budget, the share cards, the static output.
+ */
+const sameAsFull = (b: Built) => {
+  const waterFiles = new Set(b.build.pages.filter((p) => p.kind === "water").map((p) => `${p.path.slice(1)}/index.html`));
+  const kept = ([k]: [string, unknown]) => !waterFiles.has(k) && !/^assets\/pane\./.test(k) && k !== "budget.json";
+  return {
+    pages: b.build.pages.map((p) => ({ path: p.path, kind: p.kind, hash: p.hash, title: p.title, description: p.description,
+                                       ...(p.kind === "water" ? {} : { html: p.html }) })),
+    snapshot: b.build.snapshot, models: b.build.models, slugMap: b.build.slugMap, removed: b.build.removed, regions: b.build.regions,
+    gauges: b.build.gauges, siteFiles: [...b.build.files].filter(kept).sort(), files: [...b.files].filter(kept).sort(),
+    legacy: b.legacy, problems: b.problems,
+  };
+};
+describe("(T866) a bare build", () => {
+  it("is the full build without the water panes and the share pictures: every page but a water page's HTML, the snapshot, hubs, redirects, sitemap and other files are equal", async () => {
+    const bare = await buildAll({ loader: openRegsFixture(), on: TODAY, bare: true });
+    expect(sameAsFull(bare)).toEqual(sameAsFull(built));
+    // and it skips what it says it skips (else the full build `built` checks nothing the bare ones do not)
+    expect(bare.binary.size).toBe(0);
+    expect(bare.build.pages.filter((p) => p.kind === "water").every((p) => p.html === "")).toBe(true);
+    expect(built.binary.size).toBeGreaterThan(20);
   }, 120_000);
 });
 
@@ -186,7 +215,7 @@ describe("T194 sitemap, robots, canonicals, structured data", () => {
   });
 
   it("lastmod moves only when a page's content hash moved", async () => {
-    const later = await buildAll({ loader: openRegsFixture(), on: buildDayOf(new Date(2026, 10, 3, 12)), previous: built.build.snapshot });
+    const later = await buildAll({ loader: openRegsFixture(), on: buildDayOf(new Date(2026, 10, 3, 12)), previous: built.build.snapshot, bare: true });
     const mod = (b: Built, path: string) => b.build.snapshot.pages[path]!.lastmod;
     const hashOf = (b: Built, path: string) => b.build.snapshot.pages[path]!.hash;
     const same = waters().filter((p) => hashOf(later, p.path) === hashOf(built, p.path)), moved = waters().filter((p) => hashOf(later, p.path) !== hashOf(built, p.path));
@@ -195,13 +224,13 @@ describe("T194 sitemap, robots, canonicals, structured data", () => {
     for (const p of moved) expect(mod(later, p.path), p.path).toBe("2026-11-03");  // a season turned: lastmod is the build day
     const a = same[0]!.path;
     const edited = { ...built.build.snapshot, pages: { ...built.build.snapshot.pages, [a]: { hash: "old", lastmod: "2026-01-01" } } };
-    const changed = await buildAll({ loader: openRegsFixture(), on: buildDayOf(new Date(2026, 10, 3, 12)), previous: edited });
+    const changed = await buildAll({ loader: openRegsFixture(), on: buildDayOf(new Date(2026, 10, 3, 12)), previous: edited, bare: true });
     expect(mod(changed, a)).toBe("2026-11-03");                 // the hash moved: lastmod is the build day
   }, 180_000);
 
   it("a slug, once committed, is the URL: a committed map is honoured and a removed water is reported for its 301", async () => {
     const slugMap = { version: 1 as const, waters: { ...built.build.slugMap.waters, "gnis:99999999": { slug: "long-gone-creek", region: 3 } } };
-    const again = await buildAll({ loader: openRegsFixture(), on: TODAY, slugMap });
+    const again = await buildAll({ loader: openRegsFixture(), on: TODAY, slugMap, bare: true });
     expect(again.build.removed).toEqual([{ id: "gnis:99999999", slug: "long-gone-creek", region: 3 }]);
     expect(again.files.get("_redirects")!.split("\n")[0]).toBe("/water/long-gone-creek /region/3 301");   // then the removed list pages
     expect(again.build.pages.map((p) => p.path)).toEqual(built.build.pages.map((p) => p.path));
@@ -223,7 +252,7 @@ describe("specific-regulation pages (topics)", () => {
 
 describe("T195 hubs and dated pages", () => {
   it("a big region's hub lists letters, not every water; the A-Z pages hold them all, each water is listed on a hub (small region) or a letter page", async () => {
-    const split = await buildAll({ loader: openRegsFixture(), on: TODAY, hubSplitAt: 5 });
+    const split = await buildAll({ loader: openRegsFixture(), on: TODAY, hubSplitAt: 5, bare: true });
     const hubs = split.build.pages.filter((p) => p.kind === "region"), letters = split.build.pages.filter((p) => p.kind === "letter");
     expect(letters.length).toBeGreaterThan(hubs.length);
     for (const h of hubs.filter((p) => (p.html.match(/waters-/g) ?? []).length > 0)) expect(h.html).not.toMatch(/href="\/water\//);
@@ -292,7 +321,7 @@ describe("T195 hubs and dated pages", () => {
       expect(text(svg), name).toContain(SHARE_LINE);
     }
     // and a build on a closed day and on an open day publish the same description
-    const later = await buildAll({ loader: openRegsFixture(), on: buildDayOf(new Date(2026, 6, 15, 12)) });
+    const later = await buildAll({ loader: openRegsFixture(), on: buildDayOf(new Date(2026, 6, 15, 12)), bare: true });
     const was = new Map(waters().map((p) => [p.path, p.description]));
     expect(later.build.pages.filter((p) => p.kind === "water").every((p) => was.get(p.path) === p.description)).toBe(true);
     // (T622 G23) the region in it is the water's own code, as the app names it ("Region 7A"); (T672 W4, owner
@@ -317,7 +346,7 @@ describe("T195 hubs and dated pages", () => {
                 "gnis:1": { slug: "gone", name: "Gone Creek", hash: "x", rules: "x" } },
     };
     delete (prev.waters as Record<string, unknown>)[ids[1]!];
-    const next = await buildAll({ loader: openRegsFixture(), on: TODAY, previous: prev });
+    const next = await buildAll({ loader: openRegsFixture(), on: TODAY, previous: prev, bare: true });
     const page = next.build.pages.find((p) => p.kind === "changes")!;
     const t = text(page.html);
     expect(t).toMatch(/Rules changed \(1\)/); expect(t).toMatch(/New waters \(1\)/); expect(t).toMatch(/no longer listed \(1\)/);
@@ -328,13 +357,13 @@ describe("T195 hubs and dated pages", () => {
     expect(next.files.get("sitemap-1.xml")).toContain("/changes");
     // a wording-only release: the page says so once and lists no water
     const words = { ...built.build.snapshot, release: "r-000000000000", waters: Object.fromEntries(Object.entries(built.build.snapshot.waters).map(([k, w]) => [k, { ...w, hash: "old" }])) };
-    const wt = text((await buildAll({ loader: openRegsFixture(), on: TODAY, previous: words })).build.pages.find((p) => p.kind === "changes")!.html);
+    const wt = text((await buildAll({ loader: openRegsFixture(), on: TODAY, previous: words, bare: true })).build.pages.find((p) => p.kind === "changes")!.html);
     expect(wt).toMatch(/Rules changed \(0\)/); expect(wt).toContain(`Wording updated on ${ids.length} waters: the rules there are the same.`);
     // a snapshot from before the rules hash is refused, naming the upgrade, never read as "every water changed"
     const before = { ...built.build.snapshot, release: "r-000000000000", waters: Object.fromEntries(Object.entries(built.build.snapshot.waters).map(([k, w]) => [k, { slug: w.slug, name: w.name, hash: w.hash }])) };
-    await expect(buildAll({ loader: openRegsFixture(), on: TODAY, previous: before as never })).rejects.toThrow(/no rules hash .*--snapshot-only --keep-pages/);
+    await expect(buildAll({ loader: openRegsFixture(), on: TODAY, previous: before as never, bare: true })).rejects.toThrow(/no rules hash .*--snapshot-only --keep-pages/);
     // another release with the same rules (a re-cut): nothing to say, so no page and no sitemap entry
-    const same = await buildAll({ loader: openRegsFixture(), on: TODAY, previous: { ...built.build.snapshot, release: "r-000000000000" } });
+    const same = await buildAll({ loader: openRegsFixture(), on: TODAY, previous: { ...built.build.snapshot, release: "r-000000000000" }, bare: true });
     expect(same.build.pages.some((p) => p.kind === "changes")).toBe(false);
     expect(same.files.get("sitemap-1.xml")).not.toContain("/changes");
   }, 180_000);

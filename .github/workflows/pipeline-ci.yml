@@ -55,7 +55,9 @@ jobs:
     needs: changes
     if: needs.changes.outputs.run == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Tests step on hosted runners, 2026-11-22: 10, 10, 11, 14.5, 17 min, one cut off past 17.5 (+ ~3 min setup), so 20
+    # cancelled a sound run; 30 keeps the stop on a hang with room for the runner's spread
+    timeout-minutes: 30
     # (T667) the interpreter scripts/test-env.sh runs: setup-python's `python` (on PATH from the step below). A hosted
     # runner has no .venv, the local default; test-env.sh stops naming PIPELINE_PY when neither runs.
     env: { PIPELINE_PY: python }

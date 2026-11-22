@@ -91,6 +91,7 @@ The design prototype (`app/design/`) was deleted in T87 (2026-10-28); git keeps 
 tickets → changelog (app.json's version has the newest changelog entry, `scripts/check-changelog.mjs`, T538) → boundaries → platform (pairs complete; no inline `Platform.OS` / `typeof window` outside `INLINE_ALLOWED`, README "Web and native code") → style → colours → spinner → coho (T814: the coho loader's committed sheets read back against the `color.ui.coho.*` tokens; `pnpm coho:build` re-renders them with the owner's `tools/fish-loader/fish_loader.py`) → adipose (T886: the hatch sheet's two drawings, the loader's coho at rest, `packages/ui-native/src/adipose/`, read back against `color.ui.coho.*` + `color.ui.accent`; `pnpm adipose:build` redraws them with `tools/fish-loader/adipose_art.py`) → splash → gauge-policy / calendar / fish / answers / pack / app-reads (T555: app.json's version has its row in `pipeline/deliver/release/app_reads.json` and it is what the code reads; a format moved needs a version bump, then `python -m pipeline.tools.emit.app_reads`)
 (generated files current) → deps → **knip** (no unused file, export or dependency; allowances with reasons in
 `knip.jsonc`) → typecheck (`tsc -b`, `noUnusedLocals`) → typecheck:seo → promises → test (vitest: packages, conformance, `tools/*.test.ts`).
+On CI the test step is 4 runners (`--shard=i/4`, T866); `tools/vitest-shards.mjs` proves each file runs in exactly one.
 `REGS_STORE_REQUIRED=1` makes the live-release suites fail instead of skip when no release is on disk, or when the release
 is not the one `taps.json` was cut from; `scripts/test-full.sh` (Tier 2) runs its app step with it set (T432), and a plain
 `pnpm check` does not. `tools/no-silent-skips.test.ts` counts every app skip site against its allowlist. `tools/vintage-pins.test.ts` refuses an id literal a new release would move.
@@ -112,6 +113,10 @@ the local server (`serve-tiles.mjs`, `pnpm tiles`), and the browser drivers for 
 `regs-census.mjs`, `regs-walk.mjs`, and `request-walk.mjs` — T129's pinned list of what a web visitor
 fetches per moment, `request-walk.pin.json`, priced against the release's `WEB_BUDGET` by `release-budget.test.ts`, and `a11y-walk.mjs` (T243: axe-core WCAG A/AA + a Tab focus walk per scene); they
 need Chrome and the running app).
+
+(T998) **The commit format:** `check-commits.mjs` (commitlint, `commitlint.config.mjs`; the types, the header length and
+the cutover in `versioning.json`, which the release command's bump reads too; the parse contract both sides are held
+to is `commits-contract.json`) runs in `.githooks/commit-msg`, `scripts/before_push.py` and docs-ci's `commits` job.
 
 Source maps (T352, `sourcemaps.mjs`): the web export (`export:web*`, `--source-maps`) and `deploy/staging/build-apk.sh`
 (the Hermes map) keep their maps per build in `data/sourcemaps/<version>-b<build>-<sha7>/` (gitignored, never served);

@@ -24,7 +24,10 @@ seen only after the push. The steps:
   4. the app's TREE SCANNERS: every app/tools/*.test.ts that reads the tree off disk (the class that failed app-ci 53
      times: failures.test.ts, back-layers, one-water-screen …), found by the same grep each run;
   5. the feeds worker suite (app-ci's "Feeds worker tests"; not in the pnpm workspace, so `pnpm check` skips it);
-  6. docs-ci's vitest step: the ticket guard's own tests and the start-here page (T995 review).
+  6. docs-ci's vitest step: the ticket guard's own tests and the start-here page (T995 review);
+  0. (T998) FIRST, ALWAYS: every commit about to be pushed follows Conventional Commits (`node
+     app/tools/check-commits.mjs --range …`, the commit-msg hook's check and docs-ci's `commits` job): the commits on
+     HEAD that origin/main does not have, or, as the pre-push hook, the commits of each pushed ref.
 
 Not here, said at the end: app-ci's whole vitest suite (--app-suite adds it) and its web / native bundle exports.
 
@@ -36,7 +39,8 @@ ticket guard (`node app/tools/check-tickets.mjs`) always runs — inside step 3 
 so a docs / handoff-only push takes seconds. `BEFORE_PUSH_SKIP=<reason>` skips every step and prints the reason (the
 release command's own pushes: its preflight ran these checks); an empty reason is refused.
 
-THE HOOKS ARE VERSIONED (T995, owner 2026-11-21): `.githooks/pre-push` runs `--changed`, `.githooks/commit-msg` is T998's.
+THE HOOKS ARE VERSIONED (T995, owner 2026-11-21): `.githooks/pre-push` runs `--changed`, `.githooks/commit-msg` checks the
+message (T998: Conventional Commits, `app/tools/check-commits.mjs --edit`).
 They are on once a clone says `git config core.hooksPath .githooks` (`--hook` prints it; nothing is installed here).
 `git push --no-verify` is the emergency skip, said in the commit or PR. Output is unfiltered (never through rtk: it has
 reported false passes).
@@ -65,7 +69,8 @@ TESTS = "Tests"
 SCANS = re.compile(r"readFileSync|readdirSync")
 #: what makes a pipeline test a source scanner (fast-fail's `source_scanners` grep)
 PY_SCANS = re.compile(r'rglob\("\*\.py"\)|glob\("\*\*/\*\.py"\)|_py_sources\(|walk\(.*pipeline')
-HOOK = """# (T995) the hooks are versioned in .githooks/: pre-push runs `scripts/before_push.py --changed`, commit-msg is T998's.
+HOOK = """# (T995) the hooks are versioned in .githooks/: pre-push runs `scripts/before_push.py --changed`, commit-msg checks
+# the message follows Conventional Commits (T998: node app/tools/check-commits.mjs --edit).
 # Turn them on once per clone (every worktree of it shares the setting):
 git config core.hooksPath .githooks
 # skip once, in an emergency only (say so in the commit or the PR): git push --no-verify
@@ -76,6 +81,15 @@ TICKETS = ("node", "app/tools/check-tickets.mjs")
 DOCS_TESTS = ("tools/check-tickets.test.ts", "tools/start-here.test.ts")
 #: (T995) skips every step, its reason printed: the release command's own pushes (its preflight ran these checks)
 SKIP_ENV = "BEFORE_PUSH_SKIP"
+#: (T998) the commit-message step's name: it runs first, whatever the change
+COMMITS = "commit messages (Conventional Commits: node app/tools/check-commits.mjs)"
+
+
+def commits_step(ranges: list[str] | None = None) -> "Step":
+    """(T998) every commit of these ranges follows Conventional Commits; default: the branch's commits that the trunk
+    does not have (`origin/main..HEAD`)."""
+    ranges = [f"{CP.REMOTE}/{CP.TRUNK}..HEAD"] if ranges is None else ranges
+    return Step(COMMITS, ("node", "app/tools/check-commits.mjs", *(x for r in ranges for x in ("--range", r))))
 
 
 @dataclass(frozen=True)
@@ -137,7 +151,14 @@ def pushed_paths(lines: list[str], trunk: str = CP.TRUNK) -> tuple[list[str], li
     ref> <remote sha>`. A delete (local sha zero) and a tag push check nothing; a branch checks the commits it sends —
     `<remote sha>..<local sha>`, or, for a new branch (or a remote sha this clone does not hold), everything since its
     merge base with origin/main. (what was pushed, one line per ref; every path those commits change)"""
-    said, paths = [], set()
+    said, paths, _ = pushed(lines, trunk)
+    return said, paths
+
+
+def pushed(lines: list[str], trunk: str = CP.TRUNK) -> tuple[list[str], list[str], list[str]]:
+    """`pushed_paths`, and (T998) the commit range of each pushed branch (`<base>..<local sha>`): the commits whose
+    messages the hook checks."""
+    said, paths, ranges = [], set(), []
     for ln in lines:
         parts = ln.split()
         if len(parts) != 4:
@@ -156,7 +177,8 @@ def pushed_paths(lines: list[str], trunk: str = CP.TRUNK) -> tuple[list[str], li
         said.append(f"{rref}: {len(got)} path(s) in {base[:12]}..{lsha[:12]}"
                     + ("" if known else f" (since the merge base with {CP.REMOTE}/{trunk})"))
         paths |= set(got)
-    return said, sorted(paths)
+        ranges.append(f"{base}..{lsha}")
+    return said, sorted(paths), ranges
 
 
 def changed_paths(trunk: str = CP.TRUNK) -> tuple[str, list[str]]:
@@ -172,14 +194,16 @@ def changed_paths(trunk: str = CP.TRUNK) -> tuple[str, list[str]]:
 
 
 def plan(tier: bool = True, app_suite: bool = False, steps: list[dict] | None = None,
-         areas: set[str] | None = None) -> list[Step]:
-    """Every step, or (T995, `areas` given) only those of the areas changed — the ticket guard always."""
+         areas: set[str] | None = None, ranges: list[str] | None = None) -> list[Step]:
+    """Every step, or (T995, `areas` given) only those of the areas changed — the commit messages (T998, over `ranges`)
+    and the ticket guard always."""
     if areas is not None:
-        out = [] if "app" in areas else [Step("ticket guard (node app/tools/check-tickets.mjs)", TICKETS)]
+        out = [commits_step(ranges)]
+        out += [] if "app" in areas else [Step("ticket guard (node app/tools/check-tickets.mjs)", TICKETS)]
         full = plan(tier=tier, app_suite=app_suite, steps=steps)
-        return out + [s for s in full if step_area(s) in areas]
+        return out + [s for s in full if s.name != COMMITS and step_area(s) in areas]
     steps = workflow_steps() if steps is None else steps
-    out: list[Step] = []
+    out: list[Step] = [commits_step(ranges)]
     for s in steps:
         name = s.get("name")
         if not name or "run" not in s or name in SKIP or name == TESTS:
@@ -210,7 +234,7 @@ def step_area(step: Step) -> str:
     """(T995) the CI area a step stands for (scripts/ci_paths.py AREAS): what `--changed` keeps it by."""
     if step.name.startswith(("CI: ", "the pipeline's source scanners")):
         return "pipeline"
-    if step.name.startswith("docs: "):
+    if step.name.startswith("docs: ") or step.name == COMMITS:      # (T998) docs-ci's `commits` job runs it on CI
         return "docs"
     if step.name.startswith("feeds worker"):
         return "feeds-worker"
@@ -272,9 +296,9 @@ def main(argv=None, runner=run_step, stdin=sys.stdin) -> int:
             return 2
         print(f"before-push: SKIPPED (nothing run): {skip}")
         return 0
-    areas = None
+    areas, ranges = None, None
     if a.pre_push:
-        said, paths = pushed_paths(stdin.read().splitlines())
+        said, paths, ranges = pushed(stdin.read().splitlines())
         for ln in said:
             print(f"before-push --pre-push: {ln}")
         if not paths and all(("a delete" in x or "a tag" in x) for x in said):
@@ -289,7 +313,7 @@ def main(argv=None, runner=run_step, stdin=sys.stdin) -> int:
         areas = CP.areas_of(paths)
         print(f"before-push --changed: {len(paths)} path(s) since {base[:12]} (the merge base with "
               f"{CP.REMOTE}/{CP.TRUNK}); areas: {', '.join(sorted(areas)) or 'none (the ticket guard only)'}")
-    steps = plan(tier=not a.no_tier, app_suite=a.app_suite, areas=areas)
+    steps = plan(tier=not a.no_tier, app_suite=a.app_suite, areas=areas, ranges=ranges)
     if a.only:
         steps = [s for s in steps if re.search(a.only, s.name)]
         if not steps:

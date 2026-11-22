@@ -69,7 +69,8 @@ def message(p: Mapping) -> str:
                       + (f" — {m['note']}" if m.get("note") else "") for m in p["marks"])
     conf = f"Confidence: {p['confidence']}.\n" if p.get("confidence") else ""
     side = (f"Side rebuild: {P.side_dir(p)}.\n" if p.get("_side") else "")
-    return (f"T185 apply {p['id']}: {p['title']}"[:200] + "\n\n"
+    # (T998) a Conventional Commits subject, at most 100 (the commit-msg hook and the PR's check read it)
+    return (f"fix(T185): apply {p['id']}: {p['title']}"[:100].rstrip() + "\n\n"
             f"From the owner's marks (the marks are the decision, proposal digest {p['digest']}):\n"
             f"{marks}\n{conf}{side}" + "\n".join(check_words(p.get("check"))) + "\n")
 

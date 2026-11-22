@@ -1,0 +1,21 @@
+{
+  "$comment": "(T998) THE COMMIT FORMAT AND THE VERSION BUMP, typed once. Read by app/tools/commitlint.config.mjs (the types commitlint allows, the header length), app/tools/check-commits.mjs (the exempt history) and pipeline/release_version.py (the bump the release command computes). `bump`: the Conventional Commits types and what each does to the app version (null: no bump); a `!` after the type or a `BREAKING CHANGE:` footer is major (before 1.0.0: minor). `cutover`: the first conventional commit on main; it and everything before it is exempt, as is each `exempt` commit and its ancestors (history that joined main without passing the check). `base`: the app version at the cutover, the bump's base until the first v* tag. `headerMax`: a commit header's (and a PR title's, with its ' (#N)') longest length.",
+  "cutover": "b5dd8ade32cff136bf17a9df9d1a7dedac655494",
+  "base": "0.8.5",
+  "exempt": {
+    "ca7c0cce7ae88f5257646388b8a4fb7ba0da326a": "the T995 switch (2026-11-18): the old main's one commit d6a5ca528 (2026-08-04, superseded) merged under the dev branch's tree; it joined the trunk's history through c374b91fd, after the cutover"
+  },
+  "bump": {
+    "feat": "minor",
+    "fix": "patch",
+    "perf": "patch",
+    "docs": null,
+    "chore": null,
+    "ci": null,
+    "test": null,
+    "refactor": null,
+    "build": null,
+    "style": null
+  },
+  "headerMax": 100
+}

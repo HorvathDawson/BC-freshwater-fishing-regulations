@@ -60,7 +60,7 @@ def test_ci_jobs_have_timeouts_and_the_ci_workflows_cancel_superseded_runs():
     app, pipe = _load("app-ci.yml"), _load("pipeline-ci.yml")
     assert {j: d["timeout-minutes"] for j, d in app["jobs"].items()} == {"changes": 5, "gates": 20, "vitest": 25,
                                                                          "bundles": 15, "ok": 5}
-    assert pipe["jobs"]["check"]["timeout-minutes"] == 20
+    assert pipe["jobs"]["check"]["timeout-minutes"] == 30
     for name in ("app-ci.yml", "docs-ci.yml", "feeds-worker-ci.yml"):
         assert _load(name)["concurrency"]["cancel-in-progress"] is True, name
     for f in sorted(WF.glob("*.yml")):
@@ -97,10 +97,35 @@ def test_app_ci_is_parallel_jobs_and_no_step_masks_another():
     assert all(d["needs"] == "changes" for j, d in app.items() if j not in ("changes", "ok"))   # no job waits on another
     app = {j: d for j, d in app.items() if j not in ("changes", "ok")}
     runs = {j: [s.get("run", "") for s in d["steps"]] for j, d in app.items()}
-    assert "pnpm run check:fast" in runs["gates"] and "pnpm run test" in runs["vitest"]
+    assert "pnpm run check:fast" in runs["gates"]
     native = [s for s in app["bundles"]["steps"] if "expo export" in s.get("run", "")]
     assert native and native[0]["if"] == "${{ !cancelled() }}"
     assert _load("feeds-worker-ci.yml")["jobs"]["worker"]["steps"][-1]["run"] == "npx vitest run --root ."
+
+
+def test_app_vitest_is_sharded_and_every_file_runs_in_exactly_one_leg():
+    """(T866 S1) the app suite on N runners. The shard count is the matrix's length, typed once (`strategy.job-total`
+    everywhere else): a `/4` typed beside a 3-leg matrix would leave a quarter of the files unrun with every leg green.
+    No leg cancels another (each one's failures are listed); each leg proves the slices partition the file list before
+    it runs, and that it ran its slice after (tools/vitest-shards.mjs, whose own tests plant the faults); `app ok` needs
+    the job, whose result is every leg's (test_every_ci_workflow_runs_on_every_pr_and_ends_in_one_required_check)."""
+    job = _load("app-ci.yml")["jobs"]["vitest"]
+    legs = job["strategy"]["matrix"]["shard"]
+    assert legs == list(range(1, len(legs) + 1)) and len(legs) >= 2, legs
+    assert job["strategy"]["fail-fast"] is False and set(job["strategy"]) == {"fail-fast", "matrix"}
+    assert set(job["strategy"]["matrix"]) == {"shard"}                     # no other axis multiplies the legs
+    assert job["name"] == "vitest (${{ matrix.shard }}/${{ strategy.job-total }})"
+    runs = [s["run"] for s in job["steps"] if "run" in s]
+    n = "${{ strategy.job-total }}"
+    assert runs == [f"node tools/vitest-shards.mjs {n}",
+                    f"pnpm run test --shard=${{{{ matrix.shard }}}}/{n} --reporter=default --reporter=json"
+                    " --outputFile.json=../vitest-shard.json",
+                    f"node tools/vitest-shards.mjs {n} --ran ${{{{ matrix.shard }}}} ../vitest-shard.json"], runs
+    assert job["steps"][-1]["if"] == "${{ !cancelled() }}"                  # it reports after a red test step too
+    # (T866 review) a red leg is a red job: `continue-on-error` on the job or a step would make a failed leg "success"
+    # in `needs`, and `app ok` would pass over it
+    assert "continue-on-error" not in job and not [s for s in job["steps"] if "continue-on-error" in s]
+    assert "vitest" in _load("app-ci.yml")["jobs"]["ok"]["needs"]
 
 
 def test_every_workflow_has_least_privilege_and_no_input_is_spliced_into_shell():
@@ -180,7 +205,8 @@ def test_every_ci_workflow_runs_on_every_pr_and_ends_in_one_required_check():
         on = _on(doc)
         assert on["push"]["branches"] == [CP.TRUNK, CP.RELEASE_PREFIX + "**"], name
         assert on["push"]["paths"] == CP.AREAS[area], name                   # the area, word for word
-        assert on["pull_request"] is None, name                               # no filter: it always runs
+        # no filter: it always runs ((T998) docs-ci names its event types, the defaults + `edited`: no path filter)
+        assert on["pull_request"] == ({"types": CP.PR_TYPES[area]} if area in CP.PR_TYPES else None), name
         jobs = doc["jobs"]
         ch = jobs["changes"]
         assert "needs" not in ch and "if" not in ch and ch["outputs"] == {"run": "${{ steps.c.outputs.run }}"}
@@ -189,8 +215,13 @@ def test_every_ci_workflow_runs_on_every_pr_and_ends_in_one_required_check():
         assert ch["steps"][0]["with"]["fetch-depth"] == 0, name                # the PR's merge base is in the clone
         real = [j for j in jobs if j not in ("changes", "ok")]
         assert real, name
+        every = CP.EVERY_PR.get(area, [])
         for j in real:
+            if j in every:                    # (T998) runs on every pull request, whatever it touched
+                assert "needs" not in jobs[j] and jobs[j]["if"] == "github.event_name == 'pull_request'", (name, j)
+                continue
             assert jobs[j]["needs"] == "changes" and jobs[j]["if"] == "needs.changes.outputs.run == 'true'", (name, j)
+        assert set(every) <= set(real), name
         ok = jobs["ok"]
         assert list(jobs)[-1] == "ok" and ok["name"] == CP.REQUIRED[area], name
         assert ok["if"] == "always()" and ok["needs"] == ["changes", *real], name
@@ -308,6 +339,27 @@ def test_the_area_pin_fails_on_a_read_its_area_misses(tmp_path):
     assert _uncovered(reads, lambda name: CP.AREAS["pipeline"]) == []
 
 
+def test_every_pr_checks_its_commits_and_title_through_the_hooks_own_check():
+    """(T998) docs-ci's `commits` job: every commit of the PR (base..head) and the title as its merge commit, through
+    the commit-msg hook's command; the event fields reach it through env only; it reports inside `docs ok`."""
+    doc = _load("docs-ci.yml")
+    job = doc["jobs"]["commits"]
+    assert "commits" in doc["jobs"]["ok"]["needs"]
+    assert job["steps"][0]["with"]["fetch-depth"] == 0
+    run = job["steps"][-1]
+    assert run["run"] == ('node tools/check-commits.mjs --range "$BASE_SHA..$HEAD_SHA" --title "$PR_TITLE" '
+                          '--number "$PR_NUMBER"')
+    assert run["env"] == {"BASE_SHA": "${{ github.event.pull_request.base.sha }}",
+                          "HEAD_SHA": "${{ github.event.pull_request.head.sha }}",
+                          "PR_TITLE": "${{ github.event.pull_request.title }}",
+                          "PR_NUMBER": "${{ github.event.pull_request.number }}"}
+    hook = (WF.parents[1] / ".githooks" / "commit-msg").read_text()
+    assert 'exec node app/tools/check-commits.mjs --edit "$msg"' in hook
+    # (T998 review) the committing worktree's root, not the hook file's (core.hooksPath may be the main checkout's)
+    assert "root=$(git rev-parse --show-toplevel)" in hook and "dirname" not in hook
+    assert "unset $(git rev-parse --local-env-vars) GIT_QUARANTINE_PATH" in hook
+    # git's variables are dropped before the root lookup (a stale GIT_DIR must not pick the checkout)
+    assert hook.index("unset $(git rev-parse") < hook.index("root=$(git rev-parse --show-toplevel)")
 
 def test_run_timing_publish_refuses_when_the_release_moved_since_it_bound():
     """(T485 step 3) a run without a `tiles` input re-reads release/manifest.json before step 7 and fails, said, when the

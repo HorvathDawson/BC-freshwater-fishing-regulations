@@ -336,7 +336,7 @@ def test_apply_lands_each_proposal_from_the_marks_as_its_own_commit(src, tmp_pat
     # no side rebuild yet: only the proposal that changes no cut lands, after its binding check
     assert A.main(_decided_args(store)) == 0
     assert _git(repo, "log", "--format=%s").splitlines() == [
-        f"T185 apply {hz['id']}: {hz['title']}"[:200], "base"]
+        f"fix(T185): apply {hz['id']}: {hz['title']}"[:100].rstrip(), "base"]
     assert checked == [hz["id"]]
     body = _git(repo, "log", "-1", "--format=%b")
     assert "the marks are the decision" in body and "r1: 4 -> 92 sections" in body
@@ -344,7 +344,7 @@ def test_apply_lands_each_proposal_from_the_marks_as_its_own_commit(src, tmp_pat
     side["ready"] = True
     assert A.main(_decided_args(store)) == 0
     log = _git(repo, "log", "--format=%s").splitlines()
-    assert log == [f"T185 apply {q['id']}: {q['title']}"[:200]
+    assert log == [f"fix(T185): apply {q['id']}: {q['title']}"[:100].rstrip()
                    for q in (cow, camp_a, camp_b, by["split-n1"], by["split-n2"], hz)] + ["base"]
     assert checked == [hz["id"]]                       # cut changes are bound on the side atlas
     assert _git(repo, "show", "--name-only", "--format=", "HEAD~4").split() == [
