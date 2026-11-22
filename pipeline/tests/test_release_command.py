@@ -11,6 +11,7 @@ import pytest
 
 from pipeline import build as B
 from pipeline import release as R
+from pipeline import release_version as RV
 
 LIVE, NEW = "r-live00000000", "r-new000000000"
 
@@ -127,6 +128,9 @@ def world(tmp_path: Path, monkeypatch):
     # w["remote_tags"] on origin (a push copies a local tag there)
     w["version"], w["tag_at"], w["remote_tags"], w["made_tags"], w["pushed_tags"] = "0.9.0", {}, {}, [], []
     monkeypatch.setattr(R, "app_version", lambda: w["version"])
+    # (T998) what the commits compute: by default the version app.json names (a feat since the cutover)
+    monkeypatch.setattr(R, "version_decision", lambda: w.get("decision") or RV.decide(
+        "0.8.5", "the cutover b5dd8ade3", [_commit(f"feat(T998): what {w['version']} brings")]))
     monkeypatch.setattr(R, "tag_commit", lambda tag: w["tag_at"].get(tag))
     monkeypatch.setattr(R, "remote_tag_commit", lambda tag: w["remote_tags"].get(tag))
     monkeypatch.setattr(R, "is_ancestor", lambda a, b: (a, b) in w.get("ancestors", set()))
@@ -237,6 +241,11 @@ def world(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(R, "staging_release", lambda: w["staging_serves"])
     monkeypatch.setattr(R, "after_chores", lambda rid: f"after the release: chores for {rid}")
     return w
+
+
+def _commit(message: str, paths=("app/apps/mobile/src/a.tsx",), sha: str = "c0ffee0000000000") -> RV.Commit:
+    """(T998) one commit as the version decision reads it (an app path unless told otherwise)."""
+    return RV.Commit(sha, ("p",), message, tuple(paths))
 
 
 def _staging(**kw) -> int:
@@ -981,8 +990,9 @@ def test_the_rehearsal_walks_every_stages_checks_and_lists_the_stops(world, caps
 def test_the_rehearsal_and_the_run_read_one_preflight_table(world, capsys):
     """By construction: a check added to PREFLIGHT is in both. Every check's failure shows in the rehearsal with the
     words the real run stops with."""
-    assert [n for n, _ in R.PREFLIGHT] == ["committed", "atlas", "marks", "wrong-saves", "classified", "pushed", "ci",
-                                           "live", "min-app", "site", "pieces", "fast-fail", "fresh-copy"]
+    assert [n for n, _ in R.PREFLIGHT] == ["committed", "atlas", "marks", "wrong-saves", "classified", "pushed",
+                                           "version", "ci", "live", "min-app", "site", "pieces", "fast-fail",
+                                           "fresh-copy"]
     world["pushed"], world["site_problems"], world["fast_fail_rc"] = False, ["site 0.6.9 < 0.7.0"], 1
     assert _staging() == 1
     real = capsys.readouterr()
@@ -1690,23 +1700,63 @@ def test_prod_refuses_a_release_never_tagged_at_ship(staged, monkeypatch, capsys
 
 @pytest.fixture
 def cutting(monkeypatch):
-    w = {"cuts": [], "remote": set(), "main_version": "0.8.5", "fetched": 0}
+    w = {"cuts": [], "remote": set(), "fetched": 0, "commits": [],
+         "decision": RV.decide("0.8.5", "the cutover b5dd8ade3", [_commit("feat(T985): a new layer")])}
     monkeypatch.setattr(R, "fetch_trunk", lambda: w.__setitem__("fetched", w["fetched"] + 1))
     monkeypatch.setattr(R, "remote_ref_exists", lambda ref: ref in w["remote"])
-    monkeypatch.setattr(R, "trunk_app_version", lambda: (w["main_version"], w.get("why", "")))
-    monkeypatch.setattr(R, "cut_branch", lambda b: w["cuts"].append(b) or 0)
+    monkeypatch.setattr(R, "trunk_decision", lambda: w["decision"])
+    monkeypatch.setattr(R, "version_commit", lambda v, d: w["commits"].append(v) or "ab12cd34ef5600000")
+    monkeypatch.setattr(R, "cut_branch", lambda b, commit=None: w["cuts"].append((b, commit)) or 0)
+    monkeypatch.setattr(R, "is_tty", lambda: True)
+    monkeypatch.setattr(R, "today", lambda: "2026-11-22")
     return w
 
 
-def test_cut_makes_the_release_branch_from_a_fresh_main(cutting, capsys):
-    assert R.main(["--cut", "0.9.0"]) == 0
+def test_cut_computes_the_version_prints_its_commits_and_asks_the_owner(cutting, capsys):
+    """(T998) a bare --cut: the computed version and the commits that decided it, then the owner types it; the branch
+    is made at the version commit (app.json, package.json, the changelog entry), and pushed."""
+    asked = []
+    assert R.cut(None, ask=lambda q: asked.append(q) or "0.9.0") == 0
     out = capsys.readouterr().out
-    assert cutting["fetched"] == 1 and cutting["cuts"] == ["release/0.9.0"]
+    assert asked == ["type 0.9.0 to cut release/0.9.0 with it: "]
+    assert "0.9.0: 0.8.5 + minor, from 1 app commit(s) since the cutover b5dd8ade3" in out
+    assert "c0ffee000000 feat(T985): a new layer" in out
+    assert cutting["fetched"] == 1 and cutting["commits"] == ["0.9.0"]
+    assert cutting["cuts"] == [("release/0.9.0", "ab12cd34ef5600000")]
     assert "release: release/0.9.0 cut from origin/main and pushed. Next: git switch release/0.9.0" in out
-    assert "app.json on main says 0.8.5: the branch's first commit sets expo.version 0.9.0" in out
-    cutting["main_version"], cutting["why"], cutting["remote"] = None, "git show origin/main:… failed (rc=128)", set()
-    assert R.main(["--cut", "0.9.1"]) == 0
-    assert "could not read the app version on main (git show origin/main:… failed (rc=128))" in capsys.readouterr().out
+    assert "its first commit (ab12cd34ef56) sets expo.version 0.9.0 (app.json + package.json), opens the anglers' " \
+           "entry in app/packages/core/src/changelog.ts (EMPTY" in out
+    assert R.cut(None, ask=lambda q: "0.9.1") == 2 and "did not match; nothing was made" in capsys.readouterr().err
+    assert len(cutting["cuts"]) == 1
+
+
+def test_a_hand_set_version_that_disagrees_is_refused_naming_both(cutting, capsys):
+    """(T998) Mutation: drop the comparison (`RV.accepts`) and 0.9.1 / 0.8.6 are cut: this fails."""
+    for typed in ("0.9.1", "0.8.6", "1.0.1"):
+        assert R.main(["--cut", typed]) == 1
+        err = capsys.readouterr().err
+        assert f"release --cut: refused: {typed} is set by hand, but the commits compute 0.9.0 (0.8.5 + minor)" in err
+    assert cutting["cuts"] == [] and cutting["commits"] == []
+    assert R.main(["--cut", "0.9.0"]) == 0 and cutting["cuts"] == [("release/0.9.0", "ab12cd34ef5600000")]
+    assert "release --cut: 0.9.0 is the version the commits compute" in capsys.readouterr().out
+    assert R.main(["--cut", "1.0.0"]) == 0                                   # the owner's launch version (T998)
+    assert "1.0.0: the first open Play / App Store release, the owner's call" in capsys.readouterr().out
+
+
+def test_cut_says_when_there_is_no_app_release_and_never_cuts_without_the_owner(cutting, capsys, monkeypatch):
+    cutting["decision"] = RV.decide("0.8.5", "the cutover b5dd8ade3", [_commit("docs(T1): a"), _commit("ci(T2): b")])
+    assert R.main(["--cut"]) == 1
+    err = capsys.readouterr().err
+    assert "release --cut: no app release: nothing since the cutover b5dd8ade3 bumps the app" in err
+    assert "python -m pipeline release --cut --data-only" in err and cutting["cuts"] == []
+    cutting["decision"] = RV.decide("0.8.5", "x", [_commit("fix(T1): a")])
+    monkeypatch.setattr(R, "is_tty", lambda: False)                         # no terminal: say the command, cut nothing
+    assert R.main(["--cut"]) == 2 and "run: python -m pipeline release --cut 0.8.6" in capsys.readouterr().err
+    assert R.main(["--cut", "--dry-run"]) == 0
+    assert "would cut release/0.8.6 once you confirm it; nothing was made" in capsys.readouterr().out
+    cutting["decision"] = RV.decide("0.8.5", "x", [_commit("T994 fix x")])
+    assert R.main(["--cut", "0.8.6"]) == 1 and "not in the format" in capsys.readouterr().out
+    assert cutting["cuts"] == []
 
 
 def test_cut_refuses_an_existing_branch_a_shipped_version_and_a_bad_version(cutting, capsys):
@@ -1715,7 +1765,68 @@ def test_cut_refuses_an_existing_branch_a_shipped_version_and_a_bad_version(cutt
     cutting["remote"] = {"refs/tags/v0.9.0"}
     assert R.main(["--cut", "0.9.0"]) == 1 and "v0.9.0 is tagged already" in capsys.readouterr().err
     assert R.main(["--cut", "0.9"]) == 2 and "is not x.y.z" in capsys.readouterr().err
-    assert cutting["cuts"] == []
+    assert cutting["cuts"] == [] and cutting["fetched"] == 2
+
+
+def test_a_data_only_cut_makes_the_days_branch_at_main_and_refuses_app_changes(cutting, capsys):
+    """(T998 item 6) release/data-<date> from origin/main itself (no version commit), only when no app commit bumps."""
+    assert R.main(["--cut", "--data-only"]) == 1
+    assert "refused: app commits since the cutover b5dd8ade3 bump the app to 0.9.0" in capsys.readouterr().err
+    cutting["decision"] = RV.decide("0.8.5", "the cutover b5dd8ade3", [
+        _commit("fix(T931): a pipeline fix", paths=("pipeline/regs/x.py",)), _commit("docs(T1): notes")])
+    assert R.main(["--cut", "--data-only"]) == 0
+    out = capsys.readouterr().out
+    assert cutting["cuts"] == [("release/data-2026-11-22", None)] and cutting["commits"] == []
+    assert "a data-only release: app.json stays 0.8.5; the ship tags only data/<r-id>" in out
+    cutting["remote"] = {"refs/heads/release/data-2026-11-22"}
+    assert R.main(["--cut", "--data-only"]) == 1 and "exists on origin already" in capsys.readouterr().err
+    with pytest.raises(SystemExit):
+        R.main(["--cut", "0.9.0", "--data-only"])
+
+
+def test_the_version_commit_sets_the_version_opens_the_entry_and_writes_the_changelog(tmp_path, monkeypatch):
+    """(T998) on real git, with no checkout: one commit on origin/main changing exactly the four files; the version
+    strings and nothing else; an empty draft entry first; CHANGELOG.md grouped by type. Nothing else moves."""
+    import subprocess
+    env = {k: v for k, v in __import__("os").environ.items() if not k.startswith("GIT_")}
+    git = ["git", "-c", "user.email=t@t", "-c", "user.name=t", "-c", "init.defaultBranch=main", "-c",
+           "commit.gpgsign=false"]
+    here = tmp_path / "here"
+    subprocess.run([*git, "init", "-q", str(here)], check=True, env=env)
+    run = lambda *a: subprocess.run([*git, *a], cwd=here, check=True, capture_output=True, text=True,   # noqa: E731
+                                    env=env).stdout.strip()
+    real = Path(R.REPO_ROOT)
+    for rel in (R.APP_JSON_REL, R.APP_PKG_REL, R.CHANGELOG_TS):
+        (here / rel).parent.mkdir(parents=True, exist_ok=True)
+        (here / rel).write_text((real / rel).read_text())
+    run("add", ".")
+    run("commit", "-qm", "base", "--no-verify")
+    run("update-ref", "refs/remotes/origin/main", "HEAD")
+    head = run("rev-parse", "HEAD")
+    monkeypatch.setattr(R, "REPO_ROOT", str(here))
+    for k in [k for k in __import__("os").environ if k.startswith("GIT_")]:
+        monkeypatch.delenv(k)
+    old = R.CP.app_version(here / R.APP_JSON_REL)
+    d = RV.decide(old, "the cutover b5dd8ade3", [_commit("feat(T985): a layer"), _commit("fix(T1): a bug")])
+    sha = R.version_commit("9.9.9", d, day="2026-11-22")
+    assert run("rev-parse", "HEAD") == head and run("status", "--porcelain") == ""          # nothing else moved
+    assert run("rev-parse", f"{sha}^") == head
+    assert sorted(run("diff", "--name-only", head, sha).split()) == sorted(
+        [R.APP_JSON_REL, R.APP_PKG_REL, R.CHANGELOG_TS, R.CHANGELOG_MD])
+    diff = run("diff", "-U0", head, sha, "--", R.APP_JSON_REL, R.APP_PKG_REL)
+    assert [ln for ln in diff.splitlines() if ln[:1] in "+-" and ln[:3] not in ("+++", "---")] == [
+        f'-    "version": "{old}",', '+    "version": "9.9.9",', f'-  "version": "{old}",', '+  "version": "9.9.9",']
+    ts = run("show", f"{sha}:{R.CHANGELOG_TS}")
+    entry = ts[ts.index(R.CHANGELOG_OPEN) + len(R.CHANGELOG_OPEN):].split("  },", 1)[0]
+    assert 'version: "9.9.9", date: "2026-11-22", draft: true, notes: [\n    ],' in entry
+    md = run("show", f"{sha}:{R.CHANGELOG_MD}")
+    assert md.startswith(RV.CHANGELOG_TITLE) and "## 9.9.9 (2026-11-22)" in md and "### Features" in md
+    msg = run("log", "-1", "--format=%B", sha)
+    assert msg.startswith("chore(release): 9.9.9, its version in app.json and package.json, a draft changelog entry")
+    assert RV.parse(msg).type == "chore" and not RV.is_ignored(msg) and len(RV.header_of(msg)) <= 100
+    assert R.with_changelog_entry(ts, "9.9.9", "x") == ts                   # an entry already there stays
+    with pytest.raises(RuntimeError, match="its version is not written once"):
+        R.with_version('{"expo": {"version": "1.0.0"}, "x": {"version": "1.0.0"}}', R.APP_JSON_REL, "2.0.0")
 
 
 def test_the_release_pushes_go_to_the_release_branch_and_skip_the_hook_saying_why(monkeypatch):
@@ -1789,3 +1900,64 @@ def test_the_upload_wants_head_to_be_the_release_branch_tip():
     assert '[[ $(git rev-parse HEAD) == "$(git rev-parse "origin/$GH_REF")" ]]' in text
     assert 'merge-base --is-ancestor HEAD "origin/$GH_REF"' not in text
     assert "GH_REPO=$(python3 scripts/ci_paths.py repo); GH_REF=$(python3 scripts/ci_paths.py release-branch)" in text
+
+
+# ------------------------------------------------------------------------- the version and data-only releases (T998)
+
+def test_preflight_holds_app_json_to_the_version_the_commits_compute(world, capsys):
+    """(T998) the hand-set version that disagrees stops at preflight, naming both and the commits that decided it.
+    Mutation: drop the comparison in check_version and this fails."""
+    world["decision"] = RV.decide("0.8.5", "the cutover b5dd8ade3", [_commit("fix(T1): a bug")])
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert "app.json says 0.9.0, the commits compute 0.8.6: 0.9.0 is set by hand, but the commits compute 0.8.6 " \
+           "(0.8.5 + patch)" in err
+    assert "c0ffee000000 fix(T1): a bug" in err and world["calls"] == []
+    world["decision"] = RV.decide("0.8.5", "x", [_commit("T994 fix x")])
+    assert _staging() == 1 and "not in the format: c0ffee000000 T994 fix x" in capsys.readouterr().err
+
+
+def test_the_rehearsal_prints_the_computed_version_and_the_commits_that_decided_it(world, capsys):
+    assert R.main(["--staging", "--dry-run"]) == 0
+    out = capsys.readouterr().out
+    assert "ok: 0.9.0 is the version the commits compute: 0.9.0: 0.8.5 + minor, from 1 app commit(s) since the " \
+           "cutover b5dd8ade3" in out
+    assert "c0ffee000000 feat(T998): what 0.9.0 brings" in out
+
+
+def test_a_data_only_release_ships_from_its_days_branch_and_tags_only_its_data(world, capsys):
+    """(T998 item 6) on release/data-<date>: preflight takes that branch (app.json still names the shipped version,
+    whose own branch is finished), the ship tags only data/<r-id>, the merge-back names the data branch, and prod
+    does not ask for an app tag."""
+    world["branch"], world["version"] = "release/data-2026-11-22", "0.8.5"
+    world["decision"] = RV.decide("0.8.5", "the cutover b5dd8ade3", [_commit("fix(T931): x", paths=("pipeline/a.py",))])
+    assert R.release_branch() == "release/data-2026-11-22"
+    assert _staging() == 0
+    out = capsys.readouterr().out
+    assert "ok: a data-only release on release/data-2026-11-22, app 0.8.5 unchanged" in out
+    assert world["made_tags"] == [(f"data/{NEW}", "abc123")] and world["pushed_tags"] == [[f"data/{NEW}"]]
+    assert "v0.8.5 not tagged here: a data-only release (release/data-2026-11-22), app 0.8.5 unchanged" in out
+    assert "gh pr create --base main --head release/data-2026-11-22" in out
+    rec = json.loads(R.LEDGER.read_text())["releases"][NEW]
+    assert rec["tags"] == {f"data/{NEW}": "abc123"} and rec["data_only"] is True
+    world["remote_tags"][f"data/{NEW}"] = "abc123"
+    assert R.tag_problems(NEW, rec) == []                                  # no v0.8.5 tag asked of a data release
+
+
+def test_a_data_only_branch_with_an_app_change_stops_at_preflight(world, capsys):
+    world["branch"], world["version"] = "release/data-2026-11-22", "0.8.5"
+    world["decision"] = RV.decide("0.8.5", "the cutover b5dd8ade3", [_commit("feat(T985): a layer")])
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert "release/data-2026-11-22 is a data-only release, but app commits since the cutover b5dd8ade3 bump the app " \
+           "to 0.9.0" in err and world["calls"] == []
+    world["decision"], world["version"] = RV.decide("0.8.5", "x", []), "0.8.6"
+    assert _staging() == 1 and "but app.json says 0.8.6, not the shipped 0.8.5" in capsys.readouterr().err
+
+
+def test_the_shipping_branch_is_named_once():
+    """(T998) scripts/ci_paths.py names the branch upload.sh's workflow runs (`release-branch`) as preflight does."""
+    assert R.CP.shipping_branch("release/data-2026-11-22", "0.8.5") == "release/data-2026-11-22"
+    assert R.CP.shipping_branch("main", "0.8.5") == "release/0.8.5"
+    assert R.CP.shipping_branch("release/data-tomorrow", "0.8.5") == "release/0.8.5"
+    assert R.CP.data_branch("2026-11-22") == "release/data-2026-11-22"
