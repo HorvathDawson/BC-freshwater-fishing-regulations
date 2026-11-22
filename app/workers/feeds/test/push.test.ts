@@ -4,7 +4,7 @@
 import { describe, expect, it } from "vitest";
 import worker from "../src/index";
 import {
-  APNS_JWT_KEY, APNS_PAYLOAD, apnsJwt, apnsRequest, handlePush, markReleaseSeen, newRelease, PUSH_STATE_KEY, PUSH_STATUS_KEY, pushMissing,
+  APNS_JWT_KEY, APNS_PAYLOAD, apnsJwt, apnsRequest, PUSH_CARRY_KEY, handlePush, markReleaseSeen, newRelease, PUSH_STATE_KEY, PUSH_STATUS_KEY, pushMissing,
   sendWake, TOKENS_PREFIX, tokenKey, validatePush, wakeReason, MANIFEST_KEY,
 } from "../src/push";
 import type { R2BucketLike } from "../src/io";
@@ -268,6 +268,22 @@ describe("sendWake (T739)", () => {
     expect(r.ios.errors).toEqual(["APNs 403 ExpiredProviderToken"]);
     expect(BUCKET.m.has(APNS_JWT_KEY)).toBe(false);              // the next wake makes a new one
     expect(personalKind(APNS_JWT_KEY)).toBe("never");             // a credential: never in a backup
+  });
+
+  // (review) the refused token's delete ran before the carry-over and status writes: a throw there lost both
+  it("a refused token that cannot be dropped is said in the send's errors; the carry-over and the status are still kept", async () => {
+    const k = await ecKey();
+    const BUCKET = new MemBucket();
+    await seed(BUCKET, [{ platform: "ios", token: IOS, env: "sandbox" }, { platform: "ios", token: IOS2, env: "sandbox" }]);
+    const del = BUCKET.delete.bind(BUCKET);
+    BUCKET.delete = async (key: string) => { if (key === APNS_JWT_KEY) throw new Error("R2 DELETE 500"); return del(key); };
+    const r = await sendWake({ BUCKET, APNS_KEY: k.pem, APNS_KEY_ID: "KID", APNS_TEAM_ID: "TEAM" },
+      async () => new Response(JSON.stringify({ reason: "ExpiredProviderToken" }), { status: 403 }), at("2026-11-14T12:00:00Z"), "gauges", { perRun: 1 });
+    expect(r.ok).toBe(false);
+    expect(r.ios.errors).toEqual(["APNs 403 ExpiredProviderToken", expect.stringMatching(/^the refused APNs token was not dropped \(R2 DELETE 500\)/)]);
+    expect(r.carry).toEqual({ part: 1, left: 1, since: "2026-11-14T12:00:00.000Z" });
+    expect(BUCKET.m.has(PUSH_CARRY_KEY)).toBe(true);
+    expect(JSON.parse(BUCKET.m.get(PUSH_STATUS_KEY)!)).toEqual(r);
   });
 
   it("a key that cannot be read fails every token, said (never a silent skip)", async () => {

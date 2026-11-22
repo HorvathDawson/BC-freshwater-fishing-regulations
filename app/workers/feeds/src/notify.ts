@@ -93,3 +93,14 @@ export async function sendDue(
   }
   return { sent, failed, off: false };
 }
+
+/**
+ * (T994 #26, review) What every feed calls: `sendDue`, and a sent-keys state that did not read THROWS after the send was
+ * skipped — the run fails and says why (its feed is already written), so the owner's reminders never stop with only a
+ * log line. A failed send stays a `failed` key, retried next run. publish.py / live.py call notify.py's twin.
+ */
+export async function sendDueChecked(notices: Notice[], o: SendDueOptions): Promise<{ sent: string[]; failed: string[]; off: boolean }> {
+  const r = await sendDue(notices, o);
+  if (r.error) throw new Error(`${r.error}. The feed was written; the reminders wait until the file is fixed or deleted`);
+  return r;
+}

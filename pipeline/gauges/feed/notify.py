@@ -131,7 +131,23 @@ def send_due(notices: list[dict], out: Path, url: str | None = None, sender: Sen
             print(f"  notify: {k} not sent ({exc}); retried next run", file=sys.stderr)
     if sent:
         try:
+            # (a failed record is printed: the keys may be sent again, never lost)
             atomic_write(path, json.dumps({"sent": done + sent}))
         except Exception as exc:                                # noqa: BLE001
             print(f"  notify: could not record what was sent ({exc}); it may be sent again", file=sys.stderr)
     return {"sent": sent, "failed": failed, "off": False}
+
+
+class NotifyStateError(RuntimeError):
+    """The sent-keys file did not read: no reminder was sent, and the run fails saying so."""
+
+
+def send_due_checked(notices: list[dict], out: Path, url: str | None = None, sender: Sender | None = None, *,
+                     key_of: Callable[[dict], str] = key, message_of: Callable[[dict], str] = message) -> dict:
+    """(T994 #26, review) What every feed calls: `send_due`, and a sent-keys file that did not read RAISES after the send
+    was skipped, so the run fails and says why (its feed is already written) and the owner's reminders never stop with
+    only a printed line. The worker's twin is `sendDueChecked` (app/workers/feeds/src/notify.ts)."""
+    got = send_due(notices, out, url, sender, key_of=key_of, message_of=message_of)
+    if got.get("error"):
+        raise NotifyStateError(f"{got['error']}. The feed was written; the reminders wait until the file is fixed or deleted")
+    return got

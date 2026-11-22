@@ -5,7 +5,7 @@
 //   priv  — never served: runs/ (append-only, see skill.ts), temp_history.json, notified.json (`<out>.notified.json`),
 //           roster.json (the realtime roster, when `deps.roster` is not passed)
 import { contentHash, readStored, rev, type Fetch, type Meter, type Store } from "../io";
-import { sendDue } from "../notify";
+import { sendDueChecked } from "../notify";
 import { combineDay, forecastDays, gaugeScale, modelName, stale, stationChange, type Rank } from "./change";
 import { ATTRIBUTION, fetchSummary, timeout, withSeries, type Runs, type Summary } from "./forecast";
 import { listedStations, rosterDrift, STATION_LIST, stationsToAsk, type RosterDrift, type RosterRow } from "./liveness";
@@ -722,7 +722,7 @@ export async function runGauges(deps: GaugeDeps): Promise<GaugeSummary> {
   const runs = Object.values(fcast).reduce((n, v) => n + Object.keys(v).length, 0);
   log(`  ✅ ${summary.answered}/${summary.asked} answered, ${summary.withPercentile} with a rank in the record; ${runs} model runs across ${Object.keys(fcast).length} stations`);
   for (const n of summary.maintenance) if (n.kind === "hydat") log(`  ⚠️  A NEWER HYDAT IS OUT: ${n.latest} (envelope is on ${n.current}, noticed ${n.since}). Refresh with: ${n.action}`);
-  const notify = await sendDue(summary.maintenance as any, { url: deps.notifyUrl, fetch, state: priv, stateKey: "notified.json", log });
+  const notify = await sendDueChecked(summary.maintenance as any, { url: deps.notifyUrl, fetch, state: priv, stateKey: "notified.json", log });
   return { ...summary, listSource: source, forecastRuns: runs, notify, forecastReused: reuse, ...(forecastFailed.length ? { forecastFailed } : {}),
            ...(listShrunk ? { listShrunk } : {}) };
 }

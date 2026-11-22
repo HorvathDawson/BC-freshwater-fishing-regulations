@@ -93,3 +93,26 @@ def test_the_sent_keys_are_written_atomically(tmp_path, monkeypatch):
     monkeypatch.setattr(notify, "atomic_write", lambda p, t: (calls.append(Path(p)), real(p, t)))
     notify.send_due(F["notified"]["notices"][:1], out, url="u", sender=lambda u, t: None)
     assert calls == [notify.state_path(out)]
+
+
+@pytest.mark.parametrize("case", F["notified"]["cases"], ids=lambda c: c["name"])
+def test_the_checked_form_fails_the_run_on_a_state_that_does_not_read(tmp_path, capsys, case):
+    """(review) An `error` nobody reads stopped the reminders for good with one printed line: every feed calls
+    `send_due_checked`, which raises naming the file (the feed is already written); the worker's `sendDueChecked`."""
+    out = tmp_path / "feeds"
+    _store(notify.state_path(out), case["stored"])
+    go = lambda: notify.send_due_checked(F["notified"]["notices"], out, url="u", sender=lambda u, t: None)   # noqa: E731
+    if "error" in case:
+        with pytest.raises(notify.NotifyStateError) as e:
+            go()
+        assert case["error"] in str(e.value) and "The feed was written" in str(e.value)
+    else:
+        assert go()["sent"] == case["sent"]
+
+
+def test_every_feed_calls_the_checked_form():
+    root = Path(__file__).resolve().parents[2]
+    for f in ("pipeline/gauges/feed/publish.py", "pipeline/regs/dfo_salmon/live.py"):
+        src = (root / f).read_text(encoding="utf-8")
+        assert "send_due_checked(" in src, f
+        assert ".send_due(" not in src, f

@@ -23,7 +23,7 @@
 // STRUCTURAL reconcile, still hold the region (those are page-level).
 import { FEED_FORMATS, FEED_MIN_APP } from "../../../../packages/core/src/feedFormats.generated";
 import { contentHash, loadManifest, rev, skipSameStore, type Fetch, type Meter, type Store } from "../io";
-import { sendDue } from "../notify";
+import { sendDueChecked } from "../notify";
 import { derive, livePieces, pieceId, PIECES_SHAPE } from "./closures";
 import { byFingerprint, loadEntryFile, reconcile, waterById, type EntryFile, type EntryLocation, type Report, type WaterBinding } from "./entries";
 import { build, type TypedFeed } from "./feed";
@@ -855,7 +855,7 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     if (skipped.length) log(`unchanged (page + entries): region ${skipped.join(", ")} — typing skipped, last answers carried`);
   }
   if (live) await live.flush();
-  const sent = await sendDue(notices as unknown as Record<string, unknown>[], {
+  const sent = await sendDueChecked(notices as unknown as Record<string, unknown>[], {
     url: deps.notifyUrl,
     fetch: deps.fetch,
     state: deps.priv,

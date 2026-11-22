@@ -1232,9 +1232,10 @@ def main() -> None:
         if n["kind"] == "hydat":
             print(f"  ⚠️  A NEWER HYDAT IS OUT: {n['latest']} (envelope is on {n['current']}, "
                   f"noticed {n['since']}). Refresh with:\n       {n['action']}")
-    # TELL THE OWNER ONCE (FEED_NOTIFY_URL; off when unset). Never fails the run.
+    # TELL THE OWNER ONCE (FEED_NOTIFY_URL; off when unset). A failed send is retried next run; (T994 #26) a sent-keys
+    # file that does not read fails the run, after the feed is written
     from pipeline.gauges.feed import notify as _notify        # noqa: PLC0415
-    _notify.send_due(summary["maintenance"], args.out)
+    _notify.send_due_checked(summary["maintenance"], args.out)
 
 
 if __name__ == "__main__":

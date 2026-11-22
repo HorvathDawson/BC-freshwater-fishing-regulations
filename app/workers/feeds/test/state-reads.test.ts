@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import worker, { noDataStations } from "../src/index";
 import { readStored, type PutOptions, type Store } from "../src/io";
-import { sendDue } from "../src/notify";
+import { sendDue, sendDueChecked } from "../src/notify";
 import { dirStore, fixtureFetch, loadRecording } from "../parity/gauges/node";
 import { deliver, NOTIFY_STATE, readState, type NotifyConfig } from "../src/events";
 import { readStatus } from "../src/status";
@@ -180,6 +180,37 @@ describe("stored gauge and reminder state, the shared fixture (T994 #5, #26)", (
     const r = await sendDue(F.notified.notices, { url: "u", fetch: async () => (posts.push("x"), new Response("ok")), state: new Broken(), stateKey: "notified.json" });
     expect(r).toMatchObject({ sent: [], error: expect.stringContaining("R2 GET 500") });
     expect(posts).toEqual([]);
+  });
+
+  // (review) an `error` nobody reads stops the reminders for good with one log line: every feed calls the checked form,
+  // which fails the run (after its feed is written) naming the file
+  it("the checked form throws on a state that does not read; every feed calls it, never the bare sendDue", async () => {
+    for (const c of F.notified.cases as (Case & { sent: string[] })[]) {
+      const state = new MemStore();
+      if (c.stored !== null) state.m.set("notified.json", c.stored);
+      const go = sendDueChecked(F.notified.notices, { url: "u", fetch: async () => new Response("ok"), state, stateKey: "notified.json" });
+      if (c.error) await expect(go, c.name).rejects.toThrow(new RegExp(`${c.error.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}.*The feed was written`));
+      else expect((await go).sent, c.name).toEqual(c.sent);
+    }
+    for (const f of ["gauges/publish.ts", "dfo/live.ts"]) {
+      const src = readFileSync(join(__dirname, "../src", f), "utf-8");
+      expect(src, f).toMatch(/await sendDueChecked\(/);
+      expect(src, f).not.toMatch(/\bsendDue\(/);
+    }
+  });
+  it("gauges: a torn notified.json fails the run AFTER the feed is written, naming the file", async () => {
+    const FIX = join(__dirname, "fixtures/gauges");
+    const rec = loadRecording(FIX);
+    const dir = mkdtempSync(join(tmpdir(), "state-reads-"));
+    cpSync(join(FIX, "seed"), dir, { recursive: true });
+    writeFileSync(join(dir, "priv", "notified.json"), '{"sent": [');
+    const feed = dirStore(join(dir, "feed"));
+    const before = readFileSync(join(dir, "feed", "index.json"), "utf-8");
+    await expect(runGauges({ fetch: fixtureFetch(rec).fetch, feed, priv: dirStore(join(dir, "priv")), now: new Date(rec.now), notifyUrl: "https://ntfy.sh/x",
+      roster: JSON.parse(readFileSync(join(FIX, "roster.json"), "utf-8")), sleep: async () => {}, changeAware: false }))
+      .rejects.toThrow(/notified\.json is stored but does not parse.*The feed was written/);
+    expect(readFileSync(join(dir, "feed", "index.json"), "utf-8")).not.toBe(before);
+    expect(readFileSync(join(dir, "priv", "notified.json"), "utf-8")).toBe('{"sent": [');
   });
 
   it("gauges: a torn temperature history or station file fails the run before the index or the history is written", async () => {

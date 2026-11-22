@@ -375,8 +375,15 @@ export async function sendWake(env: PushEnv, fetch_: Fetch, now: Date, asked: st
     else { fail(p, r.failed); if (/^APNs 403 (ExpiredProviderToken|InvalidProviderToken)\b/.test(r.failed)) tokenRefused = true; }
   };
   for (let i = 0; i < recs.length; i += PARALLEL) await Promise.all(recs.slice(i, i + PARALLEL).map(one));
-  // (T994 #23) APNs refused the provider token: the next wake makes a new one (the failures are counted above)
-  if (tokenRefused) await env.BUCKET.delete(APNS_JWT_KEY);
+  // (T994 #23) APNs refused the provider token: the next wake makes a new one (the failures are counted above). A delete
+  // that fails is said in this send's errors and never stops the carry-over or the status below from being kept
+  if (tokenRefused) {
+    try { await env.BUCKET.delete(APNS_JWT_KEY); } catch (e) {
+      const why = `the refused APNs token was not dropped (${String((e as Error)?.message ?? e)}); it is made again after ${APNS_JWT_REUSE_S / 60} min`;
+      console.error(JSON.stringify({ job: "push", apnsJwtDrop: why }));
+      if (out.ios.errors.length < KEEP_ERRORS) out.ios.errors.push(why.slice(0, 200));
+    }
+  }
   out.ok = !out.ios.failed && !out.unreadable && !carryError;
   // (T739 L3) the place kept for the next run, or the carry-over done. A carry that cannot be kept THROWS, as a lost
   // status does: the rest of the phones would silently never be told

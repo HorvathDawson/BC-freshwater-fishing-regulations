@@ -225,22 +225,21 @@ export const FINE: Record<string, { n: number; why: string }> = {
   "packages/ui/src/spots.ts": { n: 2, why: "T314: one spot's fill kept and asked again next refresh; the retry runner (write() shows and reports)" },
   "packages/ui/src/sync.ts": { n: 2, why: "stamps: the update service shows these failures (SyncErrorSheet) and reports them (failSource)" },
   // (T431) the feeds worker: a server job, so "handled" is WORKER_HANDLES (logged / answered / recorded); what is left is
-  "workers/feeds/src/backup.ts": { n: 1, why: "(T559) a personal record whose date cannot be read: a report is aged by its folder day, an error kind is never copied" },
+  "workers/feeds/src/backup.ts": { n: 3, why: "(T559) a personal record whose date cannot be read: a report is aged by its folder day, an error kind is never copied; (T994 #3) an outbox that does not parse is not copied (skipped, named, the run failed), and an outbox copy that does not parse is deleted by the prune (it may hold a report's words)" },
   "workers/feeds/src/crashes.ts": { n: 4, why: W_TORN },
   "workers/feeds/src/dfo/live.ts": { n: 3, why: `${W_STATE}; page texts unread leave only the text-change notice out (the header parse failure has its own notice)` },
-  "workers/feeds/src/dispatch.ts": { n: 1, why: "GitHub's reply shown as its text when it is not JSON (T558: the dispatch record's read throws)" },
+  "workers/feeds/src/dispatch.ts": { n: 2, why: "GitHub's reply shown as its text when it is not JSON (T558: the dispatch record's read throws); (T994 #30) the token check answers {ok: false, says} when GitHub is not reached" },
   "workers/feeds/src/gauges/forecast.ts": { n: 1, why: W_ABSENT },
-  "workers/feeds/src/gauges/publish.ts": { n: 9, why: `${W_ABSENT}; ${W_STATE}; an unreadable forecast file is skipped as the Python skips it` },
+  "workers/feeds/src/gauges/publish.ts": { n: 7, why: `${W_ABSENT}; ${W_STATE} (its caches only: (T994 #5) the temperature history and a station file that do not read now throw)` },
   "workers/feeds/src/gauges/score.ts": { n: 4, why: `${W_STATE}; ${W_TORN}` },
   "workers/feeds/src/gauges/skill.ts": { n: 2, why: `${W_STATE}; ${W_TORN}` },
   "workers/feeds/src/guard.ts": { n: 1, why: "the edge rate limiter failing opens (T249): the R2 per-IP gate still holds" },
   "workers/feeds/src/health.ts": { n: 3, why: "a URL that will not parse gets the unknown source's policy (the fetch itself then throws and is counted); freeing a retried connection" },
   "workers/feeds/src/index.ts": { n: 4, why: "a daily job's status file that cannot be read is served as { unreadable: why } (T609 W12); a bad POST body is answered 400; (T739 M2) POST /run/push whose failure record cannot be written says so in its answer (statusError)" },
-  "workers/feeds/src/inseason.ts": { n: 2, why: W_STATE },
-  "workers/feeds/src/io.ts": { n: 1, why: `${W_STATE} (the write manifest: unreadable → every file written again)` },
-  "workers/feeds/src/notify.ts": { n: 1, why: `${W_STATE} (what was sent: unreadable → may be sent again, never lost)` },
+  "workers/feeds/src/inseason.ts": { n: 1, why: `${W_STATE} ((T994 #4) the published feed is read through readStored now)` },
+  "workers/feeds/src/io.ts": { n: 2, why: `${W_STATE} (the write manifest: unreadable → every file written again); freeing an over-cap body's reader, the 413 being the answer (readCapped, moved here from reports.ts: T994 #30)` },
   "workers/feeds/src/push.ts": { n: 2, why: "(T739) APNs' answer with no JSON body is judged by its status alone (the FCM sender went with Android push, owner 2026-11-16); a send that never reached the service is counted failed with its reason (the send's result, /status, a step error)" },
-  "workers/feeds/src/reports.ts": { n: 6, why: `${W_TORN}; ${W_STATE} (the per-IP gate); the edge limiter failing never blocks (the R2 gate holds); a test-report delete the next day's purge tries again` },
+  "workers/feeds/src/reports.ts": { n: 5, why: `${W_TORN}; ${W_STATE} (the per-IP gate); the edge limiter failing never blocks (the R2 gate holds); a test-report delete the next day's purge tries again (the body reader moved to io.ts: T994 #30)` },
 };
 
 const sites = () => files().map((f) => [f, unhandled(read(f), f)] as const).filter(([, u]) => u.length);
