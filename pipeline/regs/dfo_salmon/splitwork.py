@@ -319,42 +319,37 @@ def split_coords(item_ids) -> dict:
     if key in _COORD_CACHE:
         return _COORD_CACHE[key]
     out: dict = {}
-    try:
-        import geopandas as gpd
-        from project_config import get_config
+    # (T994 #16) NO CATCH: one `except Exception: return {}` covered the resolved splits, the registry, the gpkg and
+    # geopandas, so every failure read as "no coordinates" for every split. A missing file names itself.
+    import geopandas as gpd
+    from project_config import get_config
+    from pipeline.atlas.registry import load_registry
 
-        resolved = json.loads((GENERATED.build() / "splits.resolved.json").read_text())
-        blks = {str(r["blk"]) for r in resolved if r.get("blk")}
-        want = [r for r in resolved if str(r.get("blk")) in blks]
-        mine = {b for b in blks}
-        # only the lines these items actually sit on
-        from pipeline.atlas.registry import load_registry
-        reg = load_registry(GENERATED.build() / "registry.json")
-        item_blks = {str(getattr(n, "blk", "")) for i in item_ids if i in reg
-                     for n in [reg[i]] for _ in [0]}
-        lines = {str(r["blk"]) for r in want if r["split_id"] in
-                 {b.id for i in item_ids if i in reg for b in reg[i].boundaries}}
-        if not lines:
-            return out
-        st = gpd.read_file(str(get_config().fwa_data_gpkg), layer="streams",
-                           where="BLUE_LINE_KEY IN (%s)" % ",".join(sorted(lines)),
-                           engine="pyogrio").to_crs(4326).sort_values("DOWNSTREAM_ROUTE_MEASURE")
-        by_line = {b: g for b, g in st.groupby(st["BLUE_LINE_KEY"].astype(str))}
-        for r in want:
-            b = str(r["blk"])
-            if b not in by_line:
-                continue
-            g = by_line[b]
-            seg = g[g["DOWNSTREAM_ROUTE_MEASURE"] <= r["route_measure"]].tail(1)
-            if seg.empty:
-                seg = g.head(1)
-            row = seg.iloc[0]
-            geom = row.geometry.geoms[0] if hasattr(row.geometry, "geoms") else row.geometry
-            frac = (r["route_measure"] - row["DOWNSTREAM_ROUTE_MEASURE"]) / max(row["LENGTH_METRE"], 1)
-            p = geom.interpolate(max(0.0, min(1.0, frac)), normalized=True)
-            out[r["split_id"]] = (round(p.y, 5), round(p.x, 5))
-    except Exception:
-        return {}
+    resolved = json.loads((GENERATED.build() / "splits.resolved.json").read_text())
+    want = [r for r in resolved if r.get("blk")]
+    # only the lines these items actually sit on
+    reg = load_registry(GENERATED.build() / "registry.json")
+    lines = {str(r["blk"]) for r in want if r["split_id"] in
+             {b.id for i in item_ids if i in reg for b in reg[i].boundaries}}
+    if not lines:
+        return out
+    st = gpd.read_file(str(get_config().fwa_data_gpkg), layer="streams",
+                       where="BLUE_LINE_KEY IN (%s)" % ",".join(sorted(lines)),
+                       engine="pyogrio").to_crs(4326).sort_values("DOWNSTREAM_ROUTE_MEASURE")
+    by_line = {b: g for b, g in st.groupby(st["BLUE_LINE_KEY"].astype(str))}
+    for r in want:
+        b = str(r["blk"])
+        if b not in by_line:
+            continue
+        g = by_line[b]
+        seg = g[g["DOWNSTREAM_ROUTE_MEASURE"] <= r["route_measure"]].tail(1)
+        if seg.empty:
+            seg = g.head(1)
+        row = seg.iloc[0]
+        geom = row.geometry.geoms[0] if hasattr(row.geometry, "geoms") else row.geometry
+        frac = (r["route_measure"] - row["DOWNSTREAM_ROUTE_MEASURE"]) / max(row["LENGTH_METRE"], 1)
+        p = geom.interpolate(max(0.0, min(1.0, frac)), normalized=True)
+        out[r["split_id"]] = (round(p.y, 5), round(p.x, 5))
     _COORD_CACHE[key] = out
     return out
 
