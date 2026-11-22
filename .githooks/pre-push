@@ -1,5 +1,6 @@
 #!/bin/sh
-# (T995) THE VERSIONED PRE-PUSH HOOK: what GitHub's runs ask, asked here first — only for the areas this branch changed
+# (T995) THE VERSIONED PRE-PUSH HOOK: what GitHub's runs ask, asked here first — only for the areas the pushed commits
+# change (a tag or a delete checks nothing)
 # (`scripts/before_push.py --changed`: the same areas CI's `changes` jobs read, scripts/ci_paths.py). A docs / handoff
 # push runs the ticket guard and docs-ci's two test files (seconds).
 #
@@ -23,4 +24,5 @@ if [ -z "$py" ]; then
 fi
 export PIPELINE_PY="$py"
 cd "$root"
-exec "$py" scripts/before_push.py --changed
+# git sends the refs on stdin (local ref, local sha, remote ref, remote sha): --pre-push checks what they push
+exec "$py" scripts/before_push.py --changed --pre-push

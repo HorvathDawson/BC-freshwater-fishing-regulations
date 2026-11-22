@@ -123,7 +123,79 @@ def test_the_versioned_hooks():
     import subprocess
     hooks = ROOT / ".githooks"
     pre = (hooks / "pre-push").read_text()
-    assert 'exec "$py" scripts/before_push.py --changed' in pre and "git config core.hooksPath .githooks" in pre
+    assert 'exec "$py" scripts/before_push.py --changed --pre-push' in pre and "git config core.hooksPath .githooks" in pre
     assert os.access(hooks / "pre-push", os.X_OK) and os.access(hooks / "commit-msg", os.X_OK)
     assert "T998" in (hooks / "commit-msg").read_text()
     assert subprocess.run(["sh", str(hooks / "commit-msg"), "/dev/null"]).returncode == 0
+
+
+def _repo(tmp_path, monkeypatch):
+    """A clone with an origin whose main has one commit; BP's git runs in it."""
+    import subprocess
+    git = ["git", "-c", "user.email=t@t", "-c", "user.name=t", "-c", "init.defaultBranch=main"]
+    origin, here = tmp_path / "origin.git", tmp_path / "here"
+    subprocess.run([*git, "init", "-q", "--bare", str(origin)], check=True)
+    subprocess.run([*git, "init", "-q", str(here)], check=True)
+
+    def run(*a):
+        return subprocess.run([*git, *a], cwd=here, check=True, capture_output=True, text=True).stdout.strip()
+    (here / "pipeline").mkdir()
+    (here / "pipeline" / "a.py").write_text("1")
+    run("add", ".")
+    run("commit", "-qm", "base")
+    run("remote", "add", "origin", str(origin))
+    run("push", "-q", "origin", "HEAD:refs/heads/main")
+    run("fetch", "-q", "origin")
+    monkeypatch.setattr(BP, "ROOT", here)
+    return here, run
+
+
+def test_changed_holds_commits_the_working_tree_and_untracked_files(tmp_path, monkeypatch):
+    """(T995 review) the unpinned mutation: untracked files are part of the change."""
+    here, run = _repo(tmp_path, monkeypatch)
+    run("switch", "-qc", "lane")
+    (here / "handoff").mkdir()
+    (here / "handoff" / "x.md").write_text("x")
+    run("add", ".")
+    run("commit", "-qm", "docs")
+    (here / "pipeline" / "a.py").write_text("2")                           # uncommitted
+    (here / "app").mkdir()
+    (here / "app" / "new.ts").write_text("n")                              # untracked
+    base, paths = BP.changed_paths()
+    assert base == run("rev-parse", "origin/main") and paths == ["app/new.ts", "handoff/x.md", "pipeline/a.py"]
+
+
+def test_the_hook_checks_the_pushed_commits_not_the_tree(tmp_path, monkeypatch, capsys):
+    """(T995 review) the refs on stdin: a tag or a delete checks nothing; an existing branch its new commits; a new
+    branch everything since its merge base with origin/main; never the working tree."""
+    here, run = _repo(tmp_path, monkeypatch)
+    z = BP.ZERO
+    run("switch", "-qc", "lane")
+    (here / "handoff").mkdir()
+    (here / "handoff" / "x.md").write_text("x")
+    run("add", ".")
+    run("commit", "-qm", "docs")
+    one = run("rev-parse", "HEAD")
+    (here / "app").mkdir()
+    (here / "app" / "y.ts").write_text("y")
+    run("add", ".")
+    run("commit", "-qm", "app")
+    two = run("rev-parse", "HEAD")
+    (here / "pipeline" / "a.py").write_text("dirty")                       # the tree: never the hook's change
+    said, paths = BP.pushed_paths([f"refs/heads/lane {two} refs/heads/lane {z}"])
+    assert paths == ["app/y.ts", "handoff/x.md"] and "since the merge base with origin/main" in said[0]
+    said, paths = BP.pushed_paths([f"refs/heads/lane {two} refs/heads/lane {one}"])
+    assert paths == ["app/y.ts"] and said == [f"refs/heads/lane: 1 path(s) in {one[:12]}..{two[:12]}"]
+    assert BP.pushed_paths([f"refs/tags/v1 {two} refs/tags/v1 {z}", f"(delete) {z} refs/heads/old {one}"]) == (
+        ["refs/tags/v1: a tag, nothing to check", "refs/heads/old: a delete, nothing to check"], [])
+    import io
+    monkeypatch.delenv(BP.SKIP_ENV, raising=False)
+    ran = []
+    assert BP.main(["--changed", "--pre-push"], runner=lambda s: ran.append(s) or 0,
+                   stdin=io.StringIO(f"refs/tags/v1 {two} refs/tags/v1 {z}\n")) == 0
+    assert ran == [] and "only tags / deletes pushed: nothing to check" in capsys.readouterr().out
+    assert BP.main(["--changed", "--pre-push", "--no-tier"], runner=lambda s: ran.append(s.name) or 0,
+                   stdin=io.StringIO(f"refs/heads/lane {one} refs/heads/lane {z}\n")) == 0
+    assert ran == ["ticket guard (node app/tools/check-tickets.mjs)",
+                   "docs: the ticket guard's tests and the start-here page (docs-ci)"]     # docs only, not the tree
+

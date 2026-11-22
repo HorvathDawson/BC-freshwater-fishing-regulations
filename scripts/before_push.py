@@ -121,15 +121,49 @@ def py_scanners(root: Path = ROOT) -> list[str]:
                   if PY_SCANS.search(p.read_text(encoding="utf-8")))
 
 
+def _git(*args: str, trunk: str = CP.TRUNK) -> str:
+    got = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True)
+    if got.returncode:
+        raise SystemExit(f"before-push --changed: git {' '.join(args)} failed (rc={got.returncode}): "
+                         f"{got.stderr.strip()[-300:]} — git fetch {CP.REMOTE} {trunk}")
+    return got.stdout
+
+
+ZERO = "0" * 40
+
+
+def pushed_paths(lines: list[str], trunk: str = CP.TRUNK) -> tuple[list[str], list[str]]:
+    """(T995 review) THE PRE-PUSH HOOK'S CHANGE: git hands the hook one line per ref, `<local ref> <local sha> <remote
+    ref> <remote sha>`. A delete (local sha zero) and a tag push check nothing; a branch checks the commits it sends —
+    `<remote sha>..<local sha>`, or, for a new branch (or a remote sha this clone does not hold), everything since its
+    merge base with origin/main. (what was pushed, one line per ref; every path those commits change)"""
+    said, paths = [], set()
+    for ln in lines:
+        parts = ln.split()
+        if len(parts) != 4:
+            continue
+        lref, lsha, rref, rsha = parts
+        if lsha == ZERO:
+            said.append(f"{rref}: a delete, nothing to check")
+            continue
+        if lref.startswith("refs/tags/") or rref.startswith("refs/tags/"):
+            said.append(f"{rref}: a tag, nothing to check")
+            continue
+        known = rsha != ZERO and subprocess.run(["git", "cat-file", "-e", f"{rsha}^{{commit}}"], cwd=ROOT,
+                                                capture_output=True).returncode == 0
+        base = rsha if known else _git("merge-base", lsha, f"{CP.REMOTE}/{trunk}", trunk=trunk).strip()
+        got = [x for x in _git("diff", "--name-only", "--no-renames", base, lsha, trunk=trunk).splitlines() if x]
+        said.append(f"{rref}: {len(got)} path(s) in {base[:12]}..{lsha[:12]}"
+                    + ("" if known else f" (since the merge base with {CP.REMOTE}/{trunk})"))
+        paths |= set(got)
+    return said, sorted(paths)
+
+
 def changed_paths(trunk: str = CP.TRUNK) -> tuple[str, list[str]]:
     """(T995) (the base, every path changed since the branch left the trunk): `git diff --name-only <merge-base>` (the
     commits and the working tree) plus untracked files. A git failure stops, naming the fix — never an empty change."""
     def git(*args: str) -> str:
-        got = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True)
-        if got.returncode:
-            raise SystemExit(f"before-push --changed: git {' '.join(args)} failed (rc={got.returncode}): "
-                             f"{got.stderr.strip()[-300:]} — git fetch {CP.REMOTE} {trunk}")
-        return got.stdout
+        return _git(*args, trunk=trunk)
     base = git("merge-base", "HEAD", f"{CP.REMOTE}/{trunk}").strip()
     # `--no-renames`: a rename lists both paths, as CI's `changes` job reads them (ci_paths.pr_paths)
     paths = set(git("diff", "--name-only", "--no-renames", base).splitlines())
@@ -198,7 +232,7 @@ def run_step(step: Step) -> int:
         os.unlink(f.name)
 
 
-def main(argv=None, runner=run_step) -> int:
+def main(argv=None, runner=run_step, stdin=sys.stdin) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--only", default=None, metavar="REGEX")
@@ -206,6 +240,8 @@ def main(argv=None, runner=run_step) -> int:
     ap.add_argument("--app-suite", action="store_true")
     ap.add_argument("--hook", action="store_true")
     ap.add_argument("--changed", action="store_true")
+    ap.add_argument("--pre-push", action="store_true",
+                    help="(T995 review) the hook: --changed over the refs git sends on stdin, not the working tree")
     a = ap.parse_args(argv)
     if a.hook:
         print(HOOK)
@@ -218,7 +254,18 @@ def main(argv=None, runner=run_step) -> int:
         print(f"before-push: SKIPPED (nothing run): {skip}")
         return 0
     areas = None
-    if a.changed:
+    if a.pre_push:
+        said, paths = pushed_paths(stdin.read().splitlines())
+        for ln in said:
+            print(f"before-push --pre-push: {ln}")
+        if not paths and all(("a delete" in x or "a tag" in x) for x in said):
+            print("before-push --pre-push: only tags / deletes pushed: nothing to check")
+            return 0
+        a.changed = True
+        areas = CP.areas_of(paths)
+        print(f"before-push --pre-push: {len(paths)} path(s) pushed; areas: "
+              f"{', '.join(sorted(areas)) or 'none (the ticket guard only)'} (the checks run on this checkout)")
+    elif a.changed:
         base, paths = changed_paths()
         areas = CP.areas_of(paths)
         print(f"before-push --changed: {len(paths)} path(s) since {base[:12]} (the merge base with "
