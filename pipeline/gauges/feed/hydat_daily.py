@@ -63,13 +63,20 @@ def build(hydat: Path, stations: list[str], release: str) -> dict[str, dict]:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--hydat", type=Path, default=Path("data/source/hydat.sqlite3"))
+    ap.add_argument("--hydat", type=Path, default=None, help="default: hydat.sqlite3 under the config's source tree")
     # (T557) the stations come from a SERVED feed's index.json, always: the local feed directory was a weeks-old dev copy
     # (386 files on 2026-11-09; the live 08KB006 had none), and defaulting to it built a stale station set silently
     ap.add_argument("--index", type=Path, required=True,
                     help="the feed index.json whose stations to write (the workflow fetches staging feeds/live/index.json)")
-    ap.add_argument("--out", type=Path, default=Path("data/generated/gauges/hydat_daily"))
+    ap.add_argument("--out", type=Path, default=None,
+                    help="default: gauges/hydat_daily under the config's generated tree (its *.json are pruned)")
     a = ap.parse_args()
+    # (T994 7) never a cwd-relative literal: the --out directory is pruned below, so a wrong cwd would prune another tree
+    from pipeline.common.curated import SOURCE, generated
+    if a.hydat is None:
+        a.hydat = SOURCE.source / "hydat.sqlite3"
+    if a.out is None:
+        a.out = generated("gauges", "hydat_daily")
     release = (a.hydat.parent / "hydat.release").read_text().strip()
     files = build(a.hydat, index_stations(a.index), release)
     a.out.mkdir(parents=True, exist_ok=True)

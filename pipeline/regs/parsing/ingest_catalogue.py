@@ -508,7 +508,7 @@ def main() -> None:
                     help="batch file(s) from the exporter; a glob is fine")
     ap.add_argument("--response", action="extend", nargs="+",
                     help="candidate JSON from the agent; a glob is fine")
-    ap.add_argument("--out", default="data/curated/regulations/synopsis")
+    ap.add_argument("--out", default=None, help="default: the config's curated regulations.synopsis folder")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--rows", type=Path, default=None,
                     help="the extraction the batches were exported from (the exporter's --rows; default the live "
@@ -528,6 +528,9 @@ def main() -> None:
                     help="record every entry now in --out as ingest's own write (see the module "
                     "docstring), and ingest nothing")
     a = ap.parse_args()
+    if a.out is None:   # (T994 7) the config's folder, never a cwd-relative literal
+        from pipeline.common.curated import CURATED
+        a.out = str(CURATED.regulations.synopsis)
     if a.seed_ledger:
         if a.batch or a.response:
             ap.error("--seed-ledger ingests nothing; it takes no --batch/--response")
