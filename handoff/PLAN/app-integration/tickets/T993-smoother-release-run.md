@@ -1,6 +1,6 @@
 # T993 — Document and clean up every release / CI / CD process, so a HUMAN can release by following it
 
-Status: POSTPONED — owner 2026-11-21: a future ticket, not 0.8.5.
+Status: IN PROGRESS (main chat 2026-11-21: owner picked it for this chat; inventory first).
 
 Source: owner 2026-11-21, during the 0.8.5 staging release, verbatim: "we need to have a ticket to make the review
 process smoother we always have so many issues we need to fix...".
@@ -67,3 +67,16 @@ the remembering: each one either does the step or says exactly what to do next.
   app version, the gate budget for each new column.
 
 Depends: T992 (the explanation) folds into the runbook. Size: L. Owner: reads and tries the runbook.
+
+## Owner 2026-11-21 (new chat after 0.8.5)
+Picked for this chat with T978, verbatim: "Do t993 and t978 and look for other build/ audit related tickrts that match
+this which should go into this chat too. Would be nice to make everything more streamline and fast so future tickets are
+easier to work on for releases. This won't lead to a full release yet. The real release 0.8.6 will want more stuff in it
+but this is for this chat". No release is cut in this chat.
+
+## Owner 2026-11-21, second answer: what else this chat takes
+All four offered groups: release gates (T791 rest, T788 rest), test isolation (T777, T792 B, T768 rest), cleanup (T987,
+T661 item 3), faster suites (T866, T931, T736, T485 step 3). Plus, verbatim: "You could also get an agent to do a
+basic audit for non standard practices or issues with the flow of data etc. we want to make our code production
+level. Also clean up gha workflows and make sure we just waste less time with bad ci/cd of failed runs." The audit is
+T994; the GitHub Actions cleanup (fewer failed and wasted runs) is in this ticket's inventory.

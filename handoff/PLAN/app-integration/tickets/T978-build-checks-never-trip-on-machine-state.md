@@ -1,6 +1,6 @@
 # T978 — The release build's checks never fail on this machine's state, only on code
 
-Status: OPEN
+Status: IN PROGRESS (main chat 2026-11-21, with T993).
 
 Source: owner 2026-11-20: "Add a ticket to clean up all of these test to make these sort of failure impossible". The 0.8.4
 production build stopped four times in fast-fail, never on a code defect:
@@ -43,3 +43,7 @@ Eleven no-data tests read this machine's state, so CI (and the fresh clone) fail
 
 ## Owner 2026-11-21 12:40
 Asked for the 0.8.5 batch: "No, next chat". Waits for the chat after 0.8.5.
+
+## Owner 2026-11-21 (new chat after 0.8.5)
+Picked for this chat together with T993 (build/audit streamlining; no release in this chat). See T993's note of the
+same date for the verbatim answer.
