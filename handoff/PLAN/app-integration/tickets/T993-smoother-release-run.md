@@ -107,7 +107,7 @@ Lanes (plan item numbers):
 | 4 | the pre-build rehearsal prints NOT SEEN and the step: `--dry-run --build [--rehearse-follows]` or the three steps | ea6d534f2 |
 | 9 | `build.headroom`: every file / web moment / offline total vs its gate, tightest first, WARN < 5 % | ea6d534f2 |
 | T788 #2 | pieces gate in preflight (candidate else LATEST) and in checks on the candidate | ea6d534f2 |
-| 8 | renumber-only golden pages pass with the mapping printed; a binding diff explained by curated rows changed since LATEST's commit passes with a note (`pipeline/release_attribute.py`); 0.8.5's stops 7 and 8 would both pass | 60ed4ac17 |
+| 8 | renumber-only golden pages pass with the mapping printed, each index's rule compared (stop 8 passes); a binding diff passes only when no binding code / atlas moved and each change is its own binding input's, one way (`pipeline/release_attribute.py`, `release.binding_moved`). Stop 7 (Lost Lagoon) would now STOP: T981's commit changed reach code (`regs/parsing/io.py`, `local_closures.py`) — conservative by the review | 60ed4ac17, d3272d735, see below |
 | T788 #8 | the accepted diff's record survives a rerun after the promote | 60ed4ac17 |
 | 15 | preflight fast-fail leaves `check:fast` + the worker suite to the follows run on the candidate (`FAST_FAIL_FOLLOWS_NEXT`; 2 guard lines in `scripts/fast-fail.sh`, T978's file) | d0f0d6ab1 |
 | 16 | follows row `data-tier`: the needs_* tier on the candidate in chunks, rule-found files deselected | d0f0d6ab1 |

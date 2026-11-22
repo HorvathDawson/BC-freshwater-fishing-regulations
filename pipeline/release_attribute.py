@@ -1,23 +1,28 @@
-"""A BINDING DIFF THE BATCH MEANT (T993 item 8, T992): is every change in a release's binding diff explained by a curated
-row changed in the commits since the live release was built?
+"""A BINDING DIFF THE BATCH MEANT (T993 item 8, T992): is every change in a release's binding diff explained by a
+binding input the batch changed since the live release was built?
 
     python -m pipeline.release_attribute <binding_diff.json> <since commit>
 
 0.8.5 stopped on "Lost Lagoon +1": T981 had added that water's local-closure entry on purpose, and the only way on was
-reading the diff and `--accept-diff`. `pipeline release` now asks this first: when EVERY change is attributable the
-diff passes with a printed note naming each change's row, file and commits; anything else — a change no committed row
-explains — still stops, as before (W46: the gate is not loosened for an unexplained change).
+reading the diff and `--accept-diff`. `pipeline release` now asks this first: when EVERY change is explained the diff
+passes with a printed note naming each change's input, file and commits; anything else still stops, as before (W46:
+the gate is not loosened for an unexplained change). CONSERVATIVE BY DESIGN (two reviews, 2026-11-21):
 
-What explains a change — ONLY that change's own curated input (review 2026-11-21: an entry-wide or name-wide match let
-a code or atlas move through):
-  * the rule's (or licensing record's) OWN object (`<entry_id>::<rule>`) added, removed or edited in any entry source
-    (every curated `region-*.json` with an `entries` list), with the direction checked: an added rule only gains
-    sections, a removed one only loses them. A sibling rule's edit in the same entry explains nothing;
-  * the entry's `matched` waters changed (what every rule of it binds through), direction checked the same way;
-  * a changed leaf ROW of any other curated JSON file naming one of the entry's matched ids or a cut id the rule
-    itself names (its `split*` values) — never one naming only the entry id;
-  * a DFO place (`dfo` key = its location id) named by a changed curated row.
-The tidal / outside side tables are never attributable (they move with the atlas, not a row). When in doubt: a stop.
+  * NOTHING is auto-accepted when the binding CODE moved (a file the reach stage imported, `build-manifest.json`
+    `stages.reach.code_files`, or anything under pipeline/atlas/) or the ATLAS did (the two runs' `handles` /
+    `registry_digest` differ) since the live release: `release.binding_moved` says why and the diff stops.
+  * A change is explained only by ITS OWN binding input, and only in the direction that input implies (a change that
+    both gains and loses sections is never explained):
+      - the rule (or licensing record) itself added (gains only) or removed (loses only);
+      - its BINDING fields edited (`RULE_BINDING_KEYS`): extents only added (gains only) or only removed (loses only).
+        Wording, dates, limits are not binding: such an edit explains nothing;
+      - its entry's `matched` waters only added (gains only) or only removed (loses only);
+      - a row of a NAME / MATCH file the reach reads (`binding_row_files`: name variants, found names, continuations,
+        unmapped waters, added streams, the book-name override links) naming one of those matched waters, only added
+        (gains only) or only removed (loses only). A file that merely mentions the water explains nothing; a cut moves
+        sections both ways and is the atlas (rebuilt, so the atlas gate above stops it).
+  * A DFO place (`dfo` key = its location id) only by a changed row of the curated DFO places naming it, and only when
+    its outcome stayed and it moved one way. Unresolved, diagnostic and tidal / outside changes are never explained.
 """
 from __future__ import annotations
 
@@ -28,6 +33,24 @@ import sys
 from pathlib import Path
 
 from pipeline.common.curated import CURATED, REPO_ROOT
+
+#: the fields of a rule that decide where it binds (everything else — words, dates, limits, species — does not)
+RULE_BINDING_KEYS = ("extents", "includes_tributaries", "water", "scope")
+
+
+def _rel(p) -> str:
+    return str(Path(p).resolve().relative_to(Path(REPO_ROOT).resolve()))
+
+
+def binding_row_files() -> set[str]:
+    """(review 2026-11-21) the NAME / MATCH files the reach reads whose rows decide which water an entry binds."""
+    w, r = CURATED.waters, CURATED.regulations
+    return {_rel(p) for p in (w.name_variants, w.found_names, w.continuations, w.unmapped_waters, w.added_streams,
+                              r.book_name_links)}
+
+
+def dfo_places_root() -> str:
+    return _rel(CURATED.dfo_salmon.places)
 
 
 def _git(*args: str) -> str:
@@ -90,8 +113,10 @@ def _entries(doc) -> dict[str, dict] | None:
     return None
 
 
+
+
 def _entry_files(rev: str) -> list[str]:
-    """Every curated `region-*.json` at `rev` (the entry sources and the DFO places live in such files)."""
+    """Every curated `region-*.json` at `rev` (the entry sources live in such files)."""
     base = str(Path(CURATED.base).resolve().relative_to(Path(REPO_ROOT).resolve()))
     return sorted(p for p in _git("ls-tree", "-r", "--name-only", rev, "--", base).splitlines()
                   if Path(p).name.startswith("region-") and p.endswith(".json"))
@@ -100,13 +125,14 @@ def _entry_files(rev: str) -> list[str]:
 def changed_rows(since: str, rev: str = "HEAD") -> dict:
     """What the curated changes between `since` and `rev` are, for `attribute`:
       entries  {entry_id: (file, the entry at `since` or None, at `rev` or None)} — every entry whose content differs
-      rows     [(file, the names a changed non-entry ROW carries)]
+      rows     [(file, the names the row carries, "+" added / "-" removed)] — rows of the binding NAME / MATCH files
+               (`binding_row_files`) and of the DFO places only; a row of any other file explains nothing
       files    {file: [the commits that touched it]}
-      heads    {entry_id: the entry at `rev`} — every entry of every entry source (its matched ids and the cuts its
-               rules name: what a changed row must name to explain one of its rules)"""
+      heads    {entry_id: the entry at `rev`} — every entry of every entry source"""
     entries: dict[str, tuple] = {}
-    rows: list[tuple[str, frozenset]] = []
+    rows: list[tuple[str, frozenset, str]] = []
     files: dict[str, list[str]] = {}
+    binding, dfo = binding_row_files(), dfo_places_root()
     for p in curated_changes(since, rev):
         before, after = _at(since, p), _at(rev, p)
         files[p] = _git("log", "--format=%h", f"{since}..{rev}", "--", p).split()
@@ -116,10 +142,14 @@ def changed_rows(since: str, rev: str = "HEAD") -> dict:
             for eid in sorted(set(eb) | set(ea)):
                 if _canon(eb.get(eid)) != _canon(ea.get(eid)):
                     entries[eid] = (p, eb.get(eid), ea.get(eid))
+            if not p.startswith(dfo.rstrip("/") + "/"):
+                continue
+        if p not in binding and not p.startswith(dfo.rstrip("/") + "/"):
             continue
-        rb, ra = _rows(before) if before is not None else [], _rows(after) if after is not None else []
-        for where, row in sorted(set(rb) ^ set(ra)):
-            rows.append((p, frozenset(_strings(json.loads(row), {where} if where else set()))))
+        rb, ra = set(_rows(before) if before is not None else []), set(_rows(after) if after is not None else [])
+        for sign, got in (("+", ra - rb), ("-", rb - ra)):
+            for where, row in sorted(got):
+                rows.append((p, frozenset(_strings(json.loads(row), {where} if where else set())), sign))
     heads: dict[str, dict] = {}
     for p in _entry_files(rev):
         heads.update(_entries(_at(rev, p)) or {})
@@ -146,93 +176,109 @@ def _own(entry: dict | None, own: str):
     return None
 
 
-def _cut_ids(o, out: set[str]) -> set[str]:
-    """Every cut id a rule names (the values under any `split*` key: `splits`, `split_id`, …)."""
-    if isinstance(o, dict):
-        for k, v in o.items():
-            if "split" in k:
-                out |= {v} if isinstance(v, str) else {x for x in v if isinstance(x, str)} if isinstance(v, list) else set()
-            _cut_ids(v, out)
-    elif isinstance(o, list):
-        for v in o:
-            _cut_ids(v, out)
-    return out
+def _one_way(grew: bool, shrank: bool) -> str | None:
+    """"+" when an input only grew, "-" when it only shrank, None when it moved both ways (direction unknowable)."""
+    return "+" if grew and not shrank else "-" if shrank and not grew else None
 
 
-def _by_entry(e: str, own: str, c: dict, ch: dict) -> tuple[bool | None, str]:
-    """Is the change explained by the rule's OWN entry edit? (True, why) / (False, why: an edit that contradicts the
-    binding's direction) / (None, ""): this rule's own curated input did not change there. Only THIS rule's own
-    object (added, removed or edited) or the entry's `matched` waters (what every rule of it binds through) count —
-    an edit to a sibling rule of the same entry never explains another rule's move."""
-    if e not in ch["entries"]:
-        return None, ""
-    f, b, a = ch["entries"][e]
+def _direction_ok(way: str | None, c: dict) -> tuple[bool, str]:
     gained, lost = int(c.get("gained") or 0), int(c.get("lost") or 0)
+    if "gained" not in c or "lost" not in c:
+        return False, "the change has no sections to check a direction on"
+    if gained and lost:
+        return False, f"its binding moved both ways (+{gained} -{lost})"
+    if way is None:
+        return False, "its input moved both ways, so no direction can be checked"
+    if (way == "+" and lost) or (way == "-" and gained):
+        return False, (f"its input {'only grew' if way == '+' else 'only shrank'}, yet the binding "
+                       f"{'LOST' if lost else 'GAINED'} {lost or gained} section(s)")
+    return True, ""
+
+
+def _input_change(e: str, own: str, ch: dict) -> tuple[str, str | None, str] | None:
+    """The rule's own binding input that changed in its entry: (what, its direction, file) or None. The rule itself
+    added / removed, its binding fields (`RULE_BINDING_KEYS`) edited, or its entry's matched waters."""
+    if e not in ch["entries"]:
+        return None
+    f, b, a = ch["entries"][e]
     ob, oa = _own(b, own), _own(a, own)
-    if _canon(ob) != _canon(oa):
-        if ob is None and lost:
-            return False, f"rule {own} was added in {f}, yet its binding LOST {lost} section(s)"
-        if oa is None and gained:
-            return False, f"rule {own} was removed in {f}, yet its binding GAINED {gained} section(s)"
-        return True, f"rule {own} {'added' if ob is None else 'removed' if oa is None else 'edited'} in {f}"
+    if ob is None and oa is not None:
+        return f"rule {own} added", "+", f
+    if oa is None and ob is not None:
+        return f"rule {own} removed", "-", f
+    if ob is not None:
+        pb = {k: ob.get(k) for k in RULE_BINDING_KEYS}
+        pa = {k: oa.get(k) for k in RULE_BINDING_KEYS}
+        if pb != pa:
+            if any(pb[k] != pa[k] for k in RULE_BINDING_KEYS if k != "extents"):
+                return f"rule {own}'s binding fields edited", None, f
+            xb = {_canon(x) for x in pb["extents"] or ()}
+            xa = {_canon(x) for x in pa["extents"] or ()}
+            return f"rule {own}'s extents edited", _one_way(bool(xa - xb), bool(xb - xa)), f
     mb = set((b or {}).get("matched") or ())
     ma = set((a or {}).get("matched") or ())
     if mb != ma:
-        if ma > mb and lost:
-            return False, f"entry {e} only gained matched waters in {f}, yet the binding LOST {lost} section(s)"
-        if ma < mb and gained:
-            return False, f"entry {e} only lost matched waters in {f}, yet the binding GAINED {gained} section(s)"
-        return True, f"entry {e}'s matched waters changed in {f} ({', '.join(sorted(mb ^ ma)[:3])})"
-    return None, ""
+        return f"entry {e}'s matched waters changed ({', '.join(sorted(mb ^ ma)[:3])})", _one_way(bool(ma - mb),
+                                                                                                bool(mb - ma)), f
+    return None
 
 
 def attribute(rep: dict, since: str, rev: str = "HEAD", changes: dict | None = None) -> tuple[bool, list[str], list[str]]:
-    """(every change explained?, one line per explained change, one line per change nothing explains). A change is
-    explained only by ITS OWN curated input changed since `since`: the rule's own object in its entry (added / removed
-    / edited, with the binding's direction checked where it can be: an added rule only gains, a removed one only
-    loses), the entry's matched waters (same check), or a changed row of another curated file naming one of those
-    waters or a cut the rule names. Nothing else — a sibling rule's edit, a row naming only the entry, a code or atlas
-    move — explains it: when in doubt it stops. `changes` defaults to `changed_rows`."""
+    """(every change explained?, one line per explained change, one line per change not explained) — the rules in the
+    module's docstring. The code / atlas gate is the caller's (`release.binding_moved`), asked first. `changes`
+    defaults to `changed_rows`."""
     ch = changed_rows(since, rev) if changes is None else changes
 
     def commits(f: str) -> str:
         return ", ".join(ch["files"].get(f, [])[:3]) or "commit ?"
 
     ok, bad = [], []
-    keyed = [("rule", k, v) for k, v in (rep.get("rules") or {}).items()] \
-        + [("unresolved", k, {}) for k in rep.get("unresolved") or {}] \
-        + [("licensing", k, v) for k, v in (rep.get("licensing") or {}).items()] \
-        + [("diagnostic", k, {}) for k in rep.get("diagnostics") or {} if not k.startswith("dfo:")]
-    for kind, key, c in keyed:
+    for kind, key in [("unresolved", k) for k in rep.get("unresolved") or {}] \
+            + [("diagnostic", k) for k in rep.get("diagnostics") or {}]:
+        bad.append(f"{kind} {key}: an unresolved / diagnostic change is never auto-accepted")
+    for kind, key, c in [("rule", k, v) for k, v in (rep.get("rules") or {}).items()] \
+            + [("licensing", k, v) for k, v in (rep.get("licensing") or {}).items()]:
+        c = c if isinstance(c, dict) else {}
         e, _, rest = key.partition("::")
         own = rest.split(" ", 1)[0]
-        got, why = _by_entry(e, own, c if isinstance(c, dict) else {}, ch)
+        got = _input_change(e, own, ch)
         if got:
-            ok.append(f"{kind} {key}: {why} ({commits(ch['entries'][e][0])})")
-            continue
-        if got is False:
-            bad.append(f"{kind} {key}: {why}")
+            what, way, f = got
+            fine, why = _direction_ok(way, c)
+            (ok if fine else bad).append(f"{kind} {key}: {what} in {f} ({commits(f)})" if fine
+                                         else f"{kind} {key}: {what} in {f}, but {why}")
             continue
         head = ch["heads"].get(e) or (ch["entries"].get(e) or (None, None, None))[2] or {}
-        names = {m for m in head.get("matched") or () if isinstance(m, str)} | _cut_ids(_own(head, own), set())
-        hit = next(((f, sorted(names & carried)[0]) for f, carried in ch["rows"] if names & carried), None)
-        if hit:
-            ok.append(f"{kind} {key}: a row of {hit[0]} naming {hit[1]} (a water or cut it binds through) changed "
-                      f"({commits(hit[0])})")
+        waters = {m for m in head.get("matched") or () if isinstance(m, str)}
+        hits = [(f, sorted(waters & names)[0], sign) for f, names, sign in ch["rows"]
+                if waters & names and not f.startswith(dfo_root(ch))]
+        if not hits:
+            bad.append(f"{kind} {key}: none of its own binding inputs (the rule's binding fields, its entry's matched "
+                       f"waters, a name / match row naming them) changed since {since[:12]}")
+            continue
+        signs = {s for _f, _w, s in hits}
+        fine, why = _direction_ok(_one_way("+" in signs, "-" in signs), c)
+        f, water, _s = hits[0]
+        (ok if fine else bad).append(f"{kind} {key}: a row of {f} naming {water} changed ({commits(f)})" if fine
+                                     else f"{kind} {key}: a row of {f} naming {water} changed, but {why}")
+    for loc, c in (rep.get("dfo") or {}).items():
+        hits = [s for f, names, s in ch["rows"] if loc in names and f.startswith(dfo_root(ch))]
+        outcome = (c or {}).get("outcome") or [None, None]
+        if not hits:
+            bad.append(f"dfo {loc}: no curated DFO place row changed since {since[:12]} names it")
+        elif outcome[0] != outcome[1]:
+            bad.append(f"dfo {loc}: its outcome changed ({outcome[0]} -> {outcome[1]}): never auto-accepted")
         else:
-            bad.append(f"{kind} {key}: none of its own curated inputs (the rule, its entry's matched waters, the cuts "
-                       f"it names) changed since {since[:12]}")
-    dfo_keys = list(rep.get("dfo") or {}) + [k.split(" ", 1)[0][len("dfo:"):] for k in rep.get("diagnostics") or {}
-                                              if k.startswith("dfo:")]
-    for loc in dfo_keys:
-        hit = next((f for f, carried in ch["rows"] if loc in carried), None)
-        if hit:
-            ok.append(f"dfo {loc}: a row of {hit} naming it changed ({commits(hit)})")
-        else:
-            bad.append(f"dfo {loc}: no curated row changed since {since[:12]} names it")
+            fine, why = _direction_ok(_one_way("+" in hits, "-" in hits), c or {})
+            (ok if fine else bad).append(f"dfo {loc}: a curated DFO place row naming it changed" if fine
+                                         else f"dfo {loc}: a DFO place row naming it changed, but {why}")
     for name in rep.get("side") or {}:
         bad.append(f"{name}: the tidal / outside sets moved (never attributable to a row)")
     return not bad, ok, bad
+
+
+def dfo_root(ch: dict) -> str:
+    return ch.get("dfo_root") or (dfo_places_root().rstrip("/") + "/")
 
 
 def main(argv=None) -> int:
@@ -245,7 +291,7 @@ def main(argv=None) -> int:
         print(f"  explained: {x}")
     for x in bad:
         print(f"  NOT explained: {x}", file=sys.stderr)
-    print(f"{len(ok)} explained, {len(bad)} not")
+    print(f"{len(ok)} explained, {len(bad)} not (the code / atlas gate is `pipeline release`'s, not asked here)")
     return 0 if all_ok else 1
 
 

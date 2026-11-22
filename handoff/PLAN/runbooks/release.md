@@ -91,13 +91,15 @@ Read the summary. Every changed rule must be one that the batch meant to move. I
 The accept only works if that file has exactly the content written for **this** diff. An accept from an older diff
 fails. If a change was not intended, fix the cause, commit, and rerun.
 
-**A diff the batch explains passes by itself (T993 item 8):** when every change is explained by ITS OWN curated input
-changed in the commits since LATEST's commit — the rule's own object added / removed / edited (an added rule may only
-gain, a removed one only lose), its entry's matched waters (same direction check), or a changed row naming one of those
-waters or a cut the rule names; a DFO place by a row naming it. A sibling rule's edit, a row naming only the entry, or
-a code / atlas move never explains a change. Then the checks print `binding diff AUTO-ACCEPTED` with each change and its commit, and the
-ledger keeps it (`auto: attributable`). Anything nothing explains stops as above, listed. The tidal / outside tables
-never pass this way. An accepted record survives a rerun after the promote (T788 #8).
+**A diff the batch explains passes by itself (T993 item 8), conservatively.** Never when the binding code (a file the
+reach stage imports, anything under `pipeline/atlas/`) or the atlas (handles / registry digest) changed since LATEST:
+the diff stops, saying why. Otherwise every change must be explained by ITS OWN binding input changed in the commits
+since LATEST's commit, in the direction it implies: the rule added (gains only) or removed (loses only), its extents
+only added (gains) or only removed (loses), its entry's matched waters likewise, or a name / match file row naming
+those waters added or removed; a DFO place by its own place row, outcome unchanged. Wording or date edits, sibling
+rules, files that only mention the water, unresolved / diagnostic / tidal changes and any change that moves both ways
+never pass. Then the checks print `binding diff AUTO-ACCEPTED` with each change and its commit, and the ledger keeps it
+(`auto: attributable`). An accepted record survives a rerun after the promote (T788 #8).
 
 ## 3a. A changed golden page
 

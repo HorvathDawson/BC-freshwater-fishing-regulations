@@ -723,7 +723,47 @@ def attribute_diff(js: Path, since: str | None) -> tuple[bool, list[str], list[s
         return False, [], [f"no commit is recorded for the live release (or it is not in this clone: {since}): "
                            "nothing can be attributed"]
     from pipeline.release_attribute import attribute
-    return attribute(json.loads(Path(js).read_text(encoding="utf-8")), since)
+    rep = json.loads(Path(js).read_text(encoding="utf-8"))
+    moved = binding_moved(since, rep)
+    if moved:
+        return False, [], [f"NO auto-accept: {x}" for x in moved]
+    return attribute(rep, since)
+
+
+def reach_code_files() -> set[str]:
+    """The files the last reach run imported (`build-manifest.json` `stages.reach.code_files`, T522): its code key."""
+    from pipeline.build import load_manifest
+    got = (((load_manifest().get("stages") or {}).get("reach") or {}).get("code_files"))
+    if not got:
+        raise RuntimeError("the build manifest records no reach code_files")
+    return set(got)
+
+
+def binding_moved(since: str, rep: dict) -> list[str]:
+    """(T993 item 8, review 2026-11-21) why NO change of this diff may be auto-accepted: the binding CODE moved since
+    `since` (a file the reach stage imports, or anything under pipeline/atlas/: the registry, the sectionizer, the
+    reach), or the ATLAS did (the two runs' `handles` / `registry_digest` differ). [] when neither; a fact that cannot
+    be read is a reason too (never a pass)."""
+    out: list[str] = []
+    try:
+        code = reach_code_files()
+    except Exception as e:  # noqa: BLE001 — unread is a reason, never a pass
+        out.append(f"the reach stage's code files cannot be read ({type(e).__name__}: {e}): a code change cannot be "
+                   "ruled out")
+        code = set()
+    moved = sorted(p for p in committed_since(since) if p in code or p.startswith("pipeline/atlas/"))
+    if moved:
+        out.append(f"the binding code changed since {since[:12]} ({len(moved)} file(s): {', '.join(moved[:4])}"
+                   f"{' …' if len(moved) > 4 else ''}): read the diff")
+    try:
+        rb, ra = (json.loads((Path(rep[k]) / "report.json").read_text(encoding="utf-8")) for k in ("before", "after"))
+    except (KeyError, OSError, ValueError) as e:
+        return out + [f"the two reach runs' reports cannot be read ({type(e).__name__}: {e}): an atlas change cannot "
+                      "be ruled out"]
+    for k in ("handles", "registry_digest"):
+        if rb.get(k) is None or rb.get(k) != ra.get(k):
+            out.append(f"the atlas changed between the runs ({k} {rb.get(k)} -> {ra.get(k)}): read the diff")
+    return out
 
 
 def recut_renumbered(pages: list[str]) -> tuple[bool, str]:

@@ -27,7 +27,12 @@ def repo(tmp_path: Path, monkeypatch) -> Path:
     _git(root, "config", "user.name", "t")
     monkeypatch.setattr(RF, "REPO_ROOT", root)
     monkeypatch.setattr(A, "REPO_ROOT", root)
-    monkeypatch.setattr(A, "CURATED", SimpleNamespace(base=root / "data" / "curated"))
+    cur = root / "data" / "curated"
+    monkeypatch.setattr(A, "CURATED", SimpleNamespace(
+        base=cur, waters=SimpleNamespace(**{k: cur / "waters" / f"{k}.json" for k in (
+            "name_variants", "found_names", "continuations", "unmapped_waters", "added_streams")}),
+        regulations=SimpleNamespace(book_name_links=cur / "regulations" / "book_name_links.json"),
+        dfo_salmon=SimpleNamespace(places=cur / "dfo_salmon" / "places")))
     return root
 
 
@@ -137,7 +142,8 @@ def test_a_new_page_is_never_a_renumber(repo):
 SYN = "data/curated/regulations/synopsis/region-2.json"
 LOCAL = "data/curated/regulations/local_closures/region-2.json"
 VARIANTS = "data/curated/waters/name_variants.json"
-CUTS = "data/curated/waters/cuts.json"
+NOTES = "data/curated/waters/shore_held.json"                       # mentions waters; not a name / match file
+DFO = "data/curated/dfo_salmon/places/region-2.json"
 
 
 def _entry(eid: str, rules=None, matched=("wbk:1",)) -> dict:
@@ -145,34 +151,35 @@ def _entry(eid: str, rules=None, matched=("wbk:1",)) -> dict:
             "rules": rules if rules is not None else [{"rule_id": f"{eid.split(':')[1].split('@')[0]}.r1", "take": 2}]}
 
 
-def test_the_rows_changed_since_a_commit(repo):
+def test_the_rows_changed_since_a_commit_are_the_binding_files_only(repo):
     _write(repo, SYN, {"entries": [_entry("r2:a@2-8"), _entry("r2:b@2-8", matched=("lake:7",))]})
     _write(repo, VARIANTS, {"_about": "x", "variants": [{"name": "Old Lagoon", "item": "lake:9"}]})
+    _write(repo, NOTES, {"rows": [{"item": "lake:7", "note": "a"}]})
     since = _commit(repo)
     _write(repo, SYN, {"entries": [_entry("r2:a@2-8", rules=[{"rule_id": "a.r1", "take": 0}]),
                                    _entry("r2:b@2-8", matched=("lake:7",))]})
     _write(repo, LOCAL, {"entries": [_entry("r2:lost_lagoon_local@2-8", matched=("wbk:329532481",))]})
     _write(repo, VARIANTS, {"_about": "x", "variants": [{"name": "Old Lagoon", "item": "lake:9"},
                                                          {"name": "Beaver Pond", "item": "lake:7"}]})
+    _write(repo, NOTES, {"rows": [{"item": "lake:7", "note": "b"}]})
     _commit(repo)
     ch = A.changed_rows(since)
     assert set(ch["entries"]) == {"r2:a@2-8", "r2:lost_lagoon_local@2-8"}                # b did not change
     f, before, after = ch["entries"]["r2:lost_lagoon_local@2-8"]
     assert f == LOCAL and before is None and after["matched"] == ["wbk:329532481"]
-    assert any(f == VARIANTS and "lake:7" in names for f, names in ch["rows"])
-    assert not any("lake:9" in names for f, names in ch["rows"])                         # an unchanged row
-    assert ch["heads"]["r2:b@2-8"]["matched"] == ["lake:7"] and len(ch["files"][LOCAL]) == 1
+    assert [(f, s) for f, names, s in ch["rows"]] == [(VARIANTS, "+")]                   # NOTES is no binding input
+    assert "lake:7" in ch["rows"][0][1] and ch["heads"]["r2:b@2-8"]["matched"] == ["lake:7"]
 
 
 def _changes(**kw) -> dict:
-    return {"entries": {}, "rows": [], "files": {}, "heads": {}, **kw}
+    return {"entries": {}, "rows": [], "files": {}, "heads": {}, "dfo_root": "data/curated/dfo_salmon/places/", **kw}
 
 
 def _diff(**kw) -> dict:
     return {"rules": {}, "unresolved": {}, "licensing": {}, "dfo": {}, "side": {}, "diagnostics": {}, **kw}
 
 
-GAINED = {"gained": 1, "lost": 0}
+GAINED, LOST = {"gained": 1, "lost": 0}, {"gained": 0, "lost": 3}
 
 
 def test_an_added_rule_that_gains_is_explained_by_its_own_entry():
@@ -183,60 +190,139 @@ def test_an_added_rule_that_gains_is_explained_by_its_own_entry():
     assert ok and bad == [] and "rule lost_lagoon_local.r1 added in" in said[0] and "7ce79dcf0" in said[0]
 
 
-def test_mutation_an_added_rule_whose_binding_lost_sections_stops():
+def test_mutation_an_added_rule_whose_binding_lost_or_moved_both_ways_stops():
     e = _entry("r2:x@2-8", rules=[{"rule_id": "x.r1"}])
     ch = _changes(entries={e["entry_id"]: (SYN, None, e)})
-    ok, _said, bad = A.attribute(_diff(rules={"r2:x@2-8::x.r1": {"gained": 0, "lost": 4}}), "b", changes=ch)
-    assert not ok and "was added" in bad[0] and "LOST 4" in bad[0]
+    ok, _said, bad = A.attribute(_diff(rules={"r2:x@2-8::x.r1": LOST}), "b", changes=ch)
+    assert not ok and "only grew, yet the binding LOST 3" in bad[0]
+    assert "moved both ways" in A.attribute(_diff(rules={"r2:x@2-8::x.r1": {"gained": 2, "lost": 1}}), "b",
+                                            changes=ch)[2][0]
+
+
+def test_mutation_a_wording_or_date_edit_explains_nothing():
+    """Review 2026-11-21 (b): only the rule's binding fields count."""
+    b = _entry("r2:a@2-8", rules=[{"rule_id": "a.r1", "verbatim": "Jan 1-Mar 31", "when": {"m": 1},
+                                   "extents": [{"op": "whole"}]}])
+    a = _entry("r2:a@2-8", rules=[{"rule_id": "a.r1", "verbatim": "Jan 1-Apr 30", "when": {"m": 2},
+                                   "extents": [{"op": "whole"}]}])
+    ch = _changes(entries={"r2:a@2-8": (SYN, b, a)}, heads={"r2:a@2-8": a})
+    ok, said, bad = A.attribute(_diff(rules={"r2:a@2-8::a.r1": GAINED}), "b", changes=ch)
+    assert not ok and said == [] and "none of its own binding inputs" in bad[0]
+
+
+def test_an_extent_added_explains_a_gain_and_never_a_loss():
+    b = _entry("r2:a@2-8", rules=[{"rule_id": "a.r1", "extents": [{"op": "whole"}]}])
+    a = _entry("r2:a@2-8", rules=[{"rule_id": "a.r1", "extents": [{"op": "whole"}, {"op": "within", "area_id": "x"}]}])
+    ch = _changes(entries={"r2:a@2-8": (SYN, b, a)})
+    assert A.attribute(_diff(rules={"r2:a@2-8::a.r1": GAINED}), "b", changes=ch)[0]
+    assert not A.attribute(_diff(rules={"r2:a@2-8::a.r1": LOST}), "b", changes=ch)[0]
+    swapped = _entry("r2:a@2-8", rules=[{"rule_id": "a.r1", "extents": [{"op": "within", "area_id": "x"}]}])
+    ok, _said, bad = A.attribute(_diff(rules={"r2:a@2-8::a.r1": GAINED}), "b",
+                                 changes=_changes(entries={"r2:a@2-8": (SYN, b, swapped)}))
+    assert not ok and "input moved both ways" in bad[0]                  # an extent replaced: no direction
 
 
 def test_mutation_a_sibling_rules_edit_never_explains_another_rule():
-    """Review 2026-11-21: any edit to the entry excused every rule of it."""
-    b = _entry("r2:a@2-8", rules=[{"rule_id": "a.r1", "take": 2}, {"rule_id": "a.r2", "take": 1}])
-    a = _entry("r2:a@2-8", rules=[{"rule_id": "a.r1", "take": 0}, {"rule_id": "a.r2", "take": 1}])
+    b = _entry("r2:a@2-8", rules=[{"rule_id": "a.r1", "extents": [{"op": "whole"}]}, {"rule_id": "a.r2"}])
+    a = _entry("r2:a@2-8", rules=[{"rule_id": "a.r1", "extents": [{"op": "whole"}, {"op": "x"}]}, {"rule_id": "a.r2"}])
     ch = _changes(entries={"r2:a@2-8": (SYN, b, a)}, heads={"r2:a@2-8": a})
     ok, said, bad = A.attribute(_diff(rules={"r2:a@2-8::a.r1": GAINED, "r2:a@2-8::a.r2": GAINED}), "b", changes=ch)
-    assert not ok and len(said) == 1 and "a.r1 edited" in said[0]
-    assert len(bad) == 1 and bad[0].startswith("rule r2:a@2-8::a.r2: none of its own curated inputs")
+    assert not ok and len(said) == 1 and "a.r1's extents edited" in said[0]
+    assert len(bad) == 1 and bad[0].startswith("rule r2:a@2-8::a.r2: none of its own binding inputs")
 
 
-def test_mutation_a_code_only_move_stops():
-    """No curated input of the rule changed (a code or atlas change moved it): never explained."""
-    e = _entry("r6:skeena@6-10")
-    ch = _changes(heads={"r6:skeena@6-10": e}, rows=[(VARIANTS, frozenset({"lake:99", "r6:skeena@6-10"}))])
-    ok, said, bad = A.attribute(_diff(rules={"r6:skeena@6-10::skeena.r1": {"gained": 30, "lost": 2}}), "b", changes=ch)
-    assert not ok and said == [] and "none of its own curated inputs" in bad[0]
-
-
-def test_a_row_naming_only_the_entry_explains_nothing():
+def test_a_name_row_explains_its_own_direction_only():
     e = _entry("r2:b@2-8", matched=("lake:7",))
-    ch = _changes(heads={"r2:b@2-8": e}, rows=[("data/curated/regulations/book_name_links.json",
-                                                  frozenset({"r2:b@2-8", "Beaver"}))])
-    assert not A.attribute(_diff(rules={"r2:b@2-8::b.r1": GAINED}), "b", changes=ch)[0]
+    added = _changes(heads={"r2:b@2-8": e}, rows=[(VARIANTS, frozenset({"Beaver Pond", "lake:7"}), "+")])
+    ok, said, _bad = A.attribute(_diff(rules={"r2:b@2-8::b.r1": GAINED}), "b", changes=added)
+    assert ok and f"a row of {VARIANTS} naming lake:7 changed" in said[0]
+    assert not A.attribute(_diff(rules={"r2:b@2-8::b.r1": LOST}), "b", changes=added)[0]
 
 
-def test_a_changed_row_naming_a_matched_water_or_a_cut_the_rule_names_is_explained():
-    e = _entry("r2:b@2-8", rules=[{"rule_id": "b.r1", "extents": [{"op": "upstream_of", "splits": ["split-n2"]}]},
-                                  {"rule_id": "b.r2"}], matched=("lake:7",))
-    variants = _changes(heads={"r2:b@2-8": e}, rows=[(VARIANTS, frozenset({"Beaver Pond", "lake:7"}))])
-    ok, said, _bad = A.attribute(_diff(unresolved={"r2:b@2-8::b.r1": {}}), "b", changes=variants)
-    assert ok and f"a row of {VARIANTS} naming lake:7" in said[0]
-    cut = _changes(heads={"r2:b@2-8": e}, rows=[(CUTS, frozenset({"split-n2", "Campbell River"}))])
-    assert A.attribute(_diff(rules={"r2:b@2-8::b.r1": GAINED}), "b", changes=cut)[0]
-    assert not A.attribute(_diff(rules={"r2:b@2-8::b.r2": GAINED}), "b", changes=cut)[0]   # b.r2 names no cut
+def test_mutation_a_row_outside_the_binding_files_or_naming_only_the_entry_stops(repo):
+    """Review 2026-11-21 (c): a file that merely mentions the water explains nothing (changed_rows never lists it)."""
+    e = _entry("r2:b@2-8", matched=("lake:7",))
+    _write(repo, SYN, {"entries": [e]})
+    _write(repo, NOTES, {"rows": [{"item": "lake:7", "note": "a"}]})
+    since = _commit(repo)
+    _write(repo, NOTES, {"rows": [{"item": "lake:7", "note": "b"}]})
+    _commit(repo)
+    ok, _said, bad = A.attribute(_diff(rules={"r2:b@2-8::b.r1": GAINED}), since)
+    assert not ok and "none of its own binding inputs" in bad[0]
+    only_entry = _changes(heads={"r2:b@2-8": e}, rows=[(VARIANTS, frozenset({"r2:b@2-8"}), "+")])
+    assert not A.attribute(_diff(rules={"r2:b@2-8::b.r1": GAINED}), "b", changes=only_entry)[0]
 
 
-def test_matched_waters_explain_in_their_direction():
-    b, a = _entry("r2:c@2-8", matched=("lake:1",)), _entry("r2:c@2-8", matched=("lake:1", "lake:2"))
-    ch = _changes(entries={"r2:c@2-8": (SYN, b, a)})
-    assert A.attribute(_diff(rules={"r2:c@2-8::c.r1": GAINED}), "b", changes=ch)[0]
-    ok, _said, bad = A.attribute(_diff(rules={"r2:c@2-8::c.r1": {"gained": 0, "lost": 3}}), "b", changes=ch)
-    assert not ok and "only gained matched waters" in bad[0]
-
-
-def test_dfo_places_need_a_row_naming_them_and_the_side_tables_never_pass():
-    ch = _changes(rows=[("data/curated/dfo_salmon/places/region-2.json", frozenset({"loc:chilliwack-1"}))])
-    assert A.attribute(_diff(dfo={"loc:chilliwack-1": {}}), "b", changes=ch)[0]
-    assert not A.attribute(_diff(dfo={"loc:vedder-2": {}}), "b", changes=ch)[0]
+def test_unresolved_diagnostic_and_side_changes_never_pass():
+    e = _entry("r2:x@2-8", rules=[{"rule_id": "x.r1"}])
+    ch = _changes(entries={e["entry_id"]: (SYN, None, e)})
+    assert not A.attribute(_diff(unresolved={"r2:x@2-8::x.r1": {}}), "b", changes=ch)[0]
+    assert not A.attribute(_diff(diagnostics={"r2:x@2-8::x.r1 unplaced p": {}}), "b", changes=ch)[0]
     ok, _said, bad = A.attribute(_diff(side={"tidal": {"changed": 3}}), "b", changes=ch)
     assert not ok and "never attributable" in bad[0]
+
+
+def test_dfo_places_need_their_own_place_row_one_way_and_the_same_outcome():
+    ch = _changes(rows=[(DFO, frozenset({"loc:chilliwack-1"}), "+")])
+    same = {"outcome": ["open", "open"], "gained": 2, "lost": 0}
+    assert A.attribute(_diff(dfo={"loc:chilliwack-1": same}), "b", changes=ch)[0]
+    assert not A.attribute(_diff(dfo={"loc:vedder-2": same}), "b", changes=ch)[0]
+    assert not A.attribute(_diff(dfo={"loc:chilliwack-1": {**same, "outcome": ["open", "closed"]}}), "b",
+                           changes=ch)[0]
+
+
+# ------------------------------------------------- the code / atlas gate: no auto-accept at all (review (a))
+
+def _runs(tmp: Path, handles=("h1", "h1"), registry=("g1", "g1")) -> dict:
+    out = {}
+    for k, h, g in zip(("before", "after"), handles, registry):
+        d = tmp / k
+        d.mkdir(parents=True)
+        (d / "report.json").write_text(json.dumps({"handles": h, "registry_digest": g}))
+        out[k] = str(d)
+    return out
+
+
+def test_no_auto_accept_when_the_binding_code_moved(tmp_path, monkeypatch):
+    from pipeline import release as R
+    monkeypatch.setattr(R, "reach_code_files", lambda: {"pipeline/regs/parsing/io.py"})
+    monkeypatch.setattr(R, "committed_since", lambda rev: {"data/curated/regulations/synopsis/region-2.json"})
+    assert R.binding_moved("base0", _runs(tmp_path)) == []
+    monkeypatch.setattr(R, "committed_since", lambda rev: {"data/curated/regulations/synopsis/region-2.json",
+                                                           "pipeline/regs/parsing/io.py"})
+    got = R.binding_moved("base0", _runs(tmp_path / "x"))
+    assert len(got) == 1 and "the binding code changed since base0" in got[0] and "io.py" in got[0]
+    monkeypatch.setattr(R, "committed_since", lambda rev: {"pipeline/atlas/registry/build.py"})
+    assert R.binding_moved("base0", _runs(tmp_path / "y"))                # anything under pipeline/atlas/
+
+
+def test_no_auto_accept_when_the_atlas_moved_or_cannot_be_read(tmp_path, monkeypatch):
+    from pipeline import release as R
+    monkeypatch.setattr(R, "reach_code_files", lambda: set())
+    monkeypatch.setattr(R, "committed_since", lambda rev: set())
+    assert "the atlas changed between the runs (handles h1 -> h2)" in R.binding_moved(
+        "b", _runs(tmp_path, handles=("h1", "h2")))[0]
+    assert R.binding_moved("b", _runs(tmp_path / "r", registry=("g1", "g9")))
+    assert "cannot be read" in R.binding_moved("b", {"before": str(tmp_path / "none"), "after": str(tmp_path)})[0]
+
+    def boom():
+        raise RuntimeError("no manifest")
+    monkeypatch.setattr(R, "reach_code_files", boom)
+    assert "a code change cannot be ruled out" in R.binding_moved("b", _runs(tmp_path / "z"))[0]
+
+
+def test_mutation_a_code_change_and_a_same_water_edit_together_stop(tmp_path, monkeypatch):
+    """Review (a): the entry edit would explain the move, but code moved too — the diff stops, saying why."""
+    from pipeline import release as R
+    rep = {**_diff(rules={"r2:x@2-8::x.r1": GAINED}), **_runs(tmp_path)}
+    js = tmp_path / "binding_diff.json"
+    js.write_text(json.dumps(rep))
+    monkeypatch.setattr(R, "git_has_commit", lambda rev: True)
+    monkeypatch.setattr(R, "reach_code_files", lambda: {"pipeline/atlas/reach/classify.py"})
+    monkeypatch.setattr(R, "committed_since", lambda rev: {"pipeline/atlas/reach/classify.py", SYN})
+    e = _entry("r2:x@2-8", rules=[{"rule_id": "x.r1"}])
+    monkeypatch.setattr(A, "changed_rows", lambda since, rev="HEAD": _changes(entries={e["entry_id"]: (SYN, None, e)}))
+    ok, said, bad = R.attribute_diff(js, "base0")
+    assert not ok and said == [] and bad[0].startswith("NO auto-accept: the binding code changed")
+    monkeypatch.setattr(R, "committed_since", lambda rev: {SYN})        # the same edit, no code: explained
+    assert R.attribute_diff(js, "base0")[0]
