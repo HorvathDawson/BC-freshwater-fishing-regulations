@@ -105,7 +105,7 @@ else
   # (T978, 0.8.4 production build from a worktree) a missing repo made this `find` fail and `set -e` end the script with
   # NO message. Found here without stopping; a missing / ambiguous / unpinned AAR is listed by the precheck below with
   # its fix (deploy/lib/build-links.sh build_links_mln), and refused before anything is built (MLN_AAR stays empty)
-  if [[ -d $MLN_LOCAL_MAVEN ]]; then MLN_AAR=$(find "$MLN_LOCAL_MAVEN" -name 'android-sdk-vulkan-*.aar'); fi
+  if [[ -d $MLN_LOCAL_MAVEN ]]; then MLN_AAR=$(find -L "$MLN_LOCAL_MAVEN" -name 'android-sdk-vulkan-*.aar'); fi
   [[ $(grep -c . <<<"$MLN_AAR") -eq 1 && $(basename "$MLN_AAR") == "android-sdk-vulkan-$MLN_VERSION.aar" ]] || MLN_AAR=
   if [[ -n $MLN_AAR ]]; then echo "build-apk: pinned upstream MapLibre $MLN_VERSION (${MLN_COMMIT:0:9}, no patch) from $MLN_AAR"; fi
 fi

@@ -433,7 +433,7 @@ JUSTIFIED: dict[tuple[str, str], str] = {
     ("deploy/lib/site-stamp.sh", 'git cat-file -e "$sha^{commit}" 2>/dev/null'): "a commit not here is said, never a pass",
     # (T978 lane, deploy/lib/build-links.sh) the search of a folder checked to exist: an unreadable part finds fewer
     # AARs, which is refused ("must hold exactly one"): it fails closed
-    ("deploy/lib/build-links.sh", "found=$(find \"$dir\" -name 'android-sdk-vulkan-*.aar' 2>/dev/null)"):
+    ("deploy/lib/build-links.sh", "found=$(find -L \"$dir\" -name 'android-sdk-vulkan-*.aar' 2>/dev/null)"):
         "fails closed: fewer AARs found is the refusal",
 }
 SCANNED_OUT = ("deploy/staging/build-apk.sh", "deploy/staging/build-ios-testflight.sh", "deploy/staging/build-ios-sim.sh")

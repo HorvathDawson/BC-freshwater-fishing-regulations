@@ -537,6 +537,12 @@ def test_build_links_fix_a_worktree_by_linking_the_main_checkout(tmp_path):
     aar.write_text("a")
     got = _links(m, f"build_links_mln {m}/{repo}; echo \"AAR=$MLN_AAR\"")
     assert f"AAR={aar}" in got.stdout and "FAIL" not in got.stdout and f"upstream {sha9}, no patch" in got.stdout
+    # (T978) the fix it prints works: the worktree's LINK to the main checkout's repo is followed (a bare `find` did
+    # not descend into a symlinked folder, so the advised link was still "found: none")
+    (wt / "cache/maplibre").mkdir(parents=True)
+    (wt / repo).symlink_to(m / repo)
+    got = _links(wt, f"build_links_mln {wt}/{repo}; echo \"AAR=$MLN_AAR\"")
+    assert f"AAR={wt}/{repo}/org/" in got.stdout and "FAIL" not in got.stdout, got.stdout
     lean = main / "cache/maplibre/fslean-m2/org/maplibre/gl/android-sdk-vulkan/13.6.1-fslean/android-sdk-vulkan-13.6.1-fslean.aar"
     lean.parent.mkdir(parents=True)
     lean.write_text("l")

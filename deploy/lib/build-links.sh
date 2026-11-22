@@ -59,7 +59,7 @@ build_links_mln() {
       "scripts/heavy.sh mln-aar 30 -- bash app/tools/maplibre-android/build.sh <work dir>")"
     return 0
   fi
-  found=$(find "$dir" -name 'android-sdk-vulkan-*.aar' 2>/dev/null)
+  found=$(find -L "$dir" -name 'android-sdk-vulkan-*.aar' 2>/dev/null)
   if [[ -z $found || $(grep -c . <<<"$found") -ne 1 ]]; then
     bad "$dir must hold exactly one android-sdk-vulkan AAR (found: ${found:-none}; app/tools/maplibre-android/README.md)"
   elif [[ $(basename "$found") != "android-sdk-vulkan-$MLN_VERSION.aar" ]]; then

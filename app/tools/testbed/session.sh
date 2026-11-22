@@ -64,7 +64,7 @@ else
     [[ -n ${TESTBED_APK_TAG:-} ]] || { log "MLN_LOCAL_MAVEN=$MLN_LOCAL_MAVEN is not the pinned repo ($MLN_DEFAULT): it needs TESTBED_APK_TAG (e.g. exp1) so the default APK is kept"; exit 1; }
   fi
   [[ -z $VARIANT ]] || { log "the pinned MapLibre is the Vulkan SDK: drop --$VARIANT, or say why with --stock-maplibre=\"<reason>\""; exit 1; }
-  MLN_AAR=$(find "$MLN_LOCAL_MAVEN" -name 'android-sdk-vulkan-*.aar' 2>/dev/null)
+  MLN_AAR=$(find -L "$MLN_LOCAL_MAVEN" -name 'android-sdk-vulkan-*.aar' 2>/dev/null)
   # (T978) the fix said: from a worktree, the link to the main checkout's repo (deploy/lib/build-links.sh build_fix)
   [[ -n $MLN_AAR && $(echo "$MLN_AAR" | wc -l) -eq 1 ]] || {
     fix=$(cd "$ROOT" && source deploy/lib/build-links.sh && build_fix "${MLN_LOCAL_MAVEN#"$(pwd -P)"/}" "app/tools/maplibre-android/build.sh makes it (its README)")
