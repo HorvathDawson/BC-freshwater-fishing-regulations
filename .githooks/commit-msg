@@ -8,7 +8,9 @@
 #
 # Needs app/node_modules (pnpm -C app install --frozen-lockfile --prefer-offline): the check says so when it is missing.
 set -eu
-root=$(cd "$(dirname "$0")/.." && pwd -P)
+# (T998 review) THIS checkout's root, as pre-push: core.hooksPath may be absolute (the main checkout's .githooks), and
+# the check must read the committing worktree's ledger (a lane's new ticket) and its own config, not the main checkout's
+root=$(git rev-parse --show-toplevel)
 msg=$1
 case $msg in /*) ;; *) msg=$(pwd -P)/$msg ;; esac
 # git runs a hook with GIT_DIR and friends set; node and its git calls find the repo from the cwd instead (as pre-push)

@@ -329,4 +329,6 @@ def test_every_pr_checks_its_commits_and_title_through_the_hooks_own_check():
                           "PR_NUMBER": "${{ github.event.pull_request.number }}"}
     hook = (WF.parents[1] / ".githooks" / "commit-msg").read_text()
     assert 'exec node app/tools/check-commits.mjs --edit "$msg"' in hook
+    # (T998 review) the committing worktree's root, not the hook file's (core.hooksPath may be the main checkout's)
+    assert "root=$(git rev-parse --show-toplevel)" in hook and "dirname" not in hook
     assert "unset $(git rev-parse --local-env-vars) GIT_QUARANTINE_PATH" in hook

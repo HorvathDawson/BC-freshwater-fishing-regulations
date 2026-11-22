@@ -56,7 +56,8 @@ def test_only_the_apps_commits_bump_the_app():
         d = RV.decide("0.8.5", "x", [c("fix(T1): a", paths=paths)])
         assert d.version is None and len(d.not_app) == 1, paths
     for paths in (("app/packages/core/src/a.ts",), ("app/apps/mobile/app.json",), ("app/tools/seo/build.ts",),
-                  ("pipeline/x.py", "app/packages/map/src/a.ts")):
+                  ("pipeline/x.py", "app/packages/map/src/a.ts"),
+                  ("app/tools/maplibre-patch/feature-state-deltas-lean.patch",)):
         assert RV.decide("0.8.5", "x", [c("fix(T1): a", paths=paths)]).version == "0.8.6", paths
 
 

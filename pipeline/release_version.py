@@ -132,7 +132,10 @@ def _follows_paths() -> tuple[str, ...]:
 #: re-cuts itself (release_follows.FOLLOWS: a data release's own commits never bump the app)
 NOT_APP: tuple[str, ...] = ("app/workers/", "app/tools/", "app/conformance/", "app/fixtures/", *_follows_paths())
 #: under NOT_APP but shipped: the website's page builder (the site goes out with each app version, its version matches)
-APP_AGAIN: tuple[str, ...] = ("app/tools/seo/", "app/tools/build-seo.mjs")
+#: and (T998 review) the lean MapLibre patch every store build ships (T420/T893: build.sh makes the AAR from it)
+APP_AGAIN: tuple[str, ...] = ("app/tools/seo/", "app/tools/build-seo.mjs",
+                              "app/tools/maplibre-patch/feature-state-deltas-lean.patch",
+                              "app/tools/maplibre-patch/build.sh")
 #: a test file or a document anywhere under app/ ships in nothing
 NOT_SHIPPED = re.compile(r"\.test\.[cm]?[jt]sx?$|(^|/)__tests__/|\.md$")
 
