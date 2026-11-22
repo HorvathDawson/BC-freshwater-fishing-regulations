@@ -3,7 +3,8 @@
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { BACKUP_STATUS_KEY, DAILY_KEEP_DAYS, forgetReport, goneBy, LIFECYCLE_SLACK_DAYS, MAX_BYTES, mayCopy, OUTBOX_KEY, personalKind, pruneBackups, runBackup, type DstBucket, type SrcBucket } from "../src/backup";
+import { WORKER_SUBREQUESTS } from "../src/push";
+import { BACKUP_STATUS_KEY, BACKUP_SUBREQUESTS, DAILY_KEEP_DAYS, PRUNE_RESERVE, forgetReport, goneBy, LIFECYCLE_SLACK_DAYS, MAX_BYTES, mayCopy, OUTBOX_KEY, personalKind, pruneBackups, runBackup, type DstBucket, type SrcBucket } from "../src/backup";
 import { NOTIFY_STATE, PERSONAL_EVENT_KINDS } from "../src/events";
 import { MemStore } from "./dfo.scenario";
 import { RETENTION_DAYS } from "../src/reports";
@@ -102,6 +103,10 @@ describe("the daily backup (T246)", () => {
     const r = await runBackup(src(STATE, { "private/feeds/status.json": MAX_BYTES + 1 }), d, new Date("2026-10-29T09:25:00Z"));
     expect(r.skipped).toEqual([{ key: "private/feeds/status.json", why: expect.stringMatching(/bytes >/) }]);
     expect(d.m.has("daily/2026-10-29/private/feeds/status.json")).toBe(false);
+    // (T994 #24) an object left out is a failed run, told; the rest of the snapshot and its manifest are written
+    expect(r.ok).toBe(false);
+    expect(r.error).toMatch(/private\/feeds\/status\.json was not backed up: \d+ bytes >/);
+    expect(d.m.has("daily/2026-10-29/_manifest.json")).toBe(true);
 
     const broken: DstBucket = { ...dst(), put: async (k) => { if (k.includes("runs")) throw new Error("R2 down"); } };
     const s = src(STATE);
@@ -273,6 +278,49 @@ describe("the outbox in the backups (T994 #3)", () => {
     expect(man.scrubbed).toEqual([{ key: OUTBOX_KEY, dropped: 2, at: NOW.toISOString() }]);
     expect(d.m.has(`daily/2026-11-20/${OUTBOX_KEY}`)).toBe(false);
     expect(text(d, `daily/2026-11-21/${OUTBOX_KEY}`)).toBe(clean);
+  });
+});
+
+// T994 #24: every kept report is copied again each day and the prune reads per copy, so the run's R2 calls grow with the
+// stores; past the Workers subrequest cap the run died part-way, with no manifest, and `skipped` never failed it.
+describe("the backup's subrequest budget (T994 #24)", () => {
+  const NOW = new Date("2026-12-02T09:25:00Z");
+  const reports = Object.fromEntries(Array.from({ length: 40 }, (_, i) => {
+    const id = i.toString(16).padStart(16, "0");
+    return [`private/reports/2026-11-30/${id}.json`, JSON.stringify({ id, received: "2026-11-30T12:00:00Z" })];
+  }));
+  const counting = () => { const d = dst(); let n = 0; const w: DstBucket & { m: typeof d.m; calls: () => number } = {
+    m: d.m, calls: () => n,
+    put: (k, b, o) => (n++, d.put(k, b, o)), list: (o) => (n++, d.list(o)), get: (k) => (n++, d.get(k)), delete: (k) => (n++, d.delete(k)) }; return w; };
+
+  it("the state is copied first; at the budget the copying stops, the manifest says what was left, and the run fails, told", async () => {
+    const d = counting();
+    const r = await runBackup(src({ ...STATE, ...reports }), d, NOW, null, { budget: 60, reserve: 10 });
+    expect(r.ok).toBe(false);
+    expect(r.partial).toMatchObject({ left: expect.any(Number), from: expect.stringMatching(/^private\/reports\//) });
+    expect(r.error).toMatch(/the snapshot is PARTIAL: \d+ object\(s\) from private\/reports\/.* were not copied/);
+    // every state object is in the snapshot; only report copies were left
+    for (const k of ["private/feeds/status.json", "feeds/dfo/index.json", "release/manifest.json", "runtiming/index.json"])
+      expect(d.m.has(`daily/2026-12-02/${k}`), k).toBe(true);
+    const man = JSON.parse(new TextDecoder().decode(d.m.get("daily/2026-12-02/_manifest.json")!.body));
+    expect(man.partial).toEqual(r.partial);
+    expect(Object.keys(man.objects).filter((k) => k.startsWith("private/reports/2026-11-30/")).length).toBe(40 - r.partial!.left);
+    expect(r.subrequests).toBeLessThanOrEqual(60);
+  });
+
+  it("a prune that would pass the budget stops and fails the run naming it (the manifest is already written)", async () => {
+    const d = counting();
+    for (let i = 0; i < 30; i++) await d.put(`daily/2026-11-${String(i % 28 + 1).padStart(2, "0")}/private/crashes/${i.toString(16).padStart(16, "0")}.json`, JSON.stringify({ last: "2026-12-01T00:00:00Z" }));
+    const r = await runBackup(src(STATE), d, NOW, null, { budget: 35, reserve: 15 });
+    expect(r.ok).toBe(false);
+    expect(r.error).toMatch(/subrequest budget \(35\) is spent; this run's prune did not finish/);
+    expect(d.m.has("daily/2026-12-02/_manifest.json")).toBe(true);
+    expect(r.subrequests).toBe(36);              // the call that would pass it is refused, never made
+  });
+
+  it("the production budget leaves the purge its share of the invocation", () => {
+    expect(BACKUP_SUBREQUESTS).toBeLessThan(WORKER_SUBREQUESTS / 2 + 1_500);
+    expect(PRUNE_RESERVE).toBeLessThan(BACKUP_SUBREQUESTS);
   });
 });
 

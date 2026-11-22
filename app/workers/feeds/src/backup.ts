@@ -129,6 +129,10 @@ export interface BackupResult {
   pruned: number;
   /** (T994 #3) outbox copies the prune rewrote without their personal events (copies made before the rule) */
   scrubbed: number;
+  /** (T994 #24) the run met its subrequest budget: how many objects were not copied, from which key, and why */
+  partial: { left: number; from: string; why: string } | null;
+  /** (T994 #24) the bucket calls this run made (BACKUP_SUBREQUESTS at most) */
+  subrequests: number;
   error: string | null;
   wallMs: number;
 }
@@ -154,17 +158,58 @@ export async function backupKeys(src: SrcBucket): Promise<{ key: string; size: n
   return [...out].map(([key, size]) => ({ key, size })).sort((a, b) => a.key.localeCompare(b.key));
 }
 
+/**
+ * (T994 #24) THE SUBREQUEST BUDGET. Every R2 binding call counts against the invocation's subrequests (push.ts
+ * WORKER_SUBREQUESTS, 10,000), and the backup shares its invocation with the daily purge (the "25 9" cron runs both), which
+ * keeps the rest. Each kept report and error kind is copied again every day (a daily snapshot is whole: the restore test
+ * reads one snapshot), so the cost grows with the stores: past the cap Cloudflare fails every later call and the run died
+ * part-way with no manifest. Now the copying stops clearly before BACKUP_SUBREQUESTS - PRUNE_RESERVE, the state is copied
+ * FIRST and the personal records last, the manifest names what was left (`partial`), and the run fails and is told.
+ */
+export const BACKUP_SUBREQUESTS = 6_000;
+/** kept back from the copying for the manifests and the prune (its lists, a read per error-kind copy, its deletes) */
+export const PRUNE_RESERVE = 1_500;
+
+/** the budget's counter: a call past `cap` THROWS (the run fails naming it), never one Cloudflare refuses silently */
+function metered<B extends object>(b: B, used: { n: number }, cap: number, calls: (keyof B)[]): B {
+  const out = { ...b } as B;
+  for (const c of calls) {
+    const f = (b[c] as unknown as (...a: unknown[]) => unknown).bind(b);
+    (out as Record<keyof B, unknown>)[c] = (...a: unknown[]) => {
+      if (++used.n > cap) throw new Error(`backup: the subrequest budget (${cap}) is spent; this run's prune did not finish`);
+      return f(...a);
+    };
+  }
+  return out;
+}
+
 /** copy the set into daily/<day>/ (and monthly/<YYYY-MM>/ on the 1st), with a manifest of sha256s written LAST */
-export async function runBackup(src: SrcBucket, dst: DstBucket, now: Date, source: string | null = null): Promise<BackupResult> {
+export async function runBackup(src: SrcBucket, dst: DstBucket, now: Date, source: string | null = null,
+                                o: { budget?: number; reserve?: number } = {}): Promise<BackupResult> {
+  const budget = o.budget ?? BACKUP_SUBREQUESTS, reserve = o.reserve ?? PRUNE_RESERVE;
   const t0 = Date.now();
   const at = now.toISOString();
   const day = at.slice(0, 10);
   const prefixes = [`daily/${day}/`, ...(day.endsWith("-01") ? [`monthly/${day.slice(0, 7)}/`] : [])];
-  const res: BackupResult = { format: "backup-run/1", at, ok: false, day, prefixes, copied: 0, bytes: 0, skipped: [], personalHeldBack: 0, pruned: 0, scrubbed: 0, error: null, wallMs: 0 };
+  const res: BackupResult = { format: "backup-run/1", at, ok: false, day, prefixes, copied: 0, bytes: 0, skipped: [], personalHeldBack: 0, pruned: 0, scrubbed: 0,
+                              partial: null, subrequests: 0, error: null, wallMs: 0 };
   let outboxRefused: string | null = null;
+  // (T994 #24) every bucket call this run makes is counted; the status write at the end is not (it must happen)
+  const used = { n: 0 };
+  const statusSrc = src;
+  src = metered(src, used, budget, ["list", "get", "put"]);
+  dst = metered(dst, used, budget, ["list", "get", "put", "delete"]);
+  const copyCap = budget - reserve - prefixes.length;
   try {
     const objects: Record<string, Record<string, { size: number; sha256: string; contentType: string | null }>> = Object.fromEntries(prefixes.map((p) => [p, {}]));
-    for (const { key, size } of await backupKeys(src)) {
+    // (T994 #24) the state first, the personal records last: a run that meets its budget loses only report copies
+    const all = await backupKeys(src);
+    const keys = [...all.filter((k) => personalKind(k.key) === null), ...all.filter((k) => personalKind(k.key) !== null)];
+    for (const [i, { key, size }] of keys.entries()) {
+      if (used.n + 1 + prefixes.length > copyCap) {
+        res.partial = { left: keys.length - i, from: key, why: `the subrequest budget (${budget}, ${reserve} kept for the prune) would be passed` };
+        break;
+      }
       if (size > MAX_BYTES) { res.skipped.push({ key, why: `${size} bytes > ${MAX_BYTES}` }); continue; }
       const kind = personalKind(key);
       if (kind === "never") { res.personalHeldBack++; continue; }
@@ -193,17 +238,26 @@ export async function runBackup(src: SrcBucket, dst: DstBucket, now: Date, sourc
       res.bytes += body.byteLength;
     }
     for (const p of prefixes)
-      await dst.put(`${p}_manifest.json`, JSON.stringify({ format: "backup/1", at, source, objects: objects[p] }, null, 1), { httpMetadata: { contentType: "application/json" } });
+      await dst.put(`${p}_manifest.json`, JSON.stringify({ format: "backup/1", at, source, objects: objects[p], ...(res.partial ? { partial: res.partial } : {}) }, null, 1),
+                    { httpMetadata: { contentType: "application/json" } });
     // (T559) then the copies the privacy page says must be gone; a prune that fails fails the run (told at once)
     ({ deleted: res.pruned, scrubbed: res.scrubbed } = await pruneBackups(dst, now));
-    res.ok = outboxRefused === null;
-    if (outboxRefused) res.error = `${OUTBOX_KEY} was not backed up: ${outboxRefused}`;
+    // (T994 #24) a snapshot that is missing something is a failed run, told: an object over the size cap, the outbox
+    // refused, the budget met. An object deleted between the list and the get (the purge runs beside the backup) is not
+    const fails = [
+      ...(outboxRefused ? [`${OUTBOX_KEY} was not backed up: ${outboxRefused}`] : []),
+      ...res.skipped.filter((s) => / bytes > /.test(s.why)).map((s) => `${s.key} was not backed up: ${s.why}`),
+      ...(res.partial ? [`the snapshot is PARTIAL: ${res.partial.left} object(s) from ${res.partial.from} were not copied (${res.partial.why}); the state was copied first`] : []),
+    ];
+    res.ok = !fails.length;
+    if (fails.length) res.error = fails.join("\n");
   } catch (e) {
     res.error = String((e as Error)?.stack ?? e).slice(0, 1000);
   }
+  res.subrequests = used.n;
   res.wallMs = Date.now() - t0;
   try {
-    await src.put(BACKUP_STATUS_KEY, JSON.stringify(res), { httpMetadata: { contentType: "application/json", cacheControl: "no-store" } });
+    await statusSrc.put(BACKUP_STATUS_KEY, JSON.stringify(res), { httpMetadata: { contentType: "application/json", cacheControl: "no-store" } });
   } catch (e) { console.error(JSON.stringify({ job: "backup", statusError: String(e) })); }   // (T431) the caller logs the run, not this write
   return res;
 }
