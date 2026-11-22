@@ -13,15 +13,16 @@ One page, one pointer (T437): a new chat reads, in order,
    - TestFlight external review state: `node deploy/staging/testflight-distribute.mjs --dry-run --max-wait-min 1`;
    - Google Play reviews and closed-testing feedback: no reader yet (T1006); ask the owner if any came in.
 1. `AGENTS.md` (every rule), then `CLAUDE.md`.
-2. The newest restart page: **`handoff/PLAN/NEXT-SESSION-2026-11-21-ci-chat.md`** (written 2026-11-21 23:25: build/CI
-   streamlining chat (T993, T978, T994, T995); wave 1 merged; next: T995 branch switch, wave 2).
+2. The newest restart page: **`handoff/PLAN/NEXT-SESSION-2026-11-22-after-ci-chat.md`** (written 2026-11-22: the
+   build/CI chat is done (T995 trunk, T998 versions, T993 runbook, T978, T866, T987); next: T996, T997, then the 0.9.0
+   batch).
 3. The top entry of `handoff/PLAN/STATUS.md` (what changed last), and `handoff/PLAN/OWNER-TODO.md` (what only the
    owner can do).
 4. Chat length (owner 2026-11-21): recommend a new chat at natural breaks (a release shipped, a batch done) and /compact
    before a heavy step when the context is long. Update the restart page first.
 5. The work list: `handoff/PLAN/app-integration/tickets/README.md` (the ledger; tickets are the sole source of work).
 6. The branch (T995, `AGENTS.md` W47): `main` is the protected trunk. Work on a short-lived branch from a fresh
-   `origin/main` (`feat/`, `fix/`, `ci/`, `docs/`, `chore/` + ticket id), open a PR with auto-merge, never push to
+   `origin/main` (`feat/`, `fix/`, `perf/`, `test/`, `ci/`, `docs/`, `chore/` + ticket id; commits and PR titles `type(Tnnn): subject`), open a PR with auto-merge, never push to
    `main`; a release ships from its `release/<version>` branch. Hooks: `git config core.hooksPath .githooks`.
 
 A second chat working the parked tickets (T667 rest, T686, T602, loose nits) reads `handoff/PLAN/PARKED-TICKETS.md` instead of step 2; iOS: `handoff/PLAN/ios/START-HERE-ios.md`.

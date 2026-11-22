@@ -9,6 +9,14 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-22 13:40: end of the build/CI chat — open for you
+- **To do (you):** Play Console → the "DEX code optimization" notice: write its deadline date into T1003.
+- **Pick (you), no rush:** T1008 serve the website's source maps (default, the repo is public) or keep them hidden.
+- **Pick (you), when the pictures come:** T1010 region page look (at most two, phone and desktop).
+- **To do (you), about 10 a day:** request indexing for `handoff/PLAN/seo/index-requests-top-100.md` in Search Console.
+- **For the next chat:** the claude.ai runbook copy (5r4yEqNwqygin1oKo5Zxjk) and the Owner To-Do page could not be opened
+  from the CI chat ("not found / not shared"), so their rows for this chat were not added there.
+
 ## 2026-11-21 evening: build/CI streamlining chat (T993, T978, T994; no release) — open decisions, asked at the end
 
 - **To read (you): the one release runbook and the gates page [T993 item 11, T992].**

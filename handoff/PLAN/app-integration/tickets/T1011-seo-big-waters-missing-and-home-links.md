@@ -19,6 +19,30 @@ part read as `outside`, or be split into items whose names differ. Find the caus
 itself shows it (if the app is missing it too, it is a data defect, not an SEO one), and fix it at the source.
 Acceptance: each listed water has a page in the sitemap, or this ticket says why it must not have one.
 
+### Cause found 2026-11-22 (read from the published release r-741815c6090d, `water` file)
+**(a) 156 waters partly outside B.C. are dropped by a wrong test.** `PAGE_ORDS_SQL`
+(`app/packages/data/src/regs/pageable.ts:15`) keeps a water only when `i.outside_bc = 0`. But `item.outside_bc` is the
+COUNT of the water's sections outside B.C. (ANSWERS-SPEC: "N sections outside B.C."), not a flag. In this release:
+outside_bc 1 = 135 waters, 2 = 14, 3 = 4, 4/5/6 = 1 each; all 156 shown waters with a keyed part have
+`outside_bc < sections` (none is wholly outside). Examples: Columbia (2 of 9 sections), Kootenay, Peace,
+Similkameen, Kettle (3), Flathead, Ashnola, Hay, Sumas rivers. Since 1c4dd5827 (2026-10-27) none of them had a page.
+- **Fix:** `i.outside_bc < i.sections` (drop a water only when every section is outside); `waterModel` already skips the
+  parts whose page is `outside`. The same rule gates the app's gauge Share (`waterHasPage`, T530), so gauges on these
+  rivers start offering Share too. Pin it: a test with a water half outside B.C. gets a page; a wholly outside one
+  does not. Expect ~156 new pages (sitemap, region hubs, the slug/title uniqueness checks; the build fails on a
+  clash, so read its problems list). Check that the page says the part outside B.C. is not covered.
+- Then redo the top of `index-requests-top-100.md`: Columbia, Kootenay, Similkameen, Kettle, Peace move in.
+
+**(b) Renamed waters never print their former name.** Chilko Lake is `wbk:329079684` "Tŝilhqox Biny"
+(`/water/tsilhqox-biny`), Puntzi Lake is "Bendziny" (`/water/bendziny`), Alces Lake is a "Moose Lake"
+(`wbk:329247797`). The release keeps the old names as aliases (`alias`: "CHILKO LAKE", "Chilko Lake (formerly)"), but
+the page's text, title and description never contain them, so a search for "Chilko Lake fishing" cannot match.
+- **Fix:** where a water has a former-name alias, the page says "formerly Chilko Lake" under its name and in the meta
+  description (and the JSON-LD `alternateName`). Additive only; the official name stays as sourced (owner rule: never
+  rename or drop names without asking).
+- Green Lake (70 Mile House), Sumas River: Green Lake has 7 waters of that name, all with pages; Sumas River is one of
+  the 156 in (a).
+
 ## 2. The home page leads crawlers nowhere
 `/` is the JavaScript map. Its HTML has no plain `<a href>` to `/gauges`, the region pages or any water, so Google
 reaches the site's pages only through the sitemap. Add a small crawlable footer or a no-script block on `/` that links to

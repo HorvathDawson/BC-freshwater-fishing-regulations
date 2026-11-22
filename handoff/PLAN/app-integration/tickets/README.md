@@ -264,7 +264,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T984 | ASAP: the guided walkthrough only walks through (no state changes, instant highlights, can't be broken by zooming) | DONE (shipped 0.8.5; emulator walk PASS) | 4f9738a3f | owner 2026-11-21 |
 | T985 | In-app reports 2026-11-21 (4 items: chart flicker on model change, Chilliwack downstream label, map uncoloured after Conditions, drag the chart date bar) | DONE (shipped 0.8.5; emulator walk PASS #1/#3) | 2ccf1ea45 | prod /reports, read 2026-11-21 |
 | T986 | Trout / Salmon switch: which one is on is hard to tell (bar sits between the two) | DONE (shipped 0.8.5) | a2dc93a9b | tester via owner 2026-11-21 |
-| T987 | Repo README and docs up to date; clean-up pass (dead scripts, stale files, merged branches) | IN PROGRESS — left (Claude): main-chat review + PR landing of docs/T987-docs-and-cleanup | | owner 2026-11-21 |
+| T987 | Repo README and docs up to date; clean-up pass (dead scripts, stale files, merged branches) | DONE | ffba227f6, 5090e2f84, fef1e1973 | owner 2026-11-21 |
 | T988 | The Sources menu's Done button doesn't close the menu; audit every menu/sheet's closing buttons | DONE (pin tests shipped 0.8.5; NOT reproduced on the 0.8.5 emulator walk (Done closed every sheet): reopen if it recurs) | 92b180bb0 | owner 2026-11-21 |
 | T989 | Opened from a Google result, back (top right) goes to the default map instead of the water | DONE (shipped 0.8.5; emulator walk PASS) | f96f0d800 | owner 2026-11-21 |
 | T990 | Regulations pane: one Sources button at the foot listing every source (per-section buttons kept) | DONE (shipped 0.8.5; emulator walk PASS) | a81713e56 | owner 2026-11-21 |
@@ -288,7 +288,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1008 | Website: Lighthouse "missing source maps" — maps are kept private on purpose (T352); serve them (repo is public) or keep hidden | OPEN — owner picks (default: serve) | | owner 2026-11-22 (Lighthouse) |
 | T1009 | Android: Play "DEX code optimization: Low": measure optimization / shrinking / obfuscation every build, narrow broad library keep rules, floors in a build check (after T1003) | OPEN — next release batch (0.9.0), after T1003 | | owner 2026-11-22 (Play Console card) |
 | T1010 | Website: a region page's "Open the map" goes to the bare home map (`mapLink` = origin/, no area in the start link): open framed on the region; redesign the page to lead into the app (water search, crawlable links kept below) | OPEN — next release batch | | owner 2026-11-22 (/region/4) |
-| T1011 | Website: no page for the Columbia, Kootenay, Similkameen, Kettle, Peace rivers or Chilko Lake (404, not in the sitemap); the home page has no crawlable links to hubs; top-100 indexing list (`handoff/PLAN/seo/index-requests-top-100.md`) | OPEN — next release batch | | owner 2026-11-22 (index list research) |
+| T1011 | Website: 156 waters partly outside B.C. get no page (`PAGE_ORDS_SQL` tests `outside_bc = 0`, but it is a COUNT of sections outside: Columbia, Kootenay, Peace, Similkameen, Kettle…); renamed waters never print their former name (Chilko Lake = Tŝilhqox Biny); the home page has no crawlable links; top-100 indexing list | OPEN — next release batch | | owner 2026-11-22 (index list research) |
 
 ## Next after closed testing
 
