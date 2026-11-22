@@ -1,6 +1,8 @@
 # T992 — Explain how the golden pages, fixture re-cuts and the release command work
 
-Status: POSTPONED — owner 2026-11-21: a future ticket, not 0.8.5. Don't think about it now.
+Status: IN REVIEW (explanation written: `handoff/PLAN/runbooks/release-gates-explained.md`; simplifications proposed, not built); owner: OWNER-TODO "To read (you): the one release runbook and the gates page".
+
+(Was POSTPONED — owner 2026-11-21: a future ticket, not 0.8.5; picked up with T993 plan item 11, 2026-11-22.)
 
 Source: owner 2026-11-21, during the 0.8.5 staging release, verbatim: "add a ticket that is about how all this golden
 stuff and release works. dont think about it niow just future ticket".
@@ -28,3 +30,12 @@ The owner wants to understand what these are and how they fit together.
   pure renumber needn't stop the release.
 
 Depends: none. Size: ?. Owner: reads the explanation.
+
+## Done (2026-11-22, lane docs/T993-one-human-runbook)
+- `handoff/PLAN/runbooks/release-gates-explained.md`: the release's seven stages; what a golden state / golden page /
+  fixture re-cut is and why; the binding diff and when it passes by itself; every gate in `pipeline/release.py` today
+  (the fourteen preflight checks, baseline, build, the stage 4 checks with the size gates, the follows stage, staging,
+  production, the cut), each with what it protects, why it stops, the fix and whether an escape is safe; a table of
+  every accept / escape. Linked from the runbook (`release-by-hand.md`) and `release.md`.
+- The renumber-only idea was BUILT already by T993 lane G2 (item 8, 60ed4ac17 / d3272d735); the page says so. Eight
+  further simplifications are proposed there, none built.
