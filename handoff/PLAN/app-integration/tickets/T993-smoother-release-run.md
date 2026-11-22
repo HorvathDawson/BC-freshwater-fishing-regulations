@@ -1,4 +1,4 @@
-# T993 — Make the release run smoother: find every problem before `pipeline release`, not one per run
+# T993 — Document and clean up every release / CI / CD process, so a HUMAN can release by following it
 
 Status: POSTPONED — owner 2026-11-21: a future ticket, not 0.8.5.
 
@@ -16,6 +16,40 @@ process smoother we always have so many issues we need to fix...".
 8. Golden pages: 9 changed, all renumbered source indexes.
 9. Release-backed tests: 7 water-map tests were pinned to the old release's missing mouth place.
 
+## Owner 2026-11-21 (scope widened)
+Verbatim: "In the same ticket we want to make it so a human could release following a well documented process with a
+lot of those checks handling the items that need to be done etc. the ticket should be about documenting and cleaning up
+all the processes ci/cd etc etc".
+
+The goal: a person with no Claude session can cut and ship a release by following one written process. The checks do
+the remembering: each one either does the step or says exactly what to do next.
+
+### Scope
+- **One release runbook** (for a human): every step from "batch done" to "on production". It covers:
+  - the changelog and version bump;
+  - format switches and the mini re-cut;
+  - data to staging and its smoke;
+  - the staging site;
+  - Play Internal, then Closed; TestFlight internal and external;
+  - production data, the production feeds worker, and the production website.
+
+  Each step gives the one command, what success looks like, and what to do on each failure. It names who may run each
+  step (owner-only steps marked).
+- **Inventory and clean up every process** behind it:
+  - CI workflows (app-ci, pipeline-ci and any others);
+  - fast-fail, fresh-copy and `pnpm check`;
+  - `pipeline release` and `pipeline build`;
+  - site-all.sh and site.sh;
+  - build-apk.sh and play-upload.py;
+  - build-ios-testflight.sh and testflight-distribute.mjs;
+  - the feeds-worker deploy and the prod R2 upload.
+
+  For each, cover: what it is for, what overlaps, what is dead, and what only CI runs (e.g. the worker suite).
+  Merge or delete what is duplicated.
+- **Checks that handle items, not just stop:** derive what can be derived (the minimum app from the formats), do what
+  is safe (re-cut, redeploy the staging site), and list every remaining item at once with its command.
+- The release ticket template gets the checklist (see Work below).
+
 ## Work (to scope when picked up)
 - **One rehearsal that lists EVERYTHING at once**, run before the real release. `--dry-run --rehearse-follows` exists
   (T680); find out why it was not enough, and make it the step before every release. It should include:
@@ -32,4 +66,4 @@ process smoother we always have so many issues we need to fix...".
 - **Release prep checklist** for the release ticket: flip switches, re-cut the mini release, staging site at the new
   app version, the gate budget for each new column.
 
-Depends: T992 (the explanation) helps. Size: M. Owner: no.
+Depends: T992 (the explanation) folds into the runbook. Size: L. Owner: reads and tries the runbook.
