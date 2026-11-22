@@ -1,7 +1,8 @@
 #!/bin/bash
-# PRODUCTION. WHO RUNS IT (owner 2026-11-21, memory feeds-worker-deploy-allowed): Claude deploys the production feeds
-# worker as a release step, after the production data and the matching website are up; the owner may too. Production
-# DATA (deploy/prod/upload.sh) stays the owner's. CONFIRM_PROD is still typed for a real run.
+# PRODUCTION. WHO RUNS IT: THE OWNER (owner 2026-11-22 on CONFIRM_PROD: "only me unless i say otherwise that time").
+# Claude prepares it (the tests, `--dry-run`) and hands over the command; it runs it only when the owner says so, that
+# one time. A release step after the production data and the matching website (before the data only when the release
+# binds closed-area pieces the production worker does not serve yet).
 # The twin of deploy/staging/feeds.sh: the worker's
 # tests, then deploy app/workers/feeds with wrangler.prod.toml (bc-fishing-feeds: prod bucket, backup bucket, crons,
 # FEEDS_ENV=production) OVER the placeholder (its secrets stay), then run every feed job once.
