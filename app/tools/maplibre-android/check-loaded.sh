@@ -1,15 +1,19 @@
 #!/bin/bash
-# Inside a test-bed session (emulator up, APK installed): prove the app runs the patched libmaplibre.so and take one map
-# screenshot. Run as session.sh's command:
+# Inside a test-bed session (emulator up, APK installed): prove the app runs the pinned upstream libmaplibre.so (pin.env,
+# T978) and take one map screenshot. Run as session.sh's command (session.sh builds against the pinned repo by default):
 #
-#   MLN_LOCAL_MAVEN=<work dir>/m2 TESTBED_APK_TAG=fsdelta scripts/heavy.sh testbed 30 -- \
-#     bash app/tools/testbed/session.sh --build -- bash app/tools/maplibre-patch/check-loaded.sh <work dir>/m2 <out dir>
+#   scripts/heavy.sh testbed 30 -- bash app/tools/testbed/session.sh --build -- \
+#     bash app/tools/maplibre-android/check-loaded.sh "" <out dir>
 #
-# Checks: the INSTALLED APK's arm64 libmaplibre.so has the same GNU build id as the one in the local AAR (and not the
-# stock 13.6.1 one), and the running app process has that lib's bytes of base.apk mapped executable (needs `su`: the
-# emulator's userdebug image). Writes <out dir>/map.png and check.txt.
+# <m2 dir> "" = the pinned repo, cache/maplibre/<MLN_VERSION>; another repo (an experiment AAR) is named instead.
+# Checks: the INSTALLED APK's arm64 libmaplibre.so has the same GNU build id as the one in the local AAR, which names the
+# upstream commit it was built from (its version and SOURCE.txt), and the running app process has that lib's bytes of
+# base.apk mapped executable (needs `su`: the emulator's userdebug image). Writes <out dir>/map.png and check.txt.
 set -euo pipefail
-M2=${1:?usage: check-loaded.sh <m2 dir> <out dir>}; OUT=${2:?out dir}
+HERE=$(cd "$(dirname "$0")" && pwd)
+# shellcheck source=pin.env
+source "$HERE/pin.env"
+M2=${1:-$(cd "$HERE/../../.." && pwd)/cache/maplibre/$MLN_VERSION}; OUT=${2:?usage: check-loaded.sh <m2 dir or ""> <out dir>}
 mkdir -p "$OUT"; TMP=$(mktemp -d "$OUT/tmp.XXXX")
 S=${TESTBED_SERIAL:?run inside session.sh}
 APP=ca.canifishthis.app
@@ -21,6 +25,9 @@ say() { echo "$*" | tee -a "$OUT/check.txt"; }
 AAR=$(ls "$M2"/org/maplibre/gl/android-sdk-vulkan/*/android-sdk-vulkan-*.aar)
 unzip -q -o "$AAR" jni/arm64-v8a/libmaplibre.so -d "$TMP/aar"
 say "local AAR:      $(basename "$AAR")  build id $(buildid "$TMP/aar/jni/arm64-v8a/libmaplibre.so")"
+say "its source:     $(cat "$M2/SOURCE.txt" 2>/dev/null || echo "no SOURCE.txt (not made by build.sh)")"
+if [[ $(basename "$AAR") == "android-sdk-vulkan-$MLN_VERSION.aar" ]]; then say "pinned:         yes ($MLN_VERSION = upstream $MLN_COMMIT)"
+else say "pinned:         NO, an experiment AAR (pin.env names $MLN_VERSION)"; fi
 
 adb -s "$S" pull "$(adb -s "$S" shell pm path $APP | sed -n 's/^package://p' | grep base.apk | tr -d '\r')" "$TMP/base.apk" >/dev/null
 unzip -q -o "$TMP/base.apk" lib/arm64-v8a/libmaplibre.so -d "$TMP/apk"

@@ -10,8 +10,8 @@
 #                  the emulator's own name for this machine)
 #   --allow-stale "<reason>"  (T534) use a kept APK although its stamp says another commit than HEAD, a dirty tree, or no stamp:
 #                  the reason is printed. Without it such an APK is refused BEFORE the heavy lock.
-#   --stock-maplibre="<reason>"  (T534) build/use the STOCK MapLibre SDK (own APK name, `-stock`). The default is the patched
-#                  (T420 lean AAR, cache/maplibre/fslean-m2), as every shipped non-production APK (owner 2026-11-09).
+#   --stock-maplibre="<reason>"  (T534) build/use the STOCK MapLibre SDK (own APK name, `-stock`). The default is the pinned
+#                  upstream build (T978, app/tools/maplibre-android/pin.env, cache/maplibre/<MLN_VERSION>), as every shipped APK.
 #   --opengl       (T360) build with MapLibre's OpenGL variant instead of Vulkan (app.json changed for the build only)
 #                  instead of staging: for a release that is promoted locally but not uploaded (SALMON_NEEDS)
 #   --crash-stub   (T242) the APK's crash reports go to http://localhost:39256/crash on the phone, `adb reverse`d to this
@@ -47,25 +47,34 @@ export JAVA_HOME=${JAVA_HOME:-"/Applications/Android Studio.app/Contents/jbr/Con
 export ANDROID_HOME=${ANDROID_HOME:-$HOME/Library/Android/sdk}
 export PATH="$JAVA_HOME/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$HOME/.maestro/maestro/bin:$PATH"
 log() { echo "[testbed $(date +%T)] $*"; }
-# (T534, owner 2026-11-09) EVERY test-bed APK carries the patched MapLibre (T420 lean AAR) unless --stock-maplibre="<reason>":
-# the same default as deploy/staging/build-apk.sh, so "emulator green" describes the library that ships. An explicit
-# MLN_LOCAL_MAVEN other than the default (an experiment repo) keeps its own APK name via TESTBED_APK_TAG.
-MLN_DEFAULT="$ROOT/cache/maplibre/fslean-m2"
-MLN_AAR=
+# (T534, owner 2026-11-09; T978, owner 2026-11-22) EVERY test-bed APK carries the PINNED upstream MapLibre
+# (app/tools/maplibre-android/pin.env, no patch) unless --stock-maplibre="<reason>": the same default as
+# deploy/staging/build-apk.sh, so "emulator green" describes the library that ships. An explicit MLN_LOCAL_MAVEN other than
+# the default (an experiment repo) keeps its own APK name via TESTBED_APK_TAG, and its stamp says LOCAL, not pinned.
+# shellcheck source=../maplibre-android/pin.env
+source "$ROOT/app/tools/maplibre-android/pin.env"
+MLN_DEFAULT="$ROOT/cache/maplibre/$MLN_VERSION"
+MLN_AAR=; MLN_KIND=
 if [[ -n $STOCK_MLN ]]; then
   [[ -z ${MLN_LOCAL_MAVEN:-} ]] || { log "--stock-maplibre with MLN_LOCAL_MAVEN set: pick one"; exit 1; }
   log "STOCK MapLibre (--stock-maplibre): $STOCK_MLN"
 else
   export MLN_LOCAL_MAVEN=${MLN_LOCAL_MAVEN:-$MLN_DEFAULT}
   if [[ $MLN_LOCAL_MAVEN != "$MLN_DEFAULT" ]]; then
-    [[ -n ${TESTBED_APK_TAG:-} ]] || { log "MLN_LOCAL_MAVEN=$MLN_LOCAL_MAVEN is not the default lean repo: it needs TESTBED_APK_TAG (e.g. fsdelta) so the default APK is kept"; exit 1; }
+    [[ -n ${TESTBED_APK_TAG:-} ]] || { log "MLN_LOCAL_MAVEN=$MLN_LOCAL_MAVEN is not the pinned repo ($MLN_DEFAULT): it needs TESTBED_APK_TAG (e.g. exp1) so the default APK is kept"; exit 1; }
   fi
-  [[ -z $VARIANT ]] || { log "the patched MapLibre is the Vulkan SDK: drop --$VARIANT, or say why with --stock-maplibre=\"<reason>\""; exit 1; }
-  MLN_AAR=$(find "$MLN_LOCAL_MAVEN" -name 'android-sdk-vulkan-*.aar' 2>/dev/null)
+  [[ -z $VARIANT ]] || { log "the pinned MapLibre is the Vulkan SDK: drop --$VARIANT, or say why with --stock-maplibre=\"<reason>\""; exit 1; }
+  MLN_AAR=$(find -L "$MLN_LOCAL_MAVEN" -name 'android-sdk-vulkan-*.aar' 2>/dev/null)
   # (T978) the fix said: from a worktree, the link to the main checkout's repo (deploy/lib/build-links.sh build_fix)
   [[ -n $MLN_AAR && $(echo "$MLN_AAR" | wc -l) -eq 1 ]] || {
-    fix=$(cd "$ROOT" && source deploy/lib/build-links.sh && build_fix "${MLN_LOCAL_MAVEN#"$(pwd -P)"/}" "app/tools/maplibre-patch/build.sh makes it (its README)")
+    fix=$(cd "$ROOT" && source deploy/lib/build-links.sh && build_fix "${MLN_LOCAL_MAVEN#"$(pwd -P)"/}" "app/tools/maplibre-android/build.sh makes it (its README)")
     log "MLN_LOCAL_MAVEN=$MLN_LOCAL_MAVEN must hold exactly one android-sdk-vulkan AAR (found: ${MLN_AAR:-none}): $fix"; exit 1; }
+  # (T978 review 2) "pinned" is build-apk.sh's own rule (the file name AND build.sh's SOURCE.txt naming MLN_COMMIT,
+  # build-links.sh mln_pinned_aar): a test-bed stamp never says pinned of an AAR every store build refuses
+  if [[ -n $(cd "$ROOT" && source deploy/lib/build-links.sh && mln_pinned_aar "$MLN_LOCAL_MAVEN") ]]; then MLN_KIND=pinned
+  elif [[ $MLN_LOCAL_MAVEN == "$MLN_DEFAULT" ]]; then
+    log "$MLN_AAR is not the pinned $MLN_VERSION (its file name, or SOURCE.txt not naming $MLN_COMMIT; pin.env): rebuild it, app/tools/maplibre-android/build.sh"; exit 1
+  else MLN_KIND=local; log "EXPERIMENT MapLibre (not the pin): $MLN_AAR"; fi
 fi
 # (T534) a KEPT APK must be the build of HEAD (clean tree) — checked here, before the heavy lock waits
 if (( ! BUILD )) && [[ -f $APK ]]; then
@@ -128,7 +137,7 @@ if (( BUILD )) || [[ ! -f $APK ]]; then
       ./gradlew app:assembleRelease --max-workers=4 -PreactNativeArchitectures=arm64-v8a -x lint ) >"$OUT/gradle.log" 2>&1 \
     || { log "gradle failed (out/gradle.log)"; tail -30 "$OUT/gradle.log"; exit 1; }
   cp android/app/build/outputs/apk/release/app-release.apk "$APK"
-  # (T534) the libmaplibre.so the APK carries: the patched AAR's build id when patched (a Gradle cache or a missed prebuild
+  # (T534) the libmaplibre.so the APK carries: the local AAR's build id (pinned or an experiment) (a Gradle cache or a missed prebuild
   # picking the stock SDK is refused), recorded either way in <apk>.stamp.json with the commit and the tree's dirtiness
   READELF=$(ls -d "$ANDROID_HOME"/ndk/*/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-readelf 2>/dev/null | tail -1)
   [[ -n $READELF ]] || { log "no llvm-readelf under $ANDROID_HOME/ndk: cannot name the MapLibre build id"; exit 1; }
@@ -136,9 +145,9 @@ if (( BUILD )) || [[ ! -f $APK ]]; then
   MLN_GOT=$(mln_id "$APK" lib/arm64-v8a/libmaplibre.so)
   if [[ -n $MLN_AAR ]]; then
     MLN_WANT=$(mln_id "$MLN_AAR" jni/arm64-v8a/libmaplibre.so)
-    [[ -n $MLN_WANT && $MLN_GOT == "$MLN_WANT" ]] || { rm -f "$APK"; log "the APK's libmaplibre.so is build id '$MLN_GOT', not the patched AAR's '$MLN_WANT'; refusing (APK removed)"; exit 1; }
+    [[ -n $MLN_WANT && $MLN_GOT == "$MLN_WANT" ]] || { rm -f "$APK"; log "the APK's libmaplibre.so is build id '$MLN_GOT', not the local AAR's '$MLN_WANT'; refusing (APK removed)"; exit 1; }
   fi
-  node "$HERE/lib/build-stamp.mjs" write "$APK" "${MLN_AAR:+patched}${STOCK_MLN:+stock}" "$MLN_GOT" "$STOCK_MLN" || { rm -f "$APK"; exit 1; }
+  node "$HERE/lib/build-stamp.mjs" write "$APK" "${MLN_KIND:-stock}" "$MLN_GOT" "${STOCK_MLN:-$(basename "$MLN_AAR" .aar | sed "s/^android-sdk-vulkan-//")}" || { rm -f "$APK"; exit 1; }
   (cd android && ./gradlew --stop >/dev/null 2>&1); rm -f "$OUT/gradle-used"
   log "APK built in $(( $(date +%s) - t0 )) s: $APK ($(du -h "$APK" | cut -f1))"
   cd "$ROOT"

@@ -4,7 +4,7 @@
 // printed). run.mjs prints the same stamp at the top of every report. Pure functions here (tested by
 // app/tools/testbed-stamp.test.ts); the CLI is what session.sh calls:
 //
-//   node build-stamp.mjs write  <apk> <maplibre: patched|stock> <build-id> [<stock reason>]   (after a build)
+//   node build-stamp.mjs write  <apk> <maplibre: pinned|local|stock> <build-id> <AAR version | stock reason>   (after a build)
 //   node build-stamp.mjs check  <apk> [--allow-stale "<reason>"]                              (pre-lock; exit 1 = refused)
 //   node build-stamp.mjs line   <apk>                                                         (one line, for headers)
 import { execFileSync } from 'node:child_process';
@@ -24,13 +24,28 @@ export function readTree(git = (args) => execFileSync('git', args, { cwd: ROOT, 
   return { commit, dirty_files };
 }
 
-export function makeStamp({ tree, maplibre, buildId, stockReason, now = new Date() }) {
-  if (maplibre !== 'patched' && maplibre !== 'stock') throw new Error(`stamp: maplibre must be patched or stock, not ${maplibre}`);
+/** (T978) the MapLibre a build carries: `pinned` (app/tools/maplibre-android/pin.env, the one every build ships), `local`
+ *  (an experiment AAR, test bed only) — both with the AAR's version, which names its upstream commit — or `stock`
+ *  (Maven Central's, with the reason). `patched` (the T420 lean AAR) is only read back from stamps made before T978. */
+export const MAPLIBRE_KINDS = ['pinned', 'local', 'stock'];
+
+export function makeStamp({ tree, maplibre, buildId, stockReason, version, now = new Date() }) {
+  if (!MAPLIBRE_KINDS.includes(maplibre)) throw new Error(`stamp: maplibre must be ${MAPLIBRE_KINDS.join(', ')}, not ${maplibre}`);
   if (maplibre === 'stock' && !String(stockReason ?? '').trim()) throw new Error('stamp: a stock MapLibre build needs its reason');
+  if (maplibre !== 'stock' && !String(version ?? '').trim()) throw new Error('stamp: a local MapLibre AAR needs its version');
   if (!buildId) throw new Error('stamp: no libmaplibre build id');
   return { commit: tree.commit, dirty: tree.dirty_files.length > 0, dirty_files: tree.dirty_files.slice(0, 40),
-           maplibre, maplibre_build_id: buildId, ...(maplibre === 'stock' ? { stock_reason: stockReason } : {}),
+           maplibre, maplibre_build_id: buildId,
+           ...(maplibre === 'stock' ? { stock_reason: stockReason } : { maplibre_version: version }),
            built_at: now.toISOString() };
+}
+
+/** What the stamp's MapLibre is, in words. */
+function maplibreWords(stamp) {
+  if (stamp.maplibre === 'pinned') return `pinned upstream ${stamp.maplibre_version}`;
+  if (stamp.maplibre === 'local') return `LOCAL AAR ${stamp.maplibre_version}, not the pin`;
+  if (stamp.maplibre === 'patched') return 'patched, T420 lean (before T978)';
+  return `STOCK: ${stamp.stock_reason}`;
 }
 
 /** null when the kept APK may be used, else the sentence that refuses it. `allowStale` is the human's reason. */
@@ -50,7 +65,7 @@ export function staleProblem(stamp, head, allowStale = '') {
 export function stampLine(stamp) {
   if (!stamp) return 'UNSTAMPED build (no .stamp.json beside the APK): the commit it tests is unknown';
   return `commit ${stamp.commit.slice(0, 9)}${stamp.dirty ? ` DIRTY (${stamp.dirty_files.length} path(s))` : ' clean'} · `
-       + `libmaplibre build id ${stamp.maplibre_build_id} (${stamp.maplibre === 'patched' ? 'patched, T420 lean' : `STOCK: ${stamp.stock_reason}`}) · built ${stamp.built_at}`;
+       + `libmaplibre build id ${stamp.maplibre_build_id} (${maplibreWords(stamp)}) · built ${stamp.built_at}`;
 }
 
 export function readStamp(apk) {
@@ -60,8 +75,9 @@ export function readStamp(apk) {
 if (process.argv[1] && path.resolve(process.argv[1]) === new URL(import.meta.url).pathname) {
   const [cmd, apk, ...rest] = process.argv.slice(2);
   if (cmd === 'write') {
-    const [maplibre, buildId, stockReason] = rest;
-    fs.writeFileSync(stampPath(apk), JSON.stringify(makeStamp({ tree: readTree(), maplibre, buildId, stockReason }), null, 1));
+    const [maplibre, buildId, reasonOrVersion] = rest;
+    const more = maplibre === 'stock' ? { stockReason: reasonOrVersion } : { version: reasonOrVersion };
+    fs.writeFileSync(stampPath(apk), JSON.stringify(makeStamp({ tree: readTree(), maplibre, buildId, ...more }), null, 1));
     console.log(stampLine(readStamp(apk)));
   } else if (cmd === 'check') {
     const i = rest.indexOf('--allow-stale');

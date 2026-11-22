@@ -1,9 +1,9 @@
 /**
- * (T420) TEST-BED ONLY: build the app against a locally built MapLibre Native Android SDK (the feature-state patch,
- * app/tools/maplibre-patch/README.md) instead of the stock Maven Central one. Loaded by app.config.js ONLY when
+ * (T420, T978) build the app against a locally built MapLibre Native Android SDK (the pinned upstream commit, no patch:
+ * app/tools/maplibre-android/README.md) instead of the stock Maven Central one. Loaded by app.config.js ONLY when
  * MLN_LOCAL_MAVEN is set (every Android build, production too since T893), so a build without it is untouched.
  *
- * MLN_LOCAL_MAVEN = the local Maven repo build.sh publishes (`<work dir>/m2`). It must hold exactly one version of
+ * MLN_LOCAL_MAVEN = the local Maven repo build.sh publishes (`cache/maplibre/<MLN_VERSION>`). It must hold exactly one version of
  * org.maplibre.gl:android-sdk-vulkan. This plugin adds the repo to every project's repositories; app.config.js hands
  * that version (`localVersion`) to @maplibre/maplibre-react-native's own plugin as `android.nativeVersion` (its plugin
  * rewrites every `org.maplibre.reactnative.*` gradle property, so a property set here would be dropped).
@@ -18,7 +18,7 @@ const MARK = "// with-local-maplibre (MLN_LOCAL_MAVEN)";
 function localVersion(repo) {
   if (!isAbsolute(repo)) throw new Error(`with-local-maplibre: MLN_LOCAL_MAVEN must be an absolute path (got ${repo})`);
   const dir = join(repo, ...ARTIFACT);
-  if (!existsSync(dir)) throw new Error(`with-local-maplibre: no ${ARTIFACT.join(".")} in ${repo} (run app/tools/maplibre-patch/build.sh)`);
+  if (!existsSync(dir)) throw new Error(`with-local-maplibre: no ${ARTIFACT.join(".")} in ${repo} (run app/tools/maplibre-android/build.sh)`);
   const versions = readdirSync(dir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
   if (versions.length !== 1) throw new Error(`with-local-maplibre: ${dir} must hold exactly one version, has [${versions.join(", ")}]`);
   const [version] = versions;

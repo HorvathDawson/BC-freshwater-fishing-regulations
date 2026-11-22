@@ -49,6 +49,11 @@ modules added since raise it). Size: M. Depends: T749 (done), T978 (the MapLibre
 land after it or merge carefully). Owner: no decision needed; the deadline date from Play Console, and the usual phone
 check on the release build.
 
+Coupling (T978 review, 2026-11-22): `app/tools/r8-config.test.ts` also holds the pinned-MapLibre tests. Today the R8
+refusal throws before the mods run; once production allows R8, every test that builds a production config through expo
+must give `MLN_LOCAL_MAVEN` a pinned stand-in (`repoOf(pin.MLN_VERSION)` in that file), or the pinned plugin refuses the
+config instead of R8 being tested.
+
 ## Related
 T1009 (owner 2026-11-22, Play card "DEX code optimization: Low"): the other two categories Play scores (optimization,
 shrinking), the per-build measurement and the floors; it starts once this ticket has R8 on.
