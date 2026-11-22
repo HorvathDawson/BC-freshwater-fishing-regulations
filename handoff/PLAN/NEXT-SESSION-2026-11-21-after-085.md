@@ -64,11 +64,11 @@ the context is long. Update this page first.
 
 ## Leftover worktrees (checked 2026-11-21; 47 merged, clean ones removed)
 Each of these 29 holds commits not in dev, or uncommitted edits. Check each one (`git -C <dir> log --oneline
-redesign/stream-sections..` and `status`). Keep its work if it is wanted (T940's is `lane/le-t940`; T778's is
-`data/t778-delta-side-channel`), else remove it.
+redesign/stream-sections..` and `status`). Keep its work if it is wanted (T940's is `lane/le-t940`; T778's is its delta
+side-channel branch), else remove it.
 - Under `.claude/worktrees/`:
   - `agent-a902ae6ef7e370db1` (lane/le-t940);
-  - `agent-a210bb30fde58edec` (data/t778-delta-side-channel);
+  - `agent-a210bb30fde58edec` (the T778 delta side-channel branch);
   - `agent-aaab7188849edc942` (lane/book-rule-fixes-1116);
   - five `worktree-agent-*` (4 locked).
 - Under `~/`:
