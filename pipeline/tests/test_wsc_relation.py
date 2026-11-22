@@ -96,6 +96,9 @@ ALLOWED = {
     ("pipeline/deliver/bundle/rules/presence.py", "loose[:3]"),
     # a git commit hash in the release preflight's message ("code + data/curated committed (HEAD …)")
     ("pipeline/release.py", "git_head()[:12]"),
+    # T993 G2: a repo FILE path prefix (binding code moved under pipeline/atlas/) and a commit hash, not codes
+    ("pipeline/release.py", 'p.startswith("pipeline/atlas/")'),
+    ("pipeline/release.py", "since[:12]"),
 }
 
 

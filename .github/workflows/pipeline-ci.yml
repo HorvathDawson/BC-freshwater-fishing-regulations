@@ -131,11 +131,12 @@ jobs:
       # curated cuts from three full builds and nothing looked wrong.
       - name: No hardcoded curated or source paths
         run: |
-          X="--exclude-dir=archive --exclude-dir=.venv --exclude-dir=node_modules \
-             --exclude-dir=__pycache__ --exclude-dir=graphify-out --exclude-dir=.git"
           DIRS="pipeline data curation-review project_config.py"
           fail=0
-          hits () { grep -rEn $X --include='*.py' "$1" $DIRS 2>/dev/null \
+          # Tracked files only: an untracked scratch file under data/generated/ is machine state CI never sees.
+          hits () { git ls-files -- $DIRS | grep '\.py$' \
+                    | grep -vE '(^|/)(archive|\.venv|node_modules|__pycache__|graphify-out)/' | tr '\n' '\0' \
+                    | xargs -0 grep -EHn "$1" 2>/dev/null \
                     | grep -v ':[0-9]*: *#' | grep -v '`' | grep -vE "$2"; }
           check () {
             n=$(hits "$2" "${3:-^$}" | wc -l | tr -d ' ')
