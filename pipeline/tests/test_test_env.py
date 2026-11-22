@@ -94,3 +94,23 @@ def test_every_runner_takes_its_environment_from_the_one_script():
         assert "pipeline.tests.ci_no_build" not in code, f"{f} passes the no-build plugin: the tier decides (tiers.py)"
         assert "PYTHONPYCACHEPREFIX=$(mktemp" not in code, f"{f} makes its own bytecode prefix: test_env_pycache"
         assert '"name") == "Tests"' not in code, f"{f} parses CI's Tests step itself: no_data_markers"
+
+
+#: (T792 B) the chunked runner's rule, stated again here so the runner cannot drift from it: a test file naming any of
+#: these starts a child process
+_SPAWNS = re.compile(r"subprocess|multiprocessing|Popen|ProcessPoolExecutor|os\.(fork|system|spawn[a-z]*|popen)")
+
+
+def test_a_file_that_starts_a_child_process_runs_in_a_process_of_its_own():
+    """T792 B: a child forked from a process where an earlier test file loaded pyproj dies between fork and exec
+    (SIGSEGV, PROJ's after-fork handler), so `scripts/pytest-chunked.sh` gives every such file a chunk of its own; the
+    other files still share chunks (the runner is not one process per file)."""
+    out = subprocess.run(["bash", "scripts/pytest-chunked.sh", "--dry-run"], cwd=ROOT, capture_output=True, text=True)
+    assert out.returncode == 0, out.stderr
+    chunks = [ln.split(": ", 1)[1].split() for ln in out.stdout.splitlines() if ln.startswith("  chunk ")]
+    spawning = {f for c in chunks for f in c if _SPAWNS.search((ROOT / f).read_text(encoding="utf-8"))}
+    assert len(spawning) >= 10, f"only {len(spawning)} test files start a child process: the rule reads nothing"
+    shared = [c for c in chunks if len(c) > 1]
+    assert shared, "no chunk holds two files: the runner went one process per file"
+    assert not [f for c in shared for f in c if f in spawning], "a file that starts a child process shares a process"
+    assert "alone: they start a child process" in out.stdout
