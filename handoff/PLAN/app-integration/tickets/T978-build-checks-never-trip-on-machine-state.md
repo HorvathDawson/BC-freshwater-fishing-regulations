@@ -176,3 +176,12 @@ tag once upstream releases one containing 0001. The switch: branch `build/T978-m
   `--stock-maplibre`; SOURCE.txt missing / another commit refused; the gate tree builds against a stand-in pinned repo);
   a mutation of the SOURCE.txt check fails the build-links test. build.sh rerun on the real tree: submodules recursive,
   clean, built.
+
+## Independent review of the hardening (2026-11-22)
+Verdict sound: no production or Play path can ship a non-pinned or stock AAR (iOS prebuild unaffected, checked with
+expo's mod compiler; `deploy/prod/build-apk.sh` takes the pinned default). Fixed (58c40ed91): three guards no test ran,
+`mln_check`'s build-id comparison, `mln_pinned_aar`'s file-name half and the inner no-AAR stop, now run by
+`test_check_maplibre_proves_the_archive_against_the_pinned_aar` (each mutation killed); the test bed stamped "pinned" from
+the file name alone and now uses `mln_pinned_aar`. Open by design: EAS preview/development profiles only warn (EAS unused);
+the plugin checks the version name, not SOURCE.txt (only a non-build-apk path such as `eas build --local`). build.sh does
+not check CMake (a too-old one fails Gradle loudly).
