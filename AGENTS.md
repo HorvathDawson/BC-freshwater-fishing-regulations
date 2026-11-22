@@ -297,8 +297,8 @@ A6. **Commit only your own paths: `git commit -- <paths>`.** Several agents shar
 
 37. **A loader for a curated file must RAISE on a missing file, never return `[]`.**
     Absent curated data is a bug, never an empty set. This is the same failure as ㉟ one
-    layer down, and the grep gate in `pipeline/docs/HANDOFF-curated-layout.md` §3.3 is what
-    keeps it from creeping back.
+    layer down, and pipeline-ci's "No hardcoded curated or source paths" and "Every curated path resolves" steps
+    (`.github/workflows/pipeline-ci.yml`) are what keep it from creeping back.
 
 38. **Never regenerate a reviewed artifact to "check something".** Regenerating
     `gauge_match.json` needs a completed build and rewrites 2,324 hand-checked decisions,
@@ -438,7 +438,7 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
 W47. **`main` is the protected trunk; every change reaches it through a pull request (owner 2026-11-21, T995).** The
     old dev branch is retired (history only); the trunk's name is typed once, `scripts/ci_paths.py` `TRUNK` (TypeScript:
     `app/packages/core/src/repo.ts`).
-    - **Branches are short-lived**: `feat/`, `fix/`, `ci/`, `docs/`, `chore/` + the ticket id (`fix/T994-gauge-history`),
+    - **Branches are short-lived**: `feat/`, `fix/`, `perf/`, `ci/`, `docs/`, `chore/`, `test/` + the ticket id (`fix/T994-gauge-history`),
       cut from a fresh `origin/main`. Open a PR (`gh pr create --base main`) and turn on auto-merge
       (`gh pr merge --auto --merge`): it merges when the required checks pass. **Never push to `main`.**
     - **Merge commits only** (no squash, no rebase-merge): the ledger cites lane commit hashes, which must survive.

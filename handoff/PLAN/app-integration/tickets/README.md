@@ -264,13 +264,13 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T984 | ASAP: the guided walkthrough only walks through (no state changes, instant highlights, can't be broken by zooming) | DONE (shipped 0.8.5; emulator walk PASS) | 4f9738a3f | owner 2026-11-21 |
 | T985 | In-app reports 2026-11-21 (4 items: chart flicker on model change, Chilliwack downstream label, map uncoloured after Conditions, drag the chart date bar) | DONE (shipped 0.8.5; emulator walk PASS #1/#3) | 2ccf1ea45 | prod /reports, read 2026-11-21 |
 | T986 | Trout / Salmon switch: which one is on is hard to tell (bar sits between the two) | DONE (shipped 0.8.5) | a2dc93a9b | tester via owner 2026-11-21 |
-| T987 | Repo README and docs up to date; clean-up pass (dead scripts, stale files, merged branches) | POSTPONED (owner 2026-11-21: next release, not 0.8.5) | | owner 2026-11-21 |
+| T987 | Repo README and docs up to date; clean-up pass (dead scripts, stale files, merged branches) | IN PROGRESS — left (Claude): main-chat review + PR landing of docs/T987-docs-and-cleanup | | owner 2026-11-21 |
 | T988 | The Sources menu's Done button doesn't close the menu; audit every menu/sheet's closing buttons | DONE (pin tests shipped 0.8.5; NOT reproduced on the 0.8.5 emulator walk (Done closed every sheet): reopen if it recurs) | 92b180bb0 | owner 2026-11-21 |
 | T989 | Opened from a Google result, back (top right) goes to the default map instead of the water | DONE (shipped 0.8.5; emulator walk PASS) | f96f0d800 | owner 2026-11-21 |
 | T990 | Regulations pane: one Sources button at the foot listing every source (per-section buttons kept) | DONE (shipped 0.8.5; emulator walk PASS) | a81713e56 | owner 2026-11-21 |
 | T991 | Sources display audit: one consistent way sources are shown across the app (next release) | POSTPONED | T990 | owner 2026-11-21 |
-| T992 | Explain how golden pages, fixture re-cuts and the release command's gates work (and maybe simplify them) | POSTPONED | | owner 2026-11-21 |
-| T993 | Document + clean up every release / CI / CD process so a human can release from one runbook; checks do the remembering (0.8.5 stopped nine times) | IN PROGRESS | T992 | owner 2026-11-21 |
+| T992 | Explain how golden pages, fixture re-cuts and the release command's gates work (and maybe simplify them) | IN REVIEW (explanation written: `handoff/PLAN/runbooks/release-gates-explained.md`; simplifications proposed, not built; owner: OWNER-TODO "To read (you): the one release runbook and the gates page") | | owner 2026-11-21 |
+| T993 | Document + clean up every release / CI / CD process so a human can release from one runbook; checks do the remembering (0.8.5 stopped nine times) | IN PROGRESS (plan item 11, the one human runbook `handoff/PLAN/runbooks/release-by-hand.md`, IN REVIEW: owner: OWNER-TODO "To read (you): the one release runbook and the gates page") | T992 | owner 2026-11-21 |
 | T994 | Production-level audit: non-standard practices and data-flow issues across the code | IN PROGRESS | | owner 2026-11-21 |
 | T995 | Branch structure: `main` is the protected trunk; PRs with required checks; release branches and tags | PARTIAL (switch landed c374b91fd 2026-11-22; left (Claude): prune branches, delete the old branch after 0.8.6 redeploys the prod worker) | c374b91fd, d4eae5b46 | owner 2026-11-21 |
 | T996 | Test the Apple push service end to end (registration, wake-up delivery, token reuse over 1 h+) | OPEN | T994 | owner 2026-11-21, next release |
@@ -286,6 +286,8 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1006 | One read-only command lists every new report (both workers, TestFlight, Play reviews); every chat runs it first | OPEN | | owner 2026-11-22 |
 | T1007 | Website: Chrome warns "StorageType.persistent is deprecated" (first party); not in our code or the two bundles: find the source | OPEN — next release batch | | owner 2026-11-22 (Lighthouse) |
 | T1008 | Website: Lighthouse "missing source maps" — maps are kept private on purpose (T352); serve them (repo is public) or keep hidden | OPEN — owner picks (default: serve) | | owner 2026-11-22 (Lighthouse) |
+| T1009 | Android: Play "DEX code optimization: Low": measure optimization / shrinking / obfuscation every build, narrow broad library keep rules, floors in a build check (after T1003) | OPEN — next release batch (0.9.0), after T1003 | | owner 2026-11-22 (Play Console card) |
+| T1010 | Website: a region page's "Open the map" goes to the bare home map (`mapLink` = origin/, no area in the start link): open framed on the region; redesign the page to lead into the app (water search, crawlable links kept below) | OPEN — next release batch | | owner 2026-11-22 (/region/4) |
 
 ## Next after closed testing
 

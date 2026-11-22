@@ -1,4 +1,4 @@
-# pipeline/added_streams — put non-FWA streams into the stream graph
+# pipeline/atlas/waters/added_streams — put non-FWA streams into the stream graph
 
 Some streams referenced by BC fishing regs (and local maps) are **absent from the FWA** stream
 layer — e.g. Salamander Creek, and a cluster of Burnaby Lake / Deer Lake creeks. This package ingests
@@ -7,15 +7,17 @@ geometry, joined to the FWA network by a **`connector`** flow edge. Once in the 
 stream is named (via `name_variants.json`), bindable by regs, and — being a real flow edge — counts
 as a tributary of the stream it joins.
 
-Source-neutral: the ingest only cares about a curated GeoJSON of stream lines. OSM is one *populator*
-(`fetch_osm`); a hand-drawn LineString is another. Both land in the same file and take the same path.
+Source-neutral: the ingest only cares about GeoJSON stream lines. The line pools live in `data/source/municipal/`:
+the city exports, OpenStreetMap picks (`osm_streams.geojson`, T222) and channels drawn by hand
+(`manual_streams.geojson`, T806). `clean.py` normalises each into `data/generated/municipal/cleaned/`, and
+`build_dataset.py` mints the kept ones into the one frozen artifact the build reads (*Build integration* below).
 
 ## Workflow
 
 ```
 fetch_osm (Overpass, human-run)  ─┐
-                                  ├─>  pipeline/added_streams.geojson  ──ingest──> graph nodes + connectors
-hand-drawn LineString  ──────────┘        (curated, allowlisted)
+                                  ├─>  data/source/municipal/*.geojson ──clean → build_dataset──>
+hand-drawn LineString  ──────────┘     data/curated/waters/added_streams.json ──build──> graph nodes + connectors
 ```
 
 1. **(optional) Fetch OSM candidates over an area** — human-run, hits Overpass (external network):
@@ -24,20 +26,21 @@ hand-drawn LineString  ──────────┘        (curated, allowl
        --bbox -123.02 49.22 -122.88 49.28 --out data/generated/added_streams/added_candidates.geojson
    ```
    Writes `data/generated/added_streams/added_candidates.geojson` (one Feature per merged channel) + a `.md` review table.
-2. **Curate** — copy the keepers into `pipeline/added_streams.geojson`, adding a `connect_to`
+2. **Curate** — copy the keepers into the source pool (`data/source/municipal/osm_streams.geojson`, or
+   `manual_streams.geojson` for a hand-drawn line), adding a `connect_to`
    (`{gnis_id}` / `{blk}` / `{coord}`) for anything ambiguous. Hand-drawn streams: author a
    `LineString` with `source:"manual"` and a negative `blk`.
 3. **Verify standalone** — no build.py needed:
    ```
    PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.waters.added_streams.harness \
-       --geojson pipeline/tests/data/added_streams.sample.geojson --out data/generated/added_streams/added_demo.gpkg
+       --geojson pipeline/atlas/waters/added_streams/tests/data/added_streams.sample.geojson --out data/generated/added_streams/added_demo.gpkg
    ```
    Prints merged mainstem = one node/blk/wsc, tributaries nesting under it, added nodes ∈
    `ancestors(FWA stream)`; writes a small gpkg to eyeball in QGIS.
 4. **Build integration — DONE** (see *Build integration* below): `pipeline/atlas/build.py` reads the frozen
-   `added_streams.build.json` on every build (on by default) and wires the added streams into the graph.
+   `data/curated/waters/added_streams.json` on every build (on by default) and wires the added streams into the graph.
 
-## Curated file (`pipeline/added_streams.geojson`)
+## The line schema (the source pools' features)
 
 A FeatureCollection of `LineString`s (lon/lat). Per-feature properties:
 
@@ -127,7 +130,7 @@ secondary-flow edge type (1350, as the Ruskin channels) and an `intake` (the riv
 climbs the river (`test_northrop_side_channel.py`).
 
 The build **does not re-run the resolver**. It consumes a single **frozen, vetted** artifact —
-`pipeline/added_streams.build.json` (top-level, beside `splits.json`) — that is generated once, eyeballed on the
+`data/curated/waters/added_streams.json` (`CURATED.waters.added_streams`, beside `cuts.json`) — that is generated once, eyeballed on the
 verify maps, and checked in. `build.py` reads it on **every build, on by default** (skip with
 `--no-added-streams`; point elsewhere with `--added-streams PATH`).
 

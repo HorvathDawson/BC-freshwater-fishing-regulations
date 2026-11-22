@@ -1,8 +1,8 @@
 # What is manual, what is not, and how to do the manual part
 
-> **Running a curation sitting?** This document is the *design*. The *operating manual* —
-> exact commands, the per-water loop, current counts, and the traps — is
-> [`pipeline/docs/HANDOFF-dfo-curation.md`](../docs/HANDOFF-dfo-curation.md).
+> **Running a curation sitting?** This document is the *design*. Review today happens in the curation tool
+> ([`curation-review/README.md`](../../../curation-review/README.md), AGENTS 65–68). The 2026-09 operating manual
+> (the dossier loop) was removed in T987: `git show caf593bb6:pipeline/docs/HANDOFF-dfo-curation.md`.
 
 **Every number here is measured** from the 346 seeded locations and 438 scraped rules.
 Reproduce with `pipeline.regs.dfo_salmon.locations`, `… entries seed --history`, and the
@@ -223,7 +223,7 @@ watershed-above-a-point primitive again.
 
 Six singles, two compounds (the same rule, punctuated two ways — a drift instance), and
 `All`. They map onto the catalogue's salmon codes (`catalogue.FEDERAL_SALMON`: CH, CO, SK, PK,
-CM, and SA for all salmon) with a fixed 8-row table. (`pipeline/regs/parsing/species.py` and its
+CM, and SA for all salmon) with a fixed 8-row table. (`pipeline/regs/parsing/catalogue_parts/species.py` and its
 `bc_species.csv` are deleted.)
 
 **Dates — 427 of 438 (97.5%) parse** with the existing

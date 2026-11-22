@@ -70,15 +70,17 @@ One app, one component set — and where the two platforms really differ, the di
 
 Where it lives today: `ui-native/src` (`escapeBack`, `escapeCloses`, `searchFocus`, `touchDevice`, `connectivity`,
 `chartInput`, `windowSize`, `announce`, `swipeActivation`, `partAsk`, `FishSpinner`, `CohoLoader`, `WindowInset`; `regs/` `PdfViewer`,
-`synopsisPdf`; `menu/openOfficial`; `shell/prewarm`), `map/src` (`Map`, `tile-ids`), `data/src` (the
+`synopsisPdf`; `menu/openOfficial`; `shell/prewarm`), `map/src` (`Map`, `tile-ids`), `packages/data/src` (the
 release drivers, the spots stores), `apps/mobile/src` (`appUpdater`, `envStore`, `locate`, `memoryTrim`, `notify`,
 `pickPhoto`, `share`, `startLink`, `systemBack`). The SEO site's own tools are `tools/seo/` (web only by nature).
 
 ## Commands
 
 ```bash
-pnpm install
-pnpm check        # every gate, knip, typecheck, vitest — what CI runs (the steps: package.json scripts.check)
+pnpm install --frozen-lockfile
+pnpm check        # every gate, knip, typecheck, vitest (the steps: package.json scripts.check)
+pnpm check:fast   # every gate but vitest (app-ci's gates job; scripts/fast-fail.sh runs it)
+pnpm test         # vitest: packages, conformance, tools/*.test.ts (app-ci runs it on 4 shards)
 pnpm boundaries   # layer rules (layers.json)
 pnpm platform     # variant sets complete, shared code portable, no inline platform branch (T410)
 pnpm style        # rebuild the style, verify hash, fail if it was stale
@@ -87,7 +89,11 @@ pnpm colours      # no colour literal outside tokens.json + themes/ (the one pal
 pnpm deps         # every dependency justified in deps.md
 pnpm knip         # no unused file, export or dependency (allowances in knip.jsonc)
 pnpm clean        # delete every workspace dist/ (typecheck output; nothing reads it)
+pnpm tiles        # serve the local tiles, release and feeds for the dev app (tools/serve-tiles.mjs)
 ```
+
+Every gate and generated-file check in order: [`MAP.md`](MAP.md) "Gates". The feeds worker (`workers/feeds/`) is not in
+the workspace's `pnpm check`: `pnpm exec vitest run --root workers/feeds` (its own CI workflow, `feeds-worker-ci.yml`).
 
 ### Running it
 
@@ -123,7 +129,7 @@ thing six `package.json` files have to agree about.
 **19.3.0 specifically because Expo SDK 58 pins it** (SDK 57 pinned 19.2.3). The React version is not an independent
 choice — Expo's Metro config, `babel-preset-expo` and the native modules are built against
 one triple. `npx expo install --check` is the authority; bump the three together with the SDK
-or not at all. §4.3 rule 1 exists because the two v1 apps drifted to React 19 vs 18.3.1 by
+or not at all. AGENTS 27 exists because the two v1 apps drifted to React 19 vs 18.3.1 by
 being created separately, which is exactly what an unpinned range reproduces.
 
 `.npmrc` sets `node-linker=hoisted`: Metro's resolver, Gradle autolinking and CocoaPods all
@@ -156,11 +162,11 @@ declared over a named **enum**), or `continuous` (a stop ramp). Categorical and
 continuous modes read **feature-state**, so switching view or theme refetches no tiles —
 the closure colouring is the same bytes as the plain one.
 
-**Ten rules the build enforces** (each verified to fail):
+**The rules the build enforces** (each verified to fail):
 
 - a colour mode over an enum must colour **every member** — so `unknown` and
-  `default_only` cannot be silently dropped, which doc 10 ⑨/㉜ calls the one failure with
-  real consequences
+  `default_only` cannot be silently dropped, the one failure with real consequences
+  (AGENTS 29)
 - a continuous mode must define `missing` — a feature with no reading must never inherit
   a colour implying one
 - colours must be `{"token": "..."}`; literals are rejected

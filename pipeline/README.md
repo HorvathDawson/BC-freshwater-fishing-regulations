@@ -47,12 +47,12 @@ The same command as a full build; nothing to choose. Two caches make it fast, bo
 
 - **Stages key on the code they imported.** reach and deliver run under the recorder; the manifest keeps the
   modules each really imported, and only those files' bytes are their code key. An edit to the review app, an
-  audit tool, the DFO suggester or a test reruns neither (it used to rerun both: ~22 min).
+  audit tool, the DFO suggester or a test reruns neither (it used to rerun both).
 - **Delivery steps are reused.** Inside `pipeline.deliver all`, each step (bundle, verdicts, status index,
   export, answers, card gate, store) is reused when its arguments, its staging inputs, the files it read (its
   code as imported included), the directories it listed, the paths it probed and the declared inputs (source
   tree and atlas stamps; for the bundle also the curated tree) are unchanged. An answers or wording edit
-  reruns answers → card gate → store → release (~4 min), not the bundle. The cache is
+  reruns answers → card gate → store → release, not the bundle. The cache is
   `data/generated/deliver-cache/` (a side run: `DIR/deliver-cache/`).
 
 What needs which stages: a rule edit (curated regulations) → reach + deliver; a parts / naming change in
@@ -78,7 +78,7 @@ The writers compute the marks' decisions in memory (`review.export.load`); there
 ## The stages alone
 
 ```bash
-# Atlas: graph, sections, registry (whole province ~15–20 min). Never into a promoted build.
+# Atlas: graph, sections, registry (the whole province). Never into a promoted build.
 python -m pipeline.atlas.build --full --out data/generated/atlas/full_next
 python -m pipeline.atlas.promote data/generated/atlas/full_next --dry-run   # parity report only
 python -m pipeline.atlas.promote data/generated/atlas/full_next             # full -> full.prev
@@ -92,7 +92,7 @@ python -m pipeline.atlas.reach.cli --build data/generated/atlas/full --out data/
 # Deliver: bundle → verdicts → status index → UI export → answers
 python -m pipeline.deliver all --build data/generated/atlas/full
 
-# Tiles (~40 min; writes atlas.pmtiles, atlas.meta.json and layers/ — never the basemap)
+# Tiles (writes atlas.pmtiles, atlas.meta.json and layers/ — never the basemap)
 python -m pipeline.deliver.tiles --build data/generated/atlas/full
 ```
 
@@ -111,12 +111,17 @@ Entries land in `data/curated/regulations/synopsis/region-*.json`. An agent neve
 ## Curation
 
 ```bash
-bash curation-review/run.sh               # review entries, edit splits (validated, backed up)
+bash curation-review/run.sh               # the review app: reads, and one write, a mark (curation-review/README.md)
 python -m pipeline.tools.audit.check_curated    # are the committed match artifacts fresh?
 ```
 
 ## Notes
 
-- `data/source/bc_fisheries_data.gpkg` (~9.6 GB FWA source) must be present for the atlas and tiles.
-- How the book is read: `pipeline/docs/RULINGS.md`. Rules for this repo: `AGENTS.md`.
+- `data/source/bc_fisheries_data.gpkg` (the FWA source, a pinned input: `bash scripts/bootstrap.sh` fetches it) must be
+  present for the atlas and tiles. How long each stage took and its peak memory: `python -m pipeline build --status`.
+- How the book is read: `pipeline/docs/RULINGS.md`. Rules for this repo: `AGENTS.md`. The stages and modules:
+  `pipeline/docs/MAP.md`.
+- The release version and branch: `python -m pipeline release --cut [X.Y.Z]` (`pipeline/release_version.py` computes
+  the SemVer from the Conventional Commits since the last `v*` tag; a typed X.Y.Z must equal it; `--cut --data-only`
+  makes `release/data-<date>`; root `README.md` "Contributing").
 - After editing code, `graphify update .` keeps the knowledge graph current.

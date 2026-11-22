@@ -397,7 +397,7 @@ Nothing here touches the reach graph. Before it can:
   aggregate limits, the "adult chinook is over 62 cm on these four rivers" carve-outs,
   the annual chinook cap. Those bind alongside the table and are currently prose.
 * **Waters names are not matched to anything.** They need the same treatment as the
-  Synopsis names (`pipeline/name_variants.json`, the matcher), and Region 6 uses forms
+  Synopsis names (`data/curated/waters/name_variants.json`, the matcher), and Region 6 uses forms
   the Synopsis does not — "Zymoetz (Copper) River", "Suskwa (Bear) River",
   "Queen Charlotte Islands" for Haida Gwaii.
 * **`specific_area` is a boundary description, not geometry** — bridges, fishing

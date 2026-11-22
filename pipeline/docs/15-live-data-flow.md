@@ -265,8 +265,8 @@ Three things this deliberately does NOT do:
   three cues, because one is a legend nobody read.
 
 The Province's attribution is required **verbatim** wherever a forecast appears. It lives in
-`pipeline/gauges/forecast.ATTRIBUTION` and in the app's attribution list, and the two must
-stay identical.
+`pipeline/gauges/feed/forecast.py` `ATTRIBUTION` (the feed carries it) and in the app's attribution list, and the two
+must stay identical.
 
 ## Where a gauge IS — one frozen fact, two consumers
 

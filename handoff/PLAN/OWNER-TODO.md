@@ -11,6 +11,10 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## 2026-11-21 evening: build/CI streamlining chat (T993, T978, T994; no release) — open decisions, asked at the end
 
+- **To read (you): the one release runbook and the gates page [T993 item 11, T992].**
+  `handoff/PLAN/runbooks/release-by-hand.md` is the whole release in order, each step marked with who runs it;
+  `handoff/PLAN/runbooks/release-gates-explained.md` says what each stop means and when an accept is safe, and ends
+  with eight simplification ideas to pick or drop. Try it on 0.8.6 and say what reads wrong.
 - **T978 MapLibre (answered 2026-11-22):** "Pinned upstream main (Recommended)". From 0.8.6 Android builds use one
   pinned upstream main commit, no patch (measured 20-32% cheaper; 0002 within noise). Claude builds the switch.
 - **Old headless Chrome (answered 2026-11-22):** "Yes, stop them (Recommended)". 19 orphaned headless Chrome trees

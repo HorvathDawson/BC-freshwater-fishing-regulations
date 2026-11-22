@@ -343,7 +343,7 @@ def test_the_site_gate_names_the_production_site_and_its_steps(monkeypatch):
     fetch = lambda url, timeout=30: idx if url.endswith("/") else js       # noqa: E731
     bad, _ = SG.check({"minAppVersion": "0.8.5"}, None, site=SG.PROD_SITE, fetch=fetch)
     assert len(bad) == 1 and bad[0].startswith("the production site is app 0.8.4, older than 0.8.5")
-    assert "PRODUCTION.md step 6" in bad[0] and "deploy/prod/site.sh" in bad[0] and "site-all" not in bad[0]
+    assert "release-by-hand.md Step 7 item 5" in bad[0] and "deploy/prod/site.sh" in bad[0] and "site-all" not in bad[0]
     (unknown,) = SG.check({"minAppVersion": "0.8.5"}, None, site=SG.PROD_SITE, fetch=lambda u, timeout=30: "")[0]
     assert "PROD_SITE_CHECK_SKIP=<reason>" in unknown
     staged, _ = SG.check({"minAppVersion": "0.8.5"}, None, site=SG.STAGING_SITE, fetch=fetch)
