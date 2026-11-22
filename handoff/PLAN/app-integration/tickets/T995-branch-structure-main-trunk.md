@@ -86,3 +86,9 @@ Depends: T993 G1 (check names), G2 (before-push command). Size: M. Owner: no (de
 - Tag `archive/redesign-stream-sections` at c374b91fd. Staging feeds worker redeployed with DEFAULT_REF `main`.
 - Merge fixes on the trunk: d4eae5b46 (the area pin judged machine state by the disk; the ticket guard's fixture used
   T999, a real ticket now).
+- Hook fixes (PR #5, 65d5d6843): from a linked worktree git runs the hook with GIT_DIR=<repo>/.git/worktrees/<name>;
+  real-git tests' `git init <tmp>/here` re-initialised that gitdir as bare (core.bare = true in the shared config, twice
+  at 02:56; reset by hand, no stray commits). Now stripped in the hook, in before_push's steps and in the pipeline
+  conftest. heavy.sh's duplicate guard counts the directory. The hook runs `--no-tier` (a ~10 min tier outlived git's
+  connection to GitHub: SIGPIPE). PR #8: the feeds-worker pin resolves paths lexically (a symlinked node_modules in a
+  worktree crashed it).
