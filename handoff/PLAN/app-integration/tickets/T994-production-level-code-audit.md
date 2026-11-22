@@ -19,3 +19,15 @@ we just waste less time with bad ci/cd of failed runs." (The GitHub Actions half
 A ranked findings list with no item already in an open ticket; each kept finding fixed or ticketed.
 
 Depends: —. Size: M. Owner: reads the ranked list.
+
+## Audit done 2026-11-21 (read-only agent): 30 findings, none already ticketed
+Report: `handoff/PLAN/audit-2026-11-21/t994-audit.md` (ranked, file:line, fix, size; "(sub)" = sub-auditor reading not
+re-opened by the lead). Top 5: `update-hydat.sh --upload` publishes ungated to any bucket; review backend CSRF on
+`POST /api/inseason/resolve`; worker backups keep report text 400 days (privacy promise is 180); a failed in-season feed
+read resets history as a first run; one failed read wipes the water-temperature history (worker + Python twin).
+
+Fix lanes (disjoint files):
+- **F1 feeds worker + its Python twins:** findings 3, 4, 5, 23, 24, 25, 26, 30.
+- **F2 pipeline + review backend:** 1, 2, 14, 15, 16, 17, 21, 27.
+- **F3 app data seam:** 8, 11, 12, 13, 22.
+- **With T993 (workflows, deploy scripts):** 6, 7, 9, 10, 18, 19, 20, 28, 29.
