@@ -177,11 +177,10 @@ def test_every_strip_code_is_its_three_answers(built):
 @pytest.mark.needs_bundle
 def test_the_group_lead_says_the_total_and_the_stream_share_of_it_all(built):
     """answers 2.8 supersedes the 2.6 lead + items: the headline is the stream's 2, the total is a line
-    under it (test_answers_28_card.py pins the whole card on the no-data fixture)."""
+    under it (test_answers_28_card.py pins the whole card on the no-data fixture). T866: the headline's and the total
+    line's words on the Vedder are test_answers_card_words_live.py LIVE; here, the group a total of 4 is a GroupTotal."""
     rows = at(built, VEDDER, "mouth", (10, 10), "rows")["rows"]
     g = next(r["group"] for r in rows if r.get("group") and r["group"]["total"] == 4)
-    assert g["headline"]["says"] == "2 hatchery trout/char a day from streams"
-    assert g["total_line"] == "No more than 4 trout and char a day per angler across Region 2, lakes included."
     M.GroupTotal.model_validate_json(json.dumps(g))
 
 

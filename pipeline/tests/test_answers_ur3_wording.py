@@ -16,21 +16,6 @@ from types import SimpleNamespace
 from pipeline.deliver.answers import common
 from pipeline.deliver.answers import display as D
 from pipeline.deliver.answers import rows as RW
-from pipeline.tests import answers28_fixture as F
-
-OCT10, MAY1 = (10, 10), (5, 1)
-
-
-def _tiers(water, md):
-    out, _P = F.card(water, md)
-    (g,) = [r["group"] for r in out["rows"] if r.get("group") and set(r["group"]["kinds"]) & {"RB", "EB", "GB"}]
-
-    def walk(ns):
-        for n in ns:
-            if n["node"] == "tier":
-                yield n
-                yield from walk(n.get("children") or [])
-    return list(walk(g["tree"]))
 
 
 # 2 ---------------------------------------------------------------------------------------------
@@ -65,17 +50,8 @@ def test_t501_the_buffers_say_their_short_place_words():
                                         "rearing facility.")
 
 
-# 3 ---------------------------------------------------------------------------------------------
-def test_3_a_count_tier_in_an_own_tier_says_part_of_it():
-    (ct,) = [t for t in _tiers(F.BELLA_MAY_ST, MAY1) if t["tier"] == "count"]
-    assert ct["says"] == "Up to 1 cutthroat or rainbow trout combined (part of the 2)"
-
-
-# 4 ---------------------------------------------------------------------------------------------
-def test_4_the_lifted_share_says_the_fish_count_toward_the_total():
-    # ROUND20 2 (owner: the UR3 words read as 4 + 2): the share sits inside the total, the lifted fish not counted in it
-    (sh,) = [t for t in _tiers(F.VEDDER, OCT10) if t["tier"] == "share"]
-    assert sh["says"] == "Up to 2 of the 4 from streams"   # ROUND UR7 A: the lift said once, by the own tier's relation
+# 3, 4: the Bella Coola's count tier and the Vedder's share tier, word for word: test_answers_card_words.py CARDS (T866;
+# ROUND20 2, owner: the UR3 words read as 4 + 2: the share sits inside the total, the lifted fish not counted in it)
 
 
 # 6 ---------------------------------------------------------------------------------------------

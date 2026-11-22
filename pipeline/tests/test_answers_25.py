@@ -110,9 +110,7 @@ def silence(rule, fish, origins=("none", "hatchery", "wild")):
 # --------------------------------------------------------------------------------------------
 
 # answers 2.8 (ROUND9 A1): the lift said positively, with whose rule it is (the 2.6 lead sentence and
-# the 2.7 items are gone — they restated the kind rows)
-VEDDER_LIFT = ("On this river, hatchery rainbow trout 50 cm (20 in) or less: up to 4 a day — this river’s rule "
-               "replaces Region 2’s 2-from-streams limit for them.")
+# the 2.7 items are gone — they restated the kind rows); its words: test_answers_card_words.py LIFT_RB4
 
 
 @pytest.mark.needs_bundle
@@ -131,16 +129,11 @@ def test_f14_vedder_trout_and_char_total_is_4_with_the_stream_share_lifted_for_h
     share = subcap(built, g, f"{Z2}.r4")
     assert share["take"] == 2 and share["water"] == "stream" and "RB" not in share["of"]
     assert [(L["members"], rid(built, L["by"])) for L in share["lifted"]] == [(["RB"], f"{VR}.r9")]
-    # answers 2.8: the card is water-first (headline, lifts, total line; test_answers_28_card.py)
-    assert g["headline"]["says"] == "2 hatchery trout/char a day from streams"
-    assert [L["says"] for L in g["lifts"]] == [VEDDER_LIFT]
-    assert g["total_line"] == "No more than 4 trout and char a day per angler across Region 2, lakes included."
-    assert row["elsewhere"]["says"] == "Your own limit, counted across every Region 2 stream you fish today."
+    # answers 2.8: the card is water-first (headline, lifts, total line, the kept-elsewhere line and the first
+    # example away from here, word for word on both days: test_answers_card_words_live.py LIVE, T866)
     # ROUND12 4: the examples are the card's one list; the stream-tally one is the worked keep-N count
     # read backwards, so the lifted water drops it
     assert row["elsewhere"]["ask"] == []
-    assert [[w["q"], w["a"]] for w in g["worked"] if w["at"] != "here"][:1] == [
-        ["Kept 1 at a lake?", "Keep 3 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams."]]
     # the hatchery rainbow's own row names no second group, and says what it counts toward
     own = row_of(built, t, f"{VR}.r9")
     assert own["group"] is None

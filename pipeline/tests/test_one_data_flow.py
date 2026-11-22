@@ -426,10 +426,7 @@ def test_promote_drops_a_prev_only_when_the_current_build_shares_its_sid_space(t
         P.promote(nxt2, target=full, tiles=tiles, bundle=bundle, log=lambda *_: None)
 
 
-def test_promote_refuses_an_unfinished_candidate(tmp_path):
-    from pipeline.atlas.promote import promote
-    with pytest.raises(SystemExit, match="not a finished atlas"):
-        promote(tmp_path, dry_run=True)
+# (T866 D5) promote refusing an unfinished candidate, dry run included: test_atlas_inputs.py
 
 
 # --------------------------------------------------------------------------- parity (slow)
