@@ -49,6 +49,11 @@
     "feed-formats": "cd .. && .venv/bin/python -m pipeline.tools.emit.feed_formats --check && .venv/bin/python scripts/check-format-pairs.py"
   },
   "devDependencies": {
+    "@commitlint/config-conventional": "21.2.4",
+    "@commitlint/is-ignored": "21.2.3",
+    "@commitlint/lint": "21.2.4",
+    "@commitlint/load": "21.2.4",
+    "@commitlint/parse": "21.2.3",
     "@resvg/resvg-js": "^2.6.2",
     "@testing-library/react": "^16.3.3",
     "@types/pngjs": "3.4.2",

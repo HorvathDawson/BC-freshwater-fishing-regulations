@@ -57,6 +57,7 @@ AREAS: dict[str, list[str]] = {
             "pipeline/deliver/tiles/basemap.py", "pipeline/deliver/tiles/ladder.py", "pipeline/deliver/tiles/layers.py",
             "pipeline/deliver/tiles/tile-contract.json", "pipeline/gauges/consume/panel.py",
             "pipeline/gauges/feed/climatology.py", "pipeline/gauges/feed/publish.py", "scripts/test-full.sh",
+            ".githooks/commit-msg",
             *_SHARED],
     "feeds-worker": ["app/workers/feeds/**", "app/packages/core/**", "app/tools/test-tmp.ts", "app/package.json",
                      "app/pnpm-lock.yaml",
@@ -80,6 +81,12 @@ AREAS: dict[str, list[str]] = {
                  ".github/**", ".githooks/**", "deploy/**", "app/**", "README.md", "pytest.ini", "conftest.py",
                  ".gitignore", "handoff/PLAN/app-data/**", "handoff/PLAN/runbooks/**", *_SHARED],
 }
+
+#: (T998) area -> the jobs of its workflow that run on EVERY pull request, whatever it touched (no `changes` gate):
+#: docs-ci's Conventional Commits check of the PR's commits and title (app/tools/check-commits.mjs)
+EVERY_PR = {"docs": ["commits"]}
+#: (T998) the pull_request event types docs-ci runs on: the defaults, and `edited` (a re-run reads the old title)
+PR_TYPES = {"docs": ["opened", "synchronize", "reopened", "edited"]}
 
 #: area -> its workflow file
 WORKFLOWS = {"docs": "docs-ci.yml", "app": "app-ci.yml", "feeds-worker": "feeds-worker-ci.yml",

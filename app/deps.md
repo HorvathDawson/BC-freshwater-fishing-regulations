@@ -18,6 +18,21 @@ v1's webapp reached `chart.js` + `pdf-lib` + `pdfjs-dist` + `fuse.js` + `suncalc
   without a browser or a native image library. Dev-only, pure JS, no install script; never in an app bundle.
 - `@types/pngjs` — types only, for `pngjs` (pngjs 3 ships none): the feeds worker's `test/cards.test.ts` decodes
   the share cards with it, and the worker's `tsc --noEmit` needs its declarations. Pinned to the 3.x line, exactly.
+- `@commitlint/config-conventional` — (T998) the Conventional Commits rules (and its parser preset) every commit
+  message and PR title is checked against: the commit-msg hook, before_push.py and docs-ci's `commits` job, all through
+  `tools/check-commits.mjs` with `tools/commitlint.config.mjs`. The industry-standard checker rather than a regex of
+  our own; the release command's bump reads messages the same way (`tools/commits-contract.json`). Dev-only, exact.
+- `@commitlint/lint` — (T998) commitlint's checker, run by `tools/check-commits.mjs` (one process for the hook, a
+  push's commits and a PR's: the range, the cutover exemption and the PR title as its merge commit are ours; the CLI
+  package is not needed). Dev-only, exact, the version config-conventional is released with.
+- `@commitlint/load` — (T998) reads `tools/commitlint.config.mjs` (resolving config-conventional's parser preset) for
+  `tools/check-commits.mjs`. Dev-only, exact.
+- `@commitlint/parse` — (T998) used by `tools/check-commits.test.ts` only: the contract test reads every
+  `commits-contract.json` message with commitlint's own parser, so the release command's bump (Python) and the check
+  cannot drift apart. Already installed under `@commitlint/lint`; pinned to the very version it takes (21.2.3), so
+  there is one copy. Dev-only, exact.
+- `@commitlint/is-ignored` — (T998) the same contract test's other half: commitlint's own list of the messages it skips
+  (merges, reverts, fixups), against the release command's copy of it. Pinned as `@commitlint/parse` (21.2.3).
 
 - `jsdom` — a DOM for tests, so components are actually MOUNTED rather than inspected as
   source. Ninety-four tests passed while nothing in the workspace had ever rendered; a

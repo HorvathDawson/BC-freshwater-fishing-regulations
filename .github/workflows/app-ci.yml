@@ -28,6 +28,7 @@ on:
             "pipeline/deliver/tiles/ladder.py", "pipeline/deliver/tiles/layers.py",
             "pipeline/deliver/tiles/tile-contract.json", "pipeline/gauges/consume/panel.py",
             "pipeline/gauges/feed/climatology.py", "pipeline/gauges/feed/publish.py", "scripts/test-full.sh",
+            ".githooks/commit-msg",
             ".github/actions/changes/**", "scripts/ci_paths.py"]
   # (T995) EVERY pull request runs this workflow, with no path filter: a required check from a workflow that did not
   # run stays pending forever. Its `changes` job asks scripts/ci_paths.py whether the PR touched this area; the jobs

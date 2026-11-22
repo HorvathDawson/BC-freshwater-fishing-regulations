@@ -1,0 +1,31 @@
+{
+  "$comment": "(T998) ONE CONTRACT, TWO READERS: how a commit message parses. commitlint (app/tools/check-commits.test.ts, with the repo config's parser) and the release command's bump (pipeline/release_version.py, pipeline/tests/test_release_version.py) must both read every message here as written: its type, scope, whether it is breaking, whether commitlint ignores it. `bump` is the release command's reading only (major | minor | patch | none; ignored: a merge / revert / fixup commitlint skips; bad: not in the format, which the bump refuses). A parser change on either side that reads one of these differently fails its test.",
+  "messages": [
+    { "message": "fix(T994): x", "type": "fix", "scope": "T994", "breaking": false, "ignored": false, "bump": "patch" },
+    { "message": "T994 fix x", "type": null, "scope": null, "breaking": false, "ignored": false, "bump": "bad" },
+    { "message": "feat(T985): a new map layer", "type": "feat", "scope": "T985", "breaking": false, "ignored": false, "bump": "minor" },
+    { "message": "perf(T420): the map draws faster", "type": "perf", "scope": "T420", "breaking": false, "ignored": false, "bump": "patch" },
+    { "message": "feat!: the bundle drops the old tables", "type": "feat", "scope": null, "breaking": true, "ignored": false, "bump": "major" },
+    { "message": "feat(T1)!: x", "type": "feat", "scope": "T1", "breaking": true, "ignored": false, "bump": "major" },
+    { "message": "fix: x\n\nBREAKING CHANGE: old apps cannot read the new data", "type": "fix", "scope": null, "breaking": true, "ignored": false, "bump": "major" },
+    { "message": "fix: x\n\nbreaking change: the keyword is read in any case", "type": "fix", "scope": null, "breaking": true, "ignored": false, "bump": "major" },
+    { "message": "fix: x\n\n* BREAKING-CHANGE: a listed note", "type": "fix", "scope": null, "breaking": true, "ignored": false, "bump": "major" },
+    { "message": "fix: x\nBREAKING CHANGE: no blank line before the footer", "type": "fix", "scope": null, "breaking": true, "ignored": false, "bump": "major" },
+    { "message": "fix: x\n\nnot a BREAKING CHANGE: the keyword starts its line", "type": "fix", "scope": null, "breaking": false, "ignored": false, "bump": "patch" },
+    { "message": "docs(handoff): the restart page", "type": "docs", "scope": "handoff", "breaking": false, "ignored": false, "bump": "none" },
+    { "message": "ci(T993)!: a required check renamed", "type": "ci", "scope": "T993", "breaking": true, "ignored": false, "bump": "major" },
+    { "message": "chore(T995): main is the trunk", "type": "chore", "scope": "T995", "breaking": false, "ignored": false, "bump": "none" },
+    { "message": "fix(T995): the pre-push hook: never touch the real repo", "type": "fix", "scope": "T995", "breaking": false, "ignored": false, "bump": "patch" },
+    { "message": "fix(app,T998): two scopes", "type": "fix", "scope": "app,T998", "breaking": false, "ignored": false, "bump": "patch" },
+    { "message": "Fix: a capital type", "type": "Fix", "scope": null, "breaking": false, "ignored": false, "bump": "bad" },
+    { "message": "feat:no space after the colon", "type": null, "scope": null, "breaking": false, "ignored": false, "bump": "bad" },
+    { "message": "Merge pull request #4 from HorvathDawson/docs/T995-switch-done", "type": null, "scope": null, "breaking": false, "ignored": true, "bump": "ignored" },
+    { "message": "Merge branch 'main' into feat/T998-versioning", "type": null, "scope": null, "breaking": false, "ignored": true, "bump": "ignored" },
+    { "message": "Merge remote-tracking branch 'origin/main' into fix/T994-gauge-history", "type": null, "scope": null, "breaking": false, "ignored": true, "bump": "ignored" },
+    { "message": "Merge main into the trunk-to-be: keep the dev branch's tree (T995)", "type": null, "scope": null, "breaking": false, "ignored": true, "bump": "ignored" },
+    { "message": "merge origin/main into test/T768-follow-tests", "type": null, "scope": null, "breaking": false, "ignored": false, "bump": "bad" },
+    { "message": "Revert \"feat(T1): x\"\n\nThis reverts commit 0123456789abcdef.", "type": null, "scope": null, "breaking": false, "ignored": true, "bump": "ignored" },
+    { "message": "fixup! fix(T1): x", "type": null, "scope": null, "breaking": false, "ignored": true, "bump": "ignored" },
+    { "message": "chore(release): 0.9.0", "type": "chore", "scope": "release", "breaking": false, "ignored": true, "bump": "ignored" }
+  ]
+}

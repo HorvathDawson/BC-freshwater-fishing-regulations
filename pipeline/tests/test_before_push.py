@@ -88,20 +88,21 @@ def test_changed_runs_only_the_areas_the_branch_changed(monkeypatch, capsys):
     a pipeline change adds the pipeline's steps; an app change runs the app gates (the ticket guard is inside them)."""
     guard = "ticket guard (node app/tools/check-tickets.mjs)"
     docs = "docs: the ticket guard's tests and the start-here page (docs-ci)"
-    assert _changed(monkeypatch, capsys, ["handoff/PLAN/STATUS.md", "AGENTS.md"]) == [guard, docs]
-    assert _changed(monkeypatch, capsys, ["NOTICE.txt"]) == [guard]
+    msgs = BP.COMMITS                                                     # (T998) first, whatever changed
+    assert _changed(monkeypatch, capsys, ["handoff/PLAN/STATUS.md", "AGENTS.md"]) == [msgs, guard, docs]
+    assert _changed(monkeypatch, capsys, ["NOTICE.txt"]) == [msgs, guard]
     # (T995 review) what docs-ci runs on a handoff change, the hook runs: its vitest step, word for word
     import yaml
     ledger = yaml.safe_load((ROOT / ".github" / "workflows" / "docs-ci.yml").read_text())["jobs"]["ledger"]["steps"]
     assert f"pnpm exec vitest run {' '.join(BP.DOCS_TESTS)}" in [s.get("run") for s in ledger]
     ran = _changed(monkeypatch, capsys, ["pipeline/release.py"])
-    assert ran[0] == guard and "the pipeline's source scanners (--no-tier)" in ran
+    assert ran[:2] == [msgs, guard] and "the pipeline's source scanners (--no-tier)" in ran
     assert not any(n.startswith(("app", "feeds worker")) for n in ran)
     ran = _changed(monkeypatch, capsys, ["app/workers/feeds/src/index.ts"])
     assert guard not in ran and "app gates (pnpm check:fast)" in ran and "feeds worker tests" in ran
     assert "the pipeline's source scanners (--no-tier)" in ran            # (T995 review) the pipeline tests read app/
     ran = _changed(monkeypatch, capsys, ["pipeline/regs/review/x.py"])
-    assert not any(n.startswith(("app", "feeds worker", "docs: ")) for n in ran)
+    assert not any(n.startswith(("app", "feeds worker", "docs: ")) for n in ran) and ran[0] == msgs
     full = [s.name for s in BP.plan(tier=False)]
     assert _changed(monkeypatch, capsys, ["pipeline/x.py", "app/x.ts", "app/workers/feeds/x.ts", "AGENTS.md"]) == full
     # every step names its area
@@ -119,14 +120,16 @@ def test_the_release_commands_own_push_skips_saying_why(monkeypatch, capsys):
 
 
 def test_the_versioned_hooks():
-    """(T995) .githooks/pre-push runs `--changed` (seconds for a docs push); commit-msg is T998's stub (passes)."""
+    """(T995) .githooks/pre-push runs `--changed` (seconds for a docs push); (T998) commit-msg runs the Conventional
+    Commits check (app/tools/check-commits.test.ts runs it on real messages: it needs app/node_modules); an empty
+    message is git's own refusal, so the hook passes it."""
     import os
     import subprocess
     hooks = ROOT / ".githooks"
     pre = (hooks / "pre-push").read_text()
     assert 'exec "$py" scripts/before_push.py --changed --pre-push' in pre and "git config core.hooksPath .githooks" in pre
     assert os.access(hooks / "pre-push", os.X_OK) and os.access(hooks / "commit-msg", os.X_OK)
-    assert "T998" in (hooks / "commit-msg").read_text()
+    assert 'exec node app/tools/check-commits.mjs --edit "$msg"' in (hooks / "commit-msg").read_text()
     assert subprocess.run(["sh", str(hooks / "commit-msg"), "/dev/null"]).returncode == 0
 
 
@@ -197,8 +200,28 @@ def test_the_hook_checks_the_pushed_commits_not_the_tree(tmp_path, monkeypatch, 
     assert ran == [] and "only tags / deletes pushed: nothing to check" in capsys.readouterr().out
     assert BP.main(["--changed", "--pre-push", "--no-tier"], runner=lambda s: ran.append(s.name) or 0,
                    stdin=io.StringIO(f"refs/heads/lane {one} refs/heads/lane {z}\n")) == 0
-    assert ran == ["ticket guard (node app/tools/check-tickets.mjs)",
+    assert ran == [BP.COMMITS, "ticket guard (node app/tools/check-tickets.mjs)",
                    "docs: the ticket guard's tests and the start-here page (docs-ci)"]     # docs only, not the tree
+
+
+def test_the_commit_messages_of_what_is_pushed_are_checked_first(tmp_path, monkeypatch):
+    """(T998) the hook checks the messages of the commits each pushed branch sends (`<base>..<sha>`), a tag none;
+    by hand (or --changed) the branch's commits the trunk does not have."""
+    here, run = _repo(tmp_path, monkeypatch)
+    z = BP.ZERO
+    base = run("rev-parse", "HEAD")
+    run("switch", "-qc", "lane")
+    (here / "handoff").mkdir()
+    (here / "handoff" / "x.md").write_text("x")
+    run("add", ".")
+    run("commit", "-qm", "docs(handoff): x")
+    one = run("rev-parse", "HEAD")
+    said, paths, ranges = BP.pushed([f"refs/heads/lane {one} refs/heads/lane {z}", f"refs/tags/v1 {one} refs/tags/v1 {z}"])
+    assert ranges == [f"{base}..{one}"]
+    step = BP.plan(tier=False, areas={"docs"}, ranges=ranges)[0]
+    assert step == BP.Step(BP.COMMITS, ("node", "app/tools/check-commits.mjs", "--range", f"{base}..{one}"))
+    assert BP.plan(tier=False)[0].cmd == ("node", "app/tools/check-commits.mjs", "--range", "origin/main..HEAD")
+    assert BP.step_area(step) == "docs"
 
 
 
