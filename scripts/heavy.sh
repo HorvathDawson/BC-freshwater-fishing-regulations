@@ -30,8 +30,14 @@
 #   with the same label + command while one holds or waits on either lane is refused (exit 3) unless `--again`.
 # - The lock is removed only by its owner; a stale lock is taken over under a mutex (`<lock>.takeover`) by `mv` then
 #   delete, so two waiters take it once.
-# Exit codes: the job's own; 137 killed for memory (free % or footprint); 74 memory unreadable; 143 stopped (INT/TERM);
-# 2 usage / unknown lane; 3 duplicate.
+# - (T788 #11) FREE DISK, beside the memory gate: the disk filled twice (2026-11-15: 1.3 GB free, $TMPDIR held 151 GB of
+#   test leftovers; 2026-11-20: 190 MB free, 82 GB of merged lane worktrees) and every shell then refused to start. The
+#   job starts only with HEAVY_MIN_DISK_GB (20) free on BOTH the volume it runs in ($PWD) and $TMPDIR's, else it is
+#   refused at once (exit 73: waiting frees nothing), naming where to look. While it runs, below HEAVY_KILL_DISK_GB (3)
+#   it is stopped (exit 73): stopping it frees its temp space before the disk fills. An unreadable `df` refuses the
+#   start and warns while running (the memory guard still holds).
+# Exit codes: the job's own; 137 killed for memory (free % or footprint); 74 memory unreadable; 73 disk short; 143
+# stopped (INT/TERM); 2 usage / unknown lane; 3 duplicate.
 set -u
 LANES_DIR=${HEAVY_LANES_DIR:-$HOME/.claude}      # tests point this at a scratch dir; nothing else should
 LANES=("$LANES_DIR/heavy-job.lock" "$LANES_DIR/heavy-job-2.lock" "$LANES_DIR/heavy-job-3.lock")
@@ -43,6 +49,9 @@ BEAT=${HEAVY_HEARTBEAT:-300}
 GRACE=${HEAVY_STOP_GRACE:-10}
 UNREADABLE_MAX=${HEAVY_UNREADABLE_MAX:-12}
 MAX_FP_GB=${HEAVY_MAX_FOOTPRINT_GB:-$(( $(sysctl -n hw.memsize 2>/dev/null || echo 0) / 1073741824 ))}
+MIN_DISK_GB=${HEAVY_MIN_DISK_GB:-20}
+KILL_DISK_GB=${HEAVY_KILL_DISK_GB:-3}
+DISK_EVERY=${HEAVY_DISK_EVERY:-30}    # seconds between free-disk samples while the job runs
 
 usage() { echo "usage: heavy.sh [--again] <label> <min_free_pct> -- <command...>  |  heavy.sh --status" >&2; exit 2; }
 
@@ -51,6 +60,18 @@ free_pct() {
   local v
   v=$(memory_pressure -Q 2>/dev/null | awk -F': ' '/free percentage/ {gsub("%","",$2); print $2; exit}')
   [[ $v =~ ^[0-9]+$ ]] && (( 10#$v <= 100 )) && echo $((10#$v))
+}
+# (T788 #11) free disk, whole GB (rounded down), of the fuller of the volumes holding $PWD and $TMPDIR, as
+# "<GB> <mount>"; NOTHING when df fails or prints no number (unreadable, never 0)
+free_disk() {
+  local out
+  out=$(df -Pk "$PWD" "${TMPDIR:-/tmp}" 2>/dev/null) || return 0
+  awk 'NR > 1 && $4 ~ /^[0-9]+$/ {g = int($4 / 1048576); if (n == 0 || g < min) {min = g; m = $6}; n++}
+       END {if (n) print min, m}' <<<"$out"
+}
+disk_hint() {
+  echo "free space: \`du -k -d 1 \$TMPDIR | sort -n | tail\` (old release-open-*, regs-web-*, tiles-lowband-* are" \
+       "test and build leftovers), and merged, idle lane worktrees under .claude/worktrees (\`git worktree remove\`)"
 }
 # physical footprint of a process group, whole GB (rounded down); nothing when it cannot be read
 group_footprint_gb() {
@@ -81,9 +102,10 @@ elapsed() {
 }
 
 status() {
-  local lock pid pgid started log q f
+  local lock pid pgid started log q f d
   f=$(free_pct)
-  echo "free memory: ${f:-UNREADABLE (memory_pressure -Q)}%   pause file: $([[ -e ${HEAVY_PAUSE:-$HOME/.claude/heavy-job.pause} ]] && echo PRESENT || echo none)"
+  d=$(free_disk)
+  echo "free memory: ${f:-UNREADABLE (memory_pressure -Q)}%   free disk: $(if [[ -n $d ]]; then echo "${d%% *} GB on ${d#* }"; else echo "UNREADABLE (df)"; fi)   pause file: $([[ -e ${HEAVY_PAUSE:-$HOME/.claude/heavy-job.pause} ]] && echo PRESENT || echo none)"
   for lock in "${LANES[@]}"; do
     echo "── $lock"
     if [[ ! -d $lock ]]; then echo "   free"
@@ -141,6 +163,16 @@ fi
 pre=$1; [[ $pre == bash || $pre == sh ]] && pre=${2:-}
 if [[ -f $pre ]] && grep -q 'heavy-precheck: yes' "$pre"; then
   HEAVY_PRECHECK=1 "$@" || { rc=$?; echo "[heavy:$label] precheck failed (rc=$rc) — the lock was not taken" >&2; exit $rc; }
+fi
+# (T788 #11) FREE DISK, also before the lock (after the script's own precheck, so its words come first): refused at
+# once, not waited for (nothing frees itself)
+[[ $MIN_DISK_GB =~ ^[0-9]+$ && $KILL_DISK_GB =~ ^[0-9]+$ ]] || {
+  echo "[heavy:$label] HEAVY_MIN_DISK_GB / HEAVY_KILL_DISK_GB must be whole GB, got '$MIN_DISK_GB' / '$KILL_DISK_GB'" >&2; exit 2; }
+disk=$(free_disk)
+if [[ -z $disk ]]; then
+  echo "[heavy:$label] refused: free disk UNREADABLE (df -Pk $PWD ${TMPDIR:-/tmp}) — not starting blind" >&2; exit 73
+elif (( ${disk%% *} < MIN_DISK_GB )); then
+  echo "[heavy:$label] refused: ${disk%% *} GB free on ${disk#* } < $MIN_DISK_GB GB (HEAVY_MIN_DISK_GB); $(disk_hint)" >&2; exit 73
 fi
 
 cmd="$label :: $(printf '%q ' "$@")"
@@ -242,8 +274,19 @@ set -m                      # job control: the command gets its own process grou
 job=$!
 set +m
 write_owner
-unread=0; last_fp=-$FP_EVERY; last_beat=$SECONDS; fp=""
+unread=0; last_fp=-$FP_EVERY; last_disk=-$DISK_EVERY; last_beat=$SECONDS; fp=""
 while alive "$job"; do
+  if (( SECONDS - last_disk >= DISK_EVERY )); then
+    last_disk=$SECONDS
+    disk=$(free_disk)
+    if [[ -z $disk ]]; then
+      echo "[heavy:$label] WARNING: free disk unreadable (df) — the disk guard is blind this sample" >&2
+    elif (( ${disk%% *} < KILL_DISK_GB )); then
+      echo "[heavy:$label] STOPPED: ${disk%% *} GB free on ${disk#* } < $KILL_DISK_GB GB (HEAVY_KILL_DISK_GB): stopping the" \
+           "job frees its temp space before the disk fills; $(disk_hint)" >&2
+      stop_job; exit 73
+    fi
+  fi
   f=$(free_pct)
   if [[ -z $f ]]; then
     unread=$((unread + 1))

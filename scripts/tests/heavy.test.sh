@@ -27,6 +27,16 @@ cat > "$T/bin/footprint" <<EOF
 echo "Auxiliary data:"
 echo "    phys_footprint: \$(cat "$T/fp") B"
 EOF
+# (T788 #11) df -Pk <cwd> <tmpdir>: the first volume has $T/disk KB available, the second $T/disk_tmp (else the same);
+# an empty $T/disk is a df that fails
+cat > "$T/bin/df" <<EOF
+#!/bin/bash
+a=\$(cat "$T/disk"); b=\$(cat "$T/disk_tmp" 2>/dev/null || echo "\$a")
+[[ -n \$a ]] || { echo "df: stub: no such volume" >&2; exit 1; }
+echo "Filesystem 1024-blocks Used Available Capacity Mounted on"
+echo "/dev/stub1 999999999 1 \$a 1% /System/Volumes/Data"
+echo "/dev/stub2 999999999 1 \$b 1% /private/tmp-vol"
+EOF
 # job.sh <name> [stubborn]: records its pid (= its process group), logs start/end, holds a child sleeping
 cat > "$T/job.sh" <<EOF
 #!/bin/bash
@@ -38,7 +48,7 @@ sleep "\${HOLD:-30}" & wait
 echo "end \$1" >> "$T/events"
 EOF
 chmod +x "$T/bin/"* "$T/job.sh"
-echo 80 > "$T/free"; echo 1000 > "$T/fp"
+echo 80 > "$T/free"; echo 1000 > "$T/fp"; echo $((100 * 1048576)) > "$T/disk"
 
 # $T/H = heavy.sh with the scratch lanes and fast timings. A script that EXECs (a function would run in a subshell
 # when backgrounded), so `"$T/H" … &` puts heavy.sh's own pid in $! and a signal to it reaches the wrapper.
@@ -46,7 +56,7 @@ HEAD_SHA=$(git -C "$ROOT" rev-parse HEAD)
 cat > "$T/H" <<EOF
 #!/bin/bash
 exec env -u HEAVY_HELD PATH="$T/bin:\$PATH" HEAVY_LANES_DIR="$T" HEAVY_LOCK="\${LANE:-$T/heavy-job.lock}" \\
-  HEAVY_PAUSE="$T/no-pause" HEAVY_POLL=0.2 HEAVY_WAIT_POLL=0.2 HEAVY_FOOTPRINT_EVERY=0 HEAVY_STOP_GRACE=1 \\
+  HEAVY_PAUSE="$T/no-pause" HEAVY_POLL=0.2 HEAVY_WAIT_POLL=0.2 HEAVY_FOOTPRINT_EVERY=0 HEAVY_DISK_EVERY=0 HEAVY_STOP_GRACE=1 \\
   HEAVY_UNREADABLE_MAX=3 FAST_FAIL_DONE="\${FAST_FAIL_DONE:-$HEAD_SHA}" bash "$HEAVY" "\$@"
 EOF
 chmod +x "$T/H"
@@ -56,7 +66,8 @@ ok() { echo "  ok   $1"; }
 bad() { echo "  FAIL $1"; fails=$((fails + 1)); }
 check() { local name=$1; shift; if "$@"; then ok "$name"; else bad "$name"; fi; }
 alive() { kill -0 "$1" 2>/dev/null; }
-reset() { rm -rf "$T"/heavy-job*.lock* "$T"/*.pid "$T/events" "$T"/*.out; echo 80 > "$T/free"; echo 1000 > "$T/fp"; }
+reset() { rm -rf "$T"/heavy-job*.lock* "$T"/*.pid "$T/events" "$T"/*.out "$T/disk_tmp"; echo 80 > "$T/free"; echo 1000 > "$T/fp"
+          echo $((100 * 1048576)) > "$T/disk"; }
 L=$T/heavy-job.lock
 
 echo "heavy.sh test: $HEAVY"
@@ -189,6 +200,30 @@ check "status: job alive" grep -q "job group $(cat "$T/s.pid"): alive" "$T/st.ou
 { echo "99999999 someone 2026-01-01 00:00:00"; sed 1d "$L/owner"; } > "$L/owner.x" && mv "$L/owner.x" "$L/owner"
 kill -TERM $w; wait $w
 check "lock not removed by a non-owner" [ -d "$L" ]
+
+echo "12. (T788 #11) free disk: short at the start is refused at once (73), before the lock; short mid-run stops the job"
+reset; echo $((5 * 1048576)) > "$T/disk"
+H disk 10 -- "$T/job.sh" dk > "$T/dk.out" 2>&1; rc=$?
+check "start refused, exit 73" [ $rc = 73 ]
+check "  … names the volume, the floor and where to look" \
+  grep -q 'refused: 5 GB free on /System/Volumes/Data < 20 GB (HEAVY_MIN_DISK_GB); free space: .*release-open-.*worktrees' "$T/dk.out"
+check "  … job not started, no lock, no queue entry" bash -c "[ ! -f '$T/dk.pid' ] && [ ! -d '$L' ] && ! ls '$L.queue'/* >/dev/null 2>&1"
+reset; echo $((100 * 1048576)) > "$T/disk"; echo $((2 * 1048576)) > "$T/disk_tmp"
+H disktmp 10 -- "$T/job.sh" dt > "$T/dt.out" 2>&1; rc=$?
+check "the \$TMPDIR volume counts too (the fuller one decides)" \
+  bash -c "[ $rc = 73 ] && grep -q '2 GB free on /private/tmp-vol' '$T/dt.out'"
+reset; : > "$T/disk"
+H diskblind 10 -- "$T/job.sh" db > "$T/db.out" 2>&1; rc=$?
+check "an unreadable df refuses the start (never 0, never blind)" \
+  bash -c "[ $rc = 73 ] && grep -q 'free disk UNREADABLE' '$T/db.out' && [ ! -f '$T/db.pid' ]"
+reset
+"$T/H" diskfill 10 -- "$T/job.sh" df1 > "$T/df1.out" 2>&1 & w=$!
+until_ "[[ -f $T/df1.pid ]]"; j=$(cat "$T/df1.pid"); echo $((1 * 1048576)) > "$T/disk"; wait $w; rc=$?
+check "mid-run below the kill floor: exit 73 + message" \
+  bash -c "[ $rc = 73 ] && grep -q 'STOPPED: 1 GB free on /System/Volumes/Data < 3 GB (HEAVY_KILL_DISK_GB)' '$T/df1.out'"
+check "  … job gone, lock gone" bash -c "! kill -0 $j 2>/dev/null && [ ! -d '$L' ]"
+H --status > "$T/st2.out" 2>&1
+check "--status shows free disk, once" grep -q 'free disk: 1 GB on /System/Volumes/Data   pause file' "$T/st2.out"
 
 echo "heavy.test: $fails failed in $((SECONDS - t0)) s"
 (( fails == 0 ))

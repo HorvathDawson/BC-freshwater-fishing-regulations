@@ -13,6 +13,12 @@ from pathlib import Path
 from pipeline.common.curated import GENERATED, SOURCE
 
 
+def live_root(out_root: Path) -> bool:
+    """(T788 #5) is `out_root` the live release root (`GENERATED.release`, data/release: LATEST's folder, what the
+    uploads read), by its resolved path, so `./data/release` or a symlink to it is the same root"""
+    return Path(out_root).resolve() == Path(GENERATED.release).resolve()
+
+
 def main(argv=None) -> int:
     from pipeline.deliver.release import build as B
     from pipeline.deliver.answers.common import BOOK_TITLE
@@ -52,6 +58,15 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
     if a.no_synopsis and a.synopsis:
         ap.error("--no-synopsis and --synopsis name opposite things")
+    # (T788 #5) a release cut into the LIVE release root is one a device may install: it ships its ground and its book.
+    # The two flags are for a release no device installs (the mini release, a test's), cut into a root of its own.
+    # `deliver all` cuts into a staging folder and promotes into the live root: either root being the live one is live.
+    live = [f"--{n.replace('_', '-')} {p}" for n, p in (("out_root", a.out_root),
+                                                         ("tiles_release_root", a.tiles_release_root)) if live_root(p)]
+    if live and (a.no_basemap or a.no_synopsis):
+        ap.error(f"{'--no-basemap' if a.no_basemap else '--no-synopsis'} is only for a release no device installs, cut "
+                 f"with its own --out-root and --tiles-release-root; {' and '.join(live)} is the live release root "
+                 f"({GENERATED.release})")
     if not Path(a.source).is_dir():
         ap.error(f"--source {a.source} is not a directory")
     from pipeline.common.synopsis_pages import default_pdf

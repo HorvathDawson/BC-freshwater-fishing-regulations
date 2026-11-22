@@ -8,8 +8,9 @@ composes each chain from the live feed (`live.compose` / core `withSalmonFeed`) 
 so the place answers on the piece's sections — the Thompson's year-round closed areas would read OPEN once chinook
 opens. The worker says what it emits on `/status.json`: `dfo.pieces` (the piece shape, `PIECES_SHAPE`), served by the
 T757 worker. A release with no bound piece needs no check. An unreachable worker, one from before the field, or no
-FEEDS_URL at all refuse a release with bound pieces (never assumed). Both upload scripts call this (staging and
-production, whoever runs them).
+FEEDS_URL at all refuse a release with bound pieces (never assumed); (T788 #1) the refusal names the cause (the HTTP
+status, the connection failure, the body that is not JSON) and a pass says what it rests on. Both upload scripts call
+this (staging and production, whoever runs them), each naming its own worker, never the caller's FEEDS_URL.
 
 THE MIRROR, ON A WORKER DEPLOY (T757 item 7): a worker can go backwards after the upload (a rollback, an older
 checkout deployed). `--worker-deploy` refuses deploying a feeds worker whose code does not serve `dfo.pieces >=
@@ -45,27 +46,47 @@ def bound_pieces(payload: dict) -> list[str]:
 
 def status_request(url: str):
     """the request for `<url>/status.json`. It NAMES ITS CLIENT: the worker's host (Cloudflare) answers Python's
-    default `Python-urllib` user agent with 403 "error code: 1010", which `fetch_status` reads as "cannot be asked"
-    — on 2026-11-16 that refused the staging upload of r-46e4355a7277 while the worker was up and emitting pieces
+    default `Python-urllib` user agent with 403 "error code: 1010", which `fetch_status` then read as "cannot be asked"
+    with no cause — on 2026-11-16 that refused the staging upload of r-46e4355a7277 while the worker was up and emitting pieces
     (`site_gate.fetch` names its client for the same reason)."""
     import urllib.request
     return urllib.request.Request(f"{url.rstrip('/')}/status.json",
                                   headers={"User-Agent": "bc-fishing-pieces-gate", "Cache-Control": "no-cache"})
 
 
-def fetch_status(url: str, timeout: float = 20.0) -> Optional[dict]:
-    """`<url>/status.json` as JSON, or None when the worker gives no answer that reads (never raises)."""
+class StatusUnread(Exception):
+    """the worker's `/status.json` gave no answer that reads; the message is the cause (an HTTP status, a DNS or
+    connection failure, a timeout, a body that is not JSON), said in the refusal (T788 #1: every cause once read
+    "cannot be asked", and a 403 from the host looked like an outage)."""
+
+
+def fetch_status(url: str, timeout: float = 20.0) -> dict:
+    """`<url>/status.json` as JSON; raises `StatusUnread` naming the cause when the worker gives no answer that reads."""
+    import urllib.error
     import urllib.request
+    where = f"{url.rstrip('/')}/status.json"
     try:
         with urllib.request.urlopen(status_request(url), timeout=timeout) as r:   # noqa: S310
-            return json.loads(r.read().decode("utf-8"))
-    except Exception:                                    # noqa: BLE001 — unreachable is an answer: "cannot be asked"
-        return None
+            body = r.read()
+    except urllib.error.HTTPError as e:
+        raise StatusUnread(f"{where} answered HTTP {e.code} {e.reason}".rstrip()) from e
+    except urllib.error.URLError as e:
+        raise StatusUnread(f"{where} could not be reached ({e.reason})") from e
+    except OSError as e:                                 # a timeout mid-read, a reset connection
+        raise StatusUnread(f"{where} could not be read ({type(e).__name__}: {e})") from e
+    try:
+        got = json.loads(body.decode("utf-8"))
+    except ValueError as e:                              # UnicodeDecodeError and JSONDecodeError are ValueErrors
+        raise StatusUnread(f"{where} is not JSON ({e}; it begins {body[:80]!r})") from e
+    if not isinstance(got, dict):
+        raise StatusUnread(f"{where} is JSON but not an object ({type(got).__name__})")
+    return got
 
 
 def problems(payload: dict, feeds_url: Optional[str],
              status: Callable[[str], Optional[dict]] = fetch_status) -> list[str]:
-    """why this release may not go to the environment `feeds_url` serves; [] when it may"""
+    """why this release may not go to the environment `feeds_url` serves; [] when it may. `status` raises
+    `StatusUnread` naming the cause (a stub may answer None: no cause known)."""
     got = bound_pieces(payload)
     if not got:
         return []
@@ -75,9 +96,12 @@ def problems(payload: dict, feeds_url: Optional[str],
            f"{PIECES_SHAPE}) to this environment first, then upload again")
     if not feeds_url:
         return [f"{head}; no feeds worker was named (FEEDS_URL): {fix}"]
-    s = status(feeds_url)
+    try:
+        s, cause = status(feeds_url), "no readable /status.json"
+    except StatusUnread as e:
+        s, cause = None, str(e)
     if s is None:
-        return [f"{head}; the feeds worker {feeds_url} cannot be asked (no readable /status.json): {fix}"]
+        return [f"{head}; the feeds worker {feeds_url} cannot be asked ({cause}): {fix}"]
     shape = (s.get("dfo") or {}).get("pieces") if isinstance(s.get("dfo"), dict) else None
     if not isinstance(shape, int) or shape < PIECES_SHAPE:
         return [f"{head}; the feeds worker {feeds_url} does not emit them (/status.json dfo.pieces is "
@@ -175,9 +199,14 @@ def main(argv=None) -> int:
         return 1 if bad else 0
     if a.manifest is None:
         ap.error("the release manifest is required")
-    bad = problems(S.read_release(a.manifest.parent), a.feeds_url)
+    payload = S.read_release(a.manifest.parent)
+    bad = problems(payload, a.feeds_url)
     for p in bad:
         print(f"upload: refused — {p}", file=sys.stderr)
+    if not bad:                           # (T788 #1) a pass says what it rests on, as the site gate does
+        got = bound_pieces(payload)
+        print(f"pieces gate: {len(got)} bound closed-area piece(s); {a.feeds_url} emits dfo.pieces >= {PIECES_SHAPE}"
+              if got else "pieces gate: the release binds no closed-area piece (no worker asked)")
     return 1 if bad else 0
 
 

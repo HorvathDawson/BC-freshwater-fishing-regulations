@@ -25,22 +25,46 @@ set -euo pipefail
 cd "$(dirname "$0")/../.."
 BUCKET=bc-fishing-regulations-staging            # hardcoded: this script must never name a production bucket
 D="r2:$BUCKET"
-DRY=(); [ "${1:-}" = "--dry-run" ] && DRY=(--dry-run)
+# (T994 #18) every argument is read, an unknown one refused (as production's twin): `--dry-run` was read from $1 only,
+# so in second place, or misspelt, it did a REAL put
+DRY=()
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --dry-run) DRY=(--dry-run) ;;
+    *) echo "sync-inputs: unknown argument $1 (deploy/staging/sync-inputs.sh [--dry-run])" >&2; exit 2 ;;
+  esac; shift
+done
+command -v jq >/dev/null || { echo "sync-inputs: jq is not installed (brew install jq): nothing was put" >&2; exit 1; }
 PY=python3; [ -x .venv/bin/python ] && PY=.venv/bin/python
 LOCK=${SYNC_INPUTS_LOCK:-data/generated/.sync-inputs.lock}
 mkdir -p "$(dirname "$LOCK")"
+# ONE AT A TIME. (T994 #18) a dead holder's lock is taken over as scripts/heavy.sh does: under a mutex, re-checked, then
+# `mv` (atomic) and delete — a bare `rm -rf` let a second waiter delete the lock the first had just taken. The
+# 2>/dev/null here are the lock's own probes: mkdir losing the race, a pid file not yet written, kill -0 on a dead pid.
+held=0
 for i in $(seq 1 600); do
-  if mkdir "$LOCK" 2>/dev/null; then echo $$ > "$LOCK/pid"; break; fi
-  holder=$(cat "$LOCK/pid" 2>/dev/null || true)
-  if [[ -n "$holder" ]] && ! kill -0 "$holder" 2>/dev/null; then rm -rf "${LOCK:?}"; continue; fi   # a dead holder
+  if mkdir "$LOCK" 2>/dev/null; then echo $$ > "$LOCK/pid"; held=1; break; fi
+  holder=$(cat "$LOCK/pid" 2>/dev/null) || holder=""
+  if [[ -n "$holder" ]] && ! kill -0 "$holder" 2>/dev/null; then
+    if mkdir "$LOCK.takeover" 2>/dev/null; then
+      if [[ "$(cat "$LOCK/pid" 2>/dev/null)" == "$holder" ]] && mv "$LOCK" "$LOCK.stale.$$" 2>/dev/null; then
+        rm -rf "$LOCK.stale.$$"; echo "sync-inputs: took over the lock of a sync that is gone (pid $holder)" >&2
+      fi
+      rmdir "$LOCK.takeover"; continue
+    elif (( $(date +%s) - $(stat -f %m "$LOCK.takeover" 2>/dev/null || date +%s) > 60 )); then
+      rmdir "$LOCK.takeover" 2>/dev/null; continue    # a waiter died holding the takeover mutex (held for milliseconds)
+    fi
+  fi
   [[ $i == 1 ]] && echo "sync-inputs: waiting for another sync (pid ${holder:-?})" >&2
   sleep 1
 done
-[[ "$(cat "$LOCK/pid" 2>/dev/null)" == "$$" ]] || { echo "sync-inputs: another sync held the lock for 10 min" >&2; exit 1; }
-T=$(mktemp -d); trap 'rm -rf "$T" "${LOCK:?}"' EXIT
+[[ $held == 1 ]] || { echo "sync-inputs: another sync held the lock for 10 min" >&2; exit 1; }
+T=$(mktemp -d); trap 'rm -rf "$T"; [[ "$(cat "$LOCK/pid" 2>/dev/null)" == "$$" ]] && rm -rf "${LOCK:?}"' EXIT
 LATEST=$(cat data/release/LATEST)
 RESOLVED=data/generated/inseason/resolved.json     # (T679 #11) `pipeline.regs.inseason.matches.resolved_path()`
-ON=$(jq -r .release "$RESOLVED" 2>/dev/null || echo "nothing (no $RESOLVED)")
+# a missing resolution is "nothing"; one jq cannot read STOPS (it read as "no file" too)
+if [[ -f $RESOLVED ]]; then ON=$(jq -r .release "$RESOLVED") || { echo "sync-inputs: $RESOLVED cannot be read (jq, above)" >&2; exit 1; }
+else ON="nothing (no $RESOLVED)"; fi
 if [[ "$ON" != "$LATEST" ]]; then
   if [[ "${SYNC_INPUTS_FROM_REVIEW:-}" == 1 ]]; then
     echo "FAILED inseason-matches: resolved on $ON, LATEST is $LATEST — re-resolve in the review app" >&2
@@ -54,8 +78,9 @@ rc=0
 "$PY" -m pipeline.deliver.sync_inputs --out "$T/out" > "$T/manifest.tsv" 2> "$T/stage.err" || rc=$?
 cat "$T/stage.err" >&2
 # (T597 item 2) an input in a format the DEPLOYED worker does not list is refused, never put: deploy/lib/input-formats.sh
-# (the one copy, shared with deploy/prod/sync-inputs.sh). Staging never claims "no worker yet".
-FEEDS_URL=${FEEDS_URL:-https://bc-fishing-feeds-staging.horvath-dawson.workers.dev}
+# (the one copy, shared with deploy/prod/sync-inputs.sh). Staging never claims "no worker yet". (T788 #1) staging's
+# worker is named HERE, never taken from the caller's shell (a stray FEEDS_URL asked another worker's list)
+FEEDS_URL=https://bc-fishing-feeds-staging.horvath-dawson.workers.dev
 DEPLOY_HINT=deploy/staging/feeds.sh
 NO_WORKER_YET=
 refuse() { echo "FAILED $1" | tee -a "$T/stage.err" >&2; rc=1; }
@@ -69,12 +94,15 @@ while IFS=$'\t' read -r key cache; do
   # (T433) a failed copy STOPS the script (upload.sh then writes no pointer); the log is filtered only after the check
   rclone copyto "$T/out/$key" "$D/$key" "${JSON[@]}" ${CC[@]+"${CC[@]}"} -v > "$T/log" 2>&1 \
     || { cat "$T/log" >&2; echo "sync-inputs: $key failed — nothing after it was sent" >&2; exit 1; }
-  grep -E "Copied|Skipped|ERROR" "$T/log" || true
+  grep -E "Copied|Skipped|ERROR" "$T/log" || true    # (T994 #19, kept) only the log's filter: no line is rc 1, not a failure
   n=$((n + 1))
 done < "$T/put.tsv"
-ins=$([ -f "$T/out/feeds/inseason/matches.json" ] && jq '.notices|length' "$T/out/feeds/inseason/matches.json" || echo "NOT STAGED")
 if [[ $rc != 0 ]]; then
+  # (kept) the staging step may fail with no FAILED line of its own: its whole stderr was printed above
   echo "sync-inputs: $n object(s) put; these inputs were NOT:" >&2; grep '^FAILED ' "$T/stage.err" >&2 || true
   exit 1
 fi
+# counted after the refusals: a matches file that could not be read was refused above, never counted here
+if [[ -f "$T/out/feeds/inseason/matches.json" ]]; then ins=$(jq '.notices|length' "$T/out/feeds/inseason/matches.json")
+else ins="NOT STAGED"; fi
 echo "inputs in sync: $D ($n objects, in-season matches $ins)"

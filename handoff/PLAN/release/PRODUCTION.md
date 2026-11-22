@@ -117,8 +117,12 @@ Before: the release is on staging and the owner has checked it there (phone + we
 3. **Owner — feeds worker FIRST when the release carries closed areas** (T790 item 7: the worker types the closed-area
    pieces live, so it goes BEFORE or WITH the data, never after): `CONFIRM_PROD=bc-fishing-feeds deploy/prod/feeds.sh`.
    Otherwise only if it changed, with the app, never ahead.
-4. **Owner — data:** `CONFIRM_PROD=<r-id> .venv/bin/python -m pipeline release --prod <r-id>`.
-5. **Owner — site, if pages or the web app changed:** step 6 above (Claude builds, owner deploys).
+4. **Owner — data:** `CONFIRM_PROD=<r-id> .venv/bin/python -m pipeline release --prod <r-id>`. (T994 #10) The upload
+   asks the production site's app version first, as staging's does: a release whose minimum app is newer than the live
+   site is refused before anything is sent ("the production site is app X, older than Y") — then do step 5 FIRST and
+   rerun this. `PROD_SITE_CHECK_SKIP=<reason>` skips it, printed (a staging `SITE_CHECK_SKIP` never does).
+5. **Site, if pages or the web app changed** (Claude may deploy it once tested, memory 11-18; the header of
+   `deploy/prod/site.sh` says who): step 6 above. Before the data (step 4) when the release needs a newer app.
    **Store pictures (T704), after the staging site carries the final web build, before the Play listing is updated:**
    `node app/tools/store-shots/run.mjs` (no arguments; a few minutes, headless Chrome, no credits). It re-shoots the 8 Play
    phone pictures from the staging site into `app/dist/store-shots/play-phone/` and FAILS (exit 1, `report.json` says which

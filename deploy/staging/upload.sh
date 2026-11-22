@@ -11,14 +11,19 @@ BUCKET=bc-fishing-regulations-staging            # hardcoded: this script must n
 D="r2:$BUCKET"
 REL=${1:-$(cat data/release/LATEST)}
 R=data/release; M=$R/$REL/manifest.json
+[[ -f $M ]] || { echo "upload: no $M" >&2; exit 1; }
+# (T994 #28) every local input is checked before anything is sent (it was an optional `if -d` far below: a missing
+# HYDAT folder was skipped in silence here and stopped production only after its tiles and data had gone up)
+[[ -d data/generated/gauges/hydat_daily ]] || { echo "upload: no data/generated/gauges/hydat_daily (scripts/update-hydat.sh)" >&2; exit 1; }
 q() { python3 -c "import json,sys;m=json.load(open('$M'));print(eval(sys.argv[1]))" "$1"; }
 # (guard, 2026-10-30) refuse a release whose paint/salmon format needs a newer app than the oldest the manifest lets apply
 # it (MIN_APP_VERSION, or the manifest's stamp). The table and the rule: pipeline/deliver/release/app_gate.py (one copy:
 # `pipeline release` runs the same check before it promotes).
 MIN_APP_VERSION=${MIN_APP_VERSION-} .venv/bin/python -m pipeline.deliver.release.app_gate "$M"
 # (T573/T757) a release that BINDS a closed-area piece goes only to a bucket whose feeds worker emits pieces
-# (/status.json dfo.pieces): else the app's chains skip the piece and its year-round closure reads open
-FEEDS_URL=${FEEDS_URL:-https://bc-fishing-feeds-staging.horvath-dawson.workers.dev} \
+# (/status.json dfo.pieces): else the app's chains skip the piece and its year-round closure reads open. (T788 #1) the
+# worker is named HERE, never taken from the caller's shell (a stray FEEDS_URL asked another worker in silence)
+FEEDS_URL=https://bc-fishing-feeds-staging.horvath-dawson.workers.dev \
   .venv/bin/python -m pipeline.deliver.release.pieces_gate "$M"
 # (T483 fast-fail; caught 2026-11-09: r-d14bdb180f55 went up with minAppVersion 0.7.0 while the live staging site was
 # 0.6.9, so the smoke test failed only AFTER the upload) the live site must be at least the oldest app this release lets
@@ -43,11 +48,21 @@ RT_BASE=$(python3 -c "import json;print(json.load(open('$RT/base.json'))['base']
 # this release's, the workflow would publish nothing — skip it (it fetches PSF + open.canada.ca, and an outage there
 # blocked r-1b4f54fb6ed9 on 2026-11-07). Said out loud; any difference runs the workflow as before.
 RT_KEY="private/runtiming/base/${TILES%%.*}.json.gz"
-RT_HAVE=$(rclone cat "$D/runtiming/index.json" --s3-no-check-bucket 2>/dev/null \
-  | python3 -c "import json,sys;print(json.load(sys.stdin)['tile_version'])" 2>/dev/null || true)
-RT_SAME=""
-if [[ "$RT_HAVE" == "$TILES" ]] && cmp -s "$RT/$RT_BASE" <(rclone cat "$D/$RT_KEY" --s3-no-check-bucket 2>/dev/null); then
-  RT_SAME=1
+# (T994 #19) a missing object is "not there yet" (the workflow runs); a failed read STOPS, said with rclone's words (a
+# dead rclone or expired credentials once read as "staging has no run timing", hidden behind 2>/dev/null || true)
+source deploy/lib/r2-object.sh
+RT_HAVE=""; RT_SAME=""; RT_TMP=$(mktemp -d); trap 'rm -rf "$RT_TMP"' EXIT
+rc=0; r2_read "$D/runtiming/index.json" "$RT_TMP/index.json" || rc=$?
+case $rc in
+  0) RT_HAVE=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['tile_version'])" "$RT_TMP/index.json") \
+       || { echo "upload: $D/runtiming/index.json names no tile_version (above)" >&2; exit 1; } ;;
+  1) echo "run timing: $D has no runtiming/index.json yet" ;;
+  *) echo "upload: could not read $D/runtiming/index.json (rclone, above): nothing was sent" >&2; exit 1 ;;
+esac
+if [[ "$RT_HAVE" == "$TILES" ]]; then
+  rc=0; r2_read "$D/$RT_KEY" "$RT_TMP/base.json.gz" || rc=$?
+  (( rc <= 1 )) || { echo "upload: could not read $D/$RT_KEY (rclone, above): nothing was sent" >&2; exit 1; }
+  if (( rc == 0 )) && cmp -s "$RT/$RT_BASE" "$RT_TMP/base.json.gz"; then RT_SAME=1; fi
 fi
 # the workflow runs the code on GitHub: refuse a local commit it would not see
 GH_REPO=HorvathDawson/BC-freshwater-fishing-regulations; GH_REF=redesign/stream-sections
@@ -60,9 +75,16 @@ rclone copyto "$RT/$RT_BASE" "$D/$RT_KEY" --s3-no-check-bucket --checksum
 git merge-base --is-ancestor HEAD "origin/$GH_REF" || { echo "upload: push $GH_REF first (the run-timing workflow runs GitHub's copy)"; exit 1; }
 # (T666 item 6) the START is retried on its own, bounded and said out loud (scripts/start-workflow.sh: WF_START_TRIES,
 # default 3, WF_START_WAIT s apart; build 27: GitHub refused the start and the only retry was the whole release
-# command). Exit 75 = nothing was started; nothing that moves the pointer has been sent yet.
+# command). Exit 75 = nothing was started; (T994 #20) 76 = GitHub accepted the dispatch but its run could not be named
+# or read, so it may be running: never said as "did not start" (a blind rerun dispatches it twice). Either way nothing
+# that moves the pointer has been sent yet.
 RT_RUN=$(scripts/start-workflow.sh "$GH_REPO" "$GH_REF" feeds-runtiming.yml "feeds — run timing" -f upload=true -f tiles="$TILES") \
-  || { rc=$?; echo "upload: the run-timing workflow did not start (above); the release pointer was NOT written"; exit "$rc"; }
+  || { rc=$?
+       if [[ $rc == 76 ]]; then
+         echo "upload: the run-timing workflow was dispatched, but its run could not be read (above): look at" \
+              "https://github.com/$GH_REPO/actions before a rerun (a rerun dispatches it again); the release pointer was NOT written"
+       else echo "upload: the run-timing workflow did not start (above); the release pointer was NOT written"; fi
+       exit "$rc"; }
 echo "run timing: workflow run $RT_RUN started for $TILES"
 fi
 rclone copy "$R/tiles/$TILES" "$D/release/tiles/$TILES" --s3-no-check-bucket --transfers 16 --header-upload "$IMM" \
@@ -87,11 +109,10 @@ CG=0; "$CLIM_PY" -m pipeline.gauges.feed.clim_guard --local data/generated/gauge
 [[ $CG == 0 || $CG == 3 ]] || { echo "upload: clim.json could not be compared with R2's (above); stopped" >&2; exit 1; }
 [[ $CG == 0 ]] && rclone copyto data/generated/gauges/feeds/clim.json "$D/feeds/live/clim.json" --s3-no-check-bucket --checksum \
   --header-upload "Cache-Control: public, max-age=300" --header-upload "Content-Type: application/json"
-# (T274) HYDAT daily means per station (pipeline.gauges.feed.hydat_daily; static between HYDAT releases): what dayFlow.ts reads
-if [[ -d data/generated/gauges/hydat_daily ]]; then
-  rclone copy data/generated/gauges/hydat_daily "$D/feeds/hydat" --s3-no-check-bucket --transfers 32 --include "*.json" \
-    --header-upload "Cache-Control: public, max-age=86400" --header-upload "Content-Type: application/json"
-fi
+# (T274) HYDAT daily means per station (pipeline.gauges.feed.hydat_daily; static between HYDAT releases): what dayFlow.ts
+# reads. (T994 #28) required, checked at the top, as production's
+rclone copy data/generated/gauges/hydat_daily "$D/feeds/hydat" --s3-no-check-bucket --transfers 32 --include "*.json" \
+  --header-upload "Cache-Control: public, max-age=86400" --header-upload "Content-Type: application/json"
 rclone copy data/generated/regs/dfo_salmon/feed "$D/feeds/dfo" --s3-no-check-bucket --include "*.json" --ignore-existing \
   --exclude "feed.notified.json" \
   --header-upload "Cache-Control: public, max-age=300" --header-upload "Content-Type: application/json"

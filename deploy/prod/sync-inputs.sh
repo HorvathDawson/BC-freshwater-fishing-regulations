@@ -32,6 +32,8 @@ fi
 # rehearsal names its own, and one that names none has every formatted input refused (it cannot be asked)
 if [[ $BUCKET == "$PROD_BUCKET" ]]; then FEEDS_URL=$PROD_FEEDS_URL; else FEEDS_URL=${FEEDS_URL:-}; fi
 D="r2:$BUCKET"
+# (T994 #9) before anything is staged or put: the format gate reads with jq (and the closing line counts with it)
+command -v jq >/dev/null || { echo "sync-inputs (prod): jq is not installed (brew install jq): nothing was put" >&2; exit 1; }
 PY=python3; [ -x .venv/bin/python ] && PY=.venv/bin/python
 T=$(mktemp -d); trap 'rm -rf "$T"' EXIT
 "$PY" -m pipeline.deliver.sync_inputs --out "$T/out" > "$T/manifest.tsv"
@@ -49,7 +51,7 @@ while IFS=$'\t' read -r key cache; do
   CC=(); [ "$cache" != "-" ] && CC=(--header-upload "Cache-Control: $cache")
   rclone copyto "$T/out/$key" "$D/$key" "${JSON[@]}" ${CC[@]+"${CC[@]}"} -v > "$T/log" 2>&1 \
     || { cat "$T/log" >&2; echo "sync-inputs (prod): $key failed — nothing after it was sent" >&2; exit 1; }
-  grep -E "Copied|Skipped|ERROR|NOTICE" "$T/log" || true
+  grep -E "Copied|Skipped|ERROR|NOTICE" "$T/log" || true   # (T994 #19, kept) only the log's filter: no line is rc 1
   n=$((n + 1))
 done < "$T/put.tsv"
 if [[ $rc != 0 ]]; then

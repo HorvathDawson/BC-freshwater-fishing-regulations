@@ -174,3 +174,26 @@ tests' `git show <commit>:<path>` (it fetches blobs on demand, which needs the c
 default), the composite action's working directories, the saved minutes. The first push will show them; watch the
 four workflows. The new grep ran locally (macOS grep -E); CI's is GNU grep, same patterns. Tests run: test_workflow_pins,
 test_ci_status, test_test_env (with PIPELINE_PY), hydat_daily / ingest tests, feeds-gate / check-tickets / start-here.
+
+## Lane G3 (deploy gates), 2026-11-21, `lane/t993-g3-deploy` a3ca419e2
+Every item verified against the code first; all were real. Tests: `pipeline/tests/test_deploy_gates.py` (stub trees;
+each test names its mutation, and all failed on the code before), `scripts/tests/heavy.test.sh` §12,
+`scripts/tests/start-workflow.test.sh` (the blip cases), plus the edited pins in `test_dfo_closure_build.py`.
+- **T788 #1:** `pieces_gate.fetch_status` raises `StatusUnread` with the cause (HTTP status, DNS, timeout, not JSON),
+  said in the refusal; a pass prints what it rests on. Staging `upload.sh` and `sync-inputs.sh` name the staging worker
+  themselves (both took `FEEDS_URL` from the shell).
+- **T788 #4:** one `deploy/lib/site-stamp.sh` for both `site.sh`: staging refuses a dirty `app/` on its own
+  (`SITE_DIRTY_OK`); the stamped commit is the export's, read from its bundle (`sha:"…"`, version-stamp.js), and a HEAD
+  that moved since the export is said, with whether `app/` differs.
+- **T788 #5:** `pipeline.deliver.release` refuses `--no-basemap` / `--no-synopsis` when `--out-root` or
+  `--tiles-release-root` is the live release root (`deliver all` cuts into a staging folder but names the live root for
+  the tiles, so both count). The mini release is unaffected.
+- **T788 #11:** `scripts/heavy.sh` refuses a start with < 20 GB free on the `$PWD` or `$TMPDIR` volume (exit 73, before
+  the lock, after a script's own precheck; names the leftovers to clear) and stops a running job below 3 GB
+  (`HEAVY_MIN_DISK_GB`, `HEAVY_KILL_DISK_GB`); `--status` shows free disk; an unreadable `df` refuses the start.
+- **Plan 14:** the headers of `deploy/prod/feeds.sh` and `deploy/prod/site.sh` now say Claude may run them as release
+  steps (memory 11-21 / 11-18); `deploy/prod/upload.sh` and `sync-inputs.sh` stay owner-only. `PRODUCTION.md` "Every
+  later release" step 4/5: the new site gate, and the site before the data when the release needs a newer app.
+- Left for others: `pipeline/release.py` maps upload rc 75 only; the new rc 76 ("dispatched, run unreadable, may be
+  running") reaches its generic "upload failed (rc=76), read above" (lane G2 may name it). The runbook rewrite (plan 11)
+  still has the old "owner deploys the site" wording in `PRODUCTION.md` step 6 and `release-by-hand.md`.

@@ -7,11 +7,16 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 W=app/dist/web-staging; S=app/dist/seo; O=app/dist/staging-site; K=app/dist/staging-site-worker
+source deploy/lib/site-stamp.sh
 # (T269) a water page is the app's own index.html with its pane prerendered: it must be built against THIS export
-# (`build-seo.mjs --app app/dist/web-staging`), or its script tag names a bundle the site does not have
-js=$(grep -o '/_expo/static/js/web/index-[0-9a-f]*\.js' "$W/index.html" | sort -u)   # (T910) named three times: its preload and the after-paint loader
+# (`build-seo.mjs --app app/dist/web-staging`), or its script tag names a bundle the site does not have. (T910) named
+# three times: its preload and the after-paint loader. (T994 #19) none named is said, not a bare exit 1.
+js=$(site_bundle site.sh "$W")
+# (T788 #4) app/ is checked HERE too, not only by site-all.sh; the export's own commit is what gets stamped
+site_stamp site.sh "$W" "$js"
 # (T279: a water page is stored compressed only — index.html.gz / .br — and served by the worker)
 one=$(find "$S/water" -name index.html.gz -print -quit)
+[[ -n $one ]] || { echo "site.sh: $S/water holds no water page (index.html.gz): run build-seo (deploy/staging/site-all.sh)" >&2; exit 1; }
 gunzip -c "$one" | grep -c "$js" >/dev/null || { echo "site.sh: $S's water pages were built against another app export (not $js): rebuild with --app $W" >&2; exit 1; }
 # (T304) the app focuses the region a water page names; a page without `cift:region` is from an older SEO build (every
 # landing would read the whole files AND report it): rebuild the pages, not just relink them
@@ -26,8 +31,17 @@ X=(--exclude /_worker.js --exclude /budget.json --exclude /lighthouserc.json --e
 comm -12 <(cd "$W" && find . -type f | sort) <(cd "$S" && find . -type f | sort) | sed 's/^/clash (app kept): /'
 rsync -a --ignore-existing "${X[@]}" "$S/" "$O/"
 # The hubs' "Open the app" link is absolute to production; on staging it must open the staging app (canonicals stay on
-# the .ca). (T269: a water page IS the app — its links are already relative.)
-grep -rl --include=index.html '<a class="app" href="https://canifishthis.ca/">' "$O" | xargs perl -pi -e 's#<a class="app" href="https://canifishthis\.ca/">#<a class="app" href="/">#g' || true
+# the .ca). (T269: a water page IS the app — its links are already relative.) (T994 #19) a failed rewrite stops (it was
+# `|| true`), and nothing names production's app afterwards (checked)
+HUB_LINK='<a class="app" href="https://canifishthis.ca/">'
+if grep -rlq --include=index.html "$HUB_LINK" "$O"; then
+  grep -rl --null --include=index.html "$HUB_LINK" "$O" \
+    | xargs -0 perl -pi -e 's#<a class="app" href="https://canifishthis\.ca/">#<a class="app" href="/">#g'
+fi
+if grep -rlq --include=index.html "$HUB_LINK" "$O"; then
+  echo "site.sh: a hub page still opens production's app after the staging rewrite:" \
+       "$(grep -rl --include=index.html "$HUB_LINK" "$O" | head -3)" >&2; exit 1
+fi
 # (T487) a gauge page's live half names production's data host and crash endpoint (tools/seo gauges.ts LIVE): on staging it
 # reads staging's feed (the cards the staging feeds worker draws) and reports to staging's worker
 if [[ -d "$O/gauge" ]]; then
@@ -58,8 +72,7 @@ const min = JSON.parse(fs.readFileSync(mf, "utf8")).minAppVersion ?? null;
 const commit = COMMIT || null, dirty = DIRTY === "true" ? true : DIRTY === "false" ? false : null;
 fs.writeFileSync(O + "/site-release.json", JSON.stringify({ release: rel, minAppVersion: min, commit, dirty }) + "\n");
 console.log("site-release.json: " + rel + " (min app " + min + "), commit " + commit + (dirty ? " DIRTY" : dirty === false ? " clean" : " (dirty unknown)"));
-' "$S" "$O" data/release/LATEST "${SITE_RELEASE_ANY:-}" "${SITE_COMMIT:-$(git rev-parse HEAD)}" \
-  "${SITE_DIRTY:-$([[ -n $(git status --porcelain -- app) ]] && echo true || echo false)}"
+' "$S" "$O" data/release/LATEST "${SITE_RELEASE_ANY:-}" "$SITE_COMMIT" "$SITE_DIRTY"   # site_stamp (above)
 # staging must never be indexed: robots disallows everything, every response says noindex
 printf 'User-agent: *\nDisallow: /\n# STAGING (staging.canifishthis.ca): not for indexing. Production robots.txt is built by tools/seo.\n' > "$O/robots.txt"
 printf '\n/*\n  X-Robots-Tag: noindex, nofollow\n' >> "$O/_headers"

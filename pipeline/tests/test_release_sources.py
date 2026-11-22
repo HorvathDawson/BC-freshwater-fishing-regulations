@@ -173,7 +173,9 @@ def test_the_release_cli_dates_the_sources_from_the_fetched_data_dir(monkeypatch
     import sqlite3
     b = tmp_path / "b.sqlite"
     sqlite3.connect(b).executescript("CREATE TABLE meta (k, v); INSERT INTO meta VALUES ('section_handles', 'x');")
-    args = ["--bundle", str(b), "--store", str(b), "--no-synopsis"]
+    # (T788 #5) --no-synopsis / --no-basemap only for a release cut into roots of its own
+    args = ["--bundle", str(b), "--store", str(b), "--no-synopsis", "--out-root", str(tmp_path / "out"),
+            "--tiles-release-root", str(tmp_path / "out")]
     with pytest.raises(Stop):
         CLI.main(args)
     assert (seen["source"], seen["title"], seen["basemap"]) == (SOURCE, TITLE, True)

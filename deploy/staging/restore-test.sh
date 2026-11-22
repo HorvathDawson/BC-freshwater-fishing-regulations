@@ -39,9 +39,15 @@ print(f"{'PASS' if not bad and not extra else 'FAIL'} {len(man)} objects restore
       + (f"; MISMATCH {bad[:5]}" if bad else "") + (f"; NOT IN MANIFEST {extra[:5]}" if extra else ""))
 sys.exit(1 if bad or extra else 0)
 EOF
-same=$(rclone check "$tmp/state" "$SRC" --one-way --exclude _manifest.json "${F[@]}" 2>&1 | grep -oE '[0-9]+ matching files' || true)
-diff=$(rclone check "$tmp/state" "$SRC" --one-way --exclude _manifest.json "${F[@]}" 2>&1 | grep -oE '[0-9]+ differences found' || echo "0 differences found")
-echo "info vs the live bucket now: ${same:-? matching files}, $diff (feeds written since the snapshot)"
+# (T994 #19) ONE check, read for its counts: rclone exits non-zero when files differ (expected here: the feeds keep
+# writing), so its exit says nothing; a check that printed no count FAILED (it read "0 differences found" before)
+crc=0; chk=$(rclone check "$tmp/state" "$SRC" --one-way --exclude _manifest.json "${F[@]}" 2>&1) || crc=$?
+if diff=$(grep -oE '[0-9]+ differences found' <<<"$chk"); then
+  same=$(grep -oE '[0-9]+ matching files' <<<"$chk") || same="no matching files"
+  echo "info vs the live bucket now: $same, $diff (feeds written since the snapshot)"
+else
+  fail "the check against the live bucket printed no count (rclone exit $crc): $(tail -3 <<<"$chk" | tr '\n' ' ')"
+fi
 
 echo "== 2. curated archive"
 arc=$(rclone lsf "$BK/curated/" --include '*.tar.gz' "${F[@]}" | sort | tail -1)
@@ -52,8 +58,10 @@ if [[ -z "$arc" ]]; then fail "no curated/*.tar.gz in $BK"; else
   d="$tmp/c/${arc%.tar.gz}"
   n=$(wc -l < "$d/MANIFEST.sha256" | tr -d ' ')
   if ( cd "$d" && shasum -a 256 -c MANIFEST.sha256 >/dev/null ); then echo "PASS $n files inside match MANIFEST.sha256 ($(head -1 "$d/GIT.txt"))"; else fail "files inside $arc do not match its MANIFEST.sha256"; fi
-  ch=$(diff -rq "$d/data/curated" data/curated -x __pycache__ 2>/dev/null | wc -l | tr -d ' ' || true)
-  echo "info vs data/curated on disk now: $ch file(s) differ"
+  # (T994 #19) diff exits 1 when files differ (only reported) and 2 when it could not compare: that is said, not counted 0
+  drc=0; dout=$(diff -rq "$d/data/curated" data/curated -x __pycache__ 2>&1) || drc=$?
+  if (( drc > 1 )); then fail "could not compare $arc with data/curated (diff exit $drc): $(tail -2 <<<"$dout" | tr '\n' ' ')"
+  else echo "info vs data/curated on disk now: $(printf '%s' "$dout" | awk 'END {print NR}') file(s) differ"; fi
 fi
 
 echo "== 3. release"
