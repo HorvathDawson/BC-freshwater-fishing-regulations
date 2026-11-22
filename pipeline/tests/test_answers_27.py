@@ -180,7 +180,9 @@ def test_every_licensing_record_and_rule_carries_its_book_pages(built):
     assert len(lic) == len(data["licensing_ids"]) > 0
     for f in lic:
         assert f["book"] and all(pdf[str(p)] == q for p, q in f["book"])
-    assert all(f["book"] for f in model.statics["display"]["rules"])
+    # (T931 review, 2026-11-22) T981 (0.8.5): a local authority's closure prints on no page and cites its authority
+    # instead (`cited`); every other rule carries its book pages (test_answers_26 pins the pairing)
+    assert all(f["book"] or f.get("cited") for f in model.statics["display"]["rules"])
 
 
 @pytest.mark.needs_bundle
