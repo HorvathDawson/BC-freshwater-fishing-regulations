@@ -40,6 +40,17 @@ export interface HydatDaily { day(station: string, date: string): Promise<HydatD
 /** One station's stored daily means (`hydat-daily/1`, pipeline/gauges/feed/hydat_daily.py): a 366-slot array per year. */
 interface StoredDaily { format: string; from: number; q: (number | null)[][] }
 
+/** (T994 finding 12) The file's format, an integer `from` and `q` as an array of arrays are checked, as every feed's is
+ *  (T676): a drifted file is a named, reported failure, not "no record that day" for every gauge. */
+export function parseHydatDaily(raw: unknown, station = "?"): StoredDaily {
+  const d = raw as Partial<StoredDaily> | null;
+  if (!d || typeof d !== "object" || d.format !== "hydat-daily/1")
+    throw new Error(`HYDAT daily means ${station}: format ${JSON.stringify(d?.format)} is not hydat-daily/1`);
+  if (!Number.isInteger(d.from) || !Array.isArray(d.q) || !d.q.every(Array.isArray))
+    throw new Error(`HYDAT daily means ${station}: from is not an integer or q is not an array of arrays`);
+  return d as StoredDaily;
+}
+
 /** Day-of-year slot in a fixed leap year, so Feb 29 is slot 59 in every year. */
 const slotOf = (month: number, day: number) =>
   Math.round((Date.UTC(2000, month - 1, day) - Date.UTC(2000, 0, 1)) / 86_400_000);
@@ -59,7 +70,7 @@ export function storedHydat(feedBase: string, fetchFn: typeof fetch = fetch): Hy
       p = fetchFn(`${base}/${encodeURIComponent(station)}.json`).then(async (res) => {
         if (res.status === 404 || res.status === 403) return null;
         if (!res.ok) throw new Error(`HYDAT daily means: HTTP ${res.status}`);
-        return (await res.json()) as StoredDaily;
+        return parseHydatDaily(await res.json(), station);
       });
       p.catch(() => cache.delete(station));                // a failure is asked again, not kept
       cache.set(station, p);

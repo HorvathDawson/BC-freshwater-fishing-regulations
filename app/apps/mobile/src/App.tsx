@@ -20,7 +20,7 @@ import { useFonts } from "expo-font";
 import { FONT_SOURCES } from "./fonts";
 import { applyLine, DOWNLOAD_NOTE_WORDS, downloadFraction, failedStartLine, restartsByItself, INSTALL_WORDS, stillLine, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
          versionLine, createFeedGate, now as clockNow } from "@app/core";
-import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, gaugeHistory, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, noteHeld, followSavedItems, openRunTimingStore,
+import { createNet, shareFetch, timedFetch, loadManifest, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, gaugeHistory, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, noteHeld, followSavedItems, openRunTimingStore,
          type Held, type UpdateService, type WaterSource } from "@app/data";
 import { bootSaid, type MobileDataGate, type ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
@@ -227,9 +227,9 @@ export default function App() {
   // Open-Meteo: no key, and it has an archive endpoint — which is what lets a spot pinned
   // with no signal be filled in later from the day it was actually made.
   // (T298) live data counts as loading (the phone's slow-line banner is said only while it does)
-  const weather = useMemo(() => openMeteo(liveFetch(fetch)), []);
+  const weather = useMemo(() => openMeteo(liveFetch(timedFetch(fetch))), []);
   // T170/T274: HYDAT's daily means from our data host, for a spot's visit day older than the feed's record (one small file per station)
-  const hydat = useMemo(() => storedHydat(ENDPOINTS.hydat), []);
+  const hydat = useMemo(() => storedHydat(ENDPOINTS.hydat, timedFetch(fetch)), []);
   // S1: a spot's photographs — files beside the spots file on a phone, IndexedDB in a browser — and the platform's
   // picker (`./pickPhoto.native.ts` / `.web.ts`). The user's own: never in a release, never uploaded.
   // (T732) `photoEpoch`: a new store when photos were put back from the backup set (a restored phone), so every tile
@@ -268,9 +268,9 @@ export default function App() {
     online: () => !devOffline.on && connectivity.online(), gate: feedGate }), []);
   useEffect(() => { void feed.syncObservations?.(); }, [feed]);
   // T211: the live DFO salmon rules, the last capture kept on the device for offline
-  const salmonFeed = useMemo(() => httpSalmonFeed(ENDPOINTS.dfoFeed, openSalmonFeedStore(), undefined, { gate: feedGate }), []);
+  const salmonFeed = useMemo(() => httpSalmonFeed(ENDPOINTS.dfoFeed, openSalmonFeedStore(), timedFetch(fetch), { gate: feedGate }), []);
   // T230: the provincial in-season changes and where each applies, the last capture kept for offline; the ids shown
-  const inSeason = useMemo(() => httpInSeason(ENDPOINTS.inSeason, openInSeasonStore(), undefined, { gate: feedGate }), []);
+  const inSeason = useMemo(() => httpInSeason(ENDPOINTS.inSeason, openInSeasonStore(), timedFetch(fetch), { gate: feedGate }), []);
   const inSeasonSeen = useMemo(() => openInSeasonSeenStore(), []);
   const inSeasonInbox = useMemo(() => openInSeasonInboxStore(), []);
   // T236: the first-run notice (not legal advice), once per device
@@ -290,7 +290,7 @@ export default function App() {
   // (T552 item 6) the section handles of the tiles this device draws: a capture bound to them is never overwritten by
   // a run-timing set published for another atlas (set from the booted release below)
   const drawnHandles = useRef<string | null>(null);
-  const runTiming = useMemo(() => httpRunTiming(`${ENDPOINTS.base}/runtiming`, openRunTimingStore(), undefined,
+  const runTiming = useMemo(() => httpRunTiming(`${ENDPOINTS.base}/runtiming`, openRunTimingStore(), timedFetch(fetch),
                                                 { handles: () => drawnHandles.current, gate: feedGate }), []);
 
   // THE RELEASE: manifest → (native: install / update) → paint, then the Shell. (T231) The phone's background install
@@ -634,7 +634,7 @@ export default function App() {
       ? { url: `${ENDPOINTS.release}${synopsis.url}`, sha256: synopsis.sha256, bytes: synopsis.bytes, append: synopsis.append ?? null,
           // (T285) this release's files may be gone (404): the live manifest names the same synopsis under the live release
           alternate: async () => {
-            const live = (await (await fetch(ENDPOINTS.manifest)).json() as { synopsis?: { sha256?: string; url?: string } }).synopsis;
+            const live = (await loadManifest(ENDPOINTS.manifest, undefined, timedFetch(fetch))).synopsis;
             return live?.sha256 === synopsis.sha256 && live?.url ? `${ENDPOINTS.release}${live.url}` : null;
           } } : null);
   }, [synopsis]);

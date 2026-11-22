@@ -25,7 +25,7 @@ import { LAUNCH_SLICE_MS, PaintError, releaseAllowed, reportFailure, SLICE_MS, s
          now as clockNow } from "@app/core";
 import { VerifyError } from "../fetchVerified";
 import { fetchResilient, NetError, type Net } from "../net";
-import { compatible, loadManifest, ManifestError, parseManifest, readsRelease, type Held, type Manifest, type StageOutcome } from "../manifest";
+import { compatible, loadManifest, ManifestError, parseManifestText, readsRelease, type Held, type Manifest, type StageOutcome } from "../manifest";
 import { sha256Hex } from "../sha256";
 import type { WaterSource } from "../index";
 import type { SourceOptions } from "./source";
@@ -286,7 +286,7 @@ async function resilientManifest(url: string, f: typeof fetch, net: Net): Promis
       if (e instanceof NetError && e.kind === "http") throw new ManifestError(`manifest: HTTP ${e.status} for ${url}`);
       throw e;
     });
-  return parseManifest(JSON.parse(new TextDecoder().decode(body)));
+  return parseManifestText(new TextDecoder().decode(body));
 }
 
 function timeout<T>(p: Promise<T>, ms: number): Promise<T> {
@@ -501,7 +501,8 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
   let rolledBack: RolledBack | null = null;
   /** A set rolled back for this launch only (not proven defective): kept, and tried again at the next launch. */
   let retrying: { h: Held; m: Manifest | null } | null = null;
-  const previous = await readHeld(dev.fs, PREVIOUS);
+  // (T994 finding 22) a helper pointer that cannot be read is reported and treated as absent: the main pointer is fine
+  const previous = await readHeld(dev.fs, PREVIOUS).catch((e: unknown) => { reportFailure(e); return null; });
   try {
     set = await openSet(held);
   } catch (e) {
@@ -546,7 +547,7 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
   // small file; unwritable, it is reported and the boot goes on
   const applied = openedBefore && !sameSet(openedBefore, now) ? { from: openedBefore.release ?? null } : null;
   if (!openedBefore || applied) await writeHeld(dev.fs, OPENED, now).catch((e: unknown) => { reportFailure(e); });
-  const refused = await readHeld(dev.fs, REFUSED);
+  const refused = await readHeld(dev.fs, REFUSED).catch((e: unknown) => { reportFailure(e); return null; });
   /** (T231) The set installed for the next boot by this session (one at a time: a newer one waits for that boot). */
   let staged: Held | null = null;
   let staging: Promise<Held> | null = null;
