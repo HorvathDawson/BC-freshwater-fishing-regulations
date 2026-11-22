@@ -10,11 +10,12 @@
 set -eu
 # (T998 review) THIS checkout's root, as pre-push: core.hooksPath may be absolute (the main checkout's .githooks), and
 # the check must read the committing worktree's ledger (a lane's new ticket) and its own config, not the main checkout's
-root=$(git rev-parse --show-toplevel)
 msg=$1
 case $msg in /*) ;; *) msg=$(pwd -P)/$msg ;; esac
-# git runs a hook with GIT_DIR and friends set; node and its git calls find the repo from the cwd instead (as pre-push)
+# git runs a hook with GIT_DIR and friends set; node and its git calls find the repo from the cwd instead (as pre-push);
+# dropped BEFORE the root lookup, so a stale GIT_DIR never decides which checkout is read
 # shellcheck disable=SC2046
 unset $(git rev-parse --local-env-vars) GIT_QUARANTINE_PATH
+root=$(git rev-parse --show-toplevel)
 cd "$root"
 exec node app/tools/check-commits.mjs --edit "$msg"

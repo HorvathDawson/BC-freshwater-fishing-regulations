@@ -332,6 +332,8 @@ def test_every_pr_checks_its_commits_and_title_through_the_hooks_own_check():
     # (T998 review) the committing worktree's root, not the hook file's (core.hooksPath may be the main checkout's)
     assert "root=$(git rev-parse --show-toplevel)" in hook and "dirname" not in hook
     assert "unset $(git rev-parse --local-env-vars) GIT_QUARANTINE_PATH" in hook
+    # git's variables are dropped before the root lookup (a stale GIT_DIR must not pick the checkout)
+    assert hook.index("unset $(git rev-parse") < hook.index("root=$(git rev-parse --show-toplevel)")
 
 def test_run_timing_publish_refuses_when_the_release_moved_since_it_bound():
     """(T485 step 3) a run without a `tiles` input re-reads release/manifest.json before step 7 and fails, said, when the
