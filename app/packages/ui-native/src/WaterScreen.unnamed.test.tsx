@@ -39,9 +39,15 @@ function sourceFlowing(): WaterSource {
   };
 }
 
+/** (T993) ONE store for the file. Every helper below used to open the fixture's databases afresh; `baseOnlyUnnamed`
+ *  does that once per unnamed handle it tries, INSIDE its test, so the scan's cost (seconds on a laptop, tens of
+ *  seconds on a loaded runner) counted against the test's 30 s: the one timeout CI saw (2026-11-16). The scan is now
+ *  done once at load, like `TRIB`, and the store is opened once. */
+const STORE: Promise<RegsStore> = loadRegsStore(openRegsFixture());
+
 /** The page core builds from the store for the section, on the same day, with the same downstream name. */
 async function storePage(handle: number, downstream: string | null): Promise<{ page: RegsPage; trib: string[]; reach: string[] }> {
-  const st: RegsStore = await loadRegsStore(openRegsFixture());
+  const st: RegsStore = await STORE;
   const inp = await loadRegsInputs(st, { kind: "section", handle }, { month: 10, day: 10 }, "Saturday", 2026);
   const key = (r: number) => { const e = inp.rules.get(r)!.export; return `${e.entry_id}::${e.rule_id}`; };
   return { page: buildRegsPage(inp, { today: { month: 10, day: 10 }, who: DEFAULT_WHO, downstream }),
@@ -52,7 +58,7 @@ async function storePage(handle: number, downstream: string | null): Promise<{ p
  *  rule set is its region's base alone — no tributary rule, every reach rule a zone's (`z…:`, the region's or the
  *  province's `zp:`). */
 async function baseOnlyUnnamed(): Promise<number> {
-  const st: RegsStore = await loadRegsStore(openRegsFixture());
+  const st: RegsStore = await STORE;
   const named = new Set((await (await st.water()).all("SELECT sid FROM part_section")).map((r) => Number(r.sid)));
   const handles: number[] = [];
   for (const r of await (await st.sid()).all("SELECT block, b FROM section_akey ORDER BY block")) {
@@ -78,6 +84,8 @@ async function tribClosedUnnamed(): Promise<number> {
 }
 /** the tapped reach, by what it IS (never by an id or a stream key: the fixture's sample moves) */
 const TRIB = await tribClosedUnnamed();
+/** the base-only reach, found at load (not inside the test: see `STORE`) */
+const BASE_ONLY = await baseOnlyUnnamed();
 
 /** (T768) The named water that OWNS rule `key`: its entry, as the store holds it (`entry.j`), is one water's row of the
  *  book (`kind` "water") and names it; a zone's or an area's rule (the region's, the province's) has no such water, and
@@ -87,7 +95,7 @@ const TRIB = await tribClosedUnnamed();
  *  (r2:cheekye_river@2-7, "Incl. Tribs"): the Cheekye is no golden water, so 0 items held its entry, though the store
  *  holds the entry and the entry names its water. */
 async function ownerOf(key: string): Promise<string> {
-  const st = await loadRegsStore(openRegsFixture());
+  const st = await STORE;
   const r = await (await st.water()).get("SELECT j FROM entry WHERE id = ?", key.split("::")[0]!);
   if (r === undefined) throw new Error(`rule ${key}: the store holds no entry ${key.split("::")[0]}`);
   const e = st.val<{ kind: string; name: string }>("entry", r.j);
@@ -134,7 +142,7 @@ describe("(T53) <WaterScreen> for an unnamed reach: the store's page for the tap
   }, 30_000);
 
   it("an unnamed section on the region's base alone: no override, no tributary line, every rule the region's or the province's", async () => {
-    const handle = await baseOnlyUnnamed();
+    const handle = BASE_ONLY;
     const { page, trib, reach } = await storePage(handle, null);
     await open(handle);
     // (T183, 1ca8bfda: taps.json's unnamed sample is half streams) the fixture's one base-only stream (445526, Region 8)

@@ -1,0 +1,48 @@
+name: docs
+
+# (T993) THE TICKET LEDGER AND HANDOFF DOCS GUARD, on its own. app/tools/check-tickets.mjs (T84, T539) keeps the ledger
+# whole and reads every commit SUBJECT for a ticket id (a subject that names a Tnnn before its file and ledger row exist
+# fails), and checks the handoff docs (START-HERE, the restart page, OWNER-TODO and the runbooks cite paths that exist;
+# the restart page holds no state; AGENTS rule ids are unique). A ledger fix alone must run it, or a red run on a ledger
+# edit stays the newest and blocks the release's CI check (scripts/ci_status.py reads this workflow too).
+#
+# It used to run inside app-ci for every push under handoff/: 210 docs-only pushes, 1,578 minutes in 30 days, to run
+# a check that takes seconds. Here a docs push costs the install and two small test files.
+
+on:
+  push:
+    paths: ["handoff/**", "AGENTS.md", ".github/copilot-instructions.md",
+            "app/tools/check-tickets.mjs", "app/tools/check-tickets.test.ts", "app/tools/start-here.test.ts",
+            ".github/workflows/docs-ci.yml", ".github/actions/app-setup/**"]
+  pull_request:
+    paths: ["handoff/**", "AGENTS.md", ".github/copilot-instructions.md",
+            "app/tools/check-tickets.mjs", "app/tools/check-tickets.test.ts", "app/tools/start-here.test.ts",
+            ".github/workflows/docs-ci.yml", ".github/actions/app-setup/**"]
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ledger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      # full history, no old file contents (a partial clone): the guard reads commit subjects
+      - uses: actions/checkout@v5
+        with: { fetch-depth: 0, filter: "blob:none" }
+      # no venv: the guard and its two test files read text and git only
+      - uses: ./.github/actions/app-setup
+        with: { python: "false" }
+      - name: The ticket ledger is whole, the handoff docs are right
+        run: pnpm run tickets
+      # `if: !cancelled()`: both run, so one push lists both failures
+      - name: The guard's own tests, and the one start-here page
+        if: ${{ !cancelled() }}
+        run: pnpm exec vitest run tools/check-tickets.test.ts tools/start-here.test.ts

@@ -41,8 +41,8 @@ Actions.
 
 | Name | Used by | How to replace |
 | --- | --- | --- |
-| `CLOUDFLARE_ACCOUNT_ID` | feeds-hydat, feeds-runtiming, staging-security | Not a credential. Cloudflare dashboard → the account's id |
-| `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | the staging R2 writes of feeds-hydat, feeds-runtiming, staging-security (set 2026-07-24) | Cloudflare → R2 → Manage API tokens → Create: Object Read and Write, the staging bucket only. Set both, then delete the old token |
+| `CLOUDFLARE_ACCOUNT_ID` | feeds-hydat, feeds-runtiming | Not a credential. Cloudflare dashboard → the account's id |
+| `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | the staging R2 writes of feeds-hydat, feeds-runtiming (set 2026-07-24) | Cloudflare → R2 → Manage API tokens → Create: Object Read and Write, the staging bucket only. Set both, then delete the old token |
 | `PROD_R2_ACCESS_KEY_ID`, `PROD_R2_SECRET_ACCESS_KEY` | the production option of feeds-hydat (commented out) | **Not set yet.** Made at the first production launch (`handoff/PLAN/release/PRODUCTION.md` step 5), the same way, prod bucket only |
 | `CLOUDFLARE_API_TOKEN` | **no workflow reads it** (set 2026-03-18, the v1 era) | Delete it (`gh secret delete CLOUDFLARE_API_TOKEN`), or keep it for production deploys from GitHub later |
 

@@ -28,6 +28,7 @@ import geopandas as gpd
 from shapely.ops import unary_union
 from shapely.validation import make_valid
 
+from pipeline.common.curated import SOURCE
 from project_config import get_config
 
 logger = logging.getLogger(__name__)
@@ -35,7 +36,8 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
-DFO_GPKG = Path("data/source/DFO_TIDAL_BOUNDARY.gpkg")
+# (T994 7) through the config's source tree (`pipeline.common.curated`), not a cwd-relative literal; run with PYTHONPATH=..
+DFO_GPKG = SOURCE.source / "DFO_TIDAL_BOUNDARY.gpkg"
 SOURCE_LAYER = "dfodfooy__dfo_bc_pfma_subareas_chs_v3_gshp"
 HOLE_AREA_THRESHOLD_M2 = 10_000  # 1 ha — holes smaller than this are filled
 BUFFER_OUT_M = 1.0  # morphological smooth: expand

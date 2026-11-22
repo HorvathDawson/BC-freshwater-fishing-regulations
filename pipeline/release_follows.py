@@ -181,7 +181,7 @@ def app_tests_cmd(files: list[str]) -> list[str]:
 # ------------------------------------------------------------------------- (T680) the whole app check, after the re-cut
 # r-483b295de57c: the re-cut changed fixtures that tests found by NO rule above (a WaterMode test on the regs fixture,
 # a wording pinned on the live release) — each failed in CI, after the push, one round at a time. After the re-cut the
-# release runs EVERYTHING `pnpm check` and the app CI run (`.github/workflows/app-ci.yml`) run, each gate on its own, and
+# release runs EVERYTHING `pnpm check` and the app CI run (`app-ci.yml`: gates, vitest, bundles; `feeds-worker-ci.yml`; `docs-ci.yml`) run, each gate on its own, and
 # lists every failure together, before anything is pushed.
 
 def app_check_steps(root: Path | None = None) -> list[str]:
@@ -210,7 +210,7 @@ def app_suite_cmd(report: Path) -> list[str]:
 
 
 def worker_suite_cmd(report: Path) -> list[str]:
-    """The feeds worker's suite (app-ci's "Feeds worker tests": not in the pnpm workspace, so `pnpm check` skips it)."""
+    """The feeds worker's suite (feeds-worker-ci.yml's "Feeds worker tests": not in the pnpm workspace, so `pnpm check` skips it)."""
     return ["pnpm", "-C", "app", "exec", "vitest", "run", "--root", "workers/feeds", "--reporter=default",
             "--reporter=json", f"--outputFile.json={report}"]
 

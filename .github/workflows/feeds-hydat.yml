@@ -1,6 +1,6 @@
 name: feeds — HYDAT → climatology → R2
 
-# T225 follow-up (owner 2026-10-28). MANUAL ONLY (workflow_dispatch): no schedule; a push of this file only registers it (skipped). The trigger is the
+# T225 follow-up (owner 2026-10-28). MANUAL ONLY (workflow_dispatch): no schedule, no push trigger (T993: the register-only push trigger made 10 skipped runs). The trigger is the
 # app's / feed's "new HYDAT release" notice (T301, owner 2026-10-30). The run asks ECCC's listing first (a few KB) and
 # stops there unless it names a newer HYDAT than the staging feed is on (force: true rebuilds anyway).
 #
@@ -46,10 +46,10 @@ on:
         description: "Rebuild the envelope even when HYDAT is unchanged"
         type: boolean
         default: false
-  # (T412/T413) REGISTRATION ONLY: GitHub can dispatch a workflow that is not on the default branch (main stays
-  # untouched) only once it has run there; a push of THIS file registers it. The job below is skipped for a push.
-  push:
-    paths: [".github/workflows/feeds-hydat.yml"]
+
+# (T994 6) least privilege: the jobs read the repo and talk to R2 with their own keys, never the GITHUB_TOKEN
+permissions:
+  contents: read
 
 concurrency:
   group: feeds-hydat
@@ -57,7 +57,6 @@ concurrency:
 
 jobs:
   hydat:
-    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
@@ -96,9 +95,9 @@ jobs:
             echo "Staging is already on HYDAT $latest — nothing to do (force: true rebuilds anyway)." >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         if: steps.now.outputs.skip != 'true'
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         if: steps.now.outputs.skip != 'true'
         with: { python-version: "3.13", cache: pip, cache-dependency-path: "requirements.txt\nconstraints.txt" }
       - if: steps.now.outputs.skip != 'true'
@@ -119,7 +118,7 @@ jobs:
           python -m pipeline.gauges.feed.hydat_daily --hydat data/source/hydat.sqlite3 --index out/index.json --out out/hydat_daily
           ls -la out/clim.json; ls out/hydat_daily | wc -l
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: steps.now.outputs.skip != 'true'
         with: { name: "hydat-${{ env.HYDAT }}", path: "out/clim.json\nout/hydat_daily/", retention-days: 14 }
 

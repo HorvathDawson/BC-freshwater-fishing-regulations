@@ -1,4 +1,4 @@
-"""Is CI green on HEAD? (T533) — the newest `app-ci` and `pipeline-ci` runs for the branch, read with `gh`.
+"""Is CI green on HEAD? (T533) — the newest `app-ci`, `pipeline-ci`, `docs-ci` and `feeds-worker-ci` runs for the branch, read with `gh`.
 
     python scripts/ci_status.py [--sha SHA] [--branch B] [--skip REASON]
 
@@ -24,7 +24,10 @@ import os
 import subprocess
 import sys
 
-WORKFLOWS = ("app-ci.yml", "pipeline-ci.yml")
+# (T993) app-ci split into jobs of one workflow (their conclusions roll up to the run) and two small workflows with
+# their own path filters: the ticket ledger / docs guard (docs-ci.yml, on handoff/**) and the feeds worker's suites
+# (feeds-worker-ci.yml). A workflow with no run for the sha falls back to its newest finished run, as below.
+WORKFLOWS = ("app-ci.yml", "pipeline-ci.yml", "docs-ci.yml", "feeds-worker-ci.yml")
 BRANCH = "redesign/stream-sections"
 RED = {"failure", "timed_out", "startup_failure", "action_required"}
 FIELDS = "databaseId,headSha,status,conclusion,url,createdAt,event"
