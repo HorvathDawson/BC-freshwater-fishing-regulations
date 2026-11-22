@@ -22,7 +22,7 @@ PLACES, _OSM_STREAMS, _ADDED_STREAMS, ADDED_LAKES, FOUND_NAMES, CUTS, _TIDAL = L
 
 
 def _doc(rel: str):
-    return json.loads((ROOT / rel).read_text(encoding="utf-8"))
+    return json.loads(under_test.committed(rel).read_text(encoding="utf-8"))
 
 
 @pytest.mark.parametrize("rel", LICENSED)

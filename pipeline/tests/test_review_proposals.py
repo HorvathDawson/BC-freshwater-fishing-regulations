@@ -24,8 +24,10 @@ from pathlib import Path
 
 import pytest
 
+from pipeline.tests import under_test
+
 from pipeline.common.curated import CURATED
-from pipeline.tests.conftest import curated_root
+from pipeline.tests.conftest import curated_root, no_served_build
 from pipeline.regs.review import apply_proposals as A
 from pipeline.regs.review import marks as M
 from pipeline.regs.review import proposals as P
@@ -100,7 +102,7 @@ PRE_T324 = (("data/curated/regulations/synopsis/", "data/curated/regulations/ent
 
 def _as_marked(path: Path, dst: Path) -> None:
     """`path` as it stood at MARKED_AT (the files the proposals were built from)."""
-    rel = Path(path).resolve().relative_to(P.REPO.resolve()).as_posix()
+    rel = under_test.repo_path(path)
     for now, then in PRE_T324:            # MARKED_AT predates the T324 naming pass: ask for the file by its old name
         if rel.startswith(now):
             rel = then + rel[len(now):]
@@ -250,7 +252,7 @@ def test_a_mark_whose_edit_is_already_in_the_file_proposes_nothing(src, tmp_path
 def test_building_and_writing_never_touches_curated_data(tmp_path):
     root = Path(CURATED.waters.cuts).parents[1]
     before = {p: p.read_bytes() for p in sorted(root.rglob("*")) if p.is_file()}
-    src = P.Sources.live()
+    src = P.Sources.live(build=tmp_path / "no-atlas")   # (T777) the curated files, no served atlas (as on CI)
     props = P.build(owner_marks(), src)
     P.write(props, tmp_path / "out", src, marks_path=tmp_path / "marks.jsonl")
     assert {p: p.read_bytes() for p in sorted(root.rglob("*")) if p.is_file()} == before
@@ -383,6 +385,7 @@ def test_the_app_refuses_a_proposal_decision(src, tmp_path, monkeypatch):
     props = P.build(owner_marks(), src)
     out = tmp_path / "proposals"
     P.write(props, out, src, marks_path=tmp_path / "marks.jsonl")
+    no_served_build(monkeypatch, tmp_path)  # (T777) the app serves no atlas, as on CI
     curated_root(monkeypatch, tmp_path / "curated")           # T422: the whole curated tree, its marks store empty
     store = Path(CURATED.review.marks)
     monkeypatch.setenv("CURATION_PROPOSALS_DIR", str(out))
@@ -425,7 +428,7 @@ T524_AT = "355ef4cc8"
 
 
 def _at_t524(path: Path, dst: Path) -> None:
-    rel = Path(path).resolve().relative_to(P.REPO.resolve()).as_posix()
+    rel = under_test.repo_path(path)
     dst.write_bytes(subprocess.run(["git", "show", f"{T524_AT}:{rel}"], cwd=P.REPO, capture_output=True,
                                    check=True).stdout)
 
@@ -643,7 +646,7 @@ def test_a_side_directory_never_merges_two_ids_alike_in_their_first_40_character
     assert P._slug(long_a, 40) == P._slug(long_b, 40), "the bare cut is the same for both: the hash is what tells them apart"
 
 
-def test_a_withdrawn_cut_proposal_is_not_built_and_is_listed_as_withdrawn():
+def test_a_withdrawn_cut_proposal_is_not_built_and_is_listed_as_withdrawn(tmp_path):
     """T589 (the Allco fence): `proposal_overrides.json` could only set a confidence — a cut the owner replaced stayed a
     proposal for ever. `withdrawn` takes it out of every reader (`marks.amend`) and `withdrawn_groups` lists it."""
     cut = {"ref": "fence", "anchor": "coord", "name": "the hatchery fence", "on_item": "gnis:1", "coord": [-122.5, 49.2]}
@@ -666,6 +669,10 @@ def test_a_withdrawn_cut_proposal_is_not_built_and_is_listed_as_withdrawn():
     # and on the withdrawn list; nothing else is withdrawn
     ov = M.load_overrides(CURATED.review.proposal_overrides)
     assert [o.match.ref for o in ov if o.withdrawn] == ["alouette_river__allco_park_boundary_signs_allco_hatchery_fence"]
-    real = M.proposal_groups(M.load(CURATED.review.marks))
+    # (T777) the owner's marks as COMMITTED (git HEAD): the suite's curated tree has an empty review
+    committed = tmp_path / "marks.jsonl"
+    committed.write_bytes(subprocess.run(["git", "show", f"HEAD:{under_test.repo_path(CURATED.review.marks)}"],
+                                         cwd=P.REPO, capture_output=True, check=True).stdout)
+    real = M.proposal_groups(M.load(committed))
     allco = "alouette_river__allco_park_boundary_signs_allco_hatchery_fence"
     assert allco not in [g["id"] for g in M.amend(real, ov)] and [g["id"] for g in M.withdrawn_groups(real, ov)] == [allco]

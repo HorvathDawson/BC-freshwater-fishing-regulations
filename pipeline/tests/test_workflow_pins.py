@@ -332,3 +332,14 @@ def test_every_pr_checks_its_commits_and_title_through_the_hooks_own_check():
     # (T998 review) the committing worktree's root, not the hook file's (core.hooksPath may be the main checkout's)
     assert "root=$(git rev-parse --show-toplevel)" in hook and "dirname" not in hook
     assert "unset $(git rev-parse --local-env-vars) GIT_QUARANTINE_PATH" in hook
+
+def test_run_timing_publish_refuses_when_the_release_moved_since_it_bound():
+    """(T485 step 3) a run without a `tiles` input re-reads release/manifest.json before step 7 and fails, said, when the
+    tiles moved since step 1, so run timing is never published for the old tiles after a release flipped."""
+    steps = _load("feeds-runtiming.yml")["jobs"]["runtiming"]["steps"]
+    up = [s for s in steps if s.get("name", "").startswith("7/7")][0]
+    run = up["run"]
+    assert 'if [ -z "$TILES_IN" ]' in run and "release/manifest.json" in run
+    assert run.index('"$NOW" != "$TILES"') < run.index("feed.publish")
+    assert "exit 1" in run[run.index('"$NOW" != "$TILES"'):run.index("feed.publish")]
+    assert "the release moved" in run

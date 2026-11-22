@@ -121,6 +121,10 @@ def test_the_release_ships_lakes_only_when_handed_a_file(monkeypatch, tmp_path):
     monkeypatch.setattr(M, "tiles_block", lambda *a: None)
     monkeypatch.setattr(M, "basemap_block", lambda *a: None)
     st = ["--store", str(tmp_path / "regs.sqlite")]          # required: no regs.sqlite is kept (P20)
+    # (T777) a release no device installs, cut in the test's own folders: no synopsis cache written into
+    # data/generated/synopsis (it was, by every run), no live release root or DFO rules read
+    st += ["--out-root", str(tmp_path / "release"), "--tiles-release-root", str(tmp_path / "release"),
+           "--no-synopsis", "--dfo-rules", str(tmp_path / "no-dfo-rules")]
     assert RM.main(["--bundle", str(bundle), *st]) == 0
     assert RM.main(["--bundle", str(bundle), *st, "--lake-facts", str(tmp_path / "lakes.bin")]) == 0
     assert seen == [None, tmp_path / "lakes.bin"]

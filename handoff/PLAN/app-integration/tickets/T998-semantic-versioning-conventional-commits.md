@@ -114,7 +114,25 @@ commit (AGENTS W48, the release runbook, the maps, this ticket).
 - **Item 7:** AGENTS W48 (the format, the PR title ≤ 93 so ` (#N)` fits, the bump), W47's hook line, the release
   runbook §0 (how the version is chosen; T993 item 11's one human runbook folds it in), app + pipeline maps. NOT done
   here: the memory line (the main chat's).
-- **Found:** `core.hooksPath` on this machine is the absolute path of the main checkout's `.githooks`, so a worktree
-  runs the main checkout's hooks (the stub until this merges), not its own. `test_review_queue`'s two corpus tests
+- **Found:** `core.hooksPath` on this machine was the absolute path of the main checkout's `.githooks`, so a worktree
+  ran the main checkout's hooks, not its own (made relative 2026-11-22, see the review section). `test_review_queue`'s two corpus tests
   need the live atlas (missing in a fresh worktree; unrelated).
 
+
+## Independent review (2026-11-22), landing
+- Fixed (311ee72d5): the commit-msg hook found the repo from its own file, so with an absolute `core.hooksPath` every
+  worktree was checked against the main checkout's ledger (a lane's new ticket refused; reproduced). It now uses
+  `git rev-parse --show-toplevel`, pinned. `release_version` counted `app/tools/maplibre-patch/` as not-app; the
+  MapLibre build files now bump the app (test case).
+- **`core.hooksPath` set to the relative `.githooks` on this machine (2026-11-22)**, the documented form: each worktree
+  runs its own branch's hooks, so old branches (no `check-commits.mjs`) keep committing and the hook is live only
+  where it exists.
+- Landing step: after local main syncs past this merge, run `pnpm -C app install --frozen-lockfile --prefer-offline` in
+  the main checkout at once (the hook needs `@commitlint`; the review app's write-through, build-apk's versionCode
+  commit and release_follows' re-cut commit all commit there). Every lane worktree needs its own real install.
+- Left (low, not blocking): 24 of the 72 post-cutover commits on main fail the linter (long headers, old merge
+  subjects); no range reads them unless a PR's `base.sha` is stale: make the `commits` job use the merge ref's parents
+  (`HEAD^1..HEAD^2`). The merge commit's body is the PR body (`merge_commit_message=PR_BODY`), never linted: a body line
+  `BREAKING CHANGE:` makes that merge breaking. `release_version.last_tag` takes the highest `v*` tag in the clone, not
+  only those reachable from HEAD (preflight does not fetch tags). commitlint's merge-ignore regex uses `/m`, so a body
+  line "Merge branch x" skips the commit (the Python reads it the same way).

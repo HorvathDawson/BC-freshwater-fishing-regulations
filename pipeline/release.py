@@ -44,8 +44,8 @@ already done for this release):
   1 preflight  EVERY check runs and every failure is listed together (T666 item 3; the table is `PREFLIGHT`, which the
                dry run reads too). The instant checks first, then `scripts/fast-fail.sh` LAST (T483/T535, AGENTS 20a:
                the cheap checks, a minute or two, run with FAST_FAIL_ALL so it too lists every failed step;
-               `--no-fast-fail REASON` skips it and prints the reason; the build's heavy.sh is told so,
-               FAST_FAIL_DONE). (T666 item 5) Its pass is keyed on the TREE'S CONTENT, not on HEAD (ledger `fast_fail`
+               `--no-fast-fail REASON` skips it and prints the reason; heavy.sh runs no fast-fail of its own,
+               T661). (T666 item 5) Its pass is keyed on the TREE'S CONTENT, not on HEAD (ledger `fast_fail`
                `key`: HEAD's tree + what is uncommitted + untracked files): a rerun on the same content skips it, and
                after a commit it checks only what changed since the commit it last passed on (FAST_FAIL_BASE = that
                commit), so a docs or fixtures-only commit never reruns the whole no-data tier. After it, THE
@@ -1047,7 +1047,6 @@ class Ctx:
     rehearsal: bool = False              # the run is `--dry-run` (T993 item 15: what fast-fail leaves to the follows)
     no_fresh_copy: str | None = None     # (T666) why the fresh-copy test run is skipped (printed); None runs it
     forget: bool = False                 # (T666) drop the remembered flags of the release in flight
-    heavy_env: dict = field(default_factory=dict)   # (T535) tells heavy.sh fast-fail ran: FAST_FAIL_DONE / HEAVY_NO_FAST_FAIL
     led: dict = field(default_factory=dict)
     rid: str | None = None          # the candidate, once the build named it
     live: str | None = None         # LATEST when the run started
@@ -1376,15 +1375,13 @@ def follows_run_them(ctx: Ctx) -> bool:
 
 def check_fast_fail(ctx: Ctx) -> Finding:
     """(T535) fast-fail, after the instant checks. (T666 item 5) keyed on the tree's content: a rerun on the same
-    content skips it whatever HEAD is; the build's heavy.sh is told it ran (FAST_FAIL_DONE) or why not."""
+    content skips it whatever HEAD is. (T661) heavy.sh runs none of its own, so nothing is handed to the build."""
     head = git_head()
     if ctx.no_fast_fail is not None:
-        ctx.heavy_env = {"HEAVY_NO_FAST_FAIL": f"release --no-fast-fail: {ctx.no_fast_fail}"}
         return Finding(True, f"fast-fail SKIPPED (--no-fast-fail): {ctx.no_fast_fail}")
     env, key = follows_env(ctx), tree_key()
     under = env.get(RF.RELEASE_ENV)
     done = ctx.led.get("fast_fail") or {}
-    ctx.heavy_env = {"FAST_FAIL_DONE": head}
     later = follows_run_them(ctx)
     scope = "follows-next" if later else "all"
     # a pass that left the app gates and the worker suite to the follows stage covers only a run that does the same
@@ -1406,7 +1403,6 @@ def check_fast_fail(ctx: Ctx) -> Finding:
         env = {**env, FRESH_COPY_NEXT: "1"}
     rc, failed = run_fast_fail(fast_fail_base(ctx), env)
     if rc:
-        ctx.heavy_env = {}
         steps = "".join(f"\n    - {f}" for f in failed) if failed else " (it stopped before its step list: read its output)"
         return Finding(False, f"scripts/fast-fail.sh failed (rc={rc}): {len(failed)} step(s){steps}",
                        "read each failed step's output above and fix it (one alone: FAST_FAIL_ONLY='<part of its "
@@ -1551,7 +1547,7 @@ def stage_build(ctx: Ctx) -> str:
         ctx.rid = done[0]
         return (f"release {ctx.rid} ({done[1]}): nothing a build reads was committed since — not rebuilt (T788 #10; "
                 "`python -m pipeline build --hold-latest` rebuilds by hand)")
-    rc = run_cmd(build_cmd(jobs=ctx.jobs), env=ctx.heavy_env or None)
+    rc = run_cmd(build_cmd(jobs=ctx.jobs))
     if rc:
         raise Stop("build", f"`pipeline build` failed (rc={rc})",
                    "read the build output above (`python -m pipeline build --status` lists each stage and its log), "
@@ -1689,7 +1685,7 @@ def stage_inseason(ctx: Ctx, rid: str, r: dict) -> str:
     The resolve writes the GENERATED resolution only: nothing to commit."""
     if (r.get("inseason") or {}).get("release") == rid:
         return f"in-season resolved on {rid} ({r['inseason'].get('at')})"
-    rc = run_cmd(inseason_cmd(rid), env=ctx.heavy_env or None)
+    rc = run_cmd(inseason_cmd(rid))
     if rc:
         raise Stop("follows", f"the in-season matches do not all resolve on {rid} (rc={rc}); LATEST was not moved",
                    "re-match the unresolved notices in the review app's In-season tab (the output above names them), "
@@ -1710,7 +1706,7 @@ def stage_recut(ctx: Ctx, rid: str, r: dict) -> str:
     f = r.setdefault("follows", {})
     if (f.get("recut") or {}).get("release") == rid:
         return f"fixtures re-cut on {rid} ({f['recut'].get('kind')}, {f['recut'].get('at')})"
-    rc = run_cmd(recut_cmd(rid), env=ctx.heavy_env or None)
+    rc = run_cmd(recut_cmd(rid))
     if rc:
         raise Stop("follows", f"the fixtures could not be re-cut on {rid} (rc={rc}); LATEST was not moved, nothing "
                    "was committed", "read the step that failed above (taps.py names each golden state the release "
@@ -1761,7 +1757,7 @@ def stage_follow_tests(ctx: Ctx, rid: str, r: dict) -> str:
     if (f.get("tests") or {}).get("release") == rid:
         return f"tests passed on {rid} ({f['tests'].get('at')})"
     py, _app = follow_tests()
-    bad = candidate_failures(rid, {**ctx.heavy_env, **RF.test_env(release_root() / rid)})
+    bad = candidate_failures(rid, RF.test_env(release_root() / rid))
     if bad:
         raise Stop("follows", failures_said(rid, bad) + "; LATEST was not moved, nothing was pushed",
                    f"fix them together, commit, rerun; one check alone: {RF.RELEASE_ENV}={rel(release_root() / rid)} "
@@ -1815,7 +1811,7 @@ def rehearse_follows(ctx: Ctx, cand: str) -> dict:
     with tempfile.TemporaryDirectory(prefix="release-rehearse-") as td:
         kept = snapshot(RF.paths_of(RF.RECUT), Path(td))
         try:
-            rc = run_cmd(recut_cmd(cand), env=ctx.heavy_env or None)
+            rc = run_cmd(recut_cmd(cand))
             if rc:
                 return {"recut_rc": rc}
             changed = recut_changed()
@@ -1823,7 +1819,7 @@ def rehearse_follows(ctx: Ctx, cand: str) -> dict:
             renumbered, note = recut_renumbered(pages) if pages else (False, "")
             got = {"recut_rc": 0, "changed": changed, "pages": [] if renumbered else pages, "renumbered": note,
                    "token": recut_token(changed) if changed else None}
-            got["failures"] = candidate_failures(cand, {**ctx.heavy_env, **RF.test_env(release_root() / cand)})
+            got["failures"] = candidate_failures(cand, RF.test_env(release_root() / cand))
             return got
         finally:
             restore(kept)
@@ -1992,7 +1988,7 @@ def stage_staging(ctx: Ctx) -> str:
         print(f"    NOTE: this replaces {old} on staging, staged {ctx.led['releases'][old]['staged_at']} and never "
               f"published — the production command handed for it (release --prod {old}) will refuse once {rid} is "
               "up", flush=True)
-    env = {**ctx.heavy_env, **({"MIN_APP_VERSION": ctx.min_app} if ctx.min_app else {}),
+    env = {**({"MIN_APP_VERSION": ctx.min_app} if ctx.min_app else {}),
            **({"CI_CHECK_SKIP": f"release --no-ci-check: {ctx.no_ci_check}"} if ctx.no_ci_check is not None else {}),
            "SMOKE": "0"}                   # (T537) the smoke runs on its own below, so a smoke failure reruns only it
     rc = run_cmd(upload_cmd(rid), env=env)
@@ -2266,7 +2262,7 @@ def dry_run(ctx: Ctx) -> int:
             print(f"{P}" + stop(f"--build: the live reach run's copy is not kept ({msg}): nothing was built"))
         else:
             kept = True
-            rc = run_cmd(build_cmd(jobs=ctx.jobs), env=ctx.heavy_env or None)
+            rc = run_cmd(build_cmd(jobs=ctx.jobs))
             if rc:
                 print(f"{P}" + stop(f"--build: `pipeline build` failed (rc={rc}): read its output above "
                                     "(`python -m pipeline build --status`)"))

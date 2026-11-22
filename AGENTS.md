@@ -167,9 +167,12 @@ A6. **Commit only your own paths: `git commit -- <paths>`.** Several agents shar
     full suite), run `scripts/fast-fail.sh`: the cheap checks that stop a doomed job in a minute or two (each item
     is listed there with a "caught:" comment: conflict markers, ticket ledger, the derived smoke rule, changed Python compiles, colours, answers-stale, app typecheck, vitest related to the changed app files;
     2026-11-09: format pairs Python ↔ app/worker, goldens cut from LATEST, no-silent-skips on a changed test file).
-    Run it while a build waits, too. `python -m pipeline release --staging` (preflight, with the branch-pushed check)
-    and `deploy/staging/build-apk.sh` run it first; the escape (`--no-fast-fail REASON` / `--no-fast-fail=REASON`)
-    prints its reason. `FAST_FAIL_ALL=1` goes on past a failed step and ends with the list of every one (T666: the
+    Run it while a build waits, too. `python -m pipeline release --staging` (preflight, with the branch-pushed check),
+    `deploy/staging/build-apk.sh` and `deploy/staging/build-ios-testflight.sh` run it first (the two store builds
+    through one shared gate before the heavy lock, `deploy/lib/build-links.sh`: precheck with the changelog, then CI,
+    then fast-fail; T993 plan 5); the escape (`--no-fast-fail REASON` / `--no-fast-fail=REASON`) prints its reason.
+    **`scripts/heavy.sh` runs no fast-fail** (T661: the gate parked in T535 was dropped): starting any other long job,
+    you run it. `FAST_FAIL_ALL=1` goes on past a failed step and ends with the list of every one (T666: the
     release preflight runs it so). (T978) A step that reads THIS MACHINE'S DATA rather than the code (the review marks,
     the live atlas, LATEST, a kept snapshot) is a `data: …` step: only the data release runs it (`FAST_FAIL_DATA=1`, set
     by `release.run_fast_fail`), so an app build or a lane never fails on machine state; a build's missing gitignored

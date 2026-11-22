@@ -9,12 +9,18 @@ without data.
 THE TIER DECIDES THE WORLD (T667 slice 7, `pipeline/tests/tiers.py`): a run whose marker expression leaves out every
 `slow` and `needs_*` test (CI's tier, `-m smoke`) hides this machine's builds (`pipeline.tests.ci_no_build`), whatever
 started it; the header says which tier the run is.
+
+TESTS NEVER READ MACHINE STATE (T777, `pipeline/tests/machine_state.py`, registered below for every run): the curated
+tree a run sees is a session sandbox (the tracked files, review empty), a no-data test that touches the real curated
+tree or an untracked generated path fails naming the marker to add, and the run's temp files go in a folder of its own.
 """
 from __future__ import annotations
 
 import pytest
 
 from pipeline.tests import smoke, tiers
+
+pytest_plugins = ("pipeline.tests.machine_state",)
 
 _NO_DATA: list[bool] = []
 

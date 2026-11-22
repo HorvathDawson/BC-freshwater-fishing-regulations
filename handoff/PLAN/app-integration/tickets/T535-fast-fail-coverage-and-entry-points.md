@@ -49,7 +49,8 @@ Depends: T533 (shares the preflight edit). Size: M. Owner: no.
    holds the gated `heavy.sh` and its shell test (section 12: failing fast-fail = its exit code, job not run, lock never
    taken; `HEAVY_NO_FAST_FAIL=<reason>` printed; `FAST_FAIL_DONE` not HEAD runs it; a passing fast-fail runs while
    another job holds the lock). Release preflight and build-apk.sh / site-all.sh already pass `FAST_FAIL_DONE` /
-   `HEAVY_NO_FAST_FAIL`.
+   `HEAVY_NO_FAST_FAIL`. **2026-11-22 (T661, b644b39c2): dropped, never installed** — the parked dir and both variables
+   are gone; the entry points run fast-fail themselves (T661 has the reasons).
 3. Review app: frontend `tsc --noEmit -p curation-review/frontend` when a frontend file changes (no package.json
    script: curation-review/ is not this lane's); backend: the `test_curation_review_*` files as CI runs them, one
    process each (~30 s), when `curation-review/backend` changes; `pipeline-ci.yml` triggers on `curation-review/**`

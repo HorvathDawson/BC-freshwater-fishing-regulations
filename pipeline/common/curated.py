@@ -522,14 +522,17 @@ def _load(config: Path | None, root: Path | None) -> Curated:
 
 
 def make_root(dst: Path) -> Path:
-    """A whole copy of the LIVE curated tree at `dst` (created; existing files there are overwritten), for
-    `CURATED_ROOT`. A copy, never links: a write through the sandbox must not reach a real file. Refuses a `dst`
-    inside the live tree (or the tree itself)."""
+    """A whole copy of THIS PROCESS'S curated tree at `dst` (created; existing files there are overwritten), for
+    `CURATED_ROOT`: the live tree, or the copy `CURATED_ROOT` already names — a sandboxed process copies its own world,
+    never reaches past it to the live files (one root, never a mix; T777: a test run's sandbox). A copy, never links: a
+    write through the sandbox must not reach a real file. Refuses a `dst` that overlaps the live tree or the copied one."""
     live = load_repo().base.resolve()
+    src = Path(load().base).resolve()
     dst = Path(dst).resolve()
-    if dst == live or live in dst.parents or dst in live.parents:
-        raise ValueError(f"{dst} overlaps the live curated tree ({live}): a sandbox root goes elsewhere")
-    shutil.copytree(live, dst, dirs_exist_ok=True)
+    for tree, what in ((live, "the live curated tree"), (src, "the curated tree it copies")):
+        if dst == tree or tree in dst.parents or dst in tree.parents:
+            raise ValueError(f"{dst} overlaps {what} ({tree}): a sandbox root goes elsewhere")
+    shutil.copytree(src, dst, dirs_exist_ok=True)
     return dst
 
 

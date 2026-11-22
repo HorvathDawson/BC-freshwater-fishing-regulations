@@ -113,21 +113,16 @@ fi
 # (T978) the gitignored links the build reads (MapLibre repo, .venv, node_modules, run token, keystore): checked in the
 # precheck, every missing one listed with its fix
 source deploy/lib/build-links.sh
-NOCI=; NONOTES=; SAMEVER=; UNCOMMITTED=; PRECHECK_ONLY=; PUBLISH_ONLY=
+# (T993 plan 5) --no-fast-fail= / --no-ci-check= / --no-notes= are the shared escapes (build-links.sh build_reasons)
+build_reasons build-apk "$@"
+SAMEVER=; UNCOMMITTED=; PRECHECK_ONLY=; PUBLISH_ONLY=
 for a in "$@"; do
   case $a in
     --precheck) PRECHECK_ONLY=1 ;;
     --publish-only) PUBLISH_ONLY=1 ;;
-    --no-notes|--same-version|--uncommitted) echo "build-apk: $a needs a reason: $a=\"<why>\"" >&2; exit 2 ;;
-    --no-notes=*) NONOTES=${a#--no-notes=}; [[ -n ${NONOTES// /} ]] || { echo "build-apk: --no-notes= needs a reason" >&2; exit 2; } ;;
+    --same-version|--uncommitted) echo "build-apk: $a needs a reason: $a=\"<why>\"" >&2; exit 2 ;;
     --same-version=*) SAMEVER=${a#--same-version=}; [[ -n ${SAMEVER// /} ]] || { echo "build-apk: --same-version= needs a reason" >&2; exit 2; } ;;
     --uncommitted=*) UNCOMMITTED=${a#--uncommitted=}; [[ -n ${UNCOMMITTED// /} ]] || { echo "build-apk: --uncommitted= needs a reason" >&2; exit 2; } ;;
-    --no-ci-check) echo "build-apk: --no-ci-check needs a reason: --no-ci-check=\"<why CI is not asked>\"" >&2; exit 2 ;;
-    --no-ci-check=*) NOCI=${a#--no-ci-check=}
-      [[ -n ${NOCI// /} ]] || { echo "build-apk: --no-ci-check= needs a reason" >&2; exit 2; } ;;
-    --no-fast-fail) echo "build-apk: --no-fast-fail needs a reason: --no-fast-fail=\"<why the cheap checks are skipped>\"" >&2; exit 2 ;;
-    --no-fast-fail=*) NOFF=${a#--no-fast-fail=}
-      [[ -n ${NOFF// /} ]] || { echo "build-apk: --no-fast-fail= needs a reason" >&2; exit 2; } ;;
   esac
 done
 BUCKET=bc-fishing-regulations-staging            # staging's; production's only with --production (CONFIRM_PROD above)
@@ -221,11 +216,7 @@ if [[ -z ${BUILD_APK_INNER:-} ]]; then
   else
     FFB=$(cat app/dist/apk/last-sha 2>/dev/null || true); FFB_WHAT="the last sideload APK (app/dist/apk/last-sha)"
   fi
-  if [[ -n $FFB ]] && git cat-file -e "$FFB^{commit}" 2>/dev/null; then
-    export FAST_FAIL_BASE=$FFB; echo "build-apk: fast-fail base ${FFB:0:12}, $FFB_WHAT"
-  else
-    FFB=; echo "build-apk: fast-fail base: none found for $FFB_WHAT — its default (the unpushed commits), NOT since the last build"
-  fi
+  build_ff_base build-apk "$FFB" "$FFB_WHAT"
 fi
 # (T538) THE PRECHECK, before the lock: every failure listed, then one exit
 if [[ -z ${BUILD_APK_INNER:-} ]]; then
@@ -240,9 +231,7 @@ if [[ -z ${BUILD_APK_INNER:-} ]]; then
   [[ -d $JAVA_HOME ]] && ok "JDK ($JAVA_HOME)" || bad "no JDK at JAVA_HOME=$JAVA_HOME: install Android Studio, or set JAVA_HOME"
   [[ -d $ANDROID_HOME ]] && ok "Android SDK ($ANDROID_HOME)" || bad "no Android SDK at ANDROID_HOME=$ANDROID_HOME: Android Studio's SDK Manager, or set ANDROID_HOME"
   VER0=$(node -p "require('./$M/app.json').expo.version")
-  if out=$(node scripts/check-changelog.mjs 2>&1); then ok "$out"
-  elif [[ -n $NONOTES ]]; then ok "changelog: SKIPPED (--no-notes): $NONOTES — $out"
-  else bad "$out (--no-notes=<reason> goes on)"; fi
+  build_check_changelog
   if [[ -n $PLAY && -z $PROD ]]; then
     PUB=$(curl -fsS -A bc-fishing-build-apk "$BASE/play.json" | python3 -c 'import json,sys;print(json.load(sys.stdin)["version"])') \
       || PUB=""
@@ -303,19 +292,9 @@ if [[ -z ${BUILD_APK_INNER:-} ]]; then
 fi
 if [[ -z ${BUILD_APK_INNER:-} ]]; then
   # (T533) CI on HEAD, before the lock: red (or the newest finished run red when HEAD has none) stops; running / no run
-  # warns (scripts/ci_status.py). --no-ci-check=<reason> goes on, printed. A dry run shows it and goes on.
-  if [[ -n $NOCI ]]; then echo "build-apk: CI check SKIPPED (--no-ci-check): $NOCI"; export CI_CHECK_SKIP="build-apk --no-ci-check: $NOCI"
-  # (T995 review) production: --strict (no finished green run at HEAD, or unchanged since one, stops)
-  elif ! .venv/bin/python scripts/ci_status.py ${PROD:+--strict}; then
-    if [[ -n $DRY ]]; then echo "[dry-run] WOULD STOP: CI (above)"
-    else echo "build-apk: CI is red or unreadable (above) — nothing was built; --no-ci-check=<reason> goes on" >&2; exit 1; fi
-  fi
-  # (T535) heavy.sh runs fast-fail before every heavy job: told it ran here (FAST_FAIL_DONE) or why it was skipped
-  if [[ -n $NOFF ]]; then echo "build-apk: fast-fail SKIPPED (--no-fast-fail): $NOFF"; export HEAVY_NO_FAST_FAIL="build-apk --no-fast-fail: $NOFF"
-  elif [[ -n $DRY ]]; then echo "[dry-run] scripts/fast-fail.sh"
-  else scripts/fast-fail.sh || { echo "build-apk: scripts/fast-fail.sh failed (above) — nothing was built" >&2; exit 1; }
-    FAST_FAIL_DONE=$(git rev-parse HEAD); export FAST_FAIL_DONE
-  fi
+  # warns (scripts/ci_status.py); (T995 review) production: --strict (no finished green run at HEAD, or unchanged since
+  # one, stops). Then fast-fail, here: heavy.sh runs none (T661). Both escapes print their reason (build-links.sh).
+  build_gates build-apk ${PROD:+--strict}
 fi
 if [[ -n ${BUILD_APK_INNER:-} && -z $STOCK_MLN && -z $MLN_AAR ]]; then
   echo "build-apk: no patched MapLibre AAR in MLN_LOCAL_MAVEN=$MLN_LOCAL_MAVEN (it was there at the precheck); nothing was built" >&2; exit 1

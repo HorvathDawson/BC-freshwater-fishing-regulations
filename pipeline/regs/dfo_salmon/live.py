@@ -370,9 +370,21 @@ def wording_notices(slug: str, ef, typed: dict) -> List[dict]:
                             "text": f"DFO Region {slug}: new wording in a limits cell, {c!r}, on {where} "
                                     f"({w['sp'] or 'no species'}, {w['d'] or 'all year'}"
                                     f"{', ' + fn.group(0) if fn else ''}): {w['t']!r} — the row shows DFO's words and "
-                                    f"no number until {W.REGISTRY.relative_to(W.REPO_ROOT)} has an entry for "
+                                    f"no number until {_registry_name()} has an entry for "
                                     f"{t!r} (and pipeline/tests/test_dfo_wording.py a line for it)"})
     return out
+
+
+def _registry_name() -> str:
+    """The wording registry as the owner edits it: its repo path in the live tree, also when this process reads a
+    `CURATED_ROOT` copy (a test run's sandbox, T777)."""
+    from pipeline.common.curated import load_repo, sandbox_root
+    from pipeline.regs.dfo_salmon import wording as W
+    live, reg = Path(load_repo().base), Path(W.REGISTRY).resolve()
+    for root in (sandbox_root(), live):
+        if root is not None and reg.is_relative_to(Path(root).resolve()):
+            return (live / reg.relative_to(Path(root).resolve())).relative_to(W.REPO_ROOT).as_posix()
+    return str(reg)                                        # read from a copy this process no longer names: its own path
 
 
 # ── notices ──────────────────────────────────────────────────────────────────────────────────────────────────────────
