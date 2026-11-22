@@ -139,10 +139,12 @@ def test_the_backend_binds_loopback_only():
     ("https://evil.example", None),
 ])
 def test_cors_admits_only_the_vite_origin(env, origin, allowed):
+    # (T994 #2) a browser's request also needs a loopback Host (test_curation_review_origin.py); here it has one
+    loop = {"Host": "127.0.0.1:8787"}
     r = env["client"].options("/api/marks", headers={
-        "Origin": origin, "Access-Control-Request-Method": "POST"})
+        "Origin": origin, "Access-Control-Request-Method": "POST", **loop})
     assert r.headers.get("access-control-allow-origin") == allowed
-    got = env["client"].get("/api/synopsis/pages", headers={"Origin": origin})
+    got = env["client"].get("/api/synopsis/pages", headers={"Origin": origin, **loop})
     assert got.headers.get("access-control-allow-origin") == allowed
 
 

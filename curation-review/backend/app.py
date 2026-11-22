@@ -40,13 +40,48 @@ def _missing_file(_req, ex: FileNotFoundError):
     return JSONResponse(status_code=503, content={"detail": str(ex)})
 #: THE ONLY ORIGIN THE BROWSER MAY CALL FROM: the Vite dev server, which binds 127.0.0.1 only
 #: (`frontend/vite.config.ts`). It proxies `/api`, so the app itself never needs CORS; this is what
-#: stops another page the reviewer has open from reading the review or posting a mark (T96: it was
-#: `*`). `CURATION_VITE_PORT` moves it with Vite's port (a second copy of the tool beside the owner's).
+#: stops another page the reviewer has open from READING the review (T96: it was `*`). CORS does not
+#: stop it SENDING a write: that is `_same_machine_browser_only` below (T994 #2). `CURATION_VITE_PORT` moves it with Vite's port (a second copy of the tool beside the owner's).
 VITE_ORIGIN = f"http://127.0.0.1:{os.environ.get('CURATION_VITE_PORT', '5173')}"
 app.add_middleware(
     CORSMiddleware, allow_origins=[VITE_ORIGIN], allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
 )
+
+#: (T994 #2) CORS stops another page READING an answer, never SENDING the request: a body-less cross-site
+#: `fetch(url, {method: "POST", mode: "no-cors"})` is a "simple" request with no preflight, and it ran
+#: `POST /api/inseason/resolve` (a re-resolve + a staging publish). And a DNS-rebound name reaches 127.0.0.1 with the
+#: attacker's Host. So one check for EVERY request a browser sends (it carries `Origin` or `Sec-Fetch-Site`): the Host
+#: must be loopback, and anything but GET/HEAD/OPTIONS must come from VITE_ORIGIN exactly, the one origin CORS admits
+#: (Vite's proxy rewrites the Host and passes the browser's Origin through). A client that is no browser (curl, the
+#: tests) is a local process, which can write the files itself. A refusal is a 403 that says why, and is logged.
+_LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "[::1]"}
+_SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
+
+
+def browser_refusal(method: str, headers) -> str | None:
+    """Why this request is refused (T994 #2), or None. `headers` is any case-insensitive mapping."""
+    origin = headers.get("origin")
+    if origin is None and headers.get("sec-fetch-site") is None:
+        return None                                        # not a browser: a local process
+    host = (headers.get("host") or "").lower()
+    name = host.rsplit(":", 1)[0] if not host.startswith("[") else host.split("]", 1)[0] + "]"
+    if name not in _LOOPBACK_HOSTS:
+        return f"Host {host or '(none)'!r} is not this machine's loopback (a rebound name?)"
+    if method.upper() not in _SAFE_METHODS and origin != VITE_ORIGIN:
+        return f"a {method.upper()} from Origin {origin!r}: only the review app ({VITE_ORIGIN}) may write"
+    return None
+
+
+@app.middleware("http")
+async def _same_machine_browser_only(request, call_next):
+    why = browser_refusal(request.method, request.headers)
+    if why is not None:
+        import logging
+        from fastapi.responses import JSONResponse
+        logging.getLogger("uvicorn.error").warning("REFUSED %s %s: %s", request.method, request.url.path, why)
+        return JSONResponse({"detail": f"refused (T994 #2): {why}"}, status_code=403)
+    return await call_next(request)
 
 
 @app.middleware("http")
