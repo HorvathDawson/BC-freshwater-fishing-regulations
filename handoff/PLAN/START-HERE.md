@@ -2,6 +2,16 @@
 
 One page, one pointer (T437): a new chat reads, in order,
 
+0. **Reports first, every chat** (owner 2026-11-22: "always look for more reports on Apple external test, feed
+   worker, etc."). All read-only; compare with the last "Store checks" line in `OWNER-TODO.md`; anything no ticket
+   names becomes a ticket (record the report id / crash hash in it), then add a new "Store checks" line. Until T1006
+   makes this one command:
+   - in-app reports and crashes, production and staging:
+     `curl -s -H "Authorization: Bearer $(cat app/workers/feeds/.run-token.prod)" "https://feeds.canifishthis.ca/reports?since=YYYY-MM-DD"`
+     (and `/crashes?since=`; staging: `https://bc-fishing-feeds-staging.horvath-dawson.workers.dev` with `.run-token`);
+   - TestFlight tester feedback: `node deploy/staging/testflight-feedback.mjs --days 14`;
+   - TestFlight external review state: `node deploy/staging/testflight-distribute.mjs --dry-run --max-wait-min 1`;
+   - Google Play reviews and closed-testing feedback: no reader yet (T1006); ask the owner if any came in.
 1. `AGENTS.md` (every rule), then `CLAUDE.md`.
 2. The newest restart page: **`handoff/PLAN/NEXT-SESSION-2026-11-21-ci-chat.md`** (written 2026-11-21 23:25: build/CI
    streamlining chat (T993, T978, T994, T995); wave 1 merged; next: T995 branch switch, wave 2).
