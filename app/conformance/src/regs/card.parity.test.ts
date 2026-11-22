@@ -32,11 +32,7 @@ const project = (m: CardModel): PageOracleState["model"] => ({
   R: Object.fromEntries(Object.entries(m.R).map(([k, v]) => [k, { H: res(v.H), W: res(v.W) }])),
 });
 
-it("the oracle: page v38's code over the paired release, every tapped golden state, YEAR 2026", () => {
-  expect([O.meta.version, O.meta.year]).toEqual(["v38", 2026]);
-  expect(Object.keys(O.states)).toEqual(ids);
-});
-
+// (T866) the oracle's own meta (version, year, every tapped state) is pinned once, in settle.parity.test.ts
 it(`T08 card parity runs against a paired release${pairing.skip ? ` — SKIPPED: ${"reason" in pairing ? pairing.reason : pairing.fail}` : ""}`, () => {
   if (pairing.fail) expect.fail(pairing.fail);
   if ("reason" in pairing) console.warn(`T08 card parity skipped: ${pairing.reason}`);
