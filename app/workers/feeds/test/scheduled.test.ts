@@ -125,3 +125,55 @@ describe("the gauge schedule and ECCC's day turn", () => {
     expect(dayTurn(at("2026-11-11T00:05:00Z"), 0, ["A", "B"], all404, undefined)).toBe(false);
   });
 });
+
+// (T485 step 3) runTimingCheck's wiring, through POST /run/runtiming: the monthly refresh is asked only after a clean
+// "nothing newer", and an unreadable fetch date is told as its own failure.
+describe("POST /run/runtiming → the monthly sources refresh wiring (T485)", () => {
+  afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+  const run = async (nuseds: "newer" | "same" | "down", fetched: string) => {
+    const calls: { url: string; body: string }[] = [];
+    vi.stubGlobal("fetch", async (u: string | URL | Request, init?: RequestInit) => {
+      const url = String(u instanceof Request ? u.url : u);
+      calls.push({ url, body: String(init?.body ?? "") });
+      if (url.includes("open.canada.ca")) {
+        if (nuseds === "down") return new Response("down", { status: 503 });
+        return Response.json({ result: { resources: [{ name: `All Areas NuSEDS_${nuseds === "newer" ? "20270101" : "20260601"}.zip` }] } });
+      }
+      return new Response(null, { status: 204 });
+    });
+    const BUCKET = new MemBucket();
+    BUCKET.m.set("runtiming/index.json", JSON.stringify({ sources: { dfo: { updated: "20260601" } } }));
+    BUCKET.m.set("private/runtiming/src/FETCHED", fetched);
+    const res = await worker.fetch(new Request("https://w/run/runtiming", { method: "POST", headers: { Authorization: "Bearer tok" } }),
+      { BUCKET, RUN_TOKEN: "tok", GITHUB_DISPATCH_TOKEN: "g", FEED_NOTIFY_URL: "https://hook.example/feeds" } as never);
+    const hook = calls.filter((c) => c.url.startsWith("https://hook.example/")).map((c) => c.body).join("\n");
+    const starts = calls.filter((c) => c.url.includes("/dispatches"));
+    return { status: res.status, hook, starts, BUCKET };
+  };
+
+  it("a new NuSEDS starts its own run only; the stale kept copy is not asked for a second refresh", async () => {
+    const r = await run("newer", "2020-01-01");
+    expect(r.status).toBe(200);
+    expect(r.starts).toHaveLength(1);
+    expect([...r.BUCKET.m.keys()].some((k) => k.startsWith("private/feeds/dispatch-refresh/"))).toBe(false);
+  });
+  it("a failed NuSEDS check skips the refresh (open.canada.ca is down), even over an unreadable fetch date", async () => {
+    const r = await run("down", "soon");
+    expect(r.status).toBe(500);
+    expect(r.starts).toHaveLength(0);
+    expect(r.hook).toContain("run-timing source check failed");
+    expect(r.hook).not.toContain("sources refresh check failed");
+  });
+  it("nothing newer and a stale copy: the refresh starts", async () => {
+    const r = await run("same", "2020-01-01");
+    expect(r.status).toBe(200);
+    expect(r.starts).toHaveLength(1);
+    expect(r.starts[0]!.body).toContain('"refresh":"true"');
+  });
+  it("nothing newer and an unreadable fetch date: told as a refresh-check failure, 500, nothing started", async () => {
+    const r = await run("same", "soon");
+    expect(r.status).toBe(500);
+    expect(r.starts).toHaveLength(0);
+    expect(r.hook).toContain("sources refresh check failed");
+  });
+});

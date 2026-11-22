@@ -214,5 +214,19 @@ jobs:
       - name: 7/7 upload to R2 (files, then index.json last) — only a real change
         if: env.UPLOAD == 'true' && env.CHANGED == 'true'
         run: |
+          # (T485 step 3) a run with no `tiles` input (the worker's monthly refresh, a new-NuSEDS start) bound to whatever
+          # release/manifest.json named at step 1; queued behind a release's own run it may have read the OLD pointer.
+          # Before publishing, read it again: if the tiles moved, refuse (the run fails, loudly) rather than publish run
+          # timing for the old tiles after the flip. Start the run again: it binds to the new release.
+          if [ -z "$TILES_IN" ]; then
+            aws s3 cp "s3://$BUCKET/release/manifest.json" /tmp/manifest-now.json --endpoint-url "$R2_ENDPOINT" --only-show-errors \
+              || { echo "::error::could not re-read release/manifest.json before publishing"; exit 1; }
+            NOW=$(python -c 'import json; print(json.load(open("/tmp/manifest-now.json"))["tiles"]["current"]["id"])')
+            if [ "$NOW" != "$TILES" ]; then
+              echo "::error::the release moved while this run was bound: tiles were $TILES at step 1, now $NOW. Nothing published; start the run again"
+              echo "Refused: the live tiles moved from $TILES to $NOW during the run; nothing was published." >> "$GITHUB_STEP_SUMMARY"
+              exit 1
+            fi
+          fi
           python -m pipeline.runtiming.feed.publish --dir "$W/out/runtiming" --via aws --bucket "$BUCKET" --yes
           echo "Uploaded run timing (atlas $HANDLES) to $BUCKET/runtiming/." >> "$GITHUB_STEP_SUMMARY"
