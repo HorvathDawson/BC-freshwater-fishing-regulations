@@ -23,18 +23,22 @@ from pipeline.common.curated import REPO_ROOT
 from pipeline.tests import under_test
 
 PY = sys.executable
+#: (T777) the tests' own folder in the repo (`/.test-scratch/` is git-ignored)
+SCRATCH = REPO_ROOT / ".test-scratch"
 
 
 @pytest.fixture
 def scratch():
-    d = REPO_ROOT / "data" / "generated" / f".stepcache-test-{uuid.uuid4().hex[:8]}"
+    # inside the repo (the tracer skips the temp dir), never in data/generated (T777: a no-data test writes no real tree)
+    d = SCRATCH / f"stepcache-test-{uuid.uuid4().hex[:8]}"
     d.mkdir(parents=True)
     yield d
     shutil.rmtree(d, ignore_errors=True)
 
 
 def rel(p: Path) -> str:
-    return str(p.relative_to(REPO_ROOT))
+    """A path as the cache keys it: repo-relative, or absolute outside the repo (T777: the suite's curated sandbox)."""
+    return SC._rel(str(p))
 
 
 #: a stand-in step: reads src, probes `probe`, lists `listed`, reads <staging>/in.txt when there; writes out.txt.
@@ -151,7 +155,8 @@ def test_access_lexists_are_probes_and_fd_relative_events_are_refused_loudly(wor
 def test_a_dangling_symlink_is_a_kind_of_its_own():
     """`lexists` sees a symlink to nothing; its appearing must move the key though `exists` stays False."""
     from pipeline import _trace
-    p = REPO_ROOT / "data" / "generated" / f".dangling-{uuid.uuid4().hex[:6]}"
+    SCRATCH.mkdir(exist_ok=True)
+    p = SCRATCH / f".dangling-{uuid.uuid4().hex[:6]}"
     try:
         assert _trace.kind(str(p)) == "missing"
         p.symlink_to(p.with_name("nowhere-" + p.name))

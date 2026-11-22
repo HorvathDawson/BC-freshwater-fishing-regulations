@@ -78,21 +78,16 @@ def need(request_or_node, kind: str, path, hint: str) -> Path:
 
 
 def sandbox_tree(dst: Path, *, fresh_review: bool = True) -> Path:
-    """T422: a whole copy of the live curated tree at `dst` (`curated.make_root`). `fresh_review` (the default) makes
-    it a review with nothing in it, as the per-file temp stores were: the marks store empty, no closed list
-    (`CURATED.review.closed` absent = nothing closed) and no closed-areas file (`dfo_salmon/closed_areas.json` is
-    written from the marks alone and born with the first confirm, so with no marks it is absent — a copy of the live
-    one would be rows no mark in the empty store explains). Returns the root."""
+    """T422: a whole copy of this process's curated tree at `dst` (`curated.make_root`): in a test run that is the
+    session sandbox (`machine_state`, T777: the tracked files, review empty), for a data test the live tree.
+    `fresh_review` (the default) makes it a review with nothing in it, as the per-file temp stores were: the marks store
+    empty, no closed list (`CURATED.review.closed` absent = nothing closed) and no closed-areas file
+    (`dfo_salmon/closed_areas.json` is written from the marks alone and born with the first confirm, so with no marks it
+    is absent — a copy of the live one would be rows no mark in the empty store explains). Returns the root."""
     from pipeline.common import curated as C
+    from pipeline.tests.machine_state import fresh_review as _fresh
     root = C.make_root(dst)
-    if fresh_review:
-        live = C.load_repo()
-        (root / Path(live.review.marks).relative_to(live.base)).write_text("", encoding="utf-8")
-        (root / Path(live.review.closed).relative_to(live.base)).unlink(missing_ok=True)
-        # where `review.closed_areas.path()` puts it: beside the places files
-        (root / Path(live.dfo_salmon.places).relative_to(live.base)).parent.joinpath("closed_areas.json").unlink(
-            missing_ok=True)
-    return root
+    return _fresh(root) if fresh_review else root
 
 
 def curated_root(mp: pytest.MonkeyPatch, dst: Path, *, fresh_review: bool = True) -> Path:

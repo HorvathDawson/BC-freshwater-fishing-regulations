@@ -24,6 +24,8 @@ from pathlib import Path
 
 import pytest
 
+from pipeline.tests import under_test
+
 from pipeline.common.curated import CURATED
 from pipeline.tests.conftest import curated_root
 from pipeline.regs.review import apply_proposals as A
@@ -100,7 +102,7 @@ PRE_T324 = (("data/curated/regulations/synopsis/", "data/curated/regulations/ent
 
 def _as_marked(path: Path, dst: Path) -> None:
     """`path` as it stood at MARKED_AT (the files the proposals were built from)."""
-    rel = Path(path).resolve().relative_to(P.REPO.resolve()).as_posix()
+    rel = under_test.repo_path(path)
     for now, then in PRE_T324:            # MARKED_AT predates the T324 naming pass: ask for the file by its old name
         if rel.startswith(now):
             rel = then + rel[len(now):]
@@ -425,7 +427,7 @@ T524_AT = "355ef4cc8"
 
 
 def _at_t524(path: Path, dst: Path) -> None:
-    rel = Path(path).resolve().relative_to(P.REPO.resolve()).as_posix()
+    rel = under_test.repo_path(path)
     dst.write_bytes(subprocess.run(["git", "show", f"{T524_AT}:{rel}"], cwd=P.REPO, capture_output=True,
                                    check=True).stdout)
 
@@ -643,7 +645,7 @@ def test_a_side_directory_never_merges_two_ids_alike_in_their_first_40_character
     assert P._slug(long_a, 40) == P._slug(long_b, 40), "the bare cut is the same for both: the hash is what tells them apart"
 
 
-def test_a_withdrawn_cut_proposal_is_not_built_and_is_listed_as_withdrawn():
+def test_a_withdrawn_cut_proposal_is_not_built_and_is_listed_as_withdrawn(tmp_path):
     """T589 (the Allco fence): `proposal_overrides.json` could only set a confidence — a cut the owner replaced stayed a
     proposal for ever. `withdrawn` takes it out of every reader (`marks.amend`) and `withdrawn_groups` lists it."""
     cut = {"ref": "fence", "anchor": "coord", "name": "the hatchery fence", "on_item": "gnis:1", "coord": [-122.5, 49.2]}
@@ -666,6 +668,10 @@ def test_a_withdrawn_cut_proposal_is_not_built_and_is_listed_as_withdrawn():
     # and on the withdrawn list; nothing else is withdrawn
     ov = M.load_overrides(CURATED.review.proposal_overrides)
     assert [o.match.ref for o in ov if o.withdrawn] == ["alouette_river__allco_park_boundary_signs_allco_hatchery_fence"]
-    real = M.proposal_groups(M.load(CURATED.review.marks))
+    # (T777) the owner's marks as COMMITTED (git HEAD): the suite's curated tree has an empty review
+    committed = tmp_path / "marks.jsonl"
+    committed.write_bytes(subprocess.run(["git", "show", f"HEAD:{under_test.repo_path(CURATED.review.marks)}"],
+                                         cwd=P.REPO, capture_output=True, check=True).stdout)
+    real = M.proposal_groups(M.load(committed))
     allco = "alouette_river__allco_park_boundary_signs_allco_hatchery_fence"
     assert allco not in [g["id"] for g in M.amend(real, ov)] and [g["id"] for g in M.withdrawn_groups(real, ov)] == [allco]

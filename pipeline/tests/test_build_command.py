@@ -305,10 +305,12 @@ def test_the_marks_are_in_no_stage_key(monkeypatch):
     assert opened and not [p for p in opened if any(p == x or x in p.parents for x in nb)]
 
 
-def test_the_curated_tree_loads_without_the_marks_store(tmp_path):
-    """T266: a build runs with marks.jsonl absent — the curated model no longer requires it to exist."""
+def test_the_curated_tree_loads_without_the_marks_store(tmp_path, monkeypatch):
+    """T266: a build runs with marks.jsonl absent — the curated model no longer requires it to exist. The config is
+    loaded as a build loads it: on its own paths, no `CURATED_ROOT` (the suite's sandbox would rebase them, T777)."""
     import yaml
     from pipeline.common import curated as C
+    monkeypatch.delenv(C.ROOT_ENV, raising=False)
     blob = yaml.safe_load(C.CONFIG.read_text(encoding="utf-8"))
     gone = tmp_path / "no-marks.jsonl"
     blob["curated"]["review"]["marks"] = str(gone)

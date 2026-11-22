@@ -206,9 +206,32 @@ def release(request=None) -> Path:
 
 # ---------------------------------------------------------------------------------------------------------- the whole trees
 def curated():
-    """THE LIVE CURATED TREE, read in place and never written (it is in git, so no marker): `curated().waters.cuts`.
-    A test that WRITES curated data sandboxes it instead (`conftest.curated_root`)."""
+    """THE CURATED TREE UNDER TEST, read in place and never written (it is in git, so no marker):
+    `curated().waters.cuts`. For a no-data test it is the session sandbox (`machine_state`, T777: the tracked files as
+    this checkout has them, review empty); for a data test (a `needs_*` marker) the live tree. A test that WRITES
+    curated data sandboxes it instead (`conftest.curated_root`)."""
     return CURATED
+
+
+def repo_path(path) -> str:
+    """(T777) The repo-relative name (`data/curated/waters/cuts.json`) of a file in the curated tree under test — the
+    session sandbox's copy is named by the live file it copies — or of any other file in the repo. For what is asked of
+    git (`git show <commit>:<path>`) and for messages; it is a name, never a read of the live file."""
+    from pipeline.common.curated import load_repo
+    p, base = Path(path).resolve(), Path(CURATED.base).resolve()
+    if p == base or base in p.parents:
+        p = Path(load_repo().base).resolve() / p.relative_to(base)
+    return p.relative_to(Path(REPO_ROOT).resolve()).as_posix()
+
+
+def committed(rel: str) -> Path:
+    """(T777) A committed data file by its repo path (`"data/curated/waters/cuts.json"`): a curated one in the curated
+    tree under test (the sandbox for a no-data test), any other in the checkout."""
+    from pipeline.common.curated import load_repo
+    live = Path(load_repo().base).resolve().relative_to(Path(REPO_ROOT).resolve()).as_posix()
+    if rel == live or rel.startswith(live + "/"):
+        return Path(CURATED.base) / rel[len(live):].lstrip("/")
+    return Path(REPO_ROOT) / rel
 
 
 def generated():

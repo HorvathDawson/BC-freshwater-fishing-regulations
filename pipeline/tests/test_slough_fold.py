@@ -195,12 +195,22 @@ def test_load_round_trips_and_refuses_a_missing_file(tmp_path):
         SC.load(tmp_path / "nope.json")
 
 
-def test_the_committed_file_is_apply_of_the_marks():
-    """`--check`: data/curated/waters/slough_calls.json == apply(the slough marks' decisions, in memory)."""
-    from pipeline.tests import under_test
+def test_the_committed_file_is_apply_of_the_marks(tmp_path):
+    """`--check`: data/curated/waters/slough_calls.json == apply(the slough marks' decisions, in memory). (T777) Both
+    sides as COMMITTED (git HEAD: the marks store, its closed list and the calls file, as a fresh clone has them): the
+    suite's curated tree has an empty review, and the owner's unsaved marks are not this test's to read."""
+    import subprocess
+    from pathlib import Path
+    from pipeline.common.curated import REPO_ROOT, load_repo
     from pipeline.regs.review import export as E
-    rows, _ = SC.build(E.load())
-    assert under_test.curated().waters.slough_calls.read_text(encoding="utf-8") == SC.document(rows)
+    live = load_repo()
+    for key, name in ((live.review.marks, "marks.jsonl"), (live.review.closed, "closed.json"),
+                      (live.waters.slough_calls, "slough_calls.json")):
+        rel = Path(key).resolve().relative_to(Path(REPO_ROOT).resolve()).as_posix()
+        (tmp_path / name).write_bytes(subprocess.run(["git", "show", f"HEAD:{rel}"], cwd=REPO_ROOT, capture_output=True,
+                                                     check=True).stdout)
+    rows, _ = SC.build(E.load(tmp_path / "marks.jsonl"))
+    assert (tmp_path / "slough_calls.json").read_text(encoding="utf-8") == SC.document(rows)
     assert len(rows) == 811
 
 
