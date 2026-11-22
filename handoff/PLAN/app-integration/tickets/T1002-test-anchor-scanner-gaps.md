@@ -18,6 +18,10 @@ Source: T768 / T993 plan item 10 (`audit-2026-11-21/t993-inventory.md`, 0.8.5 st
 3. **Part numbers after a short-named slot.** The in-text rule needs a slot named `part` / `partIx` / `part_ix` with
    3+ letters before it. `onPart={(i, p) => calls.push(\`part ${i} ${p}\`)}` (`WaterMapView.test.tsx`) let
    "part gnis:8634 4" through. The part-end proof found it, not the scanner (fixed in 1716bcb87).
+4. **More `absent` spellings** (T768 review, 2026-11-22; f89b7b093 added four): `Object.keys(x)` checked with
+   `.toHaveLength(n)`, keys read through a variable, and `expect.not.objectContaining`.
+5. **PROVENANCE is too wide:** it excuses all of `tools/regs-fixture.test.ts` from the part-end proof's count, not just
+   its byte-rebuild test. Narrow it to that test's name.
 
 ## Done when
 Each of the three has either a rule with an accepted case and a near-miss test (the header's protocol), or a stated,
