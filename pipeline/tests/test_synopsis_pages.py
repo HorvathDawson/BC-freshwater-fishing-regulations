@@ -10,14 +10,14 @@ from __future__ import annotations
 
 import json
 import re
-from pathlib import Path
 
 import pytest
 
 from pipeline.common import synopsis_pages as SP
+from pipeline.tests import under_test
 
-ROOT = Path(__file__).resolve().parents[2]
-CATALOGUE = ROOT / "data" / "curated" / "regulations" / "synopsis"
+#: (T777) the catalogue in the curated tree under test (the session sandbox), never the live files in place
+CATALOGUE = under_test.curated().regulations.synopsis
 
 # The synopsis PDF is tracked in git: a missing PDF fails (`test_the_pdf_is_there`), never skips.
 

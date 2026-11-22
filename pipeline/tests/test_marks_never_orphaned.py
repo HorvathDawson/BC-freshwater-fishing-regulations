@@ -398,11 +398,33 @@ def test_a_historic_only_place_is_its_own_item_with_its_dormant_rewordings():
     assert not B.historic_only(locs["north"][1], set())        # a water off the live page: archived
 
 
+#: (T777) a DFO mark whose extent fix holds a NEW point anchored by the registry ("Quinsam River", gnis:27883)
+QUINSAM_MARK = {
+    "scope": "dfo", "target": "1:campbell-river:downstream-of-the-confluence-with", "rule_id": None,
+    "verdict": "unsure", "answers": {"T": "y", "R": "y", "P": "?"}, "problem": None, "note": "", "reviewer": "dawson",
+    "date": "2026-10-26", "pdf_sha256": SHA, "pages": [],
+    "prints": {"text": "Campbell River\ndownstream of the confluence with the Quinsam River",
+               "records": [{"key": "entry", "meaning": "0123456789abcdef", "binding": "fedcba9876543210",
+                            "reach": None, "answer": None}]},
+    "carried_by": None, "seconds": 62.2,
+    "extent_fix": [{"scope": "entry", "op": "downstream_of",
+                    "points": [{"kind": "new", "split_id": "n3", "name": None, "item_id": None, "coord": None}],
+                    "items": ["gnis:39532"], "tributaries": None, "area": None}],
+    "new_splits": [{"ref": "n3", "anchor": "confluence", "name": "Quinsam River", "item_id": "gnis:27883",
+                    "split_id": None, "on_item": "gnis:39532", "coord": [-125.294097, 50.037899], "blk": "354154635",
+                    "measure": 4199.5, "side": None, "offset_m": None,
+                    "quote": "downstream of the confluence with the Quinsam River", "note": ""}]}
+
+
 def test_applied_keys_names_a_missing_build_instead_of_calling_marks_moved(tmp_path):
     """(T421) The live marks hold new points anchored by the registry (the Campbell's "Quinsam River"). With no build,
     `applied_keys` used to fall back to the stamped point, call every such mark "binding moved" and say nothing; now it
-    refuses, naming the registry it could not read. Curated marks only (in git): no build needed to prove it."""
-    marks = M.load(Path(under_test.curated().review.marks))
+    refuses, naming the registry it could not read. No build needed to prove it. (T777) The mark is this test's own,
+    frozen from the owner's 2026-10-26 Campbell mark: the suite's curated tree has an empty review, so the live marks
+    store (which moves with every save) is no longer what this stands on."""
+    store = tmp_path / "marks.jsonl"
+    store.write_text(json.dumps(QUINSAM_MARK) + "\n", encoding="utf-8")
+    marks = M.load(store)
     with pytest.raises(FileNotFoundError, match="registry"):
         P.applied_keys(marks, P.Sources.live(build=tmp_path / "no-build"))
 

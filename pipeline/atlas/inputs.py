@@ -243,7 +243,10 @@ def _git(*args: str) -> str:
 
 def git_proof(path: Path, build_ts: float) -> str | None:
     """Why `path` cannot have changed since `build_ts` by git, or None when it is not proven: tracked, clean, and its
-    last commit before the build."""
+    last commit before the build. Refused under a `CURATED_ROOT` copy: git proves the live files only (T777: the refusal
+    sits here, on the step that needs the live tree, so a test that stubs the proof runs the backfill on its sandbox)."""
+    if os.environ.get("CURATED_ROOT"):
+        raise SystemExit("inputs: --backfill proves files by git: run it on the live tree (unset CURATED_ROOT)")
     try:
         rel = str(Path(path).resolve().relative_to(REPO_ROOT))
     except ValueError:
@@ -264,8 +267,6 @@ def backfill(build_dir: Path, *, log=print) -> tuple[dict[str, str], list[str]]:
     missing = [k for k in ATLAS_INPUTS if k not in have]
     if not missing:
         raise SystemExit(f"inputs: {build_dir / META} already records its inputs — nothing to backfill")
-    if os.environ.get("CURATED_ROOT"):
-        raise SystemExit("inputs: --backfill proves files by git: run it on the live tree (unset CURATED_ROOT)")
     ts = float(meta["build_ts"])
     from pipeline.atlas.splits.splits import read_anchor_record, anchor_digests
     now = digests()

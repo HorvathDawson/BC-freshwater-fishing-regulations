@@ -528,6 +528,8 @@ def test_a_dead_piece_says_why_in_plain_words_and_names_the_cut_to_pick(monkeypa
         "b_up": ("b", NS(label="100 m up the upper Bulkley")), "b_far": ("b", NS(label="Quick bridge"))})
     monkeypatch.setattr(BD.reuse, "_split_point", lambda s: {"m_conf": Point(0, 0), "b_conf": Point(1, 0), "b_up": Point(90, 0),
                                                             "b_far": Point(9000, 0)}[s])
+    # (T777) and no resolved cuts file: the cut names are the stand-in boundaries' labels, never the served atlas's
+    monkeypatch.setattr(BD.reuse, "_splits_meta", lambda: {})
     piece = lambda a, b, items: M.ExtentFix(scope="entry", op="between", items=items, tributaries=None,   # noqa: E731
                                             points=[{"kind": "split", "split_id": a}, {"kind": "split", "split_id": b}])
     fixes = [piece("m_conf", "m_conf", ["m"]), piece("m_conf", "b_up", ["b"])]

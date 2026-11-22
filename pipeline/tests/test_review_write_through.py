@@ -21,13 +21,13 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import CURATED
+from pipeline.common.curated import CURATED, load_repo
 from pipeline.regs.review import apply as AP
 from pipeline.regs.review import closed as C
 from pipeline.regs.review import export as E
 from pipeline.regs.review import marks as M
 from pipeline.regs.review import proposals as P
-from pipeline.tests.conftest import curated_root
+from pipeline.tests.conftest import curated_root, no_served_build
 
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
@@ -77,6 +77,7 @@ def wt(tmp_path, monkeypatch):
         json.dump({"candidates": [{"id": r["id"], "outline": [[-120, 50], [-120.001, 50.001], [-120, 50]]}
                                   for r in SLOUGHS]}, f)
     (tmp_path / "cands.json").write_text(json.dumps({"candidates": NAMES}))
+    no_served_build(monkeypatch, tmp_path)  # (T777) the app serves no atlas, as on CI
     curated_root(monkeypatch, tmp_path / "curated")           # T422: the whole curated tree, its marks store empty
     store = Path(CURATED.review.marks)
     for k, v in {"CURATION_SLOUGH_AUTOMARK": "automark.json",
@@ -534,7 +535,8 @@ def test_write_through_is_off_over_a_temp_store_unless_asked(tmp_path, monkeypat
     import write_through as W
     monkeypatch.delenv("CURATION_WRITE_THROUGH", raising=False)
     assert not W.from_env(tmp_path / "marks.jsonl", tmp_path).enabled
-    assert W.from_env(Path(CURATED.review.marks), tmp_path).enabled
+    # the LIVE store's path (named, never read; T777: the suite's own `CURATED` is a sandbox)
+    assert W.from_env(Path(load_repo().review.marks), tmp_path).enabled
     curated_root(monkeypatch, tmp_path / "curated")           # T422: a sandbox's store is not the live one
     assert not W.from_env(Path(CURATED.review.marks), tmp_path).enabled
     monkeypatch.delenv("CURATED_ROOT")
@@ -557,6 +559,7 @@ def app_env(tmp_path):
            "rings": [[[-125, 55], [-125.001, 55.001], [-125, 55]]], "lines": []}
     sample.write_text(json.dumps({"cutoff": {"max_ha": 1.0}, "rows": [{**row, "id": "lake:1"}, {**row, "id": "lake:2"}]}))
     mp = pytest.MonkeyPatch()
+    no_served_build(mp, tmp_path)  # (T777) the app serves no atlas, as on CI
     curated_root(mp, tmp_path / "curated")                    # T422: the whole curated tree, nothing closed
     store = Path(CURATED.review.marks)
     store.write_text("".join(M.line(m) for m in (_pond("lake:1"), _pond("lake:2"))))
@@ -606,8 +609,14 @@ def test_closing_one_domain_moves_no_other_decision(tmp_path):
     assert [m for m in a.inforce if m.scope != "q154"] == list(b.inforce) and a.groups == b.groups
 
 
-def test_only_ponds_are_closed_in_the_curated_list():
-    got = C.entries()
+def test_only_ponds_are_closed_in_the_curated_list(tmp_path):
+    """The committed closed list (T777: read from git at HEAD, as a fresh clone has it; the suite's curated tree has an
+    empty review, and the owner's unsaved closes are not this test's to pin)."""
+    rel = Path(load_repo().review.closed).resolve().relative_to(REPO).as_posix()
+    committed = tmp_path / "closed.json"
+    committed.write_bytes(subprocess.run(["git", "show", f"HEAD:{rel}"], cwd=REPO, capture_output=True,
+                                         check=True).stdout)
+    got = C.entries(committed)
     assert set(got) == {"ponds", "proposals"} and got["ponds"]["scopes"] == ["q154"] and got["ponds"]["final"] is None
     assert got["proposals"]["scopes"] == ["proposal"] and got["proposals"]["final"] is None   # T331 item 6
     assert C.path() == Path(CURATED.review.marks).parent / "closed.json"
