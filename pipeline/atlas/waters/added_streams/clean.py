@@ -17,7 +17,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Optional
-from pipeline.common.curated import SOURCE, generated
+from pipeline.common.curated import SOURCE
 
 #: The raw municipal exports — FETCHED from four city open-data portals, so they live with
 #: every other fetched thing. They are TRACKED in git despite being source: they are small
@@ -25,8 +25,8 @@ from pipeline.common.curated import SOURCE, generated
 #: bound to them are an ABI — a re-download that returned something slightly different
 #: would remint 361 streams and strand every split pointing at the old ones.
 _DATA = SOURCE / "municipal"
-#: `clean.py`'s output is a pure function of the raw, so it is generated, not curated.
-_CLEANED = generated("municipal", "cleaned").parent
+#: `clean.py`'s output is a pure function of the raw, so it is generated, not curated. (T777) Nothing here names its
+#: folder any more: an unused `_CLEANED = generated(...)` made `data/generated/municipal` on every import.
 
 _JUNK_NAMES = {"", "hide", "na", "n/a", "none", "null", "unnamed"}
 

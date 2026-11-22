@@ -71,7 +71,7 @@ SITE_ORIGIN = "https://staging.canifishthis.ca"
 #                  regions again until read, at most 12 tries after a regular run (T851; src/index.ts `dfoRetry`)
 #   :25 backup   daily 09 UTC (T246)
 #   :55 model score  monthly, the 1st at 10:55 UTC (02:55 PST): CLEVER vs COFFEE on the month that closed (T178)
-#   :40 run timing   weekly, Monday 10:40 UTC: a newer NuSEDS starts feeds-runtiming.yml (T412; src/runtiming.ts)
+#   :40 run timing   weekly, Monday 10:40 UTC: a newer NuSEDS, or kept sources 30 days old (T485 step 3), starts feeds-runtiming.yml (T412; src/runtiming.ts)
 # HYDAT (a new release, asked once a day) and ECCC roster drift are checked inside the gauge run — no cron of their own.
 # Status: GET /status on the worker; stale = no success for 2.5 cadences (gauges 30 min by day, 60 min at night).
 [triggers]

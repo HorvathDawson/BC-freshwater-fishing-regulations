@@ -128,7 +128,10 @@ def test_strict_needs_a_green_run_at_the_sha_or_an_unchanged_area_since_one():
     assert CI.check(HEAD, runs_of=fake({**green, "docs-ci.yml": []}))[0] == 0
 
 
-def test_the_production_apk_build_asks_strictly():
-    text = (ROOT / "deploy/staging/build-apk.sh").read_text()
-    assert ".venv/bin/python scripts/ci_status.py ${PROD:+--strict}" in text
+def test_the_production_store_builds_ask_strictly():
+    """(T993 plan 5) both store builds ask through the one gate (deploy/lib/build-links.sh build_gates), --strict for
+    production; the iPhone build's is also run in test_staging_scripts_fail_safe.py."""
+    assert '.venv/bin/python scripts/ci_status.py ${strict:+"$strict"}' in (ROOT / "deploy/lib/build-links.sh").read_text()
+    for build in ("build-apk", "build-ios-testflight"):
+        assert f"build_gates {build} ${{PROD:+--strict}}" in (ROOT / f"deploy/staging/{build}.sh").read_text(), build
 

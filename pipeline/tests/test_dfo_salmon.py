@@ -2409,15 +2409,17 @@ def test_a_repaired_window_is_published_repaired():
     assert not rules[0].review_reason
 
 
+@pytest.mark.needs_source
 def test_a_row_that_says_per_day_always_yields_a_quota():
     """`_QUALIFIER` is a CLOSED vocabulary of the words DFO puts between the count and "per day".
     That is deliberate — a wildcard would read "no more than 2 fish per day" as a limit of 2 —
     but it means a new wording silently drops a quota, which is exactly what "4 hatchery marked
     ONLY per day" did. This is the tripwire: if DFO invents a qualifier, this fails rather than
-    publishing a water with no limit."""
+    publishing a water with no limit. (T777) It reads the scraped rules: a data test (on CI it found no
+    rules folder and passed on nothing)."""
     from pipeline.regs.dfo_salmon.typed import decode
 
-    rules_dir = Path(under_test.generated().regs.dfo_salmon) / "rules"
+    rules_dir = need(None, "source", Path(under_test.generated().regs.dfo_salmon) / "rules", DFO_FEED_HINT)
     missed = []
     for path in sorted(rules_dir.glob("region-*.json")):
         for rec in json.loads(path.read_text(encoding="utf-8"))["rules"]:
@@ -2427,11 +2429,12 @@ def test_a_row_that_says_per_day_always_yields_a_quota():
     assert not missed, f"a quota the decode cannot read: {missed}"
 
 
+@pytest.mark.needs_source
 def test_a_row_that_states_a_size_always_binds_it():
-    """Same tripwire for the size sub-limit wordings, of which DFO uses at least six."""
+    """Same tripwire for the size sub-limit wordings, of which DFO uses at least six. (T777) A data test, as above."""
     from pipeline.regs.dfo_salmon.typed import to_rules
 
-    rules_dir = Path(under_test.generated().regs.dfo_salmon) / "rules"
+    rules_dir = need(None, "source", Path(under_test.generated().regs.dfo_salmon) / "rules", DFO_FEED_HINT)
     missed = []
     for path in sorted(rules_dir.glob("region-*.json")):
         for i, rec in enumerate(json.loads(path.read_text(encoding="utf-8"))["rules"]):

@@ -156,6 +156,10 @@ def world(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(R, "classified_problems", lambda rid: w["classified_problems"])
     w["atlas_behind"] = []
     monkeypatch.setattr(R, "atlas_behind", lambda: list(w["atlas_behind"]))
+    # (T777) the dry run's informational review line reads the served atlas's registry and the corpus on disk
+    # (`pending.pending_on_disk`, pinned in test_curation_review_vintage.py): this world has nothing waiting on a rebuild
+    from pipeline.regs.review import pending as PENDING
+    monkeypatch.setattr(PENDING, "pending_on_disk", lambda target=None: {"entries": [], "splits": []})
     monkeypatch.setattr(R, "binding_diff", diff)
     # (T555 item 4) what each app version reads: a small table in place of the committed one (pinned in test_app_reads.py),
     # so these releases' made-up formats are judged the same whatever the real apps read today
@@ -262,7 +266,7 @@ def test_the_stages_run_in_order_and_ship_the_candidate(world, capsys):
     marks = [out.index(f"[{i}/7] {s} ok") for i, s in enumerate(R.STAGES, 1)]
     assert marks == sorted(marks)
     assert [c for c, _ in world["calls"]] == ALL
-    assert _env_of(world, "upload") == {"MIN_APP_VERSION": "0.5.0", "FAST_FAIL_DONE": "abc123", "SMOKE": "0"}   # live stamp
+    assert _env_of(world, "upload") == {"MIN_APP_VERSION": "0.5.0", "SMOKE": "0"}   # live stamp
     assert _latest(world) == NEW and not (world["root"] / "CANDIDATE").exists()
     rec = json.loads(R.LEDGER.read_text())["releases"][NEW]
     assert rec["checks"]["binding_diff"] == "same" and rec["staged_at"] and rec["commit"] == "abc123"
@@ -461,12 +465,12 @@ def test_one_failure_reads_as_it_always_did(world, capsys):
     assert "problems" not in err and "  next: git push origin release/0.9.0 (after" in err
 
 
-def test_a_rerun_skips_fast_fail_on_the_same_tree_content_and_tells_heavy(world, capsys):
+def test_a_rerun_skips_fast_fail_on_the_same_tree_content(world, capsys):
     """T535: fast-fail ran again on every resume. T666 item 5: the pass is keyed on the tree's CONTENT, not on HEAD —
     a commit that changes no content (or the same tree under a new HEAD) does not rerun it; any edit does."""
     world["fail"] = {"upload"}
     assert _staging() == 1 and world["fast_fails"] == 1
-    assert world["calls"][0] == ("build", {"FAST_FAIL_DONE": "abc123"})
+    assert world["calls"][0] == ("build", None)       # (T661) heavy.sh runs no fast-fail: nothing is handed to it
     world["fail"] = set()
     R.git_head = lambda: "def456"                             # a new HEAD over the same content: not rerun
     try:
@@ -539,9 +543,10 @@ def test_no_recorded_base_is_said_not_hidden(world, capsys):
     assert "fast-fail base: no commit recorded for r-live00000000" in capsys.readouterr().out
 
 
-def test_no_fast_fail_reaches_heavy_with_its_reason(world):
+def test_no_fast_fail_skips_it_and_hands_heavy_nothing(world):
+    """(T661) heavy.sh runs no fast-fail of its own (the T535 gate was dropped): the skip is the release's alone."""
     assert _staging(no_fast_fail="tsc is down for the T999 refactor") == 0
-    assert world["calls"][0] == ("build", {"HEAVY_NO_FAST_FAIL": "release --no-fast-fail: tsc is down for the T999 refactor"})
+    assert world["fast_fails"] == 0 and world["calls"][0] == ("build", None)
 
 
 def test_the_dry_run_runs_the_site_gate_and_the_app_gate(world, capsys):
@@ -1409,7 +1414,7 @@ def test_dry_run_build_builds_the_candidate_and_rehearses_on_it(world, capsys):
     assert R.main(["--staging", "--dry-run", "--build"]) == 0
     out = capsys.readouterr().out
     builds = [(c, e) for c, e in world["calls"] if c == "build"]
-    assert len(builds) == 1 and builds[0][1] == {"FAST_FAIL_DONE": "abc123"}   # the real build, told fast-fail ran
+    assert len(builds) == 1 and builds[0][1] is None   # the real build (T661: heavy.sh is handed no fast-fail word)
     assert f"manifest sanity on {NEW}: ok" in out and "NOT SEEN before a build" not in out
     assert _latest(world) == LIVE and (R.HOME / "baseline" / LIVE / "report.json").is_file()
     with pytest.raises(SystemExit):

@@ -307,3 +307,15 @@ def test_the_area_pin_fails_on_a_read_its_area_misses(tmp_path):
         "test_x.py reads .github/workflows/feeds-hydat.yml", "test_x.py reads deploy/staging/upload.sh"]
     assert _uncovered(reads, lambda name: CP.AREAS["pipeline"]) == []
 
+
+
+def test_run_timing_publish_refuses_when_the_release_moved_since_it_bound():
+    """(T485 step 3) a run without a `tiles` input re-reads release/manifest.json before step 7 and fails, said, when the
+    tiles moved since step 1, so run timing is never published for the old tiles after a release flipped."""
+    steps = _load("feeds-runtiming.yml")["jobs"]["runtiming"]["steps"]
+    up = [s for s in steps if s.get("name", "").startswith("7/7")][0]
+    run = up["run"]
+    assert 'if [ -z "$TILES_IN" ]' in run and "release/manifest.json" in run
+    assert run.index('"$NOW" != "$TILES"') < run.index("feed.publish")
+    assert "exit 1" in run[run.index('"$NOW" != "$TILES"'):run.index("feed.publish")]
+    assert "the release moved" in run

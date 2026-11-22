@@ -17,10 +17,12 @@
 #                                     "review marks have landed" passed only in the main checkout (the marks are there)
 #                                     and "every curated override id names a water" raised in a worktree with no atlas.
 #
-# Run it before any long job (build, release, APK, emulator, full suite) and while a build waits. (T535) scripts/heavy.sh
-# runs it before every heavy job, during the lock wait (FAST_FAIL_DONE=<HEAD sha> when the caller already ran it;
-# HEAVY_NO_FAST_FAIL=<reason> skips it, printed). `python -m pipeline release --staging` and deploy/staging/build-apk.sh
-# run it themselves; their `--no-fast-fail <reason>` escape prints the reason. Output is unfiltered (never through rtk: it has reported false passes, memory rtk-pytest-false-pass).
+# Run it before any long job (build, release, APK, emulator, full suite) and while a build waits. scripts/heavy.sh does
+# NOT run it (T661, 2026-11-22: the gate parked in T535 was dropped — it would have run these app + pipeline checks
+# before every atlas, reach, pre-push and follow-test job as well, keyed on HEAD): the long jobs' entry points do.
+# `python -m pipeline release --staging` (preflight), deploy/staging/build-apk.sh and build-ios-testflight.sh (before the
+# lock: deploy/lib/build-links.sh build_gates) run it themselves; their `--no-fast-fail <reason>` escape prints the
+# reason. Output is unfiltered (never through rtk: it has reported false passes, memory rtk-pytest-false-pass).
 #
 # "CHANGED" = the working tree (uncommitted + untracked) and the commits not yet on origin/main (the trunk, T995),
 # i.e. everything since `git merge-base HEAD origin/main`. FAST_FAIL_BASE=<rev> names another base.

@@ -1,6 +1,6 @@
 # T792 — Two crashes: the review app's page renderer frees PDF objects outside its lock; child processes die after fork where a test process has used the map-projection library
 
-Status: PARTIAL (A fixed e0c84c800, lane/bugs-080 2026-11-17: `synopsis_pages.render` closes bitmap, page and document by name inside the lock; left (Claude): B, a test file that starts a child process gets its own process in `scripts/pytest-chunked.sh`)
+Status: DONE — e0c84c800 (A), cde142554 (B, lane test/T777-test-isolation 2026-11-22; merge pending)
 
 Source: general audit 2026-11-16, guards checker section 5 (`handoff/PLAN/audit-2026-11-16/guards.md`); T777 described only the second, and its proposed fix would not help.
 
@@ -19,3 +19,11 @@ Six crash reports, one chain: `subprocess_fork_exec` → `fork` → PROJ's after
 test process where an earlier test file used pyproj. "Use spawn" does not help (spawn goes through the same call).
 Fix: in `scripts/pytest-chunked.sh` a test file that starts a child process gets a process of its own (34 files
 match `subprocess|multiprocessing|Popen`; under a minute). Never group such files by hand with atlas-loading files.
+
+## B built (lane test/T777-test-isolation, 2026-11-22)
+`scripts/pytest-chunked.sh` gives every test file that names `subprocess`, `multiprocessing`, `Popen`,
+`ProcessPoolExecutor` or `os.fork/system/spawn*/popen` a chunk of its own: 42 of 537 files, 78 chunks instead of 37
+(the no-data tier took 556 s before and about 660 s after, on this machine). `test_test_env.py` pins it against the
+runner's dry run (every such file alone, other files still share chunks). CI runs one Linux process, where the crash
+(Apple's SQLite logging after fork) does not occur.
+

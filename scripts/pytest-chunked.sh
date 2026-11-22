@@ -6,10 +6,16 @@
 #
 #   scripts/pytest-chunked.sh [--files N] [--only REGEX] [--dry-run] [-- <pytest args…>]
 #
-#   --files N     test files per chunk (default 40); a `test_curation_review*` file is always a chunk of its own
+#   --files N     test files per chunk (default 40); a `test_curation_review*` file, and a file that starts a child
+#                 process (below), is always a chunk of its own
 #   --only REGEX  only the test files whose path matches (Tier 0 / trying the runner on a few files)
 #   --dry-run     print the chunks, run nothing
 #   pytest args   passed to every chunk, e.g. `-- -m slow` (pytest.ini's default `-m "not slow"` holds otherwise)
+#
+# A FILE THAT STARTS A CHILD PROCESS RUNS ALONE (T792 B): a child forked from a process where an earlier test file loaded
+# pyproj dies between fork and exec (PROJ's after-fork handler closes its cached proj.db through Apple's SQLite logging:
+# SIGSEGV; six crash reports, one chain). Spawn does not help (it forks the same way), so such a file never shares a
+# process: any file naming `subprocess`, `multiprocessing`, `Popen`, `ProcessPoolExecutor` or `os.fork/system/spawn*/popen`.
 #
 # Every chunk runs unfiltered (no rtk) with a FRESH PYTHONPYCACHEPREFIX for the whole run (T638 item 3: matcher.py edited
 # twice in one second at the same size kept its old .pyc, so a gating run could test old bytecode). Exit 5 from a chunk
@@ -37,14 +43,16 @@ files=$(find $paths -name 'test_*.py' -type f | LC_ALL=C sort)
 [[ -n $only ]] && files=$(grep -E -- "$only" <<<"$files" || true)
 [[ -n $files ]] || { echo "pytest-chunked: no test files${only:+ match '$only'}" >&2; exit 1; }
 
-chunks=(); cur=()
+chunks=(); cur=(); alone=0
 flush() { (( ${#cur[@]} )) && chunks+=("${cur[*]}"); cur=(); }
+spawns() { grep -qE 'subprocess|multiprocessing|Popen|ProcessPoolExecutor|os\.(fork|system|spawn[a-z]*|popen)' -- "$1"; }
 while IFS= read -r f; do
   if [[ ${f##*/} == test_curation_review* ]]; then chunks+=("$f"); continue; fi
+  if spawns "$f"; then chunks+=("$f"); alone=$((alone + 1)); continue; fi
   cur+=("$f"); (( ${#cur[@]} >= per )) && flush
 done <<<"$files"
 flush
-echo "pytest-chunked: $(grep -c . <<<"$files") files in ${#chunks[@]} chunks; pytest ${args[*]+"${args[*]}"}"
+echo "pytest-chunked: $(grep -c . <<<"$files") files in ${#chunks[@]} chunks ($alone alone: they start a child process, T792 B); pytest ${args[*]+"${args[*]}"}"
 if (( dry )); then
   for i in "${!chunks[@]}"; do echo "  chunk $((i + 1)): ${chunks[$i]}"; done
   exit 0

@@ -12,7 +12,6 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import load_repo
 from pipeline.tests import under_test
 from pipeline.tests.conftest import ATLAS_HINT, BUNDLE_HINT, curated_root, need
 
@@ -20,12 +19,6 @@ REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
 _MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes", "dfo", "review", "evidence",
          "inseason", "reports")
-
-
-def _stamps(root: Path) -> dict[str, str]:
-    import hashlib
-    return {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
-            for p in sorted(root.rglob("*")) if p.is_file()}
 
 
 @pytest.fixture(scope="module")
@@ -42,9 +35,9 @@ def env(tmp_path_factory):
     import app as app_mod                                     # noqa: E402
     import reports                                            # noqa: E402
     from fastapi.testclient import TestClient
-    curated = _stamps(load_repo().base)
+    # (T777) no route may write the real data/curated: the suite's guard refuses any test's write there
+    # (pipeline/tests/machine_state.py), which replaced this file's before/after digest of the live tree
     yield {"client": TestClient(app_mod.app), "reports": reports, "mp": mp}
-    assert _stamps(load_repo().base) == curated, "a reports route wrote under data/curated"
     mp.undo()
     for mod in _MODS:
         sys.modules.pop(mod, None)

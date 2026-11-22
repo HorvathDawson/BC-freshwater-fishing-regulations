@@ -36,7 +36,7 @@ import { STATION_LIST } from "./gauges/liveness";
 import { neverSeen } from "./gauges/publish";
 import { READING_MAX_AGE_HOURS } from "../../../packages/core/src/gauge-policy.generated";
 import { checkToken, dispatchOnce, OVERDUE_MS, unfinished, type Dispatch, type DispatchEnv } from "./dispatch";
-import { checkRunTiming } from "./runtiming";
+import { checkRunTiming, checkSourceRefresh } from "./runtiming";
 import { dfoAnswersChanged, handlePush, newRelease, pushMissing, PUSH_CARRY_KEY, PUSH_STATUS_KEY, sendWake, wakePhones, wakeReason, writePushFailure, type PushEnv } from "./push";
 import { capEvents, CORS as REPORT_CORS, handleReport, listReportsCounted, purgeLimits, purgeReports, purgeTestReports, reportEvents, RETENTION_DAYS, RETENTION_STATUS_KEY, type ReportEnv } from "./reports";
 
@@ -774,14 +774,29 @@ async function runTimingCheck(env: Env, now = new Date()): Promise<{ ok: boolean
   } catch (e) {
     error = String((e as Error)?.message ?? e).slice(0, 500);
   }
+  // (T485 step 3) the monthly sources refresh, started here (never a GitHub schedule). A new-NuSEDS run just above
+  // already refreshes, and a failed check (open.canada.ca down) means a refresh would fail too: asked only after a clean "nothing newer".
+  let refresh: FeedEvent | null = null;
+  let refreshError: string | undefined;
+  if (!event && !error) {
+    try {
+      refresh = await checkSourceRefresh(env, (u, i) => fetch(u, i), env.BUCKET, r2Store(env.BUCKET, "private/feeds/dispatch-refresh/"), now);
+    } catch (e) {
+      refreshError = String((e as Error)?.message ?? e).slice(0, 500);
+    }
+  }
   const at = now.toISOString();
-  const ev: FeedEvent | null = event ?? (error
-    ? { key: `runtiming-failed:${at.slice(0, 10)}`, kind: "runtiming", at, title: "The weekly run-timing source check failed",
-        text: `${error}\n\nRetry: POST /run/runtiming on the feeds worker (Bearer RUN_TOKEN).` }
-    : null);
-  const told = await tell("runtiming", env, now, ev ? [ev] : []);
-  console.log(JSON.stringify({ job: "runtiming", ok: !error, event: event?.key ?? null, error, told }));
-  return error ? { ok: false, error, told } : { ok: true, event, told };
+  const evs: FeedEvent[] = [];
+  if (event) evs.push(event);
+  else if (error) evs.push({ key: `runtiming-failed:${at.slice(0, 10)}`, kind: "runtiming", at, title: "The weekly run-timing source check failed",
+    text: `${error}\n\nRetry: POST /run/runtiming on the feeds worker (Bearer RUN_TOKEN).` });
+  if (refresh) evs.push(refresh);
+  if (refreshError) evs.push({ key: `runtiming-refresh-failed:${at.slice(0, 10)}`, kind: "runtiming", at, title: "The run-timing sources refresh check failed",
+    text: `${refreshError}\n\nRetry: POST /run/runtiming on the feeds worker (Bearer RUN_TOKEN).` });
+  const told = await tell("runtiming", env, now, evs);
+  const failed = error ?? refreshError;
+  console.log(JSON.stringify({ job: "runtiming", ok: !failed, event: event?.key ?? null, refresh: refresh?.key ?? null, error: failed, told }));
+  return failed ? { ok: false, error: failed, told } : { ok: true, event, told };
 }
 
 /** (T431) which job a cron string starts: its minute field names it (wrangler.toml [triggers]; test/scheduled.test.ts). */

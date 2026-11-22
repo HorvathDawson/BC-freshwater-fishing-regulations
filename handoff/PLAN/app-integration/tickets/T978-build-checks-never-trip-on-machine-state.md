@@ -153,3 +153,7 @@ switch back to a release tag once upstream releases one containing 0001.
   (`out/runs/t978-pin-verify/`). Tests: `maplibre-pin.test.ts` + `testbed-stamp.test.ts` + `r8-config.test.ts` 40/40;
   `test_staging_scripts_fail_safe.py` + `test_deploy_gates.py` + the heavy-precheck test 66/66; check-tickets green.
   Not run: a build-apk.sh build (the Play/production paths are covered by the precheck and `--check-maplibre` tests only).
+
+Main line, same dialog (the coordinator's note):
+"Pinned upstream main (Recommended)": build from one pinned upstream main commit, no patch of ours; move to a release
+tag once upstream releases one containing 0001. The switch: branch `build/T978-maplibre-upstream-main` (in progress).

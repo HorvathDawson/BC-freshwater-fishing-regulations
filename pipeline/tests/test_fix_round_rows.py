@@ -115,8 +115,8 @@ MISSION = "fraser_river__the_cpr_bridge_at_mission"
 
 
 def _region(n):
-    from pathlib import Path
-    path = Path(__file__).resolve().parents[2] / f"data/curated/regulations/synopsis/region-{n}.json"
+    from pipeline.tests import under_test
+    path = under_test.curated().regulations.synopsis / f"region-{n}.json"
     return {e["entry_id"]: e for e in json.loads(path.read_text())["entries"]}
 
 

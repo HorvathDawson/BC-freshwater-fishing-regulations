@@ -19,6 +19,14 @@
 #                 compiles and links without the account (Claude's check); the archive cannot be installed or uploaded
 #   --no-distribute  (T918) upload only: the build is NOT added to the External TestFlight group (below)
 #   --dry-run     print the steps and the secrets it would read; builds nothing, needs no account
+#   --no-fast-fail=<reason> --no-ci-check=<reason> --no-notes=<reason>   (T993 plan 5) the escapes of the gates below,
+#                 each printed; a bare one is refused
+#
+# (T993 plan 5, T661) THE GATES, before the heavy lock, the same as build-apk.sh's (deploy/lib/build-links.sh): the
+# precheck lists every failure together (the tools, the secrets, the gitignored links, and — not for --unsigned —
+# app.json's version having its changelog entry, the newest); then CI on HEAD (scripts/ci_status.py; --strict for
+# --production), then scripts/fast-fail.sh, whose "changed" is everything since the last upload (app/dist/ios/last-sha).
+# heavy.sh runs no fast-fail of its own: this script does.
 #
 # Secrets (never committed), in ~/.canifishthis/:
 #   ios-team-id           the 10-character Team ID (developer.apple.com → Membership details)
@@ -59,12 +67,20 @@ REPO=$PWD
 has() { [[ " $ARGS " == *" $1 "* ]]; }
 ARGS="$*"
 if has --dry-run; then DRY=1; else DRY=; fi
+if has --production; then PROD=1; else PROD=; fi
 # (T433) a production build from a staging/ script asks the same confirmation as deploy/prod/
 if has --production && ! has --precheck && [[ "${CONFIRM_PROD:-}" != canifishthis.ca ]]; then
   echo "build-ios-testflight.sh --production: set CONFIRM_PROD=canifishthis.ca to build production" >&2; exit 2
 fi
 SECRETS=$HOME/.canifishthis
 M=app/apps/mobile
+# (T993 plan 5) the gates and their escapes, shared with build-apk.sh
+source deploy/lib/build-links.sh
+build_reasons build-ios-testflight "$@"
+if [[ -z ${BUILD_IOS_INNER:-} ]]; then
+  # fast-fail's "changed" = everything since the last upload was built from, said (build_ff_base)
+  build_ff_base build-ios-testflight "$(cat app/dist/ios/last-sha 2>/dev/null || true)" "the last TestFlight upload (app/dist/ios/last-sha)"
+fi
 # (T978) THE PRECHECK, before the heavy lock: every missing link (secrets, tools, the gitignored node_modules wrangler
 # runs from) listed together with its fix, then one exit. Was: the first missing secret ended the run, after the lock
 # wait. `--precheck` runs only this; a dry run lists it and goes on.
@@ -73,9 +89,12 @@ if [[ -z ${BUILD_IOS_INNER:-} ]]; then
   pf=()
   bad() { pf+=("$*"); echo "  FAIL $*"; }
   ok() { echo "  ok   $*"; }
-  source deploy/lib/build-links.sh
   echo "build-ios-testflight: precheck (before the heavy lock)"
   for t in xcodebuild pod node; do command -v $t >/dev/null && ok "$t" || bad "no $t on PATH (Xcode, CocoaPods: brew install cocoapods, Node)"; done
+  # (T993 plan 5) what fast-fail and the CI check read (.venv, app/node_modules, the review app's when it is typechecked)
+  build_links_common
+  build_links_frontend "$FFB"
+  if has --unsigned; then ok "changelog: not asked (--unsigned: nothing is uploaded)"; else build_check_changelog; fi
   if ! has --unsigned; then
     for f in ios-team-id asc-api-key.json; do
       [[ -s $SECRETS/$f ]] && ok "$SECRETS/$f" || bad "no $SECRETS/$f (this script's header says what it holds)"
@@ -86,7 +105,6 @@ if [[ -z ${BUILD_IOS_INNER:-} ]]; then
     fi
   fi
   if ! has --no-upload && ! has --unsigned; then
-    build_links_node
     if [[ -f app/node_modules/.modules.yaml ]]; then
       [[ $(npx --prefix app wrangler whoami 2>&1) == *"You are logged in"* ]] && ok "Cloudflare (wrangler) login" \
         || bad "wrangler is not logged in (npx --prefix app wrangler login): the version files would fail AFTER the upload"
@@ -100,6 +118,8 @@ if [[ -z ${BUILD_IOS_INNER:-} ]]; then
     else echo "build-ios-testflight: precheck FAILED (${#pf[@]}) — the lock was not taken, nothing was built" >&2; exit 1; fi
   else echo "build-ios-testflight: precheck ok"; fi
   has --precheck && exit 0
+  # (T993 plan 5) CI on HEAD, then fast-fail, before the lock (build-links.sh build_gates)
+  build_gates build-ios-testflight ${PROD:+--strict}
 fi
 if [[ -z ${BUILD_IOS_INNER:-} && -z $DRY ]]; then
   export BUILD_IOS_INNER=1
@@ -207,6 +227,7 @@ xcodebuild -exportArchive -archivePath "$ARCHIVE" -exportOptionsPlist "$WT/Expor
 SYM=$REPO/data/sourcemaps/$VER-b$BUILD_NO-${SHA_FULL:0:7}/ios; mkdir -p "$SYM"; cp -R "$ARCHIVE/dSYMs/." "$SYM/" 2>/dev/null || true
 if [[ $DEST == upload ]]; then
   echo "$BUILD_NO" > "$LAST_FILE"
+  echo "$SHA_FULL" > "$OUT/last-sha"   # (T993 plan 5) the FAST_FAIL_BASE of the next upload
   echo "uploaded $VER ($BUILD_NO) to App Store Connect in $(( $(date +%s) - t0 )) s — TestFlight shows it after Apple's processing"
   # (T888) the iPhone's version file (the header): this version's iPhone bullets, read once the App Store offers it
   NOTES=$(ios_notes "$WT" "$VER") \

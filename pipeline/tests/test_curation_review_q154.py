@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 
 from pipeline.tests import under_test
-from pipeline.tests.conftest import curated_root
+from pipeline.tests.conftest import curated_root, no_served_build
 
 REPO = Path(__file__).resolve().parents[2]
 #: the LIVE curated tree, taken at import (before any test points CURATED_ROOT at a sandbox): the tests below prove it is not written
@@ -33,6 +33,7 @@ def env(tmp_path_factory):
         _pond(1, True), _pond(2, False), _pond(3, True, "sample")]}))
     mp = pytest.MonkeyPatch()
     mp.setenv("CURATION_Q154_SAMPLE", str(tmp / "sample.json"))
+    no_served_build(mp, tmp)  # (T777) the app serves no atlas, as on CI
     curated_root(mp, tmp / "curated")                         # T422: the whole curated tree is a temp copy
     mp.setenv("CURATION_BACKUP_DIR", str(tmp_path_factory.mktemp("backups")))
     mp.syspath_prepend(str(BACKEND))
