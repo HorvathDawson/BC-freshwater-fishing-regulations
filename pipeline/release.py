@@ -916,7 +916,8 @@ def check_min_app(ctx: Ctx) -> Finding:
             f"is stamped {stamp or 'none'})")
     gone = left_behind(stamp, chosen, list(apps))
     if gone:
-        said += (f"\nRAISED from {stamp or 'none'} to {chosen}: recorded app(s) {', '.join(gone)} stop applying new "
+        named = ", ".join(gone) if len(gone) <= 6 else f"{', '.join(gone[-5:])} and {len(gone) - 5} older"
+        said += (f"\nRAISED from {stamp or 'none'} to {chosen}: recorded app(s) {named} stop applying new "
                  "releases — they keep the data they hold until they update")
     return Finding(True, said)
 
@@ -1935,7 +1936,7 @@ def dry_run(ctx: Ctx) -> int:
     f = r.get("follows") or {}
     py, app = follow_tests()
     print(f"[5/{n}] follows    refresh what follows the release on the candidate (python -m pipeline.release_follows "
-          f"lists it){later}")
+          f"lists it)" + ("" if built else f"\n{P}NOT SEEN — no CANDIDATE yet: see [4/{n}] (the step that shows it)"))
     rehearsed = None
     if built:
         if (r.get("inseason") or {}).get("release") == cand:

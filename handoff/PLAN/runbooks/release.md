@@ -20,6 +20,23 @@ the app gate, the binding diff, the in-season matches (`resolve --check`), the f
 (into a temp file) and the upload's first refusals. Not rehearsed: the build itself, whether a golden page changes,
 the tests on the candidate, the upload and its smoke test.
 
+**Before a build it says what it cannot see (T993 item 4)**, under `NOT SEEN`, and the step that shows it. To rehearse
+every stage in one go, let the rehearsal build the candidate (stage 3's own build; the baseline is kept first, LATEST
+stays, nothing is committed, promoted or uploaded):
+
+```bash
+.venv/bin/python -m pipeline release --staging --dry-run --build --rehearse-follows
+```
+
+or the same in three steps: `scripts/heavy.sh release 50 -- .venv/bin/python -m pipeline build --hold-latest`, then
+`--dry-run --rehearse-follows`, then the real run. It also prints the **size headroom** of each file and web moment
+against its gate, tightest first, on the candidate (else LATEST), with `WARN` under 5 % (T993 item 9): a column added to
+a file in that list needs its gzip delta measured first.
+
+**Before a push** (T993 item 7): `.venv/bin/python scripts/before_push.py` runs what GitHub's runs ask (every
+pipeline-ci step read from the workflow, the no-data tier in chunks, `check:fast`, the app tree scanners, the feeds
+worker suite) and lists every failure. A pre-push hook is the owner's call: `--hook` prints how; nothing is installed.
+
 ## 2. Run it
 
 ```bash
@@ -32,7 +49,7 @@ the tests on the candidate, the upload and its smoke test.
 | 2 baseline | Copies the reach run the live release (LATEST) was cut from to `data/generated/release/baseline/<LATEST>/`. That copy is the "before" of the diff. | The reach run on disk is not LATEST's and no copy was kept. Give one with `--baseline DIR` (its `report.json` digest must match). |
 | 3 build | `scripts/heavy.sh release 50 -- python -m pipeline build --hold-latest`. The build skips any stage whose inputs did not change. It writes the new release to `data/release/<r-id>/` and names it in `data/release/CANDIDATE`. **LATEST does not move.** | A build stage failed. `python -m pipeline build --status` shows the stage and its log. |
 | 4 checks | Manifest sanity: every file is there at its size, the size gate passes, and the bundle names the reach run on disk. The app-version gate (`pipeline/deliver/release/app_gate.py`, the same one `upload.sh` runs). The rule-binding diff against the live release. | Any check fails. **A non-empty binding diff always stops here** (see 3). |
-| 5 follows | **Refreshes what follows the release, on the candidate, before LATEST moves** (T666; the list is `python -m pipeline.release_follows`). (a) The in-season matches are resolved; a rewritten `notice_waters.json` is committed alone. (b) The app's release-backed fixtures are re-cut (`node app/tools/regs-recut/sync.mjs --release <candidate>`); a change that only renumbers is committed with the release id. (c) The tests that ask for the release under test run with `RELEASE_DIR` = the candidate (both suites; `--no-follow-tests "<reason>"` skips them and prints the reason). (d) The push gate: the commits the release made must be on GitHub. | A match does not resolve. A **golden page changed** (what an angler is told): nothing is committed; read the diff and rerun with `--accept-fixtures <token>` (see 3a). A test fails on the candidate. Commits are not pushed: one stop with the one `git push` command, or pass `--push` and the release pushes its own commits (never anyone else's). |
+| 5 follows | **Refreshes what follows the release, on the candidate, before LATEST moves** (T666; the list is `python -m pipeline.release_follows`). (a) The in-season matches are resolved; a rewritten `notice_waters.json` is committed alone. (b) The app's release-backed fixtures are re-cut (`node app/tools/regs-recut/sync.mjs --release <candidate>`); a change that only renumbers is committed with the release id. (c) The tests that ask for the release under test run with `RELEASE_DIR` = the candidate (both suites, the whole app check, and — T993 item 16 — the pipeline's live-data tier in chunks; fast-fail in preflight then leaves the app gates and the worker suite to this run, item 15; `--no-follow-tests "<reason>"` skips them and prints the reason). (d) The push gate: the commits the release made must be on GitHub. | A match does not resolve. A **golden page changed** (what an angler is told): nothing is committed; read the diff and rerun with `--accept-fixtures <token>` (see 3a). A test fails on the candidate. Commits are not pushed: one stop with the one `git push` command, or pass `--push` and the release pushes its own commits (never anyone else's). |
 | 6 promote | LATEST := the candidate. `CANDIDATE` is removed. | — |
 | 7 staging | The upload's first refusals are asked up front (run-timing base for these tiles, `gh` logged in, the `r2:` remote). Then `deploy/staging/upload.sh <r-id>` with `MIN_APP_VERSION`: the staging bucket only, with the smoke test. It starts the run-timing workflow for the release's tiles while the files upload, and writes the release pointer last, after run timing for those tiles is on R2 (T412). If GitHub refuses to **start** the workflow, the upload retries the start itself (`scripts/start-workflow.sh`: 3 tries, 120 s apart, each said; `WF_START_TRIES` / `WF_START_WAIT` change the bound). | The upload failed. Fix it and rerun: stages 1–6 are skipped. When only the workflow start failed, the message says so; rerun when GitHub Actions answers. |
 
@@ -44,8 +61,12 @@ Before the checks, the build has already rewritten the live working outputs: the
 run-timing base. The review app reads these. Only the release pointer waits. So a release that fails its checks sits on
 disk, named by `CANDIDATE`, and nothing ships it.
 
-`--min-app-version X.Y.Z` sets the oldest app that may apply the release. The default is the live release's stamp,
-and the plan prints it. A rerun after the promote keeps the min app this release's checks passed with (T484).
+`--min-app-version X.Y.Z` sets the oldest app that may apply the release. **The default is derived (T993 item 2):** the
+live release's stamp raised to what the code's formats need (`build.built_formats`, `app_reads.json`), said in preflight
+with the recorded apps a rise leaves behind. Preflight stops before the build on a format no recorded app reads, and on
+a `--min-app-version` below what the formats need; the staging site gate uses the same formats. A rerun after the
+promote keeps the min app this release's checks passed with (T484). The pieces gate (the staging feeds worker serves the
+closed-area pieces the release binds) is asked in preflight and again on the candidate before the promote (T788 #2).
 
 **The command remembers its flags (T666).** `--baseline`, `--accept-diff`, `--accept-fixtures`, `--min-app-version`
 and `--push` given on any run are kept in the ledger until the release is on staging; a rerun is the bare command and
@@ -70,6 +91,12 @@ Read the summary. Every changed rule must be one that the batch meant to move. I
 The accept only works if that file has exactly the content written for **this** diff. An accept from an older diff
 fails. If a change was not intended, fix the cause, commit, and rerun.
 
+**A diff the batch explains passes by itself (T993 item 8):** when every change names a curated row changed in the
+commits since LATEST's commit (the rule's entry itself, or a changed row naming the entry or one of its matched ids; a
+DFO place by a row naming it), the checks print `binding diff AUTO-ACCEPTED` with each change and its commit, and the
+ledger keeps it (`auto: attributable`). Anything nothing explains stops as above, listed. The tidal / outside tables
+never pass this way. An accepted record survives a rerun after the promote (T788 #8).
+
 ## 3a. A changed golden page
 
 ```
@@ -81,6 +108,11 @@ fails. If a change was not intended, fix the cause, commit, and rerun.
 The re-cut files are in the working tree, uncommitted. Read the diff. If each changed page is what the batch meant:
 rerun with the token printed. It names exactly this re-cut; another re-cut needs its own. The release then commits the
 fixtures and goes on.
+
+Pages that differ only in **source indexes renumbered one for one** (`src` lists read through one mapping shared by
+every page, T993 item 8; 0.8.5's nine pages) are not a change in what an angler is told: they are committed as
+`renumber only (source indexes)` with the mapping printed. A rerun that stopped after the build does not rebuild a
+candidate the release made when nothing a build reads was committed since (T788 #10).
 
 ## 4. Production (human only)
 
