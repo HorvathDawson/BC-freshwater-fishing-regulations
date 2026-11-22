@@ -602,6 +602,38 @@ TEMP_SAMPLES_PER_PENTAD = 400
 TEMP_HISTORY = "temp_history.json"
 
 
+def _stored_json(path: Path, shape: str | None = None):
+    """(T994 #5) STORED FEED STATE: the JSON at `path`, or None ONLY when there is no file. One that cannot be read or
+    does not parse RAISES naming the file, and so does one that is not an object when `shape` names what it must be —
+    never an empty state, which the run then writes back (months of temperature samples, a station's year-to-date daily
+    record, every maintenance notice's `since`). The worker's twin (`app/workers/feeds/src/gauges/publish.ts`
+    `storedObject`, and `readStored` for the index) answers the same on the one shared fixture
+    (`app/workers/feeds/test/fixtures/state-reads.json`)."""
+    if not path.exists():
+        return None
+    text = path.read_text(encoding="utf-8")
+    try:
+        got = json.loads(text)
+    except ValueError as exc:
+        raise ValueError(f"{path.name} is stored but does not parse ({exc}); fix or delete it") from exc
+    if shape is not None and not isinstance(got, dict):
+        raise ValueError(f"{path.name} is not {shape}; fix or delete it")
+    return got
+
+
+def previous_station(out: Path, station: str) -> dict:
+    """The station's last file (its year-to-date daily archive), `{}` when there is none; one that does not read raises
+    (`_stored_json`; the worker's `stationFileOf`)."""
+    return _stored_json(out / f"{station}.json", "a station file") or {}
+
+
+def previous_maintenance(out: Path):
+    """The last index's `maintenance` notices (each one's `since` is carried), None on a first run; an index that does not
+    read raises (the worker reads it through `readStored`: a non-object index carries nothing, as there)."""
+    got = _stored_json(out / "index.json")
+    return got.get("maintenance") if isinstance(got, dict) else None
+
+
 def accumulate_temperatures(out: Path, temps: dict[str, tuple[str, float]],
                             pent: int) -> dict:
     """Fold today's readings into a growing per-station, per-pentad record. Returns it.
@@ -620,12 +652,10 @@ def accumulate_temperatures(out: Path, temps: dict[str, tuple[str, float]],
     would otherwise fill a bucket with one warm afternoon.
     """
     path = out / TEMP_HISTORY
-    try:
-        hist = json.loads(path.read_text())
-    except (OSError, ValueError):
-        hist = {}
-    if not isinstance(hist, dict):
-        hist = {}
+    # (T994 #5) no file is a first run; one that does not read RAISES (`_stored_json`): read as {} and written back, it
+    # erased the only temperature record there is
+    hist = _stored_json(path, "{station: {pentad: [samples]}}")
+    hist = {} if hist is None else hist
     key = str(pent)
     for station, (_at, c) in temps.items():
         buckets = hist.setdefault(station, {})
@@ -828,11 +858,9 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
     written as a `roster` maintenance notice naming `roster`, the roster file this run read (`roster_shown`).
     """
     out.mkdir(parents=True, exist_ok=True)
-    # the previous index's notices, read before it is overwritten: each notice's `since` is carried from there
-    try:
-        before = json.loads((out / "index.json").read_text(encoding="utf-8")).get("maintenance")
-    except Exception:                                           # noqa: BLE001 — no or unreadable index: a first run
-        before = None
+    # the previous index's notices, read before it is overwritten: each notice's `since` is carried from there.
+    # (T994 #5) no index is a first run; one that does not read raises (it reset every notice's `since`)
+    before = previous_maintenance(out)
     envelope = (clim or {}).get("stations", {})
     release = (clim or {}).get("release")
     forecast = forecast or {}
@@ -844,17 +872,9 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
 
     # WHAT THIS FEED ALREADY KNOWS. The per-station files are the archive of the current
     # year's daily record (see `merge_daily`), so a publish reads them before it overwrites
-    # them. A missing or unreadable file is simply a station starting from nothing.
-    def previous(station: str) -> dict:
-        f = out / f"{station}.json"
-        if not f.exists():
-            return {}
-        try:
-            return json.loads(f.read_text(encoding="utf-8"))
-        except Exception:                              # noqa: BLE001
-            return {}
-
-    prior = {r["station"]: previous(r["station"]) for r in got}
+    # them. A missing file is a station starting from nothing; (T994 #5) an unreadable one raises (`previous_station`):
+    # read as nothing, the year so far was rewritten from today's two days.
+    prior = {r["station"]: previous_station(out, r["station"]) for r in got}
 
     # What the 2-hour window can see, as daily means — yesterday and today, usually.
     seen_by: dict[str, dict] = {}

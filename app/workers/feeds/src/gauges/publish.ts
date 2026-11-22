@@ -508,6 +508,40 @@ const JSON_CT = { contentType: "application/json" };
 export const CARRY_MAX_MS = 3 * DAY_MS;
 /** private (T225 follow-up; Python: in the published feed dir) */
 export const TEMP_HISTORY = "temp_history.json";
+
+/**
+ * (T994 #5) STORED GAUGE STATE: `null` text (no file) is a first run; a body that does not parse, or is not an object,
+ * THROWS naming the file — never `{}`, which the run then writes back over months of samples (the temperature history is
+ * the only temperature record there is) or a station's year-to-date daily record. The Python twin
+ * (pipeline/gauges/feed/publish.py `_stored_json`) answers the same on the one shared fixture
+ * (test/fixtures/state-reads.json). The run fails, says why, and the last good file stays.
+ */
+function storedObject(name: string, t: string | null, shape: string): Record<string, any> | null {
+  if (t === null) return null;
+  let v: unknown;
+  try { v = JSON.parse(t); } catch (e) { throw new Error(`${name} is stored but does not parse (${e instanceof Error ? e.message : String(e)}); fix or delete it`); }
+  if (!v || typeof v !== "object" || Array.isArray(v)) throw new Error(`${name} is not ${shape}; fix or delete it`);
+  return v as Record<string, any>;
+}
+/** publish.accumulate_temperatures's read: the stored history, `{}` when there is none */
+export const tempHistoryOf = (t: string | null): Record<string, Record<string, number[]>> =>
+  storedObject(TEMP_HISTORY, t, "{station: {pentad: [samples]}}") ?? {};
+/** publish.accumulate_temperatures: today's readings folded into the stored history (`t`, null = none yet), one sample
+ *  per station per run, capped FIFO at TEMP_SAMPLES_PER_PENTAD. Throws on a stored history that does not read. */
+export function accumulateTemperatures(t: string | null, temps: Map<string, [string, number]>, pent: number): Record<string, Record<string, number[]>> {
+  const hist = tempHistoryOf(t);
+  const pkey = String(pent);
+  for (const [station, [, c]] of temps) {
+    const buckets = (hist[station] ??= {});
+    const vals = (buckets[pkey] ??= []);
+    vals.push(pyRound(c, 2));
+    if (vals.length > TEMP_SAMPLES_PER_PENTAD) vals.splice(0, vals.length - TEMP_SAMPLES_PER_PENTAD);
+  }
+  return hist;
+}
+/** publish.publish `previous`: a station's last file, null when there is none */
+export const stationFileOf = (station: string, t: string | null): Record<string, any> | null =>
+  storedObject(`${station}.json`, t, "a station file");
 /**
  * (T315) THE RUN'S NEWEST ROWS, FEED-WIDE: `obs.json` beside the index — every station written this run, its `recent`
  * rows of the last `OBS_WINDOW_MS`. A phone reads it on each feed update and keeps every station's last week (the app's
@@ -636,14 +670,10 @@ export async function runGauges(deps: GaugeDeps): Promise<GaugeSummary> {
     let p = files.get(st);
     if (!p) {
       p = feed.get(`${st}.json`).then((t) => {
-        if (t === null) return null;
-        let f: any;
-        try {
-          f = JSON.parse(t);
-        } catch {
-          return { ok: false }; // unreadable: Python skips it (keep) / starts from nothing (prior)
-        }
-        if (!f || typeof f !== "object" || Array.isArray(f)) return { ok: false };
+        // (T994 #5) a file that is stored but does not read FAILS the run (publish.py `previous` too): read as "nothing", the
+        // station's year-to-date daily record was rewritten from today's two days
+        const f = stationFileOf(st, t);
+        if (f === null) return null;
         if (reuse) return { ok: true, daily: f.daily, forecastsText: JSON.stringify(f.forecasts ?? {}), change: f.change };
         const keep: Runs = {};
         for (const [m, run] of Object.entries((f.forecasts || {}) as Runs)) if (truthy(run?.series)) keep[m] = run;
@@ -829,6 +859,7 @@ async function getCond(fetch: Fetch, url: string, etag: string | null, lm: strin
 
 /** A previous station file, slimmed (see `stationFile`). */
 interface Prev {
+  /** (T994 #5) always true: a file that does not read throws (`stationFileOf`) */
   ok: boolean;
   daily?: unknown;
   keep?: Runs;
@@ -970,26 +1001,14 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
   // accumulate_temperatures
   // T225 follow-up: temp_history.json is STATE (the samples the envelope is built from; the app never reads it), so it
   // lives in the PRIVATE store now. Python publishes it in the feed dir; a legacy public copy is read once, then removed.
-  let hist: Record<string, Record<string, number[]>> = {};
+  // (T994 #5) a failed read or a body that does not read FAILS the run before anything is written (`tempHistoryOf`)
   let legacyPublic = false;
-  try {
-    let t = await priv.get(TEMP_HISTORY);
-    if (t === null) {
-      t = await feed.get(TEMP_HISTORY);
-      legacyPublic = t !== null;
-    }
-    hist = t === null ? {} : JSON.parse(t);
-  } catch {
-    hist = {};
+  let t = await priv.get(TEMP_HISTORY);
+  if (t === null) {
+    t = await feed.get(TEMP_HISTORY);
+    legacyPublic = t !== null;
   }
-  if (!hist || typeof hist !== "object" || Array.isArray(hist)) hist = {};
-  const pkey = String(pent);
-  for (const [station, [, c]] of temps) {
-    const buckets = (hist[station] ??= {});
-    const vals = (buckets[pkey] ??= []);
-    vals.push(pyRound(c, 2));
-    if (vals.length > TEMP_SAMPLES_PER_PENTAD) vals.splice(0, vals.length - TEMP_SAMPLES_PER_PENTAD);
-  }
+  const hist = accumulateTemperatures(t, temps, pent);
   await priv.put(TEMP_HISTORY, JSON.stringify(hist), JSON_CT);
   if (legacyPublic && (feed as DeletableStore).delete) await (feed as DeletableStore).delete!(TEMP_HISTORY);
   const tEnv = temperatureEnvelope(hist);

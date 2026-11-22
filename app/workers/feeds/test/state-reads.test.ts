@@ -1,17 +1,20 @@
 // T558 (W3): a stored state that cannot be READ is never taken for "nothing stored yet" — read as empty and written back,
 // it erased the outbox (told keys + queued digest), every feed's status, the DFO places of a failed region, the carried
 // gauge stations, the HYDAT dispatch record and the no-data streaks. Absent is a fresh state; a throw or junk fails the run.
-import { readFileSync } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import worker, { noDataStations } from "../src/index";
-import { readStored, type Store } from "../src/io";
+import { readStored, type PutOptions, type Store } from "../src/io";
+import { sendDue } from "../src/notify";
+import { dirStore, fixtureFetch, loadRecording } from "../parity/gauges/node";
 import { deliver, NOTIFY_STATE, readState, type NotifyConfig } from "../src/events";
 import { readStatus } from "../src/status";
 import { dispatchOnce } from "../src/dispatch";
 import { RunHealth } from "../src/health";
 import { runDfo } from "../src/dfo";
-import { runGauges } from "../src/gauges/publish";
+import { accumulateTemperatures, runGauges, stationFileOf } from "../src/gauges/publish";
 import { runInSeason } from "../src/inseason";
 import { INSEASON_LINKS_FORMAT } from "../../../packages/core/src/inseason";
 import { MemStore, privStore } from "./dfo.scenario";
@@ -135,4 +138,68 @@ it("gauges: no clim.json fails the run before anything is written (T609 W5)", as
   await expect(runGauges({ fetch: async () => new Response("", { status: 404 }), feed, priv: new MemStore(), now: new Date("2026-11-10T12:00:00Z"),
     roster: JSON.parse(readFileSync(join(FIX, "roster.json"), "utf-8")), sleep: async () => {}, limit: 2 })).rejects.toThrow(/clim\.json is missing/);
   expect(puts).toEqual([]);
+});
+
+// T994 #5 / #26: the gauge state the run writes back, and the owner-reminder dedupe, read in a bare catch: one failed read
+// or torn body wiped the water-temperature history (the only one there is), a station's year-to-date daily record, or the
+// sent keys (every reminder again). ONE shared fixture with the Python twin (AGENTS 40): pipeline/tests/test_feed_state_reads.py.
+describe("stored gauge and reminder state, the shared fixture (T994 #5, #26)", () => {
+  const F = JSON.parse(readFileSync(join(__dirname, "fixtures/state-reads.json"), "utf-8"));
+  type Case = { name: string; stored: string | null; result?: unknown; error?: string };
+  it("the temperature history: absent starts one, kept is appended, anything that does not read throws", () => {
+    const temps = new Map(Object.entries(F.tempHistory.temps as Record<string, number>).map(([s, c]) => [s, ["t", c] as [string, number]]));
+    for (const c of F.tempHistory.cases as Case[]) {
+      if (c.error) expect(() => accumulateTemperatures(c.stored, temps, F.tempHistory.pent), c.name).toThrow(c.error);
+      else expect(accumulateTemperatures(c.stored, temps, F.tempHistory.pent), c.name).toEqual(c.result);
+    }
+  });
+  it("a station's last file: absent is none, kept is read, anything that does not read throws", () => {
+    for (const c of F.stationFile.cases as Case[]) {
+      if (c.error) expect(() => stationFileOf(F.stationFile.station, c.stored), c.name).toThrow(c.error);
+      else expect(stationFileOf(F.stationFile.station, c.stored), c.name).toEqual(c.result);
+    }
+  });
+  it("the reminder dedupe: a state that does not read sends nothing, every due key failed, and says why", async () => {
+    for (const c of F.notified.cases as (Case & { sent: string[]; failed: string[]; recorded?: string[] })[]) {
+      const state = new MemStore();
+      if (c.stored !== null) state.m.set("notified.json", c.stored);
+      const posts: string[] = [];
+      const r = await sendDue(F.notified.notices, { url: "https://ntfy.sh/x", fetch: async (_u, i) => (posts.push(String(i?.body)), new Response("ok")), state, stateKey: "notified.json" });
+      expect({ sent: r.sent, failed: r.failed }, c.name).toEqual({ sent: c.sent, failed: c.failed });
+      expect(posts, c.name).toHaveLength(c.sent.length);
+      if (c.error) {
+        expect(r.error, c.name).toContain(c.error);
+        expect(state.m.get("notified.json"), c.name).toBe(c.stored);          // nothing written over it
+      } else {
+        expect(r.error, c.name).toBeUndefined();
+        expect(JSON.parse(state.m.get("notified.json")!).sent, c.name).toEqual(c.recorded);
+      }
+    }
+    // a read that fails (R2) is the same: nothing sent
+    const posts: string[] = [];
+    const r = await sendDue(F.notified.notices, { url: "u", fetch: async () => (posts.push("x"), new Response("ok")), state: new Broken(), stateKey: "notified.json" });
+    expect(r).toMatchObject({ sent: [], error: expect.stringContaining("R2 GET 500") });
+    expect(posts).toEqual([]);
+  });
+
+  it("gauges: a torn temperature history or station file fails the run before the index or the history is written", async () => {
+    const FIX = join(__dirname, "fixtures/gauges");
+    const rec = loadRecording(FIX);
+    for (const [where, key, why] of [
+      ["priv", "temp_history.json", "temp_history.json is stored but does not parse"],
+      ["feed", "07EA004.json", "07EA004.json is stored but does not parse"],
+    ] as const) {
+      const dir = mkdtempSync(join(tmpdir(), "state-reads-"));
+      cpSync(join(FIX, "seed"), dir, { recursive: true });
+      writeFileSync(join(dir, where, key), '{"torn": [');
+      const feed = dirStore(join(dir, "feed")), priv = dirStore(join(dir, "priv"));
+      const puts: string[] = [];
+      const watch = <S extends Store>(s: S, p: string): S => ({ ...s, put: async (k: string, b: string, o?: PutOptions) => { puts.push(p + k); await s.put(k, b, o); } });
+      await expect(runGauges({ fetch: fixtureFetch(rec).fetch, feed: watch(feed, "feed/"), priv: watch(priv, "priv/"), now: new Date(rec.now),
+        roster: JSON.parse(readFileSync(join(FIX, "roster.json"), "utf-8")), sleep: async () => {}, changeAware: false })).rejects.toThrow(why);
+      expect(puts, key).not.toContain("feed/index.json");
+      expect(puts, key).not.toContain("priv/temp_history.json");
+      expect(readFileSync(join(dir, where, key), "utf-8"), key).toBe('{"torn": [');
+    }
+  });
 });

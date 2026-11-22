@@ -61,10 +61,13 @@ def test_a_station_with_no_sensor_is_absent_not_zero(tmp_path):
     assert hist == {}
 
 
-def test_a_corrupt_history_file_is_started_over_rather_than_crashing(tmp_path):
+def test_a_corrupt_history_file_fails_and_is_kept(tmp_path):
+    """(T994 #5) It was started over: months of samples gone for one torn file. Now the run fails naming it and the
+    file stays (the shared cases: test_feed_state_reads.py)."""
     (tmp_path / "temp_history.json").write_text("{not json")
-    hist = accumulate_temperatures(tmp_path, {"A": ("t", 9.0)}, pent=0)
-    assert hist == {"A": {"0": [9.0]}}
+    with pytest.raises(ValueError, match="temp_history.json is stored but does not parse"):
+        accumulate_temperatures(tmp_path, {"A": ("t", 9.0)}, pent=0)
+    assert (tmp_path / "temp_history.json").read_text() == "{not json"
 
 
 # ---------------------------------------------------------------- the envelope
