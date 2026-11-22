@@ -28,6 +28,9 @@ practice. No release is cut in this chat; 0.8.6 comes later.
 2. **T995** branch switch: `main` = protected trunk (required checks = G1's jobs), merge commits, release branches at
    scope lock, tags by the release command, versioned pre-push hook (`before_push.py --hook`), prune merged branches
    and worktrees, AGENTS + memory rule updates.
+   **T998** with or right after it: SemVer, the bump from Conventional Commits (commitlint hook + CI + before_push),
+   1.0.0 at public launch, `v*` tags, generated developer changelog. Commits already use the format
+   (`fix(T983): …`).
 3. Wave 2 lanes: test isolation (T777 + T792 B + plan 6), heavy.sh fast-fail gate (T661 #3, plan 5), T768 rest,
    T931 merge, T866 trim (owner sees the list), T736 + T485 step 3, T987 cleanup.
 4. Last: the one human runbook + T992 explanation (plan 11).

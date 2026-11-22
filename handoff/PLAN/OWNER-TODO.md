@@ -16,6 +16,9 @@ with the default Claude uses until you answer). Newest first inside each section
   decides on the numbers.
 - **Merging (answered):** PRs + required checks into redesign/stream-sections. **Push hook (answered):** versioned
   pre-push hook running the before-push command.
+- **T998 versioning (answered):** 1.0.0 = "At public launch (Recommended)"; the bump comes from "Conventional Commits"
+  (feat → minor, fix → patch, `!` → major; before 1.0 a breaking change bumps minor). You confirm each computed
+  version at release.
 
 ## 2026-11-21 12:40: 0.8.5 batch scope, asked one ticket at a time (dialog)
 

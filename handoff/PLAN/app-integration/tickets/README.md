@@ -275,6 +275,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T995 | Branch structure: `main` is the protected trunk; PRs with required checks; release branches and tags | IN PROGRESS | T993 | owner 2026-11-21 |
 | T996 | Test the Apple push service end to end (registration, wake-up delivery, token reuse over 1 h+) | OPEN | T994 | owner 2026-11-21, next release |
 | T997 | Water map: two boundary labels at almost the same place draw on top of each other (Nicomekl River Part 2) | OPEN | | owner 2026-11-21, next chat |
+| T998 | Meaningful versions: SemVer for the app, the bump derived from Conventional Commits (1.0.0 at public launch) | OPEN | T995 | owner 2026-11-21 |
 
 ## Next after closed testing
 
