@@ -1,6 +1,6 @@
 # T788 — Gates that hide their cause or do not fire when they should (found by the audit and by last night's release)
 
-Status: PARTIAL (pipeline release / deploy scripts; none let a bad release through; item 3 FIXED 3c38c1d9b; item 9 done by T765 (5d928a1fb: taps.py lists every stale declaration in one run); item 12 done (no comment cites `exclusions.ts` any more); items 6 and 7 FIXED a461fbc50, a424dc8a0 (T994 lane F2); left (Claude): items 1, 2, 4, 5, 8, 10, 11)
+Status: DONE — 3c38c1d9b, 5d928a1fb, a461fbc50, a424dc8a0 (items 3, 6, 7, 9, 12); ea6d534f2 (#2), 60ed4ac17 (#8), d0f0d6ab1 (#10) in T993 lane G2; a3ca419e2 (#1, #4, #5, #11) in T993 lane G3 (details in T993's G3 notes). Merged and green on GitHub 2026-11-21 (3a0fa7c3b).
 
 Source: general audit 2026-11-16, code and guards checkers (`handoff/PLAN/audit-2026-11-16/code.md`, `handoff/PLAN/audit-2026-11-16/guards.md`).
 
