@@ -43,10 +43,9 @@ APP_JSON = "app/apps/mobile/app.json"
 PACK_TS = "app/packages/data/src/pack.generated.ts"
 PAINT_TS = "app/packages/core/src/paint.ts"
 MANIFEST_TS = "app/packages/data/src/manifest.ts"
-PACKED_TS = "app/packages/data/src/release/packed.ts"
-#: (T686) every ALSO_READS entry this reads: {file: (the constant, the file that declares it as a literal list)}
-_ALSO_SOURCES = {"paint": ("PAINT_READS", PAINT_TS), "near": ("NEAR_ALSO_READS", PACKED_TS),
-                 "down": ("DOWN_ALSO_READS", PACKED_TS), "climate": ("CLIMATE_ALSO_READS", PACKED_TS)}
+#: every ALSO_READS entry this reads: {file: (the constant, the file that declares it as a literal list)}. (T975) paint
+#: only: T686's near / down / climate ALSO_READS went with the old formats.
+_ALSO_SOURCES = {"paint": ("PAINT_READS", PAINT_TS)}
 _BY = "python -m pipeline.tools.emit.app_reads"
 ABOUT = ("What each app version reads: per release file, the formats its reader accepts (T555 item 4). Written by "
          f"`{_BY}` (the current version; `--backfill` proved the older rows by git), kept by its `--check` in "

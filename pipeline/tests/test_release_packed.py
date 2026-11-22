@@ -4,9 +4,9 @@ The codec round trip (AGENTS 58: a new shape is taught to its codec, which refus
 fixture (app/packages/data/dev/packed-parity.json) is the bytes both writers write and both readers read back — the
 app's half is `app/tools/packed-parity.test.ts`. Then each `extra` packs what copy_file copied and decodes back to every
 row; the contract names the packed formats; and an app that reads only the old formats is held back by the release's
-app gate (it keeps its data and is asked to update), never handed a file it cannot read. THE SWITCH (owner 2026-11-20
-09:59, "Ship readers now, formats later"): `packed.SHIP_PACKED_FORMATS` off writes the old forms with today's gates,
-on writes the packed ones with theirs; both are held here. No data.
+app gate (it keeps its data and is asked to update), never handed a file it cannot read. (T975) THE SWITCH that wrote
+the old forms (T686, owner 2026-11-20 09:59, "Ship readers now, formats later") is gone with them: a release writes
+the packed forms only, and a guard holds that no reader or writer of a replaced format remains. No data.
 """
 from __future__ import annotations
 
@@ -119,100 +119,131 @@ def test_an_app_that_reads_only_the_old_formats_is_held_back_never_broken():
     """OLD-APP COMPATIBILITY. A release carrying near/2, down/2, climate/2 needs the app version recorded reading them
     (app_reads.json): the app gate derives that floor, refuses a stamp below it, and an older app given the release
     (`releaseAllowed` on `minAppVersion`, and `readsRelease` on each file's format) keeps the data it holds and asks
-    to be updated. A release cut before T686 (near/1, …) is still read by the new app (its ALSO_READS)."""
+    to be updated. (T975) The app in this tree reads the packed forms ONLY: a release cut before T686 is refused by
+    its `readsRelease`, never read."""
     apps = {"0.8.3": {"near": ["near/1"], "down": ["down/1"], "climate": ["climate/1"]},
-            "0.8.4": {"near": ["near/2", "near/1"], "down": ["down/2", "down/1"], "climate": ["climate/2", "climate/1"]}}
+            "0.8.4": {"near": ["near/2", "near/1"], "down": ["down/2", "down/1"], "climate": ["climate/2", "climate/1"]},
+            "0.8.5": {"near": ["near/2"], "down": ["down/2"], "climate": ["climate/2"]}}
     new = {"files": {"near": {"format": "near/2"}, "down": {"format": "down/2"}, "climate": {"format": "climate/2"}}}
-    old = {"files": {"near": {"format": "near/1"}, "down": {"format": "down/1"}, "climate": {"format": "climate/1"}}}
     assert G.oldest_reader(new, apps) == "0.8.4"
-    assert G.oldest_reader(old, apps) == "0.8.3"                       # the new app still reads the old release
     assert G.problems(new, "0.8.3", apps) and not G.problems(new, "0.8.4", apps)
-    # the committed table: the recorded current app reads both forms of each
+    # the committed table and the code: the current app reads each packed file in its contract format alone
     from pipeline.tools.emit.app_reads import current_reads
     reads = current_reads()
-    for name, fmt in (("near", "near/1"), ("down", "down/1"), ("climate", "climate/1")):
-        assert reads[name][0] == C.FILES[name]["format"] and fmt in reads[name]
+    for name in ("near", "down", "climate"):
+        assert reads[name] == [C.FILES[name]["format"]], (name, reads[name])
+    assert reads["paint"] == [C.FILES["paint"]["format"], "paint/4"]       # paint/4: the frozen app fixture releases
 
 
-def test_the_switch_is_on_from_the_085_data_release():
-    """Owner 2026-11-20 09:59: off until app 0.8.4 was in production; 0.8.4 shipped to both stores, and the owner said
-    yes to the flip for the 0.8.5 data release (2026-11-21 plan). The release now needs app 0.8.4 (`app_gate`)."""
-    assert P.SHIP_PACKED_FORMATS is True
+def test_t975_the_switch_and_the_old_writers_are_gone():
+    """(T975) The switch that wrote near/1, down/1, climate/1 and paint/5 (T686, T679 #16), its old-form contract, its
+    gates and its writers are removed: no code path can write a replaced format."""
+    from pipeline.deliver.release import paint as PAINT
+    assert not hasattr(P, "SHIP_PACKED_FORMATS")
+    assert not any(hasattr(C, n) for n in ("UNPACKED", "written_files"))
+    assert not any(hasattr(B, n) for n in ("UNPACKED_GATES", "PACKED_GATES", "size_gates", "formats", "_climate_f16"))
+    assert not any(hasattr(PAINT, n) for n in ("MOSTLY_VERSION", "MOSTLY_FORMAT", "written_version"))
+    assert (PAINT.VERSION, PAINT.FORMAT) == (6, "paint/6")
 
 
-@pytest.mark.parametrize("on", [False, True])
-def test_each_switch_position_writes_its_forms_and_gates(monkeypatch, tmp_path, on):
-    """OFF: the old formats, columns, climatology codec and gates, and the copied rows untouched (the release is the one
-    before T686). ON: the packed ones. Both are read when the release runs, not at import."""
-    monkeypatch.setattr(P, "SHIP_PACKED_FORMATS", on)
-    files = C.written_files()
-    want = {"near": ("near/2", ["place_id", "b"]), "down": ("down/2", ["block", "b"]),
-            "climate": ("climate/2", ["station", "parameter", "bands"])} if on else \
-        {"near": ("near/1", ["place_id", "ckm", "ord"]), "down": ("down/1", ["sid", "down_sid", "len", "lake"]),
-         "climate": ("climate/1", ["station", "parameter", "bands"])}
-    for name, (fmt, cols) in want.items():
-        t = {"near": "place_water", "down": "section_down", "climate": "gauge_clim"}[name]
-        assert (files[name]["format"], files[name]["tables"][t], B.formats()[name]) == (fmt, cols, fmt)
-    assert C.FILES["near"]["format"] == "near/2"            # the app's contract is the packed one either way
-    gates = B.size_gates()
-    assert {k: gates[k] for k in ("near", "down", "climate")} == (B.PACKED_GATES if on else B.UNPACKED_GATES)
-    # the bundle half's choice on a tiny bundle: what near and climate hold
-    b = tmp_path / "b.sqlite"
-    con = sqlite3.connect(b)
-    con.executescript("""
-        CREATE TABLE place_water (place_id INTEGER NOT NULL, ckm INTEGER NOT NULL, ord INTEGER NOT NULL,
-                                  PRIMARY KEY (place_id, ckm, ord)) WITHOUT ROWID;
-        INSERT INTO place_water VALUES (1, 10, 3), (1, 2500, 4), (2, 0, 3);
-        CREATE TABLE gauge_clim (station TEXT NOT NULL, parameter TEXT NOT NULL, bands BLOB NOT NULL);
-    """)
-    f32 = bytes([3]) + struct.pack("<5f", 1.0, 2.0, 3.0, 4.0, 5.0)
-    con.execute("INSERT INTO gauge_clim VALUES ('08MH001', 'discharge', ?)", (f32,))
-    con.commit()
-    con.close()
-    near = B.copy_file(tmp_path / "near.sqlite", {"b": b}, [("b", "place_water", None)], {"format": B.formats()["near"]},
-                       extra=P.pack_near if on else None)
-    rows = sqlite3.connect(near).execute("SELECT * FROM place_water ORDER BY 1").fetchall()
-    if on:
-        assert [(p, c, o) for p, bl in rows for c, o in P.decode_near(bl)] == [(1, 10, 3), (1, 2500, 4), (2, 0, 3)]
-    else:
-        assert sorted(rows) == [(1, 10, 3), (1, 2500, 4), (2, 0, 3)]
-    clim = B.copy_file(tmp_path / "clim.sqlite", {"b": b}, [("b", "gauge_clim", None)], {},
-                       extra=B._climate_extra if on else B._climate_f16)
-    (bands,) = sqlite3.connect(clim).execute("SELECT bands FROM gauge_clim").fetchone()
-    assert (P.unclim3(bands) if on else bands) == B.clim_f16(f32)
+def test_t975_a_release_writes_only_the_packed_formats():
+    """(T975) What a release writes: the contract's packed formats and their gates, nothing else (B.FORMATS is the
+    manifest's `format` of every file), and the mini release the REAL pipeline built (committed,
+    app/packages/data/dev/mini-release, `python -m pipeline.tools.mini_release --check`) carries exactly them: near and
+    down in their packed tables, the climatology clim/3, paint/6. No data."""
+    import gzip
+    import tempfile
+    want = {"near": "near/2", "down": "down/2", "climate": "climate/2", "paint": "paint/6"}
+    assert {n: B.FORMATS[n] for n in want} == {n: C.FILES[n]["format"] for n in want} == want
+    assert {n: B.SIZE_GATES[n] for n in ("near", "down", "climate")} == \
+        {"near": 1_000_000, "down": 700_000, "climate": 1_100_000}
+    from pipeline.tools.mini_release import COMMITTED
+    (rel,) = [d for d in COMMITTED.iterdir() if d.is_dir()]
+    m = json.loads((rel / "manifest.json").read_text())
+    assert {n: m["files"][n]["format"] for n in want} == want
+    tables = {"near": ("place_water", ["place_id", "b"]), "down": ("section_down", ["block", "b"]),
+              "climate": ("gauge_clim", ["station", "parameter", "bands"])}
+    with tempfile.TemporaryDirectory() as tmp:
+        for name, (table, cols) in tables.items():
+            db = Path(tmp) / f"{name}.sqlite"
+            db.write_bytes(gzip.decompress((COMMITTED / m["files"][name]["url"]).read_bytes()))
+            con = sqlite3.connect(db)
+            assert [r[1] for r in con.execute(f"PRAGMA table_info({table})")] == cols, name
+            meta = dict(con.execute("SELECT k, v FROM meta"))
+            assert meta["format"] == want[name]
+            if name == "climate":
+                assert meta["clim"] == P.CLIM_CODEC
+                for (bands,) in con.execute("SELECT bands FROM gauge_clim"):
+                    P.unclim3(bands)                                       # every blob parses as clim/3
+            if name == "near":
+                for _p, b in con.execute("SELECT place_id, b FROM place_water"):
+                    P.decode_near(b)
+            if name == "down":
+                for k, b in con.execute("SELECT block, b FROM section_down"):
+                    P.decode_down_block(k, b)
+            con.close()
+    paint = gzip.decompress((COMMITTED / m["files"]["paint"]["url"]).read_bytes())
+    assert paint[:5] == b"BCPT" + bytes([6])
 
 
-def test_off_no_minappversion_is_derived_from_the_three_files():
-    """With the switch off the manifest names near/1, down/1, climate/1: the oldest recorded app reads them, so the
-    three files ask nothing of the app gate (the release's floor is what it was)."""
-    m = {"files": {n: {"format": C.UNPACKED[n]["format"]} for n in ("near", "down", "climate")}}
-    assert G.oldest_reader(m) == min(G.table(), key=G.ver)
-    # (T679 #16) paint/5 too: no app floor moves while the switch is off (paint/5 is read since 0.3.0)
-    assert G.needs({"files": {"paint": {"format": C.UNPACKED["paint"]["format"]}}}, G.table())["paint/5"] != "0.8.4"
-    # ON: paint/6 and the packed three need 0.8.4
-    on = {"files": {n: {"format": C.FILES[n]["format"]} for n in ("paint", "near", "down", "climate")}}
-    assert G.oldest_reader(on) == "0.8.4"
+#: (T975) the formats the packed ones replaced: no product code may name one as a string
+REPLACED = ("near/1", "down/1", "climate/1", "paint/5")
 
 
-@pytest.mark.parametrize("on", [False, True])
-def test_t679_16_paint_follows_the_same_switch(monkeypatch, on):
-    """(T679 #16, owner 2026-11-20 10:00: every left-over on this release) paint/6 (the one access flag) is written with
-    the packed formats and not before; off, paint/5 exactly as before (no `mostly` column)."""
+@pytest.mark.smoke  # a guard
+def test_t975_no_reader_or_writer_for_a_replaced_format_remains():
+    """(T975) GUARD: no product code — the pipeline's release and app-reads modules, the app's packages, the mobile
+    app, the feeds worker — names near/1, down/1, climate/1 or paint/5 as a string (a reader compares one, a writer
+    stamps one), nor the T686 old-format constants. Python: a string TOKEN that is exactly the format (a docstring
+    telling the history is not one); TypeScript: a quoted literal outside comments. Tests, fixtures and generated
+    goldens are not product code; app_reads.json (the record of what older apps read) is not scanned."""
+    import io
+    import os
+    import re
+    import tokenize
+    root = Path(__file__).resolve().parents[2]
+    lit = re.compile("[\"'`](" + "|".join(re.escape(f) for f in REPLACED) + ")[\"'`]")
+    names = re.compile(r"\b(SHIP_PACKED_FORMATS|NEAR_ALSO_READS|DOWN_ALSO_READS|CLIMATE_ALSO_READS|UNPACKED_GATES|"
+                       r"written_files|size_gates)\b")
+    bad = []
+    py = [root / "pipeline" / "deliver", root / "pipeline" / "tools" / "emit", root / "scripts"]
+    ts = [root / "app" / "packages", root / "app" / "apps" / "mobile" / "src", root / "app" / "workers" / "feeds" / "src"]
+    skip = {"node_modules", "__pycache__", "tests", "dist", "fixtures", "dev", "__snapshots__"}
+    for top, ext in [(d, ".py") for d in py] + [(d, x) for d in ts for x in (".ts", ".tsx")]:
+        for folder, dirs, files in os.walk(top):
+            dirs[:] = sorted(d for d in dirs if d not in skip and not d.startswith("."))
+            for f in sorted(files):
+                if not f.endswith(ext) or ".test." in f or f.startswith("test_") or ".fixture." in f or f.endswith(".d.ts"):
+                    continue
+                path = Path(folder) / f
+                rel = path.relative_to(root).as_posix()
+                text = path.read_text(encoding="utf-8")
+                if ext == ".py":
+                    toks = list(tokenize.generate_tokens(io.StringIO(text).readline))
+                    bad += [f"{rel}:{x.start[0]}: {x.string}" for x in toks
+                            if x.type == tokenize.STRING and x.string.strip("\"'") in REPLACED]
+                    bad += [f"{rel}:{x.start[0]}: {x.string}" for x in toks
+                            if x.type == tokenize.NAME and names.fullmatch(x.string)]
+                else:
+                    for n, line in enumerate(text.splitlines(), 1):
+                        code = re.sub(r"(^|\s)//.*$|^\s*\*.*$|/\*.*?\*/", "", line)
+                        bad += [f"{rel}:{n}: {m.group(0)}" for m in lit.finditer(code)]
+                        bad += [f"{rel}:{n}: {m.group(0)}" for m in names.finditer(code)]
+    assert bad == [], "a replaced format (or T686's switch) is still named:\n" + "\n".join(bad)
+
+
+def test_t975_paint_writes_paint6_only():
+    """(T679 #16, T975) paint/6 (the one access flag) is the only paint a release writes: no version to choose."""
     from pipeline.deliver.release import paint as PAINT
     from pipeline.tests.test_release import _tiny_bundle
     from pipeline.deliver import status_index as SI
     from pipeline.tests.test_status_index import _tiny
-    monkeypatch.setattr(P, "SHIP_PACKED_FORMATS", on)
-    assert B.formats()["paint"] == ("paint/6" if on else "paint/5") == f"paint/{PAINT.written_version()}"
     db = _tiny_bundle()
     db.execute("INSERT INTO section_no_access VALUES (3, 1000), (4, 600), (5, 20)")
-    status = SI.encode(_tiny())
-    b = PAINT.encode(status, db)
-    assert b[4] == (6 if on else 5)
-    d = PAINT.decode(b)
-    assert d.get("mostly") == ([3, 4] if on else None)
-    assert PAINT.encode(status, db, version=5) == (PAINT.encode(status, db) if not on else b[:4] + bytes([5]) + b[5:-len(
-        PAINT.mostly_column(db))])                      # paint/6 is paint/5 + the column, nothing else moves
+    b = PAINT.encode(SI.encode(_tiny()), db)
+    assert b[4] == 6 and PAINT.decode(b)["mostly"] == [3, 4]
+    with pytest.raises(ValueError, match="not a paint/6 file"):
+        PAINT.decode(b[:4] + bytes([5]) + b[5:])
 
 
 def test_t679_8_flow_own_is_built_only_behind_its_switch_and_refuses_a_stray_row():
@@ -232,13 +263,13 @@ def test_t679_8_flow_own_is_built_only_behind_its_switch_and_refuses_a_stray_row
         PAINT.encode_own(db)
 
 
-def test_t973_cw_through_is_optional_unswitched_and_carries_each_section_one_note(tmp_path):
+def test_t973_cw_through_is_optional_and_carries_each_section_one_note(tmp_path):
     """(T973) `cw-through/1`: OPTIONAL in the contract (an app before 0.8.4 knows no such file, so the app gate asks
-    nothing of it and it reads nothing new), written whatever `SHIP_PACKED_FORMATS` says, and its writer is the bundle's
+    nothing of it and it reads nothing new), written into every release, and its writer is the bundle's
     `designation_carried` joined to the designation: one note per (unit, class, period, through), one row per section.
     A bundle without the table is refused."""
     from pipeline.deliver.bundle.build import SCHEMA
-    assert "cw-through" in C.OPTIONAL and C.written_files(False)["cw-through"] == C.written_files(True)["cw-through"]
+    assert "cw-through" in C.OPTIONAL and B.FORMATS["cw-through"] == C.FILES["cw-through"]["format"]
     assert G.needs({"files": {"cw-through": {"format": "cw-through/1"}}},
                    {"0.8.3": {"core": ["core/1"]}, "0.8.4": {"cw-through": ["cw-through/1"]}}) == {"cw-through/1": "0.8.3"}
     bundle = tmp_path / "bundle.sqlite"

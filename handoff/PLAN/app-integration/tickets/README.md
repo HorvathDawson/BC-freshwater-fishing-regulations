@@ -252,7 +252,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T971 | Conditions: picking Level in the gauge card also re-ranks the estimate card above it | IN PROGRESS | 2a2aa0e75 (lane/t971-flow-leads) | L4 Android looks 2026-11-20 |
 | T972 | Search for "Thompson" lists "Thompson Plateau" locality five times, identical lines | OPEN | | L4 Android looks 2026-11-20 |
 | T974 | Classified Waters "may need" note: clean up (firm unit or drop, remove the optional file and note) once a CO answers T973 | BLOCKED (owner) | | owner 2026-11-20 12:38 |
-| T975 | Remove the old-format data readers/writers (near/1, down/1, climate/1, paint/5, the SHIP_PACKED_FORMATS switch) once packed formats are live in production | OPEN | | owner 2026-11-20 13:37 (after T686 switch-on) |
+| T975 | Remove the old-format data readers/writers (near/1, down/1, climate/1, paint/5, the SHIP_PACKED_FORMATS switch) once packed formats are live in production | IN PROGRESS (merged to dev 2026-11-21 after staging smoke; left (Claude): ships with 0.8.5 apps AFTER the owner's production data release) | | owner 2026-11-20 13:37 (after T686 switch-on) |
 | T976 | The photo viewer's counter ("2 of 3") can't be read over a light photo: white text, no backing (the buttons have a disc) | OPEN | | lane L6 2026-11-20, T836 iPhone simulator shots |
 | T977 | Push wake carry-over: two feed runs at once both read it (duplicate silent pushes, or a wake's circle overwritten); no small fix, a lease when worth it | OPEN | | lane LF 2026-11-20, T739 review |
 | T978 | Release build checks never fail on this machine's state (worktree links, stale export, marks, mini release), only on code | OPEN | | owner 2026-11-20, 0.8.4 build stops |

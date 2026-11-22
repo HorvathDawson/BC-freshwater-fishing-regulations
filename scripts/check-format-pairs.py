@@ -59,12 +59,9 @@ PAIRS = [
 ]
 #: a reader that takes a LIST of versions: the written one must be in it
 MEMBER = [
+    # (T975) paint/6, the one paint form written (T679 #16's access flag)
     ("release paint file",
      "pipeline/deliver/release/paint.py", PY_CONST.format(name="FORMAT"),
-     "app/packages/core/src/paint.ts", r'\bPAINT_READS\b[^=]*=\s*\[([^\]]*)\]'),
-    # (T679 #16) paint/6, written once packed.SHIP_PACKED_FORMATS is on: the app must read it before that
-    ("release paint file (the access flag)",
-     "pipeline/deliver/release/paint.py", PY_CONST.format(name="MOSTLY_FORMAT"),
      "app/packages/core/src/paint.ts", r'\bPAINT_READS\b[^=]*=\s*\[([^\]]*)\]'),
 ]
 

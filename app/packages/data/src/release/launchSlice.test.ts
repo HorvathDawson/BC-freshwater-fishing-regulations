@@ -23,7 +23,7 @@ const { parseManifest } = await import("../manifest");
 const m = parseManifest({
   format: "app-manifest/2", data_release: "r-1",
   tiles: { compatible: ["d768d6e135e62b99.*"], current: null, assets: null, mask: null }, basemap: null,
-  files: { paint: { url: "r-1/paint-x.bin.gz", bytes: 1, gz: 0, sha256: "0".repeat(64), format: "paint/5", section_handles: "d768d6e135e62b99" } },
+  files: { paint: { url: "r-1/paint-x.bin.gz", bytes: 1, gz: 0, sha256: "0".repeat(64), format: "paint/6", section_handles: "d768d6e135e62b99" } },
   regulations: { valid_until: null, versions: null },
 });
 const open = async () => { throw new Error("no database in this test"); };

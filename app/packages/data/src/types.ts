@@ -194,7 +194,7 @@ export interface PanelMember {
   lead?: number;
   /**
    * (T296) `true` only: this member's route to the section crosses a LAKE — the release's `panel_member.lake`
-   * (paint/5), read alike by the map's colour, the sheet and a saved spot; on a paint/4 release the sheet sets it from
+   * (paint/5 on), read alike by the map's colour, the sheet and a saved spot; on a paint/4 release the sheet sets it from
    * its walked routes (`withThroughLake`) and the map knows nothing of lakes. Core's `lakeDamped` applies it.
    */
   throughLake?: true;
@@ -229,7 +229,7 @@ export interface Panel {
   areaKm2: number | null;
   members: readonly PanelMember[];
   /**
-   * (T296) `true` only: the release says each member's lake crossing (paint/5, `PanelMember.throughLake`), so the
+   * (T296) `true` only: the release says each member's lake crossing (paint/5 on, `PanelMember.throughLake`), so the
    * sheet reads it from here as the map does and never from a route (`withThroughLake`). Absent on a paint/4 release.
    */
   lakeKnown?: true;

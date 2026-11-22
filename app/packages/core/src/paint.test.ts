@@ -18,7 +18,7 @@ describe("decodePaint", () => {
     expect(p.panelOf(0)).toBeNull();
     expect(p.panelOf(6)).toBeNull();                 // between runs
     expect(p.sectionCount).toBe(F.section_panel.length);
-    expect(p.lakes).toBe(true);                       // (T296) paint/5 carries each member's lake crossing
+    expect(p.lakes).toBe(true);                       // (T296) paint/5 and 6 carry each member's lake crossing
   });
   it("carries the status index whole, held to its handles", () => {
     expect(p.status.handles).toBe(F.handles);
@@ -46,7 +46,12 @@ describe("decodePaint", () => {
   it("refuses a paint/3 file, which carries one record length for both quantities", () => {
     const old = b64(F.paint).slice();
     old[4] = 3;
-    expect(() => decodePaint(old, F.handles)).toThrow(new PaintError("paint: version 3 is not 4, 5 or 6"));
+    expect(() => decodePaint(old, F.handles)).toThrow(new PaintError("paint: version 3 is not 4 or 6"));
+  });
+  it("(T975) refuses a paint/5 file: the release writes paint/6 only, and paint/5 is no longer read", () => {
+    const old = b64(F.paint).slice();
+    old[4] = 5;
+    expect(() => decodePaint(old, F.handles)).toThrow(new PaintError("paint: version 5 is not 4 or 6"));
   });
   it("(T54) decodes the no-access half exactly as the pipeline does, and hands it to the status it carries", () => {
     const rows = (a: ReturnType<typeof decodeAccessFile>, sids: number[], areas: string[][]) =>
@@ -73,16 +78,12 @@ describe("decodePaint", () => {
 });
 
 describe("(T679 #16) paint/6: the one access flag, Python's union share", () => {
-  const p5 = decodePaint(b64(F.paint), F.handles, F.reach);
-  const p6 = decodePaint(b64(F.paint6), F.handles, F.reach);
-  it("is paint/5 plus the sections mostly inside no-access land, read as Python wrote them", () => {
-    expect(p6.members).toEqual(p5.members);
-    expect(p6.basins).toEqual(p5.basins);
-    expect([3, 4, 300].map((s) => p6.access.of(s))).toEqual([3, 4, 300].map((s) => p5.access.of(s)));
+  const p6 = decodePaint(b64(F.paint), F.handles, F.reach);
+  it("reads the sections mostly inside no-access land as Python wrote them", () => {
+    expect(F.mostly.length).toBeGreaterThan(0);
     expect([0, 3, 4, 5, 6, 300, 301].filter((s) => noPublicAccess(p6.access, s))).toEqual(F.mostly);
   });
-  it("the flag decides, not the summed rows (paint/5 sums them)", () => {
-    expect(p5.access.mostly).toBeUndefined();
+  it("the flag decides, not the summed rows", () => {
     expect(p6.access.mostly!(4)).toBe(true);
     // mutation: a section the rows put mostly inside but the flag does not is NOT drawn as no access
     expect(noPublicAccess({ of: p6.access.of, mostly: () => false }, 3)).toBe(false);
@@ -95,7 +96,7 @@ describe("(T679 #16) paint/6: the one access flag, Python's union share", () => 
     expect(() => decodeFlowOwn(b64(F.small), p.sectionCount)).toThrow(/not a flow-own/);
   });
   it("refuses a paint/6 whose flag column is cut", () => {
-    const b = b64(F.paint6);
+    const b = b64(F.paint);
     expect(() => decodePaint(b.subarray(0, b.length - 1), F.handles, F.reach)).toThrow();
   });
 });

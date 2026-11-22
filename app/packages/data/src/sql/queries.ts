@@ -197,8 +197,6 @@ export const CLIMATOLOGY =
 export const CLIM_PARAMETERS =
   "SELECT DISTINCT parameter FROM gauge_clim WHERE station = ? ORDER BY parameter";
 
-export const DOWN_FROM = "SELECT down_sid FROM section_down WHERE sid = ?";
-
 /**
  * Where a set of stations sit — their own reach and their coordinate.
  *

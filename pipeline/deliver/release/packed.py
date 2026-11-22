@@ -7,6 +7,11 @@ Every value decodes to exactly what the old form shipped (the side deliver's pro
 
 All varints are unsigned LEB128; `zz` is zigzag for a signed value. Nothing is deflated (the file ships gzipped).
 
+(T975) THE ONLY FORMS. The switch that kept near/1, down/1 and climate/1 (and paint/5) while app 0.8.4 reached the
+production stores is gone: every release writes these, and the app reads nothing else (`release/packed.ts`). The
+packing happens on what copy_file copied from the bundle (`pack_near`, `pack_down`, `build._climate_extra`); the bundle
+keeps its tables by row.
+
 near/2 — `place_water (place_id INTEGER PRIMARY KEY, b BLOB NOT NULL)`: ONE ROW PER TOWN (was one per town and water).
     `b` = N, then N × (ord − the previous ord − 1) (ords ascending, the first from −1; a town names a water once), then
     the N `ckm` low bytes, then the N `ckm` high bytes (ckm ≤ 2500: hundredths of a km, as near/1). The reader sorts by
@@ -24,15 +29,6 @@ from __future__ import annotations
 import sqlite3
 import struct
 from typing import Iterable, List, Optional, Sequence, Tuple
-
-#: THE SWITCH (owner 2026-11-20 09:59, "Ship readers now, formats later (Recommended)"). OFF: a release writes near/1,
-#: down/1 and climate/1 exactly as before T686 (byte for byte; every app reads them, so no minAppVersion is derived from
-#: them) and keeps their old gates. ON: near/2, down/2, climate/2 and their lowered gates; the release then needs app
-#: 0.8.4 (`app_gate`). Flip it to True in the FIRST data release cut after app 0.8.4 is live in BOTH production stores
-#: (Google Play production and the App Store) — never before: an older app keeps its data and is asked to update.
-#: App 0.8.4 reads both forms, whichever this says.
-#: ON since the 0.8.5 data release (owner yes, 2026-11-21 plan): 0.8.4 is in both production stores.
-SHIP_PACKED_FORMATS = True
 
 #: (T679 #8, owner 2026-11-20 09:59 "Ranking's rule, list first") THE OWN-GAUGE FLAG (`flow-own`): OFF until the owner
 #: has seen the list of gauges that move between "ON THIS WATER" and "ESTIMATING FROM OTHER WATERS"

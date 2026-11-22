@@ -117,7 +117,11 @@ def test_the_committed_table_holds_the_current_app_and_is_what_the_code_reads():
 
 
 def test_the_committed_table_gives_the_first_readers_the_hand_tables_had():
-    """PAINT_NEEDS {5: 0.3.0}, SALMON_NEEDS {4: 0.5.0} and the water/3 + geo/2 stamp of 0.7.0, now derived."""
-    apps = G.table()
-    got = G.needs(_m(paint="paint/5", salmon="salmon/4", water="water/3", geo="geo/2"), apps)
-    assert got == {"paint/5": "0.3.0", "salmon/4": "0.5.0", "water/3": "0.7.0", "geo/2": "0.7.0"}
+    """PAINT_NEEDS {5: 0.3.0}, SALMON_NEEDS {4: 0.5.0} and the water/3 + geo/2 stamp of 0.7.0, now derived — over the
+    apps up to 0.8.4, the last to read paint/5. (T975) From 0.8.5 no current app reads paint/5 (None: a release
+    naming it is one the newest app cannot read)."""
+    table = G.table()
+    apps = {v: r for v, r in table.items() if G.ver(v) <= G.ver("0.8.4")}
+    m = _m(paint="paint/5", salmon="salmon/4", water="water/3", geo="geo/2")
+    assert G.needs(m, apps) == {"paint/5": "0.3.0", "salmon/4": "0.5.0", "water/3": "0.7.0", "geo/2": "0.7.0"}
+    assert G.needs(m, table)["paint/5"] is None
