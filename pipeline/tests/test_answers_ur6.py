@@ -37,15 +37,8 @@ def _walk(nodes):
 
 
 # 1 ---------------------------------------------------------------------------------------------
-def test_1_a_size_tier_says_of_these_not_this_box():
-    g = _g(F.VEDDER)
-    (size,) = [t for t in _walk(g["tree"]) if t.get("tier") == "size"]
-    assert size["says"] == "Only 1 of all your trout and char may be over 50 cm (20 in) — not 1 per species. 2 if one of them is a hatchery steelhead."
-    g = _g(F.BELLA_MAY_ST, MAY1)
-    (size,) = [t for t in _walk(g["tree"]) if t.get("tier") == "size"]
-    assert size["says"] == "Only 1 of all your trout and char may be over 50 cm (20 in) — not 1 per species."
-
-
+# (T866) the Vedder's and the Bella Coola's size tier, and the Vedder's own-rule relation (6), word for word:
+# test_answers_card_words.py CARDS
 def test_1_no_tier_anywhere_says_box():
     for water in (F.VEDDER, F.STREAM):
         g = _g(water)
@@ -53,12 +46,6 @@ def test_1_no_tier_anywhere_says_box():
 
 
 # 6 ---------------------------------------------------------------------------------------------
-def test_6_an_own_rule_under_the_total_says_it_is_outside_the_share_and_inside_the_total():
-    g = _g(F.VEDDER)
-    (own,) = [t for t in _walk(g["tree"]) if t.get("tier") == "own"]
-    assert own["relation"] == "Not part of the 2 from streams; part of the 4 a day across Region 2"
-
-
 def test_6_no_relation_where_there_is_no_share_or_the_own_rule_is_inside_it():
     for water, md in ((F.STREAM, OCT10), (F.BELLA_MAY_ST, MAY1)):
         g = _g(water, md)

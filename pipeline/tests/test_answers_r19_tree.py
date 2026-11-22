@@ -47,58 +47,45 @@ def test_2_sizes_read_cm_then_inches_in_brackets():
 
 
 def test_2_lift_and_kept_elsewhere_lines_say_inches_in_brackets():
-    g, out, _P = _g(F.VEDDER)
-    assert g["lifts"][0]["says"].startswith("On this river, hatchery rainbow trout 50 cm (20 in) or less: up to 4 a day")
+    g, out, _P = _g(F.VEDDER)                   # (T866) the lift's words, "50 cm (20 in)": card_words CARDS
     lines = [w["q"] for w in g["worked"]] + [w["a"] for w in g["worked"]]
     assert not [x for x in lines if " / " in x]
 
 
 # 1, 3, 6: the Vedder ---------------------------------------------------------------------------
 def test_3_the_vedder_tree():
+    # (T866) every sentence of the Vedder's tree (the header is the root tier, ROUND20 1; the own tier's replaces; the
+    # rainbow's words; the share's "of the 4" and its origin, ROUND20g 1; the size tier's "2 if one is a hatchery
+    # steelhead", said once, ROUND20g 2; the kinds' sentences, T475): test_answers_card_words.py CARDS
     g, _o, _P = _g(F.VEDDER)
-    # ROUND20 1: the header IS the root tier
-    assert g["header"] == {"says": "4 a day per angler across Region 2, lakes included", "tier": "t1", "tag": None}
     assert g["origin"] is None                                   # ROUND20g 1: the share's tier says it
     (total,) = g["tree"]
     share, own = total["children"]                               # ROUND20b C3: the share first
-    assert own["replaces"] == ("Replaces Region 2’s 2-from-streams limit and 30 cm (12 in) minimum size for hatchery "
-                               "rainbow trout")
     (rb,) = own["children"]
-    assert (rb["says"], rb["detail"]) == ("Up to 4 hatchery rainbow trout", "any length, 50 cm (20 in) or less")
-    assert rb["sentence"] == "Up to 4 hatchery rainbow trout, any length, 50 cm (20 in) or less"
-    assert share["says"] == "Up to 2 of the 4 from streams"   # ROUND UR7 A: the lift said once, by the own tier's relation   # ROUND20 2
-    assert share["origin"] == "From streams, keep hatchery fish only — wild trout and char go back."   # ROUND20g 1
+    assert rb["species"] == ["RB"]
     (size,) = share["children"]           # every kind of the share may pass 50 cm: the size tier holds them all
-    assert size["says"] == "Only 1 of all your trout and char may be over 50 cm (20 in) — not 1 per species. 2 if one of them is a hatchery steelhead."
     assert (size["extra"]["n"], size["extra"]["species"]) == (1, ["ST"])
     trout, dv, st = size["children"]
-    # T475: the line is a part of the share it sits in; the headline says "hatchery" for every kind of it
-    assert trout["sentence"] == "Up to 2 brook, brown or cutthroat trout combined, 30 cm (12 in) or longer"
+    assert [trout["species"], dv["species"], st["species"]] == [["EB", "GB", "CT"], ["DV", "LT"], ["ST"]]
     assert trout["also_counts"] == []     # the grouping says the cross-kind over-50 line
-    assert dv["sentence"] == "Up to 1 Dolly Varden/bull trout or lake trout combined, 60 cm (24 in) or longer"
-    # ROUND20g 2: the size tier's "— 2 if one is a hatchery steelhead" says it once; no size note on the kind
-    assert st["sentence"] == ("Up to 2 hatchery steelhead, rainbow trout over 50 cm (20 in) — wild steelhead go back")
-    assert "size_note" not in st
+    assert "size_note" not in st          # no size note on the kind
 
 
 def test_3_a_kind_that_cannot_pass_the_size_stays_outside_and_a_count_tier_names_its_fish():
     g, _o, _P = _g(F.BELLA_MAY_ST, MAY1)
+    # (T866) the own, size and count tiers' words and the count's kinds' sentences (UR3 3; T475: a kind under a count
+    # tier is a part of it): card_words CARDS (BELLA_MAY_ST, May 1)
     (own,) = g["tree"][0]["children"]
-    assert own["says"] == "This river’s rule: up to 2 a day (part of the 4)"
     size, count = own["children"]
-    assert size["says"] == "Only 1 of all your trout and char may be over 50 cm (20 in) — not 1 per species."
+    assert [own["tier"], size["tier"], count["tier"]] == ["own", "size", "count"]
     assert [k["species"] for k in size["children"]] == [["EB", "GB"], ["DV", "LT"]]
-    assert count["says"] == "Up to 1 cutthroat or rainbow trout combined (part of the 2)"   # UR3 3; ≤33 and ≤50 cm: never over 50
-    # T475: a kind under a count tier is a part of it (the count tier's line says the 1 combined)
-    assert [k["sentence"] for k in count["children"]] == [
-        "Up to 1 hatchery cutthroat trout, 30–33 cm (12–13 in)",
-        "Up to 1 hatchery rainbow trout, 30–50 cm (12–20 in)"]
+    assert [k["species"] for k in count["children"]] == [["CT"], ["RB"]]       # ≤33 and ≤50 cm: never over 50
 
 
 def test_3_a_size_tier_spanning_tiers_wraps_them():
     g, _o, _P = _g(F.CLAKE)             # Chilliwack Lake's own Dolly Varden rule under Region 2's 1 over 50 cm
-    (size,) = g["tree"][0]["children"]
-    assert size["says"] == "Only 1 of all your trout and char may be over 50 cm (20 in) — not 1 per species."
+    (size,) = g["tree"][0]["children"]             # (T866) its words: card_words CARDS (CLAKE)
+    assert size["tier"] == "size"
     assert [x.get("tier") or x["species"] for x in size["children"]] == ["own", ["EB", "GB", "CT", "RB"], ["LT"]]
 
 
@@ -114,15 +101,9 @@ def test_3_a_count_tier_crossing_the_cap_is_split_not_said_on_its_kinds():
 
 # 5 ---------------------------------------------------------------------------------------------
 def test_5_the_boundary_standard_on_the_table_bands():
-    g, _o, _P = _g(F.VEDDER)
-    bands = g["table"]["bands"]
-    assert [(b["says"], b["from_in"], b["to_in"]) for b in bands["RB"]] == [
-        ("50 cm (20 in) or less", True, True), ("over 50 cm (20 in)", False, False)]     # p.80: OVER 50 is steelhead
-    assert [b["says"] for b in bands["CT"]] == ["under 30 cm (12 in)", "30–50 cm (12–20 in)", "over 50 cm (20 in)"]
-    assert [b["says"] for b in bands["DV"]] == ["under 60 cm (24 in)", "60 cm (24 in) or longer"]
-    g, _o, _P = _g(F.SLOT)           # none between 60 and 90 cm: both bounds legal
-    assert [b["says"] for b in g["table"]["bands"]["RB"]] == [
-        "60 cm (24 in) or less", "between 60 cm (24 in) and 90 cm (35 in)", "90 cm (35 in) or longer"]   # Q62
+    # (T866) the Vedder's bands (p.80: OVER 50 is steelhead) and the slot lake's (none between 60 and 90 cm: both bounds
+    # legal, Q62), word for word with their ends: card_words CARDS
+    g, _o, _P = _g(F.SLOT)
     assert all({"from_in", "to_in"} <= set(k) for k in g["cap_kinds"])
 
 

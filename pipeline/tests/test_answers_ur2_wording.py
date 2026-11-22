@@ -10,6 +10,10 @@
      where anadromous rainbow trout are found")
   5  the stop duty: "after you keep 2, stop fishing for the day"
 (6 and 7 are the page's: check.mjs ur2-closed-until, ur2-bait-allowed-note.)
+
+(T866) The cards' words for 1-4 (the Vedder's and the Lower West Arm's headline and header, the Vedder's worked lines, its
+Dolly Varden and steelhead kinds and their presence line) are pinned once in test_answers_card_words.py CARDS. What stays
+here is the gate, the presence words of the composer and the stop duty.
 """
 from __future__ import annotations
 
@@ -36,25 +40,7 @@ def _kind(g, sp):
     return next(k for k in _walk(g["tree"]) if k["node"] == "kind" and sp in k["species"])
 
 
-# 1 ---------------------------------------------------------------------------------------------
-def test_1_the_headline_says_per_angler():
-    g, _o, _P = _g(F.VEDDER)
-    assert g["headline"]["says"] == "2 hatchery trout/char a day from streams"     # T475 ask 1: per angler in the ⓘ
-    assert g["header"]["says"] == "4 a day per angler across Region 2, lakes included"        # ROUND20 1: the root
-    g, _o, _P = _g(F.LWA)
-    assert g["headline"]["says"] == "4 a day per angler"
-
-
 # 2 ---------------------------------------------------------------------------------------------
-def test_2_the_worked_lines_are_plain():
-    g, _o, _P = _g(F.VEDDER)
-    here = [(w["q"], w["a"]) for w in g["worked"] if w["at"] == "here"]
-    assert here == [
-        ("If you keep 4 hatchery rainbow trout here", "that’s your trout and char for the day, everywhere."),
-        ("If you keep 2 hatchery rainbow trout here", "they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 2 more of any kind, from here or from lakes."),
-    ]
-
-
 def test_2_the_gate_proves_the_numbers_a_worked_line_states():
     g, _o, P = _g(F.VEDDER)
     assert CC.check_group(P, g) == []
@@ -63,26 +49,8 @@ def test_2_the_gate_proves_the_numbers_a_worked_line_states():
     assert any("worked line" in p and "[3.0]" in p for p in CC.check_group(P, g))
 
 
-# 3 ---------------------------------------------------------------------------------------------
-def test_3_a_kind_held_to_fewer_says_of_how_many():
-    g, _o, _P = _g(F.VEDDER)
-    dv = _kind(g, "DV")
-    # T475 (asks 3-4): "of how many" is the tier the line sits in; "up to", never "only"
-    assert dv["says"] == "Up to 1 Dolly Varden/bull trout or lake trout combined"
-    assert dv["sentence"] == "Up to 1 Dolly Varden/bull trout or lake trout combined, 60 cm (24 in) or longer"
-    g, _o, _P = _g(F.LWA)
-    assert _kind(g, "DV")["says"] == "Up to 1 Dolly Varden/bull trout or lake trout combined"
-
-
 # 4 ---------------------------------------------------------------------------------------------
-def test_4_hatchery_steelhead_only_and_wild_go_back():
-    g, _o, _P = _g(F.VEDDER)
-    assert _kind(g, "ST")["says"] == "Up to 2 hatchery steelhead — wild steelhead go back"
-
-
-def test_4_the_presence_line_says_a_big_rainbow_is_a_steelhead_where_it_is():
-    g, _o, _P = _g(F.VEDDER)
-    assert _kind(g, "ST")["presence"]["says"] == "A rainbow trout over 50 cm (20 in) here counts as a steelhead."   # ROUND20g 2
+def test_4_the_presence_line_where_a_big_rainbow_is_not_a_steelhead():
     # where a big rainbow is not a steelhead (a lake whose own row prints steelhead), the line stays as it was
     assert RW.presence_words("known_with_rules", False) == "Steelhead are known to be in this water."
     assert RW.presence_words("possible_with_rules", True) == ("Steelhead rules apply here; steelhead may not be "
@@ -92,6 +60,5 @@ def test_4_the_presence_line_says_a_big_rainbow_is_a_steelhead_where_it_is():
 # 5 ---------------------------------------------------------------------------------------------
 def test_5_after_you_keep_2_stop_fishing_for_the_day():
     g, _o, _P = _g(F.VEDDER)
-    duties = _kind(g, "ST")["duties"]
-    assert "stop fishing this river after 2 a day" in duties   # ROUND20g 2
+    duties = _kind(g, "ST")["duties"]           # (T866) its words (ROUND20g 2): card_words CARDS "the tree kind ST: duties"
     assert not any("stop fishing for the day after" in d for d in duties)

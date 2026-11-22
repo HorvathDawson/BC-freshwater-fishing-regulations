@@ -31,7 +31,6 @@ from pipeline.regs.parsing import catalogue as C
 from pipeline.tests import answers28_fixture as F
 
 OCT10, JUL15 = (10, 10), (7, 15)
-KNOWN = {"line": "known_with_rules", "says": "A rainbow trout over 50 cm (20 in) here counts as a steelhead."}
 
 
 def _group(water, md=OCT10):
@@ -50,31 +49,14 @@ def test_z_a_kind_keeping_none_says_no_size():
     release at the source, so it is no kind of the group at all: it is said as not kept, never as "25 cm or longer"."""
     g, _o, _P = _group(F.BELLA)
     assert "Cutthroat trout" not in _kinds(g)
-    (ct,) = [x for x in g["not_kept"] if x["species"] == ["CT"]]
-    assert (ct["status"], ct["says"]) == ("release", "Cutthroat trout: release every one")
-
-
-def test_z_a_kind_keeping_some_keeps_its_size_words():
-    g, _o, _P = _group(F.BELLA)
-    assert _kinds(g)["Rainbow trout"]["detail"] == "hatchery, 30–50 cm"      # ROUND15 8: its origin too
-    g, _o, _P = _group(F.SLOT)
-    assert _kinds(g)["Rainbow trout"]["detail"] == "60 cm or less, or 90 cm or longer"
+    # (T866) its not-kept line ("release every one"), and a kind keeping some keeping its size words (the Bella
+    # Coola's rainbow, ROUND15 8: its origin too; the slot): test_answers_card_words.py CARDS
 
 
 # S ---------------------------------------------------------------------------------------------
-def test_s_an_undated_species_closure_is_said_on_the_card():
-    g, _o, _P = _group(F.BELLA)
-    # CT (release, T846) is the other not-kept line
-    assert [x for x in g["not_kept"] if x["species"] != ["CT"]] == [{"species": ["ST"], "status": "closed", "says": "Steelhead: closed, no catch and release",
-                              "by": F.BELLA_ST, "rules": [F.BELLA_ST], "whose": "this river’s rule",
-                              "term": "no_fishing_for", "presence": KNOWN}]                                   # ROUND14 4/6
-
-
+# (T866) The undated closure (the Bella Coola; CT, release by T846, is the other not-kept line) and the dated one (the
+# Fraser above Mission, Oct 10) said on the card with whose rule and the presence line (ROUND14 4/6): card_words CARDS
 def test_s_a_dated_species_closure_is_said_on_its_dates_only():
-    g, _o, _P = _group(F.FRASER)
-    assert g["not_kept"] == [{"species": ["ST"], "status": "closed", "says": "Steelhead: closed, no catch and release",
-                              "by": F.FRASER_ST, "rules": [F.FRASER_ST], "whose": "this river’s rule",
-                              "term": "no_fishing_for", "presence": KNOWN}]                                   # ROUND14 4/6
     g, _o, _P = _group(F.FRASER, JUL15)
     assert g["not_kept"] == [] and "ST" in g["kinds"]
 
@@ -96,34 +78,19 @@ def test_s_the_gate_proves_none_may_be_kept():
 
 # D ---------------------------------------------------------------------------------------------
 def test_d_the_own_rule_bucket_says_what_it_replaces():
+    # (T866) its title and what it replaces, word for word (and the Vedder with a second lifting rule, ROUND19 6: the
+    # fish by name with their origin, never "these fish"): test_answers_card_words.py CARDS
     g, _o, _P = _group(F.VEDDER)
-    own, share = g["buckets"]
-    assert own["title"] == "This river’s rule"
-    assert own["replaces"] == {
-        "says": "Replaces Region 2’s 2-from-streams limit and 30 cm minimum size for hatchery rainbow trout",
-        "rules": [F.SHARE, "z2:daily_quotas::trout_char_quota.r8"]}
+    _own, share = g["buckets"]
     assert share["replaces"] is None
-
-
-def test_d_each_lifted_cap_for_the_fish_it_is_lifted_for():
-    """The Vedder with a second lifting rule (hatchery cutthroat 3, lifting the share only)."""
-    g, _o, _P = _group(F.TWO)
-    own = g["buckets"][0]
-    # ROUND19 6: the fish by name, with their origin, never "these fish"
-    assert own["replaces"]["says"] == ("Replaces Region 2’s 2-from-streams limit for hatchery cutthroat trout and "
-                                       "rainbow trout, and its 30 cm minimum size for hatchery rainbow trout")
 
 
 # P ---------------------------------------------------------------------------------------------
 def test_p_the_lake_line_says_how_many_are_left():
-    g, _o, _P = _group(F.STREAM)
-    lake = next(w for w in g["worked"] if w["at"] == "lake")
-    assert (lake["q"], lake["a"], lake["kept"], lake["here"]) == (
-        "Kept 1 at a lake?",
-        "Keep 2 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams.", 1, 2)
+    # (T866) the stream's lake line and the Vedder's "Keep 3 more here. …", word for word: card_words CARDS
     g, _o, _P = _group(F.VEDDER)
     lake = next(w for w in g["worked"] if w["at"] == "lake")
-    assert lake["a"].startswith("Keep 3 more here. ") and lake["here"] == 3
+    assert lake["here"] == 3
 
 
 def test_p_the_gate_fails_a_wrong_lake_count():

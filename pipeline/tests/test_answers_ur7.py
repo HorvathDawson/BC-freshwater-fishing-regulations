@@ -8,6 +8,10 @@
   2  a kind row directly under the stream share, with no own rule, says it is part of the share: "Up to 2 hatchery rainbow
      trout (part of the 2 from streams)" (the Chilliwack part 2's rainbow row, after the size section closes); "Only 1 of the
      2 from streams may be …"
+
+(T866) A, 1 and 2's words on the Vedder, its tributary, TWO and the plain stream (the share and own tiers, the worked
+keep-the-share lines, the kinds under the share, the size tier and the own tier) are pinned once in
+test_answers_card_words.py CARDS. What stays here holds every water at once.
 """
 from __future__ import annotations
 
@@ -28,35 +32,7 @@ def _walk(nodes, parent=None):
         yield from _walk(n.get("children") or [], n)
 
 
-def _tier(g, kind):
-    (t,) = [n for n, _p in _walk(g["tree"]) if n.get("tier") == kind]
-    return t
-
-
-# A ---------------------------------------------------------------------------------------------
-def test_A_the_share_says_no_lifted_fish_where_the_own_tier_says_its_relation():
-    for water in (F.VEDDER, F.VEDDER_TRIB):
-        g = _g(water)
-        assert _tier(g, "share")["says"] == "Up to 2 of the 4 from streams"
-        assert _tier(g, "own")["relation"] == "Not part of the 2 from streams; part of the 4 a day across Region 2"
-
-
-def test_A_two_lifts_said_once_by_the_own_tier():
-    g = _g(F.TWO)
-    assert _tier(g, "share")["says"] == "Up to 2 of the 4 from streams"
-    assert _tier(g, "own")["relation"] == "Not part of the 2 from streams; part of the 4 a day across Region 2"
-
-
 # 1 ---------------------------------------------------------------------------------------------
-def test_1_the_worked_share_line_says_the_fish_count_as_the_2_elsewhere():
-    w = {x["kept"]: x for x in _g(F.VEDDER)["worked"] if x["at"] == "here" and x["share"]}
-    assert w[2]["q"] == "If you keep 2 hatchery rainbow trout here"
-    assert w[2]["a"] == ("they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 2 more of any kind, "
-                         "from here or from lakes.")
-    assert w[4]["q"] == "If you keep 4 hatchery rainbow trout here"
-    assert w[4]["a"] == "that’s your trout and char for the day, everywhere."
-
-
 def test_1_every_keep_the_share_line_says_both_halves():
     for water in (F.VEDDER, F.TWO, F.VEDDER_TRIB):
         lines = [x["a"] for x in _g(water)["worked"] if x["at"] == "here" and x["share"] and "none from other" in x["a"]]
@@ -65,35 +41,7 @@ def test_1_every_keep_the_share_line_says_both_halves():
 
 
 # 2 ---------------------------------------------------------------------------------------------
-def test_2_a_kind_directly_under_the_share_says_it_is_part_of_it():
-    """T475 (owner 2026-11-07, asks 3-4) supersedes T128's named total: a kind under the share is a part of it by where it
-    sits — "Up to N <fish>", the headline saying "hatchery" for every one (a steelhead says its own)."""
-    g = _g(F.STREAM)
-    share = _tier(g, "share")
-    direct = [n for n in share["children"] if n["node"] == "kind"]
-    assert [k["says"] for k in direct] == ["Up to 2 rainbow trout"]
-    size = _tier(g, "size")
-    assert [k["says"] for k in size["children"]] == [
-        "Up to 2 brook, brown or cutthroat trout combined",
-        "Up to 1 Dolly Varden/bull trout or lake trout combined",
-        "Up to 2 hatchery steelhead — wild steelhead go back"]
-
-
-def test_2_every_shape_of_kind_under_the_share():
-    g = _g(F.TWO)
-    share = _tier(g, "share")
-    assert [k["says"] for k in share["children"] if k["node"] == "kind"] == [
-        "Up to 2 brook or brown trout combined",
-        "Up to 1 Dolly Varden/bull trout or lake trout combined",
-        "Up to 2 hatchery steelhead — wild steelhead go back"]
-
-
-def test_2_kinds_under_an_own_tier_or_a_water_total_are_unchanged():
+def test_2_kinds_under_a_water_total_say_no_part_of():
     """No "part of" on them; T475: one pattern, the fish with their origin (no headline says it for an own rule)."""
-    g = _g(F.TWO)
-    own = _tier(g, "own")
-    assert [k["says"] for k in own["children"]] == [
-        "Up to 3 hatchery cutthroat trout",
-        "Up to 4 hatchery rainbow trout"]
     g = _g(F.COUNT)
     assert all("part of" not in n["says"] for n, _p in _walk(g["tree"]) if n["node"] == "kind")
