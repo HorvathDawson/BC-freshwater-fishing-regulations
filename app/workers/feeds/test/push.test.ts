@@ -4,10 +4,11 @@
 import { describe, expect, it } from "vitest";
 import worker from "../src/index";
 import {
-  APNS_PAYLOAD, apnsJwt, apnsRequest, handlePush, markReleaseSeen, newRelease, PUSH_STATE_KEY, PUSH_STATUS_KEY, pushMissing,
+  APNS_JWT_KEY, APNS_PAYLOAD, apnsJwt, apnsRequest, handlePush, markReleaseSeen, newRelease, PUSH_STATE_KEY, PUSH_STATUS_KEY, pushMissing,
   sendWake, TOKENS_PREFIX, tokenKey, validatePush, wakeReason, MANIFEST_KEY,
 } from "../src/push";
 import type { R2BucketLike } from "../src/io";
+import { personalKind } from "../src/backup";
 
 const SALT = "test-salt";
 class MemBucket implements R2BucketLike {
@@ -206,6 +207,34 @@ describe("sendWake (T739)", () => {
     expect(BUCKET.m.has(`${TOKENS_PREFIX}broken.json`)).toBe(false);
     const h = await (await worker.fetch(new Request("https://w.example/status"), { BUCKET } as never)).text();
     expect(h).toContain('<b class="failing">1 stored token record(s) did not parse or were not an iPhone\'s (deleted)</b>');
+  });
+
+  // T994 #23: a new provider token was made on every wake; wakes come 10 min apart and Apple answers 429
+  // TooManyProviderTokenUpdates to a token refreshed more often than every 20 minutes
+  it("the provider token is kept: reused for 50 minutes with the same key id and team, then made again; APNs refusing it drops it", async () => {
+    const k = await ecKey();
+    const BUCKET = new MemBucket();
+    await seed(BUCKET, [{ platform: "ios", token: IOS, env: "sandbox" }]);
+    const auth: string[] = [];
+    let status = 200, reason = "";
+    const send = (env: Record<string, string>, when: string) => sendWake({ BUCKET, APNS_KEY: k.pem, APNS_KEY_ID: "KID", APNS_TEAM_ID: "TEAM", ...env },
+      async (_u, i) => { auth.push((i!.headers as Record<string, string>).authorization!); return new Response(reason ? JSON.stringify({ reason }) : null, { status }); }, at(when), "gauges");
+    await send({}, "2026-11-14T12:05:00Z");
+    await send({}, "2026-11-14T12:15:00Z");                      // 10 minutes on: the same token
+    await send({}, "2026-11-14T12:54:59Z");                      // 49m59s: still the same
+    expect(new Set(auth).size).toBe(1);
+    expect(parts(auth[0]!.slice(7)).c.iat).toBe(Date.parse("2026-11-14T12:05:00Z") / 1000);
+    await send({}, "2026-11-14T12:55:00Z");                      // 50 minutes: a new one
+    expect(new Set(auth).size).toBe(2);
+    expect(parts(auth[3]!.slice(7)).c.iat).toBe(Date.parse("2026-11-14T12:55:00Z") / 1000);
+    await send({ APNS_KEY_ID: "KID2" }, "2026-11-14T12:56:00Z");   // another key id: never the old key's token
+    expect(parts(auth[4]!.slice(7)).h.kid).toBe("KID2");
+    expect(JSON.parse(BUCKET.m.get(APNS_JWT_KEY)!)).toMatchObject({ format: "apns-jwt/1", kid: "KID2", iss: "TEAM" });
+    status = 403; reason = "ExpiredProviderToken";
+    const r = await send({ APNS_KEY_ID: "KID2" }, "2026-11-14T12:57:00Z");
+    expect(r.ios.errors).toEqual(["APNs 403 ExpiredProviderToken"]);
+    expect(BUCKET.m.has(APNS_JWT_KEY)).toBe(false);              // the next wake makes a new one
+    expect(personalKind(APNS_JWT_KEY)).toBe("never");             // a credential: never in a backup
   });
 
   it("a key that cannot be read fails every token, said (never a silent skip)", async () => {

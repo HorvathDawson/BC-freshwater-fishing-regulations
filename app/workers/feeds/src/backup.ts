@@ -31,6 +31,7 @@ import { CRASH_RETENTION_DAYS, CRASHES_PREFIX, TEST_CRASHES_PREFIX } from "./cra
 import { REPORTS_PREFIX, RETENTION_DAYS, TEST_REPORTS_PREFIX } from "./reports";
 import { dropPending, NOTIFY_STATE, PERSONAL_EVENT_KINDS } from "./events";
 import type { Store } from "./io";
+import { APNS_JWT_KEY } from "./push";
 
 /** prefixes copied whole, and single keys */
 export const BACKUP_PREFIXES = ["private/", "feeds/dfo/", "feeds/inseason/"] as const;
@@ -67,6 +68,8 @@ export function personalKind(key: string): "report" | "crash" | "never" | null {
   // (T739) the push tokens and their counters: never copied (a phone with notifications on registers its token again at
   // every app start, app/packages/data/src/notify/push.ts, so a lost store fills again)
   if (key.startsWith("private/push/tokens/") || key.startsWith("private/push/limits/")) return "never";
+  // (T994 #23) the kept APNs provider token: a credential (an hour's life), never copied
+  if (key === APNS_JWT_KEY) return "never";
   if (key.startsWith(REPORTS_PREFIX)) return /^\d{4}-\d{2}-\d{2}\/[^/]+\.json$/.test(key.slice(REPORTS_PREFIX.length)) ? "report" : "never";
   if (key.startsWith(CRASHES_PREFIX)) return /^[^/]+\.json$/.test(key.slice(CRASHES_PREFIX.length)) ? "crash" : "never";
   return null;
