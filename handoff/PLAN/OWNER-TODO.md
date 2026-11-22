@@ -16,6 +16,11 @@ with the default Claude uses until you answer). Newest first inside each section
   decides on the numbers.
 - **Merging (answered):** PRs + required checks into redesign/stream-sections. **Push hook (answered):** versioned
   pre-push hook running the before-push command.
+- **T995 done on GitHub (2026-11-22), for you to know:** `main` is the trunk. Direct pushes to `main` are refused,
+  yours too: changes go by pull request with the four checks green (you can still merge a PR without green checks as
+  admin). `redesign/stream-sections` is read-only until the 0.8.6 release.
+- **To do (you):** turn off the Copilot coding agent in the repo's Settings → Copilot (its environment is already
+  deleted).
 - **T998 versioning (answered):** 1.0.0 = "At public launch (Recommended)"; the bump comes from "Conventional Commits"
   (feat → minor, fix → patch, `!` → major; before 1.0 a breaking change bumps minor). You confirm each computed
   version at release.

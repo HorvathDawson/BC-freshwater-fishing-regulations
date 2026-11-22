@@ -1,6 +1,6 @@
 # T995 — Branch structure: `main` is the protected trunk; PRs with required checks; release branches and tags
 
-Status: IN PROGRESS (main chat 2026-11-21; the switch waits until this chat's first lane wave has landed).
+Status: PARTIAL — the switch landed 2026-11-22: code c374b91fd (lane ci/T995-main-trunk + review/T995, reviewed), `main` = trunk. left (Claude): prune merged branches + worktrees; delete `redesign/stream-sections` after 0.8.6 redeploys the production feeds worker (it dispatches on that ref until then).
 
 Source: owner 2026-11-21, verbatim: "Also we could rethink our git branch structure to have a more real branching
 structure ?" and "generally we want to change stuff to be best practice in industry". Dialog answers (all the
@@ -72,3 +72,17 @@ Depends: T993 G1 (check names), G2 (before-push command). Size: M. Owner: no (de
   (preflight + upload.sh); tags name the uploaded commit and are judged on origin; `ci_status.py` finds runs by commit,
   and `--strict` (production APK) stops on no green run unless the area is unchanged since one; the pre-push hook
   checks the pushed refs (`--pre-push`); `ci_paths.REPO`.
+
+## Notes (main chat, 2026-11-22: the GitHub side)
+- `main` fast-forwarded to c374b91fd (the dev branch + `-s ours` over main's one stale commit d6a5ca528; main's 11-18
+  snapshot ca7c0cce7 had the same tree as 21acbf78a). Checkout switched to `main`; `core.hooksPath .githooks` set.
+- Repo settings: merge commits only (squash and rebase off), auto-merge on, head branches deleted on merge.
+- Rulesets: **main trunk (T995)** (id 14082789, was "no push to main"): no deletion, no force push, PR required
+  (0 approvals: one owner), merge method `merge`, required checks `docs ok`, `app ok`, `feeds worker ok`,
+  `pipeline ok` (GitHub Actions), not strict. Admins bypass **only on a PR merge** (was "always": agents push with the
+  owner's token, so "always" let them skip every check). **release branches (T995)** (27831606): `release/**` no
+  deletion, no force push (also keeps them from the auto-delete). **old dev branch read-only** (27831608):
+  `redesign/stream-sections` no update, no deletion, until the production feeds worker dispatches on `main`.
+- Tag `archive/redesign-stream-sections` at c374b91fd. Staging feeds worker redeployed with DEFAULT_REF `main`.
+- Merge fixes on the trunk: d4eae5b46 (the area pin judged machine state by the disk; the ticket guard's fixture used
+  T999, a real ticket now).
