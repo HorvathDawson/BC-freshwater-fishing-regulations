@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { KNOWN_VERSIONS, SECTION_NAMES } from "@app/core";
-import { readsRelease, type Manifest } from "./manifest";
+import { ManifestError, parseManifest, parseManifestText, readsRelease, type Manifest } from "./manifest";
 import { PACK_FILES, PACK_OPTIONAL, PACK_WEB_ONLY } from "./pack.generated";
 
 const spec = (format: string) => ({ url: "x", bytes: 1, gz: 1, sha256: "s", format, section_handles: "h" });
@@ -103,5 +103,19 @@ describe("readsRelease", () => {
     const m = release();
     m.files["future-thing"] = spec("future/9");
     expect(readsRelease(m, "phone")).toEqual({ ok: true });
+  });
+});
+
+describe("parseManifest (T994 finding 13)", () => {
+  it("names a file entry that lacks url, bytes, sha256 or format, at the boundary", () => {
+    expect(() => parseManifest(release())).not.toThrow();
+    const bad = release(); delete (bad.files.paint as unknown as Record<string, unknown>).sha256;
+    expect(() => parseManifest(bad)).toThrow(/manifest: file "paint" lacks/);
+    const nul = release(); (nul.files as Record<string, unknown>).paint = null;
+    expect(() => parseManifest(nul)).toThrow(ManifestError);
+  });
+  it("reads a body that is not JSON as a ManifestError, not a SyntaxError", () => {
+    expect(() => parseManifestText("<html>502</html>")).toThrow(new ManifestError("manifest: not JSON"));
+    expect(parseManifestText(JSON.stringify(release())).data_release).toBe("r-test");
   });
 });

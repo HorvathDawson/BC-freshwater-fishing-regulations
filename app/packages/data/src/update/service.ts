@@ -25,7 +25,7 @@
  */
 import { errorClassOf, isFeedTooNew, mobileDataFrom, parseSemver, releaseAllowed, reportFailure, type AppVersion,
          type FeedGate, type MobileDataSetting, type UpdateEvent } from "@app/core";
-import { parseManifest, type Held, type Manifest, type StageOutcome } from "../manifest";
+import { parseManifestText, type Held, type Manifest, type StageOutcome } from "../manifest";
 // Hermes has no TextDecoder (regs/blob.ts)
 import { utf8 } from "../regs/blob";
 import { installBytes, pointerFor, sameSet } from "../release/install";
@@ -552,7 +552,7 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
     if (r.kind === "changed") {
       let m: Manifest;
       try {
-        m = parseManifest(JSON.parse(utf8(r.bytes)));
+        m = parseManifestText(utf8(r.bytes));
       } catch (e) {
         const error = `${spec.manifestUrl}: ${said(e)}`;
         release = failSource(release, error, false);

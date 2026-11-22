@@ -222,3 +222,14 @@ describe("the visit day's flow on a spot", () => {
     expect([off.spot, off.answer, needsDayFlow(off.spot)]).toEqual([s, { kind: "offline" }, true]);
   });
 });
+
+describe("storedHydat format check (T994 finding 12)", () => {
+  const hydatOf = (body: unknown) => storedHydat("https://data.example/feeds/hydat", (async () =>
+    ({ ok: true, status: 200, json: async () => body })) as unknown as typeof fetch);
+  it("refuses a file of another format or without an integer from, by name, instead of answering none", async () => {
+    await expect(hydatOf({ ...STORED, format: "hydat-daily/2" }).day("08MH001", "1996-08-15")).rejects.toThrow(/not hydat-daily\/1/);
+    await expect(hydatOf({ ...STORED, from: undefined }).day("08MH001", "1996-08-15")).rejects.toThrow(/from is not an integer/);
+    await expect(hydatOf({ ...STORED, q: [1, 2] }).day("08MH001", "1996-08-15")).rejects.toThrow(/array of arrays/);
+    expect(await hydatOf(STORED).day("08MH001", "1996-08-15")).toMatchObject({ kind: "day", discharge: 21.1 });
+  });
+});

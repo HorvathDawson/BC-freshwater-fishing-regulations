@@ -10,7 +10,7 @@
  *                  never coloured from an incompatible file.
  */
 import { KNOWN_VERSIONS, OPTIONAL_VERSIONS, PAINT_READS, SECTION_NAMES } from "@app/core";
-import { MANIFEST_FORMAT, PACK_FILES, PACK_OPTIONAL, PACK_WEB_ONLY, type Manifest } from "./pack.generated";
+import { MANIFEST_FORMAT, PACK_FILES, PACK_OPTIONAL, PACK_WEB_ONLY, type Manifest, type ManifestFile } from "./pack.generated";
 
 export type { Manifest, SynopsisAppend } from "./pack.generated";
 export type FileName = string;
@@ -53,14 +53,30 @@ export function parseManifest(json: unknown): Manifest {
     throw new ManifestError(`manifest: format ${JSON.stringify(m?.format)} is not ${MANIFEST_FORMAT}`);
   if (!m.files || !m.tiles || !Array.isArray(m.tiles.compatible) || typeof m.data_release !== "string")
     throw new ManifestError("manifest: missing files, tiles.compatible or data_release");
+  // (T994 finding 13) every file entry is read by `readsRelease`, `verify` and `diff`: a drifted one is named here, at the
+  // boundary, not as `TypeError: undefined` deep in an install
+  for (const [name, f] of Object.entries(m.files)) {
+    const e = f as Partial<ManifestFile> | null;
+    if (!e || typeof e !== "object" || typeof e.url !== "string" || typeof e.sha256 !== "string"
+        || typeof e.format !== "string" || typeof e.bytes !== "number")
+      throw new ManifestError(`manifest: file ${JSON.stringify(name)} lacks a url, bytes, sha256 or format`);
+  }
   return m as Manifest;
+}
+
+/** (T994 finding 13) A manifest's TEXT: a body that is not JSON (an HTML 200 page) is a `ManifestError`, as a wrong
+ *  format is, never a raw `SyntaxError`. */
+export function parseManifestText(text: string): Manifest {
+  let json: unknown;
+  try { json = JSON.parse(text); } catch { throw new ManifestError("manifest: not JSON"); }
+  return parseManifest(json);
 }
 
 export async function loadManifest(url: string, signal?: AbortSignal,
                                    fetchImpl: typeof fetch = fetch): Promise<Manifest> {
   const res = await fetchImpl(url, { signal });
   if (!res.ok) throw new ManifestError(`manifest: HTTP ${res.status} for ${url}`);
-  return parseManifest(await res.json());
+  return parseManifestText(await res.text());
 }
 
 /** (T403) Formats a reader takes beside the contract's own (an older one it still decodes). (T975) paint only: near,

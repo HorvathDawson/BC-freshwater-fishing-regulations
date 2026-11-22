@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { sha256Hex } from "../sha256";
-import { partDownload, rangedDownload, type PartFs } from "./install";
+import { partDownload, rangedDownload, readHeld, type PartFs, type ReleaseFs } from "./install";
 
 function memParts(): PartFs & { files: Map<string, Uint8Array> } {
   const files = new Map<string, Uint8Array>();
@@ -138,5 +138,15 @@ describe("partDownload's follower (T272: the .part hashed while it downloads, no
     await expect(partDownload(fs, fill)("u", "t", want)).rejects.toThrow(/sha256/);
     expect(fs.wholeReads()).toBe(1);
     expect([...fs.files.keys()]).toEqual([]);
+  });
+});
+
+describe("readHeld (T994 finding 22)", () => {
+  const fsOf = (text: string | null) => ({ exists: async () => text !== null, read: async () => new TextEncoder().encode(text ?? "") }) as unknown as ReleaseFs;
+  it("reads a pointer, and names a record without a files map instead of failing later in sameSet", async () => {
+    expect((await readHeld(fsOf(null), "release/previous"))).toBeNull();
+    expect((await readHeld(fsOf(JSON.stringify({ tiles: null, basemap: null, files: { a: "s" } })), "release/previous"))?.files).toEqual({ a: "s" });
+    for (const bad of ["{}", "null", "[]", JSON.stringify({ files: [] }), JSON.stringify({ files: { a: 1 } })])
+      await expect(readHeld(fsOf(bad), "release/previous")).rejects.toThrow(/release\/previous: not a pointer/);
   });
 });

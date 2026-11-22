@@ -16,7 +16,7 @@
  *   prune      after the new set has opened and paired, everything of the old set the new one does not name is deleted
  *              (never before): its release folder, its manifest, and its tile version folder, mask, basemap, assets.
  */
-import { diff, parseManifest, withoutSlices, type Held, type Manifest } from "../manifest";
+import { diff, parseManifestText, withoutSlices, type Held, type Manifest } from "../manifest";
 // Hermes has no TextDecoder (regs/blob.ts); TextEncoder it has
 import { utf8 } from "../regs/blob";
 import { Sha256, sha256Hex, sha256HexAsync } from "../sha256";
@@ -296,7 +296,13 @@ export function sameSet(a: Held, b: Held): boolean {
 /** Read a pointer-shaped record (the pointer, `release/previous`, `release/refused`), or null when there is none. */
 export async function readHeld(fs: ReleaseFs, path: string): Promise<Held | null> {
   if (!(await fs.exists(path))) return null;
-  return JSON.parse(utf8(await fs.read(path))) as Held;
+  const h: unknown = JSON.parse(utf8(await fs.read(path)));
+  // (T994 finding 22) `sameSet` and `pointerFor` dereference `files`: a record without a files map is named here
+  const f = (h as { files?: unknown } | null)?.files;
+  if (!h || typeof h !== "object" || !f || typeof f !== "object" || Array.isArray(f)
+      || !Object.values(f).every((v) => typeof v === "string"))
+    throw new Error(`${path}: not a pointer (no files map of sha256s)`);
+  return h as Held;
 }
 
 /** Write a pointer-shaped record whole (to `.part`, then one rename). */
@@ -529,7 +535,7 @@ async function pruneNow(fs: ReleaseFs, old: Held | null, oldM: Manifest | null, 
 
 /** The manifest the held set was installed from (written by `install`), so a launch with no network can open it. */
 export async function heldManifest(fs: ReleaseFs, h: Held): Promise<Manifest> {
-  return parseManifest(JSON.parse(utf8(await fs.read(h.manifest ?? `${dirOf(h.release!)}/manifest.json`))));
+  return parseManifestText(utf8(await fs.read(h.manifest ?? `${dirOf(h.release!)}/manifest.json`)));
 }
 
 /** The on-disk path of a held file. */
