@@ -24,6 +24,7 @@ on:
             "pipeline/deliver/bundle/schema.sql", "pipeline/deliver/bundle/indexes.sql",
             ".github/workflows/feeds-worker-ci.yml", "data/LICENSE-ODbL.md", "deploy/staging/build-apk.sh",
             "deploy/staging/build-ios-sim.sh", "deploy/staging/build-ios-testflight.sh", "deploy/staging/feeds.sh",
+            "deploy/lib/build-links.sh", "scripts/fast-fail.sh", "scripts/heavy.sh",
             "handoff/PLAN/runbooks/release.md", "pipeline/deliver/tiles/basemap.py",
             "pipeline/deliver/tiles/ladder.py", "pipeline/deliver/tiles/layers.py",
             "pipeline/deliver/tiles/tile-contract.json", "pipeline/gauges/consume/panel.py",
