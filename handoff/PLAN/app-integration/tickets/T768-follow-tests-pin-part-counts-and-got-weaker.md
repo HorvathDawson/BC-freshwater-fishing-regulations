@@ -111,7 +111,7 @@ run; fix item 3 was already settled.
 - **T993 item 12.** `WaterMode` "across waters" is not a live flake: every CI log since T849 (36559a549, 11-18 21:04Z)
   that lists it, 9 runs, has it passing in 1.3–2.3 s; the post-T849 `WaterScreen.unnamed` failures (11-21) were the
   T980 fixture-shape error, not a timeout (fixed in 8c1228707).
-- Not done, said: a whole record typed (`expect(g.exit).toEqual({…})`) and `toBeUndefined()` on a release field are not
+- Not done, moved to **T1002**: a whole record typed (`expect(g.exit).toEqual({…})`) and `toBeUndefined()` on a release field are not
   scannable without refusing legitimate value pins (header of `check-test-anchors.mjs`); the pipeline scanner
   (`pipeline/tests/anchors.py`, another lane's file this round) has no `absent` kind; the in-text rule misses a part
   number typed after a short-named slot (`onPart={(i, p) => …\`part ${i} ${p}\`}` let "part gnis:8634 4" through).
