@@ -39,20 +39,20 @@ data/release/r-*/ (R2 in production)
                          (T910: the rules, `reads.rules()`, are inflated in a worker on the web — `regs/rulesDecode.web.ts`
                          over fflate's own UMD build, `fflateWorker.generated.ts`; the phone's `rulesDecode.native.ts` as before)
                          └─▶ @app/ui hooks ─▶ @app/ui-native screens ─▶ apps/mobile App.tsx
-gauge feed (index.json, per-station) ─▶ data/src/feed/http.ts ─▶ panels / conditions
-in-season feed + links (feeds/inseason/, T230) ─▶ data/src/feed/inseason.ts ─▶ ui inseason.ts ─▶ banners, notice
+gauge feed (index.json, per-station) ─▶ packages/data/src/feed/http.ts ─▶ panels / conditions
+in-season feed + links (feeds/inseason/, T230) ─▶ packages/data/src/feed/inseason.ts ─▶ ui inseason.ts ─▶ banners, notice
 feed gate (T676 item 2): every feed index carries `minAppVersion` (FEED_MIN_APP, pipeline/common/feed_formats.py) ─▶
                    core feedGate.ts `createFeedGate` (App.tsx, one) in each reader (salmon, inseason, http, runtiming):
                    an index for a newer app is refused, the capture answers ─▶ update service `needsApp` ─▶ core
                    `appTooOld` ─▶ the strong update prompt ("New data needs the latest app"), as a release's app-too-old;
                    a gauge station file / obs.json refused for its own stamp holds its need by name until it reads, is
                    asked again only by its validator (a 304; T676 L2/L3), and the More row reads the gate per feed
-background check (T234, phone only: apps/mobile notify.native.ts, expo-background-task ~15 min) ─▶ data/src/notify/check.ts
+background check (T234, phone only: apps/mobile notify.native.ts, expo-background-task ~15 min) ─▶ packages/data/src/notify/check.ts
                    (obs.json via feed/http.ts `fetchObs`; the release manifest; our version file, core appUpdate.ts
                    `appVersionFileUrl`) ─▶ core alerts.ts (`evaluateAlerts`, T527 stock-style: crosses above / below a
                    value or a percentile for the day — the line per day kept on the alert from the chart's year envelope —
                    once per crossing, re-armed past a 2 % margin) ─▶ local notification (expo-notifications);
-                   settings v3 + alerts + run log: data/src/notify/settings.ts ─▶ ui notify.ts ─▶ More → Notifications
+                   settings v3 + alerts + run log: packages/data/src/notify/settings.ts ─▶ ui notify.ts ─▶ More → Notifications
                    (a plain list; Add an alert: gauge → condition → value), a gauge card's "Alert me" (ui-native
                    AlertMe.tsx `AlertEditor`)
 changelog (T234 v1.1): core changelog.ts (the one source) ─▶ About → What's new (`changelogVM`); build-apk.sh copies a
@@ -82,15 +82,17 @@ The app decides nothing about a regulation: every answer is looked up in the rel
 | `apps/mobile/assets/fish/thumbs/` | (T405) a 240 px thumbnail per fish picture, drawn by every row and chip (the fish sheet alone draws the full picture); `thumbs.json` records what each was made from, and `pnpm fish` refuses a missing or stale one | `node tools/emit-fish-thumbs.mjs` (Chrome), then `pnpm fish:build` |
 | `tools/seo/fonts/` | (T409) the app's faces as WOFF2 (lossless), served at `/assets/fonts/`: (T910) the web app draws them too (`apps/mobile` `fonts.web.ts` over `webFonts.generated.ts`; the phone keeps the TTF, `fonts.native.ts`), `tools/web-shell.mjs` copies them into the export and the water pages name the export's file; `fonts.json` records the TTF each was made from, and the SEO build (`webFonts.ts`) and web-shell refuse a missing or stale one | `node tools/emit-web-fonts.mjs` (Python fontTools + brotli; `--module` rewrites only the generated module) |
 
-The design prototype (`app/design/`) was deleted in T87 (2026-10-28); git keeps it (regs v38 @ 7fb6809f).
+The design prototype (app/design) was deleted in T87 (2026-10-28); git keeps it: `git show 7fb6809f:app/design/` (regs v38).
 
 ## Gates (`pnpm check`, the order is `package.json` `scripts.check`)
 
-`pnpm check` = `check:fast` (every gate below but vitest, ~21 s; `scripts/fast-fail.sh` runs it, T535) then `test`.
+`pnpm check` = `check:fast` (every gate below but vitest; `scripts/fast-fail.sh` runs it, T535) then `test`. On CI
+(`app-ci.yml`) the two halves are separate jobs, `gates` and `vitest`, beside the web and native `bundles`.
 
-tickets → changelog (app.json's version has the newest changelog entry, `scripts/check-changelog.mjs`, T538) → boundaries → platform (pairs complete; no inline `Platform.OS` / `typeof window` outside `INLINE_ALLOWED`, README "Web and native code") → style → colours → spinner → coho (T814: the coho loader's committed sheets read back against the `color.ui.coho.*` tokens; `pnpm coho:build` re-renders them with the owner's `tools/fish-loader/fish_loader.py`) → adipose (T886: the hatch sheet's two drawings, the loader's coho at rest, `packages/ui-native/src/adipose/`, read back against `color.ui.coho.*` + `color.ui.accent`; `pnpm adipose:build` redraws them with `tools/fish-loader/adipose_art.py`) → splash → gauge-policy / calendar / fish / answers / pack / app-reads (T555: app.json's version has its row in `pipeline/deliver/release/app_reads.json` and it is what the code reads; a format moved needs a version bump, then `python -m pipeline.tools.emit.app_reads`)
+tickets → anchors (below) → changelog (app.json's version has the newest changelog entry, `scripts/check-changelog.mjs`, T538) → boundaries → platform (pairs complete; no inline `Platform.OS` / `typeof window` outside `INLINE_ALLOWED`, README "Web and native code") → style → colours → spinner → coho (T814: the coho loader's committed sheets read back against the `color.ui.coho.*` tokens; `pnpm coho:build` re-renders them with the owner's `tools/fish-loader/fish_loader.py`) → adipose (T886: the hatch sheet's two drawings, the loader's coho at rest, `packages/ui-native/src/adipose/`, read back against `color.ui.coho.*` + `color.ui.accent`; `pnpm adipose:build` redraws them with `tools/fish-loader/adipose_art.py`) → splash → gauge-policy / calendar / fish / answers / pack / app-reads (T555: app.json's version has its row in `pipeline/deliver/release/app_reads.json` and it is what the code reads; a format moved needs a version bump, then `python -m pipeline.tools.emit.app_reads`) → feed-formats
 (generated files current) → deps → **knip** (no unused file, export or dependency; allowances with reasons in
-`knip.jsonc`) → typecheck (`tsc -b`, `noUnusedLocals`) → typecheck:seo → promises → test (vitest: packages, conformance, `tools/*.test.ts`).
+`knip.jsonc`) → typecheck (`tsc -b`, `noUnusedLocals`) → typecheck:worker → typecheck:seo → promises → inventories, then
+test (vitest: packages, conformance, `tools/*.test.ts`).
 On CI the test step is 4 runners (`--shard=i/4`, T866); `tools/vitest-shards.mjs` proves each file runs in exactly one.
 `REGS_STORE_REQUIRED=1` makes the live-release suites fail instead of skip when no release is on disk, or when the release
 is not the one `taps.json` was cut from; `scripts/test-full.sh` (Tier 2) runs its app step with it set (T432), and a plain

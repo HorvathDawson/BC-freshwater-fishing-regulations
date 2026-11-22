@@ -1,5 +1,9 @@
 # Plan — keeping the DFO salmon data fresh on a schedule
 
+> **HISTORICAL plan (2026-09; paths updated T987).** The feed it plans is built since (the feeds worker and
+> `pipeline/regs/dfo_salmon/live.py`); the curated half is `data/curated/dfo_salmon/places/`. What is built:
+> [`README.md`](README.md) and `pipeline/docs/19-dfo-salmon-pipeline.md`.
+
 **Status: plan only. Nothing here is built.** The scraper, parser, untangler, stability
 harness and churn tool exist; the curated bindings, the cron job and the reconciler do
 not. Numbers below are measured — reproduce with `python -m pipeline.regs.dfo_salmon.churn`.
@@ -59,7 +63,7 @@ cache/dfo_salmon/                 gitignored — machine state
   history/regionN_<ts>.html       archived versions (churn tool)
   manifest.json                   sha256 + dateModified + fetched_at per slug
 
-pipeline/regs/dfo_salmon/entries/      COMMITTED — the curated half
+data/curated/dfo_salmon/places/      COMMITTED — the curated half
   region-6.json                   waters -> reaches -> bindings; locked flags
 
 data/generated/regs/dfo_salmon/                generated, disposable
@@ -212,7 +216,7 @@ churn tool's numbers are the assertion — they should not move unless the sourc
 1. **Reach keys**: auto-assign (`babine-lake-r1`, stable by insertion order) or have the
    curator name them (`babine-lake-excl-tribs`)? Auto is less work; named survives
    reordering and reads better in a diff.
-2. **Where do bindings live** — a new `pipeline/regs/dfo_salmon/entries/`, or do DFO reaches
+2. **Where do bindings live** — a new `data/curated/dfo_salmon/places/`, or do DFO reaches
    become rows in the existing `splits.json` / registry machinery? Reusing the registry
    gets anchor resolution for free but mixes two legal authorities in one file.
 3. **Review surface**: does DFO reconciliation belong in `curation-review/`, or is a

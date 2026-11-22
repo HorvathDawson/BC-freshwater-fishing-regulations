@@ -1,4 +1,4 @@
-# pipeline/added_lakes — put non-FWA lake polygons into the graph
+# pipeline/atlas/waters/added_lakes — put non-FWA lake polygons into the graph
 
 Some lakes the fishing regulations name are **absent from the FWA waterbody layer**. Redsand Lake is
 one: DFO Region 6 regulates it by name, but FWA has no polygon for it, so no water of that name
@@ -77,7 +77,7 @@ a curated split, an override or a saved binding may already point at it.
 | `2` | `-2` | `-9000002` | Marsh Pond | 2026-09-03 | no FWA polygon; curation held only a KML point (OSM relation 2531058) |
 | `3` | `-3` | `-9000003` | Children's Fishing Pond | 2026-09-03 | no FWA polygon; the ungazetted half of the `HALL ROAD (Mission) POND` override (OSM way 302989664) |
 
-## Curated file (`pipeline/added_lakes.geojson`)
+## Curated file (`data/curated/waters/added_lakes.geojson`, `CURATED.waters.added_lakes`)
 
 A FeatureCollection of `Polygon`s in **lon/lat (EPSG:4326)** — convert before adding; the Redsand
 polygon arrived as EPSG:3857. Per-feature properties:

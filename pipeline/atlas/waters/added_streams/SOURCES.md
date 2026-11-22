@@ -1,7 +1,7 @@
 # Raw municipal stream layers (uncurated)
 
-Four municipal GeoJSON exports in **`pipeline/added_streams/data/`** as **source material** for the
-added-streams batch. `clean.py` normalizes them into `data/cleaned/<source>.geojson` (uniform schema,
+Four municipal GeoJSON exports in **`data/source/municipal/`** as **source material** for the
+added-streams batch. `clean.py` normalizes them into `data/generated/municipal/cleaned/<source>.geojson` (uniform schema,
 ArcGIS cruft stripped) and `build_dataset.py` matches them against FWA and mints the kept ones — see
 the "Municipal batch" section of `README.md`. Treat these raw files as candidate pools, not the
 curated schema.

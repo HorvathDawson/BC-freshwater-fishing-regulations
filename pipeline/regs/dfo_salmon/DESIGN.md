@@ -1,5 +1,10 @@
 # Design — data types, matching, and the curation workflow
 
+> **HISTORICAL design (2026-09; paths updated T987).** It was written before the build and the curated-data
+> restructure: the DFO entries are now `data/curated/dfo_salmon/places/` and the split anchors
+> `data/curated/waters/cuts.json`; the shared overrides.json files it names were removed (no curated override file
+> exists today). What is built: [`README.md`](README.md) and `pipeline/docs/19-dfo-salmon-pipeline.md`.
+
 **Plan only. Nothing in §2–§5 is built yet**; §1 and §6 describe changes to existing
 code. Supersedes the matching described in CURATION.md.
 
@@ -67,7 +72,7 @@ guess**.
 matches and no other way:
 
 ```
-name_verbatim ──► pipeline/regs/matching/overrides.json      (THE SHARED FILE — see §3C)
+name_verbatim ──► overrides.json (removed)      (THE SHARED FILE — see §3C)
                   ├─ gnis_ids / waterbody_keys / …  → explicit, possibly several
                   ├─ variant_of                     → the current gazetted name
                   └─ skip                           → do not match this name
@@ -84,7 +89,7 @@ adds nothing.
 
 ### Measured, with the shared overrides file loaded
 
-161 waters, against `pipeline/regs/matching/overrides.json` (482 rows):
+161 waters, against the shared overrides.json (removed) (482 rows):
 
 | outcome | n | % |
 |---|--:|--:|
@@ -169,7 +174,7 @@ row.
 ### The three files
 
 ```
-pipeline/regs/dfo_salmon/entries/region-6.json     CURATED · committed · rarely changes
+data/curated/dfo_salmon/places/region-6.json     CURATED · committed · rarely changes
    location  →  fingerprints[]  +  extents  +  tributaries  +  notes
                         │
                         │  build_reach()
@@ -257,7 +262,7 @@ only a genuinely new wording needs the one-line edit.
 Three files. Types below are the actual shapes, and every one reuses an existing model
 where the repo already has one.
 
-### `pipeline/regs/dfo_salmon/entries/region-<slug>.json` — CURATED, committed
+### `data/curated/dfo_salmon/places/region-<slug>.json` — CURATED, committed
 
 ```python
 @dataclass
@@ -387,7 +392,7 @@ class UnmatchedRow:
         extents, new splits, overrides                             FEED
                  │
                  ▼
-    pipeline/regs/dfo_salmon/entries/region-N.json      ← the only hand-edited file
+    data/curated/dfo_salmon/places/region-<N>.json      ← the only hand-edited file
                  │
     (e) link build   (needs registry + graph)
         build_reach(entry, rule) per location
@@ -410,7 +415,7 @@ fetch — it is a dict lookup per row.
 
 ---
 
-## 3C. Overrides live in `pipeline/regs/matching/overrides.json` — the existing one
+## 3C. Overrides live in the shared overrides.json (removed) — the existing one
 
 **Do not add a DFO overrides file.** The shared file already answers DFO's questions,
 and this was measured, not assumed:
@@ -488,7 +493,7 @@ L2: ok
 | `yes` / `no` | answering a guess I offered (see below) |
 
 I then write the `extents` into the entry file, any new splits **straight into
-`pipeline/atlas/splits.json`** under that waterbody's block, and an override if you corrected
+`data/curated/waters/cuts.json`** under that waterbody's block, and an override if you corrected
 a name. One commit per water, so each is reviewable and revertible on its own.
 
 ### The same pass builds the overrides
@@ -515,7 +520,7 @@ item = gnis:30524, gnis:30525      # Cayeghle + Colonial, both in scope
 L1: ok
 ```
 
-and I write into `pipeline/regs/dfo_salmon/overrides.json`:
+and I write into a DFO overrides.json (never made):
 
 ```jsonc
 { "type": "override",
@@ -597,7 +602,7 @@ greppable inside the shared file without a schema change.
 
 | question | decision |
 |---|---|
-| where do new splits go? | **straight into `pipeline/atlas/splits.json`**, under the existing waterbody blocks. The anchors are shared between the two authorities; a bridge is a bridge. |
+| where do new splits go? | **straight into `data/curated/waters/cuts.json`**, under the existing waterbody blocks. The anchors are shared between the two authorities; a bridge is a bridge. |
 | entries file format | its **own** format (§3A) — it carries scopes, waters and locations, which `splits.json` has no place for. |
 | how does a scrape link to curated work? | **one key — the fingerprint of the table row.** No second id, no resolution step. |
 | what does the feed carry? | the fingerprint and the rule. **No match information.** |
@@ -626,11 +631,11 @@ mostly **no**:
 | concern | who owns it |
 |---|---|
 | name → registry item | `pipeline.regs.matching.matcher` — unchanged, called directly |
-| curator overrides | `pipeline/regs/matching/overrides.json` — the same file |
+| curator overrides | the shared overrides.json (removed) — the same file |
 | extent ops (`whole`/`upstream_of`/`between`/`within`) | `pipeline.regs.parsing.entry_models.Extent` |
 | tributary scope + carve-outs | the catalogue fields `includes_tributaries` / `tributaries_only` / `tributary_excludes` |
 | extent → sections, tributary walk | `pipeline.atlas.reach.build.build_reach` |
-| split anchors | `pipeline/atlas/splits.json` — the same file |
+| split anchors | `data/curated/waters/cuts.json` — the same file |
 | date windows | `pipeline.regs.dfo_salmon.dates` (the DFO feed's own; the synopsis uses `catalogue.parse_date_range`) |
 | species codes | `pipeline.regs.parsing.catalogue` (`FEDERAL_SALMON`, `SPECIES_GROUPS`) |
 

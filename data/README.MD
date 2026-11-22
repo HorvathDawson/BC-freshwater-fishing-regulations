@@ -1,45 +1,32 @@
-# Data Directory
+# `data/` — the pipeline's inputs and outputs
 
-## Getting the Data
+Three kinds of data, kept in sibling folders because confusing them is the recurring bug in this repo (`AGENTS.md` 35):
 
-To download the FWA (Freshwater Atlas) data from GeoBC, run this command from the `data/` directory:
+| folder | holds | losing it costs |
+|---|---|---|
+| `source/` | fetched inputs: the FWA GeoPackage, HYDAT, the synopsis PDF, stations, municipal layers, … | a download |
+| `curated/` | the owner's decisions and hand-made data (authored and reviewed): [`curated/README.md`](curated/README.md) | human hours |
+| `generated/` | everything a program writes: [`generated/README.md`](generated/README.md) | CPU |
+
+Code names these paths through `pipeline.common.curated` (`CURATED` / `GENERATED` / `SOURCE`, keyed in the root
+`config.yaml`), never as literals (AGENTS 36, 41).
+
+## Getting the source data
+
+On a fresh clone, `bash scripts/bootstrap.sh` fetches the exact bytes the live release was built from, checked against
+`source/pins.json` (runbook: `handoff/PLAN/runbooks/fresh-machine.md`). Refreshing from upstream is a separate choice:
 
 ```bash
-cd data/
-wget -r --no-parent ftp://ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/FWA_Public/
+python data/fetch_data.py --help     # the BC Freshwater Atlas layers and the other upstream sources
 ```
 
-This command will recursively download all files from the FWA Public directory without ascending to parent directories. It will create the directory structure `ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/FWA_Public/` with all the data files inside.
+then re-pin what changed with `python -m pipeline.tools.source_pins pin PATH` (it uploads the bytes; the owner's step).
 
-## Extracting Required Files
+## The scripts here
 
-After downloading, you need to extract the following zip files that are used by the processing scripts:
+- `fetch_data.py` — the upstream fetcher (above).
+- `build_tidal_boundary.py`, `process_tidal_boundary.py` — the DFO tidal polygon, processed once and stored on R2 (each
+  file's docstring has its steps).
 
-### 1. Extract FWA_BC (Lakes and Waterbodies)
-```bash
-cd ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/FWA_Public/
-unzip FWA_BC.zip
-```
-
-This creates the `FWA_BC/FWA_BC.gdb` geodatabase containing waterbody polygon layers.
-
-### 2. Extract FWA_STREAM_NETWORKS_SP (Stream Networks)
-```bash
-unzip FWA_STREAM_NETWORKS_SP.zip
-```
-
-This creates the `FWA_STREAM_NETWORKS_SP/FWA_STREAM_NETWORKS_SP.gdb` geodatabase containing stream network data.
-
-### 3. Wildlife Management Units (Already Extracted)
-The file `WAA_WILDLIFE_MGMT_UNITS_SVW.gpkg` is already in GeoPackage format and doesn't need extraction.
-
-### Required Files Summary
-The following files are needed by the processing scripts:
-- `FWA_BC/FWA_BC.gdb` - Waterbody polygons (lakes, rivers, etc.)
-- `FWA_STREAM_NETWORKS_SP/FWA_STREAM_NETWORKS_SP.gdb` - Stream network polylines
-- `WAA_WILDLIFE_MGMT_UNITS_SVW.gpkg` - Wildlife management unit boundaries
-
-These files are used by:
-- `scripts/fwa_modules/graph_builder.py` - Builds network graph from stream data
-- `scripts/fwa_modules/metadata_builder.py` - Enriches waterbody metadata
-
+Licences: third-party material and its terms are listed in the root `NOTICE`; the OpenStreetMap-derived data is ODbL,
+`LICENSE-ODbL.md`.

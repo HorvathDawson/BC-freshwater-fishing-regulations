@@ -133,7 +133,7 @@ are re-derived from source every time.
 ## 6. The entries file — the curated half
 
 ```jsonc
-// pipeline/regs/dfo_salmon/entries/region-6.json   COMMITTED
+// data/curated/dfo_salmon/places/region-6.json   COMMITTED
 { "region": "6", "region_number": 6,
   "locations": [
     { "location_id": "6:babine-lake:excl-tribs",     // stable forever, never derived

@@ -4,9 +4,10 @@ The "define a split location that is carried into the section description" idea,
 **general**: one side ("downstream of X"), both sides ("between X and Y"), N splits → N+1
 sections — from one declarative definition per stream.
 
-> **Authoritative mechanics live in `pipeline/atlas/splits.schema.md`** (anchor kinds, target
-> scope, proximity). This doc covers the *concepts* and the auto-`location_identifier` rule.
-> Where the two differ, the schema wins.
+> **Authoritative mechanics live in the code**: the `SplitDef` / `SplitPoint` models (`pipeline/common/models/`),
+> their loader (`pipeline/atlas/splits/splits.py`) and the anchor resolver (`pipeline/atlas/splits/anchors.py`); the
+> curated file is `data/curated/waters/cuts.json`. This doc covers the *concepts* and the auto-`location_identifier`
+> rule. Where the two differ, the code wins.
 
 ## Scope: curated splits are for NON-lake boundaries
 

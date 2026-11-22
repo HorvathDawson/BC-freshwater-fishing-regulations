@@ -1319,8 +1319,7 @@ drawings, arithmetic over shipped numbers); otherwise the section and field. **G
 
 ## 8. Decisions (judgment calls where the page or the rules are ambiguous)
 
-Each: what · why · effect · how to undo. Also summarised in `handoff/DECISIONS.md` ("Answers layer
-(v1)").
+Each: what · why · effect · how to undo.
 
 **Gear** (`gear.DECISIONS`): G1 a rule-level `when_targeting` makes its clauses circumstantial · the
 book scopes the whole rule to the target · 108 golden gear records list the white-sturgeon dead-fish

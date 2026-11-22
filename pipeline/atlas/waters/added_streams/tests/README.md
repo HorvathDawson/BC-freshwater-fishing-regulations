@@ -14,5 +14,5 @@ module (`test_dem.py`, `test_build.py`, …). `test_dem.py` carries the DEM-flow
 (apex loop, Y-headwaters diamond, lake-sink-over-pit, two-creeks-at-a-river, lake-outflow dual
 attach); each was proven to fail before its fix.
 
-`data/added_streams.sample.geojson` is the tiny hand-authored sample used by `harness.py` (the
+`tests/data/added_streams.sample.geojson` is the tiny hand-authored sample used by `harness.py` (the
 standalone real-FWA demo), not by these unit tests.
