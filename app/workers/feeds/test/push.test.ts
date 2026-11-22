@@ -9,6 +9,8 @@ import {
 } from "../src/push";
 import type { R2BucketLike } from "../src/io";
 import { personalKind } from "../src/backup";
+import { capEvents, PUSH_NEW_TOKENS_PER_DAY_TOTAL, totalKey } from "../src/reports";
+import { PUSH_LIMITS_PREFIX } from "../src/push";
 
 const SALT = "test-salt";
 class MemBucket implements R2BucketLike {
@@ -111,6 +113,37 @@ describe("POST /push/register and /push/unregister (T739)", () => {
     for (let i = 1; i < 200; i++) expect((await handlePush(req("/push/register", body), env, "register", new Date(Date.parse("2026-11-14T12:00:00Z") + i * 3000))).status).toBe(201);
     const day = await handlePush(req("/push/register", body), env, "register", at("2026-11-14T13:00:00Z"));
     expect(await day.json()).toEqual({ ok: false, error: "too many changes today" });
+  });
+});
+
+// T994 #25: register had a per-address limit only; junk tokens from rotating addresses filled the store and took send
+// slots ahead of real phones. A NEW token counts against the day's total from everyone, and reaching it tells the owner.
+describe("POST /push/register: the day's total of new tokens (T994 #25)", () => {
+  it("past the total a new token is refused 429 and not stored, a known one still re-registers, and the owner is told once", async () => {
+    const BUCKET = new MemBucket();
+    const env = { BUCKET, REPORT_SALT: SALT };
+    const now = at("2026-11-14T12:00:00Z");
+    expect((await handlePush(req("/push/register", { platform: "ios", token: IOS, env: "sandbox" }), env, "register", now)).status).toBe(201);
+    BUCKET.m.set(totalKey(PUSH_LIMITS_PREFIX, "2026-11-14"), JSON.stringify({ day: "2026-11-14", n: PUSH_NEW_TOKENS_PER_DAY_TOTAL }));
+    const r = await handlePush(req("/push/register", { platform: "ios", token: IOS2, env: "sandbox" }, "198.51.100.7"), env, "register", now);
+    expect(r.status).toBe(429);
+    expect(await r.json()).toEqual({ ok: false, error: "too many new phones today; try again tomorrow" });
+    expect(tokens(BUCKET).map((t) => t.token)).toEqual([IOS]);
+    // a phone re-registering its known token (every 7 days, or a new address) is not a new token
+    expect((await handlePush(req("/push/register", { platform: "ios", token: IOS, env: "production" }, "198.51.100.8"), env, "register", now)).status).toBe(201);
+    // unregister is never held back by the total
+    expect((await handlePush(req("/push/unregister", { platform: "ios", token: IOS, env: "production" }, "198.51.100.9"), env, "unregister", now)).status).toBe(200);
+    const ev = await capEvents(BUCKET, at("2026-11-14T13:00:00Z"), "x");
+    expect(ev.map((e) => [e.key, e.urgent])).toEqual([[`cap:${PUSH_LIMITS_PREFIX}:2026-11-14`, true]]);
+    expect(ev[0]!.text).toMatch(/^POST \/push\/register refused everything past 1000 new push tokens on 2026-11-14/);
+  });
+  it("a total that cannot be read is a 503, never 'not counted'", async () => {
+    const BUCKET = new MemBucket();
+    const get = BUCKET.get.bind(BUCKET);
+    BUCKET.get = async (k: string) => { if (k.includes("_total-")) throw new Error("R2 down"); return get(k); };
+    const r = await handlePush(req("/push/register", { platform: "ios", token: IOS, env: "sandbox" }), { BUCKET, REPORT_SALT: SALT }, "register", at("2026-11-14T12:00:00Z"));
+    expect(r.status).toBe(503);
+    expect(tokens(BUCKET)).toEqual([]);
   });
 });
 

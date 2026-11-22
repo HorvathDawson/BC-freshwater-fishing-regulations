@@ -22,7 +22,7 @@
 // is rebuilt by the phones: one with notifications on registers its token again when it changed, or when its last
 // register is over PUSH_REFRESH_MS (7 days) old (packages/data notify/push.ts).
 import type { R2BucketLike } from "./io";
-import { LIMIT_PREFIXES, listKeys, rateLimit, readCapped, sha256hex, noSalt, type ReportEnv } from "./reports";
+import { dailyTotal, LIMIT_PREFIXES, listKeys, PUSH_NEW_TOKENS_PER_DAY_TOTAL, rateLimit, readCapped, sha256hex, noSalt, type ReportEnv } from "./reports";
 
 export const PUSH_PREFIX = "private/push/";
 export const TOKENS_PREFIX = `${PUSH_PREFIX}tokens/`;
@@ -60,7 +60,8 @@ export interface PushEnv extends ReportEnv {
  * environment or our address changed, or once its last register is 7 days old (review 2026-11-20, L1: it was every
  * app start, and phones behind one address relaunching together on a wake met the 2 s gap), plus a switch turned on or
  * off. Over the limit the app is answered 429, waits once, then says "pending" and registers again at its next start.
- * Unregister is counted the same way.
+ * Unregister is counted the same way. (T994 #25) A NEW token also counts against PUSH_NEW_TOKENS_PER_DAY_TOTAL from
+ * everyone; reaching it tells the owner once (reports.ts `capEvents`).
  */
 export const PUSH_GAP_MS = 2_000;
 export const PUSH_PER_DAY = 200;
@@ -113,6 +114,19 @@ export async function handlePush(req: Request, env: PushEnv, action: "register" 
   }
   if (refused) return json({ ok: false, error: refused.replace("reports", "changes") }, 429);
   const key = await tokenKey(v.token);
+  if (action === "register") {
+    // (T994 #25) a NEW token counts against the day's total from everyone (the per-address limit alone let rotating
+    // addresses fill the store with junk that takes send slots ahead of real phones); a known one re-registering does not.
+    // A total or a token that cannot be read is a 503, never "not counted"
+    let full: string | null = null;
+    try {
+      if ((await env.BUCKET.head(key)) === null) full = await dailyTotal(env.BUCKET, PUSH_LIMITS_PREFIX, now, PUSH_NEW_TOKENS_PER_DAY_TOTAL);
+    } catch (e) {
+      console.error(JSON.stringify({ job: "push", totalError: String(e) }));
+      return json({ ok: false, error: "could not count" }, 503);
+    }
+    if (full) return json({ ok: false, error: "too many new phones today; try again tomorrow" }, 429);
+  }
   try {
     if (action === "unregister") { await env.BUCKET.delete(key); return json({ ok: true }, 200); }
     const rec: PushRecord = { format: "push-token/1", platform: v.platform, token: v.token, env: v.env, at: now.toISOString() };
