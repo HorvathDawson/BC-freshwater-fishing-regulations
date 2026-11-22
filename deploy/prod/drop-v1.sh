@@ -1,7 +1,7 @@
 #!/bin/bash
 # PRODUCTION — run AT THE SWITCH, on the owner's word (T865; owner 2026-11-18 ~18:25: "when we flip the switch i will get
 # you to clean that stuff up too"), the same moment the old bc-fishing-cron worker and main's update-hydro /
-# update-in-season / update-stocking workflows are turned off (PRODUCTION.md step 11). DROP THE V1 LAYOUT (the old Vite
+# update-in-season / update-stocking workflows are turned off (the first transition's step 11: git show a3ca419e2:handoff/PLAN/release/PRODUCTION.md). DROP THE V1 LAYOUT (the old Vite
 # site's data: cron/**, shards/**, mobile/**, root tier0.json, *.pmtiles, ...; the list is V1_FILES / V1_DIRS in
 # pipeline/deliver/release/prod_prune.py, read from `main`) from bc-fishing-regulations. Never automatic: once it is gone
 # a site rollback to the Vite build loads with no data.
