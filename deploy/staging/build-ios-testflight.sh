@@ -10,6 +10,7 @@
 # HEAVY: wrapped in scripts/heavy.sh (waits for the machine lock).
 #
 # Usage: deploy/staging/build-ios-testflight.sh [--production] [--no-upload | --unsigned] [--no-distribute] [--dry-run]
+#          [--precheck]   (T978: only the precheck — every missing secret, tool or link listed with its fix — then stop)
 #   (default)     staging data, the environment switch on — the build internal testers get (as the Play internal track)
 #   --production  production data, no switch — the build that is later submitted for App Review (needs
 #                 CONFIRM_PROD=canifishthis.ca, T433)
@@ -59,15 +60,51 @@ has() { [[ " $ARGS " == *" $1 "* ]]; }
 ARGS="$*"
 if has --dry-run; then DRY=1; else DRY=; fi
 # (T433) a production build from a staging/ script asks the same confirmation as deploy/prod/
-if has --production && [[ "${CONFIRM_PROD:-}" != canifishthis.ca ]]; then
+if has --production && ! has --precheck && [[ "${CONFIRM_PROD:-}" != canifishthis.ca ]]; then
   echo "build-ios-testflight.sh --production: set CONFIRM_PROD=canifishthis.ca to build production" >&2; exit 2
+fi
+SECRETS=$HOME/.canifishthis
+M=app/apps/mobile
+# (T978) THE PRECHECK, before the heavy lock: every missing link (secrets, tools, the gitignored node_modules wrangler
+# runs from) listed together with its fix, then one exit. Was: the first missing secret ended the run, after the lock
+# wait. `--precheck` runs only this; a dry run lists it and goes on.
+if [[ -z ${BUILD_IOS_INNER:-} ]]; then
+  set +e
+  pf=()
+  bad() { pf+=("$*"); echo "  FAIL $*"; }
+  ok() { echo "  ok   $*"; }
+  source deploy/lib/build-links.sh
+  echo "build-ios-testflight: precheck (before the heavy lock)"
+  for t in xcodebuild pod node; do command -v $t >/dev/null && ok "$t" || bad "no $t on PATH (Xcode, CocoaPods: brew install cocoapods, Node)"; done
+  if ! has --unsigned; then
+    for f in ios-team-id asc-api-key.json; do
+      [[ -s $SECRETS/$f ]] && ok "$SECRETS/$f" || bad "no $SECRETS/$f (this script's header says what it holds)"
+    done
+    if [[ -s $SECRETS/asc-api-key.json ]]; then
+      KP=$(node -p "require('$SECRETS/asc-api-key.json').key_path" 2>/dev/null)
+      [[ -n $KP && -s $KP ]] && ok "the .p8 key ($KP)" || bad "the .p8 private key asc-api-key.json names (key_path '${KP:-none}') is not there"
+    fi
+  fi
+  if ! has --no-upload && ! has --unsigned; then
+    build_links_node
+    if [[ -f app/node_modules/.modules.yaml ]]; then
+      [[ $(npx --prefix app wrangler whoami 2>&1) == *"You are logged in"* ]] && ok "Cloudflare (wrangler) login" \
+        || bad "wrangler is not logged in (npx --prefix app wrangler login): the version files would fail AFTER the upload"
+    fi
+  fi
+  [[ -s $SECRETS/app-store-url ]] && ok "$SECRETS/app-store-url" \
+    || echo "  note no $SECRETS/app-store-url: the build has NO update check (the header); not a stop"
+  set -e
+  if (( ${#pf[@]} )); then
+    if [[ -n $DRY ]]; then echo "[dry-run] WOULD STOP: ${#pf[@]} precheck failure(s)"
+    else echo "build-ios-testflight: precheck FAILED (${#pf[@]}) — the lock was not taken, nothing was built" >&2; exit 1; fi
+  else echo "build-ios-testflight: precheck ok"; fi
+  has --precheck && exit 0
 fi
 if [[ -z ${BUILD_IOS_INNER:-} && -z $DRY ]]; then
   export BUILD_IOS_INNER=1
   exec scripts/heavy.sh build-ios-testflight 20 -- "$0" "$@"
 fi
-SECRETS=$HOME/.canifishthis
-M=app/apps/mobile
 if has --production; then
   export EXPO_PUBLIC_APP_ENV=production; unset EXPO_PUBLIC_ENV_SWITCH; ENV=production; BUCKET=bc-fishing-regulations
 else

@@ -103,8 +103,13 @@ jobs:
       # (T667 slice 8) THE MINI RELEASE the app's logic tests read is what the real pipeline builds from the invented
       # world NOW: rebuilt in a temp dir (no live data: ~10 s) and compared by content with the committed copy; a
       # pipeline change that moves it fails here, naming the files and `python -m pipeline.tools.mini_release --write`.
+      # (T978) after a merge too (both lanes passed alone, their merge moved it; 0.8.4's build found it): the annotation
+      # puts the re-cut command on the run's summary page, not only in the log
       - name: The committed mini release matches a rebuild
-        run: python -m pipeline.tools.mini_release --check
+        run: |
+          python -m pipeline.tools.mini_release --check || {
+            echo "::error title=The committed mini release is stale::re-cut it: python -m pipeline.tools.mini_release --write, then commit app/packages/data/dev/mini-release"
+            exit 1; }
 
       # NO HARDCODED PATH MAY BYPASS THE CONFIG. Everything curated, and everything
       # fetched, is reached through `pipeline.common.curated`.

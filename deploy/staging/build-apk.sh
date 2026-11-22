@@ -103,11 +103,16 @@ else
   [[ -n ${MLN_LOCAL_MAVEN:-} ]] || { echo "build-apk: every build carries the patched MapLibre (T420, T512, T893): set" \
     "MLN_LOCAL_MAVEN=$REPO/cache/maplibre/fslean-m2 (made by app/tools/maplibre-patch/build.sh with the lean patch)," \
     "or say why not with --stock-maplibre=\"<reason>\"" >&2; exit 2; }
-  MLN_AAR=$(find "$MLN_LOCAL_MAVEN" -name 'android-sdk-vulkan-*.aar' 2>/dev/null)
-  [[ -n $MLN_AAR && $(echo "$MLN_AAR" | wc -l) -eq 1 ]] || {
-    echo "build-apk: MLN_LOCAL_MAVEN=$MLN_LOCAL_MAVEN must hold exactly one android-sdk-vulkan AAR (found: ${MLN_AAR:-none})" >&2; exit 2; }
-  echo "build-apk: patched MapLibre from $MLN_AAR"
+  # (T978, 0.8.4 production build from a worktree) a missing repo made this `find` fail and `set -e` end the script with
+  # NO message. Found here without stopping; a missing / ambiguous AAR is listed by the precheck below with its fix
+  # (deploy/lib/build-links.sh build_links_mln), and refused before anything is built (MLN_AAR stays empty)
+  if [[ -d $MLN_LOCAL_MAVEN ]]; then MLN_AAR=$(find "$MLN_LOCAL_MAVEN" -name 'android-sdk-vulkan-*.aar'); fi
+  [[ $(grep -c . <<<"$MLN_AAR") -eq 1 ]] || MLN_AAR=
+  if [[ -n $MLN_AAR ]]; then echo "build-apk: patched MapLibre from $MLN_AAR"; fi
 fi
+# (T978) the gitignored links the build reads (MapLibre repo, .venv, node_modules, run token, keystore): checked in the
+# precheck, every missing one listed with its fix
+source deploy/lib/build-links.sh
 NOCI=; NONOTES=; SAMEVER=; UNCOMMITTED=; PRECHECK_ONLY=; PUBLISH_ONLY=
 for a in "$@"; do
   case $a in
@@ -145,6 +150,10 @@ mln_id() { local d; d=$(mktemp -d); unzip -q -o "$1" "$2" -d "$d" && "$READELF" 
 # mln_check <apk|aab> <path of libmaplibre.so inside>: MLN_GOT / MLN_WHAT; refuses (1) when the patched AAR is asked for
 # (MLN_AAR) and the archive carries another build id — the stock SDK slipping in (T512: Play builds 20, 21)
 mln_check() {
+  # (T978) the patched SDK asked for and no AAR found: never read as "stock" (the precheck lists the fix)
+  if [[ -z $STOCK_MLN && -z $MLN_AAR ]]; then
+    echo "build-apk: no patched MapLibre AAR in MLN_LOCAL_MAVEN=$MLN_LOCAL_MAVEN to prove $(basename "$1") against; refusing (--precheck says the fix)" >&2; return 1
+  fi
   MLN_GOT=$(mln_id "$1" "$2")
   if [[ -n $MLN_AAR ]]; then
     MLN_WANT=$(mln_id "$MLN_AAR" jni/arm64-v8a/libmaplibre.so)
@@ -197,6 +206,26 @@ if [[ -n $PUBLISH_ONLY ]]; then
   exit 0
 fi
 
+if [[ -z ${BUILD_APK_INNER:-} ]]; then
+  # (T978) found before the precheck, which asks what fast-fail will need (the review app's node_modules)
+  # (T533) fast-fail's "changed" = everything since the last build of this kind was made from (the last Play build's
+  # commit for --play, else the last sideload APK's), not only the unpushed commits. Said, never guessed silently.
+  if [[ -n $PLAY ]]; then
+    FFB=$(cat app/dist/apk/last-play-sha 2>/dev/null || true); FFB_WHAT="the last Play build (app/dist/apk/last-play-sha)"
+    if [[ -z $FFB ]]; then   # not recorded before T533: the commit of that build's versionCode bump
+      LASTCODE=$(cat "$SECRETS/play-last-version-code" 2>/dev/null || true)
+      [[ -n $LASTCODE ]] && FFB=$(git log -1 --format=%H --grep "^app: versionCode $LASTCODE for Google Play" || true)
+      FFB_WHAT="the last Play build's versionCode $LASTCODE bump (no last-play-sha recorded)"
+    fi
+  else
+    FFB=$(cat app/dist/apk/last-sha 2>/dev/null || true); FFB_WHAT="the last sideload APK (app/dist/apk/last-sha)"
+  fi
+  if [[ -n $FFB ]] && git cat-file -e "$FFB^{commit}" 2>/dev/null; then
+    export FAST_FAIL_BASE=$FFB; echo "build-apk: fast-fail base ${FFB:0:12}, $FFB_WHAT"
+  else
+    FFB=; echo "build-apk: fast-fail base: none found for $FFB_WHAT — its default (the unpushed commits), NOT since the last build"
+  fi
+fi
 # (T538) THE PRECHECK, before the lock: every failure listed, then one exit
 if [[ -z ${BUILD_APK_INNER:-} ]]; then
   set +e      # every check runs and is listed; the block decides once, at its end (set -e again there)
@@ -204,6 +233,11 @@ if [[ -z ${BUILD_APK_INNER:-} ]]; then
   bad() { pf+=("$*"); echo "  FAIL $*"; }
   ok() { echo "  ok   $*"; }
   echo "build-apk: precheck (before the heavy lock)"
+  # (T978) every link git does not hold, each with its fix (deploy/lib/build-links.sh): a worktree lists them all at once
+  build_links_common
+  build_links_frontend "${FFB:-}"
+  [[ -d $JAVA_HOME ]] && ok "JDK ($JAVA_HOME)" || bad "no JDK at JAVA_HOME=$JAVA_HOME: install Android Studio, or set JAVA_HOME"
+  [[ -d $ANDROID_HOME ]] && ok "Android SDK ($ANDROID_HOME)" || bad "no Android SDK at ANDROID_HOME=$ANDROID_HOME: Android Studio's SDK Manager, or set ANDROID_HOME"
   VER0=$(node -p "require('./$M/app.json').expo.version")
   if out=$(node scripts/check-changelog.mjs 2>&1); then ok "$out"
   elif [[ -n $NONOTES ]]; then ok "changelog: SKIPPED (--no-notes): $NONOTES — $out"
@@ -229,13 +263,17 @@ if [[ -z ${BUILD_APK_INNER:-} ]]; then
       else bad "Play did not answer: ${ONPLAY: -200}"; fi
     fi
   else
-    [[ -f $M/android/app/debug.keystore ]] && ok "debug keystore" || bad "missing $M/android/app/debug.keystore (the shared debug keystore; never a fresh key)"
+    build_links_file "$M/android/app/debug.keystore" "the shared debug keystore every sideload APK is signed with" \
+      "restore it from a backup (never a fresh key: an update would not install over the last APK)"
   fi
   if [[ -z $NOUP ]]; then
     # whoami exits 0 when logged out too: its words decide (nothing it prints is kept: no token, no email)
     if [[ $($WR whoami 2>&1) == *"You are logged in"* ]]; then ok "Cloudflare (wrangler) login"
     else bad "wrangler is not logged in (npx --prefix app wrangler login): the R2 puts would fail AFTER the build"; fi
-    if [[ -n $EMAIL ]]; then [[ -s $TOKF ]] && ok "run token ($TOKF)" || bad "no run token at $TOKF (the email); --no-email goes on"; fi
+    if [[ -n $EMAIL ]]; then
+      if [[ -n $PROD ]]; then mk="the production feeds worker's RUN_TOKEN (the owner's, T240)"; else mk="deploy/staging/rotate-run-token.sh"; fi
+      build_links_file "$TOKF" "the feeds worker's run token: the email to the owner" "$mk" "--no-email goes on"
+    fi
   fi
   case ${CANIFISHTHIS_R8:-} in
     ""|0) ;;   # R8 off: nothing said, as before T749
@@ -243,6 +281,7 @@ if [[ -z ${BUILD_APK_INNER:-} ]]; then
        else ok "R8 ON (CANIFISHTHIS_R8=1, T749): minified build, R8's mapping.txt kept beside the Hermes map"; fi ;;
     *) bad "CANIFISHTHIS_R8 must be unset, 0 or 1 (got '${CANIFISHTHIS_R8}')" ;;
   esac
+  [[ -n $STOCK_MLN ]] || build_links_mln "$MLN_LOCAL_MAVEN"
   if [[ -n $MLN_AAR ]]; then
     [[ -n $READELF && -x $READELF ]] && ok "llvm-readelf ($READELF)" || bad "no llvm-readelf under $ANDROID_HOME/ndk: the MapLibre build id cannot be proved"
     MLN_WANT=$([[ -n $READELF ]] && mln_id "$MLN_AAR" jni/arm64-v8a/libmaplibre.so)
@@ -269,29 +308,15 @@ if [[ -z ${BUILD_APK_INNER:-} ]]; then
     if [[ -n $DRY ]]; then echo "[dry-run] WOULD STOP: CI (above)"
     else echo "build-apk: CI is red or unreadable (above) — nothing was built; --no-ci-check=<reason> goes on" >&2; exit 1; fi
   fi
-  # (T533) fast-fail's "changed" = everything since the last build of this kind was made from (the last Play build's
-  # commit for --play, else the last sideload APK's), not only the unpushed commits. Said, never guessed silently.
-  if [[ -n $PLAY ]]; then
-    FFB=$(cat app/dist/apk/last-play-sha 2>/dev/null || true); FFB_WHAT="the last Play build (app/dist/apk/last-play-sha)"
-    if [[ -z $FFB ]]; then   # not recorded before T533: the commit of that build's versionCode bump
-      LASTCODE=$(cat "$SECRETS/play-last-version-code" 2>/dev/null || true)
-      [[ -n $LASTCODE ]] && FFB=$(git log -1 --format=%H --grep "^app: versionCode $LASTCODE for Google Play" || true)
-      FFB_WHAT="the last Play build's versionCode $LASTCODE bump (no last-play-sha recorded)"
-    fi
-  else
-    FFB=$(cat app/dist/apk/last-sha 2>/dev/null || true); FFB_WHAT="the last sideload APK (app/dist/apk/last-sha)"
-  fi
-  if [[ -n $FFB ]] && git cat-file -e "$FFB^{commit}" 2>/dev/null; then
-    export FAST_FAIL_BASE=$FFB; echo "build-apk: fast-fail base ${FFB:0:12}, $FFB_WHAT"
-  else
-    echo "build-apk: fast-fail base: none found for $FFB_WHAT — its default (the unpushed commits), NOT since the last build"
-  fi
   # (T535) heavy.sh runs fast-fail before every heavy job: told it ran here (FAST_FAIL_DONE) or why it was skipped
   if [[ -n $NOFF ]]; then echo "build-apk: fast-fail SKIPPED (--no-fast-fail): $NOFF"; export HEAVY_NO_FAST_FAIL="build-apk --no-fast-fail: $NOFF"
   elif [[ -n $DRY ]]; then echo "[dry-run] scripts/fast-fail.sh"
   else scripts/fast-fail.sh || { echo "build-apk: scripts/fast-fail.sh failed (above) — nothing was built" >&2; exit 1; }
     FAST_FAIL_DONE=$(git rev-parse HEAD); export FAST_FAIL_DONE
   fi
+fi
+if [[ -n ${BUILD_APK_INNER:-} && -z $STOCK_MLN && -z $MLN_AAR ]]; then
+  echo "build-apk: no patched MapLibre AAR in MLN_LOCAL_MAVEN=$MLN_LOCAL_MAVEN (it was there at the precheck); nothing was built" >&2; exit 1
 fi
 if [[ -z ${BUILD_APK_INNER:-} && -z $DRY ]]; then
   export BUILD_APK_INNER=1

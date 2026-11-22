@@ -8,6 +8,14 @@
 #                                     failed (exit 1); `pipeline release` preflight runs it so, and reads the list from
 #                                     FAST_FAIL_REPORT=<file> (one failed step name per line). caught (build 27,
 #                                     2026-11-11): six release runs, each stopped by the next single failure.
+#   FAST_FAIL_DATA=1 …                (T978) also run the DATA-STATE steps (named "data: …"): they read what THIS machine
+#                                     holds and git does not — the owner's review marks, the live atlas registry, the
+#                                     release LATEST names, the kept SEO snapshot — so they belong to the DATA release,
+#                                     never to an app build or a lane's run. `pipeline release` preflight sets it
+#                                     (`release.run_fast_fail`); without it each one prints that it was left to the data
+#                                     release and is counted as not run. caught (0.8.4 production build, 2026-11-20):
+#                                     "review marks have landed" passed only in the main checkout (the marks are there)
+#                                     and "every curated override id names a water" raised in a worktree with no atlas.
 #
 # Run it before any long job (build, release, APK, emulator, full suite) and while a build waits. (T535) scripts/heavy.sh
 # runs it before every heavy job, during the lock wait (FAST_FAIL_DONE=<HEAD sha> when the caller already ran it;
@@ -37,9 +45,15 @@ DEV=redesign/stream-sections
 . scripts/test-env.sh
 test_env_pycache
 t0=$SECONDS
-ran=0; not_run=0; failed=()
+ran=0; not_run=0; data_left=0; failed=()
 step() {
   if [[ -n ${FAST_FAIL_ONLY:-} && ! $1 =~ $FAST_FAIL_ONLY ]]; then not_run=$((not_run + 1)); return 0; fi
+  # (T978) a data-state step runs only for the data release (FAST_FAIL_DATA=1); elsewhere it says so, by name
+  if [[ $1 == "data: "* && ${FAST_FAIL_DATA:-} != 1 ]]; then
+    data_left=$((data_left + 1)); echo "── $1"
+    echo "   (left to the data release: it reads this machine's data, not the code; FAST_FAIL_DATA=1 runs it)"
+    return 0
+  fi
   local s=$SECONDS name=$1 rc; ran=$((ran + 1)); echo "── $1"; shift
   if [[ -n ${FAST_FAIL_ALL:-} ]]; then
     # a subshell OUTSIDE any `if` / `||`, so `set -e` still stops the step at its own first failing command
@@ -66,10 +80,19 @@ finish() {
     echo "fast-fail: PARTIAL (FAST_FAIL_ONLY=$FAST_FAIL_ONLY): $ran step(s) passed, $not_run not run — not a full pass, $((SECONDS - t0)) s"
     exit 0
   fi
-  echo "fast-fail: all passed in $((SECONDS - t0)) s"
+  if (( data_left )); then
+    echo "fast-fail: all passed in $((SECONDS - t0)) s ($data_left data-state step(s) left to the data release: FAST_FAIL_DATA=1)"
+  else
+    echo "fast-fail: all passed in $((SECONDS - t0)) s"
+  fi
 }
 # (T666) the runner's own test (pipeline/tests/test_release_follows.py): two stand-in steps instead of the list, so
 # "stops at the first" and "lists every failure" are proved without running a real check
+if [[ ${FAST_FAIL_SELFTEST:-} == data ]]; then   # (T978) a data-state step runs only with FAST_FAIL_DATA=1
+  step "selftest: a code step" true
+  step "data: selftest: a data step that fails" false
+  finish; exit 0
+fi
 if [[ -n ${FAST_FAIL_SELFTEST:-} ]]; then
   selftest_fails() { echo "   selftest: before"; false; echo "   selftest: NOT REACHED"; }
   step "selftest: a step that fails" selftest_fails
@@ -195,15 +218,23 @@ step "watershed codes read only in wsc.py (a pipeline Python file changed)" wsc_
 # invented world. A changed atlas / deliver / gauges module or mini fixture runs the mini chain twice (~10 s, no data)
 # caught 2026-11-15 (CI red; T788 item 3): a pipeline/regs change (the DFO typing, the catalogue) moved the mini release
 # and nothing here ran it — regs is in the trigger
+# (T978, 0.8.4 production build 2026-11-20) the committed mini release was stale after merges and only the build's
+# fast-fail found it: the trigger named four pipeline folders and grew one folder per miss. It is now every input the
+# mini chain can read — any pipeline source outside the tests (its fixtures in), the curated tree, the config, the pins
+# — so the lane's own run and the run after a merge (the default base: every unpushed commit) re-check it.
+# pipeline-ci.yml's "The committed mini release matches a rebuild" is the same check on every push.
+mini_inputs_changed() {
+  grep -vE '\.md$' <<<"$CHANGED" | grep -E '^pipeline/' | grep -vE '^pipeline/tests/' | grep -q . && return 0
+  grep -qE '^pipeline/tests/fixtures/mini/|^app/packages/data/dev/mini-release/|^data/curated/|^(config\.yaml|project_config\.py|requirements\.txt|constraints\.txt)$' <<<"$CHANGED"
+}
 mini_chain() {
-  grep -qE '^pipeline/(atlas|deliver|gauges|regs|tools/mini_release)[/.]|^pipeline/tests/fixtures/mini/|^app/packages/data/dev/mini-release/' <<<"$CHANGED" \
-    || { echo "   (no atlas / deliver / gauges / regs / mini file changed)"; return 0; }
+  mini_inputs_changed || { echo "   (no input of the mini chain changed: pipeline source, its fixtures, curated, config)"; return 0; }
   "$PY" -m pytest -q -p no:cacheprovider pipeline/tests/test_mini_release.py pipeline/tests/test_mini_deliver_inputs.py \
     pipeline/tests/test_export_claims.py
   # (T667 slice 8) and the committed copy the app's tests read still matches a rebuild (~8 s, by content)
   "$PY" -m pipeline.tools.mini_release --check
 }
-step "the mini chain on invented data (an atlas / deliver / gauges / mini file changed)" mini_chain
+step "the mini chain on invented data (an input of it changed)" mini_chain
 
 # caught 2026-11-14 (CI red on 931f14e75): test_liveness's scan of every pipeline file refused mini_release reading
 # a station's `active` / `realtime` itself; the lane ran only the tests importing the modules it changed, and a scan
@@ -312,19 +343,21 @@ step "DFO parity vectors are what the Python reads (the worker's test reproduces
 # edited by hand, or a fixture re-cut without them, fails here; scripts/trout-refresh.sh writes both)
 step "trout table vectors are the trout fixture's cells (the app's reader reproduces them)" "$PY" -m pipeline.tools.emit.trout_vectors --check
 
+# (T978) THE DATA-STATE STEPS below ("data: …") read this machine's data, not the code: run only with FAST_FAIL_DATA=1
+# (the data release's preflight), never in an app build or a lane's run (the header).
 # caught (2026-11-09): after LATEST moved, `pnpm check` failed in conformance until regs-recut/sync.mjs re-cut the goldens;
 # taps.json meta.store must be the store of LATEST's water file, or this names the sync command
-step "goldens cut from LATEST" "$PY" scripts/check-goldens-paired.py
+step "data: goldens cut from LATEST" "$PY" scripts/check-goldens-paired.py
 
 # caught (2026-11-09, T545): two of the owner's DFO marks (Chilliwack/Vedder, saved in one group) never reached
 # dfo_salmon/places/region-2.json and read "saved"; no build or release looked. Read-only, ~2 s: every mark in force is
 # in its curated file, or is on the dated allow-list (`pipeline/regs/review/apply.py` NOT_LANDED_OK)
-step "review marks have landed in their curated files" "$PY" -m pipeline.regs.review.apply --check --waiting-ok
+step "data: review marks have landed in their curated files" "$PY" -m pipeline.regs.review.apply --check --waiting-ok
 
 # (T786, owner 2026-11-17: "do not ship \"wrong\" places") a place whose latest review save is "wrong" / "unsure" with no
 # extent fix shipped its older drawing (Sproat, Stamp Falls, the Region 3 Fraser on staging 11-16). Read-only, instant:
 # refuses while one is listed, live or dormant; only a dated WRONG_SAVE_OK row (pipeline/regs/review/wrong_saves.py) passes
-step "no place ships on a wrong save with no fix" "$PY" -m pipeline.regs.review.wrong_saves --check
+step "data: no place ships on a wrong save with no fix" "$PY" -m pipeline.regs.review.wrong_saves --check
 
 # (T841, owner 2026-11-17: "make sure we capture all classified waters whether labeled by symbol or by tributary of
 # something") the bundle's symbol cross-check only PRINTED a CW glyph with no designation; nothing held a parse to the
@@ -336,7 +369,7 @@ step "every classified water the book prints is in the corpus as printed" "$PY" 
 # caught (2026-11-10, T546/T632): OKANAGAN RIVER OXBOWS pinned 26 wsc ids no registry item carries; the row bound the
 # rest with nothing said. Owner 2026-11-11: no build runs with a dead override id (the reach run refuses it too).
 # Reads the live atlas's registry.json (~2 s); a missing build raises naming the command that makes it
-step "every curated override id names a water" "$PY" -m pipeline.regs.matching.matcher
+step "data: every curated override id names the live atlas's water" "$PY" -m pipeline.regs.matching.matcher
 
 # (T535) every `pnpm check` gate but the vitest suite, from its one home `app/package.json` `check:fast` (~21 s for 17
 # gates, measured 2026-11-10: colours 6 s, promises 4 s, typecheck:seo 3 s, knip 2 s, the rest < 1 s each). It holds
@@ -384,13 +417,16 @@ changes_budget() {
   [ -d "data/release/$r" ] && [ -d app/dist/seo-snapshots ] || { echo "   (no release folder or kept snapshot)"; return 0; }
   node app/tools/build-seo.mjs --release-dir "data/release/$r" --check-changes
 }
-step "/changes within budget (LATEST vs kept snapshot)" changes_budget
+step "data: /changes within budget (LATEST vs kept snapshot)" changes_budget
 
 # (T535) the review app was outside every gate: a frontend break was found when the owner restarted the app. Its
 # frontend typechecks (tsc --noEmit, ~2.5 s) when a curation-review/frontend file changed
 review_frontend() {
   grep -qE '^curation-review/frontend/.*\.(ts|tsx)$|^curation-review/frontend/(package\.json|tsconfig[^/]*\.json)$' <<<"$CHANGED" \
     || { echo "   (no review frontend file changed)"; return 0; }
+  # (T978) a worktree has no node_modules of its own: said with the fix, never a bare "No such file"
+  [[ -x curation-review/frontend/node_modules/.bin/tsc ]] || {
+    echo "fast-fail: no curation-review/frontend/node_modules (a worktree or fresh clone): (cd curation-review/frontend && npm ci)" >&2; return 1; }
   curation-review/frontend/node_modules/.bin/tsc --noEmit -p curation-review/frontend
 }
 step "review app frontend typechecks (a frontend file changed)" review_frontend

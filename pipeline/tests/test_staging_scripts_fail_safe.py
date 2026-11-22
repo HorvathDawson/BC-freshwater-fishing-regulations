@@ -442,3 +442,81 @@ def test_publish_only_refuses_a_build_of_the_other_environment():
     block = block[:block.index("\nfi\n")]
     refuse = block.index('[[ $PJENV == "$ENVWORD" ]] || {')
     assert refuse < block.index('PUBB=$(curl') < block.index("r2 object put")
+
+
+def test_build_apk_lists_a_missing_maplibre_repo_and_never_exits_silently(tmp_path):
+    """(T978, 0.8.4 production build from a worktree) no cache/ made the AAR `find` fail and `set -e` end build-apk.sh
+    with NO message. Now the precheck lists it with its fix beside every other failure and stops before the lock."""
+    env = {k: v for k, v in os.environ.items() if k not in ("CONFIRM_PROD", "BUILD_APK_INNER", "MLN_LOCAL_MAVEN")}
+    gone = tmp_path / "no-such-maven"
+    r = subprocess.run(["bash", str(ROOT / "deploy/staging/build-apk.sh"), "--precheck", "--no-upload"],
+                       env={**env, "MLN_LOCAL_MAVEN": str(gone)}, capture_output=True, text=True, timeout=60, cwd=ROOT)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert f"FAIL no patched MapLibre repo at {gone}" in r.stdout and "build.sh" in r.stdout
+    assert "precheck FAILED" in r.stderr and "nothing was built" in r.stderr
+    # --check-maplibre with no AAR to compare is refused, never read as "stock"
+    r = subprocess.run(["bash", str(ROOT / "deploy/staging/build-apk.sh"), f"--check-maplibre={tmp_path / 'x.apk'}"],
+                       env={**env, "MLN_LOCAL_MAVEN": str(gone)}, capture_output=True, text=True, timeout=60, cwd=ROOT)
+    assert r.returncode == 1 and "no patched MapLibre AAR" in r.stderr
+
+
+def _links(cwd: Path, body: str) -> subprocess.CompletedProcess:
+    """deploy/lib/build-links.sh sourced in `cwd`, with a bad/ok pair that prints, then `body`."""
+    script = (f"set -u; bad() {{ echo \"FAIL $*\"; }}; ok() {{ echo \"ok $*\"; }}; "
+              f"source {ROOT / 'deploy/lib/build-links.sh'}; {body}")
+    return subprocess.run(["bash", "-c", script], cwd=cwd, capture_output=True, text=True, timeout=30)
+
+
+def test_build_links_fix_a_worktree_by_linking_the_main_checkout(tmp_path):
+    """(T978) every missing link is said with its exact fix: from a worktree, a link (or a copy, for a file) of the main
+    checkout's own; in the main checkout, the command that makes it."""
+    main = tmp_path / "main"
+    main.mkdir()
+    git = ["git", "-c", "user.email=t@t", "-c", "user.name=t"]
+    subprocess.run([*git, "init", "-q"], cwd=main, check=True)
+    (main / "f").write_text("x")
+    subprocess.run([*git, "add", "f"], cwd=main, check=True)
+    subprocess.run([*git, "commit", "-qm", "one"], cwd=main, check=True)
+    subprocess.run([*git, "worktree", "add", "-q", "--detach", str(tmp_path / "wt")], cwd=main, check=True)
+    (main / ".venv").mkdir()
+    (main / "cache/maplibre/fslean-m2").mkdir(parents=True)
+    (main / "app/workers/feeds").mkdir(parents=True)
+    (main / "app/workers/feeds/.run-token").write_text("t")
+    wt, m = (tmp_path / "wt").resolve(), main.resolve()
+    got = _links(wt, f"build_links_venv; build_links_node; build_links_mln {wt}/cache/maplibre/fslean-m2; "
+                     "build_links_file app/workers/feeds/.run-token 'the email' rotate.sh '--no-email goes on'")
+    assert got.returncode == 0, got.stderr
+    assert got.stdout.splitlines() == [
+        f"FAIL no runnable .venv (fast-fail, the CI status, the Play API read it): ln -s {m}/.venv .venv",
+        "FAIL no app/node_modules (fast-fail's app gates, wrangler): (cd app && pnpm install --offline --frozen-lockfile)",
+        f"FAIL no patched MapLibre repo at {wt}/cache/maplibre/fslean-m2 (T420/T893): mkdir -p cache/maplibre && "
+        f"ln -s {m}/cache/maplibre/fslean-m2 cache/maplibre/fslean-m2",
+        f"FAIL no app/workers/feeds/.run-token (the email): mkdir -p app/workers/feeds && cp "
+        f"{m}/app/workers/feeds/.run-token app/workers/feeds/.run-token; or --no-email goes on"], got.stdout
+    # the main checkout itself: the command that makes each, never a link to itself
+    (main / "app/workers/feeds/.run-token").unlink()
+    got = _links(m, "build_links_venv; build_links_file app/workers/feeds/.run-token 'the email' rotate.sh")
+    assert "scripts/bootstrap.sh" in got.stdout and "FAIL no app/workers/feeds/.run-token (the email): rotate.sh" in got.stdout
+    assert "ln -s" not in got.stdout
+    # one AAR: ok, MLN_AAR names it; two: refused, MLN_AAR empty
+    aar = main / "cache/maplibre/fslean-m2/org/android-sdk-vulkan-1.aar"
+    aar.parent.mkdir(parents=True)
+    aar.write_text("a")
+    got = _links(m, f"build_links_mln {m}/cache/maplibre/fslean-m2; echo \"AAR=$MLN_AAR\"")
+    assert f"AAR={m}/cache/maplibre/fslean-m2/org/android-sdk-vulkan-1.aar" in got.stdout and "FAIL" not in got.stdout
+    (aar.parent / "android-sdk-vulkan-2.aar").write_text("b")
+    got = _links(m, f"build_links_mln {m}/cache/maplibre/fslean-m2; echo \"AAR=[$MLN_AAR]\"")
+    assert "must hold exactly one android-sdk-vulkan AAR" in got.stdout and "AAR=[]" in got.stdout
+
+
+def test_testflight_precheck_lists_every_missing_secret_before_the_lock(tmp_path):
+    """(T978) the first missing secret ended the TestFlight build after the lock wait; now every one is listed at once,
+    before `exec scripts/heavy.sh`."""
+    env = {k: v for k, v in os.environ.items() if k not in ("CONFIRM_PROD", "BUILD_IOS_INNER")}
+    r = subprocess.run(["bash", str(ROOT / "deploy/staging/build-ios-testflight.sh"), "--precheck", "--no-upload"],
+                       env={**env, "HOME": str(tmp_path)}, capture_output=True, text=True, timeout=60, cwd=ROOT)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert f"FAIL no {tmp_path}/.canifishthis/ios-team-id" in r.stdout
+    assert f"FAIL no {tmp_path}/.canifishthis/asc-api-key.json" in r.stdout and "precheck FAILED (2)" in r.stderr
+    code = _no_comments("deploy/staging/build-ios-testflight.sh")
+    assert code.index("precheck (before the heavy lock)") < code.index("exec scripts/heavy.sh build-ios-testflight")
