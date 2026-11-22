@@ -281,6 +281,9 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1001 | Two data-tier test fixes left from T777 (the Deadman stretch-end test on the live tree; in-season tests between a promote and a release) | OPEN | — | all (depends T777; from T777's 2026-11-16 additions) |
 | T1002 | Test-anchor scanners: an `absent` rule for pipeline/tests/anchors.py; the record-equality and toBeUndefined gaps; part numbers after short template slots | OPEN | T768 | T768's lane, 2026-11-22 |
 | T1003 | Android: R8 on for every release build, production included; mapping file uploaded to Play (Play Console: "Obfuscation 1%", under its 25% threshold) | OPEN — next release (0.8.6) | T749 | owner 2026-11-22 (Play Console notice) |
+| T1004 | In-app report: the Class II tag sits far right of the water's name, "kind of hidden" (Skeena part 11) | OPEN — next release batch | | production report 2026-11-21 (read 2026-11-22) |
+| T1005 | Production crash reports 11-15 → 11-22: ~20 kinds no ticket names (0.8.4 404s, PMTiles magic number, …): triage | OPEN | | `GET /crashes` 2026-11-22 |
+| T1006 | One read-only command lists every new report (both workers, TestFlight, Play reviews); every chat runs it first | OPEN | | owner 2026-11-22 |
 
 ## Next after closed testing
 
