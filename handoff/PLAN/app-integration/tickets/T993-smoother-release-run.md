@@ -217,3 +217,14 @@ each test names its mutation, and all failed on the code before), `scripts/tests
 Left: the hook (owner's call); the real-data rehearsal (`--dry-run --build --rehearse-follows`) not run here (a lane
 worktree has no data; the `--dry-run` was run without fast-fail / fresh copy); the data tier's time on a candidate is
 not measured; `regulations.versions` are not app-gated (above); the human runbook (item 11) comes after T978.
+
+## Lane T768 (plan items 10 and 12), branch `test/T768-follow-tests`, 2026-11-22
+| item | what | commit |
+|---|---|---|
+| 10 | the app anchor scanner refuses a field's absence asserted on a release (`absent`: `not.toHaveProperty`, `in` / `hasOwn` false, `Object.keys` = a typed list), mutation-pinned; 3 live hits rewritten | ff946c86e |
+| 10 | a column the writer adds without a mini re-cut: `--check` fails naming the file and the re-cut command (test + an end-to-end planted column); before a push it runs in fast-fail's mini chain and `before_push.py` | c5d66fccc |
+| 10 | the candidate-shaped run for part ends: `app/tools/part-end-proof.mjs` (a fixture with one more part end; only the content pin may fail), T768 | 1716bcb87, f8916d70f |
+| 12 | `WaterMode` across-waters: no failure since T849 (9 CI logs, 1.3–2.3 s); confirmed, nothing to change | — |
+
+Left (not done here): the pipeline scanner's `absent` kind (`pipeline/tests/anchors.py`, another lane's file this round);
+a whole record typed or `toBeUndefined()` on a release field stays unscannable (the scanner header says why).

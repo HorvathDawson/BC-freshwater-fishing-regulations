@@ -267,8 +267,9 @@ describe("the water's Map view and the rest of the water screen agree (P15 follo
     const names = sectionNames(openRegsFixtureWithLines());
     const start = await names.part(CHILLIWACK, "chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_upstream",
       "chilliwack_vedder_rivers__tamihi_rapids_bridge");
-    const twoUp = await names.part(CHILLIWACK, "chilliwack_vedder_rivers__boundary_signs_below_slesse_creek",
-      "area:CHILLIWACK RIVER ECOLOGICAL RESERVE");
+    // (T768) the part above the Slesse Creek signs, by a place on it (1.7 km up the main stem): a part named by its two
+    // ends would vanish with a new end inside it (tools/part-end-proof.mjs)
+    const twoUp = await names.partAt(CHILLIWACK, 380887781, 25_000);
     await onMap(CHILLIWACK, start);
     fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
     fireEvent.click(screen.getByRole("button", { name: "Upstream" }));

@@ -52,7 +52,8 @@ describe.skipIf(gate.skip)("T42 edge states on the live release", () => {
     const c = k.caveats[0]!;
     expect([c.title, itemLine(c.items[0]!)]).toEqual(["⚠ At certain times", "No fishing for any game fish 60 min after sunset–60 min before sunrise Rule book p.23 ↗"]);
     // (T150) the app's parts are its Map view's list — the header keeps the part's name and draws no action
-    expect("action" in p.header).toBe(false);
+    // (T768 / T993 item 10) said of the value the header carries, never of its shape: `HeaderVM` declares no action
+    expect((p.header as { action?: unknown }).action).toBeUndefined();
   });
 
   it("4. weekday row: the Kokanee row's stored week status; Saturday and Monday read their own moment", async () => {

@@ -110,9 +110,10 @@ describe("T10 the committed regs fixture release", () => {
   it("1. one release under the root, its manifest naming its files and no tile set; every file cut from one release", () => {
     expect(readdirSync(REGS_FIXTURE_ROOT).filter((n) => n.startsWith("r-"))).toEqual([RID]);
     expect(MAN.data_release).toBe(RID);
-    // T182: the split release carries a `geo` file
-    expect(Object.keys(MAN.files).sort()).toEqual(
-      ["core", "geo", "regs-1", "regs-2", "regs-3", "regs-4", "regs-5", "regs-6", "regs-7a", "regs-7b", "regs-8", "regs-sid", "water"]);
+    // T182: the split release carries a `geo` file. (T768 / T993 item 10) the files the regs layer reads, present: a
+    // release may gain a file the cut takes, and the next re-cut must not fail on it (check-test-anchors `absent`)
+    expect(Object.keys(MAN.files)).toEqual(expect.arrayContaining(
+      ["core", "geo", "regs-1", "regs-2", "regs-3", "regs-4", "regs-5", "regs-6", "regs-7a", "regs-7b", "regs-8", "regs-sid", "water"]));
     expect(MAN.tiles.current).toBeNull();
     const of = new Set(Object.values(DB).map((d) => meta(d).fixture_of));
     expect(of.size).toBe(1);
