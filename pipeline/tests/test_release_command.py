@@ -49,6 +49,7 @@ def world(tmp_path: Path, monkeypatch):
 
     def run_cmd(cmd, env=None):
         name = "inseason" if "pipeline.regs.inseason.resolve" in cmd else \
+            "data-tier" if any("pytest-chunked" in c for c in cmd) else \
             "recut" if any("regs-recut/sync.mjs" in c for c in cmd) else \
             "taps" if any("regs-recut/taps.py" in c for c in cmd) else \
             "follow-py" if "pytest" in cmd else "follow-worker" if "workers/feeds" in cmd else \
@@ -149,10 +150,34 @@ def world(tmp_path: Path, monkeypatch):
     # the live staging site (network): `site_gate` is pinned by its own tests below
     w["site_min_apps"] = []
 
-    def site(min_app):
+    def site(min_app, manifest=None):
         w["site_min_apps"].append(min_app)
+        w.setdefault("site_manifests", []).append(manifest)
         return list(w.get("site_problems", [])), "site serves app 9.9.9"
     monkeypatch.setattr(R, "site_problems", site)
+    # (T993 item 2) the code's formats, judged by APPS (pinned in test_release_min_app.py): water/1, which every app reads
+    w["code_files"] = {"water": {"format": "water/1"}}
+    monkeypatch.setattr(R, "code_manifest", lambda: {"files": dict(w["code_files"])})
+    # (T788 #2) the pieces gate (the network): pinned in test_release_min_app.py
+    w["pieces"], w["pieces_asked"] = [], []
+
+    def pieces(rid):
+        w["pieces_asked"].append(rid)
+        return list(w["pieces"])
+    monkeypatch.setattr(R, "pieces_problems", pieces)
+    # (T993 item 9) the size headroom reads a real manifest's sizes (pinned in test_release_min_app.py)
+    w["headroom"] = [("water", 2_750_000, 2_850_000, 0.035), ("core", 1_500_000, 1_650_000, 0.091)]
+    monkeypatch.setattr(R, "size_headroom", lambda rid: list(w["headroom"]))
+    # (T993 item 8) the auto-accepts read git (pinned in test_release_auto_accept.py): by default nothing is explained
+    w["attributed"] = (False, [], ["rule r2:x::x.r1: no curated row changed since abc names entry r2:x"])
+    w["attribute_asked"] = []
+
+    def attribute(js, since):
+        w["attribute_asked"].append(since)
+        return w["attributed"]
+    monkeypatch.setattr(R, "attribute_diff", attribute)
+    w["renumbered"] = (False, "a page changed")
+    monkeypatch.setattr(R, "recut_renumbered", lambda pages: w["renumbered"])
     # (T537; T679 #11) the in-season resolve writes the generated resolution only: no commit of its own
     # (T666 items 1-2) the follows stage: the re-cut's changed paths, its commit, the tests found by rule, the push
     w["recut_changed"], w["recuts_committed"], w["unpushed"], w["pushes"] = [], [], [], 0
@@ -194,7 +219,8 @@ def _latest(w) -> str:
     return (w["root"] / "LATEST").read_text().strip()
 
 
-ALL = ["build", "inseason", "recut", "follow-py", "follow-app", "follow-worker", "app-gate", "upload", "smoke"]
+ALL = ["build", "inseason", "recut", "follow-py", "follow-app", "follow-worker", "app-gate", "data-tier", "upload",
+       "smoke"]
 
 
 def _env_of(w, name) -> dict:
@@ -769,12 +795,15 @@ def test_fast_fail_reads_the_candidate_once_the_fixtures_are_cut_for_it(world):
     assert _staging() == 1                                                   # re-cut + committed: the push gate
     world["pushed"], world["unpushed"] = True, []
     assert _staging() == 0
-    assert world["fast_fail_env"] == {"RELEASE_DIR": str(world["root"] / NEW), **NEXT}
+    # (T993 item 15) the candidate's tests passed on the run before: the follows stage will not run them again, so
+    # fast-fail keeps its app gates and worker suite (no FOLLOWS_NEXT)
+    assert world["fast_fail_env"] == {"RELEASE_DIR": str(world["root"] / NEW), R.FRESH_COPY_NEXT: "1"}
     assert json.loads(R.LEDGER.read_text())["fast_fail"]["release_dir"] == str(world["root"] / NEW)
 
 
-#: (T791) the fresh copy runs next in the same preflight: fast-fail leaves it the whole tier
-NEXT = {R.FRESH_COPY_NEXT: "1"}
+#: (T791) the fresh copy runs next in the same preflight: fast-fail leaves it the whole tier; (T993 item 15) and the
+#: follows stage runs the app gates and the worker suite on the candidate: fast-fail leaves those to it
+NEXT = {R.FRESH_COPY_NEXT: "1", R.FOLLOWS_NEXT: "1"}
 
 
 def test_fast_fail_leaves_the_whole_tier_to_the_fresh_copy_that_follows(world):
@@ -782,7 +811,7 @@ def test_fast_fail_leaves_the_whole_tier_to_the_fresh_copy_that_follows(world):
     clean clone minutes later. Fast-fail is told the fresh copy follows; with --no-fresh-copy it is not (it runs them)."""
     assert _staging() == 0 and world["fast_fail_env"] == NEXT and world["fresh_copies"] == 1
     world["tree"] = "t2"
-    assert _staging(no_fresh_copy="the clone is down") == 0 and world["fast_fail_env"] == {}
+    assert _staging(no_fresh_copy="the clone is down") == 0 and world["fast_fail_env"] == {R.FOLLOWS_NEXT: "1"}
 
 
 def test_fast_fail_sh_skips_the_in_place_tier_and_its_subsets_when_told():
@@ -868,6 +897,17 @@ def test_a_workflow_that_would_not_start_stops_saying_only_the_upload_is_left(wo
     assert 'exit "$rc"' in up                                                      # its 75 reaches the release
 
 
+def test_a_dispatch_accepted_whose_run_cannot_be_read_says_check_it_never_redispatch(world, capsys):
+    """T993 lane G3: start-workflow.sh exits 76 when GitHub accepted the dispatch but its run cannot be read (it may
+    be running). Read as a plain upload failure, a rerun would dispatch a second run."""
+    world["rc"] = {"upload": R.RC_WORKFLOW_UNREADABLE}
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert "STOPPED at staging" in err and "dispatched (GitHub accepted it) but its run could not be read" in err
+    assert "check it, don't re-dispatch" in err and "failed (rc=76)" not in err
+    assert _latest(world) == NEW and "uploaded_at" not in json.loads(R.LEDGER.read_text())["releases"][NEW]
+
+
 def test_the_uploads_first_refusals_are_asked_before_it_starts(world, capsys):
     world["staging_prechecks"] = ["`gh auth status` failed (rc=1)", "the rclone remote `r2:` is not configured"]
     assert _staging() == 1
@@ -914,7 +954,7 @@ def test_the_rehearsal_and_the_run_read_one_preflight_table(world, capsys):
     """By construction: a check added to PREFLIGHT is in both. Every check's failure shows in the rehearsal with the
     words the real run stops with."""
     assert [n for n, _ in R.PREFLIGHT] == ["committed", "atlas", "marks", "wrong-saves", "classified", "pushed", "ci",
-                                           "live", "site", "fast-fail", "fresh-copy"]
+                                           "live", "min-app", "site", "pieces", "fast-fail", "fresh-copy"]
     world["pushed"], world["site_problems"], world["fast_fail_rc"] = False, ["site 0.6.9 < 0.7.0"], 1
     assert _staging() == 1
     real = capsys.readouterr()
@@ -1058,7 +1098,7 @@ def test_the_inseason_resolve_makes_no_commit_and_the_run_stops_once_for_the_pus
     assert world["recuts_committed"] == [(NEW, "renumber only")]
     assert "STOPPED at follows" in io.err and "1 commit(s) are not on origin/redesign/stream-sections: 1 the release made" in io.err
     assert "next: git push origin HEAD:redesign/stream-sections, then rerun" in io.err and "--push" in io.err
-    assert _latest(world) == LIVE and [c for c, _ in world["calls"]] == ALL[:7]
+    assert _latest(world) == LIVE and [c for c, _ in world["calls"]] == ALL[:8]
     world["pushed"], world["unpushed"] = True, []                                    # the human pushed
     assert _staging() == 0                                     # resolved, re-cut and tested for NEW: none run again
     names = [c for c, _ in world["calls"]]
@@ -1256,3 +1296,235 @@ def test_t841_mutation_without_the_gate_in_the_table_the_gap_ships(world, monkey
     monkeypatch.setattr(R, "PREFLIGHT", tuple((n, c) for n, c in R.PREFLIGHT if n != "classified"))
     assert _staging() == 0
     assert "STOPPED" not in capsys.readouterr().err and _latest(world) != LIVE
+
+
+# ---------------------------------------------------------------- (T993 lane G2) the minimum app, derived before the build
+
+#: APPS with a newer app that reads a new salmon format (salmon/5): the code that writes it needs app 0.6.0
+APPS_060 = {**APPS, "0.6.0": {"water": ["water/1"], "paint": ["paint/5", "paint/4"], "salmon": ["salmon/5", "salmon/4"]}}
+
+
+def test_the_min_app_is_derived_from_the_codes_formats_and_its_rise_is_said(world, capsys, monkeypatch):
+    """T993 item 2 (0.8.5 stop 3: `--min-app-version 0.8.4` was not passed though the formats always needed it): with no
+    flag, the release goes up stamped for what the CODE's formats need — said in preflight, with the recorded apps the
+    rise leaves behind. Mutation pin: the old default (the live stamp alone) uploads 0.5.0 and the app gate stops."""
+    from pipeline.deliver.release import app_gate as AG
+    monkeypatch.setattr(AG, "table", lambda: APPS_060)
+    world["code_files"] = {"water": {"format": "water/1"}, "salmon": {"format": "salmon/5"}}
+    world["extra"] = {"salmon": {"url": "x", "format": "salmon/5"}}
+    assert _staging() == 0
+    out = capsys.readouterr().out
+    assert _env_of(world, "upload")["MIN_APP_VERSION"] == "0.6.0"
+    assert "ok: min app 0.6.0 (derived: the live stamp raised to the code's formats; the code's formats need 0.6.0" in out
+    assert "RAISED from 0.5.0 to 0.6.0: recorded app(s) 0.5.0 stop applying new releases" in out
+    assert world["site_min_apps"][0] == "0.6.0" and world["site_manifests"][0] == {"files": world["code_files"]}
+
+
+def test_the_old_default_would_have_stopped_at_the_app_gate(world, capsys, monkeypatch):
+    """The mutation of the test above: `default_min_app` as it was (the live stamp only) stops the checks."""
+    from pipeline.deliver.release import app_gate as AG
+    monkeypatch.setattr(AG, "table", lambda: APPS_060)
+    monkeypatch.setattr(R, "default_min_app", R.live_stamp)
+    world["code_files"] = {"salmon": {"format": "salmon/5"}}
+    world["extra"] = {"salmon": {"url": "x", "format": "salmon/5"}}
+    assert _staging() == 1 and "salmon/5 needs app >= 0.6.0" in capsys.readouterr().err
+
+
+def test_a_min_app_flag_below_the_codes_formats_stops_before_the_build(world, capsys, monkeypatch):
+    from pipeline.deliver.release import app_gate as AG
+    monkeypatch.setattr(AG, "table", lambda: APPS_060)
+    world["code_files"] = {"salmon": {"format": "salmon/5"}}
+    assert _staging(min_app_version="0.5.0") == 1
+    err = capsys.readouterr().err
+    assert "STOPPED at preflight" in err and "--min-app-version 0.5.0 is older than the code's formats need: 0.6.0" in err
+    assert world["calls"] == []                                   # nothing built
+
+
+def test_a_format_no_recorded_app_reads_stops_before_the_build(world, capsys):
+    world["code_files"] = {"water": {"format": "water/9"}}
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert "the code writes 1 format(s) no recorded app reads: water/9" in err and world["calls"] == []
+
+
+def test_the_site_gate_reads_the_candidates_formats_once_it_is_built(world, capsys):
+    world["differs"] = True
+    assert _staging() == 1                                        # built, stopped at the binding diff (CANDIDATE)
+    world["site_manifests"].clear()
+    assert _staging() == 1
+    assert world["site_manifests"][0]["data_release"] == NEW      # the candidate's manifest, not the code's
+
+
+def test_the_pieces_gate_is_asked_before_the_build_and_on_the_candidate_before_the_promote(world, capsys):
+    """T788 #2: the gate was asked only inside the upload, after the promote."""
+    world["pieces"] = ["the release binds 2 closed-area piece(s); the feeds worker does not emit them"]
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert "STOPPED at preflight" in err and "deploy/staging/feeds.sh" in err and world["calls"] == []
+    world["pieces"] = []
+    assert _staging() == 0 and world["pieces_asked"][:3] == [LIVE, LIVE, NEW]   # preflight on LATEST, checks on NEW
+
+
+def test_the_rehearsal_says_what_it_cannot_see_before_a_build_and_offers_the_build(world, capsys):
+    """T993 item 4: a pre-build rehearsal promised "every stop the real run would hit" and saw preflight only."""
+    world["rc"]["build"] = 0
+    assert R.main(["--staging", "--dry-run"]) == 0                # the build's dry run makes no candidate here
+    out = capsys.readouterr().out
+    assert "NOT SEEN before a build: the size gates on the new files" in out
+    assert "python -m pipeline release --staging --dry-run --build --rehearse-follows" in out
+    assert "1. bash scripts/heavy.sh release 50 -- " in out and "--hold-latest" in out
+    # (T993 item 9) LATEST's headroom, tightest first, WARN under 5 %
+    assert f"size headroom on {LIVE}" in out and "3.5%  WARN" in out and "1 under 5%" in out
+
+
+def test_dry_run_build_builds_the_candidate_and_rehearses_on_it(world, capsys):
+    assert R.main(["--staging", "--dry-run", "--build"]) == 0
+    out = capsys.readouterr().out
+    builds = [(c, e) for c, e in world["calls"] if c == "build"]
+    assert len(builds) == 1 and builds[0][1] == {"FAST_FAIL_DONE": "abc123"}   # the real build, told fast-fail ran
+    assert f"manifest sanity on {NEW}: ok" in out and "NOT SEEN before a build" not in out
+    assert _latest(world) == LIVE and (R.HOME / "baseline" / LIVE / "report.json").is_file()
+    with pytest.raises(SystemExit):
+        R.main(["--staging", "--build"])                           # a rehearsal flag only
+
+
+# ------------------------------------------------------------------- (T993 item 8, T788 #8) what is safe passes, said
+
+def test_a_diff_every_change_of_which_a_committed_row_explains_passes_with_a_note(world, capsys):
+    """0.8.5 stop 7: Lost Lagoon +1, the T981 entry added on purpose. Explained by the rows changed since LATEST's
+    commit, it passes — printed, and the ledger keeps what explained it."""
+    R.save_ledger({"releases": {LIVE: {"commit": "base0"}}})
+    world["commits"], world["differs"] = {"base0"}, True
+    world["attributed"] = (True, ["rule r2:lost_lagoon_local@2-8::lost_lagoon_local.r1: entry r2:lost_lagoon_local@2-8 "
+                                  "changed in data/curated/regulations/local_closures/region-2.json (7ce79dcf0)"], [])
+    assert _staging() == 0 and world["attribute_asked"] == ["base0"]
+    out = capsys.readouterr().out
+    assert "binding diff AUTO-ACCEPTED (T993 item 8)" in out and "entry r2:lost_lagoon_local@2-8 changed" in out
+    rec = json.loads(R.LEDGER.read_text())["releases"][NEW]
+    assert rec["binding_diff"]["status"] == "accepted" and rec["binding_diff"]["auto"] == "attributable"
+    assert rec["checks"]["binding_diff"] == "accepted"
+
+
+def test_mutation_a_change_nothing_explains_still_stops(world, capsys):
+    R.save_ledger({"releases": {LIVE: {"commit": "base0"}}})
+    world["commits"], world["differs"] = {"base0"}, True
+    world["attributed"] = (False, ["rule a::a.r1: entry a changed"], ["rule b::b.r1: no curated row changed since base0"])
+    assert _staging() == 1
+    got = capsys.readouterr()
+    assert "STOPPED at checks" in got.err and "--accept-diff" in got.err
+    assert "not explained by a curated row changed since LATEST's commit" in got.out and "rule b::b.r1" in got.out
+    assert _latest(world) == LIVE
+
+
+def test_an_accepted_diff_keeps_its_record_on_a_rerun_after_the_promote(world, capsys):
+    """T788 #8: r-741815c6090d's accept (Lost Lagoon +1) read "same reach run" after a rerun past the promote."""
+    world["differs"] = True
+    assert _staging() == 1
+    js = R.HOME / "checks" / NEW / "binding_diff.json"
+    world["fail"] = {"upload"}
+    assert _staging(accept_diff=js) == 1 and _latest(world) == NEW          # promoted, the upload failed
+    world["fail"] = set()
+    assert _staging() == 0                                                  # the rerun after the promote
+    rec = json.loads(R.LEDGER.read_text())["releases"][NEW]
+    assert rec["binding_diff"]["status"] == "accepted" and rec["binding_diff"]["json"] == str(js)
+    assert rec["checks"]["binding_diff"] == "accepted"
+    assert "binding diff: as checked before the promote (accepted" in capsys.readouterr().out
+
+
+def test_mutation_without_the_keep_the_rerun_overwrites_the_accept(world, capsys, monkeypatch):
+    """The mutation of T788 #8's fix: the key alone decides, and the post-promote rerun writes "same"."""
+    world["differs"] = True
+    assert _staging() == 1
+    js = R.HOME / "checks" / NEW / "binding_diff.json"
+    world["fail"] = {"upload"}
+    assert _staging(accept_diff=js) == 1
+    led = json.loads(R.LEDGER.read_text())
+    led["releases"][NEW]["binding_diff"].pop("status")                     # what the fix keeps on, taken away
+    R.save_ledger(led)
+    world["fail"] = set()
+    assert _staging() == 0
+    assert json.loads(R.LEDGER.read_text())["releases"][NEW]["binding_diff"]["status"] == "same"
+
+
+def test_golden_pages_that_only_renumber_their_sources_are_committed_with_a_note(world, capsys):
+    """0.8.5 stop 8: nine pages, all renumbered source indexes, stopped for --accept-fixtures."""
+    world["recut_changed"] = ["app/fixtures/golden/taps.json", "app/packages/ui-native/src/regs/fixtures/glenn_501.json"]
+    world["renumbered"] = (True, "1 golden page(s) differ only in source indexes renumbered one for one (2 index(es): "
+                                 "1363->1364, 3144->3145)")
+    assert R.main(["--staging", "--push"]) == 0
+    out = capsys.readouterr().out
+    assert "AUTO-ACCEPTED as a renumber (T993 item 8)" in out and "1363->1364" in out
+    assert world["recuts_committed"] == [(NEW, "renumber only (source indexes)")]
+    rec = json.loads(R.LEDGER.read_text())["releases"][NEW]["follows"]
+    assert rec["recut"]["kind"] == "renumber only (source indexes)" and "1363->1364" in rec["renumbered"]
+    # the mutation (the same re-cut, not a renumber, stops) is test_a_changed_golden_page_stops_uncommitted_…
+
+
+# ------------------------------------------------- (T993 items 15, 16; T788 #10) each check once per release, no more
+
+def test_fast_fail_sh_leaves_the_app_gates_and_the_worker_suite_to_the_follows_when_told():
+    from pipeline.common.curated import REPO_ROOT
+    sh = (REPO_ROOT / "scripts" / "fast-fail.sh").read_text(encoding="utf-8")
+    assert f'${{{R.FOLLOWS_NEXT}:-}} == 1' in sh
+    for fn in ("feeds_worker_tests", "app_gates"):
+        body = sh[sh.index(f"{fn}() {{"):]
+        assert body[:body.index("\n")].count("follows_next && return 0") == 1, fn
+    assert 'step "app gates (pnpm check:fast: every pnpm check gate but vitest)" app_gates' in sh
+
+
+def test_a_bare_rehearsal_keeps_the_app_gates_in_fast_fail_and_a_narrower_pass_does_not_cover_it(world):
+    """The real run leaves them to the follows stage; a rehearsal with no follows run keeps them (so it still lists
+    their failures before any build), and a pass that left them out is not taken for one that ran them."""
+    world["fail"] = {"upload"}
+    assert _staging() == 1 and world["fast_fail_env"].get(R.FOLLOWS_NEXT) == "1"
+    assert json.loads(R.LEDGER.read_text())["fast_fail"]["scope"] == "follows-next"
+    n = world["fast_fails"]
+    assert R.main(["--staging", "--dry-run"]) == 0
+    assert world["fast_fails"] == n + 1 and R.FOLLOWS_NEXT not in world["fast_fail_env"]   # rerun, and in full
+    assert R.main(["--staging", "--dry-run"]) == 0 and world["fast_fails"] == n + 1         # a full pass covers it
+
+
+def test_the_rehearsal_on_a_candidate_with_rehearse_follows_leaves_them_to_it(world):
+    world["differs"] = True
+    assert _staging() == 1                                                  # a candidate, stopped at the diff
+    world["tree"] = "t2"
+    assert R.main(["--staging", "--dry-run", "--rehearse-follows"]) == 0
+    assert world["fast_fail_env"].get(R.FOLLOWS_NEXT) == "1"
+
+
+def test_the_live_data_tier_runs_once_on_the_candidate_in_chunks(world):
+    """T791 #4 / T993 item 16 (T931: ~55 stale pins in the data tier, which nothing ran): a follows row, run with the
+    other checks on the candidate (RELEASE_DIR), the files found by rule deselected (they run whole)."""
+    assert _staging() == 0
+    tier = [e for c, e in world["calls"] if c == "data-tier"]
+    assert len(tier) == 1 and tier[0]["RELEASE_DIR"] == str(world["root"] / NEW)
+    cmd = R.data_tier_cmd()
+    assert "scripts/pytest-chunked.sh" in cmd and "--deselect=pipeline/tests/test_x.py" in cmd
+    assert json.loads(R.LEDGER.read_text())["releases"][NEW]["follows"]["tests"]["data_tier"] is True
+    assert "data-tier" in [r.name for r in R.RF.FOLLOWS]
+
+
+def test_the_data_tier_selects_every_needs_marker_and_never_slow_or_no_data():
+    from _pytest.mark.expression import Expression
+    from pipeline.tests.tiers import data_markers
+    expr = Expression.compile(R.RF.data_tier_markers())
+    for m in data_markers():
+        if m != "slow":
+            assert expr.evaluate(lambda name, /, m=m, **kw: name == m), m
+    assert not expr.evaluate(lambda name, /, **kw: False)                                # a no-data test: CI's
+    assert not expr.evaluate(lambda name, /, **kw: name in ("slow", "needs_bundle"))     # slow stays out
+
+
+def test_a_rerun_does_not_rebuild_what_this_release_built(world, capsys):
+    """T788 #10: r-741815c6090d's own in-season step reran deliver for 9 minutes for the same release id. A candidate
+    this release built, with nothing a build reads committed since, is not rebuilt; a code commit rebuilds it."""
+    world["commits"] = {"abc123"}
+    world["recut_changed"] = ["app/packages/ui-native/src/regs/fixtures/glenn_501.json"]
+    assert _staging() == 1 and [c for c, _ in world["calls"]].count("build") == 1     # stopped at the golden page
+    world["committed_since"] = {"app/fixtures/golden/taps.json", "handoff/PLAN/STATUS.md"}
+    capsys.readouterr()
+    assert _staging(accept_fixtures="tok-1") == 1 and [c for c, _ in world["calls"]].count("build") == 1
+    assert "nothing a build reads was committed since — not rebuilt (T788 #10" in capsys.readouterr().out
+    world["committed_since"] |= {"pipeline/deliver/x.py"}                            # the mutation: a build input
+    world["pushed"], world["unpushed"] = True, []
+    assert _staging() == 0 and [c for c, _ in world["calls"]].count("build") == 2

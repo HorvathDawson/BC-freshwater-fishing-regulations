@@ -197,3 +197,23 @@ each test names its mutation, and all failed on the code before), `scripts/tests
 - Left for others: `pipeline/release.py` maps upload rc 75 only; the new rc 76 ("dispatched, run unreadable, may be
   running") reaches its generic "upload failed (rc=76), read above" (lane G2 may name it). The runbook rewrite (plan 11)
   still has the old "owner deploys the site" wording in `PRODUCTION.md` step 6 and `release-by-hand.md`.
+
+## Lane G2 (release command), branch `lane/t993-g2-release`, 2026-11-21
+| item | what | commit |
+|---|---|---|
+| 2 | min app derived before the build: `build.built_formats` (held to the mini release) + `app_reads.json` → default = max(live stamp, derived), said with the apps a rise leaves behind; preflight stops on an unread format or a flag below it; the site gate reads the candidate's formats, else the code's | ea6d534f2 |
+| 2 gap check | none: the code derives 0.8.4 = what r-741815c6090d needs. Build-dependent files: `lakes` (no producer), `flow-own` (`SHIP_OWN_GAUGE_FLAG`), empty salmon shards (same format). Not gated by `app_gate` at all: the manifest's `regulations.versions` / layout versions | ea6d534f2 |
+| 4 | the pre-build rehearsal prints NOT SEEN and the step: `--dry-run --build [--rehearse-follows]` or the three steps | ea6d534f2 |
+| 9 | `build.headroom`: every file / web moment / offline total vs its gate, tightest first, WARN < 5 % | ea6d534f2 |
+| T788 #2 | pieces gate in preflight (candidate else LATEST) and in checks on the candidate | ea6d534f2 |
+| 8 | renumber-only golden pages pass with the mapping printed, each index's rule compared (stop 8 passes); a binding diff passes only when no binding code / atlas moved and each change is its own binding input's, one way (`pipeline/release_attribute.py`, `release.binding_moved`). Stop 7 (Lost Lagoon) would now STOP: T981's commit changed reach code (`regs/parsing/io.py`, `local_closures.py`) — conservative by the review | 60ed4ac17, d3272d735, see below |
+| T788 #8 | the accepted diff's record survives a rerun after the promote | 60ed4ac17 |
+| 15 | preflight fast-fail leaves `check:fast` + the worker suite to the follows run on the candidate (`FAST_FAIL_FOLLOWS_NEXT`; 2 guard lines in `scripts/fast-fail.sh`, T978's file) | d0f0d6ab1 |
+| 16 | follows row `data-tier`: the needs_* tier on the candidate in chunks, rule-found files deselected | d0f0d6ab1 |
+| T788 #10 | a rerun does not rebuild a candidate this release built when no build input was committed since | d0f0d6ab1 |
+| 7 | `scripts/before_push.py` (pipeline-ci steps read from the yml, the tier, `check:fast`, app tree scanners, worker suite); `--hook` prints the install, installs nothing | 31d770acf |
+| G3's exit 76 | `RC_WORKFLOW_UNREADABLE`: "dispatch accepted, run not readable: check it, don't re-dispatch" | 5d6478a09 |
+
+Left: the hook (owner's call); the real-data rehearsal (`--dry-run --build --rehearse-follows`) not run here (a lane
+worktree has no data; the `--dry-run` was run without fast-fail / fresh copy); the data tier's time on a candidate is
+not measured; `regulations.versions` are not app-gated (above); the human runbook (item 11) comes after T978.

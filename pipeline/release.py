@@ -80,8 +80,9 @@ already done for this release):
                check leaves LATEST untouched.
   7 staging    the upload's own first refusals asked up front (`staging_prechecks`: the run-timing base names the
                release's tiles, `gh` is logged in, the rclone remote is there), then
-               `deploy/staging/upload.sh <r-id>` (staging bucket only; MIN_APP_VERSION from --min-app-version, else the
-               previous release's stamp — printed in the plan), with its smoke test run on its own after it (T537:
+               `deploy/staging/upload.sh <r-id>` (staging bucket only; MIN_APP_VERSION from --min-app-version, else (T993
+               item 2) the previous release's stamp raised to what the code's formats need — derived and said in
+               preflight, with the recorded apps a rise leaves behind), with its smoke test run on its own after it (T537:
                ledger `uploaded_at` and `smoked_at`; a rerun after a smoke-only failure runs only the smoke). It says
                when it replaces a staged release the owner was handed a production command for. The success message
                lists the after-chores with their exact commands (goldens re-cut, site, feeds worker). On a RERUN (T484) the default is the min app this
@@ -147,6 +148,9 @@ STAGES = ("preflight", "baseline", "build", "checks", "follows", "promote", "sta
 #: (T666 item 6) deploy/staging/upload.sh's exit when GitHub would not START the run-timing workflow
 #: (`scripts/start-workflow.sh`, after its bounded retries): nothing that moves the pointer was sent
 RC_WORKFLOW_NOT_STARTED = 75
+#: (T993 lane G3, `scripts/start-workflow.sh`) the dispatch was ACCEPTED but its run could not be read: it may be
+#: running, so a rerun must not dispatch it again
+RC_WORKFLOW_UNREADABLE = 76
 #: (T666 item 4) the flags a rerun need not repeat (ledger `run`); the escapes are never remembered
 REMEMBERED = ("baseline", "accept_diff", "accept_fixtures", "min_app", "push")
 #: the branch GitHub's workflows run (the staging upload starts feeds-runtiming.yml there); HEAD must be on it
@@ -400,6 +404,12 @@ def follow_tests() -> tuple[list[str], list[str]]:
     return RF.pipeline_tests(), RF.app_tests()
 
 
+def data_tier_cmd() -> list[str]:
+    """(T993 item 16) the pipeline's live-data tier in chunks (`RF.refresh_cmd(RF.DATA_TIER)`), RELEASE_DIR from the
+    environment the follows stage sets (the candidate)."""
+    return RF.data_tier_cmd(follow_tests()[0])
+
+
 def app_check_steps() -> list[str]:
     """(T680) the `pnpm check:fast` gates, one by one (`RF.app_check_steps`)."""
     return RF.app_check_steps()
@@ -413,7 +423,8 @@ def follow_tests_cmds(py: list[str], out: Path) -> list[tuple[str, list[str], Pa
     return ([("pipeline", heavy + RF.pipeline_tests_cmd(py, out / "pipeline.xml"), out / "pipeline.xml")] if py else []) \
         + [("app", heavy + RF.app_suite_cmd(out / "app.json"), out / "app.json"),
            ("worker", heavy + RF.worker_suite_cmd(out / "worker.json"), out / "worker.json")] \
-        + [(f"app gate {s}", RF.app_check_cmd(s), None) for s in app_check_steps()]
+        + [(f"app gate {s}", RF.app_check_cmd(s), None) for s in app_check_steps()] \
+        + [("pipeline data tier", heavy + data_tier_cmd(), None)]
 
 
 def candidate_failures(rid: str, env: dict) -> list[str]:
@@ -677,10 +688,11 @@ def app_gate_problems(rid: str, min_app: str | None) -> list[str]:
     return problems(manifest_of(rid), min_app)
 
 
-def site_problems(min_app: str | None) -> tuple[list[str], str]:
-    """The live staging site against the oldest app the release will be stamped for (`deliver.release.site_gate`)."""
+def site_problems(min_app: str | None, manifest: dict | None = None) -> tuple[list[str], str]:
+    """The live staging site against the oldest app the release will be stamped for (`deliver.release.site_gate`),
+    raised to what `manifest`'s formats need (T993 item 2: the candidate's, or before a build the code's)."""
     from pipeline.deliver.release.site_gate import check
-    return check(None, min_app)
+    return check(manifest, min_app)
 
 
 def binding_diff(before: Path, after: Path) -> dict:
@@ -710,6 +722,63 @@ def live_counts(before_rid: str | None, after_rid: str, led: dict) -> tuple[dict
     return after, LC.diff_text(before, after, before_rid or "(no live release)", after_rid)
 
 
+def attribute_diff(js: Path, since: str | None) -> tuple[bool, list[str], list[str]]:
+    """(T993 item 8) is every change of the binding diff `js` explained by a curated row changed in the commits since
+    `since` (the commit LATEST was built from; `pipeline.release_attribute`)? (all explained, explained, not explained).
+    No commit recorded, or not in this clone: nothing is explained (the diff stops, as it always did)."""
+    if not since or not git_has_commit(since):
+        return False, [], [f"no commit is recorded for the live release (or it is not in this clone: {since}): "
+                           "nothing can be attributed"]
+    from pipeline.release_attribute import attribute
+    rep = json.loads(Path(js).read_text(encoding="utf-8"))
+    moved = binding_moved(since, rep)
+    if moved:
+        return False, [], [f"NO auto-accept: {x}" for x in moved]
+    return attribute(rep, since)
+
+
+def reach_code_files() -> set[str]:
+    """The files the last reach run imported (`build-manifest.json` `stages.reach.code_files`, T522): its code key."""
+    from pipeline.build import load_manifest
+    got = (((load_manifest().get("stages") or {}).get("reach") or {}).get("code_files"))
+    if not got:
+        raise RuntimeError("the build manifest records no reach code_files")
+    return set(got)
+
+
+def binding_moved(since: str, rep: dict) -> list[str]:
+    """(T993 item 8, review 2026-11-21) why NO change of this diff may be auto-accepted: the binding CODE moved since
+    `since` (a file the reach stage imports, or anything under pipeline/atlas/: the registry, the sectionizer, the
+    reach), or the ATLAS did (the two runs' `handles` / `registry_digest` differ). [] when neither; a fact that cannot
+    be read is a reason too (never a pass)."""
+    out: list[str] = []
+    try:
+        code = reach_code_files()
+    except Exception as e:  # noqa: BLE001 — unread is a reason, never a pass
+        out.append(f"the reach stage's code files cannot be read ({type(e).__name__}: {e}): a code change cannot be "
+                   "ruled out")
+        code = set()
+    moved = sorted(p for p in committed_since(since) if p in code or p.startswith("pipeline/atlas/"))
+    if moved:
+        out.append(f"the binding code changed since {since[:12]} ({len(moved)} file(s): {', '.join(moved[:4])}"
+                   f"{' …' if len(moved) > 4 else ''}): read the diff")
+    try:
+        rb, ra = (json.loads((Path(rep[k]) / "report.json").read_text(encoding="utf-8")) for k in ("before", "after"))
+    except (KeyError, OSError, ValueError) as e:
+        return out + [f"the two reach runs' reports cannot be read ({type(e).__name__}: {e}): an atlas change cannot "
+                      "be ruled out"]
+    for k in ("handles", "registry_digest"):
+        if rb.get(k) is None or rb.get(k) != ra.get(k):
+            out.append(f"the atlas changed between the runs ({k} {rb.get(k)} -> {ra.get(k)}): read the diff")
+    return out
+
+
+def recut_renumbered(pages: list[str]) -> tuple[bool, str]:
+    """(T993 item 8) do the changed golden pages differ from HEAD only in renumbered source indexes
+    (`release_follows.renumbered_only`)?"""
+    return RF.renumbered_only(pages)
+
+
 def diff_summary(rep: dict) -> str:
     from pipeline.atlas.reach.binding_diff import summary
     return summary(rep)
@@ -731,6 +800,8 @@ class Ctx:
     push: bool = False                   # (T666) the release pushes the commits it made itself
     no_follow_tests: str | None = None   # (T666) why the tests on the candidate are skipped (printed); None runs them
     rehearse_follows: bool = False       # (T680) --dry-run: re-cut + the whole check on the candidate, put back after
+    build: bool = False                  # (T993 item 4) --dry-run --build: build the candidate first (LATEST stays)
+    rehearsal: bool = False              # the run is `--dry-run` (T993 item 15: what fast-fail leaves to the follows)
     no_fresh_copy: str | None = None     # (T666) why the fresh-copy test run is skipped (printed); None runs it
     forget: bool = False                 # (T666) drop the remembered flags of the release in flight
     heavy_env: dict = field(default_factory=dict)   # (T535) tells heavy.sh fast-fail ran: FAST_FAIL_DONE / HEAVY_NO_FAST_FAIL
@@ -847,13 +918,99 @@ def check_live(ctx: Ctx) -> Finding:
     return Finding(True, f"live release {ctx.live}")
 
 
+def built_candidate(ctx: Ctx) -> str | None:
+    """The CANDIDATE when the build has made one that is not LATEST already; else None."""
+    cand = read_pointer("CANDIDATE")
+    return cand if cand and cand != ctx.live else None
+
+
+def planned_min_app(ctx: Ctx) -> str | None:
+    """The min app this run goes up with: the flag (given or remembered), else `resume_min_app` (a rerun after the
+    promote keeps what its checks passed with; a first run: the live stamp raised to the code's formats)."""
+    return ctx.min_app or resume_min_app(ctx.led, read_pointer("CANDIDATE") or ctx.live, ctx.live)
+
+
+def check_min_app(ctx: Ctx) -> Finding:
+    """(T993 item 2) THE MINIMUM APP, DERIVED BEFORE THE BUILD from the code's formats (`build.built_formats`,
+    `app_reads.json`, `app_gate.oldest_reader`): said with what it was derived from and — when it rises above the live
+    release's stamp — which recorded apps it leaves behind. Stops (before any build) on a format no recorded app reads,
+    and on a `--min-app-version` below what the formats need: both are stops the checks stage would make 25 minutes
+    later (0.8.5 stops 3 and 5)."""
+    from pipeline.deliver.release.app_gate import needs, table, ver
+    try:
+        apps = table()
+        need_by = needs(code_manifest(), apps)
+    except Exception as e:  # noqa: BLE001 — a gate that could not read is a stop, never a pass
+        return Finding(False, f"the minimum app cannot be derived from the code's formats ({type(e).__name__}: {e})",
+                       "run `python -m pipeline.tools.emit.app_reads --check` and fix what it says")
+    unread = sorted(f for f, v in need_by.items() if v is None)
+    if unread:
+        return Finding(False, f"the code writes {len(unread)} format(s) no recorded app reads: {', '.join(unread)} (the "
+                       f"newest recorded app is {max(apps, key=ver)})",
+                       "a new format ships after the app that reads it is recorded: bump the app version and run "
+                       "`python -m pipeline.tools.emit.app_reads` (or keep the old format until then)")
+    need = derived_min_app()
+    stamp = live_stamp(ctx.live)
+    if ctx.min_app and need and ver(ctx.min_app) < ver(need):
+        top = sorted((f for f, v in need_by.items() if v == need))
+        return Finding(False, f"--min-app-version {ctx.min_app} is older than the code's formats need: {need} "
+                       f"({', '.join(top)}) — the app gate would stop the checks on it after the build",
+                       f"drop --min-app-version (the default is derived: {need}), or give {need} or newer "
+                       "(--forget-flags drops a remembered one)")
+    chosen = planned_min_app(ctx)
+    how = ("--min-app-version" if ctx.min_app else "derived: the live stamp raised to the code's formats")
+    said = (f"min app {chosen or 'any'} ({how}; the code's formats need {need or 'any'}, the live release {ctx.live} "
+            f"is stamped {stamp or 'none'})")
+    gone = left_behind(stamp, chosen, list(apps))
+    if gone:
+        named = ", ".join(gone) if len(gone) <= 6 else f"{', '.join(gone[-5:])} and {len(gone) - 5} older"
+        said += (f"\nRAISED from {stamp or 'none'} to {chosen}: recorded app(s) {named} stop applying new "
+                 "releases — they keep the data they hold until they update")
+    return Finding(True, said)
+
+
+#: (T788 #2) the staging feeds worker the pieces gate asks — the same URL deploy/staging/upload.sh asks (held equal by
+#: test_release_min_app.py)
+STAGING_FEEDS_URL = "https://bc-fishing-feeds-staging.horvath-dawson.workers.dev"
+
+
+def pieces_problems(rid: str) -> list[str]:
+    """(T788 #2) the closed-area pieces gate (`deliver.release.pieces_gate`, the one the upload runs) on release `rid`
+    against the staging feeds worker: [] when that worker serves every piece the release binds."""
+    from pipeline.deliver import salmon as S
+    from pipeline.deliver.release.pieces_gate import problems
+    return problems(S.read_release(release_root() / rid), STAGING_FEEDS_URL)
+
+
+def check_pieces(ctx: Ctx) -> Finding:
+    """(T788 #2) the pieces gate asked BEFORE the build and the promote, not only inside the upload after the promote:
+    on the candidate once there is one, else on LATEST (the checks stage asks again on the candidate)."""
+    cand = built_candidate(ctx)
+    target = cand or ctx.live
+    if not target:
+        return Finding(True, "pieces gate: no release to ask about yet")
+    try:
+        bad = pieces_problems(target)
+    except (Exception, SystemExit) as e:  # noqa: BLE001 — SalmonError is a SystemExit; unread is a stop, never a pass
+        return Finding(False, f"the pieces gate could not run on {target} ({type(e).__name__}: {e})",
+                       f"`FEEDS_URL={STAGING_FEEDS_URL} python -m pipeline.deliver.release.pieces_gate "
+                       f"data/release/{target}/manifest.json` asks alone")
+    if bad:
+        return Finding(False, f"pieces gate on {target}: " + "; ".join(bad),
+                       "deploy the feeds worker to staging first (deploy/staging/feeds.sh), then rerun")
+    return Finding(True, f"pieces gate on {target}: the staging feeds worker serves what it binds"
+                   + ("" if cand else " (asked of LATEST before the build; the checks stage asks the candidate)"))
+
+
 def check_site(ctx: Ctx) -> Finding:
     # (T483 fast-fail; caught 2026-11-09) the staging site older than the min app the release goes up with: found only by
     # the smoke test after the upload. Checked here, before the build; the upload checks again with the release's own
-    # format needs (deploy/staging/upload.sh, `deliver.release.site_gate`).
-    min_app = ctx.min_app or resume_min_app(ctx.led, read_pointer("CANDIDATE") or ctx.live, ctx.live)
+    # format needs (deploy/staging/upload.sh, `deliver.release.site_gate`). (T993 item 2) with the formats the release
+    # will carry: the candidate's manifest once built, else the code's (0.8.5 stop 5: a 0.8.3 site under a 0.8.4 release)
+    min_app = planned_min_app(ctx)
+    cand = built_candidate(ctx)
     try:
-        bad, said = site_problems(min_app)
+        bad, said = site_problems(min_app, manifest_of(cand) if cand else code_manifest())
     except Exception as e:  # noqa: BLE001 — shown as a stop: an unreadable site is never a pass (site_gate)
         return Finding(False, f"the staging site gate could not run ({type(e).__name__}: {e})",
                        "check the network; `python -m pipeline.deliver.release.site_gate <manifest>` asks alone")
@@ -904,6 +1061,25 @@ def fast_fail_base(ctx: Ctx) -> str | None:
 FRESH_COPY_NEXT = "FAST_FAIL_FRESH_COPY_NEXT"
 
 
+#: (T993 item 15) the variable fast-fail reads: the follows stage runs its app gates and the worker suite on the
+#: candidate later in this release (`scripts/fast-fail.sh` `follows_next`)
+FOLLOWS_NEXT = "FAST_FAIL_FOLLOWS_NEXT"
+
+
+def follows_run_them(ctx: Ctx) -> bool:
+    """(T993 item 15) will THIS run's follows stage run the app gates and the worker suite on a candidate? The real
+    run: yes, unless `--no-follow-tests` or the candidate's tests passed already. The rehearsal: only with
+    `--rehearse-follows` on a candidate (or one `--build` makes) — a bare rehearsal keeps them in fast-fail, so it
+    still lists their failures before any build."""
+    if ctx.no_follow_tests is not None:
+        return False
+    cand = built_candidate(ctx)
+    if ctx.rehearsal:
+        return ctx.rehearse_follows and (cand is not None or ctx.build)
+    tests = ((((ctx.led.get("releases") or {}).get(cand or "") or {}).get("follows") or {}).get("tests") or {})
+    return not (cand and tests.get("release") == cand)
+
+
 def check_fast_fail(ctx: Ctx) -> Finding:
     """(T535) fast-fail, after the instant checks. (T666 item 5) keyed on the tree's content: a rerun on the same
     content skips it whatever HEAD is; the build's heavy.sh is told it ran (FAST_FAIL_DONE) or why not."""
@@ -915,9 +1091,18 @@ def check_fast_fail(ctx: Ctx) -> Finding:
     under = env.get(RF.RELEASE_ENV)
     done = ctx.led.get("fast_fail") or {}
     ctx.heavy_env = {"FAST_FAIL_DONE": head}
-    if done.get("key") == key and done.get("release_dir") == under:
+    later = follows_run_them(ctx)
+    scope = "follows-next" if later else "all"
+    # a pass that left the app gates and the worker suite to the follows stage covers only a run that does the same
+    if done.get("key") == key and done.get("release_dir") == under and done.get("scope", "all") in ("all", scope):
         return Finding(True, f"fast-fail passed for this tree's content ({key}, at {done.get('head', '')[:12]}, "
                        f"{done.get('at')}): not rerun")
+    if later:
+        # (T993 item 15) the follows stage runs every check:fast gate and the worker suite on the candidate, after the
+        # re-cut, in this same release: they run once, there (FAST_FAIL_FOLLOWS_NEXT)
+        print("    fast-fail leaves the app gates (check:fast) and the feeds worker suite to the follows stage, which "
+              "runs them on the candidate in this release", flush=True)
+        env = {**env, FOLLOWS_NEXT: "1"}
     if under:
         print(f"    fast-fail reads the release under test: {RF.RELEASE_ENV}={rel(under)} (the fixtures were re-cut "
               "on the candidate)", flush=True)
@@ -932,7 +1117,8 @@ def check_fast_fail(ctx: Ctx) -> Finding:
         return Finding(False, f"scripts/fast-fail.sh failed (rc={rc}): {len(failed)} step(s){steps}",
                        "read each failed step's output above and fix it (one alone: FAST_FAIL_ONLY='<part of its "
                        "name>' scripts/fast-fail.sh); --no-fast-fail REASON skips it and prints the reason")
-    ctx.led["fast_fail"] = {"head": head, "key": key, "at": now(), "dirty": dirty_paths(), "release_dir": under}
+    ctx.led["fast_fail"] = {"head": head, "key": key, "at": now(), "dirty": dirty_paths(), "release_dir": under,
+                            "scope": scope}
     save_ledger(ctx.led)
     return Finding(True, "fast-fail passed")
 
@@ -972,7 +1158,8 @@ def check_fresh_copy(ctx: Ctx) -> Finding:
 #: and last the fresh-copy test run (the whole no-data tier on a clean clone, once per release).
 PREFLIGHT = (("committed", check_committed), ("atlas", check_atlas), ("marks", check_marks),
              ("wrong-saves", check_wrong_saves), ("classified", check_classified), ("pushed", check_pushed),
-             ("ci", check_ci), ("live", check_live), ("site", check_site), ("fast-fail", check_fast_fail),
+             ("ci", check_ci), ("live", check_live), ("min-app", check_min_app), ("site", check_site),
+             ("pieces", check_pieces), ("fast-fail", check_fast_fail),
              ("fresh-copy", check_fresh_copy))
 
 
@@ -1049,7 +1236,27 @@ def stage_baseline(ctx: Ctx) -> str:
     return msg
 
 
+def built_by_this_release(ctx: Ctx) -> tuple[str, str] | None:
+    """(T788 #10) (the candidate, what was built) when this release built it already and nothing a build reads
+    (`COMMITTED`) was committed or left dirty since its commit — only the release's own fixtures, docs, the app. A
+    rerun then does not rebuild: r-741815c6090d's own in-season step reran deliver for 9 minutes for the same release
+    id (the generated in-season resolution is a deliver input, and the follows stage rewrites it on the candidate)."""
+    cand = built_candidate(ctx)
+    r = ((ctx.led.get("releases") or {}).get(cand or "") or {})
+    c = r.get("commit")
+    if not (cand and r.get("built_at") and c and git_has_commit(c)):
+        return None
+    if git_dirty() or any(RF.under(x, COMMITTED) for x in committed_since(c)):
+        return None
+    return cand, f"built {r['built_at']} at {c[:12]}"
+
+
 def stage_build(ctx: Ctx) -> str:
+    done = built_by_this_release(ctx)
+    if done:
+        ctx.rid = done[0]
+        return (f"release {ctx.rid} ({done[1]}): nothing a build reads was committed since — not rebuilt (T788 #10; "
+                "`python -m pipeline build --hold-latest` rebuilds by hand)")
     rc = run_cmd(build_cmd(jobs=ctx.jobs), env=ctx.heavy_env or None)
     if rc:
         raise Stop("build", f"`pipeline build` failed (rc={rc})",
@@ -1078,8 +1285,18 @@ def stage_checks(ctx: Ctx) -> str:
                    "deliver --hold-latest`), then rerun")
     probs = app_gate_problems(rid, ctx.min_app)
     if probs:
-        raise Stop("checks", "app-version gate: " + "; ".join(probs),
+        raise Stop("checks", "app-version gate: " + "; ".join(probs)
+                   + f" (the code's formats said {derived_min_app() or 'no app'} before the build: a candidate that "
+                   "needs more is a gap in `build.built_formats` — fix it there too)",
                    "rerun with --min-app-version X.Y.Z (the oldest app that reads these formats)")
+    try:
+        probs = pieces_problems(rid)
+    except (Exception, SystemExit) as e:  # noqa: BLE001 — SalmonError is a SystemExit; unread is a stop, never a pass
+        probs = [f"the gate could not run ({type(e).__name__}: {e})"]
+    if probs:
+        raise Stop("checks", f"pieces gate (T788 #2) on {rid}: " + "; ".join(probs),
+                   "deploy the feeds worker to staging first (deploy/staging/feeds.sh), then rerun — LATEST was not "
+                   "moved")
     probs = classified_problems(rid)
     if probs:
         raise Stop("checks", "classified waters: the candidate ships a book-classified water without its Classified "
@@ -1095,7 +1312,14 @@ def stage_checks(ctx: Ctx) -> str:
     else:
         diff_key, same_run = run_diff_key(base, reach_dir(), before_digest, after_digest)
     done = r.get("binding_diff") or {}
-    if done.get("key") != diff_key:
+    # (T788 #8) a rerun AFTER the promote compares the release with itself: the record its checks made before the
+    # promote (an accepted diff, its json) stands — r-741815c6090d's accept of Lost Lagoon +1 was overwritten with
+    # "same reach run" this way
+    keep = rid == ctx.live and bool(done.get("status"))
+    if keep:
+        print(f"    binding diff: as checked before the promote ({done['status']}"
+              + (f", {done['json']}" if done.get("json") else "") + ")", flush=True)
+    if done.get("key") != diff_key and not keep:
         if same_run:
             done = {"key": diff_key, "status": "same", "note": "same reach run (digest and files)"}
         else:
@@ -1116,17 +1340,32 @@ def stage_checks(ctx: Ctx) -> str:
         want = done.get("content") or (diff_content_sha(Path(done["json"]))
                                        if Path(done["json"]).is_file() and file_sha(Path(done["json"])) == done["sha"]
                                        else None)
+        since = ((ctx.led.get("releases") or {}).get(ctx.live or "") or {}).get("commit")
         if ctx.accept_diff is not None and Path(ctx.accept_diff).is_file() and want is not None \
                 and diff_content_sha(Path(ctx.accept_diff)) == want:
             done.update(status="accepted", accepted_at=now())
             save_ledger(ctx.led)
         else:
-            print(Path(done["summary"]).read_text(encoding="utf-8"))
-            why = ("" if ctx.accept_diff is None else
-                   f" (--accept-diff {ctx.accept_diff} is not this diff: its content differs from {done['json']})")
-            raise Stop("checks", f"the rule bindings differ from the live release {ctx.live}{why}",
-                       f"read {done['summary']} (full: {done['json']}); if every change is intended, rerun with\n"
-                       f"    --accept-diff {done['json']}\n  otherwise fix the cause, commit, and rerun")
+            all_ok, explained, unexplained = attribute_diff(Path(done["json"]), since)
+            if all_ok:
+                # (T993 item 8) every change names a curated row the batch changed since LATEST's commit: it passes,
+                # said, and the ledger keeps what explained it
+                print(f"    binding diff AUTO-ACCEPTED (T993 item 8): every change is explained by a curated row "
+                      f"changed since {since[:12]} ({ctx.live}'s commit):" + "".join(f"\n      {x}" for x in explained),
+                      flush=True)
+                done.update(status="accepted", accepted_at=now(), auto="attributable", explained=explained)
+                save_ledger(ctx.led)
+            else:
+                print(Path(done["summary"]).read_text(encoding="utf-8"))
+                if unexplained:
+                    print("  not explained by a curated row changed since LATEST's commit (T993 item 8):"
+                          + "".join(f"\n    {x}" for x in unexplained[:40])
+                          + (f"\n    … {len(unexplained) - 40} more" if len(unexplained) > 40 else ""), flush=True)
+                why = ("" if ctx.accept_diff is None else
+                       f" (--accept-diff {ctx.accept_diff} is not this diff: its content differs from {done['json']})")
+                raise Stop("checks", f"the rule bindings differ from the live release {ctx.live}{why}",
+                           f"read {done['summary']} (full: {done['json']}); if every change is intended, rerun with\n"
+                           f"    --accept-diff {done['json']}\n  otherwise fix the cause, commit, and rerun")
     # (T555 item 5) ids a reader may have kept (a spot's water, an alert's, a link) that this release neither holds nor
     # aliases: LISTED, never a stop (ids do go between builds; whether one needed an alias is read off the list)
     n_gone = 0
@@ -1193,6 +1432,13 @@ def stage_recut(ctx: Ctx, rid: str, r: dict) -> str:
     token = recut_token(changed)
     print(f"    the re-cut changed {len(changed)} path(s): " + ", ".join(
         f"{row.name} {n}" for row in RF.FOLLOWS for n in [sum(RF.row_of(x) is row for x in changed)] if n), flush=True)
+    renumbered, note = recut_renumbered(pages) if pages else (False, "")
+    if renumbered:
+        # (T993 item 8; 0.8.5 stop 8: nine pages whose source indexes only renumbered) the same page, its sources
+        # renumbered one for one: nothing an angler reads changed — committed, said, never a stop
+        print(f"    golden pages: {note} — AUTO-ACCEPTED as a renumber (T993 item 8)", flush=True)
+        f["renumbered"] = note
+        pages = []
     if pages and token not in (ctx.accept_fixtures, f.get("accepted")):
         why = "" if ctx.accept_fixtures is None else f" (--accept-fixtures {ctx.accept_fixtures} is not this re-cut)"
         raise Stop("follows", f"the re-cut on {rid} changed {len(pages)} golden page(s) — what an angler is told "
@@ -1201,7 +1447,7 @@ def stage_recut(ctx: Ctx, rid: str, r: dict) -> str:
                    "read `git diff -- " + " ".join(x for row in RF.FOLLOWS if row.answers for x in row.paths)
                    + "`; if every change is intended, "
                    f"rerun with\n    --accept-fixtures {token}\n  otherwise fix the cause, commit, and rerun")
-    kind = "golden pages accepted" if pages else "renumber only"
+    kind = "golden pages accepted" if pages else "renumber only (source indexes)" if renumbered else "renumber only"
     if pages:
         f["accepted"] = token
     head = commit_recut(rid, kind)
@@ -1227,9 +1473,10 @@ def stage_follow_tests(ctx: Ctx, rid: str, r: dict) -> str:
                    f"fix them together, commit, rerun; one check alone: {RF.RELEASE_ENV}={rel(release_root() / rid)} "
                    "REGS_STORE_REQUIRED=1 in front of its command (above). --no-follow-tests REASON skips them and "
                    "prints the reason")
-    f["tests"] = {"release": rid, "at": now(), "pipeline": len(py), "app": "all", "gates": len(app_check_steps())}
+    f["tests"] = {"release": rid, "at": now(), "pipeline": len(py), "app": "all", "gates": len(app_check_steps()),
+                  "data_tier": True}
     save_ledger(ctx.led)
-    return f"{len(py)} pipeline test file(s) + the whole app check passed on {rid}"
+    return f"{len(py)} pipeline test file(s) + the whole app check + the pipeline data tier passed on {rid}"
 
 
 def failures_said(rid: str, bad: list[str], cap: int = 80) -> str:
@@ -1278,7 +1525,9 @@ def rehearse_follows(ctx: Ctx, cand: str) -> dict:
             if rc:
                 return {"recut_rc": rc}
             changed = recut_changed()
-            got = {"recut_rc": 0, "changed": changed, "pages": RF.answer_paths(changed),
+            pages = RF.answer_paths(changed)
+            renumbered, note = recut_renumbered(pages) if pages else (False, "")
+            got = {"recut_rc": 0, "changed": changed, "pages": [] if renumbered else pages, "renumbered": note,
                    "token": recut_token(changed) if changed else None}
             got["failures"] = candidate_failures(cand, {**ctx.heavy_env, **RF.test_env(release_root() / cand)})
             return got
@@ -1392,6 +1641,13 @@ def stage_staging(ctx: Ctx) -> str:
                    "GitHub's side (build 27: it recovered in ~30 minutes): rerun when Actions answers — preflight's "
                    "fast-fail is skipped on the same tree, and the build, checks, follows and promote are done, so "
                    "only the upload runs; WF_START_TRIES / WF_START_WAIT widen the retry")
+    if rc == RC_WORKFLOW_UNREADABLE:
+        # (T993 lane G3) GitHub ACCEPTED the dispatch but its run could not be read: it may be running — a rerun that
+        # dispatches again would start a second one
+        raise Stop("staging", f"the run-timing workflow for {rid} was dispatched (GitHub accepted it) but its run could "
+                   "not be read: it may be running; the release pointer was not written",
+                   "check it, don't re-dispatch: `gh run list --workflow feeds-runtiming.yml` (or the Actions page); "
+                   "once that run has finished and published, rerun — only the upload's remaining steps run")
     if rc:
         raise Stop("staging", f"deploy/staging/upload.sh {rid} failed (rc={rc})",
                    "read its output above (rclone remote `r2:`, the run-timing feed); fix it and rerun "
@@ -1435,9 +1691,43 @@ RUNNERS = {"preflight": stage_preflight, "baseline": stage_baseline, "build": st
            "follows": stage_follows, "promote": stage_promote, "staging": stage_staging}
 
 
-def default_min_app(live: str | None) -> str | None:
-    """The previous release's stamp: the oldest app allowed does not move unless the human says so."""
+def code_manifest() -> dict:
+    """(T993 item 2) the manifest's `files` as a release built from THIS code will write them (`build.built_formats`):
+    what the app gate asks before a candidate exists."""
+    from pipeline.deliver.release.build import built_formats
+    return {"files": {k: {"format": f} for k, f in built_formats().items()}}
+
+
+def derived_min_app() -> str | None:
+    """(T993 item 2) the oldest recorded app that reads every format the code writes (`app_gate.oldest_reader` over
+    `code_manifest` and `app_reads.json`); None when the newest recorded app cannot read one of them."""
+    from pipeline.deliver.release.app_gate import oldest_reader
+    return oldest_reader(code_manifest())
+
+
+def live_stamp(live: str | None) -> str | None:
     return manifest_of(live).get("minAppVersion") if live else None
+
+
+def default_min_app(live: str | None) -> str | None:
+    """(T993 item 2) THE MINIMUM APP IS DERIVED, never a flag to remember (0.8.5 stop 3: `--min-app-version 0.8.4` was
+    not passed though T686 always needed it): the live release's stamp, raised to what the code's formats need
+    (`derived_min_app`). It never goes down by itself; `--min-app-version` still sets it (the preflight refuses one
+    below what the formats need). `check_min_app` says when it rises and which recorded apps that leaves behind."""
+    from pipeline.deliver.release.app_gate import ver
+    got = [v for v in (live_stamp(live), derived_min_app()) if v]
+    return max(got, key=ver) if got else None
+
+
+def left_behind(old: str | None, new: str | None, apps: list[str] | None = None) -> list[str]:
+    """(T993 item 2) the recorded app versions a rise of the minimum app from `old` to `new` leaves behind: those at
+    least `old` (the ones that apply releases today) and older than `new` — they keep the data they hold and apply no
+    newer release until they update."""
+    from pipeline.deliver.release.app_gate import table, ver
+    if not new or (old and ver(new) <= ver(old)):
+        return []
+    return sorted((v for v in (table() if apps is None else apps) if ver(v) < ver(new) and (not old or ver(v) >= ver(old))),
+                  key=ver)
 
 
 def resume_min_app(led: dict, rid: str | None, live: str | None) -> str | None:
@@ -1519,12 +1809,52 @@ def staging(ctx: Ctx) -> int:
     return 0
 
 
+def size_headroom(rid: str) -> list[tuple]:
+    """(T993 item 9) every gated size of release `rid` against its gate, tightest first (`build.headroom`)."""
+    from pipeline.deliver.release.build import headroom
+    return headroom(release_root() / rid)
+
+
+def headroom_said(rid: str, rows: list[tuple], indent: str, show: int = 6) -> list[str]:
+    """(T993 item 9) the rehearsal's size lines: the `show` tightest, and EVERY one under `build.HEADROOM_WARN` marked
+    WARN (a new column on it would stop the checks after a 25-minute build: 0.8.5 stop 2)."""
+    from pipeline.deliver.release.build import HEADROOM_WARN
+    warn = [r for r in rows if r[3] < HEADROOM_WARN]
+    keep = rows[:max(show, len(warn))]
+    out = [f"{indent}size headroom on {rid} (gzip vs its gate, tightest first; WARN under {HEADROOM_WARN:.0%}):"]
+    for what, n, gate, room in keep:
+        out.append(f"{indent}  {what:22} {n:>12,} / {gate:>12,}  {room:6.1%}" + ("  WARN" if room < HEADROOM_WARN else ""))
+    if warn:
+        out.append(f"{indent}  {len(warn)} under {HEADROOM_WARN:.0%}: a lane adding a column to one of them measures "
+                   "its gz delta first (raise the gate with a measurement comment, build.SIZE_GATES, or shrink)")
+    return out
+
+
+#: (T993 item 4) what a rehearsal with no CANDIDATE cannot see, and the step that lets it
+NOT_SEEN_BEFORE_A_BUILD = (
+    "the size gates on the new files (LATEST's headroom is shown instead), the app and pieces gates on the real "
+    "manifest (preflight asked the code's formats and LATEST), the classified waters on the new bundle, the binding "
+    "diff, the in-season resolve, the fixture re-cut (golden pages) and the tests on the candidate")
+
+
+def build_step_said(indent: str) -> str:
+    return (f"{indent}to see them now: python -m pipeline release --staging --dry-run --build --rehearse-follows "
+            "(builds the candidate the real run would; LATEST stays)\n"
+            f"{indent}  or the three steps: 1. {' '.join(rel(c) if c.startswith(str(REPO_ROOT)) else c for c in build_cmd())}"
+            f"\n{indent}                      2. python -m pipeline release --staging --dry-run --rehearse-follows"
+            f"\n{indent}                      3. python -m pipeline release --staging")
+
+
 def dry_run(ctx: Ctx) -> int:
     """THE REHEARSAL (T666 item 6): every stage's CHECKS run — preflight's whole table (fast-fail and the fresh-copy
     test run too: a pass is recorded, so the real run skips it on the same tree), and, once a build has left a
     CANDIDATE, the checks of the stages after it. Nothing is built, committed, promoted or uploaded; the only thing
-    written is the ledger's `fast_fail` / `fresh_copy` pass. It ends with every stop the real run would make now."""
+    written is the ledger's `fast_fail` / `fresh_copy` pass. It ends with every stop the real run would make now.
+    (T993 item 4) Before a build it says plainly what it cannot see (`NOT_SEEN_BEFORE_A_BUILD`) and the step that
+    shows it: `--build` runs stage 3's own build first (the baseline kept as stage 2 does; LATEST stays, nothing is
+    committed, promoted or uploaded), so one rehearsal covers every stage."""
     ctx.led = load_ledger()
+    ctx.rehearsal = True
     led = ctx.led
     P = "             "
     stops: list[str] = []
@@ -1534,8 +1864,9 @@ def dry_run(ctx: Ctx) -> int:
         return "WOULD STOP: " + what
 
     n = len(STAGES)
-    print("release --staging, REHEARSAL (--dry-run: every stage's checks; nothing is built, committed, promoted or "
-          "uploaded)\n")
+    print("release --staging, REHEARSAL (--dry-run: every stage's checks; "
+          + ("--build: the candidate is built first, LATEST stays; " if ctx.build else "nothing is built, ")
+          + "nothing is committed, promoted or uploaded)\n")
     remember_flags(ctx, save=False)
     print(f"[1/{n}] preflight  every check (the real run's table):")
     for name, f in preflight_findings(ctx, indent=P, stop_word="WOULD STOP"):
@@ -1558,24 +1889,48 @@ def dry_run(ctx: Ctx) -> int:
              and reach_digest_of(ctx.baseline) == live_digest
              else stop(f"reach run on disk is {on_disk} and no copy is kept (--baseline DIR)")))
     print(f"[3/{n}] build      {' '.join(rel(c) if c.startswith(str(REPO_ROOT)) else c for c in build_cmd(jobs=ctx.jobs))}"
-          f"\n{P}the build's plan:")
+          + (f"\n{P}--build: the build RUNS now (stage 3's own build: LATEST stays, the candidate waits in CANDIDATE) so "
+             "the stages after it are rehearsed on what it makes" if ctx.build else f"\n{P}the build's plan:"))
     sys.stdout.flush()
-    rc = run_cmd(build_cmd(dry_run=True, jobs=ctx.jobs))
-    if rc:
-        print(f"{P}" + stop(f"the build's dry run returned rc={rc}"))
+    if ctx.build:
+        # (T993 item 4) the baseline first, as stage 2 does: the build's reach run overwrites the diff's "before"
+        kept_now, msg = (keep_baseline(live, reach=ctx.baseline) if ctx.baseline is not None else keep_baseline(live)) \
+            if live else (False, "no live release")
+        print(f"{P}baseline: {msg}")
+        if not kept_now:
+            print(f"{P}" + stop(f"--build: the live reach run's copy is not kept ({msg}): nothing was built"))
+        else:
+            kept = True
+            rc = run_cmd(build_cmd(jobs=ctx.jobs), env=ctx.heavy_env or None)
+            if rc:
+                print(f"{P}" + stop(f"--build: `pipeline build` failed (rc={rc}): read its output above "
+                                    "(`python -m pipeline build --status`)"))
+            cand, on_disk = read_pointer("CANDIDATE"), reach_digest_of(reach_dir())
+            target = cand or live
+            min_app = ctx.min_app or resume_min_app(led, target, live)
+            r = led.get("releases", {}).get(target or "", {})
+    else:
+        rc = run_cmd(build_cmd(dry_run=True, jobs=ctx.jobs))
+        if rc:
+            print(f"{P}" + stop(f"the build's dry run returned rc={rc}"))
     print(f"{P}CANDIDATE now: {cand or '(none)'} — the build names its release there; LATEST stays {live}")
 
     # the stages after the build check the release it made: rehearsed on the CANDIDATE when there is one
     built = cand is not None and cand != live
-    later = ("" if built else f"\n{P}no CANDIDATE yet: these are rehearsed on the release once the build has made it "
-             "(run --dry-run again then); shown on " + str(target) + " where that says anything")
+    later = ("" if built else f"\n{P}NOT SEEN — no CANDIDATE yet (T993 item 4): {NOT_SEEN_BEFORE_A_BUILD}. Shown on "
+             f"{target} where that says anything.\n" + build_step_said(P))
     print(f"[4/{n}] checks     manifest sanity; app gate (min app {min_app or 'any'}"
-          + ("" if ctx.min_app else ", from the ledger, else the live release's stamp") + "); binding diff "
+          + ("" if ctx.min_app else ", from the ledger, else the live stamp raised to the code's formats")
+          + "); pieces gate; binding diff "
           f"{rel(baseline_dir(live)) if live else '?'} -> {rel(reach_dir())}{later}")
     if target:
         if built:
             probs = manifest_problems(target)
             print(f"{P}manifest sanity on {target}: " + (stop("; ".join(probs)) if probs else "ok"))
+        try:
+            print("\n".join(headroom_said(target, size_headroom(target), P)))
+        except (OSError, ValueError, KeyError) as e:
+            print(f"{P}size headroom on {target}: COULD NOT READ ({type(e).__name__}: {e})")
         probs = app_gate_problems(target, min_app)
         print(f"{P}app-version gate on {target} (min app {min_app or 'any'}): "
               + (stop("; ".join(probs)) if probs else "ok"))
@@ -1587,9 +1942,16 @@ def dry_run(ctx: Ctx) -> int:
         done = r.get("binding_diff") or {}
         key, same_run = (run_diff_key(baseline_dir(live), reach_dir(), live_digest, after_digest) if kept
                          else (None, False))
+        since_live = ((led.get("releases") or {}).get(live or "") or {}).get("commit")
         if key is not None and done.get("key") == key:
-            said = done["status"] if done["status"] != "differs" else stop(
-                f"the rule bindings differ from {live}: read {done.get('summary')}, then --accept-diff {done.get('json')}")
+            said = done["status"]
+            if done["status"] == "differs":
+                all_ok, explained, _not = (attribute_diff(Path(done["json"]), since_live)
+                                           if Path(done.get("json") or "").is_file() else (False, [], []))
+                said = ("differs, every change explained by a curated row changed since LATEST's commit — the real run "
+                        "AUTO-ACCEPTS it (T993 item 8)" if all_ok else stop(
+                            f"the rule bindings differ from {live}: read {done.get('summary')}, then --accept-diff "
+                            f"{done.get('json')}"))
         elif not kept:
             said = "not rehearsed: no baseline copy is kept (the baseline stage's stop, above)"
         elif same_run:
@@ -1600,9 +1962,20 @@ def dry_run(ctx: Ctx) -> int:
         else:
             from pipeline.atlas.reach.binding_diff import differs as _differs
             rep = binding_diff(baseline_dir(live), reach_dir())          # in memory: the rehearsal writes no diff file
-            said = (stop(f"the rule bindings differ from {live} (the real run writes the diff and stops for "
-                         f"--accept-diff):\n{P}" + diff_summary(rep).replace("\n", "\n" + P))
-                    if _differs(rep) else "same bindings")
+            said = "same bindings"
+            if _differs(rep):
+                import tempfile
+                with tempfile.TemporaryDirectory(prefix="release-rehearsal-diff-") as td:
+                    js = Path(td) / "binding_diff.json"
+                    js.write_text(json.dumps(rep), encoding="utf-8")
+                    all_ok, explained, unexplained = attribute_diff(
+                        js, since_live)
+                said = (f"differs, every change explained by a curated row changed since {live}'s commit — the real "
+                        "run AUTO-ACCEPTS it with this note (T993 item 8):" + "".join(f"\n{P}  {x}" for x in explained)
+                        if all_ok else
+                        stop(f"the rule bindings differ from {live} (the real run writes the diff and stops for "
+                             f"--accept-diff):\n{P}" + diff_summary(rep).replace("\n", "\n" + P)
+                             + "".join(f"\n{P}  not explained: {x}" for x in unexplained[:20])))
         print(f"{P}binding diff: {said}")
     if r.get("checks"):
         print(f"{P}ledger for {target}: {r.get('checks')}")
@@ -1610,7 +1983,7 @@ def dry_run(ctx: Ctx) -> int:
     f = r.get("follows") or {}
     py, app = follow_tests()
     print(f"[5/{n}] follows    refresh what follows the release on the candidate (python -m pipeline.release_follows "
-          f"lists it){later}")
+          f"lists it)" + ("" if built else f"\n{P}NOT SEEN — no CANDIDATE yet: see [4/{n}] (the step that shows it)"))
     rehearsed = None
     if built:
         if (r.get("inseason") or {}).get("release") == cand:
@@ -1633,6 +2006,9 @@ def dry_run(ctx: Ctx) -> int:
                 print(f"{P}fixtures: " + stop(f"the re-cut fails on {cand} (rc={rehearsed['recut_rc']}, above)"))
             else:
                 ch, pages = rehearsed["changed"], rehearsed["pages"]
+                if rehearsed.get("renumbered"):
+                    print(f"{P}golden pages: {rehearsed['renumbered']} — the real run commits them as a renumber, "
+                          "with this note (T993 item 8)")
                 print(f"{P}fixtures: the re-cut would change {len(ch)} path(s)" + (
                     "" if not pages else "; " + stop(
                         f"{len(pages)} golden page(s) change — what an angler is told:" + "".join(
@@ -1683,13 +2059,16 @@ def dry_run(ctx: Ctx) -> int:
         print(f"review           COULD NOT READ the pending review build ({type(e).__name__}: {e})")
     if stops:
         print(f"\nrehearsal: the real run would STOP {len(stops)} time(s) as things are"
-              + ("" if built else " (before the build; the later stages are rehearsed once it has made a candidate)")
+              + ("" if built else " (before the build)")
               + ":" + "".join(f"\n  {k}. {x}" for k, x in enumerate(stops, 1)))
     else:
-        print("\nrehearsal: no stop found" + ("" if built else " before the build (the later stages are rehearsed once "
-              "it has made a candidate)") + ". Not rehearsed: the build itself, "
+        print("\nrehearsal: no stop found" + ("" if built else " before the build") + ". Not rehearsed: "
+              + ("" if ctx.build else "the build itself, ")
               + ("" if rehearsed is not None else "a changed golden page, the tests on the candidate "
                  "(--rehearse-follows), ") + "the upload and its smoke test.")
+    if not built:
+        # (T993 item 4) said plainly, never implied: a pre-build rehearsal cannot promise the real run's stops
+        print(f"NOT SEEN before a build: {NOT_SEEN_BEFORE_A_BUILD}.\n" + build_step_said("  "))
     print("\nproduction (human-only, after staging): CONFIRM_PROD=<r-id> python -m pipeline release --prod <r-id>")
     return 0
 
@@ -1771,6 +2150,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--rehearse-follows", action="store_true",
                     help="(T680) with --dry-run, once a CANDIDATE is built: re-cut the fixtures in place on it, run "
                          "every check the follows stage runs, list every failure, then put the fixtures back")
+    ap.add_argument("--build", action="store_true",
+                    help="(T993 item 4) with --dry-run: build the candidate first (stage 3's build: LATEST stays), so "
+                         "the checks after the build are rehearsed on it too")
     ap.add_argument("--accept-fixtures", default=None, metavar="TOKEN",
                     help="(T666) the token of the fixture re-cut whose changed golden pages you read: commit exactly it")
     ap.add_argument("--push", action="store_true",
@@ -1788,7 +2170,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--baseline", type=Path, default=None, metavar="DIR",
                     help="the reach run the live release was cut from, when no copy was kept")
     ap.add_argument("--min-app-version", default=None, metavar="X.Y.Z",
-                    help="the oldest app allowed to apply the release (default: the live release's stamp)")
+                    help="the oldest app allowed to apply the release (default, T993: the live release's stamp raised to "
+                         "what the code's formats need, derived before the build)")
     ap.add_argument("--no-fast-fail", default=None, metavar="REASON",
                     help="skip scripts/fast-fail.sh (T483); the reason is required and printed")
     ap.add_argument("--no-ci-check", default=None, metavar="REASON",
@@ -1821,7 +2204,9 @@ def main(argv: list[str] | None = None) -> int:
         ap.error('--no-fresh-copy needs a reason, which is printed: --no-fresh-copy "<why it is skipped>"')
     if a.rehearse_follows and not a.dry_run:
         ap.error("--rehearse-follows is a rehearsal: give it with --dry-run (the real run re-cuts and checks anyway)")
-    ctx = Ctx(rehearse_follows=a.rehearse_follows, accept_diff=a.accept_diff, baseline=a.baseline, min_app=a.min_app_version, jobs=a.jobs,
+    if a.build and not a.dry_run:
+        ap.error("--build is the rehearsal's build step: give it with --dry-run (the real run builds anyway)")
+    ctx = Ctx(rehearse_follows=a.rehearse_follows, build=a.build, accept_diff=a.accept_diff, baseline=a.baseline, min_app=a.min_app_version, jobs=a.jobs,
               reupload=a.reupload, no_fast_fail=a.no_fast_fail, stale_atlas=a.ship_stale_atlas,
               no_ci_check=a.no_ci_check, accept_fixtures=a.accept_fixtures, push=a.push,
               no_follow_tests=a.no_follow_tests, forget=a.forget_flags, no_fresh_copy=a.no_fresh_copy)

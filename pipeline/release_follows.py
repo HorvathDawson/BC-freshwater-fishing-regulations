@@ -56,6 +56,8 @@ class Follow:
 RECUT = "recut"
 #: the in-season notice matches, re-resolved on the release (T537)
 INSEASON = "inseason"
+#: (T791 #4, T993 item 16) the pipeline's live-data tier, run on the release
+DATA_TIER = "data-tier"
 
 FOLLOWS: tuple[Follow, ...] = (
     Follow("goldens", "the tap oracle: every golden state's answer keys on the release's own store",
@@ -70,13 +72,36 @@ FOLLOWS: tuple[Follow, ...] = (
     Follow("inseason", "the in-season notice matches, their ranges re-derived on the release (T679 #11: into the "
            "generated resolution, data/generated/inseason/resolved.json; not in git — the curated matches are only read)",
            (), INSEASON),
+    # (T791 #4, T993 item 16; T931: ~55 stale pins accumulated where nothing ran the data tier) a test RUN, not an
+    # artifact: no paths; the follows stage runs it with the other checks on the candidate, once per release
+    Follow("data-tier", "the pipeline's live-data tests (every needs_* tier, not slow) run on the candidate in chunks, "
+           "once per release, the files found by rule above left out (they run whole)", (), DATA_TIER),
     Follow("baseline", "the reach run the live release was cut from (the binding diff's \"before\"; not in git: "
            "data/generated/release/baseline/<LATEST>/, kept by the baseline stage and by `pipeline build`)", (), None),
 )
 
 
+def data_tier_markers(ini: Path | None = None) -> str:
+    """(T993 item 16) the live-data tier's marker expression: every `needs_*` marker (`tests.tiers.data_markers`, from
+    pytest.ini), never `slow` — the tests CI's no-data tier leaves out and nothing else ran."""
+    from pipeline.tests.tiers import data_markers
+    needs = [m for m in (data_markers(ini) if ini else data_markers()) if m != "slow"]
+    return "not slow and (" + " or ".join(needs) + ")"
+
+
+def data_tier_cmd(whole: list[str]) -> list[str]:
+    """(T993 item 16) the live-data tier in chunks (scripts/pytest-chunked.sh: one process for the suite grew to
+    ~111 GB). The files in `whole` (found by rule) run whole in their own step, so they are deselected here — nothing
+    runs twice in one release (T993 item 15)."""
+    return ["bash", "scripts/pytest-chunked.sh", "--", "-q", "-p", "no:cacheprovider", "-m", data_tier_markers(),
+            *(f"--deselect={f}" for f in whole)]
+
+
 def refresh_cmd(key: str, release_dir: Path) -> list[str]:
-    """The ONE command that refreshes every row with `refresh == key`, against the release at `release_dir`."""
+    """The ONE command that refreshes every row with `refresh == key`, against the release at `release_dir` (the data
+    tier reads it as RELEASE_DIR, `test_env`, so the command itself does not name it)."""
+    if key == DATA_TIER:
+        return data_tier_cmd(pipeline_tests())
     if key == RECUT:
         return ["node", "app/tools/regs-recut/sync.mjs", "--release", str(release_dir)]
     if key == INSEASON:
@@ -102,6 +127,121 @@ def answer_paths(changed: list[str]) -> list[str]:
     """The changed paths that are a change in what an angler is told (rows with `answers`). Empty: the change only
     renumbers — ids, handles, the fixture release's files (T667 D5: committed without a stop)."""
     return sorted(p for p in changed if (row_of(p) or Follow("", "", (), None)).answers)
+
+
+#: (T993 item 8) the keys whose int lists are SOURCE INDEXES on a golden page (`src`: rows of the release's own source
+#: table, ascending). A rule added before them renumbers every one after it — 0.8.5's nine pages (1363 -> 1364, 3144 ->
+#: 3145) — while nothing an angler reads changes
+SOURCE_INDEX_KEYS = frozenset({"src"})
+
+
+def _index_list(v) -> bool:
+    return isinstance(v, list) and all(isinstance(x, int) and not isinstance(x, bool) for x in v)
+
+
+def _rule_table(manifest: dict, read) -> dict[int, object]:
+    """{rix: the rule's JSON} of a release's water file (`rule` table, its blobs through the `zdict` dictionary),
+    the file read with `read(<path under the regs fixture root>)` -> bytes."""
+    import gzip
+    import sqlite3
+    import tempfile
+    from pipeline.deliver.store.common import unpack
+    url = manifest["files"]["water"]["url"]
+    raw = gzip.decompress(read(url)) if url.endswith(".gz") else read(url)
+    with tempfile.TemporaryDirectory(prefix="renumber-") as td:
+        p = Path(td) / "water.sqlite"
+        p.write_bytes(raw)
+        con = sqlite3.connect(p)
+        try:
+            zd = dict(con.execute("SELECT tbl, d FROM zdict")).get("rule")
+            return {int(ix): json.loads(unpack(j, zd)) for ix, j in con.execute("SELECT rix, j FROM rule")}
+        finally:
+            con.close()
+
+
+def fixture_rules(rev: str | None = None) -> dict[int, object]:
+    """(T993 item 8) the source table the golden pages' `src` indexes read: the committed regs fixture release's
+    rules (row `regs-fixture`, re-cut with the pages) — at `rev`, or on disk (None). Raises when it cannot be read."""
+    root = next(f for f in FOLLOWS if f.name == "regs-fixture").paths[0]
+    if rev is None:
+        mans = sorted((Path(REPO_ROOT) / root).glob("r-*/manifest.json"))
+        if len(mans) != 1:
+            raise RuntimeError(f"{root}: {len(mans)} fixture releases on disk, not one")
+        return _rule_table(json.loads(mans[0].read_text(encoding="utf-8")),
+                           lambda u: (Path(REPO_ROOT) / root / u).read_bytes())
+    names = subprocess.run(["git", "ls-tree", "-r", "--name-only", rev, "--", root], cwd=REPO_ROOT,
+                           capture_output=True, text=True, check=True).stdout.split()
+    mans = [n for n in names if n.endswith("/manifest.json")]
+    if len(mans) != 1:
+        raise RuntimeError(f"{root} at {rev}: {len(mans)} fixture releases, not one")
+
+    def show(rel: str) -> bytes:
+        return subprocess.run(["git", "show", f"{rev}:{rel}"], cwd=REPO_ROOT, capture_output=True, check=True).stdout
+    return _rule_table(json.loads(show(mans[0])), lambda u: show(f"{root}/{u}"))
+
+
+def renumbered_only(paths: list[str], rev: str = "HEAD", rules=None) -> tuple[bool, str]:
+    """(T993 item 8) do the golden pages `paths` differ from `rev` ONLY in source indexes renumbered one for one? The
+    page at `rev` and on disk must be the same JSON once each `SOURCE_INDEX_KEYS` int list is read through ONE mapping
+    old -> new, shared by every page (one source table) and one-to-one (two sources never become one, one never
+    becomes two) — AND each old index must name the same source as its new one (review 2026-11-21: two sources that
+    swap places map one-to-one and say something else): the rule at old in the source table at `rev` equals the rule
+    at new on disk (`fixture_rules`; `rules` = (before, after) tables stands in). (True, the note naming the mapping)
+    or (False, the first difference). A page added or removed is never a renumber; a table that cannot be read is
+    never one either."""
+    mapping: dict[int, int] = {}
+    diff: list[str] = []
+
+    def same(a, b, where: str, key: str | None = None) -> bool:
+        if key in SOURCE_INDEX_KEYS and _index_list(a) and _index_list(b):
+            if len(a) != len(b):
+                diff.append(f"{where}: {len(a)} source(s) -> {len(b)}")
+                return False
+            for x, y in zip(a, b):
+                if mapping.setdefault(x, y) != y:
+                    diff.append(f"{where}: source {x} is {mapping[x]} elsewhere, {y} here")
+                    return False
+            return True
+        if type(a) is not type(b):
+            diff.append(f"{where}: {type(a).__name__} -> {type(b).__name__}")
+            return False
+        if isinstance(a, dict):
+            if set(a) != set(b):
+                diff.append(f"{where}: keys {sorted(set(a) ^ set(b))[:3]}")
+                return False
+            return all(same(a[k], b[k], f"{where}.{k}", k) for k in sorted(a))
+        if isinstance(a, list):
+            if len(a) != len(b):
+                diff.append(f"{where}: {len(a)} item(s) -> {len(b)}")
+                return False
+            return all(same(x, y, f"{where}[{i}]", key) for i, (x, y) in enumerate(zip(a, b)))
+        if a != b:
+            diff.append(f"{where}: {str(a)[:60]!r} -> {str(b)[:60]!r}")
+            return False
+        return True
+
+    for p in sorted(paths):
+        got = subprocess.run(["git", "show", f"{rev}:{p}"], cwd=REPO_ROOT, capture_output=True, text=True)
+        f = Path(REPO_ROOT) / p
+        if got.returncode or not f.is_file():
+            return False, f"{p}: {'added' if got.returncode else 'removed'} (never a renumber)"
+        if not same(json.loads(got.stdout), json.loads(f.read_text(encoding="utf-8")), p):
+            return False, diff[0] if diff else p
+    moved = {a: b for a, b in mapping.items() if a != b}
+    if len(set(mapping.values())) != len(mapping):
+        return False, "two sources renumbered to one (not one-to-one)"
+    try:
+        before, after = rules if rules is not None else (fixture_rules(rev), fixture_rules(None))
+    except Exception as e:  # noqa: BLE001 — unread is never a renumber: the stop stands, with its cause
+        return False, f"the source table could not be read to compare the sources ({type(e).__name__}: {e})"
+    for a, b in sorted(mapping.items()):
+        if a not in before or b not in after:
+            return False, f"source {a} -> {b}: not in the source table ({'before' if a not in before else 'after'})"
+        if json.dumps(before[a], sort_keys=True) != json.dumps(after[b], sort_keys=True):
+            return False, f"source {a} -> {b} is another source (its rule differs): not a renumber"
+    sample = ", ".join(f"{a}->{b}" for a, b in sorted(moved.items())[:4])
+    return True, (f"{len(paths)} golden page(s) differ only in source indexes renumbered one for one "
+                  f"({len(moved)} index(es): {sample}{' …' if len(moved) > 4 else ''})")
 
 
 # ------------------------------------------------------------------------------------------------- the working tree
@@ -256,6 +396,7 @@ def main() -> int:
     print(f"  app ({len(app)}):" + "".join(f"\n    app/{p}" for p in app))
     print("\n(T680) then the whole app check on the candidate, every failure listed together:\n  the app suite, the "
           "feeds worker suite, and each check:fast gate: " + ", ".join(app_check_steps()))
+    print(f"\n(T993 item 16) and the pipeline's live-data tier: -m \"{data_tier_markers()}\" in chunks, on the candidate")
     return 0
 
 

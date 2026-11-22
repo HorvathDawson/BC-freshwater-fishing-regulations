@@ -65,6 +65,16 @@ from pipeline.deliver.release import slices as SLICES
 #: every file and the format a release WRITES (bumped when a reader must refuse an older one): the contract's, and
 #: (T975) nothing else — near / down / climate / paint in their packed forms only
 FORMATS: Dict[str, str] = {name: spec["format"] for name, spec in C.FILES.items()}
+
+
+def built_formats() -> Dict[str, str]:
+    """(T993 item 2) {file: format} for every file a release built from THIS code writes — the contract's formats, less
+    the optional files no producer makes today (`lakes`: no feed) or that a switch holds back (`flow-own` behind
+    `packed.SHIP_OWN_GAUGE_FLAG`). What the release asks the app gate BEFORE a candidate exists (`release.code_manifest`):
+    0.8.5's minimum app was a flag someone had to remember (stop 3). Held to a built release's file set by
+    `test_release_min_app.py` (the committed mini release), so a new switch-held file cannot slip past it."""
+    held = {"lakes"} | (set() if PACKED.SHIP_OWN_GAUGE_FLAG else {"flow-own"})
+    return {k: v for k, v in FORMATS.items() if k not in held}
 #: the gzip size gates (MINIMAL-PACKAGING §2; P08 test 7)
 #: (T211) `salmon`: a provisional gate, set before any release carried the file (the owner's build measures it)
 #: (T213) `method`: 308,222 gzipped measured on the live store 2026-10-27 (433,483 with closed days: over the total gate)
@@ -545,6 +555,28 @@ def gate_problems(release_dir: Path) -> List[str]:
         out.append(f"offline total: {total:,} B gzip > {OFFLINE_GATE:,}")
     return out + [f"web {k}: {n:,} B > {C.WEB_BUDGET[k]['gate']:,} ({', '.join(f)})"
                   for k, (n, f) in web_moments(release_dir).items() if n > C.WEB_BUDGET[k]["gate"]]
+
+
+#: (T993 item 9) a file or moment with less headroom than this under its gate is WARNED in the rehearsal: 0.8.5's `water`
+#: sat 2.1 % under its gate on LATEST and went 85 kB over once a column was added, found after a 25-minute build
+HEADROOM_WARN = 0.05
+
+
+def headroom(release_dir: Path) -> List[tuple]:
+    """(T993 item 9) every gated size of a release against its gate, tightest first: (what, bytes, gate, headroom as a
+    fraction of the gate; negative = over). The files (`SIZE_GATES`, gzip), the web moments (`contract.WEB_BUDGET`) and
+    the offline total — the same numbers `gate_problems` judges, read off the manifest, so the rehearsal can say how
+    close LATEST already is BEFORE a build adds a column. A file with no gate is listed with gate 0 (`gate_problems`
+    fails it)."""
+    sz = sizes(release_dir)
+    out = [(k, v["gz"], SIZE_GATES.get(k, 0), (SIZE_GATES[k] - v["gz"]) / SIZE_GATES[k] if k in SIZE_GATES else -1.0)
+           for k, v in sz.items()]
+    total = sum(v["gz"] for k, v in sz.items() if k not in SLICES.slice_marks() and k not in C.WEB_ONLY)
+    out.append(("offline total", total, OFFLINE_GATE, (OFFLINE_GATE - total) / OFFLINE_GATE))
+    for k, (n, _f) in web_moments(release_dir).items():
+        g = C.WEB_BUDGET[k]["gate"]
+        out.append((f"web {k}", n, g, (g - n) / g))
+    return sorted(out, key=lambda r: (r[3], r[0]))
 
 
 def web_moments(release_dir: Path) -> Dict[str, tuple]:

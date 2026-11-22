@@ -250,6 +250,12 @@ fresh_copy_next() {
   [[ ${FAST_FAIL_FRESH_COPY_NEXT:-} == 1 ]] || return 1
   echo "   (left to the release's fresh-copy run, next in this preflight: the whole no-data tier on a clean clone)"
 }
+# (T993 item 15) and FAST_FAIL_FOLLOWS_NEXT when its follows stage runs the same checks on the candidate later in the same
+# release (each check:fast gate on its own and the feeds worker suite, after the re-cut): run once, there
+follows_next() {
+  [[ ${FAST_FAIL_FOLLOWS_NEXT:-} == 1 ]] || return 1
+  echo "   (left to the release's follows stage: it runs this on the candidate, after the re-cut)"
+}
 source_scanners() {
   grep -qE '^pipeline/.*\.py$' <<<"$CHANGED" || { echo "   (no pipeline Python file changed)"; return 0; }
   fresh_copy_next && return 0
@@ -332,7 +338,7 @@ step "every curated cut label names a place" "$PY" -m pytest -q -p no:cacheprovi
 # caught (2026-11-21, 0.8.5): core reworded the band words (T982 #3); `pnpm check` passed, but the feeds worker's card test
 # pinned the old words and only GitHub's app-ci ran it (red on 4eece8ec, stopping the staging release). The worker
 # imports core, so its suite runs here too (~15 s)
-feeds_worker_tests() { (cd app/workers/feeds && npx vitest run --root . >/dev/null 2>&1) || (cd app/workers/feeds && npx vitest run --root . 2>&1 | tail -30; exit 1); }
+feeds_worker_tests() { follows_next && return 0; (cd app/workers/feeds && npx vitest run --root . >/dev/null 2>&1) || (cd app/workers/feeds && npx vitest run --root . 2>&1 | tail -30; exit 1); }
 step "feeds worker tests (it imports core)" feeds_worker_tests
 
 # caught (T556, 2026-11-11): the live feeds' formats were hand-copied per side (the 2026-11-09 failure above), and no
@@ -382,7 +388,8 @@ step "data: every curated override id names the live atlas's water" "$PY" -m pip
 # and T737 added two swallowing catches (tools/failures.test.ts pins each file's count); both lanes ran their targeted
 # tests + `pnpm check:fast`, which ran no vitest, and the two inventories import none of what they scan, so no sibling
 # test finds them. check:fast now ends with `pnpm inventories` (those two files, ~3 s), whatever changed.
-step "app gates (pnpm check:fast: every pnpm check gate but vitest)" pnpm -C app run -s check:fast
+app_gates() { follows_next && return 0; pnpm -C app run -s check:fast; }
+step "app gates (pnpm check:fast: every pnpm check gate but vitest)" app_gates
 
 # caught (2026-11-09, CI run 42717971280): 15 tests red on CI only — tests without a `needs_*` marker read the local
 # atlas build (T522's deliver chain resolved it before its stub; the review 503 test read the registry first) and every
