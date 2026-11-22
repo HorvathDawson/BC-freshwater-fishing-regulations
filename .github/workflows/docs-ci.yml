@@ -10,14 +10,17 @@ name: docs
 # a check that takes seconds. Here a docs push costs the install and two small test files.
 
 on:
+  # (T995) a push to the trunk or a release branch runs this only when its area changed: these paths are
+  # scripts/ci_paths.py AREAS["docs"], word for word (test_workflow_pins.py); lanes get CI through their PR
   push:
-    paths: ["handoff/**", "AGENTS.md", ".github/copilot-instructions.md",
-            "app/tools/check-tickets.mjs", "app/tools/check-tickets.test.ts", "app/tools/start-here.test.ts",
-            ".github/workflows/docs-ci.yml", ".github/actions/app-setup/**"]
+    branches: [main, "release/**"]
+    paths: ["handoff/**", "AGENTS.md", ".github/copilot-instructions.md", "app/tools/check-tickets.mjs",
+            "app/tools/check-tickets.test.ts", "app/tools/start-here.test.ts", ".github/workflows/docs-ci.yml",
+            ".github/actions/app-setup/**", ".github/actions/changes/**", "scripts/ci_paths.py"]
+  # (T995) EVERY pull request runs this workflow, with no path filter: a required check from a workflow that did not
+  # run stays pending forever. Its `changes` job asks scripts/ci_paths.py whether the PR touched this area; the jobs
+  # run only then (`if:`, a skip counts as a pass), and `docs ok`, the required check, always reports.
   pull_request:
-    paths: ["handoff/**", "AGENTS.md", ".github/copilot-instructions.md",
-            "app/tools/check-tickets.mjs", "app/tools/check-tickets.test.ts", "app/tools/start-here.test.ts",
-            ".github/workflows/docs-ci.yml", ".github/actions/app-setup/**"]
 
 concurrency:
   group: docs-${{ github.ref }}
@@ -27,7 +30,22 @@ permissions:
   contents: read
 
 jobs:
+  # (T995) which of this workflow's jobs a pull request needs (scripts/ci_paths.py AREAS["docs"]); a push: all
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs: { run: "${{ steps.c.outputs.run }}" }
+    steps:
+      # full history, no file contents: the PR's merge base must be in the clone
+      - uses: actions/checkout@v5
+        with: { fetch-depth: 0, filter: "blob:none" }
+      - id: c
+        uses: ./.github/actions/changes
+        with: { area: docs }
+
   ledger:
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     defaults:
@@ -46,3 +64,18 @@ jobs:
       - name: The guard's own tests, and the one start-here page
         if: ${{ !cancelled() }}
         run: pnpm exec vitest run tools/check-tickets.test.ts tools/start-here.test.ts
+
+  # (T995) THE REQUIRED CHECK for main's branch protection (scripts/ci_paths.py REQUIRED): it always runs, and passes
+  # only when every job above passed or was skipped by its `if:` (a failed or cancelled one fails it)
+  ok:
+    name: docs ok
+    if: always()
+    needs: [changes, ledger]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with: { sparse-checkout: scripts/ci_paths.py, sparse-checkout-cone-mode: false }
+      - name: Every job passed or was skipped
+        env: { NEEDS: "${{ toJSON(needs) }}" }
+        run: python3 scripts/ci_paths.py verdict

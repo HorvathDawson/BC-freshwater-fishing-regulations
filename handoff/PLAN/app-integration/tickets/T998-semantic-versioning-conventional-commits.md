@@ -48,7 +48,12 @@ the PR title follows the same format. Handoff-only commits use `docs(handoff): â
    the tag exists and points at the built commit.
 5. **Changelogs:** the in-app angler notes stay hand-written (`changelog.ts`, owner-cleared, unchanged). A generated
    developer changelog (`CHANGELOG.md`, grouped by type, from the commits) is written by the release command.
-6. **Docs:** AGENTS.md rule for the commit format and the bump rule; the human runbook (T993 plan 11) says how a
+6. **A data-only release's branch** (open from T995's lane, 2026-11-22): after `release/<v>` merges back, app.json
+   still names that version, so preflight's "HEAD on `origin/release/<app version>`" points at a finished branch.
+   Default: `--cut --data-only` makes `release/data-<YYYY-MM-DD>` from origin/main, and preflight accepts it when no
+   app file changed since the last `v*` tag (the computed bump is none). It tags `data/<r-id>` and merges back by PR like
+   any release branch.
+7. **Docs:** AGENTS.md rule for the commit format and the bump rule; the human runbook (T993 plan 11) says how a
    version is chosen; agent briefs carry the format; memory updated.
 
 ## Acceptance

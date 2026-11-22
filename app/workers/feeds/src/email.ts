@@ -250,7 +250,7 @@ export function hydatSection(events: FeedEvent[]): Section {
     blocks: [{ items: [{ name: `HYDAT ${d.latest}`, text: `The gauge envelope (clim.json) is on ${d.current}.`, note: d.since ? `noticed ${d.since}` : undefined }] }],
     steps: [
       ...dispatchSteps(d.dispatch, 'GitHub → Actions → "feeds — HYDAT → climatology → R2", with upload: true (the feeds worker\'s clim.json).'),
-      { text: "Then, on the Mac, the bundle and release:", code: "scripts/update-hydat.sh --upload" },
+      { text: "Then, on the Mac, the bundle (scripts/update-hydat.sh prints the release command at the end):", code: "scripts/update-hydat.sh && python -m pipeline release --staging" },
     ],
     why: "The HYDAT listing is checked once a day; a newer release than the envelope's is out.",
   };

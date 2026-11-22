@@ -123,7 +123,7 @@ export function gaugeEvents(maintenance: any[], at: string): FeedEvent[] {
           text:
             `HYDAT ${n.latest} is out; the gauge envelope (clim.json) is on ${n.current}.\n\n` +
             `1. GitHub → Actions → "feeds — HYDAT → climatology → R2" (upload: true): the feeds Worker's clim.json.\n` +
-            `2. On the Mac: scripts/update-hydat.sh --upload — the bundle and release (the build needs the atlas).\n\n` +
+            `2. On the Mac: scripts/update-hydat.sh, then python -m pipeline release --staging — the bundle and release (the build needs the atlas).\n\n` +
             `Noticed ${n.since}.`,
           at,
           data: { latest: n.latest, current: n.current, since: n.since },

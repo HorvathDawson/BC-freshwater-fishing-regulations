@@ -3,6 +3,7 @@
 // so a fixture cannot say something a real run could not.
 import type { FeedEvent } from "../src/events";
 import { crashEvent, type CrashKind } from "../src/crashes";
+import { DEFAULT_REF } from "../src/dispatch";
 import { reportEvent, type StoredReport } from "../src/reports";
 import { dfoEvents, gaugeEvents, healthEvents, hydatUnfinished } from "../src/index";
 import { goneNotice } from "../src/dfo/live";
@@ -69,7 +70,7 @@ export const inseasonRecovered = healthEvents([{ job: "inseason", from: "failing
 export const hydatRetold = (() => {
   const [e] = gaugeEvents([{ kind: "hydat", since: "2026-11-08T09:00:00Z", current: "20250715", latest: "20261015", action: "scripts/update-hydat.sh" }], AT);
   const dis = { state: "started" as const, at: "2026-11-09T15:10:00.000Z", first: "2026-11-08T09:05:00.000Z", workflow: "feeds-hydat.yml",
-                ref: "redesign/stream-sections", starts: 2, overdue: true };
+                ref: DEFAULT_REF, starts: 2, overdue: true };
   e!.data = { ...e!.data, dispatch: dis };
   hydatUnfinished(e!, dis, AT);
   return e!;

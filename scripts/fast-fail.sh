@@ -22,8 +22,8 @@
 # HEAVY_NO_FAST_FAIL=<reason> skips it, printed). `python -m pipeline release --staging` and deploy/staging/build-apk.sh
 # run it themselves; their `--no-fast-fail <reason>` escape prints the reason. Output is unfiltered (never through rtk: it has reported false passes, memory rtk-pytest-false-pass).
 #
-# "CHANGED" = the working tree (uncommitted + untracked) and the commits not yet on origin/redesign/stream-sections,
-# i.e. everything since `git merge-base HEAD origin/redesign/stream-sections`. FAST_FAIL_BASE=<rev> names another base.
+# "CHANGED" = the working tree (uncommitted + untracked) and the commits not yet on origin/main (the trunk, T995),
+# i.e. everything since `git merge-base HEAD origin/main`. FAST_FAIL_BASE=<rev> names another base.
 #
 # THE LIST GROWS (AGENTS 20a): a failure that showed up late (after a long job, at review, on the device) and that a
 # cheap check could have caught is added here, in the same change as its fix, with a "caught:" line naming it.
@@ -40,7 +40,8 @@
 # `heavy-precheck` before the lock).
 set -euo pipefail
 cd "$(dirname "$0")/.."
-DEV=redesign/stream-sections
+# (T995) the trunk, named once: scripts/ci_paths.py
+TRUNK=$(python3 scripts/ci_paths.py trunk)
 # the test environment (T667 slice 7): PY, one fresh PYTHONPYCACHEPREFIX per run (T638 item 3), CI's marker expression
 . scripts/test-env.sh
 test_env_pycache
@@ -104,9 +105,9 @@ fi
 if [[ -n ${FAST_FAIL_BASE:-} ]]; then
   BASE=$(git rev-parse --verify "$FAST_FAIL_BASE^{commit}")
 else
-  git rev-parse -q --verify "origin/$DEV" >/dev/null \
-    || { echo "fast-fail: no origin/$DEV to diff against — git fetch origin $DEV, or FAST_FAIL_BASE=<rev>" >&2; exit 1; }
-  BASE=$(git merge-base HEAD "origin/$DEV")
+  git rev-parse -q --verify "origin/$TRUNK" >/dev/null \
+    || { echo "fast-fail: no origin/$TRUNK to diff against — git fetch origin $TRUNK, or FAST_FAIL_BASE=<rev>" >&2; exit 1; }
+  BASE=$(git merge-base HEAD "origin/$TRUNK")
 fi
 # changed / added paths since BASE (working tree included), plus untracked files; deleted paths are left out
 CHANGED=$( { git diff --name-only --diff-filter=ACMR "$BASE"; git ls-files --others --exclude-standard; } | sort -u)

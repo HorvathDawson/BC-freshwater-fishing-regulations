@@ -224,19 +224,18 @@ export function parseSeries(text: string, model: string): Record<string, any> | 
   return res;
 }
 
-/** forecast.series: one station's CSV for one model, or null (404 = not in season). */
+/**
+ * forecast.series: one station's CSV for one model, or null when the Centre has none (404 = not in season).
+ * (T994 #17, the Python side's rule) ONLY a 404 is "not in season": a 5xx, a timeout or a DNS failure THROWS, and
+ * `withSeries` counts and says it, so a Centre outage never reads as a province with no forecasts.
+ */
 export async function fetchSeries(fetch: Fetch, station: string, model: string): Promise<Record<string, any> | null> {
   const cfg = MODELS[model];
   if (!cfg) return null;
-  let text: string;
-  try {
-    const r = await fetch(cfg.csv.replace("{s}", station), { headers: { "User-Agent": UA }, signal: timeout(25_000) });
-    if (!r.ok) return null;
-    text = await r.text();
-  } catch {
-    return null;
-  }
-  return parseSeries(text, model);
+  const r = await fetch(cfg.csv.replace("{s}", station), { headers: { "User-Agent": UA }, signal: timeout(25_000) });
+  if (r.status === 404) return null;
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return parseSeries(await r.text(), model);
 }
 
 /** forecast.ahead_of_issue */
@@ -307,11 +306,20 @@ export async function withSeries(fetch: Fetch, summary: Summary, stations: Set<s
   let total = 0;
   for (const r of Object.values(summary)) total += Object.keys(r).length;
   let n = 0;
+  const failed: string[] = [];
   if (want.length) {
     const sorted = [...want].sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0));
-    const got = await pool(sorted, workers, async ([st, model]) => [st, model, await fetchSeries(fetch, st, model)] as const);
-    for (const [st, model, ser] of got) {
-      if (ser) {
+    const got = await pool(sorted, workers, async ([st, model]) => {
+      try {
+        return [st, model, await fetchSeries(fetch, st, model), null] as const;
+      } catch (e) {
+        // counted and SAID below (T994 #17), never "no forecast"
+        return [st, model, null, `${e instanceof Error ? e.name : "Error"}: ${e instanceof Error ? e.message : String(e)}`] as const;
+      }
+    });
+    for (const [st, model, ser, why] of got) {
+      if (why !== null) failed.push(`${st} ${model}: ${why}`);
+      else if (ser) {
         summary[st]![model]!.series = ser;
         n += 1;
       }
@@ -324,5 +332,9 @@ export async function withSeries(fetch: Fetch, summary: Summary, stations: Set<s
   }
   if (!want.length) log(`  series   0 requests, 0 fetched (${carried} carried forward, ${old} stale skipped, ${total} runs)`);
   else log(`  series   ${want.length} requests, ${n} fetched, ${carried} carried forward, ${old} stale skipped (${total} runs)`);
+  if (failed.length) {
+    log(`  series   ${failed.length} of ${want.length} requests FAILED (not a 404, so not "not in season"): ${failed.slice(0, 5).join("; ")}`
+      + (failed.length > 5 ? `; and ${failed.length - 5} more` : ""));
+  }
   return summary;
 }
