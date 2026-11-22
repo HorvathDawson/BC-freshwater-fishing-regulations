@@ -280,6 +280,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1000 | Tiles: an Adskwatim Creek stream polygon draws in the lake layer, not the stream layer (2 live tests red) | OPEN | | T931 review 2026-11-22 |
 | T1001 | Two data-tier test fixes left from T777 (the Deadman stretch-end test on the live tree; in-season tests between a promote and a release) | OPEN | — | all (depends T777; from T777's 2026-11-16 additions) |
 | T1002 | Test-anchor scanners: an `absent` rule for pipeline/tests/anchors.py; the record-equality and toBeUndefined gaps; part numbers after short template slots | OPEN | T768 | T768's lane, 2026-11-22 |
+| T1003 | Android: R8 on for every release build, production included; mapping file uploaded to Play (Play Console: "Obfuscation 1%", under its 25% threshold) | OPEN — next release (0.8.6) | T749 | owner 2026-11-22 (Play Console notice) |
 
 ## Next after closed testing
 

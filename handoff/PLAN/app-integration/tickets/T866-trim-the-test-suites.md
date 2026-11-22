@@ -1,6 +1,6 @@
 # T866 — Trim the test suites: combine the overlapping ones, remove true duplicates
 
-Status: IN PROGRESS (2026-11-22: owner picked "Speedups, remove nothing"; two lanes: the speedups (below) and the duplicates / wording-round fold; stays IN PROGRESS until both land).
+Status: IN PROGRESS (2026-11-22: owner picked three of four proposals; two lanes: the speedups (below) and the duplicates / wording-round fold; stays IN PROGRESS until both land).
 
 Owner 2026-11-18 ~19:10 (to the app chat), verbatim: "We should make a ticket for after the releases to try and clean up
 tests and reduce there being way too many tests. We could combine a bunch and maybe remove some that are duplicates".
@@ -18,6 +18,13 @@ Build:
    test fails under the mutation the removed one caught). No coverage loss in the guards that earned their place
    (no-silent-skips, test anchors, surfaces/T60, one-colour-pathway, ticket guard, the mutation pins).
 4. Report before/after: files, tests, tier time; the owner sees the list of what went before it lands.
+
+## Owner 2026-11-22, dialog on the proposal (`handoff/PLAN/audit-2026-11-21/t866-proposal.md`)
+Picked: "Speedups, remove nothing (Rec.)", "Remove 5 true duplicates", "Fold the 30 wording files". Not picked: parallel
+pipeline tests (pytest-xdist). So: (1) app-ci vitest split across 4 runners; ~15 website tests on the build's bare mode
+(same outputs checked); the 21 s stall timer test and the 48-page full-scale render test made fast without losing their
+mutation; (2) the 5 duplicates D1-D5 removed, each proven redundant by a mutation first; (3) the 30 wording-round files
+folded into one table per water and day.
 
 ## The speedups lane (perf/T866-speedups, 2026-11-22): owner picked "Speedups, remove nothing"
 
