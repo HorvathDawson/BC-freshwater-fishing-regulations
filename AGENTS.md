@@ -432,6 +432,25 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
     - **Dead code stays dead** (knip in `pnpm check`): no unused file/export/dependency; an allowance needs a reason
       in `app/knip.jsonc`. Generated native projects (`apps/mobile/ios|android`) are not source: tools walking the
       tree skip them.
+W47. **`main` is the protected trunk; every change reaches it through a pull request (owner 2026-11-21, T995).** The
+    old dev branch is retired (history only); the trunk's name is typed once, `scripts/ci_paths.py` `TRUNK` (TypeScript:
+    `app/packages/core/src/repo.ts`).
+    - **Branches are short-lived**: `feat/`, `fix/`, `ci/`, `docs/`, `chore/` + the ticket id (`fix/T994-gauge-history`),
+      cut from a fresh `origin/main`. Open a PR (`gh pr create --base main`) and turn on auto-merge
+      (`gh pr merge --auto --merge`): it merges when the required checks pass. **Never push to `main`.**
+    - **Merge commits only** (no squash, no rebase-merge): the ledger cites lane commit hashes, which must survive.
+    - **Required checks** = each CI workflow's last job: `docs ok`, `app ok`, `feeds worker ok`, `pipeline ok`
+      (`scripts/ci_paths.py` `REQUIRED`). Every PR runs all four workflows; a `changes` job skips the jobs its area did
+      not touch (a skip is a pass), so a check never waits on a workflow that did not run. A push to `main` /
+      `release/**` stays path-filtered by the same lists (`AREAS`, pinned by `test_workflow_pins.py`).
+    - **Releases**: at scope lock `python -m pipeline release --cut <version>` makes `release/<version>` from origin/main;
+      the release builds and ships from it (preflight wants HEAD on `origin/release/<app.json's version>`, `--push`
+      pushes there). A fix lands on `main` first, then is cherry-picked onto the release branch. At ship the release
+      tags `data/<r-id>` and `v<version>` and prints the PR merging the release branch back into `main`;
+      `--prod` refuses a release whose tags are missing or point elsewhere.
+    - **Hooks are versioned** in `.githooks/`: turn them on once per clone with `git config core.hooksPath .githooks`
+      (pre-push = `scripts/before_push.py --changed`, only the areas the branch changed; commit-msg = T998's).
+      `--no-verify` is an emergency skip only, and the commit or PR says so.
 
 ## Reading the regulations
 
@@ -842,7 +861,7 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
     found by rule, run with `RELEASE_DIR` = the candidate). A new thing that follows the release is a row there, never a
     hand step in a runbook. Preflight runs EVERY check and lists every failure (`release.PREFLIGHT`, which `--dry-run`, the
     rehearsal, reads too); fast-fail's pass is keyed on the tree's content; the command remembers its flags (never an
-    escape); the release pushes only with `--push`, and only its own commits. `--prod <r-id>` re-uploads that same checked release and refuses an agent:
+    escape); the release pushes only with `--push`, and only its own commits, to its release branch (W47, T995). `--prod <r-id>` re-uploads that same checked release and refuses an agent:
     agents never run it. Runbook `handoff/PLAN/runbooks/release.md`.
     **T547 (2026-11-10): THE ATLAS RECORDS ITS CURATED INPUTS** (`pipeline/atlas/inputs.py`): the build writes one digest
     per input it reads (cuts by anchor, tidal limits, name variants, found names, added lakes/streams/areas, area

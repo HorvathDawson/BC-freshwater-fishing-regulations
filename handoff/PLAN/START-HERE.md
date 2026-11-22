@@ -10,6 +10,9 @@ One page, one pointer (T437): a new chat reads, in order,
 4. Chat length (owner 2026-11-21): recommend a new chat at natural breaks (a release shipped, a batch done) and /compact
    before a heavy step when the context is long. Update the restart page first.
 5. The work list: `handoff/PLAN/app-integration/tickets/README.md` (the ledger; tickets are the sole source of work).
+6. The branch (T995, `AGENTS.md` W47): `main` is the protected trunk. Work on a short-lived branch from a fresh
+   `origin/main` (`feat/`, `fix/`, `ci/`, `docs/`, `chore/` + ticket id), open a PR with auto-merge, never push to
+   `main`; a release ships from its `release/<version>` branch. Hooks: `git config core.hooksPath .githooks`.
 
 A second chat working the parked tickets (T667 rest, T686, T602, loose nits) reads `handoff/PLAN/PARKED-TICKETS.md` instead of step 2; iOS: `handoff/PLAN/ios/START-HERE-ios.md`.
 
