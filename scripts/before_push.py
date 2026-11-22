@@ -219,9 +219,28 @@ def step_area(step: Step) -> str:
     raise ValueError(f"before-push: no area for step {step.name!r}")
 
 
+def _git_local_vars() -> set[str]:
+    """git's own list of the variables that tie a process to ONE repository (`git rev-parse --local-env-vars`)."""
+    out = subprocess.run(["git", "rev-parse", "--local-env-vars"], capture_output=True, text=True, check=True).stdout
+    return set(out.split()) | {"GIT_QUARANTINE_PATH"}
+
+
+def step_env(environ: dict[str, str] | None = None) -> dict[str, str]:
+    """A step's environment: the caller's, minus git's repository variables, plus the pipeline's interpreter on PATH.
+
+    (T995, 2026-11-22) A hook runs with GIT_DIR (and friends) set. A test that ran `git init` in its own temp folder
+    inherited it and re-initialised THE REAL REPOSITORY instead (core.bare = true: every worktree stopped working). The
+    pre-commit framework strips the same set; so does .githooks/pre-push before it starts this."""
+    environ = dict(os.environ if environ is None else environ)
+    for k in _git_local_vars():
+        environ.pop(k, None)
+    environ["PATH"] = f"{Path(py()).parent}{os.pathsep}{environ.get('PATH', '')}"
+    return environ
+
+
 def run_step(step: Step) -> int:
     # the pipeline's interpreter first on PATH (a workflow step's `python`): this checkout's .venv or PIPELINE_PY's
-    env = {**os.environ, "PATH": f"{Path(py()).parent}{os.pathsep}{os.environ.get('PATH', '')}"}
+    env = step_env()
     if step.script is None:
         return subprocess.run(list(step.cmd), cwd=ROOT, env=env).returncode
     with tempfile.NamedTemporaryFile("w", suffix=".sh", prefix="before-push-", delete=False) as f:
