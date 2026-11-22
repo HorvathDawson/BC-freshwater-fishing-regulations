@@ -275,7 +275,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T995 | Branch structure: `main` is the protected trunk; PRs with required checks; release branches and tags | PARTIAL (switch landed c374b91fd 2026-11-22; left (Claude): prune branches, delete the old branch after 0.8.6 redeploys the prod worker) | c374b91fd, d4eae5b46 | owner 2026-11-21 |
 | T996 | Test the Apple push service end to end (registration, wake-up delivery, token reuse over 1 h+) | OPEN | T994 | owner 2026-11-21, next release |
 | T997 | Water map: two boundary labels at almost the same place draw on top of each other (Nicomekl River Part 2) | OPEN | | owner 2026-11-21, next chat |
-| T998 | Meaningful versions: SemVer for the app, the bump derived from Conventional Commits (1.0.0 at public launch) | OPEN | T995 | owner 2026-11-21 |
+| T998 | Meaningful versions: SemVer for the app, the bump derived from Conventional Commits (1.0.0 at public launch) | PARTIAL (built: commitlint in the hook, before_push and docs-ci; `--cut` computes + confirms the version; data-only branches; left (Claude): the PR's `commits` job seen on GitHub, the memory line) | a512a5165, 2c2b85977, 7acffa1b8 | owner 2026-11-21 |
 | T999 | Feeds worker backup copies reports incrementally (the daily backup fails, told, past ~4,500 reports) | OPEN | | T994 finding 24 (a6d97778a note) |
 | T1000 | Tiles: an Adskwatim Creek stream polygon draws in the lake layer, not the stream layer (2 live tests red) | OPEN | | T931 review 2026-11-22 |
 | T1002 | Test-anchor scanners: an `absent` rule for pipeline/tests/anchors.py; the record-equality and toBeUndefined gaps; part numbers after short template slots | OPEN | T768 | T768's lane, 2026-11-22 |

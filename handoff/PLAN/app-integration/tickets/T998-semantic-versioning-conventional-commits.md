@@ -1,6 +1,6 @@
 # T998 — Meaningful versions: SemVer for the app, the bump derived from Conventional Commits
 
-Status: OPEN (this chat; builds on T995's tags and release branches, so it lands with or after T995).
+Status: PARTIAL — built in lane feat/T998-versioning (a512a5165, 2c2b85977, 7acffa1b8); left (Claude): see the PR's docs-ci `commits` job run on GitHub (refuse a bad title, pass this PR), then DONE; the memory line.
 
 Source: owner 2026-11-21, verbatim: "We should make a standard versioning system too (when major minor patch happens)
 like to make versions meaningful". Dialog answers: 1.0.0 "At public launch (Recommended)"; who picks the bump:
@@ -66,3 +66,55 @@ the PR title follows the same format. Handoff-only commits use `docs(handoff): �
 
 Depends: T995 (tags, release branches, versioned hooks, required checks). Size: M. Owner: no (rules answered; he
 confirms each computed version at release). Default: as above.
+
+## Lane notes (2026-11-22, feat/T998-versioning)
+
+Commits: a512a5165 (`ci`: commitlint, the hook, before_push, docs-ci `commits`), 2c2b85977 (`feat`: the bump, `--cut`,
+preflight `version`, data-only branches), 7acffa1b8 (`fix`: the commits our tools make carry the format), and the docs
+commit (AGENTS W48, the release runbook, the maps, this ticket).
+
+- **Item 1, commitlint:** `@commitlint/config-conventional`, `lint`, `load` 21.2.4 and `parse`, `is-ignored` 21.2.3 (the
+  version `lint` takes: one copy), exact, in `app/package.json` (`app/deps.md` says why each). The CLI package is not
+  used: one script, `app/tools/check-commits.mjs`, does the hook (`--edit`), ranges (`--range a..b`) and the PR title
+  (`--title t --number n`, checked as the merge commit `t (#n)`). Config `app/tools/commitlint.config.mjs`: the types of
+  `app/tools/versioning.json` (the release command reads the same file), header ≤ 100, a ticket id in the HEADER (scope
+  or subject, the guard's own `T_IN_SUBJECT`, through check-tickets' new `ledgerIds` / `ticketsIn`) must have a ledger
+  row. Off, with why: subject-case (acronyms, code names), body / footer line length (prose wraps at 120). commitlint's
+  default ignores cover `Merge pull request #N from …`, `Merge branch …`, `Merge remote-tracking branch …` (verified by
+  test), `Revert "…"`, `fixup!`. Not covered (history only, all exempt or merged already): hand-typed `merge origin/main
+  into …` (lowercase) and `Merge review/T995 (…)` (no "into") — write git's own merge subject.
+- **Item 2, three layers:** `.githooks/commit-msg` (strips git's repository variables as pre-push does; sub-second);
+  `before_push.py`'s first step, always (the hook: each pushed ref's `<base>..<sha>`; by hand: `origin/main..HEAD`);
+  docs-ci's `commits` job on EVERY pull request (no `changes` gate; `ok` = `docs ok` needs it; `pull_request` now also
+  on `edited`, since a re-run reads the old title; pinned by test_workflow_pins, `ci_paths.EVERY_PR` / `PR_TYPES`).
+  The cutover b5dd8ade3 and the T995 switch merge ca7c0cce7 (the old main's d6a5ca528 under it: a `fix(in-season)` from
+  August that would have counted) are exempt by id, with their ancestors (`versioning.json`).
+- **Item 3, the bump:** `pipeline/release_version.py`. ONLY THE APP'S COMMITS COUNT (a path under `app/` a store build or
+  the site ships: not the feeds worker, the dev tools / gates, the conformance suite, the fixtures, test files, docs —
+  `NOT_APP`, `APP_AGAIN` for the SEO builder), as release-please's per-package paths; otherwise every pipeline `fix`
+  would force an app release and "data-only" (item 6) could never happen. Measured on origin/main today: no app commit
+  bumps since the cutover (5 app commits: chores and merges): `--cut` says "no app release", `--cut --data-only` would
+  cut `release/data-2026-11-22`. A merge commit whose own subject is not in the format counts by what it merged; a
+  non-merge app commit not in the format stops the release, named (add it to `exempt` with why). `--cut` prints the
+  decision, asks the owner to type the version (no terminal: prints the command), refuses a typed version that
+  disagrees naming both (`RV.accepts`; mutation-tested), accepts 1.0.0 from a 0.x base (the owner's launch call), and
+  makes the branch's one commit WITHOUT a checkout (a temporary index): app.json + package.json, an EMPTY draft entry in
+  changelog.ts (check-changelog and the build refuse it until the anglers' bullets are written), CHANGELOG.md.
+  Preflight's new `version` check holds app.json to the same computation; the rehearsal prints it with its commits.
+- **Item 4, tags:** T995's (`tag_release`, `tag_problems`), unchanged for an app release.
+- **Item 5:** `CHANGELOG.md` (developers, grouped by type) is written at the cut; a fix cherry-picked onto the branch
+  after the cut is not in it (the next cut lists it).
+- **Item 6, data-only:** `--cut --data-only` makes `release/data-<YYYY-MM-DD>` from origin/main, refused when an app
+  commit bumps the app; `ci_paths.shipping_branch` (preflight and `ci_paths.py release-branch`, which upload.sh reads)
+  takes a checked-out data branch; preflight's `version` check wants no app bump and app.json = the shipped version; the
+  ship tags only `data/<r-id>` (ledger `data_only`); `--prod` asks no `v` tag of it; it merges back by PR as any.
+- **The commits our tools make** now carry the format (they reach PRs): the fixture re-cut `test(T666): …`, review
+  marks `chore(review): …`, the writers `fix(T325): …`, proposals `fix(T185): apply <id>: <title>` (cut to 100),
+  build-apk.sh's `chore(release): versionCode N …` (its last-Play-build lookup reads both subjects).
+- **Item 7:** AGENTS W48 (the format, the PR title ≤ 93 so ` (#N)` fits, the bump), W47's hook line, the release
+  runbook §0 (how the version is chosen; T993 item 11's one human runbook folds it in), app + pipeline maps. NOT done
+  here: the memory line (the main chat's).
+- **Found:** `core.hooksPath` on this machine is the absolute path of the main checkout's `.githooks`, so a worktree
+  runs the main checkout's hooks (the stub until this merges), not its own. `test_review_queue`'s two corpus tests
+  need the live atlas (missing in a fresh worktree; unrelated).
+

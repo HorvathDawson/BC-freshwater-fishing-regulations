@@ -26,6 +26,9 @@ a copy of the live release's reach run → `pipeline build --hold-latest` via he
 against the live release) → follows (T666, `pipeline/release_follows.py`: the in-season matches, the app's fixtures
 re-cut and the tests that read the release, all on the candidate) → LATEST → `deploy/staging/upload.sh`. Preflight
 lists every failure at once; `--dry-run` rehearses every stage's checks. Its ledger is `data/generated/release/ledger.json`;
+(T998) `python -m pipeline release --cut` computes the app version from the Conventional Commits since the last `v*` tag
+(`pipeline/release_version.py`: only the app's commits bump it; preflight's `version` check holds app.json to it) and
+makes the release branch with its version commit; `--cut --data-only` makes `release/data-<date>`.
 `--prod <r-id>` (human-only) re-uploads that same release through `deploy/prod/upload.sh` (T404: it promotes what staging
 serves). `deliver/release/publish.py` is the upload's PLAN only (`plan`, the order; T994 #1: it sends nothing, `--yes` is
 refused), and `scripts/update-hydat.sh` uploads nothing either. After the production pointer moves,

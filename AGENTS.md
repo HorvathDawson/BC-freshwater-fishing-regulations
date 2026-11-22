@@ -449,8 +449,25 @@ W47. **`main` is the protected trunk; every change reaches it through a pull req
       tags `data/<r-id>` and `v<version>` and prints the PR merging the release branch back into `main`;
       `--prod` refuses a release whose tags are missing or point elsewhere.
     - **Hooks are versioned** in `.githooks/`: turn them on once per clone with `git config core.hooksPath .githooks`
-      (pre-push = `scripts/before_push.py --changed --no-tier`, only the areas the branch changed, the no-data tier left to the PR's required check; commit-msg = T998's).
+      (pre-push = `scripts/before_push.py --changed --no-tier`, only the areas the branch changed, the no-data tier left to the PR's required check; commit-msg = the W48 format check).
       `--no-verify` is an emergency skip only, and the commit or PR says so.
+W48. **Commits follow Conventional Commits; the app version comes from them (owner 2026-11-21, T998).**
+    - **The format:** `<type>(<scope>)!: <subject>`, header at most 100 characters. Types: `feat` (a new feature or a
+      change anglers notice), `fix`, `perf` (they bump the app); `docs`, `chore`, `ci`, `test`, `refactor`, `build`,
+      `style` (no bump). The scope is the ticket id when there is one (`fix(T983): …`; it must have a ledger row);
+      handoff-only commits are `docs(handoff): …`. A `!` after the type, or a `BREAKING CHANGE:` footer, marks a change
+      an installed app cannot take without updating, or a redesign of how the app works. **A PR title follows the same
+      format**: it becomes the merge commit's subject with ` (#N)` added (keep it to 93 characters).
+    - **Checked three times** by commitlint (`app/tools/check-commits.mjs`, config `app/tools/commitlint.config.mjs`,
+      the types in `app/tools/versioning.json`): the commit-msg hook, `before_push.py`'s first step, and docs-ci's
+      `commits` job on every PR (inside `docs ok`). History before the cutover (b5dd8ade3) is exempt by commit id;
+      git's and GitHub's merge subjects pass.
+    - **The bump (SemVer):** `python -m pipeline release --cut` computes the next version from the app's commits since
+      the last `v*` tag (`pipeline/release_version.py`: feat -> minor, fix / perf -> patch, breaking -> major, minor
+      before 1.0.0), prints the commits that decided it, and the owner confirms it; a version set by hand that
+      disagrees is refused (preflight's `version` check too). 1.0.0 = the first open store release, the owner's call.
+      Never edit app.json's version by hand. A data-only release (nothing bumps the app) ships from
+      `release/data-<date>` (`--cut --data-only`). Build numbers only go up, independent of the version.
 
 ## Reading the regulations
 

@@ -6,18 +6,37 @@ One command builds a release, checks it, makes it LATEST and puts it on staging.
 Claude runs the staging release after a batch of curated changes lands. A human runs the same command the same way.
 Code: `pipeline/release.py`.
 
-## 0. The release branch (T995)
+## 0. The version and the release branch (T995, T998)
 
-At scope lock, from any checkout (nothing is switched):
+**The version comes from the commits** (owner 2026-11-21, SemVer; `pipeline/release_version.py`). At scope lock, from
+any checkout (nothing is switched):
 
 ```bash
-.venv/bin/python -m pipeline release --cut 0.9.0      # release/0.9.0 from a fresh origin/main, pushed
+.venv/bin/python -m pipeline release --cut --dry-run  # the computed version and the commits that decided it
+.venv/bin/python -m pipeline release --cut            # the same, then type the version to confirm: release/<it> is cut
 git switch release/0.9.0                               # (or git worktree add <dir> release/0.9.0)
 ```
 
-The release builds and ships from that branch: preflight wants HEAD on `origin/release/<app.json's version>`, so if
-`main`'s app.json names another version the branch's first commit sets it. A fix lands on `main` first (a PR), then is
-cherry-picked onto the branch. At ship (stage 7, after the staging smoke) the release tags `data/<r-id>` and, on the
+How the version is chosen: the Conventional Commits on `main` since the last `v*` tag (before the first tag: since
+the cutover, from 0.8.5) that change the app (a path under `app/` that a store build or the site ships; pipeline,
+data, docs, the feeds worker and the dev tools never bump the app). `feat` bumps minor, `fix` / `perf` patch, a `!`
+or a `BREAKING CHANGE:` footer major (before 1.0.0: minor); every other type nothing. **The owner confirms each
+computed version** (typed at the prompt, or `--cut <x.y.z>`, which is refused when it is not the computed one, naming
+both). **1.0.0 is the owner's call**, at the first open Play / App Store release: `--cut 1.0.0` is the one version
+typed by hand that the commits need not compute. The types and the cutover are `app/tools/versioning.json`.
+
+The cut's one commit on the branch sets `expo.version` in app.json + package.json, opens the anglers' entry in
+`app/packages/core/src/changelog.ts` (EMPTY: write its 3–5 plain bullets on the branch and commit them; the app build
+and CI refuse it until then) and writes the developer `CHANGELOG.md` (the commits, by type). Preflight's `version`
+check holds app.json to the computed version (the rehearsal prints it with its commits).
+
+**Nothing bumps the app** (docs, CI, tests, data and pipeline only): `--cut` says so. A data release then ships from
+the day's data branch: `--cut --data-only` makes `release/data-<YYYY-MM-DD>` from origin/main (refused when an app
+commit bumps the app); preflight takes it, the ship tags only `data/<r-id>`, and it merges back by PR like any release
+branch.
+
+The release builds and ships from that branch: preflight wants HEAD on `origin/release/<app.json's version>` (or the
+data branch). A fix lands on `main` first (a PR), then is cherry-picked onto the branch. At ship (stage 7, after the staging smoke) the release tags `data/<r-id>` and, on the
 version's first ship, `v<version>`, pushes the tags, and prints the PR that merges the branch back into `main`
 (`gh pr create --base main --head release/<version> …`). `--prod` refuses a release whose tags are missing or moved.
 
