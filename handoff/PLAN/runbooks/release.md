@@ -91,9 +91,11 @@ Read the summary. Every changed rule must be one that the batch meant to move. I
 The accept only works if that file has exactly the content written for **this** diff. An accept from an older diff
 fails. If a change was not intended, fix the cause, commit, and rerun.
 
-**A diff the batch explains passes by itself (T993 item 8):** when every change names a curated row changed in the
-commits since LATEST's commit (the rule's entry itself, or a changed row naming the entry or one of its matched ids; a
-DFO place by a row naming it), the checks print `binding diff AUTO-ACCEPTED` with each change and its commit, and the
+**A diff the batch explains passes by itself (T993 item 8):** when every change is explained by ITS OWN curated input
+changed in the commits since LATEST's commit — the rule's own object added / removed / edited (an added rule may only
+gain, a removed one only lose), its entry's matched waters (same direction check), or a changed row naming one of those
+waters or a cut the rule names; a DFO place by a row naming it. A sibling rule's edit, a row naming only the entry, or
+a code / atlas move never explains a change. Then the checks print `binding diff AUTO-ACCEPTED` with each change and its commit, and the
 ledger keeps it (`auto: attributable`). Anything nothing explains stops as above, listed. The tidal / outside tables
 never pass this way. An accepted record survives a rerun after the promote (T788 #8).
 

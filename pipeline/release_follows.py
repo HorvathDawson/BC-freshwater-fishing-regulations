@@ -139,12 +139,56 @@ def _index_list(v) -> bool:
     return isinstance(v, list) and all(isinstance(x, int) and not isinstance(x, bool) for x in v)
 
 
-def renumbered_only(paths: list[str], rev: str = "HEAD") -> tuple[bool, str]:
+def _rule_table(manifest: dict, read) -> dict[int, object]:
+    """{rix: the rule's JSON} of a release's water file (`rule` table, its blobs through the `zdict` dictionary),
+    the file read with `read(<path under the regs fixture root>)` -> bytes."""
+    import gzip
+    import sqlite3
+    import tempfile
+    from pipeline.deliver.store.common import unpack
+    url = manifest["files"]["water"]["url"]
+    raw = gzip.decompress(read(url)) if url.endswith(".gz") else read(url)
+    with tempfile.TemporaryDirectory(prefix="renumber-") as td:
+        p = Path(td) / "water.sqlite"
+        p.write_bytes(raw)
+        con = sqlite3.connect(p)
+        try:
+            zd = dict(con.execute("SELECT tbl, d FROM zdict")).get("rule")
+            return {int(ix): json.loads(unpack(j, zd)) for ix, j in con.execute("SELECT rix, j FROM rule")}
+        finally:
+            con.close()
+
+
+def fixture_rules(rev: str | None = None) -> dict[int, object]:
+    """(T993 item 8) the source table the golden pages' `src` indexes read: the committed regs fixture release's
+    rules (row `regs-fixture`, re-cut with the pages) — at `rev`, or on disk (None). Raises when it cannot be read."""
+    root = next(f for f in FOLLOWS if f.name == "regs-fixture").paths[0]
+    if rev is None:
+        mans = sorted((Path(REPO_ROOT) / root).glob("r-*/manifest.json"))
+        if len(mans) != 1:
+            raise RuntimeError(f"{root}: {len(mans)} fixture releases on disk, not one")
+        return _rule_table(json.loads(mans[0].read_text(encoding="utf-8")),
+                           lambda u: (Path(REPO_ROOT) / root / u).read_bytes())
+    names = subprocess.run(["git", "ls-tree", "-r", "--name-only", rev, "--", root], cwd=REPO_ROOT,
+                           capture_output=True, text=True, check=True).stdout.split()
+    mans = [n for n in names if n.endswith("/manifest.json")]
+    if len(mans) != 1:
+        raise RuntimeError(f"{root} at {rev}: {len(mans)} fixture releases, not one")
+
+    def show(rel: str) -> bytes:
+        return subprocess.run(["git", "show", f"{rev}:{rel}"], cwd=REPO_ROOT, capture_output=True, check=True).stdout
+    return _rule_table(json.loads(show(mans[0])), lambda u: show(f"{root}/{u}"))
+
+
+def renumbered_only(paths: list[str], rev: str = "HEAD", rules=None) -> tuple[bool, str]:
     """(T993 item 8) do the golden pages `paths` differ from `rev` ONLY in source indexes renumbered one for one? The
     page at `rev` and on disk must be the same JSON once each `SOURCE_INDEX_KEYS` int list is read through ONE mapping
     old -> new, shared by every page (one source table) and one-to-one (two sources never become one, one never
-    becomes two). (True, the note naming the mapping) or (False, the first difference). A page added or removed is
-    never a renumber."""
+    becomes two) — AND each old index must name the same source as its new one (review 2026-11-21: two sources that
+    swap places map one-to-one and say something else): the rule at old in the source table at `rev` equals the rule
+    at new on disk (`fixture_rules`; `rules` = (before, after) tables stands in). (True, the note naming the mapping)
+    or (False, the first difference). A page added or removed is never a renumber; a table that cannot be read is
+    never one either."""
     mapping: dict[int, int] = {}
     diff: list[str] = []
 
@@ -186,6 +230,15 @@ def renumbered_only(paths: list[str], rev: str = "HEAD") -> tuple[bool, str]:
     moved = {a: b for a, b in mapping.items() if a != b}
     if len(set(mapping.values())) != len(mapping):
         return False, "two sources renumbered to one (not one-to-one)"
+    try:
+        before, after = rules if rules is not None else (fixture_rules(rev), fixture_rules(None))
+    except Exception as e:  # noqa: BLE001 — unread is never a renumber: the stop stands, with its cause
+        return False, f"the source table could not be read to compare the sources ({type(e).__name__}: {e})"
+    for a, b in sorted(mapping.items()):
+        if a not in before or b not in after:
+            return False, f"source {a} -> {b}: not in the source table ({'before' if a not in before else 'after'})"
+        if json.dumps(before[a], sort_keys=True) != json.dumps(after[b], sort_keys=True):
+            return False, f"source {a} -> {b} is another source (its rule differs): not a renumber"
     sample = ", ".join(f"{a}->{b}" for a, b in sorted(moved.items())[:4])
     return True, (f"{len(paths)} golden page(s) differ only in source indexes renumbered one for one "
                   f"({len(moved)} index(es): {sample}{' …' if len(moved) > 4 else ''})")

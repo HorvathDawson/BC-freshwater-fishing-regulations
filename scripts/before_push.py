@@ -147,6 +147,9 @@ def main(argv=None, runner=run_step) -> int:
     steps = plan(tier=not a.no_tier, app_suite=a.app_suite)
     if a.only:
         steps = [s for s in steps if re.search(a.only, s.name)]
+        if not steps:
+            print(f"before-push: --only {a.only!r} matches no step (--list names them): nothing ran", file=sys.stderr)
+            return 2
     if a.list:
         for s in steps:
             print(f"  {s.name}" + ("" if s.script is not None else f"\n      $ {' '.join(s.cmd)}"))

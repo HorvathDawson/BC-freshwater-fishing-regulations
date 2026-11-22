@@ -58,6 +58,9 @@ def test_every_failure_is_listed_and_the_exit_says_so(capsys):
     assert "--hook prints how" in err
     assert BP.main(["--only", "feeds"], runner=lambda s: 0) == 0
     assert "PARTIAL (--only): 1 step(s) passed" in capsys.readouterr().out
+    ran = []
+    assert BP.main(["--only", "no-such-step"], runner=lambda s: ran.append(s) or 0) == 2 and ran == []
+    assert "matches no step" in capsys.readouterr().err                   # never a pass on nothing run
 
 
 def test_the_hook_is_printed_never_installed(capsys, tmp_path, monkeypatch):
