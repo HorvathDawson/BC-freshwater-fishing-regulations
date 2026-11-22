@@ -7,7 +7,8 @@
     .venv/bin/python scripts/before_push.py --no-tier  # leave out the pipeline's no-data tier (minutes): the
                                                        # pipeline's source scanners run in its place
     .venv/bin/python scripts/before_push.py --app-suite        # + app-ci's whole vitest suite (through heavy.sh)
-    .venv/bin/python scripts/before_push.py --hook     # how to make it a pre-push hook: printed, never installed
+    .venv/bin/python scripts/before_push.py --changed  # (T995) only the areas this branch changed (the pre-push hook)
+    .venv/bin/python scripts/before_push.py --hook     # how to turn on the versioned hooks: printed, never installed
 
 Why: 0.8.4 and 0.8.5 stopped on failures GitHub had already found (a stale mini release, a worker test, a ticket
 ledger, tree-scanning inventory pins: 79 red runs in 30 days, `handoff/PLAN/audit-2026-11-21/t993-inventory.md`), each
@@ -26,8 +27,17 @@ seen only after the push. The steps:
 
 Not here, said at the end: app-ci's whole vitest suite (--app-suite adds it) and its web / native bundle exports.
 
-A pre-push hook is the OWNER's call (T791 #2): `--hook` prints the two lines that install one and installs nothing.
-Output is unfiltered (never through rtk: it has reported false passes).
+(T995) `--changed`: only the steps whose inputs changed since the branch left the trunk (`git merge-base HEAD
+origin/main`) plus the working tree and untracked files, by the SAME areas CI's `changes` jobs read
+(`scripts/ci_paths.py` AREAS, so the hook and CI agree): pipeline -> steps 1-2, app -> 3-4, feeds-worker -> 5. The
+ticket guard (`node app/tools/check-tickets.mjs`) always runs — inside step 3 when the app changed, else on its own —
+so a docs / handoff-only push takes seconds. `BEFORE_PUSH_SKIP=<reason>` skips every step and prints the reason (the
+release command's own pushes: its preflight ran these checks); an empty reason is refused.
+
+THE HOOKS ARE VERSIONED (T995, owner 2026-11-21): `.githooks/pre-push` runs `--changed`, `.githooks/commit-msg` is T998's.
+They are on once a clone says `git config core.hooksPath .githooks` (`--hook` prints it; nothing is installed here).
+`git push --no-verify` is the emergency skip, said in the commit or PR. Output is unfiltered (never through rtk: it has
+reported false passes).
 """
 from __future__ import annotations
 
@@ -42,6 +52,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(Path(__file__).resolve().parent))      # beside it, however it is loaded (the tests: by path)
+import ci_paths as CP  # noqa: E402  (T995) the trunk and CI's areas, typed once
 WORKFLOW = ROOT / ".github" / "workflows" / "pipeline-ci.yml"
 #: pipeline-ci steps not run here, each with why (a step added to the workflow runs unless it is named here)
 SKIP = {"Tile tools (tippecanoe, pmtiles)": "installs the tile tools on the runner (here: brew install tippecanoe pmtiles)"}
@@ -51,10 +63,15 @@ TESTS = "Tests"
 SCANS = re.compile(r"readFileSync|readdirSync")
 #: what makes a pipeline test a source scanner (fast-fail's `source_scanners` grep)
 PY_SCANS = re.compile(r'rglob\("\*\.py"\)|glob\("\*\*/\*\.py"\)|_py_sources\(|walk\(.*pipeline')
-HOOK = """# a pre-push hook is the owner's call (T791 #2); to install it in this clone (every worktree shares it):
-printf '#!/bin/sh\\nexec .venv/bin/python scripts/before_push.py\\n' > "$(git rev-parse --git-common-dir)/hooks/pre-push"
-chmod +x "$(git rev-parse --git-common-dir)/hooks/pre-push"
-# skip it once: git push --no-verify; remove it: rm "$(git rev-parse --git-common-dir)/hooks/pre-push\""""
+HOOK = """# (T995) the hooks are versioned in .githooks/: pre-push runs `scripts/before_push.py --changed`, commit-msg is T998's.
+# Turn them on once per clone (every worktree of it shares the setting):
+git config core.hooksPath .githooks
+# skip once, in an emergency only (say so in the commit or the PR): git push --no-verify
+# turn them off: git config --unset core.hooksPath"""
+#: (T995) the ticket guard on its own: what a push that changes no app file still runs (`pnpm check:fast` holds it)
+TICKETS = ("node", "app/tools/check-tickets.mjs")
+#: (T995) skips every step, its reason printed: the release command's own pushes (its preflight ran these checks)
+SKIP_ENV = "BEFORE_PUSH_SKIP"
 
 
 @dataclass(frozen=True)
@@ -69,9 +86,14 @@ def py() -> str:
     return os.environ.get("PIPELINE_PY") or str(ROOT / ".venv" / "bin" / "python")
 
 
+#: (T995) the jobs every CI workflow has that check nothing: `changes` (which jobs a PR needs) and `ok` (the required check)
+PLUMBING = ("changes", "ok")
+
+
 def workflow_steps(path: Path = WORKFLOW) -> list[dict]:
     import yaml
-    return [s for j in yaml.safe_load(path.read_text(encoding="utf-8"))["jobs"].values() for s in j["steps"]]
+    jobs = yaml.safe_load(path.read_text(encoding="utf-8"))["jobs"]
+    return [s for name, j in jobs.items() if name not in PLUMBING for s in j["steps"]]
 
 
 def tier_markers(steps: list[dict]) -> str:
@@ -95,7 +117,28 @@ def py_scanners(root: Path = ROOT) -> list[str]:
                   if PY_SCANS.search(p.read_text(encoding="utf-8")))
 
 
-def plan(tier: bool = True, app_suite: bool = False, steps: list[dict] | None = None) -> list[Step]:
+def changed_paths(trunk: str = CP.TRUNK) -> tuple[str, list[str]]:
+    """(T995) (the base, every path changed since the branch left the trunk): `git diff --name-only <merge-base>` (the
+    commits and the working tree) plus untracked files. A git failure stops, naming the fix — never an empty change."""
+    def git(*args: str) -> str:
+        got = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True)
+        if got.returncode:
+            raise SystemExit(f"before-push --changed: git {' '.join(args)} failed (rc={got.returncode}): "
+                             f"{got.stderr.strip()[-300:]} — git fetch {CP.REMOTE} {trunk}")
+        return got.stdout
+    base = git("merge-base", "HEAD", f"{CP.REMOTE}/{trunk}").strip()
+    paths = set(git("diff", "--name-only", base).splitlines())
+    paths |= set(git("ls-files", "--others", "--exclude-standard").splitlines())
+    return base, sorted(x for x in paths if x)
+
+
+def plan(tier: bool = True, app_suite: bool = False, steps: list[dict] | None = None,
+         areas: set[str] | None = None) -> list[Step]:
+    """Every step, or (T995, `areas` given) only those of the areas changed — the ticket guard always."""
+    if areas is not None:
+        out = [] if "app" in areas else [Step("ticket guard (node app/tools/check-tickets.mjs)", TICKETS)]
+        full = plan(tier=tier, app_suite=app_suite, steps=steps)
+        return out + [s for s in full if step_area(s) in areas]
     steps = workflow_steps() if steps is None else steps
     out: list[Step] = []
     for s in steps:
@@ -121,8 +164,20 @@ def plan(tier: bool = True, app_suite: bool = False, steps: list[dict] | None = 
     return out
 
 
+def step_area(step: Step) -> str:
+    """(T995) the CI area a step stands for (scripts/ci_paths.py AREAS): what `--changed` keeps it by."""
+    if step.name.startswith(("CI: ", "the pipeline's source scanners")):
+        return "pipeline"
+    if step.name.startswith("feeds worker"):
+        return "feeds-worker"
+    if step.name.startswith("app"):
+        return "app"
+    raise ValueError(f"before-push: no area for step {step.name!r}")
+
+
 def run_step(step: Step) -> int:
-    env = {**os.environ, "PATH": f"{ROOT / '.venv' / 'bin'}{os.pathsep}{os.environ.get('PATH', '')}"}
+    # the pipeline's interpreter first on PATH (a workflow step's `python`): this checkout's .venv or PIPELINE_PY's
+    env = {**os.environ, "PATH": f"{Path(py()).parent}{os.pathsep}{os.environ.get('PATH', '')}"}
     if step.script is None:
         return subprocess.run(list(step.cmd), cwd=ROOT, env=env).returncode
     with tempfile.NamedTemporaryFile("w", suffix=".sh", prefix="before-push-", delete=False) as f:
@@ -140,11 +195,25 @@ def main(argv=None, runner=run_step) -> int:
     ap.add_argument("--no-tier", action="store_true")
     ap.add_argument("--app-suite", action="store_true")
     ap.add_argument("--hook", action="store_true")
+    ap.add_argument("--changed", action="store_true")
     a = ap.parse_args(argv)
     if a.hook:
         print(HOOK)
         return 0
-    steps = plan(tier=not a.no_tier, app_suite=a.app_suite)
+    skip = os.environ.get(SKIP_ENV)
+    if skip is not None and not a.list:
+        if not skip.strip():
+            print(f"before-push: {SKIP_ENV} needs a reason, which is printed", file=sys.stderr)
+            return 2
+        print(f"before-push: SKIPPED (nothing run): {skip}")
+        return 0
+    areas = None
+    if a.changed:
+        base, paths = changed_paths()
+        areas = CP.areas_of(paths)
+        print(f"before-push --changed: {len(paths)} path(s) since {base[:12]} (the merge base with "
+              f"{CP.REMOTE}/{CP.TRUNK}); areas: {', '.join(sorted(areas)) or 'none (the ticket guard only)'}")
+    steps = plan(tier=not a.no_tier, app_suite=a.app_suite, areas=areas)
     if a.only:
         steps = [s for s in steps if re.search(a.only, s.name)]
         if not steps:
@@ -167,13 +236,15 @@ def main(argv=None, runner=run_step) -> int:
     secs = round(time.time() - t0)
     tail = ("\nnot run here: app-ci's web and native bundle exports"
             + ("" if a.app_suite else ", app-ci's whole vitest suite (--app-suite)")
-            + ("; the pipeline no-data tier (--no-tier)" if a.no_tier else "") + "."
-            + "\na pre-push hook is the owner's call: scripts/before_push.py --hook prints how")
+            + ("; the pipeline no-data tier (--no-tier)" if a.no_tier else "")
+            + ("; the areas this branch did not change (--changed)" if a.changed else "") + "."
+            + "\nthe versioned hooks (.githooks, T995): scripts/before_push.py --hook prints how to turn them on")
     if failed:
         print(f"\nbefore-push: {len(failed)} of {len(steps)} step(s) FAILED ({secs} s) — each one's output is above:"
               + "".join(f"\n  - {x}" for x in failed) + tail, file=sys.stderr)
         return 1
-    print(f"\nbefore-push: {'PARTIAL (--only): ' if a.only else ''}{len(steps)} step(s) passed ({secs} s)" + tail)
+    print(f"\nbefore-push: {'PARTIAL (--only): ' if a.only else ''}{'CHANGED AREAS (--changed): ' if a.changed else ''}"
+          f"{len(steps)} step(s) passed ({secs} s)" + tail)
     return 0
 
 

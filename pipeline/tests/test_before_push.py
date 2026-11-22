@@ -68,5 +68,54 @@ def test_the_hook_is_printed_never_installed(capsys, tmp_path, monkeypatch):
     ran = []
     assert BP.main(["--hook"], runner=lambda s: ran.append(s) or 0) == 0
     out = capsys.readouterr().out
-    assert "the owner's call" in out and "hooks/pre-push" in out and ran == []
+    assert "\ngit config core.hooksPath .githooks\n" in out and "git push --no-verify" in out and ran == []
     assert not any(tmp_path.iterdir())
+
+
+def _changed(monkeypatch, capsys, paths, argv=()):
+    """(T995) `--changed` over these paths: the names of the steps it would run."""
+    monkeypatch.delenv(BP.SKIP_ENV, raising=False)
+    monkeypatch.setattr(BP, "changed_paths", lambda: ("b" * 40, list(paths)))
+    ran = []
+    assert BP.main(["--changed", "--no-tier", *argv], runner=lambda s: ran.append(s.name) or 0) == 0
+    capsys.readouterr()
+    return ran
+
+
+def test_changed_runs_only_the_areas_the_branch_changed(monkeypatch, capsys):
+    """(T995) the same areas as CI's `changes` jobs (scripts/ci_paths.py): a docs-only push is the ticket guard alone;
+    a pipeline change adds the pipeline's steps; an app change runs the app gates (the ticket guard is inside them)."""
+    guard = "ticket guard (node app/tools/check-tickets.mjs)"
+    assert _changed(monkeypatch, capsys, ["handoff/PLAN/STATUS.md", "AGENTS.md"]) == [guard]
+    assert _changed(monkeypatch, capsys, ["README.md"]) == [guard]
+    ran = _changed(monkeypatch, capsys, ["pipeline/release.py"])
+    assert ran[0] == guard and "the pipeline's source scanners (--no-tier)" in ran
+    assert not any(n.startswith(("app", "feeds worker")) for n in ran)
+    ran = _changed(monkeypatch, capsys, ["app/workers/feeds/src/index.ts"])
+    assert guard not in ran and "app gates (pnpm check:fast)" in ran and "feeds worker tests" in ran
+    assert not any(n.startswith("CI: ") for n in ran)
+    full = [s.name for s in BP.plan(tier=False)]
+    assert _changed(monkeypatch, capsys, ["pipeline/x.py", "app/x.ts", "app/workers/feeds/x.ts"]) == full
+    assert {BP.step_area(s) for s in BP.plan(app_suite=True)} == {"pipeline", "app", "feeds-worker"}   # all named
+
+
+def test_the_release_commands_own_push_skips_saying_why(monkeypatch, capsys):
+    monkeypatch.setenv(BP.SKIP_ENV, "the release command's own push")
+    ran = []
+    assert BP.main(["--changed"], runner=lambda s: ran.append(s) or 0) == 0 and ran == []
+    assert "SKIPPED (nothing run): the release command's own push" in capsys.readouterr().out
+    monkeypatch.setenv(BP.SKIP_ENV, " ")
+    assert BP.main(["--changed"], runner=lambda s: ran.append(s) or 0) == 2 and ran == []
+    assert "needs a reason" in capsys.readouterr().err
+
+
+def test_the_versioned_hooks():
+    """(T995) .githooks/pre-push runs `--changed` (seconds for a docs push); commit-msg is T998's stub (passes)."""
+    import os
+    import subprocess
+    hooks = ROOT / ".githooks"
+    pre = (hooks / "pre-push").read_text()
+    assert 'exec "$py" scripts/before_push.py --changed' in pre and "git config core.hooksPath .githooks" in pre
+    assert os.access(hooks / "pre-push", os.X_OK) and os.access(hooks / "commit-msg", os.X_OK)
+    assert "T998" in (hooks / "commit-msg").read_text()
+    assert subprocess.run(["sh", str(hooks / "commit-msg"), "/dev/null"]).returncode == 0

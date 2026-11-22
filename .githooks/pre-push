@@ -1,0 +1,26 @@
+#!/bin/sh
+# (T995) THE VERSIONED PRE-PUSH HOOK: what GitHub's runs ask, asked here first — only for the areas this branch changed
+# (`scripts/before_push.py --changed`: the same areas CI's `changes` jobs read, scripts/ci_paths.py). A docs / handoff
+# push runs the ticket guard alone (seconds).
+#
+#   turn on, once per clone (worktrees share it):   git config core.hooksPath .githooks
+#   emergency skip, said in the commit or PR:        git push --no-verify
+#
+# The interpreter: PIPELINE_PY, else this checkout's .venv, else the main checkout's (a worktree has none of its own).
+set -eu
+root=$(git rev-parse --show-toplevel)
+main=$(cd "$(git rev-parse --path-format=absolute --git-common-dir)/.." && pwd -P)
+py=${PIPELINE_PY:-}
+if [ -z "$py" ]; then
+  for c in "$root/.venv/bin/python" "$main/.venv/bin/python"; do
+    if [ -x "$c" ]; then py=$c; break; fi
+  done
+fi
+if [ -z "$py" ]; then
+  echo "pre-push: no .venv here or in $main (bash scripts/bootstrap.sh makes it; PIPELINE_PY names another)" >&2
+  echo "pre-push: nothing was checked; git push --no-verify skips the hook (an emergency only: say so)" >&2
+  exit 1
+fi
+export PIPELINE_PY="$py"
+cd "$root"
+exec "$py" scripts/before_push.py --changed
