@@ -8,7 +8,7 @@
  */
 import { environmentError } from "@app/core";
 
-export const FEED_READ_MS = 30_000;
+const FEED_READ_MS = 30_000;
 
 export function timedFetch(f: typeof fetch, ms = FEED_READ_MS): typeof fetch {
   return (async (u: Parameters<typeof fetch>[0], i?: Parameters<typeof fetch>[1]) => {

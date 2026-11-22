@@ -12,7 +12,7 @@ export { createFetchGate, type FetchGate } from "./gate";
 export { pendingOf, type ActivitySnapshot, type NetActivity } from "./activity";
 export { createNetMeter, type NetMeter } from "./meter";
 export { fetchResilient, NetError } from "./fetch";
-export { shareFetch } from "./share"; export { timedFetch, FEED_READ_MS } from "./timeout";
+export { shareFetch } from "./share"; export { timedFetch } from "./timeout";
 export { fetchVerifiedVia } from "./verified";
 
 /** The device's word on being online (`@app/ui` `Connectivity`'s first half): the web's events, a phone's NetInfo. */
