@@ -489,6 +489,50 @@ def test_build_apk_lists_a_missing_maplibre_repo_and_never_exits_silently(tmp_pa
     assert r.returncode == 1 and "no pinned MapLibre AAR" in r.stderr
 
 
+def test_check_maplibre_proves_the_archive_against_the_pinned_aar(tmp_path):
+    """(T512, T978 review 2) the build-id proof itself, run: an archive carrying the pinned AAR's libmaplibre.so passes and
+    names the pin; another build id (the stock SDK slipping in: Play builds 20, 21) is refused; an AAR with the pin's
+    SOURCE.txt but another file name is no pinned AAR; and the inner run stops when the AAR went away after the precheck.
+    Each was a guard no test ran (a mutation that made it always pass went green)."""
+    import zipfile
+    env = {k: v for k, v in os.environ.items() if k not in ("CONFIRM_PROD", "BUILD_APK_INNER", "MLN_LOCAL_MAVEN")}
+    sdk = tmp_path / "sdk"
+    # llvm-readelf stand-in: the "build id" is the .so's text (mln_id runs `llvm-readelf -n <so>`)
+    _exe(sdk / "ndk/0/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-readelf",
+         '#!/usr/bin/env bash\necho "    Build ID: $(cat "$2")"\n')
+    repo = _pinned_repo(tmp_path / "m2", "beefcafe")
+    ver = _pin()["MLN_VERSION"]
+
+    def apk(name: str, so: str) -> Path:
+        p = tmp_path / name
+        with zipfile.ZipFile(p, "w") as z:
+            z.writestr("lib/arm64-v8a/libmaplibre.so", so)
+        return p
+
+    def check(archive: Path, mvn: Path) -> subprocess.CompletedProcess:
+        return subprocess.run(["bash", str(ROOT / "deploy/staging/build-apk.sh"), f"--check-maplibre={archive}"],
+                              env={**env, "ANDROID_HOME": str(sdk), "MLN_LOCAL_MAVEN": str(mvn)}, capture_output=True,
+                              text=True, timeout=60, cwd=ROOT)
+
+    r = check(apk("good.apk", "beefcafe"), repo)
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert f"libmaplibre.so build id beefcafe (pinned upstream {ver})" in r.stdout
+    r = check(apk("stock.apk", "aab47813"), repo)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "stock.apk's libmaplibre.so is build id 'aab47813', not the pinned AAR's 'beefcafe'" in r.stderr
+    # the pin's SOURCE.txt beside an AAR of another name: not the pinned build (mln_pinned_aar's file-name half)
+    aar = next(repo.rglob("*.aar"))
+    aar.rename(aar.with_name("android-sdk-vulkan-13.7.1-exp.aar"))
+    r = check(apk("good2.apk", "beefcafe"), repo)
+    assert r.returncode == 1 and "no pinned MapLibre AAR" in r.stderr, r.stdout + r.stderr
+    # the inner run (after the precheck, under the lock) stops before anything when the pinned AAR is gone
+    r = subprocess.run(["bash", str(ROOT / "deploy/staging/build-apk.sh"), "--dry-run", "--no-upload"],
+                       env={**env, "BUILD_APK_INNER": "1", "MLN_LOCAL_MAVEN": str(tmp_path / "gone")},
+                       capture_output=True, text=True, timeout=60, cwd=ROOT)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "no pinned MapLibre AAR in MLN_LOCAL_MAVEN=" in r.stderr and "nothing was built" in r.stderr
+
+
 def test_build_apk_never_ships_an_unpinned_maplibre(tmp_path):
     """(T978, owner 2026-11-22: "Pinned upstream main (Recommended)") an AAR that is not pin.env's version — the old lean
     patch's, an experiment — is never proved against or shipped: the precheck lists it, --check-maplibre refuses."""

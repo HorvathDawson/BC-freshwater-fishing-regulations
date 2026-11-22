@@ -54,7 +54,8 @@ lands.
 `libmaplibre.so` build id (read from the APK; checked against the local AAR's). A kept APK is refused
 **before the heavy lock** if its commit is not HEAD, its tree was dirty, or it has no stamp, unless
 `--allow-stale "<reason>"` (printed). The default build carries the pinned upstream MapLibre (T978:
-`app/tools/maplibre-android/pin.env`, repo `cache/maplibre/<MLN_VERSION>`, as `deploy/staging/build-apk.sh`; no patch);
+`app/tools/maplibre-android/pin.env`, repo `cache/maplibre/<MLN_VERSION>`, as `deploy/staging/build-apk.sh`; no patch; stamped
+pinned only by build-apk.sh's rule, the AAR's name and `SOURCE.txt`'s commit);
 an experiment AAR needs `MLN_LOCAL_MAVEN=<repo> TESTBED_APK_TAG=<tag>` and is stamped LOCAL; `--stock-maplibre="<reason>"`
 builds the stock SDK under its own name (`app-testbed-stock.apk`). `run.mjs` prints the stamp at the top of the console
 and of `report.md` / `index.html` ("Build: commit … · libmaplibre build id … (pinned upstream 13.7.1-main.3a6b955)"):

@@ -106,7 +106,9 @@ describe("session.sh and run.mjs", () => {
     expect(sh).toMatch(/STOCK_MLN:\+-stock/);   // a stock APK never takes the default name
   });
   it("the default repo must hold the pinned AAR; another repo is an experiment, stamped LOCAL", () => {
-    expect(sh).toMatch(/== "android-sdk-vulkan-\$MLN_VERSION\.aar" \]\]; then MLN_KIND=pinned/);
+    // (T978 review 2) build-apk.sh's rule, not the file name alone: SOURCE.txt must name the pinned commit too
+    expect(sh).toMatch(/source deploy\/lib\/build-links\.sh && mln_pinned_aar "\$MLN_LOCAL_MAVEN"\) \]\]; then MLN_KIND=pinned/);
+    expect(sh).not.toMatch(/== "android-sdk-vulkan-\$MLN_VERSION\.aar" \]\]; then MLN_KIND=pinned/);
     expect(sh).toMatch(/elif \[\[ \$MLN_LOCAL_MAVEN == "\$MLN_DEFAULT" \]\]; then\s+log .*not the pinned.*exit 1/);
     expect(sh).toMatch(/build-stamp\.mjs" write "\$APK" "\$\{MLN_KIND:-stock\}"/);
   });

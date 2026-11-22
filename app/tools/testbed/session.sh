@@ -69,9 +69,11 @@ else
   [[ -n $MLN_AAR && $(echo "$MLN_AAR" | wc -l) -eq 1 ]] || {
     fix=$(cd "$ROOT" && source deploy/lib/build-links.sh && build_fix "${MLN_LOCAL_MAVEN#"$(pwd -P)"/}" "app/tools/maplibre-android/build.sh makes it (its README)")
     log "MLN_LOCAL_MAVEN=$MLN_LOCAL_MAVEN must hold exactly one android-sdk-vulkan AAR (found: ${MLN_AAR:-none}): $fix"; exit 1; }
-  if [[ $(basename "$MLN_AAR") == "android-sdk-vulkan-$MLN_VERSION.aar" ]]; then MLN_KIND=pinned
+  # (T978 review 2) "pinned" is build-apk.sh's own rule (the file name AND build.sh's SOURCE.txt naming MLN_COMMIT,
+  # build-links.sh mln_pinned_aar): a test-bed stamp never says pinned of an AAR every store build refuses
+  if [[ -n $(cd "$ROOT" && source deploy/lib/build-links.sh && mln_pinned_aar "$MLN_LOCAL_MAVEN") ]]; then MLN_KIND=pinned
   elif [[ $MLN_LOCAL_MAVEN == "$MLN_DEFAULT" ]]; then
-    log "$MLN_AAR is not the pinned $MLN_VERSION (pin.env): rebuild it, app/tools/maplibre-android/build.sh"; exit 1
+    log "$MLN_AAR is not the pinned $MLN_VERSION (its file name, or SOURCE.txt not naming $MLN_COMMIT; pin.env): rebuild it, app/tools/maplibre-android/build.sh"; exit 1
   else MLN_KIND=local; log "EXPERIMENT MapLibre (not the pin): $MLN_AAR"; fi
 fi
 # (T534) a KEPT APK must be the build of HEAD (clean tree) — checked here, before the heavy lock waits
