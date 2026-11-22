@@ -122,7 +122,7 @@ def _git_files(*paths: str) -> list[str]:
 def make_sandbox(dst: Path) -> Path:
     """The session's curated tree at `dst`: every tracked curated file as this checkout has it, then `fresh_review`."""
     from pipeline.common import curated as C
-    base = Path(C.load_repo().base).resolve()
+    base = Path(os.path.abspath(C.load_repo().base))   # as named, never resolved (a linked tree, pytest_configure)
     rel_base = base.relative_to(ROOT).as_posix()
     for rel in _git_files(rel_base):
         src = ROOT / rel
@@ -276,7 +276,9 @@ def pytest_configure(config):
     gen = C.load_generated()
     STATE.curated = _prefixes(Path(C.load_repo().base))
     STATE.generated = _prefixes(Path(gen.base)) + _prefixes(Path(gen.release))
-    rels = [Path(p).resolve().relative_to(ROOT).as_posix() for p in (gen.base, gen.release)]
+    # the repo paths as named, never resolved: a worktree that links data/release (or data/generated) to the main
+    # checkout's resolves outside this repo, and configure stopped the run with an INTERNALERROR (T777 review)
+    rels = [Path(os.path.abspath(p)).relative_to(ROOT).as_posix() for p in (gen.base, gen.release)]
     tracked = [os.path.abspath(ROOT / f) for f in _git_files(*rels)]
     STATE.tracked = frozenset(tracked)
     STATE.live_env = os.environ.get(C.ROOT_ENV)
