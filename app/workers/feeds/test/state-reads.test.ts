@@ -12,6 +12,8 @@ import { dispatchOnce } from "../src/dispatch";
 import { RunHealth } from "../src/health";
 import { runDfo } from "../src/dfo";
 import { runGauges } from "../src/gauges/publish";
+import { runInSeason } from "../src/inseason";
+import { INSEASON_LINKS_FORMAT } from "../../../packages/core/src/inseason";
 import { MemStore, privStore } from "./dfo.scenario";
 
 /** a store whose reads fail (R2 having a bad minute) and that records every write */
@@ -94,6 +96,28 @@ describe("a stored state that cannot be read (T558 W3)", () => {
         .rejects.toThrow(new RegExp(`${k.replace(".", "\\.")} is stored but does not parse`));
       expect(puts).toEqual([]);
     });
+
+  // T994 #4: the published in-season feed was read in a bare try/catch: an R2 blip or a torn body read as a first run
+  // (every changedAt restamped, the removed history dropped, the missing-links guard skipped) and was written back ok
+  it("in-season: the published feed unreadable or torn fails the run, nothing written; another format is a first feed", async () => {
+    const page = readFileSync(join(__dirname, "fixtures/inseason/page-2026-10-28.html"), "utf-8");
+    const links = JSON.stringify({ format: INSEASON_LINKS_FORMAT, release: "r-1", notices: {} });
+    const now = new Date("2026-11-10T12:00:00Z");
+    const ok = async () => new Response("ok");
+    for (const [why, get] of [
+      ["R2 GET 500", async (k: string) => { if (k === "index.json") throw new Error("R2 GET 500"); return k === "matches.json" ? links : null; }],
+      ["index.json is stored but does not parse", async (k: string) => (k === "index.json" ? '{"format": "inseason-feed/1", "rows": [' : k === "matches.json" ? links : null)],
+    ] as const) {
+      const puts: string[] = [];
+      await expect(runInSeason({ fetch: ok, priv: new MemStore(), feed: { get, put: async (k: string) => { puts.push(k); } }, html: page, now }))
+        .rejects.toThrow(why);
+      expect(puts, why).toEqual([]);
+    }
+    const feed = new MemStore();
+    feed.m.set("index.json", JSON.stringify({ format: "inseason-feed/0", rows: [] }));
+    feed.m.set("matches.json", links);
+    expect((await runInSeason({ fetch: ok, priv: new MemStore(), feed, html: page, now })).feed).toMatchObject({ rows: 32 });
+  });
 
   it("gauges: the last index unreadable fails the run (stations are never dropped instead of carried)", async () => {
     const FIX = join(__dirname, "fixtures/gauges");
