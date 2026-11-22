@@ -233,7 +233,8 @@ deploy/staging/upload.sh                     # the release data/release/LATEST n
 
 ## 12. Production — **Owner only**
 
-`python -m pipeline.deliver.release.publish --release data/release/<r> --yes` (plan without `--yes` first). Never Claude.
+`CONFIRM_PROD=<r-id> python -m pipeline release --prod <r-id>` (the release staging serves; it runs
+`deploy/prod/upload.sh`). Never Claude. (T994 #1: `pipeline.deliver.release.publish` uploads nothing any more.)
 
 ## Rehearsal (no credits) — Claude
 

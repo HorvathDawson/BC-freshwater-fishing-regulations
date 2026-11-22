@@ -660,7 +660,11 @@ def _read_texts(slug: str, html: str, reg: dict, was: dict, notices: List[dict])
     out of it. One URGENT notice per new text, old vs new, with what to do. The first read only stores the text."""
     try:
         texts = page_texts(html, slug)
-    except Exception:                                          # noqa: BLE001 — the page's own parse failure is told
+    except Exception as exc:                                   # noqa: BLE001 — the last texts stand, and it is TOLD
+        # (T994 #27) the comment said "told", but nothing was: the page typed (`type_page` passed), so no hold fired
+        notices.append({"key": f"dfo-text-parse:{slug}:{(reg.get('sha256') or '')[:12]}", "urgent": True,
+                        "text": f"DFO Region {slug}: the page's general text did not parse ({type(exc).__name__}: "
+                                f"{str(exc)[:120]}); the last one stands"})
         return
     old = list(was.get("texts") or [])
     if old and texts != old:

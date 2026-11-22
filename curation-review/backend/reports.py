@@ -81,45 +81,46 @@ def fetch(since: str | None = None, opener=None) -> list[dict]:
 # ── the build this app serves: its section-handle vintage, and the bundle beside it ──────────────────────────────────
 
 @lru_cache(maxsize=1)
-def _vintage() -> str | None:
-    """The served build's section-handle digest (the tiles id's prefix), or None when it cannot be read."""
-    try:
-        from pipeline.common.section_handles import digest_for
-        return digest_for(reuse._BUILD)
-    except (SystemExit, OSError):
-        return None
+def _vintage() -> str:
+    """The served build's section-handle digest (the tiles id's prefix). (T994 #15) A build without its handle table
+    raises FileNotFoundError (the 503 naming it): it was None, cached, and every report then read "another vintage"."""
+    from pipeline.common.section_handles import digest_for
+    return digest_for(reuse._BUILD)
 
 
 def _same_vintage(tiles: str | None) -> bool:
-    v = _vintage()
-    return bool(tiles and v and tiles.split(".", 1)[0] == v)
+    """Only a report that names its tiles asks the build's vintage."""
+    return bool(tiles) and tiles.split(".", 1)[0] == _vintage()
 
 
 def _node_of(sid: int) -> str | None:
+    """The section a same-vintage handle names; None only for a handle outside the table (KeyError). (T994 #15) A
+    missing table is no longer "no node": `read` says so (SystemExit, turned into the 503's FileNotFoundError)."""
     from pipeline.common.section_handles import id_at, read
     try:
-        return id_at(read(reuse._BUILD)[0], int(sid))
-    except (KeyError, SystemExit, OSError, ValueError):
+        ids = read(reuse._BUILD)[0]
+    except SystemExit as e:
+        raise FileNotFoundError(str(e)) from e
+    try:
+        return id_at(ids, int(sid))
+    except KeyError:
         return None
 
 
 def _bundle_items(sid: int) -> list[str]:
     """The waters the bundle files this section under (the bundle shares the build's handle table)."""
     from pipeline.deliver.bundle import read as R
-    try:
-        db = sqlite3.connect(f"file:{R.BUNDLE}?mode=ro", uri=True)
-    except sqlite3.Error:
-        return []
-    try:
+    # (T994 #15) a missing or unreadable bundle is said (503 / the sqlite error), never "files it under no water"
+    if not Path(R.BUNDLE).exists():
+        raise FileNotFoundError(f"no bundle at {R.BUNDLE} (python -m pipeline build)")
+    from contextlib import closing
+    with closing(sqlite3.connect(f"file:{R.BUNDLE}?mode=ro", uri=True)) as db:
         meta = dict(db.execute("SELECT k, v FROM meta WHERE k = 'section_handles'"))
         if meta.get("section_handles") != _vintage():
-            return []
+            raise FileNotFoundError(f"the bundle {R.BUNDLE} is handle vintage {meta.get('section_handles')}, the "
+                                    f"served build {reuse._BUILD} is {_vintage()}: rebuild so they agree")
         return [r[0] for r in db.execute("SELECT i.item_id FROM item_section x JOIN item i ON i.ord = x.ord "
                                          "WHERE x.sid = ? ORDER BY i.item_id", (int(sid),))]
-    except sqlite3.Error:
-        return []
-    finally:
-        db.close()
 
 
 def _item_view(item_id: str | None) -> dict | None:

@@ -1,6 +1,6 @@
 # T788 — Gates that hide their cause or do not fire when they should (found by the audit and by last night's release)
 
-Status: PARTIAL (pipeline release / deploy scripts; none let a bad release through; item 3 FIXED 3c38c1d9b; item 9 done by T765 (5d928a1fb: taps.py lists every stale declaration in one run); item 12 done (no comment cites `exclusions.ts` any more); left (Claude): items 1, 2, 4, 5, 6, 7, 8, 10, 11)
+Status: PARTIAL (pipeline release / deploy scripts; none let a bad release through; item 3 FIXED 3c38c1d9b; item 9 done by T765 (5d928a1fb: taps.py lists every stale declaration in one run); item 12 done (no comment cites `exclusions.ts` any more); items 6 and 7 FIXED a461fbc50, a424dc8a0 (T994 lane F2); left (Claude): items 1, 2, 4, 5, 8, 10, 11)
 
 Source: general audit 2026-11-16, code and guards checkers (`handoff/PLAN/audit-2026-11-16/code.md`, `handoff/PLAN/audit-2026-11-16/guards.md`).
 
@@ -16,8 +16,12 @@ Source: general audit 2026-11-16, code and guards checkers (`handoff/PLAN/audit-
 5. `--no-basemap` / `--no-synopsis` are accepted for the live release root.
 6. `pipeline/atlas/reach/channels.py` caches by `id(registry)` without holding the object (the review app could serve
    an old build's side-channel table after a promote without a restart).
+   **FIXED** (`a461fbc50`, T994 lane F2): one slot per cache holding the registry / graph themselves, compared
+   with `is` (`test_channels_cache_identity_t788.py`).
 7. Review backend: `_region_rows` returns `{}` when `splits.resolved.json` is missing; `cut_label` swallows
    `FileNotFoundError` (no silent fallbacks).
+   **FIXED** (`a424dc8a0`, T994 lane F2): `_region_rows` raises naming `splits.resolved.json` (the 503); `cut_label`
+   no longer catches a missing atlas (`test_review_backend_no_quiet_answers_t994.py`).
 8. The release ledger's record that the 407-rule diff was accepted was overwritten in the last attempt with "same
    reach run" (the diff file is still on disk): an accepted diff's record must survive a rerun after the promote.
 9. `taps.py` stops at the first stale golden declaration (three attempts last night): list them all. (The closed-part

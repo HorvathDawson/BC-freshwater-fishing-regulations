@@ -69,13 +69,11 @@ def _bounds_centre(feats: list[dict]) -> list[float] | None:
 
 def _centre(item_id: str) -> list[float] | None:
     """A lead's place: the middle of its geometry's bounds (the registry holds no coordinates). A
-    `wbk:` lake with no registry item (an unnamed FWA lake) is read from the lakes layer."""
-    try:
-        if reuse._registry().get(item_id) is None and item_id.startswith("wbk:"):
-            return _bounds_centre(reuse._features("lakes", [item_id[4:]], "waterbody"))
-        return _bounds_centre((reuse.item_geojson(item_id) or {}).get("features") or [])
-    except Exception:
-        return None
+    `wbk:` lake with no registry item (an unnamed FWA lake) is read from the lakes layer. (T994 #15) No catch: a
+    missing build or geometry source is the 503 that names it, never "no position"."""
+    if reuse._registry().get(item_id) is None and item_id.startswith("wbk:"):
+        return _bounds_centre(reuse._features("lakes", [item_id[4:]], "waterbody"))
+    return _bounds_centre((reuse.item_geojson(item_id) or {}).get("features") or [])
 
 
 @lru_cache(maxsize=32)
@@ -86,10 +84,8 @@ def _mu_centre(mu: str) -> tuple | None:
             if i.startswith("wbk:") and mu in (it.mus or ()) and it.kind == "lake"][:12]
     if not wbks:
         return None
-    try:
-        cs = [c for f in reuse._features("lakes", wbks, "waterbody") if (c := _bounds_centre([f]))]
-    except Exception:
-        return None
+    # (T994 #15) no catch: a failed read was cached here as "no position" for the life of the process
+    cs = [c for f in reuse._features("lakes", wbks, "waterbody") if (c := _bounds_centre([f]))]
     return (round(sum(c[0] for c in cs) / len(cs), 5), round(sum(c[1] for c in cs) / len(cs), 5)) if cs else None
 
 

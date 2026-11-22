@@ -437,10 +437,9 @@ def cut_label(b, meta: dict | None = None, water: str = "") -> str:
         name = re.sub(r"\s*\[\d+\]$", "", rest).strip()
         return f"{name} boundary"
     if fam == "border":
-        try:                                 # (T755 follow-up) by its own crossing, as every picker names it
-            be = border_end(base)
-        except FileNotFoundError:            # no served atlas to read the crossing from (a data-free test)
-            be = None
+        # (T755 follow-up) by its own crossing, as every picker names it. (T788 item 7) No catch: a missing served
+        # atlas is the 503 that names it, never the atlas's bare "BC boundary" read as the crossing's name
+        be = border_end(base)
         return be["label"] if be else (label if label and label != base else "BC border")
     return label or base
 
@@ -2095,33 +2094,36 @@ def _fwa_lake_poly(wbk: str):
 
     Read straight from the fisheries geopackage on the same WATERBODY_KEY the `wbk:` item id
     carries, so this is a lookup rather than a guess; cached per key. Returns None when the key is
-    not a lake, and the caller falls back to the through-line.
+    not a lake (no row for the key: the caller then draws the through-line, which IS that water).
+
+    (T994 #14) ONLY "no row" is None. A missing geopackage raises FileNotFoundError (the 503 that names it), and a
+    sqlite / WKB failure raises too: they were caught into None, cached for the life of the process, and the map drew
+    the through-line instead of the lake — the very defect this function exists to fix. The connection is closed on
+    every path.
     """
     import sqlite3
+    from contextlib import closing
+    from shapely import wkb as _wkb
+    from shapely.ops import unary_union
     src = SOURCE / "bc_fisheries_data.gpkg"
     if not src.exists():
-        return None
-    try:
-        from shapely import wkb as _wkb
-        from shapely.ops import unary_union
-        db = sqlite3.connect(f"file:{src}?mode=ro", uri=True)
+        raise FileNotFoundError(f"{src} is missing: the lake outlines on the verification map are read from it "
+                                "(fetch it with data/fetch_data.py)")
+    with closing(sqlite3.connect(f"file:{src}?mode=ro", uri=True)) as db:
         rows = db.execute("SELECT geom FROM lakes WHERE WATERBODY_KEY = ?", (int(wbk),)).fetchall()
-        db.close()
-        parts = []
-        for (blob,) in rows:
-            if not blob:
-                continue
-            # GeoPackage binary: "GP", version, flags, srs_id, an envelope whose size the flags
-            # encode, then the WKB proper.
-            env = {0: 0, 1: 32, 2: 48, 3: 48, 4: 64}.get((blob[3] >> 1) & 0x07, 0)
-            g = _wkb.loads(bytes(blob[8 + env:]))
-            if g is not None and not g.is_empty:
-                parts.append(g)
-        if not parts:
-            return None
-        return parts[0] if len(parts) == 1 else unary_union(parts)
-    except Exception:  # noqa: BLE001 — a missing layer/key must not 500 the map
+    parts = []
+    for (blob,) in rows:
+        if not blob:
+            continue
+        # GeoPackage binary: "GP", version, flags, srs_id, an envelope whose size the flags
+        # encode, then the WKB proper.
+        env = {0: 0, 1: 32, 2: 48, 3: 48, 4: 64}.get((blob[3] >> 1) & 0x07, 0)
+        g = _wkb.loads(bytes(blob[8 + env:]))
+        if g is not None and not g.is_empty:
+            parts.append(g)
+    if not parts:
         return None
+    return parts[0] if len(parts) == 1 else unary_union(parts)
 
 
 def _geo(geom, kind: str, props: dict) -> dict | None:
@@ -2191,9 +2193,11 @@ def region_words(sid: str) -> str | None:
 @lru_cache(maxsize=1)
 def _region_rows() -> dict[str, list[tuple[str, float]]]:
     """blk -> [(region cut id, route measure)] from splits.resolved.json, every crossing (one id has a row per water
-    and per crossing: `_splits_meta` keeps ONE row per id, so it put the Fraser's Region 5 cut on Antler Creek)"""
+    and per crossing: `_splits_meta` keeps ONE row per id, so it put the Fraser's Region 5 cut on Antler Creek).
+    (T788 item 7) A build without the file raises (the 503 naming it): `{}` read as "this water crosses no region line"."""
     if not SPLITS_RESOLVED_PATH.exists():
-        return {}
+        raise FileNotFoundError(f"no {SPLITS_RESOLVED_PATH}: the region-line crossings are read from it "
+                                "(the atlas build writes it: python -m pipeline build)")
     out: dict[str, list[tuple[str, float]]] = {}
     for r in json.loads(SPLITS_RESOLVED_PATH.read_text(encoding="utf-8")):
         if REGION_CUT.match(str(r.get("split_id"))) and r.get("blk") is not None and not r.get("concern"):

@@ -26,22 +26,24 @@ DFO_NAMED_WATER_TAKES_ITS_CHANNELS = True
 #: the ENTRY key a DFO place's reach input carries (`dfo_salmon.entries.to_reach_input`, never the corpus)
 CHANNELS_KEY = "_named_water_takes_its_channels"
 
-_OWNERS: dict = {}           # (id(registry),) -> {section: [items]}
-_MEMO: dict = {}             # (id(registry), id(graph)) -> {item: (side channels,)}
+#: ONE SLOT EACH, keyed by the objects THEMSELVES (T788 item 6): `(registry, {section: [items]})` and
+#: `(registry, graph, {item: (side channels,)})`. They were keyed by `id(...)` without holding the object, so after a
+#: promote the old registry could be freed and the new one land at the same address: the review app then served the
+#: old build's side-channel table. Holding the object keeps its id unique while the entry lives; `is` is the test.
+_OWNERS: list = [None, None, None]
+_MEMO: list = [None, None, None]
 
 
 def _owners(registry) -> Mapping[str, list]:
-    key = id(registry)
-    got = _OWNERS.get(key)
-    if got is None:
-        got = {}
-        for iid, it in registry.items():
-            if str(iid).startswith("area:"):
-                continue
-            for s in it.section_ids:
-                got.setdefault(s, []).append(iid)
-        _OWNERS.clear()
-        _OWNERS[key] = got
+    if _OWNERS[0] is registry:
+        return _OWNERS[2]
+    got: dict = {}
+    for iid, it in registry.items():
+        if str(iid).startswith("area:"):
+            continue
+        for s in it.section_ids:
+            got.setdefault(s, []).append(iid)
+    _OWNERS[:] = [registry, None, got]
     return got
 
 
@@ -55,11 +57,11 @@ def _length(registry, graph, iid: str) -> float:
 def side_channels(registry, graph, item_id: str) -> tuple[str, ...]:
     """Registry STREAM items that are anabranches of `item_id`: each takes water from it and returns water to it, and
     is shorter (sorted). The review app's map reads the same (`reuse.item_side_channels`)."""
-    key = (id(registry), id(graph))
-    memo = _MEMO.get(key)
-    if memo is None:
-        _MEMO.clear()
-        memo = _MEMO[key] = {}
+    if _MEMO[0] is registry and _MEMO[1] is graph:
+        memo = _MEMO[2]
+    else:
+        memo = {}
+        _MEMO[:] = [registry, graph, memo]
     if item_id in memo:
         return memo[item_id]
     it = registry.get(item_id)

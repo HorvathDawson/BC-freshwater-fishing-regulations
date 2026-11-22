@@ -101,10 +101,12 @@ def _extent_view(e: M.InSeasonExtent, labels: dict[str, str]) -> dict:
 
 
 def _derived_label(item_id: str, pid: str) -> str:
-    """A pick-point's label (lake inlet, confluence, crossing …); the id itself when the atlas is not loaded."""
+    """A pick-point's label (lake inlet, confluence, crossing …); the id itself when the water has no such point, or is
+    no longer in the registry (KeyError: its item_name already reads None). (T994 #15) Nothing else is caught: an atlas
+    that is not loaded is the 503 that names it, never a queue of raw pick ids."""
     try:
         return next((p.label for p in _points(item_id) if p.id == pid), pid)
-    except Exception:            # the queue must never fail on a label
+    except KeyError:
         return pid
 
 

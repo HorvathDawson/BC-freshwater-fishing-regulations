@@ -1,7 +1,6 @@
-"""PUBLISH A RELEASE TO R2 (P10). HUMAN-RUN: it spends nothing, but it changes what every installed app downloads.
+"""THE RELEASE UPLOAD PLAN (P10): what an upload of a release sends, in order. It SENDS NOTHING.
 
-    python -m pipeline.deliver.release.publish [--release data/release/<r>]          # the plan, nothing uploaded (default)
-    python -m pipeline.deliver.release.publish --release data/release/<r> --yes      # upload it
+    python -m pipeline.deliver.release.publish [--release data/release/<r>]          # the plan, nothing uploaded
 
 ORDER IS THE CONTRACT (MINIMAL-PACKAGING §6.4): the tile version folder (archive, mask, map assets) first, the basemap
 (T75, when the manifest names one), then the data
@@ -10,17 +9,18 @@ file that is not there yet. Every file but the manifest is named by its content 
 `Cache-Control: immutable`. The manifest is `no-cache`. Data files are stored gzipped and sent `Content-Encoding: gzip`
 (the app checks the decoded bytes against the manifest's sha256, `fetchVerified`).
 
-(T251) `--yes` STAMPS the manifest first (`stamp.py`): `published` (the day, kept once set) and, with
-`--min-app-version`, the oldest app that may apply it. Neither touches a file, the tiles block or the release id.
-
-Credentials from the environment, never the repo: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET.
-`boto3` (R2 speaks the S3 API) is needed only for `--yes`: `pip install boto3`.
+(T994 #1) NO UPLOAD FROM HERE. `--yes` once sent this plan to whatever bucket `R2_BUCKET` named, past every deploy gate
+(app_gate, pieces_gate, site_gate, the staging-equals-production check) and re-stamped the local manifest, so the next
+production promote's byte check failed. A release reaches R2 ONLY by the one release path: `python -m pipeline release
+--staging` (its stage 7 runs `deploy/staging/upload.sh`, staging bucket only), then the owner's
+`CONFIRM_PROD=<r-id> python -m pipeline release --prod <r-id>` (`deploy/prod/upload.sh`). `--yes` and
+`--min-app-version` are refused with those commands. `plan` stays the upload's own list: `pipeline release` checks a
+candidate against it.
 """
 from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 from pathlib import Path
 from typing import List, NamedTuple
@@ -76,43 +76,32 @@ def plan(release: Path, root: Path) -> List[Put]:
     return out
 
 
+#: (T994 #1) the one way a release reaches R2, said when someone asks this module to upload
+REFUSED = ("publish: this module only prints the plan; it uploads nothing (T994 #1). A release reaches R2 by the one "
+           "release path: `python -m pipeline release --staging` (staging), then the owner's "
+           "`CONFIRM_PROD=<r-id> python -m pipeline release --prod <r-id>` (production, human-only).")
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--release", type=Path, default=None, help="default: the release data/release/LATEST names")
-    ap.add_argument("--yes", action="store_true", help="upload (without it, print the plan only)")
+    ap.add_argument("--yes", action="store_true", help="REFUSED (T994 #1): uploads go through `pipeline release`")
     ap.add_argument("--min-app-version", default=None,
-                    help="(T251) stamp minAppVersion: older apps keep their data and ask to be updated")
+                    help="REFUSED (T994 #1): the staging upload stamps it (`pipeline release --min-app-version`)")
     a = ap.parse_args(argv)
+    if a.yes or a.min_app_version is not None:
+        print(REFUSED, file=sys.stderr)
+        return 2
     root = GENERATED.release
     from pipeline.deliver.release.manifest import latest
     release = a.release or latest(root)          # THE release on disk: one answer (T133)
     if release is None:
         raise SystemExit(f"publish: no release under {root} — python -m pipeline.deliver release")
-    if a.yes:                                    # T251: the publish day (and the app gate) stamped, never by the build
-        from pipeline.deliver.release.stamp import bc_today, stamp_file
-        kw = {} if a.min_app_version is None else {"min_app_version": a.min_app_version}
-        stamp_file(Path(release) / "manifest.json", today=bc_today(), **kw)
     puts = plan(Path(release), root)
     for p in puts:
-        print(f"{'PUT ' if a.yes else 'plan'} {p.key}  ({p.path.stat().st_size:,} B, {p.cache}"
-              f"{', gzip' if p.encoding else ''})")
-    if not a.yes:
-        print(f"\n{len(puts)} uploads planned; nothing sent. Add --yes to publish.", file=sys.stderr)
-        return 0
-    need = ["R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET"]
-    missing = [k for k in need if not os.environ.get(k)]
-    if missing:
-        raise SystemExit(f"publish: set {', '.join(missing)}")
-    import boto3
-    s3 = boto3.client("s3", endpoint_url=f"https://{os.environ['R2_ACCOUNT_ID']}.r2.cloudflarestorage.com",
-                      aws_access_key_id=os.environ["R2_ACCESS_KEY_ID"],
-                      aws_secret_access_key=os.environ["R2_SECRET_ACCESS_KEY"])
-    for p in puts:
-        extra = {"ContentType": p.content_type, "CacheControl": p.cache,
-                 **({"ContentEncoding": p.encoding} if p.encoding else {})}
-        s3.upload_file(str(p.path), os.environ["R2_BUCKET"], p.key, ExtraArgs=extra)
-    (root / "PUBLISHED").write_text(Path(release).name + "\n")      # T72: the prune never removes what R2 serves
-    print(f"published {release.name}: {len(puts)} objects, manifest last")
+        print(f"plan {p.key}  ({p.path.stat().st_size:,} B, {p.cache}{', gzip' if p.encoding else ''})")
+    print(f"\n{len(puts)} uploads planned; nothing sent (this module never sends: `python -m pipeline release "
+          "--staging`).", file=sys.stderr)
     return 0
 
 

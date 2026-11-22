@@ -461,11 +461,13 @@ def cannot_edit_words(extents: list[dict], why: list[str]) -> dict | None:
 
 def walks_now(loc: dict, water: dict | None) -> bool | None:
     """Does the builder walk tributaries for this place as it stands (`classify.wants_tributaries` on its own reach
-    input; a place with no extent is asked as the whole water)? None when the question cannot be asked."""
+    input; a place with no extent is asked as the whole water)? None when the question cannot be asked: the reach
+    input REFUSES the place (a ValueError — pydantic's too — names why; the screen says "unknown"). (T994 #15) Only
+    that: any other failure (a missing build, a bug) is the error it is, never a quiet "unknown"."""
     try:
         b = loc.get("binding") or {}
         return bool(_walks_tributaries(*_reach_input(loc, water, None if b.get("extents") else [{"op": "whole"}])))
-    except Exception:  # noqa: BLE001 — a place the reach input refuses has no answer here; the screen says "unknown"
+    except ValueError:
         return None
 
 
@@ -856,6 +858,26 @@ def _hints(loc: dict, water: dict | None) -> list[dict]:
     return out
 
 
+def rule_labels(rules: list[dict]) -> list[dict]:
+    """Each rule's catalogue label beside its verbatim words. (T994 #15) A rule the catalogue model REFUSES (pydantic's
+    ValidationError is a ValueError; a field it has no name for is a TypeError) still shows, its words as the label,
+    and says it was refused (`refused`); anything else (an import, a bug) is the error it is — both catches were
+    `except Exception`, and every label fell back to the verbatim text unseen."""
+    from pipeline.regs.parsing.catalogue import CatalogueRule, label
+    from pipeline.regs.dfo_salmon.typed import as_catalogue
+    out = []
+    for r in rules:
+        # (T787) a row from a table DFO commented out: shown, marked hidden (it answers nothing)
+        hid = {"hidden": True} if r.get("hidden") else {}
+        try:
+            out.append({"rule_id": r.get("rule_id"), "label": label(CatalogueRule(**as_catalogue(r))),
+                        "verbatim": r.get("verbatim") or "", **hid})
+        except (ValueError, TypeError) as ex:
+            out.append({"rule_id": r.get("rule_id"), "label": r.get("verbatim") or "",
+                        "verbatim": r.get("verbatim") or "", "refused": f"{type(ex).__name__}: {ex}"[:300], **hid})
+    return out
+
+
 def detail(location_id: str) -> dict | None:
     got = _locations().get(location_id)
     if got is None:
@@ -863,24 +885,7 @@ def detail(location_id: str) -> dict | None:
     slug, loc, water = got
     st = loc.get("source_text") or {}
     rows, rules = D.rule_rows(loc, DFO_TYPED)
-    labels = []
-    try:
-        from pipeline.regs.parsing.catalogue import CatalogueRule, label
-        from pipeline.regs.dfo_salmon.typed import as_catalogue
-        for r in rules:
-            # (T787) a row from a table DFO commented out: shown, marked hidden (it answers nothing)
-            hid = {"hidden": True} if r.get("hidden") else {}
-            try:
-                labels.append({"rule_id": r.get("rule_id"),
-                               "label": label(CatalogueRule(**as_catalogue(r))),
-                               "verbatim": r.get("verbatim") or "", **hid})
-            except Exception:  # noqa: BLE001 — a rule the catalogue model refuses still shows
-                labels.append({"rule_id": r.get("rule_id"), "label": r.get("verbatim") or "",
-                               "verbatim": r.get("verbatim") or "", **hid})
-    except Exception:  # noqa: BLE001
-        labels = [{"rule_id": r.get("rule_id"), "label": r.get("verbatim") or "",
-                   "verbatim": r.get("verbatim") or "", **({"hidden": True} if r.get("hidden") else {})}
-                  for r in rules]
+    labels = rule_labels(rules)
     m = _states().get(location_id)
     v = _verify(m, loc, water)
     # the other locations on this water: the notice's other reaches, to read the river as a whole

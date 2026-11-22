@@ -37,6 +37,7 @@ import argparse
 import json
 import re
 import sys
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
@@ -338,12 +339,16 @@ def series(station: str, model: str, timeout: float = 25.0) -> dict | None:
     if not cfg or not cfg.get("csv"):
         return None
     url = str(cfg["csv"]).format(s=station)
+    # (T994 #17) ONLY a 404 is "not in season". A timeout, a 5xx, a DNS failure or a format change raised into the same
+    # None, so a Centre outage read as a province with no forecasts; it raises now and `with_series` counts and says it.
     try:
         req = urllib.request.Request(url, headers={"User-Agent": _UA})
         with urllib.request.urlopen(req, timeout=timeout) as r:
             text = r.read().decode("utf-8", "replace")
-    except Exception:                                  # noqa: BLE001 — 404 = not in season
-        return None
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            return None
+        raise
     return parse_series(text, model)
 
 
@@ -503,11 +508,19 @@ def with_series(summary: dict[str, dict[str, dict]], stations: set[str] | None =
     want, carried, old = plan_series(summary, stations, keep, now)
     total = sum(len(r) for r in summary.values())
     n = 0
+    failed: list[tuple[tuple[str, str], str]] = []
     if want:
+        def one(k):
+            try:
+                return k, series(k[0], k[1]), None
+            except Exception as e:   # noqa: BLE001 — counted and SAID below (T994 #17), never "no forecast"
+                return k, None, f"{type(e).__name__}: {e}"
         with ThreadPoolExecutor(max_workers=workers) as pool:
-            got = list(pool.map(lambda k: (k, series(k[0], k[1])), sorted(want)))
-        for (st, model), ser in got:
-            if ser:
+            got = list(pool.map(one, sorted(want)))
+        for (st, model), ser, why in got:
+            if why is not None:
+                failed.append(((st, model), why))
+            elif ser:
                 summary[st][model]["series"] = ser
                 n += 1
     # fetched and carried alike: zoned stamps, and CLEVER's summary from its series (T126)
@@ -520,6 +533,10 @@ def with_series(summary: dict[str, dict[str, dict]], stations: set[str] | None =
     else:
         print(f"  series   {len(want)} requests, {n} fetched, {carried} carried forward, {old} stale skipped "
               f"({total} runs)")
+    if failed:
+        shown = "; ".join(f"{st} {m}: {why}" for (st, m), why in failed[:5])
+        print(f"  series   {len(failed)} of {len(want)} requests FAILED (not a 404, so not \"not in season\"): {shown}"
+              + (f"; and {len(failed) - 5} more" if len(failed) > 5 else ""), file=sys.stderr)
     return summary
 
 
