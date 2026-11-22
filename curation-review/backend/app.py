@@ -52,11 +52,13 @@ app.add_middleware(
 #: `fetch(url, {method: "POST", mode: "no-cors"})` is a "simple" request with no preflight, and it ran
 #: `POST /api/inseason/resolve` (a re-resolve + a staging publish). And a DNS-rebound name reaches 127.0.0.1 with the
 #: attacker's Host. So one check for EVERY request a browser sends (it carries `Origin` or `Sec-Fetch-Site`): the Host
-#: must be loopback, and anything but GET/HEAD/OPTIONS must come from VITE_ORIGIN exactly, the one origin CORS admits
-#: (Vite's proxy rewrites the Host and passes the browser's Origin through). A client that is no browser (curl, the
+#: must be loopback, and anything but GET/HEAD/OPTIONS must come from the review app: Vite's port on a loopback name
+#: (`WRITE_ORIGINS`: 127.0.0.1, as run.sh prints, or localhost, which the owner may type; Vite's proxy rewrites the Host
+#: and passes the browser's Origin through, so this is no CORS question). A client that is no browser (curl, the
 #: tests) is a local process, which can write the files itself. A refusal is a 403 that says why, and is logged.
 _LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "[::1]"}
 _SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
+WRITE_ORIGINS = {VITE_ORIGIN, VITE_ORIGIN.replace("//127.0.0.1:", "//localhost:", 1)}
 
 
 def browser_refusal(method: str, headers) -> str | None:
@@ -68,7 +70,7 @@ def browser_refusal(method: str, headers) -> str | None:
     name = host.rsplit(":", 1)[0] if not host.startswith("[") else host.split("]", 1)[0] + "]"
     if name not in _LOOPBACK_HOSTS:
         return f"Host {host or '(none)'!r} is not this machine's loopback (a rebound name?)"
-    if method.upper() not in _SAFE_METHODS and origin != VITE_ORIGIN:
+    if method.upper() not in _SAFE_METHODS and origin not in WRITE_ORIGINS:
         return f"a {method.upper()} from Origin {origin!r}: only the review app ({VITE_ORIGIN}) may write"
     return None
 

@@ -149,3 +149,17 @@ def test_no_release_after_the_build_says_so(tree):
     r = _run(tree, "20261020", "20261020", BUILT="")
     assert r.returncode == 1
     assert "the build named no release in data/release/CANDIDATE; nothing to hand over." in r.stderr
+
+
+def test_a_candidate_left_by_an_earlier_build_is_not_handed_over(tree):
+    # (T994 review) a release that stopped at its checks left CANDIDATE; a build that made nothing new must not hand
+    # that one over as this HYDAT's. Mutation: drop the before/after compare -> exit 0 and r-old handed over.
+    (tree / "data/release/CANDIDATE").write_text("r-old\n")
+    r = _run(tree, "20261020", "20261020", BUILT="")
+    assert r.returncode == 1
+    assert "the build made no new release: data/release/CANDIDATE still names r-old, left by an earlier build" in r.stderr
+    assert "release --staging" not in r.stdout
+    # a build that names a new release over the old candidate hands the new one over
+    r = _run(tree, "20261020", "20261020")
+    assert r.returncode == 0, r.stderr
+    assert "release r-new waits in data/release/CANDIDATE" in r.stdout

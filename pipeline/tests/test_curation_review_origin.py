@@ -44,7 +44,8 @@ def _client(app_mod, host="127.0.0.1:8787"):
 
 def test_a_post_from_another_page_is_refused_and_runs_nothing(env):
     app_mod, ran = env
-    for origin in ("https://evil.example", "null", "http://127.0.0.1:9999", "http://localhost:5173"):
+    for origin in ("https://evil.example", "null", "http://127.0.0.1:9999", "http://localhost:9999",
+                   "http://localhost.evil.example:5173", "https://127.0.0.1:5173"):
         r = _client(app_mod).post("/api/inseason/resolve", headers={"Origin": origin})
         assert r.status_code == 403, (origin, r.text)
         assert "only the review app" in r.json()["detail"]
@@ -55,11 +56,14 @@ def test_a_post_from_another_page_is_refused_and_runs_nothing(env):
 
 def test_the_review_app_itself_still_writes(env):
     app_mod, ran = env
-    for host in ("127.0.0.1:8787", "localhost:8787"):
-        r = _client(app_mod, host=host).post("/api/inseason/resolve",
-                                             headers={"Origin": app_mod.VITE_ORIGIN, "Sec-Fetch-Site": "same-origin"})
-        assert r.status_code == 200, r.text
-    assert ran == [1, 1]
+    # (T994 review) the app opened at localhost writes too: both loopback spellings of Vite's origin, nothing else
+    port = app_mod.VITE_ORIGIN.rsplit(":", 1)[1]
+    for origin in (app_mod.VITE_ORIGIN, f"http://localhost:{port}"):
+        for host in ("127.0.0.1:8787", "localhost:8787"):
+            r = _client(app_mod, host=host).post("/api/inseason/resolve",
+                                                 headers={"Origin": origin, "Sec-Fetch-Site": "same-origin"})
+            assert r.status_code == 200, (origin, host, r.text)
+    assert ran == [1, 1, 1, 1]
 
 
 def test_a_rebound_host_is_refused_even_for_a_read(env):

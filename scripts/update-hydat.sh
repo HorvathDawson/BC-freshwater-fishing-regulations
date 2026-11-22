@@ -61,6 +61,8 @@ echo "-- 2/4 envelope -----------------------------------------"
 $PY -m pipeline.gauges.feed.climatology --hydat data/source/hydat.sqlite3 --out "$FEED/clim.json"
 
 echo "-- 3/4 bundle + release (heavy) -------------------------"
+# a CANDIDATE left by an earlier build (a release that stopped at its checks) is not this run's release
+WAS=$(cat data/release/CANDIDATE 2>/dev/null || true)
 scripts/heavy.sh build 40 -- $PY -m pipeline build --hold-latest
 
 echo "-- 4/4 hand-off: the release command uploads -----------"
@@ -68,6 +70,12 @@ echo "-- 4/4 hand-off: the release command uploads -----------"
 REL=$(cat data/release/CANDIDATE 2>/dev/null || true)
 if [ -z "$REL" ] || [ ! -f "data/release/$REL/manifest.json" ]; then
   echo "   the build named no release in data/release/CANDIDATE; nothing to hand over." >&2; exit 1
+fi
+if [ "$REL" = "$WAS" ]; then
+  echo "   the build made no new release: data/release/CANDIDATE still names $REL, left by an earlier build (not this" \
+       "HYDAT's); nothing handed over. Read \`$PY -m pipeline build --status\` (a deliver stage already up to date" \
+       "means this HYDAT was already built)." >&2
+  exit 1
 fi
 
 echo ""

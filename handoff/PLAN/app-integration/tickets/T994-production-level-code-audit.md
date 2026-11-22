@@ -42,8 +42,9 @@ Each fix has a test that fails without it (checked by putting the old code back)
     (`app/workers/feeds/src/email.ts:253`, `index.ts:126` and the email snapshot). The script now refuses that with
     the right command. `.github/workflows/feeds-hydat.yml:17` (T993) has the same stale comment.
 - **2** `af396ea5d`: one middleware, `app.browser_refusal`. A browser request (one carrying Origin or Sec-Fetch-Site)
-  needs a loopback Host, and every non-GET needs `Origin == VITE_ORIGIN`; anything else is a 403 that says why, and
-  is logged. Route table unchanged. Test: `test_curation_review_origin.py`.
+  needs a loopback Host, and every non-GET needs an Origin of Vite's port on 127.0.0.1 or localhost (review nit:
+  localhost now accepted too); anything else is a 403 that says why, and is logged. Review nit 2: `update-hydat.sh`
+  refuses to hand over a CANDIDATE that an earlier build left (it compares the pointer before and after the build). Route table unchanged. Test: `test_curation_review_origin.py`.
 - **14, 15** `a424dc8a0`: `_fwa_lake_poly` now raises on a missing gpkg and returns None only when no row matches;
   it closes its connection with `closing()`. The other functions now catch only the refusal they mean:
   - `awaiting_water`: no catch left.
