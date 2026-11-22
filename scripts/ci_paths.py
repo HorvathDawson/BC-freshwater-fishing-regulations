@@ -57,7 +57,8 @@ AREAS: dict[str, list[str]] = {
             # one reads a path this list misses
             ".github/workflows/feeds-worker-ci.yml", "data/LICENSE-ODbL.md",
             "deploy/staging/build-apk.sh", "deploy/staging/build-ios-sim.sh", "deploy/staging/build-ios-testflight.sh",
-            "deploy/staging/feeds.sh", "handoff/PLAN/runbooks/release.md",
+            "deploy/staging/feeds.sh", "deploy/lib/build-links.sh", "scripts/fast-fail.sh", "scripts/heavy.sh",
+            "handoff/PLAN/runbooks/release.md",
             "pipeline/deliver/tiles/basemap.py", "pipeline/deliver/tiles/ladder.py", "pipeline/deliver/tiles/layers.py",
             "pipeline/deliver/tiles/tile-contract.json", "pipeline/gauges/consume/panel.py",
             "pipeline/gauges/feed/climatology.py", "pipeline/gauges/feed/publish.py", "scripts/test-full.sh",

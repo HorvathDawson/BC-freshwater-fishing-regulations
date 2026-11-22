@@ -148,7 +148,9 @@ off as before; shrinking is a decision of its own (keep rules + a device walk), 
   (`packages/map/src/Map.web.tsx`); `layers.json` bans it everywhere else, because an app
   that can reach the SDK can define its own layers and the two apps drift apart visually.
 - `@maplibre/maplibre-react-native` — **11.5.0, exact** (N1 → N2): the native map renderer, MapLibre Native
-  Android 13.6.1 / iOS 6.31.0 (fetched by SPM in the plugin's Podfile hook), reading the SAME `atlas.pmtiles` /
+  Android (the binding asks for 13.6.1; every Android build ships instead a local build of ONE pinned upstream commit,
+  no patch: `app/tools/maplibre-android/pin.env`, T978) / iOS 6.31.0 (fetched by SPM in the plugin's Podfile hook;
+  unchanged by T978), reading the SAME `atlas.pmtiles` /
   `basemap.pmtiles` from local `pmtiles://file:///` paths with the same `runtimeStyle()`. Native code: it needs a
   development build (`expo prebuild`), not Expo Go, and its Expo config plugin is in `apps/mobile/app.json`, which is
   why `apps/mobile` lists it too (autolinking reads the app's dependencies; `layers.json` still bans importing it

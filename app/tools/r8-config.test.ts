@@ -14,6 +14,8 @@ import { describe, expect, it } from "vitest";
 
 // @ts-expect-error -- plain CommonJS config plugin run by `expo prebuild` (no types)
 import plugin from "../apps/mobile/plugins/with-no-minify.js";
+// @ts-expect-error -- plain CommonJS config plugin (T978)
+import pinned from "../apps/mobile/plugins/with-pinned-maplibre.js";
 
 const MOBILE = resolve(process.cwd(), "apps/mobile");      // vitest runs from app/
 const EXPO = resolve(process.cwd(), "node_modules/.bin/expo");
@@ -148,21 +150,51 @@ describe("T749: the keep rules reach proguard-rules.pro", () => {
   });
 });
 
-describe("T893: a production build carries the patched MapLibre (owner 2026-11-19)", () => {
-  it("production with MLN_LOCAL_MAVEN is made, and MapLibre's plugin is told the local SDK version", async () => {
+describe("T893/T978: every production Android config carries the pinned upstream MapLibre", () => {
+  const PROD = { EXPO_PUBLIC_APP_ENV: "production", EXPO_PUBLIC_CONTACT: "support@canifishthis.ca" };
+  const pin = pinned.readPin();
+  async function repoOf(version: string) {
     const { mkdtempSync, mkdirSync, writeFileSync } = await import("node:fs");
     const { tmpdir } = await import("node:os");
     const { join } = await import("node:path");
     const repo = mkdtempSync(join(tmpdir(), "t893-m2-"));
-    const dir = join(repo, "org", "maplibre", "gl", "android-sdk-vulkan", "11.99.0-t893");
+    const dir = join(repo, "org", "maplibre", "gl", "android-sdk-vulkan", version);
     mkdirSync(dir, { recursive: true });
-    writeFileSync(join(dir, "android-sdk-vulkan-11.99.0-t893.aar"), "");
-    const prod = spawnSync(EXPO, ["config", "--type", "introspect", "--json"], {
-      cwd: MOBILE, encoding: "utf8",
-      env: envFor({ MLN_LOCAL_MAVEN: repo, EXPO_PUBLIC_APP_ENV: "production", EXPO_PUBLIC_CONTACT: "support@canifishthis.ca" }),
-    });
-    expect(prod.stderr).not.toMatch(/MLN_LOCAL_MAVEN/);
+    writeFileSync(join(dir, `android-sdk-vulkan-${version}.aar`), "");
+    return repo;
+  }
+  const config = (env: Record<string, string | undefined>) =>
+    spawnSync(EXPO, ["config", "--type", "introspect", "--json"], { cwd: MOBILE, encoding: "utf8", env: envFor(env) });
+
+  it("production with the pinned repo is made, and MapLibre's plugin is told the pinned version", async () => {
+    const prod = config({ ...PROD, MLN_LOCAL_MAVEN: await repoOf(pin.MLN_VERSION) });
+    expect(prod.stderr).not.toMatch(/MLN_LOCAL_MAVEN|STOCK/);
     expect(prod.status).toBe(0);
-    expect(prod.stdout).toContain("11.99.0-t893");
+    expect(prod.stdout).toContain(pin.MLN_VERSION);
+  });
+  it("production WITHOUT it (a bare prebuild, an EAS production build) is refused, the fix named", () => {
+    for (const env of [PROD, { EAS_BUILD_PROFILE: "production", EXPO_PUBLIC_CONTACT: "support@canifishthis.ca" }]) {
+      const r = config(env);
+      expect(r.status).not.toBe(0);
+      expect(r.stderr).toMatch(/production Android\): this Android build would use the STOCK MapLibre/);
+      expect(r.stderr).toContain(`MLN_LOCAL_MAVEN=<repo>/cache/maplibre/${pin.MLN_VERSION}`);
+    }
+  });
+  it("production with another MapLibre repo (the old lean AAR, an experiment) is refused", async () => {
+    const r = config({ ...PROD, MLN_LOCAL_MAVEN: await repoOf("13.6.1-fslean") });
+    expect(r.status).not.toBe(0);
+    expect(r.stderr).toMatch(new RegExp(`holds MapLibre 13\\.6\\.1-fslean, not the pinned ${pin.MLN_VERSION.replace(/\./g, "\\.")}`));
+  });
+  it("a dev / staging config without it is made, with a warning (chosen: never block `pnpm android`)", () => {
+    expect(config({}).status).toBe(0);
+    const p = pinned.maplibreProblem({ production: false, repo: null, version: null, pin });
+    expect(p).toMatchObject({ refuse: false });
+    expect(p.message).toMatch(/STOCK MapLibre/);
+    expect(pinned.maplibreProblem({ production: true, repo: null, version: null, pin })).toMatchObject({ refuse: true });
+    expect(pinned.maplibreProblem({ production: true, repo: "/r", version: pin.MLN_VERSION, pin })).toBeNull();
+  });
+  it("app.config.js adds the check to every config (an Android mod: the iPhone prebuild never meets it)", () => {
+    expect(readFileSync(resolve(MOBILE, "app.config.js"), "utf8")).toMatch(/\["\.\/plugins\/with-pinned-maplibre", \{ production \}\]/);
+    expect(readFileSync(resolve(MOBILE, "plugins/with-pinned-maplibre.js"), "utf8")).toMatch(/return withGradleProperties\(config/);
   });
 });
