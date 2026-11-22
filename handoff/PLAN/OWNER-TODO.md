@@ -22,6 +22,8 @@ with the default Claude uses until you answer). Newest first inside each section
   admin). `redesign/stream-sections` is read-only until the 0.8.6 release.
 - **To do (you):** turn off the Copilot coding agent in the repo's Settings → Copilot (its environment is already
   deleted).
+- **T866 test trim (answered 2026-11-22):** "Speedups, remove nothing (Rec.)", "Remove 5 true duplicates", "Fold the 30
+  wording files"; not the parallel pipeline tests. Proposal: `handoff/PLAN/audit-2026-11-21/t866-proposal.md`.
 - **T998 versioning (answered):** 1.0.0 = "At public launch (Recommended)"; the bump comes from "Conventional Commits"
   (feat → minor, fix → patch, `!` → major; before 1.0 a breaking change bumps minor). You confirm each computed
   version at release.
