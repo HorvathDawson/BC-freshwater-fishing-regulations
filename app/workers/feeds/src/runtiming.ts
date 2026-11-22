@@ -68,17 +68,22 @@ export async function checkSourceRefresh(env: DispatchEnv, fetch_: Fetch, bucket
   const fetched: string | null = o ? (await o.text()).trim() : null;
   if (fetched !== null && !/^\d{4}-\d{2}-\d{2}$/.test(fetched)) throw new Error(`${SRC_DATE_KEY} reads "${fetched.slice(0, 40)}", not a date`);
   const age = fetched === null ? null : Math.floor((now.getTime() - Date.parse(fetched + "T00:00:00Z")) / 86_400_000);
+  if (age !== null && !Number.isFinite(age)) throw new Error(`${SRC_DATE_KEY} reads "${fetched}", not a real date`);
   if (age !== null && age < REFRESH_DAYS) return null;
   const month = now.toISOString().slice(0, 7), day = now.toISOString().slice(0, 10);
   const dispatch: Dispatch = await dispatchOnce(env, fetch_, dispatchStore, "feeds-runtiming.yml", `refresh:${month}`, refreshInputs(), now,
                                                 { redoAfterMs: OVERDUE_MS });
   const bad = unfinished(dispatch);
+  // (review) a refused start keys by day: under the month's key a refusal repeated every week was told once a month,
+  // and a later accepted start under that same key was never told at all
+  const refused = !bad && dispatch.state === "failed";
   const why = age === null ? "no fetch date is kept with them" : `they were fetched ${fetched} (${age} days ago)`;
   return {
-    key: bad ? `runtiming-refresh:${month}:unfinished:${day}` : `runtiming-refresh:${month}`,
+    key: bad ? `runtiming-refresh:${month}:unfinished:${day}` : refused ? `runtiming-refresh:${month}:refused:${day}` : `runtiming-refresh:${month}`,
     kind: "runtiming",
     at: now.toISOString(),
-    title: bad ? `Run timing sources: the ${month} refresh did not finish` : `Refreshing the run timing sources (${month})`,
+    title: bad ? `Run timing sources: the ${month} refresh did not finish`
+      : refused ? `Run timing sources: the ${month} refresh could not be started` : `Refreshing the run timing sources (${month})`,
     text: `The kept run-timing sources (PSF + NuSEDS) are due for their monthly refresh: ${why}. Releases are not waiting on it.\n\n` +
       dispatchSteps(dispatch, BUTTON).map((s) => s.text).join("\n"),
     data: { fetched, age, dispatch },

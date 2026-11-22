@@ -279,5 +279,16 @@ describe("(T485 step 3) the monthly run-timing sources refresh, worker-started",
     const e = await checkSourceRefresh({ GITHUB_DISPATCH_TOKEN: "t" }, async () => new Response("no", { status: 403 }), bucket("2026-01-01"), mem(), now);
     expect(e!.data).toMatchObject({ dispatch: { state: "failed" } });
     expect(e!.text).toContain("403");
+    // (review) a refusal every week is told every week, and the start that finally goes through is told too
+    const s = mem(), week = new Date(now.getTime() + 7 * 86_400_000);
+    const no = async () => new Response("no", { status: 403 });
+    const a = await checkSourceRefresh({ GITHUB_DISPATCH_TOKEN: "t" }, no, bucket("2026-11-01"), s, now);
+    const b = await checkSourceRefresh({ GITHUB_DISPATCH_TOKEN: "t" }, no, bucket("2026-11-01"), s, week);
+    expect([a!.key, b!.key]).toEqual(["runtiming-refresh:2026-12:refused:2026-12-07", "runtiming-refresh:2026-12:refused:2026-12-14"]);
+    expect(a!.title).toContain("could not be started");
+    const ok = await checkSourceRefresh({ GITHUB_DISPATCH_TOKEN: "t" }, async () => new Response(null, { status: 204 }), bucket("2026-11-01"), s,
+                                        new Date(week.getTime() + 7 * 86_400_000));
+    expect(ok!.key).toBe("runtiming-refresh:2026-12");
+    await expect(checkSourceRefresh({}, async () => new Response(), bucket("2026-13-01"), mem(), now)).rejects.toThrow("not a real date");
   });
 });
