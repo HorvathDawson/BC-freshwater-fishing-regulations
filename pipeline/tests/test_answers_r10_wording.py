@@ -37,30 +37,15 @@ def _g(water):
 
 # W1 --------------------------------------------------------------------------------------------
 def test_w1_one_lift_line_per_water_naming_each_kind_with_its_number():
-    g = _g(F.TWO)
-    assert [L["says"] for L in g["lifts"]] == [
-        "On this river, its own rule replaces Region 2’s 2-from-streams limit for hatchery rainbow "
-        "trout 50 cm (20 in) or less (up to 4 a day) and hatchery cutthroat trout (up to 3 a day)."]
-    L = g["lifts"][0]
+    # (T866) TWO's one lift line, each kind's words, the headline's `also` (highest first) and the worked lines (and
+    # the Vedder's one lift, "exactly as before"): test_answers_card_words.py CARDS
+    L = _g(F.TWO)["lifts"][0]
     assert (L["by"], L["kinds"], L["n"]) == (F.LIFT, ["RB", "CT"], 4)
-    assert L["each"] == [
-        {"kinds": ["RB"], "n": 4, "by": F.LIFT, "fish": "hatchery rainbow trout 50 cm (20 in) or less"},
-        {"kinds": ["CT"], "n": 3, "by": F.LIFT2, "fish": "hatchery cutthroat trout"}]
-
-
-def test_w1_the_headline_lists_every_lifted_number_above_it_highest_first():
-    assert _g(F.TWO)["headline"]["also"] == [
-        {"n": 4, "says": "4 if they’re hatchery rainbow trout 50 cm (20 in) or less"},
-        {"n": 3, "says": "3 if they’re hatchery cutthroat trout"}]
 
 
 def test_w1_the_worked_count_follows_the_main_lift_and_the_gate_proves_the_card():
     out, P = F.card(F.TWO, OCT10)
     g = F.trout_group(out)
-    assert [(w["q"], w["a"]) for w in g["worked"] if w["at"] == "here"] == [
-        ("If you keep 4 hatchery rainbow trout here", "that’s your trout and char for the day, everywhere."),
-        ("If you keep 2 hatchery rainbow trout here", "they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 2 more "
-                                                 "of any kind, from here or from lakes.")]
     assert CC.check_card(P, out) == []
     ix = {}
     def r(k):
@@ -87,16 +72,6 @@ def CC_ix(g, r):
             "states": [{**x, "r": r(x["r"])} for x in g["states"]],
             "caps": [{**c, "by": r(c["by"])} for c in g["caps"]],
             "tree": map_rules(g["tree"], r)}
-
-
-def test_w1_one_lift_reads_exactly_as_before():
-    g = _g(F.VEDDER)
-    assert [L["says"] for L in g["lifts"]] == [
-        "On this river, hatchery rainbow trout 50 cm (20 in) or less: up to 4 a day — this river’s rule "
-        "replaces Region 2’s 2-from-streams limit for them."]
-    assert g["lifts"][0]["each"] == [{"kinds": ["RB"], "n": 4, "by": F.LIFT,
-                                      "fish": "hatchery rainbow trout 50 cm (20 in) or less"}]
-    assert g["headline"]["also"] == [{"n": 4, "says": "4 if they’re hatchery rainbow trout 50 cm (20 in) or less"}]
 
 
 # W2 --------------------------------------------------------------------------------------------
@@ -149,40 +124,8 @@ def test_w3_a_full_label_hint_is_never_cut():
 
 
 # W4 --------------------------------------------------------------------------------------------
-# The Lines row (design v12: "make clear lines in a boat and out of a boat"): a plain statement per
-# water, derived from the clauses that decide it, and every rule deciding it cited (Kootenay Lake's
-# boat clause was shown but never cited, so its Book page never showed). The real clauses:
-PROVINCE = "zp:terminal_tackle::terminal_tackle.r1"      # "At most 2 lines (rods) per angler (lake,
-KOOTENAY = "r4:kootenay_lake_main_body::kootenay_lake_main_body.r1"   # alone in a boat); at most 1"
-
-
-def _lines(kind, kootenay=False):
-    from pipeline.deliver.answers import gear as G
-    tackle = {"family": "gear_and_method", "type": "tackle_restriction"}
-    rules = [G.Rule(PROVINCE, 4, {**tackle, "gear": [
-        {"max": 2.0, "slot": "lines_per_angler", "when": {"angler": "alone_in_boat", "water": "lake"}},
-        {"max": 1.0, "slot": "lines_per_angler"}]}),
-        G.Rule("zp:allowable_methods::allowable_methods.r2b", 4, {**tackle, "while": ["ice_fishing"],
-               "gear": [{"max": 1.0, "slot": "lines_per_angler"}]})]
-    if kootenay:
-        rules.append(G.Rule(KOOTENAY, 0, {**tackle, "gear": [
-            {"slot": "lines_per_angler", "unlimited": True, "when": {"angler": "in_boat"}}]}))
-    return G.resolve(rules, kind, ["angling"])["counts"]["lines_per_angler"]
-
-
-def test_w4_a_stream_says_its_one_line():
-    """ROUND11 A2 (owner): on a stream the boat changes nothing, so just "1 line (rod)" (it said ",
-    in a boat too")."""
-    L = _lines("stream")
-    assert (L["says"], L["cites"]) == ("1 line (rod)", [PROVINCE])
-
-
-def test_w4_a_lake_says_two_while_alone_in_a_boat():
-    L = _lines("lake")
-    assert (L["says"], L["cites"]) == ("1 line (rod); 2 while alone in a boat", [PROVINCE])
-    assert _lines(None)["says"] == "1 line (rod); 2 while alone in a boat on a lake"
-
-
-def test_w4_kootenay_lake_cites_its_boat_rule():
-    L = _lines("lake", kootenay=True)
-    assert (L["says"], L["cites"]) == ("1 line (rod) from shore; no limit from a boat", [PROVINCE, KOOTENAY])
+# The Lines row (design v12: "make clear lines in a boat and out of a boat"): a plain statement per water, derived
+# from the clauses that decide it, and every rule deciding it cited (Kootenay Lake's boat clause was shown but never
+# cited, so its Book page never showed). ROUND11 A2 (owner): on a stream the boat changes nothing, so just "1 line
+# (rod)"; a lake says two while alone in a boat; Kootenay Lake cites its boat rule. (T866) The clause set and every
+# line it says, with the rules it cites: test_answers_card_words.py GEAR ("lines: ...").

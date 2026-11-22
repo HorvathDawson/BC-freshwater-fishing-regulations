@@ -18,22 +18,11 @@ from pipeline.deliver.answers import licence as LI
 from pipeline.deliver.answers import rows as RW
 from pipeline.deliver.bundle import nearer as NR
 from pipeline.deliver.bundle import read
-from pipeline.tests import answers28_fixture as F
-
-OCT10 = (10, 10)
 
 
 # 2 ---------------------------------------------------------------------------------------------
-def test_2_a_waters_own_limit_says_whose_its_number_and_what_counts():
-    out, _P = F.card(F.BELLA_TRIB, OCT10)
-    (row,) = [r for r in out["rows"] if r.get("elsewhere") and r["scope"]["of"] == "water"]
-    assert row["elsewhere"]["says"] == ("The Bella Coola River’s rule: 1 a day here. Brown trout or rainbow trout "
-                                        "you kept anywhere else today count toward that 1. They also count toward "
-                                        "Region 2’s 4 trout and char a day.")      # T846: CT released here
-    out, _P = F.card(F.WAHLEACH, OCT10)
-    (row,) = [r for r in out["rows"] if r.get("elsewhere") and r["scope"]["of"] == "water"]
-    assert row["elsewhere"]["says"] == ("This lake’s rule: 4 a day here. Trout and char other than steelhead you "
-                                        "kept anywhere else today count toward those 4.")
+# (T866) A water's own limit says whose it is, its number and what counts (the Bella Coola's tributary, T846: CT
+# released there; Wahleach Lake): test_answers_card_words.py CARDS ("the water's own row: elsewhere says")
 
 
 # 3 ---------------------------------------------------------------------------------------------

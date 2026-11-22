@@ -1,6 +1,6 @@
 # T1003 — Android: R8 on for every release build, production included (Play: "Obfuscation 1%")
 
-Status: OPEN, for the next release (0.8.6).
+Status: OPEN, for the next release (0.9.0; owner 2026-11-22: it waits for the next chat's work).
 
 Source: owner 2026-11-22, pasting the Play Console notice verbatim: "DEX code optimization is below our threshold.
 Improve your percentages in the following categories: Obfuscation (1%). Percentages under 25% in any category of your

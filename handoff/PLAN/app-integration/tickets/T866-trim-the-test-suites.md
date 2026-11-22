@@ -1,6 +1,6 @@
 # T866 — Trim the test suites: combine the overlapping ones, remove true duplicates
 
-Status: IN PROGRESS (2026-11-22: owner picked three of four proposals; two lanes: the speedups (below) and the duplicates / wording-round fold; stays IN PROGRESS until both land).
+Status: DONE (2026-11-22: both lanes landed by PR — the speedups (#16, 67c6c813c) and the 5 duplicates + the wording fold (#17: c7894a5e8, 979b13f60, a65145a81); the owner did not pick pytest-xdist; "Left for later" lines below are small follow-ups, not this ticket).
 
 Owner 2026-11-18 ~19:10 (to the app chat), verbatim: "We should make a ticket for after the releases to try and clean up
 tests and reduce there being way too many tests. We could combine a bunch and maybe remove some that are duplicates".
@@ -56,3 +56,32 @@ Proposal: `handoff/PLAN/audit-2026-11-21/t866-proposal.md`. Nothing removed; eve
   the longest leg (site.test's) ~400 s of test time + ~150 s collect/environment over 2 workers ~4.6 min, + ~1.5 min
   setup: the vitest job's critical path **~21 min -> ~6 min**. To confirm on the PR's first run.
 - Left for the other lane / later: D1-D5, C1 (the duplicates lane), S3 (pytest-xdist on a branch), S6, X.
+
+## Lane test/T866-dedupe-fold (2026-11-22): (2) the 5 duplicates and (3) the fold — c7894a5e8, 979b13f60, a65145a81
+Each removal was proved first: the mutation the removed test caught, planted, fails the kept one (after any check only the
+removed one had was moved in).
+- D1+D2 (inputs.release "T810 M", 55 tests → trout.release "T810 N"): M also checked `inp.s`, a lake of one part and ONE
+  section at the case's metre (N took the first); all three moved into N first. Mutations failing N: trout cell decoded
+  null (60 fail), segment off by one (59), a duplicated section line (11; N alone passed it before), vectors with no null
+  cell (1). inputs.release 185 → 130 tests.
+- D3 (card.parity oracle meta ⊂ settle.parity's): oracle version, year, a dropped state each fail the kept test.
+- D4 (r13 gear sentences = r12 test_w5): its "no any hook" check moved into r12's. Mutations failing r12: the no-hook
+  suppression removed, the weight sentence reworded.
+- D5 (test_one_data_flow promote refusal): NOT a pure duplicate as it stood — it asked with `dry_run=True`, and a dry
+  run returning before the refusals was caught by it alone. The kept test_atlas_inputs test now asks a dry run too (no
+  marker; an empty folder); then both mutations (refusals removed; dry run first) fail it.
+- Fold: every sentence pinned on a card or a gear answer in the 30 files is one entry of one row:
+  `pipeline/tests/test_answers_card_words.py` (no data: CARDS 18 rows / 127 entries per fixture water and day, GATE 2/4,
+  GEAR 8/11) and `test_answers_card_words_live.py` (needs_bundle, LIVE 8 rows / 33 entries); a sentence two rows say is a
+  named constant. The rounds keep numbers, ids, mutations, gate refusals and composers on made-up records; 46 emptied
+  tests are gone, no file deleted (RULINGS/ANSWERS-SPEC cite them; no removed test name is cited anywhere).
+  Before → after (30 files; after = the same 30 + the 2 tables): 254 → 213 test functions, 261 → 252 collected
+  (no-data tier 228 → 213), 728 → 504 asserts plus 175 table entries; 485 sentence asserts (282 distinct sentences) →
+  141 distinct left in round asserts + 181 in table rows. Inventory, assert by assert (moved / collapsed-into / stays,
+  with reason): `handoff/PLAN/audit-2026-11-21/t866-fold-inventory.tsv`. A wording mutation of the record duty failed 4
+  files before, 1 after; of the share line's "of the 4", 7 before, 1 after.
+- Live tier, these 32 files (+ the 2 tables after): 306 passed before, 296 after (the difference is the removed tests);
+  no-data tier of the touched files, anchors scanner, test_workflow_pins / test_ci_paths / test_test_anchors /
+  test_smoke_coverage / test_no_silent_skips pass; app: the 6 touched conformance files 717 passed, tsc -b clean.
+- Left for later (not folded, not card words): r20g/r20h pin the same possession glossary term; r15/r16_wording the same
+  under-16 sentences; r14/r15 the same weekday sentence (`say_weekdays`); r18/r19 the same cm_in pins.

@@ -33,13 +33,11 @@ def _tiers(g):
 
 # C1 ---------------------------------------------------------------------------------------------
 def test_c1_an_own_tier_with_one_kind_folds_the_kind_into_its_line():
+    # (T866) the own tier's folded line and the kind's own words (the gate's), word for word: card_words CARDS
     g, _o, _P = _g(F.VEDDER)
     (own,) = [t for t in _tiers(g) if t["tier"] == "own"]
-    assert own["says"] == "This river’s rule: up to 4 hatchery rainbow trout a day"
     (rb,) = own["children"]
     assert rb["node"] == "kind" and rb["folded"] is True
-    assert rb["says"] == "Up to 4 hatchery rainbow trout"       # the gate's words stay
-    assert rb["sentence"].startswith("Up to 4 hatchery rainbow trout, ")
 
 
 def test_c1_the_fold_words_for_an_own_and_a_share_tier():
@@ -56,17 +54,15 @@ def test_c1_the_fold_words_for_an_own_and_a_share_tier():
     assert fold_words("2 a day per angler from this stream, not counting rainbow trout", "share", 2,
                       "brook, brown, cutthroat or lake trout") == \
         "2 brook, brown, cutthroat or lake trout a day per angler from this stream"
-    # the fixture's share (the Vedder) holds a size tier, not one kind: nothing folds
+    # the fixture's share (the Vedder) holds a size tier, not one kind: nothing folds (T866: its words, card_words CARDS)
     g, _o, _P = _g(F.VEDDER)
     (share,) = [t for t in _tiers(g) if t["tier"] == "share"]
-    assert share["says"] == "Up to 2 of the 4 from streams"   # ROUND UR7 A: the lift said once, by the own tier's relation
     assert all(not k.get("folded") for k in share["children"] if k["node"] == "kind")
 
 
 def test_c1_an_own_tier_with_more_kinds_does_not_fold():
     g, _o, _P = _g(F.BELLA_MAY_ST, MAY1)
-    (own,) = [t for t in _tiers(g) if t["tier"] == "own"]
-    assert own["says"] == "This river’s rule: up to 2 a day (part of the 4)"
+    (own,) = [t for t in _tiers(g) if t["tier"] == "own"]       # (T866) its words: card_words CARDS (BELLA_MAY_ST)
     assert all(not k.get("folded") for k in own["children"] if k["node"] == "kind")
     # a kind row anywhere else is never folded
     assert all(not k.get("folded") for t in _tiers(g) if t["tier"] != "own" for k in t["children"] if k["node"] == "kind")
@@ -74,13 +70,10 @@ def test_c1_an_own_tier_with_more_kinds_does_not_fold():
 
 # C2 ---------------------------------------------------------------------------------------------
 def test_c2_the_own_tier_line_drops_replaces():
-    g, _o, _P = _g(F.VEDDER)
-    (own,) = [t for t in _tiers(g) if t["tier"] == "own"]
-    assert own["replaces"].startswith("Replaces Region 2’s 2-from-streams limit")
-    assert own["line"] == "This river’s rule"
+    # (T866) the Vedder's line and replaces, and the walk's why kept on the line (VEDDER_TRIB), word for word:
+    # card_words CARDS
     g, _o, _P = _g(F.VEDDER_TRIB)               # by the tributary walk: the why stays on the line
     (own,) = [t for t in _tiers(g) if t["tier"] == "own"]
-    assert own["line"].endswith("(its row covers its tributaries, so it applies here)")
     assert "Replaces" not in own["line"]
 
 
@@ -95,6 +88,4 @@ def test_c3_the_share_comes_before_the_waters_own_tier():
 def test_c4_the_worked_lines_say_the_ends_of_the_range_only():
     g, _o, _P = _g(F.VEDDER)
     here = [w for w in g["worked"] if w["at"] == "here"]
-    assert [w["kept"] for w in here] == [4, 2]
-    assert here[0]["a"] == "that’s your trout and char for the day, everywhere."
-    assert here[1]["a"] == "they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 2 more of any kind, from here or from lakes."
+    assert [w["kept"] for w in here] == [4, 2]          # (T866) their words: the Vedder's worked lines, card_words CARDS

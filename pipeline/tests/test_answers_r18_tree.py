@@ -46,11 +46,10 @@ def test_2_sizes_in_cm_and_inches():
 
 # 1, 3, 7 (ROUND19 3 moved the size tier's kinds: test_answers_r19_tree.py pins the whole Vedder tree) ----------
 def test_1_the_vedder_tree():
+    # (T866) the root's, the own tier's and the steelhead duties' words: test_answers_card_words.py CARDS
     g, _o, _P = _tree(F.VEDDER)
     (total,) = g["tree"]
-    assert (total["tier"], total["n"], total["says"]) == ("total", 4, "4 a day per angler across Region 2, lakes included")
     share, own = total["children"]                               # ROUND20b C3: the share first
-    assert (own["tier"], own["n"], own["says"]) == ("own", 4, "This river’s rule: up to 4 hatchery rainbow trout a day")   # C1
     assert own["why_here"] is None
     (rb,) = own["children"]
     assert rb["sizes"] == {"cm": [[0, 50]], "in": [[0, 20]]}
@@ -59,7 +58,6 @@ def test_1_the_vedder_tree():
     trout, _dv, st = size["children"]
     assert trout["sizes"] == {"cm": [[30, None]], "in": [[12, None]]}
     assert (size["tier"], size["n"], size["over_cm"]) == ("size", 1, 50)
-    assert st["duties"] == ["10 a year", "stop fishing this river after 2 a day", "record each on your licence right away"]   # ROUND20g 2
     assert st["presence"]["line"] == "known_with_rules"
 
 
@@ -81,22 +79,16 @@ def test_1_the_bella_coola_may_tree_nests_the_count_and_says_the_size_cap_on_its
     assert (size["tier"], size["n"], size["extra"]) == ("size", 1, None)
 
 
-# 4 ---------------------------------------------------------------------------------------------
-def test_4_a_compact_header():
-    g, _o, _P = _tree(F.VEDDER)
-    # ROUND19 1/6: the nesting in the words; the kinds' names carry the origin, the tag does not
-    # ROUND20 1: the header IS the root tier (its words, named by `tier`)
-    assert g["header"] == {"says": "4 a day per angler across Region 2, lakes included", "tier": "t1", "tag": None}
-    g, _o, _P = _tree(F.LAKE)
-    assert g["header"]["says"] == "4 a day per angler across Region 2"
+# 4: the compact header (ROUND19 1/6, ROUND20 1: the header IS the root tier) is the Vedder's and the lake's `header`
+# row, word for word, in test_answers_card_words.py CARDS (T866)
 
 
 # 8 ---------------------------------------------------------------------------------------------
 def test_8_a_rule_reached_by_the_tributary_walk_says_why_it_applies_here():
     g, _o, _P = _tree(F.VEDDER_TRIB)
     own = g["tree"][0]["children"][1]                            # ROUND20b C3: after the share
-    assert own["why_here"] == "its row covers its tributaries, so it applies here"
-    assert own["line"] == "The Chilliwack River’s rule (its row covers its tributaries, so it applies here)"   # ROUND20b C2
+    # (T866) its `why_here` and line (ROUND20b C2), word for word: card_words CARDS
+    assert own["tier"] == "own"
     assert own["replaces"].startswith("Replaces Region 2’s 2-from-streams limit")
 
 
@@ -144,12 +136,11 @@ def test_t203_a_size_cap_splits_the_count_tier_it_crosses():
     size, rb, st = total["children"]
     assert (size["tier"], size["n"], size["over_cm"]) == ("size", 1, 50)
     count = size["children"][-1]
-    assert (count["tier"], count["says"]) == ("count", "Up to 1 cutthroat trout, rainbow trout or steelhead combined")
+    # (T866) the count tier's and the rainbow's / steelhead's also_counts words: card_words CARDS (COUNT)
+    assert count["tier"] == "count"
     assert [k["species"] for k in count["children"]] == [["CT"]]
     assert rb["species"] == ["RB"] and rb["sizes"]["cm"] == [[30, 50]]
-    assert [a["says"] for a in rb["also_counts"]] == ["no more than 1 counting any steelhead or cutthroat trout you keep"]
     assert st["species"] == ["ST"]
-    assert [a["says"] for a in st["also_counts"]] == ["no more than 1 counting any rainbow or cutthroat trout you keep"]
     assert not [a for k in _walk(g["tree"]) if k["node"] == "kind" for a in k["also_counts"] if a["over_cm"]]
     assert CC.check_tree(P, g) == []
 
@@ -158,8 +149,7 @@ def test_8_a_waters_own_total_reached_by_the_walk_says_why_too():
     g, _o, _P = _tree(F.BELLA_TRIB)                # Ape Creek's shape: the Bella Coola River's row by the walk
     (total,) = g["tree"]
     # T846: its cutthroat released at the source, the river's 1 is the own tier under Region 2's 4; it still says why
-    (own,) = [c for c in total["children"] if c.get("tier") == "own"]
-    assert own["says"] == "The Bella Coola River’s rule: up to 1 a day (part of the 4)"
-    assert own["line"] == "The Bella Coola River’s rule (its row covers its tributaries, so it applies here)"
+    # (T866) its own tier's words and the why on its line: card_words CARDS (BELLA_TRIB)
+    (_own,) = [c for c in total["children"] if c.get("tier") == "own"]   # under the total, by the walk
     out, P = F.card(F.BELLA_TRIB, OCT10)
     assert CC.check_card(P, out) == []

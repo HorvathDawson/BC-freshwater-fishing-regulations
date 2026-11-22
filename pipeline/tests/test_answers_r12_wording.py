@@ -27,7 +27,6 @@ from pipeline.tests import answers28_fixture as F
 from pipeline.tests import test_answers_r11_wording as R11
 
 OCT10 = (10, 10)
-SHARE_TITLE = "Up to 2 a day between them — all Region 2 streams combined"
 
 
 def _card(water, md=OCT10):
@@ -39,75 +38,23 @@ def _card(water, md=OCT10):
     return rows[0], out, P
 
 
-def _kinds(g):
-    return {k["name"]: k for b in g["buckets"] for k in b["kinds"]}
-
-
-def _notes(g):
-    # ROUND15 1: the size caps are size groups now (`sizes`); `notes` keep the counts spanning buckets
-    return [(b["title"], n["says"]) for b in g["buckets"] for n in b["notes"] + b["sizes"]]
-
-
-# W1 --------------------------------------------------------------------------------------------
-def test_w1_vedder_rainbow_any_length_50_cm_or_less():
-    row, _o, _P = _card(F.VEDDER)
-    # ROUND15 8: each kept kind says its origin
-    assert _kinds(row["group"])["Rainbow trout"]["detail"] == "hatchery, any length, 50 cm or less"
-
-
-def test_w1_other_details_stay_exact():
-    row, _o, _P = _card(F.STREAM)
-    k = _kinds(row["group"])
-    assert k["Rainbow trout"]["detail"] == "hatchery, 30–50 cm"
-    assert k["Brook trout, brown trout and cutthroat trout"]["detail"] == "hatchery, 30 cm or longer"
-    assert k["Dolly Varden/bull trout and lake trout"]["detail"] == "hatchery, 60 cm or longer"
-
-
-def test_w1_a_slot_reads_as_its_two_ranges():
-    row, _o, _P = _card(F.SLOT)
-    assert _kinds(row["group"])["Rainbow trout"]["detail"] == "60 cm or less, or 90 cm or longer"
-
-
-# W2 --------------------------------------------------------------------------------------------
-def test_w2_the_waters_own_bucket_first():
-    row, _o, _P = _card(F.VEDDER)
-    assert [b["title"] for b in row["group"]["buckets"]] == ["This river’s rule", SHARE_TITLE]
-    row, _o, _P = _card(F.TWO)
-    assert [b["title"] for b in row["group"]["buckets"]] == ["This river’s rule", SHARE_TITLE]
-    row, _o, _P = _card(F.SLOT)
-    assert [b["title"] for b in row["group"]["buckets"]] == ["This lake’s rule", "The rest of the 4 a day"]
+# W1 / W2 --------------------------------------------------------------------------------------
+# (T866) Each kind row's detail (the Vedder's "hatchery, any length, 50 cm or less", the stream's, the slot's two
+# ranges) and the buckets' order (the water's own bucket first): test_answers_card_words.py CARDS.
 
 
 # W3 --------------------------------------------------------------------------------------------
-def test_w3_a_kinds_own_cap_on_its_bucket():
-    row, _o, _P = _card(F.SLOT)
-    assert _notes(row["group"]) == [("This lake’s rule", "Rainbow trout: only 1 over 90 cm"),
-                                    ("The rest of the 4 a day", "Cutthroat trout, brown trout, Dolly Varden/bull trout, lake trout or brook trout: only 1 over 50 cm between them")]
-
-
-def test_w3_a_count_cap_over_two_kind_rows():
-    """ROUND14 3 (owner): the count over two of the bucket's kind rows is a NESTED GROUP now, not a note. "only one may
-    be a trout (cutthroat or rainbow)" names rainbow with no size, so it holds steelhead too (T623 F12, RULINGS S12, owner 2026-11-11: a rainbow rule with no size band holds steelhead too)."""
-    row, _o, _P = _card(F.COUNT)
-    assert _notes(row["group"]) == [(None, "Cutthroat trout, brown trout, Dolly Varden/bull trout, lake trout or brook trout: only 1 over 50 cm between them")]
-    (sub,) = row["group"]["buckets"][0]["groups"]
-    assert (sub["says"], sub["n"], [k["species"] for k in sub["kinds"]]) == (
-        "Cutthroat trout, rainbow trout or steelhead: 1 between them", 1, [["CT"], ["RB"], ["ST"]])
-
-
+# (T866) A kind's own cap on its bucket (the slot), the count cap over two kind rows as a nested group (ROUND14 3;
+# "only one may be a trout (cutthroat or rainbow)" names rainbow with no size, so it holds steelhead too: T623 F12,
+# RULINGS S12), the nested caps in order on one note and the implied cap not said (Wahleach): word for word in
+# test_answers_card_words.py CARDS.
 def test_w3_nested_caps_in_order_on_one_note():
     row, _o, _P = _card(F.NESTED)
     (note,) = row["group"]["buckets"][0]["sizes"]
-    assert note["says"] == "Rainbow trout, cutthroat trout, brown trout, Dolly Varden/bull trout, lake trout or brook trout: only 2 over 30 cm between them, and only 1 over 50 cm"
     assert (note["n"], note["over_cm"]) == (2, 30)
     assert [(t["n"], t["over_cm"]) for t in note["then"]] == [(1, 50)]
     states = [s["r"] for s in row["group"]["states"]]
     assert "z2:daily_quotas::trout_char_quota.r2" in states and len(states) == len(set(states))
-
-
-def test_w3_an_implied_cap_is_not_said():
-    row, _o, _P = _card(F.WAHLEACH)
-    assert _notes(row["group"]) == [(None, "Rainbow trout, cutthroat trout, brown trout, Dolly Varden/bull trout, lake trout or brook trout: only 1 over 40 cm between them")]
 
 
 def test_w3_the_gate_fails_a_wrong_nested_or_count_note():
@@ -128,10 +75,8 @@ def test_w3_the_gate_fails_a_wrong_nested_or_count_note():
 def test_w4_vedder_one_list_keep_n_then_what_it_does_not_repeat():
     row, _o, _P = _card(F.VEDDER)
     w = row["group"]["worked"]
-    assert [x["q"] for x in w] == ["If you keep 4 hatchery rainbow trout here", "If you keep 2 hatchery rainbow trout here",   # ROUND20b C4: the ends
-                                   "Kept 1 at a lake?", "Kept trout or char over 50 cm (20 in) elsewhere today?"]
+    # (T866) the lines word for word (ROUND20b C4: the ends) and the row's `elsewhere` sentence: card_words CARDS
     assert row["elsewhere"]["ask"] == []
-    assert row["elsewhere"]["says"] == "Your own limit, counted across every Region 2 stream you fish today."
     lake, over = w[2], w[3]                      # ROUND20b C4: two keep-N lines
     assert (lake["kept"], lake["at"], lake["here"], lake["most"]) == (1, "lake", 3, "exactly")
     assert (over["kept"], over["at"], over["over_cm"], over["here"], over["most"]) == \
@@ -141,17 +86,9 @@ def test_w4_vedder_one_list_keep_n_then_what_it_does_not_repeat():
 def test_w4_no_lift_the_elsewhere_lines_are_the_list():
     row, _o, _P = _card(F.STREAM)
     w = row["group"]["worked"]
-    assert [(x["q"], x["a"]) for x in w] == [
-        ("Kept 2 on another stream?", "None more here"),
-        ("Kept 1 at a lake?", "Keep 2 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams."),
-        ("Kept trout or char over 50 cm (20 in) elsewhere today?",
-         "It counts here too: at most 2 over 50 cm (20 in) a day in all — only 1 of them may be anything other "
-         "than a hatchery steelhead.")]
+    # (T866) the stream's lines and the lake's first, word for word: test_answers_card_words.py CARDS
     assert [x["here"] for x in w] == [0, 2, 1]
     assert row["elsewhere"]["ask"] == []
-    row, _o, _P = _card(F.LAKE)
-    assert [(x["q"], x["a"], x["here"]) for x in row["group"]["worked"]][0] == \
-        ("Kept 2 elsewhere today?", "Keep 2 more here", 2)
 
 
 def test_w4_the_gate_fails_a_wrong_line():
@@ -169,14 +106,10 @@ def test_w5_gear_sentences_have_no_em_dash():
     okanagan = R11._rules("lake")["summary"]["says"]
     kootenay = R11._rules("lake", kootenay=True)["summary"]["says"]
     cowichan = R11._rules("stream", hook=R11.Z1_HOOK, fly=R11.COWICHAN_FLY)["summary"]["says"]
-    # ROUND13 G/P: no "any hook", "weight on the line" (test_answers_r13_wording.py)
-    assert vedder == "1 line with a single barbless hook, no trebles (one hook, lure or fly). Weight on the line up to 1 kg (2.2 lb)."
-    assert okanagan == "1 line (2 while alone in a boat) with one hook, lure or fly. Weight on the line up to 1 kg (2.2 lb)."
-    assert kootenay == ("1 line from shore; any number from a boat, each with one hook, lure or fly. "
-                        "Weight on the line up to 1 kg (2.2 lb).")              # UR1 G
-    assert cowichan == ("Fly fishing only: 1 line with a single barbless hook, no trebles (one fly). No float or strike indicator, no sinker or "
-                        "split shot, no lure, spinner or other attracting device.")
+    # ROUND13 G/P: no "any hook", "weight on the line"; UR1 G. (T866) The four sentences word for word:
+    # test_answers_card_words.py GEAR vedder / okanagan / kootenay / cowichan
     assert not any("—" in s for s in (vedder, okanagan, kootenay, cowichan))
+    assert not any("any hook" in s for s in (vedder, okanagan, kootenay, cowichan))   # ROUND13 G (T866 D4: from r13)
 
 
 def test_t623_f12_the_size_group_gate_asks_some_n_not_the_first_n():

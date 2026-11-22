@@ -1,7 +1,8 @@
 """ANSWERS 2.8 on the REAL waters: the card gate (`card_check`) on the pinned waters and, slow, on every
-part; the card's words pinned on the Vedder, a Region 4 stream with its own lift (the Duncan) and one
-inheriting it (Lardeau Creek), Kootenay Lake, a plain Region 2 lake and a plain Region 2 stream.
-The no-data twins of these tests (CI's no-data tier) are `test_answers_28_card.py`.
+part; what is not a sentence on the Vedder, Kootenay Lake and a plain Region 2 stream. The card's words on
+those waters, a Region 4 stream with its own lift (the Duncan), one inheriting it (Lardeau Creek) and a plain
+Region 2 lake are `test_answers_card_words_live.py` (T866). The no-data twins of these tests (CI's no-data tier)
+are `test_answers_28_card.py` and `test_answers_card_words.py`.
 
 `UI_EXPORT_BUNDLE` / `ANSWERS_EXPORT_DIR` point the suite at a side bundle and its export pair.
 """
@@ -69,73 +70,25 @@ def test_the_card_gate_proves_the_pinned_waters():
 
 @pytest.mark.needs_bundle
 def test_vedder_mouth_oct_10_card(built):
+    # (T866) the card's words (every line, the share's origin, possession, the rainbow's size, the worked list):
+    # test_answers_card_words_live.py LIVE
     row = _trout(built, VEDDER, ("mouth",))
-    assert _text(row) == [
-        "2 hatchery trout/char a day from streams",                   # T475 ask 1
-        # ROUND20g 1: the origin is the stream share's (its tier says it), not the group's
-        "On this river, hatchery rainbow trout 50 cm (20 in) or less: up to 4 a day — this river’s rule "
-        "replaces Region 2’s 2-from-streams limit for them.",
-        "No more than 4 trout and char a day per angler across Region 2, lakes included.",
-        # ROUND12 2: the river's own bucket first
-        "This river’s rule",
-        "RB 4: counts toward the 4 a day",
-        "Up to 2 a day between them — all Region 2 streams combined",
-        "Cutthroat trout, brown trout, Dolly Varden/bull trout, lake trout or brook trout: only 1 over 50 cm "
-        "between them",
-        "EB/GB/CT 2: ",
-        "DV/LT 1: ",
-        "ST 2: 10 a year · stop fishing this river after 2 a day · record each on your licence right away"]   # ROUND20g 2
-    share = next(t for t in row["group"]["tree"][0]["children"] if t["tier"] == "share")
-    assert share["origin"] == "From streams, keep hatchery fish only — wild trout and char go back."   # ROUND20g 1
     # ROUND20h 3: possession on the group's TOTAL (p.21 "Possession quotas = 2 daily quotas"), not the stream share
     ps = row["group"]["possession"]
     assert (ps["per_daily"], ps["of"], ps["n"]) == (2, 4, 8)
-    assert ps["example"] == "With 4 trout and char a day you may have 8: 2 days’ fish."
-    assert ps["doubles"] == "Possession doubles the 4 a day, not the 2 from streams."
-    # ROUND12 1: the lift's size, said as the book says it (p.22 "of any length 50 cm or less")
-    assert next(k for b in row["group"]["buckets"] for k in b["kinds"] if k["species"] == ["RB"])["detail"] \
-        == "hatchery, any length, 50 cm or less"
-    # ROUND12 4: ONE list — the keep-N count, then the examples it does not repeat
-    assert [w["q"] + " → " + w["a"] for w in row["group"]["worked"]] == [
-        "If you keep 4 hatchery rainbow trout here → that’s your trout and char for the day, everywhere.",
-        "If you keep 2 hatchery rainbow trout here → they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 2 more of any kind, from here or from lakes.",
-        "Kept 1 at a lake? → Keep 3 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams.",
-        "Kept trout or char over 50 cm (20 in) elsewhere today? → It counts here too: at most 2 over 50 cm (20 in) a day in all — "
-        "only 1 of them may be anything other than a hatchery steelhead."]
     assert row["elsewhere"]["ask"] == []
 
 
 @pytest.mark.needs_bundle
-def test_duncan_and_lardeau_cards(built):
-    d = _text(_trout(built, DUNCAN, ("mouth", "duncan_river__lardeau_river_into_duncan_river")))
-    # ROUND10 W1: the row's lifts are ONE line. T834 (owner 2026-11-17 11:10, "Strict everywhere"; RULINGS T17, T3a
-    # revised): the bull trout's own 2 equals the 2 from streams and lifts nothing, so the line names rainbow alone
-    assert d[:2] == ["2 trout/char a day from streams",            # T475: Region 4 keeps wild fish too
-                     "On this river, rainbow trout: up to 5 a day — this river’s rule replaces Region 4’s "
-                     "2-from-streams limit for them."]
-    lc = _text(_trout(built, LARDEAU_CREEK))
-    assert lc[1] == ("On the Duncan River and its tributaries, rainbow trout: up to 5 a day — the "
-                     "Duncan River’s rule replaces Region 4’s 2-from-streams limit for them.")
-
-
-@pytest.mark.needs_bundle
 def test_kootenay_lake_plain_lake_and_plain_stream_cards(built):
+    # (T866) the Duncan's, Lardeau Creek's, Kootenay Lake's, the plain lake's and the plain stream's words:
+    # test_answers_card_words_live.py LIVE
     k = _text(_trout(built, KOOTENAY_MAIN))
-    # T834 (owner 2026-11-17 13:15, box head "Lead with 5"): the lake's rainbow 10 raises the region's 5 for rainbow
-    # only; the card leads with the region's 5 and says the 10 as the rainbow's exception (still no "rule replaces")
-    assert k[:2] == ["5 trout/char a day",
-                     "On this lake, rainbow trout up to 10 a day — they count toward the 5; past 5, rainbow trout only."]
     assert not any("rule replaces" in t for t in k)
-    lake = _text(_trout(built, R2_LAKE))
-    assert lake[0] == "4 a day per angler" and ("Rainbow trout, cutthroat trout, brown trout, Dolly Varden/bull trout, lake "
-                                     "trout or brook trout: only 1 over 50 cm between them") in lake
     stream = _trout(built, R2_STREAM)
-    assert stream["group"]["headline"]["says"] == "2 hatchery trout/char a day from streams"
     assert stream["group"]["lifts"] == [] and not [w for w in stream["group"]["worked"] if w["at"] == "here"]
     # ROUND12 4: the examples are the card's one list
     assert stream["elsewhere"]["ask"] == []
-    assert [stream["group"]["worked"][0][k] for k in ("q", "a", "here")] == ["Kept 2 on another stream?",
-                                                                            "None more here", 0]
 
 
 @pytest.mark.slow

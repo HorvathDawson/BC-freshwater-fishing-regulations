@@ -287,6 +287,12 @@ def test_promote_refuses_an_unfinished_candidate(tmp_path):
     I.clear_complete(cand)                                  # a build that started and died
     with pytest.raises(SystemExit, match="not a finished atlas: no COMPLETE.json"):
         PR.promote(cand, **kw)
+    # a dry run is refused before it answers, and an empty folder too (T866 D5: was test_one_data_flow.py's copy)
+    with pytest.raises(SystemExit, match="not a finished atlas: no COMPLETE.json"):
+        PR.promote(cand, dry_run=True, **kw)
+    (tmp_path / "empty").mkdir()
+    with pytest.raises(SystemExit, match="not a finished atlas"):
+        PR.promote(tmp_path / "empty", dry_run=True, **kw)
     I.write_complete(cand, {})
     (cand / "registry.json").rename(cand / "registry.json.gone")   # listed, then missing: refused by the handles check
     with pytest.raises(SystemExit, match="not a finished atlas"):
