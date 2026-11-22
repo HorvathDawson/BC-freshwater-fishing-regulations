@@ -194,7 +194,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T858 | Web: keyboard navigation in lists, starting with search (↑/↓ move the highlight, Enter opens; owner) | PARTIAL — search keyboard merged; left: item 2 other lists, item 3 staging check | da865828d, c49d0764b | owner 2026-11-18 |
 | T862 | Search finds a water by its other names (Baker Lake → Sixteen Mile Lake); audit the stocking/bathymetry name variations (owner) | OPEN | main chat + app chat | owner 2026-11-18, future (after 0.8.1) |
 | T863 | 0.8.1 to friends: production builds, Play closed testing and TestFlight external (owner) | IN PROGRESS — production builds on Play Closed (39, Google review) and TestFlight External (0.8.2 approved; 41 in review) | 9caeddba5, 592bba8a5 | owner 2026-11-18 |
-| T866 | Trim the test suites: combine overlapping tests, remove true duplicates (owner) | OPEN | app chat + main chat | owner 2026-11-18, after the 0.8.1 releases |
+| T866 | Trim the test suites: combine overlapping tests, remove true duplicates (owner) | IN PROGRESS | app chat + main chat | owner 2026-11-18, after the 0.8.1 releases |
 | T867 | Notifications inbox: since install only, read once seen, short, with data and app updates (owner) | OPEN | app chat | owner 2026-11-18, after the 0.8.1 releases |
 | T880 | A DFO exception printed without "and tributaries" leaves out that stream only (Bulkley: Two Mile Creek; the Suskwa on the chinook row) (owner) | OPEN | main chat | owner 2026-11-18 ~20:59 |
 | T885 | DFO's lake parts on the map (Babine's 12 creek-mouth circles, Mabel north, Osoyoos north basin); said in words until then (owner) | OPEN | main chat | owner 2026-11-18 ~21:13 |
@@ -280,6 +280,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1000 | Tiles: an Adskwatim Creek stream polygon draws in the lake layer, not the stream layer (2 live tests red) | OPEN | | T931 review 2026-11-22 |
 | T1001 | Two data-tier test fixes left from T777 (the Deadman stretch-end test on the live tree; in-season tests between a promote and a release) | OPEN | — | all (depends T777; from T777's 2026-11-16 additions) |
 | T1002 | Test-anchor scanners: an `absent` rule for pipeline/tests/anchors.py; the record-equality and toBeUndefined gaps; part numbers after short template slots | OPEN | T768 | T768's lane, 2026-11-22 |
+| T1003 | Android: R8 on for every release build, production included; mapping file uploaded to Play (Play Console: "Obfuscation 1%", under its 25% threshold) | OPEN — next release (0.8.6) | T749 | owner 2026-11-22 (Play Console notice) |
 
 ## Next after closed testing
 
