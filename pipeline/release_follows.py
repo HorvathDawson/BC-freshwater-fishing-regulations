@@ -271,7 +271,9 @@ def commit(key: str, rid: str, kind: str) -> str:
         raise RuntimeError(f"release_follows.commit({key!r}): nothing changed under {', '.join(paths_of(key))}")
     subprocess.run(["git", "add", "-A", "--", *paths], cwd=REPO_ROOT, check=True)
     subprocess.run(["git", "commit", "-q", "-m",
-                    f"release {rid}: fixtures re-cut on the candidate ({kind}; pipeline release --staging, T666)\n\n"
+                    # (T998) a Conventional Commits subject: the commit-msg hook and the merge-back PR's check read it
+                    f"test(T666): the fixtures re-cut on the candidate {rid}\n\n"
+                    f"{kind[:1].upper() + kind[1:]}; made by `python -m pipeline release --staging`.\n\n"
                     "Co-Authored-By: Claude <noreply@anthropic.com>", "--", *paths], cwd=REPO_ROOT, check=True)
     return subprocess.run(["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, capture_output=True, text=True,
                           check=True).stdout.strip()

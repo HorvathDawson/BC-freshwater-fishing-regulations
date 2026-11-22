@@ -55,8 +55,9 @@ def commit_marks(repo: Path, store: Path, message: str | None = None, *,
         raise ValueError(f"{store} is not inside the repository {repo}") from None
     load(store)                                   # a store that does not load is never committed
     n = added_marks(repo, store)
-    msg = message or (f"review: {n} mark{'s' if n != 1 else ''}" if n
-                      else "review: marks store rewritten (no mark added)")
+    # (T998) a Conventional Commits subject: the commit-msg hook and the PR's check read it
+    msg = message or (f"chore(review): {n} mark{'s' if n != 1 else ''}" if n
+                      else "chore(review): the marks store rewritten (no mark added)")
     cmd = ["git", "commit", "--only", "-m", msg, "--", rel]
     if not store_changed(repo, store):
         return {"committed": False, "changed": False, "added": 0, "message": msg, "command": cmd}

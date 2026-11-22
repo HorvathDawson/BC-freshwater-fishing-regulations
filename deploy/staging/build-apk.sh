@@ -214,7 +214,8 @@ if [[ -z ${BUILD_APK_INNER:-} ]]; then
     FFB=$(cat app/dist/apk/last-play-sha 2>/dev/null || true); FFB_WHAT="the last Play build (app/dist/apk/last-play-sha)"
     if [[ -z $FFB ]]; then   # not recorded before T533: the commit of that build's versionCode bump
       LASTCODE=$(cat "$SECRETS/play-last-version-code" 2>/dev/null || true)
-      [[ -n $LASTCODE ]] && FFB=$(git log -1 --format=%H --grep "^app: versionCode $LASTCODE for Google Play" || true)
+      # (T998) the subject is `chore(release): versionCode N for Google Play …` since T998, `app: versionCode N …` before
+      [[ -n $LASTCODE ]] && FFB=$(git log -1 --format=%H -E --grep "^(app|chore\(release\)): versionCode $LASTCODE for Google Play" || true)
       FFB_WHAT="the last Play build's versionCode $LASTCODE bump (no last-play-sha recorded)"
     fi
   else
@@ -353,7 +354,9 @@ bump() {   # bump <app.json>: android.versionCode = ios.buildNumber = $NEXT
     if(a===s||!/"versionCode":\s*\d+/.test(a))throw new Error("versionCode not found");fs.writeFileSync(p,a);' "$1"
 }
 commit_bump() {   # after the artifact passed its checks: the same bump in the repo, app.json only
-  (cd "$REPO" && bump "$M/app.json" && git commit -q -m "app: versionCode $NEXT for Google Play $TRACK ($ENVWORD; build-apk.sh --play, built from ${SHA_FULL:0:12})
+  (cd "$REPO" && bump "$M/app.json" && git commit -q -m "chore(release): versionCode $NEXT for Google Play $TRACK, built from ${SHA_FULL:0:12}
+
+$ENVWORD; build-apk.sh --play. (T998: a Conventional Commits subject, read by the commit-msg hook and the PR's check.)
 
 Co-Authored-By: Claude <noreply@anthropic.com>" -- "$M/app.json") || { echo "build-apk: the versionCode $NEXT commit failed" >&2; exit 1; }
   echo "committed versionCode $NEXT (app.json only)"
