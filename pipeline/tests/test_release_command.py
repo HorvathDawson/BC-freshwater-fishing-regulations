@@ -1256,7 +1256,7 @@ def test_heavy_runs_a_scripts_precheck_before_it_takes_the_lock(tmp_path):
     import os
     import subprocess
     lock = tmp_path / "heavy-job.lock"   # T536: only the two lane names exist; HEAVY_LANES_DIR keeps it off ~/.claude
-    # (T534/T661) session.sh refuses an MLN_LOCAL_MAVEN that does not hold exactly one patched AAR: a real check (the precheck
+    # (T534/T661) session.sh refuses an MLN_LOCAL_MAVEN that does not hold exactly one AAR: a real check (the precheck
     # finds it by name), so the experiment repo here holds one stand-in AAR
     aar = tmp_path / "m2/org/maplibre/gl/android-sdk-vulkan/0-test/android-sdk-vulkan-0-test.aar"
     aar.parent.mkdir(parents=True)

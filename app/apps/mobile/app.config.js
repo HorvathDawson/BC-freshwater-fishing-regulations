@@ -27,8 +27,9 @@ if (production && process.env.EXPO_PUBLIC_MAP_LAB) {
   throw new Error("app.config.js: EXPO_PUBLIC_MAP_LAB is for staging and test-bed builds only; unset it for production");
 }
 
-// (T420, T893) a locally built MapLibre (app/tools/maplibre-patch, the lean feature-state patch) is allowed in every build,
-// production too (owner 2026-11-19: "Can't we make it use the patched one?"); build-apk.sh checks the AAB carries its build id
+// (T420, T893, T978) a locally built MapLibre is allowed in every build, production too: the pinned upstream commit with
+// no patch (app/tools/maplibre-android/pin.env, owner 2026-11-22); build-apk.sh refuses any other AAR and checks the
+// APK/AAB carries its build id
 
 // (T749) R8 (CANIFISHTHIS_R8=1, plugins/with-no-minify.js) is a trial until its phone check is recorded: not in production
 if (production && require("./plugins/with-no-minify").r8Enabled()) {
@@ -57,7 +58,8 @@ module.exports = ({ config }) => ({
       resizeMode: "contain",
       dark: { backgroundColor: ground("dark"), image: "./assets/splash/splash-dark.png" },
     }],
-    // (T420) opt-in only: unset (every normal and store build), the app uses the stock MapLibre from Maven Central
+    // (T420, T978) set by build-apk.sh / session.sh for every Android build (the pinned upstream repo); unset (a bare
+    // `expo prebuild`, the iOS build), the binding's stock MapLibre from Maven Central
     ...(process.env.MLN_LOCAL_MAVEN ? ["./plugins/with-local-maplibre"] : []),
   ],
 });

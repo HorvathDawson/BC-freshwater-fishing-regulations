@@ -148,7 +148,7 @@ describe("T749: the keep rules reach proguard-rules.pro", () => {
   });
 });
 
-describe("T893: a production build carries the patched MapLibre (owner 2026-11-19)", () => {
+describe("T893/T978: a production build carries the local (pinned upstream) MapLibre", () => {
   it("production with MLN_LOCAL_MAVEN is made, and MapLibre's plugin is told the local SDK version", async () => {
     const { mkdtempSync, mkdirSync, writeFileSync } = await import("node:fs");
     const { tmpdir } = await import("node:os");

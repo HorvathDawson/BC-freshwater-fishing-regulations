@@ -51,12 +51,14 @@ lands.
 ## The build under test is named (T534)
 
 `session.sh` writes `out/<apk>.stamp.json` beside every APK it builds: commit, whether `app/` was dirty, and the
-`libmaplibre.so` build id (read from the APK; checked against the patched AAR's when patched). A kept APK is refused
+`libmaplibre.so` build id (read from the APK; checked against the local AAR's). A kept APK is refused
 **before the heavy lock** if its commit is not HEAD, its tree was dirty, or it has no stamp, unless
-`--allow-stale "<reason>"` (printed). The default build carries the patched MapLibre (T420 lean AAR in
-`cache/maplibre/fslean-m2`, as `deploy/staging/build-apk.sh`); `--stock-maplibre="<reason>"` builds the stock SDK under
-its own name (`app-testbed-stock.apk`). `run.mjs` prints the stamp at the top of the console and of `report.md` /
-`index.html` ("Build: commit … · libmaplibre build id … (patched, T420 lean)"): quote that line in the STATUS entry.
+`--allow-stale "<reason>"` (printed). The default build carries the pinned upstream MapLibre (T978:
+`app/tools/maplibre-android/pin.env`, repo `cache/maplibre/<MLN_VERSION>`, as `deploy/staging/build-apk.sh`; no patch);
+an experiment AAR needs `MLN_LOCAL_MAVEN=<repo> TESTBED_APK_TAG=<tag>` and is stamped LOCAL; `--stock-maplibre="<reason>"`
+builds the stock SDK under its own name (`app-testbed-stock.apk`). `run.mjs` prints the stamp at the top of the console
+and of `report.md` / `index.html` ("Build: commit … · libmaplibre build id … (pinned upstream 13.7.1-main.3a6b955)"):
+quote that line in the STATUS entry.
 Existing APKs built before T534 have no stamp: rebuild with `--build`. The build still reads the live checkout (the
 stamp says if it was dirty); a clean-worktree build like `build-apk.sh` is not done here.
 

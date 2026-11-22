@@ -234,12 +234,13 @@ def test_play_build_publishes_its_own_versioncode_file_before_play_json():
 
 
 def test_production_apk_refuses_the_stock_maplibre():
-    """(T893, owner 2026-11-19: "It has to use patched one") --production never takes --stock-maplibre."""
+    """(T893, owner 2026-11-19: "It has to use patched one"; T978: the pinned upstream build) --production never takes
+    --stock-maplibre."""
     env = {k: v for k, v in os.environ.items() if k not in ("CONFIRM_PROD", "MLN_LOCAL_MAVEN")}
     r = subprocess.run(["bash", str(ROOT / "deploy/staging/build-apk.sh"), "--play", "--production", "--dry-run",
                         "--stock-maplibre=a test"], env=env, capture_output=True, text=True, timeout=30, cwd=ROOT)
     assert r.returncode == 2
-    assert "production always carries the patched MapLibre (T893); --stock-maplibre is refused" in r.stderr
+    assert "production always carries the pinned upstream MapLibre (T893, T978); --stock-maplibre is refused" in r.stderr
 
 
 def test_upload_puts_the_pointer_coupled_group_last_and_a_failed_test_reset_stops():
@@ -452,12 +453,36 @@ def test_build_apk_lists_a_missing_maplibre_repo_and_never_exits_silently(tmp_pa
     r = subprocess.run(["bash", str(ROOT / "deploy/staging/build-apk.sh"), "--precheck", "--no-upload"],
                        env={**env, "MLN_LOCAL_MAVEN": str(gone)}, capture_output=True, text=True, timeout=60, cwd=ROOT)
     assert r.returncode == 1, r.stdout + r.stderr
-    assert f"FAIL no patched MapLibre repo at {gone}" in r.stdout and "build.sh" in r.stdout
+    assert f"FAIL no pinned MapLibre repo at {gone}" in r.stdout and "maplibre-android/build.sh" in r.stdout
     assert "precheck FAILED" in r.stderr and "nothing was built" in r.stderr
     # --check-maplibre with no AAR to compare is refused, never read as "stock"
     r = subprocess.run(["bash", str(ROOT / "deploy/staging/build-apk.sh"), f"--check-maplibre={tmp_path / 'x.apk'}"],
                        env={**env, "MLN_LOCAL_MAVEN": str(gone)}, capture_output=True, text=True, timeout=60, cwd=ROOT)
-    assert r.returncode == 1 and "no patched MapLibre AAR" in r.stderr
+    assert r.returncode == 1 and "no pinned MapLibre AAR" in r.stderr
+
+
+def test_build_apk_never_ships_an_unpinned_maplibre(tmp_path):
+    """(T978, owner 2026-11-22: "Pinned upstream main (Recommended)") an AAR that is not pin.env's version — the old lean
+    patch's, an experiment — is never proved against or shipped: the precheck lists it, --check-maplibre refuses."""
+    env = {k: v for k, v in os.environ.items() if k not in ("CONFIRM_PROD", "BUILD_APK_INNER", "MLN_LOCAL_MAVEN")}
+    lean = tmp_path / "m2/org/maplibre/gl/android-sdk-vulkan/13.6.1-fslean/android-sdk-vulkan-13.6.1-fslean.aar"
+    lean.parent.mkdir(parents=True)
+    lean.write_bytes(b"")
+    r = subprocess.run(["bash", str(ROOT / "deploy/staging/build-apk.sh"), "--precheck", "--no-upload"],
+                       env={**env, "MLN_LOCAL_MAVEN": str(tmp_path / "m2")}, capture_output=True, text=True, timeout=60,
+                       cwd=ROOT)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert f"FAIL {lean} is not the pinned MapLibre" in r.stdout and "pinned upstream MapLibre" not in r.stdout
+    r = subprocess.run(["bash", str(ROOT / "deploy/staging/build-apk.sh"), f"--check-maplibre={tmp_path / 'x.apk'}"],
+                       env={**env, "MLN_LOCAL_MAVEN": str(tmp_path / "m2")}, capture_output=True, text=True, timeout=60,
+                       cwd=ROOT)
+    assert r.returncode == 1 and "no pinned MapLibre AAR" in r.stderr
+    # the default repo is the pinned one, named from pin.env (no MLN_LOCAL_MAVEN)
+    r = subprocess.run(["bash", str(ROOT / "deploy/staging/build-apk.sh"), "--precheck", "--no-upload"],
+                       env={**env, "HOME": str(tmp_path)}, capture_output=True, text=True, timeout=60, cwd=ROOT)
+    ver = next(line.split("=", 1)[1] for line in (ROOT / "app/tools/maplibre-android/pin.env").read_text().splitlines()
+               if line.startswith("MLN_VERSION="))
+    assert f"cache/maplibre/{ver}" in r.stdout, r.stdout
 
 
 def _links(cwd: Path, body: str) -> subprocess.CompletedProcess:
@@ -478,19 +503,23 @@ def test_build_links_fix_a_worktree_by_linking_the_main_checkout(tmp_path):
     subprocess.run([*git, "add", "f"], cwd=main, check=True)
     subprocess.run([*git, "commit", "-qm", "one"], cwd=main, check=True)
     subprocess.run([*git, "worktree", "add", "-q", "--detach", str(tmp_path / "wt")], cwd=main, check=True)
+    pin = dict(line.split("=", 1) for line in (ROOT / "app/tools/maplibre-android/pin.env").read_text().splitlines()
+               if line and not line.startswith("#"))
+    ver, sha9 = pin["MLN_VERSION"], pin["MLN_COMMIT"][:9]
+    repo = f"cache/maplibre/{ver}"
     (main / ".venv").mkdir()
-    (main / "cache/maplibre/fslean-m2").mkdir(parents=True)
+    (main / repo).mkdir(parents=True)
     (main / "app/workers/feeds").mkdir(parents=True)
     (main / "app/workers/feeds/.run-token").write_text("t")
     wt, m = (tmp_path / "wt").resolve(), main.resolve()
-    got = _links(wt, f"build_links_venv; build_links_node; build_links_mln {wt}/cache/maplibre/fslean-m2; "
+    got = _links(wt, f"build_links_venv; build_links_node; build_links_mln {wt}/{repo}; "
                      "build_links_file app/workers/feeds/.run-token 'the email' rotate.sh '--no-email goes on'")
     assert got.returncode == 0, got.stderr
     assert got.stdout.splitlines() == [
         f"FAIL no runnable .venv (fast-fail, the CI status, the Play API read it): ln -s {m}/.venv .venv",
         "FAIL no app/node_modules (fast-fail's app gates, wrangler): (cd app && pnpm install --offline --frozen-lockfile)",
-        f"FAIL no patched MapLibre repo at {wt}/cache/maplibre/fslean-m2 (T420/T893): mkdir -p cache/maplibre && "
-        f"ln -s {m}/cache/maplibre/fslean-m2 cache/maplibre/fslean-m2",
+        f"FAIL no pinned MapLibre repo at {wt}/{repo} (T978, upstream {sha9}): mkdir -p cache/maplibre && "
+        f"ln -s {m}/{repo} {repo}",
         f"FAIL no app/workers/feeds/.run-token (the email): mkdir -p app/workers/feeds && cp "
         f"{m}/app/workers/feeds/.run-token app/workers/feeds/.run-token; or --no-email goes on"], got.stdout
     # the main checkout itself: the command that makes each, never a link to itself
@@ -498,14 +527,23 @@ def test_build_links_fix_a_worktree_by_linking_the_main_checkout(tmp_path):
     got = _links(m, "build_links_venv; build_links_file app/workers/feeds/.run-token 'the email' rotate.sh")
     assert "scripts/bootstrap.sh" in got.stdout and "FAIL no app/workers/feeds/.run-token (the email): rotate.sh" in got.stdout
     assert "ln -s" not in got.stdout
-    # one AAR: ok, MLN_AAR names it; two: refused, MLN_AAR empty
-    aar = main / "cache/maplibre/fslean-m2/org/android-sdk-vulkan-1.aar"
+    # with no repo at all in the main checkout: the build command, pinned (no patch named)
+    got = _links(m, f"build_links_mln {m}/cache/maplibre/nowhere")
+    assert "scripts/heavy.sh mln-aar 30 -- bash app/tools/maplibre-android/build.sh <work dir>" in got.stdout
+    assert "patch" not in got.stdout.replace("no patch", "")
+    # (T978) the pinned AAR: ok, MLN_AAR names it; an AAR of another version (the old lean one): refused; two: refused
+    aar = main / f"{repo}/org/maplibre/gl/android-sdk-vulkan/{ver}/android-sdk-vulkan-{ver}.aar"
     aar.parent.mkdir(parents=True)
     aar.write_text("a")
-    got = _links(m, f"build_links_mln {m}/cache/maplibre/fslean-m2; echo \"AAR=$MLN_AAR\"")
-    assert f"AAR={m}/cache/maplibre/fslean-m2/org/android-sdk-vulkan-1.aar" in got.stdout and "FAIL" not in got.stdout
-    (aar.parent / "android-sdk-vulkan-2.aar").write_text("b")
+    got = _links(m, f"build_links_mln {m}/{repo}; echo \"AAR=$MLN_AAR\"")
+    assert f"AAR={aar}" in got.stdout and "FAIL" not in got.stdout and f"upstream {sha9}, no patch" in got.stdout
+    lean = main / "cache/maplibre/fslean-m2/org/maplibre/gl/android-sdk-vulkan/13.6.1-fslean/android-sdk-vulkan-13.6.1-fslean.aar"
+    lean.parent.mkdir(parents=True)
+    lean.write_text("l")
     got = _links(m, f"build_links_mln {m}/cache/maplibre/fslean-m2; echo \"AAR=[$MLN_AAR]\"")
+    assert f"is not the pinned MapLibre ({ver}" in got.stdout and "AAR=[]" in got.stdout
+    (aar.parent / "android-sdk-vulkan-2.aar").write_text("b")
+    got = _links(m, f"build_links_mln {m}/{repo}; echo \"AAR=[$MLN_AAR]\"")
     assert "must hold exactly one android-sdk-vulkan AAR" in got.stdout and "AAR=[]" in got.stdout
 
 

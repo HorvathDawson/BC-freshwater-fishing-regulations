@@ -4,7 +4,7 @@
 # one is listed through the caller's `bad` (its `ok` for the rest) WITH THE EXACT FIX, all of them in one run: never a
 # silent exit, never the first one alone.
 #
-# caught (0.8.4 production build, 2026-11-20, run from a worktree): no `cache/` (the patched MapLibre AAR) — the AAR
+# caught (0.8.4 production build, 2026-11-20, run from a worktree): no `cache/` (the MapLibre AAR) — the AAR
 # lookup came back empty and build-apk.sh exited with NO message (`set -e` on a failed `find`); no feeds run token (the
 # email precheck); and each was found one build attempt at a time.
 #
@@ -14,7 +14,7 @@
 #
 #   build_links_common            build_links_venv (.venv, the pipeline interpreter: fast-fail, CI status, the Play API)
 #                                 + build_links_node (app/node_modules: fast-fail's app gates, wrangler)
-#   build_links_mln <maven dir>   exactly one android-sdk-vulkan AAR in the patched MapLibre repo; sets MLN_AAR
+#   build_links_mln <maven dir>   exactly one android-sdk-vulkan AAR, the pinned one (pin.env); sets MLN_AAR
 #   build_links_file <path> <what> <make> [<or …>]  a gitignored file the build reads (run token, debug keystore);
 #                                 <make> is the fix where no main checkout holds one to copy
 #   build_links_frontend <base>   the review app's node_modules, when fast-fail will typecheck it (a frontend file
@@ -47,18 +47,24 @@ build_links_node() {
 }
 build_links_common() { build_links_venv; build_links_node; }
 
-# build_links_mln <maven dir>: MLN_AAR = the one AAR there (empty when not exactly one)
+# build_links_mln <maven dir>: MLN_AAR = the one AAR there, and only when it is the PINNED upstream build
+# (app/tools/maplibre-android/pin.env, T978): an old lean-patch AAR or an experiment is refused, never shipped quietly
 build_links_mln() {
-  local dir=$1 found
+  local dir=$1 found MLN_COMMIT MLN_VERSION
   MLN_AAR=
+  # shellcheck source=../../app/tools/maplibre-android/pin.env
+  source "$BUILD_LINKS_DIR/../../app/tools/maplibre-android/pin.env"
   if [[ ! -d $dir ]]; then
-    bad "no patched MapLibre repo at $dir (T420/T893): $(build_fix "${dir#"$BUILD_HERE"/}" \
-      "MLN_PATCH=feature-state-deltas-lean.patch MLN_VERSION=13.6.1-fslean scripts/heavy.sh mln-aar 30 -- bash app/tools/maplibre-patch/build.sh <work dir>, then MLN_LOCAL_MAVEN=<work dir>/m2")"
+    bad "no pinned MapLibre repo at $dir (T978, upstream ${MLN_COMMIT:0:9}): $(build_fix "${dir#"$BUILD_HERE"/}" \
+      "scripts/heavy.sh mln-aar 30 -- bash app/tools/maplibre-android/build.sh <work dir>")"
     return 0
   fi
   found=$(find "$dir" -name 'android-sdk-vulkan-*.aar' 2>/dev/null)
-  if [[ -n $found && $(grep -c . <<<"$found") -eq 1 ]]; then MLN_AAR=$found; ok "patched MapLibre AAR $MLN_AAR"
-  else bad "$dir must hold exactly one android-sdk-vulkan AAR (found: ${found:-none}; app/tools/maplibre-patch/README.md)"; fi
+  if [[ -z $found || $(grep -c . <<<"$found") -ne 1 ]]; then
+    bad "$dir must hold exactly one android-sdk-vulkan AAR (found: ${found:-none}; app/tools/maplibre-android/README.md)"
+  elif [[ $(basename "$found") != "android-sdk-vulkan-$MLN_VERSION.aar" ]]; then
+    bad "$found is not the pinned MapLibre ($MLN_VERSION, app/tools/maplibre-android/pin.env): point MLN_LOCAL_MAVEN at cache/maplibre/$MLN_VERSION (unset it for the default), or build it: scripts/heavy.sh mln-aar 30 -- bash app/tools/maplibre-android/build.sh <work dir>"
+  else MLN_AAR=$found; ok "pinned MapLibre AAR $MLN_AAR (upstream ${MLN_COMMIT:0:9}, no patch)"; fi
 }
 
 # build_links_file <repo path> <what reads it> <make> [<alternative>]: a gitignored file the build needs. From a
