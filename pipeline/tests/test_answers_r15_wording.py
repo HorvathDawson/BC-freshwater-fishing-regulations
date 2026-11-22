@@ -45,8 +45,7 @@ def test_1_a_size_cap_is_a_group_naming_the_kinds_it_can_bind():
     (sz,) = b["sizes"]
     assert (sz["n"], sz["over_cm"]) == (1, 50)
     assert sz["species"] == ["GB", "DV", "LT", "EB"]                       # book order, no CT/RB/ST
-    assert sz["says"] == ("Brown trout, Dolly Varden/bull trout, lake trout or brook trout: "
-                          "only 1 over 50 cm between them")
+    # (T866) its sentence: test_answers_card_words.py CARDS
     assert "ST" not in {S for x in g["not_kept"] for S in x["species"]} or "ST" not in sz["species"]
 
 
@@ -60,8 +59,7 @@ def test_1_the_gate_refuses_a_kind_the_cap_cannot_bind():
 
 def test_1_nested_sizes_are_one_group():
     g, _o, _P = _group(F.NESTED)
-    (sz,) = [s for b in g["buckets"] for s in b["sizes"]]
-    assert sz["says"].endswith("only 2 over 30 cm between them, and only 1 over 50 cm")
+    (sz,) = [s for b in g["buckets"] for s in b["sizes"]]    # (T866) its sentence, whole: card_words CARDS
     assert [(t["n"], t["over_cm"]) for t in sz["then"]] == [(1, 50)]
 
 
@@ -120,8 +118,7 @@ def test_3_a_restating_rule_is_one_line_and_a_note():
     sat, _P = F.card(F.LWA, (10, 17), at=SAT)
     ko = _ko(sat)
     assert not [x for x in ko["everyone"] if x["r"] == F.LWA_R5]
-    assert ko["restates"] == [{"r": F.LWA_R5, "of": F.LWA_R3,
-                               "says": "Kokanee from the Lower and Upper West Arms together: no more than 5 a day."}]   # UR3 6
+    # (T866) the restating note, word for word (UR3 6): test_answers_card_words.py CARDS
     roles = {k: (role, by) for k, role, by in sat["fish"]["KO"]["hatchery"]["roles"]}
     assert roles[F.LWA_R5] == ("agrees", F.LWA_R3)
 
@@ -143,15 +140,7 @@ def test_3_the_weekday_split_says_its_status_and_both_parts():
 
 
 # 5 ---------------------------------------------------------------------------------------------
-def test_5_an_own_rule_bucket_says_its_shared_cap():
-    g, _o, _P = _group(F.BELLA_MAY_ST, MAY1)
-    (b,) = [b for b in g["buckets"] if b["by"] == F.BELLA_R5]
-    assert b["between"] == "Up to 2 a day between them"
-    g2, _o, _P = _group(F.TWO)
-    (b2,) = [b for b in g2["buckets"] if b["why"] == "rule"]
-    assert b2["between"] == "Up to 4 a day between them"
-
-
+# (T866) An own-rule bucket saying its shared cap (the Bella Coola, May 1; TWO): test_answers_card_words.py CARDS
 def test_5_one_kind_needs_no_shared_cap():
     g, _o, _P = _group(F.VEDDER)
     (b,) = [b for b in g["buckets"] if b["why"] == "rule"]
@@ -159,13 +148,8 @@ def test_5_one_kind_needs_no_shared_cap():
 
 
 # 6 ---------------------------------------------------------------------------------------------
-def test_6_a_tributaries_only_rule_is_the_tributaries_rule():
-    g, _o, _P = _group(F.BELLA_TRIB, OCT10)
-    whose = {tuple(x["species"]): x["whose"] for x in g["not_kept"]}
-    assert whose[("DV", "LT", "EB")] == "the Bella Coola River’s rule for its tributaries"
-    assert whose[("ST",)] == "the Bella Coola River’s rule"
-
-
+# (T866) A tributaries-only rule reached by the walk is "the Bella Coola River’s rule for its tributaries" (and its
+# steelhead closure the river's rule): test_answers_card_words.py CARDS ("not_kept whose: …")
 def test_6_the_tributaries_rule_holds_only_on_its_dates():
     g, _o, _P = _group(F.BELLA_TRIB, (7, 15))
     assert not [x for x in g["not_kept"] if "DV" in x["species"]]
@@ -196,9 +180,7 @@ def test_8_no_the_before_a_lake():
 def test_8_each_kept_kind_says_hatchery_on_a_hatchery_only_card():
     g, _o, _P = _group(F.VEDDER_MAY, MAY15)
     # ROUND20g 1: Region 2's wild release holds on streams only — the stream share's tier says it
-    assert g["origin"] is None
-    assert [t["origin"] for t in g["tree"][0]["children"] if t.get("origin")] == \
-        ["From streams, keep hatchery fish only — wild trout and char go back."]
+    assert g["origin"] is None                                  # (T866) the share tier's origin line: card_words CARDS
     details = [k["detail"] for b in g["buckets"] for k in b["kinds"]]
     assert details and all(d.startswith("hatchery") for d in details), details
 

@@ -55,7 +55,9 @@ jobs:
     needs: changes
     if: needs.changes.outputs.run == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Tests step on hosted runners, 2026-11-22: 10, 10, 11, 14.5, 17 min, one cut off past 17.5 (+ ~3 min setup), so 20
+    # cancelled a sound run; 30 keeps the stop on a hang with room for the runner's spread
+    timeout-minutes: 30
     # (T667) the interpreter scripts/test-env.sh runs: setup-python's `python` (on PATH from the step below). A hosted
     # runner has no .venv, the local default; test-env.sh stops naming PIPELINE_PY when neither runs.
     env: { PIPELINE_PY: python }
@@ -119,7 +121,7 @@ jobs:
       # data, so those tiers are deselected here by marker; `-m` replaces pytest.ini's
       # `-m "not slow"`, so slow is deselected again explicitly.
       - name: Tests
-        run: python -m pytest -q -m "not slow and not needs_bundle and not needs_atlas and not needs_reach_run and not needs_tiles and not needs_source and not needs_cache"
+        run: python -m pytest -q --durations=25 -m "not slow and not needs_bundle and not needs_atlas and not needs_reach_run and not needs_tiles and not needs_source and not needs_cache"
 
       # (T667 slice 8) THE MINI RELEASE the app's logic tests read is what the real pipeline builds from the invented
       # world NOW: rebuilt in a temp dir (no live data: ~10 s) and compared by content with the committed copy; a

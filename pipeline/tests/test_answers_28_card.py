@@ -54,34 +54,23 @@ def _card_text(g, row):
 
 # 1 ---------------------------------------------------------------------------------------------
 def test_the_headline_is_this_waters_number_without_a_lift():
+    # (T866) the Vedder's and the lake's headline, word for word: test_answers_card_words.py CARDS
     h = _g(F.VEDDER)["headline"]
-    assert {k: v for k, v in h.items() if k != "info"} == {
-        "n": 2, "unit": "hatchery trout/char a day from streams", "says": "2 hatchery trout/char a day from streams",
-        "origin": "hatchery", "fish": "trout/char",
-        "also": [{"n": 4, "says": "4 if they’re hatchery rainbow trout 50 cm (20 in) or less"}]}
     assert h["info"]["examples"] == []                    # T475: a lift makes the count more than the ⓘ's arithmetic
     assert _g(F.STREAM)["headline"]["n"] == 2
-    assert _g(F.LAKE)["headline"] == {"n": 4, "unit": "a day per angler", "says": "4 a day per angler"}
 
 
 # 2 ---------------------------------------------------------------------------------------------
 def test_a_lift_is_said_positively_naming_whose_rule_with_its_book_page():
-    g = _g(F.VEDDER)
-    assert [L["says"] for L in g["lifts"]] == [
-        "On this river, hatchery rainbow trout 50 cm (20 in) or less: up to 4 a day — this river’s rule "
-        "replaces Region 2’s 2-from-streams limit for them."]
+    g = _g(F.VEDDER)                                          # (T866) the lift and total words: card_words CARDS
     assert g["lifts"][0]["by"] == F.LIFT                      # the page cites its Book p.22 from it
-    assert g["total_line"] == "No more than 4 trout and char a day per angler across Region 2, lakes included."
     assert not any("doesn’t apply" in t or "don’t count" in t for t in _card_text(g, None))
     assert _g(F.STREAM)["lifts"] == [] and _g(F.LAKE)["lifts"] == []
 
 
 # 3 ---------------------------------------------------------------------------------------------
 def test_steelhead_share_the_2_from_streams():
-    g = _g(F.VEDDER)
-    b, st = _kind(g, "ST")
-    assert (b["title"], b["cap"], b["by"]) == ("Up to 2 a day between them — all Region 2 streams combined", 2, F.SHARE)
-    assert st["n"] == 2 and st["name"] == "Steelhead" and st["detail"] == "hatchery rainbow trout over 50 cm"
+    g = _g(F.VEDDER)                                          # (T866) its bucket's and kind's words: card_words CARDS
     assert not any(re.search(r"[Ss]teelhead.*count toward the 4", t) for t in _card_text(g, None))
 
 
@@ -89,10 +78,7 @@ def test_steelhead_share_the_2_from_streams():
 def test_over_50_is_said_once_on_its_bucket():
     """ROUND11 A1 (owner, superseding "over 50 cm lives on the kind rows"): the bucket's note."""
     g = _g(F.VEDDER)
-    # ROUND15 1: a size group naming the kinds it binds
-    assert [n["says"] for n in _kind(g, "CT")[0]["sizes"]] == [
-        "Cutthroat trout, brown trout, Dolly Varden/bull trout, lake trout or brook trout: only 1 over 50 cm "
-        "between them"]
+    # ROUND15 1: a size group naming the kinds it binds (T866: its words, card_words CARDS)
     assert _kind(g, "CT")[1]["notes"] == [] and _kind(g, "DV")[1]["notes"] == []
     assert _kind(g, "ST")[1]["notes"] == []
     assert not any("Over 50 cm: at most" in t for t in _card_text(g, None))
@@ -122,17 +108,8 @@ def test_every_kind_row_lists_each_of_its_species_for_its_own_picture():
 
 # 8 ---------------------------------------------------------------------------------------------
 def test_q23b_the_worked_count_on_a_lifted_stream():
-    g = _g(F.VEDDER)
-    assert [{k: w[k] for k in ("kept", "q", "a")} for w in g["worked"]] == [
-        {"kept": 4, "q": "If you keep 4 hatchery rainbow trout here", "a": "that’s your trout and char for the day, everywhere."},
-        {"kept": 2, "q": "If you keep 2 hatchery rainbow trout here", "a": "they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 2 more "
-                                                                      "of any kind, from here or from lakes."},
-        # ROUND12 4: the kept-elsewhere examples the keep-N count does not repeat, in the one list
-        {"kept": 1, "q": "Kept 1 at a lake?",
-         "a": "Keep 3 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams."},
-        {"kept": 1, "q": "Kept trout or char over 50 cm (20 in) elsewhere today?",
-         "a": "It counts here too: at most 2 over 50 cm (20 in) a day in all — only 1 of them may be anything other "
-              "than a hatchery steelhead."}]
+    # (T866) the Vedder's worked lines, word for word: card_words CARDS (ROUND12 4: the kept-elsewhere examples the
+    # keep-N count does not repeat, in the one list)
     assert [w["at"] for w in _g(F.STREAM)["worked"]] == ["stream", "lake", "elsewhere"]
     assert [w["at"] for w in _g(F.LAKE)["worked"]] == ["elsewhere", "elsewhere"]
 
@@ -152,12 +129,7 @@ def test_q23b_lifted_fish_count_toward_the_stream_tally_on_other_streams_only():
     assert not E.legal([rb, rb, rb, rb, ("CT", "hatchery", 40, "lake")])
     # ROUND12 4: the kept-elsewhere examples are the card's one list (`worked`); the stream-tally
     # example is the keep-N count read backwards, so a lifted water drops it (STREAM keeps it)
-    w = _g(F.STREAM)["worked"]
-    assert [w[0]["q"], w[0]["a"], w[0]["here"]] == ["Kept 2 on another stream?", "None more here", 0]
-    # the Q16 cross-water case is in the list, not on the card
-    assert [x["a"] for x in _g(F.VEDDER)["worked"]][-1] == (
-        "It counts here too: at most 2 over 50 cm (20 in) a day in all — only 1 of them may be anything other "
-        "than a hatchery steelhead.")
+    # (T866) STREAM's first line and the Q16 cross-water case (in the list, not on the card): card_words CARDS
 
 
 # 9 ---------------------------------------------------------------------------------------------
@@ -199,7 +171,6 @@ def test_check_card_fails_when_the_tally_breaks():
 
 
 def test_the_headline_says_the_lifted_number_beside_it():
-    """Round 9 persona: a bare "2" next to a 4-rainbow lift read as the whole limit."""
-    assert _g(F.VEDDER)["headline"].get("also") == [
-        {"n": 4, "says": "4 if they’re hatchery rainbow trout 50 cm (20 in) or less"}]
+    """Round 9 persona: a bare "2" next to a 4-rainbow lift read as the whole limit (T866: the Vedder's `also`, word for
+    word, is in its headline's field in card_words CARDS)."""
     assert not _g(F.STREAM)["headline"].get("also") and not _g(F.LAKE)["headline"].get("also")

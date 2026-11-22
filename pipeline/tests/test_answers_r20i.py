@@ -23,7 +23,7 @@ from pipeline.deliver.answers.tree import walk
 from pipeline.deliver.calendar import SPEC
 from pipeline.tests import answers28_fixture as F
 
-OCT10, MAY1 = (10, 10), (5, 1)
+OCT10 = (10, 10)
 
 
 def _kinds(water, md=OCT10):
@@ -34,15 +34,11 @@ def _kinds(water, md=OCT10):
 
 # 1 -----------------------------------------------------------------------------------------------------------------
 def test_a_size_says_the_rule():
+    # (T866) the size rules said (the Vedder's brook/brown/cutthroat and char; a plain stream's rainbow, T503: the band,
+    # over 50 a steelhead; the Bella Coola May cutthroat), word for word: card_words CARDS
     k, _o = _kinds(F.VEDDER)
-    assert k[("EB", "GB", "CT")]["size_rule"] == "must be 30 cm (12 in) or longer; release any shorter"
-    assert k[("DV", "LT")]["size_rule"] == "must be 60 cm (24 in) or longer; release any shorter"
     assert k[("ST",)]["size_rule"] is None                   # the steelhead row: over 50 cm IS what it is
     assert k[("RB",)]["size_rule"] is None                   # any length up to the steelhead line
-    k, _o = _kinds(F.STREAM)
-    assert k[("RB",)]["size_rule"] == "must be 30–50 cm (12–20 in); release any shorter"   # T503: the band; over 50 a steelhead
-    k, _o = _kinds(F.BELLA_MAY_ST, MAY1)
-    assert k[("CT",)]["size_rule"] == "must be 30–33 cm (12–13 in); release any other size"
     k, _o = _kinds(F.LAKE)
     assert k[("EB", "GB", "CT", "RB")]["size_rule"] is None  # any size
 
@@ -56,12 +52,8 @@ def test_a_slot_says_the_books_between():
     assert size_rule(kn, False, 50) == "must be 30–60 cm (12–24 in), or 90 cm (35 in) or longer; release any other size"
 
 
-# 2 -----------------------------------------------------------------------------------------------------------------
-def test_the_worked_line_says_any_kind_here():
-    out, _P = F.card(F.VEDDER, OCT10)
-    w = {x["q"]: x["a"] for x in F.trout_group(out)["worked"]}
-    assert w["If you keep 2 hatchery rainbow trout here"] == \
-        "they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 2 more of any kind, from here or from lakes."
+# 2: the worked keep-share line saying what is still allowed here is the Vedder's `worked` row in
+# test_answers_card_words.py CARDS (T866)
 
 
 # 3 -----------------------------------------------------------------------------------------------------------------
@@ -99,17 +91,10 @@ def test_fly_and_hook_words_name_what_the_book_excludes():
 
 # 5 -----------------------------------------------------------------------------------------------------------------
 def test_the_stop_duty_names_the_water():
-    k, _o = _kinds(F.VEDDER)
-    assert k[("ST",)]["duties"] == ["10 a year", "stop fishing this river after 2 a day",
-                                    "record each on your licence right away"]
+    # (T866) the Vedder's "this river", word for word: card_words CARDS
     k, _o = _kinds(F.STREAM)
     assert "stop fishing this stream after 2 a day" in k[("ST",)]["duties"]
 
 
-# 6c ----------------------------------------------------------------------------------------------------------------
-def test_the_shared_limit_is_your_own():
-    out, _P = F.card(F.VEDDER, OCT10)
-    assert F.trout_row(out)["elsewhere"]["says"] == "Your own limit, counted across every Region 2 stream you fish today."
-    out, _P = F.card(F.LAKE, OCT10)
-    assert F.trout_row(out)["elsewhere"]["says"] == \
-        "Your own limit, counted across every water in Region 2 you fish today, lakes and streams alike."
+# 6c: "Your own limit, counted across …" on a stream and on a lake is the Vedder's and the lake's `elsewhere` row in
+# test_answers_card_words.py CARDS (T866)

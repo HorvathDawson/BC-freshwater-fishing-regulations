@@ -16,7 +16,7 @@ import copy
 from pipeline.deliver.answers import card_check as CC
 from pipeline.tests import answers28_fixture as F
 
-OCT10, MAY1 = (10, 10), (5, 1)
+OCT10 = (10, 10)
 
 
 def _trout(out):
@@ -41,48 +41,34 @@ def _tiers(g):
 
 # 1 ---------------------------------------------------------------------------------------------
 def test_1_the_header_is_the_tree_root():
+    # (T866) the Vedder root's words, and the lake's header (a zone total with no share: the root's words, no "lakes
+    # included"), word for word: card_words CARDS
     g, _o, _P = _g(F.VEDDER)
     (root,) = g["tree"]
-    assert root["says"] == "4 a day per angler across Region 2, lakes included"
     assert g["header"] == {"says": root["says"], "tier": root["id"], "tag": None}
-    g, _o, _P = _g(F.LAKE)                      # a zone total with no share: the root's words, no "streams included"
-    (root,) = g["tree"]
-    assert g["header"] == {"says": "4 a day per angler across Region 2", "tier": "t1", "tag": None}
+    g, _o, _P = _g(F.LAKE)
+    (_root,) = g["tree"]
 
 
 def test_1_a_waters_own_total_says_per_angler():
+    # (T866) the creek's own total, the Bella Coola's total and own tier, and its row by the tributary walk (Ape Creek's
+    # shape), word for word: card_words CARDS (COUNT, BELLA, BELLA_TRIB)
     g, _o, _P = _g(F.COUNT)
     (root,) = g["tree"]
-    assert root["says"] == "This creek’s rule: up to 2 a day per angler"
     assert g["header"]["says"] == root["says"]
     # T846: the Bella Coola's cutthroat is released at the source, so every fish its 1 holds also counts toward Region
     # 2's 4: the river's rule is the own tier under that total (the shape of its Apr 1-May 31 row), by the walk too
-    g, _o, _P = _g(F.BELLA)
-    (root,) = g["tree"]
-    assert root["says"] == "4 a day per angler across Region 2, lakes included"
-    assert [c["says"] for c in root["children"] if c.get("tier") == "own"] == [
-        "This river’s rule: up to 1 a day (part of the 4)"]
-    g, _o, _P = _g(F.BELLA_TRIB)                # the Bella Coola's row by the tributary walk (Ape Creek's shape)
-    (own,) = [c for c in g["tree"][0]["children"] if c.get("tier") == "own"]
-    assert own["says"] == "The Bella Coola River’s rule: up to 1 a day (part of the 4)"
-    assert own["line"] == "The Bella Coola River’s rule (its row covers its tributaries, so it applies here)"
+    for w in (F.BELLA, F.BELLA_TRIB):
+        g, _o, _P = _g(w)
+        (_own,) = [c for c in g["tree"][0]["children"] if c.get("tier") == "own"]
 
 
 # 2 ---------------------------------------------------------------------------------------------
 def test_2_the_lifted_share_sits_inside_the_total():
+    # (T866) its share's "of the 4" (ROUND UR7 A: the lift said once, by the own tier's relation), like a plain stream's,
+    # and the Bella Coola May own tier's "(part of the 4)", word for word: card_words CARDS
     g, _o, _P = _g(F.VEDDER)
-    (share,) = [t for t in _tiers(g) if t["tier"] == "share"]
-    assert share["says"] == "Up to 2 of the 4 from streams"   # ROUND UR7 A: the lift said once, by the own tier's relation
     assert not any("count toward" in t["says"] or "don’t use" in t["says"] for t in _tiers(g))
-
-
-def test_2_a_plain_share_says_of_the_total():
-    g, _o, _P = _g(F.STREAM)                    # a plain Region 2 stream: nothing lifted
-    (share,) = [t for t in _tiers(g) if t["tier"] == "share"]
-    assert share["says"] == "Up to 2 of the 4 from streams"
-    g, _o, _P = _g(F.BELLA_MAY_ST, MAY1)        # the own tier under the total keeps "(part of the 4)"
-    (own,) = [t for t in _tiers(g) if t["tier"] == "own"]
-    assert own["says"] == "This river’s rule: up to 2 a day (part of the 4)"
 
 
 # caps: one full stop ---------------------------------------------------------------------------

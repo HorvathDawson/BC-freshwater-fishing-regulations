@@ -10,14 +10,17 @@
      caught by accident
   G  "Write each one on your licence right away"; weight "1 kg (2.2 lb)"; a boat that lifts the line count reads "1 line
      from shore; any number from a boat" (Kootenay Lake's main body)
+
+(T866) Every sentence above, read off the fixture cards (the Vedder's total, header, share, size tier; the Bella Coola's
+May tiers and its steelhead closure) and off the gear answers (the Vedder's, Kootenay Lake's, Okanagan Lake's), is pinned
+once in test_answers_card_words.py CARDS / GEAR. What stays here is not a card's words.
 """
 from __future__ import annotations
 
 from pipeline.deliver.answers import display as D
 from pipeline.tests import answers28_fixture as F
-from pipeline.tests import test_answers_r11_wording as R11
 
-OCT10, MAY1 = (10, 10), (5, 1)
+OCT10 = (10, 10)
 
 
 def _g(water, md=OCT10):
@@ -33,67 +36,15 @@ def _walk(nodes):
 
 
 # A ---------------------------------------------------------------------------------------------
-def test_a_the_total_and_header_say_per_angler():
-    g, _o, _P = _g(F.VEDDER)
-    (total,) = g["tree"]
-    assert total["says"] == "4 a day per angler across Region 2, lakes included"
-    assert g["header"]["says"] == "4 a day per angler across Region 2, lakes included"        # ROUND20 1: the root
-    assert g["total_line"] == "No more than 4 trout and char a day per angler across Region 2, lakes included."
-
-
-def test_a_the_share_says_the_lifted_fish_do_not_use_it():
-    g, _o, _P = _g(F.VEDDER)
-    share, _own = g["tree"][0]["children"]                       # ROUND20b C3: the share first
-    assert share["says"] == "Up to 2 of the 4 from streams"   # ROUND UR7 A: the lift said once, by the own tier's relation   # ROUND20 2
+def test_a_a_plain_share_says_nothing_lifted():
     g, _o, _P = _g(F.STREAM)                    # a plain Region 2 stream: nothing lifted, nothing said
     share = next(t for t in _walk(g["tree"]) if t.get("tier") == "share")
     assert "don’t use" not in share["says"]
 
 
-# B ---------------------------------------------------------------------------------------------
-def test_b_a_size_tier_says_the_fish_in_its_box():
-    g, _o, _P = _g(F.VEDDER)
-    (size,) = g["tree"][0]["children"][0]["children"]
-    assert size["says"] == "Only 1 of all your trout and char may be over 50 cm (20 in) — not 1 per species. 2 if one of them is a hatchery steelhead."
-    g, _o, _P = _g(F.BELLA_MAY_ST, MAY1)
-    (own,) = g["tree"][0]["children"]
-    assert own["children"][0]["says"] == "Only 1 of all your trout and char may be over 50 cm (20 in) — not 1 per species."
-
-
-# D ---------------------------------------------------------------------------------------------
-def test_d_a_count_tier_says_how_many_in_all():
-    g, _o, _P = _g(F.BELLA_MAY_ST, MAY1)
-    (own,) = g["tree"][0]["children"]
-    count = own["children"][1]
-    assert count["says"] == "Up to 1 cutthroat or rainbow trout combined (part of the 2)"           # UR3 3
-    # T475: the kind is a part of the count tier it sits in
-    assert count["children"][0]["sentence"] == "Up to 1 hatchery cutthroat trout, 30–33 cm (12–13 in)"
-
-
-# F ---------------------------------------------------------------------------------------------
-def test_f_a_species_closure_says_not_even_to_release():
-    g, _o, _P = _g(F.BELLA)
-    (nk,) = [x for x in g["not_kept"] if x["species"] == ["ST"]]          # T846: the cutthroat's release is the other
-    assert nk["says"] == "Steelhead: closed, no catch and release"
-
-
 # G ---------------------------------------------------------------------------------------------
 def test_g_write_each_one_on_your_licence_right_away():
-    g, _o, _P = _g(F.VEDDER)
-    st = next(k for k in _walk(g["tree"]) if k["node"] == "kind" and k["species"] == ["ST"])
-    assert "record each on your licence right away" in st["duties"]   # ROUND20g 2
+    # (T866) the Vedder steelhead row's duties, word for word (ROUND20g 2): card_words CARDS "the tree kind ST: duties"
     x = {"type": "retention_limit", "species": ["ST"], "record_retention": True, "origin": "hatchery"}
     assert D.plain(x) == "Write each hatchery steelhead on your licence right away."
     assert D.title(x) == "Write each hatchery steelhead on your licence right away"
-
-
-def test_g_weight_in_kg_and_lb_and_boat_lines_from_shore():
-    vedder = R11._rules("stream", hook=R11.Z2_HOOK)["summary"]["says"]
-    assert vedder == ("1 line with a single barbless hook, no trebles (one hook, lure or fly). Weight on the line up to 1 kg "
-                      "(2.2 lb).")
-    kootenay = R11._rules("lake", kootenay=True)
-    assert kootenay["summary"]["says"] == ("1 line from shore; any number from a boat, each with one hook, lure or "
-                                           "fly. Weight on the line up to 1 kg (2.2 lb).")
-    assert kootenay["counts"]["lines_per_angler"]["says"] == "1 line (rod) from shore; no limit from a boat"
-    okanagan = R11._rules("lake")                # alone in a boat is not "from a boat": unchanged
-    assert okanagan["counts"]["lines_per_angler"]["says"] == "1 line (rod); 2 while alone in a boat"

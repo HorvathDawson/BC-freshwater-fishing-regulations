@@ -3,7 +3,7 @@
  * `cell`'s SELECT is the generated column list (`trout` among it), every cell's trout frame decodes (each row's fish sheet
  * back on it), and a NULL cell stays null (contract 2.1, Q-D3), never frame 0. Both fixtures: the regs fixture release
  * and the trout fixture release (`app/fixtures/trout/regs-release/`, the vectors' side release). That every vector's
- * decoded value equals Python's (`trout-vectors.generated.json`) is the conformance `inputs.release.test.ts`'s.
+ * decoded value equals Python's (`trout-vectors.generated.json`) is the conformance `trout.release.test.ts`'s.
  */
 import { describe, expect, it } from "vitest";
 import { CELL_COLUMNS, KNOWN_VERSIONS } from "@app/core";

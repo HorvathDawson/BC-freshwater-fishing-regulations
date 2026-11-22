@@ -34,14 +34,9 @@ def test_the_place_phrase():
 
 
 def test_a_regions_share_says_from_streams():
-    g, _o, _P = _g(F.VEDDER)                   # Region 2's "2 from streams" (z2), lifted by the river's row
-    (share,) = [t for t in _tiers(g) if t["tier"] == "share"]
-    assert share["says"] == "Up to 2 of the 4 from streams"   # ROUND UR7 A: the lift said once, by the own tier's relation
-    assert g["headline"]["says"] == "2 hatchery trout/char a day from streams"
-    assert g["headline"]["unit"] == "hatchery trout/char a day from streams"
+    # (T866) the Vedder's (Region 2's "2 from streams", lifted by the river's row) and a plain stream's share words, and
+    # the Vedder's headline, word for word: card_words CARDS
     g, _o, _P = _g(F.STREAM)                   # a plain Region 2 stream
-    (share,) = [t for t in _tiers(g) if t["tier"] == "share"]
-    assert share["says"] == "Up to 2 of the 4 from streams"
     assert all("this stream" not in t["says"] for t in _tiers(g))
 
 

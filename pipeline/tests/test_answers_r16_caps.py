@@ -26,21 +26,12 @@ def _group(water, md):
     return g, out, P
 
 
-def _cells(g, S):
-    return [(b["says"], c["n"], c["why"] or c["origin"]) for b, c in zip(g["table"]["bands"][S],
-                                                                        g["table"]["cells"][S])]
-
-
 def test_a_group_carries_the_table_from_the_rules_own_cut_points():
     g, _o, _P = _group(F.BELLA_MAY_ST, MAY1)
     # the Bella Coola's own rows on a Region 2 stream: none under 25 (and Region 2's 30), cutthroat none over 33
-    # ROUND19 2/5: in cm (inches), each band's words saying the ends it holds (a 60 cm Dolly Varden is legal)
-    assert _cells(g, "CT") == [("under 30 cm (12 in)", 0, "too small"), ("30–33 cm (12–13 in)", 1, "hatchery"),
-                               ("over 33 cm (13 in)", 0, "too big")]
-    assert _cells(g, "DV") == [("under 60 cm (24 in)", 0, "too small"), ("60 cm (24 in) or longer", 1, "hatchery")]
-    # a rainbow over 50 cm on a steelhead water is a steelhead: closed here
-    rb = g["table"]["cells"]["RB"][-1]
-    assert (g["table"]["bands"]["RB"][-1]["says"], rb["n"], rb["as"], rb["why"]) == ("over 50 cm (20 in)", 0, "ST", "closed")
+    # ROUND19 2/5: in cm (inches), each band's words saying the ends it holds (a 60 cm Dolly Varden is legal); a rainbow
+    # over 50 cm on a steelhead water is a steelhead: closed here. (T866) The CT and DV bands and the RB's last, word for
+    # word with their cells: test_answers_card_words.py CARDS
     assert g["table"]["steelhead_cm"] == 50
     assert "ST" in g["table"]["bands"]                       # a fish nobody may keep has its row too
 
@@ -50,7 +41,7 @@ def test_the_caps_are_exact_on_the_bella_coola_shape():
     caps = g["caps"]
     own = next(c for c in caps if c["by"] == F.BELLA_R5 and c["take"] == 2)
     assert own["if_kept_here"] and own["kinds"]["stream"]     # the river's 2 counts fish kept elsewhere
-    assert own["says"] == "Up to 2 trout and char 25 cm (10 in) or longer here, counting fish kept elsewhere today."
+    # (T866) its sentence: test_answers_card_words.py CARDS
     ct, rb = "CT.2.h", "RB.2.h"
     assert {ct, rb} <= set(next(c for c in caps if c["by"] == F.BELLA_R6)["kinds"]["here"])
     assert CP.accepts(caps, {"here": {ct: 1}}) and not CP.accepts(caps, {"here": {ct: 1, rb: 1}})

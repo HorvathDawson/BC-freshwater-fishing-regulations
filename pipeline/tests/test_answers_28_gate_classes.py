@@ -168,14 +168,10 @@ def test_d_a_fish_every_length_of_which_is_released_is_released():
 
 # E ---------------------------------------------------------------------------------------------
 def test_e_a_waters_own_pool_under_the_total_is_its_bucket_and_the_headline():
-    out, _P = card("abbott", JUL15)
-    g = group(out, Z5)
-    assert g["headline"]["says"] == "1 a day per angler"
-    assert [(b["title"], b["cap"]) for b in g["buckets"]] == [("This lake’s rule", 1)]
-    assert g["total_line"] == "No more than 5 trout and char a day per angler across Region 5, streams included."
+    # (T866) Abbott Lake's headline, bucket and total line and the Dean's headline, word for word:
+    # test_answers_card_words.py GATE
     out, _P = card("dean", JUL15)
     g = group(out, Z5)
-    assert g["headline"]["says"] == "1 trout/char a day from streams"
     assert [b["cap"] for b in g["buckets"]] == [1]
 
 

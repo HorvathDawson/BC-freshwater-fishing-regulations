@@ -40,15 +40,14 @@ def test_the_streams_origin_rule_sits_on_the_stream_share():
     for w in (F.VEDDER, F.STREAM):
         g, _o, _P = _g(w)
         assert g["origin"] is None, w                         # the total counts lakes too
-        (share,) = [t for t in _tiers(g) if t["tier"] == "share"]
-        assert share["origin"] == "From streams, keep hatchery fish only — wild trout and char go back.", w
+        (share,) = [t for t in _tiers(g) if t["tier"] == "share"]     # (T866) its origin's words: card_words CARDS
         assert [t["id"] for t in _tiers(g) if t.get("origin")] == [share["id"]], w
 
 
 def test_a_waters_own_total_keeps_the_origin_on_the_group():
     out, _P = F.card(F.COUNT, OCT10)          # a creek's own total (the Bella Coola's, since T846, is under Region 2's 4)
     (g,) = [r["group"] for r in out["rows"] if r.get("group") and "RB" in r["group"]["kinds"]]
-    assert g["origin"] == "Keep hatchery fish only — wild trout and char go back."
+    # (T866) the group's origin words: card_words CARDS (COUNT)
     assert not any(t.get("origin") for t in _tiers(g))
 
 
@@ -65,12 +64,8 @@ def test_the_steelhead_row_says_it_once():
         st = _st(g)
         assert "size_note" not in st, w
         assert not any("once you keep one" in s for s in [st["sentence"]] + [a["says"] for a in st["also_counts"]])
-    g, _o, _P = _g(F.VEDDER)
-    (size,) = [t for t in _tiers(g) if t["tier"] == "size"]
-    assert size["says"].endswith("2 if one of them is a hatchery steelhead.")      # the band head says it
-    st = _st(g)
-    assert st["duties"] == ["10 a year", "stop fishing this river after 2 a day", "record each on your licence right away"]
-    assert st["presence"]["says"] == "A rainbow trout over 50 cm (20 in) here counts as a steelhead."
+    # (T866) the band head saying "2 if one of them is a hatchery steelhead.", the steelhead's duties and presence line,
+    # word for word: card_words CARDS (VEDDER)
 
 
 # 3 -----------------------------------------------------------------------------------------------------------------
