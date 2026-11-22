@@ -185,8 +185,53 @@ def test_run_fast_fail_asks_for_the_whole_list_and_never_a_partial_run(monkeypat
     assert R.run_fast_fail("c0ffee", {"RELEASE_DIR": "/r/r-x"}) == (1, ["format pairs", "no conflict markers"])
     env = seen["env"]
     assert (env["FAST_FAIL_BASE"], env["FAST_FAIL_ALL"], env["FAST_FAIL_ONLY"], env["RELEASE_DIR"]) == ("c0ffee", "1", "", "/r/r-x")
+    assert env[R.DATA_STEPS] == "1"                     # (T978) the data release runs the data-state steps
     monkeypatch.setattr(R, "run_cmd", lambda cmd, env=None: 0)
     assert R.run_fast_fail(None) == (0, [])
+
+
+def test_a_data_state_step_runs_only_for_the_data_release():
+    """T978 (0.8.4 production build: "review marks have landed" passed only where the owner's marks are; the override-id
+    check raised in a worktree with no atlas): a "data: …" step is left out, by name, unless FAST_FAIL_DATA=1."""
+    app = _run(["bash", "scripts/fast-fail.sh"], FAST_FAIL_SELFTEST="data")
+    assert app.returncode == 0, app.stdout + app.stderr
+    assert "── data: selftest: a data step that fails\n   (left to the data release" in app.stdout
+    assert "1 data-state step(s) left to the data release" in app.stdout
+    data = _run(["bash", "scripts/fast-fail.sh"], FAST_FAIL_SELFTEST="data", FAST_FAIL_DATA="1")
+    assert data.returncode == 1 and "left to the data release" not in data.stdout
+
+
+def test_the_mini_chain_trigger_reads_a_big_change_list_whole(tmp_path):
+    """T978 review: `… | grep -q .` under pipefail exited early, SIGPIPEd the grep before it and read a base of >= 500
+    changed paths as "no input changed" (2,000 paths: 0 of 20 runs saw it). The trigger, run as fast-fail runs it
+    (set -euo pipefail), on 2,000 changed pipeline sources (the old form said "no" 20 times of 20), must say yes every
+    time."""
+    sh = (REPO / "scripts" / "fast-fail.sh").read_text(encoding="utf-8")
+    fn = sh[sh.index("mini_inputs_changed() {"):]
+    fn = fn[:fn.index("\n}\n") + 3]
+    def asks(paths: list[str]) -> list[str]:
+        f = tmp_path / "changed.txt"
+        f.write_text("\n".join(paths) + "\n")
+        script = (f"set -euo pipefail\n{fn}\nCHANGED=$(cat {f})\n"
+                  "for i in $(seq 20); do if mini_inputs_changed; then echo yes; else echo no; fi; done")
+        got = subprocess.run(["bash", "-c", script], capture_output=True, text=True, timeout=60)
+        assert got.returncode == 0, got.stderr
+        return got.stdout.split()
+    assert asks([f"pipeline/deliver/some/longer/module/path_{i:04d}.py" for i in range(2000)]) == ["yes"] * 20
+    assert asks(["pipeline/deliver/x.py"] + [f"app/packages/ui/src/f{i:04d}.ts" for i in range(2000)]) == ["yes"] * 20
+    assert asks([f"pipeline/tests/test_{i}.py" for i in range(2000)] + ["pipeline/docs/MAP.md"]) == ["no"] * 20
+    assert asks([f"app/x{i}.ts" for i in range(2000)] + ["data/curated/waters/cuts.json"]) == ["yes"] * 20
+
+
+def test_the_steps_that_read_this_machines_data_are_data_steps():
+    """T978: each check that reads what git does not hold (the review marks, the live atlas registry, LATEST, the kept
+    SEO snapshot) is a "data: …" step in scripts/fast-fail.sh, so an app build's run never reaches it."""
+    sh = (REPO / "scripts" / "fast-fail.sh").read_text(encoding="utf-8")
+    steps = [ln for ln in sh.splitlines() if ln.startswith("step ")]
+    for reads in ("pipeline.regs.review.apply --check", "pipeline.regs.review.wrong_saves --check",
+                  "pipeline.regs.matching.matcher", "scripts/check-goldens-paired.py", " changes_budget"):
+        hit = [ln for ln in steps if reads in ln]
+        assert len(hit) == 1 and hit[0].startswith('step "data: '), (reads, hit)
 
 
 def test_the_workflow_start_is_retried_bounded_and_said_out_loud():

@@ -269,17 +269,24 @@ def git_pushed() -> bool:
     return rc == 0
 
 
+#: (T978) the variable that makes fast-fail run its data-state steps ("data: …"); only the data release sets it
+DATA_STEPS = "FAST_FAIL_DATA"
+
+
 def run_fast_fail(base: str | None = None, env: dict | None = None) -> tuple[int, list[str]]:
     """`scripts/fast-fail.sh` (T483) on the console: (its return code, the name of EVERY step that failed). (T533)
     `base` = FAST_FAIL_BASE: what it checks as changed is everything since that commit, not only the unpushed commits.
     (T666 item 3) FAST_FAIL_ALL: it goes on past a failed step and reports them all (FAST_FAIL_REPORT). FAST_FAIL_ONLY
-    is cleared: a partial run inherited from the caller's shell would be recorded as a pass."""
+    is cleared: a partial run inherited from the caller's shell would be recorded as a pass. (T978) FAST_FAIL_DATA: the
+    DATA-STATE steps (review marks landed, wrong saves, override ids on the live atlas, goldens vs LATEST, /changes) run
+    here, in the data release — an app build's or a lane's fast-fail leaves them out, so it never fails on this
+    machine's data."""
     import tempfile
     with tempfile.TemporaryDirectory(prefix="release-fast-fail-") as td:
         report = Path(td) / "failed.txt"
         rc = run_cmd(["bash", "scripts/fast-fail.sh"],
                      env={**(env or {}), "FAST_FAIL_BASE": base or "", "FAST_FAIL_ALL": "1", "FAST_FAIL_ONLY": "",
-                          "FAST_FAIL_REPORT": str(report)})
+                          DATA_STEPS: "1", "FAST_FAIL_REPORT": str(report)})
         failed = [ln for ln in report.read_text(encoding="utf-8").splitlines() if ln.strip()] if report.is_file() else []
     return rc, failed
 

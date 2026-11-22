@@ -62,8 +62,10 @@ else
   fi
   [[ -z $VARIANT ]] || { log "the patched MapLibre is the Vulkan SDK: drop --$VARIANT, or say why with --stock-maplibre=\"<reason>\""; exit 1; }
   MLN_AAR=$(find "$MLN_LOCAL_MAVEN" -name 'android-sdk-vulkan-*.aar' 2>/dev/null)
+  # (T978) the fix said: from a worktree, the link to the main checkout's repo (deploy/lib/build-links.sh build_fix)
   [[ -n $MLN_AAR && $(echo "$MLN_AAR" | wc -l) -eq 1 ]] || {
-    log "MLN_LOCAL_MAVEN=$MLN_LOCAL_MAVEN must hold exactly one android-sdk-vulkan AAR (found: ${MLN_AAR:-none}); app/tools/maplibre-patch/build.sh makes it"; exit 1; }
+    fix=$(cd "$ROOT" && source deploy/lib/build-links.sh && build_fix "${MLN_LOCAL_MAVEN#"$(pwd -P)"/}" "app/tools/maplibre-patch/build.sh makes it (its README)")
+    log "MLN_LOCAL_MAVEN=$MLN_LOCAL_MAVEN must hold exactly one android-sdk-vulkan AAR (found: ${MLN_AAR:-none}): $fix"; exit 1; }
 fi
 # (T534) a KEPT APK must be the build of HEAD (clean tree) — checked here, before the heavy lock waits
 if (( ! BUILD )) && [[ -f $APK ]]; then
