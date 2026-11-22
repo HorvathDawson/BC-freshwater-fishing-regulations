@@ -3,8 +3,9 @@
 How a federal salmon page becomes a rule on a reach, and why it is built in two halves that meet
 only at the end.
 
-Read this with `pipeline/regs/dfo_salmon/README.md` (what each module does) and
-`pipeline/docs/HANDOFF-dfo-curation.md` (how to run a curation sitting).
+Read this with `pipeline/regs/dfo_salmon/README.md` (what each module does) and `curation-review/README.md` (how a
+reviewer marks DFO places today; AGENTS 65–68). The 2026-09 operating manual for the first curation sittings was
+removed in T987: `git show caf593bb6:pipeline/docs/HANDOFF-dfo-curation.md`.
 
 ---
 
@@ -47,7 +48,7 @@ Everything below is that sentence, mechanised.
 | 2 | `parse` | raw HTML | rows — the five printed columns, verbatim | machine |
 | 3 | `untangle` | rows | waters → reaches → rules, cascade resolved | machine |
 | 4 | `locations` | untangled | **locators** + **rule records**, split apart | machine |
-| 5a | `entries` | locators | `data/curated/…/entries/dfo_salmon/` | **human** |
+| 5a | `entries` | locators | `data/curated/dfo_salmon/places/` (`CURATED.dfo_salmon.places`) | **human** |
 | 5b | `typed` + `feed` | rule records | `data/generated/regs/dfo_salmon/typed/` | machine |
 | 6 | *(not built)* | both | the bundle | machine |
 

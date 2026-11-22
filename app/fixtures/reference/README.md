@@ -1,9 +1,9 @@
 # The consumer page v36, kept as the app port's oracle (never shipped)
 
 Page v36 ("Quota Display Studies") renders the answers file (answers/2) and decides nothing. It is the page the regs
-screens were ported from. It is FROZEN: the tooling that re-cut its data blocks (`page_data.py`, `convert.py`) is archived
-in `archive/pipeline/answers-reference-v36/`. Moved here from `app/design/regs-v11/reference/` in T87 (2026-10-28), when
-the design prototype was deleted.
+screens were ported from. It is FROZEN: the tooling that re-cut its data blocks (`page_data.py`, `convert.py`) was
+removed with `archive/` (T335): `git show d1b36ca44:archive/pipeline/answers-reference-v36/`. Moved here from the
+design prototype's regs-v11/reference/ in T87 (2026-10-28), when the prototype was deleted.
 
 How it is used (T667 slice 5b, 2026-11-13): page v36's CODE is the oracle, run over the RELEASE under test, never its
 frozen data. `app/tools/regs-recut/page-oracle.mjs` runs `page_v36.js` (up to `function segBar`) over page blocks that

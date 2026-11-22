@@ -161,9 +161,9 @@ Measured over the 22 waters in `sections.json`: **277 sections → 102 runs, 2.7
 | Stamp River | 5 | 5 | 1.0× — every section differs |
 | *(lakes)* | 1 | 1 | a lake is one run |
 
-`pipeline/tools/build_section_data.py` already does this for 22 sample waters (every
-regulation fact from the bundle; lake geometry still from FWA and the curated lake parts), and
-`app/design/regs-v3.html` is the
+(2026-09, since removed: `git show 3fa4e5eda^:pipeline/tools/build_section_data.py`) did this for 22 sample
+waters (every regulation fact from the bundle; lake geometry still from FWA and the curated lake parts), and the
+design prototype's regs v3 page (`git show 8a043348e^:app/design/regs-v3.html`) was the
 prototype of the navigation it feeds: a map of the river, a ruler along it, the runs as rungs,
 and a two-step flow — **where on the river**, then **what applies there**.
 

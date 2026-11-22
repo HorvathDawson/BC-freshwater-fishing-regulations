@@ -12,7 +12,7 @@ name: pipeline
 # So this checks the things that are cheap to check and expensive to get wrong: that the
 # committed artifacts still agree with the rosters they were built from, that generated
 # files were regenerated, and that the suite passes. See
-# pipeline/docs/HANDOFF-curated-layout.md §8 for the two-tier split.
+# AGENTS.md 39 for the two-tier split.
 
 on:
   # (T995) a push to the trunk or a release branch runs this only when its area changed: these paths are

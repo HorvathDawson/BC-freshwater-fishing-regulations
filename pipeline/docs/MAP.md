@@ -90,7 +90,7 @@ step's output; nothing is promoted unless every step and the vintage check pass)
 | near B.C. | `deliver/tiles/near_bc.py` | by hand, when `data/source/bc_boundary.geojson` changes: B.C. grown by 50 km, simplified to 5 km, written as `app/packages/core/src/nearBcOutline.ts` (70 points) for the app's "far from B.C." location check (T864, `nearBc.ts`) |
 | split binding | `tools/audit/audit_split_binding.py` | which curated splits a rule can bind to, and which no item carries (T67) |
 | tile sizes | `tools/audit/tile_sizes.py` | bytes per zoom and layer of a pmtiles archive (the S2 size table) |
-| PREPARED, NOT FED | `stocking/`, `bathymetry/`, `runtiming/` | kept on purpose (owner 2026-10-22); each README says what feeds it (the two `generate/audit.py` were deleted in T436, 971f40575: restore from git). T634 first pass: `bathymetry/` holds the chart -> lake proposer (`propose`), the owner-only `accept`, and the 2001 vector-file fetch / `.e00` reader / placing fit (`fetch_vectors`, `e00`, `place`; files kept outside git); second pass: `compress` (chart PDFs -> 200 dpi 1-bit, outside git) |
+| PREPARED, NOT FED | `stocking/`, `bathymetry/`, `runtiming/` | kept on purpose (owner 2026-10-22); each README says what feeds it (their two generate/audit.py were deleted in T436, 971f40575: restore from git). T634 first pass: `bathymetry/` holds the chart -> lake proposer (`propose`), the owner-only `accept`, and the 2001 vector-file fetch / `.e00` reader / placing fit (`fetch_vectors`, `e00`, `place`; files kept outside git); second pass: `compress` (chart PDFs -> 200 dpi 1-bit, outside git) |
 
 ## Shared ground
 
