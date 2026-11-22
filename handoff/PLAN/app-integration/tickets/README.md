@@ -288,6 +288,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1008 | Website: Lighthouse "missing source maps" — maps are kept private on purpose (T352); serve them (repo is public) or keep hidden | OPEN — owner picks (default: serve) | | owner 2026-11-22 (Lighthouse) |
 | T1009 | Android: Play "DEX code optimization: Low": measure optimization / shrinking / obfuscation every build, narrow broad library keep rules, floors in a build check (after T1003) | OPEN — next release batch (0.9.0), after T1003 | | owner 2026-11-22 (Play Console card) |
 | T1010 | Website: a region page's "Open the map" goes to the bare home map (`mapLink` = origin/, no area in the start link): open framed on the region; redesign the page to lead into the app (water search, crawlable links kept below) | OPEN — next release batch | | owner 2026-11-22 (/region/4) |
+| T1011 | Website: no page for the Columbia, Kootenay, Similkameen, Kettle, Peace rivers or Chilko Lake (404, not in the sitemap); the home page has no crawlable links to hubs; top-100 indexing list (`handoff/PLAN/seo/index-requests-top-100.md`) | OPEN — next release batch | | owner 2026-11-22 (index list research) |
 
 ## Next after closed testing
 
