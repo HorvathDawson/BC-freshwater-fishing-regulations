@@ -1,6 +1,8 @@
 # T978 — The release build's checks never fail on this machine's state, only on code
 
-Status: IN PROGRESS (main chat 2026-11-21, with T993).
+Status: DONE — ce579bf86 (PR #15, merged 2026-11-22: the pinned upstream MapLibre); the build checks merged with
+T993 wave 1 (lane/t978-build-checks). Leftovers: the TestFlight build's own fast-fail is in (T993 plan 5,
+`deploy/staging/build-ios-testflight.sh:28`); `liveRelease()` tests reading LATEST are T777's ground.
 
 Source: owner 2026-11-20: "Add a ticket to clean up all of these test to make these sort of failure impossible". The 0.8.4
 production build stopped four times in fast-fail, never on a code defect:
