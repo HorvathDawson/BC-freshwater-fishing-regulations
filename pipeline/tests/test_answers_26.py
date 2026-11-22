@@ -346,8 +346,17 @@ def test_every_rule_carries_its_book_pages_and_why_it_applies(built):
     pdf = guide["guide"]["pdf_pages"]
     rules = model.statics["display"]["rules"]
     assert len(rules) == len(data["rule_ids"])
-    for f in rules:
-        assert f["book"] and all(pdf[str(p)] == q for p, q in f["book"])
+    # (T931 review, 2026-11-22) T981 (0.8.5, Lost Lagoon): a LOCAL AUTHORITY's closure prints on no page of the book;
+    # it carries `book: []` and cites the authority's own page instead (`decided.add_sources`). Every other rule cites
+    # the book. Only those rules may go without a page, and each of them must carry its `cited` link.
+    local = {rid for rid, f in zip(data["rule_ids"], rules) if f.get("cited")}
+    authorities = {e for e, x in data["entries"].items() if x.get("authority")}
+    assert local and local == {r for r in data["rule_ids"] if r.split("::")[0] in authorities}, sorted(local)
+    for rid, f in zip(data["rule_ids"], rules):
+        if rid in local:
+            assert f["book"] == [] and f["cited"]["url"].startswith("https://"), rid
+        else:
+            assert f["book"] and all(pdf[str(p)] == q for p, q in f["book"]), rid
         assert f["applies"].endswith(".")
     ix = {k: i for i, k in enumerate(data["rule_ids"])}
     r5 = rules[ix[f"{COW}.r5"]]
