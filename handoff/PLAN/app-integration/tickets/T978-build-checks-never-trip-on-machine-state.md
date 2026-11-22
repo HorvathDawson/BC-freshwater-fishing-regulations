@@ -47,3 +47,42 @@ Asked for the 0.8.5 batch: "No, next chat". Waits for the chat after 0.8.5.
 ## Owner 2026-11-21 (new chat after 0.8.5)
 Picked for this chat together with T993 (build/audit streamlining; no release in this chat). See T993's note of the
 same date for the verbatim answer.
+
+## Built (lane/t978-build-checks, 2026-11-21)
+Commit: a323ef2af (code + tests). Not merged; the main chat reviews and merges.
+1. One precheck lists every missing link with its fix (`deploy/lib/build-links.sh`, sourced by both builds). From a worktree
+   the fix is a link or copy of the main checkout's (`ln -s <main>/.venv .venv`, `mkdir -p cache/maplibre && ln -s
+   <main>/cache/maplibre/fslean-m2 …`, `cp <main>/app/workers/feeds/.run-token …`, the debug keystore); in the main
+   checkout it is the command that makes it. build-apk.sh: .venv, app/node_modules, JDK, Android SDK, the review app's
+   node_modules (only when fast-fail will typecheck it), keystore, run token, the MapLibre repo — the silent exit is gone
+   (the `find` no longer runs on a missing dir under `set -e`; `mln_check` refuses "no AAR" instead of reading it as
+   stock). build-ios-testflight.sh: a new precheck before the lock (xcodebuild, pod, node, team id, API key + its .p8,
+   node_modules + wrangler login when uploading; `--precheck` runs only it; it no longer stops at the first missing
+   secret after the lock wait). session.sh's AAR message names the same fix. `.gitignore`: `/.venv`, `/cache` (a link is a
+   file; `.venv/` did not match it, so a linked .venv showed as a changed path).
+2. Marks-landed (and wrong saves, override ids on the live atlas, goldens vs LATEST, /changes budget) are `data: …` steps
+   in fast-fail: run only with `FAST_FAIL_DATA=1`, which `release.run_fast_fail` sets; elsewhere each says "left to the data
+   release" and the pass line counts them. The release preflight still runs marks / wrong saves / classified itself.
+3. Gate tests on machine state: W4 (above) fixed the six tests; fast-fail on a fresh worktree (no data/generated,
+   no data/release, only .venv linked and `pnpm install --offline`) passed with the default base (172 s) and with the build's ship base (FAST_FAIL_BASE = the last Play build 558c527c3: the whole no-data tier, 35 chunks, 923 s, through heavy.sh).
+   No T777 work; overlap: none of the moved steps is a test file, so T777's curated-root sandbox is still the open part.
+4. Mini release: CI already failed on it (`mini_release --check`, prints `--write`); it now also puts the command in a
+   `::error` annotation. fast-fail's trigger was four folders (grown one per miss); it is now every input of the mini
+   chain (any pipeline source outside tests, its fixtures, data/curated, config, pins), so the lane's run and the run after
+   a merge (default base = every unpushed commit) re-check it before any build.
+Tests: test_release_follows.py (data steps left without the variable, run with it; every machine-data command is a data
+step; the release sets it), test_staging_scripts_fail_safe.py (missing MapLibre repo listed, never silent; the link fixes
+in a scratch repo + worktree; TestFlight precheck lists both missing secrets before the lock). AGENTS 20a has one line.
+
+## MapLibre item: STOPPED (gap)
+Upstream PR 4919 (merged 2026-11-20, merge commit 9cf8446d) is our 0001 only (source_state, render_tile, tile.hpp,
+geometry_tile + tests). The lean patch is 0001 + 0002 (`upstream/0002-…`: `updateVertexVectors` returns whether a vertex
+was rewritten; a bucket is marked modified / re-uploaded only then; 5 bucket files + paint_property_binder.hpp). Upstream
+main at 3a6b9557 (2026-11-21) still has `void updateVertexVectors` and `updateModified(true)` unconditionally. So a build
+from upstream main drops half of what the shipped AAR carries; per the brief, not built. Options for the owner: post 0002
+as its own upstream PR (it was drafted for that) and build from main once it lands; or build main + 0002 as a small local
+patch (no longer the whole lean patch). iOS: the patch was never in the iOS build (T893); unchanged.
+
+Left (Claude): the MapLibre switch once the owner picks; the TestFlight build still runs no fast-fail of its own (AGENTS
+20a says it should; not added here); `pnpm check`'s vitest tests that use `liveRelease()` still read LATEST when a checkout
+has one (a fresh worktree has none; T777's ground).
