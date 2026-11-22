@@ -67,12 +67,13 @@
  *               fields it has — rather than of a value: a format gains fields within its version (T985: `water_exit`
  *               lon/lat, additive in water/3), so the next release fails a test that asserted one absent. The spellings:
  *                 `expect(x).not.toHaveProperty("f")`;
- *                 `expect("f" in x)` / `expect(Object.hasOwn(x, "f"))` / `expect(x.hasOwnProperty("f"))` with
+ *                 `expect("f" in x)` / `expect(Object.hasOwn(x, "f"))` / `expect(x.hasOwnProperty("f"))` (also
+ *                 `Object.prototype.hasOwnProperty.call(x, "f")`, `Reflect.has(x, "f")`, `Object.keys(x).includes("f")`) with
  *                 `.toBe(false)` / `.toEqual(false)` / `.toStrictEqual(false)` / `.toBeFalsy()` (`.not.toBe(true)`,
  *                 `.not.toBeTruthy()`);
  *                 `expect(Object.keys(x))` (also `Object.getOwnPropertyNames`, and after `.sort()` / `.filter(…)`) with
  *                 `.toEqual([…])` / `.toStrictEqual([…])` of a TYPED list (every element a string literal): the whole
- *                 set of fields, so every other one's absence.
+ *                 set of fields, so every other one's absence; or with `.not.toContain("f")`: one field's absence.
  *               Write instead the fields the test needs, present: `expect(x).toHaveProperty("f")`,
  *               `expect(Object.keys(x)).toEqual(expect.arrayContaining([…]))`, `toMatchObject`; a list the CODE declares
  *               (`[...CELL_COLUMNS]`, not every element a literal) is the contract, not a typed shape, and is no hit. A
@@ -162,11 +163,13 @@ function shapeAssertion(n, sf) {
   const arg = n.arguments[0], said = arg?.kind === ts.SyntaxKind.FalseKeyword ? false : arg?.kind === ts.SyntaxKind.TrueKeyword ? true : null;
   // `.toBe(false)`, or `.not.toBe(true)`: the subject is said false
   const sayingFalse = FALSY[String(not)].has(m) || (EQUAL.has(m) && said === not);
+  const callee = ts.isCallExpression(s) ? s.expression.getText(sf).replace(/\s+/g, "") : null;
   const has = (ts.isBinaryExpression(s) && s.operatorToken.kind === ts.SyntaxKind.InKeyword) ||
     (ts.isCallExpression(s) && ((ts.isPropertyAccessExpression(s.expression) && s.expression.name.text === "hasOwnProperty") ||
-                                s.expression.getText(sf) === "Object.hasOwn"));
+      ["Object.hasOwn", "Reflect.has", "Object.prototype.hasOwnProperty.call"].includes(callee) ||
+      (ts.isPropertyAccessExpression(s.expression) && s.expression.name.text === "includes" && KEYS.test(s.expression.expression.getText(sf)))));
   const typedList = arg && ts.isArrayLiteralExpression(arg) && arg.elements.length > 0 && arg.elements.every(ts.isStringLiteralLike);
-  const hit = (not && m === "toHaveProperty") || (has && sayingFalse) ||
+  const hit = (not && m === "toHaveProperty") || (has && sayingFalse) || (not && m === "toContain" && KEYS.test(s.getText(sf))) ||
     (!not && (m === "toEqual" || m === "toStrictEqual") && typedList && KEYS.test(s.getText(sf)));
   return hit ? n.getText(sf).replace(/\s+/g, " ").slice(0, 70) : null;
 }

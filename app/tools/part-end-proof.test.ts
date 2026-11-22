@@ -61,12 +61,20 @@ describe("the part-end proof's mutant", () => {
 describe("the proof's verdict and its switch", () => {
   const report = (failed: string[]) => ({ testResults: [...failed, "packages/ui/src/ok.test.ts"].map((f) =>
     ({ name: join(__dirname, "..", f), status: failed.includes(f) ? "failed" : "passed" })) });
+  const ended = { errors: 0, reason: "failed" };
   it("met only when the content pin is the one counted failure; provenance is listed, never counted", () => {
     const prov = Object.keys(PROVENANCE)[0]!;
-    expect(verdict(report([PIN])).ok).toBe(true);
-    expect(verdict(report([PIN, prov]))).toMatchObject({ ok: true, provenance: [prov], unexpected: [] });
-    expect(verdict(report([PIN, "packages/ui/src/waterMap.test.ts"]))).toMatchObject({ ok: false, unexpected: ["packages/ui/src/waterMap.test.ts"] });
-    expect(verdict(report([]))).toMatchObject({ ok: false, pinFailed: false });
+    expect(verdict(report([PIN]), ended).ok).toBe(true);
+    expect(verdict(report([PIN, prov]), ended)).toMatchObject({ ok: true, provenance: [prov], unexpected: [] });
+    expect(verdict(report([PIN, "packages/ui/src/waterMap.test.ts"]), ended)).toMatchObject({ ok: false, unexpected: ["packages/ui/src/waterMap.test.ts"] });
+    expect(verdict(report([]), ended)).toMatchObject({ ok: false, pinFailed: false });
+  });
+
+  it("(review) never met on a run that did not end whole: an unhandled error, an interrupted run, no end recorded", () => {
+    // vitest's JSON report says every file passed beside an unhandled error; only the reporter's end sees it
+    expect(verdict(report([PIN]), { errors: 1, reason: "failed" })).toMatchObject({ ok: false, pinFailed: true, whole: false });
+    expect(verdict(report([PIN]), { errors: 0, reason: "interrupted" })).toMatchObject({ ok: false, whole: false });
+    expect(verdict(report([PIN]), null)).toMatchObject({ ok: false, whole: false });
   });
 
   afterEach(() => { delete process.env[KEY]; });

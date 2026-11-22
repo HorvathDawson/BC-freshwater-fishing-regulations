@@ -22,7 +22,10 @@
  * THE RUN: vitest over the app with `REGS_FIXTURE_MUTANT` naming the copy (`releaseDir.ts` honours it only for a folder
  * holding this tool's `MUTANT.json`). Exit 0 iff the failed files are exactly the content pin, besides the fixture's
  * PROVENANCE checks, which hold the committed copy to the release it was cut from and so see any copy that is not that
- * cut (listed, never counted). Output is vitest's own (never through rtk: it has reported false passes).
+ * cut (listed, never counted), AND the run ended whole: no unhandled error and not interrupted (this file's default
+ * export, a vitest reporter, records both; vitest's JSON report says `success: true` with every file passed beside an
+ * unhandled error, so a run whose only other failure is one would otherwise be met). Output is vitest's own (never
+ * through rtk: it has reported false passes).
  */
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -161,25 +164,28 @@ function splitAtTheLake(water, geo, item = WATER) {
 /** Rewrite file `name` of the release at `dir` through `edit(db)`, its manifest entry following. */
 function rewrite(dir, man, names, edit) {
   const tmp = mkdtempSync(join(tmpdir(), "part-end-"));
-  const dbs = {};
-  for (const name of names) {
-    const f = man.files[name];
-    const p = join(tmp, `${name}.sqlite`);
-    writeFileSync(p, gunzipSync(readFileSync(join(dir, "..", f.url))));
-    dbs[name] = new DatabaseSync(p, { enableForeignKeyConstraints: false });   // as the app opens a release: FKs unchecked
+  try {
+    const dbs = {};
+    for (const name of names) {
+      const f = man.files[name];
+      const p = join(tmp, `${name}.sqlite`);
+      writeFileSync(p, gunzipSync(readFileSync(join(dir, "..", f.url))));
+      dbs[name] = new DatabaseSync(p, { enableForeignKeyConstraints: false });   // as the app opens a release: FKs unchecked
+    }
+    const done = edit(dbs);
+    for (const name of names) {
+      dbs[name].close();
+      const raw = readFileSync(join(tmp, `${name}.sqlite`)), sha = createHash("sha256").update(raw).digest("hex");
+      const gz = gzipSync(raw, { level: 9 }), old = man.files[name].url;
+      const url = old.replace(/-[0-9a-f]{12}\.sqlite\.gz$/, `-${sha.slice(0, 12)}.sqlite.gz`);
+      rmSync(join(dir, "..", old));
+      writeFileSync(join(dir, "..", url), gz);
+      Object.assign(man.files[name], { bytes: raw.length, sha256: sha, gz: gz.length, url });
+    }
+    return done;
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });   // also when the edit throws (a leftover was found 2026-11-22)
   }
-  const done = edit(dbs);
-  for (const name of names) {
-    dbs[name].close();
-    const raw = readFileSync(join(tmp, `${name}.sqlite`)), sha = createHash("sha256").update(raw).digest("hex");
-    const gz = gzipSync(raw, { level: 9 }), old = man.files[name].url;
-    const url = old.replace(/-[0-9a-f]{12}\.sqlite\.gz$/, `-${sha.slice(0, 12)}.sqlite.gz`);
-    rmSync(join(dir, "..", old));
-    writeFileSync(join(dir, "..", url), gz);
-    Object.assign(man.files[name], { bytes: raw.length, sha256: sha, gz: gz.length, url });
-  }
-  rmSync(tmp, { recursive: true, force: true });
-  return done;
 }
 
 /** Write the mutant fixture root into `out` (a copy of the committed one, one part end added). */
@@ -193,12 +199,27 @@ export function writeMutant(out) {
   return done;
 }
 
-/** The verdict over vitest's JSON report: `{ok, failed, provenance, unexpected}` (paths app-relative). */
-export function verdict(report) {
+/** where `ProofRunEnd` writes the run's end (`{errors, reason}`): set by `main` for the vitest it starts */
+const END = "PART_END_PROOF_END";
+
+/** vitest reporter: what the JSON report leaves out — the run's unhandled errors and why it ended. */
+export default class ProofRunEnd {
+  onTestRunEnd(_modules, errors, reason) {
+    if (process.env[END]) writeFileSync(process.env[END], JSON.stringify({ errors: errors.length, reason }) + "\n");
+  }
+}
+
+/**
+ * The verdict over vitest's JSON report and the run's end (`ProofRunEnd`; null: never written, the run did not end):
+ * `{ok, failed, provenance, unexpected, whole}` (paths app-relative).
+ */
+export function verdict(report, end) {
   const failed = report.testResults.filter((r) => r.status === "failed").map((r) => relative(APP, r.name)).sort();
   const provenance = failed.filter((f) => f in PROVENANCE), counted = failed.filter((f) => !(f in PROVENANCE));
   const unexpected = counted.filter((f) => f !== PIN);
-  return { ok: counted.length === 1 && counted[0] === PIN, failed, provenance, unexpected, pinFailed: counted.includes(PIN) };
+  const whole = !!end && end.errors === 0 && end.reason !== "interrupted";
+  return { ok: whole && counted.length === 1 && counted[0] === PIN, failed, provenance, unexpected,
+           pinFailed: counted.includes(PIN), whole, end };
 }
 
 function main(argv) {
@@ -214,14 +235,16 @@ function main(argv) {
     const done = writeMutant(out);
     console.log(`part-end proof: ${done.item} part ${done.part} cut once more at ${done.outlet} / ${done.inlet} ` +
       `(${done.parts} parts; sections ${done.moved.join(", ")} moved up); the copy: ${out}`);
-    const report = join(base, "report.json");
+    const report = join(base, "report.json"), end = join(base, "end.json");
     const r = spawnSync(join(APP, "node_modules/.bin/vitest"), ["run", "--reporter=default", "--reporter=json",
-      `--outputFile.json=${report}`, ...argv], { cwd: APP, stdio: "inherit", env: { ...process.env, REGS_FIXTURE_MUTANT: out } });
+      `--reporter=${fileURLToPath(import.meta.url)}`, `--outputFile.json=${report}`, ...argv],
+      { cwd: APP, stdio: "inherit", env: { ...process.env, REGS_FIXTURE_MUTANT: out, [END]: end } });
     if (!existsSync(report)) { console.log(`part-end proof: vitest wrote no report (exit ${r.status})`); return 1; }
-    const v = verdict(JSON.parse(readFileSync(report, "utf8")));
+    const v = verdict(JSON.parse(readFileSync(report, "utf8")), existsSync(end) ? JSON.parse(readFileSync(end, "utf8")) : null);
     const partial = argv.length ? " (PARTIAL: only the files named)" : "";
     console.log(`\npart-end proof${partial}: failed files ${v.failed.length}: ${v.failed.join(", ") || "none"}`);
     for (const f of v.provenance) console.log(`  provenance, not counted: ${f} (${PROVENANCE[f]})`);
+    if (!v.whole) console.log(`  ✗ the run did not end whole: ${v.end ? `${v.end.errors} unhandled error(s), ${v.end.reason}` : "no end recorded"}`);
     if (!v.pinFailed) console.log(`  ✗ the content pin ${PIN} did NOT fail: it no longer holds the water's parts`);
     for (const f of v.unexpected) console.log(`  ✗ ${f} failed: it types a part count, name or position the water's group should give it`);
     console.log(v.ok ? `  ✓ exactly one file, the content pin, fails on a new part end` : `  ✗ NOT met (T768 "Done when")`);

@@ -267,7 +267,8 @@ def test_a_column_the_writer_adds_without_a_re_cut_fails_the_check_naming_the_re
     `water_exit` lon/lat, additive within water/3) and commits without re-cutting the mini release: the rebuild holds the
     column, the committed copy does not, and `--check` — fast-fail's mini chain on any pipeline source change, and
     pipeline-ci's step, which `scripts/before_push.py` runs before a push — fails naming the file and the re-cut
-    command. Its data unchanged, a column with no value in any row is still a difference (the schema is compared)."""
+    command. A column with no value in any row is still a difference: on a table with rows every row grows a NULL, and
+    on an empty table (`water_continue` in the mini world) only the schema says so, which the content digest compares."""
     import gzip
     import shutil
     import sqlite3
@@ -276,17 +277,27 @@ def test_a_column_the_writer_adds_without_a_re_cut_fails_the_check_naming_the_re
     monkeypatch.setattr(M, "_fresh_release", lambda scratch: built)
     assert M.write(dest, tmp_path / "s") == 0
     capsys.readouterr()
-    grown = tmp_path / "grown"
-    shutil.copytree(built, grown)
-    man = json.loads(next(grown.glob("r-*/manifest.json")).read_text())
-    water = grown / man["files"]["water"]["url"]                       # the whole province's water file
-    db = tmp_path / "water.sqlite"
-    db.write_bytes(gzip.decompress(water.read_bytes()))
-    con = sqlite3.connect(db)
-    con.execute("ALTER TABLE water_exit ADD COLUMN planted INTEGER")
-    con.commit()
-    con.close()
-    water.write_bytes(gzip.compress(db.read_bytes(), mtime=0))
+
+    def grown_by(table: str, rows: bool) -> Path:
+        grown = tmp_path / f"grown-{table}"
+        shutil.copytree(built, grown)
+        man = json.loads(next(grown.glob("r-*/manifest.json")).read_text())
+        water = grown / man["files"]["water"]["url"]                   # the whole province's water file
+        db = tmp_path / f"{table}.sqlite"
+        db.write_bytes(gzip.decompress(water.read_bytes()))
+        con = sqlite3.connect(db)
+        assert bool(con.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]) is rows, table
+        con.execute(f"ALTER TABLE {table} ADD COLUMN planted INTEGER")
+        con.commit()
+        con.close()
+        water.write_bytes(gzip.compress(db.read_bytes(), mtime=0))
+        return grown
+
+    # (review) the schema alone: an empty table's new column changes no row
+    monkeypatch.setattr(M, "_fresh_release", lambda scratch: grown_by("water_continue", rows=False))
+    assert M.check(dest, tmp_path / "s") == 1
+    assert "\n  water: committed " in capsys.readouterr().out
+    grown = grown_by("water_exit", rows=True)
     monkeypatch.setattr(M, "_fresh_release", lambda scratch: grown)
     assert M.check(dest, tmp_path / "s") == 1
     out = capsys.readouterr().out

@@ -76,6 +76,11 @@ describe("T667 test anchors: what is found", () => {
       `expect(Object.keys(row).sort()).toStrictEqual(["down_ord", "down_part", "ord"]);`,
       `expect(Object.getOwnPropertyNames(await read())).toEqual(["ord"]);`,
       `await expect(load()).resolves.not.toHaveProperty("at");`,
+      // (review) the spellings the first cut missed
+      `expect(Object.keys(g.exit)).not.toContain("at");`,
+      `expect(Object.keys(g.exit).includes("at")).toBe(false);`,
+      `expect(Reflect.has(g.exit, "at")).toBe(false);`,
+      `expect(Object.prototype.hasOwnProperty.call(g.exit, "at")).toBe(false);`,
     ];
     for (const s of said) expect(hits(inFixture(s)), s).toEqual([[3, "absent", s.replace(/^await |;$/g, "").slice(0, 70)]]);
   });
@@ -91,6 +96,9 @@ describe("T667 test anchors: what is found", () => {
       `expect(Object.keys(c)).toEqual([]);`,                                     // nothing typed
       `expect(g.exit?.at).toBeUndefined();`,                                     // a value (header: not one)
       `expect(Object.keys(names)).toEqual(Object.keys(want));`,
+      `expect(Object.keys(g.exit)).toContain("at");`,                          // present
+      `expect(Object.keys(g.exit).includes("at")).toBe(true);`,
+      `expect(names).not.toContain("Vedder River");`,                            // a value list, not a field list
       `expect(g.exit).toEqual({ item: "gnis:3062", name: "Vedder River", part: 1 });`,
     ];
     for (const s of fine) expect(hits(inFixture(s)), s).toEqual([]);
