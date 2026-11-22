@@ -230,3 +230,10 @@ def test_the_pre_push_hook_drops_gits_repository_variables():
     hook = (Path(__file__).resolve().parents[2] / ".githooks" / "pre-push").read_text()
     assert "unset $(git rev-parse --local-env-vars) GIT_QUARANTINE_PATH" in hook
     assert hook.index("unset $(git rev-parse --local-env-vars)") < hook.index("exec ")
+
+
+def test_the_pre_push_hook_stays_fast():
+    """(T995) the hook leaves the whole no-data tier to the PR's required check: git's connection to GitHub, held open
+    while the hook runs, did not outlive a ~10 min tier (SIGPIPE). Mutation: drop --no-tier -> fails."""
+    hook = (Path(__file__).resolve().parents[2] / ".githooks" / "pre-push").read_text()
+    assert 'scripts/before_push.py --changed --pre-push --no-tier' in hook
