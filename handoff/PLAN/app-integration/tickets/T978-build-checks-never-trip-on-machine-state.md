@@ -157,3 +157,22 @@ switch back to a release tag once upstream releases one containing 0001.
 Main line, same dialog (the coordinator's note):
 "Pinned upstream main (Recommended)": build from one pinned upstream main commit, no patch of ours; move to a release
 tag once upstream releases one containing 0001. The switch: branch `build/T978-maplibre-upstream-main` (in progress).
+
+## Review hardening (review/T978-maplibre, 2026-11-22): "every Android build uses the pinned build"
+- **app.config.js:** `plugins/with-pinned-maplibre.js` (an Android gradle.properties mod, so `expo prebuild -p ios` never
+  meets it): a PRODUCTION Android config (EXPO_PUBLIC_APP_ENV=production or EAS_BUILD_PROFILE=production) with no
+  MLN_LOCAL_MAVEN, or with a repo of another version, is REFUSED, the fix named. Chosen for dev: any other Android
+  config (`pnpm android`, a dev prebuild) only WARNS — a fresh checkout has no built AAR, and everything that ships goes
+  through build-apk.sh, which refuses on its own.
+- **build-apk.sh:** `--stock-maplibre` is refused in every mode (the staging page, Play, production all reach a phone);
+  it is the test bed's only. The stock code path is gone.
+- **build.sh:** untracked files count as a change too (`--untracked-files=all --ignore-submodules=none`); every run
+  brings all submodules up, nested ones included (`submodule update --init --recursive`), not only after the first
+  clone; a commit whose `Versions.kt` asks for another NDK is refused. pin.env's move steps name build.sh's NDK/CMAKE.
+- **build-links.sh:** `mln_pinned_aar` (used by build-apk.sh's outer and inner runs) and `build_links_mln` take the AAR
+  only when its file name is the pinned version AND the repo's `SOURCE.txt` names `MLN_COMMIT`.
+- Tests: r8-config.test.ts (production refused without / with another repo, EAS profile too; dev made; the check wired),
+  maplibre-pin.test.ts (build.sh, build-apk.sh, build-links.sh lines), test_staging_scripts_fail_safe.py (no mode takes
+  `--stock-maplibre`; SOURCE.txt missing / another commit refused; the gate tree builds against a stand-in pinned repo);
+  a mutation of the SOURCE.txt check fails the build-links test. build.sh rerun on the real tree: submodules recursive,
+  clean, built.
