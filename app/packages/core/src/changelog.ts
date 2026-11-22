@@ -36,7 +36,7 @@ export function notesOn(e: ChangelogEntry, os: "android" | "ios" | "web"): reado
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
-    version: "0.8.5", date: null, draft: true, notes: [
+    version: "0.8.5", date: "2026-11-21", notes: [
       "Regulations: one Sources button at the foot of the page lists every source behind the rules",
       "Conditions: plainer words for how a river compares with normal, and a clear note where no gauge can speak for the water",
       "In-season changes that already ended no longer come back as New after an update",

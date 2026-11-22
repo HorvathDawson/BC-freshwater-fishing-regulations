@@ -13,6 +13,18 @@ The 0.8.5 batch is DONE in the ledger: T686, T975, T979, T980, T982 to T986, T98
 - T988 was never reproduced: on the emulator walk, Done closed every sheet. Reopen it if a tester reports it again.
 - T981 shipped Lost Lagoon only. The owner keeps the StanleyParkVan.com source: no official source closes it.
 
+## Start off well (the first ten minutes)
+1. Read AGENTS.md, then this page, then the top of STATUS.md.
+2. `git status` should be clean on `redesign/stream-sections`, in step with origin. `main` is never touched.
+3. Run `scripts/heavy.sh --status`: every lane should be free, with no leftover job from the last chat.
+4. Ask the owner which ticket to take first, as one dialog with a PushNotification. Recommend **T993**: it makes every
+   release after it cheaper.
+5. Credits are tight:
+   - Sonnet lanes for UI and mechanical work, Opus for data and pipeline;
+   - one combined independent review before a merge;
+   - long jobs as background scripts;
+   - short replies.
+
 ## First
 1. Check the TestFlight external review state:
    `node deploy/staging/testflight-distribute.mjs --version 0.8.5 --build <the iPhone build in STATUS> --dry-run`.
@@ -41,7 +53,6 @@ The 0.8.5 batch is DONE in the ledger: T686, T975, T979, T980, T982 to T986, T98
 - **Questions:** every question for the owner also goes out as a PushNotification.
 
 ## Waiting on the owner (also in OWNER-TODO)
-- **Changelog drafts:** the 0.8.5 changelog entry is still `draft: true`; read it and clear the flag.
 - Ask a Conservation Officer the T973 question, which drives T974.
 - **Q182:** keep the iPhone keyboard Save bar? (T723)
 - **T725:** the oldest supported iPhone.
@@ -50,3 +61,18 @@ The 0.8.5 batch is DONE in the ledger: T686, T975, T979, T980, T982 to T986, T98
 ## Chat length
 Recommend a new chat at natural breaks (a release shipped, a batch done). Recommend /compact before a heavy step when
 the context is long. Update this page first.
+
+## Leftover worktrees (checked 2026-11-21; 47 merged, clean ones removed)
+Each of these 29 holds commits not in dev, or uncommitted edits. Check each one (`git -C <dir> log --oneline
+redesign/stream-sections..` and `status`). Keep its work if it is wanted (T940's is `lane/le-t940`; T778's is
+`data/t778-delta-side-channel`), else remove it.
+- Under `.claude/worktrees/`:
+  - `agent-a902ae6ef7e370db1` (lane/le-t940);
+  - `agent-a210bb30fde58edec` (data/t778-delta-side-channel);
+  - `agent-aaab7188849edc942` (lane/book-rule-fixes-1116);
+  - five `worktree-agent-*` (4 locked).
+- Under `~/`:
+  - `bcfish-except-closed`, `bcfish-marks-audit`, `bcfish-review-fixes`, `bcfish-review-followup`;
+  - `bcfish-t573-build`, `bcfish-t737u`, `bcfish-t752`, `bcfish-t753`, `bcfish-tatshenshini`.
+- Old chats' scratchpads under `/private/tmp/claude-502/…`: twelve `wt-*` and `c2-*` (app/t319, t871, t884, t903
+  and others).
