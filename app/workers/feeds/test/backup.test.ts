@@ -3,7 +3,9 @@
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { BACKUP_STATUS_KEY, DAILY_KEEP_DAYS, forgetReport, goneBy, LIFECYCLE_SLACK_DAYS, MAX_BYTES, mayCopy, personalKind, pruneBackups, runBackup, type DstBucket, type SrcBucket } from "../src/backup";
+import { BACKUP_STATUS_KEY, DAILY_KEEP_DAYS, forgetReport, goneBy, LIFECYCLE_SLACK_DAYS, MAX_BYTES, mayCopy, OUTBOX_KEY, personalKind, pruneBackups, runBackup, type DstBucket, type SrcBucket } from "../src/backup";
+import { NOTIFY_STATE, PERSONAL_EVENT_KINDS } from "../src/events";
+import { MemStore } from "./dfo.scenario";
 import { RETENTION_DAYS } from "../src/reports";
 import { CRASH_RETENTION_DAYS } from "../src/crashes";
 
@@ -200,12 +202,77 @@ describe("personal data in the backups (T559)", () => {
     await d.put(`daily/2026-11-03/private/reports/2026-11-02/${id}.json`, "{}");
     await d.put(`monthly/2026-11/private/reports/2026-11-02/${id}.json`, "{}");
     await d.put("daily/2026-11-03/_manifest.json", JSON.stringify({ objects: { [`private/reports/2026-11-02/${id}.json`]: {} } }));
-    const r = await forgetReport(live, d, id, NOW);
-    expect(r).toEqual({ live: 1, backups: 2 });
+    // (T994 #3) its event still queued in the outbox goes too; another report's stays
+    const outbox = new MemStore();
+    outbox.m.set(NOTIFY_STATE, JSON.stringify({ told: {}, lastDigest: null, pending: [
+      { key: `report:${id}`, kind: "report", title: "t", text: "my email is a@b.ca", at: "2026-11-02T00:00:00Z" },
+      { key: "report:bbbbbbbbbbbbbbbb", kind: "report", title: "t", text: "other", at: "2026-11-02T00:00:00Z" }] }));
+    const r = await forgetReport(live, d, id, NOW, outbox);
+    expect(r).toEqual({ live: 1, backups: 2, queued: true, outboxCopies: 0 });
+    expect(JSON.parse(outbox.m.get(NOTIFY_STATE)!).pending.map((e: { key: string }) => e.key)).toEqual(["report:bbbbbbbbbbbbbbbb"]);
     expect([...live.m.keys()]).toEqual(["private/reports/2026-11-02/bbbbbbbbbbbbbbbb.json"]);
     expect([...d.m.keys()]).toEqual(["daily/2026-11-03/_manifest.json"]);
     expect(JSON.parse(new TextDecoder().decode(d.m.get("daily/2026-11-03/_manifest.json")!.body)).objects).toEqual({});
-    await expect(forgetReport(live, d, "nope", NOW)).rejects.toThrow(/16 hex/);
+    await expect(forgetReport(live, d, "nope", NOW, outbox)).rejects.toThrow(/16 hex/);
+  });
+});
+
+// T994 #3: the owner outbox's queue holds a report's words (and an error kind's message) until the digest. Copied whole on
+// the 1st into monthly/ (400 days) it outlived the page's 180 (and 90) days. Every copy is taken without those events.
+describe("the outbox in the backups (T994 #3)", () => {
+  const NOW = new Date("2026-12-01T09:25:00Z");          // the 1st: daily/ and monthly/ both written
+  const ev = (key: string, kind: string, text: string) => ({ key, kind, title: text.slice(0, 20), text, at: "2026-11-30T22:00:00Z", data: { words: text } });
+  const OUTBOX = { told: { "hydat:1": "2026-11-01T00:00:00Z" }, lastDigest: "2026-11-30T15:00:00Z", pending: [
+    ev("report:aaaaaaaaaaaaaaaa", "report", "Wrong rule. Reach me at someone@example.com"),
+    ev("crash:1111111111111111", "crash", "TypeError: x at water Cowichan"),
+    ev("hydat:20261120", "hydat", "HYDAT 20261120 is out"),
+  ] };
+  const text = (d: ReturnType<typeof dst>, k: string) => new TextDecoder().decode(d.m.get(k)!.body);
+
+  it("every copy (daily and monthly) leaves out the report and error-kind events; the rest of the outbox is kept", async () => {
+    const d = dst();
+    const r = await runBackup(src({ ...STATE, [OUTBOX_KEY]: JSON.stringify(OUTBOX) }), d, NOW);
+    expect(r.ok).toBe(true);
+    for (const p of ["daily/2026-12-01/", "monthly/2026-12/"]) {
+      const copy = text(d, p + OUTBOX_KEY);
+      expect(copy).not.toMatch(/someone@example\.com|Cowichan/);
+      const st = JSON.parse(copy);
+      expect(st.pending.map((e: { key: string }) => e.key)).toEqual(["hydat:20261120"]);
+      expect(st.told).toEqual(OUTBOX.told);
+      expect(st.lastDigest).toBe(OUTBOX.lastDigest);
+      // the manifest's hash is the scrubbed copy's
+      expect(JSON.parse(text(d, `${p}_manifest.json`)).objects[OUTBOX_KEY].sha256).toBe(sha(d.m.get(p + OUTBOX_KEY)!.body));
+    }
+    expect(r.personalHeldBack).toBe(2);
+    // the restored outbox loses nothing: an event neither told nor pending is raised again from its stored record
+    expect(PERSONAL_EVENT_KINDS).toEqual(["report", "crash"]);
+  });
+
+  it("an outbox that does not parse is not copied: skipped, named, the run failed; everything else is in the snapshot", async () => {
+    const d = dst();
+    const r = await runBackup(src({ ...STATE, [OUTBOX_KEY]: '{"pending": [' }), d, NOW);
+    expect(r.ok).toBe(false);
+    expect(r.error).toMatch(/notify\/state\.json was not backed up: .*does not parse/);
+    expect(d.m.has(`daily/2026-12-01/${OUTBOX_KEY}`)).toBe(false);
+    expect(d.m.has("daily/2026-12-01/private/feeds/status.json")).toBe(true);
+    expect(d.m.has("daily/2026-12-01/_manifest.json")).toBe(true);
+  });
+
+  it("the prune scrubs a copy made before the rule (manifest corrected); a copy that does not parse is deleted", async () => {
+    const d = dst();
+    await d.put(`monthly/2026-11/${OUTBOX_KEY}`, JSON.stringify(OUTBOX));
+    await d.put("monthly/2026-11/_manifest.json", JSON.stringify({ objects: { [OUTBOX_KEY]: { size: 1, sha256: "x", contentType: "application/json" } } }));
+    await d.put(`daily/2026-11-20/${OUTBOX_KEY}`, "{torn");
+    await d.put(`daily/2026-11-21/${OUTBOX_KEY}`, JSON.stringify({ ...OUTBOX, pending: [OUTBOX.pending[2]] }));   // clean: untouched
+    const clean = text(d, `daily/2026-11-21/${OUTBOX_KEY}`);
+    const r = await pruneBackups(d, NOW);
+    expect(r).toEqual({ deleted: 1, scrubbed: 1 });
+    expect(text(d, `monthly/2026-11/${OUTBOX_KEY}`)).not.toMatch(/someone@example\.com|Cowichan/);
+    const man = JSON.parse(text(d, "monthly/2026-11/_manifest.json"));
+    expect(man.objects[OUTBOX_KEY].sha256).toBe(sha(d.m.get(`monthly/2026-11/${OUTBOX_KEY}`)!.body));
+    expect(man.scrubbed).toEqual([{ key: OUTBOX_KEY, dropped: 2, at: NOW.toISOString() }]);
+    expect(d.m.has(`daily/2026-11-20/${OUTBOX_KEY}`)).toBe(false);
+    expect(text(d, `daily/2026-11-21/${OUTBOX_KEY}`)).toBe(clean);
   });
 });
 

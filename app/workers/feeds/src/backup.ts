@@ -17,12 +17,20 @@
 // rule, a report deleted on request: `forgetReport`), and drops it from that snapshot's manifest (`pruned` names it).
 // deploy/{staging,prod}/feeds.sh refuses a deploy when the bucket's daily/ lifecycle is longer than DAILY_KEEP_DAYS.
 //
+// (T994 #3) THE OWNER OUTBOX (private/feeds/notify/state.json) is not personal data, but its queue is: an untold report
+// event carries the report's words until the digest, an error kind's event its message. Every copy of the outbox (daily/
+// and monthly/) is taken WITHOUT those events (`scrubOutbox`; the restored outbox raises them again from the stored
+// records), and the prune scrubs a copy made before this rule. An outbox that does not parse is not copied (it may hold
+// them): skipped, named, and the run is failed.
+//
 // What is NOT here (and why): the release (release/<id>/, release/tiles/, basemap — immutable, content-named, copied once
 // per release by deploy/staging/backup.sh release); feeds/live/<station>.json (rebuilt every 30 min from ECCC);
 // the curated data (git + deploy/staging/backup.sh curated, which also carries the uncommitted review marks).
 
 import { CRASH_RETENTION_DAYS, CRASHES_PREFIX, TEST_CRASHES_PREFIX } from "./crashes";
 import { REPORTS_PREFIX, RETENTION_DAYS, TEST_REPORTS_PREFIX } from "./reports";
+import { dropPending, NOTIFY_STATE, PERSONAL_EVENT_KINDS } from "./events";
+import type { Store } from "./io";
 
 /** prefixes copied whole, and single keys */
 export const BACKUP_PREFIXES = ["private/", "feeds/dfo/", "feeds/inseason/"] as const;
@@ -36,6 +44,21 @@ export const DAILY_KEEP_DAYS = 30;
 /** R2 deletes an expired object within about a day of its due time */
 export const LIFECYCLE_SLACK_DAYS = 1;
 const DAY = 86_400_000;
+/** (T994 #3) the owner outbox as the bucket holds it (index.ts writes it through r2Store(BUCKET, "private/feeds/")) */
+export const OUTBOX_KEY = `private/feeds/${NOTIFY_STATE}`;
+
+/**
+ * (T994 #3) The outbox as a backup copy holds it: the queued events of a PERSONAL_EVENT_KINDS kind left out (`dropped`).
+ * THROWS when the text does not parse or holds no `pending` list: such a copy cannot be shown to hold no report's words.
+ */
+export function scrubOutbox(text: string): { text: string; dropped: number } {
+  let st: { pending?: unknown };
+  try { st = JSON.parse(text); } catch (e) { throw new Error(`${OUTBOX_KEY} does not parse (${e instanceof Error ? e.message : String(e)})`); }
+  if (!st || typeof st !== "object" || !Array.isArray(st.pending)) throw new Error(`${OUTBOX_KEY} holds no pending list`);
+  const keep = (st.pending as { kind?: unknown }[]).filter((e) => !(PERSONAL_EVENT_KINDS as readonly unknown[]).includes(e?.kind));
+  const dropped = st.pending.length - keep.length;
+  return { text: dropped ? JSON.stringify({ ...st, pending: keep }) : text, dropped };
+}
 
 /** (T559) what kind of personal record a key is: a report, an error kind, one that is never copied (the rate-limit
  *  counters, the staging test stores, anything else in a personal store), or null: not personal data */
@@ -101,6 +124,8 @@ export interface BackupResult {
   personalHeldBack: number;
   /** (T559) personal copies deleted from the backup bucket by this run's prune */
   pruned: number;
+  /** (T994 #3) outbox copies the prune rewrote without their personal events (copies made before the rule) */
+  scrubbed: number;
   error: string | null;
   wallMs: number;
 }
@@ -132,7 +157,8 @@ export async function runBackup(src: SrcBucket, dst: DstBucket, now: Date, sourc
   const at = now.toISOString();
   const day = at.slice(0, 10);
   const prefixes = [`daily/${day}/`, ...(day.endsWith("-01") ? [`monthly/${day.slice(0, 7)}/`] : [])];
-  const res: BackupResult = { format: "backup-run/1", at, ok: false, day, prefixes, copied: 0, bytes: 0, skipped: [], personalHeldBack: 0, pruned: 0, error: null, wallMs: 0 };
+  const res: BackupResult = { format: "backup-run/1", at, ok: false, day, prefixes, copied: 0, bytes: 0, skipped: [], personalHeldBack: 0, pruned: 0, scrubbed: 0, error: null, wallMs: 0 };
+  let outboxRefused: string | null = null;
   try {
     const objects: Record<string, Record<string, { size: number; sha256: string; contentType: string | null }>> = Object.fromEntries(prefixes.map((p) => [p, {}]));
     for (const { key, size } of await backupKeys(src)) {
@@ -141,7 +167,18 @@ export async function runBackup(src: SrcBucket, dst: DstBucket, now: Date, sourc
       if (kind === "never") { res.personalHeldBack++; continue; }
       const o = await src.get(key);
       if (!o) { res.skipped.push({ key, why: "gone between list and get" }); continue; }
-      const body = await o.arrayBuffer();
+      let body = await o.arrayBuffer();
+      if (key === OUTBOX_KEY) {
+        // (T994 #3) the queue's report and error-kind events are personal: never in a copy
+        let s: { text: string; dropped: number };
+        try { s = scrubOutbox(new TextDecoder().decode(body)); } catch (e) {
+          outboxRefused = `${e instanceof Error ? e.message : String(e)}: not copied (it may hold a report's words)`;
+          res.skipped.push({ key, why: outboxRefused });
+          continue;
+        }
+        body = new TextEncoder().encode(s.text).buffer as ArrayBuffer;
+        res.personalHeldBack += s.dropped;
+      }
       const to = kind ? prefixes.filter((p) => mayCopy(goneBy(key, new TextDecoder().decode(body)), p, now)) : prefixes;
       if (!to.length) { res.personalHeldBack++; continue; }
       const sha = hex(await crypto.subtle.digest("SHA-256", body));
@@ -155,8 +192,9 @@ export async function runBackup(src: SrcBucket, dst: DstBucket, now: Date, sourc
     for (const p of prefixes)
       await dst.put(`${p}_manifest.json`, JSON.stringify({ format: "backup/1", at, source, objects: objects[p] }, null, 1), { httpMetadata: { contentType: "application/json" } });
     // (T559) then the copies the privacy page says must be gone; a prune that fails fails the run (told at once)
-    res.pruned = (await pruneBackups(dst, now)).deleted;
-    res.ok = true;
+    ({ deleted: res.pruned, scrubbed: res.scrubbed } = await pruneBackups(dst, now));
+    res.ok = outboxRefused === null;
+    if (outboxRefused) res.error = `${OUTBOX_KEY} was not backed up: ${outboxRefused}`;
   } catch (e) {
     res.error = String((e as Error)?.stack ?? e).slice(0, 1000);
   }
@@ -206,13 +244,15 @@ async function dropFromBackups(dst: DstBucket, keys: { key: string; why: string 
  * them in monthly/, the never-copied kinds anywhere, and a daily/ copy whose date (`goneBy`) falls before tomorrow. A
  * report copy is aged by its folder day, a day early (no read); an error kind by the `last` in the copy.
  */
-export async function pruneBackups(dst: DstBucket, now: Date): Promise<{ deleted: number }> {
+export async function pruneBackups(dst: DstBucket, now: Date): Promise<{ deleted: number; scrubbed: number }> {
   const drop: { key: string; why: string }[] = [];
+  const outboxes: string[] = [];
   for (const root of ["daily/", "monthly/"]) {
     for (const key of await listAll(dst, root)) {
       const m = SNAPSHOT_RE.exec(key);
       if (!m || m[2] === "_manifest.json") continue;
       const inner = m[2]!;
+      if (inner === OUTBOX_KEY) { outboxes.push(key); continue; }          // (T994 #3) scrubbed below
       const kind = personalKind(inner);
       if (kind === null) continue;                                          // not personal data
       if (root === "monthly/") { drop.push({ key, why: "personal data is never kept monthly" }); continue; }
@@ -222,15 +262,47 @@ export async function pruneBackups(dst: DstBucket, now: Date): Promise<{ deleted
       if (gone <= now.getTime() + DAY) drop.push({ key, why: "past the privacy page's date" });
     }
   }
-  return { deleted: await dropFromBackups(dst, drop, now) };
+  const scrubbed = await scrubOutboxCopies(dst, outboxes, drop, now);
+  return { deleted: await dropFromBackups(dst, drop, now), scrubbed };
+}
+
+/**
+ * (T994 #3) Rewrite each outbox copy that still holds a personal event without it (its manifest entry corrected, the
+ * rewrite named in the manifest's `scrubbed`); a copy that does not parse goes on `drop` (it cannot be shown to hold
+ * none). Answers how many were rewritten.
+ */
+async function scrubOutboxCopies(dst: DstBucket, keys: string[], drop: { key: string; why: string }[], now: Date): Promise<number> {
+  let n = 0;
+  for (const key of keys) {
+    const o = await dst.get(key);
+    if (!o) continue;
+    let s: { text: string; dropped: number };
+    try { s = scrubOutbox(await o.text()); } catch { drop.push({ key, why: "an outbox copy that does not parse may hold a report's words" }); continue; }
+    if (!s.dropped) continue;
+    const bytes = new TextEncoder().encode(s.text);
+    const sha = hex(await crypto.subtle.digest("SHA-256", bytes));
+    await dst.put(key, s.text, { httpMetadata: { contentType: "application/json" }, sha256: sha });
+    const snap = SNAPSHOT_RE.exec(key)![1]!;
+    const mo = await dst.get(`${snap}_manifest.json`);
+    if (mo) {
+      const man = JSON.parse(await mo.text()) as { objects?: Record<string, { size: number; sha256: string }>; scrubbed?: unknown[] };
+      if (man.objects?.[OUTBOX_KEY]) man.objects[OUTBOX_KEY] = { ...man.objects[OUTBOX_KEY], size: bytes.byteLength, sha256: sha };
+      man.scrubbed = [...(man.scrubbed ?? []), { key: OUTBOX_KEY, dropped: s.dropped, at: now.toISOString() }];
+      await dst.put(`${snap}_manifest.json`, JSON.stringify(man, null, 1), { httpMetadata: { contentType: "application/json" } });
+    }
+    n++;
+  }
+  return n;
 }
 
 /**
  * (T559) A report deleted ON REQUEST (privacy page: "We delete it within 30 days"): the live object (any day folder, the
  * test store too) and every copy of it in the backups, manifests corrected. POST /run/forget-report?id=<16 hex>.
+ * (T994 #3) Also its event while still queued in the owner outbox (`outbox`: the store over private/feeds/), and every
+ * outbox copy in the backups scrubbed of personal events (`pruneBackups` does the same daily).
  */
-export async function forgetReport(src: { list?: SrcBucket["list"]; delete(key: string): Promise<unknown> }, dst: DstBucket, id: string, now: Date):
-    Promise<{ live: number; backups: number }> {
+export async function forgetReport(src: { list?: SrcBucket["list"]; delete(key: string): Promise<unknown> }, dst: DstBucket, id: string, now: Date,
+                                   outbox: Store): Promise<{ live: number; backups: number; queued: boolean; outboxCopies: number }> {
   if (!/^[0-9a-f]{16}$/.test(id)) throw new Error("id must be 16 hex characters");
   if (!src.list) throw new Error("the bucket cannot list");
   const mine = (k: string) => k.endsWith(`/${id}.json`) && (k.includes(REPORTS_PREFIX) || k.includes(TEST_REPORTS_PREFIX));
@@ -245,6 +317,9 @@ export async function forgetReport(src: { list?: SrcBucket["list"]; delete(key: 
     } while (cursor);
     for (const k of keys.filter(mine)) { await src.delete(k); live++; }
   }
-  const drop = [...await listAll(dst, "daily/"), ...await listAll(dst, "monthly/")].filter(mine).map((key) => ({ key, why: "deleted on request" }));
-  return { live, backups: await dropFromBackups(dst, drop, now) };
+  const queued = await dropPending(outbox, `report:${id}`);
+  const all = [...await listAll(dst, "daily/"), ...await listAll(dst, "monthly/")];
+  const drop = all.filter(mine).map((key) => ({ key, why: "deleted on request" }));
+  const outboxCopies = await scrubOutboxCopies(dst, all.filter((k) => SNAPSHOT_RE.exec(k)?.[2] === OUTBOX_KEY), drop, now);
+  return { live, backups: await dropFromBackups(dst, drop, now), queued, outboxCopies };
 }
