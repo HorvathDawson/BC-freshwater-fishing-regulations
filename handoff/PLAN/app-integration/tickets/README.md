@@ -167,7 +167,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T774 | A DFO place cannot be saved as "not drawn, show DFO's words" (Kitimat west bank is drawn full width until T754; fallback mark 2786) | OPEN | — | second look at the DFO labels, 2026-11-15 night (`second-look-fixes-2026-11-15.md`), lane B follow-up |
 | T775 | Review app, rest-of places after T761: preview says "the build refuses it" (it does not), checklist empty until a preview, listed places not on the map, skipped listed places not named on the card | OPEN | — | T761 lane report and sweep, 2026-11-15 night |
 | T776 | Marks audit tool: last-row lookup reads a side line for 32 cut ids; section F does not model the build's channels; `dfo.cannot_edit_words` wording for a downstream watershed extent | OPEN | — | marks audit and second look, 2026-11-15 night |
-| T777 | The test-anchors scanner misses tests that read live curated state through app code (five tests went red on the owner's saves) | DONE | 64325c44a, cde142554 | — (lane test/T777-test-isolation, merge pending; the two data-tier items: T1000) |
+| T777 | The test-anchors scanner misses tests that read live curated state through app code (five tests went red on the owner's saves) | DONE | 64325c44a, cde142554 | — (lane test/T777-test-isolation, merge pending; the two data-tier items: T1001) |
 | T779 | The side check used when a DFO mark is landed (and the review app's preview) does not report a withheld piece; only the full reach run refuses it, 14 minutes in | OPEN | — | T778, 2026-11-15 night |
 | T780 | Part names show a cut's review words ("…, approximate location (medium confidence)": Hope bridge, Alexandra Bridge, Skutz Falls, Sandy Pool sign, the Zymoetz Hwy 16 bridge); move them out of the label, add a check | IN PROGRESS — left (Claude): ships with the next data release (and the Sheldens Creek tidal label with the next atlas build) | 72efb1a10, 1daa94efe, 6b23aa2ca | reading the r-46e4355a7277 fixtures, 2026-11-16; ships with the next data release |
 | T781 | Skeena cascade review on the built release: Babine Lake reads open inside its 13 unconfirmed closed areas, Gosnell Creek and the Thautil closed by the Morice row, Gitnadoix coho open below the powerline, the eulachon line missing | OPEN (owner answered 2026-11-16; items carried by T812, T804, T803/T833, T770 (done), T754) | — | `curation-review/skeena-cascade-review-2026-11-15.md` |
@@ -276,7 +276,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T996 | Test the Apple push service end to end (registration, wake-up delivery, token reuse over 1 h+) | OPEN | T994 | owner 2026-11-21, next release |
 | T997 | Water map: two boundary labels at almost the same place draw on top of each other (Nicomekl River Part 2) | OPEN | | owner 2026-11-21, next chat |
 | T998 | Meaningful versions: SemVer for the app, the bump derived from Conventional Commits (1.0.0 at public launch) | OPEN | T995 | owner 2026-11-21 |
-| T1000 | Two data-tier test fixes left from T777 (the Deadman stretch-end test on the live tree; in-season tests between a promote and a release) | OPEN | — | all (depends T777; from T777's 2026-11-16 additions) |
+| T1001 | Two data-tier test fixes left from T777 (the Deadman stretch-end test on the live tree; in-season tests between a promote and a release) | OPEN | — | all (depends T777; from T777's 2026-11-16 additions) |
 
 ## Next after closed testing
 

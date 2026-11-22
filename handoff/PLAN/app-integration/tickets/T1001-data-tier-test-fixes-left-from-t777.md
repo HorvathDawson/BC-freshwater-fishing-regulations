@@ -1,4 +1,4 @@
-# T1000 — Two data-tier test fixes left from T777 (a stretch-end test on the live tree; in-season tests between a promote and a release)
+# T1001 — Two data-tier test fixes left from T777 (a stretch-end test on the live tree; in-season tests between a promote and a release)
 
 Status: OPEN.
 
