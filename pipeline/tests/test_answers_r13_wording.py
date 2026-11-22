@@ -29,7 +29,6 @@ from pipeline.deliver.answers import display as D
 from pipeline.deliver.bundle import rules as RM
 from pipeline.regs.parsing import catalogue as C
 from pipeline.tests import answers28_fixture as F
-from pipeline.tests import test_answers_r11_wording as R11
 
 OCT10, JUL15 = (10, 10), (7, 15)
 KNOWN = {"line": "known_with_rules", "says": "A rainbow trout over 50 cm (20 in) here counts as a steelhead."}
@@ -92,20 +91,8 @@ def test_s_the_gate_proves_none_may_be_kept():
     assert any("not_kept" in p for p in CC.check_card(P, bad))
 
 
-# G / P weight ----------------------------------------------------------------------------------
-def test_g_no_hook_clause_without_a_hook_restriction():
-    vedder = R11._rules("stream", hook=R11.Z2_HOOK)["summary"]["says"]
-    okanagan = R11._rules("lake")["summary"]["says"]
-    kootenay = R11._rules("lake", kootenay=True)["summary"]["says"]
-    cowichan = R11._rules("stream", hook=R11.Z1_HOOK, fly=R11.COWICHAN_FLY)["summary"]["says"]
-    assert vedder == "1 line with a single barbless hook, no trebles (one hook, lure or fly). Weight on the line up to 1 kg (2.2 lb)."
-    assert okanagan == "1 line (2 while alone in a boat) with one hook, lure or fly. Weight on the line up to 1 kg (2.2 lb)."
-    assert kootenay == ("1 line from shore; any number from a boat, each with one hook, lure or fly. "
-                        "Weight on the line up to 1 kg (2.2 lb).")              # UR1 G
-    assert cowichan == ("Fly fishing only: 1 line with a single barbless hook, no trebles (one fly). No float or strike indicator, no sinker or "
-                        "split shot, no lure, spinner or other attracting device.")
-    assert not any("any hook" in s for s in (vedder, okanagan, kootenay, cowichan))
-
+# G / P weight: the four gear sentences (no "any hook", "weight on the line") are pinned once, in
+# test_answers_r12_wording.py `test_w5_gear_sentences_have_no_em_dash` (T866 D4)
 
 # D ---------------------------------------------------------------------------------------------
 def test_d_the_own_rule_bucket_says_what_it_replaces():

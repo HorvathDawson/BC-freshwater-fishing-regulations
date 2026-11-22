@@ -177,6 +177,7 @@ def test_w5_gear_sentences_have_no_em_dash():
     assert cowichan == ("Fly fishing only: 1 line with a single barbless hook, no trebles (one fly). No float or strike indicator, no sinker or "
                         "split shot, no lure, spinner or other attracting device.")
     assert not any("—" in s for s in (vedder, okanagan, kootenay, cowichan))
+    assert not any("any hook" in s for s in (vedder, okanagan, kootenay, cowichan))   # ROUND13 G (T866 D4: from r13)
 
 
 def test_t623_f12_the_size_group_gate_asks_some_n_not_the_first_n():
