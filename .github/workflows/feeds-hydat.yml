@@ -14,7 +14,7 @@ name: feeds — HYDAT → climatology → R2
 # Gauge MATCHES are never touched (data/curated/gauges/matches.json is the one frozen file).
 
 # What it does NOT do: steps 4–5 of update-hydat.sh (`pipeline build` + the release upload). The build needs the ~10 GB
-# atlas (see pipeline-ci.yml's header) — the owner runs `scripts/update-hydat.sh --upload` on the Mac for the bundle.
+# atlas (see pipeline-ci.yml's header) — the owner runs `scripts/update-hydat.sh` on the Mac for the bundle, then `python -m pipeline release --staging`.
 #
 # TARGET: staging by default and, for now, ONLY staging. Production is an explicit choice that is commented out
 # below until the owner enables it (uncomment the option AND the prod secrets block).

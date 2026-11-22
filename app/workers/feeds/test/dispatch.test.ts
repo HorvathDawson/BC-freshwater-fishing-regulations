@@ -132,7 +132,7 @@ describe("(T554 item 5) a started run that did not do its work", () => {
     expect(sec.steps.map((x) => x.text)).toEqual([
       'The worker started "feeds-hydat.yml" on r 2 times (first 2026-11-05T12:00:00.000Z, last 2026-11-05T18:05:00.000Z) and its work is still not done. It does not start it again: look at the failed runs in GitHub → Actions, fix the cause, then start it by hand:',
       'GitHub → Actions → "feeds — HYDAT → climatology → R2", with upload: true (the feeds worker\'s clim.json).',
-      "Then, on the Mac, the bundle and release:",
+      "Then, on the Mac, the bundle (scripts/update-hydat.sh prints the release command at the end):",
     ]);
   });
 });
