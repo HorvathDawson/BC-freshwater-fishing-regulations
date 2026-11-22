@@ -18,6 +18,10 @@ on:
         type: string
         default: vedder-river
 
+# (T994 6) least privilege: nothing here writes to the repo or needs the GITHUB_TOKEN beyond reading it
+permissions:
+  contents: read
+
 concurrency:
   group: staging-smoke
   cancel-in-progress: false
@@ -27,17 +31,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           sparse-checkout: app/tools
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with: { node-version-file: app/.nvmrc }
       - name: Smoke test staging
         env:
           CHROME: /usr/bin/google-chrome
           CI: "1"
-        run: node app/tools/smoke-staging.mjs --shots smoke-shots --slug "${{ inputs.slug }}"
-      - uses: actions/upload-artifact@v4
+          # (T994 6) the dispatch input reaches the shell as a variable, never spliced into the command text
+          SLUG: ${{ inputs.slug }}
+        run: node app/tools/smoke-staging.mjs --shots smoke-shots --slug "$SLUG"
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: smoke-staging

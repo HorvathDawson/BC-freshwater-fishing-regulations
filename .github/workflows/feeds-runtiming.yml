@@ -72,10 +72,10 @@ on:
         description: "(T552) the owner's reason to let a > 10% fall in runs or painted sections through; empty = refuse it"
         type: string
         default: ""
-  # (T412/T413) REGISTRATION ONLY: GitHub can dispatch a workflow that is not on the default branch (main stays
-  # untouched) only once it has run there; a push of THIS file registers it. The job below is skipped for a push.
-  push:
-    paths: [".github/workflows/feeds-runtiming.yml"]
+
+# (T994 6) least privilege: the jobs read the repo and talk to R2 with their own keys, never the GITHUB_TOKEN
+permissions:
+  contents: read
 
 concurrency:
   group: feeds-runtiming
@@ -83,7 +83,6 @@ concurrency:
 
 jobs:
   runtiming:
-    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -117,8 +116,8 @@ jobs:
           esac
           [ -n "${AWS_ACCESS_KEY_ID:-}" ] || { echo "::error::R2 keys are not set (see the header)"; exit 1; }
 
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with: { python-version: "3.13" }
       # only what fetch / parse / build import (pipeline.common.curated: pyyaml + pydantic; the polygons: shapely +
       # mapbox-vector-tile), not the whole pipeline's requirements.txt
@@ -178,8 +177,17 @@ jobs:
           ls -la "$W/out/runtiming"
           { echo '```json'; cat "$W/out/report.json"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
-      - uses: actions/upload-artifact@v4
+      # (T993) the report artifact is a convenience copy (the same report is in the step summary above): a failed upload
+      # (an ECONNRESET on 11-07 failed a whole build-and-publish run) must not fail the run, and is SAID, never hidden
+      - uses: actions/upload-artifact@v6
+        id: report
+        continue-on-error: true
         with: { name: "runtiming-report-${{ env.HANDLES }}", path: work/out/report.json, retention-days: 30 }
+      - name: Say so when the report artifact did not upload
+        if: steps.report.outcome == 'failure'
+        run: |
+          echo "::warning::the report artifact did not upload (the report is in the step summary above); the run goes on"
+          echo "The report artifact did NOT upload; the report is the JSON block above." >> "$GITHUB_STEP_SUMMARY"
 
       - name: 6/7 diff against the live run timing
         run: |

@@ -1,0 +1,30 @@
+name: app setup
+description: >
+  (T993) The setup every app-ci job shares: pnpm (the version is app/package.json "packageManager", the one place it is
+  written), Node (app/.nvmrc = the Mac's Node: the generated-file gates, the spinner PNG deflate, are byte-exact only on
+  the same Node), `pnpm install --frozen-lockfile`, and, unless `python` is "false", the repo's `.venv` the app's
+  generated-file gates and its Python-reading tests run with (`.venv/bin/python`, as on a laptop; they need no data,
+  only the pipeline's code, P03). Run it after `actions/checkout`.
+inputs:
+  python:
+    description: '"false" for a job that never runs Python (the bundle builds)'
+    default: "true"
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@v5
+      with: { package_json_file: app/package.json }
+    - uses: actions/setup-node@v5
+      with: { node-version-file: app/.nvmrc, cache: pnpm, cache-dependency-path: app/pnpm-lock.yaml }
+    - name: pnpm install
+      shell: bash
+      working-directory: app
+      run: pnpm install --frozen-lockfile
+    - if: inputs.python != 'false'
+      uses: actions/setup-python@v6
+      with: { python-version: "3.13", cache: pip, cache-dependency-path: "requirements.txt\nconstraints.txt" }
+    - if: inputs.python != 'false'
+      name: Python venv for the generated-file checks and the Python-reading tests
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      run: python -m venv .venv && .venv/bin/pip install -r requirements.txt -c constraints.txt

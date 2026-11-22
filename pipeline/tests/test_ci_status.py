@@ -24,7 +24,7 @@ def run(sha, status="completed", conclusion="success", n=1):
 
 def fake(per_workflow):
     def runs_of(wf, branch):
-        got = per_workflow[wf]
+        got = per_workflow.get(wf, [])      # (T993) a workflow a test does not name has no runs
         if isinstance(got, Exception):
             raise got
         return got
@@ -32,8 +32,22 @@ def fake(per_workflow):
 
 
 def test_green_on_head_passes():
-    rc, lines = CI.check(HEAD, runs_of=fake({"app-ci.yml": [run(HEAD)], "pipeline-ci.yml": [run(HEAD, n=2)]}))
-    assert rc == 0 and all(ln.startswith("ok") for ln in lines)
+    rc, lines = CI.check(HEAD, runs_of=fake({"app-ci.yml": [run(HEAD)], "pipeline-ci.yml": [run(HEAD, n=2)],
+                                             "docs-ci.yml": [run(HEAD, n=3)], "feeds-worker-ci.yml": [run(HEAD, n=4)]}))
+    assert rc == 0 and len(lines) == 4 and all(ln.startswith("ok") for ln in lines)
+
+
+def test_every_workflow_that_gates_a_push_is_read():
+    """(T993) app-ci's ledger guard and worker suite moved to their own workflows; the release gate must still see them."""
+    assert set(CI.WORKFLOWS) == {"app-ci.yml", "pipeline-ci.yml", "docs-ci.yml", "feeds-worker-ci.yml"}
+    for wf in CI.WORKFLOWS:
+        assert (ROOT / ".github" / "workflows" / wf).is_file(), wf
+
+
+def test_a_red_ledger_guard_stops_the_release_check():
+    rc, lines = CI.check(HEAD, runs_of=fake({"app-ci.yml": [run(HEAD)], "pipeline-ci.yml": [run(HEAD)],
+                                             "docs-ci.yml": [run(HEAD, conclusion="failure", n=5)]}))
+    assert rc == 1 and any(ln.startswith("STOP  docs-ci.yml: RED") for ln in lines)
 
 
 def test_red_on_head_stops_naming_the_run():

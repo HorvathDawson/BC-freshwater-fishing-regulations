@@ -306,7 +306,7 @@ A6. **Commit only your own paths: `git commit -- <paths>`.** Several agents shar
 
 39. **The two tiers are not interchangeable.** The *mill* (fetch → build → match → bundle →
     tiles) is heavy (minutes and gigabytes: `python -m pipeline build --status`) and runs by hand a few times a year. The *guards*
-    (`pipeline-ci.yml`, `app-ci.yml`) are seconds and run on every push. Never add a step
+    (`pipeline-ci.yml`, `app-ci.yml`, `feeds-worker-ci.yml`, `docs-ci.yml`) are seconds and run on every push. Never add a step
     to CI that needs `graph.pkl` — a hosted runner has 14 GB of disk and one build directory
     is 10, and a job that fails for unrelated reasons is one people learn to ignore.
 

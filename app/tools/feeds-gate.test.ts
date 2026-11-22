@@ -10,11 +10,13 @@ const read = (p: string) => readFileSync(new URL(p, REPO), "utf8");
 const WORKER_TESTS = "npx vitest run --root .";
 
 describe("the feeds worker's suites gate CI and the staging deploy", () => {
-  it("app-ci.yml runs them in app/workers/feeds, after the venv the Python parity needs", () => {
-    const ci = read(".github/workflows/app-ci.yml");
+  it("feeds-worker-ci.yml (its own workflow since T993) runs them in app/workers/feeds, after the setup that builds the venv the Python parity needs", () => {
+    const ci = read(".github/workflows/feeds-worker-ci.yml");
     const step = /- name: Feeds worker tests\n\s+working-directory: app\/workers\/feeds\n\s+run: (.+)\n/.exec(ci);
     expect(step?.[1]).toBe(WORKER_TESTS);
-    expect(ci.indexOf("python -m venv .venv")).toBeLessThan(step!.index);
+    expect(ci.indexOf("uses: ./.github/actions/app-setup")).toBeGreaterThan(0);
+    expect(ci.indexOf("uses: ./.github/actions/app-setup")).toBeLessThan(step!.index);
+    expect(read(".github/actions/app-setup/action.yml")).toContain("python -m venv .venv");
   });
 
   it("deploy/staging/feeds.sh runs them (set -e) and checks REPORT_SALT before it deploys", () => {
