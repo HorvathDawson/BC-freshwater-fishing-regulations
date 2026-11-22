@@ -1,6 +1,6 @@
 # T993 — Document and clean up every release / CI / CD process, so a HUMAN can release by following it
 
-Status: IN PROGRESS (main chat 2026-11-21: owner picked it for this chat; inventory first).
+Status: IN PROGRESS (main chat 2026-11-21: owner picked it for this chat; inventory first). Plan item 11 (the one human runbook) written 2026-11-22, IN REVIEW: owner: OWNER-TODO "To read (you): the one release runbook and the gates page"; the other open items are their lanes' (T866, T978, T987, item 17).
 
 Source: owner 2026-11-21, during the 0.8.5 staging release, verbatim: "we need to have a ticket to make the review
 process smoother we always have so many issues we need to fix...".
@@ -229,3 +229,21 @@ not measured; `regulations.versions` are not app-gated (above); the human runboo
 
 Left (not done here): the pipeline scanner's `absent` kind (`pipeline/tests/anchors.py`, another lane's file this round);
 a whole record typed or `toBeUndefined()` on a release field stays unscannable (the scanner header says why).
+
+## Plan item 11: the one human runbook (2026-11-22, lane docs/T993-one-human-runbook)
+- `handoff/PLAN/runbooks/release-by-hand.md` rewritten as THE runbook: who runs what; before you start; Step 0 the
+  version (T998 §0: computed from the app's commits since the last `v*` tag, the owner confirms) and the release branch
+  (`--cut`); Step 1 the changelog bullets; Step 2 the rehearsal (`--dry-run --build --rehearse-follows`, the derived
+  min app, the site first); Step 3 the data release; Step 4 staging site / feeds / data worker; Step 5 the owner's look;
+  Step 6 phones (production AAB to Internal, `play-upload.py --promote … --track alpha` to Closed, Play production;
+  TestFlight `--production` with the external group automatic, App Store); Step 7 production (rehearse, the site / feeds
+  worker first when their gates say so, data by the owner, smoke, site and feeds worker as Claude steps, data worker,
+  phones, watch); Step 8 tags and the merge-back PR; a fix during the release (cherry-pick); a data-only release
+  (`--cut --data-only`); when something breaks; rollback; checklist. Every command checked against the code.
+- `release.md` keeps the flag detail (links to the runbook and the gates page; the stale "hook is the owner's call"
+  line fixed). `PRODUCTION.md`: the first transition removed (history: the file at a3ca419e2), its one open owner item
+  (the GitHub production option of feeds-hydat / feeds-runtiming) kept under "Not yet"; "who does what" updated;
+  "every later release" replaced by the runbook's Step 7 and the order rules the gates enforce.
+- T992's explanation: `handoff/PLAN/runbooks/release-gates-explained.md`.
+- Not done here: the claude.ai doc twin of the runbook (https://claude.ai/artifact/5r4yEqNwqygin1oKo5Zxjk) still has
+  the 2026-11-18 text; it is synced when this lands. T1003 (R8) changes no release step yet.
