@@ -204,7 +204,11 @@ def test_placing_an_unplaced_mouth_by_hand_and_an_area_dfo_dropped(wt):  # noqa:
     r = client.post("/api/marks", json={"scope": "closed_area", "target": a["target"], "answers": {"P": "y"},
                                                "piece": piece, "reviewer": "test"})
     assert r.status_code == 200, r.text
-    assert _area(client, ROW, lambda x: x["key"] == a["key"])["state"] == "placed"
+    # (T931 review, 2026-11-22) the area was "placed" before the save too (the T931 B re-pin), so "placed" alone proves
+    # nothing: what proves the hand placement is that his centre, not the proposal's, is what the place now holds
+    assert a["piece"]["centre"] != [-126.0, 54.9]
+    now = _area(client, ROW, lambda x: x["key"] == a["key"])
+    assert (now["state"], now["confirmed"], now["piece"]["centre"]) == ("placed", True, [-126.0, 54.9]), now
     # an item only the OLDER wording names (Pinkut Creek) is confirmed like any other — and stays not live
     dead = _area(client, ROW, lambda x: not x["live"])
     assert dead["name"] == "Pinkut Creek" and dead["piece"]["kind"] == "circle"
