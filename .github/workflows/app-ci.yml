@@ -83,9 +83,18 @@ jobs:
       - name: pnpm run check:fast (every app gate)
         run: pnpm run check:fast
 
+  # (T866 S1) THE APP SUITE ON 4 RUNNERS: vitest's own `--shard=i/N` (its files sliced by path hash), each leg on 2
+  # workers as before (vitest.config.ts). One runner took 21 min. N is the matrix's length, typed once (strategy.job-total);
+  # fail-fast off, so a failing leg hides no other. `app ok` needs `vitest`, whose result is every leg's: a failed or
+  # cancelled leg fails it. Each leg first proves the N slices are a partition of the unsharded file list (no file run
+  # zero or two times) and last that the files it ran are its slice (tools/vitest-shards.mjs).
   vitest:
     needs: changes
     if: needs.changes.outputs.run == 'true'
+    name: vitest (${{ matrix.shard }}/${{ strategy.job-total }})
+    strategy:
+      fail-fast: false
+      matrix: { shard: [1, 2, 3, 4] }
     runs-on: ubuntu-latest
     timeout-minutes: 25
     defaults:
@@ -96,8 +105,14 @@ jobs:
       - uses: actions/checkout@v5
         with: { fetch-depth: 0, filter: "blob:none" }
       - uses: ./.github/actions/app-setup
-      - name: pnpm run test (the whole app suite)
-        run: pnpm run test
+      - name: every test file is in exactly one shard
+        run: node tools/vitest-shards.mjs ${{ strategy.job-total }}
+      - name: pnpm run test (this leg's shard of the app suite)
+        run: pnpm run test --shard=${{ matrix.shard }}/${{ strategy.job-total }} --reporter=default --reporter=json --outputFile.json=../vitest-shard.json
+      # whether the tests passed or not: a leg that ran other files than its slice says so
+      - name: this leg ran exactly its shard's files
+        if: ${{ !cancelled() }}
+        run: node tools/vitest-shards.mjs ${{ strategy.job-total }} --ran ${{ matrix.shard }} ../vitest-shard.json
 
   bundles:
     needs: changes

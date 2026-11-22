@@ -97,10 +97,35 @@ def test_app_ci_is_parallel_jobs_and_no_step_masks_another():
     assert all(d["needs"] == "changes" for j, d in app.items() if j not in ("changes", "ok"))   # no job waits on another
     app = {j: d for j, d in app.items() if j not in ("changes", "ok")}
     runs = {j: [s.get("run", "") for s in d["steps"]] for j, d in app.items()}
-    assert "pnpm run check:fast" in runs["gates"] and "pnpm run test" in runs["vitest"]
+    assert "pnpm run check:fast" in runs["gates"]
     native = [s for s in app["bundles"]["steps"] if "expo export" in s.get("run", "")]
     assert native and native[0]["if"] == "${{ !cancelled() }}"
     assert _load("feeds-worker-ci.yml")["jobs"]["worker"]["steps"][-1]["run"] == "npx vitest run --root ."
+
+
+def test_app_vitest_is_sharded_and_every_file_runs_in_exactly_one_leg():
+    """(T866 S1) the app suite on N runners. The shard count is the matrix's length, typed once (`strategy.job-total`
+    everywhere else): a `/4` typed beside a 3-leg matrix would leave a quarter of the files unrun with every leg green.
+    No leg cancels another (each one's failures are listed); each leg proves the slices partition the file list before
+    it runs, and that it ran its slice after (tools/vitest-shards.mjs, whose own tests plant the faults); `app ok` needs
+    the job, whose result is every leg's (test_every_ci_workflow_runs_on_every_pr_and_ends_in_one_required_check)."""
+    job = _load("app-ci.yml")["jobs"]["vitest"]
+    legs = job["strategy"]["matrix"]["shard"]
+    assert legs == list(range(1, len(legs) + 1)) and len(legs) >= 2, legs
+    assert job["strategy"]["fail-fast"] is False and set(job["strategy"]) == {"fail-fast", "matrix"}
+    assert set(job["strategy"]["matrix"]) == {"shard"}                     # no other axis multiplies the legs
+    assert job["name"] == "vitest (${{ matrix.shard }}/${{ strategy.job-total }})"
+    runs = [s["run"] for s in job["steps"] if "run" in s]
+    n = "${{ strategy.job-total }}"
+    assert runs == [f"node tools/vitest-shards.mjs {n}",
+                    f"pnpm run test --shard=${{{{ matrix.shard }}}}/{n} --reporter=default --reporter=json"
+                    " --outputFile.json=../vitest-shard.json",
+                    f"node tools/vitest-shards.mjs {n} --ran ${{{{ matrix.shard }}}} ../vitest-shard.json"], runs
+    assert job["steps"][-1]["if"] == "${{ !cancelled() }}"                  # it reports after a red test step too
+    # (T866 review) a red leg is a red job: `continue-on-error` on the job or a step would make a failed leg "success"
+    # in `needs`, and `app ok` would pass over it
+    assert "continue-on-error" not in job and not [s for s in job["steps"] if "continue-on-error" in s]
+    assert "vitest" in _load("app-ci.yml")["jobs"]["ok"]["needs"]
 
 
 def test_every_workflow_has_least_privilege_and_no_input_is_spliced_into_shell():
