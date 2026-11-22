@@ -23,13 +23,15 @@ seen only after the push. The steps:
   3. `pnpm -C app run -s check:fast` (every `pnpm check` gate but vitest: tickets, inventories, typecheck, …);
   4. the app's TREE SCANNERS: every app/tools/*.test.ts that reads the tree off disk (the class that failed app-ci 53
      times: failures.test.ts, back-layers, one-water-screen …), found by the same grep each run;
-  5. the feeds worker suite (app-ci's "Feeds worker tests"; not in the pnpm workspace, so `pnpm check` skips it).
+  5. the feeds worker suite (app-ci's "Feeds worker tests"; not in the pnpm workspace, so `pnpm check` skips it);
+  6. docs-ci's vitest step: the ticket guard's own tests and the start-here page (T995 review).
 
 Not here, said at the end: app-ci's whole vitest suite (--app-suite adds it) and its web / native bundle exports.
 
 (T995) `--changed`: only the steps whose inputs changed since the branch left the trunk (`git merge-base HEAD
 origin/main`) plus the working tree and untracked files, by the SAME areas CI's `changes` jobs read
-(`scripts/ci_paths.py` AREAS, so the hook and CI agree): pipeline -> steps 1-2, app -> 3-4, feeds-worker -> 5. The
+(`scripts/ci_paths.py` AREAS, so the hook and CI agree): pipeline -> steps 1-2, app -> 3-4, feeds-worker -> 5,
+docs -> 6. The
 ticket guard (`node app/tools/check-tickets.mjs`) always runs — inside step 3 when the app changed, else on its own —
 so a docs / handoff-only push takes seconds. `BEFORE_PUSH_SKIP=<reason>` skips every step and prints the reason (the
 release command's own pushes: its preflight ran these checks); an empty reason is refused.
@@ -70,6 +72,8 @@ git config core.hooksPath .githooks
 # turn them off: git config --unset core.hooksPath"""
 #: (T995) the ticket guard on its own: what a push that changes no app file still runs (`pnpm check:fast` holds it)
 TICKETS = ("node", "app/tools/check-tickets.mjs")
+#: (T995 review) docs-ci.yml's vitest step, word for word (test_before_push.py pins it to the workflow)
+DOCS_TESTS = ("tools/check-tickets.test.ts", "tools/start-here.test.ts")
 #: (T995) skips every step, its reason printed: the release command's own pushes (its preflight ran these checks)
 SKIP_ENV = "BEFORE_PUSH_SKIP"
 
@@ -127,7 +131,8 @@ def changed_paths(trunk: str = CP.TRUNK) -> tuple[str, list[str]]:
                              f"{got.stderr.strip()[-300:]} — git fetch {CP.REMOTE} {trunk}")
         return got.stdout
     base = git("merge-base", "HEAD", f"{CP.REMOTE}/{trunk}").strip()
-    paths = set(git("diff", "--name-only", base).splitlines())
+    # `--no-renames`: a rename lists both paths, as CI's `changes` job reads them (ci_paths.pr_paths)
+    paths = set(git("diff", "--name-only", "--no-renames", base).splitlines())
     paths |= set(git("ls-files", "--others", "--exclude-standard").splitlines())
     return base, sorted(x for x in paths if x)
 
@@ -159,6 +164,9 @@ def plan(tier: bool = True, app_suite: bool = False, steps: list[dict] | None = 
     out.append(Step("app tree scanners (app/tools tests that read the tree)",
                     ("pnpm", "-C", "app", "exec", "vitest", "run", *app_scanners())))
     out.append(Step("feeds worker tests", ("pnpm", "-C", "app", "exec", "vitest", "run", "--root", "workers/feeds")))
+    # (T995 review) docs-ci's second step: the guard's own tests and the start-here page (a handoff-only push runs it)
+    out.append(Step("docs: the ticket guard's tests and the start-here page (docs-ci)",
+                    ("pnpm", "-C", "app", "exec", "vitest", "run", *DOCS_TESTS)))
     if app_suite:
         out.append(Step("app-ci: the whole app vitest suite", (*heavy, "pnpm", "-C", "app", "exec", "vitest", "run")))
     return out
@@ -168,6 +176,8 @@ def step_area(step: Step) -> str:
     """(T995) the CI area a step stands for (scripts/ci_paths.py AREAS): what `--changed` keeps it by."""
     if step.name.startswith(("CI: ", "the pipeline's source scanners")):
         return "pipeline"
+    if step.name.startswith("docs: "):
+        return "docs"
     if step.name.startswith("feeds worker"):
         return "feeds-worker"
     if step.name.startswith("app"):

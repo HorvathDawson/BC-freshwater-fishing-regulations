@@ -81,6 +81,16 @@ def test_the_pr_diff_is_the_merge_base_with_the_base(tmp_path, monkeypatch):
     base = run("rev-parse", "HEAD").strip()
     monkeypatch.chdir(tmp_path)
     assert CP.pr_paths(base, head) == ["handoff/x.md"]
+    # (T995 review) a file moved out of an area names its old path too: git's rename detection names only the new one
+    run("switch", "-q", "lane")
+    (tmp_path / "pipeline").mkdir()
+    (tmp_path / "pipeline" / "m.py").write_text("\n".join(map(str, range(50))))
+    run("add", ".")
+    run("commit", "-qm", "add")
+    before = run("rev-parse", "HEAD").strip()
+    run("mv", "pipeline/m.py", "m.py")
+    run("commit", "-qm", "move")
+    assert CP.pr_paths(before, run("rev-parse", "HEAD").strip()) == ["m.py", "pipeline/m.py"]
     with pytest.raises(SystemExit, match="git diff --name-only"):
         CP.pr_paths("deadbeef", head)
 

@@ -86,8 +86,13 @@ def test_changed_runs_only_the_areas_the_branch_changed(monkeypatch, capsys):
     """(T995) the same areas as CI's `changes` jobs (scripts/ci_paths.py): a docs-only push is the ticket guard alone;
     a pipeline change adds the pipeline's steps; an app change runs the app gates (the ticket guard is inside them)."""
     guard = "ticket guard (node app/tools/check-tickets.mjs)"
-    assert _changed(monkeypatch, capsys, ["handoff/PLAN/STATUS.md", "AGENTS.md"]) == [guard]
+    docs = "docs: the ticket guard's tests and the start-here page (docs-ci)"
+    assert _changed(monkeypatch, capsys, ["handoff/PLAN/STATUS.md", "AGENTS.md"]) == [guard, docs]
     assert _changed(monkeypatch, capsys, ["README.md"]) == [guard]
+    # (T995 review) what docs-ci runs on a handoff change, the hook runs: its vitest step, word for word
+    import yaml
+    ledger = yaml.safe_load((ROOT / ".github" / "workflows" / "docs-ci.yml").read_text())["jobs"]["ledger"]["steps"]
+    assert f"pnpm exec vitest run {' '.join(BP.DOCS_TESTS)}" in [s.get("run") for s in ledger]
     ran = _changed(monkeypatch, capsys, ["pipeline/release.py"])
     assert ran[0] == guard and "the pipeline's source scanners (--no-tier)" in ran
     assert not any(n.startswith(("app", "feeds worker")) for n in ran)
@@ -95,8 +100,9 @@ def test_changed_runs_only_the_areas_the_branch_changed(monkeypatch, capsys):
     assert guard not in ran and "app gates (pnpm check:fast)" in ran and "feeds worker tests" in ran
     assert not any(n.startswith("CI: ") for n in ran)
     full = [s.name for s in BP.plan(tier=False)]
-    assert _changed(monkeypatch, capsys, ["pipeline/x.py", "app/x.ts", "app/workers/feeds/x.ts"]) == full
-    assert {BP.step_area(s) for s in BP.plan(app_suite=True)} == {"pipeline", "app", "feeds-worker"}   # all named
+    assert _changed(monkeypatch, capsys, ["pipeline/x.py", "app/x.ts", "app/workers/feeds/x.ts", "AGENTS.md"]) == full
+    # every step names its area
+    assert {BP.step_area(s) for s in BP.plan(app_suite=True)} == {"pipeline", "app", "feeds-worker", "docs"}
 
 
 def test_the_release_commands_own_push_skips_saying_why(monkeypatch, capsys):

@@ -124,8 +124,9 @@ def _git(*args: str) -> str:
 
 
 def pr_paths(base: str, head: str) -> list[str]:
-    """The paths a pull request changes: its head against the merge base with its base (`base...head`)."""
-    return [x for x in _git("diff", "--name-only", f"{base}...{head}").splitlines() if x]
+    """The paths a pull request changes: its head against the merge base with its base (`base...head`). `--no-renames`:
+    a rename lists BOTH paths (git's default names only the new one: a file moved out of an area skipped its jobs)."""
+    return [x for x in _git("diff", "--name-only", "--no-renames", f"{base}...{head}").splitlines() if x]
 
 
 def github(area: str, env=os.environ, paths_of=pr_paths) -> tuple[bool, str]:

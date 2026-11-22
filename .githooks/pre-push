@@ -1,7 +1,7 @@
 #!/bin/sh
 # (T995) THE VERSIONED PRE-PUSH HOOK: what GitHub's runs ask, asked here first — only for the areas this branch changed
 # (`scripts/before_push.py --changed`: the same areas CI's `changes` jobs read, scripts/ci_paths.py). A docs / handoff
-# push runs the ticket guard alone (seconds).
+# push runs the ticket guard and docs-ci's two test files (seconds).
 #
 #   turn on, once per clone (worktrees share it):   git config core.hooksPath .githooks
 #   emergency skip, said in the commit or PR:        git push --no-verify
