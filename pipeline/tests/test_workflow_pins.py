@@ -122,6 +122,9 @@ def test_app_vitest_is_sharded_and_every_file_runs_in_exactly_one_leg():
                     " --outputFile.json=../vitest-shard.json",
                     f"node tools/vitest-shards.mjs {n} --ran ${{{{ matrix.shard }}}} ../vitest-shard.json"], runs
     assert job["steps"][-1]["if"] == "${{ !cancelled() }}"                  # it reports after a red test step too
+    # (T866 review) a red leg is a red job: `continue-on-error` on the job or a step would make a failed leg "success"
+    # in `needs`, and `app ok` would pass over it
+    assert "continue-on-error" not in job and not [s for s in job["steps"] if "continue-on-error" in s]
     assert "vitest" in _load("app-ci.yml")["jobs"]["ok"]["needs"]
 
 

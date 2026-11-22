@@ -25,7 +25,7 @@ Proposal: `handoff/PLAN/audit-2026-11-21/t866-proposal.md`. Nothing removed; eve
 - **S1, app-ci vitest on 4 runners** (`.github/workflows/app-ci.yml`): a `shard: [1..4]` matrix, `--shard=i/N` with N =
   `strategy.job-total` (typed once), fail-fast off, 2 workers per leg as before; `app ok` needs `vitest`, whose result is
   every leg's. Each leg runs `tools/vitest-shards.mjs N` first (vitest's own sequencer over its own file list: the N slices
-  partition the unsharded list, 781 files = 196+196+196+193) and `--ran i` last (the files the leg's json report names are
+  partition the unsharded list, 782 files = 196+196+196+194 on 11e4f0b1a) and `--ran i` last (the files the leg's json report names are
   its slice). Pinned by `test_workflow_pins.py::test_app_vitest_is_sharded_and_every_file_runs_in_exactly_one_leg` (5
   workflow mutations each fail it) and `tools/vitest-shards.test.ts` (planted missing / doubled / foreign / empty).
 - **S2, bare SEO builds**: 17 of the 19 fixture-site builds in `tools/seo/{site,gauges,gauges.share,legacy,appLinks}.test.ts`
