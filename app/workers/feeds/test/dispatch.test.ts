@@ -238,3 +238,46 @@ describe("the public routes share one body reader and one JSON answer (T994 #30)
     expect(await readJsonBody(post('{"a":1}'), 100, "too large")).toEqual({ ok: true, body: { a: 1 } });
   });
 });
+
+describe("(T485 step 3) the monthly run-timing sources refresh, worker-started", async () => {
+  const { checkSourceRefresh, REFRESH_DAYS } = await import("../src/runtiming");
+  const bucket = (fetched: string | null) => ({ get: async () => fetched === null ? null : { text: async () => fetched + "\n" } });
+  const now = new Date("2026-12-07T10:40:00Z");
+  const posts = () => { const bodies: any[] = []; return { bodies, f: async (_u: string, init?: RequestInit) => { bodies.push(JSON.parse(String(init!.body))); return new Response(null, { status: 204 }); } }; };
+
+  it("fresh copy: nothing asked, nothing started", async () => {
+    const g = posts();
+    expect(await checkSourceRefresh({ GITHUB_DISPATCH_TOKEN: "t" }, g.f, bucket("2026-11-20"), mem(), now)).toBeNull();
+    expect(g.bodies).toHaveLength(0);
+    expect(REFRESH_DAYS).toBe(30);
+  });
+  it("a copy older than the month: starts the workflow with refresh, once for the month, and says so", async () => {
+    const g = posts(), s = mem();
+    const e = await checkSourceRefresh({ GITHUB_DISPATCH_TOKEN: "t" }, g.f, bucket("2026-11-01"), s, now);
+    expect(e).toMatchObject({ key: "runtiming-refresh:2026-12", kind: "runtiming", data: { age: 36, dispatch: { state: "started" } } });
+    expect(g.bodies).toEqual([{ ref: DEFAULT_REF, inputs: { upload: "true", refresh: "true" } }]);
+    await checkSourceRefresh({ GITHUB_DISPATCH_TOKEN: "t" }, g.f, bucket("2026-11-01"), s, new Date(now.getTime() + 3600_000));
+    expect(g.bodies).toHaveLength(1);
+  });
+  it("a start that did not finish: redone once, then the owner is told it did not finish (a new key each day)", async () => {
+    const g = posts(), s = mem();
+    const d = (h: number) => new Date(now.getTime() + h * 3600_000);
+    await checkSourceRefresh({ GITHUB_DISPATCH_TOKEN: "t" }, g.f, bucket("2026-11-01"), s, d(0));
+    const again = await checkSourceRefresh({ GITHUB_DISPATCH_TOKEN: "t" }, g.f, bucket("2026-11-01"), s, d(7));
+    expect(again!.key).toBe("runtiming-refresh:2026-12:unfinished:2026-12-07");
+    const over = await checkSourceRefresh({ GITHUB_DISPATCH_TOKEN: "t" }, g.f, bucket("2026-11-01"), s, d(24 * 7));
+    expect(over!.title).toContain("did not finish");
+    expect(g.bodies).toHaveLength(2);
+  });
+  it("no date kept (the hand-seeded copy) is due and said; no token: the button; an unreadable date throws", async () => {
+    const e = await checkSourceRefresh({}, async () => new Response(), bucket(null), mem(), now);
+    expect(e!.text).toContain("no fetch date is kept");
+    expect(e!.text).toContain("refresh: true");
+    await expect(checkSourceRefresh({}, async () => new Response(), bucket("soon"), mem(), now)).rejects.toThrow("not a date");
+  });
+  it("a refused start is told (failed), never silent", async () => {
+    const e = await checkSourceRefresh({ GITHUB_DISPATCH_TOKEN: "t" }, async () => new Response("no", { status: 403 }), bucket("2026-01-01"), mem(), now);
+    expect(e!.data).toMatchObject({ dispatch: { state: "failed" } });
+    expect(e!.text).toContain("403");
+  });
+});

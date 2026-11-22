@@ -3,7 +3,7 @@
 // sources.dfo.updated). A newer one starts feeds-runtiming.yml (src/dispatch.ts, the owner's token) and tells the owner;
 // without the token the email names the button. The PSF curves change about yearly with no machine-readable date: their
 // refresh is the yearly run in handoff/PLAN/runbooks (the same workflow, by hand).
-import { dispatchOnce, dispatchSteps, type Dispatch, type DispatchEnv } from "./dispatch";
+import { dispatchOnce, dispatchSteps, OVERDUE_MS, unfinished, type Dispatch, type DispatchEnv } from "./dispatch";
 import type { FeedEvent } from "./events";
 import type { Store } from "./io";
 
@@ -46,5 +46,41 @@ export async function checkRunTiming(env: DispatchEnv, fetch_: Fetch, bucket: { 
     text: `NuSEDS ${latest} is out; run timing was built from ${current ?? "nothing"}.\n\n` +
       dispatchSteps(dispatch, BUTTON).map((s) => s.text).join("\n"),
     data: { latest, current, dispatch },
+  };
+}
+
+// T485 step 3: THE SOURCES' REFRESH IS ITS OWN JOB, off the release path. A release-triggered run builds from the kept
+// copy (private/runtiming/src/sources.tar.gz) and makes no outside request; this check — inside the weekly run above,
+// worker-started, never a GitHub schedule — starts feeds-runtiming.yml with `refresh` once the kept copy's fetch date
+// (private/runtiming/src/FETCHED, written by the workflow beside the copy) is REFRESH_DAYS old. At most one start per
+// month (version `refresh:<YYYY-MM>`); a start that did not bring the copy up to date is redone once, then the owner is
+// told every week it is still due. A failed or overdue refresh only emails: no release waits on it (the workflow's
+// `concurrency` queues a release run behind it, it never fails one), and the copy is replaced only by a run that passed.
+export const REFRESH_DAYS = 30;
+export const SRC_DATE_KEY = "private/runtiming/src/FETCHED";
+export const refreshInputs = (): Record<string, string> => ({ upload: "true", refresh: "true" });
+
+/** The monthly refresh check: an event when the kept sources are due (null when they are fresh enough). A missing date
+ *  file is "due" and said so (the copy seeded by hand before this check had none). */
+export async function checkSourceRefresh(env: DispatchEnv, fetch_: Fetch, bucket: { get(k: string): Promise<{ text(): Promise<string> } | null> },
+                                         dispatchStore: Store, now: Date): Promise<FeedEvent | null> {
+  const o = await bucket.get(SRC_DATE_KEY);
+  const fetched: string | null = o ? (await o.text()).trim() : null;
+  if (fetched !== null && !/^\d{4}-\d{2}-\d{2}$/.test(fetched)) throw new Error(`${SRC_DATE_KEY} reads "${fetched.slice(0, 40)}", not a date`);
+  const age = fetched === null ? null : Math.floor((now.getTime() - Date.parse(fetched + "T00:00:00Z")) / 86_400_000);
+  if (age !== null && age < REFRESH_DAYS) return null;
+  const month = now.toISOString().slice(0, 7), day = now.toISOString().slice(0, 10);
+  const dispatch: Dispatch = await dispatchOnce(env, fetch_, dispatchStore, "feeds-runtiming.yml", `refresh:${month}`, refreshInputs(), now,
+                                                { redoAfterMs: OVERDUE_MS });
+  const bad = unfinished(dispatch);
+  const why = age === null ? "no fetch date is kept with them" : `they were fetched ${fetched} (${age} days ago)`;
+  return {
+    key: bad ? `runtiming-refresh:${month}:unfinished:${day}` : `runtiming-refresh:${month}`,
+    kind: "runtiming",
+    at: now.toISOString(),
+    title: bad ? `Run timing sources: the ${month} refresh did not finish` : `Refreshing the run timing sources (${month})`,
+    text: `The kept run-timing sources (PSF + NuSEDS) are due for their monthly refresh: ${why}. Releases are not waiting on it.\n\n` +
+      dispatchSteps(dispatch, BUTTON).map((s) => s.text).join("\n"),
+    data: { fetched, age, dispatch },
   };
 }

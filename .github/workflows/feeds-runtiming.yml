@@ -207,6 +207,8 @@ jobs:
         if: env.FRESH == 'true'
         run: |
           aws s3 cp "$W/sources.tar.gz" "s3://$BUCKET/private/runtiming/src/sources.tar.gz" --endpoint-url "$R2_ENDPOINT" --only-show-errors
+          # (T485 step 3) the fetch date beside the copy: the feeds worker reads it to start the monthly refresh
+          aws s3 cp "$W/src/FETCHED" "s3://$BUCKET/private/runtiming/src/FETCHED" --endpoint-url "$R2_ENDPOINT" --only-show-errors
           echo "sources: kept at private/runtiming/src/sources.tar.gz ($(du -h "$W/sources.tar.gz" | cut -f1))" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: 7/7 upload to R2 (files, then index.json last) — only a real change
