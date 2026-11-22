@@ -7,6 +7,11 @@ and `:453` fail. Section 1544569 is a stream polygon of Adskwatim Creek (`gnis:7
 build of 2026-11-20 16:53 (`4ae7b62955bc9990.fc51e82f7c91`) draws it in the `lake` layer with `water: stream`, and not
 in the `stream` layer. The tiles and the bundle share registry 7caa748d, so this is not a mismatched build.
 
+## To check first (2026-11-22)
+The T777 review ran `test_one_water_kind.py` on main against the same LATEST and saw 0 failures, where the T931 review
+saw 2. Re-run both tests on main with the live data before working on the export: the gap may be an artifact of the T931
+reviewer's worktree links.
+
 ## Work
 1. Find why the export puts a stream-kind polygon that carries a `lake:` id into the lake layer only
    (`pipeline/deliver/tiles/export.py`: layer choice by id prefix vs by kind). List every other section with the same

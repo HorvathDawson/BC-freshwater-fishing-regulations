@@ -11,9 +11,10 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## 2026-11-21 evening: build/CI streamlining chat (T993, T978, T994; no release) — open decisions, asked at the end
 
-- **T978 MapLibre:** asked; owner, verbatim: "Can we measure the different of patch 2 I think we thought it wasn't worth
-  it". Claude measures upstream main (0001 only) vs the lean patch (0001 + 0002) on the stressed emulator; the owner
-  decides on the numbers.
+- **T978 MapLibre (DECIDE):** measured 2026-11-22 (numbers in T978). Patch 0002 makes no measurable difference
+  (within noise). Upstream main with only 0001 (already merged upstream) uses 20-32% less map CPU than the build we ship,
+  passes the colour, ANR and build-id checks, and needs no patch. Recommended: build from a pinned upstream main commit,
+  no patch, from 0.8.6.
 - **Merging (answered):** PRs + required checks into redesign/stream-sections. **Push hook (answered):** versioned
   pre-push hook running the before-push command.
 - **T995 done on GitHub (2026-11-22), for you to know:** `main` is the trunk. Direct pushes to `main` are refused,
