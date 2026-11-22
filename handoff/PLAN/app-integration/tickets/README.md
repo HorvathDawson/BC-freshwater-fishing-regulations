@@ -194,7 +194,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T858 | Web: keyboard navigation in lists, starting with search (↑/↓ move the highlight, Enter opens; owner) | PARTIAL — search keyboard merged; left: item 2 other lists, item 3 staging check | da865828d, c49d0764b | owner 2026-11-18 |
 | T862 | Search finds a water by its other names (Baker Lake → Sixteen Mile Lake); audit the stocking/bathymetry name variations (owner) | OPEN | main chat + app chat | owner 2026-11-18, future (after 0.8.1) |
 | T863 | 0.8.1 to friends: production builds, Play closed testing and TestFlight external (owner) | IN PROGRESS — production builds on Play Closed (39, Google review) and TestFlight External (0.8.2 approved; 41 in review) | 9caeddba5, 592bba8a5 | owner 2026-11-18 |
-| T866 | Trim the test suites: combine overlapping tests, remove true duplicates (owner) | IN PROGRESS — two lanes: speedups (perf/T866-speedups: CI vitest on 4 shards, bare SEO builds, two slow tests) and the duplicates / wording-round fold | app chat + main chat | owner 2026-11-18, after the 0.8.1 releases |
+| T866 | Trim the test suites: combine overlapping tests, remove true duplicates (owner) | DONE | 67c6c813c, c7894a5e8, 979b13f60, a65145a81 | owner 2026-11-18, after the 0.8.1 releases; 2026-11-22: CI vitest on 4 shards, bare SEO builds, two slow tests fast (#16); 5 duplicates removed, 30 wording files folded into two tables (#17) |
 | T867 | Notifications inbox: since install only, read once seen, short, with data and app updates (owner) | OPEN | app chat | owner 2026-11-18, after the 0.8.1 releases |
 | T880 | A DFO exception printed without "and tributaries" leaves out that stream only (Bulkley: Two Mile Creek; the Suskwa on the chinook row) (owner) | OPEN | main chat | owner 2026-11-18 ~20:59 |
 | T885 | DFO's lake parts on the map (Babine's 12 creek-mouth circles, Mabel north, Osoyoos north basin); said in words until then (owner) | OPEN | main chat | owner 2026-11-18 ~21:13 |
@@ -275,12 +275,18 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T995 | Branch structure: `main` is the protected trunk; PRs with required checks; release branches and tags | PARTIAL (switch landed c374b91fd 2026-11-22; left (Claude): prune branches, delete the old branch after 0.8.6 redeploys the prod worker) | c374b91fd, d4eae5b46 | owner 2026-11-21 |
 | T996 | Test the Apple push service end to end (registration, wake-up delivery, token reuse over 1 h+) | OPEN | T994 | owner 2026-11-21, next release |
 | T997 | Water map: two boundary labels at almost the same place draw on top of each other (Nicomekl River Part 2) | OPEN | | owner 2026-11-21, next chat |
-| T998 | Meaningful versions: SemVer for the app, the bump derived from Conventional Commits (1.0.0 at public launch) | PARTIAL (built: commitlint in the hook, before_push and docs-ci; `--cut` computes + confirms the version; data-only branches; left (Claude): the PR's `commits` job seen on GitHub, the memory line) | a512a5165, 2c2b85977, 7acffa1b8 | owner 2026-11-21 |
+| T998 | Meaningful versions: SemVer for the app, the bump derived from Conventional Commits (1.0.0 at public launch) | DONE | 6a16738db | owner 2026-11-21; 2026-11-22: next release is 0.9.0 (owner accepted the computed bump; it waits for the next chat's work) |
 | T999 | Feeds worker backup copies reports incrementally (the daily backup fails, told, past ~4,500 reports) | OPEN | | T994 finding 24 (a6d97778a note) |
 | T1000 | Tiles: an Adskwatim Creek stream polygon draws in the lake layer, not the stream layer (2 live tests red) | OPEN | | T931 review 2026-11-22 |
 | T1001 | Two data-tier test fixes left from T777 (the Deadman stretch-end test on the live tree; in-season tests between a promote and a release) | OPEN | — | all (depends T777; from T777's 2026-11-16 additions) |
 | T1002 | Test-anchor scanners: an `absent` rule for pipeline/tests/anchors.py; the record-equality and toBeUndefined gaps; part numbers after short template slots | OPEN | T768 | T768's lane, 2026-11-22 |
-| T1003 | Android: R8 on for every release build, production included; mapping file uploaded to Play (Play Console: "Obfuscation 1%", under its 25% threshold) | OPEN — next release (0.8.6) | T749 | owner 2026-11-22 (Play Console notice) |
+| T1003 | Android: R8 on for every release build, production included; mapping file uploaded to Play (Play Console: "Obfuscation 1%", under its 25% threshold) | OPEN — next release (0.9.0) | T749 | owner 2026-11-22 (Play Console notice) |
+| T1004 | In-app report: the Class II tag sits far right of the water's name, "kind of hidden" (Skeena part 11) | OPEN — next release batch | | production report 2026-11-21 (read 2026-11-22) |
+| T1005 | Production crash reports 11-15 → 11-22: ~20 kinds no ticket names (0.8.4 404s, PMTiles magic number, …): triage | OPEN | | `GET /crashes` 2026-11-22 |
+| T1006 | One read-only command lists every new report (both workers, TestFlight, Play reviews); every chat runs it first | OPEN | | owner 2026-11-22 |
+| T1007 | Website: Chrome warns "StorageType.persistent is deprecated" (first party); not in our code or the two bundles: find the source | OPEN — next release batch | | owner 2026-11-22 (Lighthouse) |
+| T1008 | Website: Lighthouse "missing source maps" — maps are kept private on purpose (T352); serve them (repo is public) or keep hidden | OPEN — owner picks (default: serve) | | owner 2026-11-22 (Lighthouse) |
+| T1009 | Android: Play "DEX code optimization: Low": measure optimization / shrinking / obfuscation every build, narrow broad library keep rules, floors in a build check (after T1003) | OPEN — next release batch (0.9.0), after T1003 | | owner 2026-11-22 (Play Console card) |
 
 ## Next after closed testing
 

@@ -1,6 +1,6 @@
 # T998 — Meaningful versions: SemVer for the app, the bump derived from Conventional Commits
 
-Status: PARTIAL — built in lane feat/T998-versioning (a512a5165, 2c2b85977, 7acffa1b8); left (Claude): see the PR's docs-ci `commits` job run on GitHub (refuse a bad title, pass this PR), then DONE; the memory line.
+Status: DONE — merged by PR #14 (6a16738db, 2026-11-22 18:06Z). On GitHub, docs-ci's `commits` job passed every later PR and refused one (#17: a 111-character header; replaced by #19). Follow-up: #22 exempts the 5 trunk commits that merged before the check was on.
 
 Source: owner 2026-11-21, verbatim: "We should make a standard versioning system too (when major minor patch happens)
 like to make versions meaningful". Dialog answers: 1.0.0 "At public launch (Recommended)"; who picks the bump:
@@ -136,3 +136,10 @@ commit (AGENTS W48, the release runbook, the maps, this ticket).
   `BREAKING CHANGE:` makes that merge breaking. `release_version.last_tag` takes the highest `v*` tag in the clone, not
   only those reachable from HEAD (preflight does not fetch tags). commitlint's merge-ignore regex uses `/m`, so a body
   line "Merge branch x" skips the commit (the Python reads it the same way).
+
+## Owner answers 2026-11-22 (dialog)
+- The next version: the tool computes **0.9.0**, decided by #14 itself (`feat(T998)`, which touched `app/package.json`
+  and the lockfile for commitlint). Owner, verbatim: "let it be 0.9 but we wont release yet until we have more stuff
+  rom next chat in it". So: no tool change; the next release is 0.9.0 and waits for the next chat's work.
+- Left (low, not built): the pre-push range could leave out commits already on origin/main, as CI does (#22's exempt
+  entries cover today's five); a commit that only changes dev tooling under `app/` still counts as an app commit.

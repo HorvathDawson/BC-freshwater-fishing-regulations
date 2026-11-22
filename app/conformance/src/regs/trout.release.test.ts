@@ -1,6 +1,8 @@
 /**
  * (T810 N, S) THE TROUT TABLE'S VIEW MODEL against the shared vectors and the trout fixture release (always run:
  * committed); since S the table is the only trout path (no dev switch). The proof column of the build spec's N row:
+ * - (T810 M, the G proof; folded in here by T866) every vector through `loadRegsInputs`: the tap's segment is the
+ *   vector's and `inputs.trout` is the vector's frame, value for value (a table decoded whole, or null: Q-D3);
  * - whole strings per vector: the top line with both day words is the vector's `composed.lead_today` / `lead_on`, and
  *   every other drawn string is the frame's own (none added or changed, contract fight list #5);
  * - each hand case of `trout-hand.json` refused through `reportFailure`, no table drawn (the base frame is drawn);
@@ -52,13 +54,19 @@ const hostHasNoWorker = (e: unknown) => typeof Worker === "undefined" && e insta
 beforeEach(() => { reports = []; undo = setFailureSink((e) => { if (!hostHasNoWorker(e)) reports.push(e); }); });
 afterEach(() => undo());
 
-/** The case's section, inside its own water (as inputs.release.test.ts finds it). */
+/** The case's section, inside its own water (as the vectors' `Fixture.section` finds it): a lake of one part, or the one
+ *  section of the water that starts at the case's metre on its line (T866: the checks of the removed "T810 M" block). */
 async function sectionOf(c: Vector): Promise<number> {
   const ord = (await st.itemOrd(c.item))!, parts = await st.parts(ord), mine = new Set<number>();
   for (const p of parts) for (const sid of (await st.partLengths(ord, p.partIx)).keys()) mine.add(sid);
-  if ("lake" in c.anchor) return Math.min(...mine);
+  if ("lake" in c.anchor) {
+    expect(parts.length, `${c.name}: a lake of one part`).toBe(1);
+    return Math.min(...mine);
+  }
   const { stream, m } = c.anchor;
-  return LINES.find(([h, b, lo]) => b === stream && lo === m && mine.has(h))![0];
+  const hit = LINES.filter(([h, b, lo]) => b === stream && lo === m && mine.has(h)).map(([h]) => h);
+  expect(hit, `${c.name}: one section of ${c.item} starts at ${m} m on line ${stream}`).toHaveLength(1);
+  return hit[0]!;
 }
 async function inputsOfCase(c: Vector): Promise<RegsInputs> {
   const [mm, dd] = c.day.split("-").map(Number);
@@ -133,6 +141,7 @@ describe("T810 N: the trout view model over every vector", () => {
 
   it.each(V.cases.map((c) => [c.name, c] as const))("%s", async (_n, c) => {
     const inp = await inputsOfCase(c);
+    expect(inp.s).toBe(c.s);                                  // the tap's segment is the vector's
     expect(inp.trout).toEqual(c.frame);
     const on = pageOf(inp), off = pageOf(noTable(inp));
     // whole strings: the lead with both day words; every other drawn string is the frame's own

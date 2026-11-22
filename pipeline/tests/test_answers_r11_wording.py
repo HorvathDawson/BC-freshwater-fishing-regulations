@@ -43,24 +43,16 @@ def _row_notes(g):
 def test_a1_the_share_bucket_says_the_over_50_cap_once_steelhead_aside():
     g = _g(F.VEDDER)
     share = g["buckets"][1]                                     # ROUND12 2: the river's own bucket first
-    assert share["title"] == "Up to 2 a day between them — all Region 2 streams combined"
-    # ROUND15 1: the cap is a size group naming the kinds it binds; steelhead stay outside it
+    # ROUND15 1: the cap is a size group naming the kinds it binds; steelhead stay outside it. (T866) The share's
+    # title, its size group word for word and the kind rows' one note: test_answers_card_words.py CARDS
     assert share["notes"] == []
-    assert share["sizes"] == [{"says": "Cutthroat trout, brown trout, Dolly Varden/bull trout, lake trout or "
-                                       "brook trout: only 1 over 50 cm between them",
-                               "n": 1, "over_cm": 50, "by": "z2:daily_quotas::trout_char_quota.r2",
-                               "species": ["CT", "GB", "DV", "LT", "EB"], "not_counting": ["ST"], "then": []}]
     assert g["buckets"][0]["sizes"] == []                       # this river's rule: rainbows ≤ 50 cm
     assert not any(w in t for t in _row_notes(g) for w in SIZE_WORDS), _row_notes(g)
-    assert _row_notes(g) == ["counts toward the 4 a day"]
 
 
 def test_a1_a_lake_says_it_on_its_only_bucket():
-    g = _g(F.LAKE)
+    g = _g(F.LAKE)                                              # (T866) its size group's words: card_words CARDS
     assert [b["title"] for b in g["buckets"]] == [None]
-    assert [n["says"] for n in g["buckets"][0]["sizes"]] == [
-        "Rainbow trout, cutthroat trout, brown trout, Dolly Varden/bull trout, lake trout or brook trout: only 1 "
-        "over 50 cm between them"]
     assert _row_notes(g) == []
 
 
@@ -68,16 +60,9 @@ def test_a1_a_cap_spanning_buckets_is_said_once_where_the_reader_meets_it():
     """Chilliwack Lake: its own row's Dolly Varden 1 (over 60 cm) and Region 2's lake trout and other
     trout share Region 2's 1 over 50 cm — said on the first bucket, naming the day's fish."""
     g = _g(F.CLAKE)
-    assert [b["title"] for b in g["buckets"]] == ["This lake’s rule", "The rest of the 4 a day"]
-    # ROUND12 3: Region 2's Dolly Varden and lake trout 1 (together) spans the same two buckets
-    assert g["buckets"][0]["notes"] == [{"says": "Only 1 Dolly Varden/bull trout or lake trout a day in all",
-                                         "n": 1, "over_cm": 0, "kinds": ["DV", "LT"], "not_counting": [],
-                                         "then": []}]
-    assert [(x["says"], x["species"]) for x in g["buckets"][0]["sizes"]] == [
-        ("Rainbow trout, cutthroat trout, brown trout, Dolly Varden/bull trout, lake trout or brook trout: "
-         "only 1 over 50 cm between them", ["RB", "CT", "GB", "DV", "LT", "EB"])]
+    # ROUND12 3: Region 2's Dolly Varden and lake trout 1 (together) spans the same two buckets. (T866) The buckets'
+    # titles, that note and the size group word for word, the kind rows' one note: test_answers_card_words.py CARDS
     assert g["buckets"][1]["notes"] == []
-    assert _row_notes(g) == ["counts toward the 4 a day"]
     states = [s["r"] for s in g["states"]]
     assert len(states) == len(set(states))
 
@@ -135,33 +120,24 @@ def _rules(kind, hook=None, kootenay=False, fly=None):
 
 def test_a2_vedder_one_sentence_of_terminal_gear():
     s = _rules("stream", hook=Z2_HOOK)["summary"]
-    # ROUND12 5: no em dash
-    assert s["says"] == "1 line with a single barbless hook, no trebles (one hook, lure or fly). Weight on the line up to 1 kg (2.2 lb)."
+    # ROUND12 5: no em dash. (T866) The sentence: test_answers_card_words.py GEAR["vedder"]
     assert s["terms"] == ["single_barbless_hook"]
     assert s["cites"] == [PROVINCE, Z2_HOOK, ATTACH, WEIGHT]
     assert s["changes"] == []
 
 
 def test_a2_a_stream_says_one_line_a_lake_keeps_its_boat_clause():
-    assert _rules("stream", hook=Z2_HOOK)["counts"]["lines_per_angler"]["says"] == "1 line (rod)"
-    okanagan = _rules("lake")
-    assert okanagan["counts"]["lines_per_angler"]["says"] == "1 line (rod); 2 while alone in a boat"
-    assert okanagan["summary"]["says"] == ("1 line (2 while alone in a boat) with one hook, lure or "
-                                           "fly. Weight on the line up to 1 kg (2.2 lb).")
-    assert okanagan["summary"]["terms"] == []
+    # (T866) the stream's "1 line (rod)", the lake's boat clause and its sentence: card_words GEAR vedder / okanagan
+    assert _rules("lake")["summary"]["terms"] == []
 
 
 def test_a2_kootenay_main_body_no_limit_in_a_boat():
-    s = _rules("lake", kootenay=True)["summary"]
-    assert s["says"] == ("1 line from shore; any number from a boat, each with one hook, lure or fly. Weight on the "
-                         "line up to 1 kg (2.2 lb).")                              # UR1 G
+    s = _rules("lake", kootenay=True)["summary"]               # (T866) UR1 G's sentence: card_words GEAR["kootenay"]
     assert s["cites"] == [PROVINCE, KOOTENAY, ATTACH, WEIGHT]
 
 
 def test_a2_cowichan_fly_only_part():
-    s = _rules("stream", hook=Z1_HOOK, fly=COWICHAN_FLY)["summary"]
-    assert s["says"] == ("Fly fishing only: 1 line with a single barbless hook, no trebles (one fly). No float or "
-                         "strike indicator, no sinker or split shot, no lure, spinner or other attracting device.")
+    s = _rules("stream", hook=Z1_HOOK, fly=COWICHAN_FLY)["summary"]   # (T866) its sentence: card_words GEAR["cowichan"]
     assert s["terms"] == ["fly_fishing", "single_barbless_hook"]
     assert s["cites"] == [COWICHAN_FLY, PROVINCE, Z1_HOOK, ATTACH]
 

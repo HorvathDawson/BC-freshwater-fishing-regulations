@@ -21,10 +21,9 @@ from pipeline.deliver import calendar as K
 from pipeline.deliver.answers import rows as RW
 from pipeline.tests import answers28_fixture as F
 
-OCT10, MAY1, MAY15 = (10, 10), (5, 1), (5, 15)
+OCT10, MAY1 = (10, 10), (5, 1)
 SAT = K.Moment(K.weekday_mask(["Saturday", "Sunday"]))
 WEEK = K.Moment(K.weekday_mask(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]))
-KNOWN = {"line": "known_with_rules", "says": "A rainbow trout over 50 cm (20 in) here counts as a steelhead."}
 
 
 def _group(water, md=OCT10):
@@ -39,20 +38,14 @@ def test_3_a_count_over_some_of_a_buckets_kinds_is_a_nested_group():
     g, _o, _P = _group(F.BELLA_MAY, MAY1)
     (b,) = [b for b in g["buckets"] if b["by"] == F.BELLA_R5]
     assert [n["says"] for n in b["notes"] if n["over_cm"] == 0] == []          # no count note
-    (sub,) = b["groups"]
-    # the cap names rainbow with no size, so it holds steelhead too (T623 F12, RULINGS S12, owner 2026-11-11: a rainbow rule with no size band holds steelhead too)
-    assert (sub["says"], sub["n"], sub["by"]) == ("Cutthroat trout, rainbow trout or steelhead: 1 between them", 1,
-                                                  F.BELLA_R6)
-    assert [(k["name"], k["detail"], k["n"]) for k in sub["kinds"]] == [("Cutthroat trout", "hatchery, 30–33 cm", 1),
-                                                                         ("Rainbow trout", "hatchery, 30–50 cm", 1),
-                                                                         ("Steelhead", "hatchery rainbow trout over 50 cm", 1)]
+    # the cap names rainbow with no size, so it holds steelhead too (T623 F12, RULINGS S12, owner 2026-11-11: a rainbow
+    # rule with no size band holds steelhead too). (T866) The nested group and its kinds, word for word: card_words CARDS
     assert not {S for k in b["kinds"] for S in k["species"]} & {"CT", "RB", "ST"}
 
 
 def test_3_the_rivers_own_two_is_its_own_bucket_not_the_regions_share():
     g, _o, _P = _group(F.BELLA_MAY, MAY1)
-    (b,) = [b for b in g["buckets"] if b["by"] == F.BELLA_R5]
-    assert (b["title"], b["cap"], b["why"]) == ("This river’s rule", 2, "rule")
+    (b,) = [b for b in g["buckets"] if b["by"] == F.BELLA_R5]   # (T866) its title, cap and why: card_words CARDS
     held = {S for k in b["kinds"] for S in k["species"]} | {S for s in b["groups"] for k in s["kinds"]
                                                             for S in k["species"]}
     assert {"EB", "GB", "CT", "RB", "DV", "LT"} <= held
@@ -84,16 +77,8 @@ def _placements(out):
     return got
 
 
-def test_4_the_presence_line_is_on_the_steelhead_kind_row():
-    out, _P = F.card(F.STREAM, OCT10)
-    assert _placements(out) == [("kind", ["ST"], KNOWN)]
-
-
-def test_4_the_presence_line_is_on_the_closed_steelhead_line():
-    out, _P = F.card(F.BELLA, OCT10)
-    assert _placements(out) == [("not_kept", ["ST"], KNOWN)]
-
-
+# (T866) The presence line on the steelhead kind row (a plain stream) and on the closed steelhead line (the Bella
+# Coola), word for word: test_answers_card_words.py CARDS ("presence placements")
 def test_4_no_presence_line_where_steelhead_are_not_known():
     out, _P = F.card(F.LAKE, OCT10)
     assert _placements(out) == [] and out["steelhead_line"] is None
@@ -121,17 +106,5 @@ def test_5_weekdays_in_words():
 
 
 # 6 ---------------------------------------------------------------------------------------------
-def test_6_same_status_same_row_is_one_line_in_the_books_order():
-    g, _o, _P = _group(F.VEDDER_MAY, MAY15)
-    assert g["not_kept"] == [{"species": ["RB", "CT"], "status": "release",
-                              "says": "Rainbow trout and cutthroat trout: release every one",
-                              "by": F.VEDDER_R6, "rules": [F.VEDDER_R6, F.VEDDER_R7],
-                              "whose": "this river’s rule"}]
-
-
-def test_6_a_group_is_said_with_its_members():
-    g, _o, _P = _group(F.BELLA_TRIB, OCT10)
-    assert [(x["species"], x["says"]) for x in g["not_kept"]] == [
-        (["ST"], "Steelhead: closed, no catch and release"),
-        (["CT"], "Cutthroat trout: release every one"),                                                    # T846
-        (["DV", "LT", "EB"], "Char (Dolly Varden/bull trout, lake trout and brook trout): release every one")]
+# (T866) Same status, same row: one line in the book's order (the Vedder, May 15); a group said with its members (the
+# Bella Coola's tributary, Oct 10; CT by T846): test_answers_card_words.py CARDS ("not_kept…")

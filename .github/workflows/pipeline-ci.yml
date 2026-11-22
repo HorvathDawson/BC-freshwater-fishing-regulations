@@ -121,7 +121,7 @@ jobs:
       # data, so those tiers are deselected here by marker; `-m` replaces pytest.ini's
       # `-m "not slow"`, so slow is deselected again explicitly.
       - name: Tests
-        run: python -m pytest -q -m "not slow and not needs_bundle and not needs_atlas and not needs_reach_run and not needs_tiles and not needs_source and not needs_cache"
+        run: python -m pytest -q --durations=25 -m "not slow and not needs_bundle and not needs_atlas and not needs_reach_run and not needs_tiles and not needs_source and not needs_cache"
 
       # (T667 slice 8) THE MINI RELEASE the app's logic tests read is what the real pipeline builds from the invented
       # world NOW: rebuilt in a temp dir (no live data: ~10 s) and compared by content with the committed copy; a
