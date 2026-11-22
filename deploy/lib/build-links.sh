@@ -19,6 +19,7 @@
 #                                 <make> is the fix where no main checkout holds one to copy
 #   build_links_frontend <base>   the review app's node_modules, when fast-fail will typecheck it (a frontend file
 #                                 changed since <base>)
+# and (T993 plan 5, at the end) the gates both builds run: build_reasons, build_check_changelog, build_ff_base, build_gates.
 
 # the main checkout (the worktrees' common git dir's parent); BUILD_HERE = this checkout; BUILD_LINKS_DIR = this file's
 BUILD_HERE=$(pwd -P)
@@ -90,4 +91,57 @@ build_links_frontend() {
   grep -qE '\.(ts|tsx|json)$' <<<"$out" || return 0
   if [[ -x curation-review/frontend/node_modules/.bin/tsc ]]; then ok "curation-review/frontend/node_modules"
   else bad "no curation-review/frontend/node_modules (fast-fail typechecks the review app: a frontend file changed since ${base:0:12}): (cd curation-review/frontend && npm ci)"; fi
+}
+
+# ── (T993 plan 5, T661 item 3) THE GATES BOTH STORE BUILDS RUN BEFORE THE HEAVY LOCK, here once so build-apk.sh and
+# build-ios-testflight.sh ask the same things the same way. heavy.sh runs no fast-fail of its own (T661: the gate parked
+# in T535 was dropped), so the build runs it. caught (T993 inventory, 2026-11-21): the iPhone build ran no fast-fail, no
+# CI check and no changelog check, while five places said heavy.sh ran fast-fail for it.
+#   build_reasons <who> <args…>   the reasoned escapes: --no-fast-fail=<why>, --no-ci-check=<why>, --no-notes=<why>
+#                                 (bare, or an empty reason: refused, exit 2); sets NOFF, NOCI, NONOTES
+#   build_check_changelog         (in the precheck) app.json's version has its changelog entry and it is the newest
+#                                 (scripts/check-changelog.mjs): a `bad` unless --no-notes=<why>, which is printed
+#   build_ff_base <who> <sha> <what>  FAST_FAIL_BASE = <sha> (the commit the last build of this kind was made from) when
+#                                 it is a commit here, said, FFB set; else FFB empty and fast-fail's own default is said
+#   build_gates <who> [--strict]  after the precheck, before the lock: CI on HEAD (scripts/ci_status.py; --strict for a
+#                                 production build), then scripts/fast-fail.sh. Each stops the build (exit 1) or is
+#                                 skipped with its printed reason. Under the caller's DRY, a red CI is said and the run
+#                                 goes on, and fast-fail is only named.
+NOFF=; NOCI=; NONOTES=; FFB=
+build_reasons() {
+  local who=$1 a; shift
+  for a in "$@"; do
+    case $a in
+      --no-fast-fail|--no-ci-check|--no-notes) echo "$who: $a needs a reason: $a=\"<why>\"" >&2; exit 2 ;;
+      --no-fast-fail=*) NOFF=${a#--no-fast-fail=}; [[ -n ${NOFF// /} ]] || { echo "$who: --no-fast-fail= needs a reason" >&2; exit 2; } ;;
+      --no-ci-check=*) NOCI=${a#--no-ci-check=}; [[ -n ${NOCI// /} ]] || { echo "$who: --no-ci-check= needs a reason" >&2; exit 2; } ;;
+      --no-notes=*) NONOTES=${a#--no-notes=}; [[ -n ${NONOTES// /} ]] || { echo "$who: --no-notes= needs a reason" >&2; exit 2; } ;;
+    esac
+  done
+}
+build_check_changelog() {
+  local out
+  if out=$(node scripts/check-changelog.mjs 2>&1); then ok "$out"
+  elif [[ -n $NONOTES ]]; then ok "changelog: SKIPPED (--no-notes): $NONOTES — $out"
+  else bad "$out (--no-notes=<reason> goes on)"; fi
+}
+build_ff_base() {
+  local who=$1 sha=$2 what=$3
+  if [[ -n $sha ]] && git rev-parse -q --verify "$sha^{commit}" >/dev/null; then
+    FFB=$sha; export FAST_FAIL_BASE=$sha; echo "$who: fast-fail base ${sha:0:12}, $what"
+  else
+    FFB=; echo "$who: fast-fail base: none found for $what — its default (the commits not on the trunk), NOT since the last build"
+  fi
+}
+build_gates() {
+  local who=$1 strict=${2:-}
+  if [[ -n $NOCI ]]; then echo "$who: CI check SKIPPED (--no-ci-check): $NOCI"; export CI_CHECK_SKIP="$who --no-ci-check: $NOCI"
+  elif ! .venv/bin/python scripts/ci_status.py ${strict:+"$strict"}; then
+    if [[ -n ${DRY:-} ]]; then echo "[dry-run] WOULD STOP: CI (above)"
+    else echo "$who: CI is red or unreadable (above) — nothing was built; --no-ci-check=<reason> goes on" >&2; exit 1; fi
+  fi
+  if [[ -n $NOFF ]]; then echo "$who: fast-fail SKIPPED (--no-fast-fail): $NOFF"
+  elif [[ -n ${DRY:-} ]]; then echo "[dry-run] scripts/fast-fail.sh"
+  else scripts/fast-fail.sh || { echo "$who: scripts/fast-fail.sh failed (above) — nothing was built" >&2; exit 1; }
+  fi
 }

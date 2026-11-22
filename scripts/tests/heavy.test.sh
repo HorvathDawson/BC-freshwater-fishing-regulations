@@ -52,12 +52,11 @@ echo 80 > "$T/free"; echo 1000 > "$T/fp"; echo $((100 * 1048576)) > "$T/disk"
 
 # $T/H = heavy.sh with the scratch lanes and fast timings. A script that EXECs (a function would run in a subshell
 # when backgrounded), so `"$T/H" … &` puts heavy.sh's own pid in $! and a signal to it reaches the wrapper.
-HEAD_SHA=$(git -C "$ROOT" rev-parse HEAD)
 cat > "$T/H" <<EOF
 #!/bin/bash
 exec env -u HEAVY_HELD PATH="$T/bin:\$PATH" HEAVY_LANES_DIR="$T" HEAVY_LOCK="\${LANE:-$T/heavy-job.lock}" \\
   HEAVY_PAUSE="$T/no-pause" HEAVY_POLL=0.2 HEAVY_WAIT_POLL=0.2 HEAVY_FOOTPRINT_EVERY=0 HEAVY_DISK_EVERY=0 HEAVY_STOP_GRACE=1 \\
-  HEAVY_UNREADABLE_MAX=3 FAST_FAIL_DONE="\${FAST_FAIL_DONE:-$HEAD_SHA}" bash "$HEAVY" "\$@"
+  HEAVY_UNREADABLE_MAX=3 bash "$HEAVY" "\$@"
 EOF
 chmod +x "$T/H"
 H() { "$T/H" "$@"; }

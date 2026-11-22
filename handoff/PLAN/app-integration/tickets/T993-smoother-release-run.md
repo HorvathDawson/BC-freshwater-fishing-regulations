@@ -96,7 +96,8 @@ Lanes (plan item numbers):
   T791 #2; the hook stays the owner's call), 8 (auto-accept renumber-only + attributable diffs), 9 (size headroom),
   15 (no duplicate runs), 16 (data tier on the candidate, T791 #4); T788 #2, #8, #10.
 - **G3 deploy gates:** 14; T788 #1, #4, #5, #11; T994 findings 9, 10, 18, 19, 20, 28.
-- **After T978 lands:** 5 (heavy.sh gate, T661 #3), 6 (tests never read machine state: T777, T792 B), 10 (T768), T866,
+- **After T978 lands:** 5 (heavy.sh gate, T661 #3: DONE b644b39c2, the gate dropped and its claims deleted; the iPhone
+  build runs build-apk's gates through `deploy/lib/build-links.sh`), 6 (tests never read machine state: T777, T792 B), 10 (T768), T866,
   T987, then 11 (the one human runbook + the T992 explanation), last, once the code settles; 17 with T485 / T736.
 
 ## Owner 2026-11-21, dialog (best practice)

@@ -195,14 +195,16 @@ def test_testflight_dry_run_puts_the_version_files_in_its_environments_bucket():
     ver = json.loads((ROOT / "app/apps/mobile/app.json").read_text())["expo"]["version"]
     env = {k: v for k, v in os.environ.items() if k not in ("CONFIRM_PROD", "BUILD_IOS_INNER")}
     script = str(ROOT / "deploy/staging/build-ios-testflight.sh")
-    r = subprocess.run(["bash", script, "--dry-run"], env=env, capture_output=True, text=True, timeout=60)
+    # (T993 plan 5) the dry run asks CI too: told not to here (no network in a test)
+    r = subprocess.run(["bash", script, "--dry-run", "--no-ci-check=a test"], env=env, capture_output=True, text=True,
+                       timeout=60)
     assert r.returncode == 0, r.stderr
     put = next(ln for ln in r.stdout.splitlines() if "after the upload: put" in ln)
     assert put.startswith(f"[dry-run] after the upload: put bc-fishing-regulations-staging/app/ios/{ver}.json, then "
                           "bc-fishing-regulations-staging/app/ios/appstore.json, with notes ["), put
     assert "bc-fishing-regulations/" not in r.stdout
-    r = subprocess.run(["bash", script, "--production", "--dry-run"], env={**env, "CONFIRM_PROD": "canifishthis.ca"},
-                       capture_output=True, text=True, timeout=60)
+    r = subprocess.run(["bash", script, "--production", "--dry-run", "--no-ci-check=a test"],
+                       env={**env, "CONFIRM_PROD": "canifishthis.ca"}, capture_output=True, text=True, timeout=60)
     assert r.returncode == 0, r.stderr
     put = next(ln for ln in r.stdout.splitlines() if "after the upload: put" in ln)
     assert put.startswith(f"[dry-run] after the upload: put bc-fishing-regulations/app/ios/{ver}.json, then "
@@ -260,7 +262,7 @@ def test_build_apk_checks_before_the_lock_and_commits_the_bump_after_the_artifac
     sh = (ROOT / "deploy/staging/build-apk.sh").read_text()
     code = "\n".join(ln for ln in sh.splitlines() if not ln.lstrip().startswith("#"))
     lock = code.index('exec scripts/heavy.sh build-apk')
-    for probe in ("scripts/check-changelog.mjs", "upload_certificate.pem", "--max-version-code", "whoami",
+    for probe in ("build_check_changelog", "upload_certificate.pem", "--max-version-code", "whoami",
                   "$TOKF", "llvm-readelf", "git status --porcelain --untracked-files=all -- app/"):
         assert code.index(probe) < lock, probe
     assert "--format=%s" not in code                                   # no commit subjects as notes
@@ -537,7 +539,8 @@ def test_testflight_precheck_lists_every_missing_secret_before_the_lock(tmp_path
     """(T978) the first missing secret ended the TestFlight build after the lock wait; now every one is listed at once,
     before `exec scripts/heavy.sh`."""
     env = {k: v for k, v in os.environ.items() if k not in ("CONFIRM_PROD", "BUILD_IOS_INNER")}
-    # stand-ins for the tools (a CI runner has no Xcode, CocoaPods or Node): only the two secrets are missing here
+    # stand-ins for the tools (a CI runner has no Xcode, CocoaPods or Node): the two secrets are missing here, and (T993
+    # plan 5) on a runner with no .venv / app/node_modules those links too — every failure is counted, whichever
     for tool in ("xcodebuild", "pod", "node"):
         _exe(tmp_path / "bin" / tool, "#!/usr/bin/env bash\nexit 0\n")
     env["PATH"] = f"{tmp_path / 'bin'}{os.pathsep}{env.get('PATH', '')}"
@@ -546,12 +549,150 @@ def test_testflight_precheck_lists_every_missing_secret_before_the_lock(tmp_path
                        env={**env, "HOME": str(tmp_path)}, capture_output=True, text=True, timeout=60, cwd=ROOT)
     assert r.returncode == 1, r.stdout + r.stderr
     assert f"FAIL no {tmp_path}/.canifishthis/ios-team-id" in r.stdout
-    assert f"FAIL no {tmp_path}/.canifishthis/asc-api-key.json" in r.stdout and "precheck FAILED (2)" in r.stderr
+    fails = r.stdout.count("  FAIL ")
+    assert f"FAIL no {tmp_path}/.canifishthis/asc-api-key.json" in r.stdout and f"precheck FAILED ({fails})" in r.stderr
     # ... and a missing tool is listed beside them, not instead of them
     (tmp_path / "bin" / "pod").unlink()
     r = subprocess.run(["bash", script, "--precheck", "--no-upload"], env={**env, "HOME": str(tmp_path),
                        "PATH": f"{tmp_path / 'bin'}{os.pathsep}/usr/bin{os.pathsep}/bin"},
                        capture_output=True, text=True, timeout=60, cwd=ROOT)
-    assert "FAIL no pod on PATH" in r.stdout and "precheck FAILED (3)" in r.stderr, r.stdout + r.stderr
+    assert "FAIL no pod on PATH" in r.stdout and f"precheck FAILED ({fails + 1})" in r.stderr, r.stdout + r.stderr
     code = _no_comments("deploy/staging/build-ios-testflight.sh")
     assert code.index("precheck (before the heavy lock)") < code.index("exec scripts/heavy.sh build-ios-testflight")
+
+
+# ── (T993 plan 5, T661 item 3) both store builds run the same gates before the heavy lock ──────────────────────────────
+#: build -> (script, the flags that need no account, no Play, no MapLibre repo, no upload, where it records its last sha)
+GATED = {"build-apk": ("deploy/staging/build-apk.sh", ["--no-upload", "--stock-maplibre=a test tree"], "app/dist/apk"),
+         "build-ios-testflight": ("deploy/staging/build-ios-testflight.sh", ["--no-upload"], "app/dist/ios")}
+
+
+@pytest.fixture
+def gate_tree(tmp_path):
+    """A scratch repo holding the two build scripts and build-links.sh as they are, with every tool behind them a stub
+    that logs to gates.log: CI (`.venv/bin/python scripts/ci_status.py`, rc CI_RC), fast-fail (its FAST_FAIL_BASE, rc
+    FF_RC), heavy.sh (the lock: nothing past it runs), node (the changelog check, rc CL_RC), Xcode and CocoaPods."""
+    t = tmp_path / "repo"
+    for rel in ("deploy/staging/build-apk.sh", "deploy/staging/build-ios-testflight.sh", "deploy/lib/build-links.sh",
+                "scripts/ci_paths.py"):
+        (t / rel).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / rel, t / rel)
+    log = tmp_path / "gates.log"
+    _exe(t / "scripts/fast-fail.sh", f'#!/usr/bin/env bash\necho "fast-fail base=${{FAST_FAIL_BASE:-}}" >> "{log}"\n'
+                                     'exit ${FF_RC:-0}\n')
+    _exe(t / "scripts/heavy.sh", f'#!/usr/bin/env bash\necho "heavy $1" >> "{log}"\n')
+    _exe(t / ".venv/bin/python", f'#!/usr/bin/env bash\n[[ $1 == -c ]] && exit 0\necho "ci $*" >> "{log}"\n'
+                                 'exit ${CI_RC:-0}\n')
+    _exe(tmp_path / "bin/node", "#!/usr/bin/env bash\ncase $1 in\n"
+         '  -p) if [[ $2 == *key_path* ]]; then echo "$HOME/key.p8"; else echo 9.9.9; fi ;;\n'
+         '  scripts/check-changelog.mjs) [[ ${CL_RC:-0} == 1 ]] && { echo "changelog: 9.9.9 has no entry" >&2; exit 1; }\n'
+         '    echo "changelog: 9.9.9 has 1 bullet(s) and is the newest entry" ;;\nesac\n')
+    for tool in ("xcodebuild", "pod"):
+        _exe(tmp_path / "bin" / tool, "#!/usr/bin/env bash\nexit 0\n")
+    (t / "app/node_modules").mkdir(parents=True)
+    (t / "app/node_modules/.modules.yaml").write_text("x")
+    (t / "app/apps/mobile/android/app").mkdir(parents=True)
+    (t / "app/apps/mobile/android/app/debug.keystore").write_text("k")
+    (t / "app/apps/mobile/app.json").write_text('{"expo": {"version": "9.9.9"}}\n')
+    (t / ".gitignore").write_text("/.venv\napp/**/dist/\n")
+    secrets = tmp_path / "home/.canifishthis"
+    secrets.mkdir(parents=True)
+    (secrets / "ios-team-id").write_text("TEAM")
+    (secrets / "asc-api-key.json").write_text("{}")
+    (tmp_path / "home/key.p8").write_text("p8")
+    for d in ("jdk", "sdk"):
+        (tmp_path / d).mkdir()
+    git = ["git", "-c", "user.email=t@t", "-c", "user.name=t"]
+    subprocess.run([*git, "init", "-q"], cwd=t, check=True)
+    subprocess.run([*git, "add", "-A"], cwd=t, check=True)
+    subprocess.run([*git, "commit", "-qm", "one"], cwd=t, check=True)
+    subprocess.run(["git", "update-ref", "refs/remotes/origin/main", "HEAD"], cwd=t, check=True)
+    env = {k: v for k, v in os.environ.items()
+           if k not in ("CONFIRM_PROD", "BUILD_APK_INNER", "BUILD_IOS_INNER", "MLN_LOCAL_MAVEN", "FAST_FAIL_BASE",
+                        "CI_CHECK_SKIP", "CANIFISHTHIS_R8", "HEAVY_HELD")}
+    env.update(HOME=str(tmp_path / "home"), JAVA_HOME=str(tmp_path / "jdk"), ANDROID_HOME=str(tmp_path / "sdk"),
+               PATH=f"{tmp_path / 'bin'}{os.pathsep}{env.get('PATH', '')}")
+
+    def run(build: str, *extra: str, **over: str) -> tuple[subprocess.CompletedProcess, list[str]]:
+        log.unlink(missing_ok=True)
+        script, flags, _ = GATED[build]
+        r = subprocess.run(["bash", str(t / script), *flags, *extra], env={**env, **over}, capture_output=True,
+                           text=True, timeout=60, cwd=t)
+        return r, (log.read_text().splitlines() if log.exists() else [])
+    run.tree = t
+    return run
+
+
+@pytest.mark.parametrize("build", sorted(GATED))
+def test_a_store_build_asks_ci_then_fast_fail_before_the_lock(gate_tree, build):
+    """(T993 plan 5) the iPhone build ran no fast-fail, no CI check and no changelog check (build-apk ran all three), and
+    five places said heavy.sh ran fast-fail for it: it never did (T661). Both builds now run the shared gates
+    (deploy/lib/build-links.sh) in one order — precheck, CI, fast-fail, then the lock — and each stop is before it."""
+    r, log = gate_tree(build)
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert log == ["ci scripts/ci_status.py", "fast-fail base=", f"heavy {build}"], log
+    assert "  ok   changelog: 9.9.9 has 1 bullet(s)" in r.stdout and "precheck ok" in r.stdout
+    # a red fast-fail: nothing past it, said
+    r, log = gate_tree(build, FF_RC="1")
+    assert r.returncode == 1 and f"{build}: scripts/fast-fail.sh failed (above) — nothing was built" in r.stderr
+    assert log == ["ci scripts/ci_status.py", "fast-fail base="], log
+    # a red CI: not even fast-fail
+    r, log = gate_tree(build, CI_RC="1")
+    assert r.returncode == 1 and f"{build}: CI is red or unreadable (above) — nothing was built" in r.stderr
+    assert log == ["ci scripts/ci_status.py"], log
+    # no changelog entry: the precheck stops, before CI
+    r, log = gate_tree(build, CL_RC="1")
+    assert r.returncode == 1 and "FAIL changelog: 9.9.9 has no entry (--no-notes=<reason> goes on)" in r.stdout
+    assert "precheck FAILED (1)" in r.stderr and log == [], log
+
+
+@pytest.mark.parametrize("build", sorted(GATED))
+def test_a_store_builds_escapes_print_their_reason_and_a_bare_one_is_refused(gate_tree, build):
+    r, log = gate_tree(build, "--no-fast-fail=tsc is down", "--no-ci-check=GitHub is down", "--no-notes=a draft",
+                       FF_RC="1", CI_RC="1", CL_RC="1")
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert f"{build}: fast-fail SKIPPED (--no-fast-fail): tsc is down" in r.stdout
+    assert f"{build}: CI check SKIPPED (--no-ci-check): GitHub is down" in r.stdout
+    assert "changelog: SKIPPED (--no-notes): a draft" in r.stdout and log == [f"heavy {build}"], log
+    for bare in ("--no-fast-fail", "--no-ci-check", "--no-notes", "--no-fast-fail= "):
+        r, log = gate_tree(build, bare)
+        assert r.returncode == 2 and "needs a reason" in r.stderr and log == [], (bare, r.stderr, log)
+
+
+@pytest.mark.parametrize("build", sorted(GATED))
+def test_a_store_builds_fast_fail_checks_what_changed_since_its_last_build(gate_tree, build):
+    """(T533) fast-fail's "changed" = since the commit the last build of this kind was made from, said; (T993 plan 5)
+    the iPhone build records its own (app/dist/ios/last-sha, written after an upload)."""
+    t, dist = gate_tree.tree, GATED[build][2]
+    head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=t, capture_output=True, text=True, check=True).stdout.strip()
+    (t / dist).mkdir(parents=True)
+    (t / dist / "last-sha").write_text(head + "\n")
+    r, log = gate_tree(build)
+    assert r.returncode == 0 and f"fast-fail base={head}" in log, (r.stdout + r.stderr, log)
+    assert f"{build}: fast-fail base {head[:12]}" in r.stdout
+    (t / dist / "last-sha").write_text("deadbeef" * 5 + "\n")      # not a commit here: the default, said
+    r, log = gate_tree(build)
+    assert "fast-fail base=" in log and "fast-fail base: none found for" in r.stdout, (r.stdout, log)
+    if build == "build-ios-testflight":
+        code = _no_comments(GATED[build][0])
+        upload = code.index("if [[ $DEST == upload ]]; then")
+        assert upload < code.index('echo "$SHA_FULL" > "$OUT/last-sha"') < code.index('else\n  echo "exported', upload)
+
+
+def test_a_production_iphone_build_asks_ci_strictly_and_an_unsigned_one_skips_the_changelog(gate_tree):
+    r, log = gate_tree("build-ios-testflight", "--production", CONFIRM_PROD="canifishthis.ca")
+    assert r.returncode == 0 and log[0] == "ci scripts/ci_status.py --strict", (r.stdout + r.stderr, log)
+    r, log = gate_tree("build-ios-testflight", "--unsigned", CL_RC="1")
+    assert r.returncode == 0 and "changelog: not asked (--unsigned: nothing is uploaded)" in r.stdout, r.stdout
+    assert log == ["ci scripts/ci_status.py", "fast-fail base=", "heavy build-ios-testflight"], log
+
+
+def test_nothing_hands_heavy_a_fast_fail_word():
+    """(T661, 2026-11-22) heavy.sh runs no fast-fail (the gate parked in T535 was dropped, not installed), so no script
+    tells it fast-fail ran (FAST_FAIL_DONE) or why it was skipped (HEAVY_NO_FAST_FAIL): five places once did, and the
+    iPhone build was taken to be gated by it."""
+    hits = subprocess.run(["git", "grep", "-n", "-E", "FAST_FAIL_DONE|HEAVY_NO_FAST_FAIL", "--", "scripts", "deploy",
+                           "pipeline/*.py", "app/tools", ".githooks", ":!pipeline/tests"], cwd=ROOT, capture_output=True,
+                          text=True)
+    assert hits.returncode == 1 and hits.stdout == "", hits.stdout + hits.stderr
+    assert "scripts/fast-fail.sh" not in (ROOT / "scripts/heavy.sh").read_text()
