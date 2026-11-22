@@ -1,7 +1,7 @@
 # T987 — Repo README and docs brought up to date; clean-up pass
 
-Status: IN PROGRESS — docs and clean-up committed on `docs/T987-docs-and-cleanup` (2026-11-22); left (Claude): the main
-chat's review and the PR landing. (Not IN REVIEW: the ticket guard keeps that for a step the owner holds.)
+Status: DONE — ffba227f6, 5090e2f84, fef1e1973 (PR #27, merged 2026-11-22). Independent review: one defect (a still-tracked
+file described as removed), fixed in fef1e1973.
 
 Source: owner 2026-11-21: "add deferred next release ticket to update readme and docs for repo and clean up stuff. (not
 for this release".

@@ -9,6 +9,17 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 ---
 
 
+## 2026-11-22 13:40: build/CI streamlining chat finished (no release)
+- `main` is now the protected trunk: every change is a pull request with four checks, and it merges itself when they pass.
+- Version numbers now follow the commits (SemVer). The next app release is 0.9.0; it waits for the next chat's work.
+- One release runbook for you: `handoff/PLAN/runbooks/release-by-hand.md`, plus a page explaining every release stop.
+- Android builds use one pinned MapLibre commit instead of a patched copy (T978); test suites faster (T866); docs match
+  the code (T987).
+- Production steps are yours only (you, 2026-11-22). Claude prepares and checks, then gives you the command.
+- New tickets from your finds today: T1003 + T1009 (Play's code-optimization score), T1007 + T1008 (website Lighthouse),
+  T1010 (region page map link), T1011 (156 waters crossing the border have no web page; old lake names not on pages).
+- Your list of 100 pages to submit to Google: `handoff/PLAN/seo/index-requests-top-100.md`.
+
 ## 2026-11-21 19:45: 0.8.5 released (data, website, feeds worker, Play Internal + Closed, TestFlight)
 
 - **Production data:** r-741815c6090d. Packed formats only, min app 0.8.4 [T686 T975]. It passed staging smoke 19/0.
