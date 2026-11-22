@@ -5,7 +5,11 @@
 python -m pipeline release --staging --dry-run --rehearse-follows   # + (T680) re-cut + every test on the candidate, put back
     python -m pipeline release --staging --accept-diff FILE   # go on past a binding diff you have read (FILE = its json)
     python -m pipeline release --staging --push               # the release pushes the commits IT made (matches, fixtures)
-    python -m pipeline release --cut <x.y.z>                  # (T995) at scope lock: release/<x.y.z> from origin/main
+    python -m pipeline release --cut                          # (T998) at scope lock: the version the commits compute,
+                                                              # confirmed, then release/<x.y.z> from origin/main
+    python -m pipeline release --cut <x.y.z>                  # the same, the version typed (refused if it disagrees)
+    python -m pipeline release --cut --dry-run                # (T998) the computed version and its commits; nothing made
+    python -m pipeline release --cut --data-only              # (T998) release/data-<YYYY-MM-DD>: data, no app change
     python -m pipeline release --prod <r-id>                  # HUMAN-ONLY: re-upload THAT checked release to production
 
 RELEASE BRANCHES AND TAGS (T995, owner 2026-11-21): `main` is the protected trunk. At scope lock `--cut <version>`
@@ -16,6 +20,17 @@ main first and is cherry-picked onto the release branch. AT SHIP (stage 7, once 
 the release tags the pushed HEAD `data/<r-id>` and, when the app version has no tag yet, `v<version>` (a data-only
 release of a tagged version tags only its data), pushes the tags, and prints the PR that merges the release branch
 back into main. `--prod` refuses a release whose tags are missing or point elsewhere.
+
+THE VERSION COMES FROM THE COMMITS (T998, owner 2026-11-21; `pipeline/release_version.py`): `--cut` reads the
+Conventional Commits on origin/main since the last `v*` tag (first run: since the cutover, 0.8.5 the base), computes
+the next version (feat -> minor, fix / perf -> patch, breaking -> major, minor before 1.0.0; only the app's commits
+count), prints the commits that decided it and asks the owner to type it. The branch's first commit (made by the cut)
+sets app.json + package.json, opens the anglers' changelog entry (empty: written by hand, check-changelog refuses it
+until it has bullets) and writes the developer CHANGELOG.md. A version typed by hand that disagrees is refused, naming
+both (1.0.0, the first open store release, is the owner's call). Preflight's `version` check holds app.json to the
+same computation (the rehearsal prints it). A DATA-ONLY release (no app commit bumps since the last version) ships
+from `release/data-<YYYY-MM-DD>` (`--cut --data-only`): preflight takes that branch, the ship tags only `data/<r-id>`,
+and it merges back by PR like any release branch.
 
 ONE RELEASE PATH (T666, owner 2026-11-11, after build 27 took six runs): everything cut from the live release is
 refreshed by the release itself, against the CANDIDATE, before the promote (stage 5, the table in
@@ -134,6 +149,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -142,6 +158,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from pipeline import release_follows as RF
+from pipeline import release_version as RV
 from pipeline.common.curated import CURATED, GENERATED, REPO_ROOT
 
 #: everything release keeps of its own: the ledger, the baseline reach run, each candidate's check outputs
@@ -295,8 +312,14 @@ def app_version() -> str:
 
 
 def release_branch() -> str:
-    """(T995) the branch this release ships from: release/<app.json's version>."""
-    return CP.release_branch(app_version())
+    """(T995) the branch this release ships from: release/<app.json's version>; (T998) or, checked out, a data-only
+    release's release/data-<YYYY-MM-DD>."""
+    return CP.shipping_branch(current_branch(), app_version())
+
+
+def data_only_branch() -> bool:
+    """(T998) this release ships from a data-only branch (release/data-<date>): no app change, only its data tag."""
+    return bool(CP.DATA_BRANCH.fullmatch(release_branch()))
 
 
 class NoReleaseBranch(LookupError):
@@ -437,21 +460,103 @@ def fetch_trunk() -> None:
     subprocess.run(["git", "fetch", "-q", GH_REMOTE, TRUNK], cwd=REPO_ROOT, check=True)
 
 
-def trunk_app_version() -> tuple[str | None, str]:
-    """(T995) (expo.version in app.json on origin/main after `fetch_trunk`, or None; why it is None)."""
-    where = f"{GH_REMOTE}/{TRUNK}:app/apps/mobile/app.json"
-    got = subprocess.run(["git", "show", where], cwd=REPO_ROOT, capture_output=True, text=True)
-    if got.returncode:
-        return None, f"git show {where} failed (rc={got.returncode}): {got.stderr.strip()[-200:]}"
-    try:
-        return json.loads(got.stdout)["expo"]["version"], ""
-    except (ValueError, KeyError) as e:
-        return None, f"{where} names no expo.version ({type(e).__name__}: {e})"
+def trunk_decision() -> "RV.Decision":
+    """(T998) the version the commits on origin/main compute (after `fetch_trunk`): the `v*` tags fetched from origin
+    first (a local tag that differs is git's refusal, raised), then `release_version.decide_at`."""
+    subprocess.run(["git", "fetch", "-q", GH_REMOTE, "refs/tags/v*:refs/tags/v*"], cwd=REPO_ROOT, check=True)
+    return RV.decide_at(f"{GH_REMOTE}/{TRUNK}")
 
 
-def cut_branch(branch: str) -> int:
-    """(T995) make `branch` at origin/main (no switch: the checkout stays where it is) and push it; the return code."""
-    rc = run_cmd(["git", "branch", "--no-track", branch, f"{GH_REMOTE}/{TRUNK}"])
+def version_decision() -> "RV.Decision":
+    """(T998) what the commits since the last v* tag decide at HEAD (preflight's `version` check)."""
+    return RV.decide_at("HEAD")
+
+
+#: (T998) what the cut's first commit on a release branch changes
+APP_JSON_REL, APP_PKG_REL = "app/apps/mobile/app.json", "app/apps/mobile/package.json"
+CHANGELOG_TS, CHANGELOG_MD = "app/packages/core/src/changelog.ts", "CHANGELOG.md"
+CHANGELOG_OPEN = "export const CHANGELOG: readonly ChangelogEntry[] = [\n"
+
+
+def with_version(text: str, path: str, version: str) -> str:
+    """`text` (app.json: expo.version; package.json: version) with the version set, every other byte kept. A file
+    whose version is not written exactly once as `"version": "<x>"` raises, naming it (never a guess)."""
+    data = json.loads(text)
+    old = (data.get("expo") or {}).get("version") if path == APP_JSON_REL else data.get("version")
+    needle = f'"version": "{old}"'
+    if old is None or text.count(needle) != 1:
+        raise RuntimeError(f"{path}: its version is not written once as {needle!r}: set it by hand")
+    out = text.replace(needle, f'"version": "{version}"')
+    got = json.loads(out)
+    if ((got.get("expo") or {}).get("version") if path == APP_JSON_REL else got.get("version")) != version:
+        raise RuntimeError(f"{path}: the version written is not the one read back: set it by hand")
+    return out
+
+
+def with_changelog_entry(text: str, version: str, day: str) -> str:
+    """changelog.ts with an OPEN entry for `version` first (empty notes: the anglers' 3–5 bullets are written by hand,
+    never commit subjects; scripts/check-changelog.mjs refuses an entry without one). An entry already there stays."""
+    if re.search(r'version:\s*"' + re.escape(version) + '"', text):
+        return text
+    if text.count(CHANGELOG_OPEN) != 1:
+        raise RuntimeError(f"{CHANGELOG_TS}: no single `{CHANGELOG_OPEN.strip()}` line to open the entry under")
+    entry = ("  {\n    // (T998) opened by `python -m pipeline release --cut`: write 3-5 plain bullets for anglers (never "
+             "commit\n    // subjects); check-changelog refuses the entry until it has one, and the owner clears `draft`\n"
+             f'    version: "{version}", date: "{day}", draft: true, notes: [\n    ],\n  }},\n')
+    return text.replace(CHANGELOG_OPEN, CHANGELOG_OPEN + entry)
+
+
+def _show(rev: str, path: str) -> str | None:
+    """`path` at `rev`, or None when `rev` has no such file (another git failure raises)."""
+    if subprocess.run(["git", "cat-file", "-e", f"{rev}:{path}"], cwd=REPO_ROOT, capture_output=True).returncode:
+        if subprocess.run(["git", "cat-file", "-e", f"{rev}^{{commit}}"], cwd=REPO_ROOT, capture_output=True).returncode:
+            raise RuntimeError(f"git: no commit {rev}")
+        return None
+    return _git("show", f"{rev}:{path}").decode()
+
+
+def version_commit(version: str, d: "RV.Decision", base: str | None = None, day: str | None = None) -> str:
+    """(T998) THE RELEASE BRANCH'S FIRST COMMIT, made on `base` (origin/main) without a checkout (a temporary index):
+    app.json + package.json at `version`, the anglers' changelog entry opened, the developer CHANGELOG.md entry
+    written. Returns its id; nothing else moves."""
+    import tempfile
+    base = base or f"{GH_REMOTE}/{TRUNK}"
+    day = day or today()
+    base_sha = _git("rev-parse", f"{base}^{{commit}}").decode().strip()
+    files = {}
+    for path in (APP_JSON_REL, APP_PKG_REL):
+        text = _show(base_sha, path)
+        if text is None:
+            raise RuntimeError(f"{base} has no {path}")
+        files[path] = with_version(text, path, version)
+    ts = _show(base_sha, CHANGELOG_TS)
+    if ts is None:
+        raise RuntimeError(f"{base} has no {CHANGELOG_TS}")
+    files[CHANGELOG_TS] = with_changelog_entry(ts, version, day)
+    files[CHANGELOG_MD] = RV.changelog_with(_show(base_sha, CHANGELOG_MD), RV.changelog_section(version, day, d), version)
+    with tempfile.TemporaryDirectory(prefix="release-cut-") as td:
+        env = {**os.environ, "GIT_INDEX_FILE": str(Path(td) / "index")}
+
+        def g(*args: str, data: str | None = None) -> str:
+            return subprocess.run(["git", *args], cwd=REPO_ROOT, env=env, input=data, capture_output=True, text=True,
+                                  check=True).stdout.strip()
+        g("read-tree", base_sha)
+        for path, text in files.items():
+            listed = g("ls-tree", base_sha, "--", path)
+            mode = listed.split()[0] if listed else "100644"
+            blob = g("hash-object", "-w", "--stdin", data=text)
+            g("update-index", "--add", "--cacheinfo", f"{mode},{blob},{path}")
+        tree = g("write-tree")
+        msg = (f"chore(release): {version}, its version in app.json and package.json, a draft changelog entry\n\n"
+               f"Made by `python -m pipeline release --cut` (T998): {d.base} + {d.level} from the commits since "
+               f"{d.since}. The anglers' notes in {CHANGELOG_TS} are written by hand; {CHANGELOG_MD} lists the commits.\n")
+        return g("commit-tree", tree, "-p", base_sha, "-m", msg)
+
+
+def cut_branch(branch: str, commit: str | None = None) -> int:
+    """(T995) make `branch` at `commit` (default origin/main; no switch: the checkout stays where it is) and push it;
+    the return code."""
+    rc = run_cmd(["git", "branch", "--no-track", branch, commit or f"{GH_REMOTE}/{TRUNK}"])
     return rc or run_cmd(["git", "push", "-u", GH_REMOTE, f"refs/heads/{branch}"], env=PUSH_ENV)
 
 
@@ -699,6 +804,10 @@ def rel(p) -> str:
 
 def now() -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%S")
+
+
+def today() -> str:
+    return time.strftime("%Y-%m-%d")
 
 
 def manifest_of(rid: str) -> dict:
@@ -1049,6 +1158,41 @@ def check_pushed(ctx: Ctx) -> Finding:
     return Finding(True, f"HEAD is the tip of {GH_REMOTE}/{rb}")
 
 
+def check_version(ctx: Ctx) -> Finding:
+    """(T998) THE VERSION IS THE ONE THE COMMITS COMPUTE: app.json's expo.version against the Conventional Commits since
+    the last v* tag (`pipeline/release_version.py`), said with the commits that decided it (the rehearsal prints it). A
+    version set by hand that disagrees stops, naming both. On a data-only branch (release/data-<date>) no app commit may
+    bump the app, and app.json names the shipped version."""
+    try:
+        v, rb = app_version(), release_branch()
+        d = version_decision()
+    except (SystemExit, RuntimeError, ValueError, subprocess.CalledProcessError) as e:
+        return Finding(False, f"the version the commits compute could not be read ({type(e).__name__}: {e})",
+                       "run `python -m pipeline.release_version` and fix what it says")
+    said = d.said()
+    if d.bad:
+        return Finding(False, said, "a commit not in the format joined the history before the check: add its id to "
+                       "app/tools/versioning.json `exempt` with why (history is never rewritten), then rerun")
+    if CP.DATA_BRANCH.fullmatch(rb):
+        if d.version is not None:
+            return Finding(False, f"{rb} is a data-only release, but app commits since {d.since} bump the app to "
+                           f"{d.version}:\n{said}",
+                           f"ship them as an app release (python -m pipeline release --cut, from {TRUNK}); a data-only "
+                           "branch carries no app change since the last version")
+        if v != d.base:
+            return Finding(False, f"{rb} is a data-only release, but app.json says {v}, not the shipped {d.base}",
+                           "a data-only release ships no app change: app.json names the version that shipped")
+        return Finding(True, f"a data-only release on {rb}, app {v} unchanged: {said}")
+    if d.version is None and v == d.base:
+        return Finding(True, f"app {v}, no app change since: {said}")
+    ok, why = RV.accepts(v, d)
+    if not ok:
+        return Finding(False, f"app.json says {v}, the commits compute {d.version or d.base + ' (no bump)'}: {why}\n"
+                       + said, "the version comes from the commits (T998): cut the computed one (python -m pipeline "
+                       "release --cut), or land the commit that makes the change what it is (a feat, a `!`)")
+    return Finding(True, f"{why}: {said}")
+
+
 def check_ci(ctx: Ctx) -> Finding:
     rc, said = ci_status(ctx.no_ci_check)
     if rc:
@@ -1304,7 +1448,7 @@ def check_fresh_copy(ctx: Ctx) -> Finding:
 #: and last the fresh-copy test run (the whole no-data tier on a clean clone, once per release).
 PREFLIGHT = (("committed", check_committed), ("atlas", check_atlas), ("marks", check_marks),
              ("wrong-saves", check_wrong_saves), ("classified", check_classified), ("pushed", check_pushed),
-             ("ci", check_ci), ("live", check_live), ("min-app", check_min_app), ("site", check_site),
+             ("version", check_version), ("ci", check_ci), ("live", check_live), ("min-app", check_min_app), ("site", check_site),
              ("pieces", check_pieces), ("fast-fail", check_fast_fail),
              ("fresh-copy", check_fresh_copy))
 
@@ -1775,6 +1919,7 @@ def tag_release(ctx: Ctx, rid: str, r: dict) -> str:
                    "commit to tag is not known", f"tag it by hand at the commit you uploaded: git tag -a data/{rid} "
                    f"-m 'data release {rid}' <sha> && git push {GH_REMOTE} refs/tags/data/{rid}")
     version = app_version()
+    data_only = data_only_branch()
     data_tag, app_tag = f"data/{rid}", f"v{version}"
     try:
         remote = {x: remote_tag_commit(x) for x in (data_tag, app_tag)}
@@ -1788,6 +1933,9 @@ def tag_release(ctx: Ctx, rid: str, r: dict) -> str:
                    f"read why (git ls-remote {GH_REMOTE} refs/tags/{data_tag}): a release id names one release")
     said, make, send = [], [], []
     for tag in (data_tag, app_tag):
+        if tag == app_tag and data_only:
+            said.append(f"{app_tag} not tagged here: a data-only release ({release_branch()}), app {version} unchanged")
+            continue
         if tag == app_tag and remote[tag] not in (None, ship):
             said.append(f"{app_tag} stays at {remote[tag][:12]} (the version was tagged by an earlier ship: this "
                         "release ships data only)")
@@ -1811,8 +1959,11 @@ def tag_release(ctx: Ctx, rid: str, r: dict) -> str:
             raise Stop("staging", f"pushing the tag(s) {', '.join(send)} failed (rc={rc})",
                        f"fix what git said above (git push {GH_REMOTE} " + " ".join(f"refs/tags/{x}" for x in send)
                        + "), then rerun: only the tags are left")
-    r["tags"] = {data_tag: ship, app_tag: remote[app_tag] if remote[app_tag] not in (None, ship) else ship}
+    r["tags"] = {data_tag: ship} if data_only else {
+        data_tag: ship, app_tag: remote[app_tag] if remote[app_tag] not in (None, ship) else ship}
     r["ship_commit"], r["app_version"] = ship, version
+    if data_only:
+        r["data_only"] = True
     save_ledger(ctx.led)
     return "; ".join([f"tagged {', '.join(make) or 'nothing new'} at {ship[:12]}, pushed "
                       f"{', '.join(send) or 'nothing (on origin already)'}", *said])
@@ -2256,8 +2407,10 @@ def dry_run(ctx: Ctx) -> int:
           + (f"  ({target} staged {r['staged_at']})" if r.get("staged_at") else ""))
     try:
         rb, ver = release_branch(), app_version()
-        print(f"{P}then (T995) tags data/<r-id> + v{ver} (if not tagged yet) on the pushed HEAD, pushes them, and "
-              f"prints the merge-back PR: {merge_back_cmd(rb)}")
+        tags = (f"data/<r-id> only (a data-only release, app {ver} unchanged)" if data_only_branch() else
+                f"data/<r-id> + v{ver} (if not tagged yet)")
+        print(f"{P}then (T995) tags {tags} on the pushed HEAD, pushes them, and prints the merge-back PR: "
+              f"{merge_back_cmd(rb)}")
     except SystemExit as e:
         print(f"{P}" + stop(f"the release branch cannot be named: {e}"))
     if target:
@@ -2291,17 +2444,63 @@ def dry_run(ctx: Ctx) -> int:
 
 # ---------------------------------------------------------------------------------------------------------------- cut
 
-def cut(version: str) -> int:
-    """(T995) AT SCOPE LOCK: `release/<version>` from a fresh origin/main, pushed. The checkout is not switched; it says
-    what to switch to, and when app.json on main names another version, that the branch's first commit sets it."""
-    import re
-    if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+def cut(version: str | None, data_only: bool = False, dry_run: bool = False, ask=input) -> int:
+    """(T995, T998) AT SCOPE LOCK: the version the commits on origin/main compute (printed with the commits that decided
+    it), confirmed by the owner — typed at the prompt, or given as `version` (refused when it disagrees, naming both) —
+    then `release/<version>` made from a fresh origin/main with ONE commit (`version_commit`: app.json + package.json,
+    the anglers' changelog entry opened, CHANGELOG.md), and pushed. `data_only`: `release/data-<today>` at origin/main
+    itself, refused when an app commit bumps the app. `dry_run`: the decision only, nothing made. The checkout is not
+    switched; it says what to switch to."""
+    if version is not None and not re.fullmatch(r"\d+\.\d+\.\d+", version):
         print(f"release --cut: {version!r} is not x.y.z", file=sys.stderr)
         return 2
-    branch = CP.release_branch(version)
     try:
         fetch_trunk()
-        exists, tagged = remote_ref_exists(f"refs/heads/{branch}"), remote_ref_exists(f"refs/tags/v{version}")
+        d = trunk_decision()
+    except (subprocess.CalledProcessError, RuntimeError, ValueError) as e:
+        print(f"release --cut: cannot read {GH_REMOTE} ({e}): check the network; nothing was made", file=sys.stderr)
+        return 1
+    print(f"release --cut: the commits on {GH_REMOTE}/{TRUNK} (T998):\n  " + d.said().replace("\n", "\n  "))
+    if d.bad:
+        print("release --cut: refused: a commit not in the format joined the history before the check; add its id to "
+              "app/tools/versioning.json `exempt` with why (history is never rewritten)", file=sys.stderr)
+        return 1
+    if data_only:
+        if d.version is not None:
+            print(f"release --cut --data-only: refused: app commits since {d.since} bump the app to {d.version} "
+                  f"(above): cut the app release (python -m pipeline release --cut)", file=sys.stderr)
+            return 1
+        branch = CP.data_branch(today())
+    else:
+        if version is None:
+            if d.version is None:
+                print(f"release --cut: no app release: nothing since {d.since} bumps the app (docs, CI, tests, data "
+                      "only). A data release: python -m pipeline release --cut --data-only", file=sys.stderr)
+                return 1
+            if dry_run:
+                print(f"release --cut --dry-run: would cut release/{d.version} once you confirm it; nothing was made")
+                return 0
+            if not is_tty():
+                print(f"release --cut: the owner confirms the version (T998): in a terminal, type it at the prompt, or "
+                      f"run: python -m pipeline release --cut {d.version}", file=sys.stderr)
+                return 2
+            if ask(f"type {d.version} to cut release/{d.version} with it: ").strip() != d.version:
+                print("release --cut: the version did not match; nothing was made", file=sys.stderr)
+                return 2
+            version = d.version
+        else:
+            ok, why = RV.accepts(version, d)
+            if not ok:
+                print(f"release --cut: refused: {why}", file=sys.stderr)
+                return 1
+            print(f"release --cut: {why}")
+        branch = CP.release_branch(version)
+    if dry_run:
+        print(f"release --cut --dry-run: would cut {branch} from {GH_REMOTE}/{TRUNK}; nothing was made")
+        return 0
+    try:
+        exists = remote_ref_exists(f"refs/heads/{branch}")
+        tagged = False if data_only else remote_ref_exists(f"refs/tags/v{version}")
     except (subprocess.CalledProcessError, RuntimeError) as e:
         print(f"release --cut: cannot read {GH_REMOTE} ({e}): check the network; nothing was made", file=sys.stderr)
         return 1
@@ -2313,19 +2512,24 @@ def cut(version: str) -> int:
         print(f"release --cut: v{version} is tagged already (that version shipped): cut the next version",
               file=sys.stderr)
         return 1
-    rc = cut_branch(branch)
+    try:
+        commit = None if data_only else version_commit(version, d)
+    except (subprocess.CalledProcessError, RuntimeError, ValueError) as e:
+        print(f"release --cut: the version commit could not be made ({e}); nothing was pushed", file=sys.stderr)
+        return 1
+    rc = cut_branch(branch, commit)
     if rc:
         print(f"release --cut: making or pushing {branch} failed (rc={rc}, above); if the local branch was made and "
               f"the push failed: git push -u {GH_REMOTE} refs/heads/{branch}", file=sys.stderr)
         return 1
-    on_main, why = trunk_app_version()
     print(f"release: {branch} cut from {GH_REMOTE}/{TRUNK} and pushed. Next: git switch {branch} (or "
           f"git worktree add <dir> {branch}); the release builds and ships from it.")
-    if on_main is None:
-        print(f"  could not read the app version on {TRUNK} ({why}): check that app.json on {branch} says {version}")
-    elif on_main != version:
-        print(f"  app.json on {TRUNK} says {on_main}: the branch's first commit sets expo.version {version} (app.json + "
-              "package.json) and its changelog entry — preflight names the branch from app.json")
+    if data_only:
+        print(f"  a data-only release: app.json stays {d.base}; the ship tags only data/<r-id>")
+    else:
+        print(f"  its first commit ({commit[:12]}) sets expo.version {version} (app.json + package.json), opens the "
+              f"anglers' entry in {CHANGELOG_TS} (EMPTY: write 3-5 plain bullets and commit them; check-changelog and "
+              f"the app build refuse it until then) and writes {CHANGELOG_MD}")
     return 0
 
 
@@ -2371,7 +2575,8 @@ def tag_problems(rid: str, r: dict) -> list[str]:
     elif at != ship:
         out.append(f"{data_tag} points at {at[:12]}, not at the commit {rid} shipped from ({ship[:12]})")
     if v is None:
-        out.append(f"no tag {app_tag} on {GH_REMOTE}: the app version this release went up with")
+        if not r.get("data_only"):         # (T998) a data-only release tags only its data (the app shipped before)
+            out.append(f"no tag {app_tag} on {GH_REMOTE}: the app version this release went up with")
     elif v != ship and not is_ancestor(v, ship):
         out.append(f"{app_tag} points at {v[:12]}, which is not {ship[:12]} nor before it")
     return out
@@ -2434,7 +2639,9 @@ def main(argv: list[str] | None = None) -> int:
     g = ap.add_mutually_exclusive_group(required=True)
     g.add_argument("--staging", action="store_true", help="build -> checks -> promote LATEST -> upload staging")
     g.add_argument("--prod", metavar="R-ID", help="HUMAN-ONLY: re-upload this checked, staged release to production")
-    g.add_argument("--cut", metavar="X.Y.Z", help="(T995) at scope lock: make release/X.Y.Z from origin/main and push it")
+    g.add_argument("--cut", nargs="?", const="", metavar="X.Y.Z",
+                   help="(T995, T998) at scope lock: the version the commits compute (confirmed; a typed X.Y.Z must be "
+                        "it), then release/X.Y.Z from origin/main with its version commit, pushed")
     ap.add_argument("--dry-run", action="store_true",
                     help="the rehearsal: every stage's checks; nothing is built, committed, promoted or uploaded")
     ap.add_argument("--rehearse-follows", action="store_true",
@@ -2470,9 +2677,14 @@ def main(argv: list[str] | None = None) -> int:
                     help="(T547) go on with an atlas behind its curated inputs; the reason is required and printed")
     ap.add_argument("--jobs", type=int, default=2, help="the build's --jobs (default 2, at most 4)")
     ap.add_argument("--reupload", action="store_true", help="upload to staging again even if the ledger says it is")
+    ap.add_argument("--data-only", action="store_true",
+                    help="(T998) with --cut: release/data-<YYYY-MM-DD> from origin/main, a data release with no app "
+                         "change (refused when an app commit bumps the app)")
     a = ap.parse_args(argv)
-    if a.cut:
-        return cut(a.cut)
+    if a.data_only and (a.cut is None or a.cut):
+        ap.error("--data-only goes with a bare --cut (the version stays the shipped one)")
+    if a.cut is not None:
+        return cut(a.cut or None, data_only=a.data_only, dry_run=a.dry_run)
     if a.prod:
         if a.dry_run:
             r = load_ledger().get("releases", {}).get(a.prod, {})

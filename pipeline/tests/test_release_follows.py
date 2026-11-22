@@ -151,7 +151,7 @@ def test_the_recut_commit_takes_only_the_tables_paths(repo):
     head = RF.commit(RF.RECUT, "r-abc", "renumber only")
     assert head == _git(repo, "rev-parse", "HEAD") and RF.changed(RF.RECUT) == []
     assert _git(repo, "show", "--name-only", "--no-renames", "--format=%s", "HEAD").splitlines() == [
-        "release r-abc: fixtures re-cut on the candidate (renumber only; pipeline release --staging, T666)", "",
+        "test(T666): the fixtures re-cut on the candidate r-abc", "",
         *changed]
     assert _git(repo, "status", "--porcelain") == "M other.py"            # the other lane's edit is still its own
     assert "Co-Authored-By: Claude <noreply@anthropic.com>" in _git(repo, "log", "-1", "--format=%B")

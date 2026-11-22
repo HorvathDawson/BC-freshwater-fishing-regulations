@@ -211,8 +211,9 @@ def _commit(domain: str, path: Path, old: Optional[str], gone: list[str]) -> str
     from pipeline.regs.review import proposals as P
     new_file = _git("ls-files", "--error-unmatch", "--", str(path)).returncode != 0
     name = Path(path).resolve().relative_to(Path(P.REPO).resolve()).as_posix()      # in the repository: `not_committable`
-    msg = (f"T325 apply {domain}: {name} from the review marks\n\n"
-           f"Written by the {domain} writer (`python -m pipeline.regs.review.apply {domain}`, the review app's "
+    # (T998) a Conventional Commits subject (the commit-msg hook and the PR's check read it); the file in the body
+    msg = (f"fix(T325): apply {domain} from the review marks\n\n"
+           f"{name}: written by the {domain} writer (`python -m pipeline.regs.review.apply {domain}`, the review app's "
            "write-through) from the marks in force.\n"
            + "".join(f"Dropped: {w}\n" for w in gone))
     got = _git("add", "--", str(path)) if new_file else None

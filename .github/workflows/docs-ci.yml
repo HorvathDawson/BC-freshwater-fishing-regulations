@@ -20,7 +20,9 @@ on:
   # (T995) EVERY pull request runs this workflow, with no path filter: a required check from a workflow that did not
   # run stays pending forever. Its `changes` job asks scripts/ci_paths.py whether the PR touched this area; the jobs
   # run only then (`if:`, a skip counts as a pass), and `docs ok`, the required check, always reports.
+  # (T998) `edited` too: a PR title fixed by hand re-runs the `commits` job (a re-run reads the old title)
   pull_request:
+    types: [opened, synchronize, reopened, edited]
 
 concurrency:
   group: docs-${{ github.ref }}
@@ -65,12 +67,37 @@ jobs:
         if: ${{ !cancelled() }}
         run: pnpm exec vitest run tools/check-tickets.test.ts tools/start-here.test.ts
 
+  # (T998) EVERY COMMIT IN THE PULL REQUEST, AND ITS TITLE, FOLLOW CONVENTIONAL COMMITS (app/tools/check-commits.mjs,
+  # the commit-msg hook's check). On every pull request, whatever it touched: no `changes` gate. The title is checked
+  # as the merge commit GitHub writes from it (`<title> (#N)`, merge_commit_title=PR_TITLE); a push skips it (its
+  # commits were checked on their PR).
+  commits:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      # full history, no old file contents: the PR's commits and the cutover must be in the clone
+      - uses: actions/checkout@v5
+        with: { fetch-depth: 0, filter: "blob:none" }
+      - uses: ./.github/actions/app-setup
+        with: { python: "false" }
+      - name: Every commit and the PR title follow Conventional Commits
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: node tools/check-commits.mjs --range "$BASE_SHA..$HEAD_SHA" --title "$PR_TITLE" --number "$PR_NUMBER"
+
   # (T995) THE REQUIRED CHECK for main's branch protection (scripts/ci_paths.py REQUIRED): it always runs, and passes
   # only when every job above passed or was skipped by its `if:` (a failed or cancelled one fails it)
   ok:
     name: docs ok
     if: always()
-    needs: [changes, ledger]
+    needs: [changes, ledger, commits]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

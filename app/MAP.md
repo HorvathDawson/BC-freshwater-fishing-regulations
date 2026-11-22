@@ -114,6 +114,10 @@ the local server (`serve-tiles.mjs`, `pnpm tiles`), and the browser drivers for 
 fetches per moment, `request-walk.pin.json`, priced against the release's `WEB_BUDGET` by `release-budget.test.ts`, and `a11y-walk.mjs` (T243: axe-core WCAG A/AA + a Tab focus walk per scene); they
 need Chrome and the running app).
 
+(T998) **The commit format:** `check-commits.mjs` (commitlint, `commitlint.config.mjs`; the types, the header length and
+the cutover in `versioning.json`, which the release command's bump reads too; the parse contract both sides are held
+to is `commits-contract.json`) runs in `.githooks/commit-msg`, `scripts/before_push.py` and docs-ci's `commits` job.
+
 Source maps (T352, `sourcemaps.mjs`): the web export (`export:web*`, `--source-maps`) and `deploy/staging/build-apk.sh`
 (the Hermes map) keep their maps per build in `data/sourcemaps/<version>-b<build>-<sha7>/` (gitignored, never served);
 `node app/tools/sourcemaps.mjs symbolicate <crash json>` reads a crash's stack back with them.

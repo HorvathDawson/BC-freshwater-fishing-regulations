@@ -192,7 +192,7 @@ def test_a_file_domain_save_commits_its_file_and_says_the_commit(wt, tracked):
     assert got["state"] == "done" and _waters(tracked) == ["1"], got
     head = _git(wt["repo"], "rev-parse", "--short", "HEAD").strip()
     assert got["sha"] == head and got["outcomes"]["slough|1|"]["sha"] == head
-    assert _git(wt["repo"], "log", "-1", "--format=%s") == "T325 apply sloughs: data/curated/slough_calls.json from the review marks\n"
+    assert _git(wt["repo"], "log", "-1", "--format=%s") == "fix(T325): apply sloughs from the review marks\n"
     assert _git(wt["repo"], "show", "--stat", "--format=", "HEAD").split("|")[0].strip() == "data/curated/slough_calls.json"
     assert _git(wt["repo"], "status", "--porcelain", "--", str(tracked)) == ""
 
@@ -302,7 +302,7 @@ def test_a_dfo_mark_lands_in_its_dfo_file_in_the_background(wt):
                if x["location_id"] == COWICHAN)
     assert loc["binding"]["extents"] == [{"op": "downstream_of", "splits": ["cowichan_river__cnr_trestle"],
                                           "item_id": "gnis:12227"}]
-    assert _git(wt["repo"], "log", "-1", "--format=%s").startswith("T185 apply mark-dfo-")
+    assert _git(wt["repo"], "log", "-1", "--format=%s").startswith("fix(T185): apply mark-dfo-")
     st = wt["client"].get("/api/review/write-through").json()
     assert st["outcomes"][f"dfo|{COWICHAN}|"]["state"] == "saved" and st["domains"]["dfo"]["state"] == "done"
     assert not st["saving"]
@@ -445,7 +445,7 @@ def test_an_entry_mark_lands_in_its_catalogue_file_in_the_background(wt):
     assert wt["WT"].wait_idle(30)
     after = (wt["repo"] / "data/curated/catalogue/region-2.json").read_text()
     assert after != before
-    assert _git(wt["repo"], "log", "-1", "--format=%s").startswith("T185 apply mark-entry-r2_hatzic")
+    assert _git(wt["repo"], "log", "-1", "--format=%s").startswith("fix(T185): apply mark-entry-r2_hatzic")
     assert wt["client"].get("/api/review/write-through").json()["outcomes"][f"entry|{HATZIC}|"]["state"] == "saved"
 
 

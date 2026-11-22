@@ -58,6 +58,11 @@ const HASH = /\b[0-9a-f]{7,40}\b/;
 // not after a word character or a hyphen: "Q-T57a" is an owner-question label, not ticket T57a
 const T_IN_SUBJECT = /(?<![\w-])T\d+[a-z]?\b/g;
 
+/** (T998) The ticket ids a commit subject (or scope) names, by the guard's own rule (`T_IN_SUBJECT`). */
+export function ticketsIn(text) {
+  return text.match(T_IN_SUBJECT) ?? [];
+}
+
 /** The leading status keyword of a status text, or null. */
 export function statusKeyword(text) {
   const t = text.trim();
@@ -170,7 +175,7 @@ export function checkLedger({ tickets, readme, doneLedger, subjects, ownerTodo }
   for (const id of files) if (!seen.has(id)) problems.push(`${id}: ticket file has no ledger row in README.md or ${DONE_LEDGER}`);
   for (const id of seen.keys()) if (!files.has(id)) problems.push(`${id}: ledger row has no ticket file`);
 
-  const named = new Set(subjects.flatMap((s) => s.match(T_IN_SUBJECT) ?? []));
+  const named = new Set(subjects.flatMap(ticketsIn));
   for (const id of named) if (!seen.has(id)) problems.push(`${id}: named in a commit subject but missing from the ledger`);
 
   return [...new Set(problems)].sort();
@@ -278,6 +283,16 @@ export function readRepo(repoRoot) {
   const plan = join(repoRoot, "handoff/PLAN");
   const ownerTodo = readFileSync(join(plan, "OWNER-TODO.md"), "utf8");
   return { tickets, readme, doneLedger, subjects, ownerTodo };
+}
+
+/**
+ * (T998) Every ticket id with a ledger row (README.md + DONE.md), read as `checkLedger` reads them: what the commit
+ * check (`tools/commitlint.config.mjs`) holds a `Tnnn` in a commit header against. A missing file throws.
+ */
+export function ledgerIds(repoRoot) {
+  const dir = join(repoRoot, TICKETS_DIR);
+  return new Set([readFileSync(join(dir, "README.md"), "utf8"), readFileSync(join(dir, DONE_LEDGER), "utf8")]
+    .flatMap((t) => ledgerRows(t).map((r) => r.id)));
 }
 
 /** The docs checkLedger's sibling reads: real files, real existence, real git-ignore. */

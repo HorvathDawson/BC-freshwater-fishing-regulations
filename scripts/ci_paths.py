@@ -7,7 +7,8 @@ runner (no venv), and `scripts/before_push.py --changed`, `scripts/ci_status.py`
     python3 scripts/ci_paths.py areas PATH...      # which areas these paths touch (a check by hand)
     python3 scripts/ci_paths.py trunk              # `main`: the shell scripts read the name here
     python3 scripts/ci_paths.py repo               # owner/name on GitHub (deploy/staging/upload.sh)
-    python3 scripts/ci_paths.py release-branch     # release/<app.json's version>: the branch a release ships from
+    python3 scripts/ci_paths.py release-branch     # the branch a release ships from: release/<app.json's version>, or
+                                                   # (T998) the data-only branch checked out (release/data-<date>)
 
 THE TRUNK is `main` (owner 2026-11-21, T995): protected, PRs with required checks, merge commits only. A release is cut
 from it as `release/<version>` at scope lock (`python -m pipeline release --cut <version>`).
@@ -38,6 +39,9 @@ REPO = "HorvathDawson/BC-freshwater-fishing-regulations"
 TRUNK, REMOTE = "main", "origin"
 #: a release branch is RELEASE_PREFIX + the app version (app/apps/mobile/app.json expo.version)
 RELEASE_PREFIX = "release/"
+#: (T998) a DATA-ONLY release's branch: release/data-<YYYY-MM-DD>, cut from main by `release --cut --data-only` (app.json
+#: still names the shipped version, whose own release branch is finished)
+DATA_BRANCH = re.compile(re.escape(RELEASE_PREFIX) + r"data-\d{4}-\d{2}-\d{2}")
 
 #: the shared setup every workflow's `changes` job uses: a change to it runs every workflow
 _SHARED = [".github/actions/changes/**", "scripts/ci_paths.py"]
@@ -57,6 +61,7 @@ AREAS: dict[str, list[str]] = {
             "pipeline/deliver/tiles/basemap.py", "pipeline/deliver/tiles/ladder.py", "pipeline/deliver/tiles/layers.py",
             "pipeline/deliver/tiles/tile-contract.json", "pipeline/gauges/consume/panel.py",
             "pipeline/gauges/feed/climatology.py", "pipeline/gauges/feed/publish.py", "scripts/test-full.sh",
+            ".githooks/commit-msg",
             *_SHARED],
     "feeds-worker": ["app/workers/feeds/**", "app/packages/core/**", "app/tools/test-tmp.ts", "app/package.json",
                      "app/pnpm-lock.yaml",
@@ -81,6 +86,12 @@ AREAS: dict[str, list[str]] = {
                  ".gitignore", "handoff/PLAN/app-data/**", "handoff/PLAN/runbooks/**", *_SHARED],
 }
 
+#: (T998) area -> the jobs of its workflow that run on EVERY pull request, whatever it touched (no `changes` gate):
+#: docs-ci's Conventional Commits check of the PR's commits and title (app/tools/check-commits.mjs)
+EVERY_PR = {"docs": ["commits"]}
+#: (T998) the pull_request event types docs-ci runs on: the defaults, and `edited` (a re-run reads the old title)
+PR_TYPES = {"docs": ["opened", "synchronize", "reopened", "edited"]}
+
 #: area -> its workflow file
 WORKFLOWS = {"docs": "docs-ci.yml", "app": "app-ci.yml", "feeds-worker": "feeds-worker-ci.yml",
              "pipeline": "pipeline-ci.yml"}
@@ -92,6 +103,21 @@ PASSING = ("success", "skipped")
 
 def release_branch(version: str) -> str:
     return RELEASE_PREFIX + version
+
+
+def data_branch(day: str) -> str:
+    """(T998) the data-only release branch of that day (YYYY-MM-DD)."""
+    return f"{RELEASE_PREFIX}data-{day}"
+
+
+def shipping_branch(current: str, version: str) -> str:
+    """(T998) the branch a release ships from: the data-only branch when one is checked out, else release/<version>."""
+    return current if DATA_BRANCH.fullmatch(current) else release_branch(version)
+
+
+def current_branch() -> str:
+    """The branch checked out ("HEAD" when detached); a git failure raises, naming it."""
+    return _git("rev-parse", "--abbrev-ref", "HEAD").strip()
 
 
 def app_version(app_json: Path = APP_JSON) -> str:
@@ -201,7 +227,7 @@ def main(argv: list[str] | None = None) -> int:
         print(REPO)
         return 0
     if argv == ["release-branch"]:
-        print(release_branch(app_version()))
+        print(shipping_branch(current_branch(), app_version()))
         return 0
     if argv[:1] == ["areas"]:
         print(" ".join(sorted(areas_of(argv[1:]))) or "(none)")

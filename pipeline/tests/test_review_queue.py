@@ -495,7 +495,7 @@ def test_commit_marks_commits_the_marks_file_and_nothing_else(tmp_path):
                 os.environ.pop(k, None)
             else:
                 os.environ[k] = v
-    assert (got["committed"], got["added"], got["message"]) == (True, 2, "review: 2 marks")
+    assert (got["committed"], got["added"], got["message"]) == (True, 2, "chore(review): 2 marks")
     assert _git(repo, "diff", "--name-only", head0, "HEAD").split() == [
         "data/curated/review/marks.jsonl"]
     assert _git(repo, "diff", "--cached", "--name-only").split() == ["other.json"]
@@ -530,7 +530,7 @@ def test_commit_marks_commits_a_store_that_lost_lines(tmp_path):
             else:
                 os.environ[k] = v
     assert (got["committed"], got["changed"], got["added"], got["message"]) == (
-        True, True, 0, "review: marks store rewritten (no mark added)")
+        True, True, 0, "chore(review): the marks store rewritten (no mark added)")
     assert _git(repo, "show", "HEAD:marks.jsonl") == line(_mark())
 
 
