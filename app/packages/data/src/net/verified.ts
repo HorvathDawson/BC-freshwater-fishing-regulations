@@ -21,6 +21,9 @@ export interface VerifiedVia {
   priority: FetchPriority;
   fetchImpl?: typeof fetch;
   signal?: AbortSignal;
+  /** (T866) the try's timeouts and the backoff's wait, as `fetchResilient` takes them (default: by size; a real wait) */
+  limits?: ResilientOptions["limits"];
+  sleep?: ResilientOptions["sleep"];
 }
 
 /**
@@ -45,7 +48,7 @@ export async function fetchVerifiedVia(url: string, expect: { bytes: number; sha
     const once = async (resumable: boolean) => {
       let decoded = false, wireLen: number | null = null;
       const body = await fetchResilient(url, {
-        fetchImpl: o.fetchImpl, signal: o.signal, meter: net.meter, wireBytes: Math.round(expect.bytes * GZ_RATIO),
+        fetchImpl: o.fetchImpl, signal: o.signal, limits: o.limits, sleep: o.sleep, meter: net.meter, wireBytes: Math.round(expect.bytes * GZ_RATIO),
         isOnline: net.online, waitOnline: net.waitOnline,
         resumable: (head) => resumable && isGzip(head),
         wireScale: (res, head) => {
