@@ -45,7 +45,16 @@ AREAS: dict[str, list[str]] = {
              "app/tools/check-tickets.mjs", "app/tools/check-tickets.test.ts", "app/tools/start-here.test.ts",
              ".github/workflows/docs-ci.yml", ".github/actions/app-setup/**", *_SHARED],
     "app": ["app/**", ".github/workflows/app-ci.yml", ".github/actions/app-setup/**",
-            "pipeline/deliver/bundle/schema.sql", "pipeline/deliver/bundle/indexes.sql", *_SHARED],
+            "pipeline/deliver/bundle/schema.sql", "pipeline/deliver/bundle/indexes.sql",
+            # (T995 review) what app/tools tests read outside app/: derived by test_workflow_pins.py, which fails when
+            # one reads a path this list misses
+            ".github/workflows/feeds-worker-ci.yml", "data/LICENSE-ODbL.md",
+            "deploy/staging/build-apk.sh", "deploy/staging/build-ios-sim.sh", "deploy/staging/build-ios-testflight.sh",
+            "deploy/staging/feeds.sh", "handoff/PLAN/runbooks/release.md",
+            "pipeline/deliver/tiles/basemap.py", "pipeline/deliver/tiles/ladder.py", "pipeline/deliver/tiles/layers.py",
+            "pipeline/deliver/tiles/tile-contract.json", "pipeline/gauges/consume/panel.py",
+            "pipeline/gauges/feed/climatology.py", "pipeline/gauges/feed/publish.py", "scripts/test-full.sh",
+            *_SHARED],
     "feeds-worker": ["app/workers/feeds/**", "app/packages/core/**", "app/tools/test-tmp.ts", "app/package.json",
                      "app/pnpm-lock.yaml",
                      "pipeline/regs/dfo_salmon/**", "pipeline/gauges/**", "pipeline/tests/fixtures/**",
@@ -58,10 +67,15 @@ AREAS: dict[str, list[str]] = {
                      "requirements.txt", "constraints.txt",
                      ".github/workflows/feeds-worker-ci.yml", ".github/actions/app-setup/**", *_SHARED],
     "pipeline": ["pipeline/**", "data/**", "config.yaml", "project_config.py",
-                 "requirements.txt", "constraints.txt", ".github/workflows/pipeline-ci.yml",
-                 "app/packages/core/src/*.generated.*", "app/packages/data/dev/mini-release/**",
+                 "requirements.txt", "constraints.txt",
                  # (T535) the review app's backend tests and the path gate's own dirs live here; fast-fail runs both too
-                 "curation-review/**", "scripts/**", *_SHARED],
+                 "curation-review/**", "scripts/**",
+                 # (T995 review) what the pipeline's tests read outside those: every workflow and action
+                 # (test_workflow_pins), the hooks, the deploy scripts (test_deploy_gates, the fail-safe tests), the
+                 # app (generated copies, fixtures, goldens, the tree scanners), the README, the pytest setup, two
+                 # handoff folders. Derived by test_workflow_pins.py, which fails when a test reads a path this misses.
+                 ".github/**", ".githooks/**", "deploy/**", "app/**", "README.md", "pytest.ini", "conftest.py",
+                 ".gitignore", "handoff/PLAN/app-data/**", "handoff/PLAN/runbooks/**", *_SHARED],
 }
 
 #: area -> its workflow file

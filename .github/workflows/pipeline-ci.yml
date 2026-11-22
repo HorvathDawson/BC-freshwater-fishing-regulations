@@ -20,9 +20,9 @@ on:
   push:
     branches: [main, "release/**"]
     paths: ["pipeline/**", "data/**", "config.yaml", "project_config.py", "requirements.txt", "constraints.txt",
-            ".github/workflows/pipeline-ci.yml", "app/packages/core/src/*.generated.*",
-            "app/packages/data/dev/mini-release/**", "curation-review/**", "scripts/**", ".github/actions/changes/**",
-            "scripts/ci_paths.py"]
+            "curation-review/**", "scripts/**", ".github/**", ".githooks/**", "deploy/**", "app/**", "README.md",
+            "pytest.ini", "conftest.py", ".gitignore", "handoff/PLAN/app-data/**", "handoff/PLAN/runbooks/**",
+            ".github/actions/changes/**", "scripts/ci_paths.py"]
   # (T995) EVERY pull request runs this workflow, with no path filter: a required check from a workflow that did not
   # run stays pending forever. Its `changes` job asks scripts/ci_paths.py whether the PR touched this area; the jobs
   # run only then (`if:`, a skip counts as a pass), and `pipeline ok`, the required check, always reports.

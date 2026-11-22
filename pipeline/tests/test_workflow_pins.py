@@ -72,8 +72,10 @@ def test_ci_paths_cover_what_the_jobs_read():
         paths = _on(_load("feeds-worker-ci.yml"))[ev]["paths"]
         for p in ("pipeline/regs/dfo_salmon/**", "pipeline/gauges/**", "requirements.txt", "app/workers/feeds/**"):
             assert p in paths, (ev, p)
-        # a docs-only push runs the ledger / docs guard alone, never the app's jobs
-        assert not any(p.startswith("handoff") for p in _on(_load("app-ci.yml"))[ev]["paths"]), ev
+        # a docs-only push runs the ledger / docs guard alone, never the app's jobs — but for the one runbook an app
+        # test reads (no-silent-skips.test.ts, T995 review): a named file, never a handoff folder
+        handoff = [p for p in _on(_load("app-ci.yml"))[ev]["paths"] if p.startswith("handoff")]
+        assert handoff == ["handoff/PLAN/runbooks/release.md"], ev
         assert "handoff/**" in _on(_load("docs-ci.yml"))[ev]["paths"], ev
 
 
@@ -199,3 +201,83 @@ def test_the_changes_action_reads_ci_paths_and_takes_no_event_field_through_shel
     assert doc["outputs"]["run"]["value"] == "${{ steps.c.outputs.run }}"
     # no third-party action anywhere in it (T995: plain git diff)
     assert not [s for s in doc["runs"]["steps"] if "uses" in s]
+
+
+# (T995 review) THE AREAS COVER WHAT THE TESTS READ. A PR touching only a file a test reads, outside the test's area,
+# skipped every job and passed all four `ok` checks (feeds-hydat.yml, deploy/staging/upload.sh: false green). Derived
+# from the test sources: quoted repo-relative paths, and `ROOT / "a" / "b"` / `join(REPO, "a", "b")` chains, that exist
+# in the tree (a file, a folder, or a glob that matches). Only these may stay out, each with why:
+_TOP = r"(?:\.github|\.githooks|app|data|deploy|scripts|curation-review|handoff|pipeline)"
+_FILES = (r"(?:README\.md|AGENTS\.md|config\.yaml|project_config\.py|requirements\.txt|constraints\.txt|pytest\.ini"
+          r"|conftest\.py|\.gitignore)")
+_LIT = re.compile(rf"""["']({_TOP}/[\w./*{{}}-]*|{_FILES})["']""")
+_CHAIN = re.compile(r"""(?:ROOT|REPO|REPO_ROOT|_ROOT|parents\[\d\])\s*((?:/\s*["'][^"'\n]+["']\s*)+)""")
+_JOIN = re.compile(r"""join\(\s*(?:REPO|ROOT)\s*,\s*((?:["'][^"'\n]+["']\s*,?\s*)+)\)""")
+NOT_READ = {
+    ("test_before_push.py", "AGENTS.md"): "a made-up changed path (the --changed plan)",
+    ("test_before_push.py", "handoff/PLAN/STATUS.md"): "a made-up changed path (the --changed plan)",
+    ("test_ci_paths.py", "AGENTS.md"): "a made-up path the glob and the areas are matched against",
+    ("test_ci_paths.py", "handoff/PLAN/STATUS.md"): "a made-up path the areas are matched against",
+    ("test_release_command.py", "handoff/PLAN/STATUS.md"): "a made-up committed path (the rebuild decision)",
+    ("test_workflow_pins.py", "handoff/**"): "the docs filter's own entry, compared as text",
+    ("test_workflow_pins.py", "AGENTS.md"): "a key of this table",
+    ("test_workflow_pins.py", "handoff/PLAN/STATUS.md"): "a key of this table",
+    ("check-test-anchors.test.ts", "data/curated/waters/cuts.json"): "the scanner's own input text, never read",
+}
+#: tests that docs-ci runs too: their reads are covered by the docs area as well as their own
+DOCS_RUN = {"check-tickets.test.ts", "start-here.test.ts"}
+
+
+def _repo_reads(files: list[Path]) -> set[tuple[str, str]]:
+    root = WF.parents[1]
+    out = set()
+    for f in files:
+        text = f.read_text(encoding="utf-8")
+        found = {m.group(1) for m in _LIT.finditer(text)}
+        for rx in (_CHAIN, _JOIN):
+            for m in rx.finditer(text):
+                found.add("/".join(re.findall(r"""["']([^"']+)["']""", m.group(1))))
+        for x in found:
+            x = x.rstrip("/")
+            if not re.match(rf"^(?:{_TOP}(?:/|$)|{_FILES}$)", x):
+                continue
+            if (root / x).exists() or ("*" in x and any(root.glob(x))):
+                out.add((f.name, x))
+    return out
+
+
+def _uncovered(reads: set[tuple[str, str]], patterns_of) -> list[str]:
+    miss = []
+    for name, x in sorted(reads):
+        probe = re.sub(r"\{[^}]*\}", "x", x).replace("**", "x").replace("*", "x")
+        if (name, x) in NOT_READ or any(CP.matches(pr, patterns_of(name)) for pr in (probe, probe + "/x")):
+            continue
+        miss.append(f"{name} reads {x}")
+    return miss
+
+
+def test_the_pipeline_area_covers_what_the_pipeline_tests_read():
+    root = WF.parents[1]
+    reads = _repo_reads(sorted((root / "pipeline" / "tests").rglob("*.py")))
+    assert ("test_deploy_gates.py", "deploy/staging/upload.sh") in reads            # the scan sees a real read
+    miss = _uncovered(reads, lambda name: CP.AREAS["pipeline"])
+    assert not miss, "add these to scripts/ci_paths.py AREAS['pipeline']:\n" + "\n".join(miss)
+
+
+def test_the_app_area_covers_what_the_app_tools_tests_read():
+    root = WF.parents[1]
+    reads = _repo_reads(sorted((root / "app" / "tools").glob("*.test.ts")))
+    miss = _uncovered(reads, lambda name: CP.AREAS["app"] + (CP.AREAS["docs"] if name in DOCS_RUN else []))
+    assert not miss, "add these to scripts/ci_paths.py AREAS['app']:\n" + "\n".join(miss)
+
+
+def test_the_area_pin_fails_on_a_read_its_area_misses(tmp_path):
+    """Mutation: a test reading deploy/staging/upload.sh, judged against an area without deploy/**, is named."""
+    f = tmp_path / "test_x.py"
+    f.write_text('S = ROOT / "deploy" / "staging" / "upload.sh"\nW = ".github/workflows/feeds-hydat.yml"\n')
+    reads = _repo_reads([f])
+    assert reads == {("test_x.py", "deploy/staging/upload.sh"), ("test_x.py", ".github/workflows/feeds-hydat.yml")}
+    assert _uncovered(reads, lambda name: ["pipeline/**"]) == [
+        "test_x.py reads .github/workflows/feeds-hydat.yml", "test_x.py reads deploy/staging/upload.sh"]
+    assert _uncovered(reads, lambda name: CP.AREAS["pipeline"]) == []
+

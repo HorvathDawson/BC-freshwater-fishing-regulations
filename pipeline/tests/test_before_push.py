@@ -88,7 +88,7 @@ def test_changed_runs_only_the_areas_the_branch_changed(monkeypatch, capsys):
     guard = "ticket guard (node app/tools/check-tickets.mjs)"
     docs = "docs: the ticket guard's tests and the start-here page (docs-ci)"
     assert _changed(monkeypatch, capsys, ["handoff/PLAN/STATUS.md", "AGENTS.md"]) == [guard, docs]
-    assert _changed(monkeypatch, capsys, ["README.md"]) == [guard]
+    assert _changed(monkeypatch, capsys, ["NOTICE.txt"]) == [guard]
     # (T995 review) what docs-ci runs on a handoff change, the hook runs: its vitest step, word for word
     import yaml
     ledger = yaml.safe_load((ROOT / ".github" / "workflows" / "docs-ci.yml").read_text())["jobs"]["ledger"]["steps"]
@@ -98,7 +98,9 @@ def test_changed_runs_only_the_areas_the_branch_changed(monkeypatch, capsys):
     assert not any(n.startswith(("app", "feeds worker")) for n in ran)
     ran = _changed(monkeypatch, capsys, ["app/workers/feeds/src/index.ts"])
     assert guard not in ran and "app gates (pnpm check:fast)" in ran and "feeds worker tests" in ran
-    assert not any(n.startswith("CI: ") for n in ran)
+    assert "the pipeline's source scanners (--no-tier)" in ran            # (T995 review) the pipeline tests read app/
+    ran = _changed(monkeypatch, capsys, ["pipeline/regs/review/x.py"])
+    assert not any(n.startswith(("app", "feeds worker", "docs: ")) for n in ran)
     full = [s.name for s in BP.plan(tier=False)]
     assert _changed(monkeypatch, capsys, ["pipeline/x.py", "app/x.ts", "app/workers/feeds/x.ts", "AGENTS.md"]) == full
     # every step names its area

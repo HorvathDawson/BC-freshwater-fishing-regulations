@@ -38,8 +38,11 @@ def test_the_match_is_githubs_glob(path, pattern, hit):
 
 def test_areas_of_a_change():
     assert CP.areas_of(["handoff/PLAN/STATUS.md"]) == {"docs"}
-    assert CP.areas_of(["README.md"]) == set()
-    assert CP.areas_of(["app/workers/feeds/src/index.ts"]) == {"app", "feeds-worker"}
+    assert CP.areas_of(["NOTICE.txt"]) == set()
+    assert CP.areas_of(["README.md"]) == {"pipeline"}                    # (T995 review) test_doc_drift reads it
+    assert CP.areas_of([".github/workflows/feeds-hydat.yml"]) == {"pipeline"}   # test_workflow_pins reads it
+    assert CP.areas_of(["deploy/staging/upload.sh"]) >= {"pipeline", "feeds-worker"}
+    assert CP.areas_of(["app/workers/feeds/src/index.ts"]) == {"app", "feeds-worker", "pipeline"}
     assert CP.areas_of(["pipeline/gauges/x.py"]) == {"pipeline", "feeds-worker"}
     assert CP.areas_of(["scripts/ci_paths.py"]) == {"docs", "app", "feeds-worker", "pipeline"}    # shared: all run
 
@@ -141,9 +144,11 @@ def test_typescript_names_the_same_trunk():
 
 
 def test_no_script_or_doc_names_the_old_dev_branch():
-    """(T995 acceptance) outside handoff/ history, nothing names the retired dev branch."""
+    """(T995 acceptance) nothing names the retired dev branch — in what this suite's area covers (its own input, so a
+    change that brings the name back runs it: the code, the workflows, deploy, the app, the README; handoff/ history is
+    not in it). The app's two names are pinned by its own tests too (legal.test.ts REPO_BLOB, dispatch DEFAULT_REF)."""
     old = "redesign/" + "stream-sections"
-    got = subprocess.run(["git", "grep", "-n", "-F", old, "--", ".", ":!handoff"], cwd=ROOT, capture_output=True,
-                         text=True)
+    specs = [f":(glob){p}" for p in CP.AREAS["pipeline"]] + [":(exclude)handoff/**"]
+    got = subprocess.run(["git", "grep", "-n", "-F", old, "--", *specs], cwd=ROOT, capture_output=True, text=True)
     assert got.returncode in (0, 1), got.stderr
     assert got.stdout == ""
