@@ -43,10 +43,17 @@ Times (2026-11-22, 4 compile jobs, Mac under load): 703 s full; ~4 min after a s
 - `deploy/staging/build-apk.sh` (every mode, `--production` too) and `app/tools/testbed/session.sh` default
   `MLN_LOCAL_MAVEN` to `cache/maplibre/<MLN_VERSION>`. `app/apps/mobile/app.config.js` hands that version to the
   binding's config plugin; `plugins/with-local-maplibre.js` adds the repo to Gradle.
-- build-apk.sh refuses, before the heavy lock, a repo whose one AAR is not `android-sdk-vulkan-<MLN_VERSION>.aar` (an old
-  lean AAR, an experiment), and after the build an APK/AAB whose arm64 `libmaplibre.so` build id is not that AAR's. The
-  email / version file line reads `MapLibre build id <id> (pinned upstream <MLN_VERSION>)`.
-- `--stock-maplibre="<reason>"` (not with `--production`) builds Maven Central's 13.6.1 instead: for a bisect only.
+- build-apk.sh refuses, before the heavy lock, a repo whose one AAR is not `android-sdk-vulkan-<MLN_VERSION>.aar` or whose
+  `SOURCE.txt` (build.sh's) does not name `MLN_COMMIT` (an old lean AAR, an experiment, a hand copy), and after the build
+  an APK/AAB whose arm64 `libmaplibre.so` build id is not that AAR's. The email / version file line reads
+  `MapLibre build id <id> (pinned upstream <MLN_VERSION>)`. It has no stock escape: `--stock-maplibre` is refused in every
+  mode (the staging page, Play and production all reach a phone).
+- `app/apps/mobile/plugins/with-pinned-maplibre.js` (an Android mod): a PRODUCTION Android config (EXPO_PUBLIC_APP_ENV or
+  the EAS production profile) without the pinned repo, or with another version, is refused, the fix named — a bare
+  `expo prebuild` or an EAS production build can no longer reach the stock SDK quietly. Any other Android config (`pnpm
+  android`, a dev prebuild) only warns, so everyday dev in a checkout with no built AAR is not blocked.
+- `--stock-maplibre="<reason>"` is the TEST BED's only (`app/tools/testbed/session.sh`): Maven Central's 13.6.1, for an
+  emulator bisect; never shipped.
 - The test bed may build an experiment AAR with `MLN_LOCAL_MAVEN=<repo> TESTBED_APK_TAG=<tag>`; its stamp then says
   `LOCAL AAR … not the pin`.
 - iOS is not affected: the iPhone uses MapLibre's iOS SDK from its pod, and no MapLibre patch was ever in the iOS build

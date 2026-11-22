@@ -13,7 +13,7 @@
 # key, so updates install over) and the SDK local.properties are copied in.
 # Usage: deploy/staging/build-apk.sh [--play] [--no-upload] [--no-email] [--dry-run] [--precheck] [--publish-only]
 #          [--no-fast-fail=<reason>] [--no-ci-check=<reason>] [--no-notes=<reason>] [--same-version=<reason>]
-#          [--uncommitted=<reason>] [--stock-maplibre=<reason>]   (--dry-run prints the steps, builds nothing)
+#          [--uncommitted=<reason>]   (--dry-run prints the steps, builds nothing)
 # (T538) THE PRECHECK, before the heavy lock (all of it, failures listed together; `--precheck` runs only it and stops):
 # app.json's version has a changelog entry with a bullet and it is the newest (`scripts/check-changelog.mjs`;
 # `--no-notes=<reason>`); `--play`: that version is not the one Play builds already read (play.json; `--same-version=
@@ -81,37 +81,29 @@ NOFF=
 # app/tools/maplibre-android/pin.env (the one place it is named; why main and not a tag, and when to move, are there).
 # MLN_LOCAL_MAVEN defaults to its repo, cache/maplibre/<MLN_VERSION> (app/tools/maplibre-android/build.sh makes it); any
 # other AAR (the old lean patch, an experiment) is refused by the precheck; the APK/AAB's arm64 libmaplibre.so must carry
-# the pinned AAR's build id. --stock-maplibre="<reason>" (never with --production) is the only way to Maven Central's SDK.
+# the pinned AAR's build id. (T978 review) there is NO stock escape here: every build this script makes can reach a
+# store track or a phone (the staging page, Play, production); `--stock-maplibre` is the test bed's only
+# (app/tools/testbed/session.sh), for a bisect on the emulator.
 # shellcheck source=../../app/tools/maplibre-android/pin.env
 source app/tools/maplibre-android/pin.env
-STOCK_MLN=
-MLN_AAR=
 for a in "$@"; do
   case $a in
-    --stock-maplibre) echo "build-apk: --stock-maplibre needs a reason: --stock-maplibre=\"<why the stock SDK ships>\"" >&2; exit 2 ;;
-    --stock-maplibre=*) STOCK_MLN=${a#--stock-maplibre=}
-      [[ -n ${STOCK_MLN// /} ]] || { echo "build-apk: --stock-maplibre= needs a reason" >&2; exit 2; } ;;
+    --stock-maplibre|--stock-maplibre=*)
+      echo "build-apk: --stock-maplibre is refused: every build here ships the pinned upstream MapLibre (T978, owner" \
+        "2026-11-22; app/tools/maplibre-android/pin.env). A stock-SDK bisect is the test bed's:" \
+        "app/tools/testbed/session.sh --stock-maplibre=\"<reason>\"" >&2; exit 2 ;;
   esac
 done
-if [[ -z $STOCK_MLN && -z ${MLN_LOCAL_MAVEN:-} ]]; then export MLN_LOCAL_MAVEN="$REPO/cache/maplibre/$MLN_VERSION"; fi
-# (T893, owner 2026-11-19 ~00:23: "It has to use patched one") a production build never takes the stock SDK
-if [[ -n $PROD && -n $STOCK_MLN ]]; then
-  echo "build-apk --production: production always carries the pinned upstream MapLibre (T893, T978); --stock-maplibre is refused" >&2; exit 2
-fi
-if [[ -n $STOCK_MLN ]]; then
-  [[ -z ${MLN_LOCAL_MAVEN:-} ]] || { echo "build-apk: --stock-maplibre with MLN_LOCAL_MAVEN set: pick one" >&2; exit 2; }
-  echo "build-apk: STOCK MapLibre (--stock-maplibre): $STOCK_MLN"
-else
-  # (T978, 0.8.4 production build from a worktree) a missing repo made this `find` fail and `set -e` end the script with
-  # NO message. Found here without stopping; a missing / ambiguous / unpinned AAR is listed by the precheck below with
-  # its fix (deploy/lib/build-links.sh build_links_mln), and refused before anything is built (MLN_AAR stays empty)
-  if [[ -d $MLN_LOCAL_MAVEN ]]; then MLN_AAR=$(find -L "$MLN_LOCAL_MAVEN" -name 'android-sdk-vulkan-*.aar'); fi
-  [[ $(grep -c . <<<"$MLN_AAR") -eq 1 && $(basename "$MLN_AAR") == "android-sdk-vulkan-$MLN_VERSION.aar" ]] || MLN_AAR=
-  if [[ -n $MLN_AAR ]]; then echo "build-apk: pinned upstream MapLibre $MLN_VERSION (${MLN_COMMIT:0:9}, no patch) from $MLN_AAR"; fi
-fi
+if [[ -z ${MLN_LOCAL_MAVEN:-} ]]; then export MLN_LOCAL_MAVEN="$REPO/cache/maplibre/$MLN_VERSION"; fi
 # (T978) the gitignored links the build reads (MapLibre repo, .venv, node_modules, run token, keystore): checked in the
 # precheck, every missing one listed with its fix
 source deploy/lib/build-links.sh
+# (T978, 0.8.4 production build from a worktree) a missing repo once made a bare `find` fail and `set -e` end the script
+# with NO message. MLN_AAR = the pinned AAR (file name AND SOURCE.txt's commit, build-links.sh mln_pinned_aar) or empty;
+# a missing / ambiguous / unpinned one is listed by the precheck below with its fix (build_links_mln) and refused
+# before anything is built, and again by the inner run (MLN_AAR empty)
+MLN_AAR=$(mln_pinned_aar "$MLN_LOCAL_MAVEN")
+if [[ -n $MLN_AAR ]]; then echo "build-apk: pinned upstream MapLibre $MLN_VERSION (${MLN_COMMIT:0:9}, no patch) from $MLN_AAR"; fi
 # (T993 plan 5) --no-fast-fail= / --no-ci-check= / --no-notes= are the shared escapes (build-links.sh build_reasons)
 build_reasons build-apk "$@"
 SAMEVER=; UNCOMMITTED=; PRECHECK_ONLY=; PUBLISH_ONLY=
@@ -144,17 +136,15 @@ mln_id() { local d; d=$(mktemp -d); unzip -q -o "$1" "$2" -d "$d" && "$READELF" 
 # mln_check <apk|aab> <path of libmaplibre.so inside>: MLN_GOT / MLN_WHAT; refuses (1) when the pinned AAR is asked for
 # (MLN_AAR) and the archive carries another build id — the stock SDK slipping in (T512: Play builds 20, 21)
 mln_check() {
-  # (T978) the pinned SDK asked for and no AAR found: never read as "stock" (the precheck lists the fix)
-  if [[ -z $STOCK_MLN && -z $MLN_AAR ]]; then
+  # (T978) no pinned AAR found: never read as "stock" (the precheck lists the fix)
+  if [[ -z $MLN_AAR ]]; then
     echo "build-apk: no pinned MapLibre AAR ($MLN_VERSION) in MLN_LOCAL_MAVEN=$MLN_LOCAL_MAVEN to prove $(basename "$1") against; refusing (--precheck says the fix)" >&2; return 1
   fi
   MLN_GOT=$(mln_id "$1" "$2")
-  if [[ -n $MLN_AAR ]]; then
-    MLN_WANT=$(mln_id "$MLN_AAR" jni/arm64-v8a/libmaplibre.so)
-    [[ -n $MLN_WANT && $MLN_GOT == "$MLN_WANT" ]] || {
-      echo "$(basename "$1")'s libmaplibre.so is build id '${MLN_GOT:-unreadable}', not the pinned AAR's '$MLN_WANT' ($MLN_AAR); refusing" >&2; return 1; }
-    MLN_WHAT="pinned upstream $MLN_VERSION"
-  else MLN_WHAT=stock; fi
+  MLN_WANT=$(mln_id "$MLN_AAR" jni/arm64-v8a/libmaplibre.so)
+  [[ -n $MLN_WANT && $MLN_GOT == "$MLN_WANT" ]] || {
+    echo "$(basename "$1")'s libmaplibre.so is build id '${MLN_GOT:-unreadable}', not the pinned AAR's '$MLN_WANT' ($MLN_AAR); refusing" >&2; return 1; }
+  MLN_WHAT="pinned upstream $MLN_VERSION"
   echo "libmaplibre.so build id $MLN_GOT ($MLN_WHAT)"
 }
 # --check-maplibre=<apk|aab>: only that proof, on an archive already built (and the tool's own test)
@@ -269,7 +259,7 @@ if [[ -z ${BUILD_APK_INNER:-} ]]; then
        else ok "R8 ON (CANIFISHTHIS_R8=1, T749): minified build, R8's mapping.txt kept beside the Hermes map"; fi ;;
     *) bad "CANIFISHTHIS_R8 must be unset, 0 or 1 (got '${CANIFISHTHIS_R8}')" ;;
   esac
-  [[ -n $STOCK_MLN ]] || build_links_mln "$MLN_LOCAL_MAVEN"
+  build_links_mln "$MLN_LOCAL_MAVEN"
   if [[ -n $MLN_AAR ]]; then
     [[ -n $READELF && -x $READELF ]] && ok "llvm-readelf ($READELF)" || bad "no llvm-readelf under $ANDROID_HOME/ndk: the MapLibre build id cannot be proved"
     MLN_WANT=$([[ -n $READELF ]] && mln_id "$MLN_AAR" jni/arm64-v8a/libmaplibre.so)
@@ -294,7 +284,7 @@ if [[ -z ${BUILD_APK_INNER:-} ]]; then
   # one, stops). Then fast-fail, here: heavy.sh runs none (T661). Both escapes print their reason (build-links.sh).
   build_gates build-apk ${PROD:+--strict}
 fi
-if [[ -n ${BUILD_APK_INNER:-} && -z $STOCK_MLN && -z $MLN_AAR ]]; then
+if [[ -n ${BUILD_APK_INNER:-} && -z $MLN_AAR ]]; then
   echo "build-apk: no pinned MapLibre AAR in MLN_LOCAL_MAVEN=$MLN_LOCAL_MAVEN (it was there at the precheck); nothing was built" >&2; exit 1
 fi
 if [[ -z ${BUILD_APK_INNER:-} && -z $DRY ]]; then
@@ -383,7 +373,7 @@ if [[ -n $DRY && -n $PLAY ]]; then
   echo "[dry-run] keep the Hermes map: data/sourcemaps/$VER-b$CODE-${SHA:0:7}/android/"
   if [[ ${CANIFISHTHIS_R8:-} == 1 ]]; then echo "[dry-run] (T749) R8 ON: keep R8's mapping.txt there too (r8-mapping.txt), or stop"; fi
   echo "[dry-run] check the AAB is signed by $SECRETS/upload_certificate.pem; copy -> $OUT/$NAME"
-  echo "[dry-run] check the AAB's libmaplibre.so build id: ${MLN_AAR:+the pinned AAR ($MLN_AAR)}${STOCK_MLN:+stock (--stock-maplibre)}"
+  echo "[dry-run] check the AAB's libmaplibre.so build id: ${MLN_AAR:-NO pinned AAR (the build would stop here)}"
   echo "[dry-run] $ENVWORD build: EXPO_PUBLIC_APP_ENV=$EXPO_PUBLIC_APP_ENV, switch ${EXPO_PUBLIC_ENV_SWITCH:-off}, map lab ${EXPO_PUBLIC_MAP_LAB:-off}"
   echo "[dry-run] commit the versionCode $NEXT bump (app.json only) once the AAB passed both checks"
   echo "[dry-run] upload to Play track $TRACK with this version's changelog bullets as notes (unless --no-upload); email the same + the build id via $FEEDS/notify/apk (unless --no-email)"
@@ -396,7 +386,7 @@ if [[ -n $DRY ]]; then
   echo "[dry-run] cp $REPO/$M/android/app/debug.keystore \$WT/$M/android/app/; sdk.dir=$ANDROID_HOME > android/local.properties"
   echo "[dry-run] (cd \$WT/$M/android && ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a --max-workers=4)"
   echo "[dry-run] keep the Hermes map: data/sourcemaps/$VER-b$CODE-${SHA:0:7}/android/"
-  echo "[dry-run] check the APK's libmaplibre.so build id: ${MLN_AAR:+the pinned AAR ($MLN_AAR)}${STOCK_MLN:+stock (--stock-maplibre)}"
+  echo "[dry-run] check the APK's libmaplibre.so build id: ${MLN_AAR:-NO pinned AAR (the build would stop here)}"
   echo "[dry-run] copy app-release.apk -> $OUT/$NAME, latest.apk, index.html (with the build id); upload (unless --no-upload), email the changelog bullets + build id (unless --no-email)"
   echo "[dry-run] latest.json: $VERSION_JSON"
   exit 0

@@ -27,9 +27,9 @@ if (production && process.env.EXPO_PUBLIC_MAP_LAB) {
   throw new Error("app.config.js: EXPO_PUBLIC_MAP_LAB is for staging and test-bed builds only; unset it for production");
 }
 
-// (T420, T893, T978) a locally built MapLibre is allowed in every build, production too: the pinned upstream commit with
+// (T420, T893, T978) every Android build carries a locally built MapLibre, production too: the pinned upstream commit with
 // no patch (app/tools/maplibre-android/pin.env, owner 2026-11-22); build-apk.sh refuses any other AAR and checks the
-// APK/AAB carries its build id
+// APK/AAB carries its build id; plugins/with-pinned-maplibre.js refuses a production Android config without it
 
 // (T749) R8 (CANIFISHTHIS_R8=1, plugins/with-no-minify.js) is a trial until its phone check is recorded: not in production
 if (production && require("./plugins/with-no-minify").r8Enabled()) {
@@ -59,7 +59,10 @@ module.exports = ({ config }) => ({
       dark: { backgroundColor: ground("dark"), image: "./assets/splash/splash-dark.png" },
     }],
     // (T420, T978) set by build-apk.sh / session.sh for every Android build (the pinned upstream repo); unset (a bare
-    // `expo prebuild`, the iOS build), the binding's stock MapLibre from Maven Central
+    // `expo prebuild`, `pnpm android`, an EAS build), the binding's stock MapLibre from Maven Central …
     ...(process.env.MLN_LOCAL_MAVEN ? ["./plugins/with-local-maplibre"] : []),
+    // … which an Android PRODUCTION config now refuses, naming the fix, and any other Android config warns about
+    // (T978 review: "every Android build uses the pinned build"); an Android mod, so the iPhone build never meets it
+    ["./plugins/with-pinned-maplibre", { production }],
   ],
 });

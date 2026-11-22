@@ -31,6 +31,27 @@ def _exe(p: Path, text: str) -> None:
     p.chmod(p.stat().st_mode | stat.S_IXUSR)
 
 
+def _pin() -> dict[str, str]:
+    """app/tools/maplibre-android/pin.env (T978): MLN_COMMIT, MLN_VERSION."""
+    return dict(line.split("=", 1) for line in (ROOT / "app/tools/maplibre-android/pin.env").read_text().splitlines()
+                if line and not line.startswith("#"))
+
+
+def _pinned_repo(parent: Path, so: str = "x", commit: str | None = None) -> Path:
+    """A stand-in of build.sh's output under `parent`: <parent>/<MLN_VERSION>/ with the AAR (an arm64 libmaplibre.so
+    holding `so`) and SOURCE.txt naming `commit` (default: the pin's). Returns the repo folder."""
+    import zipfile
+    p = _pin()
+    repo = parent / p["MLN_VERSION"]
+    aar = repo / f"org/maplibre/gl/android-sdk-vulkan/{p['MLN_VERSION']}/android-sdk-vulkan-{p['MLN_VERSION']}.aar"
+    aar.parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(aar, "w") as z:
+        z.writestr("jni/arm64-v8a/libmaplibre.so", so)
+    (repo / "SOURCE.txt").write_text(f"maplibre-native {commit or p['MLN_COMMIT']} (upstream, no patch), version "
+                                     f"{p['MLN_VERSION']}, built 2026-11-22T00:00:00Z from /src\n")
+    return repo
+
+
 def test_upload_clears_after_the_pointer_and_spares_the_release():
     lines = (ROOT / "deploy/staging/upload.sh").read_text().splitlines()
     run = [ln for ln in lines if not ln.lstrip().startswith("#")]
@@ -235,14 +256,19 @@ def test_play_build_publishes_its_own_versioncode_file_before_play_json():
         < code.index('put --remote "$BUCKET/app/android/play.json" --file "$PJ"')
 
 
-def test_production_apk_refuses_the_stock_maplibre():
-    """(T893, owner 2026-11-19: "It has to use patched one"; T978: the pinned upstream build) --production never takes
-    --stock-maplibre."""
+@pytest.mark.parametrize("mode", [[], ["--play"], ["--play", "--production"]])
+def test_no_apk_build_takes_the_stock_maplibre(mode):
+    """(T893, owner 2026-11-19: "It has to use patched one"; T978 review, the owner's rule "every Android build uses the
+    pinned build") build-apk.sh refuses --stock-maplibre in every mode — the staging page, Play and production all reach
+    a phone — and names the test bed's escape; a bare flag too."""
     env = {k: v for k, v in os.environ.items() if k not in ("CONFIRM_PROD", "MLN_LOCAL_MAVEN")}
-    r = subprocess.run(["bash", str(ROOT / "deploy/staging/build-apk.sh"), "--play", "--production", "--dry-run",
-                        "--stock-maplibre=a test"], env=env, capture_output=True, text=True, timeout=30, cwd=ROOT)
-    assert r.returncode == 2
-    assert "production always carries the pinned upstream MapLibre (T893, T978); --stock-maplibre is refused" in r.stderr
+    for flag in ("--stock-maplibre=a bisect", "--stock-maplibre"):
+        r = subprocess.run(["bash", str(ROOT / "deploy/staging/build-apk.sh"), *mode, "--dry-run", flag], env=env,
+                           capture_output=True, text=True, timeout=30, cwd=ROOT)
+        assert r.returncode == 2, (mode, flag, r.stdout + r.stderr)
+        assert "build-apk: --stock-maplibre is refused: every build here ships the pinned upstream MapLibre" in r.stderr
+        assert "app/tools/testbed/session.sh --stock-maplibre=" in r.stderr
+    assert "STOCK_MLN" not in _no_comments("deploy/staging/build-apk.sh")   # no stock path left to reach
 
 
 def test_upload_puts_the_pointer_coupled_group_last_and_a_failed_test_reset_stops():
@@ -537,8 +563,18 @@ def test_build_links_fix_a_worktree_by_linking_the_main_checkout(tmp_path):
     aar = main / f"{repo}/org/maplibre/gl/android-sdk-vulkan/{ver}/android-sdk-vulkan-{ver}.aar"
     aar.parent.mkdir(parents=True)
     aar.write_text("a")
+    # (T978 review) the right file name is not enough: build.sh's SOURCE.txt must name the pinned commit
+    got = _links(m, f"build_links_mln {m}/{repo}; echo \"AAR=[$MLN_AAR]\"")
+    assert f"{m}/{repo}/SOURCE.txt names no commit, not the pinned {pin['MLN_COMMIT']}" in got.stdout, got.stdout
+    assert "AAR=[]" in got.stdout
+    (main / repo / "SOURCE.txt").write_text(f"maplibre-native {'0' * 40} (upstream, no patch), version {ver}\n")
+    got = _links(m, f"build_links_mln {m}/{repo}; echo \"AAR=[$MLN_AAR]\"")
+    assert f"SOURCE.txt names {'0' * 40}, not the pinned" in got.stdout and "AAR=[]" in got.stdout
+    (main / repo / "SOURCE.txt").write_text(f"maplibre-native {pin['MLN_COMMIT']} (upstream, no patch), version {ver}\n")
     got = _links(m, f"build_links_mln {m}/{repo}; echo \"AAR=$MLN_AAR\"")
     assert f"AAR={aar}" in got.stdout and "FAIL" not in got.stdout and f"upstream {sha9}, no patch" in got.stdout
+    got = _links(m, f"echo \"[$(mln_pinned_aar {m}/{repo})]\"")   # the silent twin build-apk.sh uses: the same answer
+    assert got.stdout.strip() == f"[{aar}]"
     # (T978) the fix it prints works: the worktree's LINK to the main checkout's repo is followed (a bare `find` did
     # not descend into a symlinked folder, so the advised link was still "found: none")
     (wt / "cache/maplibre").mkdir(parents=True)
@@ -607,7 +643,7 @@ def test_testflight_precheck_lists_every_missing_secret_before_the_lock(tmp_path
 
 # ── (T993 plan 5, T661 item 3) both store builds run the same gates before the heavy lock ──────────────────────────────
 #: build -> (script, the flags that need no account, no Play, no MapLibre repo, no upload, where it records its last sha)
-GATED = {"build-apk": ("deploy/staging/build-apk.sh", ["--no-upload", "--stock-maplibre=a test tree"], "app/dist/apk"),
+GATED = {"build-apk": ("deploy/staging/build-apk.sh", ["--no-upload"], "app/dist/apk"),
          "build-ios-testflight": ("deploy/staging/build-ios-testflight.sh", ["--no-upload"], "app/dist/ios")}
 
 
@@ -618,9 +654,14 @@ def gate_tree(tmp_path):
     FF_RC), heavy.sh (the lock: nothing past it runs), node (the changelog check, rc CL_RC), Xcode and CocoaPods."""
     t = tmp_path / "repo"
     for rel in ("deploy/staging/build-apk.sh", "deploy/staging/build-ios-testflight.sh", "deploy/lib/build-links.sh",
-                "scripts/ci_paths.py"):
+                "scripts/ci_paths.py", "app/tools/maplibre-android/pin.env"):
         (t / rel).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(ROOT / rel, t / rel)
+    # (T978 review) build-apk has no stock escape any more: a stand-in of the pinned repo (an AAR holding an arm64
+    # libmaplibre.so, build.sh's SOURCE.txt) and an llvm-readelf stub that names its build id
+    _pinned_repo(t / "cache/maplibre", "beefcafe")
+    _exe(tmp_path / "sdk/ndk/0/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-readelf",
+         '#!/usr/bin/env bash\necho "    Build ID: beefcafe"\n')
     log = tmp_path / "gates.log"
     _exe(t / "scripts/fast-fail.sh", f'#!/usr/bin/env bash\necho "fast-fail base=${{FAST_FAIL_BASE:-}}" >> "{log}"\n'
                                      'exit ${FF_RC:-0}\n')
@@ -638,14 +679,14 @@ def gate_tree(tmp_path):
     (t / "app/apps/mobile/android/app").mkdir(parents=True)
     (t / "app/apps/mobile/android/app/debug.keystore").write_text("k")
     (t / "app/apps/mobile/app.json").write_text('{"expo": {"version": "9.9.9"}}\n')
-    (t / ".gitignore").write_text("/.venv\napp/**/dist/\n")
+    (t / ".gitignore").write_text("/.venv\n/cache\napp/**/dist/\n")
     secrets = tmp_path / "home/.canifishthis"
     secrets.mkdir(parents=True)
     (secrets / "ios-team-id").write_text("TEAM")
     (secrets / "asc-api-key.json").write_text("{}")
     (tmp_path / "home/key.p8").write_text("p8")
     for d in ("jdk", "sdk"):
-        (tmp_path / d).mkdir()
+        (tmp_path / d).mkdir(exist_ok=True)
     git = ["git", "-c", "user.email=t@t", "-c", "user.name=t"]
     subprocess.run([*git, "init", "-q"], cwd=t, check=True)
     subprocess.run([*git, "add", "-A"], cwd=t, check=True)

@@ -46,10 +46,20 @@ describe("build.sh builds the pin with no patch", () => {
     expect(sh).toMatch(/checkout -q "\$MLN_COMMIT"/);
     expect(sh).toMatch(/\[\[ \$got == "\$MLN_COMMIT" \]\] \|\|/);
   });
-  it("applies nothing and refuses a changed source tree (the version file aside)", () => {
+  it("applies nothing and refuses a changed source tree, untracked files and submodules included (the version file aside)", () => {
     expect(sh).not.toMatch(/git apply|git am|\bpatch -p|MLN_PATCH/);
-    expect(sh).toMatch(/status --porcelain --untracked-files=no -- \. ':\(exclude\)platform\/android\/VERSION'/);
+    expect(sh).toMatch(/status --porcelain --untracked-files=all --ignore-submodules=none -- \. ':\(exclude\)platform\/android\/VERSION'/);
     expect(sh).toMatch(/\[\[ -z \$dirty \]\] \|\| \{/);
+  });
+  it("brings every submodule (nested too) up on EVERY run, not only after the first clone (T978 review)", () => {
+    const clone = sh.slice(sh.indexOf("if [[ ! -d $SRC/.git ]]; then"), sh.indexOf("\nfi\n", sh.indexOf("if [[ ! -d $SRC/.git ]]; then")));
+    expect(clone).not.toMatch(/submodule/);
+    expect(sh).toMatch(/git -C "\$SRC" submodule update --init --recursive --depth 1 --jobs 8/);
+    expect(sh.indexOf("submodule update --init --recursive")).toBeLessThan(sh.indexOf("dirty=$(git"));
+  });
+  it("refuses a commit whose Versions.kt asks for another NDK (a pin move can change it)", () => {
+    expect(sh).toMatch(/grep -q "ndkVersion = \\"\$NDK\\"" "\$VERSIONS_KT" \|\| \{/);
+    expect(read("app/tools/maplibre-android/pin.env")).toMatch(/check build\.sh's NDK and\s*\n# CMAKE lines against the new commit's/);
   });
   it("publishes to cache/maplibre/<MLN_VERSION>, the path the builds default to, with the commit beside it", () => {
     expect(sh).toMatch(/OUT=\$\{MLN_OUT:-\$ROOT\/cache\/maplibre\/\$MLN_VERSION\}/);
@@ -59,22 +69,28 @@ describe("build.sh builds the pin with no patch", () => {
 });
 
 describe("every build path reads the pin; none reads the archived patches", () => {
-  it("build-apk.sh defaults to the pinned repo and names it in the build-id line", () => {
+  it("build-apk.sh defaults to the pinned repo, takes only the pinned AAR, names it in the build-id line, has no stock path", () => {
     const sh = code("deploy/staging/build-apk.sh");
     expect(sh).toMatch(/source app\/tools\/maplibre-android\/pin\.env/);
     expect(sh).toMatch(/export MLN_LOCAL_MAVEN="\$REPO\/cache\/maplibre\/\$MLN_VERSION"/);
-    expect(sh).toMatch(/\$\(basename "\$MLN_AAR"\) == "android-sdk-vulkan-\$MLN_VERSION\.aar" \]\] \|\| MLN_AAR=/);
+    expect(sh).toMatch(/MLN_AAR=\$\(mln_pinned_aar "\$MLN_LOCAL_MAVEN"\)/);
     expect(sh).toMatch(/MLN_WHAT="pinned upstream \$MLN_VERSION"/);
+    expect(sh).toMatch(/--stock-maplibre\|--stock-maplibre=\*\)\s+echo "build-apk: --stock-maplibre is refused/);
+    expect(sh).not.toMatch(/STOCK_MLN|MLN_WHAT=stock/);
   });
-  it("build-links.sh refuses an AAR that is not the pinned version", () => {
+  it("build-links.sh takes the pinned AAR only: its file name AND SOURCE.txt's commit", () => {
     const sh = code("deploy/lib/build-links.sh");
     expect(sh).toMatch(/source "\$BUILD_LINKS_DIR\/\.\.\/\.\.\/app\/tools\/maplibre-android\/pin\.env"/);
     expect(sh).toMatch(/elif \[\[ \$\(basename "\$found"\) != "android-sdk-vulkan-\$MLN_VERSION\.aar" \]\]; then\s+bad /);
+    expect(sh).toMatch(/elif \[\[ \$src_commit != "\$MLN_COMMIT" \]\]; then\s+bad /);
+    expect(sh).toMatch(/\[\[ \$src_commit == "\$MLN_COMMIT" \]\] \|\| return 0\s+echo "\$found"/);   // mln_pinned_aar
+    expect(sh).toMatch(/read -r _ src_commit _ <"\$dir\/SOURCE\.txt"/);
   });
   it("no build file names the lean patch, its repo or the old tool folder", () => {
     const files = ["deploy/staging/build-apk.sh", "deploy/lib/build-links.sh", "app/tools/testbed/session.sh",
       "app/tools/maplibre-android/build.sh", "app/tools/maplibre-android/check-loaded.sh", "app/apps/mobile/app.config.js",
-      "app/apps/mobile/plugins/with-local-maplibre.js", "scripts/fast-fail.sh", "scripts/heavy.sh"];
+      "app/apps/mobile/plugins/with-local-maplibre.js", "app/apps/mobile/plugins/with-pinned-maplibre.js",
+      "scripts/fast-fail.sh", "scripts/heavy.sh"];
     for (const f of files) expect(read(f), f).not.toMatch(/fslean|maplibre-patch|feature-state-deltas/);
   });
   it("the archive holds the old patches and says no build reads it", () => {

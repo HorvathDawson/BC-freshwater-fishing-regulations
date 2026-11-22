@@ -48,10 +48,25 @@ build_links_node() {
 }
 build_links_common() { build_links_venv; build_links_node; }
 
+# mln_pinned_aar <maven dir>: prints the AAR there when it is the PINNED build — exactly one android-sdk-vulkan AAR,
+# named for pin.env's MLN_VERSION, and the repo's SOURCE.txt (written by build.sh) naming pin.env's MLN_COMMIT — else
+# nothing. Silent: build_links_mln says why. (One rule for build-apk.sh's outer and inner runs and the precheck.)
+mln_pinned_aar() {
+  local dir=$1 found MLN_COMMIT MLN_VERSION src_commit=
+  # shellcheck source=../../app/tools/maplibre-android/pin.env
+  source "$BUILD_LINKS_DIR/../../app/tools/maplibre-android/pin.env"
+  [[ -d $dir ]] || return 0
+  found=$(find -L "$dir" -name 'android-sdk-vulkan-*.aar' 2>/dev/null)
+  [[ -n $found && $(grep -c . <<<"$found") -eq 1 && $(basename "$found") == "android-sdk-vulkan-$MLN_VERSION.aar" ]] || return 0
+  if [[ -f $dir/SOURCE.txt ]]; then read -r _ src_commit _ <"$dir/SOURCE.txt"; fi
+  [[ $src_commit == "$MLN_COMMIT" ]] || return 0
+  echo "$found"
+}
+
 # build_links_mln <maven dir>: MLN_AAR = the one AAR there, and only when it is the PINNED upstream build
 # (app/tools/maplibre-android/pin.env, T978): an old lean-patch AAR or an experiment is refused, never shipped quietly
 build_links_mln() {
-  local dir=$1 found MLN_COMMIT MLN_VERSION
+  local dir=$1 found MLN_COMMIT MLN_VERSION src_commit=
   MLN_AAR=
   # shellcheck source=../../app/tools/maplibre-android/pin.env
   source "$BUILD_LINKS_DIR/../../app/tools/maplibre-android/pin.env"
@@ -61,11 +76,16 @@ build_links_mln() {
     return 0
   fi
   found=$(find -L "$dir" -name 'android-sdk-vulkan-*.aar' 2>/dev/null)
+  # (T978 review) the version in a file name can be copied by hand: build.sh's SOURCE.txt beside the repo must name the
+  # pinned commit too (its first line: "maplibre-native <commit> (upstream, no patch), …")
+  if [[ -f $dir/SOURCE.txt ]]; then read -r _ src_commit _ <"$dir/SOURCE.txt"; fi
   if [[ -z $found || $(grep -c . <<<"$found") -ne 1 ]]; then
     bad "$dir must hold exactly one android-sdk-vulkan AAR (found: ${found:-none}; app/tools/maplibre-android/README.md)"
   elif [[ $(basename "$found") != "android-sdk-vulkan-$MLN_VERSION.aar" ]]; then
     bad "$found is not the pinned MapLibre ($MLN_VERSION, app/tools/maplibre-android/pin.env): point MLN_LOCAL_MAVEN at cache/maplibre/$MLN_VERSION (unset it for the default), or build it: scripts/heavy.sh mln-aar 30 -- bash app/tools/maplibre-android/build.sh <work dir>"
-  else MLN_AAR=$found; ok "pinned MapLibre AAR $MLN_AAR (upstream ${MLN_COMMIT:0:9}, no patch)"; fi
+  elif [[ $src_commit != "$MLN_COMMIT" ]]; then
+    bad "$dir/SOURCE.txt names ${src_commit:-no commit}, not the pinned $MLN_COMMIT: not build.sh's build of the pin; rebuild it: scripts/heavy.sh mln-aar 30 -- bash app/tools/maplibre-android/build.sh <work dir>"
+  else MLN_AAR=$(mln_pinned_aar "$dir"); ok "pinned MapLibre AAR $MLN_AAR (upstream ${MLN_COMMIT:0:9}, no patch)"; fi
 }
 
 # build_links_file <repo path> <what reads it> <make> [<alternative>]: a gitignored file the build needs. From a

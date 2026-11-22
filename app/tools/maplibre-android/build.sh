@@ -32,22 +32,26 @@ for need in "ndk/$NDK" "cmake/$CMAKE"; do
   [[ -d $ANDROID_HOME/$need ]] || { echo "missing $ANDROID_HOME/$need: sdkmanager --install \"${need/\//;}\""; exit 1; }
 done
 
-# 1. the source at MLN_COMMIT with its submodules (vcpkg and the doxygen theme are Windows/docs only: skipped), plus the
-#    nested ones the Android build needs (maplibre-tile-spec's earcut/fsst/json, freetype's dlg)
+# 1. the source at MLN_COMMIT (cloned on the first run)
 if [[ ! -d $SRC/.git ]]; then
   git clone -q --filter=blob:none --no-checkout https://github.com/maplibre/maplibre-native.git "$SRC"
   git -C "$SRC" checkout -q "$MLN_COMMIT"
-  # shellcheck disable=SC2046
-  git -C "$SRC" submodule update --init --depth 1 --jobs 8 \
-    $(git -C "$SRC" submodule status | awk '{print $2}' | grep -vE 'vcpkg|doxygen')
-  git -C "$SRC/vendor/maplibre-tile-spec" submodule update --init --depth 1 cpp/vendor/earcut cpp/vendor/fsst cpp/vendor/json
-  git -C "$SRC/vendor/freetype" submodule update --init --depth 1
 fi
 got=$(git -C "$SRC" rev-parse HEAD)
-[[ $got == "$MLN_COMMIT" ]] || { echo "$SRC is at $got, not the pin $MLN_COMMIT: git -C $SRC fetch origin $MLN_COMMIT && git -C $SRC checkout $MLN_COMMIT (then its submodules), or a new work dir"; exit 1; }
+[[ $got == "$MLN_COMMIT" ]] || { echo "$SRC is at $got, not the pin $MLN_COMMIT: git -C $SRC fetch origin $MLN_COMMIT && git -C $SRC checkout $MLN_COMMIT, or a new work dir"; exit 1; }
+# its submodules, nested ones included, EVERY run (T978 review: an init cut short and run again was skipped when this
+# ran on the first clone only). vcpkg and the doxygen theme are Windows/docs only: never fetched.
+# shellcheck disable=SC2046
+git -C "$SRC" submodule update --init --recursive --depth 1 --jobs 8 \
+  $(git -C "$SRC" submodule status | awk '{print $2}' | grep -vE 'vcpkg|doxygen')
 
-# 2. NO PATCH (T978): the tree must be exactly upstream's, the local version file aside
-dirty=$(git -C "$SRC" status --porcelain --untracked-files=no -- . ':(exclude)platform/android/VERSION')
+# the NDK above must be the one the pinned commit asks for (a pin move can change it: pin.env says so)
+VERSIONS_KT=$SRC/platform/android/buildSrc/src/main/kotlin/Versions.kt
+grep -q "ndkVersion = \"$NDK\"" "$VERSIONS_KT" || { echo "build.sh: NDK=$NDK, but $VERSIONS_KT asks for: $(grep -o 'ndkVersion = "[^"]*"' "$VERSIONS_KT"); set NDK (and check CMAKE) here"; exit 1; }
+
+# 2. NO PATCH (T978): the tree must be exactly upstream's — no changed, staged or UNTRACKED file (an added source file
+#    is a patch too; build outputs are upstream-ignored), submodules included — the local version file aside
+dirty=$(git -C "$SRC" status --porcelain --untracked-files=all --ignore-submodules=none -- . ':(exclude)platform/android/VERSION')
 [[ -z $dirty ]] || { echo "$SRC has local changes (no patch is ever applied, T978):"; echo "$dirty" | head -20
   echo "fix: git -C $SRC checkout -- . (or a new work dir)"; exit 1; }
 
