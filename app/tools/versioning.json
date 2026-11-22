@@ -3,7 +3,9 @@
   "cutover": "b5dd8ade32cff136bf17a9df9d1a7dedac655494",
   "base": "0.8.5",
   "exempt": {
-    "ca7c0cce7ae88f5257646388b8a4fb7ba0da326a": "the T995 switch (2026-11-18): the old main's one commit d6a5ca528 (2026-08-04, superseded) merged under the dev branch's tree; it joined the trunk's history through c374b91fd, after the cutover"
+    "ca7c0cce7ae88f5257646388b8a4fb7ba0da326a": "the T995 switch (2026-11-18): the old main's one commit d6a5ca528 (2026-08-04, superseded) merged under the dev branch's tree; it joined the trunk's history through c374b91fd, after the cutover",
+    "b65cc81cc2232d9e7eedd78bf4cdc9352ead9dbc": "the T866 speedups (#16, merged 2026-11-22 18:04:14Z) joined main 2 min 41 s before T998 (#14, 18:06:55Z) turned the check on; its 4 headers (a29b5130f, 5d84d3847, 11e4f0b1a, b65cc81cc) run 121-157 characters",
+    "5a5262eaaec0cf0149084351766276fadca110b8": "the T866 owner-pick note (#12, merged 2026-11-22 16:53Z, before T998 turned the check on); its header is 101 characters"
   },
   "bump": {
     "feat": "minor",
