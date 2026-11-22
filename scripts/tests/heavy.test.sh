@@ -153,6 +153,11 @@ H dup 10 -- "$T/job.sh" i > "$T/i2.out" 2>&1; rc=$?
 check "holding: refused, exit 3" bash -c "[ $rc = 3 ] && grep -q 'already holds' '$T/i2.out'"
 LANE=$T/heavy-job-2.lock H dup 10 -- "$T/job.sh" i > "$T/i3.out" 2>&1; rc=$?
 check "refused on the other lane too" [ $rc = 3 ]
+mkdir -p "$T/wt2"
+(cd "$T/wt2" && exec env LANE="$T/heavy-job-2.lock" "$T/H" dup 10 -- "$T/job.sh" i > "$T/i5.out" 2>&1) & w6=$!
+sleep 1
+check "(T995) the same command from another checkout is its own job" bash -c "! grep -q refused '$T/i5.out'"
+kill -TERM $w6 2>/dev/null; wait $w6 2>/dev/null
 "$T/H" --again dup 10 -- "$T/job.sh" i > "$T/i4.out" 2>&1 & w4=$!
 until_ "grep -q 'waiting for lock' $T/i4.out" 30
 check "--again waits instead" grep -q 'waiting for lock' "$T/i4.out"

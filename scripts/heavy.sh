@@ -175,9 +175,10 @@ elif (( ${disk%% *} < MIN_DISK_GB )); then
   echo "[heavy:$label] refused: ${disk%% *} GB free on ${disk#* } < $MIN_DISK_GB GB (HEAVY_MIN_DISK_GB); $(disk_hint)" >&2; exit 73
 fi
 
-cmd="$label :: $(printf '%q ' "$@")"
-# DUPLICATE (chat 9: two identical quiet background jobs each ran whole): the same label + command holding or waiting
-# on either lane is refused unless --again
+cmd="$label :: $PWD :: $(printf '%q ' "$@")"
+# DUPLICATE (chat 9: two identical quiet background jobs each ran whole): the same label + command FROM THE SAME
+# DIRECTORY holding or waiting on any lane is refused unless --again. (T995, 2026-11-22) The directory is part of the
+# job: two worktrees' pre-push hooks run the same command on different trees, and the second was refused.
 if (( ! again )); then
   for l in "${LANES[@]}"; do
     if [[ -d $l && "$(owner_field "$l" cmd)" == "$cmd" ]] && ! lock_stale "$l"; then
