@@ -98,3 +98,65 @@ Lanes (plan item numbers):
 - **G3 deploy gates:** 14; T788 #1, #4, #5, #11; T994 findings 9, 10, 18, 19, 20, 28.
 - **After T978 lands:** 5 (heavy.sh gate, T661 #3), 6 (tests never read machine state: T777, T792 B), 10 (T768), T866,
   T987, then 11 (the one human runbook + the T992 explanation), last, once the code settles; 17 with T485 / T736.
+
+## Lane G1 (GitHub workflows), branch lane/t993-g1-gha
+Commits: A = 8c1228707 (flake), B = 77ee9ca7d (workflows), C = 8a89a73a9 (data-path fixes).
+
+| item | what | commit |
+|---|---|---|
+| plan 1 | new `docs-ci.yml` (job `ledger`: `pnpm run tickets` + the guard's two test files) on `handoff/**`, AGENTS.md, the guard's own files; `handoff/**` left app-ci; `scripts/ci_status.py` WORKFLOWS now app, pipeline, docs, feeds-worker (+ tests) | B |
+| plan 3 | app-ci = three parallel jobs `gates` / `vitest` / `bundles` (shared `.github/actions/app-setup`); worker suite = new `feeds-worker-ci.yml` with its own path filter (worker, core package it imports, dfo_salmon, gauges, requirements, fixtures, lockfile) | B |
+| plan 12 | `WaterScreen.unnamed` timeout: cause found and fixed. `WaterMode` across-waters: already fixed by T849; every logged CI failure predates it; I could not reproduce it again. TZ: `TZ: America/Vancouver` set on every app job (vitest.config.ts already pins it for tests; worker config had no pin and passes under UTC and Vancouver) | A, B |
+| plan 13 | `feeds-sync-inputs`: see "owner" below; register-only push triggers dropped (hydat, runtiming); checkout@v5, setup-node@v5, setup-python@v6, upload-artifact@v6, pnpm/action-setup@v5 (all Node 24); partial clone (`filter: blob:none`, full history) in app gates, vitest, docs, pipeline-ci; runtiming report upload is `continue-on-error` and a `::warning::` step + summary line says so | B |
+| T994 6 | `permissions: contents: read` on all 8 workflows; `staging-smoke` slug through `env: SLUG`; a test pins both | B |
+| T994 7 | CI grep catches `"data/(curated|generated|source)/…"` and `"cache/dfo_salmon…"` literals; fixed `hydat_daily.py` (`--hydat`, `--out`: it prunes `--out`), `ingest_catalogue.py` (`--out`), `data/build_tidal_boundary.py`; mutation-checked the gate | B, C |
+
+### Cause of the `WaterScreen.unnamed` timeout
+`baseOnlyUnnamed()` scanned every unnamed handle INSIDE its test, and `storePage` re-opened the fixture's databases for
+each one. Cheap on a laptop (4.6 s), over the 30 s on a loaded runner (CI 11-16: 46 s file). Under 20 parallel runs on
+this Mac: before 15/20 FAILED, after 0/20. Fix: one shared store promise; the scan runs once at load (like `TRIB`).
+`WaterMode` "across waters": 20 parallel runs, before-T849 file and current file both 20/20 here (T849's own proof was
+9/10 before, 10/10 after with two suites alongside). Its failures in the 30-day log are 11-16 and 11-18 19:27Z, before
+T849 (11-18 21:04Z). Watch for a failure after that; none known.
+
+### Jobs before / after (every check kept)
+Before: one job `check` (app-ci, 25 min): checkout (full) -> pnpm -> node -> install -> python venv -> `pnpm check`
+(= `check:fast`: tickets, anchors, changelog, boundaries, platform, style, colours, spinner, coho, adipose, splash,
+gauge-policy, calendar, fish, answers, pack, app-reads, feed-formats, deps, knip, typecheck, typecheck:worker,
+typecheck:seo, promises, inventories; then `vitest run`) -> feeds worker tests -> web bundle -> native bundles. Each
+step skipped when an earlier one failed. Triggers: app/**, workflow, bundle sql, dfo_salmon, gauges, requirements,
+handoff tickets + handoff/PLAN/*.md.
+After:
+- `app-ci.yml` (app/**, workflow, action, bundle sql): `gates` = `pnpm run check:fast` (20 min); `vitest` = `pnpm run test` (25); `bundles` = web, then native with `if: !cancelled()` (15). No `needs`.
+- `feeds-worker-ci.yml` (worker, packages/core, dfo_salmon, gauges, fixtures, requirements, lockfile): `worker` = `npx vitest run --root .` after the venv (15).
+- `docs-ci.yml` (handoff/**, AGENTS.md, the guard files): `ledger` = `pnpm run tickets`, then the guard's two test files (8).
+- Unchanged jobs: pipeline-ci `check`, feeds-hydat, feeds-runtiming, staging-security, staging-smoke.
+Dropped from app-ci triggers: dfo_salmon / gauges / requirements / handoff. A requirements-only or dfo_salmon-only push no
+longer runs the app gates (the generated-file gates over pipeline code are also pipeline-ci's `emit --check`, which
+watches those paths) and runs only the worker job. `check:fast` still runs `tickets` on app pushes, so the ledger is
+checked on every app push as before.
+
+### Owner decisions and notes
+- `feeds-sync-inputs` (workflow deleted from the tree, still "active" with its 4 old failed runs): disabling needs the
+  token, so it is NOT done here. Command: `gh workflow disable feeds-sync-inputs.yml` (or the Actions tab).
+- `staging-smoke.yml`: choice for the owner, changed nothing about it except the T994 6 hardening. Options: keep
+  (manual, runs the headless-Chrome smoke on staging; 0 runs in 30 days) / delete (the smoke is also runnable by hand:
+  `node app/tools/smoke-staging.mjs`) / fold into the release's staging step.
+- A red `docs-ci` stays the newest finished run for that workflow until a `handoff/**` push goes green (ci_status falls
+  back to it when a sha has no docs run). A ledger fix is always such a push.
+- F2-owned, left on the shrinking ALLOWLIST in pipeline-ci's grep (remove an entry when fixed): every
+  `cache/dfo_salmon` default in `pipeline/regs/dfo_salmon/` (fetch.py:94, wording.py:174-175, untangle.py:619,
+  splitwork.py:35-36, churn.py:55, validate.py:202, entries.py:1204) and `closure_mouths.py:164`
+  (`data/source/bc_fisheries_data.gpkg`); `scripts/update-hydat.sh`, `pipeline/deliver/release/publish.py` and
+  `curation-review/backend/` held no hit for the new pattern. Also allowlisted, by reason: `gauges/feed/publish.py:194`
+  ROSTER_PATH (printed in a command for the owner) and `regs/review/tidal.py:146` DEFAULT_CACHE (a provenance label in
+  the output). Not caught by the pattern, for G3/F2: `pieces_gate.py:156` `Path("data/release")` default.
+
+### Could not verify
+No push: no workflow ran on GitHub. `actionlint` is not installed; I parsed every workflow and the composite action with
+PyYAML (structure, a timeout on every job, run-xor-uses on every step), pinned their shape in
+`pipeline/tests/test_workflow_pins.py`, and read them. Unverified on a runner: the `filter: blob:none` clone with the
+tests' `git show <commit>:<path>` (it fetches blobs on demand, which needs the checkout's persisted credentials: the
+default), the composite action's working directories, the saved minutes. The first push will show them; watch the
+four workflows. The new grep ran locally (macOS grep -E); CI's is GNU grep, same patterns. Tests run: test_workflow_pins,
+test_ci_status, test_test_env (with PIPELINE_PY), hydat_daily / ingest tests, feeds-gate / check-tickets / start-here.
