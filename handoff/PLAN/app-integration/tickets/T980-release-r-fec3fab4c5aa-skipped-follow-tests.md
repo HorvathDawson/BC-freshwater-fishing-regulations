@@ -1,6 +1,6 @@
 # T980 — Three follow tests skipped to ship release r-fec3fab4c5aa: fix them
 
-Status: IN PROGRESS — fixed on lane/085-t983; left (Claude): merge + combined review.
+Status: DONE — shipped 0.8.5 (4f2b87a43, 2026-11-21).
 
 ## Measured and done (2026-11-21, lane/085-t983)
 1. The +5 page calls on both waters are all T973's `cw-through`: opened (1 meta read by the loader, 1 by the store's

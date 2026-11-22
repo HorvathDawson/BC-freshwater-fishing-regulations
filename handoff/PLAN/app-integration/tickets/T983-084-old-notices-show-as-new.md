@@ -1,6 +1,6 @@
 # T983 — After updating to 0.8.4, 7 expired in-season notices show as "New" (dated Nov 19)
 
-Status: IN PROGRESS — fixed on lane/085-t983, owner picks built (the 7 keep showing; no auto-repair; the inbox row's date
+Status: DONE — shipped 0.8.5 (cbaedc24e, 2026-11-21).
 is the notice's own effective date, else "first seen Nov 19": core `rowDate` / `INBOX_WORDS.firstSeen`, whole-string
 tests); left (Claude): merge + combined review.
 

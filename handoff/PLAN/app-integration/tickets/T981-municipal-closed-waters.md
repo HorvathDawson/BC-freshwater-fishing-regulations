@@ -1,6 +1,6 @@
 # T981 — Municipal no-fishing waters (Lost Lagoon, Beaver Lake in Stanley Park, and others) shown as closed
 
-Status: IN PROGRESS — built on `lane/085-t981` (the local-closures source + Lost Lagoon, ships in 0.8.5); left (Claude): review + merge, then the next data release carries it; the other rows below wait for the owner's review next release
+Status: IN PROGRESS — Lost Lagoon SHIPPED in 0.8.5 (local-closures source); left (owner, next release): review the other inventory rows.
 
 Source: owner 2026-11-20: "Add a ticket to add lost lagoon and beaver lake in Stanley Park and any other municipal closed
 to fishing water bodies into the regulations".

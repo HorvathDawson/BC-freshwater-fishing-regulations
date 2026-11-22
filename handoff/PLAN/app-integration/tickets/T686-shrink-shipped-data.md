@@ -1,6 +1,6 @@
 # T686 — Shrink shipped data across the board
 
-Status: IN PROGRESS — (a) BUILT 2026-11-20 on `lane/l8-shrink` behind ONE SWITCH, OFF (owner 09:59 "Ship readers now, formats later"): `pipeline/deliver/release/packed.py` `SHIP_PACKED_FORMATS = False`. App 0.8.4 reads both forms. Left: flip it (one line) in the FIRST data release cut after app 0.8.4 is live in BOTH production stores (Google Play production and the App Store); then lower `first_tap_unnamed` (6.2 → ~6.0 MB)
+Status: DONE — shipped in 0.8.5 data (packed formats on) (4eece8ec1, 2026-11-21).
 
 Source: owner 2026-11-12 (T678 release stopped at the size gate): "Raise now, shrink later, but the ticket should cover
 ways to shrink data across the board, not just ponds." RULINGS O5 raised `core`, `conditions` and the web's

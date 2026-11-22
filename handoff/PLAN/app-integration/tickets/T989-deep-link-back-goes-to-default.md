@@ -1,6 +1,6 @@
 # T989 — Opened from a Google result, "back" goes to the default map instead of the water
 
-Status: IN PROGRESS — lane/085-t989; left (Claude): merge + combined review. The web start-link landing already frames the map (now pinned); the phone link/tap entry (openRequest) did not land: fixed.
+Status: DONE — shipped 0.8.5; emulator walk PASS (f96f0d800, 2026-11-21).
 
 Source: owner 2026-11-21: "when a user opens a water body page from Google itself it is on regulation page but if they go
 back at top right it goes to default location instead of the location of the water body they were viewing".

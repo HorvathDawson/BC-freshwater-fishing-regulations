@@ -9,6 +9,32 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 ---
 
 
+## 2026-11-21 19:45: 0.8.5 released (data, website, feeds worker, Play Internal + Closed, TestFlight)
+
+- **Production data:** r-741815c6090d. Packed formats only, min app 0.8.4 [T686 T975]. It passed staging smoke 19/0.
+  - The `water` size gate was raised to 2.85 MB for the mouth's place [T985 #2].
+  - Lost Lagoon is closed under the new local-closures source [T981].
+- **Production website:** 0.8.5 on r-741815c6090d. **Production feeds worker:** redeployed, writing the new band words.
+- **App 0.8.5:**
+  - Android build 43: Play Internal and Closed testing.
+  - iPhone build 44: TestFlight internal; external is waiting for Apple's beta review.
+  - Emulator walk: T989, T988, T990, T985 #1/#3 and T984 all PASS. T988 was not reproduced.
+- **What shipped:**
+  - one Sources button at the foot of the regs page [T990];
+  - plainer band words and the no-gauge sentence [T982];
+  - ended in-season notices no longer come back as New [T983];
+  - a web link opened in the app goes back to that water [T989];
+  - the guided tour only walks [T984];
+  - the mouth label "Flows into …" on the water map [T985];
+  - the species switch state [T986];
+  - a bigger water map on phones [T979];
+  - smaller data downloads [T686].
+- **New tickets, next release:**
+  - sources display audit [T991];
+  - explain the golden pages and release gates [T992];
+  - a release, CI and CD runbook and cleanup so a human can release [T993].
+  - The competitor list is `handoff/PLAN/COMPETITORS.md`.
+
 ## 2026-11-21 10:40: 0.8.4 released (data, Play Internal, TestFlight, website)
 
 - **Production data:** r-fec3fab4c5aa (published 2026-11-20, min app 0.8.0, old formats). It passed staging smoke 18/0.

@@ -1,6 +1,6 @@
 # T988 — The Sources menu's Done button doesn't close the menu; check every menu/sheet like it
 
-Status: IN PROGRESS — lane/085-t988: pin test landed (all green); cause NOT reproduced off-device; left (Claude): merge + combined review.
+Status: DONE — pin tests shipped 0.8.5; NOT reproduced on the 0.8.5 emulator walk (Done closed every sheet): reopen if it recurs (92b180bb0, 2026-11-21).
 
 ## 2026-11-21 lane note
 - Read every Done/Close/Back/scrim path (Sheet phone + wide, SheetHost incl. the regs Sources sheet, DaySheet native/web, MenuPage, FirstRunNotice -> Sources page, bell, SyncError, SpotDrop, JoinTestCard). `app/packages/ui-native/src/closingControls.test.tsx` (49 tests) mounts each under the real back layers, with and without the browser-history sync, presses each control and requires the surface to leave the tree: all close. No code defect found in jsdom, so no source change.

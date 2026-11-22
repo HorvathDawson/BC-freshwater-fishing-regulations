@@ -1,6 +1,6 @@
 # T975 — Remove the old-format data readers once packed formats are live
 
-Status: IN PROGRESS (merged to dev 2026-11-21 after staging smoke; left (Claude): ships with 0.8.5 apps AFTER the owner's production data release)
+Status: DONE — shipped in 0.8.5 (packed readers only) (ee1b47819, 2026-11-21).
 
 Source: owner 2026-11-20 13:37: "Yes add the ticket to clean up dead code please". This came after the main chat
 explained the order:

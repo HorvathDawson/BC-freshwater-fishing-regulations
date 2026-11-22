@@ -1,6 +1,6 @@
 # T984 — The guided walkthrough only walks through: it never changes the app's state (ASAP)
 
-Status: IN PROGRESS — built on lane/085-t984; left (Claude): merge + combined review.
+Status: DONE — shipped 0.8.5; emulator walk PASS (4f9738a3f, 2026-11-21).
 Built: the tour is five cards that only point and describe (search, the map, the day, Trout/Salmon, all set), on controls the
 Map tab already draws; no step is a move (`kind`, `act`, `bring`, `GuideFacts`, `GuideActs`, the paused chip, the chosen
 water and its search are gone). The dim, the hole round the control included, takes every touch (tap, pan, pinch, wheel).
