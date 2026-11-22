@@ -5,7 +5,17 @@
 python -m pipeline release --staging --dry-run --rehearse-follows   # + (T680) re-cut + every test on the candidate, put back
     python -m pipeline release --staging --accept-diff FILE   # go on past a binding diff you have read (FILE = its json)
     python -m pipeline release --staging --push               # the release pushes the commits IT made (matches, fixtures)
+    python -m pipeline release --cut <x.y.z>                  # (T995) at scope lock: release/<x.y.z> from origin/main
     python -m pipeline release --prod <r-id>                  # HUMAN-ONLY: re-upload THAT checked release to production
+
+RELEASE BRANCHES AND TAGS (T995, owner 2026-11-21): `main` is the protected trunk. At scope lock `--cut <version>`
+makes `release/<version>` from a fresh origin/main and pushes it (nothing else moves; it says what to switch to). The
+release builds and ships from that branch: preflight requires HEAD on origin/release/<app.json's version>, the
+release's own commits go there (`--push`), and the staging upload's workflow runs that branch's copy. A bug fix lands on
+main first and is cherry-picked onto the release branch. AT SHIP (stage 7, once the staging upload and its smoke pass)
+the release tags the pushed HEAD `data/<r-id>` and, when the app version has no tag yet, `v<version>` (a data-only
+release of a tagged version tags only its data), pushes the tags, and prints the PR that merges the release branch
+back into main. `--prod` refuses a release whose tags are missing or point elsewhere.
 
 ONE RELEASE PATH (T666, owner 2026-11-11, after build 27 took six runs): everything cut from the live release is
 refreshed by the release itself, against the CANDIDATE, before the promote (stage 5, the table in
@@ -38,8 +48,8 @@ already done for this release):
                WRONG_SAVE_OK row passes one; not skipped by --no-fast-fail); every classified water the book prints is
                in the corpus as printed — its classes, its tributaries, its glyph (T841, `regs.classified_waters`; not
                skipped by --no-fast-fail); HEAD pushed to
-               origin/redesign/stream-sections (T484: the staging upload starts a GitHub workflow that runs GitHub's
-               copy — found only at stage 6 on 2026-11-07); CI (`app-ci`, `pipeline-ci`) not red on HEAD, nor on the
+               origin/release/<app.json's version> (T995; T484: the staging upload starts a GitHub workflow that runs
+               GitHub's copy — found only at stage 6 on 2026-11-07); CI (`app-ci`, `pipeline-ci`) not red on HEAD, nor on the
                newest finished run when HEAD has none (T533, `scripts/ci_status.py`; running / no run = a warning;
                `--no-ci-check REASON`); fast-fail's "changed" base is the commit LATEST was built from (T533, ledger); the live staging SITE is at least the min app the release
                goes up with (`deliver.release.site_gate`; 2026-11-09 the smoke test found a 0.6.9 site under a 0.7.0
@@ -84,7 +94,9 @@ already done for this release):
                item 2) the previous release's stamp raised to what the code's formats need — derived and said in
                preflight, with the recorded apps a rise leaves behind), with its smoke test run on its own after it (T537:
                ledger `uploaded_at` and `smoked_at`; a rerun after a smoke-only failure runs only the smoke). It says
-               when it replaces a staged release the owner was handed a production command for. The success message
+               when it replaces a staged release the owner was handed a production command for. (T995) Then the
+               TAGS: `data/<r-id>` and (first ship of the version) `v<version>` on the pushed HEAD, pushed, recorded
+               (ledger `tags`, `ship_commit`), and the merge-back PR command printed. The success message
                lists the after-chores with their exact commands (goldens re-cut, site, feeds worker). On a RERUN (T484) the default is the min app this
                release's checks passed with (ledger `checks.min_app_version`), else the stamp of the release LATEST
                named before this one was promoted (ledger `live_before`) — never the new release's own stamp, which
@@ -153,8 +165,22 @@ RC_WORKFLOW_NOT_STARTED = 75
 RC_WORKFLOW_UNREADABLE = 76
 #: (T666 item 4) the flags a rerun need not repeat (ledger `run`); the escapes are never remembered
 REMEMBERED = ("baseline", "accept_diff", "accept_fixtures", "min_app", "push")
-#: the branch GitHub's workflows run (the staging upload starts feeds-runtiming.yml there); HEAD must be on it
-GH_REMOTE, GH_BRANCH = "origin", "redesign/stream-sections"
+
+
+def _ci_paths():
+    """(T995) scripts/ci_paths.py, where the trunk and the release-branch names are typed once (stdlib only)."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("ci_paths", Path(REPO_ROOT) / "scripts" / "ci_paths.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+CP = _ci_paths()
+#: (T995) the protected trunk a release branch is cut from, and the remote
+GH_REMOTE, TRUNK = CP.REMOTE, CP.TRUNK
+#: (T995) the release command's own pushes skip the pre-push hook's checks, saying why (scripts/before_push.py)
+PUSH_ENV = {"BEFORE_PUSH_SKIP": "the release command's own push: its preflight ran fast-fail and the CI check"}
 #: manifest keys stamped at upload time (`release/stamp.py`), outside every hash: not part of the fingerprint
 STAMP_KEYS = ("published", "minAppVersion")
 
@@ -263,13 +289,39 @@ def git_head() -> str:
                           check=True).stdout.strip()
 
 
+def app_version() -> str:
+    """(T995) app/apps/mobile/app.json's expo.version: it names the release branch and the `v<version>` tag."""
+    return CP.app_version()
+
+
+def release_branch() -> str:
+    """(T995) the branch this release ships from: release/<app.json's version>."""
+    return CP.release_branch(app_version())
+
+
+class NoReleaseBranch(LookupError):
+    """(T995) origin has no release/<version>: it is cut at scope lock (`--cut`)."""
+
+
+def remote_ref_exists(ref: str) -> bool:
+    """(T995) origin has this ref (`refs/heads/…` / `refs/tags/…`). A git failure raises (never read as absent)."""
+    rc = subprocess.run(["git", "ls-remote", "--exit-code", GH_REMOTE, ref], cwd=REPO_ROOT, capture_output=True).returncode
+    if rc not in (0, 2):
+        raise RuntimeError(f"git ls-remote --exit-code {GH_REMOTE} {ref} failed (rc={rc})")
+    return rc == 0
+
+
 def git_pushed() -> bool:
-    """HEAD is on origin/redesign/stream-sections after a fresh fetch. A failed fetch raises (never a silent pass)."""
-    subprocess.run(["git", "fetch", "-q", GH_REMOTE, GH_BRANCH], cwd=REPO_ROOT, check=True)
-    rc = subprocess.run(["git", "merge-base", "--is-ancestor", "HEAD", f"{GH_REMOTE}/{GH_BRANCH}"],
+    """HEAD is on origin/release/<version> (T995) after a fresh fetch. No such branch raises NoReleaseBranch; a failed
+    fetch raises (never a silent pass)."""
+    rb = release_branch()
+    if not remote_ref_exists(f"refs/heads/{rb}"):
+        raise NoReleaseBranch(rb)
+    subprocess.run(["git", "fetch", "-q", GH_REMOTE, rb], cwd=REPO_ROOT, check=True)
+    rc = subprocess.run(["git", "merge-base", "--is-ancestor", "HEAD", f"{GH_REMOTE}/{rb}"],
                         cwd=REPO_ROOT).returncode
     if rc not in (0, 1):
-        raise RuntimeError(f"git merge-base --is-ancestor HEAD {GH_REMOTE}/{GH_BRANCH} failed (rc={rc})")
+        raise RuntimeError(f"git merge-base --is-ancestor HEAD {GH_REMOTE}/{rb} failed (rc={rc})")
     return rc == 0
 
 
@@ -351,13 +403,65 @@ def run_fresh_copy() -> int:
 
 
 def git_unpushed() -> list[str]:
-    """The commits on HEAD that origin's branch does not have (after `git_pushed`'s fetch), oldest first."""
-    return _git("rev-list", "--reverse", f"{GH_REMOTE}/{GH_BRANCH}..HEAD").decode().split()
+    """The commits on HEAD that origin's release branch does not have (after `git_pushed`'s fetch), oldest first."""
+    return _git("rev-list", "--reverse", f"{GH_REMOTE}/{release_branch()}..HEAD").decode().split()
 
 
 def git_push() -> int:
-    """Push HEAD to the branch GitHub's workflows run; the return code."""
-    return run_cmd(["git", "push", GH_REMOTE, f"HEAD:{GH_BRANCH}"])
+    """Push HEAD to the release branch (T995; the staging upload's workflow runs its copy); the return code."""
+    return run_cmd(["git", "push", GH_REMOTE, f"HEAD:{release_branch()}"], env=PUSH_ENV)
+
+
+def fetch_trunk() -> None:
+    """(T995) a fresh origin/main (a failure raises)."""
+    subprocess.run(["git", "fetch", "-q", GH_REMOTE, TRUNK], cwd=REPO_ROOT, check=True)
+
+
+def trunk_app_version() -> str | None:
+    """(T995) expo.version in app.json on origin/main (after `fetch_trunk`); None when it cannot be read."""
+    got = subprocess.run(["git", "show", f"{GH_REMOTE}/{TRUNK}:app/apps/mobile/app.json"], cwd=REPO_ROOT,
+                         capture_output=True, text=True)
+    try:
+        return json.loads(got.stdout)["expo"]["version"] if got.returncode == 0 else None
+    except (ValueError, KeyError):
+        return None
+
+
+def cut_branch(branch: str) -> int:
+    """(T995) make `branch` at origin/main (no switch: the checkout stays where it is) and push it; the return code."""
+    rc = run_cmd(["git", "branch", "--no-track", branch, f"{GH_REMOTE}/{TRUNK}"])
+    return rc or run_cmd(["git", "push", "-u", GH_REMOTE, f"refs/heads/{branch}"], env=PUSH_ENV)
+
+
+def fetch_tags() -> None:
+    """(T995) origin's tags, so a tag made elsewhere is seen (a failure raises)."""
+    subprocess.run(["git", "fetch", "-q", "--tags", GH_REMOTE], cwd=REPO_ROOT, check=True)
+
+
+def tag_commit(tag: str) -> str | None:
+    """(T995) the commit a tag points at, or None when there is no such tag."""
+    got = subprocess.run(["git", "rev-parse", "-q", "--verify", f"refs/tags/{tag}^{{commit}}"], cwd=REPO_ROOT,
+                         capture_output=True, text=True)
+    return got.stdout.strip() if got.returncode == 0 else None
+
+
+def is_ancestor(a: str, b: str) -> bool:
+    return subprocess.run(["git", "merge-base", "--is-ancestor", a, b], cwd=REPO_ROOT).returncode == 0
+
+
+def make_tag(tag: str, commit: str, message: str) -> int:
+    """(T995) an annotated tag; the return code."""
+    return run_cmd(["git", "tag", "-a", tag, "-m", message, commit])
+
+
+def push_tags(tags: list[str]) -> int:
+    return run_cmd(["git", "push", GH_REMOTE, *(f"refs/tags/{x}" for x in tags)], env=PUSH_ENV)
+
+
+def merge_back_cmd(branch: str) -> str:
+    """(T995) the PR that brings a release branch's commits (fixtures, matches, cherry-picks) back into main."""
+    return (f"gh pr create --base {TRUNK} --head {branch} --title \"chore(release): merge {branch} back into {TRUNK}\" "
+            f"--body \"The release's own commits (in-season matches, re-cut fixtures, cherry-picks) back on {TRUNK}.\"")
 
 
 def git_has_commit(rev: str) -> bool:
@@ -887,17 +991,27 @@ def check_classified(ctx: Ctx) -> Finding:
 
 
 def check_pushed(ctx: Ctx) -> Finding:
+    """(T484, T995) HEAD is on origin/release/<app.json's version>: the release ships from its release branch, and the
+    staging upload starts a GitHub workflow that runs that branch's copy."""
     try:
+        rb = release_branch()
         pushed = git_pushed()
+    except SystemExit as e:                                          # app.json has no x.y.z version
+        return Finding(False, f"cannot name the release branch: {e}", "fix expo.version in app/apps/mobile/app.json")
+    except NoReleaseBranch:
+        v = app_version()
+        return Finding(False, f"there is no {rb} on {GH_REMOTE}: a release ships from its release branch, cut from "
+                       f"{TRUNK} at scope lock (T995)",
+                       f"python -m pipeline release --cut {v}, then build from it (git switch {rb})")
     except (subprocess.CalledProcessError, RuntimeError) as e:
         return Finding(False, f"could not tell whether HEAD is pushed: {e}",
-                       f"check the network and `git fetch {GH_REMOTE} {GH_BRANCH}`")
+                       f"check the network and `git fetch {GH_REMOTE} {rb}`")
     if not pushed:
-        return Finding(False, f"HEAD {git_head()[:12]} is not on {GH_REMOTE}/{GH_BRANCH} (the staging upload starts "
-                       "a GitHub workflow that runs GitHub's copy)",
-                       f"git push {GH_REMOTE} HEAD:{GH_BRANCH} (after `build-apk.sh --play`, that pushes its app.json "
-                       "commit)")
-    return Finding(True, f"HEAD is on {GH_REMOTE}/{GH_BRANCH}")
+        return Finding(False, f"HEAD {git_head()[:12]} is not on {GH_REMOTE}/{rb} (the release ships from its release "
+                       "branch; the staging upload starts a GitHub workflow that runs GitHub's copy)",
+                       f"git push {GH_REMOTE} HEAD:{rb} (on the release branch; after `build-apk.sh --play`, that "
+                       "pushes its app.json commit)")
+    return Finding(True, f"HEAD is on {GH_REMOTE}/{rb}")
 
 
 def check_ci(ctx: Ctx) -> Finding:
@@ -1542,22 +1656,23 @@ def rehearse_follows(ctx: Ctx, cand: str) -> dict:
 def push_gate(ctx: Ctx, r: dict) -> str:
     """(T666) the upload's workflow runs GitHub's copy: every commit must be there before the promote. ONE stop with the
     one command — or, with --push, the release pushes, and only when every unpushed commit is one it made."""
+    rb = release_branch()
     try:
         if git_pushed():
-            return f"HEAD is on {GH_REMOTE}/{GH_BRANCH}"
-    except (subprocess.CalledProcessError, RuntimeError) as e:
-        raise Stop("follows", f"could not tell whether HEAD is pushed: {e}",
-                   f"check the network and `git fetch {GH_REMOTE} {GH_BRANCH}`, then rerun")
+            return f"HEAD is on {GH_REMOTE}/{rb}"
+    except (subprocess.CalledProcessError, RuntimeError, NoReleaseBranch) as e:
+        raise Stop("follows", f"could not tell whether HEAD is pushed to {rb}: {type(e).__name__}: {e}",
+                   f"check the network and `git fetch {GH_REMOTE} {rb}`, then rerun")
     ours = set((r.get("follows") or {}).get("commits") or [])
     ahead = git_unpushed()
     theirs = [c for c in ahead if c not in ours]
-    cmd = f"git push {GH_REMOTE} HEAD:{GH_BRANCH}"
+    cmd = f"git push {GH_REMOTE} HEAD:{rb}"
     if ctx.push and not theirs:
         rc = git_push()
         if rc:
             raise Stop("follows", f"`{cmd}` failed (rc={rc})", f"fix what git said above, {cmd}, then rerun")
         return f"pushed the {len(ahead)} commit(s) the release made (--push)"
-    what = (f"{len(ahead)} commit(s) are not on {GH_REMOTE}/{GH_BRANCH}: {len(ahead) - len(theirs)} the release made "
+    what = (f"{len(ahead)} commit(s) are not on {GH_REMOTE}/{rb}: {len(ahead) - len(theirs)} the release made "
             "(in-season matches, re-cut fixtures)"
             + (f", {len(theirs)} made by someone else since preflight ({', '.join(c[:12] for c in theirs[:4])})"
                if theirs else ""))
@@ -1611,10 +1726,53 @@ def handed_for_prod(led: dict, rid: str) -> list[str]:
                   if k != rid and v.get("staged_at") and not v.get("prod_at") and not v.get("replaced_by"))
 
 
+def tag_release(ctx: Ctx, rid: str, r: dict) -> str:
+    """(T995) AT SHIP: tag the pushed HEAD `data/<r-id>` and — the first ship of this app version — `v<version>`, push
+    the tags, record them (ledger `tags`, `ship_commit`, `app_version`). A data tag already on another commit stops
+    (an id names one release); a version tag already set by an earlier ship stays where it is (a data-only release)."""
+    if r.get("tags"):
+        return "tagged already: " + ", ".join(f"{k} at {v[:12]}" for k, v in sorted(r["tags"].items()))
+    version, head = app_version(), git_head()
+    try:
+        fetch_tags()
+    except subprocess.CalledProcessError as e:
+        raise Stop("staging", f"could not fetch the tags from {GH_REMOTE} ({e})",
+                   "check the network, then rerun: the upload is done and is skipped; only the tags are left")
+    data_tag, app_tag = f"data/{rid}", f"v{version}"
+    have = tag_commit(data_tag)
+    if have and have != head:
+        raise Stop("staging", f"the tag {data_tag} exists already at {have[:12]}, not at HEAD {head[:12]}",
+                   f"read why (git show {data_tag}): a release id names one release; nothing was tagged")
+    make = [data_tag] if not have else []
+    said = []
+    at = tag_commit(app_tag)
+    if at is None:
+        make.append(app_tag)
+    elif at != head:
+        said.append(f"{app_tag} stays at {at[:12]} (the version was tagged by an earlier ship: this release ships data "
+                    "only)")
+    for tag in make:
+        what = f"data release {rid}" if tag == data_tag else f"app {version}"
+        rc = make_tag(tag, head, f"{what} (python -m pipeline release, {rid} on staging)")
+        if rc:
+            raise Stop("staging", f"`git tag {tag}` failed (rc={rc})", "fix what git said above, then rerun")
+    # every tag at HEAD is pushed, made now or by a run whose push failed (pushing a tag origin has is a no-op)
+    send = [data_tag, *([app_tag] if at in (None, head) else [])]
+    rc = push_tags(send)
+    if rc:
+        raise Stop("staging", f"pushing the tag(s) {', '.join(send)} failed (rc={rc})",
+                   f"fix what git said above (git push {GH_REMOTE} " + " ".join(f"refs/tags/{x}" for x in send)
+                   + "), then rerun: only the tags are left")
+    r["tags"] = {data_tag: head, **({app_tag: at} if at else {app_tag: head})}
+    r["ship_commit"], r["app_version"] = head, version
+    save_ledger(ctx.led)
+    return "; ".join([f"tagged {', '.join(make) or 'nothing new'} at {head[:12]}, pushed {', '.join(send)}", *said])
+
+
 def stage_staging(ctx: Ctx) -> str:
     rid, r = ctx.rid, rec(ctx, ctx.rid)
     if r.get("staged_at") and not ctx.reupload:
-        return f"already on staging ({r['staged_at']}); --reupload to send it again"
+        return f"already on staging ({r['staged_at']}); --reupload to send it again; " + tag_release(ctx, rid, r)
     if r.get("fingerprint") != fingerprint(rid):
         raise Stop("staging", f"{rid} changed on disk after its checks (the fingerprint moved)",
                    "do not ship it: rebuild (`python -m pipeline build --force deliver --hold-latest`) and rerun")
@@ -1667,7 +1825,7 @@ def smoke(ctx: Ctx, rid: str, r: dict) -> str:
                    "(--reupload sends the release again)")
     r["smoked_at"] = r["staged_at"] = now()
     save_ledger(ctx.led)
-    return f"{rid} uploaded to staging, smoke passed"
+    return f"{rid} uploaded to staging, smoke passed; " + tag_release(ctx, rid, r)
 
 
 def after_chores(rid: str) -> str:
@@ -1805,7 +1963,9 @@ def staging(ctx: Ctx) -> int:
     ctx.led.pop("run", None)                 # on staging: the next release starts with no remembered flag
     save_ledger(ctx.led)
     secs = round(time.time() - t0)
-    print(f"\nrelease: {ctx.rid} is LATEST and on staging ({secs // 60}m{secs % 60:02d}s).\n{after_chores(ctx.rid)}")
+    print(f"\nrelease: {ctx.rid} is LATEST and on staging ({secs // 60}m{secs % 60:02d}s).\n{after_chores(ctx.rid)}"
+          f"\n  merge back (T995): the release branch's commits go back into {TRUNK} by a PR:\n      "
+          f"{merge_back_cmd(release_branch())}")
     return 0
 
 
@@ -2044,6 +2204,12 @@ def dry_run(ctx: Ctx) -> int:
     print(f"[6/{n}] promote    LATEST {live} -> the candidate (after every check passes)")
     print(f"[7/{n}] staging    MIN_APP_VERSION={min_app or ''} {' '.join(upload_cmd(cand if built else '<r-id>'))}"
           + (f"  ({target} staged {r['staged_at']})" if r.get("staged_at") else ""))
+    try:
+        rb, ver = release_branch(), app_version()
+        print(f"{P}then (T995) tags data/<r-id> + v{ver} (if not tagged yet) on the pushed HEAD, pushes them, and "
+              f"prints the merge-back PR: {merge_back_cmd(rb)}")
+    except SystemExit as e:
+        print(f"{P}" + stop(f"the release branch cannot be named: {e}"))
     if target:
         try:
             probs = staging_prechecks(target)
@@ -2073,6 +2239,44 @@ def dry_run(ctx: Ctx) -> int:
     return 0
 
 
+# ---------------------------------------------------------------------------------------------------------------- cut
+
+def cut(version: str) -> int:
+    """(T995) AT SCOPE LOCK: `release/<version>` from a fresh origin/main, pushed. The checkout is not switched; it says
+    what to switch to, and when app.json on main names another version, that the branch's first commit sets it."""
+    import re
+    if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+        print(f"release --cut: {version!r} is not x.y.z", file=sys.stderr)
+        return 2
+    branch = CP.release_branch(version)
+    try:
+        fetch_trunk()
+        exists, tagged = remote_ref_exists(f"refs/heads/{branch}"), remote_ref_exists(f"refs/tags/v{version}")
+    except (subprocess.CalledProcessError, RuntimeError) as e:
+        print(f"release --cut: cannot read {GH_REMOTE} ({e}): check the network; nothing was made", file=sys.stderr)
+        return 1
+    if exists:
+        print(f"release --cut: {branch} exists on {GH_REMOTE} already: work on it (git switch {branch}); a fix lands on "
+              f"{TRUNK} first and is cherry-picked onto it", file=sys.stderr)
+        return 1
+    if tagged:
+        print(f"release --cut: v{version} is tagged already (that version shipped): cut the next version",
+              file=sys.stderr)
+        return 1
+    rc = cut_branch(branch)
+    if rc:
+        print(f"release --cut: making or pushing {branch} failed (rc={rc}, above); if the local branch was made and "
+              f"the push failed: git push -u {GH_REMOTE} refs/heads/{branch}", file=sys.stderr)
+        return 1
+    on_main = trunk_app_version()
+    print(f"release: {branch} cut from {GH_REMOTE}/{TRUNK} and pushed. Next: git switch {branch} (or "
+          f"git worktree add <dir> {branch}); the release builds and ships from it.")
+    if on_main != version:
+        print(f"  app.json on {TRUNK} says {on_main}: the branch's first commit sets expo.version {version} (app.json + "
+              "package.json) and its changelog entry — preflight names the branch from app.json")
+    return 0
+
+
 # --------------------------------------------------------------------------------------------------------------- prod
 
 def agent_env() -> str | None:
@@ -2091,6 +2295,34 @@ def prod_instructions(rid: str, r: dict) -> str:
             f"    CONFIRM_PROD={rid} python -m pipeline release --prod {rid}\n"
             f"which runs (after you type the id again): CONFIRM_PROD=canifishthis.ca {' '.join(prod_cmd(rid))}\n"
             f"The rest of a production release (site, feeds worker, Play) is handoff/PLAN/release/PRODUCTION.md.")
+
+
+def tag_problems(rid: str, r: dict) -> list[str]:
+    """(T995) production ships only what its tags name: `data/<r-id>` exists and points at the commit the release
+    shipped from (ledger `ship_commit`), and `v<version>` exists at that commit or before it. [] when both hold."""
+    ship = r.get("ship_commit")
+    if not ship:
+        return [f"{rid} was never tagged at ship (no `ship_commit` in the ledger): rerun `python -m pipeline release "
+                "--staging` (it tags a staged release and skips everything done)"]
+    try:
+        fetch_tags()
+    except subprocess.CalledProcessError as e:
+        return [f"could not fetch the tags from {GH_REMOTE} ({e}): check the network"]
+    version = r.get("app_version") or app_version()
+    out = []
+    data_tag, app_tag = f"data/{rid}", f"v{version}"
+    at = tag_commit(data_tag)
+    if at is None:
+        out.append(f"no tag {data_tag} (on {GH_REMOTE} too): git tag -a {data_tag} -m 'data release {rid}' {ship} && "
+                   f"git push {GH_REMOTE} refs/tags/{data_tag}")
+    elif at != ship:
+        out.append(f"{data_tag} points at {at[:12]}, not at the commit {rid} shipped from ({ship[:12]})")
+    v = tag_commit(app_tag)
+    if v is None:
+        out.append(f"no tag {app_tag} (on {GH_REMOTE} too): the app version this release went up with")
+    elif v != ship and not is_ancestor(v, ship):
+        out.append(f"{app_tag} points at {v[:12]}, which is not {ship[:12]} nor before it")
+    return out
 
 
 def prod(rid: str, ask=input) -> int:
@@ -2117,6 +2349,11 @@ def prod(rid: str, ask=input) -> int:
     if on_staging != rid:
         print(f"release --prod: staging serves {on_staging}, not {rid} — deploy/prod/upload.sh promotes what staging "
               f"serves; refused (a later release --staging replaced it)", file=sys.stderr)
+        return 1
+    bad = tag_problems(rid, r)
+    if bad:
+        print(f"release --prod: {rid}'s release tags are not right (T995) — refused:\n" + "\n".join(f"  - {x}" for x in bad),
+              file=sys.stderr)
         return 1
     agent = agent_env()
     why = ([f"an agent environment ({agent})"] if agent else []) \
@@ -2145,6 +2382,7 @@ def main(argv: list[str] | None = None) -> int:
     g = ap.add_mutually_exclusive_group(required=True)
     g.add_argument("--staging", action="store_true", help="build -> checks -> promote LATEST -> upload staging")
     g.add_argument("--prod", metavar="R-ID", help="HUMAN-ONLY: re-upload this checked, staged release to production")
+    g.add_argument("--cut", metavar="X.Y.Z", help="(T995) at scope lock: make release/X.Y.Z from origin/main and push it")
     ap.add_argument("--dry-run", action="store_true",
                     help="the rehearsal: every stage's checks; nothing is built, committed, promoted or uploaded")
     ap.add_argument("--rehearse-follows", action="store_true",
@@ -2181,6 +2419,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--jobs", type=int, default=2, help="the build's --jobs (default 2, at most 4)")
     ap.add_argument("--reupload", action="store_true", help="upload to staging again even if the ledger says it is")
     a = ap.parse_args(argv)
+    if a.cut:
+        return cut(a.cut)
     if a.prod:
         if a.dry_run:
             r = load_ledger().get("releases", {}).get(a.prod, {})
@@ -2189,7 +2429,9 @@ def main(argv: list[str] | None = None) -> int:
                 said = "ok" if on == a.prod else f"WOULD STOP: staging serves {on}, not {a.prod}"
             except (OSError, ValueError) as e:
                 said = f"WOULD STOP: cannot read {STAGING_MANIFEST_URL} ({e})"
-            print(f"staging serves: {said}\n{prod_instructions(a.prod, r)}")
+            tags = tag_problems(a.prod, r) if r else ["no ledger record"]
+            print(f"staging serves: {said}\ntags (T995): " + ("ok" if not tags else "WOULD STOP: " + "; ".join(tags))
+                  + f"\n{prod_instructions(a.prod, r)}")
             return 0
         return prod(a.prod)
     if a.no_fast_fail is not None and not a.no_fast_fail.strip():

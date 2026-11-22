@@ -29,10 +29,10 @@ never break.
 
 Everything is already set up on this Mac. A two-minute check saves a stopped run later.
 
-1. **Up to date and clean.** `git pull` on branch `redesign/stream-sections`. Code and `data/curated/` must be committed
+1. **Up to date and clean.** `git pull` on the release branch `release/<version>` (cut from `main` by `python -m pipeline release --cut <version>`, T995). Code and `data/curated/` must be committed
    and pushed (the release refuses otherwise). Use pull, never `git stash` or `git reset --hard`: your review files live
    uncommitted in this folder.
-2. **CI is green.** `gh run list --branch redesign/stream-sections -L 3`. The release refuses while CI is red. A flaky
+2. **CI is green.** `gh run list --branch release/<version> -L 3`. The release refuses while CI is red. A flaky
    failure: `gh run rerun <id> --failed`.
 3. **Logins answer.**
    - GitHub: `gh auth status`

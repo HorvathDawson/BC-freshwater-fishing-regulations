@@ -6,6 +6,21 @@ One command builds a release, checks it, makes it LATEST and puts it on staging.
 Claude runs the staging release after a batch of curated changes lands. A human runs the same command the same way.
 Code: `pipeline/release.py`.
 
+## 0. The release branch (T995)
+
+At scope lock, from any checkout (nothing is switched):
+
+```bash
+.venv/bin/python -m pipeline release --cut 0.9.0      # release/0.9.0 from a fresh origin/main, pushed
+git switch release/0.9.0                               # (or git worktree add <dir> release/0.9.0)
+```
+
+The release builds and ships from that branch: preflight wants HEAD on `origin/release/<app.json's version>`, so if
+`main`'s app.json names another version the branch's first commit sets it. A fix lands on `main` first (a PR), then is
+cherry-picked onto the branch. At ship (stage 7, after the staging smoke) the release tags `data/<r-id>` and, on the
+version's first ship, `v<version>`, pushes the tags, and prints the PR that merges the branch back into `main`
+(`gh pr create --base main --head release/<version> …`). `--prod` refuses a release whose tags are missing or moved.
+
 ## 1. Rehearse it (T666)
 
 ```bash
@@ -45,7 +60,7 @@ worker suite) and lists every failure. A pre-push hook is the owner's call: `--h
 
 | stage | what it does | when it stops |
 |---|---|---|
-| 1 preflight | **Every check runs and every failure is listed together** (T666). Code (`pipeline/`, `scripts/`, `deploy/`) and `data/curated/` must be committed (`marks.jsonl` and `closed.json` may be dirty: no stage reads them). The atlas is not behind its curated inputs. Review marks have landed. HEAD is on `origin/redesign/stream-sections` (T484: the upload starts a GitHub workflow). CI is not red. The staging site is new enough. Last, `scripts/fast-fail.sh` (T483; it also lists every failed step; `--no-fast-fail "<reason>"` skips it and prints the reason). Its pass is remembered by the **content of the tree**, not by HEAD: a rerun on the same files skips it, and after a commit it checks only what changed since the commit it last passed on. Then the **fresh-copy test run** (owner 2026-11-11): HEAD cloned into a temp folder and the pipeline's no-data tests run there as CI runs them (`scripts/fresh-copy-tests.sh`, through heavy.sh), once per release; `--no-fresh-copy "<reason>"` skips it and prints the reason. | One stop with the numbered list of everything that failed, each with its next step. Fix them all, then rerun. |
+| 1 preflight | **Every check runs and every failure is listed together** (T666). Code (`pipeline/`, `scripts/`, `deploy/`) and `data/curated/` must be committed (`marks.jsonl` and `closed.json` may be dirty: no stage reads them). The atlas is not behind its curated inputs. Review marks have landed. HEAD is on `origin/release/<app.json's version>` (T995: the release ships from its release branch, cut by `--cut <version>`; T484: the upload starts a GitHub workflow). CI is not red. The staging site is new enough. Last, `scripts/fast-fail.sh` (T483; it also lists every failed step; `--no-fast-fail "<reason>"` skips it and prints the reason). Its pass is remembered by the **content of the tree**, not by HEAD: a rerun on the same files skips it, and after a commit it checks only what changed since the commit it last passed on. Then the **fresh-copy test run** (owner 2026-11-11): HEAD cloned into a temp folder and the pipeline's no-data tests run there as CI runs them (`scripts/fresh-copy-tests.sh`, through heavy.sh), once per release; `--no-fresh-copy "<reason>"` skips it and prints the reason. | One stop with the numbered list of everything that failed, each with its next step. Fix them all, then rerun. |
 | 2 baseline | Copies the reach run the live release (LATEST) was cut from to `data/generated/release/baseline/<LATEST>/`. That copy is the "before" of the diff. | The reach run on disk is not LATEST's and no copy was kept. Give one with `--baseline DIR` (its `report.json` digest must match). |
 | 3 build | `scripts/heavy.sh release 50 -- python -m pipeline build --hold-latest`. The build skips any stage whose inputs did not change. It writes the new release to `data/release/<r-id>/` and names it in `data/release/CANDIDATE`. **LATEST does not move.** | A build stage failed. `python -m pipeline build --status` shows the stage and its log. |
 | 4 checks | Manifest sanity: every file is there at its size, the size gate passes, and the bundle names the reach run on disk. The app-version gate (`pipeline/deliver/release/app_gate.py`, the same one `upload.sh` runs). The rule-binding diff against the live release. | Any check fails. **A non-empty binding diff always stops here** (see 3). |
