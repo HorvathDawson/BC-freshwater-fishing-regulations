@@ -29,8 +29,8 @@ September–October state notes, the old work lists) and the v1 code (`archive/`
 comment still names reads with `git show d1b36ca44:<path>`. Moved up because live code cites them: `REACH-BUILDER`,
 `06-ui-data-contract`. The two historical handoffs moved up then (`HANDOFF-curated-layout`, the curated-data
 restructure, done; `HANDOFF-dfo-curation`, the 2026-09 curation sitting guide) were removed in T987:
-`git show caf593bb6:pipeline/docs/<name>.md`. The 2026-08 locator research that notes in `data/curated/waters/cuts.json` cite as their
-source reads with `git show d1b36ca44:pipeline/docs/archive/waterbody-splits.json`.
+`git show caf593bb6:pipeline/docs/<name>.md`. Kept in place:
+`archive/waterbody-splits.json`, which `data/curated/waters/cuts.json` notes cite as their research source.
 
 ## Where the work is
 
