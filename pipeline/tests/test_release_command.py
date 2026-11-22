@@ -149,10 +149,24 @@ def world(tmp_path: Path, monkeypatch):
     # the live staging site (network): `site_gate` is pinned by its own tests below
     w["site_min_apps"] = []
 
-    def site(min_app):
+    def site(min_app, manifest=None):
         w["site_min_apps"].append(min_app)
+        w.setdefault("site_manifests", []).append(manifest)
         return list(w.get("site_problems", [])), "site serves app 9.9.9"
     monkeypatch.setattr(R, "site_problems", site)
+    # (T993 item 2) the code's formats, judged by APPS (pinned in test_release_min_app.py): water/1, which every app reads
+    w["code_files"] = {"water": {"format": "water/1"}}
+    monkeypatch.setattr(R, "code_manifest", lambda: {"files": dict(w["code_files"])})
+    # (T788 #2) the pieces gate (the network): pinned in test_release_min_app.py
+    w["pieces"], w["pieces_asked"] = [], []
+
+    def pieces(rid):
+        w["pieces_asked"].append(rid)
+        return list(w["pieces"])
+    monkeypatch.setattr(R, "pieces_problems", pieces)
+    # (T993 item 9) the size headroom reads a real manifest's sizes (pinned in test_release_min_app.py)
+    w["headroom"] = [("water", 2_750_000, 2_850_000, 0.035), ("core", 1_500_000, 1_650_000, 0.091)]
+    monkeypatch.setattr(R, "size_headroom", lambda rid: list(w["headroom"]))
     # (T537; T679 #11) the in-season resolve writes the generated resolution only: no commit of its own
     # (T666 items 1-2) the follows stage: the re-cut's changed paths, its commit, the tests found by rule, the push
     w["recut_changed"], w["recuts_committed"], w["unpushed"], w["pushes"] = [], [], [], 0
@@ -914,7 +928,7 @@ def test_the_rehearsal_and_the_run_read_one_preflight_table(world, capsys):
     """By construction: a check added to PREFLIGHT is in both. Every check's failure shows in the rehearsal with the
     words the real run stops with."""
     assert [n for n, _ in R.PREFLIGHT] == ["committed", "atlas", "marks", "wrong-saves", "classified", "pushed", "ci",
-                                           "live", "site", "fast-fail", "fresh-copy"]
+                                           "live", "min-app", "site", "pieces", "fast-fail", "fresh-copy"]
     world["pushed"], world["site_problems"], world["fast_fail_rc"] = False, ["site 0.6.9 < 0.7.0"], 1
     assert _staging() == 1
     real = capsys.readouterr()
@@ -1256,3 +1270,93 @@ def test_t841_mutation_without_the_gate_in_the_table_the_gap_ships(world, monkey
     monkeypatch.setattr(R, "PREFLIGHT", tuple((n, c) for n, c in R.PREFLIGHT if n != "classified"))
     assert _staging() == 0
     assert "STOPPED" not in capsys.readouterr().err and _latest(world) != LIVE
+
+
+# ---------------------------------------------------------------- (T993 lane G2) the minimum app, derived before the build
+
+#: APPS with a newer app that reads a new salmon format (salmon/5): the code that writes it needs app 0.6.0
+APPS_060 = {**APPS, "0.6.0": {"water": ["water/1"], "paint": ["paint/5", "paint/4"], "salmon": ["salmon/5", "salmon/4"]}}
+
+
+def test_the_min_app_is_derived_from_the_codes_formats_and_its_rise_is_said(world, capsys, monkeypatch):
+    """T993 item 2 (0.8.5 stop 3: `--min-app-version 0.8.4` was not passed though the formats always needed it): with no
+    flag, the release goes up stamped for what the CODE's formats need — said in preflight, with the recorded apps the
+    rise leaves behind. Mutation pin: the old default (the live stamp alone) uploads 0.5.0 and the app gate stops."""
+    from pipeline.deliver.release import app_gate as AG
+    monkeypatch.setattr(AG, "table", lambda: APPS_060)
+    world["code_files"] = {"water": {"format": "water/1"}, "salmon": {"format": "salmon/5"}}
+    world["extra"] = {"salmon": {"url": "x", "format": "salmon/5"}}
+    assert _staging() == 0
+    out = capsys.readouterr().out
+    assert _env_of(world, "upload")["MIN_APP_VERSION"] == "0.6.0"
+    assert "ok: min app 0.6.0 (derived: the live stamp raised to the code's formats; the code's formats need 0.6.0" in out
+    assert "RAISED from 0.5.0 to 0.6.0: recorded app(s) 0.5.0 stop applying new releases" in out
+    assert world["site_min_apps"][0] == "0.6.0" and world["site_manifests"][0] == {"files": world["code_files"]}
+
+
+def test_the_old_default_would_have_stopped_at_the_app_gate(world, capsys, monkeypatch):
+    """The mutation of the test above: `default_min_app` as it was (the live stamp only) stops the checks."""
+    from pipeline.deliver.release import app_gate as AG
+    monkeypatch.setattr(AG, "table", lambda: APPS_060)
+    monkeypatch.setattr(R, "default_min_app", R.live_stamp)
+    world["code_files"] = {"salmon": {"format": "salmon/5"}}
+    world["extra"] = {"salmon": {"url": "x", "format": "salmon/5"}}
+    assert _staging() == 1 and "salmon/5 needs app >= 0.6.0" in capsys.readouterr().err
+
+
+def test_a_min_app_flag_below_the_codes_formats_stops_before_the_build(world, capsys, monkeypatch):
+    from pipeline.deliver.release import app_gate as AG
+    monkeypatch.setattr(AG, "table", lambda: APPS_060)
+    world["code_files"] = {"salmon": {"format": "salmon/5"}}
+    assert _staging(min_app_version="0.5.0") == 1
+    err = capsys.readouterr().err
+    assert "STOPPED at preflight" in err and "--min-app-version 0.5.0 is older than the code's formats need: 0.6.0" in err
+    assert world["calls"] == []                                   # nothing built
+
+
+def test_a_format_no_recorded_app_reads_stops_before_the_build(world, capsys):
+    world["code_files"] = {"water": {"format": "water/9"}}
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert "the code writes 1 format(s) no recorded app reads: water/9" in err and world["calls"] == []
+
+
+def test_the_site_gate_reads_the_candidates_formats_once_it_is_built(world, capsys):
+    world["differs"] = True
+    assert _staging() == 1                                        # built, stopped at the binding diff (CANDIDATE)
+    world["site_manifests"].clear()
+    assert _staging() == 1
+    assert world["site_manifests"][0]["data_release"] == NEW      # the candidate's manifest, not the code's
+
+
+def test_the_pieces_gate_is_asked_before_the_build_and_on_the_candidate_before_the_promote(world, capsys):
+    """T788 #2: the gate was asked only inside the upload, after the promote."""
+    world["pieces"] = ["the release binds 2 closed-area piece(s); the feeds worker does not emit them"]
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert "STOPPED at preflight" in err and "deploy/staging/feeds.sh" in err and world["calls"] == []
+    world["pieces"] = []
+    assert _staging() == 0 and world["pieces_asked"][:3] == [LIVE, LIVE, NEW]   # preflight on LATEST, checks on NEW
+
+
+def test_the_rehearsal_says_what_it_cannot_see_before_a_build_and_offers_the_build(world, capsys):
+    """T993 item 4: a pre-build rehearsal promised "every stop the real run would hit" and saw preflight only."""
+    world["rc"]["build"] = 0
+    assert R.main(["--staging", "--dry-run"]) == 0                # the build's dry run makes no candidate here
+    out = capsys.readouterr().out
+    assert "NOT SEEN before a build: the size gates on the new files" in out
+    assert "python -m pipeline release --staging --dry-run --build --rehearse-follows" in out
+    assert "1. bash scripts/heavy.sh release 50 -- " in out and "--hold-latest" in out
+    # (T993 item 9) LATEST's headroom, tightest first, WARN under 5 %
+    assert f"size headroom on {LIVE}" in out and "3.5%  WARN" in out and "1 under 5%" in out
+
+
+def test_dry_run_build_builds_the_candidate_and_rehearses_on_it(world, capsys):
+    assert R.main(["--staging", "--dry-run", "--build"]) == 0
+    out = capsys.readouterr().out
+    builds = [(c, e) for c, e in world["calls"] if c == "build"]
+    assert len(builds) == 1 and builds[0][1] == {"FAST_FAIL_DONE": "abc123"}   # the real build, told fast-fail ran
+    assert f"manifest sanity on {NEW}: ok" in out and "NOT SEEN before a build" not in out
+    assert _latest(world) == LIVE and (R.HOME / "baseline" / LIVE / "report.json").is_file()
+    with pytest.raises(SystemExit):
+        R.main(["--staging", "--build"])                           # a rehearsal flag only

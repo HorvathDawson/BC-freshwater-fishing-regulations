@@ -80,8 +80,9 @@ already done for this release):
                check leaves LATEST untouched.
   7 staging    the upload's own first refusals asked up front (`staging_prechecks`: the run-timing base names the
                release's tiles, `gh` is logged in, the rclone remote is there), then
-               `deploy/staging/upload.sh <r-id>` (staging bucket only; MIN_APP_VERSION from --min-app-version, else the
-               previous release's stamp — printed in the plan), with its smoke test run on its own after it (T537:
+               `deploy/staging/upload.sh <r-id>` (staging bucket only; MIN_APP_VERSION from --min-app-version, else (T993
+               item 2) the previous release's stamp raised to what the code's formats need — derived and said in
+               preflight, with the recorded apps a rise leaves behind), with its smoke test run on its own after it (T537:
                ledger `uploaded_at` and `smoked_at`; a rerun after a smoke-only failure runs only the smoke). It says
                when it replaces a staged release the owner was handed a production command for. The success message
                lists the after-chores with their exact commands (goldens re-cut, site, feeds worker). On a RERUN (T484) the default is the min app this
@@ -670,10 +671,11 @@ def app_gate_problems(rid: str, min_app: str | None) -> list[str]:
     return problems(manifest_of(rid), min_app)
 
 
-def site_problems(min_app: str | None) -> tuple[list[str], str]:
-    """The live staging site against the oldest app the release will be stamped for (`deliver.release.site_gate`)."""
+def site_problems(min_app: str | None, manifest: dict | None = None) -> tuple[list[str], str]:
+    """The live staging site against the oldest app the release will be stamped for (`deliver.release.site_gate`),
+    raised to what `manifest`'s formats need (T993 item 2: the candidate's, or before a build the code's)."""
     from pipeline.deliver.release.site_gate import check
-    return check(None, min_app)
+    return check(manifest, min_app)
 
 
 def binding_diff(before: Path, after: Path) -> dict:
@@ -724,6 +726,7 @@ class Ctx:
     push: bool = False                   # (T666) the release pushes the commits it made itself
     no_follow_tests: str | None = None   # (T666) why the tests on the candidate are skipped (printed); None runs them
     rehearse_follows: bool = False       # (T680) --dry-run: re-cut + the whole check on the candidate, put back after
+    build: bool = False                  # (T993 item 4) --dry-run --build: build the candidate first (LATEST stays)
     no_fresh_copy: str | None = None     # (T666) why the fresh-copy test run is skipped (printed); None runs it
     forget: bool = False                 # (T666) drop the remembered flags of the release in flight
     heavy_env: dict = field(default_factory=dict)   # (T535) tells heavy.sh fast-fail ran: FAST_FAIL_DONE / HEAVY_NO_FAST_FAIL
@@ -840,13 +843,98 @@ def check_live(ctx: Ctx) -> Finding:
     return Finding(True, f"live release {ctx.live}")
 
 
+def built_candidate(ctx: Ctx) -> str | None:
+    """The CANDIDATE when the build has made one that is not LATEST already; else None."""
+    cand = read_pointer("CANDIDATE")
+    return cand if cand and cand != ctx.live else None
+
+
+def planned_min_app(ctx: Ctx) -> str | None:
+    """The min app this run goes up with: the flag (given or remembered), else `resume_min_app` (a rerun after the
+    promote keeps what its checks passed with; a first run: the live stamp raised to the code's formats)."""
+    return ctx.min_app or resume_min_app(ctx.led, read_pointer("CANDIDATE") or ctx.live, ctx.live)
+
+
+def check_min_app(ctx: Ctx) -> Finding:
+    """(T993 item 2) THE MINIMUM APP, DERIVED BEFORE THE BUILD from the code's formats (`build.built_formats`,
+    `app_reads.json`, `app_gate.oldest_reader`): said with what it was derived from and — when it rises above the live
+    release's stamp — which recorded apps it leaves behind. Stops (before any build) on a format no recorded app reads,
+    and on a `--min-app-version` below what the formats need: both are stops the checks stage would make 25 minutes
+    later (0.8.5 stops 3 and 5)."""
+    from pipeline.deliver.release.app_gate import needs, table, ver
+    try:
+        apps = table()
+        need_by = needs(code_manifest(), apps)
+    except Exception as e:  # noqa: BLE001 — a gate that could not read is a stop, never a pass
+        return Finding(False, f"the minimum app cannot be derived from the code's formats ({type(e).__name__}: {e})",
+                       "run `python -m pipeline.tools.emit.app_reads --check` and fix what it says")
+    unread = sorted(f for f, v in need_by.items() if v is None)
+    if unread:
+        return Finding(False, f"the code writes {len(unread)} format(s) no recorded app reads: {', '.join(unread)} (the "
+                       f"newest recorded app is {max(apps, key=ver)})",
+                       "a new format ships after the app that reads it is recorded: bump the app version and run "
+                       "`python -m pipeline.tools.emit.app_reads` (or keep the old format until then)")
+    need = derived_min_app()
+    stamp = live_stamp(ctx.live)
+    if ctx.min_app and need and ver(ctx.min_app) < ver(need):
+        top = sorted((f for f, v in need_by.items() if v == need))
+        return Finding(False, f"--min-app-version {ctx.min_app} is older than the code's formats need: {need} "
+                       f"({', '.join(top)}) — the app gate would stop the checks on it after the build",
+                       f"drop --min-app-version (the default is derived: {need}), or give {need} or newer "
+                       "(--forget-flags drops a remembered one)")
+    chosen = planned_min_app(ctx)
+    how = ("--min-app-version" if ctx.min_app else "derived: the live stamp raised to the code's formats")
+    said = (f"min app {chosen or 'any'} ({how}; the code's formats need {need or 'any'}, the live release {ctx.live} "
+            f"is stamped {stamp or 'none'})")
+    gone = left_behind(stamp, chosen, list(apps))
+    if gone:
+        said += (f"\nRAISED from {stamp or 'none'} to {chosen}: recorded app(s) {', '.join(gone)} stop applying new "
+                 "releases — they keep the data they hold until they update")
+    return Finding(True, said)
+
+
+#: (T788 #2) the staging feeds worker the pieces gate asks — the same URL deploy/staging/upload.sh asks (held equal by
+#: test_release_min_app.py)
+STAGING_FEEDS_URL = "https://bc-fishing-feeds-staging.horvath-dawson.workers.dev"
+
+
+def pieces_problems(rid: str) -> list[str]:
+    """(T788 #2) the closed-area pieces gate (`deliver.release.pieces_gate`, the one the upload runs) on release `rid`
+    against the staging feeds worker: [] when that worker serves every piece the release binds."""
+    from pipeline.deliver import salmon as S
+    from pipeline.deliver.release.pieces_gate import problems
+    return problems(S.read_release(release_root() / rid), STAGING_FEEDS_URL)
+
+
+def check_pieces(ctx: Ctx) -> Finding:
+    """(T788 #2) the pieces gate asked BEFORE the build and the promote, not only inside the upload after the promote:
+    on the candidate once there is one, else on LATEST (the checks stage asks again on the candidate)."""
+    cand = built_candidate(ctx)
+    target = cand or ctx.live
+    if not target:
+        return Finding(True, "pieces gate: no release to ask about yet")
+    try:
+        bad = pieces_problems(target)
+    except (Exception, SystemExit) as e:  # noqa: BLE001 — SalmonError is a SystemExit; unread is a stop, never a pass
+        return Finding(False, f"the pieces gate could not run on {target} ({type(e).__name__}: {e})",
+                       f"`FEEDS_URL={STAGING_FEEDS_URL} python -m pipeline.deliver.release.pieces_gate "
+                       f"data/release/{target}/manifest.json` asks alone")
+    if bad:
+        return Finding(False, f"pieces gate on {target}: " + "; ".join(bad),
+                       "deploy the feeds worker to staging first (deploy/staging/feeds.sh), then rerun")
+    return Finding(True, f"pieces gate on {target}: the staging feeds worker serves what it binds"
+                   + ("" if cand else " (asked of LATEST before the build; the checks stage asks the candidate)"))
+
+
 def check_site(ctx: Ctx) -> Finding:
     # (T483 fast-fail; caught 2026-11-09) the staging site older than the min app the release goes up with: found only by
     # the smoke test after the upload. Checked here, before the build; the upload checks again with the release's own
-    # format needs (deploy/staging/upload.sh, `deliver.release.site_gate`).
-    min_app = ctx.min_app or resume_min_app(ctx.led, read_pointer("CANDIDATE") or ctx.live, ctx.live)
+    # format needs (deploy/staging/upload.sh, `deliver.release.site_gate`). (T993 item 2) with the formats the release
+    # will carry: the candidate's manifest once built, else the code's (0.8.5 stop 5: a 0.8.3 site under a 0.8.4 release)
+    min_app = planned_min_app(ctx)
+    cand = built_candidate(ctx)
     try:
-        bad, said = site_problems(min_app)
+        bad, said = site_problems(min_app, manifest_of(cand) if cand else code_manifest())
     except Exception as e:  # noqa: BLE001 — shown as a stop: an unreadable site is never a pass (site_gate)
         return Finding(False, f"the staging site gate could not run ({type(e).__name__}: {e})",
                        "check the network; `python -m pipeline.deliver.release.site_gate <manifest>` asks alone")
@@ -965,7 +1053,8 @@ def check_fresh_copy(ctx: Ctx) -> Finding:
 #: and last the fresh-copy test run (the whole no-data tier on a clean clone, once per release).
 PREFLIGHT = (("committed", check_committed), ("atlas", check_atlas), ("marks", check_marks),
              ("wrong-saves", check_wrong_saves), ("classified", check_classified), ("pushed", check_pushed),
-             ("ci", check_ci), ("live", check_live), ("site", check_site), ("fast-fail", check_fast_fail),
+             ("ci", check_ci), ("live", check_live), ("min-app", check_min_app), ("site", check_site),
+             ("pieces", check_pieces), ("fast-fail", check_fast_fail),
              ("fresh-copy", check_fresh_copy))
 
 
@@ -1071,8 +1160,18 @@ def stage_checks(ctx: Ctx) -> str:
                    "deliver --hold-latest`), then rerun")
     probs = app_gate_problems(rid, ctx.min_app)
     if probs:
-        raise Stop("checks", "app-version gate: " + "; ".join(probs),
+        raise Stop("checks", "app-version gate: " + "; ".join(probs)
+                   + f" (the code's formats said {derived_min_app() or 'no app'} before the build: a candidate that "
+                   "needs more is a gap in `build.built_formats` — fix it there too)",
                    "rerun with --min-app-version X.Y.Z (the oldest app that reads these formats)")
+    try:
+        probs = pieces_problems(rid)
+    except (Exception, SystemExit) as e:  # noqa: BLE001 — SalmonError is a SystemExit; unread is a stop, never a pass
+        probs = [f"the gate could not run ({type(e).__name__}: {e})"]
+    if probs:
+        raise Stop("checks", f"pieces gate (T788 #2) on {rid}: " + "; ".join(probs),
+                   "deploy the feeds worker to staging first (deploy/staging/feeds.sh), then rerun — LATEST was not "
+                   "moved")
     probs = classified_problems(rid)
     if probs:
         raise Stop("checks", "classified waters: the candidate ships a book-classified water without its Classified "
@@ -1428,9 +1527,43 @@ RUNNERS = {"preflight": stage_preflight, "baseline": stage_baseline, "build": st
            "follows": stage_follows, "promote": stage_promote, "staging": stage_staging}
 
 
-def default_min_app(live: str | None) -> str | None:
-    """The previous release's stamp: the oldest app allowed does not move unless the human says so."""
+def code_manifest() -> dict:
+    """(T993 item 2) the manifest's `files` as a release built from THIS code will write them (`build.built_formats`):
+    what the app gate asks before a candidate exists."""
+    from pipeline.deliver.release.build import built_formats
+    return {"files": {k: {"format": f} for k, f in built_formats().items()}}
+
+
+def derived_min_app() -> str | None:
+    """(T993 item 2) the oldest recorded app that reads every format the code writes (`app_gate.oldest_reader` over
+    `code_manifest` and `app_reads.json`); None when the newest recorded app cannot read one of them."""
+    from pipeline.deliver.release.app_gate import oldest_reader
+    return oldest_reader(code_manifest())
+
+
+def live_stamp(live: str | None) -> str | None:
     return manifest_of(live).get("minAppVersion") if live else None
+
+
+def default_min_app(live: str | None) -> str | None:
+    """(T993 item 2) THE MINIMUM APP IS DERIVED, never a flag to remember (0.8.5 stop 3: `--min-app-version 0.8.4` was
+    not passed though T686 always needed it): the live release's stamp, raised to what the code's formats need
+    (`derived_min_app`). It never goes down by itself; `--min-app-version` still sets it (the preflight refuses one
+    below what the formats need). `check_min_app` says when it rises and which recorded apps that leaves behind."""
+    from pipeline.deliver.release.app_gate import ver
+    got = [v for v in (live_stamp(live), derived_min_app()) if v]
+    return max(got, key=ver) if got else None
+
+
+def left_behind(old: str | None, new: str | None, apps: list[str] | None = None) -> list[str]:
+    """(T993 item 2) the recorded app versions a rise of the minimum app from `old` to `new` leaves behind: those at
+    least `old` (the ones that apply releases today) and older than `new` — they keep the data they hold and apply no
+    newer release until they update."""
+    from pipeline.deliver.release.app_gate import table, ver
+    if not new or (old and ver(new) <= ver(old)):
+        return []
+    return sorted((v for v in (table() if apps is None else apps) if ver(v) < ver(new) and (not old or ver(v) >= ver(old))),
+                  key=ver)
 
 
 def resume_min_app(led: dict, rid: str | None, live: str | None) -> str | None:
@@ -1512,11 +1645,50 @@ def staging(ctx: Ctx) -> int:
     return 0
 
 
+def size_headroom(rid: str) -> list[tuple]:
+    """(T993 item 9) every gated size of release `rid` against its gate, tightest first (`build.headroom`)."""
+    from pipeline.deliver.release.build import headroom
+    return headroom(release_root() / rid)
+
+
+def headroom_said(rid: str, rows: list[tuple], indent: str, show: int = 6) -> list[str]:
+    """(T993 item 9) the rehearsal's size lines: the `show` tightest, and EVERY one under `build.HEADROOM_WARN` marked
+    WARN (a new column on it would stop the checks after a 25-minute build: 0.8.5 stop 2)."""
+    from pipeline.deliver.release.build import HEADROOM_WARN
+    warn = [r for r in rows if r[3] < HEADROOM_WARN]
+    keep = rows[:max(show, len(warn))]
+    out = [f"{indent}size headroom on {rid} (gzip vs its gate, tightest first; WARN under {HEADROOM_WARN:.0%}):"]
+    for what, n, gate, room in keep:
+        out.append(f"{indent}  {what:22} {n:>12,} / {gate:>12,}  {room:6.1%}" + ("  WARN" if room < HEADROOM_WARN else ""))
+    if warn:
+        out.append(f"{indent}  {len(warn)} under {HEADROOM_WARN:.0%}: a lane adding a column to one of them measures "
+                   "its gz delta first (raise the gate with a measurement comment, build.SIZE_GATES, or shrink)")
+    return out
+
+
+#: (T993 item 4) what a rehearsal with no CANDIDATE cannot see, and the step that lets it
+NOT_SEEN_BEFORE_A_BUILD = (
+    "the size gates on the new files (LATEST's headroom is shown instead), the app and pieces gates on the real "
+    "manifest (preflight asked the code's formats and LATEST), the classified waters on the new bundle, the binding "
+    "diff, the in-season resolve, the fixture re-cut (golden pages) and the tests on the candidate")
+
+
+def build_step_said(indent: str) -> str:
+    return (f"{indent}to see them now: python -m pipeline release --staging --dry-run --build --rehearse-follows "
+            "(builds the candidate the real run would; LATEST stays)\n"
+            f"{indent}  or the three steps: 1. {' '.join(rel(c) if c.startswith(str(REPO_ROOT)) else c for c in build_cmd())}"
+            f"\n{indent}                      2. python -m pipeline release --staging --dry-run --rehearse-follows"
+            f"\n{indent}                      3. python -m pipeline release --staging")
+
+
 def dry_run(ctx: Ctx) -> int:
     """THE REHEARSAL (T666 item 6): every stage's CHECKS run — preflight's whole table (fast-fail and the fresh-copy
     test run too: a pass is recorded, so the real run skips it on the same tree), and, once a build has left a
     CANDIDATE, the checks of the stages after it. Nothing is built, committed, promoted or uploaded; the only thing
-    written is the ledger's `fast_fail` / `fresh_copy` pass. It ends with every stop the real run would make now."""
+    written is the ledger's `fast_fail` / `fresh_copy` pass. It ends with every stop the real run would make now.
+    (T993 item 4) Before a build it says plainly what it cannot see (`NOT_SEEN_BEFORE_A_BUILD`) and the step that
+    shows it: `--build` runs stage 3's own build first (the baseline kept as stage 2 does; LATEST stays, nothing is
+    committed, promoted or uploaded), so one rehearsal covers every stage."""
     ctx.led = load_ledger()
     led = ctx.led
     P = "             "
@@ -1527,8 +1699,9 @@ def dry_run(ctx: Ctx) -> int:
         return "WOULD STOP: " + what
 
     n = len(STAGES)
-    print("release --staging, REHEARSAL (--dry-run: every stage's checks; nothing is built, committed, promoted or "
-          "uploaded)\n")
+    print("release --staging, REHEARSAL (--dry-run: every stage's checks; "
+          + ("--build: the candidate is built first, LATEST stays; " if ctx.build else "nothing is built, ")
+          + "nothing is committed, promoted or uploaded)\n")
     remember_flags(ctx, save=False)
     print(f"[1/{n}] preflight  every check (the real run's table):")
     for name, f in preflight_findings(ctx, indent=P, stop_word="WOULD STOP"):
@@ -1551,24 +1724,48 @@ def dry_run(ctx: Ctx) -> int:
              and reach_digest_of(ctx.baseline) == live_digest
              else stop(f"reach run on disk is {on_disk} and no copy is kept (--baseline DIR)")))
     print(f"[3/{n}] build      {' '.join(rel(c) if c.startswith(str(REPO_ROOT)) else c for c in build_cmd(jobs=ctx.jobs))}"
-          f"\n{P}the build's plan:")
+          + (f"\n{P}--build: the build RUNS now (stage 3's own build: LATEST stays, the candidate waits in CANDIDATE) so "
+             "the stages after it are rehearsed on what it makes" if ctx.build else f"\n{P}the build's plan:"))
     sys.stdout.flush()
-    rc = run_cmd(build_cmd(dry_run=True, jobs=ctx.jobs))
-    if rc:
-        print(f"{P}" + stop(f"the build's dry run returned rc={rc}"))
+    if ctx.build:
+        # (T993 item 4) the baseline first, as stage 2 does: the build's reach run overwrites the diff's "before"
+        kept_now, msg = (keep_baseline(live, reach=ctx.baseline) if ctx.baseline is not None else keep_baseline(live)) \
+            if live else (False, "no live release")
+        print(f"{P}baseline: {msg}")
+        if not kept_now:
+            print(f"{P}" + stop(f"--build: the live reach run's copy is not kept ({msg}): nothing was built"))
+        else:
+            kept = True
+            rc = run_cmd(build_cmd(jobs=ctx.jobs), env=ctx.heavy_env or None)
+            if rc:
+                print(f"{P}" + stop(f"--build: `pipeline build` failed (rc={rc}): read its output above "
+                                    "(`python -m pipeline build --status`)"))
+            cand, on_disk = read_pointer("CANDIDATE"), reach_digest_of(reach_dir())
+            target = cand or live
+            min_app = ctx.min_app or resume_min_app(led, target, live)
+            r = led.get("releases", {}).get(target or "", {})
+    else:
+        rc = run_cmd(build_cmd(dry_run=True, jobs=ctx.jobs))
+        if rc:
+            print(f"{P}" + stop(f"the build's dry run returned rc={rc}"))
     print(f"{P}CANDIDATE now: {cand or '(none)'} — the build names its release there; LATEST stays {live}")
 
     # the stages after the build check the release it made: rehearsed on the CANDIDATE when there is one
     built = cand is not None and cand != live
-    later = ("" if built else f"\n{P}no CANDIDATE yet: these are rehearsed on the release once the build has made it "
-             "(run --dry-run again then); shown on " + str(target) + " where that says anything")
+    later = ("" if built else f"\n{P}NOT SEEN — no CANDIDATE yet (T993 item 4): {NOT_SEEN_BEFORE_A_BUILD}. Shown on "
+             f"{target} where that says anything.\n" + build_step_said(P))
     print(f"[4/{n}] checks     manifest sanity; app gate (min app {min_app or 'any'}"
-          + ("" if ctx.min_app else ", from the ledger, else the live release's stamp") + "); binding diff "
+          + ("" if ctx.min_app else ", from the ledger, else the live stamp raised to the code's formats")
+          + "); pieces gate; binding diff "
           f"{rel(baseline_dir(live)) if live else '?'} -> {rel(reach_dir())}{later}")
     if target:
         if built:
             probs = manifest_problems(target)
             print(f"{P}manifest sanity on {target}: " + (stop("; ".join(probs)) if probs else "ok"))
+        try:
+            print("\n".join(headroom_said(target, size_headroom(target), P)))
+        except (OSError, ValueError, KeyError) as e:
+            print(f"{P}size headroom on {target}: COULD NOT READ ({type(e).__name__}: {e})")
         probs = app_gate_problems(target, min_app)
         print(f"{P}app-version gate on {target} (min app {min_app or 'any'}): "
               + (stop("; ".join(probs)) if probs else "ok"))
@@ -1676,13 +1873,16 @@ def dry_run(ctx: Ctx) -> int:
         print(f"review           COULD NOT READ the pending review build ({type(e).__name__}: {e})")
     if stops:
         print(f"\nrehearsal: the real run would STOP {len(stops)} time(s) as things are"
-              + ("" if built else " (before the build; the later stages are rehearsed once it has made a candidate)")
+              + ("" if built else " (before the build)")
               + ":" + "".join(f"\n  {k}. {x}" for k, x in enumerate(stops, 1)))
     else:
-        print("\nrehearsal: no stop found" + ("" if built else " before the build (the later stages are rehearsed once "
-              "it has made a candidate)") + ". Not rehearsed: the build itself, "
+        print("\nrehearsal: no stop found" + ("" if built else " before the build") + ". Not rehearsed: "
+              + ("" if ctx.build else "the build itself, ")
               + ("" if rehearsed is not None else "a changed golden page, the tests on the candidate "
                  "(--rehearse-follows), ") + "the upload and its smoke test.")
+    if not built:
+        # (T993 item 4) said plainly, never implied: a pre-build rehearsal cannot promise the real run's stops
+        print(f"NOT SEEN before a build: {NOT_SEEN_BEFORE_A_BUILD}.\n" + build_step_said("  "))
     print("\nproduction (human-only, after staging): CONFIRM_PROD=<r-id> python -m pipeline release --prod <r-id>")
     return 0
 
@@ -1764,6 +1964,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--rehearse-follows", action="store_true",
                     help="(T680) with --dry-run, once a CANDIDATE is built: re-cut the fixtures in place on it, run "
                          "every check the follows stage runs, list every failure, then put the fixtures back")
+    ap.add_argument("--build", action="store_true",
+                    help="(T993 item 4) with --dry-run: build the candidate first (stage 3's build: LATEST stays), so "
+                         "the checks after the build are rehearsed on it too")
     ap.add_argument("--accept-fixtures", default=None, metavar="TOKEN",
                     help="(T666) the token of the fixture re-cut whose changed golden pages you read: commit exactly it")
     ap.add_argument("--push", action="store_true",
@@ -1781,7 +1984,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--baseline", type=Path, default=None, metavar="DIR",
                     help="the reach run the live release was cut from, when no copy was kept")
     ap.add_argument("--min-app-version", default=None, metavar="X.Y.Z",
-                    help="the oldest app allowed to apply the release (default: the live release's stamp)")
+                    help="the oldest app allowed to apply the release (default, T993: the live release's stamp raised to "
+                         "what the code's formats need, derived before the build)")
     ap.add_argument("--no-fast-fail", default=None, metavar="REASON",
                     help="skip scripts/fast-fail.sh (T483); the reason is required and printed")
     ap.add_argument("--no-ci-check", default=None, metavar="REASON",
@@ -1814,7 +2018,9 @@ def main(argv: list[str] | None = None) -> int:
         ap.error('--no-fresh-copy needs a reason, which is printed: --no-fresh-copy "<why it is skipped>"')
     if a.rehearse_follows and not a.dry_run:
         ap.error("--rehearse-follows is a rehearsal: give it with --dry-run (the real run re-cuts and checks anyway)")
-    ctx = Ctx(rehearse_follows=a.rehearse_follows, accept_diff=a.accept_diff, baseline=a.baseline, min_app=a.min_app_version, jobs=a.jobs,
+    if a.build and not a.dry_run:
+        ap.error("--build is the rehearsal's build step: give it with --dry-run (the real run builds anyway)")
+    ctx = Ctx(rehearse_follows=a.rehearse_follows, build=a.build, accept_diff=a.accept_diff, baseline=a.baseline, min_app=a.min_app_version, jobs=a.jobs,
               reupload=a.reupload, no_fast_fail=a.no_fast_fail, stale_atlas=a.ship_stale_atlas,
               no_ci_check=a.no_ci_check, accept_fixtures=a.accept_fixtures, push=a.push,
               no_follow_tests=a.no_follow_tests, forget=a.forget_flags, no_fresh_copy=a.no_fresh_copy)
