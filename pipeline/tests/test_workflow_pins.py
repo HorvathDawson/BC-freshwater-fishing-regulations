@@ -219,6 +219,7 @@ NOT_READ = {
     ("test_ci_paths.py", "AGENTS.md"): "a made-up path the glob and the areas are matched against",
     ("test_ci_paths.py", "handoff/PLAN/STATUS.md"): "a made-up path the areas are matched against",
     ("test_release_command.py", "handoff/PLAN/STATUS.md"): "a made-up committed path (the rebuild decision)",
+    ("test_ci_status.py", "handoff/PLAN/STATUS.md"): "a made-up changed path (the --strict area rule)",
     ("test_workflow_pins.py", "handoff/**"): "the docs filter's own entry, compared as text",
     ("test_workflow_pins.py", "AGENTS.md"): "a key of this table",
     ("test_workflow_pins.py", "handoff/PLAN/STATUS.md"): "a key of this table",
