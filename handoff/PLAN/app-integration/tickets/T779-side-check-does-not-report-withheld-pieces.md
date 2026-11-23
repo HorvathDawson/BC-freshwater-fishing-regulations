@@ -1,6 +1,6 @@
 # T779 — The side check used when a DFO mark is landed does not report a withheld piece; only the full reach run refuses it
 
-Status: DONE — c77eeb601 (2026-11-22), dd942ce76, ff7cece62, 4916c3cf0 (2026-11-23, review fixes). Tested on built data (`test_review_withheld_built.py`, slow): the Middle Shuswap places with T778's fix off are refused, with it on they land. Not yet seen in the browser.
+Status: DONE — c77eeb601 (2026-11-22), dd942ce76, ff7cece62, 4916c3cf0, f7959c270 (2026-11-23, review fixes). Tested on built data (`test_review_withheld_built.py`, slow): the Middle Shuswap places with T778's fix off are refused, with it on they land. Not yet seen in the browser.
 
 Source: T778, 2026-11-15 night. The two Middle Shuswap saves were landed with `apply dfo --side-checked` ("0 -> 17
 sections, bound"), and the full build then stopped 14 minutes into its reach run on a piece those places withheld.
@@ -17,13 +17,17 @@ app's preview has the same blind spot, so the owner cannot see it when he saves.
   `accepted`: the same rule as the reach gate, at save time.
 - A test on built data: a place with a straddling piece is refused by the side check.
 
-State 2026-11-23: review fixes dd942ce76, ff7cece62, 4916c3cf0 on branch fix/T775-review-app-leftovers (PR #48); origin/main merged.
+State 2026-11-23: review fixes dd942ce76, ff7cece62, 4916c3cf0, f7959c270 on branch fix/T775-review-app-leftovers (PR #48); origin/main merged.
 
 ## Review fixes 2026-11-23 (PR #48 independent review, dd942ce76)
 - A check that cannot run refuses (W46): a DFO place on a cut-changing chain whose check says `cheap: False` (a new or
   just-landed cut the live atlas has not got, an unbound split, an error) is refused with the reason, never landed
   unchecked. Every side DFO place is checked, not only `--side-checked` ones (a ready side atlas skipped it too).
-  Landing order for such a place: the cut, an atlas rebuild, then the place.
+  It is bound on the atlas that HAS its cut (f7959c270, `apply_proposals.side_check`, its own process): its side
+  atlas with the side copies, or the one `--build` / `CURATION_BUILD` names; with none it is refused.
+  `proposals.side_commands` ends in that apply, so a new cut still needs one live rebuild, not two.
+- `keep_tidal` naming a variant's primary keeps the variant's tidal water when it has no extent of its own
+  (`resolve_all`'s `loc` or `target`).
 - Stale acceptances: `withheld.check` reports this place's `accepted` rows that name no piece now; the rule is the gate's
   own (`build.unplaced_verdict`, shared by `unplaced_gate`).
 - The run's limits: every save-time binding of a place (preview, size, landing check, dead pieces) takes
