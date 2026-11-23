@@ -1,6 +1,7 @@
 # T754 — Places that cover one bank of a river only (Kitimat west bank)
 
-Status: OPEN (owner answered 2026-11-15, round 4: "Build it this way (Recommended)"; to build)
+Status: DONE 2026-11-22 (5953ef057, eeb19b4f3, lane L20): the words and the other bank's verdict. The one-side stripe and owner
+questions 4–6 are T1029.
 
 Source: owner 2026-11-15, while labelling DFO salmon places: "also for kitimat it is (on west bank between signs at
 Kitimat hatchery outfall. · ) we should have a way to define one half of the river closing maybe? could color only
@@ -160,3 +161,28 @@ Depends: owner answers. Size: B is M (pipeline field + editor row + worker + two
 ## Owner answer 2026-11-22 23:45 (question 2, dialog)
 "Other bank: the water's other rules" — a closure on one bank closes that bank only; the other bank reads the water's
 other regulations (as `side` does for "west half", AGENTS rule 49). Unblocks T754 (size M).
+
+## Built 2026-11-22 (lane L20, 5953ef057, eeb19b4f3)
+- The bank is read from DFO's own words (`regs.dfo_salmon.locations.bank_of`): "on <dir> bank" (not "bank OF something
+  else": the Stave's Ruskin channel "on the east bank of the BC Hydro park" stays a place of its own) and "from the centre
+  line to the <dir> bank". Across every curated place exactly two match (pinned by `test_t754_one_bank.py`): the Kitimat
+  (west, active) and the Nakina (north, dormant). No DFO rule row names a bank (typed feed scanned).
+- Salmon build (`deliver.salmon.build`): a PLACED bank place rides exactly its own bound sections in their chains' `u`,
+  never `l`; its own chain (`unmapped`, `n`) carries its rules; `p[lid].side` names the bank. A bank place the reach run
+  did not place stays an ordinary undrawn place (never widened). The feeds worker composes the release's chains as they
+  are (`composeChain` over `l`, `u`), so no worker change.
+- App (core `salmonCard`): the bank places are the trout card's one-side caveat (kind `side`, "⚠ On one side of the
+  channel only"), each item "West bank only · <DFO's words>" with its rules, calm "On the other bank, this page's salmon
+  answer applies."; never "not drawn yet". `SalmonCard.tsx` draws it with `CaveatBlock`. The headline is the page's
+  answer (as the book's `side`). The decoder refuses a bank other than north/south/east/west.
+- RULINGS E28 (supersedes E19's whole width); AGENTS rule 49 notes it.
+- Proof on the live inputs (scratch, read-only bundle/atlas/reach run; no rebuild): only these two places' bindings
+  change, 14 of 1,949,557 salmon sections. Kitimat (13 sections: 1 mainstem + 12 unnamed tributaries from the heading's
+  "including tributaries"): before, the bank place first in `l`, the stretch closed all year; after, it is in `u`, the
+  stretch answers by the Kitimat's "downstream of Highway 37 bridge" place and the map reads open Apr 1–Oct 31. Nakina
+  (1 section): in `u`, map unchanged (dormant). Needs the 0.9.0 bundle (no atlas, no tiles, no new cuts).
+- Review fixes (7084e2fa5): (1) TRIBUTARIES: NO BANK CAVEAT (review fix; owner may revisit, T1029 Q5): a bank place stands
+  beside on its own river's sections only (the Kitimat: 1 section); the 12 tributary sections its walk took answer by
+  their other places with no caveat. (2) A "rest of" place listing a bank place still answers on the bank place's
+  sections (`rests_behind` `beside_on`; none today). (3) `bank_of` ignores a bank inside an except / excluding clause.
+  Proof rerun: still 14 sections change; the Kitimat bank place is in `u` on 1 section.

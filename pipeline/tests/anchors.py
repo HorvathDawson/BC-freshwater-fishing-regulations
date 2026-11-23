@@ -51,6 +51,19 @@ A section named by its id STRING (`"356075101:0"`, `"lake:-1174"`) is a name, no
 
 Not scanned here (later T667 slices): literal counts on live data (D3), entry ids, format versions.
 
+NO `absent` KIND HERE — A DECIDED GAP (T1002, measured on the live tree 2026-11-22; the app half has one,
+`check-test-anchors.mjs` `absent`). The app rule reads a SHAPE assertion off its matcher (`not.toHaveProperty`,
+`Object.keys(x)` against a typed list); Python has no such matcher. A field's absence is `assert "f" not in row` or a
+typed key set (`assert set(row) == {"a", "b"}`), and those are the SAME syntax as a value pin: `in` asks a dict for a key
+and a list or set for a member, and the AST does not say which the subject is. Measured in the files this scanner calls
+live: 387 `assert "<str>" not in …` in 114 files, and 84 `set(…)` / `sorted(…)` / `list(…)` / `….keys()` `==` a typed
+string set. Read through, nearly all are value pins: rule ids absent from a binding (`"z4:…::….r1" not in got`), species
+codes, words a sentence must not hold, section ids a walk must not reach, the members of a group. Flagging them would
+fail ~470 sound lines for the handful that pin a field; a narrower spelling (the subject a subscript of a release
+read) still holds both. What catches a release-following field assertion instead: the release runs the tests that ask
+for the release under test with `RELEASE_DIR` = its CANDIDATE before the promote (`release_follows`, AGENTS 62 T666),
+so such a test fails on the candidate, before anything ships — as the app's record pins are left to the same run.
+
 THE GUARD IS ON (2026-11-11, owner D4: every offender fails, no baseline, no list of excused files).
 `python -m pipeline.tests.anchors` exits 1 while one offender is left, naming each hit and what to write instead
 (`--json` prints every hit; `--strict` is accepted and means the same). `--report` only counts and exits 0: it is for

@@ -15,18 +15,20 @@ const draw = (m: ReturnType<typeof monthVM>) => m.weeks.map((w) => w.map((c) =>
 
 describe("the range the data covers: one calendar year, cut at the release's last day when it states one", () => {
   it("no last day stated: Jan 1 to Dec 31 of today's year", () => {
-    expect(YEAR).toEqual({ year: 2026, first: "2026-01-01", last: "2026-12-31", until: null, beyond: null });
+    expect(YEAR).toEqual({ year: 2026, first: "2026-01-01", last: "2026-12-31", until: null, capped: false });
   });
   it("a stated last day inside the year cuts it; one after the year or before today does not", () => {
-    expect(dayRange(NOW, "2026-11-30")).toEqual({ year: 2026, first: "2026-01-01", last: "2026-11-30", until: "2026-11-30", beyond: null });
-    expect(dayRange(NOW, "2027-03-31")).toEqual({ year: 2026, first: "2026-01-01", last: "2026-12-31", until: null, beyond: "2027-03-31" });
-    // T1026: the greyed December says why, naming the synopsis's own valid-to day (not the bare "one calendar year")
-    const dec = monthVM(2026, 11, null, NOW, dayRange(NOW, "2027-03-31"));
-    expect(dec.next).toBe(false);
-    expect(dec.reason).toContain("valid to March 31, 2027");
-    expect(monthVM(2026, 11, null, NOW, YEAR).reason).toContain("one calendar year");
+    expect(dayRange(NOW, "2026-11-30")).toEqual({ year: 2026, first: "2026-01-01", last: "2026-11-30", until: "2026-11-30", capped: false });
+    expect(dayRange(NOW, "2027-03-31")).toEqual({ year: 2026, first: "2026-01-01", last: "2027-03-31", until: "2027-03-31", capped: false });
+    // never past the end of next year, whatever a release says
+    const capped = dayRange(NOW, "2030-06-30");
+    expect([capped.last, capped.capped]).toEqual(["2027-12-31", true]);
+    // the note for a capped end never says the regulations end then (the release runs on)
+    const reason = monthVM(2027, 11, null, NOW, capped).reason!;
+    expect(reason).toBe("Days after December 31, 2027 can't be chosen yet.");
+    expect(reason).not.toContain("end then");
     // a release whose last day has passed still reads today (the menu's Data sources page says how old it is)
-    expect(dayRange(NOW, "2026-04-01")).toEqual({ year: 2026, first: "2026-01-01", last: "2026-12-31", until: null, beyond: null });
+    expect(dayRange(NOW, "2026-04-01")).toEqual({ year: 2026, first: "2026-01-01", last: "2026-12-31", until: null, capped: false });
     expect(dayRange(NOW, "not a day")).toEqual(YEAR);
   });
   it("inRange: the first and last days are in, a day either side is out", () => {
@@ -90,6 +92,35 @@ describe("the month grid", () => {
       "  .   .   .   .   .   .   .",
     ]);
     expect(m.weeks[2]![6]!.label).toBe("Saturday, November 21, not available");
+  });
+});
+
+describe("T1026 (a tester: synopsis valid to March 31, 2027, the calendar stopped in December): the range runs into next year", () => {
+  const R = dayRange(NOW, "2027-03-31");
+  const dec = monthVM(2026, 11, null, NOW, R);
+  it("December has a next month; the last day offered is the release's, its words derived from it", () => {
+    expect(dec.next).toBe(true);
+    expect(dec.reason).toBeNull();
+    const mar = monthVM(2027, 2, null, NOW, R);
+    expect([mar.next, mar.reason]).toEqual([false, "Days after March 31, 2027 can't be chosen: these regulations end then."]);
+    expect(monthVM(2027, 3, null, NOW, R).weeks.flat().every((c) => c === null || c.disabled)).toBe(true);
+  });
+  it("a day in 2027 is offered with its REAL weekday, and the grid's columns are that weekday", () => {
+    const jan = monthVM(2027, 0, null, NOW, R);
+    const jan1 = jan.weeks[0]!.findIndex((c) => c?.n === 1);
+    expect(new Date(2027, 0, 1, 12).getDay()).toBe(jan1);   // Friday
+    expect(jan.weeks[0]![jan1]!.label).toBe("Friday, January 1");
+    expect(inRange(R, new Date(2027, 0, 1, 12))).toBe(true);
+    expect(inRange(R, new Date(2027, 3, 1, 12))).toBe(false);
+  });
+  it("the start is said as a date when the range spans years, and the room holds the longest reason", () => {
+    const jan = monthVM(2026, 0, null, NOW, R);
+    expect(jan.reason).toBe("Days before January 1, 2026 can't be chosen.");
+    expect(R.last >= "2027-01-01" && monthVM(2027, 2, null, NOW, R).reasonRoom.length).toBeGreaterThan(0);
+  });
+  it("a month step across New Year is allowed, one past the end is refused (not clamped)", () => {
+    expect(stepDay(new Date(2026, 11, 31, 12), 1, NOW, R)).toEqual(new Date(2027, 0, 1, 12));
+    expect(stepDay(new Date(2027, 2, 31, 12), 1, NOW, R)).toBeUndefined();
   });
 });
 

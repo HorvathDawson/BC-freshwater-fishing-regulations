@@ -69,3 +69,38 @@ def test_an_other_places_place_sorts_after_the_one_sibling_it_rides_on():
     rules = {"x:a-open": [_rule("open", ["CO"], 4)], "x:z-shut": [_rule("shut", ["CO"], 0, may_target=False)]}
     assert S.verdict_on([rules[l] for l in chain], "CO", JUL_20)["s"] == "closed"
     assert sorted(prec, key=S.chain_order(prec, size)) == ["x:a-open", "x:z-shut"]      # without it: the id decides
+
+
+def test_the_review_apps_cascade_view_orders_an_other_places_place_as_the_bundle_does(monkeypatch):
+    """T611: the review app's cascade view (`curation-review/backend/cascade.py`) sorts a chain with the bundle's key,
+    `rides` included, from the places as STORED (dicts) — so "all the other places" with one placed sibling shows after
+    that sibling and the sibling's closure answers, as in the release. MUTATION: drop the `rides` argument there and the
+    view's chain is [open, shut] and coho reads open."""
+    import sys
+    from pathlib import Path
+    from types import SimpleNamespace
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "curation-review" / "backend"))
+    sys.modules.pop("cascade", None)
+    import cascade as C
+    sys.modules.pop("cascade", None)
+
+    def loc(lid, extents):
+        return ("6", {"location_id": lid, "water_id": "x", "precedence": 3, "binding": {"extents": extents}}, None)
+    locs = {"6:frame": ("6", {"location_id": "6:frame", "precedence": 1, "binding": {"extents": [{"op": "whole"}]}},
+                        None),
+            "x:a-open": loc("x:a-open", [{"op": "other_places"}]), "x:z-shut": loc("x:z-shut", [{"op": "whole"}])}
+    assert S.rides_on_others(v[1] for v in locs.values()) == {"x:a-open"}
+    rules = {"6:frame": [], "x:a-open": [_rule("open", ["CO"], 4)],
+             "x:z-shut": [_rule("shut", ["CO"], 0, may_target=False)]}
+    secs = ["s1", "s2"]
+    monkeypatch.setattr(C, "FRAMES", {"t": {"label": "t", "region": "6", "frame": "6:frame"}})
+    monkeypatch.setattr(C, "D", SimpleNamespace(locations=lambda: locs,
+                                                rule_rows=lambda l: ([], rules[l["location_id"]])))
+    monkeypatch.setattr(C, "reuse", SimpleNamespace(_registry=lambda: {}))
+    monkeypatch.setattr(C, "_placed", lambda _k: {l: {"location_id": l, "mapped": True, "sections": secs} for l in locs})
+    model = getattr(C._model, "__wrapped__", C._model)("t", ())
+    [chain] = model["chains"]
+    assert [model["places"][i]["id"] for i in chain["places"]] == ["x:z-shut", "x:a-open", "6:frame"]
+    d = list(S.DAYS).index(JUL_20)
+    run = [r for r in chain["year"]["CO"] if r[0] <= d][-1]
+    assert model["places"][run[1]]["id"] == "x:z-shut" and run[2] == "closed"
