@@ -71,9 +71,10 @@ def test_t882_green_whenever_any_salmon_is_open():
             S.map_status([c, c, tbd, c, c]), S.map_status([tbd] * 5)] == ["open", "open", "release", "check", "check"]
 
 
-def _loc(lid, prec, fps, water="", water_id=None, area="", tidal_water=False):
+def _loc(lid, prec, fps, water="", water_id=None, area="", tidal_water=False, region_number=6):
+    # region_number: every real DFO location carries it (the T668 cascade and T771's equal-place check read it)
     return SimpleNamespace(location_id=lid, precedence=prec, fingerprints=fps, water=water, water_id=water_id,
-                           source_text={"specific_area": area}, tidal_water=tidal_water)
+                           source_text={"specific_area": area}, tidal_water=tidal_water, region_number=region_number)
 
 
 def _ef(locs, waters=()):

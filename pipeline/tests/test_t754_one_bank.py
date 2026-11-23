@@ -101,9 +101,11 @@ def test_a_bank_of_something_else_still_governs_its_place():
 def test_a_rest_that_lists_a_bank_place_still_answers_for_the_other_bank():
     """(review of #61) a "rest of" place listing the bank place stands behind it on its sections (`behind`). The bank place
     is beside there, not in `covering`, so it still counts for `rests_behind`: the rest answers in `l` on the stretch.
+    The rest sits a tier below the river's own place (6:kispiox): at the same tier and size the two would be ordered
+    only by id, and T771's equal-place check (rightly) stops the build.
     MUTATION: drop `beside_on` from `rests_behind` and the rest is gone from s3's chain: this test fails."""
     files, feeds, placed, sid_of = _with_bank(True)
-    files["6"].locations.append(_loc("6:rest", 3, ["fr2"], "Kispiox River", "6:kispiox-river", "all other parts"))
+    files["6"].locations.append(_loc("6:rest", 2, ["fr2"], "Kispiox River", "6:kispiox-river", "all other parts"))
     feeds["6"]["locators"].append({"fingerprint": "fr2", "rules": BAND})
     placed = placed + [{"location_id": "6:rest", "mapped": True, "sections": ["s2"], "behind": {"6:bank": ["s3"]}}]
     payload, sections = S.build(files, feeds, placed, sid_of, {"gnis:4674": [11, 12]}, section_regions=None)
