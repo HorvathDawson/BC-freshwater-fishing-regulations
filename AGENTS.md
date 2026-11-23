@@ -264,6 +264,15 @@ A6. **Commit only your own paths: `git commit -- <paths>`.** Several agents shar
     platform's file, never as a branch in shared code. Enforced by `pnpm platform` (`app/tools/check-platform.mjs`, in
     `pnpm check` and CI) — fix the code, never widen `INLINE_ALLOWED` to pass; a new entry needs the owner's reason.
     Details: `app/README.md` "Web and native code".
+34b. **R8 is on for every Android release build, production included, and its mapping goes to Play (T1003, owner
+    2026-11-22: Play scored Obfuscation 1% with it off).** `apps/mobile/plugins/with-r8.js` turns it on and appends
+    `plugins/r8-keep-rules.pro` (each rule with its reason; a new native module gets a keep-rule review and a bench walk
+    of its path). `deploy/staging/build-apk.sh` keeps the mapping (`data/sourcemaps/<key>/android/r8-mapping.txt`),
+    runs `app/tools/r8-report.mjs check` (no `-dontoptimize/-dontshrink/-dontobfuscate` from any source; the AAB's own
+    scores, the ones Play reads, over the floors) and `play-upload.py --mapping` sends the mapping with the AAB. The
+    trial flag `CANIFISHTHIS_R8` is removed and refused; R8 off is only the test bed's comparison escape
+    (`session.sh --no-r8="<reason>"`), refused for every build that can reach a phone. Never lower a floor or add a
+    broad `{ *; }` keep rule to get a build through (T1009 lists what keeps the scores down).
 
 ## Curated data, and the artifacts you must not regenerate casually
 
