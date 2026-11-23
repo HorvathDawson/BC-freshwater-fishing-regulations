@@ -129,7 +129,11 @@ export function useMarks({ map }: WebMapRefs, marks: MapProps["marks"], onPressM
       undo();
       m.off("moveend", place);
       m.off("click", onClick);
-      (m.getSource(MARK_SOURCE) as { setData?: (d: unknown) => void } | undefined)?.setData?.(EMPTY);
+      // (T1005, c77d892e10eefbd1) ONLY ON THE MAP STILL IN USE. When the archives change (a release applied in the
+      // session), the map is rebuilt: its own cleanup removes the old one (a microtask later, `useMapInstance`), and this
+      // effect's cleanup runs at the NEXT render, on that removed map — whose `getSource` reads a style that is gone and
+      // threw "Cannot read properties of null". A removed map holds nothing to clear.
+      if (map.current === m) (m.getSource(MARK_SOURCE) as { setData?: (d: unknown) => void } | undefined)?.setData?.(EMPTY);
     };
   }, [key, furniture.ink, furniture.card, map.current]);
 }

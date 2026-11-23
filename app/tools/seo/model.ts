@@ -46,6 +46,9 @@ export interface WaterModel {
   readonly neighbours: readonly Neighbour[];
   readonly mid: readonly [lon: number, lat: number] | null;
   readonly book: readonly BookRef[];
+  /** (T1010) each part on the page: its middle ([lon, lat], the release's `part_geo`) and its key's regions 1-8 — what a region
+   *  hub frames the map on (`regionBox`); a part with no middle in the release is not here */
+  readonly at: readonly { readonly mid: readonly [lon: number, lat: number]; readonly regions: readonly number[] }[];
 }
 
 /** The day a page is built for: its Day, the weekday word and the calendar year the presenter wants. */
@@ -312,11 +315,13 @@ export async function waterModel(store: RegsStore, ord: number, on: BuildDay): P
   if (!live.length) return null;
   const regions = await regionsOf(store, live.map((p) => p.akey!));
   const focus = await focusOf(store, live.map((p) => p.akey!));
-  const models: PartModel[] = [];
+  const models: PartModel[] = [], at: { mid: readonly [number, number]; regions: number[] }[] = [];
   for (const p of live) {
     const page = await appPage(store, it.id, p.partIx, on);
     if (page.status === "outside") continue;
     models.push(partModel(page));
+    const g = nav.geo.find((x) => x.partIx === p.partIx);
+    if (g) at.push({ mid: [g.mid[0], g.mid[1]], regions: await regionsOf(store, [p.akey!]) });
   }
   if (!models.length) return null;
   const r = rollup(models);
@@ -329,8 +334,23 @@ export async function waterModel(store: RegsStore, ord: number, on: BuildDay): P
   const first = nav.geo.find((g) => !parts[g.partIx]?.tidal)?.mid ?? null;
   return {
     ord, id: it.id, name: it.name, kind: it.kind, regions, region: regions[0] ?? 0, focus, status: r.status, answer: r.answer, parts: models,
-    neighbours, mid: first ? [first[0], first[1]] : null, book: [...book.values()].sort((a, b) => a.printed - b.printed),
+    neighbours, mid: first ? [first[0], first[1]] : null, book: [...book.values()].sort((a, b) => a.printed - b.printed), at,
   };
+}
+
+/** [west, south, east, north] in degrees */
+export type Box = readonly [w: number, s: number, e: number, n: number];
+/**
+ * (T1010) THE BOX A REGION'S PAGES OPEN THE MAP ON: around the middles of its waters' parts held by that region (`WaterModel.at`),
+ * read from the release — never a table of region boxes typed into the app or the site. Null: no part there has a middle.
+ */
+export function regionBox(models: readonly WaterModel[], region: number): Box | null {
+  let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
+  for (const m of models) for (const a of m.at) {
+    if (!a.regions.includes(region)) continue;
+    w = Math.min(w, a.mid[0]); e = Math.max(e, a.mid[0]); s = Math.min(s, a.mid[1]); n = Math.max(n, a.mid[1]);
+  }
+  return w <= e && s <= n ? [w, s, e, n] : null;
 }
 
 /** The nearest settlement (city, town, village, hamlet, locality) to each water, by the bundle's own `item_near`; empty where the release has none. */
@@ -342,6 +362,28 @@ export async function nearestTowns(store: RegsStore): Promise<Map<string, string
       "WHERE p.name IS NOT NULL AND p.kind IN ('city','town','village','hamlet','locality') ORDER BY c.item_id, n.ckm, p.place_id");
     for (const r of rows) if (!out.has(String(r.id))) out.set(String(r.id), String(r.town));
   } catch { /* a release without item_near has no towns */ }
+  return out;
+}
+
+/**
+ * (T1011) A FORMER NAME, as the release keeps it: a core `alias` row "Chilko Lake (formerly)" (or "Puntzi Lake(formerly)")
+ * on a water renamed since (Tŝilhqox Biny). Null: the alias is not a former name. The name is kept as sourced, the word
+ * "(formerly)" taken off.
+ */
+export function formerName(alias: string): string | null {
+  const m = /^(.*\S)\s*\(\s*formerly\s*\)\s*$/i.exec(alias);
+  return m ? m[1]!.replace(/\s+/g, " ") : null;
+}
+
+/** (T1011) Each renamed water's former names (`formerName` over core's `alias`), in the release's order; empty where none. */
+export async function formerNames(store: RegsStore): Promise<Map<string, string[]>> {
+  const core = await store.core(), out = new Map<string, string[]>();
+  for (const r of await core.all("SELECT item_id, alias FROM alias ORDER BY rowid")) {
+    const name = formerName(String(r.alias));
+    if (!name) continue;
+    const id = String(r.item_id), was = out.get(id) ?? [];
+    if (!was.includes(name)) out.set(id, [...was, name]);
+  }
   return out;
 }
 

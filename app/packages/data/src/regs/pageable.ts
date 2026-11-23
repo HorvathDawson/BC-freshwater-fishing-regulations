@@ -11,8 +11,14 @@ import type { RegsStore } from "./store";
 
 const ADULT_RESIDENT = { age: "adult", residency: "resident" } as const;
 
-/** The waters in the book a page is made for (before their parts are read): ords, in order. */
-export const PAGE_ORDS_SQL = "SELECT i.item_ord AS ord FROM item i WHERE i.shown = 1 AND i.outside_bc = 0 " +
+/**
+ * The waters in the book a page is made for (before their parts are read): ords, in order. (T1011) `item.outside_bc` is the
+ * COUNT of the water's sections outside B.C. (ANSWERS-SPEC "N sections outside B.C."), not a flag: a water is left out only
+ * when EVERY section is outside. Read as a flag (`= 0`, 2026-10-27 to 2026-11-22) it dropped the 156 waters that cross the
+ * border (the Columbia, Kootenay, Peace, Similkameen, Kettle); their parts outside B.C. are still left off the page
+ * (`waterModel` / `waterHasPage` skip a part whose page is `outside`).
+ */
+export const PAGE_ORDS_SQL = "SELECT i.item_ord AS ord FROM item i WHERE i.shown = 1 AND i.outside_bc < i.sections " +
   "AND EXISTS (SELECT 1 FROM part p WHERE p.item_ord = i.item_ord AND p.akey IS NOT NULL AND p.ord IS NOT NULL) ORDER BY i.item_ord";
 
 export interface PageDay { readonly day: Day; readonly weekday: Weekday; readonly year: number }
