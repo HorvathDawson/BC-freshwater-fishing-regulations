@@ -699,10 +699,12 @@ def _kind(node) -> str:
 
 def is_side_channel_piece(node) -> bool:
     """A stream piece carrying no main-flow line: a braid's side channel or its connectors (FWA 1100,
-    1150, 1350, 1450), never a river's own line and never a canal (`fwa_edge_types`)."""
+    1150, 1350, 1450), never a river's own line and never a ditch: the SAME predicate the registry's `is_ditch` uses
+    (`fwa_edge_types.is_ditch_lines`: 2300, with or without its 1450 crossings), so a piece that left its river is
+    not drawn as one of its side channels (T1012)."""
     from pipeline.common import fwa_edge_types as et
     return (_kind(node) == "stream" and bool(node.edge_types) and not et.is_main_flow(node)
-            and not et.is_manmade_secondary_only(node))
+            and not et.is_ditch_lines(node))
 
 
 def side_channel_flag(node) -> dict:

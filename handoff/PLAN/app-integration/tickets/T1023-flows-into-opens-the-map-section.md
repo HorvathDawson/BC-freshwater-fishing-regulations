@@ -1,6 +1,6 @@
 # T1023 — "Flows into X" should open the receiving water's section on the map, not its regulations
 
-Status: OPEN — 0.9.0 batch.
+Status: DONE (641725521, dd48e15d8) — `exitAction` opens the receiving water on its Map (`view: "map"`) at the mouth's part; a water with no Map view still opens on its first view. Tests: waterMap.test, back.test updated. NOT checked on a device/emulator.
 
 Source: STAGING report `c9abc20745908d89`, 2026-11-23 05:43Z, Android 0.8.5 (staging build), water · map, Liumchen Creek
 (`gnis:2500`) part 0, zoom 13.3. Verbatim: "When I click flows into x it should go to that section in the map (section

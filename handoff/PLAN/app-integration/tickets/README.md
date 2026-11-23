@@ -289,18 +289,19 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1009 | Android: Play "DEX code optimization: Low": measure optimization / shrinking / obfuscation every build, narrow broad library keep rules, floors in a build check (after T1003) | IN PROGRESS — L1 perf/T1003-r8-release: scores + floors in the build; left: review/merge, Play's figures | 6f0be8f4d, c34b990ba | owner 2026-11-22 (Play Console card) |
 | T1010 | Website: a region page's "Open the map" opens framed on the region (`?fit=w,s,e,n` start link, box from the release); redesign the page to lead into the app (water search, crawlable links kept below) | PARTIAL | a088c9cd0, 54778147e | left (Claude): show the owner the looks in T1010-shots/ (A, B, C), build the picked one |
 | T1011 | Website: 156 waters partly outside B.C. get pages (`outside_bc` is a count); renamed waters' former names in title / description / JSON-LD / lists; static home links; top-100 indexing list | PARTIAL | 54778147e | left (Claude): part 3 (top-100 from Search Console) and the former name in the app pane (needs `alias` in core slices) |
-| T1012 | Staging report: Serpentine River (`gnis:24978`) part 2 shows ditches on its mainstem in salmon mode | OPEN — next release batch | | staging report 2026-11-22 (`e552b9f0b31e2698`) |
+| T1012 | Staging report: Serpentine River (`gnis:24978`) part 2 shows ditches on its mainstem in salmon mode | IN PROGRESS — fix 034f9a7b8 (2300 + 1450 ditches leave 7 rivers, side-atlas binding diff attributed); left (Claude): ship with the 0.9.0 atlas rebuild | | staging report 2026-11-22 (`e552b9f0b31e2698`) |
 | T1013 | Staging report: switching to Runs takes a very long time the first time (Android 0.8.5) | IN PROGRESS — read ahead on a phone + answer before the capture write; left (Claude): emulator timings before / after | 02d0a8a90 | emulator timings, fresh + warm (testbed mode-switch Runs leg) |
 | T1014 | Play update check: production phones read `app/android/play/43.json`, which only the staging bucket holds (HTTP 404) | OPEN — next release batch | | owner: copy 43.json to production R2; build-apk.sh --play to both buckets |
 | T1015 | Google's renderer runs the web app on cached old releases: does the indexed page show the app's boot error? | OPEN — next release batch | | Search Console rendered-page check, then the fallback if needed |
 | T1016 | Web: a tab kept open across two releases (or a site deploy) meets 404s on pruned files / a gone chunk: say it, reload | OPEN — next release batch | | all |
 | T1017 | Two one-report defects to locate: `expression.evaluate is not a function` (web), iOS "Unable to open URL" on Runs | OPEN — next release batch | | both; item 1 after T1008 |
 | T1019 | The pre-push commit check reads the PR's range (`merge-base(origin/main, HEAD)..HEAD`, as docs-ci), not `<remote old>..<local>` | DONE | 44f689ba1 | depends T995, T998; 0.9.0 batch brief (lane L6, 2026-11-22) |
-| T1023 | Staging report: "Flows into X" should open the receiving water's section on the map, not its regulations (Liumchen Creek) | OPEN — 0.9.0 batch | | staging report 2026-11-23 (`c9abc20745908d89`) |
-| T1024 | Staging report: "weird highlighting on the lake" at Gravel Slough | OPEN — 0.9.0 batch | | staging report 2026-11-23 (`3444007425e9d3bd`) |
-| T1025 | Switching regs sub-tabs (What you can keep ↔ Licence) scrolls through every section between | OPEN — 0.9.0 batch | | closed tester via owner 2026-11-22 |
-| T1026 | The day picker stops at December 2026 although the synopsis is valid to March 31, 2027 | OPEN — 0.9.0 batch | | closed tester via owner 2026-11-22 |
+| T1023 | Staging report: "Flows into X" should open the receiving water's section on the map, not its regulations (Liumchen Creek) | DONE | 641725521, dd48e15d8 | staging report 2026-11-23 (`c9abc20745908d89`) |
+| T1024 | Staging report: "weird highlighting on the lake" at Gravel Slough | OPEN | | staging report 2026-11-23 (`3444007425e9d3bd`) |
+| T1025 | Switching regs sub-tabs (What you can keep ↔ Licence) scrolls through every section between | DONE | 641725521, dd48e15d8 | closed tester via owner 2026-11-22 |
+| T1026 | The day picker stops at December 2026 although the synopsis is valid to March 31, 2027 | PARTIAL | | closed tester via owner 2026-11-22 |
 | T1027 | Android R8: push the optimization / shrinking / obfuscation scores past ~72% (restate library keep rules, each walked) | OPEN — after 0.9.0 | T1003, T1009 | owner 2026-11-22 |
+| T1028 | The trout schedule bar's open colour = the salmon bar's (owner 2026-11-23) | DONE | 391b37ddb | owner 2026-11-23 |
 
 ## Next after closed testing
 
