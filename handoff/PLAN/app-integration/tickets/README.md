@@ -274,7 +274,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T994 | Production-level audit: non-standard practices and data-flow issues across the code | IN PROGRESS | | owner 2026-11-21 |
 | T995 | Branch structure: `main` is the protected trunk; PRs with required checks; release branches and tags | PARTIAL (switch landed c374b91fd 2026-11-22; left (Claude): prune branches, delete the old branch after 0.8.6 redeploys the prod worker) | c374b91fd, d4eae5b46 | owner 2026-11-21 |
 | T996 | Test the Apple push service end to end (registration, wake-up delivery, token reuse over 1 h+) | OPEN | T994 | owner 2026-11-21, next release |
-| T997 | Water map: two boundary labels at almost the same place draw on top of each other (Nicomekl River Part 2) | IN REVIEW — owner: OWNER-TODO "T997 Nicomekl labels" | 92ebd9c5d | merged one box under 100 m + label collision; owner looks at the after shots |
+| T997 | Water map: two boundary labels at almost the same place draw on top of each other (Nicomekl River Part 2) | IN REVIEW — owner: OWNER-TODO "T997 Nicomekl labels" | 92ebd9c5d dcc18bb8f | merged one box under 100 m + label collision; owner looks at the after shots |
 | T998 | Meaningful versions: SemVer for the app, the bump derived from Conventional Commits (1.0.0 at public launch) | DONE | 6a16738db | owner 2026-11-21; 2026-11-22: next release is 0.9.0 (owner accepted the computed bump; it waits for the next chat's work) |
 | T999 | Feeds worker backup copies reports incrementally (the daily backup fails, told, past ~4,500 reports) | OPEN | | T994 finding 24 (a6d97778a note) |
 | T1000 | Tiles: an Adskwatim Creek stream polygon draws in the lake layer, not the stream layer (2 live tests red) | OPEN | | T931 review 2026-11-22 |
