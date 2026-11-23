@@ -88,6 +88,10 @@ describe.skipIf(!LIVE)(`T1031 each salmon species' sources (${LIVE ?? "no live r
       const bare = withSalmonSheets((k) => (k === `sp:${code}` ? null : own(k)), card);
       const alone = bare(`sp:${code}|src`);
       expect([alone?.tabs, alone?.title, reports.map((e) => (e as Error).name)]).toEqual([undefined, row.name, ["SalmonLooksMissing"]]);
+      // a species answered with no source: its answer drawn, the gap reported
+      reports.length = 0;
+      const none = withSalmonSheets(own, { ...card, whoBy: {} })(`sp:${code}|src`)!;
+      expect([none.blocks.some((b) => b.k === "sources"), reports.map((e) => (e as Error).name)]).toEqual([false, ["SalmonSourcesMissing"]]);
     } finally { undo(); }
     // mutation: no card, the page's own sheets alone (no tabs, no Sources); a fish the page's lines answer keeps its own tabs
     expect([withSalmonSheets(own, null)(`sp:${code}`)?.tabs, withSalmonSheets(own, null)(`sp:${code}|src`)]).toEqual([undefined, null]);

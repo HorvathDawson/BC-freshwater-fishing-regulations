@@ -30,6 +30,11 @@ function bookRow(sheet: (k: SheetKey) => SheetVM | null, from: string, rule: str
   return { key: rule as SourceRowVM["key"], title: water ?? r.title, quote: quote.text, role: "", book: pages?.k === "pages" ? pages.line : [] };
 }
 
+/** A salmon species the card answers with no source of its answer (`SalmonCardVM.whoBy`). */
+export class SalmonSourcesMissing extends Error {
+  constructor(readonly code: string) { super(`salmon sheet: no source for ${code}'s answer`); this.name = "SalmonSourcesMissing"; }
+}
+
 /** A salmon species of the card with no Identification sheet (no picture, no tips in the fish manifest). */
 export class SalmonLooksMissing extends Error {
   constructor(readonly code: string) { super(`salmon sheet: no picture sheet for ${code}`); this.name = "SalmonLooksMissing"; }
@@ -48,6 +53,8 @@ export function salmonSourcesSheet(key: SheetKey, code: SalmonSpecies, card: Sal
   for (const l of [row.quotaRuns ?? (row.quota ? [text(row.quota)] : null), row.window ? [text(row.window)] : null,
                    row.limit ? [text(row.limit)] : null] as (Line | null)[]) if (l) blocks.push({ k: "para", text: l });
   const who = card.whoBy?.[code] ?? [];
+  // (W46) a species with an answer and no source: its answer drawn, the gap reported (every answer names one, salmonWho test)
+  if (!who.length) reportFailure(new SalmonSourcesMissing(code));
   // a DFO place with DFO's rows as printed under its name (one the release keeps no rows for: its name alone), linked as the
   // card's Source line links it (#69): "DFO notices, Region 6 Skeena ↗" to that region's page; a water DFO lists in no
   // region (the default "Not opened by DFO"): DFO's notices

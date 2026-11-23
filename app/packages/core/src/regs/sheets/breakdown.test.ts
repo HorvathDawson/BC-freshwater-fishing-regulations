@@ -36,6 +36,10 @@ describe("breakdown", () => {
     expect(drawn([{ r: rule("c", { gate: "closed" }), role: "governs" }])[1]).toBe(`Title c · ${WORDS.SHEET_CLOSES_IT} · p.21`);
     expect(drawn([{ r: rule("r", { gate: "release" }), role: "governs" }])[1]).toBe(`Title r · ${WORDS.SHEET_RELEASE_ALL} · p.21`);
   });
+  it("(W46) a role with no words is refused, never drawn blank; no role at all is no role words", () => {
+    expect(() => breakdown([{ r: rule("x"), role: "invented" }])).toThrow(/no words for the role "invented"/);
+    expect(drawn([{ r: rule("x"), role: "" }])).toEqual([SOURCE_AUTHORITIES.synopsis.name, "Title x · p.21"]);
+  });
   it("an authority with no rule draws no group; nothing at all is no group", () => {
     expect(drawn([{ r: rule("d", { dfo: true }), role: "" }])).toEqual([SOURCE_AUTHORITIES.dfo.name, "Title d · p.21"]);
     expect(drawn([])).toEqual([]);

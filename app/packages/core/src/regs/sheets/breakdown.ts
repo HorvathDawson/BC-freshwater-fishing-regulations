@@ -22,7 +22,10 @@ export interface Cited { readonly r: RuleView; readonly role: string }
 /** A stored role in words (page v36 ROLE; a governing gate says whether it closes the fish or releases it). */
 export function roleWord(role: string, r: RuleView): string {
   if (role === "governs" && r.kind === "gate") return closedGate(r) ? WORDS.SHEET_CLOSES_IT : WORDS.SHEET_RELEASE_ALL;
-  return ROLE[role] ?? "";
+  const w = ROLE[role];
+  // (W46) a stored role the app has no words for is refused, never drawn blank
+  if (w === undefined) throw new Error(`breakdown: no words for the role "${role}" (words.ts ROLE)`);
+  return w;
 }
 
 const rowOf = ({ r, role }: Cited): SourceRowVM =>
