@@ -301,6 +301,8 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1030 | The release manifest carries a changed-waters count (the inbox data row's "N waters changed") | OPEN — 0.9.0 batch | T867 | stopped: not small, see the file |
 | T1028 | The trout schedule bar's open colour = the salmon bar's (owner 2026-11-23) | DONE | 391b37ddb | owner 2026-11-23 |
 | T1029 | One-bank DFO places: the one-side stripe on the Salmon map (T754 option B, the rest; owner Q4–Q6) | OPEN — after 0.9.0 | T754 | T754 (owner 2026-11-15 / 2026-11-22) |
+| T1034 | A `regs=` link opened over another water keeps the old camera (the link's `part` is read and dropped) | PARTIAL | | lane L18 emulator 2026-11-23 |
+| T1035 | `theme=dark` on a `regs=` link does not switch the theme on the phone | DONE | 77d9de76d | lane L18 emulator 2026-11-23 |
 
 ## Next after closed testing
 
