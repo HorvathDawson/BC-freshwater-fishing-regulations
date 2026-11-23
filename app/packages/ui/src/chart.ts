@@ -183,16 +183,6 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
     () => (station ? askOnce(source, key, () => source.gaugeSeries(station, span, parameter, model))
                    : Promise.resolve(null)),
     `${key}#${v}`, station !== null && enabled, key, () => peekAnswer(source, key));
-  // (T1043, owner 2026-11-23: "the scale of the chart should use the year data if not enough histroical data exists")
-  // A 72 H CHART WITH NO BAND IS SCALED TO ITS YEAR: the same series the Year view draws, asked under the same key (the
-  // prefetch already holds it). A year that fails to load is reported (`useAsync`, T368) and the chart scales to its
-  // own values, saying so (`Hydrograph.scale` "reading").
-  const yearKey = seriesKey(station, "year", parameter, model);
-  const year = useAsync(
-    () => askOnce(source, yearKey, () => source.gaugeSeries(station!, "year", parameter, model)),
-    `${yearKey}#${v}`, station !== null && enabled && span === "72h", yearKey, () => peekAnswer(source, yearKey));
-  const scaleTo = useMemo(() => (span === "72h" && year.state === "ready" ? yearScale(year.value?.value ?? null) : null),
-                          [span, year]);
   // (T256) THE CHART BEFORE ITS ENVELOPE: while the series (which waits for the release's climatology, ~1.4 MB) is on
   // its way, the feed's own observations and forecast are drawn, and the band joins them when it lands
   const dParam = parameter ?? draft?.parameter;
@@ -223,6 +213,20 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
   const both = whole ?? early;
   const s = useMemo(() => (both && !drawForecast && both.forecast ? { ...both, forecast: null } : both),
                     [both, drawForecast]);
+  // (T1043, owner 2026-11-23: "the scale of the chart should use the year data if not enough histroical data exists")
+  // A 72 H CHART WITH NO BAND IS SCALED TO ITS YEAR. The release's Year series is null for exactly these stations (no
+  // envelope: `seriesOf`), so the year is read where the Year view's values come from: the feed's own record of this year
+  // and the earlier years (`draftSeriesOf`, the same join with no band). Asked only once the series is known to have no
+  // band; no feed to read it from (`draft` null) or no value in it: the chart scales to its own values and says so
+  // (`Hydrograph.scale` "reading"). A failed read is reported (`useAsync`, T368).
+  const bandless = span === "72h" && !!whole && !whole.band.some((b) => b !== null);
+  const yParam = whole?.parameter;
+  const yKey = `yearscale:${seriesKey(station, "year", yParam, undefined)}`;
+  const yearAsk = useAsync(
+    async () => askOnce(source, yKey, async () => draftSeriesOf(await draft!.feed.observations(station!), "year", yParam)),
+    `${yKey}#${v}`, bandless && !!draft && station !== null, yKey, () => peekAnswer(source, yKey));
+  const scaleTo = useMemo(() => (bandless && yearAsk.state === "ready" ? yearScale(yearAsk.value?.value ?? null) : null),
+                          [bandless, yearAsk]);
   const aged = series.state === "ready" && series.value ? series.value
     : series.state === "loading" && wantsDraft && drafted.state === "ready" ? drafted.value : null;
   const asOf = aged?.kept ? CONDITIONS_WORDS.keptAsOf(aged.fetchedAt) : null;
