@@ -32,9 +32,6 @@ export { SOURCE_AUTHORITIES, SOURCE_LINE, RULE_BOOK, type AuthorityId } from "./
 
 /** The row's label. */
 export const SOURCE_ROW_LABEL = SOURCE_LINE.LABEL;
-/** A Source row page link's spoken name (the page-foot row's: `marked`, every passage the page cites is marked). */
-export const sourcePageA11y = (printed: number, marked: boolean): string =>
-  SOURCE_LINE.PAGE_A11Y(printed, marked ? SOURCE_LINE.MARKS_PAGE : null);
 
 /** An authority's page: its Sources-and-licences row's. A row without one is a programming error, thrown (never a blank link). */
 export function authorityUrl(id: AuthorityId): string {
