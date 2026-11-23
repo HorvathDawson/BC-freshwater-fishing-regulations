@@ -54,3 +54,9 @@ inline look in 3, the tab words in 1). Default: build 1 and 2 with the words abo
 - The sheet's words: "Keep these words (Recommended)" — as built: "Identification | Sources", "Where each rule comes from".
 - The book's name: "'B.C. Synopsis' everywhere (Recommended)" — item 3 (lane L22, #69) sets it once in
   `core/src/sourceNames.ts`; the breakdown's page links are `bookText` runs, so they read it from there with no word of their own.
+
+## Review of #71 (2026-11-23), fixed in bb3836936
+A salmon card row's `sp:<code>|src` opens its page line's Sources tab where the page answers that fish; an Other fish row
+with no picture still ends with its deciding rules; the trout / salmon row's two presses each hold their own 44 px; a closed
+salmon species names its closure's source. Left for when #69 lands: the salmon Sources rows' place titles ("Rule book p.9 ·
+…", salmon.ts `placeFromBook`) to #69's source format and the book's name from `sourceNames.ts`.
