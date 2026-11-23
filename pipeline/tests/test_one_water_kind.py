@@ -215,7 +215,8 @@ def test_one_water_kind(db, registry, graph, handles, doc, tiles, build):
             bad.append((sid, item, kind, reach, export, tile))
     assert bad == [], bad[:20]
     polys = {s for s, (i, k) in owner.items() if k == "stream" and node_of[s].startswith("lake:")
-             and s not in tiles["tidal"]}                  # T166: a tidal piece is off the map (Williamson Slough's)
+             and s not in tiles["tidal"]                   # T166: a tidal piece is off the map (Williamson Slough's)
+             and not graph.nodes[node_of[s]].out_of_bc}    # T1000: so is a piece outside B.C. (Adskwatim Creek's)
     assert polys <= set(tiles["lake"]) | set(tiles["wetland"])
     # every LAKE node of a stream has a route (a wetland node has none: nothing to draw as a line), except a polygon
     # no line touches: an owner-confirmed ISOLATED slough call (T322, owner 10-30: the Okanagan River Oxbows are
@@ -227,6 +228,20 @@ def test_one_water_kind(db, registry, graph, handles, doc, tiles, build):
         "a routeless stream polygon nobody confirmed"
     routed = lakes - routeless
     assert routed and routed <= set(tiles["stream"]), "a stream's polygon draws its route as stream"
+
+
+@pytest.mark.needs_tiles
+@pytest.mark.needs_bundle
+@pytest.mark.slow
+def test_nothing_outside_bc_is_drawn(db, graph, handles, tiles):
+    """T1000: OUTSIDE B.C. IS NOT DRAWN AT ALL — no `out_of_bc` node in any water layer, line or polygon. The tiles of
+    2026-11-20 drew Adskwatim Creek's polygon lake:329268440 in `lake` (its route was dropped from `stream`) and 71
+    unnamed border-sliver lakes T679 #1's one outside flag had moved outside. Red until the tiles are rebuilt by
+    today's `tiles.export` (`test_tile_outside_bc.py` pins the export itself on an invented atlas)."""
+    drawn = set(tiles["stream"]) | set(tiles["lake"]) | set(tiles["wetland"])
+    outside = sorted(handles[n] for n, node in graph.nodes.items() if node.out_of_bc and n in handles
+                     and handles[n] in drawn)
+    assert outside == [], f"{len(outside)} section(s) outside B.C. drawn: {outside[:20]}"
 
 
 @dataclass(frozen=True)
@@ -450,6 +465,8 @@ def test_tile_stream_polygon_draws_with_its_river(db, handles, graph, tiles):
             continue                                   # nor has a polygon no line touches (T322 isolated oxbows)
         if sid in tiles["tidal"]:
             continue                                   # nor a piece below a tidal boundary (T166: off the map)
+        if graph.nodes[nid].out_of_bc:
+            continue                                   # nor a piece outside B.C. (T1000: off the map, polygon too)
         assert sid in tiles["stream"], (item, nid)
         # T493 (2026-11-08, `fill_zooms`): a stream's own polygon counts as drawn from its POLYGON's zoom ("its route
         # need not be"), and the fill lowers the stem pieces beside it to that — so the water shows from the earlier

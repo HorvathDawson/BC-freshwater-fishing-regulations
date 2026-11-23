@@ -621,7 +621,7 @@ def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path, *, tidal: froz
     owners = Owners(build_dir)
 
     writers: dict[str, tuple] = {}
-    no_geom = ghosts = 0
+    no_geom = ghosts = outside = 0
     undrawn: list[int] = []
     for nid, node in graph.nodes.items():
         kind = _kind(node)
@@ -637,6 +637,13 @@ def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path, *, tidal: froz
             continue
         if kind == "wetland" and not wetland_is_drawn(nid, node, owners):
             undrawn.append(sid[nid])
+            continue
+        if node.out_of_bc:
+            # OUTSIDE BC IS NOT DRAWN AT ALL — the polygon as well as the line (`export_streams`). T1000: the polygon
+            # was drawn while its route was not, so a stream's own polygon outside B.C. (Adskwatim Creek's
+            # lake:329268440, stamped by T679 #1's one outside flag) showed in `lake` and not in `stream`; the 71
+            # unnamed border-sliver lakes the flag moved outside were drawn, tappable and ruleless (T679 #1).
+            outside += 1
             continue
         g = geoms.get(nid)
         if g is None or g.is_empty:
@@ -681,6 +688,8 @@ def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path, *, tidal: froz
         print(f"  ({no_geom:,} waterbody nodes had no polygon — see build.py minting)")
     if ghosts:
         print(f"  ({ghosts} lake(s) cut into parts not drawn as a whole)")
+    if outside:
+        print(f"  ({outside:,} waterbody polygon(s) outside BC, not drawn)")
     return counts
 
 
