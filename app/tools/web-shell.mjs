@@ -192,6 +192,10 @@ export function withHomeHead(html) {
  * page, so a crawler reached the site's pages only through the sitemap. A real footer row in the page's static HTML, after the
  * app's root: the root fills the window (the reset's `#root{height:100%}` under `body{overflow:hidden}`), so it never shows
  * over the map; without script the root is taken out and the row is what the page shows, under the "needs JavaScript" line.
+ * (T1011 review) WITH script the row is `inert` from the moment it is parsed (a classic inline script right after it, run
+ * before the app's): its links stay plain `<a href>` in the page for a crawler, but nothing can focus them — a Tab past the
+ * app's last control landed on "River gauges" and the browser scrolled the clipped body (the map and search moved up, with
+ * no scrollbar to bring them back).
  * The pages every site build makes: the gauges, the eight regions, About, Privacy — never /changes (no page when a release
  * changed nothing, site.ts). The SEO build refuses a row naming a page it did not make, or missing a region page it made
  * (tools/seo `homeLinkProblems`); the water pages take it out (their own document: tools/seo `appDocument`).
@@ -202,6 +206,8 @@ export const HOME_LINKS_MARK = { open: "<!--home-links-->", close: "<!--/home-li
 export const HOME_LINKS_MARKED = /<!--home-links-->[\s\S]*?<!--\/home-links-->/g;
 const HOME_LINKS_CSS = "#site-links{font:14px/1.6 system-ui,-apple-system,sans-serif;padding:12px 16px;text-align:center}" +
   "#site-links a{color:inherit;display:inline-block;padding:4px 6px}";
+/** run as the row is parsed (a classic script, never deferred): with script, the row's links are out of focus and reach */
+const HOME_LINKS_INERT = `<script>document.getElementById("site-links").setAttribute("inert","")</script>`;
 export function withHomeLinks(html) {
   const t = html.replace(HOME_LINKS_MARKED, "");
   if (!/<\/head>/.test(t)) throw new Error("web-shell: the export's index.html has no </head>");
@@ -209,7 +215,7 @@ export function withHomeLinks(html) {
   const row = HOME_LINKS.map(([href, label]) => `<a href="${href}">${label}</a>`).join(" · ");
   return t.replace(/<\/head>/, `${HOME_LINKS_MARK.open}<style id="site-links-css">${HOME_LINKS_CSS}</style>` +
       `<noscript><style>#root{display:none}</style></noscript>${HOME_LINKS_MARK.close}</head>`)
-    .replace(/<\/body>/, `${HOME_LINKS_MARK.open}<nav id="site-links" aria-label="Pages on this site">${row}</nav>${HOME_LINKS_MARK.close}</body>`);
+    .replace(/<\/body>/, `${HOME_LINKS_MARK.open}<nav id="site-links" aria-label="Pages on this site">${row}</nav>${HOME_LINKS_INERT}${HOME_LINKS_MARK.close}</body>`);
 }
 
 /** Put the shell into a web export in place: frame 0 inlined, the paint first, the faces, the home page's links. */
