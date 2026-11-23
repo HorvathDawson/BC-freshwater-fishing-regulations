@@ -5,7 +5,7 @@
  * each rule's pages carrying its own highlight. Pinned whole for vedder_1010's Kokanee (AGENTS 33).
  */
 import { describe, expect, it } from "vitest";
-import { ALL_SOURCES, SOURCE_AUTHORITIES, SPECIES_SHEET, bookText, buildRegsPage, type RegsPage, type SheetBlock, type SheetKey, type SheetVM } from "@app/core";
+import { ALL_SOURCES, SOURCE_AUTHORITIES, SPECIES_SHEET, WORDS, bookText, buildRegsPage, type RegsPage, type SheetBlock, type SheetKey, type SheetVM } from "@app/core";
 import { ADULT_RESIDENT, inputsOf, parityGate, requestOf, taps } from "./golden";
 
 const gate = await parityGate();
@@ -112,6 +112,7 @@ describe.skipIf(gate.skip)("T1031 the species sheet over the golden states", () 
 /** vedder_1010's Kokanee (Region 2's stream release and the possession rule), as the store gives them */
 const KOKANEE: readonly string[] = [
   "B.C. Synopsis",
-  "Release kokanee from streams · Release every one · Rule book p.21 ↗",
-  "Possession: twice the daily quota · Possession limit · Rule book p.21 ↗",
+  // a rule's own page link names the book as every one does (WORDS.BOOK; owner 2026-11-23: "B.C. Synopsis" everywhere)
+  `Release kokanee from streams · Release every one · ${WORDS.BOOK} p.21 ${WORDS.LINK_OUT}`,
+  `Possession: twice the daily quota · Possession limit · ${WORDS.BOOK} p.21 ${WORDS.LINK_OUT}`,
 ];

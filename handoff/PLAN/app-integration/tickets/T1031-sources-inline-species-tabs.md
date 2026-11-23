@@ -6,7 +6,7 @@ or a salmon species' `sp:<code>|src` / `sp:<code>`; the picture opens Identifica
 Sources "Where each rule comes from": the line's deciding rules by authority (`SOURCE_AUTHORITIES`), each its role and its
 own highlighted pages; a salmon species: today's answer, DFO's places answering it (rows as printed) and the book's closure.
 Pictures `T1031-shots/species-{trout,salmon}-{sources,identification}-{light,dark}.png` (Vedder River). The tab words and
-the head "Where each rule comes from" are the defaults, for the owner to reword.
+the head "Where each rule comes from" are kept (owner 2026-11-23, below).
 
 Source: owner 2026-11-22 ~23:55 (the T991 round-2 answer, recorded verbatim in T991): "We also should clean up our inline
 sources. Right now the way they display is inconsistent.... We still want to have the break down source like the sheet in
@@ -47,3 +47,10 @@ owner's pick recorded; tests pinning each composed string whole (AGENTS 33), mut
 
 Depends: T991 (the per-tab Source rows, `SOURCE_AUTHORITIES`). Size: L (three parts; 1 then 2 then 3). Owner: yes (the
 inline look in 3, the tab words in 1). Default: build 1 and 2 with the words above; 3 waits for the pick.
+
+## Owner answers 2026-11-23 ~10:50 (items 4-5, verbatim picks)
+- Which part of a fish line opens Identification: "Picture only (Recommended)" — as built: the picture opens Identification,
+  the rest of the line (its name included) opens Sources.
+- The sheet's words: "Keep these words (Recommended)" — as built: "Identification | Sources", "Where each rule comes from".
+- The book's name: "'B.C. Synopsis' everywhere (Recommended)" — item 3 (lane L22, #69) sets it once in
+  `core/src/sourceNames.ts`; the breakdown's page links are `bookText` runs, so they read it from there with no word of their own.
