@@ -1,6 +1,6 @@
 # T997 — Water map: two boundary labels at almost the same place draw on top of each other (Nicomekl River)
 
-Status: OPEN (owner 2026-11-21: next chat).
+Status: IN REVIEW — owner: OWNER-TODO "Look (you): T997 Nicomekl labels" (the after shots, T997-shots/); code 92ebd9c5d dcc18bb8f, PR open.
 
 Source: owner 2026-11-21, phone screenshot (Android, dark mode), "Add ticket for this ui bug too for next chat".
 Shot: `handoff/PLAN/app-integration/T997-shots/nicomekl-labels-overlap.png`.
@@ -27,3 +27,17 @@ show a cut's review words).
 Nicomekl Part 2 shows readable end label(s) on Android, iPhone and web; no overlapping boundary labels in the sweep.
 
 Depends: —. Size: S-M. Owner: looks at the after shots.
+
+## Result (2026-11-22, lane L3)
+Cause: the marks' label layer drew every label (allow-overlap on, no collision), and the VM kept one label per END TOKEN
+only: "23 m below the Nicomekl flood dam" and "Dyke gates" are different ends 23 m apart, so both drew. Fix (review round
+2026-11-22): `mergeNearLabels` (waterMap.ts) merges labelled marks, THE MOUTH'S TOO, whose boxes would meet at the part's
+own framing (box 180 x 44 px, metres per px from the part's bounds, `framingMetresPerPx`; under 50 m always) into one box
+naming both ("A · B"), each mark joining the NEAREST kept box, so no two kept boxes meet; rings/a11y/taps stay per mark. The
+label layer (`marksLayers`) also collides its own labels (open mark first, `symbol-sort-key`) for what a pan or zoom brings
+together. Same file for web and native. A road/place name under a boundary box gives way to it.
+Sweep (r-741815c6090d, `part_mark` + `part_geo` + `water_exit`, default part framing): 901 part frames with 2+ labelled marks;
+73 frames in 47 waters merge a box (30 with the mouth: bc_border 0 m, Nimpkish reserve 5 m ...); 0 kept boxes still meet.
+The first version (fixed 100 m, no mouth) left 39 frames colliding. Whole-water framing not swept. No pipeline/data change.
+Shots: web dark before/after, web light after, Android after (taken on the first version; the web look is unchanged by round 2).
+Not shown: an Android "before" (the owner's shot is the before) and the iPhone simulator.

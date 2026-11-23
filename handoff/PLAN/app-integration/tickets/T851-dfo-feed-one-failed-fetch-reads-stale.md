@@ -1,6 +1,6 @@
 # T851 — The DFO salmon feed reads "stale" for every region after one failed daily fetch
 
-Status: PARTIAL — built and merged d66e0bfdb (stale = last good read older than 30 h; ~1 min in-run backoff; hourly same-day retry; worker and Python twin); on the dev branch before the 2026-11-19 feeds-worker deploys. left (Claude): the app half the lane could not touch — the card's "Checked with DFO <at>" still names a failed run's time within the 30 h, and `SalmonFeedRegion.stale`'s doc comment (core/src/salmonFeed.ts) still says "the last read failed".
+Status: DONE — the app half: the card's 'Checked with DFO' names the oldest last good read when a region's fetch failed in the run (`lastRead`, core `salmonFeed.ts`; runs within 15 min of each other still say the run's time), and `SalmonFeedRegion.stale`'s doc comment is corrected. Code 94f388d0a; worker/Python half d66e0bfdb.
 
 Seen 2026-11-18: at the 14:15Z run every DFO region page answered 5xx (`http_5xx`, "fetch failed 1× in a row; the last
 answers stand"); the staging feed's index.json then marked every region stale, though the last good check was ~18 h
@@ -31,3 +31,6 @@ it (feeds.sh, 2026-11-18 ~13:20 PT).
   <at>" still names the run time when a region's fetch failed within the 30 h; `SalmonFeedRegion.stale`'s doc comment
   in `packages/core/src/salmonFeed.ts` still says "the last read failed".
 - Tests: `test/dfo.stale.test.ts` (new), `dfo.worker`, `status`, `scheduled`; `pipeline/tests/test_dfo_live.py`.
+
+
+State 2026-11-22 (stopped for credits): review fixes done (6 items, see PR #43); left: nothing from the review, device looks/shots still owed; branch fix/T970-ui-smalls.

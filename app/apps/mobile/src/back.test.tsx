@@ -463,8 +463,8 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
     await mount(chilliwack, nativeBack, openRegsFixture(), { source });
     await onWaterMap(); await until(() => screen.queryByRole("link", { name: "Flows into Vedder River ›" }) !== null);
     await act(async () => { fireEvent.click(flows()); });
-    await waitFor(() => expect(screen.queryByTestId("water-map") === null
-                           && screen.queryAllByText("Vedder River").length > 0).toBe(true), { timeout: 20_000 });
+    // (T1023) the receiving water opens on its MAP, not its Regulations: the link was pressed on a map
+    await waitFor(() => expect(where()).toBe("water Vedder River on Map · no bar"), { timeout: 20_000 });
     const opened = [where()];
     hardwareBack();
     await until(() => screen.queryAllByText("Chilliwack River").length > 0);
@@ -479,7 +479,7 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
     });
     await act(async () => { await new Promise((r) => setTimeout(r, 50)); });
     expect([...opened, `pressed then back -> ${where()}`]).toEqual([
-      "water Vedder River on Regulations · no bar", "back -> water Chilliwack River on Map · no bar",
+      "water Vedder River on Map · no bar", "back -> water Chilliwack River on Map · no bar",
       "pressed then back -> tab Map"]);
   }, 60_000);
 

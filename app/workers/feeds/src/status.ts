@@ -274,7 +274,9 @@ function dailyHtml(d: { backup: any; purge: any; push?: any }, now: Date): strin
       `<td>${esc(j.at)} <small>(${ago(j.at, now)})</small><br><small>${esc(what(j))}${j.error ? ` · ${esc(String(j.error).slice(0, 200))}` : ""}</small></td></tr>`;
   };
   return `<h2>Daily jobs</h2><div class="wrap"><table><tr><th>job</th><th>state</th><th>last run</th></tr>` +
-    row("backup", d.backup, (j) => `${j.copied} copied, ${j.bytes} bytes, ${j.pruned ?? 0} pruned, ${j.skipped?.length ?? 0} skipped`) +
+    row("backup", d.backup, (j) => `${j.copied} copied, ${j.bytes} bytes, ${j.pruned ?? 0} pruned, ${j.skipped?.length ?? 0} skipped` +
+      // (T999) the unchanged personal records named from an earlier snapshot, not copied again
+      (typeof j.reused === "number" ? `, ${j.reused} named from ${j.base ? esc(j.base) : "no earlier snapshot"}${j.deferred ? ` (${j.deferred} refresh(es) left for a later day)` : ""}` : "")) +
     row("purge", d.purge, (j) => `reports ${j.deleted} deleted / ${j.kept} kept` +
       (j.crashes ? ` · error kinds ${j.crashes.deleted} deleted` : "") + (j.limits ? ` · counters ${j.limits.deleted} deleted` : "")) +
     `</table></div>` + (d.push ? pushHtml(d.push, now) : "");
@@ -293,7 +295,11 @@ function pushHtml(p: { missing: Record<string, string[]>; last: any }, now: Date
     // (T739 L3) a wake over PUSH_SENDS_PER_RUN phones goes out in parts, one per feed run: which part, how many are left
     const c = l?.carry;
     const carry = s && c ? ` · part ${esc(c.part)} of a wake begun ${esc(c.since)}: ${c.left ? `${esc(c.left)} phone(s) left for the next run` : "the last part"}` : "";
-    const counts = s ? `${s.tokens} tokens · ${s.sent} sent · ${s.dead} dead (deleted) · ${s.failed} failed${s.errors?.length ? ` · ${esc(s.errors.join("; "))}` : ""}${carry}` : typeof l?.error === "string" ? "the last wake was not sent (above)" : "no send yet";
+    // (T996) which dead tokens were dropped (record id: APNs' answer), and which provider token the send used
+    const dropped = s && Array.isArray(s.dropped) && s.dropped.length ? ` · dropped ${esc(s.dropped.join("; "))}` : "";
+    const a = l?.apns;
+    const tok = s && a ? `<br>provider token ${esc(a.id)} (key ${esc(a.kid)}), made ${esc(a.iat)}: ${a.minted ? "new for this send" : "reused"}` : "";
+    const counts = s ? `${s.tokens} tokens · ${s.sent} sent · ${s.dead} dead (deleted) · ${s.failed} failed${s.errors?.length ? ` · ${esc(s.errors.join("; "))}` : ""}${dropped}${carry}${tok}` : typeof l?.error === "string" ? "the last wake was not sent (above)" : "no send yet";
     return `<tr><td>${pl}</td>${state}<td><small>${what}${what ? "<br>" : ""}${counts}</small></td></tr>`;
   };
   const when = typeof l?.unreadable === "string" ? `<span class="failing">unreadable: ${esc(l.unreadable)}</span>` : l ? `${esc(l.at)} <small>(${ago(l.at, now)}) · ${esc(l.reason)}</small>` +

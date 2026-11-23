@@ -1,7 +1,7 @@
 // T739: push wake-ups — register / unregister (validated, rate-limited, token store only), the APNs provider token
 // (ES256 JWT, verified with the key's public half), the request whole, dead-token deletion, a missing secret sending
 // nothing and saying so, and the wake reasons a run gives. iPhone only (owner 2026-11-16): Android is refused.
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import worker from "../src/index";
 import {
   APNS_JWT_KEY, APNS_PAYLOAD, apnsJwt, apnsRequest, PUSH_CARRY_KEY, handlePush, markReleaseSeen, newRelease, PUSH_STATE_KEY, PUSH_STATUS_KEY, pushMissing,
@@ -9,7 +9,7 @@ import {
 } from "../src/push";
 import type { R2BucketLike } from "../src/io";
 import { personalKind } from "../src/backup";
-import { capEvents, PUSH_NEW_TOKENS_PER_DAY_TOTAL, totalKey } from "../src/reports";
+import { capEvents, PUSH_NEW_TOKENS_PER_DAY_TOTAL, sha256hex, totalKey } from "../src/reports";
 import { PUSH_LIMITS_PREFIX } from "../src/push";
 
 const SALT = "test-salt";
@@ -38,6 +38,14 @@ async function ecKey() {
   return { pem: toPem(await crypto.subtle.exportKey("pkcs8", k.privateKey)), pub: k.publicKey };
 }
 const parts = (jwt: string) => { const [h, c, s] = jwt.split("."); return { h: JSON.parse(new TextDecoder().decode(b64urlDecode(h!))), c: JSON.parse(new TextDecoder().decode(b64urlDecode(c!))), input: `${h}.${c}`, sig: b64urlDecode(s!) }; };
+
+/** (T996) what the sender logged, line by line (the worker's log is the evidence the owner reads) */
+const logs = { log: [] as string[], error: [] as string[] };
+afterEach(() => { vi.restoreAllMocks(); logs.log = []; logs.error = []; });
+const captureLogs = () => {
+  vi.spyOn(console, "log").mockImplementation((s: unknown) => { logs.log.push(String(s)); });
+  vi.spyOn(console, "error").mockImplementation((s: unknown) => { logs.error.push(String(s)); });
+};
 
 describe("POST /push/register and /push/unregister (T739)", () => {
   it("validates: platform (iPhone only), the token's shape, env, and no other field", () => {
@@ -190,6 +198,7 @@ describe("sendWake (T739)", () => {
   });
 
   it("sends to every iOS token; a 410 and a BadDeviceToken are deleted, a 500 is counted as failed with its reason", async () => {
+    captureLogs();
     const k = await ecKey();
     const BUCKET = new MemBucket();
     const IOS3 = "c".repeat(64), IOS4 = "d".repeat(64);
@@ -209,9 +218,23 @@ describe("sendWake (T739)", () => {
     expect(seen.map((s) => s.url).sort()).toEqual([`https://api.push.apple.com/3/device/${IOS2}`, `https://api.push.apple.com/3/device/${IOS3}`,
       `https://api.push.apple.com/3/device/${IOS4}`, `https://api.sandbox.push.apple.com/3/device/${IOS}`]);
     expect(new Set(seen.map((s) => s.body))).toEqual(new Set(['{"aps":{"content-available":1},"k":"check"}']));
-    expect(r.ios).toEqual({ configured: true, missing: [], tokens: 4, sent: 1, dead: 2, failed: 1, errors: ["APNs 500 InternalServerError"] });
+    const id = async (t: string) => (await tokenKey(t)).slice(TOKENS_PREFIX.length, TOKENS_PREFIX.length + 12);
+    // (T996) each dead token is dropped and named by its record id (never the token) with APNs' answer
+    const dropped = [`${await id(IOS3)}: APNs 400 BadDeviceToken`, `${await id(IOS2)}: APNs 410 Unregistered`].sort();
+    expect({ ...r.ios, dropped: [...r.ios.dropped!].sort() }).toEqual({ configured: true, missing: [], tokens: 4, sent: 1, dead: 2, failed: 1,
+      errors: ["APNs 500 InternalServerError"], dropped });
     expect(r.ok).toBe(false);
     expect(tokens(BUCKET).map((t) => t.token).sort()).toEqual([IOS, IOS4]);
+    // ... and the log says so, one line a token: which record, its environment, APNs' answer
+    const lines = logs.log.map((l) => JSON.parse(l)).filter((l) => "dropped" in l);
+    expect(lines.sort((a, b) => (a.dropped < b.dropped ? -1 : 1))).toEqual([
+      { job: "push", dropped: await id(IOS3), env: "production", why: "APNs 400 BadDeviceToken" },
+      { job: "push", dropped: await id(IOS2), env: "production", why: "APNs 410 Unregistered" },
+    ].sort((a, b) => (a.dropped < b.dropped ? -1 : 1)));
+    expect(logs.log.join("\n")).not.toContain(IOS2);
+    expect(logs.log.join("\n")).not.toContain(IOS3);
+    const h = await (await worker.fetch(new Request("https://w.example/status"), { BUCKET } as never)).text();
+    expect(h).toContain(`dropped ${r.ios.dropped!.join("; ")}`);
   });
 
   it("a stored record that names another platform (no push there) is a fault: never sent to, counted, deleted", async () => {
@@ -226,7 +249,7 @@ describe("sendWake (T739)", () => {
     expect(r.unreadable).toBe(1);
     expect(r.ok).toBe(false);
     expect(tokens(BUCKET).map((t) => t.token)).toEqual([IOS]);
-    expect(Object.keys(r).sort()).toEqual(["at", "ios", "ok", "reason", "unreadable"]);
+    expect(Object.keys(r).sort()).toEqual(["apns", "at", "ios", "ok", "reason", "unreadable"]);
   });
 
   it("a stored token record that does not parse is a fault: counted, the send not ok, shown on /status; the record deleted", async () => {
@@ -245,6 +268,7 @@ describe("sendWake (T739)", () => {
   // T994 #23: a new provider token was made on every wake; wakes come 10 min apart and Apple answers 429
   // TooManyProviderTokenUpdates to a token refreshed more often than every 20 minutes
   it("the provider token is kept: reused for 50 minutes with the same key id and team, then made again; APNs refusing it drops it", async () => {
+    captureLogs();
     const k = await ecKey();
     const BUCKET = new MemBucket();
     await seed(BUCKET, [{ platform: "ios", token: IOS, env: "sandbox" }]);
@@ -252,10 +276,18 @@ describe("sendWake (T739)", () => {
     let status = 200, reason = "";
     const send = (env: Record<string, string>, when: string) => sendWake({ BUCKET, APNS_KEY: k.pem, APNS_KEY_ID: "KID", APNS_TEAM_ID: "TEAM", ...env },
       async (_u, i) => { auth.push((i!.headers as Record<string, string>).authorization!); return new Response(reason ? JSON.stringify({ reason }) : null, { status }); }, at(when), "gauges");
-    await send({}, "2026-11-14T12:05:00Z");
-    await send({}, "2026-11-14T12:15:00Z");                      // 10 minutes on: the same token
-    await send({}, "2026-11-14T12:54:59Z");                      // 49m59s: still the same
+    const r1 = await send({}, "2026-11-14T12:05:00Z");
+    const r2 = await send({}, "2026-11-14T12:15:00Z");           // 10 minutes on: the same token
+    const r3 = await send({}, "2026-11-14T12:54:59Z");           // 49m59s: still the same
     expect(new Set(auth).size).toBe(1);
+    // (T996) which token each send used: one id, made at 12:05, minted by the first send only; the log line says it
+    const used = { id: (await sha256hex(auth[0]!.slice(7))).slice(0, 12), iat: "2026-11-14T12:05:00.000Z", kid: "KID" };
+    expect([r1.apns, r2.apns, r3.apns]).toEqual([{ ...used, minted: true }, { ...used, minted: false }, { ...used, minted: false }]);
+    expect(logs.log.map((l) => JSON.parse(l)).filter((l) => l.reason === "gauges").map((l) => l.apns))
+      .toEqual([{ ...used, minted: true }, { ...used, minted: false }, { ...used, minted: false }]);
+    expect(logs.log.join("\n")).not.toContain(auth[0]!.slice(7));     // the token itself is never logged
+    const h = await (await worker.fetch(new Request("https://w.example/status"), { BUCKET } as never)).text();
+    expect(h).toContain(`provider token ${used.id} (key KID), made 2026-11-14T12:05:00.000Z: reused`);
     expect(parts(auth[0]!.slice(7)).c.iat).toBe(Date.parse("2026-11-14T12:05:00Z") / 1000);
     await send({}, "2026-11-14T12:55:00Z");                      // 50 minutes: a new one
     expect(new Set(auth).size).toBe(2);
@@ -266,6 +298,9 @@ describe("sendWake (T739)", () => {
     status = 403; reason = "ExpiredProviderToken";
     const r = await send({ APNS_KEY_ID: "KID2" }, "2026-11-14T12:57:00Z");
     expect(r.ios.errors).toEqual(["APNs 403 ExpiredProviderToken"]);
+    // (T996) the log names the refused token
+    expect(logs.error.map((l) => JSON.parse(l)).find((l) => "apnsTokenRefused" in l))
+      .toEqual({ job: "push", apnsTokenRefused: r.apns!.id, iat: "2026-11-14T12:56:00.000Z", why: "APNs 403 ExpiredProviderToken" });
     expect(BUCKET.m.has(APNS_JWT_KEY)).toBe(false);              // the next wake makes a new one
     expect(personalKind(APNS_JWT_KEY)).toBe("never");             // a credential: never in a backup
   });

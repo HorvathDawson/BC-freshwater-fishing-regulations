@@ -129,7 +129,7 @@ describe("T45 the Regulations view on a wide screen: same words, another arrange
     fireEvent.click(within(list).getByRole("tab", { name: "What you can keep" }));
     expect([sel, to.mock.calls]).toEqual([
       ["What you can keep:false", "Gear:false", "Methods:false", "Licence:true"],
-      [[{ top: 2702, left: 0, behavior: "smooth" }], [{ top: 0, left: 0, behavior: "smooth" }]],
+      [[{ top: 2702, left: 0, behavior: "auto" }], [{ top: 0, left: 0, behavior: "auto" }]],
     ]);
   });
 

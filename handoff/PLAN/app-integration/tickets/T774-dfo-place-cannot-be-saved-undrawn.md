@@ -14,3 +14,6 @@ too, which is wrong toward closed).
 - A mark form "held, not drawn" with a reason; the place binds nothing, is named on the water's card with DFO's words,
   and is listed by the unplaced gate as accepted-by-owner (never silent).
 - Or build T754 first, which removes the need for Kitimat. Decide which when T754 is scheduled.
+
+## Owner answer 2026-11-22 23:45 (dialog)
+Asked whether to drop it (proposal from lane L12). Owner: "Keep it". Stays open.

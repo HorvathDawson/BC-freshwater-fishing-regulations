@@ -738,7 +738,7 @@ def gate_tree(tmp_path):
     subprocess.run(["git", "update-ref", "refs/remotes/origin/main", "HEAD"], cwd=t, check=True)
     env = {k: v for k, v in os.environ.items()
            if k not in ("CONFIRM_PROD", "BUILD_APK_INNER", "BUILD_IOS_INNER", "MLN_LOCAL_MAVEN", "FAST_FAIL_BASE",
-                        "CI_CHECK_SKIP", "CANIFISHTHIS_R8", "HEAVY_HELD")}
+                        "CI_CHECK_SKIP", "CANIFISHTHIS_R8", "CANIFISHTHIS_NO_R8", "HEAVY_HELD")}
     env.update(HOME=str(tmp_path / "home"), JAVA_HOME=str(tmp_path / "jdk"), ANDROID_HOME=str(tmp_path / "sdk"),
                PATH=f"{tmp_path / 'bin'}{os.pathsep}{env.get('PATH', '')}")
 

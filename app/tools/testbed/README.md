@@ -90,6 +90,15 @@ persists between batches (`-no-snapshot-save` keeps the userdata image), so the 
 `run.mjs` resets the test channel at the end (`test-updates.mjs reset`). Several batches can write ONE report:
 pass the same `--out <dir>` to each (a scenario run again replaces its earlier result).
 
+**Parallel emulator lanes need their own AVD AND console port** (T1009, 2026-11-22). The heavy.sh lanes lock the
+machine, not the emulator: a second lane's `session.sh` on the default port finds `emulator-5580` "already up (not
+ours)", uninstalls the app and installs its own APK mid-batch, and when the first lane ends it shuts that emulator down
+under the second. A second lane sets `TESTBED_AVD=n1_pixel_b TESTBED_PORT=5584` (a third: another AVD and port), or
+waits. `n1_pixel_b` could not reach mobile data or the bench proxy in that run, so `bg-install` belongs on `n1_pixel`.
+
+**R8 is on in every test-bed APK, as in every shipped build** (T1003). `session.sh --no-r8="<reason>"` builds a
+comparison APK with R8 off (its own name, `app-testbed-nor8.apk`); no store build accepts that escape.
+
 Writing a flow: `node app/tools/testbed/explore.mjs` (inside a session) saves a screenshot and every word of each
 screen to `out/explore/`; RN `testID` is Maestro's `id:`; `maestro --device emulator-5580 studio` is the interactive
 inspector (inside a session).

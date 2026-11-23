@@ -36,3 +36,6 @@ default stands: **the check stays on all themes** (Claude's recommendation above
 unchanged). It is on the owner's to-do page as a default taken: the owner acts only if they disagree. The ticket stays
 OPEN for Work 1 (the shoreline as a shade of the fill: a look, with before/after shots for the owner to pick), which is
 a map-style design change, not a one-answer fix.
+
+## Owner pick 2026-11-22 23:35 (dialog with Stave Lake pictures: today vs shaded band)
+"Yes, the shaded band (Recommended)" — build it, with the colour-blind gate check, Flow mode and emulator shots.

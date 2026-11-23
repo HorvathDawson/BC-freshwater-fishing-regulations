@@ -4,8 +4,8 @@
  */
 import { describe, expect, it } from "vitest";
 import { matchTier } from "./search";
-import { areaPhrase, boundedEdits, buildSearchIndex, clusterByName, editsAllowed, queryIndex, queryPlaces,
-         type IndexWater, type SearchIndexData } from "./searchIndex";
+import { areaPhrase, boundedEdits, buildSearchIndex, clusterByName, editsAllowed, queryIndex, queryPlaces, tellPlacesApart,
+         type IndexPlace, type IndexWater, type SearchIndexData } from "./searchIndex";
 
 const town = (name: string, km = 2) => ({ name, kind: "town", lat: 49, lon: -122, km });
 const w = (item: string, name: string, o: Partial<IndexWater> = {}): IndexWater => ({
@@ -296,5 +296,48 @@ describe("speed (T247: measure time per keystroke)", () => {
     expect(worst).toBeLessThan(150);
     console.log(`search index: ${index.entries} entries built in ${built.toFixed(0)} ms; per keystroke ` +
                 queries.map((q, i) => `${q}=${times[i]!.toFixed(1)}`).join(" "));
+  });
+});
+
+describe("places with one name and kind are told apart (T972)", () => {
+  const P = (place: string, name: string, kind: string, lat: number, lon: number): IndexPlace => ({ place, name, kind, lat, lon, pop: null });
+  const places = [
+    P("1", "Kamloops", "city", 50.67, -120.33),
+    P("2", "Thompson Plateau", "locality", 50.87, -120.33),   // 22 km N of Kamloops
+    P("3", "Thompson Plateau", "locality", 50.67, -119.0),    // E
+    P("4", "Thompson", "suburb", 50.0, -120.0),               // one of its kind: untouched
+  ];
+  it("each repeated row says where it lies from the nearest city, town or village; the others stay as they are", () => {
+    const got = tellPlacesApart(places);
+    expect(got.map((p) => p.apart)).toEqual([undefined, "22 km N of Kamloops", "94 km E of Kamloops", undefined]);
+    expect(got.length).toBe(places.length);
+  });
+  it("the rows then differ: no two adjacent results read the same", () => {
+    const ix = buildSearchIndex({ waters: [], aliases: [], places, cuts: [] } as never);
+    const lines = queryPlaces(ix, "Thompson Plateau", 10).map((p) => `${p.name}|${p.kind}|${p.apart}`);
+    expect(new Set(lines).size).toBe(lines.length);
+    expect(lines.length).toBe(2);
+  });
+  // the collisions found in data/source/bc_places.json (real coordinates): towns of one name, and points a few hundred m apart
+  const REAL = [
+    P("v", "Vancouver", "city", 49.260872, -123.113952), P("pr", "Prince Rupert", "city", 54.3150, -130.3208),
+    P("k", "Kelowna", "city", 49.8880, -119.4960), P("kl", "Kamloops", "city", 50.6745, -120.3273),
+    P("nv1", "North Vancouver", "city", 49.315675, -123.070407), P("nv2", "North Vancouver", "city", 49.320629, -123.073792),
+    P("wk1", "West Kelowna", "city", 49.858578, -119.582876), P("wk2", "West Kelowna", "city", 49.866683, -119.618904),
+    P("dc1", "Dodge Cove", "hamlet", 54.28731, -130.387643), P("dc2", "Dodge Cove", "hamlet", 54.289103, -130.386889),
+    P("dk1", "Downtown Kamloops", "neighbourhood", 50.674414, -120.328356), P("dk2", "Downtown Kamloops", "neighbourhood", 50.67541, -120.330053),
+    P("sc", "Sugar Cane", "village", 52.5800, -122.2000),
+    P("ria1", "Réserve indienne Alexandria 12", "locality", 52.513894, -122.32389), P("ria2", "Réserve indienne Alexandria 12", "locality", 52.514077, -122.32388),
+  ];
+  it("same-named places never read the same, and a town is never its own reference", () => {
+    const got = tellPlacesApart(REAL);
+    expect(got.length).toBe(REAL.length);                                  // no row dropped
+    const groups = new Map<string, string[]>();
+    for (const p of got) if (p.apart !== undefined) (groups.get(p.name) ?? groups.set(p.name, []).get(p.name)!).push(p.apart);
+    expect([...groups.keys()].sort()).toEqual(["Dodge Cove", "Downtown Kamloops", "North Vancouver", "Réserve indienne Alexandria 12", "West Kelowna"]);
+    for (const [name, lines] of groups) {
+      expect(new Set(lines).size, `${name}: ${lines.join(" | ")}`).toBe(lines.length);
+      for (const l of lines) expect(l, name).not.toContain(`of ${name}`);
+    }
   });
 });
