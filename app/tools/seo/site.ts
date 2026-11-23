@@ -18,7 +18,7 @@ import { verifyAgainstApp } from "./verify";
 import { regionYear, yearCardHtml } from "./regionYear";
 import { pageSize, type PageSize } from "./budget";
 import { dotPicture, namesFile, regionLead } from "./regionMap";
-import { chartScript, clientScript, findScript, joinScript, LIVE, gaugeBody, gaugeDescription, gaugeModels, gaugesIndexBody, gaugeTitle, siteGaugeCardSvg, stationsFile, type ChartInputs, type GaugeModel, type GaugeRows } from "./gauges";
+import { chartScript, clientScript, findScript, LIVE, gaugeBody, gaugeDescription, gaugeModels, gaugesIndexBody, gaugeTitle, siteGaugeCardSvg, stationsFile, type ChartInputs, type GaugeModel, type GaugeRows } from "./gauges";
 import type { StationClim } from "@app/data";
 
 export interface PageRec {
@@ -332,8 +332,6 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   if (gauges.length) {
     const client = clientScript(), clientHref = `/assets/gauge.${sha(client, 10)}.js`;
     files.set(clientHref.slice(1), client);
-    const join = joinScript(), joinHref = `/assets/join.${sha(join, 10)}.js`;       // (T911) the Join the test card's script
-    files.set(joinHref.slice(1), join);
     // (T1039) the app's own chart, one deferred script for every gauge page; each page carries its station's climatology
     const chart = await chartScript(), chartHref = `/assets/gauge-chart.${sha(chart.js, 10)}.js`;
     files.set(chartHref.slice(1), chart.js);
@@ -349,7 +347,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
       const title = gaugeTitle(g), description = gaugeDescription(g);
       unique(titles, title, g.path); unique(descriptions, description, g.path);
       // lastmod moves with what the build wrote (name, waters, place), not with the release id the live half names
-      add("gauge", g.path, shellOf(g.path, title, description, gaugeBody(g, release.id, clientHref, asOf, chartHref, climOf(g.station), site.contact, joinHref), pageLd(site, g.path, title, asOf, gaugeCrumbs(g)),
+      add("gauge", g.path, shellOf(g.path, title, description, gaugeBody(g, release.id, clientHref, asOf, chartHref, climOf(g.station)), pageLd(site, g.path, title, asOf, gaugeCrumbs(g)),
           `/gauge/${g.station}/card.png`, false), sha(JSON.stringify(g)));   // (T908, owner 2026-11-19) no "Browse by region": it leads to the hidden site map
     }
     const title = clip(`River gauges in BC: live flow and weather — ${site.name}`, 60);

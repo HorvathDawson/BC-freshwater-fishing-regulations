@@ -40,6 +40,8 @@ export interface GaugeConfig {
   readonly clim: readonly { readonly parameter: "discharge" | "level"; readonly bands: string }[];
   /** (T1039) the app's faces as `@font-face` rules (the web export's own files), or null: the build had no export */
   readonly fonts: string | null;
+  /** (T1039) the app's contact (core `STORE_CONTACT`): the "Get the app" block's Join the test emails it */
+  readonly contact: string | null;
 }
 
 export interface Run { model: string; issuedAt: string; issued: string; dueBy: number; points: [number, number][]; attribution: string; horizonDays?: number }
@@ -177,8 +179,8 @@ export function crashReport(e: unknown, cfg: Pick<GaugeConfig, "env" | "release"
 
 /**
  * THE PAGE'S ONE REPORTER: a failure the page caught is posted to the crash endpoint (crash/2), once per call, unless it is
- * the environment's (shown, not reported) or reports are off (`crash` null). The gauge page's live half and its Join the
- * test card (joinClient.ts, T911; gauges.ts `joinScript` writes this into that script too) both report through it.
+ * the environment's (shown, not reported) or reports are off (`crash` null). The gauge page's live half, its chart
+ * (gaugeChart.tsx) and a region hub's find script (gauges.ts `findScript` writes it in) report through it.
  */
 export function pageReporter(cfg: Pick<GaugeConfig, "crash" | "env" | "release"> & { app?: string; route?: string }, fetchImpl: typeof fetch, now: () => number): (e: unknown) => void {
   const install = Array.from({ length: 16 }, () => "0123456789abcdef"[Math.floor(Math.random() * 16)]).join("");

@@ -6,8 +6,8 @@
  * facts the feeds worker writes beside each gauge's share card (`feeds/cards/<station>.json`) and the weather at the
  * gauge (Open-Meteo). What the build writes here is what does not move between feed runs: the gauge's name and number,
  * the waters it serves (one line each to that water's regulations page — never an open/closed word on this page), and
- * "Open on the website" (the web app on that water's Conditions view) beside the "Get the app" block (`getAppBlock`)
- * (the phone app takes no links yet, D1; T514).
+ * "Open on the website" (the web app on that water's Conditions view) above the web app's own "Get the app" block (ui-native
+ * `GetAppBlock`, mounted by the chart's script; T1039).
  *
  * WHICH GAUGES: every station in the release that serves at least one water with a page — its own water (`gauge.item_id`),
  * a lake it gauges (`lake_gauge`), or a section it is the panel gauge of (`section_gauge`, good / fair; weak ones are
@@ -23,7 +23,7 @@ import { crashUrlFor, ORIGINS, REPORT_URLS } from "../../apps/mobile/src/env";
 import { clip, esc, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, type Site } from "./html";
 import type { GaugeConfig } from "./gaugeClient";
 import { FIND_BODY } from "./regionMap";
-import { appStoreLink, TESTFLIGHT_URL, WEB_SPOTS_WORDS, bestServes, gaugePath, getAppBlock, playStoreLink, type GetAppSlot, STALE_AFTER_MS, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
+import { bestServes, gaugePath, STALE_AFTER_MS, STORE_CONTACT, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
 import type { StationClim } from "@app/data";
 import { readGaugeClim, readGaugeRows } from "@app/data/release";
 
@@ -109,19 +109,8 @@ export function clientScript(): string {
   return `(function(){"use strict";\nconst STALE_AFTER_MS=${STALE_AFTER_MS};\n${core}\n${js}\ngaugePage(document,Date.now,window.fetch.bind(window)).catch(function(e){console.error(e)});\n})();\n`;
 }
 
-/** (T911) joinClient.ts as one plain, self-hosted script, calling itself on load. It reports through the gauge page's own
- *  reporter (gaugeClient.ts `pageReporter` and what it calls, written in from their source) at the page's #gauge-config. */
+/** the page reporter (gaugeClient.ts `pageReporter` and what it calls), written into a region hub's find script */
 const JOIN_REPORTER: readonly string[] = ["isEnvironment", "crashReport", "pageReporter"];
-export function joinScript(): string {
-  const js = plain(readFileSync(join(HERE, "joinClient.ts"), "utf8"));
-  if (/^\s*import\b/m.test(js)) throw new Error("seo: joinClient.ts must not import anything (it ships as one plain script)");
-  const reporter = inlineCore("gaugeClient.ts", JOIN_REPORTER, HERE);
-  // the card is drawn on gauge pages only, each with its #gauge-config; one without it is a build defect, thrown (the
-  // mailto links still work)
-  const start = `var c=document.getElementById("gauge-config");if(!c||!c.textContent)throw new Error("join card: no #gauge-config on this page");` +
-    `joinPopup(document,function(){return window.navigator.clipboard;},pageReporter(JSON.parse(c.textContent),window.fetch.bind(window),Date.now));`;
-  return `(function(){"use strict";\n${reporter}\n${js}\n${start}\n})();\n`;
-}
 
 /** (T1010) a region hub's water search: its script (regionMap.ts) with the page reporter written in, as the Join card's */
 export function findScript(): string {
@@ -206,6 +195,7 @@ export function gaugeConfig(g: GaugeModel, release: string, chart: ChartInputs):
     live: `${LIVE.data}/feeds/live`,
     clim: chart.clim.map((c) => ({ parameter: c.parameter, bands: Buffer.from(c.bands).toString("base64") })),
     fonts: chart.fonts || null,
+    contact: STORE_CONTACT,
   };
 }
 
@@ -223,34 +213,6 @@ export function gaugeDescription(g: GaugeModel): string {
 }
 
 /**
- * (T514, T901) the page's two store buttons, "Google Play" and "App Store" (owner 2026-11-19: one button per store). Each
- * is greyed "coming soon" until its page is public: Play while core's `PLAY_PUBLIC` is false, the App Store while core's
- * `APP_STORE_PUBLIC` is false (`appStoreLink()` null); then its link. A phone with the app installed opens the app (T625).
- */
-export function openInAppControl(play: string | null = playStoreLink(), appStore: string | null = appStoreLink(),
-                                 contact: string | null = null, testflight: string | null = TESTFLIGHT_URL): string {
-  const blk = getAppBlock(play, appStore, contact, false, testflight);
-  const P = WEB_SPOTS_WORDS.join.popup;
-  // (T911) a Join the test link still is the mailto (it works with no script); joinClient.ts opens its card over it
-  const slot = (x: GetAppSlot) => x.kind === "store"
-    ? `<a class="app" href="${esc(x.url)}">${esc(x.label)}</a>`
-    : `<a class="app" href="${esc(x.ask.mailto!)}" data-join="join-${x.store}">${esc(x.label)}</a>`;
-  const card = (x: GetAppSlot) => {
-    if (x.kind !== "join") return "";
-    const id = `join-${x.store}`, addr = x.ask.address;
-    return `<dialog id="${id}" class="join" aria-labelledby="${id}-h" data-copied="${esc(P.copied)}" data-refused="${esc(P.refused)}">` +
-      `<button type="button" class="x" data-close aria-label="${esc(P.close)}">\u2715</button>` +
-      `<h2 id="${id}-h">${esc(x.label)}</h2><p>${esc(P[x.store])}</p>` +
-      `<div class="acts"><a class="app" href="${esc(x.ask.mailto!)}">${esc(P.email)}</a>` +
-      (addr ? `<button type="button" class="app alt" data-copy="${esc(addr)}">${esc(P.copy)}</button>` : "") + `</div>` +
-      `<p class="small" role="status" data-said></p>` + (addr ? `<p class="addr" data-addr hidden>${esc(addr)}</p>` : "") + `</dialog>`;
-  };
-  return (blk.coming ? `<p class="small coming">${esc(blk.coming)}</p>` : "") +
-    (blk.lead ? `<p class="small joins">${esc(blk.lead)}</p>` : "") +
-    (blk.slots.length ? `<div class="stores">${blk.slots.map(slot).join("")}</div>` + blk.slots.map(card).join("") : "");
-}
-
-/**
  * (T908) the fold's summary: "Also" after the main waters; with none, "rough" only when every folded water is a weak
  * guide (the fold holds fair guides too, and a fair guide is never called rough).
  */
@@ -262,8 +224,7 @@ export function moreSummary(g: Pick<GaugeModel, "main" | "more" | "rough">): str
 }
 
 /** the page body: everything that does not move between feed runs; the live sections are filled by gaugeClient.ts */
-export function gaugeBody(g: GaugeModel, release: string, clientHref: string, asOf: string, chartHref: string, chart: ChartInputs,
-                          contact: string | null = null, joinHref: string | null = null): string {
+export function gaugeBody(g: GaugeModel, release: string, clientHref: string, asOf: string, chartHref: string, chart: ChartInputs): string {
   const first = g.close[0] ?? g.rough[0]!;
   const line = (w: WaterLink) => `<li><a href="${esc(w.path)}">${esc(w.name)} fishing regulations</a></li>`;
   const cfg = JSON.stringify(gaugeConfig(g, release, chart)).replace(/</g, "\\u003c");
@@ -283,11 +244,12 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
     `<p class="small">Waters as of <time datetime="${esc(asOf)}">${esc(asOf)}</time>, from release ${esc(release)}.</p>` +
     `<div class="card"><p>See this gauge with the map, alerts and every other gauge in the app.</p>` +
     // (owner 2026-11-08) the website now; the phone app greyed until its store listing is public (T514)
-    `<div class="opens"><a class="app" href="${esc(`${first.path}?view=conditions`)}">Open on the website</a>` +
-    `${openInAppControl(undefined, undefined, contact)}</div></div></div>` +
+    `<div class="opens"><a class="app" href="${esc(`${first.path}?view=conditions`)}">Open on the website</a></div>` +
+    // (T1039, owner 2026-11-23: "chart should use same buttons as spots too for now") the web app's own "Get the app"
+    // block (ui-native `GetAppBlock`), drawn by the chart's script
+    `<div id="gauge-get-app"></div></div></div>` +
     `<script type="application/json" id="gauge-config">${cfg}</script><script src="${esc(clientHref)}" defer></script>` +
-    `<script src="${esc(chartHref)}" defer></script>` +
-    (joinHref ? `<script src="${esc(joinHref)}" defer></script>` : "");
+    `<script src="${esc(chartHref)}" defer></script>`;
 }
 
 export function gaugesIndexBody(gs: readonly GaugeModel[], asOf: string): string {

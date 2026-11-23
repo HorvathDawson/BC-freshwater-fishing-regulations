@@ -15,7 +15,7 @@ import "./globals";
 import { createElement as h } from "react";
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render, waitFor } from "@testing-library/react";
-import { figure, noChartSentence, standing, standingLong } from "@app/core";
+import { figure, noChartSentence, standing, standingLong, STORE_CONTACT } from "@app/core";
 import { httpFeed, stationChartSource, type StationId } from "@app/data";
 import { useStationChart, type ChartSource } from "@app/ui";
 import { parseManifest } from "../../packages/data/src/manifest";
@@ -28,7 +28,8 @@ import { makeReleaseSource } from "../../packages/data/src/release/source";
 import { StationChart } from "../../packages/ui-native/src/StationChart";
 import { THEMES } from "../../packages/ui-native/src/theme";
 import { cardFacts, cardModel, type CardStation } from "../../workers/feeds/src/gauges/card/card";
-import { CHART_FAILED, GaugeChart, mountGaugeChart } from "./gaugeChart";
+import { CHART_FAILED, GaugeChart, GaugePageGetApp, mountGaugeChart } from "./gaugeChart";
+import { showWebSpotsNotice, WebSpotsNotice } from "../../packages/ui-native/src/WebSpotsNotice";
 import { readingHtml, type Facts } from "./gaugeClient";
 
 const NOW = Date.parse("2026-11-08T12:00:00Z");
@@ -175,6 +176,17 @@ describe("the gauge page shows what the app shows for one station", () => {
     for (const w of ["Flow", "Level", "72 h", "Year", "CLEVER · 10d", "ELF · 30d", "Real-time only", "normal range", "median"]) expect(words, w).toContain(w);
   });
 
+  it("(T1039, owner 2026-11-23: \"same buttons as spots\") the page's Get the app block IS the Spots tab's: the same markup", async () => {
+    const page = render(h(GaugePageGetApp, { contact: STORE_CONTACT }));
+    const pageHtml = page.container.querySelector('[data-testid="get-app"]')!.outerHTML;
+    cleanup();
+    showWebSpotsNotice(true);
+    const spots = render(h(WebSpotsNotice, { palette: THEMES.light, contact: STORE_CONTACT }));
+    showWebSpotsNotice(null);
+    expect(pageHtml).toBe(spots.container.querySelector('[data-testid="get-app"]')!.outerHTML);
+    for (const w of ["Get the app", "Join the Android test", "Join the iPhone test"]) expect(pageHtml, w).toContain(w);
+  });
+
   it("(T1039) a series the source could not answer: the chart's place says so (shown; the hook reports it)", async () => {
     const broken: ChartSource = { gaugeParameters: async () => ["discharge"], gaugeSeries: async () => { throw new Error("series broke"); } };
     const view = render(h(GaugeChart, { source: broken, station: ST }));
@@ -184,10 +196,10 @@ describe("the gauge page shows what the app shows for one station", () => {
   it("(T1039) the page reads the app's feed file, never the share card; a file that cannot be read is shown and reported (W46)", async () => {
     const page = (station: () => Response, clim: string = Buffer.from(CLIM[0]!.bands).toString("base64")) => {
       const doc = document.implementation.createHTMLDocument("g");
-      doc.body.innerHTML = `<div id="gauge-chart"></div><script type="application/json" id="gauge-config">${JSON.stringify({
+      doc.body.innerHTML = `<div id="gauge-chart"></div><div id="gauge-get-app"></div><script type="application/json" id="gauge-config">${JSON.stringify({
         station: ST, facts: "https://data.example/feeds/cards/08MH001.json", live: BASE, clim: [{ parameter: "discharge", bands: clim }],
         fonts: '@font-face{font-family:"Archivo_400Regular";src:url(/assets/fonts/A.woff2)}',
-        weather: null, weatherAttribution: "", sky: {}, crash: "https://c/crash", env: "staging", release: "r1" })}</script>`;
+        weather: null, weatherAttribution: "", sky: {}, crash: "https://c/crash", env: "staging", release: "r1", contact: STORE_CONTACT })}</script>`;
       const sent: string[] = [];
       const inner = feedFetch(station);
       const fetchImpl = (async (u: string, init?: RequestInit) => {
@@ -201,6 +213,9 @@ describe("the gauge page shows what the app shows for one station", () => {
     const ok = page(() => new Response(JSON.stringify(STATION)));
     await waitFor(() => expect(ok.chart().querySelector("svg path")).not.toBeNull());
     expect(asked).toContain(`${BASE}/${ST}.json`);
+    // (T1039, owner: "same buttons as spots") the Spots tab's own block, both joins, from the page's contact
+    await waitFor(() => expect(ok.doc.querySelector('[data-testid="web-spots-join-android"]')).not.toBeNull());
+    expect(ok.doc.getElementById("gauge-get-app")!.textContent).toContain("Join the iPhone test");
     expect(asked.filter((u) => u.includes("/cards/"))).toEqual([]);
     expect(ok.sent).toEqual([]);
     // the app's faces, the export's own files, are declared for the chart's words

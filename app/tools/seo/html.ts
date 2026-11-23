@@ -71,13 +71,7 @@ ul{padding-left:1.1rem}li{margin:.25rem 0}li.sub{list-style:none;margin-left:-1.
 .bk{font-size:.85rem;white-space:nowrap}.part{border-top:1px solid var(--line);margin-top:1.4rem}
 .legal{background:var(--soft);border-radius:.5rem;padding:.7rem 1rem;margin:1.5rem 0}
 .cols{columns:2 14rem;list-style:none;padding:0}.cols li{break-inside:avoid}
-.card{border:1px solid var(--line);padding:.8rem 1rem;margin:1rem 0}.card>p{margin:0 0 .5rem}.card .app{border-radius:0;margin:0}.opens{display:flex;flex-wrap:wrap;gap:.5rem}.opens .coming,.opens .joins{flex-basis:100%;margin:0}.opens .stores{flex-basis:100%;display:flex;flex-wrap:wrap;gap:.5rem}.opens .stores .app{flex:1 1 11rem;text-align:center}.card h2{margin-top:0}
-dialog.join{position:fixed;inset:0;margin:auto;width:min(26rem,calc(100vw - 2rem));max-height:calc(100vh - 2rem);overflow:auto;box-sizing:border-box;padding:1rem 1.2rem 1.2rem;border:1.5px solid var(--ink);background:var(--card);color:var(--ink)}
-dialog.join::backdrop{background:var(--scrim)}dialog.join h2{margin:0 2.5rem .6rem 0;font-size:1.15rem}dialog.join p{margin:.4rem 0}
-dialog.join .x{position:absolute;top:.4rem;right:.4rem;width:2.5rem;height:2.5rem;border:0;background:none;color:var(--ink);font-size:1.3rem;cursor:pointer}
-dialog.join .acts{display:flex;flex-wrap:wrap;gap:.5rem;margin:.8rem 0 .2rem}dialog.join .acts .app{flex:1 1 9rem;margin:0;text-align:center;border:0;font:inherit;font-weight:600;cursor:pointer;border-radius:0}
-dialog.join .acts .app.alt{background:transparent;color:var(--accent);border:1.5px solid var(--ink);padding:calc(.65rem - 1.5px) calc(1rem - 1.5px)}
-dialog.join .addr{font-weight:600;user-select:all;word-break:break-all}
+.card{border:1px solid var(--line);padding:.8rem 1rem;margin:1rem 0}.card>p{margin:0 0 .5rem}.card .app{border-radius:0;margin:0}.opens{display:flex;flex-wrap:wrap;gap:.5rem}#gauge-get-app{margin-top:1rem}.card h2{margin-top:0}
 .lead{display:grid;gap:1rem;align-items:start;margin:.6rem 0 1rem}@media(min-width:44rem){.lead{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
 .mapcard{position:relative;border:1px solid var(--line);background:var(--soft)}.mapcard .tag2{position:absolute;top:.4rem;left:.4rem;font-size:.8rem;background:var(--card);color:var(--muted);padding:.1rem .4rem}
 .mapcard .dots{display:block;width:100%;height:auto;max-height:26rem}.mapcard .dots path{fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linecap:round;opacity:.75}

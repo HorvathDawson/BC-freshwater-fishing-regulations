@@ -12,6 +12,7 @@ import { checkJsonLd } from "./jsonld";
 import { pngSize } from "./share";
 import { browserSafe, gaugeModels, gaugePath, gaugeTitle, LIVE, moreSummary, type GaugeRows } from "./gauges";
 import { readConfig } from "./build";
+import { STORE_CONTACT } from "@app/core";
 
 const site = readConfig();
 const CLIM = Uint8Array.from([1, 2, 3, 250, 251]);
@@ -58,7 +59,8 @@ describe("T487 gauge pages", () => {
     const links = [...p.html.matchAll(/<a href="(\/water\/[^"?]+)">([^<]*) fishing regulations<\/a>/g)].map((x) => x[1]);
     expect(links).toEqual([path(ids[0]!), path(ids[1]!)]);                 // own water first, then the fair one; the weak duplicate folded
     expect(p.html).toContain(`<a class="app" href="${path(ids[0]!)}?view=conditions">Open on the website</a>`);
-    expect(p.html).toContain(`<p class="small coming">Coming soon to Google Play and the App Store.</p>`);
+    // (T1039) the "Get the app" block is the web app's own, drawn by the chart's script (gaugePage.parity.test.ts)
+    expect(p.html).toContain(`<div id="gauge-get-app"></div>`);
     const q = gaugePages().find((x) => x.path.startsWith("/gauge/08MH016"))!;
     expect(q.html).toMatch(/<details><summary>A rough guide for 2 more waters<\/summary>/);
     for (const g of gaugePages()) {
@@ -102,6 +104,13 @@ describe("T487 gauge pages", () => {
     // a station the release holds no climatology for: none, as the app has none for it
     const other = gaugePages().find((g) => g.path.startsWith("/gauge/08MH016/"))!;
     expect(JSON.parse(/id="gauge-config">([^<]*)<\/script>/.exec(other.html)![1]!).clim).toEqual([]);
+    // (T1039, owner: "same buttons as spots") the web app's Get the app block, mounted by the chart's script: no static copy,
+    // no Join script of the page's own; its contact is the one the web app is exported with
+    expect(p.html).toContain('<div id="gauge-get-app"></div>');
+    expect(p.html).not.toMatch(/join\.[0-9a-f]{10}\.js|data-join=|<dialog/);
+    expect(cfg.contact).toBe(STORE_CONTACT);
+    const pkg = JSON.parse(readFileSync(new URL("../../apps/mobile/package.json", import.meta.url), "utf8")).scripts;
+    for (const k of ["export:web", "export:web:staging"]) expect(pkg[k], k).toContain(`EXPO_PUBLIC_CONTACT=${STORE_CONTACT} `);
     // the coho loader's sheets the app's LoadingState names, served beside the script
     expect([...built.binary.keys()].filter((k) => k.startsWith("assets/chart/")).length).toBeGreaterThanOrEqual(2);
   });

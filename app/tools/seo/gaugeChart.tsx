@@ -19,6 +19,7 @@ import { View, useColorScheme, type LayoutChangeEvent } from "react-native";
 import { reportFailure, setFailureSink } from "@app/core";
 import { httpFeed, stationChartSource, type StationClim, type StationId } from "@app/data";
 import { useStationChart, type ChartSource } from "@app/ui";
+import { GetAppBlock } from "../../packages/ui-native/src/GetAppBlock";
 import { StationChart } from "../../packages/ui-native/src/StationChart";
 import { Text } from "../../packages/ui-native/src/Text";
 import { THEMES } from "../../packages/ui-native/src/theme";
@@ -50,8 +51,8 @@ export function GaugeChart({ source, station }: { source: ChartSource; station: 
 
 /** mounts the chart in #gauge-chart from the page's #gauge-config */
 export function mountGaugeChart(doc: Document, fetchImpl: typeof fetch, now: () => number): void {
-  const cfgEl = doc.getElementById("gauge-config"), box = doc.getElementById("gauge-chart");
-  if (!cfgEl?.textContent || !box) throw new Error("gauge chart: no #gauge-config or #gauge-chart on this page");
+  const cfgEl = doc.getElementById("gauge-config"), box = doc.getElementById("gauge-chart"), getApp = doc.getElementById("gauge-get-app");
+  if (!cfgEl?.textContent || !box || !getApp) throw new Error("gauge chart: no #gauge-config, #gauge-chart or #gauge-get-app on this page");
   const cfg = JSON.parse(cfgEl.textContent) as GaugeConfig;
   const report = pageReporter(cfg, fetchImpl, now);
   setFailureSink(report);
@@ -63,5 +64,13 @@ export function mountGaugeChart(doc: Document, fetchImpl: typeof fetch, now: () 
     box.innerHTML = `<p class="warn">${CHART_FAILED}</p>`;
     reportFailure(e);
   }
+  // (T1039, owner 2026-11-23: "chart should use same buttons as spots too for now") the web app's own "Get the app" block
+  createRoot(getApp).render(h(GaugePageGetApp, { contact: cfg.contact }));
+}
+
+/** the Spots tab's "Get the app" block, in the page's theme */
+export function GaugePageGetApp({ contact }: { contact: string | null }) {
+  const palette = THEMES[useColorScheme() === "dark" ? "dark" : "light"];
+  return h(GetAppBlock, { palette, contact });
 }
 

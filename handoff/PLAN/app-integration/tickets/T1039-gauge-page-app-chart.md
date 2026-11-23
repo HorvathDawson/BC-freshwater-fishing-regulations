@@ -34,6 +34,18 @@ gauge `webapp-chilliwack-chart-desktop.png`.
 - Chart: "App's chart, ~260 KB (Recommended)" — option B.
 - ELF: "Yes, fix in 0.9.0 (Recommended)" — the facts file keeps every run the app offers, by the app's own rule.
 
+## Owner follow-ups (2026-11-23, verbatim)
+
+- "chart should use same buttons as spots too for now" (with a shot of the web app's Spots tab "Get the app" block: both
+  "Join the Android test" and "Join the iPhone test"). "Spots" is the WEB APP's Spots tab notice (ui-native
+  `WebSpotsNotice`), not a tools/seo page. Built: its "Get the app" part is now ui-native `GetAppBlock`, drawn by the Spots
+  notice and mounted on the gauge page by the chart's script (the same component, compared whole in
+  `gaugePage.parity.test.ts`); the page's own static copy (`openInAppControl`, `joinClient.ts`, the join script and its CSS)
+  is gone. The Android join needs the app's contact: the page uses core `STORE_CONTACT` (support@canifishthis.ca, the
+  value every app build, the web export included, is made with; a test holds the export scripts to it). Shots:
+  `T1039-shots/after-get-app-desktop.png`, `after-get-app-phone-390.png`.
+- "could add other almanac info too?" (below the weather line).
+
 ## Built (lane L25, 2026-11-23)
 
 - **ELF facts (9f8603f17).** `card.ts` `cardModel` lists every run the app offers in the card's quantity by ONE core rule
