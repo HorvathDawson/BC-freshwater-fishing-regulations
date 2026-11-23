@@ -90,6 +90,12 @@ export function effectOf(now: ExtentFix[], draft: ExtentFix[]): DfoEffect {
 export function withPiece(fixes: ExtentFix[], i: number, f: ExtentFix): ExtentFix[] {
   return i >= fixes.length ? [...fixes, f] : fixes.map((x, j) => (j === i ? f : x));
 }
+/** T590: a NEW cut within 200 m of an existing one IS the existing one — every point that names the new cut `ref` names
+ *  the existing cut `splitId` instead (the caller drops the new cut itself) */
+export function useExistingCut(fixes: ExtentFix[], ref: string, splitId: string): ExtentFix[] {
+  return fixes.map((f) => ({ ...f, points: f.points.map((p) =>
+    p.kind === "new" && p.split_id === ref ? { kind: "split" as const, split_id: splitId } : p) }));
+}
 /** the pieces without piece `i` */
 export function dropPiece(fixes: ExtentFix[], i: number): ExtentFix[] {
   return fixes.filter((_x, j) => j !== i);

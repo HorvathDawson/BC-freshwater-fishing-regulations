@@ -114,6 +114,66 @@ def plan(props: list[dict], tried: set[str], landed_sids: set[str] = frozenset()
     return None, blocked
 
 
+def side_atlas(p: Mapping, build: Path | None = None) -> Path | None:
+    """THE ATLAS THAT HAS A CUT-CHANGING DFO PLACE'S CUT: its side atlas (`proposals.side_commands`), else the one
+    `--build` or `CURATION_BUILD` names (a side atlas made elsewhere); None when there is none."""
+    import os
+    if P.side_ready(p):
+        return P.REPO / P.side_dir(p) / "atlas"
+    named = build or (Path(os.environ["CURATION_BUILD"]) if os.environ.get("CURATION_BUILD") else None)
+    return Path(named) if named is not None and Path(named).is_dir() else None
+
+
+def side_check(p: Mapping, atlas: Path | None) -> dict:
+    """The DFO place's binding check (`proposals.check`'s, with `withheld` / `unaccepted` / `stale_acceptances`) bound
+    on `atlas` with the side copies beside it as the curated root when they were made (`pipeline.regs.review.side_check`,
+    its own process: the review reads bind to one atlas at import). `cheap: False` and why when it cannot run."""
+    import json
+    import os
+    if atlas is None:
+        return {"cheap": False, "why": "no atlas with this place's cut: make its side atlas (`proposals side`, then the "
+                                      "atlas build it prints) or name one with --build / CURATION_BUILD"}
+    changes = [{"scope": ed["scope"], "field": ed["field"], "after": ed["after"]} for ed in p["edits"]]
+    env = {**os.environ, "CURATION_BUILD": str(atlas)}
+    root = P.REPO / P.side_dir(p) / P.SIDE_ROOT
+    if root.is_dir():
+        env["CURATED_ROOT"] = str(root)
+    got = subprocess.run([sys.executable, "-m", "pipeline.regs.review.side_check", str(p["target"]), json.dumps(changes)],
+                         cwd=P.REPO, env=env, capture_output=True, text=True)
+    if got.returncode != 0:
+        return {"cheap": False, "why": f"the check on {atlas} failed (rc {got.returncode}): "
+                                      + (got.stderr or got.stdout).strip()[-300:]}
+    try:
+        return json.loads(got.stdout.strip().splitlines()[-1])
+    except (ValueError, IndexError):
+        return {"cheap": False, "why": f"the check on {atlas} printed no result: {got.stdout.strip()[-300:]}"}
+
+
+def withheld_refusal(p: Mapping) -> str | None:
+    """T779: the reach gate's rule (`build.unplaced_gate`, T632) at save time. A DFO place whose binding check withholds a
+    piece that `unplaced_piece_calls.json` `accepted` does not name is refused here — the full reach run stops on it
+    (two Middle Shuswap places landed 'bound' and the build stopped 14 minutes in). Why, or None when none is withheld."""
+    c = p.get("check") or {}
+    if p.get("scope") == "dfo" and p.get("kind") == "extent" and not c.get("cheap"):
+        # the check could not bind the place (a new or just-landed cut the live atlas has not got, an unbound split,
+        # an error): what it withholds is unknown, and unknown never passes
+        return ("the withheld-piece check could not run (" + str(c.get("why") or "no check")
+                + "): the reach run could stop on a piece nobody has seen. Bind it on an atlas with its cut (the "
+                  "side atlas, or --build / CURATION_BUILD), or land the cut and rebuild the atlas first")
+    bad, stale = c.get("unaccepted") or [], c.get("stale_acceptances") or []
+    why = []
+    if bad:
+        why.append("the place withholds " + ", ".join(f"{x['piece']} ({x['reason']})" for x in bad)
+                   + " and no `accepted` row in data/curated/waters/unplaced_piece_calls.json names it: the reach run "
+                     "stops on it. Place the piece (a cut, an extent) or have the owner accept it")
+    if stale:
+        # the gate's other half (`build.unplaced_verdict`): an acceptance of this place that names no piece it withholds
+        why.append("unplaced_piece_calls.json accepts " + ", ".join(f"{x['piece']} ({x['reason']})" for x in stale)
+                   + " for this place, but it withholds no such piece now: the reach run stops on a stale acceptance. "
+                     "The owner looks again and the row is removed")
+    return "; ".join(why) or None
+
+
 def _who(p: Mapping) -> list[dict]:
     """The marks behind a proposal, as {scope, target, rule_id} (the review app shows an outcome on each)."""
     return [{"scope": m.get("scope") or p.get("scope"), "target": m.get("target"), "rule_id": m.get("rule_id")}
@@ -186,6 +246,17 @@ def run(argv: list[str] | None = None) -> tuple[int, list[dict]]:
                                "why": f"the binding check failed — {c.get('why')}"})
                 rc = 1
                 continue
+        elif p["scope"] == "dfo":
+            # T779: a DFO place is in no reach run, so nothing else gates the pieces it withholds before the build.
+            # Its cut is not on the live atlas: it is bound on the atlas that HAS the cut (its side atlas, or the one
+            # --build / CURATION_BUILD names); with none, it is refused (never landed unchecked)
+            p["check"] = side_check(p, side_atlas(p, a.build))
+        bad = withheld_refusal(p)
+        if bad:
+            print(f"!! {p['id']}: {bad}; not applied")
+            events.append({"id": p["id"], "status": "refused", "marks": _who(p), "why": bad})
+            rc = 1
+            continue
         texts = P.materialize([p], src)
         paths = sorted(texts)
         if a.dry_run:

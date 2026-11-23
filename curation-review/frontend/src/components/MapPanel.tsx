@@ -473,12 +473,19 @@ export function MapPanel({
             paint: { "text-color": "#115e59", "text-halo-color": "#fff", "text-halo-width": 2 } },
           // T191: THE PROPOSED EXTENT — magenta, over the item, under the labels
           { id: "preview-fill", type: "fill", source: "preview",
-            filter: ["in", ["geometry-type"], ["literal", ["Polygon", "MultiPolygon"]]],
+            filter: ["all", ["in", ["geometry-type"], ["literal", ["Polygon", "MultiPolygon"]]], ["!=", ["get", "listed"], true]],
             paint: { "fill-color": "#db2777", "fill-opacity": 0.3 } },
           // a reach is MultiLineString as often as LineString; a lake's outline draws here too
           { id: "preview-lines", type: "line", source: "preview",
-            filter: ["!=", ["geometry-type"], "Point"],
+            filter: ["all", ["!=", ["geometry-type"], "Point"], ["!=", ["get", "listed"], true]],
             paint: { "line-color": "#db2777", "line-width": 5, "line-opacity": 0.8 } },
+          // T775: the places a "rest of" leaves out, beside it — dashed, a different colour (a look for the owner to change)
+          { id: "preview-listed-fill", type: "fill", source: "preview",
+            filter: ["all", ["in", ["geometry-type"], ["literal", ["Polygon", "MultiPolygon"]]], ["==", ["get", "listed"], true]],
+            paint: { "fill-color": "#7c3aed", "fill-opacity": 0.2 } },
+          { id: "preview-listed-lines", type: "line", source: "preview",
+            filter: ["all", ["!=", ["geometry-type"], "Point"], ["==", ["get", "listed"], true]],
+            paint: { "line-color": "#7c3aed", "line-width": 5, "line-opacity": 0.85, "line-dasharray": [1.2, 1] } },
           { id: "preview-pts", type: "circle", source: "preview",
             filter: ["==", ["geometry-type"], "Point"],
             paint: { "circle-radius": 8, "circle-color": "#db2777",

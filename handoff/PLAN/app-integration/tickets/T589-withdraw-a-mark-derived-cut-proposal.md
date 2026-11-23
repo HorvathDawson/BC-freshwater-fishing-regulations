@@ -1,6 +1,6 @@
 # T589 — A cut proposal can be withdrawn (the Allco fence)
 
-Status: PARTIAL — 680c1d6eb, 54a06dc89 (2026-11-10): the withdraw call is built and the Allco fence cut is withdrawn by the owner. left (Claude): a button to withdraw a proposed cut himself (a new mark kind, a writer merging into proposal_overrides.json, its write-through domain; see below).
+Status: PARTIAL — 680c1d6eb, 54a06dc89 (2026-11-10). The button is NOT built and was stopped 2026-11-22 as too big for a leftover lane: it is a new mark scope (schema, validators, `export` domain, an `apply` writer into `proposal_overrides.json`, write-through, the button on each proposed cut, API.md), the `closed_area` scope is the pattern. Own ticket-sized lane. left (Claude): the withdraw button (a new mark scope).
 
 Source: T532 round 6, leftover c.
 
@@ -31,3 +31,5 @@ is not written from marks. A button therefore needs: a mark that says "withdraw 
 call on the place's mark, with its prints = the cut's anchor), a file writer that merges those marks into
 `proposal_overrides.json` beside the hand-written entries (never dropping one), its write-through domain, and the
 button on each proposed cut. Until then a withdrawal is one entry in that file, added by Claude on his word.
+
+State 2026-11-22 (stopped for credits): see Status above; code c77eeb601, ledger f087c8968; branch fix/T775-review-app-leftovers. fast-fail not confirmed (was still running).
