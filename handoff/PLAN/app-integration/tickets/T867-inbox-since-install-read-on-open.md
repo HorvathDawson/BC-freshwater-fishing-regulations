@@ -1,6 +1,6 @@
 # T867 — The notifications inbox: only what happened since install, read once seen, short, with data and app updates
 
-Status: PARTIAL (in review: PR feat/T867-inbox, code 1d488995b) (owner 2026-11-22 23:55: "Build all four (Recommended)"). One part waits on the data release: the data row says "N waters changed" only when the release states it (none does yet), see Built.
+Status: PARTIAL, left (Claude): the release must carry a changed-waters count for the data row to say "N waters changed" (owner 2026-11-22 23:55 "Build all four"; code 1d488995b, in review: PR feat/T867-inbox).
 
 Owner 2026-11-18 ~19:50 (to the app chat), verbatim: "I don't think the inbox works properly for the app all in season
 still show up under earlier always and data updates and stuff don't show up in history etc. also the history after
