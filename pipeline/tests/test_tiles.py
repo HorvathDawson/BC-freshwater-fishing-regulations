@@ -458,6 +458,104 @@ def test_the_assets_folder_lists_every_file_with_its_digest(tmp_path, monkeypatc
     assert len(A.files_sha256(out / "assets.json")) == 64
 
 
+def test_the_assets_pack_is_the_folder_as_one_file_and_the_same_folder_gives_the_same_bytes(tmp_path, monkeypatch):
+    """(T919 c) The folder as ONE download: assets.json first, then every file its list names, byte for byte, and
+    nothing else; a second pack of the same folder is the same bytes (the manifest's sha256 must not move by itself)."""
+    import io
+    import tarfile
+    import zlib
+
+    from pipeline.deliver.tiles import assets as A
+    cache = tmp_path / "cache"
+    for rel in A.wanted():
+        (cache / rel).parent.mkdir(parents=True, exist_ok=True)
+        (cache / rel).write_bytes(rel.encode())
+    monkeypatch.setattr(A, "fetch", lambda workers=8: cache)
+    out = A.write(tmp_path / "rel")
+    pack = A.pack_path(out)
+    assert pack == out.parent / f"map-assets-{A.ASSETS_VERSION}.tar.zlib" and pack.exists()
+    first = pack.read_bytes()
+    assert first[:1] == b"\x78" and first[:2] != b"\x1f\x8b"              # zlib, never the gzip magic (see assets.py)
+    with tarfile.open(fileobj=io.BytesIO(zlib.decompress(first)), mode="r:") as tar:
+        got = {m.name: tar.extractfile(m).read() for m in tar.getmembers()}
+        assert all(m.isreg() and m.mtime == 0 and m.uid == 0 and m.uname == "" for m in tar.getmembers())
+        assert tar.getmembers()[0].name == "assets.json"
+    assert got == {"assets.json": (out / "assets.json").read_bytes(), **{r: r.encode() for r in A.wanted()}}
+    pack.unlink()
+    assert A.ensure_pack(out).read_bytes() == first                       # written again: the same bytes
+    assert A.ensure_pack(out).read_bytes() == first                       # kept as it is
+
+
+def test_an_existing_pack_that_is_not_its_folder_is_refused_never_kept(tmp_path, monkeypatch):
+    """(T919 c) `ensure_pack` keeps a pack only when it IS the folder: a pack written before the folder changed (or cut,
+    or another folder's) is refused, naming what differs, never published as the folder's."""
+    import hashlib
+
+    from pipeline.deliver.tiles import assets as A
+    cache = tmp_path / "cache"
+    for rel in A.wanted():
+        (cache / rel).parent.mkdir(parents=True, exist_ok=True)
+        (cache / rel).write_bytes(rel.encode())
+    monkeypatch.setattr(A, "fetch", lambda workers=8: cache)
+    out = A.write(tmp_path / "rel")
+    pack = A.pack_path(out)
+    assert A.pack_problems(out) == []
+    # the folder's list (and one file) moved after the pack was written
+    listing = json.loads((out / "assets.json").read_text())
+    (out / "sprites/v4/light.json").write_bytes(b"new bytes")
+    listing["files"]["sprites/v4/light.json"] = hashlib.sha256(b"new bytes").hexdigest()
+    (out / "assets.json").write_text(json.dumps(listing))
+    before = pack.read_bytes()
+    with pytest.raises(SystemExit, match=r"is not the folder .*light\.json is not the sha256"):
+        A.ensure_pack(out)
+    assert pack.read_bytes() == before                                    # refused, never rewritten by itself
+    # a pack that is not a zlib tar at all
+    pack.write_bytes(b"not a pack")
+    with pytest.raises(SystemExit, match="would not read as a zlib tar"):
+        A.ensure_pack(out)
+    pack.unlink()
+    assert A.ensure_pack(out) == pack and A.pack_problems(out) == []      # deleted: written again from the folder
+
+
+def test_the_assets_pack_is_the_shared_fixture_the_app_unpacks(tmp_path):
+    """(T919 c) Rule 40: ONE committed fixture is the pin for both sides. `write_pack` of the fixture's folder is the
+    fixture's pack, compared decompressed (the tar is the format; deflate's bytes depend on the zlib build); the app's
+    `unpackAssets` reads the same pack (`app/tools/assets-pack.test.ts`)."""
+    import base64
+    import zlib
+
+    from pipeline.deliver.tiles import assets as A
+    fx = json.loads((Path(__file__).resolve().parents[2] / "app/packages/data/dev/assets-pack-parity.json").read_text())
+    d = tmp_path / "map-assets-1"
+    for rel, text in fx["folder"].items():
+        (d / rel).parent.mkdir(parents=True, exist_ok=True)
+        (d / rel).write_bytes(text.encode())
+    (d / "assets.json").write_text(fx["assets_json"])
+    assert A.files_sha256(d / "assets.json") == fx["files_sha256"]
+    assert zlib.decompress(A.write_pack(d).read_bytes()) == zlib.decompress(base64.b64decode(fx["pack"]))
+
+
+def test_an_assets_folder_that_is_not_its_list_is_never_packed(tmp_path, monkeypatch):
+    """(T919 c) The pack never carries bytes the list does not name: a changed file, a missing one or an extra one."""
+    from pipeline.deliver.tiles import assets as A
+    cache = tmp_path / "cache"
+    for rel in A.wanted():
+        (cache / rel).parent.mkdir(parents=True, exist_ok=True)
+        (cache / rel).write_bytes(rel.encode())
+    monkeypatch.setattr(A, "fetch", lambda workers=8: cache)
+    out = A.write(tmp_path / "rel")
+    (out / "sprites/v4/light.json").write_bytes(b"other bytes")
+    with pytest.raises(SystemExit, match="light.json is not the sha256"):
+        A.write_pack(out)
+    (out / "sprites/v4/light.json").unlink()
+    with pytest.raises(SystemExit, match=r"missing \['sprites/v4/light.json'\]"):
+        A.write_pack(out)
+    (out / "sprites/v4/light.json").write_bytes(b"sprites/v4/light.json")
+    (out / "stray.txt").write_text("x")
+    with pytest.raises(SystemExit, match=r"extra \['stray.txt'\]"):
+        A.write_pack(out)
+
+
 # ---------------------------------------------------------------- refinement pass (owner 2026-10-22)
 
 def test_basins_are_simplified_as_one_cover_so_neighbours_never_gap():
