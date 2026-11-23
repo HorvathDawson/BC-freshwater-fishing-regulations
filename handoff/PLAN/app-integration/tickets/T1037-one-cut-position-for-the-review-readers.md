@@ -1,4 +1,4 @@
-# T1032 — Two review readers pick a cut's position from `splits.resolved.json` by different rules, and neither is the build's
+# T1037 — Two review readers pick a cut's position from `splits.resolved.json` by different rules, and neither is the build's
 
 Status: OPEN — needs a decision on what "the cut's position" is for a reader with no extent (not small; no build output changes until then)
 

@@ -40,4 +40,4 @@ Audit rerun on the served atlas (`--no-landed`), old code vs new: 291 -> 272 fin
 State 2026-11-23: review fixes dd942ce76, ff7cece62, 4916c3cf0 on branch fix/T775-review-app-leftovers (PR #48); origin/main merged.
 
 Review 2026-11-23: `primary_split_pos` and `reuse.host_rows` keep different rows (157 of 190 multi-row cuts), and the build
-reads neither (its position is per extent, `extent._cut_at`): left as it is, ticketed as T1032.
+reads neither (its position is per extent, `extent._cut_at`): left as it is, ticketed as T1037.
