@@ -62,8 +62,10 @@ const pagesOf = (els: Element[], re: RegExp) =>
 function probe() {
   const content = screen.getByTestId("regs-content"), row = screen.getByTestId("regs-sources");
   openFolds(content);
-  const links = [...content.querySelectorAll("[role=link]")];
-  const drawn = new Set(pagesOf(links.filter((e) => !row.contains(e)), /^Rule book page (\d+), opens the PDF$/));
+  // (T1031) the pages the screen draws: rule text's links ("B.C. Synopsis page N, …") and the blocks' own lines, never the
+  // trout table's line counting itself in
+  const links = [...content.querySelectorAll("[role=link]")].filter((e) => !e.closest("[data-testid=trout-source]"));
+  const drawn = new Set(pagesOf(links.filter((e) => !row.contains(e)), /^B\.C\. Synopsis page (\d+),/));
   const inRow = [...row.querySelectorAll("[role=link]")];
   const listed = pagesOf(inRow, /^B\.C\. Synopsis page (\d+),/);
   const own = pagesOf(inRow, /^B\.C\. Synopsis page (\d+), this water's own entry/);
