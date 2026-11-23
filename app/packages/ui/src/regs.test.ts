@@ -6,7 +6,7 @@ import { setFailureSink } from "@app/core";
 import { describe, expect, it } from "vitest";
 import { loadRegsInputs, openRegsStore, RegsStoreError, targetFor, type RegsLoader } from "@app/data/regs";
 import { openRegsFixture } from "@app/data/release/node";
-import { accessOf, type Paint } from "@app/core";
+import { accessOf, buildRegsPage, type Paint } from "@app/core";
 import { DEFAULT_WHO, loadRegsStore, mapDayOf, pageSubjectOf, regsAccessNotices, regsDay, regsStoreKey, regsTargetKey,
          type PageSubject } from "./regs";
 
@@ -26,14 +26,17 @@ function counted(base: RegsLoader = openRegsFixture(), fail = 0): { loader: Regs
 describe("1–2. the one day", () => {
   it("regsDay: the local calendar date, its real weekday, its year; today and whether it is", () => {
     expect(regsDay(new Date(2026, 9, 10, 15, 0), new Date(2026, 9, 10, 8, 0))).toEqual({
-      day: { month: 10, day: 10 }, weekday: "Saturday", calendarYear: 2026, today: { month: 10, day: 10 }, isToday: true });
+      day: { month: 10, day: 10 }, weekday: "Saturday", calendarYear: 2026, today: { month: 10, day: 10, year: 2026 }, isToday: true });
     expect(regsDay(null, new Date(2026, 4, 15))).toEqual({
-      day: { month: 5, day: 15 }, weekday: "Friday", calendarYear: 2026, today: { month: 5, day: 15 }, isToday: true });
+      day: { month: 5, day: 15 }, weekday: "Friday", calendarYear: 2026, today: { month: 5, day: 15, year: 2026 }, isToday: true });
     expect(regsDay(new Date(2026, 9, 12), new Date(2026, 9, 10))).toEqual({
-      day: { month: 10, day: 12 }, weekday: "Monday", calendarYear: 2026, today: { month: 10, day: 10 }, isToday: false });
+      day: { month: 10, day: 12 }, weekday: "Monday", calendarYear: 2026, today: { month: 10, day: 10, year: 2026 }, isToday: false });
     // the same date a year on is NOT today, and names its own weekday
     expect(regsDay(new Date(2027, 9, 10), new Date(2026, 9, 10))).toEqual({
-      day: { month: 10, day: 10 }, weekday: "Sunday", calendarYear: 2027, today: { month: 10, day: 10 }, isToday: false });
+      day: { month: 10, day: 10 }, weekday: "Sunday", calendarYear: 2027, today: { month: 10, day: 10, year: 2026 }, isToday: false });
+    // (T1026) Jan 1 and Mar 1 2027 (the synopsis runs to Mar 31, 2027): the reading day is the year-less one, the weekday the real one
+    expect([regsDay(new Date(2027, 0, 1, 12), new Date(2026, 11, 1)), regsDay(new Date(2027, 2, 1, 12), new Date(2026, 11, 1))]
+      .map((r) => [r.day.month, r.day.day, r.weekday, r.calendarYear])).toEqual([[1, 1, "Friday", 2027], [3, 1, "Monday", 2027]]);
     // Feb 29 is a real date in a leap year, on its own weekday
     expect(regsDay(new Date(2036, 1, 29), new Date(2036, 1, 28)).weekday).toBe("Friday");
   });
@@ -111,6 +114,25 @@ describe("the T09 functions", () => {
     expect(t).toEqual({ kind: "part", item: "gnis:3062", partIx: 0 });
     const inp = await loadRegsInputs(st, t, { month: 6, day: 15 }, "Monday", 2026);
     expect([inp.target, inp.item?.name]).toEqual([t, "Vedder River"]);
+  });
+});
+
+describe("(T1026) 'today' is a date: a day one year on (same month and day) is not today, at every call site", () => {
+  it("the header's day word, page.today, gear's today and the strip's 'when' line", async () => {
+    const st = await loadRegsStore(counted().loader);
+    const t = await targetFor(st, "wbk:-21", null);   // a water whose Gear tab says "Today, Jun 15" on the same date
+    const who = { age: "adult", residency: "resident" } as const;
+    const today = { month: 6, day: 15, year: 2026 };
+    const same = await loadRegsInputs(st, t, { month: 6, day: 15 }, "Monday", 2026);
+    const next = await loadRegsInputs(st, t, { month: 6, day: 15 }, "Tuesday", 2027);
+    const read = (inp: typeof same) => { const p = buildRegsPage(inp, { today, who });
+      return { word: p.header.dayWord, today: p.today, gear: p.gear?.day ?? null, when: p.keep.strip?.line.find((l) => l.kind === "when")?.text ?? null }; };
+    // the control: the same date IS today, so the test sees "today" where it should
+    expect(read(same)).toMatchObject({ word: "Today", today: true, gear: expect.stringMatching(/^Today/), when: expect.stringMatching(/^today/) });
+    const r = read(next);
+    expect([r.word, r.today]).toEqual(["Tue", false]);
+    expect(r.gear).not.toMatch(/^Today/);   // the Gear tab's own day line (gear's `today`)
+    expect(r.when).not.toMatch(/^today/);
   });
 });
 

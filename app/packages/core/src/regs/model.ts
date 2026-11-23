@@ -18,7 +18,11 @@ export type { Weekday } from "../calendar.generated";
 /** The spec's weekday names, Monday first (THE CALENDAR SPEC). */
 export { WEEKDAYS } from "../calendar.generated";
 /** The calendar day; the year only names its weekday. */
-export interface Day { readonly month: number; readonly day: number }
+export interface Day {
+  readonly month: number; readonly day: number;
+  /** (T1026) set only on a page's `today` (`regsDay`): the picker now crosses New Year, so "today" is a date, not a month and day */
+  readonly year?: number;
+}
 export interface Who { readonly age: "adult" | "u16"; readonly residency: "resident" | "non_resident" | "non_resident_alien" }
 export type RegsTarget = { kind: "part"; item: string; partIx: number } | { kind: "section"; handle: number };
 export type Tab = "keep" | "gear" | "methods" | "licence";

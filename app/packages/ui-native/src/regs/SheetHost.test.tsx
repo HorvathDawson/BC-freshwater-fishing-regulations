@@ -20,6 +20,7 @@ import { LIGHT } from "../theme";
 import vedder1010 from "./fixtures/vedder_1010.json";
 import klwa1010 from "./fixtures/klwa_1010.json";
 import klwa1012 from "./fixtures/klwa_1012.json";
+import { TEST_SOURCES } from "./testing/sources";
 
 afterEach(cleanup);
 
@@ -113,7 +114,7 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     let close: (() => void) | null = null;
     const layers: BackLayers = { register: (c) => { log.push("register"); close = c; return () => { log.push("unregister"); }; },
       back: () => { log.push("back"); close?.(); return true; } };
-    render(<BackLayerContext.Provider value={layers}><RegsScreen page={VEDDER} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} }} onDate={() => {}} /></BackLayerContext.Provider>);
+    render(<BackLayerContext.Provider value={layers}><RegsScreen sources={TEST_SOURCES} page={VEDDER} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} }} onDate={() => {}} /></BackLayerContext.Provider>);
     fireEvent.click(screen.getByText("Kokanee"));
     act(() => { close!(); });
     expect([log, screen.queryByLabelText("Done"), !!screen.getByTestId("regs-view")]).toEqual([["register", "unregister"], null, true]);
@@ -127,7 +128,7 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
   });
 
   it("6. the sheet sits over the regs view: the header's place and date stay mounted (howtell-current-water)", () => {
-    render(<RegsScreen page={VEDDER} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} }} onDate={() => {}} />);
+    render(<RegsScreen sources={TEST_SOURCES} page={VEDDER} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} }} onDate={() => {}} />);
     fireEvent.click(screen.getByText("Kokanee"));
     expect(screen.getByRole("heading", { name: "Kokanee" })).toBeTruthy();
     expect(screen.getByText(VEDDER.header.date)).toBeTruthy();
@@ -262,7 +263,7 @@ describe("the Regulations page's foot Sources button (T990)", () => {
     const sheet = vi.fn((k: SheetKey): SheetVM | null => (k === "src:all"
       ? { key: k, title: "Sources", sub: null, blocks: [{ k: "para", text: [{ t: "text", s: "every source" }] }] } : null));
     const page = { ...VEDDER, sheet } as RegsPage;
-    render(<RegsScreen page={page} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} }} onDate={() => {}} />);
+    render(<RegsScreen sources={TEST_SOURCES} page={page} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} }} onDate={() => {}} />);
     expect(screen.getByTestId("regs-all-sources").compareDocumentPosition(screen.getByTestId("regs-legal")) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
     fireEvent.click(screen.getByTestId("regs-all-sources-button"));
     expect(screen.getByRole("heading", { name: "Sources" })).toBeTruthy();

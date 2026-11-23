@@ -5,10 +5,11 @@
  * Also make sure highlighting is still there for each?"
  *
  * - Regulations: "Source  B.C. Synopsis p.8 ↗  p.9 ↗ …  B.C. in-season changes ↗  DFO notices ↗  <local authority> ↗
- *   All sources ›" — ONE LINK PER SYNOPSIS PAGE the page cites (every "Rule book p.N" run its lines, its section source
- *   lines and its every-source sheet carry, and the water's own rule-book row), never one fixed page; each page link
- *   carries every highlight box the citing rules hold on that PDF page (T215), so the opened copy marks each passage.
- *   The in-season and DFO links appear only where the page shows them; "All sources ›" opens the breakdown sheet (T990).
+ *   All sources ›" — ONE LINK PER SYNOPSIS PAGE the drawn tabs cite (every "Rule book p.N" run and section source line
+ *   they draw, `drawnRegsOf`; never a sheet's rules, #63 review) plus the water's own rule-book row, marked "(this
+ *   water)"; never one fixed page. Each page link carries every highlight box the citing rules hold on that PDF page
+ *   (T215), so the opened copy marks each passage. The in-season and DFO links appear only where the page shows them;
+ *   "All sources ›" opens the breakdown sheet (T990).
  * - Conditions: "Source  Environment Canada ↗  BC River Forecast Centre ↗  Open-Meteo ↗" over its "Sources and notes" fold
  *   (the legally exact credits stay verbatim inside it).
  * - Map: none — the map draws its own attribution.
@@ -20,6 +21,7 @@ import type { BookBox } from "./answers.generated";
 import { LICENCE_ROWS } from "./menu/licences";
 import { bookText, type Line } from "./regs/line";
 import type { RegsPage } from "./regs/model";
+import type { GearTabsVM } from "./salmon";
 import type { SheetKey } from "./regs/sheetKey";
 import { ALL_SOURCES_KEY } from "./regs/sheets/allsources";
 import { ALL_SOURCES, WORDS } from "./regs/words";
@@ -37,9 +39,11 @@ export type AuthorityId = keyof typeof SOURCE_AUTHORITIES;
 
 /** The row's label. */
 export const SOURCE_ROW_LABEL = "Source";
+/** The mark on the water's own rule-book page in the row. */
+export const SOURCE_ROW_THIS_WATER = "(this water)";
 /** A Source row page link's spoken name. */
-export const sourcePageA11y = (printed: number, marked: boolean): string =>
-  `${SOURCE_AUTHORITIES.synopsis.name} page ${printed}${marked ? ", every passage this page cites marked" : ""}, opens the PDF`;
+export const sourcePageA11y = (printed: number, marked: boolean, own = false): string =>
+  `${SOURCE_AUTHORITIES.synopsis.name} page ${printed}${own ? ", this water's own entry" : ""}${marked ? ", every passage this page cites marked" : ""}, opens the PDF`;
 
 /** An authority's page: its Sources-and-licences row's. A row without one is a programming error, thrown (never a blank link). */
 export function authorityUrl(id: AuthorityId): string {
@@ -106,29 +110,42 @@ function citedWeb(v: unknown, out: Map<string, string>, seen = new Set<unknown>(
   return out;
 }
 
+/** "All sources ›": the page's every-source sheet (T990). */
+const ALL_SOURCES_LINK: SourceLinkVM = { k: "sheet", label: ALL_SOURCES.LINK, open: ALL_SOURCES_KEY, aria: ALL_SOURCES.ARIA };
+
 /**
- * The Regulations tab's Source row. `waterPages`: the water's own rule-book row (core `waterPagesOf`); `inSeason`: the
- * page shows a Province in-season change; `dfo`: the page shows DFO's salmon (`salmonShowsDfo`) — or a rule on it is
- * DFO's (the every-source sheet's DFO group).
+ * (#63 review) WHAT THE REGULATIONS TAB DRAWS, as RegsScreen and WaterScreen draw it: the header, the Keep tab, the Gear and
+ * Methods tabs AS DRAWN (`gearTabsFor`: on a day only salmon may be fished they are the day's gear "if fished", not
+ * `page.gear`, which is the closed day's), the salmon gear lines, Methods' boats and the "Handling fish" reference (drawn
+ * under Methods only while Methods is), and the Licence tab as drawn (`licenceTabFor`). The Source row cites exactly what
+ * these cite — never a sheet's rules (a sheet is not on the screen) and never `page.gear` on a day it is not drawn.
  */
-export function regsSourcesOf(page: RegsPage, o: { waterPages?: Line; inSeason: boolean; dfo: boolean }): TabSourcesVM {
-  const all = page.sheet(ALL_SOURCES_KEY);
-  const pages = citedPages(o.waterPages ?? [], citedPages(all, citedPages(page, new Map())));
-  const links: SourceLinkVM[] = [...pages].sort((a, b) => a[0] - b[0]).map(([printed, p], i): SourceLinkVM => {
-    const words = bookText({ printed, pdf: p.pdf, bare: true });
-    return { k: "book", label: i ? words : `${SOURCE_AUTHORITIES.synopsis.name} ${words}`, printed, pdf: p.pdf,
-             ...(p.boxes.length ? { box: p.boxes } : {}), aria: sourcePageA11y(printed, p.boxes.length > 0) };
-  });
-  if (o.inSeason) links.push(web("inseason"));
-  const dfoRule = !!all && all.blocks.some((b) => b.k === "sources" && b.groups.some((g) => g.where === ALL_SOURCES.DFO));
-  if (o.dfo || dfoRule) links.push(web("dfo"));
-  for (const [url, s] of citedWeb(all, new Map())) links.push({ k: "web", label: `${s} ${WORDS.LINK_OUT}`, url });
-  return { label: SOURCE_ROW_LABEL, links: [...links, ...regsSourcesNone().links] };
+export function drawnRegsOf(page: Pick<RegsPage, "header" | "keep" | "boats" | "methods">, tabs: GearTabsVM, licence: RegsPage["licence"]): readonly unknown[] {
+  return [page.header, page.keep, tabs.gear, tabs.salmonGear, tabs.methods, tabs.methods ? page.boats : null,
+          tabs.methods ? page.methods?.reference ?? null : null, licence];
 }
 
-/** The Regulations row of a page whose host computed no sources (a frozen test page, RegsScreen's default): "All sources ›" only. */
-export const regsSourcesNone = (): TabSourcesVM =>
-  ({ label: SOURCE_ROW_LABEL, links: [{ k: "sheet", label: ALL_SOURCES.LINK, open: ALL_SOURCES_KEY, aria: ALL_SOURCES.ARIA }] });
+/**
+ * The Regulations tab's Source row: every synopsis page the DRAWN tabs cite (`drawnRegsOf`: their "Rule book p.N ↗" runs
+ * and section source lines), each with every highlight box those cite on it, plus the water's own rule-book row
+ * (`waterPagesOf`, T474: always linked), that link marked "(this water)" (owner 2026-11-22: "Page 9 is not the water body
+ * page"); then the Province's in-season changes where the page shows one (`inSeason`), DFO where it shows DFO's salmon
+ * (`dfo`, `salmonShowsDfo`), a local authority's page a drawn rule cites (T981), and "All sources ›".
+ */
+export function regsSourcesOf(drawn: readonly unknown[], o: { waterPages: Line; inSeason: boolean; dfo: boolean }): TabSourcesVM {
+  const own = new Set(o.waterPages.flatMap((r) => (r.t === "book" ? [r.printed] : [])));
+  const pages = citedPages(o.waterPages, citedPages(drawn, new Map()));
+  const links: SourceLinkVM[] = [...pages].sort((a, b) => a[0] - b[0]).map(([printed, p], i): SourceLinkVM => {
+    const mine = own.has(printed);
+    const words = mine ? `${WORDS.PAGE}${printed} ${SOURCE_ROW_THIS_WATER}${p.pdf === null ? "" : ` ${WORDS.LINK_OUT}`}` : bookText({ printed, pdf: p.pdf, bare: true });
+    return { k: "book", label: i ? words : `${SOURCE_AUTHORITIES.synopsis.name} ${words}`, printed, pdf: p.pdf,
+             ...(p.boxes.length ? { box: p.boxes } : {}), aria: sourcePageA11y(printed, p.boxes.length > 0, mine) };
+  });
+  if (o.inSeason) links.push(web("inseason"));
+  if (o.dfo) links.push(web("dfo"));
+  for (const [url, s] of citedWeb(drawn, new Map())) links.push({ k: "web", label: `${s} ${WORDS.LINK_OUT}`, url });
+  return { label: SOURCE_ROW_LABEL, links: [...links, ALL_SOURCES_LINK] };
+}
 
 /**
  * Whether the page shows DFO's salmon: a salmon year bar some of whose days are DFO's (`by` "dfo" / "both"), or, with no

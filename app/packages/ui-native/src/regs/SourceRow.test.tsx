@@ -11,6 +11,7 @@ import { LIGHT } from "../theme";
 import { WaterFrame } from "../WaterFrame";
 import { RegsScreen, type RegsScreenProps } from "./RegsScreen";
 import vedder1010 from "./fixtures/vedder_1010.json";
+import { TEST_SOURCES } from "./testing/sources";
 
 afterEach(cleanup);
 
@@ -19,7 +20,7 @@ const sheets: string[] = [];
 const NOOP = { onSheet: (k: string) => { sheets.push(k); }, onDay() {}, onBook: (pdf: number, box?: readonly SourceBox[]) => { books.push([pdf, box]); } };
 const mount = (p: Partial<RegsScreenProps> = {}) =>
   render(<WaterFrame palette={LIGHT} face="regulations">
-           <RegsScreen page={vedder1010 as unknown as RegsPage} palette={LIGHT} actions={NOOP as never} onDate={() => {}}
+           <RegsScreen sources={TEST_SOURCES} page={vedder1010 as unknown as RegsPage} palette={LIGHT} actions={NOOP as never} onDate={() => {}}
                        gear={<Text>gear</Text>} methods={<Text>methods</Text>} licence={<Text>licence</Text>} {...p} />
          </WaterFrame>);
 const BOX = { pdf: 101, box: [10, 20, 200, 32] as [number, number, number, number], size: [612, 792] as [number, number] };
@@ -55,9 +56,5 @@ describe("the Regulations tab's Source row (T991 round 3)", () => {
     sheets.length = 0;
     fireEvent.click(screen.getByTestId("regs-all-sources-button"));
     expect(sheets).toEqual(["src:all"]);
-  });
-  it("a page whose host computed none (a frozen test page): All sources › only", () => {
-    mount();
-    expect(screen.getByTestId("regs-sources").textContent).toBe("SourceAll sources ›");
   });
 });

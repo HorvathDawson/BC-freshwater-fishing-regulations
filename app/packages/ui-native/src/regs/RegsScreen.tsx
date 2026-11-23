@@ -21,7 +21,7 @@ import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, u
 import { openProbe } from "@app/data";
 import { Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
 import { Text } from "../Text";
-import { LEGAL_WORDS, parseSheetKey, regsSourcesNone, withInSeason, withSalmonSheets, type SalmonCardVM, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type TabSourcesVM, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
+import { LEGAL_WORDS, parseSheetKey, withInSeason, withSalmonSheets, type SalmonCardVM, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type TabSourcesVM, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
 import { FreshDot } from "../menu/Fresh";
 import { WaterInset } from "../WaterFrame";
@@ -124,8 +124,8 @@ export interface RegsScreenProps {
   /** (T382) the day's sunrise and sunset at the water (`useSunLine`); (T878) a small line under the date pill; absent: none. */
   sun?: SunDay | null;
   /** (T991 round 3) the tab's Source row (core `regsSourcesOf`: every synopsis page the page cites — T474: the water's own
-   *  among them — the in-season changes and DFO where shown, "All sources ›"). Absent (a frozen test page): "All sources ›" only. */
-  sources?: TabSourcesVM;
+   *  among them — the in-season changes and DFO where shown, "All sources ›"). Required: the host computes it from the tabs it draws. */
+  sources: TabSourcesVM;
   /** (T1031) the page's salmon card (core `salmonCard`): its species' sheets, Identification | Sources, join the page's
    *  (`withSalmonSheets`). Absent/null: no salmon card, the page's sheets alone. */
   salmonCard?: SalmonCardVM | null;
@@ -143,7 +143,7 @@ export interface RegsScreenProps {
 export function RegsScreen({ page, palette, images, actions, onDate,
                              gear, methods, licence, referenceOpen = false, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
                              lapsed = null, access = [], inSeason = [], glance = null, salmonStrip = null,
-                             nameSource = null, asOf = null, scrollKey = null, sun = null, daylight = null, sources = regsSourcesNone(), salmonCard = null }: RegsScreenProps) {
+                             nameSource = null, asOf = null, scrollKey = null, sun = null, daylight = null, sources, salmonCard = null }: RegsScreenProps) {
   // (T286) the open probe (test bed only): the page's first render, and its first layout (mounted, before paint)
   openProbe.mark("regsRender");
   useLayoutEffect(() => { openProbe.mark("layout"); }, []);

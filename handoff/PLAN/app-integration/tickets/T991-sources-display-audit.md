@@ -1,8 +1,9 @@
 # T991 — Sources display audit: make how sources are shown consistent across the whole app
 
-Status: PARTIAL — left (Claude): T1031 (the owner's items 3–5). Round 3 built, 3428dcb83 (lane L21, 2026-11-22), from the owner's answer to round 2 (2026-11-22 ~23:55,
-recorded verbatim in this ticket by lane L17, PR #57): ONE SOURCE ROW AT THE FOOT OF EACH TAB. Regulations: one "B.C. Synopsis
-p.N ↗" link per synopsis page the page cites (never one fixed page; the water's own row among them), each opening the book with
+Status: PARTIAL — left (Claude): T1031 (the owner's items 3–5), T1032 (the every-source sheet's list). Round 3 built, 3428dcb83 + #63 review fixes 3e3a1e2ae (lane L21, 2026-11-22/23), from the owner's answer to round 2 (2026-11-22 ~23:55,
+recorded verbatim below by lane L17, PR #57): ONE SOURCE ROW AT THE FOOT OF EACH TAB. Regulations: one "B.C. Synopsis
+p.N ↗" link per synopsis page the DRAWN tabs cite (never one fixed page, never a sheet's rules; the water's own row among them,
+marked "p.N (this water) ↗"), each opening the book with
 every highlight its rules hold on that page, then "B.C. in-season changes ↗" / "DFO notices ↗" only where the page shows them,
 then "All sources ›" (the T990 sheet). Conditions: "Environment Canada ↗ BC River Forecast Centre ↗ Open-Meteo ↗" as the
 Sources-and-notes fold's head (the verbatim credits stay inside). Map: none (the map's own attribution). Names: core
@@ -106,3 +107,20 @@ Reading: option A's single Source row at the bottom, but PER TAB — each tab (R
 only the sources of what that tab shows; and decide what happens to the inline per-rule source lines (keep, fold into
 the row, or keep only where a rule cites a page). Next: a refined proposal with pictures (per-tab rows + the inline
 question answered with a recommendation), then the owner picks again.
+
+## Refined proposal, round 2 (2026-11-22, lane L17) — one Source row at the bottom of EACH tab, only that tab's sources
+Pictures `T991-shots/round2-<tab>-before|after-light|dark.png` and `round2-inline-before|after-*.png`: the live app (web 390 px, Skeena River) with the row put in
+by editing the page. MOCK-UPS (the picture says so in its red strip), not a build. "Before" is the live app.
+- Regulations tab, last row above "Report a problem": `Source  B.C. Synopsis p.8 ↗  B.C. in-season changes ↗  DFO notices ↗  <local authority>` (only the authorities
+  this water's answers actually use; the row replaces today's "Sources ›" link, whose sheet stays as the full list behind the row's own "All sources ›").
+- Conditions tab, replacing the fold's header line: `Source  Environment Canada ↗  BC River Forecast Centre ↗  Open-Meteo ↗` (the gauges, forecasts and weather
+  the page shows; no synopsis, no DFO). The fold below keeps its legally exact verbatim text.
+- Map tab: `Source  © OpenStreetMap ↗  Protomaps ↗  Esri imagery ↗` (the map's own credits, Esri only while satellite is drawn), above "Report a problem".
+- Never on a tab: another tab's authorities (Conditions credits are not shown on Regulations, as the owner says).
+INLINE SOURCES (the owner's question): keep the per-rule "Rule book p.N ↗" where a rule cites a page — it is a proof link beside the rule it proves, not a source
+list — and its words stay as T991's pattern names them (one spelling, one table). Remove the per-section line's LEVEL words ("Province · Region 6 · This water's ›",
+`round2-inline-*`): they say who made the rule, which is the tab row's job; the level detail moves into the Sources sheet behind "All sources ›". Salmon's origin
+line ("Rule book p.9 · Skeena River") and the in-season banner's "source ›" become "B.C. in-season changes ↗" from the same table. A card's authority chip
+(RULE BOOK / B.C. / DFO) stays a label, not a link.
+Recommendation: this per-tab row (option A of the first round, one row per tab) + inline page links kept + the section level words folded into the sheet.
+Question for the owner: take it? (Not built.)

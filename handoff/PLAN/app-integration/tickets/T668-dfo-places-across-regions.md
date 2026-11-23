@@ -1,6 +1,6 @@
 # T668 — Audit: a DFO place that covers one river stretch in more than one region (Fraser, Regions 2 and 3)
 
-Status: PARTIAL — audit done; fixes 1–3 built in 20afd21e6; RULINGS Z4a (owner 2026-11-11: "straddles should always take the most strict rules from both regions") built in dfb4ea7c1 with the freshwater comparison primitives, the rest of unification is T669 on D1 + the owner's straddler answer to D2/D3 (2026-11-11: "some streams genuinely have 2 regions" — a straddler keeps both regions' places, strictest per fish); measured in T668-audit.md "Fixes 1–3 as built" (432 of 493 sections change, 197 straddlers keep both, 84 status flips toward closed); app half + fix 4 built in d199f0d4d (D1 and D4 confirmed by the owner 2026-11-11, "Yes and yes", with the Skeena addition: a row names DFO's lettered section as printed, "Region 6 · Skeena River · B(ii)"; see "App half" below); option 2 (the Python pair table, owner 2026-11-12) measured safe and built in c9488453c; the feeds worker reads dfo-pairs/1 and the pairs are uploaded (staging 2026-11-18, "upload done (dfo-pairs ok)"; production with r-6258ffded676); left (Claude): fix 5 hygiene (the `6:fraser-river` water record, the 2 Region 2 duplicate flags); owner: OWNER-TODO "T668 salmon places from two regions on one stretch"
+Status: PARTIAL — audit done; fixes 1–3 built in 20afd21e6; RULINGS Z4a (owner 2026-11-11: "straddles should always take the most strict rules from both regions") built in dfb4ea7c1 with the freshwater comparison primitives, the rest of unification is T669 on D1 + the owner's straddler answer to D2/D3 (2026-11-11: "some streams genuinely have 2 regions" — a straddler keeps both regions' places, strictest per fish); measured in T668-audit.md "Fixes 1–3 as built" (432 of 493 sections change, 197 straddlers keep both, 84 status flips toward closed); app half + fix 4 built in d199f0d4d (D1 and D4 confirmed by the owner 2026-11-11, "Yes and yes", with the Skeena addition: a row names DFO's lettered section as printed, "Region 6 · Skeena River · B(ii)"; see "App half" below); option 2 (the Python pair table, owner 2026-11-12) measured safe and built in c9488453c; the feeds worker reads dfo-pairs/1 and the pairs are uploaded (staging 2026-11-18, "upload done (dfo-pairs ok)"; production with r-6258ffded676); fix 5 hygiene settled by reading (lane L10, 2026-11-22: see "Fix 5" below, nothing to change); owner: OWNER-TODO "T668 salmon places from two regions on one stretch"
 
 Source: owner 2026-11-11: "look into how DFO places that match to multiple regions, same river section, like Fraser
 2/3, is handled. To audit it."
@@ -84,3 +84,14 @@ openings (Region 6 E 4 a day, Region 7 2 a day) composed by `live.compose` with 
 without the table shows both words (mutation). RULINGS Z4b.
 Order: deploy the feeds worker first (its /status lists `dfo-pairs/1`); until then the input upload refuses
 pairs.json and says so.
+
+## Fix 5 (lane L10, 2026-11-22): nothing to change
+- The `6:fraser-river` water record stays: the owner's own note on it (2026-11-03) is why — "the same river as region 2's
+  Fraser River, so R6's header exception (adult chinook \"other than Fraser River Watershed\") finds the Fraser-side
+  waters of Region 6. No R6 DFO place names it." It still holds no location. Its `match.reason` quotes Region 2's
+  book-link text because the matcher's override (`book_name_links.json`) is that link; re-wording it in the places file
+  would be undone by the next match, and the link file is authored.
+- Both active Region 2 Fraser duplicates are confirmed now (`duplicate_confirmed: true`: `…upstream-of-the-cp~2` of
+  `…upstream-of-the-cp`, `…downstream-of-the` of `…from-the-downstrea`).
+
+State 2026-11-22 (stopped for credits): lane L10, branch fix/T840-rules-smalls (head cd66153eb before this line); see the ticket's Status for done / left.

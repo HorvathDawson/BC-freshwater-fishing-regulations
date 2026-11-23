@@ -4,86 +4,98 @@
  */
 import { describe, expect, it } from "vitest";
 import { LICENCE_ROWS } from "./menu/licences";
-import type { RegsPage, SheetVM } from "./regs/model";
-import { ALL_SOURCES } from "./regs/words";
-import { authorityUrl, conditionsSourcesOf, regsSourcesOf, salmonShowsDfo, SOURCE_AUTHORITIES, sourcesText, type SourceLinkVM } from "./tabSources";
+import type { RegsPage } from "./regs/model";
+import { authorityUrl, conditionsSourcesOf, drawnRegsOf, regsSourcesOf, salmonShowsDfo, SOURCE_AUTHORITIES, sourcesText, type SourceLinkVM } from "./tabSources";
 
 const box = (pdf: number, y: number) => ({ pdf, box: [10, y, 200, y + 12] as [number, number, number, number], size: [612, 792] as [number, number] });
 const book = (printed: number, pdf: number | null, b?: ReturnType<typeof box>[]) => ({ t: "book", printed, pdf, ...(b ? { box: b } : {}) });
 
-/** A page: its drawn VM (`body`) and its every-source sheet's groups (`all`: where → rows' book Lines). */
-function page(body: Record<string, unknown>, all: Record<string, unknown[][]> = {}): RegsPage {
-  const groups = Object.entries(all).map(([where, rows]) => ({ where, rows: rows.map((b) => ({ key: null, title: null, quote: "", role: "", book: b })) }));
-  const sheet = (k: string): SheetVM | null => (k === "src:all"
-    ? { key: "src:all", title: "Sources", sub: null, blocks: groups.length ? [{ k: "sources", groups }] : [{ k: "para", text: [] }] } as unknown as SheetVM
-    : null);
-  return { ...body, sheet } as unknown as RegsPage;
-}
-const none = { inSeason: false, dfo: false };
 
-describe("regsSourcesOf: one link per synopsis page the page cites (owner 2026-11-22: \"one for each page referenced\")", () => {
-  // Skeena River, Class II part (live app 2026-11-22): its gear lines cite p.8 p.49 p.53, its closures p.9, its caveat p.53
+/** A drawn Gear / Methods pair (`gearTabsFor`'s output) with its source line citing `pages`. */
+const gearCiting = (pages: { printed: number; pdf: number; box?: ReturnType<typeof box>[] }[]) =>
+  ({ src: { who: "Province ›", aria: "", open: "srcs:gear", keys: [], pages } }) as never;
+const tabs = (gear: unknown, methods: unknown = null) => ({ gear, methods, salmonGear: null }) as never;
+const page = (o: Record<string, unknown> = {}) =>
+  ({ header: {}, keep: {}, boats: null, methods: null, gear: null, licence: null, sheet: () => { throw new Error("a sheet is not drawn"); }, ...o }) as unknown as RegsPage;
+const none = { waterPages: [] as never[], inSeason: false, dfo: false };
+
+describe("regsSourcesOf: one link per synopsis page the DRAWN tabs cite (owner 2026-11-22: \"one for each page referenced\"; #63 review)", () => {
+  // Skeena River, Class II part (live app 2026-11-22): its closures cite p.9, its caveat p.53, its gear line p.8 p.49 p.53
   const skeena = page({
     keep: { whereNot: [[{ t: "text", s: "No fishing: within 23 m" }, book(9, 11, [box(11, 100)])], [book(9, 11, [box(11, 140)])]],
             caveats: [{ items: [{ line: [book(53, 55, [box(55, 400)])] }] }] },
-    gear: { src: { who: "Province · Region 6 · This water’s ›", aria: "", open: "srcs:gear", keys: [],
-                   pages: [{ printed: 8, pdf: 10, box: [box(10, 20)] }, { printed: 49, pdf: 51 }, { printed: 53, pdf: 55, box: [box(55, 400)] }] } },
-  }, { [ALL_SOURCES.BOOK]: [[book(49, 51, [box(51, 600)])], [book(9, 11, [box(11, 100)])]] });
+  });
+  const drawn = drawnRegsOf(skeena, tabs(gearCiting([{ printed: 8, pdf: 10, box: [box(10, 20)] }, { printed: 49, pdf: 51 }, { printed: 53, pdf: 55, box: [box(55, 400)] }])), null);
 
   it("lists every page in page order, the first named, each once, then All sources", () => {
-    expect(sourcesText(regsSourcesOf(skeena, none))).toBe("Source B.C. Synopsis p.8 ↗ p.9 ↗ p.49 ↗ p.53 ↗ All sources ›");
+    expect(sourcesText(regsSourcesOf(drawn, none))).toBe("Source B.C. Synopsis p.8 ↗ p.9 ↗ p.49 ↗ p.53 ↗ All sources ›");
   });
-  it("each page link carries every box its citing rules hold on that page, once each (the opened copy marks them all)", () => {
-    const links = regsSourcesOf(skeena, none).links.filter((l): l is Extract<SourceLinkVM, { k: "book" }> => l.k === "book");
+  it("each page link carries every box the drawn lines cite on that page, once each (the opened copy marks them all)", () => {
+    const links = regsSourcesOf(drawn, none).links.filter((l): l is Extract<SourceLinkVM, { k: "book" }> => l.k === "book");
     expect(links.map((l) => [l.printed, l.pdf, l.box ?? []])).toEqual([
       [8, 10, [box(10, 20)]],
       [9, 11, [box(11, 100), box(11, 140)]],
-      [49, 51, [box(51, 600)]],
+      [49, 51, []],
       [53, 55, [box(55, 400)]],
     ]);
   });
-  it("each page's spoken name says what it opens: the page, and its marked passages where it has any (T60: not a rule's own link)", () => {
-    expect(regsSourcesOf(skeena, none).links.flatMap((l) => (l.k === "book" ? [l.aria] : []))).toEqual([
+  it("each page's spoken name says what it opens (T60: not a rule's own link)", () => {
+    expect(regsSourcesOf(drawn, none).links.flatMap((l) => (l.k === "book" ? [l.aria] : []))).toEqual([
       "B.C. Synopsis page 8, every passage this page cites marked, opens the PDF",
       "B.C. Synopsis page 9, every passage this page cites marked, opens the PDF",
-      "B.C. Synopsis page 49, every passage this page cites marked, opens the PDF",
+      "B.C. Synopsis page 49, opens the PDF",
       "B.C. Synopsis page 53, every passage this page cites marked, opens the PDF",
     ]);
-    expect(regsSourcesOf(page({ a: [book(7, 9)] }), none).links[0]).toEqual(
-      { k: "book", label: "B.C. Synopsis p.7 ↗", printed: 7, pdf: 9, aria: "B.C. Synopsis page 7, opens the PDF" });
   });
-  it("the water's own rule-book row is among them (T474: always linked), not repeated where the page already cites it (T60)", () => {
-    expect(sourcesText(regsSourcesOf(skeena, { ...none, waterPages: [book(9, 11), book(98, 100, [box(100, 5)])] as never })))
-      .toBe("Source B.C. Synopsis p.8 ↗ p.9 ↗ p.49 ↗ p.53 ↗ p.98 ↗ All sources ›");
+  it("(owner: \"Page 9 is not the water body page\") the water's own row is marked, and listed even where no drawn line links it (T474)", () => {
+    const vm = regsSourcesOf(drawn, { ...none, waterPages: [book(53, 55, [box(55, 400)]), book(98, 100)] as never });
+    expect(sourcesText(vm)).toBe("Source B.C. Synopsis p.8 ↗ p.9 ↗ p.49 ↗ p.53 (this water) ↗ p.98 (this water) ↗ All sources ›");
+    expect(vm.links.flatMap((l) => (l.k === "book" ? [l.aria] : [])).slice(3)).toEqual([
+      "B.C. Synopsis page 53, this water's own entry, every passage this page cites marked, opens the PDF",
+      "B.C. Synopsis page 98, this water's own entry, opens the PDF",
+    ]);
+    expect(sourcesText(regsSourcesOf([], { ...none, waterPages: [book(22, 24)] as never }))).toBe("Source B.C. Synopsis p.22 (this water) ↗ All sources ›");
   });
   it("a per-row gear source (srcs:gl|…, not drawn since T900) cites nothing", () => {
-    const p = page({ gear: { lines: [{ src: { who: "", aria: "", open: "srcs:gl|hook", keys: [], pages: [{ printed: 22, pdf: 24 }] } }] } });
-    expect(sourcesText(regsSourcesOf(p, none))).toBe("Source All sources ›");
+    const g = { lines: [{ src: { who: "", aria: "", open: "srcs:gl|hook", keys: [], pages: [{ printed: 22, pdf: 24 }] } }] };
+    expect(sourcesText(regsSourcesOf(drawnRegsOf(page(), tabs(g), null), none))).toBe("Source All sources ›");
   });
   it("a page the PDF map lacks is said unlinked, as every book run says it", () => {
-    expect(sourcesText(regsSourcesOf(page({ a: [book(7, null)] }), none))).toBe("Source B.C. Synopsis p.7 All sources ›");
+    expect(sourcesText(regsSourcesOf([[book(7, null)]], none))).toBe("Source B.C. Synopsis p.7 All sources ›");
+    expect(sourcesText(regsSourcesOf([], { ...none, waterPages: [book(7, null)] as never }))).toBe("Source B.C. Synopsis p.7 (this water) All sources ›");
+  });
+});
+
+describe("drawnRegsOf: what the Regulations tab draws (#63 review)", () => {
+  it("a day only salmon may be fished: the Gear / Methods drawn (the day's gear \"if fished\"), never page.gear (the closed day's)", () => {
+    const closedDay = page({ gear: gearCiting([{ printed: 64, pdf: 66 }]) });
+    expect(sourcesText(regsSourcesOf(drawnRegsOf(closedDay, tabs(gearCiting([{ printed: 8, pdf: 10 }])), null), none)))
+      .toBe("Source B.C. Synopsis p.8 ↗ All sources ›");
+  });
+  it("Methods' boats and the Handling fish reference only while Methods is drawn; the Licence tab as drawn; never a sheet", () => {
+    const p = page({ boats: [[book(70, 72)]], methods: { reference: { lines: [[book(6, 8)]] } } });
+    const lic = { lines: [[book(10, 12)]] } as never;
+    expect(sourcesText(regsSourcesOf(drawnRegsOf(p, tabs(null, {}), lic), none))).toBe("Source B.C. Synopsis p.6 ↗ p.10 ↗ p.70 ↗ All sources ›");
+    expect(sourcesText(regsSourcesOf(drawnRegsOf(p, tabs(null, null), null), none))).toBe("Source All sources ›");
   });
 });
 
 describe("regsSourcesOf: only the authorities this page shows (owner 2026-11-22: \"condition sources don't need to be on regulations\")", () => {
-  const p = page({ a: [book(9, 11)] });
+  const drawn = [[book(9, 11)]];
   it("the Province's in-season changes only where the page shows one", () => {
-    expect(sourcesText(regsSourcesOf(p, { inSeason: true, dfo: false }))).toBe("Source B.C. Synopsis p.9 ↗ B.C. in-season changes ↗ All sources ›");
+    expect(sourcesText(regsSourcesOf(drawn, { ...none, inSeason: true }))).toBe("Source B.C. Synopsis p.9 ↗ B.C. in-season changes ↗ All sources ›");
   });
-  it("DFO where the page shows DFO's salmon, or a rule of the page is DFO's", () => {
-    expect(sourcesText(regsSourcesOf(p, { inSeason: true, dfo: true })))
+  it("DFO only where the page shows DFO's salmon", () => {
+    expect(sourcesText(regsSourcesOf(drawn, { ...none, inSeason: true, dfo: true })))
       .toBe("Source B.C. Synopsis p.9 ↗ B.C. in-season changes ↗ DFO notices ↗ All sources ›");
-    const q = page({}, { [ALL_SOURCES.DFO]: [[]] });
-    expect(sourcesText(regsSourcesOf(q, none))).toBe("Source DFO notices ↗ All sources ›");
   });
-  it("a local authority's cited page, by the name the rule gives it (T981)", () => {
-    const q = page({}, { [ALL_SOURCES.LOCAL]: [[{ t: "web", s: "StanleyParkVan.com", url: "https://stanleyparkvan.com/x" }]] });
-    const vm = regsSourcesOf(q, none);
+  it("a local authority's cited page a drawn rule links, by the name the rule gives it (T981)", () => {
+    const vm = regsSourcesOf([[{ t: "web", s: "StanleyParkVan.com", url: "https://stanleyparkvan.com/x" }]], none);
     expect(sourcesText(vm)).toBe("Source StanleyParkVan.com ↗ All sources ›");
     expect(vm.links[0]).toEqual({ k: "web", label: "StanleyParkVan.com ↗", url: "https://stanleyparkvan.com/x" });
   });
   it("links each authority to its Sources-and-licences page, and All sources to the every-source sheet", () => {
-    const vm = regsSourcesOf(p, { inSeason: true, dfo: true });
+    const vm = regsSourcesOf(drawn, { ...none, inSeason: true, dfo: true });
     expect(vm.links.slice(1)).toEqual([
       { k: "web", label: "B.C. in-season changes ↗", url: LICENCE_ROWS.find((r) => r.k === "inseason")!.url },
       { k: "web", label: "DFO notices ↗", url: LICENCE_ROWS.find((r) => r.k === "dfo")!.url },
