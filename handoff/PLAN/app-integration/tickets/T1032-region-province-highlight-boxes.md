@@ -1,6 +1,6 @@
 # T1032 — Highlight boxes for region and province rule text
 
-Status: DONE — 2c7f8cab2. Region / province / area rules carry located highlight boxes (329/355); the 26 not located get none and are listed below. Ships with the 0.9.0 data release; not seen in the app.
+Status: DONE — 2c7f8cab2, gate d03699f73. Region / province / area rules carry located highlight boxes (329/355); the 26 not located get none and are listed below. Ships with the 0.9.0 data release; not seen in the app.
 
 Source: owner 2026-11-23, answering whether the 0.9.0 release adds highlights for the pages that hold region-wide or
 province-wide rules, verbatim: "Yes, in 0.9.0 (Recommended)".
@@ -24,6 +24,13 @@ box (`row_boxes.json`, T215), so the region and province pages (Skeena: p.8, 9, 
 - `display.decided.book_boxes`: a water keeps its row box (unchanged); a `zone` / `province` / `area` rule is
   located in the PDF `book_files()` names (the release's claims copy, else the repo copy). No new sidecar: the PDF
   is already tracked and shipped, so nothing new to pin or bootstrap.
+- THE GATE (W46, #67 review): the answers build (`decided.add_sources`) refuses unless the zone / province / area rules given
+  no box are exactly the list pinned for its PDF's sha256 in `pipeline/regs/extraction/passage_unlocated.json` (the repo
+  book: 27 export rules, the 26 below + z1 trout_quota.r5b, which no water holds; the mini release's invented book: 31). A
+  rule that newly loses its box fails the build by id; one newly located must come off the pin; an unpinned PDF is
+  refused. Re-cut after reading the report: `python -m pipeline.regs.extraction.passage_boxes --write-pin`.
+- The report lists the 4 rules placed by their entry's whole passage (z1:hg_quota r2/r4/r6/r8: their own words are
+  printed twice on p.13, so the whole Haida Gwaii quota panel is marked).
 - App: no change. #63's `bookLine` already passes `facts.book_box` for every rule, and `citedPages` gathers every
   run's boxes per page.
 - Tests: `pipeline/tests/test_t1032_passage_boxes.py`, exact boxes on printed p.8 / 9 / 10 / 49 (PDF 10 / 11 / 12 / 55)
