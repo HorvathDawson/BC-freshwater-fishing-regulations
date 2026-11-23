@@ -17,7 +17,7 @@ import { useAsync, type Async } from "./async";
 import { askOnce, cardParameters, chartParameter, peekAnswer, seriesKey } from "./answers";
 import { useFeedVersion } from "./feedVersion";
 import { READING_REUSE_MS, stationReading } from "./hooks";
-import { buildHydrograph, DEFAULT_BOX, type Box, type Hydrograph } from "./hydrograph";
+import { buildHydrograph, DEFAULT_BOX, yearScale, type Box, type Hydrograph } from "./hydrograph";
 
 const NO_MODELS: readonly string[] = [];
 
@@ -183,6 +183,16 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
     () => (station ? askOnce(source, key, () => source.gaugeSeries(station, span, parameter, model))
                    : Promise.resolve(null)),
     `${key}#${v}`, station !== null && enabled, key, () => peekAnswer(source, key));
+  // (T1043, owner 2026-11-23: "the scale of the chart should use the year data if not enough histroical data exists")
+  // A 72 H CHART WITH NO BAND IS SCALED TO ITS YEAR: the same series the Year view draws, asked under the same key (the
+  // prefetch already holds it). A year that fails to load is reported (`useAsync`, T368) and the chart scales to its
+  // own values, saying so (`Hydrograph.scale` "reading").
+  const yearKey = seriesKey(station, "year", parameter, model);
+  const year = useAsync(
+    () => askOnce(source, yearKey, () => source.gaugeSeries(station!, "year", parameter, model)),
+    `${yearKey}#${v}`, station !== null && enabled && span === "72h", yearKey, () => peekAnswer(source, yearKey));
+  const scaleTo = useMemo(() => (span === "72h" && year.state === "ready" ? yearScale(year.value?.value ?? null) : null),
+                          [span, year]);
   // (T256) THE CHART BEFORE ITS ENVELOPE: while the series (which waits for the release's climatology, ~1.4 MB) is on
   // its way, the feed's own observations and forecast are drawn, and the band joins them when it lands
   const dParam = parameter ?? draft?.parameter;
@@ -265,6 +275,7 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
       log: span === "year" && s.parameter === "discharge",
       box, domain: st.domain, probe: st.probe, days: drawForecast ? days : NO_DAYS,
       ticks: (v) => chartTicks(v, span, tickCount(box.width)),
+      scaleTo,
     });
     const p = shape.probe;
     const readout = p ? {
@@ -275,7 +286,7 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
     return { state: "ready", error: null,
              value: { shape, readout, zoomed: !!(shape.view && shape.full && isZoomed(shape.view, shape.full)),
                       pending: false, draft: both === early, asOf, ...actions } };
-  }, [series, s, early, asOf, span, box.width, box.height, st.domain, st.probe, actions, alsoRuns, drawForecast, daysKey]);
+  }, [series, s, early, asOf, span, box.width, box.height, st.domain, st.probe, actions, alsoRuns, drawForecast, daysKey, scaleTo]);
 
   // The last chart drawn, for the frames between a switch and its answer.
   const last = useRef<ChartView | null>(null);

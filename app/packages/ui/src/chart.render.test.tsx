@@ -147,7 +147,9 @@ describe("(T256) the chart before its envelope", () => {
     const { clearAnswers, peekAnswer, seriesKey } = await import("./answers");
     clearAnswers();
     let land!: (v: unknown) => void;
-    const slow = { gaugeSeries: () => new Promise((r) => { land = r; }) } as unknown as WaterSource;
+    // (T1043) the 72 h chart also asks its year (for a bandless scale): answered at once here, so `land` is the 72 h one
+    const slow = { gaugeSeries: (_st: string, span: string) => (span === "year" ? Promise.resolve(null)
+                                                                : new Promise((r) => { land = r; })) } as unknown as WaterSource;
     const obs = { fetchedAt: 0, from: "feed", parameter: "discharge" as const, at: SERIES.at, discharge: SERIES.values,
                   level: SERIES.values.map(() => null), daily: [], forecasts: {}, priorYears: {} };
     const draft = { feed: { observations: async () => obs } };
@@ -170,5 +172,36 @@ describe("(T256) the chart before its envelope", () => {
     const { result } = renderHook(() => useChartView(slow, ST, "72h", undefined, undefined, 600));
     await new Promise((r) => setTimeout(r, 20));
     expect(result.current.state).toBe("loading");
+  });
+});
+
+// (T1043) THE 72 H CHART ASKS ITS YEAR: a station with no band (Capilano at Canyon's level) is scaled to the year series
+// the Year view draws; a year that fails is REPORTED once (`useAsync`'s `reportFailure`, T368) and the chart says it
+// scaled to its reading. MUTATION: pass no `scaleTo` to `buildHydrograph` in `useChartView` -> "reading", the first fails.
+describe("(T1043) a bandless 72 h chart is scaled to its year", () => {
+  const bare = { ...SERIES, parameter: "level" as const, band: [], values: Array.from({ length: N }, (_, i) => 0.59 + (i % 2) / 100) };
+  const yearOf = { ...bare, step: "1d" as const, values: [0.55, 1.4, 2.21], at: ["2026-01-01", "2026-06-01", "2026-11-01"] };
+  it("reads the year's values for the scale", async () => {
+    const { clearAnswers } = await import("./answers");
+    clearAnswers();
+    const src = { gaugeSeries: async (_st: string, span: string) => ({ fetchedAt: 0, value: span === "year" ? yearOf : bare }) } as unknown as WaterSource;
+    const { result } = renderHook(() => useChartView(src, "08GA031" as StationId, "72h", "level", undefined, 590));
+    await waitFor(() => expect(result.current.state === "ready" && result.current.value?.shape.scale).toBe("year"));
+  });
+  it("a year that fails is reported, and the chart scales to its reading", async () => {
+    const { clearAnswers } = await import("./answers");
+    const { setFailureSink } = await import("@app/core");
+    clearAnswers();
+    const seen: string[] = [];
+    const undo = setFailureSink((e) => seen.push((e as Error).message));
+    try {
+      const src = { gaugeSeries: async (_st: string, span: string) => {
+        if (span === "year") throw new Error("year series would not read");
+        return { fetchedAt: 0, value: bare };
+      } } as unknown as WaterSource;
+      const { result } = renderHook(() => useChartView(src, "08GA031" as StationId, "72h", "level", undefined, 590));
+      await waitFor(() => expect(seen).toEqual(["year series would not read"]));
+      expect(result.current.state === "ready" && result.current.value?.shape.scale).toBe("reading");
+    } finally { undo(); }
   });
 });

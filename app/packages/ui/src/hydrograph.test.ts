@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Band } from "@app/core";
-import { buildHydrograph, logTicks, minSpan, niceTicks, DEFAULT_BOX } from "./hydrograph";
+import { buildHydrograph, logTicks, minSpan, niceTicks, yearScale, DEFAULT_BOX } from "./hydrograph";
 
 const BAND: Band = [18.8, 23.0, 30.6, 39.0, 56.6];   // 08MH001, 30 Aug, real
 const flat = <T,>(n: number, v: T): T[] => Array.from({ length: n }, () => v);
@@ -40,6 +40,43 @@ describe("(T1043) no two gridlines carry the same label", () => {
     expect(minSpan(0.001, 0.003)[0]).toBe(0);
     const [lo, hi] = minSpan(0.585, 0.6);
     expect(lo <= 0.585 && hi >= 0.6).toBe(true);
+  });
+});
+
+// (T1043, owner 2026-11-23: "the scale of the chart should use the year data if not enough histroical data exists")
+// MUTATIONS: drop the `if (byYear)` widening -> the Capilano case scales to its own wiggle ("reading", top < 1);
+// let `byYear` ignore a band (drop `!banded &&`) -> the banded chart's scale moves and reads "year".
+describe("(T1043) a chart with no band is scaled to its year", () => {
+  const CAPILANO = [0.592, 0.592, 0.591, 0.585, 0.585, 0.593, 0.592, 0.6, 0.592, 0.585, 0.595, 0.592];
+  const YEAR = { lo: 0.55, hi: 2.21 };      // 2026's daily levels at Canyon run ~0.55 to ~2.2 m
+  const top = (h: ReturnType<typeof buildHydrograph>) => Math.max(...h.yTicks.map((t) => t.value));
+  it("no band: the year's low and high set the axis (with the usual padding), and it says so", () => {
+    const h = buildHydrograph({ values: CAPILANO, bands: CAPILANO.map(() => null), xLabels: [], scaleTo: YEAR });
+    expect(h.scale).toBe("year");
+    expect(top(h)).toBeGreaterThanOrEqual(2);
+    expect(Math.min(...h.yTicks.map((t) => t.value))).toBeLessThanOrEqual(0.6);
+  });
+  it("no year either: the drawn values and the minimum span, said as `reading`", () => {
+    for (const scaleTo of [undefined, null]) {
+      const h = buildHydrograph({ values: CAPILANO, bands: CAPILANO.map(() => null), xLabels: [], scaleTo });
+      expect([h.scale, h.yTicks.map((t) => t.label)]).toEqual(["reading", ["0.58", "0.59", "0.6", "0.61"]]);
+    }
+  });
+  it("a band on screen keeps today's scale: the year is not read", () => {
+    const values = flat(72, 15.7);
+    const plain = buildHydrograph({ values, bands: flat(72, BAND), xLabels: [] });
+    const given = buildHydrograph({ values, bands: flat(72, BAND), xLabels: [], scaleTo: { lo: 1, hi: 900 } });
+    expect([given.scale, given.yTicks]).toEqual(["band", plain.yTicks]);
+  });
+  it("a log axis (a year of flow) is its own scale", () => {
+    const h = buildHydrograph({ values: [10, 100, 1000], bands: [null, null, null], xLabels: [], log: true,
+                                scaleTo: { lo: 1, hi: 5000 } });
+    expect(h.scale).toBe("log");
+  });
+  it("the year's range is this year's and the earlier years' values; nothing to read is null", () => {
+    expect(yearScale({ values: [0.7, null, 1.9], priorYears: [{ values: [0.55, 2.21, null] }] })).toEqual({ lo: 0.55, hi: 2.21 });
+    expect(yearScale({ values: [null, Number.NaN], priorYears: [] })).toBeNull();
+    expect(yearScale(null)).toBeNull();
   });
 });
 

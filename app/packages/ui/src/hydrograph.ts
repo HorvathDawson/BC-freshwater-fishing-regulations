@@ -115,6 +115,8 @@ export interface Hydrograph {
   alsoForecasts: readonly AlsoForecastShape[];
   /** True when the y scale is logarithmic — a whole year of flow spans two orders. */
   log: boolean;
+  /** (T1043) What set the y range (`ScaleSource`). */
+  scale: ScaleSource;
   /**
    * The chart's whole time extent (record + forecast) and the window on screen, epoch ms. Null when the series
    * carries no stamps (an index-laid chart cannot zoom).
@@ -167,6 +169,20 @@ export function minSpan(lo: number, hi: number): [number, number] {
   if (hi - lo >= want) return [lo, hi];
   const from = Math.max(0, (lo + hi) / 2 - want / 2);
   return [from, from + want];
+}
+
+/**
+ * (T1043) THE YEAR'S RANGE, for a bandless 72 h chart's scale (`BuildInput.scaleTo`): the low and high of everything the
+ * Year view draws as values (this year and the earlier years). Null when the year holds no value at all.
+ */
+export function yearScale(year: { values: readonly (number | null)[];
+                                  priorYears?: readonly { values: readonly (number | null)[] }[] } | null):
+  { lo: number; hi: number } | null {
+  if (!year) return null;
+  let lo = Infinity, hi = -Infinity;
+  for (const vs of [year.values, ...(year.priorYears ?? []).map((y) => y.values)])
+    for (const v of vs) if (v !== null && Number.isFinite(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+  return Number.isFinite(lo) ? { lo, hi } : null;
 }
 
 /** Log ticks: every 1, 2, 5 within the decades the data spans. */
@@ -237,7 +253,19 @@ export interface BuildInput {
   ticks?: ((view: Domain) => readonly { t: number; label: string }[]) | null;
   /** (T567, T604) The days to mark besides today: where each falls on the clock (epoch ms), its words, and whose it is. */
   days?: readonly { at: number; label: string; kind: "conditions" | "regs" }[];
+  /**
+   * (T1043, owner 2026-11-23: "the scale of the chart should use the year data if not enough histroical data exists")
+   * THE RANGE A BANDLESS CHART IS SCALED TO: the quantity's past-year values (what the Year view draws), low and high.
+   * Read only when no band is on screen; a chart with a band keeps its own scale. Null or absent: none to hand.
+   */
+  scaleTo?: { lo: number; hi: number } | null;
 }
+
+/**
+ * (T1043) WHAT SET A LINEAR AXIS'S RANGE: the normal band on screen (`band`), the year's values for a chart with no band
+ * (`year`, `BuildInput.scaleTo`), or neither (`reading`: the drawn values alone, `minSpan` the last step). A log axis is `log`.
+ */
+export type ScaleSource = "band" | "year" | "reading" | "log";
 
 /**
  * Build every path and tick for one hydrograph.
@@ -316,11 +344,19 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
     y.values.forEach((v, i) => {
       if (v !== null && Number.isFinite(v) && seenAt(i)) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
     });
+  let banded = false;
   for (const [i, b] of bands.entries()) {
     if (!b || (i < vals.length && !seenAt(i))) continue;
+    banded = true;
     lo = Math.min(lo, b[0]);
     hi = Math.max(hi, b[4]);
   }
+  // (T1043) NO BAND ON SCREEN: the year's own values set the scale, so a wiggle of a centimetre is drawn as one, not as
+  // spikes across the whole plot (Capilano at Canyon's level: two years of record, no band)
+  const scaleTo = input.scaleTo;
+  const byYear = !banded && !log && !!scaleTo && Number.isFinite(scaleTo.lo) && Number.isFinite(scaleTo.hi);
+  if (byYear) { lo = Math.min(lo, scaleTo!.lo); hi = Math.max(hi, scaleTo!.hi); }
+  const scale: ScaleSource = log ? "log" : banded ? "band" : byYear ? "year" : "reading";
   if (!Number.isFinite(lo) || !Number.isFinite(hi)) { lo = 0; hi = 1; }
   if (hi === lo) hi = lo + 1;
   if (log) {
@@ -484,6 +520,7 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
     forecast,
     alsoForecasts,
     log,
+    scale,
     full,
     view,
     plot: { x: padLeft, y: padTop, width: innerW, height: innerH },
