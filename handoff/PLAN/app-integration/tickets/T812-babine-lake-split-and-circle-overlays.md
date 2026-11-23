@@ -24,3 +24,6 @@ source?"), the Gullwing line "Due south" (worker branch `lane/babine-mouths`, 6b
 "Salmon map only (Recommended)"; "Follow the day (Recommended)"; tap: "Opens the lake's card (Recommended)". So the
 data ships each circle's closure days (from its DFO piece) with the centre, radius and piece id; the app draws closed
 on those days only, Salmon map only, and a tap opens Babine Lake's card.
+
+## Owner pick 2026-11-22 23:35 (dialog with the Babine circle pictures)
+"Yes, as shown (Recommended)" — finish T812 (its two failing tests), review, ship with the 0.9.0 data.

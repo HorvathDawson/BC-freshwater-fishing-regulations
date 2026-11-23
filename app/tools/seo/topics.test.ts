@@ -13,7 +13,7 @@ import { topicLines, YEAR_TOPICS } from "./topics";
 const part = (o: Partial<PartModel>): PartModel => ({ year: null, marks: [], partIx: 0, label: "x", status: "open", today: "", sections: [], ...o });
 const water = (...parts: PartModel[]): WaterModel =>
   ({ ord: 0, id: "gnis:1", name: "Eaton Creek", kind: "stream", regions: [2], region: 2, focus: "2", status: "open", answer: "", parts,
-     neighbours: [], mid: null, book: [] });
+     neighbours: [], mid: null, book: [], at: [] });
 const gear = (text: string) => [{ title: "Gear", items: [{ text, book: [] }] }];
 
 describe("topicLines: the year-read topics", () => {

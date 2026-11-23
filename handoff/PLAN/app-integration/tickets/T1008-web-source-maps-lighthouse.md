@@ -1,6 +1,6 @@
 # T1008 — Website: Lighthouse "Missing source maps for large first-party JavaScript"
 
-Status: OPEN — decided: serve them (owner 2026-11-22: "we should serve them? why not?"). Goes in the 0.9.0 batch.
+Status: DONE — 8cd3341a8: the web's maps are served, checked before they ship (lane L2, 2026-11-22).
 
 Source: owner 2026-11-22 (Lighthouse on https://canifishthis.ca, unscored): "Large JavaScript file is missing a source
 map" for `…web/index-76f27ad….js`. (The same report's two chrome-extension rows are React DevTools', not ours.)
@@ -26,3 +26,13 @@ symbolicate crash reports (`sourcemaps.mjs symbolicate`). So Lighthouse sees non
 4. `release-by-hand.md` and `sourcemaps.mjs`'s header say maps are served.
 
 Depends: none. Size: S. Owner: decided (serve).
+
+## Done 2026-11-22 (lane L2, 8cd3341a8)
+`sourcemaps.mjs keep-web` copies the maps to `data/sourcemaps/<key>/web/` (symbolicate as before) and leaves them and the
+`sourceMappingURL` lines in the export; the site deploy copies the export whole, so `/_expo/static/js/web/*.js.map` is served
+under the bundle's `/_expo/static/*` cache rule. First `checkServedMaps` (`sourcemaps.test.ts`): every .js over 100 KB names
+its map, the map exists, parses (v3, indexed maps too) and carries the bundle's debug id (the indexed Metro map has no
+`file`; where one is present it must be the bundle's name), and names only files git tracks under app/ or node_modules
+holds (Metro's `__prelude__` / `\0polyfill:` modules allowed). Run on the 0.8.5 b42 export with its kept maps: clean.
+`release-by-hand.md` and `app/MAP.md` say maps are served. NOT checked: a real `export:web` + deploy (Lighthouse after the
+next release). Size: the main map is ~14 MB (fetched only with DevTools open).

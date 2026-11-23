@@ -79,3 +79,17 @@ and a fixed clock at once. Not proven by a user agent (the worker keeps none), h
    is a client sending too fast. Since fe477309b the app spaces every send ≥ 1.1 s and reports a gap 429 (review of #36:
    back-to-back exit records were refused at every start and the stored newest one resent).
 5. Keep as `defect`: `HTTP 404 for …/app/android/play/` (T1014 until fixed).
+
+**Built by lane L5 (PR #39: 3452aae26, dc338949b):** items 1–5 as listed. The crawler verdict is a per-kind count
+(`crawler` beside `count`), so a kind is class `crawler` only when every report of it came from one; a kind a reader also
+hit stays a defect. Accepted at review: kinds stored before this keep their old class (from their sample) until they
+age out (90 days), the 11 a916 kinds included.
+
+## State 2026-11-22 (stopped for credits, lane L5)
+Worker side done on PR #39 (`fix/T996-apns-check`, head 3c186213a); staging runs 9b90767a4 (has the crawler class + 429 rule). Left: nothing on the worker side.
+
+## New kind (read 2026-11-22 23:00)
+`9621cbcdb5053a66` (1, web 0.8.5, route map): `SyntaxError: Unexpected end of JSON input` at `JSON.parse` inside a
+`Promise.all` of the boot reads — a cut response body, the same cause as `5588b32d5eacc9e3` but without the `update:`
+prefix, so the worker's NETWORK pattern (`/^update: .*Unexpected end of JSON input/`) misses it. Decide: the app names
+the file in the message (no bare JSON.parse error), and the worker classes it network.
