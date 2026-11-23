@@ -2,6 +2,8 @@
 (`unplaced_piece_calls.json` `accepted`), at save time, not 14 minutes into the build."""
 from __future__ import annotations
 
+import json
+import os
 from types import SimpleNamespace
 
 import pytest
@@ -82,46 +84,103 @@ def test_a_dfo_place_whose_check_cannot_run_is_refused_never_landed_unchecked():
     `unaccepted` — what the place withholds is unknown, and unknown never passes (W46)"""
     for why in ("names a new split (split-n1): bound only on the side atlas", "KeyError: 'no such split'"):
         got = AP.withheld_refusal({"id": "dfo-5", "scope": "dfo", "kind": "extent", "check": {"cheap": False, "why": why}})
-        assert got and why in got and "cannot run" in got
+        assert got and why in got and "could not run" in got
     assert AP.withheld_refusal({"id": "dfo-6", "scope": "dfo", "kind": "extent"}) is not None   # never checked
     # an entry's cut change is bound by the side REACH run, whose own gate stops on the piece: not this check's
     assert AP.withheld_refusal({"id": "e-1", "scope": "entry", "kind": "extent", "check": {"cheap": False}}) is None
 
 
-def _run_one(monkeypatch, prop, check, *, side=True, argv=()):
-    """`apply_proposals.run` on ONE proposal, the binding check stubbed to `check`; returns (rc, events, materialized)."""
+def _run_one(monkeypatch, tmp_path, prop, check, *, mode="no cut change"):
+    """`apply_proposals.run` (a dry run) on ONE DFO proposal; returns (rc, events, materialized, side runs). `mode`:
+    "no cut change" (the in-memory `proposals.check`, stubbed to `check`), "side atlas ready" (its side atlas and
+    side copies at `proposals.side_dir`), "side-checked, --build" (a side atlas made elsewhere, named by --build),
+    "side-checked, no atlas" (no atlas has the cut). On a side chain the check runs for real as `side_check`'s
+    subprocess, whose PROCESS is stubbed: it prints `check`; each run's argv and env are recorded."""
+    import subprocess
     from pipeline.regs.review import export as E
     from pipeline.regs.review import proposals as P
-    made = []
+    made, runs = [], []
+    monkeypatch.delenv("CURATION_BUILD", raising=False)
+    monkeypatch.setattr(P, "REPO", tmp_path)
     monkeypatch.setattr(E, "load", lambda *a, **k: [])
     monkeypatch.setattr(P.Sources, "live", classmethod(lambda cls, build=None: SimpleNamespace(text=lambda p: "")))
     monkeypatch.setattr(P, "build", lambda decided, src: [prop])
     monkeypatch.setattr(P, "duplicate_ids", lambda props: {})
     monkeypatch.setattr(AP, "plan", lambda props, tried, *a, **k: ((props[0], []) if props[0]["id"] not in tried
                                                                     else (None, [])))
-    monkeypatch.setattr(AP, "needs_side", lambda *a: side)
+    monkeypatch.setattr(AP, "needs_side", lambda *a: mode != "no cut change")
     monkeypatch.setattr(P, "check", lambda ps, src: [q.update(check=dict(check)) for q in ps])
     monkeypatch.setattr(P, "materialize", lambda ps, src: made.append(ps[0]["id"]) or {})
-    rc, events = AP.run(["--dry-run", *argv])
-    return rc, events, made
+    monkeypatch.setattr(P, "side_ready", lambda p: (tmp_path / P.side_dir(p) / "atlas").is_dir())
+
+    def fake_run(cmd, **k):
+        runs.append({"cmd": cmd, "env": k.get("env") or {}})
+        return subprocess.CompletedProcess(cmd, 0, json.dumps(check) + "\n", "")
+    monkeypatch.setattr(AP.subprocess, "run", fake_run)
+    argv = ["--dry-run"]
+    if mode == "side atlas ready":
+        (tmp_path / P.side_dir(prop) / "atlas").mkdir(parents=True)
+        (tmp_path / P.side_dir(prop) / P.SIDE_ROOT).mkdir(parents=True)
+    if mode.startswith("side-checked"):
+        argv += ["--side-checked", prop["id"]]
+    if mode == "side-checked, --build":
+        (tmp_path / "elsewhere").mkdir(parents=True)
+        argv += ["--build", str(tmp_path / "elsewhere")]
+    rc, events = AP.run(argv)
+    return rc, events, made, runs
 
 
-@pytest.mark.parametrize("mode", ["side-checked", "side atlas ready", "no cut change"])
-def test_run_refuses_a_dfo_place_the_gate_would_stop_and_lands_one_it_would_not(monkeypatch, mode):
-    """THE GATE INSIDE `run`: a DFO place on a side (cut-changing) chain is checked too, whether `--side-checked` or its
-    side atlas is ready; a check that cannot run, an unaccepted piece or a stale acceptance refuses it (nothing
-    materialized); a clean check lands it (here: `would`, a dry run)."""
-    prop = {"id": "dfo-1", "scope": "dfo", "kind": "extent", "marks": [], "title": "t", "edits": [], "digest": "0" * 64}
-    side = mode != "no cut change"
-    argv = ["--side-checked", "dfo-1"] if mode == "side-checked" else []
-    cases = [({"cheap": False, "why": "names a new split (split-n1): bound only on the side atlas"}, "refused"),
-             ({"cheap": True, "unaccepted": [{"piece": "p1", "reason": "straddles_the_cut"}]}, "refused"),
-             ({"cheap": True, "unaccepted": [], "stale_acceptances": [{"piece": "p9", "reason": "x"}]}, "refused"),
-             ({"cheap": True, "unaccepted": [], "stale_acceptances": [], "rules": {}}, "would")]
-    for check, want in cases:
-        rc, events, made = _run_one(monkeypatch, dict(prop), check, side=side, argv=argv)
+CASES = [({"cheap": False, "why": "KeyError: 'shuswap_river__new_cut'"}, "refused"),
+         ({"cheap": True, "unaccepted": [{"piece": "p1", "reason": "straddles_the_cut"}]}, "refused"),
+         ({"cheap": True, "unaccepted": [], "stale_acceptances": [{"piece": "p9", "reason": "x"}]}, "refused"),
+         ({"cheap": True, "unaccepted": [], "stale_acceptances": [], "rules": {}}, "would")]
+PROP = {"id": "dfo-1", "scope": "dfo", "kind": "extent", "target": "8:river:a", "marks": [], "title": "t",
+        "edits": [{"scope": "entry", "field": "extents", "after": [{"op": "between", "splits": ["a", "b"]}]}],
+        "digest": "0" * 64}
+
+
+@pytest.mark.parametrize("mode", ["side atlas ready", "side-checked, --build", "no cut change"])
+def test_run_refuses_a_dfo_place_the_gate_would_stop_and_lands_one_it_would_not(monkeypatch, tmp_path, mode):
+    """THE GATE INSIDE `run`: a check that cannot run, an unaccepted piece or a stale acceptance refuses the place
+    (nothing materialized); a clean check lands it (here: `would`, a dry run) — on the live atlas, and on a side chain
+    on the atlas that has the cut."""
+    for n, (check, want) in enumerate(CASES):
+        rc, events, made, runs = _run_one(monkeypatch, tmp_path / str(n), dict(PROP), check, mode=mode)
         assert [e["status"] for e in events] == [want], check
         assert (rc, made) == ((1, []) if want == "refused" else (0, ["dfo-1"])), check
+        assert len(runs) == (0 if mode == "no cut change" else 1)
+
+
+def test_a_side_checked_place_is_bound_on_the_atlas_that_has_its_cut_and_lands(monkeypatch, tmp_path):
+    """the side flow (`proposals.side_commands` for a DFO place with a new cut): the side check binds the place on its
+    SIDE ATLAS with the patched side copies as the curated root, and a clean place lands (one live rebuild, not two)"""
+    from pipeline.regs.review import proposals as P
+    rc, events, made, runs = _run_one(monkeypatch, tmp_path, dict(PROP), CASES[-1][0], mode="side atlas ready")
+    assert (rc, [e["status"] for e in events], made) == (0, ["would"], ["dfo-1"])
+    (run,) = runs
+    assert run["env"]["CURATION_BUILD"] == str(tmp_path / P.side_dir(PROP) / "atlas")
+    assert run["env"]["CURATED_ROOT"] == str(tmp_path / P.side_dir(PROP) / P.SIDE_ROOT)
+    assert run["cmd"][2:4] == ["pipeline.regs.review.side_check", "8:river:a"]
+    assert json.loads(run["cmd"][4]) == [{"scope": "entry", "field": "extents", "after": PROP["edits"][0]["after"]}]
+    # --build names a side atlas made elsewhere: bound there (no side copies beside it: the live curated root)
+    rc, events, made, runs = _run_one(monkeypatch, tmp_path / "b", dict(PROP), CASES[-1][0], mode="side-checked, --build")
+    assert made == ["dfo-1"] and runs[0]["env"]["CURATION_BUILD"] == str(tmp_path / "b" / "elsewhere")
+    assert runs[0]["env"].get("CURATED_ROOT") == os.environ.get("CURATED_ROOT")       # not a side root: none was made
+
+
+def test_with_no_atlas_that_has_the_cut_the_place_is_refused(monkeypatch, tmp_path):
+    rc, events, made, runs = _run_one(monkeypatch, tmp_path, dict(PROP), CASES[-1][0], mode="side-checked, no atlas")
+    assert (rc, [e["status"] for e in events], made, runs) == (1, ["refused"], [], [])
+    assert "no atlas with this place's cut" in events[0]["why"]
+
+
+def test_the_side_commands_of_a_dfo_place_with_a_new_cut_end_in_the_apply_that_checks_it():
+    from pipeline.regs.review import proposals as P
+    prop = {**PROP, "edits": [{"kind": "dfo", "scope": "entry", "field": "extents", "after": []}]}
+    import unittest.mock as um
+    with um.patch.object(P, "changes_cuts", lambda p, props: True):
+        cmds = P.side_commands(prop, [prop])
+    assert "--side-checked dfo-1" in cmds[-1] and "apply_proposals" in cmds[-1]
 
 
 def test_the_reach_binding_change_reports_withheld_and_unaccepted(monkeypatch):
@@ -138,7 +197,7 @@ def test_the_reach_binding_change_reports_withheld_and_unaccepted(monkeypatch):
     binding = SimpleNamespace(sections=["s1"], outcome=SimpleNamespace(value="bound"))
     calls = []
     monkeypatch.setattr(reuse, "_build_reach", lambda *a, **k: calls.append(k) or (binding, [diag(pieces=("p1",))]))
-    monkeypatch.setattr(dfo, "as_the_run_binds", lambda lid: {"regional": False, "tidal": {"t1": "x"}})
+    monkeypatch.setattr(dfo, "as_the_run_binds", lambda lid, loc=None: {"regional": False, "tidal": {"t1": "x"}})
     import pipeline.atlas.reach.build as B
     monkeypatch.setattr(B, "load_unplaced_calls", lambda path=None: [])
     got = reuse.dfo_binding_change("6:river:a", [])
@@ -157,8 +216,17 @@ def test_a_save_time_binding_takes_the_runs_limits(monkeypatch):
     reuse = dfo.reuse
     monkeypatch.setattr(reuse, "_tidal", lambda: {"t1": "water:x"})
     monkeypatch.setattr(DS, "load_tidal_calls", lambda path=None: {"6:river:keep": "the owner's reason"})
+    monkeypatch.setattr(dfo, "_locations", lambda: {})
     assert dfo.as_the_run_binds("6:river:a") == {"regional": False, "tidal": {"t1": "water:x"}}
     assert dfo.as_the_run_binds("6:river:keep") == {"regional": False, "tidal": None}
+    # a VARIANT with no extent of its own binds through its primary, and `keep_tidal` naming the primary keeps it too
+    # (`resolve_all`: `loc` or `target`); a variant with its own extent, or an unconfirmed one, is its own target
+    var = {"duplicate_of": "6:river:keep", "binding": {"extents": []}}
+    assert dfo.as_the_run_binds("6:river:v", var)["tidal"] is None
+    assert dfo.as_the_run_binds("6:river:v", {**var, "binding": {"extents": [{"op": "whole"}]}})["tidal"] == {"t1": "water:x"}
+    assert dfo.as_the_run_binds("6:river:v", {**var, "duplicate_confirmed": False})["tidal"] == {"t1": "water:x"}
+    monkeypatch.setattr(dfo, "_locations", lambda: {"6:river:v": ("6", var, None)})
+    assert dfo.as_the_run_binds("6:river:v")["tidal"] is None                         # the stored place by default
     # the preview binds with them
     import pipeline.atlas.reach.build as B
     seen = []

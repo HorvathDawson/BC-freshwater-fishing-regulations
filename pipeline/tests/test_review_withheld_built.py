@@ -14,6 +14,7 @@ from __future__ import annotations
 import gzip
 import json
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -68,3 +69,16 @@ def test_the_save_time_binding_is_the_runs(backend, run_rows, lid):
     old, _ = build_reach(entry, rule, reuse._registry(), reuse._graph())             # the arguments it used to pass
     if lid == TIDAL:
         assert set(old.sections) > set(run_rows[lid]["sections"])                     # tidal water the run takes out
+
+
+def test_the_side_check_binds_a_place_on_the_atlas_it_is_given_in_its_own_process(request):
+    """`apply_proposals.side_check`, for real: its subprocess binds the Middle Shuswap place on the atlas named (here the
+    served one, which has the place's cut) and reports what it withholds — nothing since T778, so it would land"""
+    from pipeline.regs.review import apply_proposals as AP
+    prop = {"id": "t779-built", "scope": "dfo", "kind": "extent", "target": SHUSWAP[0], "edits": [], "digest": "0" * 64}
+    got = AP.side_check(prop, under_test.atlas(request))
+    assert got.get("cheap") is True, got
+    assert got["unaccepted"] == [] and got["stale_acceptances"] == []
+    assert AP.withheld_refusal({**prop, "check": got}) is None
+    bad = AP.side_check(prop, Path(request.config.rootpath) / "no-such-atlas")                     # a missing atlas
+    assert bad["cheap"] is False and AP.withheld_refusal({**prop, "check": bad})

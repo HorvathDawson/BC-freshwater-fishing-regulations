@@ -328,6 +328,12 @@ def test_apply_lands_each_proposal_from_the_marks_as_its_own_commit(src, tmp_pat
                 "n_before": 4, "n_after": 92, "gained": 88, "lost": 0, "km_before": 8,
                 "km_after": 124, "outcome_before": "open", "outcome_after": "open"}}}
     side = {"ready": False}
+
+    def fake_side_check(p, atlas):                    # T779: a DFO place's check on its side atlas (its own process)
+        assert atlas is not None
+        checked.append(p["id"])
+        return {"cheap": True, "why": None, "rules": {}, "withheld": [], "unaccepted": [], "stale_acceptances": []}
+    monkeypatch.setattr(A, "side_check", fake_side_check)
     monkeypatch.setattr(P, "REPO", repo)
     monkeypatch.setattr(P, "check", fake_check)
     monkeypatch.setattr(P, "side_ready", lambda p: side["ready"])
@@ -346,8 +352,8 @@ def test_apply_lands_each_proposal_from_the_marks_as_its_own_commit(src, tmp_pat
     log = _git(repo, "log", "--format=%s").splitlines()
     assert log == [f"fix(T185): apply {q['id']}: {q['title']}"[:100].rstrip()
                    for q in (cow, camp_a, camp_b, by["split-n1"], by["split-n2"], hz)] + ["base"]
-    # cut changes are bound on the side atlas; a DFO place on one is ALSO checked in memory (T779: the withheld-piece
-    # gate — no reach run checks a DFO place before the build)
+    # cut changes are bound on the side atlas; a DFO place on one is checked THERE too (T779: the withheld-piece gate —
+    # no reach run checks a DFO place before the build)
     assert checked == [hz["id"], camp_b["id"], camp_a["id"], cow["id"]]
     assert _git(repo, "show", "--name-only", "--format=", "HEAD~4").split() == [
         "data/curated/splits.json"]

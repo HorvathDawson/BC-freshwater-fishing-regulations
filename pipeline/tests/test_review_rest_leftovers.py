@@ -40,7 +40,7 @@ def _two_places(monkeypatch, rest_extent):
 
 def _no_run_limits(monkeypatch):
     """the run's limits (`as_the_run_binds`: its tidal water, read off an atlas) stubbed to none"""
-    monkeypatch.setattr(importlib.import_module("dfo"), "as_the_run_binds", lambda lid: {"regional": False, "tidal": None})
+    monkeypatch.setattr(importlib.import_module("dfo"), "as_the_run_binds", lambda lid, loc=None: {"regional": False, "tidal": None})
 
 
 def test_a_place_that_is_no_rest_yet_still_lists_the_waters_places_on_open(monkeypatch):

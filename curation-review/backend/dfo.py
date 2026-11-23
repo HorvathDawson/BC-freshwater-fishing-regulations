@@ -1352,14 +1352,22 @@ def _walks_tributaries(entry: dict, rule: dict) -> bool:
     return bool(wants_tributaries(rule, entry))
 
 
-def as_the_run_binds(location_id: str) -> dict:
+def as_the_run_binds(location_id: str, loc: dict | None = None) -> dict:
     """THE REACH RUN'S LIMITS FOR A DFO PLACE (`reach.dfo_salmon.resolve_all`), as `build_reach` keywords: no region
     limit (`regional=False`: a DFO place is one water whichever region prints it) and the run's tidal water out
     (`reuse._tidal`, the CLI's `ReachResult.tidal`) unless `tidal_calls.json` `keep_tidal` names the place. Water
     outside B.C. `build_reach` takes out itself (`outside_bc`, the run's `outside`). Every save-time binding of a place
-    (the preview, its size, the landing check, the dead pieces) passes these, so it binds what the build binds (T779)."""
+    (the preview, its size, the landing check, the dead pieces) passes these, so it binds what the build binds (T779).
+    A VARIANT with no extent of its own binds through its primary in the run, and `keep_tidal` naming either keeps the
+    tidal water (`resolve_all`: `loc` or `target`); `loc` is the place as it is bound (a draft), default the stored one."""
     from pipeline.atlas.reach.dfo_salmon import load_tidal_calls
-    return {"regional": False, "tidal": None if location_id in load_tidal_calls() else reuse._tidal()}
+    keep = load_tidal_calls()
+    lc = loc if loc is not None else (_locations().get(location_id) or (None, None, None))[1]
+    ids = {location_id}
+    if lc and lc.get("duplicate_of") and lc.get("duplicate_confirmed") is not False \
+            and not (lc.get("binding") or {}).get("extents"):     # `is_variant` and not `binding.resolved`
+        ids.add(str(lc["duplicate_of"]))
+    return {"regional": False, "tidal": None if ids & set(keep) else reuse._tidal()}
 
 
 def _bind(entry: dict, rule: dict, limit: int, walks: bool = False) -> dict:
@@ -1493,7 +1501,8 @@ def _size_of(loc: dict, water: dict | None) -> dict | None:
     entry, rule = _reach_input(loc, water)
     if not rule["extents"]:
         return None
-    b, _d = build_reach(entry, rule, reuse._registry(), reuse._graph(), **as_the_run_binds(str(entry.get("entry_id") or "")))
+    b, _d = build_reach(entry, rule, reuse._registry(), reuse._graph(),
+                        **as_the_run_binds(str(entry.get("entry_id") or ""), loc))
     secs = set(b.sections)
     reg = reuse._registry()
     own = {s for i in (water or {}).get("item_ids") or [] if i in reg for s in reg[i].section_ids}
