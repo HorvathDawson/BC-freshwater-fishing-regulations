@@ -1,6 +1,6 @@
 # T754 — Places that cover one bank of a river only (Kitimat west bank)
 
-Status: DONE 2026-11-22 (8eb88fd56, lane L20): the words and the other bank's verdict. The one-side stripe and owner
+Status: DONE 2026-11-22 (5953ef057, eeb19b4f3, lane L20): the words and the other bank's verdict. The one-side stripe and owner
 questions 4–6 are T1029.
 
 Source: owner 2026-11-15, while labelling DFO salmon places: "also for kitimat it is (on west bank between signs at
@@ -162,7 +162,7 @@ Depends: owner answers. Size: B is M (pipeline field + editor row + worker + two
 "Other bank: the water's other rules" — a closure on one bank closes that bank only; the other bank reads the water's
 other regulations (as `side` does for "west half", AGENTS rule 49). Unblocks T754 (size M).
 
-## Built 2026-11-22 (lane L20, 8eb88fd56)
+## Built 2026-11-22 (lane L20, 5953ef057, eeb19b4f3)
 - The bank is read from DFO's own words (`regs.dfo_salmon.locations.bank_of`): "on <dir> bank" (not "bank OF something
   else": the Stave's Ruskin channel "on the east bank of the BC Hydro park" stays a place of its own) and "from the centre
   line to the <dir> bank". Across every curated place exactly two match (pinned by `test_t754_one_bank.py`): the Kitimat
