@@ -23,6 +23,14 @@ on its listed places' sections inside its bounds (the reach row's `behind`) it i
 (`rests_behind`, `rest_after`), so a listed stretch speaks on the days it has a rule for a fish and the rest's rule on
 the other days; elsewhere it sorts as any place. Its map binding stays the rest (bounds less the listed places).
 
+A PLACE FOR ONE BANK IS READ BESIDE (T754, owner 2026-11-22 23:45: "Other bank: the water's other rules"; AGENTS rule 49,
+as the book's `side`): DFO's "on west bank between signs at Kitimat hatchery outfall", "from the centre line to the
+northern bank" (`regs.dfo_salmon.locations.bank_of`). Placed, it rides exactly its own bound sections in their chains' `u`
+— never `l` — so the stretch answers and paints by the water's other places, and its own chain (`unmapped`, `n`) gives the
+card its rules for that bank, the bank named on `p[lid]["side"]` (core: the "one bank" caveat, not "not drawn yet"). Not
+placed, it is an ordinary undrawn place of its water: never widened, its words name the bank. Supersedes RULINGS E19's
+whole channel for the Nakina.
+
 A DFO PLACE ANSWERS FOR ITS OWN REGION (T668, `SectionRegions`): an undrawn place rides only its own region's sections;
 a region-wide place binds only its region's members; on a section in TWO regions (the one membership) both regions'
 places hold — the chain's `s` names each region's places (indices into `l`), each cascades apart, and the MOST STRICT
@@ -1101,6 +1109,12 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
             return True
         return bool(c[0] & section_regions.keys(sid)) or any(sid in section_regions.area(a) for a in c[1])
 
+    # T754: the places DFO words for one bank of their river (`locations.bank_of`: "on west bank", "from the centre line
+    # to the northern bank") — the bank each names
+    from pipeline.regs.dfo_salmon.locations import bank_of
+    banks = {lid: b for lid, v in locs.items() if (b := bank_of((getattr(v[1], "source_text", None) or {})
+                                                                .get("specific_area")))}
+    beside: Dict[str, str] = {}
     covering: Dict[int, List[str]] = defaultdict(list)
     unmapped_locs: List[str] = []
     missing: List[str] = []
@@ -1122,6 +1136,16 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
             # nowhere of its own, but placed — never an undrawn part of its water
             if not locs[lid][1].tidal_water and not row.get("behind"):
                 unmapped_locs.append(lid)
+            continue
+        if lid in banks:
+            # T754 (owner 2026-11-22): a place for ONE BANK is read BESIDE the water's other places on its own sections
+            # (AGENTS rule 49, as the book's `side`): in their chains' `u`, never `l`, so the stretch answers — and
+            # paints — by the water's other rules and the card names the bank (`p[lid]["side"]`)
+            on = {sid_of[s] for s in row["sections"] if s in sid_of}
+            missing.extend(s for s in row["sections"] if s not in sid_of)
+            carried_on[lid] = {sid for sid in on if binds(lid, sid)}
+            beside[lid] = banks[lid]
+            unmapped_locs.append(lid)
             continue
         for s in row["sections"]:
             sid = sid_of.get(s)
@@ -1242,6 +1266,10 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
     # T573: a closed-area piece says so (`piece: 1`; `bound: 1` when it covers a section), so the app reads it without
     # parsing its id: where the live feed lacks a bound one, the answer is "not known, check the notice", never the
     # place's opening (T757)
+    # T754: a placed one-bank place says its bank (`side`: north|south|east|west, the book's `side` words); one the reach
+    # run did not place is an ordinary undrawn place of its water (its words name the bank), never widened
+    for lid, b in beside.items():
+        payload["p"][lid]["side"] = b
     bound = {l for ls in covering.values() for l in ls}
     for lid, v in payload["p"].items():
         if getattr(locs[lid][1], "closure_rule", None):
