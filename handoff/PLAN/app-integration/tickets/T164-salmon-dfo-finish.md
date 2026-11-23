@@ -149,3 +149,23 @@ they now bind or resolved (Little Qualicum falls, Stamp inlet + powerline downst
 Creek); 5 re-proposed around the new cuts (Quatse ±100 m, three Stamp places, 5b region section). Counts: 52 on existing
 cuts, 47 whole water, 62 new splits (24 high / 20 medium / 18 low), 14 unresolvable. Owner time left as before: the
 177 in the review app's DFO mode; then Claude's reach-only rerun + binding diff.
+
+## Acceptance on the live release (lane L10, 2026-11-22)
+Live release r-741815c6090d; the bundle measured (`data/generated/bundle/bundle.sqlite`) carries its digests (entries
+44bf781096072665, reach 4b9b55b281500a68).
+- **Dossier:** `python -m pipeline.regs.dfo_salmon.dossier` -> "0 unresolved DFO waters".
+- **Splits:** `python -m pipeline.regs.dfo_salmon.splitwork` -> 14 waters with place-naming locators, 5 ACTIVE locators
+  "need a cut", 16 dormant, 6 rules waiting. None of the 5 can take a cut: Nanaimo's two are in Subarea 17-14, tidal
+  portions (off the freshwater map, T449); Osoyoos Lake's North Basin, Quesnel Lake's Horsefly Bay and Mabel Lake's
+  north end are parts of LAKES, which are never cut (lake splits deferred) and stay undrawn parts.
+- **Review:** 258 active places; 236 carry a mark in force (201 verified, 35 unsure: 30 the owner's own, 3 his
+  lower-case "dawson", 2 Claude's saves for his tick — the re-tick list is in OWNER-TODO "A. Saves to re-tick"). The 22
+  without one: 19 region / section / area defaults (page scopes, no extent to review) and the same 3 lake parts.
+- **Re-fetch today:** `python -m pipeline.regs.dfo_salmon.live run --dry-run --cache-dir <scratch copy>` -> every region's
+  page unchanged in places and rows (Regions 1 and 2 dated 2026-11-06, 6 2026-09-02, …); "275 locations, 0 unplaced,
+  0 notice(s); nothing written".
+- **On the map (the release's salmon chains):** Skeena 9 chains / 222 sections (below the CNR bridge at Terrace: "2 per
+  day (Jul 10–28)", "4 per day (Jul 29–Aug 16)", "4 per day, only 1 over 50 cm (Sep 1–Nov 30)" …); Fraser (Region 2,
+  Mission to Hope, 62 sections): "2 per day (Nov 3–30)", "2 per day, hatchery marked only (Nov 7–30)", "No fishing for
+  salmon (from Apr 1 until further notice)"; Cowichan (Sandy Pool to the boundary sign, 9 sections): "No fishing (Sep
+  1–Nov 15)", "2 per day (Nov 16–Dec 31)", "1 per day (Nov 16–Dec 31)".
