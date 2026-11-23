@@ -733,5 +733,8 @@ any row here that is not DONE or DROPPED. A reopened ticket's row moves back to 
 | T973 | Classified Waters carried through a tributary whose own row prints no unit, with its path (class, source, through); "may need" note; CO question open | DONE | 9475cfdb0, e04d6d87b, bf28dbc76, 28eaf73e9, 71403fec6, bbce17168 | — |
 | T971 | Conditions: picking Level in the gauge card also re-ranks the estimate card above it | DONE | 2a2aa0e75 | — |
 | T809 | A tool that lists every answer that changed between two releases, in plain words, as one page for the owner | DONE | 9c033d495, dac013480, a3f9a7fb3, 0b936544f, 8bfd53567, 372bde554, 46c18af28, 8c4620fcd | — |
-| T539 | Ledger guard checks IN REVIEW can close; restart page holds no state; docs guard (dead paths, rule ids); close T529 | DONE | 7323ce649, 6e719c8ce | — |
-| T540 | Cut start-of-chat reading: closed ledger rows to DONE.md, STATUS archive, dead order list, questions shipped on default | DONE | a7df2f98b, 666683208, ea0d3d488, 116872b43, 6e719c8ce | — |
+| T539 | Ledger guard checks IN REVIEW can close; restart page holds no state; docs guard (dead paths, rule ids); close T529 | DONE | 7323ce649, 87c1530a8 | — |
+| T540 | Cut start-of-chat reading: closed ledger rows to DONE.md, STATUS archive, dead order list, questions shipped on default | DONE | a7df2f98b, 666683208, ea0d3d488, 116872b43, 87c1530a8 | — |
+| T994 | Production-level audit: non-standard practices and data-flow issues across the code | DONE | a125140a9, af396ea5d, a424dc8a0, 2399453d8, a49c54d9e, b0bcc2eda, 347d3388e, 0a610610c, 67e723567, 5b6dd066b, bd4400513, cefdb3fc5, a6d97778a, 21c1a6ed5, 12be2fa14, 80c389059, a3ca419e2, 8a89a73a9, 77ee9ca7d | — |
+| T1006 | One read-only command lists every new report (both workers, TestFlight, Play reviews); every chat runs it first | DONE | 74cbc9bf0 | — |
+| T1022 | Release-tooling smalls: is_app_path counts dev tooling, a memory-note reference in release.py, prod_instructions names only PRODUCTION.md, T866 inventory line numbers | DONE | 5befc9c32, 4e0ac69e0 | — |

@@ -1,6 +1,6 @@
 # T1022 — Release-tooling smalls (from the 11-22 restart page's "Next" item 5)
 
-Status: IN PROGRESS — lane L13 (docs/T539-ledger-cleanup).
+Status: DONE — 5befc9c32 (items 1-3), 4e0ac69e0 (item 4); the pre-push range is T1019 (Earlier status: IN PROGRESS — lane L13 (docs/T539-ledger-cleanup).)
 
 Source: `handoff/PLAN/NEXT-SESSION-2026-11-22-after-ci-chat.md` Next item 5. The pre-push range
 (`merge-base(origin/main,HEAD)..HEAD`) is T1019 (lane L6), not here.

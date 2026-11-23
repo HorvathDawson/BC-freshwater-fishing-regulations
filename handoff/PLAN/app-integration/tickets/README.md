@@ -248,8 +248,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T991 | Sources display audit: one consistent way sources are shown across the app (next release) | OPEN | T990 | proposal + inventory written 11-22 (lane L7, PR docs/T991-sources-audit); owner picks A or B (T991-shots/); no OWNER-TODO row yet |
 | T992 | Explain how golden pages, fixture re-cuts and the release command's gates work (and maybe simplify them) | IN REVIEW (explanation written: `handoff/PLAN/runbooks/release-gates-explained.md`; simplifications proposed, not built; owner: OWNER-TODO "To read (you): the one release runbook and the gates page") | | owner 2026-11-21 |
 | T993 | Document + clean up every release / CI / CD process so a human can release from one runbook; checks do the remembering (0.8.5 stopped nine times) | IN PROGRESS (plan item 11, the one human runbook `handoff/PLAN/runbooks/release-by-hand.md`, IN REVIEW: owner: OWNER-TODO "To read (you): the one release runbook and the gates page") | T992 | owner 2026-11-21 |
-| T994 | Production-level audit: non-standard practices and data-flow issues across the code | IN PROGRESS | | owner 2026-11-21 |
-| T995 | Branch structure: `main` is the protected trunk; PRs with required checks; release branches and tags | PARTIAL (switch landed c374b91fd 2026-11-22; left (Claude): prune branches, delete the old branch after 0.8.6 redeploys the prod worker) | c374b91fd, d4eae5b46 | owner 2026-11-21 |
+| T995 | Branch structure: `main` is the protected trunk; PRs with required checks; release branches and tags | PARTIAL (switch landed c374b91fd 2026-11-22; pruned 11-22; left (Claude): delete `redesign/stream-sections` + `cache/maplibre/fslean-m2` after the 0.9.0 production feeds worker redeploys) | c374b91fd, d4eae5b46 | owner 2026-11-21 |
 | T996 | Test the Apple push service end to end (registration, wake-up delivery, token reuse over 1 h+) | OPEN | T994 | owner 2026-11-21, next release |
 | T997 | Water map: two boundary labels at almost the same place draw on top of each other (Nicomekl River Part 2) | OPEN | | owner 2026-11-21, next chat |
 | T998 | Meaningful versions: SemVer for the app, the bump derived from Conventional Commits (1.0.0 at public launch) | DONE | 6a16738db | owner 2026-11-21; 2026-11-22: next release is 0.9.0 (owner accepted the computed bump; it waits for the next chat's work) |
@@ -260,7 +259,6 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1003 | Android: R8 on for every release build, production included; mapping file uploaded to Play (Play Console: "Obfuscation 1%", under its 25% threshold) | OPEN — next release (0.9.0) | T749 | owner 2026-11-22 (Play Console notice) |
 | T1004 | In-app report: the Class II tag sits far right of the water's name, "kind of hidden" (Skeena part 11) | OPEN — next release batch | | production report 2026-11-21 (read 2026-11-22) |
 | T1005 | Production crash reports 11-15 → 11-22: ~20 kinds no ticket names (0.8.4 404s, PMTiles magic number, …): triage | IN PROGRESS — triaged kind by kind (11 of 20 from one search-engine renderer); app fixes in; left (Claude): the worker's classes (lane L5) | 127296a64, fe477309b | lane L5: the worker's classes (T1005 "What the worker needs"); then a /crashes read |
-| T1006 | One read-only command lists every new report (both workers, TestFlight, Play reviews); every chat runs it first | OPEN | | owner 2026-11-22 |
 | T1007 | Website: Chrome warns "StorageType.persistent is deprecated" (first party): Cloudflare's injected JavaScript Detections script, not our code; guard test | DONE | df4c72f0f | owner 2026-11-22 (Lighthouse) |
 | T1008 | Website: serve the web's source maps (repo is public), checked before they ship (debug ids, sources tracked or node_modules) | DONE | 8cd3341a8 | owner 2026-11-22 (Lighthouse) |
 | T1009 | Android: Play "DEX code optimization: Low": measure optimization / shrinking / obfuscation every build, narrow broad library keep rules, floors in a build check (after T1003) | OPEN — next release batch (0.9.0), after T1003 | | owner 2026-11-22 (Play Console card) |
@@ -274,7 +272,6 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1017 | Two one-report defects to locate: `expression.evaluate is not a function` (web), iOS "Unable to open URL" on Runs | OPEN — next release batch | | both; item 1 after T1008 |
 | T1020 | answers_diff: 28,714 licence frames differ on `alien_closures[].rule` across the 0.8.4 → production release pair (a tool gap or a real change) | OPEN | — | T809's cutover diff run, 2026-11-22 |
 | T1021 | The CI "no hard-coded data path" gate misses every multi-segment literal (T994 finding 7; ~10 live) | OPEN | — | T994 audit finding 7, checked 2026-11-22 |
-| T1022 | Release-tooling smalls: is_app_path counts dev tooling, a memory-note reference in release.py, prod_instructions names only PRODUCTION.md, T866 inventory line numbers | IN PROGRESS — lane L13 (docs/T539-ledger-cleanup) | — | restart page "Next" item 5 (the pre-push range is T1019) |
 
 ## Next after closed testing
 
