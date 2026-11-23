@@ -372,8 +372,12 @@ export default function App() {
   }), []);
   // (T625) a tapped share link (Android App Links) opens its water through the same request, on the view the link names
   // (T605) and a region page's `/?fit=` opens the map framed on its box
-  useEffect(() => onAppLink((o) => setOpenRequest((r) => ("fit" in o ? { item: null, fit: o.fit, n: (r?.n ?? 0) + 1 }
-                                                                  : { item: o.item, view: o.view, n: (r?.n ?? 0) + 1 }))), []);
+  // (T1035) the link's `theme` is applied as the web's start link's is; (T1034) its `part` opens that part
+  useEffect(() => onAppLink((o) => {
+    if (!("fit" in o) && o.theme) setTheme(o.theme);
+    setOpenRequest((r) => ("fit" in o ? { item: null, fit: o.fit, n: (r?.n ?? 0) + 1 }
+                                       : { item: o.item, view: o.view, part: o.part, n: (r?.n ?? 0) + 1 }));
+  }), []);
 
   /*
    * (T231) THE UPDATE SERVICE (owner 2026-10-28: "check the data origin for new updates and download them"): the three

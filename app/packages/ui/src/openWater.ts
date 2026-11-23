@@ -94,7 +94,8 @@ export interface WaterOpener {
    */
   flow(item: ItemId, build: (group: readonly ItemId[] | undefined) => RouteAction): Promise<void>;
   /** A water by its id (a spot, a deep path). */
-  item(item: ItemId, view?: View): void;
+  /** (T1034) `part`: the part a link names; null: the water's own default */
+  item(item: ItemId, view?: View, part?: number | null): void;
   /**
    * A water picked from search's results: the search is consumed, so back lands on the map (route `fromSearch`). It
    * opens on its Map (T203), framed on its part (T747) — (T925) a water of one part too: the map shows what it covers.
@@ -165,7 +166,7 @@ export function waterOpener(source: Pick<WaterSource, "itemForSection">, go: (a:
                                                                         o.unnamed)),
     flow: (item, build) => settle(async (groupOf) => build(groupOf ? await groupOf(item) : undefined)).then(() => undefined),
     // nothing to wait on: at once, and any open still in flight is overtaken
-    item: (item, view = "regs") => { latest += 1; o.warm?.(item); go(openWater({ item, view })); },
+    item: (item, view = "regs", part = null) => { latest += 1; o.warm?.(item); go(openWater({ item, view, part })); },
     cancel: () => { latest += 1; },
     // (T203) a result opens the water's Map, from Conditions or Regs alike — (T925) a water of one part too (T221 had
     // opened that one on its Regulations, with no Map view). (T747, owner 2026-11-14: "it is the section view but it is

@@ -5,7 +5,7 @@
  * names its water in `<meta name="cift:item">` (`startLink.web.ts`), so the phone reads that page for the slug's item
  * instead of keeping a second slug table (AGENTS rule 5: a link carries `item_id` or a durable place, never a section id).
  *
- * Read here: `/water/<slug>[?view=]` and the start link `/?regs=<item>[&view=]`, on `APP_LINK_HOSTS`. A bare `/` just opens
+ * Read here: `/water/<slug>[?view=]` and the start link `/?regs=<item>[&view=][&part=][&theme=]`, on `APP_LINK_HOSTS`. A bare `/` just opens
  * the app. (T605, T1010) `/?fit=w,s,e,n` — a region page's "Open the map" — opens the map framed on that box (the intent
  * filter takes `/`, so the phone gets it; it was refused as unread and reported before), read by the web's own `fitOf`. Anything else on those hosts (a place `blk`+`m`, `show`, a browse tab…) is a link the phone does not read yet:
  * it throws, naming what it saw, and the caller reports it — it never opens some other page silently.
@@ -26,12 +26,17 @@ export interface AppLink {
   /** the item the link names itself (`?regs=`), or null */
   readonly item: ItemId | null;
   readonly view: View;
+  /** (T1034) `?part=<n>`: the part of the water the link names (0-based, as the web's start link), or null */
+  readonly part: number | null;
+  /** (T1035) `?theme=light|dark`: the theme the link asks for, or null */
+  readonly theme: "light" | "dark" | null;
   /** (T605) `?fit=w,s,e,n`: the map framed on this box, no water. Absent: none. */
   readonly fit?: FitBox;
 }
 
 /** What a tapped link opens: a water on a view, or (T605) the map framed on a box. */
-export type AppLinkOpen = { readonly item: ItemId; readonly view: View } | { readonly fit: FitBox };
+export type AppLinkOpen = { readonly item: ItemId; readonly view: View; readonly part: number | null; readonly theme: "light" | "dark" | null }
+  | { readonly fit: FitBox };
 
 /** The link's reading, or null when it is not an address of ours (another scheme or host: not a share link). Throws on one of ours the phone cannot read. */
 export function parseAppLink(url: string): AppLink | null {
@@ -54,12 +59,18 @@ export function parseAppLink(url: string): AppLink | null {
   const slug = /^\/water\/([a-z0-9-]+)$/.exec(path)?.[1] ?? null;
   if (path !== "/" && !slug) throw new Error(`app link: ${url} is not a water page or the start link`);
   if (slug && regs) throw new Error(`app link: ${url} names a water twice (page and regs=)`);
+  const partS = q.get("part");
+  if (partS !== undefined && !/^\d+$/.test(partS)) throw new Error(`app link: part=${partS} is not a part number`);
+  const part = partS === undefined ? null : Number(partS);
+  const themeS = q.get("theme");
+  if (themeS !== undefined && themeS !== "light" && themeS !== "dark") throw new Error(`app link: theme=${themeS} is not light|dark`);
+  const theme = themeS ?? null;
   const fitS = q.get("fit");
-  if (fitS === undefined) return { slug, item: regs as ItemId | null, view };
+  if (fitS === undefined) return { slug, item: regs as ItemId | null, view, part, theme };
   const fit = fitOf(fitS);
   if (typeof fit === "string") throw new Error(`app link: fit=${fitS} is not ${fit}`);
   if (slug || regs) throw new Error(`app link: ${url} names a box beside a water (a link frames one or the other)`);
-  return { slug, item: null, view, fit };
+  return { slug, item: null, view, part, theme, fit };
 }
 
 /** The item a water page names (`<meta name="cift:item">`). Throws when it names none: a stale or broken page. */
@@ -77,10 +88,10 @@ export async function resolveAppLink(url: string, fetcher: (u: string) => Promis
   const link = parseAppLink(url);
   if (!link) return null;
   if (link.fit) return { fit: link.fit };
-  if (link.item) return { item: link.item, view: link.view };
+  if (link.item) return { item: link.item, view: link.view, part: link.part, theme: link.theme };
   if (!link.slug) return null;
   const page = `${/^https:\/\/[^/?#]+/i.exec(url)![0]}/water/${link.slug}`;
   const r = await fetcher(page);
   if (!r.ok) throw new Error(`app link: ${page} answered ${r.status}`);
-  return { item: itemOfWaterPage(await r.text()), view: link.view };
+  return { item: itemOfWaterPage(await r.text()), view: link.view, part: link.part, theme: link.theme };
 }
