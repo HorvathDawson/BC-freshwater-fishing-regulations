@@ -416,10 +416,10 @@ export function SpeciesRows({ rows, keys, palette, actions, images, folds = [] }
                                    // (T810 O) the trout table's one fold where it is drawn, else the first group's
                                    : f === (folds.find((x) => x.key === "trout") ?? folds.find((x) => x.key.startsWith("group:"))) ? "regs:trout" : undefined} />)}
       <View style={{ paddingHorizontal: GUTTER }}>
-      {rows.map((o) => [
-        <RegsPress key={o.open} accessibilityRole="button" onPress={() => actions.onSheet(o.open)} box={ROW}
-                   style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44, paddingVertical: 9, borderTopWidth: 1, borderTopColor: palette.line }}>
-          <Thumb code={o.thumb} images={images} palette={palette} />
+      {rows.map((o) => {
+        const line = { flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44 } as const;
+        const rest = (
+          <>
           <View style={{ flex: 1 }}>
             {/* (T907, owner 2026-11-19 ~06:50) no B.C. / DFO tag on a row: the calendar heads carry it */}
             <Text style={[TYPE.regsBody, { color: palette.ink }]}>{o.name}</Text>
@@ -435,13 +435,31 @@ export function SpeciesRows({ rows, keys, palette, actions, images, folds = [] }
             {o.value}{o.sizeHint ? <Text style={[TYPE.metaSemi, { color: palette.sub }]}>{` ${o.sizeHint}`}</Text> : null}
           </Text>
           <End><Text style={[TYPE.regsBody, { color: palette.sub }]}>›</Text></End>
-        </RegsPress>,
+          </>
+        );
+        const thumb = <Thumb code={o.thumb} images={images} palette={palette} />;
+        return [
+        // (T1031, owner 2026-11-22) two presses, one sheet: the picture opens the row's species sheet on Identification, the
+        // rest of the row on Sources; a row with no picture is one press, on Sources
+        o.id ? (
+          <View key={o.open} testID={`otherfish:${o.open}`} style={{ ...line, paddingVertical: 9, borderTopWidth: 1, borderTopColor: palette.line }}>
+            <RegsPress testID={`otherfish-id:${o.open}`} accessibilityRole="button" accessibilityLabel={WORDS.LOOKS_LIKE(o.name)} box={{ w: 64, h: 44 }}
+                       onPress={() => actions.onSheet(o.id!)} style={{ minHeight: 44, justifyContent: "center" }}>{thumb}</RegsPress>
+            <RegsPress testID={`otherfish-src:${o.open}`} accessibilityRole="button" onPress={() => actions.onSheet(o.open)} box={ROW}
+                       style={{ ...line, flex: 1 }}>{rest}</RegsPress>
+          </View>
+        ) : (
+        <RegsPress key={o.open} accessibilityRole="button" onPress={() => actions.onSheet(o.open)} box={ROW}
+                   style={{ ...line, paddingVertical: 9, borderTopWidth: 1, borderTopColor: palette.line }}>
+          {thumb}{rest}
+        </RegsPress>),
         // prototype .ostamps (rows 32): the row's stored licence documents under it, each "You need <document ›> <when>"
         ...o.stamps.map((s, i) => (
           <View key={`${o.open}|s${i}`} testID="otherfish-stamp" style={{ marginTop: -4, marginBottom: 6 }}>
             <LineText line={s} style={TYPE.duty} color={palette.ink} palette={palette} actions={actions} linkStyle={TYPE.metaBold} />
           </View>)),
-      ])}
+      ];
+      })}
       {keys.length > 0 && (
         // (T500) only the word and its ⓘ: the definition (k.says, the glossary's) opens from the ⓘ, not printed here
         <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 18, marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: palette.line }}>

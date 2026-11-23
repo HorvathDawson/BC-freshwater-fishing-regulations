@@ -10,7 +10,8 @@
  *
  * (T810 cutover) Since the cutover no Keep tab draws the group card: the old-card cases are retired (see below).
  * (T810 R) The same functions over the trout table (`TroutCard`), so the browser
- * tools hold before (the old card) and after (the table) with no flag: a table row is the `keep-row` whose picture is
+ * tools hold before (the old card) and after (the table) with no flag: a table row is the `keep-row` (T1031: the
+ * `keep-row:line` holding its picture's press and its words') whose picture is
  * `pic:<code>` or a twin's `pic:<code>/<origin>`; a row that opens its keep box or its release group frames that whole
  * block; `cardGroups` never counts KeepBox's own `keep-group` (a band of rows) as a group card; `IN_PAGE` (the source the
  * walk evaluates in the page) answers as the module does.
@@ -57,7 +58,7 @@ describe("(T810 R) the same targets over the trout table", () => {
   it("Kitimat Jul 15: RB (its first twin, RB/hatchery) opens keep box 0 (its first row); ST and EB are rows inside it", () => {
     const c = table("kitimat-jul15");
     const rb = rowOf(c, "RB") as Element;
-    expect(tid(rb)).toBe("keep-row");
+    expect(tid(rb)).toBe("keep-row:line");   // (T1031) its picture's press and its words' press, one line
     expect(picsOf(rb)).toEqual(["pic:RB/hatchery"]);
     expect(tid(blockOf(rb))).toBe("trout-box:0");
     for (const code of ["ST", "EB"]) {

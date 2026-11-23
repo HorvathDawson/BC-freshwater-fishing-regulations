@@ -244,6 +244,7 @@
   "otherFish": [
    {
     "back": [],
+    "id": "other:o0|id",
     "name": "Kokanee",
     "open": "other:o0",
     "sizeHint": null,
@@ -255,6 +256,7 @@
    },
    {
     "back": [],
+    "id": "other:o1|id",
     "name": "Bass",
     "open": "other:o1",
     "sizeHint": null,
@@ -266,6 +268,7 @@
    },
    {
     "back": [],
+    "id": "other:o2|id",
     "name": "Yellow perch",
     "open": "other:o2",
     "sizeHint": null,
@@ -277,6 +280,7 @@
    },
    {
     "back": [],
+    "id": "other:o3|id",
     "name": "White sturgeon",
     "open": "other:o3",
     "sizeHint": null,
@@ -288,6 +292,7 @@
    },
    {
     "back": [],
+    "id": "other:o4|id",
     "name": "Crayfish",
     "open": "other:o4",
     "sizeHint": null,

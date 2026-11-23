@@ -21,7 +21,7 @@ import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, u
 import { openProbe } from "@app/data";
 import { Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
 import { Text } from "../Text";
-import { LEGAL_WORDS, parseSheetKey, regsSourcesNone, withInSeason, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type TabSourcesVM, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
+import { LEGAL_WORDS, parseSheetKey, regsSourcesNone, withInSeason, withSalmonSheets, type SalmonCardVM, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type TabSourcesVM, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
 import { FreshDot } from "../menu/Fresh";
 import { WaterInset } from "../WaterFrame";
@@ -126,6 +126,9 @@ export interface RegsScreenProps {
   /** (T991 round 3) the tab's Source row (core `regsSourcesOf`: every synopsis page the page cites — T474: the water's own
    *  among them — the in-season changes and DFO where shown, "All sources ›"). Absent (a frozen test page): "All sources ›" only. */
   sources?: TabSourcesVM;
+  /** (T1031) the page's salmon card (core `salmonCard`): its species' sheets, Identification | Sources, join the page's
+   *  (`withSalmonSheets`). Absent/null: no salmon card, the page's sheets alone. */
+  salmonCard?: SalmonCardVM | null;
   /** (T473, T898) a daylight-only closure's open and closed hours on the day at the water (`useDaylight`), from its own
    *  offsets; null: no point known */
   daylight?: DaylightAt | null;
@@ -140,7 +143,7 @@ export interface RegsScreenProps {
 export function RegsScreen({ page, palette, images, actions, onDate,
                              gear, methods, licence, referenceOpen = false, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
                              lapsed = null, access = [], inSeason = [], glance = null, salmonStrip = null,
-                             nameSource = null, asOf = null, scrollKey = null, sun = null, daylight = null, sources = regsSourcesNone() }: RegsScreenProps) {
+                             nameSource = null, asOf = null, scrollKey = null, sun = null, daylight = null, sources = regsSourcesNone(), salmonCard = null }: RegsScreenProps) {
   // (T286) the open probe (test bed only): the page's first render, and its first layout (mounted, before paint)
   openProbe.mark("regsRender");
   useLayoutEffect(() => { openProbe.mark("layout"); }, []);
@@ -212,7 +215,8 @@ export function RegsScreen({ page, palette, images, actions, onDate,
   const header = useMemo(() => ({ ...page.header, tabs: page.header.tabs.filter((t) =>
     (t.tab !== "gear" || !!gear) && (t.tab !== "methods" || !!methods)) }), [page.header, gear, methods]);
   // (T990) `src:all` also lists the Province's in-season changes this water shows (the screen's, not the page's)
-  const hostPage = useMemo(() => ({ ...page, sheet: withInSeason(page.sheet, inSeason) }), [page, inSeason]);
+  // (T1031) and the salmon species' sheets (the screen's card, not the page's)
+  const hostPage = useMemo(() => ({ ...page, sheet: withSalmonSheets(withInSeason(page.sheet, inSeason), salmonCard) }), [page, inSeason, salmonCard]);
   const head = <RegsHeader header={header} palette={palette} tabs={store} onDate={onDate} onTab={toTab} onTerm={(id) => openSheet(`gl:${id}`)}
                            side={layout === "desktop"} nameSource={nameSource} sun={sun} />;
   const sec = (tab: "gear" | "methods" | "licence", slot: Slot) => {

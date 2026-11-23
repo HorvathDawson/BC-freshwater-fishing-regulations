@@ -14,7 +14,10 @@
 // (T810 cutover; they were `keep-group` / `keep-strip`), never a group card's: `cardGroups` leaves any inside a box out.
 // the old group card's row and tier-head ids ('krow', 'khead': GroupCard, now drawn only in an Other fish sheet)
 export const TABLE_ID = 'keep-trout';
-export const TABLE_ROW_ID = 'keep-row';
+/** (T1031) a table row whose picture and words are two presses (Identification | Sources of one species sheet) is the
+ *  line holding both (`keep-row:line`: the picture's press `keep-row:id`, the words' `keep-row`); a row that is one press
+ *  is that press (`keep-row`) */
+export const TABLE_ROW = '[data-testid="keep-row:line"], [data-testid="keep-row"]';
 /** a trout table block (a keep box, or the release / closed group) */
 export const TABLE_BLOCK = '[data-testid^="trout-box:"], [data-testid="trout-release"], [data-testid="trout-closed"]';
 /** any KeepBox (the salmon card's `keep-box` too): its bands of rows are never a group card */
@@ -26,7 +29,7 @@ export function rowOf(root, code) {
   for (const r of root.querySelectorAll('[data-testid="krow"]'))
     if (r.querySelector(`[data-testid="pic:${code}"]`)) return r;
   for (const t of root.querySelectorAll(`[data-testid="${TABLE_ID}"]`))
-    for (const r of t.querySelectorAll(`[data-testid="${TABLE_ROW_ID}"]`)) {
+    for (const r of t.querySelectorAll(TABLE_ROW)) {
       const k = r.querySelector('[data-testid^="pic:"]')?.getAttribute('data-testid')?.slice(4);
       if (k === code || k?.startsWith(`${code}/`)) return r;
     }
@@ -36,9 +39,9 @@ export function rowOf(root, code) {
 /** the block the frame opens on: the row's tier head when the head directly precedes it (the row opens its tier); a
  *  table row that opens its box or group: the whole block (its strip "Keep 5 in all" / its column word); else the row */
 export function blockOf(row) {
-  if (row.getAttribute('data-testid') === TABLE_ROW_ID) {
+  if (row.matches(TABLE_ROW)) {
     const block = row.closest(TABLE_BLOCK);
-    return block && block.querySelector(`[data-testid="${TABLE_ROW_ID}"]`) === row ? block : row;
+    return block && block.querySelector(TABLE_ROW) === row ? block : row;
   }
   const prev = row.previousElementSibling;
   return prev && prev.getAttribute('data-testid') === 'khead' ? prev : row;
@@ -56,6 +59,6 @@ export function troutShown(root) {
 }
 
 /** the functions above as page source, for `Runtime.evaluate` (the browser tools): defines them in the page's scope */
-export const IN_PAGE = [`const TABLE_ID = ${JSON.stringify(TABLE_ID)}, TABLE_ROW_ID = ${JSON.stringify(TABLE_ROW_ID)},`,
+export const IN_PAGE = [`const TABLE_ID = ${JSON.stringify(TABLE_ID)}, TABLE_ROW = ${JSON.stringify(TABLE_ROW)},`,
   `TABLE_BLOCK = ${JSON.stringify(TABLE_BLOCK)}, KEEP_BOX = ${JSON.stringify(KEEP_BOX)};`,
   rowOf.toString(), blockOf.toString(), cardGroups.toString(), troutShown.toString()].join('\n');

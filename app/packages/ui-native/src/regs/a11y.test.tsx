@@ -13,7 +13,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { createElement, forwardRef, useState } from "react";
 import { PixelRatio, Pressable, Text, View } from "react-native";
-import type { LicenceVM, RegsPage, SheetKey, SheetVM, Who } from "@app/core";
+import { WORDS, type LicenceVM, type RegsPage, type SheetKey, type SheetVM, type Who } from "@app/core";
 import type { LayoutClass, MenuControls } from "@app/ui";
 import { MenuContext } from "../menu/MenuContext";
 import { LIGHT } from "../theme";
@@ -129,16 +129,18 @@ describe("roles", () => {
     expect(screen.getByTestId("keep-strip").textContent).toContain("Open");
   });
 
-  it("a trout table row is a button saying the whole row (its picture inside it); an ⓘ asks what its word means; a book link says it opens the PDF", () => {
+  it("a trout table row is a button saying the whole row, its picture a button of its own; an ⓘ asks what its word means; a book link says it opens the PDF", () => {
     mount();
-    // (T810 cutover) the table's row is the press its picture opens through (build spec P), named by its one label (N's
-    // golden): the fish's name first; the old card's "<fish> — what it looks like" pictures went with it
+    // (T810 cutover) the table's row is a press named by its one label (N's golden): the fish's name first. (T1031) Its
+    // picture beside it is a second press, to the same sheet's Identification tab: "<fish> — what it looks like"
     const rows = within(screen.getByTestId("keep-trout")).getAllByTestId("keep-row");
     expect(rows.length).toBeGreaterThan(3);
     expect(rows.filter((r) => r.getAttribute("role") !== "button"
       || !r.getAttribute("aria-label")!.startsWith(within(r).getByTestId("keep-name").textContent!))).toEqual([]);
-    expect(rows.every((r) => r.querySelector("[data-testid^='pic:']") !== null)).toBe(true);
-    expect(screen.getByRole("button", { name: /^Rainbow trout\b/ })).toBeTruthy();
+    const pics = rows.map((r) => r.closest("[data-testid='keep-row:line']")!.querySelector("[data-testid='keep-row:id']")!);
+    expect(pics.filter((p, i) => p.getAttribute("role") !== "button" || p.querySelector("[data-testid^='pic:']") === null
+      || p.getAttribute("aria-label") !== WORDS.LOOKS_LIKE(within(rows[i]!).getByTestId("keep-name").textContent!))).toEqual([]);
+    expect(screen.getByRole("button", { name: /^Rainbow trout\b(?! — what it looks like)/ })).toBeTruthy();
     const terms = screen.getAllByRole("button").map((b) => b.getAttribute("aria-label")).filter((l) => l?.startsWith("What"));
     expect(terms).toContain("What does Bait ban mean?");
     expect(screen.getAllByRole("link", { name: /^Rule book page \d+, opens the PDF$/ }).length).toBeGreaterThan(0);

@@ -214,6 +214,7 @@
   "otherFish": [
    {
     "back": [],
+    "id": "other:o0|id",
     "name": "Kokanee",
     "open": "other:o0",
     "sizeHint": null,
@@ -225,6 +226,7 @@
    },
    {
     "back": [],
+    "id": "other:o1|id",
     "name": "Whitefish",
     "open": "other:o1",
     "sizeHint": null,
@@ -236,6 +238,7 @@
    },
    {
     "back": [],
+    "id": "other:o2|id",
     "name": "Arctic grayling",
     "open": "other:o2",
     "sizeHint": "· size limit",
@@ -247,6 +250,7 @@
    },
    {
     "back": [],
+    "id": "other:o3|id",
     "name": "Inconnu",
     "open": "other:o3",
     "sizeHint": null,
@@ -258,6 +262,7 @@
    },
    {
     "back": [],
+    "id": "other:o4|id",
     "name": "Northern pike",
     "open": "other:o4",
     "sizeHint": "· size limit",
@@ -269,6 +274,7 @@
    },
    {
     "back": [],
+    "id": "other:o5|id",
     "name": "Burbot",
     "open": "other:o5",
     "sizeHint": null,
@@ -280,6 +286,7 @@
    },
    {
     "back": [],
+    "id": "other:o6|id",
     "name": "White sturgeon",
     "open": "other:o6",
     "sizeHint": null,
@@ -1233,18 +1240,6 @@
   "other:o0": {
    "blocks": [
     {
-     "k": "pictures",
-     "pics": [
-      {
-       "caption": "Kokanee ›",
-       "code": "KO",
-       "name": "Kokanee",
-       "open": "sp:KO",
-       "sil": false
-      }
-     ]
-    },
-    {
      "k": "rowTitle",
      "scope": "Region 6-wide",
      "title": "Kokanee"
@@ -1361,6 +1356,46 @@
      "k": "flow"
     },
     {
+     "k": "head",
+     "text": "Where each rule comes from"
+    },
+    {
+     "groups": [
+      {
+       "rows": [
+        {
+         "book": [
+          {
+           "pdf": 55,
+           "printed": 49,
+           "t": "book"
+          }
+         ],
+         "key": "z6:daily_quotas::species_quotas.r4",
+         "quote": "Kokanee: 10",
+         "role": "Sets the number",
+         "title": "Keep up to 10 kokanee a day"
+        },
+        {
+         "book": [
+          {
+           "pdf": 55,
+           "printed": 49,
+           "t": "book"
+          }
+         ],
+         "key": "z6:possession_quota::possession_quota.r1",
+         "quote": "Possession quotas = 2 daily quotas.",
+         "role": "Possession limit",
+         "title": "Possession: twice the daily quota"
+        }
+       ],
+       "where": "B.C. Synopsis"
+      }
+     ],
+     "k": "sources"
+    },
+    {
      "k": "link",
      "line": [
       {
@@ -1373,6 +1408,18 @@
    ],
    "key": "other:o0",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": false,
+     "open": "other:o0|id"
+    },
+    {
+     "label": "Sources",
+     "on": true,
+     "open": "other:o0"
+    }
+   ],
    "title": "Kokanee"
   },
   "other:o1": {
@@ -1593,6 +1640,61 @@
      "k": "flow"
     },
     {
+     "k": "head",
+     "text": "Where each rule comes from"
+    },
+    {
+     "groups": [
+      {
+       "rows": [
+        {
+         "book": [
+          {
+           "box": [
+            {
+             "box": [
+              36,
+              316.32,
+              540,
+              359.04
+             ],
+             "pdf": 56,
+             "size": [
+              576,
+              756
+             ]
+            }
+           ],
+           "pdf": 56,
+           "printed": 50,
+           "t": "book"
+          }
+         ],
+         "key": "r6:bennett_lake@6-28::bennett_lake.r13",
+         "quote": "whitefish daily quota = 5",
+         "role": "Sets the number",
+         "title": "Keep up to 5 whitefish a day"
+        },
+        {
+         "book": [
+          {
+           "pdf": 55,
+           "printed": 49,
+           "t": "book"
+          }
+         ],
+         "key": "z6:possession_quota::possession_quota.r1",
+         "quote": "Possession quotas = 2 daily quotas.",
+         "role": "Possession limit",
+         "title": "Possession: twice the daily quota"
+        }
+       ],
+       "where": "B.C. Synopsis"
+      }
+     ],
+     "k": "sources"
+    },
+    {
      "k": "link",
      "line": [
       {
@@ -1605,6 +1707,18 @@
    ],
    "key": "other:o1",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": false,
+     "open": "other:o1|id"
+    },
+    {
+     "label": "Sources",
+     "on": true,
+     "open": "other:o1"
+    }
+   ],
    "title": "Whitefish"
   },
   "other:o2": {
@@ -1896,6 +2010,132 @@
      "k": "flow"
     },
     {
+     "k": "head",
+     "text": "Where each rule comes from"
+    },
+    {
+     "groups": [
+      {
+       "rows": [
+        {
+         "book": [
+          {
+           "box": [
+            {
+             "box": [
+              36,
+              316.32,
+              540,
+              359.04
+             ],
+             "pdf": 56,
+             "size": [
+              576,
+              756
+             ]
+            }
+           ],
+           "pdf": 56,
+           "printed": 50,
+           "t": "book"
+          }
+         ],
+         "key": "r6:bennett_lake@6-28::bennett_lake.r5",
+         "quote": "Arctic grayling daily and possession quotas = 4",
+         "role": "Sets the number",
+         "title": "Keep up to 4 Arctic grayling a day"
+        },
+        {
+         "book": [
+          {
+           "box": [
+            {
+             "box": [
+              36,
+              316.32,
+              540,
+              359.04
+             ],
+             "pdf": 56,
+             "size": [
+              576,
+              756
+             ]
+            }
+           ],
+           "pdf": 56,
+           "printed": 50,
+           "t": "book"
+          }
+         ],
+         "key": "r6:bennett_lake@6-28::bennett_lake.r6",
+         "quote": "only 1 over 44 cm, none between 36 cm and 44 cm",
+         "role": "A limit inside the total",
+         "title": "At most 1 Arctic grayling over 44 cm (17 in) a day"
+        },
+        {
+         "book": [
+          {
+           "box": [
+            {
+             "box": [
+              36,
+              316.32,
+              540,
+              359.04
+             ],
+             "pdf": 56,
+             "size": [
+              576,
+              756
+             ]
+            }
+           ],
+           "pdf": 56,
+           "printed": 50,
+           "t": "book"
+          }
+         ],
+         "key": "r6:bennett_lake@6-28::bennett_lake.r8",
+         "quote": "only 1 over 44 cm, none between 36 cm and 44 cm",
+         "role": "A limit inside the total",
+         "title": "At most 1 Arctic grayling over 44 cm (17 in) a day"
+        },
+        {
+         "book": [
+          {
+           "box": [
+            {
+             "box": [
+              36,
+              316.32,
+              540,
+              359.04
+             ],
+             "pdf": 56,
+             "size": [
+              576,
+              756
+             ]
+            }
+           ],
+           "pdf": 56,
+           "printed": 50,
+           "t": "book"
+          }
+         ],
+         "key": "r6:bennett_lake@6-28::bennett_lake.r7",
+         "quote": "Arctic grayling daily and possession quotas = 4",
+         "role": "Possession limit",
+         "title": "Up to 4 Arctic grayling in possession"
+        }
+       ],
+       "where": "B.C. Synopsis"
+      }
+     ],
+     "k": "sources"
+    },
+    {
      "k": "link",
      "line": [
       {
@@ -1908,22 +2148,22 @@
    ],
    "key": "other:o2",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": false,
+     "open": "other:o2|id"
+    },
+    {
+     "label": "Sources",
+     "on": true,
+     "open": "other:o2"
+    }
+   ],
    "title": "Arctic grayling"
   },
   "other:o3": {
    "blocks": [
-    {
-     "k": "pictures",
-     "pics": [
-      {
-       "caption": "Inconnu ›",
-       "code": "IN",
-       "name": "Inconnu",
-       "open": "sp:IN",
-       "sil": false
-      }
-     ]
-    },
     {
      "k": "rowTitle",
      "scope": "Region 6-wide",
@@ -2041,6 +2281,46 @@
      "k": "flow"
     },
     {
+     "k": "head",
+     "text": "Where each rule comes from"
+    },
+    {
+     "groups": [
+      {
+       "rows": [
+        {
+         "book": [
+          {
+           "pdf": 55,
+           "printed": 49,
+           "t": "book"
+          }
+         ],
+         "key": "z6:daily_quotas::species_quotas.r3",
+         "quote": "Inconnu: 1",
+         "role": "Sets the number",
+         "title": "Keep up to 1 inconnu a day"
+        },
+        {
+         "book": [
+          {
+           "pdf": 55,
+           "printed": 49,
+           "t": "book"
+          }
+         ],
+         "key": "z6:possession_quota::possession_quota.r1",
+         "quote": "Possession quotas = 2 daily quotas.",
+         "role": "Possession limit",
+         "title": "Possession: twice the daily quota"
+        }
+       ],
+       "where": "B.C. Synopsis"
+      }
+     ],
+     "k": "sources"
+    },
+    {
      "k": "link",
      "line": [
       {
@@ -2053,6 +2333,18 @@
    ],
    "key": "other:o3",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": false,
+     "open": "other:o3|id"
+    },
+    {
+     "label": "Sources",
+     "on": true,
+     "open": "other:o3"
+    }
+   ],
    "title": "Inconnu"
   },
   "other:o4": {
@@ -2344,6 +2636,132 @@
      "k": "flow"
     },
     {
+     "k": "head",
+     "text": "Where each rule comes from"
+    },
+    {
+     "groups": [
+      {
+       "rows": [
+        {
+         "book": [
+          {
+           "box": [
+            {
+             "box": [
+              36,
+              316.32,
+              540,
+              359.04
+             ],
+             "pdf": 56,
+             "size": [
+              576,
+              756
+             ]
+            }
+           ],
+           "pdf": 56,
+           "printed": 50,
+           "t": "book"
+          }
+         ],
+         "key": "r6:bennett_lake@6-28::bennett_lake.r9",
+         "quote": "northern pike daily and possession quotas = 4",
+         "role": "Sets the number",
+         "title": "Keep up to 4 northern pike a day"
+        },
+        {
+         "book": [
+          {
+           "box": [
+            {
+             "box": [
+              36,
+              316.32,
+              540,
+              359.04
+             ],
+             "pdf": 56,
+             "size": [
+              576,
+              756
+             ]
+            }
+           ],
+           "pdf": 56,
+           "printed": 50,
+           "t": "book"
+          }
+         ],
+         "key": "r6:bennett_lake@6-28::bennett_lake.r10",
+         "quote": "only 1 over 100 cm, none between 70 cm and 100 cm",
+         "role": "A limit inside the total",
+         "title": "At most 1 northern pike over 100 cm (39 in) a day"
+        },
+        {
+         "book": [
+          {
+           "box": [
+            {
+             "box": [
+              36,
+              316.32,
+              540,
+              359.04
+             ],
+             "pdf": 56,
+             "size": [
+              576,
+              756
+             ]
+            }
+           ],
+           "pdf": 56,
+           "printed": 50,
+           "t": "book"
+          }
+         ],
+         "key": "r6:bennett_lake@6-28::bennett_lake.r12",
+         "quote": "only 1 over 100 cm, none between 70 cm and 100 cm",
+         "role": "A limit inside the total",
+         "title": "At most 1 northern pike over 100 cm (39 in) a day"
+        },
+        {
+         "book": [
+          {
+           "box": [
+            {
+             "box": [
+              36,
+              316.32,
+              540,
+              359.04
+             ],
+             "pdf": 56,
+             "size": [
+              576,
+              756
+             ]
+            }
+           ],
+           "pdf": 56,
+           "printed": 50,
+           "t": "book"
+          }
+         ],
+         "key": "r6:bennett_lake@6-28::bennett_lake.r11",
+         "quote": "northern pike daily and possession quotas = 4",
+         "role": "Possession limit",
+         "title": "Up to 4 northern pike in possession"
+        }
+       ],
+       "where": "B.C. Synopsis"
+      }
+     ],
+     "k": "sources"
+    },
+    {
      "k": "link",
      "line": [
       {
@@ -2356,22 +2774,22 @@
    ],
    "key": "other:o4",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": false,
+     "open": "other:o4|id"
+    },
+    {
+     "label": "Sources",
+     "on": true,
+     "open": "other:o4"
+    }
+   ],
    "title": "Northern pike"
   },
   "other:o5": {
    "blocks": [
-    {
-     "k": "pictures",
-     "pics": [
-      {
-       "caption": "Burbot ›",
-       "code": "BB",
-       "name": "Burbot",
-       "open": "sp:BB",
-       "sil": false
-      }
-     ]
-    },
     {
      "k": "rowTitle",
      "scope": "Region 6-wide",
@@ -2489,6 +2907,46 @@
      "k": "flow"
     },
     {
+     "k": "head",
+     "text": "Where each rule comes from"
+    },
+    {
+     "groups": [
+      {
+       "rows": [
+        {
+         "book": [
+          {
+           "pdf": 55,
+           "printed": 49,
+           "t": "book"
+          }
+         ],
+         "key": "z6:daily_quotas::species_quotas.r2",
+         "quote": "Burbot: 5",
+         "role": "Sets the number",
+         "title": "Keep up to 5 burbot a day"
+        },
+        {
+         "book": [
+          {
+           "pdf": 55,
+           "printed": 49,
+           "t": "book"
+          }
+         ],
+         "key": "z6:possession_quota::possession_quota.r1",
+         "quote": "Possession quotas = 2 daily quotas.",
+         "role": "Possession limit",
+         "title": "Possession: twice the daily quota"
+        }
+       ],
+       "where": "B.C. Synopsis"
+      }
+     ],
+     "k": "sources"
+    },
+    {
      "k": "link",
      "line": [
       {
@@ -2501,22 +2959,22 @@
    ],
    "key": "other:o5",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": false,
+     "open": "other:o5|id"
+    },
+    {
+     "label": "Sources",
+     "on": true,
+     "open": "other:o5"
+    }
+   ],
    "title": "Burbot"
   },
   "other:o6": {
    "blocks": [
-    {
-     "k": "pictures",
-     "pics": [
-      {
-       "caption": "White sturgeon ›",
-       "code": "WSG",
-       "name": "White sturgeon",
-       "open": "sp:WSG",
-       "sil": false
-      }
-     ]
-    },
     {
      "k": "value",
      "text": [
@@ -2654,6 +3112,46 @@
      "k": "flow"
     },
     {
+     "k": "head",
+     "text": "Where each rule comes from"
+    },
+    {
+     "groups": [
+      {
+       "rows": [
+        {
+         "book": [
+          {
+           "pdf": 55,
+           "printed": 49,
+           "t": "book"
+          }
+         ],
+         "key": "z6:daily_quotas::species_quotas.r8",
+         "quote": "White sturgeon: CLOSED TO ALL FISHING",
+         "role": "Closes it",
+         "title": "No fishing for white sturgeon"
+        },
+        {
+         "book": [
+          {
+           "pdf": 55,
+           "printed": 49,
+           "t": "book"
+          }
+         ],
+         "key": "z6:possession_quota::possession_quota.r1",
+         "quote": "Possession quotas = 2 daily quotas.",
+         "role": "Possession limit",
+         "title": "Possession: twice the daily quota"
+        }
+       ],
+       "where": "B.C. Synopsis"
+      }
+     ],
+     "k": "sources"
+    },
+    {
      "k": "link",
      "line": [
       {
@@ -2666,6 +3164,18 @@
    ],
    "key": "other:o6",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": false,
+     "open": "other:o6|id"
+    },
+    {
+     "label": "Sources",
+     "on": true,
+     "open": "other:o6"
+    }
+   ],
    "title": "White sturgeon"
   },
   "other:o7": {
@@ -4363,6 +4873,18 @@
    ],
    "key": "sp:BB",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "other:o5|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "other:o5"
+    }
+   ],
    "title": "Burbot"
   },
   "sp:CT": {
@@ -4424,6 +4946,18 @@
    ],
    "key": "sp:CT",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "tf:CT|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "tf:CT"
+    }
+   ],
    "title": "Cutthroat trout"
   },
   "sp:DV": {
@@ -4494,6 +5028,18 @@
    ],
    "key": "sp:DV",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "tf:DV|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "tf:DV"
+    }
+   ],
    "title": "Dolly Varden/bull trout"
   },
   "sp:EB": {
@@ -4546,6 +5092,18 @@
    ],
    "key": "sp:EB",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "tf:EB|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "tf:EB"
+    }
+   ],
    "title": "Brook trout"
   },
   "sp:GB": {
@@ -4598,6 +5156,18 @@
    ],
    "key": "sp:GB",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "tf:GB|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "tf:GB"
+    }
+   ],
    "title": "Brown trout"
   },
   "sp:GR": {
@@ -4650,6 +5220,18 @@
    ],
    "key": "sp:GR",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "other:o2|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "other:o2"
+    }
+   ],
    "title": "Arctic grayling"
   },
   "sp:IN": {
@@ -4702,6 +5284,18 @@
    ],
    "key": "sp:IN",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "other:o3|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "other:o3"
+    }
+   ],
    "title": "Inconnu"
   },
   "sp:KO": {
@@ -4763,6 +5357,18 @@
    ],
    "key": "sp:KO",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "other:o0|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "other:o0"
+    }
+   ],
    "title": "Kokanee"
   },
   "sp:LT": {
@@ -4815,6 +5421,18 @@
    ],
    "key": "sp:LT",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "tf:LT|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "tf:LT"
+    }
+   ],
    "title": "Lake trout"
   },
   "sp:LW": {
@@ -4867,6 +5485,18 @@
    ],
    "key": "sp:LW",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "other:o1|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "other:o1"
+    }
+   ],
    "title": "Lake whitefish"
   },
   "sp:NP": {
@@ -4919,6 +5549,18 @@
    ],
    "key": "sp:NP",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "other:o4|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "other:o4"
+    }
+   ],
    "title": "Northern pike"
   },
   "sp:RB": {
@@ -4971,6 +5613,18 @@
    ],
    "key": "sp:RB",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "tf:RB|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "tf:RB"
+    }
+   ],
    "title": "Rainbow trout"
   },
   "sp:WSG": {
@@ -5023,6 +5677,18 @@
    ],
    "key": "sp:WSG",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "other:o6|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "other:o6"
+    }
+   ],
    "title": "White sturgeon"
   },
   "src:r0": null,

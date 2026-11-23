@@ -19,7 +19,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import {
   buildModel, buildRegsPage, drawnRows, listRows, makePlace, segmentIndex, setFailureSink, settle, tableCovers, tapDay, troutOf,
   TROUT_NAV, TroutRefused, type RegsInputs, type RegsPage, type RuleIndex, type TroutValue, type TroutVM,
-  FISH, FISH_TIPS, TROUT_SHEET, TROUT_SOURCES_KEY, troutFishSheet, TroutLooksMissing, type SheetBlock, type SheetVM,
+  FISH, FISH_TIPS, SPECIES_SHEET, TROUT_SHEET, TROUT_SOURCES_KEY, troutIdSheet, TroutLooksMissing, WORDS, type SheetBlock, type SheetVM,
 } from "@app/core";
 import { openTroutFixture, TROUT_FIXTURE_ROOT } from "@app/data/release/node";
 import { loadRegsInputs, openRegsStore, targetFor, type RegsStore } from "@app/data/regs";
@@ -198,7 +198,8 @@ describe("T810 N: the hand cases (trout-hand.json): each refused through reportF
       boxes: [{ ...box, rows: box.rows.map((r, i) => ({ ...r, ...(i === 0 ? patch : {}), sheet: { ...r.sheet, src: [] } })) }, ...t0.boxes.slice(1)] } });
     const ok = troutOf(fake(withRow({ split: true }, true), ROWS), day, day) as TroutVM;
     expect([ok.kind, ok.hatchLink !== null, ok.boxes[0]!.rows[0]!.split, ok.boxes[0]!.rows[1]!.split]).toEqual(["table", true, true, false]);
-    const links = (k: string) => linksOf(troutFishSheet(`tf:${k}`, ok, k, { get: () => { throw new Error("no rules"); } }, FISH)!);
+    // (T1031) the hatchery link is the Identification tab's (`tf:<row>|id`)
+    const links = (k: string) => linksOf(troutIdSheet(`tf:${k}|id`, ok, k, FISH)!);
     expect(links(ok.boxes[0]!.rows[0]!.key)).toContain("hatch");
     expect(links(ok.boxes[0]!.rows[1]!.key)).not.toContain("hatch");
     expect(reports).toEqual([]);
@@ -447,11 +448,19 @@ describe("T810 P: the trout fish sheet over every vector", () => {
         // Here, today: `here` in order, bold where bold, then the coming change (DateSet.sheet); nothing else
         const here = section(vm, TROUT_SHEET.HERE).map((x) => [lineOf(x), x.k === "value"]);
         expect(here, at).toEqual([...r.sheet.here.map((l) => [l.t, l.bold]), ...(c.frame.dates?.sheet[r.key] ?? []).map((s) => [s, false])]);
-        // How to tell it: the manifest's pictures (Dolly Varden: both), the tips, the hatchery link where the row says so
-        const tell = section(vm, TROUT_SHEET.TELL);
-        expect(tell.filter((x) => x.k === "image").length, at).toBe(FISH[r.fish]!.length);
-        expect(tell.flatMap((x) => (x.k === "list" ? x.items.map((i) => lineOf({ k: "para", text: i.line })) : [])), at).toEqual(FISH_TIPS[r.fish]);
-        expect(linksOf(vm).includes("hatch"), at).toBe(r.origin !== null || r.label !== null || r.split || b.label !== null);
+        // (T1031) one species sheet, two tabs: this one (Sources) and the row's Identification, each the other's tab
+        const id = page.sheet(`tf:${r.key}|id`)!, tabs = [[SPECIES_SHEET.ID, `tf:${r.key}|id`], [SPECIES_SHEET.SRC, `tf:${r.key}`]];
+        expect([vm.tabs?.map((x) => [x.label, x.open, x.on]), id.tabs?.map((x) => [x.label, x.open, x.on]), id.title, id.sub], at)
+          .toEqual([tabs.map(([l, o], i) => [l, o, i === 1]), tabs.map(([l, o], i) => [l, o, i === 0]), vm.title, vm.sub]);
+        // How to tell it (Identification): the manifest's pictures (Dolly Varden: both), the tips, the hatchery link where the
+        // row says so; none of it on the Sources tab
+        expect(id.blocks.filter((x) => x.k === "image").length, at).toBe(FISH[r.fish]!.length);
+        expect(vm.blocks.some((x) => x.k === "image"), at).toBe(false);
+        expect(section(id, WORDS.SHEET_LOOK_FOR).flatMap((x) => (x.k === "list" ? x.items.map((i) => lineOf({ k: "para", text: i.line })) : [])), at).toEqual(FISH_TIPS[r.fish]);
+        expect([linksOf(id).includes("hatch"), linksOf(vm).includes("hatch")], at).toEqual([r.origin !== null || r.label !== null || r.split || b.label !== null, false]);
+        // the fish's own picture key opens the same sheet on Identification (the first row of that fish)
+        const first = f.boxes.flatMap((x) => x.rows).find((x) => x.fish === r.fish)!.key;
+        expect(page.sheet(`sp:${r.fish}`)?.tabs?.map((x) => x.open), at).toEqual([`tf:${first}|id`, `tf:${first}`]);
         // (T883) How this was decided where the fish's stored roles cover the row's whole list: every rule of `row.src` once
         // (a step, an other rule or a folded one), the answer the sheet's own head; else Sources: `FishSheet.src` exactly.
         // Then "All sources ›" (the table's every rule)
@@ -465,8 +474,10 @@ describe("T810 P: the trout fish sheet over every vector", () => {
           expect(new Set(all.map((x) => `${x.rule}|${whose(x)}`)).size, at).toBe(all.length);
           expect(all.filter((x) => !whose(x)).every((x) => all.filter((y) => y.rule === x.rule).length === 1), at).toBe(true);
           expect(drawn.every((k) => k !== null && r.src.map(keyOf).includes(k)), at).toBe(true);
-          expect(section(vm, TROUT_SHEET.SOURCES), at).toEqual([]);
-        } else expect(sourceKeys(section(vm, TROUT_SHEET.SOURCES)), at).toEqual(r.sheet.src.map(keyOf));
+        }
+        // (T1031 item 4) then where each rule comes from: `FishSheet.src` exactly, by authority (each rule's pages highlighted)
+        expect(sourceKeys(section(vm, SPECIES_SHEET.BREAKDOWN)), at).toEqual(r.sheet.src.map(keyOf));
+        expect(section(vm, TROUT_SHEET.SOURCES), at).toEqual([]);
         expect(r.sheet.src.length, at).toBeLessThanOrEqual(4);
         expect(linksOf(vm).at(-1), at).toBe(TROUT_SOURCES_KEY);
         if (!ascending(r.sheet.src)) unsortedSheet++;
@@ -502,7 +513,7 @@ describe("T810 P: the trout fish sheet over every vector", () => {
   it("a fish the manifest lacks is reported, never drawn as a blank section", async () => {
     const c = V.cases.find((x) => x.frame)!, inp = await inputsOfCase(c), t = pageOf(inp).keep.trout as TroutVM;
     const r = t.boxes[0]!.rows[0]!;
-    const vm = troutFishSheet(`tf:${r.key}`, t, r.key, inp.rules, {});
+    const vm = troutIdSheet(`tf:${r.key}|id`, t, r.key, {});   // (T1031) the pictures are the Identification tab's
     expect(vm!.blocks.some((b) => b.k === "image")).toBe(false);
     expect(reports.map((e) => [(e as TroutLooksMissing).fish, (e as TroutLooksMissing).what])).toEqual([[r.fish, "picture"]]);
   });

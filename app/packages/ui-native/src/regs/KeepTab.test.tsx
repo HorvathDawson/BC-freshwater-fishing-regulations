@@ -6,7 +6,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { PixelRatio } from "react-native";
-import { GLANCE_WORDS, SALMON_WORDS, troutOf, type KeepVM, type RegsInputs, type RegsPage, type SheetKey, type TroutValue } from "@app/core";
+import { GLANCE_WORDS, SALMON_WORDS, WORDS, troutOf, type KeepVM, type RegsInputs, type RegsPage, type SheetKey, type TroutValue } from "@app/core";
 import vectors from "../../../../fixtures/trout/trout-vectors.generated.json";
 import { hitArea } from "./hit";
 import { KeepTab } from "./KeepTab";
@@ -78,7 +78,10 @@ describe("<KeepTab> over the frozen pages", () => {
     fireEvent.click(screen.getAllByText("Rule book p.9 ↗")[0]!);
     fireEvent.click(screen.getByText("Kokanee"));
     fireEvent.click(screen.getByTestId("trout-sources"));
-    expect([books, sheets]).toEqual([[11], ["other:o0", "src:trout"]]);
+    // (T1031) an Other fish row's picture: the same species sheet, on Identification
+    fireEvent.click(screen.getByTestId("otherfish-id:other:o0"));
+    expect([books, sheets]).toEqual([[11], ["other:o0", "src:trout", "other:o0|id"]]);
+    expect(screen.getByTestId("otherfish-id:other:o0").getAttribute("aria-label")).toBe(WORDS.LOOKS_LIKE("Kokanee"));
   });
 });
 

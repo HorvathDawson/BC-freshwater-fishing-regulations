@@ -280,6 +280,8 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
                       : undefined}
                   glance={glance ? { salmon: salmon.value ? salmonGlance(salmon.value) : null } : null}
                   salmonStrip={salmonStrip}
+                  // (T1031) the salmon species' sheets (Identification | Sources) are the card's
+                  salmonCard={salmon.value ?? null}
                   actions={{
                     onSheet: () => {},                                   // RegsScreen opens the sheet itself (T37 SheetHost)
                     onDay: (x) => onDay?.(mapDayOf(x, d.calendarYear)),

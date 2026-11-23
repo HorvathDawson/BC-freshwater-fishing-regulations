@@ -428,6 +428,19 @@ export const TROUT_SHEET = Object.freeze({
   ALL_SOURCES: "All sources ›",
 } as const);
 
+/** (T1031 items 4-5, owner 2026-11-22: "Maybe we could have that be the same sheet with different tabs?") THE SPECIES
+ *  SHEET's two tabs, the tab strip's spoken name, and the head over a species' source breakdown (app words; none states a
+ *  rule). The tab words are T1031's default ("Identification | Sources"); the owner may reword them. */
+export const SPECIES_SHEET = Object.freeze({
+  ID: "Identification",
+  SRC: "Sources",
+  TABS_LABEL: "Fish sheet",
+  /** the breakdown's head: each rule behind this fish's answer, by the authority that makes it */
+  BREAKDOWN: "Where each rule comes from",
+  /** a salmon species' Sources tab: today's answer, as its table row says it */
+  HERE: "Here, today",
+} as const);
+
 /** (T990) the every-source sheet's words and group heads, and (T991 round 3) the Source row's "All sources ›" that opens it
  *  (app words; none states a rule). */
 export const ALL_SOURCES = Object.freeze({

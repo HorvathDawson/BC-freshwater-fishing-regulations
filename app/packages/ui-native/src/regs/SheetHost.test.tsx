@@ -8,7 +8,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import {
-  TROUT_NAV, TROUT_SHEET, TROUT_SOURCES_KEY, troutFishSheet, troutOf, troutSourcesSheet,
+  SPECIES_SHEET, TROUT_NAV, TROUT_SHEET, TROUT_SOURCES_KEY, speciesTabs, troutFishSheet, troutIdSheet, troutOf, troutSourcesSheet,
   type RegsInputs, type RegsPage, type RuleIndex, type SheetKey, type SheetVM, type TroutValue, type TroutVM,
 } from "@app/core";
 import vectors from "../../../../fixtures/trout/trout-vectors.generated.json";
@@ -40,8 +40,14 @@ function troutVmOf(c: TroutCase): TroutVM {
 }
 const RULES = { get: (ix: number) => ({ rix: ix, key: `k${ix}`, missing: false, export: { verbatim: `words of ${ix}` },
   facts: { title: `Rule ${ix}`, book: [[40, 42]] } }) } as unknown as RuleIndex;
-const troutPage = (t: TroutVM): RegsPage => ({ ...VEDDER, sheet: (k: SheetKey) =>
-  (k === TROUT_SOURCES_KEY ? troutSourcesSheet(k, t, RULES, null) : k.startsWith("tf:") ? troutFishSheet(k, t, k.slice(3), RULES) : null) });
+/** (T1031) a trout row's two tabs as core's sheetOf gives them (species.ts): Sources `tf:<row>`, Identification `tf:<row>|id` */
+const troutPage = (t: TroutVM): RegsPage => ({ ...VEDDER, sheet: (k: SheetKey) => {
+  if (k === TROUT_SOURCES_KEY) return troutSourcesSheet(k, t, RULES, null);
+  if (!k.startsWith("tf:")) return null;
+  const id = k.endsWith("|id"), row = k.slice(3).replace(/\|id$/, "");
+  const vm = id ? troutIdSheet(k, t, row) : troutFishSheet(k, t, row, RULES);
+  return vm && { ...vm, tabs: speciesTabs({ id: `tf:${row}|id`, src: `tf:${row}` }, id ? "id" : "src") };
+} });
 
 function host(open: SheetKey | null, page = VEDDER) {
   const opened: SheetKey[] = [], onClose = vi.fn(), onBook = vi.fn();
@@ -140,10 +146,18 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     expect(screen.getByTestId("sheet-body").textContent).toContain("Rule book p.4 ↗");
   });
 
-  it("8. a picture in an other: sheet opens the fish sheet", () => {
+  it("8. (T1031) an Other fish row's sheet: its pictures are its Identification tab, one press away", () => {
     const h = host("other:o0");
-    fireEvent.click(screen.getByRole("button", { name: "Kokanee — what it looks like" }));
-    expect(h.opened).toEqual(["sp:KO"]);
+    expect(screen.queryByRole("button", { name: "Kokanee — what it looks like" })).toBeNull();
+    expect(screen.getByRole("tab", { name: SPECIES_SHEET.SRC }).getAttribute("aria-selected")).toBe("true");
+    fireEvent.click(screen.getByRole("tab", { name: SPECIES_SHEET.ID }));
+    expect(h.opened).toEqual(["other:o0|id"]);
+    // the fish's own picture key (the frozen page's) is the same sheet on Identification: its looks, Sources the row
+    h.rerender("sp:KO");
+    expect([screen.getByRole("heading", { name: "Kokanee" }) !== null, screen.getByRole("tab", { name: SPECIES_SHEET.ID }).getAttribute("aria-selected"),
+      screen.getAllByTestId("fish-look").length > 0]).toEqual([true, "true", true]);
+    fireEvent.click(screen.getByRole("tab", { name: SPECIES_SHEET.SRC }));
+    expect(h.opened).toEqual(["other:o0|id", "other:o0"]);
   });
 
   it("the weekday sheet (klwa_1010 other:o0): today's part is marked with the visible word Today", () => {
@@ -176,11 +190,12 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     expect(text).toMatch(/Up to 15.*whitefish combined/);
     expect(text.indexOf("How this was decided")).toBeLessThan(text.indexOf("Fishing more than one water today?"));
     expect(text.trim().endsWith("See every regulation line ›")).toBe(true);
-    // the only book links left are the rail's
-    expect(text.match(/Rule book p\.\d+/g)).toBeNull();
+    // the only book links left before the source breakdown (T1031: each rule its own pages) are the rail's
+    expect(text.slice(0, text.indexOf(SPECIES_SHEET.BREAKDOWN)).match(/Rule book p\.\d+/g)).toBeNull();
+    expect(text.indexOf(SPECIES_SHEET.BREAKDOWN)).toBeGreaterThan(text.indexOf("Fishing more than one water today?"));
   });
 
-  it("(T810 P) a trout row's fish sheet: header, Here today (bold where bold), how to tell it, Sources in order; it closes as every sheet", () => {
+  it("(T810 P, T1031) a trout row's species sheet: Sources tab (header, Here today bold where bold, the breakdown in order), Identification tab (how to tell it); it closes as every sheet", () => {
     // a hatchery-only steelhead row with its bold stop line, from the shared vectors, through N's troutOf and P's builder
     const pick = TROUT_CASES.flatMap((c) => { const t = troutVmOf(c); return t.boxes.flatMap((b) => b.rows.map((r) => ({ t, b, r }))); })
       .find(({ b, r }) => (b.label ?? r.label) !== null && r.sheet.here.some((l) => l.bold) && r.sheet.here.some((l) => !l.bold) && r.sheet.src.length > 1)!;
@@ -189,8 +204,12 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     expect(screen.getByRole("heading", { name: r.name })).toBeTruthy();
     expect(screen.getByTestId("sheet-sub").textContent).toBe(r.label ?? b.label);
     const body = screen.getByTestId("sheet-body");
-    for (const s of [r.sheet.head, TROUT_SHEET.HERE, TROUT_SHEET.TELL, TROUT_SHEET.SOURCES, ...r.sheet.here.map((l) => l.t), ...r.coming])
+    for (const s of [r.sheet.head, TROUT_SHEET.HERE, SPECIES_SHEET.BREAKDOWN, ...r.sheet.here.map((l) => l.t), ...r.coming])
       expect(body.textContent, s).toContain(s);
+    // (T1031) how to tell it is the other tab's: the strip names both, this one selected
+    expect(body.textContent).not.toContain(TROUT_NAV.HATCH);
+    expect(within(screen.getByRole("tablist", { name: SPECIES_SHEET.TABS_LABEL })).getAllByRole("tab")
+      .map((x) => [x.textContent, x.getAttribute("aria-selected")])).toEqual([[SPECIES_SHEET.ID, "false"], [SPECIES_SHEET.SRC, "true"]]);
     // (T883 review 1) a trout sheet with no stored roles for its rules keeps `src` (at most 4 rules) as a list that claims
     // nothing: never the decided rail, no "So:" answer
     expect(within(body).queryByTestId("flow")).toBeNull();
@@ -204,9 +223,19 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     const shown = titles.map((x) => body.textContent!.indexOf(x));
     expect(shown.every((i, k) => i >= 0 && (k === 0 || shown[k - 1]! < i)), JSON.stringify(shown)).toBe(true);
     fireEvent.click(screen.getByText(TROUT_SHEET.ALL_SOURCES));
-    fireEvent.click(screen.getByText(TROUT_NAV.HATCH));
     fireEvent.click(screen.getByText(titles[0]!));
-    expect(h.opened).toEqual(["src:trout", "hatch", `rule:k${r.sheet.src[0]}`]);
+    fireEvent.click(screen.getByRole("tab", { name: SPECIES_SHEET.SRC }));   // the drawn tab: opens nothing
+    fireEvent.click(screen.getByRole("tab", { name: SPECIES_SHEET.ID }));
+    expect(h.opened).toEqual(["src:trout", `rule:k${r.sheet.src[0]}`, `tf:${r.key}|id`]);
+    // the Identification tab: the same sheet (title, sub), its pictures' tips and the hatchery link; Sources one press away
+    h.rerender(`tf:${r.key}|id`);
+    expect(screen.getByRole("heading", { name: r.name })).toBeTruthy();
+    expect(screen.getByTestId("sheet-sub").textContent).toBe(r.label ?? b.label);
+    expect(screen.getByRole("tab", { name: SPECIES_SHEET.ID }).getAttribute("aria-selected")).toBe("true");
+    expect(screen.getByTestId("sheet-body").textContent).not.toContain(TROUT_SHEET.HERE);
+    fireEvent.click(screen.getByText(TROUT_NAV.HATCH));
+    fireEvent.click(screen.getByRole("tab", { name: SPECIES_SHEET.SRC }));
+    expect(h.opened.slice(3)).toEqual(["hatch", `tf:${r.key}`]);
     // the table's every rule: `table.src`, in its order
     h.rerender("src:trout");
     expect(screen.getByRole("heading", { name: TROUT_SHEET.SOURCES })).toBeTruthy();

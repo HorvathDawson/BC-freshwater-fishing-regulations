@@ -820,6 +820,9 @@ export interface SalmonCardVM extends SalmonBlockVM {
    *  group per DFO place of the page's chains (its rows as printed, `pr`) and per region page header (the notes its lines
    *  were read from). [] when the file carries none (a release before T870, a closed region) */
   readonly sources?: readonly SalmonSourceVM[];
+  /** (T1031 item 4) each species' sources today (`SalmonWhoVM`: the places answering it, its page headers' notes), for its
+   *  species sheet's Sources tab; a species with none is absent. Absent on a hand-built card */
+  readonly whoBy?: Readonly<Partial<Record<SalmonSpecies, readonly SalmonWhoVM[]>>>;
   /** (T869) where an adult chinook is another length here than the annual limit's own: "(here an adult is over 62 cm,
    *  Sep 1–Dec 31)", said after the bucket's annual chinook line (`salmonTable`); null where it is the same */
   readonly adultHere?: string | null;
@@ -846,6 +849,11 @@ export interface SalmonCardVM extends SalmonBlockVM {
    *  fishing is closed, trout included (`closeForFinfish` closes the page); [] none */
   readonly finfish: readonly string[];
 }
+/** (T1031 item 4) one source of a salmon species' answer today: a DFO place ("Region 6 · Skeena River · B(ii)", or a
+ *  region page header) with DFO's rows as printed, or the rule book's closure of the stretch by its rule (`entry::rule`) */
+export type SalmonWhoVM =
+  | { readonly k: "dfo"; readonly from: string; readonly lines: readonly string[] }
+  | { readonly k: "book"; readonly from: string; readonly rule: string };
 /** (T870) one group of the Source (DFO) fold's rows: where from ("Region 2 · Mamquam River", "Region 2 Lower Mainland ·
  *  page header") and DFO's words as printed */
 export interface SalmonSourceVM { readonly from: string; readonly lines: readonly string[] }
@@ -1181,8 +1189,35 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     ...regionsUsed.map((r) => ({ from: SALMON_WORDS.sourceHeader(r, P.regions[r]?.name ?? ""),
                                 lines: [...new Set([...hn.region, ...hn.water].filter((n) => n.id.startsWith(`${r}:`) && behind(n)).map((n) => n.t))] }))
       .filter((g) => g.lines.length)];
+  // (T1031 item 4) each species' own sources today: the places answering it on the page's chains (a DFO place with its
+  // rows as printed; the rule book's closure by its rule), then its region page headers' notes naming it that the card says
+  const whoOf = (sp: SalmonSpecies): SalmonWhoVM[] => {
+    const k = SALMON_SPECIES.indexOf(sp), out = new Map<string, SalmonWhoVM>();
+    const add = (lid: string) => {
+      const p = P.p?.[lid];
+      if (!p) throw new SalmonError(`salmon: place ${lid} answers a chain and is not in p`);
+      if (isBook(p)) { const from = SALMON_WORDS.placeFromBook(p.book.pages, p.water); out.set(from, { k: "book", from, rule: p.book.rule }); return; }
+      const from = SALMON_WORDS.placeFrom(p.r, p.water, p.sec), had = out.get(from), lines = had?.k === "dfo" ? [...had.lines] : [];
+      for (const r of P.pr?.[lid] ?? []) if (!lines.includes(r)) lines.push(r);
+      out.set(from, { k: "dfo", from, lines });
+    };
+    for (const c of chains) {
+      const ch = P.chains[c]!;
+      if (!ch.l.length || !ch.a) continue;
+      const v = at(ch.a[k]!, day);
+      if (v >= 0) add(ch.l[v]!);
+      else if (v === -2) for (const lid of ch.l) if (!isBook(P.p![lid]!)) add(lid);   // both regions' places answer it
+    }
+    for (const r of regionsUsed) {
+      const lines = [...new Set([...hn.region, ...hn.water].filter((n) => n.id.startsWith(`${r}:`) && behind(n) && !!n.sp?.includes(sp)).map((n) => n.t))];
+      if (lines.length) out.set(SALMON_WORDS.sourceHeader(r, P.regions[r]?.name ?? ""), { k: "dfo", from: SALMON_WORDS.sourceHeader(r, P.regions[r]?.name ?? ""), lines });
+    }
+    return [...out.values()];
+  };
+  const whoBy = Object.fromEntries(regionClosed ? [] : SALMON_SPECIES.flatMap((sp) => { const w = whoOf(sp); return w.length ? [[sp, w]] : []; })) as
+    Partial<Record<SalmonSpecies, readonly SalmonWhoVM[]>>;
   return {
-    ...block, rows, regionRules, gearProvincial, gearLines, sources, adultHere,
+    ...block, rows, regionRules, gearProvincial, gearLines, sources, adultHere, whoBy,
     hours,
     bucket: buckets.length === 1 ? buckets[0]! : null,
     waterBuckets: waterBuckets

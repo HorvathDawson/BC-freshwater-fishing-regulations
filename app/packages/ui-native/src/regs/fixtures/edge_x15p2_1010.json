@@ -323,6 +323,7 @@
   "otherFish": [
    {
     "back": [],
+    "id": "other:o0|id",
     "name": "Kokanee",
     "open": "other:o0",
     "sizeHint": null,
@@ -334,6 +335,7 @@
    },
    {
     "back": [],
+    "id": "other:o1|id",
     "name": "Whitefish",
     "open": "other:o1",
     "sizeHint": null,
@@ -345,6 +347,7 @@
    },
    {
     "back": [],
+    "id": "other:o2|id",
     "name": "Bass",
     "open": "other:o2",
     "sizeHint": null,
@@ -356,6 +359,7 @@
    },
    {
     "back": [],
+    "id": "other:o3|id",
     "name": "Black crappie",
     "open": "other:o3",
     "sizeHint": null,
@@ -367,6 +371,7 @@
    },
    {
     "back": [],
+    "id": "other:o4|id",
     "name": "White sturgeon",
     "open": "other:o4",
     "sizeHint": null,
@@ -396,6 +401,7 @@
    },
    {
     "back": [],
+    "id": "other:o5|id",
     "name": "Crayfish",
     "open": "other:o5",
     "sizeHint": null,
@@ -1715,18 +1721,6 @@
   "other:o0": {
    "blocks": [
     {
-     "k": "pictures",
-     "pics": [
-      {
-       "caption": "Kokanee ›",
-       "code": "KO",
-       "name": "Kokanee",
-       "open": "sp:KO",
-       "sil": false
-      }
-     ]
-    },
-    {
      "k": "value",
      "text": [
       {
@@ -1864,6 +1858,46 @@
      "k": "flow"
     },
     {
+     "k": "head",
+     "text": "Where each rule comes from"
+    },
+    {
+     "groups": [
+      {
+       "rows": [
+        {
+         "book": [
+          {
+           "pdf": 23,
+           "printed": 21,
+           "t": "book"
+          }
+         ],
+         "key": "z2:daily_quotas::species_quotas.r5",
+         "quote": "none from streams",
+         "role": "Release every one",
+         "title": "Release kokanee from streams"
+        },
+        {
+         "book": [
+          {
+           "pdf": 23,
+           "printed": 21,
+           "t": "book"
+          }
+         ],
+         "key": "z2:possession_quota::possession_quota.r1",
+         "quote": "Possession quotas = 2 daily quotas",
+         "role": "Possession limit",
+         "title": "Possession: twice the daily quota"
+        }
+       ],
+       "where": "B.C. Synopsis"
+      }
+     ],
+     "k": "sources"
+    },
+    {
      "k": "link",
      "line": [
       {
@@ -1876,6 +1910,18 @@
    ],
    "key": "other:o0",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": false,
+     "open": "other:o0|id"
+    },
+    {
+     "label": "Sources",
+     "on": true,
+     "open": "other:o0"
+    }
+   ],
    "title": "Kokanee"
   },
   "other:o1": {
@@ -2077,6 +2123,46 @@
      ]
     },
     {
+     "k": "head",
+     "text": "Where each rule comes from"
+    },
+    {
+     "groups": [
+      {
+       "rows": [
+        {
+         "book": [
+          {
+           "pdf": 23,
+           "printed": 21,
+           "t": "book"
+          }
+         ],
+         "key": "z2:daily_quotas::species_quotas.r6",
+         "quote": "Whitefish: 15 (all species combined)",
+         "role": "Sets the number",
+         "title": "Keep up to 15 whitefish a day"
+        },
+        {
+         "book": [
+          {
+           "pdf": 23,
+           "printed": 21,
+           "t": "book"
+          }
+         ],
+         "key": "z2:possession_quota::possession_quota.r1",
+         "quote": "Possession quotas = 2 daily quotas",
+         "role": "Possession limit",
+         "title": "Possession: twice the daily quota"
+        }
+       ],
+       "where": "B.C. Synopsis"
+      }
+     ],
+     "k": "sources"
+    },
+    {
      "k": "link",
      "line": [
       {
@@ -2089,6 +2175,18 @@
    ],
    "key": "other:o1",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": false,
+     "open": "other:o1|id"
+    },
+    {
+     "label": "Sources",
+     "on": true,
+     "open": "other:o1"
+    }
+   ],
    "title": "Whitefish"
   },
   "other:o2": {
@@ -2290,6 +2388,46 @@
      ]
     },
     {
+     "k": "head",
+     "text": "Where each rule comes from"
+    },
+    {
+     "groups": [
+      {
+       "rows": [
+        {
+         "book": [
+          {
+           "pdf": 23,
+           "printed": 21,
+           "t": "book"
+          }
+         ],
+         "key": "z2:daily_quotas::species_quotas.r1",
+         "quote": "Bass: 20",
+         "role": "Sets the number",
+         "title": "Keep up to 20 bass a day"
+        },
+        {
+         "book": [
+          {
+           "pdf": 23,
+           "printed": 21,
+           "t": "book"
+          }
+         ],
+         "key": "z2:possession_quota::possession_quota.r1",
+         "quote": "Possession quotas = 2 daily quotas",
+         "role": "Possession limit",
+         "title": "Possession: twice the daily quota"
+        }
+       ],
+       "where": "B.C. Synopsis"
+      }
+     ],
+     "k": "sources"
+    },
+    {
      "k": "link",
      "line": [
       {
@@ -2302,22 +2440,22 @@
    ],
    "key": "other:o2",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": false,
+     "open": "other:o2|id"
+    },
+    {
+     "label": "Sources",
+     "on": true,
+     "open": "other:o2"
+    }
+   ],
    "title": "Bass"
   },
   "other:o3": {
    "blocks": [
-    {
-     "k": "pictures",
-     "pics": [
-      {
-       "caption": "Black crappie ›",
-       "code": "BCB",
-       "name": "Black crappie",
-       "open": "sp:BCB",
-       "sil": false
-      }
-     ]
-    },
     {
      "k": "rowTitle",
      "scope": "Region 2-wide",
@@ -2435,6 +2573,46 @@
      "k": "flow"
     },
     {
+     "k": "head",
+     "text": "Where each rule comes from"
+    },
+    {
+     "groups": [
+      {
+       "rows": [
+        {
+         "book": [
+          {
+           "pdf": 23,
+           "printed": 21,
+           "t": "book"
+          }
+         ],
+         "key": "z2:daily_quotas::species_quotas.r2",
+         "quote": "Crappie: 20",
+         "role": "Sets the number",
+         "title": "Keep up to 20 black crappie a day"
+        },
+        {
+         "book": [
+          {
+           "pdf": 23,
+           "printed": 21,
+           "t": "book"
+          }
+         ],
+         "key": "z2:possession_quota::possession_quota.r1",
+         "quote": "Possession quotas = 2 daily quotas",
+         "role": "Possession limit",
+         "title": "Possession: twice the daily quota"
+        }
+       ],
+       "where": "B.C. Synopsis"
+      }
+     ],
+     "k": "sources"
+    },
+    {
      "k": "link",
      "line": [
       {
@@ -2447,22 +2625,22 @@
    ],
    "key": "other:o3",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": false,
+     "open": "other:o3|id"
+    },
+    {
+     "label": "Sources",
+     "on": true,
+     "open": "other:o3"
+    }
+   ],
    "title": "Black crappie"
   },
   "other:o4": {
    "blocks": [
-    {
-     "k": "pictures",
-     "pics": [
-      {
-       "caption": "White sturgeon ›",
-       "code": "WSG",
-       "name": "White sturgeon",
-       "open": "sp:WSG",
-       "sil": false
-      }
-     ]
-    },
     {
      "k": "value",
      "text": [
@@ -2600,6 +2778,46 @@
      "k": "flow"
     },
     {
+     "k": "head",
+     "text": "Where each rule comes from"
+    },
+    {
+     "groups": [
+      {
+       "rows": [
+        {
+         "book": [
+          {
+           "pdf": 9,
+           "printed": 7,
+           "t": "book"
+          }
+         ],
+         "key": "zp:white_sturgeon_licence::white_sturgeon_licence.r2",
+         "quote": "This is a catch-and-release only fishery.",
+         "role": "Release every one",
+         "title": "Release all white sturgeon"
+        },
+        {
+         "book": [
+          {
+           "pdf": 23,
+           "printed": 21,
+           "t": "book"
+          }
+         ],
+         "key": "z2:possession_quota::possession_quota.r1",
+         "quote": "Possession quotas = 2 daily quotas",
+         "role": "Possession limit",
+         "title": "Possession: twice the daily quota"
+        }
+       ],
+       "where": "B.C. Synopsis"
+      }
+     ],
+     "k": "sources"
+    },
+    {
      "k": "link",
      "line": [
       {
@@ -2612,22 +2830,22 @@
    ],
    "key": "other:o4",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": false,
+     "open": "other:o4|id"
+    },
+    {
+     "label": "Sources",
+     "on": true,
+     "open": "other:o4"
+    }
+   ],
    "title": "White sturgeon"
   },
   "other:o5": {
    "blocks": [
-    {
-     "k": "pictures",
-     "pics": [
-      {
-       "caption": "Signal crayfish ›",
-       "code": "CRA",
-       "name": "Crayfish",
-       "open": "sp:CRA",
-       "sil": false
-      }
-     ]
-    },
     {
      "k": "rowTitle",
      "scope": "Region 2-wide",
@@ -2745,6 +2963,46 @@
      "k": "flow"
     },
     {
+     "k": "head",
+     "text": "Where each rule comes from"
+    },
+    {
+     "groups": [
+      {
+       "rows": [
+        {
+         "book": [
+          {
+           "pdf": 23,
+           "printed": 21,
+           "t": "book"
+          }
+         ],
+         "key": "z2:daily_quotas::species_quotas.r3",
+         "quote": "Crayfish: 25",
+         "role": "Sets the number",
+         "title": "Keep up to 25 crayfish a day"
+        },
+        {
+         "book": [
+          {
+           "pdf": 23,
+           "printed": 21,
+           "t": "book"
+          }
+         ],
+         "key": "z2:possession_quota::possession_quota.r1",
+         "quote": "Possession quotas = 2 daily quotas",
+         "role": "Possession limit",
+         "title": "Possession: twice the daily quota"
+        }
+       ],
+       "where": "B.C. Synopsis"
+      }
+     ],
+     "k": "sources"
+    },
+    {
      "k": "link",
      "line": [
       {
@@ -2757,6 +3015,18 @@
    ],
    "key": "other:o5",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": false,
+     "open": "other:o5|id"
+    },
+    {
+     "label": "Sources",
+     "on": true,
+     "open": "other:o5"
+    }
+   ],
    "title": "Crayfish"
   },
   "other:o6": {
@@ -4537,6 +4807,18 @@
    ],
    "key": "sp:BCB",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "other:o3|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "other:o3"
+    }
+   ],
    "title": "Black crappie"
   },
   "sp:CT": {
@@ -4594,10 +4876,32 @@
       }
      ],
      "k": "list"
+    },
+    {
+     "k": "source",
+     "line": [
+      {
+       "open": "hatch",
+       "s": "How to tell a hatchery fish ›",
+       "t": "link"
+      }
+     ]
     }
    ],
    "key": "sp:CT",
-   "sub": null,
+   "sub": "Hatchery only",
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "tf:CT|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "tf:CT"
+    }
+   ],
    "title": "Cutthroat trout"
   },
   "sp:DV": {
@@ -4664,10 +4968,32 @@
       }
      ],
      "k": "list"
+    },
+    {
+     "k": "source",
+     "line": [
+      {
+       "open": "hatch",
+       "s": "How to tell a hatchery fish ›",
+       "t": "link"
+      }
+     ]
     }
    ],
    "key": "sp:DV",
-   "sub": null,
+   "sub": "Hatchery only",
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "tf:DV|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "tf:DV"
+    }
+   ],
    "title": "Dolly Varden/bull trout"
   },
   "sp:EB": {
@@ -4716,10 +5042,32 @@
       }
      ],
      "k": "list"
+    },
+    {
+     "k": "source",
+     "line": [
+      {
+       "open": "hatch",
+       "s": "How to tell a hatchery fish ›",
+       "t": "link"
+      }
+     ]
     }
    ],
    "key": "sp:EB",
-   "sub": null,
+   "sub": "Hatchery only",
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "tf:EB|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "tf:EB"
+    }
+   ],
    "title": "Brook trout"
   },
   "sp:GB": {
@@ -4768,10 +5116,32 @@
       }
      ],
      "k": "list"
+    },
+    {
+     "k": "source",
+     "line": [
+      {
+       "open": "hatch",
+       "s": "How to tell a hatchery fish ›",
+       "t": "link"
+      }
+     ]
     }
    ],
    "key": "sp:GB",
-   "sub": null,
+   "sub": "Hatchery only",
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "tf:GB|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "tf:GB"
+    }
+   ],
    "title": "Brown trout"
   },
   "sp:KO": {
@@ -4833,6 +5203,18 @@
    ],
    "key": "sp:KO",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "other:o0|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "other:o0"
+    }
+   ],
    "title": "Kokanee"
   },
   "sp:LMB": {
@@ -4885,6 +5267,18 @@
    ],
    "key": "sp:LMB",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "other:o2|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "other:o2"
+    }
+   ],
    "title": "Largemouth bass"
   },
   "sp:LT": {
@@ -4933,10 +5327,32 @@
       }
      ],
      "k": "list"
+    },
+    {
+     "k": "source",
+     "line": [
+      {
+       "open": "hatch",
+       "s": "How to tell a hatchery fish ›",
+       "t": "link"
+      }
+     ]
     }
    ],
    "key": "sp:LT",
-   "sub": null,
+   "sub": "Hatchery only",
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "tf:LT|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "tf:LT"
+    }
+   ],
    "title": "Lake trout"
   },
   "sp:LW": {
@@ -4989,6 +5405,18 @@
    ],
    "key": "sp:LW",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "other:o1|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "other:o1"
+    }
+   ],
    "title": "Lake whitefish"
   },
   "sp:RB": {
@@ -5037,10 +5465,32 @@
       }
      ],
      "k": "list"
+    },
+    {
+     "k": "source",
+     "line": [
+      {
+       "open": "hatch",
+       "s": "How to tell a hatchery fish ›",
+       "t": "link"
+      }
+     ]
     }
    ],
    "key": "sp:RB",
-   "sub": null,
+   "sub": "Hatchery only",
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "tf:RB|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "tf:RB"
+    }
+   ],
    "title": "Rainbow trout"
   },
   "sp:ST": {
@@ -5102,6 +5552,18 @@
    ],
    "key": "sp:ST",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "tf:ST|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "tf:ST"
+    }
+   ],
    "title": "Steelhead"
   },
   "sp:WSG": {
@@ -5154,6 +5616,18 @@
    ],
    "key": "sp:WSG",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "other:o4|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "other:o4"
+    }
+   ],
    "title": "White sturgeon"
   },
   "src:r0": null,
