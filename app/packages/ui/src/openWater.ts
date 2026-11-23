@@ -14,7 +14,7 @@
  * the same frame either way; the water Map stays a named water's (asked for it, the frame's first view, Regulations).
  */
 import { useMemo } from "react";
-import { reported } from "@app/core";
+import { reportFailure, reported } from "@app/core";
 import { openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
 import type { StreamPlace } from "@app/data/regs/place";
 import { frameViews, type LatLon, type Route, type RouteAction, type View } from "./route";
@@ -142,6 +142,11 @@ export interface OpenerOptions {
    * this for these opens; with it gone, the opener asks it itself. Absent: nothing asked.
    */
   warm?: (item: ItemId) => void;
+  /**
+   * (T1034) How many parts a water has in the open release: a LINK's `part=` is checked against it before the water opens
+   * (a part that is not there would throw when the map frames it). Absent: no release is open, nothing can be framed.
+   */
+  partCount?: (item: ItemId) => Promise<number | null>;
 }
 
 /** The opener (`useOpenWater`'s value), React-free: what a test drives. */
@@ -166,7 +171,19 @@ export function waterOpener(source: Pick<WaterSource, "itemForSection">, go: (a:
                                                                         o.unnamed)),
     flow: (item, build) => settle(async (groupOf) => build(groupOf ? await groupOf(item) : undefined)).then(() => undefined),
     // nothing to wait on: at once, and any open still in flight is overtaken
-    item: (item, view = "regs", part = null) => { latest += 1; o.warm?.(item); go(openWater({ item, view, part })); },
+    item: (item, view = "regs", part = null) => {
+      latest += 1; o.warm?.(item);
+      const count = o.partCount;
+      if (part === null || !count) { go(openWater({ item, view, part })); return; }
+      // (T1034) a link's part is checked against the water's own parts: a part that is not there is said (reported), the
+      // water opens without it — never a throw at render, never a silently different part
+      void settle(async () => {
+        const n = await count(item).catch(reported(null));
+        if (n !== null && part < n) return openWater({ item, view, part });
+        reportFailure(new Error(`app link: part=${part} but ${item} has ${n ?? "no"} part(s): opened without a part`));
+        return openWater({ item, view });
+      });
+    },
     cancel: () => { latest += 1; },
     // (T203) a result opens the water's Map, from Conditions or Regs alike — (T925) a water of one part too (T221 had
     // opened that one on its Regulations, with no Map view). (T747, owner 2026-11-14: "it is the section view but it is
@@ -190,7 +207,7 @@ export function waterOpener(source: Pick<WaterSource, "itemForSection">, go: (a:
 /** The Shell's handle on `openWater` / `openTap`, dispatching to the route. */
 export function useOpenWater(source: Pick<WaterSource, "itemForSection">, go: (a: RouteAction) => void,
                              o: OpenerOptions = {}): WaterOpener {
-  const { now, group, partOf, unnamed, warm, placePart } = o;
-  return useMemo(() => waterOpener(source, go, { now, group, partOf, unnamed, warm, placePart }),
-                 [source, go, now, group, partOf, unnamed, warm, placePart]);
+  const { now, group, partOf, unnamed, warm, placePart, partCount } = o;
+  return useMemo(() => waterOpener(source, go, { now, group, partOf, unnamed, warm, placePart, partCount }),
+                 [source, go, now, group, partOf, unnamed, warm, placePart, partCount]);
 }

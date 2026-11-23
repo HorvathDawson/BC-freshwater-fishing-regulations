@@ -2,6 +2,7 @@
  * ONE WATER SCREEN, WHICHEVER MAP YOU TAPPED (owner rule 2026-10-21): the same tap from the Conditions map and from the
  * Map tab produce routes that are equal except `view` (and the tab underneath, which is where each came from).
  */
+import { setFailureSink } from "@app/core";
 import { describe, expect, it } from "vitest";
 import type { ItemId, WaterSource, SectionId } from "@app/data";
 import { openTap, openWater, waterOpener } from "./openWater";
@@ -219,6 +220,26 @@ describe("(T925) every named water opens with its Map view, however it is opened
     opener.item(VEDDER, "map", 1);
     opener.item(VEDDER, "map");
     expect(sent.map((a) => (a as { part?: number | null }).part)).toEqual([1, null]);
+  });
+
+  it("(T1034) a link's part is checked against the water's parts: in range it opens there; out of range it is reported and the water opens without it", async () => {
+    const seen: string[] = [];
+    const off = setFailureSink((e) => seen.push(String((e as Error).message)));
+    try {
+      const sent: RouteAction[] = [];
+      const opener = waterOpener(source, (a) => sent.push(a), { partCount: async () => 3 });
+      opener.item(VEDDER, "map", 2);
+      await new Promise((r) => setTimeout(r, 0));
+      opener.item(VEDDER, "map", 99);
+      await new Promise((r) => setTimeout(r, 0));
+      expect(sent.map((a) => (a as { part?: number | null }).part)).toEqual([2, null]);
+      expect(seen).toEqual([`app link: part=99 but ${VEDDER} has 3 part(s): opened without a part`]);
+      // a water the release does not know: the same
+      seen.length = 0; sent.length = 0;
+      waterOpener(source, (a) => sent.push(a), { partCount: async () => null }).item(VEDDER, "map", 0);
+      await new Promise((r) => setTimeout(r, 0));
+      expect([sent.map((a) => (a as { part?: number | null }).part), seen.length]).toEqual([[null], 1]);
+    } finally { off(); }
   });
 
   it("(T737 kept) a search result and an open by id ask the page's geo at once (`warm`), before the pane mounts", () => {
