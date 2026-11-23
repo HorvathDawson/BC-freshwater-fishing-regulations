@@ -208,7 +208,8 @@ export function Shell(p: ShellProps) {
   // ...and only once the water's own page is up (its start applied, `start` null): the map must not race the page's files
   const warm = useIdleOnce(landed && frame !== null && start === null);
   // (T269) a page started on (or at) a water: the map comes back framed on it
-  useEffect(() => { if (p.arriveAt) search.landOn(p.arriveAt); }, []);   // eslint-disable-line react-hooks/exhaustive-deps -- once, on mount
+  // (T1010) a page started on a box (`?fit=`, a region page's link): the map opens framed on it
+  useEffect(() => { if (p.arriveAt) search.landOn(p.arriveAt); else if (p.fitAt) search.landOnBox(p.fitAt); }, []);   // eslint-disable-line react-hooks/exhaustive-deps -- once, on mount
   useEscapeBack(nav.back, nav.escapeBack && !searching);   // T214 item 2: on the desktop web Escape is Back (a no-op on a phone)
   /** ONE placeholder line per opening of the app, never cycled while on screen. */
   const [placeholder] = useState(() => placeholderFor(Math.random() * 1e6));
@@ -220,7 +221,7 @@ export function Shell(p: ShellProps) {
   /** (T303) my location on the browse maps: asked on the button's tap, never before */
   const me = useMyLocation(locate);
   /** (T384) a plain open (no start link took it anywhere, no camera held from before) goes to the reader: read once */
-  const [opensHere] = useState(() => opensAtMe(p.initialRoute, p.arriveAt ?? p.regsStart ?? null, !!p.cameraHold?.browse));
+  const [opensHere] = useState(() => opensAtMe(p.initialRoute, p.arriveAt ?? p.fitAt ?? p.regsStart ?? null, !!p.cameraHold?.browse));
   /** THE MENU (owner 2026-10-21): its pages, listed by the More tab (T48), mounted below as back layers (menu/MenuHost). */
   const menu = useMenu();
   /*

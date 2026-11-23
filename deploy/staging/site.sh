@@ -32,15 +32,16 @@ comm -12 <(cd "$W" && find . -type f | sort) <(cd "$S" && find . -type f | sort)
 rsync -a --ignore-existing "${X[@]}" "$S/" "$O/"
 # The hubs' "Open the app" link is absolute to production; on staging it must open the staging app (canonicals stay on
 # the .ca). (T269: a water page IS the app — its links are already relative.) (T994 #19) a failed rewrite stops (it was
-# `|| true`), and nothing names production's app afterwards (checked)
-HUB_LINK='<a class="app" href="https://canifishthis.ca/">'
-if grep -rlq --include=index.html "$HUB_LINK" "$O"; then
-  grep -rl --null --include=index.html "$HUB_LINK" "$O" \
-    | xargs -0 perl -pi -e 's#<a class="app" href="https://canifishthis\.ca/">#<a class="app" href="/">#g'
+# `|| true`), and nothing names production's app afterwards (checked). (T1010) the link carries the region's box
+# (`/?fit=w,s,e,n`): the origin goes, the query stays
+HUB_LINK='<a class="app" href="https://canifishthis.ca/'
+if grep -rlqF --include=index.html "$HUB_LINK" "$O"; then
+  grep -rlF --null --include=index.html "$HUB_LINK" "$O" \
+    | xargs -0 perl -pi -e 's#<a class="app" href="https://canifishthis\.ca/#<a class="app" href="/#g'
 fi
-if grep -rlq --include=index.html "$HUB_LINK" "$O"; then
+if grep -rlqF --include=index.html "$HUB_LINK" "$O"; then
   echo "site.sh: a hub page still opens production's app after the staging rewrite:" \
-       "$(grep -rl --include=index.html "$HUB_LINK" "$O" | head -3)" >&2; exit 1
+       "$(grep -rlF --include=index.html "$HUB_LINK" "$O" | head -3)" >&2; exit 1
 fi
 # (T487) a gauge page's live half names production's data host and crash endpoint (tools/seo gauges.ts LIVE): on staging it
 # reads staging's feed (the cards the staging feeds worker draws) and reports to staging's worker

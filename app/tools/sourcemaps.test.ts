@@ -6,7 +6,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 // A plain .mjs tool (run under node), imported for its functions.
-import { decodeMappings, frameOf, keepAndroid, keepR8, keepWeb, keyOf, symbolicate } from "./sourcemaps.mjs";
+import { checkServedMaps, decodeMappings, frameOf, keepAndroid, keepR8, keepWeb, keyOf, MAP_REQUIRED_BYTES, symbolicate } from "./sourcemaps.mjs";
 
 // line 1: col 0 → a.ts 1:1; col 5 → a.ts 1:6 named f. line 2: col 0 → a.ts 2:1
 const MAP = { version: 3, sources: ["a.ts"], names: ["f"], mappings: "AAAA,KAAKA;AACL" };
@@ -43,17 +43,50 @@ describe("sourcemaps", () => {
       .toThrow("no maps kept for 0.4.0-b7-89ebd94");
   });
 
-  it("keeps a web export's maps out of what is served, and refuses an export without any", () => {
+  it("(T1008) keeps a copy of a web export's maps and leaves them served (the map and its sourceMappingURL stay); refuses an export without any", () => {
     const exp = mkdtempSync(join(tmpdir(), "exp-")), root = mkdtempSync(join(tmpdir(), "sm-"));
     mkdirSync(join(exp, "_expo"), { recursive: true });
-    writeFileSync(join(exp, "_expo", "index-1.js"), "code\n//# sourceMappingURL=/_expo/index-1.js.map\n//# debugId=x");
-    writeFileSync(join(exp, "_expo", "index-1.js.map"), JSON.stringify(MAP));
-    keepWeb(exp, "k", root);
-    expect(existsSync(join(exp, "_expo", "index-1.js.map"))).toBe(false);
+    const js = "code\n//# sourceMappingURL=/_expo/index-1.js.map\n//# debugId=x";
+    writeFileSync(join(exp, "_expo", "index-1.js"), js);
+    writeFileSync(join(exp, "_expo", "index-1.js.map"), JSON.stringify({ ...MAP, debugId: "x" }));
+    keepWeb(exp, "k", root, exp, () => true);
+    expect(existsSync(join(exp, "_expo", "index-1.js.map"))).toBe(true);
     expect(existsSync(join(root, "k", "web", "_expo", "index-1.js.map"))).toBe(true);
-    expect(readFileSync(join(exp, "_expo", "index-1.js"), "utf8")).toBe("code\n//# debugId=x");
-    expect(() => keepWeb(exp, "k", root)).toThrow("no .map under");
+    expect(readFileSync(join(exp, "_expo", "index-1.js"), "utf8")).toBe(js);
+    const empty = mkdtempSync(join(tmpdir(), "exp-"));
+    expect(() => keepWeb(empty, "k", root, empty, () => true)).toThrow("no .map under");
     expect(() => keepAndroid(join(exp, "none.map"), "k", root)).toThrow("no Hermes map");
+  });
+
+  it("(T1008) a served map must belong to its bundle and show only files the repository tracks or node_modules holds", () => {
+    const exp = mkdtempSync(join(tmpdir(), "exp-")), web = join(exp, "_expo", "static", "js", "web");
+    mkdirSync(web, { recursive: true });
+    mkdirSync(join(exp, "node_modules", "lib"), { recursive: true });
+    writeFileSync(join(exp, "node_modules", "lib", "x.js"), "");
+    const big = "x".repeat(MAP_REQUIRED_BYTES);
+    const put = (name: string, body: string, map?: object) => {
+      writeFileSync(join(web, name), body);
+      if (map) writeFileSync(join(web, `${name}.map`), JSON.stringify(map));
+    };
+    const ok = { version: 3, debugId: "d1", sections: [{ offset: { line: 0, column: 0 }, map: {
+      version: 3, sources: ["__prelude__", "\u0000polyfill:environment-variables", "/packages/core/src/a.ts", "/node_modules/lib/x.js"], mappings: "" } }] };
+    const tracked = (p: string) => p === "packages/core/src/a.ts";
+    put("index-1.js", `${big}\n//# sourceMappingURL=/_expo/static/js/web/index-1.js.map\n//# debugId=d1`, ok);
+    put("small.js", "tiny");                                                     // under 100 KB: no map asked
+    expect(checkServedMaps(exp, exp, tracked)).toEqual([]);
+    put("later-2.js", `${big}\n//# debugId=d2`);                                 // a big bundle with no map
+    put("later-3.js", `${big}\n//# sourceMappingURL=later-3.js.map\n//# debugId=d3`, { ...ok, debugId: "d9" });
+    put("later-4.js", `${big}\n//# sourceMappingURL=gone.js.map`);
+    put("later-5.js", `${big}\n//# sourceMappingURL=later-5.js.map\n//# debugId=d5`, { version: 3, debugId: "d5", file: "other.js",
+      sources: ["/apps/mobile/.env.local", "/node_modules/nope/y.js"], mappings: "" });
+    expect(checkServedMaps(exp, exp, tracked)).toEqual([
+      "_expo/static/js/web/later-2.js: no sourceMappingURL",
+      "_expo/static/js/web/later-3.js: its map's debug id d9 is not the bundle's d3",
+      "_expo/static/js/web/later-4.js: names gone.js.map, which the export does not have",
+      "_expo/static/js/web/later-5.js: its map is for other.js",
+      "_expo/static/js/web/later-5.js: its map names 2 file(s) the repository does not track: /apps/mobile/.env.local, /node_modules/nope/y.js",
+    ]);
+    expect(() => keepWeb(exp, "k", mkdtempSync(join(tmpdir(), "sm-")), exp, tracked)).toThrow("the export's maps cannot be served");
   });
 
   it("(T749) keeps R8's mapping beside the Hermes map, and refuses a missing or empty one", () => {
