@@ -17,6 +17,9 @@ with the default Claude uses until you answer). Newest first inside each section
   don't need to be on regulations. Please think about it more we also still have inline sources?" — a refined
   per-tab proposal with the inline-sources question answered, as pictures.
 
+## 2026-11-22 23:55: question round 4 (answers, verbatim)
+- T867 inbox: "Build all four (Recommended)". T981 round 2: "Later release we will do this".
+
 ## 2026-11-22 23:45: question round 3 (answers, verbatim)
 - T754 one bank: "Other bank: the water's other rules". T774: "Keep it". R8: "Do 1 but make a ticket to push higher in
   future" (72% accepted; T1027). PR #47's marks: "I don't understand what the issue is here ... What happened to marks?
