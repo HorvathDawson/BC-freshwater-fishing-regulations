@@ -508,11 +508,16 @@ def equal_place_conflicts(key: Sequence[str], at: Callable[[str], tuple], own_sp
     and pass; a pair in `EQUAL_PLACES_ACCEPTED` passes."""
     from pipeline.regs.dfo_salmon.live import _at
     out: List[Tuple[str, str, str, int, int, int]] = []
+    # Every LATER place with an equal key, not only the next ones: `key` is the chain as it speaks, after `rest_after`,
+    # which moves a rest-of to just behind its listed places — so a rest (R lists A) can land BETWEEN two equal places
+    # (A, R, B) and a stop at the first unequal key hid A from B. The check stays on this final order, not on the order
+    # before `rest_after`: `first` (the places that speak before the pair) must be the places that really come first,
+    # and before `rest_after` a narrower rest sorts ahead of its listed place though it never answers before it.
     keys = [at(l)[:-1] for l in key]
     for i, a in enumerate(key):
         for j in range(i + 1, len(key)):
             if keys[j] != keys[i]:
-                break
+                continue
             b = key[j]
             if (region_of(a) != region_of(b) or b in after.get(a, ()) or a in after.get(b, ())
                     or frozenset((a, b)) in EQUAL_PLACES_ACCEPTED):

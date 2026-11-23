@@ -96,3 +96,20 @@ def test_two_closures_in_different_words_are_one_answer():
                      [_sockeye("No fishing for salmon", 0, may_target=False)]), section_regions=None)
     assert S.same_answer({"s": "closed", "t": "No fishing for chinook"}, {"s": "closed", "t": "No fishing for salmon"})
     assert not S.same_answer({"s": "open", "t": "2 per day"}, {"s": "open", "t": "2 per day, barbless"})
+
+
+def test_a_rest_moved_between_two_equal_places_does_not_hide_them():
+    """(PR #47 review) R (size 2) lists A; A and B (size 5) tie. `rest_after` gives the chain (A, R, B): A opens, B
+    shuts, and only the id puts A first. MUTATION: stopping at the first unequal key (`break`) returns [] here."""
+    size = {"6:river:a-open": 5, "6:river:b-shut": 5, "6:river:r-rest": 2}
+    at = lambda l: (0, size[l], l)  # noqa: E731
+    after = {"6:river:r-rest": frozenset({"6:river:a-open"})}
+    key = S.rest_after(tuple(sorted(size, key=at)), after)
+    assert key == ("6:river:a-open", "6:river:r-rest", "6:river:b-shut")
+    verdict = {"6:river:a-open": 1, "6:river:b-shut": 2, "6:river:r-rest": 3}
+    got = S.equal_place_conflicts(key, at, lambda l: [[0, verdict[l]]] * len(S.SPECIES), after, lambda l: 6)
+    assert {g[:2] for g in got} == {("6:river:a-open", "6:river:b-shut")}
+    assert got[0][2:] == (S.SPECIES[0], 0, 1, 2)
+    # on (A, B) alone the pair is reported the same way
+    assert S.equal_place_conflicts(key[::2], at, lambda l: [[0, verdict[l]]] * len(S.SPECIES), after,
+                                   lambda l: 6) == got
