@@ -90,6 +90,7 @@ describe("drag down to close", () => {
   it("the ground fades out by half the height and the photo shrinks with the drag", () => {
     const look = photoDismissLook(H);
     expect(look.fade).toEqual({ inputRange: [0, H * PHOTO_VIEWER.dismissFadeShare], outputRange: [1, 0] });
+    expect(look.chrome).toEqual({ inputRange: [0, H * PHOTO_VIEWER.dismissFadeShare / 2], outputRange: [1, 0] });
     expect(look.shrink).toEqual({ inputRange: [0, H], outputRange: [1, PHOTO_VIEWER.dismissShrink] });
   });
 });

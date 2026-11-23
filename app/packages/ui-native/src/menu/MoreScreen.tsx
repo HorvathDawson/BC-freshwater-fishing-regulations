@@ -33,6 +33,7 @@ import { Icon } from "../icons";
 import { hitProps } from "../regs/hit";
 import { linkTo } from "../openLink";
 import { SettingsPage, type MobileDataControl } from "./SettingsPage";
+import { arrowFocusProps } from "../arrowFocus";
 
 export type { MobileDataControl };
 
@@ -79,7 +80,7 @@ export function MoreScreen({ palette, data, onBack, contact, theme, onTheme, onP
     <Wide.Provider value={wide}>
       <View testID="more-screen" style={{ flex: 1, backgroundColor: palette.wash }}>
         <Head vm={vm} palette={palette} onBack={onBack} />
-        <ScrollView testID="more-scroll" contentContainerStyle={{ paddingBottom: SPACE.s4 * 2 }}>
+        <ScrollView testID="more-scroll" {...arrowFocusProps()} contentContainerStyle={{ paddingBottom: SPACE.s4 * 2 }}>
           {wide
             ? (
               <View testID="more-columns"

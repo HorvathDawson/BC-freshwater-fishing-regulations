@@ -118,7 +118,8 @@ describe("the search map's words", () => {
 describe("(T48) the top bar's search field and its results sheet", () => {
   it("the words, whole: what the field is called aloud, its close, its clear, a row's open action, the sheet's lines", () => {
     expect({ ...SEARCH_BAR, open: SEARCH_BAR.open("Chilliwack River"), placeholders: SEARCH_BAR.placeholders.length,
-             near: SEARCH_BAR.near("Hope"), placeSub: SEARCH_BAR.placeSub("Town"), show: SEARCH_BAR.show("Hope") })
+             near: SEARCH_BAR.near("Hope"), placeSub: SEARCH_BAR.placeSub("Town"), show: SEARCH_BAR.show("Hope"),
+             showPlace: SEARCH_BAR.showPlace("Hope", "5 km N of Hope") })
       .toEqual({
         label: "Search waters and towns",
         close: "Close search",
@@ -137,6 +138,7 @@ describe("(T48) the top bar's search field and its results sheet", () => {
         nearFailed: "Could not read what is near this town.",
         placeSub: "Town · every named water around it",
         show: "Show Hope on the map",
+        showPlace: "Show Hope, 5 km N of Hope, on the map",
         placeholders: 10,
       });
   });
