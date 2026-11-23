@@ -15,3 +15,6 @@ viewers do. A proposal for the owner, with light and dark shots over a light pho
 "N of M" readable over a white photo and over a dark one, iPhone and Android; a render test pins the backing.
 
 Depends: T836. Size: S. Owner: yes (the look, a proposal).
+
+
+State 2026-11-22 (stopped for credits): review fixes done (6 items, see PR #43); left: nothing from the review, device looks/shots still owed; branch fix/T970-ui-smalls.

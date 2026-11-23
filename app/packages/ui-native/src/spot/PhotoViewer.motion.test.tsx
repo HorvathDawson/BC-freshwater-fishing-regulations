@@ -123,12 +123,17 @@ describe("PhotoViewer chrome while dragging down (T970) and the counter's backin
     expect(opacityOf("photo-ground")).toBeCloseTo(0.5, 2);
     expect(opacityOf("photo-chrome")).toBe(0);
   });
-  it("the counter has a dim backing, as the buttons have a disc", async () => {
+  it("the counter has a dim backing, as the buttons have a disc: the ground colour at 0.45", async () => {
     await open();
     await advance(PHOTO_VIEWER.openMs + 50);
     const pill = screen.getByTestId("photo-counter-pill");
     expect(pill.contains(screen.getByTestId("photo-counter"))).toBe(true);
-    expect(pill.contains(screen.getByTestId("photo-counter-backing"))).toBe(true);
-    expect(opacityOf("photo-counter-backing")).toBeGreaterThan(0.3);
+    const backing = screen.getByTestId("photo-counter-backing") as HTMLElement;
+    expect(pill.contains(backing)).toBe(true);
+    // the colour as the browser normalises it (a hex is read back as rgb), and the opacity the style must state
+    const want = document.createElement("div"); want.style.backgroundColor = LIGHT.photo.ground;
+    expect(want.style.backgroundColor).not.toBe("");
+    expect(backing.style.backgroundColor).toBe(want.style.backgroundColor);
+    expect(backing.style.opacity).toBe("0.45");
   });
 });

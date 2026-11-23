@@ -21,3 +21,6 @@ Build (web only; phones unchanged):
 
 ## Item 2 (L8, 2026-11-22)
 `arrowFocus.web.ts`: on a list's container, ↓/↑ move the focus to the next/previous control, Home/End to the ends (nothing is pressed; Enter/Space as before; text fields and modifier keys left alone). Done: the water's parts list (radio group), Spots, the menu list (MoreScreen). Ruled out: the menu's reading pages (settings, help, glossary: arrows scroll the text) and the notifications page (not checked). Test `arrowFocus.web.test.tsx`.
+
+
+State 2026-11-22 (stopped for credits): review fixes done (6 items, see PR #43); left: nothing from the review, device looks/shots still owed; branch fix/T970-ui-smalls.

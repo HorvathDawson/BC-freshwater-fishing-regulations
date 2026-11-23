@@ -1,6 +1,6 @@
 /**
- * (T858 item 2) ↓ / ↑ / Home / End move the focus through a list's controls on the web: the water's parts list, Spots, the
- * menu list. Mounted on the real components where one is cheap (the parts list), on bare controls for the rules.
+ * (T858 item 2) The helper's rules, on bare controls. That the parts list, Spots and the menu list each carry it is pinned in
+ * their own tests (WaterMapView.test, SpotsScreen.test, Menu.test: removing the spread fails each).
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";

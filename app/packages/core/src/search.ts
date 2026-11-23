@@ -267,6 +267,8 @@ export const SEARCH_BAR = {
   /** (T180) A place row's line under its name (`kind`: the place's kind, capitalised), and any row's action aloud. */
   placeSub: (kind: string, apart?: string) => `${kind}${apart ? ` · ${apart}` : ""} · every named water around it`,
   show: (name: string) => `Show ${name} on the map`,
+  /** (T972) a place row's action aloud: the visible line's `apart` is said too, as the label replaces the row's text */
+  showPlace: (name: string, apart?: string) => `Show ${name}${apart ? `, ${apart},` : ""} on the map`,
   placeholders: [
     "Cast a search…",
     "Drop a line: any water",

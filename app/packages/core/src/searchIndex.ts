@@ -560,10 +560,18 @@ export function areaPhrase(regions: readonly string[], mus: readonly string[], s
 const ANCHOR_KINDS = new Set(["city", "town", "village"]);
 const COMPASS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] as const;
 
+/** how far, by how fine a reading: 0 whole km, 1 tenths of a km, 2 tens of metres, 3 the metre */
+const distanceWords = (m: number, fine: 0 | 1 | 2 | 3): string =>
+  fine === 0 ? (m < 500 ? "under 1 km" : `${Math.round(m / 1000)} km`)
+    : fine === 1 ? `${(m / 1000).toFixed(1)} km` : fine === 2 ? `${Math.round(m / 10) * 10} m` : `${Math.round(m)} m`;
+const NEAREST_TOWNS = 4;
+
 /**
  * (T972) Places that share a name and a kind ("Thompson Plateau" is ten gazetteer points) read as identical rows. Each of
- * them gets where it lies (distance and compass bearing from the nearest city, town or village) so a reader can tell
- * them apart. Places with a name of their own are left as they are; no row is dropped.
+ * them gets where it lies (distance and compass bearing from a city, town or village) so a reader can tell them apart.
+ * The reference is never the place itself nor a town of its own name (two "North Vancouver" cities are not each other's
+ * reference). Where lines still collide inside a group, the colliding ones read finer (tenths of a km, tens of
+ * metres, the metre) and then from the next town out. Places with a name of their own are left as they are; no row is dropped.
  */
 export function tellPlacesApart<P extends { name: string; kind: string; lat: number; lon: number; apart?: string }>(
   places: readonly P[]): readonly P[] {
@@ -572,20 +580,35 @@ export function tellPlacesApart<P extends { name: string; kind: string; lat: num
     const k = `${searchKey(p.name)}\u0000${p.kind}`;
     (groups.get(k) ?? groups.set(k, []).get(k)!).push(i);
   });
-  const anchors = places.filter((p) => ANCHOR_KINDS.has(p.kind));
+  const anchors = places.map((p) => ({ p, key: searchKey(p.name) })).filter((a) => ANCHOR_KINDS.has(a.p.kind));
   const out = places.slice() as P[];
-  for (const ix of groups.values()) {
+  for (const [gk, ix] of groups) {
     if (ix.length < 2) continue;
-    for (const i of ix) {
+    const own = gk.slice(0, gk.indexOf("\u0000"));
+    const pool = anchors.filter((a) => a.key !== own);
+    // each member's readings, plainest first: the nearest town whole km, tenths, tens of m, then the next towns out
+    const readings = ix.map((i) => {
       const p = places[i]!;
-      let best: P | null = null, bd = Infinity;
-      for (const a of anchors) { const d = metresApart(p, a); if (d < bd) { bd = d; best = a; } }
-      if (!best) continue;
-      const km = Math.round(bd / 1000);
-      const bearing = (Math.atan2((p.lon - best.lon) * Math.cos((p.lat * Math.PI) / 180), p.lat - best.lat) * 180) / Math.PI;
-      const dir = COMPASS[Math.round(((bearing + 360) % 360) / 45) % 8]!;
-      out[i] = { ...p, apart: km < 1 ? `at ${best.name}` : `${km} km ${dir} of ${best.name}` };
+      const near = pool.map((a) => ({ a: a.p, d: metresApart(p, a.p) })).sort((x, y) => x.d - y.d).slice(0, NEAREST_TOWNS);
+      const lines: string[] = [];
+      near.forEach(({ a, d }, n) => {
+        const bearing = (Math.atan2((p.lon - a.lon) * Math.cos((p.lat * Math.PI) / 180), p.lat - a.lat) * 180) / Math.PI;
+        const dir = COMPASS[Math.round(((bearing + 360) % 360) / 45) % 8]!;
+        for (const fine of (n === 0 ? [0, 1, 2, 3] : [0]) as (0 | 1 | 2 | 3)[]) lines.push(`${distanceWords(d, fine)} ${dir} of ${a.name}`);
+      });
+      return lines;
+    });
+    const at = ix.map(() => 0);
+    for (let guard = 0; guard < 20; guard++) {
+      const line = (m: number) => readings[m]![Math.min(at[m]!, readings[m]!.length - 1)];
+      const clash = ix.map((_, m) => ix.some((__, o) => o !== m && line(o) === line(m)));
+      if (!clash.some(Boolean)) break;
+      clash.forEach((c, m) => { if (c && at[m]! < readings[m]!.length - 1) at[m]!++; });
     }
+    ix.forEach((i, m) => {
+      const r = readings[m]!;
+      if (r.length) out[i] = { ...places[i]!, apart: r[Math.min(at[m]!, r.length - 1)] };
+    });
   }
   return out;
 }

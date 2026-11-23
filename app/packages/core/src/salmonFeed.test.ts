@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 import { SALMON_FEED_GOLDEN } from "./salmonFeed.golden";
 import { salmonCard, salmonChainStatus, salmonNotes, type SalmonFacts } from "./salmon";
-import { composeChain, dfoNoticeRows, feedFinfishOn, feedTables, parseDfoUnplaced, parseSalmonFeed, pickSalmon, salmonFeedLine, salmonFeedOf, withSalmonFeed } from "./salmonFeed";
+import { composeChain, dfoNoticeRows, feedFinfishOn, feedTables, parseDfoUnplaced, parseSalmonFeed, pickSalmon, salmonCardLive, salmonFeedLine, salmonFeedOf, withSalmonFeed } from "./salmonFeed";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the golden is the pipeline's JSON, read as data
 const G = SALMON_FEED_GOLDEN as any;
@@ -170,19 +170,38 @@ describe("the feed line (T276)", () => {
   });
 });
 
-describe("the feed line names the last good read (T851)", () => {
-  it("a region whose fetch failed in the run keeps its older read: the line names that time, not the run's", () => {
+describe("a salmon card names its OWN regions' last good read (T851)", () => {
+  const PAGE = { sids: [12], item: null as string | null };           // the Kispiox: Region 6
+  const live = (checked: Record<string, string>) => {
     const f = feed();
-    const [first] = Object.keys(f.regions);
-    const old = "2026-10-26T20:00:00Z";
-    const mixed = { ...f, regions: { ...f.regions, [first!]: { ...f.regions[first!]!, checked: old } } };
-    expect(salmonFeedLine(withSalmonFeed(release(), mixed))).toBe("Checked with DFO Oct 26, 2026, 1:00 pm PT");
+    const regions = { ...f.regions };
+    // a region the card does not speak for, beside the card's own (a copy of the golden region, its own time)
+    for (const [id, at] of Object.entries(checked))
+      regions[id] = { ...(f.regions["6"] ?? Object.values(f.regions)[0]!), checked: at };
+    return withSalmonFeed(release(), { ...f, regions });
+  };
+  const ON = new Date(2026, 8, 10);
+  it("its own region's fetch failed in the run: the line and the page's as-of time name the older read, one value", () => {
+    const card = salmonCardLive(live({ "6": "2026-10-26T20:00:00Z" }), PAGE, ON);
+    expect(card.regions).toContain("6");
+    expect(card.checked).toBe("Checked with DFO Oct 26, 2026, 1:00 pm PT");
+    expect(card.feedAt).toBe("2026-10-26T20:00:00.000Z");
+  });
+  it("ANOTHER region failing for days does not age this card: the line and the as-of keep the run's time", () => {
+    const card = salmonCardLive(live({ "6": "2026-10-27T18:00:00Z", "3": "2026-10-20T18:00:00Z" }), PAGE, ON);
+    expect(card.checked).toBe("Checked with DFO Oct 27, 2026, 11:00 am PT");
+    expect(card.feedAt).toBe(G.feed.at);
+  });
+  it("a card on the failing region reads old while a card on a healthy one reads fresh, in one feed", () => {
+    const f = live({ "6": "2026-10-27T18:00:00Z", "3": "2026-10-20T18:00:00Z" });
+    const fresh = salmonCardLive(f, PAGE, ON);
+    const old = salmonFeedLine(f, ["3"]);
+    expect([fresh.checked, old]).toEqual(["Checked with DFO Oct 27, 2026, 11:00 am PT", "Checked with DFO Oct 20, 2026, 11:00 am PT"]);
   });
   it("regions read a minute apart in one run still name the run's time", () => {
-    const f = feed();
-    const [first] = Object.keys(f.regions);
-    const close = { ...f, regions: { ...f.regions, [first!]: { ...f.regions[first!]!, checked: "2026-10-27T17:58:00Z" } } };
-    expect(salmonFeedLine(withSalmonFeed(release(), close))).toMatch(/^Checked with DFO Oct 27, 2026, 11:00 am PT/);
+    const card = salmonCardLive(live({ "6": "2026-10-27T17:58:00Z" }), PAGE, ON);
+    expect(card.checked).toBe("Checked with DFO Oct 27, 2026, 11:00 am PT");
+    expect(card.feedAt).toBe(G.feed.at);
   });
 });
 

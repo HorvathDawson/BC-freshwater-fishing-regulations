@@ -31,3 +31,6 @@ it (feeds.sh, 2026-11-18 ~13:20 PT).
   <at>" still names the run time when a region's fetch failed within the 30 h; `SalmonFeedRegion.stale`'s doc comment
   in `packages/core/src/salmonFeed.ts` still says "the last read failed".
 - Tests: `test/dfo.stale.test.ts` (new), `dfo.worker`, `status`, `scheduled`; `pipeline/tests/test_dfo_live.py`.
+
+
+State 2026-11-22 (stopped for credits): review fixes done (6 items, see PR #43); left: nothing from the review, device looks/shots still owed; branch fix/T970-ui-smalls.

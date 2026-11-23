@@ -16,3 +16,6 @@ apart; rows that differ get something that tells them apart (the near-town or th
 adjacent rows with identical text.
 
 Depends: —. Size: S. Owner: no.
+
+
+State 2026-11-22 (stopped for credits): review fixes done (6 items, see PR #43); left: nothing from the review, device looks/shots still owed; branch fix/T970-ui-smalls.
