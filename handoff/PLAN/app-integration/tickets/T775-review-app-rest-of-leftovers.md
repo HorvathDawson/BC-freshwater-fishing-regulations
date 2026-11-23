@@ -16,7 +16,7 @@ Source: T761 lane report and the sweep, 2026-11-15 night.
 The four fixes above; route table regenerated if a route changes; worked in a worktree, never under the owner's
 running app.
 
-State 2026-11-22 (stopped for credits): see Status above; code c77eeb601, ledger f087c8968; branch fix/T775-review-app-leftovers. fast-fail not confirmed (was still running).
+State 2026-11-23: review fixes dd942ce76, ff7cece62, 4916c3cf0 on branch fix/T775-review-app-leftovers (PR #48); origin/main merged.
 
 Review fix 2026-11-23 (dd942ce76): item 1's "stands behind" is said only from the build's own REST_BEHIND diagnostic
 (`listed_drawn`), not from a listed sibling on the card; a rest whose bounds bind nothing keeps the dead-piece words.
