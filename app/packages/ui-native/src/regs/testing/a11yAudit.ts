@@ -46,6 +46,21 @@ export function nameOf(el: Element): string {
 
 export interface PressOffence { readonly role: string; readonly name: string; readonly why: string }
 
+/**
+ * (T1004) PRESSES THAT MAY REACH LESS THAN 44 × 44, recorded with the reason: the class line under the water's name is a full-width
+ * 23 px line with the date pill / sun times above it and the place text, then the tab row, below, so a hitSlop would overlap a
+ * neighbour. Held two ways: its declared box height must be the height its own style holds (computed `min-height`), so a declared
+ * box that is not the real one fails; and an exception that reaches 44 is stale and fails.
+ */
+const SHORT_PRESS: Record<string, string> = { "regs-class": "the class line under the name: hitSlop would overlap the date pill, sun times, place text" };
+function shortPressOffence(el: Element, area: { w: number; h: number }, box: number): string | null {
+  const id = el.getAttribute("data-testid") ?? "";
+  if (!(id in SHORT_PRESS)) return null;
+  if (area.h >= MIN_HIT) return `${id} is exempt from 44 but reaches ${area.w}×${area.h}: remove it from SHORT_PRESS`;
+  const style = parseFloat((el as HTMLElement).style.minHeight || getComputedStyle(el).minHeight);
+  return style === box ? "" : `${id} declares a ${box} px box but its style holds min-height ${style}`;
+}
+
 export function pressAudit(root: Element): { bad: PressOffence[]; inline: { role: string; name: string }[]; sized: number } {
   const bad: PressOffence[] = [], inline: { role: string; name: string }[] = [];
   let sized = 0;
@@ -62,7 +77,14 @@ export function pressAudit(root: Element): { bad: PressOffence[]; inline: { role
     const data = el.getAttribute("data-hitslop");
     const area = data === null ? null : hitArea(data);
     if (!area) { bad.push({ role, name, why: "no data-hitslop: not a RegsPress / hitProps press" }); continue; }
-    if (area.w < MIN_HIT || area.h < MIN_HIT) bad.push({ role, name, why: `reaches ${area.w}×${area.h}` });
+    if (area.w < MIN_HIT || area.h < MIN_HIT) {
+      const short = shortPressOffence(el, area, Number(data!.split(/\s+/)[1]));
+      if (short === "") continue;
+      bad.push({ role, name, why: short ?? `reaches ${area.w}×${area.h}` });
+    } else {
+      const stale = shortPressOffence(el, area, Number(data!.split(/\s+/)[1]));
+      if (stale) bad.push({ role, name, why: stale });
+    }
   }
   return { bad, inline, sized };
 }

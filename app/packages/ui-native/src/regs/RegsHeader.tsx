@@ -98,13 +98,19 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onTab, onTerm, si
  * place) and beside the name; he asked for it "right under the water body name in the white space there". A press opens the
  * classified-waters term when the release has one. Draws `ClassBadgeVM` only.
  */
+/** (T1004) the class line's own height, px: the style's minHeight and the press's declared box, one number */
+export const CLASS_LINE_H = 23;
+
 export function ClassLine({ b, palette, onTerm }: { b: ClassBadgeVM; palette: Palette; onTerm?: (id: string) => void }) {
   const c = b.inForce ? palette.accent : palette.sub;
   const text = <Text maxFontSizeMultiplier={CAPPED_SCALE} style={[TYPE.metaHeavy, { color: c }]}>{b.line}</Text>;
-  const box = { paddingLeft: GUTTER, paddingRight: 8, paddingBottom: 4, marginTop: -2 };
+  // THE TRUE BOX, declared from the same number the style holds: the line's height (CLASS_LINE_H). No hitSlop: above it is the
+  // date pill's (44 px, a press) and the sun times, below it the place text and then the tab row, so any slop would overlap a
+  // neighbour; the press reaches the full width and CLASS_LINE_H high, a recorded exception to 44 (`SHORT_PRESS`, a11yAudit).
+  const box = { paddingLeft: GUTTER, paddingRight: 8, minHeight: CLASS_LINE_H, justifyContent: "center" as const, marginTop: -2 };
   const term = b.term;
   return term && onTerm ? (
-    <RegsPress testID="regs-class" onPress={() => onTerm(term)} accessibilityRole="button" accessibilityLabel={b.aria} box={{ w: 44, h: 44 }}
+    <RegsPress testID="regs-class" onPress={() => onTerm(term)} accessibilityRole="button" accessibilityLabel={b.aria} box={{ w: 44, h: CLASS_LINE_H }} slop={{ top: 0, right: 0, bottom: 0, left: 0 }}
                style={box}>{text}</RegsPress>
   ) : (
     <View testID="regs-class" accessible accessibilityLabel={b.aria} style={box}>{text}</View>

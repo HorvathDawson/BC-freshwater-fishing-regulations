@@ -33,3 +33,5 @@ The chip is gone from the name row. `ClassLine` (`RegsHeader.tsx`, the one place
 period, secondary colour out of period; a press opens the classified-waters term. Pictures: `T1004-shots/built-before-light|dark.png` (live app) and `built-after-light|dark.png`
 (a web export of this branch, staging data, Skeena Class II part). Tests: RegsHeader.test (6 cases, mutation-proved: the line moved back into the name row fails 5),
 classBadge.test, RegsWide.test (order on phone/tablet/desktop). T802's card half is this line; its map half was declined (11-22 23:35).
+
+Press area (review fix): the line is a full-width press 23 px high (`CLASS_LINE_H`, one number for the style's min-height and the declared box), NO hitSlop: above it are the date pill and sun times, below it the place text and the tab row, so any slop would overlap a neighbour (largest non-overlapping slop: 0). It is a recorded exception to 44 (`SHORT_PRESS` in a11yAudit): the audit fails a declared box that is not the style's real min-height (mutation: h 30 and h 44 both fail) and fails the exception if it ever reaches 44. The same term is reachable from the Licence tab's ⓘ.
