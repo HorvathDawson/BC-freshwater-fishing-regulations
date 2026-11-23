@@ -298,7 +298,11 @@ describe("(T595) a class on each kind: defect / network / expected", () => {
     // (T1005) the triage's additions: a browser with no WebGL and our own 429 are known states; three line failures
     expect(c("Error", "Failed to initialize WebGL")).toBe("expected");
     expect(c("MapUnavailable", "Failed to initialize WebGL")).toBe("expected");
-    expect(c("Error", "an exit record was refused by the crash server: HTTP 429")).toBe("expected");
+    expect(c("Error", "an exit record was refused by the crash server: HTTP 429 (too many reports today)")).toBe("expected");
+    expect(c("Error", "an exit record was refused by the crash server: HTTP 429 (too many new error kinds today)")).toBe("expected");
+    // the gap's 429 is a client sending too fast, and a 429 with no words cannot be told apart: defects
+    expect(c("Error", "an exit record was refused by the crash server: HTTP 429 (too many reports; try again in a minute)")).toBe("defect");
+    expect(c("Error", "an exit record was refused by the crash server: HTTP 429")).toBe("defect");
     expect(c("Error", "core-abc.json.gz: no whole file in 30000 ms")).toBe("network");
     expect(c("SyntaxError", "update: JSON Parse error: Unexpected end of JSON input")).toBe("network");
     expect(c("Error", "The source image could not be decoded")).toBe("network");

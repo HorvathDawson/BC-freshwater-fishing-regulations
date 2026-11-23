@@ -177,7 +177,9 @@ const EXPECTED = [
   /is not one this app reads/i,
   /SecurityException: Unsupported path \/data\/local\/tmp\//i,   // an emulator-only path the OS refuses (T603 item 6, T595)
   /Failed to initialize WebGL/,                     // (T1005) a browser with no WebGL: the app says the map cannot draw (MapUnavailable)
-  /was refused by the crash server: HTTP 429/,      // (T1005) an exit record our own rate limit refused (older builds still send it)
+  // (T1005) our own DAY limit refusing an exit record (builds before 127296a64 report it). The 1 s GAP's 429 ("too many
+  // reports; try again in a minute") stays a defect: a client sending too fast (the app spaces its sends since fe477309b)
+  /was refused by the crash server: HTTP 429 \(too many (reports|new error kinds) today\)/,
 ];
 const NETWORK = [
   /UnknownHostException|Unable to resolve host|SocketTimeout|ConnectException|SSLException|ECONNRESET|ETIMEDOUT/i,
