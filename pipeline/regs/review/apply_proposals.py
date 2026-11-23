@@ -106,7 +106,7 @@ def plan(props: list[dict], tried: set[str], landed_sids: set[str] = frozenset()
         if waiting:
             blocked.append((p["id"], "waits on new split(s) not applied: " + ", ".join(waiting)))
             continue
-        if needs_side(p, props, landed_sids) and not (P.side_ready(p) or p["id"] in side_checked):
+        if needs_side(p, props, landed_sids) and not (P.side_ready(p, props) or p["id"] in side_checked):
             blocked.append((p["id"], "a cut changes: make the side rebuild and read its binding "
                                      "diff first —\n      " + "\n      ".join(P.side_commands(p, props))))
             continue
@@ -114,14 +114,15 @@ def plan(props: list[dict], tried: set[str], landed_sids: set[str] = frozenset()
     return None, blocked
 
 
-def side_atlas(p: Mapping, build: Path | None = None) -> Path | None:
+def side_atlas(p: Mapping, props: Iterable[Mapping], build: Path | None = None) -> Path | None:
     """THE ATLAS THAT HAS A CUT-CHANGING DFO PLACE'S CUT: its side atlas (`proposals.side_commands`), else the one
-    `--build` or `CURATION_BUILD` names (a side atlas made elsewhere); None when there is none."""
+    `--build` or `CURATION_BUILD` names (a side atlas made elsewhere) — each only when it was built with the chain's
+    cuts where they would land now (T1040, `proposals.stale_cuts`); None when there is none."""
     import os
-    if P.side_ready(p):
+    if P.side_ready(p, props):
         return P.REPO / P.side_dir(p) / "atlas"
     named = build or (Path(os.environ["CURATION_BUILD"]) if os.environ.get("CURATION_BUILD") else None)
-    return Path(named) if named is not None and Path(named).is_dir() else None
+    return Path(named) if named is not None and P.atlas_holds_chain(p, props, Path(named)) else None
 
 
 def side_check(p: Mapping, atlas: Path | None) -> dict:
@@ -131,8 +132,9 @@ def side_check(p: Mapping, atlas: Path | None) -> dict:
     import json
     import os
     if atlas is None:
-        return {"cheap": False, "why": "no atlas with this place's cut: make its side atlas (`proposals side`, then the "
-                                      "atlas build it prints) or name one with --build / CURATION_BUILD"}
+        return {"cheap": False, "why": "no atlas with this place's cut where it lands now: make its side atlas "
+                                      "(`proposals side`, then the atlas build it prints; again if the cut moved since) "
+                                      "or name one with --build / CURATION_BUILD"}
     changes = [{"scope": ed["scope"], "field": ed["field"], "after": ed["after"]} for ed in p["edits"]]
     env = {**os.environ, "CURATION_BUILD": str(atlas)}
     root = P.REPO / P.side_dir(p) / P.SIDE_ROOT
@@ -250,7 +252,7 @@ def run(argv: list[str] | None = None) -> tuple[int, list[dict]]:
             # T779: a DFO place is in no reach run, so nothing else gates the pieces it withholds before the build.
             # Its cut is not on the live atlas: it is bound on the atlas that HAS the cut (its side atlas, or the one
             # --build / CURATION_BUILD names); with none, it is refused (never landed unchecked)
-            p["check"] = side_check(p, side_atlas(p, a.build))
+            p["check"] = side_check(p, side_atlas(p, props, a.build))
         bad = withheld_refusal(p)
         if bad:
             print(f"!! {p['id']}: {bad}; not applied")

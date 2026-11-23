@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -111,7 +112,8 @@ def _run_one(monkeypatch, tmp_path, prop, check, *, mode="no cut change", stdout
     monkeypatch.setattr(AP, "needs_side", lambda *a: mode != "no cut change")
     monkeypatch.setattr(P, "check", lambda ps, src: [q.update(check=dict(check)) for q in ps])
     monkeypatch.setattr(P, "materialize", lambda ps, src: made.append(ps[0]["id"]) or {})
-    monkeypatch.setattr(P, "side_ready", lambda p: (tmp_path / P.side_dir(p) / "atlas").is_dir())
+    monkeypatch.setattr(P, "side_ready", lambda p, *a, **k: (tmp_path / P.side_dir(p) / "atlas").is_dir())
+    monkeypatch.setattr(P, "atlas_holds_chain", lambda p, props, atlas, src=None: Path(atlas).is_dir())  # T1040: own test
 
     def fake_run(cmd, **k):
         runs.append({"cmd": cmd, "env": k.get("env") or {}})
