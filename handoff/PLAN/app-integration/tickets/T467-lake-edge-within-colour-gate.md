@@ -36,3 +36,5 @@ default stands: **the check stays on all themes** (Claude's recommendation above
 unchanged). It is on the owner's to-do page as a default taken: the owner acts only if they disagree. The ticket stays
 OPEN for Work 1 (the shoreline as a shade of the fill: a look, with before/after shots for the owner to pick), which is
 a map-style design change, not a one-answer fix.
+
+State 2026-11-22 (stopped for credits): done: web pictures T467-shots/stave-{light,dark}-{today,shade}.png (shoreline shaded 40% darker in light / 45% lighter in dark, Stave + Alouette, regs mode, a runtime paint override, not shipped). left: the gate check (does the shade meet another status colour, cvd), Flow-mode shots, emulator shots; the owner picks. Recommendation: the shade look.

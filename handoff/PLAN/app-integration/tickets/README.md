@@ -73,7 +73,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T447 | An app icon made by an artist (the favicon-derived set ships until then) | POSTPONED | — | owner 2026-11-06 |
 | T461 | Tidal-water polygon: simplify per zoom, quieter edge (measure first) | PARTIAL | f3038a255 | left (Claude): measure + simplify tidal_water at the tile build, with a release's tile rebuild |
 | T463 | Deep code review of the branch before production (owner runs /code-review ultra; Claude triages) | OPEN | — | owner 2026-11-06 |
-| T465 | Water map: boundary labels with different words overlap zoomed out (Fraser top, z5.5) | OPEN | — | 2026-11-06 |
+| T465 | Water map: boundary labels with different words overlap zoomed out (Fraser top, z5.5) | IN REVIEW — owner: OWNER-TODO "Look (you): T465 Fraser top labels" | 2c08348fb | 2026-11-06 |
 | T467 | Lakes: a visible shoreline (a shade of the fill) inside the colour-blind gate | OPEN | — | owner 2026-11-06 |
 | T485 | Run timing off the release path: skip when unchanged; last good NuSEDS/PSF on R2; refresh as its own job | DONE in code | d948fa0a9, cb20055c6, 8ef2eebf4 | step 3: the weekly worker check starts a monthly refresh (FETCHED date); left: first live refresh after the worker deploys |
 | T492 | Stream colours chosen on the GPU (per-day status lookup), after T420 | POSTPONED | — | owner 2026-11-11: benched, performance is decent |

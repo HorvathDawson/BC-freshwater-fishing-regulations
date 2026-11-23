@@ -9,3 +9,5 @@ book's words one tap away), consistent spacing and type.
 ## Do
 - Shots of today's list on a busy water (Fraser R2, Vedder) and a quiet lake; propose a layout (prototype first);
   owner picks; then build. Nothing of a rule is dropped.
+
+State 2026-11-22 (stopped for credits): NOT STARTED (no pictures made); left: today's list shots (Fraser R2, Vedder, a quiet lake) and a layout prototype.

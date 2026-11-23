@@ -15,3 +15,5 @@ until he picks.
 
 ## 2026-11-17 20:27, owner
 Verbatim: "Also we need to make sure the classified water symbols are maintained properly and modify the license requirement. Also if a water is classified it should have a badge in the card I header I think. Make sure we capture all classified waters whether labeled by symbol or by tributary of something". The card part is now a badge in the card header (picture before it ships); data side is T841.
+
+State 2026-11-22 (stopped for credits): done: three map looks as web mock-ups on a stand-in Skeena stretch, light + dark, T802-shots/look{A,B,C}-{light,dark}.png (A casing band, B parallel rails, C 'II' badges; faded = out of season, key row shown). left: owner pick; real class data not used; no emulator shots. Recommendation: B (rails keep the line colour readable).
