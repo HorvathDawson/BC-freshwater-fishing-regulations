@@ -36,6 +36,16 @@ describe("T317 point marks", () => {
     expect((marksData(marks).features as F[]).filter((f) => f.properties.kind === "label").map((f) => f.properties.anchor))
       .toEqual(["bottom", "top", "bottom"]);
   });
+  it("(#65 review) a labelled ring the map did not place: both labels take their side by latitude, so they still part", async () => {
+    const north = { lon: -122.8, lat: 49.07, label: "Dyke gates", a11y: "", on: false };
+    const south = { lon: -122.7, lat: 49.06, label: "208th Street", a11y: "", on: false };
+    // the screen would put the southern ring HIGHER (a measured y of 10 against the latitude order); the northern is unplaced
+    const a = await labelAnchors([north, south], 400, (lon) => (lon === -122.7 ? [200, 10] : null));
+    type F = { properties: { kind: string; anchor?: string } };
+    const sides = (marksData([north, south], a).features as F[]).filter((f) => f.properties.kind === "label")
+      .map((f) => f.properties.anchor!.startsWith("top") ? "below" : "above");
+    expect(sides).toEqual(["above", "below"]);
+  });
   it("(T929) the label layer hangs each label by its feature's anchor; nothing moves it sideways; (T997) below or above", () => {
     const label = marksLayers({ ink: colour("light", "color.ui.ink"), card: colour("light", "color.ui.card") }, "box")[1] as { layout: Record<string, unknown> };
     expect(label.layout["text-anchor"]).toEqual(["get", "anchor"]);

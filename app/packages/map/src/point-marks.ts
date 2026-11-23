@@ -63,8 +63,11 @@ export function marksData(marks: readonly MapMark[] | undefined,
 export async function labelAnchors(marks: readonly MapMark[], width: number,
                                    project: (lon: number, lat: number) => Promise<[number, number] | null> | [number, number] | null) {
   const at = await Promise.all(marks.map(async (k) => (k.label ? project(k.lon, k.lat) : null)));
-  // (T997) the lowest labelled ring on the screen hangs its label below it, the others above (`hangBelow`)
-  const below = hangBelow(at.map((p) => (p ? p[1] : null)));
+  // (T997) the lowest labelled ring on the screen hangs its label below it, the others above (`hangBelow`). (#65 review)
+  // A labelled ring the map did not place keeps the latitude default (`marksData`), so the side is chosen by latitude for
+  // EVERY label then: one measured by the screen and one by latitude could both hang above and cover each other
+  const placed = marks.every((k, i) => !k.label || at[i] !== null);
+  const below = hangBelow(placed ? at.map((p) => (p ? p[1] : null)) : marks.map((k) => (k.label ? -k.lat : null)));
   return at.map((p, i): MarkLabelAnchor | null => (p ? labelAnchor(p[0], width, undefined, below[i]) : null));
 }
 
