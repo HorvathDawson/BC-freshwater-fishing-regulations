@@ -1,6 +1,6 @@
 # T803 — Label follow-ups from the owner's answers of 2026-11-16: Cowichan tributaries mark off, Middle Shuswap main river only, Campbell and Fraser Region 3 re-saved, Mara Bridge cut name, Babine areas confirmed, Gitnadoix powerline at the mouth, a side channel renamed, gotchas, Stamp Falls cut 60 m down
 
-Status: PARTIAL — done: 1, 2, 9, 11 (a5990dd7b, 5debac3ef; carries 02f0fedca), 3 (RULINGS T16, f4d677c5c), 5 and 6 (GOTCHAS 4bd6e5333), 13 superseded (3d3b0e90e; Sproat re-saved), 14 and 15 no change, 16 with T770. left (Claude): 4, 8, 10 re-saves through the review app (4's label lookup is T776); 7 the Chemainus DFO sentence in waters/tidal_split_authority.json (still dfo_written: false; atlas input, next atlas rebuild); 12 the Skeena side channel name.
+Status: DONE — 1, 2, 9, 11 (a5990dd7b, 5debac3ef; carries 02f0fedca), 3 (RULINGS T16, f4d677c5c), 5 and 6 (GOTCHAS 4bd6e5333), 13 superseded (3d3b0e90e), 14 and 15 no change, 16 with T770; lane L10 2026-11-22: 7 (ebc15e364), 8 (0e6d0cdbd), 4 and 10 found already saved, 12 checked (no change: it already reads from the lower end); 4's label lookup stays T776.
 
 Source: the owner's answers of 2026-11-16 by question dialog (`handoff/PLAN/OWNER-TODO.md`, "Answers by batch",
 batches 2 to 9). His words are quoted there; the work, one item each:
@@ -53,3 +53,25 @@ Done elsewhere: 1, 2, 9, 11 (a5990dd7b, 5debac3ef; carries 02f0fedca), 3 (RULING
   files are ATLAS INPUTS (`pipeline/atlas/inputs.py`); an edit makes the live atlas stale and the release preflight
   stops. They go with the next atlas rebuild, not the 0.8.0 reach-only build (13 also wants a picture to the owner).
 - 12 (Skeena side channel name): not traced here.
+
+## Lane L10 (2026-11-22, branch fix/T840-rules-smalls)
+- **4** (Fraser Region 3 mainstem, Spuzzum to the 3/5 line): already re-saved as right 2026-11-16 (marks.jsonl line
+  2819, "Claude (for Dawson)", his words). The label lookup is T776.
+- **7** (ebc15e364): `waters/tidal_split_authority.json` Chemainus row is `dfo_written: true`, `authority: dfo`, quoting the
+  DFO Area 17 sentence he supplied ("… to a boundary sign on the Chemainus River near the Bald Eagle Campground …") and
+  the 11:02 check (the split is 0 to 135 m from the campground). `owner` and `dfo` govern alike (`coast.authority`), so
+  no cut moves; it is an atlas input, so the next atlas build records it (release preflight: atlas behind inputs).
+- **8** (0e6d0cdbd): the three Campbell places (downstream of the Quinsam; Quinsam to Maple Street; Maple Street to the
+  cement block) re-saved as right through the review app's own route (POST /api/marks, in process), T and R as he
+  answered them 2026-10-26, on their extents as they stand; the write-through had nothing to apply.
+- **10**: all 12 of Babine Lake's closed-area pieces carry a confirming mark (7 by name 11-16 13:28, Pendleton / Six Mile /
+  Hazelwood / Sockeye 18:54, the Gullwing line T812); the 13th, Tsezakwa, he settled 11-16 18:38: "this is fine"
+  (its circle stays on Nilkitkwa Lake).
+- **12** (Skeena side channel "from the Exchamsiks River confluence up to Skeena River Ecological Reserve boundary"):
+  checked which end is lower — on its own line (blk 360216952) the Exchamsiks cut (carried across by the braid sweep) is
+  at m 1,017 and the Reserve boundary at m 2,521, and the part is the piece between them (bundle `section_span`:
+  `360216952:1017`, lo Exchamsiks, hi Reserve). So the name ALREADY reads from the lower end up; nothing reworded. It
+  reads "backwards" beside main-stem part "From the Reserve boundary up to the Exchamsiks confluence" because the
+  Reserve's edge crosses the side channel above the Exchamsiks line and the main stem below it.
+
+State 2026-11-22 (stopped for credits): lane L10, branch fix/T840-rules-smalls (head cd66153eb before this line); see the ticket's Status for done / left.

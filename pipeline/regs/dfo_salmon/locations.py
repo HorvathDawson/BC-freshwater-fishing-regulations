@@ -191,11 +191,38 @@ _NOTE_PATTERNS = [
     # it — Babine Lake's list of excluded creeks follows a colon.
     (re.compile(r"within\s+a?\s*\d+\s*m\w*\s+radius[^.:]*", re.I), "radius closure", True),
     (re.compile(r"(?:also\s+)?closed\s+(?:east|west|north|south)\w*\s+of\s+a\s+line[^.]*", re.I), "closure line", True),
-    # (T683, owner 2026-11-12, RULINGS E19) HALF A RIVER'S WIDTH: a cut cannot take it, so the place binds the whole
-    # channel (stricter than DFO on the other half) and DFO's own words say which half the rule is for (the Nakina)
+    # (T683, owner 2026-11-12, RULINGS E19) HALF A RIVER'S WIDTH: a cut cannot take it, so the place binds the channel
+    # between its signs and DFO's own words say which half the rule is for (the Nakina). (T754, E28 supersedes E19's
+    # whole width) the salmon build reads such a place BESIDE the water's other places (`bank_of`, below)
     (re.compile(r"from\s+the\s+cent(?:re|er)\s+line\s+to\s+the\s+\w+\s+bank", re.I), "half width", True),
     (re.compile(r"Note:\s*[^.]*\.", re.I), "source note", False),
 ]
+
+
+#: (T754, owner 2026-11-22 23:45: "Other bank: the water's other rules") A PLACE WORDED FOR ONE BANK of its river: DFO's
+#: "on west bank between signs at Kitimat hatchery outfall" and "from the centre line to the northern bank" (the Nakina).
+#: Only a bank OF THE PLACE'S OWN RIVER: "the Ruskin Spawning Channel on the east bank of the BC Hydro park" (the Stave)
+#: is a side channel of its own (a bank "of" something else), "on the east side of the Stave River" names a channel too,
+#: and a lake's "near eastern shore" is a part of the lake, not a bank. Python only: the release decides which chains a
+#: bank place stands beside (`deliver.salmon.build`) and the feeds worker composes the release's chains as they are.
+_BANK_PATTERNS = (
+    re.compile(r"\bon\s+(?:the\s+)?(north|south|east|west)(?:ern)?\s+bank\b(?!\s+of\b)", re.I),
+    re.compile(r"\bfrom\s+the\s+cent(?:re|er)\s+line\s+to\s+the\s+(north|south|east|west)(?:ern)?\s+bank\b", re.I),
+)
+
+
+#: (review of #61) an EXCEPTED part names where the place is NOT: "… to the CPR Railway Bridge; except … on the east bank"
+#: never makes the whole place a bank place. The clause runs to the end of its sentence or semicolon.
+_EXCEPT_CLAUSE = re.compile(r"\b(?:except|excepting|excluding|exclusive\s+of|other\s+than|but\s+not)\b[^.;]*", re.I)
+
+
+def bank_of(text: Optional[str]) -> Optional[str]:
+    """The ONE BANK a DFO place's words name ("north" | "south" | "east" | "west", the synopsis `side` words), else None.
+    Two different banks in one wording name no one bank: None (the place then reads across the width, as before). A bank
+    inside an except / excluding clause is not the place's (`_EXCEPT_CLAUSE`)."""
+    said = _EXCEPT_CLAUSE.sub(" ", text or "")
+    found = {m.group(1).lower() for pat in _BANK_PATTERNS for m in pat.finditer(said)}
+    return found.pop() if len(found) == 1 else None
 
 
 def _notes_for(text: str) -> tuple[List[str], bool]:
