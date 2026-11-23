@@ -573,8 +573,9 @@ water-nav, part-steps, regs-switch, trout-table 7/7, report). Play internal: ver
 ## 2026-11-22: the notes (lane L13)
 - Written: `pipeline/docs/MAP.md` deliver step 5 (the trout table, its modules, the `trout` section, `answers_diff`), `app/MAP.md`
   (the regs store holds the table; `trout.ts` composes only, `TroutCard.tsx` draws), AGENTS rule 29a (Python writes the
-  table whole; a refused frame is reported, never the old card), and `deliver/answers/trout/__init__.py`'s docstring no
-  longer says "not yet wired into a release".
+  table whole; a refused frame is reported, never the old card), (`deliver/answers/trout/__init__.py`'s docstring still says "not yet wired into a
+  release": fixing it re-stamps the committed mini release (the docstring is hashed into its water files), so it waits
+  for the next mini re-cut, `python -m pipeline.tools.mini_release --write`).
 - T809's cutover diff (step 11) is run and recorded in T809: no trout answer changed.
 - NOT done: S2's dead-branch deletion. `quietOf`, `useAnchors`, `PinBar` and the pin-bar coach spots are already gone; the
   rest of S2 (delete composer branches in grouphead.ts, tree.ts, tail.ts, plainrow.ts that only trout reached) needs a
