@@ -131,3 +131,6 @@ of Burnaby's Burnaby Lake page.
 Could not load / not found (still to check): Kelowna 10680 (403), Abbotsford 2456-2015 (certificate error; Mill Lake has
 a fishing pier), Kamloops 35-66, Township of Langley 5298, Delta 7206 (404), the Vancouver Park Board consolidated
 by-laws PDF (would settle Beaver Lake and Trout Lake), Metro Vancouver's Burnaby Lake page, the FVRD parks bylaw.
+
+## Owner answer 2026-11-22 23:55 (dialog on the round-2 rows)
+"Later release we will do this" — no round-2 row ships in 0.9.0; T981 stays open for a later release.

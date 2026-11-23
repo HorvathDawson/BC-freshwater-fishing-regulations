@@ -196,6 +196,35 @@ const metresApart = (a: { lon: number; lat: number }, b: { lon: number; lat: num
   return Math.hypot(x, y) * 6_371_000;
 };
 
+/**
+ * (T997, owner 2026-11-21: the Nicomekl's "23 m below the Nicomekl floodgates dam" and "Dyke gates" drawn on top of each
+ * other, 23 m apart) TWO DIFFERENT BOUNDARIES WHOSE BOXES WOULD MEET ARE ONE BOX NAMING BOTH. Whether two boxes meet is
+ * a matter of pixels, and a part opens framed on its own bounds: the box is `MARK_BOX_W` x `MARK_BOX_H` px (its text wraps at
+ * 180), a pixel is `max(span_x / MARK_VIEW_W, span_y / MARK_VIEW_H)` metres at that framing (a narrow phone's map, so a
+ * wider one merges a little more than it must, never less), and two labelled marks whose offsets fit inside one box (in
+ * both directions) are merged; and under `MARK_LABEL_MERGE_MIN_M` they are merged at any framing (no zoom parts them).
+ * Each mark goes to the NEAREST kept box in range (kept boxes are then all out of each other's range, so a chain A-B-C
+ * leaves no box meeting another). The ring of each stays (its own words for a screen reader, its own tap). What the map
+ * engine's collision (`marksLayers`) still has to choose between is a pan or zoom away from the framing: it keeps the
+ * open mark's, then the rest in order.
+ */
+export const MARK_LABEL_MERGE_MIN_M = 50;
+const MARK_BOX_W = 180, MARK_BOX_H = 44, MARK_VIEW_W = 360, MARK_VIEW_H = 300;
+export const MARK_LABEL_JOIN = " · ";
+
+/** The east and north offsets of `b` from `a`, metres. */
+const offsetM = (a: { lon: number; lat: number }, b: { lon: number; lat: number }): [number, number] => {
+  const k = Math.PI / 180;
+  return [(b.lon - a.lon) * k * Math.cos(((a.lat + b.lat) / 2) * k) * 6_371_000, (b.lat - a.lat) * k * 6_371_000];
+};
+
+/** Metres per screen pixel when a part opens framed on `bounds` (null: a floor that merges only what no zoom parts). */
+export function framingMetresPerPx(bounds: Bbox | null): number {
+  if (!bounds) return 0;
+  const [dx, dy] = offsetM({ lon: bounds[0], lat: bounds[1] }, { lon: bounds[2], lat: bounds[3] });
+  return Math.max(Math.abs(dx) / MARK_VIEW_W, Math.abs(dy) / MARK_VIEW_H);
+}
+
 /** A mark's end token without the place the release says it at (`<token>@km…` / `@near:…`): the same end. */
 const placeOf = (token: string): string => token.replace(/@.*$/, "");
 
@@ -219,6 +248,35 @@ function oneLabelPerPlace(marks: readonly WaterMapMarkVM[], same: ReadonlyMap<nu
     else kept.push(m);
   }
   return marks.map((m) => (drop.has(m.ix) ? { ...m, label: null } : m));
+}
+
+/**
+ * (T997) Labelled marks (the mouth's too) whose boxes would meet at the framing (`mPerPx`, `framingMetresPerPx`) are one
+ * label: the box nearest each is the kept one's (the open mark first, then boundaries in order, the mouth last), which
+ * names each in turn; the others keep their ring and say nothing (their `a11y` still does).
+ */
+export function mergeNearLabels(marks: readonly WaterMapMarkVM[], mPerPx = 0): WaterMapMarkVM[] {
+  const words = new Map<number, string[]>();
+  const kept: WaterMapMarkVM[] = [];
+  const gone = new Set<number>();
+  const order = [...marks].sort((a, b) => Number(b.on) - Number(a.on) || Number(!!a.mouth) - Number(!!b.mouth));
+  // how far, in boxes (<1: they meet), and never nearer than the floor says no zoom parts them
+  const reach = (a: WaterMapMarkVM, b: WaterMapMarkVM): number => {
+    const [dx, dy] = offsetM(a, b);
+    if (Math.hypot(dx, dy) < MARK_LABEL_MERGE_MIN_M) return 0;
+    return mPerPx > 0 ? Math.max(Math.abs(dx) / (MARK_BOX_W * mPerPx), Math.abs(dy) / (MARK_BOX_H * mPerPx)) : Infinity;
+  };
+  for (const m of order) {
+    if (m.label === null) continue;
+    let near: WaterMapMarkVM | null = null, best = 1;
+    for (const k of kept) { const r = reach(k, m); if (r < best) { best = r; near = k; } }
+    if (!near) { kept.push(m); words.set(m.ix, [m.label]); continue; }
+    gone.add(m.ix);
+    const w = words.get(near.ix)!;
+    if (!w.includes(m.label)) w.push(m.label);
+  }
+  return marks.map((m) => (gone.has(m.ix) ? { ...m, label: null }
+    : words.has(m.ix) ? { ...m, label: words.get(m.ix)!.join(MARK_LABEL_JOIN) } : m));
 }
 
 /**
@@ -279,9 +337,9 @@ export function waterMapView(g: WaterGroup, s: WaterMapState): WaterMapVM | null
     where: partWhere(g, at),
     down: step("down", down, crossDown(g, at)),
     up: step("up", up, crossUp(g, at)),
-    marks: [...oneLabelPerPlace(marks, new Map(g.marks.flatMap((m, ix) => (m.token === null ? [] : [[ix, placeOf(m.token)] as const]))),
+    marks: mergeNearLabels([...oneLabelPerPlace(marks, new Map(g.marks.flatMap((m, ix) => (m.token === null ? [] : [[ix, placeOf(m.token)] as const]))),
                                 new Map(g.marks.flatMap((m, ix) => (m.token === null ? [] : [[ix, m.token] as const])))),
-            ...mouthMark(g, down === null)],
+            ...mouthMark(g, down === null)], framingMetresPerPx(s.whole ? groupBounds(g) : partBounds(g, at))),
     // a mark with no named place (no end token) is titled "Boundary" — the words it has, nothing composed
     pop: open ? { title: markLabel(g, open) ?? W.boundary, close: W.close,
                   upLabel: W.upstreamSide, up: open.up.map((i) => partVM(g, i)),

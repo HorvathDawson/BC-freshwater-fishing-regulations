@@ -1,6 +1,6 @@
 # T1004 — In-app report 2026-11-21: the Class II tag sits far right of the water's name, "kind of hidden"
 
-Status: OPEN — next release batch (owner 2026-11-19: small finds go into the next release).
+Status: BLOCKED (owner) — pictures made 2026-11-22 (T1004-shots/); the owner picks A or B, nothing changed in the app.
 
 Source: `GET /reports` on the production feeds worker, read 2026-11-22 (report `c1f639871183168d`; T985 holds the
 four before it, T979 the fifth). Android 0.8.4 (42), production, release `r-fec3fab4c5aa`; water · regulations,
@@ -14,3 +14,11 @@ hidden".
    picks. The same tag on every water that has a class, one place in the code.
 
 Depends: none. Size: S. Owner: picks the look.
+
+## Pictures (2026-11-22, lane L3, web 390 px, Skeena River, a Class II part)
+Cause: `WaterTitle` gives the name `flex: 1`, so the chip (a child of the row) lands at the row's right edge beside the date
+pill, a long way from a short name. One component (`ClassBadge` in `RegsHeader.tsx`), so one change moves it on every water.
+- A (now): `T1004-shots/A-now-dark.png`, `A-now-light.png`.
+- B (tag right after the name, the date pill alone at the right): `B-beside-dark.png`, `B-beside-light.png`. The diff that
+  made B is `T1004-shots/option-B-patch.diff` (not applied; a long name shrinks first and the chip stays next to its end).
+Recommendation: B. Question for the owner: A or B?
