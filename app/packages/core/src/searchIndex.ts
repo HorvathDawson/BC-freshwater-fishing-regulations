@@ -34,6 +34,7 @@
  */
 import { sizeSignal } from "./near";
 import { searchKey } from "./searchKey";
+import { metresApart } from "./trace";
 import type { NearPlace } from "./search";
 
 /** One searchable water, as the data layer reads it from core. */
@@ -57,7 +58,7 @@ export interface IndexWater {
 
 export interface IndexAlias { item: string; alias: string; source: string | null }
 
-export interface IndexPlace { place: string; name: string; kind: string; lat: number; lon: number; pop: number | null }
+export interface IndexPlace { place: string; name: string; kind: string; lat: number; lon: number; pop: number | null; apart?: string }
 
 /**
  * (T927) One of the book's boundary places — a curated cut, where a water's rules change — on a water it stands on, as
@@ -283,7 +284,7 @@ export function buildSearchIndex<W extends IndexWater, P extends IndexPlace>(
       .filter((k) => k.key).map((k) => ({ ...k, wordKey: wordKeyOf(k.key) }));
     cuts.push({ cut: c, water: w, keys, words: [...new Set(keys.flatMap((k) => wordsOf(cutWordsKey(k.key))))] });
   }
-  return { waters: data.waters, places: data.places, entries: entries.length, _e: entries, _size: size, _town: town,
+  return { waters: data.waters, places: tellPlacesApart(data.places), entries: entries.length, _e: entries, _size: size, _town: town,
            _vocab: vocab, _pk: pk, _pvocab: pvocab, _c: cuts };
 }
 
@@ -553,4 +554,38 @@ export function areaPhrase(regions: readonly string[], mus: readonly string[], s
     parts.push(`${mus.length === 1 ? "MU" : "MUs"} ${head}${mus.length > showMus ? ` +${mus.length - showMus}` : ""}`);
   }
   return parts.join(" · ");
+}
+
+/** the towns a repeated place name is placed against (T972) */
+const ANCHOR_KINDS = new Set(["city", "town", "village"]);
+const COMPASS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] as const;
+
+/**
+ * (T972) Places that share a name and a kind ("Thompson Plateau" is ten gazetteer points) read as identical rows. Each of
+ * them gets where it lies (distance and compass bearing from the nearest city, town or village) so a reader can tell
+ * them apart. Places with a name of their own are left as they are; no row is dropped.
+ */
+export function tellPlacesApart<P extends { name: string; kind: string; lat: number; lon: number; apart?: string }>(
+  places: readonly P[]): readonly P[] {
+  const groups = new Map<string, number[]>();
+  places.forEach((p, i) => {
+    const k = `${searchKey(p.name)}\u0000${p.kind}`;
+    (groups.get(k) ?? groups.set(k, []).get(k)!).push(i);
+  });
+  const anchors = places.filter((p) => ANCHOR_KINDS.has(p.kind));
+  const out = places.slice() as P[];
+  for (const ix of groups.values()) {
+    if (ix.length < 2) continue;
+    for (const i of ix) {
+      const p = places[i]!;
+      let best: P | null = null, bd = Infinity;
+      for (const a of anchors) { const d = metresApart(p, a); if (d < bd) { bd = d; best = a; } }
+      if (!best) continue;
+      const km = Math.round(bd / 1000);
+      const bearing = (Math.atan2((p.lon - best.lon) * Math.cos((p.lat * Math.PI) / 180), p.lat - best.lat) * 180) / Math.PI;
+      const dir = COMPASS[Math.round(((bearing + 360) % 360) / 45) % 8]!;
+      out[i] = { ...p, apart: km < 1 ? `at ${best.name}` : `${km} km ${dir} of ${best.name}` };
+    }
+  }
+  return out;
 }

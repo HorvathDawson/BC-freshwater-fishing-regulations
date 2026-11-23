@@ -265,7 +265,7 @@ export const SEARCH_BAR = {
   near: (town: string) => `Water near ${town}`,
   nearFailed: "Could not read what is near this town.",
   /** (T180) A place row's line under its name (`kind`: the place's kind, capitalised), and any row's action aloud. */
-  placeSub: (kind: string) => `${kind} · every named water around it`,
+  placeSub: (kind: string, apart?: string) => `${kind}${apart ? ` · ${apart}` : ""} · every named water around it`,
   show: (name: string) => `Show ${name} on the map`,
   placeholders: [
     "Cast a search…",

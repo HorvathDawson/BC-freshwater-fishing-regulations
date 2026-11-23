@@ -4,8 +4,8 @@
  */
 import { describe, expect, it } from "vitest";
 import { matchTier } from "./search";
-import { areaPhrase, boundedEdits, buildSearchIndex, clusterByName, editsAllowed, queryIndex, queryPlaces,
-         type IndexWater, type SearchIndexData } from "./searchIndex";
+import { areaPhrase, boundedEdits, buildSearchIndex, clusterByName, editsAllowed, queryIndex, queryPlaces, tellPlacesApart,
+         type IndexPlace, type IndexWater, type SearchIndexData } from "./searchIndex";
 
 const town = (name: string, km = 2) => ({ name, kind: "town", lat: 49, lon: -122, km });
 const w = (item: string, name: string, o: Partial<IndexWater> = {}): IndexWater => ({
@@ -296,5 +296,26 @@ describe("speed (T247: measure time per keystroke)", () => {
     expect(worst).toBeLessThan(150);
     console.log(`search index: ${index.entries} entries built in ${built.toFixed(0)} ms; per keystroke ` +
                 queries.map((q, i) => `${q}=${times[i]!.toFixed(1)}`).join(" "));
+  });
+});
+
+describe("places with one name and kind are told apart (T972)", () => {
+  const P = (place: string, name: string, kind: string, lat: number, lon: number): IndexPlace => ({ place, name, kind, lat, lon, pop: null });
+  const places = [
+    P("1", "Kamloops", "city", 50.67, -120.33),
+    P("2", "Thompson Plateau", "locality", 50.87, -120.33),   // 22 km N of Kamloops
+    P("3", "Thompson Plateau", "locality", 50.67, -119.0),    // E
+    P("4", "Thompson", "suburb", 50.0, -120.0),               // one of its kind: untouched
+  ];
+  it("each repeated row says where it lies from the nearest city, town or village; the others stay as they are", () => {
+    const got = tellPlacesApart(places);
+    expect(got.map((p) => p.apart)).toEqual([undefined, "22 km N of Kamloops", "94 km E of Kamloops", undefined]);
+    expect(got.length).toBe(places.length);
+  });
+  it("the rows then differ: no two adjacent results read the same", () => {
+    const ix = buildSearchIndex({ waters: [], aliases: [], places, cuts: [] } as never);
+    const lines = queryPlaces(ix, "Thompson Plateau", 10).map((p) => `${p.name}|${p.kind}|${p.apart}`);
+    expect(new Set(lines).size).toBe(lines.length);
+    expect(lines.length).toBe(2);
   });
 });
