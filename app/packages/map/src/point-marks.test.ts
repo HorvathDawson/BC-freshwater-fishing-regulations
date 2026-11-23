@@ -43,6 +43,8 @@ describe("T317 point marks", () => {
     expect(label.layout["text-offset"]).toEqual(["case", ["==", ["get", "below"], true], ["literal", [0, k]], ["literal", [0, -k]]]);
     // never collided away: a hidden end label would leave that end named by nothing (#51 review)
     expect([label.layout["text-allow-overlap"], label.layout["icon-allow-overlap"]]).toEqual([true, true]);
+    // (#37) but placed: a road or place name under the words gives way to them
+    expect([label.layout["text-ignore-placement"], label.layout["icon-ignore-placement"]]).toEqual([false, false]);
   });
   it("(T997 round 2, T465) the lit part's two end labels never cover each other, wherever the two rings are on the screen", async () => {
     // a label box as the layer draws it: 16 px from its ring, above (`bottom*`) or below (`top*`); as tall as two

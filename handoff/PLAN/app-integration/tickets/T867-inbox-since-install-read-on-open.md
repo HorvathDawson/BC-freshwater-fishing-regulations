@@ -22,3 +22,6 @@ Proposal (sent to the owner ~19:54):
 3. "Earlier" short: the last 30 days, at most ~20 rows.
 4. Data updates and app updates as rows: "Regulations data updated <day> · N waters changed" (opens what changed),
    "Updated to <version>" (opens What's new).
+
+## Owner answer 2026-11-22 23:55 (dialog)
+"Build all four (Recommended)" — items 1–4 of the proposal above, in 0.9.0.

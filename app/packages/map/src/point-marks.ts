@@ -92,9 +92,10 @@ export function marksLayers(c: { ink: string; card: string }, box: string) {
         "icon-image": box, "icon-text-fit": "both",
         "icon-text-fit-padding": [LABEL_PAD_Y, LABEL_PAD_X, LABEL_PAD_Y, LABEL_PAD_X],
         // every label drawn, always (T997: at most the lit part's two ends, hung apart so they never meet; a label
-        // collided away would leave its end named by nothing)
-        "text-allow-overlap": true, "icon-allow-overlap": true, "text-ignore-placement": true,
-        "icon-ignore-placement": true,
+        // collided away would leave its end named by nothing). Still PLACED (#37): the layer is on top, so it is placed
+        // first and a road or place name under a boundary's words gives way to them
+        "text-allow-overlap": true, "icon-allow-overlap": true, "text-ignore-placement": false,
+        "icon-ignore-placement": false,
       },
       paint: { "text-color": c.ink },
     },
