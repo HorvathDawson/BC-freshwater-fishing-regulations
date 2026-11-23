@@ -38,7 +38,7 @@ describe("the DFO feed over the release", () => {
     // the feed's time and words per answer, from that feed
     expect(salmonFeedLine(lb)).toBe(salmonFeedLine(la));
     // a feed taken later (another object): composed afresh, never the earlier answer
-    const later = parseSalmonFeed({ ...G.feed, at: "2026-10-28T18:04:00Z" })!;
+    const later = parseSalmonFeed(feedRunAt(G.feed as never, "2026-10-28T18:04:00Z"))!;
     const lc = withSalmonFeed(a, later);
     expect([lc.payload === la.payload, salmonFeedLine(lc) === salmonFeedLine(la)]).toEqual([false, false]);
     // and the same answer as composing it alone
@@ -153,16 +153,36 @@ describe("(T350) the bucket goes with the notes it is read from", () => {
   });
 });
 
+/** a feed whose run was at `at`, every region read in that run (T851: `checked` is the last good read, not the run) */
+const feedRunAt = (f: ReturnType<typeof feed>, at: string) =>
+  ({ ...f, at, regions: Object.fromEntries(Object.entries(f.regions).map(([k, r]) => [k, { ...r, checked: at }])) });
+
 describe("the feed line (T276)", () => {
   it("T551: the card's line is a B.C. stamp, whatever zone the device is in", () => {
     const f = feed();
     // 00:15 UTC Aug 15 is 17:15 PT Aug 14: the legend used the UTC date (Aug 15) beside a card saying Aug 14
     const at = "2026-08-15T00:15:00Z";
-    const withAt = withSalmonFeed(release(), { ...f, at });
+    const withAt = withSalmonFeed(release(), feedRunAt(f, at));
     expect(salmonFeedLine(withAt)).toBe("Checked with DFO Aug 14, 2026, 5:15 pm PT");
     // and a fetch just past B.C. midnight (07:05 UTC = 00:05 PT) is the next B.C. day
-    const late = withSalmonFeed(release(), { ...f, at: "2026-11-10T07:05:00Z" });
+    const late = withSalmonFeed(release(), feedRunAt(f, "2026-11-10T07:05:00Z"));
     expect(salmonFeedLine(late)).toBe("Checked with DFO Nov 10, 2026, 12:05 am PT");
+  });
+});
+
+describe("the feed line names the last good read (T851)", () => {
+  it("a region whose fetch failed in the run keeps its older read: the line names that time, not the run's", () => {
+    const f = feed();
+    const [first] = Object.keys(f.regions);
+    const old = "2026-10-26T20:00:00Z";
+    const mixed = { ...f, regions: { ...f.regions, [first!]: { ...f.regions[first!]!, checked: old } } };
+    expect(salmonFeedLine(withSalmonFeed(release(), mixed))).toBe("Checked with DFO Oct 26, 2026, 1:00 pm PT");
+  });
+  it("regions read a minute apart in one run still name the run's time", () => {
+    const f = feed();
+    const [first] = Object.keys(f.regions);
+    const close = { ...f, regions: { ...f.regions, [first!]: { ...f.regions[first!]!, checked: "2026-10-27T17:58:00Z" } } };
+    expect(salmonFeedLine(withSalmonFeed(release(), close))).toMatch(/^Checked with DFO Oct 27, 2026, 11:00 am PT/);
   });
 });
 

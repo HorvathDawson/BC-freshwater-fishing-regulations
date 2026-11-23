@@ -37,7 +37,8 @@ export const SALMON_FEED_FORMAT = FEED_FORMATS.dfoFeed;   // (T556) generated: p
 
 export interface SalmonFeedRegion {
   readonly name: string; readonly url: string; readonly asof: string | null;
-  /** when this region's page was last read; `stale`: the last read failed and these are the answers before it */
+  /** when this region's page was last read; `stale`: its last good read is older than the feed's 30 h limit (T851: one failed
+   *  fetch inside that limit is not stale — these are the answers of the last good read, `checked`) */
   readonly checked: string | null; readonly stale: boolean; readonly held: string | null;
   /** (owner 2026-10-28) the region page's header as typed notes — the feed's win over the release's */
   readonly notes?: readonly SalmonNote[];
@@ -385,18 +386,33 @@ function wordsWithFeed(release: Readonly<Record<string, readonly SalmonWords[]>>
 /** What a salmon file read through a feed says about the feed (absent: the release's own file). */
 export interface SalmonFeedFacts {
   readonly at: string; readonly stale: readonly string[];
+  /** (T851) the oldest last good read of a region, when a fetch failed and it is well before `at`: the card's "Checked with
+   *  DFO" names it, not the run's time. Absent when every region was read in the run */
+  readonly lastRead?: string;
   /** (T521) places the feed lists that no curated location knows, whose list (`unplaced.json`) could not be read */
   readonly unplacedUnread?: number;
 }
 const FEED = Symbol("salmonFeed");
 type WithFeed = SalmonFacts & { readonly [FEED]?: SalmonFeedFacts };
 
+/** (T851) a region read in the run carries `checked` within a minute or two of `at`; one older than this was not */
+const SAME_RUN_MS = 15 * 60_000;
+function lastRead(feed: SalmonFeed): { lastRead?: string } {
+  const at = Date.parse(feed.at);
+  let oldest: number | null = null;
+  for (const r of Object.values(feed.regions)) {
+    const t = r.checked ? Date.parse(r.checked) : NaN;
+    if (!Number.isNaN(t) && (oldest === null || t < oldest)) oldest = t;
+  }
+  return oldest !== null && at - oldest > SAME_RUN_MS ? { lastRead: new Date(oldest).toISOString() } : {};
+}
+
 /** The release's salmon with the feed's answers: same sections, same chains, the feed's verdicts, gears and page
  *  dates. A region the feed does not carry keeps the release's page date. */
 export function withSalmonFeed(f: SalmonFacts, feed: SalmonFeed): SalmonFacts {
   const { payload, stale, unread } = feedPayload(f.payload, feed);
   const out: WithFeed = { handles: f.handles, chains: f.chains, chainOf: (sid) => f.chainOf(sid), payload, loaded: f.loaded,
-                          [FEED]: { at: feed.at, stale, ...(unread ? { unplacedUnread: unread } : {}) } };
+                          [FEED]: { at: feed.at, stale, ...lastRead(feed), ...(unread ? { unplacedUnread: unread } : {}) } };
   return out;
 }
 
@@ -609,7 +625,7 @@ export function salmonFeedLine(f: SalmonFacts | null): string | null {
   if ((f as { readonly [SHORT]?: true } | null)?.[SHORT]) return SHORT_FEED_LINE;
   const live = salmonFeedOf(f);
   if (!live) return null;
-  const t = new Date(live.at);
+  const t = new Date(live.lastRead ?? live.at);   // (T851) the last good read, not a failed run's time
   if (Number.isNaN(t.getTime())) return null;
   // (T551, T580 F15) B.C.'s clock, labelled, not the device's `getHours()`: Hermes (OS tz data) and Chrome (ICU) disagreed
   const b = bcFields(t.getTime()), h = b.hour, mm = String(b.minute).padStart(2, "0");
