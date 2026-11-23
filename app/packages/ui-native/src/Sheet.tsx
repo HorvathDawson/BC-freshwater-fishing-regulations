@@ -52,7 +52,7 @@ export const SHEET_TITLE = { ...TYPE.screen, fontSize: 19, lineHeight: 23 } as c
  */
 export const SHEET_BODY_CAP = 0.68;
 
-export function Sheet({ open, onClose, title, palette, children, scroll = false, sub, scrollRef, layout, dialog = false, footer, icon, overlay }: {
+export function Sheet({ open, onClose, title, palette, children, scroll = false, sub, scrollRef, layout, dialog = false, footer, icon, overlay, head }: {
   open: boolean; onClose: () => void; title: string;
   palette: Palette; children: React.ReactNode;
   /** (T37) the body scrolls inside the sheet, at most SHEET_BODY_CAP (0.68) of the window tall (the regs sheets); default false: as before */
@@ -71,6 +71,8 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
   footer?: React.ReactNode;
   /** (T293) drawn over the sheet, inside its window: the walkthrough's card while a step is about this sheet */
   overlay?: React.ReactNode;
+  /** (T1031) drawn under the title row (and its sub), outside the scroll: a sheet's tab strip (the species sheet's) */
+  head?: React.ReactNode;
 }) {
   const { height: windowHeight } = useWindowDimensions();
   const shellLayout = useLayoutClass();
@@ -120,9 +122,9 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
   const [up, setUp] = useState(open);
   if (open && !up) setUp(true);
   // what it showed, kept while it leaves: a caller that clears its content on close (SheetHost) slides out what was there
-  const kept = useRef({ title, sub, children, icon });
-  if (open) kept.current = { title, sub, children, icon };
-  const shown = open ? { title, sub, children, icon } : kept.current;
+  const kept = useRef({ title, sub, children, icon, head });
+  if (open) kept.current = { title, sub, children, icon, head };
+  const shown = open ? { title, sub, children, icon, head } : kept.current;
   // (T405) the web's Modal is a role=dialog: named by its title (aria-labelledby; a label on it would swallow its content)
   const titleId = useId();
   const titleText = <Text nativeID={titleId} accessibilityRole="header" style={{ ...SHEET_TITLE, color: palette.ink, flexShrink: 1 }}>{shown.title}</Text>;
@@ -197,6 +199,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                   </Pressable>
                 </View>
                 {shown.sub ? <Text testID="sheet-sub" style={{ ...TYPE.small, color: palette.sub, paddingHorizontal: 18, paddingTop: 6 }}>{shown.sub}</Text> : null}
+                {shown.head}
               </View>
               {scroll
                 ? <DialogScroll scrollRef={scrollRef}>{shown.children}</DialogScroll>
@@ -253,6 +256,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                 </Pressable>
               </View>
               {shown.sub ? <Text testID="sheet-sub" style={{ ...TYPE.small, color: palette.sub, paddingHorizontal: 18, paddingTop: 6 }}>{shown.sub}</Text> : null}
+              {shown.head}
             </View>
           </GestureDetector>
           {scroll

@@ -344,6 +344,8 @@ export interface OtherFishKeyVM { readonly status: "release" | "closed"; readonl
 export interface OtherFishRowVM{ readonly thumb: string | null; readonly name: string; readonly value: string;
   readonly tone: "keep" | "release" | "closed" | "nolimit";   // decided in core, never the component
   readonly week: string | null; readonly sizeHint: string | null; readonly open: SheetKey;   // open = `other:o${i}`
+  /** (T1031) what the row's picture opens: its species sheet on Identification (`other:o${i}|id`); absent: no picture */
+  readonly id?: SheetKey;
   /** (rows 32) the row's stored `stamps`, each a tree.ts stampLine ("You need <document ›> <when>"), drawn under the row */
   readonly stamps: readonly Line[];
   /** (T670 K2) the row's fish its number does not hold for — released or closed by their own rule (the store's "back"
@@ -425,7 +427,13 @@ export type LicenceBlockVM =
 // ── 2.6 Sheets ─────────────────────────────────────────────────────────────────────────────────────────────────────
 /** a list item: its words, then (bold, in ink) the words it stresses — the prototype's `ul.posx li b` */
 export interface ListItem { readonly line: Line; readonly strong: string | null }
-export interface SheetVM { readonly key: SheetKey; readonly title: string; readonly sub: string | null; readonly blocks: readonly SheetBlock[] }
+export interface SheetVM { readonly key: SheetKey; readonly title: string; readonly sub: string | null; readonly blocks: readonly SheetBlock[];
+  /** (T1031) THE SPECIES SHEET's tabs, "Identification | Sources": `blocks` are the selected tab's (`on`); each tab is its
+   *  own key, so a tab press opens that key in this sheet's place (one sheet however reached; a deep link names its tab).
+   *  Absent: a sheet with no tabs. */
+  readonly tabs?: readonly SheetTabVM[] }
+/** (T1031) one tab of a sheet: its words, the key it opens, whether it is the one drawn */
+export interface SheetTabVM { readonly label: string; readonly open: SheetKey; readonly on: boolean }
 export type SheetBlock =
   | { k: "para"; text: Line; tone?: "plain" | "small" | "note" | "mono" }   // mono (T36): the rule sheet's key + fields JSON        // note = "⚑ …" rule notes
   | { k: "example"; text: Line }

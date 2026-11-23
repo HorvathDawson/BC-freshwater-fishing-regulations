@@ -6,7 +6,7 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { FISH, salmonCard, salmonGlance, salmonRowTexts, salmonWithPdf, type RegsPage, type SalmonFacts } from "@app/core";
+import { FISH, WORDS, salmonCard, salmonGlance, salmonRowTexts, salmonWithPdf, type RegsPage, type SalmonFacts } from "@app/core";
 import { LIGHT } from "../theme";
 import { SPINNER_TIMING } from "../LoadingState";
 import { hitArea } from "./hit";
@@ -257,12 +257,18 @@ describe("(T318) every DFO rule on a water is still reachable in the table layou
 });
 
 describe("a species' picture opens its fish sheet", () => {
-  it("sp:CO on a press", () => {
+  it("sp:CO on a press; (T1031) the row beside it, the same sheet on Sources (sp:CO|src)", () => {
     const opened: string[] = [];
     const card = salmonCard(FACTS, { sids: [101], item: null }, JUL20);
     render(<SalmonCard card={card} palette={LIGHT} actions={{ onSheet: (k: string) => opened.push(k) } as never} />);
     fireEvent.click(screen.getByTestId("pic:CO"));
-    expect(opened).toEqual(["sp:CO"]);
+    const row = screen.getByTestId("pic:CO").closest("[data-testid='keep-row:line']")!.querySelector<HTMLElement>("[data-testid='keep-row']")!;
+    fireEvent.click(row);
+    expect(opened).toEqual(["sp:CO", "sp:CO|src"]);
+    // two presses, two names: the picture's ("what it looks like"), the row's (its one label)
+    const pic = screen.getByTestId("pic:CO").closest("[data-testid='keep-row:id']")!;
+    expect([pic.getAttribute("role"), pic.getAttribute("aria-label"), row.getAttribute("role"), row.getAttribute("aria-label")!.startsWith("Coho")])
+      .toEqual(["button", WORDS.LOOKS_LIKE((FISH.CO!.find((l) => l.phase === "spawning") ?? FISH.CO![0]!).caption), "button", true]);
   });
 });
 

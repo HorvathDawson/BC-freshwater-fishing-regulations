@@ -124,7 +124,7 @@ const TROUT: TroutVM = (() => {
   if (vm?.kind !== "table") throw new Error("no trout table in the vectors");
   return vm;
 })();
-const RULES = { get: (ix: number) => ({ rix: ix, key: `k${ix}`, missing: false, export: { verbatim: `words of ${ix}` },
+const RULES = { get: (ix: number) => ({ rix: ix, key: `k${ix}`, missing: false, f: {}, export: { verbatim: `words of ${ix}` },
   facts: { title: `Rule ${ix}`, book: [[40, 42]] } }) } as unknown as RuleIndex;
 const TROUT_PAGE = { ...VEDDER, sheet: (k: SheetKey) =>
   k === TROUT_SOURCES_KEY ? troutSourcesSheet(k, TROUT, RULES, "Water . Day")

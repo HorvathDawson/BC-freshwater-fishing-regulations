@@ -50,7 +50,7 @@ describe("splitRows (page v36 rowsHtml; T810 S: by the trout table's `covers`, n
 describe("otherFishOf", () => {
   it("each row's title and one-word answer; the weekday split under its name; the first pictured fish; the size hint", () => {
     expect(otherFishOf(cardOf([TROUT_ROW, KO, BASS, GR, PROT]), INP(), FISH, [0], NONE, SEAMS)).toEqual([
-      { thumb: "KO", name: "Kokanee", value: "5 a day", tone: "keep", week: "Weekends: keep 5 · Weekdays: release", sizeHint: null, open: "other:o0", stamps: [], back: [] },
+      { thumb: "KO", name: "Kokanee", value: "5 a day", tone: "keep", week: "Weekends: keep 5 · Weekdays: release", sizeHint: null, open: "other:o0", id: "other:o0|id", stamps: [], back: [] },
       { thumb: null, name: "Bass", value: "no limit", tone: "nolimit", week: null, sizeHint: null, open: "other:o1", stamps: [], back: [] },
       { thumb: null, name: "GR", value: "4 a day", tone: "keep", week: null, sizeHint: "· size limit", open: "other:o2", stamps: [], back: [] },
       { thumb: null, name: "Protected species", value: "closed", tone: "closed", week: null, sizeHint: null, open: "other:o3", stamps: [], back: [] }]);

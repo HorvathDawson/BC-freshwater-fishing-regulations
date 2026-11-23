@@ -53,8 +53,10 @@ describe("creditsFor", () => {
     expect(creditsFor(page({ groups: [[pic("RB")]] }), FISH, lines)).toEqual(["RB credit"]);
     expect(creditsFor(page({ groups: [[pic("RB")]] }), { ...FISH, RB: [] }, lines)).toEqual([]);
   });
-  it("(T810 cutover) the trout table: each row's fish, and the pictures its fish sheet (`tf:<row key>`) opens", () => {
-    const base = page({ sheets: { "tf:ST/hatchery": [{ k: "image", code: "DV" } as unknown as SheetBlock] } });
+  it("(T810 cutover, T1031) the trout table: each row's fish, and the pictures its fish sheet's Identification tab (`tf:<row key>|id`) opens", () => {
+    const base = page({ sheets: { "tf:ST/hatchery|id": [{ k: "image", code: "DV" } as unknown as SheetBlock],
+      // mutation: the Sources tab's pictures are not the Identification tab's (it draws none; were it read, LT would be credited)
+      "tf:ST/hatchery": [{ k: "image", code: "LT" } as unknown as SheetBlock] } });
     const p = { ...base, keep: { ...base.keep, trout: { kind: "table", boxes: [{ rows: [{ key: "RB", fish: "RB" }, { key: "ST/hatchery", fish: "ST" }] }] } } } as unknown as RegsPage;
     expect(creditsFor(p)).toEqual([
       "Bull trout — Joel Sartore / National Geographic (Commons)", "Dolly Varden — WDFW (eRegulations WA)",
@@ -63,6 +65,12 @@ describe("creditsFor", () => {
     ]);
     // mutation: a table not drawn (null) credits none of its fish
     expect(creditsFor({ ...p, keep: { ...p.keep, trout: null } } as unknown as RegsPage)).toEqual([]);
+  });
+  it("(T1031) an Other fish row's Identification tab (`other:oN|id`): its pictures are credited too", () => {
+    const base = page({ thumbs: [null], sheets: { "other:o0|id": [{ k: "image", code: "GE" } as unknown as SheetBlock] } });
+    const p = { ...base, keep: { ...base.keep, otherFish: base.keep.otherFish!.map((r) => ({ ...r, id: "other:o0|id" })) } } as unknown as RegsPage;
+    expect(creditsFor(p)).toEqual(["Goldeye — Sam Stukel / USFWS (Commons)"]);
+    expect(creditsFor(base)).toEqual([]);   // mutation: a row with no Identification key reads no such sheet
   });
   it("a frozen page with no sheet function (a render fixture) reads its Keep alone", () => {
     const p = { ...page({ groups: [[pic("RB")]] }), sheet: undefined } as unknown as RegsPage;

@@ -4,7 +4,8 @@
  * app's one `Sheet` (one scrim, one look — the Layers / Day sheets' component). A press inside opens the next sheet in
  * its place (no back stack, as the prototype); Done, the scrim, a drag down (G1: from the handle, `useSheetDrag`) and the
  * one back (G1 `useBackLayer`: Android's back, the browser's back, Escape) close it. The water's header stays mounted
- * behind the scrim. A key the page cannot open (a stale one) draws nothing.
+ * behind the scrim. A key the page cannot open (a stale one) draws nothing. (T1031) A sheet with tabs (the species sheet:
+ * Identification | Sources) draws them under its title; a tab press opens that tab's key here, like any press inside.
  *
  * The open key lives with the caller (RegsView; T23's RegsScreen when it lands). No logic: `page.sheet` is core's (T36).
  */
@@ -15,6 +16,7 @@ import { useLayoutClass, type LayoutClass } from "@app/ui";
 import { Sheet } from "../Sheet";
 import type { Palette } from "../theme";
 import { SheetBody } from "./SheetBody";
+import { SheetTabs } from "./sheet/SheetTabs";
 import { SynopsisLoading } from "./SynopsisLoading";
 import type { FishImages } from "./types";
 
@@ -45,7 +47,8 @@ export function SheetHost(p: SheetHostProps) {
   const drawn = vm ?? (p.open ? null : last.current);
   if (!drawn) return null;
   return (
-    <Sheet open={vm !== null} title={drawn.title} sub={drawn.sub} scroll scrollRef={scroll} palette={p.palette} onClose={p.onClose} layout={layout} dialog footer={<SynopsisLoading palette={p.palette} />}>
+    <Sheet open={vm !== null} title={drawn.title} sub={drawn.sub} scroll scrollRef={scroll} palette={p.palette} onClose={p.onClose} layout={layout} dialog footer={<SynopsisLoading palette={p.palette} />}
+           head={drawn.tabs ? <SheetTabs tabs={drawn.tabs} palette={p.palette} onOpen={p.onOpen} /> : null}>
       <SheetBody vm={drawn} layout={layout} palette={p.palette} fish={p.fish} onOpen={p.onOpen} onTab={p.onTab} onBook={p.onBook} />
     </Sheet>
   );

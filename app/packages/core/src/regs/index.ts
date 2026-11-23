@@ -40,6 +40,8 @@ export * from "./tabScroll";
 export * from "./sheets";
 export * from "./sheets/trout";
 export * from "./sheets/allsources";
+export * from "./sheets/species";
+export * from "./sheets/breakdown";
 export * from "./page";
 export * from "./level";
 export * from "./gear";
