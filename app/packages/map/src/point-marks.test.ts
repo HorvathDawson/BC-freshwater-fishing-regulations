@@ -35,6 +35,16 @@ describe("T317 point marks", () => {
     expect((marksData(marks).features as F[]).filter((f) => f.properties.kind === "label").map((f) => f.properties.anchor))
       .toEqual(["bottom", "bottom", "bottom"]);
   });
+  it("(T997) mark labels collide with each other, the open mark's first, and are never drawn over one another", () => {
+    const label = marksLayers({ ink: colour("light", "color.ui.ink"), card: colour("light", "color.ui.card") }, "box")[1] as { layout: Record<string, unknown> };
+    expect([label.layout["text-allow-overlap"], label.layout["icon-allow-overlap"],
+            label.layout["text-ignore-placement"], label.layout["icon-ignore-placement"]]).toEqual([false, false, false, false]);
+    expect(label.layout["symbol-sort-key"]).toEqual(["get", "rank"]);
+    const f = (marksData([{ lon: 0, lat: 0, label: "a", a11y: "", on: false }, { lon: 0, lat: 0, label: "b", a11y: "", on: true }]).features as
+      { properties: { kind: string; rank?: number } }[]).filter((x) => x.properties.kind === "label");
+    expect(f.map((x) => x.properties.rank)).toEqual([1, 0]);          // the open mark sorts first and keeps its box
+  });
+
   it("(T929) the label layer hangs each label by its feature's anchor; nothing else moves it sideways", () => {
     const label = marksLayers({ ink: colour("light", "color.ui.ink"), card: colour("light", "color.ui.card") }, "box")[1] as { layout: Record<string, unknown> };
     expect(label.layout["text-anchor"]).toEqual(["get", "anchor"]);

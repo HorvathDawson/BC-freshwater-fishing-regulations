@@ -45,7 +45,7 @@ export function marksData(marks: readonly MapMark[] | undefined,
   const features: unknown[] = [];
   (marks ?? []).forEach((k, i) => {
     features.push(point(k.lon, k.lat, { i, kind: "ring", on: k.on }));
-    if (k.label) features.push(point(k.lon, k.lat, { i, kind: "label", label: k.label, anchor: anchors?.[i] ?? "bottom" }));
+    if (k.label) features.push(point(k.lon, k.lat, { i, kind: "label", label: k.label, anchor: anchors?.[i] ?? "bottom", rank: k.on ? 0 : 1 }));
   });
   return { type: "FeatureCollection", features };
 }
@@ -85,9 +85,11 @@ export function marksLayers(c: { ink: string; card: string }, box: string) {
         "text-offset": [0, -(LABEL_LIFT + LABEL_PAD_Y + LABEL_EDGE) / LABEL_SIZE],
         "icon-image": box, "icon-text-fit": "both",
         "icon-text-fit-padding": [LABEL_PAD_Y, LABEL_PAD_X, LABEL_PAD_Y, LABEL_PAD_X],
-        // every mark drawn, always: they were views, never collided away
-        "text-allow-overlap": true, "icon-allow-overlap": true, "text-ignore-placement": true,
-        "icon-ignore-placement": true,
+        // (T997) labels never draw over each other: they collide with one another (the open mark's first, `rank`). The layer
+        // is on top, so it is placed first: no road or place name hides a boundary's words, they give way to it. Boundaries that close together are one label already
+        // (`mergeNearLabels`); this drops the lower-ranked of two that are farther apart than that but still overlap.
+        "text-allow-overlap": false, "icon-allow-overlap": false, "text-ignore-placement": false,
+        "icon-ignore-placement": false, "symbol-sort-key": ["get", "rank"],
       },
       paint: { "text-color": c.ink },
     },
