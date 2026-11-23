@@ -60,7 +60,9 @@ describe("<WaterScreen> regulations", () => {
     // Chilliwack's; its own row (p.22) is linked by its rules — (T991 round 3) and in the page's Source row, with every
     // other page the page cites (owner 2026-11-22: "one for each page referenced"), never p.7
     expect(screen.getByTestId("keep-tab").textContent).toMatch(/p\.22/);
-    expect(screen.getByTestId("regs-sources").textContent).toBe("SourceB.C. Synopsis p.9 ↗p.21 ↗p.22 ↗All sources ›");
+    // (#63 review) only what the drawn page cites — p.21 was a rule of the every-source sheet only, never on this screen —
+    // and the water's own row (p.22) marked as such (owner: "Page 9 is not the water body page")
+    expect(screen.getByTestId("regs-sources").textContent).toBe("SourceB.C. Synopsis p.9 ↗p.22 (this water) ↗All sources ›");
     expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")))
       .toEqual(["keep-tab", "regs-legal", "regs-all-sources"]);
   }, 30_000);
