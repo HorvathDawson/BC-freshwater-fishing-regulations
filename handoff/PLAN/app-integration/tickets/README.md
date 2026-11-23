@@ -301,7 +301,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1030 | The release manifest carries a changed-waters count (the inbox data row's "N waters changed") | OPEN — 0.9.0 batch | T867 | stopped: not small, see the file |
 | T1028 | The trout schedule bar's open colour = the salmon bar's (owner 2026-11-23) | DONE | 391b37ddb | owner 2026-11-23 |
 | T1029 | One-bank DFO places: the one-side stripe on the Salmon map (T754 option B, the rest; owner Q4–Q6) | OPEN — after 0.9.0 | T754 | T754 (owner 2026-11-15 / 2026-11-22) |
-| T1031 | Sources round 3, the rest: one inline source format, a breakdown per species, one species sheet with Identification / Sources tabs | IN PROGRESS | T991 | owner 2026-11-22 ~23:55 (T991 round-2 answer, items 3–5); split out by lane L21; item 3 built 26839d85d, 5fdd46510 (lane L22: one Source line, `sourceLineOf` + `SourceRow`, T1031-shots/inline-*); items 1–2 lane L23 |
+| T1031 | Sources round 3, the rest: one inline source format, a breakdown per species, one species sheet with Identification / Sources tabs | IN PROGRESS | T991 | owner 2026-11-22 ~23:55 (T991 round-2 answer, items 3–5); split out by lane L21; item 3 built 26839d85d, 5fdd46510, 315d8b3bb (lane L22: one Source line, `sourceLineOf` + `SourceRow`, T1031-shots/inline-*); items 1–2 lane L23 |
 | T1032 | The every-source sheet ("All sources ›") lists rules the screen does not draw, and misses the drawn gear on salmon-only days | OPEN | T991 | #63 review 2026-11-23 (live release probe); the Source row was fixed in #63 |
 
 ## Next after closed testing

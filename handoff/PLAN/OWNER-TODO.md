@@ -9,6 +9,10 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-23 ~10:50: T1031 inline sources (answers, verbatim)
+- T1031 inline look: "Yes, as built (Recommended)" — the one Source line (`T1031-shots/inline-*`), kept as built (PR #69).
+- T1031 the book's name: "'B.C. Synopsis' everywhere (Recommended)" — a rule's in-sentence link reads "B.C. Synopsis p.N ↗",
+  the salmon rows' place label too; built through `core/src/sourceNames.ts` (PR #69).
 ## 2026-11-23 00:05: question round 5 (answers, verbatim)
 - T1026 day picker: "Yes, extend to Mar 31 2027 (Recommended)" — to: should the 0.9.0 data release extend the day-by-day answers through Mar 31, 2027? Built without a format change (picker wraps past New Year; see T1026).
 ## 2026-11-22 18:55: lane L3 (0.9.0 batch) — three looks

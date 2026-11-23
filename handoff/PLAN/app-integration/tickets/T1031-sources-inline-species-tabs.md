@@ -1,6 +1,6 @@
 # T1031 — Sources round 3, the rest: one inline source format, a breakdown per species, one species sheet with tabs
 
-Status: IN PROGRESS — item 3 built, 26839d85d + 5fdd46510 (lane L22, 2026-11-23, on T991's #63): ONE SOURCE LINE, core `sourceLineOf`
+Status: IN PROGRESS — item 3 built, 26839d85d + 5fdd46510 + 315d8b3bb (lane L22, 2026-11-23, on T991's #63): ONE SOURCE LINE, core `sourceLineOf`
 (`tabSources.ts`) drawn by ui-native `SourceRow`: "Source  B.C. Synopsis p.8 ↗  p.49 ↗  <web> ↗  Who says so ›" ("↗" leaves the
 app, "›" opens a sheet; last line of the block it supports). On it: the Gear / Ways to fish / Boats / Reference lines (level words
 "Province · Region 6 · This water's" fold into the section's Sources sheet behind "Who says so ›"), the trout table (its pages,
@@ -9,10 +9,18 @@ closed banner (the boxed SOURCE chip + bare links; Lost Lagoon's "StanleyParkVan
 string "Rule book p.9 · …", now its row + "B.C. Synopsis p.9 ↗" linked through the page's PDF map) and DFO line (was link-coloured
 text "Fisheries and Oceans Canada · Region 6 Skeena" that opened nothing, now "DFO notices, Region 6 Skeena ↗" to that region's
 page), the in-season banner and inbox ("source ›" → "B.C. in-season changes ↗"), the every-source sheet's group heads. Kept: a
-rule's own "Rule book p.N ↗" inside its sentence (owner round 2), card chips (labels). Names: `core/src/sourceNames.ts`; guard
-`app/tools/source-names.test.ts`. Not changed: what is cited; the salmon rows' quiet "Rule book p.9 · Skeena River" place label.
+rule's own page link inside its sentence (owner round 2; renamed, below), card chips (labels). Names: `core/src/sourceNames.ts`; guard
+`app/tools/source-names.test.ts`. Not changed: what is cited.
 Pictures `T1031-shots/inline-{before,after}-{gear,methods,salmon,trout}-{light,dark}.png` (web 390 px, Skeena Class II part,
-staging data) for the owner's pick of the inline look. Items 1–2: lane L23.
+staging data). Items 1–2: lane L23.
+OWNER ANSWERS 2026-11-23 ~10:50, verbatim: inline look "Yes, as built (Recommended)"; the book's name "'B.C. Synopsis' everywhere
+(Recommended)" — so a rule's in-sentence link reads "B.C. Synopsis p.N ↗" (was "Rule book p.N ↗") and so does the salmon rows'
+place label ("B.C. Synopsis p.9 · Skeena River"), the chips, the download list and every sentence naming the book; one constant,
+`sourceNames.ts` `RULE_BOOK` = `SOURCE_AUTHORITIES.synopsis.name`; the guard refuses "rule book" in any app string, any case.
+#69 review fixes folded in: the trout fish sheet's hatchery link is a `link` block (one Source line per sheet, last; pinned on
+the fixture pages with the cited pages per block against the base branch, conformance `sourceLine.fixture.test.ts`); the trout
+line and the salmon book closures reach the foot row (`drawnRegsOf`'s drawn lines); no silent default (trout sources required,
+the sheet title required, no unlinked salmon closure).
 
 Source: owner 2026-11-22 ~23:55 (the T991 round-2 answer, recorded verbatim in T991): "We also should clean up our inline
 sources. Right now the way they display is inconsistent.... We still want to have the break down source like the sheet in
