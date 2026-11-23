@@ -370,9 +370,16 @@ const IMAGERY_STATUS_SWAP: Readonly<Record<string, string>> = {
   "color.status.open": "color.imagery.status.open", "color.status.restricted": "color.imagery.status.restricted",
   "color.status.closed": "color.imagery.status.closed", "color.status.own": "color.imagery.status.own",
   "color.status.base": "color.imagery.status.base", "color.status.no_access": "color.imagery.status.no_access",
-  "color.salmon.open": "color.imagery.status.open", "color.salmon.release": "color.imagery.status.restricted",
+  "color.salmon.open": "color.imagery.status.open", "color.salmon.open-area": "color.imagery.status.open", "color.salmon.release": "color.imagery.status.restricted",
   "color.salmon.closed": "color.imagery.status.closed", "color.salmon.check": "color.imagery.status.own",
 };
+/**
+ * THE LAYERS THE SATELLITE SET APPLIES TO: water lines and water fills only (owner 2026-11-22 approved line colours; land
+ * closure areas — parks, reserves, no-access land, sign zones — keep their theme's colours). A guard test holds that every
+ * layer coloured by `color.status.own` / `base` (a water's statuses) is listed, so a new water layer cannot be missed.
+ */
+export const IMAGERY_WATER_LAYERS: ReadonlySet<string> = new Set(
+  ["stream", "stream__arrows", "lake", "lake__edge", "lake_flowing", "wetland_flowing"]);
 /** `t` with the status colours as they are over satellite imagery. */
 export function onImageryTokens(t: Tokens): Tokens {
   const out: Tokens = { ...t };

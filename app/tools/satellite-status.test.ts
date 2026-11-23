@@ -13,7 +13,7 @@
 import { describe, expect, it } from "vitest";
 import type { DayProfiles } from "@app/core";
 import { baseAdapter, type MapHandle } from "../packages/map/src/adapters/contract";
-import { resolveTheme, salmonStatusColour, waterStatusColour } from "../packages/map/src/style";
+import { IMAGERY_WATER_LAYERS, STYLE_META, resolveTheme, salmonStatusColour, waterStatusColour } from "../packages/map/src/style";
 
 const RAW = { open: "6BFF9E", restricted: "E3A6FF", closed: "FF3B6D", own: "FFD307", base: "8CC3FF", no_access: "E6E4E2" } as const;
 /** The owner's approved hexes, written without the `#` so the palette check (colours live in tokens + themes only) does not mistake the pin for a palette. */
@@ -78,5 +78,47 @@ describe("T940 satellite status set", () => {
       expect(waterStatusColour(t, "base"), `${t} drawn base`).toBe(resolveTheme(t)["color.status.base"]);
     }
     expect(waterStatusColour("light", "base")).not.toBe(waterStatusColour("light", "base", true));
+  });
+
+  /** The paint a layer is handed in a mode, on the ground(s), as lowercase JSON. */
+  function layerPaint(theme: string, layer: string, mode: string, basemap: "map" | "satellite"): string {
+    const paint: Record<string, Record<string, unknown>> = {};
+    const h: MapHandle = { setVisibility: () => {}, setPaint: (l, p, v) => { (paint[l] ??= {})[p] = v; },
+                           setFeatureState: () => {}, clearFeatureStates: () => {} };
+    const a = baseAdapter("web");
+    a.applyView(h, "plain", theme);
+    a.setLayerMode(h, layer, mode, theme);
+    if (mode === "salmon") a.setChannel(h, "salmon", { open: ["s0"], release: [], closed: ["s3"], check: [], none: [] } as never, theme);
+    a.setBasemap(h, basemap, theme);
+    return JSON.stringify(paint[layer]).toLowerCase();
+  }
+
+  it("a lake or wetland in the Salmon view keeps on satellite in the same green as the stream and the key", () => {
+    for (const t of THEMES)
+      for (const layer of ["lake", "lake__edge", "wetland_flowing"]) {
+        const sat = layerPaint(t, layer, "salmon", "satellite");
+        expect(sat, `${t} ${layer}`).toContain(SET.open.toLowerCase());
+        expect(sat, `${t} ${layer}`).not.toContain(String(resolveTheme(t)["color.salmon.open-area"]).toLowerCase());
+      }
+  });
+
+  it("land areas keep their theme's colours on satellite: the swap is for water lines and fills only", () => {
+    for (const t of THEMES) {
+      const th = resolveTheme(t);
+      for (const [layer, token] of [["park_closed", "color.status.closed"], ["eco_reserve", "color.status.closed"],
+                                    ["no_access", "color.status.closed"], ["sign_zone", "color.status.closed"],
+                                    ["no_access_permit", "color.status.restricted"]] as const) {
+        const want = String(th[token]).toLowerCase();
+        expect(layerPaint(t, layer, "plain", "satellite"), `${t} ${layer}`).toContain(want);
+        if (t !== "dark") expect(layerPaint(t, layer, "plain", "satellite"), `${t} ${layer} must not wear the satellite set`).not.toContain(SET[token === "color.status.closed" ? "closed" : "restricted"].toLowerCase());
+      }
+    }
+  });
+
+  it("every layer a water's own / base status colours is on the satellite list, and no land layer is", () => {
+    const statusWater = Object.entries(STYLE_META.colorModes)
+      .filter(([, modes]) => JSON.stringify(modes).match(/"color\.status\.(own|base)"/)).map(([l]) => l).sort();
+    expect(statusWater.every((l) => IMAGERY_WATER_LAYERS.has(l))).toBe(true);
+    for (const land of ["park_closed", "eco_reserve", "no_access", "sign_zone", "no_access_permit"]) expect(IMAGERY_WATER_LAYERS.has(land)).toBe(false);
   });
 });

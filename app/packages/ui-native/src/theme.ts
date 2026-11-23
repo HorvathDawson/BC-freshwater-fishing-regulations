@@ -301,6 +301,25 @@ export function onSatellite(p: Palette, theme: string): Palette {
   };
 }
 
+/** Relative luminance and WCAG contrast of two `#rrggbb` colours. */
+const luminance = (hex: string): number => {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+    .map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)) as [number, number, number];
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+const ratio = (a: string, b: string): number => {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x) as [number, number];
+  return (hi + 0.05) / (lo + 0.05);
+};
+/**
+ * (T940, owner 2026-11-22: "Dark outline on swatch (Recommended)") THE SATELLITE KEY'S SWATCH OUTLINE: the satellite set is pale
+ * (it is drawn on photographs), so on a pale card (light, colour-blind) a swatch under 3:1 (WCAG 1.4.11) gets a thin outline in
+ * the theme's ink. A swatch that already reaches 3:1 on its card (dark's) gets none.
+ */
+export function satelliteKeyEdge(palette: Palette, colour: string): string | undefined {
+  return ratio(colour, palette.card) < 3 ? palette.ink : undefined;
+}
+
 /** The status colours for one theme: the map's tokens, through the map's own resolver. */
 const statusColours = (theme: string) => ({
   closed: colour(theme, "color.status.closed"),

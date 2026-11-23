@@ -24,7 +24,7 @@ import { LEGEND_RAMP_MAX, legendCard, LegendCount, LegendRamp, LegendRows, Legen
 import { BasinDays } from "../BasinDays";
 import { legendColour } from "../LayersSheet";
 import { LEGEND_TEXT, TYPE } from "../type";
-import { changeRampStops, flowRampStops, onSatellite, round, type Palette } from "../theme";
+import { changeRampStops, flowRampStops, onSatellite, round, satelliteKeyEdge, type Palette } from "../theme";
 import type { MapColouring } from "./useMapColouring";
 
 /**
@@ -45,7 +45,9 @@ export function MapLegend({ col, conditions, palette: drawnPalette, theme, mapDa
 }) {
   const { flowParam, horizon, layers, mm, cond } = col;
   // (T940) over satellite the key's status swatches are the satellite set the map paints there
-  const palette = useMemo(() => (mm.basemap === "satellite" ? onSatellite(drawnPalette, theme) : drawnPalette), [drawnPalette, theme, mm.basemap]);
+  const sat = mm.basemap === "satellite";
+  const palette = useMemo(() => (sat ? onSatellite(drawnPalette, theme) : drawnPalette), [drawnPalette, theme, sat]);
+  const edgeOf = (colour: string) => (sat ? satelliteKeyEdge(palette, colour) : undefined);
   // (T904) the desktop's Conditions key is a card over the map, not a bar under it; phones and narrow web keep the bar
   const card = tabsAsRail(useLayoutClass());
   const onConditions = mm.onConditions;
@@ -69,13 +71,13 @@ export function MapLegend({ col, conditions, palette: drawnPalette, theme, mapDa
     : {});
   // (T937) one entry per status, No access too: Salmon's key wears that very entry (not tappable there: no salmon class)
   const statusRow = (s: WaterStatus, tapped: boolean) => (
-    <LegendCount key={s} palette={palette} colour={palette.waterStatus[s]} tight
+    <LegendCount key={s} palette={palette} colour={palette.waterStatus[s]} outline={edgeOf(palette.waterStatus[s])} tight
                  line dotted={WATER_STATUS_LINE[s] === "dotted"} striped={s === "closed" ? closedCueColour(theme) : undefined}
                  label={s === "closed" ? closedKey(mapDay) : MAP_KEY.status[s]} {...(tapped ? tap(s) : {})} />
   );
   const statusRows = WATER_STATUSES.map((s) => statusRow(s, true));
   const salmonRows = salmonLegend().map((r) => (
-    <LegendCount key={r.status} palette={palette} colour={salmonStatusColour(theme, r.status, mm.basemap === "satellite")} line tight
+    <LegendCount key={r.status} palette={palette} colour={salmonStatusColour(theme, r.status, sat)} outline={edgeOf(salmonStatusColour(theme, r.status, sat))} line tight
                  striped={r.status === "closed" ? closedCueColour(theme) : undefined}
                  cased={r.status === "open" ? salmonCasingColour(theme) ?? undefined : undefined}
                  label={MAP_KEY.salmon[r.status]} {...tap(r.status)} />
@@ -129,7 +131,7 @@ export function MapLegend({ col, conditions, palette: drawnPalette, theme, mapDa
       ) : layers.water.drawn !== "regulations" ? (
         // ONE COLOURING FOR ALL WATER: the measure's key, ending with what draws neutral and why
         waterLegend(layers.water.drawn).map((r, i) => (
-          <LegendCount key={r.label} palette={palette} colour={legendColour(palette, r.swatch)}
+          <LegendCount key={r.label} palette={palette} colour={legendColour(palette, r.swatch)} outline={r.swatch.kind === "status" ? edgeOf(legendColour(palette, r.swatch)) : undefined}
                        label={waterKeyWords(layers.water.drawn)[i] ?? r.label} />
         ))
       ) : col.regsLayer === "salmon" ? (

@@ -5,6 +5,7 @@
  * map itself must never be asked to draw UI — everything here sits above it.
  */
 import { FLOW_LEGEND, KEY_ISOLATE_WORDS, legendCount, legendTickLabel, NORMAL_BAND } from "@app/core";
+import type { ReactNode } from "react";
 import { ScrollView, useWindowDimensions, View } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
@@ -157,8 +158,13 @@ export function LegendRows({ rows }: { rows: readonly React.ReactNode[] }) {
   );
 }
 
+/** (T940) a swatch with a thin outline round it (the satellite key), or as it is */
+function Outlined({ outline, children }: { outline?: string; children: ReactNode }) {
+  return outline ? <View testID="legend-outline" style={{ borderWidth: 1, borderColor: outline, padding: 1 }}>{children}</View> : <>{children}</>;
+}
+
 /** One "29 closed" entry. The count is the point — it says how much map is that colour. */
-export function LegendCount({ palette, colour, n, label, line, dotted, striped, issue, edge, cased, rim, ring, tight, onPress, alone, faded }:
+export function LegendCount({ palette, colour, n, label, line, dotted, striped, issue, edge, cased, rim, ring, outline, tight, onPress, alone, faded }:
   { palette: Palette; colour: string; n?: number; label: string;
     /**
      * Draw the swatch as a LINE instead of a square — for a key to lines. Every line swatch is
@@ -182,6 +188,8 @@ export function LegendCount({ palette, colour, n, label, line, dotted, striped, 
     rim?: string;
     /** (T636) a round DOT in `colour` with a RING in this colour, as the map draws a gauge reporting only the other quantity */
     ring?: string;
+    /** (T940) a thin OUTLINE round the swatch in this colour: the satellite key's pale colours on a pale card (`satelliteKeyEdge`) */
+    outline?: string;
     /** (T396) the regulations key's narrower swatches and closer label (`LEGEND_ROWS`), so its rows fit a phone */
     tight?: boolean;
     /** (T377) a TAPPABLE class: a tap shows it alone on the map (`isolate`), again shows every class */
@@ -192,7 +200,7 @@ export function LegendCount({ palette, colour, n, label, line, dotted, striped, 
   const row = { flexDirection: "row" as const, alignItems: "center" as const, gap: tight ? LEGEND_ROWS.gap : 7,
                 opacity: faded ? 0.4 : 1 };
   const body = (<>
-      {edge ? <View testID={`legend-edge-${edge}`}
+      <Outlined outline={outline}>{edge ? <View testID={`legend-edge-${edge}`}
                     style={{ width: tight ? LEGEND_ROWS.edge : 22, height: 10, borderWidth: 1.5, borderColor: colour,
                              borderStyle: edge }} />
         : line && dotted ? <DottedSwatch colour={colour} width={lineW} thick={4} />
@@ -203,7 +211,7 @@ export function LegendCount({ palette, colour, n, label, line, dotted, striped, 
         ? { width: lineW, height: cased ? 6 : 4, backgroundColor: colour, ...(cased ? { borderWidth: 1, borderColor: cased } : {}) }
         : { width: 12, height: 12, borderRadius: palette.r.chip, backgroundColor: colour,
             ...(rim ? { borderWidth: 1, borderColor: rim, borderStyle: "dashed" as const } : {}) }}
-        {...(rim ? { testID: "legend-rim" } : {})} />}
+        {...(rim ? { testID: "legend-rim" } : {})} />}</Outlined>
       {n !== undefined && (
         <Text style={{ ...TYPE.figure, fontSize: LEGEND_TEXT, color: palette.ink }}>{n}</Text>
       )}
