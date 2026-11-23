@@ -68,6 +68,10 @@ describe("the closed-area circles (T812)", () => {
     const open = payload();
     (open.ca[CIRCLE] as { g: unknown }).g = RING.slice(0, 3);
     expect(() => decodeSalmonHead(head(open), "0011223344556677")).toThrow(/ca 6:babine-lake#closed:f4c347aad97f/);
+    // a ring of four points whose last is not its first: the closure check itself refuses it (not the length check)
+    const unclosed = payload();
+    (unclosed.ca[CIRCLE] as { g: unknown }).g = [...RING.slice(0, 3), [RING[0]![0] + 0.001, RING[0]![1]]];
+    expect(() => decodeSalmonHead(head(unclosed), "0011223344556677")).toThrow(/ca 6:babine-lake#closed:f4c347aad97f/);
     const lost = payload();
     (lost.ca[CIRCLE] as { chain: number }).chain = 9;
     expect(() => decodeSalmonHead(head(lost), "0011223344556677")).toThrow(/ca /);

@@ -4,6 +4,7 @@
  * the theme. Re-added on `styledata` if a style change dropped them (a theme switch rebuilds the style).
  */
 import { useEffect, useRef } from "react";
+import { reportFailure } from "@app/core";
 import type * as maplibregl from "maplibre-gl";
 import type { MapProps } from "../map-props";
 import { SALMON_CIRCLE_BEFORE, SALMON_CIRCLE_SOURCE, salmonCircleLayers, salmonCirclesData } from "../salmon-circles";
@@ -11,6 +12,17 @@ import { afterLoad } from "./ready";
 import type { WebMapRefs } from "./refs";
 
 type Layer = Parameters<maplibregl.Map["addLayer"]>[0];
+
+/**
+ * (#50 review) The layer the circles go under: the streams (`SALMON_CIRCLE_BEFORE`), so a closed creek mouth never covers
+ * the water's own line. A style without it is a defect: REPORTED, and the circles are not drawn (null) — never silently
+ * put on top of everything (no silent fallbacks).
+ */
+export function circlesBefore(m: Pick<maplibregl.Map, "getLayer">): string | null {
+  if (m.getLayer(SALMON_CIRCLE_BEFORE)) return SALMON_CIRCLE_BEFORE;
+  reportFailure(new Error(`salmon circles: the map style has no "${SALMON_CIRCLE_BEFORE}" layer to draw them under`));
+  return null;
+}
 
 export function useSalmonCircles({ map }: WebMapRefs, salmon: MapProps["salmon"], modes: MapProps["modes"], theme: string) {
   const data = salmonCirclesData(salmon, modes?.stream);
@@ -24,8 +36,9 @@ export function useSalmonCircles({ map }: WebMapRefs, salmon: MapProps["salmon"]
     let alive = true;
     const ensure = () => {
       if (!alive || !m.isStyleLoaded()) return;
+      const before = circlesBefore(m);
+      if (before === null) return;
       if (!m.getSource(SALMON_CIRCLE_SOURCE)) m.addSource(SALMON_CIRCLE_SOURCE, { type: "geojson", data: dataNow.current as never });
-      const before = m.getLayer(SALMON_CIRCLE_BEFORE) ? SALMON_CIRCLE_BEFORE : undefined;
       for (const l of salmonCircleLayers(theme) as Layer[]) {
         if (m.getLayer(l.id)) continue;
         m.addLayer(l, before);
