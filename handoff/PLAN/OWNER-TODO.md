@@ -13,6 +13,21 @@ with the default Claude uses until you answer). Newest first inside each section
 - **Look (you): T997 Nicomekl labels** — `handoff/PLAN/app-integration/T997-shots/` (web before/after, Android after).
 - **Pick (you): T1004 Class II tag** A (now, far right) or B (beside the name) — `T1004-shots/` (recommend B).
 - **Approve (you): T940 satellite line colours** — `T940-shots/proposal-vs-now.png` (a mock-up; recommend the set in the ticket).
+## 2026-11-22 23:20: question round 1 (answers, verbatim)
+- T1010 region page: "B: map preview" — being built.
+- T940 satellite: "Yes, use the proposed set" — being built.
+- T1004 Class II tag: "I don't like either could we think of a better spot?" — new placements coming as pictures.
+- T991 sources: "One source row in bottom. But should have different ones for each tab too. Like condition sources
+  don't need to be on regulations. Please think about it more we also still have inline sources?" — a refined
+  per-tab proposal with the inline-sources question answered, as pictures.
+
+## 2026-11-22 23:35: question round 2 (answers, verbatim)
+- T997 + T465 labels: "Looks better but why does it even need to show both? Like dyke gates is different then 23m below?
+  Only need boundaries for highlighted section." — only the highlighted part's own boundaries get labels.
+- T467 shoreline: "Yes, the shaded band (Recommended)" — being built.
+- T802 Class I/II on the map: "Don't want on map. Only in card I think" — folds into T1004.
+- T812 Babine circles: "Yes, as shown (Recommended)" — being finished.
+
 ## 2026-11-22 20:15: 0.9.0 batch chat (stopped for credits) — open for you
 - **Questions for the next chat's round (pictures in each ticket's shots folder):** T1010 region page look (A, B or C;
   A recommended), T1004 Class II tag (A now / B beside the name; B recommended), T940 satellite colour set (approve?),
@@ -77,6 +92,7 @@ with the default Claude uses until you answer). Newest first inside each section
 - T983 (dialog): the 7 "July 30" closures keep showing while the Province lists them (T548 stands); no automatic repair for phones on 0.8.4 ("Mark all read" is enough); the inbox shows the notice's own date (first-seen only when it has none, labelled so).
 - T988: the Done that does not close is on the trout table's Sources menu, on Android.
 - Answered 2026-11-22 (dialog): next version 0.9.0 as computed, no release until the next chat's work is in ("let it be 0.9 but we wont release yet…", T998); Closed testing gets the PRODUCTION Android build (T993 runbook); CONFIRM_PROD: "only me unless i say otherwise that time": the production website and feeds worker are your steps again (AGENTS W46 stands; T993 runbook).
+- Store checks 2026-11-22 23:00: no TestFlight feedback; two new STAGING reports (T1023 "Flows into" should open the receiving water on the map; T1024 Gravel Slough highlight); one new production crash kind folded into T1005; your tester's two points are T1025 (sub-tab jump scrolls through sections) and T1026 (day picker stops at December 2026); Play reviews: tell me if any came in.
 - Store checks 2026-11-22 18:15: TestFlight 0.8.5 (44) external APPROVED, in beta testing; no TestFlight feedback beyond T982's 6; production reports since 11-21: nothing new (T985 ×4, T1004); two STAGING reports from 0.8.5 (43), new: Serpentine ditches on the mainstem (T1012) and Runs slow on first switch (T1013); crashes: the same kinds as T1005 (hashes now recorded there) plus one staging 429 on an exit record (folded into T1005); Play reviews: no reader yet (T1006), tell me if any came in.
 - Store checks 2026-11-22 11:30: TestFlight 0.8.5 (44) external APPROVED, in beta testing; no TestFlight feedback beyond T982's 6; 6 production in-app reports since 11-20: T979, T985 ×4, and one new (Class II tag placement, T1004); ~20 crash kinds no ticket names (T1005, mostly 0.8.4 HTTP 404s and a PMTiles "wrong magic number"); Play reviews: no reader yet (T1006), tell me if any came in.
 - Store checks 12:50: TestFlight 0.8.4 (43) external APPROVED, in beta testing; no new TestFlight feedback beyond T982's 6; 5 in-app reports: one is T979, four are T985. Your tester's Trout/Salmon switch note is T986. All join the batch.

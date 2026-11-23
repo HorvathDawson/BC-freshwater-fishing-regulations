@@ -70,3 +70,7 @@ Recommendation (lane L2): **A** — one obvious next step on a phone's first scr
 B is the most inviting on desktop but heavier and the picture is not the real map.
 The search without script: a GET form; where it lands (a filtered list page per region, or the app with a query key) is
 part of building the picked look.
+
+## Owner pick 2026-11-22 23:20 (dialog with the phone pictures A/B/C)
+"B: map preview" — the dot picture of the region's waters, then the "Open the map" button and the search. Build it
+(self-hosted, ~10 KB per page as measured), phone + desktop, light + dark.
