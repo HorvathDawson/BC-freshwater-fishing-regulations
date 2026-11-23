@@ -12,9 +12,12 @@
  *   node app/tools/sourcemaps.mjs keep-android <index.android.bundle.map> <key>
  *        copy the Hermes map of a release build (deploy/staging/build-apk.sh) to data/sourcemaps/<key>/android/.
  *   node app/tools/sourcemaps.mjs keep-r8 <mapping.txt> <key>
- *        (T749, T1003) copy R8's mapping.txt of a release build (R8 is always on) to data/sourcemaps/<key>/android/r8-mapping.txt:
- *        it reads the build's renamed Java/Kotlin frames (a native/Java crash stack) back. Missing or empty: it FAILS, so
- *        a shrunk build whose names cannot be read back is never kept as if it could.
+ *        (T749, T1003) copy R8's mapping.txt of a release build (R8 is always on) to data/sourcemaps/<key>/android/r8-mapping.txt.
+ *        `symbolicate` below does NOT read it: our own crash store holds no Java/Kotlin frames (JS stacks are Hermes's;
+ *        the exit-info module sends Android's exit reason, never a trace). The same mapping goes to Play with the AAB
+ *        (play-upload.py --mapping), where Android vitals reads Java crashes and ANRs back; this copy is for a Java stack
+ *        read by hand (Play Console, logcat): `$ANDROID_HOME/cmdline-tools/latest/bin/retrace <r8-mapping.txt> <stack.txt>`.
+ *        Missing or empty: it FAILS, so a shrunk build whose names cannot be read back is never kept as if it could.
  *   node app/tools/sourcemaps.mjs symbolicate [<crash json> | -]
  *        a crash-store kind (or its `sample`) from a file or stdin: each frame of its stack with the source position
  *        it came from. No folder for its build: it fails, naming the folders there are.

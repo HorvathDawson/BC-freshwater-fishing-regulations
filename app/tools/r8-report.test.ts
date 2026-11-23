@@ -87,6 +87,49 @@ describe("T1009: the bundle's scores (r8.json) and the floors", () => {
   });
 });
 
+describe("T1009: check --aab reads the bundle itself (r8.json, proguard.map, the DEX size)", () => {
+  const MAP = "BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map";
+  const R8 = "BUNDLE-METADATA/com.android.tools/r8.json";
+  const good = { options: { isObfuscationEnabled: true, isOptimizationsEnabled: true, isShrinkingEnabled: true },
+                 stats: { noObfuscationPercentage: 27.54, noOptimizationPercentage: 27.97, noShrinkingPercentage: 27.68 } };
+  /** a stand-in AAB: a zip with the named entries (python3's zipfile; `unzip` reads it as it reads a real bundle) */
+  function aab(entries: Record<string, string>) {
+    const d = mkdtempSync(join(tmpdir(), "r8-aab-"));
+    const out = join(d, "app.aab");
+    const r = spawnSync("python3", ["-c", "import json,sys,zipfile\nz=zipfile.ZipFile(sys.argv[1],'w')\n" +
+      "for k,v in json.loads(sys.argv[2]).items(): z.writestr(k,v)\nz.close()", out, JSON.stringify(entries)], { encoding: "utf8" });
+    expect(r.status, r.stderr).toBe(0);
+    return out;
+  }
+  const dex = { "base/dex/classes.dex": "x".repeat(2_000), "base/dex/classes2.dex": "y".repeat(500) };
+
+  it("a whole bundle over the floors passes, one line with the scores and the DEX size", () => {
+    const r = run("check", "--config", file(CONFIG), "--aab", aab({ ...dex, [MAP]: "a -> b:\n", [R8]: JSON.stringify(good) }));
+    expect(r.status, r.stderr).toBe(0);
+    expect(r.stdout.trim()).toBe(`R8 optimization 72%, shrinking 72.3%, obfuscation 72.5% (floors ${FLOORS.optimization}/` +
+      `${FLOORS.shrinking}/${FLOORS.obfuscation}; Play's line 25%; DEX 0.0 MB uncompressed)`);
+  });
+
+  it("no proguard.map in the bundle: refused", () => {
+    const r = run("check", "--config", file(CONFIG), "--aab", aab({ ...dex, [R8]: JSON.stringify(good) }));
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain(`r8-report: the bundle carries no R8 mapping (${MAP}): did R8 run?`);
+  });
+
+  it("no r8.json in the bundle: refused", () => {
+    const r = run("check", "--config", file(CONFIG), "--aab", aab({ ...dex, [MAP]: "a -> b:\n" }));
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain(`r8-report: the bundle has no ${R8} (R8's scores, what Play reads): did R8 run?`);
+  });
+
+  it("a bundle under a floor: refused, the category named", () => {
+    const low = { ...good, stats: { ...good.stats, noObfuscationPercentage: 99 } };
+    const r = run("check", "--config", file(CONFIG), "--aab", aab({ ...dex, [MAP]: "a -> b:\n", [R8]: JSON.stringify(low) }));
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain(`r8-report: R8 obfuscation 1% is under its floor ${FLOORS.obfuscation}%`);
+  });
+});
+
 describe("T1009: the broad keep rules, with what they match", () => {
   it("counts the kept classes and members a package wildcard matches, rules joined over lines", () => {
     const seeds = "lib.A\nlib.A: void f()\nlib.sub.B\nlib.sub.B: int x\nlib.sub.B: void g()\nother.C\n";

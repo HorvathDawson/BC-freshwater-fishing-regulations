@@ -99,6 +99,15 @@ Code: c34b990ba (this ticket) + 6f0be8f4d (T1009's `r8-report.mjs`, which the bu
      `HasChildPressedStateDelay` keep their names.
    - `crash-bed` 5/5 on the stub APK (`session.sh --crash-stub`, R8 on, `n1_pixel`): an unhandled promise, an uncaught
      JS error and a native SIGSEGV each reach the worker handler (the exit-info module reads Android's exit record).
+   - **Device checks still owed with R8 on** (independent review 2026-11-22; they go into the 0.9.0 test pass, not this
+     lane): expo-location's locate (`locate` bench / "At my location" with a real fix); the expo-background-task /
+     expo-task-manager task actually running in the background (`bg-update`); an expo-notifications local alert firing;
+     the in-app update prompt and Play Core on the Play Internal build (only a Play-installed build can show it).
+   - **Reading the mapping back:** `sourcemaps.mjs symbolicate` does not read `r8-mapping.txt`, and that is correct: our
+     crash store holds no Java/Kotlin frames (JS stacks are Hermes's; exit-info sends Android's exit reason, never a
+     trace). Play reads Java crashes and ANRs back with the uploaded mapping; a Java stack from Play Console or logcat
+     is read by hand with `$ANDROID_HOME/cmdline-tools/latest/bin/retrace <r8-mapping.txt> <stack.txt>` (the
+     `keep-r8` comment in `sourcemaps.mjs` says so now; it claimed the kept copy read our own crashes' frames back).
 5. **Play's figure:** not read yet: no Play upload was made from this lane (left: the Play internal build of the 0.9.0
    release, then Play's "DEX code optimization" figures into this ticket and T1009). R8's own figures for this head,
    which Play reads from the AAB: obfuscation 72.5%, optimization 72.0%, shrinking 72.3% (was obfuscation 1%).
