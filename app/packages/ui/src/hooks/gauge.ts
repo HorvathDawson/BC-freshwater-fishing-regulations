@@ -55,7 +55,7 @@ export interface Conditions {
 export const READING_POLL_MS = FEED_TTL_MS;
 
 export function useStationReading(
-  source: WaterSource, station: StationId | null,
+  source: Pick<WaterSource, "gaugeNow">, station: StationId | null,
 ): Async<Conditions> {
   // P02: re-asked every READING_POLL_MS while a view holds it (the feed's own cache lives as long), keeping the last
   // reading on screen meanwhile; each tick also re-renders, so its age line moves on.
@@ -78,7 +78,7 @@ export function useStationReading(
 export const READING_REUSE_MS = READING_POLL_MS / 2;
 
 /** One station's reading as the conditions view holds it — what `useStationReading` and the prefetch ask. */
-export async function stationReading(source: WaterSource, station: StationId | null): Promise<Conditions> {
+export async function stationReading(source: Pick<WaterSource, "gaugeNow">, station: StationId | null): Promise<Conditions> {
   const empty: Conditions = {
     station: null, stationName: null, discharge: null, level: null, parameter: null, percentile: null,
     standing: null, trust: null, fetchedAt: null, observedAt: null, trace: [],

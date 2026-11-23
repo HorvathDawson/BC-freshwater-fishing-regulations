@@ -182,6 +182,16 @@ const SKY: Readonly<Record<string, string>> = Object.fromEntries(Array.from({ le
 /** (T1039) the chart's inputs the build writes into each page: the station's climatology and the app's faces */
 export interface ChartInputs { readonly clim: readonly StationClim[]; readonly fonts: string | null }
 
+/**
+ * A station's chart inputs from the release's climatology map (`readGaugeClim`): its rows (none: the release has no envelope
+ * for it, which the app charts the same way) and the app's faces. No map at all is a build that skipped the read: refused,
+ * since every page would chart no normal range.
+ */
+export function chartInputsOf(clim: ReadonlyMap<string, readonly StationClim[]> | null | undefined, station: string, fonts: string | null): ChartInputs {
+  if (!clim) throw new Error("seo: gauge pages without the release's climatology (gaugeClim) would draw no normal range");
+  return { clim: clim.get(station) ?? [], fonts };
+}
+
 export function gaugeConfig(g: GaugeModel, release: string, chart: ChartInputs): GaugeConfig {
   return {
     station: g.station,
@@ -232,7 +242,7 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
     `<h1>${esc(g.name)}</h1>` +
     `<p class="small">Water Survey of Canada gauge ${esc(g.station)} · read each time this page opens.</p>` +
     `<div id="gauge-now" class="now-card"><p class="small">Reading the latest from the gauge…</p></div>` +
-    `<noscript><p class="warn">The live reading, chart and weather need JavaScript.</p></noscript>` +
+    `<noscript><p class="warn">The live reading, chart and weather need JavaScript.</p><style>#gauge-chart{display:none}</style></noscript>` +
     // (T1039) the app's own chart, drawn by its deferred script (gaugeChart.tsx); the box keeps its place meanwhile
     `<h2>Readings and forecast</h2><div id="gauge-chart"><p class="small">Drawing the chart…</p></div><div id="gauge-credit"></div>` +
     `<div id="gauge-weather"><p class="small">Reading the forecast…</p></div>` +

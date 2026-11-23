@@ -16,8 +16,8 @@ import { createElement as h } from "react";
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render, waitFor } from "@testing-library/react";
 import { figure, noChartSentence, standing, standingLong, STORE_CONTACT } from "@app/core";
-import { httpFeed, stationChartSource, type StationId } from "@app/data";
-import { useStationChart, type ChartSource } from "@app/ui";
+import { httpFeed, stationChartSource, type SectionId, type StationId, type WaterSource } from "@app/data";
+import { NO_RECORD_LINE } from "@app/core";
 import { parseManifest } from "../../packages/data/src/manifest";
 import { sha256Hex } from "../../packages/data/src/sha256";
 import type { Db, Row } from "../../packages/data/src/sql/db";
@@ -25,10 +25,11 @@ import { releaseLoader, type DbName } from "../../packages/data/src/release/load
 import { clim3 } from "../../packages/data/src/release/packed";
 import { RELEASE_QUERIES as R } from "../../packages/data/src/release/queries";
 import { makeReleaseSource } from "../../packages/data/src/release/source";
-import { StationChart } from "../../packages/ui-native/src/StationChart";
 import { THEMES } from "../../packages/ui-native/src/theme";
 import { cardFacts, cardModel, type CardStation } from "../../workers/feeds/src/gauges/card/card";
-import { CHART_FAILED, GaugeChart, GaugePageGetApp, mountGaugeChart } from "./gaugeChart";
+import { CHART_FAILED, GaugeChart, GaugeChartRoot, GaugePageGetApp, mountGaugeChart, type PageSource } from "./gaugeChart";
+import { ConditionsPanel } from "../../packages/ui-native/src/ConditionsPanel";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { showWebSpotsNotice, WebSpotsNotice } from "../../packages/ui-native/src/WebSpotsNotice";
 import { readingHtml, type Facts } from "./gaugeClient";
 
@@ -79,15 +80,15 @@ const CLIM = [{ parameter: "discharge" as const, bands: bands(1) }, { parameter:
 /** the live feed over a fetch that answers the two files (the app's own `httpFeed`, as the web app and the page build it) */
 const BASE = "https://data.example/feeds/live";
 const asked: string[] = [];
-const feedFetch = (station: () => Response = () => new Response(JSON.stringify(STATION))) => (async (u: string) => {
+const feedFetch = (station: () => Response = () => new Response(JSON.stringify(STATION)), index: unknown = INDEX) => (async (u: string) => {
   asked.push(u);
-  if (u === `${BASE}/index.json`) return new Response(JSON.stringify(INDEX));
+  if (u === `${BASE}/index.json`) return new Response(JSON.stringify(index));
   if (u === `${BASE}/${ST}.json`) return station();
   return new Response("not here", { status: 404 });
 }) as typeof fetch;
 
 /** THE APP'S SOURCE: the release source over a release whose climate file holds the same rows */
-function appSource(feed: ReturnType<typeof httpFeed>): ChartSource {
+function appSource(feed: ReturnType<typeof httpFeed>, clim: readonly { parameter: string; bands: Uint8Array }[] = CLIM): WaterSource {
   const enc = (s: string) => new TextEncoder().encode(s), handles = "d768d6e135e62b99";
   const fmt: Record<string, string> = { core: "core/1", conditions: "conditions/1", climate: "climate/2" };
   const manifest = parseManifest({
@@ -97,8 +98,8 @@ function appSource(feed: ReturnType<typeof httpFeed>): ChartSource {
   const open = async (name: DbName): Promise<Db> => {
     const all = async (sql: string, ...p: unknown[]): Promise<Row[]> => {
       if (sql.startsWith("SELECT k, v FROM meta")) return [{ k: "format", v: fmt[name]! }, { k: "section_handles", v: handles }];
-      if (name === "climate" && sql === R.CLIMATOLOGY!.sql) return CLIM.filter((c) => p[0] === ST && c.parameter === p[1]).map((c) => ({ bands: c.bands }));
-      if (name === "climate" && sql === R.CLIM_PARAMETERS!.sql) return p[0] === ST ? CLIM.map((c) => ({ parameter: c.parameter })) : [];
+      if (name === "climate" && sql === R.CLIMATOLOGY!.sql) return clim.filter((c) => p[0] === ST && c.parameter === p[1]).map((c) => ({ bands: c.bands }));
+      if (name === "climate" && sql === R.CLIM_PARAMETERS!.sql) return p[0] === ST ? clim.map((c) => ({ parameter: c.parameter })) : [];
       return [];
     };
     return { all, get: async (sql: string, ...p: unknown[]) => (await all(sql, ...p))[0], close: () => {} };
@@ -108,12 +109,16 @@ function appSource(feed: ReturnType<typeof httpFeed>): ChartSource {
 
 afterEach(cleanup);
 
-/** a chart's markup once it is drawn whole (its run's lines in, nothing still loading) and has stopped changing */
-async function settled(html: () => string): Promise<string> {
+/**
+ * a chart's markup once it is drawn whole (`drawn`: its run's lines in), nothing is still loading, the gesture handler has
+ * attached to the plot (it styles the plot when it does, a moment after the render) and the markup has stopped changing
+ */
+async function settled(html: () => string, drawn = "About this forecast"): Promise<string> {
   let last = "";
   await waitFor(() => {
     const now = html();
-    expect(now).toContain("About this forecast");
+    expect(now).toContain(drawn);
+    expect(now).toContain("touch-action: pan-y");
     expect(now).not.toContain('aria-busy="true"');
     const same = now === last;
     last = now;
@@ -157,23 +162,59 @@ describe("the gauge page shows what the app shows for one station", () => {
     await expect(page.gaugeSeries("08XX999" as StationId, "72h")).rejects.toThrow(/asked for 08XX999, it holds 08MH001/);
   });
 
-  it("(T1039) the page mounts the app's own chart: the same markup as the Conditions card's StationChart over the release source", async () => {
-    const feed = httpFeed(BASE, feedFetch());
-    const palette = THEMES.light;
-    function AppChart({ source }: { source: ChartSource }) {
-      return h(StationChart, { vm: useStationChart(source, ST, { width: 0 }), palette, colour: palette.live });
-    }
-    const pageView = render(h(GaugeChart, { source: stationChartSource(ST, feed, CLIM), station: ST }));
-    const pageHtml = await settled(() => pageView.container.querySelector('[data-testid="gauge-page-chart"]')?.innerHTML ?? "");
+  /**
+   * (T1039 review) THE PAGE'S CHART IS WHAT THE CONDITIONS CARD DRAWS: the real `ConditionsPanel` over the release source (its
+   * gauge card leading with this station), against the page's `GaugeChart` over its own source, the same feed both ways. The
+   * card's chart part (from its toggles to its foot) and its no-record line are compared whole.
+   */
+  async function compare(feed: ReturnType<typeof httpFeed>, clim: typeof CLIM, drawn?: string) {
+    const SEC = 7 as SectionId;
+    const app = appSource(feed, clim);
+    const panelSource = { gaugeSeries: app.gaugeSeries.bind(app), gaugeParameters: app.gaugeParameters.bind(app), gaugeNow: app.gaugeNow.bind(app),
+      panelsFor: async () => new Map([[SEC, { areaKm2: 50, members: [{ station: ST, role: "up", areaKm2: 60, years: { discharge: 40, level: 40 }, regulated: false, sameRiver: true }] }]]),
+      panelRoutes: async () => [{ station: ST, name: "Chilliwack River at Vedder Crossing", lat: 49, lon: -122, role: "up", path: [SEC] }],
+      lakeStationsFor: async () => new Map(), gaugeForSection: async () => null, traceToGauge: async () => [] } as unknown as WaterSource;
+    const chartPart = (root: Element | null): string => {
+      const out: string[] = [];
+      for (let e = root?.querySelector('[data-testid="chart-toggles"]') ?? null; e; e = e.nextElementSibling) {
+        if (e.matches('[data-testid="gauge-card-foot"]')) break;
+        out.push(e.outerHTML);
+      }
+      return out.join("");
+    };
+    const noRecord = (root: Element) => root.querySelector('[data-testid="reading-no-record"]')?.textContent ?? null;
+    const page = render(h(GaugeChartRoot, { source: stationChartSource(ST, feed, clim), station: ST }));
+    const pageRoot = () => page.container.querySelector('[data-testid="gauge-page-chart"]');
+    const pageHtml = await settled(() => chartPart(pageRoot()), drawn);
+    const pageNoRecord = noRecord(page.container);
     cleanup();
-    const appView = render(h(AppChart, { source: appSource(feed) }));
-    const appHtml = await settled(() => appView.container.innerHTML);
+    const card = render(h(GestureHandlerRootView, null, h(ConditionsPanel, { source: panelSource, section: SEC, palette: THEMES.light,
+                                                                          feed: { index: feed.index.bind(feed) }, scroll: false, day: new Date(NOW) })));
+    const cardHtml = await settled(() => chartPart(card.container.querySelector('[data-testid="gauge-card"]')), drawn);
+    const cardNoRecord = noRecord(card.container);
     // React's `useId` numbers each mount: the clip path's id is the one difference two mounts may have
     const ids = (html: string) => html.replace(/plotr\d+/g, "plot#");
-    expect(ids(pageHtml)).toBe(ids(appHtml));
-    // and it is the app's whole chart: both windows, both quantities, every model with its switch, the read-out hint
-    const words = text(pageHtml);
+    expect(ids(pageHtml)).toBe(ids(cardHtml));
+    expect(pageNoRecord).toBe(cardNoRecord);
+    return { html: pageHtml, noRecord: pageNoRecord };
+  }
+
+  it("(T1039) the page's chart is the Conditions card's: a flow gauge with its climatology and every model", async () => {
+    const got = await compare(httpFeed(BASE, feedFetch()), CLIM);
+    const words = text(got.html);
     for (const w of ["Flow", "Level", "72 h", "Year", "CLEVER · 10d", "ELF · 30d", "Real-time only", "normal range", "median"]) expect(words, w).toContain(w);
+    expect(got.noRecord).toBeNull();
+  });
+
+  it("(T1039 review) a level-only gauge with no climatology (T830, Capilano): level in metres, unranked, the app's no-record line", async () => {
+    const lo = { ...STATION, now: { discharge: null, level: 1.63, at: iso(NOW - H), percentile: null, parameter: "level" },
+                 recent: STATION.recent.map((r) => [r[0], 1.6 + Number(r[1]) / 100, null]), daily: [], priorYears: {}, forecasts: {} };
+    const index = { ...INDEX, stations: { [ST]: { percentile: null, parameter: "level", reports: ["level"], observedAt: lo.now.at } } };
+    const got = await compare(httpFeed(BASE, feedFetch(() => new Response(JSON.stringify(lo)), index)), [], "<path");
+    expect(got.noRecord).toBe(NO_RECORD_LINE);
+    // one quantity offered (level): no Flow | Level switch, and the plot in metres, never m³/s
+    expect(text(got.html)).not.toMatch(/Flow|m³\/s/);
+    expect(text(got.html)).toMatch(/\bm\b/);
   });
 
   it("(T1039, owner 2026-11-23: \"same buttons as spots\") the page's Get the app block IS the Spots tab's: the same markup", async () => {
@@ -188,7 +229,7 @@ describe("the gauge page shows what the app shows for one station", () => {
   });
 
   it("(T1039) a series the source could not answer: the chart's place says so (shown; the hook reports it)", async () => {
-    const broken: ChartSource = { gaugeParameters: async () => ["discharge"], gaugeSeries: async () => { throw new Error("series broke"); } };
+    const broken: PageSource = { gaugeParameters: async () => ["discharge"], gaugeSeries: async () => { throw new Error("series broke"); }, gaugeNow: async () => null };
     const view = render(h(GaugeChart, { source: broken, station: ST }));
     await waitFor(() => expect(view.getByTestId("gauge-chart-failed").textContent).toBe(CHART_FAILED));
   });
@@ -212,6 +253,7 @@ describe("the gauge page shows what the app shows for one station", () => {
     asked.length = 0;
     const ok = page(() => new Response(JSON.stringify(STATION)));
     await waitFor(() => expect(ok.chart().querySelector("svg path")).not.toBeNull());
+    expect(ok.chart().hasAttribute("data-mounted")).toBe(true);           // the page's own script reads this mark at load
     expect(asked).toContain(`${BASE}/${ST}.json`);
     // (T1039, owner: "same buttons as spots") the Spots tab's own block, both joins, from the page's contact
     await waitFor(() => expect(ok.doc.querySelector('[data-testid="web-spots-join-android"]')).not.toBeNull());

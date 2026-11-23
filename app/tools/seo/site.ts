@@ -18,7 +18,7 @@ import { verifyAgainstApp } from "./verify";
 import { regionYear, yearCardHtml } from "./regionYear";
 import { pageSize, type PageSize } from "./budget";
 import { dotPicture, namesFile, regionLead } from "./regionMap";
-import { chartScript, clientScript, findScript, LIVE, gaugeBody, gaugeDescription, gaugeModels, gaugesIndexBody, gaugeTitle, siteGaugeCardSvg, stationsFile, type ChartInputs, type GaugeModel, type GaugeRows } from "./gauges";
+import { chartInputsOf, chartScript, clientScript, findScript, LIVE, gaugeBody, gaugeDescription, gaugeModels, gaugesIndexBody, gaugeTitle, siteGaugeCardSvg, stationsFile, type GaugeModel, type GaugeRows } from "./gauges";
 import type { StationClim } from "@app/data";
 
 export interface PageRec {
@@ -336,18 +336,12 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     const chart = await chartScript(), chartHref = `/assets/gauge-chart.${sha(chart.js, 10)}.js`;
     files.set(chartHref.slice(1), chart.js);
     for (const [name, bytes] of chart.assets) binary.set(name, bytes);
-    const climOf = (station: string): ChartInputs => {
-      const clim = o.gaugeClim?.get(station);
-      if (!o.gaugeClim) throw new Error("seo: gauge pages without the release's climatology (gaugeClim) would draw no normal range");
-      // a station with no rows has no envelope in the release: the app charts it so too (no normal range)
-      return { clim: clim ?? [], fonts: o.gaugeFonts ?? null };
-    };
     const gaugeCrumbs = (g: GaugeModel): [string, string][] => [["Home", "/"], ["River gauges", "/gauges"], [g.name, g.path]];
     for (const g of gauges) {
       const title = gaugeTitle(g), description = gaugeDescription(g);
       unique(titles, title, g.path); unique(descriptions, description, g.path);
       // lastmod moves with what the build wrote (name, waters, place), not with the release id the live half names
-      add("gauge", g.path, shellOf(g.path, title, description, gaugeBody(g, release.id, clientHref, asOf, chartHref, climOf(g.station)), pageLd(site, g.path, title, asOf, gaugeCrumbs(g)),
+      add("gauge", g.path, shellOf(g.path, title, description, gaugeBody(g, release.id, clientHref, asOf, chartHref, chartInputsOf(o.gaugeClim, g.station, o.gaugeFonts ?? null)), pageLd(site, g.path, title, asOf, gaugeCrumbs(g)),
           `/gauge/${g.station}/card.png`, false), sha(JSON.stringify(g)));   // (T908, owner 2026-11-19) no "Browse by region": it leads to the hidden site map
     }
     const title = clip(`River gauges in BC: live flow and weather — ${site.name}`, 60);

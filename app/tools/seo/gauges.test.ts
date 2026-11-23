@@ -3,14 +3,16 @@
  * worker's /gauge routes (the card mapped from R2, never drawn; a missing one answered with the site card and marked).
  * The page's live half: gaugeClient.test.ts.
  */
+import { randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
+import { BUDGET, chartJsProblems } from "./budget";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { openRegsFixture } from "@app/data/release/node";
 import { buildAll, type Built } from "./build";
 import { TODAY } from "./fixture";
 import { checkJsonLd } from "./jsonld";
 import { pngSize } from "./share";
-import { browserSafe, gaugeModels, gaugePath, gaugeTitle, LIVE, moreSummary, type GaugeRows } from "./gauges";
+import { browserSafe, chartInputsOf, gaugeModels, gaugePath, gaugeTitle, LIVE, moreSummary, type GaugeRows } from "./gauges";
 import { readConfig } from "./build";
 import { STORE_CONTACT } from "@app/core";
 
@@ -107,6 +109,11 @@ describe("T487 gauge pages", () => {
     // (T1039, owner: "same buttons as spots") the web app's Get the app block, mounted by the chart's script: no static copy,
     // no Join script of the page's own; its contact is the one the web app is exported with
     expect(p.html).toContain('<div id="gauge-get-app"></div>');
+    // (T1039 review) with no JavaScript the chart's box (550 px, "Drawing the chart…") is not shown at all
+    expect(p.html).toContain('<noscript><p class="warn">The live reading, chart and weather need JavaScript.</p><style>#gauge-chart{display:none}</style></noscript>');
+    // the chart's script is within its budget, and a gauge page is in the Lighthouse sample
+    expect(chartJsProblems(built.files)).toEqual([]);
+    expect(JSON.parse(built.files.get("lighthouserc.json")!).ci.collect.url.some((u: string) => u.startsWith("gauge/"))).toBe(true);
     expect(p.html).not.toMatch(/join\.[0-9a-f]{10}\.js|data-join=|<dialog/);
     expect(cfg.contact).toBe(STORE_CONTACT);
     const pkg = JSON.parse(readFileSync(new URL("../../apps/mobile/package.json", import.meta.url), "utf8")).scripts;
@@ -131,10 +138,18 @@ describe("T487 gauge pages", () => {
     expect(() => browserSafe('if("production"!==process.env.NODE_ENV)a();typeof process=="object"&&process.emit("x")')).not.toThrow();
   });
 
-  it("(T1039) gauge pages with no climatology at all are refused: they would chart no normal range", async () => {
-    await expect(buildAll({ loader: openRegsFixture(), on: TODAY, gauges: rows, bare: true, gaugeClim: null }))
-      .rejects.toThrow(/without the release's climatology/);
-  }, 120_000);
+  it("(T1039 review) the chart's script over its gzip budget is a build problem, named", () => {
+    const big = randomBytes(BUDGET.chartJsGzipBytes + 20_000).toString("latin1");
+    expect(chartJsProblems(new Map([["assets/gauge-chart.0123456789.js", big]]))[0]).toMatch(/^assets\/gauge-chart\.0123456789\.js is \d+ B gzip, over 327680$/);
+    expect(chartJsProblems(new Map([["assets/gauge-chart.0123456789.js", "x".repeat(400_000)]]))).toEqual([]);   // compresses to nothing
+  });
+
+  it("(T1039) a station's chart inputs: its rows, none when the release has none for it; no climatology map at all is refused", () => {
+    const rowsOf = new Map([["08MH001", [{ parameter: "discharge" as const, bands: CLIM }]]]);
+    expect(chartInputsOf(rowsOf, "08MH001", "F")).toEqual({ clim: [{ parameter: "discharge", bands: CLIM }], fonts: "F" });
+    expect(chartInputsOf(rowsOf, "08XX001", null)).toEqual({ clim: [], fonts: null });
+    for (const none of [null, undefined]) expect(() => chartInputsOf(none, "08MH001", null)).toThrow(/without the release's climatology/);
+  });
 
   it("a station's title keeps its number however long the name; the path is the name's slug", () => {
     const long = { station: "08AB123", name: "A Very Long River Name Indeed That Goes On And On Below The Long Falls" };

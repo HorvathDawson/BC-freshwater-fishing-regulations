@@ -13,6 +13,8 @@ export const BUDGET = {
   /** the shared stylesheet, gzip */ cssGzipBytes: 10 * 1024,
   /** the inlined critical CSS, raw */ criticalCssBytes: 2 * 1024,
   /** (T406) one water's share card, PNG (Facebook takes up to 8 MB, X 5 MB; a card is ~30 KB) */ sharePngBytes: 100 * 1024,
+  /** (T1039) the gauge page's deferred chart script, gzip: the app's own chart (owner Q183, "~260 KB"); measured 292 KB on
+   *  2026-11-23, this leaves ~10 % headroom. Raise it only with the measured figure, in the ticket that grows it */ chartJsGzipBytes: 320 * 1024,
   /** lab targets, mobile profile, 4G throttled */ lcpMs: 1800, cls: 0.05, tbtMs: 200, performance: 0.95, seo: 1, accessibility: 0.95,
 } as const;
 
@@ -77,4 +79,15 @@ export function lighthouseConfig(urls: readonly string[]): object {
       },
     },
   };
+}
+
+/** (T1039) the gauge chart's script over its budget (`chartJsGzipBytes`), named; [] = within */
+export function chartJsProblems(files: ReadonlyMap<string, string>): string[] {
+  const out: string[] = [];
+  for (const [name, js] of files) {
+    if (!/^assets\/gauge-chart\.[0-9a-f]{10}\.js$/.test(name)) continue;
+    const n = gz(js);
+    if (n > BUDGET.chartJsGzipBytes) out.push(`${name} is ${n} B gzip, over ${BUDGET.chartJsGzipBytes}`);
+  }
+  return out;
 }

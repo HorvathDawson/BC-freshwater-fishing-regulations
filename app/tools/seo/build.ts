@@ -30,7 +30,7 @@ import { makeReleaseSource } from "@app/data/release";
 import type { FishImages } from "@app/ui-native";
 import { readAppExport, type AppExport } from "./appExport";
 import { webFonts } from "./webFonts";
-import { BUDGET, checkBudget, lighthouseConfig, measure, type Measured } from "./budget";
+import { BUDGET, chartJsProblems, checkBudget, lighthouseConfig, measure, type Measured } from "./budget";
 import { FACES_REQUIRED, fontFaceCss, paneCss as paneCss_, PaneRenderer, type PaneCssParts } from "./pane";
 import { PanePool } from "./panePool";
 import type { WaterModel } from "./model";
@@ -220,6 +220,8 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   const cards = [...binary].filter(([n]) => n.startsWith("share/")).map(([, b]) => b.length);
   const share = { files: cards.length, bytes: cards.reduce((x, y) => x + y, 0), largest: Math.max(0, ...cards) };
   if (share.largest > BUDGET.sharePngBytes) problems.push(`a share card is ${share.largest} B, over ${BUDGET.sharePngBytes}`);
+  // (T1039) the gauge chart's script, gzip (the one page script that is not a few KB)
+  problems.push(...chartJsProblems(files));
   if (web) problems.push(...web.problems);
   // (T1011) the home page (the app's own index.html) links the site's pages: only pages this build made, every region's
   if (a.app && !a.only) problems.push(...homeLinkProblems(a.app.template, build.pages));
@@ -233,7 +235,9 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   const waters = build.pages.filter((p) => p.kind === "water").length;
   if (waters !== build.models.length) problems.push(`${waters} water pages for ${build.models.length} waters with rules`);
   const sample = ["/about", ...build.pages.filter((p) => p.kind === "region").slice(0, 1).map((p) => p.path),
-                  ...build.pages.filter((p) => p.kind === "water").slice(0, 3).map((p) => p.path)];
+                  ...build.pages.filter((p) => p.kind === "water").slice(0, 3).map((p) => p.path),
+                  // (T1039) a gauge page: its deferred chart script is the heaviest on the site
+                  ...build.pages.filter((p) => p.kind === "gauge").slice(0, 1).map((p) => p.path)];
   files.set("lighthouserc.json", `${JSON.stringify(lighthouseConfig(sample.map((p) => `${p.slice(1)}/index.html`)), null, 1)}\n`);
   // uniqueness and length report: what Search Console's duplicate / "title too long" findings would otherwise tell us later
   const titles = build.pages.map((p) => p.title), descs = build.pages.map((p) => p.description);

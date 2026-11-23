@@ -67,6 +67,9 @@ export interface Facts {
   forecastOld: { model: string; issued: string } | null;
 }
 
+/** (T1039) what the page says where the chart goes when it could not be drawn (gaugeChart.tsx says the same) */
+export const CHART_FAILED = "The chart could not be drawn. Try again later.";
+
 const esc = (s: string): string => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 /** the reading block: the value, its standing, its time; a stale reading said in so many words */
@@ -218,5 +221,17 @@ export async function gaugePage(doc: Document, now: () => number, fetchImpl: typ
     ? Promise.resolve(put("gauge-weather", `<p class="small">This gauge has no position on file, so no weather is shown.</p>`))
     : readJson(fetchImpl, cfg.weather).then((m) => put("gauge-weather", weatherHtml(m as Meteo, cfg.sky, cfg.weatherAttribution, now())))
         .catch((e) => failed("gauge-weather", "The weather forecast", e));
+  // (T1039 review, W46) THE CHART'S OWN SCRIPT (gaugeChart.tsx) marks #gauge-chart the moment it runs. Once the page has
+  // loaded (every deferred script run, or failed), a box it never marked means that script did not load or did not parse:
+  // said where the chart goes, and reported
+  const chartRan = () => {
+    const box = doc.getElementById("gauge-chart");
+    if (!box || box.hasAttribute("data-mounted")) return;
+    box.innerHTML = `<p class="warn">${esc(CHART_FAILED)}</p>`;
+    report(new Error("gauge page: the chart's script did not run (not loaded, or did not parse)"));
+  };
+  // a document with no window (no load to wait for) is judged now
+  const win = doc.defaultView;
+  if (doc.readyState === "complete" || !win) chartRan(); else win.addEventListener("load", chartRan, { once: true });
   await Promise.all([facts, weather]);
 }

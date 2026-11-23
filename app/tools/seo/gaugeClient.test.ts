@@ -7,7 +7,7 @@
 import { describe, expect, it } from "vitest";
 import { FLOW_LEGEND, NORMAL_BAND, bcDayWords, bcIsoDayWords, bcStampWords, CONDITIONS_WORDS, figure, freshness, readingAgeBrief } from "@app/core";
 import { validateCrash } from "../../workers/feeds/src/crashes";
-import { colourBarHtml, crashReport, creditHtml, gaugePage, isEnvironment, readingHtml, weatherHtml, type Facts } from "./gaugeClient";
+import { CHART_FAILED, colourBarHtml, crashReport, creditHtml, gaugePage, isEnvironment, readingHtml, weatherHtml, type Facts } from "./gaugeClient";
 
 const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 // ── the live half ────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -77,7 +77,7 @@ describe("T487 the gauge page's live half", () => {
   it("the page fills its sections; a missing facts file is shown AND reported; offline is shown only", async () => {
     const page = (status: number | "offline") => {
       const doc = document.implementation.createHTMLDocument("g");
-      doc.body.innerHTML = `<div id="gauge-now"></div><div id="gauge-chart">CHART</div><div id="gauge-credit"></div><div id="gauge-weather"></div>` +
+      doc.body.innerHTML = `<div id="gauge-now"></div><div id="gauge-chart" data-mounted>CHART</div><div id="gauge-credit"></div><div id="gauge-weather"></div>` +
         `<script type="application/json" id="gauge-config">${JSON.stringify({ station: "08MH001", facts: "https://d/f.json", weather: "https://w/m",
           weatherAttribution: "Weather from Open-Meteo.com (CC BY 4.0)", sky: { "3": "Cloud" }, crash: "https://c/crash", env: "staging", release: "r1" })}</script>`;
       const dom = { window: { document: doc } };
@@ -109,6 +109,21 @@ describe("T487 the gauge page's live half", () => {
     expect(text(off.dom.window.document.getElementById("gauge-now")!.innerHTML)).toMatch(/could not be read \(no connection\)/);
     await new Promise((r) => setTimeout(r, 0));
     expect(off.sent).toEqual([]);
+  });
+
+  it("(T1039 review, W46) a chart whose script never ran (not loaded, or did not parse) is said where it goes AND reported", async () => {
+    const doc = document.implementation.createHTMLDocument("g");
+    doc.body.innerHTML = `<div id="gauge-now"></div><div id="gauge-chart"><p class="small">Drawing the chart…</p></div><div id="gauge-credit"></div><div id="gauge-weather"></div>` +
+      `<script type="application/json" id="gauge-config">${JSON.stringify({ station: "08MH001", facts: "https://d/f.json", weather: null,
+        weatherAttribution: "", sky: {}, crash: "https://c/crash", env: "staging", release: "r1" })}</script>`;
+    const sent: string[] = [];
+    await gaugePage(doc, () => NOW, (async (url: string, init?: RequestInit) => {
+      if (url === "https://c/crash") { sent.push(String(init?.body)); return new Response("{}", { status: 201 }); }
+      return new Response(JSON.stringify(facts()));
+    }) as typeof fetch);
+    expect(text(doc.getElementById("gauge-chart")!.innerHTML).trim()).toBe(CHART_FAILED);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(sent.map((x) => JSON.parse(x).message)).toEqual(["gauge page: the chart's script did not run (not loaded, or did not parse)"]);
   });
 
   it("the shipped script's core functions are written from core's own source, and run (see gauges.test.ts for the parity)", () => {

@@ -71,6 +71,32 @@ gauge `webapp-chilliwack-chart-desktop.png`.
 - **Not verified:** Lighthouse (TBT, Performance) on the throttled mobile profile (lhci is the release job's); the page on
   staging itself (pictures are a local build of the live release over staging's data); iOS Safari.
 
+## Independent review of #73 (head 44170e16c), fixed
+
+1. MEDIUM: the page told the chart nothing about the station's reading, so a level-only gauge with no climatology (T830,
+   Capilano 08GA031) charted "discharge" (1.6 m drawn as m³/s, no toggle). Fixed: the page reads the station's reading
+   (`useStationReading` over `stationChartSource.gaugeNow` = the feed's `now`, as the release source) and passes its
+   reports and quantity through ONE rule (`ui` `readingQuantityOf`, which the Conditions card's reading now uses too); the
+   app's no-record line is shown. The parity test now renders the real `ConditionsPanel` over the release source and
+   compares its chart part and no-record line with the page's, for a flow gauge and for the level-only, no-climatology one.
+   The review also showed the page lacked the gesture root the app runs under: the chart is now mounted under
+   `GestureHandlerRootView` (`GaugeChartRoot`), so pinch / drag / double-tap work.
+2. W46: the chart's script marks `#gauge-chart` when it runs; the page's own script checks at `load` and, when the mark is
+   missing (404, parse error), says so in the box and reports it. A page without its config shows the failure (no endpoint
+   to report to).
+3. No JS: the box is hidden (`<noscript><style>`), the existing JavaScript note stays.
+4. The no-climatology refusal is a unit (`chartInputsOf`), no second site build.
+5. `budget.ts` `chartJsGzipBytes` 320 KB (measured 298 KB with the Get the app block, 292 before); a gauge page is in the
+   Lighthouse sample. index.json (380 KB raw, 48 KB on the wire) is not in `budget.ts`: that file is live feed data the
+   worker writes, not a site build output; the Lighthouse run on the gauge page counts it on the wire.
+6. The native coho sheets (1.5 + 1.9 MB) stay in the upload: `coho.ts` imports them for the frame size, so leaving them
+   out means splitting the coho generator's output (tools/build-coho.mjs), not a clean cut here. The web never fetches
+   them (the web loader draws `cohoWeb.generated.ts`'s 145 KB sheet); the site sync skips them while their hash holds.
+7. CORS: `index.json` and the station files answer `access-control-allow-origin: *` (staging, GET, 2026-11-23).
+8. Deploy order: none needed. The production page (0.8.x) reading the new facts gets ELF and level runs as chips, old ones
+   marked "likely out of date" (its `dueBy` rule), and draws as before; the 0.9.0 page reads facts only for the reading
+   and the credit, so it works with the old worker too.
+
 ## Options (sizes measured 2026-11-23; today's page = 3.2 KB gz HTML + 9.6 KB gz script + 3.1 KB gz facts)
 
 - **A. The app's chart AND the app's data path, as is.** New page bundle: React + react-dom + react-native-web +
