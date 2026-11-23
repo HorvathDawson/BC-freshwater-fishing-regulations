@@ -123,8 +123,13 @@ export function cardQuantity(asked: Parameter | null | undefined, available: rea
   if (asked) {
     const silent = known && !available.includes(asked);
     // (T817) THE WATER'S CHOICES, when the caller knows them (core `conditionsOpening` `offer`): the same before and after
-    // a pick, so Level never takes Flow away (the Chehalis, owner 2026-11-16); the asked quantity is always among them
-    if (offered) return { shown: asked, silent, options: (["discharge", "level"] as const).filter((q) => q === asked || offered.includes(q)) };
+    // a pick, so Level never takes Flow away (the Chehalis, owner 2026-11-16); the asked quantity is always among them.
+    // (T1043) and what the lead itself offers (`available`: its banded quantities and its live `reports`, T830). The
+    // water's choices are the bundle's record alone, so a live level with no band (Capilano at Canyon) was never one of
+    // them and the switch never offered it on a water's Conditions view. The lead is the same gauge under either pick,
+    // so the switch still stays the same before and after one.
+    if (offered) return { shown: asked, silent, options: (["discharge", "level"] as const)
+      .filter((q) => q === asked || offered.includes(q) || available.includes(q)) };
     return { shown: asked, silent,
              options: silent ? (["discharge", "level"] as const).filter((q) => q === asked || available.includes(q)) : available };
   }

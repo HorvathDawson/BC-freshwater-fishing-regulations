@@ -17,7 +17,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { LEVEL_ONLY_WATER } from "@app/core";
+import { LEVEL_ONLY_WATER, NO_RECORD_LINE } from "@app/core";
 import { makeFixtureSource } from "@app/data/fixture";
 import type { ItemId, Panel, SectionId, WaterSource } from "@app/data";
 import { clearAnswers, clearPanelCache } from "@app/ui";
@@ -197,5 +197,37 @@ describe("a Flow / Level pick stays on its reach (T767)", () => {
     await settle();
     await waitFor(() => expect(screen.queryByTestId("chart-quantity")).not.toBeNull());
     expect([next, card()[1]]).toEqual(["Flow* Level", "Flow* Level"]);   // each reach opens as it opens
+  });
+});
+
+/*
+ * (T1043, owner 2026-11-23: "i still dont know why 0.8.6 capilano at canyon gauge doesnt have level like website does")
+ * CAPILANO AT CANYON'S SHAPE: a flow band, a live level on every row and too short a level record for a band. T830 offered
+ * that level on the card from the publisher's `reports`; T817's water choices (`offer`, the bundle's bands alone) then
+ * decided the switch on a water's view, so it never showed there. MUTATION: drop `|| available.includes(q)` from
+ * `cardQuantity` -> "no switch" and Level cannot be reached.
+ */
+describe("a live level with no band is offered on the water's view (T1043)", () => {
+  it("Capilano's shape: Flow and Level, Level drawn unranked with Python's line, Flow one tap back", async () => {
+    const source = speaking("panel", ["discharge"], { ...BOTH_NOW, level: 0.592, reports: ["discharge", "level"] });
+    render(<WaterConditions source={source} item={WATER} tapSid={SEC} palette={LIGHT} opening="discharge" from={AT} />);
+    await waitFor(() => expect(screen.queryByTestId("reading-figure")).not.toBeNull());
+    await waitFor(() => expect(screen.queryByTestId("chart-quantity")).not.toBeNull());
+    const flow = card();
+    await pickQuantity("Level");
+    await waitFor(() => expect(screen.queryByTestId("reading-no-record")).not.toBeNull());
+    const level = [...card(), screen.getByTestId("reading-no-record").textContent, screen.queryByTestId("reading-dot")];
+    await pickQuantity("Flow");
+    await waitFor(() => expect(screen.queryByTestId("reading-no-record")).toBeNull());
+    expect([flow, level, card()]).toEqual([
+      ["G1", "Flow* Level", "12.5"],
+      ["G1", "Flow Level*", "0.59", NO_RECORD_LINE, null],
+      ["G1", "Flow* Level", "12.5"],
+    ]);
+  });
+
+  it("a level off the rating (T550: not in `reports`) stays out: Flow alone, as before", async () => {
+    const source = speaking("panel", ["discharge"], { ...BOTH_NOW, level: 0.592, reports: ["discharge"] });
+    expect((await firstView(source)).switch).toBe("none");
   });
 });
