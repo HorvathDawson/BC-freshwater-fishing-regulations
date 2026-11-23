@@ -4,6 +4,7 @@
  */
 import { isEnvironment } from "./failure";
 import { NET_WORDS } from "./net";
+import { RULE_BOOK } from "./sourceNames";
 
 export const INSTALL_WORDS = {
   failed: "The map data could not be loaded.",
@@ -194,7 +195,7 @@ export function rolledBackLine(r: { refused: string | null; using: string | null
 export const DOWNLOAD_NOTE_WORDS = {
   title: "Downloading BC fishing rules",
   // (T912) `data`: an update's regulations files (each its own system download)
-  files: { tiles: "Map of the waters", mask: "Map outline", basemap: "Base map", synopsis: "Rule book (PDF)", data: "Regulations data" },
+  files: { tiles: "Map of the waters", mask: "Map outline", basemap: "Base map", synopsis: `${RULE_BOOK} (PDF)`, data: "Regulations data" },
   other: "Map and regulations",
   /** (Android 13+) said on the boot screen as the system asks to allow notifications, once, before the first download */
   why: "Allow notifications to see the download's progress after you close the app.",

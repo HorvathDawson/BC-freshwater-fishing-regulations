@@ -12,7 +12,7 @@
 import { SwipePages } from "./SwipePages";
 import { View } from "react-native";
 import { Text } from "../Text";
-import { type SheetBlock, type SourceBox, type SheetKey, type SheetVM, type Tab } from "@app/core";
+import { lineSourcesOf, type SheetBlock, type SourceBox, type SheetKey, type SheetVM, type Tab } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
 import { GroupCard, Pictures } from "./GroupCard";
@@ -30,6 +30,7 @@ import { FishImage, FishLooks } from "./sheet/FishImage";
 import { AdiposeArt } from "./AdiposeArt";
 import type { LayoutClass } from "@app/ui";
 import { TermSection } from "./sheet/TermSection";
+import { SourceRow } from "../SourceRow";
 
 export interface SheetBodyProps {
   palette: Palette; fish?: FishImages;
@@ -38,13 +39,18 @@ export interface SheetBodyProps {
   onBook?: (pdf: number, box?: readonly SourceBox[]) => void;
 }
 
+/** (T1031 item 3) a block drawn without its sheet (a test): its Source line spoken for "this sheet" */
+const SHEET_WHAT = "this sheet";
+
 /** The actions a Line's runs take inside a sheet. */
 const actionsOf = (p: SheetBodyProps): KeepActions =>
   ({ onSheet: p.onOpen, onDay() {}, onTab: (t) => p.onTab?.(t), onBook: p.onBook ?? ((pdf, box) => { void openBook(pdf, box); }) });
 
 export function SheetBlockView(p: { b: SheetBlock; layout?: LayoutClass;
   /** (T868) the sheet's first block: a group card there sits under the sheet's title rule and draws no rule of its own */
-  first?: boolean } & SheetBodyProps) {
+  first?: boolean;
+  /** (T1031 item 3) the sheet's title: what its Source line's links are spoken for (T60); default the generic "this sheet" */
+  title?: string } & SheetBodyProps) {
   const { b, palette } = p, actions = actionsOf(p);
   const body = (bs: readonly SheetBlock[]) => bs.map((x, i) => <SheetBlockView key={i} {...p} first={false} b={x} />);
   switch (b.k) {
@@ -69,7 +75,10 @@ export function SheetBlockView(p: { b: SheetBlock; layout?: LayoutClass;
         {(i) => <SheetBody {...p} vm={b.pages[i]!} />}
       </SwipePages>);
     case "adipose": return <AdiposeArt figures={b.figures} palette={palette} layout={p.layout} />;
-    case "pages": case "source": case "link":
+    // (T1031 item 3) a sheet's source block is the one Source line: "Source  B.C. Synopsis p.21 ↗  Who says so ›"
+    case "source":
+      return <SourceRow vm={lineSourcesOf(b.line, p.title ?? SHEET_WHAT)} palette={palette} onBook={actions.onBook} onSheet={actions.onSheet} testID="sheet-source" />;
+    case "pages": case "link":
       return <View style={{ marginTop: 8 }}><LineText line={b.line} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} linkStyle={TYPE.metaBold} /></View>;
     case "group": return <View style={{ marginHorizontal: -GUTTER }}><GroupCard g={b.group} titled={b.titled} ruled={!p.first} more={b.more !== false} palette={palette} actions={actions} images={p.fish} /></View>;
     case "rowTitle":
@@ -99,7 +108,7 @@ export function SheetBody(p: { vm: SheetVM; layout?: LayoutClass } & SheetBodyPr
     <View testID="sheet-body">
       {grouped(vm.blocks).map((b, i) => Array.isArray(b)
         ? <FishLooks key={i} looks={b} layout={layout} fish={rest.fish} palette={rest.palette} />
-        : <SheetBlockView key={i} {...rest} layout={layout} b={b} first={i === 0} />)}
+        : <SheetBlockView key={i} {...rest} layout={layout} b={b} first={i === 0} title={vm.title} />)}
     </View>
   );
 }

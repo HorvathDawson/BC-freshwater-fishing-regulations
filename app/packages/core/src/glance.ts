@@ -8,6 +8,7 @@
  * further notice") is a plain "closed" row with no Details: there is nothing more to see.
  */
 import type { GroupVM, TreeNodeVM, TroutVM } from "./regs/model";
+import { RULE_BOOK } from "./sourceNames";
 import { SALMON_WORDS, type SalmonBookVM, type SalmonCardVM } from "./salmon";
 
 export const GLANCE_WORDS = {
@@ -27,7 +28,7 @@ export const SOURCE_WORDS = {
   /** a row's or a block's tag, by its rule source */
   tag: { dfo: "DFO", bc: "B.C." },
   /** a salmon bar some of whose days are the rule book's (core `SalmonSourceBy`) */
-  salmonTag: { dfo: "DFO", both: "DFO + rule book", book: "Rule book" },
+  salmonTag: { dfo: "DFO", both: `DFO + ${RULE_BOOK.toLowerCase()}`, book: RULE_BOOK },
   /** the two blocks' names, the tag beside each */
   salmon: "Salmon",
   game: "Game fish",

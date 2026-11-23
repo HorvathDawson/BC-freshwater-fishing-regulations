@@ -20,7 +20,7 @@
 import { useState } from "react";
 import { View } from "react-native";
 import { Text } from "../Text";
-import { FISH, SALMON_WORDS, WORDS, salmonTable, type SalmonCardVM, type SalmonIssueVM, type SalmonRowVM, type SalmonSaysVM, type SalmonSourceVM, type SalmonSpecies, type SalmonTableRowVM, type SalmonWordsRowVM } from "@app/core";
+import { FISH, SALMON_WORDS, WORDS, salmonBookSourcesOf, salmonDfoSourcesOf, salmonTable, type SalmonCardVM, type SalmonIssueVM, type SalmonRowVM, type SalmonSaysVM, type SalmonSourceVM, type SalmonSpecies, type SalmonTableRowVM, type SalmonWordsRowVM } from "@app/core";
 import { TYPE } from "../type";
 import { RADIUS, SPACE, type Palette } from "../theme";
 import { WaterInset } from "../WaterFrame";
@@ -32,6 +32,7 @@ import { CaveatBlock } from "./KeepBlocks";
 import type { FishImages } from "./types";
 import { CoachSpot } from "../CoachMarks";
 import { Icon } from "../icons";
+import { SourceRow } from "../SourceRow";
 
 const chipColour = (p: Palette, s: SalmonRowVM["status"]): string =>
   s === "open" ? p.salmon.open : s === "release" ? p.salmon.release : s === "closed" ? p.salmon.closed : p.sub;
@@ -164,8 +165,10 @@ function Table({ card, palette, actions, images }: { card: SalmonCardVM; palette
  * note — as ONE fold, closed by default, like the Methods tab's Reference fold and T479's examples fold. Its state is
  * local (it changes no answer). The walkthrough's "both rules hold" rings its summary row.
  */
-function SourceFold({ card, shown, palette }: {
-  card: SalmonCardVM & { readonly checked?: string | null }; shown: readonly string[]; palette: Palette }) {
+function SourceFold({ card, shown, palette, actions }: {
+  card: SalmonCardVM & { readonly checked?: string | null }; shown: readonly string[]; palette: Palette;
+  /** a book closure's page press (the screen's `actions.onBook`); absent: the synopsis opens at that page itself */
+  actions?: Pick<KeepActions, "onBook"> }) {
   const says = card.allClosed ? [] : salmonTable(card).says;
   const [open, setOpen] = useState(false);
   return (
@@ -180,10 +183,13 @@ function SourceFold({ card, shown, palette }: {
       {open && (
         <View testID="salmon-source-body" style={{ paddingBottom: 4 }}>
           {/* (T796, owner 2026-11-16) the rule book's closures answering today: the book's page and row, its words */}
+          {/* (T1031 item 3) its book row, its words, then its page as the one Source line ("Source  B.C. Synopsis p.9 ↗"),
+              where "Rule book p.9 · Skeena River" was printed as plain text */}
           {card.book.map((b) => (
-            <View key={b.words} testID="salmon-book-source" style={{ paddingBottom: SPACE.s2 }}>
-              <Text testID="salmon-book-from" style={{ ...TYPE.metaBold, color: palette.accent }}>{b.from}</Text>
+            <View key={b.words} testID="salmon-book-source" style={{ paddingBottom: SPACE.s1 }}>
+              {b.water && <Text testID="salmon-book-from" style={{ ...TYPE.metaBold, color: palette.ink }}>{b.water}</Text>}
               <Text selectable testID="salmon-book-words" style={{ ...TYPE.meta, color: palette.ink }}>{b.words}</Text>
+              <SourceRow vm={salmonBookSourcesOf(b)} palette={palette} onBook={actions?.onBook} testID="salmon-book-pages" />
             </View>
           ))}
           {/* (T828, owner 2026-11-16: "Fold into Source") DFO's rows as printed — each species' row words, in-season
@@ -197,9 +203,12 @@ function SourceFold({ card, shown, palette }: {
             <Words testID="salmon-wording-notes" head={card.dfoWords.notesHead} rows={card.dfoWords.notes} palette={palette} />
           )}
           {card.regionRules.map((g) => <RegionRules key={g.label} group={g} palette={palette} />)}
-          <Text testID="salmon-source" style={{ ...TYPE.metaBold, color: palette.accent,
-                                               ...(says.length || card.dfoWords?.notes.length || card.regionRules.length || card.sources?.length
-                                                 ? { marginTop: SPACE.s3, paddingTop: SPACE.s2, borderTopWidth: 1, borderTopColor: palette.line } : {}) }}>{card.source}</Text>
+          {/* (T1031 item 3) DFO's region pages as the one Source line ("Source  DFO notices, Region 6 Skeena ↗"), where
+              "Fisheries and Oceans Canada · Region 6 Skeena" was link-coloured text that opened nothing */}
+          <View style={says.length || card.dfoWords?.notes.length || card.regionRules.length || card.sources?.length
+                        ? { marginTop: SPACE.s3, borderTopWidth: 1, borderTopColor: palette.line } : {}}>
+            <SourceRow vm={salmonDfoSourcesOf(card)} palette={palette} testID="salmon-source" />
+          </View>
           <Text testID="salmon-asof" style={{ ...TYPE.meta, color: palette.sub }}>{card.asOf}</Text>
           {card.checked && <Text testID="salmon-checked" style={{ ...TYPE.meta, color: palette.sub }}>{card.checked}</Text>}
           <Text testID="salmon-credit" style={{ ...TYPE.meta, color: palette.sub }}>{card.credit}</Text>
@@ -285,7 +294,7 @@ export function SalmonCard({ card, palette, actions, images }: {
         {card.notListed && (
           <Text testID="salmon-not-listed" style={{ ...TYPE.meta, color: palette.ink, paddingTop: 8 }}>{card.notListed}</Text>
         )}
-        <SourceFold card={card} shown={shown} palette={palette} />
+        <SourceFold card={card} shown={shown} palette={palette} actions={actions} />
       </View>
     </WaterInset>
   );

@@ -267,6 +267,6 @@ export function troutOf(inp: RegsInputs, day: Day, today: Day): TroutVM | TroutR
     hatchLink: t.hatch_link ? TROUT_NAV.HATCH : null,
     boxes, together: t.together, year: t.year,
     elsewhere: t.elsewhere, elsewhereLink: t.elsewhere.length ? TROUT_NAV.ELSEWHERE : null,
-    sourcesLink: TROUT_NAV.SOURCES, src: t.src, covers: f.covers,
+    src: t.src, covers: f.covers,
   };
 }

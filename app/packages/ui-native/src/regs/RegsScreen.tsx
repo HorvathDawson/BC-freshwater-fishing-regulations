@@ -21,7 +21,7 @@ import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, u
 import { openProbe } from "@app/data";
 import { Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
 import { Text } from "../Text";
-import { LEGAL_WORDS, parseSheetKey, regsSourcesNone, withInSeason, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type TabSourcesVM, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
+import { LEGAL_WORDS, parseSheetKey, regsSourcesNone, troutSourcesOf, withInSeason, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type TabSourcesVM, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
 import { FreshDot } from "../menu/Fresh";
 import { WaterInset } from "../WaterFrame";
@@ -213,6 +213,8 @@ export function RegsScreen({ page, palette, images, actions, onDate,
     (t.tab !== "gear" || !!gear) && (t.tab !== "methods" || !!methods)) }), [page.header, gear, methods]);
   // (T990) `src:all` also lists the Province's in-season changes this water shows (the screen's, not the page's)
   const hostPage = useMemo(() => ({ ...page, sheet: withInSeason(page.sheet, inSeason) }), [page, inSeason]);
+  // (T1031 item 3) the trout table's Source line: the pages its every-rule sheet cites
+  const troutSources = useMemo(() => (typeof page.sheet === "function" ? troutSourcesOf(page) : undefined), [page]);
   const head = <RegsHeader header={header} palette={palette} tabs={store} onDate={onDate} onTab={toTab} onTerm={(id) => openSheet(`gl:${id}`)}
                            side={layout === "desktop"} nameSource={nameSource} sun={sun} />;
   const sec = (tab: "gear" | "methods" | "licence", slot: Slot) => {
@@ -241,7 +243,7 @@ export function RegsScreen({ page, palette, images, actions, onDate,
           failed, is drawn here in its place (its pending / failed face) — never a silent gap */}
       {(!glance || !glance.salmon) && (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon)}
       <AnchorContext.Provider value={sink}>
-          <KeepTab keep={page.keep} daylight={daylight} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} salmonStrip={salmonStrip}
+          <KeepTab keep={page.keep} troutSources={troutSources} daylight={daylight} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} salmonStrip={salmonStrip}
                    glance={glance ? { salmon: glance.salmon && salmon
                      ? { row: glance.salmon, card: () => (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon) }
                      : null } : null} />

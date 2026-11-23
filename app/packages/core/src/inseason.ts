@@ -20,6 +20,7 @@
  * Every sentence is composed here, whole (AGENTS 33).
  */
 import { MONTHS } from "./calendar.generated";
+import { SOURCE_AUTHORITIES } from "./sourceNames";
 import { FEED_FORMATS } from "./feedFormats.generated";
 import { endWords, type EndsTable } from "./ends";
 
@@ -357,9 +358,9 @@ export function inSeasonDates(from: string | null, to: string | null): string | 
 }
 
 export const INSEASON_WORDS = {
-  source: "source ›",
+  /** (T1031 item 3) the notice's page, as its Source line names it (`tabSources.inSeasonSourcesOf`) */
+  source: `${SOURCE_AUTHORITIES.inseason.name} ↗`,
   see: "see ›",
-  sourceLabel: "Open the province's in-season changes page",
   /** (T518) where on the page's water a change covering only part of it applies (`inSeasonWhere`) */
   where: (where: string) => `Where: ${where}`,
   informational: "Shown as posted; the answers on this page do not include it yet.",
@@ -370,7 +371,7 @@ export const INSEASON_WORDS = {
 
 export interface InSeasonBannerVM {
   readonly id: string;
-  /** the whole line: "In-season change (Oct 15–Nov 30): <verbatim text> — source ›" */
+  /** the whole line: "In-season change (Oct 15–Nov 30): <verbatim text> — B.C. in-season changes ↗" */
   readonly line: string;
   readonly head: string;
   readonly text: string;

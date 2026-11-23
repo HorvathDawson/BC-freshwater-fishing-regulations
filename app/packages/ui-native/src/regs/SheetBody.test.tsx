@@ -61,7 +61,8 @@ const CASES: [string, SheetBlock, string[]][] = [
   ["adipose", { k: "adipose", figures: [{ variant: "wild", caption: [t("Wild"), t(" · adipose fin there")] }, { variant: "clipped", caption: [t("Hatchery"), t(" · clipped")] }] },
     ["Wild · adipose fin there", "Hatchery · clipped"]],
   ["pages", { k: "pages", line: [t("Rule book"), t(" "), { t: "book", printed: 4, pdf: 6, bare: true }] }, ["Rule book", "p.4 ↗"]],
-  ["source", { k: "source", line: [{ t: "link", s: "Source ›", open: "rule:z2:p::p.r1" }, t(" "), book(21, 23)] }, ["Source ›", "Rule book p.21 ↗"]],
+  // (T1031 item 3) a sheet's source block is the one Source line: the label, the page by the synopsis's name, the sheet last
+  ["source", { k: "source", line: [{ t: "link", s: "Who says so ›", open: "rule:z2:p::p.r1" }, t(" "), book(21, 23)] }, ["Source", "B.C. Synopsis p.21 ↗", "Who says so ›"]],
   ["link", { k: "link", line: [{ t: "link", s: "See every regulation line ›", open: "src:r0" }] }, ["See every regulation line ›"]],
   ["rowTitle", { k: "rowTitle", title: "Black crappie", scope: "Region 2-wide" }, ["Black crappie", "Region 2-wide"]],
   ["group", { k: "group", group: GROUP, titled: true }, [GROUP.title, "See every regulation line ›"]],

@@ -58,7 +58,8 @@ describe("<KeepTab> over the frozen pages", () => {
     const keep = keepOf(vedder615), { drawn } = mount(keep);
     expect(drawn).toEqual(["keep-strip", "keep-banner"]);
     expect(screen.getByTestId("keep-banner").textContent).toBe(
-      "No fishing for any game fish Jun 1–30.Jun 1–30. This waterSourceRule book p.22 ↗See the rules from then ›");
+      // (T1031 item 3) the closure's Source line: its page by the synopsis's name, then its rule's sheet
+      "No fishing for any game fish Jun 1–30.Jun 1–30. This waterSourceB.C. Synopsis p.22 ↗Who says so ›See the rules from then ›");
   });
 
   it("glenn_501: the inherited line right after the strip, with its caution", () => {

@@ -68,7 +68,7 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
 
   it("3. a press inside opens the next sheet in this one's place (one sheet at a time)", () => {
     const h = host("pos:pos");
-    fireEvent.click(screen.getByText("Source ›"));
+    fireEvent.click(screen.getByText("Who says so ›"));
     expect(h.opened).toEqual(["rule:z2:possession_quota::possession_quota.r1"]);
     h.rerender("rule:zp:conduct::conduct.r1");
     expect(screen.getByRole("heading", { name: "Do not waste the fish you catch" })).toBeTruthy();

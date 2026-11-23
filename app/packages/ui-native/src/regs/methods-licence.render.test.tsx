@@ -60,11 +60,11 @@ describe("<MethodsTab>", () => {
       "✓ Angling (rod and line)", "• With a downrigger: attached to your line by a quick-release.", "• With a light: submerged, attached to the line, within 1 m of the hook.",
       "✓ Spear or bow — not for trout or other game fish", "• Not for game fish, salmon or protected species.", "• Burbot allowed.",
       "✓ Crayfish traps", "• Release anything in the trap that isn’t a crayfish.", "Not allowed", "✕ Set lines", "✕ Nets", "✕ Snagging", "✕ Chumming",
-      "Province › Rule book p.8 ↗"]);
+      "Source B.C. Synopsis p.8 ↗ Who says so ›"]);
     // (T797) the Bella Coola's "No angling from powered boats" (p.43) leads the list: it was held and never drawn
     expect(domLines(screen.getByTestId("methods-boats"))).toEqual(["Boats", "No angling (from a powered boat)",
-      "No powered boats — between the Goat Creek confluence and the Talchako River confluence", "This water’s › Rule book p.43 ↗"]);
-    fireEvent.click(within(screen.getByTestId("methods-boats")).getByRole("button", { name: "Sources: This water’s" }));
+      "No powered boats — between the Goat Creek confluence and the Talchako River confluence", "Source B.C. Synopsis p.43 ↗ Who says so ›"]);
+    fireEvent.click(within(screen.getByTestId("methods-boats")).getByRole("button", { name: "Who says so: the rules behind Boats" }));
     expect(sheets).toEqual(["srcs:boats"]);
   });
 
@@ -77,7 +77,7 @@ describe("<MethodsTab>", () => {
     const section = screen.getByTestId("methods-vessels");
     expect(domLines(section)).toEqual([METHODS.VESSELS, "No powered boats (in part)", "Speed limit 8 km/h", "Boats",
       "No angling (from a powered boat)",
-      "No powered boats — between the Goat Creek confluence and the Talchako River confluence", "This water’s › Rule book p.43 ↗"]);
+      "No powered boats — between the Goat Creek confluence and the Talchako River confluence", "Source B.C. Synopsis p.43 ↗ Who says so ›"]);
     // under Methods: after its Ways to fish
     const ways = screen.getByTestId("methods-ways");
     expect(ways.compareDocumentPosition(section) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
@@ -104,7 +104,7 @@ describe("<MethodsTab>", () => {
     expect(summary.getAttribute("aria-expanded")).toBe("true");
     const body = domLines(screen.getByTestId("methods-reference-body"));
     expect(["When you catch a fish", "When you release a fish", "When you keep a fish", "Carrying fish", "Never"].map((h) => body.includes(h))).toEqual([true, true, true, true, true]);
-    expect(body[body.length - 1]).toBe("Province › Rule book p.8 ↗ Rule book p.10 ↗");
+    expect(body[body.length - 1]).toBe("Source B.C. Synopsis p.8 ↗ p.10 ↗ Who says so ›");
     expect(screen.getByText("Gently, back in the water")).toBeTruthy();
   });
 

@@ -918,7 +918,6 @@
    },
    "hatchLink": "How to tell a hatchery fish ›",
    "kind": "table",
-   "sourcesLink": "Sources ›",
    "src": [
     3083,
     3084,
@@ -2926,7 +2925,7 @@
      "line": [
       {
        "open": "rule:z2:possession_quota::possession_quota.r1",
-       "s": "Source ›",
+       "s": "Who says so ›",
        "t": "link"
       },
       {

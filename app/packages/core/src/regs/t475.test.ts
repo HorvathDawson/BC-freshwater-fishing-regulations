@@ -64,14 +64,14 @@ describe("T475 ask 1: the headline and its ⓘ", () => {
     expect(plain(shareVM(G475(), "b").origin?.says)).toBe(sentence);
     expect(plain(shareVM(GROUP()).origin?.says)).toBe(sentence);
   });
-  it("the sheet: the store's words, its examples, Source › with the share rule's page", () => {
+  it("the sheet: the store's words, its examples, Who says so › with the share rule's page", () => {
     const ctx = ctxOf(G475());
     const env = { card: ctx.card } as unknown as KeepEnv;
     const sc = { inp: ctx.inp, page: {} as SheetCtx["page"], today: { m: 10, d: 10 } as unknown as SheetCtx["today"], env } as SheetCtx;
     const l = sheetLines(sheetOf(sc, "share:r0")!);
     expect([l.title, l.lines]).toEqual([INFO.title, [INFO.says, "For example:",
       "Kept 2 on another stream? None more from streams today — up to 2 more from lakes.",
-      "Kept 1 at a lake? Up to 2 more here, or up to 3 more at lakes.", "Source › Rule book p.21 ↗"]]);
+      "Kept 1 at a lake? Up to 2 more here, or up to 3 more at lakes.", "Who says so › Rule book p.21 ↗"]]);
     expect(sheetOf(sc, "share:r1")).toBeNull();
   });
 });

@@ -39,7 +39,7 @@ export function ReferenceFold({ vm, palette, actions, initiallyOpen = false }: {
               </View>
             </View>
           ))}
-          {vm.src && <SourceLine src={vm.src} palette={palette} actions={actions} />}
+          {vm.src && <SourceLine src={vm.src} what={vm.title} palette={palette} actions={actions} />}
         </View>
       )}
     </View>

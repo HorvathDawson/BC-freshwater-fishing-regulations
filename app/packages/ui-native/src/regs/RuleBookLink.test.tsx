@@ -52,7 +52,7 @@ describe("<SourceLine> pages (T215)", () => {
   it("a page's box reaches onBook: Cultus Lake's boats line p.23 opened 0 boxes (r-4df5bccc9360)", () => {
     const box = [{ pdf: 25, box: [35.75, 146.4, 539.75, 166.56] as [number, number, number, number], size: [576, 756] as [number, number] }];
     const calls: unknown[][] = [];
-    render(<SourceLine src={{ who: "This water’s ›", aria: "Sources", open: "srcs:boats", pages: [{ printed: 21, pdf: 23 }, { printed: 23, pdf: 25, box }] }}
+    render(<SourceLine src={{ open: "srcs:boats", pages: [{ printed: 21, pdf: 23 }, { printed: 23, pdf: 25, box }] }} what="Boats"
                        palette={LIGHT} actions={{ onSheet: () => {}, onBook: (...a) => { calls.push(a); } }} />);
     for (const a of screen.getAllByRole("link")) fireEvent.click(a);
     expect(calls).toEqual([[23], [25, box]]);

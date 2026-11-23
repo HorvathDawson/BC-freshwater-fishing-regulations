@@ -13,7 +13,7 @@ export function WaysList({ vm, palette, actions }: { vm: NonNullable<MethodsVM["
   return (
     <Cell label={vm.label} palette={palette} testID="methods-ways">
       <YesNoList list={vm.list} palette={palette} actions={actions} />
-      {vm.src && <SourceLine src={vm.src} palette={palette} actions={actions} spaced />}
+      {vm.src && <SourceLine src={vm.src} what={vm.label} palette={palette} actions={actions} spaced />}
     </Cell>
   );
 }

@@ -14,7 +14,7 @@
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
-import { buildRegsPage, plain, WORDS, type RegsPage } from "@app/core";
+import { buildRegsPage, lineSourcesOf, plain, WORDS, type RegsPage, type TabSourcesVM } from "@app/core";
 import { makeFixtureSource } from "@app/data/fixture";
 import type { ItemId, WaterSource, SectionId } from "@app/data";
 import { BLOCK_BITS, loadRegsInputs, type RegsStore } from "@app/data/regs";
@@ -22,6 +22,8 @@ import { openRegsFixture, openRegsFixtureWithLines, regsFixtureUnnamedTaps, sect
 import { DEFAULT_WHO, LayoutWidthContext, loadRegsStore } from "@app/ui";
 import { WaterScreen } from "./WaterScreen";
 import { LIGHT } from "./theme";
+/** (T1031 item 3) a closure's Source line as SourceRow draws it: the label, then each link's words */
+const rowText = (vm: TabSourcesVM) => [vm.label, ...vm.links.map((l) => l.label)].join("");
 
 afterEach(cleanup);
 
@@ -132,7 +134,7 @@ describe("(T53) <WaterScreen> for an unnamed reach: the store's page for the tap
     // the banner, whole, as the store's page has it; its closure is one of the store's TRIBUTARY rules for this section
     const b = page.keep.banner!;
     expect(screen.getByTestId("keep-banner").textContent).toBe(
-      b.big.join("") + b.paras.join("") + b.chain.map((c) => `${c.text} ${c.scope}${WORDS.SOURCE}${plain(c.book)}`).join(""));
+      b.big.join("") + b.paras.join("") + b.chain.map((c) => `${c.text} ${c.scope}${rowText(lineSourcesOf(c.book, c.text, `rule:${c.rule}`))}`).join(""));
     // (T768) every rule of the chain is the receiving water's OWN rule (the reach was picked for being closed by
     // tributary rules; that they are all the one named water's, the water the page names, is not part of the pick)
     expect(await Promise.all(b.chain.map((c) => ownerOf(c.rule)))).toEqual(b.chain.map(() => DOWN));
@@ -154,7 +156,7 @@ describe("(T53) <WaterScreen> for an unnamed reach: the store's page for the tap
     expect([within(screen.getByTestId("regs-header")).getByRole("heading").textContent,
             screen.queryByTestId("regs-place")?.textContent ?? null, screen.queryByTestId("keep-banner")?.textContent ?? null])
       .toEqual([page.header.name, null,   // (T878) no label: no place row
-                b ? b.big.join("") + b.paras.join("") + b.chain.map((c) => `${c.text} ${c.scope}${WORDS.SOURCE}${plain(c.book)}`).join("") : null]);
+                b ? b.big.join("") + b.paras.join("") + b.chain.map((c) => `${c.text} ${c.scope}${rowText(lineSourcesOf(c.book, c.text, `rule:${c.rule}`))}`).join("") : null]);
     // a banner here is only ever a province or zone rule's (the page is the base alone)
     if (b) expect(b.chain.every((c) => /^z[^:]*:/.test(c.rule))).toBe(true);
     expect(page.header.name).toMatch(/^Unnamed stream · Regions? \d/);

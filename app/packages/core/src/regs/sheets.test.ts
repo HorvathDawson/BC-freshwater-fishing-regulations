@@ -118,7 +118,7 @@ describe("pos: (prototype sheetHtml pos branch, rows 25 own examples)", () => {
       pages: [{ text: "Rule book p.21 ↗", pdf: 23 }],
       lines: ["Possession: 2 days’ quota. Fish at home don’t count.", "The fish you have with you at any time — in camp, a cooler or a vehicle.",
         "For example:", "With 4 trout and char a day you may have 8: 2 days’ fish. Possession doubles the 4 a day, not the 2 from streams.",
-        "With 15 whitefish a day you may have 30: 2 days’ fish.", "In the rule book’s words", POSQ.quote, "Source › Rule book p.21 ↗"],
+        "With 15 whitefish a day you may have 30: 2 days’ fish.", "In the rule book’s words", POSQ.quote, "Who says so › Rule book p.21 ↗"],
       nested: ["rule:z2:possession_quota::possession_quota.r1"] });
     expect(lines(vm).lines.some((l) => l.includes("5 trout"))).toBe(false);
   });

@@ -245,11 +245,12 @@ function surfaces(F: SalmonFacts, day: Date) {
     head: [card.title, card.badge, card.headline],
     rows: card.rows.map((r) => [r.label, r.statusLabel, r.notes, r.from]),
     table: { says: t.says.flatMap((x) => x.lines), from: [...new Set(t.species.map((r) => r.from))] },
-    fold: { title: card.sourceTitle, book: card.book, source: card.source, note: card.note },
+    // (T1031 item 3) a closure's water and pages (its Source line) are pinned in tabSources.test.ts; here its words
+    fold: { title: card.sourceTitle, book: card.book.map(({ from, words }) => ({ from, words })), source: card.source, note: card.note },
     bar: [strip.title, strip.word],
     glance: salmonGlance(card).value,
     // (T796 follow-up) a plain closed row (closed all year: no Details, the card never drawn) says the book's closure itself
-    glanceRow: (({ fold, book }) => ({ fold: fold ?? true, book: book ?? null }))(salmonGlance(card)),
+    glanceRow: (({ fold, book }) => ({ fold: fold ?? true, book: book ? book.map(({ from, words }) => ({ from, words })) : null }))(salmonGlance(card)),
     map: salmonChainStatus(F, 2, salmonDayIndex(day)),
   };
 }
@@ -419,7 +420,9 @@ describe("(T796 X1) a region closed by its DFO page keeps its one closed stateme
         STRIP_ALL_CLOSED("Salmon (DFO and rule book)", "both"), { source: "dfo", thumb: "CO", name: "Salmon", value: "closed", tone: "closed", fold: false }]);
       // a book day: still the region's one statement (no per-species rows), and the book names its closure — source,
       // page, line, dates — on the row, in the source fold, on the plain Keep row and in the badge; the same full bar
-      const book = { from: "Rule book p.34 · Every stream in Region 4", words: SPRING_WORDS };
+      const book = { from: "Rule book p.34 · Every stream in Region 4", words: SPRING_WORDS,
+                     // (T1031 item 3) its Source line's parts: the row, the page (its PDF page from the page's map, salmonWithPdf)
+                     water: "Every stream in Region 4", pages: [{ printed: 34, pdf: null }] };
       const before = card(1, on(5, 1)), may = card(2, on(5, 1));
       expect(may).toEqual({ ...before, badge: "Rule book · DFO", rows: [{ ...before.rows[0]!, notes: [R4_WORDS, SPRING_WORDS] }], book: [book],
                             sourceTitle: "Sources (rule book and DFO)", note: FOLD_BOOK.note, year: { bars: [ALL_CLOSED_BAR], by: "both" } });

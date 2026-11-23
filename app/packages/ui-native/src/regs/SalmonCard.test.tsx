@@ -6,7 +6,7 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { FISH, salmonCard, salmonGlance, salmonRowTexts, type RegsPage, type SalmonFacts } from "@app/core";
+import { FISH, salmonCard, salmonGlance, salmonRowTexts, salmonWithPdf, type RegsPage, type SalmonFacts } from "@app/core";
 import { LIGHT } from "../theme";
 import { SPINNER_TIMING } from "../LoadingState";
 import { hitArea } from "./hit";
@@ -121,8 +121,10 @@ describe("the Salmon card", () => {
     fireEvent.click(summary);
     expect(screen.getAllByTestId("salmon-says-line").map((e) => e.textContent)).toContain("4 per day, only 2 over 50 cm (Jul 15–Aug 23)");
     expect(screen.getByTestId("salmon-note").textContent).toBe("Salmon are set by DFO, not the provincial regulations above. Both apply.");
+    // (T1031 item 3) DFO's region page as the one Source line, a link that leaves the app to that page
     expect([screen.getByTestId("salmon-source").textContent, screen.getByTestId("salmon-asof").textContent])
-      .toEqual(["Fisheries and Oceans Canada · Region 6 Skeena", "DFO page dated Aug 28, 2026"]);
+      .toEqual(["SourceDFO notices, Region 6 Skeena ↗", "DFO page dated Aug 28, 2026"]);
+    expect(within(screen.getByTestId("salmon-source")).getByRole("link").textContent).toBe("DFO notices, Region 6 Skeena ↗");
     expect(screen.getByTestId("salmon-credit").textContent).toContain("Fisheries and Oceans Canada (DFO)");
     // the release's own file: no feed line
     expect(screen.queryByTestId("salmon-checked")).toBeNull();
@@ -376,13 +378,26 @@ describe("(T796, owner 2026-11-16 15:19) a book closure on the card says where i
     const summary = screen.getByTestId("salmon-source-summary");
     expect(summary.textContent).toBe("Sources (rule book and DFO)");
     fireEvent.click(summary);
+    // (T1031 item 3) the closure's row, its words, then its page as the one Source line (unlinked: no PDF map handed in)
     expect([screen.getByTestId("salmon-book-from").textContent, screen.getByTestId("salmon-book-words").textContent,
+            screen.getByTestId("salmon-book-pages").textContent,
             screen.getByTestId("salmon-source").textContent, screen.getByTestId("salmon-note").textContent]).toEqual([
-      "Rule book p.9 · National Parks and Ecological Reserves", `${BOOK} (all year)`, "Fisheries and Oceans Canada · Region 6 Skeena",
+      "National Parks and Ecological Reserves", `${BOOK} (all year)`, "SourceB.C. Synopsis p.9", "SourceDFO notices, Region 6 Skeena ↗",
       "Where the rule book closes a water to all fishing, salmon are closed there too (rule book p.77). "
         + "Elsewhere salmon are set by DFO, not the provincial regulations above. Both apply."]);
     // the book's lines come before DFO's source in the fold
     expect(screen.getByTestId("salmon-book-source").compareDocumentPosition(screen.getByTestId("salmon-source")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("(T1031 item 3) with the page's PDF map, the closure's page is a link to the book at that PDF page", () => {
+    const books: number[] = [];
+    render(<SalmonCard card={salmonWithPdf(salmonCard(facts, { sids: [1], item: null }, new Date(2026, 7, 15)), { 9: 11 })} palette={LIGHT}
+                       actions={{ ...NO_ACTIONS, onBook: (pdf) => { books.push(pdf); } }} />);
+    fireEvent.click(screen.getByTestId("salmon-source-summary"));
+    const link = within(screen.getByTestId("salmon-book-pages")).getByRole("link");
+    expect([link.textContent, link.getAttribute("aria-label")]).toEqual(["B.C. Synopsis p.9 ↗", "B.C. Synopsis page 9, opens the PDF"]);
+    fireEvent.click(link);
+    expect(books).toEqual([11]);
   });
 
   it("(follow-up) closed all year, the Keep tab's plain Salmon row (no Details, no card) says the book's words and place", () => {

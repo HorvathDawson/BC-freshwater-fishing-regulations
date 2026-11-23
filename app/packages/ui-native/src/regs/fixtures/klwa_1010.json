@@ -674,7 +674,6 @@
    },
    "hatchLink": null,
    "kind": "table",
-   "sourcesLink": "Sources ›",
    "src": [
     1364,
     3145,
@@ -2973,7 +2972,7 @@
      "line": [
       {
        "open": "rule:z4:possession_quota::possession_quota.r1",
-       "s": "Source ›",
+       "s": "Who says so ›",
        "t": "link"
       },
       {

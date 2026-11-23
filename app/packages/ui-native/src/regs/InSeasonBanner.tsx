@@ -19,12 +19,11 @@ import { View } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
 import { Icon } from "../icons";
-import { INSEASON_WORDS, inSeasonSummary, type InSeasonBannerVM } from "@app/core";
+import { inSeasonSourcesOf, inSeasonSummary, type InSeasonBannerVM } from "@app/core";
 import { useInSeasonFocus } from "@app/ui";
 import { TYPE } from "../type";
 import { GUTTER, RADIUS, type Palette } from "../theme";
-import { RegsPress } from "./RegsPress";
-import { linkTo } from "../openLink";
+import { SourceRow } from "../SourceRow";
 
 export function InSeasonBanners({ banners: all, palette }: { banners: readonly InSeasonBannerVM[]; palette: Palette }) {
   // (T318) a change with no words of its own is never drawn as an empty card with only its link (owner's phone, 0.3.0)
@@ -60,16 +59,9 @@ export function InSeasonBanners({ banners: all, palette }: { banners: readonly I
           </Text>
           {/* (T518) where on this water, in the change's own ends, when it covers only part of the page */}
           {b.where && <Text testID="inseason-where" style={[TYPE.metaBold, { color: palette.ink, marginTop: 4 }]}>{b.where}</Text>}
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <Text style={[TYPE.meta, { color: palette.sub, flexShrink: 1 }]}>{b.note}</Text>
-            {!!b.url && (
-              <RegsPress accessibilityRole="link" accessibilityLabel={INSEASON_WORDS.sourceLabel}
-                         onPress={linkTo(b.url)} box={{ w: 44, h: 44 }}
-                         style={{ minHeight: 44, justifyContent: "center" }}>
-                <Text testID="inseason-source" style={[TYPE.metaBold, { color: palette.accent }]}>{b.source}</Text>
-              </RegsPress>
-            )}
-          </View>
+          <Text style={[TYPE.meta, { color: palette.sub, marginTop: 4 }]}>{b.note}</Text>
+          {/* (T1031 item 3) the notice's page as the one Source line: "Source  B.C. in-season changes ↗" */}
+          <SourceRow vm={inSeasonSourcesOf(b)} palette={palette} testID="inseason-source" />
         </View>
       ))}
     </View>
