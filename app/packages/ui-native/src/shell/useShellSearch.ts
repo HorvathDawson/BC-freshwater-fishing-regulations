@@ -119,6 +119,15 @@ export function useShellSearch({ source, nav, recentStore }: {
       if (bbox && arrivals.current === n) setArrive({ key: `arrive:${id}:${n}`, bbox, refine: false });
     }, reportFailure);   // (T368) not framed: reported
   };
+  /**
+   * (T1010) THE PAGE STARTED ON A BOX (`?fit=w,s,e,n`: a region page's "Open the map"): the browse map framed on it, once,
+   * as a landing on a water is (`landOn`) — nothing lit, forgotten at the next move.
+   */
+  const landOnBox = (bbox: readonly [number, number, number, number]) => {
+    const n = ++arrivals.current;
+    arrivedAt.current = null;
+    setArrive({ key: `fit:${bbox.join(",")}:${n}`, bbox, refine: false });
+  };
   /** One step of search (`searchStep`): a pick lowers the sheet to half, so the keyboard goes with it. */
   const searchAct = (a: SearchAction) => {
     const next = searchStep(searchMemory.pick, a).pick;
@@ -146,7 +155,7 @@ export function useShellSearch({ source, nav, recentStore }: {
   const stops = useMemo(() => searching ? keyStops(sheetRows(searchMemory.pick, session, recents.list), searchMemory.pick) : [],
                         [searching, searchMemory.pick, session, recents.list]);
   const keys = useListKeys({ open: searching, stops, query: searchMemory.q, field });
-  return { searching, searchMemory, recents, pickRecent, session, field, arrive, openSearched, landOn, searchAct, searchType, closeSearch,
+  return { searching, searchMemory, recents, pickRecent, session, field, arrive, openSearched, landOn, landOnBox, searchAct, searchType, closeSearch,
            closeToField, wideSearch, onFieldFocus, keys };
 }
 

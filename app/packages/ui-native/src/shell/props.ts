@@ -92,7 +92,9 @@ export interface ShellProps {
    * (T234) Open a water's Conditions now — a notification's tap (a gauge alert): `item` its durable id, null an unnamed
    * reach's alert (the Conditions map); `n` counts taps, so the same water asked again opens again.
    */
-  openRequest?: { item: string | null; n: number; view?: "regs" | "conditions" | "map" } | null;
+  openRequest?: { item: string | null; n: number; view?: "regs" | "conditions" | "map";
+                  /** (T605) a region page's link on the phone: the map framed on this box (`item` null) */
+                  fit?: readonly [number, number, number, number] } | null;
   /** (T234 v1.1) a new-app-version notification was tapped (a count): the bell opens on its "App update", checked now */
   openUpdate?: number;
   /** (T50) every route the Shell moves to, for an app that must put the reader back after Android recreates the
@@ -115,6 +117,8 @@ export interface ShellProps {
   regsStart?: RegsStart | null;
   /** (T269) the water the page started on or at (the web start link's `arrive`): the map comes back framed on it (nothing lit). Read once. */
   arriveAt?: ItemId | null;
+  /** (T1010) the box the page started on (the web start link's `fit`, `?fit=w,s,e,n`): the map opens framed on it. Read once. */
+  fitAt?: readonly [number, number, number, number] | null;
   /** The platform's location, for the Spots menu's "At my location" (the app's). Absent -> not offered. */
   locate?: Locate | null;
   /**

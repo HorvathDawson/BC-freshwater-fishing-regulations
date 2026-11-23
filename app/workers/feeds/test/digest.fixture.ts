@@ -54,7 +54,7 @@ export const errors = {
 /** the two count lines `crashEvents` makes: kinds that are not defects, and (T627) known kinds seen again */
 export const notDefects: FeedEvent = {
   key: "crash-other:2026-11-10", kind: "crash", at: AT, title: "6 new error kinds that are not defects (2 expected, 4 network)",
-  text: "6 error kinds first seen today or yesterday are not defects: 2 expected, 4 network. List them: GET /crashes?class=network,expected on the feeds worker (Bearer RUN_TOKEN).",
+  text: "6 error kinds first seen today or yesterday are not defects: 2 expected, 4 network. List them: GET /crashes?class=network,expected,crawler on the feeds worker (Bearer RUN_TOKEN).",
 };
 export const repeats: FeedEvent = {
   key: "crash-repeats:2026-11-09", kind: "crash", fine: true, at: AT, title: "3 known error kinds were seen again on 2026-11-09",

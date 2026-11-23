@@ -121,7 +121,9 @@ the cutover in `versioning.json`, which the release command's bump reads too; th
 to is `commits-contract.json`) runs in `.githooks/commit-msg`, `scripts/before_push.py` and docs-ci's `commits` job.
 
 Source maps (T352, `sourcemaps.mjs`): the web export (`export:web*`, `--source-maps`) and `deploy/staging/build-apk.sh`
-(the Hermes map) keep their maps per build in `data/sourcemaps/<version>-b<build>-<sha7>/` (gitignored, never served);
+(the Hermes map) keep their maps per build in `data/sourcemaps/<version>-b<build>-<sha7>/` (gitignored); (T1008) the web's
+maps are also SERVED, left in the export once `checkServedMaps` passes (each big bundle names its map, the debug ids agree,
+a map names only files git tracks or node_modules holds);
 `node app/tools/sourcemaps.mjs symbolicate <crash json>` reads a crash's stack back with them.
 
 (T752) **The water's Map tab is a split from the tablet breakpoint (900) up, on every platform:** text column left (420 px: name, Downstream / Upstream pinned, a parts list that scrolls inside it, report link), map right, inside the frame's column (`ui-native/src/WaterFrame.tsx` `WaterSplit`, `water/WaterMapView.tsx`); below 900 the phone layout, unchanged.
