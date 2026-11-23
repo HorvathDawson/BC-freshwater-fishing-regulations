@@ -21,24 +21,56 @@ describe("T317 point marks", () => {
                    { lon: -121.6, lat: 49.3, label: null, a11y: "", on: true }];
     const xs: Record<number, number> = { [-121.9]: 200, [-121.8]: 380, [-121.7]: -600, [-121.6]: 10 };
     const anchors = await labelAnchors(marks, 400, (lon) => [xs[lon]!, 50]);
-    expect(anchors).toEqual(["bottom", "bottom-right", "bottom-right", null]);
+    // (T997) three labels at one screen height: the last hangs below its ring (`hangBelow`), the others above
+    expect(anchors).toEqual(["bottom", "bottom-right", "top-right", null]);
     type F = { geometry: { coordinates: number[] }; properties: { i: number; kind: string; anchor?: string } };
     const labels = (marksData(marks, anchors).features as F[]).filter((f) => f.properties.kind === "label");
     // the anchor test: each label at its own mark, exactly — an off-screen mark's label stays off screen with it
     expect(labels.map((f) => [f.geometry.coordinates, f.properties.anchor]))
-      .toEqual([[[-121.9, 49.1], "bottom"], [[-121.8, 49.0], "bottom-right"], [[-121.7, 49.2], "bottom-right"]]);
+      .toEqual([[[-121.9, 49.1], "bottom"], [[-121.8, 49.0], "bottom-right"], [[-121.7, 49.2], "top-right"]]);
     // a camera somewhere else changes no label's point (the tester's "they move around with you as you pan")
     const panned = await labelAnchors(marks, 400, (lon) => [xs[lon]! - 350, 50]);
     expect((marksData(marks, panned).features as F[]).filter((f) => f.properties.kind === "label")
       .map((f) => f.geometry.coordinates)).toEqual(labels.map((f) => f.geometry.coordinates));
-    // not measured yet: centred, at the mark
+    // not measured yet: centred, at the mark; (T997) the southernmost (49.0) below its ring, north being up
     expect((marksData(marks).features as F[]).filter((f) => f.properties.kind === "label").map((f) => f.properties.anchor))
-      .toEqual(["bottom", "bottom", "bottom"]);
+      .toEqual(["bottom", "top", "bottom"]);
   });
-  it("(T929) the label layer hangs each label by its feature's anchor; nothing else moves it sideways", () => {
+  it("(T929) the label layer hangs each label by its feature's anchor; nothing moves it sideways; (T997) below or above", () => {
     const label = marksLayers({ ink: colour("light", "color.ui.ink"), card: colour("light", "color.ui.card") }, "box")[1] as { layout: Record<string, unknown> };
     expect(label.layout["text-anchor"]).toEqual(["get", "anchor"]);
-    expect((label.layout["text-offset"] as number[])[0]).toBe(0);
+    const k = (16 + 3 + 1.5) / 12;
+    expect(label.layout["text-offset"]).toEqual(["case", ["==", ["get", "below"], true], ["literal", [0, k]], ["literal", [0, -k]]]);
+    // never collided away: a hidden end label would leave that end named by nothing (#51 review)
+    expect([label.layout["text-allow-overlap"], label.layout["icon-allow-overlap"]]).toEqual([true, true]);
+  });
+  it("(T997 round 2, T465) the lit part's two end labels never cover each other, wherever the two rings are on the screen", async () => {
+    // a label box as the layer draws it: 16 px from its ring, above (`bottom*`) or below (`top*`); as tall as two
+    // wrapped lines and 180 px wide, centred or from its corner as `labelAnchor` hangs it
+    const W = 180, H = 2 * 15 + 2 * (3 + 1.5), LIFT = 16;
+    const box = ([x, y]: [number, number], a: string) => {
+      const left = a.endsWith("-left") ? x : a.endsWith("-right") ? x - W : x - W / 2;
+      const top = a.startsWith("top") ? y + LIFT : y - LIFT - H;
+      return { left, right: left + W, top, bottom: top + H };
+    };
+    const meet = (p: ReturnType<typeof box>, q: ReturnType<typeof box>) =>
+      p.left < q.right && q.left < p.right && p.top < q.bottom && q.top < p.bottom;
+    const mk = (lon: number) => ({ lon, lat: 49, label: "End", a11y: "", on: false });
+    let met = 0, tried = 0;
+    // every pair of ring positions on a 390 x 300 map, 15 px apart, the two coincident included (a 23 m part zoomed out)
+    for (let x1 = 0; x1 <= 390; x1 += 30) for (let y1 = 0; y1 <= 300; y1 += 30)
+      for (let dx = -120; dx <= 120; dx += 15) for (let dy = -90; dy <= 90; dy += 15) {
+        const at: Record<number, [number, number]> = { 1: [x1, y1], 2: [x1 + dx, y1 + dy] };
+        const a = await labelAnchors([mk(1), mk(2)], 390, (lon) => at[lon]!);
+        tried++;
+        if (meet(box(at[1]!, a[0]!), box(at[2]!, a[1]!))) met++;
+      }
+    expect([tried > 10_000, met]).toEqual([true, 0]);
+    // and before the map has measured them: by latitude, the southern one below — the coincident pair too
+    const F = (fc: { features: unknown[] }) => (fc.features as { properties: { kind: string; anchor?: string } }[])
+      .filter((f) => f.properties.kind === "label").map((f) => f.properties.anchor);
+    expect([F(marksData([{ ...mk(1), lat: 49.1 }, mk(2)])), F(marksData([mk(1), mk(1)])), F(marksData([mk(1)]))])
+      .toEqual([["bottom", "top"], ["bottom", "top"], ["bottom"]]);
   });
   it("pins carry their tone (the accent by default) and the marker is last, over them", () => {
     const accent = colour("light", "color.ui.accent");
