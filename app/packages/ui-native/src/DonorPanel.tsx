@@ -282,7 +282,11 @@ export function DonorPanel({ palette, value, day, askedAt, at, theme, from, sele
         <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "space-between",
                        gap: SPACE.s2 }}>
           {/* top-aligned: the open day list under the control never moves the heading off its line */}
-          <View style={{ minHeight: 36, justifyContent: "center" }}><Kicker palette={palette} oneLine>{vm.heading}</Kicker></View>
+          <View style={{ minHeight: 36, justifyContent: "center" }}>
+            <Kicker palette={palette} oneLine>{vm.heading}</Kicker>
+            {/* (T1043, owner 2026-11-23: "add ranked on flow at top") the card below shows the other quantity */}
+            {vm.rankedNote ? <Text testID="estimate-ranked-on" style={{ ...TYPE.meta, color: palette.sub }}>{vm.rankedNote}</Text> : null}
+          </View>
           {onHorizon && <HorizonHeader palette={palette} chips={vm.horizons} onPick={onHorizon} />}
         </View>
         {/* the headline's place is TWO lines whatever it says: a quantity's answer that wraps to two must not move the map */}
