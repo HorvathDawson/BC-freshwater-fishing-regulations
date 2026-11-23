@@ -428,7 +428,7 @@ describe("(T796 X1) a region closed by its DFO page keeps its one closed stateme
                             sourceTitle: "Sources (B.C. Synopsis and DFO)", note: FOLD_BOOK.note, year: { bars: [ALL_CLOSED_BAR], by: "both" },
                             // (T1031) each species' sources: the region's closure, then the book's closure by its rule
                             whoBy: Object.fromEntries(Object.entries(before.whoBy!).map(([sp, w]) => [sp, [...w!, { k: "book", from: book.from,
-                              rule: "z4:spring_stream_closure::spring_stream_closure.r1" }]])) });
+                              rule: "z4:spring_stream_closure::spring_stream_closure.r1", water: "Every stream in Region 4" }]])) });
       expect([may.closedOnly, may.year.bars, salmonStripOf(may, null), salmonGlance(may)]).toEqual([true, [ALL_CLOSED_BAR],
         STRIP_ALL_CLOSED("Salmon (DFO and B.C. Synopsis)", "both"), { source: "dfo", thumb: "CO", name: "Salmon", value: "closed", tone: "closed", fold: false, book: [book] }]);
       expect([salmonChainStatus(F, 2, salmonDayIndex(on(5, 1))), salmonChainStatus(F, 2, salmonDayIndex(on(7, 1)))]).toEqual(["closed", "closed"]);
