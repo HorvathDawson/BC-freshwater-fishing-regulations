@@ -34,6 +34,7 @@
  */
 import { MONTHS } from "./calendar.generated";
 import { isIsoDay } from "./day";
+import { reportFailure } from "./failure";
 import { INSEASON_WORDS, inSeasonDates, regionWords, type InSeasonChange, type InSeasonFeed } from "./inseason";
 
 /** (T700) a notice stays in the history this many days after it ended (left the page, or its `to` passed) */
@@ -208,9 +209,12 @@ export function inboxMerge(state: InboxState | null, feed: InSeasonFeed,
       continue;
     }
     // a first read, or (T983) a notice met begun before that enters again (not an amendment the feed links): quiet
-    const quiet = (first || (!linked && known(c.id))) && (waters !== null || seen.has(c.id));
-    // (T867) in effect before this device began counting, and on its water's page: not a history row
-    if (quiet && waters !== null) continue;
+    // (T867) in effect before this device began counting and on its water's page (a first read), or already met begun:
+    // not a history row. A met notice stays out whether or not it is matched now (a water's release lost, an id remapped,
+    // a link dropped for a poll: not news).
+    const metBefore = !first && !linked && known(c.id);
+    if (metBefore || (first && waters !== null)) continue;
+    const quiet = first && seen.has(c.id);
     out.set(c.id, { ...now, arrived: linked ? "updated" : "new",
                     at: dayOf(linked ? r?.changedAt : r?.firstSeen) ?? today,
                     read: quiet, prompted: quiet || seen.has(c.id) });
@@ -259,12 +263,18 @@ export function inboxObserve(state: InboxState | null,
                                      readonly app: string | null },
                              today: string): InboxState {
   const s: InboxState = state ?? { format: INBOX_FORMAT, rev: INBOX_REV, items: [] };
+  // (T867 review) a published day that is not a day would make the saved history unreadable: said, and today stands in
+  let relDay = seen.release?.day ?? null;
+  if (relDay !== null && !isDay(relDay)) {
+    reportFailure(new Error(`in-season inbox: the data release states a published day that is not a date (${JSON.stringify(relDay)}); today is used`));
+    relDay = null;
+  }
   const b = s.base;
   const next = { release: seen.release?.id ?? b?.release ?? null, app: seen.app ?? b?.app ?? null };
   if (!b) return { ...s, base: next };
   const added: InboxEvent[] = [];
   if (seen.release && b.release !== null && seen.release.id !== b.release)
-    added.push({ id: `data:${seen.release.id}`, kind: "data", at: seen.release.day ?? today, version: null,
+    added.push({ id: `data:${seen.release.id}`, kind: "data", at: relDay ?? today, version: null,
                  changed: seen.release.changed ?? null, read: false });
   if (seen.app && b.app !== null && seen.app !== b.app)
     added.push({ id: `app:${seen.app}`, kind: "app", at: today, version: seen.app, changed: null, read: false });

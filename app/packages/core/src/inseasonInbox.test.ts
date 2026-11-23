@@ -5,6 +5,7 @@
 import { describe, expect, it } from "vitest";
 import { EARLIER_DAYS, EARLIER_ROWS, INBOX_KEEP_DAYS_AFTER_END, INBOX_MAX_ITEMS, inboxDetail, inboxMark, inboxMerge, inboxObserve, inboxEventKind, inboxUnreadIds, inboxPrompted, inboxRead, inboxReadAll,
          inboxTarget, inboxText, inboxUnread, inboxVM, inboxWantsOpen, parseInbox, type InboxState } from "./inseasonInbox";
+import { setFailureSink } from "./failure";
 import { joinInSeason, type InSeasonFeed, type InSeasonLinks, type InSeasonRow } from "./inseason";
 
 const SRC = "https://www2.gov.bc.ca/in-season";
@@ -297,5 +298,26 @@ describe("(T867) since install, read on open, short, with the app's own updates"
   it("an update row made before any notice was met does not stop the first read starting quiet", () => {
     const e = inboxObserve(null, { release: { id: "r-1", day: null }, app: "0.9.0" }, "2026-11-22");
     expect(read(e, feed([A, B]), L, "2026-11-22").items).toEqual([]);
+  });
+
+  it("(review) a notice met in effect stays quiet when its water's match is lost later: never a New row, never the auto-open", () => {
+    const s0 = read(null, feed([A]), links({ "is-a": ["gnis:1"] }), "2026-11-13");
+    // the release no longer holds the water / the id was remapped / the link dropped for a poll
+    const s1 = read(s0, feed([A]), links({}), "2026-11-14");
+    expect([s1.items, inboxUnread(s1), inboxWantsOpen(s1)]).toEqual([[], 0, false]);
+    // and when the match comes back: still nothing
+    expect(read(s1, feed([A]), links({ "is-a": ["gnis:1"] }), "2026-11-15").items).toEqual([]);
+  });
+
+  it("(review) a published day that is not a day is reported and not stored: the saved history stays readable", () => {
+    const seen: unknown[] = [];
+    const undo = setFailureSink((e) => seen.push(e));
+    try {
+      const s0 = inboxObserve(null, { release: { id: "r-1", day: "2026-11-10" }, app: "0.8.5" }, "2026-11-22");
+      const s1 = inboxObserve(s0, { release: { id: "r-2", day: "yesterday" }, app: "0.8.5" }, "2026-11-23");
+      expect(s1.events!.map((e) => [e.id, e.at])).toEqual([["data:r-2", "2026-11-23"]]);
+      expect(parseInbox(inboxText(s1))).toEqual(s1);
+      expect(seen.map(String)).toEqual(['Error: in-season inbox: the data release states a published day that is not a date ("yesterday"); today is used']);
+    } finally { undo(); }
   });
 });

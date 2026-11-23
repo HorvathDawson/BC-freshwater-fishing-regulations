@@ -368,8 +368,17 @@ export function useInSeasonInbox(now: InSeasonNow, store: InSeasonSeenStore | nu
     setOpened(false); setDetail(null);
     update(inboxPrompted);
   }, [update]);
+  const upRef = useRef(false);
   const shown = useCallback((up: boolean) => {
-    if (!up) { setFresh((f) => (f.size ? new Set() : f)); return; }
+    const was = upRef.current;
+    upRef.current = up;
+    if (!up) {
+      setFresh((f) => (f.size ? new Set() : f));
+      // (T867 review) a notice that arrived while the sheet was up was listed as New: it is read as the sheet closes
+      // (never before it was up: the first call of a mount only says it is not)
+      if (was) update(inboxReadAll);
+      return;
+    }
     setFresh(new Set(inboxUnreadIds(stateRef.current)));
     update(inboxReadAll);
   }, [update]);

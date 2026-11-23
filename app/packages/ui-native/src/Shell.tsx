@@ -411,10 +411,12 @@ export function Shell(p: ShellProps) {
   const guide = useGuide(p.walkthrough ?? null, firstRun.open || !onMapTab);
   /** (T230, T700) the bell's sheet is up: from the bell, or by itself once for an in-season notice not on the map yet
    *  (the same expression as `InSeasonNotice`'s `open`, below) */
-  const bellUp = (inbox.open && !firstRun.open && !guide.open) || bellOpen;
+  const bellUp = (inbox.open && !firstRun.open && !guide.open && !guide.pending) || bellOpen;
   // (T867) opening the inbox reads what it shows: this open's "New" is what was unread now
   const { shown: inboxShown } = inbox;
-  useEffect(() => { inboxShown(bellUp); }, [bellUp, inboxShown]);
+  // (T867 review) only when the sheet is in front: not under the walkthrough about to open, nor the applying curtain
+  const inboxInFront = bellUp && !guide.pending && !p.applyCurtain?.applying && !p.applyCurtain?.failed;
+  useEffect(() => { inboxShown(inboxInFront); }, [inboxInFront, inboxShown]);
   /*
    * (T888) THE POPUP ON OPENING (a newer version, once; then the bell) waits behind the first-run notice, the walkthrough
    * (due or under way), the bell's sheet (open, or opening by itself for an in-season notice), the applying curtain, and
@@ -769,7 +771,7 @@ export function Shell(p: ShellProps) {
                    camera={frame?.view === "map" ? waterCamera.current ?? camera.current : camera.current} />
       {/* (T230, T700) the bell's sheet: from the bell, and by itself once for an in-season notice not on the map yet */}
       {/* (`bellUp` above is this same expression: the popup's `bell`; spelled out here for tools/back-layers.test.ts) */}
-      <InSeasonNotice open={(inbox.open && !firstRun.open && !guide.open) || bellOpen} dfo={dfoNotice}
+      <InSeasonNotice open={(inbox.open && !firstRun.open && !guide.open && !guide.pending) || bellOpen} dfo={dfoNotice}
                       inbox={inbox}
                       palette={palette} onClose={() => { setBellOpen(false); inbox.close(); }}
                       sync={{ failed: syncState.failed, checking: syncState.checking, onRetry: syncState.refresh }}

@@ -82,6 +82,24 @@ describe("useInSeasonInbox (T700)", () => {
     expect(out.s!.vm.groups.map((g) => [g.title, g.rows.map((r) => r.id)])).toEqual([["Earlier", ["is-a", "is-b", "is-c"]]]);
   });
 
+  it("(T867 review) a notice that arrives while the sheet is up is listed as New and read when it closes; a mount alone reads nothing", async () => {
+    const store = mem(), out: { s?: InSeasonInboxState } = {}, opened: string[] = [];
+    const r = render(<Inbox now={nowOf([], {})} store={store} out={out} opened={opened} />);
+    await waitFor(() => expect(store.read()).not.toBeNull());
+    r.rerender(<Inbox now={nowOf([A], { "is-a": ["gnis:1"] })} store={store} out={out} opened={opened} />);
+    await waitFor(() => expect(out.s!.count).toBe(1));
+    // the sheet's "not up" at mount must not read what was never listed
+    act(() => out.s!.shown(false));
+    expect(out.s!.count).toBe(1);
+    act(() => out.s!.shown(true));
+    const C = row("is-c", "Duncan River");
+    r.rerender(<Inbox now={nowOf([A, C], { "is-a": ["gnis:1"], "is-c": ["gnis:3"] })} store={store} out={out} opened={opened} />);
+    await waitFor(() => expect(out.s!.vm.groups[0]!.rows.map((x) => x.id).sort()).toEqual(["is-a", "is-c"]));
+    act(() => out.s!.shown(false));
+    expect(out.s!.count).toBe(0);
+    expect(JSON.parse(store.read()!).items.every((i: { read: boolean }) => i.read)).toBe(true);
+  });
+
   it("(T867) data and app updates are rows: recorded at first sight, a row when the release or version moves; a tap opens it", async () => {
     const store = mem(), out: { s?: InSeasonInboxState } = {}, opened: string[] = [], updates: string[] = [];
     const t1: InboxTrack = { release: { id: "r-1", day: "2026-11-10" }, app: "0.8.5" };
