@@ -136,6 +136,7 @@ describe("what a card shows (cardModel)", () => {
     const m = cardModel("x", "X", station({ forecasts: { ELF, CLEVER } }), NOW);
     expect(m.forecasts.map((r) => r.model)).toEqual(["CLEVER", "ELF"]);
     expect(m.forecasts[0]!.points.map((p) => p[1])).toEqual([23, 30, 40]);
+    expect(m.forecasts[0]!.horizonDays).toBe(12);                                                  // no horizon in the file: the days to its last point
     expect(m.forecast?.model).toBe("CLEVER");
     expect(m.forecast?.points.map((p) => p[1])).toEqual([23, 30]);
   });

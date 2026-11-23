@@ -10,7 +10,7 @@ import { buildAll, type Built } from "./build";
 import { TODAY } from "./fixture";
 import { checkJsonLd } from "./jsonld";
 import { pngSize } from "./share";
-import { gaugeModels, gaugePath, gaugeTitle, LIVE, moreSummary, type GaugeRows } from "./gauges";
+import { browserSafe, gaugeModels, gaugePath, gaugeTitle, LIVE, moreSummary, type GaugeRows } from "./gauges";
 import { readConfig } from "./build";
 
 const site = readConfig();
@@ -115,6 +115,17 @@ describe("T487 gauge pages", () => {
     expect(page).toMatch(/h\(StationChart, \{ vm, palette/);
     expect(page).toMatch(/useStationChart\(source, station,/);
   });
+
+  it("(T1039) the chart's script may not read an environment variable a browser lacks; NODE_ENV and React's guarded checks pass", () => {
+    expect(() => browserSafe('x=process.env.EXPO_PUBLIC_DATA_BASE')).toThrow(/reads process\.env\.EXPO_PUBLIC_DATA_BASE/);
+    expect(() => browserSafe("x=process.env")).toThrow(/reads process\.env/);
+    expect(() => browserSafe('if("production"!==process.env.NODE_ENV)a();typeof process=="object"&&process.emit("x")')).not.toThrow();
+  });
+
+  it("(T1039) gauge pages with no climatology at all are refused: they would chart no normal range", async () => {
+    await expect(buildAll({ loader: openRegsFixture(), on: TODAY, gauges: rows, bare: true, gaugeClim: null }))
+      .rejects.toThrow(/without the release's climatology/);
+  }, 120_000);
 
   it("a station's title keeps its number however long the name; the path is the name's slug", () => {
     const long = { station: "08AB123", name: "A Very Long River Name Indeed That Goes On And On Below The Long Falls" };

@@ -135,6 +135,15 @@ export function findScript(): string {
  * and the tests resolve them (vitest.config.ts): react-native is react-native-web, each `.web` sibling first, react-native-svg's
  * web entry, the gesture handler's ES-module build. A bundle that does not build stops the site build (thrown).
  */
+/**
+ * A bundle that reads an environment variable (an EXPO_PUBLIC_ one, inlined by Metro in the app) would throw in the
+ * browser: the site build stops instead. React's own `typeof process` checks are guarded and stay; NODE_ENV is defined.
+ */
+export function browserSafe(js: string): void {
+  const env = /\bprocess\.env\b(?!\.NODE_ENV\b)[.\w]*/.exec(js);
+  if (env) throw new Error(`seo: the gauge chart's script reads ${env[0]}, which no browser has`);
+}
+
 export interface ChartBundle {
   readonly js: string;
   /** the pictures the bundle names (the coho loader's sheets), at their served paths under /assets/chart/ */
@@ -166,10 +175,7 @@ export async function chartScript(): Promise<ChartBundle> {
   const main = r.outputFiles.find((f) => f.path === join(out, "gauge-chart.js"));
   if (!main) throw new Error("seo: the gauge chart's build wrote no gauge-chart.js");
   const js = main.text;
-  // a bundle that reads an environment variable (an EXPO_PUBLIC_ one, inlined by Metro) would throw in the browser: the
-  // build stops instead (React's own `typeof process` checks are guarded and stay)
-  const env = /\bprocess\.env\b(?!\.NODE_ENV\b)[.\w]*/.exec(js);
-  if (env) throw new Error(`seo: the gauge chart's script reads ${env[0]}, which no browser has`);
+  browserSafe(js);
   const assets = new Map(r.outputFiles.filter((f) => f !== main).map((f) => [`assets/${f.path.slice(out.length + 1)}`, f.contents] as const));
   return { js, assets };
 }

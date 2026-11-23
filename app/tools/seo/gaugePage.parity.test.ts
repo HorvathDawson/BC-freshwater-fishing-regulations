@@ -175,11 +175,18 @@ describe("the gauge page shows what the app shows for one station", () => {
     for (const w of ["Flow", "Level", "72 h", "Year", "CLEVER · 10d", "ELF · 30d", "Real-time only", "normal range", "median"]) expect(words, w).toContain(w);
   });
 
+  it("(T1039) a series the source could not answer: the chart's place says so (shown; the hook reports it)", async () => {
+    const broken: ChartSource = { gaugeParameters: async () => ["discharge"], gaugeSeries: async () => { throw new Error("series broke"); } };
+    const view = render(h(GaugeChart, { source: broken, station: ST }));
+    await waitFor(() => expect(view.getByTestId("gauge-chart-failed").textContent).toBe(CHART_FAILED));
+  });
+
   it("(T1039) the page reads the app's feed file, never the share card; a file that cannot be read is shown and reported (W46)", async () => {
     const page = (station: () => Response, clim: string = Buffer.from(CLIM[0]!.bands).toString("base64")) => {
       const doc = document.implementation.createHTMLDocument("g");
       doc.body.innerHTML = `<div id="gauge-chart"></div><script type="application/json" id="gauge-config">${JSON.stringify({
-        station: ST, facts: "https://data.example/feeds/cards/08MH001.json", live: BASE, clim: [{ parameter: "discharge", bands: clim }], fonts: null,
+        station: ST, facts: "https://data.example/feeds/cards/08MH001.json", live: BASE, clim: [{ parameter: "discharge", bands: clim }],
+        fonts: '@font-face{font-family:"Archivo_400Regular";src:url(/assets/fonts/A.woff2)}',
         weather: null, weatherAttribution: "", sky: {}, crash: "https://c/crash", env: "staging", release: "r1" })}</script>`;
       const sent: string[] = [];
       const inner = feedFetch(station);
@@ -196,6 +203,8 @@ describe("the gauge page shows what the app shows for one station", () => {
     expect(asked).toContain(`${BASE}/${ST}.json`);
     expect(asked.filter((u) => u.includes("/cards/"))).toEqual([]);
     expect(ok.sent).toEqual([]);
+    // the app's faces, the export's own files, are declared for the chart's words
+    expect([...ok.doc.head.querySelectorAll("style")].some((x) => x.textContent!.includes('font-family:"Archivo_400Regular"'))).toBe(true);
     // the station file answers 500: the app's chart says it has no record, and the failure is reported
     const down = page(() => new Response("down", { status: 500 }));
     await waitFor(() => expect(down.sent.length).toBeGreaterThan(0), { timeout: 10_000 });
