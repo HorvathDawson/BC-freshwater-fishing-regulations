@@ -5,7 +5,7 @@ declare const __DEV__: boolean | undefined;
  */
 import { useEffect, useRef } from "react";
 import * as maplibregl from "maplibre-gl";
-import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, MIN_ZOOM } from "@app/core";
+import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, isNoWebGL, MIN_ZOOM, noWebGLError } from "@app/core";
 import { webRenderer } from "../adapters/web";
 import { Colouring, LABEL_SOURCE_LAYERS } from "../colouring";
 import { compassShown, keyboardRotation, maplibreGestures, touchRotation } from "../gestures";
@@ -24,7 +24,9 @@ type Made = Pick<MapProps, "at" | "theme" | "modes" | "gauges" | "initial" | "ba
                           | "onImageryError">;
 
 export function useMapInstance(refs: WebMapRefs,
-                               { at, theme, modes, gauges, initial, bare, zoomControls, onError, onImageryError }: Made) {
+                               { at, theme, modes, gauges, initial, bare, zoomControls, onError, onImageryError }: Made,
+                               /** (T1005) told when this browser cannot draw a map (no WebGL): the map says so */
+                               onUnavailable?: (unavailable: boolean) => void) {
   const { host, map, renderer, adapter, copy, colouring, pill, refit } = refs;
   // read by the map's one `error` handler, which is bound once at construction
   const imageryError = useRef(onImageryError);
@@ -34,10 +36,11 @@ export function useMapInstance(refs: WebMapRefs,
   const themeNow = useRef(theme);
   themeNow.current = theme;
   useEffect(() => {
-    if (!host.current) return;
+    const el = host.current;
+    if (!el) return;
     registerPMTiles();
-    const m = new maplibregl.Map({
-      container: host.current,
+    const makeMap = () => new maplibregl.Map({
+      container: el,
       // `gauges` rides in on the endpoints so the source EXISTS from the first frame;
       // its contents are then replaced imperatively below. Declaring it later would mean
       // rebuilding the whole style every half hour to move a few hundred dots.
@@ -61,6 +64,18 @@ export function useMapInstance(refs: WebMapRefs,
       // that moves 8 px or more is a pan, never a tap (`@app/core` MAP_GESTURES)
       ...maplibreGestures(),
     });
+    let m: maplibregl.Map;
+    try {
+      m = makeMap();
+    } catch (e) {
+      // (T1005) NO WEBGL is the browser, not a defect: said on the map (`onUnavailable`) and reported as one stable
+      // message. Anything else the constructor throws is thrown on, as before.
+      if (!isNoWebGL(e)) throw e;
+      onUnavailable?.(true);
+      onError?.(noWebGLError(e));
+      return;
+    }
+    onUnavailable?.(false);
     if (!touchRotation()) m.touchZoomRotate.disableRotation();
     if (!keyboardRotation()) m.keyboard.disableRotation();
 

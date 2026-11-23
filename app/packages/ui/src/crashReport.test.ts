@@ -315,10 +315,11 @@ describe("(iOS crash lane) an iOS exit record, its payload and the server's answ
       name: "NativeExit", message: "CRASH_NATIVE while foreground, 274 MB in use, status 11: SIGSEGV", stack: "",
     });
   });
-  it("a refusal (the worker's per-address day limit): not sent, its status and words in the log line, reported, looked at again", async () => {
+  it("(T1005) the worker's per-address day limit (429): not sent, its status and words in the log line, NOT reported, looked at again", async () => {
     const failures: unknown[] = [];
     const unsink = setFailureSink((e) => { failures.push(e); });
     const info = vi.spyOn(console, "info").mockImplementation(() => {});
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const fetch = vi.fn(async () => new Response(JSON.stringify({ ok: false, error: "too many reports today" }), { status: 429 }));
     const setting = createCrashSetting(null);
     const reporter = createCrashReporter({ url: "u", setting, online: () => true, context: () => IOS_CTX, fetch: fetch as never, now: () => NOW });
@@ -326,12 +327,24 @@ describe("(iOS crash lane) an iOS exit record, its payload and the server's answ
     const n = await reportPastExits({ reporter, source: { recent: async () => [IOS] }, seen: { read: () => mem.v, write: (t) => { mem.v = t; } },
                                       setting, online: () => true, jsFatalSent: false });
     const line = info.mock.calls.map((c) => String(c[0])).find((l) => l.startsWith("[crash-reports] sent"));
-    info.mockRestore(); unsink();
+    const held = warn.mock.calls.map((c) => String(c[0]));
+    info.mockRestore(); warn.mockRestore(); unsink();
     expect(n).toBe(0);
     expect(line).toBe("[crash-reports] sent 0 exit record(s); 1 new in the system's record (CRASH_NATIVE), 1 bad; answers: HTTP 429 (too many reports today)");
-    expect(failures.map((e) => `${(e as Error).name}: ${(e as Error).message}`)).toEqual(
-      ["CrashReportRefused: an exit record was refused by the crash server: HTTP 429 (too many reports today)"]);
+    expect(failures).toEqual([]);
+    expect(held).toEqual(["[crash-reports] an exit record was held by the crash server's limit (HTTP 429 (too many reports today)): sent again at the next start"]);
     expect(mem.v).toBe(String(IOS.timestamp - 1));   // the next start sends it again
+  });
+  it("any other refusal (a 400: a payload the worker does not take) is still reported", async () => {
+    const failures: unknown[] = [];
+    const unsink = setFailureSink((e) => { failures.push(e); });
+    const setting = createCrashSetting(null);
+    const reporter = createCrashReporter({ url: "u", setting, online: () => true, context: () => IOS_CTX, now: () => NOW,
+                                           fetch: (async () => new Response('{"ok":false,"error":"unknown x"}', { status: 400 })) as never });
+    await reporter.sendExit(IOS);
+    unsink();
+    expect(failures.map((e) => `${(e as Error).name}: ${(e as Error).message}`)).toEqual(
+      ["CrashReportRefused: an exit record was refused by the crash server: HTTP 400 (unknown x)"]);
   });
   it("accepted: sent, the line says HTTP 201; no answer at all (offline line) is said, not reported", async () => {
     const failures: unknown[] = [];

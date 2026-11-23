@@ -270,9 +270,16 @@ export function createCrashReporter(o: {
   }
   /** (W46) a send the server REFUSED (an HTTP answer that is not ok) is reported, non-fatal, through this same reporter: a
    *  400 is a payload the worker does not take, and this is how the owner hears of it. No answer at all (offline, a lost
-   *  line) is the environment: said in the log line, not reported. */
+   *  line) is the environment: said in the log line, not reported.
+   *  (T1005) A 429 is the server's own rate limit, not a payload it refuses: the record is KEPT and sent again at the next
+   *  start (an exit record's mark stops before it; a kept fatal error stays in its slot), and the limit is said in the log
+   *  line. Reported, it became a crash kind of its own — sent to the server that had just said "not now". */
   const refused = (what: string, a: SendAnswer) => {
     if (a.sent || a.status === null) return;
+    if (a.status === 429) {
+      console.warn(`[crash-reports] ${what} was held by the crash server's limit (${answerWords(a)}): sent again at the next start`);
+      return;
+    }
     const e = new Error(`${what} was refused by the crash server: ${answerWords(a)}`);
     e.name = "CrashReportRefused";
     reportFailure(e);
