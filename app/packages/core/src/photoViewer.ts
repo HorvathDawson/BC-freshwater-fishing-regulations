@@ -84,12 +84,15 @@ export function photoDismissEnds(dy: number, vy: number, height: number): boolea
   return dy > height * PHOTO_VIEWER.dismissShare || vy > PHOTO_VIEWER.dismissFlick;
 }
 
-/** The dismiss as drawn, for the platform's interpolation: the ground fades and the photo shrinks with the drag down. */
+/** The dismiss as drawn, for the platform's interpolation: the ground fades (the buttons faster, T970) and the photo shrinks with the drag down. */
 export function photoDismissLook(height: number): { fade: { inputRange: number[]; outputRange: number[] };
+                                                     chrome: { inputRange: number[]; outputRange: number[] };
                                                      shrink: { inputRange: number[]; outputRange: number[] } } {
   const h = Math.max(1, height);
   return {
     fade: { inputRange: [0, h * PHOTO_VIEWER.dismissFadeShare], outputRange: [1, 0] },
+    // (T970) the buttons and the counter are gone by the time the ground is half gone (they sit over the page showing through)
+    chrome: { inputRange: [0, h * PHOTO_VIEWER.dismissFadeShare / 2], outputRange: [1, 0] },
     shrink: { inputRange: [0, h], outputRange: [1, PHOTO_VIEWER.dismissShrink] },
   };
 }
