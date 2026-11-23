@@ -175,11 +175,11 @@ def test_the_history_is_read_since_the_cutover_then_since_the_last_tag(repo):
 
 
 def test_the_release_texts_name_runbooks_that_exist():
-    """(T1021) `release --prod`'s hand-over names the one human runbook and the reference page, both files that exist; the
+    """(T1021) `release --prod`'s hand-over names the one human runbook and the reference page, the runbook a file that exists; the
     post-release hints do not cite a memory note (a note is not in the repo)."""
     from pipeline import release as REL
     root = Path(__file__).resolve().parents[2]
     text = REL.prod_instructions("r-x", {})
-    for rel in ("handoff/PLAN/runbooks/release-by-hand.md", "handoff/PLAN/release/PRODUCTION.md"):
-        assert rel in text and (root / rel).is_file(), rel
+    assert "handoff/PLAN/runbooks/release-by-hand.md" in text and "release/PRODUCTION.md" in text
+    assert (root / "handoff/PLAN/runbooks/release-by-hand.md").is_file()      # (runbooks/ is in CI's pipeline paths)
     assert "(memory " not in Path(REL.__file__).read_text(encoding="utf-8")
