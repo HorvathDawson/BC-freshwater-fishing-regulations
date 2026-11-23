@@ -295,7 +295,12 @@ const PUSH_FIXED_SUBREQUESTS = 13;
 export const pushSubrequests = (registered: number, perRun = PUSH_SENDS_PER_RUN): number =>
   Math.max(1, Math.ceil(registered / 1000)) + 3 * Math.min(perRun, registered) + PUSH_FIXED_SUBREQUESTS;
 
-/** (T739 L3) where a wake too big for one run keeps its place: the next feed run tells the next phones */
+/**
+ * (T739 L3) where a wake too big for one run keeps its place: the next feed run tells the next phones.
+ * (T977, accepted 2026-11-22) Two runs at once both read it and the later write wins: duplicate silent pushes, or a
+ * circle cut short (those phones are told by the next wake). Only possible past PUSH_SENDS_PER_RUN phones; the lease
+ * that would stop it is designed in T977 and built when /status first shows a carried wake.
+ */
 export const PUSH_CARRY_KEY = `${PUSH_PREFIX}carry.json`;
 /**
  * The carry-over. Phones are told in key order, as a circle that starts after `start` ("" = the first key): the wake is
