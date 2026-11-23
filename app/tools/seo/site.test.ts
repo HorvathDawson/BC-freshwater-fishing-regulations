@@ -333,7 +333,9 @@ describe("T195 hubs and dated pages", () => {
       const names = /data-names="([^"]+)"/.exec(r.html)?.[1];
       expect(names, `${r.path}: the search is missing`).toMatch(/^\/assets\/region-\d+\.[0-9a-f]{10}\.json$/);
       const list = JSON.parse(built.files.get(names!.slice(1))!) as [string, string][];
-      expect(list.length, r.path).toBe(built.build.models.filter((m) => m.at.some((a) => a.regions.includes(n))).length || list.length);
+      const inR = built.build.models.filter((m) => m.regions.includes(n)).length;
+      expect(inR, `${r.path}: no waters to count`).toBeGreaterThan(0);
+      expect(list.length, r.path).toBe(inR);
       expect(list.every(([nm, p]) => nm && p.startsWith("/water/")), r.path).toBe(true);
       expect(built.files.get(/<script src="\/(assets\/region-find\.[0-9a-f]{10}\.js)" defer>/.exec(r.html)?.[1] ?? "none"), r.path).toContain("form[data-names]");
       // the crawlable lists stay: every water or its letters, and the topics

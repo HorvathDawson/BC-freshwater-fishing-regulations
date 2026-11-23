@@ -234,7 +234,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     const pic = boxOf.has(r) ? dotPicture(models, r, boxOf.get(r)!) : null;
     let lead = mapCard(r);
     if (pic) {
-      const names = namesFile(ws, waterPath), namesHref = `/assets/region-${r}.${sha(names, 10)}.json`;
+      const names = namesFile(ws, waterPath, formerly), namesHref = `/assets/region-${r}.${sha(names, 10)}.json`;
       files.set(namesHref.slice(1), names);
       lead = regionLead(name, pic, `<a class="app" href="${esc(mapLink(site, boxOf.get(r)!))}">Open the map of ${esc(name)}</a>`, namesHref, findHref, { crash: LIVE.crash, env: LIVE.env, release: release.id });
     } else if (boxOf.has(r)) bad.push(`${path}: no water has a place to draw the picture of the region`);

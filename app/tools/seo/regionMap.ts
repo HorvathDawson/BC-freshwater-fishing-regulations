@@ -37,9 +37,12 @@ export function dotPicture(models: readonly WaterModel[], region: number, box: B
     svg: `<svg class="dots" viewBox="${-pad} ${-pad} ${cw + 2 * pad} ${ch + 2 * pad}" role="img" aria-labelledby="rm-t"><title id="rm-t">Map of B.C. fishing Region ${region}: one dot for each of its ${waters} waters</title><path d="${path}"/></svg>` };
 }
 
-/** the search's names file for a region: [name, path] for every water in it, by name */
-export function namesFile(ws: readonly WaterModel[], pathOf: (m: WaterModel) => string): string {
-  return JSON.stringify([...ws].sort((a, b) => a.name.localeCompare(b.name, "en")).map((m) => [m.name, pathOf(m)]));
+/** the search's names file for a region, by name: [name, path] and, for a renamed water, [name, path, [former names]] */
+export function namesFile(ws: readonly WaterModel[], pathOf: (m: WaterModel) => string, former: ReadonlyMap<string, readonly string[]> = new Map()): string {
+  return JSON.stringify([...ws].sort((a, b) => a.name.localeCompare(b.name, "en")).map((m) => {
+    const f = former.get(m.id);
+    return f && f.length ? [m.name, pathOf(m), [...f]] : [m.name, pathOf(m)];
+  }));
 }
 
 /** the region's first screen (picture, button, search); `button` is the "Open the map" link, `names` where its names file is */
@@ -48,7 +51,7 @@ export function regionLead(label: string, pic: { svg: string; waters: number }, 
   return `<div class="lead"><div class="mapcard"><span class="tag2">Each dot: a water in ${esc(label)}</span>${pic.svg}${button}</div>` +
     `<div class="find"><form data-names="${esc(names)}" data-cfg="${esc(JSON.stringify(cfg))}" role="search" hidden>` +
     `<label for="rf-q">Find a water in ${esc(label)}</label><div class="row"><input id="rf-q" type="search" autocomplete="off" placeholder="Lake, river or creek name"></div>` +
-    `<ul class="sugg" aria-live="polite"></ul><p class="said small" role="status"></p></form>` +
+    `<ul class="sugg"></ul><p class="said small"></p><p class="sr" role="status" aria-live="polite"></p></form>` +
     `<p class="small">The map colours every water open or closed for the day, with flows and every rule. This page lists the rules by name.</p></div></div>` +
     `<script src="${esc(scriptHref)}" defer></script>`;
 }
@@ -61,25 +64,39 @@ export function regionLead(label: string, pic: { svg: string; waters: number }, 
  */
 export const FIND_BODY = `
 var f=document.querySelector("form[data-names]");if(!f)return;
-var report=pageReporter(JSON.parse(f.getAttribute("data-cfg")),window.fetch.bind(window),Date.now);
-var q=f.querySelector("input"),ul=f.querySelector(".sugg"),said=f.querySelector(".said"),names=null,loading=false;
+var cfg=JSON.parse(f.getAttribute("data-cfg"));cfg.app="region-page";cfg.route="other";
+var report=pageReporter(cfg,window.fetch.bind(window),Date.now);
+var q=f.querySelector("input"),ul=f.querySelector(".sugg"),said=f.querySelector(".said"),sr=f.querySelector(".sr"),names=null,tried=false;
 f.hidden=false;
-function show(t){said.textContent=t;}
-function rank(n,v){var l=n.toLowerCase();if(l.indexOf(v)===0)return 0;if((" "+l.replace(/[^a-z0-9\u00c0-\uffff]+/g," ")).indexOf(" "+v)>=0)return 1;return l.indexOf(v)>=0?2:3;}
+function show(t){said.textContent=t;sr.textContent=t;}
+function fold(s){return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();}
+function rank(n,v){var l=fold(n);if(l.indexOf(v)===0)return 0;if((" "+l.replace(/[^a-z0-9]+/g," ")).indexOf(" "+v)>=0)return 1;return l.indexOf(v)>=0?2:3;}
 function draw(){
-  var v=q.value.trim().toLowerCase();ul.textContent="";show("");
+  var v=fold(q.value.trim());ul.textContent="";show("");
   if(!v||!names)return;
   var g=[[],[],[]];
-  for(var i=0;i<names.length;i++){var r=rank(names[i][0],v);if(r<3)g[r].push(names[i]);}
-  var hits=g[0].concat(g[1],g[2]).slice(0,8);
-  if(!hits.length){show("No water in this region has that in its name.");return;}
+  for(var i=0;i<names.length;i++){
+    var e=names[i],best=rank(e[0],v),label=e[0],fm=e[2]||[];
+    for(var j=0;j<fm.length;j++){var r=rank(fm[j],v);if(r<best){best=r;label=e[0]+" (formerly "+fm[j]+")";}}
+    if(best<3)g[best].push([label,e[1]]);
+  }
+  var all=g[0].concat(g[1],g[2]),hits=all.slice(0,8);
+  if(!hits.length){show("No water found.");return;}
   hits.forEach(function(h){var li=document.createElement("li"),a=document.createElement("a");a.href=h[1];a.textContent=h[0];li.appendChild(a);ul.appendChild(li);});
+  sr.textContent=all.length+(all.length===1?" water found":" waters found")+(all.length>hits.length?", the first "+hits.length+" shown":"")+".";
+}
+function stale(){
+  said.textContent="";sr.textContent="This page is out of date: reload it.";
+  said.appendChild(document.createTextNode("This page is out of date: "));
+  var a=document.createElement("a");a.href=location.href;a.textContent="reload it";a.addEventListener("click",function(e){e.preventDefault();location.reload();});said.appendChild(a);said.appendChild(document.createTextNode("."));
 }
 function load(){
-  if(names||loading)return;loading=true;show("Loading the names...");
-  fetch(f.getAttribute("data-names")).then(function(r){if(!r.ok)throw new Error("names file "+r.status);return r.json();})
-    .then(function(j){names=j;loading=false;draw();},function(e){loading=false;show("The names could not be loaded ("+e.message+"). Use the lists below.");report(e);});
+  if(tried)return;tried=true;show("Loading the names...");
+  fetch(f.getAttribute("data-names")).then(function(r){if(r.status===404){var x=new Error("stale");x.stale=true;throw x;}if(!r.ok)throw new Error("names file "+r.status);return r.json();})
+    .then(function(j){names=j;draw();},function(e){
+      if(e&&e.stale){stale();return;}      // a release was cut since this page loaded: expected, said with a reload link, not a defect
+      show("The names could not be loaded ("+e.message+"). Use the lists below.");report(e);});
 }
 f.addEventListener("submit",function(e){e.preventDefault();var a=ul.querySelector("a");if(a)location.href=a.href;});
-q.addEventListener("focus",load);q.addEventListener("input",function(){load();draw();});
+q.addEventListener("focus",load);q.addEventListener("input",function(){if(!names){load();return;}draw();});
 `;
