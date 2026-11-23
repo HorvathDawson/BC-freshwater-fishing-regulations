@@ -1542,9 +1542,51 @@ def changes_cuts(p: Mapping, props: Iterable[Mapping]) -> bool:
     return any(ed["kind"] in ("split", "split_flag") for q in chain_of(p, props) for ed in q["edits"])
 
 
-def side_ready(p: Mapping) -> bool:
-    """Has this proposal's side rebuild been made (its side atlas, `side_commands`)?"""
-    return (REPO / side_dir(p) / "atlas").is_dir()
+def chain_cuts(p: Mapping, props: Iterable[Mapping]) -> set[str]:
+    """Every cut id `p`'s chain adds (a split edit), flags (`split_flag`) or names (an extent's `splits`, its
+    `bounds`, its excepted tributaries) — the cuts its side atlas must hold where they would land now."""
+    from pipeline.regs.review.withheld import cuts_named
+    out: set[str] = set()
+    for q in chain_of(p, props):
+        for ed in q["edits"]:
+            if ed["kind"] == "split":
+                out.add(str(ed["split"]["id"]))
+            elif ed["kind"] == "split_flag":
+                out.add(str(ed["split_id"]))
+            else:
+                out |= cuts_named(ed.get("after"))
+    return out
+
+
+def stale_cuts(p: Mapping, props: Iterable[Mapping], atlas: Path, src: Optional["Sources"] = None) -> Optional[list]:
+    """T1040: THE CUTS AN ATLAS HOLDS SOMEWHERE ELSE — each cut of `p`'s chain (`chain_cuts`) whose anchor in the atlas's
+    own record (`split_anchors.json`, `splits.anchor_digest`: where each cut it was built with is) is not its anchor in
+    the cut file with the chain applied now. `side_dir`'s digest covers the proposal's own edits only: a new cut moved
+    to another point on the same anchor keeps its id and the proposal's digest, so its old side atlas looked ready and
+    the place was bound at the old point. [] fresh; None when the atlas keeps no record (it cannot say: not trusted)."""
+    from pipeline.atlas.splits.splits import anchor_digests, read_anchor_record
+    rec = read_anchor_record(atlas)
+    if rec is None:
+        return None
+    src = src if src is not None else Sources.live()
+    key = Path(src.splits_path)
+    # only the cut file decides where a cut is: the chain's cut edits made on it, nothing else materialized
+    cut_eds = [{**q, "edits": [ed for ed in q["edits"] if ed["kind"] in ("split", "split_flag")]}
+               for q in chain_of(p, props)]
+    texts = materialize(cut_eds, src, splice=False)
+    now = anchor_digests(json.loads(texts[key]) if key in texts else src.doc(key))
+    return sorted(c for c in chain_cuts(p, props) if rec.get(c) != now.get(c))
+
+
+def atlas_holds_chain(p: Mapping, props: Iterable[Mapping], atlas: Path, src: Optional["Sources"] = None) -> bool:
+    """Was `atlas` built with every cut of `p`'s chain where it would land now (`stale_cuts` empty)?"""
+    return Path(atlas).is_dir() and stale_cuts(p, props, Path(atlas), src) == []
+
+
+def side_ready(p: Mapping, props: Iterable[Mapping], src: Optional["Sources"] = None) -> bool:
+    """Has this proposal's side rebuild been made (its side atlas, `side_commands`) — WITH its chain's cuts where they
+    would land now (T1040, `stale_cuts`)? A side atlas made before a cut moved is stale: the rebuild is asked again."""
+    return atlas_holds_chain(p, props, REPO / side_dir(p) / "atlas", src)
 
 
 def side_commands(p: Mapping, props: Iterable[Mapping]) -> list[str]:
