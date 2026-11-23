@@ -521,7 +521,10 @@ W48. **Commits follow Conventional Commits; the app version comes from them (own
 49. **Half of a river is `side`, not a part and not the whole.** "No Fishing on the west half of
     river …" is `side: west` on the stretch; it is read "beside" the other rules and displaces
     none, so the other half follows the water's other regulations. A lake's half is
-    `undrawn_part`. (38149b92)
+    `undrawn_part`. (38149b92) A DFO PLACE for one bank ("on west bank between signs", "from the centre line to the
+    northern bank") is read the same way (T754, RULINGS E28, owner 2026-11-22): placed, it rides its own sections' chains
+    in `u`, never `l`, with `p[lid].side` (`deliver.salmon.build`, `locations.bank_of`); not placed, it is an ordinary
+    undrawn place, never widened.
 50. **A water's own dates override a dated zone rule on the overlap only.** A water row printing
     its own dates for a fish replaces a dated zone release or quota for that fish on the days
     both hold (Cheslatta/Murray lake trout Nov 1-30: the lake's 3) — never a closure. An undated
