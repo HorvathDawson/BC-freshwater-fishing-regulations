@@ -125,8 +125,8 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, onOpenPlace, stat
     const t: SearchTarget = { kind: "place", place: r.place };
     return (
       <Hit palette={palette} tone={palette.place} bar band name={r.place.name}
-           sub={SEARCH_BAR.placeSub(cap(r.place.kind))}
-           label={SEARCH_BAR.show(r.place.name)}
+           sub={SEARCH_BAR.placeSub(cap(r.place.kind), r.place.apart)}
+           label={SEARCH_BAR.showPlace(r.place.name, r.place.apart)}
            onPress={() => act({ t: "select", target: t })}
            stop={r.key} highlight={active === r.key ? "row" : null} />
     );

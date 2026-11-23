@@ -109,6 +109,17 @@ describe("<WaterMapView> (T150 / T151)", () => {
     expect([seen.props?.selection, lit().highlight.length > 0, lit().water.length > 0]).toEqual(["dim", true, true]);
   });
 
+  it("(T858) ↓ in the open parts list moves the focus to the next part (the arrow keys are on the list)", async () => {
+    mount("gnis:8634", 0);
+    await ready();
+    fireEvent.click(screen.getByTestId("water-map-parts-toggle"));
+    const radios = within(screen.getByTestId("water-map-parts-list")).getAllByRole("radio");
+    expect(radios.length).toBeGreaterThan(1);
+    radios[0]!.focus();
+    fireEvent.keyDown(radios[0]!, { key: "ArrowDown" });
+    expect(document.activeElement).toBe(radios[1]);
+  });
+
   it("T150: the parts list — the toggle, the radio rows (normal weight), a pick handed to the frame, the list closed after it", async () => {
     const calls = mount("gnis:8634", 0);
     await ready();

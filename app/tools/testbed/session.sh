@@ -12,6 +12,8 @@
 #                  the reason is printed. Without it such an APK is refused BEFORE the heavy lock.
 #   --stock-maplibre="<reason>"  (T534) build/use the STOCK MapLibre SDK (own APK name, `-stock`). The default is the pinned
 #                  upstream build (T978, app/tools/maplibre-android/pin.env, cache/maplibre/<MLN_VERSION>), as every shipped APK.
+#   --no-r8="<reason>"  (T1003) build with R8 OFF (own APK name, `-nor8`): a comparison build only. Every shipped build has
+#                  R8 on (plugins/with-r8.js); build-apk.sh refuses this escape (CANIFISHTHIS_NO_R8) for every build it makes.
 #   --opengl       (T360) build with MapLibre's OpenGL variant instead of Vulkan (app.json changed for the build only)
 #                  instead of staging: for a release that is promoted locally but not uploaded (SALMON_NEEDS)
 #   --crash-stub   (T242) the APK's crash reports go to http://localhost:39256/crash on the phone, `adb reverse`d to this
@@ -28,6 +30,7 @@ ROOT=$(cd "$HERE/../../.." && pwd)
 OUT="$HERE/out"; mkdir -p "$OUT"
 AVD=${TESTBED_AVD:-n1_pixel}
 BUILD=0; MAX_MIN=45; CMD=(); ENV=staging; VARIANT=; STUB=; ALLOW_STALE=; STOCK_MLN=; STUB_PORT=${TESTBED_STUB_PORT:-39256}
+NO_R8=${CANIFISHTHIS_NO_R8:-}   # (T1003) set in the environment it is the flag: the APK name says so either way
 while (( $# )); do
   case $1 in
     --build) BUILD=1 ;;
@@ -37,16 +40,20 @@ while (( $# )); do
     --allow-stale) ALLOW_STALE=${2:-}; shift; [[ -n ${ALLOW_STALE// /} ]] || { echo "session.sh: --allow-stale needs a reason" >&2; exit 2; } ;;
     --stock-maplibre) echo 'session.sh: --stock-maplibre needs a reason: --stock-maplibre="<why the stock SDK>"' >&2; exit 2 ;;
     --stock-maplibre=*) STOCK_MLN=${1#--stock-maplibre=}; [[ -n ${STOCK_MLN// /} ]] || { echo "session.sh: --stock-maplibre= needs a reason" >&2; exit 2; } ;;
+    --no-r8) echo 'session.sh: --no-r8 needs a reason: --no-r8="<why R8 off>"' >&2; exit 2 ;;
+    --no-r8=*) NO_R8=${1#--no-r8=}; [[ -n ${NO_R8// /} ]] || { echo "session.sh: --no-r8= needs a reason" >&2; exit 2; } ;;
     --max-min) MAX_MIN=$2; shift ;;
     --) shift; CMD=("$@"); break ;;
     *) echo "session.sh: unknown $1" >&2; exit 2 ;;
   esac; shift
 done
-APK="$OUT/app-testbed$([[ $ENV == local ]] && echo -local)${VARIANT:+-$VARIANT}${STUB:+-stub}${STOCK_MLN:+-stock}${TESTBED_APK_TAG:+-$TESTBED_APK_TAG}.apk"   # (T420) TESTBED_APK_TAG: an experiment build beside the others
+APK="$OUT/app-testbed$([[ $ENV == local ]] && echo -local)${VARIANT:+-$VARIANT}${STUB:+-stub}${STOCK_MLN:+-stock}${NO_R8:+-nor8}${TESTBED_APK_TAG:+-$TESTBED_APK_TAG}.apk"   # (T420) TESTBED_APK_TAG: an experiment build beside the others
 export JAVA_HOME=${JAVA_HOME:-"/Applications/Android Studio.app/Contents/jbr/Contents/Home"}
 export ANDROID_HOME=${ANDROID_HOME:-$HOME/Library/Android/sdk}
 export PATH="$JAVA_HOME/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$HOME/.maestro/maestro/bin:$PATH"
 log() { echo "[testbed $(date +%T)] $*"; }
+# (T1003) R8 is on unless --no-r8 (plugins/with-r8.js reads CANIFISHTHIS_NO_R8 at prebuild and refuses a blank one)
+if [[ -n $NO_R8 ]]; then export CANIFISHTHIS_NO_R8=$NO_R8; log "R8 OFF (--no-r8): $NO_R8"; fi
 # (T534, owner 2026-11-09; T978, owner 2026-11-22) EVERY test-bed APK carries the PINNED upstream MapLibre
 # (app/tools/maplibre-android/pin.env, no patch) unless --stock-maplibre="<reason>": the same default as
 # deploy/staging/build-apk.sh, so "emulator green" describes the library that ships. An explicit MLN_LOCAL_MAVEN other than

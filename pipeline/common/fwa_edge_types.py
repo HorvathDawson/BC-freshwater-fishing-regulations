@@ -77,3 +77,13 @@ def is_manmade_secondary_only(x: Iterable[str] | object) -> bool:
     with no edge types at all is not one."""
     t = _types(x)
     return bool(t) and t <= {CONNECTOR}
+
+
+def is_ditch_lines(x: Iterable[str] | object) -> bool:
+    """Is every line of the node (or edge-type set) an artificial connector (2300) or the line it is drawn with
+    across the water it enters (`WATER_CROSSING`, 1450), with at least one connector? T1012 (staging report
+    2026-11-22): the Serpentine's 168th St grid (blue lines 355995609, 355996889, 355993717, 355993718) is 2300 with
+    its 1450 crossings, so `is_manmade_secondary_only` let it back into the river — the case `DITCHES_LEAVE_RIVER_ITEMS`
+    was written for. A crossing is no stream's own bed (T660), so it does not make a ditch a river."""
+    t = _types(x)
+    return CONNECTOR in t and t <= {CONNECTOR, WATER_CROSSING}

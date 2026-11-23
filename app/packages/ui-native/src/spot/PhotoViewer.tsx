@@ -244,6 +244,8 @@ function PhotoStage({ uris, index, onIndex, done, palette, thumb, leaveRef }: {
   const dismiss = photoDismissLook(size.h);
   const fade = v.dy.interpolate({ ...dismiss.fade, extrapolate: "clamp" });
   const shown = Animated.multiply(v.open, fade);
+  // (T970) the buttons and the counter fade faster than the ground, so they are gone while the page still shows through
+  const chromeFade = v.dy.interpolate({ ...dismiss.chrome, extrapolate: "clamp" });
   const photo = (i: number) => {
     const uri = uris[i] ?? null;
     const label = photoLabel(i + 1, n);
@@ -310,7 +312,7 @@ function PhotoStage({ uris, index, onIndex, done, palette, thumb, leaveRef }: {
       </View>
       {/* the buttons and the counter, over the photo: one tap hides them (they stop taking touches), another brings them back */}
       <Animated.View testID="photo-chrome" pointerEvents={chrome ? "box-none" : "none"} aria-hidden={!chrome}
-                     style={[StyleSheet.absoluteFill, { opacity: Animated.multiply(v.chrome, shown) }]}>
+                     style={[StyleSheet.absoluteFill, { opacity: Animated.multiply(v.chrome, Animated.multiply(v.open, chromeFade)) }]}>
         {/* (T815) its own window, drawn under the bars: the close and the arrows kept clear of the status bar / notch
             (iPhone build 36 had the ✕ under the clock) and the home indicator, as a menu page is (T50) */}
         <WindowInsets style={PASS.through}>
@@ -318,7 +320,12 @@ function PhotoStage({ uris, index, onIndex, done, palette, thumb, leaveRef }: {
                 style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 12 }}>
             <View style={{ width: 48 }} />
             {n > 1 ? (
-              <Text testID="photo-counter" style={{ ...TYPE.small, color: palette.photo.ink }}>{photoCounter(index + 1, n)}</Text>
+              // (T976) a dim pill behind it, as the buttons have a disc: white text alone vanished over a light photo
+              <View testID="photo-counter-pill" style={{ borderRadius: round(40), paddingHorizontal: 12, paddingVertical: 4 }}>
+                <View testID="photo-counter-backing" pointerEvents="none"
+                      style={[StyleSheet.absoluteFill, { borderRadius: round(40), backgroundColor: palette.photo.ground, opacity: 0.45 }]} />
+                <Text testID="photo-counter" style={{ ...TYPE.small, color: palette.photo.ink }}>{photoCounter(index + 1, n)}</Text>
+              </View>
             ) : null}
             {button(PHOTO_WORDS.close, "close", leave, 24)}
           </View>

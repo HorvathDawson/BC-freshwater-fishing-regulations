@@ -19,7 +19,7 @@
  */
 import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { openProbe } from "@app/data";
-import { AccessibilityInfo, Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
+import { Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
 import { Text } from "../Text";
 import { LEGAL_WORDS, parseSheetKey, regsSourcesNone, withInSeason, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type TabSourcesVM, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
@@ -152,17 +152,13 @@ export function RegsScreen({ page, palette, images, actions, onDate,
   // the scroll's content each listen (siblings, never nested — nested detectors race); see WaterViews in ViewSwipe.tsx.
   // Only the scroll's content follows the finger: the regs header listens `still` (it is one page with the frame's rows)
   const swipe = useContext(WaterViewsContext)?.bodySwipe ?? null;
-  const still = useRef(false);
-  useEffect(() => {
-    let live = true;
-    void AccessibilityInfo.isReduceMotionEnabled().then((on) => { if (live) still.current = on; });
-    return () => { live = false; };
-  }, []);
 
   // prototype 2000: the pressed tab is selected at once and the page scrolls to its section (Keep → the top)
+  // (T1025) a JUMP, never an animated pass: an animation from "What you can keep" to "Licence" scrolled through Gear and
+  // Methods, and the strip's highlight (it follows the scroll) flickered through each one on the way
   const toTab = (t: Tab) => {
     store.selectTab(t);
-    scroll.current?.scrollTo({ y: tabScrollY(t, store.getSections()), animated: !still.current });
+    scroll.current?.scrollTo({ y: tabScrollY(t, store.getSections()), animated: false });
   };
   // (T37) the one sheet over the page: every sheet key a press opens — in any section — lands here (the caller hears it too)
   const [sheet, setSheet] = useState<SheetKey | null>(start?.sheet ?? null);
