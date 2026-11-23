@@ -13,6 +13,7 @@ import { KeepTab } from "./KeepTab";
 import { DARK, LIGHT, type Palette } from "../theme";
 import type { KeepActions } from "./LineText";
 import vedder1010 from "./fixtures/vedder_1010.json";
+import { TEST_TROUT_SOURCES } from "./testing/sources";
 
 afterEach(cleanup);
 
@@ -71,7 +72,7 @@ describe("(T820) <SalmonYearStrip> closed all year: the full closed bar", () => 
                      card: () => null };
     render(
       <StripWidthHint.Provider value={300}>
-        <KeepTab keep={(vedder1010 as unknown as RegsPage).keep as KeepVM} dateLabel="Jan 15" palette={LIGHT} actions={actions}
+        <KeepTab troutSources={TEST_TROUT_SOURCES} keep={(vedder1010 as unknown as RegsPage).keep as KeepVM} dateLabel="Jan 15" palette={LIGHT} actions={actions}
                  salmonStrip={ALL_CLOSED} glance={{ salmon }} />
       </StripWidthHint.Provider>,
     );

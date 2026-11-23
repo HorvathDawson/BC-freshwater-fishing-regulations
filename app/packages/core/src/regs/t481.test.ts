@@ -41,7 +41,7 @@ describe("T481 the region's total, said once: \"Fishing more than one water toda
       "The 2 from streams and any share from lakes are parts of that 4, not additions to it.",
       "A water’s own rule can sit outside a share, but never outside the region’s total.",
       "Possession limits are separate.",
-      "Who says so › Rule book p.21 ↗"]]);
+      "Who says so › B.C. Synopsis p.21 ↗"]]);
     expect(sheetOf(sheetCtx(VEDDER()), "multi:r1")).toBeNull();
   });
 });

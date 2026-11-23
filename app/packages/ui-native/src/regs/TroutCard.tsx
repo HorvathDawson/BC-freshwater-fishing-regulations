@@ -18,7 +18,7 @@
  */
 import { useState } from "react";
 import { PixelRatio, View, useWindowDimensions } from "react-native";
-import { TROUT_NAV, WORDS, troutSourcesOf, type TabSourcesVM, type TroutBoxVM, type TroutRowVM, type TroutVM } from "@app/core";
+import { TROUT_NAV, WORDS, type TabSourcesVM, type TroutBoxVM, type TroutRowVM, type TroutVM } from "@app/core";
 import { Text } from "../Text";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
@@ -50,15 +50,14 @@ function Box({ b, i, palette, actions, images }: { b: TroutBoxVM; i: number; pal
   return <ShutGroup testID={`trout-${b.kind}`} kind={b.kind} head={b.head} date={b.date} rows={rows} palette={palette} />;
 }
 
-export function TroutCard({ t, palette, actions, images, kicker = false, todayAt = null, months = [], sources = troutSourcesOf(null) }: {
+export function TroutCard({ t, palette, actions, images, kicker = false, todayAt = null, months = [], sources }: {
   t: TroutVM; palette: Palette; actions: KeepActions; images?: FishImages;
   /** the entry's name over the table: only where no folded row heads it (the at-a-glance table off) */
   kicker?: boolean;
   /** the page strip's day marker and month initials, for the year bar */
   todayAt?: number | null; months?: readonly string[];
-  /** (T1031 item 3) the table's Source line (core `troutSourcesOf(page)`); default: a host that computed none (a frozen
-   *  test page), "Who says so ›" alone */
-  sources?: TabSourcesVM;
+  /** (T1031 item 3) the table's Source line (core `troutSourcesOf(page)`, computed by the host with the foot row) */
+  sources: TabSourcesVM;
 }) {
   useWindowDimensions();
   const big = (PixelRatio.getFontScale() || 1) >= BIG_AT;

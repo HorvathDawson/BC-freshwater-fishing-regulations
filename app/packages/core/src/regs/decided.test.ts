@@ -72,25 +72,25 @@ describe("ladderOf, the Keep tab's form", () => {
       [5, "possession", null], [6, "duty", null], [7, "duty", null]] } });
     expect(flat(ladderOf(row({ kind: "closed" }), e))).toEqual([
       "Q What you can keep", "= Closed here.",
-      "L Region 4", "Sentence 1. | Daily limit | Rule book p.13 ↗",
-      "L A named area", "Sentence 2. | Lower daily limit | Rule book p.13 ↗",
-      "L Elk River", "Sentence 3. | Closed | Rule book p.13 ↗",
-      "Q Size", "= null", "L Region 4", "Sentence 4. | Size | Rule book p.13 ↗",
-      "Q Other rules", "= null", "L All of B.C.", "Sentence 7. | Stop fishing | Rule book p.13 ↗",
-      "L Region 4", "Sentence 5. | Carry limit | Rule book p.34 ↗",
-      "L Elk River", "Sentence 6. | Record it | Rule book p.13 ↗",   // the pipeline's role "duty"; record_retention words the tag
+      "L Region 4", "Sentence 1. | Daily limit | B.C. Synopsis p.13 ↗",
+      "L A named area", "Sentence 2. | Lower daily limit | B.C. Synopsis p.13 ↗",
+      "L Elk River", "Sentence 3. | Closed | B.C. Synopsis p.13 ↗",
+      "Q Size", "= null", "L Region 4", "Sentence 4. | Size | B.C. Synopsis p.13 ↗",
+      "Q Other rules", "= null", "L All of B.C.", "Sentence 7. | Stop fishing | B.C. Synopsis p.13 ↗",
+      "L Region 4", "Sentence 5. | Carry limit | B.C. Synopsis p.34 ↗",
+      "L Elk River", "Sentence 6. | Record it | B.C. Synopsis p.13 ↗",   // the pipeline's role "duty"; record_retention words the tag
     ]);
   });
   it("a record_retention rule keeps its STORED role (owner rule 2026-10-21: the app never re-classifies a role)", () => {
     const rec = rule(6, { rank: 0, fields: { record_retention: true } });
     const e = env([rec], { RB: { H: [[6, "limit", null]] } });
-    expect(flat(ladderOf(row(), e))).toEqual(["Q Other limits", "= null", "L Elk River", "Sentence 6. | Record it | Rule book p.13 ↗"]);
+    expect(flat(ladderOf(row(), e))).toEqual(["Q Other limits", "= null", "L Elk River", "Sentence 6. | Record it | B.C. Synopsis p.13 ↗"]);
   });
   it("a short named-area name is its level; rank 3 with no name is 'The region'; a release gate says Release", () => {
     const a = rule(1, { rank: 2, name: "Fraser River" }), b = rule(2, { rank: 3, kind: "gate" });
     const e = env([a, b], { RB: { H: [[1, "governs", null], [2, "also", null]] } });
     expect(flat(ladderOf(row(), e)).filter((x) => x.startsWith("L ") || x.includes("|"))).toEqual([
-      "L The region", "Sentence 2. | Also applies | Rule book p.13 ↗", "L Fraser River", "Sentence 1. | Daily limit | Rule book p.13 ↗"]);
+      "L The region", "Sentence 2. | Also applies | B.C. Synopsis p.13 ↗", "L Fraser River", "Sentence 1. | Daily limit | B.C. Synopsis p.13 ↗"]);
   });
   it("lost: 'Replaced by' the replacing rule's level; agrees, a winner's sentence again, or the same short label are not listed", () => {
     const win = rule(1, { rank: 0 }), region = rule(2, { rank: 3, name: "Region 4" }), bc = rule(3, { rank: 4 }), area = rule(4, { rank: 2 });
@@ -123,21 +123,21 @@ describe("ladderOf, the Keep tab's form", () => {
     const a = rule(1, { subsets: [{ fish: ["RB"], plain: "Rainbow only." } as never] }), b = rule(2, { subsets: [{ fish: ["CT"], for: "for cutthroat", plain: null } as never] }), c = rule(3);
     const e = env([a, b, c], { RB: { H: [[1, "governs", null]] }, CT: { H: [[2, "floor", null], [3, "limit", null]] } });
     expect(flat(ladderOf(row({ allMembers: ["RB", "CT"], members: ["RB", "CT"] }), e)).filter((x) => x.includes("|"))).toEqual([
-      "Rainbow only. | Daily limit | Rule book p.13 ↗", "Sentence 2. for cutthroat | Size | Rule book p.13 ↗",
+      "Rainbow only. | Daily limit | B.C. Synopsis p.13 ↗", "Sentence 2. for cutthroat | Size | B.C. Synopsis p.13 ↗",
       "Missing from the answers file: the sentence for e3::r3 said for CT (display.rules[].subsets) | null | "]);
   });
   it("(T190) a piece in two regions: one region step per region, each its own rules; one region keeps one step", () => {
     const a = rule(1, { name: "Region 3" }), b = rule(2, { name: "Region 5" }), c = rule(3, { name: "Region 3" });
     const e = env([a, b, c], { RB: { H: [[1, "governs", null], [2, "governs", null], [3, "governs", null]] } });
     expect(flat(ladderOf(row(), e)).filter((x) => x.startsWith("L ") || x.includes("|"))).toEqual([
-      "L Region 3", "Sentence 1. | Daily limit | Rule book p.13 ↗", "Sentence 3. | Daily limit | Rule book p.13 ↗",
-      "L Region 5", "Sentence 2. | Daily limit | Rule book p.13 ↗"]);
+      "L Region 3", "Sentence 1. | Daily limit | B.C. Synopsis p.13 ↗", "Sentence 3. | Daily limit | B.C. Synopsis p.13 ↗",
+      "L Region 5", "Sentence 2. | Daily limit | B.C. Synopsis p.13 ↗"]);
     const one = env([a, c], { RB: { H: [[1, "governs", null], [3, "governs", null]] } });
     expect(flat(ladderOf(row(), one)).filter((x) => x.startsWith("L "))).toEqual(["L Region 3"]);
   });
   it("no stored role at all: the row's own winning rule governs", () => {
     const w = rule(1, { rank: 0 });
-    expect(flat(ladderOf(row({ win: w }), env([w], {})))).toEqual(["Q What you can keep", "= Release every one here.", "L Elk River", "Sentence 1. | Daily limit | Rule book p.13 ↗"]);
+    expect(flat(ladderOf(row({ win: w }), env([w], {})))).toEqual(["Q What you can keep", "= Release every one here.", "L Elk River", "Sentence 1. | Daily limit | B.C. Synopsis p.13 ↗"]);
   });
 });
 
@@ -147,7 +147,7 @@ describe("ladderOf with members (T36's other: sheet) and the restates notes", ()
     const e = env([a, b, c, d], { RB: { H: [[2, "floor", null], [1, "governs", null], [3, "possession", null], [4, "replaced", 1]] } });
     const l = ladderOf(row(), e, ["RB"], "Keep up to 2");
     expect([l.sections.length, l.sections[0]!.q, l.sections[0]!.result, l.lost]).toEqual([1, null, "Keep up to 2", []]);
-    expect(flat(l).filter((x) => x.includes("|"))).toEqual(["Sentence 1. | Daily limit | Rule book p.13 ↗", "Sentence 2. | Size | Rule book p.13 ↗"]);
+    expect(flat(l).filter((x) => x.includes("|"))).toEqual(["Sentence 1. | Daily limit | B.C. Synopsis p.13 ↗", "Sentence 2. | Size | B.C. Synopsis p.13 ↗"]);
   });
   it("a restating rule's note goes under the first winning line of the rule it restates; a week row keeps its notes", () => {
     const a = rule(1), b = rule(2);

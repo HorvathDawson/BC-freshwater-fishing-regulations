@@ -1,4 +1,4 @@
-/** (T34, D6 a) where a "Rule book p.N ↗" link goes: web honours `#page=<pdf>`, native opens the synopsis PDF itself. */
+/** (T34, D6 a) where a "B.C. Synopsis p.N ↗" link goes: web honours `#page=<pdf>`, native opens the synopsis PDF itself. */
 import { describe, expect, it } from "vitest";
 import { bookUrl, SYNOPSIS_PDF } from "./book";
 import { bookText } from "./line";
@@ -14,12 +14,12 @@ describe("bookUrl", () => {
 });
 
 describe("bookText (T43): the one spelling of a book run", () => {
-  it("\"Rule book p.21 ↗\"; bare \"p.21 ↗\"; a page the PDF map lacks \"p.21\" (no arrow: not a link)", () => {
+  it("\"B.C. Synopsis p.21 ↗\"; bare \"p.21 ↗\"; a page the PDF map lacks \"p.21\" (no arrow: not a link)", () => {
     expect([bookText({ printed: 21, pdf: 23 }), bookText({ printed: 21, pdf: 23, bare: true }), bookText({ printed: 21, pdf: null }),
-      bookText({ printed: 21, pdf: null, bare: true })]).toEqual(["Rule book p.21 ↗", "p.21 ↗", "p.21", "p.21"]);
+      bookText({ printed: 21, pdf: null, bare: true })]).toEqual(["B.C. Synopsis p.21 ↗", "p.21 ↗", "p.21", "p.21"]);
   });
   it("the screen-reader words name the printed page", () => {
-    expect(WORDS.BOOK_A11Y(21)).toBe("Rule book page 21, opens the PDF");
+    expect(WORDS.BOOK_A11Y(21)).toBe("B.C. Synopsis page 21, opens the PDF");
   });
 });
 

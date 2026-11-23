@@ -1,7 +1,7 @@
 /**
  * T475 (owner 2026-11-07) — the quota block over the store's new fields: form a's headline "2 hatchery trout/char a day
  * from streams" with its ⓘ (the row's `share:r<row>` sheet, the stored `headline.info`), the share tier's origin sentence
- * not drawn again under it (its How to tell and Rule book stay), "Up to 2 of the 4 from streams" folded and shortened,
+ * not drawn again under it (its How to tell and B.C. Synopsis stay), "Up to 2 of the 4 from streams" folded and shortened,
  * a closed fish's ⓘ (`not_kept.term`). Hand-built from keepFixtures with the store's T475 words (pipeline
  * test_answers_t475_quota_wording.py pins them); a store without the fields draws as before (the other tests).
  */
@@ -53,11 +53,11 @@ describe("T475 ask 1: the headline and its ⓘ", () => {
     const h = groupHeadOf(ctxOf(GROUP()), { tot: "a" });
     expect(h.lead!.some((r: Run) => r.t === "link")).toBe(false);
   });
-  it("the share's origin sentence is the lead's: not drawn again, How to tell and the Rule book stay", () => {
+  it("the share's origin sentence is the lead's: not drawn again, How to tell and the B.C. Synopsis stay", () => {
     const ctx = ctxOf(G475());
     expect(leadSaysOrigin(ctx, SHARE475, "a")).toBe(true);
     const s = shareVM(G475());
-    expect([s.folded, s.origin?.says, s.origin?.howtell, plain(s.origin?.book)]).toEqual([true, [], true, "Rule book p.21 ↗"]);
+    expect([s.folded, s.origin?.says, s.origin?.howtell, plain(s.origin?.book)]).toEqual([true, [], true, "B.C. Synopsis p.21 ↗"]);
   });
   it("form b (the lead is not drawn) and a store before T475 keep the sentence", () => {
     const sentence = "From streams, keep hatchery fish only — wild trout and char go back.";
@@ -71,7 +71,7 @@ describe("T475 ask 1: the headline and its ⓘ", () => {
     const l = sheetLines(sheetOf(sc, "share:r0")!);
     expect([l.title, l.lines]).toEqual([INFO.title, [INFO.says, "For example:",
       "Kept 2 on another stream? None more from streams today — up to 2 more from lakes.",
-      "Kept 1 at a lake? Up to 2 more here, or up to 3 more at lakes.", "Who says so › Rule book p.21 ↗"]]);
+      "Kept 1 at a lake? Up to 2 more here, or up to 3 more at lakes.", "Who says so › B.C. Synopsis p.21 ↗"]]);
     expect(sheetOf(sc, "share:r1")).toBeNull();
   });
 });

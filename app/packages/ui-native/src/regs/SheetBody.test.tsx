@@ -22,7 +22,7 @@ const GROUP: GroupVM = otherGroup(vedder1010, "other:o1");
 
 function mount(b: SheetBlock) {
   const opened: SheetKey[] = [], tabs: Tab[] = [], books: number[] = [];
-  const r = render(<SheetBlockView b={b} palette={LIGHT} onOpen={(k) => opened.push(k)}
+  const r = render(<SheetBlockView b={b} title="Possession" palette={LIGHT} onOpen={(k) => opened.push(k)}
                                    onTab={(x) => tabs.push(x)} onBook={(p) => books.push(p)} />);
   const text = r.container.textContent ?? "";
   const once = (s: string) => text.split(s).length - 1;
@@ -44,15 +44,15 @@ const CASES: [string, SheetBlock, string[]][] = [
   ["term", { k: "term", id: "hatchery_wild", title: "Hatchery or wild (adipose fin)", body: [{ k: "para", text: [t("A fish with its fin is wild.")] }] },
     ["Hatchery or wild (adipose fin)", "A fish with its fin is wild."]],
   ["rule", { k: "rule", title: "No netting", level: "This water’s", applies: ["A B.C.-wide rule — everywhere in B.C."], book: [book(8, 10)], open: "rule:zp:p::p.r1" },
-    ["No netting", "This water’s", "A B.C.-wide rule — everywhere in B.C.", "Rule book p.8 ↗"]],
+    ["No netting", "This water’s", "A B.C.-wide rule — everywhere in B.C.", "B.C. Synopsis p.8 ↗"]],
   ["value", { k: "value", text: [{ t: "num", s: "20", size: "big" }, t("a day")] }, ["20a day"]],
   ["weekBox", { k: "weekBox", day: "Today · Sat", scope: "This water", status: "Weekends: keep 5 · Weekdays: release", says: "Keep up to 5 on Saturdays." },
     ["Today · Sat", "This water", "Weekends: keep 5 · Weekdays: release", "Keep up to 5 on Saturdays."]],
   ["ladder", { k: "ladder", q: "What you can keep", result: "Release every one here.", steps: [{ level: "Region 2", lines: [
     { text: [t("Sat–Sun Keep up to 5")], tag: "Today", today: true, days: "Sat–Sun", rule: "r4:k::k.r3", won: true, applies: ["This water’s own row."], book: [book(37, 39)], notes: ["Kokanee from both arms: 5."] }] }] },
-    ["What you can keep", "✓ Release every one here.", "Region 2", "Sat–Sun Keep up to 5", "Today", "This water’s own row.", "Rule book p.37 ↗", "Kokanee from both arms: 5."]],
+    ["What you can keep", "✓ Release every one here.", "Region 2", "Sat–Sun Keep up to 5", "Today", "This water’s own row.", "B.C. Synopsis p.37 ↗", "Kokanee from both arms: 5."]],
   ["sources", { k: "sources", groups: [{ where: "Region 2 · region-wide", rows: [{ key: "z2:t::t.r1", title: "Keep up to 4", quote: "Trout/char: 4", role: "Sets the number", book: [book(21, 23)] }] }] },
-    ["Region 2 · region-wide", "Keep up to 4", "Trout/char: 4", "Sets the number", "Rule book p.21 ↗"]],
+    ["Region 2 · region-wide", "Keep up to 4", "Trout/char: 4", "Sets the number", "B.C. Synopsis p.21 ↗"]],
   ["sources (overruled)", { k: "sources", overruled: true, groups: [{ where: "Provincial · province-wide", rows: [{ key: "zp:q::q.r1", title: null, quote: "Possession quota", role: "Beaten by “2 daily quotas”", book: [], notes: ["Curator note"], trib: true }] }] },
     ["“Possession quota”", "Provincial · province-wide", "Beaten by “2 daily quotas”", "⚑ Curator note", "ⓘ"]],
   ["pictures", { k: "pictures", pics: [{ code: "KO", name: "Kokanee", caption: "Kokanee ›", open: "sp:KO", sil: false }] }, ["Kokanee ›"]],
@@ -60,7 +60,7 @@ const CASES: [string, SheetBlock, string[]][] = [
     ["Rainbow trout · Freshwater Fisheries Society of BC (GoFishBC)"]],
   ["adipose", { k: "adipose", figures: [{ variant: "wild", caption: [t("Wild"), t(" · adipose fin there")] }, { variant: "clipped", caption: [t("Hatchery"), t(" · clipped")] }] },
     ["Wild · adipose fin there", "Hatchery · clipped"]],
-  ["pages", { k: "pages", line: [t("Rule book"), t(" "), { t: "book", printed: 4, pdf: 6, bare: true }] }, ["Rule book", "p.4 ↗"]],
+  ["pages", { k: "pages", line: [t("B.C. Synopsis"), t(" "), { t: "book", printed: 4, pdf: 6, bare: true }] }, ["B.C. Synopsis", "p.4 ↗"]],
   // (T1031 item 3) a sheet's source block is the one Source line: the label, the page by the synopsis's name, the sheet last
   ["source", { k: "source", line: [{ t: "link", s: "Who says so ›", open: "rule:z2:p::p.r1" }, t(" "), book(21, 23)] }, ["Source", "B.C. Synopsis p.21 ↗", "Who says so ›"]],
   ["link", { k: "link", line: [{ t: "link", s: "See every regulation line ›", open: "src:r0" }] }, ["See every regulation line ›"]],

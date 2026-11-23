@@ -1,6 +1,6 @@
 /**
  * T43 over the store (vedder_1010): (1) every book run in every sheet the state opens (the sheet keys vedder_1010's frozen
- * page holds) reads as one spelling ("Rule book p.N ↗" / bare "p.N ↗") and opens the PDF page the RELEASE stores for that
+ * page holds) reads as one spelling ("B.C. Synopsis p.N ↗" / bare "p.N ↗") and opens the PDF page the RELEASE stores for that
  * printed page (the synopsis is not byte-identical to the repo copy: the page is never computed — check.mjs
  * `rule-book-label`, `sheet-book-words`). (2) the foot's "Fish pictures" lines for the page. (T439: the sheet list and the
  * glossary-pages-equal-the-golden's check came from golden.json; both are gone.)
@@ -46,7 +46,7 @@ describe.skipIf(gate.skip)(`T43 ${ID}`, () => {
       if (vm === null) { expect(frozen[key], key).toBeNull(); continue; }
       for (const r of bookRuns(vm.blocks)) {
         runs++;
-        expect(bookText(r), `${key} p.${r.printed}`).toMatch(/^(Rule book )?p\.\d+ ↗$/);
+        expect(bookText(r), `${key} p.${r.printed}`).toMatch(/^(B.C. Synopsis )?p\.\d+ ↗$/);
         expect(r.pdf, `${key} p.${r.printed}: the release's own printed → PDF page`).toBe(inp.statics.pdfPages[r.printed]);
       }
     }

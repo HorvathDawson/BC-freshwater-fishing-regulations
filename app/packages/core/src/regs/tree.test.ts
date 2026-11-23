@@ -165,7 +165,7 @@ describe("tierNode / treeOf", () => {
   it("form a: the share that only repeats the lead folds — no kicker, no words; its origin keeps How to tell and the root's page", () => {
     const t = treeOf(envOf())![0] as TierVM;
     expect([t.tid, t.folded, t.kicker, t.line, plain(t.origin!.says), t.origin!.howtell, plain(t.origin!.book)]).toEqual(
-      ["t3", true, null, [], "From streams, keep hatchery fish only — wild trout and char go back.", true, "Rule book p.21 ↗"]);
+      ["t3", true, null, [], "From streams, keep hatchery fish only — wild trout and char go back.", true, "B.C. Synopsis p.21 ↗"]);
   });
   it("form b: the share draws its kicker (the moved tag) and its words; its page is the root's, so no link", () => {
     const t = treeOf(envOf({ tot: "b" }))![0] as TierVM;
@@ -175,16 +175,16 @@ describe("tierNode / treeOf", () => {
   it("a folded share with no origin: its fresh page alone, on its line", () => {
     const g = GROUP({ tree: [{ ...ROOT, children: [{ ...SHARE, origin: null, by: 3 }, OWN] }] });
     const t = treeOf(envOf({ group: g }))![0] as TierVM;
-    expect([t.folded, t.origin, plain(t.line)]).toEqual([true, null, "Rule book p.22 ↗"]);
+    expect([t.folded, t.origin, plain(t.line)]).toEqual([true, null, "B.C. Synopsis p.22 ↗"]);
   });
   it("the own tier: its fresh page on its line, its relation under it; a page shown above is not repeated below", () => {
     const own = treeOf(envOf())![1] as TierVM;
-    expect([plain(own.line), own.relation, own.sub]).toEqual(["This river’s rule: up to 4 hatchery rainbow trout a day Rule book p.22 ↗",
+    expect([plain(own.line), own.relation, own.sub]).toEqual(["This river’s rule: up to 4 hatchery rainbow trout a day B.C. Synopsis p.22 ↗",
       "Not part of the 2 from streams; part of the 4 a day across Region 2", null]);
     const env = envOf();
     const nested = tierNode(tier({ id: "x", tier: "own", n: 1, by: 5, says: "up to 1", children: [tier({ id: "y", tier: "count", n: 1, by: 3, says: "1 in all" })] }),
       env, false, new Set([21]));
-    expect([plain(nested.line), plain((nested.children[0] as TierVM).line)]).toEqual(["up to 1 Rule book p.22 ↗ Rule book p.23 ↗", "1 in all"]);
+    expect([plain(nested.line), plain((nested.children[0] as TierVM).line)]).toEqual(["up to 1 B.C. Synopsis p.22 ↗ B.C. Synopsis p.23 ↗", "1 in all"]);
     const why = tierNode(tier({ tier: "own", n: 2, by: 3, says: "This river’s rule: up to 2 a day", why_here: "its row covers its tributaries, so it applies here" }), env, false, new Set([22]));
     expect([plain(why.line), why.sub, why.band]).toEqual(["This river’s rule: up to 2 a day", "Its row covers its tributaries, so it applies here", false]);
   });

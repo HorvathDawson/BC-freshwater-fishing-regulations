@@ -210,10 +210,10 @@ describe("<LicenceTab>", () => {
       return got;
     };
     // Li13b: the basic licence item carries the p.5 reduced-fee sentence for a B.C. resident adult; the classified item its p.7 term
-    expect(termsOf("adult|resident")).toEqual([["From the rule book:",
-      "If you are a resident of B.C. and disabled: You may qualify for a basic freshwater angling licence at the reduced fee of $1.14."], ["From the rule book:",
+    expect(termsOf("adult|resident")).toEqual([["From the B.C. Synopsis:",
+      "If you are a resident of B.C. and disabled: You may qualify for a basic freshwater angling licence at the reduced fee of $1.14."], ["From the B.C. Synopsis:",
       "If you are a B.C. resident: Your Classified Waters Licence is valid for the licencing year. This means you can fish on any Class I or Class II water in the province during the year."]]);
-    expect(termsOf("adult|non_resident")).toEqual([["From the rule book:",
+    expect(termsOf("adult|non_resident")).toEqual([["From the B.C. Synopsis:",
       "If you are a NON-GUIDED “Non-Resident” or NON-GUIDED “Non-Resident Alien”: Your Classified Waters Licence for Class I or Class II waters is sold on a per day basis and is date and water-specific. Although anglers may purchase as many Classified Waters Licences as they wish, each licence may not exceed 8 consecutive days."]]);
     // a water that is not classified (the Vedder) carries no Classified term: the only book text on any other fixture is the Li13b fee line, resident adult only
     const FEE = "If you are a resident of B.C. and disabled: You may qualify for a basic freshwater angling licence at the reduced fee of $1.14.";
@@ -258,7 +258,7 @@ describe("<LicenceTab>", () => {
   });
 
   it("(T973, owner 13:22) a carried unit's why: a fold on its row, closed until pressed; no other row has one", () => {
-    const WHY = "Stellako River’s Class II covers its tributaries. Endako River has its own line in the rule book without Classified Waters, so it may not apply here. Check with a CO.";
+    const WHY = "Stellako River’s Class II covers its tributaries. Endako River has its own line in the B.C. Synopsis without Classified Waters, so it may not apply here. Check with a CO.";
     const vm = LIC_X5P1["adult|resident"]!;
     const needs = vm.blocks.find((b) => b.cls === "needs") as Extract<Block, { cls: "needs" }>;
     const items = [{ ...needs.items[0]!, why: WHY }, ...needs.items.slice(1)];

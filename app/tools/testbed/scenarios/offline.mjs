@@ -27,11 +27,11 @@ export const offline = {
       if (stuck) throw new Error(`the installed set should answer offline: "${stuck}"`);
       return words.find((w) => /Open|Closed|open|closed/.test(w)) ?? 'regulations drawn';
     });
-    // (T238/T285/T354) the rule book came with the first install: a "Rule book p.N ↗" link opens it offline in the app's
+    // (T238/T285/T354) the rule book came with the first install: a "B.C. Synopsis p.N ↗" link opens it offline in the app's
     // own viewer (testID pdf-viewer, "Page N of M"); never "Couldn't load the synopsis." nor the viewer's failure face
-    await ctx.step('the rule book opens offline (a "Rule book p.N ↗" link on the page)', async () => {
-      ctx.flow('scroll-to', { TEXT: 'Rule book p\\.[0-9]+ ↗.*' });
-      ctx.flow('tap-text', { TEXT: 'Rule book p\\.[0-9]+ ↗.*' });
+    await ctx.step('the rule book opens offline (a "B.C. Synopsis p.N ↗" link on the page)', async () => {
+      ctx.flow('scroll-to', { TEXT: 'B.C. Synopsis p\\.[0-9]+ ↗.*' });
+      ctx.flow('tap-text', { TEXT: 'B.C. Synopsis p\\.[0-9]+ ↗.*' });
       let words = [];
       for (let i = 0; i < 30; i++) {
         await ctx.device.sleep(1000);   // poll interval

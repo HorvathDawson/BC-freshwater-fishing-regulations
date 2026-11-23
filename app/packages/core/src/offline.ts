@@ -31,7 +31,7 @@ export const OFFLINE_WORDS = {
     webAll: "All kept in this browser",
   },
   book: {
-    name: `${RULE_BOOK} (synopsis PDF)`,
+    name: `${RULE_BOOK} (PDF)`,
     phone: "On this phone · opens offline",
     web: "Downloaded when you open it",
   },

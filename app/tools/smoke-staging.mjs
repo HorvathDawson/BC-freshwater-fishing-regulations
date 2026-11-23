@@ -307,8 +307,8 @@ async function browser() {
       await until(b, `!!${tidQ('regs-header')}`, 90000, 'the Vedder River regulations');
       await dismiss(b);
       const before = b.requests.length;
-      await until(b, `[...document.querySelectorAll('[aria-label^="Rule book page"]')].some((e) => e.getBoundingClientRect().width > 0)`, 20000, 'a "Rule book page N" link');
-      must(await press(b, 'Rule book page', { prefix: true }), 'no "Rule book page" link');
+      await until(b, `[...document.querySelectorAll('[aria-label^="B.C. Synopsis page"]')].some((e) => e.getBoundingClientRect().width > 0)`, 20000, 'a "B.C. Synopsis page N" link');
+      must(await press(b, 'B.C. Synopsis page', { prefix: true }), 'no "B.C. Synopsis page" link');
       // (T736) on a slow line the app asks before fetching 11.7 MB: answered like a user would, and said in the line
       const asked = await waitForRuleBook(b, { press, sleep, ms: 60000 });
       const pdf = b.requests.slice(before).find((r) => /synopsis-[0-9a-f]+\.pdf/.test(r.url));

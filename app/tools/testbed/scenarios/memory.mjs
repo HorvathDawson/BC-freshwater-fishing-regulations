@@ -106,7 +106,7 @@ export const memory = {
     await ctx.step('the rule book: in the app, at the cited page; back closes it', async () => {
       // a WATER row's link (the regional tables, printed p.20 on): only those carry a box to highlight (T215; a
       // provincial rule's p.9 opens unmarked)
-      const LINK = process.env.BOOK_LINK ?? 'Rule book p\\.[2-9][0-9] ↗.*';
+      const LINK = process.env.BOOK_LINK ?? 'B.C. Synopsis p\\.[2-9][0-9] ↗.*';
       // (T360, 2026-11-09) a search result may open the water on its Map view: the link is on Regulations
       if (ctx.device.screenText().includes('Regulations')) { ctx.flow('tap-text', { TEXT: 'Regulations' }); await ctx.device.sleep(1500); }
       ctx.flow('scroll-to', { TEXT: LINK });
@@ -144,7 +144,7 @@ export const memory = {
     await ctx.step('the rule book again (held): the open alone, timed', async () => {
       ctx.device.logcatClear();
       const t0 = Date.now();
-      ctx.flow('tap-text', { TEXT: process.env.BOOK_LINK ?? 'Rule book p\\.[2-9][0-9] ↗.*' });
+      ctx.flow('tap-text', { TEXT: process.env.BOOK_LINK ?? 'B.C. Synopsis p\\.[2-9][0-9] ↗.*' });
       let page = null;
       while (Date.now() - t0 < 60_000 && !page) { page = ctx.device.screenText().find((x) => /^Page \d+ of \d+$/.test(x)) ?? null; if (!page) await ctx.device.sleep(300); }
       const ms = Date.now() - t0;

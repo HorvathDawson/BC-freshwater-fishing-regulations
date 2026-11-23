@@ -62,7 +62,7 @@ describe("each surface's line", () => {
     expect(sourcesText(inSeasonSourcesOf({ url: "https://www2.gov.bc.ca/x" }))).toBe("Source B.C. in-season changes ↗");
     expect(inSeasonSourcesOf({ url: "" }).links).toEqual([]);
   });
-  it("the trout table: the pages its every-rule sheet cites, then Who says so › opening it; no page given: the link alone", () => {
+  it("the trout table: the pages its every-rule sheet cites, then Who says so › opening it; no such sheet: thrown", () => {
     const sheet: SheetVM = { key: "src:trout", title: "Sources", sub: null, blocks: [{ k: "sources", groups: [{ where: "", rows: [
       { key: "a", title: null, quote: "", role: "", book: [{ t: "book", printed: 49, pdf: 51, box: [box(51, 5)] }] },
       { key: "b", title: null, quote: "", role: "", book: [{ t: "book", printed: 8, pdf: 10 }] }] }] }] };
@@ -70,10 +70,11 @@ describe("each surface's line", () => {
     expect(sourcesText(troutSourcesOf(page))).toBe("Source B.C. Synopsis p.8 ↗ p.49 ↗ Who says so ›");
     expect(arias(troutSourcesOf(page).links)).toEqual(["B.C. Synopsis page 8, opens the PDF",
       "B.C. Synopsis page 49, the passages behind Trout and char marked, opens the PDF", "Who says so: the rules behind Trout and char"]);
-    expect(sourcesText(troutSourcesOf(null))).toBe("Source Who says so ›");
+    // a page with a trout table and no every-rule sheet is a programming error, said, never a line with no pages
+    expect(() => troutSourcesOf({ sheet: () => null } as unknown as RegsPage)).toThrow(/no src:trout sheet/);
   });
   it("the salmon card: a book closure's page, linked once the page's PDF map is given; DFO's region pages", () => {
-    const card = { book: [{ from: "Rule book p.9 · Skeena River", words: "w", water: "Skeena River", pages: [{ printed: 9, pdf: null }] }],
+    const card = { book: [{ from: "B.C. Synopsis p.9 · Skeena River", words: "w", water: "Skeena River", pages: [{ printed: 9, pdf: null }] }],
                    dfoPages: [{ region: "Region 6 Skeena", url: "https://dfo/6" }] } as unknown as SalmonCardVM;
     expect(sourcesText(salmonBookSourcesOf(card.book[0]!))).toBe("Source B.C. Synopsis p.9");
     const linked = salmonWithPdf(card, { 9: 11 });

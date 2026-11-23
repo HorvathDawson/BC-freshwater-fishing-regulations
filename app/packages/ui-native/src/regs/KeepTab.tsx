@@ -46,12 +46,14 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
    *  offsets (`useDaylight`); null: no point */
   daylight?: DaylightAt | null;
   glance?: { salmon: { row: GlanceRowVM; card: () => ReactNode } | null } | null;
-  /** (T1031 item 3) the trout table's Source line (core `troutSourcesOf(page)`), handed to the card */
-  troutSources?: TabSourcesVM;
+  /** (T1031 item 3) the trout table's Source line (core `troutSourcesOf(page)`), handed to the card; null where the page
+   *  draws no trout table (a table with none is a programming error, thrown) */
+  troutSources: TabSourcesVM | null;
 }) {
   // (T810 O, S) the trout and char table, as N built it (null: none drawn: no cell, a closed day, or a refused frame)
   const trout = keep.trout?.kind === "table" ? keep.trout : null;
-  const troutCard = (kicker: boolean) => trout && (
+  if (trout && !troutSources) throw new Error("KeepTab: the page draws a trout table but its host gave no troutSources");
+  const troutCard = (kicker: boolean) => trout && troutSources && (
     <TroutCard t={trout} palette={palette} actions={actions} images={images} kicker={kicker}
                todayAt={keep.strip?.todayAt ?? null} months={keep.strip?.months ?? []} sources={troutSources} />
   );

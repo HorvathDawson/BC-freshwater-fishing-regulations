@@ -20,10 +20,10 @@ afterEach(() => { cleanup(); vi.restoreAllMocks(); (Platform as { OS: string }).
 const spyOpen = () => vi.spyOn(Linking, "openURL").mockResolvedValue(undefined);
 
 describe("<RuleBookLink> label", () => {
-  it("printed 21, pdf 23 → \"Rule book p.21 ↗\", a link named for a screen reader", () => {
+  it("printed 21, pdf 23 → \"B.C. Synopsis p.21 ↗\", a link named for a screen reader", () => {
     render(<RuleBookLink printed={21} pdf={23} palette={LIGHT} onBook={() => {}} />);
     const a = screen.getByRole("link");
-    expect([a.textContent, a.getAttribute("aria-label")]).toEqual(["Rule book p.21 ↗", "Rule book page 21, opens the PDF"]);
+    expect([a.textContent, a.getAttribute("aria-label")]).toEqual(["B.C. Synopsis p.21 ↗", "B.C. Synopsis page 21, opens the PDF"]);
   });
   it("bare → \"p.21 ↗\"", () => {
     render(<RuleBookLink printed={21} pdf={23} bare palette={LIGHT} onBook={() => {}} />);
@@ -42,7 +42,7 @@ describe("<RuleBookLink> label", () => {
     render(<LineText line={[{ t: "text", s: "Release. " }, { t: "book", printed: 8, pdf: 10 }]} style={TYPE.regsBody} color={LIGHT.ink} palette={LIGHT}
                      actions={{ ...NO_ACTIONS, onBook: (p) => books.push(p) }} />);
     const a = screen.getByRole("link");
-    expect([a.textContent, a.getAttribute("aria-label")]).toEqual(["Rule book p.8 ↗", "Rule book page 8, opens the PDF"]);
+    expect([a.textContent, a.getAttribute("aria-label")]).toEqual(["B.C. Synopsis p.8 ↗", "B.C. Synopsis page 8, opens the PDF"]);
     fireEvent.click(a);
     expect(books).toEqual([10]);
   });

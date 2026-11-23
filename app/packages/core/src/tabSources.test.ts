@@ -25,7 +25,7 @@ describe("regsSourcesOf: one link per synopsis page the DRAWN tabs cite (owner 2
     keep: { whereNot: [[{ t: "text", s: "No fishing: within 23 m" }, book(9, 11, [box(11, 100)])], [book(9, 11, [box(11, 140)])]],
             caveats: [{ items: [{ line: [book(53, 55, [box(55, 400)])] }] }] },
   });
-  const drawn = drawnRegsOf(skeena, tabs(gearCiting([{ printed: 8, pdf: 10, box: [box(10, 20)] }, { printed: 49, pdf: 51 }, { printed: 53, pdf: 55, box: [box(55, 400)] }])), null);
+  const drawn = drawnRegsOf(skeena, tabs(gearCiting([{ printed: 8, pdf: 10, box: [box(10, 20)] }, { printed: 49, pdf: 51 }, { printed: 53, pdf: 55, box: [box(55, 400)] }])), null, []);
 
   it("lists every page in page order, the first named, each once, then All sources", () => {
     expect(sourcesText(regsSourcesOf(drawn, none))).toBe("Source B.C. Synopsis p.8 ↗ p.9 ↗ p.49 ↗ p.53 ↗ All sources ›");
@@ -58,7 +58,7 @@ describe("regsSourcesOf: one link per synopsis page the DRAWN tabs cite (owner 2
   });
   it("a per-row gear source (srcs:gl|…, not drawn since T900) cites nothing", () => {
     const g = { lines: [{ src: { who: "", aria: "", open: "srcs:gl|hook", keys: [], pages: [{ printed: 22, pdf: 24 }] } }] };
-    expect(sourcesText(regsSourcesOf(drawnRegsOf(page(), tabs(g), null), none))).toBe("Source All sources ›");
+    expect(sourcesText(regsSourcesOf(drawnRegsOf(page(), tabs(g), null, []), none))).toBe("Source All sources ›");
   });
   it("a page the PDF map lacks is said unlinked, as every book run says it", () => {
     expect(sourcesText(regsSourcesOf([[book(7, null)]], none))).toBe("Source B.C. Synopsis p.7 All sources ›");
@@ -69,14 +69,14 @@ describe("regsSourcesOf: one link per synopsis page the DRAWN tabs cite (owner 2
 describe("drawnRegsOf: what the Regulations tab draws (#63 review)", () => {
   it("a day only salmon may be fished: the Gear / Methods drawn (the day's gear \"if fished\"), never page.gear (the closed day's)", () => {
     const closedDay = page({ gear: gearCiting([{ printed: 64, pdf: 66 }]) });
-    expect(sourcesText(regsSourcesOf(drawnRegsOf(closedDay, tabs(gearCiting([{ printed: 8, pdf: 10 }])), null), none)))
+    expect(sourcesText(regsSourcesOf(drawnRegsOf(closedDay, tabs(gearCiting([{ printed: 8, pdf: 10 }])), null, []), none)))
       .toBe("Source B.C. Synopsis p.8 ↗ All sources ›");
   });
   it("Methods' boats and the Handling fish reference only while Methods is drawn; the Licence tab as drawn; never a sheet", () => {
     const p = page({ boats: [[book(70, 72)]], methods: { reference: { lines: [[book(6, 8)]] } } });
     const lic = { lines: [[book(10, 12)]] } as never;
-    expect(sourcesText(regsSourcesOf(drawnRegsOf(p, tabs(null, {}), lic), none))).toBe("Source B.C. Synopsis p.6 ↗ p.10 ↗ p.70 ↗ All sources ›");
-    expect(sourcesText(regsSourcesOf(drawnRegsOf(p, tabs(null, null), null), none))).toBe("Source All sources ›");
+    expect(sourcesText(regsSourcesOf(drawnRegsOf(p, tabs(null, {}), lic, []), none))).toBe("Source B.C. Synopsis p.6 ↗ p.10 ↗ p.70 ↗ All sources ›");
+    expect(sourcesText(regsSourcesOf(drawnRegsOf(p, tabs(null, null), null, []), none))).toBe("Source All sources ›");
   });
 });
 

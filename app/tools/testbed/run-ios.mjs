@@ -409,15 +409,15 @@ const SCENARIOS = [
         return 'same words as the baseline';
       });
     } },
-  { id: 'pdf', title: 'The synopsis PDF opens from a "Rule book p.N ↗" link',
+  { id: 'pdf', title: 'The synopsis PDF opens from a "B.C. Synopsis p.N ↗" link',
     async run(ctx) {
-      await ctx.step('Cultus Lake page → Rule book link → a PDF is shown', async () => {
+      await ctx.step('Cultus Lake page → B.C. Synopsis link → a PDF is shown', async () => {
         await toMap(ctx);
         ctx.flow('search', { Q: 'Cultus' });
         ctx.flow('open-result', { LINE: '.*Lindell Beach.*' });
         await ctx.waitText(/Regulations/, 30_000);
-        ctx.flow('scroll-to', { TEXT: 'Rule book p\\.[0-9]+ ↗.*' });
-        ctx.flow('tap-text', { TEXT: 'Rule book p\\.[0-9]+ ↗.*' });
+        ctx.flow('scroll-to', { TEXT: 'B.C. Synopsis p\\.[0-9]+ ↗.*' });
+        ctx.flow('tap-text', { TEXT: 'B.C. Synopsis p\\.[0-9]+ ↗.*' });
         let w = [];
         for (let i = 0; i < 20; i++) {                                       // a first open downloads the book (~25 MB)
           await sleep(3000);
@@ -511,10 +511,10 @@ const SCENARIOS = [
         await ctx.waitText(/Regulations/, 30_000);
         return measure('water page');
       });
-      // (T718) a rule-book link on the water's page: a rule's own "Rule book p.N ↗" (T991 round 3: the page-foot "This water in
+      // (T718) a rule-book link on the water's page: a rule's own "B.C. Synopsis p.N ↗" (T991 round 3: the page-foot "This water in
       // the rule book" line is gone; the water's own page is in the Source row, "B.C. Synopsis p.N ↗"), so BOOK_LINK (or the
       // water opened above) must name a water whose rules link a page
-      const LINK = process.env.BOOK_LINK ?? '.*[Rr]ule book p\\.[0-9]+ ↗.*';
+      const LINK = process.env.BOOK_LINK ?? '.*B\\.C\\. Synopsis p\\.[0-9]+ ↗.*';
       const book = async (label) => {
         ctx.flow('scroll-to', { TEXT: LINK });
         const t0 = Date.now();

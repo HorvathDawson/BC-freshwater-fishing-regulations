@@ -5,8 +5,9 @@
  *
  * - `SOURCE_AUTHORITIES`: each authority a Source line can name, its one short name, and the Sources-and-licences row
  *   holding its page (`tabSources.authorityUrl`).
- * - `RULE_BOOK`: the word a RULE'S OWN proof link carries inside its sentence ("Rule book p.21 ↗", kept by the owner in
- *   T991 round 2), the card chips' and the download list's name for the same document.
+ * - `RULE_BOOK`: the book's name wherever it is shown — a rule's own proof link inside its sentence ("B.C. Synopsis p.21 ↗"),
+ *   the salmon rows' place label, the card chips, the download list (owner 2026-11-23: "'B.C. Synopsis' everywhere"; it was
+ *   "Rule book", a second name for the one document, and `app/tools/source-names.test.ts` refuses that spelling now).
  * - `SOURCE_LINE`: the words of the ONE SOURCE LINE (T1031 item 3): its label, the sheet link to the rules behind a
  *   block, and what each link says aloud.
  */
@@ -21,8 +22,8 @@ export const SOURCE_AUTHORITIES = Object.freeze({
 } as const);
 export type AuthorityId = keyof typeof SOURCE_AUTHORITIES;
 
-/** A rule's own page link inside its sentence ("Rule book p.21 ↗"), and the chips' / download list's name of the book. */
-export const RULE_BOOK = "Rule book";
+/** The book's name wherever it is shown (owner 2026-11-23: "'B.C. Synopsis' everywhere"): the synopsis's one short name. */
+export const RULE_BOOK = SOURCE_AUTHORITIES.synopsis.name;
 
 export const SOURCE_LINE = Object.freeze({
   /** the line's quiet label */

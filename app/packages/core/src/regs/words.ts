@@ -218,7 +218,7 @@ export const WORDS = Object.freeze({
   LEVEL_TAG_WATER: "This water’s rule",
   // ── T36 sheets (sheets.ts: prototype sheetHtml / glossBody / head; page v36 openRule, adiposeHtml, openSheet titles) ──
   SHEET_RULE: "Rule", SHEET_EXACT: "The exact words", SHEET_TECH: "Technical detail", SHEET_NOTE: "⚑ ",
-  SHEET_BOOK_WORDS: "In the book’s words", SHEET_RULE_BOOK_WORDS: "In the rule book’s words", SHEET_FOR_EXAMPLE: "For example:",
+  SHEET_BOOK_WORDS: "In the book’s words", SHEET_RULE_BOOK_WORDS: `In the ${RULE_BOOK}’s words`, SHEET_FOR_EXAMPLE: "For example:",
   SHEET_SOURCE_LINK: SOURCE_LINE.WHO,   // (T1031 item 3) a sheet's source block is drawn as the one Source line
   SHEET_HATCH_TITLE: "Hatchery or wild?", SHEET_HATCH_SUB: "The adipose fin",
   SHEET_HATCH_WILD: "Wild", SHEET_HATCH_WILD_CAP: " · adipose fin there",
@@ -488,7 +488,7 @@ export const LIC = Object.freeze({
   MAY_WHY_FOLD: "Why this may not apply here",
   MAY_WHY: (unit: string, cls: string, through: string, many: boolean, part: boolean) =>
     `${part ? "On part of this water: " : ""}${unit}’s Class ${cls} covers its tributaries. ${through} ${
-      many ? "have their own lines" : "has its own line"} in the rule book without Classified Waters, so it may not apply here. Check with a CO.`,
+      many ? "have their own lines" : "has its own line"} in the ${RULE_BOOK} without Classified Waters, so it may not apply here. Check with a CO.`,
   EXEMPT_FROM: (docs: string) => `You’re exempt from: ${docs}.`,
   // none needed
   NONE_HEAD: "No licence needed to fish here", NONE_U16: "Anglers under 16 who live in B.C. don’t need a basic angling licence.",
@@ -507,7 +507,7 @@ export const LIC = Object.freeze({
   YOU_NEED: "You need", ONLY_IF_HEAD: "Also, only if…",
   PRICE_NOTE: "Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence",
   /** (T670 G7, RULINGS Li13) the heading over a document's p.7 terms, drawn in the book's own words */
-  BOOK_TERMS: "From the rule book:",
+  BOOK_TERMS: `From the ${RULE_BOOK}:`,
   NOT_KOKANEE: "(not kokanee)",
   // the paper licence
   PAPER_LEAD: (a: string, fish: string) => `Keep ${a} ${fish}? `, A: "a", AN: "an", PAPER_STRONG: "Carry your paper licence",

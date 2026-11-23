@@ -1138,7 +1138,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -1194,7 +1194,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -1240,7 +1240,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -1296,7 +1296,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -1342,7 +1342,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -1398,7 +1398,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -2803,7 +2803,7 @@
      ],
      "k": "fold",
      "open": false,
-     "summary": "In the rule book’s words"
+     "summary": "In the B.C. Synopsis’s words"
     },
     {
      "k": "source",

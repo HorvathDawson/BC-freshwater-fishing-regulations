@@ -159,11 +159,11 @@ describe("3. timed caveat words (D10 a): an hours window, the card at inside=fal
   } as unknown as RegsInputs;
   const settled = (s: number) => ({ s, day: OCT10, status: s === 0 ? OPEN : shut, inpart: [], side: [], anglerclosed: [], L: null }) as unknown as Settled;
 
-  it("keep.caveats[0] is the timed block: the title, the closure's words, the window's words, the Rule book page", () => {
+  it("keep.caveats[0] is the timed block: the title, the closure's words, the window's words, the B.C. Synopsis page", () => {
     const c = caveatsOf(inp, settled(0), settled, new Set());
     expect(c.map((x) => x.kind)).toEqual(["timed"]);
     expect([c[0]!.title, c[0]!.items.map((i) => [plain(i.what), i.where, i.rule, plain(i.book)])]).toEqual(["⚠ At certain times",
-      [["No fishing for any game fish", "60 min after sunset–60 min before sunrise", closer.key, "Rule book p.23 ↗"]]]);
+      [["No fishing for any game fish", "60 min after sunset–60 min before sunrise", closer.key, "B.C. Synopsis p.23 ↗"]]]);
   });
   it("mutation pin: the card at the closed moment draws no caveat (the closed day has none)", () => {
     expect(caveatsOf(inp, settled(1), settled, new Set())).toEqual([]);

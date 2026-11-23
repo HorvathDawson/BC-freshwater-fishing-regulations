@@ -28,7 +28,7 @@ export const SOURCE_WORDS = {
   /** a row's or a block's tag, by its rule source */
   tag: { dfo: "DFO", bc: "B.C." },
   /** a salmon bar some of whose days are the rule book's (core `SalmonSourceBy`) */
-  salmonTag: { dfo: "DFO", both: `DFO + ${RULE_BOOK.toLowerCase()}`, book: RULE_BOOK },
+  salmonTag: { dfo: "DFO", both: `DFO + ${RULE_BOOK}`, book: RULE_BOOK },
   /** the two blocks' names, the tag beside each */
   salmon: "Salmon",
   game: "Game fish",

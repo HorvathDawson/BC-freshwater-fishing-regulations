@@ -16,6 +16,7 @@ import { KeepTab } from "./KeepTab";
 import { StripWidthHint } from "./YearStrip";
 import vedder1010 from "./fixtures/vedder_1010.json";
 import { BAIT, EULACHON, skeenaCard } from "./fixtures/salmonSkeena";
+import { TEST_TROUT_SOURCES } from "./testing/sources";
 
 afterEach(cleanup);
 
@@ -66,7 +67,7 @@ describe("(T829) the salmon card in the trout keep box", () => {
     const actions = { onSheet() {}, onDay() {}, onTab() {}, onBook() {} };
     render(
       <StripWidthHint.Provider value={300}>
-        <KeepTab keep={(vedder1010 as unknown as RegsPage).keep as KeepVM} dateLabel="Aug 15" palette={LIGHT} actions={actions}
+        <KeepTab troutSources={TEST_TROUT_SOURCES} keep={(vedder1010 as unknown as RegsPage).keep as KeepVM} dateLabel="Aug 15" palette={LIGHT} actions={actions}
                  salmonStrip={strip} glance={{ salmon: { row: salmonGlance(c), card: () => <SalmonCard card={c} palette={LIGHT} /> } }} />
       </StripWidthHint.Provider>,
     );

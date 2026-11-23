@@ -150,9 +150,10 @@ export const inSeasonSourcesOf = (b: Pick<InSeasonBannerVM, "url">): TabSourcesV
   sourceLineOf({ web: b.url ? [{ name: SOURCE_AUTHORITIES.inseason.name, url: b.url }] : [] });
 
 /** The trout table's Source line: the synopsis pages its every-rule sheet (`src:trout`) cites, highlighted, then "Who says so
- *  ›" opening that sheet. `page` null (a host that computed none, a frozen test page): the sheet link alone. */
-export function troutSourcesOf(page: Pick<RegsPage, "sheet"> | null): TabSourcesVM {
-  const sheet = page ? page.sheet(TROUT_SOURCES_KEY) : null;
+ *  ›" opening that sheet. A page with a trout table and no such sheet is a programming error, thrown. */
+export function troutSourcesOf(page: Pick<RegsPage, "sheet">): TabSourcesVM {
+  const sheet = page.sheet(TROUT_SOURCES_KEY);
+  if (!sheet) throw new Error(`troutSourcesOf: the page has no ${TROUT_SOURCES_KEY} sheet`);
   const pages = [...citedPages(sheet, new Map())].map(([printed, p]): SourcePage => ({ printed, pdf: p.pdf, ...(p.boxes.length ? { box: p.boxes } : {}) }));
   return sourceLineOf({ pages, marks: SOURCE_LINE.MARKS_BLOCK(TROUT_NAV.ENTRY), sheet: whoSaysSo(TROUT_SOURCES_KEY, TROUT_NAV.ENTRY) });
 }
@@ -191,6 +192,8 @@ function citedPages(v: unknown, out: Map<number, Page>, seen = new Set<unknown>(
     out.set(printed, p);
   };
   if (o.t === "book" && typeof o.printed === "number") add(o.printed, typeof o.pdf === "number" ? o.pdf : null, o.box);
+  // (T1031 item 3) a drawn Source line's page link (`SourceLinkVM` "book")
+  if (o.k === "book" && typeof o.printed === "number") add(o.printed, typeof o.pdf === "number" ? o.pdf : null, o.box);
   if (typeof o.open === "string" && o.open.startsWith("srcs:") && !o.open.startsWith("srcs:gl|") && Array.isArray(o.pages))
     for (const p of o.pages as readonly { printed?: unknown; pdf?: unknown; box?: unknown }[])
       if (typeof p?.printed === "number") add(p.printed, typeof p.pdf === "number" ? p.pdf : null, p.box);
@@ -219,9 +222,12 @@ const ALL_SOURCES_LINK = { label: ALL_SOURCES.LINK, open: ALL_SOURCES_KEY, aria:
  * under Methods only while Methods is), and the Licence tab as drawn (`licenceTabFor`). The Source row cites exactly what
  * these cite — never a sheet's rules (a sheet is not on the screen) and never `page.gear` on a day it is not drawn.
  */
-export function drawnRegsOf(page: Pick<RegsPage, "header" | "keep" | "boats" | "methods">, tabs: GearTabsVM, licence: RegsPage["licence"]): readonly unknown[] {
+export function drawnRegsOf(page: Pick<RegsPage, "header" | "keep" | "boats" | "methods">, tabs: GearTabsVM, licence: RegsPage["licence"],
+                            /** (T1031 item 3) the Source lines drawn inside the tabs that no VM above carries: the trout
+                             *  table's (`troutSourcesOf`, its every-rule sheet's pages) and the salmon card's book closures */
+                            lines: readonly TabSourcesVM[]): readonly unknown[] {
   return [page.header, page.keep, tabs.gear, tabs.salmonGear, tabs.methods, tabs.methods ? page.boats : null,
-          tabs.methods ? page.methods?.reference ?? null : null, licence];
+          tabs.methods ? page.methods?.reference ?? null : null, licence, lines];
 }
 
 /**

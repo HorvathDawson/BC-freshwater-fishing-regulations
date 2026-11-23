@@ -13,6 +13,7 @@ import { InSeasonBanners } from "./regs/InSeasonBanner";
 import { InSeasonNotice } from "./InSeasonNotice";
 import { TopBar } from "./TopBar";
 import { LIGHT } from "./theme";
+import { TEST_TROUT_SOURCES } from "./regs/testing/sources";
 
 afterEach(cleanup);
 const SRC = "https://www2.gov.bc.ca/x";
@@ -196,7 +197,7 @@ describe("the in-season line on the page (T472, T565)", () => {
   it("is first on the Regulations page, collapsed, and not inside the Keep tab (order: RegsScreen.test)", async () => {
     const { KeepTab } = await import("./regs/KeepTab");
     const vedder = (await import("./regs/fixtures/vedder_1010.json")).default as unknown as { keep: import("@app/core").KeepVM };
-    render(<KeepTab keep={vedder.keep} dateLabel="Oct 10" palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} } as never} />);
+    render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={vedder.keep} dateLabel="Oct 10" palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} } as never} />);
     expect(screen.queryByTestId("inseason-banners")).toBeNull();
   });
 });

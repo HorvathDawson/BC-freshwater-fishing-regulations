@@ -48,7 +48,7 @@ describe("<GearTab> vedder_1010 (open, Oct 10)", () => {
     expect([chip.textContent, chip.style.textTransform, chip.style.backgroundColor !== ""]).toEqual(["Next", "uppercase", true]);
   });
 
-  it("(T900) ONE source line under the section opens srcs:gear; a Rule book link says its PDF page; no row draws its own", () => {
+  it("(T900) ONE source line under the section opens srcs:gear; a B.C. Synopsis link says its PDF page; no row draws its own", () => {
     const { sheets, books } = mount(vm);
     const src = within(screen.getByTestId("gear-src")), v = vm.src!;
     expect(screen.getAllByTestId("regs-src")).toHaveLength(1);

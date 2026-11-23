@@ -20,7 +20,7 @@ export const SYNOPSIS_WORDS = Object.freeze({
   /** (T354) the in-app viewer's head */
   title: RULE_BOOK,
   pageOf: (page: number, of: number) => `Page ${page} of ${of}`,
-  cantShow: "Couldn’t show the rule book here.",
+  cantShow: `Couldn’t show the ${RULE_BOOK} here.`,
 });
 
 /** How long a load runs before anything is drawn (a cached copy opens inside this). */

@@ -10,21 +10,21 @@ afterEach(cleanup);
 
 describe("textForm", () => {
   it("puts U+FE0E after each emoji-capable symbol, once", () => {
-    expect(textForm("Rule book p.7 ↗")).toBe("Rule book p.7 ↗︎");
+    expect(textForm("B.C. Synopsis p.7 ↗")).toBe("B.C. Synopsis p.7 ↗︎");
     expect(textForm("↩ Release")).toBe("↩︎ Release");
     expect(textForm("⚠ At certain times")).toBe("⚠︎ At certain times");
     expect(textForm("↗︎")).toBe("↗︎");
     expect(textForm("Plain words, © 2026 and ✓ and ⓘ stay")).toBe("Plain words, © 2026 and ✓ and ⓘ stay");
   });
   it("the shipped words that carry a symbol", () => {
-    expect(textForm(bookText({ printed: 7, pdf: 9 }))).toBe("Rule book p.7 ↗︎");
+    expect(textForm(bookText({ printed: 7, pdf: 9 }))).toBe("B.C. Synopsis p.7 ↗︎");
     expect(textForm(WORDS.PILL_RELEASE)).toBe("↩︎ Release");
   });
 });
 
 describe("guardChildren", () => {
   it("off the iPhone (Android, web) the children are returned untouched, the same object", () => {
-    const kids = ["Rule book p.7 ↗", " ", "x"];
+    const kids = ["B.C. Synopsis p.7 ↗", " ", "x"];
     expect(guardChildren("p.7 ↗", false)).toBe("p.7 ↗");
     expect(guardChildren(kids, false)).toBe(kids);
   });
@@ -38,7 +38,7 @@ describe("guardChildren", () => {
 
 describe("Text on the web build (the vitest target)", () => {
   it("renders the symbol exactly as written", () => {
-    render(<Text>Rule book p.7 ↗</Text>);
-    expect(screen.getByText("Rule book p.7 ↗").textContent).toBe("Rule book p.7 ↗");
+    render(<Text>B.C. Synopsis p.7 ↗</Text>);
+    expect(screen.getByText("B.C. Synopsis p.7 ↗").textContent).toBe("B.C. Synopsis p.7 ↗");
   });
 });

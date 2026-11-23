@@ -584,13 +584,13 @@ export const SALMON_WORDS = {
   badgeBook: RULE_BOOK,
   badgeBoth: `${RULE_BOOK} · DFO`,
   /** (T796) the source fold's title where the rule book closes some of the page's salmon today */
-  sourceFoldBook: "Sources (rule book and DFO)",
+  sourceFoldBook: `Sources (${RULE_BOOK} and DFO)`,
   /** (T796) the source fold's note there, in place of `noteTwoAuthorities` (rule book p.77) */
-  noteBook: "Where the rule book closes a water to all fishing, salmon are closed there too (rule book p.77). "
+  noteBook: `Where the ${RULE_BOOK} closes a water to all fishing, salmon are closed there too (${RULE_BOOK} p.77). `
     + "Elsewhere salmon are set by DFO, not the provincial regulations above. Both apply.",
   /** (T796) the salmon bar's name where some of its days are the rule book's closure, or all of them */
-  barSalmonBoth: "Salmon (DFO and rule book)",
-  barSalmonBook: "Salmon (rule book)",
+  barSalmonBoth: `Salmon (DFO and ${RULE_BOOK})`,
+  barSalmonBook: `Salmon (${RULE_BOOK})`,
   /** (T796 A6, owner 2026-11-16: "Closes the whole page") DFO's "Finfish closure" closes ALL fishing on the stretch
    *  that day, trout included: the page's closed banner, DFO's words after the colon */
   finfishClosed: (dfo: readonly string[]) =>

@@ -18,6 +18,7 @@ import glenn501 from "./fixtures/glenn_501.json";
 import klwa1010 from "./fixtures/klwa_1010.json";
 import bc1501 from "./fixtures/bc1_501.json";
 import x35p1010 from "./fixtures/x35p_1010.json";
+import { TEST_TROUT_SOURCES } from "./testing/sources";
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
@@ -29,7 +30,7 @@ const idOf = (b: KeepVM["order"][number]) => typeof b === "string" ? TEST_ID[b] 
 function mount(keep: KeepVM) {
   const sheets: SheetKey[] = [], books: number[] = [];
   const actions: KeepActions = { onSheet: (k) => sheets.push(k), onDay() {}, onTab() {}, onBook: (p) => books.push(p) };
-  const r = render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions} />);
+  const r = render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions} />);
   // the tab's own blocks (T810 cutover: the trout table inside its block carries `keep-*` ids of its own: KeepBox's rows)
   const drawn = [...r.container.querySelector("[data-testid='keep-tab']")!.children].map((e) => e.getAttribute("data-testid"))
     .filter((t): t is string => !!t && t.startsWith("keep-"));
@@ -46,7 +47,7 @@ describe("<KeepTab> over the frozen pages", () => {
 
   it("vedder_1010 (rows 32): the white sturgeon row's stored stamp drawn under it, its document a link to the Licence tab", () => {
     const tabs: string[] = [];
-    render(<KeepTab keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT}
+    render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT}
                     actions={{ onSheet() {}, onDay() {}, onTab: (t) => tabs.push(t), onBook() {} }} />);
     expect(screen.getAllByTestId("otherfish-stamp").map((e) => e.textContent)).toEqual([
       "You need White Sturgeon Conservation Licence › only if you fish for white sturgeon, even to release them"]);
@@ -66,7 +67,7 @@ describe("<KeepTab> over the frozen pages", () => {
     const keep = keepOf(glenn501), { drawn } = mount(keep);
     expect(drawn.slice(0, 2)).toEqual(["keep-strip", "keep-inherited"]);
     expect(screen.getByTestId("keep-inherited").textContent).toBe(
-      "By another water’s ruleOpen Apr 1–Jun 14: the Duncan River’s exemption from the spring stream closure covers its tributaries. Rule book p.36 ↗"
+      "By another water’s ruleOpen Apr 1–Jun 14: the Duncan River’s exemption from the spring stream closure covers its tributaries. B.C. Synopsis p.36 ↗"
       + "Trout Lake’s row, nearer this stream, prints no such exemption; the Duncan River’s is applied here because its row covers all its tributaries.");
   });
 
@@ -74,9 +75,9 @@ describe("<KeepTab> over the frozen pages", () => {
   // draws a group card since the cutover; the trout table's year is its year bar, TroutCard.test "the year bar is drawn
   // exactly when `year` is set (…)"
 
-  it("links say where they go: a Rule book page, an Other fish row, the trout table's 'Sources ›'", () => {
+  it("links say where they go: a B.C. Synopsis page, an Other fish row, the trout table's 'Sources ›'", () => {
     const { sheets, books } = mount(keepOf(vedder1010));
-    fireEvent.click(screen.getAllByText("Rule book p.9 ↗")[0]!);
+    fireEvent.click(screen.getAllByText("B.C. Synopsis p.9 ↗")[0]!);
     fireEvent.click(screen.getByText("Kokanee"));
     fireEvent.click(screen.getByTestId("trout-sources"));
     expect([books, sheets]).toEqual([[11], ["other:o0", "src:trout"]]);
@@ -91,7 +92,7 @@ describe("(T227, owner 2026-10-28) the salmon bar at the top, and the glance row
 
   it("drawn on top, right above the provincial bar (owner 2026-11-12), the two named; none without salmon (the bar unnamed)", () => {
     const keep = keepOf(vedder1010);
-    const r = render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={STRIP as never} />);
+    const r = render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={STRIP as never} />);
     const ids = [...r.container.querySelectorAll("[data-testid='keep-strip'],[data-testid='salmon-strip'],[data-testid='keep-trout']")]
       .map((e) => e.getAttribute("data-testid"));
     expect(ids).toEqual(["salmon-strip", "keep-strip", "keep-trout"]);   // (T810 cutover) the trout table, where the group was
@@ -100,12 +101,12 @@ describe("(T227, owner 2026-10-28) the salmon bar at the top, and the glance row
       .toEqual(["Game fish", "B.C.", "Salmon", "DFO"]);
     expect(screen.getByTestId("salmon-strip-st:release").textContent).toBe("✓ Release only");
     cleanup();
-    render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions} />);
+    render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions} />);
     expect([screen.queryByTestId("salmon-strip"), screen.queryByTestId("keep-strip-title")]).toEqual([null, null]);
   });
 
   it("the salmon bar is the game-fish bar's shape: one bar, the next change, the legend — nothing under it", () => {
-    render(<KeepTab keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT} actions={actions}
+    render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT} actions={actions}
                     salmonStrip={{ ...STRIP, soon: { kind: "soon", text: "Closed from Nov 1" } } as never} />);
     const s = screen.getByTestId("salmon-strip");
     // (jsdom lays nothing out: the marker and its date draw only at a measured width)
@@ -116,13 +117,13 @@ describe("(T227, owner 2026-10-28) the salmon bar at the top, and the glance row
 
   it("the WHOLE glance row opens its card; a row with nothing more is plain (no Details, not a button)", () => {
     const keep = keepOf(vedder1010);
-    render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions}
+    render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions}
                     glance={{ salmon: { row: { source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: null, tone: "keep" }, card: () => <span>salmon card</span> } }} />);
     const row = screen.getByTestId("glance:salmon");
     fireEvent.click(row.querySelector("[role=button]")!.firstChild as Element);   // the picture, not the Details button
     expect(screen.getByTestId("glance-body:salmon").textContent).toBe("salmon card");
     cleanup();
-    render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions}
+    render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions}
                     glance={{ salmon: { row: { source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: "closed", tone: "closed", fold: false }, card: () => <span>x</span> } }} />);
     const plain = screen.getByTestId("glance:salmon");
     expect([plain.querySelector("[role=button]"), plain.querySelector("[data-testid=glance-toggle]"), plain.textContent])
@@ -140,7 +141,7 @@ describe("(T879, owner 2026-11-18 \"Two headers, one table\") both blocks first,
 
   it("Vedder: both blocks first — Salmon (bar), then game fish (strip) — then ONE 'Species and limits' list: Salmon first, then trout", () => {
     const keep = keepOf(vedder1010);
-    const r = render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={STRIP as never} glance={{ salmon }} />);
+    const r = render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={STRIP as never} glance={{ salmon }} />);
     const ids = [...group(r).querySelectorAll("[data-testid='keep-strip'],[data-testid='glance:trout'],[data-testid='keep-otherfish'],[data-testid='salmon-block'],[data-testid='salmon-strip'],[data-testid='glance:salmon']")]
       .map((e) => e.getAttribute("data-testid"));
     expect(ids).toEqual(["salmon-block", "salmon-strip", "keep-strip", "keep-otherfish", "glance:salmon", "glance:trout"]);
@@ -149,23 +150,23 @@ describe("(T879, owner 2026-11-18 \"Two headers, one table\") both blocks first,
   });
 
   it("(T907) the rows of the one list wear NO tag; the two block heads keep theirs (Salmon DFO, Game fish B.C.)", () => {
-    render(<KeepTab keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={STRIP as never} glance={{ salmon }} />);
+    render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={STRIP as never} glance={{ salmon }} />);
     expect(within(screen.getByTestId("salmon-block")).queryByTestId("species-rows")).toBeNull();
     const list = screen.getByTestId("keep-otherfish");
-    expect(within(list).queryAllByText(/^(DFO|B\.C\.|DFO \+ rule book|Rule book)$/).length).toBe(0);
+    expect(within(list).queryAllByText(/^(DFO|B\.C\.|DFO \+ B.C. Synopsis|B.C. Synopsis)$/).length).toBe(0);
     expect(within(list).getByText("Kokanee").parentElement!.textContent).toBe("Kokanee");
     expect(["keep-strip-title:tag", "salmon-strip-title:tag"].map((t) => screen.getByTestId(t).textContent)).toEqual(["B.C.", "DFO"]);
     expect(screen.getAllByTestId("glance:salmon")).toHaveLength(1);
   });
 
-  it("(T907) a bar some of whose days are the rule book's says so on its block head only", () => {
-    render(<KeepTab keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={{ ...STRIP, by: "both" } as never} glance={{ salmon }} />);
-    expect([screen.getByTestId("salmon-strip-title:tag").textContent, within(screen.getByTestId("glance:salmon")).queryAllByText("DFO + rule book").length])
-      .toEqual(["DFO + rule book", 0]);
+  it("(T907) a bar some of whose days are the B.C. Synopsis's says so on its block head only", () => {
+    render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={{ ...STRIP, by: "both" } as never} glance={{ salmon }} />);
+    expect([screen.getByTestId("salmon-strip-title:tag").textContent, within(screen.getByTestId("glance:salmon")).queryAllByText("DFO + B.C. Synopsis").length])
+      .toEqual(["DFO + B.C. Synopsis", 0]);
   });
 
   it("(T907) one value column: every row of the list ends in ONE end slot of one width (›, the folds' arrow, or none)", () => {
-    render(<KeepTab keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={STRIP as never} glance={{ salmon }} />);
+    render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={STRIP as never} glance={{ salmon }} />);
     const list = screen.getByTestId("keep-otherfish");
     // the rows' values (the status key under the list also wears st: words, but is no row)
     const values = within(list).getAllByTestId(/^st:/).filter((v) => v.closest("[role='button']"));
@@ -186,7 +187,7 @@ describe("(T879, owner 2026-11-18 \"Two headers, one table\") both blocks first,
   });
 
   it("a water with only B.C. rules: no salmon block, no tags, the game-fish heading as before, then the one list", () => {
-    const r = render(<KeepTab keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT} actions={actions} glance={{ salmon: null }} />);
+    const r = render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT} actions={actions} glance={{ salmon: null }} />);
     expect(screen.getByTestId("keep-strip-title").textContent).toBe("Game fish (B.C. rules)");
     expect([screen.queryByTestId("salmon-block"), screen.queryAllByTestId(/^row-tag:/).length]).toEqual([null, 0]);
     expect(within(screen.getByTestId("keep-otherfish")).getByText("Kokanee")).toBeTruthy();
@@ -195,7 +196,7 @@ describe("(T879, owner 2026-11-18 \"Two headers, one table\") both blocks first,
 
   it("Details, rows and the possession row still work from inside the blocks", () => {
     const sheets: SheetKey[] = [];
-    render(<KeepTab keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT} actions={{ ...actions, onSheet: (k) => sheets.push(k) }}
+    render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT} actions={{ ...actions, onSheet: (k) => sheets.push(k) }}
                     salmonStrip={STRIP as never} glance={{ salmon }} />);
     fireEvent.click(within(screen.getByTestId("glance:salmon")).getByRole("button"));
     expect(screen.getByTestId("glance-body:salmon").textContent).toBe("salmon card");
@@ -208,7 +209,7 @@ describe("(T879, owner 2026-11-18 \"Two headers, one table\") both blocks first,
     const closed = { source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: "closed", tone: "closed", fold: false } as const;
     for (const [fx, strip] of [[vedder1010, STRIP], [glenn501, null], [glenn501, STRIP], [klwa1010, null], [bc1501, null], [x35p1010, null]] as const) {
       for (const sal of [salmon, { row: closed, card: () => <span>x</span> }] as const) {
-        const r = render(<KeepTab keep={keepOf(fx)} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={strip as never} glance={{ salmon: sal as never }} />);
+        const r = render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={keepOf(fx)} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={strip as never} glance={{ salmon: sal as never }} />);
         const block = within(group(r)).getByTestId("salmon-block");
         expect([within(block).getByTestId("salmon-strip-title").textContent, within(block).getByTestId("salmon-strip-title:tag").textContent]).toEqual(["Salmon", "DFO"]);
         expect(within(block).queryByTestId("glance:salmon")).toBeNull();                                // the block holds no row
@@ -228,7 +229,7 @@ describe("(T879, owner 2026-11-18 \"Two headers, one table\") both blocks first,
 
   it("no DFO calendar: the Salmon (DFO) block says its status ('Closed') under its heading, still above the B.C. block", () => {
     const closed = { source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: "closed", tone: "closed", fold: false } as const;
-    const r = render(<KeepTab keep={keepOf(glenn501)} dateLabel="Oct 10" palette={LIGHT} actions={actions}
+    const r = render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={keepOf(glenn501)} dateLabel="Oct 10" palette={LIGHT} actions={actions}
                               glance={{ salmon: { row: closed, card: () => <span>x</span> } }} />);
     expect(screen.getByTestId("salmon-bare-st:closed").textContent).toBe("Closed");
     const ids = [...group(r).querySelectorAll("[data-testid='keep-strip'],[data-testid='salmon-block']")].map((e) => e.getAttribute("data-testid"));
@@ -240,7 +241,7 @@ describe("(T879, owner 2026-11-18 \"Two headers, one table\") both blocks first,
     let checked = 0;
     for (const [fx, strip] of [[vedder1010, STRIP], [vedder1010, null], [vedder615, STRIP], [glenn501, null], [glenn501, STRIP], [klwa1010, null], [bc1501, null], [x35p1010, null]] as const) {
       for (const sal of [salmon, { row: closed, card: () => <span>x</span> }] as const) {
-        const r = render(<KeepTab keep={keepOf(fx)} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={strip as never} glance={{ salmon: sal as never }} />);
+        const r = render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={keepOf(fx)} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={strip as never} glance={{ salmon: sal as never }} />);
         const block = within(group(r)).getByTestId("salmon-block");
         const bc = group(r).querySelector("[data-testid='keep-strip']");
         if (bc) {
@@ -259,7 +260,7 @@ describe("(T879, owner 2026-11-18 \"Two headers, one table\") both blocks first,
 
   it("the legend is plain ink words with the first letter capital: '✓ Open', 'Fly fishing only'", () => {
     const keep = keepOf(vedder1010);
-    render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions} />);
+    render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions} />);
     expect(screen.getAllByTestId("strip-legend-item").map((e) => e.textContent)).toEqual(keep.strip!.legend.map((l) =>
       (l.mark ? `${l.mark} ` : "") + l.label[0]!.toUpperCase() + l.label.slice(1)));
     expect(screen.getAllByTestId("strip-legend-item")[0]!.textContent).toBe("✓ Open");
@@ -280,7 +281,7 @@ describe("(T810 O, S; owner about 17:15 \"Salmon + trout folds\") the trout tabl
              order: keep.order.includes("trout") ? keep.order : ["strip", "trout", ...keep.order.slice(1)] };
   };
   const tab = (keep: KeepVM, glance = true) =>
-    render(<KeepTab keep={keep} dateLabel="Jul 15" palette={LIGHT} actions={actions} {...(glance ? { glance: { salmon } } : {})} />);
+    render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={keep} dateLabel="Jul 15" palette={LIGHT} actions={actions} {...(glance ? { glance: { salmon } } : {})} />);
 
   it("the salmon and trout folds end in the arrow, no 'Details'; the other fish's group fold keeps its Details", () => {
     tab(withTrout());
@@ -351,7 +352,7 @@ describe("(T892, owner 2026-11-19 \"The table should say if it came from tributa
   it("an Other fish row: the line under its name, in the row's spoken name once; the water's own rows say nothing", () => {
     const keep = keepOf(vedder1010);
     const k = { ...keep, otherFish: keep.otherFish!.map((o, i) => (i === 0 ? { ...o, from: LINE } : o)) };
-    render(<KeepTab keep={k} dateLabel="Oct 10" palette={LIGHT} actions={actions} glance={{ salmon }} />);
+    render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={k} dateLabel="Oct 10" palette={LIGHT} actions={actions} glance={{ salmon }} />);
     expect(screen.getAllByTestId("row-from").map((e) => e.textContent)).toEqual([LINE]);
     const press = screen.getByText("Kokanee").closest("[role=button]")!;
     expect(press.textContent).toBe(`Kokanee${LINE}${keep.otherFish![0]!.value}›`);
@@ -360,7 +361,7 @@ describe("(T892, owner 2026-11-19 \"The table should say if it came from tributa
   });
 
   it("the trout fold: every row from the same water's rule — the line under 'Trout and char', in its spoken name once", () => {
-    render(<KeepTab keep={{ ...keepOf(vedder1010), troutFrom: LINE }} dateLabel="Oct 10" palette={LIGHT} actions={actions} glance={{ salmon }} />);
+    render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={{ ...keepOf(vedder1010), troutFrom: LINE }} dateLabel="Oct 10" palette={LIGHT} actions={actions} glance={{ salmon }} />);
     const fold = within(screen.getByTestId("glance:trout"));
     expect(fold.getByTestId("row-from").textContent).toBe(LINE);
     const name = fold.getByRole("button").getAttribute("aria-label")!;
@@ -373,7 +374,7 @@ describe("(T892, owner 2026-11-19 \"The table should say if it came from tributa
   it("review 2: a quota group's fold (Details) says it under its name, in the row's spoken words once", () => {
     const keep = keepOf(vedder1010), DUCK = "Duck Lake’s rule for its tributaries";
     const order = keep.order.flatMap((b): KeepVM["order"][number][] => (b === "otherFish" ? [{ group: 0 }, b] : [b]));
-    render(<KeepTab keep={{ ...keep, order, groups: [{ title: "Bass", tree: [], from: DUCK } as never] }} dateLabel="Oct 10" palette={LIGHT}
+    render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={{ ...keep, order, groups: [{ title: "Bass", tree: [], from: DUCK } as never] }} dateLabel="Oct 10" palette={LIGHT}
                     actions={actions} glance={{ salmon }} />);
     const fold = within(screen.getByTestId("glance:group:0"));
     expect(fold.getByTestId("row-from").textContent).toBe(DUCK);
@@ -382,7 +383,7 @@ describe("(T892, owner 2026-11-19 \"The table should say if it came from tributa
 
   it("no line on any frozen fixture water's fold (none rests wholly on another water's tributary rule)", () => {
     for (const f of [vedder1010, glenn501, bc1501, klwa1010]) {
-      render(<KeepTab keep={keepOf(f)} dateLabel="Oct 10" palette={LIGHT} actions={actions} glance={{ salmon }} />);
+      render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={keepOf(f)} dateLabel="Oct 10" palette={LIGHT} actions={actions} glance={{ salmon }} />);
       expect(screen.queryAllByTestId("row-from")).toEqual([]);
       cleanup();
     }

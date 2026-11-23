@@ -16,6 +16,7 @@ import { TYPE } from "../type";
 import { hitArea } from "./hit";
 import type { KeepActions } from "./LineText";
 import { TroutCard } from "./TroutCard";
+import { TEST_TROUT_SOURCES } from "./testing/sources";
 import { StripWidthHint } from "./YearStrip";
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
@@ -37,7 +38,7 @@ const byName = (n: string) => vmOf(CASES.find((c) => c.name === n)!);
 function mount(t: TroutVM, palette = LIGHT, kicker = false) {
   const sheets: SheetKey[] = [];
   const actions: KeepActions = { onSheet: (k) => sheets.push(k), onDay() {}, onTab() {}, onBook() {} };
-  const r = render(<TroutCard t={t} palette={palette} actions={actions} kicker={kicker} todayAt={0.5} months={["J", "F"]} />);
+  const r = render(<TroutCard t={t} sources={TEST_TROUT_SOURCES} palette={palette} actions={actions} kicker={kicker} todayAt={0.5} months={["J", "F"]} />);
   return { r, sheets };
 }
 
@@ -102,7 +103,7 @@ describe("(T810 O) every vector drawn", { timeout: 30_000 }, () => {
     for (const pal of [LIGHT, DARK, CVD]) {
       const actions: KeepActions = { onSheet() {}, onDay() {}, onTab() {}, onBook() {} };
       render(<StripWidthHint.Provider value={300}>
-               <TroutCard t={byName("elk-nov15")} palette={pal} actions={actions} kicker={false} todayAt={0.5} months={["J", "F"]} />
+               <TroutCard t={byName("elk-nov15")} sources={TEST_TROUT_SOURCES} palette={pal} actions={actions} kicker={false} todayAt={0.5} months={["J", "F"]} />
              </StripWidthHint.Provider>);
       const keeps = screen.queryAllByTestId("trout-year-run:keep");
       expect(keeps.length).toBeGreaterThan(0);
