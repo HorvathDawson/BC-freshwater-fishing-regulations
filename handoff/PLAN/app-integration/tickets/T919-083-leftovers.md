@@ -53,7 +53,7 @@ paced at 22/s under the host's limit = at least 35 s of a first install (35-160 
 request of 6,136,203 bytes (-56 %), on the 250 kB/s bench line ~25 s and on Wi-Fi about a second, beside the map files.
 Unpacking (inflate + 777 sha256 + 778 writes): ~200 ms in Node (3 runs: 231 / 192 / 197 ms); NOT measured on a phone.
 **Tests:** `test_tiles.py` (the pack is the folder, deterministic; a folder that is not its list is refused; the shared
-fixture), `test_release_tiles_block.py` (the block names the pack, written when missing); `assets.test.ts` (unpack the
+fixture), `test_release_tiles_block.py` (the block names the pack, written when missing); `app/tools/assets-pack.test.ts` (unpack the
 pack Python wrote; untar; zlib; every refusal), `release-boot.test.ts` (a first install from a release with the pack:
 one request for the assets, every file in place, the pack gone). One committed fixture both sides read:
 `app/packages/data/dev/assets-pack-parity.json` (rule 40). Mutations: `bigFiles` without the pack, no member sha
@@ -70,3 +70,10 @@ still downloaded in the app, said in the log. The big files (`fill`) already wai
 after 90 s, the log line whole); mutations: `cutWaitMs` 0, no give-up, each fails a test.
 **Not verified:** neither on a device. (c) needs a release that names the pack on the test channel (the 0.9.0 data
 release); (d) the bg-update scenario on the 250 kB/s bench line (the emulator lane was held by other lanes).
+
+State 2026-11-22 (stopped for credits): done: (c) bbab1fce1 + (d) a4eb6110c + test move/throw fix (branch perf/T919-packed-assets);
+left: device checks (first install from the 0.9.0 data release, which must carry the pack; bg-update bench for (d));
+measurements so far: 777 requests / 13.8 MB → one 6,136,203-byte file; unpack ~200 ms in Node. Untouched by lane L9:
+T740 (fix needs native code: MemoryTrimModule has no JS-callable trim, so a hidden-map trim means a native rebuild +
+emulator/simulator pairs), T914 (Lighthouse step 0 script prepared, not run), T862 (search already finds aliases and
+says "also <name> · <source>"; slice `alias` for the pane = additive pipeline change + mini-release re-cut, not built).
