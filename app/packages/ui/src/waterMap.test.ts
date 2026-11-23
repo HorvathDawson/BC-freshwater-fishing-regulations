@@ -403,10 +403,10 @@ describe("leaving the map, through the route (P13)", () => {
       { ...onMap, stack: [{ item: "wbk:-21", part: 0, tapSid: null, at: null, view: "regs" }] }, HOME]);
   });
 
-  it("the exit opens the receiving water at the part the mouth meets; back returns to the map", () => {
+  it("(T1023) the exit opens the receiving water on its MAP at the part the mouth meets; back returns to the map", () => {
     const r = reduce(onMap, exitAction("gnis:3062" as ItemId, 0));
     expect([top(r), reduce(r, { type: "back" })]).toEqual([
-      { item: "gnis:3062", part: 0, tapSid: null, at: null, view: "regs" }, onMap]);
+      { item: "gnis:3062", part: 0, tapSid: null, at: null, view: "map" }, onMap]);
     expect(top(reduce(onMap, exitAction("gnis:3062" as ItemId, null)))?.part).toBeNull();
   });
 
@@ -453,7 +453,7 @@ describe("leaving the map, through the route (P13)", () => {
                             stack: [{ item: "gnis:11481" as ItemId, part: 0, tapSid: null, at: null, view: "map" }] };
     const r = reduce(onTrib, exitAction(CHW, 2));
     expect([r, reduce(r, { type: "back" })]).toEqual([
-      { ...onTrib, stack: [...onTrib.stack, { item: CHW, part: 2, tapSid: null, at: null, view: "regs" }] }, onTrib]);
+      { ...onTrib, stack: [...onTrib.stack, { item: CHW, part: 2, tapSid: null, at: null, view: "map" }] }, onTrib]);
   });
 });
 
