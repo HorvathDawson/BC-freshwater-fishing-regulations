@@ -34,6 +34,9 @@ describe("1–2. the one day", () => {
     // the same date a year on is NOT today, and names its own weekday
     expect(regsDay(new Date(2027, 9, 10), new Date(2026, 9, 10))).toEqual({
       day: { month: 10, day: 10 }, weekday: "Sunday", calendarYear: 2027, today: { month: 10, day: 10 }, isToday: false });
+    // (T1026) Jan 1 and Mar 1 2027 (the synopsis runs to Mar 31, 2027): the reading day is the year-less one, the weekday the real one
+    expect([regsDay(new Date(2027, 0, 1, 12), new Date(2026, 11, 1)), regsDay(new Date(2027, 2, 1, 12), new Date(2026, 11, 1))]
+      .map((r) => [r.day.month, r.day.day, r.weekday, r.calendarYear])).toEqual([[1, 1, "Friday", 2027], [3, 1, "Monday", 2027]]);
     // Feb 29 is a real date in a leap year, on its own weekday
     expect(regsDay(new Date(2036, 1, 29), new Date(2036, 1, 28)).weekday).toBe("Friday");
   });
