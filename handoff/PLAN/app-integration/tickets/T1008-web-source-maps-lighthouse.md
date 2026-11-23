@@ -1,6 +1,6 @@
 # T1008 — Website: Lighthouse "Missing source maps for large first-party JavaScript"
 
-Status: OPEN — the owner picks when it is built (default below).
+Status: OPEN — decided: serve them (owner 2026-11-22: "we should serve them? why not?"). Goes in the 0.9.0 batch.
 
 Source: owner 2026-11-22 (Lighthouse on https://canifishthis.ca, unscored): "Large JavaScript file is missing a source
 map" for `…web/index-76f27ad….js`. (The same report's two chrome-extension rows are React DevTools', not ours.)
@@ -21,6 +21,8 @@ symbolicate crash reports (`sourcemaps.mjs symbolicate`). So Lighthouse sees non
 1. `keep-web` keeps a copy and leaves the `.map` files plus the `sourceMappingURL` comment in the export; the site
    upload includes them (staging and production), with the same cache rules as the bundle.
 2. A check after the web export: every served `.js` over 100 KB has its map, and each map's `file` matches.
-3. `release-by-hand.md` and `sourcemaps.mjs`'s header say maps are served.
+3. The same check refuses a map whose `sources` name a file that is not in the repository or `node_modules` (a map
+   must show nothing GitHub does not).
+4. `release-by-hand.md` and `sourcemaps.mjs`'s header say maps are served.
 
-Depends: none. Size: S. Owner: picks serve or hidden (default: serve).
+Depends: none. Size: S. Owner: decided (serve).

@@ -5,7 +5,7 @@ Status: OPEN, for the next release (0.9.0; owner 2026-11-22: it waits for the ne
 Source: owner 2026-11-22, pasting the Play Console notice verbatim: "DEX code optimization is below our threshold.
 Improve your percentages in the following categories: Obfuscation (1%). Percentages under 25% in any category of your
 app may impact your visibility and publishing capabilities on Google Play. To prevent this, optimize your app by the
-deadline." The deadline date was not in the paste (read it in Play Console → the notice, and write it here).
+deadline." The deadline date is not needed (owner 2026-11-22: it goes in the next release regardless).
 
 ## Why it is 1%
 T749 proved R8 (shrink + obfuscate) on the emulator benches and on Play internal build 33 (0.7.11; dex 30.4 MB → 7.9 MB,
@@ -46,7 +46,7 @@ later, and it never was. So every production AAB (0.8.x) ships un-minified, un-o
 
 Risk: medium (a missing keep rule crashes only on the path that needs it; T749's benches and build 33 lower it, the
 modules added since raise it). Size: M. Depends: T749 (done), T978 (the MapLibre switch, also edits `app.config.js`:
-land after it or merge carefully). Owner: no decision needed; the deadline date from Play Console, and the usual phone
+land after it or merge carefully). Owner: no decision needed;  the usual phone
 check on the release build.
 
 Coupling (T978 review, 2026-11-22): `app/tools/r8-config.test.ts` also holds the pinned-MapLibre tests. Today the R8
