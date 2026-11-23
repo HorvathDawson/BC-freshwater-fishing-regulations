@@ -35,9 +35,11 @@ function base(site: Site, url: string, name: string, asOf: string, crumbs: reado
  * its JSON-LD says only what the pane shows — the page (its URL and title) about the water, by its name (and its kind,
  * where certain). The site itself is described on every hub page.
  */
-export function waterLd(m: WaterModel, path: string, title: string, site: Site): string {
+export function waterLd(m: WaterModel, path: string, title: string, site: Site, formerly: readonly string[] = []): string {
   const url = `${site.origin}${path}`, type = bodyOfWater(m.kind);
   const place: { [k: string]: Json } = { "@type": type ? ["Place", type] : "Place", "@id": `${url}#place`, name: m.name };
+  // (T1011) a renamed water's former names (Chilko Lake for Tŝilhqox Biny), as the page's title says them
+  if (formerly.length) place.alternateName = formerly.length === 1 ? formerly[0]! : [...formerly];
   return script([{ "@type": "WebPage", "@id": `${url}#webpage`, url, name: title, inLanguage: "en-CA", about: { "@id": `${url}#place` } }, place]);
 }
 
