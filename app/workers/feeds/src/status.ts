@@ -293,7 +293,11 @@ function pushHtml(p: { missing: Record<string, string[]>; last: any }, now: Date
     // (T739 L3) a wake over PUSH_SENDS_PER_RUN phones goes out in parts, one per feed run: which part, how many are left
     const c = l?.carry;
     const carry = s && c ? ` · part ${esc(c.part)} of a wake begun ${esc(c.since)}: ${c.left ? `${esc(c.left)} phone(s) left for the next run` : "the last part"}` : "";
-    const counts = s ? `${s.tokens} tokens · ${s.sent} sent · ${s.dead} dead (deleted) · ${s.failed} failed${s.errors?.length ? ` · ${esc(s.errors.join("; "))}` : ""}${carry}` : typeof l?.error === "string" ? "the last wake was not sent (above)" : "no send yet";
+    // (T996) which dead tokens were dropped (record id: APNs' answer), and which provider token the send used
+    const dropped = s && Array.isArray(s.dropped) && s.dropped.length ? ` · dropped ${esc(s.dropped.join("; "))}` : "";
+    const a = l?.apns;
+    const tok = s && a ? `<br>provider token ${esc(a.id)} (key ${esc(a.kid)}), made ${esc(a.iat)}: ${a.minted ? "new for this send" : "reused"}` : "";
+    const counts = s ? `${s.tokens} tokens · ${s.sent} sent · ${s.dead} dead (deleted) · ${s.failed} failed${s.errors?.length ? ` · ${esc(s.errors.join("; "))}` : ""}${dropped}${carry}${tok}` : typeof l?.error === "string" ? "the last wake was not sent (above)" : "no send yet";
     return `<tr><td>${pl}</td>${state}<td><small>${what}${what ? "<br>" : ""}${counts}</small></td></tr>`;
   };
   const when = typeof l?.unreadable === "string" ? `<span class="failing">unreadable: ${esc(l.unreadable)}</span>` : l ? `${esc(l.at)} <small>(${ago(l.at, now)}) · ${esc(l.reason)}</small>` +
