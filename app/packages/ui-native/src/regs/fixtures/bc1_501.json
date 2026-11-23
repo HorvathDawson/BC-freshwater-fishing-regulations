@@ -208,10 +208,11 @@
  },
  "header": {
   "classed": {
-   "aria": "Class II, Mar 1–May 31",
+   "aria": "Class II water · Classified Waters Licence · Mar 1–May 31",
    "cls": "II",
    "inForce": false,
    "label": "Class II",
+   "line": "Class II water · Classified Waters Licence · Mar 1–May 31",
    "period": "Mar 1–May 31",
    "term": "classified_waters"
   },

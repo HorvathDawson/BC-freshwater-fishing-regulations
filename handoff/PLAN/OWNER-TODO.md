@@ -13,12 +13,15 @@ with the default Claude uses until you answer). Newest first inside each section
 - T1031 inline look: "Yes, as built (Recommended)" — the one Source line (`T1031-shots/inline-*`), kept as built (PR #69).
 - T1031 the book's name: "'B.C. Synopsis' everywhere (Recommended)" — a rule's in-sentence link reads "B.C. Synopsis p.N ↗",
   the salmon rows' place label too; built through `core/src/sourceNames.ts` (PR #69).
+## 2026-11-23: lane L18 (0.9.0 batch) — one look
+- Look: T997 round 2, only the lit part's two ends — answered 2026-11-23 ~10:30, Whole river: "Keep the two labels (Recommended)". Closed.
+
 ## 2026-11-23 00:05: question round 5 (answers, verbatim)
 - T1026 day picker: "Yes, extend to Mar 31 2027 (Recommended)" — to: should the 0.9.0 data release extend the day-by-day answers through Mar 31, 2027? Built without a format change (picker wraps past New Year; see T1026).
 ## 2026-11-22 18:55: lane L3 (0.9.0 batch) — three looks
-- **Look (you): T997 Nicomekl labels** — `handoff/PLAN/app-integration/T997-shots/` (web before/after, Android after).
+- Look: T997 Nicomekl labels (round 1) — answered 2026-11-22 round 2; superseded by the round 2 row above.
 - **Look (you): T940 satellite after-shots** — `handoff/PLAN/app-integration/T940-shots/after-*` (the approved set built; web light + dark; the emulator shot waits for the 0.9.0 APK).
-- **Pick (you): T1004 Class II tag** A (now, far right) or B (beside the name) — `T1004-shots/` (recommend B).
+- **Look (you): T1004 Class II line under the name** — `handoff/PLAN/app-integration/T1004-shots/built-before-*` / `built-after-*` (light + dark; the line under the name, every sub-tab).
 - **Approve (you): T940 satellite line colours** — `T940-shots/proposal-vs-now.png` (a mock-up; recommend the set in the ticket).
 ## 2026-11-22 23:20: question round 1 (answers, verbatim)
 - T1010 region page: "B: map preview" — being built.
@@ -33,7 +36,7 @@ with the default Claude uses until you answer). Newest first inside each section
 - T940 No-access swatch: "Dark outline on swatch (Recommended)" — built for every satellite swatch under 3:1 on its card (light + cvd).
 - T991 sources: "Yes but map sources don't need to be there already has attribution.. also in the synopsis page for skeena at bottom source. Page 9 is not the water body page the source there should be maybe one for each page referenced in the card? Also make sure highlighting is still there for each? We also should clean up our inline sources. Right now the way they display is inconsistent.... We still want to have the break down source like the sheet in trout too. Each specieis have them as well?  Also right now we have identification and sources open from clicking different parts of the a specieis line in table. Maybe we could have that be the same sheet with different tabs?" — the build goes to lane L21.
 - T940 colour-blind satellite (decided 2026-11-23 ~01:30), verbatim: "Own cvd satellite set (Recommended)". Closed. A proposed set with pictures is in `handoff/PLAN/app-integration/T940-shots/cvd-proposal-standard.png` / `cvd-proposal-salmon.png`; the owner picks the look before it is built (row below).
-- **Look (you): T940 cvd satellite proposal** — `T940-shots/cvd-proposal-*.png` (cvd drawn | satellite now | satellite proposed, Standard and Salmon, Chilliwack) and the hexes + ΔE table in T940.
+- T940 cvd satellite proposal (answered 2026-11-23 ~01:45), verbatim: "Build as proposed (Recommended)". Built (PR feat/T940-cvd-satellite); after-shots `T940-shots/cvd-after-*.png` — the owner looks.
 
 ## 2026-11-22 23:55: question round 4 (answers, verbatim)
 - T867 inbox: "Build all four (Recommended)". T981 round 2: "Later release we will do this".
@@ -43,6 +46,9 @@ with the default Claude uses until you answer). Newest first inside each section
   future" (72% accepted; T1027). PR #47's marks: "I don't understand what the issue is here ... What happened to marks?
   We did all the dog ones already ???" — Claude's mistake: the 3 Campbell marks record YOUR 11-16 answer ("They are
   right", T803 item 8), saved through the review app as usual; nothing to do.
+
+## 2026-11-23: lane L18 (0.9.0 batch) — T467 as built
+- Check: T467 shaded shoreline as built — answered 2026-11-23 ~10:30: "i like the look of the shaded shore even for none colorblind"; colour-blind band too? "No, keep cvd solid". Closed; stays as built.
 
 ## 2026-11-22 23:35: question round 2 (answers, verbatim)
 - T997 + T465 labels: "Looks better but why does it even need to show both? Like dyke gates is different then 23m below?
@@ -68,7 +74,7 @@ with the default Claude uses until you answer). Newest first inside each section
 ## 2026-11-22 13:40: end of the build/CI chat — open for you
 - ~~Play Console deadline date into T1003~~ not needed (owner 2026-11-22: T1003 goes in 0.9.0 regardless).
 - ~~T1008 serve or hide source maps~~ decided: serve (owner 2026-11-22).
-- **Pick (you), when the pictures come:** T1010 region page look (at most two, phone and desktop).
+- **T1010 region page option B: look at the after shots** (`handoff/PLAN/app-integration/T1010-shots/after-B-*.png`, phone and desktop, light and dark); say if the look is right.
 - **To do (you), about 10 a day:** request indexing for `handoff/PLAN/seo/index-requests-top-100.md` in Search Console.
 - **For the next chat:** the claude.ai runbook copy (5r4yEqNwqygin1oKo5Zxjk) and the Owner To-Do page could not be opened
   from the CI chat ("not found / not shared"), so their rows for this chat were not added there.

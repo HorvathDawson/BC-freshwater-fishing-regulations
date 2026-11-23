@@ -177,18 +177,18 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   // salmon may be, the day's gear "if fished" (the Licence tab likewise); (T991 round 3, #63 review) the page's Source row:
   // every synopsis page those DRAWN tabs cite, the in-season changes and DFO where the page shows them
   const shown = useMemo(() => {
-    if (!regs) return null;
+    if (!regs || !inputs.value) return null;
     const page = salmon.value ? closeForFinfish(regs, salmon.value.finfish) : regs;
     const salmonStrip = salmon.value ? salmonStripOf(salmon.value, page.keep.strip) : null;
     const tabs = gearTabsFor(page, gearAnyway, salmonStrip, salmon.value ?? null);
     const licence = licenceTabFor(page, licenceAnyway, salmonStrip);
-    // (T1031 item 3) the trout table's Source line, drawn on the Keep tab: computed here so the foot row cites its pages too
+    // (T1031 item 3) the trout table's Source line, drawn on the Keep tab, and the salmon card's book closures: drawn lines
     const trout = page.keep.trout?.kind === "table" ? troutSourcesOf(page) : null;
     const lines = [...(trout ? [trout] : []), ...(salmonShown?.book ?? []).map(salmonBookSourcesOf)];
     const sources = regsSourcesOf(drawnRegsOf(page, tabs, licence, lines),
-      { waterPages, inSeason: inSeason.length > 0, dfo: salmonShowsDfo(salmonStrip, glance && !!salmon.value) });
+      { waterPages, inSeason: inSeason.length > 0, dfo: salmonShowsDfo(salmonStrip, glance && !!salmon.value), rules: inputs.value.rules });
     return { page, salmonStrip, tabs, licence, sources, trout };
-  }, [regs, salmon.value, salmonShown, gearAnyway, licenceAnyway, waterPages, inSeason.length, glance]);
+  }, [regs, inputs.value, salmon.value, salmonShown, gearAnyway, licenceAnyway, waterPages, inSeason.length, glance]);
   // (T45) how much room the window gives (the app shell's width; never read here): the page arranges itself for it
   const layout = useLayoutClass();
   // the sideways swipe between the water's views, anywhere on this one (see WaterViews: inside the ScrollView)

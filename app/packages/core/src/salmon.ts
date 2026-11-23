@@ -187,6 +187,9 @@ interface Payload {
    *  card's Source (DFO) lists as the rows behind its answers. Absent: a release / feed before T870 — the fold then lists
    *  no rows, as it did. */
   readonly pr?: Readonly<Record<string, readonly string[]>>;
+  /** (T812) location id -> a closed-area CIRCLE the Salmon map draws (`deliver.salmon.closed_area_circles`): drawing
+   *  only, never a section's colour. Absent: a release before T812, or no circle placed. */
+  readonly ca?: Readonly<Record<string, SalmonCircle>>;
   /** (T521) the live feed's places no curated location knows (`feeds/dfo/unplaced.json`), each with the app items of
    *  the water it names: shown on that water's page, never painted. Absent in a release's own file. */
   readonly feedUnplaced?: readonly SalmonUnplacedPlace[];
@@ -206,6 +209,14 @@ interface Payload {
   readonly feedOnly?: Readonly<Record<string, number>>;
   /** (T549 item 5, the live feed's) places whose row the feed could not read this run: their last answers stand */
   readonly held?: readonly string[];
+}
+/** (T812, owner 2026-11-16: "we want the circles to just be circles on the map not separate sections of the lake") ONE
+ *  CLOSED AREA DRAWN AS A CIRCLE: `c` its centre [lon, lat], `radius` metres, `g` its ring at true ground radius as the
+ *  pipeline computed it (closed: the first point last; the app draws it as given), `chain` the piece's OWN chain (its
+ *  days and colour), `r` its region slug, `w` its card label, `items` its water's items. */
+export interface SalmonCircle {
+  readonly c: readonly [number, number]; readonly radius: number; readonly g: readonly (readonly [number, number])[];
+  readonly chain: number; readonly r: string; readonly w: string; readonly items: readonly string[];
 }
 /** (T521) One DFO place the live feed lists that no curated location knows: its water's app items, the place and its
  *  rows in DFO's own words (`rows`: the page's cells, " | " between them). */
@@ -298,6 +309,13 @@ function checkPayload(P: Payload): Payload {
   for (const [lid, o] of Object.entries(P.off ?? {}))
     if (!o || !SALMON_OFF_KINDS.includes(o.k) || typeof o.w !== "string" || typeof o.r !== "string" || !Array.isArray(o.items))
       bad(`off ${lid}: not {why, k, r, w, items}`);
+  // (T812) a circle: a real chain, a closed ring of [lon, lat] pairs, a radius
+  for (const [lid, a] of Object.entries(P.ca ?? {})) {
+    const pair = (q: unknown) => Array.isArray(q) && q.length === 2 && q.every((x) => typeof x === "number" && Number.isFinite(x));
+    if (!a || !P.chains[a.chain] || !pair(a.c) || !(a.radius > 0) || !Array.isArray(a.g) || a.g.length < 4 || !a.g.every(pair)
+        || a.g[0]![0] !== a.g[a.g.length - 1]![0] || a.g[0]![1] !== a.g[a.g.length - 1]![1] || typeof a.w !== "string")
+      bad(`ca ${lid}: not {c, radius, g (a closed ring), chain, r, w, items}`);
+  }
   // (T870) a place's printed rows are strings, never an empty list
   for (const [lid, rows] of Object.entries(P.pr ?? {}))
     if (!Array.isArray(rows) || !rows.length || rows.some((r) => typeof r !== "string" || !r)) bad(`pr ${lid}: not a list of rows`);
@@ -437,6 +455,25 @@ export function salmonChainStatus(f: SalmonFacts, chain: number, day: number): S
   if (!c) throw new SalmonError(`salmon: chain ${chain} is not in the salmon file`);
   const s = MAP_CODES[at(c.m, day)];
   return s && s !== "none" ? s : null;
+}
+
+/** (T812) ONE CIRCLE AS THE SALMON MAP DRAWS IT ON A DAY: its id, ring and status. */
+export interface SalmonCircleDay { readonly id: string; readonly ring: SalmonCircle["g"]; readonly status: SalmonMapStatus }
+
+/**
+ * (T812, owner 2026-11-16: "Follow the day (Recommended)") THE DAY'S CLOSED-AREA CIRCLES: each circle (`ca`) on the days
+ * its own rule speaks — some species' verdict is the piece's own, not "not opened by DFO" (`d`) — in its own chain's
+ * map status. Read from the facts as handed (the release's, or under a live feed `withSalmonFeed`'s composition, which
+ * keeps only the circles today's page still names). A day it says nothing it is not drawn: the lake's answer stands.
+ */
+export function salmonCirclesOn(f: SalmonFacts, day: number): SalmonCircleDay[] {
+  const P = f.payload, out: SalmonCircleDay[] = [];
+  for (const [id, a] of Object.entries(P.ca ?? {}).sort(([x], [y]) => (x < y ? -1 : x > y ? 1 : 0))) {
+    const c = P.chains[a.chain]!;
+    if (!c.sp.some((runs) => !P.verdicts[at(runs, day)]?.d)) continue;
+    out.push({ id, ring: a.g, status: salmonDayStatus(f, a.chain, day) });
+  }
+  return out;
 }
 
 /** A section's profile label for the Salmon colouring: its chain, fixed for the release (`s<chain>`). */

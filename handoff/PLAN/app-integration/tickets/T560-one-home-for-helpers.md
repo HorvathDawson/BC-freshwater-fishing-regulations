@@ -94,3 +94,6 @@ Item 6's JS half is done and was already in the tree (ff787ac34, see T601 item 2
   exactly 0 m. The area slug is one function, `common.split_ids.readable_slug` (area_catalog, registry, review split_use).
 - Atlas `full_next` built with both: no section, boundary or sidecar change from them (see T606 item 2 for the only
   differences). Tests: `pipeline/tests/test_next_atlas_items.py`.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+item 2 (paint sync reads the encoder's twin + the build's threshold), item 6 Python half (`manifest.live`, 8 readers); items 3 (`wsc.code_owner`) and 5 (`tolerances.meets_at`, one area slug) built in `full_next` 2026-11-12, no binding change

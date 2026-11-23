@@ -3,6 +3,7 @@
 # stays = left in its round file, with the reason. Tables: CARDS/GATE/GEAR in test_answers_card_words.py, LIVE in
 # test_answers_card_words_live.py. Mechanical check: every old sentence is in a new assert or a table row
 # (evaluated), except kind names now in field names and startswith/endswith pins collapsed into their whole sentence.
+# old_line is the line in the OLD file as it stood on origin/main e1eb198a9, before the fold (T1022): read it with `git show e1eb198a9:pipeline/tests/<old_file>`; the files on main now are shorter, so the numbers do not match the tree.
 old_file	old_test	old_line	table	key	field	action
 test_answers_r10_wording.py	test_w1_one_lift_line_per_water_naming_each_kind_with_its_number	41	CARDS	(TWO, 10-10)	lifts: says	moved
 test_answers_r10_wording.py	test_w1_one_lift_line_per_water_naming_each_kind_with_its_number	46	CARDS	(TWO, 10-10)	lifts[0]: each	moved

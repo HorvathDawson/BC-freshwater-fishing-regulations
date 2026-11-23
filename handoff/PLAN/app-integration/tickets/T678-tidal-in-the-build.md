@@ -235,3 +235,5 @@ stamps 283 nodes, `node_owners` reads back exactly the record, and `read_tidal` 
 on the live atlas with the lane's code: `binding_diff` empty, `tidal.jsonl`, `outside_bc.jsonl` and both licensing files
 byte-identical. Left: plan 5's stamp runs in the wave-4 atlas build; then the record-only read path retires.
 
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+owner 2026-11-11; built, promoted and released (r-0a9930fb8826, with T685); plan 6 answered (no list); L7 2026-11-20: plan 2, plan 5 code and the legacy retirement landed (no output change on the live atlas); left (Claude): plan 5 runs at the wave-4 atlas build (node stamp, then the record-only read path retires)

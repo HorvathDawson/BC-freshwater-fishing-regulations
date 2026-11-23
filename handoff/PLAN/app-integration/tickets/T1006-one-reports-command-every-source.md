@@ -1,6 +1,6 @@
 # T1006 — One read-only command lists every new report from every source; every chat runs it first
 
-Status: OPEN. Until it exists, `handoff/PLAN/START-HERE.md` step 0 lists the commands by hand.
+Status: DONE — 74cbc9bf0 (`python -m pipeline reports`; START-HERE step 0 is that one command; run live 2026-11-22: both workers, TestFlight and Play read)
 
 Source: owner 2026-11-22, verbatim: "Also get next chat hand off to always look for more reports on Apple external
 test, feed worker ,.etc."

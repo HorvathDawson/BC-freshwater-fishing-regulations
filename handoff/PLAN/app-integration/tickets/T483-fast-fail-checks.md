@@ -60,3 +60,6 @@ Today's late failures (build 22 / r-d14bdb180f55), each with a "caught (2026-11-
 Tests: test_release_command.py (accept-diff by content, legacy ledger row, site gate ×3, keep_baseline, heavy
 precheck), test_build_command.py (keep_live_baseline, only when reach runs). Live check: the site gate on
 r-d14bdb180f55 with MIN_APP_VERSION=0.7.0 refuses today — staging serves app 0.6.9 (build 19).
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+owner 2026-11-07; proof: the next release/APK run starts with fast-fail; 2026-11-09: +7 checks from build 22 / r-d14bdb180f55 (format pairs, staging site version, goldens paired, reach baseline kept by build, accept-diff by content, silent skips, heavy precheck)

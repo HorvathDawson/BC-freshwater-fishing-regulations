@@ -176,6 +176,7 @@ const EXPECTED = [
   /release r-[\w-]+ is not one this app reads/i,    // an old app refusing a newer release, and prompting for the update
   /is not one this app reads/i,
   /SecurityException: Unsupported path \/data\/local\/tmp\//i,   // an emulator-only path the OS refuses (T603 item 6, T595)
+  /names file out of date \(HTTP 404\)/,            // (T1010) a region page older than the release it sits on: its names file was replaced (the page says "reload it")
   /Failed to initialize WebGL/,                     // (T1005) a browser with no WebGL: the app says the map cannot draw (MapUnavailable)
   // (T1005) our own DAY limit refusing an exit record (builds before 127296a64 report it). The 1 s GAP's 429 ("too many
   // reports; try again in a minute") stays a defect: a client sending too fast (the app spaces its sends since fe477309b)

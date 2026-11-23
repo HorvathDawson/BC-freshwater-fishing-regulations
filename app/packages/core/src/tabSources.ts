@@ -20,6 +20,7 @@
 import type { BookBox } from "./answers.generated";
 import { LICENCE_ROWS } from "./menu/licences";
 import { bookText, type Line, type Run } from "./regs/line";
+import type { RuleIndex, RuleView } from "./regs/inputs";
 import type { RegsPage, SourceLineVM } from "./regs/model";
 import type { GearTabsVM } from "./salmon";
 import type { SheetKey } from "./regs/sheetKey";
@@ -224,10 +225,31 @@ const ALL_SOURCES_LINK = { label: ALL_SOURCES.LINK, open: ALL_SOURCES_KEY, aria:
  */
 export function drawnRegsOf(page: Pick<RegsPage, "header" | "keep" | "boats" | "methods">, tabs: GearTabsVM, licence: RegsPage["licence"],
                             /** (T1031 item 3) the Source lines drawn inside the tabs that no VM above carries: the trout
-                             *  table's (`troutSourcesOf`, its every-rule sheet's pages) and the salmon card's book closures */
+                             *  table's (`troutSourcesOf`: no page of its own) and the salmon card's book closures */
                             lines: readonly TabSourcesVM[]): readonly unknown[] {
-  return [page.header, page.keep, tabs.gear, tabs.salmonGear, tabs.methods, tabs.methods ? page.boats : null,
+  // the Methods tab draws no `reference`: the page's own is drawn under it (RegsScreen), never the "if fished" tab's
+  const methods = tabs.methods ? { ...tabs.methods, reference: null } : null;
+  return [page.header, page.keep, tabs.gear, tabs.salmonGear, methods, tabs.methods ? page.boats : null,
           tabs.methods ? page.methods?.reference ?? null : null, licence, lines];
+}
+
+/**
+ * The rules the drawn view models name: a sheet key or key list naming a rule (`rule:<entry>::<rule>`, a source line's
+ * `keys`, a block's `rule`), and the trout table's rule indexes (`src`). A string with no such rule names nothing.
+ */
+function drawnRules(v: unknown, rules: Pick<RuleIndex, "get" | "has"> & { byKey(k: string): RuleView | null }, out: RuleView[], seen = new Set<unknown>(), field = ""): RuleView[] {
+  if (typeof v === "string") {
+    const k = v.startsWith("rule:") ? v.slice(5) : v;
+    if (/^\S+::\S+$/.test(k)) { const r = rules.byKey(k); if (r && !r.missing) out.push(r); }
+    return out;
+  }
+  if (typeof v === "number") { if (field === "src" && rules.has(v)) out.push(rules.get(v)); return out; }
+  if (!v || typeof v !== "object" || seen.has(v)) return out;
+  seen.add(v);
+  if (Array.isArray(v)) { for (const x of v) drawnRules(x, rules, out, seen, field); return out; }
+  const o = v as Record<string, unknown>;
+  for (const k in o) drawnRules(o[k], rules, out, seen, k);
+  return out;
 }
 
 /**
@@ -235,14 +257,21 @@ export function drawnRegsOf(page: Pick<RegsPage, "header" | "keep" | "boats" | "
  * and section source lines), each with every highlight box those cite on it, plus the water's own rule-book row
  * (`waterPagesOf`, T474: always linked), that link marked "(this water)" (owner 2026-11-22: "Page 9 is not the water body
  * page"); then the Province's in-season changes where the page shows one (`inSeason`), DFO where it shows DFO's salmon
- * (`dfo`, `salmonShowsDfo`), a local authority's page a drawn rule cites (T981), and "All sources ›".
+ * (`dfo`, `salmonShowsDfo`) or where a drawn rule is DFO's own (`rules`), a local authority's page a drawn rule cites (T981),
+ * and "All sources ›".
  */
-export function regsSourcesOf(drawn: readonly unknown[], o: { waterPages: Line; inSeason: boolean; dfo: boolean }): TabSourcesVM {
+export function regsSourcesOf(drawn: readonly unknown[], o: { waterPages: Line; inSeason: boolean; dfo: boolean;
+  /** the part's rule index: a drawn rule whose source is DFO's (a DFO override, `source: "dfo"`) names DFO too */
+  rules: Pick<RuleIndex, "get" | "has" | "byKey"> }): TabSourcesVM {
+  const byKey = o.rules.byKey;
+  if (!byKey) throw new Error("regsSourcesOf: the rule index has no byKey; the drawn rules' sources cannot be read");
   const own = new Set(o.waterPages.flatMap((r) => (r.t === "book" ? [r.printed] : [])));
   const pages = citedPages(o.waterPages, citedPages(drawn, new Map()));
   const web: { name: string; url: string }[] = [];
   if (o.inSeason) web.push(authorityWeb("inseason"));
-  if (o.dfo) web.push(authorityWeb("dfo"));
+  // (#63 re-review) DFO where the page shows DFO's salmon, or a drawn rule is DFO's own (a DFO override)
+  if (o.dfo || drawnRules(drawn, { get: (i) => o.rules.get(i), has: (i) => o.rules.has(i), byKey: (k) => byKey.call(o.rules, k) }, [])
+    .some((r) => r.f.source === "dfo")) web.push(authorityWeb("dfo"));
   for (const [url, s] of citedWeb(drawn, new Map())) web.push({ name: s, url });
   // (T1031 item 3) composed as every Source line is (`sourceLineOf`)
   return sourceLineOf({ pages: [...pages].map(([printed, p]) => ({ printed, pdf: p.pdf, ...(p.boxes.length ? { box: p.boxes } : {}), ...(own.has(printed) ? { own: true } : {}) })),

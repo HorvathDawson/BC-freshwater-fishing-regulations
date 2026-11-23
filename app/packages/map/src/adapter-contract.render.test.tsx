@@ -532,7 +532,7 @@ it("the lift that ends a long press is cancelled, so the browser makes no click 
     expect([web.map!.getLayer(MARK_RING)?.source, web.map!.getLayer(MARK_LABEL)?.source]).toEqual([MARK_SOURCE, MARK_SOURCE]);
     const fc = web.data[MARK_SOURCE] as { features: { properties: Record<string, unknown> }[] };
     expect(fc.features.map((f) => f.properties)).toEqual([
-      { i: 0, kind: "ring", on: false }, { i: 0, kind: "label", label: "Tamihi Rapids Bridge", anchor: expect.any(String), rank: 1 },
+      { i: 0, kind: "ring", on: false }, { i: 0, kind: "label", label: "Tamihi Rapids Bridge", anchor: expect.any(String), below: false },
       { i: 1, kind: "ring", on: true }]);
     expect(document.querySelectorAll(".maplibregl-marker").length).toBe(0);
   });

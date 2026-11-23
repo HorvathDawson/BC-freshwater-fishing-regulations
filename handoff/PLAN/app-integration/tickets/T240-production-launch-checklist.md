@@ -233,3 +233,6 @@ This ticket now also carries the leftovers of: T50, T75, T80, T87 — read each 
 - **T87:** the owner's sign-off walk (web + phone), recorded in decisions.md. Owner.
 - **T86:** contact guard done (e45841b85: `app.config.js` refuses a production build without `EXPO_PUBLIC_CONTACT`).
   Its prod hosting is T404's (prod twins of the deploy scripts and worker configs, when prod is near).
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+production live 11-18/19; Cloudflare + v1 switch done 11-18 (T865); open: GitHub prod option + PROD_R2 secrets, prod run-timing publish (T404); branch structure (owner 11-18 23:05); STATE table of 11-11 not re-checked

@@ -41,3 +41,6 @@ Depends: T269. Size: M. Owner: no.
   water; the region could ride in a `<meta>` like `cift:item`), so it reads `core-<r>` / `water-<r>`.
 - Staging deployed by the fast path (export, relink 39,268 water pages, site.sh). Smoke: all pass but the two map
   taps, which T303's locate hint covers (not this change; the test bed now dismisses it, the smoke does not).
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+main bundle 3.54 MB → 2.20 MB raw (983 → 634 kB gzip; maplibre + rare parts in one later chunk); Fast 3G /water hand-over 39.6 → 37 s, / chrome 14.3 → 13.8 s — the water page waits on whole core + water release files (no region slice without a map): follow-up

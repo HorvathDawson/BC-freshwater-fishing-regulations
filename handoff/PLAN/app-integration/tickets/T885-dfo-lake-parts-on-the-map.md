@@ -29,3 +29,5 @@ salmon there are open only yellow if closed other then the to be determined". So
 "To be determined" wording and colour go to the app chat (its ticket); the colour rule he states is already the map's
 precedence (`salmon.map_status`: open, then release, then check, then closed): a water is green when any salmon is
 open there; the "check" colour only when none is open or release and one is "to be determined".
+
+State 2026-11-22 (stopped for credits, lane L12, branch feat/T754-one-bank-places): item 2 (Babine circles) built with T812 (same branch). Item 1: the release lists each active circle on its lake chain (`u`) and in `unmapped` in words (checked in the payload, not on screen). Left: Mabel north + Osoyoos north basin lines (lake lines: need owner cuts / lake split, deferred) and the 17 dormant places (curation, owner marks) — not started.

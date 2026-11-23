@@ -475,7 +475,11 @@ export const LIC = Object.freeze({
   // designation classbox
   CLASS_HEAD: (c: string) => `Class ${c} Classified Water`, CLASS_TERM: "classified_waters",
   /** (T841) the header's badge: "Class II"; with its period (look B), said "Class II, Jul 1–Dec 31" */
-  CLASS_BADGE: (c: string) => `Class ${c}`, CLASS_BADGE_ARIA: (cls: string, period: string) => `${cls}, ${period}`,
+  CLASS_BADGE: (c: string) => `Class ${c}`,
+  /** (T1004, owner 2026-11-22: "right under the water body name in the white space") the line under the name, the words of
+   *  look A: "Class II water · Classified Waters Licence · Jul 1–Dec 31" (no period: "Class II water · Classified Waters Licence") */
+  CLASS_LINE: (cls: string, period: string | null) =>
+    `${cls} water · Classified Waters Licence${period ? ` · ${period}` : ""}`,
   UNIT: (u: string) => `Licence unit: ${u}`,
   STAMP_DURING: (dates: string) => `. Steelhead Stamp needed ${dates}, whatever you fish for`, IN_FORCE: " (in force today)",
   STAMP_OTHER_TIME: "; at any other time only to fish for steelhead",

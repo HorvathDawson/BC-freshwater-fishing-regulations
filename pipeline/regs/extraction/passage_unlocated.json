@@ -1,0 +1,72 @@
+{
+ "books": {
+  "08f58537261ffe51c513193013ba165754285719dec8d0332beaef1cbab8ecfa": {
+   "about": "fishing_synopsis.pdf, 2025-2027 edition (the repo copy)",
+   "unlocated": [
+    "z1:daily_quotas::species_quotas.r4",
+    "z1:daily_quotas::trout_quota.r2",
+    "z1:daily_quotas::trout_quota.r5",
+    "z1:daily_quotas::trout_quota.r5b",
+    "z4:kootenay_lake_boundaries::kootenay_lake_boundaries.r1",
+    "z4:kootenay_lake_boundaries::kootenay_lake_boundaries.r3",
+    "z4:kootenay_lake_boundaries::kootenay_lake_boundaries.r4",
+    "z4:tributaries_of_lakes::tributaries_of_lakes.r1",
+    "z6:atlantic_salmon_alert::atlantic_salmon_alert.r1",
+    "z6:set_lining::set_lining.r1",
+    "z6:set_lining::set_lining.r2",
+    "z6:set_lining::set_lining.r3",
+    "z6:skeena_quality_waters::skeena_quality_waters.r1",
+    "z6:steelhead_stream_closure::steelhead_stream_closure.r2",
+    "z7a:set_lining::set_lining.r1",
+    "z7a:set_lining::set_lining.r2",
+    "z7a:set_lining::set_lining.r3",
+    "z7a:stocked_lakes::stocked_lakes.r1",
+    "z7b:possession_exceptions::possession_exceptions.r0",
+    "z7b:possession_exceptions::possession_exceptions.r1",
+    "z7b:possession_exceptions::possession_exceptions.r2",
+    "z7b:possession_exceptions::possession_exceptions.r3",
+    "z8:syilx_territory::syilx_territory.r1",
+    "zp:measuring_and_possession::measuring_and_possession.r1",
+    "zp:no_fishing_scope::no_fishing_scope.r1",
+    "zp:quota_defaults::quota_defaults.r3",
+    "zp:spear_fishing::spear_fishing.r4"
+   ]
+  },
+  "7f0c4ac71d80fb7b4db559460ab89eb375d0aba2b28da9aaf47f04de8dc8280f": {
+   "about": "the mini release's invented one-line-a-page synopsis (pipeline.tools.mini_release.tiny_pdf): no zone text printed",
+   "unlocated": [
+    "z1:daily_quotas::species_quotas.r1",
+    "z1:daily_quotas::trout_char_quota.r1",
+    "z1:daily_quotas::trout_char_quota.r2",
+    "z1:possession_quota::possession_quota.r1",
+    "z1:single_barbless_hook::single_barbless_hook.r1",
+    "z2:daily_quotas::species_quotas.r1",
+    "z2:daily_quotas::trout_char_quota.r1",
+    "z2:daily_quotas::trout_char_quota.r2",
+    "z2:possession_quota::possession_quota.r1",
+    "z2:summer_stream_closure::summer_stream_closure.r1",
+    "zp:bait::bait.r5",
+    "zp:barbless_single_hook_streams::barbless_single_hook_streams.r1",
+    "zp:barbless_single_hook_streams::barbless_single_hook_streams.r2",
+    "zp:barbless_single_hook_streams::barbless_single_hook_streams.r3",
+    "zp:kootenay_rainbow_stamp::kootenay_rainbow_stamp.r1",
+    "zp:licence_fees::licence_fees.r1",
+    "zp:protected_species::protected_species.r1",
+    "zp:salmon_stamp::salmon_stamp.r1",
+    "zp:set_lining::set_lining.r1",
+    "zp:set_lining::set_lining.r1b",
+    "zp:set_lining::set_lining.r2",
+    "zp:set_lining::set_lining.r3",
+    "zp:set_lining::set_lining.r4",
+    "zp:shuswap_char_stamp::shuswap_char_stamp.r1",
+    "zp:shuswap_rainbow_stamp::shuswap_rainbow_stamp.r1",
+    "zp:steelhead::steelhead.r1",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  }
+ }
+}

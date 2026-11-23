@@ -1,6 +1,6 @@
 # T927 — Search finds the book's boundary places (where a water's rules change)
 
-Status: IN PROGRESS — 8ad09bf33, 9f287e8d3, 65694b0b4, 986c6e190, 244d086e3, af0bb8a04; merged via c6c46d7f9; owner looks approved 11-20; left (Claude): ships with the next data release (new core table cut_place in the bundle). (Earlier note: IN REVIEW — owner: OWNER-TODO "T927 = every placed cut searchable" (owner looks at the pictures, then main chat review + merge; ships with the next data release: a new core table, see "Lane 2026-11-20").)
+Status: DONE — 8ad09bf33, 9f287e8d3, 65694b0b4, 986c6e190, 244d086e3, af0bb8a04; shipped in 0.8.4 (cut e769f710a, data r-fec3fab4c5aa; 0.9.0 audit 2026-11-22, every hash is an ancestor of origin/main and of e769f710a). (Earlier status: IN PROGRESS — 8ad09bf33, 9f287e8d3, 65694b0b4, 986c6e190, 244d086e3, af0bb8a04; merged via c6c46d7f9; owner looks approved 11-20; left (Claude): ships with the next data release (new core table cut_place in the bundle). (Earlier note: IN REVIEW — owner: OWNER-TODO "T927 = every placed cut searchable" (owner looks at the pictures, then main chat review + merge; ships with the next data release: a new core table, see "Lane 2026-11-20").))
 
 Source: owner 2026-11-19 (main chat), verbatim: "we should make the search know where all the cuts are so a user could
 search a cut location from book and find location. Thoughts?" Measured the same evening (read-only, scratchpad

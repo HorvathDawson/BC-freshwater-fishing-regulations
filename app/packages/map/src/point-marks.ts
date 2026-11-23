@@ -9,7 +9,7 @@
  */
 import type { MapMark } from "./map-props";
 import { SCALE, rgb } from "./raster";
-import { labelAnchor, type MarkLabelAnchor } from "./marks";
+import { hangBelow, labelAnchor, type MarkLabelAnchor } from "./marks";
 
 export const MARK_SOURCE = "t317-marks";
 export const MARK_RING = "t317-marks-ring";
@@ -26,6 +26,8 @@ export const MARK_HIT = 22;
 /** The label's bottom edge above the point: the old button's `bottom: 38` inside a 44 px box centred on it. */
 const LABEL_LIFT = 16;
 const LABEL_PAD_Y = 3, LABEL_PAD_X = 7, LABEL_EDGE = 1.5, LABEL_SIZE = 12, LABEL_LINE = 15;
+/** The text's distance from the ring, in ems: the box's near edge `LABEL_LIFT` px from the point, above or below. */
+const LABEL_DROP = (LABEL_LIFT + LABEL_PAD_Y + LABEL_EDGE) / LABEL_SIZE;
 /** The label's band (`MARK_LABEL_HALF` × 2): its text wraps inside it, padding and edge off. */
 const LABEL_MAX_PX = 180 - 2 * (LABEL_PAD_X + LABEL_EDGE);
 /** The map glyph stack nearest the app's Archivo regular (a map can only draw the fonts its glyph server has). */
@@ -43,9 +45,13 @@ const point = (lon: number, lat: number, properties: Record<string, unknown>) =>
 export function marksData(marks: readonly MapMark[] | undefined,
                           anchors?: readonly (MarkLabelAnchor | null | undefined)[]): Fc {
   const features: unknown[] = [];
+  // (T997) not measured yet: hung by latitude (north is up), the southernmost of several below its ring (`hangBelow`)
+  const below = hangBelow((marks ?? []).map((k) => (k.label ? -k.lat : null)));
   (marks ?? []).forEach((k, i) => {
     features.push(point(k.lon, k.lat, { i, kind: "ring", on: k.on }));
-    if (k.label) features.push(point(k.lon, k.lat, { i, kind: "label", label: k.label, anchor: anchors?.[i] ?? "bottom", rank: k.on ? 0 : 1 }));
+    if (!k.label) return;
+    const anchor = anchors?.[i] ?? (below[i] ? "top" : "bottom");
+    features.push(point(k.lon, k.lat, { i, kind: "label", label: k.label, anchor, below: anchor.startsWith("top") }));
   });
   return { type: "FeatureCollection", features };
 }
@@ -56,11 +62,13 @@ export function marksData(marks: readonly MapMark[] | undefined,
  */
 export async function labelAnchors(marks: readonly MapMark[], width: number,
                                    project: (lon: number, lat: number) => Promise<[number, number] | null> | [number, number] | null) {
-  return Promise.all(marks.map(async (k): Promise<MarkLabelAnchor | null> => {
-    if (!k.label) return null;
-    const p = await project(k.lon, k.lat);
-    return p ? labelAnchor(p[0], width) : null;
-  }));
+  const at = await Promise.all(marks.map(async (k) => (k.label ? project(k.lon, k.lat) : null)));
+  // (T997) the lowest labelled ring on the screen hangs its label below it, the others above (`hangBelow`). (#65 review)
+  // A labelled ring the map did not place keeps the latitude default (`marksData`), so the side is chosen by latitude for
+  // EVERY label then: one measured by the screen and one by latitude could both hang above and cover each other
+  const placed = marks.every((k, i) => !k.label || at[i] !== null);
+  const below = hangBelow(placed ? at.map((p) => (p ? p[1] : null)) : marks.map((k) => (k.label ? -k.lat : null)));
+  return at.map((p, i): MarkLabelAnchor | null => (p ? labelAnchor(p[0], width, undefined, below[i]) : null));
 }
 
 /** The two marks layers: the 16 px ring (filled when open) and the label in its box above it. `box`: the image's name. */
@@ -82,14 +90,15 @@ export function marksLayers(c: { ink: string; card: string }, box: string) {
         "text-line-height": LABEL_LINE / LABEL_SIZE, "text-max-width": LABEL_MAX_PX / LABEL_SIZE,
         // (T929) hung from the mark's own point: centred, or from its corner near an edge (`labelAnchor`)
         "text-anchor": ["get", "anchor"], "text-justify": "auto",
-        "text-offset": [0, -(LABEL_LIFT + LABEL_PAD_Y + LABEL_EDGE) / LABEL_SIZE],
+        // (T997) above its ring, or — the lowest of the two ends (`hangBelow`) — as far below it
+        "text-offset": ["case", ["==", ["get", "below"], true], ["literal", [0, LABEL_DROP]], ["literal", [0, -LABEL_DROP]]],
         "icon-image": box, "icon-text-fit": "both",
         "icon-text-fit-padding": [LABEL_PAD_Y, LABEL_PAD_X, LABEL_PAD_Y, LABEL_PAD_X],
-        // (T997) labels never draw over each other: they collide with one another (the open mark's first, `rank`). The layer
-        // is on top, so it is placed first: no road or place name hides a boundary's words, they give way to it. Boundaries that close together are one label already
-        // (`mergeNearLabels`); this drops the lower-ranked of two that are farther apart than that but still overlap.
-        "text-allow-overlap": false, "icon-allow-overlap": false, "text-ignore-placement": false,
-        "icon-ignore-placement": false, "symbol-sort-key": ["get", "rank"],
+        // every label drawn, always (T997: at most the lit part's two ends, hung apart so they never meet; a label
+        // collided away would leave its end named by nothing). Still PLACED (#37): the layer is on top, so it is placed
+        // first and a road or place name under a boundary's words gives way to them
+        "text-allow-overlap": true, "icon-allow-overlap": true, "text-ignore-placement": false,
+        "icon-ignore-placement": false,
       },
       paint: { "text-color": c.ink },
     },

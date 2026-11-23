@@ -10,7 +10,7 @@ import { openRegsFixtureWithLines, sectionNames, type SectionNames } from "@app/
 import type { ItemId } from "@app/data";
 import { HOME, reduce, type Route } from "./route";
 import {
-  crossAction, mergeNearLabels, framingMetresPerPx, exitAction, markTap, partAction, showRegsActions, waterMapStart, waterMapStartIx, waterMapStep, waterMapView,
+  crossAction, exitAction, markTap, partAction, showRegsActions, waterMapStart, waterMapStartIx, waterMapStep, waterMapView,
   type WaterMapAction,
   type WaterMapState,
 } from "./waterMap";
@@ -120,9 +120,10 @@ describe("the Chilliwack: ▼ / ▲ through its five parts, the ends disabled, t
         name: partName(g, m + 1) }],
       downLabel: "Downstream", down: { ix: m, item: "gnis:8634", partIx: g.parts[m]!.partIx, note: "Chilliwack River",
         name: partName(g, m) } });
-    // (T768) every boundary of the group, never a typed list: the open one and the ends of the part shown carry words
+    // (T768) every boundary of the group, never a typed list: (T997 round 2) only the ends of the part shown carry words
+    // — the open one is a filled ring, its words the pop's title
     expect(view(g, s).marks.filter((m) => !m.mouth).map((m) => [m.ix, m.on, m.label !== null]))
-      .toEqual(g.marks.map((k, ix) => [ix, ix === m, ix === m || k.down === 0 || k.up.includes(0)]));
+      .toEqual(g.marks.map((k, ix) => [ix, ix === m, k.down === 0 || k.up.includes(0)]));
     expect(run(g, s, { type: "mark", ix: 2 }).mark).toBeNull();
     expect(run(g, s, { type: "mark", ix: null }).mark).toBeNull();
     expect(run(g, s, { type: "mark", ix: 9 })).toBe(s);
@@ -545,95 +546,76 @@ describe("(T985) the mouth: 'Flows into <water>' at the downstream end of every 
   });
 });
 
-describe("(T443, owner on 0.6.7) two marks with the same words a few steps apart draw ONE label", () => {
-  it("the Fraser's Landstrom Bar sign zone: both ends of the zone named once, at every part they bound", async () => {
+describe("(T997 round 2, owner 2026-11-22: \"Only need boundaries for highlighted section\") the lit part's two ends, nothing else", () => {
+  /** the labelled marks of part `i`: its lower end (the mark it is above, or the mouth) and its upper end (the mark it is
+   *  below), each by the GROUP's own facts — never by `partEnds`, the code under test */
+  const ends = (g: WaterGroup, i: number, whole = false) => {
+    const v = view(g, { ...waterMapStart(i), whole });
+    const ls = v.marks.filter((m) => m.label !== null);
+    const lo = ls.filter((m) => (m.mouth ? true : g.marks[m.ix]!.up.includes(i) && g.marks[m.ix]!.token === g.parts[i]!.lo));
+    const hi = ls.filter((m) => !m.mouth && g.marks[m.ix]!.down === i && g.marks[m.ix]!.token === g.parts[i]!.hi);
+    return { ls, lo, hi };
+  };
+  /** whether a placed boundary carries part `i`'s end on that side (what the release holds, read here) */
+  const has = (g: WaterGroup, i: number, side: "lo" | "hi") => g.marks.some((m) => m.lon !== null
+    && (side === "lo" ? m.up.includes(i) && m.token === g.parts[i]!.lo : m.down === i && m.token === g.parts[i]!.hi))
+    || (side === "lo" && i === 0 && !!g.exit?.at);   // the mouth part's lower end: "Flows into …" (T985)
+
+  it("every part of the Chilliwack, Fraser, Skeena and Cowichan, framed on the part and on the whole: its two ends, read as its name", async () => {
+    let both = 0;
+    for (const id of ["gnis:8634", "gnis:39325", "gnis:2936", "gnis:12227"]) {
+      const g = await loadWaterGroup(st, id);
+      for (let i = 0; i < g.parts.length; i++)
+        for (const whole of [false, true]) {
+          const { ls, lo, hi } = ends(g, i, whole);
+          // nothing but the part's own ends is labelled: one per end it has, never a neighbour's (Skeena part 1's
+          // bare "Ecological Reserve boundary" mark touches it and is a ring)
+          expect([id, i, whole, ls.length]).toEqual([id, i, whole, Number(has(g, i, "lo")) + Number(has(g, i, "hi"))]);
+          expect([lo.length, hi.length]).toEqual([Number(has(g, i, "lo")), Number(has(g, i, "hi"))]);
+          // the two labels ARE the halves of the part's name in the bar, whole (AGENTS rule 33)
+          if (lo.length && hi.length && !lo[0]!.mouth) { both++; expect(`${lo[0]!.label} → ${hi[0]!.label}`).toBe(partName(g, i)); }
+          // every ring keeps its words for a screen reader
+          expect(view(g, waterMapStart(i)).marks.every((m) => m.a11y.length > 0)).toBe(true);
+        }
+    }
+    expect(both).toBeGreaterThan(20);   // the name check is not vacuous
+  });
+
+  it("the Nicomekl's Part 2: a boundary 23 m from the part's lower end with OTHER words is a ring, not a second label", async () => {
+    // (the owner's shot: "23 m below the Nicomekl floodgates dam" over "Dyke gates") made from the Chilliwack: part 2's
+    // lower end (Tamihi Rapids Bridge) with another end's mark 23 m east of it, meeting part 2 from below as the
+    // Nicomekl's "23 m below" mark meets "Dyke gates → 208th Street"
+    const g = await loadWaterGroup(st, "gnis:8634");
+    const at = 2, low = g.marks.findIndex((m) => m.up.includes(at));
+    const src = g.marks[low]!;
+    const near = { ...src, lon: src.lon! + 0.000315, token: g.parts[0]!.hi };   // ≈ 23 m east, other words
+    const g2: WaterGroup = { ...g, marks: [...g.marks, near] };
+    const v = view(g2, waterMapStart(at));
+    const [lo, hi] = partName(g, at).split(" → ");
+    expect(v.marks.filter((m) => m.label !== null).map((m) => [m.ix, m.label])).toEqual(
+      [[low, lo], [g.marks.findIndex((m) => m.down === at), hi]]);
+    expect(v.marks.find((m) => m.ix === g.marks.length)).toMatchObject({ label: null, a11y: `Boundary: ${markLabel(g2, near)}` });
+    // tapped, it opens its own words in the pop and stays a ring on the map
+    const open = view(g2, { ...waterMapStart(at), mark: g.marks.length });
+    expect([open.pop?.title, open.marks.find((m) => m.ix === g.marks.length)?.label]).toEqual([markLabel(g2, near), null]);
+  });
+
+  it("(T443, T747) the Fraser's Landstrom Bar zone: the zone part names both its ends; the parts beside it name one each", async () => {
     const g = await loadWaterGroup(st, "gnis:39325");
-    // (T517) the zone's two ends are one end token said at two places: "… (km 156.4)" and "… (km 156.5)"
     const zone = g.marks.flatMap((m, ix) => (markLabel(g, m)?.startsWith("Landstrom Bar sign zone boundary (km ") ? [ix] : []));
     expect(zone).toHaveLength(2);
-    // every part that has one of the two marks at an end: the part around the zone and the zone itself
-    const parts = [...new Set(zone.flatMap((ix) => [g.marks[ix]!.down, ...g.marks[ix]!.up]))];
-    expect(parts.length).toBeGreaterThanOrEqual(2);
-    for (const at of parts) {
-      const v = view(g, waterMapStart(at));
-      const shown = v.marks.filter((m) => zone.includes(m.ix));
-      expect(shown).toHaveLength(2);                                    // both rings drawn
-      expect(shown.filter((m) => m.label !== null)).toHaveLength(1);    // one label
-      expect(shown.every((m) => m.a11y.length > 0)).toBe(true);         // each ring keeps its words for a screen reader
-    }
-    // the open mark keeps its own label (the other end goes quiet)
-    const open = view(g, { ...waterMapStart(parts[0]!), mark: zone[1]! });
-    expect(open.marks.find((m) => m.ix === zone[1])!.label).not.toBeNull();
-    expect(open.marks.find((m) => m.ix === zone[0])!.label).toBeNull();
+    const inside = g.marks[zone[0]!]!.up[0]!;   // the zone itself: above the first mark, below the second
+    expect(g.marks[zone[1]!]!.down).toBe(inside);
+    const labelled = (i: number) => view(g, waterMapStart(i)).marks.filter((m) => zone.includes(m.ix) && m.label !== null).length;
+    expect([labelled(inside - 1), labelled(inside), labelled(inside + 1)]).toEqual([1, 2, 1]);
   });
 
-  it("(T747) two marks with the SAME words (the same end token, place and all) are one label at any distance", async () => {
-    // the Skeena's part 1 meets parts 2 and 5 at two marks 4.2 km apart, both "… Ecological Reserve boundary (km 63.5)":
-    // framed wide, two labels a few pixels apart (doubled text). Made here from the Chilliwack: one of part 2's ends
-    // said again 4 km east, bounding the same part
-    const g = await loadWaterGroup(st, "gnis:8634");
-    const v0 = view(g, waterMapStart(1));
-    const end = v0.marks.find((m) => m.label !== null)!;
-    const src = g.marks[end.ix]!;
-    const twin = { ...src, lon: src.lon! + 0.055 };
-    const g2 = { ...g, marks: [...g.marks, twin] };
-    const v = view(g2, waterMapStart(1));
-    const both = v.marks.filter((m) => m.ix === end.ix || m.ix === g.marks.length);
-    expect([both.length, both.filter((m) => m.label !== null).length, both.every((m) => m.a11y.length > 0)]).toEqual([2, 1, true]);
-    // (T997 review) the same end said at ANOTHER place 4 km away is no longer its own label at this framing: part 2 opens ~10 m/px,
-    // a box is ~1.8 km wide, so the two boxes would meet and are one (the merge follows the framing, see the review test below)
-    const tok = `${src.token!.replace(/@.*$/, "")}@km999.9`;
-    const other = { ...twin, token: tok };
-    const v3 = view({ ...g, ends: { ...g.ends, [tok]: g.ends[src.token!]! }, marks: [...g.marks, other] }, waterMapStart(1));
-    expect(v3.marks.filter((m) => m.ix === end.ix || m.ix === g.marks.length).filter((m) => m.label !== null)).toHaveLength(1);
-  });
-
-  it("(T997, the Nicomekl) two DIFFERENT boundaries 23 m apart are ONE box naming both; 33 km apart they are two", async () => {
-    // owner 2026-11-21: "23 m below the Nicomekl floodgates dam" and "Dyke gates" drawn over each other at one end of a part.
-    // Made here from the Chilliwack: one of part 2's ends said again, as ANOTHER end, 23 m downstream of it
-    const g = await loadWaterGroup(st, "gnis:8634");
-    const end = view(g, waterMapStart(1)).marks.find((m) => m.label !== null)!;
-    const src = g.marks[end.ix]!;
-    const tok = `${src.token!.replace(/@.*$/, "")}_23m_below`;
-    const near = (dLat: number) => ({ ...g, ends: { ...g.ends, [tok]: ["23 m below the dam"] },
-      marks: [...g.marks, { ...src, token: tok, lat: src.lat! - dLat }] });
-    const mine = (vg: WaterGroup) => view(vg, waterMapStart(1)).marks.filter((m) => m.ix === end.ix || m.ix === g.marks.length);
-    const metres = 23 / 111_195;                                     // degrees of latitude in 23 m
-    const far = mine(near(0.3)).filter((m) => m.label !== null).map((m) => m.label!);
-    expect(far).toHaveLength(2);       // 33 km apart, far beyond a box at the part's framing: two boxes
-    const one = mine(near(metres));
-    expect(one.map((m) => m.a11y.length > 0)).toEqual([true, true]);   // both rings keep their words
-    const boxes = one.filter((m) => m.label !== null);
-    expect(boxes).toHaveLength(1);                                      // one box...
-    expect(boxes[0]!.label).toBe(far.join(" · "));                      // ...naming both, whole
-  });
-
-  it("(T997 review) the merge follows the framing: nearest box, chains, the mouth, ranked by the open mark", () => {
-    const m = (ix: number, lon: number, label: string | null, extra: object = {}) =>
-      ({ ix, lon, lat: 49, label, a11y: "a", on: false, ...extra }) as Parameters<typeof mergeNearLabels>[0][number];
-    const dLon = (metres: number) => metres / (111_195 * Math.cos(49 * Math.PI / 180));
-    const L = (xs: ReturnType<typeof mergeNearLabels>) => xs.map((x) => x.label);
-    // a 4 km part opens at ~11 m/px: a box is ~2 km wide there. Marks 100 m, 175 m, 1 km apart all meet; one 5 km away does not
-    const mpp = framingMetresPerPx([-122, 49, -122 + dLon(4000), 49.0001]);
-    expect(mpp).toBeGreaterThan(10);
-    const got = mergeNearLabels([m(0, -122, "A"), m(1, -122 + dLon(100), "B"), m(2, -122 + dLon(1000), "C"), m(3, -122 + dLon(5000), "D")], mpp);
-    expect(L(got)).toEqual(["A · B · C", null, null, "D"]);
-    // framed a kilometre wide (~3 m/px, a 540 m box): 100 m still merges, 1 km does not (a fixed 100 m could not tell these apart)
-    const tight = framingMetresPerPx([-122, 49, -122 + dLon(1000), 49.0001]);
-    expect(L(mergeNearLabels([m(0, -122, "A"), m(1, -122 + dLon(100), "B"), m(2, -122 + dLon(1000), "C")], tight))).toEqual(["A · B", null, "C"]);
-    // the NEAREST kept box, not the first in range: C (700 m) is nearer to B's box than to A's
-    const near = L(mergeNearLabels([m(0, -122, "A"), m(1, -122 + dLon(1500), "B"), m(2, -122 + dLon(1000), "C")], 3.5));
-    expect(near).toEqual(["A", "B · C", null]);
-    // the open mark keeps the box; the mouth (ix -1) is merged like any other and keeps its ring
-    const mouth = m(-1, -122 + dLon(5), "Flows into X", { mouth: { into: null } });
-    expect(L(mergeNearLabels([mouth, m(0, -122, "Border"), m(1, -122 + dLon(3), "Open one", { on: true })], mpp)))
-      .toEqual([null, null, "Open one · Border · Flows into X"]);
-  });
-
-  it("MUTATION PIN: labels a kilometre apart, or of other ends, are both drawn", async () => {
-    const g = await loadWaterGroup(st, "gnis:8634");
-    const v = view(g, waterMapStart(1));
-    expect(v.marks.filter((m) => m.label !== null).length).toBe(2);   // part 2's two ends, different words
+  it("(T747) two marks of the part's end with the SAME token (Skeena part 1 meets 2 and 5): one label, toward the next part", async () => {
+    const g = await loadWaterGroup(st, "gnis:2936");
+    const twins = g.marks.flatMap((m, ix) => (m.down === 0 && m.token === g.parts[0]!.hi ? [ix] : []));
+    expect(twins).toHaveLength(2);
+    const v = view(g, waterMapStart(0));
+    expect(v.marks.filter((m) => twins.includes(m.ix)).map((m) => [g.marks[m.ix]!.up.includes(1), m.label !== null]))
+      .toEqual([[true, true], [false, false]]);
   });
 });
-

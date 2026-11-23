@@ -39,3 +39,6 @@ curl POST /report and /crash with `test:true` -> 201 each; they landed in `priva
 
 ## Left
 - The test bed needs a rebuilt APK (the next `session.sh --build`) to send the tag.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+built + staging cleaned (7 reports, 7 crash kinds deleted); verified live on the deployed worker 2026-10-29 (tagged report + crash land in reports-test/ and crashes-test/, none in the real prefixes); left: confirm with the next `session.sh --build` APK

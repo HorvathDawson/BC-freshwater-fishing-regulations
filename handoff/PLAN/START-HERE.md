@@ -3,15 +3,13 @@
 One page, one pointer (T437): a new chat reads, in order,
 
 0. **Reports first, every chat** (owner 2026-11-22: "always look for more reports on Apple external test, feed
-   worker, etc."). All read-only; compare with the last "Store checks" line in `OWNER-TODO.md`; anything no ticket
-   names becomes a ticket (record the report id / crash hash in it), then add a new "Store checks" line. Until T1006
-   makes this one command:
-   - in-app reports and crashes, production and staging:
-     `curl -s -H "Authorization: Bearer $(cat app/workers/feeds/.run-token.prod)" "https://feeds.canifishthis.ca/reports?since=YYYY-MM-DD"`
-     (and `/crashes?since=`; staging: `https://bc-fishing-feeds-staging.horvath-dawson.workers.dev` with `.run-token`);
-   - TestFlight tester feedback: `node deploy/staging/testflight-feedback.mjs --days 14`;
-   - TestFlight external review state: `node deploy/staging/testflight-distribute.mjs --dry-run --max-wait-min 1`;
-   - Google Play reviews and closed-testing feedback: no reader yet (T1006); ask the owner if any came in.
+   worker, etc."). One read-only command (T1006) reads every source: both feeds workers' reports + crashes (GET only),
+   TestFlight tester feedback + the external review state, and Play reviews:
+   `.venv/bin/python -m pipeline reports` (`--since YYYY-MM-DD`, `--only worker-prod,worker-staging,testflight,play`,
+   `--no-save`, `--json`). Each item says the ticket that cites its id, or NEW. Anything NEW becomes a ticket that
+   writes the report id / crash hash in it; then add a new "Store checks" line to `OWNER-TODO.md`. The last-check time
+   is kept in `cache/reports-last-check.json` (git-ignored; moved only when every source was read). Play closed-testing
+   feedback has no API: ask the owner whether any came in.
 1. `AGENTS.md` (every rule), then `CLAUDE.md`.
 2. The newest restart page: **`handoff/PLAN/NEXT-SESSION-2026-11-22-evening.md`** (written 2026-11-22 20:15: the 0.9.0
    batch chat, stopped early for credits; open PRs, lanes' State lines in tickets, then the question round and the cut).

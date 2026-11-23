@@ -36,6 +36,10 @@ class FakeGl {
   getStyle() { return this.json; }
   getLayer(id: string) { return this.json.layers.find((l) => l.id === id); }
   getSource() { return { setData: () => {} }; }
+  /** (T812) the layers a hook adds at run time (the Salmon map's closed-area circles), into the style it reads back */
+  addSource() {}
+  addLayer(l: { id: string }) { this.json.layers.push(l); }
+  removeLayer(id: string) { this.json.layers = this.json.layers.filter((l) => l.id !== id); }
   setPaintProperty() {} setLayoutProperty() {} setLayerZoomRange() {} setFilter() {}
   addControl() {} remove() {}
   hasImage(id: string) { return added.has(id); }

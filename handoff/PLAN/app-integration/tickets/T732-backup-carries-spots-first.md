@@ -338,3 +338,6 @@ recommendation was B, JPEG 70). OWED before T732 lands: the photo copy step enco
   start puts them back in `spots/photos/` under their `.jpg` names and the Spots tab and the photo viewer draw them
   (screenshot). Start from a fresh local-transport set (the emulator still holds the 2026-11-14 JPEG set; restoring it
   instead is the pre-WebP path, worth one run too).
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+audit G14, 2026-11-14; owner words relayed by the Android chat ("save spots with prioirty", "images can be compressed if still visible"); owner 2026-11-14 evening: "Only need to backup photos and spots the rest of the data isn't important", "Settings could also be saved"

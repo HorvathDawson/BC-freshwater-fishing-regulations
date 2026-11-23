@@ -1576,6 +1576,9 @@ def side_commands(p: Mapping, props: Iterable[Mapping]) -> list[str]:
                     "bash curation-review/backend/run.sh"
                     "   # the DFO location on the side atlas (stop the live app first, or set "
                     "its port)")
+        # T779: apply binds the place AND the pieces it withholds on this side atlas (`apply_proposals.side_check`)
+        cmds.append(f"python -m pipeline.regs.review.apply_proposals --only {p['id']} --side-checked {p['id']}"
+                    "   # checked on the side atlas; refused if it withholds a piece no one accepted")
         return cmds
     cmds += [f"scripts/heavy.sh reach 30 -- python -m pipeline.atlas.reach.cli --build {build} "
              f"--entries {corpus} --out {side}/reach",

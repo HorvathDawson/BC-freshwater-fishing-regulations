@@ -228,6 +228,58 @@ def test_F_a_side_channel_beside_the_place_is_dropped():
                             graph=_graph())) == []
 
 
+def test_F_a_channel_the_build_adds_is_not_listed_as_dropped():
+    """T776 item 2: a channel that takes water from the named river AND returns it, shorter, among the water's own items,
+    is added by `channels.own_channels`; the audit models that, so it is not 'dropped' (Maria Slough on Mission)."""
+    pos = {"a": ("100", 0.0, "a"), "b": ("100", 800.0, "b")}
+    g = _graph()
+    g.edges.append(SimpleNamespace(from_node="100:1000", to_node="200:0", at_measure=0.0))   # the river feeds the channel
+    g.down_adj["100:1000"] = [1]
+    g.up_adj["200:0"] = [1]
+    p = place("1:river:a", extents=[{"op": "between", "splits": ["a", "b"], "item_id": "gnis:1"}])
+    assert A.check_F(inputs([p], [water(items=("gnis:1", "blk:200"))], split_pos=pos, registry=_reg(), graph=g)) == []
+    # the same channel with no take edge is NOT a side channel to the build either: still listed
+    got = A.check_F(inputs([p], [water(items=("gnis:1", "blk:200"))], split_pos=pos, registry=_reg(), graph=_graph()))
+    assert kinds(got) == [("dropped_channel", "1:river:a")]
+
+
+def test_the_cuts_own_row_is_read_not_a_side_lines():
+    """T776 item 1: a cut seen from a side line has several rows in splits.resolved.json; the cut's own row wins."""
+    rows = [{"split_id": "c", "blk": "1", "route_measure": 10.0, "label": "c"},
+            {"split_id": "c", "blk": "2", "route_measure": 99.0, "label": "c", "concern": "braid cut across c"},
+            {"split_id": "c", "blk": "3", "route_measure": 77.0, "label": "c", "picked_up": True},
+            {"split_id": "d", "blk": "5", "route_measure": 1.0, "label": "d", "concern": "x"},
+            {"split_id": "d", "blk": "6", "route_measure": 2.0, "label": "d", "picked_up": True}]
+    got = A.primary_split_pos(rows)
+    assert got["c"] == ("1", 10.0, "c")
+    assert got["d"] == ("5", 1.0, "d")                    # no own row: the first, not the last
+
+
+def test_A_a_rest_of_with_bounds_and_listed_places_matches_its_file():
+    """T776 item 4: the five T761 rest-of saves were flagged 'not the last save' (the extent rendered as bare 'rest')."""
+    fix = [fixpiece("rest", "cut1", bounds="downstream_of", siblings=["1:river:b"])]
+    ex = [{"op": "rest", "bounds": {"op": "downstream_of", "splits": ["cut1"]}, "siblings": ["1:river:b"]}]
+    ms = [mark("1:river:a", fix=[fixpiece("whole")]), mark("1:river:a", "unsure", fix=fix)]
+    assert kinds(A.check_A(inputs([place("1:river:a", extents=ex)], [water()], ms))) == []
+    other = [{"op": "rest", "bounds": {"op": "downstream_of", "splits": ["cut1"]}, "siblings": ["1:river:z"]}]
+    assert ("not_last_save", "1:river:a") in kinds(A.check_A(inputs([place("1:river:a", extents=other)], [water()], ms)))
+    plain = [{"op": "rest"}]
+    assert ("not_last_save", "1:river:a") in kinds(A.check_A(inputs([place("1:river:a", extents=plain)], [water()], ms)))
+    whole = [mark("1:river:a", fix=[fixpiece("whole")]),
+             mark("1:river:a", "unsure", fix=[fixpiece("rest", bounds="whole", siblings=["1:river:b"])])]
+    ok = [{"op": "rest", "siblings": ["1:river:b"]}]
+    assert kinds(A.check_A(inputs([place("1:river:a", extents=ok)], [water()], whole))) == []
+
+
+def test_A_a_cut_a_closed_area_names_is_not_an_orphan():
+    """T776 item 5: closed_areas.json names cuts (the Shuswap station point); they are not named by nothing."""
+    cuts = {"c_closed": {"id": "c_closed", "_note": "[T185 proposal 2026-11-01] x"},
+            "c_old": {"id": "c_old", "_note": "[T185 proposal 2026-11-01] y"}}
+    text = json.dumps({"pieces": [{"points": [{"kind": "split", "split_id": "c_closed"}]}]})
+    got = A.check_A(inputs([], [water()], [], cuts=cuts, closed_areas_text=text))
+    assert [f.what for f in got if f.kind == "orphan_cut"] == ["c_old"]
+
+
 # ------------------------------------------------------------------------------------------------ G H
 
 def test_G_a_group_mark_not_resaved():

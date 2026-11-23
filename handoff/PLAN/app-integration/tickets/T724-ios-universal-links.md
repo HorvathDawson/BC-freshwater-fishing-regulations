@@ -56,3 +56,6 @@ himself. Local check, no deploy: the site build's own reader (`readIosTeamId`) a
 "/water/*"},{"/":"/"}]}]}}`; `tools/seo/appLinks.test.ts` 8 of 8. From now on every site build writes the file. Still
 left: the simulator `openurl` run; the real hand-off needs the App ID registered with Associated Domains on (owner) and
 a signed build (T88).
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+owner 2026-11-14; `associatedDomains` for both hosts; the site build writes `apple-app-site-association` only when a Team ID is configured (`CIFT_IOS_TEAM_ID` or `~/.canifishthis/ios-team-id`); Android output unchanged
