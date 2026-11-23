@@ -21,8 +21,8 @@ import { diff, parseManifestText, withoutSlices, type Held, type Manifest } from
 import { utf8 } from "../regs/blob";
 import { Sha256, sha256Hex, sha256HexAsync } from "../sha256";
 import { VerifyError } from "../fetchVerified";
-import { assetsDir, installAssets, type RawFetch } from "./assets";
-import { now as clockNow, reportOnce } from "@app/core";
+import { assetsDir, installAssets, unpackAssets, type RawFetch } from "./assets";
+import { now as clockNow, reportFailure, reportOnce } from "@app/core";
 import { downloadTally, lookHad, type Look } from "./tally";
 
 export interface ReleaseFs {
@@ -310,20 +310,23 @@ export async function writeHeld(fs: ReleaseFs, path: string, h: Held): Promise<v
   await place(fs, path, new TextEncoder().encode(JSON.stringify(h)));
 }
 
-/** (T298) One of the big files a set needs: streamed to disk, never held (`DownloadTo`). `url` is release-relative. */
-export interface BigFile { file: "tiles" | "mask" | "basemap" | "synopsis"; url: string; path: string;
+/** (T298) One of the big files a set needs: streamed to disk, never held (`DownloadTo`). `url` is release-relative.
+ *  (T919 c) `assets`: the map assets' pack, unpacked into their folder once it is down. */
+export interface BigFile { file: "tiles" | "mask" | "basemap" | "synopsis" | "assets"; url: string; path: string;
                            e: { bytes: number; sha256: string } }
 
 /**
  * The big files `m` needs beside `held` (all of them when `held` is null): the tiles and their mask, the basemap and
  * (owner 2026-10-29) THE RULE BOOK, which is part of the first download so it opens offline from the start — kept where
- * the book opens it (`synopsisPath`) and fetched again only when a release names other bytes.
+ * the book opens it (`synopsisPath`) and fetched again only when a release names other bytes. (T919 c) And THE MAP
+ * ASSETS' PACK when the manifest names one and the assets id moves (a first install: always): one file in place of ~780
+ * requests. When only the tiles move, the held folder's files are copied instead (`installAssets`), as before.
  */
 export function bigFiles(m: Manifest, held: Held | null): BigFile[] {
   m = withoutSlices(m);
-  const d = held ? diff(held, m) : { tiles: true, basemap: true, synopsis: true };
+  const d = held ? diff(held, m) : { tiles: true, basemap: true, synopsis: true, assets: true };
   const big: BigFile[] = [];
-  const t = m.tiles.current, mask = m.tiles.mask, bm = m.basemap, book = m.synopsis;
+  const t = m.tiles.current, mask = m.tiles.mask, bm = m.basemap, book = m.synopsis, pack = m.tiles.assets?.pack;
   if (d.tiles && t?.sha256 && t.bytes)
     big.push({ file: "tiles", url: t.url, path: `release/${t.url}`, e: { bytes: t.bytes, sha256: t.sha256 } });
   if (d.tiles && mask?.sha256 && mask.bytes)
@@ -332,6 +335,8 @@ export function bigFiles(m: Manifest, held: Held | null): BigFile[] {
     big.push({ file: "basemap", url: bm.url, path: `release/${bm.url}`, e: { bytes: bm.bytes, sha256: bm.sha256 } });
   if (d.synopsis && book?.sha256 && book.bytes)
     big.push({ file: "synopsis", url: book.url, path: synopsisPath(book.sha256), e: { bytes: book.bytes, sha256: book.sha256 } });
+  if (d.assets && pack?.sha256 && pack.bytes)
+    big.push({ file: "assets", url: pack.url, path: `release/${pack.url}`, e: { bytes: pack.bytes, sha256: pack.sha256 } });
   return big;
 }
 
@@ -442,12 +447,14 @@ async function installNow(m: Manifest, fs: ReleaseFs, dl: Download, base: string
   // bandwidth, so they cost a first install almost nothing while the map files stream. Their bar is the second stage's
   // once the last byte of the big files is down and hashed.
   const a = m.tiles.assets;
-  if (a && !raw) throw new VerifyError(`assets ${a.id ?? a.url}: no way to fetch them`);
+  // (T919 c) the assets come in their pack (one of the big files, unpacked once it is down) or file by file
+  const packed = big.find((b) => b.file === "assets") ?? null;
+  if (a && !packed && !raw) throw new VerifyError(`assets ${a.id ?? a.url}: no way to fetch them`);
   let bigDone = false, assetsFailed: unknown = null;
   const assetsAt: { n: number; all: number } = { n: 0, all: 0 };
   const assetsStep = () => assetsAt.all > 0 && onProgress({ done, total, file: "assets", bytes: tally.shown(), of, had: tally.real(),
                                                     setup: { step: "assets", done: assetsAt.n, of: assetsAt.all } });
-  const assetsRun = a && raw ? (async () => {
+  const assetsRun = a && raw && !packed ? (async () => {
     const heldA = held ? (await heldManifest(fs, held).catch(() => null))?.tiles.assets ?? null : null;
     const tA = clockNow();
     await installAssets(fs, raw, base, a, heldA ? assetsDir(heldA) : null, (n, all) => {
@@ -486,6 +493,11 @@ async function installNow(m: Manifest, fs: ReleaseFs, dl: Download, base: string
     await assetsRun;
     if (assetsFailed !== null) throw assetsFailed;
   }
+  if (a && packed) {
+    const tA = clockNow();
+    await unpackAssets(fs, packed.path, a, (n, all) => { assetsAt.n = n; assetsAt.all = all; assetsStep(); });
+    console.info(`[setup] map assets (${assetsAt.all} files) unpacked from ${packed.url} in ${clockNow() - tA} ms`);
+  }
   // the manifest the set was installed from: an offline launch opens the set with it (`heldManifest`)
   const mb = new TextEncoder().encode(JSON.stringify(m));
   const mpath = manifestPath(m, mb);
@@ -493,6 +505,9 @@ async function installNow(m: Manifest, fs: ReleaseFs, dl: Download, base: string
   const next = pointerFor(m, mpath);
   await beforeSwap?.();
   await writeHeld(fs, POINTER, next);                                            // THE SWAP
+  // (T919 c) the pack is unpacked and the set swapped: it is not needed again (kept until now, so an install stopped
+  // before the swap finds it down and unpacks it again). A failed remove is reported; the set stands.
+  if (packed) await fs.remove(packed.path).catch((e: unknown) => { reportFailure(e); });
   return next;
 }
 

@@ -187,11 +187,12 @@ function tileVersion(fx: FixtureRelease, build: string): string {
  * by a manifest that names it. Returns the folder `releaseFetch` serves that manifest from (its data urls are the
  * release's own).
  */
-function withTiles(fx: FixtureRelease, v: string, assets?: { id: string; body: Record<string, string> }): string {
+function withTiles(fx: FixtureRelease, v: string,
+                   assets?: { id: string; body: Record<string, string>; pack?: Uint8Array }): string {
   const folder = join(fx.root, "tiles", v);
   mkdirSync(folder, { recursive: true });
-  const ref = (name: string, body: string) => {
-    const b = new TextEncoder().encode(body);
+  const ref = (name: string, body: string | Uint8Array) => {
+    const b = typeof body === "string" ? new TextEncoder().encode(body) : body;
     writeFileSync(join(folder, name), b);
     return { url: `tiles/${v}/${name}`, bytes: b.length, sha256: sha256Hex(b) };
   };
@@ -208,7 +209,9 @@ function withTiles(fx: FixtureRelease, v: string, assets?: { id: string; body: R
       files[rel] = sha256Hex(b);
     }
     writeFileSync(join(folder, assets.id, "assets.json"), JSON.stringify({ id: assets.id, pin: "p", files }));
-    m.tiles.assets = { id: assets.id, url: `tiles/${v}/${assets.id}/`, files_sha256: assetsDigest(files), pin: "p" };
+    m.tiles.assets = { id: assets.id, url: `tiles/${v}/${assets.id}/`, files_sha256: assetsDigest(files), pin: "p",
+                       // (T919 c) the folder as one file beside it, as assets.py write_pack writes it
+                       ...(assets.pack ? { pack: ref(`${assets.id}.tar.zlib`, assets.pack) } : {}) };
   }
   const at = join(fx.root, `manifest-${v}-${assets?.id ?? "none"}`);
   mkdirSync(at, { recursive: true });
@@ -621,6 +624,28 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
         atlas: `file:///doc/release/tiles/${v1}/atlas-${v1}.pmtiles`, basemap: DEV_TILES.basemap,
         outside: `file:///doc/release/tiles/${v1}/bc_outside.geojson`,
         assets: `file:///doc/release/tiles/${v1}/map-assets-1/` });
+    });
+
+  it("(T919 c) a release that names the assets PACK installs them from it: one request, every file verified, the pack gone after the swap",
+    async () => {
+      // the pack Python's write_pack wrote (rule 40: the fixture both sides read), served beside its folder
+      const fx = JSON.parse(readFileSync(join(__dirname, "../packages/data/dev/assets-pack-parity.json"), "utf8")) as
+        { folder: Record<string, string>; pack: string };
+      const r1 = fixtureRelease("plain");
+      const v1 = tileVersion(r1, "aaaaaaaaaaaa");
+      const at = withTiles(r1, v1, { id: "map-assets-1", body: fx.folder, pack: Uint8Array.from(Buffer.from(fx.pack, "base64")) });
+      const fs = memFs(), log: string[] = [];
+      const first = await bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "",
+                                        platform: phone(fs), fetch: releaseFetch(BASE, at, log), manifestTimeoutMs: 1000 });
+      expect(first.held.assets).toBe("map-assets-1");
+      expect(log.filter((u) => u.includes("map-assets-1"))).toEqual([`${BASE}tiles/${v1}/map-assets-1.tar.zlib`]);
+      expect(assetFiles(fs, v1, "map-assets-1")).toEqual([
+        `release/tiles/${v1}/map-assets-1/assets.json`,
+        ...Object.keys(fx.folder).sort().map((k) => `release/tiles/${v1}/map-assets-1/${k}`)]);
+      for (const [k, text] of Object.entries(fx.folder))
+        expect(new TextDecoder().decode(fs.files.get(`release/tiles/${v1}/map-assets-1/${k}`))).toBe(text);
+      expect(fs.files.has(`release/tiles/${v1}/map-assets-1.tar.zlib`)).toBe(false);
+      expect(releaseTiles(first, DEV_TILES).assets).toBe(`file:///doc/release/tiles/${v1}/map-assets-1/`);
     });
 
   it("an ASSETS-ONLY release fetches only the new assets folder, and the old one is pruned at the next launch",

@@ -5,6 +5,20 @@ fetches nothing from a CDN at run time (and the always-offline native app has th
         fonts/<fontstack>/<start>-<end>.pbf      256 ranges per stack, MapLibre's `glyphs` template
         sprites/v4/<light|dark>[@2x].{json,png}  the basemap's icons, MapLibre's `sprite` URL
         assets.json                              {id, pin, files: {path: sha256}}: the manifest's `files_sha256`
+    data/release/tiles/<tile_version>/map-assets-<ASSETS_VERSION>.tar.zlib
+                                                 (T919 c) THE SAME FILES AS ONE DOWNLOAD (`write_pack`): the manifest's
+                                                 `tiles.assets.pack` {url, bytes, sha256}
+
+THE PACK (T919 c, owner 2026-11-19 20:31: "one packed download"): a first install fetched the folder as 777 requests paced
+under the data host's per-IP limit (35-160 s on the benches). A phone app that reads `pack` downloads the folder as ONE
+file through the system downloader beside the big files, held to the manifest's bytes + sha256, then unpacks it and holds
+`assets.json` to `files_sha256` and every file to its sha256 (`app/packages/data/src/release/assets.ts` `unpackAssets`).
+The folder stays published beside it: an installed app that predates the pack reads `url` + `files_sha256` and fetches
+the files one by one, as before (the manifest only GAINS a key; no minAppVersion change). A plain ustar tar, deflated in
+a ZLIB stream (RFC 1950), NOT gzip: every release download is held to its bytes after `ungzip` (fetchVerified decodes a body
+that starts with the gzip magic), so a gzip pack would be decoded on one path and not on another. `assets.json` first, then
+every file in sorted order, regular files only, every stamp zeroed, so one folder gives one pack (6.1 MB for the 13.8 MB
+live folder, 2026-11-22).
 
 THE SOURCE is the Protomaps basemaps-assets repository at a PINNED commit (the glyph PBFs and sprite sheets the
 @protomaps/basemaps layers were drawn with). It is fetched ONCE into `data/source/map-assets/<pin>/` (fetched data, not
@@ -17,8 +31,11 @@ layers use (`BASEMAP_FONTS`, read from @protomaps/basemaps: Regular, Medium, Ita
 from __future__ import annotations
 
 import hashlib
+import io
 import json
 import shutil
+import tarfile
+import zlib
 import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
@@ -93,7 +110,8 @@ def fetch(workers: int = 8) -> Path:
 
 
 def write(into: Path) -> Path:
-    """Copy the assets into `<into>/map-assets-<ASSETS_VERSION>/` with their `assets.json`, and return that folder."""
+    """Copy the assets into `<into>/map-assets-<ASSETS_VERSION>/` with their `assets.json` and its pack beside it
+    (`write_pack`), and return that folder."""
     src = fetch()
     out = into / f"map-assets-{ASSETS_VERSION}"
     files = {}
@@ -104,7 +122,51 @@ def write(into: Path) -> Path:
         files[rel] = hashlib.sha256(dst.read_bytes()).hexdigest()
     (out / "assets.json").write_text(json.dumps(
         {"id": f"map-assets-{ASSETS_VERSION}", "pin": PIN, "files": files}, indent=0, sort_keys=True) + "\n")
+    write_pack(out)                                          # (T919 c) the same files as one download
     return out
+
+
+def pack_path(folder: Path) -> Path:
+    """The pack of an assets folder: `<tile version>/map-assets-<n>.tar.zlib`, beside the folder."""
+    return Path(folder).with_name(f"{Path(folder).name}.tar.zlib")
+
+
+def write_pack(folder: Path) -> Path:
+    """(T919 c) Pack an assets folder into ONE file beside it, every byte held to its `assets.json` first (a folder whose
+    files are not the list's is refused, naming the file: the pack must never carry bytes the list does not name).
+    Deterministic: the same folder gives the same bytes (sorted members, zeroed stamps; a zlib stream has no name or
+    time). Written to `.part` and renamed."""
+    folder = Path(folder)
+    listing = folder / "assets.json"
+    files = json.loads(listing.read_text())["files"]
+    on_disk = sorted(str(p.relative_to(folder)) for p in folder.rglob("*") if p.is_file() and p != listing)
+    if on_disk != sorted(files):
+        extra, missing = sorted(set(on_disk) - set(files)), sorted(set(files) - set(on_disk))
+        raise SystemExit(f"map assets: {folder} is not its assets.json (extra {extra[:3]}, missing {missing[:3]})")
+    members = [("assets.json", listing.read_bytes())]
+    for rel in sorted(files):
+        b = (folder / rel).read_bytes()
+        if hashlib.sha256(b).hexdigest() != files[rel]:
+            raise SystemExit(f"map assets: {folder / rel} is not the sha256 its assets.json names")
+        members.append((rel, b))
+    raw = io.BytesIO()
+    with tarfile.open(fileobj=raw, mode="w", format=tarfile.USTAR_FORMAT) as tar:
+        for name, b in members:
+            ti = tarfile.TarInfo(name)
+            ti.size, ti.mtime, ti.mode, ti.uid, ti.gid, ti.uname, ti.gname = len(b), 0, 0o644, 0, 0, "", ""
+            tar.addfile(ti, io.BytesIO(b))
+    out = pack_path(folder)
+    tmp = out.with_name(out.name + ".part")
+    tmp.write_bytes(zlib.compress(raw.getvalue(), 9))
+    tmp.rename(out)
+    return out
+
+
+def ensure_pack(folder: Path) -> Path:
+    """(T919 c) The folder's pack, written when it is missing (a tile version released before the pack existed gains it:
+    a new file beside the folder, no published byte changed). An existing pack is kept as it is: its url is published."""
+    p = pack_path(folder)
+    return p if p.exists() else write_pack(folder)
 
 
 def files_sha256(assets_json: Path) -> str:

@@ -69,3 +69,27 @@ def test_a_tile_version_is_the_sid_space_plus_the_tile_build():
     got = V.stamped_metadata(meta, "d768d6e135e62b99.5f1c0a9e2b7d", "d768d6e135e62b99", "8c77ba1cd2dc3929")
     assert got == {**meta, "tile_version": "d768d6e135e62b99.5f1c0a9e2b7d", "section_handles": "d768d6e135e62b99",
                    "labels_registry": "8c77ba1cd2dc3929"}
+
+
+def test_the_assets_block_names_the_folder_and_its_pack_written_beside_it_when_missing(tmp_path):
+    """(T919 c) `tiles.assets.pack` is the folder as ONE file, hashed as it is on disk; a tile version released before
+    the pack gains it beside the folder (its other files untouched). The folder's own keys stay: older apps read them."""
+    import hashlib
+
+    from pipeline.deliver.tiles.assets import files_sha256
+    rel = tmp_path / "release"
+    v = f"{H}.c9f9604f12bf"
+    _set(rel, v)
+    folder = rel / "tiles" / v / "map-assets-1"
+    (folder / "sprites/v4").mkdir(parents=True)
+    (folder / "sprites/v4/light.json").write_text("{}")
+    files = {"sprites/v4/light.json": hashlib.sha256(b"{}").hexdigest()}
+    (folder / "assets.json").write_text(json.dumps({"id": "map-assets-1", "pin": "p", "files": files}))
+    got = tiles_block(rel, H, _meta(tmp_path, v))["assets"]
+    pack = rel / "tiles" / v / "map-assets-1.tar.zlib"
+    assert pack.exists()
+    assert got == {"id": "map-assets-1", "url": f"tiles/{v}/map-assets-1/", "pin": "p",
+                   "files_sha256": files_sha256(folder / "assets.json"),
+                   "pack": {"url": f"tiles/{v}/map-assets-1.tar.zlib", "bytes": pack.stat().st_size,
+                            "sha256": hashlib.sha256(pack.read_bytes()).hexdigest()}}
+    assert tiles_block(rel, H, _meta(tmp_path, v))["assets"] == got        # the same pack, not written again
