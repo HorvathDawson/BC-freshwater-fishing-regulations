@@ -1,14 +1,19 @@
 #!/usr/bin/env node
 /**
- * (T352) SOURCE MAPS, KEPT PER BUILD AND NEVER SERVED. A crash's stack names minified frames (`index-<hash>.js:2:2257` on
+ * (T352) SOURCE MAPS, KEPT PER BUILD. A crash's stack names minified frames (`index-<hash>.js:2:2257` on
  * the web, `index.android.bundle:1:2384728` from Hermes); the maps that read them back are kept on this machine under
  * data/sourcemaps/<key>/ (gitignored; nothing uploads data/sourcemaps), one folder per build, keyed like a crash's `app`:
  * "0.5.0 (build 8, 9813980, 2026-11-04)" → `0.5.0-b8-9813980`.
  *
  *   node app/tools/sourcemaps.mjs keep-web <export dir>
- *        move every *.map out of a web export (`expo export --source-maps`) into data/sourcemaps/<key>/web/, and drop
- *        the bundles' `sourceMappingURL` line (it would name a file the site does not have). The key is app.json's
- *        version + build and HEAD's short sha, as the version stamp puts them in the bundle. No map found: it fails.
+ *        copy every *.map of a web export (`expo export --source-maps`) into data/sourcemaps/<key>/web/. (T1008, owner
+ *        2026-11-22: "we should serve them? why not?") THE WEB'S MAPS ARE SERVED: the maps and the bundles'
+ *        `sourceMappingURL` line stay in the export, so the site carries them (same cache rules as the bundle: `/_expo/static/*`)
+ *        and any browser's tools read real file and line names; a browser fetches a map only with its tools open. First
+ *        `checkServedMaps`: every served .js over 100 KB names its map, the map is there, parses and carries the bundle's
+ *        debug id, and names only files the repository tracks or node_modules holds (the repository is public: a map shows
+ *        nothing GitHub does not). The key is app.json's version + build and HEAD's short sha, as the version stamp puts
+ *        them in the bundle. No map found, or a check failed: it fails.
  *   node app/tools/sourcemaps.mjs keep-android <index.android.bundle.map> <key>
  *        copy the Hermes map of a release build (deploy/staging/build-apk.sh) to data/sourcemaps/<key>/android/.
  *   node app/tools/sourcemaps.mjs keep-r8 <mapping.txt> <key>
@@ -25,7 +30,7 @@
  * No dependency: the mappings are decoded here (base64 VLQ, source map v3).
  */
 import { execSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { basename, dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -140,22 +145,59 @@ export function symbolicate(sample, root = ROOT) {
   });
 }
 
-/** Move a web export's maps under `root/<key>/web/` and drop the bundles' map lines. Returns the maps moved. */
-export function keepWeb(exportDir, key, root = ROOT) {
+/** (T1008) the bundles a map is required for: a served .js at least this big */
+export const MAP_REQUIRED_BYTES = 100 * 1024;
+/** (T1008) a bundler's own module, not a file (Metro's prelude, its `\0polyfill:` modules) */
+const VIRTUAL = (s) => s === "__prelude__" || s.startsWith("\0");
+
+/**
+ * (T1008) WHAT IS WRONG WITH THE MAPS A WEB EXPORT SERVES: a .js over `MAP_REQUIRED_BYTES` with no `sourceMappingURL`, or one
+ * naming a map that is not there or does not parse, or whose debug id is not the bundle's (`file`, where a map has one, must
+ * be the bundle's name); a map naming a source the repository does not track and node_modules does not hold. `appRoot` is
+ * the folder the bundler's sources are relative to (app/); `tracked(path)` says whether git tracks a path under it.
+ */
+export function checkServedMaps(exportDir, appRoot, tracked) {
+  const bad = [];
+  for (const js of [...walk(exportDir)].filter((p) => p.endsWith(".js")).sort()) {
+    const body = readFileSync(js, "utf8"), at = relative(exportDir, js);
+    const url = /^\/\/# sourceMappingURL=(\S+)\s*$/m.exec(body)?.[1];
+    if (!url) { if (statSync(js).size >= MAP_REQUIRED_BYTES) bad.push(`${at}: no sourceMappingURL`); continue; }
+    if (/^[a-z]+:/i.test(url)) { bad.push(`${at}: its map is not a file the site serves (${url.slice(0, 40)})`); continue; }
+    const mapPath = url.startsWith("/") ? join(exportDir, url) : join(dirname(js), url);
+    if (!existsSync(mapPath)) { bad.push(`${at}: names ${url}, which the export does not have`); continue; }
+    let map;
+    try { map = JSON.parse(readFileSync(mapPath, "utf8")); } catch (e) { bad.push(`${at}: its map does not parse (${String(e)})`); continue; }
+    if (map.version !== 3) bad.push(`${at}: its map is not a v3 map`);
+    const id = /^\/\/# debugId=(\S+)\s*$/m.exec(body)?.[1] ?? null;
+    if ((map.debugId ?? null) !== id) bad.push(`${at}: its map's debug id ${map.debugId ?? "(none)"} is not the bundle's ${id ?? "(none)"}`);
+    if (map.file !== undefined && basename(map.file) !== basename(js)) bad.push(`${at}: its map is for ${map.file}`);
+    const sources = map.sections ? map.sections.flatMap((x) => x.map?.sources ?? []) : (map.sources ?? []);
+    const stray = [...new Set(sources)].filter((s) => !VIRTUAL(s) && !(/(^|\/)node_modules\//.test(s) && existsSync(join(appRoot, s))) &&
+                                               !tracked(s.replace(/^\/+/, "")));
+    if (stray.length) bad.push(`${at}: its map names ${stray.length} file(s) the repository does not track: ${stray.slice(0, 5).join(", ")}`);
+  }
+  return bad;
+}
+
+/** The paths git tracks under `dir` (relative to it): `checkServedMaps`'s "in the repository". */
+export function trackedUnder(dir) {
+  const list = execSync("git ls-files -z", { cwd: dir, maxBuffer: 256 * 1024 * 1024 }).toString().split("\0").filter(Boolean);
+  const set = new Set(list);
+  return (p) => set.has(p);
+}
+
+/** Copy a web export's maps under `root/<key>/web/` (they stay in the export: served, T1008), once they pass `checkServedMaps`. Returns the copies. */
+export function keepWeb(exportDir, key, root = ROOT, appRoot = join(REPO, "app"), tracked = trackedUnder(join(REPO, "app"))) {
   const maps = [...walk(exportDir)].filter((p) => p.endsWith(".map"));
   if (!maps.length) throw new Error(`sourcemaps: no .map under ${exportDir} (exported without --source-maps?)`);
+  const bad = checkServedMaps(exportDir, appRoot, tracked);
+  if (bad.length) throw new Error(`sourcemaps: the export's maps cannot be served:\n${bad.join("\n")}`);
   const out = [];
   for (const p of maps) {
     const to = join(root, key, "web", relative(exportDir, p));
     mkdirSync(dirname(to), { recursive: true });
-    renameSync(p, to);
+    copyFileSync(p, to);
     out.push(to);
-    const js = p.slice(0, -".map".length);
-    if (existsSync(js)) {
-      const body = readFileSync(js, "utf8");
-      const cut = body.replace(/^\/\/# sourceMappingURL=\S+\n?/m, "");
-      if (cut !== body) writeFileSync(js, cut);
-    }
   }
   return out;
 }

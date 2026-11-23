@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 import { JSDOM } from "jsdom";
 // @ts-expect-error a plain .mjs tool (no types)
 import { afterPaint as shellAfterPaint, bootCoho, cohoFacts, HOME_DESCRIPTION, HOME_DESCRIPTION_TAG, MARKED, paintFirst, shellExport, withBootCoho,
-         withHomeHead } from "./web-shell.mjs";
+         withHomeHead, withHomeLinks } from "./web-shell.mjs";
 import { COHO } from "../packages/ui-native/src/coho.generated";
 import { COHO_WEB } from "../packages/ui-native/src/cohoWeb.generated";
 import { COHO_GROUND_PAD, COHO_WIDTH, cohoHeight } from "../packages/ui-native/src/coho";
@@ -225,5 +225,16 @@ describe("the web's own coho sheet, the phones' unchanged (T844, owner 2026-11-1
     // (T852) its own frame (2 px per CSS px; the phones' 2.5 px per dp), at the phones' aspect
     expect([COHO_WEB.frame.width * COHO.frame.height, COHO_WEB.loopMs, COHO_WEB.columns * COHO_WEB.rows >= COHO_WEB.frames])
       .toEqual([COHO.frame.width * COHO_WEB.frame.height, COHO.loopMs, true]);
+  });
+});
+
+describe("(T1011) the home page's link row", () => {
+  it("(T1011 review) with script the row is inert (no Tab can focus it and scroll the clipped page); without script it is a working row", () => {
+    const home = withHomeLinks(BARE_APP);
+    const run = new JSDOM(home, { runScripts: "dangerously" }).window.document, still = new JSDOM(home).window.document;
+    expect(run.getElementById("site-links")!.hasAttribute("inert")).toBe(true);
+    expect(still.getElementById("site-links")!.hasAttribute("inert")).toBe(false);
+    expect(still.querySelectorAll("#site-links a[href]").length).toBe(11);           // the crawler's plain links, either way
+    expect(run.querySelectorAll("#site-links a[href]").length).toBe(11);
   });
 });

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { HOME, reduce, waterFrame } from "./route";
 import { openWater } from "./openWater";
-import { holdsMapStatus, pageRegion, parseStartLink, routeSearch, slugShard, slugShardPath, SLUG_SHARDS, START_NOTICE_REACH_GONE,
+import { fitQuery, holdsMapStatus, pageRegion, parseStartLink, routeSearch, slugShard, slugShardPath, SLUG_SHARDS, START_NOTICE_REACH_GONE,
          startNoticeLine, WATER_PATH } from "./startLink";
 import type { ItemId } from "@app/data";
 
@@ -52,6 +52,29 @@ describe("parseStartLink (T41: the web test deep link)", () => {
       place: null, notice: null, horizon: null });
     expect(() => parseStartLink("?show=Vedder", NOW)).toThrow("start link: show=Vedder is not an item id");
     expect(routeSearch(HOME, "?show=gnis:3062&theme=dark")).toBe("?theme=dark");
+  });
+
+  it("(T1010) `fit`: the map framed on a box, nothing open; refused out loud when it is not a box or sits beside a water; the first route write drops it", () => {
+    expect(parseStartLink("?fit=-118.5,49,-114.05,52.2", NOW)).toEqual({
+      route: HOME, day: null, regs: { tab: "keep", sheet: null, scroll: 0 }, who: null, theme: null, arrive: null,
+      place: null, notice: null, horizon: null, fit: [-118.5, 49, -114.05, 52.2] });
+    const said = (q: string) => { try { parseStartLink(q, NOW); return "no throw"; } catch (e) { return (e as Error).message; } };
+    expect(["?fit=1,2,3", "?fit=a,b,c,d", "?fit=-114,49,-118,52", "?fit=-118,52,-114,49", "?fit=-200,49,-114,52", "?fit=-118,49,-114,95",
+            "?fit=1e3,2,3,4", "?show=gnis:3062&fit=-118,49,-114,52", "?regs=gnis:1&fit=-118,49,-114,52"].map(said)).toEqual([
+      "start link: fit=1,2,3 is not a w,s,e,n box in degrees", "start link: fit=a,b,c,d is not a w,s,e,n box in degrees",
+      "start link: fit=-114,49,-118,52 is not a box with west < east and south < north",
+      "start link: fit=-118,52,-114,49 is not a box with west < east and south < north",
+      "start link: fit=-200,49,-114,52 is not a box on the globe (lon -180..180, lat -90..90)",
+      "start link: fit=-118,49,-114,95 is not a box on the globe (lon -180..180, lat -90..90)",
+      "start link: fit=1e3,2,3,4 is not a w,s,e,n box in degrees",
+      "start link: fit=-118,49,-114,52 is not a box beside show= (a link frames one or the other)",
+      "start link: fit=-118,49,-114,52 is not a box beside a water (regs= or a place)"]);
+    expect(routeSearch(HOME, "?fit=-118.5,49,-114.05,52.2&theme=dark")).toBe("?theme=dark");
+  });
+
+  it("(T1010) fitQuery writes the box the parser reads, to 3 places rounded outward (it still holds what it was made around)", () => {
+    expect(fitQuery([-118.12345, 49.0004, -114.0501, 52.2])).toBe("?fit=-118.124,49,-114.05,52.2");
+    expect(parseStartLink(fitQuery([-118.12345, 49.0004, -114.0501, 52.2001]), NOW)!.fit).toEqual([-118.124, 49, -114.05, 52.201]);
   });
 
   it("today's date is null (Today follows midnight); age alone keeps the default residency, res alone the default age", () => {

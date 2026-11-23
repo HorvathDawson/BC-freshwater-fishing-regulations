@@ -1,0 +1,32 @@
+# 0.9.0 gap audit (2026-11-22, origin/main f68298163) — plans per ticket, as audited (sizes are estimates)
+
+- T919 (c) M: pack the 777 map glyph + sprite files into one verified download (owner picked 11-19 20:31); (d) S: check a cut download resumes, close or fix. Nothing built since 30e052328.
+- T740 M: measure like-for-like, then drop the hidden map's tiles while a page is up (owner's 0.8.1 list, never built).
+- T851 S: the app's "Checked with DFO" line uses the last good read; fix the stale doc comment (worker half done d66e0bfdb).
+- T883 M: pipeline `steps[]` for the fish-sheet rail (0.8.2 leftover).
+- T858 S: keyboard navigation for the parts list, Spots, menus + the staging check.
+- T970 / T972 / T976 S: photo-viewer buttons fade while dragging; drop the repeated "Thompson Plateau" rows; a backing for the photo counter (finds 26199604e, 4aa46f19e).
+- T931 S: cite the Beattie ruling in test_answers_one_kind_group.py ~533 (the 2 red live tests clear with T1000).
+- T679 M: #18 rest (continuation topology as an atlas sidecar, one place-dedupe precision, one part point) — changes output: with T1000's tile/atlas build + binding diff.
+- T678 S: confirm plan 5's node stamp ran in wave 4, then retire the record-only read path.
+- T677 S: item 1 measure the name rule; item 3 a by-place binding diff (with the next rebuild).
+- T667 M: slice 8 step 4: ~36 app test files onto `openRegsFixture` + the toy-bundle tests.
+- T810 / T809 S: S2 dead-branch cleanup + MAP/AGENTS notes; run and record the cutover diff.
+- T461 M: measure tidal_water, simplify per zoom at the tile build (ride T1000's tile build).
+- T465 S: boundary labels collide zoomed out (fold with T997).
+- T605 S: region/bounds start-link key (T1010 built `?fit=`: close against it).
+- T914 M: split the first web script / first screen across the main thread.
+- T1006 M: `pipeline reports` command + a Play reviews reader (docs only so far, 206ca617f).
+- T994 S: close or ticket each finding. T995 S: prune merged branches + worktrees (old dev branch only after the prod worker redeploys).
+- (no ticket) S: pre-push range `merge-base(origin/main,HEAD)..HEAD`; `release_version.is_app_path` counts dev tooling; stale memory note near release.py:2044; `prod_instructions` names PRODUCTION.md; T866 line numbers.
+- T164 S: record the acceptance measures on the live release, close.
+- T467 S / T802 M / T504 M: lake shoreline shade in the cvd gate; Class I/II map look; readable regulation lines — PICTURES FIRST (owner picks).
+- T754 M / T812+T885 M-L / T774 M: one-bank places (owner approved 11-15); Babine creek-mouth circles + DFO lake parts drawn; save a DFO place as undrawn.
+- T840 T880 T782 T795 T797 T803 T668 T611 T771 T773 (S each): a verdict's short text carries its condition; a DFO exception printed without "and tributaries" covers that stream only; trout data faults; the half-inside build check; T797 item 5 hints; T803 items 4/8/10 re-saves + 7 and 12; fix 5 hygiene; pass `rides` to the review-app cascade; chain sizes; tidal cut names.
+- T775 T776 T779 T589 T590 T562 (S/M): review-app / marks-tool leftovers (withdraw button, one-click "use it", extent guard, found names).
+- T552 T558 T609 T560 T561 T631 (M): worker/pipeline hardening leftovers (forecast error check, outside heartbeat, W16/W17/W20, shared helpers, the `access` key; T561's union share waited on packed formats, now live).
+- T496 M / T539 S / T540 S / T790 S-M: cleanup pass 2; drain the 62 NO_STEP_YET ids; cap the ledger's last cell; T790 records.
+- T862 M / T867 M / T905 M / T721 S / T726 M: search by other names (near T926); notifications inbox; shrink the salmon feed; iOS back swipe; iOS layout + a11y (simulator).
+- Ledger stale, shipped in 0.8.4 (inside e769f710a): T548 T623 T669 T676 T573 T711 T780 T801 T926 T927 T936 T939 T941 T942 T943 T944 T945 T946 T971 T973.
+- Device checks on the 0.9.0 build (later, one test-bed pass): T261 T292 T310 T360 T390 T409 T555 T585 T603 T604 T625 T674 T724 T728 T730 T731 T738 T746 T756 T831 T836 T938; T739/T822 close with T996.
+- Device pass adds (R8 on, T1003 review): expo-location locate; bg-update task actually running; local notification firing; in-app update + Play Core on the Play Internal build. Also T970/T972/T976 looks (L8), T721/T726 iOS sim walks, T858 desktop staging check, T1013 emulator timings, T1010 fit framing on a real map, T605 phone fit link.

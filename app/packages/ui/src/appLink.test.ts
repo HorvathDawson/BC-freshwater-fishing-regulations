@@ -22,6 +22,17 @@ describe("(T625) a shared link opened by the installed app", () => {
     expect(() => parseAppLink("https://canifishthis.ca/water/x?regs=gnis:1")).toThrow(/twice/);
   });
 
+  it("(T605) a region page's `/?fit=w,s,e,n` opens the map framed on that box; a bad box, or one beside a water, throws", async () => {
+    expect(parseAppLink("https://canifishthis.ca/?fit=-118.82,48.999,-114.074,52.412"))
+      .toEqual({ slug: null, item: null, view: "regs", fit: [-118.82, 48.999, -114.074, 52.412] });
+    expect(await resolveAppLink("https://staging.canifishthis.ca/?fit=-118.82,48.999,-114.074,52.412", async () => { throw new Error("no fetch"); }))
+      .toEqual({ fit: [-118.82, 48.999, -114.074, 52.412] });
+    expect(() => parseAppLink("https://canifishthis.ca/?fit=-114,49,-118,52")).toThrow("app link: fit=-114,49,-118,52 is not a box with west < east and south < north");
+    expect(() => parseAppLink("https://canifishthis.ca/?fit=a")).toThrow("is not a w,s,e,n box in degrees");
+    expect(() => parseAppLink("https://canifishthis.ca/?regs=gnis:1&fit=-118,49,-114,52")).toThrow(/a box beside a water/);
+    expect(() => parseAppLink("https://canifishthis.ca/water/x?fit=-118,49,-114,52")).toThrow(/a box beside a water/);
+  });
+
   it("a water's item comes from its own page (cift:item), the same authority the web start link reads", () => {
     expect(itemOfWaterPage(page("gnis:3062"))).toBe("gnis:3062");
     expect(() => itemOfWaterPage("<head></head>")).toThrow(/names no item/);

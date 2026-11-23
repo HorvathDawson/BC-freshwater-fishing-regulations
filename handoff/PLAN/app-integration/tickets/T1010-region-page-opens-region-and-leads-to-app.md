@@ -1,6 +1,6 @@
 # T1010 — Website: a region page's "Open the map" opens on that region; the page leads people into the real app
 
-Status: OPEN, next release batch.
+Status: PARTIAL — a088c9cd0, 54778147e: the link opens the map framed on the region; the look is the owner's pick. left (Claude): show the owner the pictures in `T1010-shots/` (options A, B, C), then build the picked look (search box, button, crawlable lists below) with its tests and Lighthouse.
 
 Source: owner 2026-11-22, on https://canifishthis.ca/region/4, verbatim: "if i click open map it doesnt center on region 4
 in the map. also that page should be designed better to lead users to go to the real app/map. it could have a search
@@ -42,3 +42,35 @@ no area. `site.test.ts:302-307` pins the bare link, so the test has to change wi
 - Tests pin both; Lighthouse SEO/accessibility not lower.
 
 Risk: low (a new start-link key, read once). Size: M. Owner: picks the look.
+
+## Done 2026-11-22 (lane L2)
+- **Start link key: `?fit=w,s,e,n`** (a088c9cd0), not `?region=n`: the box is worked out by the SEO build from the release
+  (`tools/seo` `regionBox`: around the middles of the parts each region's keys hold), so the app needs no region table and
+  the same key frames any area a page names (topic, letter, later a town). Read once like `show`, gone at the first route
+  write; a bad box, one off the globe, or one beside `regs=` / `show=` is refused out loud (`startLink.test.ts`). The Shell
+  frames the browse map on it (`landOnBox`) and does not open at the reader (`FitStart.shell.test.tsx`, mutation-checked).
+  Native has no start link (D1), but Android's App Links take `canifishthis.ca/`, so the installed app IS reached by the link:
+  it read `fit` as unread and reported it until 28e68fb69 (T605), which reads it with the same `fitOf` and frames the map.
+- **Region, letter and topic pages** (54778147e) link `https://canifishthis.ca/?fit=…` ("Open the map of Region N"; no `date`).
+  r-741815c6090d: Region 4 `?fit=-118.82,48.999,-114.074,52.412`. Region 1's box reaches Haida Gwaii (its MU 6-12 / 6-13 waters'
+  keys are region 1 in the release). `deploy/staging/site.sh` now keeps the query when it rewrites the hub link to staging.
+- NOT checked: the real MapLibre camera on that box (the render test checks the map is asked to frame exactly the box), and
+  the staging screenshot (no deploy from a lane).
+
+## The look: three options (pictures in `handoff/PLAN/app-integration/T1010-shots/`, phone 390 + desktop 1280, light + dark)
+Mock-ups on the real Region 4 page and release (the search shows suggestions for "Koo" as JavaScript would draw them):
+- **A — App first** (`option-A-*`): "Fishing in Region 4", one line on what the app does, a full-width "Open the map of
+  Region 4" button, the water search under it; then "Browse Region 4's 2785 waters" (topics, A-Z, year card) as now.
+- **B — Map preview** (`option-B-*`): a picture of the region made of its waters (each dot a part's middle, from the release)
+  with the button under it; the search beside it on desktop, below on a phone. Costs ~29 KB of SVG per region page
+  (~10 KB gzip) unless drawn as a file.
+- **C — Search first** (`option-C-*`): the search is the first thing, the map button second (outlined), three cards for
+  what the app does (open or closed today, river flows, every rule on the map), topics as chips.
+Recommendation (lane L2): **A** — one obvious next step on a phone's first screen, the search right under it, smallest page;
+B is the most inviting on desktop but heavier and the picture is not the real map.
+The search without script: a GET form; where it lands (a filtered list page per region, or the app with a query key) is
+part of building the picked look.
+
+## Owner pick 2026-11-22 23:20 (dialog with the phone pictures A/B/C)
+"B: map preview" — the dot picture of the region's waters, then the "Open the map" button and the search. Build it
+(self-hosted, ~10 KB per page as measured), phone + desktop, light + dark.

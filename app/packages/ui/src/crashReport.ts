@@ -233,6 +233,9 @@ export function answerWords(a: SendAnswer): string {
   return `${a.status === null ? "no answer" : `HTTP ${a.status}`}${a.error ? ` (${a.error})` : ""}`;
 }
 
+/** (T1005) The least time between two crash sends: the worker's per-address gap (`CRASH_GAP_MS`, 1 s) and a margin. */
+export const CRASH_SEND_GAP_MS = 1_100;
+
 /** (T242) the fatal slot's word for "the last run's fatal error was sent before the app died" */
 const FATAL_SENT = "sent";
 
@@ -249,6 +252,10 @@ export function createCrashReporter(o: {
   maxPerRun?: number;
   /** (T291) a tool's build: payloads are tagged `test` (the staging worker stores those apart and ignores them) */
   test?: boolean;
+  /** (T1005) the least time between two sends (default `CRASH_SEND_GAP_MS`), the wait and the clock it is read on */
+  gapMs?: number;
+  sleep?: (ms: number) => Promise<void>;
+  clock?: () => number;
 }): CrashReporter {
   const f = o.fetch ?? ((u: RequestInfo | URL, i?: RequestInit) => fetch(u, i));
   const now = o.now ?? (() => new Date(clockNow()));
@@ -256,7 +263,30 @@ export function createCrashReporter(o: {
   const max = o.maxPerRun ?? 5;
   const clearKept = () => { try { o.store?.write(""); } catch { /* nothing kept */ } };
 
-  async function post(p0: { format: string }): Promise<SendAnswer> {
+  /**
+   * (T1005) ONE SEND AT A TIME, AT LEAST `gapMs` APART. The worker refuses a second report from one address within 1 s
+   * (429 "too many reports; try again in a minute", `CRASH_GAP_MS`): a kept fatal error and the exit records sent back
+   * to back at a start had every record after the first refused, at every start.
+   */
+  const gap = o.gapMs ?? CRASH_SEND_GAP_MS;
+  const sleep = o.sleep ?? ((ms: number) => new Promise<void>((ok) => { setTimeout(ok, ms); }));
+  const clock = o.clock ?? clockNow;
+  let lane: Promise<unknown> = Promise.resolve();
+  let lastAt = -Infinity;
+  const spaced = (p: { format: string }): Promise<SendAnswer> => {
+    const next = lane.then(async () => {
+      const wait = lastAt + gap - clock();
+      if (wait > 0) await sleep(wait);
+      const a = await send(p);          // never rejects
+      lastAt = clock();
+      return a;
+    });
+    lane = next;
+    return next;
+  };
+  const post = spaced;
+
+  async function send(p0: { format: string }): Promise<SendAnswer> {
     const p = o.test ? { ...p0, test: true } : p0;
     let status: number | null = null;
     try {
@@ -270,9 +300,17 @@ export function createCrashReporter(o: {
   }
   /** (W46) a send the server REFUSED (an HTTP answer that is not ok) is reported, non-fatal, through this same reporter: a
    *  400 is a payload the worker does not take, and this is how the owner hears of it. No answer at all (offline, a lost
-   *  line) is the environment: said in the log line, not reported. */
+   *  line) is the environment: said in the log line, not reported.
+   *  (T1005) THE DAY'S LIMIT (429 "too many reports today", "too many new error kinds today") is the server's own quota,
+   *  not a payload it refuses: the record is KEPT and sent again at the next start (an exit record's mark stops before
+   *  it; a kept fatal error stays in its slot), said in the log line, not reported (that report would meet the same
+   *  limit). Any other 429 — the 1 s gap between two sends — is this app sending too fast, a defect: reported. */
   const refused = (what: string, a: SendAnswer) => {
     if (a.sent || a.status === null) return;
+    if (a.status === 429 && /\btoday\b/i.test(a.error ?? "")) {
+      console.warn(`[crash-reports] ${what} was held by the crash server's day limit (${answerWords(a)}): sent again at the next start`);
+      return;
+    }
     const e = new Error(`${what} was refused by the crash server: ${answerWords(a)}`);
     e.name = "CrashReportRefused";
     reportFailure(e);
@@ -438,7 +476,8 @@ const BAD_EXITS: readonly string[] = ["CRASH", "CRASH_NATIVE", "ANR", "LOW_MEMOR
  * Java out-of-memory the JS handler never saw is reported). The same switch, scrubbing and server as every other error; nothing
  * for a normal exit. Every exit is looked at once: the newest timestamp seen is kept (`seen`), but only when sending was
  * possible (switch on and online) - offline, the system still holds them for the next start. A plain "CRASH" is skipped when the
- * last run's JS error was kept and sent (`jsFatalSent`): that is the same event. At most `max` a start, newest first.
+ * last run's JS error was kept and sent (`jsFatalSent`): that is the same event. At most `max` a start (the newest), sent oldest
+ * first.
  */
 export async function reportPastExits(o: { reporter: CrashReporter; source: ExitSource | null; seen: TextStore | null; setting: CrashSetting;
                                            online: () => boolean; jsFatalSent: boolean; max?: number }): Promise<number> {
@@ -449,16 +488,19 @@ export async function reportPastExits(o: { reporter: CrashReporter; source: Exit
       .sort((a, b) => b.timestamp - a.timestamp);
     let sent = 0, failedAt = Infinity;
     const answers: string[] = [];
-    for (const r of list.slice(0, o.max ?? 3)) {
+    // (T1005) the newest `max`, SENT OLDEST FIRST and stopped at the first that fails: the mark below then passes only
+    // records the server took. Newest first, a refused older record held the mark below a newer one already stored, and
+    // that one went again at every start (and the refused one never did).
+    for (const r of list.slice(0, o.max ?? 3).reverse()) {
       if (r.reason === "CRASH" && o.jsFatalSent) continue;
       const a = await o.reporter.sendExit(r);
       answers.push(answerWords(a));
-      if (a.sent) sent++;
-      else failedAt = Math.min(failedAt, r.timestamp);
+      if (!a.sent) { failedAt = r.timestamp; break; }
+      sent++;
     }
     const all = await o.source.recent(since);
-    // (T242 test bed) a record whose send FAILED (server unreachable or refusing) is looked at again at the next start: the
-    // mark stops just before the oldest one that failed
+    // (T242 test bed) a record whose send FAILED (server unreachable or refusing) is looked at again at the next start, and
+    // every newer one with it: the mark stops just before it
     const newest = Math.min(all.reduce((m, r) => Math.max(m, r.timestamp), since), failedAt - 1);
     try { o.seen?.write(String(newest)); } catch { /* looked at again next start */ }
     console.info(`[crash-reports] sent ${sent} exit record(s); ${all.length} new in the system's record (${all.map((r) => r.reason).join(",")}), ${list.length} bad${answers.length ? `; answers: ${answers.join(", ")}` : ""}`);   // the test bed reads this line (logcat, app-os.log)

@@ -15,6 +15,7 @@ import type { Camera, TileEndpoints } from "@app/map";
 import { FIELD_HANDOVER_Z, imageryTiles } from "@app/map/colours";
 import { connectivity } from "../connectivity";
 import { imageryProbe } from "../imageryProbe";
+import { usePrewarmRuns } from "./prewarm";
 
 /** Where the map starts the FIRST time. After that the camera is whatever the user left. */
 // z10, above the field's handover: the app opens on rivers you can tap on the Conditions map too
@@ -187,6 +188,8 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   const runsOffered = !!runTiming;
   const runs = useRunTiming({ source: runTiming, wanted: mapTab === "runs", paired, tiles: vintage.tiles,
                               store: runSpeciesStore });
+  // (T1013) a phone reads the Runs feed ahead, idle after the map is paired: the tab's first open finds it read
+  usePrewarmRuns(runTiming, paired);
   const runsShown = mapTab === "runs" && runs.feed !== null;
   const regsShown: RegsLayer = regsLayer === "salmon" && salmonOffered && salmon.feed !== null ? "salmon" : "standard";
   const salmonLoading = regsLayer === "salmon" && salmonOffered && salmon.loading;

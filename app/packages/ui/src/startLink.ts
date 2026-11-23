@@ -29,9 +29,33 @@ import { HOME, reduce, waterFrame, type BrowseTab, type LatLon, type Route, type
  *  2026-11-04: the address holds what defines the view a reader would share or reload into) `here` / `tap` the tapped
  *  point, `browse` the tab, `spot` an open spot, `date` the chosen day when not today, `horizon` the Conditions
  *  forecast day; transient UI (folds, scroll memory) is not in it. */
-export const ROUTE_KEYS = ["regs", "blk", "m", "whole", "ix", "view", "tab", "sheet", "scroll", "show",
+export const ROUTE_KEYS = ["regs", "blk", "m", "whole", "ix", "view", "tab", "sheet", "scroll", "show", "fit",
                           "here", "tap", "browse", "spot", "date", "horizon"] as const;
 const BROWSE_TABS: readonly BrowseTab[] = ["map", "conditions", "runs", "spots", "more"];
+
+/** (T1010) A box on the map, [west, south, east, north] in degrees. */
+export type FitBox = readonly [w: number, s: number, e: number, n: number];
+/**
+ * (T1010, owner 2026-11-22: "if i click open map it doesnt center on region 4") A BOX TO OPEN THE MAP ON: `?fit=w,s,e,n`, read
+ * once at start like `show` and gone at the first route write. The site's region, topic and letter pages link with it, the box
+ * worked out by the SEO build from the release (each region's waters, `tools/seo` `regionBox`), so the app holds no table of
+ * region boxes and the same key frames any area a page names. Degrees to 3 places (about 100 m: a frame, not a place), rounded
+ * outward so the box still holds what it was made around.
+ */
+export function fitQuery(b: FitBox): string {
+  const out = (x: number, up: boolean) => String((up ? Math.ceil : Math.floor)(Math.round(x * 1e6) / 1e3) / 1e3);
+  return `?fit=${[out(b[0], false), out(b[1], false), out(b[2], true), out(b[3], true)].join(",")}`;
+}
+/** (T1010, T605) `fit`'s value as a box, or why it is not one (west < east, south < north, on the globe): the one reading of
+ *  the key, for the web's start link and the phone's app link (`appLink.ts`). */
+export function fitOf(v: string): FitBox | string {
+  const n = v.split(",");
+  if (n.length !== 4 || n.some((x) => !/^-?\d+(\.\d+)?$/.test(x))) return "a w,s,e,n box in degrees";
+  const [w, s, e, no] = n.map(Number) as [number, number, number, number];
+  if (w < -180 || e > 180 || s < -90 || no > 90) return "a box on the globe (lon -180..180, lat -90..90)";
+  if (!(w < e && s < no)) return "a box with west < east and south < north";
+  return [w, s, e, no];
+}
 
 /** (T369) What the address keeps beside the route: the Shell's one day (null: today) and the Conditions horizon. */
 export interface AddressState { day: Date | null; horizon: Horizon }
@@ -126,6 +150,8 @@ export interface StartLink {
    * last was. Null: none.
    */
   arrive: ItemId | null;
+  /** (T1010) `?fit=w,s,e,n`: the map opens framed on this box (nothing lit). Absent: none. Never beside a water (`regs`, `show`). */
+  fit?: FitBox;
 }
 
 /**
@@ -277,14 +303,20 @@ export function parseStartLink(search: string, now: Date = bcNow()): StartLink |
     const browseS = q.get("browse"), spot = q.get("spot");
     const tab = browseS === null ? HOME.tab
       : (BROWSE_TABS as readonly string[]).includes(browseS) ? (browseS as BrowseTab) : bad("browse", BROWSE_TABS.join("|"));
-    if (show === null && browseS === null && spot === null && day === null && !past && horizon === null) return null;
+    // (T1010) `?fit=w,s,e,n`: the map framed on a box (a region page's "Open the map")
+    const fitS = q.get("fit");
+    const fit = fitS === null ? null : typeof fitOf(fitS) === "string" ? bad("fit", fitOf(fitS) as string) : (fitOf(fitS) as FitBox);
+    if (show === null && fit === null && browseS === null && spot === null && day === null && !past && horizon === null) return null;
     if (show !== null && !ITEM.test(show)) bad("show", "an item id");
+    if (show !== null && fit !== null) bad("fit", "a box beside show= (a link frames one or the other)");
     const browse = reduce(HOME, { type: "tab", tab });
     const route = spot !== null ? reduce(browse, { type: "openSpot", id: spot }) : browse;
     return { route, day, regs: { tab: "keep", sheet: null, scroll: 0 }, who: null, theme: null,
-             arrive: show as ItemId | null, place: null, notice: past ? "day-past" : null, horizon };
+             arrive: show as ItemId | null, place: null, notice: past ? "day-past" : null, horizon, ...(fit ? { fit } : {}) };
   }
   if (item !== null && !ITEM.test(item)) bad("regs", "an item id");
+  // (T1010) a water's link opens on the water: a box beside it would be two places at once
+  if (q.has("fit")) bad("fit", "a box beside a water (regs= or a place)");
 
   const index = (k: string, what: string): number | null => {
     const v = q.get(k);

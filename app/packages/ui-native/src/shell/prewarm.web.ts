@@ -1,3 +1,4 @@
+import type { RunTimingSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 
 /**
@@ -6,3 +7,6 @@ import type { ReleaseLoader } from "@app/data/release";
  * prewarm.native.ts.
  */
 export function usePrewarmRegs(_loader: ReleaseLoader | null): void {}
+
+/** (T1013) Nothing on the web: the Runs feed is read when the tab is opened (nothing is fetched unasked). */
+export function usePrewarmRuns(_source: RunTimingSource | null | undefined, _paired: boolean): void {}

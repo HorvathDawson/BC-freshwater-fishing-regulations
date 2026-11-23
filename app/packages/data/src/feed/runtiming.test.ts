@@ -35,6 +35,20 @@ describe("httpRunTiming", () => {
     expect(store.text).not.toBeNull();
   });
 
+  it("(T1013) the answer does not wait for the capture's write; the capture still lands", async () => {
+    let finish: () => void = () => {};
+    const written: string[] = [];
+    const slow: RunTimingStore = { read: async () => null,
+      write: (t) => new Promise<void>((ok) => { finish = () => { written.push(t); ok(); }; }) };
+    const got = await httpRunTiming("o", slow, serve({ "index.json": JSON.stringify(index), "runs-a.json.gz": runs,
+                                                      "paint-b.json.gz": paint })).latest();
+    expect(got?.from).toBe("live");                 // answered while the write is still going
+    expect(written).toEqual([]);
+    finish();
+    await Promise.resolve();
+    expect(written).toHaveLength(1);
+  });
+
   it("offline, the last capture answers; an unchanged index fetches no file again", async () => {
     const store = memStore();
     await httpRunTiming("o", store, serve({ "index.json": JSON.stringify(index), "runs-a.json.gz": runs,

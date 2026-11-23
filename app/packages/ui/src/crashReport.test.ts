@@ -268,7 +268,7 @@ describe("why the last run ended (Android exit records, T242)", () => {
       if (over.fail?.(p)) return new Response("{}", { status: 503 });
       sent.push(p); return new Response("{}", { status: 201 });
     });
-    const reporter = createCrashReporter({ url: "u", setting, online: () => over.online !== false, context: () => ctx, fetch: fetch as never, now: () => NOW });
+    const reporter = createCrashReporter({ url: "u", setting, online: () => over.online !== false, context: () => ctx, fetch: fetch as never, now: () => NOW, gapMs: 0 });
     const { reportPastExits } = await import("./crashReport");
     const n = await reportPastExits({ reporter, source: { recent: async (s) => recs.filter((r) => r.timestamp > s) }, seen: { read: () => mem.v, write: (t) => { mem.v = t; } },
                                       setting, online: () => over.online !== false, jsFatalSent: over.jsFatalSent ?? false });
@@ -277,13 +277,14 @@ describe("why the last run ended (Android exit records, T242)", () => {
   it("sends a native crash, an ANR and an out-of-memory kill as kind native with no stack, once", async () => {
     const t = await setup([rec("CRASH_NATIVE", 3000, { status: 11 }), rec("ANR", 2000), rec("EXIT_SELF", 1500), rec("LOW_MEMORY", 1000, { importance: "BACKGROUND" })]);
     expect(t.n).toBe(3);
+    // (T1005) oldest first
     expect(t.sent.map((p) => p.message)).toEqual([
-      "CRASH_NATIVE while foreground, 512 MB in use, status 11", "ANR while foreground, 512 MB in use", "LOW_MEMORY while background, 512 MB in use"]);
-    expect(t.sent[0]).toMatchObject({ kind: "native", fatal: true, background: false, route: "other", name: "NativeExit", stack: "" });
+      "LOW_MEMORY while background, 512 MB in use", "ANR while foreground, 512 MB in use", "CRASH_NATIVE while foreground, 512 MB in use, status 11"]);
+    expect(t.sent[2]).toMatchObject({ kind: "native", fatal: true, background: false, route: "other", name: "NativeExit", stack: "" });
     // (T352) the screen at the time is not known: no water is named (the context's is this run's, not the dead one's)
-    expect(t.sent[0]).toMatchObject({ ...NO_WHERE, install: "0123456789abcdef" });
+    expect(t.sent[2]).toMatchObject({ ...NO_WHERE, install: "0123456789abcdef" });
     // a low-memory kill in the background is not a crash: sent non-fatal, marked
-    expect(t.sent[2]).toMatchObject({ fatal: false, background: true });
+    expect(t.sent[0]).toMatchObject({ fatal: false, background: true });
     expect(t.mem.v).toBe("3000");
     const again = await setup([rec("CRASH_NATIVE", 3000)], { seen: t.mem.v });
     expect(again.n).toBe(0);
@@ -296,10 +297,43 @@ describe("why the last run ended (Android exit records, T242)", () => {
     const net = await setup([rec("ANR", 5)], { online: false });
     expect(net.n).toBe(0); expect(net.mem.v).toBeNull();
   });
-  it("(T242 test bed) a record whose send failed is looked at again: the mark stops just before it", async () => {
+  it("(T242 test bed) a record whose send failed is looked at again, with every newer one: the mark stops just before it", async () => {
     const t = await setup([rec("CRASH_NATIVE", 3000, { status: 11 }), rec("ANR", 2000), rec("ANR", 1000, { status: 3 })], { fail: (p) => /ANR/.test(p.message) && !/status/.test(p.message) });
-    expect(t.n).toBe(2);
+    expect(t.n).toBe(1);                  // 1000 sent; 2000 refused, so 3000 waits for the next start with it
+    expect(t.sent.map((p) => p.message)).toEqual(["ANR while foreground, 512 MB in use, status 3"]);
     expect(t.mem.v).toBe("1999");
+  });
+  it("(T1005) against the worker's 1 s gap: every record is stored once over three starts, none twice, the kept fatal error too", async () => {
+    // the worker's rule (reports.ts rateLimit): a second report from one address within 1 s is a 429
+    let clock = 10_000, last = -Infinity;
+    const stored: string[] = [];
+    const fetch = vi.fn(async (_u: unknown, i?: RequestInit) => {
+      if (clock - last < 1000) return new Response('{"ok":false,"error":"too many reports; try again in a minute"}', { status: 429 });
+      last = clock;
+      stored.push(JSON.parse(String(i?.body)).message);
+      return new Response("{}", { status: 201 });
+    });
+    const recs = [rec("CRASH_NATIVE", 3000, { status: 11 }), rec("ANR", 2000)];
+    const mem = { v: null as string | null };
+    const failures: unknown[] = [];
+    const unsink = setFailureSink((e) => { failures.push(e); });
+    const info = vi.spyOn(console, "info").mockImplementation(() => {});
+    const { reportPastExits } = await import("./crashReport");
+    for (let start = 0; start < 3; start++) {
+      const setting = createCrashSetting(null);
+      const kept = { v: start === 0 ? JSON.stringify(crashPayload({ error: new Error("fatal"), kind: "js", fatal: true, ctx, now: NOW })) : "" };
+      const reporter = createCrashReporter({ url: "u", setting, online: () => true, context: () => ctx, fetch: fetch as never, now: () => NOW,
+                                             store: { read: () => kept.v, write: (t) => { kept.v = t; } },
+                                             clock: () => clock, sleep: async (ms) => { clock += ms; } });
+      await reporter.flush();
+      await reportPastExits({ reporter, source: { recent: async (s) => recs.filter((r) => r.timestamp > s) },
+                              seen: { read: () => mem.v, write: (t) => { mem.v = t; } }, setting, online: () => true, jsFatalSent: false });
+      clock += 60_000;
+    }
+    info.mockRestore(); unsink();
+    expect(stored).toEqual(["fatal", "ANR while foreground, 512 MB in use", "CRASH_NATIVE while foreground, 512 MB in use, status 11"]);
+    expect(failures).toEqual([]);
+    expect(mem.v).toBe("3000");
   });
 });
 
@@ -315,10 +349,11 @@ describe("(iOS crash lane) an iOS exit record, its payload and the server's answ
       name: "NativeExit", message: "CRASH_NATIVE while foreground, 274 MB in use, status 11: SIGSEGV", stack: "",
     });
   });
-  it("a refusal (the worker's per-address day limit): not sent, its status and words in the log line, reported, looked at again", async () => {
+  it("(T1005) the worker's per-address day limit (429): not sent, its status and words in the log line, NOT reported, looked at again", async () => {
     const failures: unknown[] = [];
     const unsink = setFailureSink((e) => { failures.push(e); });
     const info = vi.spyOn(console, "info").mockImplementation(() => {});
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const fetch = vi.fn(async () => new Response(JSON.stringify({ ok: false, error: "too many reports today" }), { status: 429 }));
     const setting = createCrashSetting(null);
     const reporter = createCrashReporter({ url: "u", setting, online: () => true, context: () => IOS_CTX, fetch: fetch as never, now: () => NOW });
@@ -326,12 +361,35 @@ describe("(iOS crash lane) an iOS exit record, its payload and the server's answ
     const n = await reportPastExits({ reporter, source: { recent: async () => [IOS] }, seen: { read: () => mem.v, write: (t) => { mem.v = t; } },
                                       setting, online: () => true, jsFatalSent: false });
     const line = info.mock.calls.map((c) => String(c[0])).find((l) => l.startsWith("[crash-reports] sent"));
-    info.mockRestore(); unsink();
+    const held = warn.mock.calls.map((c) => String(c[0]));
+    info.mockRestore(); warn.mockRestore(); unsink();
     expect(n).toBe(0);
     expect(line).toBe("[crash-reports] sent 0 exit record(s); 1 new in the system's record (CRASH_NATIVE), 1 bad; answers: HTTP 429 (too many reports today)");
-    expect(failures.map((e) => `${(e as Error).name}: ${(e as Error).message}`)).toEqual(
-      ["CrashReportRefused: an exit record was refused by the crash server: HTTP 429 (too many reports today)"]);
+    expect(failures).toEqual([]);
+    expect(held).toEqual(["[crash-reports] an exit record was held by the crash server's day limit (HTTP 429 (too many reports today)): sent again at the next start"]);
     expect(mem.v).toBe(String(IOS.timestamp - 1));   // the next start sends it again
+  });
+  it("(T1005) the 1 s gap's 429 is this app sending too fast: reported, not held as the day limit", async () => {
+    const failures: unknown[] = [];
+    const unsink = setFailureSink((e) => { failures.push(e); });
+    const setting = createCrashSetting(null);
+    const reporter = createCrashReporter({ url: "u", setting, online: () => true, context: () => IOS_CTX, now: () => NOW, gapMs: 0,
+      fetch: (async () => new Response('{"ok":false,"error":"too many reports; try again in a minute"}', { status: 429 })) as never });
+    await reporter.sendExit(IOS);
+    unsink();
+    expect(failures.map((e) => (e as Error).message)).toEqual(
+      ["an exit record was refused by the crash server: HTTP 429 (too many reports; try again in a minute)"]);
+  });
+  it("any other refusal (a 400: a payload the worker does not take) is still reported", async () => {
+    const failures: unknown[] = [];
+    const unsink = setFailureSink((e) => { failures.push(e); });
+    const setting = createCrashSetting(null);
+    const reporter = createCrashReporter({ url: "u", setting, online: () => true, context: () => IOS_CTX, now: () => NOW,
+                                           fetch: (async () => new Response('{"ok":false,"error":"unknown x"}', { status: 400 })) as never });
+    await reporter.sendExit(IOS);
+    unsink();
+    expect(failures.map((e) => `${(e as Error).name}: ${(e as Error).message}`)).toEqual(
+      ["CrashReportRefused: an exit record was refused by the crash server: HTTP 400 (unknown x)"]);
   });
   it("accepted: sent, the line says HTTP 201; no answer at all (offline line) is said, not reported", async () => {
     const failures: unknown[] = [];
