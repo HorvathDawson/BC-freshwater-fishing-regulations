@@ -10,7 +10,7 @@
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { INBOX_WORDS, INSEASON_FAILURES, inSeasonAbsentWaters, inSeasonBanner, inSeasonCover, reportFailure, isoDayOf, joinInSeason,
-         inboxDetail, inboxMark, inboxMerge, inboxPrompted, inboxRead, inboxReadAll, inboxTarget, inboxText, inboxUnread,
+         inboxDetail, inboxEventKind, inboxMark, inboxMerge, inboxObserve, inboxPrompted, inboxRead, inboxReadAll, inboxTarget, inboxText, inboxUnread, inboxUnreadIds,
          inboxVM, inboxWantsOpen, parseInbox,
          type InboxArrival, type InboxDetailVM, type InboxState, type InboxVM,
          type InSeasonBannerVM, type InSeasonChange, type InSeasonCover, type InSeasonSection,
@@ -271,6 +271,12 @@ export interface InSeasonInboxReads {
 }
 export const InSeasonInboxContext = createContext<InSeasonInboxReads | null>(null);
 
+/** (T867) what `inboxObserve` is told: the release in use and the app version */
+export interface InboxTrack {
+  readonly release: { readonly id: string; readonly day: string | null; readonly changed?: number | null } | null;
+  readonly app: string | null;
+}
+
 export interface InSeasonInboxState {
   /** the list, grouped "New" then "Earlier" (core `inboxVM`) */
   readonly vm: InboxVM;
@@ -286,7 +292,11 @@ export interface InSeasonInboxState {
   /** a row tapped: read; its one water's page (`onOpenWater`), else its text */
   pick(id: string): void;
   back(): void;
-  readAll(): void;
+  /**
+   * (T867) the bell's sheet is up (true) or closed (false). Up: what is unread now is this open's "New" and the history
+   * reads it (the badge clears); closed: the next open lists it under "Earlier".
+   */
+  shown(up: boolean): void;
   /** the sheet closed: back to the list, and what it opened by itself for is not opened for again */
   close(): void;
   readonly reads: InSeasonInboxReads;
@@ -300,7 +310,12 @@ export interface InSeasonInboxState {
  */
 export function useInSeasonInbox(now: InSeasonNow, store: InSeasonSeenStore | null | undefined,
                                  seenStore: InSeasonSeenStore | null | undefined,
-                                 onOpenWater: (item: string, id: string) => void): InSeasonInboxState {
+                                 onOpenWater: (item: string, id: string) => void,
+                                 /** (T867) what the app did: the data release in use (its id, published day, how many waters it changed when
+                                  *  it says) and the app's version; a change from the last seen is a row. Null: not known yet. */
+                                 track: InboxTrack | null = null,
+                                 /** (T867) a data / app update row tapped */
+                                 onOpenUpdate: (kind: "data" | "app") => void = () => undefined): InSeasonInboxState {
   const [state, setState] = useState<InboxState | null>(() => {
     if (!store) return null;
     try { return parseInbox(store.read()); }
@@ -311,6 +326,8 @@ export function useInSeasonInbox(now: InSeasonNow, store: InSeasonSeenStore | nu
   });
   const [detail, setDetail] = useState<string | null>(null);
   const [opened, setOpened] = useState(false);
+  /** (T867) the ids unread when the sheet opened: this open's "New" (the history already reads them) */
+  const [fresh, setFresh] = useState<ReadonlySet<string>>(new Set());
   /** the notice a row opened its water's page at, and the mark it had: the page shows it once though it is read now */
   const focus = useRef<{ id: string; mark: InboxArrival | null } | null>(null);
   const today = isoDayOf(bcNow());
@@ -327,9 +344,19 @@ export function useInSeasonInbox(now: InSeasonNow, store: InSeasonSeenStore | nu
   useEffect(() => {
     if (!now.data) return;
     const was = stateRef.current;
-    const next = inboxMerge(was, now.data.feed, now, today, was ? new Set() : readSeen(seenStore));
+    // (T867) a first read: no history, or one only an update row made
+    const first = !was || (was.items.length === 0 && !was.known);
+    const next = inboxMerge(was, now.data.feed, now, today, first ? readSeen(seenStore) : new Set());
     if (!was || inboxText(next) !== inboxText(was)) save(next);
   }, [now, today, save, seenStore]);
+  // (T867) the release in use and the app's version: a change from the last seen is a row (the first time: recorded, no row)
+  const trackKey = JSON.stringify(track);
+  useEffect(() => {
+    if (!track) return;
+    const was = stateRef.current;
+    const next = inboxObserve(was, track, today);
+    if (next !== was) save(next);
+  }, [trackKey, today, save]);   // eslint-disable-line react-hooks/exhaustive-deps -- `trackKey` is `track`
   useEffect(() => { if (inboxWantsOpen(state)) setOpened(true); }, [state]);
   const update = useCallback((f: (s: InboxState) => InboxState) => {
     const s = stateRef.current;
@@ -341,15 +368,22 @@ export function useInSeasonInbox(now: InSeasonNow, store: InSeasonSeenStore | nu
     setOpened(false); setDetail(null);
     update(inboxPrompted);
   }, [update]);
+  const shown = useCallback((up: boolean) => {
+    if (!up) { setFresh((f) => (f.size ? new Set() : f)); return; }
+    setFresh(new Set(inboxUnreadIds(stateRef.current)));
+    update(inboxReadAll);
+  }, [update]);
   const pick = useCallback((id: string) => {
     const s = stateRef.current;
     update((x) => inboxRead(x, [id]));
+    const kind = inboxEventKind(s, id);
+    if (kind) { close(); onOpenUpdate(kind); return; }
     const to = inboxTarget(s, id);
     if (!to) { setDetail(id); return; }
     focus.current = { id, mark: inboxMark(s, id) };
     close();
     onOpenWater(to.item, id);
-  }, [update, close, onOpenWater]);
+  }, [update, close, onOpenWater, onOpenUpdate]);
   const reads = useMemo<InSeasonInboxReads>(() => ({
     markOf: (id) => (focus.current?.id === id ? focus.current.mark : inboxMark(stateRef.current, id)),
     read: (ids) => update((x) => inboxRead(x, ids)),
@@ -359,7 +393,7 @@ export function useInSeasonInbox(now: InSeasonNow, store: InSeasonSeenStore | nu
       return true;
     },
   }), [update]);
-  const vm = useMemo(() => inboxVM(state, today), [state, today]);
+  const vm = useMemo(() => inboxVM(state, today, fresh), [state, today, fresh]);
   const count = inboxUnread(state);
   return {
     vm, detail: detail ? inboxDetail(state, detail, today) : null,
@@ -368,6 +402,6 @@ export function useInSeasonInbox(now: InSeasonNow, store: InSeasonSeenStore | nu
     failure: now.failure ? (now.failureRows ? INBOX_WORDS.failureRows(now.failureRows.unread, now.failureRows.of) : INBOX_WORDS.failure)
       : now.data?.feed.unread ? INBOX_WORDS.unreadRows(now.data.feed.unread) : null,
     count, label: count ? INBOX_WORDS.badge(count) : null,
-    open: opened, pick, back: () => setDetail(null), readAll: () => update(inboxReadAll), close, reads,
+    open: opened, pick, back: () => setDetail(null), shown, close, reads,
   };
 }

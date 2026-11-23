@@ -22,6 +22,14 @@
  * ENDS: when it leaves the page (the feed's `removed`), its `to` passes, or it is no longer in effect. KEPT: until
  * `INBOX_KEEP_DAYS_AFTER_END` days after it ended, and at most `INBOX_MAX_ITEMS` notices (the newest).
  *
+ * (T867, owner 2026-11-22 "Build all four") THE INBOX IS WHAT HAPPENED SINCE INSTALL, READ WHEN SEEN, SHORT, AND ALSO SAYS
+ * WHAT THE APP DID: (1) a notice in effect at the first read stays out of the history (it is on its water's page) unless
+ * it is not on the map — the inbox is its only home; (2) OPENING the inbox reads what it shows: "New" is what was unread
+ * at the open (`inboxVM`'s `fresh`), the badge clears, the next open lists them under "Earlier"; (3) "Earlier" is the last
+ * `EARLIER_DAYS` days, at most `EARLIER_ROWS` rows; (4) a data release put in use and an app update are rows of their own
+ * (`events`, seen by `inboxObserve`). A history an older app wrote is migrated once (`rev`): what it showed matched stays
+ * read, so an update never makes the whole backlog "New".
+ *
  * Every sentence is composed here, whole (AGENTS 33).
  */
 import { MONTHS } from "./calendar.generated";
@@ -34,6 +42,11 @@ export const INBOX_KEEP_DAYS_AFTER_END = 30;
 export const INBOX_MAX_ITEMS = 200;
 /** the device's own history file (never a feed: nothing outside this device reads it) */
 const INBOX_FORMAT = "inseason-inbox/1";
+/** (T867) "Earlier" lists the last this many days, at most this many rows */
+export const EARLIER_DAYS = 30;
+export const EARLIER_ROWS = 20;
+/** (T867) the history's revision: 2 reads on open, keeps no first-read backlog, and holds data/app events */
+const INBOX_REV = 2;
 
 /** how a notice arrived: a new notice, or the feed's amendment of an earlier one */
 export type InboxArrival = "new" | "updated";
@@ -60,9 +73,29 @@ export interface InboxItem {
   readonly ended: string | null;
 }
 
+/** (T867) a data release put in use, or an app update: a row of the inbox */
+export interface InboxEvent {
+  /** "data:<release>" or "app:<version>" */
+  readonly id: string;
+  readonly kind: "data" | "app";
+  /** the day it happened: a release's published day (else the day this device met it), "YYYY-MM-DD" */
+  readonly at: string;
+  /** an app update: the version it went to; a data release: null */
+  readonly version: string | null;
+  /** a data release: how many waters changed, when the release says (null: it does not, and nothing is said) */
+  readonly changed: number | null;
+  readonly read: boolean;
+}
+
 export interface InboxState {
   readonly format: typeof INBOX_FORMAT;
+  /** (T867) absent: written before the inbox read on open (`parseInbox` migrates it once) */
+  readonly rev?: typeof INBOX_REV;
   readonly items: readonly InboxItem[];
+  /** (T867) data and app updates, newest first */
+  readonly events?: readonly InboxEvent[];
+  /** (T867) the release id and app version this device last saw: a change from them is an event. Absent: none seen yet. */
+  readonly base?: { readonly release: string | null; readonly app: string | null };
   /** (T983) the feed rows (ids, sorted) this device has met begun — in effect or ended — while they are on the page.
    *  Absent: a history an app before 0.8.5 wrote (`inboxMerge` reads the feed's statuses once in its place). */
   readonly known?: readonly string[];
@@ -85,6 +118,12 @@ function isItem(x: unknown): x is InboxItem {
  * The history as this device wrote it. Null text: none yet (a first read). Anything else it cannot read THROWS, naming
  * it — the caller reports it and starts again; never a quiet empty history.
  */
+function isEvent(x: unknown): x is InboxEvent {
+  const e = x as InboxEvent | null;
+  return !!e && typeof e === "object" && isStr(e.id) && (e.kind === "data" || e.kind === "app") && isDay(e.at)
+    && (e.version === null || isStr(e.version)) && (e.changed === null || Number.isInteger(e.changed)) && typeof e.read === "boolean";
+}
+
 export function parseInbox(text: string | null): InboxState | null {
   if (text === null) return null;
   const j = JSON.parse(text) as Partial<InboxState> | null;
@@ -92,9 +131,19 @@ export function parseInbox(text: string | null): InboxState | null {
     throw new Error(`in-season inbox: ${(j as { format?: unknown } | null)?.format ?? "no format"}, but this app reads ${INBOX_FORMAT}`);
   const bad = j.items.findIndex((i) => !isItem(i));
   if (bad >= 0) throw new Error(`in-season inbox: item ${bad} cannot be read`);
-  if (j.known === undefined) return { format: INBOX_FORMAT, items: j.items };
-  if (!Array.isArray(j.known) || !j.known.every(isStr)) throw new Error("in-season inbox: its known notices cannot be read");
-  return { format: INBOX_FORMAT, items: j.items, known: j.known };
+  if (j.known !== undefined && (!Array.isArray(j.known) || !j.known.every(isStr)))
+    throw new Error("in-season inbox: its known notices cannot be read");
+  if (j.rev !== undefined && j.rev !== INBOX_REV) throw new Error(`in-season inbox: revision ${String(j.rev)}, but this app reads ${INBOX_REV}`);
+  const events = j.events ?? [];
+  if (!Array.isArray(events) || events.some((e) => !isEvent(e))) throw new Error("in-season inbox: its update rows cannot be read");
+  const b = j.base;
+  if (b !== undefined && (!b || typeof b !== "object" || !(b.release === null || isStr(b.release)) || !(b.app === null || isStr(b.app))))
+    throw new Error("in-season inbox: its last seen versions cannot be read");
+  // (T867) a history an older app wrote: what it showed matched is read (the backlog is not New again); one not on the map
+  // stays as it was (the inbox is its only home). Migrated once: `rev` says so.
+  const items = j.rev === undefined ? j.items.map((i) => (i.waters !== null && !i.read ? { ...i, read: true } : i)) : j.items;
+  return { format: INBOX_FORMAT, rev: INBOX_REV, items, ...(j.events ? { events: j.events } : {}), ...(b ? { base: b } : {}),
+           ...(j.known ? { known: j.known } : {}) };
 }
 
 export const inboxText = (s: InboxState): string => JSON.stringify(s);
@@ -116,7 +165,8 @@ export function inboxMerge(state: InboxState | null, feed: InSeasonFeed,
                            live: { readonly matched: readonly InSeasonChange[]; readonly unmatched: readonly InSeasonChange[];
                                    readonly ended: readonly string[] },
                            today: string, seen: ReadonlySet<string> = new Set()): InboxState {
-  const first = state === null;
+  // (T867) a first read: no history, or one only an update row made (no notice met yet)
+  const first = state === null || (state.items.length === 0 && !state.known);
   // (T983) met begun before this read: the history's own list, or — for a history written before it — the feed's word
   // that the row was on the page before ("unchanged": neither "new" nor "changed")
   const knew = state?.known ? new Set(state.known) : null;
@@ -159,6 +209,8 @@ export function inboxMerge(state: InboxState | null, feed: InSeasonFeed,
     }
     // a first read, or (T983) a notice met begun before that enters again (not an amendment the feed links): quiet
     const quiet = (first || (!linked && known(c.id))) && (waters !== null || seen.has(c.id));
+    // (T867) in effect before this device began counting, and on its water's page: not a history row
+    if (quiet && waters !== null) continue;
     out.set(c.id, { ...now, arrived: linked ? "updated" : "new",
                     at: dayOf(linked ? r?.changedAt : r?.firstSeen) ?? today,
                     read: quiet, prompted: quiet || seen.has(c.id) });
@@ -178,23 +230,59 @@ export function inboxMerge(state: InboxState | null, feed: InSeasonFeed,
   // (T983) what this device has met begun, while it is on the page (a row gone from it is forgotten)
   const gone = new Set(feed.removed.map((r) => r.id));
   const met = [...new Set([...(state?.known ?? []), ...liveIds, ...live.ended])].filter((id) => rows.has(id) && !gone.has(id)).sort();
-  return { format: INBOX_FORMAT, items, known: met };
+  return { ...(state ?? { format: INBOX_FORMAT, rev: INBOX_REV }), format: INBOX_FORMAT, rev: INBOX_REV, items, known: met };
 }
 
 /** these ids read (a row opened, a mark seen on its page) */
 export function inboxRead(s: InboxState, ids: readonly string[]): InboxState {
   const want = new Set(ids);
-  return { ...s, items: s.items.map((i) => (want.has(i.id) && !i.read ? { ...i, read: true } : i)) };
+  return { ...s, items: s.items.map((i) => (want.has(i.id) && !i.read ? { ...i, read: true } : i)),
+           ...(s.events ? { events: s.events.map((e) => (want.has(e.id) && !e.read ? { ...e, read: true } : e)) } : {}) };
 }
-/** "Mark all as read" */
-export const inboxReadAll = (s: InboxState): InboxState => ({ ...s, items: s.items.map((i) => (i.read ? i : { ...i, read: true })) });
+/** (T867) THE INBOX OPENED: everything it shows is read (the badge clears); `inboxUnreadIds` says first what was unread */
+export const inboxReadAll = (s: InboxState): InboxState => ({
+  ...s, items: s.items.map((i) => (i.read ? i : { ...i, read: true })),
+  ...(s.events ? { events: s.events.map((e) => (e.read ? e : { ...e, read: true })) } : {}),
+});
+/** (T867) the ids unread right now: the open's "New" */
+export const inboxUnreadIds = (s: InboxState | null): readonly string[] =>
+  s ? [...s.items.filter((i) => !i.read).map((i) => i.id), ...(s.events ?? []).filter((e) => !e.read).map((e) => e.id)] : [];
+
+/**
+ * (T867) WHAT THE APP DID: a data release put in use and an app update are rows. `seen`: the release in use (its id and the
+ * day it was published, null when the manifest states none) and the app's version. The first time a device sees them
+ * there is nothing to compare with: they are recorded, no row (since install only). A release id or version that differs
+ * from the last seen is a row. `changed`: how many waters the release changed, when it says (null: nothing is said).
+ */
+export function inboxObserve(state: InboxState | null,
+                             seen: { readonly release: { readonly id: string; readonly day: string | null; readonly changed?: number | null } | null;
+                                     readonly app: string | null },
+                             today: string): InboxState {
+  const s: InboxState = state ?? { format: INBOX_FORMAT, rev: INBOX_REV, items: [] };
+  const b = s.base;
+  const next = { release: seen.release?.id ?? b?.release ?? null, app: seen.app ?? b?.app ?? null };
+  if (!b) return { ...s, base: next };
+  const added: InboxEvent[] = [];
+  if (seen.release && b.release !== null && seen.release.id !== b.release)
+    added.push({ id: `data:${seen.release.id}`, kind: "data", at: seen.release.day ?? today, version: null,
+                 changed: seen.release.changed ?? null, read: false });
+  if (seen.app && b.app !== null && seen.app !== b.app)
+    added.push({ id: `app:${seen.app}`, kind: "app", at: today, version: seen.app, changed: null, read: false });
+  if (!added.length && b.release === next.release && b.app === next.app) return s;
+  const have = new Set((s.events ?? []).map((e) => e.id));
+  const events = [...added.filter((e) => !have.has(e.id)), ...(s.events ?? [])]
+    .filter((e) => !e.read || addDays(e.at, INBOX_KEEP_DAYS_AFTER_END) >= today).slice(0, EARLIER_ROWS);
+  return { ...s, events, base: next };
+}
+/** (T867) where a tap on an update row goes: the release's, the app's; null: a notice */
+export const inboxEventKind = (s: InboxState | null, id: string): "data" | "app" | null => s?.events?.find((e) => e.id === id)?.kind ?? null;
 /** the inbox opened by itself: every notice it opened for is not opened for again */
 export const inboxPrompted = (s: InboxState): InboxState =>
   ({ ...s, items: s.items.map((i) => (i.prompted ? i : { ...i, prompted: true })) });
 /** whether the inbox opens by itself: an unread notice in effect, not on the map yet, it has not opened for */
 export const inboxWantsOpen = (s: InboxState | null): boolean =>
   !!s && s.items.some((i) => !i.read && !i.prompted && i.waters === null && !i.ended);
-export const inboxUnread = (s: InboxState | null): number => (s ? s.items.filter((i) => !i.read).length : 0);
+export const inboxUnread = (s: InboxState | null): number => inboxUnreadIds(s).length;
 /** (T694) the mark a notice carries on its water's page: unread and in effect only */
 export function inboxMark(s: InboxState | null, id: string): InboxArrival | null {
   const i = s?.items.find((x) => x.id === id);
@@ -211,7 +299,12 @@ export const INBOX_WORDS = {
   section: "In-season notices",
   unreadGroup: "New",
   readGroup: "Earlier",
-  markAll: "Mark all as read",
+  /** (T867) the update rows' marks and sentences */
+  dataTag: "Data update",
+  appTag: "App update",
+  dataTitle: (day: string) => `Regulations data updated ${day}`,
+  changed: (n: number) => `${n} ${n === 1 ? "water" : "waters"} changed`,
+  appTitle: (version: string) => `Updated to ${version}`,
   ended: "Ended",
   posted: "Posted",
   /** (T983) a notice that prints no date of its own: when it was first seen */
@@ -250,10 +343,12 @@ function rowDate(i: InboxItem, today: string): string {
   return i.from ? dayWords(i.from, today) : INBOX_WORDS.firstSeen(dayWords(i.at, today));
 }
 /** a read new notice is "Posted": "New" is only ever an unread one */
-const tagOf = (i: InboxItem) => (i.ended ? INBOX_WORDS.ended : i.arrived === "new" && i.read ? INBOX_WORDS.posted : INSEASON_WORDS.marks[i.arrived]);
+const tagOf = (i: InboxItem, unread: boolean) => (i.ended ? INBOX_WORDS.ended : i.arrived === "new" && !unread ? INBOX_WORDS.posted : INSEASON_WORDS.marks[i.arrived]);
 
 export interface InboxRowVM {
   readonly id: string;
+  /** (T867) a notice, or the app's own data / app update row */
+  readonly kind: "notice" | "data" | "app";
   readonly unread: boolean;
   /** "New" (unread), "Posted" (read), "Updated", "Ended" */
   readonly tag: string;
@@ -261,8 +356,9 @@ export interface InboxRowVM {
    *  Nov 19" (`rowDate`) */
   readonly date: string;
   readonly water: string;
-  /** "Region 4" */
+  /** "Region 4" (an update row: "") */
   readonly region: string;
+  /** the change's text (a data update: "12 waters changed", or "" when the release does not say) */
   readonly text: string;
   /** "Not on the map yet", or null */
   readonly note: string | null;
@@ -276,17 +372,36 @@ export interface InboxVM {
   readonly empty: boolean;
 }
 
-export function inboxVM(s: InboxState | null, today: string): InboxVM {
-  const rows = (s?.items ?? []).map((i): InboxRowVM => {
-    const tag = tagOf(i), date = rowDate(i, today), region = regionWords(i.region);
+/**
+ * (T867) The list: "New" is every row unread now or in `fresh` (what was unread when the inbox opened: opening read it, the
+ * next open lists it under "Earlier"); "Earlier" is the read rows of the last `EARLIER_DAYS` days, `EARLIER_ROWS` at most.
+ */
+export function inboxVM(s: InboxState | null, today: string, fresh: ReadonlySet<string> = new Set()): InboxVM {
+  const mk = (r: InboxRowVM, at: string) => ({ r, at });
+  const notices = (s?.items ?? []).map((i) => {
+    const unread = !i.read || fresh.has(i.id);
+    const tag = tagOf(i, unread), date = rowDate(i, today), region = regionWords(i.region);
     const note = i.waters === null && !i.ended ? INBOX_WORDS.notOnMap : null;
-    return { id: i.id, unread: !i.read, tag, date, water: i.water, region, text: i.text, note,
-             label: `${i.read ? "" : "Unread. "}${tag}: ${i.water}, ${region}, ${date}${note ? `. ${note}` : ""}. ${i.text}` };
+    return mk({ id: i.id, kind: "notice", unread, tag, date, water: i.water, region, text: i.text, note,
+                label: `${unread ? "Unread. " : ""}${tag}: ${i.water}, ${region}, ${date}${note ? `. ${note}` : ""}. ${i.text}` }, i.at);
   });
-  const unread = rows.filter((r) => r.unread), read = rows.filter((r) => !r.unread);
+  const events = (s?.events ?? []).map((e) => {
+    const unread = !e.read || fresh.has(e.id);
+    const data = e.kind === "data";
+    const tag = data ? INBOX_WORDS.dataTag : INBOX_WORDS.appTag;
+    const water = data ? INBOX_WORDS.dataTitle(dayWords(e.at, today)) : INBOX_WORDS.appTitle(e.version ?? "");
+    const text = data && e.changed !== null ? INBOX_WORDS.changed(e.changed) : "";
+    const date = data ? "" : dayWords(e.at, today);
+    return mk({ id: e.id, kind: e.kind, unread, tag, date, water, region: "", text, note: null,
+                label: `${unread ? "Unread. " : ""}${tag}: ${water}${text ? `. ${text}` : ""}` }, e.at);
+  });
+  const all = [...notices, ...events].sort((a, b) => (a.at === b.at ? (a.r.id < b.r.id ? -1 : 1) : a.at < b.at ? 1 : -1));
+  const unread = all.filter((x) => x.r.unread).map((x) => x.r);
+  const since = addDays(today, -EARLIER_DAYS);
+  const read = all.filter((x) => !x.r.unread && x.at >= since).slice(0, EARLIER_ROWS).map((x) => x.r);
   return { groups: [...(unread.length ? [{ title: INBOX_WORDS.unreadGroup, rows: unread }] : []),
                     ...(read.length ? [{ title: INBOX_WORDS.readGroup, rows: read }] : [])],
-           unread: unread.length, empty: rows.length === 0 };
+           unread: unread.length, empty: !unread.length && !read.length };
 }
 
 export interface InboxDetailVM {
@@ -309,6 +424,6 @@ export function inboxDetail(s: InboxState | null, id: string, today: string): In
   const note = i.ended ? INBOX_WORDS.endedNote(dayWords(i.ended, today))
     : i.waters === null ? INBOX_WORDS.notOnMapNote
     : i.waters.length > 1 ? INBOX_WORDS.manyWaters(i.waters.length) : null;
-  return { id, tag: tagOf(i), head: `${i.water} · ${regionWords(i.region)}`, dates: inSeasonDates(i.from, i.to),
+  return { id, tag: tagOf(i, !i.read), head: `${i.water} · ${regionWords(i.region)}`, dates: inSeasonDates(i.from, i.to),
            text: i.text, url: i.url, note };
 }

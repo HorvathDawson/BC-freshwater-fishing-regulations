@@ -3,7 +3,7 @@
  * notice is kept, the device's saved history round trip, and the words — each pinned whole (AGENTS 33).
  */
 import { describe, expect, it } from "vitest";
-import { INBOX_KEEP_DAYS_AFTER_END, INBOX_MAX_ITEMS, inboxDetail, inboxMark, inboxMerge, inboxPrompted, inboxRead, inboxReadAll,
+import { EARLIER_DAYS, EARLIER_ROWS, INBOX_KEEP_DAYS_AFTER_END, INBOX_MAX_ITEMS, inboxDetail, inboxMark, inboxMerge, inboxObserve, inboxEventKind, inboxUnreadIds, inboxPrompted, inboxRead, inboxReadAll,
          inboxTarget, inboxText, inboxUnread, inboxVM, inboxWantsOpen, parseInbox, type InboxState } from "./inseasonInbox";
 import { joinInSeason, type InSeasonFeed, type InSeasonLinks, type InSeasonRow } from "./inseason";
 
@@ -24,12 +24,14 @@ describe("in-season inbox (T700)", () => {
   const B = row({ id: "is-b", region: "8", water: "Okanagan River", change: "Closed to all fishing" });
   const L = links({ "is-a": ["gnis:1"] });
 
-  it("a first read starts quiet: a matched notice is read, one not on the map yet is unread (unless T230's notice showed it)", () => {
+  it("(T867) a first read keeps a matched notice OUT of the history (it is on its water's page); one not on the map yet is unread (unless T230's notice showed it)", () => {
     const s = read(null, feed([A, B]), L, "2026-11-13");
-    expect(s.items.map((i) => [i.id, i.read, i.waters])).toEqual([["is-a", true, ["gnis:1"]], ["is-b", false, null]]);
+    expect(s.items.map((i) => [i.id, i.read, i.waters])).toEqual([["is-b", false, null]]);
     expect([inboxUnread(s), inboxWantsOpen(s)]).toEqual([1, true]);
     const seen = read(null, feed([A, B]), L, "2026-11-13", new Set(["is-b"]));
-    expect([inboxUnread(seen), inboxWantsOpen(seen)]).toEqual([0, false]);
+    expect([seen.items.map((i) => [i.id, i.read]), inboxUnread(seen), inboxWantsOpen(seen)]).toEqual([[["is-b", true]], 0, false]);
+    // met begun again later (known), it stays out: a notice in effect before install never turns up as a row
+    expect(read(s, feed([A, B]), L, "2026-11-14").items.map((i) => i.id)).toEqual(["is-b"]);
   });
 
   it("unread count: a notice met after the first read is unread, matched or not; it opens by itself only for one not on the map", () => {
@@ -56,7 +58,7 @@ describe("in-season inbox (T700)", () => {
   });
 
   it("(T694) UPDATED only when the feed links it: status changed + previous; the amended one leaves; an unlinked new id is NEW and the old one ENDS", () => {
-    const s0 = read(null, feed([A]), L, "2026-11-10");
+    const s0 = inboxReadAll(read(read(null, feed([]), L, "2026-11-09"), feed([A]), L, "2026-11-10"));
     const A2 = row({ id: "is-a2", water: "Kaslo River", change: "No fishing until Dec 31", status: "changed",
                      previous: { change: "No fishing", effective: "Nov 1, 2026" }, changedAt: "2026-11-12T09:00:00Z" });
     const linked = read(s0, feed([A2], [{ id: "is-a", removedAt: "2026-11-12T09:00:00Z" }]), links({ "is-a2": ["gnis:1"] }), "2026-11-12");
@@ -79,7 +81,7 @@ describe("in-season inbox (T700)", () => {
 
   it(`retention: an ended notice stays ${INBOX_KEEP_DAYS_AFTER_END} days after it ended, then drops; at most ${INBOX_MAX_ITEMS}`, () => {
     const T = row({ id: "is-t", from: "2026-11-01", to: "2026-11-20" });
-    const s0 = read(null, feed([T, B]), links({ "is-t": ["gnis:1"] }), "2026-11-13");
+    const s0 = read(read(null, feed([]), L, "2026-11-12"), feed([T, B]), links({ "is-t": ["gnis:1"] }), "2026-11-13");
     // its `to` passed: ended that day
     const s1 = read(s0, feed([T, B]), links({ "is-t": ["gnis:1"] }), "2026-11-21");
     expect(s1.items.find((i) => i.id === "is-t")?.ended).toBe("2026-11-20");
@@ -118,10 +120,11 @@ describe("in-season inbox (T700)", () => {
   });
 
   it("the list: New (unread) ahead of Earlier (read), newest first, each row's words whole", () => {
-    const s0 = read(null, feed([row({ id: "is-old", water: "Slocan River", firstSeen: "2025-09-02T00:00:00Z" })]), links({ "is-old": ["gnis:9"] }), "2026-11-12");
+    const old = row({ id: "is-old", water: "Slocan River", firstSeen: "2026-10-20T00:00:00Z" });
+    const s0 = inboxReadAll(read(read(null, feed([]), L, "2026-10-19"), feed([old]), links({ "is-old": ["gnis:9"] }), "2026-10-20"));
     // (T983, owner 2026-11-21) the date is the notice's own (Kaslo: effective Nov 1, first seen Nov 12); one that prints
     // none says when it was first seen, as that
-    const s = read(s0, feed([row({ id: "is-old", water: "Slocan River", firstSeen: "2025-09-02T00:00:00Z" }),
+    const s = read(s0, feed([old,
                              { ...A, from: "2026-11-01", firstSeen: "2026-11-12T00:00:00Z" },
                              { ...B, firstSeen: "2026-11-13T00:00:00Z" }]), links({ "is-old": ["gnis:9"], "is-a": ["gnis:1"] }), "2026-11-13");
     const vm = inboxVM(s, "2026-11-13");
@@ -130,7 +133,7 @@ describe("in-season inbox (T700)", () => {
       "Unread. New: Okanagan River, Region 8, first seen Nov 13. Not on the map yet. Closed to all fishing",
       "Unread. New: Kaslo River, Region 4, Nov 1. No fishing"]);
     expect(vm.groups[0]!.rows.map((r) => r.date)).toEqual(["first seen Nov 13", "Nov 1"]);
-    expect(vm.groups[1]!.rows[0]!.label).toBe("Posted: Slocan River, Region 4, first seen Sep 2, 2025. No fishing");
+    expect(vm.groups[1]!.rows[0]!.label).toBe("Posted: Slocan River, Region 4, first seen Oct 20. No fishing");
     expect([vm.unread, vm.empty]).toEqual([2, false]);
     expect(inboxVM(null, "2026-11-13")).toEqual({ groups: [], unread: 0, empty: true });
   });
@@ -150,21 +153,18 @@ describe("(T983) a notice this device met begun is never news again", () => {
     expect(joinInSeason(feed([A, OK]), ended, "2026-11-20").ended).toEqual(["is-2fa458fef3c3"]);
     const s0 = read(null, feed([A, OK]), ended, "2026-09-20");
     const s1 = read(s0, feed([A, OK]), ended, "2026-11-20");
-    expect([s1.items.map((i) => i.id), s1.known]).toEqual([["is-a"], ["is-2fa458fef3c3", "is-a"]]);
+    // (T867) in effect when this device began counting, on their waters' pages: neither is a history row
+    expect([s1.items.map((i) => i.id), s1.known]).toEqual([[], ["is-2fa458fef3c3", "is-a"]]);
     // the history survives the update (the saved text) and the next release reads the rule without the end
     const s2 = read(parseInbox(inboxText(s1)), feed([A, OK]), L, "2026-11-21");
-    const ok = s2.items.find((i) => i.id === "is-2fa458fef3c3")!;
-    expect([ok.read, ok.ended, inboxUnread(s2), inboxMark(s2, ok.id), inboxWantsOpen(s2)]).toEqual([true, null, 0, null, false]);
-    expect(inboxVM(s2, "2026-11-21").groups.map((g) => [g.title, g.rows.map((r) => r.tag)])).toEqual([["Earlier", ["Posted", "Posted"]]]);
-    // the notice's own date (the Province's "July 30, 2026"), not the worker's Nov 19
-    expect(inboxVM(s2, "2026-11-21").groups[0]!.rows[0]!.label)
-      .toBe("Posted: Okanagan River, Region 8, Jul 30. No fishing July 30 to September 15.");
+    expect([s2.items, inboxUnread(s2), inboxMark(s2, "is-2fa458fef3c3"), inboxWantsOpen(s2)]).toEqual([[], 0, null, false]);
+    expect(inboxVM(s2, "2026-11-21")).toEqual({ groups: [], unread: 0, empty: true });
   });
 
   it("dropped from the history after its 30 days, then in force again: still not news", () => {
     const s0 = read(null, feed([A, OK]), L, "2026-08-01");
     const s1 = read(read(s0, feed([A, OK]), ended, "2026-09-16"), feed([A, OK]), ended, "2026-10-20");
-    expect(s1.items.map((i) => i.id)).toEqual(["is-a"]);
+    expect(s1.items.map((i) => i.id)).toEqual([]);
     const s2 = read(s1, feed([A, OK]), L, "2026-11-21");
     expect(inboxUnread(s2)).toBe(0);
   });
@@ -173,7 +173,7 @@ describe("(T983) a notice this device met begun is never news again", () => {
     const H = row({ id: "is-h", water: "Heber Creek", effective: "November 25, 2026", from: "2026-11-25", firstSeen: "2026-11-19T00:00:00Z" });
     const LH = links({ "is-a": ["gnis:1"], "is-h": ["gnis:3"] });
     const s0 = read(null, feed([A, H]), LH, "2026-11-21");
-    expect([s0.items.map((i) => i.id), s0.known]).toEqual([["is-a"], ["is-a"]]);
+    expect([s0.items.map((i) => i.id), s0.known]).toEqual([[], ["is-a"]]);
     const s1 = read(s0, feed([A, H]), LH, "2026-11-25");
     expect([inboxUnread(s1), inboxMark(s1, "is-h")]).toEqual([1, "new"]);
   });
@@ -185,7 +185,7 @@ describe("(T983) a notice this device met begun is never news again", () => {
       waters: ["gnis:1"], read: true, prompted: true, ended: null }] });
     const N = row({ id: "is-n", water: "Duncan River", status: "new", firstSeen: "2026-11-21T08:00:00Z" });
     const s = read(parseInbox(old), feed([A, OK, N]), links({ "is-a": ["gnis:1"], "is-2fa458fef3c3": ["gnis:2"], "is-n": ["gnis:4"] }), "2026-11-21");
-    expect(s.items.map((i) => [i.id, i.read])).toEqual([["is-n", false], ["is-2fa458fef3c3", true], ["is-a", true]]);
+    expect(s.items.map((i) => [i.id, i.read])).toEqual([["is-n", false], ["is-a", true]]);
     expect([inboxUnread(s), s.known]).toEqual([1, ["is-2fa458fef3c3", "is-a", "is-n"]]);
   });
 
@@ -205,5 +205,97 @@ describe("(T983) a notice this device met begun is never news again", () => {
                      changedAt: "2026-11-12T09:00:00Z" });
     expect(inboxMark(read(s0, feed([Ad, OK]), L, "2026-11-12"), "is-a")).toBe("updated");
     expect(read(s0, feed([OK], [{ id: "is-a", removedAt: "2026-11-12T09:00:00Z" }]), L, "2026-11-12").known).toEqual(["is-2fa458fef3c3"]);
+  });
+});
+
+describe("(T867) since install, read on open, short, with the app's own updates", () => {
+  const A = row({ id: "is-a", water: "Kaslo River", from: "2026-11-01" });
+  const B = row({ id: "is-b", region: "8", water: "Okanagan River", change: "Closed to all fishing", from: "2026-11-02" });
+  const L = links({ "is-a": ["gnis:1"], "is-b": ["gnis:2"] });
+  const C = row({ id: "is-c", water: "Duncan River", change: "No fishing", from: "2026-11-14", firstSeen: "2026-11-14T08:00:00Z" });
+  const LC = links({ ...Object.fromEntries(Object.keys(L.notices).map((k) => [k, ["gnis:1"]])), "is-c": ["gnis:3"] });
+  /** the inbox opened: what was unread is "New" now, read in the history */
+  const open = (s: InboxState) => ({ fresh: new Set(inboxUnreadIds(s)), s: inboxReadAll(s) });
+
+  it("opening reads what it shows: New is what was unread at the open, the badge clears, the next open lists it under Earlier", () => {
+    const s0 = read(read(null, feed([A]), LC, "2026-11-13"), feed([A, C]), LC, "2026-11-14");
+    expect([inboxUnread(s0), s0.items.map((i) => i.id)]).toEqual([1, ["is-c"]]);
+    const o = open(s0);
+    expect(inboxUnread(o.s)).toBe(0);
+    const during = inboxVM(o.s, "2026-11-14", o.fresh);
+    expect(during.groups.map((g) => [g.title, g.rows.map((r) => r.label)])).toEqual([["New",
+      ["Unread. New: Duncan River, Region 4, Nov 14. No fishing"]]]);
+    const next = inboxVM(o.s, "2026-11-15");
+    expect(next.groups.map((g) => [g.title, g.rows.map((r) => r.label)])).toEqual([["Earlier",
+      ["Posted: Duncan River, Region 4, Nov 14. No fishing"]]]);
+    expect(next.unread).toBe(0);
+  });
+
+  it("Earlier is the last 30 days and at most 20 rows; New is never cut", () => {
+    const many = Array.from({ length: 25 }, (_, n) => row({ id: `is-${String(n).padStart(2, "0")}`, water: `Creek ${n}`, from: `2026-11-${String(n + 1).padStart(2, "0")}`,
+      firstSeen: `2026-11-${String(n + 1).padStart(2, "0")}T00:00:00Z` }));
+    const s = inboxReadAll(read(read(null, feed([]), links({}), "2026-10-31"), feed(many), links({}), "2026-11-26"));
+    const vm = inboxVM(s, "2026-11-26");
+    expect(vm.groups.map((g) => [g.title, g.rows.length])).toEqual([["Earlier", EARLIER_ROWS]]);
+    expect(vm.groups[0]!.rows[0]!.id).toBe("is-24");
+    // an old one (arrived 31 days ago) is not listed
+    const old = inboxReadAll(read(read(null, feed([]), links({}), "2026-09-30"), feed([row({ id: "is-o", firstSeen: "2026-10-01T00:00:00Z" })]), links({}), "2026-10-02"));
+    expect(EARLIER_DAYS).toBe(30);
+    expect(inboxVM(old, "2026-10-31").groups.map((g) => g.rows.length)).toEqual([1]);
+    expect(inboxVM(old, "2026-11-01").groups).toEqual([]);
+    // unread rows are listed whatever their age
+    const unread = read(read(null, feed([]), links({}), "2026-09-30"), feed([row({ id: "is-o", firstSeen: "2026-10-01T00:00:00Z" })]), links({}), "2026-10-02");
+    expect(inboxVM(unread, "2026-12-30").groups.map((g) => g.title)).toEqual(["New"]);
+  });
+
+  it("an update an older app left is migrated once: matched rows read, one not on the map keeps its state, no backlog turns New", () => {
+    const item = (o: object) => ({ region: "4", water: "Kaslo River", text: "No fishing", effective: "Nov 1, 2026", from: null, to: null, url: SRC,
+      arrived: "new", at: "2026-11-10", waters: ["gnis:1"], read: false, prompted: true, ended: null, ...o });
+    const old = JSON.stringify({ format: "inseason-inbox/1", items: [item({ id: "is-1" }), item({ id: "is-2" }),
+      item({ id: "is-3", waters: null, prompted: false })] });
+    const s = parseInbox(old)!;
+    expect(s.items.map((i) => [i.id, i.read])).toEqual([["is-1", true], ["is-2", true], ["is-3", false]]);
+    expect([inboxUnread(s), inboxWantsOpen(s), s.rev]).toEqual([1, true, 2]);
+    // saved and read again: the same
+    expect(parseInbox(inboxText(s))).toEqual(s);
+    // a rev 2 history is not migrated again: an unread matched notice stays unread
+    const fresh = read(read(null, feed([]), LC, "2026-11-13"), feed([C]), LC, "2026-11-14");
+    expect(inboxUnread(parseInbox(inboxText(fresh)))).toBe(1);
+  });
+
+  it("data and app updates are rows: none the first time (since install), one when the release or the version changes, said whole", () => {
+    const s0 = inboxObserve(null, { release: { id: "r-1", day: "2026-11-10" }, app: "0.8.5" }, "2026-11-22");
+    expect([s0.events, s0.base]).toEqual([undefined, { release: "r-1", app: "0.8.5" }]);
+    // nothing moved: the same history back
+    expect(inboxObserve(s0, { release: { id: "r-1", day: "2026-11-10" }, app: "0.8.5" }, "2026-11-23")).toBe(s0);
+    const s1 = inboxObserve(s0, { release: { id: "r-2", day: "2026-11-20", changed: 12 }, app: "0.9.0" }, "2026-11-22");
+    expect(inboxUnread(s1)).toBe(2);
+    const vm = inboxVM(s1, "2026-11-22");
+    expect(vm.groups.map((g) => [g.title, g.rows.map((r) => [r.kind, r.tag, r.water, r.date, r.text, r.label])])).toEqual([["New", [
+      ["app", "App update", "Updated to 0.9.0", "Nov 22", "", "Unread. App update: Updated to 0.9.0"],
+      ["data", "Data update", "Regulations data updated Nov 20", "", "12 waters changed",
+       "Unread. Data update: Regulations data updated Nov 20. 12 waters changed"]]]]);
+    expect([inboxEventKind(s1, "app:0.9.0"), inboxEventKind(s1, "data:r-2"), inboxEventKind(s1, "is-a")]).toEqual(["app", "data", null]);
+    // a release that does not say how many changed says nothing of it; one water is "1 water changed"
+    const s2 = inboxObserve(s1, { release: { id: "r-3", day: null }, app: "0.9.0" }, "2026-11-25");
+    expect(inboxVM(s2, "2026-11-25").groups[0]!.rows.find((r) => r.id === "data:r-3")!.label).toBe("Unread. Data update: Regulations data updated Nov 25");
+    const s3 = inboxObserve(s2, { release: { id: "r-4", day: "2026-11-26", changed: 1 }, app: "0.9.0" }, "2026-11-26");
+    expect(inboxVM(s3, "2026-11-26").groups[0]!.rows.find((r) => r.id === "data:r-4")!.text).toBe("1 water changed");
+    // opened: read, then Earlier; the saved text reads back
+    expect(inboxUnread(inboxReadAll(s3))).toBe(0);
+    // a tap reads an update row too (not only a notice)
+    expect(inboxUnread(inboxRead(s1, ["app:0.9.0"]))).toBe(1);
+    expect(parseInbox(inboxText(s3))).toEqual(s3);
+  });
+
+  it("an upgraded install that had no update record records one now: no row for the update it just took", () => {
+    const old = parseInbox(JSON.stringify({ format: "inseason-inbox/1", items: [] }))!;
+    const s = inboxObserve(old, { release: { id: "r-9", day: "2026-11-20" }, app: "0.9.0" }, "2026-11-22");
+    expect([s.events, s.base]).toEqual([undefined, { release: "r-9", app: "0.9.0" }]);
+  });
+
+  it("an update row made before any notice was met does not stop the first read starting quiet", () => {
+    const e = inboxObserve(null, { release: { id: "r-1", day: null }, app: "0.9.0" }, "2026-11-22");
+    expect(read(e, feed([A, B]), L, "2026-11-22").items).toEqual([]);
   });
 });
