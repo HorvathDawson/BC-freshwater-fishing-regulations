@@ -1,19 +1,23 @@
 /**
- * (T749) R8 BEHIND ONE FLAG. `CANIFISHTHIS_R8=1` at prebuild turns the Android code shrinker on for release builds
- * (plugins/with-no-minify.js) and appends plugins/r8-keep-rules.pro to android/app/proguard-rules.pro. With the flag
- * off the build must be today's (T250: R8 off), so merging the trial changes nothing until it is switched on.
+ * (T1003) R8 IS ON FOR EVERY ANDROID RELEASE BUILD, production included (plugins/with-r8.js): minify on in
+ * gradle.properties and plugins/r8-keep-rules.pro appended to android/app/proguard-rules.pro. The T749 trial flag
+ * (CANIFISHTHIS_R8) is gone and refused; the one escape, CANIFISHTHIS_NO_R8="<reason>", is a test-bed comparison build:
+ * app.config.js refuses it in production and deploy/staging/build-apk.sh refuses it for every build it makes.
  *
  * Pinned through the real `expo config --type introspect` (every plugin's gradle.properties mod run, as prebuild runs
- * it): flag absent = flag "0" byte for byte, minify "false"; flag "1" differs ONLY in that property, now "true"; a
- * production build with the flag is refused (app.config.js); any other value is refused, never read as off.
+ * it). MUTATION-CHECKED: putting T749's production refusal back (app.config.js) fails "a production config is made with
+ * R8 on"; putting the precheck's back (build-apk.sh) fails "the precheck refuses R8 off, never R8 on".
+ * (T978 coupling) every production config built here gets a pinned MapLibre stand-in (`repoOf(pin.MLN_VERSION)`), or the
+ * pinned plugin refuses it before R8 is reached.
  */
 import { execFileSync, spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 // @ts-expect-error -- plain CommonJS config plugin run by `expo prebuild` (no types)
-import plugin from "../apps/mobile/plugins/with-no-minify.js";
+import plugin from "../apps/mobile/plugins/with-r8.js";
 // @ts-expect-error -- plain CommonJS config plugin (T978)
 import pinned from "../apps/mobile/plugins/with-pinned-maplibre.js";
 
@@ -37,57 +41,103 @@ function envFor(extra: Record<string, string | undefined>): NodeJS.ProcessEnv {
 function introspect(extra: Record<string, string | undefined>) {
   return execFileSync(EXPO, ["config", "--type", "introspect", "--json"], { cwd: MOBILE, env: envFor(extra), encoding: "utf8" });
 }
+const config = (env: Record<string, string | undefined>) =>
+  spawnSync(EXPO, ["config", "--type", "introspect", "--json"], { cwd: MOBILE, encoding: "utf8", env: envFor(env) });
 const props = (json: string): Prop[] => JSON.parse(json)._internal.modResults.android.gradleProperties;
 const minify = (ps: Prop[]) => ps.filter((p) => p.type === "property" && p.key === plugin.KEY);
+const ON = [{ type: "property", key: plugin.KEY, value: "true" }];
+const PROD = { EXPO_PUBLIC_APP_ENV: "production", EXPO_PUBLIC_CONTACT: "support@canifishthis.ca" };
+const pin = pinned.readPin();
+/** a stand-in of the pinned MapLibre maven repo (T978): an empty AAR under the pinned version's path */
+function repoOf(version: string) {
+  const repo = mkdtempSync(join(tmpdir(), "t893-m2-"));
+  const dir = join(repo, "org", "maplibre", "gl", "android-sdk-vulkan", version);
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, `android-sdk-vulkan-${version}.aar`), "");
+  return repo;
+}
 
-describe("T749: R8 is off unless CANIFISHTHIS_R8=1", () => {
-  const off = introspect({ CANIFISHTHIS_R8: undefined });
+describe("T1003: R8 is on for every release build, production included", () => {
+  const on = introspect({});
 
-  it("flag absent: minify false, once; no resource shrinking", () => {
+  it("no variable: minify true, once; no resource shrinking", () => {
+    expect(minify(props(on))).toEqual(ON);
+    expect(props(on).some((p) => p.key === "android.enableShrinkResourcesInReleaseBuilds")).toBe(false);
+  });
+
+  it("a production config is made with R8 on (the T749 refusal is gone)", () => {
+    const prod = config({ ...PROD, MLN_LOCAL_MAVEN: repoOf(pin.MLN_VERSION) });
+    expect(prod.stderr).not.toMatch(/CANIFISHTHIS_R8|is a trial/);
+    expect(prod.status).toBe(0);
+    expect(minify(props(prod.stdout))).toEqual(ON);
+    expect(readFileSync(resolve(MOBILE, "app.config.js"), "utf8")).not.toMatch(/is a trial|r8Enabled/);
+  });
+
+  it("the keep rules are appended whenever R8 is on (a dangerous mod), and not with the escape", () => {
+    const base = () => ({ name: "x", slug: "x", _internal: { projectRoot: MOBILE } });
+    const was = process.env.CANIFISHTHIS_NO_R8;
+    try {
+      delete process.env.CANIFISHTHIS_NO_R8;
+      expect(typeof plugin(base()).mods?.android?.dangerous).toBe("function");
+      process.env.CANIFISHTHIS_NO_R8 = "a comparison";
+      expect(plugin(base()).mods?.android?.dangerous).toBeUndefined();
+    } finally {
+      if (was === undefined) delete process.env.CANIFISHTHIS_NO_R8; else process.env.CANIFISHTHIS_NO_R8 = was;
+    }
+  });
+
+  it("the removed trial flag is refused, any value (\"0\" would not turn R8 off)", () => {
+    for (const v of ["1", "0", ""]) {
+      expect(() => plugin.r8OffReason({ CANIFISHTHIS_R8: v })).toThrow(/CANIFISHTHIS_R8 was removed \(T1003\)/);
+    }
+    const r = config({ CANIFISHTHIS_R8: "1" });
+    expect(r.status).not.toBe(0);
+    expect(r.stderr).toMatch(/CANIFISHTHIS_R8 was removed \(T1003\)/);
+  });
+});
+
+describe("T1003: the one escape, R8 off for a test-bed comparison build", () => {
+  it("CANIFISHTHIS_NO_R8=<reason>: the same config but minify false", () => {
+    const off = introspect({ CANIFISHTHIS_NO_R8: "a size comparison" });
     expect(minify(props(off))).toEqual([{ type: "property", key: plugin.KEY, value: "false" }]);
-    expect(props(off).some((p) => p.key === "android.enableShrinkResourcesInReleaseBuilds")).toBe(false);
+    expect(off.replace('"key":"android.enableMinifyInReleaseBuilds","value":"false"',
+      '"key":"android.enableMinifyInReleaseBuilds","value":"true"')).toBe(introspect({}));
   });
 
-  it("flag \"0\" and \"\" are the absent flag, byte for byte", () => {
-    expect(introspect({ CANIFISHTHIS_R8: "0" })).toBe(off);
-    expect(introspect({ CANIFISHTHIS_R8: "" })).toBe(off);
-  });
-
-  it("flag \"1\": the same config but minify true", () => {
-    const on = introspect({ CANIFISHTHIS_R8: "1" });
-    expect(minify(props(on))).toEqual([{ type: "property", key: plugin.KEY, value: "true" }]);
-    expect(on.replace('"key":"android.enableMinifyInReleaseBuilds","value":"true"',
-      '"key":"android.enableMinifyInReleaseBuilds","value":"false"')).toBe(off);
-  });
-
-  it("refuses any other value, and the flag in a production build", () => {
-    expect(() => plugin.r8Enabled({ CANIFISHTHIS_R8: "true" })).toThrow(/must be unset, "0" or "1"/);
-    const prod = spawnSync(EXPO, ["config", "--type", "introspect", "--json"], {
-      cwd: MOBILE, encoding: "utf8",
-      env: envFor({ CANIFISHTHIS_R8: "1", EXPO_PUBLIC_APP_ENV: "production", EXPO_PUBLIC_CONTACT: "support@canifishthis.ca" }),
-    });
+  it("a blank reason is refused, and the escape in a production config", () => {
+    expect(() => plugin.r8OffReason({ CANIFISHTHIS_NO_R8: " " })).toThrow(/CANIFISHTHIS_NO_R8 needs a reason/);
+    expect(plugin.r8OffReason({ CANIFISHTHIS_NO_R8: "why" })).toBe("why");
+    expect(plugin.r8OffReason({})).toBeNull();
+    const prod = config({ ...PROD, MLN_LOCAL_MAVEN: repoOf(pin.MLN_VERSION), CANIFISHTHIS_NO_R8: "a comparison" });
     expect(prod.status).not.toBe(0);
-    expect(prod.stderr).toMatch(/CANIFISHTHIS_R8 \(R8 on, T749\) is a trial/);
+    expect(prod.stderr).toMatch(/CANIFISHTHIS_NO_R8 \(R8 off\) is for a test-bed comparison build only/);
+  });
+
+  it("the test bed's --no-r8 needs a reason and names its own APK", () => {
+    const sh = readFileSync(resolve(process.cwd(), "tools/testbed/session.sh"), "utf8");
+    expect(sh).toContain('--no-r8=*) NO_R8=${1#--no-r8=}; [[ -n ${NO_R8// /} ]] || { echo "session.sh: --no-r8= needs a reason" >&2; exit 2; } ;;');
+    expect(sh).toContain("${NO_R8:+-nor8}");
+    expect(sh).toContain("export CANIFISHTHIS_NO_R8=$NO_R8");
   });
 });
 
 describe("T749: the config runs see only their own variables", () => {
-  it("nothing a build exported reaches a spawned config (MLN_LOCAL_MAVEN, EXPO_PUBLIC_*, EAS_*, the flag itself)", () => {
+  it("nothing a build exported reaches a spawned config (MLN_LOCAL_MAVEN, EXPO_PUBLIC_*, EAS_*, the R8 escape)", () => {
     const set = { MLN_LOCAL_MAVEN: "/a/local/maplibre", EXPO_PUBLIC_APP_ENV: "staging", EXPO_PUBLIC_MAP_LAB: "1",
-                  EXPO_PUBLIC_ENV_SWITCH: "1", EAS_BUILD_PROFILE: "production", CANIFISHTHIS_R8: "1" };
+                  EXPO_PUBLIC_ENV_SWITCH: "1", EAS_BUILD_PROFILE: "production", CANIFISHTHIS_NO_R8: "x" };
     const was = Object.fromEntries(Object.keys(set).map((k) => [k, process.env[k]]));
     try {
       Object.assign(process.env, set);                       // as inside build-apk.sh --play
       expect(Object.keys(envFor({})).filter((k) => !RUNS_A_PROCESS.includes(k))).toEqual([]);
-      expect(envFor({ CANIFISHTHIS_R8: "0", EXPO_PUBLIC_CONTACT: undefined })).toMatchObject({ CANIFISHTHIS_R8: "0" });
-      expect(Object.keys(envFor({ CANIFISHTHIS_R8: "0" })).filter((k) => !RUNS_A_PROCESS.includes(k))).toEqual(["CANIFISHTHIS_R8"]);
+      expect(envFor({ CANIFISHTHIS_NO_R8: "y", EXPO_PUBLIC_CONTACT: undefined })).toMatchObject({ CANIFISHTHIS_NO_R8: "y" });
+      expect(Object.keys(envFor({ CANIFISHTHIS_NO_R8: "y" })).filter((k) => !RUNS_A_PROCESS.includes(k))).toEqual(["CANIFISHTHIS_NO_R8"]);
     } finally {
       for (const [k, v] of Object.entries(was)) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
     }
   });
 });
 
-describe("T749: a release build with the flag keeps R8's mapping, or stops", () => {
+describe("T1003: every release build keeps R8's mapping, checks R8, and sends the mapping to Play", () => {
   const sh = readFileSync(resolve(process.cwd(), "../deploy/staging/build-apk.sh"), "utf8");
   const code = sh.split("\n").filter((l) => !l.trimStart().startsWith("#")).join("\n");
 
@@ -95,29 +145,40 @@ describe("T749: a release build with the flag keeps R8's mapping, or stops", () 
     expect(spawnSync("bash", ["-n", resolve(process.cwd(), "../deploy/staging/build-apk.sh")]).status).toBe(0);
   });
 
-  it("keep_map keeps r8-mapping.txt when the flag is 1, through the refusing keep-r8 (no `|| true`, no skip)", () => {
+  it("keep_map always keeps r8-mapping.txt, through the refusing keep-r8 (no flag, no `|| true`, no skip)", () => {
     const body = /keep_map\(\) \{\n([\s\S]*?)\n\}/.exec(code)?.[1] ?? "";
-    expect(body).toContain('if [[ ${CANIFISHTHIS_R8:-} == 1 ]]; then node "$REPO/app/tools/sourcemaps.mjs" keep-r8 "$R8_MAP"');
-    expect(body).not.toMatch(/\|\| *true|2>\/dev\/null/);
-    expect(code).toContain("R8_MAP=$M/android/app/build/outputs/mapping/release/mapping.txt");
+    expect(body).toContain('  node "$REPO/app/tools/sourcemaps.mjs" keep-r8 "$R8_MAP" "$VER-b$CODE-${SHA:0:7}"');
+    expect(body).not.toMatch(/\|\| *true|2>\/dev\/null|if \[\[/);
+    expect(code).toContain("R8_MAP=$R8_DIR/mapping.txt");
+    expect(code).not.toMatch(/CANIFISHTHIS_R8:-/);
   });
 
-  it("the mapping is kept before the AAB is committed, copied or uploaded, and before the APK is copied", () => {
+  it("mapping kept and R8 checked before the AAB is committed, copied or uploaded, and before the APK is copied", () => {
     const play = code.indexOf("keep_map\n  AAB=");
+    const check = code.indexOf('R8_SCORES=$(r8_check --aab "$AAB")');
     expect(play).toBeGreaterThan(0);
-    expect(play).toBeLessThan(code.indexOf("commit_bump\n  cp"));
-    expect(play).toBeLessThan(code.indexOf('play-upload.py" --aab'));
-    const apk = code.lastIndexOf("keep_map\n");
+    expect(check).toBeGreaterThan(play);
+    expect(check).toBeLessThan(code.indexOf("commit_bump\n  cp"));
+    expect(check).toBeLessThan(code.indexOf('play-upload.py" --aab'));
+    const apk = code.lastIndexOf("keep_map\nr8_check ||");
+    expect(apk).toBeGreaterThan(0);
     expect(apk).toBeLessThan(code.indexOf('cp "$APKF" "$OUT/$NAME"'));
   });
 
-  it("the precheck refuses a bad flag value and the flag with --production, before the heavy lock", () => {
+  it("the Play upload sends the kept mapping with the AAB", () => {
+    expect(code).toContain('play-upload.py" --aab "$OUT/$NAME" --mapping "$KEPT_R8_MAP"');
+    expect(code).toContain("KEPT_R8_MAP=$REPO/data/sourcemaps/$VER-b$CODE-${SHA:0:7}/android/r8-mapping.txt");
+  });
+
+  it("the precheck refuses R8 off and the removed flag, before the heavy lock, and never R8 on in production", () => {
     const lock = code.indexOf("exec scripts/heavy.sh build-apk");
-    const pre = code.indexOf("case ${CANIFISHTHIS_R8:-} in");
+    const pre = code.indexOf("if [[ -n ${CANIFISHTHIS_NO_R8+set} ]]; then");
     expect(pre).toBeGreaterThan(0);
     expect(pre).toBeLessThan(lock);
-    expect(code).toMatch(/1\) if \[\[ -n \$PROD \]\]; then bad "CANIFISHTHIS_R8=1 is a trial/);
-    expect(code).toMatch(/\*\) bad "CANIFISHTHIS_R8 must be unset, 0 or 1/);
+    expect(code).toMatch(/bad "CANIFISHTHIS_NO_R8 \(R8 off\) is refused: every build here has R8 on/);
+    expect(code).toMatch(/elif \[\[ -n \$\{CANIFISHTHIS_R8\+set\} \]\]; then\n *bad "CANIFISHTHIS_R8 was removed/);
+    expect(code).not.toMatch(/refused for --production \(app\.config\.js/);
+    expect(code).not.toMatch(/is a trial/);
   });
 });
 
@@ -143,31 +204,20 @@ describe("T749: the keep rules reach proguard-rules.pro", () => {
     });
   });
 
-  it("minify follows the flag in the gradle.properties mod", () => {
+  it("no rule of ours turns an R8 pass off", () => {
+    expect(rules.split("\n").filter((l) => /^\s*-dont(optimize|shrink|obfuscate)\b/.test(l))).toEqual([]);
+  });
+
+  it("minify follows setMinify in the gradle.properties mod", () => {
     const tmpl: Prop[] = [{ type: "property", key: plugin.KEY, value: "true" }, { type: "property", key: "x", value: "1" }];
     expect(plugin.setMinify(tmpl, false)).toEqual([{ type: "property", key: "x", value: "1" }, { type: "property", key: plugin.KEY, value: "false" }]);
-    expect(minify(plugin.setMinify(tmpl, true))).toEqual([{ type: "property", key: plugin.KEY, value: "true" }]);
+    expect(minify(plugin.setMinify(tmpl, true))).toEqual(ON);
   });
 });
 
 describe("T893/T978: every production Android config carries the pinned upstream MapLibre", () => {
-  const PROD = { EXPO_PUBLIC_APP_ENV: "production", EXPO_PUBLIC_CONTACT: "support@canifishthis.ca" };
-  const pin = pinned.readPin();
-  async function repoOf(version: string) {
-    const { mkdtempSync, mkdirSync, writeFileSync } = await import("node:fs");
-    const { tmpdir } = await import("node:os");
-    const { join } = await import("node:path");
-    const repo = mkdtempSync(join(tmpdir(), "t893-m2-"));
-    const dir = join(repo, "org", "maplibre", "gl", "android-sdk-vulkan", version);
-    mkdirSync(dir, { recursive: true });
-    writeFileSync(join(dir, `android-sdk-vulkan-${version}.aar`), "");
-    return repo;
-  }
-  const config = (env: Record<string, string | undefined>) =>
-    spawnSync(EXPO, ["config", "--type", "introspect", "--json"], { cwd: MOBILE, encoding: "utf8", env: envFor(env) });
-
-  it("production with the pinned repo is made, and MapLibre's plugin is told the pinned version", async () => {
-    const prod = config({ ...PROD, MLN_LOCAL_MAVEN: await repoOf(pin.MLN_VERSION) });
+  it("production with the pinned repo is made, and MapLibre's plugin is told the pinned version", () => {
+    const prod = config({ ...PROD, MLN_LOCAL_MAVEN: repoOf(pin.MLN_VERSION) });
     expect(prod.stderr).not.toMatch(/MLN_LOCAL_MAVEN|STOCK/);
     expect(prod.status).toBe(0);
     expect(prod.stdout).toContain(pin.MLN_VERSION);
@@ -180,8 +230,8 @@ describe("T893/T978: every production Android config carries the pinned upstream
       expect(r.stderr).toContain(`MLN_LOCAL_MAVEN=<repo>/cache/maplibre/${pin.MLN_VERSION}`);
     }
   });
-  it("production with another MapLibre repo (the old lean AAR, an experiment) is refused", async () => {
-    const r = config({ ...PROD, MLN_LOCAL_MAVEN: await repoOf("13.6.1-fslean") });
+  it("production with another MapLibre repo (the old lean AAR, an experiment) is refused", () => {
+    const r = config({ ...PROD, MLN_LOCAL_MAVEN: repoOf("13.6.1-fslean") });
     expect(r.status).not.toBe(0);
     expect(r.stderr).toMatch(new RegExp(`holds MapLibre 13\\.6\\.1-fslean, not the pinned ${pin.MLN_VERSION.replace(/\./g, "\\.")}`));
   });
