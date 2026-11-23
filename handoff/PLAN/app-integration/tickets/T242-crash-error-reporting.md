@@ -103,3 +103,6 @@ Owner 11-06: "the privacy drafts look good" — the privacy wording is approved.
   `salmon: not a salmon/4 file` and `not a dfo-feed/3 feed` (0.5.0 against older data) → T403; web `Requiring unknown
   module` (≤0.5.0) → T391; native exits 0.4.0 → T351.
 - Problem reports: all ticketed (T348, T393–T398, T417) except the Fraser ▲/▼ camera jump → T443.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+built (worker POST /crash, scrubbed payload, Data switch, privacy page, Android ApplicationExitInfo native kills); 11-06 test bed `crash-bed`: JS error, unhandled promise, native SIGSEGV each reach the worker handler (local stub, no staging write); fixed a JS fatal told twice + a failed exit send lost; left (owner): GET /crashes read, privacy wording, T407 phone check; iOS is T362

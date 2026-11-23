@@ -1,5 +1,5 @@
 /**
- * T841 — THE CLASSIFIED-WATER BADGE in the water's header ("Class I" / "Class II"), owner 2026-11-17: "if a water is
+ * T841 — THE CLASSIFIED-WATER BADGE (T1004: drawn as a line under the name) in the water's header ("Class I" / "Class II"), owner 2026-11-17: "if a water is
  * classified it should have a badge in the card header".
  *
  * Words only, nothing decided here. Which classified-water designations hold on the part, and on which day, is the stored
@@ -37,7 +37,9 @@ export interface ClassBadgeVM {
   readonly inForce: boolean;
   /** the glossary term a press opens (`classified_waters`), null when the release's glossary has none */
   readonly term: string | null;
-  /** the accessible name: the visible words, "Class II" / "Class II, Jul 1–Dec 31" */
+  /** (T1004) the line drawn under the water's name: "Class II water · Classified Waters Licence · Jul 1–Dec 31" */
+  readonly line: string;
+  /** the accessible name: the line's words */
   readonly aria: string;
 }
 
@@ -69,5 +71,6 @@ export function classBadgeOf(inp: RegsInputs, mode: ClassBadgeMode = CLASS_BADGE
     : null;
   const label = LIC.CLASS_BADGE(cls);
   const term = inp.statics.glossary?.terms.some((t) => t.id === LIC.CLASS_TERM) ? LIC.CLASS_TERM : null;
-  return { cls, label, period, inForce, term, aria: period ? LIC.CLASS_BADGE_ARIA(label, period) : label };
+  const line = LIC.CLASS_LINE(label, period);
+  return { cls, label, period, inForce, term, line, aria: line };
 }

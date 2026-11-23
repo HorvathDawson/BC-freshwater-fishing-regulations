@@ -8,7 +8,8 @@ import sys
 
 USAGE = ("usage: python -m pipeline build [--dry-run] [--atlas [--promote]] [--force STAGE ...] [--no-tiles] [--labels]\n"
          "  (a side atlas alone: python -m pipeline build --atlas, or python -m pipeline.atlas.build)\n"
-         "       python -m pipeline release --staging [--dry-run] [--accept-diff FILE] [--push] | --prod <r-id>")
+         "       python -m pipeline release --staging [--dry-run] [--accept-diff FILE] [--push] | --prod <r-id>\n"
+         "       python -m pipeline reports [--since YYYY-MM-DD] [--only SOURCE,...] [--no-save] [--json]   (read-only, T1006)")
 
 if __name__ == "__main__":
     if sys.argv[1:2] == ["build"]:
@@ -17,4 +18,7 @@ if __name__ == "__main__":
     if sys.argv[1:2] == ["release"]:
         from pipeline.release import main as release_main
         raise SystemExit(release_main(sys.argv[2:]))
-    raise SystemExit(f"python -m pipeline: say `build` or `release`.\n{USAGE}")
+    if sys.argv[1:2] == ["reports"]:
+        from pipeline.reports import main as reports_main
+        raise SystemExit(reports_main(sys.argv[2:]))
+    raise SystemExit(f"python -m pipeline: say `build`, `release` or `reports`.\n{USAGE}")

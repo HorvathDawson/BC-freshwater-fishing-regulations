@@ -27,7 +27,7 @@ import pytest
 
 from pipeline.common.curated import load_repo
 from pipeline.tests import under_test
-from pipeline.tests.conftest import ATLAS_HINT, curated_root, need
+from pipeline.tests.conftest import ATLAS_HINT, curated_root, need, one_vintage
 
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
@@ -315,13 +315,20 @@ def _changed(before: dict[str, bytes], after: dict[str, bytes]) -> list[str]:
     return sorted(k for k in set(before) | set(after) if before.get(k) != after.get(k))
 
 
-def test_re_resolve_writes_only_the_resolution_and_never_changes_a_match(env):
+@pytest.mark.needs_bundle
+def test_re_resolve_writes_only_the_resolution_and_never_changes_a_match(env, request, monkeypatch):
     """T520 (AGENTS 66): POST /api/inseason/resolve. (T679 #11) It READS the curated notice_waters.json and writes ONLY
     the matches' GENERATED resolution (`matches.resolved_path()`, here the sandbox's copy of this machine's), with the
     backup `writes.commit` takes of it first. An up-to-date resolution is not rewritten; made stale the way a release promote leaves it (it names an older release, a match's
     ranges are gone), a Re-resolve puts back exactly what the shipped release gives. The curated matches never change,
     and nothing under the real data/curated changes. No sync starts (the sandbox is not the live tree)."""
     from pipeline.regs.inseason import matches as M
+    from pipeline.regs.inseason import resolve as R
+    # (T1001) resolved on the release under test (RELEASE_DIR or LATEST), and only when the served atlas is its vintage:
+    # between a promote and a release this fails naming both and what to run (`conftest.one_vintage`)
+    release = under_test.release(request)
+    one_vintage(Path(env["reuse"]._BUILD), release)
+    monkeypatch.setattr(R, "release_dir", lambda arg=None: Path(arg) if arg else release)
     c = env["client"]
     curated = _stamps(load_repo().base)
     nw = Path(under_test.curated().inseason.notice_waters)

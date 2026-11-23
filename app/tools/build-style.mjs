@@ -170,7 +170,11 @@ const viewSets = (src.views ?? []).map((v) => {
     for (const tok of modeTokens(srcById.get(layerId)?.colorModes?.[mode])) seen.add(tok);
   return seen;
 });
-const together = (a, b) => {
+/** (T940) A satellite status colour is on screen exactly where the status colour it replaces is: compared as that. */
+const SAT_NOT_BESIDE = (n) => n === "color.outside" || n === "color.gauge.dot" || n.startsWith("color.label.");
+const standIn = (n) => n.replace("color.imagery.status.", "color.status.");
+const together = (a0, b0) => {
+  const a = standIn(a0), b = standIn(b0);
   const chromeA = !inSomeMode.has(a), chromeB = !inSomeMode.has(b);
   if (chromeA || chromeB) return true;                 // chrome is on screen in every view
   return viewSets.some((s) => s.has(a) && s.has(b));
@@ -185,6 +189,10 @@ for (const t of themes) {
       const [n1, v1] = cols[i], [n2, v2] = cols[j];
       if (family(n1) === family(n2) && family(n1) === "flow") continue;   // sequential ramp
       if (!together(n1, n2)) continue;                 // never drawn in the same picture
+      // (T940) the satellite status set is paler than the drawn map's, so it sits near the paper (`color.outside`, which satellite
+      // replaces with the photograph), the place names (over satellite: `color.ui.imagery.label`) and the gauge dot (a round
+      // mark, not a line); none of those is a line beside it
+      if ((n1.startsWith("color.imagery.status.") && SAT_NOT_BESIDE(n2)) || (n2.startsWith("color.imagery.status.") && SAT_NOT_BESIDE(n1))) continue;
       const d = deltaE(v1, v2);
       if (d < MIN_DELTA_E)
         err(`theme "${t.name}": ${n1} (${v1}) and ${n2} (${v2}) are ΔE ${d.toFixed(1)} apart ` +
@@ -611,6 +619,16 @@ for (const l of src.layers ?? []) {
       err(`${where}: an outline width ramp with no "by" must declare mode "zoom"`);
     if (l.outline.dash) tokenValue(l.outline.dash, `${where} outline dash`);
     if (l.outline.opacity) tokenValue(l.outline.opacity, `${where} outline opacity`);
+    if (l.outline.shade !== undefined) {
+      // (T467) a followed edge's shade: a themeable number in [-1, 1] (below 0 toward black, above toward white)
+      if (l.outline.follow !== true) err(`${where}: outline.shade shades the colours an edge FOLLOWS ("follow": true)`);
+      if (tokens[l.outline.shade?.token]?.type !== "number") err(`${where}: outline.shade must name a number token`);
+      for (const t of themes) {
+        const k = t.values[l.outline.shade?.token];
+        if (typeof k !== "number" || !(k >= -1 && k <= 1)) err(`${where}: outline.shade in ${t.name} is ${k}, not in [-1, 1]`);
+      }
+      tokenValue(l.outline.shade, `${where} outline shade`);
+    }
     if (l.outline.opacity?.ramp !== undefined) recedeRamp(l.outline.opacity.ramp, `${where} outline opacity ramp`);
     if (l.outline.width?.recede !== undefined) {
       if (l.outline.width.mode !== "sqrt") err(`${where}: outline.width.recede scales an area-sized (sqrt) outline`);
@@ -924,7 +942,14 @@ for (const [id, l] of edges) {
    * nothing about keeps today's neutral shoreline (owner 2026-10-20).
    */
   const fillPlain = l.colorModes?.plain?.scale === "static" ? l.colorModes.plain.color?.token : undefined;
-  const swap = (r) => (r && typeof r === "object" && r.token === fillPlain ? l.outline.color : r);
+  /*
+   * (T467, owner 2026-11-22: "Yes, the shaded band") A FOLLOWED COLOUR IS DRAWN A SHADE OFF THE FILL's: the shoreline is
+   * the fill's own colour one step darker on the light maps and lighter on the dark one (`outline.shade`, a themeable
+   * number), so a lake reads as a band round a fill instead of one solid sheet — while the edge still answers the fill's
+   * question in its hue. The swapped neutral shoreline (below) keeps its own colour: it is no shade of anything.
+   */
+  const shaded = (r) => (r && typeof r === "object" && l.outline.shade ? { ...r, shade: l.outline.shade.token } : r);
+  const swap = (r) => (r && typeof r === "object" && r.token === fillPlain ? l.outline.color : shaded(r));
   const followed = (m) => ({
     ...m,
     ...(m.color ? { color: swap(m.color) } : {}),

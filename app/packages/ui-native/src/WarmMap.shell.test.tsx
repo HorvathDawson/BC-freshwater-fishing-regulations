@@ -11,7 +11,7 @@ import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { makeFixtureSource } from "@app/data/fixture";
 import type { ItemId } from "@app/data";
-import { HOME, openWater, reduce, type Route } from "@app/ui";
+import { HOME, openWater, reduce, waterFrame, type Route } from "@app/ui";
 import { LIGHT } from "./theme";
 
 const mounts = { n: 0 };
@@ -119,5 +119,23 @@ describe("T989: a water opened by a phone link or tap (openRequest)", () => {
     await act(async () => { fireEvent.click(screen.getByTestId("water-close")); });
     await act(async () => {});
     expect(screen.getByTestId("map").textContent).toBe(`map fit arrive:${CHIL}:1`);
+  });
+});
+
+describe("T1034: a link's part reaches the route through the Shell's open request", () => {
+  it("openRequest.part is the opened frame's part (the Shell hands it to the opener)", async () => {
+    const CHIL = "gnis:8634" as ItemId;
+    const routes: Route[] = [];
+    const tree = (openRequest: { item: string; n: number; view?: "map"; part?: number | null } | null) => (
+      <GestureHandlerRootView>
+        <Shell source={makeFixtureSource()} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}
+               tiles={{ atlas: "a", basemap: "b" } as never} initialRoute={HOME} onRoute={(r: Route) => routes.push(r)} openRequest={openRequest} />
+      </GestureHandlerRootView>);
+    const { rerender } = render(tree(null));
+    await act(async () => {});
+    rerender(tree({ item: CHIL, n: 7, view: "map", part: 1 }));   // n: the Shell opens each tap count once per run
+    await act(async () => { await Promise.resolve(); });
+    const frame = waterFrame(routes[routes.length - 1]!);
+    expect([frame?.item, frame?.part]).toEqual([CHIL, 1]);
   });
 });

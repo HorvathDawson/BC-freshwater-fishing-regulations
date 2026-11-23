@@ -1732,84 +1732,98 @@
           [
             -1,
             {
-              "token": "color.water.ungauged"
+              "token": "color.water.ungauged",
+              "shade": "shade.lake.edge"
             }
           ],
           [
             0,
             {
-              "token": "color.flow.f1"
+              "token": "color.flow.f1",
+              "shade": "shade.lake.edge"
             }
           ],
           [
             10,
             {
-              "token": "color.flow.f2"
+              "token": "color.flow.f2",
+              "shade": "shade.lake.edge"
             }
           ],
           [
             25,
             {
-              "token": "color.flow.f3"
+              "token": "color.flow.f3",
+              "shade": "shade.lake.edge"
             }
           ],
           [
             50,
             {
-              "token": "color.flow.f4"
+              "token": "color.flow.f4",
+              "shade": "shade.lake.edge"
             }
           ],
           [
             75,
             {
-              "token": "color.flow.f5"
+              "token": "color.flow.f5",
+              "shade": "shade.lake.edge"
             }
           ],
           [
             90,
             {
-              "token": "color.flow.f6"
+              "token": "color.flow.f6",
+              "shade": "shade.lake.edge"
             }
           ],
           [
             100,
             {
-              "token": "color.flow.f7"
+              "token": "color.flow.f7",
+              "shade": "shade.lake.edge"
             }
           ],
           [
             215.87,
             {
-              "token": "color.change.fall2"
+              "token": "color.change.fall2",
+              "shade": "shade.lake.edge"
             }
           ],
           [
             230.85,
             {
-              "token": "color.change.fall1"
+              "token": "color.change.fall1",
+              "shade": "shade.lake.edge"
             }
           ],
           [
             250,
             {
-              "token": "color.change.steady"
+              "token": "color.change.steady",
+              "shade": "shade.lake.edge"
             }
           ],
           [
             269.15,
             {
-              "token": "color.change.rise1"
+              "token": "color.change.rise1",
+              "shade": "shade.lake.edge"
             }
           ],
           [
             284.13,
             {
-              "token": "color.change.rise2"
+              "token": "color.change.rise2",
+              "shade": "shade.lake.edge"
             }
           ]
         ],
         "missing": {
-          "token": "color.water.ungauged"
+          "token": "color.water.ungauged",
+          "shade": "shade.lake.edge"
         },
         "data": {
           "provider": "gauges",
@@ -1824,19 +1838,24 @@
         "enum": "stock_recency",
         "categories": {
           "season": {
-            "token": "color.stock.season"
+            "token": "color.stock.season",
+            "shade": "shade.lake.edge"
           },
           "year": {
-            "token": "color.stock.year"
+            "token": "color.stock.year",
+            "shade": "shade.lake.edge"
           },
           "recent": {
-            "token": "color.stock.recent"
+            "token": "color.stock.recent",
+            "shade": "shade.lake.edge"
           },
           "decade": {
-            "token": "color.stock.decade"
+            "token": "color.stock.decade",
+            "shade": "shade.lake.edge"
           },
           "old": {
-            "token": "color.stock.old"
+            "token": "color.stock.old",
+            "shade": "shade.lake.edge"
           },
           "never": {
             "token": "color.water.mapped"
@@ -1858,10 +1877,12 @@
         "$comment": "Depth is about which lakes have been SURVEYED, not only which have digitised contours. 2,741 bathymetric sheets exist and only a fraction were ever traced into vector contours — colouring by contours alone shows a near-empty map and tells a reader the province was never surveyed, which is the opposite of true.",
         "categories": {
           "digitised": {
-            "token": "color.survey.digitised"
+            "token": "color.survey.digitised",
+            "shade": "shade.lake.edge"
           },
           "sheet": {
-            "token": "color.survey.sheet"
+            "token": "color.survey.sheet",
+            "shade": "shade.lake.edge"
           }
         },
         "missing": {
@@ -1879,20 +1900,25 @@
         "enum": "water_status",
         "categories": {
           "closed": {
-            "token": "color.status.closed"
+            "token": "color.status.closed",
+            "shade": "shade.lake.edge"
           },
           "own": {
-            "token": "color.status.own"
+            "token": "color.status.own",
+            "shade": "shade.lake.edge"
           },
           "base": {
-            "token": "color.status.base"
+            "token": "color.status.base",
+            "shade": "shade.lake.edge"
           },
           "no_access": {
-            "token": "color.status.no_access"
+            "token": "color.status.no_access",
+            "shade": "shade.lake.edge"
           }
         },
         "missing": {
-          "token": "color.water.unmapped"
+          "token": "color.water.unmapped",
+          "shade": "shade.lake.edge"
         },
         "data": {
           "provider": "status",
@@ -1907,20 +1933,25 @@
         "enum": "salmon_status",
         "categories": {
           "open": {
-            "token": "color.salmon.open-area"
+            "token": "color.salmon.open-area",
+            "shade": "shade.lake.edge"
           },
           "release": {
-            "token": "color.salmon.release"
+            "token": "color.salmon.release",
+            "shade": "shade.lake.edge"
           },
           "closed": {
-            "token": "color.salmon.closed"
+            "token": "color.salmon.closed",
+            "shade": "shade.lake.edge"
           },
           "check": {
-            "token": "color.salmon.check"
+            "token": "color.salmon.check",
+            "shade": "shade.lake.edge"
           }
         },
         "missing": {
-          "token": "color.water.unmapped"
+          "token": "color.water.unmapped",
+          "shade": "shade.lake.edge"
         },
         "data": {
           "provider": "salmon",
@@ -1936,17 +1967,21 @@
         "enum": "run_state",
         "categories": {
           "spawn": {
-            "token": "color.run.spawn"
+            "token": "color.run.spawn",
+            "shade": "shade.lake.edge"
           },
           "pass": {
-            "token": "color.run.none"
+            "token": "color.run.none",
+            "shade": "shade.lake.edge"
           },
           "off": {
-            "token": "color.run.off"
+            "token": "color.run.off",
+            "shade": "shade.lake.edge"
           }
         },
         "missing": {
-          "token": "color.run.none"
+          "token": "color.run.none",
+          "shade": "shade.lake.edge"
         },
         "data": {
           "provider": "runs",
@@ -3110,6 +3145,7 @@
       "opacity.wetland": 0.3,
       "opacity.notfishing": 0.9,
       "opacity.lake": 0.9,
+      "shade.lake.edge": 0,
       "width.underlake": 1.6,
       "dash.route": [
         1,
@@ -3165,6 +3201,12 @@
       "color.indigenous.edge.imagery": "#2E1500",
       "color.parcel.edge.imagery": "#2A2A1C",
       "color.imagery.casing": "#FFD9B0",
+      "color.imagery.status.open": "#FEFF3A",
+      "color.imagery.status.restricted": "#6FABFA",
+      "color.imagery.status.closed": "#EA90A1",
+      "color.imagery.status.own": "#98AA08",
+      "color.imagery.status.base": "#21AAF5",
+      "color.imagery.status.no_access": "#DAFFFF",
       "width.land.edge.imagery": 1,
       "width.land.casing.imagery": 2.5,
       "opacity.land.edge.imagery": 1,
@@ -3327,6 +3369,7 @@
       "opacity.wetland": 0.28,
       "opacity.notfishing": 0.85,
       "opacity.lake": 0.85,
+      "shade.lake.edge": 0.45,
       "width.underlake": 1.6,
       "dash.route": [
         4,
@@ -3382,6 +3425,12 @@
       "color.indigenous.edge.imagery": "#2E1500",
       "color.parcel.edge.imagery": "#2A2A1C",
       "color.imagery.casing": "#FFD9B0",
+      "color.imagery.status.open": "#6BFF9E",
+      "color.imagery.status.restricted": "#E3A6FF",
+      "color.imagery.status.closed": "#FF3B6D",
+      "color.imagery.status.own": "#FFD307",
+      "color.imagery.status.base": "#8CC3FF",
+      "color.imagery.status.no_access": "#E6E4E2",
       "width.land.edge.imagery": 1,
       "width.land.casing.imagery": 2.5,
       "opacity.land.edge.imagery": 1,
@@ -3544,6 +3593,7 @@
       "opacity.wetland": 0.45,
       "opacity.notfishing": 0.9,
       "opacity.lake": 0.6,
+      "shade.lake.edge": -0.4,
       "width.underlake": 1.6,
       "dash.route": [
         4,
@@ -3599,6 +3649,12 @@
       "color.indigenous.edge.imagery": "#2E1500",
       "color.parcel.edge.imagery": "#2A2A1C",
       "color.imagery.casing": "#FFD9B0",
+      "color.imagery.status.open": "#6BFF9E",
+      "color.imagery.status.restricted": "#E3A6FF",
+      "color.imagery.status.closed": "#FF3B6D",
+      "color.imagery.status.own": "#FFD307",
+      "color.imagery.status.base": "#8CC3FF",
+      "color.imagery.status.no_access": "#E6E4E2",
       "width.land.edge.imagery": 1,
       "width.land.casing.imagery": 2.5,
       "opacity.land.edge.imagery": 1,
@@ -3965,6 +4021,11 @@
       "type": "number",
       "themeable": true
     },
+    "shade.lake.edge": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "(T467) How far a lake's shoreline is shaded off its fill's status colour (`outline.shade`): below 0 mixes toward black, above 0 toward white (-0.4 = 40% toward black). Light darker (-0.4), dark lighter (0.45); the colour-blind theme 0, its solid edge kept (the shade closes the gaps its readers need: tools/status-colours-distinct.test.ts)."
+    },
     "width.underlake": {
       "type": "number",
       "themeable": true,
@@ -4133,6 +4194,36 @@
       "type": "color",
       "themeable": true,
       "$comment": "(T923, owner 2026-11-20: 'can be on private too') A PRIVATE PARCEL'S OUTLINE OVER SATELLITE IMAGERY ONLY: the parcel earth tone (`color.parcel.private`) taken darker, in its own dark earth hue (an olive-leaning dark, apart from the reserve's brown). The drawn map keeps its fill-hued hairline."
+    },
+    "color.imagery.status.open": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T940, owner 2026-11-22: \"Yes, use the proposed set (Recommended)\") THE WATER LINES' STATUS COLOUR OVER SATELLITE IMAGERY ONLY: one set chosen for photographs, the SAME in light and dark (2026-11-22); the colour-blind theme has its OWN set (owner 2026-11-23: \"Build as proposed (Recommended)\"), tuned so every pair a view draws together is at least 20 apart for the worst reader (the photograph does not change with the theme; T923 did the same for the reserve outline). The drawn map keeps `color.status.*`. `onImageryTokens` (src/style.ts) swaps each `color.status.<s>` (and the salmon colours that are those statuses) for this token on satellite, and the legend's swatches read the same swap. Dark's closed and own are aliases of its own `color.status.*` because the one-hex-one-meaning guard sees them as one colour on purpose."
+    },
+    "color.imagery.status.restricted": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T940) satellite colour of `color.status.restricted`: see `color.imagery.status.open`."
+    },
+    "color.imagery.status.closed": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T940) satellite colour of `color.status.closed`: see `color.imagery.status.open`."
+    },
+    "color.imagery.status.own": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T940) satellite colour of `color.status.own`: see `color.imagery.status.open`."
+    },
+    "color.imagery.status.base": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T940) satellite colour of `color.status.base`: see `color.imagery.status.open`."
+    },
+    "color.imagery.status.no_access": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T940) satellite colour of `color.status.no_access`: see `color.imagery.status.open`."
     },
     "color.imagery.casing": {
       "type": "color",

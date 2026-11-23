@@ -52,3 +52,6 @@ Work item 1 is done; items 2–4 can start.
   link are not applied on the phone (the water opens whole). A follow-up if the owner wants them.
 - Needs the next site deploy (the file) AND the next APK (the filter + reader). Staging-built APKs are side-loaded, signed
   with the upload key, so Android will not verify them; only a Play install verifies.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+owner 2026-11-10; needs the app signing fingerprint from Play Console; site file + intent filter + link reader built; left (Claude): emulator `pm get-app-links` verified + phone check after the next site deploy and APK

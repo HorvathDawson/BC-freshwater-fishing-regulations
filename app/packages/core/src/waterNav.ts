@@ -395,6 +395,36 @@ export function markLabel(g: WaterGroup, m: NavMark): string | null {
   return m.token === null ? null : endWords(g.ends, m.token, "hi");
 }
 
+/**
+ * (T997 round 2, owner 2026-11-22: "why does it even need to show both? Like dyke gates is different then 23m below? Only
+ * need boundaries for highlighted section.") THE PART'S OWN TWO ENDS ON THE MAP: the placed mark at its lower end (`lo`)
+ * and at its upper end (`hi`), each said as the part's name says it (`spanName`: `endWords(lo, "lo")` → `endWords(hi,
+ * "hi")`), so the map's two labels are the two halves of the bar's "Dyke gates → 208th Street". A mark is an end of
+ * part `at` when it carries the part's end token and meets the part on that side (`at` above it for the lower end, `at`
+ * below it for the upper end); where two do (the Skeena's part 1 meets parts 2 and 5 at two marks 4.2 km apart with the
+ * same token), the one toward the next part in the water's one line (`stepDown` / `stepUp`), else the first. Null: no
+ * placed mark carries that end (the mouth — its own mark, `mouthLabel` —, a source, a part with no ends). A mark 23 m
+ * away with other words (the Nicomekl's "23 m below the Nicomekl floodgates dam") is not this part's end: a ring alone.
+ */
+export function partEnds(g: WaterGroup, at: number): {
+  readonly lo: { readonly ix: number; readonly words: string } | null;
+  readonly hi: { readonly ix: number; readonly words: string } | null;
+} {
+  const p = entry(g, at);
+  const end = (side: "lo" | "hi") => {
+    const token = side === "lo" ? p.lo : p.hi;
+    if (token === null) return null;
+    const meets = (m: NavMark) => (side === "lo" ? m.up.includes(at) : m.down === at);
+    const ixs = g.marks.flatMap((m, ix) => (m.token === token && m.lon !== null && m.lat !== null && meets(m) ? [ix] : []));
+    if (!ixs.length) return null;
+    const next = side === "lo" ? stepDown(g, at) : stepUp(g, at);
+    const toNext = next === null ? undefined
+      : ixs.find((ix) => (side === "lo" ? g.marks[ix]!.down === next : g.marks[ix]!.up.includes(next)));
+    return { ix: toNext ?? ixs[0]!, words: endWords(g.ends, token, side) };
+  };
+  return { lo: end("lo"), hi: end("hi") };
+}
+
 /** The section ids of the current part (`selected`) and of the group's other parts (`water`). */
 export function navSections(g: WaterGroup, at: number): { selected: readonly number[]; water: readonly number[] } {
   return {

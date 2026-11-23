@@ -1,6 +1,6 @@
 # T943 — Chilliwack Lake: the lake trout row shows no wild cap, so it never says a wild one can't be kept
 
-Status: IN PROGRESS — lane/lb-rules-leftovers done; left (Claude): main chat review + merge.
+Status: DONE — 10ddff399; shipped in 0.8.4 (cut e769f710a, data r-fec3fab4c5aa; 0.9.0 audit 2026-11-22, every hash is an ancestor of origin/main and of e769f710a). (Earlier status: IN PROGRESS — lane/lb-rules-leftovers done; left (Claude): main chat review + merge.)
 
 Source: lane/t936-t931 (T931 group A, seen while re-pinning `test_t810_cutover`), 2026-11-20.
 

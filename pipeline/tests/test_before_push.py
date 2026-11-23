@@ -218,6 +218,13 @@ def test_the_commit_messages_of_what_is_pushed_are_checked_first(tmp_path, monke
     one = run("rev-parse", "HEAD")
     said, paths, ranges = BP.pushed([f"refs/heads/lane {one} refs/heads/lane {z}", f"refs/tags/v1 {one} refs/tags/v1 {z}"])
     assert ranges == [f"{base}..{one}"]
+    # (T1019) an UPDATED branch: still the branch's own commits since the trunk (docs-ci's range), never `<old tip>..`
+    (here / "handoff" / "y.md").write_text("y")
+    run("add", ".")
+    run("commit", "-qm", "docs(handoff): y")
+    two = run("rev-parse", "HEAD")
+    said2, paths2, ranges2 = BP.pushed([f"refs/heads/lane {two} refs/heads/lane {one}"])
+    assert ranges2 == [f"{base}..{two}"] and paths2 == ["handoff/y.md"]
     step = BP.plan(tier=False, areas={"docs"}, ranges=ranges)[0]
     assert step == BP.Step(BP.COMMITS, ("node", "app/tools/check-commits.mjs", "--range", f"{base}..{one}"))
     assert BP.plan(tier=False)[0].cmd == ("node", "app/tools/check-commits.mjs", "--range", "origin/main..HEAD")

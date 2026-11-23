@@ -93,6 +93,8 @@ export interface ShellProps {
    * reach's alert (the Conditions map); `n` counts taps, so the same water asked again opens again.
    */
   openRequest?: { item: string | null; n: number; view?: "regs" | "conditions" | "map";
+                  /** (T1034) a link's part of the water */
+                  part?: number | null;
                   /** (T605) a region page's link on the phone: the map framed on this box (`item` null) */
                   fit?: readonly [number, number, number, number] } | null;
   /** (T234 v1.1) a new-app-version notification was tapped (a count): the bell opens on its "App update", checked now */

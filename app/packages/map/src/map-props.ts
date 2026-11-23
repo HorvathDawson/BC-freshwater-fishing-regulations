@@ -330,7 +330,8 @@ export interface MapProps {
   near?: readonly SectionKey[];
   /**
    * BOUNDARY MARKS (P15): the release's `part_mark` places between a water's parts — a finger-sized ring, labelled
-   * where `label` is given (the current part's two ends, or the mark that is open). `on`: the mark that is open.
+   * where `label` is given (T997 round 2: the lit part's own two ends only; at most two, hung one above its ring and one
+   * below, `labelAnchors`, so they never cover each other). `on`: the mark that is open.
    */
   marks?: readonly MapMark[];
   /** A mark was tapped: its index in `marks`. */

@@ -11,7 +11,7 @@ import type { SalmonFacts, StatusIndex } from "@app/core";
 import { baseAdapter, type MapHandle } from "./adapters/contract";
 import { Colouring, salmonInput, statusInput, type LabelTarget, type TileRenderer, type TileSections } from "./colouring";
 import { closedCuePaint, gearShown, noAccessShown, paintFor } from "./paint";
-import { NO_VALUES, STYLE_META, resolveTheme, type ChannelValues } from "./style";
+import { NO_VALUES, STYLE_META, resolveTheme, shadeHex, type ChannelValues } from "./style";
 
 /** Chain 0 the unlisted water; chain 1 (sections 100..104) closed by DFO's "Finfish closure" on Jul 19–20 (days 200–201)
  *  only — coho; every other species and day the plain "not opened" closure. */
@@ -53,8 +53,10 @@ describe("the Standard map under a DFO finfish closure", () => {
     expect([day.finfish, day.finfishNone]).toEqual([["s1"], undefined]);
     for (const [l, prop] of [["stream", "line-color"], ["lake", "fill-color"], ["lake__edge", "line-color"]] as const) {
       const byDay = paintFor(l, "profile", t, valuesOf(JUL20, null, false))[prop];
+      // (T467) the lake's shoreline draws closed a shade off the token, as it draws every status
+      const closed = l === "lake__edge" ? shadeHex(String(t["color.status.closed"]), t["shade.lake.edge"] as number) : t["color.status.closed"];
       expect(paintFor(l, "profile", t, valuesOf(JUL20))[prop])
-        .toEqual(["case", ["in", SP, ["literal", ["s1"]]], t["color.status.closed"], byDay]);
+        .toEqual(["case", ["in", SP, ["literal", ["s1"]]], closed, byDay]);
     }
     // and the key moves with it, so the engine repaints the day
     expect(statusInput({ index: INDEX, day: JUL20 }, salmon(JUL20)).valuesKey)

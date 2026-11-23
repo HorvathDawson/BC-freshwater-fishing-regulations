@@ -33,7 +33,9 @@ export interface MapView {
    */
   show?: string[];
 }
-export type TokenRef = { token: string };
+/** A colour by token name. (T467) `shade`: a number token — the colour is drawn that far toward black (below 0) or white
+ *  (above 0), `shadeHex`: a followed lake shoreline a shade off its fill (`outline.shade`, build-style). */
+export type TokenRef = { token: string; shade?: string };
 export type ColorMode =
   | { label: string; scale: "static"; color: TokenRef }
   | { label: string; scale: "categorical"; property: string; enum?: string;
@@ -292,6 +294,21 @@ export function resolveTheme(name: string, overrides: Tokens = {}): Tokens {
 }
 
 /**
+ * (T467) `#rrggbb` (or `#rgb`) mixed `k` of the way toward black (k < 0) or white (k > 0), per sRGB channel, `#RRGGBB`.
+ * Anything else — a colour that is not hex, a `k` outside [-1, 1] — THROWS, naming it (no silent fallback: a shoreline
+ * that lost its shade would draw as the solid sheet this exists to end).
+ */
+export function shadeHex(hex: string, k: number): string {
+  const m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(hex);
+  if (!m) throw new Error(`shadeHex: ${hex} is not a #rgb / #rrggbb colour`);
+  if (!(k >= -1 && k <= 1)) throw new Error(`shadeHex: shade ${k} is not in [-1, 1]`);
+  const h = m[1]!.length === 3 ? m[1]!.split("").map((c) => c + c).join("") : m[1]!;
+  const to = k < 0 ? 0 : 255, a = Math.abs(k);
+  return "#" + [0, 2, 4].map((i) => Math.round(parseInt(h.slice(i, i + 2), 16) * (1 - a) + to * a)
+    .toString(16).padStart(2, "0")).join("").toUpperCase();
+}
+
+/**
  * The MapLibre paint expression for one layer under one colour mode, with tokens
  * resolved. Categorical and continuous modes read from FEATURE-STATE, so switching
  * view or theme never refetches a tile.
@@ -300,7 +317,7 @@ export function colorExpression(layerId: string, modeName: string, t: Tokens,
                                 values: ChannelValues | null = NO_VALUES): unknown {
   const mode = STYLE_META.colorModes[layerId]?.[modeName];
   if (!mode) throw new Error(`layer "${layerId}" has no colour mode "${modeName}"`);
-  const val = (r: TokenRef) => t[r.token];
+  const val = (r: TokenRef) => (r.shade === undefined ? t[r.token] : shadeHex(String(t[r.token]), Number(t[r.shade])));
   const day = profileDay(mode, values);
 
   if (mode.scale === "static") return val(mode.color);
@@ -362,13 +379,46 @@ export function colorExpression(layerId: string, modeName: string, t: Tokens,
 }
 
 /**
+ * (T940, owner 2026-11-22: "Yes, use the proposed set (Recommended)") THE STATUS COLOURS OVER SATELLITE IMAGERY: one set for
+ * photographs, the same in light and dark; cvd has its own (`color.imagery.status.*`; owner 2026-11-23). Each status token, and the salmon colours that are those
+ * statuses, is swapped for its satellite token; the drawn map keeps its own. The ONE swap the painter and the legend share.
+ */
+const IMAGERY_STATUS_SWAP: Readonly<Record<string, string>> = {
+  "color.status.open": "color.imagery.status.open", "color.status.restricted": "color.imagery.status.restricted",
+  "color.status.closed": "color.imagery.status.closed", "color.status.own": "color.imagery.status.own",
+  "color.status.base": "color.imagery.status.base", "color.status.no_access": "color.imagery.status.no_access",
+  "color.salmon.open": "color.imagery.status.open", "color.salmon.open-area": "color.imagery.status.open", "color.salmon.release": "color.imagery.status.restricted",
+  "color.salmon.closed": "color.imagery.status.closed", "color.salmon.check": "color.imagery.status.own",
+};
+/**
+ * THE LAYERS THE SATELLITE SET APPLIES TO: water lines and water fills only (owner 2026-11-22 approved line colours; land
+ * closure areas — parks, reserves, no-access land, sign zones — keep their theme's colours). A guard test holds that every
+ * layer coloured by `color.status.own` / `base` (a water's statuses) is listed, so a new water layer cannot be missed.
+ */
+export const IMAGERY_WATER_LAYERS: ReadonlySet<string> = new Set(
+  ["stream", "stream__arrows", "lake", "lake__edge", "lake_flowing", "wetland_flowing"]);
+/** `t` with the status colours as they are over satellite imagery. (T467) And the lake's shoreline UNSHADED there: over a
+ *  photograph the lake's fill fades and its outline is the status line itself, in the satellite set's own colour (T940). */
+export function onImageryTokens(t: Tokens): Tokens {
+  const out: Tokens = { ...t };
+  for (const [from, to] of Object.entries(IMAGERY_STATUS_SWAP)) {
+    if (t[to] === undefined) throw new Error(`satellite: token ${to} missing from the theme`);
+    out[from] = t[to]!;
+  }
+  if (t["shade.lake.edge"] === undefined) throw new Error("satellite: token shade.lake.edge missing from the theme");
+  out["shade.lake.edge"] = 0;
+  return out;
+}
+
+/**
  * THE COLOUR OF A WATER'S STATUS in one theme — the ONE resolver every surface uses (a search
  * row, the list of water near a town, and the map's status colouring when regulations return).
  * The status and its token are decided in @app/core (`WATER_STATUS`); the hex is the map's.
  */
 /** (T211) The colour the Salmon colouring paints a salmon status in one theme — its legend swatch. */
-export function salmonStatusColour(theme: string, status: SalmonMapStatus): string {
-  const hex = resolveTheme(theme)[`color.salmon.${status}`];
+export function salmonStatusColour(theme: string, status: SalmonMapStatus, satellite = false): string {
+  const t = resolveTheme(theme);
+  const hex = (satellite ? onImageryTokens(t) : t)[`color.salmon.${status}`];
   if (typeof hex !== "string") throw new Error(`theme "${theme}" cannot paint salmon ${status}`);
   return hex;
 }
@@ -433,8 +483,9 @@ export function notFishingColours(theme: string): { fill: string; edge: string }
   return { fill, edge };
 }
 
-export function waterStatusColour(theme: string, status: WaterStatus): string {
-  const hex = resolveTheme(theme)[WATER_STATUS[status].token];
+export function waterStatusColour(theme: string, status: WaterStatus, satellite = false): string {
+  const t = resolveTheme(theme);
+  const hex = (satellite ? onImageryTokens(t) : t)[WATER_STATUS[status].token];
   if (typeof hex !== "string") throw new Error(`theme "${theme}" cannot paint ${status}`);
   return hex;
 }

@@ -80,6 +80,12 @@ dialog.join .x{position:absolute;top:.4rem;right:.4rem;width:2.5rem;height:2.5re
 dialog.join .acts{display:flex;flex-wrap:wrap;gap:.5rem;margin:.8rem 0 .2rem}dialog.join .acts .app{flex:1 1 9rem;margin:0;text-align:center;border:0;font:inherit;font-weight:600;cursor:pointer;border-radius:0}
 dialog.join .acts .app.alt{background:transparent;color:var(--accent);border:1.5px solid var(--ink);padding:calc(.65rem - 1.5px) calc(1rem - 1.5px)}
 dialog.join .addr{font-weight:600;user-select:all;word-break:break-all}
+.lead{display:grid;gap:1rem;align-items:start;margin:.6rem 0 1rem}@media(min-width:44rem){.lead{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.mapcard{position:relative;border:1px solid var(--line);background:var(--soft)}.mapcard .tag2{position:absolute;top:.4rem;left:.4rem;font-size:.8rem;background:var(--card);color:var(--muted);padding:.1rem .4rem}
+.mapcard .dots{display:block;width:100%;height:auto;max-height:26rem}.mapcard .dots path{fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linecap:round;opacity:.75}
+.mapcard .app{display:block;margin:0;border-radius:0;text-align:center;padding:.85rem 1rem}
+.find label{display:block;font-weight:600;margin-bottom:.3rem}.find input{box-sizing:border-box;width:100%;font:inherit;padding:.65rem .7rem;border:1.5px solid var(--ink);border-radius:0;background:var(--card);color:var(--ink)}
+.sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.sugg{list-style:none;margin:0;padding:0;border:0}.sugg:not(:empty){border:1px solid var(--line);border-top:0}.sugg li{margin:0;border-top:1px solid var(--line)}.sugg li:first-child{border-top:0}.sugg a{display:block;padding:.6rem .7rem;text-decoration:none;color:var(--ink)}
 .yb svg{display:block;width:100%;height:auto}.yb text{font-size:10px;fill:var(--muted)}.yb .o{fill:var(--open)}.yb .c{fill:var(--closed)}.yb ul{margin:.4rem 0 0}
 .gv .reading{font-size:1.1rem;margin:.2rem 0}.gv .reading b{font-size:1.6rem}.gv .standing{font-weight:600;margin:.1rem 0}
 .gv .headrow{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:.2rem 1rem;margin:.8rem 0 .2rem}.gv .headrow .reading{margin:0}.gv .headrow .reading b{font-size:1.5rem}.gv .meta{margin:.2rem 0 .6rem}
@@ -230,7 +236,7 @@ export function privacyBody(site: Site, asOf: string): string {
     `I do not store your IP address with it: to limit abuse I keep only a salted one-way hash of it for a day’s counting. ` +
     `The token is deleted when you turn notifications off, or when Apple tells me it no longer works. ` +
     `It is not linked to you or to an account and is not backed up.</p>` +
-    `<h2>This website</h2><p>The website serves plain pages. It sets no cookies and runs no advertising or tracking scripts; the only script is the visit counter described above. ` +
+    `<h2>This website</h2><p>The website serves plain pages. It sets no cookies and runs no advertising or tracking scripts; the scripts it runs are these: the visit counter described above (Cloudflare Web Analytics); on a river gauge page, the page’s own script, which reads that gauge’s latest flow and the weather forecast when the page opens, and the “Join the test” card’s script; and on a region page, a script for its water search, which reads that region’s list of water names from this website when you start typing. None of them sets a cookie or sends what you type or where you are; if one of them fails, a short error record (never what you typed) may be sent to my server, handled as the app’s error records described above. ` +
     `Cloudflare, which hosts it, sees ordinary request information such as your IP address.</p>` +
     `<h2>No selling, no sharing</h2><p>I do not sell your information, and I do not share it for advertising. ` +
     `The services named above (Cloudflare, Open-Meteo, Esri, and Apple for push only) receive only the requests described here.</p>` +

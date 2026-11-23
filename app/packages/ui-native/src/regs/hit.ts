@@ -19,8 +19,8 @@ export function hitSlopFor(w: number, h: number): Insets {
 }
 
 /** what `data-hitslop` holds: "w h top right bottom left" — the box, then the slop (CSS order) */
-export function hitData(box: HitBox): string {
-  const s = hitSlopFor(box.w, box.h);
+export function hitData(box: HitBox, slop?: Insets): string {
+  const s = slop ?? hitSlopFor(box.w, box.h);
   return `${box.w} ${box.h} ${s.top} ${s.right} ${s.bottom} ${s.left}`;
 }
 
@@ -36,8 +36,8 @@ export function hitArea(data: string): { w: number; h: number } | null {
  * The props a Pressable spreads to reach 44 × 44: `hitSlop` (native and web) and `dataSet.hitslop` (the test's record).
  * `dataSet` is a react-native-web prop that react-native's types do not list, so the bag is typed as an open object.
  */
-export function hitProps(box: HitBox): { hitSlop: Insets } & Record<string, unknown> {
-  return { hitSlop: hitSlopFor(box.w, box.h), dataSet: { hitslop: hitData(box) } };
+export function hitProps(box: HitBox, slop?: Insets): { hitSlop: Insets } & Record<string, unknown> {
+  return { hitSlop: slop ?? hitSlopFor(box.w, box.h), dataSet: { hitslop: hitData(box, slop) } };
 }
 
 /**
