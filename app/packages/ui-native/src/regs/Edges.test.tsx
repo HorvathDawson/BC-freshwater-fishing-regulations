@@ -19,6 +19,7 @@ import x31p from "./fixtures/edge_x31p_1010.json";
 import x15p2 from "./fixtures/edge_x15p2_1010.json";
 import unnamed from "./fixtures/edge_unnamed.json";
 import glenn501 from "./fixtures/glenn_501.json";
+import { TEST_SOURCES } from "./testing/sources";
 
 afterEach(cleanup);
 
@@ -49,7 +50,7 @@ describe("8. outside B.C.", () => {
   it("one line, the outside foot; no section below the Keep content; only the Keep tab listed", () => {
     const page = outsidePage();
     // RegsScreen handed no Gear / Methods / Licence slot (WaterScreen.tsx does this outside B.C.: WaterScreen.outside.test.tsx)
-    render(<RegsScreen page={page} palette={LIGHT} actions={NOOP} onDate={() => {}}
+    render(<RegsScreen sources={TEST_SOURCES} page={page} palette={LIGHT} actions={NOOP} onDate={() => {}}
                        gear={page.gear ? <Text>gear</Text> : undefined} methods={page.methods ? <Text>methods</Text> : undefined}
                        licence={page.licence ? <Text>licence</Text> : undefined} />);
     expect(screen.getByTestId("keep-tab").textContent).toBe("This part of the water is outside B.C.: no B.C. rules apply.");

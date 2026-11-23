@@ -511,9 +511,9 @@ const SCENARIOS = [
         await ctx.waitText(/Regulations/, 30_000);
         return measure('water page');
       });
-      // (T718) the water's rule-book link, "This water in the rule book p.N ↗". Cultus's "p.7" (0.7.9) was the licences page,
-      // which T916 removed: the line is now only for a water's own table row, at the page's foot — Cultus may have none,
-      // so BOOK_LINK (or the water opened above) must name a water that has one
+      // (T718) a rule-book link on the water's page: a rule's own "Rule book p.N ↗" (T991 round 3: the page-foot "This water in
+      // the rule book" line is gone; the water's own page is in the Source row, "B.C. Synopsis p.N ↗"), so BOOK_LINK (or the
+      // water opened above) must name a water whose rules link a page
       const LINK = process.env.BOOK_LINK ?? '.*[Rr]ule book p\\.[0-9]+ ↗.*';
       const book = async (label) => {
         ctx.flow('scroll-to', { TEXT: LINK });

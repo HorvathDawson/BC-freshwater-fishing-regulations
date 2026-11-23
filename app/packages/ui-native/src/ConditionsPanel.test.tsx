@@ -302,6 +302,25 @@ describe("the conditions panel", () => {
   });
 });
 
+describe("the Conditions tab's Source row (T991 round 3, owner 2026-11-22)", () => {
+  it("heads the Sources and notes fold with the tab's own authorities, shown closed; the chevron alone opens the verbatim credits", async () => {
+    const feed = { index: async () => ({ stations: { LEAD: { percentile: 0.15, parameter: "discharge" as const, discharge: 0.15 } } }) };
+    const source = sourceWith({ discharge: 12.5, percentile: 0.15, standing: "below", at: "2026-09-04T06:00:00Z" }, PANEL);
+    render(<ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={feed} credits={["Hydrometric data: Environment and Climate Change Canada"]}
+                            scroll={false} day={new Date(2026, 8, 4, 12)} />);
+    await waitFor(() => expect(screen.getByRole("button", { name: CONDITIONS_WORDS.fold })).toBeTruthy());
+    const row = screen.getByTestId("conditions-sources");
+    // no synopsis, no DFO: those are the Regulations tab's ("condition sources don't need to be on regulations", and back)
+    expect(row.textContent).toBe("SourceEnvironment Canada ↗BC River Forecast Centre ↗Open-Meteo ↗");
+    expect(screen.queryByText("Hydrometric data: Environment and Climate Change Canada")).toBeNull();
+    const toggle = screen.getByRole("button", { name: CONDITIONS_WORDS.fold });
+    expect(toggle.contains(row)).toBe(false);
+    fireEvent.click(toggle);
+    await waitFor(() => expect(screen.getByText("Hydrometric data: Environment and Climate Change Canada")).toBeTruthy());
+    expect(screen.getAllByTestId("conditions-sources")).toHaveLength(1);
+  });
+});
+
 describe("the Change block, mounted (T144)", () => {
   // The station's change as the feed writes it: ELF alone (no flood model running), so the low-water caveat.
   const low = { models: ["ELF"], lowWater: true, reach: { ELF: "2026-09-08" }, dir: "fall", base: 1,

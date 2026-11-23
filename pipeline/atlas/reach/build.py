@@ -1575,17 +1575,22 @@ def load_unplaced_calls(path=None) -> list[dict]:
     return rows
 
 
+def unplaced_verdict(pieces, accepted) -> tuple[list, list]:
+    """THE GATE'S RULE (T632), shared with the save-time check (`pipeline.regs.review.withheld`, T779): the pieces no
+    `accepted` row names, and the accepted keys (`UNPLACED_KEY` tuples, sorted) that name no piece — stale."""
+    def key(x):
+        return tuple(x.get(k) or "" for k in UNPLACED_KEY)
+    ok = {key(r) for r in accepted}
+    have = {key(x) for x in pieces}
+    return [x for x in pieces if key(x) not in ok], sorted(ok - have)
+
+
 def unplaced_gate(pieces, accepted) -> None:
     """T632 (owner 2026-11-11: "stop the build unless accepted"): raise `UnplacedGateError` naming every unplaced
     piece — a provincial rule's or entry scope's (`unplaced_pieces`) or a DFO place's (`dfo_salmon.unplaced`), ANY
     reason — that no `accepted` row names, and every accepted row that names no piece of this run (stale: the piece
     moved, was placed, or its reason changed — the owner looks again; an acceptance never carries over unseen)."""
-    def key(x):
-        return tuple(x.get(k) or "" for k in UNPLACED_KEY)
-    ok = {key(r) for r in accepted}
-    have = {key(x) for x in pieces}
-    bad = [x for x in pieces if key(x) not in ok]
-    stale = sorted(ok - have)
+    bad, stale = unplaced_verdict(pieces, accepted)
     if bad or stale:
         lines = [f"{x['entry_id']}/{x['rule_id'] or '-'}: {x['piece']} ({x['reason']})" for x in bad]
         lines += [f"STALE acceptance {e}/{r or '-'}: {p} ({why}) — no such piece in this run; remove the row"

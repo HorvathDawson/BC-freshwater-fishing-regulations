@@ -24,6 +24,7 @@ import { createTabStore } from "./tabStore";
 import vedder1010 from "./fixtures/vedder_1010.json";
 import klwa1010 from "./fixtures/klwa_1010.json";
 import bc1501 from "./fixtures/bc1_501.json";
+import { TEST_SOURCES } from "./testing/sources";
 
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 
@@ -33,7 +34,7 @@ const CLASSES: LayoutClass[] = ["phone", "tablet", "desktop"];
 
 function mount(id: string, layout: LayoutClass, p: Partial<RegsScreenProps> = {}) {
   return render(<WaterFrame palette={LIGHT} face="regulations">
-                  <RegsScreen page={PAGES[id]!} palette={LIGHT} actions={NOOP} onDate={() => {}} layout={layout}
+                  <RegsScreen sources={TEST_SOURCES} page={PAGES[id]!} palette={LIGHT} actions={NOOP} onDate={() => {}} layout={layout}
                               gear={<Text>gear section</Text>} methods={<Text>methods section</Text>}
                               licence={<Text>licence section</Text>} {...p} />
                 </WaterFrame>);

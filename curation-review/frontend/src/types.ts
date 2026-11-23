@@ -1009,6 +1009,14 @@ export interface ExtentPreview {
   rest_of?: RestOf | null;
   /** T761: listed places left out of the subtraction — {id: why} (no bind / not drawn), and the dormant ones */
   rest_skipped?: Record<string, string>;
+  /** T775: a rest-of with no section of its own, standing behind its listed places (the build accepts it) */
+  rest_stands_behind?: boolean;
+  /** T775: the listed places drawn beside the rest (`properties.listed`): place id -> sections */
+  listed_drawn?: Record<string, number>;
+  /** T779: every piece the place withholds, and whether `unplaced_piece_calls.json` accepts it (the reach run stops on one it does not) */
+  withheld?: { piece: string; reason: string; accepted: boolean }[];
+  /** T779: `accepted` rows of this place that name no piece it withholds now (the reach run stops on a stale one too) */
+  stale_acceptances?: { piece: string; reason: string }[];
   rest_dormant?: string[];
   resolvable: boolean;
   why: string | null;

@@ -24,6 +24,7 @@ import { ReportLink, WaterReportLink } from "./ReportLink";
 import { RegsScreen } from "../regs/RegsScreen";
 import { createTabStore } from "../regs/tabStore";
 import vedder1010 from "../regs/fixtures/vedder_1010.json";
+import { TEST_SOURCES } from "../regs/testing/sources";
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); ERROR_LOG.clear(); });
 
@@ -742,7 +743,7 @@ describe("the Regulations screen's report link (T41 Q3, Claude 2026-10-22: once,
     const store = createTabStore();
     render(
       <MenuContext.Provider value={menu}>
-        <RegsScreen page={vedder1010 as unknown as RegsPage} palette={LIGHT} store={store}
+        <RegsScreen sources={TEST_SOURCES} page={vedder1010 as unknown as RegsPage} palette={LIGHT} store={store}
                     actions={{ onSheet() {}, onDay() {}, onBook() {} }} onDate={() => {}}
                     gear={<Text>gear section</Text>} methods={<Text>methods section</Text>}
                     licence={<Text>licence section</Text>} />
