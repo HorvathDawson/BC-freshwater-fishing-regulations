@@ -209,6 +209,9 @@ def test_every_ci_workflow_runs_on_every_pr_and_ends_in_one_required_check():
         assert on["push"]["paths"] == CP.AREAS[area], name                   # the area, word for word
         # no filter: it always runs ((T998) docs-ci names its event types, the defaults + `edited`: no path filter)
         assert on["pull_request"] == ({"types": CP.PR_TYPES[area]} if area in CP.PR_TYPES else None), name
+        # (T1041) a merge queue's group runs it too (no filter: its `changes` job filters it), so the required check
+        # reports on the group; a workflow without it would leave the queue waiting forever once one is turned on
+        assert "merge_group" in on and on["merge_group"] is None, name
         jobs = doc["jobs"]
         ch = jobs["changes"]
         assert "needs" not in ch and "if" not in ch and ch["outputs"] == {"run": "${{ steps.c.outputs.run }}"}
@@ -235,8 +238,10 @@ def test_the_changes_action_reads_ci_paths_and_takes_no_event_field_through_shel
     doc = yaml.safe_load((ACTIONS / "changes" / "action.yml").read_text())
     step = doc["runs"]["steps"][0]
     assert step["run"] == 'python3 scripts/ci_paths.py github "$AREA"'
-    assert step["env"]["BASE_SHA"] == "${{ github.event.pull_request.base.sha }}"
-    assert step["env"]["HEAD_SHA"] == "${{ github.event.pull_request.head.sha }}"
+    # (T1041) a merge queue's group: its own base / head (each expression is empty on the other event)
+    assert step["env"]["BASE_SHA"] == "${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}"
+    assert step["env"]["HEAD_SHA"] == "${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}"
+    assert set(CP.FILTERED) == {"pull_request", "merge_group"}
     assert doc["outputs"]["run"]["value"] == "${{ steps.c.outputs.run }}"
     # no third-party action anywhere in it (T995: plain git diff)
     assert not [s for s in doc["runs"]["steps"] if "uses" in s]

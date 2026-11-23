@@ -78,7 +78,7 @@ def _changed(monkeypatch, capsys, paths, argv=()):
     monkeypatch.delenv(BP.SKIP_ENV, raising=False)
     monkeypatch.setattr(BP, "changed_paths", lambda: ("b" * 40, list(paths)))
     ran = []
-    assert BP.main(["--changed", "--no-tier", *argv], runner=lambda s: ran.append(s.name) or 0) == 0
+    assert BP.main(["--changed", "--no-tier", "--serial", *argv], runner=lambda s: ran.append(s.name) or 0) == 0
     capsys.readouterr()
     return ran
 
@@ -103,7 +103,10 @@ def test_changed_runs_only_the_areas_the_branch_changed(monkeypatch, capsys):
     assert "the pipeline's source scanners (--no-tier)" in ran            # (T995 review) the pipeline tests read app/
     ran = _changed(monkeypatch, capsys, ["pipeline/regs/review/x.py"])
     assert not any(n.startswith(("app", "feeds worker", "docs: ")) for n in ran) and ran[0] == msgs
-    full = [s.name for s in BP.plan(tier=False)]
+    # every area: the whole plan, (T1041) the tree scanners step become `vitest related`, the pipeline's related tests
+    # after its source scanners
+    full = [BP.APP_RELATED if n == BP.SCANNERS else n for s in BP.plan(tier=False) for n in
+            ([s.name, BP.PY_RELATED] if s.name == BP.NO_TIER else [s.name])]
     assert _changed(monkeypatch, capsys, ["pipeline/x.py", "app/x.ts", "app/workers/feeds/x.ts", "AGENTS.md"]) == full
     # every step names its area
     assert {BP.step_area(s) for s in BP.plan(app_suite=True)} == {"pipeline", "app", "feeds-worker", "docs"}
@@ -198,7 +201,7 @@ def test_the_hook_checks_the_pushed_commits_not_the_tree(tmp_path, monkeypatch, 
     assert BP.main(["--changed", "--pre-push"], runner=lambda s: ran.append(s) or 0,
                    stdin=io.StringIO(f"refs/tags/v1 {two} refs/tags/v1 {z}\n")) == 0
     assert ran == [] and "only tags / deletes pushed: nothing to check" in capsys.readouterr().out
-    assert BP.main(["--changed", "--pre-push", "--no-tier"], runner=lambda s: ran.append(s.name) or 0,
+    assert BP.main(["--changed", "--pre-push", "--no-tier", "--serial"], runner=lambda s: ran.append(s.name) or 0,
                    stdin=io.StringIO(f"refs/heads/lane {one} refs/heads/lane {z}\n")) == 0
     assert ran == [BP.COMMITS, "ticket guard (node app/tools/check-tickets.mjs)",
                    "docs: the ticket guard's tests and the start-here page (docs-ci)"]     # docs only, not the tree
@@ -267,3 +270,92 @@ def test_the_pre_push_hook_stays_fast():
     while the hook runs, did not outlive a ~10 min tier (SIGPIPE). Mutation: drop --no-tier -> fails."""
     hook = (Path(__file__).resolve().parents[2] / ".githooks" / "pre-push").read_text()
     assert 'scripts/before_push.py --changed --pre-push --no-tier' in hook
+
+
+# ── (T1041) THE TESTS A CHANGE REACHES, AND THE TWO LANES ──────────────────────────────────────────────────────────────
+
+def _plan(paths, **kw):
+    return {s.name: s for s in BP.plan(tier=False, areas=BP.CP.areas_of(paths), paths=list(paths), **kw)}
+
+
+def test_a_core_change_runs_the_tests_of_every_package_that_imports_it():
+    """(T1041) #63, 2026-11-23: app/packages/core/src/tabSources.ts changed and ui-native's WaterScreen.tidal.test.tsx
+    failed on CI ("regsSourcesOf: the rule index has no byKey") — the hook had run only the tree scanners. Now the
+    app's test step is `vitest related` over the changed code (vitest's import graph crosses packages), the scanners
+    with it. Mutation: keep the scanners step in --changed -> fails."""
+    plan = _plan(["app/packages/core/src/tabSources.ts", "app/packages/data/dev/mini-release/LATEST"])
+    assert BP.SCANNERS not in plan
+    cmd = plan[BP.APP_RELATED].cmd
+    assert cmd[:8] == ("pnpm", "-C", "app", "exec", "vitest", "related", "--run", "--passWithNoTests")
+    assert cmd[8] == "packages/core/src/tabSources.ts" and set(BP.app_scanners()) <= set(cmd[9:])
+    assert any("not code" in n and "mini-release/LATEST" in n for n in plan[BP.APP_RELATED].note)   # said, not dropped
+    # a full run (no change list) and --app-suite keep the plain scanners: the whole suite holds every related test
+    assert BP.APP_RELATED not in {s.name for s in BP.plan(tier=False)}
+    assert BP.SCANNERS in _plan(["app/x.ts"], app_suite=True) and BP.APP_RELATED not in _plan(["app/x.ts"], app_suite=True)
+
+
+def test_a_pipeline_change_runs_the_tests_that_import_it_as_ci_does():
+    """(T1041) #67: decided.py changed; test_local_closures.py, which imports it, failed in the no-data tier the hook
+    leaves to the PR. Now its direct importers run, CI's markers, in chunks. Mutation: drop the step -> fails."""
+    import re
+    plan = _plan(["pipeline/deliver/answers/display/decided.py"])
+    step = plan[BP.PY_RELATED]
+    assert step.cmd[:3] == ("bash", "scripts/pytest-chunked.sh", "--only")
+    only = re.compile(step.cmd[3])
+    assert only.search("pipeline/tests/test_local_closures.py") and not only.search("pipeline/tests/test_liveness.py")
+    assert step.cmd[step.cmd.index("-m") + 1] == BP.tier_markers(BP.workflow_steps())
+    assert list(plan).index(BP.PY_RELATED) == list(plan).index(BP.NO_TIER) + 1
+    # no test reaches the change: the step runs nothing and says so (never a silent pass of nothing)
+    none = _plan(["README.md"])[BP.PY_RELATED]
+    assert none.cmd == () and "no pipeline test file changed or imports a changed module" in none.note
+    assert BP.run_step(none) == 0
+    # with the whole tier (no --no-tier) it holds them: no related step
+    assert BP.PY_RELATED not in {s.name for s in BP.plan(areas={"pipeline"}, paths=["pipeline/release.py"])}
+
+
+def test_the_two_lanes_run_at_once_and_each_steps_output_is_printed_whole(capsys):
+    """(T1041) the pipeline's steps and the rest run at once (the hook takes the longer lane, not the sum); a step's
+    output is held and printed whole with its header; the failures are listed in the plan's order; a runner that
+    raises fails its step and its lane goes on. Mutation: run the lanes one after another -> the overlap fails."""
+    import threading
+    import time
+    steps = [BP.Step("app gates (pnpm check:fast)", ("x",)), BP.Step("app: second", ("x",)),
+             BP.Step("CI: a pipeline step", ("x",), note=("a note",)), BP.Step("CI: fails", ("x",)),
+             BP.Step("CI: raises", ("x",))]
+    assert [[s.name for s in g] for g in BP.lanes(steps)] == [["app gates (pnpm check:fast)", "app: second"],
+                                                             ["CI: a pipeline step", "CI: fails", "CI: raises"]]
+    live, seen = set(), []
+    gate = threading.Barrier(2, timeout=5)
+
+    def runner(s):
+        live.add(s.name)
+        if s.name in ("app gates (pnpm check:fast)", "CI: a pipeline step"):
+            gate.wait()                          # both lanes are inside a step at the same moment, or this times out
+        seen.append(set(live))
+        print(f"out of {s.name}", file=BP._OUT.f)
+        time.sleep(0.01)
+        live.discard(s.name)
+        if s.name == "CI: raises":
+            raise RuntimeError("boom")
+        return 1 if s.name == "CI: fails" else 0
+    rcs = BP.run_all(steps, runner, parallel=True)
+    assert rcs == {"app gates (pnpm check:fast)": 0, "app: second": 0, "CI: a pipeline step": 0, "CI: fails": 1,
+                   "CI: raises": 1}
+    out = capsys.readouterr().out
+    block = out[out.index("── CI: a pipeline step"):]
+    assert block.startswith("── CI: a pipeline step\n   a note\nout of CI: a pipeline step\n   ok (")
+    assert "raised RuntimeError('boom')" in out and "2 lanes at once" in out
+    # serial: one after another, nothing held
+    capsys.readouterr()
+    order = []
+    assert BP.run_all(steps[:2], lambda s: order.append(s.name) or 0, parallel=False) == {s.name: 0 for s in steps[:2]}
+    assert order == ["app gates (pnpm check:fast)", "app: second"]
+
+
+def test_main_lists_the_failures_in_the_plans_order_whatever_lane_ended_first(monkeypatch, capsys):
+    monkeypatch.delenv(BP.SKIP_ENV, raising=False)
+    monkeypatch.setattr(BP, "changed_paths", lambda: ("b" * 40, ["pipeline/release.py", "app/x.ts"]))
+    bad = {"the pipeline's source scanners (--no-tier)", "app gates (pnpm check:fast)"}
+    assert BP.main(["--changed", "--no-tier"], runner=lambda s: 1 if s.name in bad else 0) == 1
+    err = capsys.readouterr().err
+    assert err.index("- the pipeline's source scanners") < err.index("- app gates (pnpm check:fast)")
