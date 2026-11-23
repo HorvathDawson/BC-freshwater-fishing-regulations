@@ -619,6 +619,16 @@ for (const l of src.layers ?? []) {
       err(`${where}: an outline width ramp with no "by" must declare mode "zoom"`);
     if (l.outline.dash) tokenValue(l.outline.dash, `${where} outline dash`);
     if (l.outline.opacity) tokenValue(l.outline.opacity, `${where} outline opacity`);
+    if (l.outline.shade !== undefined) {
+      // (T467) a followed edge's shade: a themeable number in [-1, 1] (below 0 toward black, above toward white)
+      if (l.outline.follow !== true) err(`${where}: outline.shade shades the colours an edge FOLLOWS ("follow": true)`);
+      if (tokens[l.outline.shade?.token]?.type !== "number") err(`${where}: outline.shade must name a number token`);
+      for (const t of themes) {
+        const k = t.values[l.outline.shade?.token];
+        if (typeof k !== "number" || !(k >= -1 && k <= 1)) err(`${where}: outline.shade in ${t.name} is ${k}, not in [-1, 1]`);
+      }
+      tokenValue(l.outline.shade, `${where} outline shade`);
+    }
     if (l.outline.opacity?.ramp !== undefined) recedeRamp(l.outline.opacity.ramp, `${where} outline opacity ramp`);
     if (l.outline.width?.recede !== undefined) {
       if (l.outline.width.mode !== "sqrt") err(`${where}: outline.width.recede scales an area-sized (sqrt) outline`);
@@ -932,7 +942,14 @@ for (const [id, l] of edges) {
    * nothing about keeps today's neutral shoreline (owner 2026-10-20).
    */
   const fillPlain = l.colorModes?.plain?.scale === "static" ? l.colorModes.plain.color?.token : undefined;
-  const swap = (r) => (r && typeof r === "object" && r.token === fillPlain ? l.outline.color : r);
+  /*
+   * (T467, owner 2026-11-22: "Yes, the shaded band") A FOLLOWED COLOUR IS DRAWN A SHADE OFF THE FILL's: the shoreline is
+   * the fill's own colour one step darker on the light maps and lighter on the dark one (`outline.shade`, a themeable
+   * number), so a lake reads as a band round a fill instead of one solid sheet — while the edge still answers the fill's
+   * question in its hue. The swapped neutral shoreline (below) keeps its own colour: it is no shade of anything.
+   */
+  const shaded = (r) => (r && typeof r === "object" && l.outline.shade ? { ...r, shade: l.outline.shade.token } : r);
+  const swap = (r) => (r && typeof r === "object" && r.token === fillPlain ? l.outline.color : shaded(r));
   const followed = (m) => ({
     ...m,
     ...(m.color ? { color: swap(m.color) } : {}),

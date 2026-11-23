@@ -42,7 +42,7 @@ function inputs(designations: number[], considered: number[], o: { glossary?: bo
 describe("look A (in period only)", () => {
   it("a classified day: the badge says the class, opens the classified-waters term", () => {
     expect(classBadgeOf(inputs([77], [77, 89]), "in_period"))
-      .toEqual({ cls: "II", label: "Class II", period: null, inForce: true, term: "classified_waters", aria: "Class II" });
+      .toEqual({ cls: "II", label: "Class II", period: null, inForce: true, term: "classified_waters", line: "Class II water · Classified Waters Licence", aria: "Class II water · Classified Waters Licence" });
   });
   it("out of period (the designation only considered): no badge", () => {
     expect(classBadgeOf(inputs([], [77, 89]), "in_period")).toBeNull();
@@ -70,14 +70,14 @@ describe("look A (in period only)", () => {
 describe("look B (year round, with the period)", () => {
   it("in period: the class with the book's dates, in force", () => {
     expect(classBadgeOf(inputs([77], [77, 89]), "year_round"))
-      .toEqual({ cls: "II", label: "Class II", period: "Jul 1–Dec 31", inForce: true, term: "classified_waters", aria: "Class II, Jul 1–Dec 31" });
+      .toEqual({ cls: "II", label: "Class II", period: "Jul 1–Dec 31", inForce: true, term: "classified_waters", line: "Class II water · Classified Waters Licence · Jul 1–Dec 31", aria: "Class II water · Classified Waters Licence · Jul 1–Dec 31" });
   });
   it("out of period: the same words, not in force (drawn muted)", () => {
     expect(classBadgeOf(inputs([], [77, 89]), "year_round"))
-      .toEqual({ cls: "II", label: "Class II", period: "Jul 1–Dec 31", inForce: false, term: "classified_waters", aria: "Class II, Jul 1–Dec 31" });
+      .toEqual({ cls: "II", label: "Class II", period: "Jul 1–Dec 31", inForce: false, term: "classified_waters", line: "Class II water · Classified Waters Licence · Jul 1–Dec 31", aria: "Class II water · Classified Waters Licence · Jul 1–Dec 31" });
   });
   it("a period with no dates (the Elk: whenever this water is open): the class alone", () => {
-    expect(classBadgeOf(inputs([23], [23, 89]), "year_round")).toMatchObject({ label: "Class II", period: null, inForce: true, aria: "Class II" });
+    expect(classBadgeOf(inputs([23], [23, 89]), "year_round")).toMatchObject({ label: "Class II", period: null, inForce: true, aria: "Class II water · Classified Waters Licence" });
   });
   it("the Dean: Class II in force beats Class I out of period; neither in force, Class I with its dates", () => {
     expect(classBadgeOf(inputs([53], [51, 53]), "year_round")).toMatchObject({ label: "Class II", period: "Jun 16–Oct 31", inForce: true });
