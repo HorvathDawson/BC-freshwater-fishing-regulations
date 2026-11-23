@@ -1,6 +1,6 @@
 # T1002 — Test-anchor scanners: an `absent` rule for pipeline/tests/anchors.py; the record-equality and toBeUndefined gaps; part numbers after short template slots
 
-Status: OPEN (left by T768's lane, 2026-11-22).
+Status: IN PROGRESS — items 1 and 2 decided as measured gaps in the scanner headers (lane L6, 2026-11-22); left (Claude): items 3, 4 and 5.
 
 Source: T768 / T993 plan item 10 (`audit-2026-11-21/t993-inventory.md`, 0.8.5 stop 9). The app scanner
 (`app/tools/check-test-anchors.mjs`) gained an `absent` kind in ff946c86e; three gaps were left, each measured there.
@@ -26,3 +26,19 @@ Source: T768 / T993 plan item 10 (`audit-2026-11-21/t993-inventory.md`, 0.8.5 st
 ## Done when
 Each of the three has either a rule with an accepted case and a near-miss test (the header's protocol), or a stated,
 measured reason in the scanner header why it stays unscanned.
+
+## Lane L6, 2026-11-22
+- **1, the pipeline half: a DECIDED GAP**, stated and measured in `pipeline/tests/anchors.py`'s header ("NO `absent`
+  KIND HERE"). Measured on the live tree: in the files the scanner calls live, 387 `assert "<str>" not in …` in 114
+  files and 84 typed key-set equalities (`set(x) == {…}`, `sorted(x) == […]`, `x.keys() == …`). Read through, nearly all
+  are value pins (rule ids absent from a binding, species codes, words, section ids, group members): Python's `in` asks a
+  dict for a key and a list or set for a member, and the AST does not say which. What catches a field assertion
+  instead: the release's follows run those tests on the candidate (`RELEASE_DIR`) before the promote.
+- **2, record pins and `toBeUndefined`: a DECIDED GAP**, now labelled so in the app scanner's `absent` header (the
+  measurement was already there: 3 reads, about 35 record pins, none a column). No rule: no column list is read there,
+  and a syntax scan cannot tell them from value pins.
+- **Left (Claude): 3** (a part number after a short slot: `part ${i} ${p}` — the number's slot is `p`, one space after
+  another slot, so neither the 3-letter rule nor the slot name sees it; a sound rule needs the callback's name
+  (`onPart`) or the slot's position after a `part` slot), **4** (more `absent` spellings), **5** (PROVENANCE narrowed
+  to the byte-rebuild test `6. deterministic: …`: needs a part-end proof run to see which `regs-fixture.test.ts` tests
+  the mutant fails besides 6, or the narrowed list breaks the proof — not run here).
