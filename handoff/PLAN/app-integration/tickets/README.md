@@ -268,7 +268,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T988 | The Sources menu's Done button doesn't close the menu; audit every menu/sheet's closing buttons | DONE (pin tests shipped 0.8.5; NOT reproduced on the 0.8.5 emulator walk (Done closed every sheet): reopen if it recurs) | 92b180bb0 | owner 2026-11-21 |
 | T989 | Opened from a Google result, back (top right) goes to the default map instead of the water | DONE (shipped 0.8.5; emulator walk PASS) | f96f0d800 | owner 2026-11-21 |
 | T990 | Regulations pane: one Sources button at the foot listing every source (per-section buttons kept) | DONE (shipped 0.8.5; emulator walk PASS) | a81713e56 | owner 2026-11-21 |
-| T991 | Sources display audit: one consistent way sources are shown across the app (next release) | OPEN | T990 | proposal + inventory written 11-22 (lane L7, PR docs/T991-sources-audit); owner picks A or B (T991-shots/); no OWNER-TODO row yet |
+| T991 | Sources display audit: one consistent way sources are shown across the app (next release) | PARTIAL | 3428dcb83 | round 3 built (lane L21): a Source row per tab (Regulations: each cited synopsis page, highlighted; in-season, DFO; Conditions: ECCC, RFC, Open-Meteo; no Map row), T991-shots/round3-*; depends T990; left (Claude): T1031 |
 | T992 | Explain how golden pages, fixture re-cuts and the release command's gates work (and maybe simplify them) | IN REVIEW (explanation written: `handoff/PLAN/runbooks/release-gates-explained.md`; simplifications proposed, not built; owner: OWNER-TODO "To read (you): the one release runbook and the gates page") | | owner 2026-11-21 |
 | T993 | Document + clean up every release / CI / CD process so a human can release from one runbook; checks do the remembering (0.8.5 stopped nine times) | IN PROGRESS (plan item 11, the one human runbook `handoff/PLAN/runbooks/release-by-hand.md`, IN REVIEW: owner: OWNER-TODO "To read (you): the one release runbook and the gates page") | T992 | owner 2026-11-21 |
 | T994 | Production-level audit: non-standard practices and data-flow issues across the code | IN PROGRESS | | owner 2026-11-21 |
@@ -301,6 +301,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1026 | The day picker stops at December 2026 although the synopsis is valid to March 31, 2027 | PARTIAL | | closed tester via owner 2026-11-22 |
 | T1027 | Android R8: push the optimization / shrinking / obfuscation scores past ~72% (restate library keep rules, each walked) | OPEN — after 0.9.0 | T1003, T1009 | owner 2026-11-22 |
 | T1028 | The trout schedule bar's open colour = the salmon bar's (owner 2026-11-23) | DONE | 391b37ddb | owner 2026-11-23 |
+| T1031 | Sources round 3, the rest: one inline source format, a breakdown per species, one species sheet with Identification / Sources tabs | OPEN | T991 | owner 2026-11-22 ~23:55 (T991 round-2 answer, items 3–5); split out by lane L21 |
 
 ## Next after closed testing
 
