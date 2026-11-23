@@ -1,7 +1,6 @@
 # T1039 — The public gauge page draws the web app's own chart (same data, windows, zoom, every forecast model)
 
-Status: OPEN — stopped before building (lane L25, 2026-11-23): the only route to the app's own chart on the page is a
-big new page bundle; options with measured sizes below, owner call Q183.
+Status: IN PROGRESS — lane L25 (wt-l25): building option B and the ELF facts fix (owner, Q183, 2026-11-23).
 
 Source: owner 2026-11-23, verbatim: "the gauge website in 9.0.0 should also have the same chart as the website. right
 now it is only a lower resolution 7 day chart with no forecast?"
@@ -29,6 +28,11 @@ band is only the facts' 18 rows over the 7-day window.
 Pictures (`handoff/PLAN/app-integration/T1039-shots/`): `before-page-chilliwack-desktop.png`,
 `before-page-chilliwack-phone-390.png`, `before-page-two-forty-no-forecast-desktop.png`, and the web app's chart for the same
 gauge `webapp-chilliwack-chart-desktop.png`.
+
+## Owner answer (Q183, 2026-11-23, verbatim)
+
+- Chart: "App's chart, ~260 KB (Recommended)" — option B.
+- ELF: "Yes, fix in 0.9.0 (Recommended)" — the facts file keeps every run the app offers, by the app's own rule.
 
 ## Options (sizes measured 2026-11-23; today's page = 3.2 KB gz HTML + 9.6 KB gz script + 3.1 KB gz facts)
 
@@ -64,5 +68,4 @@ gauge `webapp-chilliwack-chart-desktop.png`.
 The page's chart and the web app's chart for one station show the same series, windows, models (with toggle) and normal
 band; parity test mutation-proved; shots.
 
-Depends: Q183 (owner pick). Size: M (B or C) to L (A, D). Owner: yes (which option; whether a ~260 KB gz page bundle is
-acceptable). Default: none built — the lane stopped as briefed; recommended B, plus the ELF facts fix.
+Depends: —. Size: M. Owner: answered (Q183: B + the ELF fix).

@@ -10,7 +10,7 @@ Things only you can do. Claude keeps this list current while you are away; the w
 with the default Claude uses until you answer). Newest first inside each section.
 
 ## 2026-11-23: lane L25 (0.9.0 batch) — one pick
-- **Pick (you): T1039 gauge page chart (Q183)** — the app's own chart on the gauge page needs a new ~260 KB gz page script (option B, recommended) or more; the cheaper +37 KB option redraws the app's numbers with the page's own drawing. Separately, a small feeds-worker fix keeps ELF in the page's facts (46 gauge pages say "no forecast" today). Options and sizes: `handoff/PLAN/app-integration/tickets/T1039-gauge-page-app-chart.md`; pictures `handoff/PLAN/app-integration/T1039-shots/` (page vs `webapp-chilliwack-chart-desktop.png`).
+- Pick: T1039 gauge page chart (Q183) — answered 2026-11-23, verbatim: chart "App's chart, ~260 KB (Recommended)"; ELF "Yes, fix in 0.9.0 (Recommended)". Closed; lane L25 builds both.
 
 ## 2026-11-23: lane L18 (0.9.0 batch) — one look
 - Look: T997 round 2, only the lit part's two ends — answered 2026-11-23 ~10:30, Whole river: "Keep the two labels (Recommended)". Closed.

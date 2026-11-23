@@ -280,7 +280,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1034 | A `regs=` link opened over another water keeps the old camera (the link's `part` is read and dropped) | PARTIAL — left (Claude): device check of the camera; other keys T1038 | 77d9de76d, 2ddaa795f | lane L18 emulator 2026-11-23 |
 | T1035 | `theme=dark` on a `regs=` link does not switch the theme on the phone | DONE | 77d9de76d, 2ddaa795f | lane L18 emulator 2026-11-23 |
 | T1038 | Carry a phone link's date, tab, sheet, scroll, age, res, horizon and whole (today reported and dropped) | OPEN — 0.9.0 batch | | lane L15 on T1034, 2026-11-23 |
-| T1039 | The public gauge page draws the web app's own chart (same data, windows, zoom, every forecast model) | OPEN — stopped before building: options + sizes in the ticket, owner pick Q183 | | owner 2026-11-23; lane L25 |
+| T1039 | The public gauge page draws the web app's own chart (same data, windows, zoom, every forecast model) | IN PROGRESS — lane L25 (wt-l25): owner picked B + the ELF facts fix (Q183, 2026-11-23) | | owner 2026-11-23; lane L25 |
 
 ## Next after closed testing
 
@@ -322,7 +322,6 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q177 | T540 | Move AGENTS.md "Reading the regulations" (53 % of the file) into a file read only for regulation work? | no — AGENTS.md unchanged | owner |
 | Q181 | T973 | Ask a CO: is a tributary with its own no-unit row (Grave Creek under the Elk, Gosnell under the Morice, the Endako under the Stellako) inside the river's Classified Waters "[Includes Tributaries]"? | built 12:11: carried with its path, shown as a "may need" note until the CO answers | owner (ask a CO) |
 | Q182 | T723 | iPhone: keep the "Save spot" bar that rides on top of the keyboard while a spot's title or notes are typed (shots in OWNER-TODO 2026-11-20 12:15)? | keep it as built | owner |
-| Q183 | T1039 | The gauge page's chart: (A) the app's chart + app data path, ~1.6 MB first view; (B) the app's chart + its series code, station climatology written into the page, ~260 KB gz script; (C) the app's arithmetic drawn by the page, +37 KB gz; (D) embed the web app. Also: keep ELF in the card facts (worker) so 46 pages stop saying "no forecast"? | nothing built; recommended B + the ELF facts fix | owner |
 
 ### Shipped on default (reverse any)
 
@@ -357,6 +356,7 @@ The ticket is closed and the owner never answered; the build stands on the defau
 - Q31 (T93) was answered 2026-10-28 (above, in its row's own words): drainage plus tributary gauges across a continuation link.
 
 ### Answered (recently, for the record)
+- Q183 (T1039, gauge page chart) — owner 2026-11-23: chart "App's chart, ~260 KB (Recommended)" (option B); ELF "Yes, fix in 0.9.0 (Recommended)".
 - Q176 (map line casing, T470) — owner 2026-11-09 (owner checks page): no casing, as built.
 - Q178, Q179, Q180 — owner 2026-11-09: Q178 "not right now" (an in-season closure does not change status or map colour; as built, T230/T472). Q179 "sure": shorten / purge the backups to match the privacy page (T559). Q180 "dfo surveys are just in addition to psf curve. psf is primary": PSF is always the curve shown; a DFO survey is added beside it and never replaces it (reverses the 10-24 "DFO where it is better" replace rule; T552).
 - Q170 — owner 2026-11-07: B ("Ok let's try that but should add a note that we could tune the parameters on the threshold of magnitude of streams to zoom"); built in T470, the order × zoom fade is one block (`fadeByOrder`).
