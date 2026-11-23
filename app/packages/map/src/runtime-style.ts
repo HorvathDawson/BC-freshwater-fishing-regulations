@@ -132,6 +132,16 @@ const shownIn = <L extends Record<string, unknown>>(shown: boolean, layout: L): 
 /** Raster layers (imagery) go UNDER everything of ours; see the layer list below. */
 const isRaster = (l: { type?: string }) => l.type === "raster";
 
+/**
+ * (T1024) WHICH POLYGONS A SELECTION RING GOES ROUND: standing water only — the `lake` and `wetland` layers' own filter.
+ * A STREAM'S polygon (a slough, a river's wide reach: `lake_flowing` / `wetland_flowing`) is never ringed: its route is
+ * written into the `stream` layer under the same section id (pipeline tiles/export.py `export_streams`), so the casing
+ * already lights it, and a ring drew a second outline round the first one plus a box round every section's piece of the
+ * polygon (Gravel Slough, staging report 3444007425e9d3bd: "weird highlighting on the lake"). A slough is a stream
+ * everywhere and is lit like one (ruling 2026-10-03); `lake_flowing` draws no outline of its own either.
+ */
+const RINGED_POLYGONS = ["!=", ["get", "water"], "stream"];
+
 /** The last geometry layer (not a name) drawing a source-layer: where a selection ring over its polygons goes. */
 const lastDrawing = (sourceLayer: string): string | undefined =>
   (MAP_STYLE.layers as { id: string; type?: string; "source-layer"?: string }[])
@@ -176,7 +186,7 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
      * stream line so the line's colour stays on top. Shown by feature-state `selected` only; see `SELECTION_CASING`.
      */
     const ring = (id: string, sourceLayer: string) => ({
-      id, type: "line" as const, source: "atlas", "source-layer": sourceLayer,
+      id, type: "line" as const, source: "atlas", "source-layer": sourceLayer, filter: RINGED_POLYGONS,
       layout: { "line-join": "round" as const }, paint: ringPaint(resolveTheme(theme)) });
     // FOUND, NOT NAMED: the lake's last layer moved from `lake_flowing` to `lake__edge` when the shoreline was drawn
     // over the boundaries (T83), and a ring placed by name would have slid under the shoreline it rings.
