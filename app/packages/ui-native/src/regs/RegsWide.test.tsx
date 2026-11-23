@@ -62,12 +62,12 @@ describe("T45 the Regulations view on a wide screen: same words, another arrange
     const h = PAGES[id]!.header;
     const date = `${h.dayWord}${h.date}`, place = h.place ? `${h.place.full}${h.place.full}` : "";
     const tabs = "What you can keepGearMethodsLicence";
-    // (T841, owner 2026-11-17 21:38 "In the name row") a classified water's badge sits in the name row, after the name,
-    // on every layout: its class and (look B) its period
-    const c = (h as { classed?: { label: string; period: string | null } }).classed;
-    const badge = c ? `${c.label}${c.period ?? ""}` : "";
+    // (T1004, owner 2026-11-22 "right under the water body name") a classified water's line sits under the name row, before the
+    // place, on every layout: "Class II water · Classified Waters Licence · <period>"
+    const c = (h as { classed?: { line: string } }).classed;
+    const badge = c ? c.line : "";
     // (owner call 3: T71 Map, T150 Parts) the header draws no action: the name, the pill, the place, the tabs
-    const phoneHead = `${h.name}${badge}${date}${place}${tabs}`;
+    const phoneHead = `${h.name}${date}${badge}${place}${tabs}`;
     expect(seen.phone!.startsWith(phoneHead)).toBe(true);
     expect(seen).toEqual({
       phone: seen.phone,

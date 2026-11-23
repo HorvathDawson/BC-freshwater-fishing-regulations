@@ -184,38 +184,52 @@ describe("(T878) the day's sun under the date pill", () => {
   });
 });
 
-describe("(T841) the classified-water badge", () => {
+describe("(T841, T1004) the classified-water line", () => {
   const base = headerOf("vedder_1010");
-  const A = { cls: "II", label: "Class II", period: null, inForce: true, term: "classified_waters", aria: "Class II" } as const;
-  const B = { ...A, period: "Jul 1–Dec 31", aria: "Class II, Jul 1–Dec 31" } as const;
-  const mountWith = (classed: HeaderVM["classed"], onTerm?: (id: string) => void) =>
+  const LINE = "Class II water · Classified Waters Licence";
+  const A = { cls: "II", label: "Class II", period: null, inForce: true, term: "classified_waters", line: LINE, aria: LINE } as const;
+  const B = { ...A, period: "Jul 1–Dec 31", line: `${LINE} · Jul 1–Dec 31`, aria: `${LINE} · Jul 1–Dec 31` } as const;
+  const mountWith = (classed: HeaderVM["classed"], onTerm?: (id: string) => void, sun = false) =>
     render(<RegsHeader header={{ ...base, ...(classed ? { classed } : {}) }} palette={LIGHT} tabs={createTabStore()}
-                       onDate={() => {}} onTab={() => {}} onTerm={onTerm} />);
+                       onDate={() => {}} onTab={() => {}} onTerm={onTerm}
+                       sun={sun ? { rise: "9:01", set: "17:17", aria: "Sunrise 9:01, sunset 17:17" } as never : null} />);
 
-  it("a classified header: the class in the name row, named by its words; a press opens its term", () => {
+  it("a classified header: the line UNDER the name (not in the name row), named by its words; a press opens its term", () => {
     const got: string[] = [];
-    mountWith(A, (id) => got.push(id));
-    const b = screen.getByRole("button", { name: "Class II" });
-    expect([b.textContent, within(screen.getByTestId("water-title")).getByTestId("regs-class") === b]).toEqual(["Class II", true]);
+    mountWith(B, (id) => got.push(id));
+    const b = screen.getByRole("button", { name: B.line });
+    expect([b.textContent, within(screen.getByTestId("water-title")).queryByTestId("regs-class")]).toEqual([B.line, null]);
+    // under the name row, above the place label
+    const order = (a: Element, c: Element) => a.compareDocumentPosition(c) & Node.DOCUMENT_POSITION_FOLLOWING;
+    expect(order(screen.getByTestId("water-title"), b)).toBeTruthy();
+    if (screen.queryByTestId("regs-place")) expect(order(b, screen.getByTestId("regs-place"))).toBeTruthy();
     fireEvent.click(b);
     expect(got).toEqual(["classified_waters"]);
   });
-  it("no badge on a header without one (the frozen pages): nothing drawn", () => {
+  it("it is beside the sun times, in the same row, when the day's sun is drawn", () => {
+    mountWith(B, () => {}, true);
+    const row = screen.getByTestId("regs-class").parentElement!.parentElement!;
+    expect(within(row).getByTestId("regs-sun")).toBeTruthy();
+  });
+  it("no line on a header without one (the frozen pages): nothing drawn", () => {
     mountWith(undefined);
     expect(screen.queryByTestId("regs-class")).toBeNull();
   });
   it("no term (or no press handler): drawn, named, not a button", () => {
     mountWith({ ...A, term: null }, () => {});
-    expect([screen.getByTestId("regs-class").getAttribute("aria-label"), screen.queryByRole("button", { name: "Class II" })]).toEqual(["Class II", null]);
+    expect([screen.getByTestId("regs-class").getAttribute("aria-label"), screen.queryByRole("button", { name: LINE })]).toEqual([LINE, null]);
   });
-  it("look B: the period under the class; in force in the accent, out of period in the secondary colour", () => {
+  it("no period (the Elk: whenever it is open): the words without dates", () => {
+    mountWith(A, () => {});
+    expect(screen.getByRole("button", { name: LINE }).textContent).toBe(LINE);
+  });
+  it("in force in the accent, out of period in the secondary colour", () => {
     mountWith(B, () => {});
-    const b = screen.getByRole("button", { name: "Class II, Jul 1–Dec 31" });
-    expect(b.textContent).toBe("Class IIJul 1–Dec 31");
-    const chipColour = () => (screen.getByText("Class II") as HTMLElement).style.color;
-    expect(chipColour()).toBe(rgb(LIGHT.accent));
+    const colour = () => (screen.getByText(B.line) as HTMLElement).style.color;
+    expect(colour()).toBe(rgb(LIGHT.accent));
     cleanup();
     mountWith({ ...B, inForce: false }, () => {});
-    expect(chipColour()).toBe(rgb(LIGHT.sub));
+    expect(colour()).toBe(rgb(LIGHT.sub));
   });
 });
+

@@ -70,12 +70,21 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onTab, onTerm, si
     <View testID="regs-header" style={{ backgroundColor: palette.card, borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
       {/* THE NAME ROW is the water frame's (T44): the same box on every view of the water, the pill in it */}
       <WaterTitle name={h.name} palette={palette} source={nameSource}>
-        {h.classed && <ClassBadge b={h.classed} palette={palette} onTerm={onTerm} />}
         {!side && <DatePill h={h} palette={palette} onDate={onDate} onDateInset={setDateInset} />}
       </WaterTitle>
       {/* the name row's right padding (8) + the date's inset in the pill (measured whether or not the sun has come yet: the
           point is read after the pill has laid out, and a layout fires once) */}
-      {!side && !!sun && <SunLine sun={sun} palette={palette} align="end" dateInset={8 + dateInset} />}
+      {/* (T1004, owner 2026-11-22: "right under the water body name in the white space there") the class line sits under the name,
+          in the slack left of the sun times (alone when there are none: the desktop's side column, a day not read yet) */}
+      {!side && !!sun && h.classed ? (
+        <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
+          <View style={{ flex: 1 }}>{h.classed && <ClassLine b={h.classed} palette={palette} onTerm={onTerm} />}</View>
+          <SunLine sun={sun} palette={palette} align="end" dateInset={8 + dateInset} />
+        </View>
+      ) : (<>
+        {!side && !!sun && <SunLine sun={sun} palette={palette} align="end" dateInset={8 + dateInset} />}
+        {h.classed && <ClassLine b={h.classed} palette={palette} onTerm={onTerm} />}
+      </>)}
       {/* (T878) no place label (a water of one part, Babine Lake — Main Body): no empty slot under the name */}
       {!!h.place && <Place place={h.place} palette={palette} />}
       {!side && <TabRow h={h} tabs={tabs} palette={palette} onTab={onTab} />}
@@ -84,24 +93,21 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onTab, onTerm, si
 }
 
 /**
- * (T841) THE CLASSIFIED-WATER BADGE beside the name: "Class II" in the header's chip style (an outlined chip, the keep
- * box's tag), the accent while a designation is in force; (look B) the period under it and, out of period, the badge in
- * the secondary colour. A press opens the classified-waters term when the release has one. Draws `ClassBadgeVM` only.
+ * (T841, T1004) THE CLASSIFIED-WATER LINE under the name: "Class II water · Classified Waters Licence · Jul 1–Dec 31", in the accent
+ * while a designation is in force and in the secondary colour out of period. The owner rejected the chip at the far right (T841's first
+ * place) and beside the name; he asked for it "right under the water body name in the white space there". A press opens the
+ * classified-waters term when the release has one. Draws `ClassBadgeVM` only.
  */
-export function ClassBadge({ b, palette, onTerm }: { b: ClassBadgeVM; palette: Palette; onTerm?: (id: string) => void }) {
+export function ClassLine({ b, palette, onTerm }: { b: ClassBadgeVM; palette: Palette; onTerm?: (id: string) => void }) {
   const c = b.inForce ? palette.accent : palette.sub;
-  const chip = (
-    <View style={{ borderWidth: 1, borderColor: c, paddingHorizontal: 5, alignItems: "center" }}>
-      <Text maxFontSizeMultiplier={CAPPED_SCALE} style={[TYPE.chip, { color: c }]}>{b.label}</Text>
-      {!!b.period && <Text maxFontSizeMultiplier={CAPPED_SCALE} style={[TYPE.metaSemi, { lineHeight: 14.98, color: palette.sub, marginTop: -2, paddingBottom: 2 }]}>{b.period}</Text>}
-    </View>
-  );
+  const text = <Text maxFontSizeMultiplier={CAPPED_SCALE} style={[TYPE.metaHeavy, { color: c }]}>{b.line}</Text>;
+  const box = { paddingLeft: GUTTER, paddingRight: 8, paddingBottom: 4, marginTop: -2 };
   const term = b.term;
   return term && onTerm ? (
     <RegsPress testID="regs-class" onPress={() => onTerm(term)} accessibilityRole="button" accessibilityLabel={b.aria} box={{ w: 44, h: 44 }}
-               style={{ minHeight: 44, justifyContent: "center" }}>{chip}</RegsPress>
+               style={box}>{text}</RegsPress>
   ) : (
-    <View testID="regs-class" accessible accessibilityLabel={b.aria} style={{ minHeight: 44, justifyContent: "center" }}>{chip}</View>
+    <View testID="regs-class" accessible accessibilityLabel={b.aria} style={box}>{text}</View>
   );
 }
 
