@@ -1,6 +1,6 @@
 # T164 — Salmon (DFO) regulations: finish the dossier, place the splits, review the extents, fetch and place current quotas
 
-Status: OPEN — the owner's extent review is done: he finished labelling the DFO places 2026-11-15 (STATUS 2026-11-15, chat 13: 2,769 mark lines), built into release r-46e4355a7277 (staging 2026-11-16; 13 new cuts) and on production since r-6258ffded676 (2026-11-19); the 2026-11-16 audit found all 309 labelled places stored as saved and none reading open against its own DFO row. left (Claude): run and record the acceptance on the live release (dossier 0 open, splitwork active locators still needing a cut, a re-fetch that places every current quota or names why not, the Skeena / Fraser / Cowichan salmon rules with their dates), then close.
+Status: DONE — acceptance recorded on the live release r-741815c6090d (lane L10, 2026-11-22; see "Acceptance on the live release" below): dossier 0 open; the 5 active locators splitwork still lists need no cut (2 tidal, 3 lake parts); every active water place carries a mark but the 3 lake parts; today's re-fetch places all 275 live locations (0 unplaced, no changes); the Skeena, Fraser and Cowichan carry their dated salmon rules.
 
 Source: owner 2026-10-23: "make sure we have a ticket to finish the salmon dossier stuff and finish adding the splits
 needed for salmon regulations and doing all the curation review for the extents so that we could fetch the current
