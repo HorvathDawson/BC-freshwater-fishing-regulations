@@ -287,7 +287,7 @@ export const laid = (fill: string, under: string, alpha: number): string => {
 
 /**
  * (T940) A PALETTE FOR A KEY DRAWN OVER SATELLITE: the water statuses and the salmon statuses in the satellite set the map
- * paints them in there (the same in every theme), so the key's swatches are the lines they explain. Everything else is the
+ * paints them in there (the same in light and dark; cvd has its own), so the key's swatches are the lines they explain. Everything else is the
  * theme's own (a card colour is not map paint).
  */
 export function onSatellite(p: Palette, theme: string): Palette {

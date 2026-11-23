@@ -380,7 +380,7 @@ export function colorExpression(layerId: string, modeName: string, t: Tokens,
 
 /**
  * (T940, owner 2026-11-22: "Yes, use the proposed set (Recommended)") THE STATUS COLOURS OVER SATELLITE IMAGERY: one set for
- * photographs, the same in every theme (`color.imagery.status.*`). Each status token, and the salmon colours that are those
+ * photographs, the same in light and dark; cvd has its own (`color.imagery.status.*`; owner 2026-11-23). Each status token, and the salmon colours that are those
  * statuses, is swapped for its satellite token; the drawn map keeps its own. The ONE swap the painter and the legend share.
  */
 const IMAGERY_STATUS_SWAP: Readonly<Record<string, string>> = {
