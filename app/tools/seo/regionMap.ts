@@ -60,7 +60,7 @@ export function regionLead(label: string, pic: { svg: string; waters: number }, 
  * The search's script BODY (gauges.ts `findScript` wraps it with the page reporter, written in from gaugeClient.ts, as it does
  * for the Join card): reveals the form, loads the region's names on first use, lists up to 8 matches as links. Ranked: names that
  * START with what was typed, then names with a WORD starting with it, then any other match; alphabetical within each (the names
- * file is in that order). A failed load is said on the page and reported (an environment failure, no connection, only said).
+ * file is in that order). A failed load is said on the page and reported once (an environment failure, no connection, only said); a 404 (a release was cut since the page loaded) says to reload and is reported as "names file out of date (HTTP 404)", a kind the worker classes as expected.
  */
 export const FIND_BODY = `
 var f=document.querySelector("form[data-names]");if(!f)return;
@@ -94,7 +94,7 @@ function load(){
   if(tried)return;tried=true;show("Loading the names...");
   fetch(f.getAttribute("data-names")).then(function(r){if(r.status===404){var x=new Error("stale");x.stale=true;throw x;}if(!r.ok)throw new Error("names file "+r.status);return r.json();})
     .then(function(j){names=j;draw();},function(e){
-      if(e&&e.stale){stale();return;}      // a release was cut since this page loaded: expected, said with a reload link, not a defect
+      if(e&&e.stale){stale();report(new Error("names file out of date (HTTP 404)"));return;}  // said with a reload link AND reported once, as an EXPECTED kind (worker crashes.ts): a deploy that lost the file shows up there
       show("The names could not be loaded ("+e.message+"). Use the lists below.");report(e);});
 }
 f.addEventListener("submit",function(e){e.preventDefault();var a=ul.querySelector("a");if(a)location.href=a.href;});

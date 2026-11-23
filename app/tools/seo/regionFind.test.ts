@@ -2,7 +2,7 @@
 /**
  * (T1010) A region page's water search: the page's own markup (regionLead) run through the SHIPPED script (findScript).
  * Hidden until the script runs; loads the names once; ranks matches; folds accents; finds a renamed water by its former
- * name; a stale names file (404 after a release) says "reload it" and is not reported; any other failed load is said, reported
+ * name; a stale names file (404 after a release) says "reload it" and is reported once as "names file out of date (HTTP 404)"; any other failed load is said, reported
  * once as the region page's own app/route, and never retried.
  */
 import { beforeEach, describe, expect, it } from "vitest";
@@ -70,13 +70,14 @@ describe("(T1010) the region page's water search", () => {
     await type("Chilko Lake");
     expect(links()).toEqual([["Tŝilhqox Biny (formerly Chilko Lake)", "/water/tsilhqox-biny"]]);
   });
-  it("a stale names file (404 after a release) says to reload, is not reported, and is asked for once", async () => {
+  it("a stale names file (404 after a release) says to reload, is reported ONCE as its own expected message, and is asked for once", async () => {
     mount(async () => ({ ok: false, status: 404, json: async () => [] }));
     await type("k"); await type("ko"); await type("koo");
     expect(document.querySelector(".said")!.textContent).toBe("This page is out of date: reload it.");
     expect(document.querySelector(".said a")!.textContent).toBe("reload it");
     expect(fetched.length).toBe(1);
-    expect(posted.length).toBe(0);
+    expect(posted.length).toBe(1);
+    expect(posted[0]!.body.message).toBe("names file out of date (HTTP 404)");
   });
   it("any other failed load is said and reported ONCE as the region page's own app and route, never retried", async () => {
     mount(async () => ({ ok: false, status: 500, json: async () => [] }));

@@ -1,6 +1,6 @@
 # T1010 — Website: a region page's "Open the map" opens on that region; the page leads people into the real app
 
-Status: IN REVIEW — owner: OWNER-TODO "T1010 region page option B: look at the after shots"
+Status: IN REVIEW — owner: OWNER-TODO "T1010 region page option B: look at the after shots". Worker: crashes.ts EXPECTED gains the region names-file 404 — STAGING feeds-worker deploy (Claude, with the next staging release); PRODUCTION feeds-worker deploy is the owner's (his production command list, with the 0.9.0 release)
 
 Source: owner 2026-11-22, on https://canifishthis.ca/region/4, verbatim: "if i click open map it doesnt center on region 4
 in the map. also that page should be designed better to lead users to go to the real app/map. it could have a search
@@ -81,7 +81,7 @@ part of building the picked look.
   lists as before (`tools/seo/regionMap.ts`, `site.ts`, `html.ts`).
 - Search: hidden until its self-hosted script runs (no script: the lists below are the way in); loads the region's names file
   (`/assets/region-N.<hash>.json`) on first use, lists up to 8 matches as links to the water; ranked (starts with, word starts with, inside; accents folded; a renamed water also by its former name, shown "Name (formerly X)").
-  The names are asked for once per page load. A stale file (404 after a release) says "reload it" and is not reported; any other failed
+  The names are asked for once per page load. A stale file (404 after a release) says "reload it" and is reported once as "names file out of date (HTTP 404)" (classed expected in the worker: needs its deploy); any other failed
   load is said and reported once to the crash endpoint as app "region-page", route "other" (the page reporter written in, as the Join card).
 - Region hubs only. Letter and topic-by-region pages keep the plain "Open the map" card (a picture on each would add ~10 KB gzip to
   thousands of pages).
