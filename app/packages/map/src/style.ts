@@ -33,7 +33,9 @@ export interface MapView {
    */
   show?: string[];
 }
-export type TokenRef = { token: string };
+/** A colour by token name. (T467) `shade`: a number token — the colour is drawn that far toward black (below 0) or white
+ *  (above 0), `shadeHex`: a followed lake shoreline a shade off its fill (`outline.shade`, build-style). */
+export type TokenRef = { token: string; shade?: string };
 export type ColorMode =
   | { label: string; scale: "static"; color: TokenRef }
   | { label: string; scale: "categorical"; property: string; enum?: string;
@@ -292,6 +294,21 @@ export function resolveTheme(name: string, overrides: Tokens = {}): Tokens {
 }
 
 /**
+ * (T467) `#rrggbb` (or `#rgb`) mixed `k` of the way toward black (k < 0) or white (k > 0), per sRGB channel, `#RRGGBB`.
+ * Anything else — a colour that is not hex, a `k` outside [-1, 1] — THROWS, naming it (no silent fallback: a shoreline
+ * that lost its shade would draw as the solid sheet this exists to end).
+ */
+export function shadeHex(hex: string, k: number): string {
+  const m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(hex);
+  if (!m) throw new Error(`shadeHex: ${hex} is not a #rgb / #rrggbb colour`);
+  if (!(k >= -1 && k <= 1)) throw new Error(`shadeHex: shade ${k} is not in [-1, 1]`);
+  const h = m[1]!.length === 3 ? m[1]!.split("").map((c) => c + c).join("") : m[1]!;
+  const to = k < 0 ? 0 : 255, a = Math.abs(k);
+  return "#" + [0, 2, 4].map((i) => Math.round(parseInt(h.slice(i, i + 2), 16) * (1 - a) + to * a)
+    .toString(16).padStart(2, "0")).join("").toUpperCase();
+}
+
+/**
  * The MapLibre paint expression for one layer under one colour mode, with tokens
  * resolved. Categorical and continuous modes read from FEATURE-STATE, so switching
  * view or theme never refetches a tile.
@@ -300,7 +317,7 @@ export function colorExpression(layerId: string, modeName: string, t: Tokens,
                                 values: ChannelValues | null = NO_VALUES): unknown {
   const mode = STYLE_META.colorModes[layerId]?.[modeName];
   if (!mode) throw new Error(`layer "${layerId}" has no colour mode "${modeName}"`);
-  const val = (r: TokenRef) => t[r.token];
+  const val = (r: TokenRef) => (r.shade === undefined ? t[r.token] : shadeHex(String(t[r.token]), Number(t[r.shade])));
   const day = profileDay(mode, values);
 
   if (mode.scale === "static") return val(mode.color);
@@ -380,13 +397,16 @@ const IMAGERY_STATUS_SWAP: Readonly<Record<string, string>> = {
  */
 export const IMAGERY_WATER_LAYERS: ReadonlySet<string> = new Set(
   ["stream", "stream__arrows", "lake", "lake__edge", "lake_flowing", "wetland_flowing"]);
-/** `t` with the status colours as they are over satellite imagery. */
+/** `t` with the status colours as they are over satellite imagery. (T467) And the lake's shoreline UNSHADED there: over a
+ *  photograph the lake's fill fades and its outline is the status line itself, in the satellite set's own colour (T940). */
 export function onImageryTokens(t: Tokens): Tokens {
   const out: Tokens = { ...t };
   for (const [from, to] of Object.entries(IMAGERY_STATUS_SWAP)) {
     if (t[to] === undefined) throw new Error(`satellite: token ${to} missing from the theme`);
     out[from] = t[to]!;
   }
+  if (t["shade.lake.edge"] === undefined) throw new Error("satellite: token shade.lake.edge missing from the theme");
+  out["shade.lake.edge"] = 0;
   return out;
 }
 

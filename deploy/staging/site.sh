@@ -43,12 +43,22 @@ if grep -rlqF --include=index.html "$HUB_LINK" "$O"; then
   echo "site.sh: a hub page still opens production's app after the staging rewrite:" \
        "$(grep -rlF --include=index.html "$HUB_LINK" "$O" | head -3)" >&2; exit 1
 fi
+# (T1010) a region hub's water search carries the same crash endpoint and env in its form's `data-cfg`, HTML-escaped
+# (&quot;env&quot;:&quot;production&quot;): rewritten the same way, and NO staged page may still name production's crash endpoint
+if [[ -d "$O/region" ]]; then
+  find "$O/region" -name index.html -print0 | xargs -0 perl -pi -e 's#(&quot;|")https://feeds\.canifishthis\.ca/crash(&quot;|")#$1https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/crash$2#g; s#(&quot;|")env(&quot;|"):(&quot;|")production(&quot;|")#$1env$2:$3staging$4#g'
+fi
 # (T487) a gauge page's live half names production's data host and crash endpoint (tools/seo gauges.ts LIVE): on staging it
 # reads staging's feed (the cards the staging feeds worker draws) and reports to staging's worker
 if [[ -d "$O/gauge" ]]; then
   find "$O/gauge" -name index.html -print0 | xargs -0 perl -pi -e 's#"https://data\.canifishthis\.ca/#"https://data-staging.canifishthis.ca/#g; s#"https://feeds\.canifishthis\.ca/crash"#"https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/crash"#g; s#"env":"production"#"env":"staging"#g'
   if grep -rlq --include=index.html -e 'data\.canifishthis\.ca/feeds' -e 'feeds\.canifishthis\.ca' -e '"env":"production"' "$O/gauge"; then
     echo "site.sh: a gauge page still names a production host after the staging rewrite" >&2; exit 1
+  fi
+  # (T1010) not only /gauge and /region: ANY staged page naming production's crash endpoint, or a production env in a page's config
+  if grep -rlq --include=index.html -e 'feeds\.canifishthis\.ca/crash' -e '&quot;env&quot;:&quot;production&quot;' "$O/gauge" "$O/region"; then
+    echo "site.sh: a staged page still names production's crash endpoint or env after the staging rewrite:" \
+         "$(grep -rlE --include=index.html -e 'feeds\.canifishthis\.ca/crash' -e '&quot;env&quot;:&quot;production&quot;' "$O/gauge" "$O/region" | head -3)" >&2; exit 1
   fi
   [[ -f "$O/gauge/stations.json" && -f "$O/share/gauge.png" ]] || { echo "site.sh: $S has gauge pages but no gauge/stations.json or share/gauge.png" >&2; exit 1; }
 else

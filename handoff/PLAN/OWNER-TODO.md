@@ -14,7 +14,7 @@ with the default Claude uses until you answer). Newest first inside each section
 ## 2026-11-22 18:55: lane L3 (0.9.0 batch) — three looks
 - **Look (you): T997 Nicomekl labels** — `handoff/PLAN/app-integration/T997-shots/` (web before/after, Android after).
 - **Look (you): T940 satellite after-shots** — `handoff/PLAN/app-integration/T940-shots/after-*` (the approved set built; web light + dark; the emulator shot waits for the 0.9.0 APK).
-- **Pick (you): T1004 Class II tag** A (now, far right) or B (beside the name) — `T1004-shots/` (recommend B).
+- **Look (you): T1004 Class II line under the name** — `handoff/PLAN/app-integration/T1004-shots/built-before-*` / `built-after-*` (light + dark; the line under the name, every sub-tab).
 - **Approve (you): T940 satellite line colours** — `T940-shots/proposal-vs-now.png` (a mock-up; recommend the set in the ticket).
 ## 2026-11-22 23:20: question round 1 (answers, verbatim)
 - T1010 region page: "B: map preview" — being built.
@@ -40,6 +40,9 @@ with the default Claude uses until you answer). Newest first inside each section
   We did all the dog ones already ???" — Claude's mistake: the 3 Campbell marks record YOUR 11-16 answer ("They are
   right", T803 item 8), saved through the review app as usual; nothing to do.
 
+## 2026-11-23: lane L18 (0.9.0 batch) — T467 as built
+- Check: T467 shaded shoreline as built — answered 2026-11-23 ~10:30: "i like the look of the shaded shore even for none colorblind"; colour-blind band too? "No, keep cvd solid". Closed; stays as built.
+
 ## 2026-11-22 23:35: question round 2 (answers, verbatim)
 - T997 + T465 labels: "Looks better but why does it even need to show both? Like dyke gates is different then 23m below?
   Only need boundaries for highlighted section." — only the highlighted part's own boundaries get labels.
@@ -64,7 +67,7 @@ with the default Claude uses until you answer). Newest first inside each section
 ## 2026-11-22 13:40: end of the build/CI chat — open for you
 - ~~Play Console deadline date into T1003~~ not needed (owner 2026-11-22: T1003 goes in 0.9.0 regardless).
 - ~~T1008 serve or hide source maps~~ decided: serve (owner 2026-11-22).
-- **Pick (you), when the pictures come:** T1010 region page look (at most two, phone and desktop).
+- **T1010 region page option B: look at the after shots** (`handoff/PLAN/app-integration/T1010-shots/after-B-*.png`, phone and desktop, light and dark); say if the look is right.
 - **To do (you), about 10 a day:** request indexing for `handoff/PLAN/seo/index-requests-top-100.md` in Search Console.
 - **For the next chat:** the claude.ai runbook copy (5r4yEqNwqygin1oKo5Zxjk) and the Owner To-Do page could not be opened
   from the CI chat ("not found / not shared"), so their rows for this chat were not added there.
