@@ -195,7 +195,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T862 | Search finds a water by its other names (Baker Lake → Sixteen Mile Lake); audit the stocking/bathymetry name variations (owner) | OPEN | main chat + app chat | owner 2026-11-18, future (after 0.8.1) |
 | T863 | 0.8.1 to friends: production builds, Play closed testing and TestFlight external (owner) | IN PROGRESS — production builds on Play Closed (39, Google review) and TestFlight External (0.8.2 approved; 41 in review) | 9caeddba5, 592bba8a5 | owner 2026-11-18 |
 | T866 | Trim the test suites: combine overlapping tests, remove true duplicates (owner) | DONE | 67c6c813c, c7894a5e8, 979b13f60, a65145a81 | owner 2026-11-18, after the 0.8.1 releases; 2026-11-22: CI vitest on 4 shards, bare SEO builds, two slow tests fast (#16); 5 duplicates removed, 30 wording files folded into two tables (#17) |
-| T867 | Notifications inbox: since install only, read once seen, short, with data and app updates (owner) | OPEN | app chat | owner 2026-11-18, after the 0.8.1 releases |
+| T867 | Notifications inbox: since install only, read once seen, short, with data and app updates (owner) | PARTIAL | app chat | left (Claude): T1030 (release changed-waters count) for "N waters changed" (code 1d488995b, in review) |
 | T880 | A DFO exception printed without "and tributaries" leaves out that stream only (Bulkley: Two Mile Creek; the Suskwa on the chinook row) (owner) | OPEN | main chat | owner 2026-11-18 ~20:59 |
 | T885 | DFO's lake parts on the map (Babine's 12 creek-mouth circles, Mabel north, Osoyoos north basin); said in words until then (owner) | OPEN | main chat | owner 2026-11-18 ~21:13 |
 | T883 | Every fish's "How this was decided" sheet: one readable layout (answer, then the steps that made it, each with its source), trout and other fish alike (owner) | PARTIAL — left (Claude): pipeline steps[] with the main chat; merged into 0.8.2 | 8b4943387, e4e98a35c, 3e1412fdf, a80a8e6a3 | owner 2026-11-18 ~21:30; approved ~22:58 |
@@ -300,6 +300,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1025 | Switching regs sub-tabs (What you can keep ↔ Licence) scrolls through every section between | DONE | 641725521, dd48e15d8 | closed tester via owner 2026-11-22 |
 | T1026 | The day picker stops at December 2026 although the synopsis is valid to March 31, 2027 | DONE | e2cdbee15 | closed tester via owner 2026-11-22 |
 | T1027 | Android R8: push the optimization / shrinking / obfuscation scores past ~72% (restate library keep rules, each walked) | OPEN — after 0.9.0 | T1003, T1009 | owner 2026-11-22 |
+| T1030 | The release manifest carries a changed-waters count (the inbox data row's "N waters changed") | OPEN — 0.9.0 batch | T867 | stopped: not small, see the file |
 | T1028 | The trout schedule bar's open colour = the salmon bar's (owner 2026-11-23) | DONE | 391b37ddb | owner 2026-11-23 |
 | T1029 | One-bank DFO places: the one-side stripe on the Salmon map (T754 option B, the rest; owner Q4–Q6) | OPEN — after 0.9.0 | T754 | T754 (owner 2026-11-15 / 2026-11-22) |
 
