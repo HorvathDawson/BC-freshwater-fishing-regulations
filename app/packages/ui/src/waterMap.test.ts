@@ -587,6 +587,26 @@ describe("(T443, owner on 0.6.7) two marks with the same words a few steps apart
     expect(v3.marks.filter((m) => m.ix === end.ix || m.ix === g.marks.length).filter((m) => m.label !== null)).toHaveLength(2);
   });
 
+  it("(T997, the Nicomekl) two DIFFERENT boundaries 23 m apart are ONE box naming both; 300 m apart they are two", async () => {
+    // owner 2026-11-21: "23 m below the Nicomekl floodgates dam" and "Dyke gates" drawn over each other at one end of a part.
+    // Made here from the Chilliwack: one of part 2's ends said again, as ANOTHER end, 23 m downstream of it
+    const g = await loadWaterGroup(st, "gnis:8634");
+    const end = view(g, waterMapStart(1)).marks.find((m) => m.label !== null)!;
+    const src = g.marks[end.ix]!;
+    const tok = `${src.token!.replace(/@.*$/, "")}_23m_below`;
+    const near = (dLat: number) => ({ ...g, ends: { ...g.ends, [tok]: "23 m below the dam" },
+      marks: [...g.marks, { ...src, token: tok, lat: src.lat! - dLat }] });
+    const mine = (vg: WaterGroup) => view(vg, waterMapStart(1)).marks.filter((m) => m.ix === end.ix || m.ix === g.marks.length);
+    const metres = 23 / 111_195;                                     // degrees of latitude in 23 m
+    const far = mine(near(300 / 111_195)).filter((m) => m.label !== null).map((m) => m.label!);
+    expect(far).toHaveLength(2);       // 300 m apart is beyond the merge: two boxes (the map engine collides them if they meet)
+    const one = mine(near(metres));
+    expect(one.map((m) => m.a11y.length > 0)).toEqual([true, true]);   // both rings keep their words
+    const boxes = one.filter((m) => m.label !== null);
+    expect(boxes).toHaveLength(1);                                      // one box...
+    expect(boxes[0]!.label).toBe(far.join(" · "));                      // ...naming both, whole
+  });
+
   it("MUTATION PIN: labels a kilometre apart, or of other ends, are both drawn", async () => {
     const g = await loadWaterGroup(st, "gnis:8634");
     const v = view(g, waterMapStart(1));
