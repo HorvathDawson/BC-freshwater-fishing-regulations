@@ -11,6 +11,34 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## 2026-11-23 00:05: question round 5 (answers, verbatim)
 - T1026 day picker: "Yes, extend to Mar 31 2027 (Recommended)" — to: should the 0.9.0 data release extend the day-by-day answers through Mar 31, 2027? NOT built yet: the lane stopped as a format break (see T1026).
+## 2026-11-22 18:55: lane L3 (0.9.0 batch) — three looks
+- **Look (you): T997 Nicomekl labels** — `handoff/PLAN/app-integration/T997-shots/` (web before/after, Android after).
+- **Pick (you): T1004 Class II tag** A (now, far right) or B (beside the name) — `T1004-shots/` (recommend B).
+- **Approve (you): T940 satellite line colours** — `T940-shots/proposal-vs-now.png` (a mock-up; recommend the set in the ticket).
+## 2026-11-22 23:20: question round 1 (answers, verbatim)
+- T1010 region page: "B: map preview" — being built.
+- T940 satellite: "Yes, use the proposed set" — being built.
+- T1004 Class II tag: "I don't like either could we think of a better spot?" — new placements coming as pictures.
+- T991 sources: "One source row in bottom. But should have different ones for each tab too. Like condition sources
+  don't need to be on regulations. Please think about it more we also still have inline sources?" — a refined
+  per-tab proposal with the inline-sources question answered, as pictures.
+
+## 2026-11-22 23:55: question round 4 (answers, verbatim)
+- T867 inbox: "Build all four (Recommended)". T981 round 2: "Later release we will do this".
+
+## 2026-11-22 23:45: question round 3 (answers, verbatim)
+- T754 one bank: "Other bank: the water's other rules". T774: "Keep it". R8: "Do 1 but make a ticket to push higher in
+  future" (72% accepted; T1027). PR #47's marks: "I don't understand what the issue is here ... What happened to marks?
+  We did all the dog ones already ???" — Claude's mistake: the 3 Campbell marks record YOUR 11-16 answer ("They are
+  right", T803 item 8), saved through the review app as usual; nothing to do.
+
+## 2026-11-22 23:35: question round 2 (answers, verbatim)
+- T997 + T465 labels: "Looks better but why does it even need to show both? Like dyke gates is different then 23m below?
+  Only need boundaries for highlighted section." — only the highlighted part's own boundaries get labels.
+- T467 shoreline: "Yes, the shaded band (Recommended)" — being built.
+- T802 Class I/II on the map: "Don't want on map. Only in card I think" — folds into T1004.
+- T812 Babine circles: "Yes, as shown (Recommended)" — being finished.
+
 ## 2026-11-22 20:15: 0.9.0 batch chat (stopped for credits) — open for you
 - **Questions for the next chat's round (pictures in each ticket's shots folder):** T1010 region page look (A, B or C;
   A recommended), T1004 Class II tag (A now / B beside the name; B recommended), T940 satellite colour set (approve?),
@@ -21,8 +49,6 @@ with the default Claude uses until you answer). Newest first inside each section
   R2 (3 production phones get a 404 on their update check); T996 the three APNs secrets on the production feeds worker
   (`npx --prefix app wrangler secret put APNS_KEY -c app/workers/feeds/wrangler.prod.toml`, then APNS_KEY_ID and
   APNS_TEAM_ID), then the phone test on the 0.9.0 TestFlight build (steps in T996).
-- **To confirm (you):** PR #47 holds 3 review marks an agent saved ("right") for Campbell places (T803 item 8); they stay
-  out of main until you confirm them in the review app.
 - **To check (you):** T1015 what Google renders on /water/ pages (Search Console, URL inspection).
 - **Optional (you):** T1007 the Chrome "StorageType.persistent" warning is Cloudflare's injected bot script: turn off
   Cloudflare Bots / JavaScript Detections to silence it.
