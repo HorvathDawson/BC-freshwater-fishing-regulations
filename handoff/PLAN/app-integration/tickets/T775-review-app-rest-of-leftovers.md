@@ -15,3 +15,5 @@ Source: T761 lane report and the sweep, 2026-11-15 night.
 ## What to build
 The four fixes above; route table regenerated if a route changes; worked in a worktree, never under the owner's
 running app.
+
+State 2026-11-22 (stopped for credits): see Status above; code c77eeb601, ledger f087c8968; branch fix/T775-review-app-leftovers. fast-fail not confirmed (was still running).

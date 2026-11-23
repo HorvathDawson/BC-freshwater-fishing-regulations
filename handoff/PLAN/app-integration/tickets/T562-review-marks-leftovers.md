@@ -91,3 +91,5 @@ lake or registry item), 4 (the `apply --check` list and a file save's dropped ro
   moved (T525, `extent_before`). What is still missing is the same for ENTRY and RULE marks (the book's side): the
   save path (`reuse.post_mark`) and the proposal check — not small, not built; it stays here as the open part of
   item 1, with (c) answered: older marks pass.
+
+State 2026-11-22 (stopped for credits): see Status above; code c77eeb601, ledger f087c8968; branch fix/T775-review-app-leftovers. fast-fail not confirmed (was still running).

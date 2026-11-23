@@ -36,3 +36,5 @@ Audit rerun on the served atlas (`--no-landed`), old code vs new: 291 -> 272 fin
   (the T761 rest-of saves, now read with their bounds and listed places).
 - F `dropped_channel` x15: the three Fraser mainstem-waters places x five channels (blk:355991777, blk:355992187, blk:355994562,
   gnis:11481, gnis:13499) — channels the build adds.
+
+State 2026-11-22 (stopped for credits): see Status above; code c77eeb601, ledger f087c8968; branch fix/T775-review-app-leftovers. fast-fail not confirmed (was still running).

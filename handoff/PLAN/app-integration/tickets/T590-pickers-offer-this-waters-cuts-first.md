@@ -18,3 +18,5 @@ confluence) lists that water's cuts above the place's own. The NEAREST-EXISTING 
 3. Tests for both; the 200 m lives in one place.
 
 Depends: —. Size: M. Owner: no.
+
+State 2026-11-22 (stopped for credits): see Status above; code c77eeb601, ledger f087c8968; branch fix/T775-review-app-leftovers. fast-fail not confirmed (was still running).

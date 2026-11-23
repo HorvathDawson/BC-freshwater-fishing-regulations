@@ -16,3 +16,5 @@ app's preview has the same blind spot, so the owner cannot see it when he saves.
   FAILS (apply refuses to land the mark as side-checked) when a withheld piece is not in `unplaced_piece_calls.json`
   `accepted`: the same rule as the reach gate, at save time.
 - A test on built data: a place with a straddling piece is refused by the side check.
+
+State 2026-11-22 (stopped for credits): see Status above; code c77eeb601, ledger f087c8968; branch fix/T775-review-app-leftovers. fast-fail not confirmed (was still running).

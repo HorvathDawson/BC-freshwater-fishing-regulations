@@ -31,3 +31,5 @@ is not written from marks. A button therefore needs: a mark that says "withdraw 
 call on the place's mark, with its prints = the cut's anchor), a file writer that merges those marks into
 `proposal_overrides.json` beside the hand-written entries (never dropping one), its write-through domain, and the
 button on each proposed cut. Until then a withdrawal is one entry in that file, added by Claude on his word.
+
+State 2026-11-22 (stopped for credits): see Status above; code c77eeb601, ledger f087c8968; branch fix/T775-review-app-leftovers. fast-fail not confirmed (was still running).
