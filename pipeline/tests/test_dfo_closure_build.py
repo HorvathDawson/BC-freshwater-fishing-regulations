@@ -248,6 +248,41 @@ def test_a_circle_on_a_split_lake_is_measured_against_its_parts(monkeypatch):
     assert row["marked"] == ["lake:9"] and row["carried"] and not row["mapped"]
 
 
+def test_a_placed_circle_ships_its_ring_and_its_own_year_and_nothing_else_does(monkeypatch):
+    """T812 / T885 item 2 (owner 2026-11-16: circles on the map, not lake sections; Salmon map only, follow the day): every
+    LIVE closed area placed as a circle ships `ca` — its centre, radius, a closed ring at true ground radius and its OWN
+    chain (the piece alone: its days and colour) — whether it binds a section (the pond) or is carried (the lake).
+    Drawing only: no chain or section changes. Mutations: ship a circle for an unconfirmed piece (no geometry) — the
+    `ca` of the unconfirmed run is not empty; point `chain` at the lake's chain — its `l` is not the piece alone; a
+    degree buffer for the ring — the points are not 400 m from the centre at 55° N."""
+    from pyproj import Geod
+    rows, ef, conf = _lake(monkeypatch, outline=5000)
+    payload, sections = _bundle(ef, conf, rows)
+    ids = {r["closure"]["key"]: r["location_id"] for r in rows if r.get("closure")}
+    lake, pond = ids[conf[0]["key"]], ids[conf[1]["key"]]
+    assert sorted(payload["ca"]) == sorted([lake, pond])
+    geod = Geod(ellps="WGS84")
+    for lid in (lake, pond):
+        a = payload["ca"][lid]
+        assert a["c"] == list(conf[0]["centre"]) and a["radius"] == 400.0 and a["r"] == "3"
+        assert a["items"] == ["wbk:9"] and a["w"].startswith("X River")
+        ring = a["g"]
+        assert len(ring) == S.AREA_RING_POINTS + 1 and ring[0] == ring[-1]
+        for lon, lat in ring[:-1]:
+            assert abs(geod.inv(a["c"][0], a["c"][1], lon, lat)[2] - 400.0) < 0.2
+        own = payload["chains"][a["chain"]]
+        assert own["l"] == [lid], "its own rule alone"
+        # spoken every day (DFO's "closed", no season): no species reads "not opened" (`d`), so it is drawn every day
+        assert all(len(r) == 2 and not payload["verdicts"][r[1]].get("d") for r in own["sp"])
+        assert S.MAP_CODES[own["m"][1]] == "closed" and own["m"][2:] == []
+    # drawing only: the lake's own chain is what it was without the ring (the place answers, the circle its caveat)
+    c20 = payload["chains"][dict(sections)[20]]
+    assert c20["l"] == ["3:x-river:whole"] and c20["u"] == [lake]
+    # an unconfirmed piece has no geometry: carried in words, no circle drawn
+    unconfirmed = _bundle(ef, [], _reach(monkeypatch, ef, []))[0]
+    assert "ca" not in unconfirmed
+
+
 def test_pieces_are_never_written_into_a_places_file():
     ef = _ef(_place())
     out = K.with_pieces(ef, [_stretch()])

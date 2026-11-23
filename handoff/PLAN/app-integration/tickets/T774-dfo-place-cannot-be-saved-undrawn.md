@@ -14,3 +14,5 @@ too, which is wrong toward closed).
 - A mark form "held, not drawn" with a reason; the place binds nothing, is named on the water's card with DFO's words,
   and is listed by the unplaced gate as accepted-by-owner (never silent).
 - Or build T754 first, which removes the need for Kitimat. Decide which when T754 is scheduled.
+
+State 2026-11-22 (stopped for credits, lane L12, branch feat/T754-one-bank-places): not started. Proposal: no longer needed — owner 2026-11-16 Q12 "Both banks closed (Recommended)" and 2026-11-18 (T885) "every DFO place gets an extent"; main chat/owner to confirm DROPPED.

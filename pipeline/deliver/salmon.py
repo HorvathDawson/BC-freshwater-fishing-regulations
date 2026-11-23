@@ -65,6 +65,8 @@ little-endian, varints LEB128 (`pipeline.deliver.binary`):
                  (T321) x: location id -> the rows its card shows in DFO's words, {k: new|unread|note, sp, d, t}
                  (T870) pr: location id -> its DFO table rows as printed, the rows in force (`printed_rows`): the card's
                  Source (DFO) lists them as the rows behind its answers (optional: an app before T870 ignores it)
+                 (T812) ca: location id -> a closed-area CIRCLE the Salmon map draws (`closed_area_circles`: centre,
+                 radius, ring, its own chain) — drawing only, never a section's colour (optional: an older app ignores it)
     salmon-<r>   magic b"BCSR", version u8 = 1, handles 8 bytes, u8 region length + the region (ASCII), then a varint
                  run count and per run: sid gap (sid - previous run's end), count, chain index — the sections of bundle
                  region <r> (`release.shards.REGIONS`; a section in two regions is in both; `x`: a section in none)
@@ -1210,6 +1212,7 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
         # again; the app leaves it off the card until then (core `pickSalmon` / `withSalmonFeed`)
         unmapped.append({"items": sorted(water.item_ids) if water else [], "r": slug, "w": _label(loc),
                          "chain": chain_for([lid], speaks=True), **({} if rules_of[lid] else {"d": 1})})
+    areas = closed_area_circles(locs, rules_of, lambda lid: chain_for([lid], speaks=True))
     if item_sections is not None:
         # (T343) a region's note is read only on a page whose places are that region's (core `salmonNotes`, its chains'
         # `r`): a scope keeps the items that have one — R6's "other than Fraser River Watershed" is 6,713 items across
@@ -1238,6 +1241,7 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
                "gears": gears.items, "chains": chains, "unmapped": unmapped, "scopes": scopes,
                **({"x": dict(sorted(words_of.items()))} if words_of else {}), **({"off": off} if off else {}),
                **({"pr": dict(sorted(rows_by.items()))} if rows_by else {}),
+               **({"ca": areas} if areas else {}),
                "p": places_named(locs, (l for c in chains for l in c["l"]))}
     # T573: a closed-area piece says so (`piece: 1`; `bound: 1` when it covers a section), so the app reads it without
     # parsing its id: where the live feed lacks a bound one, the answer is "not known, check the notice", never the
@@ -1249,6 +1253,42 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
             if lid in bound:
                 v["bound"] = 1
     return payload, sections
+
+
+#: (T812) the points of a shipped circle's ring (the first repeated last): a 400 m circle's chord sits under 1 m inside
+#: the true circle at 48, and 6 decimals of a degree are 0.1 m — the app draws the ring as given, computing nothing
+AREA_RING_POINTS = 48
+AREA_RING_DECIMALS = 6
+
+
+def closed_area_circles(locs: Mapping[str, tuple], rules_of: Mapping[str, Sequence[dict]],
+                        own_chain: Callable[[str], int]) -> Dict[str, dict]:
+    """(T812, T885 item 2; owner 2026-11-16: "we want the circles to just be circles on the map not separate sections of
+    the lake" — Salmon map only, follow the day, a tap opens the lake's card) THE CLOSED-AREA CIRCLES THE MAP DRAWS: every
+    LIVE closed area of a DFO place (`closures.ClosureLocation`) the owner placed as a circle (its `geometry`, set only
+    when its words are the confirmed ones — `closures._piece_location`), location id -> {c: centre [lon, lat], radius:
+    metres, g: the ring at true ground radius (`closures.circle_polygon`), chain: the piece's OWN chain (its rule alone:
+    drawn on the days a species' verdict is its own, not "not opened" `d`; `m` its colour), r: the region slug, w: the card's label, items: its
+    water's items}.
+
+    Drawing only: a circle never colours a section — what it binds or carries is the reach run's (AGENTS rule 68); a piece
+    with no circle geometry (unconfirmed, reworded, a stretch, a line) ships none, so nothing is drawn for it, never a
+    guessed circle. A piece with no rule today (none: pieces are built from live rows only) ships none either."""
+    from pipeline.regs.dfo_salmon.closures import circle_polygon
+    out: Dict[str, dict] = {}
+    for lid in sorted(locs):
+        slug, loc, ef = locs[lid]
+        g = getattr(loc, "geometry", None)
+        if not getattr(loc, "closure_rule", None) or not g or g.get("kind") != "circle" or not rules_of.get(lid):
+            continue
+        centre, r = (float(g["centre"][0]), float(g["centre"][1])), float(g["radius_m"])
+        ring = [[round(x, AREA_RING_DECIMALS), round(y, AREA_RING_DECIMALS)]
+                for x, y in circle_polygon(centre, r, n=AREA_RING_POINTS)]
+        water = ef.water(loc.water_id) if loc.water_id else None
+        out[lid] = {"c": [round(centre[0], AREA_RING_DECIMALS), round(centre[1], AREA_RING_DECIMALS)], "radius": r,
+                    "g": ring, "chain": own_chain(lid), "r": slug, "w": _label(loc),
+                    "items": sorted(water.item_ids) if water else []}
+    return out
 
 
 #: (T549) why a curated DFO place is in no chain of the release — said in the file (`off`), never dropped

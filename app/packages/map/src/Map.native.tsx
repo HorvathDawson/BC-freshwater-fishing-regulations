@@ -51,6 +51,7 @@ import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, MIN_ZOOM, fitCamera, fitZoomLimit, fitZ
          spotsInView, spotUnder, profileLabel, unionBbox, type Bbox, type SpotMarker, type SectionKey, now as clockNow } from "@app/core";
 import { pressSpot, spotsKey } from "./spots";
 import { SPOT_SOURCE, spotBoxImage, spotBoxName, spotImages, spotsData, spotsLayers } from "./spot-marks";
+import { SALMON_CIRCLE_BEFORE, SALMON_CIRCLE_SOURCE, salmonCircleLayers, salmonCirclesData } from "./salmon-circles";
 import { baseAdapter } from "./adapters/contract";
 import { nativeRenderer } from "./adapters/native";
 import { mapChrome } from "./chrome";
@@ -997,6 +998,11 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   useEffect(() => { panProbe.src("me"); }, [meJson]);
   useEffect(() => { panProbe.src("pins"); }, [pinJson]);
   useEffect(() => { panProbe.src("spots"); }, [spotJson]);
+  // (T812) the closed-area circles: the day's, Salmon view only (`salmon-circles.ts`); under the streams and the labels
+  const circleJson = useMemo(() => salmonCirclesData(salmon, modes?.stream),
+    [salmon?.facts, salmon?.day?.getTime(), salmon?.only, modes?.stream]);  // eslint-disable-line react-hooks/exhaustive-deps
+  const circleLook = useMemo(() => salmonCircleLayers(theme), [theme]);
+  useEffect(() => { panProbe.src("salmon-circles"); }, [circleJson]);
   useEffect(() => { panProbe.src("marks"); }, [markJson]);
   useEffect(() => { panProbe.src("images"); }, [images]);
   useEffect(() => { panProbe.src("style"); }, [shown]);
@@ -1063,6 +1069,10 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         <GeoJSONSource id={TRACE_PINS_SOURCE} data={(styled ? tracePinJson : NO_PINS) as never} />
         {/* (T175) the water copy: the style's own source by id, its lines from the tiles (`keepCopy`) */}
         <GeoJSONSource id={COPY_SOURCE} ref={copyRef} data={copyData as never} />
+        {/* (T812) THE CLOSED-AREA CIRCLES, under the streams: never asked for a feature, so a tap opens the lake under them */}
+        <GeoJSONSource id={SALMON_CIRCLE_SOURCE} data={circleJson as never}>
+          {circleLook.map((l) => <Layer key={l.id} {...(l as unknown as LayerSpec)} beforeId={SALMON_CIRCLE_BEFORE} />)}
+        </GeoJSONSource>
         {/* (T303) your location: the accuracy circle, then the dot over it, above every map layer */}
         <GeoJSONSource id={ME_SOURCE} data={meJson}>
           <Layer id="me-accuracy" type="circle" paint={meLook.accuracy as never} />

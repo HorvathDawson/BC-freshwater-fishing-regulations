@@ -24,3 +24,5 @@ source?"), the Gullwing line "Due south" (worker branch `lane/babine-mouths`, 6b
 "Salmon map only (Recommended)"; "Follow the day (Recommended)"; tap: "Opens the lake's card (Recommended)". So the
 data ships each circle's closure days (from its DFO piece) with the centre, radius and piece id; the app draws closed
 on those days only, Salmon map only, and a tap opens Babine Lake's card.
+
+State 2026-11-22 (stopped for credits, lane L12, branch feat/T754-one-bank-places): done: pipeline ships each placed closed-area circle (`ca` in the salmon head, `deliver.salmon.closed_area_circles`; side run on live inputs: sections + chains identical to the live bundle, only `ca` added, 11 circles, Tsezakwa unconfirmed so words only); core `salmonCirclesOn` + feed filter; map overlay `salmon-circles.ts` (web + native, Salmon view only, follows the day, tap goes through to the lake card — checked on web). Pictures: T812-shots/ (proposal look). Left: `pill-theme.render.test.tsx` is red (its fake map has no addLayer: guard or extend the fake), full app check, native/emulator look, independent review, data release.
