@@ -1,6 +1,6 @@
 # T1042 — Google shows the licence quote as the snippet and a generic icon
 
-Status: IN PROGRESS (PR open, awaiting independent review)
+Status: DONE in PR (independent review pending) — d8a8580aa, 8a5810532
 
 Source: owner 2026-11-23: "the search for canifishthis looks like this says license stuff first? and has the wrong icon".
 Google's result for /water/coquitlam-river showed "From the rule book: If you are a resident of B.C. and disabled: You may
