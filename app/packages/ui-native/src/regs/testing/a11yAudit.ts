@@ -53,10 +53,13 @@ export interface PressOffence { readonly role: string; readonly name: string; re
  * box that is not the real one fails; and an exception that reaches 44 is stale and fails.
  */
 const SHORT_PRESS: Record<string, string> = { "regs-class": "the class line under the name: hitSlop would overlap the date pill, sun times, place text" };
+/** WCAG 2.2 AA 2.5.8 Target Size (Minimum): a press under this fails even as a recorded exception to 44 */
+const MIN_TARGET = 24;
 function shortPressOffence(el: Element, area: { w: number; h: number }, box: number): string | null {
   const id = el.getAttribute("data-testid") ?? "";
   if (!(id in SHORT_PRESS)) return null;
   if (area.h >= MIN_HIT) return `${id} is exempt from 44 but reaches ${area.w}×${area.h}: remove it from SHORT_PRESS`;
+  if (area.h < MIN_TARGET || area.w < MIN_TARGET) return `${id} reaches ${area.w}×${area.h}: under the ${MIN_TARGET} px minimum even as an exception`;
   const style = parseFloat((el as HTMLElement).style.minHeight || getComputedStyle(el).minHeight);
   return style === box ? "" : `${id} declares a ${box} px box but its style holds min-height ${style}`;
 }
