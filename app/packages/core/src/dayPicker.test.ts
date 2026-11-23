@@ -15,15 +15,20 @@ const draw = (m: ReturnType<typeof monthVM>) => m.weeks.map((w) => w.map((c) =>
 
 describe("the range the data covers: one calendar year, cut at the release's last day when it states one", () => {
   it("no last day stated: Jan 1 to Dec 31 of today's year", () => {
-    expect(YEAR).toEqual({ year: 2026, first: "2026-01-01", last: "2026-12-31", until: null });
+    expect(YEAR).toEqual({ year: 2026, first: "2026-01-01", last: "2026-12-31", until: null, capped: false });
   });
   it("a stated last day inside the year cuts it; one after the year or before today does not", () => {
-    expect(dayRange(NOW, "2026-11-30")).toEqual({ year: 2026, first: "2026-01-01", last: "2026-11-30", until: "2026-11-30" });
-    expect(dayRange(NOW, "2027-03-31")).toEqual({ year: 2026, first: "2026-01-01", last: "2027-03-31", until: "2027-03-31" });
+    expect(dayRange(NOW, "2026-11-30")).toEqual({ year: 2026, first: "2026-01-01", last: "2026-11-30", until: "2026-11-30", capped: false });
+    expect(dayRange(NOW, "2027-03-31")).toEqual({ year: 2026, first: "2026-01-01", last: "2027-03-31", until: "2027-03-31", capped: false });
     // never past the end of next year, whatever a release says
-    expect(dayRange(NOW, "2030-06-30").last).toBe("2027-12-31");
+    const capped = dayRange(NOW, "2030-06-30");
+    expect([capped.last, capped.capped]).toEqual(["2027-12-31", true]);
+    // the note for a capped end never says the regulations end then (the release runs on)
+    const reason = monthVM(2027, 11, null, NOW, capped).reason!;
+    expect(reason).toBe("Days after December 31, 2027 can't be chosen yet.");
+    expect(reason).not.toContain("end then");
     // a release whose last day has passed still reads today (the menu's Data sources page says how old it is)
-    expect(dayRange(NOW, "2026-04-01")).toEqual({ year: 2026, first: "2026-01-01", last: "2026-12-31", until: null });
+    expect(dayRange(NOW, "2026-04-01")).toEqual({ year: 2026, first: "2026-01-01", last: "2026-12-31", until: null, capped: false });
     expect(dayRange(NOW, "not a day")).toEqual(YEAR);
   });
   it("inRange: the first and last days are in, a day either side is out", () => {

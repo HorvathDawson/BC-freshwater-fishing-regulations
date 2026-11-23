@@ -49,6 +49,8 @@ export const DAY_PICKER = {
   outsideYear: (year: number) => `Only days in ${year} can be chosen: the regulations here are one calendar year.`,
   /** (T1026) when the range runs into the next year, the first day is the range's own start, said with its year */
   beforeFrom: (day: string) => `Days before ${day} can't be chosen.`,
+  /** (T1026) the range stops at the end of next year though the release runs on: the answers recur, they are not read further */
+  afterCap: (day: string) => `Days after ${day} can't be chosen yet.`,
   afterUntil: (day: string) => `Days after ${day} can't be chosen: these regulations end then.`,
   /** the one month table (`MONTHS`, flow.ts) */
   months: MONTHS,
@@ -58,7 +60,9 @@ export const DAY_PICKER = {
 } as const;
 
 /** The days the picker offers, as LOCAL ISO days ("2026-01-01"); `until` is the release's cut when it made one. */
-export interface DayRange { readonly year: number; readonly first: string; readonly last: string; readonly until: string | null }
+export interface DayRange { readonly year: number; readonly first: string; readonly last: string; readonly until: string | null;
+  /** the last day is OUR cap (the end of next year), not the release's: said as such, never as the release ending */
+  readonly capped: boolean }
 
 export function dayRange(now: Date, validUntil: string | null): DayRange {
   const year = now.getFullYear();
@@ -67,7 +71,7 @@ export function dayRange(now: Date, validUntil: string | null): DayRange {
   const cap = `${year + 1}-12-31`;
   const stated = validUntil && isIsoDay(validUntil) && validUntil >= today ? (validUntil < cap ? validUntil : cap) : null;
   const cut = stated !== null && stated !== dec31 ? stated : null;
-  return { year, first, last: cut ?? dec31, until: cut };
+  return { year, first, last: cut ?? dec31, until: cut, capped: !!validUntil && stated === cap && validUntil > cap };
 }
 
 const isoOf = (d: Date) => wallIso(d);
@@ -179,7 +183,7 @@ function monthEdges(year: number, month: number, range: DayRange): { prev: boole
   if (offAfter || !next) {
     const [y, m, d] = (range.until ?? "").split("-").map(Number);
     const said = `${DAY_PICKER.months[m! - 1]} ${d}${y !== range.year ? `, ${y}` : ""}`;
-    const r = range.until ? DAY_PICKER.afterUntil(said) : DAY_PICKER.outsideYear(range.year);
+    const r = range.until ? (range.capped ? DAY_PICKER.afterCap(said) : DAY_PICKER.afterUntil(said)) : DAY_PICKER.outsideYear(range.year);
     if (!reasons.includes(r)) reasons.push(r);
   }
   return { prev, next, reason: reasons.length ? reasons.join(" ") : null };
