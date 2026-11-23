@@ -9,6 +9,9 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-23: lane L29 (0.9.0 batch) — one look
+- **T1024 Gravel Slough highlight: look at the before/after shots** (`handoff/PLAN/app-integration/T1024-shots/before-z1*-staging.png` / `after-z1*.png`): a selected slough or wide river reach is now lit by its line's outline only — no ring round each piece of its polygon. Say if it reads right.
+
 ## 2026-11-23 ~10:50: T1031 inline sources (answers, verbatim)
 - T1031 inline look: "Yes, as built (Recommended)" — the one Source line (`T1031-shots/inline-*`), kept as built (PR #69).
 - T1031 the book's name: "'B.C. Synopsis' everywhere (Recommended)" — a rule's in-sentence link reads "B.C. Synopsis p.N ↗",
