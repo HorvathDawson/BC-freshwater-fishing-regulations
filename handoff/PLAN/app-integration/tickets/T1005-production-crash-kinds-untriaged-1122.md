@@ -22,3 +22,13 @@ all class `defect`; none of their messages appears in `handoff/PLAN`. The larges
    as defects. Record the triage here, kind by kind.
 
 Depends: T595 (classes). Size: M. Owner: no.
+
+## Hashes (read 2026-11-22 18:15, `GET /crashes?since=2026-11-21`, production unless said)
+`3d5ded1b72ff865f` (77, HTTP 404), `c920e3c59673b7ec` (47, PMTiles magic number, 0.8.1 → 0.8.5, still arriving
+22:11Z), `2c766955748940d9` + `77d7b2f24fd83f8a` (24 + 18, in-season matched waters 404), `f6d0af3f051de23a` (20,
+AJAXError 404), `bb863fcb6535d696` (6, outside mask 404), `1bd22eea73a9dfb8` (5, non-Error object), `b5804f0e35787dbe`
+(4, AJAXError 404), `804e01a3d7d4fd97` (3, Android 0.8.4 c1f14c1, `HTTP 404 for …`), `be0617731470214c` (3, tile parse
+type 3), `c77d892e10eefbd1` (1, 0.8.5, null property), `f9bf618550381745` (1, in-season section lines),
+`5588b32d5eacc9e3` (1, update JSON end), `f529f96593774436` (1, expression.evaluate). STAGING `a10bd70844e3fa61` (1,
+Android 0.8.3 (41)): "an exit record was refused by the crash server: HTTP 429" — the app's own exit record hit the
+worker's rate limit; triage with the rest (a 429 on our own record should be retried later, not reported as a crash).

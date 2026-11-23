@@ -289,6 +289,8 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1009 | Android: Play "DEX code optimization: Low": measure optimization / shrinking / obfuscation every build, narrow broad library keep rules, floors in a build check (after T1003) | OPEN — next release batch (0.9.0), after T1003 | | owner 2026-11-22 (Play Console card) |
 | T1010 | Website: a region page's "Open the map" goes to the bare home map (`mapLink` = origin/, no area in the start link): open framed on the region; redesign the page to lead into the app (water search, crawlable links kept below) | OPEN — next release batch | | owner 2026-11-22 (/region/4) |
 | T1011 | Website: 156 waters partly outside B.C. get no page (`PAGE_ORDS_SQL` tests `outside_bc = 0`, but it is a COUNT of sections outside: Columbia, Kootenay, Peace, Similkameen, Kettle…); renamed waters never print their former name (Chilko Lake = Tŝilhqox Biny); the home page has no crawlable links; top-100 indexing list | OPEN — next release batch | | owner 2026-11-22 (index list research) |
+| T1012 | Staging report: Serpentine River (`gnis:24978`) part 2 shows ditches on its mainstem in salmon mode | OPEN — next release batch | | staging report 2026-11-22 (`e552b9f0b31e2698`) |
+| T1013 | Staging report: switching to Runs takes a very long time the first time (Android 0.8.5) | OPEN — next release batch | | staging report 2026-11-22 (`50e342ef056ab300`) |
 
 ## Next after closed testing
 
