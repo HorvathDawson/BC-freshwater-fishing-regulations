@@ -170,7 +170,11 @@ const viewSets = (src.views ?? []).map((v) => {
     for (const tok of modeTokens(srcById.get(layerId)?.colorModes?.[mode])) seen.add(tok);
   return seen;
 });
-const together = (a, b) => {
+/** (T940) A satellite status colour is on screen exactly where the status colour it replaces is: compared as that. */
+const SAT_NOT_BESIDE = (n) => n === "color.outside" || n === "color.gauge.dot" || n.startsWith("color.label.");
+const standIn = (n) => n.replace("color.imagery.status.", "color.status.");
+const together = (a0, b0) => {
+  const a = standIn(a0), b = standIn(b0);
   const chromeA = !inSomeMode.has(a), chromeB = !inSomeMode.has(b);
   if (chromeA || chromeB) return true;                 // chrome is on screen in every view
   return viewSets.some((s) => s.has(a) && s.has(b));
@@ -185,6 +189,10 @@ for (const t of themes) {
       const [n1, v1] = cols[i], [n2, v2] = cols[j];
       if (family(n1) === family(n2) && family(n1) === "flow") continue;   // sequential ramp
       if (!together(n1, n2)) continue;                 // never drawn in the same picture
+      // (T940) the satellite status set is paler than the drawn map's, so it sits near the paper (`color.outside`, which satellite
+      // replaces with the photograph), the place names (over satellite: `color.ui.imagery.label`) and the gauge dot (a round
+      // mark, not a line); none of those is a line beside it
+      if ((n1.startsWith("color.imagery.status.") && SAT_NOT_BESIDE(n2)) || (n2.startsWith("color.imagery.status.") && SAT_NOT_BESIDE(n1))) continue;
       const d = deltaE(v1, v2);
       if (d < MIN_DELTA_E)
         err(`theme "${t.name}": ${n1} (${v1}) and ${n2} (${v2}) are ΔE ${d.toFixed(1)} apart ` +

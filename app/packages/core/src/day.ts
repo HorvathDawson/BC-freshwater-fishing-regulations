@@ -24,11 +24,6 @@ export function isIsoDay(s: unknown): s is string {
 /** "07": a clock or calendar field, two digits. */
 export const pad2 = (n: number): string => String(n).padStart(2, "0");
 
-/** The same month and day (a regulations `Day`, or any {month, day}): the year is not compared. */
-export const sameDay = (a: { readonly month: number; readonly day: number },
-                        b: { readonly month: number; readonly day: number }): boolean =>
-  a.month === b.month && a.day === b.day;
-
 /**
  * 1..366: the CALENDAR day of the year of an ISO date or timestamp ("2026-03-01" is 60, and 61 in a leap year) — the
  * axis of a station's year (`gaugeSeries`) and every seasonal question about flow. NOT `readingDayOf`

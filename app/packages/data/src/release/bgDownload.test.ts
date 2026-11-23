@@ -449,12 +449,13 @@ describe("background (T912): an update's data files go to the system's downloade
     expect([...other.files.keys()]).toEqual([]);
   });
 
-  it("a job cut part way (paused 'waiting to retry': it cannot resume) is given up at once for the app's own download; one waiting for a network is waited on", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+  it("(T919 d) a job cut part way (paused 'waiting to retry') is waited on and RESUMED by the system, not fetched again from zero", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.spyOn(console, "info").mockImplementation(() => {});
-    let reason = 1, polls = 0;
+    let polls = 0;
+    // the job is cut at 7 bytes (reason 1) for three polls, then the system's retry resumes it and it finishes
     const fs = memFs(), { dm, log } = fakeDm(fs, { [DATA]: RAW }, { hold: (j) => {
-      if (j.status !== "pending") { j.reason = reason; j.bytes = 7; }
+      if (j.status !== "pending") { j.reason = 1; j.bytes = 7; }
       return j.status !== "pending" && polls++ < 3;
     } });
     const bg = background(dm, fs, never, { pollMs: 0 });
@@ -462,18 +463,35 @@ describe("background (T912): an update's data files go to the system's downloade
     await dm.jobs();                                               // under way: running
     const a = inAppLog();
     expect(await bg.fetch(DATA, expectRaw, a.inApp)).toEqual(RAW);
-    expect(a.asked).toEqual([DATA]);
-    expect(log.slice(1)).toEqual(["remove 1"]);
-    expect(String(warn.mock.calls.at(-1)?.[0])).toBe(`[download] ${DATA}: its system download stopped part way (paused, reason 1, 7 bytes) and cannot resume (the host sends a data file to it with no length); downloaded in the app instead`);
-    // MUTATION PIN: waiting for a network (reason 2) is not a cut: the job is waited on and claimed
-    reason = 2; polls = 0;
-    const fs2 = memFs(), o = fakeDm(fs2, { [DATA]: RAW }, { hold: (j) => { if (j.status !== "pending") j.reason = reason; return j.status !== "pending" && polls++ < 3; } });
+    expect(a.asked).toEqual([]);                                   // the app downloaded nothing
+    expect(log.slice(1)).toEqual(["claim 1"]);                     // the same job, never removed or queued again
+    // waiting for a network (reason 2) is waited on the same way
+    polls = 0;
+    const fs2 = memFs(), o = fakeDm(fs2, { [DATA]: RAW }, { hold: (j) => { if (j.status !== "pending") j.reason = 2; return j.status !== "pending" && polls++ < 3; } });
     const bg2 = background(o.dm, fs2, never, { pollMs: 0 });
     await bg2.queue([item], true);
     const b = inAppLog();
     expect(await bg2.fetch(DATA, expectRaw, b.inApp)).toEqual(RAW);
     expect(b.asked).toEqual([]);
     expect(o.log.slice(1)).toEqual(["claim 1"]);
+  });
+
+  it("(T919 d) a cut job that has not moved again after cutWaitMs is given up for the app's own download, said whole", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(console, "info").mockImplementation(() => {});
+    const fs = memFs(), { dm, log } = fakeDm(fs, { [DATA]: RAW }, { tick: 30_000, hold: (j) => {
+      if (j.status !== "pending") { j.reason = 1; j.bytes = 7; }
+      return j.status !== "pending";
+    } });
+    const bg = background(dm, fs, never, { pollMs: 0 });
+    await bg.queue([item], true);
+    await dm.jobs();                                               // under way, then cut for good
+    const a = inAppLog();
+    expect(await bg.fetch(DATA, expectRaw, a.inApp)).toEqual(RAW);
+    expect(a.asked).toEqual([DATA]);
+    expect(log.slice(1)).toEqual(["remove 1"]);
+    expect(String(warn.mock.calls.at(-1)?.[0])).toBe(`[download] ${DATA}: its system download stopped part way (paused, reason 1, 7 bytes) and did not resume in 90 s; downloaded in the app instead`);
   });
 
   it("a job the system parks with no new byte for stuckMs is given up for the app's own download, never waited on for ever", async () => {

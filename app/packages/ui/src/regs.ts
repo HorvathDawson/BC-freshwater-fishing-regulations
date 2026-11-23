@@ -434,7 +434,7 @@ export function regsDay(mapDay: Date | null, now: Date = bcNow()):
   const d = mapDay ?? now;
   const day = { month: d.getMonth() + 1, day: d.getDate() };
   return { day, weekday: tapDay(day, d.getFullYear()).weekday, calendarYear: d.getFullYear(),
-           today: { month: now.getMonth() + 1, day: now.getDate() }, isToday: sameDate(d, now) };
+           today: { month: now.getMonth() + 1, day: now.getDate(), year: now.getFullYear() }, isToday: sameDate(d, now) };
 }
 
 /** A core day (+ its year) back to the Shell's `mapDay`: today → null (so "Today" follows midnight), else local noon. */
