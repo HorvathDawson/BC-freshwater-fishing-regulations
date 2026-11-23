@@ -31,9 +31,10 @@ if (production && process.env.EXPO_PUBLIC_MAP_LAB) {
 // no patch (app/tools/maplibre-android/pin.env, owner 2026-11-22); build-apk.sh refuses any other AAR and checks the
 // APK/AAB carries its build id; plugins/with-pinned-maplibre.js refuses a production Android config without it
 
-// (T749) R8 (CANIFISHTHIS_R8=1, plugins/with-no-minify.js) is a trial until its phone check is recorded: not in production
-if (production && require("./plugins/with-no-minify").r8Enabled()) {
-  throw new Error("app.config.js: CANIFISHTHIS_R8 (R8 on, T749) is a trial for test-bed and Play internal builds; unset it for production");
+// (T1003) R8 is on for every release build, production included (plugins/with-r8.js); its one escape, R8 off for a
+// test-bed comparison build (CANIFISHTHIS_NO_R8="<reason>"), is never a production build
+if (production && require("./plugins/with-r8").r8OffReason() !== null) {
+  throw new Error("app.config.js: CANIFISHTHIS_NO_R8 (R8 off) is for a test-bed comparison build only; a production build has R8 on (T1003)");
 }
 
 // (T420) with MLN_LOCAL_MAVEN set, MapLibre's own plugin is told the local SDK version (with-local-maplibre.js adds the repo)

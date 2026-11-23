@@ -71,13 +71,18 @@ B is the most inviting on desktop but heavier and the picture is not the real ma
 The search without script: a GET form; where it lands (a filtered list page per region, or the app with a query key) is
 part of building the picked look.
 
+## Owner pick 2026-11-22 23:20 (dialog with the phone pictures A/B/C)
+"B: map preview" — the dot picture of the region's waters, then the "Open the map" button and the search. Build it
+(self-hosted, ~10 KB per page as measured), phone + desktop, light + dark.
+
 ## Built 2026-11-22 (lane L16): option B (owner pick 2026-11-22 23:20)
 - Region hub: dot picture of the region's waters (inline SVG drawn at build time, one dot per water, `<title>` text alternative, light and
   dark through the page's tokens), then the real link "Open the map of Region N" (`?fit=`), then a water search, then the crawlable
   lists as before (`tools/seo/regionMap.ts`, `site.ts`, `html.ts`).
 - Search: hidden until its self-hosted script runs (no script: the lists below are the way in); loads the region's names file
-  (`/assets/region-N.<hash>.json`) on first use, lists up to 8 matches as links to the water; a failed load is said on the page.
-  Not reported to the crash endpoint (a hub page has no reporter config): left as is, say if wanted.
+  (`/assets/region-N.<hash>.json`) on first use, lists up to 8 matches as links to the water; ranked (starts with, word starts with, inside; accents folded; a renamed water also by its former name, shown "Name (formerly X)").
+  The names are asked for once per page load. A stale file (404 after a release) says "reload it" and is not reported; any other failed
+  load is said and reported once to the crash endpoint as app "region-page", route "other" (the page reporter written in, as the Join card).
 - Region hubs only. Letter and topic-by-region pages keep the plain "Open the map" card (a picture on each would add ~10 KB gzip to
   thousands of pages).
 - Tests: `site.test.ts` (picture, text alternative, button after the picture and before the lists, names file, no image host),

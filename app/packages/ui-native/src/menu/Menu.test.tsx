@@ -115,6 +115,16 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
     });
   });
 
+  it("(T858) ↓ in the menu list moves the focus to the next control (the list's arrow keys are on its scroll view)", () => {
+    render(<App out={{}} />);
+    const scroll = screen.getByTestId("more-scroll");
+    const stops = [...scroll.querySelectorAll<HTMLElement>('[role="button"], [tabindex="0"]')];
+    expect(stops.length).toBeGreaterThan(1);
+    stops[0]!.focus();
+    fireEvent.keyDown(stops[0]!, { key: "ArrowDown" });
+    expect(document.activeElement).toBe(stops[1]);
+  });
+
   it("(T897) the head is plain Back whatever tab More was opened from, and it sits OUTSIDE the scroll view (sticky)", () => {
     render(<App out={{}} />);
     const back = screen.getByTestId("more-back");

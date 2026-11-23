@@ -13,6 +13,7 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { Image } from "react-native";
 import { PHOTO_VIEWER } from "@app/core";
 import { PHOTO_WORDS } from "@app/data/spots";
+import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 import { LIGHT } from "../theme";
 
 declare const setReduceMotion: (on: boolean) => void;
@@ -98,5 +99,41 @@ describe("the photo grows from its thumbnail (T836)", () => {
     expect(Number(look().o)).toBeLessThan(1);
     await advance(PHOTO_VIEWER.fadeMs);
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("PhotoViewer chrome while dragging down (T970) and the counter's backing (T976)", () => {
+  const opacityOf = (id: string) => Number((screen.getByTestId(id) as HTMLElement).style.opacity || 1);
+  it("the buttons and the counter are gone before the ground is half gone, and come back on a spring-back", async () => {
+    await open();
+    await advance(PHOTO_VIEWER.openMs + 50);
+    expect(opacityOf("photo-chrome")).toBe(1);
+    // a quarter of the dismiss fade distance (H * 0.5 * 0.25): the ground is at 3/4, the chrome at 1/2
+    const h = 600, quarter = h * PHOTO_VIEWER.dismissFadeShare * 0.25;
+    const pan = (dy: number) => act(() => { fireGestureHandler(getByGestureTestId("photo-pan"),
+      [{ translationX: 0, translationY: 0 }, { translationX: 0, translationY: dy }, { translationX: 0, translationY: dy }]); });
+    pan(quarter);
+    expect(opacityOf("photo-ground")).toBeCloseTo(0.75, 2);
+    expect(opacityOf("photo-chrome")).toBeCloseTo(0.5, 2);
+    const half = h * PHOTO_VIEWER.dismissFadeShare * 0.5;
+    // the finger lifted short of closing: the spring-back brings the chrome back
+    await advance(PHOTO_VIEWER.settleMs + 100);
+    expect(opacityOf("photo-chrome")).toBe(1);
+    pan(half);
+    expect(opacityOf("photo-ground")).toBeCloseTo(0.5, 2);
+    expect(opacityOf("photo-chrome")).toBe(0);
+  });
+  it("the counter has a dim backing, as the buttons have a disc: the ground colour at 0.45", async () => {
+    await open();
+    await advance(PHOTO_VIEWER.openMs + 50);
+    const pill = screen.getByTestId("photo-counter-pill");
+    expect(pill.contains(screen.getByTestId("photo-counter"))).toBe(true);
+    const backing = screen.getByTestId("photo-counter-backing") as HTMLElement;
+    expect(pill.contains(backing)).toBe(true);
+    // the colour as the browser normalises it (a hex is read back as rgb), and the opacity the style must state
+    const want = document.createElement("div"); want.style.backgroundColor = LIGHT.photo.ground;
+    expect(want.style.backgroundColor).not.toBe("");
+    expect(backing.style.backgroundColor).toBe(want.style.backgroundColor);
+    expect(backing.style.opacity).toBe("0.45");
   });
 });

@@ -401,6 +401,17 @@ def _with_ditch():
     g.nodes["d1"] = replace(_node("d1", blk="D", wsc="100", name="River X",
                                   tuples=(NameTuple("River X", NameSource.side_channel, gnis_id="1"),)),
                             edge_types=("2300",))
+    # (T1012) the Serpentine grid as FWA has it now: 2300 with its 1450 water crossing -> still a ditch
+    g.nodes["d2"] = replace(_node("d2", blk="D2", wsc="100", name="River X",
+                                  tuples=(NameTuple("River X", NameSource.side_channel, gnis_id="1"),)),
+                            edge_types=("1450", "2300"))
+    # ...but a crossing alone is no ditch (no connector), and a main-flow line with a connector is the river
+    g.nodes["x1"] = replace(_node("x1", blk="X", wsc="100", name="River X",
+                                  tuples=(NameTuple("River X", NameSource.side_channel, gnis_id="1"),)),
+                            edge_types=("1450",))
+    g.nodes["k1"] = replace(_node("k1", blk="K", wsc="100", name="River X",
+                                  tuples=(NameTuple("River X", NameSource.side_channel, gnis_id="1"),)),
+                            edge_types=("1000", "2300"))
     # a side channel that is partly 2300 is still the river
     g.nodes["s1"] = replace(_node("s1", blk="S", wsc="100", name="River X",
                                   tuples=(NameTuple("River X", NameSource.side_channel, gnis_id="1"),)),
@@ -416,8 +427,8 @@ def _with_ditch():
 
 def test_a_2300_only_ditch_leaves_its_rivers_item():
     reg = _with_ditch()
-    assert set(reg["gnis:1"].section_ids) == {"m1", "s1"}
-    assert not any("d1" in it.section_ids for it in reg.values() if it.kind == "stream")
+    assert set(reg["gnis:1"].section_ids) == {"m1", "s1", "x1", "k1"}
+    assert not any(d in it.section_ids for it in reg.values() if it.kind == "stream" for d in ("d1", "d2"))
     assert set(reg["gnis:5"].section_ids) == {"c1"}
     assert "q1" in reg["wsc:300"].section_ids               # a named diversion is not a ditch
 
@@ -425,7 +436,15 @@ def test_a_2300_only_ditch_leaves_its_rivers_item():
 def test_mutation_ditches_kept_puts_the_ditch_back_in_the_river(monkeypatch):
     from pipeline.atlas.registry import build as B
     monkeypatch.setattr(B, "DITCHES_LEAVE_RIVER_ITEMS", False)
-    assert "d1" in _with_ditch()["gnis:1"].section_ids
+    assert {"d1", "d2"} <= set(_with_ditch()["gnis:1"].section_ids)
+
+
+def test_mutation_a_crossing_makes_a_ditch_a_river_again(monkeypatch):
+    """T1012: reverting to the 2300-only reading puts the Serpentine grid's 2300 + 1450 piece back in the river."""
+    from pipeline.common import fwa_edge_types as ET
+    monkeypatch.setattr(ET, "is_ditch_lines", ET.is_manmade_secondary_only)
+    reg = _with_ditch()
+    assert "d2" in reg["gnis:1"].section_ids and "d1" not in reg["gnis:1"].section_ids
 
 
 # ---------------------------------------------------------------- owner 2026-11-11 (T637): a curated name ends at its cut

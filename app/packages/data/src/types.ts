@@ -490,6 +490,9 @@ export interface PlaceHit {
   lon: number;
   /** Population, when the gazetteer has one. Null is "not recorded", not zero. */
   pop: number | null;
+  /** (T972) set only on a place whose name and kind another place also has: where it lies ("12 km NE of Kamloops"), so the
+   *  rows can be told apart */
+  apart?: string;
 }
 
 export interface NearHit {

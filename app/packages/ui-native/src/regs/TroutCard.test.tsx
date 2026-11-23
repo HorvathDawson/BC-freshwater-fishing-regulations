@@ -16,6 +16,7 @@ import { TYPE } from "../type";
 import { hitArea } from "./hit";
 import type { KeepActions } from "./LineText";
 import { TroutCard } from "./TroutCard";
+import { StripWidthHint } from "./YearStrip";
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
@@ -95,6 +96,19 @@ describe("(T810 O) every vector drawn", { timeout: 30_000 }, () => {
     mount(byName("elk-nov15"));
     expect([screen.getByTestId("trout-year-title").textContent, screen.getByTestId("trout-year-bar").getAttribute("aria-label")])
       .toEqual(["Trout and char through the year", "Trout and char through the year"]);
+  });
+
+  it("(T1028) the bar's keep run is the salmon bar's open colour (palette.salmon.open) in light, dark and colour-blind", () => {
+    for (const pal of [LIGHT, DARK, CVD]) {
+      const actions: KeepActions = { onSheet() {}, onDay() {}, onTab() {}, onBook() {} };
+      render(<StripWidthHint.Provider value={300}>
+               <TroutCard t={byName("elk-nov15")} palette={pal} actions={actions} kicker={false} todayAt={0.5} months={["J", "F"]} />
+             </StripWidthHint.Provider>);
+      const keeps = screen.queryAllByTestId("trout-year-run:keep");
+      expect(keeps.length).toBeGreaterThan(0);
+      for (const k of keeps) expect(k.getAttribute("fill")).toBe(pal.salmon.open);
+      cleanup();
+    }
   });
 });
 
