@@ -17,7 +17,7 @@ import sys
 
 import pytest
 
-from pipeline.common.curated import GENERATED
+from pipeline.tests import under_test
 
 pytestmark = [pytest.mark.slow, pytest.mark.needs_atlas, pytest.mark.needs_reach_run]
 
@@ -35,8 +35,8 @@ def backend():
 
 
 @pytest.fixture(scope="module")
-def run_rows():
-    p = GENERATED.reaches / GENERATED.build().name / "dfo_salmon.jsonl.gz"
+def run_rows(request):
+    p = under_test.reach_run(request) / "dfo_salmon.jsonl.gz"
     with gzip.open(p, "rt", encoding="utf-8") as f:
         return {r["location_id"]: r for r in map(json.loads, f)}
 
