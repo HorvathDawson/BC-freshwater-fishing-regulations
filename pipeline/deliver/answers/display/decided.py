@@ -413,9 +413,9 @@ def add_sources(facts: List[dict], doc: dict, order: Sequence[str]) -> None:
 
 def _passage_gate(unlocated: Sequence[str]) -> None:
     """(T1032, W46) The rules given no highlight box must be the list pinned for the PDF the release ships."""
-    from pipeline.regs.extraction.passage_boxes import PassageGateError, gate
+    from pipeline.regs.extraction.passage_boxes import PassageGateError, hold_to_pin
     try:
-        gate(unlocated, book_files()[0])
+        hold_to_pin(unlocated, book_files()[0])
     except PassageGateError as e:
         raise AnswersError(f"display: {e}") from e
 

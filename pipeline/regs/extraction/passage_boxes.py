@@ -25,7 +25,7 @@ top-left origin — the row boxes' shape, so the app's opener (`core/regs/highli
         # coverage: located / total per printed page, the rules placed by their entry, every rule not located and why
 
 THE GATE (W46): the answers build refuses unless the rules given no box are exactly the list pinned for its PDF in
-`passage_unlocated.json` (`gate`): a rule that newly loses its box fails the build by id, and one newly located must
+`passage_unlocated.json` (`hold_to_pin`): a rule that newly loses its box fails the build by id, and one newly located must
 come off the pin. `--write-pin` re-cuts the current book's list after the report has been read.
 """
 from __future__ import annotations
@@ -216,7 +216,7 @@ class PassageGateError(ValueError):
     """The rules not located are not the pinned list."""
 
 
-def gate(unlocated: Sequence[str], pdf: Path, pin: Optional[Path] = None) -> None:
+def hold_to_pin(unlocated: Sequence[str], pdf: Path, pin: Optional[Path] = None) -> None:
     """Refuse unless `unlocated` (every zone / province / area rule given no box) is exactly the list pinned for this PDF:
     a NEW one names its id (it lost its box: fix the text, or re-pin on purpose); one now LOCATED asks for the pin to be
     updated (so the pin never holds a stale exemption). A PDF with no pinned list is refused too."""

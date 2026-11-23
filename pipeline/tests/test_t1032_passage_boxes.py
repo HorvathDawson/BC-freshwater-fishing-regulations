@@ -146,15 +146,15 @@ def test_the_gate_holds_the_not_located_rules_to_the_pinned_list(tmp_path, monke
     PB.write_pin(["z::r2", "z::r1"], pdf, "a book")
     assert json.loads(pin.read_text())["books"] == {hashlib.sha256(b"%PDF one").hexdigest():
                                                      {"about": "a book", "unlocated": ["z::r1", "z::r2"]}}
-    PB.gate(["z::r1", "z::r2"], pdf)                                         # exactly the pin: passes
+    PB.hold_to_pin(["z::r1", "z::r2"], pdf)                                         # exactly the pin: passes
     with pytest.raises(PB.PassageGateError, match=r"NOT LOCATED now \(no box\): z::r3") as e:
-        PB.gate(["z::r1", "z::r2", "z::r3"], pdf)                            # a rule lost its box
+        PB.hold_to_pin(["z::r1", "z::r2", "z::r3"], pdf)                            # a rule lost its box
     assert "take them off" not in str(e.value)
     with pytest.raises(PB.PassageGateError, match="LOCATED now, take them off the pin: z::r2"):
-        PB.gate(["z::r1"], pdf)                                              # one is located now: the pin must follow
+        PB.hold_to_pin(["z::r1"], pdf)                                              # one is located now: the pin must follow
     pdf.write_bytes(b"%PDF two")                                             # another book: nothing pinned for it
     with pytest.raises(PB.PassageGateError, match="no pinned not-located list"):
-        PB.gate([], pdf)
+        PB.hold_to_pin([], pdf)
 
 
 def test_the_build_gates_every_zone_rule_given_no_box(monkeypatch, tmp_path):
