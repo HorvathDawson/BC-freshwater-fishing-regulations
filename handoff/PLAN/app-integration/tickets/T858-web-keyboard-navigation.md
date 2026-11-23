@@ -1,6 +1,6 @@
 # T858 — Web: keyboard navigation in lists, starting with search (arrows move the highlight, Enter opens)
 
-Status: PARTIAL — item 1 merged: web search results keyboard (da865828d, review fixes c49d0764b); left (Claude): item 2 (the water's parts list, Spots, the menu pages: each done or ruled out, listed here) and item 3's check on the staging web at desktop width.
+Status: PARTIAL — item 1 merged (da865828d, c49d0764b); item 2 done 5407adcba (below); left (Claude): item 3's check on the staging web at desktop width.
 commit; owner 2026-11-18 ~16:55: "these can be in 0.8.1 web version? since it doesnt change app it shouldnt effect release
 of app?").
 
@@ -18,3 +18,6 @@ Build (web only; phones unchanged):
 2. The same pattern where a list sits under a field or in a sheet and it fits: the water's parts list, Spots, the
    menu pages. List each one done here; leave out what does not fit.
 3. Render tests for the key handling, and a check on the staging web at desktop width.
+
+## Item 2 (L8, 2026-11-22)
+`arrowFocus.web.ts`: on a list's container, ↓/↑ move the focus to the next/previous control, Home/End to the ends (nothing is pressed; Enter/Space as before; text fields and modifier keys left alone). Done: the water's parts list (radio group), Spots, the menu list (MoreScreen). Ruled out: the menu's reading pages (settings, help, glossary: arrows scroll the text) and the notifications page (not checked). Test `arrowFocus.web.test.tsx`.

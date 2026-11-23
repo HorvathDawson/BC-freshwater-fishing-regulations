@@ -1,6 +1,6 @@
 # T721 — iOS: left-edge swipe back is dependable on every layer (IOS-4)
 
-Status: OPEN.
+Status: OPEN — stopped 2026-11-22 by lane L8: a simulator drag-grid and layer walk plus a real-iPhone verdict (M, owner needs a thumb); not a small ticket.
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-4 in

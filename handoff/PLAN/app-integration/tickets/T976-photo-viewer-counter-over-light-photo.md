@@ -1,6 +1,6 @@
 # T976 — The photo viewer's counter can't be read over a light photo
 
-Status: OPEN
+Status: PARTIAL — a dim pill behind the counter, the same 0.45 ground colour as the buttons' disc (`photo-counter-pill` / `photo-counter-backing`); render test in `PhotoViewer.motion.test.tsx`. Code 8c5dfce63. A proposal: the owner looks at light + dark shots over a light and a dark photo (not taken yet). left (Claude): the light + dark shots.
 
 Source: lane L6, 2026-11-20, from the T836 iPhone simulator shots (build 6fdb3d8db). Shot:
 `handoff/PLAN/ios/shots/t836/T836-ios-6-next-light.jpg`. The seeded photo (a fish drawing on white) fills the top of the
