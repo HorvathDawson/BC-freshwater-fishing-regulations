@@ -9,6 +9,11 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-22 18:55: lane L3 (0.9.0 batch) — three looks
+- **Look (you): T997 Nicomekl labels** — `handoff/PLAN/app-integration/T997-shots/` (web before/after, Android after).
+- **Pick (you): T1004 Class II tag** A (now, far right) or B (beside the name) — `T1004-shots/` (recommend B).
+- **Approve (you): T940 satellite line colours** — `T940-shots/proposal-vs-now.png` (a mock-up; recommend the set in the ticket).
+
 ## 2026-11-22 13:40: end of the build/CI chat — open for you
 - ~~Play Console deadline date into T1003~~ not needed (owner 2026-11-22: T1003 goes in 0.9.0 regardless).
 - ~~T1008 serve or hide source maps~~ decided: serve (owner 2026-11-22).

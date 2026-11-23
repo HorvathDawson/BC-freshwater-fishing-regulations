@@ -1,6 +1,6 @@
 # T997 — Water map: two boundary labels at almost the same place draw on top of each other (Nicomekl River)
 
-Status: OPEN (owner 2026-11-21: next chat).
+Status: IN REVIEW — owner: OWNER-TODO "T997 Nicomekl labels" (the after shots, T997-shots/); code 92ebd9c5d, PR open.
 
 Source: owner 2026-11-21, phone screenshot (Android, dark mode), "Add ticket for this ui bug too for next chat".
 Shot: `handoff/PLAN/app-integration/T997-shots/nicomekl-labels-overlap.png`.
@@ -27,3 +27,14 @@ show a cut's review words).
 Nicomekl Part 2 shows readable end label(s) on Android, iPhone and web; no overlapping boundary labels in the sweep.
 
 Depends: —. Size: S-M. Owner: looks at the after shots.
+
+## Result (2026-11-22, lane L3)
+Cause: the marks' label layer drew every label (allow-overlap on, no collision), and the VM kept one label per END TOKEN
+only: "23 m below the Nicomekl flood dam" and "Dyke gates" are different ends 23 m apart, so both drew. Fix: `mergeNearLabels`
+(waterMap.ts) — labelled marks under `MARK_LABEL_MERGE_M` = 100 m are one box naming both ("A · B"), rings/a11y/taps per mark;
+and `marksLayers` collides its own labels (open mark first, `symbol-sort-key` rank) so farther pairs never overlap either (side
+effect: a road/place name under a boundary box gives way to it). Same file for web and native (point-marks.ts).
+Sweep (release r-741815c6090d, `part_mark`, pairs sharing a part end): 28 pairs of DIFFERENT ends under 100 m in 22 waters
+(Nicomekl, Serpentine 12 m; Pinkut 12 m; Little Qualicum 17 m; ...), now one box each; 38 same-end pairs were already one.
+Shots: web dark before/after, web light after, Android (test-bed emulator, local-data APK) after. No pipeline/data change needed.
+Not shown: an Android "before" (the owner's own shot is the before) and the iPhone simulator.
