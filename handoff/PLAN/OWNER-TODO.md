@@ -9,6 +9,8 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-23 00:05: question round 5 (answers, verbatim)
+- T1026 day picker: "Yes, extend to Mar 31 2027 (Recommended)" — to: should the 0.9.0 data release extend the day-by-day answers through Mar 31, 2027? NOT built yet: the lane stopped as a format break (see T1026).
 ## 2026-11-22 20:15: 0.9.0 batch chat (stopped for credits) — open for you
 - **Questions for the next chat's round (pictures in each ticket's shots folder):** T1010 region page look (A, B or C;
   A recommended), T1004 Class II tag (A now / B beside the name; B recommended), T940 satellite colour set (approve?),

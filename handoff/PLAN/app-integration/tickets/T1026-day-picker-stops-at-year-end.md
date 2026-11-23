@@ -15,3 +15,9 @@ next year, but calendar doesn't go past the end of 2026. Might just be me not un
 3. Test on the bound; shots.
 
 Depends: none. Size: S–M (bigger if the release's day range must grow: then stop and say so). Owner: no.
+
+## Owner answer (2026-11-23 ~00:05, verbatim)
+"Yes, extend to Mar 31 2027 (Recommended)" — to the question whether the 0.9.0 data release should extend the day-by-day answers through Mar 31, 2027.
+
+## Why it was not built in lane L15 (stopped, reported)
+The day axis is YEAR-LESS by design: day 1..366 on the leap calendar (`pipeline/common/calendar_spec.py`, generated into TS/JSON/page JS), so a printed "Mar 1" is the same day every year; every answer, status index, strip (`year.py`: runs summing to 365), salmon/in-season reader and the app's `dayOfYear` read that axis. Running to Mar 31, 2027 needs a dated axis (2026-01-01..2027-03-31) through the answers encoder (~10k lines under `pipeline/deliver/answers`), the bundle format and every TS reader, plus a bundle format bump that installed 0.8.x apps must refuse loudly: a multi-day format change, not a small ticket. Needs its own plan/ticket.
