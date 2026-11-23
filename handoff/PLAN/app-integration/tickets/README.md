@@ -276,7 +276,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T996 | Test the Apple push service end to end (registration, wake-up delivery, token reuse over 1 h+) | OPEN | T994 | owner 2026-11-21, next release |
 | T997 | Water map: two boundary labels at almost the same place draw on top of each other (Nicomekl River Part 2) | OPEN | | owner 2026-11-21, next chat |
 | T998 | Meaningful versions: SemVer for the app, the bump derived from Conventional Commits (1.0.0 at public launch) | DONE | 6a16738db | owner 2026-11-21; 2026-11-22: next release is 0.9.0 (owner accepted the computed bump; it waits for the next chat's work) |
-| T999 | Feeds worker backup copies reports incrementally (the daily backup fails, told, past ~4,500 reports) | OPEN | | T994 finding 24 (a6d97778a note) |
+| T999 | Feeds worker backup copies reports incrementally (the daily backup fails, told, past ~4,500 reports) | DONE (3377f8a8b: unchanged records named from their snapshot, refreshed weekly; prune drops every reference; restore follows links) | 3377f8a8b | T994 finding 24 (a6d97778a note) |
 | T1000 | Tiles: an Adskwatim Creek stream polygon draws in the lake layer, not the stream layer (2 live tests red) | OPEN | | T931 review 2026-11-22 |
 | T1001 | Two data-tier test fixes left from T777 (the Deadman stretch-end test on the live tree; in-season tests between a promote and a release) | OPEN | — | all (depends T777; from T777's 2026-11-16 additions) |
 | T1002 | Test-anchor scanners: an `absent` rule for pipeline/tests/anchors.py; the record-equality and toBeUndefined gaps; part numbers after short template slots | OPEN | T768 | T768's lane, 2026-11-22 |
