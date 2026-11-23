@@ -311,6 +311,7 @@
   "otherFish": [
    {
     "back": [],
+    "id": "other:o0|id",
     "name": "Kokanee",
     "open": "other:o0",
     "sizeHint": null,
@@ -322,6 +323,7 @@
    },
    {
     "back": [],
+    "id": "other:o1|id",
     "name": "Whitefish",
     "open": "other:o1",
     "sizeHint": null,
@@ -333,6 +335,7 @@
    },
    {
     "back": [],
+    "id": "other:o2|id",
     "name": "Burbot",
     "open": "other:o2",
     "sizeHint": null,
@@ -344,6 +347,7 @@
    },
    {
     "back": [],
+    "id": "other:o3|id",
     "name": "Largemouth bass, northern pike, smallmouth bass, walleye and yellow perch",
     "open": "other:o3",
     "sizeHint": null,
@@ -355,6 +359,7 @@
    },
    {
     "back": [],
+    "id": "other:o4|id",
     "name": "White sturgeon",
     "open": "other:o4",
     "sizeHint": null,
@@ -366,6 +371,7 @@
    },
    {
     "back": [],
+    "id": "other:o5|id",
     "name": "Crayfish",
     "open": "other:o5",
     "sizeHint": null,
@@ -1421,18 +1427,6 @@
   "other:o0": {
    "blocks": [
     {
-     "k": "pictures",
-     "pics": [
-      {
-       "caption": "Kokanee ›",
-       "code": "KO",
-       "name": "Kokanee",
-       "open": "sp:KO",
-       "sil": false
-      }
-     ]
-    },
-    {
      "k": "value",
      "text": [
       {
@@ -1612,6 +1606,46 @@
      "k": "flow"
     },
     {
+     "k": "head",
+     "text": "Where each rule comes from"
+    },
+    {
+     "groups": [
+      {
+       "rows": [
+        {
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "key": "z4:daily_quotas::species_quotas.r5",
+         "quote": "none from streams",
+         "role": "Release every one",
+         "title": "Release kokanee from streams"
+        },
+        {
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "key": "z4:possession_quota::possession_quota.r1",
+         "quote": "Possession quotas = 2 daily quotas (See tables for exceptions)",
+         "role": "Possession limit",
+         "title": "Possession: twice the daily quota"
+        }
+       ],
+       "where": "B.C. Synopsis"
+      }
+     ],
+     "k": "sources"
+    },
+    {
      "k": "link",
      "line": [
       {
@@ -1624,6 +1658,18 @@
    ],
    "key": "other:o0",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": false,
+     "open": "other:o0|id"
+    },
+    {
+     "label": "Sources",
+     "on": true,
+     "open": "other:o0"
+    }
+   ],
    "title": "Kokanee"
   },
   "other:o1": {
@@ -1846,6 +1892,46 @@
      ]
     },
     {
+     "k": "head",
+     "text": "Where each rule comes from"
+    },
+    {
+     "groups": [
+      {
+       "rows": [
+        {
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "key": "z4:daily_quotas::species_quotas.r10",
+         "quote": "Whitefish: 15 (all species combined)",
+         "role": "Sets the number",
+         "title": "Keep up to 15 whitefish a day"
+        },
+        {
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "key": "z4:possession_quota::possession_quota.r1",
+         "quote": "Possession quotas = 2 daily quotas (See tables for exceptions)",
+         "role": "Possession limit",
+         "title": "Possession: twice the daily quota"
+        }
+       ],
+       "where": "B.C. Synopsis"
+      }
+     ],
+     "k": "sources"
+    },
+    {
      "k": "link",
      "line": [
       {
@@ -1858,22 +1944,22 @@
    ],
    "key": "other:o1",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": false,
+     "open": "other:o1|id"
+    },
+    {
+     "label": "Sources",
+     "on": true,
+     "open": "other:o1"
+    }
+   ],
    "title": "Whitefish"
   },
   "other:o2": {
    "blocks": [
-    {
-     "k": "pictures",
-     "pics": [
-      {
-       "caption": "Burbot ›",
-       "code": "BB",
-       "name": "Burbot",
-       "open": "sp:BB",
-       "sil": false
-      }
-     ]
-    },
     {
      "k": "rowTitle",
      "scope": "Region 4-wide",
@@ -2012,6 +2098,46 @@
      "k": "flow"
     },
     {
+     "k": "head",
+     "text": "Where each rule comes from"
+    },
+    {
+     "groups": [
+      {
+       "rows": [
+        {
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "key": "z4:daily_quotas::species_quotas.r2",
+         "quote": "Burbot: 2",
+         "role": "Sets the number",
+         "title": "Keep up to 2 burbot a day"
+        },
+        {
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "key": "z4:possession_quota::possession_quota.r1",
+         "quote": "Possession quotas = 2 daily quotas (See tables for exceptions)",
+         "role": "Possession limit",
+         "title": "Possession: twice the daily quota"
+        }
+       ],
+       "where": "B.C. Synopsis"
+      }
+     ],
+     "k": "sources"
+    },
+    {
      "k": "link",
      "line": [
       {
@@ -2024,50 +2150,22 @@
    ],
    "key": "other:o2",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": false,
+     "open": "other:o2|id"
+    },
+    {
+     "label": "Sources",
+     "on": true,
+     "open": "other:o2"
+    }
+   ],
    "title": "Burbot"
   },
   "other:o3": {
    "blocks": [
-    {
-     "k": "pictures",
-     "pics": [
-      {
-       "caption": "Largemouth bass ›",
-       "code": "LMB",
-       "name": "Largemouth bass",
-       "open": "sp:LMB",
-       "sil": false
-      },
-      {
-       "caption": "Northern pike ›",
-       "code": "NP",
-       "name": "Northern pike",
-       "open": "sp:NP",
-       "sil": false
-      },
-      {
-       "caption": "Smallmouth bass ›",
-       "code": "SMB",
-       "name": "Smallmouth bass",
-       "open": "sp:SMB",
-       "sil": false
-      },
-      {
-       "caption": "Walleye ›",
-       "code": "WP",
-       "name": "Walleye",
-       "open": "sp:WP",
-       "sil": false
-      },
-      {
-       "caption": "Yellow perch ›",
-       "code": "YP",
-       "name": "Yellow perch",
-       "open": "sp:YP",
-       "sil": false
-      }
-     ]
-    },
     {
      "k": "value",
      "text": [
@@ -2286,6 +2384,46 @@
      "k": "flow"
     },
     {
+     "k": "head",
+     "text": "Where each rule comes from"
+    },
+    {
+     "groups": [
+      {
+       "rows": [
+        {
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "key": "z4:invasive_species_notice::invasive_species_notice.r1",
+         "quote": "NOTICE TO ANGLERS It is illegal to fish for bass, perch, pike or walleye in the Kootenay Region, with the exception of certain waters, as listed in the Water-Specific Tables.",
+         "role": "Closes it",
+         "title": "No fishing for bass, yellow perch, northern pike and walleye"
+        },
+        {
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "key": "z4:possession_quota::possession_quota.r1",
+         "quote": "Possession quotas = 2 daily quotas (See tables for exceptions)",
+         "role": "Possession limit",
+         "title": "Possession: twice the daily quota"
+        }
+       ],
+       "where": "B.C. Synopsis"
+      }
+     ],
+     "k": "sources"
+    },
+    {
      "k": "link",
      "line": [
       {
@@ -2298,22 +2436,22 @@
    ],
    "key": "other:o3",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": false,
+     "open": "other:o3|id"
+    },
+    {
+     "label": "Sources",
+     "on": true,
+     "open": "other:o3"
+    }
+   ],
    "title": "Largemouth bass, northern pike, smallmouth bass, walleye and yellow perch"
   },
   "other:o4": {
    "blocks": [
-    {
-     "k": "pictures",
-     "pics": [
-      {
-       "caption": "White sturgeon ›",
-       "code": "WSG",
-       "name": "White sturgeon",
-       "open": "sp:WSG",
-       "sil": false
-      }
-     ]
-    },
     {
      "k": "value",
      "text": [
@@ -2472,6 +2610,46 @@
      "k": "flow"
     },
     {
+     "k": "head",
+     "text": "Where each rule comes from"
+    },
+    {
+     "groups": [
+      {
+       "rows": [
+        {
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "key": "z4:daily_quotas::species_quotas.r9",
+         "quote": "White Sturgeon: 0 quota, CLOSED TO FISHING (No exceptions)",
+         "role": "Closes it",
+         "title": "No fishing for white sturgeon"
+        },
+        {
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "key": "z4:possession_quota::possession_quota.r1",
+         "quote": "Possession quotas = 2 daily quotas (See tables for exceptions)",
+         "role": "Possession limit",
+         "title": "Possession: twice the daily quota"
+        }
+       ],
+       "where": "B.C. Synopsis"
+      }
+     ],
+     "k": "sources"
+    },
+    {
      "k": "link",
      "line": [
       {
@@ -2484,22 +2662,22 @@
    ],
    "key": "other:o4",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": false,
+     "open": "other:o4|id"
+    },
+    {
+     "label": "Sources",
+     "on": true,
+     "open": "other:o4"
+    }
+   ],
    "title": "White sturgeon"
   },
   "other:o5": {
    "blocks": [
-    {
-     "k": "pictures",
-     "pics": [
-      {
-       "caption": "Signal crayfish ›",
-       "code": "CRA",
-       "name": "Crayfish",
-       "open": "sp:CRA",
-       "sil": false
-      }
-     ]
-    },
     {
      "k": "rowTitle",
      "scope": "Region 4-wide",
@@ -2638,6 +2816,46 @@
      "k": "flow"
     },
     {
+     "k": "head",
+     "text": "Where each rule comes from"
+    },
+    {
+     "groups": [
+      {
+       "rows": [
+        {
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "key": "z4:daily_quotas::species_quotas.r3",
+         "quote": "Crayfish: 25",
+         "role": "Sets the number",
+         "title": "Keep up to 25 crayfish a day"
+        },
+        {
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "key": "z4:possession_quota::possession_quota.r1",
+         "quote": "Possession quotas = 2 daily quotas (See tables for exceptions)",
+         "role": "Possession limit",
+         "title": "Possession: twice the daily quota"
+        }
+       ],
+       "where": "B.C. Synopsis"
+      }
+     ],
+     "k": "sources"
+    },
+    {
      "k": "link",
      "line": [
       {
@@ -2650,6 +2868,18 @@
    ],
    "key": "other:o5",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": false,
+     "open": "other:o5|id"
+    },
+    {
+     "label": "Sources",
+     "on": true,
+     "open": "other:o5"
+    }
+   ],
    "title": "Crayfish"
   },
   "other:o6": {
@@ -2733,6 +2963,33 @@
       ]
      },
      "k": "flow"
+    },
+    {
+     "k": "head",
+     "text": "Where each rule comes from"
+    },
+    {
+     "groups": [
+      {
+       "rows": [
+        {
+         "book": [
+          {
+           "pdf": 11,
+           "printed": 9,
+           "t": "book"
+          }
+         ],
+         "key": "zp:protected_species::protected_species.r1",
+         "quote": "It is illegal to fish for, or catch and retain any of the fish listed below.",
+         "role": "",
+         "title": "No fishing for Cultus Lake sculpin, Enos Lake stickleback, Misty Lake stickleback, Nooksack dace, Paxton Lake stickleback, Rocky Mountain sculpin, shorthead sculpin, Salish sucker, Vananda Creek stickleback, vancouver lamprey, western brook lamprey (Morrison Creek population) and white sturgeon (Nechako, Upper Fraser, Kootenay and Columbia populations)"
+        }
+       ],
+       "where": "B.C. Synopsis"
+      }
+     ],
+     "k": "sources"
     },
     {
      "k": "link",
@@ -4347,6 +4604,18 @@
    ],
    "key": "sp:BB",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "other:o2|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "other:o2"
+    }
+   ],
    "title": "Burbot"
   },
   "sp:CT": {
@@ -4408,6 +4677,18 @@
    ],
    "key": "sp:CT",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "tf:CT|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "tf:CT"
+    }
+   ],
    "title": "Cutthroat trout"
   },
   "sp:DV": {
@@ -4478,6 +4759,18 @@
    ],
    "key": "sp:DV",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "tf:DV|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "tf:DV"
+    }
+   ],
    "title": "Dolly Varden/bull trout"
   },
   "sp:EB": {
@@ -4530,6 +4823,18 @@
    ],
    "key": "sp:EB",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "tf:EB|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "tf:EB"
+    }
+   ],
    "title": "Brook trout"
   },
   "sp:GB": {
@@ -4582,6 +4887,18 @@
    ],
    "key": "sp:GB",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "tf:GB|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "tf:GB"
+    }
+   ],
    "title": "Brown trout"
   },
   "sp:KO": {
@@ -4643,6 +4960,18 @@
    ],
    "key": "sp:KO",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "other:o0|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "other:o0"
+    }
+   ],
    "title": "Kokanee"
   },
   "sp:LMB": {
@@ -4695,6 +5024,18 @@
    ],
    "key": "sp:LMB",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "other:o3|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "other:o3"
+    }
+   ],
    "title": "Largemouth bass"
   },
   "sp:LT": {
@@ -4747,6 +5088,18 @@
    ],
    "key": "sp:LT",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "tf:LT|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "tf:LT"
+    }
+   ],
    "title": "Lake trout"
   },
   "sp:LW": {
@@ -4799,6 +5152,18 @@
    ],
    "key": "sp:LW",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "other:o1|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "other:o1"
+    }
+   ],
    "title": "Lake whitefish"
   },
   "sp:RB": {
@@ -4851,6 +5216,18 @@
    ],
    "key": "sp:RB",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "tf:RB|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "tf:RB"
+    }
+   ],
    "title": "Rainbow trout"
   },
   "sp:WSG": {
@@ -4903,6 +5280,18 @@
    ],
    "key": "sp:WSG",
    "sub": null,
+   "tabs": [
+    {
+     "label": "Identification",
+     "on": true,
+     "open": "other:o4|id"
+    },
+    {
+     "label": "Sources",
+     "on": false,
+     "open": "other:o4"
+    }
+   ],
    "title": "White sturgeon"
   },
   "src:r0": null,

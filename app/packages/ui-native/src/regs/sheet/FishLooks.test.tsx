@@ -92,6 +92,8 @@ describe("T46 a fish's looks: side by side when there is room, stacked on a phon
     const body = screen.getByTestId("sheet-body");
     expect([...body.children].map((c) => c.getAttribute("data-testid") ?? c.textContent?.slice(0, 16))).toEqual([
       "fish-looks", "What to look for", "A rainbow trout ",
+      // (T1031) sp:ST is the Vedder's steelhead row's Identification tab: a hatchery-only row also links how to tell hatchery
+      "How to tell a ha",
     ]);
   });
 

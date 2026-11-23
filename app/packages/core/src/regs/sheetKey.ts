@@ -8,20 +8,25 @@ import type { RuleKey } from "./line";
 export type SheetKey =
   | `rule:${RuleKey}` | `gl:${string}`            // gl: one id, or ids joined by "," (multi-term sheet)
   | `sp:${string}` | "hatch"
+  /** (T1031) a fish's Sources tab where no table row's key names it (a salmon species, a fish of a card drawn on the page) */
+  | `sp:${string}|src`
   | `srcs:${"bait" | "ways" | "always" | "boats" | "gear"}` | `srcs:gl|${"mode" | "lines" | "hook" | "weight"}`
   | `other:o${number}` | "pos:pos" | `src:r${number}`
+  /** (T1031) an Other fish row's species sheet on its Identification tab (`other:oN` is its Sources tab) */
+  | `other:o${number}|id`
   /** (T475) a card row's share ⓘ: how the headline's share stands to the regional total (`headline.info`) */
   | `share:r${number}`
   /** (T481) a card row's "Fishing more than one water today? ›": how the region's total holds across waters */
   | `multi:r${number}`
-  /** (T810 P) a trout table row's fish sheet: `tf:ST`, `tf:ST/hatchery` (the row key, `model/trout.py` RowKey) */
+  /** (T810 P) a trout table row's fish sheet: `tf:ST`, `tf:ST/hatchery` (the row key, `model/trout.py` RowKey); (T1031) its
+   *  Sources tab, and `tf:ST|id` its Identification tab */
   | `tf:${string}`
   /** (T810 P) the trout table's every rule (`TroutTable.src`): its "Sources ›" and the fish sheet's "All sources ›" */
   | "src:trout"
   /** (T990) the page's every source, from the button at the Regulations page's foot */
   | "src:all";
 /** (T810 P) a trout row key after `tf:` (trout.ts ROW_KEY): the "/" of a twin row is part of the key */
-const TF = /^tf:(?:CT|DV|EB|GB|LT|RB|ST)(?:\/(?:wild|hatchery))?$/;
+const TF = /^tf:(?:CT|DV|EB|GB|LT|RB|ST)(?:\/(?:wild|hatchery))?(?:\|id)?$/;
 const SRCS = /^srcs:(?:bait|ways|always|boats|gear|gl\|(?:mode|lines|hook|weight))$/;
 
 /** A sheet key the app knows, or null (an unknown shape is refused — the date sheet is D7's, not a SheetKey). */
@@ -30,10 +35,10 @@ export function parseSheetKey(k: string): SheetKey | null {
   if (k === "hatch" || k === "pos:pos") return k;
   if (/^rule:\S+::\S+$/.test(k)) return k as SheetKey;   // entry ids carry ":" ("zp:conduct"); "::" joins entry and rule
   if (/^gl:[a-z0-9_]+(?:,[a-z0-9_]+)*$/.test(k)) return k as SheetKey;
-  if (/^sp:[A-Za-z0-9_]+$/.test(k)) return k as SheetKey;
+  if (/^sp:[A-Za-z0-9_]+(?:\|src)?$/.test(k)) return k as SheetKey;
   if (SRCS.test(k)) return k as SheetKey;
   if (TF.test(k) || k === "src:trout" || k === "src:all") return k as SheetKey;
-  if (/^other:o\d+$/.test(k) || /^src:r\d+$/.test(k) || /^share:r\d+$/.test(k) || /^multi:r\d+$/.test(k)) return k as SheetKey;
+  if (/^other:o\d+(?:\|id)?$/.test(k) || /^src:r\d+$/.test(k) || /^share:r\d+$/.test(k) || /^multi:r\d+$/.test(k)) return k as SheetKey;
   return null;   // `licsrc:` (the licence sources sheet) is no key: removed, owner 2026-11-04
 }
 
