@@ -1357,11 +1357,22 @@ def _walks_tributaries(entry: dict, rule: dict) -> bool:
     return bool(wants_tributaries(rule, entry))
 
 
+def as_the_run_binds(location_id: str) -> dict:
+    """THE REACH RUN'S LIMITS FOR A DFO PLACE (`reach.dfo_salmon.resolve_all`), as `build_reach` keywords: no region
+    limit (`regional=False`: a DFO place is one water whichever region prints it) and the run's tidal water out
+    (`reuse._tidal`, the CLI's `ReachResult.tidal`) unless `tidal_calls.json` `keep_tidal` names the place. Water
+    outside B.C. `build_reach` takes out itself (`outside_bc`, the run's `outside`). Every save-time binding of a place
+    (the preview, its size, the landing check, the dead pieces) passes these, so it binds what the build binds (T779)."""
+    from pipeline.atlas.reach.dfo_salmon import load_tidal_calls
+    return {"regional": False, "tidal": None if location_id in load_tidal_calls() else reuse._tidal()}
+
+
 def _bind(entry: dict, rule: dict, limit: int, walks: bool = False) -> dict:
     from pipeline.atlas.reach.build import build_reach
     if not rule["extents"]:
         return {"resolvable": False, "why": "no extent curated yet: nothing binds", "n_sections": 0}
-    binding, _d = build_reach(entry, rule, reuse._registry(), reuse._graph())
+    lid = str(entry.get("entry_id") or rule.get("rule_id") or "")
+    binding, _d = build_reach(entry, rule, reuse._registry(), reuse._graph(), **as_the_run_binds(lid))
     ids = sorted(binding.sections)
     # T761: a "rest of"'s listed places left out of the subtraction (no bind / dormant), named — never dropped unseen
     comp = next((d.payload for d in _d if d.kind == "complement"), None) or {}
@@ -1369,11 +1380,11 @@ def _bind(entry: dict, rule: dict, limit: int, walks: bool = False) -> dict:
             **({"rest_dormant": comp["dormant"]} if comp.get("dormant") else {})}
     # T779: every piece the place withholds, said at save time — the reach run stops on one `accepted` does not name
     from pipeline.regs.review import withheld as W
-    held = W.rows(str(entry.get("entry_id") or rule.get("rule_id") or ""), _d)
-    if held:
-        bad = {(x["piece"], x["reason"]) for x in W.unaccepted(held)}
-        left["withheld"] = [{"piece": x["piece"], "reason": x["reason"], "accepted": (x["piece"], x["reason"]) not in bad}
-                            for x in held]
+    got = W.check(lid, W.rows(lid, _d))
+    if got["withheld"]:
+        left["withheld"] = got["withheld"]
+    if got["stale_acceptances"]:
+        left["stale_acceptances"] = got["stale_acceptances"]
     # T775 item 3: the listed places the rest stands behind (`rest_behind`: place id -> its sections INSIDE the bounds),
     # drawn beside the rest — `properties.listed` / `place` — never mixed into the rest's own sections
     from pipeline.atlas.reach.build import REST_BEHIND
@@ -1487,7 +1498,7 @@ def _size_of(loc: dict, water: dict | None) -> dict | None:
     entry, rule = _reach_input(loc, water)
     if not rule["extents"]:
         return None
-    b, _d = build_reach(entry, rule, reuse._registry(), reuse._graph())
+    b, _d = build_reach(entry, rule, reuse._registry(), reuse._graph(), **as_the_run_binds(str(entry.get("entry_id") or "")))
     secs = set(b.sections)
     reg = reuse._registry()
     own = {s for i in (water or {}).get("item_ids") or [] if i in reg for s in reg[i].section_ids}
@@ -1550,13 +1561,16 @@ def extent_preview(location_id: str, fix, limit: int = 6000, tributaries: bool =
     if any(f.op == "rest" for f in fixes):
         # T761: the draft's "rest of": what answers before it, where; the water's places the form can list
         out["rest_of"] = rest_of_card(loc, exs)
-    dead = DS.dead_pieces(entry, rule, reuse._registry(), reuse._graph())
+    dead = DS.dead_pieces(entry, rule, reuse._registry(), reuse._graph(),
+                          tidal=as_the_run_binds(location_id)["tidal"])
     # a place of ONE piece that binds nothing is dead too (seen on screen 2026-11-10: "binds 0 section(s) · unresolved"
     # with no reason — `dead_pieces` speaks only of a piece among several): it gets the same plain-words why
     if not dead and len(fixes) == 1 and out.get("resolvable") and out.get("n_sections") == 0:
         # T775 item 1: a rest-of whose own sections are all inside its listed places binds nothing of its own and the
-        # build does NOT refuse it (it stands behind them, T761): said so, never "binds NOTHING alone"
-        if fixes[0].op == "rest" and any(p["listed"] for p in (out.get("rest_of") or {}).get("places") or []):
+        # build does NOT refuse it (it stands behind them, T761): said so, never "binds NOTHING alone". Only the build's
+        # own REST_BEHIND diagnostic (`listed_drawn`: listed places with sections INSIDE its bounds) says so — a listed
+        # sibling alone does not: a rest whose bounds bind nothing at all stays dead
+        if fixes[0].op == "rest" and any(n > 0 for n in (out.get("listed_drawn") or {}).values()):
             out["rest_stands_behind"] = True
         else:
             dead = [0]

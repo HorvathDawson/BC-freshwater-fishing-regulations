@@ -320,6 +320,12 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
                   {preview.withheld.some((w) => !w.accepted) && " The build stops on a piece nobody accepted: place it (a cut, an extent) or have the owner accept it before this is landed."}
                 </span>
               )}
+              {preview.stale_acceptances && preview.stale_acceptances.length > 0 && (
+                <span className="warn-text" style={{ display: "block" }} data-testid="fix-stale-acceptance">
+                  Accepted for this place but no longer withheld: {preview.stale_acceptances.map((w) => `${w.piece} — ${w.reason}`).join("; ")}.
+                  {" "}The build stops on a stale acceptance: the owner looks again and the row is removed before this is landed.
+                </span>
+              )}
               {preview.rest_skipped && <span className="warn-text" style={{ display: "block" }} data-testid="fix-rest-skipped">
                 Left out of the subtraction (this place covers their water until they bind): {Object.entries(preview.rest_skipped).map(([k, v]) => `${k} — ${v}`).join("; ")}.</span>}
               {preview.rest_dormant?.length ? <span className="dim" style={{ display: "block" }} data-testid="fix-rest-dormant">

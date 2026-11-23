@@ -118,12 +118,25 @@ def withheld_refusal(p: Mapping) -> str | None:
     """T779: the reach gate's rule (`build.unplaced_gate`, T632) at save time. A DFO place whose binding check withholds a
     piece that `unplaced_piece_calls.json` `accepted` does not name is refused here — the full reach run stops on it
     (two Middle Shuswap places landed 'bound' and the build stopped 14 minutes in). Why, or None when none is withheld."""
-    bad = (p.get("check") or {}).get("unaccepted") or []
-    if not bad:
-        return None
-    return ("the place withholds " + ", ".join(f"{x['piece']} ({x['reason']})" for x in bad)
-            + " and no `accepted` row in data/curated/waters/unplaced_piece_calls.json names it: the reach run stops on it. "
-              "Place the piece (a cut, an extent) or have the owner accept it")
+    c = p.get("check") or {}
+    if p.get("scope") == "dfo" and p.get("kind") == "extent" and not c.get("cheap"):
+        # the check could not bind the place (a new or just-landed cut the live atlas has not got, an unbound split,
+        # an error): what it withholds is unknown, and unknown never passes
+        return ("the withheld-piece check cannot run on the live atlas (" + str(c.get("why") or "no check")
+                + "): the reach run could stop on a piece nobody has seen. Land the cut, rebuild the atlas, then "
+                  "land this place (its check runs then)")
+    bad, stale = c.get("unaccepted") or [], c.get("stale_acceptances") or []
+    why = []
+    if bad:
+        why.append("the place withholds " + ", ".join(f"{x['piece']} ({x['reason']})" for x in bad)
+                   + " and no `accepted` row in data/curated/waters/unplaced_piece_calls.json names it: the reach run "
+                     "stops on it. Place the piece (a cut, an extent) or have the owner accept it")
+    if stale:
+        # the gate's other half (`build.unplaced_verdict`): an acceptance of this place that names no piece it withholds
+        why.append("unplaced_piece_calls.json accepts " + ", ".join(f"{x['piece']} ({x['reason']})" for x in stale)
+                   + " for this place, but it withholds no such piece now: the reach run stops on a stale acceptance. "
+                     "The owner looks again and the row is removed")
+    return "; ".join(why) or None
 
 
 def _who(p: Mapping) -> list[dict]:
@@ -198,8 +211,10 @@ def run(argv: list[str] | None = None) -> tuple[int, list[dict]]:
                                "why": f"the binding check failed — {c.get('why')}"})
                 rc = 1
                 continue
-        elif p["scope"] == "dfo" and p["id"] in a.side_checked:
-            P.check([p], src)                              # T779: a DFO place's side check IS this binding
+        elif p["scope"] == "dfo":
+            # T779: a DFO place is in no reach run, so its side app shows the binding but nothing gates the pieces
+            # it withholds: the in-memory check here does, and one that cannot run refuses (never lands unchecked)
+            P.check([p], src)
         bad = withheld_refusal(p)
         if bad:
             print(f"!! {p['id']}: {bad}; not applied")

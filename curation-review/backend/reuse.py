@@ -2986,19 +2986,17 @@ def dfo_binding_change(location_id: str, changes: list[dict]) -> dict | None:
         entry, rule = dfo._reach_input(lc, water)
         if not rule["extents"]:
             return {rule["rule_id"]: (set(), "no extent")}
-        b, _d = _build_reach(entry, rule, reg, graph)
+        b, _d = _build_reach(entry, rule, reg, graph, **limits)   # T779: the run's own limits, as the build binds it
         if keep:
             from pipeline.regs.review import withheld as W
             held.extend(W.rows(location_id, _d))
         return {rule["rule_id"]: (set(b.sections), b.outcome.value)}
+    limits = dfo.as_the_run_binds(location_id)
     out = _binding_rows(bind(loc), bind(after, keep=True))
-    # T779: every piece the place withholds, and which of them the reach gate would stop on (not in
-    # `unplaced_piece_calls.json` `accepted`): `apply_proposals.plan` refuses a mark with any
+    # T779: every piece the place withholds, which of them the reach gate would stop on (not in
+    # `unplaced_piece_calls.json` `accepted`) and the place's stale acceptances: `apply_proposals` refuses a mark with any
     from pipeline.regs.review import withheld as W
-    bad = {(x["piece"], x["reason"]) for x in W.unaccepted(held)}
-    out["withheld"] = [{"piece": x["piece"], "reason": x["reason"], "accepted": (x["piece"], x["reason"]) not in bad}
-                       for x in held]
-    out["unaccepted"] = [x for x in out["withheld"] if not x["accepted"]]
+    out.update(W.check(location_id, held))
     return _json_safe(out)
 
 
