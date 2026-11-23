@@ -46,8 +46,9 @@ export function fitQuery(b: FitBox): string {
   const out = (x: number, up: boolean) => String((up ? Math.ceil : Math.floor)(Math.round(x * 1e6) / 1e3) / 1e3);
   return `?fit=${[out(b[0], false), out(b[1], false), out(b[2], true), out(b[3], true)].join(",")}`;
 }
-/** (T1010) `fit`'s value as a box, or why it is not one (west < east, south < north, on the globe). */
-function fitOf(v: string): FitBox | string {
+/** (T1010, T605) `fit`'s value as a box, or why it is not one (west < east, south < north, on the globe): the one reading of
+ *  the key, for the web's start link and the phone's app link (`appLink.ts`). */
+export function fitOf(v: string): FitBox | string {
   const n = v.split(",");
   if (n.length !== 4 || n.some((x) => !/^-?\d+(\.\d+)?$/.test(x))) return "a w,s,e,n box in degrees";
   const [w, s, e, no] = n.map(Number) as [number, number, number, number];

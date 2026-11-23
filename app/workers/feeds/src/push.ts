@@ -179,9 +179,18 @@ export const APNS_JWT_REUSE_S = 50 * 60;
 interface KeptJwt { format: "apns-jwt/1"; kid: string; iss: string; iat: number; jwt: string }
 type ApnsSecrets = { APNS_KEY: string; APNS_KEY_ID: string; APNS_TEAM_ID: string };
 
+/**
+ * (T996) WHICH PROVIDER TOKEN A SEND USED, for the log and /status: `id` = the first 12 hex of the token's SHA-256 (the
+ * token itself is a credential for an hour and is never logged), when it was made (`iat`), its key id, and whether this
+ * send made it (`minted`) or reused the kept one. Over an hour of runs the log then shows one id per ~50 minutes.
+ */
+export interface ApnsTokenUsed { id: string; iat: string; kid: string; minted: boolean }
+export const apnsTokenUsed = async (t: { jwt: string; iat: number; kid: string; minted: boolean }): Promise<ApnsTokenUsed> =>
+  ({ id: (await sha256hex(t.jwt)).slice(0, 12), iat: new Date(t.iat * 1000).toISOString(), kid: t.kid, minted: t.minted });
+
 /** The provider token to send with: the kept one while it may be reused, else a new one (then kept). A kept record that
  *  does not parse is our own cache: said in the log, replaced by a new token. A failed read or write THROWS. */
-export async function apnsProviderToken(bucket: R2BucketLike, e: ApnsSecrets, now: Date): Promise<{ jwt: string; minted: boolean }> {
+export async function apnsProviderToken(bucket: R2BucketLike, e: ApnsSecrets, now: Date): Promise<{ jwt: string; minted: boolean; iat: number; kid: string }> {
   const t = Math.floor(now.getTime() / 1000);
   const o = await bucket.get(APNS_JWT_KEY);
   if (o) {
@@ -190,12 +199,12 @@ export async function apnsProviderToken(bucket: R2BucketLike, e: ApnsSecrets, no
       console.error(JSON.stringify({ job: "push", apnsJwtUnreadable: String((err as Error)?.message ?? err) }));
     }
     if (k?.format === "apns-jwt/1" && k.kid === e.APNS_KEY_ID && k.iss === e.APNS_TEAM_ID && typeof k.jwt === "string"
-        && typeof k.iat === "number" && t >= k.iat && t - k.iat < APNS_JWT_REUSE_S) return { jwt: k.jwt, minted: false };
+        && typeof k.iat === "number" && t >= k.iat && t - k.iat < APNS_JWT_REUSE_S) return { jwt: k.jwt, minted: false, iat: k.iat, kid: k.kid };
   }
   const jwt = await apnsJwt(e, now);
   const kept: KeptJwt = { format: "apns-jwt/1", kid: e.APNS_KEY_ID, iss: e.APNS_TEAM_ID, iat: t, jwt };
   await bucket.put(APNS_JWT_KEY, JSON.stringify(kept), { httpMetadata: { contentType: "application/json" } });
-  return { jwt, minted: true };
+  return { jwt, minted: true, iat: t, kid: e.APNS_KEY_ID };
 }
 
 // ── the requests, whole ─────────────────────────────────────────────────────────────────────────────────────────────
@@ -214,7 +223,8 @@ export function apnsRequest(rec: Pick<PushRecord, "token" | "env">, jwt: string,
   };
 }
 
-type Outcome = "sent" | "dead" | { failed: string };
+/** (T996) a dead token carries APNs' answer (`APNs 410 Unregistered`), said in the log and on /status when it is dropped */
+type Outcome = "sent" | { dead: string } | { failed: string };
 type Fetch = (u: string, i?: RequestInit) => Promise<Response>;
 
 /** APNs: 200 sent; 410 (Unregistered) or 400 BadDeviceToken / DeviceTokenNotForTopic → dead; anything else failed */
@@ -222,8 +232,9 @@ export async function apnsOutcome(res: Response): Promise<Outcome> {
   if (res.status === 200) return "sent";
   let reason = "";
   try { reason = String(((await res.json()) as { reason?: string }).reason ?? ""); } catch { /* no body */ }
-  if (res.status === 410 || (res.status === 400 && (reason === "BadDeviceToken" || reason === "DeviceTokenNotForTopic"))) return "dead";
-  return { failed: `APNs ${res.status}${reason ? ` ${reason}` : ""}` };
+  const said = `APNs ${res.status}${reason ? ` ${reason}` : ""}`;
+  if (res.status === 410 || (res.status === 400 && (reason === "BadDeviceToken" || reason === "DeviceTokenNotForTopic"))) return { dead: said };
+  return { failed: said };
 }
 
 /** which secrets a platform still lacks ([] = it can send) */
@@ -233,7 +244,12 @@ export function pushMissing(env: PushEnv): Record<PushPlatform, string[]> {
   };
 }
 
-export interface PlatformSend { configured: boolean; missing: string[]; tokens: number; sent: number; dead: number; failed: number; errors: string[] }
+export interface PlatformSend {
+  configured: boolean; missing: string[]; tokens: number; sent: number; dead: number; failed: number; errors: string[];
+  /** (T996) the first dead tokens dropped, each `<record id>: <APNs' answer>` (the record id = its key's first 12 hex,
+   *  never the token); present only when one was dropped */
+  dropped?: string[];
+}
 export interface PushSend {
   at: string; reason: string; ok: boolean; ios: PlatformSend; error?: string;
   /** token records that were stored but did not parse, or are not an iPhone's: a fault (counted, logged, shown on
@@ -247,6 +263,8 @@ export interface PushSend {
   carry?: { part: number; left: number; since: string };
   /** (T739 L3) the kept carry-over could not be read: a fault (deleted, the wake began again from the start), said */
   carryError?: string;
+  /** (T996) the APNs provider token this send used (absent: none was needed or it could not be made) */
+  apns?: ApnsTokenUsed;
 }
 
 const blankSend = (missing: string[]): PlatformSend => ({ configured: !missing.length, missing, tokens: 0, sent: 0, dead: 0, failed: 0, errors: [] });
@@ -277,7 +295,12 @@ const PUSH_FIXED_SUBREQUESTS = 13;
 export const pushSubrequests = (registered: number, perRun = PUSH_SENDS_PER_RUN): number =>
   Math.max(1, Math.ceil(registered / 1000)) + 3 * Math.min(perRun, registered) + PUSH_FIXED_SUBREQUESTS;
 
-/** (T739 L3) where a wake too big for one run keeps its place: the next feed run tells the next phones */
+/**
+ * (T739 L3) where a wake too big for one run keeps its place: the next feed run tells the next phones.
+ * (T977, accepted 2026-11-22) Two runs at once both read it and the later write wins: duplicate silent pushes, or a
+ * circle cut short (those phones are told by the next wake). Only possible past PUSH_SENDS_PER_RUN phones; the lease
+ * that would stop it is designed in T977 and built when /status first shows a carried wake.
+ */
 export const PUSH_CARRY_KEY = `${PUSH_PREFIX}carry.json`;
 /**
  * The carry-over. Phones are told in key order, as a circle that starts after `start` ("" = the first key): the wake is
@@ -353,10 +376,14 @@ export async function sendWake(env: PushEnv, fetch_: Fetch, now: Date, asked: st
   out.ios.tokens = recs.length;
   // one credential per send (made only when there is someone to send to); (T994 #23) the kept one while it may be reused
   let apns: string | null = null;
-  let tokenRefused = false;
+  let tokenRefused: string | null = null;
   const fail = (p: PlatformSend, why: string) => { p.failed++; if (p.errors.length < KEEP_ERRORS) p.errors.push(why.slice(0, 200)); };
   try {
-    if (out.ios.configured && out.ios.tokens) apns = (await apnsProviderToken(env.BUCKET, env as ApnsSecrets, now)).jwt;
+    if (out.ios.configured && out.ios.tokens) {
+      const t = await apnsProviderToken(env.BUCKET, env as ApnsSecrets, now);
+      apns = t.jwt;
+      out.apns = await apnsTokenUsed(t);
+    }
   } catch (e) {
     out.ios.errors.push(`APNs key: ${String((e as Error)?.message ?? e).slice(0, 200)}`); out.ios.failed = out.ios.tokens;
     console.error(JSON.stringify({ job: "push", apnsKey: String((e as Error)?.message ?? e) }));
@@ -371,13 +398,22 @@ export async function sendWake(env: PushEnv, fetch_: Fetch, now: Date, asked: st
       r = await apnsOutcome(await fetch_(q.url, q.init));
     } catch (e) { r = { failed: `network: ${String((e as Error)?.message ?? e)}` }; }
     if (r === "sent") p.sent++;
-    else if (r === "dead") { p.dead++; await env.BUCKET.delete(key); }
-    else { fail(p, r.failed); if (/^APNs 403 (ExpiredProviderToken|InvalidProviderToken)\b/.test(r.failed)) tokenRefused = true; }
+    else if ("dead" in r) {
+      // (T996) a token APNs calls dead is dropped, and the log says which record and why (never the token itself)
+      p.dead++;
+      await env.BUCKET.delete(key);
+      const id = key.slice(TOKENS_PREFIX.length, TOKENS_PREFIX.length + 12);
+      console.log(JSON.stringify({ job: "push", dropped: id, env: rec.env, why: r.dead }));
+      p.dropped ??= [];
+      if (p.dropped.length < KEEP_ERRORS) p.dropped.push(`${id}: ${r.dead}`);
+    }
+    else { fail(p, r.failed); if (/^APNs 403 (ExpiredProviderToken|InvalidProviderToken)\b/.test(r.failed)) tokenRefused ??= r.failed; }
   };
   for (let i = 0; i < recs.length; i += PARALLEL) await Promise.all(recs.slice(i, i + PARALLEL).map(one));
   // (T994 #23) APNs refused the provider token: the next wake makes a new one (the failures are counted above). A delete
   // that fails is said in this send's errors and never stops the carry-over or the status below from being kept
   if (tokenRefused) {
+    console.error(JSON.stringify({ job: "push", apnsTokenRefused: out.apns?.id ?? null, iat: out.apns?.iat ?? null, why: tokenRefused }));
     try { await env.BUCKET.delete(APNS_JWT_KEY); } catch (e) {
       const why = `the refused APNs token was not dropped (${String((e as Error)?.message ?? e)}); it is made again after ${APNS_JWT_REUSE_S / 60} min`;
       console.error(JSON.stringify({ job: "push", apnsJwtDrop: why }));
@@ -403,7 +439,8 @@ export async function sendWake(env: PushEnv, fetch_: Fetch, now: Date, asked: st
   } catch (e) {
     throw Object.assign(new Error(`push: sent (${out.ios.sent} of ${out.ios.tokens}) but the status was not written (${String((e as Error)?.message ?? e)})`), { send: out });
   }
-  const log = { job: "push", reason: why, ios: { ...out.ios, errors: out.ios.errors.length }, ...(out.carry ? { carry: out.carry } : {}) };
+  const log = { job: "push", reason: why, ios: { ...out.ios, errors: out.ios.errors.length }, ...(out.apns ? { apns: out.apns } : {}),
+                ...(out.carry ? { carry: out.carry } : {}) };
   if (out.ok) console.log(JSON.stringify(log)); else console.error(JSON.stringify({ ...log, errors: out.ios.errors }));
   for (const p of PUSH_PLATFORMS) if (out[p].tokens && out[p].missing.length) console.error(JSON.stringify({ job: "push", platform: p, notSent: out[p].tokens, missing: out[p].missing }));
   return out;
@@ -488,7 +525,7 @@ export async function wakePhones(env: PushEnv, fetch_: Fetch, at: Date, why: str
   try {
     const r = await sendWake(env, fetch_, at, why);
     push = { reason: r.reason, ok: r.ok, unreadable: r.unreadable, ios: { sent: r.ios.sent, failed: r.ios.failed, missing: r.ios.missing },
-             ...(r.carry ? { carry: r.carry } : {}) };
+             ...(r.apns ? { apns: r.apns } : {}), ...(r.carry ? { carry: r.carry } : {}) };
     if (r.ios.failed) logErr(`push: ${r.ios.failed} wake(s) failed (${r.ios.errors.slice(0, 3).join("; ")})`);
     if (r.unreadable) logErr(`push: ${r.unreadable} stored token record(s) did not parse or were not an iPhone's; deleted (those phones register again within 7 days)`);
     if (r.carryError) logErr(`push: the carry-over did not read (${r.carryError}); deleted, the wake began again at the first phone`);

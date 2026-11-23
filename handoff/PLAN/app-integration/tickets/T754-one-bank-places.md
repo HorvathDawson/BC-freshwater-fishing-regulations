@@ -156,3 +156,7 @@ same for DFO and the synopsis.
 6. Should the synopsis Kitimat rule get the stripe too (today the map never colours it)?
 
 Depends: owner answers. Size: B is M (pipeline field + editor row + worker + two map layers + tests).
+
+## Owner answer 2026-11-22 23:45 (question 2, dialog)
+"Other bank: the water's other rules" — a closure on one bank closes that bank only; the other bank reads the water's
+other regulations (as `side` does for "west half", AGENTS rule 49). Unblocks T754 (size M).

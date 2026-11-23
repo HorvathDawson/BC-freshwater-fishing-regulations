@@ -49,7 +49,8 @@ Risk: low (a new start-link key, read once). Size: M. Owner: picks the look.
   the same key frames any area a page names (topic, letter, later a town). Read once like `show`, gone at the first route
   write; a bad box, one off the globe, or one beside `regs=` / `show=` is refused out loud (`startLink.test.ts`). The Shell
   frames the browse map on it (`landOnBox`) and does not open at the reader (`FitStart.shell.test.tsx`, mutation-checked).
-  Native has no start link (D1), so a phone that opens the link in the browser gets it; the app on a phone is not reached by it.
+  Native has no start link (D1), but Android's App Links take `canifishthis.ca/`, so the installed app IS reached by the link:
+  it read `fit` as unread and reported it until 28e68fb69 (T605), which reads it with the same `fitOf` and frames the map.
 - **Region, letter and topic pages** (54778147e) link `https://canifishthis.ca/?fit=…` ("Open the map of Region N"; no `date`).
   r-741815c6090d: Region 4 `?fit=-118.82,48.999,-114.074,52.412`. Region 1's box reaches Haida Gwaii (its MU 6-12 / 6-13 waters'
   keys are region 1 in the release). `deploy/staging/site.sh` now keeps the query when it rewrites the hub link to staging.
@@ -69,3 +70,7 @@ Recommendation (lane L2): **A** — one obvious next step on a phone's first scr
 B is the most inviting on desktop but heavier and the picture is not the real map.
 The search without script: a GET form; where it lands (a filtered list page per region, or the app with a query key) is
 part of building the picked look.
+
+## Owner pick 2026-11-22 23:20 (dialog with the phone pictures A/B/C)
+"B: map preview" — the dot picture of the region's waters, then the "Open the map" button and the search. Build it
+(self-hosted, ~10 KB per page as measured), phone + desktop, light + dark.

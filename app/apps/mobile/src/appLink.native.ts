@@ -5,9 +5,10 @@
  * path (`openRequest`, the same one a notification's tap uses). A link the phone cannot read is reported, not guessed.
  */
 import { Linking } from "react-native";
-import { reportFailure, resolveAppLink, type View } from "@app/ui";
+import { reportFailure, resolveAppLink, type AppLinkOpen } from "@app/ui";
 
-export function onAppLink(open: (r: { item: string; view: View }) => void): () => void {
+/** (T605) a region page's `/?fit=` opens the map framed on its box, through the same request */
+export function onAppLink(open: (r: AppLinkOpen) => void): () => void {
   let live = true;
   const handle = (url: string | null | undefined) => {
     if (!url) return;

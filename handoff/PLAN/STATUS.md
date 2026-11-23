@@ -9,6 +9,18 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 ---
 
 
+## 2026-11-22 20:15: 0.9.0 batch chat, stopped early (low credits; no release)
+- Seven, then fourteen parallel lanes worked the 0.9.0 batch plus every small open ticket (your rule: no bathymetry,
+  stocking or big builds). Each PR gets a second agent's review before it merges; the reviews found real defects in
+  four of them, all sent back and fixed or being fixed.
+- On main now: pages for the 156 border waters and former lake names, the region page's map link framed on its region
+  (phone too), source maps served, the crash triage (most crash reports were one search engine's page renderer) with
+  four fixes, Runs data warmed in the background.
+- Waiting to merge: label overlap (T997), Apple push proven on staging + incremental backup, forecast errors, R8 on
+  every Android build (obfuscation 1% → 72%), the Serpentine ditches, out-of-B.C. drawing, app UI smalls, ledger cleanup,
+  and four draft lanes. Restart page: `handoff/PLAN/NEXT-SESSION-2026-11-22-evening.md`.
+- Your questions and production steps are in OWNER-TODO (top section).
+
 ## 2026-11-22 13:40: build/CI streamlining chat finished (no release)
 - `main` is now the protected trunk: every change is a pull request with four checks, and it merges itself when they pass.
 - Version numbers now follow the commits (SemVer). The next app release is 0.9.0; it waits for the next chat's work.
