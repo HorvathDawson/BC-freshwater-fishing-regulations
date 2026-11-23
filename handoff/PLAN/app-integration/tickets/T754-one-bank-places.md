@@ -158,6 +158,9 @@ same for DFO and the synopsis.
 
 Depends: owner answers. Size: B is M (pipeline field + editor row + worker + two map layers + tests).
 
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+owner 2026-11-15: "we should have a way to define one half of the river closing maybe? could color only west or east side?"; 2 rivers, 3 records; recommended: bank left/right looking downstream + one-side stripe
+
 State 2026-11-22 (stopped for credits, lane L12, branch feat/T754-one-bank-places): not started: stopped as too big for this lane and blocked on owner question 2 (the other bank: beside or whole width). With "Both banks closed" (2026-11-16 Q12) a closed one-side stripe on a closed line shows nothing, so the look needs that answer first; also needs the review-app editor row and feeds-worker parity (lane L5).
 
 ## Owner answer 2026-11-22 23:45 (question 2, dialog)

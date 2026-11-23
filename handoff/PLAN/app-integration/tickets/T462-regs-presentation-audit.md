@@ -43,3 +43,6 @@ Built 2026-11-12 (c9488453c): `pend_doreille_river.r1` also lifts `zp:barbless_s
 first, the diff is the two `exempts` only; both resolve outright (`rules._exempts`). Effect: 10 of the water's 11 bundle
 sections (the stream ones) lose the two provincial hook rules — gear loosened by the owner's reading, no status change.
 Shows with the next deliver. RULINGS G9.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+T462-audit.md: 30 findings (8 wrong shown, 9 missing, 10 misleading, 3 cosmetic); statuses and numbers clean, the gaps are rules no screen draws; G6 Pend d'Oreille (owner 2026-11-12): the exemption lifts the provincial stream hook rules too, barbed and treble allowed (c9488453c, RULINGS G9)

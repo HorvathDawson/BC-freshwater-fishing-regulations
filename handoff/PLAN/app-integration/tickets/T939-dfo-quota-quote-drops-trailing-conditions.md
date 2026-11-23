@@ -1,6 +1,6 @@
 # T939 — DFO salmon: the quota quote drops trailing conditions ("only 2 over 35 cm")
 
-Status: IN PROGRESS — lane/lb-rules-leftovers done; left (Claude): main chat review + merge.
+Status: DONE — 10ddff399; shipped in 0.8.4 (cut e769f710a, data r-fec3fab4c5aa; 0.9.0 audit 2026-11-22, every hash is an ancestor of origin/main and of e769f710a). (Earlier status: IN PROGRESS — lane/lb-rules-leftovers done; left (Claude): main chat review + merge.)
 
 Source: independent review of lane/l1-feeds (T623 F13), 2026-11-20. Out of F13's scope, so ticketed apart.
 

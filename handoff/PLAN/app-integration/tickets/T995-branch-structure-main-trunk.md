@@ -1,6 +1,6 @@
 # T995 — Branch structure: `main` is the protected trunk; PRs with required checks; release branches and tags
 
-Status: PARTIAL — the switch landed 2026-11-22: code c374b91fd (lane ci/T995-main-trunk + review/T995, reviewed), `main` = trunk. left (Claude): prune merged branches + worktrees; delete `redesign/stream-sections` after 0.8.6 redeploys the production feeds worker (it dispatches on that ref until then).
+Status: PARTIAL — the switch landed 2026-11-22: code c374b91fd (lane ci/T995-main-trunk + review/T995, reviewed), `main` = trunk. pruned 2026-11-22 (lane L13: 16 merged local branches and the clean merged worktree wt1008 deleted; 12 merged remote lane branches deleted: app-fix/t822-push-register, ios/t739-push, lane/l10-cw-through, l5-push, l6-ios, l8-shrink, l9-strictest, la-feeds-leftovers, lf-review-leftovers, r1-084, t739-privacy, t926-numbers2; kept: `main`, `redesign/stream-sections`, `cache/maplibre/fslean-m2`, locked or dirty worktrees, every session lane). left (Claude): delete `redesign/stream-sections` and `cache/maplibre/fslean-m2` after the 0.9.0 production feeds worker redeploys from main (it dispatches on that ref until then).
 
 Source: owner 2026-11-21, verbatim: "Also we could rethink our git branch structure to have a more real branching
 structure ?" and "generally we want to change stuff to be best practice in industry". Dialog answers (all the

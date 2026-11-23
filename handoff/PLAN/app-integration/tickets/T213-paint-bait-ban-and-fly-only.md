@@ -45,3 +45,6 @@ the bar — near the layer icon"; "date selector up there to match Conditions' l
 - **Tests:** `method-paint.test.ts` (marks, gating, engine repaint, first-frame order), `tools/method-cvd.test.ts` (edge
   off own/base and every ground for every reader; mutation-checked), `dayPicker.test.ts`, `DayCalendar.test.tsx`,
   `SalmonCard.test.tsx`, `MapDay.shell.test.tsx`, layer-order / parity / profile-style / one-section-layers updated.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+release file `method` (308 kB gz, strip projection); 10-28 rework: marks on Standard (ink edge under the status line: solid fly only, dashed bait ban; lake ring), Bait & fly mode removed; Standard / Salmon under Layers; day strip in the corner; shots T213-shots/gear-*, variants/

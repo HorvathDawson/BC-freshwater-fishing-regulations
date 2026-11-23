@@ -346,3 +346,6 @@ full `out/app-testbed-fsfull.apk` (13.6.1-fsdelta, build id 4181656f); `check-lo
 nothing grey or stale (`t420-ln-coq13-modeswitch-lean.png`). Tap-glide on lean (FV z11, 64 flings, 23 pages opened
 mid-glide): **0 ANR**. Verdict: the phone APK carries the lean patch (the upstream one); OWNER-TODO step 1 now points at
 `mllean/m2`.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+owner 11-05; 11-06 fixed the app's share (deb635819): tile ids once per watch + no re-watch per render (every settle re-sent every held tile's ids); stressed emulator z13 travelling p50 83.5→49.7 ms, frames 309→419, tile events 958→37. Web: 117 fps hardware GL even 6× CPU; software GL 13–21 fps, GPU-bound (main thread 85 % idle). Mobile web (Pixel 9 Chrome only, owner): pixel ratio capped at 2 (2b891823f), proxy −28..−32 % frame time z10–z12; no style layer measurable. Zoomed out (a893b06fe): the cost is the BASEMAP green fills, not our parks; their antialias outline off, −10–13 % frame z5–z9 on the proxy; next: harder landuse simplify / proposals (T420). Left: native ratio cap (binding patch), MapLibre's own tile work on a slow CPU, a phone check

@@ -1,6 +1,6 @@
 # T669 — One "strictest of both regions" for salmon and freshwater straddlers
 
-Status: IN PROGRESS — item 1 done (91398f801); item 2 DROPPED by the owner 2026-11-20; item 3 built on lane/l9-strictest (28fdf30fa); left (Claude): main chat review + merge; ships with the next data release (staging upload re-stages the pair table)
+Status: DONE — 91398f801, 28fdf30fa; shipped in 0.8.4 (cut e769f710a, data r-fec3fab4c5aa; 0.9.0 audit 2026-11-22, every hash is an ancestor of origin/main and of e769f710a). (Earlier status: IN PROGRESS — item 1 done (91398f801); item 2 DROPPED by the owner 2026-11-20; item 3 built on lane/l9-strictest (28fdf30fa); left (Claude): main chat review + merge; ships with the next data release (staging upload re-stages the pair table))
 
 Source: owner 2026-11-11 (T668): "The strictest of the rules is the same logic the fresh water regulations use I
 believe; we should double check that and if possible unify that logic." The side-by-side is in

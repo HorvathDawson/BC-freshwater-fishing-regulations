@@ -70,3 +70,6 @@ records a finding in the scenario's report, closes it with Done, and fails the s
 this one) and zoom-flick's own copy. Emulator (t707 APK, lane 2, `--no-r2`): `install`, `regs-open`, `zoom-flick` 3/3
 pass; the finding shows in `install`. NOT asserted: "opens once" needs an unread unmatched notice in the live feed, which
 a test bed cannot arrange without writing feed data; left as the unit/render tests (`inseason.render.test.tsx`).
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+owner 2026-11-13; New/Earlier, Mark all as read, unread-only badge, kept to end + 30 days / 200 max; folds in the T230 auto-sheet; commit subjects say T700 (number clash); owner looks at it in the post-release phone check; RULINGS O8

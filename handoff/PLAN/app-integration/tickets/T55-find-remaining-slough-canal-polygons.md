@@ -90,3 +90,6 @@ items, and it moves those sections from lake to stream zone rules: a binding cha
 the atlas stage has no input key, and T266 keeps `decided/` out of every key on purpose. So the fold should be an apply
 step (decided → a curated file the registry reads), not a direct read of `decided/`. Not a small change, so it was not
 put into the 10-31 batch (coordinator asked for it; stopped and reported per brief).
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+review app "Sloughs" tab: 811 confirmed (801 narrow pre-marks + 10 single; folded by T322); still to call: 135 wide-marsh pre-marks + 314 on the owner list (113 intermittent) → ★ owner confirms (one / accept all visible = marks, scope `slough`) → fold into rivers → reach + deliver
