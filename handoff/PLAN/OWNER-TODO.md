@@ -10,11 +10,7 @@ Things only you can do. Claude keeps this list current while you are away; the w
 with the default Claude uses until you answer). Newest first inside each section.
 
 ## 2026-11-23: lane L18 (0.9.0 batch) — one look
-- **Look (you): T997 round 2, only the lit part's two ends** — your rule ("Only need boundaries for highlighted section")
-  as built: the part's own two ends only, named as the part's name says them, one label hung above its ring and one
-  below so they never cover each other; every other boundary a ring. Under "Whole river" the same two (the part stays
-  lit). Pictures: `handoff/PLAN/app-integration/T997-shots/round2-*` (Nicomekl Part 2, Skeena part 2, Fraser top; web +
-  Android, before / after). If you would rather have NO labels under "Whole river", say so (one line).
+- Look: T997 round 2, only the lit part's two ends — answered 2026-11-23 ~10:30, Whole river: "Keep the two labels (Recommended)". Closed.
 
 ## 2026-11-23 00:05: question round 5 (answers, verbatim)
 - T1026 day picker: "Yes, extend to Mar 31 2027 (Recommended)" — to: should the 0.9.0 data release extend the day-by-day answers through Mar 31, 2027? Built without a format change (picker wraps past New Year; see T1026).

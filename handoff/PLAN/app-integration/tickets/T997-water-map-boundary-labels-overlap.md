@@ -1,6 +1,6 @@
 # T997 — Water map: two boundary labels at almost the same place draw on top of each other (Nicomekl River)
 
-Status: IN REVIEW — owner: OWNER-TODO "Look (you): T997 round 2, only the lit part's two ends" (round 2 shots, T997-shots/round2-*); code 4cdf3245f, PR open (round 1, #37, merged and superseded).
+Status: DONE — round 2 (owner rule 2026-11-22; whole-river rule answered 2026-11-23): 4cdf3245f 5644e8ef1 (round 1, #37: 92ebd9c5d dcc18bb8f, superseded).
 
 Source: owner 2026-11-21, phone screenshot (Android, dark mode), "Add ticket for this ui bug too for next chat".
 Shot: `handoff/PLAN/app-integration/T997-shots/nicomekl-labels-overlap.png`.
@@ -77,3 +77,8 @@ for highlighted section."
 - **Seen on the emulator, not changed here:** a `regs=` link opened while another water's page was open kept the old
   camera on the new water's first part (Nicomekl then Skeena; Upstream reframed it), and `theme=dark` on a regs link did
   not switch the theme. Both are reported for a ticket by the lane, not fixed in this PR.
+
+## Owner answer, whole river (2026-11-23 ~10:30, verbatim)
+"Keep the two labels (Recommended)" — under ⤢ the lit part's two ends stay the only labels, as built.
+Review fix (#65): a labelled ring the map did not place sends both labels to the latitude side (5644e8ef1), so the two
+cannot both hang above.
