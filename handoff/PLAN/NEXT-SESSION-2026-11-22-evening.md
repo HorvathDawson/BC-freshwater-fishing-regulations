@@ -28,6 +28,11 @@ script), #36 (T1005 crash triage + fixes, T1013 Runs prewarm, new T1014–T1017)
 - #45 T1000 out-of-B.C. not drawn + T1001/T1002/T1019 (L6) and #40 T1012 Serpentine ditches (L6): the independent
   review was STOPPED before it reported — run it again before merging.
 - #38 T539 ledger cleanup (L13): not reviewed; L13 was still working (T994/T995/T1006/the "Next" item-5 ticket).
+- #47 (L10, draft, pushed with `--no-verify`, fast-fail NOT passed): T611, T771 part, T803 items 7/8, T164. **It adds 3
+  lines to `data/curated/review/marks.jsonl` — Campbell places re-saved "right" by an AGENT through the review app. Marks
+  are the owner's: do not merge until the owner confirms those three (or drop them from the PR).** T803 item 7 edits
+  `data/curated/waters/tidal_split_authority.json`, an atlas input: the 0.9.0 atlas rebuild must include it. Left: T771
+  item 1 (needs a rule), T840 (spans Python, worker, vectors, app); stopped: T880, T773, T782, T795, T797 item 5, T883.
 - Lanes L9 (T919c/d packed assets, T740, T914, T862), L10 (rules/salmon smalls), L11 (review-app leftovers), L12
   (DFO places drawing) were told to push and open DRAFT PRs: `gh pr list --state open` shows them.
 - Not started (lane stopped at once): T678 rest, T677, T560, T631, T561, T461, T679 #18 — plans in gap-audit.md.

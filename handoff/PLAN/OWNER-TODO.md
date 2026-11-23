@@ -19,6 +19,8 @@ with the default Claude uses until you answer). Newest first inside each section
   R2 (3 production phones get a 404 on their update check); T996 the three APNs secrets on the production feeds worker
   (`npx --prefix app wrangler secret put APNS_KEY -c app/workers/feeds/wrangler.prod.toml`, then APNS_KEY_ID and
   APNS_TEAM_ID), then the phone test on the 0.9.0 TestFlight build (steps in T996).
+- **To confirm (you):** PR #47 holds 3 review marks an agent saved ("right") for Campbell places (T803 item 8); they stay
+  out of main until you confirm them in the review app.
 - **To check (you):** T1015 what Google renders on /water/ pages (Search Console, URL inspection).
 - **Optional (you):** T1007 the Chrome "StorageType.persistent" warning is Cloudflare's injected bot script: turn off
   Cloudflare Bots / JavaScript Detections to silence it.
