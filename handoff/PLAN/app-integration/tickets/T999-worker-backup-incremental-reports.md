@@ -58,5 +58,6 @@ Depends: none. Size: M. Owner: no. Default: as above.
 Run 1: `base daily/2026-11-22/` (a `backup/1` manifest, no etags) → 185 copied, 0 reused, 1,350 subrequests, ok. Run 2 the
 same day: `base daily/2026-11-23/` → 99 copied (the state), **86 reused** (every report and error kind), 1,178
 subrequests, ok. The `daily/2026-11-23/_manifest.json` is `backup/2`, 86 personal entries each with etag + gone. The first
-cross-day `in` links appear at the 2026-11-24 09:25 cron (the 11-23 one builds on today's own manifest); the restore test
-over those links is not yet run against real R2 (see the report).
+cross-day `in` links appear at the 2026-11-24 09:25 cron (the 11-23 one builds on today's own manifest). Restore test
+step 1 (this branch's `restore-test.sh`) on `daily/2026-11-23`: PASS, 185 objects, sha256 = manifest, 0 links (none yet);
+its link path is proved on the local fixture only until a cross-day snapshot exists.
