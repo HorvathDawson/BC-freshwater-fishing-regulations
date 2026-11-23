@@ -95,3 +95,6 @@ yet, so only staging minted; Apple's 20-minute rule is per provider token stream
 5. Leave notifications on for an hour or more; nothing else to do. Claude reads the worker log for the token's reuse
    and for any `TooManyProviderTokenUpdates` / `ExpiredProviderToken`.
 Steps 2-5 on the staging build first, then on the production build.
+
+## State 2026-11-22 (stopped for credits)
+Done: worker half on staging (PR #39, branch `fix/T996-apns-check`, head 3c186213a). Left: the 0.9.0 TestFlight build, then the owner phone steps above; production APNs secrets; T739 + T822 close with this.

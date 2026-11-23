@@ -55,3 +55,6 @@ Asked for the 0.8.5 batch: "No, next chat".
   conditions, and 2 more fixed subrequests per wake. Each is a new way for wakes to stop.
 - **Trigger to build it** (the design above stands): the first time `/status` shows "part N of a wake begun …" on
   either worker, or a duplicate-wake report. The code says the same at `PUSH_CARRY_KEY` (`app/workers/feeds/src/push.ts`).
+
+## State 2026-11-22 (stopped for credits)
+Done: documented accept (PR #39, head 3c186213a). Left: the lease, when /status first shows a carried wake.

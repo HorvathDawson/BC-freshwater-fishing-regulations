@@ -84,3 +84,6 @@ and a fixed clock at once. Not proven by a user agent (the worker keeps none), h
 (`crawler` beside `count`), so a kind is class `crawler` only when every report of it came from one; a kind a reader also
 hit stays a defect. Accepted at review: kinds stored before this keep their old class (from their sample) until they
 age out (90 days), the 11 a916 kinds included.
+
+## State 2026-11-22 (stopped for credits, lane L5)
+Worker side done on PR #39 (`fix/T996-apns-check`, head 3c186213a); staging runs 9b90767a4 (has the crawler class + 429 rule). Left: nothing on the worker side.

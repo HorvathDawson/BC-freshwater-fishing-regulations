@@ -61,3 +61,6 @@ subrequests, ok. The `daily/2026-11-23/_manifest.json` is `backup/2`, 86 persona
 cross-day `in` links appear at the 2026-11-24 09:25 cron (the 11-23 one builds on today's own manifest). Restore test
 step 1 (this branch's `restore-test.sh`) on `daily/2026-11-23`: PASS, 185 objects, sha256 = manifest, 0 links (none yet);
 its link path is proved on the local fixture only until a cross-day snapshot exists.
+
+## State 2026-11-22 (stopped for credits)
+Done (PR #39, `fix/T996-apns-check`, head 3c186213a; review fix: refreshes oldest first). Left: read the first cross-day `in` links after the 2026-11-24 09:25 cron (restore-test.sh).
