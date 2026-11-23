@@ -641,7 +641,7 @@ def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path, *, tidal: froz
         if node.out_of_bc:
             # OUTSIDE BC IS NOT DRAWN AT ALL — the polygon as well as the line (`export_streams`). T1000: the polygon
             # was drawn while its route was not, so a stream's own polygon outside B.C. (Adskwatim Creek's
-            # lake:329268440, stamped by T679 #1's one outside flag) showed in `lake` and not in `stream`; the 71
+            # lake:329268440, stamped by T679 #1's one outside flag) showed in `lake` and not in `stream`; the 70
             # unnamed border-sliver lakes the flag moved outside were drawn, tappable and ruleless (T679 #1).
             outside += 1
             continue

@@ -235,7 +235,7 @@ def test_one_water_kind(db, registry, graph, handles, doc, tiles, build):
 @pytest.mark.slow
 def test_nothing_outside_bc_is_drawn(db, graph, handles, tiles):
     """T1000: OUTSIDE B.C. IS NOT DRAWN AT ALL — no `out_of_bc` node in any water layer, line or polygon. The tiles of
-    2026-11-20 drew Adskwatim Creek's polygon lake:329268440 in `lake` (its route was dropped from `stream`) and 71
+    2026-11-20 drew Adskwatim Creek's polygon lake:329268440 in `lake` (its route was dropped from `stream`) and 70
     unnamed border-sliver lakes T679 #1's one outside flag had moved outside. Red until the tiles are rebuilt by
     today's `tiles.export` (`test_tile_outside_bc.py` pins the export itself on an invented atlas)."""
     drawn = set(tiles["stream"]) | set(tiles["lake"]) | set(tiles["wetland"])
