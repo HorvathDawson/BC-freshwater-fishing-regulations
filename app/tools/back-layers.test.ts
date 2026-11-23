@@ -435,16 +435,16 @@ const EXPECTED_WALKS = {
   lake: ["wbk:-21@0/map", "wbk:-22@0/map", "wbk:-21@1/regs", "one back: main conditions +search"],
   cross: ["gnis:3062@-/conditions", "gnis:8634@0/map", "gnis:3062@0/map", "gnis:8634@0/map",
           "one back: main conditions +search"],
-  system: ["gnis:11481@-/regs", "gnis:11481@-/regs > gnis:8634@0/regs", "gnis:11481@-/regs > gnis:3062@0/map",
+  system: ["gnis:11481@-/regs", "gnis:11481@-/regs > gnis:8634@0/map", "gnis:11481@-/regs > gnis:3062@0/map",
            "gnis:11481@-/regs > gnis:8634@0/map", "one back: gnis:11481@-/regs"],
   chain: ["gnis:3062@-/conditions", "gnis:3062@-/conditions > gnis:11481@-/regs", "gnis:3062@-/conditions > gnis:11481@1/regs",
           "gnis:3062@-/conditions > gnis:11481@1/map", "gnis:3062@-/conditions", "main conditions +search"],
-  revisit: ["gnis:3062@-/conditions", "gnis:3062@-/conditions > gnis:8634@2/regs",
-            "gnis:3062@-/conditions > gnis:8634@2/regs > gnis:11481@-/regs", "gnis:3062@0/regs",
+  revisit: ["gnis:3062@-/conditions", "gnis:3062@-/conditions > gnis:8634@2/map",
+            "gnis:3062@-/conditions > gnis:8634@2/map > gnis:11481@-/regs", "gnis:3062@0/map",
             "one back: main conditions +search"],
   close: ["gnis:3062@-/conditions", "gnis:3062@-/conditions > gnis:11481@-/regs",
-          "gnis:3062@-/conditions > gnis:11481@-/regs > gnis:8634@0/regs", "main conditions +search"],
-  splitLake: ["wbk:-21@0/regs", "wbk:-21@0/regs > gnis:11481@-/regs", "wbk:-22@0/regs", "one back: main conditions +search"],
+          "gnis:3062@-/conditions > gnis:11481@-/regs > gnis:8634@0/map", "main conditions +search"],
+  splitLake: ["wbk:-21@0/regs", "wbk:-21@0/regs > gnis:11481@-/regs", "wbk:-22@0/map", "one back: main conditions +search"],
 };
 
 describe("back steps out one layer (owner 2026-10-22 late)", () => {
