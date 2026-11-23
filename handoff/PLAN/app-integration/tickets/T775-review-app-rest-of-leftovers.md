@@ -17,3 +17,6 @@ The four fixes above; route table regenerated if a route changes; worked in a wo
 running app.
 
 State 2026-11-22 (stopped for credits): see Status above; code c77eeb601, ledger f087c8968; branch fix/T775-review-app-leftovers. fast-fail not confirmed (was still running).
+
+Review fix 2026-11-23 (dd942ce76): item 1's "stands behind" is said only from the build's own REST_BEHIND diagnostic
+(`listed_drawn`), not from a listed sibling on the card; a rest whose bounds bind nothing keeps the dead-piece words.

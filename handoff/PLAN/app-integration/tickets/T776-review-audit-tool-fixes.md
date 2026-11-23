@@ -38,3 +38,6 @@ Audit rerun on the served atlas (`--no-landed`), old code vs new: 291 -> 272 fin
   gnis:11481, gnis:13499) — channels the build adds.
 
 State 2026-11-22 (stopped for credits): see Status above; code c77eeb601, ledger f087c8968; branch fix/T775-review-app-leftovers. fast-fail not confirmed (was still running).
+
+Review 2026-11-23: `primary_split_pos` and `reuse.host_rows` keep different rows (157 of 190 multi-row cuts), and the build
+reads neither (its position is per extent, `extent._cut_at`): left as it is, ticketed as T1032.
