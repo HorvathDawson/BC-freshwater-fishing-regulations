@@ -41,10 +41,7 @@ with the default Claude uses until you answer). Newest first inside each section
   right", T803 item 8), saved through the review app as usual; nothing to do.
 
 ## 2026-11-23: lane L18 (0.9.0 batch) — T467 as built
-- **Check (you): T467 shaded shoreline as built** — your pick, built in the map style: the shoreline a shade of the lake's
-  colour (darker in light, lighter in dark), on the Map tab and in Flow. Pictures: `handoff/PLAN/app-integration/T467-shots/`
-  (`stave-web-*`, `stave-android-*`). Default taken: the colour-blind theme keeps its solid edge, because the shade
-  brings the statuses closer together for colour-blind readers (measured in T467). Say if you want the band there too.
+- Check: T467 shaded shoreline as built — answered 2026-11-23 ~10:30: "i like the look of the shaded shore even for none colorblind"; colour-blind band too? "No, keep cvd solid". Closed; stays as built.
 
 ## 2026-11-22 23:35: question round 2 (answers, verbatim)
 - T997 + T465 labels: "Looks better but why does it even need to show both? Like dyke gates is different then 23m below?

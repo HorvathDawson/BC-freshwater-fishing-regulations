@@ -1,6 +1,6 @@
 # T467 — Lakes: a visible shoreline inside the colour-blind gate
 
-Status: IN REVIEW — owner: OWNER-TODO "Check (you): T467 shaded shoreline as built" (shots T467-shots/); code 2a4633ecc 349ff4080, PR open.
+Status: DONE — built as picked, owner checked 2026-11-23: 2a4633ecc 349ff4080.
 
 T457's lighter fill (0.4 light / 0.75 dark) failed `tools/status-colours-distinct.test.ts`: closed vs own and no access
 vs base were too close for colour-blind readers once washed out. 0.5 and 0.55 failed too. So the fill stayed solid,
@@ -69,3 +69,7 @@ a map-style design change, not a one-answer fix.
   (`flow`), today vs shade (`stave-web-*`); Android emulator (`stave-android-*`, today = the kept test-bed APK of
   2026-11-22, shade = this code): light / dark / cvd and light Flow. The Android pairs are framed a little differently
   (the old APK does not read `fit=`). On the phone at a ~5 km frame the dark band is subtle; it shows clearly in light.
+
+## Owner answers (2026-11-23 ~10:30, verbatim)
+"i like the look of the shaded shore even for none colorblind"; asked whether the colour-blind theme should get the band
+too: "No, keep cvd solid". Stays as built (cvd shade 0).
