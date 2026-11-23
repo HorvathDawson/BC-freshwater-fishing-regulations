@@ -62,7 +62,9 @@ const pagesOf = (els: Element[], re: RegExp) =>
 function probe() {
   const content = screen.getByTestId("regs-content"), row = screen.getByTestId("regs-sources");
   openFolds(content);
-  const links = [...content.querySelectorAll("[role=link]")];
+  // (#69 review) the pages the screen DRAWS: rule text's links and the blocks' own lines — never a Source line counting
+  // itself in (the trout table's line is drawn from the table, so its links are not evidence of what the table says)
+  const links = [...content.querySelectorAll("[role=link]")].filter((e) => !e.closest("[data-testid=trout-source]"));
   const drawn = new Set(pagesOf(links.filter((e) => !row.contains(e)), /^B\.C\. Synopsis page (\d+),/));
   const inRow = [...row.querySelectorAll("[role=link]")];
   const listed = pagesOf(inRow, /^B\.C\. Synopsis page (\d+),/);
@@ -97,22 +99,24 @@ describe("the Regulations Source row cites exactly what the drawn screen cites (
 });
 
 /**
- * (T1031 item 3) THE TROUT TABLE'S SOURCE LINE, WIRED FOR REAL: WaterScreen computes it from the page's every-rule sheet
- * (`troutSourcesOf`) beside the foot row, RegsScreen hands it to KeepTab, KeepTab to the card. On the Vedder (the fixture
- * release, Oct 10) it links the sheet's pages — p.6, p.21, p.22, the base branch's own trout pages
- * (conformance sourceLine.fixture.test.ts) — and the foot row lists every one of them.
+ * (T1031 item 3) THE TROUT TABLE'S SOURCE LINE, WIRED FOR REAL: WaterScreen computes it (`troutSourcesOf`) beside the foot
+ * row, RegsScreen hands it to KeepTab, KeepTab to the card. (#69 review) It cites what the table draws — no page: on the
+ * Vedder (the fixture release, Oct 10) its every-rule sheet holds p.6 (the province's steelhead quota and record duty), which
+ * the table never says, so neither the table's line nor the foot row lists p.6 — "Who says so ›" opens the sheet.
  */
 describe("the trout table's Source line on a real page (T1031 item 3)", () => {
-  it("the Vedder's table: its every-rule sheet's pages then Who says so ›, each page also in the foot row", async () => {
+  it("the Vedder's table: Who says so › alone, opening src:trout; the foot row cites no page the screen does not draw", async () => {
     const loader = openRegsFixture();
     render(<WaterScreen source={makeReleaseSource(loader)} item={"gnis:3062" as ItemId} palette={LIGHT} part={0}
                         loader={loader} day={new Date(2026, 9, 10, 12)} />);
     await waitFor(() => expect(screen.getByTestId("keep-tab")).toBeTruthy(), LOADED);
     openFolds(screen.getByTestId("regs-content"));
     const line = await waitFor(() => screen.getByTestId("trout-source"), LOADED);
-    expect(line.textContent).toBe("SourceB.C. Synopsis p.6 ↗p.21 ↗p.22 ↗Who says so ›");
-    const row = pagesOf([...screen.getByTestId("regs-sources").querySelectorAll("[role=link]")], /^B\.C\. Synopsis page (\d+),/);
-    expect([6, 21, 22].filter((n) => !row.includes(n))).toEqual([]);
+    expect([line.textContent, screen.getByTestId("trout-sources").getAttribute("aria-label")])
+      .toEqual(["SourceWho says so ›", "Who says so: the rules behind Trout and char"]);
+    const p = probe();
+    expect(p.listed).toEqual(p.expected);
+    expect(p.listed.includes(6)).toBe(false);
   }, 40_000);
 });
 

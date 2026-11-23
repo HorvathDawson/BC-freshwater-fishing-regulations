@@ -40,7 +40,7 @@ export const offline = {
       }
       if (words.some((w) => /Couldn.t load the synopsis/.test(w))) throw new Error('the installed rule book did not open offline: "Couldn’t load the synopsis."');
       if (words.some((w) => /Loading the synopsis/.test(w))) throw new Error('the rule book is being downloaded offline (not held from the install)');
-      const failed = words.find((w) => /Couldn.t show the rule book here/.test(w));
+      const failed = words.find((w) => /Couldn.t show the B\.C\. Synopsis here/.test(w));
       if (failed) throw new Error(`the in-app viewer failed: ${words.slice(words.indexOf(failed), words.indexOf(failed) + 2).join(' ')}`);
       const page = words.find((w) => /^Page \d+ of \d+$/.test(w));
       if (!page) throw new Error(`the in-app viewer did not open (saw: ${words.slice(0, 8).join(' | ')})`);

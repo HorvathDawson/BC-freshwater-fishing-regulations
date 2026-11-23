@@ -90,6 +90,7 @@ from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 from pipeline.common import calendar_spec
+from pipeline.common.source_names import SYNOPSIS
 from pipeline.deliver.binary import put_varint, read_varint
 
 FORMAT = "salmon/4"
@@ -1572,9 +1573,9 @@ def load_current_headers(slugs: Iterable[str], cache_dir: Optional[Path] = None)
 # verdicts are made after the bundle: `book_inputs` + `with_book_closures`, called by `release.build`.
 
 BOOK_PREFIX = "book:"
-BOOK_WORDS = "Closed to all fishing by the rule book"
-#: (T796 X2) the head of a closure the book makes conditional: "Closed by the rule book unless opened under …"
-BOOK_UNLESS_WORDS = "Closed by the rule book unless"
+BOOK_WORDS = f"Closed to all fishing by the {SYNOPSIS}"
+#: (T796 X2) the head of a closure the book makes conditional: "Closed by the B.C. Synopsis unless opened under …"
+BOOK_UNLESS_WORDS = f"Closed by the {SYNOPSIS} unless"
 #: POLICY (size, measured on r-46e4355a7277 2026-11-16): a book place joins only a chain where DFO lets some salmon be
 #: fished on some day (a verdict open, release or check). On a chain DFO closes every day the answer is closed either
 #: way (only the words would change), and carrying the book there too made the salmon head 92 kB gzipped against its

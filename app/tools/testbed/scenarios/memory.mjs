@@ -118,7 +118,7 @@ export const memory = {
       let page = null, failed = null;
       while (Date.now() - t0 < 60_000) {
         const words = ctx.device.screenText();
-        failed = words.find((x) => /Couldn.t (show|load) the (rule book|synopsis)/.test(x)) ?? null;
+        failed = words.find((x) => /Couldn.t (show|load) the (B\.C\. Synopsis|synopsis)/.test(x)) ?? null;
         page = words.find((x) => /^Page \d+ of \d+$/.test(x)) ?? null;
         if (failed || page) break;
         await ctx.device.sleep(500);

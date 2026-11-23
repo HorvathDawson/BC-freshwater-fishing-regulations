@@ -5,7 +5,7 @@
  *     fish sheet's "How to tell a hatchery fish ›", #69 review) is a `link` block, never a second "Source" line.
  *  2. WHAT IS CITED IS UNCHANGED (owner brief: "Don't change what is cited, only how it is shown"): the synopsis pages of
  *     every block that shows a source — the Gear / Ways to fish / Boats / Reference lines, each closure on the closed
- *     banner, each sheet's source block, the trout table's every-rule sheet — are PINNED below as the base branch drew
+ *     banner, each sheet's source block, the trout table (its drawn rows: no page) — are PINNED below as the base branch drew
  *     them (feat/T991-sources-per-tab at 40b90ba94, before this change: the same collector run there), and the line each
  *     block now draws (`sectionSourcesOf` / `lineSourcesOf` / `troutSourcesOf`) links exactly those pages.
  */
@@ -32,6 +32,10 @@ function sheetsOf(page: RegsPage): [string, SheetVM][] {
   return keys.sort().flatMap((k): [string, SheetVM][] => { const vm = page.sheet(k as SheetKey); return vm ? [[k, vm]] : []; });
 }
 const linePages = (l: Line): number[] => l.flatMap((r) => (r.t === "book" ? [r.printed] : []));
+/** Every page a value's book runs (`{t:"book"}`) name, walked whole. */
+const bookRuns = (v: unknown): number[] => (Array.isArray(v) ? v.flatMap(bookRuns)
+  : v && typeof v === "object" ? ((v as { t?: unknown; printed?: unknown }).t === "book" && typeof (v as { printed?: unknown }).printed === "number"
+    ? [(v as { printed: number }).printed] : Object.values(v).flatMap(bookRuns)) : []);
 const nested = (bs: readonly SheetBlock[]): SheetBlock[] => bs.flatMap((b) => [b, ...(b.k === "fold" ? nested(b.body) : [])]);
 const drawnPages = (vm: TabSourcesVM): number[] => vm.links.flatMap((l) => (l.k === "book" ? [l.printed] : []));
 const uniqSorted = (xs: number[]) => [...new Set(xs)].sort((a, b) => a - b);
@@ -48,7 +52,9 @@ function citedPerBlock(page: RegsPage): Record<string, number[]> {
   for (const [k, vm] of sheetsOf(page)) {
     // a sheet's source block that cites a page (a link alone, "All sources ›", cites none)
     nested(vm.blocks).forEach((b, i) => { if (b.k === "source" && linePages(b.line).length) out[`sheet:${k}#${i}`] = linePages(b.line); });
-    if (k === "src:trout") out["trout"] = uniqSorted(nested(vm.blocks).flatMap((b) => (b.k === "sources" ? b.groups.flatMap((g) => g.rows.flatMap((r) => linePages(r.book))) : [])));
+    // (#69 review) the trout table cites what it DRAWS: a page link among its rows (it draws none: its rows are
+    // Python's words), never its every-rule sheet's pages (p.6 on the Vedder: a quota and a duty the table never says)
+    if (k === "src:trout") out["trout"] = uniqSorted(bookRuns(page.keep.trout));
   }
   return out;
 }
@@ -71,16 +77,16 @@ function drawnPerBlock(page: RegsPage): Record<string, number[]> {
 
 /** The base branch's pages per block (feat/T991-sources-per-tab 40b90ba94, `citedPerBlock` run there over the fixture release). */
 const PINNED: Record<string, Record<string, number[]>> = {
-  glenn_501: { "gear": [8, 34, 36], "ways": [8], "reference": [8, 10], "sheet:pos:pos#6": [34], "trout": [34, 36, 40] },
-  glenn_615: { "gear": [8, 34, 36], "ways": [8], "reference": [8, 10], "sheet:pos:pos#6": [34], "trout": [34, 36, 40] },
-  klwa_1010: { "gear": [8], "ways": [8], "reference": [8, 10], "sheet:pos:pos#6": [34], "trout": [34, 37] },
-  klwa_1012: { "gear": [8], "ways": [8], "reference": [8, 10], "sheet:pos:pos#6": [34], "trout": [34, 37] },
-  vedder_1010: { "gear": [8, 21, 22], "ways": [8], "reference": [8, 10], "sheet:pos:pos#6": [21], "trout": [6, 21, 22] },
-  vedder_515: { "gear": [8, 21, 22], "ways": [22], "reference": [8, 10], "sheet:pos:pos#6": [21], "trout": [6, 21, 22] },
+  glenn_501: { "gear": [8, 34, 36], "ways": [8], "reference": [8, 10], "sheet:pos:pos#6": [34], "trout": [] },
+  glenn_615: { "gear": [8, 34, 36], "ways": [8], "reference": [8, 10], "sheet:pos:pos#6": [34], "trout": [] },
+  klwa_1010: { "gear": [8], "ways": [8], "reference": [8, 10], "sheet:pos:pos#6": [34], "trout": [] },
+  klwa_1012: { "gear": [8], "ways": [8], "reference": [8, 10], "sheet:pos:pos#6": [34], "trout": [] },
+  vedder_1010: { "gear": [8, 21, 22], "ways": [8], "reference": [8, 10], "sheet:pos:pos#6": [21], "trout": [] },
+  vedder_515: { "gear": [8, 21, 22], "ways": [22], "reference": [8, 10], "sheet:pos:pos#6": [21], "trout": [] },
   vedder_615: { "banner:0": [22] },
-  x15p2_1010: { "gear": [8, 21, 23], "ways": [8], "boats": [23], "reference": [8, 10], "sheet:pos:pos#6": [21], "trout": [21, 23] },
+  x15p2_1010: { "gear": [8, 21, 23], "ways": [8], "boats": [23], "reference": [8, 10], "sheet:pos:pos#6": [21], "trout": [] },
   x31p_1010: {  },
-  x35p_1010: { "gear": [8], "ways": [8], "reference": [8, 10], "sheet:pos:pos#6": [49], "trout": [49, 50] },
+  x35p_1010: { "gear": [8], "ways": [8], "reference": [8, 10], "sheet:pos:pos#6": [49], "trout": [] },
 };
 
 describe.skipIf(gate.skip)("the one Source line on the fixture pages (T1031 item 3)", () => {

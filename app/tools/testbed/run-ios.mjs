@@ -427,7 +427,7 @@ const SCENARIOS = [
         shot(ctx, 'pdf');
         // (T354) the app's own viewer (PDFKit): "Page N of M" in its header, or its failure face
         if (w.some((x) => /Couldn.t load the synopsis/.test(x))) throw new Error('"Couldn’t load the synopsis."');
-        const failed = w.find((x) => /Couldn.t show the rule book here/.test(x));
+        const failed = w.find((x) => /Couldn.t show the B\.C\. Synopsis here/.test(x));
         if (failed) throw new Error(failed);
         const page = w.find((x) => /^Page \d+ of \d+$/.test(x));
         if (!page) throw new Error(`the in-app viewer did not open (words: ${w.slice(0, 6).join(' | ').slice(0, 200)})`);
@@ -522,7 +522,7 @@ const SCENARIOS = [
         let page = null, failed = null;
         while (Date.now() - t0 < 60_000) {
           const w = device.screenText();
-          failed = w.find((x) => /Couldn.t (show|load) the (rule book|synopsis)/.test(x)) ?? null;
+          failed = w.find((x) => /Couldn.t (show|load) the (B\.C\. Synopsis|synopsis)/.test(x)) ?? null;
           page = w.find((x) => /^Page \d+ of \d+$/.test(x)) ?? null;
           if (failed || page) break;
           await sleep(500);

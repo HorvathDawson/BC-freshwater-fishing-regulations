@@ -62,14 +62,14 @@ describe("each surface's line", () => {
     expect(sourcesText(inSeasonSourcesOf({ url: "https://www2.gov.bc.ca/x" }))).toBe("Source B.C. in-season changes ↗");
     expect(inSeasonSourcesOf({ url: "" }).links).toEqual([]);
   });
-  it("the trout table: the pages its every-rule sheet cites, then Who says so › opening it; no such sheet: thrown", () => {
+  it("the trout table: Who says so › alone, opening its every-rule sheet (it draws no page of its own); no such sheet: thrown", () => {
     const sheet: SheetVM = { key: "src:trout", title: "Sources", sub: null, blocks: [{ k: "sources", groups: [{ where: "", rows: [
-      { key: "a", title: null, quote: "", role: "", book: [{ t: "book", printed: 49, pdf: 51, box: [box(51, 5)] }] },
-      { key: "b", title: null, quote: "", role: "", book: [{ t: "book", printed: 8, pdf: 10 }] }] }] }] };
+      { key: "a", title: null, quote: "", role: "", book: [{ t: "book", printed: 6, pdf: 8, box: [box(8, 5)] }] }] }] }] };
     const page = { sheet: (k: string) => (k === "src:trout" ? sheet : null) } as unknown as RegsPage;
-    expect(sourcesText(troutSourcesOf(page))).toBe("Source B.C. Synopsis p.8 ↗ p.49 ↗ Who says so ›");
-    expect(arias(troutSourcesOf(page).links)).toEqual(["B.C. Synopsis page 8, opens the PDF",
-      "B.C. Synopsis page 49, the passages behind Trout and char marked, opens the PDF", "Who says so: the rules behind Trout and char"]);
+    // (#69 review) the sheet's p.6 (a quota the table never says) is not cited on the table's line
+    expect(sourcesText(troutSourcesOf(page))).toBe("Source Who says so ›");
+    expect(arias(troutSourcesOf(page).links)).toEqual(["Who says so: the rules behind Trout and char"]);
+    expect(troutSourcesOf(page).links[0]).toMatchObject({ k: "sheet", open: "src:trout" });
     // a page with a trout table and no every-rule sheet is a programming error, said, never a line with no pages
     expect(() => troutSourcesOf({ sheet: () => null } as unknown as RegsPage)).toThrow(/no src:trout sheet/);
   });

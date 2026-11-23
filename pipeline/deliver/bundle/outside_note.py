@@ -7,7 +7,7 @@ outside the area is taken out by name" — `area_closures.json` `outside_items` 
 id or, for a lake with no item of its own, its section handle (`lake:<waterbody id>`). Such a water still lies beside
 the reserve or park on the map, so its page says, once, that the closure there does not reach it:
 
-    "Mostly outside Gladys Lake Ecological Reserve: its closure (rule book p.9) does not apply here."
+    "Mostly outside Gladys Lake Ecological Reserve: its closure (B.C. Synopsis p.9) does not apply here."
 
 The area's name is the TILES' own (`place_names.area_display`, the name the map labels the polygon with); the pages are
 those of the book's rows that close the area (a `within` extent naming the area or its family, with a full closure).
@@ -20,6 +20,8 @@ import json
 import sqlite3
 from pathlib import Path
 from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
+
+from pipeline.common.source_names import SYNOPSIS
 
 NOTE = "Mostly outside {area}: its closure ({pages}) does not apply here."
 #: A POND FOLDED INTO A STREAM (the Cormier Creek and Will Creek ponds, named by their section handle): the creek's
@@ -93,7 +95,7 @@ def notes(listed: Sequence[tuple], names: Mapping[str, str], pages: Mapping[str,
             bad.append(f"{key}: no tile names this area")
             continue
         pg = pages.get(key) or []
-        where = ("rule book p." + ", ".join(str(p) for p in pg)) if pg else "rule book"
+        where = (f"{SYNOPSIS} p." + ", ".join(str(p) for p in pg)) if pg else SYNOPSIS
         for item in items:
             said = NOTE_POND.format(water=ponds[item], area=names[key], pages=where) if item in ponds \
                 else NOTE.format(area=names[key], pages=where)

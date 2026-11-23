@@ -145,13 +145,17 @@ export function lineSourcesOf(line: Line, what: string, sheet?: SheetKey): TabSo
 export const inSeasonSourcesOf = (b: Pick<InSeasonBannerVM, "url">): TabSourcesVM =>
   sourceLineOf({ web: b.url ? [{ name: SOURCE_AUTHORITIES.inseason.name, url: b.url }] : [] });
 
-/** The trout table's Source line: the synopsis pages its every-rule sheet (`src:trout`) cites, highlighted, then "Who says so
- *  ›" opening that sheet. A page with a trout table and no such sheet is a programming error, thrown. */
+/**
+ * The trout table's Source line: "Who says so ›", opening the table's every-rule sheet (`src:trout`), which lists each
+ * rule with its pages. (#69 review) NO PAGE OF ITS OWN: a Source line cites exactly what its block draws, and the table
+ * draws no rule's page — its rows are Python's words, and a row's `src` lists every rule behind it (the deciding rule,
+ * size, origin, possession, the duty, the date line: contract Q-D6) with no word saying which of them the row shows; the
+ * app never cuts that list. Citing the sheet's pages listed p.6 on the Vedder (the province's 10-a-year steelhead quota
+ * and record duty), which the table never says. A page with a trout table and no such sheet is a programming error.
+ */
 export function troutSourcesOf(page: Pick<RegsPage, "sheet">): TabSourcesVM {
-  const sheet = page.sheet(TROUT_SOURCES_KEY);
-  if (!sheet) throw new Error(`troutSourcesOf: the page has no ${TROUT_SOURCES_KEY} sheet`);
-  const pages = [...citedPages(sheet, new Map())].map(([printed, p]): SourcePage => ({ printed, pdf: p.pdf, ...(p.boxes.length ? { box: p.boxes } : {}) }));
-  return sourceLineOf({ pages, marks: SOURCE_LINE.MARKS_BLOCK(TROUT_NAV.ENTRY), sheet: whoSaysSo(TROUT_SOURCES_KEY, TROUT_NAV.ENTRY) });
+  if (!page.sheet(TROUT_SOURCES_KEY)) throw new Error(`troutSourcesOf: the page has no ${TROUT_SOURCES_KEY} sheet`);
+  return sourceLineOf({ sheet: whoSaysSo(TROUT_SOURCES_KEY, TROUT_NAV.ENTRY) });
 }
 
 /** A rule-book closure on the salmon card: "Source  B.C. Synopsis p.9 ↗" (its pages, linked where `salmonWithPdf` gave them). */
