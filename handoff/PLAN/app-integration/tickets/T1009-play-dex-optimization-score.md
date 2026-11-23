@@ -95,3 +95,5 @@ bench; at 72% in every category (Play's line 25) that was not done here (owner q
 Bench note: parallel emulator lanes need their own AVD and console port (`TESTBED_AVD=n1_pixel_b TESTBED_PORT=5584`):
 this lane's first batch shared `emulator-5580` with another lane's session, which reinstalled its APK mid-run
 (`app/tools/testbed/README.md` says so now).
+
+State 2026-11-22 (stopped for credits): done: R8 on for every release build, mapping to Play, r8-report scores + floors, benches, docs (step 6), review fixes; left: independent re-review + merge of PR #44, the 0.9.0 Play internal build and Play's DEX figures, the owed R8 device checks (T1003); branch perf/T1003-r8-release, head d64401b74 + this line (last fast-fail run whole on 6fd805936; the final one stopped for credits).

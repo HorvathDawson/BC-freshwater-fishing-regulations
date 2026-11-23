@@ -115,3 +115,5 @@ Code: c34b990ba (this ticket) + 6f0be8f4d (T1009's `r8-report.mjs`, which the bu
    `app/tools/testbed/README.md` (`--no-r8`, and own AVD + port per parallel emulator lane), the iOS restart page's
    commands without `CANIFISHTHIS_R8`, `parity-audit.md`'s plugin name. Closed tickets that name the old flag are left as
    the record of what ran. The memory note on R8 is the main chat's.
+
+State 2026-11-22 (stopped for credits): done: R8 on for every release build, mapping to Play, r8-report scores + floors, benches, docs (step 6), review fixes; left: independent re-review + merge of PR #44, the 0.9.0 Play internal build and Play's DEX figures, the owed R8 device checks (T1003); branch perf/T1003-r8-release, head d64401b74 + this line (last fast-fail run whole on 6fd805936; the final one stopped for credits).
