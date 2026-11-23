@@ -362,7 +362,8 @@ export default function App() {
     try { notifications.settings.update(noteHeld(heldRelease)); } catch (e) { reportFailure(e); }
   }, [heldRelease]);
   // (T234) a notification's tap: a gauge alert opens its water's Conditions (the one that started the app too)
-  const [openRequest, setOpenRequest] = useState<{ item: string | null; n: number; view?: "regs" | "conditions" | "map" } | null>(null);
+  const [openRequest, setOpenRequest] = useState<{ item: string | null; n: number; view?: "regs" | "conditions" | "map";
+                                                  fit?: readonly [number, number, number, number] } | null>(null);
   // (T234 v1.1) a new-app-version tap: the bell opens on its App update, the version asked now
   const [openUpdate, setOpenUpdate] = useState(0);
   useEffect(() => onTap((d) => {
@@ -370,7 +371,9 @@ export default function App() {
     if (d.kind === "app") setOpenUpdate((n) => n + 1);
   }), []);
   // (T625) a tapped share link (Android App Links) opens its water through the same request, on the view the link names
-  useEffect(() => onAppLink(({ item, view }) => setOpenRequest((r) => ({ item, view, n: (r?.n ?? 0) + 1 }))), []);
+  // (T605) and a region page's `/?fit=` opens the map framed on its box
+  useEffect(() => onAppLink((o) => setOpenRequest((r) => ("fit" in o ? { item: null, fit: o.fit, n: (r?.n ?? 0) + 1 }
+                                                                  : { item: o.item, view: o.view, n: (r?.n ?? 0) + 1 }))), []);
 
   /*
    * (T231) THE UPDATE SERVICE (owner 2026-10-28: "check the data origin for new updates and download them"): the three
