@@ -94,8 +94,8 @@ export interface WaterOpener {
    */
   flow(item: ItemId, build: (group: readonly ItemId[] | undefined) => RouteAction): Promise<void>;
   /** A water by its id (a spot, a deep path). */
-  /** (T1034) `part`: the part a link names; null: the water's own default */
-  item(item: ItemId, view?: View, part?: number | null): void;
+  /** (T1034) `part`: the part a link names; null: the water's own default. (T1038) `whole`: the Map framed on the whole water */
+  item(item: ItemId, view?: View, part?: number | null, whole?: boolean): void;
   /**
    * A water picked from search's results: the search is consumed, so back lands on the map (route `fromSearch`). It
    * opens on its Map (T203), framed on its part (T747) — (T925) a water of one part too: the map shows what it covers.
@@ -171,10 +171,10 @@ export function waterOpener(source: Pick<WaterSource, "itemForSection">, go: (a:
                                                                         o.unnamed)),
     flow: (item, build) => settle(async (groupOf) => build(groupOf ? await groupOf(item) : undefined)).then(() => undefined),
     // nothing to wait on: at once, and any open still in flight is overtaken
-    item: (item, view = "regs", part = null) => {
+    item: (item, view = "regs", part = null, whole = false) => {
       latest += 1; o.warm?.(item);
       const count = o.partCount;
-      if (part === null || !count) { go(openWater({ item, view, part })); return; }
+      if (part === null || !count) { go(openWater({ item, view, part, whole })); return; }
       // (T1034) a link's part is checked against the water's own parts: a part that is not there is said (reported), the
       // water opens without it — never a throw at render, never a silently different part
       void settle(async () => {

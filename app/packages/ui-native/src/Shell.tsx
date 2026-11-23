@@ -395,8 +395,14 @@ export function Shell(p: ShellProps) {
     if (!openReq || openReq.n <= openedTap.n) return;
     openedTap.n = openReq.n;
     if (searching) go({ type: "search", open: false });
+    // (T1038) a link's day and horizon set the Shell's one day and horizon, as the web start link's `initialDay` /
+    // `initialHorizon` do at a page's start (absent: a notification's tap leaves them)
+    if (openReq.day !== undefined) setMapDay(openReq.day);
+    if (openReq.horizon !== undefined) col.setHorizon(openReq.horizon);
+    // (T1038) ...and its page start, handed to the page it opens as `regsStart` is (applied once, by that page)
+    if (openReq.item && openReq.regs) setStart(openReq.regs);
     // (T989) a water a link or tap opened is a LANDING like a start link's: leaving it frames the map on that water
-    if (openReq.item) { search.landOn(openReq.item as ItemId); nav.opener.item(openReq.item as ItemId, openReq.view ?? "conditions", openReq.part ?? null); }
+    if (openReq.item) { search.landOn(openReq.item as ItemId); nav.opener.item(openReq.item as ItemId, openReq.view ?? "conditions", openReq.part ?? null, openReq.whole ?? false); }
     // (T605) a region page's `/?fit=` tapped on the phone: the browse map, framed on the region's box
     else if (openReq.fit) { go({ type: "close" }); nav.toTab("map"); search.landOnBox(openReq.fit); }
     else { go({ type: "close" }); nav.toTab("conditions"); }
