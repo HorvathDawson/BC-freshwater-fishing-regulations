@@ -38,3 +38,6 @@ with the tag moved by editing the page: MOCK-UPS of the live app, not renders of
 - D `option-D-strip-under-tabs`: a full-width tinted strip under the tabs (like the access banner): "Class II water · Classified Waters Licence needed
   Jul 1-Dec 31 ›" (the press would open the glossary term). Why: impossible to miss. Weakness: it looks like the access warning stacked on it, and takes a row.
 Recommendation: A. Question for the owner: A, B, C or D (or A with D's weight)?
+
+## Owner 2026-11-22 ~23:55 (round 5)
+Verbatim: "What about right under the water body name in the white space there?" Reading: the line goes in the white space under the name (the name row, left of the date and sun times, above the place description), on every sub-tab; words as option A.

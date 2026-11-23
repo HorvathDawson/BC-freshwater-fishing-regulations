@@ -43,3 +43,15 @@ After-shots (web build of this branch, staging data, Chilliwack River area, sate
 the lines are identical in both, the key's swatches are the same hexes. Emulator after-shots NOT taken: they need an APK, and the APK waits for the 0.9.0 batch.
 FINDING for the owner: on the light theme the key's card is white and the No access swatch (#E6E4E2) is nearly invisible on it (see the light shot, bottom row). The key sits on the
 theme's card, the lines on the photo. Options if he wants it fixed: a thin dark outline on the key's swatch over satellite, or the key keeps the drawn map's grey there. Not decided.
+
+## Owner 2026-11-22 ~23:55 (round 5)
+No-access swatch question, verbatim: "Dark outline on swatch (Recommended)". Built (PR #57 fixes): over satellite the key's swatches under 3:1 on their card (light and cvd: nearly all of them, not only no-access) get a thin outline in the theme's ink (`satelliteKeyEdge`); dark's none. Gate: `tools/map-contrast.test.ts` "the satellite key's swatches".
+
+## Review fixes (2026-11-22, lane L17)
+Land closure areas (park, reserve, no-access land, sign zone) keep their theme's colours on satellite: the swap is for water layers only (`IMAGERY_WATER_LAYERS`, guarded by a test). Salmon keep on lakes and wetlands (`color.salmon.open-area`) is in the swap too.
+
+## Owner question: colour-blind (cvd) satellite separation
+The satellite set is not the cvd theme's palette, and for the worst colour-blind reader (Viénot and Machado, CIEDE2000) its Salmon pairs sit under the repo's floor of 20 that the drawn cvd Salmon keeps (lowest 20.2):
+satellite Salmon: keep/closed 15.4, keep/check 12.3, release/check 7.7, closed/check 21.8, keep/release 39.7, release/closed 26.8. Satellite Standard (the statuses on the map together): own/base 41.2, closed/own 21.8, own/closed fine; base/no-access 21.2, closed/no-access 25.5.
+Drawn cvd for comparison: Salmon lowest keep/release 20.2, release/closed 23.5; Standard open/base 13.7 (open is not in the Standard map). No gate fails (the colour gates read the drawn tokens, not the satellite set); this is an unrecorded gap, not an exception. Picture: `T940-shots/cvd-drawn-vs-satellite.png`.
+Options for the owner: (1) accept the approved set in cvd too (as built); (2) cvd gets its own satellite set (more pictures, more tokens); (3) satellite keeps the cvd theme's drawn set in cvd only. Not decided.
