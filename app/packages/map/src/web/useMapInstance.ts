@@ -5,7 +5,7 @@ declare const __DEV__: boolean | undefined;
  */
 import { useEffect, useRef } from "react";
 import * as maplibregl from "maplibre-gl";
-import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, isNoWebGL, MIN_ZOOM, noWebGLError } from "@app/core";
+import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, isNoWebGL, MIN_ZOOM, noWebGLError, reportFailure } from "@app/core";
 import { webRenderer } from "../adapters/web";
 import { Colouring, LABEL_SOURCE_LAYERS } from "../colouring";
 import { compassShown, keyboardRotation, maplibreGestures, touchRotation } from "../gestures";
@@ -22,6 +22,9 @@ import type { WebMapRefs } from "./refs";
 
 type Made = Pick<MapProps, "at" | "theme" | "modes" | "gauges" | "initial" | "bare" | "zoomControls" | "onError"
                           | "onImageryError">;
+
+/** (T1005) no WebGL reported once a page by the maps that have no `onError` (the browser does not change) */
+let noWebGLReported = false;
 
 export function useMapInstance(refs: WebMapRefs,
                                { at, theme, modes, gauges, initial, bare, zoomControls, onError, onImageryError }: Made,
@@ -72,7 +75,10 @@ export function useMapInstance(refs: WebMapRefs,
       // message. Anything else the constructor throws is thrown on, as before.
       if (!isNoWebGL(e)) throw e;
       onUnavailable?.(true);
-      onError?.(noWebGLError(e));
+      // a map with no `onError` of its own (MiniMap: the water page, Conditions, the gauge trace, the donor map) still
+      // reports it (W46: shown AND reported), once a page: every map on it meets the same browser
+      if (onError) onError(noWebGLError(e));
+      else if (!noWebGLReported) { noWebGLReported = true; reportFailure(noWebGLError(e)); }
       return;
     }
     onUnavailable?.(false);
