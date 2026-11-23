@@ -21,8 +21,12 @@ entry's whole `printed` text (as a water's row box is its entry's row). The boxe
 (`pipeline.deliver.answers.display.decided.book_boxes`): `{pdf, box [x0, top, x1, bottom], size [w, h]}`, points,
 top-left origin — the row boxes' shape, so the app's opener (`core/regs/highlight.ts`) takes them unchanged.
 
-    python -m pipeline.regs.extraction.passage_boxes [--export-dir DIR] [--json OUT]
-        # coverage: located / total per printed page, every rule not located with its reason
+    python -m pipeline.regs.extraction.passage_boxes [--export-dir DIR] [--json OUT] [--write-pin [ABOUT]]
+        # coverage: located / total per printed page, the rules placed by their entry, every rule not located and why
+
+THE GATE (W46): the answers build refuses unless the rules given no box are exactly the list pinned for its PDF in
+`passage_unlocated.json` (`gate`): a rule that newly loses its box fails the build by id, and one newly located must
+come off the pin. `--write-pin` re-cuts the current book's list after the report has been read.
 """
 from __future__ import annotations
 
@@ -170,7 +174,7 @@ def report(doc: dict, book: Book, row_boxes) -> dict:
     pdfp = {int(k): int(v) for k, v in ((doc.get("guide") or {}).get("pdf_pages") or {}).items()}
     held = sorted({rid for rs in doc["rulesets"].values() for via, m in rs.items() if via != "sections" for rid in m})
     per: Dict[int, Dict[str, int]] = {}
-    unlocated = []
+    unlocated, by_entry = [], []
     by_count = {BY_RULE: 0, BY_ENTRY: 0, "row": 0}
     for rid in held:
         x = doc["rules"][rid]
@@ -180,6 +184,9 @@ def report(doc: dict, book: Book, row_boxes) -> dict:
             boxes, by = row_boxes(x, doc), "row"
         else:
             by, boxes, why = rule_boxes(book, pages, x.get("verbatim") or "", E.get("printed") or "")
+            if by == BY_ENTRY:          # the whole entry's passage marked, not the rule's own words: say so
+                by_entry.append({"rule": rid, "pages": [p for p, _ in pages], "boxes": len(boxes),
+                                 "why": {str(k): v for k, v in sorted(why.items())}, "verbatim": x.get("verbatim")})
             if by is None:
                 unlocated.append({"rule": rid, "kind": E.get("kind"), "pages": [p for p, _ in pages],
                                   "why": {str(k): v for k, v in sorted(why.items())}, "verbatim": x.get("verbatim")})
@@ -192,7 +199,51 @@ def report(doc: dict, book: Book, row_boxes) -> dict:
             c[k + "rules"] += 1
             if q in on:
                 c[k + "boxed"] += 1
-    return {"pages": {str(p): per[p] for p in sorted(per)}, "placed_by": by_count, "unlocated": unlocated}
+    return {"pages": {str(p): per[p] for p in sorted(per)}, "placed_by": by_count, "by_entry": by_entry,
+            "unlocated": unlocated}
+
+
+# --------------------------------------------------------------------------------------------
+# The gate: the rules not located are a PINNED list, per synopsis PDF (W46: no rule loses its box silently)
+# --------------------------------------------------------------------------------------------
+
+#: {"books": {<the PDF's sha256>: {"about": …, "unlocated": [rule id, …]}}} — `--write-pin` re-cuts the current book's
+PIN = Path(__file__).with_name("passage_unlocated.json")
+PIN_CMD = "python -m pipeline.regs.extraction.passage_boxes --write-pin"
+
+
+class PassageGateError(ValueError):
+    """The rules not located are not the pinned list."""
+
+
+def gate(unlocated: Sequence[str], pdf: Path, pin: Optional[Path] = None) -> None:
+    """Refuse unless `unlocated` (every zone / province / area rule given no box) is exactly the list pinned for this PDF:
+    a NEW one names its id (it lost its box: fix the text, or re-pin on purpose); one now LOCATED asks for the pin to be
+    updated (so the pin never holds a stale exemption). A PDF with no pinned list is refused too."""
+    from pipeline.regs.extraction.row_boxes import sha256
+    sha, pin = sha256(pdf), Path(pin or PIN)
+    books = json.loads(Path(pin).read_text(encoding="utf-8"))["books"]
+    if sha not in books:
+        raise PassageGateError(f"passage boxes: no pinned not-located list for the synopsis {pdf} (sha256 {sha[:16]}) "
+                               f"in {pin}; review the report and pin it: {PIN_CMD}")
+    want, got = set(books[sha]["unlocated"]), set(unlocated)
+    new, gone = sorted(got - want), sorted(want - got)
+    if new or gone:
+        raise PassageGateError(
+            "passage boxes: the rules given no highlight box are not the pinned list"
+            + (f"; NOT LOCATED now (no box): {', '.join(new)}" if new else "")
+            + (f"; LOCATED now, take them off the pin: {', '.join(gone)}" if gone else "")
+            + f" — {pin}, re-cut with {PIN_CMD} after checking the report")
+
+
+def write_pin(unlocated: Sequence[str], pdf: Path, about: str, pin: Optional[Path] = None) -> None:
+    """Pin `unlocated` as the not-located list of this PDF (other books' lists kept)."""
+    from pipeline.regs.extraction.row_boxes import sha256
+    pin = Path(pin or PIN)
+    doc = json.loads(Path(pin).read_text(encoding="utf-8")) if Path(pin).exists() else {"books": {}}
+    doc["books"][sha256(pdf)] = {"about": about, "unlocated": sorted(set(unlocated))}
+    doc["books"] = dict(sorted(doc["books"].items()))
+    Path(pin).write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
 def main(argv=None) -> int:
@@ -201,10 +252,13 @@ def main(argv=None) -> int:
     from pipeline.deliver.answers.display import decided
     from pipeline.deliver.export.codec import expand
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--export-dir", type=Path, default=GENERATED.regs)
+    ap.add_argument("--export-dir", type=Path, default=GENERATED.regs.extraction.parent,
+                    help="the export pair's directory (default: the generated one, data/generated/regs)")
     ap.add_argument("--pdf", type=Path, default=None, help="the synopsis PDF (default: the repo copy)")
     ap.add_argument("--row-boxes", type=Path, default=None, help="the row-boxes sidecar (default: the generated one)")
     ap.add_argument("--json", type=Path, default=None, help="write the whole report here")
+    ap.add_argument("--write-pin", metavar="ABOUT", nargs="?", const="", default=None,
+                    help=f"pin this book's not-located rules in {PIN.name} (the build's gate reads it)")
     a = ap.parse_args(argv)
     decided.use_book(a.pdf, a.row_boxes)
     data, guide = load_export(a.export_dir)
@@ -217,9 +271,16 @@ def main(argv=None) -> int:
     for p, c in rep["pages"].items():
         print(f"  p.{p:>3}: {c['boxed']}/{c['rules']} · {c['water_boxed']}/{c['water_rules']}")
     print(f"placed by: {rep['placed_by']}")
+    print(f"placed by their entry's whole passage, not their own words ({len(rep['by_entry'])}):")
+    for u in rep["by_entry"]:
+        print(f"  {u['rule']} p.{u['pages']} {u['boxes']} box(es), own words {u['why']}: {(u['verbatim'] or '')[:70]}")
     print(f"not located ({len(rep['unlocated'])}): no box")
     for u in rep["unlocated"]:
         print(f"  {u['rule']} p.{u['pages']} {u['why']}: {(u['verbatim'] or '')[:90]}")
+    if a.write_pin is not None:
+        pdf = decided.book_files()[0]
+        write_pin(decided.unlocated_passages(doc), pdf, a.write_pin or str(pdf.name))
+        print(f"pinned in {PIN}")
     return 0
 
 

@@ -381,6 +381,7 @@ def add_sources(facts: List[dict], doc: dict, order: Sequence[str]) -> None:
     display facts, in the export's rule order (`order`: rule ids). Only the rules a part reaches
     by the tributary walk somewhere carry `applies_trib`; only a water table's row carries `row` (T916)."""
     walked = {k for rs in doc["rulesets"].values() for k in rs.get("trib") or []}
+    unlocated: List[str] = []        # (T1032) zone / province / area rules given no box: must be the pinned list
     for f, rid in zip(facts, order):
         x = doc["rules"][rid]
         auth = (doc["entries"].get(x["entry_id"]) or {}).get("authority")
@@ -398,6 +399,8 @@ def add_sources(facts: List[dict], doc: dict, order: Sequence[str]) -> None:
         boxes = book_boxes(x, doc)
         if boxes:
             f["book_box"] = boxes
+        elif (doc["entries"].get(x["entry_id"]) or {}).get("kind") in PASSAGE_KINDS:
+            unlocated.append(rid)
         say, trib = applies_here(x, doc)
         f["applies"] = say
         if rid in walked:
@@ -405,6 +408,27 @@ def add_sources(facts: List[dict], doc: dict, order: Sequence[str]) -> None:
                 raise AnswersError(f"display: {rid} reaches a part by the walk but is bound to "
                                    f"no water (provenance rank {x['provenance'].get('rank')})")
             f["applies_trib"] = trib
+    _passage_gate(unlocated)
+
+
+def _passage_gate(unlocated: Sequence[str]) -> None:
+    """(T1032, W46) The rules given no highlight box must be the list pinned for the PDF the release ships."""
+    from pipeline.regs.extraction.passage_boxes import PassageGateError, gate
+    try:
+        gate(unlocated, book_files()[0])
+    except PassageGateError as e:
+        raise AnswersError(f"display: {e}") from e
+
+
+def unlocated_passages(doc: dict) -> List[str]:
+    """(T1032) Every zone / province / area rule of the export `book_boxes` gives no box — what `add_sources` gates (a
+    local authority's closure prints on no page and is not asked)."""
+    out = []
+    for rid, x in sorted(doc["rules"].items()):
+        E = doc["entries"].get(x["entry_id"]) or {}
+        if E.get("kind") in PASSAGE_KINDS and not E.get("authority") and not book_boxes(x, doc):
+            out.append(rid)
+    return out
 
 
 def _unless_words(ctx, rid: str) -> Optional[str]:
