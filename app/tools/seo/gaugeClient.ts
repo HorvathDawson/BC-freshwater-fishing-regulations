@@ -18,8 +18,8 @@
  * a value differently from the app (T622; `gauges.test.ts` holds the names and the output to core's). Everything else it
  * needs (the weather URL, attributions, the sky words) arrives in the page's config.
  */
-import { BC_TIME_LABEL, bandOfWord, bcDayWords, daysNear, FLOW_LEGEND, NORMAL_BAND, bcIsoDayWords, bcStampWords, freshness,
-         observedTrend, readingAgeBrief, gaugeSummaryLine, standingNowLine, bandWord } from "@app/core";
+import { BC_TIME_LABEL, bandOfWord, bcDayWords, bcFields, daysNear, FLOW_LEGEND, NORMAL_BAND, bcIsoDayWords, bcStampWords, freshness,
+         observedTrend, readingAgeBrief, gaugeSummaryLine, standingNowLine, bandWord, sunLine, SPOT_WINDOW, weatherFigure } from "@app/core";
 
 export interface GaugeConfig {
   readonly station: string;
@@ -42,6 +42,8 @@ export interface GaugeConfig {
   readonly fonts: string | null;
   /** (T1039) the app's contact (core `STORE_CONTACT`): the "Get the app" block's Join the test emails it */
   readonly contact: string | null;
+  /** (T1039) the gauge's point, for the day's sunrise and sunset; null: no position on file */
+  readonly place: { readonly lat: number; readonly lon: number } | null;
 }
 
 export interface Run { model: string; issuedAt: string; issued: string; dueBy: number; points: [number, number][]; attribution: string; horizonDays?: number }
@@ -137,7 +139,8 @@ export function creditHtml(f: Pick<Facts, "forecast" | "forecasts">): string {
 }
 
 interface Meteo {
-  current?: { time?: string; temperature_2m?: number; precipitation?: number; weather_code?: number; wind_speed_10m?: number };
+  current?: { time?: string; temperature_2m?: number; precipitation?: number; weather_code?: number; wind_speed_10m?: number;
+             cloud_cover?: number; pressure_msl?: number; relative_humidity_2m?: number };
   daily?: { time?: string[]; weather_code?: number[]; temperature_2m_max?: number[]; temperature_2m_min?: number[];
             precipitation_sum?: number[]; wind_speed_10m_max?: number[] };
 }
@@ -149,13 +152,28 @@ export function weatherHtml(m: Meteo, sky: Readonly<Record<string, string>>, att
   const n = (v: number | undefined, unit: string, digits = 0) => (typeof v === "number" && Number.isFinite(v) ? `${v.toFixed(digits)}${unit}` : "—");
   const word = (code: number | undefined) => (typeof code === "number" ? sky[String(code)] ?? "—" : "—");
   const head = c ? `Weather at the gauge: ${n(c.temperature_2m, "°C")} ${word(c.weather_code)}` : "Weather at the gauge";
-  const now = c ? `<p class="small">Wind ${n(c.wind_speed_10m, " km/h")} · precipitation ${n(c.precipitation, " mm", 1)}${c.time ? ` · as of ${esc(c.time.replace("T", " "))} ${BC_TIME_LABEL}` : ""}</p>` : "";
+  // (T1039) and the measures a spot's weather window shows (its words, core `SPOT_WINDOW`; its figures, core `weatherFigure`)
+  const fig = (kind: Parameters<typeof weatherFigure>[0], v: number | undefined) => (typeof v === "number" && Number.isFinite(v) ? weatherFigure(kind, v) : "—");
+  const more = c ? ([[SPOT_WINDOW.cloud, fig("cloud", c.cloud_cover)], [SPOT_WINDOW.pressure, fig("pressure", c.pressure_msl)],
+                     [SPOT_WINDOW.humidity, fig("humidity", c.relative_humidity_2m)]] as const).map(([w, v]) => ` · ${w.toLowerCase()} ${v}`).join("") : "";
+  const now = c ? `<p class="small">Wind ${n(c.wind_speed_10m, " km/h")} · precipitation ${n(c.precipitation, " mm", 1)}${more}${c.time ? ` · as of ${esc(c.time.replace("T", " "))} ${BC_TIME_LABEL}` : ""}</p>` : "";
   const rows = (d?.time ?? []).map((day, i) => {
     return `<tr><th scope="row">${esc(bcIsoDayWords(day))}</th><td>${esc(word(d!.weather_code?.[i]))}</td><td>${n(d!.temperature_2m_max?.[i], "°")} / ${n(d!.temperature_2m_min?.[i], "°")}</td>` +
       `<td>${n(d!.precipitation_sum?.[i], " mm", 1)}</td><td>${n(d!.wind_speed_10m_max?.[i], " km/h")}</td></tr>`;
   }).join("");
   return `<details class="wxfold"><summary>${esc(head)}</summary>` + now + (rows ? `<table class="wx"><thead><tr><th>Day</th><th>Sky</th><th>High / low</th><th>Rain</th><th>Wind</th></tr></thead><tbody>${rows}</tbody></table>` : "") +
     `<p class="small">${esc(attribution)}, fetched ${esc(bcStampWords(fetchedAt))}.</p></details>`;
+}
+
+/**
+ * (T1039, owner 2026-11-23: "could add other almanac info too?") THE DAY'S SUN AT THE GAUGE: the water page's sunrise and
+ * sunset (core `sunLine`, in its screen-reader words, "Sunrise 7:23, sunset 16:21 PT"), for the reader's B.C. day, worked out
+ * here (a day's value on a page built once a release would be wrong the next day: T605). Null: no point, or no rise or set.
+ */
+export function sunHtml(place: GaugeConfig["place"], now: number): string | null {
+  if (!place) return null;
+  const f = bcFields(now), sun = sunLine(place.lat, place.lon, { y: f.year, m: f.month, d: f.day });
+  return sun ? `<p class="small">${esc(sun.aria)} (${esc(bcDayWords(now))}).</p>` : null;
 }
 
 /** the reader's own line (offline, dropped) or a failure marked the environment's (`environment: true`, a permission the
@@ -217,6 +235,8 @@ export async function gaugePage(doc: Document, now: () => number, fetchImpl: typ
     put("gauge-now", readingHtml(f, now()));
     put("gauge-credit", creditHtml(f));
   }).catch((e) => failed("gauge-now", "The latest reading", e));
+  const sun = sunHtml(cfg.place ?? null, now());
+  if (sun) put("gauge-sun", sun);
   const weather = cfg.weather === null
     ? Promise.resolve(put("gauge-weather", `<p class="small">This gauge has no position on file, so no weather is shown.</p>`))
     : readJson(fetchImpl, cfg.weather).then((m) => put("gauge-weather", weatherHtml(m as Meteo, cfg.sky, cfg.weatherAttribution, now())))

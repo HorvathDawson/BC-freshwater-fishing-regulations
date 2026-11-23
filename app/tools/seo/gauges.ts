@@ -69,7 +69,12 @@ const HERE = dirname(fileURLToPath(import.meta.url));
  */
 const CORE = join(HERE, "../../packages/core/src");
 export const CORE_INLINE: readonly (readonly [file: string, names: readonly string[]])[] = [
-  ["clock.ts", ["BC_PERMANENT_FROM", "BC_TIME_LABEL", "bcOffsetHours"]],
+  ["clock.ts", ["BC_PERMANENT_FROM", "BC_TIME_LABEL", "bcOffsetHours", "bcClockTime"]],
+  // (T1039, owner 2026-11-23: "could add other almanac info too?") the app's sunrise and sunset (the water page's sun line)
+  // and its weather figures and words (a spot's record and weather window)
+  ["sun.ts", ["RAD", "J2000", "UNIX_JD", "DAY_MS", "sunTimes", "SUN_WORDS", "bare", "short", "sunLine"]],
+  ["weatherFigure.ts", ["round1", "weatherFigure"]],
+  ["spotWords.ts", ["SPOT_WINDOW"]],
   ["flow.ts", ["MONTHS", "monthAbbr", "WEEKDAY_NAMES", "weekdayAbbr"]],
   // (T908) the Conditions legend's "Normal" band, and where a percentile sits on the colour bar
   ["gauge-policy.generated.ts", ["PERCENTILE_KNOTS"]],
@@ -197,7 +202,8 @@ export function gaugeConfig(g: GaugeModel, release: string, chart: ChartInputs):
     station: g.station,
     facts: `${LIVE.data}/feeds/cards/${g.station}.json`,
     weather: g.lat === null || g.lon === null ? null
-      : `${OPEN_METEO}?${weatherPlace(g.lat, g.lon)}&current=temperature_2m,precipitation,weather_code,wind_speed_10m` +
+      // (T1039) and the measures a spot's weather window shows: cloud cover, pressure, humidity (data/spots/weather.ts FIELDS)
+      : `${OPEN_METEO}?${weatherPlace(g.lat, g.lon)}&current=temperature_2m,precipitation,weather_code,wind_speed_10m,cloud_cover,pressure_msl,relative_humidity_2m` +
         "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max&timezone=Etc%2FGMT%2B7&forecast_days=5",
     weatherAttribution: OPEN_METEO_ATTRIBUTION, sky: SKY,
     crash: LIVE.crash, env: LIVE.env, release,
@@ -206,6 +212,8 @@ export function gaugeConfig(g: GaugeModel, release: string, chart: ChartInputs):
     clim: chart.clim.map((c) => ({ parameter: c.parameter, bands: Buffer.from(c.bands).toString("base64") })),
     fonts: chart.fonts || null,
     contact: STORE_CONTACT,
+    // (T1039) where the day's sunrise and sunset are worked out (the gauge's own point; core `sunLine`, read time)
+    place: g.lat === null || g.lon === null ? null : { lat: g.lat, lon: g.lon },
   };
 }
 
@@ -245,7 +253,7 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
     `<noscript><p class="warn">The live reading, chart and weather need JavaScript.</p><style>#gauge-chart{display:none}</style></noscript>` +
     // (T1039) the app's own chart, drawn by its deferred script (gaugeChart.tsx); the box keeps its place meanwhile
     `<h2>Readings and forecast</h2><div id="gauge-chart"><p class="small">Drawing the chart…</p></div><div id="gauge-credit"></div>` +
-    `<div id="gauge-weather"><p class="small">Reading the forecast…</p></div>` +
+    `<div id="gauge-weather"><p class="small">Reading the forecast…</p></div><div id="gauge-sun"></div>` +
     `<h2>Waters this gauge serves</h2>` +
     (g.main.length ? `<ul>${g.main.map(line).join("")}</ul>` : "") +
     // (T908) the fair and weak guides are one fold, never the page's body

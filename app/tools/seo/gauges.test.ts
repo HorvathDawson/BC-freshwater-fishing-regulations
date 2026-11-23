@@ -89,6 +89,10 @@ describe("T487 gauge pages", () => {
     expect(cfg.facts).toBe(`${LIVE.data}/feeds/cards/${cfg.station}.json`);
     expect([LIVE.data, LIVE.crash, cfg.env]).toEqual(["https://data.canifishthis.ca", "https://feeds.canifishthis.ca/crash", "production"]);
     expect(cfg.weather).toMatch(/^https:\/\/api\.open-meteo\.com\/v1\/forecast\?latitude=49\.\d\d&longitude=-121\.\d\d&/);
+    // (T1039) the spot window's measures, and the gauge's point for the day's sun
+    expect(cfg.weather).toContain("&current=temperature_2m,precipitation,weather_code,wind_speed_10m,cloud_cover,pressure_msl,relative_humidity_2m&");
+    const g = rows.gauges.find((x) => x.station === cfg.station)!;
+    expect(cfg.place).toEqual({ lat: g.lat, lon: g.lon });
     expect(cfg.sky["61"]).toBe("Rain");
   });
 

@@ -6,7 +6,7 @@
  */
 import { runInNewContext } from "node:vm";
 import { describe, expect, it } from "vitest";
-import { ageWords, bcDayWords, bcIsoDayWords, bcStampWords, BC_TIME_LABEL, figure, freshness, readingAgeWords, STALE_AFTER_MS } from "@app/core";
+import { ageWords, bcDayWords, bcIsoDayWords, bcStampWords, BC_TIME_LABEL, figure, freshness, readingAgeWords, STALE_AFTER_MS, sunLine, weatherFigure } from "@app/core";
 import { CORE_INLINE, clientScript } from "./gauges";
 
 /** the script with its self-start replaced by an export of what it carries (the rest is the shipped text, unchanged) */
@@ -14,7 +14,7 @@ function carried(): Record<string, (...a: never[]) => unknown> & { BC_TIME_LABEL
   const src = clientScript();
   const start = /^gaugePage\(document,Date\.now,window\.fetch\.bind\(window\)\)\.catch\([^\n]*\n/m;
   expect(src, "the script calls gaugePage once, at the end").toMatch(start);
-  const names = ["figure", "bcDayWords", "bcIsoDayWords", "bcStampWords", "BC_TIME_LABEL", "freshness", "readingAgeWords", "ageWords"];
+  const names = ["figure", "bcDayWords", "bcIsoDayWords", "bcStampWords", "BC_TIME_LABEL", "freshness", "readingAgeWords", "ageWords", "sunLine", "weatherFigure"];
   const ctx: Record<string, unknown> = { document: {}, window: { fetch: () => { throw new Error("no network in this test"); } }, console };
   runInNewContext(src.replace(start, `globalThis.__carried={${names.join(",")}};\n`), ctx);
   return ctx.__carried as never;
@@ -48,6 +48,15 @@ describe("the gauge page's script is core's, written in (T622)", () => {
     }
     for (const d of ["2026-03-08", "2026-11-01", "2026-12-31", "2027-02-28"]) expect(c.bcIsoDayWords(d), d).toBe(bcIsoDayWords(d));
     expect(c.BC_TIME_LABEL).toBe(BC_TIME_LABEL);
+  });
+  it("(T1039) works the sun and the weather figures out exactly as core does", () => {
+    for (const t of INSTANTS) {
+      const d = new Date(t), day = { y: d.getUTCFullYear(), m: d.getUTCMonth() + 1, d: d.getUTCDate() };
+      for (const [lat, lon] of [[49.0973, -121.9638], [58.8, -122.7], [48.4, -123.4]] as const)
+        expect(c.sunLine(lat, lon, day), `${t} ${lat}`).toEqual(sunLine(lat, lon, day));
+    }
+    for (const k of ["temp", "rain", "wind", "cloud", "pressure", "humidity"] as const)
+      for (const v of [0, 0.44, 12.5, 87.4, 1012.6]) expect(c.weatherFigure(k, v), `${k} ${v}`).toBe(weatherFigure(k, v));
   });
   it("words an age and the reading's line exactly as core does: seconds to days, every edge", () => {
     const NOW = T("2026-11-09T18:00:00Z");

@@ -44,7 +44,19 @@ gauge `webapp-chilliwack-chart-desktop.png`.
   is gone. The Android join needs the app's contact: the page uses core `STORE_CONTACT` (support@canifishthis.ca, the
   value every app build, the web export included, is made with; a test holds the export scripts to it). Shots:
   `T1039-shots/after-get-app-desktop.png`, `after-get-app-phone-390.png`.
-- "could add other almanac info too?" (below the weather line).
+- "could add other almanac info too?" (below the weather line). What the app shows for a gauge or water, and what the page
+  now carries (shots `T1039-shots/after-almanac-desktop.png`, `after-almanac-phone-390.png`):
+  - ADDED sunrise and sunset at the gauge for the reader's B.C. day: the water page's own sun line (core `sunLine`, written
+    into the page script from its source like every core word), in its spoken words ("Sunrise 8:30, sunset 17:18 PT").
+  - ADDED the weather measures a spot's weather window shows: cloud cover, pressure, humidity (Open-Meteo, the fields the
+    app's spot capture asks for; words core `SPOT_WINDOW`, figures core `weatherFigure`, which gains `humidity` as the window
+    rounds it). Temperature, sky, wind, precipitation and the 5-day table were already there.
+  - LEFT OUT moon phase: the app has none (a moon would be new arithmetic, not the app's). Daylight-only fishing hours
+    (`daylightRange`): a water's rule, not a gauge's. Wind direction: the app records it for a spot but shows it nowhere.
+    A spot's lead-up rain line and "like your visit" comparisons: about a visit, not a place.
+  - Not static HTML: both are for the reader's day (sun) or the live hour (weather), so they are worked out when the page
+    is read, as the reading is; a value fixed at the release build would be wrong the next day (T605). Without JavaScript
+    the page says these need it.
 
 ## Built (lane L25, 2026-11-23)
 

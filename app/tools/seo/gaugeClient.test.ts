@@ -5,9 +5,9 @@
  * (gaugeChart.tsx), proved in gaugePage.parity.test.ts.
  */
 import { describe, expect, it } from "vitest";
-import { FLOW_LEGEND, NORMAL_BAND, bcDayWords, bcIsoDayWords, bcStampWords, CONDITIONS_WORDS, figure, freshness, readingAgeBrief } from "@app/core";
+import { FLOW_LEGEND, NORMAL_BAND, bcDayWords, bcFields, sunLine, bcIsoDayWords, bcStampWords, CONDITIONS_WORDS, figure, freshness, readingAgeBrief } from "@app/core";
 import { validateCrash } from "../../workers/feeds/src/crashes";
-import { CHART_FAILED, colourBarHtml, crashReport, creditHtml, gaugePage, isEnvironment, readingHtml, weatherHtml, type Facts } from "./gaugeClient";
+import { CHART_FAILED, colourBarHtml, crashReport, creditHtml, gaugePage, sunHtml, isEnvironment, readingHtml, weatherHtml, type Facts } from "./gaugeClient";
 
 const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 // ── the live half ────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -54,6 +54,21 @@ describe("T487 the gauge page's live half", () => {
     expect(text(creditHtml(facts({ forecast: null, forecasts: [] })))).not.toContain("Forecast data");
   });
 
+  it("(T1039, owner: \"other almanac info\") the weather now also says the spot window's cloud, pressure and humidity, in the app's words and figures", () => {
+    const html = weatherHtml({ current: { temperature_2m: 6.4, weather_code: 61, wind_speed_10m: 12, precipitation: 0.4, time: "2026-11-08T04:00",
+                                          cloud_cover: 87.4, pressure_msl: 1012.6, relative_humidity_2m: 91.2 } }, { "61": "Rain" }, "W", NOW);
+    expect(text(html)).toContain("Wind 12 km/h · precipitation 0.4 mm · cloud 87% · pressure 1013 hPa · humidity 91% · as of 2026-11-08 04:00 PT");
+    expect(text(weatherHtml({ current: { temperature_2m: 6, time: "2026-11-08T04:00" } }, {}, "W", NOW))).toContain("cloud — · pressure — · humidity —");
+  });
+
+  it("(T1039) the day's sunrise and sunset at the gauge: the water page's sun line, in its spoken words, for the reader's B.C. day", () => {
+    const at = { lat: 49.0973, lon: -121.9638 };
+    const f = bcFields(NOW), sun = sunLine(at.lat, at.lon, { y: f.year, m: f.month, d: f.day })!;
+    expect(text(sunHtml(at, NOW)!).trim()).toBe(`${sun.aria} (${bcDayWords(NOW)}).`);
+    expect(sun.aria).toMatch(/^Sunrise \d{1,2}:\d\d, sunset \d{1,2}:\d\d PT$/);
+    expect(sunHtml(null, NOW)).toBeNull();
+  });
+
   it("the weather table uses the app's sky words; an empty answer throws (shown + reported by the caller)", () => {
     const html = weatherHtml({ current: { temperature_2m: 6.4, weather_code: 61, wind_speed_10m: 12, precipitation: 0.4, time: "2026-11-08T04:00" },
       daily: { time: ["2026-11-08"], weather_code: [3], temperature_2m_max: [8], temperature_2m_min: [2], precipitation_sum: [3.2], wind_speed_10m_max: [20] } },
@@ -77,9 +92,10 @@ describe("T487 the gauge page's live half", () => {
   it("the page fills its sections; a missing facts file is shown AND reported; offline is shown only", async () => {
     const page = (status: number | "offline") => {
       const doc = document.implementation.createHTMLDocument("g");
-      doc.body.innerHTML = `<div id="gauge-now"></div><div id="gauge-chart" data-mounted>CHART</div><div id="gauge-credit"></div><div id="gauge-weather"></div>` +
+      doc.body.innerHTML = `<div id="gauge-now"></div><div id="gauge-chart" data-mounted>CHART</div><div id="gauge-credit"></div><div id="gauge-weather"></div><div id="gauge-sun"></div>` +
         `<script type="application/json" id="gauge-config">${JSON.stringify({ station: "08MH001", facts: "https://d/f.json", weather: "https://w/m",
-          weatherAttribution: "Weather from Open-Meteo.com (CC BY 4.0)", sky: { "3": "Cloud" }, crash: "https://c/crash", env: "staging", release: "r1" })}</script>`;
+          weatherAttribution: "Weather from Open-Meteo.com (CC BY 4.0)", sky: { "3": "Cloud" }, crash: "https://c/crash", env: "staging", release: "r1",
+          place: { lat: 49.0973, lon: -121.9638 } })}</script>`;
       const dom = { window: { document: doc } };
       const sent: string[] = [];
       const fetchImpl = (async (url: string, init?: RequestInit) => {
@@ -97,6 +113,7 @@ describe("T487 the gauge page's live half", () => {
     // (T1039) the chart is the app's (gaugeChart.tsx): this script never draws into it
     expect(ok.dom.window.document.getElementById("gauge-chart")!.innerHTML).toBe("CHART");
     expect(text(ok.dom.window.document.getElementById("gauge-weather")!.innerHTML)).toMatch(/5°C Cloud/);
+    expect(text(ok.dom.window.document.getElementById("gauge-sun")!.innerHTML)).toMatch(/^ ?Sunrise \d{1,2}:\d\d, sunset \d{1,2}:\d\d PT \(Nov 8\)\. ?$/);
     expect(ok.sent).toEqual([]);
     const gone = page(404);
     await gone.run();
