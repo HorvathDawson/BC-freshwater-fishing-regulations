@@ -284,9 +284,11 @@ export function showRegsActions(onScreen: ItemId, item: ItemId, partIx: number):
 /**
  * "Flows into …": the receiving water, opened on top at the part the mouth meets (the one `openWater` path). `group`
  * (T58): its split-lake areas, when the opener read them — a lake already held in another area is gone back to.
+ * (T1023, owner 2026-11-23: "it should go to that section in the map … not open the regulation tab") it opens on its MAP,
+ * framed on that part (a water with no Map view opens on its first, `openWater`): the link was pressed on a map.
  */
 export function exitAction(item: ItemId, part: number | null, group?: readonly ItemId[]): RouteAction {
-  return openWater({ item, part, view: "regs", group });
+  return openWater({ item, part, view: "map", group });
 }
 
 /** ▲ / ▼ into the water this one goes on from or as (`water_continue`): that water, its Map in front, on the part it

@@ -363,7 +363,7 @@ Severity words as pass 1: **core** (breaks a core flow), **visible**, **cosmetic
   code): Auto Backup stops when an app's data passes 25 MB, so nothing is saved. Device-to-device transfer has no cap.
   The mirror of F6: iOS backs up too much, Android nothing.
 - Prove it: `adb shell bmgr backupnow ca.canifishthis.app` on an installed emulator; logcat shows the quota exceeded.
-- Fix: `dataExtractionRules` / `fullBackupContent` excluding `release/` (a config plugin beside `plugins/with-no-minify`,
+- Fix: `dataExtractionRules` / `fullBackupContent` excluding `release/` (a config plugin beside `plugins/with-r8`,
   Android-only), which also lets spots back up.
 
 **G15 · review (low) · both · no sentence says the app is not affiliated with the Province.**
