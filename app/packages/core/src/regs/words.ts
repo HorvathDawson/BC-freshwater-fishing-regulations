@@ -20,8 +20,6 @@ export const WORDS = Object.freeze({
   PARTS_TITLE: "Parts of this water",
   // rich text (line.ts plain()): `${BOOK} ${PAGE}<printed> ${LINK_OUT}`
   BOOK: "Rule book",
-  /** (T474) the water's own entry in the book: "This water in the rule book p.21 ↗" */
-  WATER_BOOK: "This water in the rule book",
   PAGE: "p.",
   LINK_OUT: "↗",
   /** (T43) what a screen reader says for a linked book run (the link names the PRINTED page; it opens the PDF) */
@@ -430,9 +428,10 @@ export const TROUT_SHEET = Object.freeze({
   ALL_SOURCES: "All sources ›",
 } as const);
 
-/** (T990) the page-foot "Sources" button and its every-source sheet's group heads (app words; none states a rule). */
+/** (T990) the every-source sheet's words and group heads, and (T991 round 3) the Source row's "All sources ›" that opens it
+ *  (app words; none states a rule). */
 export const ALL_SOURCES = Object.freeze({
-  BUTTON: "Sources", ARIA: "All sources for this page",
+  LINK: "All sources ›", ARIA: "All sources for this page",
   TITLE: "Sources", NONE: "No rule on this page cites a source.",
   BOOK: "Fishing regulations synopsis", INSEASON: "Province in-season changes", DFO: "DFO salmon notices",
   LOCAL: "Local authority", PROVINCE_SITE: "Province",

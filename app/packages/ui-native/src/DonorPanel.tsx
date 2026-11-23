@@ -83,7 +83,7 @@ const placeMid = (b: readonly [number, number, number, number] | null | undefine
 
 export function DonorPanel({ palette, value, day, askedAt, at, theme, from, selected,
                              horizon = 0, onHorizon, chain: chainProp, standing,
-                             detail, chart, foot, after, quantity, rankedIn, sides, count, waterLine, place, holdKey, own }: {
+                             detail, chart, foot, sources, after, quantity, rankedIn, sides, count, waterLine, place, holdKey, own }: {
   palette: Palette; value: PanelAnswer;
   /**
    * The quantity the answer is in, when the caller knows it (the conditions sheet: the one the map paints). Only the
@@ -127,6 +127,8 @@ export function DonorPanel({ palette, value, day, askedAt, at, theme, from, sele
   chart?: ReactNode;
   /** Drawn last, inside the fold: the chart's disclaimer and the data credits. */
   foot?: ReactNode;
+  /** (T991 round 3) the tab's Source row: the fold's head line, beside its chevron (the fold keeps the verbatim credits) */
+  sources?: ReactNode;
   /** (T506, owner 2026-11-08: "sources and notes should be at the bottom") drawn after the readings, before the fold
    *  (the basin's day strip), so the fold is the page's last block */
   after?: ReactNode;
@@ -231,7 +233,7 @@ export function DonorPanel({ palette, value, day, askedAt, at, theme, from, sele
         {chart}
         {mapBlock}
         {after}
-        {foot && <Fold palette={palette}>{foot}</Fold>}
+        {foot ? <Fold palette={palette} head={sources}>{foot}</Fold> : sources}
       </View>
     );
   }
@@ -343,7 +345,7 @@ export function DonorPanel({ palette, value, day, askedAt, at, theme, from, sele
       {/* THE WORKING'S WORKING, closed (P16 item 3): why each gauge counts what it counts,
           the notes that qualify the answer, how it is carried, and whose data it is. Every
           word as before, in the order it was said before, one tap away. */}
-      <Fold palette={palette}>
+      <Fold palette={palette} head={sources}>
         {because.map((r) => (
           <View key={r.station} style={{ gap: SPACE.s1 }}>
             <Text style={{ ...TYPE.figure, color: palette.ink }}>{r.station}</Text>
@@ -496,12 +498,30 @@ function Caveat({ palette, tone, children }: {
  * THE ONE FOLD. Closed by default; its label is core's, and opening it changes no words —
  * it only stops the small print competing with the answer.
  */
-export function Fold({ palette, children, label = CONDITIONS_WORDS.fold, testID }: {
+export function Fold({ palette, children, label = CONDITIONS_WORDS.fold, testID, head }: {
   palette: Palette; children: ReactNode;
   /** (T920) the fold's words; default "Sources and notes" (the gauge legend's is its count, `gaugesFold`) */
   label?: string; testID?: string;
+  /**
+   * (T991 round 3) a line of links drawn in place of the label (the Conditions tab's Source row): the chevron alone then
+   * opens the fold, a 44 × 44 press named by `label`, so the links stay presses of their own.
+   */
+  head?: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  if (head) return (
+    <View testID={testID} style={{ borderTopWidth: 1, borderTopColor: palette.line }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>
+        <View style={{ flex: 1 }}>{head}</View>
+        <Pressable {...hitProps({ w: 44, h: 44 })} onPress={() => setOpen(!open)} accessibilityRole="button" testID="fold-toggle"
+                   aria-expanded={open} accessibilityLabel={label}
+                   style={{ width: 44, height: 44, alignItems: "flex-end", justifyContent: "center" }}>
+          <Icon name={open ? "collapse" : "expand"} colour={palette.sub} size={16} />
+        </Pressable>
+      </View>
+      {open && <View style={{ gap: SPACE.s3, paddingBottom: SPACE.s3 }}>{children}</View>}
+    </View>
+  );
   return (
     <View testID={testID} style={{ borderTopWidth: 1, borderTopColor: palette.line }}>
       <Pressable {...hitProps({ w: 300, h: 40 })} onPress={() => setOpen(!open)} accessibilityRole="button"

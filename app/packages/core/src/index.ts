@@ -58,6 +58,7 @@ export * from "./temperature";
 export * from "./install";
 export * from "./pairing";
 export * from "./menu";
+export * from "./tabSources";
 export * from "./iconSet";
 export * from "./more";
 // (T238) More → Offline maps: each region's size, kept or not, save / remove, storage used

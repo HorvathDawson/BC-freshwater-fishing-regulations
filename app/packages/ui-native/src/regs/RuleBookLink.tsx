@@ -18,8 +18,12 @@ import { RegsPress } from "./RegsPress";
 import { useCoachTarget } from "../CoachMarks";
 import { useBookLoadingWords } from "./SynopsisLoading";
 
-export function RuleBookLink({ printed, pdf, bare, palette, onBook = openBook, box, style, alone = false }: {
+export function RuleBookLink({ printed, pdf, bare, palette, onBook = openBook, box, style, alone = false, label, a11y }: {
   printed: number; pdf: number | null; bare?: boolean; palette: Palette;
+  /** (T991) the link's words as core composed them (a Source row's "B.C. Synopsis p.8 ↗"); default core's `bookText` */
+  label?: string;
+  /** (T991) its spoken name as core composed it (a Source row's page); default `WORDS.BOOK_A11Y` */
+  a11y?: string;
   /** what a press does with the PDF page (the screen's `actions.onBook`); default: open the synopsis there */
   onBook?: (pdf: number, box?: readonly SourceBox[]) => void;
   /** (T215) the entry's row(s) on that page: the opened PDF highlights them */
@@ -35,12 +39,12 @@ export function RuleBookLink({ printed, pdf, bare, palette, onBook = openBook, b
   const loading = useBookLoadingWords(pdf);
   // (T293) the walkthrough points at the first link drawn on its own (a source line's page)
   const coach = useCoachTarget(alone ? "regs:book" : undefined);
-  const words = loading ?? bookText({ printed, pdf, bare });
+  const words = loading ?? label ?? bookText({ printed, pdf, bare });
   const face = style ?? { fontFamily: TYPE.metaBold.fontFamily, fontSize: TYPE.metaBold.fontSize };
   // unlinked: not the link colour — inside a line it takes the line's colour (prototype `<span>`), alone the quiet one
   if (pdf === null) return <Text style={style ? face : [face, { color: palette.sub }]}>{words}</Text>;
   if (alone) return (
-    <RegsPress accessibilityRole="link" accessibilityLabel={WORDS.BOOK_A11Y(printed)} onPress={() => { void (box ? onBook(pdf, box) : onBook(pdf)); }}
+    <RegsPress accessibilityRole="link" accessibilityLabel={a11y ?? WORDS.BOOK_A11Y(printed)} onPress={() => { void (box ? onBook(pdf, box) : onBook(pdf)); }}
                box={{ w: bare ? 24 : MIN_HIT, h: TYPE.metaBold.lineHeight }}>
       <View ref={coach} collapsable={false} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
         {loading !== null && <LoadingState palette={palette} size={22} label={loading} />}
@@ -49,7 +53,7 @@ export function RuleBookLink({ printed, pdf, bare, palette, onBook = openBook, b
     </RegsPress>
   );
   return (
-    <Text accessibilityRole="link" accessibilityLabel={WORDS.BOOK_A11Y(printed)} onPress={() => { void (box ? onBook(pdf, box) : onBook(pdf)); }}
+    <Text accessibilityRole="link" accessibilityLabel={a11y ?? WORDS.BOOK_A11Y(printed)} onPress={() => { void (box ? onBook(pdf, box) : onBook(pdf)); }}
           style={[face, { color: palette.accent }]} {...lineRun}>
       {words}
     </Text>

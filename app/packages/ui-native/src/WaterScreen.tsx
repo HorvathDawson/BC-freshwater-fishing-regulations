@@ -25,7 +25,7 @@
 import { ErrorState } from "./ErrorState";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView } from "react-native";
-import { NET_WORDS, asOfLine, closeForFinfish, dayRange, gearIfFished, gearTabsFor, licenceIfFished, licenceTabFor, regsLapsedNote, waterBookOf, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget, bcNow, now as clockNow } from "@app/core";
+import { NET_WORDS, asOfLine, closeForFinfish, dayRange, gearIfFished, gearTabsFor, licenceIfFished, licenceTabFor, regsLapsedNote, regsSourcesOf, salmonShowsDfo, waterPagesOf, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget, bcNow, now as clockNow } from "@app/core";
 import { openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { InSeasonContext, mapDayOf, regsDay, useAccessNotices, useInSeasonBanners, useReleaseLines, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
@@ -116,7 +116,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   // (T517) the header and the Parts sheet name a part as the water's map does: the same group, the same live salmon
   const entries = useMapEntries(loader, store.value ?? null, item);
   const regs = useRegsPage(inputs.value ?? null, who, d.today, down.value?.name ?? null, entries?.names ?? null);
-  const waterBook = useMemo(() => (inputs.value ? waterBookOf(inputs.value, regs) : undefined), [inputs.value, regs]);   // (T474; T60: not a page the lines already link)
+  const waterPages = useMemo(() => (inputs.value ? waterPagesOf(inputs.value) : undefined), [inputs.value]);   // (T474, T991: in the Source row)
   const regsError = store.error ?? found.error ?? inputs.error;
   // (T254) a refusal (a release that cannot answer) is not a dead line: no Try again for it
   const regsRetry = !!regsError && regsError.name !== "RegsStoreError" && !!onRetry;
@@ -167,6 +167,16 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   const licenceAnyway = useMemo(() => (inputs.value ? licenceIfFished(inputs.value, who) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the inputs, the day and the angler
     [inputs.value, d.today.month, d.today.day, who]);
+  // THE SHOWN PAGE: (T796 A6) a DFO "Finfish closure" on the page's stretch that day closes the whole page, trout included
+  // (core); (T227) DFO's salmon year under the provincial bar, at the top (none where DFO has no salmon rules here); (T991
+  // round 3) the page's Source row: every synopsis page it cites, the in-season changes and DFO where it shows them
+  const shown = useMemo(() => {
+    if (!regs) return null;
+    const page = salmon.value ? closeForFinfish(regs, salmon.value.finfish) : regs;
+    const salmonStrip = salmon.value ? salmonStripOf(salmon.value, page.keep.strip) : null;
+    const sources = regsSourcesOf(page, { waterPages, inSeason: inSeason.length > 0, dfo: salmonShowsDfo(salmonStrip, glance && !!salmon.value) });
+    return { page, salmonStrip, sources };
+  }, [regs, salmon.value, waterPages, inSeason.length, glance]);
   // (T45) how much room the window gives (the app shell's width; never read here): the page arranges itself for it
   const layout = useLayoutClass();
   // the sideways swipe between the water's views, anywhere on this one (see WaterViews: inside the ScrollView)
@@ -240,19 +250,16 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   const s = sheet.value;   // null only for an unnamed reach
 
   // THE REGULATIONS PAGE (T23): the regs header (its name row is the frame's WaterTitle) fixed above ONE scroll
-  if (loader && regs && !regsError && !regsWait.pending) {
-    // (T796 A6) a DFO "Finfish closure" on the page's stretch that day closes the whole page, trout included (core)
-    const page = salmon.value ? closeForFinfish(regs, salmon.value.finfish) : regs;
-    // (T227) DFO's salmon year under the provincial bar, at the top (none where DFO has no salmon rules here); the Gear /
-    // Methods tabs' closed line names its exception
-    const salmonStrip = salmon.value ? salmonStripOf(salmon.value, page.keep.strip) : null;
+  if (loader && regs && shown && !regsError && !regsWait.pending) {
+    // the Gear / Methods tabs' closed line names the salmon year's exception
+    const { page, salmonStrip, sources } = shown;
     // (T227, owner 2026-10-28) Gear / Methods state no closure: shown only where game fish or salmon may be fished
     const tabs = gearTabsFor(page, gearAnyway, salmonStrip, salmon.value ?? null);
     const licence = licenceTabFor(page, licenceAnyway, salmonStrip);
     return (
       <>
       {frame(null, (
-      <RegsScreen page={page} palette={palette} nameSource={s?.nameSource ?? null} images={fishImages} onDate={() => setDayOpen(true)} layout={layout} sun={sun} daylight={daylight} waterBook={waterBook}
+      <RegsScreen page={page} palette={palette} nameSource={s?.nameSource ?? null} images={fishImages} onDate={() => setDayOpen(true)} layout={layout} sun={sun} daylight={daylight} sources={sources}
                   start={start} onStarted={onStarted} scrollKey={regsScrollKey(item, part, section)}
                   // past the release's last day in force, the page leads with core's out-of-date sentence (none unstamped)
                   lapsed={regsLapsedNote(loader.manifest?.regulations?.valid_until, clockNow())}
