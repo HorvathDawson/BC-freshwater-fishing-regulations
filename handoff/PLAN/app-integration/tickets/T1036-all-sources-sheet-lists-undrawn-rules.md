@@ -1,4 +1,4 @@
-# T1032 — The every-source sheet ("All sources ›") lists rules the screen does not draw, and misses the drawn gear on salmon-only days
+# T1036 — The every-source sheet ("All sources ›") lists rules the screen does not draw, and misses the drawn gear on salmon-only days
 
 Status: OPEN.
 
