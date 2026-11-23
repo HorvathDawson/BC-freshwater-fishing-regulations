@@ -44,7 +44,8 @@ describe("T193 + T269 water pages (the app's own pane) and About", () => {
     expect(waters().length).toBeGreaterThan(20);
     for (const p of built.build.pages) expect(blockingScripts(p.html), p.path).toEqual([]);
     for (const p of hubs()) {
-      expect(p.html, p.path).not.toMatch(/<script(?![^>]*ld\+json)/);
+      // (T1010) a region hub's one script: its water search, self-hosted and deferred (the lists below work without it)
+      expect(p.html.replace(/<script src="\/assets\/region-find\.[0-9a-f]{10}\.js" defer><\/script>/, ""), p.path).not.toMatch(/<script(?![^>]*ld\+json)/);
       expect(text(p.html), p.path).toMatch(/not a legal document/i);
     }
     for (const p of waters()) {
@@ -317,6 +318,26 @@ describe("T195 hubs and dated pages", () => {
       // inside B.C. (the province's own box, roughly): never a box spilling across the continent
       expect([fit[0] > -140, fit[2] < -114, fit[1] > 48, fit[3] < 60.1], r.path).toEqual([true, true, true, true]);
       expect(text(r.html), r.path).toMatch(/built 2026-10-27/);
+    }
+    // (T1010, option B) the region page leads with a picture of its waters (inline SVG, a text alternative), the "Open the map"
+    // link right after it, and a search over the region's names file; the picture is a build-time drawing, never an image host
+    for (const r of built.build.pages.filter((p) => p.kind === "region")) {
+      const n = Number(r.path.split("/")[2]);
+      const svg = /<svg class="dots"[^>]*>.*?<\/svg>/s.exec(r.html)?.[0];
+      expect(svg, `${r.path}: the dot picture is missing`).toBeTruthy();
+      expect(svg!, r.path).toMatch(/role="img" aria-labelledby="rm-t"><title id="rm-t">[^<]*Region \d+[^<]*<\/title>/);
+      expect((svg!.match(/h0/g) ?? []).length, r.path).toBeGreaterThan(0);
+      expect(r.html.indexOf("<svg class=\"dots\""), r.path).toBeLessThan(r.html.indexOf(`>Open the map of ${regionLabel(n)}<`));
+      expect(r.html.indexOf(`>Open the map of ${regionLabel(n)}<`), r.path).toBeLessThan(r.html.indexOf("<h2>"));
+      expect(r.html, r.path).not.toMatch(/<img |https?:\/\/[^"' ]*(tile|mapbox|googleapis|openstreetmap)/i);
+      const names = /data-names="([^"]+)"/.exec(r.html)?.[1];
+      expect(names, `${r.path}: the search is missing`).toMatch(/^\/assets\/region-\d+\.[0-9a-f]{10}\.json$/);
+      const list = JSON.parse(built.files.get(names!.slice(1))!) as [string, string][];
+      expect(list.length, r.path).toBe(built.build.models.filter((m) => m.at.some((a) => a.regions.includes(n))).length || list.length);
+      expect(list.every(([nm, p]) => nm && p.startsWith("/water/")), r.path).toBe(true);
+      expect(built.files.get(/<script src="\/(assets\/region-find\.[0-9a-f]{10}\.js)" defer>/.exec(r.html)?.[1] ?? "none"), r.path).toContain("form[data-names]");
+      // the crawlable lists stay: every water or its letters, and the topics
+      expect(r.html, r.path).toMatch(/<a href="\/region\/\d+\/(waters-|steelhead|trout|closed|bait-ban|boat)|<a href="\/water\//);
     }
     // (T1010) its letter and topic pages open the map on the same region
     for (const p of built.build.pages.filter((x) => (x.kind === "letter" || x.kind === "topic") && /^\/region\/\d+\//.test(x.path))) {

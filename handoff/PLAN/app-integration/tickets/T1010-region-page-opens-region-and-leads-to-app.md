@@ -1,6 +1,6 @@
 # T1010 — Website: a region page's "Open the map" opens on that region; the page leads people into the real app
 
-Status: PARTIAL — a088c9cd0, 54778147e: the link opens the map framed on the region; the look is the owner's pick. left (Claude): show the owner the pictures in `T1010-shots/` (options A, B, C), then build the picked look (search box, button, crawlable lists below) with its tests and Lighthouse.
+Status: IN REVIEW — owner: OWNER-TODO "T1010 region page option B: look at the after shots"
 
 Source: owner 2026-11-22, on https://canifishthis.ca/region/4, verbatim: "if i click open map it doesnt center on region 4
 in the map. also that page should be designed better to lead users to go to the real app/map. it could have a search
@@ -70,3 +70,15 @@ Recommendation (lane L2): **A** — one obvious next step on a phone's first scr
 B is the most inviting on desktop but heavier and the picture is not the real map.
 The search without script: a GET form; where it lands (a filtered list page per region, or the app with a query key) is
 part of building the picked look.
+
+## Built 2026-11-22 (lane L16): option B (owner pick 2026-11-22 23:20)
+- Region hub: dot picture of the region's waters (inline SVG drawn at build time, one dot per water, `<title>` text alternative, light and
+  dark through the page's tokens), then the real link "Open the map of Region N" (`?fit=`), then a water search, then the crawlable
+  lists as before (`tools/seo/regionMap.ts`, `site.ts`, `html.ts`).
+- Search: hidden until its self-hosted script runs (no script: the lists below are the way in); loads the region's names file
+  (`/assets/region-N.<hash>.json`) on first use, lists up to 8 matches as links to the water; a failed load is said on the page.
+  Not reported to the crash endpoint (a hub page has no reporter config): left as is, say if wanted.
+- Region hubs only. Letter and topic-by-region pages keep the plain "Open the map" card (a picture on each would add ~10 KB gzip to
+  thousands of pages).
+- Tests: `site.test.ts` (picture, text alternative, button after the picture and before the lists, names file, no image host),
+  `regionFind.test.ts` (the shipped script). Shots: `T1010-shots/after-B-*.png`.
