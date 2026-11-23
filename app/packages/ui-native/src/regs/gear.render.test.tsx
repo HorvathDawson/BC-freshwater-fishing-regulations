@@ -48,13 +48,16 @@ describe("<GearTab> vedder_1010 (open, Oct 10)", () => {
     expect([chip.textContent, chip.style.textTransform, chip.style.backgroundColor !== ""]).toEqual(["Next", "uppercase", true]);
   });
 
-  it("(T900) ONE source line under the section opens srcs:gear; a Rule book link says its PDF page; no row draws its own", () => {
+  it("(T900) ONE source line under the section opens srcs:gear; a B.C. Synopsis link says its PDF page; no row draws its own", () => {
     const { sheets, books } = mount(vm);
     const src = within(screen.getByTestId("gear-src")), v = vm.src!;
     expect(screen.getAllByTestId("regs-src")).toHaveLength(1);
-    const btn = src.getByRole("button", { name: v.aria });
-    expect([btn.textContent, v.open]).toEqual([v.who, "srcs:gear"]);
-    expect(src.getAllByRole("link").map((a) => a.textContent)).toEqual(v.pages.map((p) => `Rule book p.${p.printed} ↗`));
+    // (T1031 item 3) the one Source line, whole: its pages by the synopsis's name, then the section's sheet, named for Gear
+    expect([screen.getByTestId("regs-src").textContent, v.pages.map((p) => p.printed)])
+      .toEqual(["SourceB.C. Synopsis p.8 ↗p.21 ↗p.22 ↗Who says so ›", [8, 21, 22]]);
+    const btn = src.getByRole("button", { name: "Who says so: the rules behind Gear" });
+    expect([btn.textContent, v.open]).toEqual(["Who says so ›", "srcs:gear"]);
+    expect(src.getAllByRole("link").map((a) => a.textContent)).toEqual(v.pages.map((p, i) => `${i ? "" : "B.C. Synopsis "}p.${p.printed} ↗`));
     // every row's pages are in it (nothing a row said is lost)
     for (const l of vm.lines) for (const p of l.src?.pages ?? []) expect(v.pages.map((x) => x.printed)).toContain(p.printed);
     fireEvent.click(btn);

@@ -341,7 +341,7 @@ const STEP = {
       if (!await s.until(`!!document.querySelector('[data-testid=regs-header]')`, s.P.cap)) return { pdf: { status: 'timeout', note: 'no regulations page' }, ...(await s.tally()) };
       await sleep(1500);
       const pageAt = await s.pageNow(), at = Date.now();
-      if (!await s.press('Rule book page', { prefix: true })) return { pdf: { status: 'no-link' }, ...(await s.tally()) };
+      if (!await s.press('B.C. Synopsis page', { prefix: true })) return { pdf: { status: 'no-link' }, ...(await s.tally()) };
       const cap = Math.min(s.P.cap, 180_000);
       const done = await s.until(`window.__t254.pdfAt !== null || !!document.querySelector('[data-testid=synopsis-retry]') || !!document.querySelector('[data-testid=synopsis-offer]')`, cap);
       await s.shot('pdf');

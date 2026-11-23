@@ -62,7 +62,7 @@ export const heapprof = {
       ctx.flow('search', { Q: 'Cultus' });
       ctx.flow('open-result', { LINE: 'Lake · .*Lindell Beach.*' });
       await ctx.waitText(/Regulations/, 30_000);
-      const LINK = 'Rule book p\\.[2-9][0-9] ↗.*';
+      const LINK = 'B.C. Synopsis p\\.[2-9][0-9] ↗.*';
       ctx.flow('scroll-to', { TEXT: LINK });
       ctx.device.adb(['logcat', '-c']);
       const got = await traced('rulebook', async () => {

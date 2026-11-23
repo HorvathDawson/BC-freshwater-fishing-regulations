@@ -20,7 +20,7 @@ import { LIGHT } from "../theme";
 import vedder1010 from "./fixtures/vedder_1010.json";
 import klwa1010 from "./fixtures/klwa_1010.json";
 import klwa1012 from "./fixtures/klwa_1012.json";
-import { TEST_SOURCES } from "./testing/sources";
+import { TEST_SOURCES, TEST_TROUT_SOURCES } from "./testing/sources";
 
 afterEach(cleanup);
 
@@ -69,7 +69,7 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
 
   it("3. a press inside opens the next sheet in this one's place (one sheet at a time)", () => {
     const h = host("pos:pos");
-    fireEvent.click(screen.getByText("Source ›"));
+    fireEvent.click(screen.getByText("Who says so ›"));
     expect(h.opened).toEqual(["rule:z2:possession_quota::possession_quota.r1"]);
     h.rerender("rule:zp:conduct::conduct.r1");
     expect(screen.getByRole("heading", { name: "Do not waste the fish you catch" })).toBeTruthy();
@@ -108,7 +108,7 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     let close: (() => void) | null = null;
     const layers: BackLayers = { register: (c) => { log.push("register"); close = c; return () => { log.push("unregister"); }; },
       back: () => { log.push("back"); close?.(); return true; } };
-    render(<BackLayerContext.Provider value={layers}><RegsScreen sources={TEST_SOURCES} page={VEDDER} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} }} onDate={() => {}} /></BackLayerContext.Provider>);
+    render(<BackLayerContext.Provider value={layers}><RegsScreen troutSources={TEST_TROUT_SOURCES} sources={TEST_SOURCES} page={VEDDER} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} }} onDate={() => {}} /></BackLayerContext.Provider>);
     fireEvent.click(screen.getByText("Kokanee"));
     act(() => { close!(); });
     expect([log, screen.queryByLabelText("Done"), !!screen.getByTestId("regs-view")]).toEqual([["register", "unregister"], null, true]);
@@ -122,23 +122,23 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
   });
 
   it("6. the sheet sits over the regs view: the header's place and date stay mounted (howtell-current-water)", () => {
-    render(<RegsScreen sources={TEST_SOURCES} page={VEDDER} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} }} onDate={() => {}} />);
+    render(<RegsScreen troutSources={TEST_TROUT_SOURCES} sources={TEST_SOURCES} page={VEDDER} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} }} onDate={() => {}} />);
     fireEvent.click(screen.getByText("Kokanee"));
     expect(screen.getByRole("heading", { name: "Kokanee" })).toBeTruthy();
     expect(screen.getByText(VEDDER.header.date)).toBeTruthy();
     expect(screen.getByTestId("regs-view")).toBeTruthy();
   });
 
-  it("7. book links: a rule sheet's read 'Rule book p.N ↗' and open their PDF page; a glossary page is bare after 'Rule book'", () => {
+  it("7. book links: a rule sheet's read 'B.C. Synopsis p.N ↗' and open their PDF page; a glossary page is bare after 'B.C. Synopsis'", () => {
     const h = host("rule:zp:conduct::conduct.r1");
     const links = screen.getAllByRole("link").map((e) => e.textContent);
-    expect(links).toEqual(["Rule book p.8 ↗", "Rule book p.10 ↗"]);
-    fireEvent.click(screen.getByText("Rule book p.8 ↗"));
+    expect(links).toEqual(["B.C. Synopsis p.8 ↗", "B.C. Synopsis p.10 ↗"]);
+    fireEvent.click(screen.getByText("B.C. Synopsis p.8 ↗"));
     expect(h.onBook).toHaveBeenCalledWith(10);
     cleanup();
     host("gl:catch_and_release");
     // the release ships the printed → PDF map (export.pdf_pages): the glossary page is a link
-    expect(screen.getByTestId("sheet-body").textContent).toContain("Rule book p.4 ↗");
+    expect(screen.getByTestId("sheet-body").textContent).toContain("B.C. Synopsis p.4 ↗");
   });
 
   it("8. a picture in an other: sheet opens the fish sheet", () => {
@@ -169,7 +169,7 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     expect(screen.getAllByTestId("flow:tag").filter((e) => e.textContent === "Mon")).toHaveLength(1);
   });
 
-  it("(T883, owner 23:25 'The white fish repeats a lot at the top') a group sheet says its answer once: no head, no lone Rule book line; the multi-water link goes last", () => {
+  it("(T883, owner 23:25 'The white fish repeats a lot at the top') a group sheet says its answer once: no head, no lone B.C. Synopsis line; the multi-water link goes last", () => {
     host("other:o1", KLWA12);
     const body = screen.getByTestId("sheet-body"), text = body.textContent!;
     expect(screen.queryByTestId("kicker:scope")).toBeNull();
@@ -178,7 +178,7 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     expect(text.indexOf("How this was decided")).toBeLessThan(text.indexOf("Fishing more than one water today?"));
     expect(text.trim().endsWith("See every regulation line ›")).toBe(true);
     // the only book links left are the rail's
-    expect(text.match(/Rule book p\.\d+/g)).toBeNull();
+    expect(text.match(/B.C. Synopsis p\.\d+/g)).toBeNull();
   });
 
   it("(T810 P) a trout row's fish sheet: header, Here today (bold where bold), how to tell it, Sources in order; it closes as every sheet", () => {
@@ -234,7 +234,7 @@ describe("the Regulations page's foot Sources button (T990)", () => {
     const sheet = vi.fn((k: SheetKey): SheetVM | null => (k === "src:all"
       ? { key: k, title: "Sources", sub: null, blocks: [{ k: "para", text: [{ t: "text", s: "every source" }] }] } : null));
     const page = { ...VEDDER, sheet } as RegsPage;
-    render(<RegsScreen sources={TEST_SOURCES} page={page} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} }} onDate={() => {}} />);
+    render(<RegsScreen troutSources={TEST_TROUT_SOURCES} sources={TEST_SOURCES} page={page} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} }} onDate={() => {}} />);
     expect(screen.getByTestId("regs-all-sources").compareDocumentPosition(screen.getByTestId("regs-legal")) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
     fireEvent.click(screen.getByTestId("regs-all-sources-button"));
     expect(screen.getByRole("heading", { name: "Sources" })).toBeTruthy();

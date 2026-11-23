@@ -34,7 +34,7 @@ import bc1501 from "./fixtures/bc1_501.json";
 import glenn501 from "./fixtures/glenn_501.json";
 import vedder615 from "./fixtures/vedder_615.json";
 import licences from "./fixtures/licence_vedder_1010.json";
-import { TEST_SOURCES } from "./testing/sources";
+import { TEST_SOURCES, TEST_TROUT_SOURCES } from "./testing/sources";
 
 vi.mock("react-native", async (importOriginal) => {
   const rn = await importOriginal<typeof import("react-native")>();
@@ -62,8 +62,8 @@ const VEDDER_INLINE: string[] = [
   "button What does Steelhead Stamp mean?",
   // (T810 cutover) gone with the old trout card: "What does Steelhead mean?", "Fishing more than one water today? ›" (the
   // table's "Fished elsewhere today? ›" is a press: TroutCard.test), "How this limit is shared", "How to tell hatchery ›"
-  // (the table's "How to tell a hatchery fish ›" press), "Rule book page 21 / 22" (the fish sheet's Sources), "Steelhead stamp ›"
-  "link Rule book page 9, opens the PDF", "link White Sturgeon Conservation Licence ›",
+  // (the table's "How to tell a hatchery fish ›" press), "B.C. Synopsis page 21 / 22" (the fish sheet's Sources), "Steelhead stamp ›"
+  "link B.C. Synopsis page 9, opens the PDF", "link White Sturgeon Conservation Licence ›",
 ];
 
 /** the Licence tab as the water screen holds it: a pick rebuilds the answer for that angler (the frozen six) */
@@ -80,7 +80,7 @@ function mount(id = "vedder_1010", layout: LayoutClass = "phone", store = create
   return render(
     <MenuContext.Provider value={MENU}>
     <WaterFrame palette={LIGHT} face="regulations" onBack={() => {}} backLabel="Map">
-      <RegsScreen sources={TEST_SOURCES} page={page} palette={LIGHT} actions={NOOP} onDate={() => {}} layout={layout} store={store}
+      <RegsScreen troutSources={TEST_TROUT_SOURCES} sources={TEST_SOURCES} page={page} palette={LIGHT} actions={NOOP} onDate={() => {}} layout={layout} store={store}
                   gear={page.gear ? (a) => <GearTab vm={page.gear!} palette={LIGHT} actions={a} /> : undefined}
                   methods={page.methods ? (a) => <MethodsTab vm={page.methods!} palette={LIGHT} actions={a} /> : undefined}
                   licence={id === "vedder_1010" ? (a) => <Licence actions={a} /> : undefined} />
@@ -142,7 +142,7 @@ describe("roles", () => {
     expect(screen.getByRole("button", { name: /^Rainbow trout\b/ })).toBeTruthy();
     const terms = screen.getAllByRole("button").map((b) => b.getAttribute("aria-label")).filter((l) => l?.startsWith("What"));
     expect(terms).toContain("What does Bait ban mean?");
-    expect(screen.getAllByRole("link", { name: /^Rule book page \d+, opens the PDF$/ }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("link", { name: /^B.C. Synopsis page \d+, opens the PDF$/ }).length).toBeGreaterThan(0);
   });
 });
 

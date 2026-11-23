@@ -11,7 +11,7 @@ import { LicencesList } from "./menu/Licences";
 import { RegsScreen } from "./regs/RegsScreen";
 import vedder1010 from "./regs/fixtures/vedder_1010.json";
 import { LIGHT } from "./theme";
-import { TEST_SOURCES } from "./regs/testing/sources";
+import { TEST_SOURCES, TEST_TROUT_SOURCES } from "./regs/testing/sources";
 
 afterEach(cleanup);
 const NOOP = { onSheet() {}, onDay() {}, onBook() {} };
@@ -23,12 +23,12 @@ const memory = (v: string | null = null): FirstRunStore & { v: string | null } =
 describe("the regs page's foot (T236)", () => {
   it("says it is not legal advice, then how current the page's sources are", () => {
     const asOf = "Regulations as of Oct 27, 2026 · salmon feed 3h ago · in-season 1h ago";
-    render(<RegsScreen sources={TEST_SOURCES} page={vedder1010 as unknown as RegsPage} palette={LIGHT} actions={NOOP} onDate={() => {}}
+    render(<RegsScreen troutSources={TEST_TROUT_SOURCES} sources={TEST_SOURCES} page={vedder1010 as unknown as RegsPage} palette={LIGHT} actions={NOOP} onDate={() => {}}
                        licence={<Text>licence</Text>} asOf={asOf} />);
     expect(screen.getByTestId("regs-legal").textContent).toBe(LEGAL_WORDS.footer + asOf);
   });
   it("with no as-of line, the disclaimer alone", () => {
-    render(<RegsScreen sources={TEST_SOURCES} page={vedder1010 as unknown as RegsPage} palette={LIGHT} actions={NOOP} onDate={() => {}} />);
+    render(<RegsScreen troutSources={TEST_TROUT_SOURCES} sources={TEST_SOURCES} page={vedder1010 as unknown as RegsPage} palette={LIGHT} actions={NOOP} onDate={() => {}} />);
     expect(screen.getByTestId("regs-legal").textContent).toBe(LEGAL_WORDS.footer);
     expect(screen.queryByTestId("regs-as-of")).toBeNull();
   });

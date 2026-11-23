@@ -283,7 +283,7 @@ def test_a_proposal_mark_is_retired_skipped_in_the_store_and_refused_new(tmp_pat
 
 def test_a_waiting_or_side_less_proposal_is_not_applied(src, monkeypatch):
     props = P.build(owner_marks(), src)
-    monkeypatch.setattr(P, "side_ready", lambda p: False)
+    monkeypatch.setattr(P, "side_ready", lambda p, *a, **k: False)
     nxt, blocked = A.plan(props, set())
     assert nxt["target"] == HATZIC                     # no cut changes: the binding check is enough
     assert A.plan(props, {nxt["id"]})[0] is None
@@ -292,7 +292,7 @@ def test_a_waiting_or_side_less_proposal_is_not_applied(src, monkeypatch):
     camp = next(p for p in props if p["target"] == CAMPBELL_A)
     assert why[camp["id"]] == "waits on new split(s) not applied: split-n2"
     assert P.side_dir(props[0]) in why["split-n2"]
-    monkeypatch.setattr(P, "side_ready", lambda p: True)
+    monkeypatch.setattr(P, "side_ready", lambda p, *a, **k: True)
     assert A.plan(props, set())[0]["id"] == "split-n2"                         # new splits first
     assert A.plan(props, set(), side_checked=["split-n2"])[0]["id"] == "split-n2"
 
@@ -336,7 +336,7 @@ def test_apply_lands_each_proposal_from_the_marks_as_its_own_commit(src, tmp_pat
     monkeypatch.setattr(A, "side_check", fake_side_check)
     monkeypatch.setattr(P, "REPO", repo)
     monkeypatch.setattr(P, "check", fake_check)
-    monkeypatch.setattr(P, "side_ready", lambda p: side["ready"])
+    monkeypatch.setattr(P, "side_ready", lambda p, *a, **k: side["ready"])
     monkeypatch.setattr(P.Sources, "live", classmethod(
         lambda cls, build=None: P.Sources(src.entries_dir, src.dfo_dir, src.splits_path, src.build)))
     # no side rebuild yet: only the proposal that changes no cut lands, after its binding check
@@ -372,7 +372,7 @@ def test_a_dry_run_lands_nothing(src, tmp_path, monkeypatch, capsys):
     store.write_text("".join(M.line(m) for m in owner_marks()))
     monkeypatch.setattr(P, "check", lambda ps, _s: [p.update(check={"cheap": True, "rules": {}})
                                                     for p in ps])
-    monkeypatch.setattr(P, "side_ready", lambda p: False)
+    monkeypatch.setattr(P, "side_ready", lambda p, *a, **k: False)
     monkeypatch.setattr(P.Sources, "live", classmethod(
         lambda cls, build=None: P.Sources(src.entries_dir, src.dfo_dir, src.splits_path, src.build)))
     before = src.text(src.splits_path)

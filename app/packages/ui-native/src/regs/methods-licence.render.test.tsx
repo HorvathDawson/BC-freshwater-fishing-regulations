@@ -60,11 +60,11 @@ describe("<MethodsTab>", () => {
       "✓ Angling (rod and line)", "• With a downrigger: attached to your line by a quick-release.", "• With a light: submerged, attached to the line, within 1 m of the hook.",
       "✓ Spear or bow — not for trout or other game fish", "• Not for game fish, salmon or protected species.", "• Burbot allowed.",
       "✓ Crayfish traps", "• Release anything in the trap that isn’t a crayfish.", "Not allowed", "✕ Set lines", "✕ Nets", "✕ Snagging", "✕ Chumming",
-      "Province › Rule book p.8 ↗"]);
+      "Source B.C. Synopsis p.8 ↗ Who says so ›"]);
     // (T797) the Bella Coola's "No angling from powered boats" (p.43) leads the list: it was held and never drawn
     expect(domLines(screen.getByTestId("methods-boats"))).toEqual(["Boats", "No angling (from a powered boat)",
-      "No powered boats — between the Goat Creek confluence and the Talchako River confluence", "This water’s › Rule book p.43 ↗"]);
-    fireEvent.click(within(screen.getByTestId("methods-boats")).getByRole("button", { name: "Sources: This water’s" }));
+      "No powered boats — between the Goat Creek confluence and the Talchako River confluence", "Source B.C. Synopsis p.43 ↗ Who says so ›"]);
+    fireEvent.click(within(screen.getByTestId("methods-boats")).getByRole("button", { name: "Who says so: the rules behind Boats" }));
     expect(sheets).toEqual(["srcs:boats"]);
   });
 
@@ -77,7 +77,7 @@ describe("<MethodsTab>", () => {
     const section = screen.getByTestId("methods-vessels");
     expect(domLines(section)).toEqual([METHODS.VESSELS, "No powered boats (in part)", "Speed limit 8 km/h", "Boats",
       "No angling (from a powered boat)",
-      "No powered boats — between the Goat Creek confluence and the Talchako River confluence", "This water’s › Rule book p.43 ↗"]);
+      "No powered boats — between the Goat Creek confluence and the Talchako River confluence", "Source B.C. Synopsis p.43 ↗ Who says so ›"]);
     // under Methods: after its Ways to fish
     const ways = screen.getByTestId("methods-ways");
     expect(ways.compareDocumentPosition(section) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
@@ -104,7 +104,7 @@ describe("<MethodsTab>", () => {
     expect(summary.getAttribute("aria-expanded")).toBe("true");
     const body = domLines(screen.getByTestId("methods-reference-body"));
     expect(["When you catch a fish", "When you release a fish", "When you keep a fish", "Carrying fish", "Never"].map((h) => body.includes(h))).toEqual([true, true, true, true, true]);
-    expect(body[body.length - 1]).toBe("Province › Rule book p.8 ↗ Rule book p.10 ↗");
+    expect(body[body.length - 1]).toBe("Source B.C. Synopsis p.8 ↗ p.10 ↗ Who says so ›");
     expect(screen.getByText("Gently, back in the water")).toBeTruthy();
   });
 
@@ -210,10 +210,10 @@ describe("<LicenceTab>", () => {
       return got;
     };
     // Li13b: the basic licence item carries the p.5 reduced-fee sentence for a B.C. resident adult; the classified item its p.7 term
-    expect(termsOf("adult|resident")).toEqual([["From the rule book:",
-      "If you are a resident of B.C. and disabled: You may qualify for a basic freshwater angling licence at the reduced fee of $1.14."], ["From the rule book:",
+    expect(termsOf("adult|resident")).toEqual([["From the B.C. Synopsis:",
+      "If you are a resident of B.C. and disabled: You may qualify for a basic freshwater angling licence at the reduced fee of $1.14."], ["From the B.C. Synopsis:",
       "If you are a B.C. resident: Your Classified Waters Licence is valid for the licencing year. This means you can fish on any Class I or Class II water in the province during the year."]]);
-    expect(termsOf("adult|non_resident")).toEqual([["From the rule book:",
+    expect(termsOf("adult|non_resident")).toEqual([["From the B.C. Synopsis:",
       "If you are a NON-GUIDED “Non-Resident” or NON-GUIDED “Non-Resident Alien”: Your Classified Waters Licence for Class I or Class II waters is sold on a per day basis and is date and water-specific. Although anglers may purchase as many Classified Waters Licences as they wish, each licence may not exceed 8 consecutive days."]]);
     // a water that is not classified (the Vedder) carries no Classified term: the only book text on any other fixture is the Li13b fee line, resident adult only
     const FEE = "If you are a resident of B.C. and disabled: You may qualify for a basic freshwater angling licence at the reduced fee of $1.14.";
@@ -258,7 +258,7 @@ describe("<LicenceTab>", () => {
   });
 
   it("(T973, owner 13:22) a carried unit's why: a fold on its row, closed until pressed; no other row has one", () => {
-    const WHY = "Stellako River’s Class II covers its tributaries. Endako River has its own line in the rule book without Classified Waters, so it may not apply here. Check with a CO.";
+    const WHY = "Stellako River’s Class II covers its tributaries. Endako River has its own line in the B.C. Synopsis without Classified Waters, so it may not apply here. Check with a CO.";
     const vm = LIC_X5P1["adult|resident"]!;
     const needs = vm.blocks.find((b) => b.cls === "needs") as Extract<Block, { cls: "needs" }>;
     const items = [{ ...needs.items[0]!, why: WHY }, ...needs.items.slice(1)];

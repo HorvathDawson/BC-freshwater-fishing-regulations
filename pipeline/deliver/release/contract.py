@@ -120,7 +120,7 @@ FILES = {
         # core/1: a core without it searches by name and town only (the app asks `HAS_ITEM_AREA` first)
         "item_area": ["ord", "regions", "mus"],
         # (T796, owner 2026-11-16) a section's note, one sentence said once on its page ("Mostly outside Gladys Lake
-        # Ecological Reserve: its closure (rule book p.9) does not apply here.", `bundle.outside_note`). ADDITIVE, so
+        # Ecological Reserve: its closure (B.C. Synopsis p.9) does not apply here.", `bundle.outside_note`). ADDITIVE, so
         # still core/1: a core without it has no notes
         "section_note": ["sid", "note"],
         # (T927, owner 2026-11-19) the book's boundary places search finds (build.core_cut_place): a curated cut on its
@@ -300,7 +300,7 @@ UNITS = {
               "h the region slugs whose fishing-hours line shows; a per species day runs of the index into l of the "
               "place that answers), unmapped, scopes, x, shards; T549 off: every curated place no chain names, id -> "
               "{why, k, r, w, items}, shown as a text row on its water's page; p: each chain place's {r, water, sec}, "
-              "what a row is named by; T796 a rule book closure is a place book:<entry_id>::<rule_id>[~n], first in "
+              "what a row is named by; T796 a B.C. Synopsis closure is a place book:<entry_id>::<rule_id>[~n], first in "
               "the chains it closes, its p {r?, water?, static 1, book {rule, pages}}; static: each such place's year "
               "{sp: 5 runs of verdict indexes (-1 nothing), g}, kept by the app under a live feed) "
               "(pipeline/deliver/salmon.py, salmon_who.py)",

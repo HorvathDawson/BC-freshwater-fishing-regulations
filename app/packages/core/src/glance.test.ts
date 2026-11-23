@@ -43,6 +43,6 @@ describe("(T531, T879) each row says whose rule it is", () => {
 describe("(T879) the whose-rule tags", () => {
   it("a row's tag is its source's word; a salmon bar's tag names the rule book where its days are the book's", () => {
     expect([SOURCE_WORDS.tag.dfo, SOURCE_WORDS.tag.bc]).toEqual(["DFO", "B.C."]);
-    expect([SOURCE_WORDS.salmonTag.dfo, SOURCE_WORDS.salmonTag.both, SOURCE_WORDS.salmonTag.book]).toEqual(["DFO", "DFO + rule book", "Rule book"]);
+    expect([SOURCE_WORDS.salmonTag.dfo, SOURCE_WORDS.salmonTag.both, SOURCE_WORDS.salmonTag.book]).toEqual(["DFO", "DFO + B.C. Synopsis", "B.C. Synopsis"]);
   });
 });

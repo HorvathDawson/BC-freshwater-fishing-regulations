@@ -104,7 +104,7 @@ describe("waiting, and a missing part", () => {
   });
 });
 
-describe("the rule book on a slow line: offered with its size, fetched only on Download", () => {
+describe("the B.C. Synopsis on a slow line: offered with its size, fetched only on Download", () => {
   it("low mode: the offer, nothing fetched; Download starts it; a good line goes straight on", async () => {
     setSynopsisSource({ url: "https://r2.test/synopsis.pdf", sha256: "a".repeat(64), bytes: 25_041_728 });
     let low = true;
@@ -113,7 +113,7 @@ describe("the rule book on a slow line: offered with its size, fetched only on D
     render(<SynopsisLoading palette={LIGHT} />);
     await act(async () => { await openBook(17, [], "web", open); });
     expect(open).not.toHaveBeenCalled();
-    expect(screen.getByTestId("synopsis-offer").textContent).toContain("The rule book is 25.0 MB — about 8 min on this connection.");
+    expect(screen.getByTestId("synopsis-offer").textContent).toContain("The B.C. Synopsis is 25.0 MB — about 8 min on this connection.");
     await act(async () => { fireEvent.click(screen.getByTestId("synopsis-download")); await Promise.resolve(); });
     expect(open).toHaveBeenCalledTimes(1);
     // Not now: nothing fetched, the card goes

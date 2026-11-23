@@ -19,32 +19,20 @@
  */
 import type { BookBox } from "./answers.generated";
 import { LICENCE_ROWS } from "./menu/licences";
-import { bookText, type Line } from "./regs/line";
+import { bookText, type Line, type Run } from "./regs/line";
 import type { RuleIndex, RuleView } from "./regs/inputs";
-import type { RegsPage } from "./regs/model";
+import type { RegsPage, SourceLineVM } from "./regs/model";
 import type { GearTabsVM } from "./salmon";
 import type { SheetKey } from "./regs/sheetKey";
 import { ALL_SOURCES_KEY } from "./regs/sheets/allsources";
-import { ALL_SOURCES, WORDS } from "./regs/words";
+import { TROUT_SOURCES_KEY } from "./regs/sheets/trout";
+import type { InSeasonBannerVM } from "./inseason";
+import type { SalmonBookVM, SalmonCardVM } from "./salmon";
+import { ALL_SOURCES, TROUT_NAV, WORDS } from "./regs/words";
+import { SOURCE_AUTHORITIES, SOURCE_LINE, type AuthorityId } from "./sourceNames";
 
-/** Each authority a tab's Source row can name: its one short name, and the Sources-and-licences row holding its page. */
-export const SOURCE_AUTHORITIES = Object.freeze({
-  synopsis: { name: "B.C. Synopsis", row: "synopsis" },
-  inseason: { name: "B.C. in-season changes", row: "inseason" },
-  dfo: { name: "DFO notices", row: "dfo" },
-  eccc: { name: "Environment Canada", row: "hydat" },
-  rfc: { name: "BC River Forecast Centre", row: "forecast" },
-  openMeteo: { name: "Open-Meteo", row: "weather" },
-} as const);
-export type AuthorityId = keyof typeof SOURCE_AUTHORITIES;
+export { SOURCE_AUTHORITIES, SOURCE_LINE, RULE_BOOK, type AuthorityId } from "./sourceNames";
 
-/** The row's label. */
-export const SOURCE_ROW_LABEL = "Source";
-/** The mark on the water's own rule-book page in the row. */
-export const SOURCE_ROW_THIS_WATER = "(this water)";
-/** A Source row page link's spoken name. */
-export const sourcePageA11y = (printed: number, marked: boolean, own = false): string =>
-  `${SOURCE_AUTHORITIES.synopsis.name} page ${printed}${own ? ", this water's own entry" : ""}${marked ? ", every passage this page cites marked" : ""}, opens the PDF`;
 
 /** An authority's page: its Sources-and-licences row's. A row without one is a programming error, thrown (never a blank link). */
 export function authorityUrl(id: AuthorityId): string {
@@ -70,7 +58,119 @@ export interface TabSourcesVM {
 /** The whole row as one string (the a11y summary and the test's pin, AGENTS 33): the label, then each link's words. */
 export const sourcesText = (vm: TabSourcesVM): string => [vm.label, ...vm.links.map((l) => l.label)].join(" ");
 
-const web = (id: AuthorityId): SourceLinkVM => ({ k: "web", label: `${SOURCE_AUTHORITIES[id].name} ${WORDS.LINK_OUT}`, url: authorityUrl(id) });
+
+// ── (T1031 item 3) THE ONE SOURCE LINE ─────────────────────────────────────────────────────────────────────────────
+
+/** A synopsis page a Source line links: its printed page, its PDF page (null: the PDF map lacks it, drawn unlinked), the
+ *  passages its opened copy marks (T215). */
+export interface SourcePage { readonly printed: number; readonly pdf: number | null; readonly box?: readonly BookBox[];
+  /** the water's own rule-book page (the Regulations tab's row): marked "(this water)" (owner 2026-11-22) */
+  readonly own?: boolean }
+
+/** What one Source line shows: synopsis pages, then web pages, then at most one sheet. */
+export interface SourceParts {
+  readonly pages?: readonly SourcePage[];
+  /** what a page's opened copy marks, said aloud (`SOURCE_LINE.MARKS_*`); said only on a page that carries boxes */
+  readonly marks?: string;
+  /** web pages: an authority's own name (`SOURCE_AUTHORITIES`) or the name a rule's data gives its page (T981), and the url */
+  readonly web?: readonly { readonly name: string; readonly url: string }[];
+  readonly sheet?: { readonly label: string; readonly open: SheetKey; readonly aria: string } | null;
+}
+
+/**
+ * (T1031 item 3, owner 2026-11-22: "clean up our inline sources. Right now the way they display is inconsistent") THE ONE
+ * SOURCE LINE every source is shown by, drawn by ONE component (ui-native `SourceRow`): the quiet label "Source", then
+ * the synopsis pages ("B.C. Synopsis p.8 ↗  p.49 ↗", ascending, each once: the name on the first only), then each web page
+ * ("B.C. in-season changes ↗"), then at most one sheet ("Who says so ›"). "↗" leaves the app; "›" opens a sheet in it.
+ * Placed as the LAST line of the block it supports (a section, a card, a banner, a sheet). The one exception is a rule's
+ * own "Rule book p.N ↗" inside its sentence (owner, T991 round 2: kept), which is a run of that line, not a Source line.
+ */
+export function sourceLineOf(p: SourceParts): TabSourcesVM {
+  const pages = new Map<number, SourcePage>();
+  for (const x of p.pages ?? []) {
+    const at = pages.get(x.printed);
+    const box = [...(at?.box ?? []), ...(x.box ?? [])].filter((b, i, all) => all.findIndex((y) => boxKey(y) === boxKey(b)) === i);
+    pages.set(x.printed, { printed: x.printed, pdf: at?.pdf ?? x.pdf, ...(box.length ? { box } : {}), ...(at?.own || x.own ? { own: true } : {}) });
+  }
+  const links: SourceLinkVM[] = [...pages.values()].sort((a, b) => a.printed - b.printed).map((x, i): SourceLinkVM => {
+    const words = x.own ? `${WORDS.PAGE}${x.printed} ${SOURCE_LINE.THIS_WATER}${x.pdf === null ? "" : ` ${WORDS.LINK_OUT}`}`
+      : bookText({ printed: x.printed, pdf: x.pdf, bare: true });
+    return { k: "book", label: i ? words : `${SOURCE_AUTHORITIES.synopsis.name} ${words}`, printed: x.printed, pdf: x.pdf,
+             ...(x.box ? { box: x.box } : {}), aria: SOURCE_LINE.PAGE_A11Y(x.printed, x.box && p.marks ? p.marks : null, !!x.own) };
+  });
+  const urls = new Set<string>();
+  for (const w of p.web ?? []) if (!urls.has(w.url)) { urls.add(w.url); links.push({ k: "web", label: `${w.name} ${WORDS.LINK_OUT}`, url: w.url }); }
+  if (p.sheet) links.push({ k: "sheet", ...p.sheet });
+  return { label: SOURCE_LINE.LABEL, links };
+}
+
+/** An authority's own web page, as a Source line's web part. */
+export const authorityWeb = (id: AuthorityId): { name: string; url: string } => ({ name: SOURCE_AUTHORITIES[id].name, url: authorityUrl(id) });
+
+/** The sheet part of a block's line: "Who says so ›", opening `open`, named for the block (`what`, T60). */
+export const whoSaysSo = (open: SheetKey, what: string): NonNullable<SourceParts["sheet"]> =>
+  ({ label: SOURCE_LINE.WHO, open, aria: SOURCE_LINE.WHO_A11Y(what) });
+
+/**
+ * A SECTION'S Source line (Gear, Ways to fish, Boats, Reference): its rules' synopsis pages, highlighted, then "Who says
+ * so ›" opening the section's Sources sheet, which names who made each rule (the level words "Province · Region 6 · This
+ * water's" the line printed before T1031 item 3). `what`: the section's own heading ("Gear").
+ */
+export const sectionSourcesOf = (src: Pick<SourceLineVM, "open"> & { readonly pages?: SourceLineVM["pages"] }, what: string): TabSourcesVM =>
+  sourceLineOf({ pages: src.pages ?? [], marks: SOURCE_LINE.MARKS_BLOCK(what), sheet: whoSaysSo(src.open, what) });
+
+/**
+ * A Source line from a Line's source runs — a rule's book pages (`{t:"book"}`) and its cited web page (`{t:"web"}`, T981):
+ * a sheet's "source" block, a closure's chain line on the closed banner. Its one `{t:"link"}` run (a sheet: "Who says so ›",
+ * or the Line's own words, "All sources ›") is the line's sheet link, spoken for `what`; `sheet` gives one where the Line
+ * has none ("Who says so ›"). Text runs (the spaces between) are not drawn; a run of any other kind is thrown.
+ */
+export function lineSourcesOf(line: Line, what: string, sheet?: SheetKey): TabSourcesVM {
+  const pages: SourcePage[] = [], web: { name: string; url: string }[] = [];
+  let open: { s: string; open: SheetKey } | null = sheet ? { s: SOURCE_LINE.WHO, open: sheet } : null;
+  for (const r of line as readonly Run[]) {
+    if (r.t === "book") pages.push({ printed: r.printed, pdf: r.pdf, ...(r.box?.length ? { box: r.box } : {}) });
+    else if (r.t === "web") web.push({ name: r.s, url: r.url });
+    else if (r.t === "link") {
+      if (typeof r.open !== "string") throw new Error(`lineSourcesOf: a source line's link "${r.s}" opens no sheet`);
+      open = { s: r.s, open: r.open };
+    }
+    else if (r.t !== "text" || r.s.trim()) throw new Error(`lineSourcesOf: a source line holds a "${r.t}" run ("${r.t === "text" ? r.s : ""}")`);
+  }
+  return sourceLineOf({ pages, marks: SOURCE_LINE.MARKS_BLOCK(what), web,
+                        sheet: open ? { label: open.s, open: open.open, aria: SOURCE_LINE.SHEET_A11Y(open.s, what) } : null });
+}
+
+/** An in-season change's Source line (its banner on the page, its row in the bell's inbox): "Source  B.C. in-season changes
+ *  ↗", the notice's page (the feed's `source`). A change with no page has no line (no links). */
+export const inSeasonSourcesOf = (b: Pick<InSeasonBannerVM, "url">): TabSourcesVM =>
+  sourceLineOf({ web: b.url ? [{ name: SOURCE_AUTHORITIES.inseason.name, url: b.url }] : [] });
+
+/**
+ * The trout table's Source line: "Who says so ›", opening the table's every-rule sheet (`src:trout`), which lists each
+ * rule with its pages. (#69 review) NO PAGE OF ITS OWN: a Source line cites exactly what its block draws, and the table
+ * draws no rule's page — its rows are Python's words, and a row's `src` lists every rule behind it (the deciding rule,
+ * size, origin, possession, the duty, the date line: contract Q-D6) with no word saying which of them the row shows; the
+ * app never cuts that list. Citing the sheet's pages listed p.6 on the Vedder (the province's 10-a-year steelhead quota
+ * and record duty), which the table never says. A page with a trout table and no such sheet is a programming error.
+ */
+export function troutSourcesOf(page: Pick<RegsPage, "sheet">): TabSourcesVM {
+  if (!page.sheet(TROUT_SOURCES_KEY)) throw new Error(`troutSourcesOf: the page has no ${TROUT_SOURCES_KEY} sheet`);
+  return sourceLineOf({ sheet: whoSaysSo(TROUT_SOURCES_KEY, TROUT_NAV.ENTRY) });
+}
+
+/** A rule-book closure on the salmon card: "Source  B.C. Synopsis p.9 ↗" (its pages, linked where `salmonWithPdf` gave them). */
+export const salmonBookSourcesOf = (b: Pick<SalmonBookVM, "pages">): TabSourcesVM => sourceLineOf({ pages: b.pages });
+
+/** The salmon card's DFO Source line: each DFO region page the card reads, "DFO notices, Region 6 Skeena ↗". */
+export const salmonDfoSourcesOf = (card: Pick<SalmonCardVM, "dfoPages">): TabSourcesVM =>
+  sourceLineOf({ web: card.dfoPages.map((r) => ({ name: SOURCE_LINE.DFO_REGION(r.region), url: r.url })) });
+
+/** The card with its rule-book closures' PDF pages from the store's one printed → PDF map (`Statics.pdfPages`, never
+ *  computed); a page the map lacks stays unlinked ("p.9", `bookText`). */
+export function salmonWithPdf<C extends Pick<SalmonCardVM, "book">>(card: C, pdfPages: Readonly<Record<number, number>>): C {
+  return { ...card, book: card.book.map((b) => ({ ...b, pages: b.pages.map((p) => ({ printed: p.printed, pdf: pdfPages[p.printed] ?? null })) })) };
+}
 
 type Page = { pdf: number | null; boxes: BookBox[] };
 const boxKey = (b: BookBox) => `${b.pdf}:${b.box.join(",")}`;
@@ -93,6 +193,8 @@ function citedPages(v: unknown, out: Map<number, Page>, seen = new Set<unknown>(
     out.set(printed, p);
   };
   if (o.t === "book" && typeof o.printed === "number") add(o.printed, typeof o.pdf === "number" ? o.pdf : null, o.box);
+  // (T1031 item 3) a drawn Source line's page link (`SourceLinkVM` "book")
+  if (o.k === "book" && typeof o.printed === "number") add(o.printed, typeof o.pdf === "number" ? o.pdf : null, o.box);
   if (typeof o.open === "string" && o.open.startsWith("srcs:") && !o.open.startsWith("srcs:gl|") && Array.isArray(o.pages))
     for (const p of o.pages as readonly { printed?: unknown; pdf?: unknown; box?: unknown }[])
       if (typeof p?.printed === "number") add(p.printed, typeof p.pdf === "number" ? p.pdf : null, p.box);
@@ -112,7 +214,7 @@ function citedWeb(v: unknown, out: Map<string, string>, seen = new Set<unknown>(
 }
 
 /** "All sources ›": the page's every-source sheet (T990). */
-const ALL_SOURCES_LINK: SourceLinkVM = { k: "sheet", label: ALL_SOURCES.LINK, open: ALL_SOURCES_KEY, aria: ALL_SOURCES.ARIA };
+const ALL_SOURCES_LINK = { label: ALL_SOURCES.LINK, open: ALL_SOURCES_KEY, aria: ALL_SOURCES.ARIA } as const;
 
 /**
  * (#63 review) WHAT THE REGULATIONS TAB DRAWS, as RegsScreen and WaterScreen draw it: the header, the Keep tab, the Gear and
@@ -121,11 +223,14 @@ const ALL_SOURCES_LINK: SourceLinkVM = { k: "sheet", label: ALL_SOURCES.LINK, op
  * under Methods only while Methods is), and the Licence tab as drawn (`licenceTabFor`). The Source row cites exactly what
  * these cite — never a sheet's rules (a sheet is not on the screen) and never `page.gear` on a day it is not drawn.
  */
-export function drawnRegsOf(page: Pick<RegsPage, "header" | "keep" | "boats" | "methods">, tabs: GearTabsVM, licence: RegsPage["licence"]): readonly unknown[] {
+export function drawnRegsOf(page: Pick<RegsPage, "header" | "keep" | "boats" | "methods">, tabs: GearTabsVM, licence: RegsPage["licence"],
+                            /** (T1031 item 3) the Source lines drawn inside the tabs that no VM above carries: the trout
+                             *  table's (`troutSourcesOf`: no page of its own) and the salmon card's book closures */
+                            lines: readonly TabSourcesVM[]): readonly unknown[] {
   // the Methods tab draws no `reference`: the page's own is drawn under it (RegsScreen), never the "if fished" tab's
   const methods = tabs.methods ? { ...tabs.methods, reference: null } : null;
   return [page.header, page.keep, tabs.gear, tabs.salmonGear, methods, tabs.methods ? page.boats : null,
-          tabs.methods ? page.methods?.reference ?? null : null, licence];
+          tabs.methods ? page.methods?.reference ?? null : null, licence, lines];
 }
 
 /**
@@ -162,18 +267,15 @@ export function regsSourcesOf(drawn: readonly unknown[], o: { waterPages: Line; 
   if (!byKey) throw new Error("regsSourcesOf: the rule index has no byKey; the drawn rules' sources cannot be read");
   const own = new Set(o.waterPages.flatMap((r) => (r.t === "book" ? [r.printed] : [])));
   const pages = citedPages(o.waterPages, citedPages(drawn, new Map()));
-  const links: SourceLinkVM[] = [...pages].sort((a, b) => a[0] - b[0]).map(([printed, p], i): SourceLinkVM => {
-    const mine = own.has(printed);
-    const words = mine ? `${WORDS.PAGE}${printed} ${SOURCE_ROW_THIS_WATER}${p.pdf === null ? "" : ` ${WORDS.LINK_OUT}`}` : bookText({ printed, pdf: p.pdf, bare: true });
-    return { k: "book", label: i ? words : `${SOURCE_AUTHORITIES.synopsis.name} ${words}`, printed, pdf: p.pdf,
-             ...(p.boxes.length ? { box: p.boxes } : {}), aria: sourcePageA11y(printed, p.boxes.length > 0, mine) };
-  });
-  if (o.inSeason) links.push(web("inseason"));
+  const web: { name: string; url: string }[] = [];
+  if (o.inSeason) web.push(authorityWeb("inseason"));
   // (#63 re-review) DFO where the page shows DFO's salmon, or a drawn rule is DFO's own (a DFO override)
   if (o.dfo || drawnRules(drawn, { get: (i) => o.rules.get(i), has: (i) => o.rules.has(i), byKey: (k) => byKey.call(o.rules, k) }, [])
-    .some((r) => r.f.source === "dfo")) links.push(web("dfo"));
-  for (const [url, s] of citedWeb(drawn, new Map())) links.push({ k: "web", label: `${s} ${WORDS.LINK_OUT}`, url });
-  return { label: SOURCE_ROW_LABEL, links: [...links, ALL_SOURCES_LINK] };
+    .some((r) => r.f.source === "dfo")) web.push(authorityWeb("dfo"));
+  for (const [url, s] of citedWeb(drawn, new Map())) web.push({ name: s, url });
+  // (T1031 item 3) composed as every Source line is (`sourceLineOf`)
+  return sourceLineOf({ pages: [...pages].map(([printed, p]) => ({ printed, pdf: p.pdf, ...(p.boxes.length ? { box: p.boxes } : {}), ...(own.has(printed) ? { own: true } : {}) })),
+                        marks: SOURCE_LINE.MARKS_PAGE, web, sheet: ALL_SOURCES_LINK });
 }
 
 /**
@@ -186,5 +288,5 @@ export function salmonShowsDfo(strip: { readonly by: "dfo" | "both" | "book" } |
 
 /** The Conditions tab's Source row: the gauges' readings, the River Forecast Centre's forecasts, the weather. */
 export function conditionsSourcesOf(): TabSourcesVM {
-  return { label: SOURCE_ROW_LABEL, links: [web("eccc"), web("rfc"), web("openMeteo")] };
+  return sourceLineOf({ web: [authorityWeb("eccc"), authorityWeb("rfc"), authorityWeb("openMeteo")] });
 }

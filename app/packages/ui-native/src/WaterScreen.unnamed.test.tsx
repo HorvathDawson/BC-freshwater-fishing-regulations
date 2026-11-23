@@ -131,8 +131,10 @@ describe("(T53) <WaterScreen> for an unnamed reach: the store's page for the tap
     expect(page.header.place).toEqual({ full: WORDS.TRIBUTARY_OF(DOWN), short: WORDS.TRIBUTARY_OF(DOWN) });
     // the banner, whole, as the store's page has it; its closure is one of the store's TRIBUTARY rules for this section
     const b = page.keep.banner!;
-    expect(screen.getByTestId("keep-banner").textContent).toBe(
-      b.big.join("") + b.paras.join("") + b.chain.map((c) => `${c.text} ${c.scope}${WORDS.SOURCE}${plain(c.book)}`).join(""));
+    // (T1031 item 3, rule 33) pinned whole: the closure, then its Source line (its page by the synopsis's name, its rule's sheet)
+    expect(screen.getByTestId("keep-banner").textContent)
+      .toBe("Closed all yearNo fishing for any game fish. From downstreamSourceB.C. Synopsis p.26 ↗Who says so ›");
+    expect(b.big.join("") + b.paras.join("") + b.chain.map((c) => `${c.text} ${c.scope}`).join("")).toBe("Closed all yearNo fishing for any game fish. From downstream");
     // (T768) every rule of the chain is the receiving water's OWN rule (the reach was picked for being closed by
     // tributary rules; that they are all the one named water's, the water the page names, is not part of the pick)
     expect(await Promise.all(b.chain.map((c) => ownerOf(c.rule)))).toEqual(b.chain.map(() => DOWN));
@@ -154,7 +156,11 @@ describe("(T53) <WaterScreen> for an unnamed reach: the store's page for the tap
     expect([within(screen.getByTestId("regs-header")).getByRole("heading").textContent,
             screen.queryByTestId("regs-place")?.textContent ?? null, screen.queryByTestId("keep-banner")?.textContent ?? null])
       .toEqual([page.header.name, null,   // (T878) no label: no place row
-                b ? b.big.join("") + b.paras.join("") + b.chain.map((c) => `${c.text} ${c.scope}${WORDS.SOURCE}${plain(c.book)}`).join("") : null]);
+                // (T1031 item 3, rule 33) a closure's Source line spelt out here, not by the composer under test: the label,
+                // its pages ("B.C. Synopsis p.N ↗" then "p.M ↗"), its rule's sheet (none on the fixture release: no park)
+                b ? b.big.join("") + b.paras.join("") + b.chain.map((c) => `${c.text} ${c.scope}Source`
+                  + c.book.flatMap((r) => (r.t === "book" ? [r.printed] : [])).map((n, i) => `${i ? "" : "B.C. Synopsis "}p.${n} ↗`).join("")
+                  + "Who says so ›").join("") : null]);
     // a banner here is only ever a province or zone rule's (the page is the base alone)
     if (b) expect(b.chain.every((c) => /^z[^:]*:/.test(c.rule))).toBe(true);
     expect(page.header.name).toMatch(/^Unnamed stream · Regions? \d/);

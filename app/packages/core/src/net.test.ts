@@ -1,4 +1,4 @@
-// (T254) bad connections in words: the Data line, the banner, a page waiting, a part missing, the rule book offer.
+// (T254) bad connections in words: the Data line, the banner, a page waiting, a part missing, the B.C. Synopsis offer.
 import { describe, expect, it } from "vitest";
 import { dataModeLine, duration, NET_WORDS, netBanner, partLine, progressWords, rateWords, waitingLine } from "./net";
 
@@ -33,9 +33,9 @@ describe("bad connections in words", () => {
     expect(partLine("Salmon rules", "failed", false)).toBe("Salmon rules: couldn’t load");
     expect(partLine("Salmon rules", "ready", false)).toBeNull();
   });
-  it("the rule book is offered with its size and time", () => {
-    expect(NET_WORDS.pdf.offer(25_041_728, 500)).toBe("The rule book is 25.0 MB — about 8 min on this connection.");
-    expect(NET_WORDS.pdf.offer(25_041_728, null)).toBe("The rule book is 25.0 MB.");
+  it("the B.C. Synopsis is offered with its size and time", () => {
+    expect(NET_WORDS.pdf.offer(25_041_728, 500)).toBe("The B.C. Synopsis is 25.0 MB — about 8 min on this connection.");
+    expect(NET_WORDS.pdf.offer(25_041_728, null)).toBe("The B.C. Synopsis is 25.0 MB.");
   });
 });
 

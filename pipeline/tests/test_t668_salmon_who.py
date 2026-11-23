@@ -227,7 +227,7 @@ def test_t796_a_book_place_in_a_two_region_chain_answers_from_the_releases_own_y
     assert two, "the fixture has a two-region chain"
     book = "book:r6:x@6-1::x.r1"
     chains = [{**c, "l": [book] + c["l"], "s": [[0] + [i + 1 for i in g] for g in c["s"]]} for c in two]
-    shut = {"s": "closed", "t": "Closed to all fishing by the rule book"}
+    shut = {"s": "closed", "t": "Closed to all fishing by the B.C. Synopsis"}
     verdicts = [S.NOT_LISTED, shut]
     static = {book: {"g": [0, -1], "sp": [[0, 1] for _ in S.SPECIES]}}
     assert salmon_pairs.pairs(two, feed_rules)[0], "without the book place the chain pairs its two openings"

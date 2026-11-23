@@ -121,7 +121,7 @@ def test_a_lifted_closure_says_what_lifts_it():
     ch = out["chains"][dict(secs)[7]]
     from pipeline.deliver.salmon_who import _run_at
     t = out["verdicts"][_run_at(ch["sp"][0], S.DAYS.index(1010))]["t"]
-    assert t == (f"Closed to all fishing by the rule book (p.32): No Fishing Oct 1-May 31; lifted May 1–31 by Thompson "
+    assert t == (f"Closed to all fishing by the B.C. Synopsis (p.32): No Fishing Oct 1-May 31; lifted May 1–31 by Thompson "
                  f"River (p.32): {OPENING} (Oct 1–Apr 30)")
 
 
@@ -166,9 +166,9 @@ def test_a_conditional_closure_says_its_proviso():
     line = S.book_line(r1, SUPERIOR, sibs)
     assert line == f"{r1} Where open, anglers require a National Park Fishing Permit."
     t = S.book_rule("book:x", "zp::r1", range(len(S.DAYS)), {"zp::r1": {"verbatim": line, "pages": [9]}})["verbatim"]
-    assert t == ("Closed by the rule book unless opened under the National Parks Fishing Regulations (p.9): "
+    assert t == ("Closed by the B.C. Synopsis unless opened under the National Parks Fishing Regulations (p.9): "
                  f"{line}")
     reserve = S.book_line("Fishing is prohibited in Ecological Reserves in B.C.", SUPERIOR, sibs)
     t3 = S.book_rule("book:y", "zp::r3", range(len(S.DAYS)), {"zp::r3": {"verbatim": reserve, "pages": [9]}})
-    assert t3["verbatim"] == "Closed to all fishing by the rule book (p.9): Fishing is prohibited in Ecological " \
+    assert t3["verbatim"] == "Closed to all fishing by the B.C. Synopsis (p.9): Fishing is prohibited in Ecological " \
                              "Reserves in B.C."

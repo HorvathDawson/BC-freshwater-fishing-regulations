@@ -39,13 +39,23 @@ const FACTS = {
     unmapped: [],
   },
 } as unknown as SalmonFacts;
-function withSalmon(): ReleaseLoader {
+function withSalmon(facts: SalmonFacts = FACTS): ReleaseLoader {
   const live = openRegsFixture();
   return Object.assign(Object.create(Object.getPrototypeOf(live)), live, {
     manifest: { ...live.manifest, files: { ...live.manifest.files, salmon: { url: "salmon.bin.gz" } } },
-    salmon: async () => FACTS, method: async () => null, access: async () => null,
+    salmon: async () => facts, method: async () => null, access: async () => null,
   });
 }
+/** (T1031, #69 re-review) the same chain closed every day by a BOOK closure (a `book:` place, T796): its page, p.77, is a
+ *  page no other block of the Chilliwack's page cites, so only the salmon card's own Source line can bring it to the row. */
+const BOOK = "book:zp:superior_closures::superior_closures.r3";
+const FACTS_BOOK = { ...FACTS, payload: {
+  ...FACTS.payload,
+  verdicts: [...FACTS.payload.verdicts, { s: "closed", t: "Closed to all fishing by the B.C. Synopsis (p.77): No Fishing" }],
+  chains: [FACTS.payload.chains[0]!, { r: ["2"], w: "Chilliwack River", l: [BOOK], sp: all(2), g: [0, -1], m: [0, 3], a: all(0) }],
+  p: { [BOOK]: { water: "Ecological Reserves", static: 1, book: { rule: "zp:superior_closures::superior_closures.r3", pages: [77] } } },
+  static: { [BOOK]: { sp: all(2), g: [0, -1] } },
+} } as unknown as SalmonFacts;
 
 /** Open every fold of the page (a fold's lines are on the tab, one tap away), until none is left closed. */
 function openFolds(root: HTMLElement) {
@@ -62,8 +72,10 @@ const pagesOf = (els: Element[], re: RegExp) =>
 function probe() {
   const content = screen.getByTestId("regs-content"), row = screen.getByTestId("regs-sources");
   openFolds(content);
-  const links = [...content.querySelectorAll("[role=link]")];
-  const drawn = new Set(pagesOf(links.filter((e) => !row.contains(e)), /^Rule book page (\d+), opens the PDF$/));
+  // (T1031) the pages the screen draws: rule text's links ("B.C. Synopsis page N, …") and the blocks' own lines, never the
+  // trout table's line counting itself in
+  const links = [...content.querySelectorAll("[role=link]")].filter((e) => !e.closest("[data-testid=trout-source]"));
+  const drawn = new Set(pagesOf(links.filter((e) => !row.contains(e)), /^B\.C\. Synopsis page (\d+),/));
   const inRow = [...row.querySelectorAll("[role=link]")];
   const listed = pagesOf(inRow, /^B\.C\. Synopsis page (\d+),/);
   const own = pagesOf(inRow, /^B\.C\. Synopsis page (\d+), this water's own entry/);
@@ -84,5 +96,17 @@ describe("a day only salmon may be fished, through WaterScreen (#63 re-review)",
     const p = probe();
     expect(p.listed).toEqual(p.expected);
     expect(p.listed).toEqual([8, 9, 21, 22]);
+  }, 40_000);
+
+  it("(T1031) a salmon BOOK closure's page, drawn on the card's own Source line, is in the foot row too", async () => {
+    const loader = withSalmon(FACTS_BOOK);
+    render(<WaterScreen source={makeReleaseSource(loader)} item={"gnis:8634" as ItemId} palette={LIGHT} part={3}
+                        loader={loader} day={new Date(2026, 9, 10, 12)} />);
+    await waitFor(() => expect(screen.getByTestId("salmon-card")).toBeTruthy(), LOADED);
+    const p = probe();
+    const card = pagesOf([...screen.getByTestId("salmon-book-pages").querySelectorAll("[role=link]")], /^B\.C\. Synopsis page (\d+),/);
+    expect(card).toEqual([77]);
+    expect(p.drawn.has(77) && p.listed.includes(77)).toBe(true);
+    expect(p.listed).toEqual(p.expected);
   }, 40_000);
 });

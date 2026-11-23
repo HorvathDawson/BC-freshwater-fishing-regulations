@@ -32,6 +32,7 @@ import vedder1010 from "./fixtures/vedder_1010.json";
 import x35p1010 from "./fixtures/x35p_1010.json";
 import klwa1012 from "./fixtures/klwa_1012.json";
 import glenn615 from "./fixtures/glenn_615.json";
+import { TEST_TROUT_SOURCES } from "./testing/sources";
 
 afterEach(cleanup);
 
@@ -76,7 +77,7 @@ function keepOf(id: string) {
   const page = STATES[id]!;
   const { container } = render(
     <MenuContext.Provider value={{ report() {} } as unknown as MenuControls}>
-      <KeepTab keep={page.keep as KeepVM} dateLabel={page.header.date} palette={LIGHT} actions={NO_ACTIONS} />
+      <KeepTab troutSources={TEST_TROUT_SOURCES} keep={page.keep as KeepVM} dateLabel={page.header.date} palette={LIGHT} actions={NO_ACTIONS} />
       <ReportLink page={page} palette={LIGHT} />
     </MenuContext.Provider>);
   expect(container.querySelector('[data-testid="keep-tab"]')).not.toBeNull();

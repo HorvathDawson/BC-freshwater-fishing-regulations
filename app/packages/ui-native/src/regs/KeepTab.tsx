@@ -25,7 +25,7 @@
  */
 import { Fragment, type ReactNode } from "react";
 import { View } from "react-native";
-import { daylightOffsets, groupGlance, troutGlance, dfoBlockStatus, SALMON_WORDS, SOURCE_WORDS, WORDS, type CaveatVM, type DaylightAt, type GlanceRowVM, type KeepVM, type SalmonStripVM } from "@app/core";
+import { daylightOffsets, groupGlance, troutGlance, dfoBlockStatus, SALMON_WORDS, SOURCE_WORDS, WORDS, type TabSourcesVM, type CaveatVM, type DaylightAt, type GlanceRowVM, type KeepVM, type SalmonStripVM } from "@app/core";
 import { GUTTER, type Palette } from "../theme";
 import { Text } from "../Text";
 import { TYPE } from "../type";
@@ -39,19 +39,23 @@ import { TaggedTitle } from "./SourceTag";
 import type { KeepActions } from "./LineText";
 import type { FishImages } from "./types";
 
-export function KeepTab({ keep, dateLabel, palette, actions, images, glance = null, salmonStrip = null, daylight = null }: {
+export function KeepTab({ keep, dateLabel, palette, actions, images, glance = null, salmonStrip = null, daylight = null, troutSources }: {
   keep: KeepVM; dateLabel: string; palette: Palette; actions: KeepActions; images?: FishImages;
   salmonStrip?: SalmonStripVM | null;
   /** (T473, T898) the open and closed hours of a daylight-only closure on the day at the water, from the rule's own
    *  offsets (`useDaylight`); null: no point */
   daylight?: DaylightAt | null;
   glance?: { salmon: { row: GlanceRowVM; card: () => ReactNode } | null } | null;
+  /** (T1031 item 3) the trout table's Source line (core `troutSourcesOf(page)`), handed to the card; null where the page
+   *  draws no trout table (a table with none is a programming error, thrown) */
+  troutSources: TabSourcesVM | null;
 }) {
   // (T810 O, S) the trout and char table, as N built it (null: none drawn: no cell, a closed day, or a refused frame)
   const trout = keep.trout?.kind === "table" ? keep.trout : null;
-  const troutCard = (kicker: boolean) => trout && (
+  if (trout && !troutSources) throw new Error("KeepTab: the page draws a trout table but its host gave no troutSources");
+  const troutCard = (kicker: boolean) => trout && troutSources && (
     <TroutCard t={trout} palette={palette} actions={actions} images={images} kicker={kicker}
-               todayAt={keep.strip?.todayAt ?? null} months={keep.strip?.months ?? []} />
+               todayAt={keep.strip?.todayAt ?? null} months={keep.strip?.months ?? []} sources={troutSources} />
   );
   const folds: GlanceFold[] = !glance ? [] : [
     ...(glance.salmon ? [{ key: "salmon", row: glance.salmon.row, body: glance.salmon.card, arrow: true }] : []),

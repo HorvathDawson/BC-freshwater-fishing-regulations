@@ -141,7 +141,7 @@ describe("inPartOf: rules of parts the map can't draw", () => {
       .toBe("Fishing rules are the same everywhere on this lake.");
     expect(lines(inPartOf(settled({ inpart: [{ rule: spot, now: false }] }), inp, KEEP_FAMS))).toEqual([
       "Some spots have their own rules", "Not in force today. The map can’t draw these places yet, so check where you are.", false,
-      ["No fishing", "Where: some spots, marked by buoys and signs. Look for signs.", "Rule book p.32 ↗"], null]);
+      ["No fishing", "Where: some spots, marked by buoys and signs. Look for signs.", "B.C. Synopsis p.32 ↗"], null]);
   });
   it("a place the book leaves vague reads 'some spots … look for signs' (various / do not identify / buoys and signs)", () => {
     for (const p of ["at various locations", "the regulations do not identify it", "areas marked by buoys and signs"]) {
@@ -194,7 +194,7 @@ describe("sideOf / anglerOf", () => {
     const a = view(4, 3351, { label: "No fishing", parts: { what: "No fishing", where: "near the outfall" } }, { side: "West" }, { book: [[51, 53]] });
     const c = sideOf(settled({ side: [a] }), KEEP_FAMS)!;
     expect([c.title, plain(c.items[0]!.what), c.items[0]!.where, plain(c.items[0]!.book)])
-      .toEqual(["⚠ On one side of the channel only", "No fishing", "West half only · near the outfall", "Rule book p.51 ↗"]);
+      .toEqual(["⚠ On one side of the channel only", "No fishing", "West half only · near the outfall", "B.C. Synopsis p.51 ↗"]);
     expect(sideOf(settled({ side: [] }), KEEP_FAMS)).toBeNull();
   });
   it("angler: the rule's label, no where", () => {
@@ -230,14 +230,14 @@ describe("timedOf: the day reads differently by moment", () => {
     const same = rows("release", 11, null);
     // (T800) the stored label, whole, brackets and all: the printed text cut at its first bracket named nobody
     expect(lines(timedOf(inputs({ rows: [same, same] }), settled({ s: 0 }), at([L([]), L([12])]), NONE))).toEqual(["⚠ At certain times",
-      ["Angling closed (weekends)", "Sat–Sun", angler.key, null, "Rule book p.9 ↗"]]);
+      ["Angling closed (weekends)", "Sat–Sun", angler.key, null, "B.C. Synopsis p.9 ↗"]]);
     expect(timedOf(inputs({ rows: [same, same] }), settled({ s: 1 }), at([L([]), L([12])]), NONE)).toBeNull();   // speaks on the card's own moment
   });
   it("(a) a closed moment while the card's is open: its stored closure, unless the card's moment has it too", () => {
     const shut = { status: "closed", closing: [[13, ["KO", "RB"]]], strip: 1 } as unknown as DisplayFrame;
     const same = rows("release", 11, null);
     expect(lines(timedOf(inputs({ display: [OPEN, shut], rows: [same, same] }), settled({ s: 0 }), at([L([]), L([])]), NONE))).toEqual(["⚠ At certain times",
-      ["No fishing for any game fish", "Sat–Sun", closer.key, null, "Rule book p.23 ↗"]]);
+      ["No fishing for any game fish", "Sat–Sun", closer.key, null, "B.C. Synopsis p.23 ↗"]]);
     const both = { status: "own", closing: [[13, ["KO"]]], strip: 0 } as unknown as DisplayFrame;
     expect(lines(timedOf(inputs({ display: [both, shut], rows: [same, same] }), settled({ s: 0 }), at([L([]), L([])]), NONE))).toEqual(["⚠ At certain times",
       ["Missing from the answers file: the closure that closes it Sat–Sun", null, null, null, ""]]);

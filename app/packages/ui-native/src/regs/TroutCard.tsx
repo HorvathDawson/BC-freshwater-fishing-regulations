@@ -18,7 +18,7 @@
  */
 import { useState } from "react";
 import { PixelRatio, View, useWindowDimensions } from "react-native";
-import { TROUT_NAV, TROUT_SOURCES_KEY, WORDS, type TroutBoxVM, type TroutRowVM, type TroutVM } from "@app/core";
+import { TROUT_NAV, WORDS, type TabSourcesVM, type TroutBoxVM, type TroutRowVM, type TroutVM } from "@app/core";
 import { Text } from "../Text";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
@@ -26,6 +26,7 @@ import { KeepBox, ShutGroup, type KeepRowVM } from "./KeepBox";
 import type { KeepActions } from "./LineText";
 import { RegsPress } from "./RegsPress";
 import { TroutYearBar } from "./TroutYearBar";
+import { SourceRow } from "../SourceRow";
 import type { FishImages } from "./types";
 
 const PRESS = { w: 44, h: 44 } as const;
@@ -49,12 +50,14 @@ function Box({ b, i, palette, actions, images }: { b: TroutBoxVM; i: number; pal
   return <ShutGroup testID={`trout-${b.kind}`} kind={b.kind} head={b.head} date={b.date} rows={rows} palette={palette} />;
 }
 
-export function TroutCard({ t, palette, actions, images, kicker = false, todayAt = null, months = [] }: {
+export function TroutCard({ t, palette, actions, images, kicker = false, todayAt = null, months = [], sources }: {
   t: TroutVM; palette: Palette; actions: KeepActions; images?: FishImages;
   /** the entry's name over the table: only where no folded row heads it (the at-a-glance table off) */
   kicker?: boolean;
   /** the page strip's day marker and month initials, for the year bar */
   todayAt?: number | null; months?: readonly string[];
+  /** (T1031 item 3) the table's Source line (core `troutSourcesOf(page)`, computed by the host with the foot row) */
+  sources: TabSourcesVM;
 }) {
   useWindowDimensions();
   const big = (PixelRatio.getFontScale() || 1) >= BIG_AT;
@@ -84,15 +87,17 @@ export function TroutCard({ t, palette, actions, images, kicker = false, todayAt
       </View>
       {t.together && <Text selectable testID="trout-together" style={[TYPE.regsBodyBold, { color: palette.ink, marginTop: 10 }]}>{t.together.text}</Text>}
       {t.year && <TroutYearBar year={t.year} palette={palette} todayAt={todayAt} months={months} />}
-      <View testID="trout-links" style={{ marginTop: 8, flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", columnGap: 16 }}>
-        {link(t.sourcesLink, "trout-sources", () => actions.onSheet(TROUT_SOURCES_KEY))}
-        {t.elsewhereLink && link(t.elsewhereLink, "trout-elsewhere", () => setAway(!away), away)}
-      </View>
+      {t.elsewhereLink && (
+        <View testID="trout-links" style={{ marginTop: 8 }}>{link(t.elsewhereLink, "trout-elsewhere", () => setAway(!away), away)}</View>
+      )}
       {t.elsewhereLink && away && (
         <View testID="trout-elsewhere-lines" style={{ rowGap: 4, paddingBottom: 4 }}>
           {t.elsewhere.map((l) => <Text selectable key={l} testID="trout-elsewhere-line" style={[TYPE.meta, { color: palette.ink }]}>{l}</Text>)}
         </View>
       )}
+      {/* (T1031 item 3) the table's last line: the one Source line, its rules' pages then "Who says so ›" (the every-rule
+          sheet `src:trout`, what "Sources ›" opened) */}
+      <SourceRow vm={sources} palette={palette} onBook={actions.onBook} onSheet={actions.onSheet} testID="trout-source" sheetTestID="trout-sources" />
     </View>
   );
 }

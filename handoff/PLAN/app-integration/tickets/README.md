@@ -276,14 +276,15 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1030 | The release manifest carries a changed-waters count (the inbox data row's "N waters changed") | OPEN — 0.9.0 batch | T867 | stopped: not small, see the file |
 | T1028 | The trout schedule bar's open colour = the salmon bar's (owner 2026-11-23) | DONE | 391b37ddb | owner 2026-11-23 |
 | T1029 | One-bank DFO places: the one-side stripe on the Salmon map (T754 option B, the rest; owner Q4–Q6) | OPEN — after 0.9.0 | T754 | T754 (owner 2026-11-15 / 2026-11-22) |
-| T1031 | Sources round 3, the rest: one inline source format, a breakdown per species, one species sheet with Identification / Sources tabs | OPEN | T991 | owner 2026-11-22 ~23:55 (T991 round-2 answer, items 3–5); split out by lane L21 |
+| T1031 | Sources round 3, the rest: one inline source format, a breakdown per species, one species sheet with Identification / Sources tabs | IN PROGRESS | T991 | owner 2026-11-22 ~23:55 (T991 round-2 answer, items 3–5); split out by lane L21; item 3 built 26839d85d, 5fdd46510, 315d8b3bb (lane L22: one Source line, `sourceLineOf` + `SourceRow`, T1031-shots/inline-*); items 1–2 lane L23 |
 | T1032 | Highlight boxes for region and province rule text (the Source row's p.8/9/10/49 open marked) | DONE | 2c7f8cab2, d03699f73 | owner 2026-11-23 |
 | T1034 | A `regs=` link opened over another water keeps the old camera (the link's `part` is read and dropped) | PARTIAL — left (Claude): device check of the camera; other keys T1038 | 77d9de76d, 2ddaa795f | lane L18 emulator 2026-11-23 |
 | T1035 | `theme=dark` on a `regs=` link does not switch the theme on the phone | DONE | 77d9de76d, 2ddaa795f | lane L18 emulator 2026-11-23 |
 | T1036 | The every-source sheet ("All sources ›") lists rules the screen does not draw, and misses the drawn gear on salmon-only days | OPEN | T991 | #63 review 2026-11-23 (live release probe); the Source row was fixed in #63 |
 | T1038 | Carry a phone link's date, tab, sheet, scroll, age, res, horizon and whole (today reported and dropped) | OPEN — 0.9.0 batch | | lane L15 on T1034, 2026-11-23 |
 | T1037 | Two review readers (`audit.primary_split_pos`, `reuse.host_rows`) pick a cut's position by different rules (157 of 190 multi-row cuts disagree); the build's is per extent (`extent._cut_at`) | OPEN — needs the position rule decided | T776 | PR #48 independent review, 2026-11-23 |
-| T1039 | The public gauge page draws the web app's own chart (same data, windows, zoom, every forecast model) | IN REVIEW — owner: OWNER-TODO "Look (you): T1039 gauge page after-shots"; staging feeds worker deploy + 0.9.0 staging site build to show | 9f8603f17, 44af0d16f | owner 2026-11-23; lane L25 |
+| T1040 | A stale side atlas still vouches for a proposal after its cut moves (side_dir's digest does not cover the cut's position) | DONE | 14f0d682e | PR #48 independent review, 2026-11-23 |
+| T1039 | The public gauge page draws the web app's own chart (same data, windows, zoom, every forecast model) | IN REVIEW — owner: OWNER-TODO "Look (you): T1039 gauge page after-shots"; staging feeds worker deploy + 0.9.0 staging site build to show | 9f8603f17, 44af0d16f, 1b983b5ad | owner 2026-11-23; lane L25 |
 
 ## Next after closed testing
 

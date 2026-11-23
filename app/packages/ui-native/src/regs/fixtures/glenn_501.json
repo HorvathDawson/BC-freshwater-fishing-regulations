@@ -771,7 +771,6 @@
    },
    "hatchLink": null,
    "kind": "table",
-   "sourcesLink": "Sources ›",
    "src": [
     3136,
     3145,
@@ -1139,7 +1138,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -1195,7 +1194,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -1241,7 +1240,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -1297,7 +1296,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -1343,7 +1342,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -1399,7 +1398,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -2804,14 +2803,14 @@
      ],
      "k": "fold",
      "open": false,
-     "summary": "In the rule book’s words"
+     "summary": "In the B.C. Synopsis’s words"
     },
     {
      "k": "source",
      "line": [
       {
        "open": "rule:z4:possession_quota::possession_quota.r1",
-       "s": "Source ›",
+       "s": "Who says so ›",
        "t": "link"
       },
       {

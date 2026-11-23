@@ -21,7 +21,7 @@ const table = (r: TroutRowVM): TroutVM => ({
   top: { lead: "Release every trout and char today", sub: null, second: null, date: null },
   card: null, fold: { name: "Trout and char", value: "Release", tone: "release", date: null }, hatchLink: null,
   boxes: [{ kind: "release", head: "Release", label: null, strip: null, possession: null, tag: null, date: null, rows: [r], bands: [], inner: [] }],
-  together: null, year: null, elsewhere: [], elsewhereLink: null, sourcesLink: "Sources", src: [0], covers: [0],
+  together: null, year: null, elsewhere: [], elsewhereLink: null, src: [0], covers: [0],
 });
 const said = (t: TroutVM) => troutWords(t).filter((x) => x !== null).map((x) => x!.text);
 

@@ -25,10 +25,11 @@ import { LIGHT } from "../theme";
 // @ts-expect-error — a plain .mjs module of the node tools (no declaration file)
 import { IN_PAGE, blockOf, cardGroups, rowOf, troutShown } from "../../../../tools/regs-web/rows.mjs";
 import vedder1010 from "./fixtures/vedder_1010.json";
+import { TEST_TROUT_SOURCES } from "./testing/sources";
 
 afterEach(cleanup);
 
-const mount = (f: unknown) => render(<KeepTab keep={(f as RegsPage).keep as KeepVM} dateLabel="Oct 10" palette={LIGHT}
+const mount = (f: unknown) => render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={(f as RegsPage).keep as KeepVM} dateLabel="Oct 10" palette={LIGHT}
                                               actions={{ onSheet() {}, onDay() {}, onTab() {}, onBook() {} }} />).container;
 const picsOf = (row: Element) => [...row.querySelectorAll("[data-testid^='pic:']")].map((p) => p.getAttribute("data-testid"));
 
@@ -48,7 +49,7 @@ function table(name: string) {
   const [month, day] = c.day.split("-").map(Number) as [number, number];
   const vm = troutOf({ trout: c.frame, rules: { has: () => true }, frames: { rows: { rows: { length: 1e6 } } } } as unknown as RegsInputs, { month, day }, { month, day });
   if (vm?.kind !== "table") throw new Error(name);
-  return render(<TroutCard t={vm} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onTab() {}, onBook() {} }} />).container;
+  return render(<TroutCard t={vm} sources={TEST_TROUT_SOURCES} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onTab() {}, onBook() {} }} />).container;
 }
 const tid = (e: Element | null) => e?.getAttribute("data-testid") ?? null;
 

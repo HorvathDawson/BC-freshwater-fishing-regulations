@@ -7,7 +7,7 @@ import { useState, type ReactNode } from "react";
 import { Image, PixelRatio, View, useWindowDimensions } from "react-native";
 import { Text } from "../Text";
 import Svg, { Circle, Path } from "react-native-svg";
-import { GLANCE_WORDS, SALMON_ISSUE_WORDS, WORDS, daylightOffsets, timedLineText, type BannerVM, type DaylightAt, type GlanceRowVM, type CaveatVM, type InheritedVM, type OtherFishKeyVM, type OtherFishRowVM, type PossessionVM, type WhereNotVM } from "@app/core";
+import { GLANCE_WORDS, SALMON_ISSUE_WORDS, WORDS, daylightOffsets, lineSourcesOf, timedLineText, type BannerVM, type DaylightAt, type GlanceRowVM, type CaveatVM, type InheritedVM, type OtherFishKeyVM, type OtherFishRowVM, type PossessionVM, type WhereNotVM } from "@app/core";
 import { Icon } from "../icons";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
@@ -15,6 +15,7 @@ import { LineText, TermText, type KeepActions } from "./LineText";
 import { RegsPress } from "./RegsPress";
 import type { FishImages } from "./types";
 import { useCoachTarget } from "../CoachMarks";
+import { SourceRow } from "../SourceRow";
 
 /** (T40) a full-width press row at least 44 tall (`minHeight: 44`): its known box */
 const ROW = { w: 44, h: 44 } as const;
@@ -35,12 +36,12 @@ export function ClosedBanner({ banner, palette, actions }: { banner: BannerVM; p
       {banner.big.map((b, i) => <Text key={i} testID="st:closed" style={[TYPE.lead, { color: tone }]}>{b}</Text>)}
       {banner.paras.map((p, i) => <Text key={i} style={[TYPE.regsBody, { color: palette.ink, marginVertical: 4 }]}>{p}</Text>)}
       {banner.chain.map((c, i) => (
-        <View key={i} style={{ minHeight: 44, flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 8, borderTopWidth: 1, borderTopColor: palette.line }}>
-          <Text style={[TYPE.regsBody, { color: palette.ink, flexShrink: 1 }]}>{c.text} <Text style={[TYPE.meta, { color: palette.sub }]}>{c.scope}</Text></Text>
-          <RegsPress accessibilityRole="button" onPress={() => actions.onSheet(`rule:${c.rule}`)} box={{ w: 44, h: 32 }} style={{ minHeight: 32, justifyContent: "center" }}>
-            <Text testID="chip:source" style={[TYPE.metaBold, { color: palette.sub, backgroundColor: palette.tint, paddingVertical: 3, paddingHorizontal: 8 }]}>{WORDS.SOURCE}</Text>
-          </RegsPress>
-          <LineText line={c.book} style={TYPE.metaBold} color={palette.accent} palette={palette} actions={actions} />
+        <View key={i} style={{ minHeight: 44, paddingTop: 8, borderTopWidth: 1, borderTopColor: palette.line }}>
+          <Text style={[TYPE.regsBody, { color: palette.ink }]}>{c.text} <Text style={[TYPE.meta, { color: palette.sub }]}>{c.scope}</Text></Text>
+          {/* (T1031 item 3) the closure's pages (or its local authority's page, T981) then "Who says so ›" (its rule's sheet),
+              as the one Source line, where a boxed "SOURCE" chip opened the rule beside the bare links */}
+          <SourceRow vm={lineSourcesOf(c.book, c.text, `rule:${c.rule}`)} palette={palette} onBook={actions.onBook} onSheet={actions.onSheet}
+                     testID="closed-source" sheetTestID="chip:source" />
         </View>
       ))}
       {banner.reopen && (

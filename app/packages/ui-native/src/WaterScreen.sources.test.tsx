@@ -2,7 +2,7 @@
  * (T991 round 3, #63 review) THE SOURCE ROW CITES EXACTLY WHAT THE SCREEN CITES — a probe over the fixture release, through
  * the water screen's own wiring: for several waters, parts and days (one a day only salmon may be fished, when Gear and
  * Methods draw the day's gear "if fished", not `page.gear`), every fold opened, the set of synopsis pages the row links equals
- * the set of pages the drawn tabs link ("Rule book page N"), plus the water's own rule-book row (T474), marked "this water".
+ * the set of pages the drawn tabs link ("B.C. Synopsis page N"), plus the water's own rule-book row (T474), marked "this water".
  * The review found both ways wrong: pages lost on salmon-only days, and pages listed that nothing on the screen cites.
  */
 import { afterEach, describe, expect, it } from "vitest";
@@ -21,6 +21,7 @@ import { LicenceTab } from "./regs/LicenceTab";
 import vedder1010 from "./regs/fixtures/vedder_1010.json";
 import glenn615 from "./regs/fixtures/glenn_615.json";
 import { LIGHT } from "./theme";
+import { TEST_TROUT_SOURCES } from "./regs/testing/sources";
 
 afterEach(cleanup);
 const LOADED = { timeout: 20_000 } as const;
@@ -61,8 +62,10 @@ const pagesOf = (els: Element[], re: RegExp) =>
 function probe() {
   const content = screen.getByTestId("regs-content"), row = screen.getByTestId("regs-sources");
   openFolds(content);
-  const links = [...content.querySelectorAll("[role=link]")];
-  const drawn = new Set(pagesOf(links.filter((e) => !row.contains(e)), /^Rule book page (\d+), opens the PDF$/));
+  // (#69 review) the pages the screen DRAWS: rule text's links and the blocks' own lines — never a Source line counting
+  // itself in (the trout table's line is drawn from the table, so its links are not evidence of what the table says)
+  const links = [...content.querySelectorAll("[role=link]")].filter((e) => !e.closest("[data-testid=trout-source]"));
+  const drawn = new Set(pagesOf(links.filter((e) => !row.contains(e)), /^B\.C\. Synopsis page (\d+),/));
   const inRow = [...row.querySelectorAll("[role=link]")];
   const listed = pagesOf(inRow, /^B\.C\. Synopsis page (\d+),/);
   const own = pagesOf(inRow, /^B\.C\. Synopsis page (\d+), this water's own entry/);
@@ -96,6 +99,28 @@ describe("the Regulations Source row cites exactly what the drawn screen cites (
 });
 
 /**
+ * (T1031 item 3) THE TROUT TABLE'S SOURCE LINE, WIRED FOR REAL: WaterScreen computes it (`troutSourcesOf`) beside the foot
+ * row, RegsScreen hands it to KeepTab, KeepTab to the card. (#69 review) It cites what the table draws — no page: on the
+ * Vedder (the fixture release, Oct 10) its every-rule sheet holds p.6 (the province's steelhead quota and record duty), which
+ * the table never says, so neither the table's line nor the foot row lists p.6 — "Who says so ›" opens the sheet.
+ */
+describe("the trout table's Source line on a real page (T1031 item 3)", () => {
+  it("the Vedder's table: Who says so › alone, opening src:trout; the foot row cites no page the screen does not draw", async () => {
+    const loader = openRegsFixture();
+    render(<WaterScreen source={makeReleaseSource(loader)} item={"gnis:3062" as ItemId} palette={LIGHT} part={0}
+                        loader={loader} day={new Date(2026, 9, 10, 12)} />);
+    await waitFor(() => expect(screen.getByTestId("keep-tab")).toBeTruthy(), LOADED);
+    openFolds(screen.getByTestId("regs-content"));
+    const line = await waitFor(() => screen.getByTestId("trout-source"), LOADED);
+    expect([line.textContent, screen.getByTestId("trout-sources").getAttribute("aria-label")])
+      .toEqual(["SourceWho says so ›", "Who says so: the rules behind Trout and char"]);
+    const p = probe();
+    expect(p.listed).toEqual(p.expected);
+    expect(p.listed.includes(6)).toBe(false);
+  }, 40_000);
+});
+
+/**
  * A DAY ONLY SALMON MAY BE FISHED (the review's gnis:2308 Jan–Jun, gnis:27804, gnis:10061 Apr–Sep): game fish closed, salmon
  * open, so Gear / Methods draw the day's gear "if fished" (`gearTabsFor`), never `page.gear`. The fixture release has no
  * such day (every closed-to-game-fish part there is closed to all fishing, salmon too: T796), so the day is built as
@@ -107,10 +132,10 @@ describe("a day only salmon may be fished: the row cites the Gear drawn, not the
     const page = { ...closedDay, gear: { ...closedDay.gear!, closed: "Closed to fishing for game fish" } } as RegsPage;
     const tabs = gearTabsFor(page, { gear: open.gear, methods: open.methods }, { status: "open" } as never, null);
     expect(tabs.gear).toBe(open.gear);
-    const sources = regsSourcesOf(drawnRegsOf(page, tabs, page.licence), { waterPages: [], inSeason: false, dfo: false,
+    const sources = regsSourcesOf(drawnRegsOf(page, tabs, page.licence, []), { waterPages: [], inSeason: false, dfo: false,
       rules: { get: () => { throw new Error("no rule index: a frozen page"); }, has: () => false, byKey: () => null } });
     render(<WaterFrame palette={LIGHT} face="regulations">
-             <RegsScreen page={page} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} } as never} onDate={() => {}} sources={sources}
+             <RegsScreen troutSources={TEST_TROUT_SOURCES} page={page} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} } as never} onDate={() => {}} sources={sources}
                          gear={(a) => <GearTab vm={tabs.gear!} palette={LIGHT} actions={a} salmonGear={tabs.salmonGear} />}
                          methods={(a) => <MethodsTab vm={tabs.methods!} palette={LIGHT} actions={a} boats={page.boats} />}
                          licence={page.licence ? (a) => <LicenceTab vm={page.licence!} who={page.who} palette={LIGHT} actions={a} onWho={() => {}} /> : undefined} />

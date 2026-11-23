@@ -13,6 +13,10 @@ with the default Claude uses until you answer). Newest first inside each section
 - **Look (you): T1039 gauge page after-shots** — the app's own chart on the gauge page (72 h / Year, Flow / Level, zoom, every model): `handoff/PLAN/app-integration/T1039-shots/after-page-chilliwack-desktop.png`, `after-page-chilliwack-phone-390.png`, `after-page-chilliwack-year-desktop.png`, and Two Forty Creek with ELF offered `after-page-two-forty-elf-desktop.png` / `after-page-two-forty-elf-phone-390.png` (before: `before-*`). Shows on staging after the feeds worker deploy and the 0.9.0 staging site build.
 - Pick: T1039 gauge page chart (Q183) — answered 2026-11-23, verbatim: chart "App's chart, ~260 KB (Recommended)"; ELF "Yes, fix in 0.9.0 (Recommended)". Closed; lane L25 builds both.
 
+## 2026-11-23 ~10:50: T1031 inline sources (answers, verbatim)
+- T1031 inline look: "Yes, as built (Recommended)" — the one Source line (`T1031-shots/inline-*`), kept as built (PR #69).
+- T1031 the book's name: "'B.C. Synopsis' everywhere (Recommended)" — a rule's in-sentence link reads "B.C. Synopsis p.N ↗",
+  the salmon rows' place label too; built through `core/src/sourceNames.ts` (PR #69).
 ## 2026-11-23: lane L18 (0.9.0 batch) — one look
 - Look: T997 round 2, only the lit part's two ends — answered 2026-11-23 ~10:30, Whole river: "Keep the two labels (Recommended)". Closed.
 

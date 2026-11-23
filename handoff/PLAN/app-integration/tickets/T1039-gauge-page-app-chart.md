@@ -1,6 +1,6 @@
 # T1039 — The public gauge page draws the web app's own chart (same data, windows, zoom, every forecast model)
 
-Status: IN REVIEW — 9f8603f17 (ELF facts), 44af0d16f (the app's chart on the page); owner: OWNER-TODO "Look (you): T1039 gauge page after-shots". Shows on staging after the STAGING feeds worker deploy (ELF facts) and the 0.9.0 staging site build (the chart).
+Status: IN REVIEW — 9f8603f17 (ELF facts), 44af0d16f + 1b983b5ad (the app's chart on the page; the hook file came in the second); owner: OWNER-TODO "Look (you): T1039 gauge page after-shots". Shows on staging after the STAGING feeds worker deploy (ELF facts) and the 0.9.0 staging site build (the chart).
 
 Source: owner 2026-11-23, verbatim: "the gauge website in 9.0.0 should also have the same chart as the website. right
 now it is only a lower resolution 7 day chart with no forecast?"

@@ -109,7 +109,7 @@ def wt(tmp_path, monkeypatch, request):
     _git(repo, "commit", "-qm", "base")
     monkeypatch.setattr(P, "REPO", repo)
     monkeypatch.setattr(P, "check", lambda ps, _s: [p.update(check={"cheap": True, "rules": {}}) for p in ps])
-    monkeypatch.setattr(P, "side_ready", lambda p: False)
+    monkeypatch.setattr(P, "side_ready", lambda p, *a, **k: False)
     monkeypatch.setattr(P.Sources, "live", classmethod(lambda cls, build=None: P.Sources(
         entries_dir=cat, dfo_dir=dfo, splits_path=repo / "data/curated/splits.json", build=tmp_path / "build")))
     # the file writers' final files: temp paths, the real writers

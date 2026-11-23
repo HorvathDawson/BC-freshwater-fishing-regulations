@@ -4,6 +4,7 @@
  * slow line. The policy that decides the mode is `@app/data` net (`netMode`); these are only its words.
  */
 import { byteWords } from "./updateLog";
+import { RULE_BOOK } from "./sourceNames";
 
 /** The reader's Data setting: the app decides, always low, never low. */
 export type DataSetting = "auto" | "on" | "off";
@@ -55,7 +56,7 @@ export const NET_WORDS = Object.freeze({
   /** the rule book on a slow line: asked before it is fetched */
   pdf: {
     offer: (bytes: number, seconds: number | null) =>
-      `The rule book is ${byteWords(bytes)}${seconds === null ? "" : ` — about ${duration(seconds)} on this connection`}.`,
+      `The ${RULE_BOOK} is ${byteWords(bytes)}${seconds === null ? "" : ` — about ${duration(seconds)} on this connection`}.`,
     download: "Download it",
     cancel: "Not now",
   },

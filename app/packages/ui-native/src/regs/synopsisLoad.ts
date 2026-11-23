@@ -7,7 +7,7 @@
  * (and the press guard) is there from the first instant.
  */
 import { useSyncExternalStore } from "react";
-import type { SourceBox } from "@app/core";
+import { RULE_BOOK, type SourceBox } from "@app/core";
 
 export const SYNOPSIS_WORDS = Object.freeze({
   loading: "Loading the synopsis…",
@@ -18,9 +18,9 @@ export const SYNOPSIS_WORDS = Object.freeze({
   close: "Close",
   fallback: "Open on gov.bc.ca ›",
   /** (T354) the in-app viewer's head */
-  title: "Rule book",
+  title: RULE_BOOK,
   pageOf: (page: number, of: number) => `Page ${page} of ${of}`,
-  cantShow: "Couldn’t show the rule book here.",
+  cantShow: `Couldn’t show the ${RULE_BOOK} here.`,
 });
 
 /** How long a load runs before anything is drawn (a cached copy opens inside this). */

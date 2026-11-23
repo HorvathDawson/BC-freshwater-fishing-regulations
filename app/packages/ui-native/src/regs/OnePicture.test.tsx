@@ -86,7 +86,7 @@ describe("<SheetBody>: each fish pictured once per sheet (T868)", () => {
     cleanup();
     const b = s!.vm.blocks[0]!;
     if (b.k !== "group") throw new Error("not a group block");
-    const first = render(<SheetBlockView b={{ ...b, titled: true }} palette={LIGHT} onOpen={() => {}} />).container;
+    const first = render(<SheetBlockView b={{ ...b, titled: true }} title="Whitefish" palette={LIGHT} onOpen={() => {}} />).container;
     expect(heavy(first)).toBe(inSheet + 1);
     expect(getComputedStyle(first.querySelector("[data-testid='keep-group']")!.firstElementChild!).borderTopWidth).toBe("1.5px");
   });
