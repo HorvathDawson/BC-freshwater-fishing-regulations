@@ -263,7 +263,7 @@ export async function runBackup(src: SrcBucket, dst: DstBucket, now: Date, sourc
     const all = await backupKeys(src);
     // (T999) each personal record: named from its earlier copy (unchanged, young enough, not its refresh day), or copied
     const reuse = new Map<string, ManifestEntry>();
-    const fresh: typeof all = [], refresh: typeof all = [];
+    const fresh: typeof all = [], refresh: (typeof all[number] & { age: number })[] = [];
     const dayNo = Math.floor(now.getTime() / DAY);
     for (const k of all) {
       const kind = personalKind(k.key);
@@ -276,10 +276,13 @@ export async function runBackup(src: SrcBucket, dst: DstBucket, now: Date, sourc
       if (!mayCopy(p.gone, today, now)) { res.personalHeldBack++; continue; }
       const due = age >= 1 && (age >= REFRESH_DAYS || (await refreshSlot(k.key)) === dayNo % REFRESH_DAYS);
       reuse.set(k.key, { ...p, in: base === today ? undefined : base });
-      if (due) refresh.push(k);
+      if (due) refresh.push({ ...k, age });
     }
     // (T994 #24) the state first, then the new and changed personal records, then the ones due a fresh copy: a run that
     // meets its budget loses only personal copies, and a record due a refresh keeps its earlier copy
+    // (review) the refreshes OLDEST COPY FIRST (then by key): in key order a short budget deferred the same tail every
+    // day until its copies were 28 days old, and every snapshot naming them was whole for a day or two
+    refresh.sort((a, b) => b.age - a.age || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
     const keys = [...all.filter((k) => personalKind(k.key) === null), ...all.filter((k) => personalKind(k.key) === "never"), ...fresh, ...refresh];
     const isRefresh = new Set(refresh.map((k) => k.key));
     for (const [i, { key, size, etag }] of keys.entries()) {

@@ -79,3 +79,8 @@ and a fixed clock at once. Not proven by a user agent (the worker keeps none), h
    is a client sending too fast. Since fe477309b the app spaces every send ≥ 1.1 s and reports a gap 429 (review of #36:
    back-to-back exit records were refused at every start and the stored newest one resent).
 5. Keep as `defect`: `HTTP 404 for …/app/android/play/` (T1014 until fixed).
+
+**Built by lane L5 (PR #39: 3452aae26, dc338949b):** items 1–5 as listed. The crawler verdict is a per-kind count
+(`crawler` beside `count`), so a kind is class `crawler` only when every report of it came from one; a kind a reader also
+hit stays a defect. Accepted at review: kinds stored before this keep their old class (from their sample) until they
+age out (90 days), the 11 a916 kinds included.

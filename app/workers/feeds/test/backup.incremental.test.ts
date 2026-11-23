@@ -190,6 +190,46 @@ describe("the backup copies personal records incrementally (T999)", () => {
     }
   }, 60_000);
 
+  // (review of #39) in key order a short budget deferred the same alphabetical tail every day until its copies were 28
+  // days old; the refreshes go oldest copy first
+  it("with a short budget, the refreshes due go oldest copy first: no copied refresh is younger than a deferred one", async () => {
+    const NOW = new Date("2026-11-22T09:25:00Z");
+    const setup = async () => {
+      // 10 reports whose copy is 7 days old under keys that sort FIRST, 10 whose copy is 20 days old under keys that sort last
+      const recs = [...Array.from({ length: 10 }, (_, i) => [report(i, "2026-11-01T12:00:00Z"), 7] as const),
+                    ...Array.from({ length: 10 }, (_, i) => [report(0xf000 + i, "2026-11-02T12:00:00Z"), 20] as const)];
+      const s = liveBucket({ ...STATE, ...Object.fromEntries(recs.map(([r]) => r)) });
+      const d = backupBucket();
+      const objects: Record<string, ManifestEntry> = {};
+      for (const [[k, v], age] of recs) {
+        const base = `daily/${new Date(NOW.getTime() - age * DAY).toISOString().slice(0, 10)}/`;
+        await d.put(`${base}${k}`, v);
+        objects[k] = { size: enc(v).byteLength, sha256: sha(enc(v)), contentType: "application/json", in: base,
+                       etag: createHash("md5").update(enc(v)).digest("hex"), gone: Date.parse(JSON.parse(v).received) + RETENTION_DAYS * DAY };
+      }
+      await d.put("daily/2026-11-21/_manifest.json", JSON.stringify({ format: "backup/2", objects }));
+      s.m.set(BACKUP_STATUS_KEY, enc(JSON.stringify({ day: "2026-11-21" })));
+      return { s, d };
+    };
+    let found = false;
+    for (let budget = 20; budget < 120 && !found; budget++) {
+      const { s, d } = await setup();
+      const r = await runBackup(s, d, NOW, null, { budget, reserve: 0 });
+      if (!(r.deferred > 0 && r.deferred < 20)) continue;
+      found = true;
+      const objs = manifest(d, "daily/2026-11-22/").objects;
+      const age = (k: string) => (objs[k]!.in ? (NOW.getTime() - Date.parse(`${objs[k]!.in!.slice(6, 16)}T09:25:00Z`)) / DAY : 0);
+      const reports = Object.keys(objs).filter((k) => k.startsWith("private/reports/"));
+      const copied = reports.filter((k) => !objs[k]!.in), deferred = reports.filter((k) => objs[k]!.in);
+      expect(copied.length + deferred.length).toBe(20);
+      // every report it copied was 20 days old; the ones left still name their 7-day-old copy
+      expect(copied.every((k) => k.includes("/000000000000f00"))).toBe(true);
+      expect(copied.length).toBeGreaterThan(0);
+      expect(deferred.filter((k) => age(k) === 7)).toHaveLength(10);
+    }
+    expect(found).toBe(true);
+  });
+
   it("the prune dates an error kind from its manifest: no read of the copies themselves", async () => {
     const kinds = Object.fromEntries(Array.from({ length: 50 }, (_, i) => {
       const h = i.toString(16).padStart(16, "0");

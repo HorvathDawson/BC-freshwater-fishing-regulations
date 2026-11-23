@@ -47,7 +47,7 @@ for l in "$tmp"/links/*.list; do
   snap=$(cat "${l%.list}.snap")
   # a copy that is gone makes rclone fail: said here, and the hash check below names each one and the snapshot it was in
   rclone copy "$BK/${snap%/}" "$BK/restore-test/$stamp" --files-from-raw "$l" "${F[@]}" --transfers 16 --no-traverse \
-    || echo "FAIL rclone could not copy every record named from $snap (the check below names them)"
+    || fail "rclone could not copy every record named from $snap (the check below names them)"
 done
 rclone copy "$BK/restore-test/$stamp" "$tmp/state" "${F[@]}" --transfers 16
 python3 -I - "$tmp/state" <<'EOF' || fails=$((fails + 1))
