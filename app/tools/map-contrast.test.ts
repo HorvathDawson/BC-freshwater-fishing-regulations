@@ -26,7 +26,7 @@ import { namedFlavor } from "@protomaps/basemaps";
 import { SALMON_MAP_STATUSES, WATER_STATUSES } from "@app/core";
 import { resolveTheme, waterStatusColour } from "@app/map";
 import { salmonCasingColour, salmonStatusColour } from "@app/map/colours";
-import { CVD, DARK, LIGHT, type Palette } from "../packages/ui-native/src/theme";
+import { CVD, DARK, LIGHT, onSatellite, satelliteKeyEdge, type Palette } from "../packages/ui-native/src/theme";
 import { contrast, deltaE, lch, worstSeparation } from "./cvd";
 
 /** Encoded colours (`~` for the hash), so this file holds no colour literal for the one-palette gate (check-colours). */
@@ -146,6 +146,31 @@ describe("the legend (WCAG 1.4.11 for its swatches, 1.4.3 for its words)", () =>
         if (r < TEXT) bad.push(`legend words in ${name} ${ink} on the card ${palette.card}: ${r.toFixed(2)}`);
       }
       expect(bad).toEqual([]);
+    });
+});
+
+/**
+ * (T940, owner 2026-11-22: "Dark outline on swatch (Recommended)") THE SATELLITE KEY. The satellite set is pale (drawn on photographs),
+ * so on the light and colour-blind cards most of its swatches measure under 3:1 (WCAG 1.4.11). The key's remedy is an outline in the
+ * theme's ink round the swatch (`satelliteKeyEdge`): every swatch reaches 3:1 on its card by its own colour, or has an outline that does.
+ * (The outline is what the reader's eye measures against the card, the way a casing meets the ground on the map.)
+ */
+describe("the satellite key's swatches (WCAG 1.4.11)", () => {
+  for (const { th, palette } of THEMES)
+    it(`every swatch reaches 3:1 on the card by itself or by its outline — ${th}`, () => {
+      const sat = onSatellite(palette, th);
+      const colours = [...WATER_STATUSES.map((s) => [`status ${s}`, sat.waterStatus[s]] as const),
+                       ...SALMON_MAP_STATUSES.map((s) => [`salmon ${s}`, sat.salmon[s]] as const)];
+      const bad: string[] = [];
+      for (const [name, c] of colours) {
+        if (contrast(c, sat.card) >= NON_TEXT) continue;
+        const edge = satelliteKeyEdge(sat, c);
+        if (!edge || contrast(edge, sat.card) < NON_TEXT) bad.push(`${name} ${c} on the card ${sat.card}: no outline that reaches 3:1`);
+      }
+      expect(bad).toEqual([]);
+      // and the outline is only drawn where it is needed: a swatch at 3:1 on its card gets none
+      for (const [name, c] of colours)
+        expect([name, satelliteKeyEdge(sat, c) === undefined]).toEqual([name, contrast(c, sat.card) >= NON_TEXT]);
     });
 });
 
