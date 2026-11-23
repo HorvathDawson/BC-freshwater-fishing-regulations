@@ -138,17 +138,17 @@ describe("<RegsScreen>", () => {
     expect([onDate.mock.calls.length, screen.queryByText("Which day?")]).toEqual([1, null]);
   });
 
-  it("(T29) a tab press selects it at once and scrolls to its section top + 2 (prototype 2000); Keep scrolls to 0", () => {
+  it("(T29) a tab press selects it at once and jumps to its section top + 2 (prototype 2000, T1025: no animated pass); Keep jumps to 0", () => {
     const store = createTabStore();
     mount({ store });
-    // react-native-web's ScrollView.scrollTo is the DOM node's scroll(): smooth when animated
+    // react-native-web's ScrollView.scrollTo is the DOM node's scroll(): smooth when animated, auto (a jump) when not
     const to = vi.fn();
     (scrollEl() as unknown as { scroll: typeof to }).scroll = to;
     act(() => store.setSections({ gear: 1500, methods: 2100, methodsHeight: 400, licence: 2700 }));
     fireEvent.click(screen.getByRole("tab", { name: "Gear" }));
     expect(screen.getByRole("tab", { name: "Gear" }).getAttribute("aria-selected")).toBe("true");
     fireEvent.click(screen.getByRole("tab", { name: "What you can keep" }));
-    expect(to.mock.calls).toEqual([[{ top: 1502, left: 0, behavior: "smooth" }], [{ top: 0, left: 0, behavior: "smooth" }]]);
+    expect(to.mock.calls).toEqual([[{ top: 1502, left: 0, behavior: "auto" }], [{ top: 0, left: 0, behavior: "auto" }]]);
   });
 
   it("(T29) the tab follows the scroll: past the Gear section's top the Gear tab is selected", () => {

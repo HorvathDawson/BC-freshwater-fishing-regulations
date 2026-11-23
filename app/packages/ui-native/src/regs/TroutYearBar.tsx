@@ -33,6 +33,8 @@ export function TroutYearBar({ year, palette, todayAt = null, months = [] }: {
           <Svg {...bar.svg}>
             {rects.map((r) => r.state === "none"
               ? <Rect key={r.i} testID="trout-year-run:none" x={r.at} y={0} width={r.rw} height={H} fill={palette.line2} />
+              // (T1028) KEEP wears the salmon bar's open colour (`palette.salmon.open`, as `SalmonRect`): one "open" on both bars
+              : r.state === "keep" ? <Rect key={r.i} testID="trout-year-run:keep" x={r.at} y={0} width={r.rw} height={H} fill={palette.salmon.open} />
               : <RunRect key={r.i} x={r.at} w={r.rw} bits={BITS[r.state]} palette={palette} />)}
           </Svg>
         )}

@@ -15,13 +15,18 @@ const draw = (m: ReturnType<typeof monthVM>) => m.weeks.map((w) => w.map((c) =>
 
 describe("the range the data covers: one calendar year, cut at the release's last day when it states one", () => {
   it("no last day stated: Jan 1 to Dec 31 of today's year", () => {
-    expect(YEAR).toEqual({ year: 2026, first: "2026-01-01", last: "2026-12-31", until: null });
+    expect(YEAR).toEqual({ year: 2026, first: "2026-01-01", last: "2026-12-31", until: null, beyond: null });
   });
   it("a stated last day inside the year cuts it; one after the year or before today does not", () => {
-    expect(dayRange(NOW, "2026-11-30")).toEqual({ year: 2026, first: "2026-01-01", last: "2026-11-30", until: "2026-11-30" });
-    expect(dayRange(NOW, "2027-03-31")).toEqual({ year: 2026, first: "2026-01-01", last: "2026-12-31", until: null });
+    expect(dayRange(NOW, "2026-11-30")).toEqual({ year: 2026, first: "2026-01-01", last: "2026-11-30", until: "2026-11-30", beyond: null });
+    expect(dayRange(NOW, "2027-03-31")).toEqual({ year: 2026, first: "2026-01-01", last: "2026-12-31", until: null, beyond: "2027-03-31" });
+    // T1026: the greyed December says why, naming the synopsis's own valid-to day (not the bare "one calendar year")
+    const dec = monthVM(2026, 11, null, NOW, dayRange(NOW, "2027-03-31"));
+    expect(dec.next).toBe(false);
+    expect(dec.reason).toContain("valid to March 31, 2027");
+    expect(monthVM(2026, 11, null, NOW, YEAR).reason).toContain("one calendar year");
     // a release whose last day has passed still reads today (the menu's Data sources page says how old it is)
-    expect(dayRange(NOW, "2026-04-01")).toEqual({ year: 2026, first: "2026-01-01", last: "2026-12-31", until: null });
+    expect(dayRange(NOW, "2026-04-01")).toEqual({ year: 2026, first: "2026-01-01", last: "2026-12-31", until: null, beyond: null });
     expect(dayRange(NOW, "not a day")).toEqual(YEAR);
   });
   it("inRange: the first and last days are in, a day either side is out", () => {
