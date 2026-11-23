@@ -115,6 +115,41 @@ describe("what a card shows (cardModel)", () => {
     const none = cardModel("x", "X", null, NOW);
     expect([none.value, none.stale, none.week]).toEqual([null, true, []]);
   });
+  // (T1039, owner 2026-11-23) the page's runs are the ones the app offers (core `runOffered`): old ones too, whole
+  const D = 86_400_000;
+  const days = (from: number, n: number) => Array.from({ length: n }, (_, i) => new Date(NOW + (from + i) * D).toISOString().slice(0, 10));
+  /** a weekly ELF run issued four days before NOW (past its working-day line), 30 days ahead, flow and level */
+  const ELF = { model: "ELF", issuedAt: "2026-11-04T11:22:00", horizonDays: 30,
+                series: { at: days(-20, 50), mid: Array.from({ length: 50 }, (_, i) => 30 + i), level_mid: Array.from({ length: 50 }, (_, i) => 1 + i / 100) } };
+  it("a weekly ELF run inside the app's window stays in the facts, whole; the picture still calls it old and draws none", () => {
+    const m = cardModel("x", "X", station({ forecasts: { ELF }, change: null }), NOW);
+    expect(m.forecasts.map((r) => [r.model, r.horizonDays])).toEqual([["ELF", 30]]);
+    const pts = m.forecasts[0]!.points;
+    expect(pts[pts.length - 1]![0]).toBe(Date.parse(`${days(29, 1)[0]}T12:00:00-08:00`));      // 29 days ahead: no 10-day cut
+    expect(pts.every(([t]) => t >= m.week[m.week.length - 1]![0])).toBe(true);                  // from the last measured point on
+    expect(m.forecasts[0]!.dueBy).toBeLessThan(NOW);                                              // the page says it is "likely out of date"
+    expect([m.forecast, m.forecastOld?.model]).toEqual([null, "ELF"]);
+    expect((cardFacts(m, new Date(NOW)).forecasts as { model: string }[]).map((r) => r.model)).toEqual(["ELF"]);
+  });
+  it("every model the app offers, in the station's order; the picture keeps its first current flow run, cut at 10 days", () => {
+    const CLEVER = { model: "CLEVER", issuedAt: "2026-11-08T02:30:00", series: { at: [iso(NOW), iso(NOW + 5 * D), iso(NOW + 12 * D)], mid: [23, 30, 40] } };
+    const m = cardModel("x", "X", station({ forecasts: { ELF, CLEVER } }), NOW);
+    expect(m.forecasts.map((r) => r.model)).toEqual(["CLEVER", "ELF"]);
+    expect(m.forecasts[0]!.points.map((p) => p[1])).toEqual([23, 30, 40]);
+    expect(m.forecast?.model).toBe("CLEVER");
+    expect(m.forecast?.points.map((p) => p[1])).toEqual([23, 30]);
+  });
+  it("a level card offers the runs with a level series (ELF), never a flow-only one (CLEVER) — the app's rule", () => {
+    const lv = cardModel("x", "X", station({ now: { discharge: null, level: 1.6, at: iso(NOW - H), percentile: 0.5, parameter: "level" },
+                                             forecasts: { ELF, CLEVER: station().forecasts!.CLEVER! } }), NOW);
+    expect(lv.forecasts.map((r) => r.model)).toEqual(["ELF"]);
+    expect(lv.forecasts[0]!.points[0]![1]).toBeLessThan(2);                                        // metres, from level_mid
+    expect(lv.forecast).toBeNull();                                                                // the picture draws flow runs only
+  });
+  it("a model the station file names outside CLEVER / COFFEE / ELF is offered too, after them", () => {
+    const NEW = { ...ELF, model: "NEWMODEL", issuedAt: "2026-11-08T02:30:00" };
+    expect(cardModel("x", "X", station({ forecasts: { NEWMODEL: NEW, ELF }, change: null }), NOW).forecasts.map((r) => r.model)).toEqual(["ELF", "NEWMODEL"]);
+  });
   it("the facts file carries every word and the instants the page judges staleness by", () => {
     const f = cardFacts(cardModel("08MH001", "N", station(), NOW), new Date(NOW));
     expect(f).toMatchObject({ format: "gauge-card/1", value: "22.2 m³/s", staleAfterMs: 2 * H, at: new Date(NOW - H).toISOString(),
