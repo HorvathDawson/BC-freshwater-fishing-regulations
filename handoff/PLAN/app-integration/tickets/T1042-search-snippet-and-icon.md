@@ -13,11 +13,15 @@ qualify for a basic freshwater angling licence at the reduced fee of $1.14." and
 - `/favicon.ico` held only 16 and 32 px and was the only icon link; `/apple-touch-icon.png` was 404.
 
 ## Built (0.9.0)
-1. Description (and og:description, the same string): the name and place, then the page's own facts while they fit in 155
-   characters, a whole fact or none (`tools/seo/html.ts` `factsOf`, `descriptionOf`). Only sections that read the same on every
-   day (Other fish, Boats, Gear "Hooks:"), only what every part of the water says, no dated line, no day word (T622 G2 stays:
-   a build on another day gives the same words, or fewer when the build day has closed the water). A page with no such fact
-   says `FACTLESS_TAIL` and `budget.json` counts it (`descriptionsWithoutFacts`): shown, never silently the template.
+1. Description (and og:description, the same string): the name and place, then facts that are TRUE ON EVERY DAY OF THE YEAR, while
+   they fit in 155 characters, a whole fact or none (`tools/seo/html.ts` `factsOf`, `descriptionOf`). Owner 2026-11-23
+   ("Season windows (Recommended)", option b of `T1042-shots/live-samples.txt`): the water's open windows from its year strip
+   ("Open Jul 1–Apr 30"), the vessel rules (Boats), and the strip's marks ("fly fishing only", "bait ban") only when they hold
+   on every open day. NOT the build day's Other fish rows or Hooks line (independent review: 18 of 58 fixture waters changed
+   description over 24 days), no licence, no dated line, no day word (T622 G2). A water whose stretches have different windows
+   has no single window and keeps only what all stretches share. A page with no fact says so in whole words (never cut) and
+   `budget.json` counts it (`descriptionsWithoutFacts`): 277 of 19,766 live waters, from 448 under the first version.
+   The "Other fish" line no longer reads "Kokanee · 5 a day · · size limit" (the hint carries its own dot).
 2. `data-nosnippet` on the words every page repeats: the licence block, the Handling-fish reference and the legal footer of
    the water pane (`NO_SNIPPET`, `WaterInset noSnippet`, RegsScreen; react-native-web `dataSet`, so the prerender AND the
    app's live pane carry it: Google renders the page), and the legal lines of every hub page and the site footer (site.ts,
@@ -27,8 +31,8 @@ qualify for a basic freshwater angling licence at the reduced fee of $1.14." and
    `favicon.svg` (the art `favicon.ico` carries) and `apple-touch-icon.png` (180) from `icon.svg`, with resvg; the links go
    in the home page (`web-shell.mjs` `shellExport`), in every water page (`appDocument`) and every hub page (`favicon.ts`).
    `favicon.ico` stays.
-4. Tests, each proved by mutation (description empty / 155 limit lifted / day words allowed / licence mark removed / icon
-   sizes wrong): `tools/seo/description.test.ts`, `favicon.test.ts`, `site.test.ts`, `web-shell.test.ts`,
+4. Tests, each proved by mutation (facts from a day's rows / size-hint dot back / licence mark removed / icon sizes wrong /
+   touch icon transparent): `site.test.ts` sweeps the fixture's year for identical descriptions, and the touch icon's alpha is read: `tools/seo/description.test.ts`, `favicon.test.ts`, `site.test.ts`, `web-shell.test.ts`,
    `packages/ui-native/src/regs/RegsScreen.test.tsx`.
 
 ## Google's guidance (read 2026-11-23)
@@ -43,7 +47,7 @@ qualify for a basic freshwater angling licence at the reduced fee of $1.14." and
 ## Limits, and what is the owner's
 - Google updates the snippet and the icon only when it recrawls (days to weeks). After the production site deploy (the
   owner's), Search Console can request a recrawl of `/` and a few water pages.
-- The brief wanted "whether it's open today" in the description: T622 G2 forbids a day word (a description is made once a
+- Owner answer 2026-11-23: season windows (above). The brief wanted "whether it's open today" in the description: T622 G2 forbids a day word (a description is made once a
   release), so it is not there. The page's year-stable facts are thin: "what you can keep" (trout lines) changes with the
   build day, so it is not used. Question for the owner: accept this, or make the description from the year strip?
 - Pictures: `T1042-shots/` (descriptions before / after on the fixture waters; the 48 / 192 px icon; the 180 px touch icon).
