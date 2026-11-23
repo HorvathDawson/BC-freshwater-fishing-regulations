@@ -273,6 +273,8 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1016 | Web: a tab kept open across two releases (or a site deploy) meets 404s on pruned files / a gone chunk: say it, reload | OPEN — next release batch | | all |
 | T1017 | Two one-report defects to locate: `expression.evaluate is not a function` (web), iOS "Unable to open URL" on Runs | OPEN — next release batch | | both; item 1 after T1008 |
 | T1020 | answers_diff: 28,714 licence frames differ on `alien_closures[].rule` across the 0.8.4 → production release pair (a tool gap or a real change) | OPEN | — | T809's cutover diff run, 2026-11-22 |
+| T1021 | The CI "no hard-coded data path" gate misses every multi-segment literal (T994 finding 7; ~10 live) | OPEN | — | T994 audit finding 7, checked 2026-11-22 |
+| T1022 | Release-tooling smalls: is_app_path counts dev tooling, a memory-note reference in release.py, prod_instructions names only PRODUCTION.md, T866 inventory line numbers | IN PROGRESS — lane L13 (docs/T539-ledger-cleanup) | — | restart page "Next" item 5 (the pre-push range is T1019) |
 
 ## Next after closed testing
 
