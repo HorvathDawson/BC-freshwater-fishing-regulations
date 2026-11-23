@@ -535,6 +535,7 @@ def test_a_side_channel_carries_sc_1_and_the_main_channel_carries_nothing(tmp_pa
     side = [n("S1", "1350"), n("S2", "1100"), n("S3", "1450")]
     main = [n("M", "1250"), n("M2", "1000"), n("MS", "1000", "1350"),      # a piece carrying a main line is main
             n("C", "2300"), n("A"),                                          # a canal; an added stream (no types)
+            n("CX", "2300", "1450"),                                         # T1012: a ditch with its crossings, left its river
             n("L", "1350", kind=NodeKind.lake)]                              # never on a polygon's route
     assert [export.side_channel_flag(x) for x in side] == [{"sc": 1}] * 3
     assert [export.side_channel_flag(x) for x in main] == [{}] * len(main)

@@ -33,6 +33,7 @@ import { SPACE, type Palette } from "../theme";
 import { useCoachTarget } from "../CoachMarks";
 import { useBarFloor } from "./useBarFloor";
 import { PANE_HOLD_MS, usePaneMap, usePaneReady } from "../shell/paneReveal";
+import { arrowFocusProps } from "../arrowFocus";
 
 /** The map's own props: everything the water map does not decide. */
 export type WaterMapMapProps = Omit<ComponentProps<typeof MapScreen>,
@@ -356,7 +357,8 @@ function PartsList({ list, palette, act, tall, place }: {
       {list.open && (
         <ScrollView style={{ maxHeight: tall ? 380 : 232, flexShrink: 1, minHeight: tall ? 132 : 0, marginBottom: 10, borderTopWidth: 1, borderTopColor: palette.line,
                              borderBottomWidth: 1.5, borderBottomColor: palette.ink }}
-                    accessibilityRole="radiogroup" accessibilityLabel={list.title} testID="water-map-parts-list">
+                    accessibilityRole="radiogroup" accessibilityLabel={list.title} testID="water-map-parts-list"
+                    {...arrowFocusProps()}>
           {list.rows.map((r) => (
             <Pressable key={r.ix} onPress={() => pick(r.ix)} accessibilityRole="radio"
                        aria-checked={r.here} accessibilityLabel={r.aria} testID={`water-map-part-${r.ix}`}

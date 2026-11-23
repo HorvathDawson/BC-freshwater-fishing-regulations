@@ -1,5 +1,5 @@
-# (T749 TRIAL) R8 keep rules for Can I Fish This?, appended to android/app/proguard-rules.pro by plugins/with-no-minify.js
-# ONLY when CANIFISHTHIS_R8=1 at prebuild. Each rule names what reaches the kept code by name (reflection, JNI, a class
+# (T749, T1003) R8 keep rules for Can I Fish This?, appended to android/app/proguard-rules.pro by plugins/with-r8.js for
+# every release build (R8 is always on since T1003). Each rule names what reaches the kept code by name (reflection, JNI, a class
 # name compared as a string) and what breaks without it. The libraries' own consumer rules (expo-modules-core, expo,
 # expo-background-task, expo-task-manager, expo-notifications, expo-location, react-native-svg, react-android, the
 # MapLibre AAR, pdfiumandroid, WorkManager, Room, Gson, OkHttp) still apply; these cover what they miss.
