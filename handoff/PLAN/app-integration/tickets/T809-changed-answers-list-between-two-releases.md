@@ -1,6 +1,6 @@
 # T809 — A tool that lists every answer that changed between two releases, in plain words, as one page for the owner
 
-Status: DONE — 9c033d495, a3f9a7fb3, 0b936544f, 8bfd53567, 372bde554, 46c18af28, 8c4620fcd (the tool and its leftovers); the cutover diff run and recorded 2026-11-22 (below). One finding became T1018.
+Status: DONE — 9c033d495, a3f9a7fb3, 0b936544f, 8bfd53567, 372bde554, 46c18af28, 8c4620fcd (the tool and its leftovers); the cutover diff run and recorded 2026-11-22 (below). One finding became T1020.
 
 Source: the trout table build spec, `handoff/PLAN/design/trout-table-build-spec-2026-11-16.md`, section 5 ticket K and
 section 7; owner 2026-11-16 15:42, asked how to start: "Start steps 1 and 2" (step 2 = this tool). Today the
@@ -88,7 +88,7 @@ section), same atlas (section handles match by id), via `scripts/heavy.sh` lane 
   That is the book's Lost Lagoon rule arriving in the data, not a cutover effect.
 - The other 28,714 sections (314 waters, 26,921 unnamed stretches) are ONE group, "other", the licence frame:
   `alien_closures[0].rule` differs on both sides (before and after read the same on the page: both print no licence
-  line). The tool names the field path but cannot say if it is a ref it did not resolve or a real change: T1018.
+  line). The tool names the field path but cannot say if it is a ref it did not resolve or a real change: T1020.
 - Not one trout or char answer changed across the cutover (no closes / opens / limits groups on trout rows other than
   Lost Lagoon's): the table reads as the old card did. Output kept in the lane's scratchpad only (diff.json, diff.txt,
   owner.md; not committed: 3 GB-class decode, reproducible with the command above).

@@ -1,6 +1,6 @@
 # T539 — Ledger guard checks that IN REVIEW can close; state lives in one place
 
-Status: DONE — 7323ce649, 1e85668d8 (NO_STEP_YET drained to zero and the allowance removed; the restart page's owner section is a pointer to OWNER-TODO and the README's owner questions) (Earlier status: PARTIAL — 7323ce649; left (Claude): drain NO_STEP_YET (62 older IN REVIEW / PARTIAL rows) and move the restart page's owner-waiting sections to OWNER-TODO (see "Built" below).)
+Status: DONE — 7323ce649, 6e719c8ce (NO_STEP_YET drained to zero and the allowance removed; the restart page's owner section is a pointer to OWNER-TODO and the README's owner questions) (Earlier status: PARTIAL — 7323ce649; left (Claude): drain NO_STEP_YET (62 older IN REVIEW / PARTIAL rows) and move the restart page's owner-waiting sections to OWNER-TODO (see "Built" below).)
 
 Source: workflow review 2026-11-09 (verified against the files). Rank 7.
 

@@ -272,7 +272,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1015 | Google's renderer runs the web app on cached old releases: does the indexed page show the app's boot error? | OPEN — next release batch | | Search Console rendered-page check, then the fallback if needed |
 | T1016 | Web: a tab kept open across two releases (or a site deploy) meets 404s on pruned files / a gone chunk: say it, reload | OPEN — next release batch | | all |
 | T1017 | Two one-report defects to locate: `expression.evaluate is not a function` (web), iOS "Unable to open URL" on Runs | OPEN — next release batch | | both; item 1 after T1008 |
-| T1018 | answers_diff: 28,714 licence frames differ on `alien_closures[].rule` across the 0.8.4 → production release pair (a tool gap or a real change) | OPEN | — | T809's cutover diff run, 2026-11-22 |
+| T1020 | answers_diff: 28,714 licence frames differ on `alien_closures[].rule` across the 0.8.4 → production release pair (a tool gap or a real change) | OPEN | — | T809's cutover diff run, 2026-11-22 |
 
 ## Next after closed testing
 
