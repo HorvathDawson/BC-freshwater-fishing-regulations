@@ -4,6 +4,8 @@
 #   deploy/staging/restore-test.sh [YYYY-MM-DD]     (default: the newest daily/ snapshot)
 #
 # 1. R2 state   daily/<day>/ → r2 backup restore-test/<stamp>/ (server-side; 1-day lifecycle) → local scratch dir;
+#               (T999) plus every record the manifest names from an earlier snapshot (`in`: an unchanged report or error
+#               kind is not copied again), fetched from that snapshot; a link whose copy is gone FAILS, named;
 #               every object's sha256 == daily/<day>/_manifest.json; then how many still equal the LIVE bucket
 #               (the feeds keep writing, so a later change is expected and only reported)
 # 2. curated    the newest curated/*.tar.gz → its .sha256, then every file inside against its MANIFEST.sha256; and how
@@ -26,17 +28,39 @@ tmp=$(mktemp -d "${TMPDIR:-/tmp}/restore-test-XXXX"); trap 'rm -rf "$tmp"' EXIT
 
 echo "== 1. R2 state: daily/$day → restore-test/$stamp/ → $tmp/state"
 rclone copy "$BK/daily/$day" "$BK/restore-test/$stamp" "${F[@]}" --transfers 16
+# (T999) the records named from earlier snapshots: one list per snapshot they live in, copied server-side beside the rest
+rclone cat "$BK/daily/$day/_manifest.json" "${F[@]}" > "$tmp/manifest.json"
+mkdir -p "$tmp/links"
+python3 -I - "$tmp/manifest.json" "$tmp/links" <<'EOF'
+import json, os, sys
+objs = json.load(open(sys.argv[1]))["objects"]
+by = {}
+for k, v in objs.items():
+    if v.get("in"): by.setdefault(v["in"], []).append(k)
+for i, (snap, keys) in enumerate(sorted(by.items())):
+    with open(os.path.join(sys.argv[2], f"{i}.list"), "w") as f: f.write("\n".join(sorted(keys)) + "\n")
+    with open(os.path.join(sys.argv[2], f"{i}.snap"), "w") as f: f.write(snap)
+print(f"info {sum(map(len, by.values()))} record(s) named from {len(by)} earlier snapshot(s)")
+EOF
+for l in "$tmp"/links/*.list; do
+  [[ -e $l ]] || break
+  snap=$(cat "${l%.list}.snap")
+  # a copy that is gone makes rclone fail: said here, and the hash check below names each one and the snapshot it was in
+  rclone copy "$BK/${snap%/}" "$BK/restore-test/$stamp" --files-from-raw "$l" "${F[@]}" --transfers 16 --no-traverse \
+    || fail "rclone could not copy every record named from $snap (the check below names them)"
+done
 rclone copy "$BK/restore-test/$stamp" "$tmp/state" "${F[@]}" --transfers 16
 python3 -I - "$tmp/state" <<'EOF' || fails=$((fails + 1))
 import hashlib, json, os, sys
 root = sys.argv[1]
 man = json.load(open(os.path.join(root, "_manifest.json")))["objects"]
-bad = [k for k, v in man.items() if not os.path.exists(os.path.join(root, k))
-       or hashlib.sha256(open(os.path.join(root, k), "rb").read()).hexdigest() != v["sha256"]]
+missing = [f"{k} (in {v.get('in') or 'this snapshot'})" for k, v in man.items() if not os.path.exists(os.path.join(root, k))]
+bad = missing + [k for k, v in man.items() if os.path.exists(os.path.join(root, k))
+       and hashlib.sha256(open(os.path.join(root, k), "rb").read()).hexdigest() != v["sha256"]]
 extra = [os.path.relpath(os.path.join(d, f), root) for d, _, fs in os.walk(root) for f in fs]
 extra = [k for k in extra if k != "_manifest.json" and k not in man]
 print(f"{'PASS' if not bad and not extra else 'FAIL'} {len(man)} objects restored, sha256 = manifest"
-      + (f"; MISMATCH {bad[:5]}" if bad else "") + (f"; NOT IN MANIFEST {extra[:5]}" if extra else ""))
+      + (f"; BROKEN LINK / MISSING {missing[:5]}" if missing else "") + (f"; MISMATCH {[b for b in bad if b not in missing][:5]}" if len(bad) > len(missing) else "") + (f"; NOT IN MANIFEST {extra[:5]}" if extra else ""))
 sys.exit(1 if bad or extra else 0)
 EOF
 # (T994 #19) ONE check, read for its counts: rclone exits non-zero when files differ (expected here: the feeds keep

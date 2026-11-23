@@ -295,11 +295,26 @@ describe("(T595) a class on each kind: defect / network / expected", () => {
     expect(c("TypeError", "Failed to fetch")).toBe("network");
     expect(c("NoSuchFileException", "/data/user/0/x/water.sqlite.part")).toBe("defect");
     expect(c("TypeError", "undefined is not an object (evaluating 'x.items')")).toBe("defect");
+    // (T1005) the triage's additions: a browser with no WebGL and our own 429 are known states; three line failures
+    expect(c("Error", "Failed to initialize WebGL")).toBe("expected");
+    expect(c("MapUnavailable", "Failed to initialize WebGL")).toBe("expected");
+    expect(c("Error", "an exit record was refused by the crash server: HTTP 429 (too many reports today)")).toBe("expected");
+    expect(c("Error", "an exit record was refused by the crash server: HTTP 429 (too many new error kinds today)")).toBe("expected");
+    // the gap's 429 is a client sending too fast, and a 429 with no words cannot be told apart: defects
+    expect(c("Error", "an exit record was refused by the crash server: HTTP 429 (too many reports; try again in a minute)")).toBe("defect");
+    expect(c("Error", "an exit record was refused by the crash server: HTTP 429")).toBe("defect");
+    expect(c("Error", "core-abc.json.gz: no whole file in 30000 ms")).toBe("network");
+    expect(c("SyntaxError", "update: JSON Parse error: Unexpected end of JSON input")).toBe("network");
+    expect(c("Error", "The source image could not be decoded")).toBe("network");
+    expect(c("SyntaxError", "Unexpected end of JSON input")).toBe("defect");        // not an update check: still a defect
+    expect(c("Error", "play/r-1/index.json: HTTP 404")).toBe("defect");             // (T1014) stays a defect until fixed
+    expect(c("Error", "HTTP 429")).toBe("defect");                                  // a 429 that is not our exit record
   });
 
   it("?class: absent = defects; all; a list; anything else refused", () => {
     expect(parseClasses(null)).toEqual(["defect"]);
-    expect(parseClasses("all")).toEqual(["defect", "network", "expected"]);
+    expect(parseClasses("all")).toEqual(["defect", "network", "expected", "crawler"]);
+    expect(parseClasses("crawler")).toEqual(["crawler"]);
     expect(parseClasses("network,expected")).toEqual(["network", "expected"]);
     expect(parseClasses("bogus")).toBeNull();
   });
@@ -317,10 +332,40 @@ describe("(T595) a class on each kind: defect / network / expected", () => {
     const def = await listCrashesCounted(BUCKET, "2000-01-01");
     expect(def.crashes.map((k) => k.sample.message)).toEqual(["undefined is not an object"]);
     expect(def.crashes[0]!.class).toBe("defect");
-    expect(def.counts).toEqual({ defect: 1, network: 1, expected: 1 });
+    expect(def.counts).toEqual({ defect: 1, network: 1, expected: 1, crawler: 0 });
     const others = await listCrashes(BUCKET, "2000-01-01", 500, false, false, ["network", "expected"]);
     expect(others.map((k) => k.class).sort()).toEqual(["expected", "network"]);
     expect([...BUCKET.m.keys()].filter((k) => !k.includes("/limits/"))).toHaveLength(3);      // all three still stored
+  });
+
+  // (T1005) one install (a916f6f81cd61f75, a crawler) sent 11 of production's 20 defect kinds: its reports are a class of
+  // their own, by the app's platform line or, from an older build, the request's User-Agent; only the verdict is stored
+  it("a kind only crawlers or automated browsers sent is class crawler; one a reader also met stays a defect; the UA is never stored", async () => {
+    const BUCKET = new MemBucket();
+    const env = { BUCKET, REPORT_SALT: SALT };
+    const send = (message: string, platform: string, ua: string, i: number) => {
+      const r = post(crash({ message, platform }), `198.51.100.${i}`);
+      r.headers.set("User-Agent", ua);
+      return handleCrash(r, env, at(`2026-11-22T20:0${i}:00Z`));
+    };
+    const GOOGLE = "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0 Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
+    expect((await send("a is not a function", "web", GOOGLE, 1)).status).toBe(201);              // an older build: by its UA
+    expect((await send("b is not a function", "web (crawler)", "Mozilla/5.0", 2)).status).toBe(201);  // the app's own verdict
+    expect((await send("c is not a function", "web (automated)", "Mozilla/5.0 HeadlessChrome", 3)).status).toBe(201);
+    expect((await send("d is not a function", "web", GOOGLE, 4)).status).toBe(201);
+    expect((await send("d is not a function", "web", "Mozilla/5.0 (iPhone)", 5)).status).toBe(201);  // a reader met it too
+    const all = await listCrashesCounted(BUCKET, "2000-01-01", 500, false, false, ["defect", "crawler"]);
+    const by = Object.fromEntries(all.crashes.map((k) => [k.sample.message, k.class]));
+    expect(by).toEqual({ "a is not a function": "crawler", "b is not a function": "crawler", "c is not a function": "crawler", "d is not a function": "defect" });
+    expect(all.counts).toEqual({ defect: 1, network: 0, expected: 0, crawler: 3 });
+    expect((await listCrashesCounted(BUCKET, "2000-01-01")).crashes.map((k) => k.sample.message)).toEqual(["d is not a function"]);
+    const stored = [...BUCKET.m.values()].join("\n");
+    expect(stored).not.toContain("Googlebot");
+    expect(stored).not.toContain("HeadlessChrome");
+    // the digest tells no crawler kind as a defect line; they are counted in the one line
+    const ev = await crashEvents(BUCKET, () => false, at("2026-11-22T21:00:00Z"), "2026-11-22T21:00:00Z");
+    expect(ev.filter((e) => e.key.startsWith("crash:")).map((e) => e.title)).toEqual([expect.stringMatching(/^TypeError: d is not a function/)]);
+    expect(ev.find((e) => e.key.startsWith("crash-other:"))!.title).toMatch(/3 crawler/);
   });
 
   it("the digest: a line per new defect, the others counted in ONE line, told once", async () => {
