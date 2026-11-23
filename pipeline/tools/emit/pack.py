@@ -113,9 +113,10 @@ export interface Manifest {{
   format: typeof MANIFEST_FORMAT;
   data_release: string;
   tiles: {{ compatible: string[]; current: TileRef | null; assets: (TileRef & {{ files_sha256?: string; pin?: string;
-                     /** (T919 c) the folder as ONE file (a gzipped tar: assets.json + every file); absent on a release
-                      *  built before it, whose folder is fetched file by file */
-                     pack?: TileRef }}) | null;
+                     /** (T919 c) the folder as ONE file (a ustar tar in a zlib stream, not gzip: assets.json + every
+                      *  file); absent on a release built before it, whose folder is fetched file by file. `unpacked`: the
+                      *  bytes its members take on disk once unpacked (the room an install needs beside the pack) */
+                     pack?: TileRef & {{ unpacked?: number }} }}) | null;
            mask: TileRef | null }};
   basemap: TileRef | null;
   /** (T215) OUR copy of the synopsis PDF (url relative to the release root, raw bytes); absent on a release built before it.

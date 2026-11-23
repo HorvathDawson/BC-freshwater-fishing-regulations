@@ -364,6 +364,35 @@ export function installBytes(m: Manifest, held: Held | null): number {
 }
 
 /**
+ * (T919 c) The room installing `m` beside `held` takes on disk (`checkRoom`): what it downloads (`installBytes`) and, when
+ * the map assets come in their pack, the folder the pack is unpacked into beside it (`pack.unpacked`: the pack itself is
+ * kept until THE SWAP, so both are on disk at once). A pack that names no unpacked size is reported and counted as none.
+ */
+export function roomBytes(m: Manifest, held: Held | null): number {
+  const w = withoutSlices(m);
+  const pack = bigFiles(w, held).some((b) => b.file === "assets") ? w.tiles.assets?.pack ?? null : null;
+  let unpacked = 0;
+  if (pack) {
+    if (typeof pack.unpacked === "number" && Number.isFinite(pack.unpacked) && pack.unpacked >= 0) unpacked = pack.unpacked;
+    else reportFailure(new Error(`[space] the assets pack ${pack.url} names no unpacked size (${String(pack.unpacked)})`));
+  }
+  return installBytes(w, held) + unpacked;
+}
+
+/**
+ * (T919 c) A PACK LEFT OVER by an install killed between THE SWAP and its remove: the held set's map assets are in their
+ * folder (the pointer names them only once they are), so the pack beside it, or a `.part` of it, is never read again.
+ * Removed at the boot that opens the set (`bootRelease`); a failed remove is the caller's to report.
+ */
+export function dropSpentPack(fs: ReleaseFs, h: Held, m: Manifest): Promise<void> {
+  return exclusively(async () => {
+    const a = m.tiles.assets, pack = a?.pack;
+    if (!a || !pack || h.assets !== a.id) return;
+    for (const p of [`release/${pack.url}`, `release/${pack.url}.part`]) if (await fs.exists(p)) await fs.remove(p);
+  });
+}
+
+/**
  * Download what `m` needs beside `held` (everything when `held` is null) and swap the pointer. `toDisk` streams the
  * tiles and their mask (a test or the web may leave it out: they are then fetched whole through `dl`). `beforeSwap`
  * runs once everything is verified, just before THE SWAP (boot records the set being replaced there, so a launch killed

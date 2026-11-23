@@ -162,11 +162,61 @@ def write_pack(folder: Path) -> Path:
     return out
 
 
+def pack_problems(folder: Path) -> list[str]:
+    """(T919 c) What is wrong with the pack beside an assets folder, against that folder's `assets.json`; [] when it is
+    the folder's. Read as the app reads it: one zlib stream, a tar of regular files, `assets.json` first and byte for
+    byte the folder's, then every file the list names in sorted order, each at its sha256, and nothing else. The tar is
+    compared, not the deflate bytes (another zlib build writes other bytes for the same members)."""
+    folder = Path(folder)
+    p = pack_path(folder)
+    if not p.is_file():
+        return [f"{p} is missing"]
+    listing = (folder / "assets.json").read_bytes()
+    files = json.loads(listing)["files"]
+    try:
+        raw = zlib.decompress(p.read_bytes())
+        with tarfile.open(fileobj=io.BytesIO(raw), mode="r:") as tar:
+            members = tar.getmembers()
+            if not all(m.isreg() for m in members):
+                return [f"{p}: holds a member that is not a regular file"]
+            got = [(m.name, tar.extractfile(m).read()) for m in members]
+    except (zlib.error, tarfile.TarError, OSError) as e:
+        return [f"{p} would not read as a zlib tar ({e})"]
+    want = ["assets.json", *sorted(files)]
+    names = [n for n, _ in got]
+    if names != want:
+        extra, missing = sorted(set(names) - set(want)), sorted(set(want) - set(names))
+        return [f"{p} is not its folder's assets.json (extra {extra[:3]}, missing {missing[:3]}"
+                + (", out of order" if not extra and not missing else "") + ")"]
+    out = []
+    if got[0][1] != listing:
+        out.append(f"{p}: its assets.json is not the folder's")
+    out += [f"{p}: {n} is not the sha256 the folder's assets.json names" for n, b in got[1:]
+            if hashlib.sha256(b).hexdigest() != files[n]]
+    return out
+
+
+def unpacked_bytes(folder: Path) -> int:
+    """(T919 c) What the pack's members take once unpacked (`assets.json` and every file it names): the room an app
+    needs for the folder beside the pack (the manifest's `tiles.assets.pack.unpacked`)."""
+    folder = Path(folder)
+    files = json.loads((folder / "assets.json").read_text())["files"]
+    return (folder / "assets.json").stat().st_size + sum((folder / rel).stat().st_size for rel in files)
+
+
 def ensure_pack(folder: Path) -> Path:
     """(T919 c) The folder's pack, written when it is missing (a tile version released before the pack existed gains it:
-    a new file beside the folder, no published byte changed). An existing pack is kept as it is: its url is published."""
+    a new file beside the folder, no published byte changed). An existing pack is kept only when it IS the folder
+    (`pack_problems`); one that is not is refused, naming what differs: its url may be published already, so it is
+    never rewritten in place by itself (delete it to have it written again)."""
     p = pack_path(folder)
-    return p if p.exists() else write_pack(folder)
+    if not p.exists():
+        return write_pack(folder)
+    bad = pack_problems(folder)
+    if bad:
+        raise SystemExit("map assets: the pack beside the folder is not the folder (delete it to write it again): "
+                         + "; ".join(bad[:5]))
+    return p
 
 
 def files_sha256(assets_json: Path) -> str:
