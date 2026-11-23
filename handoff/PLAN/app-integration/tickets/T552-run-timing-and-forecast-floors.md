@@ -1,6 +1,6 @@
 # T552 — Run timing and forecasts: floor checks, error bodies read as errors, a new NuSEDS really rebuilds, age rule for old surveys
 
-Status: PARTIAL (3cfe44e53, 0c0fc849b, f25fbedff, 1e71ff652, d52149c30, 305117089, 09553ef9d). Done: items 1, 2, 3, 6, 8 (but core staleness.ts), the pipeline half of 4, the source half of 5, the run-timing half of 7. left (Claude), not ticketed: item 4 worker half (gauges/forecast.ts query still takes `features ?? []` without an `error` check, publish.ts zero-row carry + state save), item 5 update-service `refresh` wiring and the Runs hook re-asking, item 7 review/tidal name keys (marks._norm, dfo_auto._norm, review/names.key, two tidal audit keys), item 8 staleness.ts:45 wording ('publish.py runs every 30 minutes').
+Status: PARTIAL (3cfe44e53, 0c0fc849b, f25fbedff, 1e71ff652, d52149c30, 305117089, 09553ef9d). Done: items 1, 2, 3, 6, 8 (but core staleness.ts), the pipeline half of 4, the source half of 5, the run-timing half of 7. item 4 worker half 683f2d7d2 (lane L5, 2026-11-22: below). left (Claude), not ticketed: item 5 update-service `refresh` wiring and the Runs hook re-asking, item 7 review/tidal name keys (marks._norm, dfo_auto._norm, review/names.key, two tidal audit keys), item 8 staleness.ts:45 wording ('publish.py runs every 30 minutes').
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 8 of 17; highest severity 4 of 5.
 
@@ -82,3 +82,12 @@ Depends: —. Size: M. Owner: yes (Q180).
 5+6. `d52149c30` — `httpRunTiming` re-asks hourly and never holds a null; with `handles` (wired in App.tsx from the booted manifest) a capture of the device's own atlas is not overwritten by an index bound to another. Not done: the update service's `refresh` and the Runs hook (`ui/src/runTiming.ts`, asks once per mount) re-asking.
 7. `305117089` — run-timing `name_key` = `names.key` (suffix dropped), bases re-keyed on read; live base: 4 more DFO records bind (Barriere / East Barriere), none lost; report `dfo_records_unbound` + examples. Not done: review `marks._norm`, `dfo_auto._norm`, `review/names.key`, the two tidal audit keys.
 8. `09553ef9d` — README (kept copy, refresh, floor, expect_dfo; the tracked PSF pages stated as they are) and forecast.py's series paragraph. Not done: `core/src/staleness.ts:42`. Owner: whether to untrack the three PSF pages under data/source/runtiming.
+
+## Item 4, worker half (2026-11-22, lane L5, 683f2d7d2)
+`app/workers/feeds/src/gauges/forecast.ts` `query` now throws exactly where the Python `_query` raises: an `error` key
+(`<service>: ArcGIS error <code> <message>`), a body that is not an object, a `features` that is not a list, or a first
+row lacking `Station_ID` or the model's issue column. `fetchSummary` then counts the model failed, and the gauge run
+already carries that model's last good runs and does not save a partial answer for reuse (`publish.ts`
+`forecastFailed`), so the "zero-row carry + state save" follow from the throw; nothing else changed there. An honest
+empty layer (`features: []`) is still out of season. Test: `test/forecast.errors.test.ts` (2; mutation: the error-key
+check removed fails it). Not deployed (staging deploys from this branch only after review).
