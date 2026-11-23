@@ -1,6 +1,6 @@
 # T605 — One B.C. clock: what T551 left
 
-Status: PARTIAL — items 1, 2, 5 (1aed37981) and 3, 4 (baf4720a9) built; the gauge key in the start link is not wanted (owner 2026-11-12: "Gauge link: leave, not built"). left (Claude): the start link's region (or bounds) key, so a region page's map link focuses its region (see Still open).
+Status: DONE — 1aed37981, baf4720a9 (items 1-5); the region / bounds key: a088c9cd0, 54778147e, 94bed4dbf (T1010's `?fit=w,s,e,n`, web and phone); the gauge key not wanted (owner 2026-11-12).
 
 Source: T551's report 2026-11-10 (commits d3b7f080e, e1142f148, 7af7f39e4). T551's ticket file numbers the items.
 
@@ -72,3 +72,13 @@ Still open:
 
 ## Owner 2026-11-12
 Gauge link: leave, not built (accepted as built).
+
+## Closed 2026-11-22 (lane L2): the region key is T1010's `?fit=w,s,e,n`
+- One bounds key, not a region number: the SEO build works the box out from the release (`tools/seo` `regionBox`, around the
+  middles of the parts each region's keys hold), so the app holds no region table. Read once in shared code: the web's
+  `parseStartLink` (a088c9cd0) and the phone's `parseAppLink` (94bed4dbf) both use `@app/ui` `fitOf`; a bad box, or one beside
+  a water, is refused out loud. The Shell frames the browse map through the arrival path `?show=` uses (`landOnBox`; on the
+  phone through its open request). Region, A-Z and topic pages link it (54778147e).
+- Before 94bed4dbf the phone (whose intent filter takes `/`) refused the key as unread and reported it: fixed in the same PR.
+- Tests: `startLink.test.ts`, `appLink.test.ts`, `FitStart.shell.test.tsx` (web start, phone open request, not opening at the
+  reader), `site.test.ts` (the pages' links). NOT seen on a device: the phone path is driven by the Shell test, not an emulator.
