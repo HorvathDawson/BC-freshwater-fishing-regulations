@@ -44,7 +44,8 @@ describe("T193 + T269 water pages (the app's own pane) and About", () => {
     expect(waters().length).toBeGreaterThan(20);
     for (const p of built.build.pages) expect(blockingScripts(p.html), p.path).toEqual([]);
     for (const p of hubs()) {
-      expect(p.html, p.path).not.toMatch(/<script(?![^>]*ld\+json)/);
+      // (T1010) a region hub's one script: its water search, self-hosted and deferred (the lists below work without it)
+      expect(p.html.replace(/<script src="\/assets\/region-find\.[0-9a-f]{10}\.js" defer><\/script>/, ""), p.path).not.toMatch(/<script(?![^>]*ld\+json)/);
       expect(text(p.html), p.path).toMatch(/not a legal document/i);
     }
     for (const p of waters()) {
@@ -134,7 +135,7 @@ describe("T193 + T269 water pages (the app's own pane) and About", () => {
     expect(text(pv.html)).not.toMatch(/Google issue|or Android|Google tell/);
     // (owner 2026-11-20 09:48) the page names its visit counter, so "This website" never says it runs no analytics
     expect(text(pv.html)).not.toMatch(/runs no analytics/);
-    expect(text(pv.html)).toContain("the only script is the visit counter described above");
+    expect(text(pv.html)).toContain("the scripts it runs are these: the visit counter described above");
     expect(pv.html).toMatch(/href="\/privacy"/);
     // every hub page's footer (a water page is the app's pane: the app's More menu links it)
     expect(hubs().every((p) => p.html.includes('<a href="/privacy">Privacy policy</a>'))).toBe(true);
@@ -318,11 +319,46 @@ describe("T195 hubs and dated pages", () => {
       expect([fit[0] > -140, fit[2] < -114, fit[1] > 48, fit[3] < 60.1], r.path).toEqual([true, true, true, true]);
       expect(text(r.html), r.path).toMatch(/built 2026-10-27/);
     }
+    // (T1010, option B) the region page leads with a picture of its waters (inline SVG, a text alternative), the "Open the map"
+    // link right after it, and a search over the region's names file; the picture is a build-time drawing, never an image host
+    for (const r of built.build.pages.filter((p) => p.kind === "region")) {
+      const n = Number(r.path.split("/")[2]);
+      const svg = /<svg class="dots"[^>]*>.*?<\/svg>/s.exec(r.html)?.[0];
+      expect(svg, `${r.path}: the dot picture is missing`).toBeTruthy();
+      expect(svg!, r.path).toMatch(/role="img" aria-labelledby="rm-t"><title id="rm-t">[^<]*Region \d+[^<]*<\/title>/);
+      expect((svg!.match(/h0/g) ?? []).length, r.path).toBeGreaterThan(0);
+      expect(r.html.indexOf("<svg class=\"dots\""), r.path).toBeLessThan(r.html.indexOf(`>Open the map of ${regionLabel(n)}<`));
+      expect(r.html.indexOf(`>Open the map of ${regionLabel(n)}<`), r.path).toBeLessThan(r.html.indexOf("<h2>"));
+      expect(r.html, r.path).not.toMatch(/<img |https?:\/\/[^"' ]*(tile|mapbox|googleapis|openstreetmap)/i);
+      const names = /data-names="([^"]+)"/.exec(r.html)?.[1];
+      expect(names, `${r.path}: the search is missing`).toMatch(/^\/assets\/region-\d+\.[0-9a-f]{10}\.json$/);
+      const list = JSON.parse(built.files.get(names!.slice(1))!) as [string, string][];
+      const inR = built.build.models.filter((m) => m.regions.includes(n)).length;
+      expect(inR, `${r.path}: no waters to count`).toBeGreaterThan(0);
+      expect(list.length, r.path).toBe(inR);
+      expect(list.every(([nm, p]) => nm && p.startsWith("/water/")), r.path).toBe(true);
+      expect(built.files.get(/<script src="\/(assets\/region-find\.[0-9a-f]{10}\.js)" defer>/.exec(r.html)?.[1] ?? "none"), r.path).toContain("form[data-names]");
+      // the crawlable lists stay: every water or its letters, and the topics
+      expect(r.html, r.path).toMatch(/<a href="\/region\/\d+\/(waters-|steelhead|trout|closed|bait-ban|boat)|<a href="\/water\//);
+    }
     // (T1010) its letter and topic pages open the map on the same region
     for (const p of built.build.pages.filter((x) => (x.kind === "letter" || x.kind === "topic") && /^\/region\/\d+\//.test(x.path))) {
       const n = Number(p.path.split("/")[2]);
       expect(/<a class="app" href="([^"]+)">/.exec(p.html)?.[1]?.replace(/&amp;/g, "&"), p.path).toBe(`${site.origin}/${fitQuery(regionBox(built.build.models, n)!)}`);
     }
+  });
+
+  it("(T1010) the privacy page names every script the site ships", () => {
+    const pv = text(built.build.pages.find((p) => p.path === "/privacy")!.html);
+    // a script's published name (`/assets/<name>.<hash>.js`) and the words the policy must carry for it
+    const NAMED: Record<string, RegExp> = { gauge: /river gauge page[^.]*own script/i, join: /Join the test/i, "region-find": /region page[^.]*water search/i };
+    const shipped = new Set<string>();
+    for (const p of built.build.pages) for (const m of p.html.matchAll(/<script src="\/assets\/([a-z-]+)\.[0-9a-f]+\.js"/g)) shipped.add(m[1]!);
+    // (the fixture has no gauges: its pages ship the region search only) every script shipped is one the policy names
+    expect([...shipped].filter((k) => !(k in NAMED)), "a script the site ships that the privacy page does not name: add it there and here").toEqual([]);
+    expect(shipped.has("region-find")).toBe(true);
+    for (const [k, re] of Object.entries(NAMED)) expect(pv, k).toMatch(re);
+    expect(pv).not.toMatch(/the only script is/i);
   });
 
   it("(T622 G2) a water's description and share picture carry no day-relative word: the build day's answer is not published", async () => {
