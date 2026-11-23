@@ -1,6 +1,6 @@
 # T1043 — Capilano at Canyon still shows no Level in the app (0.8.6), though the Water Office page has it
 
-Status: DONE 88648625f (lane L28, branch `fix/T1043-capilano-level`; app-only, ships in the next app build).
+Status: PARTIAL — 88648625f (Level offered), eb4591227 (axis labels); left (Claude): item 2 below, the estimate's words under Level, waits on a wording pick (lane L28, branch `fix/T1043-capilano-level`; app-only).
 
 Source: owner 2026-11-23 (verbatim): "i still dont know why 0.8.6 capilano at canyon gauge doesnt have level like website
 does here (https://wateroffice.ec.gc.ca/report/real_time_e.html?stn=08GA031) add as ticket".
@@ -59,11 +59,21 @@ again; other-datum: no switch).
 - `after-web-capilano-level.png`, `after-web-capilano-level-top.png`: Level picked: "0.59 m", "Too new to say if this is
   high or low.", the 72 h level line with no band. (Local dev fonts did not load, so the type face differs from the app.)
 
-## Seen, not fixed here
-- Under Level the chart's axis ticks repeat ("0.59 0.59 0.6 0.6"): ticks are written with `figure` (T830 kept them so)
-  and Capilano's level moves only ~0.01 m in 72 h. A follow-up if the owner wants it.
-- Under Level the "Estimate for this spot" block above the card still speaks of flow (it is ranked on flow; nothing
-  ranks Capilano's level). Unchanged by this fix.
+## Follow-ups in this ticket (coordinator 2026-11-23: fix both here, no new number)
+
+1. **Axis labels repeated under Level** ("0.59 0.59 0.6 0.6"). Cause: `niceTicks` stepped 0.005 m for a line moving
+   0.01 m, finer than the label writes (`hydrograph.ts` `fmt`: two decimals under 10). Fixed, eb4591227: a linear axis spans
+   at least four of the label's finest steps (`minSpan`: 0.01 under 10, 0.1 under 100, 1 under 1,000, 100 above),
+   widened about the middle and never below 0. One rule for every station and both quantities; an axis that already reads
+   apart is left alone. Capilano now reads 0.58 · 0.59 · 0.6 · 0.61 (`T1043-shots/after-web-capilano-level-axis.png`).
+   Tests: `hydrograph.test.ts` "(T1043) no two gridlines carry the same label" (Capilano's real 72 h level; a lake at 340 m
+   moving 3 cm; 1.8 m³/s; ~1,000 m³/s; a line crossing 10); mutation: drop the `minSpan` call -> 2 fail.
+   The public gauge page (`tools/seo/gaugeClient.ts`) draws its own axis with `figure` labels and was not changed.
+2. **"Estimate for this spot" speaks of flow while Level is picked.** Not built: it needs a wording pick.
+   Following the pick is ruled out: owner 2026-11-10 "Flow leads, Level auxiliary", applied in T971 (2a2aa0e75): the
+   estimate is the lead's, in Flow, whatever the card shows (`ui/panel/conditions.ts` `estimateQuantity`). No existing
+   words say the estimate is flow-based; the nearest is core `standingRankedIn` ("… (ranked on flow)"), written for a
+   gauge reading. Options are in the lane report; shot: `T1043-shots/after-web-capilano-level-top.png`.
 
 ## Not verified
 - Not run on an Android or iOS build (web only; the code path is shared `ui` + `ui-native`).
