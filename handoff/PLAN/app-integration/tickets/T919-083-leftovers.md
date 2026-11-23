@@ -1,6 +1,6 @@
 # T919 — 0.8.3 leftovers
 
-Status: PARTIAL — (a), (b) DONE 2026-11-19 (30e052328, landed at d28344298); (c) bbab1fce1 and (d) a4eb6110c built 2026-11-22 (lane L9). left (Claude): the device checks below (a first install from the 0.9.0 data release, which is the first to carry the pack; a cut data file resuming on the bg-update bench).
+Status: PARTIAL — (a), (b) DONE 2026-11-19 (30e052328, landed at d28344298); (c) bbab1fce1 and (d) a4eb6110c built 2026-11-22 (lane L9); review fixes 984b1bf8f (release check + ensure_pack hold the pack to its folder, `pack.unpacked` counted by checkRoom, a spent pack removed at boot, the no-fallback rule pinned). left (Claude): the device checks below (a first install from the 0.9.0 data release, which is the first to carry the pack; a cut data file resuming on the bg-update bench).
 
 Small finds that did not block 0.8.3. Batch them into the next release.
 
