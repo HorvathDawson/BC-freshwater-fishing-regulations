@@ -11,7 +11,8 @@ from pathlib import Path
 import pytest
 
 from pipeline.common.curated import load_repo
-from pipeline.tests.conftest import curated_root
+from pipeline.tests import under_test
+from pipeline.tests.conftest import curated_root, one_vintage
 
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
@@ -22,7 +23,9 @@ COWICHAN = "gnis:12227"
 TRESTLE = "cowichan_river__greendale_trestle"
 # The feed and the matches file are temp; the waters they name (Cowichan, its trestle cut) are checked against the
 # default build's registry and splits (`inseason._check`, `reuse._registry`).
-pytestmark = pytest.mark.needs_atlas
+#: (T1001) needs_bundle: the resolution is made on the release under test (`under_test.release`, RELEASE_DIR or LATEST),
+#: and the module FAILS with both vintages named when the served atlas is not that release's (`conftest.one_vintage`)
+pytestmark = [pytest.mark.needs_atlas, pytest.mark.needs_bundle]
 
 LIVE, OPEN, GONE, STALE = "is-aaaaaaaaaaa1", "is-aaaaaaaaaaa2", "is-aaaaaaaaaaa3", "is-aaaaaaaaaaa9"
 
@@ -54,7 +57,10 @@ def _stamps(root: Path) -> dict[str, str]:
 
 
 @pytest.fixture(scope="module")
-def env(tmp_path_factory):
+def env(request, tmp_path_factory):
+    from pipeline.regs.inseason import resolve as R
+    release = under_test.release(request)
+    one_vintage(under_test.atlas(request), release)
     tmp = tmp_path_factory.mktemp("inseason")
     (tmp / "feed.json").write_text(json.dumps(FEED))
     (tmp / "matches.json").write_text(json.dumps(MATCHES))
@@ -65,6 +71,8 @@ def env(tmp_path_factory):
     from pipeline.regs.inseason import matches as _M
     mp.setattr(_M, "default_path", lambda: tmp / "matches.json")
     mp.setattr(_M, "resolved_path", lambda: tmp / "resolved.json")       # (T679 #11) the generated resolution
+    mp.setattr(R, "release_dir", lambda arg=None: Path(arg) if arg else release)   # (T1001) the release under test
+    mp.setenv("CURATION_BUILD", str(under_test.atlas(request)))                     # ...served from the atlas under test
     curated_root(mp, tmp / "curated")                         # T422: the whole curated tree is a temp copy
     mp.setenv("CURATION_BACKUP_DIR", str(tmp / "backups"))
     mp.syspath_prepend(str(BACKEND))
