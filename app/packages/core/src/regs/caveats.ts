@@ -167,7 +167,7 @@ export function partClosedOf(s: Settled, inp: RegsInputs, today: Day): CaveatVM 
   const shut = s.inpart.filter((x) => closedGate(x.rule));
   if (!shut.length) return null;
   const noun = pageWaterNoun(inp), now = shut.filter((x) => x.now), later = shut.filter((x) => !x.now);
-  const when = dayPhrase(s.day, today);
+  const when = dayPhrase(s.day, today, inp.calendarYear);
   return {
     kind: "partclosed", hot: now.length > 0,
     title: now.length ? WORDS.PART_CLOSED_NOW(noun, when) : WORDS.PART_CLOSED_LATER(noun),

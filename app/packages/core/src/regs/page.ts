@@ -20,11 +20,11 @@ import { keepOf } from "./keep";
 import { buildLicence } from "./licence";
 import type { SalmonStripVM } from "../salmon";
 import type { Day, RegsPage, Who } from "./model";
+import { isTodayOf } from "./strip";
 import { makePlace } from "./place";
 import { settle } from "./settle";
 import { sheetOf } from "./sheets";
 import type { SheetKey } from "./sheetKey";
-import { sameDay } from "../day";
 
 export interface RegsPageOpts {
   readonly today: Day; readonly who: Who;
@@ -62,7 +62,7 @@ export function buildRegsPage(inp: RegsInputs, opts: RegsPageOpts): RegsPage {
   const methods = gctx && buildMethods(inp, gctx);
   const page: Omit<RegsPage, "sheet"> = {
     version: "regs-v38",
-    target: inp.target, day: inp.day, weekday: inp.weekday, today: sameDay(inp.day, opts.today), who: opts.who,
+    target: inp.target, day: inp.day, weekday: inp.weekday, today: isTodayOf(inp, opts.today), who: opts.who,
     status,
     header: headerOf(inp, { today: opts.today, status, downstream: opts.downstream ?? null, names: opts.names ?? null }),
     boats: boatsLine(inp),

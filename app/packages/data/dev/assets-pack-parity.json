@@ -1,0 +1,12 @@
+{
+ "_about": "(T919 c) THE MAP ASSETS PACK, both sides: pipeline/deliver/tiles/assets.py `write_pack` packs `folder` (its list: `assets_json`) into `pack` (base64; compared decompressed, so a zlib that compresses differently still passes), and the app's assets.ts `unpackAssets` reads it back. Pinned by pipeline/tests/test_tiles.py and app/tools/assets-pack.test.ts. Remade by hand: write `folder` + `assets_json` to a map-assets-1/ folder, `write_pack` it, base64 the file.",
+ "folder": {
+  "fonts/Noto Sans Regular/0-255.pbf": "glyphs 0-255",
+  "fonts/Noto Sans Regular/256-511.pbf": "",
+  "sprites/v4/light.json": "{\"a\": 1}",
+  "sprites/v4/light@2x.png": "png bytes é"
+ },
+ "assets_json": "{\n\"files\": {\n\"fonts/Noto Sans Regular/0-255.pbf\": \"8abd55618aaa91b6d888fef604db7c93b2e3cd2399c5e2c725c348dba3d79063\",\n\"fonts/Noto Sans Regular/256-511.pbf\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n\"sprites/v4/light.json\": \"f9d86028c6e0d64e225186f96acb69338b2c59764df79162107f5c4bb34d1310\",\n\"sprites/v4/light@2x.png\": \"aec45ca9a53398663d21013726f061c0dfbbc183f2e7296c6e46dabfb0a1110a\"\n},\n\"id\": \"map-assets-1\",\n\"pin\": \"p\"\n}\n",
+ "files_sha256": "8406b0170318d905d60ecacb99e417948769761b1d0eb7447268687327f76a8f",
+ "pack": "eNrt182O0zAQB/Ce+xRRzrT12OOxzYkn4ABP4M9uUGmjOotYoX0gnoMXw4kEQtUikNDmwM7vEquKZlI5f3fqa81T3X+ol/PmuYiGEJdrc3sVRsif6+VzEICw6cRmBfd18tfWfvMyfdn2ZTjl2r/u5uXlPNXD28t06d77c+3e5eP9yV8PYie13o+htNt660PSmsB67x0EStbakgsJTMFEp4LMKiapnIs6y2ikjgptCl4l4wSp/tXvG0lNOw3wo1VWQURE6WyJEAGdL6FgtM5RCU6iND4jZCR0wSmMHp127ZmM1TJYredWdbwOU66HT3g4Dce7aXnX5+LFJUtC2khZJMIspQZLxZGPgZxSNsionSFMxTggCcIUHTEEhQkUiKeKv5Gf9+P5OJf3OaKO3nmtlLNEKrUKoIykIgiiSCWECFYVmY101J4CKflQgvAAIHy/fWwNhjTX+ujHnV+SuoO57Tgs32Bs92z/bf//uOMr5L+l/Sb/CqXg/K/heHoY72q3bPeGvTh/cRA/f/5v16A0Kc7/Gp78dVx5/mvz3s3+gyE+/9eZ/3rfJgl45JOQ8//LALty/m/nPwma//+tou11Fx7aG9B9+8ppYIwxxhhjjDHGGGOMMcb+D98BS7jyVA=="
+}
