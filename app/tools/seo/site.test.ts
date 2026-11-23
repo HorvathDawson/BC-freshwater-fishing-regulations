@@ -135,7 +135,7 @@ describe("T193 + T269 water pages (the app's own pane) and About", () => {
     expect(text(pv.html)).not.toMatch(/Google issue|or Android|Google tell/);
     // (owner 2026-11-20 09:48) the page names its visit counter, so "This website" never says it runs no analytics
     expect(text(pv.html)).not.toMatch(/runs no analytics/);
-    expect(text(pv.html)).toContain("the only script is the visit counter described above");
+    expect(text(pv.html)).toContain("the scripts it runs are these: the visit counter described above");
     expect(pv.html).toMatch(/href="\/privacy"/);
     // every hub page's footer (a water page is the app's pane: the app's More menu links it)
     expect(hubs().every((p) => p.html.includes('<a href="/privacy">Privacy policy</a>'))).toBe(true);
@@ -344,6 +344,19 @@ describe("T195 hubs and dated pages", () => {
       const n = Number(p.path.split("/")[2]);
       expect(/<a class="app" href="([^"]+)">/.exec(p.html)?.[1]?.replace(/&amp;/g, "&"), p.path).toBe(`${site.origin}/${fitQuery(regionBox(built.build.models, n)!)}`);
     }
+  });
+
+  it("(T1010) the privacy page names every script the site ships", () => {
+    const pv = text(built.build.pages.find((p) => p.path === "/privacy")!.html);
+    // a script's published name (`/assets/<name>.<hash>.js`) and the words the policy must carry for it
+    const NAMED: Record<string, RegExp> = { gauge: /river gauge page[^.]*own script/i, join: /Join the test/i, "region-find": /region page[^.]*water search/i };
+    const shipped = new Set<string>();
+    for (const p of built.build.pages) for (const m of p.html.matchAll(/<script src="\/assets\/([a-z-]+)\.[0-9a-f]+\.js"/g)) shipped.add(m[1]!);
+    // (the fixture has no gauges: its pages ship the region search only) every script shipped is one the policy names
+    expect([...shipped].filter((k) => !(k in NAMED)), "a script the site ships that the privacy page does not name: add it there and here").toEqual([]);
+    expect(shipped.has("region-find")).toBe(true);
+    for (const [k, re] of Object.entries(NAMED)) expect(pv, k).toMatch(re);
+    expect(pv).not.toMatch(/the only script is/i);
   });
 
   it("(T622 G2) a water's description and share picture carry no day-relative word: the build day's answer is not published", async () => {

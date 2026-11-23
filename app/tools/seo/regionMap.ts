@@ -43,35 +43,43 @@ export function namesFile(ws: readonly WaterModel[], pathOf: (m: WaterModel) => 
 }
 
 /** the region's first screen (picture, button, search); `button` is the "Open the map" link, `names` where its names file is */
-export function regionLead(label: string, pic: { svg: string; waters: number }, button: string, names: string, scriptHref: string): string {
+export function regionLead(label: string, pic: { svg: string; waters: number }, button: string, names: string, scriptHref: string,
+                            cfg: { crash: string | null; env: string; release: string }): string {
   return `<div class="lead"><div class="mapcard"><span class="tag2">Each dot: a water in ${esc(label)}</span>${pic.svg}${button}</div>` +
-    `<div class="find"><form data-names="${esc(names)}" role="search" hidden>` +
+    `<div class="find"><form data-names="${esc(names)}" data-cfg="${esc(JSON.stringify(cfg))}" role="search" hidden>` +
     `<label for="rf-q">Find a water in ${esc(label)}</label><div class="row"><input id="rf-q" type="search" autocomplete="off" placeholder="Lake, river or creek name"></div>` +
     `<ul class="sugg" aria-live="polite"></ul><p class="said small" role="status"></p></form>` +
     `<p class="small">The map colours every water open or closed for the day, with flows and every rule. This page lists the rules by name.</p></div></div>` +
     `<script src="${esc(scriptHref)}" defer></script>`;
 }
 
-/** the search's script, self-hosted: reveals the form, loads the region's names on first use, lists up to 8 matches as links */
-export const FIND_SCRIPT = `(function(){"use strict";
+/**
+ * The search's script BODY (gauges.ts `findScript` wraps it with the page reporter, written in from gaugeClient.ts, as it does
+ * for the Join card): reveals the form, loads the region's names on first use, lists up to 8 matches as links. Ranked: names that
+ * START with what was typed, then names with a WORD starting with it, then any other match; alphabetical within each (the names
+ * file is in that order). A failed load is said on the page and reported (an environment failure, no connection, only said).
+ */
+export const FIND_BODY = `
 var f=document.querySelector("form[data-names]");if(!f)return;
+var report=pageReporter(JSON.parse(f.getAttribute("data-cfg")),window.fetch.bind(window),Date.now);
 var q=f.querySelector("input"),ul=f.querySelector(".sugg"),said=f.querySelector(".said"),names=null,loading=false;
 f.hidden=false;
 function show(t){said.textContent=t;}
+function rank(n,v){var l=n.toLowerCase();if(l.indexOf(v)===0)return 0;if((" "+l.replace(/[^a-z0-9\u00c0-\uffff]+/g," ")).indexOf(" "+v)>=0)return 1;return l.indexOf(v)>=0?2:3;}
 function draw(){
   var v=q.value.trim().toLowerCase();ul.textContent="";show("");
   if(!v||!names)return;
-  var hits=[];
-  for(var i=0;i<names.length&&hits.length<8;i++){if(names[i][0].toLowerCase().indexOf(v)>=0)hits.push(names[i]);}
+  var g=[[],[],[]];
+  for(var i=0;i<names.length;i++){var r=rank(names[i][0],v);if(r<3)g[r].push(names[i]);}
+  var hits=g[0].concat(g[1],g[2]).slice(0,8);
   if(!hits.length){show("No water in this region has that in its name.");return;}
   hits.forEach(function(h){var li=document.createElement("li"),a=document.createElement("a");a.href=h[1];a.textContent=h[0];li.appendChild(a);ul.appendChild(li);});
 }
 function load(){
   if(names||loading)return;loading=true;show("Loading the names...");
   fetch(f.getAttribute("data-names")).then(function(r){if(!r.ok)throw new Error("names file "+r.status);return r.json();})
-    .then(function(j){names=j;loading=false;draw();},function(e){loading=false;show("The names could not be loaded ("+e.message+"). Use the lists below.");});
+    .then(function(j){names=j;loading=false;draw();},function(e){loading=false;show("The names could not be loaded ("+e.message+"). Use the lists below.");report(e);});
 }
 f.addEventListener("submit",function(e){e.preventDefault();var a=ul.querySelector("a");if(a)location.href=a.href;});
 q.addEventListener("focus",load);q.addEventListener("input",function(){load();draw();});
-})();
 `;

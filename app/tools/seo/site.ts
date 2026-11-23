@@ -17,8 +17,8 @@ import { assignSlugs, type SlugMap, type Steps } from "./slug";
 import { verifyAgainstApp } from "./verify";
 import { regionYear, yearCardHtml } from "./regionYear";
 import { pageSize, type PageSize } from "./budget";
-import { dotPicture, namesFile, regionLead, FIND_SCRIPT } from "./regionMap";
-import { clientScript, joinScript, gaugeBody, gaugeDescription, gaugeModels, gaugesIndexBody, gaugeTitle, siteGaugeCardSvg, stationsFile, type GaugeModel, type GaugeRows } from "./gauges";
+import { dotPicture, namesFile, regionLead } from "./regionMap";
+import { clientScript, findScript, joinScript, LIVE, gaugeBody, gaugeDescription, gaugeModels, gaugesIndexBody, gaugeTitle, siteGaugeCardSvg, stationsFile, type GaugeModel, type GaugeRows } from "./gauges";
 
 export interface PageRec {
   readonly path: string; readonly kind: "water" | "region" | "letter" | "topic" | "changes" | "about" | "privacy" | "gauge" | "gauges";
@@ -222,8 +222,8 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
       `<a class="app" href="${esc(mapLink(site, boxOf.get(r)!))}">Open the map of ${esc(regionLabel(r))}</a></div>` : "";
   /** (T1011) a water in a list, with its former name where it was renamed ("Tŝilhqox Biny, formerly Chilko Lake") */
   const listItem = (m: WaterModel) => `<li><a href="${waterPath(m)}">${esc(m.name)}</a>${formerly.has(m.id) ? ` <span class="tag">formerly ${esc(formerly.get(m.id)!.join(" / "))}</span>` : ""}</li>`;
-  const findHref = `/assets/region-find.${sha(FIND_SCRIPT, 10)}.js`;
-  files.set(findHref.slice(1), FIND_SCRIPT);
+  const findJs = findScript(), findHref = `/assets/region-find.${sha(findJs, 10)}.js`;
+  files.set(findHref.slice(1), findJs);
   for (const r of regions) {
     const ws = inRegion(r), path = regionPath(r), name = regionLabel(r);
     const list = (xs: readonly WaterModel[]) => `<ul class="cols">${xs.map(listItem).join("")}</ul>`;
@@ -236,7 +236,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     if (pic) {
       const names = namesFile(ws, waterPath), namesHref = `/assets/region-${r}.${sha(names, 10)}.json`;
       files.set(namesHref.slice(1), names);
-      lead = regionLead(name, pic, `<a class="app" href="${esc(mapLink(site, boxOf.get(r)!))}">Open the map of ${esc(name)}</a>`, namesHref, findHref);
+      lead = regionLead(name, pic, `<a class="app" href="${esc(mapLink(site, boxOf.get(r)!))}">Open the map of ${esc(name)}</a>`, namesHref, findHref, { crash: LIVE.crash, env: LIVE.env, release: release.id });
     } else if (boxOf.has(r)) bad.push(`${path}: no water has a place to draw the picture of the region`);
     const body = `<nav class="crumbs"><a href="/">Home</a> › ${esc(name)}</nav><h1>${esc(name)} fishing regulations</h1>` +
       // (owner 2026-11-10, T605) the live map, opening on the current day: the app says open or closed; (T1010) framed on the region

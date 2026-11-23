@@ -22,6 +22,7 @@ import { OPEN_METEO_ATTRIBUTION, weatherPlace } from "../../packages/data/src/sp
 import { crashUrlFor, ORIGINS, REPORT_URLS } from "../../apps/mobile/src/env";
 import { clip, esc, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, type Site } from "./html";
 import type { GaugeConfig } from "./gaugeClient";
+import { FIND_BODY } from "./regionMap";
 import { appStoreLink, TESTFLIGHT_URL, WEB_SPOTS_WORDS, bestServes, gaugePath, getAppBlock, playStoreLink, type GetAppSlot, STALE_AFTER_MS, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
 import { readGaugeRows } from "@app/data/release";
 
@@ -122,6 +123,11 @@ export function joinScript(): string {
   const start = `var c=document.getElementById("gauge-config");if(!c||!c.textContent)throw new Error("join card: no #gauge-config on this page");` +
     `joinPopup(document,function(){return window.navigator.clipboard;},pageReporter(JSON.parse(c.textContent),window.fetch.bind(window),Date.now));`;
   return `(function(){"use strict";\n${reporter}\n${js}\n${start}\n})();\n`;
+}
+
+/** (T1010) a region hub's water search: its script (regionMap.ts) with the page reporter written in, as the Join card's */
+export function findScript(): string {
+  return `(function(){"use strict";\n${inlineCore("gaugeClient.ts", JOIN_REPORTER, HERE)}\n${FIND_BODY}\n})();\n`;
 }
 
 /** the production hosts the page names; deploy/staging/site.sh points a staging copy at staging's */
