@@ -28,6 +28,10 @@ class FakeGl {
   isStyleLoaded() { return true; }
   getStyle() { return this.json; }
   getLayer(id: string) { return this.json.layers.find((l) => l.id === id); }
+  /** (T812) the layers a hook adds at run time (the Salmon map's closed-area circles), into the style it reads back */
+  addSource() {}
+  addLayer(l: { id: string }) { this.json.layers.push(l); }
+  removeLayer(id: string) { this.json.layers = this.json.layers.filter((l) => l.id !== id); }
   getSource() { return { setData: () => log.push("setData") }; }
   setPaintProperty(id: string, prop: string) { log.push(`paint ${id} ${prop}`); }
   setLayoutProperty(id: string, prop: string, v: unknown) { log.push(`layout ${id} ${prop} ${String(v)}`); }

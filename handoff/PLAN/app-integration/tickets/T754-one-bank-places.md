@@ -158,6 +158,8 @@ same for DFO and the synopsis.
 
 Depends: owner answers. Size: B is M (pipeline field + editor row + worker + two map layers + tests).
 
+State 2026-11-22 (stopped for credits, lane L12, branch feat/T754-one-bank-places): not started: stopped as too big for this lane and blocked on owner question 2 (the other bank: beside or whole width). With "Both banks closed" (2026-11-16 Q12) a closed one-side stripe on a closed line shows nothing, so the look needs that answer first; also needs the review-app editor row and feeds-worker parity (lane L5).
+
 ## Owner answer 2026-11-22 23:45 (question 2, dialog)
 "Other bank: the water's other rules" — a closure on one bank closes that bank only; the other bank reads the water's
 other regulations (as `side` does for "west half", AGENTS rule 49). Unblocks T754 (size M).
