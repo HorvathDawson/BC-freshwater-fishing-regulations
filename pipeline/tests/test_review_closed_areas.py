@@ -226,7 +226,7 @@ def test_placing_an_unplaced_mouth_by_hand_and_an_area_dfo_dropped(wt):  # noqa:
 
 
 @pytest.mark.needs_atlas
-def test_a_stretch_end_placed_by_hand_is_resolved_on_the_water_and_stamped(wt):  # noqa: F811
+def test_a_stretch_end_placed_by_hand_is_resolved_on_the_water_and_stamped(wt, monkeypatch):  # noqa: F811
     client = wt["client"]
     a = _area(client, THOMPSON_ROW, lambda a: a["name"] == "Deadman")
     assert a["piece"]["new_splits"], "a proposal's new end travels with the piece"
@@ -235,12 +235,32 @@ def test_a_stretch_end_placed_by_hand_is_resolved_on_the_water_and_stamped(wt): 
              "new_splits": [{"ref": "hand-1", "anchor": "coord", "on_item": a["piece"]["on_item"], "coord": at}]}
     pv = client.get(f"/api/dfo/locations/{THOMPSON_ROW}/closed-area-preview", params={"piece": json.dumps(piece)}).json()
     assert pv["ok"] and pv["metres"] and pv["ends"][0]["new"] and pv["ends"][1]["new"] is False
-    # owner 2026-11-10 (T590): every new cut says its nearest existing cut on the same line, and whether it is near
-    # T777: the Deadman proposal's own upper cut was BUILT on 2026-11-15 (it is now an existing cut at this very
-    # point), so "far from every cut" no longer holds for this coordinate on the live tree. What must hold either
-    # way: the nearest cut is named, and `near` says exactly "within 200 m".
-    near = pv["ends"][0]["nearest"]
-    assert near["split_id"] and near["near"] is (near["metres"] <= 200), near
+    # owner 2026-11-10 (T590): every new cut says its nearest existing cut on the same line, and whether it is near.
+    # (T1001) ON CUTS THE TEST PLANTS, never the live tree's: the Deadman proposal's own upper cut was BUILT on
+    # 2026-11-15 at this very point, and the next cut built near it would move a live-tree answer again. The cuts the
+    # rule reads (`reuse._splits_meta`) are this line's own taken out, the stretch's other end kept, and one planted
+    # at 50 m (near) or 250 m (far) from the hand end, on the side away from that other end.
+    import reuse
+    here = client.get(f"/api/dfo/locations/{THOMPSON_ROW}/anchor",
+                      params={"split": json.dumps(piece["new_splits"][0])}).json()
+    assert here["ok"], here
+    keep = a["piece"]["points"][1]["split_id"]
+    built = reuse._splits_meta
+    real = built()
+    other = {s: r for s, r in real.items() if str(r.get("blk")) != str(here["blk"]) or s == keep}
+    to_keep = (abs(other[keep]["route_measure"] - here["measure"]) if str(other[keep].get("blk")) == str(here["blk"])
+               else float("inf"))
+    away = -1 if str(other[keep].get("blk")) == str(here["blk"]) and other[keep]["route_measure"] > here["measure"] else 1
+    for d in (50, 250):
+        planted = {**other, "planted": {"blk": here["blk"], "route_measure": here["measure"] + away * d,
+                                        "label": "a cut the test planted"}}
+        monkeypatch.setattr(reuse, "_splits_meta", lambda planted=planted: planted)
+        near = client.get(f"/api/dfo/locations/{THOMPSON_ROW}/closed-area-preview",
+                          params={"piece": json.dumps(piece)}).json()["ends"][0]["nearest"]
+        best = min(d, to_keep)
+        assert near == {"split_id": "planted" if d <= to_keep else keep, "near": best <= 200, "metres": round(best),
+                        "label": near["label"]}, (d, near)
+    monkeypatch.setattr(reuse, "_splits_meta", built)
     hit = client.get(f"/api/dfo/locations/{THOMPSON_ROW}/anchor", params={"split": json.dumps(
         {"ref": "x", "anchor": "coord", "on_item": a["piece"]["on_item"], "coord": a["ends"][1]["coord"]})}).json()
     assert hit["ok"] and hit["nearest"]["near"] is True and hit["nearest"]["metres"] <= 200, \

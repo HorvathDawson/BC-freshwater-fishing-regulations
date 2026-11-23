@@ -23,8 +23,24 @@ pill, a long way from a short name. One component (`ClassBadge` in `RegsHeader.t
   made B is `T1004-shots/option-B-patch.diff` (not applied; a long name shrinks first and the chip stays next to its end).
 Recommendation: B. Question for the owner: A or B?
 
+## Owner 2026-11-22 23:20 (question round 1)
+Asked A (now, far right) or B (beside the name); verbatim: "I don't like either could we think of a better spot?"
+
+## Pictures, round 2 (2026-11-22, lane L17)
+Live app (canifishthis.ca, web 390 px, Skeena River, the Class II part 1.5 km upstream of the Zymoetz confluence up to Chimdemash Creek), light + dark,
+with the tag moved by editing the page: MOCK-UPS of the live app, not renders of a build. `T1004-shots/option-<X>-<name>-light|dark.png`:
+- A `option-A-line-under-name`: a line under the part's place text, in the accent: "Class II water · Classified Waters Licence · Jul 1-Dec 31". Why: it is
+  read with the name and the part, says what the class means in words, and takes no width from the name or the date pill. Costs one line of height.
+- B `option-B-badge-on-licence-tab`: a small "CLASS II" badge on the Licence sub-tab label. Why: the class matters for the licence, and the Licence tab
+  already has the dates ("Classified (Class II) Jul 1-Dec 31"). Weakness: hidden until the reader looks at the tabs; it is the "kind of hidden" complaint again.
+- C `option-C-licence-head-only`: the chip beside the Licence section's own heading, nothing in the header. Why: one place, where the licence is explained.
+  Weakness: a reader on "What you can keep" never sees the water is classified.
+- D `option-D-strip-under-tabs`: a full-width tinted strip under the tabs (like the access banner): "Class II water · Classified Waters Licence needed
+  Jul 1-Dec 31 ›" (the press would open the glossary term). Why: impossible to miss. Weakness: it looks like the access warning stacked on it, and takes a row.
+Recommendation: A. Question for the owner: A, B, C or D (or A with D's weight)?
+
 ## Owner 2026-11-22 ~23:55 (round 5)
-Verbatim: "What about right under the water body name in the white space there?"
+Verbatim: "What about right under the water body name in the white space there?" Reading: the line goes in the white space under the name (the name row, left of the date and sun times, above the place description), on every sub-tab; words as option A.
 
 ## Built (2026-11-22, lane L17, d27c09e24)
 The chip is gone from the name row. `ClassLine` (`RegsHeader.tsx`, the one place) draws core's `classed.line` under the name, in the white space left of the sun times

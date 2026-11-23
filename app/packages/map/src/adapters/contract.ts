@@ -14,7 +14,7 @@ import { COPY_CASING, COPY_FILL, COPY_LINE, type LitFeature } from "../water-cop
 import { BASEMAP_LABELS, OWN_LABELS, basemapLabelPaint, ownLabelOnImagery } from "../labels";
 import {
   MAP_STYLE, NO_VALUES, STYLE_META, followerMode, followersOf, isRuntimeLayer, profileChannel,
-  resolveTheme, type ChannelValues, type Tokens,
+  IMAGERY_WATER_LAYERS, onImageryTokens, resolveTheme, type ChannelValues, type Tokens,
 } from "../style";
 import { SALMON_CASING_LAYER, salmonCasingPaint, ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, focusTheOthers, hideTheOthers, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, NOBASELINE_LAYER, nobaselineOpacity, RUNS_PASS_LAYER, runsPassPaint,
          paintFor, ringPaint, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS, type SelectionCue,
@@ -219,8 +219,10 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
                     openAs?: unknown): Record<string, unknown> =>
     ground === "satellite" ? openedPaint(p, stream, tokens, fade, openAs ?? p["line-width"])
       : opened ? { ...p, "line-gap-width": 0 } : p;
-  const paint = (h: MapHandle, layerId: string, mode: string, tokens: Tokens) => {
+  const paint = (h: MapHandle, layerId: string, mode: string, drawnTokens: Tokens) => {
     modeOf[layerId] = mode;
+    // (T940) over imagery a water layer's status colours are the satellite set, the same in every theme (land closures keep the theme's)
+    const tokens = ground === "satellite" && IMAGERY_WATER_LAYERS.has(layerId) ? onImageryTokens(drawnTokens) : drawnTokens;
     const own = paintFor(layerId, mode, tokens, values);
     const out = focused ? focusTheOthers(layerId, own, tokens) : own;
     const drawn = landOutline(layerId, ground === "satellite" ? waterOnImagery(layerId, out, tokens) : out, tokens, ground === "satellite");

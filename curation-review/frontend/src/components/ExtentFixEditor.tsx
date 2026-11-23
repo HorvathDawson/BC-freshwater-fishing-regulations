@@ -311,8 +311,7 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
                 It has no stretch of its own. It applies to {preview.others.length} placed place{preview.others.length === 1 ? "" : "s"} of this water right now
                 {preview.others.length ? ": " + preview.others.map((o) => `“${o.text.slice(0, 70)}” (${o.extent})`).join("; ") : ""}.
                 {preview.others_unplaced?.length ? ` Not included until placed: ${preview.others_unplaced.map((o) => `“${o.text.slice(0, 60)}”`).join("; ")}.` : ""}
-                {" "}A place placed later joins by itself; it is never taken out of “the rest of the water”.
-                {preview.one_sibling && <span className="warn-text" style={{ display: "block" }} data-testid="fix-one-sibling">{preview.one_sibling}</span>}</span>}
+                {" "}A place placed later joins by itself; it is never taken out of “the rest of the water”.</span>}
               {preview.rest_skipped && <span className="warn-text" style={{ display: "block" }} data-testid="fix-rest-skipped">
                 Left out of the subtraction (this place covers their water until they bind): {Object.entries(preview.rest_skipped).map(([k, v]) => `${k} — ${v}`).join("; ")}.</span>}
               {preview.rest_dormant?.length ? <span className="dim" style={{ display: "block" }} data-testid="fix-rest-dormant">

@@ -26,10 +26,13 @@
  *             it. `fetch` waits on such a file's job, claims it beside its install path, and verifies it (gzip or not:
  *             the data host decodes a stored gzip for a client that asks for the bytes as they are) before the install
  *             places it. A file with no job, or whose job failed, vanished, stopped moving or brought other bytes, is
- *             downloaded in the app instead, and the log says why (W46). So is one whose job paused part way for anything
- *             but a wait for a network: the system's downloader must ask for the bytes unencoded, which the data host
- *             sends decoded with no length and no ETag, so a cut transfer cannot be resumed (seen on the emulator: parked
- *             "waiting to retry" at 93 % for good); the small file is fetched by the waiting app rather than waited on.
+ *             downloaded in the app instead, and the log says why (W46). (T919 d) A job CUT part way (paused for anything
+ *             but a wait for a network: the downloader's "waiting to retry") is waited on, so the system RESUMES it: both
+ *             data hosts serve a stored gzip file to a client asking for the bytes as they are with its length, ETag and
+ *             Range (T912 round 3's data worker, live on staging and production, checked 2026-11-22). Before that the
+ *             host sent it decoded with no length, the cut job parked "waiting to retry" for good (93 % on the emulator)
+ *             and the app fetched it again from zero at once. One that has not moved again after `cutWaitMs` (the
+ *             downloader's first retry is ~30-60 s) is still downloaded in the app, said in the log.
  */
 import { DOWNLOAD_NOTE_WORDS, INSTALL_WORDS, now as clockNow, reportFailure } from "@app/core";
 import { verifyAsync, VerifyError } from "../fetchVerified";
@@ -159,13 +162,22 @@ interface BackgroundOptions {
   stuckMs?: number;
   /** (T760) how many such re-queues of one file before the install fails */
   stuckTries?: number;
+  /**
+   * (T919 d) how long an update's data-file job cut part way (paused, not waiting for a network) may sit with no new byte
+   * before the app downloads the file itself: the system's downloader retries a cut transfer after ~30-60 s and resumes
+   * it by Range.
+   */
+  cutWaitMs?: number;
 }
+
+/** (T919 d) `cutWaitMs`'s default: past the downloader's first retry of a cut transfer, well under `STUCK_MS`. */
+const CUT_WAIT_MS = 90_000;
 
 export function background(bg: BackgroundNative, fs: PartFs & { uri(path: string): string; read(path: string): Promise<Uint8Array> },
                            fallback: PartFill,
                            o: BackgroundOptions = {}): Background {
   const pollMs = o.pollMs ?? 500, tries = o.tries ?? 4, wifiWaitMs = o.wifiWaitMs ?? 20_000;
-  const stuckMs = o.stuckMs ?? STUCK_MS, stuckTries = o.stuckTries ?? STUCK_TRIES;
+  const stuckMs = o.stuckMs ?? STUCK_MS, stuckTries = o.stuckTries ?? STUCK_TRIES, cutWaitMs = o.cutWaitMs ?? CUT_WAIT_MS;
   /** what each url is (for a job started by `fill` itself: an update's file, or one whose job vanished) */
   const kinds = new Map<string, string>();
   /** (T912) the data files queued (`whole`), by url: where each is installed (its job is claimed beside it) */
@@ -304,15 +316,15 @@ export function background(bg: BackgroundNative, fs: PartFs & { uri(path: string
           console.info(`[download] ${url}: done (system download manager), ${expect.bytes} bytes`);
           return raw;
         }
-        // cut part way (not waiting for a network): it cannot resume (see the top), so the app downloads it now
-        if (job.status === "paused" && !NETWORK_WAITS.has(job.reason))
-          return instead(`its system download stopped part way (paused, reason ${job.reason}, ${Math.max(0, job.bytes)} bytes) and cannot resume (the host sends a data file to it with no length)`);
         // the same waits as `fill`: a Wi-Fi-only job paused while mobile data is allowed, or one parked with no new byte
         if ((job.status === "paused" || waitsForNetwork(job)) && !job.metered && metered) {
           pausedAt ||= clockNow();
           if (clockNow() - pausedAt >= wifiWaitMs) return instead(`a Wi-Fi-only download ${doing(job)} while mobile data is allowed`);
         } else pausedAt = 0;
         if (!parked(job) || job.bytes !== lastBytes) { lastBytes = job.bytes; movedAt = clockNow(); }
+        // (T919 d) cut part way (paused, not waiting for a network): waited on while the system retries and resumes it
+        else if (job.status === "paused" && clockNow() - movedAt >= cutWaitMs)
+          return instead(`its system download stopped part way (paused, reason ${job.reason}, ${Math.max(0, job.bytes)} bytes) and did not resume in ${Math.round((clockNow() - movedAt) / 1000)} s`);
         else if (clockNow() - movedAt >= stuckMs)
           return instead(`its system download has not moved for ${Math.round((clockNow() - movedAt) / 1000)} s (${job.status}, reason ${job.reason})`);
         const now = doing(job);
