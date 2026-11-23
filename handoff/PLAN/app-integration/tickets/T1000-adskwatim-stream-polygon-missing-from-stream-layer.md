@@ -31,15 +31,16 @@ Depends: next release build (0.8.6). Size: S–M. Owner: no.
   `export_streams` drops every `out_of_bc` node ("OUTSIDE BC IS NOT DRAWN AT ALL"), so the creek's route through it was
   never written; `export_waterbodies` had no such check and drew the polygon in `lake` with `water: stream`.
 - **Every section of the same shape** (probe on the live atlas `full`): stream-owned polygons outside B.C.: **1** (this
-  one). Lake / wetland polygons outside B.C.: 145 (71 lakes, 74 wetlands, all unnamed, the biggest 3.7 ha, in no item
-  but Adskwatim's). The 74 wetlands were already undrawn (T64: unnamed, in no item); the **71 lakes were drawn**,
+  one, itself a lake-kind polygon). Lake / wetland polygons outside B.C.: 145 (71 lake-kind polygons INCLUDING Adskwatim:
+  70 border slivers + Adskwatim; 74 wetlands; the 70 slivers and the wetlands unnamed, the biggest 3.7 ha, in no item
+  but Adskwatim's). The 74 wetlands were already undrawn (T64: unnamed, in no item); the **71 lake-kind polygons (70 slivers + Adskwatim) were drawn**,
   tappable and ruleless — the border slivers T679 #1 meant to take off the map.
 - **Fix:** `export_waterbodies` skips an `out_of_bc` node (after the T64 wetland cut, so `undrawn.json` is unchanged),
   counts and prints it. One rule for both exporters: an outside node is in no water layer.
 - **Tests:** `test_tile_outside_bc.py` (invented atlas: a creek, its polygon in and out of B.C., a plain lake each side;
   the two exporters run for real) — passes; FAILS with the check reverted (mutation run 2026-11-22).
   `test_one_water_kind.py`: the two tests leave out `out_of_bc` polygons as they leave out tidal ones (both pass on
-  today's tiles), and the new `test_nothing_outside_bc_is_drawn` is the live gate: today it fails with exactly 72
-  sections (the 71 lakes + Adskwatim's), green once the 0.9.0 release rebuilds the tiles.
-- **Needs the data release**: the tiles change (72 polygons off the map); no rule binding moves (the reach and bundle
+  today's tiles), and the new `test_nothing_outside_bc_is_drawn` is the live gate: today it fails with exactly 71
+  sections (70 slivers + Adskwatim's), green once the 0.9.0 release rebuilds the tiles.
+- **Needs the data release**: the tiles change (71 polygons off the map); no rule binding moves (the reach and bundle
   already read these sections as outside).
