@@ -384,6 +384,8 @@ export function Shell(p: ShellProps) {
     if (searching) go({ type: "search", open: false });
     // (T989) a water a link or tap opened is a LANDING like a start link's: leaving it frames the map on that water
     if (openReq.item) { search.landOn(openReq.item as ItemId); nav.opener.item(openReq.item as ItemId, openReq.view ?? "conditions"); }
+    // (T605) a region page's `/?fit=` tapped on the phone: the browse map, framed on the region's box
+    else if (openReq.fit) { go({ type: "close" }); nav.toTab("map"); search.landOnBox(openReq.fit); }
     else { go({ type: "close" }); nav.toTab("conditions"); }
   }, [openReq?.n]);   // eslint-disable-line react-hooks/exhaustive-deps -- once per tap
   // (T234 v1.1) A NEW-APP-VERSION TAP: the bell opens on its "App update" (with what's new), the version asked now
