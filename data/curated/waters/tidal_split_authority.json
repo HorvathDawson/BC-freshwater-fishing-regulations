@@ -4,10 +4,10 @@
  "classified": "2026-11-11",
  "counts": {
   "splits": 34,
-  "dfo_written": 23,
-  "not_shown": 11,
-  "authority_dfo": 23,
-  "authority_owner": 11,
+  "dfo_written": 24,
+  "not_shown": 10,
+  "authority_dfo": 24,
+  "authority_owner": 10,
   "authority_none": 0
  },
  "splits": [
@@ -75,12 +75,14 @@
    "blk": "354154440",
    "name": "Chemainus River",
    "split": "chemainus_river__tidal_boundary",
-   "dfo_written": false,
-   "authority": "owner",
-   "quote": "DFO Area 17 names \"the tidal waters of the Chemainus River\" without a place",
-   "note": "the T212 web research cites DFO PDFs (fm-gp/rec/tidal-maree/chq-co/17-co-eng.pdf, waves-vagues 350317.pdf) for a boundary sign near the Bald Eagle Campground; neither is in the cached copies",
+   "dfo_written": true,
+   "authority": "dfo",
+   "quote": "DFO Area 17, the tidal waters of the Chemainus River (supplied by the owner 2026-11-16, batch 4 question 5): \"The tidal waters of the Chemainus River and off the Chemainus River mouth, commencing at Bare Point on Vancouver Island to the light on North Reef, to Sherard Point on Vancouver Island, thence following the shoreline northerly to a boundary sign on the Chemainus River near the Bald Eagle Campground, thence across the river to the opposite bank, thence following the Vancouver Island shoreline northerly to the point of commencement\"",
+   "note": "the DFO sentence is in no cached copy under data/source/dfo_tidal_areas (the T212 web research cites DFO PDFs fm-gp/rec/tidal-maree/chq-co/17-co-eng.pdf and waves-vagues 350317.pdf); the owner supplied DFO's words in the question dialog (OWNER-TODO \"Answers by batch\", batch 4)",
    "owner": "owner 2026-11-12, verbatim: \"Keep all as my decisions\" (the ten splits not traced to DFO: Qualicum, Toquaht, Sooke, Chemainus, Campbell River Area 13, Nitinat, Yorkson, Chambers, Noons, Nass). The owner's boundary: it governs its water like a DFO-written one (T678).",
-   "decided": "2026-11-12"
+   "decided": "2026-11-12",
+   "kind": "dfo_area_text",
+   "agrees": "checked 2026-11-16 11:02 (T803 item 7): the split (48.886806 N, 123.686629 W, 2,091 m up the river) is beside the Bald Eagle Riverside Campground, 0 to 135 m from it along the river; it stays (low confidence: the sign itself is not pinned)"
   },
   {
    "blk": "354154635",

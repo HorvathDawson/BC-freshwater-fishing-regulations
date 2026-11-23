@@ -156,8 +156,11 @@ def pushed_paths(lines: list[str], trunk: str = CP.TRUNK) -> tuple[list[str], li
 
 
 def pushed(lines: list[str], trunk: str = CP.TRUNK) -> tuple[list[str], list[str], list[str]]:
-    """`pushed_paths`, and (T998) the commit range of each pushed branch (`<base>..<local sha>`): the commits whose
-    messages the hook checks."""
+    """`pushed_paths`, and (T998) the commit range of each pushed branch: the commits whose messages the hook checks.
+    (T1019) That range is `<merge base with origin/main>..<local sha>` — the branch's own commits, the range docs-ci's
+    `commits` job checks on the PR — never `<remote sha>..<local sha>`: after a merge of (or a rebase onto) a newer
+    trunk the remote's old tip is not the branch's base, and that range held the trunk's own commits (merge subjects,
+    history before the T998 cutover) the PR never checks. The PATHS stay the pushed change (`<remote sha>..`)."""
     said, paths, ranges = [], set(), []
     for ln in lines:
         parts = ln.split()
@@ -172,12 +175,13 @@ def pushed(lines: list[str], trunk: str = CP.TRUNK) -> tuple[list[str], list[str
             continue
         known = rsha != ZERO and subprocess.run(["git", "cat-file", "-e", f"{rsha}^{{commit}}"], cwd=ROOT,
                                                 capture_output=True).returncode == 0
-        base = rsha if known else _git("merge-base", lsha, f"{CP.REMOTE}/{trunk}", trunk=trunk).strip()
+        mb = _git("merge-base", lsha, f"{CP.REMOTE}/{trunk}", trunk=trunk).strip()
+        base = rsha if known else mb
         got = [x for x in _git("diff", "--name-only", "--no-renames", base, lsha, trunk=trunk).splitlines() if x]
         said.append(f"{rref}: {len(got)} path(s) in {base[:12]}..{lsha[:12]}"
                     + ("" if known else f" (since the merge base with {CP.REMOTE}/{trunk})"))
         paths |= set(got)
-        ranges.append(f"{base}..{lsha}")
+        ranges.append(f"{mb}..{lsha}")
     return said, sorted(paths), ranges
 
 

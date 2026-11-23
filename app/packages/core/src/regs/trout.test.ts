@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 import { troutGlance } from "../glance";
 import { keepOrder } from "./keep";
 import { listRows, looseRows, splitRows } from "./others";
-import { dayPhrase } from "./strip";
+import { dayPhrase, isTodayOf } from "./strip";
 import { a11yOf, checkTrout, DAY_SLOT, TroutRefused, troutOf } from "./trout";
 import type { Band, TRow, TroutValue } from "../answers.generated";
 import type { RegsInputs } from "./inputs";
@@ -17,8 +17,8 @@ import { cardOf, rowOf, TROUT_ROW } from "./testing/keepFixtures";
 
 describe("dayPhrase: the strip's day words, shared with the trout table's slot", () => {
   it("today, else on <day>", () => {
-    expect(dayPhrase({ month: 7, day: 15 }, { month: 7, day: 15 })).toBe("today");
-    expect(dayPhrase({ month: 7, day: 15 }, { month: 7, day: 16 })).toBe("on Jul 15");
+    expect(dayPhrase({ month: 7, day: 15 }, { month: 7, day: 15 }, 2026)).toBe("today");
+    expect(dayPhrase({ month: 7, day: 15 }, { month: 7, day: 16 }, 2026)).toBe("on Jul 15");
     expect(DAY_SLOT).toBe("{day}");
   });
 });
@@ -223,5 +223,17 @@ describe("(T892, T907) a row's tributary source: `TRow.down` (the line, no longe
       .toMatch(/row 0:2: the tributary tag .* says "tributaries" twice/);
     expect(why(withDown("Duck Lake’s rule for its tributaries", "Lake Revelstoke Tributaries’ and Duck Lake’s tributaries")))
       .toMatch(/says "tributaries" twice/);
+  });
+});
+
+describe("(T1026) 'today' is a date, not a month and day: the picker now crosses New Year", () => {
+  const today = { month: 7, day: 15, year: 2026 };
+  it("a day one year after today (same month and day) is not today", () => {
+    expect(isTodayOf({ day: { month: 7, day: 15 }, calendarYear: 2026 }, today)).toBe(true);
+    expect(isTodayOf({ day: { month: 7, day: 15 }, calendarYear: 2027 }, today)).toBe(false);
+    expect(dayPhrase({ month: 7, day: 15 }, today, 2027)).toBe("on Jul 15");
+    expect(dayPhrase({ month: 7, day: 15 }, today, 2026)).toBe("today");
+    // a `today` without a year (an older caller) still compares the month and day only
+    expect(isTodayOf({ day: { month: 7, day: 15 }, calendarYear: 2027 }, { month: 7, day: 15 })).toBe(true);
   });
 });

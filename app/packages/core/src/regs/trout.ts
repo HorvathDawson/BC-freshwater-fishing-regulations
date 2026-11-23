@@ -261,7 +261,7 @@ export function troutOf(inp: RegsInputs, day: Day, today: Day): TroutVM | TroutR
   });
   return {
     kind: "table",
-    top: { lead: t.top.lead.replace(DAY_SLOT, dayPhrase(day, today)), sub: t.top.sub, second: t.top.second, date: d?.top ?? null },
+    top: { lead: t.top.lead.replace(DAY_SLOT, dayPhrase(day, today, inp.calendarYear)), sub: t.top.sub, second: t.top.second, date: d?.top ?? null },
     card: d?.card ?? null,
     fold: { name: TROUT_NAV.ENTRY, value: t.fold.value, tone: t.fold.tone, date: d?.fold ?? null },
     hatchLink: t.hatch_link ? TROUT_NAV.HATCH : null,

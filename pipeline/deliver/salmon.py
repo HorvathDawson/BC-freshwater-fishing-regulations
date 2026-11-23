@@ -23,6 +23,14 @@ on its listed places' sections inside its bounds (the reach row's `behind`) it i
 (`rests_behind`, `rest_after`), so a listed stretch speaks on the days it has a rule for a fish and the rest's rule on
 the other days; elsewhere it sorts as any place. Its map binding stays the rest (bounds less the listed places).
 
+A PLACE FOR ONE BANK IS READ BESIDE (T754, owner 2026-11-22 23:45: "Other bank: the water's other rules"; AGENTS rule 49,
+as the book's `side`): DFO's "on west bank between signs at Kitimat hatchery outfall", "from the centre line to the
+northern bank" (`regs.dfo_salmon.locations.bank_of`). Placed, it rides exactly its own bound sections in their chains' `u`
+— never `l` — so the stretch answers and paints by the water's other places, and its own chain (`unmapped`, `n`) gives the
+card its rules for that bank, the bank named on `p[lid]["side"]` (core: the "one bank" caveat, not "not drawn yet"). Not
+placed, it is an ordinary undrawn place of its water: never widened, its words name the bank. Supersedes RULINGS E19's
+whole channel for the Nakina.
+
 A DFO PLACE ANSWERS FOR ITS OWN REGION (T668, `SectionRegions`): an undrawn place rides only its own region's sections;
 a region-wide place binds only its region's members; on a section in TWO regions (the one membership) both regions'
 places hold — the chain's `s` names each region's places (indices into `l`), each cascades apart, and the MOST STRICT
@@ -431,14 +439,17 @@ def chain_order(precedence: Mapping[str, int], size: Mapping[str, int],
 
 def rests_behind(placed: Iterable[dict], locs: Mapping[str, tuple], sid_of: Mapping[str, int],
                  covering: Dict[int, List[str]], binds: Callable[[str, int], bool],
-                 missing: List[str]) -> Dict[str, frozenset]:
+                 missing: List[str], beside_on: Optional[Mapping[str, set]] = None) -> Dict[str, frozenset]:
     """(T761, owner 2026-11-15: DFO's "except in those AREAS AND TIMES listed below") A "REST OF" PLACE STANDS IN THE
     CHAIN BEHIND ITS LISTED PLACES on their sections inside its bounds (the reach row's `behind`,
     `reach.build.REST_BEHIND`): a listed stretch answers on the days it has a rule for that fish, the rest's rule on the
     others. Added to `covering` only where the listed place itself covers the section (its own tidal / region limits
     hold). Returns rest id -> the listed places it answers after (`rest_after`). A section the handle table does not
-    know goes to `missing`, as the placed sections do."""
+    know goes to `missing`, as the placed sections do. (T754) A listed ONE-BANK place (`beside_on`: id -> its sections)
+    still counts as covering its own sections: it stands beside there, so the rest answers in the chain for the other
+    bank (`rest_after` leaves it where `chain_order` put it, its listed place not being in the chain)."""
     after: Dict[str, set] = defaultdict(set)
+    beside_on = beside_on or {}
     for row in placed:
         lid = row["location_id"]
         if lid not in locs or not row.get("behind"):
@@ -449,7 +460,7 @@ def rests_behind(placed: Iterable[dict], locs: Mapping[str, tuple], sid_of: Mapp
                 if sid is None:
                     missing.append(s)
                     continue
-                if first in covering.get(sid, ()) and binds(lid, sid):
+                if (first in covering.get(sid, ()) or sid in beside_on.get(first, ())) and binds(lid, sid):
                     after[lid].add(first)
                     if lid not in covering[sid]:
                         covering[sid].append(lid)
@@ -489,11 +500,68 @@ def rest_after(key: Sequence[str], after: Mapping[str, frozenset]) -> Tuple[str,
     return tuple(out)
 
 
+#: (T771) EQUAL PLACES THE OWNER ACCEPTED: two places of one chain that tie on the order key apart from the id (same tier,
+#: region, size and rides flag) and still answer a fish differently on a day the chain reaches them — the id alone
+#: would decide which speaks. {frozenset({a, b}): the owner's reason}. None today (2026-11-22); a new pair STOPS the
+#: build (`equal_place_conflicts`) until it is ordered by structure (a cut, an extent, a rest-of) or listed here.
+EQUAL_PLACES_ACCEPTED: Mapping[frozenset, str] = {}
+
+
+def equal_place_conflicts(key: Sequence[str], at: Callable[[str], tuple], own_sp: Callable[[str], Sequence],
+                          after: Mapping[str, frozenset], region_of: Callable[[str], int],
+                          same: Callable[[int, int], bool] = lambda a, b: a == b
+                          ) -> List[Tuple[str, str, str, int, int, int]]:
+    """(T771) THE PAIRS OF A CHAIN WHOSE ORDER ONLY THE ID DECIDES, AND WHERE IT MATTERS: (a, b, species, day index,
+    a's verdict, b's verdict) for two places of `key` (the chain, in order) of ONE region whose sort keys (`at`) agree
+    in everything but the id, both speaking for the species on a day no place before them speaks, with different
+    answers (`own_sp`: each place's own year as interned verdicts; `same` says whether two of them are one answer —
+    the build's: `same_answer`). A rest-of and one of its listed places (`after`, T761 / T783) are ordered by structure
+    and pass; a pair in `EQUAL_PLACES_ACCEPTED` passes."""
+    from pipeline.regs.dfo_salmon.live import _at
+    out: List[Tuple[str, str, str, int, int, int]] = []
+    # Every LATER place with an equal key, not only the next ones: `key` is the chain as it speaks, after `rest_after`,
+    # which moves a rest-of to just behind its listed places — so a rest (R lists A) can land BETWEEN two equal places
+    # (A, R, B) and a stop at the first unequal key hid A from B. The check stays on this final order, not on the order
+    # before `rest_after`: `first` (the places that speak before the pair) must be the places that really come first,
+    # and before `rest_after` a narrower rest sorts ahead of its listed place though it never answers before it.
+    keys = [at(l)[:-1] for l in key]
+    for i, a in enumerate(key):
+        for j in range(i + 1, len(key)):
+            if keys[j] != keys[i]:
+                continue
+            b = key[j]
+            if (region_of(a) != region_of(b) or b in after.get(a, ()) or a in after.get(b, ())
+                    or frozenset((a, b)) in EQUAL_PLACES_ACCEPTED):
+                continue
+            first = [l for l in key[:i] if region_of(l) == region_of(a)]
+            for k, sp in enumerate(SPECIES):
+                for d in range(len(DAYS)):
+                    va, vb = _at(own_sp(a)[k], d), _at(own_sp(b)[k], d)
+                    if va < 0 or vb < 0 or same(va, vb) or any(_at(own_sp(l)[k], d) >= 0 for l in first):
+                        continue
+                    out.append((a, b, sp, d, va, vb))
+    return out
+
+
+def same_answer(a: Mapping, b: Mapping) -> bool:
+    """(T771) Two verdicts give the angler ONE answer: both closed (DFO's words for a closure differ by place — "No
+    fishing for chinook" beside "No fishing for salmon", the Morice pair — and say the same), or equal in everything,
+    words included (an opening's words carry its conditions, T840)."""
+    return a == b or (a.get("s") == "closed" and b.get("s") == "closed")
+
+
 def rides_on_others(locs: Iterable) -> frozenset:
-    """(T611) the location ids whose extent is `other_places` — the union of their siblings' sections."""
-    return frozenset(l.location_id for l in locs
-                     if any(getattr(e.op, "value", e.op) == "other_places"
-                            for e in (getattr(getattr(l, "binding", None), "extents", None) or ())))
+    """(T611) the location ids whose extent is `other_places` — the union of their siblings' sections. A place is an
+    `EntryLocation` (the bundle) or its stored dict (the review app's cascade view, `curation-review/backend/cascade.py`),
+    so both order a chain with the one key."""
+    def field(x, k):
+        return x.get(k) if isinstance(x, Mapping) else getattr(x, k, None)
+
+    def op(e):
+        o = field(e, "op")
+        return getattr(o, "value", o)
+    return frozenset(field(l, "location_id") for l in locs
+                     if any(op(e) == "other_places" for e in (field(field(l, "binding") or {}, "extents") or ())))
 
 
 # ── the regions a section lies in (T668) ─────────────────────────────────────────────────────────────────────────────
@@ -1101,6 +1169,12 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
             return True
         return bool(c[0] & section_regions.keys(sid)) or any(sid in section_regions.area(a) for a in c[1])
 
+    # T754: the places DFO words for one bank of their river (`locations.bank_of`: "on west bank", "from the centre line
+    # to the northern bank") — the bank each names
+    from pipeline.regs.dfo_salmon.locations import bank_of
+    banks = {lid: b for lid, v in locs.items() if (b := bank_of((getattr(v[1], "source_text", None) or {})
+                                                                .get("specific_area")))}
+    beside: Dict[str, str] = {}
     covering: Dict[int, List[str]] = defaultdict(list)
     unmapped_locs: List[str] = []
     missing: List[str] = []
@@ -1123,6 +1197,29 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
             if not locs[lid][1].tidal_water and not row.get("behind"):
                 unmapped_locs.append(lid)
             continue
+        if lid in banks:
+            # T754 (owner 2026-11-22): a place for ONE BANK is read BESIDE the water's other places on its own sections
+            # (AGENTS rule 49, as the book's `side`): in their chains' `u`, never `l`, so the stretch answers — and
+            # paints — by the water's other rules and the card names the bank (`p[lid]["side"]`). ONLY ITS OWN RIVER'S
+            # sections (review of #61): a bank is a bank of that river, so the sections its tributary walk took (the
+            # Kitimat's 12 creeks from "(including tributaries)") carry no bank caveat and answer by their other places
+            on = {sid_of[s] for s in row["sections"] if s in sid_of}
+            missing.extend(s for s in row["sections"] if s not in sid_of)
+            if item_sections is None:
+                raise SalmonError(f"salmon: {lid} names one bank: its river's sections (`item_sections`) are needed")
+            slug, loc, ef = locs[lid]
+            water = ef.water(loc.water_id) if loc.water_id else None
+            stem = {sid for it in (water.item_ids if water else ()) for sid in item_sections.get(it, ())}
+            mine = {sid for sid in on if sid in stem and binds(lid, sid)}
+            unmapped_locs.append(lid)
+            if mine:
+                carried_on[lid] = mine
+                beside[lid] = banks[lid]
+            else:
+                # placed off its own river only: never widened, an undrawn place of its water (said, not dropped)
+                print(f"     salmon: {lid} names one bank but binds no section of its own river — an undrawn place "
+                      "of its water", file=sys.stderr)
+            continue
         for s in row["sections"]:
             sid = sid_of.get(s)
             if sid is None:
@@ -1130,7 +1227,8 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
                 continue
             if binds(lid, sid):
                 covering[sid].append(lid)
-    after = rests_behind(placed, locs, sid_of, covering, binds, missing)
+    after = rests_behind(placed, locs, sid_of, covering, binds, missing,
+                         {lid: carried_on[lid] for lid in beside})
     # (T783) and behind its dormant listed places, where both cover a section (`dormant_listed`)
     for _slug, ef in sorted(entry_files.items()):
         for rest, dormant in dormant_listed(ef.locations).items():
@@ -1149,6 +1247,7 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
     from pipeline.deliver.salmon_who import answering_places, places_named
     from pipeline.regs.dfo_salmon import live as _live
     who_v, who_g, who_sp = _Interner(), _Interner(), {}
+    ties: List[Tuple[str, str, str, int, int, int]] = []     # (T771) `equal_place_conflicts`, every chain
 
     def own_sp(lid: str):
         if lid not in who_sp:
@@ -1165,6 +1264,8 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
                        for n in sorted({locs[l][1].region_number for l in key})) if grouped else ()
         if (key, uk, groups) not in chain_ix:
             chain_ix[(key, uk, groups)] = len(chains)
+            ties.extend(equal_place_conflicts(key, at, own_sp, after, lambda l: locs[l][1].region_number,
+                                              lambda x, y: same_answer(who_v.items[x], who_v.items[y])))
             first = locs[(key or uk)[0]][1]
             rs = sorted({locs[l][0] for l in key + uk})
             cal = chain_calendar([rules_of[l] for l in key], verdicts, gears,
@@ -1225,6 +1326,17 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
         for u in unmapped:
             mine[u["r"]].update(u["items"])
         scopes = {slug: {k: [i for i in v if i in mine[slug]] for k, v in sc.items()} for slug, sc in scopes.items()}
+    if ties:
+        # (T771) two equal places that answer differently: the id would decide which speaks — never silently
+        pairs: Dict[Tuple[str, str], List[str]] = defaultdict(list)
+        for a, b, sp, d, va, vb in ties:
+            if len(pairs[(a, b)]) < 3:
+                pairs[(a, b)].append(f"{sp} on day {DAYS[d]:04d}: {who_v.items[va].get('t')!r} vs "
+                                     f"{who_v.items[vb].get('t')!r}")
+        raise SalmonError("salmon (T771): two places of one tier, region and size answer a fish differently where the "
+                          "chain reaches them, so only their ids order them — order them by structure (a cut, an "
+                          "extent, a rest-of) or list the pair in salmon.EQUAL_PLACES_ACCEPTED with the owner's "
+                          "reason:\n" + "\n".join(f"  {a} | {b}: " + "; ".join(v) for (a, b), v in sorted(pairs.items())))
     # (owner 2026-11-11, RULINGS Z4a) a two-region chain's salmon fishing hours: the tighter region's line (`h`, the
     # region slugs whose header hours line shows), both where neither is tighter
     for c in chains:
@@ -1242,6 +1354,10 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
     # T573: a closed-area piece says so (`piece: 1`; `bound: 1` when it covers a section), so the app reads it without
     # parsing its id: where the live feed lacks a bound one, the answer is "not known, check the notice", never the
     # place's opening (T757)
+    # T754: a placed one-bank place says its bank (`side`: north|south|east|west, the book's `side` words); one the reach
+    # run did not place is an ordinary undrawn place of its water (its words name the bank), never widened
+    for lid, b in beside.items():
+        payload["p"][lid]["side"] = b
     bound = {l for ls in covering.values() for l in ls}
     for lid, v in payload["p"].items():
         if getattr(locs[lid][1], "closure_rule", None):

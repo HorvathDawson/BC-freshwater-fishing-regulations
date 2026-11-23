@@ -1,6 +1,6 @@
 # T1001 — Two data-tier test fixes left from T777 (a stretch-end test on the live tree; in-season tests between a promote and a release)
 
-Status: OPEN.
+Status: DONE (f3ecf0c8e, lane L6, 2026-11-22).
 
 Source: T777's 2026-11-16 additions, left when T777 closed (lane test/T777-test-isolation, 2026-11-22): both are
 `needs_atlas` tests, so neither runs on CI's tier or in a worktree without the atlas, and the T931 lane had
@@ -21,3 +21,21 @@ Source: T777's 2026-11-16 additions, left when T777 closed (lane test/T777-test-
   matching pair they pass. Run under the data tier (`scripts/test-full.sh` or the chunked runner with `-m "not slow"`).
 
 Depends: T777. Size: S. Owner: no.
+
+## Done (lane L6, 2026-11-22, f3ecf0c8e)
+- **Found first:** since T777 the `wt` fixture served NO atlas (`no_served_build`), so all three `needs_atlas` tests of
+  `test_review_closed_areas.py` failed on every machine (`/api/dfo/locations/…` answered a missing registry). `wt` now
+  serves the atlas under test (`under_test.atlas`) to a test marked `needs_atlas`, and none to any other (as on CI).
+- **1:** the nearest-cut check reads cuts the TEST plants: the line's own cuts taken out (the stretch's other end kept),
+  one planted 50 m (near) and one 250 m (far) from the hand end on the side away from the other end; the expected
+  answer is computed from those. A cut built near the Deadman cannot move it. The rest of the test (resolved, stamped,
+  refused off the water) still runs on the live row.
+- **2:** `conftest.one_vintage(atlas, release)`: the in-season module (`env`) and the screen's re-resolve test fail with
+  one line, "atlas build X (section handles A) is not the release under test Y's (tiles B): … release it (python -m
+  pipeline release --staging), or point RELEASE_DIR at the candidate". Both now resolve on the release under test
+  (`under_test.release`, RELEASE_DIR or LATEST: `resolve.release_dir` patched in the fixture) and carry `needs_bundle`.
+  `test_one_vintage.py` pins the message and the matching pair (no data).
+- **Runs (unfiltered, through heavy.sh):** `test_review_closed_areas.py` + `test_review_write_through.py -m ""`: 37 passed
+  (the stretch-end test after one fix); `test_curation_review_inseason.py` + the screen's in-season / re-resolve tests:
+  14 passed (served atlas = LATEST's vintage today). The mismatch path was proved by the unit test only, not on a real
+  promote.
