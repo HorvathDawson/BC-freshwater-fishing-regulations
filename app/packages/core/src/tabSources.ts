@@ -32,10 +32,6 @@ import { SOURCE_AUTHORITIES, SOURCE_LINE, type AuthorityId } from "./sourceNames
 
 export { SOURCE_AUTHORITIES, SOURCE_LINE, RULE_BOOK, type AuthorityId } from "./sourceNames";
 
-/** The row's label. */
-export const SOURCE_ROW_LABEL = SOURCE_LINE.LABEL;
-/** The mark on the water's own rule-book page in the row. */
-export const SOURCE_ROW_THIS_WATER = SOURCE_LINE.THIS_WATER;
 
 /** An authority's page: its Sources-and-licences row's. A row without one is a programming error, thrown (never a blank link). */
 export function authorityUrl(id: AuthorityId): string {
