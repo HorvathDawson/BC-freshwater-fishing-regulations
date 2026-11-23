@@ -8,10 +8,10 @@
  */
 import { createHash } from "node:crypto";
 import type { RegsStore } from "@app/data/regs";
-import { slugShard, SLUG_SHARDS } from "@app/ui";
+import { fitQuery, slugShard, SLUG_SHARDS } from "@app/ui";
 import { aboutBody, privacyBody, CSS, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, clip, descriptionOf, esc, headOf, NOT_LEGAL, notFoundBody, regionLabel, shell, titleOf, waterRegion, type Release, type Site } from "./html";
 import { aboutLd, checkJsonLd, pageLd, waterLd } from "./jsonld";
-import { appPage, listWaterOrds, managementUnits, nearestTowns, rulesKey, waterModel, type BuildDay, type WaterModel } from "./model";
+import { appPage, formerNames, listWaterOrds, managementUnits, nearestTowns, regionBox, rulesKey, waterModel, type Box, type BuildDay, type WaterModel } from "./model";
 import { TOPICS, topicLines, type TopicKey } from "./topics";
 import { assignSlugs, type SlugMap, type Steps } from "./slug";
 import { verifyAgainstApp } from "./verify";
@@ -83,8 +83,11 @@ const outFile = (path: string) => `${path.slice(1)}/index.html`;
  * and closed for the day itself. The pages that were all about "today" (what is open this weekend, waters
  * opening and closing soon) are gone: hosting.ts `REMOVED_PAGES` 301s their addresses to the region page, and they are in no sitemap.
  */
-/** the live app's map: it opens on the current day (a link carries no `date`) and works out open / closed itself */
-export const mapLink = (site: Site): string => `${site.origin}/`;
+/**
+ * the live app's map: it opens on the current day (a link carries no `date`) and works out open / closed itself; (T1010, owner
+ * 2026-11-22) framed on `box` — a region page's waters (`regionBox`), read from the release — by the start link's `fit`
+ */
+export const mapLink = (site: Site, box: Box): string => `${site.origin}/${fitQuery(box)}`;
 
 /** A-Z buckets of a region's waters ("0" = a name that does not start with a letter), in letter order */
 function groupByLetter(ws: readonly WaterModel[]): Map<string, WaterModel[]> {
@@ -130,6 +133,8 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   const bad: string[] = [];
 
   const towns = await nearestTowns(store), units = await managementUnits(store);
+  // (T1011) a renamed water's former names ("formerly Chilko Lake"): in its title, description and JSON-LD, so a search for the old name finds it
+  const formerly = await formerNames(store);
   const { map: slugMap, removed, steps: slugSteps } = assignSlugs(models.map((m) => ({ id: m.id, name: m.name, region: m.region, town: towns.get(m.id) ?? null, mus: units.get(m.id) ?? [] })), o.slugMap);
   const slugOf = (id: string) => slugMap.waters[id]!.slug;
   const byName = (a: WaterModel, b: WaterModel) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
@@ -179,14 +184,16 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     const qual0 = (x: WaterModel) => ((nameCount.get(x.name) ?? 0) > 1 ? (towns.get(x.id) ? `near ${towns.get(x.id)}` : waterRegion(x)) : "");
     const twins = [...(sameQual.get(`${m.name}|${qual0(m)}`) ?? [])].sort((x, y) => x.id.localeCompare(y.id));
     const qual = qual0(m) && twins.length > 1 ? `${qual0(m)}, no. ${twins.indexOf(m) + 1}` : qual0(m);
-    const title = titleOf(m.name, site, qual), description = descriptionOf(m, `${m.name}${/no\. \d+$/.exec(qual)?.[0] ? ` ${/no\. \d+$/.exec(qual)![0]}` : ""}`, town);
+    const was = formerly.get(m.id) ?? [], wasWords = was.length ? `formerly ${was.join(" / ")}` : "";
+    const title = titleOf(m.name, site, [wasWords, qual].filter(Boolean).join(", "));
+    const description = descriptionOf(m, `${m.name}${/no\. \d+$/.exec(qual)?.[0] ? ` ${/no\. \d+$/.exec(qual)![0]}` : ""}${wasWords ? ` (${wasWords})` : ""}`, town);
     unique(titles, title, path); unique(descriptions, description, path);
     const hash = sha(JSON.stringify(m.parts.map((p) => [p.label, p.sections.filter((s) => s.title !== "Why it is closed").map((s) => [s.title, s.items.filter((i) => !i.dated)])])));
     waterHash.set(m.id, hash);
     waterRules.set(m.id, rulesSha(await rulesKey(store, m.ord)));
     // the topic lines feed the hubs (each a sentence the water's own pane shows)
     waterTopics.set(m.id, topicLines(m));
-    const head = headOf({ title, description, path, jsonld: waterLd(m, path, title, site), image: `/share/${slugOf(m.id)}.png` }, site);
+    const head = headOf({ title, description, path, jsonld: waterLd(m, path, title, site, was), image: `/share/${slugOf(m.id)}.png` }, site);
     // (T279) asked at once, all of them: the build's render threads take them in parallel; kept in order below
     made.push({ path, hash, title, description, page: o.waterPage(m, head, outFile(path)) });
     // (T406) the card's source: build.ts draws it as `share/<slug>.png` (share.ts) and ships the PNG only
@@ -205,16 +212,24 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   const TOPIC_CAP = 600;
 
   // ── region hubs (T195) ─────────────────────────────────────────────────────────────────────────────────────────────
+  // (T1010) every region's box, from its waters' parts in the release; a region with none cannot be framed: the build stops
+  const boxOf = new Map<number, Box>();
+  for (const r of regions) { const b = regionBox(models, r); if (b) boxOf.set(r, b); else bad.push(`${regionPath(r)}: no part of its waters has a place to frame the map on`); }
+  /** (T1010) the region's "Open the map" card: the app framed on the region */
+  const mapCard = (r: number) => boxOf.has(r)
+    ? `<div class="card"><p>To see which waters are open, open the map. It opens on the current day and colours every water for it.</p>` +
+      `<a class="app" href="${esc(mapLink(site, boxOf.get(r)!))}">Open the map of ${esc(regionLabel(r))}</a></div>` : "";
+  /** (T1011) a water in a list, with its former name where it was renamed ("Tŝilhqox Biny, formerly Chilko Lake") */
+  const listItem = (m: WaterModel) => `<li><a href="${waterPath(m)}">${esc(m.name)}</a>${formerly.has(m.id) ? ` <span class="tag">formerly ${esc(formerly.get(m.id)!.join(" / "))}</span>` : ""}</li>`;
   for (const r of regions) {
     const ws = inRegion(r), path = regionPath(r), name = regionLabel(r);
-    const list = (xs: readonly WaterModel[]) => `<ul class="cols">${xs.map((m) => `<li><a href="${waterPath(m)}">${esc(m.name)}</a></li>`).join("")}</ul>`;
+    const list = (xs: readonly WaterModel[]) => `<ul class="cols">${xs.map(listItem).join("")}</ul>`;
     const letters = ws.length > (o.hubSplitAt ?? 400) ? groupByLetter(ws) : null;
     const title = clip(`${name} fishing regulations (BC) — ${site.name}`, 60);
     const body = `<nav class="crumbs"><a href="/">Home</a> › ${esc(name)}</nav><h1>${esc(name)} fishing regulations</h1>` +
       `<p>${ws.length} waters in ${esc(name)} with the full rules in plain words, from release ${esc(release.id)}.</p>` +
-      // (owner 2026-11-10, T605) the live map, opening on the current day: the app says open or closed (it takes no region or bbox in a link yet)
-      `<div class="card"><p>To see which waters are open, open the map. It opens on the current day and colours every water for it.</p>` +
-      `<a class="app" href="${esc(mapLink(site))}">Open the map for ${esc(name)}</a></div>` +
+      // (owner 2026-11-10, T605) the live map, opening on the current day: the app says open or closed; (T1010) framed on the region
+      mapCard(r) +
       `<ul>` +
       TOPICS.filter((t) => topicWaters(r, t.key).length).map((t) => `<li><a href="${path}/${t.key}">${esc(t.hub)} in ${esc(name)}</a> (${topicWaters(r, t.key).length})</li>`).join("") + `</ul>` +
       yearCardHtml(name, regionYear(ws)) +
@@ -229,7 +244,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
       const lt = clip(`${name} waters, ${l === "0" ? "other" : l} — ${site.name}`, 60);
       const ld = clip(`${xs.length} waters in ${name} with ${lname}: the full rules for each, in plain words.`);
       const lb = `<nav class="crumbs"><a href="/">Home</a> › <a href="${path}">${esc(name)}</a> › ${l === "0" ? "Other" : l}</nav><h1>${esc(name)} waters: ${esc(lname)}</h1>` +
-        `<p>${xs.length} waters, from release ${esc(release.id)}.</p>${list(xs)}` +
+        `<p>${xs.length} waters, from release ${esc(release.id)}.</p>${mapCard(r)}${list(xs)}` +
         `<div class="legal"><p>${built()} This is not a legal document. Check the official synopsis before you fish.</p></div>`;
       unique(titles, lt, lp); unique(descriptions, ld, lp);
       add("letter", lp, shellOf(lp, lt, ld, lb, pageLd(site, lp, lt, asOf, [["Home", "/"], [name, path], [l === "0" ? "Other" : l, lp]])));
@@ -255,7 +270,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
       const ls = ws.slice(0, TOPIC_CAP);
       const body = `<nav class="crumbs"><a href="/">Home</a> › <a href="${regionPath(r)}">${esc(nm)}</a> › ${esc(t.hub)}</nav><h1>${esc(t.hub)} in ${esc(nm)}, B.C.</h1>` +
         `<p>${ws.length} waters in ${esc(nm)}${ws.length > ls.length ? `; the first ${ls.length} by name are listed, every water is on <a href="${regionPath(r)}">the ${esc(nm)} page</a>` : ""}. Each water page has the rule in full.</p>` +
-        `<ul class="cols">${ls.map((m) => `<li><a href="${waterPath(m)}">${esc(m.name)}</a> </li>`).join("")}</ul>` +
+        mapCard(r) + `<ul class="cols">${ls.map(listItem).join("")}</ul>` +
         `<p><a href="${ipath}">${esc(t.hub)} in all regions</a></p>` +
         `<div class="legal"><p>${built()} ${esc(NOT_LEGAL)}</p></div>`;
       unique(titles, title, p); unique(descriptions, desc, p);

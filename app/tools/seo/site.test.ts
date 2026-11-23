@@ -12,13 +12,18 @@ import { buildRegsPage, type RegsPage } from "@app/core";
 import { loadRegsInputs, openRegsStore } from "@app/data/regs";
 import { openRegsFixture } from "@app/data/release/node";
 import { BUDGET, blockingScripts, checkBudget, measure, pageSize } from "./budget";
-import { buildAll, readConfig, writeSite, type Built } from "./build";
+import { BARE_APP, buildAll, homeLinkProblems, readConfig, writeSite, type Built } from "./build";
 import { pngSize } from "./share";
 import { SHARE_H, SHARE_W } from "./html";
 import { TODAY } from "./fixture";
 import { headersFile, hostWorker, HSTS, redirectFor, redirectsFile } from "./hosting";
-import { checkJsonLd } from "./jsonld";
-import { buildDayOf } from "./model";
+import { checkJsonLd, waterLd } from "./jsonld";
+import { buildDayOf, formerName, regionBox } from "./model";
+import { appDocument } from "./prerender";
+// @ts-expect-error a plain .mjs tool (no types)
+import { HOME_LINKS, withHomeLinks } from "../web-shell.mjs";
+import { regionLabel } from "./html";
+import { fitQuery, parseStartLink } from "@app/ui";
 import { SHARE_LINE } from "./site";
 
 const APP = join(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -299,12 +304,24 @@ describe("T195 hubs and dated pages", () => {
     for (const r of regions) for (const pg of ["open-this-weekend", "season-changes"]) expect(rd, `${r} ${pg}`).toContain(`/region/${r}/${pg} /region/${r} 301\n`);
     expect(redirectFor(`https://canifishthis.ca/region/${regions[0]}/season-changes`, site, [], regions)).toEqual({ status: 301, to: `https://canifishthis.ca/region/${regions[0]}` });
     expect(redirectFor(`https://canifishthis.ca/region/${regions[0]}`, site, [], regions)).toBeNull();
-    // every region page links to the live app's map, which opens on the current day: no `date` in the link
+    // every region page links to the live app's map, which opens on the current day: no `date` in the link; (T1010) framed on
+    // the region: the box around its waters' parts (`regionBox`, from the release), which `fit` reads back as that box
     for (const r of built.build.pages.filter((p) => p.kind === "region")) {
-      const href = /<a class="app" href="([^"]+)">Open the map for/.exec(r.html)?.[1];
-      expect(href, r.path).toBe(`${site.origin}/`);
+      const n = Number(r.path.split("/")[2]);
+      const href = new RegExp(`<a class="app" href="([^"]+)">Open the map of ${regionLabel(n)}<`).exec(r.html)?.[1]?.replace(/&amp;/g, "&");
+      const box = regionBox(built.build.models, n)!;
+      expect(href, r.path).toBe(`${site.origin}/${fitQuery(box)}`);
       expect(href, r.path).not.toMatch(/date=/);
+      const fit = parseStartLink(new URL(href!).search)!.fit!;
+      expect([fit[0] <= box[0], fit[1] <= box[1], fit[2] >= box[2], fit[3] >= box[3]], r.path).toEqual([true, true, true, true]);
+      // inside B.C. (the province's own box, roughly): never a box spilling across the continent
+      expect([fit[0] > -140, fit[2] < -114, fit[1] > 48, fit[3] < 60.1], r.path).toEqual([true, true, true, true]);
       expect(text(r.html), r.path).toMatch(/built 2026-10-27/);
+    }
+    // (T1010) its letter and topic pages open the map on the same region
+    for (const p of built.build.pages.filter((x) => (x.kind === "letter" || x.kind === "topic") && /^\/region\/\d+\//.test(x.path))) {
+      const n = Number(p.path.split("/")[2]);
+      expect(/<a class="app" href="([^"]+)">/.exec(p.html)?.[1]?.replace(/&amp;/g, "&"), p.path).toBe(`${site.origin}/${fitQuery(regionBox(built.build.models, n)!)}`);
     }
   });
 
@@ -466,5 +483,50 @@ describe("the static output", () => {
     expect(existsSync(join(OUT, cssPath()))).toBe(true);
     expect(() => writeSite(join(APP, "seo-out"), built.files)).toThrow(/inside a dist folder/);
     expect(readFileSync(join(APP, "../.gitignore"), "utf8")).toMatch(/^app\/\*\*\/dist\/$/m);
+  });
+});
+
+describe("(T1011) the home page leads crawlers to the site's pages", () => {
+  const page = (path: string) => ({ path, kind: path.startsWith("/region/") ? "region" : "other" });
+  const ALL = (HOME_LINKS as [string, string][]).map(([h]) => page(h));
+  it("`/` (the app's index.html) carries a plain <a href> to the gauges, every region, About and Privacy, after the app's root", () => {
+    const home = withHomeLinks(BARE_APP);
+    const row = /<nav id="site-links"[^>]*>([\s\S]*?)<\/nav>/.exec(home)![1]!;
+    expect([...row.matchAll(/<a href="([^"]+)">/g)].map((m) => m[1])).toEqual(
+      ["/gauges", ...[1, 2, 3, 4, 5, 6, 7, 8].map((r) => `/region/${r}`), "/about", "/privacy"]);
+    expect(home.indexOf('<nav id="site-links"')).toBeGreaterThan(home.indexOf('<div id="root"></div>'));   // never over the map
+    expect(withHomeLinks(home)).toBe(home);                                                                  // a second run: the same page
+  });
+  it("the build refuses a row naming a page it did not make, missing a region it made, or no row at all", () => {
+    const home = withHomeLinks(BARE_APP);
+    expect(homeLinkProblems(home, ALL)).toEqual([]);
+    expect(homeLinkProblems(home, ALL.filter((p) => p.path !== "/gauges"))).toEqual(["the home page links /gauges, which this build did not make"]);
+    expect(homeLinkProblems(home, [...ALL, page("/region/9")])).toEqual(["the home page does not link /region/9"]);
+    expect(homeLinkProblems(BARE_APP, ALL)).toEqual(["the app's index.html has no home link row (tools/web-shell.mjs withHomeLinks)"]);
+  });
+  it("every page the row names that the fixture build makes is linked (its regions all are)", () => {
+    const made = new Set(built.build.pages.map((p) => p.path));
+    for (const p of built.build.pages.filter((x) => x.kind === "region")) expect((HOME_LINKS as [string, string][]).map(([h]) => h), p.path).toContain(p.path);
+    expect(made.has("/about") && made.has("/privacy")).toBe(true);
+  });
+  it("a water page does not carry the row (its document is the app's pane)", () => {
+    const d = { head: "", critical: "", cssHref: "/c.css", preload: [], item: "gnis:1", region: "2", pane: "<p>pane</p>" };
+    expect(appDocument(withHomeLinks(BARE_APP), d)).toBe(appDocument(BARE_APP, d));
+  });
+});
+
+describe("(T1011) a renamed water is found by its former name", () => {
+  it("formerName reads the release's \"(formerly)\" alias, as sourced, and nothing else", () => {
+    expect(["Chilko Lake (formerly)", "Puntzi Lake(formerly)", "Eagle Lake ( Formerly )", "CHILKO LAKE", "Alces", "Formerly Lake"].map(formerName))
+      .toEqual(["Chilko Lake", "Puntzi Lake", "Eagle Lake", null, null, null]);
+  });
+  it("its title, description and JSON-LD name the former name; the JSON-LD gate holds it to the page", () => {
+    const m = built.build.models[0]!;
+    const ld = waterLd(m, "/water/x", `${m.name} (formerly Old Lake) fishing regulations`, site, ["Old Lake"]);
+    const html = `<title>${m.name} (formerly Old Lake) fishing regulations</title><script type="application/ld+json">${ld}</script>`;
+    expect(JSON.parse(ld)["@graph"][1].alternateName).toBe("Old Lake");
+    expect(checkJsonLd(html, site.origin, ["WebPage", "Place"]).filter((x) => /Old Lake/.test(x))).toEqual([]);
+    // MUTATION: a page that does not say the former name is refused for its JSON-LD's
+    expect(checkJsonLd(html.replace("(formerly Old Lake) ", ""), site.origin, ["WebPage", "Place"])).toContain('"Old Lake" is in the JSON-LD and not on the page');
   });
 });

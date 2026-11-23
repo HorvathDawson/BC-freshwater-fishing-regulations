@@ -115,6 +115,8 @@ export interface ShellProps {
   regsStart?: RegsStart | null;
   /** (T269) the water the page started on or at (the web start link's `arrive`): the map comes back framed on it (nothing lit). Read once. */
   arriveAt?: ItemId | null;
+  /** (T1010) the box the page started on (the web start link's `fit`, `?fit=w,s,e,n`): the map opens framed on it. Read once. */
+  fitAt?: readonly [number, number, number, number] | null;
   /** The platform's location, for the Spots menu's "At my location" (the app's). Absent -> not offered. */
   locate?: Locate | null;
   /**

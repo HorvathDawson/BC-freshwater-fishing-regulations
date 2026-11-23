@@ -32,3 +32,9 @@ Depends: —. Size: S–M. Owner: no.
 
 ## L3 2026-11-20 read attempt
 `GET /crashes` answers HTTP 403 without the bearer RUN_TOKEN on staging (`bc-fishing-feeds-staging.horvath-dawson.workers.dev`) and production (`feeds.canifishthis.ca`); the token is a secret the lane does not read, so no crash read was made. The owner (or a session he gives the token) runs, per worker: `curl -H "Authorization: Bearer $RUN_TOKEN" "<worker>/crashes?since=2026-11-09"` and records: only `defect` kinds listed by default, none from the 11-19/20 emulator installs.
+
+## T1005 2026-11-22: classes the triage needs (lane L5, the worker)
+A `crawler` class (platform `web (crawler)` / `web (automated)` from the app at 127296a64, and the POST's User-Agent for
+older builds); EXPECTED += no WebGL (`MapUnavailable`), an older build's "refused … HTTP 429"; NETWORK += "no whole file
+in N ms", `update: … Unexpected end of JSON input`, "The source image could not be decoded". The list with the kinds:
+T1005 "What the worker needs".

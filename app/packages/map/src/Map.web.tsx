@@ -18,7 +18,8 @@
  * needs a real DOM node to attach a canvas to, and on this platform RNW is producing divs
  * anyway. The native renderer is a different file for exactly this reason.
  */
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { MAP_UNAVAILABLE_WORDS } from "@app/core";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./controls.css";
 import { mapChrome } from "./chrome";
@@ -78,7 +79,9 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
   /** MapLibre's own controls and markers, in this theme's chrome unless told otherwise. */
   const furniture = useMemo(() => chrome ?? mapChrome(theme), [chrome, theme]);
 
-  useMapInstance(refs, { at, theme, modes, gauges, initial, bare, zoomControls, onError, onImageryError });
+  // (T1005) a browser that cannot draw a map (no WebGL) is told so on the map, not left with a blank box
+  const [unavailable, setUnavailable] = useState(false);
+  useMapInstance(refs, { at, theme, modes, gauges, initial, bare, zoomControls, onError, onImageryError }, setUnavailable);
   useLabelsInBC(refs.map, outsideData);
   useLook(refs, { view, theme, modes, groups, hide, show, basemap, focus }, { lookKey, onLookDrawn });
   usePushedData(refs, data);
@@ -132,6 +135,16 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
   // the spots' layer is the map's sibling, over it in the same box (the host is the map's: MapLibre owns its children)
   return <>
     <div ref={refs.host} style={{ position: "absolute", inset: 0, ...vars, ...(style as object) }} />
+    {unavailable ? (
+      <div role="alert" data-map-unavailable="" style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center",
+                                                          justifyContent: "center", padding: 24, background: furniture.card,
+                                                          color: furniture.ink, textAlign: "center" }}>
+        <div style={{ maxWidth: 420 }}>
+          <div style={{ fontWeight: 600, marginBottom: 8 }}>{MAP_UNAVAILABLE_WORDS.title}</div>
+          <div>{MAP_UNAVAILABLE_WORDS.body}</div>
+        </div>
+      </div>
+    ) : null}
     {spotLayer}
     {/* (T317) the boundary marks are map layers now; their buttons stay, for the keyboard and a screen reader only —
         out of sight and never moved with the map (a tap on the map is the layer's: `useMarks`) */}
