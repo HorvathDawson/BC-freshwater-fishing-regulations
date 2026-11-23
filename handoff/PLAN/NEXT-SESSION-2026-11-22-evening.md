@@ -15,28 +15,27 @@ The full gap list with a plan per ticket: `handoff/PLAN/batch-090/gap-audit.md`;
 waters + former names + home links, T1010 `?fit=` region link, T1008 source maps served, T1007 = Cloudflare's injected
 script), #36 (T1005 crash triage + fixes, T1013 Runs prewarm, new T1014–T1017), #42 (T605 phone reads `?fit=`).
 
-### Open PRs — reviewed and set to auto-merge (check they merged)
-- #37 T997 one label box for near boundaries — was CONFLICTING with main; lane L3 was merging main into it.
-- #39 T996 APNs proven on staging, T999 incremental backup, T977 accepted, T1005 worker classes.
-- #41 T552 forecast error body.
+### Open PRs at 20:45 (`gh pr list --state open` for now; lanes wrote "State 2026-11-22 (stopped for credits)" in tickets)
+| PR | Tickets | State |
+|---|---|---|
+| #37 | T997 label merge | reviewed + fixed, conflict resolved, auto-merge on |
+| #51 | T465 zoomed-out labels (contains #37's commits) | NOT reviewed; merge after #37; owner looks at T465-shots |
+| #39 | T996 APNs on staging, T999 backup, T977, T1005 worker | reviewed + fixed, auto-merge on (staging worker runs an older head of it) |
+| #41 | T552 forecast error body | reviewed, auto-merge on |
+| #43 | T970/T972/T976/T851/T858 | reviewed + all 6 findings fixed, auto-merge on; device shots owed |
+| #44 | T1003/T1009 R8 | reviewed + fixed; auto-merge on but CONFLICTING with main: merge main in |
+| #45 | T1000 out-of-B.C. + T1001/T1002/T1019 | review STOPPED before reporting: run it again |
+| #40 | T1012 Serpentine ditches | review STOPPED; CONFLICTING; needs the 0.9.0 atlas rebuild |
+| #38 | T539 ledger cleanup + L13's work | NOT reviewed; CONFLICTING; L13 was still finishing at 20:45 |
+| #47 | T611/T771/T803/T164 (draft) | **3 agent-saved marks in marks.jsonl: owner confirms first**; fast-fail not passed |
+| #48 | T776/T779/T775/T590 (draft) | NOT reviewed; 19 wider review/dfo tests failed/errored — compare with main |
+| #49 | T919 (c) packed map assets, (d) resume (draft) | NOT reviewed; the 0.9.0 data release must carry the pack; device check owed |
+| #50 | T812 Babine circles (draft) | NOT reviewed; 2 pill-theme tests fail (fake map lacks addLayer); owner picks T812 look |
 
-### Open PRs — need review or review fixes before merge (no auto-merge yet)
-- #43 T970/T972/T976/T851/T858 (L8): review found 6 items (place-row collisions, screen-reader label, per-region
-  "Checked with DFO", 3 tests that cannot fail); L8 was fixing them — read its ticket State lines.
-- #44 T1003/T1009 R8 (L1): reviewed, no blocker; L1 was adding retrace-or-comment, the `check --aab` tests and the
-  T1003 step-6 docs.
-- #45 T1000 out-of-B.C. not drawn + T1001/T1002/T1019 (L6) and #40 T1012 Serpentine ditches (L6): the independent
-  review was STOPPED before it reported — run it again before merging.
-- #38 T539 ledger cleanup (L13): not reviewed; L13 was still working (T994/T995/T1006/the "Next" item-5 ticket).
-- #47 (L10, draft, pushed with `--no-verify`, fast-fail NOT passed): T611, T771 part, T803 items 7/8, T164. **It adds 3
-  lines to `data/curated/review/marks.jsonl` — Campbell places re-saved "right" by an AGENT through the review app. Marks
-  are the owner's: do not merge until the owner confirms those three (or drop them from the PR).** T803 item 7 edits
-  `data/curated/waters/tidal_split_authority.json`, an atlas input: the 0.9.0 atlas rebuild must include it. Left: T771
-  item 1 (needs a rule), T840 (spans Python, worker, vectors, app); stopped: T880, T773, T782, T795, T797 item 5, T883.
-- Lanes L9 (T919c/d packed assets, T740, T914, T862), L10 (rules/salmon smalls), L11 (review-app leftovers), L12
-  (DFO places drawing) were told to push and open DRAFT PRs: `gh pr list --state open` shows them.
-- Not started (lane stopped at once): T678 rest, T677, T560, T631, T561, T461, T679 #18 — plans in gap-audit.md.
-- Stopped as too big for 0.9.0: T867 (needs an owner answer), T931, T558, T609, T905 (changes the salmon feed format).
+Stopped / not started (plans in `handoff/PLAN/batch-090/gap-audit.md`): T678 rest, T677, T560, T631, T561, T461, T679 #18,
+T740 (native code), T914 (Lighthouse script was in the old scratchpad), T862 alias in slices, T504, T867, T931, T558,
+T609, T905, T880, T773, T782, T795, T797 item 5, T883, T840, T771 item 1, T885 rest, T754 (owner question 2), T589,
+T562 items 1–3, T590 item 3, T1002 items 3–5, T721/T726 (simulator walks). L12 proposes dropping T774 (owner confirms).
 
 ## Next (in order)
 1. Merge what is reviewed; review the rest (#45 + #40, #38, the drafts), one independent review each (owner rule).
