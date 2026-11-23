@@ -173,6 +173,23 @@ def predates(msg: str) -> None:
     pytest.fail(msg)
 
 
+def one_vintage(atlas: Path, release: Path) -> None:
+    """(T1001) A test that resolves on the release under test from the served atlas (the review app's In-season
+    resolution: `inseason.resolve` refuses a release not built from its atlas) FAILS with the reason when the two are
+    different vintages — the state between an atlas promote and the release that ships it, expected and never a bug:
+    one line naming both, and what to run. As `predates` does for an old bundle."""
+    import json
+    from pipeline.common import section_handles as H
+    have = H.digest_for(atlas)
+    core = (json.loads((Path(release) / "manifest.json").read_text(encoding="utf-8")).get("files") or {}).get("core") or {}
+    rel = str(core.get("section_handles") or "")
+    if rel != have:
+        pytest.fail(f"atlas build {Path(atlas).name} (section handles {have}) is not the release under test "
+                    f"{Path(release).name}'s (tiles {rel or 'unstated'}): between a promote and a release that is "
+                    "expected — release it (python -m pipeline release --staging), or point RELEASE_DIR at the "
+                    "candidate", pytrace=False)
+
+
 def part_at(data: dict, item: str, *ends: str) -> int:
     """The index of `item`'s ONE export part with a range ending at every one of `ends` (an
     endpoint label such as "mouth" or "chilliwack_vedder_rivers__vedder_crossing_bridge", or a
