@@ -16,6 +16,8 @@
  * the in-season colour elsewhere), and the width's casing addend is +3 at every stop, down from +5 (`width.selection.casing`
  * 1.5 each side). The frozen pre-T470 curve and the line-opacity stay as they were: a full regeneration of the entry would
  * also have brought T470's mid-zoom shape and an older in-season opacity clause, neither of them T735's.
+ * (T467 shaded band, 2026-11-22) The light and dark `lake__edge` line-color only, hex for hex: each colour the shoreline
+ * follows drawn `shade.lake.edge` off it (`shadeHex`, light -0.4, dark 0.45); the colour-blind theme keeps its solid edge.
  */
 import { describe, expect, it } from "vitest";
 import { createPropertyExpression, latest } from "@maplibre/maplibre-gl-style-spec";

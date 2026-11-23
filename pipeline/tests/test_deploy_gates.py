@@ -203,6 +203,9 @@ def _git(tree: Path, *args: str) -> str:
 
 
 HUB = '<a class="app" href="https://canifishthis.ca/">'
+# (T1010) a region hub's water search: the page reporter's config in the form, HTML-escaped as the SEO build writes it
+REGION_CFG = ('<form data-names="/assets/region-4.abc.json" data-cfg="{&quot;crash&quot;:&quot;https://feeds.canifishthis.ca/crash&quot;,'
+              '&quot;env&quot;:&quot;production&quot;,&quot;release&quot;:&quot;r-1&quot;}" hidden></form>')
 
 
 @pytest.fixture
@@ -231,6 +234,8 @@ def site_tree(tmp_path):
         (S / "hub/index.html").write_text(f"{HUB}Open the app</a>")
         (S / "gauge/08MH001").mkdir(parents=True)
         (S / "gauge/08MH001/index.html").write_text('"https://data.canifishthis.ca/x"')
+        (S / "region/4").mkdir(parents=True)
+        (S / "region/4/index.html").write_text(REGION_CFG)
         (S / "gauge/stations.json").write_text("[]")
         (S / "share").mkdir()
         (S / "share/gauge.png").write_bytes(b"png")
@@ -313,6 +318,25 @@ def test_the_staging_hub_rewrite_is_checked(site_tree):
     (t / "npx.log").unlink()
     r = _site(t, "staging")
     assert r.returncode == 1 and "a hub page still opens production's app after the staging rewrite" in r.stderr
+    assert _log(t, "npx.log") == []
+
+
+def test_the_staging_region_search_reports_to_staging(site_tree):
+    """(T1010) a region hub's `data-cfg` carried production's crash endpoint and env onto staging (the rewrite only knew
+    /gauge, and the config is HTML-escaped). Mutation: delete the /region rewrite — the first assert fails; a config the
+    rewrite cannot read is refused by the check."""
+    t, _, _ = site_tree
+    r = _site(t, "staging")
+    assert r.returncode == 0, r.stderr
+    got = (t / "app/dist/staging-site/region/4/index.html").read_text()
+    assert "&quot;https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/crash&quot;" in got
+    assert "&quot;env&quot;:&quot;staging&quot;" in got
+    assert "feeds.canifishthis.ca" not in got and "production" not in got
+    # a crash address the rewrite does not understand still names production: the deploy is refused, never sent
+    (t / "app/dist/seo/region/4/index.html").write_text(REGION_CFG.replace("/crash&quot;", "/crash?v=2&quot;"))
+    (t / "npx.log").unlink()
+    r = _site(t, "staging")
+    assert r.returncode == 1 and "still names production's crash endpoint" in r.stderr
     assert _log(t, "npx.log") == []
 
 

@@ -296,6 +296,9 @@ describe("(T595) a class on each kind: defect / network / expected", () => {
     expect(c("NoSuchFileException", "/data/user/0/x/water.sqlite.part")).toBe("defect");
     expect(c("TypeError", "undefined is not an object (evaluating 'x.items')")).toBe("defect");
     // (T1005) the triage's additions: a browser with no WebGL and our own 429 are known states; three line failures
+    // (T1010) a region page whose names file was replaced by a newer release
+    expect(c("Error", "names file out of date (HTTP 404)")).toBe("expected");
+    expect(c("Error", "names file 500")).toBe("defect");
     expect(c("Error", "Failed to initialize WebGL")).toBe("expected");
     expect(c("MapUnavailable", "Failed to initialize WebGL")).toBe("expected");
     expect(c("Error", "an exit record was refused by the crash server: HTTP 429 (too many reports today)")).toBe("expected");

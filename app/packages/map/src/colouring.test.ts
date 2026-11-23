@@ -15,7 +15,7 @@ import { paintFor } from "./paint";
 import { Colouring, standingInput, statusInput, stockedInput, surveyInput, type LabelTarget,
          type StandingFeed,
          type TileRenderer, type TileSections } from "./colouring";
-import { resolveTheme, type StandingValues } from "./style";
+import { resolveTheme, shadeHex, type StandingValues } from "./style";
 
 /** A status index with the given profile per section and code per profile per day (default: the profile's first). */
 function fakeIndex(name: string, bySection: Record<number, number>,
@@ -69,7 +69,9 @@ function rig(modes: Record<string, string> = { stream: "profile", lake: "profile
     if (s === plain[layer]) return "plain";
     const table = /\["literal",(\[[^\]]*\]|\{[^}]*\})\]/.exec(s);
     if (table) return `table:${table[1]!.replace(/"/g, "")}`;
-    const sets = [t["color.status.closed"], t["color.status.own"], t["color.status.base"]].map((c) => {
+    // (T467) the lake's shoreline paints each status a shade off its token (`shadeHex`): read in its own colours
+    const k = layer === "lake__edge" ? t["shade.lake.edge"] as number : 0;
+    const sets = [t["color.status.closed"], t["color.status.own"], t["color.status.base"]].map((c) => shadeHex(String(c), k)).map((c) => {
       const re = new RegExp(`(\\[[^\\[\\]]*\\]),"${String(c)}"`);
       return (re.exec(s)?.[1] ?? "[]").replace(/"/g, "");
     });
