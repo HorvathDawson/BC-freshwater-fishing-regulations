@@ -147,6 +147,28 @@ const fmt = (v: number): string =>
       : v >= 10 ? String(Math.round(v * 10) / 10)
         : String(Math.round(v * 100) / 100);
 
+/** The finest step `fmt` can write at `v`'s size: two ticks closer than this read the same ("0.59", "0.59"). */
+const fmtStep = (v: number): number => (v >= 1000 ? 100 : v >= 100 ? 1 : v >= 10 ? 0.1 : 0.01);
+
+/** How many gridlines a linear axis asks `niceTicks` for. */
+const Y_TICKS = 4;
+
+/**
+ * (T1043) THE SMALLEST LINEAR AXIS: `Y_TICKS` of `fmt`'s finest steps, widened about the middle (never below 0). Capilano's
+ * level moved 0.01 m in 72 h, so `niceTicks` stepped 0.005 and `fmt` wrote "0.59 0.59 0.6 0.6". Every station, either
+ * quantity: a span this wide steps at least one `fmtStep`, so no two gridlines carry the same label. A flat record draws
+ * as a near-flat line, which is what it is.
+ */
+export function minSpan(lo: number, hi: number): [number, number] {
+  // the step at the top the axis will END at (widening can carry 9.99 past 10, where `fmt` writes tenths), and 1% over, so
+  // `niceTicks`' span / count never lands a float's hair under one step and picks the decade below
+  const step = Math.max(fmtStep(Math.abs(hi)), fmtStep(Math.abs(hi) + (Y_TICKS * fmtStep(Math.abs(hi))) / 2));
+  const want = Y_TICKS * step * 1.01;
+  if (hi - lo >= want) return [lo, hi];
+  const from = Math.max(0, (lo + hi) / 2 - want / 2);
+  return [from, from + want];
+}
+
 /** Log ticks: every 1, 2, 5 within the decades the data spans. */
 export function logTicks(lo: number, hi: number): number[] {
   const out: number[] = [];
@@ -307,6 +329,7 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
     const pad = (hi - lo) * 0.18;
     lo = Math.max(0, lo - pad);
     hi += pad * 0.4;
+    [lo, hi] = minSpan(lo, hi);
   }
 
   const L0 = log ? Math.log10(Math.max(lo, 1e-6)) : lo;
@@ -368,7 +391,7 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
   }).filter((y) => y.d !== "");
 
   const medianPts = trace((b) => b[2]);
-  const yValues = log ? logTicks(10 ** L0, 10 ** L1).slice(0, 7) : niceTicks(lo, hi, 4);
+  const yValues = log ? logTicks(10 ** L0, 10 ** L1).slice(0, 7) : niceTicks(lo, hi, Y_TICKS);
 
   const nowIndex = nowI;
   const nowValue = input.nowValue ?? (nowIndex >= 0 ? vals[nowIndex] ?? null : null);

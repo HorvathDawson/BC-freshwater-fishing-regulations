@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Band } from "@app/core";
-import { buildHydrograph, logTicks, niceTicks, DEFAULT_BOX } from "./hydrograph";
+import { buildHydrograph, logTicks, minSpan, niceTicks, DEFAULT_BOX } from "./hydrograph";
 
 const BAND: Band = [18.8, 23.0, 30.6, 39.0, 56.6];   // 08MH001, 30 Aug, real
 const flat = <T,>(n: number, v: T): T[] => Array.from({ length: n }, () => v);
@@ -14,6 +14,32 @@ describe("ticks", () => {
   });
   it("log ticks are 1, 2, 5 per decade", () => {
     expect(logTicks(10, 1000)).toEqual([10, 20, 50, 100, 200, 500, 1000]);
+  });
+});
+
+// (T1043) CAPILANO AT CANYON'S 72 H LEVEL, 2026-11-21..23 (EC realtime, real): 0.585 to 0.6 m with no band. The axis
+// stepped 0.005 m and wrote "0.59 0.59 0.6 0.6". MUTATION: drop `[lo, hi] = minSpan(lo, hi)` from `buildHydrograph` ->
+// the Capilano labels repeat. One rule for every station and either quantity (`minSpan`), no station named in the code.
+describe("(T1043) no two gridlines carry the same label", () => {
+  const CAPILANO = [0.592, 0.592, 0.591, 0.585, 0.585, 0.593, 0.592, 0.6, 0.592, 0.585, 0.595, 0.592];
+  const labels = (values: number[]) => buildHydrograph({ values, bands: values.map(() => null), xLabels: [] })
+    .yTicks.map((t) => t.label);
+  it("Capilano's barely-moving level: distinct labels, round values, the line inside them", () => {
+    const got = labels(CAPILANO);
+    expect(got).toEqual(["0.58", "0.59", "0.6", "0.61"]);
+  });
+  it("any size: a lake at 340 m moving 3 cm, a flow of 1.8, one at 1,000, and one crossing 10", () => {
+    for (const values of [[340.21, 340.23, 340.24], [1.8, 1.8, 1.81], [1001, 1004, 1009], [9.98, 9.99, 9.995]]) {
+      const got = labels(values);
+      expect(new Set(got).size, `${values} -> ${got}`).toBe(got.length);
+      expect(got.length, `${values} -> ${got}`).toBeGreaterThanOrEqual(3);
+    }
+  });
+  it("leaves an axis that already reads apart alone, and never goes below 0", () => {
+    expect(minSpan(8.3, 59.5)).toEqual([8.3, 59.5]);
+    expect(minSpan(0.001, 0.003)[0]).toBe(0);
+    const [lo, hi] = minSpan(0.585, 0.6);
+    expect(lo <= 0.585 && hi >= 0.6).toBe(true);
   });
 });
 
