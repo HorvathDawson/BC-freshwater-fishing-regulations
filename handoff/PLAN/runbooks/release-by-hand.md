@@ -352,6 +352,11 @@ that time").
      deploy/prod/site.sh --dry-run
      ```
 
+     The web's source maps are SERVED (T1008, owner 2026-11-22): `keep-web` checks them (every bundle over 100 KB names
+     its map, the debug ids agree, a map names only files the repository tracks or node_modules holds), keeps a copy in
+     `data/sourcemaps/<key>/web/` for `sourcemaps.mjs symbolicate`, and leaves them in the export, so the site carries
+     them under `/_expo/static/` with the bundle's cache rule.
+
    - **[you]** deploy it: `CONFIRM_PROD=canifishthis.ca deploy/prod/site.sh`. It refuses uncommitted changes under
      `app/`.
 6. **The feeds worker** **[you]**, after the data and the matching website, when its code changed (skip if item 2 did

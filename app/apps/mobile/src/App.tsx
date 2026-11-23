@@ -739,7 +739,7 @@ export default function App() {
                initialRoute={place.route ?? start?.route} onRoute={holdPlace} openRequest={openRequest} openUpdate={openUpdate}
                initialDay={place.address ? place.address.day : start?.day ?? null}
                initialHorizon={place.address ? place.address.horizon : start?.horizon ?? null} onAddress={holdAddress}
-               cameraHold={place.cameras} regsStart={start?.regs ?? null} arriveAt={start?.arrive ?? null}
+               cameraHold={place.cameras} regsStart={start?.regs ?? null} arriveAt={start?.arrive ?? null} fitAt={start?.fit ?? null}
                locate={locate} locationAsk={locationAsk} share={share}
                appUpdater={appUpdater} appUpdateStore={appUpdateStore}
                weather={weather}
