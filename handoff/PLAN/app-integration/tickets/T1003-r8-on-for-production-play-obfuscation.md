@@ -2,7 +2,7 @@
 
 Status: IN PROGRESS — lane L1, branch perf/T1003-r8-release (c34b990ba, 6f0be8f4d): R8 on for every release build,
 the mapping sent to Play, the benches green on this head ("Built" below); left (Claude): the independent review and
-merge, the 0.9.0 Play internal build, Play's DEX figures recorded here, the docs (step 6).
+merge, the 0.9.0 Play internal build, Play's DEX figures recorded here.
 
 Source: owner 2026-11-22, pasting the Play Console notice verbatim: "DEX code optimization is below our threshold.
 Improve your percentages in the following categories: Obfuscation (1%). Percentages under 25% in any category of your
@@ -102,5 +102,7 @@ Code: c34b990ba (this ticket) + 6f0be8f4d (T1009's `r8-report.mjs`, which the bu
 5. **Play's figure:** not read yet: no Play upload was made from this lane (left: the Play internal build of the 0.9.0
    release, then Play's "DEX code optimization" figures into this ticket and T1009). R8's own figures for this head,
    which Play reads from the AAB: obfuscation 72.5%, optimization 72.0%, shrinking 72.3% (was obfuscation 1%).
-6. **Docs:** left to the main chat (outside this lane's area): AGENTS.md / the release runbook "R8 always on, the
-   mapping goes to Play", and the memory note on R8.
+6. **Docs:** AGENTS.md rule 34b, `runbooks/release-by-hand.md` step 6 (R8 always on, the scores, the mapping to Play),
+   `app/tools/testbed/README.md` (`--no-r8`, and own AVD + port per parallel emulator lane), the iOS restart page's
+   commands without `CANIFISHTHIS_R8`, `parity-audit.md`'s plugin name. Closed tickets that name the old flag are left as
+   the record of what ran. The memory note on R8 is the main chat's.

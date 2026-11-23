@@ -122,8 +122,10 @@ the marker's name and shape arrives.
   form (the form is the owner's hand); I did not check which of the two is already done.
 
 ### Commands you will need
+(T1003, 2026-11-22: R8 is on in every release build; `CANIFISHTHIS_R8` is removed and refused, so the commands below no
+longer carry it. A second emulator lane needs its own AVD and console port: `TESTBED_AVD=n1_pixel_b TESTBED_PORT=5584`.)
 - Six benches (R8), from a worktree W with `M=<main checkout>`:
-  `export HEAVY_LOCK=$HOME/.claude/heavy-job-2.lock CANIFISHTHIS_R8=1 TESTBED_APK_TAG=<tag> MLN_LOCAL_MAVEN=$M/cache/maplibre/$(sed -n s/^MLN_VERSION=//p $M/app/tools/maplibre-android/pin.env); $M/scripts/heavy.sh <label> 30 -- bash -c "cd $W && bash app/tools/testbed/session.sh --build --crash-stub --max-min 80 -- node app/tools/testbed/run.mjs --no-r2 install crash-bed bg-install regs-open tap-stalls memory > <log> 2>&1"`
+  `export HEAVY_LOCK=$HOME/.claude/heavy-job-2.lock TESTBED_APK_TAG=<tag> MLN_LOCAL_MAVEN=$M/cache/maplibre/$(sed -n s/^MLN_VERSION=//p $M/app/tools/maplibre-android/pin.env); $M/scripts/heavy.sh <label> 30 -- bash -c "cd $W && bash app/tools/testbed/session.sh --build --crash-stub --max-min 80 -- node app/tools/testbed/run.mjs --no-r2 install crash-bed bg-install regs-open tap-stalls memory > <log> 2>&1"`
   (drop `--build` and add `--allow-stale "<reason>"` to reuse the APK when only bench files changed). A worktree needs
   `pnpm install` in `app/` and a `.venv` symlink to the main checkout's for the worker and pipeline tests.
 - Live-release app tests in a worktree: `RELEASE_DIR=$M/data/release/$(cat $M/data/release/LATEST) pnpm exec vitest run <file>`
@@ -164,7 +166,7 @@ it started; `lib/device.mjs` gained `screenNodes()`, `tapAt()`, `deviceStamp()`;
 Its own next idea: wait for the BIG files' "Starting" line before closing (or tap sooner), since the close-to-tap
 window is about 5 s. Not yet read: `app-log-bg-install.txt` and `T298-4-notification.png` of that run.
 One more session (M = main checkout, W = `S/t760-merge-wt`; the APK tag is `m3`):
-`cd $W && export HEAVY_LOCK=$HOME/.claude/heavy-job-2.lock CANIFISHTHIS_R8=1 TESTBED_APK_TAG=m3 MLN_LOCAL_MAVEN=$M/cache/maplibre/$(sed -n s/^MLN_VERSION=//p $M/app/tools/maplibre-android/pin.env) && $M/scripts/heavy.sh m3c-bg2 30 -- bash -c "cd $W && bash app/tools/testbed/session.sh --crash-stub --max-min 40 --allow-stale 'bench files only changed since the APK was built' -- node app/tools/testbed/run.mjs --no-r2 bg-install > $S/m3c-bg2.log 2>&1"`
+`cd $W && export HEAVY_LOCK=$HOME/.claude/heavy-job-2.lock TESTBED_APK_TAG=m3 MLN_LOCAL_MAVEN=$M/cache/maplibre/$(sed -n s/^MLN_VERSION=//p $M/app/tools/maplibre-android/pin.env) && $M/scripts/heavy.sh m3c-bg2 30 -- bash -c "cd $W && bash app/tools/testbed/session.sh --crash-stub --max-min 40 --allow-stale 'bench files only changed since the APK was built' -- node app/tools/testbed/run.mjs --no-r2 bg-install > $S/m3c-bg2.log 2>&1"`
 
 THE DEPLOY-GATE PIPELINE TIER (item 3 above) RAN 13:04 to 13:09, after item 3 was written: 6498 passed, 1 FAILED,
 `emit --check` rc 0, `mini_release --check` rc 0 (log `S/deploy-merge-pytest.log`); the step-cache file on its own:
@@ -246,9 +248,9 @@ first. It messages you BEFORE and AFTER any staging release.
 DFO extent, one more side atlas build, promote, `pipeline build`, the staging release + site build ("before" message
 expected about 00:50), then it names the Play build head. **The Play build 0.7.11 with R8 is now THIS chat's:** on the
 named head run the bench-diff check (section 1), fast-fail the way the build does
-(`FAST_FAIL_BASE=$(cat app/dist/apk/last-play-sha) FAST_FAIL_ALL=1 CANIFISHTHIS_R8=1 MLN_LOCAL_MAVEN=$PWD/cache/maplibre/$(sed -n s/^MLN_VERSION=//p app/tools/maplibre-android/pin.env) scripts/fast-fail.sh`),
+(`FAST_FAIL_BASE=$(cat app/dist/apk/last-play-sha) FAST_FAIL_ALL=1 MLN_LOCAL_MAVEN=$PWD/cache/maplibre/$(sed -n s/^MLN_VERSION=//p app/tools/maplibre-android/pin.env) scripts/fast-fail.sh`),
 both CIs green (`scripts/ci_status.py`), then
-`HEAVY_LOCK=$HOME/.claude/heavy-job-3.lock CANIFISHTHIS_R8=1 deploy/staging/build-apk.sh --play` (never
+`HEAVY_LOCK=$HOME/.claude/heavy-job-3.lock deploy/staging/build-apk.sh --play` (never
 `--no-fast-fail` / `--no-ci-check`); report version code, AAB size and whether the R8 mapping file was kept to the main
 chat and onto the owner's row `t749-r8-phone-walk`.
 

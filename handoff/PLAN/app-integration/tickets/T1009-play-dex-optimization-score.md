@@ -91,3 +91,7 @@ Our own `r8-keep-rules.pro` is already narrow (7 rules, each with its reason); t
 rule: none offers a narrower switch. Narrowing one means dropping that library's whole rule file
 (AGP `optimization { keepRules { ignoreFrom(...) } }`) and re-stating the rest by hand, each re-stated rule walked by a
 bench; at 72% in every category (Play's line 25) that was not done here (owner question in the report).
+
+Bench note: parallel emulator lanes need their own AVD and console port (`TESTBED_AVD=n1_pixel_b TESTBED_PORT=5584`):
+this lane's first batch shared `emulator-5580` with another lane's session, which reinstalled its APK mid-run
+(`app/tools/testbed/README.md` says so now).

@@ -265,7 +265,9 @@ app bundle goes to Internal, and that same build is promoted to Closed. A stagin
 
    It raises the versionCode and commits only that, builds and checks the app bundle (signature, MapLibre), uploads
    it to the Internal track with this version's bullets, writes the production version files, and emails the tester
-   link. Then push its commit: `git push origin release/<x.y.z>`. If the upload worked but a later step failed:
+   link. R8 is on in every build (T1003): the build stops if R8's configuration turns a pass off or the bundle's R8
+   scores fall under their floors (`app/tools/r8-report.mjs`), the email carries the three scores, and R8's mapping
+   file goes to Play with the bundle (a missing mapping stops the upload; Play's crash stacks need it). Then push its commit: `git push origin release/<x.y.z>`. If the upload worked but a later step failed:
    `CONFIRM_PROD=canifishthis.ca deploy/prod/build-apk.sh --publish-only`.
    A build that reads **staging** data for Internal testers is `deploy/staging/build-apk.sh --play` **[Claude]**;
    it is never the one promoted to Closed.
