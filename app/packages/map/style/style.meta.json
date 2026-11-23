@@ -3201,6 +3201,12 @@
       "color.indigenous.edge.imagery": "#2E1500",
       "color.parcel.edge.imagery": "#2A2A1C",
       "color.imagery.casing": "#FFD9B0",
+      "color.imagery.status.open": "#6BFF9E",
+      "color.imagery.status.restricted": "#E3A6FF",
+      "color.imagery.status.closed": "#FF3B6D",
+      "color.imagery.status.own": "#FFD307",
+      "color.imagery.status.base": "#8CC3FF",
+      "color.imagery.status.no_access": "#E6E4E2",
       "width.land.edge.imagery": 1,
       "width.land.casing.imagery": 2.5,
       "opacity.land.edge.imagery": 1,
@@ -3419,6 +3425,12 @@
       "color.indigenous.edge.imagery": "#2E1500",
       "color.parcel.edge.imagery": "#2A2A1C",
       "color.imagery.casing": "#FFD9B0",
+      "color.imagery.status.open": "#6BFF9E",
+      "color.imagery.status.restricted": "#E3A6FF",
+      "color.imagery.status.closed": "#FF3B6D",
+      "color.imagery.status.own": "#FFD307",
+      "color.imagery.status.base": "#8CC3FF",
+      "color.imagery.status.no_access": "#E6E4E2",
       "width.land.edge.imagery": 1,
       "width.land.casing.imagery": 2.5,
       "opacity.land.edge.imagery": 1,
@@ -3637,6 +3649,12 @@
       "color.indigenous.edge.imagery": "#2E1500",
       "color.parcel.edge.imagery": "#2A2A1C",
       "color.imagery.casing": "#FFD9B0",
+      "color.imagery.status.open": "#6BFF9E",
+      "color.imagery.status.restricted": "#E3A6FF",
+      "color.imagery.status.closed": "#FF3B6D",
+      "color.imagery.status.own": "#FFD307",
+      "color.imagery.status.base": "#8CC3FF",
+      "color.imagery.status.no_access": "#E6E4E2",
       "width.land.edge.imagery": 1,
       "width.land.casing.imagery": 2.5,
       "opacity.land.edge.imagery": 1,
@@ -4176,6 +4194,36 @@
       "type": "color",
       "themeable": true,
       "$comment": "(T923, owner 2026-11-20: 'can be on private too') A PRIVATE PARCEL'S OUTLINE OVER SATELLITE IMAGERY ONLY: the parcel earth tone (`color.parcel.private`) taken darker, in its own dark earth hue (an olive-leaning dark, apart from the reserve's brown). The drawn map keeps its fill-hued hairline."
+    },
+    "color.imagery.status.open": {
+      "type": "color",
+      "themeable": false,
+      "$comment": "(T940, owner 2026-11-22: \"Yes, use the proposed set (Recommended)\") THE WATER LINES' STATUS COLOUR OVER SATELLITE IMAGERY ONLY: one set chosen for photographs, the SAME in light, dark and colour-blind (the photograph does not change with the theme; T923 did the same for the reserve outline). The drawn map keeps `color.status.*`. `onImageryTokens` (src/style.ts) swaps each `color.status.<s>` (and the salmon colours that are those statuses) for this token on satellite, and the legend's swatches read the same swap. Dark's closed and own are aliases of its own `color.status.*` because the one-hex-one-meaning guard sees them as one colour on purpose."
+    },
+    "color.imagery.status.restricted": {
+      "type": "color",
+      "themeable": false,
+      "$comment": "(T940) satellite colour of `color.status.restricted`: see `color.imagery.status.open`."
+    },
+    "color.imagery.status.closed": {
+      "type": "color",
+      "themeable": false,
+      "$comment": "(T940) satellite colour of `color.status.closed`: see `color.imagery.status.open`."
+    },
+    "color.imagery.status.own": {
+      "type": "color",
+      "themeable": false,
+      "$comment": "(T940) satellite colour of `color.status.own`: see `color.imagery.status.open`."
+    },
+    "color.imagery.status.base": {
+      "type": "color",
+      "themeable": false,
+      "$comment": "(T940) satellite colour of `color.status.base`: see `color.imagery.status.open`."
+    },
+    "color.imagery.status.no_access": {
+      "type": "color",
+      "themeable": false,
+      "$comment": "(T940) satellite colour of `color.status.no_access`: see `color.imagery.status.open`."
     },
     "color.imagery.casing": {
       "type": "color",

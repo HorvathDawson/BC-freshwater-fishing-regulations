@@ -82,6 +82,9 @@
  *               got, and JavaScript reads an absent field and an empty one alike (measured 2026-11-22: 3 such reads in
  *               release-following blocks, none a column); a whole record typed (`expect(g.exit).toEqual({…})`) is the
  *               composed-value pin rule 33 asks for and is left to the candidate-shaped run (the release's follows).
+ *               Both are a DECIDED GAP (T1002): a syntax scan cannot tell them from a sound value pin (about 35
+ *               record pins in release-following blocks, 2026-11-22), and no column list the release states is read
+ *               here; the release's follows on the candidate and `tools/part-end-proof.mjs` (part ends) catch them.
  *
  * Not scanned here (later T667 slices): literal counts on live data (D3), golden file reads past `taps()`.
  *

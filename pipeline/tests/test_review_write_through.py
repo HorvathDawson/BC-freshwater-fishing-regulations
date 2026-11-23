@@ -27,6 +27,7 @@ from pipeline.regs.review import closed as C
 from pipeline.regs.review import export as E
 from pipeline.regs.review import marks as M
 from pipeline.regs.review import proposals as P
+from pipeline.tests import under_test
 from pipeline.tests.conftest import curated_root, no_served_build
 
 REPO = Path(__file__).resolve().parents[2]
@@ -69,15 +70,20 @@ NAMES = [{"target": {"kind": "stream", "blk": "2"}, "current_names": [], "regist
 
 
 @pytest.fixture()
-def wt(tmp_path, monkeypatch):
+def wt(tmp_path, monkeypatch, request):
     """The review app over a temp store with WRITE-THROUGH ON: temp slough / name final files, a
-    temp git repo holding copies of the DFO / catalogue / splits files the proposal writer edits."""
+    temp git repo holding copies of the DFO / catalogue / splits files the proposal writer edits. It serves NO atlas
+    (as on CI), except to a test marked `needs_atlas`, which is served the atlas under test (T1001: since T777 the
+    three `needs_atlas` tests of `test_review_closed_areas.py` were served none and failed on every machine)."""
     (tmp_path / "automark.json").write_text(json.dumps({"rows": SLOUGHS}))
     with gzip.open(tmp_path / "finder.json.gz", "wt") as f:
         json.dump({"candidates": [{"id": r["id"], "outline": [[-120, 50], [-120.001, 50.001], [-120, 50]]}
                                   for r in SLOUGHS]}, f)
     (tmp_path / "cands.json").write_text(json.dumps({"candidates": NAMES}))
-    no_served_build(monkeypatch, tmp_path)  # (T777) the app serves no atlas, as on CI
+    if request.node.get_closest_marker("needs_atlas"):
+        monkeypatch.setenv("CURATION_BUILD", str(under_test.atlas(request)))   # (T1001) the atlas under test
+    else:
+        no_served_build(monkeypatch, tmp_path)  # (T777) the app serves no atlas, as on CI
     curated_root(monkeypatch, tmp_path / "curated")           # T422: the whole curated tree, its marks store empty
     store = Path(CURATED.review.marks)
     for k, v in {"CURATION_SLOUGH_AUTOMARK": "automark.json",

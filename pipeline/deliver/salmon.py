@@ -500,11 +500,68 @@ def rest_after(key: Sequence[str], after: Mapping[str, frozenset]) -> Tuple[str,
     return tuple(out)
 
 
+#: (T771) EQUAL PLACES THE OWNER ACCEPTED: two places of one chain that tie on the order key apart from the id (same tier,
+#: region, size and rides flag) and still answer a fish differently on a day the chain reaches them — the id alone
+#: would decide which speaks. {frozenset({a, b}): the owner's reason}. None today (2026-11-22); a new pair STOPS the
+#: build (`equal_place_conflicts`) until it is ordered by structure (a cut, an extent, a rest-of) or listed here.
+EQUAL_PLACES_ACCEPTED: Mapping[frozenset, str] = {}
+
+
+def equal_place_conflicts(key: Sequence[str], at: Callable[[str], tuple], own_sp: Callable[[str], Sequence],
+                          after: Mapping[str, frozenset], region_of: Callable[[str], int],
+                          same: Callable[[int, int], bool] = lambda a, b: a == b
+                          ) -> List[Tuple[str, str, str, int, int, int]]:
+    """(T771) THE PAIRS OF A CHAIN WHOSE ORDER ONLY THE ID DECIDES, AND WHERE IT MATTERS: (a, b, species, day index,
+    a's verdict, b's verdict) for two places of `key` (the chain, in order) of ONE region whose sort keys (`at`) agree
+    in everything but the id, both speaking for the species on a day no place before them speaks, with different
+    answers (`own_sp`: each place's own year as interned verdicts; `same` says whether two of them are one answer —
+    the build's: `same_answer`). A rest-of and one of its listed places (`after`, T761 / T783) are ordered by structure
+    and pass; a pair in `EQUAL_PLACES_ACCEPTED` passes."""
+    from pipeline.regs.dfo_salmon.live import _at
+    out: List[Tuple[str, str, str, int, int, int]] = []
+    # Every LATER place with an equal key, not only the next ones: `key` is the chain as it speaks, after `rest_after`,
+    # which moves a rest-of to just behind its listed places — so a rest (R lists A) can land BETWEEN two equal places
+    # (A, R, B) and a stop at the first unequal key hid A from B. The check stays on this final order, not on the order
+    # before `rest_after`: `first` (the places that speak before the pair) must be the places that really come first,
+    # and before `rest_after` a narrower rest sorts ahead of its listed place though it never answers before it.
+    keys = [at(l)[:-1] for l in key]
+    for i, a in enumerate(key):
+        for j in range(i + 1, len(key)):
+            if keys[j] != keys[i]:
+                continue
+            b = key[j]
+            if (region_of(a) != region_of(b) or b in after.get(a, ()) or a in after.get(b, ())
+                    or frozenset((a, b)) in EQUAL_PLACES_ACCEPTED):
+                continue
+            first = [l for l in key[:i] if region_of(l) == region_of(a)]
+            for k, sp in enumerate(SPECIES):
+                for d in range(len(DAYS)):
+                    va, vb = _at(own_sp(a)[k], d), _at(own_sp(b)[k], d)
+                    if va < 0 or vb < 0 or same(va, vb) or any(_at(own_sp(l)[k], d) >= 0 for l in first):
+                        continue
+                    out.append((a, b, sp, d, va, vb))
+    return out
+
+
+def same_answer(a: Mapping, b: Mapping) -> bool:
+    """(T771) Two verdicts give the angler ONE answer: both closed (DFO's words for a closure differ by place — "No
+    fishing for chinook" beside "No fishing for salmon", the Morice pair — and say the same), or equal in everything,
+    words included (an opening's words carry its conditions, T840)."""
+    return a == b or (a.get("s") == "closed" and b.get("s") == "closed")
+
+
 def rides_on_others(locs: Iterable) -> frozenset:
-    """(T611) the location ids whose extent is `other_places` — the union of their siblings' sections."""
-    return frozenset(l.location_id for l in locs
-                     if any(getattr(e.op, "value", e.op) == "other_places"
-                            for e in (getattr(getattr(l, "binding", None), "extents", None) or ())))
+    """(T611) the location ids whose extent is `other_places` — the union of their siblings' sections. A place is an
+    `EntryLocation` (the bundle) or its stored dict (the review app's cascade view, `curation-review/backend/cascade.py`),
+    so both order a chain with the one key."""
+    def field(x, k):
+        return x.get(k) if isinstance(x, Mapping) else getattr(x, k, None)
+
+    def op(e):
+        o = field(e, "op")
+        return getattr(o, "value", o)
+    return frozenset(field(l, "location_id") for l in locs
+                     if any(op(e) == "other_places" for e in (field(field(l, "binding") or {}, "extents") or ())))
 
 
 # ── the regions a section lies in (T668) ─────────────────────────────────────────────────────────────────────────────
@@ -1190,6 +1247,7 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
     from pipeline.deliver.salmon_who import answering_places, places_named
     from pipeline.regs.dfo_salmon import live as _live
     who_v, who_g, who_sp = _Interner(), _Interner(), {}
+    ties: List[Tuple[str, str, str, int, int, int]] = []     # (T771) `equal_place_conflicts`, every chain
 
     def own_sp(lid: str):
         if lid not in who_sp:
@@ -1206,6 +1264,8 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
                        for n in sorted({locs[l][1].region_number for l in key})) if grouped else ()
         if (key, uk, groups) not in chain_ix:
             chain_ix[(key, uk, groups)] = len(chains)
+            ties.extend(equal_place_conflicts(key, at, own_sp, after, lambda l: locs[l][1].region_number,
+                                              lambda x, y: same_answer(who_v.items[x], who_v.items[y])))
             first = locs[(key or uk)[0]][1]
             rs = sorted({locs[l][0] for l in key + uk})
             cal = chain_calendar([rules_of[l] for l in key], verdicts, gears,
@@ -1266,6 +1326,17 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
         for u in unmapped:
             mine[u["r"]].update(u["items"])
         scopes = {slug: {k: [i for i in v if i in mine[slug]] for k, v in sc.items()} for slug, sc in scopes.items()}
+    if ties:
+        # (T771) two equal places that answer differently: the id would decide which speaks — never silently
+        pairs: Dict[Tuple[str, str], List[str]] = defaultdict(list)
+        for a, b, sp, d, va, vb in ties:
+            if len(pairs[(a, b)]) < 3:
+                pairs[(a, b)].append(f"{sp} on day {DAYS[d]:04d}: {who_v.items[va].get('t')!r} vs "
+                                     f"{who_v.items[vb].get('t')!r}")
+        raise SalmonError("salmon (T771): two places of one tier, region and size answer a fish differently where the "
+                          "chain reaches them, so only their ids order them — order them by structure (a cut, an "
+                          "extent, a rest-of) or list the pair in salmon.EQUAL_PLACES_ACCEPTED with the owner's "
+                          "reason:\n" + "\n".join(f"  {a} | {b}: " + "; ".join(v) for (a, b), v in sorted(pairs.items())))
     # (owner 2026-11-11, RULINGS Z4a) a two-region chain's salmon fishing hours: the tighter region's line (`h`, the
     # region slugs whose header hours line shows), both where neither is tighter
     for c in chains:
