@@ -21,7 +21,7 @@ import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, u
 import { openProbe } from "@app/data";
 import { Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
 import { Text } from "../Text";
-import { ALL_SOURCES, ALL_SOURCES_KEY, LEGAL_WORDS, parseSheetKey, withInSeason, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type Line, type RegsPage, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
+import { LEGAL_WORDS, parseSheetKey, withInSeason, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type TabSourcesVM, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
 import { FreshDot } from "../menu/Fresh";
 import { WaterInset } from "../WaterFrame";
@@ -31,12 +31,12 @@ import { ViewSwipe, WaterViewsContext } from "../ViewSwipe";
 import { type Palette } from "../theme";
 import { ReferenceFold } from "./ReferenceFold";
 import { KeepTab } from "./KeepTab";
-import { LineText, TermTitles, type KeepActions } from "./LineText";
+import { TermTitles, type KeepActions } from "./LineText";
 import { createTabStore, type TabStore } from "./tabStore";
 import { RegsHeader } from "./RegsHeader";
 import { ReadingColumn, RegsSide } from "./RegsWide";
 import { SheetHost } from "./SheetHost";
-import { RegsPress } from "./RegsPress";
+import { SourceRow } from "../SourceRow";
 import { recallRegsScroll, rememberRegsScroll } from "./scrollMemory";
 import type { LayoutClass, RegsStart } from "@app/ui";
 import { AnchorContext, useAnchors } from "./useAnchors";
@@ -123,9 +123,9 @@ export interface RegsScreenProps {
   asOf?: string | null;
   /** (T382) the day's sunrise and sunset at the water (`useSunLine`); (T878) a small line under the date pill; absent: none. */
   sun?: SunDay | null;
-  /** (T474) the water's own entry in the rule book (core `waterBookOf`): "This water in the rule book p.N ↗", (T916) drawn in
-   *  the page's foot under the "as of" line; empty: none */
-  waterBook?: Line;
+  /** (T991 round 3) the tab's Source row (core `regsSourcesOf`: every synopsis page the page cites — T474: the water's own
+   *  among them — the in-season changes and DFO where shown, "All sources ›"). Required: the host computes it from the tabs it draws. */
+  sources: TabSourcesVM;
   /** (T473, T898) a daylight-only closure's open and closed hours on the day at the water (`useDaylight`), from its own
    *  offsets; null: no point known */
   daylight?: DaylightAt | null;
@@ -140,7 +140,7 @@ export interface RegsScreenProps {
 export function RegsScreen({ page, palette, images, actions, onDate,
                              gear, methods, licence, referenceOpen = false, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
                              lapsed = null, access = [], inSeason = [], glance = null, salmonStrip = null,
-                             nameSource = null, asOf = null, scrollKey = null, sun = null, daylight = null, waterBook = [] }: RegsScreenProps) {
+                             nameSource = null, asOf = null, scrollKey = null, sun = null, daylight = null, sources }: RegsScreenProps) {
   // (T286) the open probe (test bed only): the page's first render, and its first layout (mounted, before paint)
   openProbe.mark("regsRender");
   useLayoutEffect(() => { openProbe.mark("layout"); }, []);
@@ -261,22 +261,13 @@ export function RegsScreen({ page, palette, images, actions, onDate,
       <WaterInset testID="regs-legal" style={{ marginTop: 20, paddingTop: 10, gap: 2, borderTopWidth: 1, borderTopColor: palette.line }}>
         <Text style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub }}>{LEGAL_WORDS.footer}</Text>
         {asOf && <Text testID="regs-as-of" style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub }}>{asOf}</Text>}
-        {/* (T474) the water's own rule-book page, (T916, owner 2026-11-19: "the location that was awkward at the top") here
-            in the foot beside the synopsis it cites: a reference for the whole page, not a fact about today, so it no
-            longer sits above the first status card. Once per page; empty: none (T60: a page its lines already link) */}
-        {waterBook.length > 0 && (
-          <View testID="regs-water-book" style={{ marginTop: 8 }}>
-            <LineText line={waterBook} style={TYPE.small} color={palette.accent} palette={palette} actions={keepActions} />
-          </View>
-        )}
       </WaterInset>
-      {/* (T990, owner 2026-11-21: "It will be at bottom of page of regs") the last thing at the end of the scrolled page, same
-          place on every water, just above "Report a problem": every source of the page in one sheet (the sections keep theirs) */}
-      <WaterInset testID="regs-all-sources" style={{ marginTop: 8 }}>
-        <RegsPress testID="regs-all-sources-button" accessibilityRole="button" accessibilityLabel={ALL_SOURCES.ARIA}
-                   onPress={() => openSheet(ALL_SOURCES_KEY)} box={{ w: 44, h: 44 }} style={{ minHeight: 44, justifyContent: "center", alignSelf: "flex-start" }}>
-          <Text style={[TYPE.metaBold, { color: palette.accent }]}>{ALL_SOURCES.BUTTON} ›</Text>
-        </RegsPress>
+      {/* (T990, owner 2026-11-21: "It will be at bottom of page of regs"; T991 round 3, owner 2026-11-22: one Source row per
+          tab) the last thing at the end of the scrolled page, same place on every water, just above "Report a problem": the
+          authorities this page cites — each synopsis page it cites (T474: the water's own row among them, so the water's
+          page is always linked, and once), the in-season changes, DFO — then "All sources ›", the breakdown sheet */}
+      <WaterInset testID="regs-all-sources" style={{ marginTop: 4 }}>
+        <SourceRow vm={sources} palette={palette} onBook={actions.onBook} onSheet={openSheet} testID="regs-sources" sheetTestID="regs-all-sources-button" />
       </WaterInset>
       {/* (T41 Q3) once, at the page's foot: the report is about the whole page (it names no tab) */}
       <ReportLink page={page} palette={palette} />

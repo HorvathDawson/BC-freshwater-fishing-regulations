@@ -34,6 +34,7 @@ import bc1501 from "./fixtures/bc1_501.json";
 import glenn501 from "./fixtures/glenn_501.json";
 import vedder615 from "./fixtures/vedder_615.json";
 import licences from "./fixtures/licence_vedder_1010.json";
+import { TEST_SOURCES } from "./testing/sources";
 
 vi.mock("react-native", async (importOriginal) => {
   const rn = await importOriginal<typeof import("react-native")>();
@@ -79,7 +80,7 @@ function mount(id = "vedder_1010", layout: LayoutClass = "phone", store = create
   return render(
     <MenuContext.Provider value={MENU}>
     <WaterFrame palette={LIGHT} face="regulations" onBack={() => {}} backLabel="Map">
-      <RegsScreen page={page} palette={LIGHT} actions={NOOP} onDate={() => {}} layout={layout} store={store}
+      <RegsScreen sources={TEST_SOURCES} page={page} palette={LIGHT} actions={NOOP} onDate={() => {}} layout={layout} store={store}
                   gear={page.gear ? (a) => <GearTab vm={page.gear!} palette={LIGHT} actions={a} /> : undefined}
                   methods={page.methods ? (a) => <MethodsTab vm={page.methods!} palette={LIGHT} actions={a} /> : undefined}
                   licence={id === "vedder_1010" ? (a) => <Licence actions={a} /> : undefined} />

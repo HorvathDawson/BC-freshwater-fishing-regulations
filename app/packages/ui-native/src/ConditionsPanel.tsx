@@ -16,7 +16,7 @@ import { ScrollView, View, type LayoutChangeEvent } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
 import { CHANGE_LEGEND, CHANGE_LOW_WATER, chartLabel, figureIn, CONDITIONS_WORDS, forecastChartLabel, forecastModelOption,
-         forecastRunLine, noChartSentence, OTHER_QUANTITY_WORDS, readingRanked, standingRankedIn, waterReportWhere, dayLabel, regsDayLink, bcNow, type ChartSpan } from "@app/core";
+         forecastRunLine, noChartSentence, OTHER_QUANTITY_WORDS, readingRanked, standingRankedIn, waterReportWhere, dayLabel, regsDayLink, bcNow, conditionsSourcesOf, type ChartSpan } from "@app/core";
 import type { Parameter, WaterSource, SectionId, StationId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
 import { cardParameters, cardQuantity, changeChartModel, changeView, chartParameter, currentFigure, forecastDrawn, pickModel, realtimeOnly,
@@ -46,6 +46,7 @@ import { TYPE } from "./type";
 import { flowRampStops, GUTTER, SPACE, type Palette, round } from "./theme";
 import { hitProps } from "./regs/hit";
 import { NoneLine } from "./EmptyState";
+import { SourceRow } from "./SourceRow";
 import { CoachScrollContext, useCoachScroller, useCoachTarget } from "./CoachMarks";
 
 /** (T584) the body's wrapper: fills the frame as the bare body did; dimmed while the next part's speaker is looked up */
@@ -418,7 +419,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
                   chain={vm.chain} standing={vm.route.standing}
                   onHorizon={onHorizon} quantity={parameter ?? "discharge"} rankedIn={vm.estimateQuantity}
                   detail={detail} chart={graph}
-                  foot={small} after={footer} holdKey={`${section ?? ""}:${String(horizon)}:${vm.day.toDateString()}`} sides={vm.sides} count={vm.count} waterLine={waterLine} place={waterBox}
+                  foot={small} sources={<SourceRow vm={conditionsSourcesOf()} palette={palette} testID="conditions-sources" />} after={footer} holdKey={`${section ?? ""}:${String(horizon)}:${vm.day.toDateString()}`} sides={vm.sides} count={vm.count} waterLine={waterLine} place={waterBox}
                   own={vm.own} />
       {/* (T569) the way to report a problem from here, with the gauge charted, its quantity and span filled in */}
       {reportAbout && (

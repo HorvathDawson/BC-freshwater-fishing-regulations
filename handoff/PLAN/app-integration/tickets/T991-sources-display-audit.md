@@ -1,7 +1,15 @@
 # T991 — Sources display audit: make how sources are shown consistent across the whole app
 
-Status: OPEN — proposal stage done (lane L7, 2026-11-22); refined 2026-11-22 (lane L17, round 2: a Source row per tab, below). The owner picks the pattern. Nothing is built. (An OWNER-TODO row
-"T991 pick the sources pattern" is still to be added by the owner-list chat; until it exists this stays OPEN, not IN REVIEW.)
+Status: PARTIAL — left (Claude): T1031 (the owner's items 3–5), T1036 (the every-source sheet's list). Round 3 built, 3428dcb83 + #63 review fixes 3e3a1e2ae (lane L21, 2026-11-22/23), from the owner's answer to round 2 (2026-11-22 ~23:55,
+recorded verbatim below by lane L17, PR #57): ONE SOURCE ROW AT THE FOOT OF EACH TAB. Regulations: one "B.C. Synopsis
+p.N ↗" link per synopsis page the DRAWN tabs cite (never one fixed page, never a sheet's rules; the water's own row among them,
+marked "p.N (this water) ↗"), each opening the book with
+every highlight its rules hold on that page, then "B.C. in-season changes ↗" / "DFO notices ↗" only where the page shows them,
+then "All sources ›" (the T990 sheet). Conditions: "Environment Canada ↗ BC River Forecast Centre ↗ Open-Meteo ↗" as the
+Sources-and-notes fold's head (the verbatim credits stay inside). Map: none (the map's own attribution). Names: core
+`SOURCE_AUTHORITIES` (`tabSources.ts`). Pictures `T991-shots/round3-*` (regs foot before/after, conditions after, light + dark).
+T1031 holds the rest (one inline source format, a breakdown per species, one species sheet with Identification | Sources
+tabs), each bigger than a lane's day.
 Owner 2026-11-21: next release, not 0.8.5.
 
 Source: owner 2026-11-21, verbatim: "Add another ticket for a sources display audit (for next release we want to make

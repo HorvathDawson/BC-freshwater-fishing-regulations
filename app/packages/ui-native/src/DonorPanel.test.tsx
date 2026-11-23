@@ -430,3 +430,18 @@ describe("the donor panel", () => {
       .toEqual([false, true]);
   });
 });
+
+describe("(T991 round 3) the fold's head: the tab's Source row", () => {
+  // both layouts carry it: the estimate's, and the no-estimate case's (the same fold, fewer blocks above it)
+  it.each([["an estimate", answer()], ["no estimate", { answer: { ok: false, why: "no-record" }, rows: [], areaKm2: 50, routesReady: true } as PanelAnswer]])(
+    "%s: the row stands in the fold's label, shown while the fold is closed; the chevron alone opens it", (_, value) => {
+      draw({ value, foot: <span>the verbatim credits</span>, sources: <span data-testid="the-row">Source row</span> });
+      expect(screen.getAllByTestId("the-row")).toHaveLength(1);
+      expect(screen.queryByText("the verbatim credits")).toBeNull();
+      const toggles = screen.getAllByRole("button", { name: CONDITIONS_WORDS.fold });
+      const toggle = toggles[toggles.length - 1]!;
+      expect(toggle.contains(screen.getByTestId("the-row"))).toBe(false);
+      fireEvent.click(toggle);
+      expect(screen.getByText("the verbatim credits")).toBeTruthy();
+    });
+});
