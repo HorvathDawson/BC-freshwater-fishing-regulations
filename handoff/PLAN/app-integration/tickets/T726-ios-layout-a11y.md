@@ -1,6 +1,6 @@
 # T726 — iOS: safe areas, Dynamic Island, portrait lock, dark/light, Dynamic Type, VoiceOver (IOS-9)
 
-Status: OPEN.
+Status: OPEN — stopped 2026-11-22 by lane L8: simulator shots on four iPhones, large text and a VoiceOver walk (M). The two code findings in Results are already fixed: the ↗ emoji tile (T723 item 7, `textPresentation.ts`) and the photo viewer's top inset (T815).
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-9 in
