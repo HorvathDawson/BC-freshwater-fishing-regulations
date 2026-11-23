@@ -114,6 +114,18 @@ def plan(props: list[dict], tried: set[str], landed_sids: set[str] = frozenset()
     return None, blocked
 
 
+def withheld_refusal(p: Mapping) -> str | None:
+    """T779: the reach gate's rule (`build.unplaced_gate`, T632) at save time. A DFO place whose binding check withholds a
+    piece that `unplaced_piece_calls.json` `accepted` does not name is refused here — the full reach run stops on it
+    (two Middle Shuswap places landed 'bound' and the build stopped 14 minutes in). Why, or None when none is withheld."""
+    bad = (p.get("check") or {}).get("unaccepted") or []
+    if not bad:
+        return None
+    return ("the place withholds " + ", ".join(f"{x['piece']} ({x['reason']})" for x in bad)
+            + " and no `accepted` row in data/curated/waters/unplaced_piece_calls.json names it: the reach run stops on it. "
+              "Place the piece (a cut, an extent) or have the owner accept it")
+
+
 def _who(p: Mapping) -> list[dict]:
     """The marks behind a proposal, as {scope, target, rule_id} (the review app shows an outcome on each)."""
     return [{"scope": m.get("scope") or p.get("scope"), "target": m.get("target"), "rule_id": m.get("rule_id")}
@@ -186,6 +198,14 @@ def run(argv: list[str] | None = None) -> tuple[int, list[dict]]:
                                "why": f"the binding check failed — {c.get('why')}"})
                 rc = 1
                 continue
+        elif p["scope"] == "dfo" and p["id"] in a.side_checked:
+            P.check([p], src)                              # T779: a DFO place's side check IS this binding
+        bad = withheld_refusal(p)
+        if bad:
+            print(f"!! {p['id']}: {bad}; not applied")
+            events.append({"id": p["id"], "status": "refused", "marks": _who(p), "why": bad})
+            rc = 1
+            continue
         texts = P.materialize([p], src)
         paths = sorted(texts)
         if a.dry_run:

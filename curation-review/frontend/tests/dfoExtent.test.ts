@@ -235,3 +235,16 @@ test("a save's headline never says REPLACES beside none; no-call tributaries say
   assert.match(words(false), /tributaries OFF \(the place has no tributary call\)/);
   assert.match(words(undefined), /tributaries as the place has them/);
 });
+
+test("T590: a new cut within 200 m is swapped for the existing cut in every point that names it", async () => {
+  const { useExistingCut } = await import("../src/dfoExtent.ts");
+  const fixes = [
+    { scope: "entry", op: "between", points: [{ kind: "new", split_id: "n1" }, { kind: "split", split_id: "keep_me" }], items: [], tributaries: null },
+    { scope: "entry", op: "downstream_of", points: [{ kind: "new", split_id: "n1" }], items: [], tributaries: null },
+    { scope: "entry", op: "upstream_of", points: [{ kind: "new", split_id: "n2" }], items: [], tributaries: null },
+  ] as never as import("../src/types.ts").ExtentFix[];
+  const got = useExistingCut(fixes, "n1", "existing_cut");
+  assert.deepEqual(got[0].points.map((p) => [p.kind, p.split_id]), [["split", "existing_cut"], ["split", "keep_me"]]);
+  assert.deepEqual(got[1].points.map((p) => [p.kind, p.split_id]), [["split", "existing_cut"]]);
+  assert.deepEqual(got[2].points.map((p) => [p.kind, p.split_id]), [["new", "n2"]]);   // another new cut is left alone
+});

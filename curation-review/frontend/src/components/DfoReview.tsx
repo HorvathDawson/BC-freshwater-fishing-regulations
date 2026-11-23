@@ -15,7 +15,7 @@ import { failed } from "../failures";
 import { current as writeThrough, keyOf as wtKey, subscribe as onWriteThrough } from "../curatedSave";
 import {
   CONFIRMED_AS_IS, addPiece, cannotEditOf, dropPiece, effectOf, heldBy, incompletePieces, inlineAction, markBody, newCutsOf, offerProposal, oneProposal, previewOf,
-  proposesCuts, saveWords, statusLine, withPiece, type DfoCall, type DfoEffect, earlierDiff, sameTribCall, tribWords, tribWarnings,
+  proposesCuts, useExistingCut, saveWords, statusLine, withPiece, type DfoCall, type DfoEffect, earlierDiff, sameTribCall, tribWords, tribWarnings,
   sideStreamsWhy,
 } from "../dfoExtent";
 import { CannotEditNote } from "./CannotEditNote";
@@ -830,6 +830,14 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
                   op={detail.need.op} shared={shared} value={splits} onChange={setSplits} checks={checks}
                   onChecked={(ref, c) => setChecks((m) => ({ ...m, [ref]: c }))}
                   onPick={(cb) => setPick({ cb })} picking={!!pick.cb} onOffset={setOffset} onPreview={setCutPv}
+                  onUseExisting={(ref, splitId) => {
+                    // T590: a new cut within 200 m of an existing one IS the existing one — every point that named the
+                    // new cut names the existing cut instead, and the new cut is dropped (never left half-used)
+                    setFixes((cur) => useExistingCut(cur, ref, splitId));
+                    setSplits((cur) => cur.filter((x) => x.ref !== ref));
+                    setChecks((m) => Object.fromEntries(Object.entries(m).filter(([k]) => k !== ref)));
+                    setFixPreview(null);
+                  }}
                   onCuts={(refs) => {
                     // two cuts off one reference ("100 m up and down of the weir"): the first piece between them, on
                     // the waters and tributary call it already holds
@@ -1115,7 +1123,7 @@ export function tribChoices(tribs: Tributary[], q: string): Choice[] {
 }
 
 function NewSplits({ id, items, hints, quote, op, shared, value, onChange, checks, onChecked, onPick,
-                     picking, onOffset, onCuts, onPreview }: {
+                     picking, onOffset, onCuts, onPreview, onUseExisting }: {
   id: string; items: DfoDetail["items"]; hints: DfoDetail["hints"]; quote: string; op: string | null;
   shared: ProposedSplit[];
   value: NewSplit[]; onChange: (v: NewSplit[]) => void;
@@ -1125,6 +1133,8 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
   onCuts: (refs: string[]) => void;
   /** T355: the live preview on the map (null clears it) */
   onPreview: (fc: GeoJSON.FeatureCollection | null) => void;
+  /** T590: swap a new cut for the existing cut within 200 m of it, in every point that names it */
+  onUseExisting: (ref: string, splitId: string) => void;
 }) {
   const [anchors, setAnchors] = useState<SplitAnchors | null>(null);
   useEffect(() => { loadAnchors().then(setAnchors, failed("the split anchor policy")); }, []);
@@ -1308,7 +1318,11 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
           {checks[n.ref] && <span className="dim">→ {checks[n.ref].words}{checks[n.ref].blk ? ` · blk ${checks[n.ref].blk} @ ${checks[n.ref].measure?.toFixed(0)} m` : ""}</span>}
           {checks[n.ref]?.nearest && <span className={checks[n.ref].nearest!.near ? "warn-text" : "dim"} data-testid={`dfo-split-nearest-${n.ref}`}>
             {" "}· nearest existing cut: “{checks[n.ref].nearest!.label}”, {checks[n.ref].nearest!.metres.toLocaleString()} m away
-            {checks[n.ref].nearest!.near ? " — that close, use the existing cut instead of a new one (pick it as the point: “a split on this map” or “any curated split”)" : ""}</span>}
+            {checks[n.ref].nearest!.near ? " — that close, use the existing cut instead of a new one" : ""}</span>}
+          {checks[n.ref]?.nearest?.near && (
+            <button type="button" className="btn small" data-testid={`dfo-use-existing-${n.ref}`}
+              title="replace this new cut by the existing one in the extent below"
+              onClick={() => onUseExisting(n.ref, checks[n.ref].nearest!.split_id)}>use it</button>)}
           {offsettable.includes(n.anchor)
             ? <OffsetInput value={n.offset_m ?? null} onSet={(v) => void onOffset(n.ref, v)} />
             : <span className="dim" title="the build cuts it where it is">no offset</span>}

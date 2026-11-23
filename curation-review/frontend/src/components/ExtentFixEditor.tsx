@@ -313,10 +313,28 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
                 {preview.others_unplaced?.length ? ` Not included until placed: ${preview.others_unplaced.map((o) => `“${o.text.slice(0, 60)}”`).join("; ")}.` : ""}
                 {" "}A place placed later joins by itself; it is never taken out of “the rest of the water”.
                 {preview.one_sibling && <span className="warn-text" style={{ display: "block" }} data-testid="fix-one-sibling">{preview.one_sibling}</span>}</span>}
+              {preview.withheld && preview.withheld.length > 0 && (
+                <span className={preview.withheld.some((w) => !w.accepted) ? "warn-text" : undefined} style={{ display: "block" }}
+                  data-testid="fix-withheld">
+                  Pieces this place withholds (not placed): {preview.withheld.map((w) => `${w.piece} — ${w.reason}${w.accepted ? " (accepted)" : " (NOT accepted)"}`).join("; ")}.
+                  {preview.withheld.some((w) => !w.accepted) && " The build stops on a piece nobody accepted: place it (a cut, an extent) or have the owner accept it before this is landed."}
+                </span>
+              )}
               {preview.rest_skipped && <span className="warn-text" style={{ display: "block" }} data-testid="fix-rest-skipped">
                 Left out of the subtraction (this place covers their water until they bind): {Object.entries(preview.rest_skipped).map(([k, v]) => `${k} — ${v}`).join("; ")}.</span>}
               {preview.rest_dormant?.length ? <span className="dim" style={{ display: "block" }} data-testid="fix-rest-dormant">
                 Dormant, take nothing: {preview.rest_dormant.join(", ")}.</span> : null}
+              {preview.rest_stands_behind && (
+                <span className="dim" style={{ display: "block" }} data-testid="fix-rest-behind">
+                  {" "}· binds no section of its own: everything inside its bounds is one of the places it leaves out, and it
+                  stands behind them. The build accepts that (T761); it answers only where a listed place has no rule that day.
+                </span>
+              )}
+              {preview.listed_drawn && (
+                <span className="dim" style={{ display: "block" }} data-testid="fix-listed-drawn">
+                  Listed places drawn beside the rest (dashed): {Object.entries(preview.listed_drawn).map(([k, n]) => `${k} — ${n} section${n === 1 ? "" : "s"}`).join("; ")}.
+                </span>
+              )}
               {preview.dead_pieces?.length ?<span className="warn-text" data-testid={`fix-dead-pieces-${tid}`}>
                 {" "}· piece {preview.dead_pieces.join(", ")} binds NOTHING alone — the build refuses it.
                 {(preview.dead_why ?? []).map((w, i) => <span key={i} style={{ display: "block" }} data-testid="fix-dead-why">{w}</span>)}</span> : null}

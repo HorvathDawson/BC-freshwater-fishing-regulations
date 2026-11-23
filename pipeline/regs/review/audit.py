@@ -164,6 +164,7 @@ class Inputs:
     cuts: dict[str, dict] = field(default_factory=dict)  # cut id -> cuts.json record
     synopsis_text: str = ""                             # the synopsis corpus, as text (cut id references)
     tidal_limits_text: str = ""                         # tidal_limits.json, as text
+    closed_areas_text: str = ""                         # dfo_salmon/closed_areas.json, as text (T776 item 5: it names cuts)
     tidal_rows: list[dict] = field(default_factory=list)  # tidal_limits.json `waters`
     split_pos: Optional[dict[str, tuple[str, float, str]]] = None   # atlas: split id -> (blk, measure, label)
     tidal: Optional[dict[str, dict]] = None             # atlas: blk -> {id, measure, limit, name}
@@ -230,6 +231,20 @@ def read_places(d: Path) -> tuple[dict, dict]:
     return places, waters
 
 
+def primary_split_pos(rows: Iterable[Mapping]) -> dict[str, tuple[str, float, str]]:
+    """split id -> (blk, measure, label) from `splits.resolved.json` rows (T776 item 1). A cut has MORE THAN ONE row when
+    the build saw it from a side line: a braid cut (`concern`) or a picked-up lake end (`picked_up`). The cut's own row
+    is the one with neither; the first of those wins, and only a cut that has no such row falls back to its first row.
+    (It used to keep the LAST row, so a side line's measure was read as the cut's, and an order or length came out wrong.)"""
+    best: dict[str, tuple[bool, Mapping]] = {}
+    for r in rows:
+        own = not (r.get("concern") or r.get("picked_up"))
+        cur = best.get(r["split_id"])
+        if cur is None or (own and not cur[0]):
+            best[r["split_id"]] = (own, r)
+    return {k: (str(r["blk"]), float(r["route_measure"]), r.get("label") or "") for k, (_, r) in best.items()}
+
+
 def tidal_canonical(build: Path, split_pos: Mapping) -> dict[str, dict]:
     """blk -> THE tidal boundary the atlas gives that stream (`tidal.resolved.json`, T326/T678 'coast/2'): a rank-1
     split / cut where one is curated; else the coast cut (`shore_cuts.json` `cut_m`) when the line was cut there; else
@@ -272,9 +287,11 @@ def load(*, marks: Optional[Path] = None, places: Optional[Path] = None, cuts: O
     cdoc = json.loads(cuts.read_text(encoding="utf-8"))
     cut_by = {s["id"]: {**s, "_water": w.get("name")} for w in cdoc["waterbodies"] for s in w["splits"]}
     ttext = tidal_limits.read_text(encoding="utf-8")
+    ca = places.parent / "closed_areas.json"             # beside the places files, as `closed_areas.path()` says
+    catext = ca.read_text(encoding="utf-8") if ca.exists() else ""
     stext = "\n".join(p.read_text(encoding="utf-8") for p in sorted(synopsis.glob("region-*.json")))
     inp = Inputs(lines=read_marks(marks), places=pl, waters=wa, cuts=cut_by, synopsis_text=stext,
-                 tidal_limits_text=ttext, tidal_rows=list(json.loads(ttext).get("waters") or ()))
+                 tidal_limits_text=ttext, closed_areas_text=catext, tidal_rows=list(json.loads(ttext).get("waters") or ()))
     inp.sources = {"marks": f"{marks} ({len(mtext.splitlines())} lines, sha {_sha(mtext)})",
                    "places": f"{places} ({len(pl)} places, {len(wa)} waters)", "cuts": f"{cuts} ({len(cut_by)} cuts)",
                    "tidal_limits": f"{tidal_limits} ({len(inp.tidal_rows)} rows)", "synopsis": str(synopsis)}
@@ -285,7 +302,7 @@ def load(*, marks: Optional[Path] = None, places: Optional[Path] = None, cuts: O
         inp.sources["atlas"] = why
     else:
         sp = json.loads((b / "splits.resolved.json").read_text(encoding="utf-8"))
-        inp.split_pos = {r["split_id"]: (str(r["blk"]), float(r["route_measure"]), r.get("label") or "") for r in sp}
+        inp.split_pos = primary_split_pos(sp)
         inp.tidal = tidal_canonical(b, inp.split_pos)
         stamp = (b / "COMPLETE.json")
         inp.sources["atlas"] = f"{b} (COMPLETE.json sha {_sha(stamp.read_text())})" if stamp.exists() else str(b)
@@ -342,7 +359,12 @@ def fix_extents(m: Mapping) -> Optional[list[dict]]:
     for f in fixes:
         e: dict = {"op": f["op"]}
         sids = [p["split_id"] for p in f.get("points") or ()]
-        if sids:
+        if _fix_bounds(f):                                # T761 rest-of: the points are the bounds' cuts
+            if f.get("bounds") not in (None, "whole"):
+                e["bounds"] = {"op": f["bounds"], **({"splits": sids} if sids else {})}
+            if f.get("siblings") is not None:
+                e["siblings"] = list(f["siblings"])
+        elif sids:
             e["splits"] = sids
         items = f.get("items") or []
         if len(items) == 1:
@@ -355,26 +377,54 @@ def fix_extents(m: Mapping) -> Optional[list[dict]]:
     return out
 
 
-def _shape(op, splits, items, area) -> tuple:
-    return (op, tuple(splits), tuple(sorted(items)), area or None)
+def _shape(op, splits, items, area, bounds=None, siblings=None) -> tuple:
+    """`bounds` = (op, splits) and `siblings` = the listed places, for a T761 rest-of (its points are the BOUNDS' cuts,
+    not the extent's own `splits`)."""
+    return (op, tuple(splits), tuple(sorted(items)), area or None,
+            (bounds[0], tuple(bounds[1])) if bounds else None, tuple(sorted(siblings)) if siblings else None)
+
+
+def _fix_bounds(f: Mapping) -> bool:
+    """A mark's fix is a T761 rest-of when it carries bounds or listed places (`proposals.extent_of`)."""
+    return f.get("bounds") is not None or f.get("siblings") is not None
+
+
+def _splits_agree(want: tuple, have: tuple) -> bool:
+    return len(want) == len(have) and all(a is None or a == b for a, b in zip(want, have))
 
 
 def fix_matches(m: Mapping, extents: Iterable[Mapping]) -> Optional[bool]:
     """Does the file's extent list say what mark `m`'s fix says? None when the mark has no fix. A NEW cut's point
-    matches any cut in its place (the cut's id is minted when it lands), so a landed fix with new cuts matches."""
+    matches any cut in its place (the cut's id is minted when it lands), so a landed fix with new cuts matches.
+    A rest-of (T761) is compared on its bounds (op + cuts, none for "whole") and its listed places too (T776 item 4)."""
     fixes = m.get("extent_fix") or []
     if not fixes:
         return None
-    want = [_shape(f["op"], [p.get("split_id") if p.get("kind") == "split" else None for p in f.get("points") or ()],
-                   f.get("items") or [], f.get("area")) for f in fixes]
-    have = [_shape(e.get("op"), e.get("splits") or [], e.get("item_ids") or ([e["item_id"]] if e.get("item_id") else []),
-                   e.get("area_id")) for e in extents]
+    want = []
+    for f in fixes:
+        sp = [p.get("split_id") if p.get("kind") == "split" else None for p in f.get("points") or ()]
+        if _fix_bounds(f):
+            bo = f.get("bounds")
+            want.append(_shape(f["op"], [], f.get("items") or [], f.get("area"),
+                               None if bo in (None, "whole") else (bo, sp), f.get("siblings") or []))
+        else:
+            want.append(_shape(f["op"], sp, f.get("items") or [], f.get("area")))
+    have = []
+    for e in extents:
+        bo = e.get("bounds")
+        have.append(_shape(e.get("op"), e.get("splits") or [],
+                           e.get("item_ids") or ([e["item_id"]] if e.get("item_id") else []), e.get("area_id"),
+                           (bo.get("op"), bo.get("splits") or []) if bo else None,
+                           e.get("siblings") or []))
     if len(want) != len(have):
         return False
     left = list(have)
     for w in want:
-        hit = next((h for h in left if h[0] == w[0] and h[2] == w[2] and h[3] == w[3] and len(h[1]) == len(w[1])
-                    and all(a is None or a == b for a, b in zip(w[1], h[1]))), None)
+        hit = next((h for h in left if h[0] == w[0] and h[2] == w[2] and h[3] == w[3] and h[5] == w[5]
+                    and _splits_agree(w[1], h[1])
+                    and ((w[4] is None and h[4] is None)
+                         or (w[4] is not None and h[4] is not None and w[4][0] == h[4][0]
+                             and _splits_agree(w[4][1], h[4][1])))), None)
         if hit is None:
             return False
         left.remove(hit)
@@ -391,6 +441,9 @@ def words(ex: Iterable[Mapping]) -> str:
     for e in ex:
         items = e.get("item_ids") or ([e["item_id"]] if e.get("item_id") else [])
         s = e.get("op", "?") + (f"({', '.join(e['splits'])})" if e.get("splits") else "")
+        bo = e.get("bounds")
+        s += f" bounds {bo.get('op')}({', '.join(bo.get('splits') or [])})" if bo else ""
+        s += f" leaving out {len(e['siblings'])} listed place(s)" if e.get("siblings") else ""
         s += f"[{', '.join(items)}]" if items else ""
         s += f" in {e['area_id']}" if e.get("area_id") else ""
         out.append(s)
@@ -493,7 +546,8 @@ def check_A(inp: Inputs) -> list[Finding]:
         if not str(c.get("_note") or "").startswith(MARK_CUT_NOTE):
             continue
         q = f'"{cid}"'
-        if q in places_text or q in inp.synopsis_text or q in inp.tidal_limits_text or cid in in_force_ids:
+        if q in places_text or q in inp.synopsis_text or q in inp.tidal_limits_text \
+                or q in inp.closed_areas_text or cid in in_force_ids:
             continue
         older = sorted({n for n, m in inp.lines for f in m.get("extent_fix") or () for p in f.get("points") or ()
                         if p.get("split_id") == cid})
@@ -792,6 +846,12 @@ def check_F(inp: Inputs) -> list[Finding]:
         for i in w.get("item_ids") or ():
             own_water[i].append(wid)
     tidal_items = {t.get("item") for t in (inp.tidal or {}).values() if t.get("limit") == "whole"}
+    # T776 item 2: the build ADDS a named water's own side channels (`pipeline/atlas/reach/channels.py`); model that
+    # with the build's own function over a view of the registry, so a channel it adds is not listed as dropped
+    from types import SimpleNamespace
+    from pipeline.atlas.reach import channels as CH
+    reg_view = {i: SimpleNamespace(section_ids=list(it.get("section_ids") or ()), kind=it.get("kind"))
+                for i, it in inp.registry.items() if not str(i).startswith("area:")}
     for lid, loc in sorted(inp.places.items()):
         w = inp.waters.get(loc.get("water_id") or "") or {}
         rec = set(w.get("item_ids") or ())
@@ -800,6 +860,8 @@ def check_F(inp: Inputs) -> list[Finding]:
                 continue
             restricted = e.get("item_ids") or ([e["item_id"]] if e.get("item_id") else [])
             held = set(restricted) if restricted else rec
+            if restricted and CH.DFO_NAMED_WATER_TAKES_ITS_CHANNELS and len(rec) >= 2:
+                held |= set(CH.own_channels(reg_view, inp.graph, restricted, rec))
             main_blk, win, note = _window(e, inp.split_pos)
             for river in sorted(held):
                 if (inp.registry.get(river) or {}).get("kind") != "stream":
