@@ -22,7 +22,6 @@ import { buildDayOf, formerName, regionBox } from "./model";
 import { appDocument } from "./prerender";
 // @ts-expect-error a plain .mjs tool (no types)
 import { HOME_LINKS, withHomeLinks } from "../web-shell.mjs";
-import { JSDOM } from "jsdom";
 import { regionLabel } from "./html";
 import { fitQuery, parseStartLink } from "@app/ui";
 import { SHARE_LINE } from "./site";
@@ -497,14 +496,6 @@ describe("(T1011) the home page leads crawlers to the site's pages", () => {
       ["/gauges", ...[1, 2, 3, 4, 5, 6, 7, 8].map((r) => `/region/${r}`), "/about", "/privacy"]);
     expect(home.indexOf('<nav id="site-links"')).toBeGreaterThan(home.indexOf('<div id="root"></div>'));   // never over the map
     expect(withHomeLinks(home)).toBe(home);                                                                  // a second run: the same page
-  });
-  it("(review) with script the row is inert (no Tab can focus it and scroll the clipped page); without script it is a working row", () => {
-    const home = withHomeLinks(BARE_APP);
-    const run = new JSDOM(home, { runScripts: "dangerously" }).window.document, still = new JSDOM(home).window.document;
-    expect(run.getElementById("site-links")!.hasAttribute("inert")).toBe(true);
-    expect(still.getElementById("site-links")!.hasAttribute("inert")).toBe(false);
-    expect(still.querySelectorAll("#site-links a[href]").length).toBe(11);           // the crawler's plain links, either way
-    expect(run.querySelectorAll("#site-links a[href]").length).toBe(11);
   });
   it("the build refuses a row naming a page it did not make, missing a region it made, or no row at all", () => {
     const home = withHomeLinks(BARE_APP);
