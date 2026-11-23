@@ -274,7 +274,9 @@ function dailyHtml(d: { backup: any; purge: any; push?: any }, now: Date): strin
       `<td>${esc(j.at)} <small>(${ago(j.at, now)})</small><br><small>${esc(what(j))}${j.error ? ` · ${esc(String(j.error).slice(0, 200))}` : ""}</small></td></tr>`;
   };
   return `<h2>Daily jobs</h2><div class="wrap"><table><tr><th>job</th><th>state</th><th>last run</th></tr>` +
-    row("backup", d.backup, (j) => `${j.copied} copied, ${j.bytes} bytes, ${j.pruned ?? 0} pruned, ${j.skipped?.length ?? 0} skipped`) +
+    row("backup", d.backup, (j) => `${j.copied} copied, ${j.bytes} bytes, ${j.pruned ?? 0} pruned, ${j.skipped?.length ?? 0} skipped` +
+      // (T999) the unchanged personal records named from an earlier snapshot, not copied again
+      (typeof j.reused === "number" ? `, ${j.reused} named from ${j.base ? esc(j.base) : "no earlier snapshot"}${j.deferred ? ` (${j.deferred} refresh(es) left for a later day)` : ""}` : "")) +
     row("purge", d.purge, (j) => `reports ${j.deleted} deleted / ${j.kept} kept` +
       (j.crashes ? ` · error kinds ${j.crashes.deleted} deleted` : "") + (j.limits ? ` · counters ${j.limits.deleted} deleted` : "")) +
     `</table></div>` + (d.push ? pushHtml(d.push, now) : "");
