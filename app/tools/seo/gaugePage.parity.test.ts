@@ -107,6 +107,20 @@ function appSource(feed: ReturnType<typeof httpFeed>): ChartSource {
 
 afterEach(cleanup);
 
+/** a chart's markup once it is drawn whole (its run's lines in, nothing still loading) and has stopped changing */
+async function settled(html: () => string): Promise<string> {
+  let last = "";
+  await waitFor(() => {
+    const now = html();
+    expect(now).toContain("About this forecast");
+    expect(now).not.toContain('aria-busy="true"');
+    const same = now === last;
+    last = now;
+    expect(same).toBe(true);
+  }, { timeout: 10_000, interval: 100 });
+  return last;
+}
+
 describe("the gauge page shows what the app shows for one station", () => {
   const file: CardStation = { ...STATION, now: { ...STATION.now, parameter: "discharge" } } as unknown as CardStation;
   const model = cardModel(ST, "Chilliwack River at Vedder Crossing", file, NOW);
@@ -149,14 +163,13 @@ describe("the gauge page shows what the app shows for one station", () => {
       return h(StationChart, { vm: useStationChart(source, ST, { width: 0 }), palette, colour: palette.live });
     }
     const pageView = render(h(GaugeChart, { source: stationChartSource(ST, feed, CLIM), station: ST }));
-    await waitFor(() => expect(pageView.container.querySelector("svg path")).not.toBeNull());
-    const pageHtml = pageView.container.querySelector('[data-testid="gauge-page-chart"]')!.innerHTML;
+    const pageHtml = await settled(() => pageView.container.querySelector('[data-testid="gauge-page-chart"]')?.innerHTML ?? "");
     cleanup();
     const appView = render(h(AppChart, { source: appSource(feed) }));
-    await waitFor(() => expect(appView.container.querySelector("svg path")).not.toBeNull());
+    const appHtml = await settled(() => appView.container.innerHTML);
     // React's `useId` numbers each mount: the clip path's id is the one difference two mounts may have
     const ids = (html: string) => html.replace(/plotr\d+/g, "plot#");
-    expect(ids(pageHtml)).toBe(ids(appView.container.innerHTML));
+    expect(ids(pageHtml)).toBe(ids(appHtml));
     // and it is the app's whole chart: both windows, both quantities, every model with its switch, the read-out hint
     const words = text(pageHtml);
     for (const w of ["Flow", "Level", "72 h", "Year", "CLEVER · 10d", "ELF · 30d", "Real-time only", "normal range", "median"]) expect(words, w).toContain(w);
