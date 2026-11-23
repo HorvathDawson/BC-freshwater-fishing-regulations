@@ -1,6 +1,6 @@
 # T1043 — Capilano at Canyon still shows no Level in the app (0.8.6), though the Water Office page has it
 
-Status: PARTIAL — 88648625f (Level offered), eb4591227 (axis labels); left (Claude): item 2 below, the estimate's words under Level, waits on a wording pick (lane L28, branch `fix/T1043-capilano-level`; app-only).
+Status: DONE 88648625f, eb4591227, f7cdf00bb, 228006397, 66978f86d (lane L28, branch `fix/T1043-capilano-level`, PR #77; app-only, ships in the next app build).
 
 Source: owner 2026-11-23 (verbatim): "i still dont know why 0.8.6 capilano at canyon gauge doesnt have level like website
 does here (https://wateroffice.ec.gc.ca/report/real_time_e.html?stn=08GA031) add as ticket".
@@ -69,11 +69,37 @@ again; other-datum: no switch).
    Tests: `hydrograph.test.ts` "(T1043) no two gridlines carry the same label" (Capilano's real 72 h level; a lake at 340 m
    moving 3 cm; 1.8 m³/s; ~1,000 m³/s; a line crossing 10); mutation: drop the `minSpan` call -> 2 fail.
    The public gauge page (`tools/seo/gaugeClient.ts`) draws its own axis with `figure` labels and was not changed.
-2. **"Estimate for this spot" speaks of flow while Level is picked.** Not built: it needs a wording pick.
-   Following the pick is ruled out: owner 2026-11-10 "Flow leads, Level auxiliary", applied in T971 (2a2aa0e75): the
-   estimate is the lead's, in Flow, whatever the card shows (`ui/panel/conditions.ts` `estimateQuantity`). No existing
-   words say the estimate is flow-based; the nearest is core `standingRankedIn` ("… (ranked on flow)"), written for a
-   gauge reading. Options are in the lane report; shot: `T1043-shots/after-web-capilano-level-top.png`.
+2. **"Estimate for this spot" speaks of flow while Level is picked.** Following the pick was ruled out (owner 2026-11-10
+   "Flow leads, Level auxiliary", T971 2a2aa0e75: the estimate is the lead's, in Flow).
+
+## Owner, 2026-11-23 (verbatim, through the coordinator)
+"add ranked on flow at top. also the scale of the chart should use the year data if not enough histroical data exists."
+
+## Built — the 2026-11-23 answers
+- **"(ranked on flow)" at the top of the estimate box** (f7cdf00bb). Under the "ESTIMATE FOR THIS SPOT" heading, while the
+  card shows the other quantity: core's existing words, now one function (`rankedOnWords`, which `standingRankedIn` reads
+  too); `donorView` `rankedNote` (null when the card and the estimate agree), drawn in `DonorPanel`. A level-only water
+  under Flow would say "(ranked on water level)" by the same rule. Test: `ConditionsPanel.test.tsx` "(T971) …" now also
+  pins the note (none under Flow, "(ranked on flow)" under Level); mutations: note always null -> fails; note always
+  shown -> fails.
+- **A 72 h chart with no normal range is scaled to its year** (228006397, 66978f86d). With no band on screen the axis spans
+  that quantity's year (`yearScale`: this year's daily values and the earlier years) with the usual padding. The year is
+  read from the feed's own record (`draftSeriesOf`, the join the Year view's values come from): the release's Year series
+  is null for exactly these stations (no envelope, `seriesOf`), which is why the first cut (228006397, asking the
+  release) drew nothing new; 66978f86d fixed it. It is asked only once the 72 h series is known to have no band, so a banded
+  chart never asks and keeps today's scale. No feed to read, no value in it, or a failed read (reported by `useAsync`,
+  T368): the drawn values and `minSpan` as the last step. The hydrograph says which rule set the range
+  (`Hydrograph.scale`: band / year / reading / log), so each path is visible to a test. Capilano's level now draws as a
+  near-flat line low on a 0-2 m axis. The Year view itself is unchanged ("no envelope in this quantity").
+  Tests: `hydrograph.test.ts` "(T1043) a chart with no band is scaled to its year" (5) and `chart.render.test.tsx`
+  "(T1043) a bandless 72 h chart is scaled to its year" (4: the feed's year read; no feed -> reading; a failed read
+  reported, reading; a banded chart never asks). Mutations: drop the year widening; let a band be overridden; pass no
+  `scaleTo`; ask regardless of the band -> each fails a test.
+- The public gauge page (`tools/seo`) is not touched here: it gets this through the shared chart once PR #73 moves it onto
+  the app's chart.
+- Shots (local web over production data, 390 px): `T1043-shots/after2-web-capilano-level-top.png` ("(ranked on flow)"
+  under the heading), `after2-web-capilano-level-72h.png` (the 72 h level on its year's scale), `after2-web-capilano-flow-banded.png`
+  (Flow, a banded chart: unchanged against `after-web-capilano-flow.png`).
 
 ## Not verified
 - Not run on an Android or iOS build (web only; the code path is shared `ui` + `ui-native`).
