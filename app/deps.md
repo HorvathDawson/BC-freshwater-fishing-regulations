@@ -34,6 +34,11 @@ v1's webapp reached `chart.js` + `pdf-lib` + `pdfjs-dist` + `fuse.js` + `suncalc
 - `@commitlint/is-ignored` — (T998) the same contract test's other half: commitlint's own list of the messages it skips
   (merges, reverts, fixups), against the release command's copy of it. Pinned as `@commitlint/parse` (21.2.3).
 
+- `esbuild` — (T1039) bundles the public gauge page's chart (`tools/seo/gauges.ts` `chartScript`): the app's own
+  `StationChart` and what it draws with, into one self-hosted, deferred script the site build writes (owner Q183,
+  2026-11-23: "App's chart, ~260 KB"). Already installed under vite (vitest's); named here at that very version (0.28.2),
+  so there is one copy. Dev-only, exact; never in the app's own bundle (Metro builds the app).
+
 - `jsdom` — a DOM for tests, so components are actually MOUNTED rather than inspected as
   source. Ninety-four tests passed while nothing in the workspace had ever rendered; a
   component that typechecks and a component that works are different claims.

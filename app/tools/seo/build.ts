@@ -47,7 +47,8 @@ import { buildSite, changesOf, rulesSha, type Snapshot, type SiteBuild, type Wat
 import { listWaterOrds, rulesKey } from "./model";
 import { gzipSync } from "node:zlib";
 import { EMPTY_SLUG_MAP, type SlugMap } from "./slug";
-import { readGaugeRows, type GaugeRows } from "./gauges";
+import { readGaugeClim, readGaugeRows, type GaugeRows } from "./gauges";
+import type { StationClim } from "@app/data";
 
 const APP = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 export const DEFAULT_OUT = join(APP, "dist/seo");
@@ -92,6 +93,8 @@ export interface BuildArgs {
   readonly bare?: boolean;
   /** (T487) the gauges, given (a test over the regs fixture, which carries no conditions file); absent: read from the release */
   readonly gauges?: GaugeRows | null;
+  /** (T1039) each station's climatology, given (beside `gauges`, for the same reason); absent: read from the release */
+  readonly gaugeClim?: ReadonlyMap<string, readonly StationClim[]> | null;
 }
 /** The app document a test builds into when no web export is given: the export's shape, no script. */
 export const BARE_APP = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><title>canifishthis</title>` +
@@ -171,16 +174,19 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   const binary = new Map<string, Uint8Array>(), toDraw: [string, string][] = [];
   // (T487) the gauges and the waters each serves (null: a release with no conditions file, the regs fixture)
   const gaugeRows = a.gauges !== undefined ? a.gauges : await readGaugeRows(a.loader);
+  // (T1039) each station's climatology, written into its page for the app's chart
+  const gaugeClim = a.gaugeClim !== undefined ? a.gaugeClim : gaugeRows ? await readGaugeClim(a.loader) : null;
   try {
     try {
       build = await buildSite({
         store, site: config, release: { id: store.meta.release, validUntil: a.loader.manifest.regulations.valid_until },
         on: a.on, slugMap: a.slugMap ?? EMPTY_SLUG_MAP, previous: a.previous ?? null, ...(a.hubSplitAt ? { hubSplitAt: a.hubSplitAt } : {}),
-        waterPage, ...(a.only ? { only: a.only } : {}), gauges: gaugeRows,
+        waterPage, ...(a.only ? { only: a.only } : {}), gauges: gaugeRows, gaugeClim, gaugeFonts: fonts.css || null,
       });
       parts = await cssParts();
     } finally { await pool?.close(); }
     files = new Map(build.files);
+    for (const [name, bytes] of build.binary) binary.set(name, bytes);     // (T1039) the gauge chart's pictures
     for (const [name, svg] of build.files) {
       if (!/^share\/[^/]+\.svg$/.test(name)) continue;
       files.delete(name);

@@ -3,6 +3,7 @@
  * worker's /gauge routes (the card mapped from R2, never drawn; a missing one answered with the site card and marked).
  * The page's live half: gaugeClient.test.ts.
  */
+import { readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { openRegsFixture } from "@app/data/release/node";
 import { buildAll, type Built } from "./build";
@@ -13,6 +14,7 @@ import { gaugeModels, gaugePath, gaugeTitle, LIVE, moreSummary, type GaugeRows }
 import { readConfig } from "./build";
 
 const site = readConfig();
+const CLIM = Uint8Array.from([1, 2, 3, 250, 251]);
 const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 let built: Built, rows: GaugeRows, ids: string[];
 
@@ -30,7 +32,9 @@ beforeAll(async () => {
       { station: "08MH016", item: ids[2]!, trust: "weak" }, { station: "08MH016", item: ids[3]!, trust: "weak" },
     ],
   };
-  built = await buildAll({ loader: openRegsFixture(), on: TODAY, gauges: rows, crosswalk: { "w-one": [ids[0]!] } });
+  // (T1039) the climatology the release would hold: one station's flow bands (bytes the page carries whole, never read here)
+  built = await buildAll({ loader: openRegsFixture(), on: TODAY, gauges: rows, crosswalk: { "w-one": [ids[0]!] },
+                           gaugeClim: new Map([["08MH001", [{ parameter: "discharge" as const, bands: CLIM }]]]) });
 }, 300_000);
 
 const gaugePages = () => built.build.pages.filter((p) => p.kind === "gauge");
@@ -82,6 +86,34 @@ describe("T487 gauge pages", () => {
     expect([LIVE.data, LIVE.crash, cfg.env]).toEqual(["https://data.canifishthis.ca", "https://feeds.canifishthis.ca/crash", "production"]);
     expect(cfg.weather).toMatch(/^https:\/\/api\.open-meteo\.com\/v1\/forecast\?latitude=49\.\d\d&longitude=-121\.\d\d&/);
     expect(cfg.sky["61"]).toBe("Rain");
+  });
+
+  it("(T1039) the chart is the app's: a second deferred script, the app's feed base and the station's climatology in the config", () => {
+    const p = gaugePages().find((g) => g.path.startsWith("/gauge/08MH001/"))!;
+    const src = /<script src="(\/assets\/gauge-chart\.[0-9a-f]{10}\.js)" defer><\/script>/.exec(p.html)![1]!;
+    const js = built.files.get(src.slice(1))!;
+    // the app's own components and data code are in it, by their own words (not a page's re-drawing)
+    for (const w of ["Real-time only", "Scroll to zoom", "gauge-page-chart", "/obs.json"]) expect(js, w).toContain(w);
+    expect(js).not.toMatch(/feeds\/cards\//);                                    // the chart never reads the share card's facts
+    expect(p.html).toMatch(/<div id="gauge-chart"><p class="small">Drawing the chart…<\/p><\/div><div id="gauge-credit"><\/div>/);
+    const cfg = JSON.parse(/<script type="application\/json" id="gauge-config">([^<]*)<\/script>/.exec(p.html)![1]!);
+    expect(cfg.live).toBe(`${LIVE.data}/feeds/live`);
+    expect(cfg.clim).toEqual([{ parameter: "discharge", bands: Buffer.from(CLIM).toString("base64") }]);
+    // a station the release holds no climatology for: none, as the app has none for it
+    const other = gaugePages().find((g) => g.path.startsWith("/gauge/08MH016/"))!;
+    expect(JSON.parse(/id="gauge-config">([^<]*)<\/script>/.exec(other.html)![1]!).clim).toEqual([]);
+    // the coho loader's sheets the app's LoadingState names, served beside the script
+    expect([...built.binary.keys()].filter((k) => k.startsWith("assets/chart/")).length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("(T1039) the Conditions card charts through the component the page mounts (one chart, two callers; gaugePage.parity.test.ts)", () => {
+    const panel = readFileSync(new URL("../../packages/ui-native/src/ConditionsPanel.tsx", import.meta.url), "utf8");
+    const page = readFileSync(new URL("./gaugeChart.tsx", import.meta.url), "utf8");
+    expect(panel).toMatch(/<StationChart vm=\{sc\}/);
+    expect(panel).toMatch(/useStationChart\(source, station,/);
+    expect(panel).not.toMatch(/<Hydrograph\b/);
+    expect(page).toMatch(/h\(StationChart, \{ vm, palette/);
+    expect(page).toMatch(/useStationChart\(source, station,/);
   });
 
   it("a station's title keeps its number however long the name; the path is the name's slug", () => {

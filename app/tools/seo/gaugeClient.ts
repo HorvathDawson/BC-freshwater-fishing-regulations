@@ -3,9 +3,11 @@
  *
  * It reads two things and draws them:
  *   - the gauge's facts, `<data>/feeds/cards/<station>.json`: what the feeds worker drew the share card from in its gauge
- *     run (app/workers/feeds/src/gauges/card/card.ts `cardFacts`) — the reading, its standing words, its time, the last
- *     7 days and the forecast run with its working-day line. The words were chosen there (core); this file lays them out
- *     and says the reading's age line the app's way, at the reader's own time, from the instants given.
+ *     run (app/workers/feeds/src/gauges/card/card.ts `cardFacts`) — the reading, its standing words, its time, and the runs
+ *     the app offers (for the credit line). The words were chosen there (core); this file lays them out and says the
+ *     reading's age line the app's way, at the reader's own time, from the instants given.
+ *     (T1039) THE CHART IS NOT DRAWN HERE: it is the app's own, drawn by gaugeChart.tsx (its own deferred script) into
+ *     #gauge-chart from the live feed file and the station's climatology.
  *   - the weather at the gauge, from Open-Meteo (the one outside source the app uses for weather), at the URL the build
  *     wrote (rounded to ~1 km, data/spots/weather.ts `weatherPlace`).
  * A file that cannot be read is SHOWN as such where its section is AND reported (the app's crash endpoint, crash/2,
@@ -16,8 +18,8 @@
  * a value differently from the app (T622; `gauges.test.ts` holds the names and the output to core's). Everything else it
  * needs (the weather URL, attributions, the sky words) arrives in the page's config.
  */
-import { BC_TIME_LABEL, bandOfWord, bcDayWords, daysNear, FLOW_LEGEND, FORECAST_MODEL_CONTROL, forecastDash, forecastDrawn, forecastModelOption, NORMAL_BAND, NO_MODEL_PICK, pickModel, realtimeOnly, REALTIME_ONLY, bcIsoDayWords, bcMidnight, bcStampWords, bcWeekdayAbbr, figure, freshness, layoutDayMarks, niceTicks,
-         normalRangeOf, observedTrend, readingAgeBrief, gaugeSummaryLine, standingNowLine, bandWord } from "@app/core";
+import { BC_TIME_LABEL, bandOfWord, bcDayWords, daysNear, FLOW_LEGEND, NORMAL_BAND, bcIsoDayWords, bcStampWords, freshness,
+         observedTrend, readingAgeBrief, gaugeSummaryLine, standingNowLine, bandWord } from "@app/core";
 
 export interface GaugeConfig {
   readonly station: string;
@@ -32,6 +34,12 @@ export interface GaugeConfig {
   readonly crash: string | null;
   readonly env: string;
   readonly release: string;
+  /** (T1039) the live gauge feed's base (`<data>/feeds/live`, the app's `httpFeed` base): the chart's observations and runs */
+  readonly live: string;
+  /** (T1039) the station's climatology from the release (`gauge_clim`: a quantity, its clim/3 bands in base64) */
+  readonly clim: readonly { readonly parameter: "discharge" | "level"; readonly bands: string }[];
+  /** (T1039) the app's faces as `@font-face` rules (the web export's own files), or null: the build had no export */
+  readonly fonts: string | null;
 }
 
 export interface Run { model: string; issuedAt: string; issued: string; dueBy: number; points: [number, number][]; attribution: string; horizonDays?: number }
@@ -116,131 +124,11 @@ export function colourBarHtml(f: Facts): string {
     `<div class="rampnormal"><div style="left:${pct(NORMAL_BAND[0])};width:${pct(NORMAL_BAND[1] - NORMAL_BAND[0])}">${esc(FLOW_LEGEND.mid)}</div></div></div>`;
 }
 
-/**
- * (T908, owner 2026-11-19: "gauge page should have clever and coffee forecast options") THE MODELS A GAUGE HAS: every current run
- * (`forecasts`, the station's own order), or the one `forecast` of a facts file written before T908; the lead is the first.
- * `horizonDays` is what the options say ("CLEVER · 10d"): the days to the run's last point when the file does not name it.
- */
-export function runsOf(f: Facts, now: number): Run[] {
-  const runs = f.forecasts ?? (f.forecast ? [f.forecast] : []);
-  return runs.map((r) => ({ ...r, horizonDays: r.horizonDays ?? Math.max(1, Math.round((r.points[r.points.length - 1]![0] - now) / DAY)) }));
-}
-/** the models drawn for a pick, the app's own rule (`pickModel`, `forecastDrawn`): the chosen one first, then the others on */
-export function drawnRuns(runs: readonly Run[], pick: ModelPickLike): Run[] {
-  if (!forecastDrawn(pick.on, runs)) return [];
-  const lead = pick.model ?? runs[0]?.model;
-  return [lead, ...pick.also].flatMap((m) => runs.filter((r) => r.model === m));
-}
-type ModelPickLike = { readonly model: string | null; readonly also: readonly string[]; readonly on: boolean | null };
-
-/** the forecast lines under the chart, one per model drawn; a gauge with no run says so in one line */
-export function forecastHtml(f: Facts, now: number, drawn: readonly Run[] = drawnRuns(runsOf(f, now), NO_MODEL_PICK)): string {
-  const runs = runsOf(f, now);
-  if (runs.length) {
-    return drawn.map((r) => `<p class="small">${esc(r.model)} (dashed): issued ${esc(r.issued)}` +
-      (now > r.dueBy ? ` — <b>${esc(f.runOld)}</b> (no newer run since)` : "") + `.</p>`).join("");
-  }
-  if (f.forecastOld) return `<p class="small">No current flow forecast: the latest ${esc(f.forecastOld.model)} run (issued ${esc(f.forecastOld.issued)}) is ${esc(f.runOld)}, so it is not drawn.</p>`;
-  return `<p class="small">No flow forecast for this gauge.</p>`;
-}
-
-/** the forecast options, the app's own: one switch per model (its colour and dash) and "Real-time only" (`pickModel`, `realtimeOnly`) */
-export function modelsHtml(runs: readonly Run[], drawn: readonly Run[], realtime: boolean): string {
-  if (!runs.length) return "";
-  const on = (m: string) => drawn.some((r) => r.model === m);
-  const chip = (r: Run) => `<button type="button" class="chip m-${esc(r.model)}" data-model="${esc(r.model)}" aria-pressed="${on(r.model)}">` +
-    `<svg width="26" height="8" viewBox="0 0 26 8" aria-hidden="true"><line x1="1" y1="4" x2="25" y2="4" stroke-dasharray="${forecastDash(r.model)}"/></svg> ` +
-    `${esc(forecastModelOption({ model: r.model, horizonDays: r.horizonDays! }))}</button>`;
-  return `<div class="models" role="group" aria-label="${esc(FORECAST_MODEL_CONTROL)}">${runs.map(chip).join("")}` +
-    `<button type="button" class="chip" data-model="" aria-pressed="${realtime}">${esc(REALTIME_ONLY)}</button></div>`;
-}
-
-// `figure`, the B.C. day and stamp words and the age line are core's: clientScript() writes their source into the shipped
-// script, so none is typed twice
-
-/** the usual range on a day from the facts' normal rows (the row nearest `t`, within a day); null: none */
-export function usualAt(f: Facts, t: number): { lo: number; hi: number } | null {
-  let best: [number, number, number, number, number, number] | null = null;
-  for (const r of f.normal ?? []) if (Math.abs(r[0] - t) <= DAY && (!best || Math.abs(r[0] - t) < Math.abs(best[0] - t))) best = r;
-  return best ? normalRangeOf([best[1], best[2], best[3], best[4], best[5]]) : null;
-}
-
-/**
- * (T564) THE CHART IS THE MAIN THING ON THE PAGE: drawn at the width it is shown at (so a phone's 13 px text is 13 px, not a
- * 640-wide drawing shrunk to 60 %), tall on a phone, with round-figure ticks (core `niceTicks`), a mark for every day, the
- * usual range for the date behind the line (dark: the middle half of past years, light: 8 in 10) and TODAY as the strong mark
- * (core `layoutDayMarks`, T604). The last 7 days and the forecast's dashes; null when there is nothing to draw.
- */
-export function chartSvg(f: Facts, now: number, width = 640, drawn: readonly Run[] = drawnRuns(runsOf(f, now), NO_MODEL_PICK)): string | null {
-  const W = Math.round(Math.min(900, Math.max(280, width))), H = W < 520 ? Math.round(W * 0.6) : Math.round(W * 0.3);
-  const L = 48, R = 12, T = 30, B = 30, FS = 13;
-  const obs = f.week, fc = drawn.flatMap((r) => r.points);
-  if (obs.length + fc.length < 2) return null;
-  const t0 = now - 7 * DAY, t1 = Math.max(now, ...fc.map((p) => p[0]));
-  const vals = [...obs, ...fc].map((p) => p[1]);
-  let lo = Math.min(...vals), hi = Math.max(...vals);
-  if (hi - lo < 1e-9) { lo -= 1; hi += 1; }
-  const pad = (hi - lo) * 0.1; lo = Math.max(f.parameter === "discharge" ? 0 : -Infinity, lo - pad); hi += pad;
-  const x = (t: number) => (L + ((t - t0) / (t1 - t0 || 1)) * (W - L - R));
-  const y = (v: number) => (T + (1 - (v - lo) / (hi - lo)) * (H - T - B));
-  const n = (v: number) => v.toFixed(1);
-  const path = (ps: readonly [number, number][]) => ps.map((p, i) => `${i ? "L" : "M"}${n(x(p[0]))} ${n(y(p[1]))}`).join("");
-  const last = obs[obs.length - 1];
-  // the usual range, clipped to the plot: the part of the window the facts hold
-  const rows = (f.normal ?? []).filter((r) => r[0] >= t0 - DAY && r[0] <= t1 + DAY);
-  const band = (a: number, b: number) => rows.length < 2 ? "" :
-    `<path d="${rows.map((r, i) => `${i ? "L" : "M"}${n(x(r[0]))} ${n(y(r[b]!))}`).join("")}${[...rows].reverse().map((r) => `L${n(x(r[0]))} ${n(y(r[a]!))}`).join("")}Z" class="${a === 1 ? "bandw" : "bandn"}"/>`;
-  const ticks = niceTicks(lo, hi, H < 300 ? 3 : 4);
-  // a mark for every B.C. day (a weekday), thinned so two words never meet
-  const days: number[] = [];
-  for (let d = bcMidnight(new Date(t0 + DAY).toISOString().slice(0, 10)); d <= t1; d += DAY) if (d >= t0) days.push(d);
-  const every = Math.max(1, Math.ceil((days.length * 36) / (W - L - R)));
-  const marks = layoutDayMarks({ plot: { x: L, width: W - L - R }, top: 14, rowHeight: FS + 3, fontSize: FS,
-                                 marks: [{ x: x(now), text: "Today", kind: "today" }] })[0]!;
-  const parts = [
-    `<clipPath id="plot"><rect x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}"/></clipPath>`,
-    ...ticks.map((v) => `<line x1="${L}" y1="${n(y(v))}" x2="${W - R}" y2="${n(y(v))}" class="grid"/><text x="${L - 6}" y="${n(y(v) + 4)}" class="tick" text-anchor="end">${figure(v)}</text>`),
-    `<g clip-path="url(#plot)">${band(1, 5)}${band(2, 4)}</g>`,
-    ...days.map((d, i) => `<line x1="${n(x(d))}" y1="${H - B}" x2="${n(x(d))}" y2="${H - B + 4}" class="axis"/>` +
-      (i % every === 0 ? `<text x="${n(x(d))}" y="${H - 8}" class="tick" text-anchor="middle">${esc(bcWeekdayAbbr(d + 12 * 3600_000))}</text>` : "")),
-    `<line x1="${L}" y1="${H - B}" x2="${W - R}" y2="${H - B}" class="axis"/>`,
-    obs.length >= 2 ? `<path d="${path(obs)}L${n(x(last![0]))} ${H - B}L${n(x(obs[0]![0]))} ${H - B}Z" class="area"/>` : "",
-    obs.length >= 2 ? `<path d="${path(obs)}" class="obs"/>` : "",
-    ...drawn.map((r) => `<path d="${path(last ? [last, ...r.points] : r.points)}" class="fc m-${esc(r.model)}" stroke-dasharray="${forecastDash(r.model)}"/>`),
-    `<line x1="${n(x(now))}" y1="${T - 6}" x2="${n(x(now))}" y2="${H - B}" class="now"/>`,
-    last ? `<circle cx="${n(x(last[0]))}" cy="${n(y(last[1]))}" r="5" class="dot"/>` : "",
-    marks.placed ? `<text x="${n(marks.tx)}" y="${n(marks.ty)}" class="today" text-anchor="${marks.anchor}">Today</text>` : "",
-  ];
-  const what = f.parameter === "level" ? "Water level" : "Flow";
-  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(`${what} over the last 7 days${fc.length ? " and the forecast" : ""}, in ${f.unit ?? ""}`)}">${parts.join("")}</svg>`;
-}
-
-/** what the lines and shades of the chart are, as cards under it (a chart with no key is a guess) */
-export function chartKeyHtml(f: Facts): string {
-  const item = (cls: string, words: string) => `<li><svg width="26" height="12" viewBox="0 0 26 12" aria-hidden="true"><${cls}</svg> ${esc(words)}</li>`;
-  const usual = (f.normal?.length ?? 0) >= 2;
-  return `<details class="keyfold"><summary>What the lines and shading are</summary><ul class="key"><li class="k-head">${esc(f.parameter === "level" ? "Water level" : "Flow")}, ${esc(f.unit ?? "")}</li>` +
-    item('line x1="0" y1="6" x2="26" y2="6" class="obs"/>', "measured") +
-    (usual ? item('rect x="0" y="1" width="26" height="10" class="bandn"/>', "usual range for the date: half of past years") +
-             item('rect x="0" y="1" width="26" height="10" class="bandw"/>', "8 years in 10") : "") + `</ul></details>`;
-}
-
-/** the forecast, a day at a time: the expected figure and the usual range for that day (the same rows the chart shades) */
-export function forecastDaysHtml(f: Facts, now: number, drawn: readonly Run[] = drawnRuns(runsOf(f, now), NO_MODEL_PICK)): string {
-  const lead = drawn[0];
-  if (!lead || f.week.length + lead.points.length < 2) return "";
-  if (now > lead.dueBy) return "";
-  const seen = new Set<string>();
-  const rows: string[] = [];
-  for (const [t, v] of lead.points) {
-    const label = bcDayWords(t, true);
-    if (t < now - 12 * 3600_000 || seen.has(label)) continue;
-    seen.add(label);
-    const u = usualAt(f, t);
-    rows.push(`<tr><th scope="row">${esc(label)}</th><td>${esc(figure(v))} ${esc(f.unit ?? "")}</td><td>${u ? `${esc(figure(u.lo))}–${esc(figure(u.hi))}` : "—"}</td></tr>`);
-  }
-  if (!rows.length) return "";
-  return `<details class="fdfold"><summary>The forecast, day by day</summary><table class="wx fd"><thead><tr><th>Day</th><th>Expected</th><th>Usual for the date</th></tr></thead><tbody>${rows.join("")}</tbody></table></details>`;
+/** the credit under the chart: the readings', and the Province's for the forecast runs the facts name (the app's chart draws them) */
+export function creditHtml(f: Pick<Facts, "forecast" | "forecasts">): string {
+  const run = f.forecasts?.[0] ?? f.forecast;
+  return `<p class="small">Readings: Water Survey of Canada real-time data (Environment and Climate Change Canada), provisional.` +
+    `${run ? ` ${esc(run.attribution)}` : ""}</p>`;
 }
 
 interface Meteo {
@@ -307,7 +195,7 @@ async function readJson(fetchImpl: typeof fetch, url: string): Promise<unknown> 
   return await r.json();
 }
 
-/** the page's live half: fills #gauge-now, #gauge-chart and #gauge-weather; resolves when both reads have settled */
+/** the page's live half: fills #gauge-now, #gauge-credit and #gauge-weather (the chart is gaugeChart.tsx's); resolves when both reads have settled */
 export async function gaugePage(doc: Document, now: () => number, fetchImpl: typeof fetch): Promise<void> {
   const cfgEl = doc.getElementById("gauge-config");
   if (!cfgEl?.textContent) throw new Error("gauge page: no #gauge-config");
@@ -321,39 +209,9 @@ export async function gaugePage(doc: Document, now: () => number, fetchImpl: typ
   const facts = readJson(fetchImpl, cfg.facts).then((raw) => {
     const f = raw as Facts;
     if (f.format !== "gauge-card/1") throw new Error(`${cfg.facts}: format ${String(f.format)}, not gauge-card/1`);
-    const t = now();
-    put("gauge-now", readingHtml(f, t));
-    const box = doc.getElementById("gauge-chart");
-    // (T908) the forecast options: the app's own pick (`pickModel`, `realtimeOnly`), redrawn on a tap
-    const runs = runsOf(f, t);
-    let pick: ModelPickLike & { readonly model: string | null; readonly also: readonly string[]; readonly on: boolean | null } = NO_MODEL_PICK;
-    const render = () => {
-      const tn = now(), drawn = drawnRuns(runs, pick);
-      const svg = chartSvg(f, tn, box?.clientWidth || 640, drawn);
-      put("gauge-chart", `<h2>Last 7 days and the forecast</h2>` + modelsHtml(runs, drawn, drawn.length === 0) +
-        (svg ? svg + chartKeyHtml(f) : `<p class="small">No readings in the last 7 days.</p>`) + forecastHtml(f, tn, drawn) + forecastDaysHtml(f, tn, drawn) +
-        `<p class="small">Readings: Water Survey of Canada real-time data (Environment and Climate Change Canada), provisional.` +
-        `${runs[0] ? ` ${esc(runs[0].attribution)}` : ""}</p>`);
-    };
-    render();
-    box?.addEventListener("click", (ev) => {
-      const b = (ev.target as Element | null)?.closest?.("button[data-model]");
-      if (!b) return;
-      const m = b.getAttribute("data-model") ?? "";
-      const drawing = drawnRuns(runs, pick).length > 0, lead = pick.model ?? runs[0]?.model ?? null;
-      pick = m === "" ? realtimeOnly(pick) : pickModel(pick, m, drawing ? lead : null, drawing);
-      render();
-    });
-    // the chart is drawn at the width it is shown at: a turned phone draws it again
-    let drawnAt = box?.clientWidth ?? 0;
-    doc.defaultView?.addEventListener("resize", () => {
-      const w = box?.clientWidth ?? 0;
-      if (!box || Math.abs(w - drawnAt) < 24) return;
-      drawnAt = w;
-      const first = box.querySelector("svg:not([aria-hidden])");
-      if (first) first.outerHTML = chartSvg(f, now(), w, drawnRuns(runs, pick)) ?? "";
-    });
-  }).catch((e) => { failed("gauge-now", "The latest reading", e); put("gauge-chart", ""); });
+    put("gauge-now", readingHtml(f, now()));
+    put("gauge-credit", creditHtml(f));
+  }).catch((e) => failed("gauge-now", "The latest reading", e));
   const weather = cfg.weather === null
     ? Promise.resolve(put("gauge-weather", `<p class="small">This gauge has no position on file, so no weather is shown.</p>`))
     : readJson(fetchImpl, cfg.weather).then((m) => put("gauge-weather", weatherHtml(m as Meteo, cfg.sky, cfg.weatherAttribution, now())))

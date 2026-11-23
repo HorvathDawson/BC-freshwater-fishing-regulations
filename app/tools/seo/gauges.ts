@@ -24,9 +24,10 @@ import { clip, esc, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, type 
 import type { GaugeConfig } from "./gaugeClient";
 import { FIND_BODY } from "./regionMap";
 import { appStoreLink, TESTFLIGHT_URL, WEB_SPOTS_WORDS, bestServes, gaugePath, getAppBlock, playStoreLink, type GetAppSlot, STALE_AFTER_MS, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
-import { readGaugeRows } from "@app/data/release";
+import type { StationClim } from "@app/data";
+import { readGaugeClim, readGaugeRows } from "@app/data/release";
 
-export { readGaugeRows, type GaugeRows };
+export { readGaugeClim, readGaugeRows, type GaugeRows };
 
 export interface WaterLink { readonly id: string; readonly name: string; readonly path: string }
 export interface GaugeModel {
@@ -73,13 +74,10 @@ export const CORE_INLINE: readonly (readonly [file: string, names: readonly stri
   // (T908) the Conditions legend's "Normal" band, and where a percentile sits on the colour bar
   ["gauge-policy.generated.ts", ["PERCENTILE_KNOTS"]],
   ["flow.ts", ["KNOTS", "standing", "NORMAL_BAND"]],
-  // (T908) the forecast options: the models' dashes and the app's own toggle logic (change.ts)
-  ["conditions.ts", ["REALTIME_ONLY", "FORECAST_MODEL_CONTROL", "forecastModelOption", "FLOW_LEGEND"]],
+  // (T908) the colour bar's legend words (T1039: the forecast options are the app's chart's own now, gaugeChart.tsx)
+  ["conditions.ts", ["FLOW_LEGEND"]],
   ["day.ts", ["pad2", "HOUR_MS", "bcWall", "fromBcWall", "bcMidnight", "bcFields", "bcDayWords", "bcWeekdayAbbr", "bcStampWords", "bcClockWords", "bcIsoDayWords"]],
-  ["chartTicks.ts", ["niceTicks"]],
-  ["chartMarks.ts", ["RULE_GAP", "LABEL_GAP", "IMPORTANCE", "MARK_ROWS", "markTextWidth", "meets", "layoutDayMarks"]],
-  ["alerts.ts", ["normalRangeOf"]],
-  ["change.ts", ["STEADY_RATIO", "OBSERVED_TREND", "observedTrend", "FORECAST_DASH", "OTHER_MODEL_DASH", "forecastDash", "NO_MODEL_PICK", "pickModel", "realtimeOnly", "forecastDrawn"]],
+  ["change.ts", ["STEADY_RATIO", "OBSERVED_TREND", "observedTrend"]],
   ["freshness.ts", ["AGO_WORDS", "ageWords", "freshness", "MAY_BE_OLD", "READING_LEAD", "readingAgeParts", "readingAgeWords", "readingAgeBrief"]],
   ["standing.ts", ["figure", "BAND_WORDS", "PRIOR_BAND_WORDS", "bandOfWord", "bandWord", "standingNowLine", "gaugeSummaryLine", "side", "daysShort", "daysNear"]],
 ];
@@ -130,6 +128,52 @@ export function findScript(): string {
   return `(function(){"use strict";\n${inlineCore("gaugeClient.ts", JOIN_REPORTER, HERE)}\n${FIND_BODY}\n})();\n`;
 }
 
+/**
+ * (T1039, owner Q183 2026-11-23: "App's chart, ~260 KB") THE APP'S CHART AS THE PAGE'S SECOND SCRIPT: gaugeChart.tsx and the
+ * app code it draws with (@app/ui-native `StationChart`, @app/ui `useStationChart`, @app/data's feed and series code, React and
+ * react-native-web), bundled into one minified file the page loads deferred, after its words. Resolved as the app's web build
+ * and the tests resolve them (vitest.config.ts): react-native is react-native-web, each `.web` sibling first, react-native-svg's
+ * web entry, the gesture handler's ES-module build. A bundle that does not build stops the site build (thrown).
+ */
+export interface ChartBundle {
+  readonly js: string;
+  /** the pictures the bundle names (the coho loader's sheets), at their served paths under /assets/chart/ */
+  readonly assets: ReadonlyMap<string, Uint8Array>;
+}
+export async function chartScript(): Promise<ChartBundle> {
+  // loaded here, not at the top: esbuild refuses to start in a DOM-like test environment (jsdom), and the tests that run
+  // this file's other scripts there never build the chart
+  const { build: esbuild } = await import("esbuild");
+  const nm = (p: string) => join(HERE, "../../node_modules", p);
+  const out = join(HERE, ".chart-bundle");                  // nothing is written there (write: false): the paths name the files
+  const r = await esbuild({
+    stdin: { contents: `import { mountGaugeChart } from "./gaugeChart";\nmountGaugeChart(document, window.fetch.bind(window), Date.now);\n`,
+             resolveDir: HERE, loader: "ts", sourcefile: "gauge-chart-entry.ts" },
+    bundle: true, minify: true, format: "iife", platform: "browser", target: "es2020", write: false, logLevel: "silent",
+    outdir: out, entryNames: "gauge-chart", assetNames: "chart/[name].[hash]", publicPath: "/assets",
+    alias: { "react-native": "react-native-web", "react-native-svg": nm("react-native-svg/lib/module/ReactNativeSVG.web.js"),
+             "@react-native/assets-registry/registry": "react-native-web/asset-registry",
+             "react-native-gesture-handler": nm("react-native-gesture-handler/lib/module/index.js") },
+    resolveExtensions: [".web.tsx", ".web.ts", ".web.js", ".tsx", ".ts", ".js", ".mjs", ".json"],
+    // react-native-svg's touch sound: a `require` made on Android only (SvgTouchableMixin, `Platform.OS === "android"`), of a
+    // TurboModule react-native-web has no registry for; left out of the bundle, as Metro's web build never runs it either
+    external: ["../fabric/NativeSvgSoundModule"],
+    define: { "process.env.NODE_ENV": '"production"', __DEV__: "false", global: "globalThis" },
+    // a picture the app's components import is served as its own file, as the app's web export serves it
+    loader: { ".js": "jsx", ".webp": "file", ".png": "file" },
+  });
+  if (r.errors.length) throw new Error(`seo: the gauge chart's script did not build: ${r.errors.map((e) => e.text).join("; ")}`);
+  const main = r.outputFiles.find((f) => f.path === join(out, "gauge-chart.js"));
+  if (!main) throw new Error("seo: the gauge chart's build wrote no gauge-chart.js");
+  const js = main.text;
+  // a bundle that reads an environment variable (an EXPO_PUBLIC_ one, inlined by Metro) would throw in the browser: the
+  // build stops instead (React's own `typeof process` checks are guarded and stay)
+  const env = /\bprocess\.env\b(?!\.NODE_ENV\b)[.\w]*/.exec(js);
+  if (env) throw new Error(`seo: the gauge chart's script reads ${env[0]}, which no browser has`);
+  const assets = new Map(r.outputFiles.filter((f) => f !== main).map((f) => [`assets/${f.path.slice(out.length + 1)}`, f.contents] as const));
+  return { js, assets };
+}
+
 /** the production hosts the page names; deploy/staging/site.sh points a staging copy at staging's */
 export const LIVE = {
   data: ORIGINS.production,
@@ -140,7 +184,10 @@ const OPEN_METEO = "https://api.open-meteo.com/v1/forecast";
 /** WMO weather codes 0-99 in the app's sky words (data/spots/words.ts `skyWord`) */
 const SKY: Readonly<Record<string, string>> = Object.fromEntries(Array.from({ length: 100 }, (_, c) => [String(c), skyWord(c)]));
 
-export function gaugeConfig(g: GaugeModel, release: string): GaugeConfig {
+/** (T1039) the chart's inputs the build writes into each page: the station's climatology and the app's faces */
+export interface ChartInputs { readonly clim: readonly StationClim[]; readonly fonts: string | null }
+
+export function gaugeConfig(g: GaugeModel, release: string, chart: ChartInputs): GaugeConfig {
   return {
     station: g.station,
     facts: `${LIVE.data}/feeds/cards/${g.station}.json`,
@@ -149,6 +196,10 @@ export function gaugeConfig(g: GaugeModel, release: string): GaugeConfig {
         "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max&timezone=Etc%2FGMT%2B7&forecast_days=5",
     weatherAttribution: OPEN_METEO_ATTRIBUTION, sky: SKY,
     crash: LIVE.crash, env: LIVE.env, release,
+    // the app's own feed base (apps/mobile env.ts `feed`): the chart reads the station's file the app reads
+    live: `${LIVE.data}/feeds/live`,
+    clim: chart.clim.map((c) => ({ parameter: c.parameter, bands: Buffer.from(c.bands).toString("base64") })),
+    fonts: chart.fonts || null,
   };
 }
 
@@ -161,7 +212,7 @@ export function gaugeTitle(g: Pick<GaugeModel, "name" | "station">): string {
 
 export function gaugeDescription(g: GaugeModel): string {
   const w = g.close[0]?.name ?? g.rough[0]?.name;
-  return clip(`Live flow, the last 7 days, the flow forecast and the weather at the ${g.name} gauge (${g.station}), BC` +
+  return clip(`Live flow, this year's record, the flow forecasts and the weather at the ${g.name} gauge (${g.station}), BC` +
     `${w ? `, for ${w}` : ""}. Free, from Water Survey of Canada data.`);
 }
 
@@ -205,17 +256,18 @@ export function moreSummary(g: Pick<GaugeModel, "main" | "more" | "rough">): str
 }
 
 /** the page body: everything that does not move between feed runs; the live sections are filled by gaugeClient.ts */
-export function gaugeBody(g: GaugeModel, release: string, clientHref: string, asOf: string, contact: string | null = null,
-                          joinHref: string | null = null): string {
+export function gaugeBody(g: GaugeModel, release: string, clientHref: string, asOf: string, chartHref: string, chart: ChartInputs,
+                          contact: string | null = null, joinHref: string | null = null): string {
   const first = g.close[0] ?? g.rough[0]!;
   const line = (w: WaterLink) => `<li><a href="${esc(w.path)}">${esc(w.name)} fishing regulations</a></li>`;
-  const cfg = JSON.stringify(gaugeConfig(g, release)).replace(/</g, "\\u003c");
+  const cfg = JSON.stringify(gaugeConfig(g, release, chart)).replace(/</g, "\\u003c");
   return `<div class="gv"><nav class="crumbs"><a href="/">Home</a> › <a href="/gauges">River gauges</a> › ${esc(g.name)}</nav>` +
     `<h1>${esc(g.name)}</h1>` +
     `<p class="small">Water Survey of Canada gauge ${esc(g.station)} · read each time this page opens.</p>` +
     `<div id="gauge-now" class="now-card"><p class="small">Reading the latest from the gauge…</p></div>` +
     `<noscript><p class="warn">The live reading, chart and weather need JavaScript.</p></noscript>` +
-    `<div id="gauge-chart"></div>` +
+    // (T1039) the app's own chart, drawn by its deferred script (gaugeChart.tsx); the box keeps its place meanwhile
+    `<h2>Readings and forecast</h2><div id="gauge-chart"><p class="small">Drawing the chart…</p></div><div id="gauge-credit"></div>` +
     `<div id="gauge-weather"><p class="small">Reading the forecast…</p></div>` +
     `<h2>Waters this gauge serves</h2>` +
     (g.main.length ? `<ul>${g.main.map(line).join("")}</ul>` : "") +
@@ -228,6 +280,7 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
     `<div class="opens"><a class="app" href="${esc(`${first.path}?view=conditions`)}">Open on the website</a>` +
     `${openInAppControl(undefined, undefined, contact)}</div></div></div>` +
     `<script type="application/json" id="gauge-config">${cfg}</script><script src="${esc(clientHref)}" defer></script>` +
+    `<script src="${esc(chartHref)}" defer></script>` +
     (joinHref ? `<script src="${esc(joinHref)}" defer></script>` : "");
 }
 

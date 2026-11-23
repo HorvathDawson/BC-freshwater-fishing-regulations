@@ -47,9 +47,7 @@ const vars = (th: "light" | "dark"): string =>
   `--ink:${T(th, "color.ui.ink")};--card:${T(th, "color.ui.card")};--scrim:color-mix(in srgb,${T(th, "color.ui.shadow")} ${Math.round(Number((meta.themes as Record<string, Record<string, unknown>>)[th]?.["opacity.ui.scrim"]) * 100)}%,transparent);--muted:${T(th, "color.ui.sub")};--line:${T(th, "color.ui.line2")};--accent:${T(th, "color.ui.accent")};` +
   `--accent-ink:${T(th, "color.ui.on-accent")};--open:${T(th, "color.status.open")};--closed:${T(th, "color.status.closed")};--soft:${T(th, "color.ui.wash")};` +
   // (T908) the gauge page's standing colours: the map's "Flow vs. past years" ramp (layers.source.json `standing`, p0 f1 ... p100 f7), one stop per band
-  `--b-much-below:${T(th, "color.flow.f1")};--b-below:${T(th, "color.flow.f3")};--b-normal:${T(th, "color.flow.f4")};--b-above:${T(th, "color.flow.f5")};--b-much-above:${T(th, "color.flow.f7")};--flow-ramp:${rampOf(th)};` +
-  // (T908) each forecast model's colour (the app's `Palette.forecast`, color.ui.forecast.<model>)
-  `--m-CLEVER:${T(th, "color.ui.forecast.clever")};--m-COFFEE:${T(th, "color.ui.forecast.coffee")};--m-ELF:${T(th, "color.ui.forecast.elf")}`;
+  `--b-much-below:${T(th, "color.flow.f1")};--b-below:${T(th, "color.flow.f3")};--b-normal:${T(th, "color.flow.f4")};--b-above:${T(th, "color.flow.f5")};--b-much-above:${T(th, "color.flow.f7")};--flow-ramp:${rampOf(th)}`;
 export const SHARE_GROUND = T("light", "color.ui.accent");
 /** (T406) the share card: its size (the size Facebook and X ask for a large-image card) and its face (share.ts loads it) */
 export const SHARE_W = 1200, SHARE_H = 630, SHARE_FONT = "Archivo";
@@ -96,14 +94,8 @@ dialog.join .addr{font-weight:600;user-select:all;word-break:break-all}
 .gv .ramp{margin:.3rem 0 .6rem}.gv .ramptitle{margin:.2rem 0}.gv .rampbar{display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--muted)}.gv .rampbar span{flex:0 0 2.6rem}.gv .rampbar span:last-child{text-align:left}.gv .rampbar span:first-child{text-align:right}
 .gv .bar{position:relative;flex:1;height:12px;background:var(--flow-ramp);margin-top:6px}.gv .mark{position:absolute;top:-6px;bottom:-4px;width:4px;margin-left:-2px;background:var(--ink);box-shadow:0 0 0 2px var(--soft)}
 .gv .rampnormal{position:relative;height:1.3rem;margin:2px 3rem 0}.gv .rampnormal div{position:absolute;top:0;height:100%;box-sizing:border-box;border:1px solid var(--muted);border-top:0;text-align:center;font-size:.8rem;color:var(--muted);line-height:1.1rem}
-.gv .models{display:flex;flex-wrap:wrap;gap:.4rem;margin:.3rem 0}.gv .chip{font:inherit;font-size:.85rem;border:1px solid var(--line);background:transparent;color:var(--ink);padding:.3rem .55rem;display:inline-flex;align-items:center;gap:.4rem;cursor:pointer}.gv .chip[aria-pressed=true]{border-color:var(--ink);font-weight:600}.gv .chip svg{display:inline-block}.gv .chip line{stroke:var(--muted);stroke-width:3;stroke-linecap:round}
-.gv .chip.m-CLEVER line,.gv .fc.m-CLEVER{stroke:var(--m-CLEVER)}.gv .chip.m-COFFEE line,.gv .fc.m-COFFEE{stroke:var(--m-COFFEE)}.gv .chip.m-ELF line,.gv .fc.m-ELF{stroke:var(--m-ELF)}.gv .fc{stroke-linecap:round;opacity:1}
 .warn{border-left:3px solid var(--accent);padding:.3rem .7rem;background:var(--soft)}
-.gv svg{display:block;max-width:100%;height:auto}.gv .axis{stroke:var(--muted);stroke-width:1}.gv .grid{stroke:var(--line);stroke-width:1}.gv .tick{font-size:13px;fill:var(--muted)}.gv .today{font-size:13px;font-weight:700;fill:var(--ink)}
-.gv .obs{fill:none;stroke:var(--accent);stroke-width:2.5}.gv .area{fill:var(--accent);opacity:.12}.gv .fc{fill:none;stroke:var(--accent);stroke-width:2;stroke-dasharray:7 5;opacity:.75}
-.gv .dot{fill:var(--accent)}.gv .now{stroke:var(--ink);stroke-width:2}.gv .bandw{fill:var(--muted);opacity:.14}.gv .bandn{fill:var(--muted);opacity:.22}
-.gv #gauge-chart{margin:.4rem 0}.gv .key{list-style:none;margin:.4rem 0;padding:0;display:flex;flex-wrap:wrap;gap:.4rem}.gv .key li{border:1px solid var(--line);padding:.25rem .5rem;font-size:.85rem;display:flex;gap:.4rem;align-items:center}.gv .key svg{display:inline-block}.gv .key .k-head{font-weight:600}.gv .key line{stroke-width:3}.gv .key .fc{stroke-width:3}
-.gv .fd caption{text-align:left;font-weight:600;padding:.4rem 0}
+.gv #gauge-chart{margin:.4rem 0;min-height:550px}
 .wx{border-collapse:collapse;width:100%;font-size:.9rem}.wx th,.wx td{text-align:left;padding:.25rem .4rem;border-bottom:1px solid var(--line)}
 .tag{font-size:.8rem;color:var(--muted)}footer{border-top:1px solid var(--line);margin-top:2rem;padding:1rem;text-align:center;font-size:.9rem;color:var(--muted)}
 `;

@@ -194,7 +194,7 @@ export function useGaugeGeoJSON(
  * first's promise — `useAsync` alone shares nothing between callers.
  */
 export function useSeries(
-  source: WaterSource, station: StationId | null, span: "72h" | "year",
+  source: Pick<WaterSource, "gaugeSeries">, station: StationId | null, span: "72h" | "year",
   parameter?: Parameter, model?: string, enabled = true,
 ): Async<Series | null> {
   const key = seriesKey(station, span, parameter, model);
@@ -215,7 +215,7 @@ export function useSeries(
 
 /** Which quantities this station can be charted in — an empty list means no envelope. */
 export function useGaugeParameters(
-  source: WaterSource, station: StationId | null,
+  source: Pick<WaterSource, "gaugeParameters">, station: StationId | null,
 ): Async<readonly Parameter[]> {
   // Through the answer store, so a prefetched donor's quantities are known the instant it is picked — otherwise the
   // chart would ask for the station's "auto" series first and its picked quantity a frame later (two loads).

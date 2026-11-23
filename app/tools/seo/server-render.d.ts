@@ -11,3 +11,8 @@ declare module "react-dom/server" {
 declare module "react-native-web/dist/modules/ImageLoader" {
   export const ImageUriCache: { add(uri: string): void; has(uri: string): boolean };
 }
+/** (T1039) the gauge page's chart mounts the app's chart in the browser (gaugeChart.tsx): the one client entry it reads */
+declare module "react-dom/client" {
+  import type { ReactNode } from "react";
+  export function createRoot(container: Element): { render(element: ReactNode): void; unmount(): void };
+}
