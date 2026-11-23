@@ -6,7 +6,7 @@ import { setFailureSink } from "@app/core";
 import { describe, expect, it } from "vitest";
 import { loadRegsInputs, openRegsStore, RegsStoreError, targetFor, type RegsLoader } from "@app/data/regs";
 import { openRegsFixture } from "@app/data/release/node";
-import { accessOf, type Paint } from "@app/core";
+import { accessOf, buildRegsPage, type Paint } from "@app/core";
 import { DEFAULT_WHO, loadRegsStore, mapDayOf, pageSubjectOf, regsAccessNotices, regsDay, regsStoreKey, regsTargetKey,
          type PageSubject } from "./regs";
 
@@ -114,6 +114,25 @@ describe("the T09 functions", () => {
     expect(t).toEqual({ kind: "part", item: "gnis:3062", partIx: 0 });
     const inp = await loadRegsInputs(st, t, { month: 6, day: 15 }, "Monday", 2026);
     expect([inp.target, inp.item?.name]).toEqual([t, "Vedder River"]);
+  });
+});
+
+describe("(T1026) 'today' is a date: a day one year on (same month and day) is not today, at every call site", () => {
+  it("the header's day word, page.today, gear's today and the strip's 'when' line", async () => {
+    const st = await loadRegsStore(counted().loader);
+    const t = await targetFor(st, "wbk:-21", null);   // a water whose Gear tab says "Today, Jun 15" on the same date
+    const who = { age: "adult", residency: "resident" } as const;
+    const today = { month: 6, day: 15, year: 2026 };
+    const same = await loadRegsInputs(st, t, { month: 6, day: 15 }, "Monday", 2026);
+    const next = await loadRegsInputs(st, t, { month: 6, day: 15 }, "Tuesday", 2027);
+    const read = (inp: typeof same) => { const p = buildRegsPage(inp, { today, who });
+      return { word: p.header.dayWord, today: p.today, gear: p.gear?.day ?? null, when: p.keep.strip?.line.find((l) => l.kind === "when")?.text ?? null }; };
+    // the control: the same date IS today, so the test sees "today" where it should
+    expect(read(same)).toMatchObject({ word: "Today", today: true, gear: expect.stringMatching(/^Today/), when: expect.stringMatching(/^today/) });
+    const r = read(next);
+    expect([r.word, r.today]).toEqual(["Tue", false]);
+    expect(r.gear).not.toMatch(/^Today/);   // the Gear tab's own day line (gear's `today`)
+    expect(r.when).not.toMatch(/^today/);
   });
 });
 
