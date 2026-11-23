@@ -37,3 +37,6 @@ Chrome's downloads read under that.
   reading, not evidence from a run; the ticket's only evidence is a guess. App left alone; to settle it, log the meter's
   busy ms vs first-byte ms on a loaded run, then (if so) start the busy clock at the first byte and unit-test a slow
   consumer on a fast line.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+left (Claude): step 2 only if evidence shows the meter is wrong. step 1 done: the smoke presses Download it and says so; meter reading read, not changed (no evidence). staging redeploy of b2dba0297, 2026-11-14: failed twice, passed 19/19 on the third run; check tool first, then whether a busy device can trip slow-connection mode

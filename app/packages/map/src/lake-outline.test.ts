@@ -18,7 +18,7 @@ import { describe, expect, it } from "vitest";
 import { baseAdapter, type MapHandle } from "./adapters/contract";
 import { nativeAdapter } from "./adapters/native";
 import { webAdapter } from "./adapters/web";
-import { STYLE_META, colorExpression, resolveTheme, themeNames } from "./style";
+import { STYLE_META, colorExpression, resolveTheme, shadeHex, themeNames } from "./style";
 import { runtimeStyle } from "./runtime-style";
 
 const AT = { atlas: "a.pmtiles", basemap: "b.pmtiles" };
@@ -35,15 +35,22 @@ function painter() {
   return { h, paint };
 }
 
-/** The stocked colour, with the lake's own plain fill ("never", missing) replaced by the outline's neutral blue. */
+/** (T467) A followed colour as the edge draws it: `shade.lake.edge` off the token (the colour-blind theme: 0, itself). */
+const sh = (t: Record<string, unknown>, c: unknown) => shadeHex(String(c), t["shade.lake.edge"] as number);
+/** Every colour in an expression shaded as the edge shades it. */
+const shadeAll = (t: Record<string, unknown>, e: unknown): unknown =>
+  Array.isArray(e) ? e.map((x) => shadeAll(t, x)) : typeof e === "string" && /^#[0-9a-f]{6}$/i.test(e) ? sh(t, e) : e;
+
+/** The stocked colour, shaded (T467), with the lake's own plain fill ("never", missing) replaced by the outline's
+ *  neutral blue (no shade: it is no colour of the fill's). */
 function stockedEdgeExpr(theme: string): unknown {
   const t = resolveTheme(theme);
   return ["match", ["feature-state", "stocked"],
-          "season", t["color.stock.season"],
-          "year", t["color.stock.year"],
-          "recent", t["color.stock.recent"],
-          "decade", t["color.stock.decade"],
-          "old", t["color.stock.old"],
+          "season", sh(t, t["color.stock.season"]),
+          "year", sh(t, t["color.stock.year"]),
+          "recent", sh(t, t["color.stock.recent"]),
+          "decade", sh(t, t["color.stock.decade"]),
+          "old", sh(t, t["color.stock.old"]),
           "never", t["color.water.mapped"],
           t["color.water.mapped"]];
 }
@@ -51,8 +58,8 @@ function stockedEdgeExpr(theme: string): unknown {
 function surveyedEdgeExpr(theme: string): unknown {
   const t = resolveTheme(theme);
   return ["match", ["feature-state", "survey"],
-          "digitised", t["color.survey.digitised"],
-          "sheet", t["color.survey.sheet"],
+          "digitised", sh(t, t["color.survey.digitised"]),
+          "sheet", sh(t, t["color.survey.sheet"]),
           t["color.water.mapped"]];
 }
 
@@ -61,11 +68,11 @@ describe("a lake's outline follows its fill", () => {
     expect(STYLE_META.follows).toEqual({ lake__edge: "lake", stream__arrows: "stream", basin__edge: "basin" });
   });
 
-  it("standing: the edge reads the lake's own flow ramp, whole", () => {
+  it("standing: the edge reads the lake's own flow ramp, whole (T467: each colour a shade off the fill's)", () => {
     for (const theme of themeNames()) {
       const t = resolveTheme(theme);
       expect(colorExpression("lake__edge", "standing", t), theme)
-        .toEqual(colorExpression("lake", "standing", t));
+        .toEqual(shadeAll(t, colorExpression("lake", "standing", t)));
     }
   });
 

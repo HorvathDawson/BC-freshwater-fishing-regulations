@@ -134,3 +134,6 @@ route map after the scrolls, the alert confirmation left off screen).
 - **Left, and why:** item 7 (G15 zoom buttons, G19 titled-pin card, G4 nearest of overlapping waters) is three new
   emulator scenarios on the next APK (device interaction, needs the build that carries those changes); item 8 (G5, G21)
   needs a device and a native tile reader (a change in the native map, not a small one).
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+owner 2026-11-10; scenarios `saved-spots` (UI path, no seeding needed), `two-days`, `route-scroll` + `lib/screen.mjs`; all pass on the kept APK (104e6513c); the blank route map did not reproduce (10/10); `open-result` no longer taps a saved spot's pin

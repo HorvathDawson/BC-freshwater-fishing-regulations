@@ -48,3 +48,6 @@ build without the lean AAR (`android-sdk-vulkan-13.6.1-fslean.aar`, present); th
 (`app/patches/@maplibre__maplibre-react-native@11.5.0.patch`) has `maxPixelRatio` + `prefetchZoomDelta`; `Map.native.tsx`
 passes the cap 2 (lab default `pixelCap: true`) and prefetch −1 / lab 4 (MapLibre's default). Left: the owner's phone check
 (OWNER-TODO "Phone check with build 22").
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+T420 follow-up 2026-11-06; Android: binding `maxPixelRatio` → the map SurfaceView a fixed smaller buffer (823×1567 vs 1080×2057), compositor scales; same scale/taps (shots out/t448). Stressed emulator frame times mixed (Mac GPU passthrough, fill free). Left: owner phone check (OWNER-TODO build 22), iOS; 11-08 build 22 command checked: cap 2 on

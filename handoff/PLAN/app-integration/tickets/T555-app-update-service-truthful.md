@@ -84,3 +84,5 @@ Depends: —. Size: M. Owner: no.
   water after the update, and the spot's water link and "this water's spots" list hold the new id.
 - The app starts and updates as before with the new `release/opened` record (T585 F12) on a phone that already holds a set.
 
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+data pipeline review 2026-11-09 (verified); rank 11, severity 3, 5 findings; item 4: gate derived from `app_reads.json` (every contract file per app version, `pnpm app-reads`); item 5: every by-id read follows item_alias, kept ids rewritten once, release lists ids gone with no alias (18 absorbed ids have shipped, all aliased)

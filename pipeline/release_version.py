@@ -130,7 +130,11 @@ def _follows_paths() -> tuple[str, ...]:
 #: the paths under app/ that are not the app (what no store build or site ships): the feeds worker (it deploys on its
 #: own, T431), the dev tools and gates with their tests, the conformance suite, the fixtures, and what the release
 #: re-cuts itself (release_follows.FOLLOWS: a data release's own commits never bump the app)
-NOT_APP: tuple[str, ...] = ("app/workers/", "app/tools/", "app/conformance/", "app/fixtures/", *_follows_paths())
+NOT_APP: tuple[str, ...] = ("app/workers/", "app/tools/", "app/conformance/", "app/fixtures/",
+                            # (T1021) dev tooling at the top of app/: the dead-code, layer and test-runner configs, the
+                            # fixture release the data package keeps for its tests
+                            "app/knip.jsonc", "app/layers.json", "app/vitest.config.ts", "app/packages/data/dev/",
+                            *_follows_paths())
 #: under NOT_APP but shipped: the website's page builder (the site goes out with each app version, its version matches)
 #: and (T998 review) the lean MapLibre patch every store build ships (T420/T893: build.sh makes the AAR from it)
 APP_AGAIN: tuple[str, ...] = ("app/tools/seo/", "app/tools/build-seo.mjs",

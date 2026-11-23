@@ -139,3 +139,5 @@ the Vedder River: 3 sections and its lake node move from 08MH024 (Fraser at Miss
 (0.001). Size is unchanged from T93 (conditions about 871 kB, gate 950,000). Tests:
 `test_a_continuation_speaks_only_with_a_large_share`.
 
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+`rel` + distance bucket on section_gauge (conditions 870,919 B ≤ 950,000), `gauge_relation` candidates (bundle), POLICIES; default `drainage_continued` (Q31, owner 2026-10-28): the gate + gauges across a `water_continue` link only with a large share, Q44's LARGE_SHARE 0.5 (Vedder → 08MH001 on 4 sections, nothing else; Slesse unchanged); app says "about 11 km downstream"

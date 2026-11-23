@@ -135,7 +135,7 @@ release (its live `release/manifest.json`, read first, also in the dry run — `
 staging serves); otherwise: it re-uploads the SAME release folder that passed this
 command's checks and reached staging (the ledger says so, and its content fingerprint must be unchanged), through
 `deploy/prod/upload.sh <r-id>` (T404: it promotes what staging serves — the same manifest bytes — and keeps the previous
-pointer for deploy/prod/rollback.sh; handoff/PLAN/release/PRODUCTION.md). It runs ONLY for a human:
+pointer for deploy/prod/rollback.sh; handoff/PLAN/runbooks/release-by-hand.md, hosts + rollback in handoff/PLAN/release/PRODUCTION.md). It runs ONLY for a human:
 CONFIRM_PROD=<r-id> in the environment, an interactive terminal where the id is typed again, and no agent environment
 (CLAUDECODE / AI_AGENT). Otherwise it prints the exact commands and refuses (exit 2).
 
@@ -171,7 +171,7 @@ BASELINE_FILES = ("report.json", "rule_section.jsonl.gz", "rule_unresolved.jsonl
                   # T546 item 8: DFO places, tidal / outside, the curator's diagnostics
                   "dfo_salmon.jsonl.gz", "dfo_salmon_diagnostic.jsonl", "rule_diagnostic.jsonl", "tidal.jsonl",
                   "outside_bc.jsonl")
-#: min free memory % for heavy.sh to start the build (memory `heavy-jobs-one-at-a-time`)
+#: min free memory % for heavy.sh to start the build (AGENTS 18, scripts/heavy.sh)
 HEAVY_MIN_FREE = 50
 STAGES = ("preflight", "baseline", "build", "checks", "follows", "promote", "staging")
 #: (T666 item 6) deploy/staging/upload.sh's exit when GitHub would not START the run-timing workflow
@@ -2069,7 +2069,7 @@ def after_chores(rid: str) -> str:
                                   "app/packages && git commit -- <the re-cut files>"))
     lines.append("  site:    the staging site serves an app at least the release's min app (checked in preflight); "
                  "after app changes: deploy/staging/site-all.sh")
-    lines.append("  feeds:   the feeds worker goes with the app (memory feeds-worker-deploy-allowed): deploy/staging/feeds.sh")
+    lines.append("  feeds:   the feeds worker goes with the app (staging any time: deploy/staging/feeds.sh; the production worker is the owner's, release-by-hand.md)")
     lines.append(f"  prod (the owner's): CONFIRM_PROD={rid} python -m pipeline release --prod {rid}")
     return "\n".join(lines)
 
@@ -2578,7 +2578,8 @@ def prod_instructions(rid: str, r: dict) -> str:
             f"    deploy/prod/upload.sh {rid} --bucket bc-fishing-regulations-staging --dry-run     # rehearse, nothing sent\n"
             f"    CONFIRM_PROD={rid} python -m pipeline release --prod {rid}\n"
             f"which runs (after you type the id again): CONFIRM_PROD=canifishthis.ca {' '.join(prod_cmd(rid))}\n"
-            f"The rest of a production release (site, feeds worker, Play) is handoff/PLAN/release/PRODUCTION.md.")
+            f"The whole release by hand (site, feeds worker, Play) is handoff/PLAN/runbooks/release-by-hand.md; hosts and rollback "
+            f"are handoff/PLAN/release/PRODUCTION.md.")
 
 
 def tag_problems(rid: str, r: dict) -> list[str]:

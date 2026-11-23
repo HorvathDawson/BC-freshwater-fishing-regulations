@@ -18,7 +18,12 @@ import { IMAGERY_WATER_LAYERS, STYLE_META, resolveTheme, salmonStatusColour, wat
 const RAW = { open: "6BFF9E", restricted: "E3A6FF", closed: "FF3B6D", own: "FFD307", base: "8CC3FF", no_access: "E6E4E2" } as const;
 /** The owner's approved hexes, written without the `#` so the palette check (colours live in tokens + themes only) does not mistake the pin for a palette. */
 const SET = Object.fromEntries(Object.entries(RAW).map(([k, h]) => [k, `#${h}`])) as Record<keyof typeof RAW, string>;
+/** (owner 2026-11-23: "Build as proposed (Recommended)") the colour-blind theme's own satellite set */
+const RAW_CVD = { open: "FEFF3A", restricted: "6FABFA", closed: "EA90A1", own: "98AA08", base: "21AAF5", no_access: "DAFFFF" } as const;
+const SET_CVD = Object.fromEntries(Object.entries(RAW_CVD).map(([k, h]) => [k, `#${h}`])) as Record<keyof typeof RAW, string>;
 const THEMES = ["light", "dark", "cvd"] as const;
+/** The set a theme paints over satellite: light and dark share the approved one, cvd has its own. */
+const setOf = (t: string) => (t === "cvd" ? SET_CVD : SET);
 const DAY: DayProfiles = { closed: ["p1"], own: ["p2"], base: ["b"], no_access: ["n"], none: ["p3"] };
 
 function streamColour(theme: string, basemaps: ("map" | "satellite")[]): string {
@@ -39,17 +44,20 @@ function statuses(theme: string, basemaps: ("map" | "satellite")[]): string {
 }
 
 describe("T940 satellite status set", () => {
-  it("the tokens are the approved set in every theme", () => {
+  it("the tokens are the approved set in light and dark, and cvd's own set", () => {
     for (const t of THEMES)
-      for (const [s, want] of Object.entries(SET))
+      for (const [s, want] of Object.entries(setOf(t)))
         expect(resolveTheme(t)[`color.imagery.status.${s}`], `${t} ${s}`).toBe(want);
   });
 
-  it("on satellite the stream is painted in the one set, the same in every theme", () => {
+  it("on satellite the stream is painted in the one set, the same in light and dark; cvd has its own", () => {
     const [l, d, c] = THEMES.map((t) => statuses(t, ["satellite"]));
     expect(d).toBe(l);
-    expect(c).toBe(l);
-    for (const s of ["closed", "own", "base", "no_access"] as const) expect(l, s).toContain(SET[s].toLowerCase());
+    expect(c).not.toBe(l);
+    for (const s of ["closed", "own", "base", "no_access"] as const) {
+      expect(l, s).toContain(SET[s].toLowerCase());
+      expect(c, `cvd ${s}`).toContain(SET_CVD[s].toLowerCase());
+    }
   });
 
   it("the drawn map keeps each theme's own colours, and none of the satellite set", () => {
@@ -72,9 +80,9 @@ describe("T940 satellite status set", () => {
   it("the key's swatches are the lines they explain", () => {
     for (const t of THEMES) {
       for (const s of ["open", "restricted", "closed", "own", "base", "no_access"] as const)
-        if (s !== "open" && s !== "restricted") expect(waterStatusColour(t, s, true), `${t} ${s}`).toBe(SET[s]);
-      expect(salmonStatusColour(t, "open", true)).toBe(SET.open);
-      expect(salmonStatusColour(t, "closed", true)).toBe(SET.closed);
+        if (s !== "open" && s !== "restricted") expect(waterStatusColour(t, s, true), `${t} ${s}`).toBe(setOf(t)[s]);
+      expect(salmonStatusColour(t, "open", true)).toBe(setOf(t).open);
+      expect(salmonStatusColour(t, "closed", true)).toBe(setOf(t).closed);
       expect(waterStatusColour(t, "base"), `${t} drawn base`).toBe(resolveTheme(t)["color.status.base"]);
     }
     expect(waterStatusColour("light", "base")).not.toBe(waterStatusColour("light", "base", true));
@@ -97,7 +105,7 @@ describe("T940 satellite status set", () => {
     for (const t of THEMES)
       for (const layer of ["lake", "lake__edge", "wetland_flowing"]) {
         const sat = layerPaint(t, layer, "salmon", "satellite");
-        expect(sat, `${t} ${layer}`).toContain(SET.open.toLowerCase());
+        expect(sat, `${t} ${layer}`).toContain(setOf(t).open.toLowerCase());
         expect(sat, `${t} ${layer}`).not.toContain(String(resolveTheme(t)["color.salmon.open-area"]).toLowerCase());
       }
   });
@@ -110,7 +118,7 @@ describe("T940 satellite status set", () => {
                                     ["no_access_permit", "color.status.restricted"]] as const) {
         const want = String(th[token]).toLowerCase();
         expect(layerPaint(t, layer, "plain", "satellite"), `${t} ${layer}`).toContain(want);
-        if (t !== "dark") expect(layerPaint(t, layer, "plain", "satellite"), `${t} ${layer} must not wear the satellite set`).not.toContain(SET[token === "color.status.closed" ? "closed" : "restricted"].toLowerCase());
+        if (t !== "dark") expect(layerPaint(t, layer, "plain", "satellite"), `${t} ${layer} must not wear the satellite set`).not.toContain(setOf(t)[token === "color.status.closed" ? "closed" : "restricted"].toLowerCase());
       }
     }
   });

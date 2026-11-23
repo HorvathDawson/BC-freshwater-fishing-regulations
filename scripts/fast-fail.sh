@@ -464,8 +464,10 @@ vitest_changed() {
     b=${f%.*}
     for t in "$b.test.ts" "$b.test.tsx"; do [[ -f $t ]] && tests+=("${t#app/}"); done
   done <<<"$CHANGED"
-  # (T542) the scenarios name ids and labels in the app's screens: a changed screen re-checks them
-  grep -qE '^app/(apps|packages/ui-native)/' <<<"$CHANGED" && tests+=("tools/testbed-static.test.ts")
+  # (T542) the scenarios name ids and labels in the app's screens: a changed screen re-checks them. caught (2026-11-23,
+  # T997 round 2): a comment removed from packages/ui (waterMap.ts) held the only "Landstrom Bar" in the app source, and the
+  # scan failed only at the pre-push hook: any changed app package re-checks them
+  grep -qE '^app/(apps|packages)/' <<<"$CHANGED" && tests+=("tools/testbed-static.test.ts")
   # caught (2026-11-12, T681): a literal `borderRadius: 0` in shell/MapLegend.tsx failed tools/one-button.test.ts only in
   # CI — the tools/ gates that SCAN ui-native's source off disk import nothing of it, so no sibling rule finds them. A
   # changed ui-native file re-runs every such gate (22 files, ~6 s).

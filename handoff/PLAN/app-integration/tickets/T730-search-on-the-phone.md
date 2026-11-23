@@ -73,3 +73,6 @@ and dark. The recents are one block, 208 px tall, with "Recent searches / CLEAR"
 they wrap). Thompson River picked, then Back: the map stays framed on the river (`after-back-map-stays-on-thompson.png`), and the next
 open is an empty field with the recents. Not seen: the drag from the list scrolled and not scrolled, the keyboard down, the wide
 layout (the Gboard handwriting popup sat over the left of the sheet in every shot: an emulator artefact). Found: T972.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+owner 2026-11-14 ("you can't swipe down to close it also recent searchs take up a huge amount"; "it should have stayed at the location it moved to"; "it didn't reset search state"); code + render tests done; left (Claude): an emulator look on the next APK

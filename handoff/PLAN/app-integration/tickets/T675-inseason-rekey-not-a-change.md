@@ -35,3 +35,6 @@ Source: found 2026-11-11 reading staging's `feeds/inseason/index.json`. In-seaso
 ## Not recoverable
 - Staging's `firstSeen` stays 2026-11-08 (the re-key reset it and nothing recorded the earlier value). Production has
   not run the content ids yet, so its `firstSeen` values carry over when it does.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+found 2026-11-11 on staging (32 rows "changed" from their own text, 38 live notices in `removed`); fixed, mutation-checked, staging worker deployed and the feed put right; staging firstSeen not recoverable; production takes it with its next worker deploy
