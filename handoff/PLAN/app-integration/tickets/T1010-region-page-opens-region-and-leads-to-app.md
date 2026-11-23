@@ -82,3 +82,5 @@ part of building the picked look.
   thousands of pages).
 - Tests: `site.test.ts` (picture, text alternative, button after the picture and before the lists, names file, no image host),
   `regionFind.test.ts` (the shipped script). Shots: `T1010-shots/after-B-*.png`.
+- Measured on Region 4 of r-741815c6090d (2823 waters): the picture is 26.8 KB raw, 7.8 KB gzip; the page 45 KB raw, 11.5 KB gzip; the names file
+  (fetched only when someone searches) 124 KB raw, 23 KB gzip. Not run: Lighthouse (not run from the lane), the staging check.

@@ -80,7 +80,7 @@ dialog.join .x{position:absolute;top:.4rem;right:.4rem;width:2.5rem;height:2.5re
 dialog.join .acts{display:flex;flex-wrap:wrap;gap:.5rem;margin:.8rem 0 .2rem}dialog.join .acts .app{flex:1 1 9rem;margin:0;text-align:center;border:0;font:inherit;font-weight:600;cursor:pointer;border-radius:0}
 dialog.join .acts .app.alt{background:transparent;color:var(--accent);border:1.5px solid var(--ink);padding:calc(.65rem - 1.5px) calc(1rem - 1.5px)}
 dialog.join .addr{font-weight:600;user-select:all;word-break:break-all}
-.lead{display:grid;gap:1rem;margin:.6rem 0 1rem}@media(min-width:44rem){.lead{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.lead{display:grid;gap:1rem;align-items:start;margin:.6rem 0 1rem}@media(min-width:44rem){.lead{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
 .mapcard{position:relative;border:1px solid var(--line);background:var(--soft)}.mapcard .tag2{position:absolute;top:.4rem;left:.4rem;font-size:.8rem;background:var(--card);color:var(--muted);padding:.1rem .4rem}
 .mapcard .dots{display:block;width:100%;height:auto;max-height:26rem}.mapcard .dots path{fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linecap:round;opacity:.75}
 .mapcard .app{display:block;margin:0;border-radius:0;text-align:center;padding:.85rem 1rem}
