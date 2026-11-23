@@ -712,3 +712,23 @@ any row here that is not DONE or DROPPED. A reopened ticket's row moves back to 
 | T594 | Satellite view is not hidden by the stream lines | DONE | dcfbf8f29 | — |
 | T598 | "Days in 10" replaces the percentile wherever the reader sees it | DONE | eb4bf2168 | — |
 | T610 | A "same place" grouping writes why on the place (the Serpentine link had no note) | DONE | 459e01458, 304feaeec | — |
+| T548 | In-season notices: a notice still in force is shown, the feed has a stale rule, and the app says it reads it | DONE | bf782ad11, 6dd3fd9e5, 09320de47, 65df4ce38, 0bdb754e0, e2f235509, 3a90a1591 | — |
+| T573 | A DFO row that names closed areas becomes two entries (the Thompson, Babine Lake) | DONE | e4f98d84e, c21037796, 4089f60cd, b58aa325a, fe11e0af7, be6484e1b, 554558a12 | — |
+| T623 | Rules as shown vs the sources: 21 findings from the 48-water audit (5 certain, 16 need the owner's reading; Campbell River, Shuswap/Quesnel part-lake closures, Nechako) | DONE | 11d7722c6, d8419a5c2, fc832cae0, 19580fc9a, a0f8adb49, 682c884f4, 89206b670, c577f682b, 3884405fd, ea1c74d67, 2e68ff4c9 | — |
+| T669 | One "strictest of both regions" for salmon and freshwater straddlers | DONE | 91398f801, 28fdf30fa | — |
+| T676 | The release and the live feed read a DFO date cell the same way; a feed format bump does not strand an older app | DONE | 31b04ca5c, 2c316de53, 243b46352, 719fd569c, b1f6f23dc, 4f591c31a, 4bc03ac14 | — |
+| T711 | Part header text follows the "Source" end name (P55, 62 tops) | DONE | a2727a3b0 | — |
+| T780 | Part names show a cut's review words ("…, approximate location (medium confidence)": Hope bridge, Alexandra Bridge, Skutz Falls, Sandy Pool sign, the Zymoetz Hwy 16 bridge); move them out of the label, add a check | DONE | 72efb1a10, 1daa94efe, 6b23aa2ca | — |
+| T801 | Skeena Section 4: the "separate licence per section" line barely shows, the stamp sentence quotes the wrong printed line, zone (b) reads "the Zymoetz River confluence (1500 m upstream)"; the upper-end flag is cleared (owner: all the way up) | DONE | 9af7efbd7, 6d5651c2f, 8d7f17709, 8e3d5f051, d0df51fd0, ab64dd2f1 | — |
+| T926 | Search: every entry in name_variants.json, as it stands, finds its water (31 misses today); nothing else (owner) | DONE | 8ad09bf33, 9f287e8d3, 65694b0b4, 986c6e190, 244d086e3, af0bb8a04, f0ff36ea8, de8be35a4, ee8a5de29, 2caea0ca0 | — |
+| T927 | Search finds the book's boundary places (477 placed cuts: "Vedder Crossing", "Greendale Trestle") (owner) | DONE | 8ad09bf33, 9f287e8d3, 65694b0b4, 986c6e190, 244d086e3, af0bb8a04 | — |
+| T936 | Build warning: salmon open on a game-fish-closed day that carries a B.C. gear rule (owner) | DONE | cff5478e9, 0f8a4143d | — |
+| T939 | DFO salmon: the quota quote drops trailing conditions ("only 2 over 35 cm") | DONE | 10ddff399 | — |
+| T941 | Search rows and neighbour-water names show a water's name cased, as the water page does (core item.name via display_case at bundle export) | DONE | 10ddff399 | — |
+| T942 | Kitimat: the 2-over-50 cm rule (only 1 not a hatchery steelhead) is enforced but no longer shown | DONE | 10ddff399 | — |
+| T943 | Chilliwack Lake: the lake trout row shows no wild cap (a wild one can never be kept) | DONE | 10ddff399 | — |
+| T944 | Shea Creek dead-end piece 773423 carries both the Bulkley's and the Morice's Classified Waters units | DONE | d23bbc9b6 | — |
+| T945 | Committed unnamed-tributary sweep result stale against the live bundle (41 streams) | DONE | 3f8cddad8 | — |
+| T946 | Tier 2 tributary lines: 20 parts (Lake Revelstoke tributaries DV, Iverson Creek) not what their rail sets | DONE | 67ed64d77 | — |
+| T973 | Classified Waters carried through a tributary whose own row prints no unit, with its path (class, source, through); "may need" note; CO question open | DONE | 9475cfdb0, e04d6d87b, bf28dbc76, 28eaf73e9, 71403fec6, bbce17168 | — |
+| T971 | Conditions: picking Level in the gauge card also re-ranks the estimate card above it | DONE | 2a2aa0e75 | — |

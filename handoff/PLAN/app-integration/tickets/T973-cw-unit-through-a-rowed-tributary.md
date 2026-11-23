@@ -1,6 +1,6 @@
 # T973 — Classified Waters: does a unit carry up through a tributary whose own row prints no unit? (ask a CO)
 
-Status: IN PROGRESS — left (Claude): main chat review + merge (built on `lane/l10-cw-through`: carried unit with
+Status: DONE — 9475cfdb0, e04d6d87b, bf28dbc76, 28eaf73e9, 71403fec6, bbce17168; shipped in 0.8.4 (cut e769f710a, data r-fec3fab4c5aa; 0.9.0 audit 2026-11-22, every hash is an ancestor of origin/main and of e769f710a). (Earlier status: IN PROGRESS — left (Claude): main chat review + merge (built on `lane/l10-cw-through`: carried unit with)
 `class`/`source`/`through`, optional release file `cw-through/1`, app 0.8.4 "may need" note; the CO question stays open,
 T974 cleans up after the answer).
 
