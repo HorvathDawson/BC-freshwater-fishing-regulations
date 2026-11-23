@@ -283,6 +283,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1036 | The every-source sheet ("All sources ›") lists rules the screen does not draw, and misses the drawn gear on salmon-only days | OPEN | T991 | #63 review 2026-11-23 (live release probe); the Source row was fixed in #63 |
 | T1038 | Carry a phone link's date, tab, sheet, scroll, age, res, horizon and whole (today reported and dropped) | OPEN — 0.9.0 batch | | lane L15 on T1034, 2026-11-23 |
 | T1037 | Two review readers (`audit.primary_split_pos`, `reuse.host_rows`) pick a cut's position by different rules (157 of 190 multi-row cuts disagree); the build's is per extent (`extent._cut_at`) | OPEN — needs the position rule decided | T776 | PR #48 independent review, 2026-11-23 |
+| T1040 | A stale side atlas still vouches for a proposal after its cut moves (side_dir's digest does not cover the cut's position) | OPEN — 0.9.0 batch | T779 | PR #48 independent review, 2026-11-23 |
 
 ## Next after closed testing
 
