@@ -1005,8 +1005,6 @@ export interface ExtentPreview {
   /** T607 (op other_places): the places it applies to right now, and the water's places with no extent yet */
   others?: { id: string; text: string; extent: string }[];
   others_unplaced?: { id: string; text: string }[];
-  /** T611: exactly one placed sibling — the chain's order between the two is by id; the warning, in words */
-  one_sibling?: string;
   /** T761 (op rest): what answers before it and where, and the water's places the form can list */
   rest_of?: RestOf | null;
   /** T761: listed places left out of the subtraction — {id: why} (no bind / not drawn), and the dormant ones */
@@ -1497,8 +1495,7 @@ export interface DfoDetail {
   fix_proposal?: DfoFixProposal | null;
   fix_vs_current?: FixVsCurrent | null;
   /** T607: the place is saved as "all the other placed places on this water": which places that is right now */
-  other_places?: { others: { id: string; text: string; extent: string }[]; others_unplaced: { id: string; text: string }[];
-                   one_sibling?: string } | null;
+  other_places?: { others: { id: string; text: string; extent: string }[]; others_unplaced: { id: string; text: string }[] } | null;
   /** T589: cut proposals on this water the owner took back (`proposal_overrides.json`, `withdrawn`): listed, never offered */
   withdrawn?: { id: string; name: string; why: string; by: string; date: string }[];
   /** T573: ENTRY B of this DFO row — the closure derived from its exclusion list, a proposal (`dfo.closure_view`) */

@@ -1,6 +1,6 @@
 # T1011 — Website: big waters have no page (Columbia, Kootenay, Similkameen, Kettle, Peace rivers; Chilko Lake); the home page has no crawlable links
 
-Status: OPEN, next release batch.
+Status: PARTIAL — 54778147e: parts 1 and 2 built (lane L2, 2026-11-22). left (Claude): part 3 (rebuild index-requests-top-100.md from Search Console once it has weeks of data; move the Columbia, Kootenay, Similkameen, Kettle and Peace in) and the former name under the name in the app's pane (needs `alias` in the core region slices: a pipeline change).
 
 Source: owner 2026-11-22 asked for the top 100 pages to submit for indexing, ranked by how much BC searches for fishing
 each water (`handoff/PLAN/seo/index-requests-top-100.md`, written that day). The research found these two gaps.
@@ -55,3 +55,22 @@ Once Search Console has a few weeks of impressions, rebuild `index-requests-top-
 (queries and pages), not Google Trends.
 
 Risk: low (part 2), unknown until the cause is found (part 1). Size: S–M. Owner: none.
+
+## Done 2026-11-22 (lane L2, 54778147e)
+- **(a) the 156:** `PAGE_ORDS_SQL` is `i.outside_bc < i.sections` (`pageable.test.ts`: in B.C. and partly outside get a page,
+  wholly outside / unshown / keyless do not; mutation-checked with `<=`). Bare build on r-741815c6090d: **19,610 -> 19,766
+  waters (+156, none lost), 20,338 -> 20,498 pages** (+156 water pages, +4 gauge pages on those rivers); no title,
+  description or slug clash. Columbia `/water/columbia-river`, Kootenay `kootenay-river`, Similkameen `similkameen-river`,
+  Kettle `kettle-river`, Peace `peace-river`, Sumas `sumas-river`, Flathead `flathead-river`. The parts outside B.C. are left
+  off as before (`waterModel` skips a part whose page is `outside`); NOT checked in a rendered water page (bare build).
+- **(b) former names:** 9 waters carry a core `alias` "<name> (formerly)" (Chilko, Tatlayoko, Eagle, Stum, Anah, Alexis,
+  Yohetta, Puntzi, Chilcotin lakes). Their title ("Tŝilhqox Biny (formerly Chilko Lake) fishing regulations"), meta
+  description, JSON-LD `alternateName` and their line on the region / letter / topic lists ("formerly Chilko Lake") say it.
+  Not under the name in the pane itself: the pane is the app, and the core region slices the app reads on a tap carry no
+  `alias` table (a read there would fetch the whole 1.5 MB core), so that needs the slices to carry it (pipeline). Alces
+  Lake's alias ("ALCES LAKE", the synopsis's name for that Moose Lake) is not a former name and is not printed.
+- **2. home links:** `web-shell.mjs` `withHomeLinks`: a static `<nav id="site-links">` after `#root` with plain links to
+  /gauges, /region/1-8, /about, /privacy (not /changes: no page when a release changed nothing). It sits below the
+  full-window root, so it never shows over the map; without script the root is hidden and the row shows. Water pages take
+  it out (`appDocument`). The SEO build refuses a row naming a page it did not make or missing a region (`homeLinkProblems`,
+  pinned in `site.test.ts`). Lighthouse not re-run (no deploy from a lane).

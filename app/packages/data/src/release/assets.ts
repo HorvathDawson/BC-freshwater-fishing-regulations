@@ -10,10 +10,18 @@
  * `sha256(json.dumps(files, sort_keys=True))`, `assetsDigest`). So `assets.json` is held to that digest, every file to
  * its own sha256 in it, and nothing unverified is placed. A file already there with the right sha is kept (resume), and
  * one the held folder has with the right sha is copied (a tile release whose assets did not change fetches nothing).
+ *
+ * (T919 c, owner 2026-11-19 20:31: "one packed download") A manifest that names `pack` ({url, bytes, sha256}: the folder as
+ * ONE tar in a zlib stream beside it, `assets.py` `write_pack`; not gzip, which `fetchVerified` would decode on one download
+ * path and not on another) has it downloaded as one of the install's big files (the system
+ * downloader on a phone: resumable, on with the app closed) and unpacked here (`unpackAssets`): the pack held to its
+ * bytes + sha256 by the download, then `assets.json` to `files_sha256` and every file to its sha256, as above. A release
+ * without `pack` (built before it) is fetched file by file (`installAssets`).
  */
+import { Unzlib } from "fflate";
 import { ungzip, VerifyError } from "../fetchVerified";
 import { utf8 } from "../regs/blob";
-import { sha256Hex } from "../sha256";
+import { HASH_SLICE, sha256Hex } from "../sha256";
 import type { Manifest } from "../manifest";
 import type { ReleaseFs } from "./install";
 import { now } from "@app/core";
@@ -133,4 +141,101 @@ export async function installAssets(fs: ReleaseFs, raw: RawFetch, base: string, 
   onFile?.(names.length, names.length);
   // the list last: a folder with its assets.json is whole
   await place(fs, listPath, listBytes);
+}
+
+/**
+ * (T919 c) Inflate a zlib stream (RFC 1950) a slice at a time, the screen's turn between (the live pack: 6.1 MB to 13 MB).
+ * Throws a VerifyError on bytes that are not one whole zlib stream.
+ */
+export async function unzlibAsync(bytes: Uint8Array, what: string, slice = HASH_SLICE): Promise<Uint8Array> {
+  if (bytes.length < 2 || (bytes[0]! & 0x0f) !== 8 || ((bytes[0]! << 8) | bytes[1]!) % 31 !== 0)
+    throw new VerifyError(`${what}: not a zlib stream`);
+  const parts: Uint8Array[] = [];
+  let ended = false;
+  const z = new Unzlib((chunk, final) => { parts.push(chunk); if (final) ended = true; });
+  try {
+    for (let at = 0; at < bytes.length; at += slice) {
+      if (at) await new Promise<void>((r) => setTimeout(r, 0));
+      z.push(bytes.subarray(at, at + slice), at + slice >= bytes.length);
+    }
+  } catch (e) { throw new VerifyError(`${what}: it would not inflate (${e instanceof Error ? e.message : String(e)})`); }
+  if (!ended) throw new VerifyError(`${what}: the zlib stream is cut`);
+  const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
+  let o = 0;
+  for (const p of parts) { out.set(p, o); o += p.length; }
+  return out;
+}
+
+/**
+ * (T919 c) The members of an uncompressed ustar archive, in order: regular files only (what `write_pack` writes). Throws
+ * a VerifyError on anything else — a link, a directory, a cut or padded-wrong archive — never a partial list.
+ */
+export function untar(b: Uint8Array): [string, Uint8Array][] {
+  const out: [string, Uint8Array][] = [];
+  const text = (at: number, n: number) => {
+    let end = at;
+    while (end < at + n && b[end] !== 0) end++;
+    return utf8(b.subarray(at, end));
+  };
+  let at = 0;
+  for (;;) {
+    if (at + 512 > b.length) throw new VerifyError(`map assets pack: it ends inside a header (byte ${at} of ${b.length})`);
+    if (b.subarray(at, at + 512).every((x) => x === 0)) return out;                   // the end-of-archive block
+    if (text(at + 257, 6) !== "ustar") throw new VerifyError(`map assets pack: no ustar header at byte ${at}`);
+    const type = b[at + 156]!;
+    const prefix = text(at + 345, 155), base = text(at, 100);
+    const name = prefix ? `${prefix}/${base}` : base;
+    if (type !== 0x30 && type !== 0) throw new VerifyError(`map assets pack: ${name} is not a regular file (type ${String.fromCharCode(type)})`);
+    const size = parseInt(text(at + 124, 12).trim() || "0", 8);
+    if (!Number.isSafeInteger(size) || size < 0) throw new VerifyError(`map assets pack: ${name} has no size`);
+    const start = at + 512;
+    if (start + size > b.length) throw new VerifyError(`map assets pack: ${name} is cut (${b.length - start} of ${size} bytes)`);
+    out.push([name, b.subarray(start, start + size)]);
+    at = start + Math.ceil(size / 512) * 512;
+  }
+}
+
+/**
+ * (T919 c) Place the map assets from their pack at `packPath` (already held to the manifest's `pack` bytes + sha256 by the
+ * download) into `assetsDir(a)`: its `assets.json` held to `files_sha256`, every member to its sha256 in it, and nothing
+ * the list does not name (an extra, a missing or a doubled member is refused). The list is placed last, as
+ * `installAssets` does: a folder with its assets.json is whole. Throws a VerifyError naming what is wrong.
+ */
+export async function unpackAssets(fs: ReleaseFs, packPath: string, a: AssetsBlock,
+                                   onFile?: (done: number, of: number) => void): Promise<void> {
+  if (!a.files_sha256) throw new VerifyError(`assets ${a.id ?? a.url}: the manifest names no files_sha256`);
+  const members = untar(await unzlibAsync(await fs.read(packPath), packPath));
+  const byName = new Map<string, Uint8Array>();
+  for (const [name, bytes] of members) {
+    if (byName.has(name)) throw new VerifyError(`${packPath}: ${name} is in the pack twice`);
+    byName.set(name, bytes);
+  }
+  const listBytes = byName.get("assets.json");
+  if (!listBytes) throw new VerifyError(`${packPath}: no assets.json in the pack`);
+  let files: Record<string, string>, got: string;
+  try {
+    files = (JSON.parse(utf8(listBytes)) as { files?: Record<string, string> }).files ?? {};
+    got = assetsDigest(files);
+  } catch (e) {
+    throw new VerifyError(`${packPath}: assets.json would not read (${e instanceof Error ? e.message : String(e)})`);
+  }
+  if (got !== a.files_sha256)
+    throw new VerifyError(`${packPath}: assets.json files ${got.slice(0, 12)}…, the manifest says ${a.files_sha256.slice(0, 12)}…`);
+  const names = Object.keys(files).sort();
+  const stray = [...byName.keys()].filter((n) => n !== "assets.json" && !(n in files));
+  if (stray.length) throw new VerifyError(`${packPath}: ${stray.length} files assets.json does not name (${stray[0]})`);
+  const dir = assetsDir(a);
+  onFile?.(0, names.length);
+  let done = 0;
+  for (const rel of names) {
+    const b = byName.get(rel);
+    if (!b) throw new VerifyError(`${packPath}: ${rel} is not in the pack`);
+    const sha = sha256Hex(b);
+    if (sha !== files[rel]) throw new VerifyError(`${packPath}: ${rel} sha256 ${sha.slice(0, 12)}…, assets.json says ${files[rel]!.slice(0, 12)}…`);
+    const path = `${dir}${rel}`;
+    if (!(await hasSha(fs, path, sha))) await place(fs, path, b.slice());
+    if (++done % 32 === 0) onFile?.(done, names.length);
+  }
+  onFile?.(names.length, names.length);
+  await place(fs, `${dir}assets.json`, listBytes.slice());
 }

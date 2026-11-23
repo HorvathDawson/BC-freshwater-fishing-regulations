@@ -7,14 +7,14 @@ import { afterEach, describe, expect, it } from "vitest";
 import { act, cleanup, render, waitFor } from "@testing-library/react";
 import { INBOX_WORDS, INSEASON_FAILURES, INSEASON_LINKS_FORMAT, bcNow, isoDayOf, joinInSeason, setFailureSink } from "@app/core";
 import { httpInSeason } from "@app/data";
-import { InSeasonContext, useInSeason, useInSeasonCovers, useInSeasonInbox, type InSeasonInboxState, type InSeasonNow, type InSeasonOnPage } from "./inseason";
+import { InSeasonContext, useInSeason, useInSeasonCovers, useInSeasonInbox, type InboxTrack, type InSeasonInboxState, type InSeasonNow, type InSeasonOnPage } from "./inseason";
 
 afterEach(cleanup);
 const mem = (t: string | null = null) => ({ read: () => t, write: (x: string) => { t = x; } });
 
 /**
  * (T700, T694) THE INBOX HOOK: one feed read folded into the device's history, the count, opening by itself once, a
- * row's tap, Mark all as read, and a restart (the store read back).
+ * row's tap, opening the sheet (read on open), the update rows, and a restart (the store read back).
  */
 describe("useInSeasonInbox (T700)", () => {
   const SRC = "https://www2.gov.bc.ca/in-season";
@@ -27,14 +27,16 @@ describe("useInSeasonInbox (T700)", () => {
       [id, { waters: Object.fromEntries(ws.map((w) => [w, { all: true as const }])) }])) };
     return { ...joinInSeason(feed, links, isoDayOf(bcNow())), data: { feed, links }, release: "r-1" };
   };
-  function Inbox({ now, store, seen, out, opened }: { now: InSeasonNow; store: ReturnType<typeof mem>; seen?: ReturnType<typeof mem>;
-                                                    out: { s?: InSeasonInboxState }; opened: string[] }) {
-    out.s = useInSeasonInbox(now, store, seen ?? null, (item, id) => opened.push(`${item}|${id}`));
+  function Inbox({ now, store, seen, out, opened, track, updates }: { now: InSeasonNow; store: ReturnType<typeof mem>; seen?: ReturnType<typeof mem>;
+                                                    out: { s?: InSeasonInboxState }; opened: string[]; track?: InboxTrack;
+                                                    updates?: string[] }) {
+    out.s = useInSeasonInbox(now, store, seen ?? null, (item, id) => opened.push(`${item}|${id}`), track ?? null,
+                             (kind) => updates?.push(kind));
     return null;
   }
   const A = row("is-a", "Kaslo River"), B = row("is-b", "Okanagan River", { region: "8" });
 
-  it("a first read: quiet for the matched, opens once for one not on the map; survives a restart (the store read back)", async () => {
+  it("(T867) a first read: the matched stay out of the history, opens once for one not on the map; survives a restart (the store read back)", async () => {
     const store = mem(), out: { s?: InSeasonInboxState } = {}, opened: string[] = [];
     const first = render(<Inbox now={nowOf([A, B], { "is-a": ["gnis:1"] })} store={store} out={out} opened={opened} />);
     await waitFor(() => expect(out.s!.open).toBe(true));
@@ -47,10 +49,10 @@ describe("useInSeasonInbox (T700)", () => {
     render(<Inbox now={nowOf([A, B], { "is-a": ["gnis:1"] })} store={store} out={out} opened={opened} />);
     expect([out.s!.open, out.s!.count]).toEqual([false, 1]);
     expect(store.read()).toBe(saved);
-    expect(out.s!.vm.groups.map((g) => [g.title, g.rows.map((r) => r.id)])).toEqual([["New", ["is-b"]], ["Earlier", ["is-a"]]]);
+    expect(out.s!.vm.groups.map((g) => [g.title, g.rows.map((r) => r.id)])).toEqual([["New", ["is-b"]]]);
   });
 
-  it("read on open: a row with one water opens its page (at the notice); one with none shows its text; Mark all as read", async () => {
+  it("a row with one water opens its page (at the notice); one with none shows its text; opening the sheet reads what it shows", async () => {
     const store = mem(), out: { s?: InSeasonInboxState } = {}, opened: string[] = [];
     const r = render(<Inbox now={nowOf([], {})} store={store} out={out} opened={opened} />);
     r.rerender(<Inbox now={nowOf([A, B], { "is-a": ["gnis:1"] })} store={store} out={out} opened={opened} />);
@@ -69,9 +71,50 @@ describe("useInSeasonInbox (T700)", () => {
     r.rerender(<Inbox now={nowOf([A, B, C], { "is-a": ["gnis:1"], "is-c": ["gnis:3"] })} store={store} out={out} opened={opened} />);
     await waitFor(() => expect(out.s!.count).toBe(1));
     expect(out.s!.reads.markOf("is-c")).toBe("new");
-    act(() => out.s!.readAll());
+    // (T867) the sheet opens: it lists the unread as New, the badge clears, and the history reads
+    act(() => out.s!.shown(true));
     expect([out.s!.count, out.s!.label, out.s!.reads.markOf("is-c")]).toEqual([0, null, null]);
+    expect(out.s!.vm.groups.map((g) => [g.title, g.rows.map((r) => r.id)])).toEqual([["New", ["is-c"]], ["Earlier", ["is-a", "is-b"]]]);
     expect(JSON.parse(store.read()!).items.every((i: { read: boolean }) => i.read)).toBe(true);
+    // closed, and opened again: they are Earlier now
+    act(() => out.s!.shown(false));
+    act(() => out.s!.shown(true));
+    expect(out.s!.vm.groups.map((g) => [g.title, g.rows.map((r) => r.id)])).toEqual([["Earlier", ["is-a", "is-b", "is-c"]]]);
+  });
+
+  it("(T867 review) a notice that arrives while the sheet is up is listed as New and read when it closes; a mount alone reads nothing", async () => {
+    const store = mem(), out: { s?: InSeasonInboxState } = {}, opened: string[] = [];
+    const r = render(<Inbox now={nowOf([], {})} store={store} out={out} opened={opened} />);
+    await waitFor(() => expect(store.read()).not.toBeNull());
+    r.rerender(<Inbox now={nowOf([A], { "is-a": ["gnis:1"] })} store={store} out={out} opened={opened} />);
+    await waitFor(() => expect(out.s!.count).toBe(1));
+    // the sheet's "not up" at mount must not read what was never listed
+    act(() => out.s!.shown(false));
+    expect(out.s!.count).toBe(1);
+    act(() => out.s!.shown(true));
+    const C = row("is-c", "Duncan River");
+    r.rerender(<Inbox now={nowOf([A, C], { "is-a": ["gnis:1"], "is-c": ["gnis:3"] })} store={store} out={out} opened={opened} />);
+    await waitFor(() => expect(out.s!.vm.groups[0]!.rows.map((x) => x.id).sort()).toEqual(["is-a", "is-c"]));
+    act(() => out.s!.shown(false));
+    expect(out.s!.count).toBe(0);
+    expect(JSON.parse(store.read()!).items.every((i: { read: boolean }) => i.read)).toBe(true);
+  });
+
+  it("(T867) data and app updates are rows: recorded at first sight, a row when the release or version moves; a tap opens it", async () => {
+    const store = mem(), out: { s?: InSeasonInboxState } = {}, opened: string[] = [], updates: string[] = [];
+    const t1: InboxTrack = { release: { id: "r-1", day: "2026-11-10" }, app: "0.8.5" };
+    // the first read: the matched notice stays out of the history, and the release and version are recorded, no row
+    const r = render(<Inbox now={nowOf([A], { "is-a": ["gnis:1"] })} store={store} out={out} opened={opened} track={t1} updates={updates} />);
+    await waitFor(() => expect(JSON.parse(store.read()!).base).toEqual({ release: "r-1", app: "0.8.5" }));
+    expect([out.s!.count, out.s!.vm.empty, JSON.parse(store.read()!).items]).toEqual([0, true, []]);
+    r.rerender(<Inbox now={nowOf([A], { "is-a": ["gnis:1"] })} store={store} out={out} opened={opened} updates={updates}
+                      track={{ release: { id: "r-2", day: "2026-11-20" }, app: "0.9.0" }} />);
+    await waitFor(() => expect(out.s!.count).toBe(2));
+    expect(out.s!.vm.groups[0]!.rows.map((x) => x.label).sort()).toEqual([
+      "Unread. App update: Updated to 0.9.0", "Unread. Data update: Regulations data updated Nov 20"]);
+    act(() => out.s!.pick("app:0.9.0"));
+    act(() => out.s!.pick("data:r-2"));
+    expect([updates, opened, out.s!.count, out.s!.detail]).toEqual([["app", "data"], [], 0, null]);
   });
 
   it("(T694) the feed's link makes it Updated; a new id it does not link is New", async () => {

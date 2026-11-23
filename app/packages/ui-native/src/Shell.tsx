@@ -208,7 +208,8 @@ export function Shell(p: ShellProps) {
   // ...and only once the water's own page is up (its start applied, `start` null): the map must not race the page's files
   const warm = useIdleOnce(landed && frame !== null && start === null);
   // (T269) a page started on (or at) a water: the map comes back framed on it
-  useEffect(() => { if (p.arriveAt) search.landOn(p.arriveAt); }, []);   // eslint-disable-line react-hooks/exhaustive-deps -- once, on mount
+  // (T1010) a page started on a box (`?fit=`, a region page's link): the map opens framed on it
+  useEffect(() => { if (p.arriveAt) search.landOn(p.arriveAt); else if (p.fitAt) search.landOnBox(p.fitAt); }, []);   // eslint-disable-line react-hooks/exhaustive-deps -- once, on mount
   useEscapeBack(nav.back, nav.escapeBack && !searching);   // T214 item 2: on the desktop web Escape is Back (a no-op on a phone)
   /** ONE placeholder line per opening of the app, never cycled while on screen. */
   const [placeholder] = useState(() => placeholderFor(Math.random() * 1e6));
@@ -220,7 +221,7 @@ export function Shell(p: ShellProps) {
   /** (T303) my location on the browse maps: asked on the button's tap, never before */
   const me = useMyLocation(locate);
   /** (T384) a plain open (no start link took it anywhere, no camera held from before) goes to the reader: read once */
-  const [opensHere] = useState(() => opensAtMe(p.initialRoute, p.arriveAt ?? p.regsStart ?? null, !!p.cameraHold?.browse));
+  const [opensHere] = useState(() => opensAtMe(p.initialRoute, p.arriveAt ?? p.fitAt ?? p.regsStart ?? null, !!p.cameraHold?.browse));
   /** THE MENU (owner 2026-10-21): its pages, listed by the More tab (T48), mounted below as back layers (menu/MenuHost). */
   const menu = useMenu();
   /*
@@ -358,7 +359,20 @@ export function Shell(p: ShellProps) {
     if (searching) go({ type: "search", open: false });
     nav.opener.item(item as ItemId, "regs");
   }, [searching, go, nav.opener]);
-  const inbox = useInSeasonInbox(inSeason, p.inSeasonInbox ?? null, p.inSeasonSeen ?? null, inboxOpensWater);
+  // (T867) the release in use and the app's version, for the inbox's data / app update rows; a row opens the More tab
+  // (its Data block) or What's new
+  const manifest = loader?.manifest ?? null;
+  const track = useMemo(() => ({
+    release: manifest ? { id: manifest.data_release, day: manifest.published ?? null } : null,
+    app: menuInfo?.appVersion ?? null,
+  }), [manifest, menuInfo?.appVersion]);
+  const inboxOpensUpdate = useCallback((kind: "data" | "app") => {
+    setBellOpen(false);
+    if (searching) go({ type: "search", open: false });
+    if (kind === "app") menu.show("changelog");
+    else nav.toTab("more");
+  }, [searching, go, nav, menu]);
+  const inbox = useInSeasonInbox(inSeason, p.inSeasonInbox ?? null, p.inSeasonSeen ?? null, inboxOpensWater, track, inboxOpensUpdate);
   // (T521) the DFO feed's rules on a water no curated binding knows: the bell's DFO section, counted with the rest
   const dfoNotice = useDfoNotice(p.salmonFeed);
   const dfoCheckedAt = useDfoCheckedAt(p.salmonFeed, loader);   // (T526) when DFO was last CHECKED: the Data line's age
@@ -383,6 +397,8 @@ export function Shell(p: ShellProps) {
     if (searching) go({ type: "search", open: false });
     // (T989) a water a link or tap opened is a LANDING like a start link's: leaving it frames the map on that water
     if (openReq.item) { search.landOn(openReq.item as ItemId); nav.opener.item(openReq.item as ItemId, openReq.view ?? "conditions"); }
+    // (T605) a region page's `/?fit=` tapped on the phone: the browse map, framed on the region's box
+    else if (openReq.fit) { go({ type: "close" }); nav.toTab("map"); search.landOnBox(openReq.fit); }
     else { go({ type: "close" }); nav.toTab("conditions"); }
   }, [openReq?.n]);   // eslint-disable-line react-hooks/exhaustive-deps -- once per tap
   // (T234 v1.1) A NEW-APP-VERSION TAP: the bell opens on its "App update" (with what's new), the version asked now
@@ -395,7 +411,12 @@ export function Shell(p: ShellProps) {
   const guide = useGuide(p.walkthrough ?? null, firstRun.open || !onMapTab);
   /** (T230, T700) the bell's sheet is up: from the bell, or by itself once for an in-season notice not on the map yet
    *  (the same expression as `InSeasonNotice`'s `open`, below) */
-  const bellUp = (inbox.open && !firstRun.open && !guide.open) || bellOpen;
+  const bellUp = (inbox.open && !firstRun.open && !guide.open && !guide.pending) || bellOpen;
+  // (T867) opening the inbox reads what it shows: this open's "New" is what was unread now
+  const { shown: inboxShown } = inbox;
+  // (T867 review) only when the sheet is in front: not under the walkthrough about to open, nor the applying curtain
+  const inboxInFront = bellUp && !guide.pending && !p.applyCurtain?.applying && !p.applyCurtain?.failed;
+  useEffect(() => { inboxShown(inboxInFront); }, [inboxInFront, inboxShown]);
   /*
    * (T888) THE POPUP ON OPENING (a newer version, once; then the bell) waits behind the first-run notice, the walkthrough
    * (due or under way), the bell's sheet (open, or opening by itself for an in-season notice), the applying curtain, and
@@ -750,7 +771,7 @@ export function Shell(p: ShellProps) {
                    camera={frame?.view === "map" ? waterCamera.current ?? camera.current : camera.current} />
       {/* (T230, T700) the bell's sheet: from the bell, and by itself once for an in-season notice not on the map yet */}
       {/* (`bellUp` above is this same expression: the popup's `bell`; spelled out here for tools/back-layers.test.ts) */}
-      <InSeasonNotice open={(inbox.open && !firstRun.open && !guide.open) || bellOpen} dfo={dfoNotice}
+      <InSeasonNotice open={(inbox.open && !firstRun.open && !guide.open && !guide.pending) || bellOpen} dfo={dfoNotice}
                       inbox={inbox}
                       palette={palette} onClose={() => { setBellOpen(false); inbox.close(); }}
                       sync={{ failed: syncState.failed, checking: syncState.checking, onRetry: syncState.refresh }}

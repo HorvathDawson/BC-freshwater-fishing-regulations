@@ -17,7 +17,8 @@ const src = (keys: Record<string, string | Uint8Array>, sizes: Record<string, nu
   const b: SrcBucket & { m: typeof m } = {
     m,
     async list({ prefix }) {
-      const objects = [...m].filter(([k]) => k.startsWith(prefix)).map(([key, o]) => ({ key, size: sizes[key] ?? o.body.byteLength }));
+      // (T999) R2 lists each object's etag; here the body's hash, so a changed body is a changed etag
+      const objects = [...m].filter(([k]) => k.startsWith(prefix)).map(([key, o]) => ({ key, size: sizes[key] ?? o.body.byteLength, etag: createHash("md5").update(o.body).digest("hex") }));
       return { objects, truncated: false };
     },
     async get(k) {
@@ -58,7 +59,7 @@ class MemBucket implements R2BucketLike {
 }
 const liveSrc = (b: MemBucket): SrcBucket => ({
   async list({ prefix }) {
-    return { objects: [...b.m].filter(([k]) => k.startsWith(prefix)).map(([key, v]) => ({ key, size: new TextEncoder().encode(v).byteLength })), truncated: false };
+    return { objects: [...b.m].filter(([k]) => k.startsWith(prefix)).map(([key, v]) => ({ key, size: new TextEncoder().encode(v).byteLength, etag: createHash("md5").update(v).digest("hex") })), truncated: false };
   },
   async get(k) { const v = b.m.get(k); return v === undefined ? null : { arrayBuffer: async () => new TextEncoder().encode(v).buffer as ArrayBuffer, httpMetadata: { contentType: "application/json" } }; },
   async put(k, body) { b.m.set(k, body); },
@@ -94,7 +95,7 @@ describe("the daily backup (T246)", () => {
       "private/reports/2026-10-28/r1.json", "release/manifest.json", "runtiming/index.json",
     ]);
     const man = JSON.parse(new TextDecoder().decode(d.m.get("daily/2026-10-29/_manifest.json")!.body));
-    expect(man.format).toBe("backup/1");
+    expect(man.format).toBe("backup/2");
     // (T404) the manifest names the bucket this deployment backs up (var BUCKET_NAME), never a spelt one
     expect(man.source).toBe("bc-fishing-regulations-staging");
     for (const k of copied) {

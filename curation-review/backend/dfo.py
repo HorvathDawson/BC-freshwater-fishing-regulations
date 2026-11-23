@@ -1336,14 +1336,9 @@ def other_places_of(loc: dict) -> dict:
             placed.append({"id": lid, "text": text, "extent": ", ".join(M_OP_WORDS(e.get("op")) for e in ex)})
         elif (l.get("status") or "active") == "active":
             unplaced.append({"id": lid, "text": text})
+    # (T611) no warning for ONE placed sibling any more: the salmon chain puts this place after the places it rides on
+    # (`deliver.salmon.chain_order` `rides`), so which one answers first never falls to the ids
     out = {"others": placed, "others_unplaced": unplaced}
-    if len(placed) == 1:
-        # T611: with ONE placed sibling the two cover the same sections and the salmon chain's order falls to the
-        # location id (`deliver.salmon.chain_order`) — this place could answer before the place it rides on
-        out["one_sibling"] = ("Only one other place of this water is placed. Until ticket T611 is done, this place and "
-                              f"“{placed[0]['text'][:70]}” cover the same water and which one answers first is "
-                              "decided by their ids, not by which is the named place: where that place closes, this "
-                              "one could read as open. Safe once a second place is placed, or T611 lands.")
     return out
 
 

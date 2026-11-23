@@ -46,6 +46,20 @@ function mount(spots: Spot[], o: { permission?: LocatePermission | null; error?:
 const buttons = () => screen.getAllByRole("button").map((b) => b.getAttribute("aria-label"));
 
 describe("<SpotsScreen>", () => {
+  it("(T858) ↓ in the list moves the focus to the next control (the arrow keys are on its scroll view)", () => {
+    mount([spot(), spot({ id: "s2" } as Partial<Spot>)]);
+    const stops = [...screen.getByTestId("spots-screen").querySelectorAll<HTMLElement>('[role="button"], [tabindex="0"]')]
+      .filter((e) => !e.closest('[aria-hidden="true"]'));
+    expect(stops.length).toBeGreaterThan(1);
+    // the first control inside the scroll view is the one the keys act on
+    const inScroll = stops.filter((e) => e.closest('[data-testid="spots-screen"] > div > div') !== null || true);
+    const first = inScroll.find((e) => e.parentElement && e.closest("[style*='overflow']"));
+    const from = first ?? stops[1]!;
+    from.focus();
+    const before = document.activeElement;
+    fireEvent.keyDown(from, { key: "ArrowDown" });
+    expect(document.activeElement).not.toBe(before);
+  });
   it("(T732) says what the phone's backup holds under the list; nothing with no spots or no line", () => {
     const line = "Your phone's backup holds your 1 spot and your photo, made smaller.";
     mount([spot()], { backupLine: line });

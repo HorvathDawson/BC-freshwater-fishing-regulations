@@ -4,10 +4,12 @@
  * points draw this one picker — the map's calendar button and the regs header's date pill — so they say the same words
  * and refuse the same days.
  *
- * THE RANGE. The regulations ship as ONE calendar year (366 reading days, `calendar.generated`, no year in the data), so
- * a date in another year would be read as the same month and day of this one — silently wrong. The picker offers today's
- * calendar year only, cut earlier where the release states the last day its regulations are in force
- * (`regulations.valid_until`), and says why the other days are greyed out. Today itself is always offered.
+ * THE RANGE. The regulations' answers are one recurring year (366 reading days, `calendar.generated`, no year in the data:
+ * a printed "Mar 1" is the same day every year, and a date's real weekday is read from its real year, `tapDay`). The
+ * picker offers this calendar year from Jan 1 to the last day the release says its regulations are in force
+ * (`regulations.valid_until`) — past New Year when the synopsis runs on into the next year (T1026: valid to Mar 31 of
+ * the next year), never past the end of that next year — and says why the other days are greyed out. A release that
+ * states no usable end (absent, lapsed) offers this calendar year only. Today itself is always offered.
  *
  * Pure: every function takes `now`, and a day is the reader's LOCAL calendar day (`day.ts`).
  */
@@ -45,6 +47,10 @@ export const DAY_PICKER = {
   gridLabel: (month: string) => `${month}. Arrow keys move the day; Page Up and Page Down move the month`,
   /** why a day is greyed out */
   outsideYear: (year: number) => `Only days in ${year} can be chosen: the regulations here are one calendar year.`,
+  /** (T1026) when the range runs into the next year, the first day is the range's own start, said with its year */
+  beforeFrom: (day: string) => `Days before ${day} can't be chosen.`,
+  /** (T1026) the range stops at the end of next year though the release runs on: the answers recur, they are not read further */
+  afterCap: (day: string) => `Days after ${day} can't be chosen yet.`,
   afterUntil: (day: string) => `Days after ${day} can't be chosen: these regulations end then.`,
   /** the one month table (`MONTHS`, flow.ts) */
   months: MONTHS,
@@ -54,13 +60,18 @@ export const DAY_PICKER = {
 } as const;
 
 /** The days the picker offers, as LOCAL ISO days ("2026-01-01"); `until` is the release's cut when it made one. */
-export interface DayRange { readonly year: number; readonly first: string; readonly last: string; readonly until: string | null }
+export interface DayRange { readonly year: number; readonly first: string; readonly last: string; readonly until: string | null;
+  /** the last day is OUR cap (the end of next year), not the release's: said as such, never as the release ending */
+  readonly capped: boolean }
 
 export function dayRange(now: Date, validUntil: string | null): DayRange {
   const year = now.getFullYear();
   const first = `${year}-01-01`, dec31 = `${year}-12-31`, today = wallIso(now);
-  const cut = validUntil && isIsoDay(validUntil) && validUntil >= today && validUntil < dec31 ? validUntil : null;
-  return { year, first, last: cut ?? dec31, until: cut };
+  // (T1026) the release's last day, past New Year too: never beyond the end of next year (the answers recur once more at most)
+  const cap = `${year + 1}-12-31`;
+  const stated = validUntil && isIsoDay(validUntil) && validUntil >= today ? (validUntil < cap ? validUntil : cap) : null;
+  const cut = stated !== null && stated !== dec31 ? stated : null;
+  return { year, first, last: cut ?? dec31, until: cut, capped: !!validUntil && stated === cap && validUntil > cap };
 }
 
 const isoOf = (d: Date) => wallIso(d);
@@ -166,10 +177,13 @@ function monthEdges(year: number, month: number, range: DayRange): { prev: boole
   const offBefore = isoOf(new Date(year, month, 1, 12)) < range.first;
   const offAfter = isoOf(new Date(year, month + 1, 0, 12)) > range.last;
   const reasons: string[] = [];
-  if (offBefore || !prev) reasons.push(DAY_PICKER.outsideYear(range.year));
+  // the range reaches into the next year: the start is said as a date, "only days in 2026" would be untrue
+  const spans = range.last.slice(0, 4) !== String(range.year);
+  if (offBefore || !prev) reasons.push(spans ? DAY_PICKER.beforeFrom(`${DAY_PICKER.months[0]} 1, ${range.year}`) : DAY_PICKER.outsideYear(range.year));
   if (offAfter || !next) {
-    const [, m, d] = (range.until ?? "").split("-").map(Number);
-    const r = range.until ? DAY_PICKER.afterUntil(`${DAY_PICKER.months[m! - 1]} ${d}`) : DAY_PICKER.outsideYear(range.year);
+    const [y, m, d] = (range.until ?? "").split("-").map(Number);
+    const said = `${DAY_PICKER.months[m! - 1]} ${d}${y !== range.year ? `, ${y}` : ""}`;
+    const r = range.until ? (range.capped ? DAY_PICKER.afterCap(said) : DAY_PICKER.afterUntil(said)) : DAY_PICKER.outsideYear(range.year);
     if (!reasons.includes(r)) reasons.push(r);
   }
   return { prev, next, reason: reasons.length ? reasons.join(" ") : null };
@@ -178,7 +192,8 @@ function monthEdges(year: number, month: number, range: DayRange): { prev: boole
 /** (T915) the longest reason any month the calendar can show says: the range's year's twelve and the one each side */
 function reasonRoom(range: DayRange): string {
   let room = "";
-  for (let mo = -1; mo <= 12; mo++) {
+  const lastMonth = (Number(range.last.slice(0, 4)) - range.year) * 12 + Number(range.last.slice(5, 7)) - 1;
+  for (let mo = -1; mo <= Math.max(12, lastMonth + 1); mo++) {
     const at = new Date(range.year, mo, 1, 12);
     const r = monthEdges(at.getFullYear(), at.getMonth(), range).reason ?? "";
     if (r.length > room.length) room = r;

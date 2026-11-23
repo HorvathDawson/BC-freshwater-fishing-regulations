@@ -91,3 +91,11 @@ An inventory table in this ticket; the owner's pick recorded verbatim; every sur
 that no surface composes source words outside the one place.
 
 Depends: T990 (DONE). Size: M. Owner: pick the pattern.
+
+## Owner answer 2026-11-22 23:20 (dialog with pictures: today, A, B)
+Verbatim: "One source row in bottom. But should have different ones for each tab too. Like condition sources don't need
+to be on regulations. Please think about it more we also still have inline sources?"
+Reading: option A's single Source row at the bottom, but PER TAB — each tab (Regulations, Conditions, Map, …) lists
+only the sources of what that tab shows; and decide what happens to the inline per-rule source lines (keep, fold into
+the row, or keep only where a rule cites a page). Next: a refined proposal with pictures (per-tab rows + the inline
+question answered with a recommendation), then the owner picks again.

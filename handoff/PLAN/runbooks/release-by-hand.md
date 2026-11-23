@@ -265,7 +265,9 @@ app bundle goes to Internal, and that same build is promoted to Closed. A stagin
 
    It raises the versionCode and commits only that, builds and checks the app bundle (signature, MapLibre), uploads
    it to the Internal track with this version's bullets, writes the production version files, and emails the tester
-   link. Then push its commit: `git push origin release/<x.y.z>`. If the upload worked but a later step failed:
+   link. R8 is on in every build (T1003): the build stops if R8's configuration turns a pass off or the bundle's R8
+   scores fall under their floors (`app/tools/r8-report.mjs`), the email carries the three scores, and R8's mapping
+   file goes to Play with the bundle (a missing mapping stops the upload; Play's crash stacks need it). Then push its commit: `git push origin release/<x.y.z>`. If the upload worked but a later step failed:
    `CONFIRM_PROD=canifishthis.ca deploy/prod/build-apk.sh --publish-only`.
    A build that reads **staging** data for Internal testers is `deploy/staging/build-apk.sh --play` **[Claude]**;
    it is never the one promoted to Closed.
@@ -351,6 +353,11 @@ that time").
        --app app/dist/web-prod --threads 4 --out app/dist/seo-prod
      deploy/prod/site.sh --dry-run
      ```
+
+     The web's source maps are SERVED (T1008, owner 2026-11-22): `keep-web` checks them (every bundle over 100 KB names
+     its map, the debug ids agree, a map names only files the repository tracks or node_modules holds), keeps a copy in
+     `data/sourcemaps/<key>/web/` for `sourcemaps.mjs symbolicate`, and leaves them in the export, so the site carries
+     them under `/_expo/static/` with the bundle's cache rule.
 
    - **[you]** deploy it: `CONFIRM_PROD=canifishthis.ca deploy/prod/site.sh`. It refuses uncommitted changes under
      `app/`.

@@ -1,6 +1,6 @@
 # T611 — Salmon chain: a place of the "other places" kind sorts after the places it rides on
 
-Status: PARTIAL — built in 8a0c44572: `chain_order` takes `rides` (the `other_places` places, `salmon.rides_on_others`) between the size and the id; test + mutation in test_t229_cascade_order.py; moves no chain in today's data (measured); the worker does not re-sort (it composes in the release's `l` order). Shows after the next deliver. left (Claude): the review app — `curation-review/backend/cascade.py` passes `rides` to `chain_order`, and the `one_sibling` warning (`dfo.other_places_of`) goes once a deliver carries this
+Status: DONE — pipeline 8a0c44572 (`chain_order` takes `rides`); review app d7dc0d8fa (`curation-review/backend/cascade.py` passes `rides`, `salmon.rides_on_others` reads a stored place dict too; the `one_sibling` warning removed from `dfo.other_places_of`, the types and both components). Test + mutation: `test_t229_cascade_order.py` (the view's chain is [shut, open] and coho reads closed; without `rides` it is [open, shut]).
 
 Source: T607 (2026-11-10), the one-sibling tie; coordinator: "file a ticket for the deliver lane … do not edit the
 chain".
@@ -31,3 +31,5 @@ The review app warns on such a place and in the kind's preview, naming this tick
 `one_sibling`).
 
 Depends: T607. Size: S. Owner: no.
+
+State 2026-11-22 (stopped for credits): lane L10, branch fix/T840-rules-smalls (head cd66153eb before this line); see the ticket's Status for done / left.

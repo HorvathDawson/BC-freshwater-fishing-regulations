@@ -311,8 +311,7 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
                 It has no stretch of its own. It applies to {preview.others.length} placed place{preview.others.length === 1 ? "" : "s"} of this water right now
                 {preview.others.length ? ": " + preview.others.map((o) => `“${o.text.slice(0, 70)}” (${o.extent})`).join("; ") : ""}.
                 {preview.others_unplaced?.length ? ` Not included until placed: ${preview.others_unplaced.map((o) => `“${o.text.slice(0, 60)}”`).join("; ")}.` : ""}
-                {" "}A place placed later joins by itself; it is never taken out of “the rest of the water”.
-                {preview.one_sibling && <span className="warn-text" style={{ display: "block" }} data-testid="fix-one-sibling">{preview.one_sibling}</span>}</span>}
+                {" "}A place placed later joins by itself; it is never taken out of “the rest of the water”.</span>}
               {preview.withheld && preview.withheld.length > 0 && (
                 <span className={preview.withheld.some((w) => !w.accepted) ? "warn-text" : undefined} style={{ display: "block" }}
                   data-testid="fix-withheld">

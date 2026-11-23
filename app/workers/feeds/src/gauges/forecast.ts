@@ -90,7 +90,14 @@ export function issued(v: unknown): string | null {
   return m ? m[0].replace(/ /g, "T") : text;
 }
 
-async function query(fetch: Fetch, service: string): Promise<Array<Record<string, unknown>>> {
+/**
+ * Every row of one FeatureServer layer, paged (forecast._query). (T552 item 4) A BROKEN ANSWER THROWS; it is never read
+ * as "the model is out of season": ArcGIS commonly answers HTTP 200 with `{"error": {...}}` and no `features`, which read
+ * as zero rows dropped every run of the model with no failure recorded. An `error` key, a body that is not an object, a
+ * `features` that is not a list, or a first row lacking a column in `need` (the station id and the issue-time column)
+ * throw, and `fetchSummary` counts the model failed. An honest empty layer (`features: []`, no error) is out of season.
+ */
+async function query(fetch: Fetch, service: string, need: readonly string[] = []): Promise<Array<Record<string, unknown>>> {
   const url = `${ARCGIS}/${service}/FeatureServer/0/query`;
   const out: Array<Record<string, unknown>> = [];
   let offset = 0;
@@ -103,8 +110,18 @@ async function query(fetch: Fetch, service: string): Promise<Array<Record<string
     const r = await fetch(`${url}?${q}`, { headers: { "User-Agent": UA }, signal: timeout(30_000) });
     if (!r.ok) throw new Error(`HTTP Error ${r.status}`);
     const data = JSON.parse(await r.text());
-    if (data === null || typeof data !== "object" || Array.isArray(data)) throw new Error("not an object");
-    const feats: any[] = data.features ?? [];
+    if (data === null || typeof data !== "object" || Array.isArray(data)) throw new Error(`${service}: the answer is not an object`);
+    if ("error" in data) {
+      const e = data.error !== null && typeof data.error === "object" ? data.error : { message: data.error };
+      throw new Error(`${service}: ArcGIS error ${e.code ?? ""} ${e.message ?? ""}`.trimEnd());
+    }
+    const feats: any[] = data.features;
+    if (!Array.isArray(feats)) throw new Error(`${service}: the answer has no features list`);
+    if (feats.length && offset === 0) {
+      const first = feats[0] !== null && typeof feats[0] === "object" ? feats[0].attributes : undefined;
+      const missing = need.filter((c) => first === null || typeof first !== "object" || !(c in first));
+      if (missing.length) throw new Error(`${service}: the rows lack ${missing.join(", ")} — has the layer changed?`);
+    }
     for (const f of feats) out.push(f.attributes === undefined ? {} : f.attributes);
     if (feats.length < page || !data.exceededTransferLimit) return out;
     offset += page;
@@ -122,7 +139,7 @@ export async function fetchSummary(fetch: Fetch, log: (s: string) => void, model
     const cfg = MODELS[name]!;
     let rows: Array<Record<string, unknown>>;
     try {
-      rows = await query(fetch, cfg.service);
+      rows = await query(fetch, cfg.service, ["Station_ID", cfg.issued]);
     } catch (e) {
       log(`  ${name}: unavailable (${String(e)})`);
       failed?.push(name);

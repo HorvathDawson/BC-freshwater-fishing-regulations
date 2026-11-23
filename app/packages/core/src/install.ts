@@ -194,7 +194,9 @@ export function rolledBackLine(r: { refused: string | null; using: string | null
 export const DOWNLOAD_NOTE_WORDS = {
   title: "Downloading BC fishing rules",
   // (T912) `data`: an update's regulations files (each its own system download)
-  files: { tiles: "Map of the waters", mask: "Map outline", basemap: "Base map", synopsis: "Rule book (PDF)", data: "Regulations data" },
+  // (T919 c) `assets`: the map's label fonts and icons, one packed file
+  files: { tiles: "Map of the waters", mask: "Map outline", basemap: "Base map", synopsis: "Rule book (PDF)", data: "Regulations data",
+           assets: "Map labels and icons" },
   other: "Map and regulations",
   /** (Android 13+) said on the boot screen as the system asks to allow notifications, once, before the first download */
   why: "Allow notifications to see the download's progress after you close the app.",
