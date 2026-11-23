@@ -144,8 +144,9 @@ describe("T487 gauge pages", () => {
 
   it("(T1039 review) the chart's script over its gzip budget is a build problem, named", () => {
     const big = randomBytes(BUDGET.chartJsGzipBytes + 20_000).toString("latin1");
-    expect(chartJsProblems(new Map([["assets/gauge-chart.0123456789.js", big]]))[0]).toMatch(/^assets\/gauge-chart\.0123456789\.js is \d+ B gzip, over 327680$/);
-    expect(chartJsProblems(new Map([["assets/gauge-chart.0123456789.js", "x".repeat(400_000)]]))).toEqual([]);   // compresses to nothing
+    expect(chartJsProblems(new Map([["assets/gauge-chart.0123456789.js", big]]))[0])
+      .toMatch(new RegExp(`^assets/gauge-chart\\.0123456789\\.js is \\d+ B gzip, over ${BUDGET.chartJsGzipBytes}$`));
+    expect(chartJsProblems(new Map([["assets/gauge-chart.0123456789.js", "x".repeat(BUDGET.chartJsGzipBytes)]]))).toEqual([]);   // compresses to nothing
   });
 
   it("(T1039) a station's chart inputs: its rows, none when the release has none for it; no climatology map at all is refused", () => {
