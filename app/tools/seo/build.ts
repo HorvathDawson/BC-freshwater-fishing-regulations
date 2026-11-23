@@ -40,7 +40,7 @@ import { JobPool } from "./jobs";
 import { threadCounts, type ThreadCounts } from "./threads";
 import { withFavicon } from "./favicon";
 import { appSiteAssociationFile, assetLinksFile, headersFile, IOS_TEAM_ID_RE, hostRules, hostWorker, redirectsFile } from "./hosting";
-import { FACTLESS_TAIL, type Site } from "./html";
+import { descriptionHasFacts, type Site } from "./html";
 import { legacyRedirects, legacyWorker, type Crosswalk, type LegacyBuilt } from "./legacy";
 import { buildDayOf, type BuildDay } from "./model";
 import { buildSite, changesOf, rulesSha, type Snapshot, type SiteBuild, type WaterMade } from "./site";
@@ -236,7 +236,7 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
     uniqueTitles: new Set(titles).size, uniqueDescriptions: new Set(descs).size,
     titlesOver60: titles.filter((t) => t.length > 60).length, descriptionsOver155: descs.filter((t) => t.length > 155).length,
     // (T1042) waters whose page held no fact that fits a description: shown here, never silently the template
-    descriptionsWithoutFacts: build.pages.filter((p) => p.kind === "water" && p.description.endsWith(FACTLESS_TAIL)).length,
+    descriptionsWithoutFacts: build.models.filter((m) => !descriptionHasFacts(m)).length,
     emptyTitleOrDescription: titles.filter((t) => !t).length + descs.filter((t) => !t).length,
   };
   if (quality.uniqueTitles !== quality.pages || quality.uniqueDescriptions !== quality.pages) problems.push(`titles/descriptions are not unique: ${JSON.stringify(quality)}`);

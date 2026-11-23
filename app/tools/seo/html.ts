@@ -6,7 +6,7 @@
  */
 import { regionWords, SYNOPSIS_PDF } from "@app/core";
 import meta from "../../packages/map/style/style.meta.json" with { type: "json" };
-import type { WaterModel } from "./model";
+import type { PartModel, WaterModel } from "./model";
 
 export interface Site {
   readonly origin: string; readonly name: string; readonly contact: string | null;
@@ -131,62 +131,92 @@ export function clip(s: string, max = 155): string {
   return `${t.slice(0, max - 1).replace(/\s+\S*$/, "").replace(/[,;:\s]+$/, "")}…`;
 }
 
-/** (T1042) what a description says when the page holds no fact that fits: counted in budget.json (`descriptionsWithoutFacts`), never silent */
+/** (T1042) what a description says when the page holds no fact: shown in budget.json (`descriptionsWithoutFacts`), never silent */
 export const FACTLESS_TAIL = "its season, what you can keep, gear and limits, from the B.C. synopsis.";
-/** the sections a description draws from, in order, each with the item it prefers (else the first that qualifies) */
-const FACT_SECTIONS: readonly (readonly [title: string, prefer: RegExp | null, max: number])[] = [
-  ["Other fish", null, 2], ["Boats", null, 1], ["Gear", /^Hooks:/, 1],
-];
-/** a sentence naming the build day: a description is written once a release (T622 G2), so these are never in it */
+const FACTLESS_SHORT = "regulations from the B.C. synopsis.";
+const DESC_MAX = 155;
+/** a sentence naming the build day or a date: a description is written once a release (T622 G2), so these are never in it */
 const DAY_WORDS = /\b(today|tomorrow|tonight|now|until|then)\b|\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\.? \d/i;
 
+const LAST_DAY = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+const MONTH3 = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+/** day index of the calendar year (0 = Jan 1, the strip's own order) as "Jun 15" */
+function mdOf(i: number): string {
+  let m = 0, d = ((i % 365) + 365) % 365;
+  while (d >= LAST_DAY[m]!) { d -= LAST_DAY[m]!; m++; }
+  return `${MONTH3[m]} ${d + 1}`;
+}
+
 /**
- * (T1042) THE FACTS OF A PAGE, in the page's own words. ONLY SECTIONS THAT READ THE SAME ON EVERY DAY: the trout and "What you
- * can keep" lines, the closures and the dated lines change with the build day (a build on another day gave other sentences:
- * site.test.ts holds a description to the same words on any day), so a description from them would be true for part of the
- * year. Per section above, items that hold on every part (a stretch's
- * rule that the others lack is not the water's), not dated, not a day's sentence, with its group's heading in front when it
- * follows one ("Trout and char: 2 a day"). Nothing is composed or reworded here.
+ * (T1042, owner 2026-11-23 "Season windows") THE WINDOWS A PART IS OPEN TO FISHING, from its year strip (the presenter's own
+ * closed / open runs over the calendar year; a run that ends Dec 31 and one that starts Jan 1 are one): "Jun 1–Jul 14".
+ * null: no strip, or a run the strip does not know. The strip is the water's, not a species'.
+ */
+export function openWindows(runs: PartModel["year"]): string[] | null {
+  if (!runs || runs.length === 0 || runs.some((r) => r.closed === null)) return null;
+  const spans: { open: boolean; a: number; b: number }[] = [];
+  let at = 0;
+  for (const r of runs) { spans.push({ open: !r.closed, a: at, b: at + r.days - 1 }); at += r.days; }
+  if (spans.length > 1 && spans[0]!.open === spans[spans.length - 1]!.open) { const last = spans.pop()!; spans[0]!.a = last.a - 365; }
+  return spans.filter((x) => x.open).map((x) => (x.b - x.a >= 364 ? "all year" : x.a === x.b ? mdOf(x.a) : `${mdOf(x.a)}–${mdOf(x.b)}`));
+}
+
+/** The marks the strip holds on EVERY open day of the year ("fly fishing only", "bait ban"): the legend's marks whose bit every open run carries. */
+function steadyMarks(p: PartModel): string[] {
+  if (!p.yearBits) return [];
+  const open = p.yearBits.filter((r) => r.bits === null || (r.bits & 1) === 0);
+  if (open.length === 0 || open.some((r) => r.bits === null)) return [];
+  return p.marks.filter((k) => k.bit > 1 && open.every((r) => ((r.bits ?? 0) & k.bit) !== 0)).map((k) => k.label);
+}
+
+/**
+ * (T1042) THE FACTS OF A PAGE, in the page's own words, each TRUE ON EVERY DAY OF THE YEAR (the independent review built the
+ * fixture on 24 days: Other fish rows and the Hooks line are the build day's, so a description from them changed with the day).
+ * What is year-stable and read here: the open windows (`openWindows`, the strip's year), the vessel rules (the Boats section,
+ * the same on every day: site.test.ts sweeps a whole year to prove it) and the strip's marks that hold on every open day.
+ * Only what every part says, no dated line, no day word.
  */
 export function factsOf(m: Pick<WaterModel, "parts">): string[] {
+  if (m.parts.length === 0) return [];
   const out: string[] = [];
   const trim = (t: string) => t.replace(/[.\s]+$/, "");
-  for (const [title, prefer, max] of FACT_SECTIONS) {
-    const of = (p: WaterModel["parts"][number]) => p.sections.filter((s) => s.title === title);
-    if (m.parts.length === 0 || m.parts.some((p) => of(p).length === 0)) continue;
-    const cands: { raw: string; fact: string }[] = [];
-    for (const s of of(m.parts[0]!)) {
-      let head = "";
-      for (const it of s.items) {
-        if (it.head) { head = it.text; continue; }
-        if (it.dated || DAY_WORDS.test(it.text)) continue;
-        const raw = trim(it.text);
-        cands.push({ raw, fact: head && raw.length < 40 && !raw.toLowerCase().startsWith(head.toLowerCase()) ? `${head}: ${raw}` : raw });
-      }
-    }
-    const shared = cands.filter((c) => m.parts.every((p) => of(p).some((s) => s.items.some((i) => trim(i.text) === c.raw))));
-    const first = prefer ? shared.find((c) => prefer.test(c.raw)) : undefined;
-    out.push(...(first ? [first] : shared.slice(0, max)).map((c) => c.fact));
+  const wins = m.parts.map((p) => openWindows(p.year));
+  if (wins.every((w) => w !== null) && new Set(wins.map((w) => w!.join("|"))).size === 1) {
+    const w = wins[0]!;
+    if (w.length === 0) out.push("Closed all year");
+    else if (w[0] === "all year") out.push("Open all year");
+    else if (w.length <= 4) out.push(`Open ${w.join(", ")}`);
   }
+  const boats = (p: PartModel) => p.sections.filter((s) => s.title === "Boats").flatMap((s) => s.items).filter((i) => !i.head && !i.dated && !DAY_WORDS.test(i.text)).map((i) => trim(i.text));
+  const first = boats(m.parts[0]!).find((b) => m.parts.every((p) => boats(p).includes(b)));
+  if (first) out.push(first);
+  const marks = m.parts.map(steadyMarks);
+  out.push(...marks[0]!.filter((k) => marks.every((x) => x.includes(k))));
   return out;
 }
 
 /**
  * The meta description of a water page (and its og:description). (T622 G2) NO DAY-RELATIVE WORD: it is written once a
- * release, so "Closed to fishing today" was the build day's answer for weeks; the page itself, and the app, say open or
- * closed for the day the reader is on. (T1042) It was one template on every page, which Google ignores
+ * release. (T1042) It was one template on every page, which Google ignores
  * (developers.google.com/search/docs/appearance/snippet: identical descriptions on every page are not helpful), so it took a
- * passage of the page instead, the licence quote. Now it is the water's name and place, then the page's own facts (`factsOf`)
- * while they fit in 155 characters, a whole fact or none.
+ * passage of the page instead, the licence quote. Now: the water's name and place, then `factsOf` while they fit in 155
+ * characters, a whole fact or none. A long name drops "fishing regulations", then "B.C.", before it drops a fact; with no
+ * fact the text says so in whole words (`descriptionHasFacts` is how the build counts them), and is never cut mid-sentence.
  */
 export function descriptionOf(m: WaterModel, label: string = m.name, town: string | null = null): string {
   const where = town ? `near ${town}, ${waterRegions(m)}` : waterRegions(m);
-  const head = `${label} fishing regulations, B.C. (${where}): `;
-  const facts: string[] = [];
-  for (const f of factsOf(m)) if ((head + [...facts, f].join("; ")).length + 1 <= 155) facts.push(f);
-  const text = facts.length ? `${head}${facts.join("; ")}.` : `${head}${FACTLESS_TAIL}`;
-  return clip(text);
+  const heads = [`${label} fishing regulations, B.C. (${where}): `, `${label}, B.C. (${where}): `, `${label} (${where}): `];
+  const facts = factsOf(m);
+  for (const head of heads) {
+    const got: string[] = [];
+    for (const f of facts) if ((head + [...got, f].join("; ")).length + 1 <= DESC_MAX) got.push(f);
+    if (got.length) return `${head}${got.join("; ")}.`;
+  }
+  for (const head of heads) for (const tail of [FACTLESS_TAIL, FACTLESS_SHORT]) if ((head + tail).length <= DESC_MAX) return head + tail;
+  return clip(`${label} (${where})`);   // a name too long for any whole sentence: the name, cut at a word
 }
+/** does the description hold a fact (the build's count of those that do not) */
+export const descriptionHasFacts = (m: Pick<WaterModel, "parts">): boolean => factsOf(m).length > 0;
 
 export function aboutBody(site: Site, asOf: string): string {
   const contact = site.contact ? `<p>Contact: <a href="mailto:${esc(site.contact)}">${esc(site.contact)}</a></p>` : "";
