@@ -1,4 +1,4 @@
-# T1029 — The release manifest carries a changed-waters count (the inbox's "N waters changed")
+# T1030 — The release manifest carries a changed-waters count (the inbox's "N waters changed")
 
 Status: OPEN — 0.9.0 batch, not small (see Why); left (Claude): design the count, then a release build to prove it
 
