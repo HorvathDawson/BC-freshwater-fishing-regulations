@@ -1,6 +1,6 @@
 # T810 — Trout and char block as the new table, built from the Python pipeline to the screen (umbrella; the spec is written, the build waits for the owner's go)
 
-Status: PARTIAL — built, merged and shipped through step 11: the cutover landed e0434e1b8 (2026-11-18 06:27, CI green); owner signed off the finals from staging 2026-11-18 12:18; 0.8.0 to Play internal and TestFlight 13:44 (8c73939b7); in production since 0.8.3 (2026-11-19). left (Claude): spec step 12, S2 dead-branch cleanup (optional) and the MAP / AGENTS notes; T809's cutover diff (step 11) is not recorded as run.
+Status: PARTIAL — built, merged and shipped through step 11: the cutover landed e0434e1b8 (2026-11-18 06:27, CI green); owner signed off the finals from staging 2026-11-18 12:18; 0.8.0 to Play internal and TestFlight 13:44 (8c73939b7); in production since 0.8.3 (2026-11-19). left (Claude): S2 dead-branch cleanup (optional; needs a coverage run, no provider is installed: see 2026-11-22). The MAP / AGENTS notes are written and T809's cutover diff is run and recorded (2026-11-22).
 or a release (owner 2026-11-15).
 
 Source: owner 2026-11-16 15:18: "have another opus agent spec out what would be involved in transitioning the trout
@@ -569,3 +569,16 @@ Bench green 11/11 on r-f1f2e8da9666 (APK at d6cbad35d: install, feeds, offline, 
 water-nav, part-steps, regs-switch, trout-table 7/7, report). Play internal: versionCode 35, built from cabdb411f
 (bump 7ed1598e6), staging data, notes = the 0.8.0 changelog (owner: "0.8 release notes are fine"). TestFlight: 0.8.0
 (38) uploaded, built from 7ed1598e6. Production stays the owner's.
+
+## 2026-11-22: the notes (lane L13)
+- Written: `pipeline/docs/MAP.md` deliver step 5 (the trout table, its modules, the `trout` section, `answers_diff`), `app/MAP.md`
+  (the regs store holds the table; `trout.ts` composes only, `TroutCard.tsx` draws), AGENTS rule 29a (Python writes the
+  table whole; a refused frame is reported, never the old card), (`deliver/answers/trout/__init__.py`'s docstring still says "not yet wired into a
+  release": fixing it re-stamps the committed mini release (the docstring is hashed into its water files), so it waits
+  for the next mini re-cut, `python -m pipeline.tools.mini_release --write`).
+- T809's cutover diff (step 11) is run and recorded in T809: no trout answer changed.
+- NOT done: S2's dead-branch deletion. `quietOf`, `useAnchors`, `PinBar` and the pin-bar coach spots are already gone; the
+  rest of S2 (delete composer branches in grouphead.ts, tree.ts, tail.ts, plainrow.ts that only trout reached) needs a
+  branch-coverage run over the other-fish rows of the fixture release, and the app has no coverage provider
+  (`@vitest/coverage-*` is not installed; a new dev dependency needs its `app/deps.md` line). Optional per the spec.
+

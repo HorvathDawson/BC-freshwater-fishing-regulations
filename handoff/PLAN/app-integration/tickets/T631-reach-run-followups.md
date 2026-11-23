@@ -81,3 +81,6 @@ A "check" flag needs: the reach run's `unclassified` pieces into a new bundle ta
 recomputes), the store / a release file to carry it (not `water`: 99.7 % of its gate, T686; regs-sid as T672 1b did is
 the candidate), and NEW page words ("part of this water could not be placed; check the book") that the owner has not
 seen. Each half alone is dead data or a dead read. Plan: one change after the owner words the line; size M.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+item 1: the release check keys the diff by run files, a DFO-only change is diffed; item 3 done; item 2 held 2026-11-12 night (not small: new bundle table + release file + new page words); item 5 answered by the owner 2026-11-12 (A: stay outside, no change)

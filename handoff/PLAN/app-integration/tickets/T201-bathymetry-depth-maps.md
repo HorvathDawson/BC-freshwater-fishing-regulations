@@ -34,3 +34,6 @@ size only confirm. Contours in tiles come last, not first.
   (derivative contours with CHS notice); (3) Okanagan/Kootenay/Shuswap: CHS licences, trace scans, or PDF-only; (4)
   emails to OBWB, Hakai, UNBC; (5) bulk-tick classes A/B after a sample of 50?; (6) modelled depth (GLOBathy) at all.
   Defaults to build with: ask for the link, no NONNA, PDF-only, no emails sent, bulk-tick with sample, no modelled depth.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+owner 2026-11-13 (same words); starts once Play closed testing is running; owner: licence link, NONNA, CHS/Okanagan, emails, review lanes, modelled depth (questions in the ticket); with T634 items 1-3, 5-6

@@ -247,3 +247,6 @@ matcher and owner questions: `handoff/PLAN/research/stocking-feasibility.md`, `h
 Owner 2026-11-20 (audit question 8, answered "Couldn't we just assume most of these are done already?"): POSTPONED like T695 and T699, the owner's own deferral of 2026-11-13 stands. T200/T201 keep their own step lists.
 
 Status line before this answer: OPEN — three research passes done, nothing shipped, app untouched: first d55900aba (licence per record, vector reader/placing, PDF trial, chart->lake proposals), second b8e65f2f0 (PDFs 200 dpi 1-bit, 748 -> 201 MB), third a1d7da363 (Access Only records built on the owner's word, licence flag; stocking 1,751 clean, contours 25/28, vectors 298 strict); left (Claude): the path to ship in the ticket and item 6 (the app's Lake tab), after closed testing
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+owner 2026-11-11; restarts the data half of T200/T201/T218; NOT part of T495 (ships in a later release). First pass d55900aba; second pass b8e65f2f0 (PDFs 200 dpi 1-bit 748->201 MB, variant_circular to review); third pass (Access Only records built on the owner's word, licence flag, confirm before prod: stocking 1,751 clean, contours 25/28, vectors 298 strict) + path to ship in the ticket; item 6 (app) waits

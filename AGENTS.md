@@ -217,6 +217,12 @@ A6. **Commit only your own paths: `git commit -- <paths>`.** Several agents shar
 29. **A categorical colour mode over an enum must colour every member**, and a continuous
     mode must define `missing`. This is how `unknown` and `default_only` cannot be rendered
     as something they are not (⑨/㉜ — the one failure with real consequences).
+29a. **The trout and char block is a table Python writes whole (T810, since 0.8.0).** `pipeline/deliver/answers/trout/` decides
+    every row, word, number and date; `core/src/regs/trout.ts` states no rule, only fills the day slot and the
+    screen-reader label, and the app draws what it is given. A frame the app cannot hold to its shape is reported
+    (`reportFailure`) and no table is drawn: never a fallback to the old card. Any change to a trout word or row is a
+    Python change, proved by `trout/check.py` and the shared vectors (`app/fixtures/trout/`); `answers_diff` lists what a
+    release changed for the owner.
 30. **Every dependency needs a line in `app/deps.md`.** v1 accumulated chart.js + pdf-lib +
     pdfjs + fuse + suncalc without anyone deciding to.
 31. **`pnpm check` must pass.** Its steps are `app/package.json` `scripts.check` (and `app/MAP.md`), not a list

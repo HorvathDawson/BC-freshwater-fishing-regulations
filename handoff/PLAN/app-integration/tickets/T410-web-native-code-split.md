@@ -1,6 +1,6 @@
 # T410 — One clear web / native split in the app code
 
-Status: PARTIAL — items 1-4 done (8374cae0d..cd2be0916; listings 2026-11-06 below; full `pnpm -C app check` green 2026-11-06); the pass over the moved `.native` halves done on the emulator 2026-11-06 ("Native pass" below: 6/6, the spoken step not heard, no TalkBack); left: the T258/T260 owner items listed below. Was: OPEN — with the launch-and-hygiene chat (owner 2026-11-05: "make it so the web and app code are split out a
+Status: PARTIAL — items 1-4 done (8374cae0d..cd2be0916; listings 2026-11-06 below; full `pnpm -C app check` green 2026-11-06); the pass over the moved `.native` halves done on the emulator 2026-11-06 ("Native pass" below: 6/6, the spoken step not heard, no TalkBack); owner: OWNER-TODO "Accessibility (T243 → T258, 2026-10-29): a TalkBack / VoiceOver walk" (the T258/T260 items listed below). Was: OPEN — with the launch-and-hygiene chat (owner 2026-11-05: "make it so the web and app code are split out a
 little better … not sure the standard here but seems like something to clean up").
 
 ## Today (2026-11-05)

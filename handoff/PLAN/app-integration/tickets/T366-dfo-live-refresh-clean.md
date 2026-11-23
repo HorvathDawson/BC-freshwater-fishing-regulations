@@ -97,3 +97,6 @@ Other regions newer than their typed rows: **1** (10-05 → 11-03: Cowichan chum
   `test_curation_review_safety.py`. Frontend typechecked (`tsc --noEmit`); the banner NOT rendered in a browser.
 - **Left:** deploy the feeds worker with the next app release (main session). The first run after deploy writes each
   region's baseline, so row digests start from the following page change.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+b71bbcd11; refresh run 11-03 (regions 1, 2, 6; no marks moved; 9d5d52553 Fraser variants); 11-05 review-app vintage banner + worker row digest (urgent: false → NOTIFY_DIGEST); worker deploys WITH the next app

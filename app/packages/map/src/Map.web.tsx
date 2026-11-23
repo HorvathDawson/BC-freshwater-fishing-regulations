@@ -34,6 +34,7 @@ import { useHoverCursor, useLongPress, useMapPoint, useMoved, usePressFeature } 
 import { useMarks, usePins } from "./web/markers";
 import { useHighlight } from "./web/useHighlight";
 import { useSpots } from "./web/useSpots";
+import { useSalmonCircles } from "./web/useSalmonCircles";
 import { useChannels } from "./web/useChannels";
 import { useFit } from "./web/useFit";
 import { useInsetLeft } from "./web/useInsetLeft";
@@ -94,6 +95,8 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
   useMarks(refs, marks, onPressMark, furniture);
   const spotLayer = useSpots(refs, spots, at);
   useChannels(refs, lit, { at, theme, data, status, standing, lakes, salmon, method, issue, runs });
+  // (T812) the closed-area circles, Salmon view only
+  useSalmonCircles(refs, salmon, modes, theme);
   useInsetLeft(refs, insetLeft, at);
   const traceBox = useFit(refs, fit, highlight);
   useGauges(refs, gauges);

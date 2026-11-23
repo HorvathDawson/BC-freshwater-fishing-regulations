@@ -514,6 +514,8 @@ function composeFeedPayload(P: Payload, feed: SalmonFeed): { payload: Payload; s
     // a place not drawn yet shows while DFO lists it: the feed's say, not the build's (so never dormant here)
     unmapped: P.unmapped.filter((u) => P.chains[u.chain]?.l.some((l) => !!feed.locs[l]))
       .map(({ d: _d, ...u }) => u),
+    // (T812, owner 2026-11-10: "if they remove it circles should go away") a circle shows while today's page names it
+    ...(P.ca ? { ca: Object.fromEntries(Object.entries(P.ca).filter(([l]) => !!feed.locs[l])) } : {}),
     // (T521) the feed's places no curated location knows, shown on their water's page
     ...(feed.unplacedRows?.length ? { feedUnplaced: feed.unplacedRows } : {}),
     // (T759) the feed's issues, shown as banners on their waters' stretches (`salmonIssueBanners`)

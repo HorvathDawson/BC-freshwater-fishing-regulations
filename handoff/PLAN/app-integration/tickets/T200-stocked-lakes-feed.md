@@ -38,3 +38,6 @@ distance cap; code only a late fallback; 550 unnamed rows matched unchecked). He
   version (no counts/strain) if the licence stays open; (3) class B bulk-accept with a sample or tick each; (4) streams
   in the first version or lakes only; (5) history depth 5 years or all on tap; (6) is a 4-month lag acceptable.
   Defaults to build with: ask for the link, FISS-only first, class B sample-tick, lakes only, 5 years, lag accepted.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+owner 2026-11-13: "after the closed release we will do stocking and depth maps next"; starts once Play closed testing is running; owner: licence link, class B, streams, history depth, lag (questions in the ticket); with T634 items 4-5

@@ -61,3 +61,6 @@ middle copy). Supersedes the 10-31 "one decided/ folder is fine".
 
 Done 2026-11-05 (cbb457042): `review.apply` no longer exports — `E.load(marks, closed)` in memory, then each writer;
 the write-through drops `CURATION_DECIDED` / `fresh`; closed domains are filtered in `load`. Dry-run unchanged.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+owner 2026-10-30 correction: no locking — backend runs the domain's apply after each mark (sloughs/names in-request, proposals debounced in background); refusal keeps the mark + shows why; `lock` removed; closed.json = ponds only

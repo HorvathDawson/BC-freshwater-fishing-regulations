@@ -73,7 +73,13 @@ export function useShellNav({ source, loader, systemBack, initialRoute, onRoute 
   // (T927) a boundary place picked in search opens its water on the part holding it (the named link's own lookup)
   const placePart = useMemo(() => (loader ? placePartOf(async () => placeReads(await loadRegsStore(loader), loader)) : undefined),
                             [loader]);
-  const opener = useOpenWater(source, go, { now, group: groupOf, partOf, unnamed, warm, placePart });
+  // (T1034) a link's part is checked against the water's parts in the open release
+  const partCount = useMemo(() => (loader ? async (item: ItemId) => {
+    const store = await loadRegsStore(loader);
+    const ord = await store.itemOrd(item);
+    return ord === null ? null : (await store.parts(ord)).length;
+  } : undefined), [loader]);
+  const opener = useOpenWater(source, go, { now, group: groupOf, partOf, unnamed, warm, placePart, partCount });
   /*
    * (T369 D8, owner 2026-11-04) A NEW RELEASE WITH A WATER OPEN is applied at once, and the open stack is CARRIED to the
    * same place on the water in it (`carryRoute`: by item and point, never by the old part index). Until it is, the water

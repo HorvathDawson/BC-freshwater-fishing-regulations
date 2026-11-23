@@ -77,3 +77,6 @@ every basemap symbol layer confined in `runtimeStyle` and `nativeStyle`). Ships 
 check for the APK batch: no basemap label outside BC at z6 over Seattle.
 
 - 2026-10-31 owner: the phone outside-BC label filter (03df0cf4e) is "overkill" — reverted; the basemap ship stage already drops names outside BC.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+water names placed first + `stream_name` merged/smoothed tile layer; places by kind/zoom (LM z7 111→8); basemap cut 7 drops names outside BC; builds owed: basemap, atlas `--tiles-only`, release+APK; style guard `inBC` keeps US names off any basemap a phone holds (APK)

@@ -73,3 +73,6 @@ steps (T302). The card's 400 ms re-measure is a timeout chain, not setInterval (
 - On the stressed emulator (2 efficiency cores) the walk did not start: a data clear by the `memory` scenario left the
   first-run notice up, which the test bed could not dismiss — see T440 (the notice's body is missing from the Android
   accessibility tree). Not a walkthrough fault.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+owner 2026-10-29; web done (25-step hands-on walk on the Vedder incl. Layers, Show me, resume, back; Conditions map camera tour; Salmon/Runs hints; Help pages; shots T293-shots/); emulator 11-06: first run opens it, Android back steps back, 25 of 25 (test bed `walkthrough`)

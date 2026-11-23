@@ -277,13 +277,13 @@ export function isEnvironment(e: unknown): boolean {
 }
 
 /** a crash/2 report (the feeds worker's `POST /crash`, workers/feeds/src/crashes.ts validateCrash) */
-export function crashReport(e: unknown, cfg: Pick<GaugeConfig, "env" | "release">, at: Date, install: string): Record<string, unknown> {
+export function crashReport(e: unknown, cfg: Pick<GaugeConfig, "env" | "release"> & { app?: string; route?: string }, at: Date, install: string): Record<string, unknown> {
   const err = e instanceof Error ? e : new Error(String(e));
   return {
-    format: "crash/2", created: at.toISOString(), kind: "js", fatal: false, route: "conditions",
-    app: "gauge-page", env: cfg.env, platform: "web", release: cfg.release.slice(0, 100),
+    format: "crash/2", created: at.toISOString(), kind: "js", fatal: false, route: cfg.route ?? "conditions",
+    app: cfg.app ?? "gauge-page", env: cfg.env, platform: "web", release: cfg.release.slice(0, 100),
     name: (err.name || "Error").slice(0, 60), message: err.message.slice(0, 200), stack: (err.stack ?? "").slice(0, 2000),
-    background: false, install, water: null, view: "conditions", part: null, whole: false, sheet: null,
+    background: false, install, water: null, view: (cfg.route ?? "conditions") === "conditions" ? "conditions" : null, part: null, whole: false, sheet: null,
   };
 }
 
@@ -292,7 +292,7 @@ export function crashReport(e: unknown, cfg: Pick<GaugeConfig, "env" | "release"
  * the environment's (shown, not reported) or reports are off (`crash` null). The gauge page's live half and its Join the
  * test card (joinClient.ts, T911; gauges.ts `joinScript` writes this into that script too) both report through it.
  */
-export function pageReporter(cfg: Pick<GaugeConfig, "crash" | "env" | "release">, fetchImpl: typeof fetch, now: () => number): (e: unknown) => void {
+export function pageReporter(cfg: Pick<GaugeConfig, "crash" | "env" | "release"> & { app?: string; route?: string }, fetchImpl: typeof fetch, now: () => number): (e: unknown) => void {
   const install = Array.from({ length: 16 }, () => "0123456789abcdef"[Math.floor(Math.random() * 16)]).join("");
   return (e: unknown) => {
     if (!cfg.crash || isEnvironment(e)) return;

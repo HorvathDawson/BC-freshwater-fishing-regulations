@@ -26,10 +26,12 @@ from pipeline.deliver.answers.display import decided as DEC
 SWELTZER = "r2:sweltzer_creek@2-3"
 STURGEON = "zp:white_sturgeon_licence"
 RUBBLE = "z2:rubble_creek"
+RUBBLE_SAYS = ("NOTICE TO ANGLERS The area known as the Rubble Creek Landslide Hazard Area is a high risk slide area. People "
+               "who fish in this area do so at THEIR OWN RISK.")
 
 
-def _rule(entry: str, rule: str, authority: str) -> dict:
-    return {"id": f"{entry}::{rule}", "entry_id": entry, "rule_id": rule, "fields": {},
+def _rule(entry: str, rule: str, authority: str, verbatim: str = "") -> dict:
+    return {"id": f"{entry}::{rule}", "entry_id": entry, "rule_id": rule, "fields": {}, "verbatim": verbatim,
             "provenance": {"rank": 0, "authority": authority, "binds_to": "water", "entry_name": entry}}
 
 
@@ -38,8 +40,10 @@ def facts(monkeypatch):
     """`add_sources` over three rank-0 rules: Sweltzer River's own row (p.26), the B.C. sturgeon licence line (p.7), and a
     Region 2 table line naming one water (p.21). No row boxes are read (the sidecar is the book's; not this test's)."""
     monkeypatch.setitem(DEC._BOXES, "rows", {})
-    rules = [_rule(SWELTZER, "sweltzer_creek.r1", "region"), _rule(STURGEON, "white_sturgeon_licence.r2", "province"),
-             _rule(RUBBLE, "rubble_creek.r1", "region")]
+    # (T1032) a zone or province line carries the book's words, as the export does: its highlight is located by them
+    rules = [_rule(SWELTZER, "sweltzer_creek.r1", "region"),
+             _rule(STURGEON, "white_sturgeon_licence.r2", "province", "This is a catch-and-release only fishery."),
+             _rule(RUBBLE, "rubble_creek.r1", "region", RUBBLE_SAYS)]
     doc = {"entries": {SWELTZER: {"name": "Sweltzer River", "full_name": "SWELTZER CREEK", "kind": "water", "pages": [26]},
                        STURGEON: {"name": "Fraser watershed, Mission to Williams Lake River", "kind": "province",
                                   "pages": [7]},

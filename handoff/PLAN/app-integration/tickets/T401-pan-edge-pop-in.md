@@ -1,6 +1,6 @@
 # T401 — Streams pop in at the screen edges while panning (phone)
 
-Status: PARTIAL — owner 2026-11-09 on build 24: creeks still pop during the glide, "minor and not too bad but noticeable. not urgent but we could improve"; left: option 3 render margin, later
+Status: PARTIAL — owner 2026-11-09 on build 24: creeks still pop during the glide, "minor and not too bad but noticeable. not urgent but we could improve"; left (Claude): option 3 render margin, later (owner: not urgent)
 
 Was: PARTIAL — 2026-11-06 option 2 built and measured (29b1e561b): the binding patch exposes `prefetchZoomDelta`; on the stressed emulator deltas 2 and 3 moved neither the moving frames missing tiles nor frame time beyond run-to-run noise (3 runs each of 4 vs 2), so the app keeps MapLibre's default (4). Left: what the owner sees on the phone (a delta-2 A/B APK if wanted), option 3 (render margin). 2026-11-06 the T420 tile-event fix (deb635819) cut the stressed emulator's moving frames missing tiles 22.6 → 17.6 % (z13 travelling) and 26.4 → 16.1 % (circling); still above the normal emulator's ~5 %, so option 2 (`setPrefetchZoomDelta`) is next if the owner still sees it. Earlier: 2026-11-06 reproduced in simulation DURING the glide (stressed emulator: 20–36 % of moving frames lack tiles, 0 % at rest), measured with the new `[drawn]` probe (c1c838f58); not fixed (see the end). Was: OPEN (owner 2026-11-04, 0.5.0 Play internal: "panning doesn't load enough of a buffer of streams outside the
 view").
@@ -88,3 +88,6 @@ build without the lean AAR (`android-sdk-vulkan-13.6.1-fslean.aar`, present); th
 (`app/patches/@maplibre__maplibre-react-native@11.5.0.patch`) has `maxPixelRatio` + `prefetchZoomDelta`; `Map.native.tsx`
 passes the cap 2 (lab default `pixelCap: true`) and prefetch −1 / lab 4 (MapLibre's default). Left: the owner's phone check
 (OWNER-TODO "Phone check with build 22").
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+owner 2026-11-04 (0.5.0 phone); 11-06 stressed emulator: frames missing tiles while moving 22.6→17.6 % (z13 travelling), 26.4→16.1 % (circling) after the T420 tile-event fix deb635819; not gone — prefetch-delta patch next if the owner still sees it; option 2 (29b1e561b): binding `prefetchZoomDelta` prop, deltas 2/3 vs 4 within run-to-run noise (3 runs each) → default kept; left: owner phone A/B (OWNER-TODO build 22), option 3; 11-08 build 22 command checked: lean SDK + prefetch default

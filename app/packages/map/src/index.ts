@@ -19,7 +19,7 @@ export { baseAdapter, type MapHandle } from "./adapters/contract";
  *  offering different layers. */
 //  (T282) the colours a legend reads without the map (salmon, gear, runs, temperature), the layer switches and the
 //  imagery endpoints are @app/map/colours' alone
-export { STYLE_META, FIELD_HANDOVER_Z, resolveTheme, waterStatusColour, tidalColours, notFishingColours } from "./style";
+export { STYLE_META, FIELD_HANDOVER_Z, resolveTheme, shadeHex, waterStatusColour, tidalColours, notFishingColours } from "./style";
 /** The one palette, read: a token's colour, its alpha, and MapLibre's controls from it. */
 export { colour } from "./chrome";
 /** The route overlay (owner 2026-10-21): routes copied out of the tiles, pins, and their words' slots. */

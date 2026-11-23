@@ -11,7 +11,7 @@ import { validateStyleMin } from "@maplibre/maplibre-gl-style-spec";
 import type { DayProfiles } from "@app/core";
 import { baseAdapter, type MapHandle } from "../packages/map/src/adapters/contract";
 import { paintFor } from "../packages/map/src/paint";
-import { NO_VALUES, STYLE_META, colorExpression, resolveTheme, themeNames, type ChannelValues }
+import { NO_VALUES, STYLE_META, colorExpression, resolveTheme, shadeHex, themeNames, type ChannelValues }
   from "../packages/map/src/style";
 import { runtimeStyle } from "../packages/map/src/runtime-style";
 
@@ -20,37 +20,44 @@ const NO_CLOSURES: DayProfiles = { closed: [], own: ["p2"], base: ["b", "p0", "p
 /** The channel values with only a day installed. */
 const day = (d: DayProfiles): ChannelValues => ({ ...NO_VALUES, status: d });
 
-/** The expression the mode must produce, written out from the theme's tokens. */
-const expected = (theme: string, d: DayProfiles): unknown[] => {
+/** The expression the mode must produce, written out from the theme's tokens. `shade` (T467): the lake's edge, each
+ *  colour drawn `shade.lake.edge` off its token (`shadeHex`). */
+const expected = (theme: string, d: DayProfiles, shade = false): unknown[] => {
   const t = resolveTheme(theme);
+  const c = (k: string) => (shade ? shadeHex(String(t[k]), t["shade.lake.edge"] as number) : t[k]);
   const out: unknown[] = ["match", ["coalesce", ["feature-state", "p"], ""]];
-  if (d.closed.length) out.push([...d.closed], t["color.status.closed"]);
-  if (d.own.length) out.push([...d.own], t["color.status.own"]);
-  if (d.base.length) out.push([...d.base], t["color.status.base"]);
-  if (d.no_access.length) out.push([...d.no_access], t["color.status.no_access"]);
-  out.push(t["color.water.unmapped"]);
+  if (d.closed.length) out.push([...d.closed], c("color.status.closed"));
+  if (d.own.length) out.push([...d.own], c("color.status.own"));
+  if (d.base.length) out.push([...d.base], c("color.status.base"));
+  if (d.no_access.length) out.push([...d.no_access], c("color.status.no_access"));
+  out.push(c("color.water.unmapped"));
   return out;
 };
+/** (T467) Where a followed mode's colours are shaded: the lake's shoreline. */
+const SHADED = new Set(["lake__edge"]);
 
 describe("the profile colour mode", () => {
   it("is declared on every layer the status colours, and on its followers (lake outline, flow arrows), over water_status", () => {
     const has = Object.entries(STYLE_META.colorModes).filter(([, m]) => m["profile"]).map(([id]) => id).sort();
     expect(has).toEqual(["lake", "lake__edge", "lake_flowing", "stream", "stream__arrows", "wetland_flowing"]);
-    for (const id of has)
+    for (const id of has) {
+      // (T467) the lake's shoreline names its shade on each colour it follows
+      const r = (token: string) => (SHADED.has(id) ? { token, shade: "shade.lake.edge" } : { token });
       expect(JSON.stringify({ ...STYLE_META.colorModes[id]!["profile"], $comment: undefined }), id).toBe(JSON.stringify({
         label: "Status for the date", scale: "profile", property: "p", enum: "water_status",
-        categories: { closed: { token: "color.status.closed" }, own: { token: "color.status.own" },
-                      base: { token: "color.status.base" }, no_access: { token: "color.status.no_access" } },
-        missing: { token: "color.water.unmapped" }, data: { provider: "status", field: "profile" } }));
+        categories: { closed: r("color.status.closed"), own: r("color.status.own"),
+                      base: r("color.status.base"), no_access: r("color.status.no_access") },
+        missing: r("color.water.unmapped"), data: { provider: "status", field: "profile" } }));
+    }
   });
 
   it("paints the day as one match over its labels — closed, own, base, no access (T54); anything unplaced is unmapped grey", () => {
     for (const theme of themeNames())
       for (const layer of ["stream", "stream__arrows", "lake", "lake__edge", "lake_flowing", "wetland_flowing"]) {
         expect(colorExpression(layer, "profile", resolveTheme(theme), day(DAY)), `${theme} ${layer}`)
-          .toEqual(expected(theme, DAY));
+          .toEqual(expected(theme, DAY, SHADED.has(layer)));
         expect(colorExpression(layer, "profile", resolveTheme(theme), day(NO_CLOSURES)), `${theme} ${layer}`)
-          .toEqual(expected(theme, NO_CLOSURES));
+          .toEqual(expected(theme, NO_CLOSURES, SHADED.has(layer)));
       }
     const t = resolveTheme("light");
     expect(colorExpression("stream", "profile", t, day(DAY))).toEqual(
