@@ -91,3 +91,6 @@ already carries that model's last good runs and does not save a partial answer f
 `forecastFailed`), so the "zero-row carry + state save" follow from the throw; nothing else changed there. An honest
 empty layer (`features: []`) is still out of season. Test: `test/forecast.errors.test.ts` (2; mutation: the error-key
 check removed fails it). Not deployed (staging deploys from this branch only after review).
+
+## State 2026-11-22 (stopped for credits, lane L5)
+Done: item 4 worker half (PR #41, `fix/T552-forecast-error-body`, 683f2d7d2). Left: items 5, 7, 8 (app / review / core); not deployed.
