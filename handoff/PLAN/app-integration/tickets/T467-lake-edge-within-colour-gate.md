@@ -58,6 +58,9 @@ a map-style design change, not a one-answer fix.
   shorelines as thin lines (light 8.5, dark 4.5, worst vision); `other` a shoreline against every other status line
   (light 5.5, dark 4.5). **Default taken: the colour-blind theme keeps its solid edge (shade 0)** — that theme exists for
   exactly the readers the shade costs. The owner may want the band there too, or a smaller shade in light/dark.
+- **Over satellite** (T940's set, merged 2026-11-23) the shoreline is NOT shaded: there the lake's fill fades and its
+  outline is the status line itself, in the satellite set's own colour (`onImageryTokens` sets the shade to 0;
+  `tools/satellite-status.test.ts` caught the clash on the merge).
 - **Tests:** `lake-shade.test.ts` (shadeHex; every followed mode shaded, plain and cvd not; fails with the layer's shade
   removed), the gate above, and the pins that wrote the edge as the fill's own colour updated to the shade
   (`lake-outline`, `profile-style`, `colouring`, `finfish-paint`; the frozen `midzoom` fixture's light/dark `lake__edge`

@@ -5,7 +5,7 @@
  * The colour gate for the shaded edges is tools/status-colours-distinct.test.ts ("(T467)").
  */
 import { describe, expect, it } from "vitest";
-import { colorExpression, resolveTheme, shadeHex, STYLE_META } from "./style";
+import { colorExpression, onImageryTokens, resolveTheme, shadeHex, STYLE_META } from "./style";
 
 /** Every colour string an expression paints. */
 const colours = (e: unknown): string[] =>
@@ -41,6 +41,13 @@ describe("(T467) the lake's edge paints a shade of every colour it follows", () 
         const plainFill = String(t["color.lake.fill"]).toUpperCase();
         expect([th, m, edge]).toEqual([th, m, fill.map((c) => (c === plainFill ? String(t["color.water.mapped"]).toUpperCase() : shadeHex(c, k)))]);
       }
+    }
+  });
+
+  it("over satellite the shoreline is the satellite set's own colour, unshaded (T940: the line carries the lake there)", () => {
+    for (const th of ["light", "dark"]) {
+      const sat = onImageryTokens(resolveTheme(th));
+      expect([th, colours(colorExpression("lake__edge", "standing", sat))]).toEqual([th, colours(colorExpression("lake", "standing", sat))]);
     }
   });
 

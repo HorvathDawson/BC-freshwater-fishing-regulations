@@ -397,13 +397,16 @@ const IMAGERY_STATUS_SWAP: Readonly<Record<string, string>> = {
  */
 export const IMAGERY_WATER_LAYERS: ReadonlySet<string> = new Set(
   ["stream", "stream__arrows", "lake", "lake__edge", "lake_flowing", "wetland_flowing"]);
-/** `t` with the status colours as they are over satellite imagery. */
+/** `t` with the status colours as they are over satellite imagery. (T467) And the lake's shoreline UNSHADED there: over a
+ *  photograph the lake's fill fades and its outline is the status line itself, in the satellite set's own colour (T940). */
 export function onImageryTokens(t: Tokens): Tokens {
   const out: Tokens = { ...t };
   for (const [from, to] of Object.entries(IMAGERY_STATUS_SWAP)) {
     if (t[to] === undefined) throw new Error(`satellite: token ${to} missing from the theme`);
     out[from] = t[to]!;
   }
+  if (t["shade.lake.edge"] === undefined) throw new Error("satellite: token shade.lake.edge missing from the theme");
+  out["shade.lake.edge"] = 0;
   return out;
 }
 
