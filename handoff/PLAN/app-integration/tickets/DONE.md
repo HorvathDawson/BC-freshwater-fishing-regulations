@@ -712,3 +712,4 @@ any row here that is not DONE or DROPPED. A reopened ticket's row moves back to 
 | T594 | Satellite view is not hidden by the stream lines | DONE | dcfbf8f29 | — |
 | T598 | "Days in 10" replaces the percentile wherever the reader sees it | DONE | eb4bf2168 | — |
 | T610 | A "same place" grouping writes why on the place (the Serpentine link had no note) | DONE | 459e01458, 304feaeec | — |
+| T465 | Water map: boundary labels with different words overlap zoomed out (Fraser top, z5.5) | DONE | 4cdf3245f | closed by the owner's rule 2026-11-22 (T997 round 2: only the lit part's two ends, hung apart); PR #51 closed unmerged |
