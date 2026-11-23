@@ -732,3 +732,4 @@ any row here that is not DONE or DROPPED. A reopened ticket's row moves back to 
 | T946 | Tier 2 tributary lines: 20 parts (Lake Revelstoke tributaries DV, Iverson Creek) not what their rail sets | DONE | 67ed64d77 | — |
 | T973 | Classified Waters carried through a tributary whose own row prints no unit, with its path (class, source, through); "may need" note; CO question open | DONE | 9475cfdb0, e04d6d87b, bf28dbc76, 28eaf73e9, 71403fec6, bbce17168 | — |
 | T971 | Conditions: picking Level in the gauge card also re-ranks the estimate card above it | DONE | 2a2aa0e75 | — |
+| T809 | A tool that lists every answer that changed between two releases, in plain words, as one page for the owner | DONE | 9c033d495, dac013480, a3f9a7fb3, 0b936544f, 8bfd53567, 372bde554, 46c18af28, 8c4620fcd | — |

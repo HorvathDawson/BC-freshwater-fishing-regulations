@@ -1,6 +1,6 @@
 # T809 — A tool that lists every answer that changed between two releases, in plain words, as one page for the owner
 
-Status: PARTIAL — the tool landed (9c033d495, merge dac013480), its leftovers 2026-11-17 (a3f9a7fb3, 0b936544f, 8bfd53567; review fixes 372bde554, 46c18af28) and it reads across the cutover (8c4620fcd). left (Claude): the cutover diff itself (spec section 7 point 2, step 11) is not recorded as run: run it from the last pre-cutover release to the first cutover release, or record why it is moot now that 0.8.0 shipped.
+Status: DONE — 9c033d495, a3f9a7fb3, 0b936544f, 8bfd53567, 372bde554, 46c18af28, 8c4620fcd (the tool and its leftovers); the cutover diff run and recorded 2026-11-22 (below). One finding became T1018.
 
 Source: the trout table build spec, `handoff/PLAN/design/trout-table-build-spec-2026-11-16.md`, section 5 ticket K and
 section 7; owner 2026-11-16 15:42, asked how to start: "Start steps 1 and 2" (step 2 = this tool). Today the
@@ -77,3 +77,19 @@ read "unclear"; card rows and shared limits fall into the catch-all.
 - Real pair rerun (51 s, 3.1 GB): the same 125,974 / 153,387 sections. Shared limits went from 32 sections to 0;
   those were artefacts already explained by the rainbow's own size change. Card rows went from 26 to 0 (now "other":
   stamps). Regs "other" went from 1,327 to 1,369.
+
+## 2026-11-22: the cutover diff, run and recorded (lane L13, 0.9.0 batch)
+`python -m pipeline.tools.audit.answers_diff` on the last pre-cutover-format release r-fec3fab4c5aa (production 0.8.4's
+data: old formats) and the first packed-format release r-741815c6090d (min app 0.8.4; the one carrying the trout table
+section), same atlas (section handles match by id), via `scripts/heavy.sh` lane 2: 1 minute, exit 0, 1,957,010 sections.
+- 28,715 sections changed in 11 groups. 1 of them is Lost Lagoon (1 section): a local rule now closes it, so its bass,
+  crappie, crayfish, kokanee, whitefish and trout rows go from "keep N" to closed, its two size rules are gone, and its
+  salmon answer is now "closed by the rule book" instead of the Region 2 default (same words for the angler: closed).
+  That is the book's Lost Lagoon rule arriving in the data, not a cutover effect.
+- The other 28,714 sections (314 waters, 26,921 unnamed stretches) are ONE group, "other", the licence frame:
+  `alien_closures[0].rule` differs on both sides (before and after read the same on the page: both print no licence
+  line). The tool names the field path but cannot say if it is a ref it did not resolve or a real change: T1018.
+- Not one trout or char answer changed across the cutover (no closes / opens / limits groups on trout rows other than
+  Lost Lagoon's): the table reads as the old card did. Output kept in the lane's scratchpad only (diff.json, diff.txt,
+  owner.md; not committed: 3 GB-class decode, reproducible with the command above).
+

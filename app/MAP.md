@@ -35,7 +35,10 @@ data/release/r-*/ (R2 in production)
                    │    Standard / Salmon toggle (`useSalmonColour` → the colouring engine's `salmon` channel)
                    ├─ offline (T238, `release/offline.ts`): More → Offline maps — the regulations for all of B.C. (never
                    │    per region; web: what the release cache holds), the province map, `@app/ui` `useOfflineMaps`
-                   └─ RegsStore (regs/store.ts): water + regs-<region> + regs-sid
+                   └─ RegsStore (regs/store.ts): water + regs-<region> + regs-sid (the regs files are `regs-region/2`: a
+                         `trout` section holds the trout and char TABLE, T810; core `regs/trout.ts` `troutOf` only composes
+                         the day slot and the screen-reader labels, ui-native `regs/TroutCard.tsx` draws it; Python writes
+                         every word, number and date, a refused frame is reported, never drawn as the old card)
                          (T910: the rules, `reads.rules()`, are inflated in a worker on the web — `regs/rulesDecode.web.ts`
                          over fflate's own UMD build, `fflateWorker.generated.ts`; the phone's `rulesDecode.native.ts` as before)
                          └─▶ @app/ui hooks ─▶ @app/ui-native screens ─▶ apps/mobile App.tsx
