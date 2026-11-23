@@ -1,0 +1,44 @@
+T1042 samples from the LIVE release r-741815c6090d (built as of 2026-11-23): (a) the description as built now, (b) a description from the year strip (open windows) + the same stable facts + the strip's own marks.
+All 19766 water pages: (a) without facts = 448; (b) without facts = 99.
+
+Coquitlam River: /water/coquitlam-river
+  (a) Coquitlam River fishing regulations, B.C. (near Port Coquitlam, Region 2): Kokanee · release; Whitefish · 15 a day; No powered boats on parts.  [142]
+  (b) Coquitlam River fishing regulations, B.C. (near Port Coquitlam, Region 2): Open Jul 1–Apr 30; Kokanee · release; Whitefish · 15 a day.  [134]
+  year runs: [["open 120","closed 61","open 184"],["open 120","closed 61","open 184"],["open 120","closed 61","open 184"]]
+
+Chilliwack / Vedder: /water/vedder-river
+  (a) Vedder River fishing regulations, B.C. (Region 2): Kokanee · release; Whitefish · 15 a day; Hooks: One hook, lure or fly, Single barbless hook, no trebles.  [155]
+  (b) Vedder River fishing regulations, B.C. (Region 2): Open Jul 1–May 31; Kokanee · release; Whitefish · 15 a day; fly fishing only; bait ban.  [138]
+  year runs: [["open 151","closed 30","open 184"],["open 151","closed 30","open 184"]]
+
+Capilano River: /water/capilano-river
+  (a) Capilano River fishing regulations, B.C. (near West Vancouver, Region 2): its season, what you can keep, gear and limits, from the B.C. synopsis.  [145]
+  (b) Capilano River fishing regulations, B.C. (near West Vancouver, Region 2): bait ban.  [83]
+  year runs: [["open 365"],["closed 365"],["closed 365"]]
+
+A lake: Lac Le Jeune: /water/lac-le-jeune
+  (a) Lac Le Jeune fishing regulations, B.C. (near Lac Le Jeune, Region 3): Kokanee · 5 a day; Whitefish · 15 a day; Speed limit 20 km/h.  [131]
+  (b) Lac Le Jeune fishing regulations, B.C. (near Lac Le Jeune, Region 3): Open all year; Kokanee · 5 a day; Whitefish · 15 a day; Speed limit 20 km/h.  [146]
+  year runs: [["open 365"]]
+
+A stream closed in winter: /water/hamilton-creek-r1
+  (a) Hamilton Creek fishing regulations, B.C. (near Qualicum Beach, Region 1): Kokanee · release; Bass · no limit.  [109]
+  (b) Hamilton Creek fishing regulations, B.C. (near Qualicum Beach, Region 1): Open Jun 1–Jul 14, Sep 1–Nov 30; Kokanee · release; Bass · no limit; bait ban.  [152]
+  year runs: [["closed 151","open 44","closed 48","open 91","closed 31"]]
+
+A water with no stable facts now (a): /water/rugged-creek
+  (a) Rugged Creek fishing regulations, B.C. (near Zeballos, Region 1): its season, what you can keep, gear and limits, from the B.C. synopsis.  [137]
+  (b) Rugged Creek fishing regulations, B.C. (near Zeballos, Region 1): Open May 1–Oct 31; bait ban.  [94]
+  year runs: [["closed 120","open 184","closed 61"]]
+
+A water with none under (b) either: /water/brunette-river
+  (a) Brunette River fishing regulations, B.C. (near New Westminster, Region 2): its season, what you can keep, gear and limits, from the B.C. synopsis.  [146]
+  (b) Brunette River fishing regulations, B.C. (near New Westminster, Region 2): its season, what you can keep, gear and limits, from the B.C. synopsis.  [146]
+  year runs: [["open 365"],["closed 365"],["open 365"]]
+
+Notes
+- (b) takes the open windows from the part's year strip (the presenter's closed/open runs over the calendar year, wrap joined: "Jul 1–Apr 30"), only when every part has the same windows, then the same stable facts as (a), then the strip's own marks (fly fishing only, bait ban; the legend's plain open/closed left out). No "today", no build-day line; the windows are the synopsis year's.
+- The window is "open to fishing at all", not "trout open": the strip is per water, not per species. A species window would need the trout table's own year, not tried here.
+- Where the parts differ (Capilano: part 1 open all year, parts 2 and 3 closed all year) there is no single window, so (b) keeps only what all parts share.
+- Counts over all 19,766 water pages of the live release: no fact under (a) = 448; no fact under (b) = 99.
+- (b) was computed in a throwaway test over this release; no description code changed.
