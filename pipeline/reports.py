@@ -107,9 +107,18 @@ def parse_when(s: str) -> datetime | None:
 
 def read_state(path: Path = STATE) -> dict:
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return {}
+        text = path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return {}                                   # no check yet: the default look-back is the honest answer
+    except OSError as e:
+        raise SourceError(f"{path} could not be read ({e}): fix or delete it") from e
+    try:
+        state = json.loads(text)
+    except ValueError as e:
+        raise SourceError(f"{path} is not valid JSON ({e}): fix or delete it, a silent default would hide days of reports") from e
+    if not isinstance(state, dict):
+        raise SourceError(f"{path} does not hold a JSON object: fix or delete it")
+    return state
 
 
 def write_state(state: dict, path: Path = STATE) -> None:
@@ -144,6 +153,17 @@ def http_get_json(url: str, token: str, opener=None, timeout: int = 30):
         raise SourceError(f"{url.split('?')[0]} could not be read ({e})") from e
 
 
+def partial_notes(path: str, body: dict) -> list[str]:
+    """(T609 W10) the worker says when its list is not whole: `truncated` (stopped at its cap) and `skipped` (records it
+    could not read). Either makes the source PARTIAL, never "read"."""
+    out = []
+    if body.get("truncated"):
+        out.append(f"{path} is PARTIAL: the list was truncated (stopped at its cap or `since` is past its reach)")
+    if body.get("skipped"):
+        out.append(f"{path} is PARTIAL: {body['skipped']} record(s) skipped (could not be read)")
+    return out
+
+
 def worker_section(env: str, since: str, texts: dict[str, str], opener=None) -> Section:
     base, token_file = WORKERS[env]
     sec = Section(f"worker-{env}")
@@ -162,6 +182,7 @@ def worker_section(env: str, since: str, texts: dict[str, str], opener=None) -> 
         reps = body.get("reports") if isinstance(body, dict) else None
         if not isinstance(reps, list):
             raise SourceError("/reports holds no report list")
+        problems += partial_notes("/reports", body)
         for r in reps:
             c = r.get("context") or {}
             where = c.get("water") or c.get("place") or ""
@@ -176,6 +197,7 @@ def worker_section(env: str, since: str, texts: dict[str, str], opener=None) -> 
         crs = body.get("crashes") if isinstance(body, dict) else None
         if not isinstance(crs, list):
             raise SourceError("/crashes holds no crash list")
+        problems += partial_notes("/crashes", body)
         for c in crs:
             h = str(c.get("hash") or "")
             sample = c.get("sample") or {}
@@ -329,7 +351,11 @@ def main(argv: list[str] | None = None, *, now: datetime | None = None, opener=N
         print(f"unknown source(s) {bad}; known: {', '.join(SOURCES)}", file=sys.stderr)
         return 2
     now = now or datetime.now(timezone.utc)
-    state = read_state(state_path)
+    try:
+        state = read_state(state_path)
+    except SourceError as e:
+        print(f"reports: {e}", file=sys.stderr)
+        return 2
     since = since_date(a.since, state, now)
     sections = collect(only, since, DEFAULT_DAYS, now, ticket_texts(tickets_dir), opener=opener, runner=runner,
                        session=session)

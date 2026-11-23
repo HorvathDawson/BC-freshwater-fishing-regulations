@@ -184,3 +184,33 @@ def test_ids_too_short_never_match_prose():
 
 def test_unknown_source_is_refused(env):
     assert R.main(["--only", "nope"], now=NOW, tickets_dir=env.tickets, state_path=env.state) == 2
+
+
+def test_a_truncated_or_skipping_list_is_partial_not_read(env):
+    # mutation: ignoring `truncated` / `skipped` (the old code) reads the source clean and exits 0
+    rc, text = run(env, ["--only", "worker-prod", "--no-save"],
+                   routes={"/reports": {**REPORTS, "truncated": True, "skipped": 0},
+                           "/crashes": {**CRASHES, "truncated": False, "skipped": 3}})
+    assert rc == 1
+    assert "/reports is PARTIAL" in text and "truncated" in text
+    assert "/crashes is PARTIAL: 3 record(s) skipped" in text
+    assert "rep-aaaa1111" in text                                  # what did read is still shown
+
+
+def test_a_partial_source_does_not_move_the_last_check(env):
+    run(env, ["--only", "worker-prod,worker-staging,testflight,play"],
+        routes={"/reports": {**REPORTS, "truncated": True}, "/crashes": CRASHES})
+    assert not env.state.exists()
+
+
+def test_a_corrupt_last_check_file_is_named_not_treated_as_empty(env, capsys):
+    # mutation: the old read_state returned {} here and silently looked back 14 days
+    env.state.parent.mkdir(parents=True, exist_ok=True)
+    env.state.write_text("{not json")
+    rc, text = run(env, ["--only", "worker-prod", "--no-save"])
+    assert rc == 2 and text == ""
+    assert str(env.state) in capsys.readouterr().err
+    with pytest.raises(R.SourceError, match="last.json"):
+        R.read_state(env.state)
+    env.state.unlink()
+    assert R.read_state(env.state) == {}                           # no file at all is a first run, said by default
