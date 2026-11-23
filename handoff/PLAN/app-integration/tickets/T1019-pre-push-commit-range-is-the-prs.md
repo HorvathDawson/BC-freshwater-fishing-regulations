@@ -1,6 +1,6 @@
 # T1019 — The pre-push commit check reads the PR's range (`merge-base(origin/main, HEAD)..HEAD`), not `<remote old>..<local>`
 
-Status: OPEN.
+Status: DONE (44f689ba1, lane L6, 2026-11-22: `before_push.pushed` ranges from the merge base; `test_the_commit_messages_of_what_is_pushed_are_checked_first` pins an updated branch, and fails with the old range).
 
 Source: 0.9.0 batch brief (lane L6, 2026-11-22).
 

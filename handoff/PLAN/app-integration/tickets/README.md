@@ -295,7 +295,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1015 | Google's renderer runs the web app on cached old releases: does the indexed page show the app's boot error? | OPEN — next release batch | | Search Console rendered-page check, then the fallback if needed |
 | T1016 | Web: a tab kept open across two releases (or a site deploy) meets 404s on pruned files / a gone chunk: say it, reload | OPEN — next release batch | | all |
 | T1017 | Two one-report defects to locate: `expression.evaluate is not a function` (web), iOS "Unable to open URL" on Runs | OPEN — next release batch | | both; item 1 after T1008 |
-| T1019 | The pre-push commit check reads the PR's range (`merge-base(origin/main, HEAD)..HEAD`, as docs-ci), not `<remote old>..<local>` | OPEN | | depends T995, T998; 0.9.0 batch brief (lane L6, 2026-11-22) |
+| T1019 | The pre-push commit check reads the PR's range (`merge-base(origin/main, HEAD)..HEAD`, as docs-ci), not `<remote old>..<local>` | DONE | 44f689ba1 | depends T995, T998; 0.9.0 batch brief (lane L6, 2026-11-22) |
 
 ## Next after closed testing
 
