@@ -21,6 +21,13 @@ place label ("B.C. Synopsis p.9 · Skeena River"), the chips, the download list 
 the fixture pages with the cited pages per block against the base branch, conformance `sourceLine.fixture.test.ts`); the trout
 line and the salmon book closures reach the foot row (`drawnRegsOf`'s drawn lines); no silent default (trout sources required,
 the sheet title required, no unlinked salmon closure).
+#69 re-review (47f921746): the trout table's line is "Source  Who says so ›" with no page of its own — a Source line cites what
+its block draws, and the table draws none (a row's `src` lists every rule behind it without saying which it shows; the app
+never cuts it), so citing its sheet's pages listed p.6 on the Vedder (the steelhead quota and record duty the table never says).
+The pipeline's own words follow the rename through `pipeline/common/source_names.py` (held equal to the app's name,
+`test_source_names.py` refuses "rule book" in what deliver writes): the outside-area note ("its closure (B.C. Synopsis p.9) does
+not apply here") and the salmon book verdicts ("Closed to all fishing by the B.C. Synopsis (p.N): …") — NEEDS THE 0.9.0 DATA
+RELEASE (they are written into the bundle and the salmon file).
 
 Source: owner 2026-11-22 ~23:55 (the T991 round-2 answer, recorded verbatim in T991): "We also should clean up our inline
 sources. Right now the way they display is inconsistent.... We still want to have the break down source like the sheet in
