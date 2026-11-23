@@ -1,6 +1,6 @@
 # T1040 — A stale side atlas still vouches for a proposal after its cut moves
 
-Status: OPEN — 0.9.0 batch
+Status: DONE — 14f0d682e (2026-11-23)
 
 Source: independent review of PR #48 (T779), 2026-11-23: a low finding, older than that PR.
 
@@ -17,3 +17,17 @@ Trust a side atlas only when it was built from the cuts as they would land now. 
 (`split_anchors.json`, `splits.anchor_digest`). Each cut the proposal's chain adds, moves or names must have the same
 anchor digest in that record as in the cut file with the chain applied. Otherwise the atlas is stale and the side
 rebuild is asked for again. Test: a moved-cut case, proved by mutation.
+
+## Done 2026-11-23 (14f0d682e)
+I chose the atlas's own cut record over folding the split digests into `side_dir`. A digest covers only cuts that are
+still proposals; a cut that already landed and then moved changes no proposal digest at all. The record covers both, and
+it is per cut, so an unrelated cut landing elsewhere does not stale a side atlas.
+- `proposals.stale_cuts` / `atlas_holds_chain`: each cut of the chain (`chain_cuts`: a split edit, a `split_flag`, a cut
+  an extent names) has the same anchor digest in the atlas's `split_anchors.json` as in the cut file with the chain's cut
+  edits made. An atlas that keeps no record is not trusted.
+- `side_ready(p, props)` and the `--build` / `CURATION_BUILD` atlas in `apply_proposals.side_atlas` both require it.
+  A stale one asks for the side rebuild again.
+- On the served atlas, the Middle Shuswap cuts read fresh against the cut file (no false stale).
+- Tests: `test_review_stale_side_atlas.py`. A new cut moved on the same anchor (same id, same `side_dir`) is not ready; a
+  landed cut that moved is not ready; a label edit is still ready; an atlas with no record is not trusted; a named atlas
+  is used only when it holds the cut where it lands. Five mutations, all killed.
