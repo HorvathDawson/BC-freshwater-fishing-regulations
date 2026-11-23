@@ -116,12 +116,15 @@ export function otherFishOf(card: CardModel, inp: RegsInputs, fish: FishManifest
     const r = card.rows[ix]!, g = r.raw.group;
     const hasSize = g ? SIZE_IN_GROUP.test(JSON.stringify(g.tree ?? g.kinds ?? [])) : sizeInItems(r);
     const from = downLine(rowDown(r, { card, settled, inp, seams }));
+    const thumb = r.members.find((c) => (fish[c]?.length ?? 0) > 0) ?? null;
     return {
-      thumb: r.members.find((c) => (fish[c]?.length ?? 0) > 0) ?? null,
+      thumb,
       name: rowTitle(r, inp), value: shortValue(r.kind, r.daily), tone: r.kind,
       week: r.raw.week?.status ?? null,
       sizeHint: hasSize && r.kind === "keep" ? WORDS.SIZE_HINT : null,
       open: `other:o${i}`,
+      // (T1031) its picture opens the row's species sheet on Identification (the row, on Sources)
+      ...(thumb !== null ? { id: `other:o${i}|id` as const } : {}),
       stamps: (r.raw.stamps ?? []).map(stampLine),
       back: backOf(r),
       ...(from ? { from } : {}),

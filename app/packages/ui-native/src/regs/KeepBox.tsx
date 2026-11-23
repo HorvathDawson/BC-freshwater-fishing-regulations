@@ -62,6 +62,9 @@ export type KeepRowVM = Pick<TroutRow, "key" | "name" | "label" | "sub" | "lines
   /** (T907) the row's tributary source (`TRow.tag`, "Trout Lake’s tributaries"), a tag beside the name in the box tag's
    *  look ("Lake’s rule"); absent or null: none */
   readonly tag?: string | null;
+  /** (T1031) the row's own press beside its picture's: the fish's species sheet on Sources (its picture opens it on
+   *  Identification, `pic.onPress`). Absent: the whole row is the picture's press, as before */
+  readonly open?: () => void;
 };
 /** One band of the right column, with its DateSet band text. */
 export type KeepBandVM = Pick<TroutBand, "from" | "to" | "text" | "kind"> & { readonly date?: string | null };
@@ -150,9 +153,8 @@ function Row({ r, palette, faded, mark, first, under, band, testID }: {
   under: readonly KeepBandVM[]; band: readonly string[]; testID: string }) {
   const style = { flexDirection: "row", columnGap: 6, paddingVertical: 4, paddingLeft: 4, minHeight: 44,
                   ...(first ? {} : { borderTopWidth: 1, borderTopColor: palette.line }) } as const;
-  const body = (
-    <>
-      <Tile pic={r.pic} mark={mark} faded={faded} palette={palette} />
+  const tile = <Tile pic={r.pic} mark={mark} faded={faded} palette={palette} />;
+  const words = (
       <View style={{ flex: 1, minWidth: 0, paddingVertical: 2, paddingRight: 8 }}>
         <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 6, rowGap: 2 }}>
           <Text testID="keep-name" style={{ ...NAME, ...(faded ? { fontFamily: TYPE.regsBody.fontFamily } : {}), color: palette.ink }}>{r.name}</Text>
@@ -172,12 +174,25 @@ function Row({ r, palette, faded, mark, first, under, band, testID }: {
           </View>
         ))}
       </View>
-    </>
   );
+  // (T1031, owner 2026-11-22) two presses, one sheet: the picture opens the fish's species sheet on Identification (named
+  // as the picture is: "<fish> — what it looks like"), the rest of the row on Sources (named by the row's one label)
+  // (review 3) the row's padding sits inside each press, so each press itself holds the 44 px it declares
+  if (r.pic?.onPress && r.open) {
+    const { paddingVertical, minHeight, ...line } = style, own = { paddingVertical, minHeight } as const;
+    return (
+      <View testID={`${testID}:line`} style={line}>
+        <RegsPress testID={`${testID}:id`} accessibilityRole="button" accessibilityLabel={r.pic.label} box={{ w: TILE.w, h: minHeight }}
+                   onPress={r.pic.onPress} style={own}>{tile}</RegsPress>
+        <RegsPress testID={testID} accessibilityRole="button" accessibilityLabel={r.a11y ?? rowLabel(r, band)} box={{ w: 44, h: minHeight }}
+                   onPress={r.open} style={{ ...own, flex: 1, minWidth: 0, flexDirection: "row" }}>{words}</RegsPress>
+      </View>
+    );
+  }
   return r.pic?.onPress ? (
     <RegsPress testID={testID} accessibilityRole="button" accessibilityLabel={r.a11y ?? rowLabel(r, band)} box={{ w: TILE.w, h: 44 }}
-               onPress={r.pic.onPress} style={style}>{body}</RegsPress>
-  ) : <View testID={testID} style={style}>{body}</View>;
+               onPress={r.pic.onPress} style={style}>{tile}{words}</RegsPress>
+  ) : <View testID={testID} style={style}>{tile}{words}</View>;
 }
 
 /** A band's words, with its date small under them. */

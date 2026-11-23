@@ -65,7 +65,9 @@ function speciesRow(r: SalmonTableRowVM, actions?: KeepActions, images?: FishIma
   return { key: r.code, name: r.name, label: null, sub: null, lines: [],
            quiet: [...(r.quotaUnread ? [SALMON_WORDS.quotaUnread] : []), ...(r.limit ? [r.limit] : []), ...(r.from ? [r.from] : [])],
            pic: { source: o.src, more: SALMON_WORDS.more, label: WORDS.LOOKS_LIKE(o.name), testID: `pic:${r.code}`,
-                  onPress: () => actions?.onSheet(`sp:${r.code}`) } };
+                  onPress: () => actions?.onSheet(`sp:${r.code}`) },
+           // (T1031) the row opens the species sheet on Sources (DFO's places answering it, the book's closure), its picture on Identification
+           ...(actions ? { open: () => actions.onSheet(`sp:${r.code}|src`) } : {}) };
 }
 
 /** (T829) an open species' cell in the box's right band: its numbers today in the white box ("4 a day · only 2 over 50

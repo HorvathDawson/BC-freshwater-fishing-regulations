@@ -8,11 +8,14 @@ describe("parseSheetKey", () => {
     "srcs:gl|lines", "srcs:gl|hook", "srcs:gl|weight", "other:o0", "other:o12", "src:r3",
     // (T810 P) a trout row's fish sheet (the "/" of a twin row parses) and the table's every rule
     "tf:ST", "tf:DV", "tf:ST/hatchery", "tf:ST/wild", "tf:RB/hatchery", "src:trout",
+    // (T1031) the species sheet's other tab: a trout row's / an Other fish row's Identification, a fish's Sources
+    "tf:ST|id", "tf:ST/wild|id", "other:o3|id", "sp:CO|src", "sp:KO|src",
   ])("%s is a key", (k) => { expect(parseSheetKey(k)).toBe(k); });
   // (owner 2026-11-04) the licence sources sheet is removed: `licsrc:` is no key; (T698, owner 2026-11-12 "Remove the
   // screen") nor is `parts`, the Parts sheet
   it.each(["parts", "date", "kind:o0", "licsrc:adult", "licsrc:u16_alien", "licsrc:child", "srcs:gl|bait", "srcs:fish", "other:0", "rule:", "gl:", "src:o1", "",
-    "tf:", "tf:XX", "tf:st", "tf:ST/", "tf:ST/farm", "tf:ST/hatchery/wild", "tf:ST hatchery", "src:trouts"])("%j is refused", (k) => {
+    "tf:", "tf:XX", "tf:st", "tf:ST/", "tf:ST/farm", "tf:ST/hatchery/wild", "tf:ST hatchery", "src:trouts",
+    "tf:ST|src", "tf:ST|id|id", "other:o3|src", "other:o|id", "sp:CO|id", "sp:|src", "src:r0|id"])("%j is refused", (k) => {
     expect(parseSheetKey(k)).toBeNull();
   });
 });
@@ -25,6 +28,8 @@ describe("appKeyOf / goldenKeyOf (the golden embeds the state id; the app's keys
     ["gl:bait_ban", "gl:bait_ban"], ["sp:ST", "sp:ST"], ["hatch", "hatch"],
     // (T810 P) a fish sheet key carries no state id ("/" included); the table's sources key does, as a row's src: does
     ["tf:ST/hatchery", "tf:ST/hatchery"], ["tf:DV", "tf:DV"], ["src:vedder_1010|trout", "src:trout"],
+    // (T1031) the species sheet's tab keys: a row's Identification carries the state id as its row does
+    ["other:vedder_1010|o0|id", "other:o0|id"], ["tf:ST/wild|id", "tf:ST/wild|id"], ["sp:CO|src", "sp:CO|src"],
   ] as const)("%s ⇄ %s", (g, a) => {
     expect(appKeyOf(g, "vedder_1010")).toBe(a);
     expect(goldenKeyOf(a, "vedder_1010")).toBe(g);

@@ -5,7 +5,8 @@
  * A page shows a fish's picture where its Keep tab pictures it (every `FishPicVM` with a picture), where an Other fish row
  * thumbs it, and inside the sheet that row opens; each such picture opens the fish's `sp:` sheet, which shows EVERY picture
  * of that fish — so every picture of each reached fish is credited. (T810 cutover) The trout table pictures each row's fish
- * (`TroutRowVM.fish`) and its row opens the fish sheet (`tf:<row key>`, its "How to tell it" pictures): both credited.
+ * (`TroutRowVM.fish`) and its picture opens the fish sheet's Identification tab (`tf:<row key>|id`, T1031): both credited;
+ * an Other fish row's sheet is credited on both its tabs.
  * The lines are the manifest's (`FISH_CREDIT_OF`, emitted
  * by app/tools/emit-fish.mjs); nothing here words a credit. Not a regulation: no answer is decided here.
  */
@@ -29,11 +30,11 @@ export function creditsFor(page: RegsPage, fish: FishManifest = FISH,
   const t = page.keep.trout;
   if (t && t.kind === "table") for (const b of t.boxes) for (const r of b.rows) {
     codes.add(r.fish);
-    if (typeof page.sheet === "function") pictured(page.sheet(`tf:${r.key}`)?.blocks, codes);
+    if (typeof page.sheet === "function") pictured(page.sheet(`tf:${r.key}|id`)?.blocks, codes);
   }
   for (const row of page.keep.otherFish ?? []) {
     if (row.thumb !== null) codes.add(row.thumb);
-    if (typeof page.sheet === "function") pictured(page.sheet(row.open)?.blocks, codes);
+    if (typeof page.sheet === "function") for (const k of [row.open, row.id]) if (k) pictured(page.sheet(k)?.blocks, codes);
   }
   const lines = new Set<string>();
   for (const c of codes) for (const img of fish[c] ?? []) { const l = creditOf[img.file]; if (l !== undefined) lines.add(l); }
