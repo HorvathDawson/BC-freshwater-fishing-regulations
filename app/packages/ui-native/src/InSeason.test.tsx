@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 // (T909) the bell and the refresh button are the phone bar's (`BarControls.native`); the web twin draws neither
 vi.mock("./BarControls", async () => await import("./BarControls.native"));
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { appUpdateVM, bellLabel, inSeasonBanner, inboxDetail, inboxMerge, inboxRead, inboxVM, joinInSeason, releaseNoticeVM,
+import { appUpdateVM, bellLabel, inSeasonBanner, inboxDetail, inboxMerge, inboxObserve, inboxRead, inboxVM, joinInSeason, releaseNoticeVM,
          type InSeasonFeed, type InSeasonRow } from "@app/core";
 import { InSeasonInboxContext } from "@app/ui";
 import { InSeasonBanners } from "./regs/InSeasonBanner";
@@ -216,7 +216,7 @@ describe("T700: the bell's in-season inbox", () => {
     const seen: string[] = [];
     const inbox = { vm: o.vm ?? inboxVM(state, TODAY), detail: o.detail ? inboxDetail(state, o.detail, TODAY) : null,
                     failure: o.failure ?? null, pick: (id: string) => { seen.push(`pick ${id}`); },
-                    back: () => { seen.push("back"); }, readAll: () => { seen.push("all"); } };
+                    back: () => { seen.push("back"); } };
     render(<InSeasonNotice open palette={LIGHT} onClose={() => {}} inbox={inbox} />);
     return seen;
   };
@@ -233,15 +233,24 @@ describe("T700: the bell's in-season inbox", () => {
     expect(screen.getAllByTestId("inbox-row")[0]!.getAttribute("aria-label"))
       .toBe("Unread. New: Okanagan River, Region 8, first seen Nov 13. Not on the map yet. No fishing on Okanagan River");
   });
-  it("a row's tap and Mark all as read go to the hook", () => {
+  it("a row's tap goes to the hook; there is no Mark all as read (opening reads, T867)", () => {
     const seen = draw();
     fireEvent.click(screen.getAllByTestId("inbox-row")[1]!);
-    fireEvent.click(screen.getByLabelText("Mark all as read"));
-    expect(seen).toEqual(["pick is-a", "all"]);
+    expect(seen).toEqual(["pick is-a"]);
+    expect(screen.queryByLabelText("Mark all as read")).toBeNull();
   });
-  it("nothing unread: no Mark all as read", () => {
+  it("(T867) the app's own updates are rows: the data release and the app version, no empty region or text line", () => {
+    const s = inboxObserve(inboxObserve(null, { release: { id: "r-1", day: "2026-11-10" }, app: "0.8.5" }, TODAY),
+                           { release: { id: "r-2", day: "2026-11-12", changed: 3 }, app: "0.9.0" }, TODAY);
+    const seen = draw({ vm: inboxVM(s, TODAY) });
+    expect(screen.getAllByTestId("inbox-row").map((r) => r.textContent)).toEqual([
+      "App updateNov 13Updated to 0.9.0",
+      "Data updateRegulations data updated Nov 123 waters changed"]);
+    fireEvent.click(screen.getAllByTestId("inbox-row")[1]!);
+    expect(seen).toEqual(["pick data:r-2"]);
+  });
+  it("nothing unread: only Earlier", () => {
     draw({ vm: inboxVM({ ...state, items: state.items.map((i) => ({ ...i, read: true })) }, TODAY) });
-    expect(screen.queryByTestId("inbox-read-all")).toBeNull();
     expect(screen.getAllByTestId("inbox-group").map((g) => g.textContent)).toEqual(["Earlier"]);
   });
   it("a notice opened with no one page: its text in the list's place, and back", () => {

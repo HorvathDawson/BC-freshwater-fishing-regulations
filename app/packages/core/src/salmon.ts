@@ -125,7 +125,14 @@ export interface SalmonPlace {
   /** (T573/T757) a closed area inside a DFO place, its own location (`deliver.salmon.build`); `bound`: it covers a section.
    *  The app knows a piece by this marker only, never by its id. Absent on an ordinary place and in an older release. */
   readonly piece?: 1; readonly bound?: 1;
+  /** (T754, owner 2026-11-22: "Other bank: the water's other rules") a placed DFO place worded for ONE BANK of its river:
+   *  the bank. It stands beside its sections' places (in their chains' `u`, never `l`), so the page answers by the water's
+   *  other rules and the card names the bank (`salmonCard` `side`). Absent on any other place and in an older release. */
+  readonly side?: SalmonBank;
 }
+/** (T754) the bank words, the rule book's `side` words */
+export const SALMON_BANKS = ["north", "south", "east", "west"] as const;
+export type SalmonBank = typeof SALMON_BANKS[number];
 /** (T796 A5, owner 2026-11-16) THE RULE BOOK'S FULL CLOSURE AS A PLACE (`book:<entry_id>::<rule_id>`, `~2` … when one rule
  *  closes different days on different sections): first in the chains of the stretches the book closes to all fishing,
  *  so salmon read closed there too (book p.77). A release-side place (`static`): DFO's feed never carries it, so under a
@@ -285,6 +292,9 @@ function checkPayload(P: Payload): Payload {
     runs(y.g, P.gears.length, `static ${lid} gear`, true);
   }
   for (const [lid, pl] of Object.entries(P.p ?? {})) if (isBook(pl) && !P.static?.[lid]) bad(`static place ${lid} has no year in static`);
+  // (T754) a one-bank place names a bank of the four
+  for (const [lid, pl] of Object.entries(P.p ?? {}))
+    if (!isBook(pl) && pl.side !== undefined && !SALMON_BANKS.includes(pl.side)) bad(`place ${lid}: bank ${String(pl.side)}`);
   for (const [lid, o] of Object.entries(P.off ?? {}))
     if (!o || !SALMON_OFF_KINDS.includes(o.k) || typeof o.w !== "string" || typeof o.r !== "string" || !Array.isArray(o.items))
       bad(`off ${lid}: not {why, k, r, w, items}`);
@@ -546,6 +556,10 @@ export const SALMON_WORDS = {
     closedInPart: "Closed today · to be determined in part",
     inPartCalm: "DFO has not set its salmon rules yet (“To be determined”) for a part of this water the map can’t draw yet: check DFO for where. Everywhere else, follow this page.",
   },
+  /** (T754, owner 2026-11-22) a DFO place for one bank of the river: its caveat item's place line ("West bank only") and
+   *  the caveat's calm line (the other bank reads this page) */
+  bankOnly: (side: SalmonBank) => `${side[0]!.toUpperCase()}${side.slice(1)} bank only`,
+  otherBankCalm: "On the other bank, this page’s salmon answer applies.",
   /** (T372) the caveat's water noun (only a boat rule's calm line says it; salmon has none) */
   waterNoun: "water",
   agency: "Fisheries and Oceans Canada",
@@ -797,6 +811,10 @@ export interface SalmonCardVM extends SalmonBlockVM {
   readonly caveat: CaveatVM | null;
   /** (T851) the DFO regions this card speaks for (region ids, sorted) */
   readonly regions: readonly string[];
+  /** (T754, owner 2026-11-22) DFO places on the page's stretch worded for ONE BANK of the river (`p[lid].side`): beside
+   *  the page's answer, never in it — the trout card's "on one side of the channel only" caveat (kind `side`), each item
+   *  the bank, the place in DFO's words and its rules. Absent / null: none (a hand-built card, an older release). */
+  readonly side?: CaveatVM | null;
   /** "Fisheries and Oceans Canada · Region 6 Skeena". */
   readonly source: string;
   /** (T1031 item 3) the DFO region pages the card reads ("Region 6 Skeena" and its page), for its Source line
@@ -1042,7 +1060,9 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     : salmonBlock(f, chains, day);
   // (T372, owner 2026-11-03: the trout way) PARTIAL COVERAGE: the rows keep the drawn answer; the DFO places on the
   // water not drawn yet — the water's own (`unmapped`) and those its chains name (`u`) — are the "in part" caveat
-  const undrawn = regionClosed ? [] : undrawnChains(f, chains, unmapped);
+  // (T754) a placed one-bank place rides its own sections' `u` too: beside the page's answer, its own caveat (`side`)
+  const beside = regionClosed ? [] : undrawnChains(f, chains, unmapped);
+  const undrawn = beside.filter((c) => !bankOf(P, c)), banks = beside.filter((c) => !!bankOf(P, c));
   const listed = chains.some((c) => c !== P.default);
   const regionsUsed = [...new Set([...chains.flatMap((c) => P.chains[c]!.r), ...unmapped.map((u) => u.r)])].sort();
   const named = regionsUsed.length ? regionsUsed : Object.keys(P.regions).sort();
@@ -1164,6 +1184,7 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
   // (T882) the page's "check" rows are all DFO's "To be determined": the headline says so (its colour stays the check one)
   const headTbd = headlineStatus === "check" && rows.every((r) => r.status !== "check" || r.statusLabel === SALMON_WORDS.tbd.status);
   const inPart = inPartBlock(undrawnEntries(f, undrawn, unmapped, day), SALMON_WORDS.waterNoun);
+  const side = sideBlock(f, banks, unmapped, day);
   const hours = block.allClosed ? null
     // (T668 Z4a) a two-region chain's `h`: the regions whose hours line holds there (the tighter, or both)
     : [...new Set([...new Set([...chains.flatMap((c) => P.chains[c]!.h ?? P.chains[c]!.r), ...unmapped.map((u) => u.r)])].sort()
@@ -1217,6 +1238,7 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     headline: part ? part.headline : headTbd ? SALMON_WORDS.tbd.headline : SALMON_WORDS.headline[headlineStatus], headlineStatus,
     notListed: listed || unmapped.length || unplaced.length || offs.length ? null : SALMON_WORDS.notListedLine,
     caveat: part && inPart ? { ...inPart, title: part.headline, calm: part.calm } : inPart,
+    side,
     dfoWords: regionClosed ? null : wordsOf(P, [...chains.flatMap((c) => [...P.chains[c]!.l, ...(P.chains[c]!.u ?? [])]),
                                                   ...unmapped.filter((u) => !u.d).flatMap((u) => P.chains[u.chain]?.l ?? [])]),
     // (T851) the DFO regions this card speaks for: the feed's read time for the card is theirs alone (`salmonReadAt`)
@@ -1238,7 +1260,7 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     // already list as not drawn is the in-part caveat's
     issues: banners,
     // one closed-all-year statement: the region's closure, or every place of the page closed every day, nothing undrawn
-    closedOnly: regionClosed || (!undrawn.some((c) => speaks(f, c))
+    closedOnly: regionClosed || (!beside.some((c) => speaks(f, c))
       && chains.every((c) => runsOf((i) => salmonDayStatus(f, c, i)).every((r) => r.status === "closed"))),
   };
 }
@@ -1452,7 +1474,8 @@ function undrawnChains(f: SalmonFacts, chains: readonly number[], unmapped: read
  * words), `where` the place, `what` its day as the folded place line said it, `detail` DFO's words for it (limits,
  * sizes, notes, gear). In force: the pipeline's `n` — the days DFO speaks for the place.
  */
-function undrawnEntries(f: SalmonFacts, undrawn: readonly number[], unmapped: readonly Unmapped[], day: number) {
+function undrawnEntries(f: SalmonFacts, undrawn: readonly number[], unmapped: readonly Unmapped[], day: number,
+                        where: (c: number, label: string) => string = (_c, label) => WORDS.WHERE(label)) {
   const P = f.payload, seen = new Set<string>();
   return undrawn.flatMap((c) => {
     const ch = P.chains[c]!, label = unmapped.find((u) => u.chain === c)?.w ?? ch.w;
@@ -1464,10 +1487,32 @@ function undrawnEntries(f: SalmonFacts, undrawn: readonly number[], unmapped: re
     const detail = [...tableRows(b.rows).flatMap((r) => [...(r.quota ? [`${r.name}: ${r.quota}`] : []), ...(r.limit ? [r.limit] : [])]),
                     ...tableSays(b.rows, b.allClosed).flatMap((x) => x.lines.map((l) => (x.label ? `${x.label}: ${l}` : l))),
                     ...b.closures, ...b.gear];
-    const item: CaveatItemVM = { what: [text(what)], where: WORDS.WHERE(label), rule: null, fish: null, book: [],
+    const item: CaveatItemVM = { what: [text(what)], where: where(c, label), rule: null, fish: null, book: [],
                                  ...(detail.length ? { detail } : {}) };
     return [{ item, now: at(ch.n, day) === 1 }];
   });
+}
+
+/** (T754) the bank of a placed one-bank place's own chain (`p[lid].side`, its one place), else undefined */
+function bankOf(P: Payload, c: number): SalmonBank | undefined {
+  const l = P.chains[c]?.l;
+  const pl = l?.length === 1 ? P.p?.[l[0]!] : undefined;
+  return pl && !isBook(pl) ? pl.side : undefined;
+}
+
+/**
+ * (T754, owner 2026-11-22: "Other bank: the water's other rules"; AGENTS rule 49) the one-bank places on the page's
+ * stretch as the trout card's side caveat (kind `side`, `WORDS.SIDE_TITLE`): each item "West bank only · <DFO's words>",
+ * its day and its DFO rules; those DFO speaks for today first, the rest under "Other dates". Null when there are none.
+ */
+function sideBlock(f: SalmonFacts, banks: readonly number[], unmapped: readonly Unmapped[], day: number): CaveatVM | null {
+  const u = undrawnEntries(f, banks, unmapped, day,
+                           (c, label) => `${SALMON_WORDS.bankOnly(bankOf(f.payload, c)!)} · ${label}`);
+  if (!u.length) return null;
+  const now = u.filter((x) => x.now), later = u.filter((x) => !x.now);
+  return { kind: "side", hot: now.length > 0, title: WORDS.SIDE_TITLE, calm: SALMON_WORDS.otherBankCalm,
+           items: (now.length ? now : later).map((x) => x.item),
+           later: now.length && later.length ? later.map((x) => x.item) : null };
 }
 
 /** A place's day in one line, as the folded place line says it: "Chinook open · coho · sockeye · pink · chum closed". */

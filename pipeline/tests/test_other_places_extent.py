@@ -188,9 +188,10 @@ def test_the_checklist_reads_the_list(monkeypatch, tmp_path):
     assert "stale" not in B.DONE_STATES, "a listed place is given the not-done state `stale` (`checks.dfo_rows`)"
 
 
-def test_the_review_app_names_the_places_it_covers_and_warns_when_there_is_only_one(monkeypatch):
-    """T611: with exactly ONE placed sibling the salmon chain orders the two by id (`deliver.salmon.chain_order`: tier,
-    fewer sections, id) — the app says so on the place, naming the ticket, until the chain has the rule"""
+def test_the_review_app_names_the_places_it_covers_and_no_longer_warns_on_one_sibling(monkeypatch):
+    """T607: the review app names the places "all the other places" covers. T611: with exactly ONE placed sibling it
+    used to warn that the salmon chain ordered the two by id; the chain now puts this place after the places it rides
+    on (`deliver.salmon.chain_order` `rides`, `test_t229_cascade_order.py`), so the warning is gone"""
     import sys
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "curation-review" / "backend"))
     sys.modules.pop("dfo", None)
@@ -207,7 +208,7 @@ def test_the_review_app_names_the_places_it_covers_and_warns_when_there_is_only_
     monkeypatch.setattr(BD, "_locations", lambda: world)
     got = BD.other_places_of(me)
     assert [o["id"] for o in got["others"]] == ["x:a"] and [o["id"] for o in got["others_unplaced"]] == ["x:b"]
-    assert "T611" in got["one_sibling"] and "words of a" in got["one_sibling"]
+    assert "one_sibling" not in got
     world["x:c"] = loc("c", [{"op": "rest"}])
     got = BD.other_places_of(me)
     assert [o["id"] for o in got["others"]] == ["x:a", "x:c"] and "one_sibling" not in got

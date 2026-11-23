@@ -1,6 +1,6 @@
 # T164 — Salmon (DFO) regulations: finish the dossier, place the splits, review the extents, fetch and place current quotas
 
-Status: OPEN — the owner's extent review is done: he finished labelling the DFO places 2026-11-15 (STATUS 2026-11-15, chat 13: 2,769 mark lines), built into release r-46e4355a7277 (staging 2026-11-16; 13 new cuts) and on production since r-6258ffded676 (2026-11-19); the 2026-11-16 audit found all 309 labelled places stored as saved and none reading open against its own DFO row. left (Claude): run and record the acceptance on the live release (dossier 0 open, splitwork active locators still needing a cut, a re-fetch that places every current quota or names why not, the Skeena / Fraser / Cowichan salmon rules with their dates), then close.
+Status: DONE — acceptance recorded on the live release r-741815c6090d (lane L10, 2026-11-22; see "Acceptance on the live release" below): dossier 0 open; the 5 active locators splitwork still lists need no cut (2 tidal, 3 lake parts); every active water place carries a mark but the 3 lake parts; today's re-fetch places all 275 live locations (0 unplaced, no changes); the Skeena, Fraser and Cowichan carry their dated salmon rules.
 
 Source: owner 2026-10-23: "make sure we have a ticket to finish the salmon dossier stuff and finish adding the splits
 needed for salmon regulations and doing all the curation review for the extents so that we could fetch the current
@@ -149,3 +149,25 @@ they now bind or resolved (Little Qualicum falls, Stamp inlet + powerline downst
 Creek); 5 re-proposed around the new cuts (Quatse ±100 m, three Stamp places, 5b region section). Counts: 52 on existing
 cuts, 47 whole water, 62 new splits (24 high / 20 medium / 18 low), 14 unresolvable. Owner time left as before: the
 177 in the review app's DFO mode; then Claude's reach-only rerun + binding diff.
+
+## Acceptance on the live release (lane L10, 2026-11-22)
+Live release r-741815c6090d; the bundle measured (`data/generated/bundle/bundle.sqlite`) carries its digests (entries
+44bf781096072665, reach 4b9b55b281500a68).
+- **Dossier:** `python -m pipeline.regs.dfo_salmon.dossier` -> "0 unresolved DFO waters".
+- **Splits:** `python -m pipeline.regs.dfo_salmon.splitwork` -> 14 waters with place-naming locators, 5 ACTIVE locators
+  "need a cut", 16 dormant, 6 rules waiting. None of the 5 can take a cut: Nanaimo's two are in Subarea 17-14, tidal
+  portions (off the freshwater map, T449); Osoyoos Lake's North Basin, Quesnel Lake's Horsefly Bay and Mabel Lake's
+  north end are parts of LAKES, which are never cut (lake splits deferred) and stay undrawn parts.
+- **Review:** 258 active places; 236 carry a mark in force (201 verified, 35 unsure: 30 the owner's own, 3 his
+  lower-case "dawson", 2 Claude's saves for his tick — the re-tick list is in OWNER-TODO "A. Saves to re-tick"). The 22
+  without one: 19 region / section / area defaults (page scopes, no extent to review) and the same 3 lake parts.
+- **Re-fetch today:** `python -m pipeline.regs.dfo_salmon.live run --dry-run --cache-dir <scratch copy>` -> every region's
+  page unchanged in places and rows (Regions 1 and 2 dated 2026-11-06, 6 2026-09-02, …); "275 locations, 0 unplaced,
+  0 notice(s); nothing written".
+- **On the map (the release's salmon chains):** Skeena 9 chains / 222 sections (below the CNR bridge at Terrace: "2 per
+  day (Jul 10–28)", "4 per day (Jul 29–Aug 16)", "4 per day, only 1 over 50 cm (Sep 1–Nov 30)" …); Fraser (Region 2,
+  Mission to Hope, 62 sections): "2 per day (Nov 3–30)", "2 per day, hatchery marked only (Nov 7–30)", "No fishing for
+  salmon (from Apr 1 until further notice)"; Cowichan (Sandy Pool to the boundary sign, 9 sections): "No fishing (Sep
+  1–Nov 15)", "2 per day (Nov 16–Dec 31)", "1 per day (Nov 16–Dec 31)".
+
+State 2026-11-22 (stopped for credits): lane L10, branch fix/T840-rules-smalls (head cd66153eb before this line); see the ticket's Status for done / left.

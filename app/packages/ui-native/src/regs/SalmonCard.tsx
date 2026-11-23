@@ -4,7 +4,8 @@
  * looks) each opening its fish sheet (sp:CH … — the ID tips), then DFO's source and as-of block. Above the provincial
  * Keep tab. Every species closed: one "Salmon — closed" row. (T372, owner 2026-11-03: the trout way) DFO places on this
  * water not drawn yet are the trout card's "in part" caveat block (`CaveatBlock`, core `inPartBlock`), above the table;
- * the rows keep the drawn answer. Then (owner 2026-10-28) the provincial bait ban / fly only that day (it applies to salmon too), the
+ * the rows keep the drawn answer; (T754) a DFO place for one bank of the river is the trout card's one-side caveat under it
+ * (`card.side`). Then (owner 2026-10-28) the provincial bait ban / fly only that day (it applies to salmon too), the
  * header notes naming this water, and the page's DFO regions' header rules in a compact "Region rules (DFO)" block; an
  * open row carries the header's sizes, and (T227) any row that may be fished carries the region notes about its species
  * (DFO's words: what an "adult chinook" is …), which the region block then leaves out. (T482, owner 2026-11-07) Sizes sit on
@@ -278,6 +279,8 @@ export function SalmonCard({ card, palette, actions, images }: {
         </View>
         <IssueBanners issues={card.issues ?? []} palette={palette} />
         {card.caveat && <CaveatBlock caveat={card.caveat} palette={palette} actions={actions ?? NO_ACTIONS} inset={false} />}
+        {/* (T754) a DFO place for one bank of the river: beside the answer, the trout card's one-side caveat */}
+        {card.side && <CaveatBlock caveat={card.side} palette={palette} actions={actions ?? NO_ACTIONS} inset={false} />}
         {card.dfoWords && card.dfoWords.changed.length > 0 && (
           <Words testID="salmon-wording-changed" head={card.dfoWords.changedHead} rows={card.dfoWords.changed} palette={palette} strong />
         )}

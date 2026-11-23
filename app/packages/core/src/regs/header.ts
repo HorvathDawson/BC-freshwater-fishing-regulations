@@ -14,10 +14,9 @@ import { cutWords } from "./describe";
 import { spanName } from "../ends";
 import type { RegsInputs } from "./inputs";
 import type { Day, HeaderVM, Tab } from "./model";
-import { fmtDay } from "./strip";
+import { fmtDay, isTodayOf } from "./strip";
 import { WD3, WORDS } from "./words";
 import { WEEKDAYS } from "../calendar.generated";
-import { sameDay } from "../day";
 import { classBadgeOf } from "./classBadge";
 
 /** (T517) Each part's name as the water map names the entry holding it, by part index: `@app/core` `entryNames` over
@@ -118,7 +117,7 @@ export function headerOf(inp: RegsInputs, o: { today: Day; status: "open" | "clo
   // prototype placeRow: no label slot when the short label is the water's own name
   const lbl = lab && lab.short !== name ? lab.short : "";
   const tabs: readonly [Tab, string][] = [["keep", WORDS.TAB_KEEP], ["gear", WORDS.TAB_GEAR], ["methods", WORDS.TAB_METHODS], ["licence", WORDS.TAB_LICENCE]];
-  const dayWord = sameDay(inp.day, o.today) ? WORDS.TODAY : WD3[WEEKDAYS.indexOf(inp.weekday)]!;
+  const dayWord = isTodayOf(inp, o.today) ? WORDS.TODAY : WD3[WEEKDAYS.indexOf(inp.weekday)]!;
   // (T841) the classified-water badge, set only on a classified part (the frozen headers carry no key for it)
   const classed = classBadgeOf(inp);
   return {

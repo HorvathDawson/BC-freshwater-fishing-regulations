@@ -17,7 +17,7 @@ import { round, type Palette } from "./theme";
 import { SourceRow } from "./SourceRow";
 
 /** what the bell's sheet draws of the inbox: `@app/ui` `useInSeasonInbox`'s state */
-export type InboxProps = Pick<InSeasonInboxState, "vm" | "detail" | "failure" | "pick" | "back" | "readAll">;
+export type InboxProps = Pick<InSeasonInboxState, "vm" | "detail" | "failure" | "pick" | "back">;
 
 function Row({ r, palette, onPick }: { r: InboxRowVM; palette: Palette; onPick: (id: string) => void }) {
   return (
@@ -34,9 +34,9 @@ function Row({ r, palette, onPick }: { r: InboxRowVM; palette: Palette; onPick: 
           <Text style={{ ...TYPE.meta, color: palette.sub, flex: 1 }}>{r.date}</Text>
         </View>
         <Text style={{ ...(r.unread ? TYPE.bodyStrong : TYPE.body), color: palette.ink }}>
-          {r.water}<Text style={{ ...TYPE.meta, color: palette.sub }}>{` · ${r.region}`}</Text>
+          {r.water}{!!r.region && <Text style={{ ...TYPE.meta, color: palette.sub }}>{` · ${r.region}`}</Text>}
         </Text>
-        <Text numberOfLines={2} style={{ ...TYPE.small, color: palette.ink }}>{r.text}</Text>
+        {!!r.text && <Text numberOfLines={2} style={{ ...TYPE.small, color: palette.ink }}>{r.text}</Text>}
         {r.note && <Text testID="inbox-note" style={{ ...TYPE.metaBold, color: palette.sub }}>{r.note}</Text>}
       </View>
     </Pressable>
@@ -49,16 +49,7 @@ export function InSeasonInbox({ inbox, palette, header }: { inbox: InboxProps; p
   const { vm, failure } = inbox;
   return (
     <View testID="inbox" style={{ gap: 10 }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, minHeight: vm.unread ? 44 : undefined }}>
-        {header && <Text accessibilityRole="header" style={{ ...TYPE.section, color: palette.sub, flex: 1 }}>{INBOX_WORDS.section}</Text>}
-        {!header && <View style={{ flex: 1 }} />}
-        {vm.unread > 0 && (
-          <RegsPress testID="inbox-read-all" accessibilityRole="button" accessibilityLabel={INBOX_WORDS.markAll}
-                     onPress={inbox.readAll} box={{ w: 44, h: 44 }} style={{ minHeight: 44, justifyContent: "center" }}>
-            <Text style={{ ...TYPE.metaBold, color: palette.accent }}>{INBOX_WORDS.markAll}</Text>
-          </RegsPress>
-        )}
-      </View>
+      {header && <Text accessibilityRole="header" style={{ ...TYPE.section, color: palette.sub }}>{INBOX_WORDS.section}</Text>}
       {failure && <ErrorState testID="inbox-failure" palette={palette} message={failure} />}
       {vm.groups.map((g) => (
         <View key={g.title} style={{ gap: 6 }}>
