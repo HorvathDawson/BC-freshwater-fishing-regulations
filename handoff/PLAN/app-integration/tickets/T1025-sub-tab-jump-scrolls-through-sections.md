@@ -1,6 +1,6 @@
 # T1025 — Switching regs sub-tabs ("What you can keep" ↔ "Licence") scrolls through every section between
 
-Status: OPEN — 0.9.0 batch.
+Status: DONE (code 641725521) — a regs sub-tab press now JUMPS (`animated: false`), so no pass through Gear/Methods and the scroll-spy highlight cannot flicker. RegsScreen.test asserts the jump. NOT recorded on an emulator.
 
 Source: a closed tester, relayed by the owner 2026-11-22 (screen recording, Android dark, Alouette River "From 216 Street
 bridge up to the Alouette boundary signs"). Verbatim: "The only weirdness I've seen is toggling between What you can keep
