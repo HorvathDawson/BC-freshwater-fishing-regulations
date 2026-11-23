@@ -1,6 +1,6 @@
 # T997 — Water map: two boundary labels at almost the same place draw on top of each other (Nicomekl River)
 
-Status: IN REVIEW — owner: OWNER-TODO "T997 Nicomekl labels" (the after shots, T997-shots/); code 92ebd9c5d dcc18bb8f, PR open.
+Status: IN REVIEW — owner: OWNER-TODO "Look (you): T997 Nicomekl labels" (the after shots, T997-shots/); code 92ebd9c5d dcc18bb8f, PR open.
 
 Source: owner 2026-11-21, phone screenshot (Android, dark mode), "Add ticket for this ui bug too for next chat".
 Shot: `handoff/PLAN/app-integration/T997-shots/nicomekl-labels-overlap.png`.
