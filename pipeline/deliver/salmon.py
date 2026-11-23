@@ -439,14 +439,17 @@ def chain_order(precedence: Mapping[str, int], size: Mapping[str, int],
 
 def rests_behind(placed: Iterable[dict], locs: Mapping[str, tuple], sid_of: Mapping[str, int],
                  covering: Dict[int, List[str]], binds: Callable[[str, int], bool],
-                 missing: List[str]) -> Dict[str, frozenset]:
+                 missing: List[str], beside_on: Optional[Mapping[str, set]] = None) -> Dict[str, frozenset]:
     """(T761, owner 2026-11-15: DFO's "except in those AREAS AND TIMES listed below") A "REST OF" PLACE STANDS IN THE
     CHAIN BEHIND ITS LISTED PLACES on their sections inside its bounds (the reach row's `behind`,
     `reach.build.REST_BEHIND`): a listed stretch answers on the days it has a rule for that fish, the rest's rule on the
     others. Added to `covering` only where the listed place itself covers the section (its own tidal / region limits
     hold). Returns rest id -> the listed places it answers after (`rest_after`). A section the handle table does not
-    know goes to `missing`, as the placed sections do."""
+    know goes to `missing`, as the placed sections do. (T754) A listed ONE-BANK place (`beside_on`: id -> its sections)
+    still counts as covering its own sections: it stands beside there, so the rest answers in the chain for the other
+    bank (`rest_after` leaves it where `chain_order` put it, its listed place not being in the chain)."""
     after: Dict[str, set] = defaultdict(set)
+    beside_on = beside_on or {}
     for row in placed:
         lid = row["location_id"]
         if lid not in locs or not row.get("behind"):
@@ -457,7 +460,7 @@ def rests_behind(placed: Iterable[dict], locs: Mapping[str, tuple], sid_of: Mapp
                 if sid is None:
                     missing.append(s)
                     continue
-                if first in covering.get(sid, ()) and binds(lid, sid):
+                if (first in covering.get(sid, ()) or sid in beside_on.get(first, ())) and binds(lid, sid):
                     after[lid].add(first)
                     if lid not in covering[sid]:
                         covering[sid].append(lid)
@@ -1140,12 +1143,25 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
         if lid in banks:
             # T754 (owner 2026-11-22): a place for ONE BANK is read BESIDE the water's other places on its own sections
             # (AGENTS rule 49, as the book's `side`): in their chains' `u`, never `l`, so the stretch answers — and
-            # paints — by the water's other rules and the card names the bank (`p[lid]["side"]`)
+            # paints — by the water's other rules and the card names the bank (`p[lid]["side"]`). ONLY ITS OWN RIVER'S
+            # sections (review of #61): a bank is a bank of that river, so the sections its tributary walk took (the
+            # Kitimat's 12 creeks from "(including tributaries)") carry no bank caveat and answer by their other places
             on = {sid_of[s] for s in row["sections"] if s in sid_of}
             missing.extend(s for s in row["sections"] if s not in sid_of)
-            carried_on[lid] = {sid for sid in on if binds(lid, sid)}
-            beside[lid] = banks[lid]
+            if item_sections is None:
+                raise SalmonError(f"salmon: {lid} names one bank: its river's sections (`item_sections`) are needed")
+            slug, loc, ef = locs[lid]
+            water = ef.water(loc.water_id) if loc.water_id else None
+            stem = {sid for it in (water.item_ids if water else ()) for sid in item_sections.get(it, ())}
+            mine = {sid for sid in on if sid in stem and binds(lid, sid)}
             unmapped_locs.append(lid)
+            if mine:
+                carried_on[lid] = mine
+                beside[lid] = banks[lid]
+            else:
+                # placed off its own river only: never widened, an undrawn place of its water (said, not dropped)
+                print(f"     salmon: {lid} names one bank but binds no section of its own river — an undrawn place "
+                      "of its water", file=sys.stderr)
             continue
         for s in row["sections"]:
             sid = sid_of.get(s)
@@ -1154,7 +1170,8 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
                 continue
             if binds(lid, sid):
                 covering[sid].append(lid)
-    after = rests_behind(placed, locs, sid_of, covering, binds, missing)
+    after = rests_behind(placed, locs, sid_of, covering, binds, missing,
+                         {lid: carried_on[lid] for lid in beside})
     # (T783) and behind its dormant listed places, where both cover a section (`dormant_listed`)
     for _slug, ef in sorted(entry_files.items()):
         for rest, dormant in dormant_listed(ef.locations).items():

@@ -29,6 +29,11 @@ def test_bank_of_reads_one_bank_of_the_river_only():
     assert bank_of("from boundary signs on either side of the Stamp River") is None
     assert bank_of("on west bank and on east bank between signs") is None
     assert bank_of(None) is None and bank_of("") is None
+    # (review of #61) a bank inside an excepted part is where the place is NOT
+    assert bank_of("downstream of B.C. Hydro Dam to the CPR Railway Bridge; except you shall not fish in that portion "
+                   "on the east bank between the signs") is None
+    assert bank_of("from the bridge to the falls, excluding the waters on the west bank below the weir") is None
+    assert bank_of("on west bank between signs; except within 50 m of the outfall") == "west"
 
 
 def test_the_curated_places_that_name_one_bank_are_the_kitimat_and_the_nakina():
@@ -48,7 +53,8 @@ def _with_bank(mapped: bool, area: str = "on west bank between signs at the hatc
     files, feeds, placed, sid_of = _fixture()
     files["6"].locations.append(_loc("6:bank", 3, ["fk"], "Kispiox River", "6:kispiox-river", area))
     feeds["6"]["locators"].append({"fingerprint": "fk", "rules": BAND})          # no fishing for coho, all year
-    placed = placed + [{"location_id": "6:bank", "mapped": mapped, "sections": ["s3"] if mapped else []}]
+    # s3 (12) is on the Kispiox itself; s4 (13) is a tributary its walk took ("including tributaries")
+    placed = placed + [{"location_id": "6:bank", "mapped": mapped, "sections": ["s3", "s4"] if mapped else []}]
     return files, feeds, placed, sid_of
 
 
@@ -64,6 +70,8 @@ def test_a_placed_one_bank_place_stands_beside_the_waters_other_places():
     assert (ch["sp"], ch["m"], ch["g"]) == (ch0["sp"], ch0["m"], ch0["g"])
     # exactly its own sections: s2 (11) is on the water but not the bank place's
     assert "6:bank" not in (payload["chains"][dict(sections)[11]].get("u") or [])
+    # (review of #61) only its own river's: the tributary its walk took (s4, 13) carries no bank caveat at all
+    assert 13 not in dict(sections) or "6:bank" not in (payload["chains"][dict(sections)[13]].get("u") or [])
     # the card: its bank, and its own chain with its rules and the days DFO speaks for it
     assert payload["p"]["6:bank"]["side"] == "west"
     (own,) = [u for u in payload["unmapped"] if payload["chains"][u["chain"]]["l"] == ["6:bank"]]
@@ -87,4 +95,24 @@ def test_a_bank_of_something_else_still_governs_its_place():
     payload, sections = S.build(*_with_bank(True, "the Ruskin Spawning Channel on the east bank of the BC Hydro park"),
                                 {"gnis:4674": [11, 12]}, section_regions=None)
     ch = payload["chains"][dict(sections)[12]]
-    assert ch["l"][0] == "6:bank" and "side" not in payload["p"]["6:bank"]
+    assert "6:bank" in ch["l"] and "6:bank" not in (ch.get("u") or []) and "side" not in payload["p"]["6:bank"]
+
+
+def test_a_rest_that_lists_a_bank_place_still_answers_for_the_other_bank():
+    """(review of #61) a "rest of" place listing the bank place stands behind it on its sections (`behind`). The bank place
+    is beside there, not in `covering`, so it still counts for `rests_behind`: the rest answers in `l` on the stretch.
+    MUTATION: drop `beside_on` from `rests_behind` and the rest is gone from s3's chain: this test fails."""
+    files, feeds, placed, sid_of = _with_bank(True)
+    files["6"].locations.append(_loc("6:rest", 3, ["fr2"], "Kispiox River", "6:kispiox-river", "all other parts"))
+    feeds["6"]["locators"].append({"fingerprint": "fr2", "rules": BAND})
+    placed = placed + [{"location_id": "6:rest", "mapped": True, "sections": ["s2"], "behind": {"6:bank": ["s3"]}}]
+    payload, sections = S.build(files, feeds, placed, sid_of, {"gnis:4674": [11, 12]}, section_regions=None)
+    ch = payload["chains"][dict(sections)[12]]
+    assert "6:rest" in ch["l"] and ch["u"][0] == "6:bank" and "6:bank" not in ch["l"]
+
+
+def test_a_bank_place_needs_its_rivers_sections():
+    """No `item_sections`: the build cannot tell the river's own sections from its tributaries' — it stops, never guesses."""
+    import pytest
+    with pytest.raises(S.SalmonError, match="names one bank"):
+        S.build(*_with_bank(True), section_regions=None)

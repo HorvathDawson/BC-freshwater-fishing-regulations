@@ -211,10 +211,17 @@ _BANK_PATTERNS = (
 )
 
 
+#: (review of #61) an EXCEPTED part names where the place is NOT: "… to the CPR Railway Bridge; except … on the east bank"
+#: never makes the whole place a bank place. The clause runs to the end of its sentence or semicolon.
+_EXCEPT_CLAUSE = re.compile(r"\b(?:except|excepting|excluding|exclusive\s+of|other\s+than|but\s+not)\b[^.;]*", re.I)
+
+
 def bank_of(text: Optional[str]) -> Optional[str]:
     """The ONE BANK a DFO place's words name ("north" | "south" | "east" | "west", the synopsis `side` words), else None.
-    Two different banks in one wording name no one bank: None (the place then reads across the width, as before)."""
-    found = {m.group(1).lower() for pat in _BANK_PATTERNS for m in pat.finditer(text or "")}
+    Two different banks in one wording name no one bank: None (the place then reads across the width, as before). A bank
+    inside an except / excluding clause is not the place's (`_EXCEPT_CLAUSE`)."""
+    said = _EXCEPT_CLAUSE.sub(" ", text or "")
+    found = {m.group(1).lower() for pat in _BANK_PATTERNS for m in pat.finditer(said)}
     return found.pop() if len(found) == 1 else None
 
 
