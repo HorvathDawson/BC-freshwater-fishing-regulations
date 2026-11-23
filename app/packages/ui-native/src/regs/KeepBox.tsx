@@ -177,14 +177,18 @@ function Row({ r, palette, faded, mark, first, under, band, testID }: {
   );
   // (T1031, owner 2026-11-22) two presses, one sheet: the picture opens the fish's species sheet on Identification (named
   // as the picture is: "<fish> — what it looks like"), the rest of the row on Sources (named by the row's one label)
-  if (r.pic?.onPress && r.open) return (
-    <View testID={`${testID}:line`} style={style}>
-      <RegsPress testID={`${testID}:id`} accessibilityRole="button" accessibilityLabel={r.pic.label} box={{ w: TILE.w, h: 44 }}
-                 onPress={r.pic.onPress} style={{ alignSelf: "stretch" }}>{tile}</RegsPress>
-      <RegsPress testID={testID} accessibilityRole="button" accessibilityLabel={r.a11y ?? rowLabel(r, band)} box={{ w: 44, h: 44 }}
-                 onPress={r.open} style={{ flex: 1, minWidth: 0, flexDirection: "row" }}>{words}</RegsPress>
-    </View>
-  );
+  // (review 3) the row's padding sits inside each press, so each press itself holds the 44 px it declares
+  if (r.pic?.onPress && r.open) {
+    const { paddingVertical, minHeight, ...line } = style, own = { paddingVertical, minHeight } as const;
+    return (
+      <View testID={`${testID}:line`} style={line}>
+        <RegsPress testID={`${testID}:id`} accessibilityRole="button" accessibilityLabel={r.pic.label} box={{ w: TILE.w, h: minHeight }}
+                   onPress={r.pic.onPress} style={own}>{tile}</RegsPress>
+        <RegsPress testID={testID} accessibilityRole="button" accessibilityLabel={r.a11y ?? rowLabel(r, band)} box={{ w: 44, h: minHeight }}
+                   onPress={r.open} style={{ ...own, flex: 1, minWidth: 0, flexDirection: "row" }}>{words}</RegsPress>
+      </View>
+    );
+  }
   return r.pic?.onPress ? (
     <RegsPress testID={testID} accessibilityRole="button" accessibilityLabel={r.a11y ?? rowLabel(r, band)} box={{ w: TILE.w, h: 44 }}
                onPress={r.pic.onPress} style={style}>{tile}{words}</RegsPress>

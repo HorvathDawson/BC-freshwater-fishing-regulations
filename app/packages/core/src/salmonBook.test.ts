@@ -422,7 +422,10 @@ describe("(T796 X1) a region closed by its DFO page keeps its one closed stateme
       const book = { from: "Rule book p.34 · Every stream in Region 4", words: SPRING_WORDS };
       const before = card(1, on(5, 1)), may = card(2, on(5, 1));
       expect(may).toEqual({ ...before, badge: "Rule book · DFO", rows: [{ ...before.rows[0]!, notes: [R4_WORDS, SPRING_WORDS] }], book: [book],
-                            sourceTitle: "Sources (rule book and DFO)", note: FOLD_BOOK.note, year: { bars: [ALL_CLOSED_BAR], by: "both" } });
+                            sourceTitle: "Sources (rule book and DFO)", note: FOLD_BOOK.note, year: { bars: [ALL_CLOSED_BAR], by: "both" },
+                            // (T1031) each species' sources: the region's closure, then the book's closure by its rule
+                            whoBy: Object.fromEntries(Object.entries(before.whoBy!).map(([sp, w]) => [sp, [...w!, { k: "book", from: book.from,
+                              rule: "z4:spring_stream_closure::spring_stream_closure.r1" }]])) });
       expect([may.closedOnly, may.year.bars, salmonStripOf(may, null), salmonGlance(may)]).toEqual([true, [ALL_CLOSED_BAR],
         STRIP_ALL_CLOSED("Salmon (DFO and rule book)", "both"), { source: "dfo", thumb: "CO", name: "Salmon", value: "closed", tone: "closed", fold: false, book: [book] }]);
       expect([salmonChainStatus(F, 2, salmonDayIndex(on(5, 1))), salmonChainStatus(F, 2, salmonDayIndex(on(7, 1)))]).toEqual(["closed", "closed"]);

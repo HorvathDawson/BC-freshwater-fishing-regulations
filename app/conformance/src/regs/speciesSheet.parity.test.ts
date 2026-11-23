@@ -28,12 +28,14 @@ function breakdownText(vm: SheetVM): string[] {
 
 describe.skipIf(gate.skip)("T1031 the species sheet over the golden states", () => {
   it("every Other fish line: Sources (the row) and Identification (its picture), each the other's tab, one title", async () => {
-    let n = 0, multi = 0;
+    let n = 0, multi = 0, bare = 0;
     for (const id of Object.keys(taps().states)) {
       const page = await pageOf(id);
       for (const r of page.keep.otherFish ?? []) {
         const src = page.sheet(r.open)!, at = `${id} ${r.name}`;
-        if (!r.id) { expect(src.tabs, at).toBeUndefined(); continue; }
+        // (review 2) every line ends with its deciding rules, a row with no picture too (its Sources sheet alone, no tabs)
+        expect(breakdownText(src).length > 0, at).toBe(true);
+        if (!r.id) { expect(src.tabs, at).toBeUndefined(); bare++; continue; }
         n++;
         const idv = page.sheet(r.id)!;
         expect([tabsOf(src), tabsOf(idv)], at).toEqual([[`${SPECIES_SHEET.ID}=${r.id}`, `${SPECIES_SHEET.SRC}=${r.open}*`],
@@ -54,7 +56,7 @@ describe.skipIf(gate.skip)("T1031 the species sheet over the golden states", () 
         expect(heads.every((h, i) => order.includes(h) && (i === 0 || order.indexOf(heads[i - 1]!) < order.indexOf(h))), `${at}: ${heads}`).toBe(true);
       }
     }
-    expect([n > 50, multi > 0], `${n} lines, ${multi} with several fish`).toEqual([true, true]);
+    expect([n > 50, multi > 0, bare > 0], `${n} lines, ${multi} with several fish, ${bare} with no picture`).toEqual([true, true, true]);
   });
 
   it("vedder_1010's Kokanee: its Sources tab ends with the breakdown, whole, then every regulation line", async () => {
@@ -77,6 +79,8 @@ describe.skipIf(gate.skip)("T1031 the species sheet over the golden states", () 
         if (!vm?.tabs) { seen.none++; continue; }
         expect(vm.tabs.map((t) => t.on), at).toEqual([true, false]);
         const src = page.sheet(vm.tabs[1]!.open)!;
+        // (review 1) the fish's own Sources key opens its line's Sources tab, whatever the line
+        expect(page.sheet(`sp:${c}|src` as SheetKey)?.key, at).toBe(vm.tabs[1]!.open);
         // one sheet: its Sources tab names the same two tabs, Sources drawn
         expect(src.tabs?.map((t) => `${t.open}${t.on ? "*" : ""}`), at).toEqual([vm.tabs[0]!.open, `${vm.tabs[1]!.open}*`]);
         if (vm.tabs[1]!.open.endsWith("|src")) {

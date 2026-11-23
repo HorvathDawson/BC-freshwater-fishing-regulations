@@ -177,6 +177,8 @@ describe("(T810 O) the links and the presses", { timeout: 30_000 }, () => {
     const picOf = (id: string) => screen.getByTestId(id).closest<HTMLElement>("[data-testid='keep-row:id']")!;
     for (const [id, b] of [...["trout-hatch", "trout-sources", "trout-elsewhere"].map((i) => [i, screen.getByTestId(i)] as const),
                            ...["pic:ST", "pic:RB"].flatMap((i) => [[i, picOf(i)], [`${i} row`, rowOfPic(i)]] as const)]) {
+      // (T1031 review 3) a row's two presses: each declares the box its own style holds (its min-height), never the row's
+      if (id.startsWith("pic:")) expect([id, parseFloat(getComputedStyle(b).minHeight)], id).toEqual([id, Number(b.getAttribute("data-hitslop")!.split(" ")[1])]);
       expect([b.getAttribute("role"), hitArea(b.getAttribute("data-hitslop")!)!.h >= 44, hitArea(b.getAttribute("data-hitslop")!)!.w >= 44], id)
         .toEqual(["button", true, true]);
     }

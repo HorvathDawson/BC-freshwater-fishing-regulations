@@ -71,6 +71,18 @@ function decidingRules(ctx: SheetCtx, row: HydRow, code?: string): Cited[] {
     .map((it) => ({ r: it.r, role: it.role }));
 }
 
+/** (review 2) The deciding rules and, after them, every rule the sheet's own "How this was decided" says held (its steps that
+ *  won and its other rules — never a replaced or quiet one) that the stored roles do not name: a row whose fish the card
+ *  model holds no answer for ("Protected species") is decided by its flow alone. */
+function withFlow(ctx: SheetCtx, items: readonly Cited[], blocks: readonly SheetBlock[]): Cited[] {
+  const out = [...items], have = new Set(items.map((it) => it.r.key));
+  for (const b of blocks) if (b.k === "flow") for (const st of [...b.flow.steps.filter((x) => x.tone === "won"), ...b.flow.other]) {
+    const r = st.rule && !have.has(st.rule) ? ctx.inp.rules.byKey?.(st.rule) ?? null : null;
+    if (r) { have.add(r.key); out.push({ r, role: "" }); }
+  }
+  return out;
+}
+
 /** The breakdown's head and block, or nothing where no rule decides the line. */
 const breakdownBlocks = (items: readonly Cited[]): SheetBlock[] =>
   items.length ? [{ k: "head", text: SPECIES_SHEET.BREAKDOWN }, breakdown(items)] : [];
@@ -109,18 +121,22 @@ export function speciesSheet(ctx: SheetCtx, key: SheetKey): SheetVM | null | und
     if (other[2]) return idBlocks ? { key, title: rowTitle(at.row, ctx.inp), sub: null, blocks: idBlocks, tabs: speciesTabs(pair, "id") } : null;
     const vm = otherSheet(ctx, key, n);
     if (!vm) return null;
-    if (!idBlocks) return vm;
-    // the breakdown sits before the sheet's last link ("See every regulation line ›", every line, overruled too)
-    const blocks = vm.blocks.filter((b) => b.k !== "pictures"), last = blocks[blocks.length - 1];
+    // the breakdown sits before the sheet's last link ("See every regulation line ›", every line, overruled too) — on
+    // every row, one with no picture too (no Identification tab then: its Sources sheet alone)
+    const blocks = idBlocks ? vm.blocks.filter((b) => b.k !== "pictures") : vm.blocks, last = blocks[blocks.length - 1];
     const tail = last?.k === "link" ? [last] : [], body = tail.length ? blocks.slice(0, -1) : blocks;
-    return { ...vm, blocks: [...body, ...breakdownBlocks(decidingRules(ctx, at.row)), ...tail], tabs: speciesTabs(pair, "src") };
+    return { ...vm, blocks: [...body, ...breakdownBlocks(withFlow(ctx, decidingRules(ctx, at.row), vm.blocks)), ...tail],
+             ...(idBlocks ? { tabs: speciesTabs(pair, "src") } : {}) };
   }
   const sp = /^sp:([A-Za-z0-9_]+)(\|src)?$/.exec(key);
   if (!sp) return undefined;
   const code = sp[1]!, pair = pairOfFish(ctx, code);
   if (sp[2]) {
+    if (!pair) return null;
+    // (review 1) a fish whose line is a trout row or an Other fish row: its Sources tab is that line's (a salmon card row
+    // asks `sp:<code>|src` of Chinook in a book row, say)
+    if (pair.src !== key) return speciesSheet(ctx, pair.src) ?? null;
     // a fish of a card drawn on the page: its answer is the card's; this tab is its breakdown, then the row's every line
-    if (!pair || pair.src !== key) return null;
     const card = ctx.env!.card, ix = card.rows.findIndex((r, j) => !tableCovers(ctx.inp).includes(j) && holds(r, code));
     const row = card.rows[ix]!, id = fishSheet(ctx.inp, `sp:${code}`, code, ctx.env?.fish);
     const blocks: SheetBlock[] = [...breakdownBlocks(decidingRules(ctx, row, code)),

@@ -3290,6 +3290,33 @@
      "k": "flow"
     },
     {
+     "k": "head",
+     "text": "Where each rule comes from"
+    },
+    {
+     "groups": [
+      {
+       "rows": [
+        {
+         "book": [
+          {
+           "pdf": 23,
+           "printed": 21,
+           "t": "book"
+          }
+         ],
+         "key": "z2:protected_species::protected_species.r1",
+         "quote": "Protected Species: it is illegal to fish for or catch and then keep protected species. In Region 2, these include: Nooksack dace · Salish sucker · Green sturgeon · Cultus Lake sculpin.",
+         "role": "",
+         "title": "No fishing for Nooksack dace, Salish sucker, green sturgeon and Cultus Lake sculpin"
+        }
+       ],
+       "where": "B.C. Synopsis"
+      }
+     ],
+     "k": "sources"
+    },
+    {
      "k": "link",
      "line": [
       {

@@ -1509,6 +1509,34 @@
          "quote": "Possession quotas = 2 daily quotas (See tables for exceptions)",
          "role": "Possession limit",
          "title": "Possession: twice the daily quota"
+        },
+        {
+         "book": [
+          {
+           "box": [
+            {
+             "box": [
+              36,
+              530.4,
+              540,
+              556.8
+             ],
+             "pdf": 39,
+             "size": [
+              576,
+              756
+             ]
+            }
+           ],
+           "pdf": 39,
+           "printed": 37,
+           "t": "book"
+          }
+         ],
+         "key": "r4:kootenay_lake_lower_west_arm_for_location_see_map_on_page_34@4-7::kootenay_lake_lower_west_arm.r4",
+         "quote": "Kokanee catch and release Monday through Friday of each week.",
+         "role": "",
+         "title": "Release kokanee, Mon–Fri"
         }
        ],
        "where": "B.C. Synopsis"
@@ -3301,6 +3329,33 @@
       ]
      },
      "k": "flow"
+    },
+    {
+     "k": "head",
+     "text": "Where each rule comes from"
+    },
+    {
+     "groups": [
+      {
+       "rows": [
+        {
+         "book": [
+          {
+           "pdf": 11,
+           "printed": 9,
+           "t": "book"
+          }
+         ],
+         "key": "zp:protected_species::protected_species.r1",
+         "quote": "It is illegal to fish for, or catch and retain any of the fish listed below.",
+         "role": "",
+         "title": "No fishing for Cultus Lake sculpin, Enos Lake stickleback, Misty Lake stickleback, Nooksack dace, Paxton Lake stickleback, Rocky Mountain sculpin, shorthead sculpin, Salish sucker, Vananda Creek stickleback, vancouver lamprey, western brook lamprey (Morrison Creek population) and white sturgeon (Nechako, Upper Fraser, Kootenay and Columbia populations)"
+        }
+       ],
+       "where": "B.C. Synopsis"
+      }
+     ],
+     "k": "sources"
     },
     {
      "k": "link",

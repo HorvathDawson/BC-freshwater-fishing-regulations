@@ -1235,8 +1235,25 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     }
     return [...out.values()];
   };
-  const whoBy = Object.fromEntries(regionClosed ? [] : SALMON_SPECIES.flatMap((sp) => { const w = whoOf(sp); return w.length ? [[sp, w]] : []; })) as
-    Partial<Record<SalmonSpecies, readonly SalmonWhoVM[]>>;
+  // (T1031 review 4) a region closed by its page: every species' source is that closure — the region page header's
+  // closure note (DFO's words) and, on a day the rule book's closure answers, that closure by its rule
+  const closedWho = (): SalmonWhoVM[] => [
+    ...regionsUsed.flatMap((r): SalmonWhoVM[] => {
+      const lines = closedWords.filter((n) => n.id.startsWith(`${r}:`)).map((n) => n.t);
+      return lines.length ? [{ k: "dfo", from: SALMON_WORDS.sourceHeader(r, P.regions[r]?.name ?? ""), lines }] : [];
+    }),
+    // the book closes the stretch to all fishing: every species
+    ...book.map((b): SalmonWhoVM => ({ k: "book", from: b.from, rule: b.rule }))];
+  const source = [SALMON_WORDS.agency, ...regionsUsed.map((r) => `Region ${r.toUpperCase()} ${P.regions[r]?.name ?? ""}`.trim())].join(" · ");
+  // a species closed with no place answering it ("Not opened by DFO", a water DFO does not list): DFO's words on its row
+  const unplacedWho = (sp: SalmonSpecies): SalmonWhoVM[] => {
+    const row = rows.find((r) => r.species.includes(sp));
+    return row && row.status === "closed" && row.notes.length ? [{ k: "dfo", from: source, lines: row.notes }] : [];
+  };
+  const whoBy = Object.fromEntries(SALMON_SPECIES.flatMap((sp) => {
+    const w = regionClosed ? closedWho() : whoOf(sp), all = w.length ? w : unplacedWho(sp);
+    return all.length ? [[sp, all]] : [];
+  })) as Partial<Record<SalmonSpecies, readonly SalmonWhoVM[]>>;
   return {
     ...block, rows, regionRules, gearProvincial, gearLines, sources, adultHere, whoBy,
     hours,
@@ -1268,8 +1285,7 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
                                                   ...unmapped.filter((u) => !u.d).flatMap((u) => P.chains[u.chain]?.l ?? [])]),
     // (T851) the DFO regions this card speaks for: the feed's read time for the card is theirs alone (`salmonReadAt`)
     regions: named,
-    source: [SALMON_WORDS.agency,
-             ...regionsUsed.map((r) => `Region ${r.toUpperCase()} ${P.regions[r]?.name ?? ""}`.trim())].join(" · "),
+    source,
     book: book.map(({ from, words }) => ({ from, words })),
     sourceTitle: book.length ? SALMON_WORDS.sourceFoldBook : SALMON_WORDS.sourceFold,
     asOf: SALMON_WORDS.asOf(dates[dates.length - 1] ?? null),
@@ -1397,8 +1413,8 @@ function sourceBy(P: Payload, chains: readonly number[], who: (a: readonly numbe
  * never the days it answers the chain: a dated closure sorted first on the same chain takes some days from an all-year
  * one, which then lost its dates there (Statlu Creek, p.26, beside the Chehalis's May closure, p.22).
  */
-function bookToday(f: SalmonFacts, chains: readonly number[], day: number): (SalmonBookVM & { readonly t: string })[] {
-  const P = f.payload, out = new Map<string, SalmonBookVM & { readonly t: string }>();
+function bookToday(f: SalmonFacts, chains: readonly number[], day: number): (SalmonBookVM & { readonly t: string; readonly rule: string })[] {
+  const P = f.payload, out = new Map<string, SalmonBookVM & { readonly t: string; readonly rule: string }>();
   for (const c of chains) {
     const ch = P.chains[c]!;
     SALMON_SPECIES.forEach((_, k) => {
@@ -1409,7 +1425,7 @@ function bookToday(f: SalmonFacts, chains: readonly number[], day: number): (Sal
       if (!year) throw new SalmonError(`salmon: book place ${lid} has no year in static`);
       const t = P.verdicts[at(ch.sp[k]!, day)]!.t;
       const words = year.every((x, j) => j % 2 === 0 || x >= 0) ? SALMON_WORDS.bookAllYear(t) : t;
-      out.set(words, { t, from: SALMON_WORDS.placeFromBook(p.book.pages, p.water), words });
+      if (!out.has(words)) out.set(words, { t, from: SALMON_WORDS.placeFromBook(p.book.pages, p.water), words, rule: p.book.rule });
     });
   }
   return [...out.values()];

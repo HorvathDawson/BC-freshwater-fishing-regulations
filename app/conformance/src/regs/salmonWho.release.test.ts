@@ -5,7 +5,7 @@
  * so the Sources tab never names fewer places than the row.
  */
 import { describe, expect, it } from "vitest";
-import { SOURCE_AUTHORITIES, SPECIES_SHEET, salmonCard, salmonTable, withSalmonSheets, type SalmonFacts, type SalmonSpecies, type SheetKey, type SheetVM } from "@app/core";
+import { SOURCE_AUTHORITIES, SPECIES_SHEET, salmonCard, speciesTabs, salmonTable, withSalmonSheets, type SalmonFacts, type SalmonSpecies, type SheetKey, type SheetVM } from "@app/core";
 import { liveRelease, openReleaseDir } from "../fixtureRelease";
 
 const LIVE = liveRelease();
@@ -15,8 +15,8 @@ describe.skipIf(!LIVE)(`T1031 each salmon species' sources (${LIVE ?? "no live r
   it("every place a species row names is among its sources; each source names DFO's rows or the book's rule", async () => {
     const facts = (await openReleaseDir(LIVE!).salmon()) as SalmonFacts;
     const P = facts.payload, wrong: string[] = [];
-    let named = 0, book = 0, bare = 0, printed = 0;
-    for (let i = 0; i < P.chains.length; i += 7) for (const on of DAYS) {
+    let named = 0, book = 0, bare = 0, printed = 0, closed = 0, headerClosed = 0;
+    for (let i = 0; i < P.chains.length; i += 3) for (const on of DAYS) {
       const c = salmonCard({ ...facts, chainOf: () => i }, { sids: [0], item: null }, on);
       for (const r of salmonTable(c).species) {
         const who = c.whoBy?.[r.code] ?? [], froms = who.map((w) => w.from);
@@ -29,10 +29,17 @@ describe.skipIf(!LIVE)(`T1031 each salmon species' sources (${LIVE ?? "no live r
           else if (!w.lines.length) bare++;   // a DFO place the release keeps no printed rows for (Babine Lake B(i)): named alone
         }
         if (r.from) named++;
+        // (review 4) a region closed by its page: each species' source is that closure (never none)
+        if (c.allClosed && c.rows[0]?.notes.length) {
+          closed++;
+          if (!who.length) wrong.push(`chain ${i} ${on.toDateString()} ${r.code}: closed, no source`);
+          // a region closed by its page names that page's closure (its header), not the card's agency line
+          if (who.some((w) => w.k === "dfo" && w.from.endsWith(" · page header") && w.lines.every((l) => c.rows[0]!.notes.includes(l)))) headerClosed++;
+        }
       }
     }
     expect(wrong.slice(0, 10)).toEqual([]);
-    expect([named > 100, printed > 100, book > 0]).toEqual([true, true, true]);
+    expect([named > 100, printed > 100, book > 0, closed > 0, headerClosed > 0]).toEqual([true, true, true, true, true]);
     console.log(`T1031 salmon sources: ${named} rows named a place, ${book} book sources, ${bare} DFO places with no rows`);
   });
 
@@ -65,7 +72,11 @@ describe.skipIf(!LIVE)(`T1031 each salmon species' sources (${LIVE ?? "no live r
       `## ${SOURCE_AUTHORITIES.dfo.name}`, ...who.flatMap((w) => (w.k === "dfo" ? [w.lines.length ? `${w.from} | ${w.lines.join("\n")} | ${SOURCE_AUTHORITIES.dfo.name}` : `null | ${w.from} | ${SOURCE_AUTHORITIES.dfo.name}`] : []))]);
     // mutation: no card, the page's own sheets alone (no tabs, no Sources); a fish the page's lines answer keeps its own tabs
     expect([withSalmonSheets(own, null)(`sp:${code}`)?.tabs, withSalmonSheets(own, null)(`sp:${code}|src`)]).toEqual([undefined, null]);
-    const tabbed = (k: SheetKey): SheetVM | null => (k.startsWith("sp:") ? { key: k, title: "x", sub: null, blocks: [], tabs: [] } : null);
-    expect(withSalmonSheets(tabbed, card)(`sp:${code}|src`)?.tabs).toEqual([]);
+    // (review 1) a fish the page's own lines answer (an Other fish row holding it): the page's sheet keeps its tabs, and the
+    // card row's `sp:<code>|src` opens that line's Sources tab — never the page's answer to a key it does not open (null)
+    const line = speciesTabs({ id: "other:o0|id", src: "other:o0" }, "id");
+    const tabbed = (k: SheetKey): SheetVM | null => (k === `sp:${code}` ? { key: k, title: "x", sub: null, blocks: [], tabs: line }
+      : k === "other:o0" ? { key: k, title: "x", sub: null, blocks: [{ k: "head", text: "the row's Sources" }] } : null);
+    expect([withSalmonSheets(tabbed, card)(`sp:${code}`)?.tabs, withSalmonSheets(tabbed, card)(`sp:${code}|src`)?.key]).toEqual([line, "other:o0"]);
   });
 });

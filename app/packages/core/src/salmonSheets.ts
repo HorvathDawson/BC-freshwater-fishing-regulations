@@ -60,7 +60,8 @@ export function withSalmonSheets(sheet: (k: SheetKey) => SheetVM | null, card: S
     if (!code || !isSalmon(code) || !has(code)) return sheet(k);
     // a fish the page's own lines answer (Chinook in the rule book's rows) keeps the page's sheet and its tabs
     const own = sheet(`sp:${code}`);
-    if (own?.tabs) return m![2] ? sheet(k) : own;
+    // (review 1) its Sources tab is the page's line's (the tab the page names), never a key the page may not open
+    if (own?.tabs) return m![2] ? sheet(own.tabs[1]!.open) : own;
     const pair = { id: `sp:${code}` as const, src: `sp:${code}|src` as const };
     if (m![2]) { const vm = salmonSourcesSheet(k, code, card, sheet); return vm && { ...vm, tabs: speciesTabs(pair, "src") }; }
     return own && { ...own, tabs: speciesTabs(pair, "id") };
