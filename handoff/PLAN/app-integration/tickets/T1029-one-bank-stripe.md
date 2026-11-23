@@ -15,7 +15,10 @@ option B also had is left here.
    (closed for the Kitimat), opacity by feature-state. Pictures for the owner first (light + dark, Kitimat at the signs).
 3. Owner questions still open from T754: Q4 (a stripe along the route line inside a polygon reach), Q5 (the Kitimat
    bank place binds 12 unnamed tributary sections from its "(including tributaries)" heading, T807: should a one-bank
-   place take tributaries? Today they read beside, the other rules answering), Q6 (the synopsis `kitimat_river.r1`
+   place take tributaries? Tributaries: no bank caveat (review fix of #61); owner may revisit), Q6 (the synopsis `kitimat_river.r1`
    `side: west` gets the stripe too?).
 
 Depends: T754. Size: M. Owner: yes (looks, Q4–Q6).
+
+Review of #61 (accepted as is): the folded salmon row on the Kitimat stretch says "open" with no hint of the closed west
+bank until the caveat is opened; this ticket's stripe is the planned cue.

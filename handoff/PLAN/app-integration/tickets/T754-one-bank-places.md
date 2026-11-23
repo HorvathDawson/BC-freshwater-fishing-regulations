@@ -181,3 +181,8 @@ other regulations (as `side` does for "west half", AGENTS rule 49). Unblocks T75
   "including tributaries"): before, the bank place first in `l`, the stretch closed all year; after, it is in `u`, the
   stretch answers by the Kitimat's "downstream of Highway 37 bridge" place and the map reads open Apr 1–Oct 31. Nakina
   (1 section): in `u`, map unchanged (dormant). Needs the 0.9.0 bundle (no atlas, no tiles, no new cuts).
+- Review fixes (7084e2fa5): (1) TRIBUTARIES: NO BANK CAVEAT (review fix; owner may revisit, T1029 Q5): a bank place stands
+  beside on its own river's sections only (the Kitimat: 1 section); the 12 tributary sections its walk took answer by
+  their other places with no caveat. (2) A "rest of" place listing a bank place still answers on the bank place's
+  sections (`rests_behind` `beside_on`; none today). (3) `bank_of` ignores a bank inside an except / excluding clause.
+  Proof rerun: still 14 sections change; the Kitimat bank place is in `u` on 1 section.
