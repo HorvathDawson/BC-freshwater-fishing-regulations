@@ -12,7 +12,7 @@
  *   node app/tools/sourcemaps.mjs keep-android <index.android.bundle.map> <key>
  *        copy the Hermes map of a release build (deploy/staging/build-apk.sh) to data/sourcemaps/<key>/android/.
  *   node app/tools/sourcemaps.mjs keep-r8 <mapping.txt> <key>
- *        (T749) copy R8's mapping.txt of a build made with CANIFISHTHIS_R8=1 to data/sourcemaps/<key>/android/r8-mapping.txt:
+ *        (T749, T1003) copy R8's mapping.txt of a release build (R8 is always on) to data/sourcemaps/<key>/android/r8-mapping.txt:
  *        it reads the build's renamed Java/Kotlin frames (a native/Java crash stack) back. Missing or empty: it FAILS, so
  *        a shrunk build whose names cannot be read back is never kept as if it could.
  *   node app/tools/sourcemaps.mjs symbolicate [<crash json> | -]
@@ -168,7 +168,7 @@ export function keepAndroid(mapPath, key, root = ROOT) {
 
 /** (T749) Copy R8's mapping.txt to `root/<key>/android/r8-mapping.txt`; refuses a missing or empty one. */
 export function keepR8(mappingPath, key, root = ROOT) {
-  if (!existsSync(mappingPath)) throw new Error(`sourcemaps: no R8 mapping at ${mappingPath} (CANIFISHTHIS_R8=1 but R8 did not run?)`);
+  if (!existsSync(mappingPath)) throw new Error(`sourcemaps: no R8 mapping at ${mappingPath} (a release build has R8 on, T1003: did R8 run?)`);
   if (statSync(mappingPath).size === 0) throw new Error(`sourcemaps: the R8 mapping at ${mappingPath} is empty`);
   const to = join(root, key, "android", "r8-mapping.txt");
   mkdirSync(dirname(to), { recursive: true });
