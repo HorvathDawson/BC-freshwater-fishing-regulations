@@ -1,6 +1,6 @@
 # T562 — Review marks, what T545 and T541 left
 
-Status: PARTIAL — 0f6e7607c, aed6f6a25 (2026-11-10): items 4, 5, 7 done; 6 closed (owner: not wanted); 1: older DFO marks audited and passed (owner). left (Claude): item 1's changed-extent guard for entry / rule marks (reuse.post_mark + proposals), items 2 (found names: mine.py under pipeline/, digest pin) and 3 (an accepted name on a lake or registry item).
+Status: PARTIAL — 0f6e7607c, aed6f6a25 (2026-11-10). 2026-11-22: items 1 (the entry/rule changed-extent guard), 2 and 3 (found names, lake names in `add_mined_names`) looked at and NOT started: 1 is mark-schema + save-path work, 2 and 3 are `pipeline/atlas/registry/mined.py` + `mine.py` (the atlas lane). Each is its own ticket-sized lane. left (Claude): items 1, 2, 3 (each its own lane).
 
 Source: the T545 and T541 lanes' reports, 2026-11-09.
 

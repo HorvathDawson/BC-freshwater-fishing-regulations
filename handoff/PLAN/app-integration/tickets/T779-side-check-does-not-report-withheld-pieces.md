@@ -1,6 +1,6 @@
 # T779 — The side check used when a DFO mark is landed does not report a withheld piece; only the full reach run refuses it
 
-Status: OPEN (pipeline `pipeline/regs/review/proposals.py`, `apply.py`; the review app's resolver).
+Status: DONE — c77eeb601 (2026-11-22). Not yet seen on a real straddling place in the browser; tested on the gate rule and the backend call (stubbed binding).
 
 Source: T778, 2026-11-15 night. The two Middle Shuswap saves were landed with `apply dfo --side-checked` ("0 -> 17
 sections, bound"), and the full build then stopped 14 minutes into its reach run on a piece those places withheld.

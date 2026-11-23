@@ -1,6 +1,6 @@
 # T775 — Review app, rest-of places after T761: wrong preview words, empty checklist, listed places not on the map, card notes
 
-Status: OPEN (review app, `handoff/PLAN/curation-review/`; none blocks a save).
+Status: PARTIAL — items 1-3 DONE (c77eeb601, 2026-11-22); item 4 (the PHONE app card naming a skipped listed place) not done: it is the bundle/deliver side (`pipeline/deliver`), outside the review-app lane. left (Claude): item 4, the phone card naming a skipped listed place.
 
 Source: T761 lane report and the sweep, 2026-11-15 night.
 

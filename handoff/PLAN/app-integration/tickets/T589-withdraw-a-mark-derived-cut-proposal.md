@@ -1,6 +1,6 @@
 # T589 — A cut proposal can be withdrawn (the Allco fence)
 
-Status: PARTIAL — 680c1d6eb, 54a06dc89 (2026-11-10): the withdraw call is built and the Allco fence cut is withdrawn by the owner. left (Claude): a button to withdraw a proposed cut himself (a new mark kind, a writer merging into proposal_overrides.json, its write-through domain; see below).
+Status: PARTIAL — 680c1d6eb, 54a06dc89 (2026-11-10). The button is NOT built and was stopped 2026-11-22 as too big for a leftover lane: it is a new mark scope (schema, validators, `export` domain, an `apply` writer into `proposal_overrides.json`, write-through, the button on each proposed cut, API.md), the `closed_area` scope is the pattern. Own ticket-sized lane. left (Claude): the withdraw button (a new mark scope).
 
 Source: T532 round 6, leftover c.
 

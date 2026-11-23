@@ -1,6 +1,6 @@
 # T590 — Cut pickers offer this water's cuts first, and the nearest existing cut
 
-Status: PARTIAL — af76fda95, 2026-11-10. Done: 1 (search: this water's cuts first; test) and 2 for entry B and the place editor's words (`dfo.check_anchor` answers `nearest`; within 200 m it says to use it; entry B has the one-click "Use it"). left (Claude): a one-click "use it" in the PLACE editor (needs its draft state), and 3 (stored suggestions in dfo_fix_proposals.json / suggest.py proposed AS the existing cut when within 200 m). Not looked at in a browser.
+Status: PARTIAL — af76fda95 (2026-11-10), c77eeb601 (2026-11-22): the one-click "use it" in the PLACE editor is built (`NewSplits`, `dfoExtent.useExistingCut`; not looked at in a browser). left: 3, stored suggestions (`dfo_fix_proposals.json` is hand-written; each row needs its geometry checked against the cuts within 200 m). left (Claude): item 3, stored suggestions as the existing cut.
 
 Source: T532 leftover d; owner 2026-11-10 on T573: "if one is near one that already existed use the already
 existing one … applies to the pickers' proposals in general".
