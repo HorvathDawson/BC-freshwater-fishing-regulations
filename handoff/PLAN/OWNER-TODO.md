@@ -10,7 +10,7 @@ Things only you can do. Claude keeps this list current while you are away; the w
 with the default Claude uses until you answer). Newest first inside each section.
 
 ## 2026-11-23 00:05: question round 5 (answers, verbatim)
-- T1026 day picker: "Yes, extend to Mar 31 2027 (Recommended)" — to: should the 0.9.0 data release extend the day-by-day answers through Mar 31, 2027? NOT built yet: the lane stopped as a format break (see T1026).
+- T1026 day picker: "Yes, extend to Mar 31 2027 (Recommended)" — to: should the 0.9.0 data release extend the day-by-day answers through Mar 31, 2027? Built without a format change (picker wraps past New Year; see T1026).
 ## 2026-11-22 18:55: lane L3 (0.9.0 batch) — three looks
 - **Look (you): T997 Nicomekl labels** — `handoff/PLAN/app-integration/T997-shots/` (web before/after, Android after).
 - **Pick (you): T1004 Class II tag** A (now, far right) or B (beside the name) — `T1004-shots/` (recommend B).

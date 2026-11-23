@@ -879,10 +879,37 @@ def diff_content_sha(p: Path) -> str | None:
 
 # ------------------------------------------------------------------------------------------------------------ checks
 
+def pack_problems_of(m: dict, root: Path) -> list[str]:
+    """(T919 c) The map assets' pack the manifest names (`tiles.assets.pack`): on disk under `root`, at the manifest's
+    bytes + sha256 and `unpacked` size, and still its folder's `assets.json` member for member (`assets.pack_problems`).
+    [] when the manifest names no pack (a release built before it)."""
+    from pipeline.deliver.tiles.assets import pack_path, pack_problems, unpacked_bytes
+    a = (m.get("tiles") or {}).get("assets") or {}
+    pk = a.get("pack")
+    if not pk:
+        return []
+    p, folder = root / pk["url"], root / a["url"].rstrip("/")
+    if not p.is_file():
+        return [f"tiles.assets.pack: {pk['url']} is missing"]
+    out = []
+    if p.stat().st_size != pk.get("bytes"):
+        out.append(f"tiles.assets.pack: {pk['url']} is {p.stat().st_size:,} B, the manifest says {pk.get('bytes')}")
+    elif hashlib.sha256(p.read_bytes()).hexdigest() != pk.get("sha256"):
+        out.append(f"tiles.assets.pack: {pk['url']} is not the sha256 the manifest names")
+    if p != pack_path(folder):
+        return out + [f"tiles.assets.pack: {pk['url']} is not the pack of the folder {a['url']}"]
+    if not (folder / "assets.json").is_file():
+        return out + [f"tiles.assets.pack: the folder {a['url']} has no assets.json"]
+    out += [f"tiles.assets.pack: {x}" for x in pack_problems(folder)]
+    if pk.get("unpacked") != unpacked_bytes(folder):
+        out.append(f"tiles.assets.pack: unpacked is {pk.get('unpacked')}, the folder takes {unpacked_bytes(folder)} B")
+    return out
+
+
 def manifest_problems(rid: str) -> list[str]:
     """Manifest sanity: it is THIS release, every file it names is on disk at its size, the size gate holds, the
-    tiles / basemap / synopsis it names exist (`publish.plan` — the upload's own list), and its bundle block names
-    the reach run on disk."""
+    tiles / basemap / synopsis it names exist (`publish.plan` — the upload's own list), (T919 c) the assets pack is its
+    folder's (`pack_problems_of`), and its bundle block names the reach run on disk."""
     from pipeline.deliver.release import build as RB
     from pipeline.deliver.release.manifest import FORMAT
     from pipeline.deliver.release.publish import plan as publish_plan
@@ -901,6 +928,7 @@ def manifest_problems(rid: str) -> list[str]:
             out.append(f"files.{name}: {e['url']} is missing")
         elif e.get("gz") is not None and p.stat().st_size != e["gz"]:
             out.append(f"files.{name}: {e['url']} is {p.stat().st_size:,} B, the manifest says {e['gz']:,}")
+    out += pack_problems_of(m, root)
     try:
         publish_plan(root / rid, root)
     except SystemExit as e:

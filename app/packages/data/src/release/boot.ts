@@ -29,7 +29,7 @@ import { compatible, loadManifest, ManifestError, parseManifestText, readsReleas
 import { sha256Hex } from "../sha256";
 import type { WaterSource } from "../index";
 import type { SourceOptions } from "./source";
-import { bigFiles, dataFiles, heldFrom, heldManifest, heldPath, install, installBytes, pointerFor, POINTER as POINTER_PATH, prune, readHeld, sameSet,
+import { bigFiles, dataFiles, dropSpentPack, heldFrom, heldManifest, heldPath, install, installBytes, pointerFor, POINTER as POINTER_PATH, prune, readHeld, roomBytes, sameSet,
          synopsisPath, writeHeld, type LookBytes, type Progress, type ReleaseFs } from "./install";
 import { rawFetch } from "./assets";
 import type { BackgroundNative, BgItem, BgJob } from "./bgDownload";
@@ -228,7 +228,8 @@ export class UnreadableError extends BootError {}
 
 /**
  * (T722 F9) WILL THE DOWNLOAD FIT? Before a release download (the first install, an update), on both platforms: what
- * installing `m` beside `held` downloads (`installBytes`, the manifest's sizes) less what of its big files is on disk
+ * installing `m` beside `held` downloads (`installBytes`, the manifest's sizes; T919 c: `roomBytes`, with the folder an
+ * assets pack unpacks into) less what of its big files is on disk
  * already (a `.part` or the finished file at its path, or on Android the bytes its system download holds), against the
  * phone's free bytes. Too little: a `SpaceError` naming both, before anything is queued or downloaded (shown by the boot
  * screen or as the update's error, reported by both). A phone that will not say its free space is reported, and the
@@ -243,7 +244,7 @@ export async function checkRoom(m: Manifest, held: Held | null, space: DeviceSpa
     const on = Math.max(await space.size(b.path), await space.size(`${b.path}.part`), job?.bytes ?? 0);
     have += Math.min(b.e.bytes, Math.max(0, on));
   }
-  const need = installBytes(m, held) - have;
+  const need = roomBytes(m, held) - have;     // (T919 c) with the folder a pack unpacks into
   const free = await space.free();
   if (typeof free !== "number" || !Number.isFinite(free) || free < 0) {
     reportFailure(new Error(`[space] the phone did not say its free space (${String(free)}); ${need} bytes to download`));
@@ -541,6 +542,8 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
   }
 
   const now = held;
+  // (T919 c) a pack an install killed after its swap left behind: spent, removed (a failure is reported, the boot goes on)
+  await dropSpentPack(dev.fs, now, set.m).catch((e: unknown) => { reportFailure(e); });
   // (T722 F6) at every boot, so a set an older app installed is covered too (a first install's is this call)
   await outOfBackup(o.noBackup, dev, set.m);
   // (T585 F12) is this the boot that APPLIES the set (the first to open it)? The record (read above) is this device's own

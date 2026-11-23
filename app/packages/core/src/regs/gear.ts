@@ -21,7 +21,7 @@ import type { BannerVM, ChangeVM, Day, GearLineVM, GearVM, SourceLineVM, Weekday
 import { ruleSub } from "./level";
 import { cap, clean } from "./names";
 import type { SheetKey } from "./sheetKey";
-import { BOOK_DAYS, bookIndex, displayOnBookDay, fmtDay } from "./strip";
+import { BOOK_DAYS, bookIndex, displayOnBookDay, fmtDay, isTodayOf } from "./strip";
 import { GEAR, GEAR_LINES, RANK_LEVEL, WD3, WORDS } from "./words";
 
 /** level word ("B.C.", "This water’s") → the chip word page v36 drew for it ("Province", "This water") */
@@ -46,7 +46,7 @@ export function gearAnswer(inp: RegsInputs): GearAnswer | null {
 export function gearCtxOf(inp: RegsInputs, o: { readonly today: Day; readonly banner: BannerVM | null }): GearCtx {
   const g = gearAnswer(inp);
   return {
-    day: inp.day, weekday: inp.weekday, today: inp.day.month === o.today.month && inp.day.day === o.today.day,
+    day: inp.day, weekday: inp.weekday, today: isTodayOf(inp, o.today),
     rules: inp.rules, glossary: new Set(inp.statics.glossary.terms.map((t) => t.id)),
     chips: g ? learnChipWords(g, inp.rules) : new Map(), banner: o.banner,
   };

@@ -18,7 +18,6 @@ import type { DisplayFrame, RegsInputs } from "./inputs";
 import type { Day, StripVM } from "./model";
 import type { Settled } from "./settle";
 import { MONTH1, WD3, WORDS } from "./words";
-import { sameDay } from "../day";
 
 /** The 365 days of the book's year (no Feb 29), as page v36 DAYS: book day i → {month, day}. */
 export const BOOK_DAYS: readonly Day[] = Object.freeze(COMMON_YEAR_MONTH_LAST_DAY.flatMap((n, m) =>
@@ -34,11 +33,16 @@ export function bookIndex(d: Day): number {
 }
 
 /** "Jun 15" (page fmtMd over a Day). */
+/** (T1026) Is the page's day today: the same month and day AND, when `today` names its year, the same year as the day's. */
+export function isTodayOf(inp: { readonly day: Day; readonly calendarYear: number }, today: Day): boolean {
+  return inp.day.month === today.month && inp.day.day === today.day && (today.year === undefined || today.year === inp.calendarYear);
+}
+
 export const fmtDay = (d: Day): string => `${MONTHS[d.month - 1]} ${d.day}`;
 
 /** (T810 N) THE DAY PHRASE, one helper: "today" when the page's day is today, else "on Jul 15". The strip's "when"
  *  line, the part-closed warning and the trout table's `{day}` slot all say the day with it (contract Q-D2). */
-export const dayPhrase = (day: Day, today: Day): string => (sameDay(day, today) ? WORDS.TODAY_LC : WORDS.ON_DAY(fmtDay(day)));
+export const dayPhrase = (day: Day, today: Day, year: number): string => (isTodayOf({ day, calendarYear: year }, today) ? WORDS.TODAY_LC : WORDS.ON_DAY(fmtDay(day)));
 
 /** The display frame of book day i: `inp.year.displayByDay` at the day's leap-calendar index (Feb 29 never asked). */
 export function displayOnBookDay(inp: RegsInputs, i: number): DisplayFrame | null {
@@ -139,7 +143,7 @@ export function stripOf(inp: RegsInputs, settled: Settled, today: Day): StripVM 
 
   const line: { kind: "status" | "when" | "soon" | "soonOpen"; text: string }[] = [
     { kind: "status", text: !openNow ? WORDS.STRIP_CLOSED : partShut ? WORDS.STRIP_OPEN_EXCEPT : WORDS.STRIP_OPEN },
-    { kind: "when", text: dayPhrase(day, today)
+    { kind: "when", text: dayPhrase(day, today, inp.calendarYear)
       + (inp.year?.moments && daySegCount(inp.year.segStarts, day) > 1 ? WORDS.WEEKDAY_TAG(WD3[WEEKDAYS.indexOf(inp.weekday)]!) : "") },
   ];
   if (!openNow) {

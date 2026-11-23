@@ -2,6 +2,8 @@
 
     {"format": "app-manifest/2", "data_release": "<id>",
      "tiles":   {"compatible": ["<handles16>.*"], "current": {id, url, bytes, sha256} | null, "assets": …, "mask": …},
+               (T919 c) `assets`: {id, url (the folder), files_sha256, pin, pack: {url, bytes, sha256, unpacked} (the folder as one file;
+               `unpacked`: the bytes its members take on disk)}
      "basemap": {id, url, bytes, sha256} | null,
      "files":   {"<name>": {url, bytes, gz, sha256, format, section_handles}, …},
      "regulations": {"valid_until": "<date>" | null, "versions": {…}},
@@ -220,10 +222,13 @@ def tiles_block(release_root, handles16: str, tiles_meta) -> Optional[dict]:
     out = {"current": {"id": v.name, **entry(v / f"atlas-{v.name}.pmtiles")}, "mask": entry(v / "bc_outside.geojson")}
     assets = sorted(v.glob("map-assets-*/assets.json"))
     if assets:
-        from pipeline.deliver.tiles.assets import files_sha256
+        from pipeline.deliver.tiles.assets import ensure_pack, files_sha256, unpacked_bytes
         a = assets[-1]
         out["assets"] = {"id": a.parent.name, "url": f"tiles/{v.name}/{a.parent.name}/",
-                         "files_sha256": files_sha256(a), "pin": json.loads(a.read_text())["pin"]}
+                         "files_sha256": files_sha256(a), "pin": json.loads(a.read_text())["pin"],
+                         # (T919 c) the same files as ONE download (written here for a tile version released before
+                         # it: a new file beside the folder); an app that predates `pack` reads `url` as before
+                         "pack": {**entry(ensure_pack(a.parent)), "unpacked": unpacked_bytes(a.parent)}}
     return out
 
 
