@@ -107,7 +107,8 @@ describe("a day only salmon may be fished: the row cites the Gear drawn, not the
     const page = { ...closedDay, gear: { ...closedDay.gear!, closed: "Closed to fishing for game fish" } } as RegsPage;
     const tabs = gearTabsFor(page, { gear: open.gear, methods: open.methods }, { status: "open" } as never, null);
     expect(tabs.gear).toBe(open.gear);
-    const sources = regsSourcesOf(drawnRegsOf(page, tabs, page.licence), { waterPages: [], inSeason: false, dfo: false });
+    const sources = regsSourcesOf(drawnRegsOf(page, tabs, page.licence), { waterPages: [], inSeason: false, dfo: false,
+      rules: { get: () => { throw new Error("no rule index: a frozen page"); }, has: () => false, byKey: () => null } });
     render(<WaterFrame palette={LIGHT} face="regulations">
              <RegsScreen page={page} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} } as never} onDate={() => {}} sources={sources}
                          gear={(a) => <GearTab vm={tabs.gear!} palette={LIGHT} actions={a} salmonGear={tabs.salmonGear} />}

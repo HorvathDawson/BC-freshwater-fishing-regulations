@@ -17,7 +17,13 @@ const gearCiting = (pages: { printed: number; pdf: number; box?: ReturnType<type
 const tabs = (gear: unknown, methods: unknown = null) => ({ gear, methods, salmonGear: null }) as never;
 const page = (o: Record<string, unknown> = {}) =>
   ({ header: {}, keep: {}, boats: null, methods: null, gear: null, licence: null, sheet: () => { throw new Error("a sheet is not drawn"); }, ...o }) as unknown as RegsPage;
-const none = { waterPages: [] as never[], inSeason: false, dfo: false };
+/** A rule index: `dfo` names the keys whose rule is DFO's own (`source: "dfo"`), and rix 7 is one (a trout table's `src`). */
+const index = (dfo: readonly string[] = []) => {
+  const view = (key: string, source: string) => ({ key, missing: false, f: { source } }) as never;
+  return { get: (i: number) => view(`ix::${i}`, i === 7 && dfo.includes("#7") ? "dfo" : "book"), has: (i: number) => i === 7,
+           byKey: (k: string) => (k.startsWith("e::") ? view(k, dfo.includes(k) ? "dfo" : "book") : null) };
+};
+const none = { waterPages: [] as never[], inSeason: false, dfo: false, rules: index() };
 
 describe("regsSourcesOf: one link per synopsis page the DRAWN tabs cite (owner 2026-11-22: \"one for each page referenced\"; #63 review)", () => {
   // Skeena River, Class II part (live app 2026-11-22): its closures cite p.9, its caveat p.53, its gear line p.8 p.49 p.53
@@ -77,6 +83,8 @@ describe("drawnRegsOf: what the Regulations tab draws (#63 review)", () => {
     const lic = { lines: [[book(10, 12)]] } as never;
     expect(sourcesText(regsSourcesOf(drawnRegsOf(p, tabs(null, {}), lic), none))).toBe("Source B.C. Synopsis p.6 ↗ p.10 ↗ p.70 ↗ All sources ›");
     expect(sourcesText(regsSourcesOf(drawnRegsOf(p, tabs(null, null), null), none))).toBe("Source All sources ›");
+    // (#63 re-review probe) the Methods tab as drawn carries its own `reference` (the "if fished" day's): not drawn, never cited
+    expect(sourcesText(regsSourcesOf(drawnRegsOf(page(), tabs(null, { reference: { lines: [[book(10, 12)]] } }), null), none))).toBe("Source All sources ›");
   });
 });
 
@@ -88,6 +96,14 @@ describe("regsSourcesOf: only the authorities this page shows (owner 2026-11-22:
   it("DFO only where the page shows DFO's salmon", () => {
     expect(sourcesText(regsSourcesOf(drawn, { ...none, inSeason: true, dfo: true })))
       .toBe("Source B.C. Synopsis p.9 ↗ B.C. in-season changes ↗ DFO notices ↗ All sources ›");
+  });
+  it("(#63 re-review) DFO, too, where a drawn rule is DFO's own (a DFO override): named by a sheet key, a source line's keys or a trout row's index", () => {
+    const line = (k: string) => [{ src: { who: "", aria: "", open: "srcs:gear", keys: [k], pages: [] } }];
+    expect(sourcesText(regsSourcesOf(line("e::r1"), { ...none, rules: index(["e::r1"]) }))).toBe("Source DFO notices ↗ All sources ›");
+    expect(sourcesText(regsSourcesOf([[{ t: "link", s: "x", open: "rule:e::r2" }]], { ...none, rules: index(["e::r2"]) }))).toBe("Source DFO notices ↗ All sources ›");
+    expect(sourcesText(regsSourcesOf([{ src: [7] }], { ...none, rules: index(["#7"]) }))).toBe("Source DFO notices ↗ All sources ›");
+    // a drawn rule that is the book's, and a DFO rule nothing drawn names: no DFO
+    expect(sourcesText(regsSourcesOf(line("e::r1"), { ...none, rules: index(["e::r9"]) }))).toBe("Source All sources ›");
   });
   it("a local authority's cited page a drawn rule links, by the name the rule gives it (T981)", () => {
     const vm = regsSourcesOf([[{ t: "web", s: "StanleyParkVan.com", url: "https://stanleyparkvan.com/x" }]], none);
