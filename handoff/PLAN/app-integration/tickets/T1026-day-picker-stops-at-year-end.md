@@ -1,6 +1,6 @@
 # T1026 — The day picker stops at December 2026 although the synopsis is valid to March 31, 2027
 
-Status: PARTIAL (code 641725521) — the bound is by design: the release's calendar is ONE calendar year with no year in it (`dayPicker.ts` header), so a 2027 day would read as the same day of 2026. Widening needs the release's day range to grow (bigger, STOP: owner/data decision). Done instead: the greyed December now says why, naming the synopsis's valid-to day (`DayRange.beyond`, `DAY_PICKER.beyondYear`). Test in dayPicker.test.
+Status: PARTIAL — 641725521, dd48e15d8; left (Claude): decide whether the release's day range grows into 2027 (a data-release change; the synopsis is valid to Mar 31, 2027) — the bound is by design: the release's calendar is ONE calendar year with no year in it (`dayPicker.ts` header), so a 2027 day would read as the same day of 2026. Widening needs the release's day range to grow (bigger, STOP: owner/data decision). Done instead: the greyed December now says why, naming the synopsis's valid-to day (`DayRange.beyond`, `DAY_PICKER.beyondYear`). Test in dayPicker.test.
 
 Source: a closed tester, relayed by the owner 2026-11-22 (screenshots: the Sources list "Synopsis — Valid to Mar 31,
 2027", and "Which day?" showing December 2026 with the next-month arrow disabled). Verbatim: "Synopsis valid til March

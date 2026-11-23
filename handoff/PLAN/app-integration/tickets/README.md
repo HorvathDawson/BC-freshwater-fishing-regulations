@@ -295,10 +295,10 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1015 | Google's renderer runs the web app on cached old releases: does the indexed page show the app's boot error? | OPEN — next release batch | | Search Console rendered-page check, then the fallback if needed |
 | T1016 | Web: a tab kept open across two releases (or a site deploy) meets 404s on pruned files / a gone chunk: say it, reload | OPEN — next release batch | | all |
 | T1017 | Two one-report defects to locate: `expression.evaluate is not a function` (web), iOS "Unable to open URL" on Runs | OPEN — next release batch | | both; item 1 after T1008 |
-| T1023 | Staging report: "Flows into X" should open the receiving water's section on the map, not its regulations (Liumchen Creek) | DONE (code 641725521) | | staging report 2026-11-23 (`c9abc20745908d89`) |
-| T1024 | Staging report: "weird highlighting on the lake" at Gravel Slough | OPEN (not reproduced on web) (code 641725521) | | staging report 2026-11-23 (`3444007425e9d3bd`) |
-| T1025 | Switching regs sub-tabs (What you can keep ↔ Licence) scrolls through every section between | DONE (code 641725521) | | closed tester via owner 2026-11-22 |
-| T1026 | The day picker stops at December 2026 although the synopsis is valid to March 31, 2027 | PARTIAL (code 641725521) | | closed tester via owner 2026-11-22 |
+| T1023 | Staging report: "Flows into X" should open the receiving water's section on the map, not its regulations (Liumchen Creek) | DONE | 641725521, dd48e15d8 | staging report 2026-11-23 (`c9abc20745908d89`) |
+| T1024 | Staging report: "weird highlighting on the lake" at Gravel Slough | OPEN | | staging report 2026-11-23 (`3444007425e9d3bd`) |
+| T1025 | Switching regs sub-tabs (What you can keep ↔ Licence) scrolls through every section between | DONE | 641725521, dd48e15d8 | closed tester via owner 2026-11-22 |
+| T1026 | The day picker stops at December 2026 although the synopsis is valid to March 31, 2027 | PARTIAL | | closed tester via owner 2026-11-22 |
 
 ## Next after closed testing
 

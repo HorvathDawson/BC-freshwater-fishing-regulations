@@ -1,6 +1,6 @@
 # T1024 — "Weird highlighting on the lake" (Gravel Slough)
 
-Status: NOT REPRODUCED on web (staging, 412 px, whole water + NE loop at z14: a clean part line, no stray fill; shots in `T1024-shots/`). The report is from the Android build at 49.202,-121.904 z14.3; an emulator pass was not done. Stays open for a device repro.
+Status: OPEN — not reproduced on web (staging, 412 px, whole water and the NE loop at z14: a clean part line, no stray fill; shots in `T1024-shots/`). The report is from the Android build at 49.202,-121.904 z14.3; no emulator pass was done; left (Claude): reproduce on a device build.
 
 Source: STAGING report `3444007425e9d3bd`, 2026-11-23 05:32Z, Android 0.8.5 (staging build), water · map, Gravel Slough
 (`gnis:8009`) part 0, zoom 14.3 at 49.202, -121.904. Verbatim: "Weird highlighting on the lake here".
