@@ -22,7 +22,7 @@ import { buildDayOf, formerName, regionBox } from "./model";
 import { appDocument } from "./prerender";
 // @ts-expect-error a plain .mjs tool (no types)
 import { HOME_LINKS, withHomeLinks } from "../web-shell.mjs";
-import { regionLabel } from "./html";
+import { FACTLESS_TAIL, regionLabel } from "./html";
 import { fitQuery, parseStartLink } from "@app/ui";
 import { SHARE_LINE } from "./site";
 
@@ -172,7 +172,7 @@ describe("(T866) a bare build", () => {
     const bare = await buildAll({ loader: openRegsFixture(), on: TODAY, bare: true });
     expect(sameAsFull(bare)).toEqual(sameAsFull(built));
     // and it skips what it says it skips (else the full build `built` checks nothing the bare ones do not)
-    expect(bare.binary.size).toBe(0);
+    expect([...bare.binary.keys()].filter((n) => n.startsWith("share/"))).toEqual([]);   // (T1042: the icons are in it)
     expect(bare.build.pages.filter((p) => p.kind === "water").every((p) => p.html === "")).toBe(true);
     expect(built.binary.size).toBeGreaterThan(20);
   }, 120_000);
@@ -187,6 +187,23 @@ describe("T194 sitemap, robots, canonicals, structured data", () => {
     expect(built.files.get("sitemap.xml")).toContain(`${site.origin}/sitemap-1.xml`);
     expect(built.files.get("robots.txt")).toContain(`Sitemap: ${site.origin}/sitemap.xml`);
     expect(built.files.get("robots.txt")).toMatch(/Disallow: \/api\//);
+  });
+
+  it("(T1042) a water's description is its own facts, not the template and not the licence quote; every page names the PNG icons", () => {
+    const ws = waters();
+    const descOf = (h: string) => /<meta name="description" content="([^"]*)">/.exec(h)![1]!;
+    const facts = ws.filter((p) => !descOf(p.html).endsWith(FACTLESS_TAIL));
+    expect(facts.length).toBeGreaterThan(ws.length / 2);   // the fixture's waters hold rules: most say them
+    for (const p of ws) {
+      const d = descOf(p.html);
+      expect(d, p.path).not.toMatch(/in plain words|licence|\$\d/i);
+      expect(/<meta property="og:description" content="([^"]*)">/.exec(p.html)![1], p.path).toBe(d);
+    }
+    expect(new Set(facts.map((p) => descOf(p.html).replace(/^.*?\): /, ""))).size).toBeGreaterThan(1);   // not one sentence on every page
+    for (const [path, html] of built.files) if (path.endsWith(".html")) expect(html, path).toContain(`<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png">`);
+    expect(built.binary.has("apple-touch-icon.png") && built.binary.has("favicon-48x48.png")).toBe(true);
+    // every build-made shared block (the legal lines) is kept out of a snippet
+    for (const p of built.build.pages.filter((x) => x.kind !== "water")) expect(p.html, p.path).toMatch(/data-nosnippet/);
   });
 
   it("every canonical is the page's own https canifishthis.ca URL; titles <= 60, descriptions <= 155, all unique", () => {
@@ -376,7 +393,12 @@ describe("T195 hubs and dated pages", () => {
     // and a build on a closed day and on an open day publish the same description
     const later = await buildAll({ loader: openRegsFixture(), on: buildDayOf(new Date(2026, 6, 15, 12)), bare: true });
     const was = new Map(waters().map((p) => [p.path, p.description]));
-    expect(later.build.pages.filter((p) => p.kind === "water").every((p) => was.get(p.path) === p.description)).toBe(true);
+    // (T1042) the facts a description holds are on the page in every season (`factsOf`); a water the build day has closed draws no
+    // Other fish / Gear / Boats section that day, so its description holds fewer of them (or none): never DIFFERENT ones
+    const factsIn = (d: string) => new Set(d.replace(/^.*?\): /, "").replace(/\.$/, "").split("; ").filter((f) => f !== FACTLESS_TAIL.replace(/\.$/, "")));
+    const subset = (a: Set<string>, b: Set<string>) => [...a].every((x) => b.has(x));
+    expect(later.build.pages.filter((p) => p.kind === "water" && was.get(p.path) !== p.description
+      && !subset(factsIn(was.get(p.path)!), factsIn(p.description)) && !subset(factsIn(p.description), factsIn(was.get(p.path)!))).map((p) => [was.get(p.path), p.description])).toEqual([]);
     // (T622 G23) the region in it is the water's own code, as the app names it ("Region 7A"); (T672 W4, owner
     // 2026-11-12) a water in several regions names every hub number instead ("Regions 5, 6, 7": the West Road)
     let several = 0;

@@ -139,14 +139,21 @@ export function WaterTitle({ name, palette, source = null, children }: {
 }
 
 /**
+ * (T1042) `data-nosnippet` (react-native-web renders `dataSet`; native ignores it): the words every water's page repeats
+ * (the licence block, the Handling-fish reference, the legal footer) are never Google's search snippet, which then comes
+ * from the page's own description. developers.google.com/search/docs/appearance/snippet#data-nosnippet-attr
+ */
+export const NO_SNIPPET: Record<string, unknown> = { dataSet: { nosnippet: "" } };
+
+/**
  * A block of a view's content set in from the sides by the frame's gutter. `column`: also held to the frame's column
  * (inside full-bleed content: the Map view's bar, whose words line up with the header above the canvas).
  */
-export function WaterInset({ column = false, style, testID, children }: {
-  column?: boolean; style?: StyleProp<ViewStyle>; testID?: string; children: React.ReactNode;
+export function WaterInset({ column = false, style, testID, noSnippet = false, children }: {
+  column?: boolean; style?: StyleProp<ViewStyle>; testID?: string; noSnippet?: boolean; children: React.ReactNode;
 }) {
   return (
-    <View testID={testID} style={[column ? COLUMN : null, { paddingHorizontal: WATER_FRAME.gutter }, style]}>
+    <View testID={testID} {...(noSnippet ? NO_SNIPPET : {})} style={[column ? COLUMN : null, { paddingHorizontal: WATER_FRAME.gutter }, style]}>
       {children}
     </View>
   );

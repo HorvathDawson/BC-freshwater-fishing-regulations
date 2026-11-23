@@ -14,6 +14,7 @@ import { JSDOM } from "jsdom";
 // @ts-expect-error a plain .mjs tool (no types)
 import { afterPaint as shellAfterPaint, bootCoho, cohoFacts, HOME_DESCRIPTION, HOME_DESCRIPTION_TAG, MARKED, paintFirst, shellExport, withBootCoho,
          withHomeHead, withHomeLinks } from "./web-shell.mjs";
+import { ICON_LINKS } from "./web-icons.mjs";
 import { COHO } from "../packages/ui-native/src/coho.generated";
 import { COHO_WEB } from "../packages/ui-native/src/cohoWeb.generated";
 import { COHO_GROUND_PAD, COHO_WIDTH, cohoHeight } from "../packages/ui-native/src/coho";
@@ -168,6 +169,7 @@ describe("the web's opening is the coho (T844)", () => {
       const { frame0 } = shellExport(exported());
       const html = readFileSync(join(dir, "index.html"), "utf8");
       expect(html).toContain(HOME_DESCRIPTION_TAG);
+      expect(html).toContain(ICON_LINKS);   // (T1042) the home page names the PNG icons Google Search reads
       for (const t of ["light", "dark"] as const) {
         const png = readFileSync(at(`apps/mobile/assets/splash/web-frame0-${t}.png`));
         expect(frame0[t]).toBe(`data:image/png;base64,${png.toString("base64")}`);

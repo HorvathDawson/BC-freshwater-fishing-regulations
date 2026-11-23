@@ -131,13 +131,61 @@ export function clip(s: string, max = 155): string {
   return `${t.slice(0, max - 1).replace(/\s+\S*$/, "").replace(/[,;:\s]+$/, "")}…`;
 }
 
+/** (T1042) what a description says when the page holds no fact that fits: counted in budget.json (`descriptionsWithoutFacts`), never silent */
+export const FACTLESS_TAIL = "its season, what you can keep, gear and limits, from the B.C. synopsis.";
+/** the sections a description draws from, in order, each with the item it prefers (else the first that qualifies) */
+const FACT_SECTIONS: readonly (readonly [title: string, prefer: RegExp | null, max: number])[] = [
+  ["Other fish", null, 2], ["Boats", null, 1], ["Gear", /^Hooks:/, 1],
+];
+/** a sentence naming the build day: a description is written once a release (T622 G2), so these are never in it */
+const DAY_WORDS = /\b(today|tomorrow|tonight|now|until|then)\b|\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\.? \d/i;
+
 /**
- * The meta description of a water page. (T622 G2) NO DAY-RELATIVE WORD: it is written once a release, so "Closed to fishing
- * today" was the build day's answer for weeks. The page itself, and the app, say open or closed for the day the reader is on.
+ * (T1042) THE FACTS OF A PAGE, in the page's own words. ONLY SECTIONS THAT READ THE SAME ON EVERY DAY: the trout and "What you
+ * can keep" lines, the closures and the dated lines change with the build day (a build on another day gave other sentences:
+ * site.test.ts holds a description to the same words on any day), so a description from them would be true for part of the
+ * year. Per section above, items that hold on every part (a stretch's
+ * rule that the others lack is not the water's), not dated, not a day's sentence, with its group's heading in front when it
+ * follows one ("Trout and char: 2 a day"). Nothing is composed or reworded here.
+ */
+export function factsOf(m: Pick<WaterModel, "parts">): string[] {
+  const out: string[] = [];
+  const trim = (t: string) => t.replace(/[.\s]+$/, "");
+  for (const [title, prefer, max] of FACT_SECTIONS) {
+    const of = (p: WaterModel["parts"][number]) => p.sections.filter((s) => s.title === title);
+    if (m.parts.length === 0 || m.parts.some((p) => of(p).length === 0)) continue;
+    const cands: { raw: string; fact: string }[] = [];
+    for (const s of of(m.parts[0]!)) {
+      let head = "";
+      for (const it of s.items) {
+        if (it.head) { head = it.text; continue; }
+        if (it.dated || DAY_WORDS.test(it.text)) continue;
+        const raw = trim(it.text);
+        cands.push({ raw, fact: head && raw.length < 40 && !raw.toLowerCase().startsWith(head.toLowerCase()) ? `${head}: ${raw}` : raw });
+      }
+    }
+    const shared = cands.filter((c) => m.parts.every((p) => of(p).some((s) => s.items.some((i) => trim(i.text) === c.raw))));
+    const first = prefer ? shared.find((c) => prefer.test(c.raw)) : undefined;
+    out.push(...(first ? [first] : shared.slice(0, max)).map((c) => c.fact));
+  }
+  return out;
+}
+
+/**
+ * The meta description of a water page (and its og:description). (T622 G2) NO DAY-RELATIVE WORD: it is written once a
+ * release, so "Closed to fishing today" was the build day's answer for weeks; the page itself, and the app, say open or
+ * closed for the day the reader is on. (T1042) It was one template on every page, which Google ignores
+ * (developers.google.com/search/docs/appearance/snippet: identical descriptions on every page are not helpful), so it took a
+ * passage of the page instead, the licence quote. Now it is the water's name and place, then the page's own facts (`factsOf`)
+ * while they fit in 155 characters, a whole fact or none.
  */
 export function descriptionOf(m: WaterModel, label: string = m.name, town: string | null = null): string {
   const where = town ? `near ${town}, ${waterRegions(m)}` : waterRegions(m);
-  return clip(`${label} fishing regulations, B.C. (${where}): the season, what you can keep, gear and limits, in plain words.`);
+  const head = `${label} fishing regulations, B.C. (${where}): `;
+  const facts: string[] = [];
+  for (const f of factsOf(m)) if ((head + [...facts, f].join("; ")).length + 1 <= 155) facts.push(f);
+  const text = facts.length ? `${head}${facts.join("; ")}.` : `${head}${FACTLESS_TAIL}`;
+  return clip(text);
 }
 
 export function aboutBody(site: Site, asOf: string): string {
@@ -149,7 +197,7 @@ export function aboutBody(site: Site, asOf: string): string {
     `River gauges come from Environment and Climate Change Canada and the Water Survey of Canada; salmon notices from Fisheries and Oceans Canada; ` +
     `stocking records from the Freshwater Fisheries Society of BC. Their terms of use are respected.</p>` +
     `<p>Every page on this site is built from the same release as the app, so the two never disagree.</p>` +
-    `<div class="legal"><p>${esc(NOT_LEGAL)} <a href="${esc(SYNOPSIS_PDF)}" rel="noopener">Official synopsis (PDF)</a>.</p></div>` +
+    `<div class="legal" data-nosnippet><p>${esc(NOT_LEGAL)} <a href="${esc(SYNOPSIS_PDF)}" rel="noopener">Official synopsis (PDF)</a>.</p></div>` +
     `<p>If a rule looks wrong, tell me; every report gets a reply and a fix.</p>${contact}` +
     `<p><a class="app" href="${esc(site.origin)}/">Open the app</a></p>`;
 }
@@ -287,5 +335,5 @@ export function shell(s: Shell, site: Site): string {
   return `<!doctype html><html lang="en-CA"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">` +
     `${headOf(s, site)}<style>${CRITICAL}</style><link rel="stylesheet" href="${esc(s.cssHref)}"></head><body>` +
     `<header class="top"><div><a href="/">${esc(site.name)}</a><a href="/about">About</a></div></header>` +
-    `<main>${s.body}</main><footer>${esc(NOT_LEGAL)} <a href="/privacy">Privacy policy</a></footer></body></html>`;
+    `<main>${s.body}</main><footer><span data-nosnippet>${esc(NOT_LEGAL)}</span> <a href="/privacy">Privacy policy</a></footer></body></html>`;
 }
