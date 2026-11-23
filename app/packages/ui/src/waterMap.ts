@@ -218,6 +218,13 @@ const offsetM = (a: { lon: number; lat: number }, b: { lon: number; lat: number 
   return [(b.lon - a.lon) * k * Math.cos(((a.lat + b.lat) / 2) * k) * 6_371_000, (b.lat - a.lat) * k * 6_371_000];
 };
 
+/** How far apart two marks' boxes sit, in boxes (< 1: they meet), at `mPerPx` metres per px; 0 under the floor no zoom parts. */
+export function markBoxReach(a: { lon: number; lat: number }, b: { lon: number; lat: number }, mPerPx: number): number {
+  const [dx, dy] = offsetM(a, b);
+  if (Math.hypot(dx, dy) < MARK_LABEL_MERGE_MIN_M) return 0;
+  return mPerPx > 0 ? Math.max(Math.abs(dx) / (MARK_BOX_W * mPerPx), Math.abs(dy) / (MARK_BOX_H * mPerPx)) : Infinity;
+}
+
 /** Metres per screen pixel when a part opens framed on `bounds` (null: a floor that merges only what no zoom parts). */
 export function framingMetresPerPx(bounds: Bbox | null): number {
   if (!bounds) return 0;
@@ -260,12 +267,7 @@ export function mergeNearLabels(marks: readonly WaterMapMarkVM[], mPerPx = 0): W
   const kept: WaterMapMarkVM[] = [];
   const gone = new Set<number>();
   const order = [...marks].sort((a, b) => Number(b.on) - Number(a.on) || Number(!!a.mouth) - Number(!!b.mouth));
-  // how far, in boxes (<1: they meet), and never nearer than the floor says no zoom parts them
-  const reach = (a: WaterMapMarkVM, b: WaterMapMarkVM): number => {
-    const [dx, dy] = offsetM(a, b);
-    if (Math.hypot(dx, dy) < MARK_LABEL_MERGE_MIN_M) return 0;
-    return mPerPx > 0 ? Math.max(Math.abs(dx) / (MARK_BOX_W * mPerPx), Math.abs(dy) / (MARK_BOX_H * mPerPx)) : Infinity;
-  };
+  const reach = (a: WaterMapMarkVM, b: WaterMapMarkVM) => markBoxReach(a, b, mPerPx);
   for (const m of order) {
     if (m.label === null) continue;
     let near: WaterMapMarkVM | null = null, best = 1;

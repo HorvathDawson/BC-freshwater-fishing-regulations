@@ -10,7 +10,7 @@ import { openRegsFixtureWithLines, sectionNames, type SectionNames } from "@app/
 import type { ItemId } from "@app/data";
 import { HOME, reduce, type Route } from "./route";
 import {
-  crossAction, mergeNearLabels, framingMetresPerPx, exitAction, markTap, partAction, showRegsActions, waterMapStart, waterMapStartIx, waterMapStep, waterMapView,
+  crossAction, mergeNearLabels, framingMetresPerPx, markBoxReach, exitAction, markTap, partAction, showRegsActions, waterMapStart, waterMapStartIx, waterMapStep, waterMapView,
   type WaterMapAction,
   type WaterMapState,
 } from "./waterMap";
@@ -628,6 +628,23 @@ describe("(T443, owner on 0.6.7) two marks with the same words a few steps apart
     const mouth = m(-1, -122 + dLon(5), "Flows into X", { mouth: { into: null } });
     expect(L(mergeNearLabels([mouth, m(0, -122, "Border"), m(1, -122 + dLon(3), "Open one", { on: true })], mpp)))
       .toEqual([null, null, "Open one · Border · Flows into X"]);
+  });
+
+  it("(T465) zoomed out — the Fraser at every part and whole — no two drawn boundary boxes meet at the framing", async () => {
+    // the Fraser's top part framed wide (Williams Lake, ~z5.5) piled labels of different words; the merge follows the framing
+    for (const code of ["gnis:39325", "gnis:8634"]) {
+      const g = await loadWaterGroup(st, code as ItemId);
+      let merged = 0;
+      for (const whole of [false, true]) for (let at = 0; at < g.parts.length; at++) {
+        const v = view(g, { ...waterMapStart(at), whole });
+        const mpp = framingMetresPerPx(v.bounds);
+        const drawn = v.marks.filter((m) => m.label !== null);
+        for (let i = 0; i < drawn.length; i++) for (let j = i + 1; j < drawn.length; j++)
+          expect(markBoxReach(drawn[i]!, drawn[j]!, mpp), `${code} part ${at}${whole ? " whole" : ""}: ${drawn[i]!.label} / ${drawn[j]!.label}`).toBeGreaterThanOrEqual(1);
+        merged += drawn.filter((m) => m.label!.includes(" · ")).length;
+      }
+      if (code === "gnis:39325") expect(merged).toBeGreaterThan(0);   // the Fraser really does merge somewhere (the pin has teeth)
+    }
   });
 
   it("MUTATION PIN: labels a kilometre apart, or of other ends, are both drawn", async () => {
