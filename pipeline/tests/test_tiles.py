@@ -489,7 +489,7 @@ def test_the_assets_pack_is_the_folder_as_one_file_and_the_same_folder_gives_the
 def test_the_assets_pack_is_the_shared_fixture_the_app_unpacks(tmp_path):
     """(T919 c) Rule 40: ONE committed fixture is the pin for both sides. `write_pack` of the fixture's folder is the
     fixture's pack, compared decompressed (the tar is the format; deflate's bytes depend on the zlib build); the app's
-    `unpackAssets` reads the same pack (`app/packages/data/src/release/assets.test.ts`)."""
+    `unpackAssets` reads the same pack (`app/tools/assets-pack.test.ts`)."""
     import base64
     import zlib
 

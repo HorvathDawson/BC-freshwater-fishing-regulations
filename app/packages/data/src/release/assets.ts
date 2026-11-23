@@ -216,7 +216,9 @@ export async function unpackAssets(fs: ReleaseFs, packPath: string, a: AssetsBlo
   try {
     files = (JSON.parse(utf8(listBytes)) as { files?: Record<string, string> }).files ?? {};
     got = assetsDigest(files);
-  } catch { files = {}; got = "(unreadable)"; }
+  } catch (e) {
+    throw new VerifyError(`${packPath}: assets.json would not read (${e instanceof Error ? e.message : String(e)})`);
+  }
   if (got !== a.files_sha256)
     throw new VerifyError(`${packPath}: assets.json files ${got.slice(0, 12)}…, the manifest says ${a.files_sha256.slice(0, 12)}…`);
   const names = Object.keys(files).sort();
