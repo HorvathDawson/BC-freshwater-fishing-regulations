@@ -1,6 +1,6 @@
 # T1043 — Capilano at Canyon still shows no Level in the app (0.8.6), though the Water Office page has it
 
-Status: IN PROGRESS (lane L28, branch `fix/T1043-capilano-level`).
+Status: DONE 88648625f (lane L28, branch `fix/T1043-capilano-level`; app-only, ships in the next app build).
 
 Source: owner 2026-11-23 (verbatim): "i still dont know why 0.8.6 capilano at canyon gauge doesnt have level like website
 does here (https://wateroffice.ec.gc.ca/report/real_time_e.html?stn=08GA031) add as ticket".
@@ -37,7 +37,7 @@ Evidence, each checked, not assumed:
    list T830 extended with `reports` (`cardParameters`). T817 (6d5179875, 11-16 22:11) and T830 (11-17) were built in
    parallel; T830's tests called `cardQuantity` without `offer`, the path the water view never takes, so they stayed green.
 
-## Fix (built, lane L28)
+## Fix (built, lane L28, 88648625f)
 
 `cardQuantity` with the water's choices also keeps what the lead gauge itself offers (`available`: banded + `reports`).
 The lead is the same gauge under either pick, so T817's rule (the switch is the same before and after a pick) holds.
@@ -51,6 +51,19 @@ under Flow and under Level with the water's choices; an other-datum level stays 
 (Capilano's shape through the real `WaterConditions`: "Flow* Level" → Level "0.59" + the no-record line, no dot → Flow
 again; other-datum: no switch).
 
-## Left
-- Owner's eye on `T1043-shots/` (before: production web; after: this branch on production data, web 390 px).
-- Not checked on an Android build (web only); ships in the next app build.
+## Pictures (`T1043-shots/`, web 390 px)
+- `wateroffice-08GA031.png`: the Water Office page, level and flow on one graph (2026-11-23).
+- `before-prod-web-capilano-conditions.png`: production canifishthis.ca, Capilano River → Conditions: "1.8 m³/s ·
+  0.59 m stage", no Flow / Level switch.
+- `after-web-capilano-flow.png`: this branch, local web over PRODUCTION data (read only): the switch shows Flow | Level.
+- `after-web-capilano-level.png`, `after-web-capilano-level-top.png`: Level picked: "0.59 m", "Too new to say if this is
+  high or low.", the 72 h level line with no band. (Local dev fonts did not load, so the type face differs from the app.)
+
+## Seen, not fixed here
+- Under Level the chart's axis ticks repeat ("0.59 0.59 0.6 0.6"): ticks are written with `figure` (T830 kept them so)
+  and Capilano's level moves only ~0.01 m in 72 h. A follow-up if the owner wants it.
+- Under Level the "Estimate for this spot" block above the card still speaks of flow (it is ranked on flow; nothing
+  ranks Capilano's level). Unchanged by this fix.
+
+## Not verified
+- Not run on an Android or iOS build (web only; the code path is shared `ui` + `ui-native`).
