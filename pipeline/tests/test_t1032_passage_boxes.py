@@ -178,6 +178,10 @@ def test_the_build_gates_every_zone_rule_given_no_box(monkeypatch, tmp_path):
     with pytest.raises(AnswersError, match=r"NOT LOCATED now \(no box\): z::r2$|NOT LOCATED now \(no box\): z::r2 "):
         DEC.add_sources(facts, doc, ["z::r1", "z::r2"])
     assert DEC.unlocated_passages(doc) == ["z::r2"]
+    # a pinned rule the build now LOCATES (z::r1 is boxed) must come off the pin: the build asks for it
+    PB.write_pin(["z::r1", "z::r2"], default_pdf(), "z::r1 stale")
+    with pytest.raises(AnswersError, match="LOCATED now, take them off the pin: z::r1 "):
+        DEC.add_sources([{}, {}], doc, ["z::r1", "z::r2"])
     PB.write_pin(["z::r2"], default_pdf(), "z::r2 pinned")
     facts = [{}, {}]
     DEC.add_sources(facts, doc, ["z::r1", "z::r2"])
