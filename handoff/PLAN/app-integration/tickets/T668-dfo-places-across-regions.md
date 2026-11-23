@@ -93,3 +93,5 @@ pairs.json and says so.
   would be undone by the next match, and the link file is authored.
 - Both active Region 2 Fraser duplicates are confirmed now (`duplicate_confirmed: true`: `…upstream-of-the-cp~2` of
   `…upstream-of-the-cp`, `…downstream-of-the` of `…from-the-downstrea`).
+
+State 2026-11-22 (stopped for credits): lane L10, branch fix/T840-rules-smalls (head cd66153eb before this line); see the ticket's Status for done / left.

@@ -73,3 +73,5 @@ Done elsewhere: 1, 2, 9, 11 (a5990dd7b, 5debac3ef; carries 02f0fedca), 3 (RULING
   `360216952:1017`, lo Exchamsiks, hi Reserve). So the name ALREADY reads from the lower end up; nothing reworded. It
   reads "backwards" beside main-stem part "From the Reserve boundary up to the Exchamsiks confluence" because the
   Reserve's edge crosses the side channel above the Exchamsiks line and the main stem below it.
+
+State 2026-11-22 (stopped for credits): lane L10, branch fix/T840-rules-smalls (head cd66153eb before this line); see the ticket's Status for done / left.

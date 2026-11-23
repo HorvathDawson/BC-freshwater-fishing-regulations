@@ -31,3 +31,5 @@ The review app warns on such a place and in the kind's preview, naming this tick
 `one_sibling`).
 
 Depends: T607. Size: S. Owner: no.
+
+State 2026-11-22 (stopped for credits): lane L10, branch fix/T840-rules-smalls (head cd66153eb before this line); see the ticket's Status for done / left.

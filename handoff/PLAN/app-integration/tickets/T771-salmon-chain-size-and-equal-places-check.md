@@ -42,3 +42,5 @@ touched.
   place would answer on T. A tributaries-only place (own sections 0) would sort before every named tributary's place
   too. The rule needs a containment reading ("a place lying inside another's own-water stretch sorts first") rather
   than a count; no answer is wrong today (the Stamp / Ash dates never overlap). For the main chat to pick.
+
+State 2026-11-22 (stopped for credits): lane L10, branch fix/T840-rules-smalls (head cd66153eb before this line); see the ticket's Status for done / left.

@@ -169,3 +169,5 @@ Live release r-741815c6090d; the bundle measured (`data/generated/bundle/bundle.
   Mission to Hope, 62 sections): "2 per day (Nov 3–30)", "2 per day, hatchery marked only (Nov 7–30)", "No fishing for
   salmon (from Apr 1 until further notice)"; Cowichan (Sandy Pool to the boundary sign, 9 sections): "No fishing (Sep
   1–Nov 15)", "2 per day (Nov 16–Dec 31)", "1 per day (Nov 16–Dec 31)".
+
+State 2026-11-22 (stopped for credits): lane L10, branch fix/T840-rules-smalls (head cd66153eb before this line); see the ticket's Status for done / left.

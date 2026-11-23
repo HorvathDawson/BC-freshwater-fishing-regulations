@@ -20,3 +20,5 @@ day in total, all waters of Management Units 5-6 to 5-11 combined", which only `
 example ("hatchery-marked only") is in `t` already. Not built here: `t` is composed twice (`deliver.salmon._text` and
 the feeds worker's `salmon.ts` `verdictOn`, pinned by `dfo_vectors`), so the fix moves Python, the worker and the
 shared vectors together, and the app must drop its T767 join in the same landing.
+
+State 2026-11-22 (stopped for credits): lane L10, branch fix/T840-rules-smalls (head cd66153eb before this line); see the ticket's Status for done / left.
