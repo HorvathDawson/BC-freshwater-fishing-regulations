@@ -298,14 +298,50 @@ def _row_boxes() -> dict:
     return out
 
 
-def book_boxes(x: dict, doc: dict) -> List[dict]:
-    """T215: where the rule's entry is printed on its PDF page — `[{pdf, box [x0, top, x1, bottom], size [w, h]}]`
-    in points, top-left origin — for the app's highlight annotation. A water row only (the zone and province tables
-    are not rows in the sidecar): [] where the entry has no row box."""
+def row_boxes_of(x: dict, doc: dict) -> List[dict]:
+    """T215: the rule's entry's table-row boxes, by (printed page, the book's spelling of the water); [] for none."""
     E = doc["entries"].get(x["entry_id"]) or {}
     name = E.get("full_name")        # the book's own spelling of the row's water, as the sidecar keys it
     rows = _row_boxes()
     return [b for p in E.get("pages") or [] for b in rows.get((int(p), name), [])]
+
+
+#: (T1032) the entry kinds printed in running text, not as a table row: boxed by locating their words on the page
+PASSAGE_KINDS = frozenset({"zone", "province", "area"})
+
+
+def _passage_book():
+    """(T1032) The synopsis PDF the passage boxes are located in: THE one the release ships (`book_files`), read once."""
+    from pipeline.regs.extraction.passage_boxes import Book
+    pdf = book_files()[0]
+    if _BOXES.get("passage_book") is None or _BOXES["passage_book"].path != Path(pdf):
+        if not Path(pdf).exists():
+            raise AnswersError(f"display: no synopsis PDF at {pdf} — every region and province rule would lose its "
+                               f"highlight")
+        _BOXES["passage_book"] = Book(pdf)
+    return _BOXES["passage_book"]
+
+
+def book_boxes(x: dict, doc: dict) -> List[dict]:
+    """T215: where the rule is printed on its PDF page — `[{pdf, box [x0, top, x1, bottom], size [w, h]}]` in points,
+    top-left origin — for the app's highlight annotation. A water's rule: its entry's table row (`row_boxes_of`). A
+    zone, province or area rule (T1032): its words located in the PDF's text (`passage_boxes.rule_boxes`, the rule's
+    own text, else its entry's); a rule whose text is not located exactly once is given NO box and is listed by
+    `python -m pipeline.regs.extraction.passage_boxes`. [] where there is no box."""
+    E = doc["entries"].get(x["entry_id"]) or {}
+    rows = row_boxes_of(x, doc)
+    if rows or E.get("kind") not in PASSAGE_KINDS:
+        return rows
+    from pipeline.regs.extraction.passage_boxes import rule_boxes
+    pdf = (doc.get("guide") or {}).get("pdf_pages") or {}
+    pages = []
+    for p in E.get("pages") or []:
+        q = pdf.get(str(p))
+        if q is None:
+            raise AnswersError(f"display: printed page {p} ({x['entry_id']}) is not in the guide's pdf_pages")
+        pages.append((int(p), int(q)))
+    _by, boxes, _why = rule_boxes(_passage_book(), pages, x.get("verbatim") or "", E.get("printed") or "")
+    return boxes
 
 
 def licensing_books(doc: dict, lic_ids: Sequence[str]) -> List[dict]:

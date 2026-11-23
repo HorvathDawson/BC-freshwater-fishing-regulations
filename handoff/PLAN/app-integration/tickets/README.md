@@ -301,6 +301,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1026 | The day picker stops at December 2026 although the synopsis is valid to March 31, 2027 | PARTIAL | | closed tester via owner 2026-11-22 |
 | T1027 | Android R8: push the optimization / shrinking / obfuscation scores past ~72% (restate library keep rules, each walked) | OPEN — after 0.9.0 | T1003, T1009 | owner 2026-11-22 |
 | T1028 | The trout schedule bar's open colour = the salmon bar's (owner 2026-11-23) | DONE | 391b37ddb | owner 2026-11-23 |
+| T1032 | Highlight boxes for region and province rule text (the Source row's p.8/9/10/49 open marked) | OPEN | T991 | owner 2026-11-23 |
 
 ## Next after closed testing
 
