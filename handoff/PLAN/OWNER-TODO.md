@@ -9,10 +9,13 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-23: lane L18 (0.9.0 batch) — one look
+- Look: T997 round 2, only the lit part's two ends — answered 2026-11-23 ~10:30, Whole river: "Keep the two labels (Recommended)". Closed.
+
 ## 2026-11-23 00:05: question round 5 (answers, verbatim)
 - T1026 day picker: "Yes, extend to Mar 31 2027 (Recommended)" — to: should the 0.9.0 data release extend the day-by-day answers through Mar 31, 2027? Built without a format change (picker wraps past New Year; see T1026).
 ## 2026-11-22 18:55: lane L3 (0.9.0 batch) — three looks
-- **Look (you): T997 Nicomekl labels** — `handoff/PLAN/app-integration/T997-shots/` (web before/after, Android after).
+- Look: T997 Nicomekl labels (round 1) — answered 2026-11-22 round 2; superseded by the round 2 row above.
 - **Look (you): T940 satellite after-shots** — `handoff/PLAN/app-integration/T940-shots/after-*` (the approved set built; web light + dark; the emulator shot waits for the 0.9.0 APK).
 - **Look (you): T1004 Class II line under the name** — `handoff/PLAN/app-integration/T1004-shots/built-before-*` / `built-after-*` (light + dark; the line under the name, every sub-tab).
 - **Approve (you): T940 satellite line colours** — `T940-shots/proposal-vs-now.png` (a mock-up; recommend the set in the ticket).
