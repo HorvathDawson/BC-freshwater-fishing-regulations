@@ -96,3 +96,34 @@ def test_an_atlas_named_by_build_is_used_only_when_it_holds_the_cut_where_it_lan
     assert AP.side_atlas(place, props, named) is None                               # built with the old point
     (named / ANCHORS_FILE).write_text(json.dumps(anchor_digests({"waterbodies": [{**WB, "splits": [_split(-120.01)]}]})))
     assert AP.side_atlas(place, props, named) == named
+
+
+def test_a_new_cut_alone_whose_point_moved_is_not_ready(tmp_path, monkeypatch):
+    """the chain's ONLY cut is the new split's own (the `new_split` proposal itself, no extent naming it)"""
+    monkeypatch.setattr(P, "REPO", tmp_path)
+    src = _src(tmp_path, [])
+    _place, props = _chain(-120.0)
+    cut = props[0]
+    a = tmp_path / P.side_dir(cut) / "atlas"
+    a.mkdir(parents=True)
+    (a / ANCHORS_FILE).write_text(json.dumps(anchor_digests({"waterbodies": [{**WB, "splits": [_split(-120.0)]}]})))
+    assert P.chain_cuts(cut, [cut]) == {CUT}
+    assert P.side_ready(cut, [cut], src) is True
+    moved = {**cut, "edits": [{**cut["edits"][0], "split": _split(-120.01)}]}                # same id and digest
+    assert P.side_dir(moved) == P.side_dir(cut)
+    assert P.side_ready(moved, [moved], src) is False
+
+
+def test_a_tidal_flag_on_a_cut_that_moved_is_not_ready(tmp_path, monkeypatch):
+    """a `tidal_flag` proposal names its cut only by `split_id`: the side atlas must hold that cut where it is now"""
+    monkeypatch.setattr(P, "REPO", tmp_path)
+    flag = {"id": "tidal-flag-x", "kind": "tidal_flag", "target": CUT, "scope": "split", "depends_on": [],
+            "edits": [{"file": "cuts.json", "kind": "split_flag", "split_id": CUT, "field": "tidal",
+                       "before": P._MISSING, "after": True}], "digest": "e" * 64}
+    a = tmp_path / P.side_dir(flag) / "atlas"
+    a.mkdir(parents=True)
+    (a / ANCHORS_FILE).write_text(json.dumps(anchor_digests(
+        {"waterbodies": [{**WB, "splits": [dict(_split(-120.0), tidal=True)]}]})))        # built flagged, at -120.0
+    assert P.chain_cuts(flag, [flag]) == {CUT}
+    assert P.side_ready(flag, [flag], _src(tmp_path, [_split(-120.0)])) is True
+    assert P.side_ready(flag, [flag], _src(tmp_path, [_split(-119.9)])) is False           # the cut moved since
