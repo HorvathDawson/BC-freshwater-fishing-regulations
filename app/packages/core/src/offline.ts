@@ -14,6 +14,7 @@
  *                 "Download large updates on Wi-Fi only" is T231's mobile-data setting, inverted.
  */
 import { megabytes } from "./install";
+import { RULE_BOOK } from "./sourceNames";
 
 export const OFFLINE_WORDS = {
   title: "Offline maps",
@@ -30,7 +31,7 @@ export const OFFLINE_WORDS = {
     webAll: "All kept in this browser",
   },
   book: {
-    name: "Rule book (synopsis PDF)",
+    name: `${RULE_BOOK} (PDF)`,
     phone: "On this phone · opens offline",
     web: "Downloaded when you open it",
   },

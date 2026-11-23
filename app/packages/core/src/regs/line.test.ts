@@ -28,8 +28,8 @@ describe("plain: runs within one Line concatenate as is", () => {
       .toBe("Only 2 of the 4 may be from streamsWhat these words mean");
   });
 
-  it("reads a book run as the Rule book link, bare without the label, and unlinked without a pdf page", () => {
-    expect(plain([{ t: "book", printed: 21, pdf: 23 }])).toBe("Rule book p.21 ↗");
+  it("reads a book run as the B.C. Synopsis link, bare without the label, and unlinked without a pdf page", () => {
+    expect(plain([{ t: "book", printed: 21, pdf: 23 }])).toBe("B.C. Synopsis p.21 ↗");
     expect(plain([{ t: "book", printed: 80, pdf: 86, bare: true }])).toBe("p.80 ↗");
     expect(plain([{ t: "book", printed: 80, pdf: null }])).toBe("p.80");
   });

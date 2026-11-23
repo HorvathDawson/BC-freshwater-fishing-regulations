@@ -135,7 +135,6 @@ export interface TroutVM {
   readonly together: Together | null;
   readonly year: YearBar | null;
   readonly elsewhere: readonly string[]; readonly elsewhereLink: string | null;
-  readonly sourcesLink: string;
   readonly src: readonly number[];
   /** the rows-frame rows the table replaces (Q-D4): drawn nowhere else */
   readonly covers: readonly number[];

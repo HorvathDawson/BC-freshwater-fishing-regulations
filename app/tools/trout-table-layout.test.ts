@@ -35,6 +35,7 @@ const { PixelRatio, View } = await import("react-native");
 vi.spyOn(PixelRatio, "getFontScale").mockImplementation(() => (SCALE.mutant ? 1 : SCALE.v));
 const { troutOf } = await import("../packages/core/src");
 const { TroutCard } = await import("../packages/ui-native/src/regs/TroutCard");
+const { TEST_TROUT_SOURCES } = await import("../packages/ui-native/src/regs/testing/sources");
 const { LIGHT } = await import("../packages/ui-native/src/theme");
 const { snapshot } = await import("./wide-snapshot");
 
@@ -112,7 +113,7 @@ function measure(scales: readonly number[], cases: readonly string[] = SHOWN): R
         SCALE.v = scale; WIN.w = size[0]; WIN.h = size[1];
         window.dispatchEvent(new Event("resize"));
         render(h(View, { style: { backgroundColor: LIGHT.card } },
-          h(TroutCard, { t: vmOf(name), palette: LIGHT, actions, kicker: true, todayAt: 0.5, months: [..."JFMAMJJASOND"] })));
+          h(TroutCard, { t: vmOf(name), sources: TEST_TROUT_SOURCES, palette: LIGHT, actions, kicker: true, todayAt: 0.5, months: [..."JFMAMJJASOND"] })));
         const away = screen.queryByTestId("trout-elsewhere");
         if (away) fireEvent.click(away);   // the elsewhere lines laid out too
         const file = join(dir, `${name}-${size[0]}-${scale}${SCALE.mutant ? "-mutant" : ""}.html`);

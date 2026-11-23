@@ -1,5 +1,5 @@
 // @vitest-environment node
-// (T215) "Rule book p.N" opens our copy of the synopsis; one load at a time (owner 2026-10-28).
+// (T215) "B.C. Synopsis p.N" opens our copy of the synopsis; one load at a time (owner 2026-10-28).
 import { describe, expect, it, vi } from "vitest";
 import { openBook } from "./openBook";
 import { setSynopsisSource } from "./synopsisSource";

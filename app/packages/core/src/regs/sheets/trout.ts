@@ -44,7 +44,10 @@ function sourceRow(r: RuleView): SourceRowVM {
 /** A rule list as Sources rows: one row per index, in the list's order (never sorted, merged or cut). */
 const sourceRows = (src: readonly number[], rules: Pick<RuleIndex, "get">): SourceRowVM[] => src.map((ix) => sourceRow(rules.get(ix)));
 
-const link = (s: string, open: SheetKey): SheetBlock => ({ k: "source", line: [{ t: "link", s, open } satisfies Run] });
+/** A navigation link of the sheet ("How to tell a hatchery fish ›"): a link block, not a source. */
+const link = (s: string, open: SheetKey): SheetBlock => ({ k: "link", line: [{ t: "link", s, open } satisfies Run] });
+/** (T1031 item 3) the sheet's ONE Source line, its last block: "All sources ›" (the table's every-rule sheet). */
+const sourceLink = (s: string, open: SheetKey): SheetBlock => ({ k: "source", line: [{ t: "link", s, open } satisfies Run] });
 
 /** The row a key names in today's table, with its box. */
 function rowAt(t: TroutVM, rowKey: string): { box: TroutBoxVM; row: TroutRowVM } | null {
@@ -79,7 +82,7 @@ export function troutFishSheet(key: SheetKey, t: TroutVM, rowKey: string, rules:
   const flow = answers ? troutFlow(row, answers(row.fish), rules, water) : null;
   if (flow) blocks.push({ k: "head", text: WORDS.DECIDED }, { k: "flow", flow });
   else if (s.src.length) blocks.push({ k: "head", text: TROUT_SHEET.SOURCES }, { k: "sources", groups: [{ where: "", rows: sourceRows(s.src, rules) }] });
-  blocks.push(link(TROUT_SHEET.ALL_SOURCES, TROUT_SOURCES_KEY));
+  blocks.push(sourceLink(TROUT_SHEET.ALL_SOURCES, TROUT_SOURCES_KEY));
   return { key, title: row.name, sub: row.label ?? box.label ?? row.origin, blocks };
 }
 

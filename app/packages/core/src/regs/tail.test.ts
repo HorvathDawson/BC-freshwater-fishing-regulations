@@ -16,11 +16,11 @@ const FISH: FishManifest = {
 const ctxOf = (g = GROUP(), line: "known_no_rules" | null = null) => headCtx(0, cardOf([{ ...TROUT_ROW, group: g }], { line }), INP())!;
 
 describe("notKeptOf", () => {
-  it("the store's words, whose rule with its Rule book page, the pictures (golden vedder_515)", () => {
+  it("the store's words, whose rule with its B.C. Synopsis page, the pictures (golden vedder_515)", () => {
     const ctx = ctxOf();
     const [x] = notKeptOf(ctx.g, treeEnv(ctx, FISH, new Set([0])));
     expect([x!.status, x!.says, plain(x!.whose), x!.mark, x!.presence, x!.pictures.map((p) => (p.sil ? `(${p.code})` : p.code))]).toEqual([
-      "release", "Rainbow trout and cutthroat trout: release every one", "This river’s rule · Rule book p.22 ↗", null, null, ["RB", "(CT)"]]);
+      "release", "Rainbow trout and cutthroat trout: release every one", "This river’s rule · B.C. Synopsis p.22 ↗", null, null, ["RB", "(CT)"]]);
   });
   it("a closure carries ✕ and its own presence line (never presOf); a rule with no book: no page", () => {
     const g = GROUP({ not_kept: [{ species: ["ST"], status: "closed", says: "Steelhead: no fishing for them", by: 99, rules: [99], whose: "the river’s rule",

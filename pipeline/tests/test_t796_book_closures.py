@@ -49,7 +49,7 @@ def test_the_book_closure_answers_first_on_its_days():
     co = S.SPECIES.index("CO")
     oct10, jul15 = S.DAYS.index(1010), S.DAYS.index(715)
     v = out["verdicts"][_at(ch["sp"][co], oct10)]
-    assert v == {"s": "closed", "t": "Closed to all fishing by the rule book (p.15): No Fishing downstream of the CNR "
+    assert v == {"s": "closed", "t": "Closed to all fishing by the B.C. Synopsis (p.15): No Fishing downstream of the CNR "
                                      "Mile 66 Trestle between Sept 1-Nov 15 (Sep 1–Nov 15)"}
     assert out["verdicts"][_at(ch["sp"][co], jul15)]["s"] == "release"
     assert (_at(ch["a"][co], oct10), _at(ch["a"][co], jul15)) == (0, 1)

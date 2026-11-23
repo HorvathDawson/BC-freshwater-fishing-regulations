@@ -2,11 +2,11 @@
  * T475 (owner 2026-11-07) — the group card draws the quota block's new VM fields: form a's lead ends in an ⓘ (a link named
  * for a screen reader) opening the row's `share:r<row>` sheet; a closed not-kept line ("Steelhead: closed, no catch and
  * release") carries its glossary ⓘ (`no_fishing_for`, what an accidental hook means); a share tier whose origin the lead
- * says draws only How to tell + its Rule book page. Mounted with those fields set as core's presenters make them (core
+ * says draws only How to tell + its B.C. Synopsis page. Mounted with those fields set as core's presenters make them (core
  * t475.test.ts proves the presenters) over (T810 cutover) the group card a real page still draws: the Vedder's
  * Whitefish, its Other fish sheet (testing/otherGroup.ts). Retired: "the share's origin sentence is not drawn under the
- * headline; How to tell and the Rule book stay" — a trout share tier with hatchery words exists in no group card since
- * the cutover; the table says it (TroutCard.test "the hatchery link only where hatch_link; …"; the row's Rule book pages
+ * headline; How to tell and the B.C. Synopsis stay" — a trout share tier with hatchery words exists in no group card since
+ * the cutover; the table says it (TroutCard.test "the hatchery link only where hatch_link; …"; the row's B.C. Synopsis pages
  * are the fish sheet's Sources, conformance trout.release.test.ts "T810 P: the trout fish sheet over every vector"). react-native-web renders
  * the web app from the same component, so this is the web counterpart too (AGENTS 26).
  */

@@ -70,17 +70,17 @@ describe("gl: (prototype glossBody)", () => {
       lines: ["No natural bait of any kind — worms, roe, insects, fish parts — for any fish, while the ban runs. Lures and flies are fine.",
         "In the book’s words",
         "Bait Ban: the use of natural bait is prohibited in waters with a bait ban. Bait may be banned year round or seasonally. During the period when bait is banned it is banned for all angling and for all species.",
-        "Rule book p.4 ↗ p.8 ↗"],
+        "B.C. Synopsis p.4 ↗ p.8 ↗"],
       nested: [] });
   });
   it("a page the map lacks is drawn unlinked (never computed): 'p.4', not a link", () => {
     const l = lines(sheetOf(ctx({ pdf: {} }), "gl:bait_ban"));
-    expect([l.pages, l.lines[3]]).toEqual([[], "Rule book p.4 p.8"]);
+    expect([l.pages, l.lines[3]]).toEqual([[], "B.C. Synopsis p.4 p.8"]);
   });
   it("3. several terms: 'What these words mean', one section per term, in the key's order; unknown ids dropped", () => {
     const vm = sheetOf(ctx(), "gl:bait_ban,nope,single_barbless_hook")!;
     expect([vm.title, vm.blocks.map((b) => (b.k === "term" ? b.title : b.k))]).toEqual(["What these words mean", ["Bait ban", "Single barbless hook"]]);
-    expect(lines(vm).lines.slice(-3)).toEqual(["Single barbless hook", "One hook, one point, no barb.", "Rule book p.8 ↗ p.80 ↗"]);
+    expect(lines(vm).lines.slice(-3)).toEqual(["Single barbless hook", "One hook, one point, no barb.", "B.C. Synopsis p.8 ↗ p.80 ↗"]);
     expect(sheetOf(ctx(), "gl:nope")).toBeNull();
   });
 });
@@ -91,7 +91,7 @@ describe("rule: (page v36 openRule in the prototype's sheet)", () => {
     expect([l.title, l.sub, l.folds, l.lines.slice(0, 4), l.lines.at(-1), l.pages]).toEqual(["Do not waste the fish you catch", "B.C. rule · Everywhere in B.C.",
       [{ summary: "Technical detail", open: false }],
       ["A B.C.-wide rule — everywhere in B.C.", "The exact words", "Waste the fish you catch.", "Technical detail"],
-      "Rule book p.8 ↗ Rule book p.10 ↗", [{ text: "Rule book p.8 ↗", pdf: 10 }, { text: "Rule book p.10 ↗", pdf: 12 }]]);
+      "B.C. Synopsis p.8 ↗ B.C. Synopsis p.10 ↗", [{ text: "B.C. Synopsis p.8 ↗", pdf: 10 }, { text: "B.C. Synopsis p.10 ↗", pdf: 12 }]]);
     expect(l.lines[4]).toBe('zp:conduct::conduct.r1 { "conduct": [ "do_not_waste_catch" ] }');
   });
   it("5. this water + applies_trib (golden rule:r2:chilliwack…::chilliwack_vedder_rivers.r8)", () => {
@@ -100,7 +100,7 @@ describe("rule: (page v36 openRule in the prototype's sheet)", () => {
       "This water’s rule · Chilliwack River",
       ["This water’s own row in the 2025–2027 BC Freshwater Fishing Regulations Synopsis: Chilliwack River.",
         "Inherited from Chilliwack River: its row covers its tributaries.", "The exact words", "No Fishing June 1-30", "No fishing, Jun 1–30."],
-      "Rule book p.22 ↗"]);
+      "B.C. Synopsis p.22 ↗"]);
   });
   it("the level tag reads the part's rank: 'Region 2 rule · Region 2' says 'Region 2'; a rule the store lacks opens nothing", () => {
     expect(lines(sheetOf(ctx(), "rule:z2:possession_quota::possession_quota.r1")).sub).toBe("Region 2");
@@ -114,11 +114,11 @@ describe("pos: (prototype sheetHtml pos branch, rows 25 own examples)", () => {
   it("6. own examples (golden vedder_1010 pos): para, para, example head, list, fold, source", () => {
     const vm = sheetOf(ctx(), "pos:pos")!;
     expect(vm.blocks.map((b) => b.k)).toEqual(["para", "para", "example", "list", "fold", "source"]);
-    expect(lines(vm)).toEqual({ title: "Possession", sub: null, folds: [{ summary: "In the rule book’s words", open: false }],
-      pages: [{ text: "Rule book p.21 ↗", pdf: 23 }],
+    expect(lines(vm)).toEqual({ title: "Possession", sub: null, folds: [{ summary: "In the B.C. Synopsis’s words", open: false }],
+      pages: [{ text: "B.C. Synopsis p.21 ↗", pdf: 23 }],
       lines: ["Possession: 2 days’ quota. Fish at home don’t count.", "The fish you have with you at any time — in camp, a cooler or a vehicle.",
         "For example:", "With 4 trout and char a day you may have 8: 2 days’ fish. Possession doubles the 4 a day, not the 2 from streams.",
-        "With 15 whitefish a day you may have 30: 2 days’ fish.", "In the rule book’s words", POSQ.quote, "Source › Rule book p.21 ↗"],
+        "With 15 whitefish a day you may have 30: 2 days’ fish.", "In the B.C. Synopsis’s words", POSQ.quote, "Who says so › B.C. Synopsis p.21 ↗"],
       nested: ["rule:z2:possession_quota::possession_quota.r1"] });
     expect(lines(vm).lines.some((l) => l.includes("5 trout"))).toBe(false);
   });
@@ -146,7 +146,7 @@ describe("hatch (page v36 adiposeHtml + the hatchery_wild term)", () => {
     expect([l.title, l.sub, l.lines.slice(0, 4), l.lines.at(-1), l.folds]).toEqual(["Hatchery or wild?", "The adipose fin",
       ["Wild · adipose fin there", "Hatchery · clipped, a healed scar instead",
         "Look on the back, just in front of the tail. A small fin there means wild. Only a scar means hatchery. If you can’t tell, treat the fish as wild.",
-        "Hatchery or wild (adipose fin)"], "Rule book p.13 ↗ p.80 ↗", [{ summary: "In the book’s words", open: false }]]);
+        "Hatchery or wild (adipose fin)"], "B.C. Synopsis p.13 ↗ p.80 ↗", [{ summary: "In the book’s words", open: false }]]);
   });
   it("(T41 walk) drawn as the prototype's .htw: the term is a small heading and its words are small (sub), not a second sheet's body", () => {
     const vm = sheetOf(ctx(), "hatch")!;
@@ -160,9 +160,9 @@ describe("srcs: (prototype sheetHtml srcs: over T30's source line keys)", () => 
     const vm = sheetOf(ctx(), "srcs:gl|hook")!;
     expect(vm.blocks.map((b) => b.k)).toEqual(["rule", "rule"]);
     expect(lines(vm)).toEqual({ title: "Sources", sub: null, folds: [],
-      pages: [{ text: "Rule book p.22 ↗", pdf: 24 }, { text: "Rule book p.8 ↗", pdf: 10 }, { text: "Rule book p.10 ↗", pdf: 12 }],
-      lines: ["No fishing, Jun 1-Jun 30 — downstream of Vedder Crossing Bridge This water’s This water’s own row in the 2025–2027 BC Freshwater Fishing Regulations Synopsis: Chilliwack River. Inherited from Chilliwack River: its row covers its tributaries. Rule book p.22 ↗",
-        "Do not waste the fish you catch B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗ Rule book p.10 ↗"],
+      pages: [{ text: "B.C. Synopsis p.22 ↗", pdf: 24 }, { text: "B.C. Synopsis p.8 ↗", pdf: 10 }, { text: "B.C. Synopsis p.10 ↗", pdf: 12 }],
+      lines: ["No fishing, Jun 1-Jun 30 — downstream of Vedder Crossing Bridge This water’s This water’s own row in the 2025–2027 BC Freshwater Fishing Regulations Synopsis: Chilliwack River. Inherited from Chilliwack River: its row covers its tributaries. B.C. Synopsis p.22 ↗",
+        "Do not waste the fish you catch B.C. A B.C.-wide rule — everywhere in B.C. B.C. Synopsis p.8 ↗ B.C. Synopsis p.10 ↗"],
       nested: ["rule:r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r8", "rule:zp:conduct::conduct.r1"] });
   });
   it("a rule reached from downstream is named by that water (prototype downWater), not 'Downstream'", () => {
@@ -216,8 +216,8 @@ describe("sheetLines: the golden join of the part 2 blocks", () => {
     const row = { key: "z2:a::a.r1", title: "Keep up to 4", quote: "Trout/char: 4", role: "Sets the number", book: [{ t: "book" as const, printed: 21, pdf: 23 }] };
     expect(lines(vm([{ k: "sources", groups: [{ where: "Region 2 · region-wide", rows: [row] }] },
       { k: "sources", overruled: true, groups: [{ where: "Provincial", rows: [{ ...row, key: "zp:b::b.r1", title: null, book: [], role: "Beaten by “x”", trib: true, notes: ["n"] }] }] }])))
-      .toEqual({ title: "T", sub: null, folds: [], pages: [{ text: "Rule book p.21 ↗", pdf: 23 }],
-        lines: ["Region 2 · region-wide", "Keep up to 4 Trout/char: 4", "Sets the number Rule book p.21 ↗", "ⓘ", "“Trout/char: 4”", "Provincial", "Beaten by “x”", "⚑ n"],
+      .toEqual({ title: "T", sub: null, folds: [], pages: [{ text: "B.C. Synopsis p.21 ↗", pdf: 23 }],
+        lines: ["Region 2 · region-wide", "Keep up to 4 Trout/char: 4", "Sets the number B.C. Synopsis p.21 ↗", "ⓘ", "“Trout/char: 4”", "Provincial", "Beaten by “x”", "⚑ n"],
         nested: ["zp:b::b.r1", "gl:tributaries"].map((k, i) => (i ? k : `rule:${k}`)) });
   });
   it("other: a step's rule line that repeats an earlier line's words is drawn once (prototype weekSheet); a line with no rule is kept", () => {

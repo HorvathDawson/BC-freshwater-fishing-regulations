@@ -9,12 +9,12 @@ import { View } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
 import { RegsPress } from "./regs/RegsPress";
-import { INBOX_WORDS, INSEASON_WORDS, type InboxDetailVM, type InboxRowVM } from "@app/core";
+import { INBOX_WORDS, inSeasonSourcesOf, type InboxDetailVM, type InboxRowVM } from "@app/core";
 import { useBackLayer, type InSeasonInboxState } from "@app/ui";
 import { ErrorState } from "./ErrorState";
 import { TYPE } from "./type";
 import { round, type Palette } from "./theme";
-import { linkTo } from "./openLink";
+import { SourceRow } from "./SourceRow";
 
 /** what the bell's sheet draws of the inbox: `@app/ui` `useInSeasonInbox`'s state */
 export type InboxProps = Pick<InSeasonInboxState, "vm" | "detail" | "failure" | "pick" | "back">;
@@ -77,13 +77,8 @@ export function InSeasonInboxDetail({ d, palette, onBack }: { d: InboxDetailVM; 
         <Text accessibilityRole="header" style={{ ...TYPE.bodyStrong, color: palette.ink }}>{d.head}</Text>
         <Text selectable testID="inbox-detail-text" style={{ ...TYPE.body, color: palette.ink }}>{d.text}</Text>
         {d.note && <Text testID="inbox-detail-note" style={{ ...TYPE.small, color: palette.sub }}>{d.note}</Text>}
-        {!!d.url && (
-          <RegsPress accessibilityRole="link" accessibilityLabel={INSEASON_WORDS.sourceLabel}
-                     onPress={linkTo(d.url)} box={{ w: 44, h: 44 }}
-                     style={{ minHeight: 44, justifyContent: "center", alignSelf: "flex-start" }}>
-            <Text style={{ ...TYPE.metaBold, color: palette.accent }}>{INSEASON_WORDS.source}</Text>
-          </RegsPress>
-        )}
+        {/* (T1031 item 3) the notice's page as the one Source line: "Source  B.C. in-season changes ↗" */}
+        <SourceRow vm={inSeasonSourcesOf(d)} palette={palette} testID="inbox-detail-source" />
       </View>
     </View>
   );

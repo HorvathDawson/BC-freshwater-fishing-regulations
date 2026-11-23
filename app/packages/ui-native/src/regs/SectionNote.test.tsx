@@ -12,6 +12,7 @@ import { openRegsFixture } from "@app/data/release/node";
 import { loadRegsStore } from "@app/ui";
 import { KeepTab } from "./KeepTab";
 import { LIGHT } from "../theme";
+import { TEST_TROUT_SOURCES } from "./testing/sources";
 
 afterEach(cleanup);
 
@@ -28,7 +29,7 @@ async function inputs(): Promise<RegsInputs> {
 
 function drawn(inp: RegsInputs) {
   const page = buildRegsPage(inp, { today: DAY, who: { age: "adult", residency: "resident" } });
-  const r = render(<KeepTab keep={page.keep} dateLabel="Oct 10" palette={LIGHT}
+  const r = render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={page.keep} dateLabel="Oct 10" palette={LIGHT}
                             actions={{ onSheet() {}, onDay() {}, onTab() {}, onBook() {} }} />);
   return [...r.container.querySelectorAll("[data-testid^='keep-']")].map((e) => e.getAttribute("data-testid"))
     .filter((t) => t !== "keep-tab");

@@ -243,7 +243,7 @@ describe("T670 G7 / RULINGS Li13: a classified water's Licence tab lists its p.7
   it("the Classified Waters Licence item carries each term the answer names for it, once, in the book's words; the whole line pinned", () => {
     const { needs, cw } = cwlItem(VISITOR);
     expect(cw.book).toEqual([BOOKING, PER_DAY]);
-    expect(needLine(cw)).toBe(`Classified waters licence ⓘ Needed to fish at all $22.86 a day From the rule book: ${BOOKING} ${PER_DAY}`);
+    expect(needLine(cw)).toBe(`Classified waters licence ⓘ Needed to fish at all $22.86 a day From the B.C. Synopsis: ${BOOKING} ${PER_DAY}`);
     // the basic licence's one-annual-licence term is NOT drawn (owner 2026-11-12, "Show the fee only"); a non-resident has no fee line
     expect(needs.items.find((x) => /basic/i.test(x.name))!.book).toEqual([]);
   });
@@ -366,7 +366,7 @@ describe("T973 (owner 2026-11-20 13:22): a carried unit shows as Classified Wate
   };
   const note = (o: Partial<MayNeed> = {}): MayNeed =>
     ({ unitName: "Stellako River", classified: "II", when: null, through: ["Endako River"], part: false, licence: withUnit(), ...o });
-  const WHY = "Stellako River’s Class II covers its tributaries. Endako River has its own line in the rule book without Classified Waters, "
+  const WHY = "Stellako River’s Class II covers its tributaries. Endako River has its own line in the B.C. Synopsis without Classified Waters, "
     + "so it may not apply here. Check with a CO.";
   const vm = (who: Who, mayNeed?: readonly MayNeed[], licence: LicenceValue = frame()) =>
     buildLicence({ ...INP({ licence, lics, paper: [] }), ...(mayNeed === undefined ? {} : { mayNeed }) } as RegsInputs, who, { closed: false, glossary: GLOSS })!;
@@ -393,7 +393,7 @@ describe("T973 (owner 2026-11-20 13:22): a carried unit shows as Classified Wate
   it("two waters in order; a part only partly carried says so", () => {
     expect(mayWhyTxt(note({ unitName: "Morice River", through: ["Thautil River", "Gosnell Creek"], part: true })))
       .toBe("On part of this water: Morice River’s Class II covers its tributaries. Thautil River and Gosnell Creek have their own "
-        + "lines in the rule book without Classified Waters, so it may not apply here. Check with a CO.");
+        + "lines in the B.C. Synopsis without Classified Waters, so it may not apply here. Check with a CO.");
   });
   it("no carried unit (absent or empty): the tab exactly as before, no why anywhere", () => {
     const before = vm(WHO.adult_non!);

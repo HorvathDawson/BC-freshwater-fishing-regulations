@@ -11,7 +11,7 @@ import { LIGHT } from "../theme";
 import { WaterFrame } from "../WaterFrame";
 import { RegsScreen, type RegsScreenProps } from "./RegsScreen";
 import vedder1010 from "./fixtures/vedder_1010.json";
-import { TEST_SOURCES } from "./testing/sources";
+import { TEST_SOURCES, TEST_TROUT_SOURCES } from "./testing/sources";
 
 afterEach(cleanup);
 
@@ -20,7 +20,7 @@ const sheets: string[] = [];
 const NOOP = { onSheet: (k: string) => { sheets.push(k); }, onDay() {}, onBook: (pdf: number, box?: readonly SourceBox[]) => { books.push([pdf, box]); } };
 const mount = (p: Partial<RegsScreenProps> = {}) =>
   render(<WaterFrame palette={LIGHT} face="regulations">
-           <RegsScreen sources={TEST_SOURCES} page={vedder1010 as unknown as RegsPage} palette={LIGHT} actions={NOOP as never} onDate={() => {}}
+           <RegsScreen troutSources={TEST_TROUT_SOURCES} sources={TEST_SOURCES} page={vedder1010 as unknown as RegsPage} palette={LIGHT} actions={NOOP as never} onDate={() => {}}
                        gear={<Text>gear</Text>} methods={<Text>methods</Text>} licence={<Text>licence</Text>} {...p} />
          </WaterFrame>);
 const BOX = { pdf: 101, box: [10, 20, 200, 32] as [number, number, number, number], size: [612, 792] as [number, number] };
@@ -36,7 +36,7 @@ describe("the Regulations tab's Source row (T991 round 3)", () => {
     mount({ asOf: "Regulations as of Oct 10, 2026", sources: SOURCES });
     const row = screen.getByTestId("regs-sources");
     expect(row.textContent).toBe("SourceB.C. Synopsis p.22 ↗p.99 ↗DFO notices ↗All sources ›");
-    // (T60) a page here marks every passage the page cites: its own name, not a second "Rule book page 99" link
+    // (T60) a page here marks every passage the page cites: its own name, not a second "B.C. Synopsis page 99" link
     expect([...row.querySelectorAll("[role=link]")].map((e) => e.getAttribute("aria-label")))
       .toEqual(["B.C. Synopsis page 22, opens the PDF", "B.C. Synopsis page 99, every passage this page cites marked, opens the PDF", null]);
     expect(screen.getByTestId("regs-legal").compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();

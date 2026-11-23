@@ -3,7 +3,7 @@
  * and over every state the T10 fixture release holds (REGS_PARITY=fixture runs this same file on it): the three owner
  * rules the readers fought for, and that the Keep slice says nothing but data and words.ts.
  * 1. number once (r20b): a folded kind says nothing of its own; a tier's only kind never repeats the tier's number; a
- *    printed Rule book page appears at most once on any root → leaf path.
+ *    printed B.C. Synopsis page appears at most once on any root → leaf path.
  * 2. region vs stream words (r20e/r20f): a group whose head words say " across " (a region's total) never has a head
  *    kicker ending in "streams"; an unfolded share says "Up to N … of the M from …" (T475: "up to N", never "only") with N
  *    its big number and M the head's total (v38 sets only N big; the ticket's "both numbers num runs" was v33's).
@@ -31,11 +31,11 @@ export function numberOnce(g: GroupVM): string[] {
       if (x.t === "kind") {
         if (x.folded && x.says !== null) bad.push(`folded kind ${x.kind} says ${plain(x.says)}`);
         const p = [...seen, ...pages(x.says, x.duty, x.presence)];
-        if (new Set(p).size !== p.length) bad.push(`kind ${x.kind}: Rule book page twice on its path (${p.join(",")})`);
+        if (new Set(p).size !== p.length) bad.push(`kind ${x.kind}: B.C. Synopsis page twice on its path (${p.join(",")})`);
         continue;
       }
       const own = pages(x.line, x.origin?.book), p = [...seen, ...own];
-      if (new Set(p).size !== p.length) bad.push(`tier ${x.tid}: Rule book page twice on its path (${p.join(",")})`);
+      if (new Set(p).size !== p.length) bad.push(`tier ${x.tid}: B.C. Synopsis page twice on its path (${p.join(",")})`);
       const only = x.children.length === 1 && x.children[0]!.t === "kind" ? x.children[0] : null;
       const tn = nums(x.line)[0];
       if (only && only.t === "kind" && tn !== undefined && nums(only.says).includes(tn)) bad.push(`tier ${x.tid}'s only kind repeats ${tn}`);

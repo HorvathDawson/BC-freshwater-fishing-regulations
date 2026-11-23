@@ -39,7 +39,7 @@ function harvest(v: unknown, lines: Set<string>, leaves: Set<string>, key = ""):
 }
 
 /** (T810 T) every word the app's trout table draws (its payload strings; not keys, links, sheets, row ids or source indexes) */
-const NOT_WORDS = new Set(["kind", "tone", "key", "fish", "sheet", "src", "covers", "from", "to", "a11y", "hatchLink", "elsewhereLink", "sourcesLink", "runs"]);
+const NOT_WORDS = new Set(["kind", "tone", "key", "fish", "sheet", "src", "covers", "from", "to", "a11y", "hatchLink", "elsewhereLink", "runs"]);
 function troutStrings(v: unknown, out: string[] = [], key = ""): string[] {
   if (NOT_WORDS.has(key)) return out;
   if (typeof v === "string") { if (squash(v)) out.push(squash(v)); }

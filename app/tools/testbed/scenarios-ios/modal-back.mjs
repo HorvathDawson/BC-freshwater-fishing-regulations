@@ -62,13 +62,13 @@ export const modalBackIos = {
       await d.sleep(1200);
       return swipe('layers-sheet', () => { const w = words(); return w.includes('Done') && w.includes('Layers'); });
     });
-    await ctx.step('PDF viewer: a Rule book link on Cultus Lake', async () => {
+    await ctx.step('PDF viewer: a B.C. Synopsis link on Cultus Lake', async () => {
       await home(ctx);
       ctx.flow('search', { Q: 'Cultus' });
       ctx.flow('open-result', { LINE: '.*Lindell Beach.*' });
       await ctx.waitText(/Regulations/, 30_000);
-      ctx.flow('scroll-to', { TEXT: 'Rule book p\\.[0-9]+ ↗.*' });
-      ctx.flow('tap-text', { TEXT: 'Rule book p\\.[0-9]+ ↗.*' });
+      ctx.flow('scroll-to', { TEXT: 'B.C. Synopsis p\\.[0-9]+ ↗.*' });
+      ctx.flow('tap-text', { TEXT: 'B.C. Synopsis p\\.[0-9]+ ↗.*' });
       for (let i = 0; i < 20 && !words().some((x) => /^Page \d+ of \d+$/.test(x)); i++) await d.sleep(3000);
       return swipe('pdf', () => d.hasId('pdf-viewer') || words().some((x) => /^Page \d+ of \d+$/.test(x)));
     });

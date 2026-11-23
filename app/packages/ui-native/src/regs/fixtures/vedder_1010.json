@@ -976,7 +976,6 @@
    },
    "hatchLink": "How to tell a hatchery fish ›",
    "kind": "table",
-   "sourcesLink": "Sources ›",
    "src": [
     3083,
     3084,
@@ -1367,7 +1366,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -1413,7 +1412,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -1469,7 +1468,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -1515,7 +1514,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -1561,7 +1560,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -1617,7 +1616,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -1673,7 +1672,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -1739,7 +1738,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -1831,7 +1830,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -3068,14 +3067,14 @@
      ],
      "k": "fold",
      "open": false,
-     "summary": "In the rule book’s words"
+     "summary": "In the B.C. Synopsis’s words"
     },
     {
      "k": "source",
      "line": [
       {
        "open": "rule:z2:possession_quota::possession_quota.r1",
-       "s": "Source ›",
+       "s": "Who says so ›",
        "t": "link"
       },
       {

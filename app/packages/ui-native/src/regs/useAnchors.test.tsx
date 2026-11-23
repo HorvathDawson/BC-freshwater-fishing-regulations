@@ -11,6 +11,7 @@ import { NO_ACTIONS } from "./LineText";
 import { AnchorContext, sectionsOf, type AnchorKey, type AnchorSink } from "./useAnchors";
 import vedder1010 from "./fixtures/vedder_1010.json";
 import vedder515 from "./fixtures/vedder_515.json";
+import { TEST_TROUT_SOURCES } from "./testing/sources";
 
 afterEach(cleanup);
 const page = vedder1010 as unknown as RegsPage;
@@ -21,7 +22,7 @@ function registered(p: RegsPage) {
   const keys = new Map<string, AnchorKey>();
   const sink: AnchorSink = { ref: (id, key) => { keys.set(id, key); return () => {}; }, changed() {} };
   render(<AnchorContext.Provider value={sink}>
-    <KeepTab keep={p.keep} dateLabel={p.header.date} palette={LIGHT} actions={NO_ACTIONS} />
+    <KeepTab troutSources={TEST_TROUT_SOURCES} keep={p.keep} dateLabel={p.header.date} palette={LIGHT} actions={NO_ACTIONS} />
   </AnchorContext.Provider>);
   return keys;
 }

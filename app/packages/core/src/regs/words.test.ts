@@ -26,7 +26,7 @@ describe("WORDS", () => {
 describe("ALL_WORDS", () => {
   it("holds every string constant, the short weekdays and the month initials", () => {
     expect(ALL_WORDS.has("What you can keep")).toBe(true);
-    expect(ALL_WORDS.has("Rule book")).toBe(true);
+    expect(ALL_WORDS.has("B.C. Synopsis")).toBe(true);
     expect(ALL_WORDS.has("Fri")).toBe(true);
     expect(ALL_WORDS.has("J")).toBe(true);
     for (const v of Object.values(WORDS)) if (typeof v === "string") expect(ALL_WORDS.has(v), v).toBe(true);
@@ -105,6 +105,6 @@ describe("wordsIn: the fixed words of a Line, data left out", () => {
       { t: "text", s: "Only " }, { t: "num", s: "2", size: "inline" }, { t: "term", ids: ["daily_quota"] },
       { t: "term", ids: ["a", "b"] }, { t: "book", printed: 21, pdf: 23 }, { t: "book", printed: 80, pdf: 86, bare: true },
       { t: "link", s: "How to tell ›", open: "hatch" },
-    ])).toEqual(["Only ", "ⓘ", "What these words mean", "Rule book", "How to tell ›"]);
+    ])).toEqual(["Only ", "ⓘ", "What these words mean", "B.C. Synopsis", "How to tell ›"]);
   });
 });

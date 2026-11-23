@@ -1,5 +1,6 @@
 /** THE MENU'S WORDS — every word its pages draw, in one table (AGENTS 33: a test pins the finished strings). */
 import { IMAGERY_ATTRIBUTION } from "../imagery";
+import { SOURCE_AUTHORITIES } from "../sourceNames";
 
 /** The pages that open OVER the More tab. Display and Contact are drawn on the tab itself (owner 2026-10-22). */
 export type MenuPageKey = "offline" | "notifications" | "help" | "glossary" | "sources" | "about" | "report"
@@ -23,10 +24,10 @@ export const INSEASON_URL =
 export const PUBLISHERS = {
   province: "Province of British Columbia",
   eccc: "Environment and Climate Change Canada",
-  rfc: "BC River Forecast Centre",
+  rfc: SOURCE_AUTHORITIES.rfc.name,
   osm: "© OpenStreetMap contributors",
   protomaps: "© Protomaps",
-  openMeteo: "Open-Meteo.com",
+  openMeteo: `${SOURCE_AUTHORITIES.openMeteo.name}.com`,
   ccBy: "CC BY 4.0",
 } as const;
 const P = PUBLISHERS;
