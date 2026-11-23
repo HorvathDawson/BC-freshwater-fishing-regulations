@@ -1,6 +1,6 @@
 # T1032 — Highlight boxes for region and province rule text
 
-Status: OPEN
+Status: DONE — 2c7f8cab2. Region / province / area rules carry located highlight boxes (329/355); the 26 not located get none and are listed below. Ships with the 0.9.0 data release; not seen in the app.
 
 Source: owner 2026-11-23, answering whether the 0.9.0 release adds highlights for the pages that hold region-wide or
 province-wide rules, verbatim: "Yes, in 0.9.0 (Recommended)".
