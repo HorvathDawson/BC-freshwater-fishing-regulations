@@ -594,7 +594,7 @@ describe("(T443, owner on 0.6.7) two marks with the same words a few steps apart
     const end = view(g, waterMapStart(1)).marks.find((m) => m.label !== null)!;
     const src = g.marks[end.ix]!;
     const tok = `${src.token!.replace(/@.*$/, "")}_23m_below`;
-    const near = (dLat: number) => ({ ...g, ends: { ...g.ends, [tok]: "23 m below the dam" },
+    const near = (dLat: number) => ({ ...g, ends: { ...g.ends, [tok]: ["23 m below the dam"] },
       marks: [...g.marks, { ...src, token: tok, lat: src.lat! - dLat }] });
     const mine = (vg: WaterGroup) => view(vg, waterMapStart(1)).marks.filter((m) => m.ix === end.ix || m.ix === g.marks.length);
     const metres = 23 / 111_195;                                     // degrees of latitude in 23 m
