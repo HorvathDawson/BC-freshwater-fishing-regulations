@@ -87,3 +87,9 @@ age out (90 days), the 11 a916 kinds included.
 
 ## State 2026-11-22 (stopped for credits, lane L5)
 Worker side done on PR #39 (`fix/T996-apns-check`, head 3c186213a); staging runs 9b90767a4 (has the crawler class + 429 rule). Left: nothing on the worker side.
+
+## New kind (read 2026-11-22 23:00)
+`9621cbcdb5053a66` (1, web 0.8.5, route map): `SyntaxError: Unexpected end of JSON input` at `JSON.parse` inside a
+`Promise.all` of the boot reads — a cut response body, the same cause as `5588b32d5eacc9e3` but without the `update:`
+prefix, so the worker's NETWORK pattern (`/^update: .*Unexpected end of JSON input/`) misses it. Decide: the app names
+the file in the message (no bare JSON.parse error), and the worker classes it network.
