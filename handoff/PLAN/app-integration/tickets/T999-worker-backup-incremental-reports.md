@@ -1,6 +1,6 @@
 # T999 — Feeds worker backup: copy reports incrementally so the daily backup holds past ~4,500 reports
 
-Status: OPEN (not urgent: today's store is far below the limit; the failure is told, not silent).
+Status: DONE (3377f8a8b, lane L5 2026-11-22; staging worker deployed with it; acceptance 3 reworded, below).
 
 Source: T994 finding 24 (`handoff/PLAN/audit-2026-11-21/t994-audit.md` §24), fixed in part by `a6d97778a` (T994 lane
 F1, wave 1, 2026-11-21). Its note: "NOT done: incremental report copies. A daily snapshot stays whole for
@@ -24,3 +24,43 @@ F1, wave 1, 2026-11-21). Its note: "NOT done: incremental report copies. A daily
 - No report text outlives 180 days in any snapshot.
 
 Depends: none. Size: M. Owner: no. Default: as above.
+
+## Built (2026-11-22, lane L5, branch `fix/T996-apns-check`, 3377f8a8b)
+- **`runBackup`** (`app/workers/feeds/src/backup.ts`): the state is copied whole as before; a report or error kind whose
+  R2 etag equals the last manifest's is NOT copied again: today's manifest (now `backup/2`) names it with `in` = the
+  snapshot that holds its copy (one hop, never a chain), plus its `etag` and `gone` (the privacy date). The snapshot built
+  on is the last run's (`private/feeds/backup.json` `day`, 2 reads), said as `base` in the result and on /status.
+  A second run the same day goes on from the first (day 1 of a big store = several `POST /run/backup`, each PARTIAL and
+  told until whole).
+- **Why a copy is still refreshed:** the backup bucket's lifecycle deletes a `daily/` object 30 days after it is
+  WRITTEN, whoever names it. So each record is copied afresh at most every `REFRESH_DAYS` (7) days, spread by its key
+  (about 1/7 of the store a day); a refresh the budget cannot fit keeps its earlier copy (`deferred`) while that is under
+  28 days old. Every snapshot is therefore whole for at least 23 days of its 30.
+- **The prune** dates an error kind from its manifest's `gone` (one read a snapshot, not one a copy: item 4), and a copy
+  it deletes (privacy date, deleted on request) is taken out of EVERY manifest that names it, the `in` ones too
+  (`pruned` says where it pointed). A manifest that does not parse fails the run, named, after the deletes.
+- **`deploy/staging/restore-test.sh`** fetches the records named from earlier snapshots (server-side, one
+  `--files-from-raw` list per snapshot) and fails on a gone link, naming the record and the snapshot it was in
+  (checked against a local fixture with one link removed: `FAIL … BROKEN LINK / MISSING ['…/b.json (in daily/2026-11-21/)']`).
+
+## Acceptance, as proved (`test/backup.incremental.test.ts`, 6 tests; mutation-checked: refs not dropped, etag ignored,
+## no refresh, never reuse, prune reading copies — each fails a test)
+- 10,000 reports: day 1 whole after 2-6 runs (asserted) under `BACKUP_SUBREQUESTS` (each PARTIAL and told); day 2 with 10 new reports:
+  4 state + 10 new + ~1/7 refreshed copied, the rest named, under a fifth of day 1's calls.
+- A restore from day 2's manifest equals the store.
+- **Reworded:** "a pruned base snapshot that is still referenced is refused" cannot hold: nothing of ours deletes a
+  snapshot (the lifecycle does, and cannot be refused). What holds instead, pinned: a copy the prune deletes leaves every
+  manifest that names it, and over 200 simulated days (30-day lifecycle, 180-day live purge) every snapshot under 23 days
+  old restores whole.
+- No report text outlives 180 days in any snapshot (the same 200-day run, checked every day).
+
+## Staging (2026-11-23 01:40Z and 01:45Z UTC, `POST /run/backup`, worker e11978f9e)
+Run 1: `base daily/2026-11-22/` (a `backup/1` manifest, no etags) → 185 copied, 0 reused, 1,350 subrequests, ok. Run 2 the
+same day: `base daily/2026-11-23/` → 99 copied (the state), **86 reused** (every report and error kind), 1,178
+subrequests, ok. The `daily/2026-11-23/_manifest.json` is `backup/2`, 86 personal entries each with etag + gone. The first
+cross-day `in` links appear at the 2026-11-24 09:25 cron (the 11-23 one builds on today's own manifest). Restore test
+step 1 (this branch's `restore-test.sh`) on `daily/2026-11-23`: PASS, 185 objects, sha256 = manifest, 0 links (none yet);
+its link path is proved on the local fixture only until a cross-day snapshot exists.
+
+## State 2026-11-22 (stopped for credits)
+Done (PR #39, `fix/T996-apns-check`, head 3c186213a; review fix: refreshes oldest first). Left: read the first cross-day `in` links after the 2026-11-24 09:25 cron (restore-test.sh).

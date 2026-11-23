@@ -1,6 +1,6 @@
 # T981 — Municipal no-fishing waters (Lost Lagoon, Beaver Lake in Stanley Park, and others) shown as closed
 
-Status: IN PROGRESS — Lost Lagoon SHIPPED in 0.8.5 (local-closures source); left (owner, next release): review the other inventory rows.
+Status: IN PROGRESS — Lost Lagoon SHIPPED in 0.8.5 (local-closures source); round 2 of the inventory listed 2026-11-22 (5 proposal rows); left (owner, next release): review the other inventory rows.
 
 Source: owner 2026-11-20: "Add a ticket to add lost lagoon and beaver lake in Stanley Park and any other municipal closed
 to fishing water bodies into the regulations".
@@ -95,3 +95,42 @@ Claude looked for an official source to replace StanleyParkVan.com. Found:
 - No official page closes Lost Lagoon. The Park Board's by-law PDF and its Lost Lagoon page refused automated fetches.
 
 Asked: keep, pull, or keep and say unofficial? Owner: "Keep it, current source". It ships in 0.8.5 as built.
+
+## Inventory round 2, 2026-11-22 (Claude, lane L6): PROPOSALS for the owner (none accepted, no curated row written)
+The owner's 2026-11-21 decision covers Lost Lagoon only and puts every other row up for review, so these are listed
+here and nowhere else. Web research, each source read in full unless it says otherwise. Item matches are checked
+against the live registry (`atlas/full`) and the synopsis rows.
+
+| row | water | item | authority, instrument, section | words | source | status |
+|---|---|---|---|---|---|---|
+| chilliwack-salish-pond | Salish Pond (Salish Park) | none: not in the registry (needs an added lake) | City of Chilliwack, Parks, Recreation and Culture Bylaw 2006 No. 3290 (consolidated to 2026-09-01), s.24(1)(a) | "no person shall: (a) wade, swim, bathe, fish or attempt to catch fish in any manner ... in Salish Pond" | https://www.chilliwack.com/main/attachments/attachView.cfm?attachID=3306 (listed on https://chilliwack.com/main/page.cfm?id=363) | proposed, high (rule); not mapped |
+| chilliwack-natural-areas | every water in Browne Creek Wetlands, Peach Creek Spawning Channels, Lickman Ponds and Channels, Lexw Qwo:m Park, Great Blue Heron Nature Reserve | Browne Creek `gnis:9713`, Peach Creek `blk:360830493` (whole items NOT checked against the park outlines) | same bylaw, s.26(2) (the properties are the bylaw's "Natural Area" / "Nature Reserve") | "No person shall: ... (2) fish or attempt to catch fish in any Natural Area or Nature Reserve" | same PDF | owner call: a part of a stream (the park's reach) is not the one shape (`local_closures` is whole-water only) |
+| port-moody-parks | every water in a Port Moody park (Rocky Point Park; Noons Creek ponds if city parkland) | not matched | City of Port Moody, Parks and Community Facilities Rules and Regulations Bylaw No. 3321 (section NOT seen) | "No fishing, casting or hauling nets or other fishing equipment is allowed from, or adjacent to, any Park (Bylaw No. 3321)" | https://www.portmoody.ca/parks ("Park restrictions"); the bylaw text was not found | proposed, medium: needs the bylaw text and section |
+| fvrd-cheam-lake | Cheam Lake (Cheam Lake Wetlands Regional Park) | `wbk:-4` | Fraser Valley Regional District parks bylaw (not read) | "boating and fishing not permitted" (a news item, from a search summary, page not opened) | https://fraservalleynewsnetwork.com/2021/05/27/reminder-boating-and-fishing-not-permitted-in-cheam-lake-wetlands-regional-park/ | a lead only; owner call: the synopsis prints a row (`r2:cheam_lake@2-3`), which the guard refuses beside a local row |
+| vancouver-beaver-lake | Beaver Lake (Stanley Park) | `wbk:329532620` | — | no source found (the Park Board's restoration page, https://vancouver.ca/parks-recreation-culture/beaver-lake-restoration.aspx, says nothing on fishing; the consolidated Park By-laws PDFs did not load) | — | still needs a source (unchanged) |
+
+Not a closure, worth a look:
+- **Sardis Park Pond** (`wbk:329083384`, synopsis row `r2:sardis_park_pond@2-4`): Chilliwack bylaw 3290 s.25(2) PERMITS
+  fishing in designated areas for anglers 12 and under or 60 and over, single barbless hooks, no lead weights. Compare
+  with the synopsis row; the province's proposal page
+  https://www2.gov.bc.ca/gov/content/sports-culture/recreation/fishing-hunting/ahte/angling/milllake-sardisparkpond-cranberrylake-gardenbay-rubylakes
+  was not opened.
+- **Posted areas only** (no water named, so no row): Port Coquitlam Parks, Facilities and Public Places Bylaw 2022
+  No. 4274 s.6.4(h) "fish in any area posted to prohibit fishing"
+  (https://www.portcoquitlam.ca/sites/default/files/2024-10/4274%20-%20Parks%2C%20Facilities%20and%20Public%20Places%20Bylaw.pdf);
+  Nanaimo Parks, Recreation and Culture Regulation Bylaw 2022 No. 7340 s.4.1(d)/(e), a catch-all for signed or
+  undesignated activities (https://www.nanaimo.ca/bylaws/ViewBylaw/7340.pdf); the city promotes fishing at Westwood
+  Lake and Colliery Dam.
+
+Checked, no fishing ban: CRD Regional Parks Bylaw 4225 (consolidated June 2023; the wildlife clause exempts "fishing
+and crab-catching done in accordance with all enactments", https://www.crd.ca/media/file/bylawno4225consolidatedjune2023;
+the 2026 amendment 4787 not checked); New Westminster Parks Regulation Bylaw 3646 (consolidated 2020, no "fish");
+Coquitlam Bylaw 3617 (2004 text; may not be current; Lafarge and Como are stocked fishing lakes); Prince George Parks and
+Open Space Bylaw 7370 (consolidated 2026-03-23); Reifel sanctuary's Canada.ca page (no fishing rule stated); the City
+of Burnaby's Burnaby Lake page.
+Could not load / not found (still to check): Kelowna 10680 (403), Abbotsford 2456-2015 (certificate error; Mill Lake has
+a fishing pier), Kamloops 35-66, Township of Langley 5298, Delta 7206 (404), the Vancouver Park Board consolidated
+by-laws PDF (would settle Beaver Lake and Trout Lake), Metro Vancouver's Burnaby Lake page, the FVRD parks bylaw.
+
+## Owner answer 2026-11-22 23:55 (dialog on the round-2 rows)
+"Later release we will do this" — no round-2 row ships in 0.9.0; T981 stays open for a later release.

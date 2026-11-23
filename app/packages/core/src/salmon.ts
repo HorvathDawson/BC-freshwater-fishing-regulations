@@ -831,6 +831,8 @@ export interface SalmonCardVM extends SalmonBlockVM {
   /** (T372, owner 2026-11-03: the trout way) DFO places on this water not drawn yet: the card keeps the drawn answer and
    *  lists them in the trout card's "in part" caveat (core `inPartBlock`) — those DFO speaks for today first — else null */
   readonly caveat: CaveatVM | null;
+  /** (T851) the DFO regions this card speaks for (region ids, sorted) */
+  readonly regions: readonly string[];
   /** "Fisheries and Oceans Canada · Region 6 Skeena". */
   readonly source: string;
   /** (T796, owner 2026-11-16 15:19) the rule book's closures answering the page's salmon today, each named: [] none */
@@ -1244,6 +1246,8 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     caveat: part && inPart ? { ...inPart, title: part.headline, calm: part.calm } : inPart,
     dfoWords: regionClosed ? null : wordsOf(P, [...chains.flatMap((c) => [...P.chains[c]!.l, ...(P.chains[c]!.u ?? [])]),
                                                   ...unmapped.filter((u) => !u.d).flatMap((u) => P.chains[u.chain]?.l ?? [])]),
+    // (T851) the DFO regions this card speaks for: the feed's read time for the card is theirs alone (`salmonReadAt`)
+    regions: named,
     source: [SALMON_WORDS.agency,
              ...regionsUsed.map((r) => `Region ${r.toUpperCase()} ${P.regions[r]?.name ?? ""}`.trim())].join(" · "),
     book: book.map(({ from, words }) => ({ from, words })),

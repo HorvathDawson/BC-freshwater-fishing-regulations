@@ -45,6 +45,9 @@ export const DAY_PICKER = {
   gridLabel: (month: string) => `${month}. Arrow keys move the day; Page Up and Page Down move the month`,
   /** why a day is greyed out */
   outsideYear: (year: number) => `Only days in ${year} can be chosen: the regulations here are one calendar year.`,
+  /** (T1026) the synopsis runs past the year's end but the day-by-day answers do not: say both, so it does not read as a bug */
+  beyondYear: (year: number, validTo: string) =>
+    `Days after December 31 can't be chosen yet: the day-by-day answers cover ${year} only, though the synopsis is valid to ${validTo}.`,
   afterUntil: (day: string) => `Days after ${day} can't be chosen: these regulations end then.`,
   /** the one month table (`MONTHS`, flow.ts) */
   months: MONTHS,
@@ -54,13 +57,18 @@ export const DAY_PICKER = {
 } as const;
 
 /** The days the picker offers, as LOCAL ISO days ("2026-01-01"); `until` is the release's cut when it made one. */
-export interface DayRange { readonly year: number; readonly first: string; readonly last: string; readonly until: string | null }
+export interface DayRange {
+  readonly year: number; readonly first: string; readonly last: string; readonly until: string | null;
+  /** (T1026) the release's valid-to day when it runs PAST the year's end: the days after `last` are not answered, and the note says so */
+  readonly beyond: string | null;
+}
 
 export function dayRange(now: Date, validUntil: string | null): DayRange {
   const year = now.getFullYear();
   const first = `${year}-01-01`, dec31 = `${year}-12-31`, today = wallIso(now);
   const cut = validUntil && isIsoDay(validUntil) && validUntil >= today && validUntil < dec31 ? validUntil : null;
-  return { year, first, last: cut ?? dec31, until: cut };
+  const beyond = validUntil && isIsoDay(validUntil) && validUntil > dec31 ? validUntil : null;
+  return { year, first, last: cut ?? dec31, until: cut, beyond };
 }
 
 const isoOf = (d: Date) => wallIso(d);
@@ -169,7 +177,10 @@ function monthEdges(year: number, month: number, range: DayRange): { prev: boole
   if (offBefore || !prev) reasons.push(DAY_PICKER.outsideYear(range.year));
   if (offAfter || !next) {
     const [, m, d] = (range.until ?? "").split("-").map(Number);
-    const r = range.until ? DAY_PICKER.afterUntil(`${DAY_PICKER.months[m! - 1]} ${d}`) : DAY_PICKER.outsideYear(range.year);
+    const [by, bm, bd] = (range.beyond ?? "").split("-").map(Number);
+    const r = range.until ? DAY_PICKER.afterUntil(`${DAY_PICKER.months[m! - 1]} ${d}`)
+      : range.beyond ? DAY_PICKER.beyondYear(range.year, `${DAY_PICKER.months[bm! - 1]} ${bd}, ${by}`)
+      : DAY_PICKER.outsideYear(range.year);
     if (!reasons.includes(r)) reasons.push(r);
   }
   return { prev, next, reason: reasons.length ? reasons.join(" ") : null };

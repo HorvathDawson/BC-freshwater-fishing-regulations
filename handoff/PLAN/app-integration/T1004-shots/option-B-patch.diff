@@ -1,0 +1,39 @@
+diff --git a/app/packages/ui-native/src/WaterFrame.tsx b/app/packages/ui-native/src/WaterFrame.tsx
+index ec23bb94d..ccc65b61d 100644
+--- a/app/packages/ui-native/src/WaterFrame.tsx
++++ b/app/packages/ui-native/src/WaterFrame.tsx
+@@ -105,7 +105,8 @@ export function WaterFrame({ palette, face, onBack, backLabel, title, bleed = fa
+ /** (T224) the line under a name that is not the official one: where it came from */
+ const WATER_NAME_SOURCE = WATER_TITLE_WORDS.nameSource;
+ 
+-export function WaterTitle({ name, palette, source = null, children }: {
++export function WaterTitle({ name, palette, source = null, tag = null, children }: {
++  tag?: React.ReactNode;
+   name: string | null; palette: Palette;
+   /**
+    * (T224) Where the name came from when it is not the official (gazetted) one ("City of Abbotsford stream layer"),
+@@ -131,8 +132,9 @@ export function WaterTitle({ name, palette, source = null, children }: {
+         </View>
+       ) : (
+         <Text selectable accessibilityRole={name ? "header" : undefined} numberOfLines={lines} maxFontSizeMultiplier={CAPPED_SCALE}
+-              style={[TYPE.headerName, { flex: 1, color: palette.ink }]}>{name ?? ""}</Text>
++              style={[TYPE.headerName, tag ? { flexShrink: 1, color: palette.ink } : { flex: 1, color: palette.ink }]}>{name ?? ""}</Text>
+       )}
++      {tag}{tag ? <View style={{ flex: 1 }} /> : null}
+       {children}
+     </View>
+   );
+diff --git a/app/packages/ui-native/src/regs/RegsHeader.tsx b/app/packages/ui-native/src/regs/RegsHeader.tsx
+index 81c7e64db..1873ad91f 100644
+--- a/app/packages/ui-native/src/regs/RegsHeader.tsx
++++ b/app/packages/ui-native/src/regs/RegsHeader.tsx
+@@ -69,8 +69,7 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onTab, onTerm, si
+   return (
+     <View testID="regs-header" style={{ backgroundColor: palette.card, borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
+       {/* THE NAME ROW is the water frame's (T44): the same box on every view of the water, the pill in it */}
+-      <WaterTitle name={h.name} palette={palette} source={nameSource}>
+-        {h.classed && <ClassBadge b={h.classed} palette={palette} onTerm={onTerm} />}
++      <WaterTitle name={h.name} palette={palette} source={nameSource} tag={h.classed ? <ClassBadge b={h.classed} palette={palette} onTerm={onTerm} /> : null}>
+         {!side && <DatePill h={h} palette={palette} onDate={onDate} onDateInset={setDateInset} />}
+       </WaterTitle>
+       {/* the name row's right padding (8) + the date's inset in the pill (measured whether or not the sun has come yet: the
