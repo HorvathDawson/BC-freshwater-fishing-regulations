@@ -298,7 +298,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1023 | Staging report: "Flows into X" should open the receiving water's section on the map, not its regulations (Liumchen Creek) | OPEN — 0.9.0 batch | | staging report 2026-11-23 (`c9abc20745908d89`) |
 | T1024 | Staging report: "weird highlighting on the lake" at Gravel Slough | OPEN — 0.9.0 batch | | staging report 2026-11-23 (`3444007425e9d3bd`) |
 | T1025 | Switching regs sub-tabs (What you can keep ↔ Licence) scrolls through every section between | OPEN — 0.9.0 batch | | closed tester via owner 2026-11-22 |
-| T1026 | The day picker stops at December 2026 although the synopsis is valid to March 31, 2027 | OPEN — 0.9.0 batch | | closed tester via owner 2026-11-22 |
+| T1026 | The day picker stops at December 2026 although the synopsis is valid to March 31, 2027 | DONE | e2cdbee15 | closed tester via owner 2026-11-22 |
 | T1027 | Android R8: push the optimization / shrinking / obfuscation scores past ~72% (restate library keep rules, each walked) | OPEN — after 0.9.0 | T1003, T1009 | owner 2026-11-22 |
 
 ## Next after closed testing
