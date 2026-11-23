@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 """(T267) Upload an AAB to a Google Play track (default: internal) through the Android Publisher API v3.
 
-    play-upload.py --aab app.aab --package ca.canifishthis.app [--track internal] [--notes-file notes.txt]
-                   [--key ~/.canifishthis/play-service-account.json] [--status completed|draft] [--max-version-code]
+    play-upload.py --aab app.aab --mapping r8-mapping.txt --package ca.canifishthis.app [--track internal]
+                   [--notes-file notes.txt] [--key ~/.canifishthis/play-service-account.json] [--status completed|draft]
+                   [--max-version-code]
 
-One edit: insert -> bundles.upload -> tracks.update (this versionCode only, release notes en-US, <= 500 chars) -> commit.
+One edit: insert -> bundles.upload -> deobfuscationfiles.upload (R8's mapping, type proguard, for that versionCode) ->
+tracks.update (this versionCode only, release notes en-US, <= 500 chars) -> commit.
+(T1003) R8 is on for every release build, so every AAB goes with its mapping (Android vitals' and Play's crash stacks
+read the renamed Java/Kotlin frames back with it): --mapping is required with --aab, and a missing or empty file stops
+the upload before Play is called (nothing is uploaded).
 A draft app (store listing not yet complete) refuses "completed" releases; with --status completed (the default) a refusal
 that says so is retried once as "draft", which the owner then rolls out in Play Console.
 --max-version-code prints the highest versionCode Play holds on any track (0 when none) and exits; build-apk.sh uses it so
@@ -14,9 +19,6 @@ The service-account JSON is a secret: it lives in ~/.canifishthis/, never in the
 import argparse
 import os
 import sys
-
-from google.auth.transport.requests import AuthorizedSession
-from google.oauth2 import service_account
 
 API = "https://androidpublisher.googleapis.com/androidpublisher/v3/applications"
 UPLOAD = "https://androidpublisher.googleapis.com/upload/androidpublisher/v3/applications"
@@ -34,9 +36,20 @@ def ok(r, what):
     return r.json() if r.content else {}
 
 
+def check_upload_files(aab, mapping):
+    """(T1003) the AAB and its R8 mapping exist (and the mapping is not empty), before any Play call."""
+    if not os.path.isfile(aab):
+        die(f"no AAB at {aab}")
+    if not mapping:
+        die("--mapping <r8-mapping.txt> is required with --aab (T1003: R8 is on, Play needs the mapping); nothing uploaded")
+    if not os.path.isfile(mapping) or os.path.getsize(mapping) == 0:
+        die(f"no R8 mapping at {mapping} (missing or empty); nothing uploaded")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--aab")
+    ap.add_argument("--mapping", help="(T1003) R8's mapping.txt of this AAB; required with --aab")
     ap.add_argument("--package", required=True)
     ap.add_argument("--track", default="internal")
     ap.add_argument("--notes-file")
@@ -47,6 +60,11 @@ def main():
                     help="promote this versionCode (already on Play) to --track; no AAB, no upload")
     ap.add_argument("--from-track", default="internal", help="with --promote: the track whose release notes it takes")
     a = ap.parse_args()
+    if a.aab and not a.max_version_code and not a.promote:
+        check_upload_files(a.aab, a.mapping)
+    # imported here, after the file checks: a missing mapping is refused without the Google libraries or a key (T1003)
+    from google.auth.transport.requests import AuthorizedSession
+    from google.oauth2 import service_account
     if not os.path.isfile(a.key):
         die(f"no service-account key at {a.key} (owner step: create it in Google Cloud, grant it in Play Console)")
     creds = service_account.Credentials.from_service_account_file(a.key, scopes=SCOPE)
@@ -82,6 +100,13 @@ def main():
                        data=f, headers={"Content-Type": "application/octet-stream"}, timeout=900)
         code = ok(r, "bundles.upload")["versionCode"]
         print(f"uploaded versionCode {code}")
+        # (T1003) R8's mapping for this versionCode, in the same edit: a failure stops before the track is touched
+        with open(a.mapping, "rb") as f:
+            r = s.post(f"{UPLOAD}/{a.package}/edits/{edit}/apks/{code}/deobfuscationFiles/proguard",
+                       params={"uploadType": "media"}, data=f, headers={"Content-Type": "application/octet-stream"},
+                       timeout=900)
+        ok(r, "deobfuscationfiles.upload")
+        print(f"uploaded R8 mapping for versionCode {code} ({os.path.getsize(a.mapping)} bytes)")
         notes = open(a.notes_file).read().strip()[:500] if a.notes_file else ""
 
     def release(status):

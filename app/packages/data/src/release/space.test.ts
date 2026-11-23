@@ -59,6 +59,27 @@ describe("checkRoom (T722 F9)", () => {
       + "1.0 MB free. Free up some space and try again.");
   });
 
+  it("(T919 c) a first install that takes the assets PACK needs room for the pack AND the folder it unpacks into", async () => {
+    // the live sizes: a 6.1 MB pack that unpacks to 13.8 MB, both on disk until the swap: 482 + 6.1 + 13.8 = 501.9 MB
+    const P = { ...M, tiles: { ...M.tiles, assets: { id: "map-assets-1", url: "tiles/v1/map-assets-1/", files_sha256: "f",
+      pack: { url: "tiles/v1/map-assets-1.tar.zlib", bytes: 6.1 * MB, sha256: "p", unpacked: 13.8 * MB } } } } as Manifest;
+    await expect(checkRoom(P, null, space(501.9 * MB))).resolves.toBeUndefined();
+    const e = await checkRoom(P, null, space(495 * MB)).catch((x: unknown) => x);
+    expect(e).toBeInstanceOf(SpaceError);
+    expect((e as Error).message).toBe("Not enough free space: the download needs about 501.9 MB and this phone has "
+      + "495.0 MB free. Free up some space and try again.");
+    // the pack already down: only the folder it unpacks into is still asked for beside the rest
+    await expect(checkRoom(P, null, space(495.8 * MB, { "release/tiles/v1/map-assets-1.tar.zlib": 6.1 * MB })))
+      .resolves.toBeUndefined();
+    // an update whose assets id does not move takes no pack and asks no room for one
+    const held = { release: "r-1", tiles: "v1", basemap: "b1", assets: "map-assets-1", files: { core: "a", paint: "b" } };
+    await expect(checkRoom(P, held, space(0))).resolves.toBeUndefined();
+    // a pack that names no unpacked size is reported (the check goes on with what it knows)
+    const noSize = { ...P, tiles: { ...P.tiles, assets: { ...P.tiles.assets!, pack: { ...P.tiles.assets!.pack!, unpacked: undefined } } } } as Manifest;
+    await expect(checkRoom(noSize, null, space(488.1 * MB))).resolves.toBeUndefined();
+    expect(reported.map(String)).toEqual(["Error: [space] the assets pack tiles/v1/map-assets-1.tar.zlib names no unpacked size (undefined)"]);
+  });
+
   it("a phone that will not say its free space is reported, and the download goes on", async () => {
     await expect(checkRoom(M, null, { free: async () => null as unknown as number, size: async () => 0 })).resolves.toBeUndefined();
     expect(reported.map(String)).toEqual(["Error: [space] the phone did not say its free space (null); 482000000 bytes to download"]);

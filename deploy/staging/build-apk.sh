@@ -254,12 +254,13 @@ if [[ -z ${BUILD_APK_INNER:-} ]]; then
       build_links_file "$TOKF" "the feeds worker's run token: the email to the owner" "$mk" "--no-email goes on"
     fi
   fi
-  case ${CANIFISHTHIS_R8:-} in
-    ""|0) ;;   # R8 off: nothing said, as before T749
-    1) if [[ -n $PROD ]]; then bad "CANIFISHTHIS_R8=1 is a trial (T749), refused for --production (app.config.js refuses it too)"
-       else ok "R8 ON (CANIFISHTHIS_R8=1, T749): minified build, R8's mapping.txt kept beside the Hermes map"; fi ;;
-    *) bad "CANIFISHTHIS_R8 must be unset, 0 or 1 (got '${CANIFISHTHIS_R8}')" ;;
-  esac
+  # (T1003) R8 is on for every build this script makes, production included (plugins/with-r8.js): R8 off is the test
+  # bed's comparison escape only (as --stock-maplibre: every build here can reach a phone), and the T749 trial flag is gone
+  if [[ -n ${CANIFISHTHIS_NO_R8+set} ]]; then
+    bad "CANIFISHTHIS_NO_R8 (R8 off) is refused: every build here has R8 on (T1003); R8 off is the test bed's only (app/tools/testbed/session.sh --no-r8=\"<reason>\")"
+  elif [[ -n ${CANIFISHTHIS_R8+set} ]]; then
+    bad "CANIFISHTHIS_R8 was removed (T1003): R8 is on for every release build; unset it"
+  else ok "R8 on (T1003): its mapping kept beside the Hermes map${PLAY:+ and sent to Play with the AAB}; its configuration checked (r8-report.mjs)"; fi
   build_links_mln "$MLN_LOCAL_MAVEN"
   if [[ -n $MLN_AAR ]]; then
     [[ -n $READELF && -x $READELF ]] && ok "llvm-readelf ($READELF)" || bad "no llvm-readelf under $ANDROID_HOME/ndk: the MapLibre build id cannot be proved"
@@ -360,26 +361,33 @@ OUT=$REPO/app/dist/apk; [[ -n $DRY ]] || mkdir -p "$OUT"
 # uploaded) under the key a crash's `app` names ("0.5.0 (build 8, 9813980, …)" -> 0.5.0-b8-9813980):
 # `node app/tools/sourcemaps.mjs symbolicate <crash json>` reads a stack back with it. No map: the build stops here.
 HERMES_MAP=$M/android/app/build/generated/sourcemaps/react/release/index.android.bundle.map
-# (T749) CANIFISHTHIS_R8=1 (R8 on, plugins/with-no-minify.js): R8's mapping.txt is kept beside the Hermes map as
-# r8-mapping.txt (it reads a crash's renamed Java/Kotlin frames back). No mapping with the flag on: the build stops here,
-# before the APK/AAB is copied, committed or uploaded.
-R8_MAP=$M/android/app/build/outputs/mapping/release/mapping.txt
+# (T749, T1003) R8 is on for every release build (plugins/with-r8.js): its mapping.txt is kept beside the Hermes map as
+# r8-mapping.txt (it reads a crash's renamed Java/Kotlin frames back) and, for --play, sent to Play with the AAB
+# (play-upload.py --mapping: Android vitals' and Play's crash stacks). No mapping: the build stops here, before the
+# APK/AAB is copied, committed or uploaded.
+R8_DIR=$M/android/app/build/outputs/mapping/release
+R8_MAP=$R8_DIR/mapping.txt
+KEPT_R8_MAP=$REPO/data/sourcemaps/$VER-b$CODE-${SHA:0:7}/android/r8-mapping.txt
 keep_map() {
   node "$REPO/app/tools/sourcemaps.mjs" keep-android "$HERMES_MAP" "$VER-b$CODE-${SHA:0:7}"
-  if [[ ${CANIFISHTHIS_R8:-} == 1 ]]; then node "$REPO/app/tools/sourcemaps.mjs" keep-r8 "$R8_MAP" "$VER-b$CODE-${SHA:0:7}"; fi
+  node "$REPO/app/tools/sourcemaps.mjs" keep-r8 "$R8_MAP" "$VER-b$CODE-${SHA:0:7}"
 }
+# (T1009) R8's merged configuration (configuration.txt) holds no -dontoptimize / -dontshrink / -dontobfuscate, from us
+# or from a library's consumer rules; for an AAB, R8's own scores (BUNDLE-METADATA r8.json, the figures Play reads) are
+# printed and held to the floors in app/tools/r8-report.mjs. Under a floor, or a planted -dont*: the build stops here.
+r8_check() { node "$REPO/app/tools/r8-report.mjs" check --config "$R8_DIR/configuration.txt" "$@"; }
 NAME="canifishthis-staging-$VER-$SHA.apk"
 [[ -n $PLAY ]] && { OUT=$REPO/app/dist/aab; [[ -n $DRY ]] || mkdir -p "$OUT"; NAME="canifishthis-$VER-$CODE-$SHA.aab"; }
 if [[ -n $DRY && -n $PLAY ]]; then
   echo "[dry-run] (cd \$WT/app && pnpm install --offline --frozen-lockfile); expo prebuild (plugins/with-upload-signing.js)"
   echo "[dry-run] (cd \$WT/$M/android && CANIFISHTHIS_UPLOAD_PROPERTIES=$SECRETS/upload-keystore.properties ./gradlew bundleRelease)"
   echo "[dry-run] keep the Hermes map: data/sourcemaps/$VER-b$CODE-${SHA:0:7}/android/"
-  if [[ ${CANIFISHTHIS_R8:-} == 1 ]]; then echo "[dry-run] (T749) R8 ON: keep R8's mapping.txt there too (r8-mapping.txt), or stop"; fi
+  echo "[dry-run] (T1003) keep R8's mapping.txt there too (r8-mapping.txt), or stop; (T1009) check R8's configuration and the AAB's scores (r8-report.mjs), or stop"
   echo "[dry-run] check the AAB is signed by $SECRETS/upload_certificate.pem; copy -> $OUT/$NAME"
   echo "[dry-run] check the AAB's libmaplibre.so build id: ${MLN_AAR:-NO pinned AAR (the build would stop here)}"
   echo "[dry-run] $ENVWORD build: EXPO_PUBLIC_APP_ENV=$EXPO_PUBLIC_APP_ENV, switch ${EXPO_PUBLIC_ENV_SWITCH:-off}, map lab ${EXPO_PUBLIC_MAP_LAB:-off}"
   echo "[dry-run] commit the versionCode $NEXT bump (app.json only) once the AAB passed both checks"
-  echo "[dry-run] upload to Play track $TRACK with this version's changelog bullets as notes (unless --no-upload); email the same + the build id via $FEEDS/notify/apk (unless --no-email)"
+  echo "[dry-run] upload to Play track $TRACK with this version's changelog bullets as notes and R8's mapping in the same edit (unless --no-upload); email the same + the build id via $FEEDS/notify/apk (unless --no-email)"
   echo "[dry-run] publish $BUCKET/app/android/play/$NEXT.json (read at $BASE/play/$NEXT.json by a Play build Play offers versionCode $NEXT), then $BUCKET/app/android/play.json (the last upload, read by 0.8.1 installs): $VERSION_JSON"
   exit 0
 fi
@@ -389,6 +397,7 @@ if [[ -n $DRY ]]; then
   echo "[dry-run] cp $REPO/$M/android/app/debug.keystore \$WT/$M/android/app/; sdk.dir=$ANDROID_HOME > android/local.properties"
   echo "[dry-run] (cd \$WT/$M/android && ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a --max-workers=4)"
   echo "[dry-run] keep the Hermes map: data/sourcemaps/$VER-b$CODE-${SHA:0:7}/android/"
+  echo "[dry-run] (T1003) keep R8's mapping.txt there too (r8-mapping.txt), or stop; (T1009) check R8's configuration (r8-report.mjs), or stop"
   echo "[dry-run] check the APK's libmaplibre.so build id: ${MLN_AAR:-NO pinned AAR (the build would stop here)}"
   echo "[dry-run] copy app-release.apk -> $OUT/$NAME, latest.apk, index.html (with the build id); upload (unless --no-upload), email the changelog bullets + build id (unless --no-email)"
   echo "[dry-run] latest.json: $VERSION_JSON"
@@ -406,6 +415,8 @@ if [[ -n $PLAY ]]; then
   cd "$WT"
   keep_map
   AAB=$M/android/app/build/outputs/bundle/release/app-release.aab
+  R8_SCORES=$(r8_check --aab "$AAB") || { echo "$R8_SCORES" >&2; echo "build-apk: R8's check failed (above); nothing was committed or uploaded" >&2; exit 1; }
+  echo "$R8_SCORES"
   KT="$JAVA_HOME/bin/keytool"
   want=$("$KT" -printcert -file "$SECRETS/upload_certificate.pem" | awk '/SHA256:/{print $2; exit}')
   got=$("$KT" -printcert -jarfile "$AAB" | awk '/SHA256:/{print $2; exit}')
@@ -425,7 +436,7 @@ if [[ -n $PLAY ]]; then
   # (T234 v1.1) what a Play build reads to learn of this version (its background check + the bell's "What's new");
   # written BEFORE the upload so --publish-only can redo the put + email if a later step fails
   python3 -c 'import json,sys;v=json.loads(sys.argv[1]);v["maplibre"]=sys.argv[2];v["env"]=sys.argv[3];print(json.dumps(v))' "$VERSION_JSON" "$MLN_GOT" "$ENVWORD" > "$OUT/play.json"
-  "$REPO/.venv/bin/python" "$REPO/deploy/staging/play-upload.py" --aab "$OUT/$NAME" --package $PKG --track "$TRACK" --notes-file "$PNOTES"
+  "$REPO/.venv/bin/python" "$REPO/deploy/staging/play-upload.py" --aab "$OUT/$NAME" --mapping "$KEPT_R8_MAP" --package $PKG --track "$TRACK" --notes-file "$PNOTES"
   echo "$SHA_FULL" > "$REPO/app/dist/apk/last-play-sha"   # (T533) the FAST_FAIL_BASE of the next --play build
   # (T894) the build's own file first: a Play build reads the file of the versionCode Play offers it (any track, after a
   # promotion too); then play.json, the last upload (0.8.1 installs read it; the precheck and --publish-only compare with it)
@@ -439,8 +450,8 @@ if [[ -n $PLAY ]]; then
   if [[ " $* " != *" --no-email "* ]]; then
     CH="$CH
 MapLibre build id $MLN_GOT ($MLN_WHAT)"
-    if [[ ${CANIFISHTHIS_R8:-} == 1 ]]; then CH="$CH
-Code shrinker (R8): on (T749)"; fi
+    CH="$CH
+Code shrinker (R8): on; ${R8_SCORES#R8 }"
     export V=$VER B=$CODE S=$SHA D=$DATE SZ="$MB MB" U="$TEST_URL" CH
     BODY=$(python3 -c 'import json,os;e=os.environ;print(json.dumps({"channel":"play","version":e["V"],"build":e["B"],"sha":e["S"],"date":e["D"],"size":e["SZ"],"url":e["U"],"changes":e["CH"].splitlines()}))')
     TOK=$(tr -d '\n' < "$REPO/$TOKF" 2>/dev/null || true)   # the REPO's: the build worktree has no gitignored token
@@ -454,6 +465,7 @@ fi
 (cd android && ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a --max-workers=4 -Dorg.gradle.workers.max=4)
 cd "$WT"
 keep_map
+r8_check || { echo "build-apk: R8's configuration check failed (above); the APK was not copied" >&2; exit 1; }
 # (T538) the sideload APK proves its MapLibre too (was --play only): the local AAR's build id (pinned)
 APKF=$M/android/app/build/outputs/apk/release/app-release.apk
 mln_check "$APKF" lib/arm64-v8a/libmaplibre.so || exit 1

@@ -26,6 +26,7 @@ import { GUTTER, type Palette } from "./theme";
 import { hitProps } from "./regs/hit";
 import { CoachSpot } from "./CoachMarks";
 import { OpenSettings } from "./OpenSettings";
+import { arrowFocusProps } from "./arrowFocus";
 
 export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, refreshing, error, photoStore, backupLine, contact, onReport }: {
   /** (T901) the web notice's "Join the test": the contact address, or the Report form */
@@ -70,7 +71,7 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
           </Pressable>
         )}
       </View>
-      <ScrollView>
+      <ScrollView {...arrowFocusProps()}>
         {vm.error !== null && (
           <ErrorState palette={palette} size="body" message={vm.error} style={{ padding: 20 }} />
         )}
