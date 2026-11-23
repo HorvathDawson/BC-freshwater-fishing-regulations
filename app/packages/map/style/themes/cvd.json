@@ -55,6 +55,7 @@
     "opacity.wetland": 0.3,
     "opacity.notfishing": 0.9,
     "opacity.lake": 0.9,
+    "shade.lake.edge": 0,
     "width.underlake": 1.6,
     "dash.route": [
       1,
