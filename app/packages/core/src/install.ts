@@ -4,6 +4,7 @@
  */
 import { isEnvironment } from "./failure";
 import { NET_WORDS } from "./net";
+import { RULE_BOOK } from "./sourceNames";
 
 export const INSTALL_WORDS = {
   failed: "The map data could not be loaded.",
@@ -195,7 +196,7 @@ export const DOWNLOAD_NOTE_WORDS = {
   title: "Downloading BC fishing rules",
   // (T912) `data`: an update's regulations files (each its own system download)
   // (T919 c) `assets`: the map's label fonts and icons, one packed file
-  files: { tiles: "Map of the waters", mask: "Map outline", basemap: "Base map", synopsis: "Rule book (PDF)", data: "Regulations data",
+  files: { tiles: "Map of the waters", mask: "Map outline", basemap: "Base map", synopsis: `${RULE_BOOK} (PDF)`, data: "Regulations data",
            assets: "Map labels and icons" },
   other: "Map and regulations",
   /** (Android 13+) said on the boot screen as the system asks to allow notifications, once, before the first download */

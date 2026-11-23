@@ -173,7 +173,7 @@ SHAPES = {
          ["The extent takes the whole watershed above its point"]),
     "a watershed below a point (6:b(ii):section)":
         ([{"op": "downstream_of", "item_id": "gnis:1", "splits": ["c"], "watershed": True}],
-         ["The extent takes the whole watershed"]),
+         ["The extent takes the whole watershed below its point"]),
 }
 
 
@@ -189,7 +189,10 @@ def _shown(loc: dict) -> tuple[dict, dict | None]:
     """the place's extent as the checklist / DFO tab open on it (`extent_now`), and the region cascade's words"""
     import dfo
     import region_cascade
-    return dfo.extent_now(loc, None), region_cascade._cannot_edit(loc)
+    # T775 item 2: `extent_now` lists the water's places for ANY place, so it builds an `EntryLocation`: the bare shape
+    # here gets the fields every real place carries
+    whole = {"region": "1", "region_number": 1, "kind": "water", "precedence": 3, "water": "River", **loc}
+    return dfo.extent_now(whole, None), region_cascade._cannot_edit(loc)
 
 
 def _plain(why: list[str], got: dict | None, at) -> None:

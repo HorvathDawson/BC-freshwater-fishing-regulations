@@ -3,6 +3,7 @@
  * today, and why — in plain words. Verbatim, frozen; spread into ALL_WORDS (words.ts) so the no-hand-facts test knows
  * them. No imports: words.ts imports this file.
  */
+import { RULE_BOOK } from "../sourceNames";
 /** (T892) a water's possessive: "Twin Lakes’", "Kootenay River’s" */
 const poss = (name: string): string => (/s$/i.test(name) ? `${name}’` : `${name}’s`);
 /** (T907 round 2, owner 2026-11-19 ~12:27 "Drop the repeat") the water a tributary line names: `poss`, except a name
@@ -83,7 +84,7 @@ export const DECIDE = Object.freeze({
   // where a rule holds
   WHERE_PART: (part: string) => `Only on part of this water: ${part}.`,
   WHERE_FEDERAL: "Federal law: it applies over the B.C. rules.",
-  WHERE_DFO: "Set by Fisheries and Oceans Canada (DFO), not the B.C. rule book.",
+  WHERE_DFO: `Set by Fisheries and Oceans Canada (DFO), not the ${RULE_BOOK}.`,
   WHERE_BY: "The rule that beat it: ",
   WHERE_LIFTED_BY: "The rule that opens it: ",
 

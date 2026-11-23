@@ -1,6 +1,8 @@
 /**
  * (T991 round 3) A TAB'S SOURCE ROW: the quiet label "Source", then each authority as a link, wrapping — core's
- * `TabSourcesVM` (`regsSourcesOf` / `conditionsSourcesOf`) drawn as is. A synopsis page opens the rule book at that page
+ * `TabSourcesVM` (`regsSourcesOf` / `conditionsSourcesOf`) drawn as is. (T1031 item 3) THE ONE SOURCE LINE: every inline
+ * source draws through it too — a section's pages (`SourceLine`), the trout table's, a sheet's source block, a closure on
+ * the closed banner, the salmon card's book closures and DFO pages, an in-season notice (core `sourceLineOf`). A synopsis page opens the rule book at that page
  * with its highlights (`RuleBookLink`, T215); a web page leaves the app (`openLink`); "All sources ›" opens a sheet.
  * Each press is grown to 44 × 44 (T40). No logic: every word, page and box is core's.
  */
@@ -14,6 +16,9 @@ import { MIN_HIT } from "./regs/hit";
 import { RegsPress } from "./regs/RegsPress";
 import { RuleBookLink } from "./regs/RuleBookLink";
 
+/** (T40, T1031) a link's words may wrap: at 2× text "DFO notices, Region 6 Skeena ↗" is wider than a 360 px phone */
+const WRAP = { flexShrink: 1, maxWidth: "100%" } as const;
+
 export function SourceRow({ vm, palette, onBook, onSheet, testID = "source-row", sheetTestID = `${testID}-sheet` }: {
   vm: TabSourcesVM; palette: Palette;
   /** what a synopsis page's press does (the screen's `actions.onBook`); default: open the synopsis there */
@@ -25,6 +30,8 @@ export function SourceRow({ vm, palette, onBook, onSheet, testID = "source-row",
   sheetTestID?: string;
 }) {
   const face = [TYPE.metaBold, { color: palette.accent }];
+  // (T1031 item 3) a block with nothing to cite (an in-season change with no page) draws no line, not a bare label
+  if (!vm.links.length) return null;
   return (
     <View testID={testID}
           style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "baseline", columnGap: 12, rowGap: 6, minHeight: 44, paddingVertical: 10 }}>
@@ -36,7 +43,7 @@ export function SourceRow({ vm, palette, onBook, onSheet, testID = "source-row",
           case "web":
             return (
               <RegsPress key={l.url} testID={`${testID}-web`} accessibilityRole="link" onPress={() => { void openLink(l.url); }}
-                         box={{ w: MIN_HIT, h: TYPE.metaBold.lineHeight }}>
+                         box={{ w: MIN_HIT, h: TYPE.metaBold.lineHeight }} style={WRAP}>
                 <Text style={face}>{l.label}</Text>
               </RegsPress>
             );
@@ -47,7 +54,7 @@ export function SourceRow({ vm, palette, onBook, onSheet, testID = "source-row",
                            if (!onSheet) throw new Error(`SourceRow: "${l.label}" opens ${l.open}, but this screen gave no onSheet`);
                            onSheet(l.open);
                          }}
-                         box={{ w: MIN_HIT, h: TYPE.metaBold.lineHeight }}>
+                         box={{ w: MIN_HIT, h: TYPE.metaBold.lineHeight }} style={WRAP}>
                 <Text style={face}>{l.label}</Text>
               </RegsPress>
             );

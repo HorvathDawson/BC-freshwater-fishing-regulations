@@ -30,7 +30,7 @@ const rowOf = ({ r, role }: Cited): SourceRowVM =>
 
 /** Which authority makes a rule: a local authority's citation (T981), a DFO-only override (`source: "dfo"`), else the synopsis. */
 export function authorityOf(r: RuleView): "local" | "dfo" | "synopsis" {
-  return r.facts?.cited ? "local" : r.f?.source === "dfo" ? "dfo" : "synopsis";
+  return r.facts?.cited ? "local" : r.f.source === "dfo" ? "dfo" : "synopsis";
 }
 
 /** The breakdown as one `sources` block: a group per authority that has a rule (synopsis, DFO, local), each rule once. */

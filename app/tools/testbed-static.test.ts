@@ -56,6 +56,7 @@ const NOT_IN_APP_SOURCE: Record<string, string> = {
   "near Lindell Beach": "a place name from the release data (the Cultus Lake result line)",
   "edited offline by the test bed": "the text the scenario itself types into a spot",
   "hatchery fence": "a water name from the release data",
+  "Landstrom Bar": "(T997 round 2) a sign zone's name from the release data (the Fraser's parts list row); the app comment that named it went with T443's merge",
   "Audit spot": "(T723) the title of the spot the audit-fixes scenario itself seeds",
   "Photo spot": "(T836) the title of the spot with three photos the t836-ios scenario itself seeds",
   "kb probe": "(T723) the title the keyboard scenario itself types into a spot (modal-back opens it)",
@@ -128,7 +129,7 @@ describe("the checks themselves bite (mutation)", () => {
   });
   it("literal pieces of a label: plain words kept, regex syntax and short bits dropped", () => {
     expect(literalPieces("Gauges, unchanged, 304")).toEqual(["Gauges", "unchanged"]);
-    expect(literalPieces("Rule book p\\.[0-9]+ ↗.*")).toEqual(["Rule book p.", "↗"].filter((x) => x.length >= 4));
+    expect(literalPieces("B.C. Synopsis p\\.[0-9]+ ↗.*")).toEqual(["B.C. Synopsis p.", "↗"].filter((x) => x.length >= 4));
     expect(literalPieces("^Refresh data: (up to date|could not update)")).toEqual(["Refresh data", "up to date", "could not update"]);
   });
   it("a label that exists nowhere is reported", () => {
@@ -177,7 +178,7 @@ describe("T542 a failed step names the commit and the screen file", () => {
   it("finds the scenario file by id and the app files holding the ids and labels used", () => {
     expect(scenarioFile("water-nav")).toMatch(/scenarios\/water-nav\.mjs$/);
     expect(scenarioFile("no-such-scenario")).toBeNull();
-    expect(usedValues([{ name: "tap-id", env: { ID: "water-close" } }, { name: "tap-text", env: { TEXT: "Rule book p\\.[0-9]+ ↗.*" } }])).toEqual(["Rule book p", "water-close"]);
+    expect(usedValues([{ name: "tap-id", env: { ID: "water-close" } }, { name: "tap-text", env: { TEXT: "Synopsis p\\.[0-9]+ ↗.*" } }])).toEqual(["Synopsis p", "water-close"]);
   });
   it("the line quotes the commit and the files", () => {
     const b = blame({ scenarioPath: scenarioFile("water-nav"), calls: [{ name: "tap-id", env: { ID: "water-close" } }], grep: () => ["app/packages/ui-native/src/water/WaterScreen.tsx"], log: () => "abc1234 T345: a subject" });

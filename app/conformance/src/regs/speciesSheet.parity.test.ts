@@ -5,7 +5,7 @@
  * each rule's pages carrying its own highlight. Pinned whole for vedder_1010's Kokanee (AGENTS 33).
  */
 import { describe, expect, it } from "vitest";
-import { ALL_SOURCES, SOURCE_AUTHORITIES, SPECIES_SHEET, WORDS, bookText, buildRegsPage, type RegsPage, type SheetBlock, type SheetKey, type SheetVM } from "@app/core";
+import { ALL_SOURCES, SOURCE_AUTHORITIES, SPECIES_SHEET, WORDS, bookText, buildRegsPage, setFailureSink, type RegsPage, type SheetBlock, type SheetKey, type SheetVM } from "@app/core";
 import { ADULT_RESIDENT, inputsOf, parityGate, requestOf, taps } from "./golden";
 
 const gate = await parityGate();
@@ -105,6 +105,21 @@ describe.skipIf(gate.skip)("T1031 the species sheet over the golden states", () 
     expect(last.k === "link" && last.line[0]!.t === "link" ? /^src:r\d+$/.test(String(last.line[0]!.open)) : false).toBe(true);
     // mutation: a fish the page answers on no line has no Sources tab
     expect(page.sheet("sp:ZZ|src")).toBeNull();
+  });
+
+  it("(W46) a rule the flow names that the page does not hold: reported, the breakdown says the rest", async () => {
+    const id = "vedder_515", inp = (await inputsOf(id))!;
+    const base = buildRegsPage(inp, { today: requestOf(id).today, who: ADULT_RESIDENT, pid: id });
+    const row = base.keep.otherFish!.find((x) => x.name === "Protected species")!;
+    const lost = breakdownText(base.sheet(row.open)!).at(-1)!;   // a flow-only rule of the row (its title first)
+    const gone = (base.sheet(row.open)!.blocks.find((b) => b.k === "sources") as Extract<SheetBlock, { k: "sources" }>).groups.flatMap((g) => g.rows).at(-1)!.key!;
+    const rules = { ...inp.rules, byKey: (k: string) => (k === gone ? null : inp.rules.byKey!(k)) };
+    const reports: unknown[] = [], undo = setFailureSink((e) => reports.push(e));
+    try {
+      const page = buildRegsPage({ ...inp, rules } as typeof inp, { today: requestOf(id).today, who: ADULT_RESIDENT, pid: id });
+      const got = breakdownText(page.sheet(row.open)!);
+      expect([got.includes(lost), reports.some((e) => (e as Error).name === "BreakdownRuleMissing")]).toEqual([false, true]);
+    } finally { undo(); }
   });
 
   it("a stale species key opens nothing", async () => {

@@ -19,7 +19,7 @@ import x31p from "./fixtures/edge_x31p_1010.json";
 import x15p2 from "./fixtures/edge_x15p2_1010.json";
 import unnamed from "./fixtures/edge_unnamed.json";
 import glenn501 from "./fixtures/glenn_501.json";
-import { TEST_SOURCES } from "./testing/sources";
+import { TEST_SOURCES, TEST_TROUT_SOURCES } from "./testing/sources";
 
 afterEach(cleanup);
 
@@ -42,7 +42,7 @@ const outsidePage = (): RegsPage => buildRegsPage({
 function mountKeep(page: RegsPage) {
   const sheets: SheetKey[] = [], books: number[] = [];
   const actions: KeepActions = { onSheet: (k) => sheets.push(k), onDay() {}, onTab() {}, onBook: (p) => books.push(p) };
-  render(<KeepTab keep={page.keep} dateLabel={page.header.date} palette={LIGHT} actions={actions} />);
+  render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={page.keep} dateLabel={page.header.date} palette={LIGHT} actions={actions} />);
   return { sheets, books };
 }
 
@@ -50,7 +50,7 @@ describe("8. outside B.C.", () => {
   it("one line, the outside foot; no section below the Keep content; only the Keep tab listed", () => {
     const page = outsidePage();
     // RegsScreen handed no Gear / Methods / Licence slot (WaterScreen.tsx does this outside B.C.: WaterScreen.outside.test.tsx)
-    render(<RegsScreen sources={TEST_SOURCES} page={page} palette={LIGHT} actions={NOOP} onDate={() => {}}
+    render(<RegsScreen troutSources={TEST_TROUT_SOURCES} sources={TEST_SOURCES} page={page} palette={LIGHT} actions={NOOP} onDate={() => {}}
                        gear={page.gear ? <Text>gear</Text> : undefined} methods={page.methods ? <Text>methods</Text> : undefined}
                        licence={page.licence ? <Text>licence</Text> : undefined} />);
     expect(screen.getByTestId("keep-tab").textContent).toBe("This part of the water is outside B.C.: no B.C. rules apply.");
@@ -105,7 +105,7 @@ describe("11. the timed caveat (x15p2_1010, D10 a)", () => {
   const page = asPage(x15p2), caveat = page.keep.caveats[0]!;
   it("(T318) the timed closure is ONE line under the game-fish bar: no box, no heading, said in words", () => {
     for (const palette of [LIGHT, DARK]) {
-      render(<KeepTab keep={page.keep} dateLabel={page.header.date} palette={palette} actions={{ ...NOOP, onTab() {} }} />);
+      render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={page.keep} dateLabel={page.header.date} palette={palette} actions={{ ...NOOP, onTab() {} }} />);
       expect(screen.queryByTestId("keep-caveat")).toBeNull();
       expect(screen.queryByTestId("kicker:timed")).toBeNull();
       expect(screen.getByTestId("keep-timed-line").textContent).toBe("Daylight only: closed from 1 h after sunset to 1 h before sunrise");
@@ -116,25 +116,25 @@ describe("11. the timed caveat (x15p2_1010, D10 a)", () => {
       cleanup();
     }
   });
-  it("(T318) the line opens its rule's sheet; the Rule book link sits inline after it", () => {
+  it("(T318) the line opens its rule's sheet; the B.C. Synopsis link sits inline after it", () => {
     const { sheets, books } = mountKeep(page);
     const items = screen.getAllByTestId("keep-timed-item");
-    expect(items.map((e) => e.textContent)).toEqual(["Daylight only: closed from 1 h after sunset to 1 h before sunriseRule book p.23 ↗"]);
+    expect(items.map((e) => e.textContent)).toEqual(["Daylight only: closed from 1 h after sunset to 1 h before sunriseB.C. Synopsis p.23 ↗"]);
     fireEvent.click(screen.getByTestId("keep-timed-line"));
     expect(sheets).toEqual([`rule:${caveat.items[0]!.rule}`]);
-    fireEvent.click(within(items[0]!).getByText("Rule book p.23 ↗"));
+    fireEvent.click(within(items[0]!).getByText("B.C. Synopsis p.23 ↗"));
     expect([sheets.length, books.length]).toEqual([1, 1]);
   });
 
   it("(T473) with the water's sun: the day's real hours under the status, the rule's words a small line after; no point, the plain rule", () => {
     // (T898) the offsets come from the item's stored window (`daylight`), not its words
     const range = { open: (a: number, b: number) => (a === 60 && b === 60 ? "7:04–18:37" : null), closed: () => null };
-    render(<KeepTab keep={page.keep} dateLabel={page.header.date} palette={LIGHT} actions={{ ...NOOP, onTab() {} }} daylight={range} />);
+    render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={page.keep} dateLabel={page.header.date} palette={LIGHT} actions={{ ...NOOP, onTab() {} }} daylight={range} />);
     const strip = screen.getByTestId("keep-strip");
     expect(within(strip).getByTestId("keep-daylight").textContent).toBe("Daylight only · fishing 7:04–18:37");
     expect(screen.getByTestId("keep-timed-line").textContent).toBe("Daylight only: closed from 1 h after sunset to 1 h before sunrise");
     cleanup();
-    render(<KeepTab keep={page.keep} dateLabel={page.header.date} palette={LIGHT} actions={{ ...NOOP, onTab() {} }} daylight={null} />);
+    render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={page.keep} dateLabel={page.header.date} palette={LIGHT} actions={{ ...NOOP, onTab() {} }} daylight={null} />);
     expect(screen.queryByTestId("keep-daylight")).toBeNull();
     expect(screen.getByTestId("keep-timed-line").textContent).toBe("Daylight only: closed from 1 h after sunset to 1 h before sunrise");
   });
@@ -143,18 +143,18 @@ describe("11. the timed caveat (x15p2_1010, D10 a)", () => {
     expect(caveat.items[0]!.daylight).toEqual({ after: 60, before: 60 });   // the stored window's offsets, on the VM
     const MISSION = { lat: 49.133, lon: -122.31 };
     const keepOn = (day: { y: number; m: number; d: number }, date: string) =>
-      <KeepTab keep={page.keep} dateLabel={date} palette={LIGHT} actions={{ ...NOOP, onTab() {} }}
+      <KeepTab troutSources={TEST_TROUT_SOURCES} keep={page.keep} dateLabel={date} palette={LIGHT} actions={{ ...NOOP, onTab() {} }}
                daylight={daylightAt(MISSION.lat, MISSION.lon, day)} />;
     const { rerender } = render(keepOn({ y: 2026, m: 11, d: 19 }, "Nov 19"));
     const items = () => screen.getAllByTestId("keep-timed-item").map((e) => e.textContent);
-    expect(items()).toEqual(["Daylight only: closed from 1 h after sunset (18:24) to 1 h before sunrise (7:25)Rule book p.23 ↗"]);
+    expect(items()).toEqual(["Daylight only: closed from 1 h after sunset (18:24) to 1 h before sunrise (7:25)B.C. Synopsis p.23 ↗"]);
     expect(within(screen.getByTestId("keep-strip")).getByTestId("keep-daylight").textContent).toBe("Daylight only · fishing 7:25–18:24");
     rerender(keepOn({ y: 2026, m: 6, d: 21 }, "Jun 21"));
-    expect(items()).toEqual(["Daylight only: closed from 1 h after sunset (22:17) to 1 h before sunrise (4:04)Rule book p.23 ↗"]);
+    expect(items()).toEqual(["Daylight only: closed from 1 h after sunset (22:17) to 1 h before sunrise (4:04)B.C. Synopsis p.23 ↗"]);
     expect(screen.getByTestId("keep-daylight").textContent).toBe("Daylight only · fishing 4:04–22:17");
     // no point known: the rule's words alone, no hours line
-    rerender(<KeepTab keep={page.keep} dateLabel="Nov 19" palette={LIGHT} actions={{ ...NOOP, onTab() {} }} daylight={null} />);
-    expect(items()).toEqual(["Daylight only: closed from 1 h after sunset to 1 h before sunriseRule book p.23 ↗"]);
+    rerender(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={page.keep} dateLabel="Nov 19" palette={LIGHT} actions={{ ...NOOP, onTab() {} }} daylight={null} />);
+    expect(items()).toEqual(["Daylight only: closed from 1 h after sunset to 1 h before sunriseB.C. Synopsis p.23 ↗"]);
     expect(screen.queryByTestId("keep-daylight")).toBeNull();
   });
 

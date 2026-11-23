@@ -8,7 +8,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { PixelRatio } from "react-native";
-import { TROUT_NAV, troutOf, type RegsInputs, type SheetKey, type TroutValue, type TroutVM } from "@app/core";
+import { SOURCE_LINE, TROUT_NAV, sourceLineOf, troutOf, type RegsInputs, type SheetKey, type TroutValue, type TroutVM } from "@app/core";
 import vectors from "../../../../fixtures/trout/trout-vectors.generated.json";
 import golden from "../../../../fixtures/golden/trout-a11y.json";
 import { CVD, DARK, LIGHT } from "../theme";
@@ -16,6 +16,7 @@ import { TYPE } from "../type";
 import { hitArea } from "./hit";
 import type { KeepActions } from "./LineText";
 import { TroutCard } from "./TroutCard";
+import { TEST_TROUT_SOURCES } from "./testing/sources";
 import { StripWidthHint } from "./YearStrip";
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
@@ -37,7 +38,7 @@ const byName = (n: string) => vmOf(CASES.find((c) => c.name === n)!);
 function mount(t: TroutVM, palette = LIGHT, kicker = false) {
   const sheets: SheetKey[] = [];
   const actions: KeepActions = { onSheet: (k) => sheets.push(k), onDay() {}, onTab() {}, onBook() {} };
-  const r = render(<TroutCard t={t} palette={palette} actions={actions} kicker={kicker} todayAt={0.5} months={["J", "F"]} />);
+  const r = render(<TroutCard t={t} sources={TEST_TROUT_SOURCES} palette={palette} actions={actions} kicker={kicker} todayAt={0.5} months={["J", "F"]} />);
   return { r, sheets };
 }
 
@@ -106,7 +107,7 @@ describe("(T810 O) every vector drawn", { timeout: 30_000 }, () => {
     for (const pal of [LIGHT, DARK, CVD]) {
       const actions: KeepActions = { onSheet() {}, onDay() {}, onTab() {}, onBook() {} };
       render(<StripWidthHint.Provider value={300}>
-               <TroutCard t={byName("elk-nov15")} palette={pal} actions={actions} kicker={false} todayAt={0.5} months={["J", "F"]} />
+               <TroutCard t={byName("elk-nov15")} sources={TEST_TROUT_SOURCES} palette={pal} actions={actions} kicker={false} todayAt={0.5} months={["J", "F"]} />
              </StripWidthHint.Provider>);
       const keeps = screen.queryAllByTestId("trout-year-run:keep");
       expect(keeps.length).toBeGreaterThan(0);
@@ -116,13 +117,29 @@ describe("(T810 O) every vector drawn", { timeout: 30_000 }, () => {
   });
 });
 
+describe("(T1031 item 3) the table's Source line", () => {
+  it("its last line: the pages the every-rule sheet cites, then Who says so › opening that sheet; a page opens the book there", () => {
+    const books: number[] = [], sheets: SheetKey[] = [];
+    const sources = sourceLineOf({ pages: [{ printed: 49, pdf: 51 }, { printed: 8, pdf: 10 }], marks: SOURCE_LINE.MARKS_BLOCK("Trout and char"),
+                                   sheet: { label: SOURCE_LINE.WHO, open: "src:trout", aria: SOURCE_LINE.WHO_A11Y("Trout and char") } });
+    render(<TroutCard t={byName("fraser-r2-mission-jul15")} palette={LIGHT} sources={sources}
+                      actions={{ onSheet: (k) => sheets.push(k), onDay() {}, onTab() {}, onBook: (pdf) => { books.push(pdf); } }} />);
+    const row = screen.getByTestId("trout-source");
+    expect(row.textContent).toBe("SourceB.C. Synopsis p.8 ↗p.49 ↗Who says so ›");
+    expect(screen.getByTestId("keep-trout").lastElementChild).toBe(row);
+    fireEvent.click(screen.getByText("p.49 ↗"));
+    fireEvent.click(screen.getByRole("button", { name: "Who says so: the rules behind Trout and char" }));
+    expect([books, sheets]).toEqual([[51], ["src:trout"]]);
+  });
+});
+
 describe("(T810 O) the links and the presses", { timeout: 30_000 }, () => {
   it("the hatchery link only where hatch_link; Sources always; 'Fished elsewhere today?' only with lines, unfolding them", () => {
     for (const c of CASES) {
       const t = vmOf(c);
       mount(t);
       expect(!!screen.queryByTestId("trout-hatch"), c.name).toBe(t.hatchLink !== null);
-      expect(screen.getByTestId("trout-sources").textContent).toBe(TROUT_NAV.SOURCES);
+      expect(screen.getByTestId("trout-sources").textContent).toBe(SOURCE_LINE.WHO);
       expect(!!screen.queryByTestId("trout-elsewhere"), c.name).toBe(t.elsewhere.length > 0);
       cleanup();
     }
@@ -341,7 +358,7 @@ describe("(T810 O) tokens only: the table's words read on their ground in light,
       const t = byName("fraser-r3-sep15");
       mount(t, p);
       expect(getComputedStyle(screen.getByTestId("trout-top")).color).toBe(rgb(p.ink));
-      expect(getComputedStyle(within(screen.getByTestId("trout-sources")).getByText(TROUT_NAV.SOURCES)).color).toBe(rgb(p.accent));
+      expect(getComputedStyle(within(screen.getByTestId("trout-sources")).getByText(SOURCE_LINE.WHO)).color).toBe(rgb(p.accent));
     });
 });
 

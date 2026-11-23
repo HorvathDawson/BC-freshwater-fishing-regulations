@@ -426,7 +426,8 @@ const lineOf = (b: SheetBlock): string => ("text" in b && Array.isArray(b.text) 
 const sourceKeys = (bs: readonly SheetBlock[]): (string | null)[] =>
   bs.flatMap((b) => (b.k === "sources" ? b.groups.flatMap((g) => g.rows.map((r) => r.key)) : []));
 const linksOf = (vm: SheetVM): string[] =>
-  vm.blocks.flatMap((b) => (b.k === "source" ? b.line.flatMap((r) => (r.t === "link" && typeof r.open === "string" ? [r.open] : [])) : []));
+  // (T1031 item 3) the sheet's links: its "How to tell a hatchery fish ›" (a link block) and its Source line's "All sources ›"
+  vm.blocks.flatMap((b) => (b.k === "source" || b.k === "link" ? b.line.flatMap((r) => (r.t === "link" && typeof r.open === "string" ? [r.open] : [])) : []));
 const ascending = (xs: readonly number[]) => xs.every((x, i) => i === 0 || xs[i - 1]! < x);
 
 describe("T810 P: the trout fish sheet over every vector", () => {

@@ -166,7 +166,7 @@ describe("plainRowOf: the VM", () => {
     const v = plainRowOf(0, env(r));
     expect([v.sum, v.week && { ...v.week, parts: v.week.parts.map((p) => [p.days, p.says, p.today, plain(p.book)]), notes: v.week.notes.map(plain) },
       v.ladder.sections.map((s) => s.result)]).toEqual([null, { status: "Weekends only", says: "Keep on weekends.",
-      parts: [["Sat–Sun", "keep 2 (today)", true, "Rule book p.6 ↗"], ["Mon–Fri", "release", false, ""]], notes: ["Zone B also prints this. Rule book p.6 ↗"] }, [null]]);
+      parts: [["Sat–Sun", "keep 2 (today)", true, "B.C. Synopsis p.6 ↗"], ["Mon–Fri", "release", false, ""]], notes: ["Zone B also prints this. B.C. Synopsis p.6 ↗"] }, [null]]);
   });
   it("isPlainRow: no pool and no group headline", () => {
     expect([isPlainRow(row()), isPlainRow(row({ pool: rule(1, "p") })), isPlainRow(row({ raw: { group: { headline: { n: 2 } } } }))]).toEqual([true, false, false]);

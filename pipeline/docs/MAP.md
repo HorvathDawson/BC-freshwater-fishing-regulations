@@ -54,7 +54,13 @@ step's output; nothing is promoted unless every step and the vintage check pass)
    (never shipped; everything after looks answers up here, AGENTS 56).
 3. `status_index` — `deliver/status_index.py` → `status_index.bin`.
 4. `export` — `deliver/export/` (`model.build`, `codec`, `checks`) → `ui-rules-export.json` + `ui-rules-guide.json`.
-5. `answers` — `deliver/answers/` (`model/`, `rows/`, `display/`; spec `ANSWERS-SPEC.md`) → the answers file.
+5. `answers` — `deliver/answers/` (`model/`, `rows/`, `display/`; spec `ANSWERS-SPEC.md`) → the answers file. The trout and
+   char block is a TABLE built here (T810, shipped 0.8.0; rows version 34): `deliver/answers/trout/` (`table.py` rows and
+   bands, `timeline.py` dates, `words.py` every word, `sheets.py` fish sheets, `down.py`, `check.py` the proof that parses
+   the table back and compares it with the keeping law; contract `handoff/PLAN/design/trout-table-contract.md`), stored as
+   the `trout` section (`encode.TroutCodec`; `deliver/store/build.py` `ADDED_SECTIONS`, required in every store since the
+   cutover). Compare two releases' answers with `python -m pipeline.tools.audit.answers_diff <A> <B>` (T809; reads across
+   the cutover).
 6. `card_check` — `deliver/answers/card_check.py`: every number on every card proved (problems must be 0).
 7. `store` — `deliver/store/` → `regs.sqlite` in staging only (P20: never kept; `--debug-json` keeps a copy).
 8. `release` — `deliver/release/` (`build.py`, `paint.py`, `shards.py`, `manifest.py`) → the shipped set: paint,
@@ -72,6 +78,7 @@ step's output; nothing is promoted unless every step and the vintage check pass)
 | what | code | note |
 |---|---|---|
 | synopsis rows | `regs/extraction/extract_synopsis.py` | PDF → rows (only when the synopsis changes) |
+| region / province highlight boxes | `regs/extraction/passage_boxes.py` | T1032: a zone, province or area rule's `book_box`, its words located in the release's PDF at answers build (`display.decided.book_boxes`; exact, once, on word bounds, else no box); `python -m pipeline.regs.extraction.passage_boxes` reports coverage per page and every rule not located; the build refuses unless the not-located rules are the list pinned per PDF in `passage_unlocated.json` (`--write-pin`) |
 | extractor change gate | `regs/extraction/baseline.py`, `baseline/<book>.json` + `accepted_diffs.json` | `extract_synopsis --check-against`: the current book re-read row by row (T426) |
 | a new synopsis | `tools/synopsis_book.py` (carry / replay), `tools/synopsis_diff.py` | the annual update: carry unchanged rows, diff two books; runbook `handoff/PLAN/runbooks/annual-synopsis.md` (T239) |
 | **the LLM parse** | `regs/parsing/` (`run_parse.sh`, `dispatch`) | **HUMAN-ONLY, spends credits** (AGENTS 1); writes the catalogue |

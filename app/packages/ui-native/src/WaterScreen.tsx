@@ -25,7 +25,7 @@
 import { ErrorState } from "./ErrorState";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView } from "react-native";
-import { NET_WORDS, asOfLine, closeForFinfish, dayRange, gearIfFished, gearTabsFor, licenceIfFished, licenceTabFor, regsLapsedNote, drawnRegsOf, regsSourcesOf, salmonShowsDfo, waterPagesOf, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget, bcNow, now as clockNow } from "@app/core";
+import { NET_WORDS, asOfLine, closeForFinfish, dayRange, gearIfFished, gearTabsFor, licenceIfFished, licenceTabFor, regsLapsedNote, drawnRegsOf, regsSourcesOf, salmonBookSourcesOf, salmonShowsDfo, salmonWithPdf, troutSourcesOf, waterPagesOf, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget, bcNow, now as clockNow } from "@app/core";
 import { openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { InSeasonContext, mapDayOf, regsDay, useAccessNotices, useInSeasonBanners, useReleaseLines, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
@@ -141,6 +141,10 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   const { mode: netMode } = useNet();
   const [salmonTry, setSalmonTry] = useState(0);
   const salmon = useSalmonCard(loader, store.value ?? null, salmonPage, day, salmonTry);
+  // (T1031 item 3) the card's book closures linked to their PDF pages by the store's one printed → PDF map. The page (and
+  // so the card) is drawn only over its inputs: with none there is no page, never a card with unlinked pages
+  const salmonShown = useMemo(() => (salmon.value && inputs.value ? salmonWithPdf(salmon.value, inputs.value.statics.pdfPages) : null),
+    [salmon.value, inputs.value]);
   const wasOffline = useRef(netMode.offline);
   useEffect(() => {
     const back = wasOffline.current && !netMode.offline;
@@ -173,15 +177,18 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   // salmon may be, the day's gear "if fished" (the Licence tab likewise); (T991 round 3, #63 review) the page's Source row:
   // every synopsis page those DRAWN tabs cite, the in-season changes and DFO where the page shows them
   const shown = useMemo(() => {
-    if (!regs) return null;
+    if (!regs || !inputs.value) return null;
     const page = salmon.value ? closeForFinfish(regs, salmon.value.finfish) : regs;
     const salmonStrip = salmon.value ? salmonStripOf(salmon.value, page.keep.strip) : null;
     const tabs = gearTabsFor(page, gearAnyway, salmonStrip, salmon.value ?? null);
     const licence = licenceTabFor(page, licenceAnyway, salmonStrip);
-    const sources = regsSourcesOf(drawnRegsOf(page, tabs, licence),
-      { waterPages, inSeason: inSeason.length > 0, dfo: salmonShowsDfo(salmonStrip, glance && !!salmon.value) });
-    return { page, salmonStrip, tabs, licence, sources };
-  }, [regs, salmon.value, gearAnyway, licenceAnyway, waterPages, inSeason.length, glance]);
+    // (T1031 item 3) the trout table's Source line, drawn on the Keep tab, and the salmon card's book closures: drawn lines
+    const trout = page.keep.trout?.kind === "table" ? troutSourcesOf(page) : null;
+    const lines = [...(trout ? [trout] : []), ...(salmonShown?.book ?? []).map(salmonBookSourcesOf)];
+    const sources = regsSourcesOf(drawnRegsOf(page, tabs, licence, lines),
+      { waterPages, inSeason: inSeason.length > 0, dfo: salmonShowsDfo(salmonStrip, glance && !!salmon.value), rules: inputs.value.rules });
+    return { page, salmonStrip, tabs, licence, sources, trout };
+  }, [regs, inputs.value, salmon.value, salmonShown, gearAnyway, licenceAnyway, waterPages, inSeason.length, glance]);
   // (T45) how much room the window gives (the app shell's width; never read here): the page arranges itself for it
   const layout = useLayoutClass();
   // the sideways swipe between the water's views, anywhere on this one (see WaterViews: inside the ScrollView)
@@ -256,11 +263,11 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
 
   // THE REGULATIONS PAGE (T23): the regs header (its name row is the frame's WaterTitle) fixed above ONE scroll
   if (loader && regs && shown && !regsError && !regsWait.pending) {
-    const { page, salmonStrip, tabs, licence, sources } = shown;
+    const { page, salmonStrip, tabs, licence, sources, trout } = shown;
     return (
       <>
       {frame(null, (
-      <RegsScreen page={page} palette={palette} nameSource={s?.nameSource ?? null} images={fishImages} onDate={() => setDayOpen(true)} layout={layout} sun={sun} daylight={daylight} sources={sources}
+      <RegsScreen page={page} palette={palette} nameSource={s?.nameSource ?? null} images={fishImages} onDate={() => setDayOpen(true)} layout={layout} sun={sun} daylight={daylight} sources={sources} troutSources={trout}
                   start={start} onStarted={onStarted} scrollKey={regsScrollKey(item, part, section)}
                   // past the release's last day in force, the page leads with core's out-of-date sentence (none unstamped)
                   lapsed={regsLapsedNote(loader.manifest?.regulations?.valid_until, clockNow())}
@@ -269,7 +276,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
                   inSeason={inSeason}
                   asOf={asOfLine({ release: loader.manifest ?? null, inSeasonAt, now: clockNow(),
                                    salmonAt: salmon.value ? salmon.value.feedAt ?? null : undefined })}
-                  salmon={salmon.value ? ({ actions, images }) => <SalmonCard card={salmon.value!} palette={palette} actions={actions} images={images} />
+                  salmon={salmonShown ? ({ actions, images }) => <SalmonCard card={salmonShown} palette={palette} actions={actions} images={images} />
                     // (T254) the card is still coming (it waits behind the regulations on a slow line) or could not come:
                     // said in its place, never a silent gap
                     // (T387 review) a release that ships salmon draws the card or its face: a card that came back

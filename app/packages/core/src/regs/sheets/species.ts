@@ -26,6 +26,7 @@ import type { SheetKey } from "../sheetKey";
 import { SPECIES_SHEET, WORDS } from "../words";
 import { breakdown, type Cited } from "./breakdown";
 import { fishSheet } from "./fish";
+import { reportFailure } from "../../failure";
 import { otherSheet } from "./other";
 import { troutFishSheet, troutIdSheet, troutRowOf } from "./trout";
 
@@ -77,10 +78,18 @@ function decidingRules(ctx: SheetCtx, row: HydRow, code?: string): Cited[] {
 function withFlow(ctx: SheetCtx, items: readonly Cited[], blocks: readonly SheetBlock[]): Cited[] {
   const out = [...items], have = new Set(items.map((it) => it.r.key));
   for (const b of blocks) if (b.k === "flow") for (const st of [...b.flow.steps.filter((x) => x.tone === "won"), ...b.flow.other]) {
-    const r = st.rule && !have.has(st.rule) ? ctx.inp.rules.byKey?.(st.rule) ?? null : null;
-    if (r) { have.add(r.key); out.push({ r, role: "" }); }
+    if (!st.rule || have.has(st.rule)) continue;
+    const r = ctx.inp.rules.byKey?.(st.rule) ?? null;
+    // (W46) a step naming a rule this page does not hold: reported, and the breakdown says the rest
+    if (!r) { reportFailure(new BreakdownRuleMissing(st.rule)); continue; }
+    have.add(r.key); out.push({ r, role: "" });
   }
   return out;
+}
+
+/** A "How this was decided" step names a rule the page's rules do not hold. */
+export class BreakdownRuleMissing extends Error {
+  constructor(readonly rule: string) { super(`species sheet: the flow's rule ${rule} is not on this page`); this.name = "BreakdownRuleMissing"; }
 }
 
 /** The breakdown's head and block, or nothing where no rule decides the line. */

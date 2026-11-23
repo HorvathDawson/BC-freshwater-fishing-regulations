@@ -1,6 +1,6 @@
 # T945 — The committed unnamed-tributary sweep result is stale against the live bundle
 
-Status: IN PROGRESS — result rewritten on lane/lc-reach-leftovers; left (Claude): main chat review + merge.
+Status: DONE — 3f8cddad8; shipped in 0.8.4 (cut e769f710a, data r-fec3fab4c5aa; 0.9.0 audit 2026-11-22, every hash is an ancestor of origin/main and of e769f710a). (Earlier status: IN PROGRESS — result rewritten on lane/lc-reach-leftovers; left (Claude): main chat review + merge.)
 
 Source: lane/t936-t931 (`scripts/test-full.sh`, slow tier), 2026-11-20.
 

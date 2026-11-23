@@ -117,3 +117,5 @@ Each carries a comment saying so. Rewording them changes the release.
   takes in Pacific Rim, such as Kennedy River.
 - test_t117_walks: the `up_adj` reader (the orphan count) is now `prune_graph`, not `main`.
 
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+app + pipeline lanes merged (byte-identical outputs; live r-bb4331929428); 3.9 dfo_salmon done (whatchanged archived, README index); 3.2 atlas/build.py: phased main(), --gnis parity IDENTICAL (Kennedy River)

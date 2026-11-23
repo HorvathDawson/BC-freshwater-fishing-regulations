@@ -1,6 +1,6 @@
 # T1010 — Website: a region page's "Open the map" opens on that region; the page leads people into the real app
 
-Status: PARTIAL — a088c9cd0, 54778147e: the link opens the map framed on the region; the look is the owner's pick. left (Claude): show the owner the pictures in `T1010-shots/` (options A, B, C), then build the picked look (search box, button, crawlable lists below) with its tests and Lighthouse.
+Status: IN REVIEW — owner: OWNER-TODO "T1010 region page option B: look at the after shots". Worker: crashes.ts EXPECTED gains the region names-file 404 — STAGING feeds-worker deploy (Claude, with the next staging release); PRODUCTION feeds-worker deploy is the owner's (his production command list, with the 0.9.0 release)
 
 Source: owner 2026-11-22, on https://canifishthis.ca/region/4, verbatim: "if i click open map it doesnt center on region 4
 in the map. also that page should be designed better to lead users to go to the real app/map. it could have a search
@@ -74,3 +74,18 @@ part of building the picked look.
 ## Owner pick 2026-11-22 23:20 (dialog with the phone pictures A/B/C)
 "B: map preview" — the dot picture of the region's waters, then the "Open the map" button and the search. Build it
 (self-hosted, ~10 KB per page as measured), phone + desktop, light + dark.
+
+## Built 2026-11-22 (lane L16): option B (owner pick 2026-11-22 23:20)
+- Region hub: dot picture of the region's waters (inline SVG drawn at build time, one dot per water, `<title>` text alternative, light and
+  dark through the page's tokens), then the real link "Open the map of Region N" (`?fit=`), then a water search, then the crawlable
+  lists as before (`tools/seo/regionMap.ts`, `site.ts`, `html.ts`).
+- Search: hidden until its self-hosted script runs (no script: the lists below are the way in); loads the region's names file
+  (`/assets/region-N.<hash>.json`) on first use, lists up to 8 matches as links to the water; ranked (starts with, word starts with, inside; accents folded; a renamed water also by its former name, shown "Name (formerly X)").
+  The names are asked for once per page load. A stale file (404 after a release) says "reload it" and is reported once as "names file out of date (HTTP 404)" (classed expected in the worker: needs its deploy); any other failed
+  load is said and reported once to the crash endpoint as app "region-page", route "other" (the page reporter written in, as the Join card).
+- Region hubs only. Letter and topic-by-region pages keep the plain "Open the map" card (a picture on each would add ~10 KB gzip to
+  thousands of pages).
+- Tests: `site.test.ts` (picture, text alternative, button after the picture and before the lists, names file, no image host),
+  `regionFind.test.ts` (the shipped script). Shots: `T1010-shots/after-B-*.png`.
+- Measured on Region 4 of r-741815c6090d (2823 waters): the picture is 26.8 KB raw, 7.8 KB gzip; the page 45 KB raw, 11.5 KB gzip; the names file
+  (fetched only when someone searches) 124 KB raw, 23 KB gzip. Not run: Lighthouse (not run from the lane), the staging check.

@@ -309,3 +309,6 @@ Test: `test_t679_8_only_an_ownerless_lake_polygon_is_walked_through_never_a_wetl
 with the old test, and with the not-fishing check dropped). Measured on the live atlas via heavy.sh (the bundle's gauge
 pass, dev be924cbf3 against this lane): moved (section, gauge) pairs 611 -> 611 (118 gauges, 78 waters), lead sets
 changed 0, `section_own` rows changed 0. No bundle output changes; no POLICY_VERSION bump.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+owner 2026-11-11 "look for other things like that too"; D1–D6 + gauge placement released (r-0a9930fb8826); other-line gauge cuts decided (P49/T682); L7 2026-11-20: #10/#11/#12 rulings/#13/#15 done, #1/#6 behind switches, all no output change; L8: #17 built on lane/l8-shrink (answers byte-identical), #8 built + "Named lakes only" (lane/l8-blockers), SHIP_OWN_GAUGE_FLAG ON (owner 10:45 "Ship it"; ships with the next data release), #16 paint/6 built on the T686 switch; owner: OWNER-TODO "T679 #12: should the bundle carry"; left (Claude): wave 4 flips #1/#6 with the rebuild, #18 rest

@@ -92,3 +92,6 @@ salmon facts rebuilt (157 ms).
 Left (why PARTIAL): a release whose paint/salmon files DID change still relabels once (necessary; no blank frame, one
 style swap at most) — the test channel publishes the same files, so that case is unmeasured; the first-install first map
 mount (275 ms, 2026-10-30) was not re-measured.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+11-05: unchanged decodes adopted, no blank map frame, no style swap for equal values: swap stalls 69·157·162 → 0, apply→commit 1139 → 586 ms; left: changed-files update + first-install mount unmeasured

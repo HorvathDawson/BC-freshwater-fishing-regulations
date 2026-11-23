@@ -104,7 +104,7 @@ export const waysBack = (cs: readonly string[]): string[] => cs.filter((c) => BA
  * Controls that are offered more than once ON PURPOSE, by place and by name. An entry is a decision said in words, not a
  * way past the scan, and a stale one (no place shows the pair any more) fails.
  */
-// (owner 2026-11-04) the one entry — two "Where you can't fish" lines citing Rule book p.9 on the closed Chilliwack
+// (owner 2026-11-04) the one entry — two "Where you can't fish" lines citing B.C. Synopsis p.9 on the closed Chilliwack
 // page — went with that block on a closed day; none is needed now. A new one names its place, control and why.
 const ALLOWED: { place: RegExp; control: RegExp; why: string }[] = [];
 

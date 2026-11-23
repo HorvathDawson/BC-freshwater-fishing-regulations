@@ -126,3 +126,6 @@ split ids. Tests: `test_tidal_cut.py` (+3), tile inventory / feature-id / stage-
   lake edge = the real mouth (the owner accepted this for Caycuse / Dempster 10-29). The proposals already treat a
   point at the line's own lower end as the mouth (`proposals.TIDAL_POINT_TOL_M`, `line_end` → `tidal_mouth`), which
   also answers the "mouth-noted cut snapped up the line" guard. No atlas work.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+10-29: shipped in r-ce76b4ed3624 (33 cuts + 10 whole waters off the map); review app `_tidal` reads all tidal water with owners; RULINGS K8 retired / C-2 resolved; `test_tidal_pinned.py` (Fraser, Squamish, Skeena, Cowichan)

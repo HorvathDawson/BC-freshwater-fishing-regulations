@@ -2978,15 +2978,34 @@ def dfo_binding_change(location_id: str, changes: list[dict]) -> dict | None:
     after = copy.deepcopy(loc)
     for c in changes:
         _set_fields(after.setdefault("binding", {}), c["field"], c["after"])
-    reg, graph = _registry(), _graph()
+    reg = _registry()
+    from pipeline.regs.review import withheld as W
+    gone = W.missing_cuts(after.get("binding"), reg)
+    if gone:
+        # T779: this atlas has not got the cut: the place would bind nothing here and the check would pass with nothing
+        # withheld — the binding is unknown on this atlas, and unknown never passes
+        return {"cheap": False, "missing_cuts": gone,
+                "why": f"the atlas {_BUILD} has no cut {', '.join(gone)}: the place cannot be bound on it"}
+    graph = _graph()
 
-    def bind(lc: dict) -> dict[str, tuple]:
+    held: list[dict] = []                                  # T779: what the AFTER binding withholds
+
+    def bind(lc: dict, keep: bool = False) -> dict[str, tuple]:
         entry, rule = dfo._reach_input(lc, water)
         if not rule["extents"]:
             return {rule["rule_id"]: (set(), "no extent")}
-        b, _d = _build_reach(entry, rule, reg, graph)
+        b, _d = _build_reach(entry, rule, reg, graph,                    # T779: the run's own limits
+                             **dfo.as_the_run_binds(location_id, lc))
+        if keep:
+            from pipeline.regs.review import withheld as W
+            held.extend(W.rows(location_id, _d))
         return {rule["rule_id"]: (set(b.sections), b.outcome.value)}
-    return _json_safe(_binding_rows(bind(loc), bind(after)))
+    out = _binding_rows(bind(loc), bind(after, keep=True))
+    # T779: every piece the place withholds, which of them the reach gate would stop on (not in
+    # `unplaced_piece_calls.json` `accepted`) and the place's stale acceptances: `apply_proposals` refuses a mark with any
+    from pipeline.regs.review import withheld as W
+    out.update(W.check(location_id, held))
+    return _json_safe(out)
 
 
 def split_review(sp: dict) -> dict:

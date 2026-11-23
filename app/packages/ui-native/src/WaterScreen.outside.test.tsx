@@ -15,7 +15,8 @@ import { LIGHT } from "./theme";
 const OUTSIDE = {
   target: { kind: "section", handle: 2_000_000_000 }, day: { month: 10, day: 10 }, weekday: "Saturday", calendarYear: 2026,
   item: null, partIx: 0, place: null, key: null, s: null, cell: null, frames: null, year: null, ruleset: null,
-  rules: { get: (rix: number) => ({ rix, missing: true }), has: () => false, size: 0 }, lics: new Map(), mergedParts: null,
+  // as `loadRegsInputs` builds it outside B.C. (`ruleIndex` over the store, no ruleset): every real index carries byKey
+  rules: { get: (rix: number) => ({ rix, missing: true }), has: () => false, size: 0, byKey: () => null }, lics: new Map(), mergedParts: null,
   statics: { exportSpecies: { fish: {}, groups: {} }, fish: [], glossary: { terms: [] } },
 } as unknown as RegsInputs;
 

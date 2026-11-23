@@ -34,7 +34,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { TEMP_BAND_TOKEN, type TempBand } from "@app/core";
-import { STYLE_META, resolveTheme } from "@app/map";
+import { STYLE_META, resolveTheme, shadeHex } from "@app/map";
 import { deltaE, lch, MODELS, parseHex, worstSeparation } from "./cvd";
 
 /**
@@ -708,5 +708,72 @@ describe("(T470) the mid-zoom order fade, as drawn", () => {
 
   it("fails a deeper fade than the one recorded (mutation pin)", () => {
     expect(measure("light", 0.5 * factor(2, 8)).ownBase).toBeLessThan(SMALL.light.ord5z8.ownBase);
+  });
+});
+
+/*
+ * (T467, owner 2026-11-22: "Yes, the shaded band (Recommended)") THE LAKE'S SHORELINE IS A SHADE OF ITS FILL. A followed
+ * lake edge is drawn `shade.lake.edge` off its status token (`@app/map` `shadeHex`: light 40% toward black, dark 45% toward
+ * white), so the lake reads as a band round its fill instead of one solid sheet. The FILLS are untouched, so every lake row
+ * above stands as it was; what is new is a thin line of a colour that is no token, and it is held here three ways:
+ *   band   the shoreline SHOWS: the shaded edge against its own fill as drawn (`opacity.lake` over the map's water), in
+ *          normal vision — the reason for the change (with no shade the band is the fill again: the mutation pin);
+ *   edges  two lakes' shorelines as thin lines, every water pair, worst vision;
+ *   other  a shoreline against every OTHER status as a thin line (a stream of that status beside the lake), worst vision.
+ * THE COST, MEASURED (2026-11-22): a uniform shade moves every status the same way, and for a colour-blind reader that
+ * closes the gaps the fills keep — light own's shoreline darkens toward closed, dark closed's lightens toward the no-access
+ * grey. The floors are what the owner's look reaches (rounded down to 0.5); `edges` / `other` sit far under 20 and are
+ * recorded here, not hidden. The lake's status is still told by its FILL (held above at the T47 floors); the band only
+ * frames it. THE COLOUR-BLIND THEME KEEPS ITS SOLID EDGE (`shade.lake.edge` 0 in cvd): that theme exists for exactly the
+ * readers the shade costs, so it is held to "no shade", and a palette that shades it fails.
+ */
+const SHORE_WATER: readonly Status[] = ["closed", "own", "base", "no_access"];
+const SHORE_FLOOR: Record<"light" | "dark", { band: number; edges: number; other: number }> = {
+  // light binds: band closed 22.3, edges closed / no_access 8.96, other no_access shoreline vs restricted 5.9 (tritan)
+  light: { band: 22, edges: 8.5, other: 5.5 },
+  // dark binds: band own 11.4, edges closed / no_access 4.7, other closed shoreline vs no_access 4.6 (protan)
+  dark: { band: 11, edges: 4.5, other: 4.5 },
+};
+function shoreFailures(th: Theme, t: Record<string, unknown>): string[] {
+  const out: string[] = [];
+  const k = t["shade.lake.edge"] as number;
+  if (th === "cvd") return k === 0 ? [] : [`cvd: the colour-blind theme's lake shoreline is shaded ${k}: it keeps its solid edge (0)`];
+  const f = SHORE_FLOOR[th];
+  const colour = (s: Status) => t[`color.status.${s}`] as string;
+  const edge = (s: Status) => shadeHex(colour(s), k);
+  const fill = (s: Status) => over(colour(s), LAKE_GROUND[th], t["opacity.lake"] as number);
+  const hold = (what: string, x: { dE: number; under: string; g?: string }, floor: number) => {
+    if (x.dE < floor) out.push(`${th}: ${what} ${x.dE.toFixed(1)} < ${floor} (${x.under}${x.g ? ` on ${x.g}` : ""})`);
+  };
+  for (const s of SHORE_WATER) {
+    const d = deltaE(edge(s), fill(s));
+    if (d < f.band) out.push(`${th}: the ${s} shoreline ${edge(s)} on its fill ${fill(s)} ${d.toFixed(1)} < ${f.band} (normal vision)`);
+  }
+  for (let i = 0; i < SHORE_WATER.length; i++)
+    for (let j = i + 1; j < SHORE_WATER.length; j++) {
+      const [a, b] = [SHORE_WATER[i]!, SHORE_WATER[j]!];
+      hold(`${a} shoreline ${edge(a)} vs ${b} shoreline ${edge(b)} as thin lines`, drawn(edge(a), edge(b), GROUND[th], LINE, LINE), f.edges);
+    }
+  for (const a of SHORE_WATER)
+    for (const b of LINES)
+      if (a !== b) hold(`${a} shoreline ${edge(a)} vs ${b} ${colour(b)} as thin lines`, drawn(edge(a), colour(b), GROUND[th], LINE, LINE), f.other);
+  return out;
+}
+
+describe("(T467) the lake's shoreline, a shade of its fill", () => {
+  for (const th of THEMES)
+    it(`shows, and keeps the floors its look reaches — ${th}`, () => {
+      expect(shoreFailures(th, resolveTheme(th))).toEqual([]);
+    });
+
+  it("fails with no shade (the solid sheet the owner saw), a deeper one, or a shaded colour-blind theme (mutation pins)", () => {
+    const at = (th: Theme, k: number) => shoreFailures(th, { ...resolveTheme(th), "shade.lake.edge": k } as Record<string, unknown>);
+    // no shade: the shoreline is the fill's own colour again and does not show against it
+    const band = (xs: string[]) => xs.filter((x) => x.includes("on its fill")).map((x) => x.split(" ")[2]);
+    // (light no_access's grey fill is far enough off its token at 0.6 over the map's water: it alone shows unshaded)
+    expect([band(at("light", 0)), band(at("dark", 0))]).toEqual([["closed", "own", "base"], ["closed", "own", "base", "no_access"]]);
+    // deeper: light own's shoreline goes the way of closed for a deuteranope
+    expect(at("light", -0.6).some((x) => x.startsWith("light: own shoreline") && x.includes("vs closed"))).toBe(true);
+    expect(at("cvd", -0.4)).toEqual(["cvd: the colour-blind theme's lake shoreline is shaded -0.4: it keeps its solid edge (0)"]);
   });
 });

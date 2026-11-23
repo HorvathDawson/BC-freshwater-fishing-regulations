@@ -170,3 +170,6 @@ never started its stub (a bench gap, also failing on the head APK; fixed in 2d61
 
 ## Android curtain shot 2026-11-20 (L4, `update-freeze`, emulator, build of 124d79efa)
 The go-to-map fix works: T746 curtain light and dark PASS (curtain up to down 842 ms light, 658 ms dark; 3 frames each, 10 a second). Seen: the fish on a plain ground (light white, dark near-black) with one line: "Netting the latest regulations..." (light), "Reeling in the new regulations..." (dark); no bar, no figure. Same run: stall check on the apply 0 over 100 ms while panning, 1 at 80 ms after. Shots `handoff/PLAN/app-integration/L4-android-shots-2026-11-20/T746/T746-curtain-up-light.png` and `-dark.png`.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+owner 2026-11-14, relayed by the Android chat: "also when changes apply to app we want to make it so that it has a loading icon with text like splash so it doesnt looking like it is frozen. (applying changes as in new data regs)". Depends on T722

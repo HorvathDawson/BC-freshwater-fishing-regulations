@@ -3,7 +3,7 @@
 //
 //   node app/tools/testbed/run-ios.mjs audit-fixes        (a --testbed build of the branch: build-ios-sim.sh --testbed)
 //
-//   arrow   a water's "Rule book p.N ↗": the arrow is plain text (U+FE0E in the label; the crop is thin strokes in the
+//   arrow   a water's "B.C. Synopsis p.N ↗": the arrow is plain text (U+FE0E in the label; the crop is thin strokes in the
 //           link's colour, not a filled blue emoji tile). Also looks for a ⚠ title and "↩ Release" on the page.
 //   G7      location permission reset, the prompt raised (the My location button), its text read off the screen.
 //   G6      the prompt denied: the Spots tab's refusal line and the map's My-location line each carry "Open Settings";
@@ -119,17 +119,17 @@ export const auditFixes = {
     await clearStrays();
 
     // ---------- the arrow ----------
-    await ctx.step('arrow: a water\'s "Rule book p.N ↗" is plain text, not the blue emoji tile', async () => {
+    await ctx.step('arrow: a water\'s "B.C. Synopsis p.N ↗" is plain text, not the blue emoji tile', async () => {
       await coldStart(ctx);
       ctx.flow('search', { Q: 'Cultus' });
       ctx.flow('open-result', { LINE: '.*Lindell Beach.*' });
       await ctx.waitText(/Regulations/, 30_000);
       page = true;
-      ctx.flow('scroll-to', { TEXT: '.*ule book p\\.[0-9]+.*' });
+      ctx.flow('scroll-to', { TEXT: '.*Synopsis p\\.[0-9]+.*' });
       await d.sleep(1200);
-      const link = d.nodes().find((n) => /ule book p\.\d+/.test(n.text || n.desc));
+      const link = d.nodes().find((n) => /Synopsis p\.\d+/.test(n.text || n.desc));
       const file = shotTo(ctx, 'arrow');
-      if (!link) throw new Error('no "Rule book p.N" link on the page');
+      if (!link) throw new Error('no "B.C. Synopsis p.N" link on the page');
       const label = link.text || link.desc;
       const marked = label.includes('↗︎');
       const { w } = screenPts(ctx);

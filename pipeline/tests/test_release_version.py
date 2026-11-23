@@ -52,12 +52,16 @@ def test_only_the_apps_commits_bump_the_app():
     """A pipeline / data / docs / worker / dev-tool commit is the data release's: a `fix` there bumps nothing."""
     for paths in (("pipeline/release.py",), ("data/curated/x.json",), ("app/workers/feeds/src/a.ts",),
                   ("app/tools/check-x.mjs",), ("app/fixtures/golden/taps.json",), ("app/packages/core/src/a.test.ts",),
-                  ("app/MAP.md",), ("app/packages/ui-native/src/regs/fixtures/a.json",)):
+                  ("app/MAP.md",), ("app/packages/ui-native/src/regs/fixtures/a.json",),
+                  # (T1021) dev tooling at the top of app/ and the data package's fixture release
+                  ("app/knip.jsonc",), ("app/layers.json",), ("app/vitest.config.ts",),
+                  ("app/packages/data/dev/mini-release/water.json",)):
         d = RV.decide("0.8.5", "x", [c("fix(T1): a", paths=paths)])
         assert d.version is None and len(d.not_app) == 1, paths
     for paths in (("app/packages/core/src/a.ts",), ("app/apps/mobile/app.json",), ("app/tools/seo/build.ts",),
                   ("pipeline/x.py", "app/packages/map/src/a.ts"),
-                  ("app/tools/maplibre-patch/feature-state-deltas-lean.patch",)):
+                  ("app/tools/maplibre-patch/feature-state-deltas-lean.patch",),
+                  ("app/package.json",), ("app/packages/data/src/a.ts",)):   # the dependency list and real data code ship
         assert RV.decide("0.8.5", "x", [c("fix(T1): a", paths=paths)]).version == "0.8.6", paths
 
 
@@ -168,3 +172,14 @@ def test_the_history_is_read_since_the_cutover_then_since_the_last_tag(repo):
     # mutation: without the exemptions, the old main's fix and the free-form history are read
     RV.VERSIONING["exempt"] = {}
     assert any("fix(in-season)" in x.subject for x in RV.commits_since("HEAD", [RV.VERSIONING["cutover"]]))
+
+
+def test_the_release_texts_name_runbooks_that_exist():
+    """(T1021) `release --prod`'s hand-over names the one human runbook and the reference page, the runbook a file that exists; the
+    post-release hints do not cite a memory note (a note is not in the repo)."""
+    from pipeline import release as REL
+    root = Path(__file__).resolve().parents[2]
+    text = REL.prod_instructions("r-x", {})
+    assert "handoff/PLAN/runbooks/release-by-hand.md" in text and "release/PRODUCTION.md" in text
+    assert (root / "handoff/PLAN/runbooks/release-by-hand.md").is_file()      # (runbooks/ is in CI's pipeline paths)
+    assert "(memory " not in Path(REL.__file__).read_text(encoding="utf-8")

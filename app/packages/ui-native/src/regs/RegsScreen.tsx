@@ -126,6 +126,9 @@ export interface RegsScreenProps {
   /** (T991 round 3) the tab's Source row (core `regsSourcesOf`: every synopsis page the page cites — T474: the water's own
    *  among them — the in-season changes and DFO where shown, "All sources ›"). Required: the host computes it from the tabs it draws. */
   sources: TabSourcesVM;
+  /** (T1031 item 3) the trout table's Source line (core `troutSourcesOf`), null where the page draws no trout table.
+   *  Required: the host computes it with the foot row, which cites its pages too. */
+  troutSources: TabSourcesVM | null;
   /** (T1031) the page's salmon card (core `salmonCard`): its species' sheets, Identification | Sources, join the page's
    *  (`withSalmonSheets`). Absent/null: no salmon card, the page's sheets alone. */
   salmonCard?: SalmonCardVM | null;
@@ -143,7 +146,7 @@ export interface RegsScreenProps {
 export function RegsScreen({ page, palette, images, actions, onDate,
                              gear, methods, licence, referenceOpen = false, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
                              lapsed = null, access = [], inSeason = [], glance = null, salmonStrip = null,
-                             nameSource = null, asOf = null, scrollKey = null, sun = null, daylight = null, sources, salmonCard = null }: RegsScreenProps) {
+                             nameSource = null, asOf = null, scrollKey = null, sun = null, daylight = null, sources, troutSources, salmonCard = null }: RegsScreenProps) {
   // (T286) the open probe (test bed only): the page's first render, and its first layout (mounted, before paint)
   openProbe.mark("regsRender");
   useLayoutEffect(() => { openProbe.mark("layout"); }, []);
@@ -245,7 +248,7 @@ export function RegsScreen({ page, palette, images, actions, onDate,
           failed, is drawn here in its place (its pending / failed face) — never a silent gap */}
       {(!glance || !glance.salmon) && (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon)}
       <AnchorContext.Provider value={sink}>
-          <KeepTab keep={page.keep} daylight={daylight} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} salmonStrip={salmonStrip}
+          <KeepTab keep={page.keep} troutSources={troutSources} daylight={daylight} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} salmonStrip={salmonStrip}
                    glance={glance ? { salmon: glance.salmon && salmon
                      ? { row: glance.salmon, card: () => (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon) }
                      : null } : null} />

@@ -60,3 +60,6 @@ whole files and reports it — the pre-T304 page).
 the hand-over is fixed cost: water-shared 639 kB, the wasm 332 kB, the bundle 812 kB.
 **Found while measuring (→ T409):** every landing fetches each face twice — the page's WOFF2 copies (`/assets/fonts/`,
 T409 item 1) and then the app bundle's own TTF copies (8 × 36-48 kB, ~315 kB on a Fast-3G line before the hand-over).
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+T282 finding 2026-10-31; `cift:region` meta + boot focus before first read; local Fast-3G 11-06: Vedder hand-over 47.6/44.6 → 24.9/25.0 s (core-2+water-2 instead of core+water); staging needs a FULL build-seo deploy

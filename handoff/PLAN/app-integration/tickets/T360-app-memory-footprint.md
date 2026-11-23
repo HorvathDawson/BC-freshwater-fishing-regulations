@@ -1,6 +1,6 @@
 # T360 — App memory footprint
 
-Status: PARTIAL 2026-11-09 — 25a6b7d54, 17d5f0dc3, fe0f4e659, 2bdcc1931, 84ef47b (peak 379 MB on the build-21-era APK; allocator decay A/B unfinished, held out of build 22; real-phone GPU memory + Vulkan/OpenGL left)
+Status: PARTIAL 2026-11-09 — 25a6b7d54, 17d5f0dc3, fe0f4e659, 2bdcc1931, 84ef47b (peak 379 MB on the build-21-era APK; allocator decay A/B unfinished, held out of build 22); left (Claude): the decay A/B rerun (t360-nodecay) and the real-phone GPU memory + Vulkan/OpenGL check
 
 Owner 2026-11-03: "could we look into the memory footprint of the app". Evidence: the two 0.4.0 foreground native
 crashes (T351) happened at 406 MB and 435 MB in use (one SIGSEGV); background LOW_MEMORY kills at 169 MB (0.3.0, 0.4.0).
@@ -217,3 +217,6 @@ link is not on screen — the step needs a tap on Regulations first. (3) The Cul
 water are not available" (HEAD 229c464de) — for the T517 lane to check. (4) The main working tree carries another
 lane's uncommitted format bumps (paint/5, water/3): a test-bed APK built from it cannot read staging ("map data could
 not be loaded"); build test-bed APKs from a clean worktree.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+11-09: idle/replaced SQLite closed, per-source panel cache, status index capped, rule-book copy reused; peak 379 MB (old APK) / 314 MB (HEAD+decay, not clean A/B); left: decay A/B rerun (t360-nodecay), real-phone GPU + Vulkan/OpenGL

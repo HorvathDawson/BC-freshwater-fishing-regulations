@@ -65,3 +65,6 @@ fixture's dark `selection-casing` colour and width only, hand-carried, nothing e
 `selection-glow`, the profile-style count is 21 in dark and 20 in light and cvd). `pnpm check` rc 0. Benches on the
 `t735` APK: install, memory, tap-stalls, regs-open (twice; first taps 33-85 ms), bg-install, crash-bed: all PASS.
 Pictures sent to the owner 2026-11-16 ~13:31 (four before/after sheets).
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+owner 2026-11-14 phone, build 31/32; others at 0.25 are 1.2-2.0:1, in-season white casing is not dimmed, open/own status vs white casing 1.1-1.3:1; patch `~/bcfish-session-backup-2026-11-12/dark-highlight/options.patch`; left: owner picks a look, then apply to dark tokens only

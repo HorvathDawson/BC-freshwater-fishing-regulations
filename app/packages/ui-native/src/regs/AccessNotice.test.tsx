@@ -9,7 +9,7 @@ import { pageAccessNotices, type RegsPage } from "@app/core";
 import { LIGHT, NO_ACCESS_BAND, laid } from "../theme";
 import { RegsScreen } from "./RegsScreen";
 import vedder1010 from "./fixtures/vedder_1010.json";
-import { TEST_SOURCES } from "./testing/sources";
+import { TEST_SOURCES, TEST_TROUT_SOURCES } from "./testing/sources";
 
 afterEach(cleanup);
 
@@ -24,7 +24,7 @@ const CAP5 = { tier: "reserve", name: "Capilano 5" } as const;
 
 describe("T54/T367: the access strips on the Regulations page", () => {
   it("the no-access strip: one line, amber, pinned outside the scroll; a tap opens the sentence", () => {
-    render(<RegsScreen sources={TEST_SOURCES} page={page} palette={LIGHT} actions={NOOP} onDate={() => {}} access={pageAccessNotices([{ area: COQ, share: 1 }], "part")} />);
+    render(<RegsScreen troutSources={TEST_TROUT_SOURCES} sources={TEST_SOURCES} page={page} palette={LIGHT} actions={NOOP} onDate={() => {}} access={pageAccessNotices([{ area: COQ, share: 1 }], "part")} />);
     const banner = screen.getByTestId("access-banner");
     expect(screen.getByTestId("access-title").textContent).toBe("No public access · Coquitlam Watershed");
     // (T405) its name starts with its line as drawn (WCAG 2.5.3), then the sentence
@@ -47,7 +47,7 @@ describe("T54/T367: the access strips on the Regulations page", () => {
   });
 
   it("both apply: the banner, then the reserve's note in the accent — not the warning", () => {
-    render(<RegsScreen sources={TEST_SOURCES} page={page} palette={LIGHT} actions={NOOP} onDate={() => {}}
+    render(<RegsScreen troutSources={TEST_TROUT_SOURCES} sources={TEST_SOURCES} page={page} palette={LIGHT} actions={NOOP} onDate={() => {}}
                        access={pageAccessNotices([{ area: COQ, share: 0.5 }, { area: CAP5, share: 0.2 }], "part")} />);
     expect([...screen.getByTestId("access-notices").children].map((e) => e.getAttribute("data-testid")))
       .toEqual(["access-banner", "access-note"]);
@@ -62,7 +62,7 @@ describe("T54/T367: the access strips on the Regulations page", () => {
   });
 
   it("nothing to say: nothing drawn", () => {
-    render(<RegsScreen sources={TEST_SOURCES} page={page} palette={LIGHT} actions={NOOP} onDate={() => {}} />);
+    render(<RegsScreen troutSources={TEST_TROUT_SOURCES} sources={TEST_SOURCES} page={page} palette={LIGHT} actions={NOOP} onDate={() => {}} />);
     expect(screen.queryByTestId("access-notices")).toBeNull();
   });
 });

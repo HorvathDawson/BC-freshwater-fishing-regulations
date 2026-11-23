@@ -30,6 +30,7 @@
  * a quiet "closed".
  */
 import { DAYS_BEFORE_MONTH, MONTHS } from "./calendar.generated";
+import { RULE_BOOK } from "./sourceNames";
 import { METHOD_WORDS, type MethodClass } from "./method";
 import type { CaveatItemVM, CaveatVM, GearVM, MethodsVM } from "./regs/model";
 import { inPartBlock } from "./regs/caveats";
@@ -186,6 +187,9 @@ interface Payload {
    *  card's Source (DFO) lists as the rows behind its answers. Absent: a release / feed before T870 — the fold then lists
    *  no rows, as it did. */
   readonly pr?: Readonly<Record<string, readonly string[]>>;
+  /** (T812) location id -> a closed-area CIRCLE the Salmon map draws (`deliver.salmon.closed_area_circles`): drawing
+   *  only, never a section's colour. Absent: a release before T812, or no circle placed. */
+  readonly ca?: Readonly<Record<string, SalmonCircle>>;
   /** (T521) the live feed's places no curated location knows (`feeds/dfo/unplaced.json`), each with the app items of
    *  the water it names: shown on that water's page, never painted. Absent in a release's own file. */
   readonly feedUnplaced?: readonly SalmonUnplacedPlace[];
@@ -205,6 +209,14 @@ interface Payload {
   readonly feedOnly?: Readonly<Record<string, number>>;
   /** (T549 item 5, the live feed's) places whose row the feed could not read this run: their last answers stand */
   readonly held?: readonly string[];
+}
+/** (T812, owner 2026-11-16: "we want the circles to just be circles on the map not separate sections of the lake") ONE
+ *  CLOSED AREA DRAWN AS A CIRCLE: `c` its centre [lon, lat], `radius` metres, `g` its ring at true ground radius as the
+ *  pipeline computed it (closed: the first point last; the app draws it as given), `chain` the piece's OWN chain (its
+ *  days and colour), `r` its region slug, `w` its card label, `items` its water's items. */
+export interface SalmonCircle {
+  readonly c: readonly [number, number]; readonly radius: number; readonly g: readonly (readonly [number, number])[];
+  readonly chain: number; readonly r: string; readonly w: string; readonly items: readonly string[];
 }
 /** (T521) One DFO place the live feed lists that no curated location knows: its water's app items, the place and its
  *  rows in DFO's own words (`rows`: the page's cells, " | " between them). */
@@ -297,6 +309,13 @@ function checkPayload(P: Payload): Payload {
   for (const [lid, o] of Object.entries(P.off ?? {}))
     if (!o || !SALMON_OFF_KINDS.includes(o.k) || typeof o.w !== "string" || typeof o.r !== "string" || !Array.isArray(o.items))
       bad(`off ${lid}: not {why, k, r, w, items}`);
+  // (T812) a circle: a real chain, a closed ring of [lon, lat] pairs, a radius
+  for (const [lid, a] of Object.entries(P.ca ?? {})) {
+    const pair = (q: unknown) => Array.isArray(q) && q.length === 2 && q.every((x) => typeof x === "number" && Number.isFinite(x));
+    if (!a || !P.chains[a.chain] || !pair(a.c) || !(a.radius > 0) || !Array.isArray(a.g) || a.g.length < 4 || !a.g.every(pair)
+        || a.g[0]![0] !== a.g[a.g.length - 1]![0] || a.g[0]![1] !== a.g[a.g.length - 1]![1] || typeof a.w !== "string")
+      bad(`ca ${lid}: not {c, radius, g (a closed ring), chain, r, w, items}`);
+  }
   // (T870) a place's printed rows are strings, never an empty list
   for (const [lid, rows] of Object.entries(P.pr ?? {}))
     if (!Array.isArray(rows) || !rows.length || rows.some((r) => typeof r !== "string" || !r)) bad(`pr ${lid}: not a list of rows`);
@@ -438,6 +457,25 @@ export function salmonChainStatus(f: SalmonFacts, chain: number, day: number): S
   return s && s !== "none" ? s : null;
 }
 
+/** (T812) ONE CIRCLE AS THE SALMON MAP DRAWS IT ON A DAY: its id, ring and status. */
+export interface SalmonCircleDay { readonly id: string; readonly ring: SalmonCircle["g"]; readonly status: SalmonMapStatus }
+
+/**
+ * (T812, owner 2026-11-16: "Follow the day (Recommended)") THE DAY'S CLOSED-AREA CIRCLES: each circle (`ca`) on the days
+ * its own rule speaks — some species' verdict is the piece's own, not "not opened by DFO" (`d`) — in its own chain's
+ * map status. Read from the facts as handed (the release's, or under a live feed `withSalmonFeed`'s composition, which
+ * keeps only the circles today's page still names). A day it says nothing it is not drawn: the lake's answer stands.
+ */
+export function salmonCirclesOn(f: SalmonFacts, day: number): SalmonCircleDay[] {
+  const P = f.payload, out: SalmonCircleDay[] = [];
+  for (const [id, a] of Object.entries(P.ca ?? {}).sort(([x], [y]) => (x < y ? -1 : x > y ? 1 : 0))) {
+    const c = P.chains[a.chain]!;
+    if (!c.sp.some((runs) => !P.verdicts[at(runs, day)]?.d)) continue;
+    out.push({ id, ring: a.g, status: salmonDayStatus(f, a.chain, day) });
+  }
+  return out;
+}
+
 /** A section's profile label for the Salmon colouring: its chain, fixed for the release (`s<chain>`). */
 export const salmonLabel = (f: SalmonFacts, sid: number): string => `s${f.chainOf(sid)}`;
 
@@ -575,21 +613,21 @@ export const SALMON_WORDS = {
   /** (T796 A5, owner 2026-11-16) where a row's answer is the rule book's full closure of the stretch (book p.77: a water
    *  closed to fishing is closed for salmon too): "Rule book p.9 · Skeena River" — the book's printed page(s), its row */
   placeFromBook: (pages: readonly number[], water: string | undefined) =>
-    [pages.length ? `Rule book p.${pages.join(", ")}` : "Rule book", water].filter(Boolean).join(" · "),
+    [pages.length ? `${RULE_BOOK} p.${pages.join(", ")}` : RULE_BOOK, water].filter(Boolean).join(" · "),
   /** (T796, owner 2026-11-16 15:19: "we need to make sure it says where the closure is from though") a book closure
    *  in force every day: its words carry no dates of their own, so the card says so */
   bookAllYear: (words: string) => `${words} (all year)`,
   /** (T796) whose answer the card's head names: DFO's, the rule book's, or both on one page-day */
-  badgeBook: "Rule book",
-  badgeBoth: "Rule book · DFO",
+  badgeBook: RULE_BOOK,
+  badgeBoth: `${RULE_BOOK} · DFO`,
   /** (T796) the source fold's title where the rule book closes some of the page's salmon today */
-  sourceFoldBook: "Sources (rule book and DFO)",
+  sourceFoldBook: `Sources (${RULE_BOOK} and DFO)`,
   /** (T796) the source fold's note there, in place of `noteTwoAuthorities` (rule book p.77) */
-  noteBook: "Where the rule book closes a water to all fishing, salmon are closed there too (rule book p.77). "
+  noteBook: `Where the ${RULE_BOOK} closes a water to all fishing, salmon are closed there too (${RULE_BOOK} p.77). `
     + "Elsewhere salmon are set by DFO, not the provincial regulations above. Both apply.",
   /** (T796) the salmon bar's name where some of its days are the rule book's closure, or all of them */
-  barSalmonBoth: "Salmon (DFO and rule book)",
-  barSalmonBook: "Salmon (rule book)",
+  barSalmonBoth: `Salmon (DFO and ${RULE_BOOK})`,
+  barSalmonBook: `Salmon (${RULE_BOOK})`,
   /** (T796 A6, owner 2026-11-16: "Closes the whole page") DFO's "Finfish closure" closes ALL fishing on the stretch
    *  that day, trout included: the page's closed banner, DFO's words after the colon */
   finfishClosed: (dfo: readonly string[]) =>
@@ -816,6 +854,9 @@ export interface SalmonCardVM extends SalmonBlockVM {
   readonly side?: CaveatVM | null;
   /** "Fisheries and Oceans Canada · Region 6 Skeena". */
   readonly source: string;
+  /** (T1031 item 3) the DFO region pages the card reads ("Region 6 Skeena" and its page), for its Source line
+   *  (`tabSources.salmonDfoSourcesOf`: "Source  DFO notices, Region 6 Skeena ↗") */
+  readonly dfoPages: readonly { readonly region: string; readonly url: string }[];
   /** (T796, owner 2026-11-16 15:19) the rule book's closures answering the page's salmon today, each named: [] none */
   readonly book: readonly SalmonBookVM[];
   /** (T796) the source fold's title: "Source (DFO)", or "Sources (rule book and DFO)" when `book` is not empty */
@@ -870,15 +911,24 @@ export interface SalmonCardVM extends SalmonBlockVM {
 /** (T1031 item 4) one source of a salmon species' answer today: a DFO place ("Region 6 · Skeena River · B(ii)", or a
  *  region page header) with DFO's rows as printed, or the rule book's closure of the stretch by its rule (`entry::rule`) */
 export type SalmonWhoVM =
-  | { readonly k: "dfo"; readonly from: string; readonly lines: readonly string[] }
-  | { readonly k: "book"; readonly from: string; readonly rule: string };
+  /** `page`: the DFO region page it is on (its region's name and address, as the card's `dfoPages`); null: a water DFO lists
+   *  in no region (the default "Not opened by DFO") */
+  | { readonly k: "dfo"; readonly from: string; readonly lines: readonly string[]; readonly page: { readonly region: string; readonly url: string } | null }
+  /** `water`: the book row it is (null: a row the payload names no water for) */
+  | { readonly k: "book"; readonly from: string; readonly rule: string; readonly water: string | null };
 /** (T870) one group of the Source (DFO) fold's rows: where from ("Region 2 · Mamquam River", "Region 2 Lower Mainland ·
  *  page header") and DFO's words as printed */
 export interface SalmonSourceVM { readonly from: string; readonly lines: readonly string[] }
 /** (T796) one rule-book closure answering the page's salmon today: where it is from ("Rule book p.9 · National Parks
  *  and Ecological Reserves", `placeFromBook`) and its words — the book's page, its own line and its dates ("Closed to all
  *  fishing by the rule book (p.9): Fishing is prohibited in Ecological Reserves in B.C. (all year)") */
-export interface SalmonBookVM { readonly from: string; readonly words: string }
+export interface SalmonBookVM {
+  readonly from: string; readonly words: string;
+  /** (T1031 item 3) the closure's book row ("Skeena River"; null: a row the payload names no water for) and its printed
+   *  pages, each PDF page null until the page's map gives it (`tabSources.salmonWithPdf`), for its Source line */
+  readonly water: string | null;
+  readonly pages: readonly { readonly printed: number; readonly pdf: number | null }[];
+}
 /** (T321) one DFO row in DFO's words: its species and dates cells (dates "All year" when blank) and the limits cell */
 export interface SalmonWordsRowVM { readonly species: string; readonly dates: string; readonly words: string }
 export interface SalmonWordsVM {
@@ -1212,15 +1262,21 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
       .filter((g) => g.lines.length)];
   // (T1031 item 4) each species' own sources today: the places answering it on the page's chains (a DFO place with its
   // rows as printed; the rule book's closure by its rule), then its region page headers' notes naming it that the card says
+  // a DFO region's page, as the card's `dfoPages` name it (a region the payload holds no page for is a bad file)
+  const regionPage = (r: string): { region: string; url: string } => {
+    const url = P.regions[r]?.url;
+    if (!url) throw new SalmonError(`salmon: region ${r} has no DFO page`);
+    return { region: `Region ${r.toUpperCase()} ${P.regions[r]?.name ?? ""}`.trim(), url };
+  };
   const whoOf = (sp: SalmonSpecies): SalmonWhoVM[] => {
     const k = SALMON_SPECIES.indexOf(sp), out = new Map<string, SalmonWhoVM>();
     const add = (lid: string) => {
       const p = P.p?.[lid];
       if (!p) throw new SalmonError(`salmon: place ${lid} answers a chain and is not in p`);
-      if (isBook(p)) { const from = SALMON_WORDS.placeFromBook(p.book.pages, p.water); out.set(from, { k: "book", from, rule: p.book.rule }); return; }
+      if (isBook(p)) { const from = SALMON_WORDS.placeFromBook(p.book.pages, p.water); out.set(from, { k: "book", from, rule: p.book.rule, water: p.water ?? null }); return; }
       const from = SALMON_WORDS.placeFrom(p.r, p.water, p.sec), had = out.get(from), lines = had?.k === "dfo" ? [...had.lines] : [];
       for (const r of P.pr?.[lid] ?? []) if (!lines.includes(r)) lines.push(r);
-      out.set(from, { k: "dfo", from, lines });
+      out.set(from, { k: "dfo", from, lines, page: regionPage(p.r) });
     };
     for (const c of chains) {
       const ch = P.chains[c]!;
@@ -1231,7 +1287,7 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     }
     for (const r of regionsUsed) {
       const lines = [...new Set([...hn.region, ...hn.water].filter((n) => n.id.startsWith(`${r}:`) && behind(n) && !!n.sp?.includes(sp)).map((n) => n.t))];
-      if (lines.length) out.set(SALMON_WORDS.sourceHeader(r, P.regions[r]?.name ?? ""), { k: "dfo", from: SALMON_WORDS.sourceHeader(r, P.regions[r]?.name ?? ""), lines });
+      if (lines.length) out.set(SALMON_WORDS.sourceHeader(r, P.regions[r]?.name ?? ""), { k: "dfo", from: SALMON_WORDS.sourceHeader(r, P.regions[r]?.name ?? ""), lines, page: regionPage(r) });
     }
     return [...out.values()];
   };
@@ -1240,15 +1296,16 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
   const closedWho = (): SalmonWhoVM[] => [
     ...regionsUsed.flatMap((r): SalmonWhoVM[] => {
       const lines = closedWords.filter((n) => n.id.startsWith(`${r}:`)).map((n) => n.t);
-      return lines.length ? [{ k: "dfo", from: SALMON_WORDS.sourceHeader(r, P.regions[r]?.name ?? ""), lines }] : [];
+      return lines.length ? [{ k: "dfo", from: SALMON_WORDS.sourceHeader(r, P.regions[r]?.name ?? ""), lines, page: regionPage(r) }] : [];
     }),
     // the book closes the stretch to all fishing: every species
-    ...book.map((b): SalmonWhoVM => ({ k: "book", from: b.from, rule: b.rule }))];
+    ...book.map((b): SalmonWhoVM => ({ k: "book", from: b.from, rule: b.rule, water: b.water }))];
   const source = [SALMON_WORDS.agency, ...regionsUsed.map((r) => `Region ${r.toUpperCase()} ${P.regions[r]?.name ?? ""}`.trim())].join(" · ");
   // a species closed with no place answering it ("Not opened by DFO", a water DFO does not list): DFO's words on its row
   const unplacedWho = (sp: SalmonSpecies): SalmonWhoVM[] => {
     const row = rows.find((r) => r.species.includes(sp));
-    return row && row.status === "closed" && row.notes.length ? [{ k: "dfo", from: source, lines: row.notes }] : [];
+    return row && row.status === "closed" && row.notes.length
+      ? [{ k: "dfo", from: source, lines: row.notes, page: regionsUsed.length === 1 ? regionPage(regionsUsed[0]!) : null }] : [];
   };
   const whoBy = Object.fromEntries(SALMON_SPECIES.flatMap((sp) => {
     const w = regionClosed ? closedWho() : whoOf(sp), all = w.length ? w : unplacedWho(sp);
@@ -1286,7 +1343,8 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     // (T851) the DFO regions this card speaks for: the feed's read time for the card is theirs alone (`salmonReadAt`)
     regions: named,
     source,
-    book: book.map(({ from, words }) => ({ from, words })),
+    book: book.map(({ from, words, water, pages }) => ({ from, words, water, pages })),
+    dfoPages: regionsUsed.map((r) => ({ region: `Region ${r.toUpperCase()} ${P.regions[r]?.name ?? ""}`.trim(), url: P.regions[r]!.url })),
     sourceTitle: book.length ? SALMON_WORDS.sourceFoldBook : SALMON_WORDS.sourceFold,
     asOf: SALMON_WORDS.asOf(dates[dates.length - 1] ?? null),
     credit: SALMON_WORDS.credit(P.credit),
@@ -1425,7 +1483,8 @@ function bookToday(f: SalmonFacts, chains: readonly number[], day: number): (Sal
       if (!year) throw new SalmonError(`salmon: book place ${lid} has no year in static`);
       const t = P.verdicts[at(ch.sp[k]!, day)]!.t;
       const words = year.every((x, j) => j % 2 === 0 || x >= 0) ? SALMON_WORDS.bookAllYear(t) : t;
-      if (!out.has(words)) out.set(words, { t, from: SALMON_WORDS.placeFromBook(p.book.pages, p.water), words, rule: p.book.rule });
+      if (!out.has(words)) out.set(words, { t, from: SALMON_WORDS.placeFromBook(p.book.pages, p.water), words, rule: p.book.rule,
+                                            water: p.water ?? null, pages: p.book.pages.map((printed) => ({ printed, pdf: null })) });
     });
   }
   return [...out.values()];

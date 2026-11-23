@@ -25,7 +25,7 @@ const MOMENT_IDS = ["klwa_1010", "klwa_1012", "x15p2_1010", "x15p7_1010", "x17p3
 
 const pageOf = async (id: string): Promise<RegsPage> =>
   buildRegsPage((await inputsOf(id))!, { today: requestOf(id).today, who: ADULT_RESIDENT, pid: id });
-/** one caveat item as it reads on the page: what, where, then its Rule book link */
+/** one caveat item as it reads on the page: what, where, then its B.C. Synopsis link */
 const itemLine = (i: CaveatVM["items"][number]) => [plain(i.what), i.where, plain(i.book)].filter(Boolean).join(" ");
 
 it(`T42 edge parity runs against a paired regs store${gate.skip ? ` — SKIPPED: ${"reason" in gate ? gate.reason : gate.fail}` : ""}`, () => {
@@ -50,7 +50,7 @@ describe.skipIf(gate.skip)("T42 edge states on the live release", () => {
     expect(k.order[1]).toEqual({ caveat: 0 });
     expect(k.caveats[0]!.kind).toBe("timed");
     const c = k.caveats[0]!;
-    expect([c.title, itemLine(c.items[0]!)]).toEqual(["⚠ At certain times", "No fishing for any game fish 60 min after sunset–60 min before sunrise Rule book p.23 ↗"]);
+    expect([c.title, itemLine(c.items[0]!)]).toEqual(["⚠ At certain times", "No fishing for any game fish 60 min after sunset–60 min before sunrise B.C. Synopsis p.23 ↗"]);
     // (T150) the app's parts are its Map view's list — the header keeps the part's name and draws no action
     // (T768 / T993 item 10) said of the value the header carries, never of its shape: `HeaderVM` declares no action
     expect((p.header as { action?: unknown }).action).toBeUndefined();

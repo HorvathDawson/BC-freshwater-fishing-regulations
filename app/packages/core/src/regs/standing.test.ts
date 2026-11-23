@@ -25,10 +25,10 @@ const indexOf = (views: readonly RuleView[]): RuleIndex => {
 const OPEN = { status: "own", closing: [], strip: 0 } as unknown as DisplayFrame;
 const settled = (o: Partial<Settled>): Settled => ({ s: 0, status: OPEN, standing: [], ...o }) as unknown as Settled;
 
-describe("book.ts: a rule's Rule book pages as runs", () => {
+describe("book.ts: a rule's B.C. Synopsis pages as runs", () => {
   it("one link per page, ONE space between two links; a sentence then its links as separate elements", () => {
     expect(bookLine([[9, 11], [13, 15]])).toEqual([{ t: "book", printed: 9, pdf: 11 }, { t: "text", s: " " }, { t: "book", printed: 13, pdf: 15 }]);
-    expect(plain(withBook([{ t: "text", s: "No fishing" }], bookLine([[9, 11], [13, 15]])))).toBe("No fishing Rule book p.9 ↗ Rule book p.13 ↗");
+    expect(plain(withBook([{ t: "text", s: "No fishing" }], bookLine([[9, 11], [13, 15]])))).toBe("No fishing B.C. Synopsis p.9 ↗ B.C. Synopsis p.13 ↗");
     expect(withBook([{ t: "text", s: "x" }], [])).toEqual([{ t: "text", s: "x" }]);
     expect(ruleBook({ facts: null } as unknown as RuleView)).toEqual([]);
   });
@@ -38,11 +38,11 @@ describe("inheritedOf: the display frame's lifts, each with the lifting rule's b
   const by = view(3351, {}, { book: [[36, 38]] });
   const inp = (inherited: unknown, display: Partial<DisplayFrame> = {}) =>
     ({ frames: { display: { ...OPEN, inherited, ...display } }, rules: indexOf([by]) }) as unknown as RegsInputs;
-  it("label, the data's sentence + ' ' + Rule book p.N, the caution or null", () => {
+  it("label, the data's sentence + ' ' + B.C. Synopsis p.N, the caution or null", () => {
     const vm = inheritedOf(inp([{ says: "Open Apr 1–Jun 14: an exemption.", by: 3351, lifts: [1], caution: "Nearer row is silent." },
       { says: "Second.", by: 3351, lifts: [2] }]));
     expect(vm && { label: vm.label, lines: vm.lines.map((l) => [plain(l.says), l.caution]) }).toEqual({ label: "By another water’s rule",
-      lines: [["Open Apr 1–Jun 14: an exemption. Rule book p.36 ↗", "Nearer row is silent."], ["Second. Rule book p.36 ↗", null]] });
+      lines: [["Open Apr 1–Jun 14: an exemption. B.C. Synopsis p.36 ↗", "Nearer row is silent."], ["Second. B.C. Synopsis p.36 ↗", null]] });
   });
   it("none, an empty list, a tidal frame or no frames → null", () => {
     expect(inheritedOf(inp(null))).toBeNull();
@@ -64,8 +64,8 @@ describe("whereNotOf: the day's standing rules with a `where` heading", () => {
   it("heading, scope null for the plain heading, each item with its book and rule key; rules with no `where` are not here", () => {
     const vm = whereNotOf(settled({ standing: [fishway, elsewhere, bare] }))!;
     expect([vm.heading, vm.scope, ...vm.items.map((i) => [plain(i.text), i.rule])]).toEqual([w, null,
-      ["No fishing: within 23 m (75 ft) of a fishway Rule book p.9 ↗", fishway.key],
-      ["No fishing: within 23 m downstream of the lower entrance to any fishway, canal, obstacle or leap Rule book p.9 ↗", bare.key]]);
+      ["No fishing: within 23 m (75 ft) of a fishway B.C. Synopsis p.9 ↗", fishway.key],
+      ["No fishing: within 23 m downstream of the lower entrance to any fishway, canal, obstacle or leap B.C. Synopsis p.9 ↗", bare.key]]);
   });
   it("only the FIRST heading's group (the prototype's first .caveats block); another heading is the scope", () => {
     const near = view(9003, {}, { where: "Near the dam", plain: "No fishing near the dam.", book: [] }, 3351);

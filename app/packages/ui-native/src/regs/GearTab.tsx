@@ -36,7 +36,7 @@ export function GearTab({ vm, palette, actions, salmonGear = null }: { vm: GearV
         {vm.day !== null && <Text style={[TYPE.metaBold, { color: palette.sub, marginBottom: 4 }]}>{vm.day}</Text>}
         <GearLines mode={vm.mode} lines={vm.lines} palette={palette} actions={actions} />
         {vm.bait && <View style={{ marginTop: SPACE.s2, borderTopWidth: 1, borderTopColor: palette.line2 }}><BaitList vm={vm.bait} palette={palette} actions={actions} /></View>}
-        {vm.src && <View testID="gear-src" style={{ marginTop: SPACE.s1 }}><SourceLine src={vm.src} palette={palette} actions={actions} /></View>}
+        {vm.src && <View testID="gear-src" style={{ marginTop: SPACE.s1 }}><SourceLine src={vm.src} what={WORDS.TAB_GEAR} palette={palette} actions={actions} /></View>}
       </TabSection>
     </View>
   );

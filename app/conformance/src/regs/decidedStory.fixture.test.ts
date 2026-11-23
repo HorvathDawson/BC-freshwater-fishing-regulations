@@ -41,21 +41,21 @@ describe("T216 on the fixture release", () => {
     expect(tc.notes).toEqual(["This stretch is in Region 3 and Region 5, so both regions’ rules apply here."]);
     expect(heads(tc)).toEqual(["All of B.C.: the province’s base rules", "Region 3: the region’s base rules", "Region 5: the region’s base rules",
       "Fraser River: this water’s own rules (Region 3 table)", "Fraser River: this water’s own rules (Region 5 table)"]);
-    expect(steps(tc, /Region 3 table/)).toEqual(["No fishing for trout and char, Oct 1–31. Rule book p.30 ↗ | Decides it | "
+    expect(steps(tc, /Region 3 table/)).toEqual(["No fishing for trout and char, Oct 1–31. B.C. Synopsis p.30 ↗ | Decides it | "
       + "A closure decides it: a closure beats any limit that would let you keep fish."]);
-    expect(steps(tc, /Region 5 table/)).toEqual(["No fishing for trout and char, Oct 1–31. Rule book p.45 ↗ | Says the same | "
+    expect(steps(tc, /Region 5 table/)).toEqual(["No fishing for trout and char, Oct 1–31. B.C. Synopsis p.45 ↗ | Says the same | "
       + "Fraser River’s own rule says the same, so nothing changes."]);
-    expect(steps(tc, /^Region 5/)[1]).toBe("Keep up to 5 trout and char a day, all kinds together. Rule book p.42 ↗ | Overridden | "
+    expect(steps(tc, /^Region 5/)[1]).toBe("Keep up to 5 trout and char a day, all kinds together. B.C. Synopsis p.42 ↗ | Overridden | "
       + "Fraser River’s own rule closes it, and a closure beats an opening.");
-    expect(byOf(tc, /^Keep up to 5 trout and char/)).toBe("The rule that beat it: No fishing for trout and char, Oct 1–31. Rule book p.30 ↗");
+    expect(byOf(tc, /^Keep up to 5 trout and char/)).toBe("The rule that beat it: No fishing for trout and char, Oct 1–31. B.C. Synopsis p.30 ↗");
     expect(tc.answer).toBe("Today’s answer: Closed here.");
     // two regions, same rank: the stricter limit wins (Region 3's 2 burbot over Region 5's 5)
     const bb = storyOf(rows, /^Burbot/);
     expect(steps(bb, /^Region/)).toEqual([
-      "Keep up to 2 burbot a day. Rule book p.28 ↗ | Decides it | Nothing on this water changes it, so the base rule stands.",
-      "Possession: 2 days’ quota. Fish at home don’t count. Rule book p.28 ↗ | Also applies | How many you may have at once, counting fish kept on earlier days.",
-      "Possession: 2 days’ quota. Fish at home don’t count. Rule book p.42 ↗ | Also applies | How many you may have at once, counting fish kept on earlier days.",
-      "Keep up to 5 burbot a day. Rule book p.42 ↗ | Overridden | The Region 3 rule is stricter, and the stricter rule wins."]);
+      "Keep up to 2 burbot a day. B.C. Synopsis p.28 ↗ | Decides it | Nothing on this water changes it, so the base rule stands.",
+      "Possession: 2 days’ quota. Fish at home don’t count. B.C. Synopsis p.28 ↗ | Also applies | How many you may have at once, counting fish kept on earlier days.",
+      "Possession: 2 days’ quota. Fish at home don’t count. B.C. Synopsis p.42 ↗ | Also applies | How many you may have at once, counting fish kept on earlier days.",
+      "Keep up to 5 burbot a day. B.C. Synopsis p.42 ↗ | Overridden | The Region 3 rule is stricter, and the stricter rule wins."]);
   });
 
   // (T794 item 3, r-c7c6b2422c65) Atnarko r12 ends at its mouth, so the side-channel part merged into this one: the
@@ -69,9 +69,9 @@ describe("T216 on the fixture release", () => {
       "Lowers the limit | A lower limit for this kind of water. When two limits apply, the stricter one wins.",
       "Caps some fish | A smaller cap inside the daily limit: these fish count toward the total, but no more than this.",
       "Caps some fish | A smaller cap inside the daily limit: these fish count toward the total, but no more than this."]);
-    expect(steps(s, /^Region 5/)[3]).toMatch(/^Keep up to 1 Dolly Varden\/bull trout a day\. Rule book p\.42 ↗/);
+    expect(steps(s, /^Region 5/)[3]).toMatch(/^Keep up to 1 Dolly Varden\/bull trout a day\. B.C. Synopsis p\.42 ↗/);
     expect(steps(s, /^Bella Coola/)[0]).toBe("Keep up to 2 cutthroat trout, Dolly Varden/bull trout, brook trout, brown trout, lake trout and rainbow "
-      + "trout a day, all kinds together, 25 cm (10 in) or longer, Apr 1–May 31. Rule book p.43 ↗ | Decides it | "
+      + "trout a day, all kinds together, 25 cm (10 in) or longer, Apr 1–May 31. B.C. Synopsis p.43 ↗ | Decides it | "
       + "This water’s own rule sets it, and a water’s own rule beats the region’s.");
     expect(s.answer).toBe("Today’s answer: 2 a day here.");
   });
@@ -80,8 +80,8 @@ describe("T216 on the fixture release", () => {
     const s = storyOf(await rowsOf(await openRegsStore(openRegsFixture()), "gnis:10457", 0, 5, 1), /^Rainbow trout/);
     const lift = s.layers.flatMap((l) => l.steps).find((t) => /no fishing, Apr 1–Jun 14/.test(plain(t.says)))!;
     expect([lift.verdict, lift.why, plain(lift.book)]).toEqual(["Lifted here",
-      "Duncan River’s own rule opens it here: a water’s own rule beats the region’s.", "Rule book p.34 ↗"]);
-    expect(plain(lift.by)).toMatch(/^The rule that opens it: .* Rule book p\.36 ↗$/);
+      "Duncan River’s own rule opens it here: a water’s own rule beats the region’s.", "B.C. Synopsis p.34 ↗"]);
+    expect(plain(lift.by)).toMatch(/^The rule that opens it: .* B.C. Synopsis p\.36 ↗$/);
   });
 
   it("every step of every row of every fixture case cites a printed page; every layer has a step", async () => {
@@ -111,8 +111,8 @@ describe.skipIf(!LIVE)(`T216 on the live release (${LIVE ?? "absent"})`, () => {
     const [lift] = s.layers[2]!.steps;
     expect([plain(lift!.says), lift!.verdict, lift!.why, plain(lift!.book), plain(lift!.by)]).toEqual([
       "No fishing in streams, Apr 1-Jun 30: Fraser and Thompson watersheds in Region 5, except the Fraser mainstem", "Lifted here",
-      "Williams Lake River’s own rule opens it here: a water’s own rule beats the region’s.", "Rule book p.42 ↗",
-      "The rule that opens it: Spring stream closure lifted Rule book p.47 ↗"]);
+      "Williams Lake River’s own rule opens it here: a water’s own rule beats the region’s.", "B.C. Synopsis p.42 ↗",
+      "The rule that opens it: Spring stream closure lifted B.C. Synopsis p.47 ↗"]);
     expect(s.answer).toBe("Today’s answer: 2 a day here, and they count toward 5 a day in Region 5.");
   });
 
@@ -122,8 +122,8 @@ describe.skipIf(!LIVE)(`T216 on the live release (${LIVE ?? "absent"})`, () => {
     const part = await sectionNames(openReleaseDir(LIVE!)).part("gnis:39269", "lake_inlet:wbk:329370951", "source");
     const s = storyOf(await rowsOf(await openRegsStore(openReleaseDir(LIVE!)), "gnis:39269", part, 5, 15), /^Brook trout/);
     expect(steps(s, /^Fraser and Thompson/)).toEqual(["No fishing in streams, Apr 1-Jun 30: Fraser and Thompson watersheds in Region 5, "
-      + "except the Fraser mainstem Rule book p.42 ↗ | Decides it | A closure decides it: a closure beats any limit that would let you keep fish."]);
-    expect(steps(s, /^Region 5/)).toContain("Keep up to 5 burbot a day. Rule book p.42 ↗ | Overridden | "
+      + "except the Fraser mainstem B.C. Synopsis p.42 ↗ | Decides it | A closure decides it: a closure beats any limit that would let you keep fish."]);
+    expect(steps(s, /^Region 5/)).toContain("Keep up to 5 burbot a day. B.C. Synopsis p.42 ↗ | Overridden | "
       + "The rule for Fraser and Thompson watersheds in Region 5 closes it, and a closure beats an opening.");
     expect(s.answer).toBe("Today’s answer: Closed here.");
   });

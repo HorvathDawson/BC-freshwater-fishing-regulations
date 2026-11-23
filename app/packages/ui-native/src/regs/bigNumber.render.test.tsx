@@ -30,6 +30,7 @@ import vedder_1010 from "./fixtures/vedder_1010.json";
 import vedder_515 from "./fixtures/vedder_515.json";
 import x35p_1010 from "./fixtures/x35p_1010.json";
 import edge_x15p2_1010 from "./fixtures/edge_x15p2_1010.json";
+import { TEST_TROUT_SOURCES } from "./testing/sources";
 
 afterEach(cleanup);
 
@@ -74,7 +75,7 @@ describe("every big number on the frozen pages sits in a box that holds it", () 
   let seen = 0, onKeep = 0;
   for (const [name, page] of Object.entries(PAGES)) {
     it(`${name}: the Keep tab`, () => {
-      const { container } = render(<KeepTab keep={page.keep} dateLabel={page.header.date} palette={LIGHT} actions={NO_ACTIONS} />);
+      const { container } = render(<KeepTab troutSources={TEST_TROUT_SOURCES} keep={page.keep} dateLabel={page.header.date} palette={LIGHT} actions={NO_ACTIONS} />);
       const hits = bigNumbers(container);
       seen += hits.length; onKeep += hits.length;
       expect(short(hits)).toEqual([]);

@@ -9,7 +9,7 @@
 import { describe, expect, it } from "vitest";
 import { repoData } from "../conformance/src/repoData";
 // A plain .mjs gate (it runs under node as `pnpm tickets`), imported for its functions.
-import { CLOSED, DONE_LEDGER, NO_STEP_YET, RUNBOOK_MAKES, checkDocs, checkLedger, citedPaths, idOfFile, ledgerRows, readDocs, readRepo, ruleIds, runbookPaths, statusKeyword } from "./check-tickets.mjs";
+import { CLOSED, DONE_LEDGER, RUNBOOK_MAKES, LEFT_CELL_MAX, checkDocs, checkLedger, citedPaths, idOfFile, ledgerRows, readDocs, readRepo, ruleIds, runbookPaths, statusKeyword } from "./check-tickets.mjs";
 
 type Input = { tickets: { name: string; text: string }[]; readme: string; doneLedger: string; subjects: string[]; ownerTodo: string };
 const repoRoot = new URL("../..", import.meta.url).pathname;
@@ -207,10 +207,8 @@ const OWNER_TEXT = [...real.ownerTodo.matchAll(/\*\*([^*"]{8,40})\*\*/g)].map((m
   .find((text) => !real.tickets.some((t) => t.text.split("\n").slice(0, 6).join("\n").includes(text)))!;
 
 describe("T539 a status names its step", () => {
-  it("the real ledger passes, and the grandfather list is what is left unnamed", () => {
+  it("the real ledger passes, with no grandfather list", () => {
     expect(checkLedger(real)).toEqual([]);
-    expect(NO_STEP_YET.length).toBeGreaterThan(0);
-    expect(new Set(NO_STEP_YET).size).toBe(NO_STEP_YET.length);
   });
   it("IN REVIEW with no step fails", () => {
     expect(checkLedger(withT84("IN REVIEW — abc1234"))).toEqual([
@@ -231,18 +229,18 @@ describe("T539 a status names its step", () => {
     expect(checkLedger(withT84("PARTIAL — abc1234; left (Claude): run the emulator"))).toEqual([]);
     expect(checkLedger(withT84("IN PROGRESS — lane x; left (Claude): run the emulator"))).toEqual([]);
   });
-  it("a grandfathered id that now complies, or is no longer in review, must come off the list", () => {
-    const id = NO_STEP_YET[0] as string;
-    const fixed = withTicket(real, id, (t) => t.replace(/^Status: (IN REVIEW|PARTIAL)/m, `Status: $1 — left (Claude): x; owner: OWNER-TODO "${OWNER_TEXT}" —`));
-    expect(checkLedger(fixed)).toEqual([`${id}: on NO_STEP_YET but its status now names its step (take it off the list)`]);
-    const closed = withTicket(real, id, (t) => t.replace(/^Status:.*$/m, "Status: OPEN."));
-    expect(checkLedger(closed).some((m: string) => m.startsWith(`${id}: on NO_STEP_YET but is`))).toBe(true);
-  });
-  it("a NEW ticket cannot hide behind the list", () => {
-    expect(NO_STEP_YET).not.toContain("T84");
-    expect(NO_STEP_YET).not.toContain("T534");
-    expect(NO_STEP_YET).not.toContain("T539");
-    expect(NO_STEP_YET).not.toContain("T542");
+});
+
+describe("T540 the ledger's last cell is capped", () => {
+  it("a row over the cap fails, in README.md and in DONE.md; the real ledger is within it", () => {
+    expect(checkLedger(real)).toEqual([]);
+    const long = "x".repeat(LEFT_CELL_MAX + 1);
+    const inReadme = { ...real, readme: real.readme.replace(T84_ROW(real), T84_ROW(real).replace(/\| [^|]*\|$/, `| ${long} |`)) };
+    expect(checkLedger(inReadme)).toEqual([`T84: ledger row's last cell is ${long.length} characters (max ${LEFT_CELL_MAX}): keep the detail in the ticket file`]);
+    const doneId = ledgerRows(real.doneLedger)[0]!.id;
+    const row = real.doneLedger.split("\n").find((l) => l.startsWith(`| ${doneId} |`))!;
+    const inDone = { ...real, doneLedger: real.doneLedger.replace(row, row.replace(/\| [^|]*\|$/, `| ${long} |`)) };
+    expect(checkLedger(inDone)).toEqual([`${doneId}: ledger row's last cell is ${long.length} characters (max ${LEFT_CELL_MAX}): keep the detail in the ticket file`]);
   });
 });
 

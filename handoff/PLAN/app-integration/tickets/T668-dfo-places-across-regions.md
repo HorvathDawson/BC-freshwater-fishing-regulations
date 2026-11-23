@@ -85,6 +85,9 @@ without the table shows both words (mutation). RULINGS Z4b.
 Order: deploy the feeds worker first (its /status lists `dfo-pairs/1`); until then the input upload refuses
 pairs.json and says so.
 
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+owner 2026-11-11; audit in T668-audit.md; fixes 1–3, Z4a, app half + fix 4 and option 2 (c9488453c, RULINGS Z4b) built; pairs live (staging 2026-11-18 'dfo-pairs ok'); left (Claude): fix 5 hygiene; owner: OWNER-TODO "T668 salmon places from two regions on one stretch" (phone check of that release)
+
 ## Fix 5 (lane L10, 2026-11-22): nothing to change
 - The `6:fraser-river` water record stays: the owner's own note on it (2026-11-03) is why — "the same river as region 2's
   Fraser River, so R6's header exception (adult chinook \"other than Fraser River Watershed\") finds the Fraser-side

@@ -408,7 +408,7 @@ def extent_now(loc: dict, water: dict | None) -> dict:
             # (T532 r10) what "tributaries as the place has them" MEANS here: does the builder walk them for this place
             "walks_tributaries": walks_now(loc, water),
             # T761: a "rest of": which places answer before it, and where; the water's places the form can list
-            **({"rest_of": r} if (r := rest_of_card(loc)) is not None else {})}
+            **({"rest_of": r} if (r := rest_of_card(loc, any_place=True)) is not None else {})}
 
 
 def _area_words(aid: str) -> str:
@@ -445,8 +445,9 @@ def cannot_edit_words(extents: list[dict], why: list[str]) -> dict | None:
                 names = ", ".join(_area_words(a) for a in v or [])
                 lines.append(f"{n} leaves out {names}, and the editor has no way to say \"leave out an area\".")
             elif f == "watershed":
-                lines.append(f"{n} takes the whole watershed above its point, and the editor has no way to say "
-                             "\"the watershed\".")
+                side = {"downstream_of": "below", "upstream_of": "above"}.get(ex.get("op"))   # T776 item 3
+                part = f"the whole watershed {side} its point" if side else "the whole watershed"
+                lines.append(f"{n} takes {part}, and the editor has no way to say \"the watershed\".")
             elif f == "feature_types":
                 kinds = ", ".join(f"{k}s" for k in v or [])
                 lines.append(f"{n} holds only {kinds}, and the editor has no way to say \"only some kinds of "
@@ -1287,7 +1288,7 @@ def _siblings_of(el) -> dict:
             if (l.get("water_id") and l.get("water_id") == el.water_id) or lid in named}
 
 
-def rest_of_card(loc: dict, extents: list[dict] | None = None) -> dict | None:
+def rest_of_card(loc: dict, extents: list[dict] | None = None, *, any_place: bool = False) -> dict | None:
     """T761: A "REST OF" PLACE ON THE CARD AND IN ITS EDITOR — None for a place whose extent (or the draft's
     `extents`) is no rest; else `{answers_first, places}`: `answers_first` the places that answer before it and where,
     in plain words (`entries.answers_before`, the build's own listing), and `places` every other place of its water the
@@ -1297,11 +1298,14 @@ def rest_of_card(loc: dict, extents: list[dict] | None = None) -> dict | None:
     loc = copy.deepcopy(loc)
     if extents is not None:
         loc.setdefault("binding", {})["extents"] = extents
-    if not any(e.get("op") == "rest" for e in (loc.get("binding") or {}).get("extents") or []):
+    is_rest = any(e.get("op") == "rest" for e in (loc.get("binding") or {}).get("extents") or [])
+    if not is_rest and not any_place:
         return None
     el = E.EntryLocation.from_dict(loc)
     sibs = {**_siblings_of(el), el.location_id: el}
-    got = E.rest_listing(el, sibs)
+    # T775 item 2: a place that is no rest YET still gets the water's places (the editor may switch it to "rest of" and
+    # must list them on open, not only after a preview): nothing is left out, nothing answers first
+    got = E.rest_listing(el, sibs) if is_rest else {"listed": [], "dormant": [], "undrawn": [], "named": False}
     leaves = set(got["listed"]) | set(got["dormant"]) | set(got["undrawn"])
     places = []
     for lid, x in sorted(sibs.items()):
@@ -1311,7 +1315,7 @@ def rest_of_card(loc: dict, extents: list[dict] | None = None) -> dict | None:
                        "status": x.status,
                        "extent": ", ".join(M_OP_WORDS(getattr(e.op, "value", e.op)) for e in x.binding.extents)
                        or "no extent yet", "listed": lid in leaves})
-    return {"answers_first": E.answers_before(el, sibs), "places": places, "named": got["named"]}
+    return {"answers_first": E.answers_before(el, sibs) if is_rest else [], "places": places, "named": got["named"]}
 
 
 def other_places_of(loc: dict) -> dict:
@@ -1348,22 +1352,58 @@ def _walks_tributaries(entry: dict, rule: dict) -> bool:
     return bool(wants_tributaries(rule, entry))
 
 
+def as_the_run_binds(location_id: str, loc: dict | None = None) -> dict:
+    """THE REACH RUN'S LIMITS FOR A DFO PLACE (`reach.dfo_salmon.resolve_all`), as `build_reach` keywords: no region
+    limit (`regional=False`: a DFO place is one water whichever region prints it) and the run's tidal water out
+    (`reuse._tidal`, the CLI's `ReachResult.tidal`) unless `tidal_calls.json` `keep_tidal` names the place. Water
+    outside B.C. `build_reach` takes out itself (`outside_bc`, the run's `outside`). Every save-time binding of a place
+    (the preview, its size, the landing check, the dead pieces) passes these, so it binds what the build binds (T779).
+    A VARIANT with no extent of its own binds through its primary in the run, and `keep_tidal` naming either keeps the
+    tidal water (`resolve_all`: `loc` or `target`); `loc` is the place as it is bound (a draft), default the stored one."""
+    from pipeline.atlas.reach.dfo_salmon import load_tidal_calls
+    keep = load_tidal_calls()
+    lc = loc if loc is not None else (_locations().get(location_id) or (None, None, None))[1]
+    ids = {location_id}
+    if lc and lc.get("duplicate_of") and lc.get("duplicate_confirmed") is not False \
+            and not (lc.get("binding") or {}).get("extents"):     # `is_variant` and not `binding.resolved`
+        ids.add(str(lc["duplicate_of"]))
+    return {"regional": False, "tidal": None if ids & set(keep) else reuse._tidal()}
+
+
 def _bind(entry: dict, rule: dict, limit: int, walks: bool = False) -> dict:
     from pipeline.atlas.reach.build import build_reach
     if not rule["extents"]:
         return {"resolvable": False, "why": "no extent curated yet: nothing binds", "n_sections": 0}
-    binding, _d = build_reach(entry, rule, reuse._registry(), reuse._graph())
+    lid = str(entry.get("entry_id") or rule.get("rule_id") or "")
+    binding, _d = build_reach(entry, rule, reuse._registry(), reuse._graph(), **as_the_run_binds(lid))
     ids = sorted(binding.sections)
     # T761: a "rest of"'s listed places left out of the subtraction (no bind / dormant), named — never dropped unseen
     comp = next((d.payload for d in _d if d.kind == "complement"), None) or {}
     left = {**({"rest_skipped": comp["skipped"]} if comp.get("skipped") else {}),
             **({"rest_dormant": comp["dormant"]} if comp.get("dormant") else {})}
+    # T779: every piece the place withholds, said at save time — the reach run stops on one `accepted` does not name
+    from pipeline.regs.review import withheld as W
+    got = W.check(lid, W.rows(lid, _d))
+    if got["withheld"]:
+        left["withheld"] = got["withheld"]
+    if got["stale_acceptances"]:
+        left["stale_acceptances"] = got["stale_acceptances"]
+    # T775 item 3: the listed places the rest stands behind (`rest_behind`: place id -> its sections INSIDE the bounds),
+    # drawn beside the rest — `properties.listed` / `place` — never mixed into the rest's own sections
+    from pipeline.atlas.reach.build import REST_BEHIND
+    behind = {k: v for d in _d if d.kind == REST_BEHIND for k, v in d.payload["behind"].items()}
+    listed_feats = []
+    for lid, secs in sorted(behind.items()):
+        for f in reuse._sections_geojson(sorted(secs)[:limit], "preview"):
+            f["properties"] = {**(f.get("properties") or {}), "listed": True, "place": lid}
+            listed_feats.append(f)
     return reuse._json_safe({**left,
         "resolvable": True, "why": None, "n_sections": len(ids), "walks_tributaries": walks,
         "km": section_km(ids), "channels": channels_in(entry, rule, set(ids)),
         "outcomes": {rule["rule_id"]: binding.outcome.value}, "truncated": len(ids) > limit,
+        **({"listed_drawn": {k: len(v) for k, v in sorted(behind.items())}} if behind else {}),
         "geojson": {"type": "FeatureCollection",
-                    "features": reuse._sections_geojson(ids[:limit], "preview")}})
+                    "features": reuse._sections_geojson(ids[:limit], "preview") + listed_feats}})
 
 
 def section_km(ids) -> float:
@@ -1461,7 +1501,8 @@ def _size_of(loc: dict, water: dict | None) -> dict | None:
     entry, rule = _reach_input(loc, water)
     if not rule["extents"]:
         return None
-    b, _d = build_reach(entry, rule, reuse._registry(), reuse._graph())
+    b, _d = build_reach(entry, rule, reuse._registry(), reuse._graph(),
+                        **as_the_run_binds(str(entry.get("entry_id") or ""), loc))
     secs = set(b.sections)
     reg = reuse._registry()
     own = {s for i in (water or {}).get("item_ids") or [] if i in reg for s in reg[i].section_ids}
@@ -1524,11 +1565,19 @@ def extent_preview(location_id: str, fix, limit: int = 6000, tributaries: bool =
     if any(f.op == "rest" for f in fixes):
         # T761: the draft's "rest of": what answers before it, where; the water's places the form can list
         out["rest_of"] = rest_of_card(loc, exs)
-    dead = DS.dead_pieces(entry, rule, reuse._registry(), reuse._graph())
+    dead = DS.dead_pieces(entry, rule, reuse._registry(), reuse._graph(),
+                          tidal=as_the_run_binds(location_id)["tidal"])
     # a place of ONE piece that binds nothing is dead too (seen on screen 2026-11-10: "binds 0 section(s) · unresolved"
     # with no reason — `dead_pieces` speaks only of a piece among several): it gets the same plain-words why
     if not dead and len(fixes) == 1 and out.get("resolvable") and out.get("n_sections") == 0:
-        dead = [0]
+        # T775 item 1: a rest-of whose own sections are all inside its listed places binds nothing of its own and the
+        # build does NOT refuse it (it stands behind them, T761): said so, never "binds NOTHING alone". Only the build's
+        # own REST_BEHIND diagnostic (`listed_drawn`: listed places with sections INSIDE its bounds) says so — a listed
+        # sibling alone does not: a rest whose bounds bind nothing at all stays dead
+        if fixes[0].op == "rest" and any(n > 0 for n in (out.get("listed_drawn") or {}).values()):
+            out["rest_stands_behind"] = True
+        else:
+            dead = [0]
     if dead:
         out["dead_pieces"] = [i + 1 for i in dead]
         out["dead_why"] = dead_why(fixes, list(dead), water)

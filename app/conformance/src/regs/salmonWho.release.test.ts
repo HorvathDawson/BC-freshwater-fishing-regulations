@@ -5,7 +5,7 @@
  * so the Sources tab never names fewer places than the row.
  */
 import { describe, expect, it } from "vitest";
-import { SOURCE_AUTHORITIES, SPECIES_SHEET, salmonCard, speciesTabs, salmonTable, withSalmonSheets, type SalmonFacts, type SalmonSpecies, type SheetKey, type SheetVM } from "@app/core";
+import { SOURCE_AUTHORITIES, SOURCE_LINE, SPECIES_SHEET, salmonCard, setFailureSink, speciesTabs, salmonTable, withSalmonSheets, type SalmonFacts, type SalmonSpecies, type SheetKey, type SheetVM } from "@app/core";
 import { liveRelease, openReleaseDir } from "../fixtureRelease";
 
 const LIVE = liveRelease();
@@ -24,6 +24,9 @@ describe.skipIf(!LIVE)(`T1031 each salmon species' sources (${LIVE ?? "no live r
         for (const place of (r.from ?? "").split("; ").filter((x) => x && !/ together$/.test(x)))
           if (!froms.includes(place)) wrong.push(`chain ${i} ${on.toDateString()} ${r.code}: ${place} not in ${JSON.stringify(froms)}`);
         for (const w of who) {
+          // every DFO source links a DFO region page the card names, wherever the card names exactly one
+          if (w.k === "dfo" && (w.page ? !c.dfoPages.some((p) => p.url === w.page!.url) : c.dfoPages.length === 1))
+            wrong.push(`chain ${i} ${r.code}: ${w.from} links ${w.page?.url ?? "no region page"}`);
           if (w.k === "book") { book++; if (!/::/.test(w.rule)) wrong.push(`chain ${i} ${r.code}: book rule ${w.rule}`); }
           else if (!w.from.endsWith(" · page header") && w.lines.length) printed++;   // a DFO place with DFO's rows as printed
           else if (!w.lines.length) bare++;   // a DFO place the release keeps no printed rows for (Babine Lake B(i)): named alone
@@ -68,8 +71,24 @@ describe.skipIf(!LIVE)(`T1031 each salmon species' sources (${LIVE ?? "no live r
     expect(drawn).toEqual([`# ${SPECIES_SHEET.HERE}`, row.statusLabel,
       ...[row.quotaRuns ? row.quotaRuns.map((x) => ("s" in x ? x.s : "")).join("") : row.quota, row.window, row.limit].filter((x): x is string => !!x),
       `# ${SPECIES_SHEET.BREAKDOWN}`,
-      `## ${SOURCE_AUTHORITIES.synopsis.name}`, ...who.flatMap((w) => (w.k === "book" ? [`${w.from} | words of ${w.rule} | p.9[hl]`] : [])),
-      `## ${SOURCE_AUTHORITIES.dfo.name}`, ...who.flatMap((w) => (w.k === "dfo" ? [w.lines.length ? `${w.from} | ${w.lines.join("\n")} | ${SOURCE_AUTHORITIES.dfo.name}` : `null | ${w.from} | ${SOURCE_AUTHORITIES.dfo.name}`] : []))]);
+      // (#69's Source line) a book closure titled by its book row, its pages "B.C. Synopsis p.N"; a DFO place linked to its region's page
+      `## ${SOURCE_AUTHORITIES.synopsis.name}`, ...who.flatMap((w) => (w.k === "book" ? [`${w.water ?? "r"} | words of ${w.rule} | p.9[hl]`] : [])),
+      `## ${SOURCE_AUTHORITIES.dfo.name}`, ...who.flatMap((w) => {
+        if (w.k !== "dfo") return [];
+        const link = w.page ? SOURCE_LINE.DFO_REGION(w.page.region) : SOURCE_AUTHORITIES.dfo.name;
+        return [w.lines.length ? `${w.from} | ${w.lines.join("\n")} | ${link}` : `null | ${w.from} | ${link}`];
+      })]);
+    expect(who.some((w) => w.k === "book" && w.water !== null) && who.some((w) => w.k === "dfo" && w.page !== null)).toBe(true);
+    const src2 = src.blocks.find((b) => b.k === "sources");
+    expect(src2?.k === "sources" && src2.groups.flatMap((g) => g.rows.flatMap((r) => r.book)).filter((x) => x.t === "web")
+      .every((x) => x.t === "web" && card.dfoPages.some((p) => p.url === x.url && x.s === SOURCE_LINE.DFO_REGION(p.region)))).toBe(true);
+    // (W46) a species the card has with no picture sheet on the page: its Sources alone (no tab to a sheet that does not open), reported
+    const reports: unknown[] = [], undo = setFailureSink((e) => reports.push(e));
+    try {
+      const bare = withSalmonSheets((k) => (k === `sp:${code}` ? null : own(k)), card);
+      const alone = bare(`sp:${code}|src`);
+      expect([alone?.tabs, alone?.title, reports.map((e) => (e as Error).name)]).toEqual([undefined, row.name, ["SalmonLooksMissing"]]);
+    } finally { undo(); }
     // mutation: no card, the page's own sheets alone (no tabs, no Sources); a fish the page's lines answer keeps its own tabs
     expect([withSalmonSheets(own, null)(`sp:${code}`)?.tabs, withSalmonSheets(own, null)(`sp:${code}|src`)]).toEqual([undefined, null]);
     // (review 1) a fish the page's own lines answer (an Other fish row holding it): the page's sheet keeps its tabs, and the

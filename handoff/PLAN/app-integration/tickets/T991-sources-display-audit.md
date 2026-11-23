@@ -1,6 +1,6 @@
 # T991 — Sources display audit: make how sources are shown consistent across the whole app
 
-Status: PARTIAL — left (Claude): T1031 (the owner's items 3–5), T1032 (the every-source sheet's list). Round 3 built, 3428dcb83 + #63 review fixes 3e3a1e2ae (lane L21, 2026-11-22/23), from the owner's answer to round 2 (2026-11-22 ~23:55,
+Status: PARTIAL — left (Claude): T1031 (the owner's items 3–5), T1036 (the every-source sheet's list). Round 3 built, 3428dcb83 + #63 review fixes 3e3a1e2ae (lane L21, 2026-11-22/23), from the owner's answer to round 2 (2026-11-22 ~23:55,
 recorded verbatim below by lane L17, PR #57): ONE SOURCE ROW AT THE FOOT OF EACH TAB. Regulations: one "B.C. Synopsis
 p.N ↗" link per synopsis page the DRAWN tabs cite (never one fixed page, never a sheet's rules; the water's own row among them,
 marked "p.N (this water) ↗"), each opening the book with

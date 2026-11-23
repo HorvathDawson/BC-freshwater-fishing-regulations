@@ -83,9 +83,9 @@ def test_each_lake_taken_out_carries_one_note_written_here(tmp_path):
     db, layers = _bundle(tmp_path)
     got = N.write(db, DEFS, layers, {"lake:329638447": 1912509})
     assert got == {
-        1804040: "Mostly outside Gladys Lake Ecological Reserve: its closure (rule book p.9) does not apply here.",
+        1804040: "Mostly outside Gladys Lake Ecological Reserve: its closure (B.C. Synopsis p.9) does not apply here.",
         1912509: "The pond on Cormier Creek here lies mostly outside Blue/Dease Rivers Ecological Reserve: its "
-                 "closure (rule book p.9, 50) does not apply to the pond."}
+                 "closure (B.C. Synopsis p.9, 50) does not apply to the pond."}
     assert dict(db.execute("SELECT sid, note FROM section_note")) == got
 
 

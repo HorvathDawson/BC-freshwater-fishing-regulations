@@ -166,18 +166,18 @@ describe("in-season: the words, whole", () => {
   it("the banner line, as the owner wrote it", () => {
     const b = inSeasonBanner({ id: "is-a", region: "8", water: "Okanagan River", from: "2026-10-15",
       to: "2026-11-30", text: "No fishing July 30 to September 15.", source: SRC, waters: null }, { where: null });
-    expect(b.line).toBe("In-season change (Oct 15–Nov 30): No fishing July 30 to September 15. — source ›");
+    expect(b.line).toBe("In-season change (Oct 15–Nov 30): No fishing July 30 to September 15. — B.C. in-season changes ↗");
     expect([b.url, b.where, b.note]).toEqual([SRC, null, "Shown as posted; the answers on this page do not include it yet."]);
     // (T518) a change on part of the page says where, in its own ends
     const p = inSeasonBanner({ id: "x", region: "8", water: "W", from: null, to: null, text: "T", source: SRC, waters: null },
       { where: "From Hell's Gate to Spuzzum Creek confluence" });
     expect([p.where, p.line]).toEqual(["Where: From Hell's Gate to Spuzzum Creek confluence",
-      "In-season change: T Where: From Hell's Gate to Spuzzum Creek confluence. — source ›"]);
+      "In-season change: T Where: From Hell's Gate to Spuzzum Creek confluence. — B.C. in-season changes ↗"]);
   });
   it("(T694) an unread notice's mark leads its line", () => {
     const b = inSeasonBanner({ id: "is-a", region: "8", water: "Okanagan River", from: "2026-10-15",
       to: "2026-11-30", text: "No fishing.", source: SRC, waters: null }, { where: null }, "updated");
-    expect([b.mark, b.line]).toEqual(["Updated", "Updated · In-season change (Oct 15–Nov 30): No fishing. — source ›"]);
+    expect([b.mark, b.line]).toEqual(["Updated", "Updated · In-season change (Oct 15–Nov 30): No fishing. — B.C. in-season changes ↗"]);
   });
 });
 

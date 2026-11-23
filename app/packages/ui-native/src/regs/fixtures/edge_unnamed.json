@@ -197,10 +197,11 @@
  },
  "header": {
   "classed": {
-   "aria": "Class II, Apr 1–Oct 31",
+   "aria": "Class II water · Classified Waters Licence · Apr 1–Oct 31",
    "cls": "II",
    "inForce": true,
    "label": "Class II",
+   "line": "Class II water · Classified Waters Licence · Apr 1–Oct 31",
    "period": "Apr 1–Oct 31",
    "term": "classified_waters"
   },
@@ -751,7 +752,6 @@
    },
    "hatchLink": "How to tell a hatchery fish ›",
    "kind": "table",
-   "sourcesLink": "Sources ›",
    "src": [
     3053,
     3054,

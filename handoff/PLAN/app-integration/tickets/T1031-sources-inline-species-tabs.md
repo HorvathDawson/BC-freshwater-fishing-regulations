@@ -1,12 +1,37 @@
 # T1031 — Sources round 3, the rest: one inline source format, a breakdown per species, one species sheet with tabs
 
-Status: PARTIAL — left (Claude): item 3 (one inline source format, lane L22). Items 4-5 built, 11d0e1915 (lane L23, 2026-11-23): one species sheet per fish line, tabs
-"Identification | Sources" (each tab its own key: `tf:<row>` / `tf:<row>|id`, `other:oN` / `other:oN|id`, a drawn card's
-or a salmon species' `sp:<code>|src` / `sp:<code>`; the picture opens Identification, the rest of the line Sources), and on
-Sources "Where each rule comes from": the line's deciding rules by authority (`SOURCE_AUTHORITIES`), each its role and its
-own highlighted pages; a salmon species: today's answer, DFO's places answering it (rows as printed) and the book's closure.
-Pictures `T1031-shots/species-{trout,salmon}-{sources,identification}-{light,dark}.png` (Vedder River). The tab words and
-the head "Where each rule comes from" are kept (owner 2026-11-23, below).
+Status: IN PROGRESS — item 3 built, 26839d85d + 5fdd46510 + 315d8b3bb (lane L22, 2026-11-23, on T991's #63): ONE SOURCE LINE, core `sourceLineOf`
+(`tabSources.ts`) drawn by ui-native `SourceRow`: "Source  B.C. Synopsis p.8 ↗  p.49 ↗  <web> ↗  Who says so ›" ("↗" leaves the
+app, "›" opens a sheet; last line of the block it supports). On it: the Gear / Ways to fish / Boats / Reference lines (level words
+"Province · Region 6 · This water's" fold into the section's Sources sheet behind "Who says so ›"), the trout table (its pages,
+then "Who says so ›" = `src:trout`, was "Sources ›"), a sheet's source block ("Source ›" → "Who says so ›"), a closure on the
+closed banner (the boxed SOURCE chip + bare links; Lost Lagoon's "StanleyParkVan.com ↗"), the salmon card's book closure (was the
+string "Rule book p.9 · …", now its row + "B.C. Synopsis p.9 ↗" linked through the page's PDF map) and DFO line (was link-coloured
+text "Fisheries and Oceans Canada · Region 6 Skeena" that opened nothing, now "DFO notices, Region 6 Skeena ↗" to that region's
+page), the in-season banner and inbox ("source ›" → "B.C. in-season changes ↗"), the every-source sheet's group heads. Kept: a
+rule's own page link inside its sentence (owner round 2; renamed, below), card chips (labels). Names: `core/src/sourceNames.ts`; guard
+`app/tools/source-names.test.ts`. Not changed: what is cited.
+Pictures `T1031-shots/inline-{before,after}-{gear,methods,salmon,trout}-{light,dark}.png` (web 390 px, Skeena Class II part,
+staging data). Items 1–2 (the owner's items 5 and 4), lane L23, 11d0e1915 + bb3836936 (PR #71): one species sheet per fish line, tabs
+"Identification | Sources" (each tab its own key: `tf:<row>` / `tf:<row>|id`, `other:oN` / `other:oN|id`, a drawn card's or a
+salmon species' `sp:<code>|src` / `sp:<code>`; the picture opens Identification, the rest of the line Sources), and on Sources
+"Where each rule comes from": the line's deciding rules by authority, each its role and its own highlighted pages; a salmon
+species: today's answer, DFO's places answering it and the book's closure. Pictures `T1031-shots/species-*.png`.
+OWNER ANSWERS 2026-11-23 ~10:50, verbatim: inline look "Yes, as built (Recommended)"; the book's name "'B.C. Synopsis' everywhere
+(Recommended)" — so a rule's in-sentence link reads "B.C. Synopsis p.N ↗" (was "Rule book p.N ↗") and so does the salmon rows'
+place label ("B.C. Synopsis p.9 · Skeena River"), the chips, the download list and every sentence naming the book; one constant,
+`sourceNames.ts` `RULE_BOOK` = `SOURCE_AUTHORITIES.synopsis.name`; the guard refuses "rule book" in any app string, any case.
+#69 review fixes folded in: the trout fish sheet's hatchery link is a `link` block (one Source line per sheet, last; pinned on
+the fixture pages with the cited pages per block against the base branch, conformance `sourceLine.fixture.test.ts`); the trout
+line and the salmon book closures reach the foot row (`drawnRegsOf`'s drawn lines); no silent default (trout sources required,
+the sheet title required, no unlinked salmon closure).
+#69 re-review (47f921746): the trout table's line is "Source  Who says so ›" with no page of its own — a Source line cites what
+its block draws, and the table draws none (a row's `src` lists every rule behind it without saying which it shows; the app
+never cuts it), so citing its sheet's pages listed p.6 on the Vedder (the steelhead quota and record duty the table never says).
+The pipeline's own words follow the rename through `pipeline/common/source_names.py` (held equal to the app's name,
+`test_source_names.py` refuses "rule book" in what deliver writes): the outside-area note ("its closure (B.C. Synopsis p.9) does
+not apply here") and the salmon book verdicts ("Closed to all fishing by the B.C. Synopsis (p.N): …") — NEEDS THE 0.9.0 DATA
+RELEASE (they are written into the bundle and the salmon file).
 
 Source: owner 2026-11-22 ~23:55 (the T991 round-2 answer, recorded verbatim in T991): "We also should clean up our inline
 sources. Right now the way they display is inconsistent.... We still want to have the break down source like the sheet in

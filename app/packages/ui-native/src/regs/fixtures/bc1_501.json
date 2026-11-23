@@ -208,10 +208,11 @@
  },
  "header": {
   "classed": {
-   "aria": "Class II, Mar 1–May 31",
+   "aria": "Class II water · Classified Waters Licence · Mar 1–May 31",
    "cls": "II",
    "inForce": false,
    "label": "Class II",
+   "line": "Class II water · Classified Waters Licence · Mar 1–May 31",
    "period": "Mar 1–May 31",
    "term": "classified_waters"
   },
@@ -802,7 +803,6 @@
    },
    "hatchLink": null,
    "kind": "table",
-   "sourcesLink": "Sources ›",
    "src": [
     1650,
     3155,
@@ -1202,7 +1202,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -1258,7 +1258,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -1304,7 +1304,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -1360,7 +1360,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -1406,7 +1406,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -1462,7 +1462,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -1518,7 +1518,7 @@
      "k": "pages",
      "line": [
       {
-       "s": "Rule book",
+       "s": "B.C. Synopsis",
        "t": "text"
       },
       {
@@ -2399,14 +2399,14 @@
      ],
      "k": "fold",
      "open": false,
-     "summary": "In the rule book’s words"
+     "summary": "In the B.C. Synopsis’s words"
     },
     {
      "k": "source",
      "line": [
       {
        "open": "rule:z5:possession_quota::possession_quota.r1",
-       "s": "Source ›",
+       "s": "Who says so ›",
        "t": "link"
       },
       {

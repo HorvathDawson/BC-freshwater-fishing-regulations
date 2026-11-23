@@ -18,7 +18,7 @@ import { AdiposeArt, adiposeArt } from "./AdiposeArt";
 import { ADIPOSE } from "../adipose.generated";
 import { DARK, LIGHT, THEMES, type Palette } from "../theme";
 import vedder1010 from "./fixtures/vedder_1010.json";
-import { TEST_SOURCES } from "./testing/sources";
+import { TEST_SOURCES, TEST_TROUT_SOURCES } from "./testing/sources";
 
 afterEach(cleanup);
 
@@ -102,11 +102,11 @@ describe("T38 How to tell: the hatch sheet", () => {
     expect([fold.getAttribute("aria-expanded"), screen.getByText(quote).textContent]).toEqual(["true", quote]);
   });
 
-  it("4. pages: 'Rule book' then p.13 ↗ and p.80 ↗, each opening its PDF page", () => {
+  it("4. pages: 'B.C. Synopsis' then p.13 ↗ and p.80 ↗, each opening its PDF page", () => {
     const h = hatch();
     expect(G.pages).toEqual([{ text: "p.13 ↗", pdf: 15 }, { text: "p.80 ↗", pdf: 86 }]);
     const body = squash(screen.getByTestId("sheet-body").textContent);
-    expect(body.endsWith("Rule book p.13 ↗ p.80 ↗")).toBe(true);
+    expect(body.endsWith("B.C. Synopsis p.13 ↗ p.80 ↗")).toBe(true);
     const links = screen.getAllByRole("link");
     expect(links.map((l) => l.textContent)).toEqual(["p.13 ↗", "p.80 ↗"]);
     links.forEach((l) => fireEvent.click(l));
@@ -146,7 +146,7 @@ describe("T38 How to tell: the hatch sheet", () => {
 
   it("6. How to tell opens it: the trout table's 'How to tell a hatchery fish ›' on the Vedder Keep tab opens the hatch sheet (T810 cutover: the table's link, where the ST kind's was)", () => {
     const onSheet = vi.fn();
-    render(<RegsScreen sources={TEST_SOURCES} page={VEDDER} palette={LIGHT} actions={{ onSheet, onDay() {}, onBook() {} }} onDate={() => {}} />);
+    render(<RegsScreen troutSources={TEST_TROUT_SOURCES} sources={TEST_SOURCES} page={VEDDER} palette={LIGHT} actions={{ onSheet, onDay() {}, onBook() {} }} onDate={() => {}} />);
     const tell = screen.getByTestId("trout-hatch");
     expect(tell.textContent).toBe("How to tell a hatchery fish ›");
     fireEvent.click(tell);

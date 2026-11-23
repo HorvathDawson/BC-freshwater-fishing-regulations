@@ -17,7 +17,7 @@ export function Boats({ vm, palette, actions }: { vm: NonNullable<MethodsVM["boa
       <View style={{ marginTop: SPACE.s1 }}>
         {vm.items.map((t, i) => <Text key={i} style={[TYPE.meta, { color: palette.ink }]}>{t}</Text>)}
       </View>
-      {vm.src && <SourceLine src={vm.src} palette={palette} actions={actions} spaced />}
+      {vm.src && <SourceLine src={vm.src} what={vm.label} palette={palette} actions={actions} spaced />}
     </Cell>
   );
 }
