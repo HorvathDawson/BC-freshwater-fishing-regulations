@@ -693,7 +693,6 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top, waterDone }: {
             This place has no stretch of its own: it applies to the {d.other_places.others.length} other placed place{d.other_places.others.length === 1 ? "" : "s"} of this water
             {d.other_places.others.length ? `: ${d.other_places.others.map((o) => `“${o.text.slice(0, 60)}”`).join("; ")}` : ""}.
             {d.other_places.others_unplaced.length ? ` Not included until placed: ${d.other_places.others_unplaced.map((o) => `“${o.text.slice(0, 60)}”`).join("; ")}.` : ""}
-            {d.other_places.one_sibling && <div className="warn-text" data-testid="ck-one-sibling">{d.other_places.one_sibling}</div>}
           </div>)}
         {d?.withdrawn && d.withdrawn.length > 0 && (
           <div className="dim" data-testid="ck-withdrawn" style={{ margin: "0 8px 8px" }}>

@@ -490,10 +490,17 @@ def rest_after(key: Sequence[str], after: Mapping[str, frozenset]) -> Tuple[str,
 
 
 def rides_on_others(locs: Iterable) -> frozenset:
-    """(T611) the location ids whose extent is `other_places` — the union of their siblings' sections."""
-    return frozenset(l.location_id for l in locs
-                     if any(getattr(e.op, "value", e.op) == "other_places"
-                            for e in (getattr(getattr(l, "binding", None), "extents", None) or ())))
+    """(T611) the location ids whose extent is `other_places` — the union of their siblings' sections. A place is an
+    `EntryLocation` (the bundle) or its stored dict (the review app's cascade view, `curation-review/backend/cascade.py`),
+    so both order a chain with the one key."""
+    def field(x, k):
+        return x.get(k) if isinstance(x, Mapping) else getattr(x, k, None)
+
+    def op(e):
+        o = field(e, "op")
+        return getattr(o, "value", o)
+    return frozenset(field(l, "location_id") for l in locs
+                     if any(op(e) == "other_places" for e in (field(field(l, "binding") or {}, "extents") or ())))
 
 
 # ── the regions a section lies in (T668) ─────────────────────────────────────────────────────────────────────────────
