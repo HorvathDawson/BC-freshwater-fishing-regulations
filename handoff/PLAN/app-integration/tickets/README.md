@@ -301,7 +301,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1026 | The day picker stops at December 2026 although the synopsis is valid to March 31, 2027 | PARTIAL | | closed tester via owner 2026-11-22 |
 | T1027 | Android R8: push the optimization / shrinking / obfuscation scores past ~72% (restate library keep rules, each walked) | OPEN — after 0.9.0 | T1003, T1009 | owner 2026-11-22 |
 | T1028 | The trout schedule bar's open colour = the salmon bar's (owner 2026-11-23) | DONE | 391b37ddb | owner 2026-11-23 |
-| T1031 | Sources round 3, the rest: one inline source format, a breakdown per species, one species sheet with Identification / Sources tabs | OPEN | T991 | owner 2026-11-22 ~23:55 (T991 round-2 answer, items 3–5); split out by lane L21 |
+| T1031 | Sources round 3, the rest: one inline source format, a breakdown per species, one species sheet with Identification / Sources tabs | PARTIAL | 11d0e1915 | items 4-5 built (lane L23): one species sheet, Identification / Sources tabs, a source breakdown per fish (salmon too), T1031-shots/species-*; depends T991; left (Claude): item 3 (lane L22) |
 
 ## Next after closed testing
 

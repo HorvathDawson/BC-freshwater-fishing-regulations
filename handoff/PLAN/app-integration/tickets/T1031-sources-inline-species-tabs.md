@@ -1,6 +1,12 @@
 # T1031 — Sources round 3, the rest: one inline source format, a breakdown per species, one species sheet with tabs
 
-Status: OPEN.
+Status: PARTIAL — left (Claude): item 3 (one inline source format, lane L22). Items 4-5 built, 11d0e1915 (lane L23, 2026-11-23): one species sheet per fish line, tabs
+"Identification | Sources" (each tab its own key: `tf:<row>` / `tf:<row>|id`, `other:oN` / `other:oN|id`, a drawn card's
+or a salmon species' `sp:<code>|src` / `sp:<code>`; the picture opens Identification, the rest of the line Sources), and on
+Sources "Where each rule comes from": the line's deciding rules by authority (`SOURCE_AUTHORITIES`), each its role and its
+own highlighted pages; a salmon species: today's answer, DFO's places answering it (rows as printed) and the book's closure.
+Pictures `T1031-shots/species-{trout,salmon}-{sources,identification}-{light,dark}.png` (Vedder River). The tab words and
+the head "Where each rule comes from" are the defaults, for the owner to reword.
 
 Source: owner 2026-11-22 ~23:55 (the T991 round-2 answer, recorded verbatim in T991): "We also should clean up our inline
 sources. Right now the way they display is inconsistent.... We still want to have the break down source like the sheet in
