@@ -12,7 +12,11 @@ page), the in-season banner and inbox ("source ›" → "B.C. in-season changes 
 rule's own page link inside its sentence (owner round 2; renamed, below), card chips (labels). Names: `core/src/sourceNames.ts`; guard
 `app/tools/source-names.test.ts`. Not changed: what is cited.
 Pictures `T1031-shots/inline-{before,after}-{gear,methods,salmon,trout}-{light,dark}.png` (web 390 px, Skeena Class II part,
-staging data). Items 1–2: lane L23.
+staging data). Items 1–2 (the owner's items 5 and 4), lane L23, 11d0e1915 + bb3836936 (PR #71): one species sheet per fish line, tabs
+"Identification | Sources" (each tab its own key: `tf:<row>` / `tf:<row>|id`, `other:oN` / `other:oN|id`, a drawn card's or a
+salmon species' `sp:<code>|src` / `sp:<code>`; the picture opens Identification, the rest of the line Sources), and on Sources
+"Where each rule comes from": the line's deciding rules by authority, each its role and its own highlighted pages; a salmon
+species: today's answer, DFO's places answering it and the book's closure. Pictures `T1031-shots/species-*.png`.
 OWNER ANSWERS 2026-11-23 ~10:50, verbatim: inline look "Yes, as built (Recommended)"; the book's name "'B.C. Synopsis' everywhere
 (Recommended)" — so a rule's in-sentence link reads "B.C. Synopsis p.N ↗" (was "Rule book p.N ↗") and so does the salmon rows'
 place label ("B.C. Synopsis p.9 · Skeena River"), the chips, the download list and every sentence naming the book; one constant,
@@ -68,3 +72,16 @@ owner's pick recorded; tests pinning each composed string whole (AGENTS 33), mut
 
 Depends: T991 (the per-tab Source rows, `SOURCE_AUTHORITIES`). Size: L (three parts; 1 then 2 then 3). Owner: yes (the
 inline look in 3, the tab words in 1). Default: build 1 and 2 with the words above; 3 waits for the pick.
+
+## Owner answers 2026-11-23 ~10:50 (items 4-5, verbatim picks)
+- Which part of a fish line opens Identification: "Picture only (Recommended)" — as built: the picture opens Identification,
+  the rest of the line (its name included) opens Sources.
+- The sheet's words: "Keep these words (Recommended)" — as built: "Identification | Sources", "Where each rule comes from".
+- The book's name: "'B.C. Synopsis' everywhere (Recommended)" — item 3 (lane L22, #69) sets it once in
+  `core/src/sourceNames.ts`; the breakdown's page links are `bookText` runs, so they read it from there with no word of their own.
+
+## Review of #71 (2026-11-23), fixed in bb3836936
+A salmon card row's `sp:<code>|src` opens its page line's Sources tab where the page answers that fish; an Other fish row
+with no picture still ends with its deciding rules; the trout / salmon row's two presses each hold their own 44 px; a closed
+salmon species names its closure's source. Left for when #69 lands: the salmon Sources rows' place titles ("Rule book p.9 ·
+…", salmon.ts `placeFromBook`) to #69's source format and the book's name from `sourceNames.ts`.

@@ -52,6 +52,10 @@ function payloadTexts(t: TroutVM): string[] {
 }
 
 // every vector mounted in turn: ~3 s alone, past the 5 s default when the whole suite shares the machine
+/** (T1031) the Sources press of the row whose picture (its Identification press) is `pic` */
+const rowOfPic = (pic: string): HTMLElement =>
+  screen.getByTestId(pic).closest<HTMLElement>("[data-testid='keep-row:line']")!.querySelector<HTMLElement>("[data-testid='keep-row']")!;
+
 describe("(T810 O) every vector drawn", { timeout: 30_000 }, () => {
   it(`${CASES.length} vectors: every payload text on screen, unchanged; no slot or brace left`, () => {
     expect(CASES.length).toBeGreaterThanOrEqual(52);
@@ -151,14 +155,17 @@ describe("(T810 O) the links and the presses", { timeout: 30_000 }, () => {
     fireEvent.click(screen.getByTestId("trout-sources"));
     fireEvent.click(screen.getByTestId("pic:ST"));
     fireEvent.click(screen.getByTestId("pic:RB"));
-    // (T810 P) a row opens its own fish sheet (the row key, "/" and all); Sources the table's every rule
-    expect(sheets).toEqual(["hatch", "src:trout", "tf:ST", "tf:RB"]);
+    fireEvent.click(rowOfPic("pic:RB"));
+    // (T810 P, T1031) a row's picture opens its own species sheet on Identification, the rest of the row on Sources (the
+    // row key, "/" and all); Sources the table's every rule
+    expect(sheets).toEqual(["hatch", "src:trout", "tf:ST|id", "tf:RB|id", "tf:RB"]);
     cleanup();
     const twin = CASES.map(vmOf).find((x) => x.boxes.some((b) => b.rows.some((r) => r.key.includes("/"))))!;
     const tk = twin.boxes.flatMap((b) => b.rows).find((r) => r.key.includes("/"))!.key;
     const m = mount(twin);
     fireEvent.click(screen.getByTestId(`pic:${tk}`));
-    expect(m.sheets).toEqual([`tf:${tk}`]);
+    fireEvent.click(rowOfPic(`pic:${tk}`));
+    expect(m.sheets).toEqual([`tf:${tk}|id`, `tf:${tk}`]);
   });
 
   it("(T810 L elsewhere) a mixed list — the kept-elsewhere sentence, its row's worked lines, the groups' — drawn whole, as given, in order", () => {
@@ -182,11 +189,13 @@ describe("(T810 O) the links and the presses", { timeout: 30_000 }, () => {
     expect(screen.getAllByTestId("trout-elsewhere-line").map((e) => e.textContent)).toEqual([MIXED[0]]);
   });
 
-  it("every press reaches 44 × 44: the links and each row (the row is the press its picture opens through)", () => {
+  it("every press reaches 44 × 44: the links, each row's picture and each row (T1031: two presses, one sheet)", () => {
     mount(byName("fraser-r2-mission-jul15"));
-    const rowOf = (id: string) => screen.getByTestId(id).closest<HTMLElement>("[data-testid='keep-row']")!;
+    const picOf = (id: string) => screen.getByTestId(id).closest<HTMLElement>("[data-testid='keep-row:id']")!;
     for (const [id, b] of [...["trout-hatch", "trout-sources", "trout-elsewhere"].map((i) => [i, screen.getByTestId(i)] as const),
-                           ...["pic:ST", "pic:RB"].map((i) => [i, rowOf(i)] as const)]) {
+                           ...["pic:ST", "pic:RB"].flatMap((i) => [[i, picOf(i)], [`${i} row`, rowOfPic(i)]] as const)]) {
+      // (T1031 review 3) a row's two presses: each declares the box its own style holds (its min-height), never the row's
+      if (id.startsWith("pic:")) expect([id, parseFloat(getComputedStyle(b).minHeight)], id).toEqual([id, Number(b.getAttribute("data-hitslop")!.split(" ")[1])]);
       expect([b.getAttribute("role"), hitArea(b.getAttribute("data-hitslop")!)!.h >= 44, hitArea(b.getAttribute("data-hitslop")!)!.w >= 44], id)
         .toEqual(["button", true, true]);
     }
@@ -254,10 +263,11 @@ describe("(T810 O) the look: two text sizes, the filled label, the origin word, 
         // one size: the same padding and border as the label
         expect([s.paddingLeft, s.paddingTop, s.borderTopWidth], name).toEqual([ls.paddingLeft, ls.paddingTop, ls.borderTopWidth]);
       }
-      // the row still reads as N's golden label (the word as is), and it is still a 44 × 44 press (the row, its picture in it)
+      // the row still reads as N's golden label (the word as is), and it is still a 44 × 44 press (the row, its picture
+      // beside it: T1031 two presses, one sheet)
       const row = screen.getAllByTestId("keep-row").find((r) => within(r).queryByTestId("keep-origin"))!;
       expect([row.getAttribute("role"), row.getAttribute("aria-label")], name).toEqual(["button", A11Y["dodd-jul15"]![twins[0]!.key]]);
-      expect(row.contains(screen.getByTestId(`pic:${twins[0]!.key}`)), name).toBe(true);
+      expect(rowOfPic(`pic:${twins[0]!.key}`), name).toBe(row);
       expect([hitArea(row.getAttribute("data-hitslop")!)!.h >= 44, hitArea(row.getAttribute("data-hitslop")!)!.w >= 44], name).toEqual([true, true]);
       cleanup();
     }

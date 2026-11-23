@@ -12,8 +12,8 @@
  * word (`ShutGroup`), the all-together line, the year bar when `year` is set, then "Sources ›" and, only when `elsewhere`
  * holds lines, "Fished elsewhere today? ›", which unfolds them in place.
  *
- * Presses (T810 P): a row's picture opens the row's fish sheet (`tf:<row key>`: its answer, "Here, today", how to tell it,
- * its sources); the hatchery link opens the existing "Hatchery or wild?" sheet (`hatch`); "Sources ›" opens the table's
+ * Presses (T810 P, T1031): a row opens the row's species sheet on Sources (`tf:<row key>`: its answer, "Here, today", how
+ * it was decided, where each rule comes from), its picture on Identification (`tf:<row key>|id`); the hatchery link opens the existing "Hatchery or wild?" sheet (`hatch`); "Sources ›" opens the table's
  * every rule (`src:trout`, `TroutTable.src` in Python's order).
  */
 import { useState } from "react";
@@ -38,7 +38,9 @@ function rowOf(r: TroutRowVM, actions: KeepActions, images: FishImages | undefin
   return {
     key: r.key, name: r.name, label: r.label, tag: r.tag, sub: r.sub, lines: r.lines, quiet: r.quiet, date: r.date, origin: r.origin, a11y: r.a11y,
     pic: { source: images?.[r.fish]?.[0]?.thumb, more: TROUT_NAV.MORE, label: WORDS.LOOKS_LIKE(r.name), testID: `pic:${r.key}`,
-           onPress: () => actions.onSheet(`tf:${r.key}`) },
+           onPress: () => actions.onSheet(`tf:${r.key}|id`) },
+    // (T1031) the row opens the fish's species sheet on Sources, its picture on Identification
+    open: () => actions.onSheet(`tf:${r.key}`),
   };
 }
 
