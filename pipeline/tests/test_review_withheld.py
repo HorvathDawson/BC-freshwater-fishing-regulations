@@ -90,7 +90,7 @@ def test_a_dfo_place_whose_check_cannot_run_is_refused_never_landed_unchecked():
     assert AP.withheld_refusal({"id": "e-1", "scope": "entry", "kind": "extent", "check": {"cheap": False}}) is None
 
 
-def _run_one(monkeypatch, tmp_path, prop, check, *, mode="no cut change"):
+def _run_one(monkeypatch, tmp_path, prop, check, *, mode="no cut change", stdout=None):
     """`apply_proposals.run` (a dry run) on ONE DFO proposal; returns (rc, events, materialized, side runs). `mode`:
     "no cut change" (the in-memory `proposals.check`, stubbed to `check`), "side atlas ready" (its side atlas and
     side copies at `proposals.side_dir`), "side-checked, --build" (a side atlas made elsewhere, named by --build),
@@ -115,7 +115,7 @@ def _run_one(monkeypatch, tmp_path, prop, check, *, mode="no cut change"):
 
     def fake_run(cmd, **k):
         runs.append({"cmd": cmd, "env": k.get("env") or {}})
-        return subprocess.CompletedProcess(cmd, 0, json.dumps(check) + "\n", "")
+        return subprocess.CompletedProcess(cmd, 0, json.dumps(check) + "\n" if stdout is None else stdout, "")
     monkeypatch.setattr(AP.subprocess, "run", fake_run)
     argv = ["--dry-run"]
     if mode == "side atlas ready":
@@ -166,6 +166,55 @@ def test_a_side_checked_place_is_bound_on_the_atlas_that_has_its_cut_and_lands(m
     rc, events, made, runs = _run_one(monkeypatch, tmp_path / "b", dict(PROP), CASES[-1][0], mode="side-checked, --build")
     assert made == ["dfo-1"] and runs[0]["env"]["CURATION_BUILD"] == str(tmp_path / "b" / "elsewhere")
     assert runs[0]["env"].get("CURATED_ROOT") == os.environ.get("CURATED_ROOT")       # not a side root: none was made
+
+
+@pytest.mark.parametrize("stdout", ["", "Traceback (most recent call last):\n  KeyError: 'x'\n", "{not json"])
+def test_a_side_check_that_prints_no_result_refuses(monkeypatch, tmp_path, stdout):
+    """the side process exits 0 but prints no JSON result (a crash swallowed, a stray print): unknown, so refused"""
+    rc, events, made, runs = _run_one(monkeypatch, tmp_path, dict(PROP), CASES[-1][0], mode="side atlas ready",
+                                      stdout=stdout)
+    assert (rc, [e["status"] for e in events], made, len(runs)) == (1, ["refused"], [], 1)
+    assert "printed no result" in events[0]["why"]
+
+
+def _boundary(*ids):
+    return SimpleNamespace(answers_to=lambda: list(ids))
+
+
+def test_the_cuts_a_place_names_are_read_at_any_depth_and_checked_against_the_atlas():
+    binding = {"extents": [{"op": "between", "splits": ["a", "b"]},
+                           {"op": "rest", "bounds": {"op": "upstream_of", "splits": ["c"]}}],
+               "tributary_excludes": [{"splits": ["d"]}]}
+    assert W.cuts_named(binding) == {"a", "b", "c", "d"}
+    reg = {"i1": SimpleNamespace(boundaries=[_boundary("a", "lake_alias_b"), _boundary("b")]),
+           "i2": SimpleNamespace(boundaries=[_boundary("c")])}
+    assert W.missing_cuts(binding, reg) == ["d"]
+    assert W.missing_cuts({"extents": [{"op": "upstream_of", "splits": ["lake_alias_b"]}]}, reg) == []   # an alias
+    assert W.missing_cuts({"extents": [{"op": "whole"}]}, {}) == []
+
+
+def test_a_place_on_an_atlas_without_its_cut_is_not_bound_there_and_refused(monkeypatch):
+    """the binding check on an atlas that has not got the place's cut (the live one for a new cut, a stale side atlas,
+    --build naming the wrong one) would bind NOTHING and withhold nothing: it says the cut is missing instead"""
+    import sys
+    sys.path.insert(0, "curation-review/backend")
+    import dfo
+    reuse = dfo.reuse
+    loc = {"binding": {"extents": [{"op": "between", "splits": ["cut_a", "cut_b"]}]}}
+    monkeypatch.setattr(dfo, "_locations", lambda: {"8:river:a": ("s", loc, None)})
+    monkeypatch.setattr(dfo, "_reach_input", lambda lc, water: ({"entry_id": "8:river:a"}, {"rule_id": "r", "extents": [1]}))
+    monkeypatch.setattr(reuse, "_registry", lambda: {"i": SimpleNamespace(boundaries=[_boundary("cut_a"), _boundary("cut_b")])})
+    monkeypatch.setattr(reuse, "_graph", lambda: SimpleNamespace(nodes={}))
+    binding = SimpleNamespace(sections=[], outcome=SimpleNamespace(value="unresolved"))
+    monkeypatch.setattr(reuse, "_build_reach", lambda *a, **k: (binding, []))
+    monkeypatch.setattr(dfo, "as_the_run_binds", lambda lid, loc=None: {"regional": False, "tidal": None})
+    import pipeline.atlas.reach.build as B
+    monkeypatch.setattr(B, "load_unplaced_calls", lambda path=None: [])
+    probe = [{"field": "extents", "after": [{"op": "between", "splits": ["cut_a", "no_such_cut__t779_probe"]}]}]
+    got = reuse.dfo_binding_change("8:river:a", probe)
+    assert got["cheap"] is False and got["missing_cuts"] == ["no_such_cut__t779_probe"]
+    assert AP.withheld_refusal({"id": "x", "scope": "dfo", "kind": "extent", "check": got})
+    assert reuse.dfo_binding_change("8:river:a", [])["cheap"] is True               # its cuts are on this atlas
 
 
 def test_with_no_atlas_that_has_the_cut_the_place_is_refused(monkeypatch, tmp_path):

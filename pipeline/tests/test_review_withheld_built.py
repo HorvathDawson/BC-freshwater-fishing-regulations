@@ -82,3 +82,24 @@ def test_the_side_check_binds_a_place_on_the_atlas_it_is_given_in_its_own_proces
     assert AP.withheld_refusal({**prop, "check": got}) is None
     bad = AP.side_check(prop, Path(request.config.rootpath) / "no-such-atlas")                     # a missing atlas
     assert bad["cheap"] is False and AP.withheld_refusal({**prop, "check": bad})
+
+
+def test_a_place_checked_on_an_atlas_without_its_cut_is_refused(backend, request):
+    """the probe: Middle Shuswap's extent re-pointed at a cut no atlas has. Bound on the served atlas it would bind 0
+    sections and withhold nothing (18 bound before): the check says the cut is missing and the mark is refused — in
+    process and in the side process `apply` runs"""
+    from pipeline.regs.review import apply_proposals as AP
+    _dfo, reuse = backend
+    probe = "no_such_cut__t779_probe"
+    _slug, loc, _w = _dfo._locations()[SHUSWAP[0]]
+    exts = [{**e, "splits": [probe if i == 0 else s for i, s in enumerate(e.get("splits") or [])]}
+            for e in loc["binding"]["extents"]]
+    assert any(probe in e["splits"] for e in exts)
+    changes = [{"scope": "entry", "field": "extents", "after": exts}]
+    got = reuse.dfo_binding_change(SHUSWAP[0], changes)
+    assert got["cheap"] is False and got["missing_cuts"] == [probe]
+    prop = {"id": "t779-probe", "scope": "dfo", "kind": "extent", "target": SHUSWAP[0], "digest": "0" * 64,
+            "edits": [{"scope": "entry", "field": "extents", "after": exts}]}
+    side = AP.side_check(prop, under_test.atlas(request))
+    assert side["cheap"] is False and side["missing_cuts"] == [probe]
+    assert probe in AP.withheld_refusal({**prop, "check": side})

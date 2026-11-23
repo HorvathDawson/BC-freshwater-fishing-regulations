@@ -2978,7 +2978,15 @@ def dfo_binding_change(location_id: str, changes: list[dict]) -> dict | None:
     after = copy.deepcopy(loc)
     for c in changes:
         _set_fields(after.setdefault("binding", {}), c["field"], c["after"])
-    reg, graph = _registry(), _graph()
+    reg = _registry()
+    from pipeline.regs.review import withheld as W
+    gone = W.missing_cuts(after.get("binding"), reg)
+    if gone:
+        # T779: this atlas has not got the cut: the place would bind nothing here and the check would pass with nothing
+        # withheld — the binding is unknown on this atlas, and unknown never passes
+        return {"cheap": False, "missing_cuts": gone,
+                "why": f"the atlas {_BUILD} has no cut {', '.join(gone)}: the place cannot be bound on it"}
+    graph = _graph()
 
     held: list[dict] = []                                  # T779: what the AFTER binding withholds
 

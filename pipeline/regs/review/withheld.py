@@ -53,5 +53,31 @@ def check(location_id: str, pieces: Iterable[Mapping], accepted: Optional[Iterab
             "stale_acceptances": [{"piece": r["piece"], "reason": r["reason"]} for r in stale(location_id, pieces, acc)]}
 
 
+def cuts_named(binding) -> set[str]:
+    """Every cut id a place's binding names (`splits` of each extent, its `bounds`, its excepted tributaries: any depth)."""
+    out: set[str] = set()
+
+    def walk(x) -> None:
+        if isinstance(x, Mapping):
+            for k, v in x.items():
+                if k == "splits" and isinstance(v, (list, tuple)):
+                    out.update(str(s) for s in v if s)
+                else:
+                    walk(v)
+        elif isinstance(x, (list, tuple)):
+            for v in x:
+                walk(v)
+    walk(binding or {})
+    return out
+
+
+def missing_cuts(binding, registry: Mapping) -> list[str]:
+    """The cut ids `binding` names that NO boundary of this atlas's registry answers to (`RegistryBoundary.answers_to`,
+    the ids the reach resolves a cut by, aliases included) — on an atlas without the cut the place binds nothing, and a
+    check bound there would pass with nothing withheld (T779: refused instead)."""
+    known = {x for it in registry.values() for b in (getattr(it, "boundaries", None) or ()) for x in b.answers_to()}
+    return sorted(cuts_named(binding) - known)
+
+
 def words(bad: Iterable[Mapping]) -> str:
     return "; ".join(f"{x['piece']} ({x['reason']})" for x in bad)
