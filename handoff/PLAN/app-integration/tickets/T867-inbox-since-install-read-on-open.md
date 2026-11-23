@@ -1,6 +1,6 @@
 # T867 — The notifications inbox: only what happened since install, read once seen, short, with data and app updates
 
-Status: OPEN (app chat; after the 0.8.1 releases unless the owner wants it in the friends' builds; a phone build).
+Status: OPEN — looked at 2026-11-22 by lane L8 and left: it rewrites the inbox's core rules (`inseasonInbox.ts` first-read, read-on-open, 30 d/20 rows) and adds two new row kinds fed by release/app-update events, plus the page and its 480-line test; the owner's reply to the 11-18 proposal is not recorded here. Not a small ticket.
 
 Owner 2026-11-18 ~19:50 (to the app chat), verbatim: "I don't think the inbox works properly for the app all in season
 still show up under earlier always and data updates and stuff don't show up in history etc. also the history after
