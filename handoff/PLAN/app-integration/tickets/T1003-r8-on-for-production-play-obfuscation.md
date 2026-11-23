@@ -1,6 +1,8 @@
 # T1003 — Android: R8 on for every release build, production included (Play: "Obfuscation 1%")
 
-Status: OPEN, for the next release (0.9.0; owner 2026-11-22: it waits for the next chat's work).
+Status: IN PROGRESS — lane L1, branch perf/T1003-r8-release (c34b990ba, 6f0be8f4d): R8 on for every release build,
+the mapping sent to Play, the benches green on this head ("Built" below); left (Claude): the independent review and
+merge, the 0.9.0 Play internal build, Play's DEX figures recorded here, the docs (step 6).
 
 Source: owner 2026-11-22, pasting the Play Console notice verbatim: "DEX code optimization is below our threshold.
 Improve your percentages in the following categories: Obfuscation (1%). Percentages under 25% in any category of your
@@ -57,3 +59,48 @@ config instead of R8 being tested.
 ## Related
 T1009 (owner 2026-11-22, Play card "DEX code optimization: Low"): the other two categories Play scores (optimization,
 shrinking), the per-build measurement and the floors; it starts once this ticket has R8 on.
+
+## Built (lane L1, 2026-11-22; branch perf/T1003-r8-release)
+Code: c34b990ba (this ticket) + 6f0be8f4d (T1009's `r8-report.mjs`, which the build runs).
+1. **R8 is the default.** `plugins/with-no-minify.js` → `plugins/with-r8.js`: `android.enableMinifyInReleaseBuilds=true`
+   and `r8-keep-rules.pro` appended for every release build. `CANIFISHTHIS_R8` is gone and REFUSED at any value (an old
+   `=0` would otherwise read as "off" and build with R8 on). The escape is `CANIFISHTHIS_NO_R8="<reason>"`, set by the
+   test bed's `session.sh --no-r8="<reason>"` (own APK name `-nor8`); `app.config.js` refuses it in production and
+   `build-apk.sh`'s precheck refuses it for every build it makes (as `--stock-maplibre`). Both T749 production refusals
+   are removed. `tools/r8-config.test.ts` pins it through the real `expo config --type introspect` (production config
+   made with minify on, the keep-rules mod registered, the escape, the refusals); mutation-checked: the old
+   `app.config.js` refusal put back fails 4 tests, the old precheck refusal fails 1. Production configs in that file
+   get the pinned-MapLibre stand-in (`repoOf(pin.MLN_VERSION)`, now shared at the top).
+2. **Obfuscation is really on.** R8's merged `configuration.txt` of this head has no `-dontobfuscate` / `-dontoptimize`
+   / `-dontshrink` from any source; r8.json says `isObfuscationEnabled: true` (and optimization, shrinking). The build
+   check (`r8-report.mjs check`, run by `build-apk.sh` for the APK and the AAB, before anything is copied, committed or
+   uploaded) fails on a planted one, its source named (test). Broad library rules and how much they keep: T1009.
+3. **The mapping goes to Play.** `play-upload.py --mapping <r8-mapping.txt>` (required with `--aab`) uploads it with
+   `edits.deobfuscationfiles.upload` (type `proguard`, the AAB's versionCode) in the same edit, after the bundle and
+   before the track; a missing or empty mapping stops before any Play call, a refused one before the track/commit
+   (`pipeline/tests/test_play_upload.py`, against a stand-in Play session). `build-apk.sh --play` passes the copy it
+   keeps under `data/sourcemaps/<key>/android/r8-mapping.txt`. The AAB also carries it itself
+   (`BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map`, AGP; the check requires it).
+4. **Proof on this head** (R8 on, release, pinned MapLibre 13.7.1-main.3a6b955, fresh install each batch; the first batch
+   built from the uncommitted tree that became c34b990ba, the others from c34b990ba clean):
+   - `install` 4/4, `report` 6/6 (More → Report a problem, offline queue, flushed on reconnect), `regs-open` 26/26
+     (search → the map framed → a tap on the water → its regulations page, every case), `memory` 14/14 (boot "Code" 46.1 MB;
+     a water's page, satellite), `mode-switch` (Trout → Salmon → Conditions → Runs → Map → Trout, all painted): emulator
+     `n1_pixel_b`.
+   - `spots` 14/14 (a photo from the system picker: expo-image-manipulator, the one native module added since 0.7.11),
+     `bg-install` 8/9 (mobile-data ask, wait for Wi-Fi, the system download with the app closed, notification tap
+     reopens; the one FAIL is T738's bar-vs-bytes check, open in T738), `tap-stalls` 5/5 (worst 276 ms): emulator
+     `n1_pixel`. (On `n1_pixel_b` bg-install could not reach mobile data / the bench proxy and tap-stalls saw a 1.2 s
+     stall with three other heavy jobs on the machine; on `n1_pixel` both passed.)
+   - keep-rule review of what changed since build 33: the app's own modules (bg-download, exit-info, memory-trim) have
+     no Android change since 0.7.11; expo-image-manipulator is the only new native dependency (spots bench above).
+     The mapping proves the reflective names hold on the pinned MapLibre: `MapView.onLowMemory`,
+     `MapLibreSurfaceView.detachedListener` / `renderThread`, `WorkDatabase_Impl.<init>()`, `MemoryTrimModule`,
+     `HasChildPressedStateDelay` keep their names.
+   - `crash-bed` 5/5 on the stub APK (`session.sh --crash-stub`, R8 on, `n1_pixel`): an unhandled promise, an uncaught
+     JS error and a native SIGSEGV each reach the worker handler (the exit-info module reads Android's exit record).
+5. **Play's figure:** not read yet: no Play upload was made from this lane (left: the Play internal build of the 0.9.0
+   release, then Play's "DEX code optimization" figures into this ticket and T1009). R8's own figures for this head,
+   which Play reads from the AAB: obfuscation 72.5%, optimization 72.0%, shrinking 72.3% (was obfuscation 1%).
+6. **Docs:** left to the main chat (outside this lane's area): AGENTS.md / the release runbook "R8 always on, the
+   mapping goes to Play", and the memory note on R8.
