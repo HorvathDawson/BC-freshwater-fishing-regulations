@@ -9,6 +9,10 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-22 18:55: lane L3 (0.9.0 batch) — three looks
+- **Look (you): T997 Nicomekl labels** — `handoff/PLAN/app-integration/T997-shots/` (web before/after, Android after).
+- **Pick (you): T1004 Class II tag** A (now, far right) or B (beside the name) — `T1004-shots/` (recommend B).
+- **Approve (you): T940 satellite line colours** — `T940-shots/proposal-vs-now.png` (a mock-up; recommend the set in the ticket).
 ## 2026-11-22 23:20: question round 1 (answers, verbatim)
 - T1010 region page: "B: map preview" — being built.
 - T940 satellite: "Yes, use the proposed set" — being built.
