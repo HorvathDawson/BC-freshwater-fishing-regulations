@@ -120,8 +120,8 @@ def test_the_report_counts_boxed_rules_per_page_and_lists_the_rest(book):
 
 def test_the_cli_runs_bare_on_the_generated_export(monkeypatch):
     # #67 review: `--export-dir` defaulted to GENERATED.regs, a namespace, and the bare documented command crashed
-    from pipeline.common.curated import GENERATED
     from pipeline.deliver.answers import common
+    from pipeline.tests import under_test
     got = []
 
     class Stop(Exception):
@@ -134,7 +134,7 @@ def test_the_cli_runs_bare_on_the_generated_export(monkeypatch):
     monkeypatch.setattr(common, "load_export", load)
     with pytest.raises(Stop):
         PB.main([])
-    assert got == [GENERATED.regs.extraction.parent] and isinstance(got[0], Path)
+    assert got == [under_test.generated().regs.extraction.parent] and isinstance(got[0], Path)
     assert (got[0] / "ui-rules-export.json").name == "ui-rules-export.json"
 
 
@@ -146,15 +146,19 @@ def test_the_gate_holds_the_not_located_rules_to_the_pinned_list(tmp_path, monke
     PB.write_pin(["z::r2", "z::r1"], pdf, "a book")
     assert json.loads(pin.read_text())["books"] == {hashlib.sha256(b"%PDF one").hexdigest():
                                                      {"about": "a book", "unlocated": ["z::r1", "z::r2"]}}
-    PB.hold_to_pin(["z::r1", "z::r2"], pdf)                                         # exactly the pin: passes
+    held = ["z::r1", "z::r2", "z::r3"]
+    PB.hold_to_pin(["z::r1", "z::r2"], held, pdf)                            # exactly the pin: passes
     with pytest.raises(PB.PassageGateError, match=r"NOT LOCATED now \(no box\): z::r3") as e:
-        PB.hold_to_pin(["z::r1", "z::r2", "z::r3"], pdf)                            # a rule lost its box
+        PB.hold_to_pin(["z::r1", "z::r2", "z::r3"], held, pdf)                    # a rule lost its box
     assert "take them off" not in str(e.value)
     with pytest.raises(PB.PassageGateError, match="LOCATED now, take them off the pin: z::r2"):
-        PB.hold_to_pin(["z::r1"], pdf)                                              # one is located now: the pin must follow
+        PB.hold_to_pin(["z::r1"], held, pdf)                                     # one is located now: the pin must follow
+    # (#67 CI) an export that does not hold a pinned rule (a partial or hand-made one) is not asked about it
+    PB.hold_to_pin(["z::r1"], ["z::r1", "z::r3"], pdf)
+    PB.hold_to_pin([], [], pdf)
     pdf.write_bytes(b"%PDF two")                                             # another book: nothing pinned for it
     with pytest.raises(PB.PassageGateError, match="no pinned not-located list"):
-        PB.hold_to_pin([], pdf)
+        PB.hold_to_pin([], [], pdf)
 
 
 def test_the_build_gates_every_zone_rule_given_no_box(monkeypatch, tmp_path):

@@ -381,7 +381,9 @@ def add_sources(facts: List[dict], doc: dict, order: Sequence[str]) -> None:
     display facts, in the export's rule order (`order`: rule ids). Only the rules a part reaches
     by the tributary walk somewhere carry `applies_trib`; only a water table's row carries `row` (T916)."""
     walked = {k for rs in doc["rulesets"].values() for k in rs.get("trib") or []}
-    unlocated: List[str] = []        # (T1032) zone / province / area rules given no box: must be the pinned list
+    # (T1032) the zone / province / area rules this export holds, and those given no box: must be the pinned list
+    considered: List[str] = []
+    unlocated: List[str] = []
     for f, rid in zip(facts, order):
         x = doc["rules"][rid]
         auth = (doc["entries"].get(x["entry_id"]) or {}).get("authority")
@@ -399,8 +401,10 @@ def add_sources(facts: List[dict], doc: dict, order: Sequence[str]) -> None:
         boxes = book_boxes(x, doc)
         if boxes:
             f["book_box"] = boxes
-        elif (doc["entries"].get(x["entry_id"]) or {}).get("kind") in PASSAGE_KINDS:
-            unlocated.append(rid)
+        if (doc["entries"].get(x["entry_id"]) or {}).get("kind") in PASSAGE_KINDS:
+            considered.append(rid)
+            if not boxes:
+                unlocated.append(rid)
         say, trib = applies_here(x, doc)
         f["applies"] = say
         if rid in walked:
@@ -408,14 +412,14 @@ def add_sources(facts: List[dict], doc: dict, order: Sequence[str]) -> None:
                 raise AnswersError(f"display: {rid} reaches a part by the walk but is bound to "
                                    f"no water (provenance rank {x['provenance'].get('rank')})")
             f["applies_trib"] = trib
-    _passage_gate(unlocated)
+    _passage_gate(unlocated, considered)
 
 
-def _passage_gate(unlocated: Sequence[str]) -> None:
+def _passage_gate(unlocated: Sequence[str], considered: Sequence[str]) -> None:
     """(T1032, W46) The rules given no highlight box must be the list pinned for the PDF the release ships."""
     from pipeline.regs.extraction.passage_boxes import PassageGateError, hold_to_pin
     try:
-        hold_to_pin(unlocated, book_files()[0])
+        hold_to_pin(unlocated, considered, book_files()[0])
     except PassageGateError as e:
         raise AnswersError(f"display: {e}") from e
 

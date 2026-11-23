@@ -216,17 +216,22 @@ class PassageGateError(ValueError):
     """The rules not located are not the pinned list."""
 
 
-def hold_to_pin(unlocated: Sequence[str], pdf: Path, pin: Optional[Path] = None) -> None:
-    """Refuse unless `unlocated` (every zone / province / area rule given no box) is exactly the list pinned for this PDF:
-    a NEW one names its id (it lost its box: fix the text, or re-pin on purpose); one now LOCATED asks for the pin to be
-    updated (so the pin never holds a stale exemption). A PDF with no pinned list is refused too."""
+def hold_to_pin(unlocated: Sequence[str], considered: Sequence[str], pdf: Path, pin: Optional[Path] = None) -> None:
+    """Refuse unless `unlocated` (the zone / province / area rules given no box, out of `considered`: every such rule this
+    export holds) is the list pinned for this PDF, over the rules this export holds: a NEW one names its id (it lost its
+    box: fix the text, or re-pin on purpose); a pinned one this export holds that is now LOCATED asks for the pin to be
+    updated (so the pin never holds a stale exemption). A pinned rule this export does not hold (a partial or
+    hand-made export) is not asked: it is neither located nor not. A PDF with no pinned list is refused."""
     from pipeline.regs.extraction.row_boxes import sha256
     sha, pin = sha256(pdf), Path(pin or PIN)
     books = json.loads(Path(pin).read_text(encoding="utf-8"))["books"]
     if sha not in books:
         raise PassageGateError(f"passage boxes: no pinned not-located list for the synopsis {pdf} (sha256 {sha[:16]}) "
                                f"in {pin}; review the report and pin it: {PIN_CMD}")
-    want, got = set(books[sha]["unlocated"]), set(unlocated)
+    held = set(considered)
+    if not set(unlocated) <= held:
+        raise ValueError("passage boxes: an unlocated rule that was not considered")
+    want, got = set(books[sha]["unlocated"]) & held, set(unlocated)
     new, gone = sorted(got - want), sorted(want - got)
     if new or gone:
         raise PassageGateError(
