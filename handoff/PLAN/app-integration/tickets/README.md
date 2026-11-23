@@ -282,7 +282,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1002 | Test-anchor scanners: an `absent` rule for pipeline/tests/anchors.py; the record-equality and toBeUndefined gaps; part numbers after short template slots | OPEN | T768 | T768's lane, 2026-11-22 |
 | T1003 | Android: R8 on for every release build, production included; mapping file uploaded to Play (Play Console: "Obfuscation 1%", under its 25% threshold) | OPEN — next release (0.9.0) | T749 | owner 2026-11-22 (Play Console notice) |
 | T1004 | In-app report: the Class II tag sits far right of the water's name, "kind of hidden" (Skeena part 11) | OPEN — next release batch | | production report 2026-11-21 (read 2026-11-22) |
-| T1005 | Production crash reports 11-15 → 11-22: ~20 kinds no ticket names (0.8.4 404s, PMTiles magic number, …): triage | OPEN | | `GET /crashes` 2026-11-22 |
+| T1005 | Production crash reports 11-15 → 11-22: ~20 kinds no ticket names (0.8.4 404s, PMTiles magic number, …): triage | IN PROGRESS — triaged kind by kind (11 of 20 from one search-engine renderer); app fixes in; left (Claude): the worker's classes (lane L5) | 127296a64, fe477309b | lane L5: the worker's classes (T1005 "What the worker needs"); then a /crashes read |
 | T1006 | One read-only command lists every new report (both workers, TestFlight, Play reviews); every chat runs it first | OPEN | | owner 2026-11-22 |
 | T1007 | Website: Chrome warns "StorageType.persistent is deprecated" (first party); not in our code or the two bundles: find the source | OPEN — next release batch | | owner 2026-11-22 (Lighthouse) |
 | T1008 | Website: Lighthouse "missing source maps" — maps are kept private on purpose (T352); serve them (repo is public) or keep hidden | OPEN — decided: serve (owner 2026-11-22) | | owner 2026-11-22 (Lighthouse) |
@@ -290,7 +290,11 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1010 | Website: a region page's "Open the map" goes to the bare home map (`mapLink` = origin/, no area in the start link): open framed on the region; redesign the page to lead into the app (water search, crawlable links kept below) | OPEN — next release batch | | owner 2026-11-22 (/region/4) |
 | T1011 | Website: 156 waters partly outside B.C. get no page (`PAGE_ORDS_SQL` tests `outside_bc = 0`, but it is a COUNT of sections outside: Columbia, Kootenay, Peace, Similkameen, Kettle…); renamed waters never print their former name (Chilko Lake = Tŝilhqox Biny); the home page has no crawlable links; top-100 indexing list | OPEN — next release batch | | owner 2026-11-22 (index list research) |
 | T1012 | Staging report: Serpentine River (`gnis:24978`) part 2 shows ditches on its mainstem in salmon mode | OPEN — next release batch | | staging report 2026-11-22 (`e552b9f0b31e2698`) |
-| T1013 | Staging report: switching to Runs takes a very long time the first time (Android 0.8.5) | OPEN — next release batch | | staging report 2026-11-22 (`50e342ef056ab300`) |
+| T1013 | Staging report: switching to Runs takes a very long time the first time (Android 0.8.5) | IN PROGRESS — read ahead on a phone + answer before the capture write; left (Claude): emulator timings before / after | 02d0a8a90 | emulator timings, fresh + warm (testbed mode-switch Runs leg) |
+| T1014 | Play update check: production phones read `app/android/play/43.json`, which only the staging bucket holds (HTTP 404) | OPEN — next release batch | | owner: copy 43.json to production R2; build-apk.sh --play to both buckets |
+| T1015 | Google's renderer runs the web app on cached old releases: does the indexed page show the app's boot error? | OPEN — next release batch | | Search Console rendered-page check, then the fallback if needed |
+| T1016 | Web: a tab kept open across two releases (or a site deploy) meets 404s on pruned files / a gone chunk: say it, reload | OPEN — next release batch | | all |
+| T1017 | Two one-report defects to locate: `expression.evaluate is not a function` (web), iOS "Unable to open URL" on Runs | OPEN — next release batch | | both; item 1 after T1008 |
 
 ## Next after closed testing
 

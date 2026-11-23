@@ -50,6 +50,10 @@ export * from "./chartZoom";
 export * from "./photoZoom";
 export * from "./photoViewer";
 export * from "./routeMap";
+// (T1005) a browser that cannot draw the map (no WebGL): the words and the one error reported
+export * from "./mapUnavailable";
+// (T1005) the web's platform line: a reader, a crawler or a driven browser
+export * from "./webAgent";
 export * from "./temperature";
 export * from "./install";
 export * from "./pairing";

@@ -62,10 +62,14 @@ export function httpRunTiming(base: string, store?: RunTimingStore, fetchImpl: t
       return f ? { raw, facts: f } : null;
     } catch { return null; }
   };
+  const writeCapture = async (raw: Captured): Promise<void> => {
+    try { await store?.write(JSON.stringify(raw)); } catch { /* a cache: costs only the next offline open */ }
+  };
   const json = async (url: string, f: RunTimingIndex["files"]["runs"]): Promise<unknown> =>
     JSON.parse(decoder.decode(await fetchVerified(`${root}/${url}`, f, undefined, fetchImpl)));
   const get = async (): Promise<RunTimingData | null> => {
-    const was = await captured();
+    // (T1013) the capture is read WHILE the index is asked for, not before it: the two waits overlap
+    const wasP = captured();
     let index: RunTimingIndex | null = null;
     let rawIndex: unknown = null;
     try {
@@ -80,6 +84,7 @@ export function httpRunTiming(base: string, store?: RunTimingStore, fetchImpl: t
       // known state, held by the gate for the update prompt, not a failure
       if (!isFeedTooNew(e)) reportFailure(e);
     }
+    const was = await wasP;
     if (!index) return was ? { facts: was.facts, from: "capture" } : null;
     // (T552 item 6) a capture of the device's own atlas is kept over a set bound to another
     const mine = opts.handles?.() ?? null;
@@ -94,7 +99,9 @@ export function httpRunTiming(base: string, store?: RunTimingStore, fetchImpl: t
       const raw: Captured = { index: rawIndex, runs, paint };
       const f = facts(raw);
       if (!f) return was ? { facts: was.facts, from: "capture" } : null;
-      try { await store?.write(JSON.stringify(raw)); } catch { /* a cache: costs only the next offline open */ }
+      // (T1013) THE ANSWER DOES NOT WAIT FOR THE CAPTURE: the map paints from `f` now, and the few MB are written after
+      // (a phone's first Runs tab waited for the string and the file before its first coloured line)
+      void writeCapture(raw);
       return { facts: f, from: "live" };
     } catch (e) {
       reportFailure(e);   // (T368) the capture answers, said as captured; reported unless offline
