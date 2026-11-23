@@ -159,3 +159,7 @@ Depends: owner answers. Size: B is M (pipeline field + editor row + worker + two
 
 ## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
 owner 2026-11-15: "we should have a way to define one half of the river closing maybe? could color only west or east side?"; 2 rivers, 3 records; recommended: bank left/right looking downstream + one-side stripe
+
+## Owner answer 2026-11-22 23:45 (question 2, dialog)
+"Other bank: the water's other rules" — a closure on one bank closes that bank only; the other bank reads the water's
+other regulations (as `side` does for "west half", AGENTS rule 49). Unblocks T754 (size M).

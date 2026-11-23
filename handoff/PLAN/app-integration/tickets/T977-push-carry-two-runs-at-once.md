@@ -1,6 +1,7 @@
 # T977 — Push wake carry-over: two feed runs at once both read it
 
-Status: OPEN — not built: no small, clean fix (the analysis below). Low risk today: the crons are at least 5 minutes apart.
+Status: POSTPONED — decided 2026-11-22 (lane L5, 0.9.0 batch): a DOCUMENTED ACCEPT, no lease now. Revisit when the
+staging or production `/status` shows a carried wake ("part N of a wake begun …"), i.e. past 1,500 registered phones.
 
 Source: the combined review of T739 (lane LA), 2026-11-20; lane LF checked whether a small fix exists.
 
@@ -37,3 +38,23 @@ run), and the subrequest count (`PUSH_FIXED_SUBREQUESTS` +2).
 
 ## Owner 2026-11-21 12:46
 Asked for the 0.8.5 batch: "No, next chat".
+
+## Decision (2026-11-22, lane L5): accept and document; the lease waits for its trigger
+- **The race needs a carry, and a carry needs more than `PUSH_SENDS_PER_RUN` (1,500) registered phones.** Below that
+  every wake fits in one run and no carry is written: two runs at once each tell every phone once (two wakes for two
+  reasons, fine). Closed testing has well under 100 phones; staging has 0 registered today, production has no APNs
+  secrets yet (`push.missing.ios` = all three, `GET https://feeds.canifishthis.ca/status.json`, read 2026-11-22).
+- **Even with a carry, the harm is bounded.** Duplicate silent pushes (a phone checks twice; iOS throttles background
+  pushes anyway), or one wake's circle cut short: those phones are told by the next wake, and the gauge run wakes every
+  30-60 min by day whenever a station changed. No alert content is lost: the phone's own periodic check still runs.
+- **The overlap itself is rare.** The crons are 5 minutes apart at the closest (`wrangler.toml` `[triggers]`); a gauge
+  run takes about a minute (53.5 s measured at the 2026-11-22 staging deploy); only a hand run (`POST /run/<job>`)
+  during a cron, or a run slower than 5 minutes, overlaps.
+- **A lease costs more than it saves today:** a new always-existing record with `etagMatches`, a stale-lease rule (an
+  expiry longer than the longest run, or a crashed run blocks every wake until it lapses), a test double that honours
+  conditions, and 2 more fixed subrequests per wake. Each is a new way for wakes to stop.
+- **Trigger to build it** (the design above stands): the first time `/status` shows "part N of a wake begun …" on
+  either worker, or a duplicate-wake report. The code says the same at `PUSH_CARRY_KEY` (`app/workers/feeds/src/push.ts`).
+
+## State 2026-11-22 (stopped for credits)
+Done: documented accept (PR #39, head 3c186213a). Left: the lease, when /status first shows a carried wake.

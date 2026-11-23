@@ -11,9 +11,8 @@ One page, one pointer (T437): a new chat reads, in order,
    is kept in `cache/reports-last-check.json` (git-ignored; moved only when every source was read). Play closed-testing
    feedback has no API: ask the owner whether any came in.
 1. `AGENTS.md` (every rule), then `CLAUDE.md`.
-2. The newest restart page: **`handoff/PLAN/NEXT-SESSION-2026-11-22-after-ci-chat.md`** (written 2026-11-22: the
-   build/CI chat is done (T995 trunk, T998 versions, T993 runbook, T978, T866, T987); next: T996, T997, then the 0.9.0
-   batch).
+2. The newest restart page: **`handoff/PLAN/NEXT-SESSION-2026-11-22-evening.md`** (written 2026-11-22 20:15: the 0.9.0
+   batch chat, stopped early for credits; open PRs, lanes' State lines in tickets, then the question round and the cut).
 3. The top entry of `handoff/PLAN/STATUS.md` (what changed last), and `handoff/PLAN/OWNER-TODO.md` (what only the
    owner can do).
 4. Chat length (owner 2026-11-21): recommend a new chat at natural breaks (a release shipped, a batch done) and /compact
