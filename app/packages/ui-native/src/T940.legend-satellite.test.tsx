@@ -14,13 +14,13 @@ import { CVD, DARK, LIGHT, type Palette } from "./theme";
 
 afterEach(cleanup);
 
-const col = (basemap: "map" | "satellite") => ({
-  flowParam: "discharge", horizon: 0, mm: { onConditions: false, basemap }, cond: { marks: [] }, gearMarked: true, regsLayer: "standard",
+const col = (basemap: "map" | "satellite", regsLayer: "standard" | "salmon" = "standard", drawn = "regulations") => ({
+  flowParam: "discharge", horizon: 0, mm: { onConditions: false, basemap }, cond: { marks: [] }, gearMarked: true, regsLayer,
   salmonOffered: true, statusOk: true, salmonFacts: null, setRegsLayer: () => {}, isolated: null, isolate: () => {},
-  layers: { water: { drawn: "regulations" }, effective: { groups: { obstacles: false } } },
+  layers: { water: { drawn }, effective: { groups: { obstacles: false } } },
 }) as never;
-const show = (basemap: "map" | "satellite", palette: Palette, theme: string) =>
-  render(<MapLegend col={col(basemap)} conditions={false} palette={palette} theme={theme} mapDay={null} />);
+const show = (basemap: "map" | "satellite", palette: Palette, theme: string, regsLayer: "standard" | "salmon" = "standard", drawn = "regulations") =>
+  render(<MapLegend col={col(basemap, regsLayer, drawn)} conditions={false} palette={palette} theme={theme} mapDay={null} />);
 const entry = (label: string) => screen.getAllByTestId("legend-entry").find((e) => e.textContent === label)!;
 /** The colour of the status entry's swatch line: its first painted descendant. */
 const swatchColour = (label: string): string => {
@@ -52,5 +52,32 @@ describe("(T940) the satellite key", () => {
     cleanup();
     show("satellite", DARK, "dark");
     expect(screen.queryAllByTestId("legend-outline")).toHaveLength(0);
+  });
+
+  it("the Salmon key follows the ground too: satellite colours, and an ink outline on the light card's pale ones", () => {
+    const t = resolveTheme("light");
+    show("satellite", LIGHT, "light", "salmon");
+    const want = { [MAP_KEY.salmon.open]: "open", [MAP_KEY.salmon.release]: "restricted", [MAP_KEY.salmon.closed]: "closed" } as const;
+    for (const [label, status] of Object.entries(want)) {
+      expect([label, swatchColour(label)]).toEqual([label, rgb(String(t[`color.imagery.status.${status}`]))]);
+      // closed (#FF3B6D) reaches 3:1 on the white card by itself: no outline; keep and release are pale: outlined
+      expect([label, within(entry(label)).queryAllByTestId("legend-outline").length]).toEqual([label, status === "closed" ? 0 : 1]);
+    }
+    cleanup();
+    show("satellite", DARK, "dark", "salmon");
+    expect(screen.queryAllByTestId("legend-outline")).toHaveLength(0);
+    cleanup();
+    show("map", LIGHT, "light", "salmon");
+    expect(screen.queryAllByTestId("legend-outline")).toHaveLength(0);
+    expect([swatchColour(MAP_KEY.salmon.release)]).toEqual([rgb(String(t["color.salmon.release"]))]);
+  });
+
+  it("the other water keys (stocked, depth) are not status colours: no outline, whatever the ground", () => {
+    for (const drawn of ["stocked", "depth"]) {
+      show("satellite", LIGHT, "light", "standard", drawn);
+      expect(screen.queryAllByTestId("legend-outline"), drawn).toHaveLength(0);
+      expect(screen.getAllByTestId("legend-entry").length, drawn).toBeGreaterThan(0);
+      cleanup();
+    }
   });
 });

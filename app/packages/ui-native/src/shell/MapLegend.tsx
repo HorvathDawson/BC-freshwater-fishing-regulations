@@ -131,7 +131,7 @@ export function MapLegend({ col, conditions, palette: drawnPalette, theme, mapDa
       ) : layers.water.drawn !== "regulations" ? (
         // ONE COLOURING FOR ALL WATER: the measure's key, ending with what draws neutral and why
         waterLegend(layers.water.drawn).map((r, i) => (
-          <LegendCount key={r.label} palette={palette} colour={legendColour(palette, r.swatch)} outline={r.swatch.kind === "status" ? edgeOf(legendColour(palette, r.swatch)) : undefined}
+          <LegendCount key={r.label} palette={palette} colour={legendColour(palette, r.swatch)}
                        label={waterKeyWords(layers.water.drawn)[i] ?? r.label} />
         ))
       ) : col.regsLayer === "salmon" ? (
