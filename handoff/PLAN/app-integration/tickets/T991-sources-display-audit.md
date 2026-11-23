@@ -1,8 +1,9 @@
 # T991 — Sources display audit: make how sources are shown consistent across the whole app
 
-Status: PARTIAL — left (Claude): T1031 (the owner's items 3–5). Round 3 built, 3428dcb83 (lane L21, 2026-11-22), from the owner's answer to round 2 (2026-11-22 ~23:55,
-recorded verbatim in this ticket by lane L17, PR #57): ONE SOURCE ROW AT THE FOOT OF EACH TAB. Regulations: one "B.C. Synopsis
-p.N ↗" link per synopsis page the page cites (never one fixed page; the water's own row among them), each opening the book with
+Status: PARTIAL — left (Claude): T1031 (the owner's items 3–5), T1032 (the every-source sheet's list). Round 3 built, 3428dcb83 + #63 review fixes 3e3a1e2ae (lane L21, 2026-11-22/23), from the owner's answer to round 2 (2026-11-22 ~23:55,
+recorded verbatim below by lane L17, PR #57): ONE SOURCE ROW AT THE FOOT OF EACH TAB. Regulations: one "B.C. Synopsis
+p.N ↗" link per synopsis page the DRAWN tabs cite (never one fixed page, never a sheet's rules; the water's own row among them,
+marked "p.N (this water) ↗"), each opening the book with
 every highlight its rules hold on that page, then "B.C. in-season changes ↗" / "DFO notices ↗" only where the page shows them,
 then "All sources ›" (the T990 sheet). Conditions: "Environment Canada ↗ BC River Forecast Centre ↗ Open-Meteo ↗" as the
 Sources-and-notes fold's head (the verbatim credits stay inside). Map: none (the map's own attribution). Names: core

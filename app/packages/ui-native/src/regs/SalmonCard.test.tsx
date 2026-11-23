@@ -17,6 +17,7 @@ import { NO_ACTIONS } from "./LineText";
 import { RegsLayerToggle } from "../shell/RegsLayerToggle";
 import type { MapColouring } from "../shell/useMapColouring";
 import vedder1010 from "./fixtures/vedder_1010.json";
+import { TEST_SOURCES } from "./testing/sources";
 
 afterEach(cleanup);
 
@@ -93,7 +94,7 @@ describe("the Salmon card", () => {
 
   it("draws under the provincial rules, framed, with its own source and as-of line", () => {
     const card = salmonCard(FACTS, { sids: [101], item: null }, JUL20);
-    render(<RegsScreen page={page} palette={LIGHT} actions={NOOP} onDate={() => {}}
+    render(<RegsScreen sources={TEST_SOURCES} page={page} palette={LIGHT} actions={NOOP} onDate={() => {}}
                        salmon={<SalmonCard card={card} palette={LIGHT} />} />);
     const el = screen.getByTestId("salmon-card");
     // ABOVE the Keep tab (owner 2026-10-28)

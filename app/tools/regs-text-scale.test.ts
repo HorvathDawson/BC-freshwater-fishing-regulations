@@ -52,6 +52,7 @@ vi.spyOn(PixelRatio, "getFontScale").mockImplementation(() => (SCALE.mutant ? 1 
 const { useState } = await import("react");
 const { WaterFrame } = await import("../packages/ui-native/src/WaterFrame");
 const { RegsScreen } = await import("../packages/ui-native/src/regs/RegsScreen");
+const { TEST_SOURCES } = await import("../packages/ui-native/src/regs/testing/sources");
 const { GearTab } = await import("../packages/ui-native/src/regs/GearTab");
 const { MethodsTab } = await import("../packages/ui-native/src/regs/MethodsTab");
 const { LicenceTab } = await import("../packages/ui-native/src/regs/LicenceTab");
@@ -158,7 +159,7 @@ function measure(scales: readonly number[]): Record<string, M> {
       for (const [c, size] of Object.entries(SIZES) as [LayoutClass, [number, number]][]) {
         SCALE.v = scale; windowAt(size);
         render(h(WaterFrame, { palette: LIGHT, face: "regulations", onBack() {}, backLabel: "Map", children:
-          h(RegsScreen, { page, palette: LIGHT, layout: c, actions: { onSheet() {}, onDay() {}, onBook() {} }, onDate() {},
+          h(RegsScreen, { page, palette: LIGHT, sources: TEST_SOURCES, layout: c, actions: { onSheet() {}, onDay() {}, onBook() {} }, onDate() {},
                           gear: page.gear ? (a: never) => h(GearTab, { vm: page.gear!, palette: LIGHT, actions: a }) : undefined,
                           methods: page.methods ? (a: never) => h(MethodsTab, { vm: page.methods!, palette: LIGHT, actions: a, referenceOpen: true }) : undefined,
                           licence: id === "vedder_1010" ? (a: never) => h(Licence, { actions: a }) : h(Text, null, "") }) }) as ReactNode);

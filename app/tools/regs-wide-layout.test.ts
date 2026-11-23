@@ -35,6 +35,7 @@ vi.mock("../packages/ui-native/src/theme", async (importOriginal) => {
 const { Text } = await import("react-native");
 const { WaterFrame } = await import("../packages/ui-native/src/WaterFrame");
 const { RegsScreen } = await import("../packages/ui-native/src/regs/RegsScreen");
+const { TEST_SOURCES } = await import("../packages/ui-native/src/regs/testing/sources");
 const { LIGHT } = await import("../packages/ui-native/src/theme");
 const { snapshot } = await import("./wide-snapshot");
 const PAGES = {
@@ -108,7 +109,7 @@ function measure(): Record<string, M> {
   for (const [id, page] of Object.entries(PAGES))
     for (const c of Object.keys(SIZES) as LayoutClass[]) {
       render(h(WaterFrame, { palette: LIGHT, face: "regulations", children:
-        h(RegsScreen, { page, palette: LIGHT, layout: c, actions: { onSheet() {}, onDay() {}, onBook() {} }, onDate() {},
+        h(RegsScreen, { page, palette: LIGHT, sources: TEST_SOURCES, layout: c, actions: { onSheet() {}, onDay() {}, onBook() {} }, onDate() {},
                         gear: h(Text, null, "gear section"), methods: h(Text, null, "methods section"),
                         licence: h(Text, null, "licence section") }) }) as ReactNode);
       const file = join(dir, `${id}-${c}.html`);

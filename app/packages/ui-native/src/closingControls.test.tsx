@@ -23,6 +23,7 @@ import { InSeasonNotice } from "./InSeasonNotice";
 import { LIGHT } from "./theme";
 import vectors from "../../../fixtures/trout/trout-vectors.generated.json";
 import vedder1010 from "./regs/fixtures/vedder_1010.json";
+import { TEST_SOURCES } from "./regs/testing/sources";
 
 afterEach(cleanup);
 
@@ -175,7 +176,7 @@ describe("T990 the Regulations page's foot Sources button and its Done", () => {
   for (const system of ["layers", "browser history"] as const) for (const control of DONE_AND_SCRIM) {
     it(`${system}: the foot button opens the every-source sheet, ${control} closes it`, async () => {
       web = system === "browser history" ? browser() : null;
-      render(<Layers><RegsScreen page={PAGE} palette={P} actions={{ onSheet() {}, onDay() {}, onBook() {} }} onDate={() => {}} /></Layers>);
+      render(<Layers><RegsScreen sources={TEST_SOURCES} page={PAGE} palette={P} actions={{ onSheet() {}, onDay() {}, onBook() {} }} onDate={() => {}} /></Layers>);
       act(() => { fireEvent.click(screen.getByTestId("regs-all-sources-button")); });
       web?.flush();
       expect(screen.getByRole("heading", { name: "Sources" })).toBeTruthy();

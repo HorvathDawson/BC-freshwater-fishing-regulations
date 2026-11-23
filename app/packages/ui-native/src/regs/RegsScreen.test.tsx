@@ -14,6 +14,7 @@ import { forgetRegsScroll, recallRegsScroll, regsScrollKey } from "./scrollMemor
 import { RegsScreen, type RegsScreenProps } from "./RegsScreen";
 import { createTabStore } from "./tabStore";
 import vedder1010 from "./fixtures/vedder_1010.json";
+import { TEST_SOURCES } from "./testing/sources";
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
@@ -22,7 +23,7 @@ const NOOP = { onSheet() {}, onDay() {}, onBook() {} };
 /** The screen as the app draws it: inside the water frame (T44), which draws the back and the view strip above it. */
 function mount(p: Partial<RegsScreenProps> = {}, onBack?: () => void) {
   return render(<WaterFrame palette={LIGHT} face="regulations" onBack={onBack}>
-                  <RegsScreen page={page} palette={LIGHT} actions={NOOP} onDate={() => {}}
+                  <RegsScreen sources={TEST_SOURCES} page={page} palette={LIGHT} actions={NOOP} onDate={() => {}}
                               gear={<Text>gear section</Text>} methods={<Text>methods section</Text>}
                               licence={<Text>licence section</Text>} {...p} />
                 </WaterFrame>);

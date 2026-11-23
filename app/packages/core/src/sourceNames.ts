@@ -35,8 +35,11 @@ export const SOURCE_LINE = Object.freeze({
   /** a sheet link a Line names in its own words ("All sources ›" on a fish sheet): its spoken name, for the block */
   SHEET_A11Y: (words: string, what: string) => `${words.replace(/\s*›$/, "")}: the rules behind ${what}`,
   /** a synopsis page link's spoken name: the page, what its opened copy marks (none: nothing), and that it opens the PDF */
-  PAGE_A11Y: (printed: number, marks: string | null) =>
-    `${SOURCE_AUTHORITIES.synopsis.name} page ${printed}${marks ? `, ${marks} marked` : ""}, opens the PDF`,
+  PAGE_A11Y: (printed: number, marks: string | null, own = false) =>
+    `${SOURCE_AUTHORITIES.synopsis.name} page ${printed}${own ? ", this water's own entry" : ""}${marks ? `, ${marks} marked` : ""}, opens the PDF`,
+  /** the mark on the water's own rule-book page in the Regulations tab's row (owner 2026-11-22: "Page 9 is not the water
+   *  body page") */
+  THIS_WATER: "(this water)",
   /** what the page-foot row's page marks: every passage the page cites (T991 round 3) */
   MARKS_PAGE: "every passage this page cites",
   /** what a block's page marks: the passages of the rules behind it */

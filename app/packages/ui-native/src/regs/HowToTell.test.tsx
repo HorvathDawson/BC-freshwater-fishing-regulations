@@ -18,6 +18,7 @@ import { AdiposeArt, adiposeArt } from "./AdiposeArt";
 import { ADIPOSE } from "../adipose.generated";
 import { DARK, LIGHT, THEMES, type Palette } from "../theme";
 import vedder1010 from "./fixtures/vedder_1010.json";
+import { TEST_SOURCES } from "./testing/sources";
 
 afterEach(cleanup);
 
@@ -145,7 +146,7 @@ describe("T38 How to tell: the hatch sheet", () => {
 
   it("6. How to tell opens it: the trout table's 'How to tell a hatchery fish ›' on the Vedder Keep tab opens the hatch sheet (T810 cutover: the table's link, where the ST kind's was)", () => {
     const onSheet = vi.fn();
-    render(<RegsScreen page={VEDDER} palette={LIGHT} actions={{ onSheet, onDay() {}, onBook() {} }} onDate={() => {}} />);
+    render(<RegsScreen sources={TEST_SOURCES} page={VEDDER} palette={LIGHT} actions={{ onSheet, onDay() {}, onBook() {} }} onDate={() => {}} />);
     const tell = screen.getByTestId("trout-hatch");
     expect(tell.textContent).toBe("How to tell a hatchery fish ›");
     fireEvent.click(tell);
