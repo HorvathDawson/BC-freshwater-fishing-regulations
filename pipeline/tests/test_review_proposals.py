@@ -346,7 +346,9 @@ def test_apply_lands_each_proposal_from_the_marks_as_its_own_commit(src, tmp_pat
     log = _git(repo, "log", "--format=%s").splitlines()
     assert log == [f"fix(T185): apply {q['id']}: {q['title']}"[:100].rstrip()
                    for q in (cow, camp_a, camp_b, by["split-n1"], by["split-n2"], hz)] + ["base"]
-    assert checked == [hz["id"]]                       # cut changes are bound on the side atlas
+    # cut changes are bound on the side atlas; a DFO place on one is ALSO checked in memory (T779: the withheld-piece
+    # gate — no reach run checks a DFO place before the build)
+    assert checked == [hz["id"], camp_b["id"], camp_a["id"], cow["id"]]
     assert _git(repo, "show", "--name-only", "--format=", "HEAD~4").split() == [
         "data/curated/splits.json"]
     splits = json.loads(src.splits_path.read_text())
