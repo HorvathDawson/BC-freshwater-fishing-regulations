@@ -1,6 +1,6 @@
 # T1039 — The public gauge page draws the web app's own chart (same data, windows, zoom, every forecast model)
 
-Status: IN PROGRESS — lane L25 (wt-l25): building option B and the ELF facts fix (owner, Q183, 2026-11-23).
+Status: IN REVIEW — 9f8603f17 (ELF facts), 44af0d16f (the app's chart on the page); owner: OWNER-TODO "Look (you): T1039 gauge page after-shots". Shows on staging after the STAGING feeds worker deploy (ELF facts) and the 0.9.0 staging site build (the chart).
 
 Source: owner 2026-11-23, verbatim: "the gauge website in 9.0.0 should also have the same chart as the website. right
 now it is only a lower resolution 7 day chart with no forecast?"
@@ -33,6 +33,31 @@ gauge `webapp-chilliwack-chart-desktop.png`.
 
 - Chart: "App's chart, ~260 KB (Recommended)" — option B.
 - ELF: "Yes, fix in 0.9.0 (Recommended)" — the facts file keeps every run the app offers, by the app's own rule.
+
+## Built (lane L25, 2026-11-23)
+
+- **ELF facts (9f8603f17).** `card.ts` `cardModel` lists every run the app offers in the card's quantity by ONE core rule
+  (`runOffered`, also behind data `forecastFor`): old runs too (the page says "likely out of date" by `dueBy`), whole (no
+  10-day cut), level runs on a level card, any model the file names. The PNG keeps its first current flow run cut at 10
+  days. `CARD_REV` 4 redraws every card once. Needs a STAGING feeds worker deploy.
+- **The app's chart (44af0d16f).** `ConditionsPanel`'s chart block became `ui` `useStationChart` + `ui-native`
+  `StationChart` (one chart, two callers). The page mounts them (`tools/seo/gaugeChart.tsx`) on `data` `stationChartSource`:
+  the app's `httpFeed` reading `<data>/feeds/live/<station>.json` (+ its index) over the station's `gauge_clim` rows,
+  which the site build reads from the release (`readGaugeClim`) and writes into the page config (~1 KB base64). The series
+  is the release source's own `climSeries`. esbuild (new dev dependency, deps.md) bundles it into one deferred,
+  self-hosted script: **946 KB raw, 292 KB gzip** (the estimate was 260); the coho loader's sheets ship beside it under
+  `/assets/chart/` (the web one, 145 KB, is fetched only while the chart loads). The page's own 7-day chart, model chips,
+  key, day table and their CSS are gone; the Province's credit line stays (`gauge-credit`). The chart's box keeps 550 px
+  while it loads (measured 553 desktop / 573 phone) so nothing below jumps. Page HTML 4.0 KB gzip (was 3.2), inside
+  `budget.ts`; no budget changed.
+- **Tests.** `gaugePage.parity.test.ts`: the page source's `gaugeSeries` / `gaugeParameters` equal the release source's for
+  every span x quantity x model; the page's chart markup equals `StationChart` over the release source (useId normalised);
+  the page reads the live file, never `/cards/`; a 500 is said ("no record") and reported, an undecodable climatology is
+  shown and reported. Mutations killed: no climatology, own drawing, reading the cards, no reporter, one quantity, failure
+  not shown. `cards.test.ts` +4 (ELF stays whole, every model, level runs, unknown model), `change.test.ts` `runOffered`;
+  mutations killed: stale skip, 10-day cut, quantity ignored, known models only.
+- **Not verified:** Lighthouse (TBT, Performance) on the throttled mobile profile (lhci is the release job's); the page on
+  staging itself (pictures are a local build of the live release over staging's data); iOS Safari.
 
 ## Options (sizes measured 2026-11-23; today's page = 3.2 KB gz HTML + 9.6 KB gz script + 3.1 KB gz facts)
 

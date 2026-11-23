@@ -280,7 +280,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1034 | A `regs=` link opened over another water keeps the old camera (the link's `part` is read and dropped) | PARTIAL — left (Claude): device check of the camera; other keys T1038 | 77d9de76d, 2ddaa795f | lane L18 emulator 2026-11-23 |
 | T1035 | `theme=dark` on a `regs=` link does not switch the theme on the phone | DONE | 77d9de76d, 2ddaa795f | lane L18 emulator 2026-11-23 |
 | T1038 | Carry a phone link's date, tab, sheet, scroll, age, res, horizon and whole (today reported and dropped) | OPEN — 0.9.0 batch | | lane L15 on T1034, 2026-11-23 |
-| T1039 | The public gauge page draws the web app's own chart (same data, windows, zoom, every forecast model) | IN PROGRESS — lane L25 (wt-l25): owner picked B + the ELF facts fix (Q183, 2026-11-23) | | owner 2026-11-23; lane L25 |
+| T1039 | The public gauge page draws the web app's own chart (same data, windows, zoom, every forecast model) | IN REVIEW — owner: OWNER-TODO "Look (you): T1039 gauge page after-shots"; staging feeds worker deploy + 0.9.0 staging site build to show | 9f8603f17, 44af0d16f | owner 2026-11-23; lane L25 |
 
 ## Next after closed testing
 
