@@ -299,6 +299,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1024 | Staging report: "weird highlighting on the lake" at Gravel Slough | OPEN | | staging report 2026-11-23 (`3444007425e9d3bd`) |
 | T1025 | Switching regs sub-tabs (What you can keep ↔ Licence) scrolls through every section between | DONE | 641725521, dd48e15d8 | closed tester via owner 2026-11-22 |
 | T1026 | The day picker stops at December 2026 although the synopsis is valid to March 31, 2027 | PARTIAL | | closed tester via owner 2026-11-22 |
+| T1028 | The trout schedule bar's open colour = the salmon bar's (owner 2026-11-23) | DONE | 391b37ddb | owner 2026-11-23 |
 
 ## Next after closed testing
 
