@@ -41,11 +41,6 @@ its report id / crash hash. The 11-22 check found T1004 (a report) and T1005 (~2
    commits still count as app paths in `release_version.is_app_path`; a stale memory reference near
    `release.py:2044`; `prod_instructions` names PRODUCTION.md; T866 inventory line numbers.
 
-## Waiting on the owner (also in OWNER-TODO)
-- Read the release runbook and the gates page (T993).
-- Turn off the Copilot coding agent (repo Settings → Copilot).
-- T1010 picks the region-page look (pictures first).
-- The claude.ai runbook copy (artifact 5r4yEqNwqygin1oKo5Zxjk) and the Owner To-Do page (Lh2ougAwfxx1wNmCV18m8f)
-  could not be opened from the CI chat's account ("not found / not shared"): update them from a session that can, or
-  ask the owner whether to make new ones.
-- From before: T973 CO question; Q182 (T723); T725; T760.
+## Waiting on the owner
+`handoff/PLAN/OWNER-TODO.md` holds every owner item (runbook read, Copilot agent, T1010 look, the claude.ai copies, T973 CO
+question, T725, T760); the open owner questions (Q182 and the rest) are the README ledger's "Owner questions" table (T539).
