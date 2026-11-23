@@ -17,7 +17,7 @@
 //                       kills only with `?background=1`. (T595) Each kind carries a `class` — `defect` (needs a fix),
 //                       `network` (a line that failed, already shown to the reader) or `expected` (a state the app knows:
 //                       an old app meeting a newer release, a phone with no Play service) — and the list is the DEFECTS
-//                       unless `?class=all` (or `?class=network,expected`). Nothing is dropped: the others are stored,
+//                       unless `?class=all` (or `?class=network,expected,crawler`). Nothing is dropped: the others are stored,
 //                       counted (`counts`) and reachable.
 //   the digest          `crashEvents` (the gauge run): a defect kind the outbox has not told (T558: whenever first seen)
 //                       → one digest line (not urgent). A repeat of a known kind is never told again. (T352) A
@@ -87,6 +87,9 @@ export interface CrashKind {
   versions: Record<string, number>;
   /** (T352) the distinct install ids seen (at most KIND_INSTALLS kept); absent on a kind only crash/1 has reached */
   installs?: string[];
+  /** (T1005) how many of `count` came from a crawler or an automated browser (`isCrawlerReport`): the verdict only,
+   *  never the User-Agent. A kind ONLY crawlers sent is class `crawler` */
+  crawler?: number;
   /** (T352) the system closing the app in the background (not a crash): left out of the digest and the default list */
   background?: true;
   sample: Omit<CrashPayloadV1, "format"> | Omit<CrashPayloadV2, "format">;
@@ -164,21 +167,46 @@ export async function crashHash(c: Pick<CrashPayload, "name" | "message" | "stac
 }
 
 /** (T595) what a kind IS: a `defect` needs a fix; `network` is a failed line (shown to the reader already); `expected` is a
- *  state the app knows and says (an old app meeting a newer release, a phone with no Play service). */
-export const CRASH_CLASSES = ["defect", "network", "expected"] as const;
+ *  state the app knows and says (an old app meeting a newer release, a phone with no Play service); (T1005) `crawler`:
+ *  only search crawlers or automated browsers ever sent it (no reader met it). */
+export const CRASH_CLASSES = ["defect", "network", "expected", "crawler"] as const;
 export type CrashClass = (typeof CRASH_CLASSES)[number];
 const EXPECTED = [
   /Failed to bind to the service/i,                // no Play service to answer the own-version check (T390)
   /release r-[\w-]+ is not one this app reads/i,    // an old app refusing a newer release, and prompting for the update
   /is not one this app reads/i,
   /SecurityException: Unsupported path \/data\/local\/tmp\//i,   // an emulator-only path the OS refuses (T603 item 6, T595)
+  /Failed to initialize WebGL/,                     // (T1005) a browser with no WebGL: the app says the map cannot draw (MapUnavailable)
+  // (T1005) our own DAY limit refusing an exit record (builds before 127296a64 report it). The 1 s GAP's 429 ("too many
+  // reports; try again in a minute") stays a defect: a client sending too fast (the app spaces its sends since fe477309b)
+  /was refused by the crash server: HTTP 429 \(too many (reports|new error kinds) today\)/,
 ];
 const NETWORK = [
   /UnknownHostException|Unable to resolve host|SocketTimeout|ConnectException|SSLException|ECONNRESET|ETIMEDOUT/i,
   /Failed to fetch|Network request failed|Load failed|NetworkError when attempting to fetch/i,
   /\bHTTP 5\d\d\b/,                                // a server's 5xx: the line or the host, not this app
   /fetch failed|timed out|the manifest could not be read/i,
+  /no whole file in \d+ ms/,                       // (T1005) a download that did not finish in its time
+  /(^|: )update: .*Unexpected end of JSON input/,  // (T1005) an update check whose answer was cut off (the message starts "update: ")
+  /The source image could not be decoded/,         // (T1005) an image the line delivered broken
 ];
+/**
+ * (T1005) Was this POST /crash sent by a crawler or an automated browser? The app says so in its platform line (core
+ * webAgent.ts: "web (crawler)", "web (automated)"); an older build does not, so the request's User-Agent is matched too.
+ * Only the verdict is kept (`CrashKind.crawler`), never the User-Agent.
+ */
+export const CRAWLER_UA = /Googlebot|Google-InspectionTool|GoogleOther|bingbot|Chrome-Lighthouse|crawler|spider/i;
+export const CRAWLER_PLATFORMS = ["web (crawler)", "web (automated)"] as const;
+export function isCrawlerReport(platform: string, userAgent: string | null): boolean {
+  return CRAWLER_PLATFORMS.some((p) => platform.startsWith(p)) || (!!userAgent && CRAWLER_UA.test(userAgent));
+}
+
+/** (T1005) a stored kind's class: `crawler` when every report of it came from one, else by its sample (`classifyCrash`) */
+export function classifyKind(c: Pick<CrashKind, "count" | "crawler" | "sample">): CrashClass {
+  if (c.count > 0 && (c.crawler ?? 0) >= c.count) return "crawler";
+  return classifyCrash(c.sample);
+}
+
 export function classifyCrash(s: Pick<CrashPayload, "name" | "message">): CrashClass {
   const text = `${s.name}: ${s.message}`;
   if (EXPECTED.some((r) => r.test(text))) return "expected";
@@ -235,6 +263,8 @@ export async function handleCrash(req: Request, env: ReportEnv, now: Date = new 
   }
   kind.last = at;
   kind.count++;
+  // (T1005) the verdict only: the User-Agent itself is never stored
+  if (isCrawlerReport(v.crash.platform, req.headers.get("User-Agent"))) kind.crawler = (kind.crawler ?? 0) + 1;
   // (T609 W11) own keys only: an app value of "constructor" / "__proto__" never reads a prototype member
   const seen = Object.hasOwn(kind.versions, v.crash.app);
   if (seen || Object.keys(kind.versions).length < 20)
@@ -278,7 +308,7 @@ export async function listCrashesCounted(bucket: R2BucketLike, since: string, ma
                                          classes: readonly CrashClass[] = ["defect"]):
     Promise<{ crashes: CrashKind[]; counts: Record<CrashClass, number>; truncated: boolean; skipped: number }> {
   const out: CrashKind[] = [];
-  const counts: Record<CrashClass, number> = { defect: 0, network: 0, expected: 0 };
+  const counts: Record<CrashClass, number> = { defect: 0, network: 0, expected: 0, crawler: 0 };
   // (T609 W10) one past `max` is listed, so `truncated` says whether the list stopped
   const all = await kindKeys(bucket, max + 1), tests = withTest ? await listKeys(bucket, TEST_CRASHES_PREFIX, max + 1) : [];
   const truncated = all.length > max || tests.length > max;
@@ -291,7 +321,7 @@ export async function listCrashesCounted(bucket: R2BucketLike, since: string, ma
       const c = JSON.parse(await o.text()) as CrashKind;
       if (c.background && !withBackground) continue;      // (T352) not a crash: out of the counts unless asked for
       if (c.last.slice(0, 10) < since) continue;
-      const cls = classifyCrash(c.sample);
+      const cls = classifyKind(c);
       counts[cls]++;
       if (classes.includes(cls)) out.push({ ...c, class: cls, ...(k.startsWith(TEST_CRASHES_PREFIX) ? { test: true as const } : {}) });
     } catch { skipped++; }
@@ -324,7 +354,7 @@ export async function crashEvents(bucket: R2BucketLike, known: (key: string) => 
     try { c = JSON.parse(await o.text()); } catch { continue; }
     if (c.background) continue;                             // (T352) a background OS kill is not a crash: never told
     // (T595) only a defect is a line of its own; the others are counted in ONE line below, never dropped
-    const cls = classifyCrash(c.sample);
+    const cls = classifyKind(c);
     if (told) {
       if (cls === "defect" && c.last.slice(0, 10) === yesterday && c.first.slice(0, 10) < yesterday) repeats++;
       continue;
@@ -338,7 +368,7 @@ export async function crashEvents(bucket: R2BucketLike, known: (key: string) => 
     const parts = Object.entries(others).sort(([a], [b]) => (a < b ? -1 : 1)).map(([cls, k]) => `${k} ${cls}`).join(", ");
     events.push({ key, kind: "crash", title: `${n} new error kind${n === 1 ? "" : "s"} that are not defects (${parts})`,
                   text: `${n} error kind${n === 1 ? "" : "s"} first seen today or yesterday are not defects: ${parts}. ` +
-                        `List them: GET /crashes?class=network,expected on the feeds worker (Bearer RUN_TOKEN).`, at });
+                        `List them: GET /crashes?class=network,expected,crawler on the feeds worker (Bearer RUN_TOKEN).`, at });
   }
   // (T627) `fine`: a repeat alone is never the reason for a digest (a known kind is not told again); it rides in one
   if (repeats > 0)
