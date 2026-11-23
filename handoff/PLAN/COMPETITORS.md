@@ -16,8 +16,11 @@ marked "?" were not confirmed.
 | Fishbrain | https://fishbrain.com/countries/ca-canada/regions/02-british-columbia | Social catch log and spot map. | Freemium (Pro about US$12.99/mo) | No evidence for BC. Its rules feature is for US states. |
 | Fishidy | — | Lake and river scouting. | Premium needed for many features | Not confirmed |
 | Navionics | — | Marine charts and depth. | Paid subscription | No |
+| Salmon Waters | https://salmonwaters.ca | Salmon only, Lower Mainland and Vancouver Island (DFO Areas 1 and 2): openings, closures and boundaries on a map, with live river flows and fishery notices (its own description, 2026-11-23). Added by the owner 2026-11-23. | ? | Salmon only, from DFO. No trout or other game-fish rules seen. Not checked further. |
+| Shinook | https://shinook.ca | Lower Mainland salmon limits and licences for about 20 waters (Tidal and Non-tidal Fraser, Vedder, Capilano, Squamish, Harrison, Pitt, Coquitlam and others), "from official DFO sources" (its own description, 2026-11-23). Added by the owner 2026-11-23. | ? | Salmon only, about 20 Lower Mainland waters. Not checked further. |
 
 ## How they differ from Can I Fish This
 - **BetterFish** is the only one found with BC rules per water, and it is paid (CA$24.99/yr). Its gauges look like links, not built-in conditions. In-season changes and salmon openings tied to a water were not confirmed.
+- Salmon Waters and Shinook (added 2026-11-23) cover salmon only, in the Lower Mainland (Salmon Waters also covers Vancouver Island), from DFO. They overlap our salmon layer, not the freshwater rules.
 - Fishr, CastAbout and Pisca Maps are discovery and directory tools. Their BC rules are missing, generic or unconfirmed.
 - The official tools are the Synopsis (a document, not a map) and FishingBC (tidal only).
