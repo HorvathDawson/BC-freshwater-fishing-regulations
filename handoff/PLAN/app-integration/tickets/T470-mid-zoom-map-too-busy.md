@@ -251,3 +251,6 @@ on every main river.
 Shots (web, local dev on the T517 side release, Fraser Valley z11, 1280 × 800): `shots/T470-wcag-light-fv-z11.png`
 (light is unchanged), `shots/T470-wcag-dark-fv-z11-before.png` and `shots/T470-wcag-dark-fv-z11-after.png`. The
 "before" is the after frame with the old base hex swapped back into the live paint.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+B built (owner 2026-11-07, Q170); order × zoom fade tunable (`fadeByOrder`); stress-pan cost pending (T420 test bed); WCAG 1.4.11 checker 11-09: dark base + cvd selection to 3:1, light/cvd own/base under 3:1 recorded (Q176 casing)

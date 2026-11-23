@@ -52,3 +52,6 @@ Size: M (each S).
    next `pipeline build` reruns deliver once.
 8. **SKIPPED in the worktree** (a batch rebuild is reading the main checkout); the owner's lane prunes
    `data/release/` to live + previous in the main checkout after the batch promotes.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+owner 2026-10-30; 1,3–7 done (proposals domain closed); 2 done for INSEASON_MATCHES + SLOUGH_PAGE_MARKS (review-app sandbox overrides need a design); 8 done 2026-10-31 (kept r-4e709418ebd8 + r-038e6818e80f; prod has none); closed 2026-11-05: item 2's leftover → T422

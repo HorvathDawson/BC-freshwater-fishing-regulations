@@ -131,3 +131,6 @@ of Burnaby's Burnaby Lake page.
 Could not load / not found (still to check): Kelowna 10680 (403), Abbotsford 2456-2015 (certificate error; Mill Lake has
 a fishing pier), Kamloops 35-66, Township of Langley 5298, Delta 7206 (404), the Vancouver Park Board consolidated
 by-laws PDF (would settle Beaver Lake and Trout Lake), Metro Vancouver's Burnaby Lake page, the FVRD parks bylaw.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+owner 2026-11-20; 11-21: build the curated path + Lost Lagoon only (0.8.5). Built on lane/085-t981: `data/curated/regulations/local_closures/` (a second entry source, guard vs book rows), `authority` through bundle, export and answers (`RuleFacts.cited`), the app's link run; Lost Lagoon `r2:lost_lagoon_local@2-8`. The other rows stay in the ticket for next release; left (Claude): review + merge, ships with the next data release

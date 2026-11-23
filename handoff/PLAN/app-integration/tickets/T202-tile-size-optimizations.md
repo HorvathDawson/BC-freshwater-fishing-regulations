@@ -76,3 +76,6 @@ Not done (owner): brotli, the uncompressed native archive. Contours (T201) and r
 promoteId to EVERY source-layer, so streams read `properties[undefined]` and lost their MVT ids (no paint, no taps).
 The atlas now promotes nothing (the area layers there are static, as on the phone). Verified: ids on 54/54 + 34/34
 stream features at Fraser Valley z11/z13, map paints, a Vedder tap opens its regs (`T202-shots/fix-*.png`).
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+basemap 918.4 → 274.5 MB (z13 + roads rebuild, wetland dropped, fills/coast on a coarser grid); atlas 239.3 → 176.1 MB (MVT-id only, lake attrs, 2048/1024 grids, mu z12 overzoom, watershed + sign_zone drawn, wma Creston only), release r-c706f5eaa2a3

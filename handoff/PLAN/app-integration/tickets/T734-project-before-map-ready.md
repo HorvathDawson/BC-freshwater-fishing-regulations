@@ -59,3 +59,6 @@ The same NPE is in `app/tools/testbed/out/runs/t512-lean-a` (2026-11-08): the ra
 - Fixed build (3c2d0ab9f, test bed): `open-race` 35 cold + 35 warm, `pane-open` with the Fraser hold × 40, `back-flash`
   (6 cases), `regs-open`, `tap-stalls`: all PASS, zero FATAL EXCEPTION / Fatal signal. Commits 514f2cc14, 2d5f64048.
 - Build 32 to Play is held by a pipeline CI failure outside this ticket (T678-progress, build 32 entry).
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+build 32 verify lane 2026-11-14 (2 crashes); binding patch + JS gate + tests (514f2cc14, 2d5f64048); fixed build: open-race 70 cycles, hold × 40, back-flash, regs-open, tap-stalls all pass; left (Claude): build 32 to Play once pipeline CI is green

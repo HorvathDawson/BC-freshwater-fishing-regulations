@@ -17,9 +17,9 @@
  *   5. (T437) a ticket file's leading status keyword differs from its ledger row's. Twelve had drifted (OPEN in the
  *      file, POSTPONED in the ledger; PARTIAL vs "DONE locally"): a lane closes the file AND the row in one commit.
  *   6. (T539) an IN REVIEW or PARTIAL status names its step: `owner: OWNER-TODO "<text>"` (the text must exist in
- *      OWNER-TODO.md) or `left (Claude): …`; one whose only step is Claude's is IN PROGRESS, not IN REVIEW. Rows that
- *      predate the rule are on `NO_STEP_YET` (a list that only shrinks: a listed ticket that now complies fails until it
- *      is taken off, and a new ticket can never be added).
+ *      OWNER-TODO.md) or `left (Claude): …`; one whose only step is Claude's is IN PROGRESS, not IN REVIEW. (The grandfather list
+ *      `NO_STEP_YET` was drained and removed, 2026-11-22.)
+ *   6b. (T540) a ledger row's last cell is at most `LEFT_CELL_MAX` characters; the detail lives in the ticket file.
  *   7. (T539) the docs guard, `checkDocs`: STATUS.md starts with its title; every repo path a backticked token cites in
  *      START-HERE, the restart page and OWNER-TODO exists, and every path a runbook (handoff/PLAN/runbooks/*.md) cites,
  *      in backticks or in a command block (T628); the restart page holds no state (no release id, no build
@@ -41,17 +41,11 @@ export const TICKETS_DIR = "handoff/PLAN/app-integration/tickets";
 
 /** The `Status:` line must sit within this many lines of the top (title, blank, Status). */
 export const STATUS_WITHIN = 6;
+/** (T540) the longest last cell a ledger row may carry (a ~200-character pointer plus the "detail" marker). */
+export const LEFT_CELL_MAX = 240;
 
 /** The status keywords README.md "How the system works" defines. Longest first: IN PROGRESS before a prefix match. */
 export const STATUSES = ["IN PROGRESS", "IN REVIEW", "BLOCKED", "POSTPONED", "PARTIAL", "DROPPED", "OPEN", "DONE"];
-
-/**
- * Tickets whose IN REVIEW / PARTIAL status line predates the T539 rule and names no step yet. THIS LIST ONLY SHRINKS: the
- * lane that closes or re-words one removes its id here (a listed id that complies now fails the guard).
- */
-export const NO_STEP_YET = [
-  "T360", "T401", "T409", "T410", "T552",
-];
 
 const ID = /^T\d+[a-z]?/;
 const HASH = /\b[0-9a-f]{7,40}\b/;
@@ -77,9 +71,8 @@ export function idOfFile(name) {
 const OWNER_STEP = /owner:\s*OWNER-TODO\s+"([^"]+)"/g;
 const CLAUDE_STEP = /left \(Claude\):\s*\S/;
 
-/** What is wrong with an IN REVIEW / PARTIAL status's step (T539); `ignoreList` skips the NO_STEP_YET allowance. */
-function stepProblems(id, kw, value, ownerTodo, ignoreList = false) {
-  if (!ignoreList && NO_STEP_YET.includes(id)) return [];
+/** What is wrong with an IN REVIEW / PARTIAL status's step (T539). */
+function stepProblems(id, kw, value, ownerTodo) {
   const owners = [...value.matchAll(OWNER_STEP)].map((m) => m[1]);
   const out = [];
   for (const text of owners)
@@ -130,14 +123,11 @@ export function checkLedger({ tickets, readme, doneLedger, subjects, ownerTodo }
     if (kw === "DONE" && !HASH.test(value)) problems.push(`${id}: Status DONE names no commit hash in ${name}`);
     if (kw === "IN REVIEW" || kw === "PARTIAL") problems.push(...stepProblems(id, kw, value, ownerTodo));
   }
-  for (const id of NO_STEP_YET) {
-    const t = tickets.find((x) => idOfFile(x.name) === id);
-    const v = t?.text.split("\n").slice(0, STATUS_WITHIN).find((l) => /^Status:/.test(l))?.replace(/^Status:\s*/, "");
-    const kw = v ? statusKeyword(v) : null;
-    if (!t) problems.push(`${id}: on NO_STEP_YET but has no ticket file (take it off the list)`);
-    else if (kw !== "IN REVIEW" && kw !== "PARTIAL") problems.push(`${id}: on NO_STEP_YET but is ${kw} (take it off the list)`);
-    else if (!stepProblems(id, kw, v, ownerTodo, true).length) problems.push(`${id}: on NO_STEP_YET but its status now names its step (take it off the list)`);
-  }
+
+  // (T540) the last cell of a ledger row is a pointer, not the ticket: the detail lives in the ticket file
+  for (const r of [...ledgerRows(readme), ...ledgerRows(doneLedger)])
+    if (r.left.length > LEFT_CELL_MAX)
+      problems.push(`${r.id}: ledger row's last cell is ${r.left.length} characters (max ${LEFT_CELL_MAX}): keep the detail in the ticket file`);
 
   const fileKw = new Map();
   for (const { name, text } of tickets) {

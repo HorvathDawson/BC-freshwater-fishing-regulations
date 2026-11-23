@@ -156,3 +156,6 @@ same for DFO and the synopsis.
 6. Should the synopsis Kitimat rule get the stripe too (today the map never colours it)?
 
 Depends: owner answers. Size: B is M (pipeline field + editor row + worker + two map layers + tests).
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+owner 2026-11-15: "we should have a way to define one half of the river closing maybe? could color only west or east side?"; 2 rivers, 3 records; recommended: bank left/right looking downstream + one-side stripe

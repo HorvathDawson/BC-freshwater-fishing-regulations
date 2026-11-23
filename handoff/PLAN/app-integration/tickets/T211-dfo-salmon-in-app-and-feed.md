@@ -117,3 +117,6 @@ place reaches no section (its water has no item sections); feed-only `unplaced.j
 - **Split:** `salmon/2` head (payload) + `salmon-<bundle region>` slices (+ `salmon-x`: sections in no region); the card
   reads head + its part's akey regions' slices, the map all, native installs all. Per-file gates (head 60 kB, slices
   320 kB); taps priced salmon + the largest slice.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+card + toggle; live feed `regs.dfo_salmon.live` (offline = last capture), new-location alert → DFO mode via `live queue`; part 3 moved to the DFO-locations lane; owner: feed cron + R2 sync; 10-28: region header notes (feed + release, card "Region rules (DFO)", scoped waters via curated bindings), gear marks on the Salmon map + card, `salmon` split per bundle region (b16b7a88, 9aa0ad11)

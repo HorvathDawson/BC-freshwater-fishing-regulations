@@ -69,3 +69,6 @@ Depends: —. Size: M. Owner: no.
   beside a reader or a writer fails `check-format-pairs.py`.
 - The vector file depends on the curated wording registry (a clause's reading): a registry edit that changes how a
   SAVED page types makes `--check` fail until the emit is re-run.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+one Python-written vector file the worker test reproduces (DFO fingerprints, typed rows, calendars, name key; nothing had drifted); T671 rows in one shared file; feed formats typed once and generated; parity suites fail without .venv; leftovers (one date reader, format bumps vs older apps) are T676

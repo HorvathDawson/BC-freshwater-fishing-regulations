@@ -96,3 +96,6 @@ Owner, verbatim: "It should be in the vessel restriction section but it should s
   vessel line held as one rule per kind (Harrison; Okanagan, Kalamalka, Skaha) is two entries, each with the locator:
   Harrison "No powered boats — in small bays along the river as signed" and "Speed restriction — in small bays along the
   river as signed" (Claude's reading: the Harrison too). r4 stays. RULINGS P51; `boats.test.ts` pins two entries.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+boats line on the page (6 kinds, golden test); 162 electric_only rules store max_power_kw 7.5 (owner 10-28, pipeline/tools/electric_kw.py); owner 2026-11-12 ANSWERED: undrawn-part vessel rules in the Vessel restrictions section with their locator words (P51, c63427bbd); follow-up 2026-11-12 ("Yes, book's full words"): the Harrison holds both alternatives, one chip "Speed restriction or no powered boats — in small bays along the river as signed" (81598325e); second follow-up 2026-11-12 ("Keep them as two entries"): every "or" vessel line is two entries, each with the locator (2841fb605)

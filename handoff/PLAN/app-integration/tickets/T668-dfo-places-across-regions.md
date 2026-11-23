@@ -84,3 +84,6 @@ openings (Region 6 E 4 a day, Region 7 2 a day) composed by `live.compose` with 
 without the table shows both words (mutation). RULINGS Z4b.
 Order: deploy the feeds worker first (its /status lists `dfo-pairs/1`); until then the input upload refuses
 pairs.json and says so.
+
+## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
+owner 2026-11-11; audit in T668-audit.md; fixes 1–3, Z4a, app half + fix 4 and option 2 (c9488453c, RULINGS Z4b) built; pairs live (staging 2026-11-18 'dfo-pairs ok'); left (Claude): fix 5 hygiene; owner: OWNER-TODO "T668 salmon places from two regions on one stretch" (phone check of that release)
