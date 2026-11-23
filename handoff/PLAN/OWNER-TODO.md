@@ -14,7 +14,7 @@ with the default Claude uses until you answer). Newest first inside each section
 ## 2026-11-22 18:55: lane L3 (0.9.0 batch) — three looks
 - **Look (you): T997 Nicomekl labels** — `handoff/PLAN/app-integration/T997-shots/` (web before/after, Android after).
 - **Look (you): T940 satellite after-shots** — `handoff/PLAN/app-integration/T940-shots/after-*` (the approved set built; web light + dark; the emulator shot waits for the 0.9.0 APK).
-- **Pick (you): T1004 Class II tag** A (now, far right) or B (beside the name) — `T1004-shots/` (recommend B).
+- **Look (you): T1004 Class II line under the name** — `handoff/PLAN/app-integration/T1004-shots/built-before-*` / `built-after-*` (light + dark; the line under the name, every sub-tab).
 - **Approve (you): T940 satellite line colours** — `T940-shots/proposal-vs-now.png` (a mock-up; recommend the set in the ticket).
 ## 2026-11-22 23:20: question round 1 (answers, verbatim)
 - T1010 region page: "B: map preview" — being built.

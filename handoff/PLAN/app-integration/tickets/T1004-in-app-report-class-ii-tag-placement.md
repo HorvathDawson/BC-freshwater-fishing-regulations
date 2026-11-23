@@ -1,6 +1,6 @@
 # T1004 — In-app report 2026-11-21: the Class II tag sits far right of the water's name, "kind of hidden"
 
-Status: BLOCKED (owner) — round 2 pictures made 2026-11-22 (lane L17, T1004-shots/option-*.png): the owner rejected both A and B; he picks one of four new places, nothing changed in the app.
+Status: IN REVIEW — owner: OWNER-TODO "Look (you): T1004 Class II line under the name" (built, code d27c09e24, PR open; after-shots in T1004-shots/built-*).
 
 Source: `GET /reports` on the production feeds worker, read 2026-11-22 (report `c1f639871183168d`; T985 holds the
 four before it, T979 the fifth). Android 0.8.4 (42), production, release `r-fec3fab4c5aa`; water · regulations,
@@ -41,3 +41,13 @@ Recommendation: A. Question for the owner: A, B, C or D (or A with D's weight)?
 
 ## Owner 2026-11-22 ~23:55 (round 5)
 Verbatim: "What about right under the water body name in the white space there?" Reading: the line goes in the white space under the name (the name row, left of the date and sun times, above the place description), on every sub-tab; words as option A.
+
+## Built (2026-11-22, lane L17, d27c09e24)
+The chip is gone from the name row. `ClassLine` (`RegsHeader.tsx`, the one place) draws core's `classed.line` under the name, in the white space left of the sun times
+(beside them when the day's sun is drawn, alone on the desktop's side column and before the sun is read), above the place text, so it shows on every sub-tab:
+"Class II water · Classified Waters Licence · Jul 1–Dec 31" (option A's words, `LIC.CLASS_LINE`; with no dates: "Class II water · Classified Waters Licence"). Accent in
+period, secondary colour out of period; a press opens the classified-waters term. Pictures: `T1004-shots/built-before-light|dark.png` (live app) and `built-after-light|dark.png`
+(a web export of this branch, staging data, Skeena Class II part). Tests: RegsHeader.test (6 cases, mutation-proved: the line moved back into the name row fails 5),
+classBadge.test, RegsWide.test (order on phone/tablet/desktop). T802's card half is this line; its map half was declined (11-22 23:35).
+
+Press area (review fix): the line is a full-width press 24 px high (`CLASS_LINE_H`, one number for the style's min-height and the declared box), NO hitSlop: above it are the date pill and sun times, below it the place text and the tab row, so any slop would overlap a neighbour (largest non-overlapping slop: 0). It is a recorded exception to 44 (`SHORT_PRESS` in a11yAudit): the audit fails a declared box that is not the style's real min-height (mutation: h 30 and h 44 both fail) and fails the exception if it ever reaches 44. The same term is reachable from the Licence tab's ⓘ.
