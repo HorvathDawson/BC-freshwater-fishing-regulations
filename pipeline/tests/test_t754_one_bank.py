@@ -12,9 +12,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from pipeline.common.curated import CURATED
 from pipeline.deliver import salmon as S
 from pipeline.regs.dfo_salmon.locations import bank_of
+from pipeline.tests import under_test
 from pipeline.tests.test_salmon_file import BAND, _fixture, _loc
 
 def test_bank_of_reads_one_bank_of_the_river_only():
@@ -35,7 +35,7 @@ def test_the_curated_places_that_name_one_bank_are_the_kitimat_and_the_nakina():
     """The pin on the real files: exactly these two places read beside (the ticket's scan, 2026-11-15). A new DFO wording
     naming a bank lands here first, for a look."""
     found = {}
-    for f in sorted(Path(CURATED.dfo_salmon.places).glob("region-*.json")):
+    for f in sorted(Path(under_test.curated().dfo_salmon.places).glob("region-*.json")):
         for loc in json.loads(f.read_text(encoding="utf-8"))["locations"]:
             b = bank_of((loc.get("source_text") or {}).get("specific_area"))
             if b:
