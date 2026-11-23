@@ -1,6 +1,6 @@
 # T812 — Babine Lake: split on the Gullwing Creek line; creek-mouth closures drawn as circles, not lake sections
 
-Status: IN PROGRESS — the split landed (a9475700d, merge 8f6dd09cf; ef6480005, aa69b89d6; 2026-11-17 rebuild a5638c5e7); the circles are built (65035f248, b7df430dc; PR #50). left (Claude): the independent review of PR #50, then the 0.9.0 data release ships the circles (`ca` in the salmon head).
+Status: IN PROGRESS — the split landed (a9475700d, merge 8f6dd09cf; ef6480005, aa69b89d6; 2026-11-17 rebuild a5638c5e7); the circles are built (65035f248, b7df430dc, 7cb64faa1; PR #50). left (Claude): the independent review of PR #50, then the 0.9.0 data release ships the circles (`ca` in the salmon head).
 
 Source: owner 2026-11-16, typed: "We want to split babine lake on the line like our other split lakes. Then we want the
 circles to just be circles on the map not separate sections of the lake. Otherwise it will be overboard." Before it:
@@ -36,3 +36,6 @@ errors from the circles hook): the fakes now take run-time layers (b7df430dc), n
 passes (779 files, 8,235 tests); `pytest pipeline/tests/test_dfo_closure_build.py` 42 passed. Not done here: an emulator
 look at the circles, and the data release that ships `ca`. T754 in this PR stays stopped (lane L20 builds it on its own
 branch after the owner's round 3 answer).
+
+Review fixes 2026-11-23 (#50, lane L18, 7cb64faa1): a style with no `stream` layer is reported and draws no circles (never on
+top); the decode test holds a four-point ring that is not closed, so the closure check can fail (both mutation-proved).
