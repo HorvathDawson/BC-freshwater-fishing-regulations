@@ -24,7 +24,7 @@ import { LEGEND_RAMP_MAX, legendCard, LegendCount, LegendRamp, LegendRows, Legen
 import { BasinDays } from "../BasinDays";
 import { legendColour } from "../LayersSheet";
 import { LEGEND_TEXT, TYPE } from "../type";
-import { changeRampStops, flowRampStops, round, type Palette } from "../theme";
+import { changeRampStops, flowRampStops, onSatellite, round, type Palette } from "../theme";
 import type { MapColouring } from "./useMapColouring";
 
 /**
@@ -35,7 +35,7 @@ export function mapFootInset(tabsRail: boolean, tab: string, footH: number): num
   return tabsRail && (tab === "conditions" || tab === "map" || tab === "runs") ? 0 : footH;
 }
 
-export function MapLegend({ col, conditions, palette, theme, mapDay }: {
+export function MapLegend({ col, conditions, palette: drawnPalette, theme, mapDay }: {
   col: MapColouring;
   /** The Conditions tab's legend (a ramp), else the Map tab's (the status key or the water colouring's). */
   conditions: boolean;
@@ -44,6 +44,8 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   mapDay: Date | null;
 }) {
   const { flowParam, horizon, layers, mm, cond } = col;
+  // (T940) over satellite the key's status swatches are the satellite set the map paints there
+  const palette = useMemo(() => (mm.basemap === "satellite" ? onSatellite(drawnPalette, theme) : drawnPalette), [drawnPalette, theme, mm.basemap]);
   // (T904) the desktop's Conditions key is a card over the map, not a bar under it; phones and narrow web keep the bar
   const card = tabsAsRail(useLayoutClass());
   const onConditions = mm.onConditions;
@@ -73,7 +75,7 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   );
   const statusRows = WATER_STATUSES.map((s) => statusRow(s, true));
   const salmonRows = salmonLegend().map((r) => (
-    <LegendCount key={r.status} palette={palette} colour={salmonStatusColour(theme, r.status)} line tight
+    <LegendCount key={r.status} palette={palette} colour={salmonStatusColour(theme, r.status, mm.basemap === "satellite")} line tight
                  striped={r.status === "closed" ? closedCueColour(theme) : undefined}
                  cased={r.status === "open" ? salmonCasingColour(theme) ?? undefined : undefined}
                  label={MAP_KEY.salmon[r.status]} {...tap(r.status)} />

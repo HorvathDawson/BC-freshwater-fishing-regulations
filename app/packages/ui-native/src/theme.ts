@@ -285,6 +285,22 @@ export const laid = (fill: string, under: string, alpha: number): string => {
   return `#${f.map((c, i) => Math.round(c * alpha + u[i]! * (1 - alpha)).toString(16).padStart(2, "0")).join("")}`;
 };
 
+/**
+ * (T940) A PALETTE FOR A KEY DRAWN OVER SATELLITE: the water statuses and the salmon statuses in the satellite set the map
+ * paints them in there (the same in every theme), so the key's swatches are the lines they explain. Everything else is the
+ * theme's own (a card colour is not map paint).
+ */
+export function onSatellite(p: Palette, theme: string): Palette {
+  return {
+    ...p,
+    waterStatus: Object.fromEntries(WATER_STATUSES.map((s) => [s, waterStatusColour(theme, s, true)])) as Record<WaterStatus, string>,
+    salmon: { ...p.salmon,
+              ...Object.fromEntries(SALMON_MAP_STATUSES.filter((s) => s !== "open").map((s) => [s, salmonStatusColour(theme, s, true)])) as
+                Partial<Record<SalmonMapStatus, string>>,
+              open: salmonStatusColour(theme, "open", true) },
+  };
+}
+
 /** The status colours for one theme: the map's tokens, through the map's own resolver. */
 const statusColours = (theme: string) => ({
   closed: colour(theme, "color.status.closed"),
