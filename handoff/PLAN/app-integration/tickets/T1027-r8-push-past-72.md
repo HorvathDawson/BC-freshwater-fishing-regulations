@@ -77,3 +77,10 @@ it `void <init>():24 -> <init>`; logcat without it, at every forced run of the b
 java.lang.NoSuchMethodException: androidx.work.OverwritingInputMerger.<init> []" then "WM-WorkerWrapper: Could not
 create Input Merger androidx.work.OverwritingInputMerger"; with it "BackgroundTaskWork: doWork: Running worker" and
 "Worker result SUCCESS" (notify-fire 5/5).
+
+Review fixes (2026-11-24, after main with #109 was merged in, d8b28e10b): 7e5366c04 (`r8-report.mjs check` fails, by
+name, when a skipped library's package-wide rule is back; the floors alone would miss task-manager + background-task,
+~0.6 points); rule 8b + AGENTS 34b name the latent gap (ChannelAwareTrigger and TimeIntervalTrigger have no
+serialVersionUID, so a notification SCHEDULED before an update would not load after it; the app schedules none,
+so no keep rule changed and no new build was needed); 19bfd447d (notify-fire puts the clock back on SIGINT / SIGTERM
+too, automatic time as it was, the date first and on its own).
