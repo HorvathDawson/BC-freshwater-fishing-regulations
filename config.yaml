@@ -53,6 +53,9 @@ generated:
     # T324: the REVIEW QUEUE `promote` writes beside the curated matches.json (matches it did not promote, with their
     # evidence); committed (data/.gitignore) so `check_curated --ci` sees the queue in CI
     candidates: "data/generated/gauges/candidates.json"
+    # (T1047) every datum / relocation remark HYDAT holds for the roster, parsed (PROPOSALS, never in effect);
+    # committed (data/.gitignore) because the curated datum_change_stations.json rows cite it
+    datum_proposals: "data/generated/gauges/datum_proposals.json"
 
   # Run timing: the CU polygons `pipeline.runtiming.parse` stitches from the cached Explorer
   # tiles (cu_polygons.geojson, read by `pipeline.deliver runs`). Re-runnable from data/source/runtiming/.
@@ -217,6 +220,8 @@ curated:
     tidal_stations: "data/curated/gauges/tidal_stations.json"         # authored: level gauges the tide moves (T78)
     backwater_stations: "data/curated/gauges/backwater_stations.json" # authored: level gauges a lake below backs up (T160)
     diversion_stations: "data/curated/gauges/diversion_stations.json" # authored: diversion gauges that speak above their intake (T696)
+    # (T1047) gauges whose live level is on a new zero (datum): only the owner's ACCEPTED rows move the record
+    datum_change_stations: "data/curated/gauges/datum_change_stations.json"
   stocking:
     matches: null       # not built — needs the FIDQ fetch
     match_calls: null

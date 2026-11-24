@@ -51,6 +51,8 @@ from collections import defaultdict
 from datetime import date
 from pathlib import Path
 from pipeline.common.curated import CURATED, SOURCE
+from pipeline.gauges.feed import datum as datum_file
+from pipeline.gauges.feed.datum import offset_before
 from pipeline.gauges.feed.record import MIN_RECORD_YEARS
 
 MIN_OBS = 10
@@ -159,10 +161,19 @@ SHIFT_YEAR_DAYS = 20
 RATING_KNOTS = 11
 RATING_PAD_M = 0.5
 RATING_MIN_PAIRS = 200
+#
+# (T1047) A NEW ZERO THE OWNER ACCEPTED. A relocated or re-zeroed gauge whose change HYDAT does not yet hold (08HD006
+# moved 2025-06-05, its record ends 2024) is off its rating for good: no cut of the archive is on today's zero. An
+# ACCEPTED row of `CURATED.gauges.datum_change_stations` (`pipeline.gauges.feed.datum`; proposed rows move nothing)
+# says by how much, so every level dated before its `effective` day gets its `offset_m` added (`datum.offset_before`)
+# before anything is pooled, detected or rated: the band, the recent years and the rating are then on today's zero,
+# and the live pair is on the rating again. With no accepted row this file is byte-identical.
 
 
-def _daily(db, table: str, col: str, station: str) -> dict[date, float]:
-    """One station's daily values from one HYDAT table, by day."""
+def _daily(db, table: str, col: str, station: str,
+           moves: list[tuple[date, float]] | None = None) -> dict[date, float]:
+    """One station's daily values from one HYDAT table, by day; `moves` (T1047, accepted datum changes) put each value
+    on today's zero."""
     cols = ", ".join(f"{col}{d}" for d in range(1, 32))
     out: dict[date, float] = {}
     for row in db.execute(f"SELECT YEAR, MONTH, {cols} FROM {table} WHERE STATION_NUMBER = ?", [station]):
@@ -170,9 +181,10 @@ def _daily(db, table: str, col: str, station: str) -> dict[date, float]:
             if v is None:
                 continue
             try:
-                out[date(row[0], row[1], d)] = float(v)
+                when = date(row[0], row[1], d)
             except ValueError:
                 continue
+            out[when] = float(v) + offset_before(moves, when) if moves else float(v)
     return out
 
 
@@ -229,10 +241,11 @@ def rating_of(pairs: list[tuple[float, float]]) -> list[list[float]] | None:
     return out
 
 
-def level_record(db, station: str) -> dict:
+def level_record(db, station: str, moves: list[tuple[date, float]] | None = None) -> dict:
     """{since, shifts, rating}: the year the station's comparable level record starts (None: all of it), the shift years,
-    and the rating over the kept years (None: no flow to pair, or too few pairs)."""
-    lv = _daily(db, "DLY_LEVELS", "LEVEL", station)
+    and the rating over the kept years (None: no flow to pair, or too few pairs). `moves`: the station's accepted
+    datum changes (T1047), applied before the shift test."""
+    lv = _daily(db, "DLY_LEVELS", "LEVEL", station, moves)
     if not lv:
         return {"since": None, "shifts": [], "rating": None}
     fl = _daily(db, "DLY_FLOWS", "FLOW", station)
@@ -255,14 +268,16 @@ def level_record(db, station: str) -> dict:
     return {"since": since, "shifts": shifts, "rating": rating_of(pairs) if fl else None}
 
 
-def _read(db, table: str, col: str, where: str,
-          args: list, since: dict[str, int] | None = None) -> tuple[dict, dict, dict, dict]:
+def _read(db, table: str, col: str, where: str, args: list, since: dict[str, int] | None = None,
+          moves: dict[str, list[tuple[date, float]]] | None = None) -> tuple[dict, dict, dict, dict]:
     """Pool one HYDAT daily table into pentads. Returns (pooled, years, days, recent).
 
     ``recent`` is the raw daily record for the last few complete years, keyed
     ``{station: {year: [366 values]}}`` — the LINE the seasonal chart draws across its band,
     for years the envelope has already absorbed. It is the same read either way, so pulling
     it out here costs one dict rather than a second pass over 40 million cells.
+
+    ``moves`` (T1047): accepted datum changes by station; a value before a change's day gets its offset (`datum`).
     """
     pooled: dict[str, dict[int, list[float]]] = defaultdict(lambda: defaultdict(list))
     years: dict[str, set[int]] = defaultdict(set)
@@ -289,18 +304,20 @@ def _read(db, table: str, col: str, where: str,
             # ONE OBSERVATION, SEVERAL PENTADS — see `pentads_near`. This used to land in
             # exactly one bucket, which is what made the envelope step at bin edges.
             val = float(v)
+            if moves and st in moves:
+                val += offset_before(moves[st], when)     # (T1047) on today's zero
             for pent in pentads_near(yday):
                 pooled[st][pent].append(val)
             years[st].add(yr)
             days[st] += 1
             if yr in keep:
                 slot = recent[st].setdefault(yr, [None] * 366)
-                slot[yday - 1] = _sig4(float(v))
+                slot[yday - 1] = _sig4(val)
     return pooled, years, days, recent
 
 
 def build(hydat: Path, stations: list[str] | None = None,
-          release: str | None = None) -> dict:
+          release: str | None = None, datum: dict[str, list[tuple[date, float]]] | None = None) -> dict:
     """Read HYDAT's daily record and return the envelope plus its statistics.
 
     BOTH ENVELOPES WHERE BOTH EXIST. A station is keyed by parameter — `{"discharge": {...},
@@ -319,6 +336,9 @@ def build(hydat: Path, stations: list[str] | None = None,
     records which one each station's envelope is, and nothing may present them as the same
     number. What they share is the only thing the map asks — where today sits against
     normal.
+
+    `datum` (T1047): the ACCEPTED datum changes, `pipeline.gauges.feed.datum.accepted(...)`; levels before a change are
+    put on today's zero. None or empty: the envelope is exactly what it was.
     """
     db = sqlite3.connect(f"file:{hydat}?mode=ro", uri=True)
 
@@ -332,11 +352,12 @@ def build(hydat: Path, stations: list[str] | None = None,
     # (T550) every level record's datum shifts and rating, BEFORE the level table is pooled: the pool keeps only the
     # years since the last shift
     level_ids = stations if stations else [r[0] for r in db.execute("SELECT DISTINCT STATION_NUMBER FROM DLY_LEVELS")]
-    records = {st: level_record(db, st) for st in sorted(set(level_ids))}
+    moves = datum or {}
+    records = {st: level_record(db, st, moves.get(st)) for st in sorted(set(level_ids))}
     since = {st: r["since"] for st, r in records.items() if r["since"] is not None}
     series = {
         "discharge": _read(db, "DLY_FLOWS", "FLOW", where, args),
-        "level": _read(db, "DLY_LEVELS", "LEVEL", where, args, since),
+        "level": _read(db, "DLY_LEVELS", "LEVEL", where, args, since, moves),
     }
     db.close()
 
@@ -414,7 +435,12 @@ def main() -> None:
     marker = args.hydat.with_suffix(".release")
     release = marker.read_text().strip() if marker.exists() else None
 
-    out = build(args.hydat, ids, release)
+    # (T1047) the owner's accepted datum changes; every quoted remark checked against this HYDAT first
+    changes = datum_file.load()
+    datum_file.check_remarks(changes, args.hydat)
+    moves = datum_file.accepted(changes)
+
+    out = build(args.hydat, ids, release, moves)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(out, separators=(",", ":")), encoding="utf-8")
     n = len(out["stations"])
@@ -424,6 +450,11 @@ def main() -> None:
     if yrs:
         print(f"     record length: median {sorted(yrs)[len(yrs) // 2]} years, "
               f"shortest {min(yrs)}, longest {max(yrs)}")
+    held = sum(1 for r in changes if r["status"] != "accepted")
+    print(f"  datum changes: {sum(len(v) for v in moves.values())} accepted (record put on today's zero), "
+          f"{held} proposed/rejected (moved nothing)")
+    for st, mv in moves.items():
+        print(f"     {st}  " + ", ".join(f"{off:+.3f} m before {eff}" for eff, off in mv))
     shifted = out["levelShifts"]
     if shifted:
         print(f"  ⚠️  {len(shifted)} level record(s) shift datum; only the years since the last shift rank a level "

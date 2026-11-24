@@ -184,7 +184,10 @@ def test_the_envelope_is_made_first_from_hydat(tmp_path, monkeypatch):
     for name in ("hydat.sqlite3", "bc_hydrometric_stations.json"):
         (tmp_path / name).write_text("v1")
     monkeypatch.setattr(B, "SOURCE", tmp_path)
-    assert set(B.clim_key()) == {"hydat", "release", "stations", "year", "code"}
+    assert set(B.clim_key()) == {"hydat", "release", "stations", "year", "datum", "code"}
+    # (T1047) the datum changes by their ACCEPTED rows only: a proposed row's edit reruns nothing
+    from pipeline.gauges.feed import datum
+    assert B.clim_key()["datum"] == datum.digest(datum.load())
 
 
 def test_a_new_hydat_reruns_the_envelope_only(world):
