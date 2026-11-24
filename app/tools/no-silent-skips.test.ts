@@ -158,6 +158,7 @@ const ALLOW: Record<string, { n: number; why: string }> = {
   "tools/testbed/scenarios/push-absent.mjs": { n: 1, why: `${TESTBED} (T739: needs the stub APK, session.sh --crash-stub: a register must never reach staging)` },
   "tools/testbed/scenarios/photo-zoom.mjs": { n: 2, why: `${TESTBED} (T454: pinch needs multi-touch injection, which the emulator refuses)` },
   "tools/testbed/scenarios/spots.mjs": { n: 1, why: TESTBED },
+  "tools/testbed/scenarios/notify-fire.mjs": { n: 3, why: `${TESTBED} (T1027: each follows a step whose own failure already failed the run: alert saved (x2), notice raised)` },
   "tools/testbed/scenarios/saved-spots.mjs": { n: 5, why: `${TESTBED} (T603: each follows a step whose own failure already failed the run: spot saved, editor reached, alert saved; T674 b: spot saved)` },
   "tools/testbed/scenarios-ios/shared-fixes.mjs": { n: 1, why: `${TESTBED} (T723: the T728 step is a named SKIP when the gauged card shows no Flow / Level chart)` },
   "tools/testbed/scenarios/retire-swap.mjs": { n: 1, why: `${TESTBED} (T360: needs the stub APK, session.sh --crash-stub)` },

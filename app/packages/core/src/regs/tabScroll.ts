@@ -30,3 +30,19 @@ export function tabScrollY(tab: Tab, tops: { gear: number | null; methods: numbe
   const t = tops[tab];
   return t == null ? 0 : t + 2;
 }
+
+/** (T1049 review) a scroll event within this many px of a y the start asked for is that jump's own (platform rounding) */
+export const START_OWN_SLACK = 1;
+
+/**
+ * (T1049 review) Is a scroll event at `y` the start's own jump, rather than the reader's? By POSITION, never by time: on a
+ * slow phone the event of a programmatic jump can arrive long after it was made. `asked` is every y the start has asked the
+ * page for (a late event of an earlier jump still counts); `maxY` is the page's last scrollable y (content - view), null when
+ * the event did not say. A jump asked beyond the page's end lands on `maxY`: that is its own too. No jump asked yet: only
+ * the page settling at the top is not the reader.
+ */
+export function isStartOwnScroll(y: number, asked: readonly number[], maxY: number | null): boolean {
+  if (asked.length === 0) return y <= 0;
+  const near = (a: number, b: number) => Math.abs(a - b) <= START_OWN_SLACK;
+  return asked.some((a) => near(y, a) || (maxY != null && a > maxY && near(y, maxY)));
+}

@@ -28,12 +28,14 @@ import re
 from pathlib import Path
 
 from pipeline.regs.dfo_salmon.dossier import ENTRIES, item_pin, osm_link
+from pipeline.regs.dfo_salmon.fetch import DEFAULT_CACHE
 from pipeline.common.curated import GENERATED
 from pipeline.common.names import key as name_key
 from pipeline.common.utils import wsc as _wsc
 
-HISTORY = Path("cache/dfo_salmon/history")
-RAW = Path("cache/dfo_salmon/raw")
+#: (T1021) the DFO page cache (`fetch.DEFAULT_CACHE`, config.yaml `cache.dfo_salmon`): every page fetched, the newest
+HISTORY = DEFAULT_CACHE / "history"
+RAW = DEFAULT_CACHE / "raw"
 #: Locators already carrying an extent are done and drop off the queue. NOTHING ELSE IS FILTERED.
 #:
 #: This used to be `SKIP_OPS` — a set of parsed `op` values whose locators were dropped before the

@@ -53,6 +53,9 @@ generated:
     # T324: the REVIEW QUEUE `promote` writes beside the curated matches.json (matches it did not promote, with their
     # evidence); committed (data/.gitignore) so `check_curated --ci` sees the queue in CI
     candidates: "data/generated/gauges/candidates.json"
+    # (T1047) every datum / relocation remark HYDAT holds for the roster, parsed (PROPOSALS, never in effect);
+    # committed (data/.gitignore) because the curated datum_change_stations.json rows cite it
+    datum_proposals: "data/generated/gauges/datum_proposals.json"
 
   # Run timing: the CU polygons `pipeline.runtiming.parse` stitches from the cached Explorer
   # tiles (cu_polygons.geojson, read by `pipeline.deliver runs`). Re-runnable from data/source/runtiming/.
@@ -69,6 +72,9 @@ generated:
   review: "data/generated/review"
   # T435: the slough finder's output (automark + candidates), read by the slough review (regs/review/slough.py)
   sloughs: "data/generated/sloughs"
+  # T1021: the T185 proposals' side rebuilds (`pipeline.regs.review.proposals.side_dir`: patched curated copies, the side
+  # atlas, its reach run), one directory per proposal id + digest
+  side: "data/generated/side"
   # THE SHIPPED SET (MINIMAL-PACKAGING §1; P08/P18), apart from every build artifact: data/release/<data_release>/,
   # data/release/tiles/<tile_version>/ (geometry-only atlas, the outside-BC mask, map assets), data/release/basemap/.
   release: "data/release"
@@ -117,6 +123,17 @@ data_accessor:
 data_tree:
   source: "data/source"
   generated: "data/generated"
+
+# ============================================================================
+# Caches — machine state outside data/, gitignored (T1021)
+# ============================================================================
+# Read through `project_config.get_config()` (`dfo_salmon_cache`), never as a literal: `Path("cache/dfo_salmon")` meant
+# a second tree from any other working directory, and the same directory was also typed as `parents[N] / "cache" /
+# "dfo_salmon"` in two more places.
+cache:
+  # DFO's saved salmon region pages: raw/ (the newest per region), history/ (every page fetched), manifest.json
+  # (`pipeline.regs.dfo_salmon.fetch`)
+  dfo_salmon: "cache/dfo_salmon"
 
 curated:
   base: "data/curated"
@@ -217,6 +234,8 @@ curated:
     tidal_stations: "data/curated/gauges/tidal_stations.json"         # authored: level gauges the tide moves (T78)
     backwater_stations: "data/curated/gauges/backwater_stations.json" # authored: level gauges a lake below backs up (T160)
     diversion_stations: "data/curated/gauges/diversion_stations.json" # authored: diversion gauges that speak above their intake (T696)
+    # (T1047) gauges whose live level is on a new zero (datum): only the owner's ACCEPTED rows move the record
+    datum_change_stations: "data/curated/gauges/datum_change_stations.json"
   stocking:
     matches: null       # not built — needs the FIDQ fetch
     match_calls: null

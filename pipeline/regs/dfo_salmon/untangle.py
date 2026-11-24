@@ -35,7 +35,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, PAGES, normalize_slug
+from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, DEFAULT_CACHE, PAGES, normalize_slug
 from pipeline.regs.dfo_salmon.parse import ParsedRegion, RegRow, parse_cached
 from pipeline.common.curated import GENERATED
 
@@ -616,7 +616,7 @@ def render(out: Untangled) -> str:
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--regions", nargs="+", choices=ALL_SLUGS, help="default: all real pages")
-    ap.add_argument("--cache-dir", type=Path, default=Path("cache/dfo_salmon"))
+    ap.add_argument("--cache-dir", type=Path, default=DEFAULT_CACHE)
     ap.add_argument("--out", type=Path, default=GENERATED.regs.dfo_salmon / "untangled")
     ap.add_argument("--print", dest="do_print", action="store_true", help="render to stdout instead")
     args = ap.parse_args(argv)
