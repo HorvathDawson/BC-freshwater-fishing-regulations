@@ -118,6 +118,17 @@ data_tree:
   source: "data/source"
   generated: "data/generated"
 
+# ============================================================================
+# Caches — machine state outside data/, gitignored (T1021)
+# ============================================================================
+# Read through `project_config.get_config()` (`dfo_salmon_cache`), never as a literal: `Path("cache/dfo_salmon")` meant
+# a second tree from any other working directory, and the same directory was also typed as `parents[N] / "cache" /
+# "dfo_salmon"` in two more places.
+cache:
+  # DFO's saved salmon region pages: raw/ (the newest per region), history/ (every page fetched), manifest.json
+  # (`pipeline.regs.dfo_salmon.fetch`)
+  dfo_salmon: "cache/dfo_salmon"
+
 curated:
   base: "data/curated"
   # T324 naming (owner 2026-11-05): `*_calls.json` = the owner's per-item decisions, `*_waters.json` = a list of

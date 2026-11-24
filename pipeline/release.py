@@ -165,7 +165,7 @@ from pipeline.common.curated import CURATED, GENERATED, REPO_ROOT
 HOME = GENERATED.bundle.parent / "release"
 LEDGER = HOME / "ledger.json"
 #: the git paths a build reads: code + the curated tree (+ the scripts/deploy the release runs)
-COMMITTED = ("pipeline", "data/curated", "scripts", "deploy", "project_config.py", "config.yaml")
+COMMITTED = ("pipeline", "data/curated", "scripts", "deploy", "project_config.py", "config.yaml")  # path-label: git pathspecs, run with cwd=REPO_ROOT
 #: the reach-run files the binding diff reads (`binding_diff.diff_runs`) + the report naming its digest
 BASELINE_FILES = ("report.json", "rule_section.jsonl.gz", "rule_unresolved.jsonl", "licensing_section.jsonl",
                   # T546 item 8: DFO places, tidal / outside, the curator's diagnostics

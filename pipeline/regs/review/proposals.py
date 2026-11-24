@@ -1531,7 +1531,7 @@ def side_dir(p: Mapping) -> str:
     rebuild made for one state of the proposal never vouches for another."""
     # T562: `_cut_slug`, not a bare cut — two proposal ids alike in their first 40 characters AND their digest's first
     # six never share a directory (an id that fits in 40 keeps the directory it had)
-    return f"data/generated/side/t185-{_cut_slug(p['id'], 40)}-{p['digest'][:6]}"
+    return f"data/generated/side/t185-{_cut_slug(p['id'], 40)}-{p['digest'][:6]}"  # path-label: repo-relative: readers join it to REPO or print it in a repo-root command
 
 
 def changes_cuts(p: Mapping, props: Iterable[Mapping]) -> bool:

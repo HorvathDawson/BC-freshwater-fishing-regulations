@@ -191,7 +191,7 @@ def _thinned(series: list, last: tuple) -> list:
 # owner task, so another kind joins it without a new field — sent to the owner once (`pipeline.gauges.feed.notify`)
 # and read by the app (the Data sources page's HYDAT line). Each names the exact command that clears it.
 HYDAT_ACTION = "scripts/update-hydat.sh"
-ROSTER_PATH = "data/source/bc_hydrometric_stations.json"
+ROSTER_PATH = "data/source/bc_hydrometric_stations.json"  # path-label: the name a notice prints in a repo-root command; roster_shown maps the file to it
 ROSTER_ACTION = (f"rm {ROSTER_PATH} && "
                  "(cd data && PYTHONPATH=.. ../.venv/bin/python fetch_data.py --layers hydrometric_stations) && "
                  "scripts/heavy.sh build 40 -- .venv/bin/python -m pipeline build")

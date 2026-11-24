@@ -176,16 +176,16 @@ jobs:
           # tests are exempt (they pin the real files on purpose)
           check "ROOT / \"data/<tree>/…\" one string"   '(ROOT|REPO|parents\[[0-9]\]|\.parent)\s*/\s*"data/(curated|generated|source)/' '^pipeline/tests/'
           check "/ \"entries\" outside a tmp fixture" '(_ROOT|__file__|parents\[[0-9]\])[^\n]*/ "entries"'
-          # (T994 7) THE MULTI-SEGMENT LITERAL: the one-segment pattern above (`"data/<file>.<ext>"`) never saw
-          # `Path("data/source/hydat.sqlite3")` or `default="data/curated/regulations/synopsis"`, so ten lived. A quoted
-          # string that starts a path under the data trees, or the DFO cache, as a value: the cwd decides what it means.
-          # Tests are exempt (they pin the real files). THE ALLOWLIST ONLY SHRINKS (T993 lane F2 owns these files): the
-          # DFO scrape's own `cache/dfo_salmon` defaults and `closure_mouths.py` (pipeline/regs/dfo_salmon/), the
-          # roster path `gauges/feed/publish.py` prints in a command for the owner (a repo-root command, not a path
-          # it opens), and `regs/review/tidal.py`'s DEFAULT_CACHE (a provenance label stored in the output).
-          ALLOWED='^pipeline/tests/|^pipeline/regs/dfo_salmon/|^pipeline/gauges/feed/publish\.py:|^pipeline/regs/review/tidal\.py:'
-          check "quoted data/<tree>/… literal as a value" '[=(,]\s*(Path\()?"data/(curated|generated|source)/[^"]*"' "$ALLOWED"
-          check "quoted cache/dfo_salmon… literal"        '"cache/dfo_salmon[^"]*"' "$ALLOWED"
+          # (T994 7, T1021) THE MULTI-SEGMENT LITERAL: the one-segment pattern above (`"data/<file>.<ext>"`) never saw
+          # `Path("data/source/hydat.sqlite3")` or `default="data/curated/regulations/synopsis"`, so ten lived. Any quoted
+          # string (f / r too) that starts a path under data/ or the cache/ tree: the cwd decides what it means, so a
+          # path read or written comes from config.yaml (CURATED / GENERATED / SOURCE, `get_config().dfo_salmon_cache`).
+          # Tests are exempt (they pin the real files). NO FILE IS ALLOWLISTED: a string that only NAMES a path (words
+          # in a message or help text, provenance written into an output, a repo-relative name a repo-root command
+          # prints, git pathspecs) says so on its own line, `# path-label: <why>` (a reason of 10+ characters), and is
+          # never opened.
+          LABEL='^pipeline/tests/|# path-label: [^ ].{9,}$'
+          check "quoted data/… or cache/… literal"   "[\"'](data|cache)/[a-z_]+" "$LABEL"
           exit $fail
 
   # (T995) THE REQUIRED CHECK for main's branch protection (scripts/ci_paths.py REQUIRED): it always runs, and passes

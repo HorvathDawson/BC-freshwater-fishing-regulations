@@ -96,7 +96,7 @@ def main() -> None:
     ap.add_argument("--registry", help=f"registry.json (default: {default_registry_path()})")
     ap.add_argument("--overrides", default=str(CURATED.regulations.book_name_links))
     ap.add_argument("--entries-dir", help="catalogue region files dir (default: "
-                    "data/curated/regulations/synopsis).")
+                    "data/curated/regulations/synopsis).")  # path-label: words in a help text
     ap.add_argument("--dry-run", action="store_true", help="report only; write nothing.")
     ap.add_argument("--restamp", action="append", default=[], metavar="ENTRY_ID",
                     help="overwrite this entry's non-empty `matched` with the matcher's (repeatable)")

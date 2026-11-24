@@ -29,6 +29,7 @@ from functools import lru_cache
 from pathlib import Path
 
 import reuse
+from project_config import get_config
 from pipeline.common.utils import wsc as W
 from pipeline.regs.review import dfo as D
 
@@ -54,7 +55,7 @@ R6_SIBLINGS = {"B(i)": "6:b(i):section", "B(ii)": "6:b(ii):section", "C": "6:c:s
 R6_SIBLING_PREFIX = {"100": "Fraser (F)", "400": "Skeena (B)", "500": "Nass (C)"}   # watershed-code roots
 
 
-CACHE = Path(__file__).resolve().parents[2] / "cache" / "dfo_salmon"
+CACHE = get_config().dfo_salmon_cache        # (T1021) config.yaml `cache.dfo_salmon`, one name for the DFO cache
 
 
 def _raw(slug: str) -> str:

@@ -836,7 +836,7 @@ def load(path: Path) -> list[Mark]:
     p = Path(path)
     if not p.exists():
         raise FileNotFoundError(f"no marks store at {p} — it is checked in (empty) under "
-                                f"data/curated/review/")
+                                f"data/curated/review/")  # path-label: words in a message
     out: list[Mark] = []
     for n, text in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
         if not text.strip():

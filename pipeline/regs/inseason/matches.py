@@ -282,7 +282,7 @@ def load(path: Path | str | None = None, *, resolved: Path | str | None = None,
     if not r.exists():
         raise FileNotFoundError(f"{r}: the in-season matches are not resolved on this machine — make it with "
                                 f"`{RESOLVE_CMD}` (it resolves {Path(path) if path else default_path()} on "
-                                "data/release/LATEST)")
+                                "data/release/LATEST)")  # path-label: words in a help text
     return merge(doc, json.loads(r.read_text(encoding="utf-8")))
 
 

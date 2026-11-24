@@ -37,6 +37,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional
 
+from project_config import get_config
+
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
@@ -91,7 +93,8 @@ def normalize_slug(value) -> str:
     return slug
 
 
-DEFAULT_CACHE = Path("cache/dfo_salmon")
+#: (T1021) `cache.dfo_salmon` in config.yaml, anchored at the repo root (it was `Path("cache/dfo_salmon")`: the cwd's)
+DEFAULT_CACHE = get_config().dfo_salmon_cache
 
 _USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -311,7 +314,9 @@ def fetch_region(
         raw_dir = cache_dir / "raw"
         raw_dir.mkdir(parents=True, exist_ok=True)
         dest = raw_dir / f"region{slug}-eng.html"
-        snap.path = str(dest)
+        # (T1021) the default cache's pages are recorded repo-relative, as when the default was the cwd's
+        # `cache/dfo_salmon`; a cache given by the caller is recorded as given
+        snap.path = (str(dest.relative_to(get_config().project_root)) if cache_dir == DEFAULT_CACHE else str(dest))
 
         prev = _load_manifest(cache_dir).get(slug)
         snap.changed = force or not dest.exists() or (prev or {}).get("sha256") != digest
