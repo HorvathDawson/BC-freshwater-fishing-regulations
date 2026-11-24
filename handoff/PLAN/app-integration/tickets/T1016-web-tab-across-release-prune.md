@@ -1,6 +1,6 @@
 # T1016 — Web: a tab kept open across two releases (or a site deploy) meets 404s on files production no longer serves
 
-Status: PARTIAL — built d787d0dff, review fixes 36862bbbc (lane L6), automatic refresh b38201d83, 03f70b777 (lane L17, owner 2026-11-24); left (Claude): the feeds worker deploy with the 0.9.1 batch (its `expected` class for the two names), and a production-export check of the chunk case
+Status: PARTIAL — built d787d0dff, review fixes 36862bbbc (lane L6), automatic refresh b38201d83, 03f70b777, review #125 fixes 81b177cdd (lane L17, owner 2026-11-24); the reload + keepalive were proven with fakes only, not in a real browser; left (Claude): the feeds worker deploy with the 0.9.1 batch (its `expected` class for the two names), a production-export check of the chunk case, a real-browser check of the reload and the keepalive send, LOW 2 (offline / blocked storage is reported as the ReplacedRefreshNotMade defect: environment noise), LOW 3 (a too-early prune is now auto-refreshed under an `expected` report)
 
 Source: T1005 triage. Production keeps the live release and the previous one (`deploy/prod/upload.sh` prunes the rest
 24 h on). The 404 kinds of T1005 (`3d5ded1b72ff865f`, `2c766955748940d9`, `f6d0af3f051de23a`, `bb863fcb6535d696`, …)
@@ -92,3 +92,13 @@ Depends: none. Size: M. Owner: no.
 - **Pictures**: none re-shot. No new element: the fallback is the same bar, words and look as
   `../T1016-shots/prune-{light,dark}.png`; what a reader now sees on the automatic path is the loaded panel,
   `../T1016-shots/prune-{light,dark}-after.png`.
+
+## Review #125 fixes (lane L17, 2026-11-24, 81b177cdd)
+- MED: `reloadOnce` remembered only the last entry, so a tab could bounce A -> B -> A (an edge still naming the old code
+  during CDN propagation or a rollback). The session store keeps EVERY entry reloaded from this session (a JSON list) and
+  at most `RELOADS_PER_SESSION` (3) automatic reloads a session; past either, the notice and `ReplacedRefreshNotMade`.
+  Pinned: the A-B-A case, the cap, a marker of another shape; the last-entry-only guard and the uncapped one are killed.
+- LOW 1: the crash reporter's `sent()` had no bound (a stalled earlier POST held the refresh and the notice). It resolves
+  false after `SENT_WAIT_MS` (5 s), says how many reports were not on the line, and the refresh goes ahead. Pinned with a
+  never-answering crash server; the unbounded wait is killed.
+- Not done (left, Status line): LOW 2, LOW 3; and the reload + keepalive are proven with fakes only.
