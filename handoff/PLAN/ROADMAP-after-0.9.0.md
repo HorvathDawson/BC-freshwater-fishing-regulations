@@ -53,22 +53,23 @@ waits, as long as the testers stay opted in. The feedback log and releases.md ha
 
 **2. 0.9.1 follow-ups (paste tonight; runs overnight)**
 > First make a scratchpad worktree of origin/main and read everything from it: the main checkout is on release/0.9.0
-> and has neither this roadmap nor the newest tickets. Then START-HERE.md (step 0) and ROADMAP-after-0.9.0.md row 2. You orchestrate on Fable; scope frozen
-> to row 2. I'm asleep: work overnight unattended, at most 4 lanes, one ticket each (group the small ones), the model
-> by task (Opus for pipeline/data/Android/tricky app logic, Sonnet for docs and mechanical work), one review round, PRs
-> to main with auto-merge once the independent review is clean. Another chat is shipping 0.9.0 tonight: never touch the
-> main checkout (it is on release/0.9.0), only scratchpad worktrees off origin/main; no staging data release, no staging
-> deploy, no Play or APK build, no emulator (that chat owns them); heavy jobs only through scripts/heavy.sh. Never write
-> into the main checkout's data/ (data/release, LATEST, tiles, curated): a lane that needs a build or release writes
-> into its own worktree; a test that reads the live release may see 0.9.0 promoted mid-run, so rerun it before calling
-> it red. T1027 measures Android builds: start it only after the 0.9.0 chat's Play Closed promote (the restart page
-> says when), and run its Gradle builds through heavy.sh. Write your own memory in-flight file; never rewrite the
-> 0.9.0 chat's. The 0.9.0 fixes on
-> release/0.9.0 (T796 gate 110,000 B, T1012, T666 fixtures) are not on main until that chat merges it back. Do the
-> one-file-per-ledger-row lane last, after the others merge. T1029 waits for my morning answers (prepare the pictures
-> overnight). Leave questions batched with pictures for the morning, send one push notification when the night's work
-> is done, and keep the restart page current. Then, once 0.9.0 is on production, cut 0.9.1 to staging + Play Closed
-> with the production commands for me.
+> and has neither the roadmap nor the newest tickets. Then handoff/PLAN/START-HERE.md (step 0) and
+> handoff/PLAN/ROADMAP-after-0.9.0.md row 2. You orchestrate on Fable; scope frozen to row 2. I'm asleep: work
+> overnight unattended, at most 4 lanes, one ticket each (group the small ones), the model by task (Opus for
+> pipeline/data/Android/tricky app logic, Sonnet for docs and mechanical work), one review round, PRs to main with
+> auto-merge once the independent review is clean. Another chat is shipping 0.9.0 tonight: never touch the main
+> checkout (it is on release/0.9.0), only scratchpad worktrees off origin/main; no staging data release, no staging
+> deploy, no Play upload (that chat owns them); heavy jobs (Gradle builds, emulator runs, pipeline tiers) only through
+> scripts/heavy.sh. Emulator: use only the AVD n1_pixel_b on port 5556 (`emulator -avd n1_pixel_b -port 5556`), every
+> adb call with `ANDROID_SERIAL=emulator-5556`, Metro on port 8091, never port 8081; never touch n1_pixel /
+> emulator-5554 (the 0.9.0 device pass); stop only your own emulator. Never write into the main checkout's data/
+> (data/release, LATEST, tiles, curated): a lane that needs a build or release writes into its own worktree; a test that
+> reads the live release may see 0.9.0 promoted mid-run, so rerun it before calling it red. Write your own memory
+> in-flight file; never rewrite the 0.9.0 chat's. The T666 fixture re-cut is on release/0.9.0, not main, until that
+> chat merges it back. Do the one-file-per-ledger-row lane last, after the others merge. T1029 waits for my morning
+> answers (prepare the pictures overnight). Leave questions batched with pictures for the morning, send one push
+> notification when the night's work is done, and keep the restart page current. Then, once 0.9.0 is on production,
+> cut 0.9.1 to staging + Play Closed with the production commands for me.
 
 **3. Repo move + merge queue**
 > Start at handoff/PLAN/START-HERE.md, then T1041's "after 0.9.0" checklist. Walk me through moving the repo to a free
