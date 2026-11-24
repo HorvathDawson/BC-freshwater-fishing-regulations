@@ -242,3 +242,9 @@ The lanes' commit messages keep the lanes' ids; `pipeline/docs/RULINGS.md` and e
   29); the lane's copy dropped, its enforcement carried onto L25.
 - lane O7 (salmon head gate 100 kB) -> O9; lane O8 (salmon-6 and first-tap raises) -> O10 (the dev branch's O7 is
   T673, O8 is T694).
+
+## 2026-11-24: the salmon head gate raised to 110,000 (0.9.0 release)
+
+The 0.9.0 side build (lane L34) measured the salmon head at 101,480 B gz, over its 100,000 gate (live r-741815c6090d:
+97,723, +3.8 %). Owner 2026-11-24, question dialog, verbatim: "Raise to 110,000 (Recommended)". `SIZE_GATES["salmon"]`
+100,000 → 110,000 (`pipeline/deliver/release/build.py`, pinned by `test_t796_book_closures.py`). The shrink is T905.
