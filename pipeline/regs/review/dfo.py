@@ -401,7 +401,9 @@ def groups(locs: Mapping[str, tuple[str, dict, Optional[dict]]] | None = None) -
 # --------------------------------------------------------------------------- wordings (owner 2026-11-02)
 
 def default_history_dir() -> Path:
-    return Path(__file__).resolve().parents[3] / "cache" / "dfo_salmon" / "history"
+    """(T1021) the DFO page cache's history/ (config.yaml `cache.dfo_salmon`, one name for every reader)."""
+    from project_config import get_config
+    return get_config().dfo_salmon_cache / "history"
 
 
 def _page_date(name: str) -> Optional[tuple[str, str]]:

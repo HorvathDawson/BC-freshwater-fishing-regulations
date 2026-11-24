@@ -20,6 +20,7 @@ import {
   buildModel, buildRegsPage, drawnRows, listRows, makePlace, segmentIndex, setFailureSink, settle, tableCovers, tapDay, troutOf,
   TROUT_NAV, TroutRefused, type RegsInputs, type RegsPage, type RuleIndex, type TroutValue, type TroutVM,
   FISH, FISH_TIPS, SPECIES_SHEET, TROUT_SHEET, TROUT_SOURCES_KEY, troutIdSheet, TroutLooksMissing, WORDS, type SheetBlock, type SheetVM,
+  lineSourcesOf, sourcesText,
 } from "@app/core";
 import { openTroutFixture, TROUT_FIXTURE_ROOT } from "@app/data/release/node";
 import { loadRegsInputs, openRegsStore, targetFor, type RegsStore } from "@app/data/regs";
@@ -500,6 +501,48 @@ describe("T810 P: the trout fish sheet over every vector", () => {
     expect(twins).toBeGreaterThan(0);
     // the order guard bites: Python's order is not ascending somewhere, so an app that sorted would fail above
     expect([unsortedSheet > 0, unsortedTable > 0]).toEqual([true, true]);
+    expect(reports).toEqual([]);
+  });
+
+  it("(T1031 per-row pages) each row sheet's Source line links the pages of EVERY rule behind its row, each with its rules' highlights", async () => {
+    const boxKey = (b: { pdf: number; box: readonly number[] }) => `${b.pdf}:${b.box.join(",")}`;
+    let rows = 0, beyond = 0, lois = "";
+    for (const c of V.cases) {
+      if (!c.frame) continue;
+      const inp = await inputsOfCase(c), page = pageOf(inp);
+      for (const b of c.frame.table.boxes) for (const r of b.rows) {
+        const at = `${c.name} ${r.key}`, vm = page.sheet(`tf:${r.key}`)!, last = vm.blocks.at(-1)!;
+        expect(last.k, at).toBe("source");
+        if (last.k !== "source") continue;
+        rows++;
+        const line = lineSourcesOf(last.line, vm.title);
+        // the pages: every rule of `TRow.src` (Python's whole list, never the breakdown's four), each once, ascending;
+        // each page's highlight boxes are every one its citing rules hold on that PDF page (T215)
+        const want = new Map<number, { pdf: number; boxes: Set<string> }>();
+        for (const ix of r.src) {
+          const f = inp.rules.get(ix).facts!;
+          expect(f.book.length + (f.cited ? 1 : 0), `${at}: rule ${ix} cites no page`).toBeGreaterThan(0);
+          for (const [printed, pdf] of f.book) {
+            const w = want.get(printed) ?? { pdf, boxes: new Set<string>() };
+            for (const x of f.book_box ?? []) if (x.pdf === pdf) w.boxes.add(boxKey(x));
+            want.set(printed, w);
+          }
+        }
+        const got = line.links.flatMap((l) => (l.k === "book" ? [[l.printed, l.pdf, new Set((l.box ?? []).map(boxKey))] as const] : []));
+        expect(got, at).toEqual([...want.entries()].sort(([a], [z]) => a - z).map(([p, w]) => [p, w.pdf, w.boxes]));
+        expect(line.links.at(-1), at).toMatchObject({ k: "sheet", label: TROUT_SHEET.ALL_SOURCES, open: TROUT_SOURCES_KEY });
+        // the breakdown's pages are all on the line; some rows' lines carry a page the breakdown (cut to 4) does not
+        const listed = new Set(r.sheet.src.flatMap((ix) => inp.rules.get(ix).facts!.book.map(([p]) => p)));
+        if ([...want.keys()].some((p) => !listed.has(p))) beyond++;
+        if (c.name === "lois-jul15" && r.key === "DV") lois = sourcesText(line);
+      }
+    }
+    expect(rows).toBeGreaterThan(300);
+    // (the measure, 2026-11-24: 19 of 356 rows) a page only the cut rules cite: a line built from `FishSheet.src` fails here
+    expect(beyond).toBeGreaterThan(10);
+    // AGENTS 33, the whole line: Lois Lake's Dolly Varden row is Region 2's (p.21) AND the lake's own row's (p.24: its
+    // "Hatchery only: wild ones go back", the 5th rule of the row, past the breakdown's four)
+    expect(lois).toBe("Source B.C. Synopsis p.21 ↗ p.24 ↗ All sources ›");
     expect(reports).toEqual([]);
   });
 

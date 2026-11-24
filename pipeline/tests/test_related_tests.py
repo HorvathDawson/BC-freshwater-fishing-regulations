@@ -1,7 +1,8 @@
 """`scripts/related_tests.py` (T1041): the tests a change reaches, for the pre-push hook and the mutation report. Over a
-made-up tree: a test that imports a changed module DIRECTLY is chosen (absolute, `from … import`, relative); one that
-reaches it only through another module is not; a changed data file counts as a change to the module naming it; a
-conftest, a deletion and the cap are said, never dropped quietly."""
+made-up tree: a test that imports a changed module DIRECTLY is chosen (absolute, `from … import`, relative); then
+(T1041 review, 0.9.1) one level up, a test of a module that imports it, at most PY_UP_CAP, never through a package
+`__init__`; a changed data file counts as a change to the module naming it; a conftest, a deletion, an `__init__` not
+followed and both caps are said, never dropped quietly."""
 from __future__ import annotations
 
 import importlib.util
@@ -42,8 +43,8 @@ def _tree(tmp_path: Path) -> Path:
 
 def test_direct_importers_only_and_changed_tests_first(tmp_path):
     root = _tree(tmp_path)
-    got, said = RT.pytest_related(["pipeline/a/leaf.py"], root)
-    # test_through_mid reaches leaf only through mid: not chosen (the transitive closure is the whole tier)
+    got, said = RT.pytest_related(["pipeline/a/leaf.py"], root, depth=1)
+    # depth 1 (the mutation report): test_through_mid reaches leaf only through mid, not chosen
     assert got == ["pipeline/tests/test_direct.py", "pipeline/tests/test_from.py"]
     assert said == ["1 changed pipeline module(s): 2 test file(s) import one directly"]
     got, _ = RT.pytest_related(["pipeline/a/mid.py", "pipeline/tests/test_other.py"], root)
@@ -73,7 +74,38 @@ def test_the_cap_names_what_it_leaves(tmp_path):
     root = _tree(tmp_path)
     got, said = RT.pytest_related(["pipeline/a/leaf.py", "pipeline/tests/test_other.py"], root, cap=2)
     assert got == ["pipeline/tests/test_other.py", "pipeline/tests/test_direct.py"]
-    assert said[-1] == "CAPPED at 2 of 3 test files: 1 left to scripts/before_pr.sh and the PR's tier: test_from.py"
+    assert said[-1] == ("CAPPED at 2 of 5 test files (direct importers first): 3 left to scripts/before_pr.sh and the "
+                        "PR's tier: test_from.py, test_near.py, test_through_mid.py")
+
+
+def test_one_level_up_reaches_the_tests_of_a_module_that_imports_the_change(tmp_path):
+    """(T1041 review, 0.9.1) the hook's default: after the direct importers, the tests of each module that imports a
+    changed one (mid and near import leaf), never a test twice. Mutation: drop the level-up -> fails."""
+    root = _tree(tmp_path)
+    got, said = RT.pytest_related(["pipeline/a/leaf.py"], root)
+    assert got == ["pipeline/tests/test_direct.py", "pipeline/tests/test_from.py",       # direct first
+                   "pipeline/tests/test_near.py", "pipeline/tests/test_through_mid.py"]
+    assert said == ["1 changed pipeline module(s): 2 test file(s) import one directly",
+                    "one level up: 2 more test file(s) import one of the 2 module(s) that import a changed one"]
+    # a test that imports both the change and a middle is a direct one, listed once
+    (root / "pipeline/tests/test_direct.py").write_text("import pipeline.a.leaf\nimport pipeline.a.mid\n")
+    got, _ = RT.pytest_related(["pipeline/a/leaf.py"], root)
+    assert got.count("pipeline/tests/test_direct.py") == 1 and len(got) == 4
+
+
+def test_one_level_up_has_its_own_cap_and_never_goes_through_an_init(tmp_path):
+    """At most `up_cap` level-up files, the rest named; a package `__init__` that imports the change is not followed
+    (it re-exports into most of the tree), and is named. Mutations: ignore up_cap, or follow an __init__ -> fails."""
+    root = _tree(tmp_path)
+    (root / "pipeline/a/__init__.py").write_text("from . import leaf\n")
+    (root / "pipeline/tests/test_pkg.py").write_text("import pipeline.a\n")
+    got, said = RT.pytest_related(["pipeline/a/leaf.py"], root, up_cap=1)
+    assert got == ["pipeline/tests/test_direct.py", "pipeline/tests/test_from.py", "pipeline/tests/test_near.py"]
+    assert said[1] == ("one level up: 2 more test file(s) import one of the 2 module(s) that import a changed one; 1 "
+                       "taken (at most 1), 1 left to scripts/before_pr.sh and the PR's tier: test_through_mid.py")
+    assert said[2] == ("one level up, not followed through 1 package __init__(s) (they re-export into most of the tree; "
+                       "the tier's job): pipeline.a")
+    assert "pipeline/tests/test_pkg.py" not in RT.pytest_related(["pipeline/a/leaf.py"], root)[0]
 
 
 def test_the_app_side_hands_vitest_the_code_and_says_the_rest(tmp_path):

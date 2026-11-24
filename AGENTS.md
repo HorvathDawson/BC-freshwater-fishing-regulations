@@ -474,8 +474,8 @@ W47. **`main` is the protected trunk; every change reaches it through a pull req
       `--no-verify` is an emergency skip only, and the commit or PR says so.
     - **Before each push: the tests the change reaches; before the PR: the whole suites (owner 2026-11-23, T1041).**
       The pre-push hook's `--changed` also runs `vitest related` over the changed app code (a core change runs every
-      package's tests that import it) and the pipeline tests that import a changed module directly
-      (`scripts/related_tests.py`), the Python and node steps in two lanes at once. **Once before opening a PR** (and
+      package's tests that import it) and the pipeline tests that import a changed module directly, then one level up
+      (`scripts/related_tests.py`, capped, what it leaves named), the Python and node steps in two lanes at once. **Once before opening a PR** (and
       before a push that updates it with a change of substance) run **`scripts/before_pr.sh`**: the whole app vitest
       suite and the pipeline no-data tier, both through heavy.sh, at once; it ends with one line,
       `before-pr: PASS|FAIL (app suite rc=<n>, pipeline tier rc=<n>, <s> s)`. Open the PR only on PASS.

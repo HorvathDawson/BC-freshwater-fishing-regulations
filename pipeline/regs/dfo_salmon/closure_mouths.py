@@ -158,10 +158,11 @@ def main(argv: Optional[list[str]] = None) -> int:
     import argparse
     import pyproj
     from pipeline.common.curated import GENERATED
+    from project_config import get_config
     from pipeline.regs.dfo_salmon import closures as K
     from pipeline.regs.review import dfo as D
     ap = argparse.ArgumentParser(description="re-derive the circle proposals of entry B: each creek's mouth on the shore")
-    ap.add_argument("--source", type=Path, default=Path("data/source/bc_fisheries_data.gpkg"))
+    ap.add_argument("--source", type=Path, default=get_config().fwa_data_gpkg)   # (T1021) data_accessor.gpkg_path
     ap.add_argument("--file", type=Path, default=Path(GENERATED.review) / "dfo_closed_area_geometry.json")
     a = ap.parse_args(argv)
     to_ll = pyproj.Transformer.from_crs(3005, 4326, always_xy=True).transform

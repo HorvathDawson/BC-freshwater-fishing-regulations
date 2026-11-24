@@ -1,6 +1,7 @@
 // (T1027) A NOTIFICATION RAISED BY THE BACKGROUND CHECK AND TAPPED, END TO END: the walk for expo-notifications,
-// expo-task-manager and expo-background-task, whose own keep rules R8 skips since T1027 (plugins/r8-keep-rules.pro
-// rules 8 and 9). A gauge alert is saved through the UI (the permission ask and the channels: expo-notifications; the
+// expo-task-manager, expo-background-task and WorkManager under R8 (plugins/r8-keep-rules.pro rule 1b: without it
+// WorkManager could not make its input merger and no background check ever ran; and rules 8-9, T1027: R8 skips those
+// three libraries' own keep rules). A gauge alert is saved through the UI (the permission ask and the channels: expo-notifications; the
 // periodic task registered: expo-background-task / expo-task-manager), the check is run by WorkManager's own job
 // (`cmd jobscheduler run -f`, the app in the background), and the phone's clock is moved on so the gauge's newest
 // reading is older than ALERT_STALE_MS and then ALERT_SILENT_TELL_MS (core alerts.ts): the check raises the "has not

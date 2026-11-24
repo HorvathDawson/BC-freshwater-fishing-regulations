@@ -68,3 +68,12 @@ update), and a Play-installed build.
 create Input Merger"): the background check (gauge alerts, the update and new-version notices) never ran with R8 on.
 Rule 1b (`-keep class * extends androidx.work.InputMerger { <init>(); }`) fixes it; the base and T1027 mappings both
 show the constructor gone without it.
+
+0.9.0 has the same bug; this commit is the one to cherry-pick onto release/0.9.0: 448b31d3d (rule 1b,
+`-keep class * extends androidx.work.InputMerger { <init>(); }`, branch fix/T1027-workmanager-input-merger). Evidence
+(lane L2, 2026-11-24, arm64 release AAB/APK built from main 6c03d5b20 + T1027 on emulator n1_pixel_b): R8's mapping
+WITHOUT the rule lists `androidx.work.OverwritingInputMerger` with no `<init>` (the same in the main-only build), WITH
+it `void <init>():24 -> <init>`; logcat without it, at every forced run of the background check: "WM-InputMerger:
+java.lang.NoSuchMethodException: androidx.work.OverwritingInputMerger.<init> []" then "WM-WorkerWrapper: Could not
+create Input Merger androidx.work.OverwritingInputMerger"; with it "BackgroundTaskWork: doWork: Running worker" and
+"Worker result SUCCESS" (notify-fire 5/5).

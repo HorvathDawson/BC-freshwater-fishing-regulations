@@ -224,7 +224,21 @@ describe("<RegsScreen>", () => {
       (scrollEl() as unknown as { scroll: typeof to }).scroll = to;
       const tops = () => to.mock.calls.map((c) => (c[0] as { top: number }).top);
       const fire = (y: number) => act(() => { fireEvent.scroll(scrollEl(), { target: { scrollTop: y } }); });
-      return { store, onStarted, tops, fire };
+      /** the page's size as the scroll event reports it (react-native-web reads scrollHeight / offsetHeight off the node) */
+      const size = (content: number, view: number) => {
+        Object.defineProperty(scrollEl(), "scrollHeight", { configurable: true, value: content });
+        Object.defineProperty(scrollEl(), "offsetHeight", { configurable: true, value: view });
+      };
+      /** the native drag: react-native-web never fires onScrollBeginDrag itself, so the prop is called off its fiber */
+      const drag = () => {
+        const key = Object.keys(scrollEl()).find((k) => k.startsWith("__reactFiber"))!;
+        let f = (scrollEl() as unknown as Record<string, { return: unknown; memoizedProps?: Record<string, unknown> }>)[key] as
+          { return: unknown; memoizedProps?: Record<string, unknown> } | null;
+        while (f && typeof f.memoizedProps?.onScrollBeginDrag !== "function") f = f.return as typeof f;
+        if (!f) throw new Error("no onScrollBeginDrag on the page's scroll view");
+        act(() => { (f!.memoizedProps!.onScrollBeginDrag as () => void)(); });
+      };
+      return { store, onStarted, tops, fire, size, drag };
     };
     it("a tab press: no jump back to the start's tab", () => {
       vi.useFakeTimers();
@@ -242,6 +256,7 @@ describe("<RegsScreen>", () => {
         const own = setup();
         act(() => { own.store.setSections(S); vi.advanceTimersByTime(100); });
         act(() => { vi.advanceTimersByTime(50); });
+        own.size(2000 + 584, 584);                                            // the page ends at y 2000: the jump to 2702 lands there
         own.fire(2000);                                                       // the jump's own event (clamped): still following
         act(() => { own.store.setSections(GROWN); vi.advanceTimersByTime(1000); });
         const ownTops = own.tops();
@@ -254,6 +269,58 @@ describe("<RegsScreen>", () => {
         act(() => { r.store.setSections(GROWN); vi.advanceTimersByTime(1000); });
         expect({ ownTops, tops: r.tops(), started: r.onStarted.mock.calls.length })
           .toEqual({ ownTops: [2702, 2903], tops: [2702], started: 1 });
+      } finally { vi.useRealTimers(); }
+    });
+    it("a drag of the reader's (native onScrollBeginDrag): no jump back, the start is done", () => {
+      vi.useFakeTimers();
+      try {
+        const { store, onStarted, tops, drag } = setup();
+        act(() => { store.setSections(S); vi.advanceTimersByTime(100); });   // the start's jump
+        drag();
+        act(() => { store.setSections(GROWN); vi.advanceTimersByTime(1000); });
+        expect({ tops: tops(), started: onStarted.mock.calls.length }).toEqual({ tops: [2702], started: 1 });
+      } finally { vi.useRealTimers(); }
+    });
+    it("the start's own jump's event arriving LATE (a slow phone, the target moved since) is still its own: the follow goes on", () => {
+      vi.useFakeTimers();
+      try {
+        const { store, onStarted, tops, fire } = setup();
+        act(() => { store.setSections(S); vi.advanceTimersByTime(100); });                       // jump to 2702
+        act(() => { store.setSections(GROWN); vi.advanceTimersByTime(100); });                   // moved: jump to 2903
+        act(() => { vi.advanceTimersByTime(160); });                                             // 160 ms on: past the old 150 ms window, before the follow is done
+        fire(2702);                                                                              // the FIRST jump's event, only now
+        act(() => { store.setSections({ ...GROWN, licence: 3001 }); vi.advanceTimersByTime(1000); });
+        expect({ tops: tops(), started: onStarted.mock.calls.length }).toEqual({ tops: [2702, 2903, 3003], started: 1 });
+      } finally { vi.useRealTimers(); }
+    });
+    it("a reader's scroll right after the jump (inside the old 150 ms window) is the reader's, whatever the time", () => {
+      vi.useFakeTimers();
+      try {
+        const { store, onStarted, tops, fire } = setup();
+        act(() => { store.setSections(S); vi.advanceTimersByTime(100); });   // jump to 2702
+        fire(2650);                                                          // not the y asked for, 0 ms after
+        act(() => { store.setSections(GROWN); vi.advanceTimersByTime(1000); });
+        expect({ tops: tops(), started: onStarted.mock.calls.length }).toEqual({ tops: [2702], started: 1 });
+      } finally { vi.useRealTimers(); }
+    });
+    it("a clamped own jump (asked 2702, the page ends at 2000) is not the reader; a scroll short of the end is", () => {
+      vi.useFakeTimers();
+      try {
+        const a = setup();
+        a.size(2584, 584);
+        act(() => { a.store.setSections(S); vi.advanceTimersByTime(100); });
+        act(() => { a.store.setSections(GROWN); vi.advanceTimersByTime(100); });   // moved on: jump to 2903, also beyond the end
+        act(() => { vi.advanceTimersByTime(300); });
+        a.fire(2000);                                                        // late AND clamped
+        act(() => { vi.advanceTimersByTime(1000); });
+        const clamped = a.tops();
+        cleanup();
+        const b = setup();
+        b.size(2584, 584);
+        act(() => { b.store.setSections(S); vi.advanceTimersByTime(100); });
+        b.fire(1900);
+        act(() => { b.store.setSections(GROWN); vi.advanceTimersByTime(1000); });
+        expect({ clamped, short: b.tops() }).toEqual({ clamped: [2702, 2903], short: [2702] });
       } finally { vi.useRealTimers(); }
     });
   });

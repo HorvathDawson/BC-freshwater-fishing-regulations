@@ -204,6 +204,10 @@ describe("T749: the keep rules reach proguard-rules.pro", () => {
     });
   });
 
+  it("(T1027) keeps WorkManager's InputMerger constructors (made by name before every run; without it no worker ran)", () => {
+    expect(rules.split("\n")).toContain("-keep class * extends androidx.work.InputMerger { <init>(); }");
+  });
+
   it("no rule of ours turns an R8 pass off", () => {
     expect(rules.split("\n").filter((l) => /^\s*-dont(optimize|shrink|obfuscate)\b/.test(l))).toEqual([]);
   });

@@ -49,6 +49,7 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 from pipeline.common.curated import CURATED, REPO_ROOT
+from pipeline.regs.dfo_salmon.fetch import DEFAULT_CACHE
 
 #: T332: /2 — the clause split changed (no section-title / species-list / "Single," / dash scraps), so a /1 registry's
 #: templates are not this split's: each reader REFUSES a registry of another format (T324: there is no compiled-in copy)
@@ -171,8 +172,9 @@ def saved_pages(repo: Path = REPO_ROOT) -> List[Tuple[Path, str]]:
     index stub (5A and 5B are the pages)."""
     fix = repo / "pipeline/tests/fixtures/dfo_salmon"
     paths = sorted(glob.glob(str(fix / "region*.html")))
-    paths += sorted(glob.glob(str(repo / "cache/dfo_salmon/history/region*_*.html")))
-    paths += sorted(glob.glob(str(repo / "cache/dfo_salmon/raw/region*-eng.html")))
+    cache = repo / DEFAULT_CACHE.relative_to(REPO_ROOT)       # (T1021) config.yaml `cache.dfo_salmon`, under `repo`
+    paths += sorted(glob.glob(str(cache / "history" / "region*_*.html")))
+    paths += sorted(glob.glob(str(cache / "raw" / "region*-eng.html")))
     out = []
     for p in paths:
         m = re.search(r"region(\w+?)(?:-eng|_\d+)\.html", Path(p).name)

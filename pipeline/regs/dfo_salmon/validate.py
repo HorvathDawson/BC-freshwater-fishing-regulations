@@ -32,7 +32,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
 
-from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, PAGES, load_cached, normalize_slug
+from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, DEFAULT_CACHE, PAGES, load_cached, normalize_slug
 from pipeline.regs.dfo_salmon.locations import extract
 from pipeline.regs.dfo_salmon.parse import N_COLS, ParsedRegion, parse_region
 from pipeline.regs.dfo_salmon.untangle import Untangled, untangle, verify
@@ -199,7 +199,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--regions", nargs="+", choices=ALL_SLUGS)
     ap.add_argument("--history", action="store_true", help="also replay every archived version")
-    ap.add_argument("--history-dir", type=Path, default=Path("cache/dfo_salmon/history"))
+    ap.add_argument("--history-dir", type=Path, default=DEFAULT_CACHE / "history")
     ap.add_argument("--warnings", action="store_true", help="show WARN findings too")
     args = ap.parse_args(argv)
 

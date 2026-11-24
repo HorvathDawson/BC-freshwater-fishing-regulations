@@ -1,6 +1,6 @@
 # T1031 — Sources round 3, the rest: one inline source format, a breakdown per species, one species sheet with tabs
 
-Status: IN PROGRESS — item 3 built, 26839d85d + 5fdd46510 + 315d8b3bb (lane L22, 2026-11-23, on T991's #63): ONE SOURCE LINE, core `sourceLineOf`
+Status: IN PROGRESS — trout per-row pages built 285449f89 (lane L3, 2026-11-24, owner pick A/B open, section at the end); item 3 built, 26839d85d + 5fdd46510 + 315d8b3bb (lane L22, 2026-11-23, on T991's #63): ONE SOURCE LINE, core `sourceLineOf`
 (`tabSources.ts`) drawn by ui-native `SourceRow`: "Source  B.C. Synopsis p.8 ↗  p.49 ↗  <web> ↗  Who says so ›" ("↗" leaves the
 app, "›" opens a sheet; last line of the block it supports). On it: the Gear / Ways to fish / Boats / Reference lines (level words
 "Province · Region 6 · This water's" fold into the section's Sources sheet behind "Who says so ›"), the trout table (its pages,
@@ -85,3 +85,41 @@ A salmon card row's `sp:<code>|src` opens its page line's Sources tab where the 
 with no picture still ends with its deciding rules; the trout / salmon row's two presses each hold their own 44 px; a closed
 salmon species names its closure's source. Left for when #69 lands: the salmon Sources rows' place titles ("Rule book p.9 ·
 …", salmon.ts `placeFromBook`) to #69's source format and the book's name from `sourceNames.ts`.
+
+## Trout per-row source pages (0.9.1 lane L3, 2026-11-24, branch `feat/T1031-trout-row-pages`)
+Asked (owner 2026-11-22, on the Regulations page's Source row): "the source there should be maybe one for each page
+referenced in the card? Also make sure highlighting is still there for each? ... We still want to have the break down
+source like the sheet in trout too." Left after 0.9.0: each trout/char ROW to name the page(s) that decided THAT row.
+
+**What exists (measured on the 54 shared vectors, 356 rows, trout fixture release).**
+- Python already says per row which rules decided it: `TRow.src` (contract Q-D6: the deciding rule, size, origin,
+  possession, the duty, the date line; uncut, 2 to 9 rules) and `FishSheet.src` (that list cut to 4 by Python,
+  `trout/sheets.py` `A_SOURCES_CUT_TO_FOUR`). Each rule's pages and highlight boxes are the store's (`RuleFacts.book` /
+  `book_box`, written once by `display/decided.add_sources`). Every rule ref in the vectors has a page (0 without).
+- On the row's sheet (`tf:<row>`, Sources tab) pages reach the reader in two places: "How this was decided" (the rail:
+  every rule of `TRow.src` with its page, where the stored roles cover the list) and "Where each rule comes from" (the
+  breakdown: the FOUR of `FishSheet.src`, each "B.C. Synopsis p.N ↗" with that rule's highlight).
+- **The gap:** (1) the sheet's Source line, its last block, was "Source  All sources ›" with no page at all (every other
+  sheet's line names its pages); (2) the cut to 4 drops rules whose words the sheet says, and on 19 of 356 rows (5%)
+  with them a page the breakdown never shows: Lois Lake's Dolly Varden / lake trout (the lake's own row, p.24: "Hatchery
+  only: wild ones go back"; Khartoum, Windsor, Dodd, Horseshoe, Nanton and Ireland lose a page past Region 2's p.21 the
+  same way), Nation Lakes' lake trout (p.61
+  possession), Shuswap (p.7, the record-on-your-licence duty). Where no rail is drawn that page is nowhere on the sheet.
+
+**Built (app only, no frame change).** The row sheet's Source line cites the pages of every rule of `TRow.src`
+(Python's whole list, mapped one index to that rule's own `ruleBook` runs, in Python's order; the one composer
+`lineSourcesOf` → `sourceLineOf` draws each page once, ascending, every citing rule's highlight boxes on it), then
+"All sources ›": "Source  B.C. Synopsis p.21 ↗  p.24 ↗  All sources ›" on Lois Lake's Dolly Varden. Core
+`sheets/trout.ts` `rowSourceLine`. The breakdown (four) and every word are unchanged; nothing in the table itself.
+**No data side:** the frame already carries the rule list and the store the pages; a page list written into the trout
+frame would type the pages twice (AGENTS 56) and need a data release. So this needs only an app build (any data, 0.9.0 on).
+Tests: `trout.release.test.ts` "(T1031 per-row pages)" over every vector row (the line's pages = the pages of `TRow.src`,
+each with exactly its rules' boxes; the whole Lois line pinned; >10 rows carry a page the breakdown lacks), and
+`sourceLine.fixture.test.ts` `ROW_PAGES` (per fixture page, each row sheet's cited pages). Mutation-proved: a line built
+from `FishSheet.src` fails both; dropping the boxes fails the first.
+Pictures (web 390 px, light + dark, trout fixture release, harness `app/tools/rowpages-shots.test.ts`):
+`T1031-shots/rowpages-{before,after}-{lois-dv,vedder-rb}-{light,dark}.png`; option B mock-up
+`rowpages-option-b-whole-list-lois-dv-{light,dark}.png`.
+**Owner question:** A (built) the Source line names every page behind the row, the breakdown keeps its four; or B the
+breakdown also lists every rule of the row (Lois Lake's p.24 rule then has its own entry; a Python change to
+`A_SOURCES_CUT_TO_FOUR`, Q-D6, and a data release).

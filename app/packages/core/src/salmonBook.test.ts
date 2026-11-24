@@ -422,7 +422,9 @@ describe("(T796 X1) a region closed by its DFO page keeps its one closed stateme
       // page, line, dates — on the row, in the source fold, on the plain Keep row and in the badge; the same full bar
       const book = { from: "B.C. Synopsis p.34 · Every stream in Region 4", words: SPRING_WORDS,
                      // (T1031 item 3) its Source line's parts: the row, the page (its PDF page from the page's map, salmonWithPdf)
-                     water: "Every stream in Region 4", pages: [{ printed: 34, pdf: null }] };
+                     water: "Every stream in Region 4", pages: [{ printed: 34, pdf: null }],
+                     // (T1036) its rule, for the page's every-source sheet
+                     rule: "z4:spring_stream_closure::spring_stream_closure.r1" };
       const before = card(1, on(5, 1)), may = card(2, on(5, 1));
       expect(may).toEqual({ ...before, badge: "B.C. Synopsis · DFO", rows: [{ ...before.rows[0]!, notes: [R4_WORDS, SPRING_WORDS] }], book: [book],
                             sourceTitle: "Sources (B.C. Synopsis and DFO)", note: FOLD_BOOK.note, year: { bars: [ALL_CLOSED_BAR], by: "both" },

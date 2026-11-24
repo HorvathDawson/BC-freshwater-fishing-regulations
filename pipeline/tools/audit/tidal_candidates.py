@@ -933,7 +933,7 @@ def build(gpkg: Path, atlas: Path, osm_paths: list[Path], basemap: Path | None =
                                    "measure": round(float(r["route_measure"]), 1),
                                    "below_polygon": poly_m is None or float(r["route_measure"]) <= poly_m + 1})
         if gauges:
-            sources.append({"kind": "tidal_gauge", "source": "data/curated/gauges/tidal_stations.json + HYDAT remarks",
+            sources.append({"kind": "tidal_gauge", "source": "data/curated/gauges/tidal_stations.json + HYDAT remarks",  # path-label: provenance text in the output, never opened
                             "words": "; ".join(f"{g['station']} {g['label']} at m {g['measure']}" for g in gauges),
                             "gauges": gauges,
                             "agrees": all(g["below_polygon"] for g in gauges)})

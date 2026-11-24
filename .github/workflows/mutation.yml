@@ -7,6 +7,10 @@ name: mutation
 # it has started (a tool that broke is said in the summary and as a warning). No merge_group: a queue waits only on the
 # required checks. The work and its bounds are scripts/mutation_report.py's (its docstring); each part stops at its
 # --budget (900 s) under the job's timeout-minutes.
+# (T1041 review, 0.9.1) PATH-GATED, CHEAPLY: each job's first step after the checkout asks the script (`--gate`: git
+# and the runner's python3, nothing installed) whether the PR changes a line that part mutates; when it says no, the
+# summary says so and every later step is skipped (no app setup, no tool install). A gate that breaks gives no answer:
+# its step shows the failure and the part runs as it did before the gate (never skipped on a broken gate).
 
 on:
   pull_request:
@@ -30,10 +34,20 @@ jobs:
       # commit: the diff's line numbers are the head's
       - uses: actions/checkout@v5
         with: { fetch-depth: 0, filter: "blob:none", ref: "${{ github.event.pull_request.head.sha }}" }
+      - name: Is there a changed pipeline line to mutate? (before any setup)
+        id: gate
+        continue-on-error: true        # a gate that breaks (no answer) runs the part, as before the gate
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 scripts/mutation_report.py py --base "$BASE_SHA" --head "$HEAD_SHA" --gate
       - uses: ./.github/actions/app-setup
+        if: steps.gate.outputs.run != 'false'
       # the tool, every version exact (scripts/mutation-requirements.txt; constraints.txt holds the shared ones)
       - run: .venv/bin/pip install -r scripts/mutation-requirements.txt -c constraints.txt
+        if: steps.gate.outputs.run != 'false'
       - name: Mutate the changed pipeline lines, list the survivors
+        if: steps.gate.outputs.run != 'false'
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -47,13 +61,23 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with: { fetch-depth: 0, filter: "blob:none", ref: "${{ github.event.pull_request.head.sha }}" }
+      - name: Is there a changed app line to mutate? (before any setup)
+        id: gate
+        continue-on-error: true        # a gate that breaks (no answer) runs the part, as before the gate
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 scripts/mutation_report.py ts --base "$BASE_SHA" --head "$HEAD_SHA" --gate
       - uses: ./.github/actions/app-setup
+        if: steps.gate.outputs.run != 'false'
       # Stryker on this runner only, both packages exact: the lockfile is changed here and never committed (the app's
       # own dependencies stay as they are; app/deps.md)
       - name: Stryker 10.1.1 (this runner only)
+        if: steps.gate.outputs.run != 'false'
         working-directory: app
         run: pnpm add -D -w @stryker-mutator/core@10.1.1 @stryker-mutator/vitest-runner@10.1.1
       - name: Mutate the changed app lines, list the survivors
+        if: steps.gate.outputs.run != 'false'
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
