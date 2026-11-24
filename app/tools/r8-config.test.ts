@@ -212,10 +212,72 @@ describe("T749: the keep rules reach proguard-rules.pro", () => {
     expect(rules.split("\n").filter((l) => /^\s*-dont(optimize|shrink|obfuscate)\b/.test(l))).toEqual([]);
   });
 
+  it("(T1027) no rule of ours keeps a whole package (`<pkg>.** { *; }`, AGENTS rule 34b)", () => {
+    const broad = rules.split("\n").filter((l) => /^-keep/.test(l) && /\*\*/.test(l) && /\{\s*\*;\s*\}/.test(l));
+    expect(broad).toEqual([]);
+  });
+
   it("minify follows setMinify in the gradle.properties mod", () => {
     const tmpl: Prop[] = [{ type: "property", key: plugin.KEY, value: "true" }, { type: "property", key: "x", value: "1" }];
     expect(plugin.setMinify(tmpl, false)).toEqual([{ type: "property", key: "x", value: "1" }, { type: "property", key: plugin.KEY, value: "false" }]);
     expect(minify(plugin.setMinify(tmpl, true))).toEqual(ON);
+  });
+});
+
+describe("T1027: R8 skips the listed libraries' own keep rules (AGP ignoreFrom); r8-keep-rules.pro restates them", () => {
+  const rules = readFileSync(plugin.KEEP_FILE, "utf8");
+  const gradle = [
+    "    buildTypes {",
+    "        release {",
+    "            shrinkResources enableShrinkResources.toBoolean()",
+    "            minifyEnabled enableMinifyInReleaseBuilds",
+    "            proguardFiles getDefaultProguardFile(\"proguard-android-optimize.txt\"), \"proguard-rules.pro\"",
+    "        }",
+    "    }",
+    "",
+  ].join("\n");
+
+  it("written once, under the release minifyEnabled line, every listed library named", () => {
+    const once = plugin.ignoreLibraryRules(gradle);
+    const lines = once.split("\n");
+    const at = lines.findIndex((l: string) => l.trim() === "minifyEnabled enableMinifyInReleaseBuilds");
+    expect(lines[at + 1].trim()).toBe(plugin.GRADLE_MARK);
+    expect(lines[at + 2]).toBe(`            optimization { keepRules { ignoreFrom(${plugin.IGNORED_RULES.map((i: string) => `'${i}'`).join(", ")}) } }`);
+    expect(lines[at + 3].trim()).toMatch(/^proguardFiles /);
+    expect(plugin.ignoreLibraryRules(once)).toBe(once);
+    expect(plugin.IGNORED_RULES).toEqual(["host.exp.exponent:expo.modules.notifications", "host.exp.exponent:expo.modules.taskmanager",
+      "host.exp.exponent:expo.modules.backgroundtask", "io.legere:pdfiumandroid"]);
+  });
+
+  it("a template without the release minifyEnabled line is refused, never skipped (the broad rules would come back)", () => {
+    expect(() => plugin.ignoreLibraryRules(gradle.replace("minifyEnabled enableMinifyInReleaseBuilds", "minifyEnabled true")))
+      .toThrow(/no release `minifyEnabled enableMinifyInReleaseBuilds`/);
+  });
+
+  it("the build.gradle mod runs whenever R8 is on, and not with the escape", () => {
+    const base = () => ({ name: "x", slug: "x", _internal: { projectRoot: MOBILE } });
+    const was = process.env.CANIFISHTHIS_NO_R8;
+    try {
+      delete process.env.CANIFISHTHIS_NO_R8;
+      expect(typeof plugin(base()).mods?.android?.appBuildGradle).toBe("function");
+      process.env.CANIFISHTHIS_NO_R8 = "a comparison";
+      expect(plugin(base()).mods?.android?.appBuildGradle).toBeUndefined();
+    } finally {
+      if (was === undefined) delete process.env.CANIFISHTHIS_NO_R8; else process.env.CANIFISHTHIS_NO_R8 = was;
+    }
+  });
+
+  it("each skipped library's package has its restated rules, with the reason, in r8-keep-rules.pro", () => {
+    const pkg: Record<string, string> = {
+      "host.exp.exponent:expo.modules.notifications": "expo.modules.notifications.**",
+      "host.exp.exponent:expo.modules.taskmanager": "expo.modules.interfaces.taskManager.TaskConsumerInterface",
+      "host.exp.exponent:expo.modules.backgroundtask": "expo.modules.interfaces.taskManager.TaskConsumerInterface",
+      "io.legere:pdfiumandroid": "io.legere.pdfiumandroid.",
+    };
+    for (const id of plugin.IGNORED_RULES as string[]) {
+      expect(pkg[id], `${id} has no restated rule listed in this test`).toBeDefined();
+      expect(rules.split("\n").some((l) => /^-keep/.test(l) && l.includes(pkg[id])), `${id}: no rule for ${pkg[id]}`).toBe(true);
+    }
   });
 });
 

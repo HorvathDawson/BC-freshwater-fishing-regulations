@@ -1,13 +1,15 @@
 // (T1027) A NOTIFICATION RAISED BY THE BACKGROUND CHECK AND TAPPED, END TO END: the walk for expo-notifications,
 // expo-task-manager, expo-background-task and WorkManager under R8 (plugins/r8-keep-rules.pro rule 1b: without it
-// WorkManager could not make its input merger and no background check ever ran). A gauge alert is saved through the UI (the permission ask and the channels: expo-notifications; the
+// WorkManager could not make its input merger and no background check ever ran; and rules 8-9, T1027: R8 skips those
+// three libraries' own keep rules). A gauge alert is saved through the UI (the permission ask and the channels: expo-notifications; the
 // periodic task registered: expo-background-task / expo-task-manager), the check is run by WorkManager's own job
 // (`cmd jobscheduler run -f`, the app in the background), and the phone's clock is moved on so the gauge's newest
 // reading is older than ALERT_STALE_MS and then ALERT_SILENT_TELL_MS (core alerts.ts): the check raises the "has not
 // reported since" notice through `scheduleNotificationAsync` (the Parcelable request in the notification's
 // PendingIntent). A tap on it in the shade must open that water's Conditions (the response read back: onTap).
 // Read-only on staging (no test-channel write: runs under `run.mjs --no-r2`). The clock is moved as root (`su 0 date`)
-// with automatic time off, and put back (automatic time on, the host's time) whatever happens.
+// with automatic time off, and put back (the host's time, then automatic time as it was) in a `finally` and on
+// SIGINT / SIGTERM.
 //
 //   node app/tools/testbed/run.mjs notify-fire        ALERT_Q / ALERT_ROW: the gauged water (as saved-spots)
 import { coldStart, openWater, toBackground } from './common.mjs';
@@ -75,10 +77,24 @@ export const notifyFire = {
     const d = ctx.device;
     let saved = false;
     let moved = false;
+    /** `settings get global auto_time` before the move: "0" / "1", or "null" (never set: deleted again) */
+    let autoTimeWas = null;
+    /**
+     * The clock put back, once: the host's time first and on its own (a failed settings write must not leave the phone
+     * days ahead), then automatic time as it was. Each failure is said in the report (a finding) and on stderr, never
+     * swallowed. Run by the `finally` below and by SIGINT / SIGTERM (session.sh's cap stops the batch with SIGTERM).
+     */
     const putBack = () => {
-      d.sh('settings put global auto_time 1');
-      d.sh(`su 0 date -u ${stamp(Date.now())} >/dev/null 2>&1 || true`);   // the host's clock; automatic time corrects it too
+      if (!moved) return;
+      moved = false;
+      process.removeListener('SIGINT', onSignal); process.removeListener('SIGTERM', onSignal);
+      const said = (what, e) => { const t = `notify-fire: ${what} NOT put back: ${e.message.split('\n')[0]}`; console.error(t); ctx.finding(t); };
+      try { d.sh(`su 0 date -u ${stamp(Date.now())}`); } catch (e) { said("the phone's clock", e); }
+      try {
+        d.sh(autoTimeWas === 'null' || autoTimeWas === null ? 'settings delete global auto_time' : `settings put global auto_time ${autoTimeWas}`);
+      } catch (e) { said(`automatic time (was ${autoTimeWas})`, e); }
     };
+    function onSignal(sig) { putBack(); process.kill(process.pid, sig); }
 
     await ctx.step('setup: Wi-Fi, a cold start', async () => {
       await d.net('wifi'); d.link('full', 'none');
@@ -108,8 +124,10 @@ export const notifyFire = {
       await ctx.step('the clock 7 h on (the newest reading stale), the check run in the background: no notice yet', async () => {
         if (!saved) ctx.skip('no alert was saved');
         await toBackground(ctx);
+        autoTimeWas = d.sh('settings get global auto_time').trim();
+        moved = true;   // from here on the clock is put back whatever happens (finally, SIGINT, SIGTERM)
+        process.once('SIGINT', onSignal); process.once('SIGTERM', onSignal);
         d.sh('settings put global auto_time 0');
-        moved = true;
         d.sh(`su 0 date -u ${stamp(deviceMs(d) + 7 * HOUR)}`);
         await d.sleep(5000);   // WorkManager reschedules on a time change
         const r = await runCheck(ctx);
@@ -120,6 +138,8 @@ export const notifyFire = {
       let title = '';
       await ctx.step('31 h more (silent for over a day), the check run again: the "has not reported since" notice is raised', async () => {
         if (!saved) ctx.skip('no alert was saved');
+        // only on a clock this scenario holds (the step before took it): never moved with nothing to put it back
+        if (!moved) ctx.skip('the clock was not taken (the step before failed first)');
         d.sh(`su 0 date -u ${stamp(deviceMs(d) + 31 * HOUR)}`);
         await d.sleep(5000);
         const r = await runCheck(ctx);
@@ -141,7 +161,7 @@ export const notifyFire = {
         return 'Conditions open on the gauge card';
       });
     } finally {
-      if (moved) putBack();
+      putBack();
     }
   },
 };
