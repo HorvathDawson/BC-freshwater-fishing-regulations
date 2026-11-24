@@ -14,14 +14,16 @@ Sonnet for UI, docs, mechanical work and most reviews.
   and Q8.
 - Questions are batched with pictures and go out by push notification. CONFIRM_PROD is only ever typed by the owner.
 
-Owner's order: "repo move first maybe? the 0.9.1 then feature then launch".
+Owner's order: "repo move first maybe? the 0.9.1 then feature then launch"; changed 2026-11-24: "We want 0.9.1 before
+repo change. I want models to have stuff to work on over night", so 0.9.1 opens tonight beside the 0.9.0 chat and runs
+overnight, and the repo move comes after it.
 
 | # | Chat | Scope (frozen) |
 |---|---|---|
 | P | Planning (runs in the background, alongside every chat) | Intake and planning only, never code: the owner's new asks, tester feedback and reports become tickets + feedback-log rows; it keeps the roadmap, the release contents and OWNER-TODO current. Build chats never write new tickets: they hand new finds to this chat. |
 | 1 | Ship 0.9.0 | Finish `runbooks/release-by-hand.md` from where the restart page says: the staging check, the emulator device pass, the owner's production commands, Play Closed, and the releases/feedback-log rows. |
-| 2 | Repo move + merge queue | T1041's "after 0.9.0" checklist: the owner moves the repo to a free GitHub org, then the slug flip, the `GITHUB_DISPATCH_TOKEN` re-issue on both feeds workers, the rulesets and the merge queue. |
-| 3 | 0.9.1 follow-ups | Trout per-row source pages. T1029 (owner Q4–6 with pictures). T1030. The T1047 follow-up: a datum-change list seeded from HYDAT `STN_REMARKS`, with owner-accepted rows for 08KH019/08MH153. The stub-polygon double outline (#81 review). The T1049 and T1041 low findings. Any 0.9.0 device-pass bugs. One file per ledger row and per OWNER-TODO item, with README/OWNER-TODO built from them (today's ~6 merge clashes on those two files). |
+| 2 | 0.9.1 follow-ups (opens tonight, runs overnight beside chat 1) | Trout per-row source pages. T1029 (owner Q4–6 with pictures, in the morning). T1030. The T1047 follow-up: a datum-change list seeded from HYDAT `STN_REMARKS`, with owner-accepted rows for 08KH019/08MH153. The stub-polygon double outline (#81 review). The T1049 and T1041 low findings. Any 0.9.0 device-pass bugs. One file per ledger row and per OWNER-TODO item, with README/OWNER-TODO built from them. Added by the owner 2026-11-24: T905 (salmon feed back under its old size, so the gate can come back down from 110,000 B), T1027 (R8 scores past ~72%), T1016 (a tab open across a release reloads), T1036 (the "All sources" sheet matches the screen), T1021 (the hard-coded-path gate), T1020 (the licence-frame diff gap), T1048 (the cut writes the app_reads row). |
+| 3 | Repo move + merge queue | T1041's "after 0.9.0" checklist: the owner moves the repo to a free GitHub org, then the slug flip, the `GITHUB_DISPATCH_TOKEN` re-issue on both feeds workers, the rulesets and the merge queue. |
 | 4a | 0.10 feature: stocked lakes | T200 (+ T634 stocking half): research the source and licence, pictures of the Stocked mode, then build. |
 | 4b | 0.10 feature: bathymetry maps and charts | T201, T218, T219 (+ T634 depth half): the owner says "0.10 is bathy maps/ charts too". |
 | 4c | 0.10 feature: corridors | T79 (imagery corridor + pools validation): the owner says "coul look into the corridors again too". Research and pictures first. |
@@ -49,16 +51,24 @@ waits, as long as the testers stay opted in. The feedback log and releases.md ha
 > Play Closed promote. Update play-production-access/releases.md and the feedback-log "Fixed in" column. End with the
 > next restart page.
 
-**2. Repo move + merge queue**
+**2. 0.9.1 follow-ups (paste tonight; runs overnight)**
+> Start at handoff/PLAN/START-HERE.md (step 0) and ROADMAP-after-0.9.0.md row 2. You orchestrate on Fable; scope frozen
+> to row 2. I'm asleep: work overnight unattended, at most 4 lanes, one ticket each (group the small ones), the model
+> by task (Opus for pipeline/data/Android/tricky app logic, Sonnet for docs and mechanical work), one review round, PRs
+> to main with auto-merge once the independent review is clean. Another chat is shipping 0.9.0 tonight: never touch the
+> main checkout (it is on release/0.9.0), only scratchpad worktrees off origin/main; no staging data release, no staging
+> deploy, no Play or APK build (that chat owns them); heavy jobs only through scripts/heavy.sh. The 0.9.0 fixes on
+> release/0.9.0 (T796 gate 110,000 B, T1012, T666 fixtures) are not on main until that chat merges it back. Do the
+> one-file-per-ledger-row lane last, after the others merge. T1029 waits for my morning answers (prepare the pictures
+> overnight). Leave questions batched with pictures for the morning, send one push notification when the night's work
+> is done, and keep the restart page current. Then, once 0.9.0 is on production, cut 0.9.1 to staging + Play Closed
+> with the production commands for me.
+
+**3. Repo move + merge queue**
 > Start at handoff/PLAN/START-HERE.md, then T1041's "after 0.9.0" checklist. Walk me through moving the repo to a free
 > GitHub org (my clicks). Then the slug-flip commit, the GITHUB_DISPATCH_TOKEN re-issue for both feeds workers (staging
 > is yours, prod is mine), checking the rulesets survived, and turning on the merge queue. One lane at most. Update the
 > restart page.
-
-**3. 0.9.1 follow-ups**
-> Start at handoff/PLAN/START-HERE.md and ROADMAP-after-0.9.0.md row 3. You orchestrate: at most 3 lanes, one ticket
-> each, one review round, scope frozen to row 3. Ask my T1029 Q4–6 with pictures first. Batch questions to the end.
-> Then cut 0.9.1 to staging + Play Closed, with the production commands for me.
 
 **4a / 4b / 4c. A 0.10 feature** (one chat per feature)
 > Start at handoff/PLAN/START-HERE.md and ROADMAP-after-0.9.0.md row 4a (or 4b, 4c). Feature chat for 0.10. Research
