@@ -20,6 +20,7 @@ const RULES: Record<string, unknown> = {
   "b::1": rule("b::1", {}, { source: "dfo" }),
   "c::1": rule("c::1", { book: [], cited: { link: "StanleyParkVan.com", url: "https://stanleyparkvan.com/x.html", quote: "q" } }),
   "m::1": { ...rule("m::1"), missing: true },   // the index's stand-in for a rule it does not hold
+  "e::1": { ...rule("e::1"), notes: [] }, "f::1": rule("f::1"), "n::1": rule("n::1"), "q::1": rule("q::1"), "u::1": rule("u::1"), "v::1": rule("v::1"),
   "x::1": rule("x::1"), "y::1": rule("y::1"), "z::1": rule("z::1"), "o::1": rule("o::1"), "d::1": rule("d::1", {}, { source: "dfo" }),
   "g::1": rule("g::1"), "h::1": rule("h::1"), "w::1": rule("w::1"), "p::1": rule("p::1"), "t::1": rule("t::1"), "k::1": rule("k::1"),
 };
@@ -33,6 +34,8 @@ const KEEP = { trout: null };
 const page = (over: Record<string, unknown> = {}) => ({ status: "open", gear: gear(["a::1", "b::1"]), methods: methods(), keep: KEEP,
   boats: null, licence: null, header: { name: "Lost Lagoon" }, day: { month: 7, day: 15 }, ...over });
 const ctx = (p = page()): SheetCtx => ({ inp: { rules: INDEX }, page: p, today: { month: 7, day: 15 } } as unknown as SheetCtx);
+/** the page's own every-source sheet, its sheets the page's own (`sheetOf`), as sheets.ts builds it */
+const pageSheet = (c: SheetCtx): SheetVM => allSourcesSheet(c, (k) => sheetOf(c, k));
 type Groups = { where: string; rows: { key: string | null; title: string | null; quote: string; book: unknown }[] }[];
 const rowsOf = (vm: SheetVM) => (vm.blocks[0] as unknown as { k: string; groups: Groups }).groups;
 const keysOf = (vm: SheetVM) => (vm.blocks[0]!.k === "sources" ? rowsOf(vm).flatMap((g) => g.rows.map((r) => r.key)) : []);
@@ -40,7 +43,7 @@ const BANNER = { id: "i1", head: "In-season change (Jul 1)", text: "Closed", url
 
 describe("the page's every-source sheet (T990)", () => {
   it("lists book, DFO and the local authority's citation once each, however many sections cite them", () => {
-    const g = rowsOf(allSourcesSheet(ctx()));
+    const g = rowsOf(pageSheet(ctx()));
     expect(g.map((x) => [x.where, x.rows.map((r) => r.key)])).toEqual([
       [ALL_SOURCES.BOOK, ["a::1"]], [ALL_SOURCES.DFO, ["b::1"]], [ALL_SOURCES.LOCAL, ["c::1"]]]);
     expect(g[2]!.rows[0]!.book).toEqual([{ t: "web", s: "StanleyParkVan.com", url: "https://stanleyparkvan.com/x.html" }]);
@@ -60,7 +63,7 @@ describe("the page's every-source sheet (T990)", () => {
 
 describe("the every-source sheet lists what the drawn screen cites (T1036)", () => {
   it("a closed day: the page's own Gear and Methods are not drawn, so none of their rules is listed", () => {
-    const vm = allSourcesSheet(ctx(page({ status: "closed", gear: gear(["a::1", "b::1"], "Closed to fishing for game fish") })));
+    const vm = pageSheet(ctx(page({ status: "closed", gear: gear(["a::1", "b::1"], "Closed to fishing for game fish") })));
     expect([vm.blocks, vm.sub]).toEqual([[{ k: "para", text: [{ t: "text", s: ALL_SOURCES.NONE }] }], "Lost Lagoon · Jul 15"]);
   });
   it("a day only salmon may be fished: the \"if fished\" gear's rules are listed, the closed day's gear's are not", () => {
@@ -73,10 +76,11 @@ describe("the every-source sheet lists what the drawn screen cites (T1036)", () 
     const keep = { trout: null,
       whereNot: { heading: "Where you can’t fish", scope: null, items: [{ rule: "w::1", text: [{ t: "text", s: "No fishing" }, { t: "book", printed: 9, pdf: 11 }] }] },
       possession: { label: "Possession", open: "pos:pos", rule: "p::1", says: "Possession: 2 days’ quota.", value: "2 days’ quota", also: [] } };
-    expect(keysOf(allSourcesSheet(ctx(page({ keep }))))).toEqual(["w::1", "a::1", "b::1", "c::1"]);
+    // (this hand-made context holds no glossary for Possession's sheet: the sheets one tap away are the second group's test)
+    expect(keysOf(allSourcesSheet(ctx(page({ keep })), () => null))).toEqual(["w::1", "a::1", "b::1", "c::1"]);
   });
   it("the drawn trout table's rules are listed (its Source line opens them)", () => {
-    expect(keysOf(allSourcesSheet(ctx(page({ keep: { trout: { kind: "table", src: [0] } }, gear: null, methods: null }))))).toEqual(["t::1"]);
+    expect(keysOf(pageSheet(ctx(page({ keep: { trout: { kind: "table", src: [0] } }, gear: null, methods: null }))))).toEqual(["t::1"]);
   });
   it("a rule cited twice is one row; a key the index lacks names nothing", () => {
     expect(drawnSourceRules([src(["a::1", "zz::9"]), src(["a::1"], "srcs:always")], INDEX).map((r) => r.key)).toEqual(["a::1"]);
@@ -98,8 +102,8 @@ describe("a cited rule the page's index lacks (T1036, W46)", () => {
       ["AllSourcesRuleMissing", "#5", "line"]]);
   });
   it("the page's own sheet reports them too; a page citing only what its index holds reports nothing", () => {
-    allSourcesSheet(ctx(page({ gear: gear(["a::1", "gone::1"]) })));
-    allSourcesSheet(ctx());
+    pageSheet(ctx(page({ gear: gear(["a::1", "gone::1"]) })));
+    pageSheet(ctx());
     expect(said()).toEqual([["AllSourcesRuleMissing", "gone::1", "line"]]);
   });
 });
@@ -173,6 +177,46 @@ describe("the every-source sheet's second group: what the sheets one tap away ci
     // m::1, cited by Possession's sheet and not held by the index: reported, no row (W46)
     expect(reports.map((e) => [(e as Error).name, (e as AllSourcesRuleMissing).rule, (e as AllSourcesRuleMissing).by]))
       .toEqual([["AllSourcesRuleMissing", "m::1", "sheet"]]);
+  });
+  it("(review of PR 126) a sheet the screen opens from a key it BUILDS (OPEN): trout rows, hatchery, rule lines, terms, salmon rows", () => {
+    const S: Record<string, unknown> = {
+      "tf:RB": { key: "tf:RB", title: "t", sub: null, tabs: [{ label: "i", open: "tf:RB|id", on: false }, { label: "s", open: "tf:RB", on: true }], blocks: [rows(["e::1"])] },
+      "tf:RB|id": { key: "tf:RB|id", title: "t", sub: null, blocks: [] },
+      hatch: { key: "hatch", title: "t", sub: null, blocks: [rows(["f::1"])] },
+      "rule:n::1": { key: "rule:n::1", title: "t", sub: null, blocks: [] },          // a caveat line's rule: its own sheet
+      "rule:q::1": { key: "rule:q::1", title: "t", sub: null, blocks: [] },          // a closed banner's "Who says so ›"
+      "rule:u::1": { key: "rule:u::1", title: "t", sub: null, blocks: [] },          // a boat chip
+      "gl:bait_ban": { key: "gl:bait_ban", title: "t", sub: null, blocks: [rows(["v::1"])] },
+      "gl:fly_fishing": { key: "gl:fly_fishing", title: "t", sub: null, blocks: [rows(["x::1"])] },
+      "sp:CO|src": { key: "sp:CO|src", title: "t", sub: null, blocks: [rows(["d::1"])] },
+      "sp:CO": { key: "sp:CO", title: "t", sub: null, blocks: [] },
+    };
+    const drawn = [
+      { trout: { kind: "table", boxes: [{ rows: [{ key: "RB", name: "Rainbow trout" }] }], hatchLink: "Hatchery or wild? ›" } },
+      { items: [{ what: [{ t: "text", s: "No fishing near the fence" }], where: null, rule: "n::1", fish: null, book: [] }] },
+      // a closure that names no page (with one, its rule is a drawn line's: the first group's)
+      { chain: [{ text: "Closed all year", scope: "this water", rule: "q::1", book: [] }] },
+      [{ kind: "motor", text: "No powered boats", rule: "u::1" }],
+      { line: [{ t: "text", s: "Bait ban" }, { t: "term", ids: ["bait_ban"] }] },
+      { pill: { term: "fly_fishing" } },
+      { species: [{ code: "CO", statusLabel: "Open" }] },
+    ];
+    const vm = withDrawnSources({ ...page({ methods: null }), sheet: (k: string) => (S[k] ?? null) as SheetVM | null } as unknown as RegsPage,
+                                drawn, INDEX)(ALL_SOURCES_KEY)!;
+    expect(vm.blocks.map((b) => b.k)).toEqual(["para", "head", "sources"]);
+    expect(groupsOf(vm.blocks[2])).toEqual([[ALL_SOURCES.BOOK, ["e::1", "f::1", "n::1", "q::1", "u::1", "v::1", "x::1"]], [ALL_SOURCES.DFO, ["d::1"]]]);
+    expect(reachableSheets(drawn)).toEqual(["tf:RB", "tf:RB|id", "hatch", "rule:n::1", "rule:q::1", "rule:u::1", "gl:bait_ban", "gl:fly_fishing", "sp:CO|src", "sp:CO"]);
+    // a row that opens its own sheet draws no ⓘ for its term (Possession): no gl: sheet of it
+    expect(reachableSheets([{ open: "pos:pos", term: "possession_quota" }])).toEqual(["pos:pos"]);
+  });
+  it("(review of PR 126) the page's own every-source sheet always has its sheets: the second group, never left out", () => {
+    // sheets.ts builds it with the page's own sheetOf; a lookup that holds a reachable sheet lists its rules
+    const keepP = { trout: null, possession: { label: "Possession", open: "pos:pos", rule: "p::1", says: "s", value: "v", also: [] } };
+    const vm = allSourcesSheet(ctx(page({ keep: keepP, methods: null })), (k) => (k === "pos:pos" ? SHEETS["pos:pos"] as SheetVM : null));
+    expect(groupsOf(vm.blocks[2])).toEqual([[ALL_SOURCES.BOOK, ["p::1"]]]);
+    // and the page's sheets build it so (sheets.ts `sheetOf`): a caveat line's rule sheet, one tap away, is in the second group
+    const c = ctx(page({ keep: { trout: null, caveats: [{ items: [{ what: [{ t: "text", s: "w" }], where: null, rule: "e::1", fish: null, book: [] }] }] }, methods: null }));
+    expect(groupsOf(sheetOf(c, ALL_SOURCES_KEY)!.blocks[2])).toEqual([[ALL_SOURCES.BOOK, ["e::1"]]]);
   });
   it("the sheets one tap away: what drawn lines open, never the every-source sheet itself or a per-row gear line's", () => {
     expect(reachableSheets([{ open: "src:all" }, { open: "srcs:gl|hook" }, { open: "pos:pos" }, { open: "other:o0" }, { open: "gear" }, { open: "pos:pos" }]))

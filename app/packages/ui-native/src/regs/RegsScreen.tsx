@@ -21,7 +21,7 @@ import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, u
 import { openProbe } from "@app/data";
 import { Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
 import { Text } from "../Text";
-import { LEGAL_WORDS, parseSheetKey, reportFailure, withInSeason, withSalmonSheets, type SalmonCardVM, tabScrollY, isStartOwnScroll, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type TabSourcesVM, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
+import { LEGAL_WORDS, OPEN, parseSheetKey, reportFailure, withInSeason, withSalmonSheets, type SalmonCardVM, tabScrollY, isStartOwnScroll, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type TabSourcesVM, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
 import { FreshDot } from "../menu/Fresh";
 import { NO_SNIPPET, WaterInset } from "../WaterFrame";
@@ -256,7 +256,7 @@ export function RegsScreen({ page, palette, images, actions, onDate,
   // (T990) `src:all` also lists the Province's in-season changes this water shows (the screen's, not the page's)
   // (T1031) and the salmon species' sheets (the screen's card, not the page's)
   const hostPage = useMemo(() => ({ ...page, sheet: withSalmonSheets(withInSeason(page.sheet, inSeason), salmonCard) }), [page, inSeason, salmonCard]);
-  const head = <RegsHeader header={header} palette={palette} tabs={store} onDate={onDate} onTab={toTab} onTerm={(id) => openSheet(`gl:${id}`)}
+  const head = <RegsHeader header={header} palette={palette} tabs={store} onDate={onDate} onTab={toTab} onTerm={(id) => openSheet(OPEN.terms([id]))}
                            side={layout === "desktop"} nameSource={nameSource} sun={sun} />;
   const sec = (tab: "gear" | "methods" | "licence", slot: Slot) => {
     const node = typeof slot === "function" ? slot(keepActions) : slot;

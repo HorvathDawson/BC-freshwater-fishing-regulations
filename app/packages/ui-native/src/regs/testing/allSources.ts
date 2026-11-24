@@ -11,7 +11,32 @@ import { ALL_SOURCES } from "@app/core";
 export interface ProbeLib {
   act(f: () => void): unknown;
   fireEvent: { click(e: Element): unknown };
-  screen: { getByTestId(id: string): HTMLElement; queryByTestId(id: string): HTMLElement | null; getByLabelText(label: string): HTMLElement };
+  screen: { getByTestId(id: string): HTMLElement; queryByTestId(id: string): HTMLElement | null; getByLabelText(label: string): HTMLElement;
+            queryAllByLabelText?(label: string): HTMLElement[] };
+}
+
+/**
+ * (T1036, review of PR 126) THE SHEETS THE DRAWN SCREEN REALLY OPENS, independent of core's walk: every press target of the
+ * screen (`[role=button]`, `[role=link]`; the foot Source row's and the folds' own presses aside, a "B.C. Synopsis page"
+ * link aside: it opens the book) is pressed in turn, and the sheet key the screen asks its sheets for (`opened`, recorded
+ * by the test where the screen reads its sheet) is kept; every sheet that opened is closed again (Done). The test opens
+ * every fold first.
+ */
+export function pressedSheets({ act, fireEvent, screen }: ProbeLib, root: () => Element, opened: { keys: string[] }): string[] {
+  const out = new Set<string>();
+  for (let i = 0; ; i++) {
+    const els = [...root().querySelectorAll("[role=button],[role=link]")]
+      .filter((e) => !e.closest('[data-testid="regs-sources"]') && !e.closest('[data-testid="sheet-body"]') && e.getAttribute("aria-expanded") === null);
+    if (i >= els.length) break;
+    const el = els[i]!;
+    if (PAGE.test(el.getAttribute("aria-label") ?? "")) continue;
+    opened.keys = [];
+    act(() => { fireEvent.click(el); });
+    if (opened.keys.length) out.add(opened.keys[0]!);
+    for (let n = 0; n < 5 && (screen.queryAllByLabelText?.("Done") ?? []).length; n++)
+      act(() => { for (const d of screen.queryAllByLabelText!("Done")) fireEvent.click(d); });
+  }
+  return sorted(out);
 }
 
 const PAGE = /^B\.C\. Synopsis page (\d+),/;
@@ -78,13 +103,14 @@ export function expectedKeys(drawn: unknown, index: ProbeIndex): string[] {
 type ProbeSheet = { blocks: readonly unknown[]; tabs?: readonly { open: string }[] } | null;
 
 /**
- * (T1036) The second group's rules, read by the ticket's words, not by core's walk: open every sheet a drawn line opens
- * (its `open`; not the every-source sheet itself, not a per-row gear line's `srcs:gl|…`), and each of its tabs; take each
- * rule it lists in a Sources list (not an "Overruled" card), each rule whose sheet a line opens beside a "B.C. Synopsis
- * p.N" / cited page, and a rule's own sheet's rule; minus `first` (the first group); the index's key for each it holds.
+ * (T1036) The second group's rules, read by the ticket's words, not by core's walk: open every sheet the drawn screen's
+ * presses opened (`pressed`, `pressedSheets`: not the every-source sheet, not a per-row gear line's — none is drawn), and
+ * each of its tabs; take each rule it lists in a Sources list (not an "Overruled" card), each rule whose sheet a line opens
+ * beside a "B.C. Synopsis p.N" / cited page, and a rule's own sheet's rule; minus `first` (the first group); the index's
+ * key for each it holds.
  */
-export function expectedOtherKeys(drawn: unknown, sheet: (k: string) => ProbeSheet, index: ProbeIndex, first: readonly string[]): string[] {
-  const keys: string[] = [], opens: string[] = [], seen = new Set<unknown>();
+export function expectedOtherKeys(pressed: readonly string[], sheet: (k: string) => ProbeSheet, index: ProbeIndex, first: readonly string[]): string[] {
+  const keys: string[] = [], seen = new Set<unknown>();
   const go = (v: unknown, into: (o: Record<string, unknown>) => void): void => {
     if (!v || typeof v !== "object" || seen.has(v)) return;
     seen.add(v);
@@ -92,11 +118,9 @@ export function expectedOtherKeys(drawn: unknown, sheet: (k: string) => ProbeShe
     into(v as Record<string, unknown>);
     for (const x of Object.values(v as Record<string, unknown>)) go(x, into);
   };
-  go(drawn, (o) => { if (typeof o.open === "string" && /^(sp|tf|other|pos|src|share|multi|rule|gl|hatch|srcs):?/.test(o.open)
-                         && o.open !== "src:all" && !o.open.startsWith("srcs:gl|")) opens.push(o.open); });
   const done = new Set<string>();
   const read = (k: string) => {
-    if (done.has(k)) return;
+    if (done.has(k) || k === "src:all") return;
     done.add(k);
     const vm = sheet(k);
     if (!vm) return;
@@ -112,7 +136,7 @@ export function expectedOtherKeys(drawn: unknown, sheet: (k: string) => ProbeShe
     });
     for (const t of vm.tabs ?? []) read(t.open);
   };
-  opens.forEach(read);
+  pressed.forEach(read);
   const out = new Set<string>();
   for (const k of keys) { const r = index.byKey?.(k); if (r && !r.missing && !first.includes(r.key)) out.add(r.key); }
   return sorted(out);

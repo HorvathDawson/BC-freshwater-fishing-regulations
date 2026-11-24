@@ -189,7 +189,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
     const sources = regsSourcesOf(drawn,
       { waterPages, inSeason: inSeason.length > 0, dfo: salmonShowsDfo(salmonStrip, glance && !!salmon.value), rules: inputs.value.rules });
     // (T1036) the every-source sheet ("All sources ›") lists the rules those same drawn tabs cite (core `withDrawnSources`)
-    return { page: { ...page, sheet: withDrawnSources(page, drawn, inputs.value.rules, salmonShown?.book ?? []) }, salmonStrip, tabs, licence, sources, trout };
+    return { page: { ...page, sheet: withDrawnSources(page, drawn, inputs.value.rules, salmonShown?.book ?? [], salmonShown) }, salmonStrip, tabs, licence, sources, trout };
   }, [regs, inputs.value, salmon.value, salmonShown, gearAnyway, licenceAnyway, waterPages, inSeason.length, glance]);
   // (T45) how much room the window gives (the app shell's width; never read here): the page arranges itself for it
   const layout = useLayoutClass();
