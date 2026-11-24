@@ -17,7 +17,7 @@ with the default Claude uses until you answer). Newest first inside each section
 - **T1050 ice fishing lines** (Dick Lake: "Lines: 1." and "Hook, lure or fly per line: 1." under Ice fishing repeat the
   Gear tab). A: show a count under a way only where it differs from the Gear tab (here only the hut and ice-hole duties
   stay). B: one line "Same gear as above: 1 line, 1 lure or fly". C: keep. Recommended / default once you pick: A.
-  Picture: `handoff/PLAN/app-integration/T1050-shots/report-now.png`.
+  Picture: `handoff/PLAN/app-integration/T1050-shots/report-now.png`. ANSWERED 11-24 12:33: "Only what differs (Recommended)"; built (T1050).
 - **T1051 treble hooks on a lake** (yes, allowed on Dick Lake: p.80 "use of a treble hook is permitted unless single
   hook is specified", p.8 barbed hooks allowed in lakes; the Gear tab says nothing). A: a second Hooks line "Treble and
   barbed hooks allowed ⓘ" wherever nothing restricts hooks. B: the same on lakes only. C: keep silent, note in the ⓘ
