@@ -55,13 +55,14 @@ We collected feedback through five channels, each logged with its ticket and the
 What it said, in short (counts as of 2026-11-24; TODO refresh before applying): 16 pieces of tester feedback from at
 least 7 testers, 9 in-app reports and 14 crash kinds. Most were about wording that was hard to read (gear lines, gauge
 words, a sentence about missing gauges), map display (labels off their place, an iPhone map at two thirds width, a
-highlight that did not stay, land closed to fishing hard to see, odd highlighting on a slough, ditches drawn as part of
+highlight that did not stay, land closed to fishing hard to see, odd highlighting on a lake, ditches drawn as part of
 a river), and a few behaviours (the day picker stopping at December, sub-tabs scrolling, "Flows into" opening the rules
 instead of the map, the app not opening at the user's location, a slow first switch to Runs). Crash reports were mostly
 early (0.4.0–0.6.x: data updates and map views) and are fixed; the late ones were mostly one search engine's page
 renderer running the website. Testers also said the app was clear: one was positive overall on how much fits on a
 screen while staying readable (F15). Of the 39 rows, 25 are fixed in a shipped release and 6 more in 0.9.0 (F15, F16,
-F21, F22, F24, F25; on staging as r-0aec88ed3edb from 2026-11-24, to testers with its production build).
+F21, F22, F24, F25), which is on staging only (r-0aec88ed3edb, 2026-11-24): not yet on Closed testing, its
+production build pending. TODO: reword once 0.9.0 reaches Closed.
 TODO: add Play Console testing-feedback items and recount.
 
 ---
@@ -118,7 +119,7 @@ plausible, not that it is met.
 - **Stability:** every crash kind from testing triaged; the early ones (data updates, map views, first install) fixed in
   0.5.0–0.6.9 (F26–F33); error reports that are not defects classed apart (F34); the production triage's app fixes in
   0.9.0 (F35).
-- **0.9.0 (from the closed test):** the Class II tag sits right under the water's name (F21); ditches no longer drawn
+- **0.9.0 (fixes for closed-test feedback; staging only, not yet on Closed testing):** the Class II tag sits right under the water's name (F21); ditches no longer drawn
   as part of a river (F22, a data fix); Runs reads ahead so the first switch is quicker (F23, part); a selected slough
   or side channel is outlined once instead of boxed (F25); "Flows into" opens the receiving water's map (F24); the
   day picker runs to March 31, 2027 (F16); regs sub-tabs jump (F15); app fixes from the production crash triage
