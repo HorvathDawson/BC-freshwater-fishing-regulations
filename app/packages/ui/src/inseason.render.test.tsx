@@ -262,6 +262,21 @@ describe("useInSeasonCovers (T520): one load path for the banner and the water m
     await waitFor(() => expect(seen.map((e) => (e as Error).message)).toContain(INSEASON_FAILURES.noTable));
     off();
   });
+  it("(T1016) section lines that could not be read: the change on the whole water, reported WITH the read's failure (its 404 tells a pruned release)", async () => {
+    const seen: unknown[] = [];
+    const off = setFailureSink((e) => { seen.push(e); });
+    const gone = new Error("https://data.test/release/r-1/lines-aaaa.sqlite.gz: HTTP 404");
+    const out: { v?: readonly InSeasonOnPage[] } = {};
+    const broken = { hasLines: async () => true, sectionLine: async (): Promise<never> => { throw gone; } };
+    function C() { out.v = useInSeasonCovers(store, broken, { item: "gnis:1", ord: 5, pieces: [0] }, null); return null; }
+    render(<InSeasonContext.Provider value={{ matched: [], unmatched: [], ended: [], release: "r-1", data: { feed, links: links("r-1") } }}><C /></InSeasonContext.Provider>);
+    await waitFor(() => expect(out.v).toHaveLength(1));
+    expect(out.v![0]!.cover.failure).toBe(INSEASON_FAILURES.noLines);
+    const derived = () => seen.find((e) => (e as Error).message === INSEASON_FAILURES.noLines) as Error | undefined;
+    await waitFor(() => expect(derived()).toBeDefined());
+    expect(derived()!.cause).toBe(gone);
+    off();
+  });
   it("moving to another water never places its changes on the last water's lines (useAsync keeps the old answer)", async () => {
     // water 5 (Fraser-like, ord 5) and water 6 (Pitt-like, ord 6, sids 11-12): 6's lines are slow to come
     let release6: () => void = () => {};

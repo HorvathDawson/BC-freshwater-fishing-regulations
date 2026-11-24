@@ -13,3 +13,4 @@ export { prefetchPlan, regionOfTile, runPrefetch, type PrefetchSignals } from ".
 export { createBackgroundPrefetch, LOW_BATTERY, othersAhead, readerDownloading, type BackgroundPrefetch, type NetSignals, type PrefetchSnapshot }
   from "./background";
 export { offlineSizes, regsKept } from "./offline";
+export { createReplacedProbe, type ReplacedProbe } from "./replaced";

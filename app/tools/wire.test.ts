@@ -6,7 +6,7 @@
 // sent through the worker's own validator, and a payload with every field filled accepted and inside the byte limit.
 import { describe, expect, it } from "vitest";
 import { CRASH_FORMAT, CRASH_KINDS, CRASH_LIMITS, CRASH_SHEETS, ROUTE_KINDS, crashPayload, exitPayload, type CrashContext } from "@app/ui";
-import { REPORT_FORMAT, REPORT_LIMITS, REPORT_REASONS, WATER_VIEWS, reportPayload, type Diagnostics, type ReportContext } from "@app/core";
+import { REPORT_FORMAT, REPORT_LIMITS, REPORT_REASONS, WATER_VIEWS, REPLACED_NAMES, replacedError, reportPayload, type Diagnostics, type ReportContext } from "@app/core";
 import * as worker from "../workers/feeds/src/crashes";
 import * as reports from "../workers/feeds/src/reports";
 
@@ -85,6 +85,24 @@ const APP_CONTEXT_KEYS: Record<keyof Required<ReportContext>, true> = {
 const report = (over: Partial<Parameters<typeof reportPayload>[0]> = {}) =>
   reportPayload({ id: "fedcba9876543210", created: NOW.toISOString(), reason: "rule", what: "The limit is wrong.",
                   email: "a@b.ca", contact: true, diagnostics: DIAG, on: {}, ...over });
+
+describe("(T1016) a tab older than what is served: the app's own reports are the worker's `expected` class", () => {
+  const sent = (error: Error) => {
+    const p = crashPayload({ error, kind: "js", fatal: false, ctx: ctx({ platform: "web" }), now: NOW });
+    expect(worker.validateCrash(JSON.parse(JSON.stringify(p)))).toMatchObject({ ok: true });
+    return worker.classifyCrash(p);
+  };
+  const URL404 = "https://data.canifishthis.ca/release/r-fc137c4040fa/regs-3-7e2922cac0da.sqlite.gz: HTTP 404";
+  const CHUNK = "Loading module https://canifishthis.ca/_expo/static/js/web/later-0123abcd.js failed.\n(error: https://canifishthis.ca/x.js)";
+  it("both names, scrubbed and cut as sent, class expected; the raw 404 and the raw chunk error stay defects", () => {
+    expect(set(Object.values(REPLACED_NAMES))).toEqual(["ReleaseReplaced", "SiteReplaced"]);
+    const data = replacedError("data", { opened: "r-fc137c4040fa", live: "r-0aec88ed3edb", cause: new Error(URL404) });
+    const code = replacedError("code", { opened: null, live: null,
+                                         cause: Object.assign(new Error(CHUNK), { name: "AsyncRequireError" }) });
+    expect([sent(data), sent(code)]).toEqual(["expected", "expected"]);
+    expect([sent(new Error(URL404)), sent(Object.assign(new Error(CHUNK), { name: "AsyncRequireError" }))]).toEqual(["defect", "defect"]);
+  });
+});
 
 describe("report/2: the app's payload is one the worker takes", () => {
   it("the formats, reasons, limits and context keys are the same on both sides", () => {

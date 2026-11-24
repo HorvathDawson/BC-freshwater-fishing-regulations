@@ -312,6 +312,12 @@ describe("(T595) a class on each kind: defect / network / expected", () => {
     expect(c("SyntaxError", "Unexpected end of JSON input")).toBe("defect");        // not an update check: still a defect
     expect(c("Error", "play/r-1/index.json: HTTP 404")).toBe("defect");             // (T1014) stays a defect until fixed
     expect(c("Error", "HTTP 429")).toBe("defect");                                  // a 429 that is not our exit record
+    // (T1016) a web tab older than what is served, named so by the app; the same words under another name, or the raw
+    // 404 (a file of the LIVE release missing), stay defects
+    expect(c("ReleaseReplaced", "a file of release r-a is no longer served (HTTP 404); the server's release is r-c: … HTTP 404")).toBe("expected");
+    expect(c("SiteReplaced", "a code chunk of the site this page opened is no longer served (HTTP 404); …")).toBe("expected");
+    expect(c("Error", "a file of release r-a is no longer served (HTTP 404); the server's release is r-c")).toBe("defect");
+    expect(c("AsyncRequireError", "Loading module … failed. (error: …)")).toBe("defect");
   });
 
   it("?class: absent = defects; all; a list; anything else refused", () => {
