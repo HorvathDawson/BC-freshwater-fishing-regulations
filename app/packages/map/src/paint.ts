@@ -448,6 +448,35 @@ export function issuePaint(part: keyof typeof ISSUE_LAYERS, mode: string, tokens
   };
 }
 
+/**
+ * (T1029, PROTOTYPE for the owner's pictures, draft: not wired to the salmon day) THE ONE-BANK STRIPE: a place for one bank
+ * of a river (the Kitimat's "on west bank between signs", T754) or a synopsis `side` rule is drawn as a stripe along THAT
+ * bank's edge of the stream line, in the bank place's own colour that day. `line-offset` is right of the line's own
+ * direction as the tiles store it, so the pipeline says per section which side the bank is (`pipeline/deliver/bank_side.py`:
+ * +1 right, -1 left, measured on the exported line) and the map holds it in feature-state `bk`; two fixed layers, one per
+ * side, so no paint reads feature-state inside `line-offset`. Its colour is feature-state `bks`, "<group>.<category>"
+ * (`salmon.closed`, `status.closed`): the colour token `color.<bks>` the line itself would wear for that answer.
+ */
+export const BANK_LAYERS = { right: "stream-bank-r", left: "stream-bank-l" } as const;
+/** the stripe's own width (px), and the gap between it and the line's edge */
+export const BANK_STRIPE_PX = 3;
+export const BANK_GAP_PX = 0.5;
+/** the answers a stripe can wear: every category of the Salmon and the Standard colouring, by their own tokens */
+const BANK_COLOURS = ["salmon", "profile"].flatMap((mode) => {
+  const m = STYLE_META.colorModes["stream"]?.[mode];
+  return m && "categories" in m ? Object.values(m.categories).map((c) => (c as { token: string }).token) : [];
+});
+export function bankStripePaint(side: keyof typeof BANK_LAYERS, tokens: Tokens, streamWidth: unknown): Record<string, unknown> {
+  const sign = side === "right" ? 1 : -1;
+  return {
+    "line-color": ["match", ["coalesce", ["feature-state", "bks"], ""],
+      ...BANK_COLOURS.flatMap((t) => [t.replace(/^color\./, ""), tokens[t]]), "rgba(0,0,0,0)"],
+    "line-width": BANK_STRIPE_PX,
+    "line-offset": withinZoomCurve(streamWidth, (w) => ["*", sign, ["+", ["/", w, 2], BANK_GAP_PX + BANK_STRIPE_PX / 2]]),
+    "line-opacity": ["case", ["==", ["coalesce", ["feature-state", "bk"], 0], sign], 1, 0],
+  };
+}
+
 type WidthSpec = Exclude<(typeof STYLE_META.widths)[string], string>;
 /** One stop of a "linear" width: its zoom, the width there (zoom and the tile's order only), the T470 closed factor. */
 interface WidthStop { at: number; w: unknown; f: number }

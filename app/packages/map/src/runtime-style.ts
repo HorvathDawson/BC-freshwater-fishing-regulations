@@ -21,7 +21,7 @@ import { MAP_STYLE, NO_VALUES, STYLE_META, defaultView, resolveTheme, withFollow
 import { NO_ASSETS, type TileEndpoints } from "./endpoints";
 import { gaugeLayers, gaugeSource } from "./gaugeDots";
 import { landOutline } from "./on-imagery";
-import { SALMON_CASING_LAYER, salmonCasingPaint, ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, hasGlow, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, markShownIn, markWidth, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS, splitStream, STREAM_HEAVY, streamWidths } from "./paint";
+import { BANK_LAYERS, bankStripePaint, SALMON_CASING_LAYER, salmonCasingPaint, ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, hasGlow, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, markShownIn, markWidth, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS, splitStream, STREAM_HEAVY, streamWidths } from "./paint";
 import { traceLayers, traceSources } from "./trace-overlay";
 import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY, copyFilter } from "./water-copy";
 import { BASEMAP_LABELS, basemapLabelPaint, placesByImportance, WATER_NAMES } from "./labels";
@@ -335,6 +335,15 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       id: ISSUE_LAYERS[part], type: "line" as const, source: "atlas", "source-layer": "stream",
       layout: shownIn(markShownIn("issue", sMode), { "line-cap": "butt" as const, "line-join": "round" as const }),
       paint: issuePaint(part, sMode, tk, markWidth("issue", sMode, sw)),
+    })),
+    /*
+     * (T1029, PROTOTYPE) THE ONE-BANK STRIPE (`bankStripePaint`): along one edge of the stream line, the side and the
+     * colour by feature-state (`bk`, `bks`); nothing sets them yet but the picture harness, so no frame draws one.
+     */
+    ...(["right", "left"] as const).map((side) => ({
+      id: BANK_LAYERS[side], type: "line" as const, source: "atlas", "source-layer": "stream",
+      layout: { "line-cap": "butt" as const, "line-join": "round" as const },
+      paint: bankStripePaint(side, tk, sw.base),
     }))];
   }) as { id: string; type?: string }[];
 
