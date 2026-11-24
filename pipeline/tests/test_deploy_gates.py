@@ -459,6 +459,16 @@ JUSTIFIED: dict[tuple[str, str], str] = {
     # AARs, which is refused ("must hold exactly one"): it fails closed
     ("deploy/lib/build-links.sh", "found=$(find -L \"$dir\" -name 'android-sdk-vulkan-*.aar' 2>/dev/null)"):
         "fails closed: fewer AARs found is the refusal",
+    # (T1058, deploy/lib/gradle-watch.sh) probing and stopping this build's own Gradle processes, which may already
+    # have exited: a gone process is the answer, and the build's own result is the exit code returned
+    ("deploy/lib/gradle-watch.sh", 'kill -0 "$1" 2>/dev/null'): "the probe: a gone pid is the answer (not running)",
+    ("deploy/lib/gradle-watch.sh", 'pgrep -P "$1" 2>/dev/null'): "a process with no children (or gone) has none to walk",
+    ("deploy/lib/gradle-watch.sh", 'ps -o command= -p "$p" 2>/dev/null'): "a pid gone since the walk: nothing to spare",
+    ("deploy/lib/gradle-watch.sh", 'kill -TERM "${pids[@]}" 2>/dev/null || true'): "stopping: some pids already exited",
+    ("deploy/lib/gradle-watch.sh", 'kill -KILL "$p" 2>/dev/null'): "stopping: the pid exited between probe and KILL",
+    ("deploy/lib/gradle-watch.sh", 'wait "$pid" 2>/dev/null || true'): "reaping a client it stopped: the build is 124",
+    ("deploy/lib/gradle-watch.sh", 'kill "$tailpid" 2>/dev/null || true'): "the output follower, display only",
+    ("deploy/lib/gradle-watch.sh", 'wait "$tailpid" 2>/dev/null || true'): "reaping the output follower, display only",
 }
 SCANNED_OUT = ("deploy/staging/build-apk.sh", "deploy/staging/build-ios-testflight.sh", "deploy/staging/build-ios-sim.sh")
 HIDES = re.compile(r"\|\| true\b|2>/dev/null|\|\| :")
