@@ -117,12 +117,18 @@
      ],
      "who": "Province ›"
     },
-    "terms": [],
+    "terms": [
+     "def_single_hook"
+    ],
     "valueTerms": [
-     []
+     [],
+     [
+      "def_single_hook"
+     ]
     ],
     "values": [
-     "One hook, lure or fly"
+     "One hook, lure or fly",
+     "Treble and barbed hooks allowed"
     ]
    },
    {
