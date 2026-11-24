@@ -199,7 +199,7 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
   it("(T810 P, T1031) a trout row's species sheet: Sources tab (header, Here today bold where bold, the breakdown in order), Identification tab (how to tell it); it closes as every sheet", () => {
     // a hatchery-only steelhead row with its bold stop line, from the shared vectors, through N's troutOf and P's builder
     const pick = TROUT_CASES.flatMap((c) => { const t = troutVmOf(c); return t.boxes.flatMap((b) => b.rows.map((r) => ({ t, b, r }))); })
-      .find(({ b, r }) => (b.label ?? r.label) !== null && r.sheet.here.some((l) => l.bold) && r.sheet.here.some((l) => !l.bold) && r.sheet.src.length > 1)!;
+      .find(({ b, r }) => (b.label ?? r.label) !== null && r.sheet.here.some((l) => l.bold) && r.sheet.here.some((l) => !l.bold) && r.src.length > 4)!;
     const { t, b, r } = pick, page = troutPage(t);
     const h = host(`tf:${r.key}`, page);
     expect(screen.getByRole("heading", { name: r.name })).toBeTruthy();
@@ -211,23 +211,24 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     expect(body.textContent).not.toContain(TROUT_NAV.HATCH);
     expect(within(screen.getByRole("tablist", { name: SPECIES_SHEET.TABS_LABEL })).getAllByRole("tab")
       .map((x) => [x.textContent, x.getAttribute("aria-selected")])).toEqual([[SPECIES_SHEET.ID, "false"], [SPECIES_SHEET.SRC, "true"]]);
-    // (T883 review 1) a trout sheet with no stored roles for its rules keeps `src` (at most 4 rules) as a list that claims
-    // nothing: never the decided rail, no "So:" answer
+    // (T883 review 1) a trout sheet with no stored roles for its rules keeps them (the row's whole `src`, T1031 option B)
+    // as a list that claims nothing: never the decided rail, no "So:" answer
     expect(within(body).queryByTestId("flow")).toBeNull();
     expect(body.textContent).not.toContain("So: ");
     // bold where the payload says bold, and only there
     const face = (s: string) => getComputedStyle(within(body).getByText(s)).fontFamily;
     const bold = face(r.sheet.head);
     expect(r.sheet.here.map((l) => face(l.t) === bold)).toEqual(r.sheet.here.map((l) => l.bold));
-    // Sources: one row per index of `src`, in its order (each the rule's title), then "All sources ›"
-    const titles = r.sheet.src.map((ix) => `Rule ${ix}`);
+    // Sources: one row per index of the row's whole `src` (T1031 option B: past the frame's cut to 4), in its order (each
+    // the rule's title), then "All sources ›"
+    const titles = r.src.map((ix) => `Rule ${ix}`);
     const shown = titles.map((x) => body.textContent!.indexOf(x));
     expect(shown.every((i, k) => i >= 0 && (k === 0 || shown[k - 1]! < i)), JSON.stringify(shown)).toBe(true);
     fireEvent.click(screen.getByText(TROUT_SHEET.ALL_SOURCES));
     fireEvent.click(screen.getByText(titles[0]!));
     fireEvent.click(screen.getByRole("tab", { name: SPECIES_SHEET.SRC }));   // the drawn tab: opens nothing
     fireEvent.click(screen.getByRole("tab", { name: SPECIES_SHEET.ID }));
-    expect(h.opened).toEqual(["src:trout", `rule:k${r.sheet.src[0]}`, `tf:${r.key}|id`]);
+    expect(h.opened).toEqual(["src:trout", `rule:k${r.src[0]}`, `tf:${r.key}|id`]);
     // the Identification tab: the same sheet (title, sub), its pictures' tips and the hatchery link; Sources one press away
     h.rerender(`tf:${r.key}|id`);
     expect(screen.getByRole("heading", { name: r.name })).toBeTruthy();
