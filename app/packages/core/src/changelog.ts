@@ -38,7 +38,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
   {
     // (T998) opened by `python -m pipeline release --cut`: write 3-5 plain bullets for anglers (never commit
     // subjects); check-changelog refuses the entry until it has one, and the owner clears `draft`
-    version: "0.9.0", date: "2026-11-23", draft: true, notes: [
+    version: "0.9.0", date: "2026-11-24", notes: [
       "Regulations: each tab names the rule-book pages behind it, a fish's sheet has its own Sources tab, and the Class II line sits right under the water's name",
       "Conditions: a river with no normal range is charted against its own year, and a level-only gauge like Capilano's now shows its live level",
       "Map: lake shores are softly shaded, boundary labels no longer pile on each other, and a selected slough is outlined once, not boxed",
