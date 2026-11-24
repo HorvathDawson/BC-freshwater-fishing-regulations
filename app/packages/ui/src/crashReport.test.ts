@@ -116,6 +116,29 @@ function rig(over: Partial<Parameters<typeof createCrashReporter>[0]> = {}) {
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
 describe("the reporter (T242)", () => {
+  it("(T1016) sent(): resolves only once every report asked for is on the line, one waiting out the gap included", async () => {
+    let wake = () => {};
+    const sleep = () => new Promise<void>((ok) => { wake = ok; });
+    let at = 0;
+    const answers: Array<(r: Response) => void> = [];
+    const fetch = vi.fn((_u: unknown, _i?: RequestInit) => new Promise<Response>((ok) => { answers.push(ok); }));
+    const t = rig({ fetch: fetch as never, sleep, clock: () => at, gapMs: 1_100 });
+    t.r.report(boom(), { kind: "js", fatal: false });
+    t.r.report(new Error("second"), { kind: "js", fatal: false });
+    let done = false;
+    void t.r.sent().then(() => { done = true; });
+    await tick();
+    expect([fetch.mock.calls.length, done]).toEqual([1, false]);   // the second waits its turn behind the gap
+    answers[0]!(new Response("{}", { status: 201 }));
+    await tick();
+    expect([fetch.mock.calls.length, done]).toEqual([1, false]);
+    at = 1_100; wake();
+    await tick();
+    // the second POST is issued (keepalive): sent, though no answer has come back
+    expect([fetch.mock.calls.length, done, (fetch.mock.calls[1]![1] as RequestInit).keepalive]).toEqual([2, true, true]);
+    // nothing asked for: at once
+    expect(await Promise.race([rig().r.sent().then(() => "sent"), tick().then(() => "held")])).toBe("sent");
+  });
   it("sends a new error once, to the crash URL, as the payload", async () => {
     const t = rig();
     t.r.report(boom(), { kind: "js", fatal: false });
@@ -203,11 +226,11 @@ describe("the catchers (T242)", () => {
     const prev = vi.fn();
     let handler: ((e: unknown, f?: boolean) => void) | undefined;
     const g: Record<string, unknown> = { ErrorUtils: { getGlobalHandler: () => prev, setGlobalHandler: (h: typeof handler) => { handler = h; } } };
-    const undo = installCrashHandlers({ report: (e, o) => calls.push(`${(e as Error).message}:${o.kind}:${o.fatal}`), flush: async () => false, sendExit: async () => ({ sent: false, status: null, error: null }) }, g);
+    const undo = installCrashHandlers({ report: (e, o) => calls.push(`${(e as Error).message}:${o.kind}:${o.fatal}`), flush: async () => false, sendExit: async () => ({ sent: false, status: null, error: null }), sent: async () => {} }, g);
     handler!(new Error("x"), true);
     expect(calls).toEqual(["x:js:true"]);
     expect(prev).toHaveBeenCalledOnce();
-    installCrashHandlers({ report: () => calls.push("twice"), flush: async () => false, sendExit: async () => ({ sent: false, status: null, error: null }) }, g);   // second install: nothing
+    installCrashHandlers({ report: () => calls.push("twice"), flush: async () => false, sendExit: async () => ({ sent: false, status: null, error: null }), sent: async () => {} }, g);   // second install: nothing
     handler!(new Error("y"), false);
     expect(calls).toEqual(["x:js:true", "y:js:false"]);
     undo();
@@ -217,7 +240,7 @@ describe("the catchers (T242)", () => {
     const l: Record<string, (ev: never) => void> = {};
     const g = { addEventListener: (k: string, f: (ev: never) => void) => { l[k] = f; }, removeEventListener: () => {} };
     const calls: string[] = [];
-    installCrashHandlers({ report: (e, o) => calls.push(`${(e as Error).message}:${o.kind}`), flush: async () => false, sendExit: async () => ({ sent: false, status: null, error: null }) }, g as never);
+    installCrashHandlers({ report: (e, o) => calls.push(`${(e as Error).message}:${o.kind}`), flush: async () => false, sendExit: async () => ({ sent: false, status: null, error: null }), sent: async () => {} }, g as never);
     l.error!({ error: new Error("e1") } as never);
     l.unhandledrejection!({ reason: new Error("r1") } as never);
     expect(calls).toEqual(["e1:js", "r1:promise"]);
@@ -227,7 +250,7 @@ describe("the catchers (T242)", () => {
     const g = { HermesInternal: { enablePromiseRejectionTracker: (o: typeof opts) => { opts = o; } } };
     const calls: string[] = [];
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const undo = installCrashHandlers({ report: (e, o) => calls.push(`${(e as Error).message}:${o.kind}:${o.fatal}`), flush: async () => false, sendExit: async () => ({ sent: false, status: null, error: null }) }, g as never);
+    const undo = installCrashHandlers({ report: (e, o) => calls.push(`${(e as Error).message}:${o.kind}:${o.fatal}`), flush: async () => false, sendExit: async () => ({ sent: false, status: null, error: null }), sent: async () => {} }, g as never);
     expect(opts!.allRejections).toBe(true);
     opts!.onUnhandled(1, new Error("p1"));
     opts!.onUnhandled(2, Object.assign(new Error("offline"), { environment: true }));
@@ -237,7 +260,7 @@ describe("the catchers (T242)", () => {
   });
   it("(T368) reportFailure reaches the installed reporter (non-fatal), never the environment's, nothing after undo", () => {
     const calls: string[] = [];
-    const undo = installCrashHandlers({ report: (e, o) => calls.push(`${(e as Error).message}:${o.kind}:${o.fatal}`), flush: async () => false, sendExit: async () => ({ sent: false, status: null, error: null }) }, {} as never);
+    const undo = installCrashHandlers({ report: (e, o) => calls.push(`${(e as Error).message}:${o.kind}:${o.fatal}`), flush: async () => false, sendExit: async () => ({ sent: false, status: null, error: null }), sent: async () => {} }, {} as never);
     reportFailure(new Error("caught"));
     reportFailure(Object.assign(new TypeError("Network request failed")));
     undo();

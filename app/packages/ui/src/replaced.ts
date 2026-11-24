@@ -10,12 +10,19 @@
  *            server). A 404 on a file the live release names, a chunk missing from the live deploy: reported as it is (a
  *            defect). A pointer that does not answer: the 404 as it is; a chunk asked again with no answer: reported
  *            as the line's (`network`). No look holds a report longer than `LOOK_MS`.
- *   notice   one line and one action (core `REPLACED_WORDS`): data → put the live release in use through the app's ONE
+ *   refresh  (owner 2026-11-24, "Always auto refresh") a verdict refreshes the page BY ITSELF, at once, typing or not, once
+ *            its report is on the line (core `failuresSent`): data → the live release put in use through the app's ONE
  *            in-session apply (`loadLiveRelease`: the update service stages it, the app's `apply` boots onto it — no
- *            second loader); code → reload the page (the new site, and with it the live release).
+ *            second loader); code → the page reloaded (`reloadOnce`: the new site, and with it the live release).
+ *            At most ONE automatic refresh per verdict (kind + release) per page life, and one reload per page code
+ *            across reloads (a one-shot marker that survives the reload): no loop.
+ *   notice   one line and one action (core `REPLACED_WORDS`), only when the automatic refresh could not be made (nothing
+ *            staged, a reload that would loop, the marker unkept): the failure shown, its action the same refresh by
+ *            hand, and reported as a defect (`REFRESH_NOT_MADE`).
  */
 import { useSyncExternalStore } from "react";
-import { isEnvironment, missingChunk, notFoundUrl, replacedError, REPLACED_WORDS, type ReplacedKind } from "@app/core";
+import { isEnvironment, missingChunk, notFoundUrl, refreshNotMade, replacedError, reportFailure, REPLACED_WORDS,
+         type ReplacedKind } from "@app/core";
 import type { UpdateService } from "@app/data";
 import type { ReplacedProbe } from "@app/data/release";
 
@@ -23,24 +30,81 @@ import type { ReplacedProbe } from "@app/data/release";
 export interface ReplacedRaised { readonly kind: ReplacedKind; readonly release: string | null }
 
 export interface ReplacedState {
+  /** the notice shown: a verdict whose automatic refresh could not be made (`ReplacedRefresh`), else null */
   get(): ReplacedRaised | null;
-  /** raise a notice; the code notice outranks the data one (a reload loads both) */
+  /** a verdict (the triage's): the first for its kind and release is refreshed by itself; any later one is not */
   raise(r: ReplacedRaised): void;
   subscribe(on: () => void): () => void;
 }
 
-export function createReplacedState(): ReplacedState {
+/** What the state needs from the app to refresh by itself. */
+export interface ReplacedRefresh {
+  /** make the automatic refresh of `r`: resolves null once it is made (data: the app's apply started — what follows is
+   *  the apply's own, said and reported there, T555; code: the page reloading), else why it could not be made */
+  refresh(r: ReplacedRaised): Promise<string | null>;
+  /** every report so far on the line (core `failuresSent`): waited for first, so a reload does not lose the report */
+  sent(): Promise<void>;
+  /** the release in use now: a data verdict for another (a late read of a set the page has since left) is not refreshed */
+  inUse(): string | null;
+}
+
+/**
+ * (T1016, owner 2026-11-24 "Always auto refresh") The verdicts of one page life. The first verdict for a kind and release
+ * waits for the reports to be on the line, then refreshes; a verdict met again (another 404 of the same set while the
+ * apply runs) is never refreshed again, and a data verdict for a set the page has left (a late read made on it) not at
+ * all (its report, `ReleaseReplaced`, is all it is). A refresh that could not be made raises the
+ * notice (the code notice outranks the data one: a reload loads both) and is reported as a defect, once.
+ */
+export function createReplacedState(o: ReplacedRefresh): ReplacedState {
   let now: ReplacedRaised | null = null;
   const subs = new Set<() => void>();
+  const tried = new Set<string>();
+  const show = (r: ReplacedRaised, why: string) => {
+    reportFailure(refreshNotMade(r.kind, r.release, why));
+    if (now?.kind === "code" || (now?.kind === r.kind && now.release === r.release)) return;
+    now = r;
+    for (const s of [...subs]) s();
+  };
   return {
     get: () => now,
     raise(r) {
-      if (now?.kind === "code" || (now?.kind === r.kind && now.release === r.release)) return;
-      now = r;
-      for (const s of [...subs]) s();
+      const key = `${r.kind}:${r.release ?? ""}`;
+      if (tried.has(key) || (r.kind === "data" && r.release !== o.inUse())) return;
+      tried.add(key);
+      void o.sent()
+        .then(() => o.refresh(r))
+        .then((why) => { if (why !== null) show(r, why); },
+              (x: unknown) => show(r, `it failed: ${x instanceof Error ? x.message : String(x)}`));
     },
     subscribe(on) { subs.add(on); return () => { subs.delete(on); }; },
   };
+}
+
+/** The web's session store, as `reloadOnce` reads it (the browser's `sessionStorage`). */
+export interface SessionStore { getItem(k: string): string | null; setItem(k: string, v: string): void }
+/** (T1016) the one-shot marker's key: the page code (entry script) a reload was made FROM */
+export const RELOADED_FROM_KEY = "canifishthis.t1016.reloadedFrom";
+
+/**
+ * (T1016) THE CODE VERDICT'S AUTOMATIC RELOAD, AT MOST ONCE PER PAGE CODE. `entry`: this page's entry script. The session
+ * store keeps the entry a reload was made from, across the reload: a page that comes back on the SAME code (a cached
+ * page, a deploy that did not reach it) and meets a missing chunk again does not reload (why, returned); a page on new
+ * code may reload once for a later deploy. A store that cannot be read or written (a private window, storage blocked):
+ * no reload (it could loop), why returned. Null: reloading now.
+ */
+export function reloadOnce(o: { store: () => SessionStore; entry: string | null; reload: () => void }): string | null {
+  if (!o.entry) return "this page's code is not known (no entry script), so a reload could not be told from a loop";
+  try {
+    const s = o.store();
+    if (s.getItem(RELOADED_FROM_KEY) === o.entry)
+      return `this page reloaded once already from this code (${o.entry}) and the chunk is still missing`;
+    s.setItem(RELOADED_FROM_KEY, o.entry);
+    if (s.getItem(RELOADED_FROM_KEY) !== o.entry) return "the marker that stops a reload loop did not keep";
+  } catch (x) {
+    return `the marker that stops a reload loop could not be kept (${x instanceof Error ? x.message : String(x)})`;
+  }
+  o.reload();
+  return null;
 }
 
 /** The web's look at the site: is a chunk that would not load gone because the site was deployed since this page opened? */
@@ -145,18 +209,23 @@ const none = () => null;
  * THE DATA NOTICE'S ACTION: the live release put in use through the app's one in-session apply. Ready already (the
  * update service staged it): applied now. Else the service is asked (a manual check: its failure is shown on the sync
  * icon) and the apply follows the moment its download is ready; a check that stages nothing, or a download that fails,
- * ends the wait (the notice stays, its action can be pressed again).
+ * ends the wait (the notice stays, its action can be pressed again). `ended`: null once applied, else why not (the
+ * automatic refresh's answer, `ReplacedRefresh.refresh`).
  */
-export function loadLiveRelease(u: Pick<UpdateService, "snapshot" | "subscribe" | "check">, apply: () => void): void {
+export function loadLiveRelease(u: Pick<UpdateService, "snapshot" | "subscribe" | "check">, apply: () => void,
+                                ended: (why: string | null) => void = () => {}): void {
   const phase = () => u.snapshot().release?.phase ?? null;
-  if (phase() === "ready") { apply(); return; }
+  if (phase() === "ready") { apply(); ended(null); return; }
   let checked = false, done = false;
   /** once per press: applied when ready, else the wait ends once the check is in and nothing is downloading */
   const look = () => {
     if (done) return;
     const p = phase();
-    if (p === "ready") { done = true; off(); apply(); }
-    else if (checked && p !== "downloading" && p !== "waiting-wifi") { done = true; off(); }
+    if (p === "ready") { done = true; off(); apply(); ended(null); }
+    else if (checked && p !== "downloading" && p !== "waiting-wifi") {
+      done = true; off();
+      ended(`the update service staged no newer release (its release phase: ${p ?? "none"})`);
+    }
   };
   const off = u.subscribe(look);
   void u.check({ manual: true, feeds: false }).finally(() => { checked = true; look(); });

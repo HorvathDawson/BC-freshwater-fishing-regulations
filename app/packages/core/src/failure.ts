@@ -14,12 +14,16 @@
 
 /** Where reports go: set by the crash reporter when it is installed (`installCrashHandlers`). */
 let sink: ((e: unknown) => void) | null = null;
+/** (T1016) the sink's own "every report handed to the line" (the crash reporter's `sent`), or null (none: nothing waits) */
+let sinkSent: (() => Promise<void>) | null = null;
 
-/** @public — the crash reporter's hook (ui/crashReport.ts); returns the undo. */
-export function setFailureSink(s: ((e: unknown) => void) | null): () => void {
-  const prev = sink;
+/** @public — the crash reporter's hook (ui/crashReport.ts); `sent`: resolves once every report it took so far is handed to
+ *  the line (`failuresSent`). Returns the undo. */
+export function setFailureSink(s: ((e: unknown) => void) | null, sent?: () => Promise<void>): () => void {
+  const prev = sink, prevSent = sinkSent;
   sink = s;
-  return () => { sink = prev; };
+  sinkSent = sent ?? null;
+  return () => { sink = prev; sinkSent = prevSent; };
 }
 
 /** Browser and React Native words for a fetch that never reached a server (no connection), by engine. */
@@ -61,13 +65,31 @@ export function setFailureTriage(t: ((e: unknown) => Promise<unknown> | null) | 
   return () => { triage = prev; };
 }
 
+/** (T1016) the second looks in flight: each settles once what it found is in the sink */
+const looking = new Set<Promise<void>>();
+
 /** Report a failure the app caught (non-fatal) — unless it is the environment's. */
 export function reportFailure(e: unknown): void {
   if (isEnvironment(e)) return;
   let later: Promise<unknown> | null;
   try { later = triage?.(e) ?? null; } catch (x) { sink?.(e); sink?.(x); return; }
   if (!later) { sink?.(e); return; }
-  void later.then((x) => { if (!isEnvironment(x)) sink?.(x); }, (x: unknown) => { sink?.(e); sink?.(x); });
+  const done = later.then((x) => { if (!isEnvironment(x)) sink?.(x); }, (x: unknown) => { sink?.(e); sink?.(x); });
+  looking.add(done);
+  const out = () => { looking.delete(done); };
+  void done.then(out, out);
+}
+
+/**
+ * (T1016) EVERY FAILURE REPORTED SO FAR IS ON ITS WAY: each second look in flight has put what it found in the sink, and the
+ * sink has handed every report it took to the line (the crash reporter's `sent`: its POST issued, `keepalive`, so it
+ * outlives the page). What a web page that refreshes itself waits for first (`@app/ui` `createReplacedState`): the
+ * report of the very failure that asks for the refresh is not lost with the page. A look ends within its own wait
+ * (`LOOK_MS`); no sink: nothing to wait for.
+ */
+export async function failuresSent(): Promise<void> {
+  while (looking.size) await Promise.all([...looking]);
+  await sinkSent?.();
 }
 
 const once = new Set<string>();
