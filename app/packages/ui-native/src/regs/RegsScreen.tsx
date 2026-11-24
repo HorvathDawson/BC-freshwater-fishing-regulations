@@ -21,7 +21,7 @@ import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, u
 import { openProbe } from "@app/data";
 import { Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
 import { Text } from "../Text";
-import { LEGAL_WORDS, parseSheetKey, withInSeason, withSalmonSheets, type SalmonCardVM, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type TabSourcesVM, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
+import { LEGAL_WORDS, parseSheetKey, reportFailure, withInSeason, withSalmonSheets, type SalmonCardVM, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type TabSourcesVM, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
 import { FreshDot } from "../menu/Fresh";
 import { NO_SNIPPET, WaterInset } from "../WaterFrame";
@@ -145,6 +145,10 @@ export interface RegsScreenProps {
 
 /** (T1049) ticks (100 ms) a start's target must hold before the start is done; ticks it is followed at most (~2 s) */
 const START_STEADY = 2, START_FOLLOW = 20;
+/** (T1049) ticks a start waits for its tab's section to be drawn (~5 s: a slow phone's first layout), then it is said and done */
+const START_WAIT = 50;
+/** (T1049) ms after a start's jump during which a scroll event is that jump's own */
+const START_JUMP_MS = 150;
 
 export function RegsScreen({ page, palette, images, actions, onDate,
                              gear, methods, licence, referenceOpen = false, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
@@ -166,6 +170,7 @@ export function RegsScreen({ page, palette, images, actions, onDate,
   // (T1025) a JUMP, never an animated pass: an animation from "What you can keep" to "Licence" scrolled through Gear and
   // Methods, and the strip's highlight (it follows the scroll) flickered through each one on the way
   const toTab = (t: Tab) => {
+    startTaken.current = true;   // (T1049) the reader's press: a start still following its section stops here
     store.selectTab(t);
     scroll.current?.scrollTo({ y: tabScrollY(t, store.getSections()), animated: false });
   };
@@ -176,6 +181,10 @@ export function RegsScreen({ page, palette, images, actions, onDate,
   // fresh page applies its first — its sheet (none: shut), its tab and offset (Keep at 0 is the top)
   // `first`: the start the page MOUNTED with (none at mount: every later one is a new start on an open page)
   const firstStart = useRef(true);
+  /** (T1049) the reader took the page (a drag, a tab press, a scroll not the start's own): the start stops following */
+  const startTaken = useRef(false);
+  /** (T1049) until when a scroll event is the start's own jump (its event comes a frame later; a clamped jump's y differs) */
+  const startJumpUntil = useRef(0);
   // (T1049) and FOLLOWED: the first measured top is not the last (on staging the Keep tab grows 903 → 1104 px ~35 ms after
   // the first layout, so a jump to it landed short: Licence on Methods). The jump is made again while the target moves,
   // and the start is done once it has held for START_STEADY ticks, or after START_FOLLOW ticks of a page still moving.
@@ -185,19 +194,27 @@ export function RegsScreen({ page, palette, images, actions, onDate,
     if (!start) return;
     if (!first) { setSheet(start.sheet); restoring.current = false; }
     if (first && start.tab === "keep" && start.scroll === 0) { onStarted?.(); return; }
-    let at: number | null = null, held = 0, followed = 0;
+    let at: number | null = null, held = 0, followed = 0, waited = 0;
+    startTaken.current = false; startJumpUntil.current = 0;
+    const done = () => { clearInterval(timer); onStarted?.(); };
     const timer = setInterval(() => {
-      if (start.tab !== "keep" && store.getSections()[start.tab] == null) return;
+      if (startTaken.current) { done(); return; }
+      if (start.tab !== "keep" && store.getSections()[start.tab] == null) {
+        // (T1049) a tab this page never draws (Gear on a closed day): said, and the start is done — never polled for ever
+        if (++waited < START_WAIT) return;
+        reportFailure(new Error(`start link: tab=${start.tab} has no section on this page: the page opens at its top`));
+        done(); return;
+      }
       const y = tabScrollY(start.tab, store.getSections()) + start.scroll;
       if (y !== at && followed < START_FOLLOW) {
         at = y; held = 0; followed += 1;
         store.selectTab(start.tab);
+        startJumpUntil.current = Date.now() + START_JUMP_MS;
         scroll.current?.scrollTo({ y, animated: false });
         return;
       }
       if (++held < START_STEADY && followed < START_FOLLOW) { followed += 1; return; }
-      clearInterval(timer);
-      onStarted?.();
+      done();
     }, 100);
     return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once per start: a start is applied to the page it is handed to
@@ -312,8 +329,12 @@ export function RegsScreen({ page, palette, images, actions, onDate,
   }, [scroll, coachScroll]);
   const pageScroll = (
     <View style={{ flex: 1 }}>
-      <ScrollView ref={pageRef} testID="regs-scroll" scrollEventThrottle={16} onScrollBeginDrag={() => { restoring.current = false; }} contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
+      <ScrollView ref={pageRef} testID="regs-scroll" scrollEventThrottle={16} onScrollBeginDrag={() => { restoring.current = false; startTaken.current = true; }} contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
                   onScroll={(e) => { const y = e.nativeEvent.contentOffset.y; store.setScroll(y); coachScroll.track(y);
+                                     // (T1049) a scroll that is not the start's own jump is the reader's (a wheel, keys, a
+                                     // web drag: react-native-web fires no onScrollBeginDrag for those)
+                                     // (before its first jump only a scroll off the top: the page settling at 0 is not the reader)
+                                     if (Date.now() > startJumpUntil.current && (startJumpUntil.current > 0 || y > 0)) startTaken.current = true;
                                      if (scrollKey && !restoring.current) rememberRegsScroll(scrollKey, y); }}
                   onLayout={(e) => { viewH.current = e.nativeEvent.layout.height; store.setViewport(e.nativeEvent.layout.height); }}
                   onContentSizeChange={(_w, h) => { contentH.current = h; store.setContentHeight(h); remeasure(); }}>

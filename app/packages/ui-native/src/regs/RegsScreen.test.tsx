@@ -215,6 +215,65 @@ describe("<RegsScreen>", () => {
     } finally { vi.useRealTimers(); }
   });
 
+  describe("(T1049) the reader takes the page while a start still follows its section: it stops there", () => {
+    const S = { gear: 1500, methods: 2100, methodsHeight: 400, licence: 2700 }, GROWN = { gear: 1701, methods: 2301, methodsHeight: 400, licence: 2901 };
+    const setup = () => {
+      const store = createTabStore(), onStarted = vi.fn();
+      mount({ store, start: { tab: "licence", sheet: null, scroll: 0 }, onStarted });
+      const to = vi.fn();
+      (scrollEl() as unknown as { scroll: typeof to }).scroll = to;
+      const tops = () => to.mock.calls.map((c) => (c[0] as { top: number }).top);
+      const fire = (y: number) => act(() => { fireEvent.scroll(scrollEl(), { target: { scrollTop: y } }); });
+      return { store, onStarted, tops, fire };
+    };
+    it("a tab press: no jump back to the start's tab", () => {
+      vi.useFakeTimers();
+      try {
+        const { store, onStarted, tops } = setup();
+        act(() => { store.setSections(S); vi.advanceTimersByTime(100); });   // the start's jump
+        act(() => { fireEvent.click(screen.getByRole("tab", { name: "Methods" })); });
+        act(() => { store.setSections(GROWN); vi.advanceTimersByTime(1000); });
+        expect({ tops: tops(), started: onStarted.mock.calls.length }).toEqual({ tops: [2702, 2102], started: 1 });
+      } finally { vi.useRealTimers(); }
+    });
+    it("a scroll of the reader's (wheel, keys, a web drag): no jump back; the start's own jump's event is not one", () => {
+      vi.useFakeTimers();
+      try {
+        const own = setup();
+        act(() => { own.store.setSections(S); vi.advanceTimersByTime(100); });
+        act(() => { vi.advanceTimersByTime(50); });
+        own.fire(2000);                                                       // the jump's own event (clamped): still following
+        act(() => { own.store.setSections(GROWN); vi.advanceTimersByTime(1000); });
+        const ownTops = own.tops();
+        cleanup();
+        const r = setup();
+        act(() => { r.fire(0); });                                            // the page settling at the top: not the reader
+        act(() => { r.store.setSections(S); vi.advanceTimersByTime(200); });  // jumped, held one tick
+        act(() => { vi.advanceTimersByTime(60); });
+        r.fire(500);                                                          // the reader
+        act(() => { r.store.setSections(GROWN); vi.advanceTimersByTime(1000); });
+        expect({ ownTops, tops: r.tops(), started: r.onStarted.mock.calls.length })
+          .toEqual({ ownTops: [2702, 2903], tops: [2702], started: 1 });
+      } finally { vi.useRealTimers(); }
+    });
+  });
+
+  it("(T1049) a start whose tab this page never draws: said after ~5 s and done, never polled for ever", async () => {
+    vi.useFakeTimers();
+    const { setFailureSink } = await import("@app/core");
+    const seen: string[] = [];
+    setFailureSink((e) => seen.push((e as Error).message));
+    try {
+      const store = createTabStore(), onStarted = vi.fn();
+      mount({ store, start: { tab: "gear", sheet: null, scroll: 0 }, onStarted });
+      act(() => { vi.advanceTimersByTime(4800); });
+      const before = onStarted.mock.calls.length;
+      act(() => { vi.advanceTimersByTime(400); });
+      expect({ before, started: onStarted.mock.calls.length, seen })
+        .toEqual({ before: 0, started: 1, seen: ["start link: tab=gear has no section on this page: the page opens at its top"] });
+    } finally { setFailureSink(null); vi.useRealTimers(); }
+  });
+
   it("(T1049) a page that never stops moving: the start stops following after ~2 s and says started", () => {
     vi.useFakeTimers();
     try {
