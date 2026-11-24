@@ -1,10 +1,10 @@
 # T1041 — A red CI run or a review finding stops costing an hour or two
 
-Status: PARTIAL — 0a44b1c75, 4ed75f4a1, de8268ac1, 49081552b, 0dfb92695 (items 1-7, for 0.9.0), 3d06be883 (review lows, 0.9.1), 43cec978d, 1583fe40c (one file per ledger row / owner item, 0.9.1: PR open, merges after release/0.9.0 is back on main); owner: OWNER-TODO "move the repo to a free organisation" (after 0.9.0), then Claude: the slug flip and the merge-queue rule; left (Claude): `node app/tools/ledger.mjs --merge origin/main` on chore/T1041-one-file-per-row once release/0.9.0 has merged back, then merge it
+Status: PARTIAL — 0a44b1c75, 4ed75f4a1, de8268ac1, 49081552b, 0dfb92695 (items 1-7, for 0.9.0), 3d06be883 (review lows, 0.9.1), 43cec978d, 1583fe40c, e4004679f (one file per ledger row / owner item, 0.9.1: PR open, merges after release/0.9.0 is back on main); owner: OWNER-TODO "move the repo to a free organisation" (after 0.9.0), then Claude: the slug flip and the merge-queue rule; left (Claude): `node app/tools/ledger.mjs --merge origin/main` on chore/T1041-one-file-per-row once release/0.9.0 has merged back, then merge it
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1041 | A red CI run or a review finding stops costing an hour or two: related tests on push, `scripts/before_pr.sh`, a report-only mutation job, merge-queue-ready workflows; the org move after 0.9.0 | PARTIAL — owner: OWNER-TODO "move the repo to a free organisation" (after 0.9.0); then the slug flip + merge-queue rule | 0a44b1c75, 4ed75f4a1, de8268ac1, 49081552b, 0dfb92695, 3d06be883, 43cec978d, 1583fe40c | owner 2026-11-23; one-file-per-row PR: `ledger.mjs --merge origin/main` after release/0.9.0 merges back |
+| T1041 | A red CI run or a review finding stops costing an hour or two: related tests on push, `scripts/before_pr.sh`, a report-only mutation job, merge-queue-ready workflows; the org move after 0.9.0 | PARTIAL — owner: OWNER-TODO "move the repo to a free organisation" (after 0.9.0); then the slug flip + merge-queue rule | 0a44b1c75, 4ed75f4a1, de8268ac1, 49081552b, 0dfb92695, 3d06be883, 43cec978d, 1583fe40c, e4004679f | owner 2026-11-23; one-file-per-row PR: `ledger.mjs --merge origin/main` after release/0.9.0 merges back |
 
 Source: owner 2026-11-23 (the 0.9.0 batch chat): a red CI run or a bug found in review cost an hour or two each.
 
@@ -264,7 +264,7 @@ the 3,500-line `OWNER-TODO.md`); nearly every PR hit a merge conflict there and 
 ### Recipes
 - **A branch that still edits README.md / DONE.md / OWNER-TODO.md the old way** (`release/0.9.0`, any open PR):
   `git merge origin/main`, then `node app/tools/ledger.mjs --resolve` (then `node app/tools/check-tickets.mjs` and
-  `git commit`). The carry is 3-way against the merge base: the branch's changed rows, ticket text, added / edited /
+  `git commit`; a new ticket on such a branch gets its number's claim from the carry). The carry is 3-way against the merge base: the branch's changed rows, ticket text, added / edited /
   removed sections and its README text (outside the ledger) land in the files; a clash (both sides changed one row or
   one item differently) is left with markers AND unmerged in git's index, so `git commit` refuses it until settled.
 - **This branch, right before it merges** (main moved, and `release/0.9.0` has merged back): one command,
@@ -278,6 +278,33 @@ the 3,500-line `OWNER-TODO.md`); nearly every PR hit a merge conflict there and 
 - `check-tickets.test.ts`, 10 mutants of `check-tickets.mjs`, all killed: the README / DONE.md / OWNER-TODO.md
   refusals, owner-file problems, a file's row problems, the keyword agreement, the owner-text step, the pointer page's
   dead paths, the cap, the commit-subject rule.
+
+### Review of #114, fixed (e4004679f)
+1. **No carried conflict can be committed unseen.** Every conflict `--resolve` finds now names a FILE, written with
+   markers where there is text to show, and marked unmerged in git's index (stage 2 / 3 from the two sides, or the file
+   as written when only the carry makes it), so `git commit` refuses until it is settled: an item edited on the old side
+   and removed on the new (the reviewer's T1047 case), the reverse, a row or text changed while the file is gone on the
+   new side (a rename). A ticket the old side removes goes with its claim, no conflict.
+2. **No old-side section vanishes.** Items are keyed by heading and by place among same-named ones: a second item
+   under a used heading is carried as its own file and is a conflict (the guard also refuses the repeated heading); a
+   heading both sides renamed (paired by its neighbours or its text) is a conflict, not two silent copies.
+3. **Ticket numbers collide in git** (chosen: a claim file per number). `tickets/ids/Tnnn` holds the ticket file's name;
+   `node app/tools/ledger.mjs --claim` writes it for a new ticket (983 written now; `--import` and the carry write them
+   too). Two PRs that take one number add the same path with different text: an add/add conflict at merge time, proved
+   by a two-branch test (a different number merges cleanly). The guard: every ticket has its claim, every claim names a
+   ticket of its number; a carried old-side ticket whose number the new side took is a conflict on the claim.
+4. **The pointer pages are exact.** OWNER-TODO.md must equal `OWNER_PAGE_TEXT` and README's `## Ledger` section
+   `LEDGER_POINTER` (a bullet appended the old way fails). The pointer page now says how to read `_head.md`'s pre-T1041
+   wording (the head itself is kept word for word). RESTART-091 (the 0.9.1 questions item) and
+   `play-production-access/README.md` point at item files.
+5. **A stale view says so.** `staleViews` / `--check`; `check-tickets.mjs` prints a warning naming
+   `node app/tools/ledger.mjs` (never a failure: CI has no views); post-commit and post-rewrite hooks join
+   post-checkout / post-merge; the views' banner, the pointer pages and START-HERE say a view may be stale.
+6. **Markers refused, orders unique.** A `<<<<<<<` / `>>>>>>>` line in a ticket, an item or the head fails the guard; an
+   old-side top addition takes the next number above the current top, a middle one a midpoint no item holds.
+Mutation after the fixes: 25 of `ledger.mjs` (the 14 above, plus the reviewer's two uncovered paths and nine more), all
+killed; 14 of `check-tickets.mjs`, all killed. Round trip re-run on today's main (75 sections, 3,372 lines in = out) and
+`--merge origin/main` re-checked against a fresh `--import` of main: file for file the same, claims included.
 
 ### Not done
 - Merging: not before `release/0.9.0` has merged back into main (that chat cherry-picks ledger fixes between the two;
