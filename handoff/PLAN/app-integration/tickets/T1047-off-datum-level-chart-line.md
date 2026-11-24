@@ -1,6 +1,6 @@
 # T1047 — Under Level, an other-datum station's chart still draws its live levels against the old-datum band
 
-Status: DONE 99d8ac9bc, b15f1165b (lane L28, PR #77; owner answered 2026-11-23); follow-up 66a331eef, 874929277 (lane L8, 2026-11-24): datum change file (5 rows, all proposed), HYDAT remark proposals, the record put on today's zero for an accepted row. Left: the owner's accept/reject per row, then a clim.json + data release; the this-year line (below).
+Status: DONE 99d8ac9bc, b15f1165b (lane L28, PR #77; owner answered 2026-11-23); follow-up 66a331eef, 874929277, 6b36d695d (lane L8, 2026-11-24): datum change file (5 rows, all proposed), HYDAT remark proposals, the record put on today's zero for an accepted row. Left: the owner's accept/reject per row, then a clim.json + data release; the this-year line (below).
 
 Source: independent review of PR #77 (T1043), 2026-11-23, item 3; split out by lane L28. Production 2026-11-23:
 08HD006 (Salmon River near Sayward) reports a live level of 2.058 m that the publisher leaves out of `reports` (T550:
@@ -88,9 +88,11 @@ run behind not; a feed before `reports` not). Shot: `T1043-shots/t1047-08HD006-l
 |---|---|---|---|---|
 | 08HD006 Salmon nr Sayward | relocated 2025-06-05, 1956-81 datum restored, "~5m drop in stage" | 2025-06-05 / −5.0 m (remark, approximate) | 300/300 days of 2026 on rating with −5.0 (0 as is) | accept? |
 | 08EF001 Skeena at Usk | moved ~1 km upstream 2025-01-30, "2.370m jump in stage" | 2025-01-30 / +2.370 m (remark) | 300/300 on rating with +2.370 (110 as is) | accept? |
-| 07FD001 Kiskatinaw nr Farmington | "STATION RELOCATED ON 2026-08-05." (no size) | 2026-08-05 / +94.826 m (measured: each day after vs like-flow days before) | 83/83 after the move on rating with it (0 as is); live reads ~95.0 m | accept the measured offset? |
-| 08KH019 Moffat nr Horsefly | none | 2026-07-07 / +1.011 m (measured across the step at 1.37 m³/s) | step 1.29 → 2.30 m in one day, flow smooth; 112/112 after on rating with it (3 as is). `T1047-shots/datum-08KH019.png` | accept? |
+| 07FD001 Kiskatinaw nr Farmington | "STATION RELOCATED ON 2026-08-05." (no size) | 2026-08-05 / +94.826 m (measured: each day after vs like-flow days before) | 83/83 after the move on rating with it (0 as is); live reads ~95.0 m | accept the measured offset? **Only after** the this-year-line fix below or once the year turns (the file refuses it before) |
+| 08KH019 Moffat nr Horsefly | none | 2026-07-07 / +1.011 m (measured across the step at 1.37 m³/s) | step 1.29 → 2.30 m in one day, flow smooth; 112/112 after on rating with it (3 as is). `T1047-shots/datum-08KH019.png` | accept? **Only after** the this-year-line fix below or once the year turns (the file refuses it before) |
 | 08MH153 Fishtrap at the Boundary | none | none (no day, no single offset) | creep, not a step: stage up Jul-Sep as flow falls to 0.01 m³/s, 2024 HYDAT already +0.3 m. `T1047-shots/datum-08MH153.png` | reject as a datum change (recommended)? |
+
+08HD006 and 08EF001 can be accepted now (their change is before this year's line).
 
 Caveats for the owner: a RELOCATED gauge is a new cross-section; the offset aligns the zero, the band's shape stays the
 old site's (08HD006's January floods sit inside the 0.5 m pad only because the top bin is wide). 08HD006's offset is the
@@ -101,3 +103,20 @@ rebuild clim.json (the HYDAT workflow or the `clim` stage) and the next data rel
 line: the station file's `daily` for 07FD001 and 08KH019 (changes inside 2026) mixes both zeros until the year turns.
 Putting it on today's zero is a publisher change on both sides (Python `merge_daily` and the worker twin, rule 40), not
 built here.
+
+## Review fixes (PR #103 review, lane L8, 2026-11-24, 6b36d695d)
+1. `datum.check_remarks`: a quote HYDAT no longer holds is fatal only on an ACCEPTED row; on a proposed / rejected row it
+   is a printed warning naming the station (a reworded remark in a new HYDAT no longer stops `feeds-hydat.yml`).
+2. The file refuses an ACCEPTED change dated inside the this-year line (`publish._record_start`: 1 January, 1 December in
+   January): the station file's `daily` would mix both zeros (07FD001 ~0.07 m then ~95 m under a 95 m band). 07FD001
+   and 08KH019 can be accepted only after both publishers put `daily` on today's zero (`merge_daily` + the worker twin)
+   or once 2027 begins; 08HD006 and 08EF001 now.
+3. A moved station's levels (band, recent years, rating) are rounded to millimetres (HYDAT's resolution) instead of 4
+   significant figures, which would keep 1 cm at 07FD001's ~95 m. Unmoved stations keep `_sig4`.
+4. Proposal classifier: an end-of-record date ("DISCONTINUED", "NO DATA AFTER") is no change's date; "after <date>" is
+   the next day; "datum is similar" is not a change; a signed size of the DATUM ("datum changed ... -4.923 m
+   difference") moves readings the other way (HYDAT reads ~5.3 m higher from 2013). Regenerated: exactly 5 rows moved:
+   08EE003 date 1971-12-31 -> null; 08KD006 date 2011-09-15 -> null, kind change -> other; 08NE087 (2000) 2000-12-31 ->
+   2001-01-01; 08GA026 change -> quality; 08MG014 offset null -> +4.923 (approximate).
+Proof: with no accepted row the real roster's clim.json is still byte-identical to origin/main's (sha256 f27bd322…,
+through heavy.sh). Commit 6b36d695d.
