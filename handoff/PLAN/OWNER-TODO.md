@@ -11,6 +11,10 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## 2026-11-24: planning chat (roadmap row P) started
 
+- Answered 2026-11-24, the build-assets bucket over R2's 10 GB free tier (11.49 GiB; one pinned source file is
+  9.7 GB): "yes compress it then we should have somethign mention hopw to rebuild it to update every so often too."
+  T1089: compressed pins plus a runbook for refreshing the sources. Yours later: confirm the delete of the old
+  uncompressed objects once the compressed ones are proven.
 - 0.9.0 release, two answers given to the 0.9.0 chat and relayed by it (recorded here by the planning chat, which
   now keeps this file):
   - ~11:30, on the stalled production Android build: "you can run it for me". The 0.9.0 chat ran command 1
