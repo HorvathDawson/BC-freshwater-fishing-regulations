@@ -331,6 +331,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1086 | RULINGS RU-14 (the Meziadin's row stops at Meziadin Lake) is outdated by T1053's head-lake walk | OPEN — 0.9.1, with T1053 | | 0.9.1 chat 2026-11-24 |
 | T1087 | `brunette_river.r1` "No Fishing upstream of Burnaby Lake" is curated as `whole` on the Brunette itself: is the river wrongly closed? | OPEN — HIGH until traced; 0.9.1 if wrong, else 0.9.2 | | 0.9.1 chat 2026-11-24 |
 | T1088 | Lakelse r5, a "Note: the mouth … signs" rule, walks onto every tributary | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24 |
+| T1089 | The build-assets bucket is over R2's 10 GB free tier: store the big source file compressed, and a runbook for refreshing the sources | OPEN — 0.9.2, or the first free lane before it | | owner 2026-11-24 |
 
 ## Next after closed testing
 
