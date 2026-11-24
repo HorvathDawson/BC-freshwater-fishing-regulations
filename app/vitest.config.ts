@@ -9,6 +9,7 @@ import { defineConfig } from "vitest/config";
  * at it here exercises the tree a browser actually runs — not a stub of it. Native-only
  * behaviour remains unproven by tests, which is a known gap rather than a covered one.
  */
+import { availableParallelism } from "node:os";
 import { fileURLToPath } from "node:url";
 
 /**
@@ -107,8 +108,12 @@ export default defineConfig({
     // (2026-11-18) ON CI, TWO WORKERS. GitHub's runner has 4 vCPUs and vitest's default is cpus-1 = 3 workers; with the
     // render project's jsdom suites the main process fell behind and a worker's report to it timed out ("[vitest-worker]:
     // Timeout calling onTaskUpdate", an unhandled error that fails the job with every test passed): app CI on
-    // d6cbad35d run 1 and 1d45799a7. Fewer workers leave the main process room. Laptops keep the default.
-    ...(process.env.CI ? { maxWorkers: 2 } : {}),
+    // d6cbad35d run 1 and 1d45799a7. Fewer workers leave the main process room.
+    // (T1041, 2026-11-23) LAPTOPS TOO: HALF THE CORES. The default (cores - 1 = 17 here) did the same on this Mac whenever
+    // other lanes' jobs shared it: the whole suite exited 1 with every test passed (L21, L22, L23; reproduced with 16
+    // CPU hogs beside it, load average 62). Half leaves the main process and the machine room; a real failure, and any
+    // other unhandled error, still fails the run.
+    maxWorkers: process.env.CI ? 2 : Math.max(2, Math.floor(availableParallelism() / 2)),
     projects: [
       {
         // 30 s, not vitest's 5: the regs parity suites walk all 134 golden states over the live release in one test,

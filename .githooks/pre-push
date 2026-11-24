@@ -29,7 +29,11 @@ cd "$root"
 # shellcheck disable=SC2046
 unset $(git rev-parse --local-env-vars) GIT_QUARANTINE_PATH
 # git sends the refs on stdin (local ref, local sha, remote ref, remote sha): --pre-push checks what they push.
+# (T1041) --changed also runs the tests the pushed change reaches (`vitest related` over the app code; the pipeline tests
+# that import a changed module), the pipeline's steps and the rest in two lanes at once. The whole app suite and the
+# no-data tier run once before the PR is opened: scripts/before_pr.sh. `--remote-url` ($2, the push URL): a warning
+# when git's ssh connection has no keepalive (GitHub closed it under a 420 s hook, 2026-11-23).
 # --no-tier: the pipeline's source scanners stand in for the whole no-data tier (minutes). git holds its connection to
 # GitHub open while the hook runs, and a ~10 min tier outlived it (the push then died on SIGPIPE, 2026-11-22). The
 # tier runs on the PR as the required `pipeline ok`; `scripts/before_push.py` by hand still runs it.
-exec "$py" scripts/before_push.py --changed --pre-push --no-tier
+exec "$py" scripts/before_push.py --changed --pre-push --no-tier --remote-url "${2:-}"

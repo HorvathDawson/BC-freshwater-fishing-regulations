@@ -62,6 +62,20 @@ def test_a_push_runs_everything_and_a_pr_only_its_area():
         CP.github("worker", pr, paths)
 
 
+def test_a_merge_queue_group_is_filtered_as_its_pull_requests_were():
+    """(T1041) `merge_group` (a queue's trunk + queued PRs) runs only the jobs its change touches, over the group's
+    base_sha...head_sha, so the required `ok` reports on it as on the PR. Mutation: drop merge_group from FILTERED ->
+    every job runs (the first assert fails)."""
+    seen = []
+    paths = lambda base, head: seen.append((base, head)) or ["handoff/PLAN/STATUS.md"]   # noqa: E731
+    mg = {"EVENT_NAME": "merge_group", "BASE_SHA": "trunk", "HEAD_SHA": "group"}
+    run, why = CP.github("app", mg, paths)
+    assert run is False and why == "the merge group changes 1 path(s), none in app: its jobs are skipped (a pass)"
+    assert CP.github("docs", mg, paths)[0] is True and seen == [("trunk", "group")] * 2
+    with pytest.raises(SystemExit, match="a merge_group run needs BASE_SHA and HEAD_SHA"):
+        CP.github("app", {"EVENT_NAME": "merge_group"}, paths)
+
+
 def test_the_pr_diff_is_the_merge_base_with_the_base(tmp_path, monkeypatch):
     """On real git: a change on the base after the PR branched is not the PR's (three-dot diff); a git failure stops."""
     git = ["git", "-c", "user.email=t@t", "-c", "user.name=t", "-c", "init.defaultBranch=main"]

@@ -1,0 +1,11 @@
+# (T1041) the mutation report's Python tool, every version exact (install with -c constraints.txt: click, six and the
+# pytest stack come from there). mutmut 2.x, not 3.x: 2.5.1's `--use-patch-file` mutates only the lines a patch adds
+# (the pull request's changed lines) and runs in place with our own test command; 3.x mutates whole functions in a
+# copied tree. Read by .github/workflows/mutation.yml; nothing else installs it.
+mutmut==2.5.1
+glob2==0.7
+junit-xml==1.9
+parso==0.8.7
+pony==0.7.20
+toml==0.10.2
+whatthepatch==0.0.6

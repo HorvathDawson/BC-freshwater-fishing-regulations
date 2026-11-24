@@ -469,6 +469,21 @@ W47. **`main` is the protected trunk; every change reaches it through a pull req
     - **Hooks are versioned** in `.githooks/`: turn them on once per clone with `git config core.hooksPath .githooks`
       (pre-push = `scripts/before_push.py --changed --no-tier`, only the areas the branch changed, the no-data tier left to the PR's required check; commit-msg = the W48 format check).
       `--no-verify` is an emergency skip only, and the commit or PR says so.
+    - **Before each push: the tests the change reaches; before the PR: the whole suites (owner 2026-11-23, T1041).**
+      The pre-push hook's `--changed` also runs `vitest related` over the changed app code (a core change runs every
+      package's tests that import it) and the pipeline tests that import a changed module directly
+      (`scripts/related_tests.py`), the Python and node steps in two lanes at once. **Once before opening a PR** (and
+      before a push that updates it with a change of substance) run **`scripts/before_pr.sh`**: the whole app vitest
+      suite and the pipeline no-data tier, both through heavy.sh, at once; it ends with one line,
+      `before-pr: PASS|FAIL (app suite rc=<n>, pipeline tier rc=<n>, <s> s)`. Open the PR only on PASS.
+      **A long hook needs an ssh keepalive**: GitHub closes an idle ssh session (a 420 s hook: "closed by remote
+      host", SIGPIPE, nothing pushed). The hook warns when there is none; until the clone's `core.sshCommand` has it,
+      push with `GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_personal -o ServerAliveInterval=15 -o ServerAliveCountMax=8"`.
+    - **Mutation report** (`.github/workflows/mutation.yml`, T1041): every PR gets the mutants of its changed lines
+      that no test killed (Stryker for app TypeScript, mutmut for pipeline Python) in the job summary. Report only:
+      never a required check, never red. Read it with the self-check for silent fallbacks (W46) before asking for review.
+    - **Merge queue ready** (T1041): the four CI workflows also run on `merge_group` (filtered as the PR was). Nothing
+      sends it until the repo moves to an organisation and a ruleset turns the queue on (post-0.9.0, owner 2026-11-23).
 W48. **Commits follow Conventional Commits; the app version comes from them (owner 2026-11-21, T998).**
     - **The format:** `<type>(<scope>)!: <subject>`, header at most 100 characters. Types: `feat` (a new feature or a
       change anglers notice), `fix`, `perf` (they bump the app); `docs`, `chore`, `ci`, `test`, `refactor`, `build`,

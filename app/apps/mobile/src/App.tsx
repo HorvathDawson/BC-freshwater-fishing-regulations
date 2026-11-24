@@ -33,7 +33,7 @@ import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, release
          type AddressState, type PairingInput, type Route, type SpotPhotos, type StartLink, type StatusSource,
          useAppUpdate } from "@app/ui";
 import { onAppLink } from "./appLink";
-import { applyAppLink } from "./appLinkOpen";
+import { applyAppLink, shownNotice, type OpenRequest } from "./appLinkOpen";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
 import { routeAddress, routeLinks, routeUrl, systemBack } from "./systemBack";
 import { locate } from "./locate";
@@ -363,8 +363,7 @@ export default function App() {
     try { notifications.settings.update(noteHeld(heldRelease)); } catch (e) { reportFailure(e); }
   }, [heldRelease]);
   // (T234) a notification's tap: a gauge alert opens its water's Conditions (the one that started the app too)
-  const [openRequest, setOpenRequest] = useState<{ item: string | null; n: number; view?: "regs" | "conditions" | "map";
-                                                  fit?: readonly [number, number, number, number] } | null>(null);
+  const [openRequest, setOpenRequest] = useState<OpenRequest | null>(null);
   // (T234 v1.1) a new-app-version tap: the bell opens on its App update, the version asked now
   const [openUpdate, setOpenUpdate] = useState(0);
   useEffect(() => onTap((d) => {
@@ -374,7 +373,11 @@ export default function App() {
   // (T625) a tapped share link (Android App Links) opens its water through the same request, on the view the link names
   // (T605) and a region page's `/?fit=` opens the map framed on its box
   // (T1035) the link's `theme` is applied as the web's start link's is; (T1034) its `part` opens that part
-  useEffect(() => onAppLink((o) => applyAppLink(o, { setTheme, setOpenRequest })), []);
+  // (T1038) its day, horizon, page start, angler and `whole` as the web's start link hands them; a past day is said
+  const [noticeShut, setNoticeShut] = useState(false);
+  const [linkNotice, setLinkNotice] = useState<string | null>(null);
+  useEffect(() => onAppLink((o) => applyAppLink(o, { setTheme, setOpenRequest, setWho: setAnglerProfile,
+                                                     setNotice: (l) => { setLinkNotice(l); setNoticeShut(false); } })), []);
 
   /*
    * (T231) THE UPDATE SERVICE (owner 2026-10-28: "check the data origin for new updates and download them"): the three
@@ -566,8 +569,8 @@ export default function App() {
   }, [data]);
   // (T360) Android asking for memory back: the maps drop what they do not draw (native), the databases their page caches
   useEffect(() => (data ? trimOnPressure(data.loader, reportFailure) : undefined), [data]);
-  const [noticeShut, setNoticeShut] = useState(false);
-  const startNotice = noticeShut ? null : startNoticeLine(start ?? null);
+  // (T1038) a phone link's notice (the web's start notice, same words) is said in the same line
+  const startNotice = shownNotice(startNoticeLine(start ?? null), linkNotice, noticeShut);
 
   const dataSource = data?.source ?? null;
   const refreshSpots = useCallback(async () => {
