@@ -524,8 +524,8 @@ export function bankCuePaint(side: keyof typeof BANK_CUE_LAYERS, tokens: Tokens,
     "line-dasharray": tokens["dash.cue.closed"],
     "line-width": withinZoomCurve(streamWidth, (w) => ["*", ["/", bankWidth(w), 2], BANK_CUE_SHARE]),
     "line-offset": withinZoomCurve(streamWidth, (w) => ["*", sign, ["/", bankWidth(w), 4]]),
-    "line-opacity": ["case", ["all", ["==", BANK_SIDE, sign],
-      ["in", ["coalesce", ["feature-state", "bks"], ""], ["literal", BANK_CLOSED]]], 1, 0],
+    // a `match`, never an `in` scan over feature-state (T903, `tools/paint-default.test.ts`)
+    "line-opacity": ["case", ["==", BANK_SIDE, sign], ["match", ["coalesce", ["feature-state", "bks"], ""], BANK_CLOSED, 1, 0], 0],
   };
 }
 
