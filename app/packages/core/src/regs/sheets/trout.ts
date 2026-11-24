@@ -11,7 +11,8 @@
  *   (both for Dolly Varden / bull trout), the tips (`FISH_TIPS`), and the hatchery link on a row that carries an origin, a
  *   label or a hatchery/wild split;
  * - the Sources tab (`tf:<row>`): the above, "How this was decided", then `FishSheet.src` exactly as given (Python cuts it
- *   to 4) by authority (species.ts `breakdown`), then "All sources ›" = `TroutTable.src`.
+ *   to 4) by authority (species.ts `breakdown`), then its Source line: the pages of every rule behind the row (`TRow.src`,
+ *   uncut, each its highlight) and "All sources ›" = `TroutTable.src` (`rowSourceLine`).
  * THE APP NEVER SORTS, UNIONS OR CUTS A RULE LIST (Q-D6): each list is mapped one index to one row, in order.
  *
  * A fish with no picture or no tips is REPORTED (`reportFailure`), never drawn as a blank section; the vectors' test holds
@@ -49,8 +50,35 @@ const sourceRows = (src: readonly number[], rules: Pick<RuleIndex, "get">): Sour
 
 /** A navigation link of the sheet ("How to tell a hatchery fish ›"): a link block, not a source. */
 const link = (s: string, open: SheetKey): SheetBlock => ({ k: "link", line: [{ t: "link", s, open } satisfies Run] });
-/** (T1031 item 3) the sheet's ONE Source line, its last block: "All sources ›" (the table's every-rule sheet). */
-const sourceLink = (s: string, open: SheetKey): SheetBlock => ({ k: "source", line: [{ t: "link", s, open } satisfies Run] });
+
+/**
+ * (T1031 item 3; per-row pages, owner 2026-11-22: "the source there should be maybe one for each page referenced in the
+ * card? Also make sure highlighting is still there for each?") The row sheet's ONE Source line, its last block: the
+ * synopsis pages (or cited page, T981) of EVERY rule behind the row — `TRow.src`, Python's whole list (contract Q-D6: the
+ * deciding rule, size, origin, possession, the duty, the date line), mapped one index to its own `ruleBook` runs in
+ * Python's order, each run carrying that rule's highlight boxes — then "All sources ›" (the table's every-rule sheet).
+ * Never the breakdown's four (`FishSheet.src`, cut by Python): the cut drops a rule the sheet's lines say, and with it a
+ * page (Lois Lake's own row, p.24: "Hatchery only: wild ones go back" on the Dolly Varden row). The one composer
+ * (`lineSourcesOf` -> `sourceLineOf`) draws each page once, ascending, every rule's boxes on it.
+ */
+function rowSourceLine(row: Pick<TroutRowVM, "key" | "src">, rules: Pick<RuleIndex, "get">): SheetBlock {
+  const pages = row.src.flatMap((ix, i): Run[] => {
+    const r = rules.get(ix);
+    // (W46) an index the store lacks (its noRule stand-in has no pages): reported, and the line names no page for it
+    if (r.missing) { reportFailure(new TroutRowRuleMissing(row.key, ix)); return []; }
+    const b = ruleBook(r);
+    return b.length && i ? [text(" "), ...b] : [...b];
+  });
+  return { k: "source", line: [...pages, ...(pages.length ? [text(" ")] : []), { t: "link", s: TROUT_SHEET.ALL_SOURCES, open: TROUT_SOURCES_KEY } satisfies Run] };
+}
+
+/** (T1031 per-row pages) A rule a trout row cites (`TRow.src`) that the page's rules do not hold: its pages are unknown. */
+export class TroutRowRuleMissing extends Error {
+  constructor(readonly row: string, readonly ix: number) {
+    super(`trout row sheet ${row}: the cited rule #${ix} is not on this page`);
+    this.name = "TroutRowRuleMissing";
+  }
+}
 
 /** The row a key names in today's table, with its box. */
 function rowAt(t: TroutVM, rowKey: string): { box: TroutBoxVM; row: TroutRowVM } | null {
@@ -78,7 +106,7 @@ export function troutFishSheet(key: SheetKey, t: TroutVM, rowKey: string, rules:
   const flow = answers ? troutFlow(row, answers(row.fish), rules, water) : null;
   if (flow) blocks.push({ k: "head", text: WORDS.DECIDED }, { k: "flow", flow });
   if (s.src.length) blocks.push({ k: "head", text: SPECIES_SHEET.BREAKDOWN }, breakdown(s.src.map((ix) => ({ r: rules.get(ix), role: "" }))));
-  blocks.push(sourceLink(TROUT_SHEET.ALL_SOURCES, TROUT_SOURCES_KEY));
+  blocks.push(rowSourceLine(row, rules));
   return { key, title: row.name, sub: row.label ?? box.label ?? row.origin, blocks };
 }
 

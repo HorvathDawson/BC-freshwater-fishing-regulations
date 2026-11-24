@@ -21,14 +21,14 @@ import { FONT_SOURCES } from "./fonts";
 import { applyLine, DOWNLOAD_NOTE_WORDS, downloadFraction, failedStartLine, restartsByItself, INSTALL_WORDS, stillLine, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
          versionLine, createFeedGate, now as clockNow } from "@app/core";
 import { createNet, shareFetch, timedFetch, loadManifest, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, gaugeHistory, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, noteHeld, followSavedItems, openRunTimingStore,
-         type Held, type UpdateService, type WaterSource } from "@app/data";
+         type Held, type Manifest, type UpdateService, type WaterSource } from "@app/data";
 import { bootSaid, type MobileDataGate, type ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
 import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openInSeasonInboxStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openLocationAskStore, openAppUpdateStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openInstallIdStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot, syncBackupSet,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
-import { Button, COHO_WIDTH, cohoHeight, connectivity, ErrorState, LoadingState, LoaderLine, loaderLineText, SayingLine, TYPE, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, setLinkFailedSink, type ThemeName,
+import { Button, COHO_WIDTH, cohoHeight, connectivity, ErrorState, LoadingState, LoaderLine, loaderLineText, SayingLine, TYPE, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, ReplacedBanner, setLinkFailedSink, type ThemeName,
          platformLine, drawPhoneScreensOnWeb, type ShellProps, type UpdatesLogControls } from "@app/ui-native";
-import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, AlertLinesRefresh, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useApplyCurtain, useDownloadStill, useReleaseBoot, useBootTries, useRetryByItself, retriesByItselfNow, useSpots, type MapTiles,
+import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, AlertLinesRefresh, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useApplyCurtain, createReplacedState, loadLiveRelease, useReplacedNotice, useDownloadStill, useReleaseBoot, useBootTries, useRetryByItself, retriesByItselfNow, useSpots, type MapTiles,
          loadRegsStore, reportFailure, startNeedsRelease, startNoticeLine,
          type AddressState, type PairingInput, type Route, type SpotPhotos, type StartLink, type StatusSource,
          useAppUpdate } from "@app/ui";
@@ -45,6 +45,7 @@ import { makeAppUpdater } from "./appUpdater";
 import { resolveStart, startLink } from "./startLink";
 import { exitSource } from "./exitInfo";
 import { trimOnPressure } from "./memoryTrim";
+import { installReplaced, reloadPage } from "./replaced";
 import { backgroundDownloads, excludeFromBackup } from "./bgDownload";
 import { releaseSplash } from "./splash";
 // (T234) the phone's local notifications (gauge alerts, new data ready) and their background check; none on the web
@@ -481,6 +482,17 @@ export default function App() {
   const clearToast = useCallback(() => setToast(null), []);
   // (T723 G9) a link the phone would not open is said on the same toast (and was reported by `openLink`)
   useEffect(() => setLinkFailedSink(setToast), []);
+  // (T1016) a page older than what the server serves (a web tab across releases or a site deploy): a 404 of a set the
+  // live pointer no longer names, or a chunk gone after a deploy, is said with one action and reported as expected; the
+  // data notice's action is this same in-session apply (`loadLiveRelease`), the code notice's a reload (replaced.web.ts)
+  const replacedState = useMemo(() => createReplacedState(), []);
+  // every set this page has opened, the one in use last: a late 404 of a read made before an apply is judged by its own set
+  const openedSets = useRef<Manifest[]>([]);
+  if (booted && openedSets.current[openedSets.current.length - 1] !== booted.manifest) openedSets.current.push(booted.manifest);
+  useEffect(() => installReplaced({ state: replacedState, manifestUrl: ENDPOINTS.manifest, releaseBase: ENDPOINTS.release,
+                                    opened: () => openedSets.current, fetch: DATA_FETCH }), [replacedState]);
+  const replacedNotice = useReplacedNotice(replacedState, heldRelease, useMemo(() => ({
+    data: () => loadLiveRelease(updates, apply), code: reloadPage }), [updates, apply]));
   // (T746) the apply in flight, and the failed one until the reader closes it (it was reported where it was caught)
   const curtain = useApplyCurtain(boot, applyTarget);
   const applyingNow = curtain.applying;
@@ -719,6 +731,8 @@ export default function App() {
             {startNotice}
           </Text>
         )}
+        {/* (T1016) the page is older than what the server serves: one line, one action */}
+        <ReplacedBanner palette={palette} notice={replacedNotice} />
         {rolledBack && (
           <Text style={{ color: palette.sub, fontSize: 12, paddingVertical: 6, paddingHorizontal: 12 }}>
             {rolledBackLine(rolledBack)}

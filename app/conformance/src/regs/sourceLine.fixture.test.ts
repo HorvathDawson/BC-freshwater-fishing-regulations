@@ -7,7 +7,8 @@
  *     every block that shows a source — the Gear / Ways to fish / Boats / Reference lines, each closure on the closed
  *     banner, each sheet's source block, the trout table (its drawn rows: no page) — are PINNED below as the base branch drew
  *     them (feat/T991-sources-per-tab at 40b90ba94, before this change: the same collector run there), and the line each
- *     block now draws (`sectionSourcesOf` / `lineSourcesOf` / `troutSourcesOf`) links exactly those pages.
+ *     block now draws (`sectionSourcesOf` / `lineSourcesOf` / `troutSourcesOf`) links exactly those pages. One addition
+ *     since (T1031, trout per-row pages): each trout row sheet's Source line cites its row's pages (`ROW_PAGES`).
  */
 import { describe, expect, it } from "vitest";
 import {
@@ -89,6 +90,24 @@ const PINNED: Record<string, Record<string, number[]>> = {
   x35p_1010: { "gear": [8], "ways": [8], "reference": [8, 10], "sheet:pos:pos#6": [49], "trout": [] },
 };
 
+/**
+ * (T1031, trout per-row pages) ADDED on top of the base: each trout row sheet's Source line (`tf:<row>`, was "All sources ›"
+ * alone, no page) cites the pages of every rule behind its row (`TRow.src`, uncut), one run per rule in Python's order,
+ * repeats as the runs hold them (the line draws each page once): a page beside the zone's where a rule printed there
+ * decides the row (glenn DV p.40, vedder RB p.22, x15p2 ST p.23, the Vedder steelhead's p.6 licence duties).
+ */
+const ROW_PAGES: Record<string, Record<string, number[]>> = {
+  glenn_501: { "sheet:tf:CT#9": [34, 34, 34, 34], "sheet:tf:DV#6": [40, 34], "sheet:tf:EB#8": [34, 34, 34], "sheet:tf:GB#8": [34, 34, 34], "sheet:tf:LT#8": [34, 34, 34], "sheet:tf:RB#9": [36, 34, 34] },
+  glenn_615: { "sheet:tf:CT#9": [34, 34, 34, 34], "sheet:tf:DV#6": [40, 34], "sheet:tf:EB#8": [34, 34, 34], "sheet:tf:GB#8": [34, 34, 34], "sheet:tf:LT#8": [34, 34, 34], "sheet:tf:RB#9": [36, 34, 34] },
+  klwa_1010: { "sheet:tf:CT#9": [37, 34, 34], "sheet:tf:DV#9": [37, 37, 34], "sheet:tf:EB#8": [37, 34], "sheet:tf:GB#8": [37, 34], "sheet:tf:LT#8": [37, 34], "sheet:tf:RB#9": [37, 34, 34] },
+  klwa_1012: { "sheet:tf:CT#9": [37, 34, 34], "sheet:tf:DV#9": [37, 37, 34], "sheet:tf:EB#8": [37, 34], "sheet:tf:GB#8": [37, 34], "sheet:tf:LT#8": [37, 34], "sheet:tf:RB#9": [37, 34, 34] },
+  vedder_1010: { "sheet:tf:CT#10": [21, 21, 21, 21, 21, 21], "sheet:tf:DV#11": [21, 21, 21, 21, 21, 21, 21], "sheet:tf:EB#10": [21, 21, 21, 21, 21, 21], "sheet:tf:GB#10": [21, 21, 21, 21, 21, 21], "sheet:tf:LT#11": [21, 21, 21, 21, 21, 21, 21], "sheet:tf:RB#10": [22, 21, 21, 21], "sheet:tf:ST#13": [21, 21, 6, 21, 6, 21, 21, 21, 21] },
+  vedder_515: { "sheet:tf:CT#7": [22, 21, 21], "sheet:tf:DV#12": [21, 21, 21, 21, 21, 21, 21], "sheet:tf:EB#11": [21, 21, 21, 21, 21, 21], "sheet:tf:GB#11": [21, 21, 21, 21, 21, 21], "sheet:tf:LT#12": [21, 21, 21, 21, 21, 21, 21], "sheet:tf:RB#7": [22, 21, 21], "sheet:tf:ST#12": [21, 21, 6, 21, 6, 21, 21, 21, 21] },
+  x15p2_1010: { "sheet:tf:CT#10": [21, 21, 21, 21, 21, 21], "sheet:tf:DV#11": [21, 21, 21, 21, 21, 21, 21], "sheet:tf:EB#10": [21, 21, 21, 21, 21, 21], "sheet:tf:GB#10": [21, 21, 21, 21, 21, 21], "sheet:tf:LT#11": [21, 21, 21, 21, 21, 21, 21], "sheet:tf:RB#9": [21, 21, 21, 21, 21], "sheet:tf:ST#8": [23, 21] },
+  x35p_1010: { "sheet:tf:CT#9": [49, 49, 49], "sheet:tf:DV#10": [49, 49, 49, 49], "sheet:tf:EB#9": [49, 49, 49], "sheet:tf:GB#9": [49, 49, 49], "sheet:tf:LT#12": [50, 50, 49, 49, 50, 50], "sheet:tf:RB#9": [49, 49, 49] },
+};
+const EXPECTED = Object.fromEntries(Object.entries(PINNED).map(([id, m]) => [id, { ...m, ...ROW_PAGES[id] }]));
+
 describe.skipIf(gate.skip)("the one Source line on the fixture pages (T1031 item 3)", () => {
   it("each sheet draws at most one Source line, as its last block", async () => {
     const bad: string[] = [];
@@ -113,7 +132,7 @@ describe.skipIf(gate.skip)("the one Source line on the fixture pages (T1031 item
       drawn[id] = Object.fromEntries(Object.entries(drawnPerBlock(page)).map(([k, v]) => [k, v]));
     }
     if (process.env.PRINT_SOURCE_PAGES === "1") console.log(`PINNED ${JSON.stringify(cited)}`);
-    expect(cited).toEqual(PINNED);
+    expect(cited).toEqual(EXPECTED);
     // a block's line: its pages once each, ascending (the order the line draws them)
     expect(drawn).toEqual(Object.fromEntries(Object.entries(cited).map(([id, m]) => [id, Object.fromEntries(Object.entries(m).map(([k, v]) => [k, uniqSorted(v)]))])));
   }, 60_000);

@@ -79,6 +79,8 @@ export * from "./menu";
 export * from "./report";
 export * from "./errorLog";
 export * from "./crashReport";
+// (T1016) a page older than what the server serves: the triage that tells it from a defect, the notice and its one action
+export * from "./replaced";
 // (T234) phone-only notifications: the settings, the permission asked when something is turned on, the schedule
 export * from "./notify";
 export * from "./startLink";

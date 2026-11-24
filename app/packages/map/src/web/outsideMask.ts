@@ -24,7 +24,9 @@ export function useOutsideMask(url: string | undefined): unknown {
     let live = true;
     // (T368, owner Q2) a failure leaves the labels as they were (cosmetic, no face) and is REPORTED unless offline
     fetch(url).then((r) => {
-      if (!r.ok) throw new Error(`outside mask: HTTP ${r.status}`);
+      // (T1016) the status and the address travel on the error: a 404 of a tile folder the live release no longer names
+      // (a tab older than the release) is told from a defect by them (core `notFoundUrl`)
+      if (!r.ok) throw Object.assign(new Error(`outside mask: HTTP ${r.status}`), { status: r.status, url });
       return r.json();
     }).then((j) => {
       if (!j || !live) return;

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { environmentError, isEnvironment, offlineAs, reported, reportFailure, reportOnce, setFailureSink } from "./failure";
+import { environmentError, isEnvironment, offlineAs, reported, reportFailure, reportOnce, setFailureSink, setFailureTriage } from "./failure";
 
 let got: unknown[] = [];
 let undo = setFailureSink((e) => got.push(e));
@@ -43,5 +43,43 @@ describe("the environment is shown, never reported (T368, owner Q1)", () => {
     reportFailure(new Error("lost"));
     expect(got).toEqual([]);
     undo = setFailureSink((e) => got.push(e));
+  });
+});
+
+describe("(T1016) the second look before a report", () => {
+  const settle = () => new Promise((r) => setTimeout(r, 0));
+  it("null: reported as it is, at once; a promise: what it resolves to, once it does; the environment's: nothing", async () => {
+    const renamed = new Error("renamed");
+    const off = setFailureTriage((e) => {
+      const m = (e as Error).message;
+      return m === "plain" ? null : m === "look" ? Promise.resolve(renamed) : Promise.resolve(environmentError(new Error("line")));
+    });
+    reportFailure(new Error("plain"));
+    expect(got.map((e) => (e as Error).message)).toEqual(["plain"]);
+    reportFailure(new Error("look"));
+    reportFailure(new Error("down"));
+    expect(got).toHaveLength(1);
+    await settle();
+    expect(got.map((e) => (e as Error).message)).toEqual(["plain", "renamed"]);
+    off();
+    reportFailure(new Error("look"));
+    expect(got.map((e) => (e as Error).message)).toEqual(["plain", "renamed", "look"]);   // undone: no look
+  });
+
+  it("a look that throws or rejects: the failure is reported as it is, and the look's own failure beside it", async () => {
+    const off = setFailureTriage((e) => { if ((e as Error).message === "a") throw new Error("look threw"); return Promise.reject(new Error("look rejected")); });
+    reportFailure(new Error("a"));
+    reportFailure(new Error("b"));
+    await settle();
+    expect(got.map((e) => (e as Error).message)).toEqual(["a", "look threw", "b", "look rejected"]);
+    off();
+  });
+
+  it("the environment's failure is never looked at", () => {
+    let looked = 0;
+    const off = setFailureTriage(() => { looked++; return null; });
+    reportFailure(new TypeError("Failed to fetch"));
+    expect([looked, got.length]).toEqual([0, 0]);
+    off();
   });
 });

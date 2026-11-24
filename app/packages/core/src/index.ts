@@ -114,6 +114,8 @@ export * from "./dayPicker";
 export * from "./net";
 // (T368) one way a caught failure is reported, from every package; the environment (offline, a refused permission) never
 export * from "./failure";
+// (T1016) a page older than what the server serves now (a pruned release, a site deploy): a known state, said with one action
+export * from "./replaced";
 // (T234) phone-only notifications: gauge alerts (once per crossing) and new data ready, their words
 export * from "./alerts";
 export * from "./chartTicks";
