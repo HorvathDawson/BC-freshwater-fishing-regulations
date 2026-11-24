@@ -1,6 +1,6 @@
 # T1030 — The release manifest carries a changed-waters count (the inbox's "N waters changed")
 
-Status: DONE — f75e6aac1, 35f55b74d (0.9.1; needs the 0.9.1 data release + app build; the first release carrying the list states no count)
+Status: DONE — f75e6aac1, 35f55b74d, 7287c181a, c2c1e832c (0.9.1; needs the 0.9.1 data release + app build; the first release carrying the list states no count)
 
 T867 (PR feat/T867-inbox) shows a data-release row in the notifications inbox: "Regulations data updated <day>", and
 "N waters changed" once the manifest says it. Nothing in the manifest says it today, so the row omits it (rule 32); the
@@ -28,8 +28,9 @@ names>` (what `pipeline release`'s binding diff compares against too). Code: `pi
 angler may do or must hold differs — any of its parts' regs answer (the ladder, rows, gear, licence, display frames and
 the trout table, with rule and licensing refs read as ids, never indexes), its DFO salmon chains, the place a part
 splits (its end tokens), closed-all-year, the rules asking for a paper licence, its unresolved licensing — or the
-water is new or gone. **Wording alone does not count** (every key the changed-answers list calls "wording only",
-`TEXT_KEYS`), nor geometry (a part's length, which sections it holds). Measured on two real pairs, the count equals the
+water is new or gone. **Wording alone does not count** (a key the changed-answers list calls "wording only",
+`TEXT_KEYS`, where it holds words: a string or a list of strings — review 2026-11-24: the licence frame's
+`requirements[].when` / `documents[].when` are rule data {act, species, lengths, on} and are kept), nor geometry (a part's length, which sections it holds). Measured on two real pairs, the count equals the
 set of waters `answers_diff` lists outside "wording only", exactly: 0.8.5 -> 0.9.0 = 2 (Kitimat, Nakina; with wording
 it would have been 8,247: the "rule book" -> "B.C. Synopsis" sweep), r-fec3fab4c5aa -> 0.8.5 = 315 (with rule indexes
 read raw it was 19,765: 0.8.5 added rules, every index moved — the paper-licence rules and the trout cell's `src`).
@@ -37,8 +38,14 @@ read raw it was 19,765: 0.8.5 added rules, every index moved — the paper-licen
 **No count, never 0**: no previous release named, the previous folder gone, a previous release built before this
 (**the first release carrying the list — 0.9.1 if 0.9.0 is live — states no count; the one after it does**), or the
 two lists of another basis (the regs codec versions, the salmon format, the list's own `SCHEME`). The build log says
-which. A rebuild of the release LATEST already names keeps that release's own count; a rebase (basemap only) carries
-the list and states 0.
+which. A rebuild of the release LATEST already names keeps that release's own count and base; a rebase (basemap only)
+carries the list and states 0 from its source.
+
+**The count names its base** (review 2026-11-24): `changed_waters_from` is the release the count was taken against
+(the local LATEST, which is not always what a phone held: today LATEST is 0.9.0 while PUBLISHED is 0.8.5; a
+staging-only release in between; a plain `pipeline build` moves LATEST; a phone that skipped a release). The app says
+the count ONLY when that is the release this device held before (`inboxObserve`: `changedFrom === base.release`);
+otherwise the row says nothing of it (rule 32). Additive and outside the id, like the count.
 
 **Not in the release id.** `water_digests` and `changed_waters` are written after `ship` mints the id and `rebase.said_of`
 reads neither: the count depends on the predecessor, so the same content cut after two different releases is one id;
@@ -55,3 +62,14 @@ changed", absent -> no text). One release step on the live 0.9.0 bundle into a s
 tiles), `--previous` a scratch copy of 0.8.5 given its list: `changed_waters: 2 of 19766 waters differ from
 r-741815c6090d`; its list is byte-for-byte the one read back from 0.9.0's shipped files (14 s, ~1.2 GB, 108 kB gzip).
 The committed mini release was re-cut (same id; `--check` matches a rebuild).
+
+## Owner question (behaviour unchanged until answered)
+
+With wording left out, 0.9.0's sweep ("rule book" -> "B.C. Synopsis" on 8,247 waters' salmon cards) would have read
+"2 waters changed" (Kitimat, Nakina: the only waters whose rules moved); a release changing nothing but words reads
+"0 waters changed" (the T867 sentence prints 0 as a number). Options:
+  A. count wording too ("8,247 waters changed" for 0.9.0) — every word an angler reads, but a code wording sweep looks
+     like a regulations change;
+  B. keep rules-only (built now) — the number says where the rules moved; a 0 reads "0 waters changed";
+  C. rules-only, and say nothing when it is 0 (the row keeps "Regulations data updated <day>").
+Recommended default: B or C (C if "0 waters changed" reads odd on a data release).
