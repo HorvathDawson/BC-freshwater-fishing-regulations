@@ -1,6 +1,6 @@
 # T1024 — "Weird highlighting on the lake" (Gravel Slough)
 
-Status: IN REVIEW — fixed in 6704a3504 + d298683a7 (lane L29), needs the 0.9.0 tile build; owner: OWNER-TODO "T1024 Gravel Slough highlight: look at the before/after shots"
+Status: IN REVIEW — fixed in 6704a3504 + d298683a7 + 50b018058 (lane L29), needs the 0.9.0 tile build; owner: OWNER-TODO "T1024 Gravel Slough highlight: look at the before/after shots"
 
 Source: STAGING report `3444007425e9d3bd`, 2026-11-23 05:32Z, Android 0.8.5 (staging build), water · map, Gravel Slough
 (`gnis:8009`) part 0, zoom 14.3 at 49.202, -121.904. Verbatim: "Weird highlighting on the lake here".
@@ -49,8 +49,11 @@ Shots (`T1024-shots/`, phone 412 px, water Map tab): `gravel-before-after.png` (
 data with the staging atlas given `lz` from the live layer files (a scratch copy, the exact values the new export
 writes). Not run on the emulator.
 
-Left (not fixed, a follow-up): a stream polygon whose route is a STUB (Okanagan River Oxbows 1281106: route 67 m in a
-57,000 m² loop) has `lz`, so from z13 only the stub is lit; 239 polygons have a route under 0.3 of their long side
-(14 over 0.05 km²). Ringing those too needs a length rule (route vs polygon) — a choice, not made here.
+Stub routes (50b018058, the safe default from the review): a stream polygon whose route is a STUB — shorter than 0.3 of the
+polygon's long side (its minimum rotated rectangle's) — is reported as no line, so it gets no `lz` and is always
+ringed; the stub still draws as the creek. 239 polygons on the live atlas (2026-11-23; 14 over 0.05 km²), e.g.
+Okanagan River Oxbows 1281106 (67 m route in a 57,000 m² loop). The build check now requires: `lz` = the line's first
+zoom on a route that is no stub, or no `lz` with no line or a stub (5% slack each side of 0.3: the check measures the
+written WGS84 geometry, the export BC Albers). Tests: 4 more mutations caught.
 
 Depends: none. Size: S. Owner: look at the shots.
