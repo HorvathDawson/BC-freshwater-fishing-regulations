@@ -180,6 +180,13 @@ def world(tmp_path: Path, monkeypatch):
     w["counts"] = {"items": 3}
     monkeypatch.setattr(R, "live_counts", lambda before, after, led: (
         dict(w["counts"]), f"live counts, {before} -> {after}: items {w['counts']['items']}"))
+    # (T1047) the gauge level records moved onto a new zero: read git + the datum file (pinned in test_datum_changes.py)
+    w["gauge_records"], w["gauge_records_since"] = [], []
+
+    def gauge_records(since):
+        w["gauge_records_since"].append(since)
+        return list(w["gauge_records"]), "gauge level records: " + ("; ".join(w["gauge_records"]) or "none moved")
+    monkeypatch.setattr(R, "gauge_records", gauge_records)
     monkeypatch.setattr(R, "diff_summary", lambda rep: f"{rep['rules_changed']} rule(s) bind different sections")
     # the manifest check's real body reads the size gate and publish.plan over real release files: pinned elsewhere
     monkeypatch.setattr(R, "manifest_problems", lambda rid: list(w.get("manifest_problems", [])))
@@ -290,6 +297,40 @@ def test_the_live_counts_are_printed_recorded_and_never_stop_the_release(world, 
     assert f"live counts, {LIVE} -> {NEW}: items 999999" in out
     assert json.loads(R.LEDGER.read_text())["releases"][NEW]["checks"]["counts"] == {"items": 999_999}
     assert (R.HOME / "checks" / NEW / "live_counts.txt").read_text() == f"live counts, {LIVE} -> {NEW}: items 999999\n"
+
+
+def test_a_moved_gauge_level_record_is_its_own_line_and_never_stops_the_release(world, capsys):
+    """(T1047, owner 2026-11-24 "easy to see") each gauge level record the release moves onto a new zero is printed as its
+    own line in the checks, written beside them and kept on the ledger, compared against the live release's commit."""
+    line = "08HD006 level record moved 5.0 m down to the gauge's new zero (Environment Canada note, 2025-06-05)"
+    world["gauge_records"] = [line]
+    R.save_ledger({"releases": {LIVE: {"commit": "c0ffee"}}})
+    assert _staging() == 0
+    out = capsys.readouterr().out
+    assert line in out and "1 gauge level record(s) moved" in out
+    rec = json.loads(R.LEDGER.read_text())["releases"][NEW]
+    assert rec["checks"]["gauge_records"] == [line]
+    assert line in (R.HOME / "checks" / NEW / "gauge_records.txt").read_text()
+    assert world["gauge_records_since"] == ["c0ffee"]                     # the live release's commit
+
+
+def test_gauge_records_reads_the_datum_file_at_the_live_commit(monkeypatch):
+    """The real `gauge_records`: the file at the live release's commit against the file now; no commit in this clone ->
+    every accepted change listed, said so."""
+    from pipeline.gauges.feed import datum
+    now = [{"station": "08HD006", "effective": "2025-06-05", "offset_m": -5.0, "source": "hydat_remark",
+            "status": "accepted"}]
+    monkeypatch.setattr(datum, "load", lambda: now)
+    monkeypatch.setattr(datum, "rows_at", lambda commit, repo: None)
+    monkeypatch.setattr(R, "git_has_commit", lambda rev: rev == "abc")
+    want = "08HD006 level record moved 5.0 m down to the gauge's new zero (Environment Canada note, 2025-06-05)"
+    lines, txt = R.gauge_records("abc")
+    assert lines == [want] and "against the live release's commit abc (no datum file then): 1 moved" in txt
+    monkeypatch.setattr(datum, "rows_at", lambda commit, repo: now)
+    assert R.gauge_records("abc") == ([], "gauge level records (T1047 datum changes), against the live release's "
+                                          "commit abc: none moved")
+    lines, txt = R.gauge_records(None)
+    assert lines == [want] and "every accepted change listed" in txt
 
 
 def test_ids_gone_with_no_alias_are_listed_and_kept_and_never_stop_the_release(world, capsys):

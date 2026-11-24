@@ -85,7 +85,9 @@ already done for this release):
                candidate's bundle), and the reach BINDING DIFF against the live release (`atlas.reach.binding_diff`). A diff
                that is not empty STOPS the run: the summary is printed and written beside its json; a reviewer reads it
                and reruns with `--accept-diff <that json>` (its content must be the one written, so a stale accept never
-               passes a new diff; content = the changes and counts, not the before/after path strings).
+               passes a new diff; content = the changes and counts, not the before/after path strings). LISTED, never
+               a stop: the item ids gone with no alias, the live counts, and (T1047) each gauge level record the release
+               moves onto its gauge's new zero, one plain line per station (`gauge_records`, checks/<r-id>/gauge_records.txt).
   5 follows    (T666 items 1-2) REFRESH WHAT FOLLOWS THE RELEASE, on the candidate, LATEST untouched — the table is
                `pipeline/release_follows.py` `FOLLOWS`: (a) the IN-SEASON MATCHES are resolved (T537,
                `regs.inseason.resolve`, through heavy.sh): a match that does not resolve stops here; the resolution is
@@ -1025,6 +1027,24 @@ def live_counts(before_rid: str | None, after_rid: str, led: dict) -> tuple[dict
     return after, LC.diff_text(before, after, before_rid or "(no live release)", after_rid)
 
 
+def gauge_records(since: str | None) -> tuple[list[str], str]:
+    """(T1047, owner 2026-11-24: "a clean well documented update ... which is easy to see") the gauge LEVEL RECORDS this
+    release moves onto a new zero, one plain line per station (`datum.record_changes`): the datum change file as
+    committed at `since` (the live release's commit) against the file now. No commit recorded (or not in this clone):
+    every accepted change is listed, said so. Listed, never a stop. (lines, text)"""
+    from pipeline.gauges.feed import datum
+    now_rows = datum.load()
+    if since and git_has_commit(since):
+        then = datum.rows_at(since, Path(REPO_ROOT))
+        basis = f"against the live release's commit {since[:12]}" + (" (no datum file then)" if then is None else "")
+        lines = datum.record_changes(then or [], now_rows)
+    else:
+        basis = f"no commit in this clone for the live release ({since}): every accepted change listed"
+        lines = datum.record_changes([], now_rows)
+    head = f"gauge level records (T1047 datum changes), {basis}: " + (f"{len(lines)} moved" if lines else "none moved")
+    return lines, head + "".join(f"\n  {x}" for x in lines)
+
+
 def attribute_diff(js: Path, since: str | None) -> tuple[bool, list[str], list[str]]:
     """(T993 item 8) is every change of the binding diff `js` explained by a curated row changed in the commits since
     `since` (the commit LATEST was built from; `pipeline.release_attribute`)? (all explained, explained, not explained).
@@ -1731,12 +1751,17 @@ def stage_checks(ctx: Ctx) -> str:
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "live_counts.txt").write_text(txt + "\n", encoding="utf-8")
     print(txt)
+    # (T1047) a gauge level record moved onto its gauge's new zero: its own plain line per station, LISTED, never a stop
+    recs, txt = gauge_records(((ctx.led.get("releases") or {}).get(ctx.live or "") or {}).get("commit"))
+    (out_dir / "gauge_records.txt").write_text(txt + "\n", encoding="utf-8")
+    print(txt)
     r["checks"] = {"manifest": "ok", "app_gate": "ok", "classified": "ok", "min_app_version": ctx.min_app,
-                   "binding_diff": done["status"], "gone_ids": n_gone, "counts": counts, "at": now()}
+                   "binding_diff": done["status"], "gone_ids": n_gone, "counts": counts, "gauge_records": recs,
+                   "at": now()}
     r["fingerprint"] = fingerprint(rid)
     save_ledger(ctx.led)
     return (f"manifest ok, app gate ok (min app {ctx.min_app or 'manifest stamp'}), bindings {done['status']}, "
-            f"{n_gone} item id(s) gone with no alias")
+            f"{n_gone} item id(s) gone with no alias, {len(recs)} gauge level record(s) moved")
 
 
 def stage_inseason(ctx: Ctx, rid: str, r: dict) -> str:

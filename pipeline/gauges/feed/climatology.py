@@ -465,8 +465,10 @@ def main() -> None:
     held = sum(1 for r in changes if r["status"] != "accepted")
     print(f"  datum changes: {sum(len(v) for v in moves.values())} accepted (record put on today's zero), "
           f"{held} proposed/rejected (moved nothing)")
-    for st, mv in moves.items():
-        print(f"     {st}  " + ", ".join(f"{off:+.3f} m before {eff}" for eff, off in mv))
+    # (T1047, owner 2026-11-24 "easy to see") one plain line per accepted change, the words a release lists
+    for r in changes:
+        if r["status"] == "accepted":
+            print("     " + datum_file.plain_line(r))
     shifted = out["levelShifts"]
     if shifted:
         print(f"  ⚠️  {len(shifted)} level record(s) shift datum; only the years since the last shift rank a level "

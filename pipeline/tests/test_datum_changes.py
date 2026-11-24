@@ -21,6 +21,15 @@ Mutation pins (2026-11-24, each run; the first test it fails):
   end-of-record date kept / AFTER not the next day / "datum is similar" a change / the datum-signed size unflipped
                                                       -> test_other_wordings_sort_and_parse (its 08EE003, 08KD006,
                                                          08NE087, 08GA026, 08MG014 rows)
+  the owner's two (lane L16, 2026-11-24, each run; the first test it fails):
+  `plain_line` sign flipped / source words swapped    -> test_the_plain_line_per_station
+  `record_changes` drops the undo line                -> test_record_changes_lists_a_new_acceptance_and_an_undo_...
+  `_check_decision` not called / a proposed row may carry one -> test_a_decided_row_says_who_when_what_was_asked_...
+  `rows_at` answers [] for a file the commit lacks    -> test_rows_at_reads_the_file_as_committed
+  `set_status` sets every row                         -> test_set_status_moves_one_row_only_and_undoes
+  (release side, test_release_command.py) the checks do not print the lines / compare against no commit / ignore the
+  live release's file                                 -> test_a_moved_gauge_level_record_is_its_own_line_...,
+                                                         test_gauge_records_reads_the_datum_file_at_the_live_commit
 """
 
 from __future__ import annotations
@@ -81,10 +90,17 @@ def _hydat(path: Path, step_at: int | None = None, remarks: list[tuple] = ()) ->
     return path
 
 
+DECIDED = {"by": "owner", "on": "2026-11-24", "asked": "shift it?", "words": "Yes"}
+
+
 def _row(**kw) -> dict:
+    """A change row; a decided (accepted / rejected) one carries a `decision` unless the test gives its own."""
     base = {"station": "08ZZ001", "effective": "2025-01-01", "offset_m": -3.0, "offset_from": "remark",
             "source": "owner", "status": "proposed", "note": "test"}
-    return {**base, **kw}
+    row = {**base, **kw}
+    if row["status"] in ("accepted", "rejected") and "decision" not in kw:
+        row["decision"] = dict(DECIDED)
+    return row
 
 
 def _file(tmp_path: Path, rows: list[dict]) -> Path:
@@ -307,7 +323,104 @@ def test_no_reader_names_the_file_but_the_loader():
     src = (ROOT / "pipeline/gauges/feed/climatology.py").read_text(encoding="utf-8")
     calls = {n.func.attr for n in ast.walk(ast.parse(src)) if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
              and isinstance(n.func.value, ast.Name) and n.func.value.id == "datum_file"}
-    assert calls == {"load", "check_remarks", "accepted"}
+    assert calls == {"load", "check_remarks", "accepted", "plain_line"}
+
+
+# ------------------------------------------------------------------------------------------------ the owner's two (2026-11-24)
+
+OWNER_WORDS = "Yes but make sure it is a clean well documented update that happens which is easy to see"
+
+
+def test_the_owner_accepted_exactly_08HD006_and_08EF001_in_his_words():
+    """Owner 2026-11-24: 08HD006 and 08EF001 accepted, his answer verbatim on each row; the three he was not asked about
+    stay proposed with no decision."""
+    rows = {r["station"]: r for r in datum.load()}
+    assert {st for st, r in rows.items() if r["status"] == "accepted"} == {"08HD006", "08EF001"}
+    for st in ("08HD006", "08EF001"):
+        d = rows[st]["decision"]
+        assert d["by"] == "owner" and d["on"] == "2026-11-24" and d["words"] == OWNER_WORDS
+    for st in ("07FD001", "08KH019", "08MH153"):
+        assert rows[st]["status"] == "proposed" and "decision" not in rows[st]
+    assert datum.accepted(list(rows.values())) == {"08EF001": [(date(2025, 1, 30), 2.37)],
+                                                   "08HD006": [(date(2025, 6, 5), -5.0)]}
+
+
+def test_a_decided_row_says_who_when_what_was_asked_and_the_answer():
+    for status in ("accepted", "rejected"):
+        with pytest.raises(datum.DatumFileError, match="records the decision"):
+            datum.parse({"_about": "t", "changes": [_row(status=status, decision=None)]})
+        with pytest.raises(datum.DatumFileError, match="records the decision"):
+            datum.parse({"_about": "t", "changes": [_row(status=status, decision={"by": "owner", "on": "2026-11-24"})]})
+        with pytest.raises(datum.DatumFileError, match="decision.words is text"):
+            datum.parse({"_about": "t", "changes": [_row(status=status, decision={**DECIDED, "words": " "})]})
+        with pytest.raises(datum.DatumFileError, match="decision.on"):
+            datum.parse({"_about": "t", "changes": [_row(status=status, decision={**DECIDED, "on": "24 Nov"})]})
+    with pytest.raises(datum.DatumFileError, match="a proposed row has no `decision`"):
+        datum.parse({"_about": "t", "changes": [_row(decision=dict(DECIDED))]})
+
+
+def test_the_plain_line_per_station():
+    rows = {r["station"]: r for r in datum.load()}
+    assert datum.plain_line(rows["08HD006"]) == ("08HD006 level record moved 5.0 m down to the gauge's new zero "
+                                                 "(Environment Canada note, 2025-06-05)")
+    assert datum.plain_line(rows["08EF001"]) == ("08EF001 level record moved 2.37 m up to the gauge's new zero "
+                                                 "(Environment Canada note, 2025-01-30)")
+    assert datum.plain_line(_row(status="accepted", offset_m=1.011, effective="2026-07-07")) == (
+        "08ZZ001 level record moved 1.011 m up to the gauge's new zero (measured from the live feed, 2026-07-07)")
+
+
+def test_record_changes_lists_a_new_acceptance_and_an_undo_and_nothing_else():
+    a, b = _row(station="08ZZ001", status="accepted"), _row(station="08ZZ002", status="accepted", offset_m=2.0)
+    held = _row(station="08ZZ003")
+    assert datum.record_changes([a, held], [a, held]) == []                     # nothing moved: nothing said
+    assert datum.record_changes([a], [a, b, held]) == [
+        "08ZZ002 level record moved 2.0 m up to the gauge's new zero (measured from the live feed, 2025-01-01)"]
+    assert datum.record_changes([a, b], [dict(a, status="proposed", decision=None), b]) == [
+        "08ZZ001 level record back on HYDAT's own zero: the 3.0 m down change of 2025-01-01 is no longer accepted"]
+    # an accepted offset changed: the old one goes back, the new one moves
+    assert datum.record_changes([a], [dict(a, offset_m=-2.5)]) == [
+        "08ZZ001 level record back on HYDAT's own zero: the 3.0 m down change of 2025-01-01 is no longer accepted",
+        "08ZZ001 level record moved 2.5 m down to the gauge's new zero (measured from the live feed, 2025-01-01)"]
+
+
+def test_rows_at_reads_the_file_as_committed(tmp_path, monkeypatch):
+    import subprocess
+    repo = tmp_path / "repo"
+    f = repo / "gauges" / "datum_change_stations.json"
+    f.parent.mkdir(parents=True)
+    git = lambda *a: subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", *a], cwd=repo, check=True,
+                                    capture_output=True, text=True).stdout.strip()
+    git("init", "-q")
+    (repo / "x").write_text("x")
+    git("add", "x")
+    git("commit", "-qm", "before the file")
+    first = git("rev-parse", "HEAD")
+    f.write_text(json.dumps({"_about": "t", "changes": [_row(status="accepted")]}))
+    git("add", ".")
+    git("commit", "-qm", "the file")
+    monkeypatch.setattr(datum, "DATUM_FILE", f)
+    assert datum.rows_at(first, repo) is None                                   # not in that commit: said, not []
+    assert [r["status"] for r in datum.rows_at(git("rev-parse", "HEAD"), repo)] == ["accepted"]
+    with pytest.raises(subprocess.CalledProcessError):
+        datum.rows_at("0" * 40, repo)                                           # a commit git does not have raises
+
+
+def test_set_status_moves_one_row_only_and_undoes(tmp_path, monkeypatch):
+    from pipeline.tests.conftest import curated_root
+    root = curated_root(monkeypatch, tmp_path / "curated")
+    p = root / "gauges" / "datum_change_stations.json"
+    old = json.loads(p.read_text(encoding="utf-8"))
+    monkeypatch.setenv("CURATED_WRITE_BY", "the test")
+    datum.set_status("08HD006", "proposed", None, p)                            # the undo: one command
+    new = json.loads(p.read_text(encoding="utf-8"))
+    moved = [(o["station"], k) for o, n in zip(old["changes"], new["changes"]) for k in set(o) | set(n) if o.get(k) != n.get(k)]
+    assert sorted(moved) == [("08HD006", "decision"), ("08HD006", "status")] and new["_about"] == old["_about"]
+    datum.set_status("08HD006", "accepted", old["changes"][[r["station"] for r in old["changes"]].index("08HD006")]["decision"], p)
+    assert json.loads(p.read_text(encoding="utf-8")) == old                    # and back, byte for byte the same rows
+    with pytest.raises(datum.DatumFileError, match="records the decision"):
+        datum.set_status("08HD006", "accepted", None, p)                        # an acceptance needs its decision
+    with pytest.raises(datum.DatumFileError, match="has 0 rows"):
+        datum.set_status("08ZZ999", "proposed", None, p)
 
 
 # ------------------------------------------------------------------------------------------------ the proposals
