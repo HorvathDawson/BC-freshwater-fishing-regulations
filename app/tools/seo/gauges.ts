@@ -156,6 +156,9 @@ export async function chartScript(): Promise<ChartBundle> {
   const r = await esbuild({
     stdin: { contents: `import { mountGaugeChart } from "./gaugeChart";\nmountGaugeChart(document, window.fetch.bind(window), Date.now);\n`,
              resolveDir: HERE, loader: "ts", sourcefile: "gauge-chart-entry.ts" },
+    // (0.9.0 release) an alias resolves in the WORKING directory, not the importer's: site-all.sh runs from the repo root,
+    // where no node_modules holds react-native-web, so the build is pinned to app/ (gaugeChart.bundle.test.ts)
+    absWorkingDir: join(HERE, "../.."),
     bundle: true, minify: true, format: "iife", platform: "browser", target: "es2020", write: false, logLevel: "silent",
     outdir: out, entryNames: "gauge-chart", assetNames: "chart/[name].[hash]", publicPath: "/assets",
     alias: { "react-native": "react-native-web", "react-native-svg": nm("react-native-svg/lib/module/ReactNativeSVG.web.js"),
