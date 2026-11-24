@@ -52,13 +52,17 @@ We collected feedback through five channels, each logged with its ticket and the
 4. **Messages and in person:** testers sent the owner screenshots and screen recordings, which he passed on.
 5. **Email:** the "Join the test" address.
 
-What it said, in short (counts as of 2026-11-23; TODO refresh): 16 pieces of tester feedback from at least 7 testers,
-9 in-app reports and 14 crash kinds. Most were about wording that was hard to read (gear lines, gauge words, a sentence
-about missing gauges), map display (labels off their place, an iPhone map at two thirds width, a highlight that did not
-stay, land closed to fishing hard to see), and a few behaviours (the day picker stopping at December, sub-tabs
-scrolling, the app not opening at the user's location). Crash reports were mostly early (0.4.0–0.6.x: data updates and
-map views) and are fixed; the late ones were mostly one search engine's page renderer running the website. Testers also
-said the app was clear: one was positive overall on how much fits on a screen while staying readable (F15).
+What it said, in short (counts as of 2026-11-24; TODO refresh before applying): 16 pieces of tester feedback from at
+least 7 testers, 9 in-app reports and 14 crash kinds. Most were about wording that was hard to read (gear lines, gauge
+words, a sentence about missing gauges), map display (labels off their place, an iPhone map at two thirds width, a
+highlight that did not stay, land closed to fishing hard to see, odd highlighting on a lake, ditches drawn as part of
+a river), and a few behaviours (the day picker stopping at December, sub-tabs scrolling, "Flows into" opening the rules
+instead of the map, the app not opening at the user's location, a slow first switch to Runs). Crash reports were mostly
+early (0.4.0–0.6.x: data updates and map views) and are fixed; the late ones were mostly one search engine's page
+renderer running the website. Testers also said the app was clear: one was positive overall on how much fits on a
+screen while staying readable (F15). Of the 39 rows, 25 are fixed in a shipped release and 6 more in 0.9.0 (F15, F16,
+F21, F22, F24, F25), which is on staging only (r-0aec88ed3edb, 2026-11-24): not yet on Closed testing, its
+production build pending. TODO: reword once 0.9.0 reaches Closed.
 TODO: add Play Console testing-feedback items and recount.
 
 ---
@@ -115,7 +119,12 @@ plausible, not that it is met.
 - **Stability:** every crash kind from testing triaged; the early ones (data updates, map views, first install) fixed in
   0.5.0–0.6.9 (F26–F33); error reports that are not defects classed apart (F34); the production triage's app fixes in
   0.9.0 (F35).
-TODO: add the Play-feedback rows and the 0.9.0 items once 0.9.0 ships (`releases.md`).
+- **0.9.0 (fixes for closed-test feedback; staging only, not yet on Closed testing):** the Class II tag sits right under the water's name (F21); ditches no longer drawn
+  as part of a river (F22, a data fix); Runs reads ahead so the first switch is quicker (F23, part); a selected slough
+  or side channel is outlined once instead of boxed (F25); "Flows into" opens the receiving water's map (F24); the
+  day picker runs to March 31, 2027 (F16); regs sub-tabs jump (F15); app fixes from the production crash triage
+  (F35, part).
+TODO: add the Play-feedback rows; confirm 0.9.0 reached Closed testing (`releases.md`).
 
 ### Q8. How did you decide that your app is ready for production?
 
@@ -133,7 +142,14 @@ TODO: add the Play-feedback rows and the 0.9.0 items once 0.9.0 ships (`releases
 - **The rules are checked against the rule book:** every rule shows its rule-book page; the owner reviewed the
   regulations water by water in a review tool before release (TODO owner: one line on how much was reviewed).
 - **Testers' feedback is answered:** 25 of 39 tester, report and crash rows fixed in a shipped release, 1 more
-  shipped and waiting on the owner's check, 3 fixed for 0.9.0, the rest in progress or ticketed (`feedback-log.md`; TODO refresh).
+  shipped and waiting on the owner's check, 6 fixed in 0.9.0, 3 in progress, 4 open and ticketed (`feedback-log.md`,
+  2026-11-24).
+- **0.9.0's numbers (2026-11-24, release r-0aec88ed3edb):** the release ran every check on its own data before staging: the
+  app suite (9,471 tests passed, 17 skipped), the feeds worker suite (626 passed), the pipeline's no-data tier on a
+  fresh copy of the code and its data tier on the release, the rule-by-rule binding diff against the live release
+  (16 rules and 3 DFO places, every change the one intended fix), and the golden regulation pages re-cut (only the
+  rule-book highlight boxes changed). The staging smoke test after the data and the site: 19 of 19 checks passed. The device pass
+  (emulator test bench, fresh install first): TODO, not run for 0.9.0 yet.
 - **Policy:** the Data safety answers match what the app sends (`handoff/PLAN/play/data-safety.md`); privacy policy at
   canifishthis.ca (TODO owner: confirm the URL in Play Console); no ads; no account.
 
