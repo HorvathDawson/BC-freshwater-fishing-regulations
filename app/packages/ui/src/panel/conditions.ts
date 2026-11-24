@@ -313,7 +313,9 @@ export function useConditionsView(
       ? traced.value : null,
     gauges: gaugeChoices(panel.rows, lead, { ref, horizon }),
     gaugeGroups: gaugeChoiceGroups(panel.rows, lead, ask, sides),
-    ahead, sides, count, leadNote: levelOnly ? LEVEL_ONLY_LEAD : null,
+    // (T1043) "No gauge here reports flow today" is false where the lead reports a live flow it has no record to rank
+    // against (Gun Creek, 08ME030): the card's own line says that, so the note is not drawn
+    ahead, sides, count, leadNote: levelOnly && !reading?.reports?.includes("discharge") ? LEVEL_ONLY_LEAD : null,
     own: speaker?.kind === "lake" && spoken.state === "ready" && spoken.value.at
       ? { station: speaker.station, name, ...spoken.value.at, live: reading !== null,
           ...ownGaugeMap(speaker.station, { percentile: c?.percentile ?? null, observedAt: c?.observedAt ?? null }, ask) }

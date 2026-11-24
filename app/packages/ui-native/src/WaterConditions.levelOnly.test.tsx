@@ -228,13 +228,28 @@ describe("a live level with no band is offered on the water's view (T1043)", () 
 
   // (review of #77) GUN CREEK (08ME030), production 2026-11-23: a level band only, a live flow (7.8 m³/s) and level
   // (4.271 m) reported. Its water is NOT "level only": the note and the switch agree, opening on Flow (unranked).
-  // MUTATION: `useSpeakerMeasures` without the readings' `reports` -> "Level only: no flow is measured here." over "Flow Level*".
+  // MUTATION: `useSpeakerMeasures` without the readings' `reports` -> "Level only: no flow is measured here." over "Flow Level*";
+// the lead note without its `reports` check -> "No gauge here reports flow today, …" under a flow of 7.8 m³/s.
   it("Gun Creek's shape (a level band, a live flow): no level-only note, Flow and Level, the flow unranked", async () => {
     const now = { discharge: 7.8, level: 4.271, percentile: 0.75, standing: "above", at: "2026-09-04T06:00:00Z",
                   parameter: "level", reports: ["discharge", "level"] };
     expect(await firstView(speaking("panel", ["level"], now))).toEqual({
       note: null, figure: "7.8", switch: "Flow* Level", leadNote: null });
     expect(screen.getByTestId("reading-no-record").textContent).toBe(NO_RECORD_LINE);
+  });
+
+  it("Gun Creek through the feed (its lead chosen on level): no \"No gauge here reports flow today\" over its live flow", async () => {
+    const now = { discharge: 7.8, level: 4.271, percentile: 0.75, standing: "above", at: "2026-09-04T06:00:00Z",
+                  parameter: "level", reports: ["discharge", "level"] };
+    const feed = { index: async () => ({ listed: ["G1"], stations: {
+      G1: { percentile: 0.75, parameter: "level" as const, level: 0.75, reports: ["discharge", "level"],
+            observedAt: "2026-09-04T06:00:00Z" } } }) } as never;
+    render(<WaterConditions source={speaking("panel", ["level"], now)} item={WATER} tapSid={SEC} palette={LIGHT}
+                            opening="discharge" from={AT} feed={feed} />);
+    await waitFor(() => expect(screen.queryByTestId("reading-figure")).not.toBeNull());
+    await waitFor(() => expect(screen.queryByTestId("estimate-ranked-on")).not.toBeNull());   // the estimate is on level
+    expect([screen.queryByTestId("conditions-note"), screen.queryByTestId("lead-note"), card()[1], card()[2]])
+      .toEqual([null, null, "Flow* Level", "7.8"]);
   });
 
   // (review of #77) 08HD006 (Salmon River near Sayward), production 2026-11-23: bands in both, the live level 2.058 m off
