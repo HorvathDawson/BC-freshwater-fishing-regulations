@@ -34,22 +34,29 @@ export class OneClosureError extends Error {
  */
 export function closedWithSalmon(page: RegsPage, card: SalmonCardVM | null, rules: RuleIndex): RegsPage {
   const b = page.keep.banner;
-  if (!card || page.status !== "closed" || !b || b.kind !== "closed" || b.reopen !== null || b.merged !== null || !b.chain.length) return page;
+  // (#131 review) no `page.status` / `b.kind` / empty-chain guard: only a closed day's banner carries a chain (the tidal
+  // banner's is empty), and the two rule sets below must be equal and not empty, so any other page fails there
+  if (!card || !b || b.reopen !== null || b.merged !== null) return page;
   if (card.todayBy !== "book" || !card.closedOnly || card.issues.length || card.finfish.length || card.caveat || card.side) return page;
   const salmon = new Set(card.book.map((x) => x.rule));
   const game = new Set(b.chain.map((c) => c.rule as string));
-  const allYear = new Set(card.bookAllYear ?? []);
-  if (!salmon.size || salmon.size !== game.size || [...game].some((k) => !salmon.has(k) || !allYear.has(k))) return page;
+  // the salmon's closures that stand all year (a subset of `salmon` whatever the card lists)
+  const allYear = new Set([...salmon].filter((k) => card.bookAllYear?.includes(k)));
+  // NEVER DROP A SOURCE (#131 review MED 1): every salmon closure is one the banner cites (the Salmon row and its Source
+  // line go, so a closure the banner does not cite would leave the page and its every-source sheet), and every closure the
+  // banner cites is one of the salmon's that stands all year
+  if (!salmon.size || [...salmon].some((k) => !game.has(k)) || [...game].some((k) => !allYear.has(k))) return page;
   const views = b.chain.map((c): RuleView => {
     const r = rules.byKey?.(c.rule) ?? null;
     if (!r) throw new OneClosureError(`closedWithSalmon: the banner's closure ${c.rule} is not one of the part's rules`);
     return r;
   });
   if (views.some((r) => r.facts?.unless_opened)) return page;
+  // (#131 review MED 3) each line keeps the level the banner gave it ("This water", "Federal / parks", "Named area" …)
   const chain = b.chain.map((c, i) => {
     const r = views[i]!, row = r.export.prov.entry_name, line = clean(r.export.verbatim);   // as `describe` reads it
     if (!row || !line) throw new OneClosureError(`closedWithSalmon: closure ${c.rule} has no book row name or line`);
-    return { ...c, text: r.via === "trib" ? WORDS.BOOK_ROW_TRIBS(row, line) : WORDS.BOOK_ROW_READS(row, line), scope: "" };
+    return { ...c, text: r.via === "trib" ? WORDS.BOOK_ROW_TRIBS(row, line) : WORDS.BOOK_ROW_READS(row, line), about: WORDS.BOOK_ROW_OF(row) };
   });
   return { ...page, keep: { ...page.keep, banner: { ...b, big: [WORDS.CLOSED_ALL_FISHING_YEAR], paras: [], chain, salmon: true } } };
 }

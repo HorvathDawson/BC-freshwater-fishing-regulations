@@ -82,18 +82,23 @@ const said = () => ({
 const partOf = (item: string, lo: string, hi: string) => sectionNames(openRegsFixture()).part(item, lo, hi);
 
 const WILKIE = "r4:wilkie_creek@4-30::wilkie_creek.r1";
-const ONE_BLOCK = (line: string, page: number) => `Closed to all fishing all year, salmon included${line}SourceB.C. Synopsis p.${page} ↗Who says so ›`;
+/** the block's whole text: headline, the closure's line and the level the banner gave it, its Source line */
+const ONE_BLOCK = (line: string, scope: string, page: number) => `Closed to all fishing all year, salmon included${line} ${scope}SourceB.C. Synopsis p.${page} ↗Who says so ›`;
 
 describe("<WaterScreen> (T1052) a water closed to all fishing says it once", () => {
   it("one closure, all year, salmon included (Wilkie Creek, its own row \"No Fishing\"): one block, no Salmon row, both calendars", async () => {
     await open("gnis:27735", 0, bookFacts(WILKIE, "Wilkie Creek", 40));
-    expect(said()).toEqual({ banner: ONE_BLOCK("The B.C. Synopsis row for Wilkie Creek reads “No Fishing”.", 40), salmonRow: false, calendars: [true, true] });
+    expect(said()).toEqual({ banner: ONE_BLOCK("The B.C. Synopsis row for Wilkie Creek reads “No Fishing”.", "This water", 40), salmonRow: false, calendars: [true, true] });
+    // (#131 review LOW 6) the Source links name the row for a screen reader, not the whole line
+    const links = [...screen.getByTestId("keep-banner").querySelectorAll("[role=link], [data-testid='chip:source']")].map((e) => e.getAttribute("aria-label"));
+    expect(links).toEqual(["B.C. Synopsis page 40, the passages behind the Wilkie Creek row marked, opens the PDF",
+                           "Who says so: the rules behind the Wilkie Creek row"]);
   }, 40_000);
 
   it("a screen mounted without the at-a-glance table (the cards in full): no Salmon card under the one block either", async () => {
     await open("gnis:27735", 0, bookFacts(WILKIE, "Wilkie Creek", 40), false);
     expect([said().banner, !!screen.queryByTestId("salmon-card")])
-      .toEqual([ONE_BLOCK("The B.C. Synopsis row for Wilkie Creek reads “No Fishing”.", 40), false]);
+      .toEqual([ONE_BLOCK("The B.C. Synopsis row for Wilkie Creek reads “No Fishing”.", "This water", 40), false]);
     cleanup();
     await open("gnis:27735", 0, DFO_ONLY, false);
     expect(!!screen.queryByTestId("salmon-card")).toBe(true);
@@ -102,7 +107,7 @@ describe("<WaterScreen> (T1052) a water closed to all fishing says it once", () 
   it("a several-part water: its closed part (a walked tributary of Wahleach Lake) gets the block naming the row it inherits; its open part keeps its Salmon row", async () => {
     const facts = bookFacts("r2:wahleach_jones_lake_s_tributaries@2-3::wahleach_jones_lake_s_tributaries.r1", "Wahleach Lake", 26);
     await open("gnis:22472", await partOf("gnis:22472", "lake_inlet:wbk:329177886", "source"), facts);
-    expect(said()).toEqual({ banner: ONE_BLOCK("Wahleach Lake’s row covers its tributaries: “No Fishing”.", 26), salmonRow: false, calendars: [true, true] });
+    expect(said()).toEqual({ banner: ONE_BLOCK("Wahleach Lake’s row covers its tributaries: “No Fishing”.", "From downstream", 26), salmonRow: false, calendars: [true, true] });
     cleanup();
     await open("gnis:22472", await partOf("gnis:22472", "mouth", "lake_outlet:wbk:329177886"), facts);
     expect([said().banner, said().salmonRow]).toEqual([null, true]);
@@ -130,7 +135,7 @@ describe("<WaterScreen> (T1052) a water closed to all fishing says it once", () 
     notice.on = true;
     await open("gnis:27735", 0, bookFacts(WILKIE, "Wilkie Creek", 40));
     expect([!!screen.queryByTestId("inseason-banners"), said()])
-      .toEqual([true, { banner: ONE_BLOCK("The B.C. Synopsis row for Wilkie Creek reads “No Fishing”.", 40), salmonRow: false, calendars: [true, true] }]);
+      .toEqual([true, { banner: ONE_BLOCK("The B.C. Synopsis row for Wilkie Creek reads “No Fishing”.", "This water", 40), salmonRow: false, calendars: [true, true] }]);
   }, 40_000);
 
   it("a release with no salmon: the game-fish banner as it was, no \"salmon included\"", async () => {

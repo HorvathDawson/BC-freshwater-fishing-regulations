@@ -37,11 +37,10 @@ export function ClosedBanner({ banner, palette, actions }: { banner: BannerVM; p
       {banner.paras.map((p, i) => <Text key={i} style={[TYPE.regsBody, { color: palette.ink, marginVertical: 4 }]}>{p}</Text>)}
       {banner.chain.map((c, i) => (
         <View key={i} style={{ minHeight: 44, paddingTop: 8, borderTopWidth: 1, borderTopColor: palette.line }}>
-          {/* (T1052) a line that names its book row itself carries no level ("This water") */}
-          <Text style={[TYPE.regsBody, { color: palette.ink }]}>{c.text}{c.scope ? <> <Text style={[TYPE.meta, { color: palette.sub }]}>{c.scope}</Text></> : null}</Text>
+          <Text style={[TYPE.regsBody, { color: palette.ink }]}>{c.text} <Text style={[TYPE.meta, { color: palette.sub }]}>{c.scope}</Text></Text>
           {/* (T1031 item 3) the closure's pages (or its local authority's page, T981) then "Who says so ›" (its rule's sheet),
               as the one Source line, where a boxed "SOURCE" chip opened the rule beside the bare links */}
-          <SourceRow vm={lineSourcesOf(c.book, c.text, `rule:${c.rule}`)} palette={palette} onBook={actions.onBook} onSheet={actions.onSheet}
+          <SourceRow vm={lineSourcesOf(c.book, c.about ?? c.text, `rule:${c.rule}`)} palette={palette} onBook={actions.onBook} onSheet={actions.onSheet}
                      testID="closed-source" sheetTestID="chip:source" />
         </View>
       ))}

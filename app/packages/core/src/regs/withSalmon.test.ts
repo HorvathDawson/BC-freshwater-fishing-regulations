@@ -39,16 +39,17 @@ const RULES = index(rule(NELSON));
 /** what the Keep tab draws of the banner: headline, paragraphs, each chain line with its level, the salmon flag */
 const said = (p: RegsPage) => {
   const b = p.keep.banner!;
-  return { big: b.big, paras: b.paras, chain: b.chain.map((c) => [c.text, c.scope, c.rule]), salmon: b.salmon ?? null };
+  return { big: b.big, paras: b.paras, chain: b.chain.map((c) => [c.text, c.scope, c.rule, c.about ?? null]), salmon: b.salmon ?? null };
 };
-const UNMERGED = { big: ["Closed all year"], paras: [], chain: [["No fishing for any game fish.", "This water", NELSON]], salmon: null };
+const UNMERGED = { big: ["Closed all year"], paras: [], chain: [["No fishing for any game fish.", "This water", NELSON, null]], salmon: null };
 
 describe("(T1052) closedWithSalmon: one statement where one closure shuts every fish, salmon included, all year", () => {
   it("Nelson Creek (p.25 \"No Fishing\", the same rule on the banner and every salmon species): one block, both said", () => {
     const out = closedWithSalmon(page(), card(), RULES);
     expect(said(out)).toEqual({
       big: ["Closed to all fishing all year, salmon included"], paras: [],
-      chain: [["The B.C. Synopsis row for Nelson Creek reads “No Fishing”.", "", NELSON]], salmon: true,
+      // (#131 review) the level the banner gave the closure stays; the Source links are about the row, not the long line
+      chain: [["The B.C. Synopsis row for Nelson Creek reads “No Fishing”.", "This water", NELSON, "the Nelson Creek row"]], salmon: true,
     });
     // the closure's book line (its page and highlight) is the banner's own: the source line is unchanged
     expect(out.keep.banner!.chain[0]!.book).toBe(BOOK_LINE);
@@ -56,9 +57,11 @@ describe("(T1052) closedWithSalmon: one statement where one closure shuts every 
 
   it("a walked tributary names the row it inherits; a book line ending its own sentence takes no second full stop", () => {
     const trib = closedWithSalmon(page(), card(), index(rule(NELSON, { via: "trib", row: "Little Qualicum River", line: "No Fishing - All tributaries" })));
-    expect(said(trib).chain).toEqual([["Little Qualicum River’s row covers its tributaries: “No Fishing - All tributaries”.", "", NELSON]]);
-    const own = closedWithSalmon(page(), card(), index(rule(NELSON, { row: "National Park Reserves", line: "All fresh waters within Pacific Rim\nNational Park Reserve are closed to fishing." })));
-    expect(said(own).chain).toEqual([["The B.C. Synopsis row for National Park Reserves reads “All fresh waters within Pacific Rim National Park Reserve are closed to fishing.”", "", NELSON]]);
+    expect(said(trib).chain).toEqual([["Little Qualicum River’s row covers its tributaries: “No Fishing - All tributaries”.", "This water", NELSON, "the Little Qualicum River row"]]);
+    // (#131 review MED 3) a park reserve's closure keeps its "Federal / parks" level
+    const parks = page(banner({ chain: [{ ...banner().chain[0]!, scope: "Federal / parks" }] }));
+    const own = closedWithSalmon(parks, card(), index(rule(NELSON, { row: "National Park Reserves", line: "All fresh waters within Pacific Rim\nNational Park Reserve are closed to fishing." })));
+    expect(said(own).chain).toEqual([["The B.C. Synopsis row for National Park Reserves reads “All fresh waters within Pacific Rim National Park Reserve are closed to fishing.”", "Federal / parks", NELSON, "the National Park Reserves row"]]);
   });
 
   // each case keeps the page AS IT IS (the same object): today's two statements
@@ -68,6 +71,12 @@ describe("(T1052) closedWithSalmon: one statement where one closure shuts every 
     ["salmon closed by DFO (\"Not opened by DFO\"), game fish by the book: two sources", (p) => closedWithSalmon(p, card({ todayBy: "dfo", book: [], bookAllYear: [] }), RULES), page()],
     ["salmon by the book AND DFO on the page today", (p) => closedWithSalmon(p, card({ todayBy: "both" }), RULES), page()],
     ["salmon closed by ANOTHER book rule (Still Creek: Brunette River's row)", (p) => closedWithSalmon(p, card({ book: [{ ...card().book[0]!, rule: "r2:brunette_river@2-8::brunette_river.r1" }], bookAllYear: ["r2:brunette_river@2-8::brunette_river.r1"] }), RULES), page()],
+    // (#131 review MED 1) NEVER DROP A SOURCE: the Salmon row's second closure is not on the banner, so merging would
+    // take it off the page and out of the every-source sheet
+    ["the salmon stand on two all-year closures, the banner cites one of them", (p) => closedWithSalmon(p, card({ book: [card().book[0]!, { ...card().book[0]!, rule: "r2:brunette_river@2-8::brunette_river.r1" }], bookAllYear: [NELSON, "r2:brunette_river@2-8::brunette_river.r1"] }), index(rule(NELSON), rule("r2:brunette_river@2-8::brunette_river.r1"))), page()],
+    // (#131 review LOW 5) the banner's second closure is not the salmon's, though the card's all-year list names it: the
+    // all-year list counts only for closures the salmon stand on (a hand-built card; a built card's list is a subset)
+    ["the banner cites a closure the card's all-year list names but the salmon do not stand on", (p) => closedWithSalmon(p, card({ bookAllYear: [NELSON, "r2:x@2-8::x.r1"] }), index(rule(NELSON), rule("r2:x@2-8::x.r1"))), page(banner({ chain: [...banner().chain, { ...banner().chain[0]!, rule: "r2:x@2-8::x.r1" }] }))],
     ["the banner cites two closures, the salmon one of them", (p) => closedWithSalmon(p, card(), index(rule(NELSON), rule("r2:x@2-8::x.r1"))), page(banner({ chain: [...banner().chain, { ...banner().chain[0]!, rule: "r2:x@2-8::x.r1" }] }))],
     ["a live DFO notice on the card (its row carries the issue mark)", (p) => closedWithSalmon(p, card({ issues: [{}] as unknown as SalmonCardVM["issues"] }), RULES), page()],
     ["a DFO finfish closure on the card", (p) => closedWithSalmon(p, card({ finfish: ["Finfish closure"] }), RULES), page()],
@@ -87,8 +96,12 @@ describe("(T1052) closedWithSalmon: one statement where one closure shuts every 
     expect(said(p)).toEqual(UNMERGED);
   });
 
-  it("a part that is not closed (another part of a several-part water is): its page as it is", () => {
-    for (const p of [page(null, "open"), page(null, "closed"), page(banner({ chain: [] }))]) expect(closedWithSalmon(p, card(), RULES)).toBe(p);
+  it("a part that is not closed (another part of a several-part water is), a tidal page, a closed day with no closure named: as it is", () => {
+    const tidal = page(banner({ kind: "tidal", big: ["Tidal water"], chain: [] }), "tidal");
+    const bare = page(banner({ big: ["Closed"], chain: [] }));   // a closed day whose frame names no broad closure
+    for (const p of [page(null, "open"), page(null, "closed"), tidal, bare]) expect(closedWithSalmon(p, card(), RULES)).toBe(p);
+    // (#131 review LOW 5) nothing on either side: no closure to say, never an empty "salmon included" block
+    expect(closedWithSalmon(bare, card({ book: [], bookAllYear: [] }), RULES)).toBe(bare);
   });
 
   it("a closure the part's rules do not hold, or one with no book row: refused, never words made up", () => {
