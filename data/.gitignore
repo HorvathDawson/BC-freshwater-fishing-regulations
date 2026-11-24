@@ -72,6 +72,9 @@ generated/review/dfo-*.md
 !generated/gauges/
 generated/gauges/*
 !generated/gauges/candidates.json
+# T1047: the datum / relocation remark proposals (`pipeline.tools.audit.datum_remarks`); committed because the
+# curated datum_change_stations.json rows cite them and the owner reviews them
+!generated/gauges/datum_proposals.json
 
 # The tree's own documentation — the map of what each subdirectory is and who writes it.
 # It belongs beside the thing it describes, not only in pipeline/docs/.

@@ -101,7 +101,8 @@ class Stage:
 #: TILES BEFORE DELIVER: deliver reads the tiles' polygons and section geometry for `section_access` (T54), and
 #: `pipeline.deliver all` ends with the vintage check against the shipped tiles.
 STAGE_GRAPH: tuple[Stage, ...] = (
-    Stage("clim", (), (), ("pipeline/gauges/feed/climatology.py", "pipeline/gauges/feed/record.py"),
+    Stage("clim", (), (), ("pipeline/gauges/feed/climatology.py", "pipeline/gauges/feed/record.py",
+                           "pipeline/gauges/feed/datum.py"),
           "the gauge envelope clim.json from HYDAT (N9)"),
     Stage("reach", (), (), ("pipeline/atlas/reach", "pipeline/atlas/graph", "pipeline/atlas/registry", "pipeline/regs",
                             "pipeline/common"),     # graph/: the tributary walk the reach run uses
@@ -282,13 +283,14 @@ def dfo_feed_digest() -> str | None:
 
 def clim_key() -> dict:
     """N9: what the envelope is made from — the HYDAT archive (stamp) and its release marker, the station roster that
-    restricts it, its code — and the YEAR: `climatology` keeps the record up to last year (`date.today()`), so a new
-    year is a new envelope."""
+    restricts it, its code, (T1047) the owner's ACCEPTED datum changes by content (a proposed row reruns nothing) — and
+    the YEAR: `climatology` keeps the record up to last year (`date.today()`), so a new year is a new envelope."""
+    from pipeline.gauges.feed import datum
     hydat = SOURCE / "hydat.sqlite3"
     marker = hydat.with_suffix(".release")
     return {"hydat": stamp(hydat), "release": marker.read_text().strip() if marker.exists() else None,
             "stations": stamp(SOURCE / "bc_hydrometric_stations.json"), "year": date.today().year,
-            "code": code_digest(CODE["clim"])}
+            "datum": datum.digest(datum.load()), "code": code_digest(CODE["clim"])}
 
 
 def stage_code(stage: str, m: dict | None = None):

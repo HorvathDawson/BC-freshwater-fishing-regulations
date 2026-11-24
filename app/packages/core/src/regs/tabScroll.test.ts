@@ -3,7 +3,7 @@
  * (T810 cutover) The pin bar's units (groupLine, breadcrumb, pinChain, pinLineEstimate, boldFirst) left with the bar.
  */
 import { describe, expect, it } from "vitest";
-import { tabInView, tabScrollY } from "./tabScroll";
+import { isStartOwnScroll, tabInView, tabScrollY } from "./tabScroll";
 import { shortOf, type ShortTier } from "./grouphead";
 
 describe("shortOf (grouphead.ts: the form b lines and the breadcrumb's levels)", () => {
@@ -51,5 +51,23 @@ describe("tabScrollY", () => {
   it("a tab press: keep → 0, a section → its top + 2, a missing section → 0", () => {
     expect([tabScrollY("keep", { gear: 1500, methods: null, licence: null }), tabScrollY("gear", { gear: 1500, methods: null, licence: null }),
       tabScrollY("licence", { gear: 1500, methods: null, licence: null })]).toEqual([0, 1502, 0]);
+  });
+});
+
+describe("isStartOwnScroll (T1049 review: the start's own jump is told by position, not by time)", () => {
+  it("a y the start asked for is its own, within the platform's 1 px rounding; any other is the reader's", () => {
+    expect([isStartOwnScroll(2702, [2702], null), isStartOwnScroll(2701.4, [2702], null), isStartOwnScroll(2703, [2702], null),
+            isStartOwnScroll(2704, [2702], null), isStartOwnScroll(500, [2702], null)]).toEqual([true, true, true, false, false]);
+  });
+  it("a late event of an EARLIER jump is still its own while the target has moved on", () => {
+    expect(isStartOwnScroll(2702, [2702, 2903], null)).toBe(true);
+  });
+  it("a jump asked beyond the page's end lands on the end: that is its own; elsewhere is not", () => {
+    expect([isStartOwnScroll(2000, [2702], 2000), isStartOwnScroll(1500, [2702], 2000), isStartOwnScroll(2000, [2702], null)])
+      .toEqual([true, false, false]);
+    expect(isStartOwnScroll(2000, [1800], 2000)).toBe(false);   // asked inside the page: landing at its end is not that jump
+  });
+  it("before any jump only a scroll off the top is the reader's", () => {
+    expect([isStartOwnScroll(0, [], null), isStartOwnScroll(40, [], null)]).toEqual([true, false]);
   });
 });

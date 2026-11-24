@@ -1126,3 +1126,95 @@ def test_review_m4_m5_across_the_cutover_a_daily_and_a_pooled_number_are_found(p
     _plant_row(b2, lambda r: AD.is_trout_row(r) and r["kind"] == "keep" and len(set(r["all_members"])) > 1,
                lambda r: {**r, "daily": r["daily"] - 1})
     assert {g["kind"] for g in _diff(latest(PRE_CUTOVER_MINI), b2)["groups"]} == {"shared_limit"}
+
+
+# --- (T1020) the closures to the non-resident alien name their rules by id
+
+def _add_rules(rel: Path, ids) -> None:
+    """Append rules (`(entry_id, rule_id)`, a copy of rule 0 each, never referenced by any frame) to the end of the
+    release's rule list, with their display rules, the export subset's digest renewed: the rule list differs, the
+    answers do not."""
+    st = Store(rel)
+    base = st.st.val("rule", st.con.execute("SELECT j FROM rule WHERE rix = 0").fetchone()[0])
+    disp = st.get("display_rule", 0)
+    for e, r in ids:
+        (n,) = st.con.execute("SELECT MAX(rix) + 1 FROM rule").fetchone()
+        st.con.execute("INSERT INTO rule (rix, j) VALUES (?, ?)",
+                       (n, json.dumps({**base, "entry_id": e, "rule_id": r}).encode()))
+        assert st.add("display_rule", {**disp, "title": f"T1020 {r}"}) == n
+    from pipeline.deliver.store.common import canonical, sha
+    st.con.execute("UPDATE meta SET v = ? WHERE k = 'export_subset_sha256'",
+                   (sha(canonical(st.st.export_subset(check=False))),))
+    st.save()
+
+
+def _plant_alien(rel: Path, rix: int) -> int:
+    """One key's segment-1 licence frame given a closure to the non-resident alien naming rule index `rix` (T789 G8:
+    the frame's 4th slot, after under_16's). Returns the akey."""
+    st = Store(rel)
+    akey, _ = _plain_key(st)
+    h, d, u = st.get("licence_frame", st.cell(akey, 1, "licence"))
+    aw = st.add("licence_alien", [{"rule": rix, "of": None, "says": "Angling closed to non-guided non-resident aliens"}])
+    st.cell(akey, 1, "licence", st.add("licence_frame", [h, d, u, aw]))
+    st.save()
+    return akey
+
+
+P, Q = ("r9:t1020@9-9", "t1020.p"), ("r9:t1020@9-9", "t1020.q")
+
+
+def test_t1020_a_renumbered_alien_closure_rule_is_no_change_and_a_new_rule_at_the_old_index_is_one(pair, tmp_path):
+    """(T1020) rule ids are per entry (AGENTS rule 8) and a release renumbers its rules (r-fec3fab4c5aa ->
+    r-741815c6090d: one rule more, every later index +1, 28,714 sections "other" on `alien_closures[].rule`). A has
+    P, Q appended, B Q, P: the same closure (rule P) is index n in A and n + 1 in B — no change; B's closure at index n
+    (rule Q, the index A's P has) is a real change, reported once."""
+    a, b = pair
+    _add_rules(a, [P, Q])
+    _add_rules(b, [Q, P])
+    r = _diff(a, b)                                                 # the rule lists differ, the answers do not
+    assert r["groups"] == [] and r["release_wide"] == []
+    n = len(province_store(a).export_subset()["rule_ids"]) - 2
+    _plant_alien(a, n)                                              # A: rule P (its index n)
+    b2 = tmp_path / "b2" / b.name
+    shutil.copytree(b, b2)
+    _plant_alien(b, n + 1)                                          # B: rule P (its index n + 1)
+    r = _diff(a, b)
+    assert r["groups"] == [] and r["release_wide"] == [], [(g["kind"], g["block"], g.get("detail")) for g in r["groups"]]
+    # the other direction: B's closure at index n is rule Q — the same index as A's, another rule
+    akey = _plant_alien(b2, n)
+    r = _diff(a, b2)
+    g = _only(r, "other")
+    assert len(r["groups"]) == 1 and g["block"] == "net:licence" and g["errs"] == "unclear"
+    assert g["sections"] == len([h for h, k in province_store(b2).section_akeys().items() if k == akey])
+    assert "alien_closures[0].rule" in json.dumps(g)
+    # MUTATION: with the licence frame's `rule` read as an index, the first pair is "other" and the second is empty
+    import unittest.mock as M
+    with M.patch.dict(AD.RULE_KEYS, {"licence": frozenset()}):
+        assert [x["block"] for x in _diff(a, b)["groups"]] == ["net:licence"]
+        assert _diff(a, b2)["groups"] == []
+
+
+def test_t1020_the_same_rule_id_under_another_entry_is_another_rule(pair, tmp_path):
+    """(T1020 review) a rule is `(entry_id, rule_id)` (AGENTS rule 8: `rule_id` is unique only within an entry). A has
+    E1's and E2's `t1020.x` appended, B E2's then E1's: B's closure at A's index names E2's rule where A's names E1's —
+    one change; at the next index it names E1's — none."""
+    a, b = pair
+    e1, e2 = ("r9:t1020_one@9-9", "t1020.x"), ("r9:t1020_two@9-9", "t1020.x")
+    _add_rules(a, [e1, e2])
+    _add_rules(b, [e2, e1])
+    n = len(province_store(a).export_subset()["rule_ids"]) - 2
+    _plant_alien(a, n)                                              # A: E1's t1020.x
+    b2 = tmp_path / "b2" / b.name
+    shutil.copytree(b, b2)
+    _plant_alien(b, n + 1)                                          # B: E1's t1020.x, one index later
+    assert _diff(a, b)["groups"] == []
+    _plant_alien(b2, n)                                             # B: E2's t1020.x at A's index
+    r = _diff(a, b2)
+    g = _only(r, "other")
+    assert len(r["groups"]) == 1 and g["block"] == "net:licence"
+    # MUTATION: a rule resolved to its `rule_id` alone (the part after the last ":") reads E1's and E2's as one rule
+    import unittest.mock as M
+    real = AD.Release.rid
+    with M.patch.object(AD.Release, "rid", lambda self, i: (lambda v: v.rsplit(":", 1)[-1] if isinstance(v, str)
+                                                             else v)(real(self, i))):
+        assert _diff(a, b2)["groups"] == []
