@@ -1,6 +1,7 @@
 /**
  * (T1030) THE INBOX'S DATA-UPDATE ROW SAYS HOW MANY WATERS THE RELEASE CHANGED — what the release in use states
- * (`manifest.changed_waters`), passed by the real Shell; a release that states none says nothing of it (rule 32), never 0.
+ * (`manifest.changed_waters`, counted against `changed_waters_from`), passed by the real Shell — said only when the
+ * device held that release before; a release that states none says nothing of it (rule 32), never 0.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render } from "@testing-library/react";
@@ -21,9 +22,10 @@ const memory = (v: string | null = null) => ({ v, read() { return this.v; }, wri
 /** a device that last saw another release: the one in use now is a data-update row */
 const SEEN_BEFORE = JSON.stringify({ format: "inseason-inbox/1", rev: 2, items: [], base: { release: "r-older", app: null } });
 
-async function rowAfterMount(changed: number | undefined) {
+async function rowAfterMount(changed: number | undefined, from = "r-older") {
   const inbox = memory(SEEN_BEFORE);
-  const loader = openRegsFixture({ manifest: (m) => (changed === undefined ? m : { ...m, changed_waters: changed }) });
+  const loader = openRegsFixture({ manifest: (m) => (changed === undefined ? m
+    : { ...m, changed_waters: changed, changed_waters_from: from }) });
   Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: 390 });
   Object.defineProperty(document.documentElement, "clientHeight", { configurable: true, value: 844 });
   render(<LayoutWidthContext.Provider value={390}><GestureHandlerRootView>
@@ -45,6 +47,10 @@ describe("(T1030) the data-update row's count is the release's own", () => {
     cleanup();
     const one = await rowAfterMount(1);
     expect([one.changed, one.text]).toEqual([1, "1 water changed"]);
+  });
+  it("a count taken against a release this device did not hold says nothing of it", async () => {
+    const r = await rowAfterMount(12, "r-between");
+    expect([r.id, r.changed, r.text]).toEqual([`data:${r.release}`, null, ""]);
   });
   it("a release that states no count says nothing of it, never 0", async () => {
     const r = await rowAfterMount(undefined);

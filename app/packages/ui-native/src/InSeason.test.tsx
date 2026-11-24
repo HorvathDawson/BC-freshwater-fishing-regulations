@@ -242,7 +242,7 @@ describe("T700: the bell's in-season inbox", () => {
   });
   it("(T867) the app's own updates are rows: the data release and the app version, no empty region or text line", () => {
     const s = inboxObserve(inboxObserve(null, { release: { id: "r-1", day: "2026-11-10" }, app: "0.8.5" }, TODAY),
-                           { release: { id: "r-2", day: "2026-11-12", changed: 3 }, app: "0.9.0" }, TODAY);
+                           { release: { id: "r-2", day: "2026-11-12", changed: 3, changedFrom: "r-1" }, app: "0.9.0" }, TODAY);
     const seen = draw({ vm: inboxVM(s, TODAY) });
     expect(screen.getAllByTestId("inbox-row").map((r) => r.textContent)).toEqual([
       "App updateNov 13Updated to 0.9.0",

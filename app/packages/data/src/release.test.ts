@@ -86,6 +86,8 @@ describe("manifest", () => {
     expect(M({ changed_waters: 12 }).changed_waters).toBe(12);
     for (const bad of [-1, 1.5, "12", null])
       expect(() => M({ changed_waters: bad as unknown as number })).toThrow(`manifest: changed_waters ${JSON.stringify(bad)} is not a count`);
+    expect(M({ changed_waters: 12, changed_waters_from: "r-1" }).changed_waters_from).toBe("r-1");
+    expect(() => M({ changed_waters_from: 7 as unknown as string })).toThrow("manifest: changed_waters_from 7 is not a release id");
     // the list the next build counts against rides beside it; this app reads nothing of it
     expect(M({ water_digests: { url: "r-2/water-digests.json.gz" } } as unknown as Partial<Manifest>).data_release).toBe("r-2");
   });

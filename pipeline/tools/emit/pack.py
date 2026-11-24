@@ -136,6 +136,9 @@ export interface Manifest {{
    *  alone does not): the inbox's "N waters changed". ABSENT when the build could not count (the first release with a
    *  per-water digest list, or no previous one): nothing is said, never 0 (pipeline/deliver/release/water_digests.py). */
   changed_waters?: number;
+  /** (T1030) The release `changed_waters` was counted against (present with it). The inbox says the count only when this
+   *  is the release the device held before: a device that skipped a release, or held another, is told nothing of it. */
+  changed_waters_from?: string;
 }}
 '''
 

@@ -189,6 +189,7 @@ def test_attach_names_the_list_and_counts_against_the_previous_one(tmp_path, mon
     assert WD.attach(new, WD.previous_state(prev), say=said.append) == 2
     m = json.loads((new / "manifest.json").read_text())
     assert m[WD.COUNT_KEY] == 2 and isinstance(m[WD.COUNT_KEY], int)
+    assert m[WD.FROM_KEY] == "r-prev"                                         # the count names the release it is against
     assert WD.release_list(new) == _list(**{"w:a": "1", "w:b": "9", "w:c": "3"})   # named, held to its sha256
     assert said == ["changed_waters: 2 of 3 waters differ from r-prev"]
 
@@ -201,15 +202,19 @@ def test_no_previous_or_one_without_a_list_states_no_count(tmp_path, monkeypatch
         new = _release(tmp_path / f"stage-{why[:6]}", "r-new", count=7)        # even a stale count goes
         said = []
         assert WD.attach(new, WD.previous_state(prev), say=said.append) is None
-        assert WD.COUNT_KEY not in json.loads((new / "manifest.json").read_text())
+        m = json.loads((new / "manifest.json").read_text())
+        assert WD.COUNT_KEY not in m and WD.FROM_KEY not in m
         assert why in said[0] and "states no count" in said[0]
 
 
 def test_a_rebuild_of_the_release_it_replaces_keeps_that_releases_count(tmp_path, monkeypatch):
     monkeypatch.setattr(WD, "water_digests", lambda d: _list(**{"w:a": "1"}))
     prev = _release(tmp_path / "live", "r-same", digests=_list(**{"w:a": "1"}), count=4)
+    m = json.loads((prev / "manifest.json").read_text())
+    (prev / "manifest.json").write_text(json.dumps({**m, WD.FROM_KEY: "r-before"}))
     new = _release(tmp_path / "stage", "r-same")
     assert WD.attach(new, WD.previous_state(prev), say=lambda s: None) == 4
+    assert json.loads((new / "manifest.json").read_text())[WD.FROM_KEY] == "r-before"
 
 
 def test_a_named_list_that_is_missing_or_altered_is_refused(tmp_path):
@@ -232,7 +237,7 @@ def test_neither_the_list_nor_the_count_is_part_of_the_release_id(tmp_path, monk
     for n, prev in ((1, _list(**{"w:a": "2"})), (0, _list(**{"w:a": "1"}))):
         WD.attach(d, {"name": "r-p", "id": "r-p", "list": prev, "count": None, "why": None}, say=lambda s: None)
         m2 = json.loads((d / "manifest.json").read_text())
-        assert m2[WD.COUNT_KEY] == n and WD.MANIFEST_KEY in m2
+        assert m2[WD.COUNT_KEY] == n and m2[WD.FROM_KEY] == "r-p" and WD.MANIFEST_KEY in m2
         assert RB.release_id(m2) == rid
 
 
@@ -245,7 +250,7 @@ def test_a_rebased_release_carries_the_list_and_changed_nothing(tmp_path):
     src = src.rename(tmp_path / rid)
     out = RB.rebase(src, {"id": "basemap-x", "url": "basemap/x.pmtiles", "bytes": 1, "sha256": "0"})
     m2 = json.loads((out / "manifest.json").read_text())
-    assert m2[WD.COUNT_KEY] == 0
+    assert (m2[WD.COUNT_KEY], m2[WD.FROM_KEY]) == (0, rid)                     # counted against its source, truthfully
     assert WD.release_list(out) == _list(**{"w:a": "1"})
 
 
@@ -288,3 +293,47 @@ def test_deliver_all_names_the_release_latest_names_as_the_previous_one(tmp_path
     assert previous_args(tmp_path) == []                                     # no pointer: none (the step says so)
     (tmp_path / "LATEST").write_text("r-live\n")
     assert previous_args(tmp_path) == ["--previous", str(tmp_path / "r-live")]
+
+
+def test_closed_all_year_counts(fake):
+    before = lst(fake)
+    fake.wire["sections"]["display"]["waters"]["w:b"]["parts"][0]["closed_all_year"] = True
+    assert WD.changed(before, lst(fake)) == ["w:b"]
+
+
+def _licence(fake, *, req="L0", doc="stamp", species=("CH",), act="keep", says="Carry a salmon stamp"):
+    fake.frames[("licence", 1)] = {
+        "profiles": [{"requirements": [{"id": req, "when": {"act": act, "species": list(species), "lengths": None},
+                                         "t": says}]}],
+        "documents": [{"id": doc, "when": {"act": act, "species": list(species), "on": None}, "words": [says]}]}
+
+
+def test_a_licence_requirement_asked_for_another_fish_or_act_counts_its_words_do_not(fake):
+    """(T1030 review) `when` is wording in the changed-answers list's TEXT_KEYS, but the licence frame's `when` is rule
+    data {act, species, lengths, on}: a stamp asked for another fish under the same id is a change."""
+    _licence(fake)
+    before = lst(fake)
+    for kw in ({"species": ("CO",)}, {"act": "fish"}, {"req": "L1"}, {"doc": "other-stamp"}):
+        _licence(fake, **kw)
+        assert WD.changed(before, lst(fake)) == ["w:a", "w:b"], kw            # both read licence frame 1
+    _licence(fake, says="Carry your salmon stamp")                            # words only
+    assert WD.changed(before, lst(fake)) == []
+
+
+def test_law_drops_a_word_named_key_only_where_it_holds_words():
+    keys = frozenset({"when", "t"})
+    assert WD.law({"when": "Apr 1 to Jun 14", "t": ["a", "b"], "x": 1}, keys) == {"x": 1}
+    assert WD.law({"when": {"act": "keep"}, "t": [{"r": 1}]}, keys) == {"when": {"act": "keep"}, "t": [{"r": 1}]}
+
+
+def test_the_built_mini_release_names_its_list_and_states_no_count(tmp_path_factory):
+    """The real release step (the mini chain) attaches the list: every water the release shows, held to its sha256; no
+    previous release was named, so no count and no base."""
+    from pipeline.deliver.release.manifest import latest
+    from pipeline.tests import mini_chain
+    d = latest(mini_chain.built(tmp_path_factory) / "release")
+    m = json.loads((d / "manifest.json").read_text())
+    lst_ = WD.release_list(d)
+    assert lst_ is not None and m[WD.MANIFEST_KEY]["waters"] == len(lst_["waters"]) > 0
+    assert WD.COUNT_KEY not in m and WD.FROM_KEY not in m
+    assert sorted(lst_["waters"]) == sorted(WD.water_digests(d)["waters"])

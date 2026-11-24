@@ -66,6 +66,9 @@ export function parseManifest(json: unknown): Manifest {
   const changed = (m as { changed_waters?: unknown }).changed_waters;
   if (changed !== undefined && !(Number.isInteger(changed) && (changed as number) >= 0))
     throw new ManifestError(`manifest: changed_waters ${JSON.stringify(changed)} is not a count`);
+  const from = (m as { changed_waters_from?: unknown }).changed_waters_from;
+  if (from !== undefined && typeof from !== "string")
+    throw new ManifestError(`manifest: changed_waters_from ${JSON.stringify(from)} is not a release id`);
   return m as Manifest;
 }
 

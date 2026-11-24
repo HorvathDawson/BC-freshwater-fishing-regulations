@@ -64,13 +64,14 @@ def rebase(src: Path, basemap: dict, out_root: Path | None = None) -> Path:
         new["synopsis"] = {**m["synopsis"], "url": move(m["synopsis"]["url"])}
     # (T1030) the per-water digest list is the files' (the same files: the same list), and the count is against the
     # release this one replaces — `src`, whose regulations are these: none changed. No list: no count.
-    from pipeline.deliver.release.water_digests import COUNT_KEY, MANIFEST_KEY
+    from pipeline.deliver.release.water_digests import COUNT_KEY, FROM_KEY, MANIFEST_KEY
     digests = m.get(MANIFEST_KEY)
     if digests is not None:
         new[MANIFEST_KEY] = {**digests, "url": move(digests["url"])}
-        new[COUNT_KEY] = 0
+        new[COUNT_KEY], new[FROM_KEY] = 0, old            # counted against `src`, truthfully: a device on another says nothing
     else:
         new.pop(COUNT_KEY, None)
+        new.pop(FROM_KEY, None)
     out_root = Path(out_root or src.parent)
     final = out_root / rid
     if final.exists():

@@ -28,10 +28,15 @@ WHAT A WATER'S DIGEST COVERS (`digests_of`): every water the app shows (`display
     refs as ids (`answers_diff.net_value`, its derived year strips left out); adjacent segments with the same frames are
     one;
   * the DFO salmon on its sections: the distinct chains, each as its per-species verdicts by day, the place answering
-    them (a DFO location id, or `book:<rule id>`), its gear lines and its words;
+    them (a DFO location id, or `book:<rule id>`) and its gear lines;
   * the water's unresolved licensing (licensing ids).
-So "changed" = ANY of that differs, wording included, or the water is new or gone (`changed`). Words change rarely
-between releases; a count that hid a wording change would under-say what an angler reads.
+WORDS ARE LEFT OUT (`law`): a key the changed-answers list calls wording (`TEXT_KEYS`) is dropped where it holds words
+(a string or a list of strings), and so is a part's label. So "changed" = any of the rest differs (what an angler may
+do or must hold, where, and the rules behind it), or the water is new or gone (`changed`). Geometry (a part's length,
+which sections it holds) is left out too: a re-cut with the same answers is not a change.
+
+THE COUNT NAMES ITS BASE: `changed_waters_from` is the release it was counted against, and the app says the count only
+when that is the release the device held before (a skipped release, a staging-only one in between: nothing said).
 
 THE COUNT IS UNKNOWN — the manifest states NO `changed_waters`, never a guessed 0 — when the predecessor wrote no list
 (the first release with this file, or a predecessor folder that is gone), or when the two lists' `basis` differ (a codec
@@ -52,7 +57,7 @@ FILENAME = "water-digests.json.gz"
 #: the trout cell's keys whose every int is a rule ref (`trout.table`: a row's and its sheet's `src`)
 TROUT_RULE_KEYS = frozenset({"src"})
 #: bump when what `digests_of` covers changes: two lists of different schemes are never compared (`count`)
-SCHEME = 1
+SCHEME = 2           # 2 (T1030 review): a word-named key holding data (the licence `when`) is kept
 
 
 class DigestError(SystemExit):
@@ -67,11 +72,18 @@ def _h(v) -> str:
     return hashlib.sha256(_canon(v).encode("utf-8")).hexdigest()[:16]
 
 
+def _words(x) -> bool:
+    """A value that is words only: a string, or a list of strings (an empty list is words too)."""
+    return isinstance(x, str) or (isinstance(x, list) and all(isinstance(y, str) for y in x))
+
+
 def law(v, text_keys: frozenset):
     """`v` without its words: every dict key in `text_keys` (the changed-answers list's `TEXT_KEYS`, the leaves it
-    calls "wording only") left out, at any depth."""
+    calls "wording only") left out, at any depth — WHEN ITS VALUE IS WORDS (`_words`). A key of that name holding data
+    is kept: the licence frame's `requirements[].when` / `documents[].when` are {act, species, lengths, on}, rule data
+    under a word-like name, and a stamp asked for another fish is a change."""
     if isinstance(v, dict):
-        return {k: law(x, text_keys) for k, x in v.items() if k not in text_keys}
+        return {k: law(x, text_keys) for k, x in v.items() if not (k in text_keys and _words(x))}
     if isinstance(v, list):
         return [law(x, text_keys) for x in v]
     return v
@@ -248,26 +260,30 @@ def release_list(release_dir: Path) -> Optional[dict]:
 #: the manifest's block naming the list, and the count (both outside the release id: `rebase.said_of` names neither)
 MANIFEST_KEY = "water_digests"
 COUNT_KEY = "changed_waters"
+#: the release the count was taken against: the app says the count only when a device held THAT release before (the
+#: local LATEST a build counts against is not always what a phone held: a staging-only release in between, a skipped one)
+FROM_KEY = "changed_waters_from"
 
 
 def previous_state(previous: Optional[Path]) -> dict:
     """What the build needs of the release it replaces, read BEFORE the build writes anything: its id, its list (None:
     `why`), and its own count (kept when the build turns out to be that same release again)."""
     if previous is None:
-        return {"name": None, "id": None, "list": None, "count": None,
+        return {"name": None, "id": None, "list": None, "count": None, "from": None,
                 "why": "no previous release was named (deliver all names the one LATEST names)"}
     d = Path(previous)
     if not (d / "manifest.json").is_file():
-        return {"name": d.name, "id": None, "list": None, "count": None,
+        return {"name": d.name, "id": None, "list": None, "count": None, "from": None,
                 "why": f"the previous release {d.name} is not on disk ({d})"}
     m = json.loads((d / "manifest.json").read_text(encoding="utf-8"))
     lst = release_list(d)
-    return {"name": d.name, "id": m.get("data_release"), "list": lst, "count": m.get(COUNT_KEY),
+    return {"name": d.name, "id": m.get("data_release"), "list": lst, "count": m.get(COUNT_KEY), "from": m.get(FROM_KEY),
             "why": None if lst is not None else f"the previous release {d.name} wrote no list (built before T1030)"}
 
 
 def attach(final: Path, before: dict, say: Callable[[str], None] = print) -> Optional[int]:
-    """Write `final`'s own list beside its files, and name it and the count (`count`) in its manifest; return the count.
+    """Write `final`'s own list beside its files, and name it, the count (`count`) and the release it was counted
+    against (`FROM_KEY`) in its manifest; return the count.
 
     The release id is not touched: it was minted from the files and what `rebase.said_of` reads, and these two keys are
     neither (a count depends on the predecessor, so the same content cut after two different releases is one id). A
@@ -284,16 +300,18 @@ def attach(final: Path, before: dict, say: Callable[[str], None] = print) -> Opt
     m[MANIFEST_KEY] = {"url": f"{rid}/{FILENAME}", "bytes": len(raw), "gz": len(gz),
                        "sha256": hashlib.sha256(raw).hexdigest(), "format": FORMAT, "waters": len(lst["waters"])}
     if before.get("id") == rid:
-        n = before.get("count")
+        n, frm = before.get("count"), before.get("from")
         say(f"changed_waters: {rid} is the release it replaces, built again — its own count is kept "
-            f"({'none' if n is None else n})")
+            f"({'none' if n is None else f'{n}, from {frm}'})")
     else:
         n = count(before.get("list"), lst, say, before_name=before.get("name") or "the previous release",
                   why=before.get("why"))
-    if n is None:
+        frm = before.get("id")
+    if n is None or frm is None:
         m.pop(COUNT_KEY, None)
+        m.pop(FROM_KEY, None)
     else:
-        m[COUNT_KEY] = n
+        m[COUNT_KEY], m[FROM_KEY] = n, frm
     mp.write_text(json.dumps(m, indent=1, sort_keys=True) + "\n")       # the build's own format (build.ship)
     return n
 

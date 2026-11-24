@@ -257,9 +257,14 @@ export const inboxUnreadIds = (s: InboxState | null): readonly string[] =>
  * day it was published, null when the manifest states none) and the app's version. The first time a device sees them
  * there is nothing to compare with: they are recorded, no row (since install only). A release id or version that differs
  * from the last seen is a row. `changed`: how many waters the release changed, when it says (null: nothing is said).
+ * (T1030) `changedFrom`: the release that count was taken against. The count is said ONLY when it is the release this
+ * device held before (`base.release`): a device that skipped a release, or held one the count was not taken against (a
+ * staging-only release in between, a local LATEST that was never published), says nothing of it (rule 32), never a
+ * number about another step.
  */
 export function inboxObserve(state: InboxState | null,
-                             seen: { readonly release: { readonly id: string; readonly day: string | null; readonly changed?: number | null } | null;
+                             seen: { readonly release: { readonly id: string; readonly day: string | null; readonly changed?: number | null;
+                                                         readonly changedFrom?: string | null } | null;
                                      readonly app: string | null },
                              today: string): InboxState {
   const s: InboxState = state ?? { format: INBOX_FORMAT, rev: INBOX_REV, items: [] };
@@ -275,7 +280,9 @@ export function inboxObserve(state: InboxState | null,
   const added: InboxEvent[] = [];
   if (seen.release && b.release !== null && seen.release.id !== b.release)
     added.push({ id: `data:${seen.release.id}`, kind: "data", at: relDay ?? today, version: null,
-                 changed: seen.release.changed ?? null, read: false });
+                 // b.release is a release id here (the row needs one): an absent `changedFrom` never matches it
+                 changed: seen.release.changedFrom === b.release ? seen.release.changed ?? null : null,
+                 read: false });
   if (seen.app && b.app !== null && seen.app !== b.app)
     added.push({ id: `app:${seen.app}`, kind: "app", at: today, version: seen.app, changed: null, read: false });
   if (!added.length && b.release === next.release && b.app === next.app) return s;

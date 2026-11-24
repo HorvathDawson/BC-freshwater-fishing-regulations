@@ -274,7 +274,10 @@ export const InSeasonInboxContext = createContext<InSeasonInboxReads | null>(nul
 
 /** (T867) what `inboxObserve` is told: the release in use and the app version */
 export interface InboxTrack {
-  readonly release: { readonly id: string; readonly day: string | null; readonly changed?: number | null } | null;
+  /** (T1030) `changed`: the release's count of changed waters; `changedFrom`: the release it was counted against (the
+   *  count is said only when that is the release this device held before) */
+  readonly release: { readonly id: string; readonly day: string | null; readonly changed?: number | null;
+                      readonly changedFrom?: string | null } | null;
   readonly app: string | null;
 }
 

@@ -287,7 +287,9 @@ def _all(a) -> int:
             os.replace(d / n, target)
         for r in releases:
             rel_root.mkdir(parents=True, exist_ok=True)
-            if (rel_root / r.name).exists():          # the same content id: identical bytes, replaced whole
+            # the same content id: identical data files and list; the manifest may differ only in the count it states
+            # (T1030: `changed_waters`, kept from the folder it replaces when that IS this release) — replaced whole
+            if (rel_root / r.name).exists():
                 shutil.rmtree(rel_root / r.name)
             os.replace(r, rel_root / r.name)
         if releases:
