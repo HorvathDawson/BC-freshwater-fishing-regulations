@@ -318,6 +318,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1073 | The "app update" notice shows only when this phone can actually install the update | OPEN —  | | planning chat 2026-11-24 |
 | T1074 | AGENTS rule 28 says map layers come only from `layers.source.json`, but every stream overlay is a runtime layer | OPEN —  | | planning chat 2026-11-24 |
 | T1075 | A lake's Gear line "Not allowed: Water insects and crayfish · Not on lakes." reads oddly | OPEN —  | | planning chat 2026-11-24 |
+| T1076 | The release runbook's "reshoot store pictures" step cannot be followed: the tool needs a store-shots build of the site | OPEN — with the store content chat (T1072), before the next Play listing update | | 0.9.0 chat 2026-11-24 |
 
 ## Next after closed testing
 

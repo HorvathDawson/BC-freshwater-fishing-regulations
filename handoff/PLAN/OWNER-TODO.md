@@ -26,7 +26,21 @@ with the default Claude uses until you answer). Newest first inside each section
 - **Question (you): T1062 release candidates (rc tags).** Your idea from the 0.9.0 release. Default: planned with
   chat 3 (repo move), a written plan for you to agree before anything is built.
 
-## 2026-11-24: your four staging reports, ticketed for 0.9.1 (questions)
+## 2026-11-24 12:15–12:33: staging reports and the Kitimat creeks, the answers (verbatim)
+
+- T1029, the 12 side creeks at the Kitimat hatchery west-bank closure (shown the picture: reading 1 keep as today,
+  reading 2 closed like the west bank): "i think closed we need a clean way to have this calculated from extents so
+  it fits into structure nicely" — the creeks read salmon Closed from the west-bank row, worked out from the extent
+  by the normal tributary machinery for any one-bank closure (no hand list); no stripe and no bank note on a creek.
+- T1050 ice fishing repeats the Gear tab's counts: "Only what differs (Recommended)".
+- T1051 treble and barbed hooks: "Say it everywhere (Recommended)" — a second Hooks line on every water where it is
+  true (replaces the ROUND13 G call that kept it silent).
+- T1052 a fully closed water says it twice: "One block, both calendars (Recommended)".
+- T1053 should a river's tributary rule climb through its head lake: "Climb through every head lake" — all 36, also
+  where the lake has a row of its own (not the recommended option); built behind a before/after list he reads before
+  it ships. The Sources wording ("and its tributary streams") was part of the options, not asked alone: a proposal.
+
+## 2026-11-24: your four staging reports, ticketed for 0.9.1 (as asked; the answers are in the section above)
 
 - Store checks 2026-11-24 12:10: staging worker, 5 reports since 11-24: your four from Dick Lake, Nelson Creek and Eagle
   Creek are T1050–T1053; the Harrison Lake one (e034e473) was answered 11-23 (gotcha, PR #85), now cited in T1046; no
@@ -67,12 +81,12 @@ with the default Claude uses until you answer). Newest first inside each section
   bank side get included" — no stripe on creeks; and a one-bank place that includes tributaries takes only the
   tributaries that join on that bank (a binding change, not only a look).
 - T1029 Q6, the rule book's own west-half rule: "Yes, stripe it too (Recommended)".
-- T1029, asked again 2026-11-24 ~11:25 with four bolder looks (A split solid, B split + closed dashes, C split +
+- T1029, asked again 2026-11-24 ~11:50 with four bolder looks (A split solid, B split + closed dashes, C split +
   label, D stripe outside the line; each from zoom 13 up): "B: split + closed dashes (Recommended)".
 - T1029, what "included" means for the Kitimat place's 12 side creeks (told: only one creek joins the closed stretch,
   on the west bank, and the other 11 join through it, so by his west-side rule all 12 stay; today they answer Open):
   "Not sure, show me" — not decided; he gets the DFO notice's exact wording and a map of the 12 creeks with today's
-  answer on each. Until then the creeks answer as today and the west-side rule stays a proposal.
+  answer on each. Answered 12:15 (top section): closed, computed from extents.
 - T1016 the notice words: "Force refresh instead?"; asked how (auto unless typing / always / keep the notice):
   "Always auto refresh" — a web tab whose data was replaced reloads itself at once onto the live release, with no
   notice to press, even mid-typing (the same for a tab opened before a site update).
