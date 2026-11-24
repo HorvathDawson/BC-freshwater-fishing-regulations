@@ -167,3 +167,46 @@ closure and trout/char release reach all of Slocan Lake's streams; the Lardeau's
 Not verified: the app on a device or web with this data (no data release, no app build); the full answers diff
 (`answers_diff` needs two built releases; the targeted view above reads the export + answers files); data-backed
 pytest files that read the canonical export (`test_answers_26`) — not linked in the worktree.
+
+## The owner's second answers, after reading the list (2026-11-24, ~15:10 and ~15:14 MST), verbatim
+
+Question: "T1053 is built as you chose ('climb through every head lake') and the list is sent. It is bigger than Eagle
+Creek suggested: 22 lakes, about 19,500 km of streams. Examples: the Babine River's bait ban now covers 61 named streams
+above Babine Lake; the Cowichan and Slocan summer closures cover every stream above those lakes; Sweltzer River's 'No
+Fishing' closes every Cultus Lake stream all year, including Frosst Creek, which has its own row and is open part of the
+year today. Nothing is lost anywhere and nothing else moves. Ship which version in 0.9.1?"
+Answer (~15:10): **"All 22, but a stream's own row wins"** (the option: climb everywhere, but a stream above the lake
+that has its own row (Frosst Creek) keeps its own rules instead of the river's closure; needs a rebuild of the list for
+him to read again).
+
+Question: the Sources wording "Covers Eagle Creek and its tributary streams (✱, p.4)." on 499 rules.
+Answer (~15:10): **"Yes, these words (Recommended)"**.
+
+Typed (~15:14): **"make sure upstream includes tributarties still overrides lower includes tributtaries that it
+conflicts with. make sense?"**
+
+What the cascade does today (lane L21, read from `pipeline/deliver/bundle/read/ladder.py`): nearest-wins already holds
+on every competition key (`OWN_ROW_BEATS_INHERITED`, T4; `NEARER_ROW_BEATS_FARTHER`, T14: the Duncan's bull trout quota
+beats Kootenay Lake's tributaries' release on the Duncan's creeks) and an own row's rule replaces an inherited one of the
+same kind (`OWN_ROW_REPLACES_INHERITED`, C-5). CLOSURES are the exception in both T4 and T14: an inherited closure still
+closes (Granby River, own row, is closed Jul 25-Sept 15 by Kettle River's tributaries' line today). Frosst Creek
+(`frosst_creek.r1` "No Fishing Oct 15-Apr 15", no ✱) is that case. How "own row wins" is built for the climb is with the
+coordinator / owner (options A walk-level, B climb-only cascade, C general revision of T4/T14).
+
+## The owner's third answer (2026-11-24, relayed by the coordinator; received 15:21 MST by `date`), verbatim
+
+Asked (by the coordinator): build "own row wins" as A (walk-level), B (climb-only cascade), C (revise T4/T14 for every
+inherited closure), or keep the earlier ruling — with the facts that Granby River (own row) is closed Jul 25-Sept 15 by
+Kettle River's tributaries' line today, and that Frosst Creek's row is "No Fishing Oct 15-Apr 15".
+
+Answer: **"keep earlier rule of closure always winning unless it is exempt) this does not include no fishiong all year
+rulings tho those will yield in that case. only the dated closures. add all of this logic to gfotchas file please"**
+
+Then, typed: **"tributary rules dont apply to the lake either only streams that is important too"**
+
+Built (PROPOSAL until he reads the list): in the cascade, not the walk — `pipeline/deliver/bundle/read/ladder.py`
+`ALL_YEAR_INHERITED_CLOSURE_YIELDS` (step 3c): an inherited, all-year (`when` empty), full "No Fishing" yields to the
+stream's own row or a nearer ✱ row; a dated inherited closure still closes (T4/T14 as before). "Which row counts" is
+open: `retention` (built default: that row says something about keeping or closing for the fish) or `any` (any rule of
+that row, a bait ban too). Test: `pipeline/tests/test_t1053_all_year_closure_yields.py` (mutation-proved). GOTCHAS:
+"Which "including tributaries" rule a stream answers to". RULINGS: T4, T14 and T18 amendments, proposed.
