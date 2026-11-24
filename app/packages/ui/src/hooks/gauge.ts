@@ -38,6 +38,11 @@ export interface Conditions {
   kept?: true;
   /** (T830) The quantities the publisher says the station reports live, ranked or not (`Reading.reports`). */
   reports?: readonly Parameter[];
+  /**
+   * (T1047) Quantities the station file carries live but the publisher left out of `reports`: on another zero than the
+   * record (T550, 08HD006's level). Their figure is null above; a chart of one draws its line without the record.
+   */
+  offRecord?: readonly Parameter[];
 }
 
 // NO `useConditions` (T105): it read the station `section_gauge` matched to a reach for the sheet's reading, a second
@@ -81,6 +86,13 @@ export const READING_REUSE_MS = READING_POLL_MS / 2;
 /** (T1043) Does the publisher stand behind this quantity of the reading (`reports`; absent: a feed from before it)? */
 const stood = (reports: readonly Parameter[] | undefined, q: Parameter): boolean => !reports || reports.includes(q);
 
+/** (T1047) the quantities a reading carries that its `reports` leave out; null when none (or a feed from before it) */
+function offRecordOf(r: { reports?: readonly Parameter[]; discharge: number | null; level: number | null }):
+  readonly Parameter[] | null {
+  const out = (["discharge", "level"] as const).filter((q) => r[q] !== null && !stood(r.reports, q));
+  return out.length ? out : null;
+}
+
 export async function stationReading(source: WaterSource, station: StationId | null): Promise<Conditions> {
   const empty: Conditions = {
     station: null, stationName: null, discharge: null, level: null, parameter: null, percentile: null,
@@ -109,6 +121,7 @@ export async function stationReading(source: WaterSource, station: StationId | n
     fetchedAt: now.fetchedAt, observedAt: now.value.at || null,
     ...(now.value.rankedAt !== undefined ? { rankedAt: now.value.rankedAt } : {}),
     ...(now.value.reports ? { reports: now.value.reports } : {}),
+    ...(offRecordOf(now.value) ? { offRecord: offRecordOf(now.value)! } : {}),
     ...(now.kept ? { kept: true as const } : {}),
   };
 }

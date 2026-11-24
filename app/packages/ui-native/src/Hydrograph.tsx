@@ -219,7 +219,11 @@ export function Hydrograph({ shape, palette, colour, label, unit,
             <Key palette={palette} label={CONDITIONS_WORDS.key.median} swatch="dash" colour={palette.sub} />
           </>
         )}
-        {shape.envelopes.length === 0 && (
+        {/* (T1047) a record on another zero is left out on purpose: its own reason, never "short record" */}
+        {shape.recordApart && (
+          <Text testID="chart-record-apart" style={{ ...TYPE.micro, fontSize: 12, color: palette.sub }}>{CONDITIONS_WORDS.key.recordApart}</Text>
+        )}
+        {shape.envelopes.length === 0 && !shape.recordApart && (
           <Text style={{ ...TYPE.micro, fontSize: 12, color: palette.sub }}>{CONDITIONS_WORDS.key.noEnvelope}</Text>
         )}
         {shape.priorYears.map((y) => (

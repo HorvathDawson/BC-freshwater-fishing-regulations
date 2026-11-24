@@ -333,7 +333,7 @@ describe("useConditionsView", () => {
     expect([result.current.lead, shown, result.current.refuse, result.current.quiet, result.current.panel.answer])
       .toEqual(["LAKE", {
         heading: readingHeading("Lake at Outlet"), title: "Lake at Outlet", figure: 2.31, unit: "m",
-        quantity: "level", stage: null, figures: { level: 2.31 }, reports: null, scope: null, forecast: null,
+        quantity: "level", stage: null, figures: { level: 2.31 }, reports: null, offRecord: [], scope: null, forecast: null,
         standing: standingLong(0.6, "normal"), percentile: 0.6 }, false, null,
         // the donor panel says the lake is read at its own gauge — not answerFrom's "no gauge on this water"
         { ok: false, why: "own-gauge" }]);
@@ -380,7 +380,7 @@ describe("useConditionsView", () => {
       figure: 4.162, unit: "m", quantity: "level",
       stage: null,                                        // the stage line is said beside a discharge only
       standing: standingLong(0.432, "normal"), percentile: 0.432,
-      figures: { discharge: 5.46, level: 4.162 }, reports: null, scope: null, forecast: null,
+      figures: { discharge: 5.46, level: 4.162 }, reports: null, offRecord: [], scope: null, forecast: null,
     });
     // and declared discharge, the same two values: the discharge, with its stage beside it
     const src2 = { ...source, gaugeNow: async () => ({ fetchedAt: Date.now() - 5 * 60_000,

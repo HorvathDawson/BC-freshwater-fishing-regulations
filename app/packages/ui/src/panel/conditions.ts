@@ -34,6 +34,8 @@ export interface ReadingVM {
   figures: Readonly<Partial<Record<Parameter, number>>>;
   /** (T830) The quantities the publisher says it reports live, ranked or not; null on a feed from before it. */
   reports: readonly Parameter[] | null;
+  /** (T1047) Quantities it carries live on another zero than its record (`Conditions.offRecord`); [] when none. */
+  offRecord: readonly Parameter[];
   /** (T567) On a forecast day, whose this figure is: "Today's reading" (the day asked has its own line, `forecast`); else null. */
   scope: string | null;
   /** (T567) On a forecast day, the lead gauge's forecast for the day asked, finished; null on Now / Change or without a row. */
@@ -272,6 +274,7 @@ export function useConditionsView(
       stage: shown === "discharge" && c.level != null ? stageLine(c.level) : null,
       figures: { ...(c.discharge != null ? { discharge: c.discharge } : {}), ...(c.level != null ? { level: c.level } : {}) },
       reports: c.reports ?? null,
+      offRecord: c.offRecord ?? [],
       scope: dayName ? FORECAST_DAY_WORDS.today : null,
       forecast: dayName && cardRow
         ? (quantity === "level" && donorState(cardRow, ask).kind === "flow-only" ? leadGapLine(dayName)

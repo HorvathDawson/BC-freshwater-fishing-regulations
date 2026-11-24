@@ -17,7 +17,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { LEVEL_ONLY_WATER, NO_RECORD_LINE } from "@app/core";
+import { CONDITIONS_WORDS, LEVEL_ONLY_WATER, NO_RECORD_LINE } from "@app/core";
 import { makeFixtureSource } from "@app/data/fixture";
 import type { ItemId, Panel, SectionId, WaterSource } from "@app/data";
 import { clearAnswers, clearPanelCache } from "@app/ui";
@@ -270,5 +270,33 @@ describe("a live level with no band is offered on the water's view (T1043)", () 
       ["G1", "Flow* Level", "77", false],
       ["G1", "Flow Level*", "Reports flow only today, not water level. Show Flow to see it.", false],
     ]);
+  });
+
+  // (T1047, 0.9.0) UNDER LEVEL 08HD006's LIVE LINE IS DRAWN WITHOUT THE RECORD: its band (about 6.5 to 8 m) is on another
+  // zero than the live 2.06 m, so no band, no earlier years, and no "short record" reason in the key; under Flow the band
+  // stays. MUTATION: `ConditionsPanel` passes `lineOnly` false -> "normal range" in the Level key.
+  it("08HD006 under Level: the live line alone, the other-zero note in the key; Flow keeps its band", async () => {
+    const now = { discharge: 77, level: 2.058, percentile: 0.57, standing: "normal", at: "2026-09-04T06:00:00Z",
+                  parameter: "discharge", reports: ["discharge"] };
+    const at = ["2026-09-04T03:00:00Z", "2026-09-04T04:00:00Z", "2026-09-04T05:00:00Z", "2026-09-04T06:00:00Z"];
+    const seriesOf = (p: "discharge" | "level") => ({ fetchedAt: Date.now() - 60_000, value: {
+      step: "1h", from: "feed", parameter: p, at,
+      values: p === "level" ? [1.9, 2.0, 2.05, 2.058] : [60, 66, 72, 77],
+      band: at.map(() => (p === "level" ? [6, 6.5, 7, 7.5, 8] : [20, 40, 60, 90, 140])),
+      now: { index: 3, value: p === "level" ? 2.058 : 77 }, forecast: null, forecasts: [], priorYears: [] } });
+    const source = { ...speaking("panel", ["discharge", "level"], now),
+                     gaugeSeries: async (_st: string, _span: string, p: "discharge" | "level") => seriesOf(p ?? "discharge") } as unknown as WaterSource;
+    render(<WaterConditions source={source} item={WATER} tapSid={SEC} palette={LIGHT} opening="discharge" from={AT} />);
+    await waitFor(() => expect(screen.queryByTestId("chart-legend")).not.toBeNull());
+    const flowKey = screen.getByTestId("chart-legend").textContent;
+    await pickQuantity("Level");
+    await waitFor(() => expect(screen.queryByTestId("reading-other-quantity")).not.toBeNull());
+    await waitFor(() => expect(screen.getByTestId("chart-unit").textContent).toBe("m"));
+    const levelKey = screen.getByTestId("chart-legend").textContent;
+    expect([flowKey!.includes("10th–90th"), levelKey!.includes("10th–90th") || levelKey!.includes("short record"), levelKey!.includes("reading"),
+            screen.getByTestId("chart-record-apart").textContent])
+      .toEqual([true, false, true, CONDITIONS_WORDS.key.recordApart]);
+    expect(CONDITIONS_WORDS.key.recordApart).toBe(
+      "This gauge's level is measured from a different zero than its record, so there is no normal range to compare it with.");
   });
 });

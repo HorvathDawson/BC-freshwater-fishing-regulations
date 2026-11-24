@@ -181,7 +181,9 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
                             useMemo(() => [
                               ...(vm.ahead ? [{ at: vm.ahead.at, label: vm.ahead.label, kind: "conditions" as const }] : []),
                               ...(link?.kind === "inside" ? [{ at: link.at, label: link.mark, kind: "regs" as const }] : []),
-                            ], [vm.ahead, link?.kind === "inside" ? link.at : null, link?.kind === "inside" ? link.mark : null]));
+                            ], [vm.ahead, link?.kind === "inside" ? link.at : null, link?.kind === "inside" ? link.mark : null]),
+                            // (T1047) a quantity it carries live on another zero than its record: the line alone
+                            !!vm.reading?.offRecord.includes(shown));
   const series = useSeries(source, station, span, param, drawn, charts);
   // EVERY DONOR'S CHART, ASKED NOW (owner 2026-10-21: "get all the data when the page opens rather than one gauge at a
   // time when clicked"), so the gauge switch draws from what is already here.
