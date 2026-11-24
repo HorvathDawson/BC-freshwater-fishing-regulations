@@ -79,15 +79,22 @@ export function useFrameView(store: RegsStore | null, f: FrameKey): Async<FrameV
     : found.value ?? null;
   const part = target?.kind === "part" ? target.partIx : null;
   const navKey = `frame-nav:${store ? idOf(store) : ""}:${f.item ?? ""}`;
-  const nav = useAsync(async () => {
+  // (T1034) THE NAV IS THIS WATER'S OR NOT KNOWN YET: for the one render after the key changes `useAsync` still holds
+  // the last key's answer, so a switch from a water of 6 parts to the Skeena's part 10 (a "Flows into", a link over
+  // another water) met the Skeena's part with the Zymoetz's `part_geo` and threw. The answer is tagged with the
+  // question it answers (as `useWaterGroups`, T444); another water's is loading here, never paired with this part.
+  const asked = useAsync(async () => {
     const ord = await store!.itemOrd(f.item!);
-    return ord === null ? null : store!.navRows(ord);
+    return { key: navKey, rows: ord === null ? null : await store!.navRows(ord) };
   }, navKey, !!store && f.item !== null);
+  const nav: Async<NavRows | null> = asked.state !== "ready" ? asked
+    : asked.value.key === navKey ? { state: "ready", value: asked.value.rows, error: null }
+      : { state: "loading", value: null, error: null };
   if (store && f.part === null && f.item !== null && found.state !== "ready")
     return found.state === "failed" ? { state: "failed", value: null, error: found.error } : { state: "loading", value: null, error: null };
   if (store && f.item !== null && nav.state !== "ready")
     return nav.state === "failed" ? { state: "failed", value: null, error: nav.error } : { state: "loading", value: null, error: null };
-  const n = nav.value ?? null;
+  const n = nav.value;
   const unnamed: RegsTarget | null = f.item === null && f.tapSid !== null ? { kind: "section", handle: f.tapSid } : null;
   return { state: "ready", error: null,
            value: { target: f.item === null ? unnamed : target, part,
