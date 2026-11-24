@@ -9,7 +9,7 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
-## 2026-11-24 08:25–08:40: 0.9.1 overnight questions, the answers (verbatim)
+## 2026-11-24 08:25–08:50: 0.9.1 overnight questions, the answers (verbatim)
 
 - T905 salmon sizes: "Move worker state out (Recommended)" — the worker's own bookkeeping leaves the public feed (feed
   to about 121,700 B, a feeds worker deploy); the salmon file's gate stays 110,000 B gz.
@@ -25,8 +25,17 @@ with the default Claude uses until you answer). Newest first inside each section
   bank side get included" — no stripe on creeks; and a one-bank place that includes tributaries takes only the
   tributaries that join on that bank (a binding change, not only a look).
 - T1029 Q6, the rule book's own west-half rule: "Yes, stripe it too (Recommended)".
+- T1016 the notice words: "Force refresh instead?"; asked how (auto unless typing / always / keep the notice):
+  "Always auto refresh" — a web tab whose data was replaced reloads itself at once onto the live release, with no
+  notice to press, even mid-typing (the same for a tab opened before a site update).
+- T1031 trout row sources, A or B: "Go on to B" — every rule listed in the row's breakdown too (a Python change,
+  ships with the 0.9.1 data release).
+- T1036 rules shown only in a species sheet, and Possession, on the "All sources" sheet: "Add back but maybe have
+  them separate?" — add them back, under their own heading apart from what the screen draws; pictures of the
+  separate group before it merges.
+- T1024 the stub polygon's after look: "Yes, after is right (Recommended)".
 
-## 2026-11-24: 0.9.1 overnight questions (asked, not answered yet)
+## 2026-11-24: 0.9.1 overnight questions (as asked; the answers are in the section above)
 
 Pictures and options for all eight are on one page: https://claude.ai/artifact/UZhX9gBLs6JiynhgVcWuFR (the 0.9.1 chat asks
 them in chat; answers go here verbatim).
