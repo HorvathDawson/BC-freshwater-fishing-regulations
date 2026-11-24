@@ -466,33 +466,66 @@ export function issuePaint(part: keyof typeof ISSUE_LAYERS, mode: string, tokens
 }
 
 /**
- * (T1029, PROTOTYPE for the owner's pictures, draft: not wired to the salmon day) THE ONE-BANK STRIPE: a place for one bank
- * of a river (the Kitimat's "on west bank between signs", T754) or a synopsis `side` rule is drawn as a stripe along THAT
- * bank's edge of the stream line, in the bank place's own colour that day. `line-offset` is right of the line's own
- * direction as the tiles store it, so the pipeline says per section which side the bank is (`pipeline/deliver/bank_side.py`:
- * +1 right, -1 left, measured on the exported line) and the map holds it in feature-state `bk`; two fixed layers, one per
- * side, so no paint reads feature-state inside `line-offset`. Its colour is feature-state `bks`, "<group>.<category>"
- * (`salmon.closed`, `status.closed`): the colour token `color.<bks>` the line itself would wear for that answer.
+ * (T1029, DRAFT: the owner's default pick pending; not wired to the salmon day) THE ONE-BANK CUE, look B of the v2 pictures
+ * (owner 2026-11-24 on the thin v1 stripe: "Should make it more visible right now it isn't ?"): a place for one bank of a
+ * river (the Kitimat's "on west bank between signs", T754) or a synopsis `side` rule draws its stretch WIDER
+ * (`BANK_WIDEN` × the stream's width, at least `BANK_MIN_PX`) and SPLIT DOWN THE MIDDLE: the bank's half in the bank's
+ * answer that day, the other half in the line's own, and the closed cue (`color.cue.closed` / `dash.cue.closed`, T377)
+ * down the middle of the bank's half when that answer is closed.
+ *
+ * `line-offset` is right of the line's own direction as the tiles store it, so the pipeline says per section which side
+ * the bank is (`pipeline/deliver/bank_side.py`: +1 right, -1 left, measured on the exported line) and the map holds it in
+ * feature-state `bk`. One fixed layer per HALF (right, left): no `line-offset` reads feature-state; each half's colour
+ * picks the bank's answer (`bks`) where the bank is on its side and the other bank's (`bko`) where it is not. Both are
+ * "<group>.<category>" (`salmon.closed`, `status.own`): the token `color.<…>` the line would wear for that answer. MapLibre
+ * Native at the pinned commit (pin.env): `line-offset` / `line-width` / `line-color` / `line-opacity` are data-driven,
+ * `line-dasharray` is not (one fixed dash per cue layer, as `stream-closed`).
  */
 export const BANK_LAYERS = { right: "stream-bank-r", left: "stream-bank-l" } as const;
+export const BANK_CUE_LAYERS = { right: "stream-bank-cue-r", left: "stream-bank-cue-l" } as const;
 /** the colourings a stripe is shown in: those that answer a rule (Salmon, Standard) */
 export const BANK_MODES: readonly string[] = ["salmon", "profile"];
-/** the stripe's own width (px), and the gap between it and the line's edge */
-export const BANK_STRIPE_PX = 3;
-export const BANK_GAP_PX = 0.5;
-/** the answers a stripe can wear: every category of the Salmon and the Standard colouring, by their own tokens */
-const BANK_COLOURS = ["salmon", "profile"].flatMap((mode) => {
+/** the stretch's drawn width: this many times the stream's own, at least `BANK_MIN_PX` */
+export const BANK_WIDEN = 1.5;
+export const BANK_MIN_PX = 6;
+/** the closed cue's width, as a share of one half */
+const BANK_CUE_SHARE = 0.45;
+const BANK_GROUPS = ["salmon", "profile"];
+/** the answers a half can wear: every category of the Salmon and the Standard colouring, by their own tokens */
+const BANK_COLOURS = BANK_GROUPS.flatMap((mode) => {
   const m = STYLE_META.colorModes["stream"]?.[mode];
   return m && "categories" in m ? Object.values(m.categories).map((c) => (c as { token: string }).token) : [];
 });
-export function bankStripePaint(side: keyof typeof BANK_LAYERS, tokens: Tokens, streamWidth: unknown): Record<string, unknown> {
+/** the answers that are closed (the cue's): each colouring's own `closed` category */
+const BANK_CLOSED = BANK_GROUPS.flatMap((mode) => {
+  const m = STYLE_META.colorModes["stream"]?.[mode];
+  const c = m && "categories" in m ? (m.categories["closed"] as { token: string } | undefined) : undefined;
+  return c ? [c.token.replace(/^color\./, "")] : [];
+});
+const BANK_SIDE = ["coalesce", ["feature-state", "bk"], 0];
+const bankWidth = (w: unknown) => ["max", ["*", w, BANK_WIDEN], BANK_MIN_PX];
+const bankColour = (key: "bks" | "bko", tokens: Tokens) => ["match", ["coalesce", ["feature-state", key], ""],
+  ...BANK_COLOURS.flatMap((t) => [t.replace(/^color\./, ""), tokens[t]]), tokens["color.water.unmapped"]];
+/** one HALF of the widened stretch (`side` of the drawn line) */
+export function bankHalfPaint(side: keyof typeof BANK_LAYERS, tokens: Tokens, streamWidth: unknown): Record<string, unknown> {
   const sign = side === "right" ? 1 : -1;
   return {
-    "line-color": ["match", ["coalesce", ["feature-state", "bks"], ""],
-      ...BANK_COLOURS.flatMap((t) => [t.replace(/^color\./, ""), tokens[t]]), tokens["color.water.unmapped"]],
-    "line-width": BANK_STRIPE_PX,
-    "line-offset": withinZoomCurve(streamWidth, (w) => ["*", sign, ["+", ["/", w, 2], BANK_GAP_PX + BANK_STRIPE_PX / 2]]),
-    "line-opacity": ["case", ["==", ["coalesce", ["feature-state", "bk"], 0], sign], 1, 0],
+    "line-color": ["case", ["==", BANK_SIDE, sign], bankColour("bks", tokens), bankColour("bko", tokens)],
+    "line-width": withinZoomCurve(streamWidth, (w) => ["/", bankWidth(w), 2]),
+    "line-offset": withinZoomCurve(streamWidth, (w) => ["*", sign, ["/", bankWidth(w), 4]]),
+    "line-opacity": ["case", ["!=", BANK_SIDE, 0], 1, 0],
+  };
+}
+/** the closed cue down the middle of the bank's half, where the bank's answer is closed */
+export function bankCuePaint(side: keyof typeof BANK_CUE_LAYERS, tokens: Tokens, streamWidth: unknown): Record<string, unknown> {
+  const sign = side === "right" ? 1 : -1;
+  return {
+    "line-color": tokens["color.cue.closed"],
+    "line-dasharray": tokens["dash.cue.closed"],
+    "line-width": withinZoomCurve(streamWidth, (w) => ["*", ["/", bankWidth(w), 2], BANK_CUE_SHARE]),
+    "line-offset": withinZoomCurve(streamWidth, (w) => ["*", sign, ["/", bankWidth(w), 4]]),
+    "line-opacity": ["case", ["all", ["==", BANK_SIDE, sign],
+      ["in", ["coalesce", ["feature-state", "bks"], ""], ["literal", BANK_CLOSED]]], 1, 0],
   };
 }
 
