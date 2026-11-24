@@ -1,6 +1,6 @@
 # T1021 — The CI "no hard-coded data path" gate misses every multi-segment literal (T994 finding 7)
 
-Status: DONE — 6e1289e3a, 0399ce248
+Status: DONE — 6e1289e3a, 0399ce248, 19a3704de
 
 Source: T994 audit finding 7 (`handoff/PLAN/audit-2026-11-21/t994-audit.md`), checked still true 2026-11-22 (lane L13):
 `.github/workflows/pipeline-ci.yml` "No hardcoded curated or source paths" matches `"data/<one segment>.<ext>"` only, so a
