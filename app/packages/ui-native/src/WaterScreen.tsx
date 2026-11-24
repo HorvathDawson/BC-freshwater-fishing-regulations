@@ -87,7 +87,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   /** (T38) the hatch sheet's two drawings, registered by the app. */
   /** (T41) where the page starts (the web start link, a test affordance), handed on to the page once */
   start?: RegsStart | null;
-  onStarted?: (start: RegsStart) => void;
+  onStarted?: (spent: RegsStart) => void;
   /** (T221, a try) the Keep tab's at-a-glance table: the quota groups and Salmon folded into the species list. */
   glance?: boolean;
   /** (T254) ask the whole page again (the wrapper remounts it) */

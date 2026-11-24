@@ -102,7 +102,7 @@ export interface RegsScreenProps {
    * when done, so the host hands the start to this page once (a new day remounts the page).
    */
   start?: RegsStart | null;
-  onStarted?: (start: RegsStart) => void;
+  onStarted?: (spent: RegsStart) => void;
   /**
    * The release's edition has lapsed (core `regsLapsedNote`: past `regulations.valid_until`): its sentence, drawn first
    * in the scroll with the out-of-date dot (`FreshDot`, the Data block's). Null/absent: in force, or no stamp — nothing.

@@ -44,7 +44,7 @@ export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles,
   waterCamera: MutableRefObject<Camera | null>;
   fishImages?: FishImages;
   mapDay: Date | null; onDay: (d: Date | null) => void;
-  start: RegsStart | null; onStarted: (start: RegsStart) => void;
+  start: RegsStart | null; onStarted: (spent: RegsStart) => void;
 }) {
   const { go, back, opener } = nav;
   const item: ItemId | null = nav.item;
