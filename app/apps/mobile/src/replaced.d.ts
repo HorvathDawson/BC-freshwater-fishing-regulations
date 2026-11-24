@@ -13,8 +13,9 @@ export declare function installReplaced(o: {
   manifestUrl: string;
   /** the release root every manifest path is under (`ENDPOINTS.release`) */
   releaseBase: string;
-  /** the manifest of the set in use, or null before the boot */
-  opened: () => import("@app/data").Manifest | null;
+  /** every manifest this page has opened, the one in use last (none before the boot): a read made on a set an apply
+   *  has since replaced is judged against that set */
+  opened: () => readonly import("@app/data").Manifest[];
   fetch: typeof fetch;
 }): () => void;
 

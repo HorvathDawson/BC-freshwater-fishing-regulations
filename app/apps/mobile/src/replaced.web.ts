@@ -22,11 +22,11 @@ function entryScript(doc: Pick<Document, "querySelectorAll">): string | null {
 }
 
 export function installReplaced(o: { state: ReplacedState; manifestUrl: string; releaseBase: string;
-                                     opened: () => Manifest | null; fetch: typeof fetch }): () => void {
+                                     opened: () => readonly Manifest[]; fetch: typeof fetch }): () => void {
   const data = createReplacedProbe({ manifestUrl: o.manifestUrl, releaseBase: o.releaseBase, opened: o.opened, fetch: o.fetch });
   // the site is our own page's origin, not the data origin: the page's own fetch, no app headers
   const site = siteProbe((u, i) => fetch(u, i), entryScript(document), new URL("/", window.location.href).href);
-  return setFailureTriage(replacedTriage({ state: o.state, data, site, opened: () => o.opened()?.data_release ?? null }));
+  return setFailureTriage(replacedTriage({ state: o.state, data, site }));
 }
 
 /** The code notice's action: the page loaded again — the new site's code, and with it the live release. */

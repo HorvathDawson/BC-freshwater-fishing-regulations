@@ -318,6 +318,11 @@ describe("(T595) a class on each kind: defect / network / expected", () => {
     expect(c("SiteReplaced", "a code chunk of the site this page opened is no longer served (HTTP 404); …")).toBe("expected");
     expect(c("Error", "a file of release r-a is no longer served (HTTP 404); the server's release is r-c")).toBe("defect");
     expect(c("AsyncRequireError", "Loading module … failed. (error: …)")).toBe("defect");
+    // anchored on the NAME: the words elsewhere in a message (another error wrapping one) stay a defect
+    expect(c("Error", "regs read: ReleaseReplaced: a file of release r-a is no longer served (HTTP 404)")).toBe("defect");
+    expect(c("TypeError", "x is undefined (SiteReplaced: …)")).toBe("defect");
+    // (T1016 review) a chunk asked again with no answer is the line's
+    expect(c("AsyncRequireError", "no answer when asked again (Failed to fetch): Loading module … failed.")).toBe("network");
   });
 
   it("?class: absent = defects; all; a list; anything else refused", () => {

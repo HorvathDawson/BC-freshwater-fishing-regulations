@@ -2,8 +2,8 @@
  * (T1016) WHICH SET A 404 BELONGS TO: the live pointer names it (a defect), only the page's opened manifest does (the
  * known state), or neither / not under the release root. The fake-origin walk is `@app/ui` replaced.test.ts.
  */
-import { describe, expect, it } from "vitest";
-import { createReplacedProbe, releasePath, replacedVerdict } from "./replaced";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { createReplacedProbe, POINTER_MS, releasePath, replacedVerdict } from "./replaced";
 
 const BASE = "https://data.test/release/";
 const man = (id: string, tiles: string, basemap = "basemap-1") => ({
@@ -16,7 +16,7 @@ const man = (id: string, tiles: string, basemap = "basemap-1") => ({
 }) as never;
 
 const A = man("r-a", "t.1"), C = man("r-c", "t.3", "basemap-2");
-const v = (path: string, opened = A, live = C) => replacedVerdict(`${BASE}${path}`, BASE, opened, live);
+const v = (path: string, opened = A, live = C) => replacedVerdict(`${BASE}${path}`, BASE, [opened], live);
 
 describe("replacedVerdict", () => {
   it("every kind of path the opened manifest names and the live one does not is `replaced`", () => {
@@ -40,7 +40,7 @@ describe("replacedVerdict", () => {
   it("neither names it, or it is off the release root: `not-ours`", () => {
     expect(v("r-a/never-named.bin")).toBe("not-ours");
     expect(v("tiles/t.1/map-assets-1-other/x.png")).toBe("not-ours");
-    expect(replacedVerdict("https://data.test/feeds/live/index.json", BASE, A, C)).toBe("not-ours");
+    expect(replacedVerdict("https://data.test/feeds/live/index.json", BASE, [A], C)).toBe("not-ours");
   });
 
   it("the path is read without its query or fragment", () => {
@@ -53,15 +53,39 @@ describe("createReplacedProbe", () => {
   it("reads the pointer fresh, once for every 404 asking at the same time; an unreadable pointer throws", async () => {
     const asked: unknown[] = [];
     let answer: Response = new Response(JSON.stringify(C));
-    const probe = createReplacedProbe({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, opened: () => A,
+    const probe = createReplacedProbe({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, opened: () => [A],
       fetch: (async (u: RequestInfo | URL, i?: RequestInit) => { asked.push([String(u), i?.cache]); return answer; }) as typeof fetch });
     const both = await Promise.all([probe(`${BASE}r-a/core-aaaa.sqlite.gz`), probe(`${BASE}tiles/t.1/bc_outside.geojson`)]);
-    expect(both).toEqual([{ verdict: "replaced", live: "r-c" }, { verdict: "replaced", live: "r-c" }]);
+    expect(both).toEqual([{ verdict: "replaced", live: "r-c", opened: "r-a" }, { verdict: "replaced", live: "r-c", opened: "r-a" }]);
     expect(asked).toEqual([[`${BASE}manifest.json`, "no-store"]]);
     expect(probe.covers("https://data.test/feeds/live/x.json")).toBe(false);
-    expect(await probe("https://data.test/feeds/live/x.json")).toEqual({ verdict: "not-ours", live: "r-a" });
+    expect(await probe("https://data.test/feeds/live/x.json")).toEqual({ verdict: "not-ours", live: "r-a", opened: null });
     expect(asked).toHaveLength(1);
     answer = new Response("nope", { status: 503 });
     await expect(probe(`${BASE}r-a/core-aaaa.sqlite.gz`)).rejects.toThrow(`the release pointer could not be read: ${BASE}manifest.json: HTTP 503`);
+  });
+});
+
+describe("(T1016 review) every opened set, and a stalled pointer", () => {
+  afterEach(() => { vi.useRealTimers(); });
+  it("a path of a set the page opened before an apply is judged by that set: `replaced`, named by it", async () => {
+    expect(replacedVerdict(`${BASE}r-a/regs-3-bbbb.sqlite.gz`, BASE, [A, C], C)).toBe("replaced");
+    expect(replacedVerdict(`${BASE}r-a/regs-3-bbbb.sqlite.gz`, BASE, [C], C)).toBe("not-ours");
+    const probe = createReplacedProbe({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, opened: () => [A, C],
+      fetch: (async () => new Response(JSON.stringify(C))) as typeof fetch });
+    expect(await probe(`${BASE}r-a/regs-3-bbbb.sqlite.gz`)).toEqual({ verdict: "replaced", live: "r-c", opened: "r-a" });
+  });
+
+  it("a pointer read that stalls is aborted after POINTER_MS (the line's: AbortError), and the next ask reads afresh", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    let asks = 0;
+    const probe = createReplacedProbe({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, opened: () => [A],
+      fetch: ((_u: RequestInfo | URL, i?: RequestInit) => { asks++; return new Promise<Response>((_ok, no) => {
+        i?.signal?.addEventListener("abort", () => no(new DOMException("The operation was aborted.", "AbortError"))); }); }) as typeof fetch });
+    const first = probe(`${BASE}r-a/core-aaaa.sqlite.gz`).catch((e: unknown) => e);
+    await vi.advanceTimersByTimeAsync(POINTER_MS);
+    expect((await first as Error).name).toBe("AbortError");
+    void probe(`${BASE}r-a/core-aaaa.sqlite.gz`).catch(() => {});
+    expect(asks).toBe(2);
   });
 });

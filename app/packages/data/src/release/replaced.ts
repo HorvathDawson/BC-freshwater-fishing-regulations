@@ -46,44 +46,59 @@ export function releasePath(url: string, base: string): string | null {
   return url.slice(base.length).replace(/[?#].*$/, "") || null;
 }
 
-/** Which of the three a 404 on `url` is, given the manifest this page opened and the live one (see the head). */
-export function replacedVerdict(url: string, base: string, opened: Named, live: Named): ReplacedVerdict {
+/**
+ * Which of the three a 404 on `url` is, given every manifest this page has opened (`opened`: a read made on a set the
+ * page has since replaced by an apply is judged against that set, T1016 review) and the live one (see the head).
+ */
+export function replacedVerdict(url: string, base: string, opened: readonly Named[], live: Named): ReplacedVerdict {
   const path = releasePath(url, base);
   if (path === null) return "not-ours";
   if (names(live, path)) return "live";
-  return names(opened, path) ? "replaced" : "not-ours";
+  return opened.some((m) => names(m, path)) ? "replaced" : "not-ours";
 }
 
+/** (T1016 review) How long the pointer read may take: past it the read is aborted, and the 404 is reported as it is. */
+export const POINTER_MS = 10_000;
+
 export interface ReplacedProbe {
-  /** The verdict on a 404 for `url`, and the release the live pointer names. Throws when the pointer cannot be read. */
-  (url: string): Promise<{ verdict: ReplacedVerdict; live: string }>;
+  /** The verdict on a 404 for `url`, the release the live pointer names and the opened release that names `url` (null:
+   *  none). Throws when the pointer cannot be read (an abort after `POINTER_MS` included). */
+  (url: string): Promise<{ verdict: ReplacedVerdict; live: string; opened: string | null }>;
   /** Is `url` under the release root at all (asked at once: a 404 elsewhere — a feed's — is not this probe's)? */
   covers(url: string): boolean;
 }
 
 /**
- * The probe over the live pointer. `opened()`: the manifest of the set in use (null: none open yet — every 404 is then
- * `not-ours`). A 404 not under the release root is answered without a request. One pointer read at a time is shared by
- * every 404 that asks meanwhile (a page whose slices are gone asks for several at once).
+ * The probe over the live pointer. `opened()`: every manifest this page has opened, the one in use last (none yet:
+ * every 404 is `not-ours`). A 404 not under the release root is answered without a request. One pointer read at a time
+ * is shared by every 404 that asks meanwhile (a page whose slices are gone asks for several at once); it is aborted
+ * after `timeoutMs` (a stalled read would hold every report waiting on it), so the next 404 reads afresh.
  */
-export function createReplacedProbe(o: { manifestUrl: string; releaseBase: string; opened: () => Named | null;
-                                         fetch?: typeof fetch }): ReplacedProbe {
+export function createReplacedProbe(o: { manifestUrl: string; releaseBase: string; opened: () => readonly Named[];
+                                         fetch?: typeof fetch; timeoutMs?: number }): ReplacedProbe {
   const f = o.fetch ?? ((u: RequestInfo | URL, i?: RequestInit) => fetch(u, i));
   let reading: Promise<Named> | null = null;
   const pointer = (): Promise<Named> => (reading ??= (async () => {
-    // fresh: a cached pointer would name the very release this page opened
-    const r = await f(o.manifestUrl, { cache: "no-store" });
-    if (!r.ok) throw new Error(`the release pointer could not be read: ${o.manifestUrl}: HTTP ${r.status}`);
-    const m = JSON.parse(await r.text()) as Named;
-    if (!m || typeof m.data_release !== "string" || !m.files)
-      throw new Error(`the release pointer could not be read: ${o.manifestUrl}: not a manifest`);
-    return m;
+    const stop = new AbortController();
+    const timer = setTimeout(() => stop.abort(), o.timeoutMs ?? POINTER_MS);
+    try {
+      // fresh: a cached pointer would name the very release this page opened
+      const r = await f(o.manifestUrl, { cache: "no-store", signal: stop.signal });
+      if (!r.ok) throw new Error(`the release pointer could not be read: ${o.manifestUrl}: HTTP ${r.status}`);
+      const m = JSON.parse(await r.text()) as Named;
+      if (!m || typeof m.data_release !== "string" || !m.files)
+        throw new Error(`the release pointer could not be read: ${o.manifestUrl}: not a manifest`);
+      return m;
+    } finally { clearTimeout(timer); }
   })().finally(() => { reading = null; }));
   const covers = (url: string) => releasePath(url, o.releaseBase) !== null;
   return Object.assign(async (url: string) => {
     const opened = o.opened();
-    if (!opened || !covers(url)) return { verdict: "not-ours" as const, live: opened?.data_release ?? "" };
+    const inUse = opened[opened.length - 1]?.data_release ?? "";
+    if (!opened.length || !covers(url)) return { verdict: "not-ours" as const, live: inUse, opened: null };
     const live = await pointer();
-    return { verdict: replacedVerdict(url, o.releaseBase, opened, live), live: live.data_release };
+    const path = releasePath(url, o.releaseBase)!;
+    return { verdict: replacedVerdict(url, o.releaseBase, opened, live), live: live.data_release,
+             opened: opened.find((m) => names(m, path))?.data_release ?? null };
   }, { covers });
 }

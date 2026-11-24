@@ -21,7 +21,7 @@ import { FONT_SOURCES } from "./fonts";
 import { applyLine, DOWNLOAD_NOTE_WORDS, downloadFraction, failedStartLine, restartsByItself, INSTALL_WORDS, stillLine, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
          versionLine, createFeedGate, now as clockNow } from "@app/core";
 import { createNet, shareFetch, timedFetch, loadManifest, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, gaugeHistory, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, noteHeld, followSavedItems, openRunTimingStore,
-         type Held, type UpdateService, type WaterSource } from "@app/data";
+         type Held, type Manifest, type UpdateService, type WaterSource } from "@app/data";
 import { bootSaid, type MobileDataGate, type ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
 import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openInSeasonInboxStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openLocationAskStore, openAppUpdateStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openInstallIdStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot, syncBackupSet,
@@ -486,8 +486,11 @@ export default function App() {
   // live pointer no longer names, or a chunk gone after a deploy, is said with one action and reported as expected; the
   // data notice's action is this same in-session apply (`loadLiveRelease`), the code notice's a reload (replaced.web.ts)
   const replacedState = useMemo(() => createReplacedState(), []);
+  // every set this page has opened, the one in use last: a late 404 of a read made before an apply is judged by its own set
+  const openedSets = useRef<Manifest[]>([]);
+  if (booted && openedSets.current[openedSets.current.length - 1] !== booted.manifest) openedSets.current.push(booted.manifest);
   useEffect(() => installReplaced({ state: replacedState, manifestUrl: ENDPOINTS.manifest, releaseBase: ENDPOINTS.release,
-                                    opened: () => bootedRef.current?.manifest ?? null, fetch: DATA_FETCH }), [replacedState]);
+                                    opened: () => openedSets.current, fetch: DATA_FETCH }), [replacedState]);
   const replacedNotice = useReplacedNotice(replacedState, heldRelease, useMemo(() => ({
     data: () => loadLiveRelease(updates, apply), code: reloadPage }), [updates, apply]));
   // (T746) the apply in flight, and the failed one until the reader closes it (it was reported where it was caught)

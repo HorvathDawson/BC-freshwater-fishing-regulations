@@ -12,12 +12,12 @@
  *                 as it is, no notice (W46)
  *   the line      a failed fetch (no answer) is the environment's: never reported, never a notice — told apart from a 404
  */
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { REPLACED_NAMES, reportFailure, setFailureSink, setFailureTriage } from "@app/core";
 import { createNet, sha256Hex, type Manifest } from "@app/data";
 import { createReplacedProbe } from "@app/data/release";
 import { releaseCache, releaseSource } from "@app/data/release/platform";
-import { createReplacedState, loadLiveRelease, replacedTriage, siteProbe, type ReplacedState } from "./replaced";
+import { createReplacedState, loadLiveRelease, LOOK_MS, replacedTriage, siteProbe, type ReplacedState } from "./replaced";
 
 const ORIGIN = "https://data.test";
 const BASE = `${ORIGIN}/release/`;
@@ -57,16 +57,21 @@ function fakeOrigin() {
   const asked: string[] = [];
   const o = {
     down: false,
+    /** the pointer read hangs until it is aborted (a stalled line on the one request) */
+    stall: false,
     asked,
     publish(r: { m: Manifest; bodies: Map<string, Uint8Array> }) { for (const [k, v] of r.bodies) bodies.set(k, v); live = r.m; },
     /** production's prune: everything under these folders answers 404 */
     prune(...prefixes: string[]) { pruned.push(...prefixes); },
     /** a file the release names that the server lost (a broken upload) */
     lose(path: string) { bodies.delete(path); },
-    fetch: (async (u: RequestInfo | URL) => {
+    fetch: (async (u: RequestInfo | URL, init?: RequestInit) => {
       const url = String(u);
       asked.push(url);
       if (o.down) throw new TypeError("Failed to fetch");
+      if (url === POINTER && o.stall) return new Promise<Response>((_ok, no) => {
+        init?.signal?.addEventListener("abort", () => no(new DOMException("The operation was aborted.", "AbortError")));
+      });
       if (url === POINTER) return new Response(JSON.stringify(live), { status: 200 });
       const path = url.slice(BASE.length);
       if (!url.startsWith(BASE) || pruned.some((p) => path.startsWith(p)) || !bodies.has(path))
@@ -84,18 +89,19 @@ const C = release("r-cccccccccccc", "tA.000000000003", ["core", "water", "regs-1
 let reported: unknown[] = [];
 let state: ReplacedState;
 let undo: Array<() => void> = [];
-let opened: Manifest | null = null;
+/** every set this page opened, the one in use last (App.tsx `openedSets`) */
+let opened: Manifest[] = [];
 let origin: ReturnType<typeof fakeOrigin>;
 
 /** the web's triage as `apps/mobile` replaced.web.ts installs it, over the fake origin */
-function install(site?: Parameters<typeof replacedTriage>[0]["site"]) {
+function install(site?: Parameters<typeof replacedTriage>[0]["site"], data?: Parameters<typeof replacedTriage>[0]["data"]) {
   undo.push(setFailureTriage(replacedTriage({
-    state, site: site ?? null, opened: () => opened?.data_release ?? null,
-    data: createReplacedProbe({ manifestUrl: POINTER, releaseBase: BASE, opened: () => opened, fetch: origin.fetch }) })));
+    state, site: site ?? null,
+    data: data ?? createReplacedProbe({ manifestUrl: POINTER, releaseBase: BASE, opened: () => opened, fetch: origin.fetch }) })));
 }
 /** a release opened as the web opens it: its files fetched verified over the app's Net, from the cache or the origin */
 async function boot(m: Manifest) {
-  opened = m;
+  opened.push(m);
   return releaseSource(m, { base: BASE, cache: await releaseCache(`t1016-${m.data_release}-${Math.random()}`), held: null,
                             fetch: origin.fetch, net: createNet() });
 }
@@ -110,7 +116,7 @@ beforeEach(() => {
   origin = fakeOrigin();
   undo = [setFailureSink((e) => reported.push(e))];
 });
-afterEach(() => { for (const u of undo.reverse()) u(); undo = []; opened = null; });
+afterEach(() => { for (const u of undo.reverse()) u(); undo = []; opened = []; vi.useRealTimers(); });
 
 describe("a tab booted on release A, then B and C published and A pruned (T1016 item 1)", () => {
   it("a slice not yet opened: the 404 is the known state — the notice is raised, the report is ReleaseReplaced", async () => {
@@ -221,6 +227,65 @@ describe("a 404 that is a defect stays a defect (T1016 item 2, W46)", () => {
   });
 });
 
+describe("(T1016 review) no look holds a report for good", () => {
+  const regs1 = () => new Error(`${BASE}${(A.m.files as Record<string, { url: string }>)["regs-1"]!.url}: HTTP 404`);
+  it("a pointer read that stalls is aborted after the wait: the 404 reported as it is, and the next 404 reads afresh", async () => {
+    install();
+    origin.publish(A);
+    await boot(A.m);
+    origin.publish(C);
+    origin.prune("r-aaaaaaaaaaaa/");
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    origin.stall = true;
+    const e = regs1();
+    reportFailure(e);
+    await vi.advanceTimersByTimeAsync(LOOK_MS - 1);
+    expect(reported).toEqual([]);                    // held while the look may still answer
+    await vi.advanceTimersByTimeAsync(1);
+    expect(reported).toEqual([e]);                   // as it is: the pointer did not answer
+    // the stalled read was aborted, not left to hold every later 404: the next one reads the pointer again, and answers
+    origin.stall = false;
+    reportFailure(regs1());
+    await vi.advanceTimersByTimeAsync(0);
+    expect(names()).toEqual(["Error", REPLACED_NAMES.data]);
+    expect(origin.asked.filter((u) => u === POINTER)).toHaveLength(2);
+  });
+
+  it("a probe that never settles (whatever it does) cannot hold the report past LOOK_MS", async () => {
+    const never = Object.assign(() => new Promise<never>(() => {}), { covers: () => true });
+    install(undefined, never);
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const e = regs1();
+    reportFailure(e);
+    await vi.advanceTimersByTimeAsync(LOOK_MS);
+    expect(reported).toEqual([e]);
+  });
+
+  it("the site probe's asks are aborted after the wait too (the line's: AbortError)", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const hang = ((_u: RequestInfo | URL, i?: RequestInit) => new Promise<Response>((_ok, no) => {
+      i?.signal?.addEventListener("abort", () => no(new DOMException("The operation was aborted.", "AbortError"))); })) as typeof fetch;
+    const asked = siteProbe(hang, "/_expo/static/js/web/index-1.js", SITE)(`${SITE}_expo/static/js/web/later-2.js`).catch((e: unknown) => e);
+    await vi.advanceTimersByTimeAsync(LOOK_MS);
+    expect((await asked as Error).name).toBe("AbortError");
+  });
+
+  it("a late 404 of a read made on A, landing after the apply to C, is judged by A: renamed, no notice on C", async () => {
+    install();
+    origin.publish(A);
+    const srcA = await boot(A.m);
+    origin.publish(B);
+    origin.publish(C);
+    await boot(C.m);                                 // the apply: C is in use now
+    origin.prune("r-aaaaaaaaaaaa/");
+    const e = await failureOf(srcA.bytes("regs-3"));
+    reportFailure(e);
+    await settle();
+    expect(names()).toEqual([REPLACED_NAMES.data]);
+    expect(state.get()).toEqual({ kind: "data", release: "r-aaaaaaaaaaaa" });   // useReplacedNotice shows it only on A
+  });
+});
+
 describe("a 404 told apart from a failed line", () => {
   it("no answer at all (offline, a dropped line) is the environment's: never reported, no notice, the pointer never asked", async () => {
     install();
@@ -270,7 +335,7 @@ describe("a chunk that is gone after a site deploy (AsyncRequireError)", () => {
     expect(state.get()).toBeNull();
   });
 
-  it("the chunk loads now (a passing fault): reported as it is; no answer: the line's — not reported", async () => {
+  it("the chunk loads now (a passing fault): reported as it is; no answer: reported as the line's, the part's error untouched", async () => {
     install(site({ chunk: 200, page: "" }));
     const e = chunkError();
     reportFailure(e);
@@ -278,9 +343,16 @@ describe("a chunk that is gone after a site deploy (AsyncRequireError)", () => {
     expect(reported).toEqual([e]);
     for (const u of undo.splice(1)) u();
     install(site({ chunk: "down", page: "" }));
-    reportFailure(chunkError());
+    const down = chunkError();
+    const before = { ...down, message: down.message, name: down.name };
+    reportFailure(down);
     await settle();
-    expect(reported).toEqual([e]);
+    expect(reported).toHaveLength(2);
+    const sent = reported[1] as Error;
+    expect([sent.name, sent.message, sent.cause]).toEqual(["AsyncRequireError",
+      `no answer when asked again (Failed to fetch): ${down.message}`, down]);
+    expect({ ...down, message: down.message, name: down.name }).toEqual(before);   // derived, never written
+    expect((down as { environment?: unknown }).environment).toBeUndefined();
     expect(state.get()).toBeNull();
   });
 });

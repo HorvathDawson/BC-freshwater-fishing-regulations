@@ -5,7 +5,7 @@
 // would lose every report for good. This pins the two halves together: every enum list compared as a set, every value
 // sent through the worker's own validator, and a payload with every field filled accepted and inside the byte limit.
 import { describe, expect, it } from "vitest";
-import { CRASH_FORMAT, CRASH_KINDS, CRASH_LIMITS, CRASH_SHEETS, ROUTE_KINDS, crashPayload, exitPayload, type CrashContext } from "@app/ui";
+import { CRASH_FORMAT, CRASH_KINDS, CRASH_LIMITS, CRASH_SHEETS, ROUTE_KINDS, crashPayload, createReplacedState, exitPayload, replacedTriage, type CrashContext } from "@app/ui";
 import { REPORT_FORMAT, REPORT_LIMITS, REPORT_REASONS, WATER_VIEWS, REPLACED_NAMES, replacedError, reportPayload, type Diagnostics, type ReportContext } from "@app/core";
 import * as worker from "../workers/feeds/src/crashes";
 import * as reports from "../workers/feeds/src/reports";
@@ -101,6 +101,12 @@ describe("(T1016) a tab older than what is served: the app's own reports are the
                                          cause: Object.assign(new Error(CHUNK), { name: "AsyncRequireError" }) });
     expect([sent(data), sent(code)]).toEqual(["expected", "expected"]);
     expect([sent(new Error(URL404)), sent(Object.assign(new Error(CHUNK), { name: "AsyncRequireError" }))]).toEqual(["defect", "defect"]);
+  });
+  it("(review) a chunk asked again with no answer is reported, and classes network (the line), never dropped", async () => {
+    const look = replacedTriage({ state: createReplacedState(), data: null, site: async () => { throw new TypeError("Failed to fetch"); } });
+    const e = Object.assign(new Error(CHUNK), { name: "AsyncRequireError", request: "https://canifishthis.ca/x.js" });
+    const out = await look(e);
+    expect(sent(out as Error)).toBe("network");
   });
 });
 

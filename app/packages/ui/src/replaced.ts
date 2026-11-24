@@ -8,13 +8,14 @@
  *            chunk that would not load. A 404 on a file of a set the live pointer no longer names, or a chunk gone after
  *            a deploy: the notice is raised and the report is renamed (`REPLACED_NAMES`, class `expected` on the crash
  *            server). A 404 on a file the live release names, a chunk missing from the live deploy: reported as it is (a
- *            defect). A probe that found the line down: the failure is the environment's (shown, not reported).
+ *            defect). A pointer that does not answer: the 404 as it is; a chunk asked again with no answer: reported
+ *            as the line's (`network`). No look holds a report longer than `LOOK_MS`.
  *   notice   one line and one action (core `REPLACED_WORDS`): data → put the live release in use through the app's ONE
  *            in-session apply (`loadLiveRelease`: the update service stages it, the app's `apply` boots onto it — no
  *            second loader); code → reload the page (the new site, and with it the live release).
  */
 import { useSyncExternalStore } from "react";
-import { environmentError, isEnvironment, missingChunk, notFoundUrl, replacedError, REPLACED_WORDS, type ReplacedKind } from "@app/core";
+import { isEnvironment, missingChunk, notFoundUrl, replacedError, REPLACED_WORDS, type ReplacedKind } from "@app/core";
 import type { UpdateService } from "@app/data";
 import type { ReplacedProbe } from "@app/data/release";
 
@@ -50,47 +51,75 @@ export type SiteProbe = (chunkUrl: string | null) => Promise<"replaced" | "live"
  * told); `site`, the site's own page (`/`). The chunk is asked for again, fresh: a 404, and the site's page (fresh) no
  * longer names this page's entry — `replaced` (the site was deployed since this page opened); a 404 while it still names
  * it — `live` (the chunk is missing from the live deploy: a defect); any other answer (it loads now) — `unknown`. No
- * answer at all: the fetch's own failure (the line's), thrown.
+ * answer at all: the fetch's own failure (the line's), thrown; (T1016 review) both asks are aborted after `timeoutMs`.
  */
-export function siteProbe(f: typeof fetch, entry: string | null, site: string): SiteProbe {
+export function siteProbe(f: typeof fetch, entry: string | null, site: string, timeoutMs = LOOK_MS): SiteProbe {
   return async (chunkUrl) => {
     if (!chunkUrl || !entry) return "unknown";
-    const r = await f(chunkUrl, { cache: "no-store" });
-    if (r.status !== 404) return "unknown";
-    const page = await f(site, { cache: "no-store" });
-    if (!page.ok) throw new Error(`the site's page could not be read to explain a missing chunk: ${site}: HTTP ${page.status}`);
-    return (await page.text()).includes(entry) ? "live" : "replaced";
+    const stop = new AbortController();
+    const timer = setTimeout(() => stop.abort(), timeoutMs);
+    try {
+      const r = await f(chunkUrl, { cache: "no-store", signal: stop.signal });
+      if (r.status !== 404) return "unknown";
+      const page = await f(site, { cache: "no-store", signal: stop.signal });
+      if (!page.ok) throw new Error(`the site's page could not be read to explain a missing chunk: ${site}: HTTP ${page.status}`);
+      return (await page.text()).includes(entry) ? "live" : "replaced";
+    } finally { clearTimeout(timer); }
   };
 }
 
 /**
- * The second look (core `setFailureTriage`). `opened()`: the id of the release in use. A probe's failure that is the
- * line's makes the failure the environment's (a 404 cannot be told from a dropped line without an answer); any other is
- * thrown, and core reports the failure as it is and the probe's failure beside it.
+ * (T1016 review) HOW LONG THE SECOND LOOK MAY HOLD A REPORT: past it the failure is reported as it is (as when the
+ * pointer does not answer), whatever the probe is still doing — a stalled read never holds a report for good.
+ */
+export const LOOK_MS = 10_000;
+
+/** `p`, or `late` once `ms` have passed without it */
+function within<T>(p: Promise<T>, ms: number, late: T): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const out = Promise.race([p, new Promise<T>((ok) => { timer = setTimeout(() => ok(late), ms); })]);
+  return out.finally(() => clearTimeout(timer));
+}
+
+/** (T1016 review) A chunk asked again with no answer: the failure, with that said first (the crash server's `network`
+ *  words: the line, not this app), as a NEW error — the one the part shows is never written. */
+function unanswered(e: unknown, x: unknown): Error {
+  const was = e instanceof Error ? e : new Error(String(e));
+  const why = x instanceof Error ? x.message : String(x);
+  const out = new Error(`no answer when asked again (${why}): ${was.message}`, { cause: e });
+  out.name = was.name;
+  return out;
+}
+
+/**
+ * The second look (core `setFailureTriage`). A probe's failure: a data 404 is reported as it is (the server answered it;
+ * a pointer that does not answer leaves it unexplained); a chunk asked again with no answer is reported as the line's
+ * (`unanswered`); any other probe failure is thrown, and core reports the failure as it is and the probe's beside it.
+ * Each look ends within `timeoutMs` (`LOOK_MS`): late, the failure is reported as it is.
  */
 export function replacedTriage(o: { state: ReplacedState; data: ReplacedProbe | null; site: SiteProbe | null;
-                                    opened: () => string | null }): (e: unknown) => Promise<unknown> | null {
-  /** a probe that found the line down: the failure is the environment's (shown, not reported); any other is thrown */
-  const lineOf = (e: unknown) => environmentError(e instanceof Error ? e : new Error(String(e)));
+                                    timeoutMs?: number }): (e: unknown) => Promise<unknown> | null {
+  const ms = o.timeoutMs ?? LOOK_MS;
   return (e) => {
     const chunk = o.site ? missingChunk(e) : null;
-    if (chunk) return o.site!(chunk.url).then((v) => {
+    if (chunk) return within(o.site!(chunk.url).then((v): unknown => {
       if (v !== "replaced") return e;
       o.state.raise({ kind: "code", release: null });
       return replacedError("code", { opened: null, live: null, cause: e });
-    }, (x: unknown) => { if (isEnvironment(x)) return lineOf(e); throw x; });
+    }, (x: unknown) => { if (isEnvironment(x)) return unanswered(e, x); throw x; }), ms, e);
     const url = o.data ? notFoundUrl(e) : null;
     if (!url || !o.data!.covers(url)) return null;      // not a release file (a feed's 404): reported at once, as it is
-    const opened = o.opened();
-    return o.data!(url).then(({ verdict, live }) => {
+    return within(o.data!(url).then(({ verdict, live, opened }): unknown => {
       if (verdict !== "replaced") return e;
+      // raised for the release whose file it was: one the page has since moved off by an apply shows no notice
       o.state.raise({ kind: "data", release: opened });
       return replacedError("data", { opened, live, cause: e });
     }, (x: unknown) => {
-      // the pointer did not answer: the 404 stays unexplained and is reported as it is (offline: shown, not reported)
+      // the pointer did not answer (the line, or aborted after the wait): the 404 came from the server and stays
+      // unexplained — reported as it is
       if (isEnvironment(x)) return e;
       throw x;
-    });
+    }), ms, e);
   };
 }
 
