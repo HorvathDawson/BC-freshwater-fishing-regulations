@@ -247,6 +247,10 @@ class Domain(BaseModel):
     #: gauges named (T696, RULINGS P54), checked against HYDAT by `pipeline.gauges.consume.diversion` into the bundle's
     #: `gauge.diversion` and the intake placement.
     diversion_stations: FilePath | None = None
+    #: Gauges only: (T1047) gauges whose live level is on a different zero (datum) than their HYDAT record — one row per
+    #: change, each `proposed` until the owner accepts it; only an ACCEPTED row with a known offset puts the record on
+    #: today's zero (`pipeline.gauges.feed.datum`, read by `climatology`).
+    datum_change_stations: FilePath | None = None
 
     _abs = field_validator("*", mode="before")(_absolute)
 
@@ -354,6 +358,9 @@ class GeneratedGauges(BaseModel):
     #: disagreed), with their evidence. Written by promote beside the curated `matches`; committed (data/.gitignore)
     #: so `check_curated --ci` sees the queue in CI too. Machine output, so not curated.
     candidates: Path
+    #: (T1047) the datum / relocation remarks HYDAT holds for the roster, parsed: PROPOSALS
+    #: (`pipeline.tools.audit.datum_remarks`), never in effect; the curated rows are `CURATED.gauges.datum_change_stations`.
+    datum_proposals: Path
 
     _abs = field_validator("*", mode="before")(_absolute)
 

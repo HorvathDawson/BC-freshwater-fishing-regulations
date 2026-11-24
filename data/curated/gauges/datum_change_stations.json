@@ -1,0 +1,58 @@
+{
+ "_about": "PROPOSED / AUTHORED (T1047). Water-level gauges whose live readings are on a different zero (datum) than their HYDAT record, one row per change: `station`, `effective` (the first day on the new zero), `offset_m` (metres to ADD to a level read on the old zero to put it on the new one), `offset_from` (the remark, or measured from the live feed), `source` (`hydat_remark` with `remark` = the station's own STN_REMARKS text, verbatim, checked against HYDAT; or `owner` for a change no remark states), `status`, `note`, `evidence`. STATUS: `proposed` = found by a program or an agent, NOT in effect; `accepted` = the owner's call, in effect; `rejected`. ONLY AN ACCEPTED ROW with an effective date and an offset moves anything: pipeline.gauges.feed.climatology puts every level before `effective` on today's zero (band, recent years, rating), so the publishers rank the live level again and the Level chart gets its band back at the next clim.json. Written only through pipeline.common.curated_write (schema: pipeline.gauges.feed.datum.validate_text); read only through pipeline.gauges.feed.datum. Every datum / relocation remark HYDAT holds for the roster, parsed: data/generated/gauges/datum_proposals.json (pipeline.tools.audit.datum_remarks).",
+ "changes": [
+  {
+   "station": "07FD001",
+   "effective": "2026-08-05",
+   "offset_m": 94.826,
+   "offset_from": "live feed (measured; HYDAT states no size)",
+   "source": "hydat_remark",
+   "remark": "STATION RELOCATED ON 2026-08-05.",
+   "status": "proposed",
+   "note": "HYDAT states the relocation day, not the size of the change. The offset is MEASURED: each live day after the move against the live days before it at a flow within 10%, median of the level differences (83 days). Today's live level (about 95.0 m) is on another datum altogether (geodetic-like).",
+   "evidence": "Live daily mean 0.073 m at 0.44 m3/s on 2026-08-01, 46.47 m on 2026-08-05 (the move inside the day), 94.99 m at 0.93 m3/s on 2026-08-06. With +94.826 m every one of the 83 days after the move is on the record's rating (0 of 83 as is). saved station file data/generated/gauges/feeds/<station>.json, fetched 2026-10-28; record = clim.json HYDAT 20261019"
+  },
+  {
+   "station": "08EF001",
+   "effective": "2025-01-30",
+   "offset_m": 2.37,
+   "offset_from": "remark",
+   "source": "hydat_remark",
+   "remark": "Station moved approximately 1km upstream of original location on 2025-01-30, causing a 2.370m jump in stage due to change in elevation.",
+   "status": "proposed",
+   "note": "HYDAT states the day and the size (2.370 m jump in stage, moved about 1 km upstream). HYDAT's level record ends 2024, all of it on the old zero. A moved gauge is a new cross-section: the offset aligns the zero, the band's shape is the old site's.",
+   "evidence": "With +2.370 m all 300 live days of 2026 (to 2026-10-27) are on the record's rating; as is 110 of 300. saved station file data/generated/gauges/feeds/<station>.json, fetched 2026-10-28; record = clim.json HYDAT 20261019"
+  },
+  {
+   "station": "08HD006",
+   "effective": "2025-06-05",
+   "offset_m": -5.0,
+   "offset_from": "remark (approximate: \"~5m drop in stage\")",
+   "source": "hydat_remark",
+   "remark": "The station was relocated on June 5, 2025, 1.5km downstream to the Sayward Road bridge- the original station location from establishment in 1956 to 1981. The datum from that period is preserved, with original benchmark elevations used (converted from feet to meters). This datum was not preserved when the station was relocated in 1981 and again in 2015 to the most recent location. The datum change results in a ~5m drop in stage on the 2025 relocation date.\n",
+   "status": "proposed",
+   "note": "HYDAT states the day and an APPROXIMATE size (relocated 1.5 km downstream to the Sayward Road bridge, the 1956-1981 datum restored, \"~5m drop in stage\"). HYDAT's level record ends 2024 (kept from 2016, its last shift), all of it on the 2015-2025 zero. A moved gauge is a new cross-section: the offset aligns the zero, the band's shape is the old site's.",
+   "evidence": "With -5.0 m all 300 live days of 2026 (to 2026-10-27) are on the record's rating; as is 0 of 300. At low flow the live level sits 4.95-5.04 m under the record's rating, at the January floods (270-650 m3/s) 3.2-4.4 m under its p1-p99 floor, inside the 0.5 m pad of the wide top bin. saved station file data/generated/gauges/feeds/<station>.json, fetched 2026-10-28; record = clim.json HYDAT 20261019"
+  },
+  {
+   "station": "08KH019",
+   "effective": "2026-07-07",
+   "offset_m": 1.011,
+   "offset_from": "live feed (measured across the step)",
+   "source": "owner",
+   "status": "proposed",
+   "note": "No HYDAT remark; needs the owner. The live level steps up about 1 m inside 2026-07-07 while the flow carries on smoothly (ECCC's provisional flow was rated on the new zero), which is what a new gauge zero looks like, not a change in the river. The offset is MEASURED: 2026-07-04 1.288 m at 1.372 m3/s against 2026-07-08 2.299 m at 1.373 m3/s. HYDAT's level record ends 2025-10, all on the old zero. The 2020 remark (washout, river course changed) is an older event the record already holds.",
+   "evidence": "Live daily means: 1.306 m at 1.57 m3/s on 2026-07-06, 1.758 m (the step inside the day) on 07-07, 2.299 m at 1.37 m3/s on 07-08. With +1.011 m every one of the 112 days after the step is on the record's rating (3 of 112 as is); the median over every like-flow day before the step is +0.891 m (16 days). Picture: handoff/PLAN/app-integration/T1047-shots/datum-08KH019.png. saved station file data/generated/gauges/feeds/<station>.json, fetched 2026-10-28; record = clim.json HYDAT 20261019"
+  },
+  {
+   "station": "08MH153",
+   "effective": null,
+   "offset_m": null,
+   "offset_from": null,
+   "source": "owner",
+   "status": "proposed",
+   "note": "No HYDAT remark; needs the owner. Likely NOT a new zero: the stage for a given flow has been creeping up since 2024 (weeds or a filling channel at the control), so there is no single day and no single offset to accept. Recommended: reject as a datum change; the rating guard keeping the level out on the off days stays.",
+   "evidence": "For a new zero: from 2026-08-17 the live level sits above the record's rating (37 of 300 days in 2026, all Aug-Oct), about +0.5 m at 0.14-0.23 m3/s in October, with a +0.34 m jump on 2026-09-26. Against: no step day (Jul 2.78 m at 0.10 m3/s, Aug 3.17-3.28 m at 0.09-0.02 m3/s, falling flow and rising stage, the signature of summer weed growth); 09-22 back down to 2.63 m; Jan-Jul 2026 on the rating; the 09-26 jump comes with a flow rise (0.068 to 0.167 m3/s, rain); and HYDAT's own 2024 (approved, no remark) already reads about +0.3 m over 2011-2023 at like flows (Jul 2.80 m at 0.06 m3/s against 2.43-2.62 m). Picture: handoff/PLAN/app-integration/T1047-shots/datum-08MH153.png. saved station file data/generated/gauges/feeds/<station>.json, fetched 2026-10-28; record = clim.json HYDAT 20261019"
+  }
+ ]
+}

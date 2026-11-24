@@ -23,7 +23,7 @@ construction.
 | `regs/parse/` | `run_parse.sh` | transient work dir: `batches/ responses/ reviews/` |
 | `regs/dfo_salmon/` | `pipeline.regs.dfo_salmon.{locations,parse,untangle}` | the scrape |
 | `regs/entries_backup/` | `pipeline.tools.audit.reparse_candidates --apply` | copies of the catalogue region files, taken before it deletes entries to queue them for re-parse |
-| `gauges/` | `pipeline.gauges.generate` / `.feed` | `candidates.json`, `feeds/<station>.json` |
+| `gauges/` | `pipeline.gauges.generate` / `.feed` / `pipeline.tools.audit.datum_remarks` | `candidates.json`, `feeds/<station>.json`, `datum_proposals.json` (T1047: HYDAT's datum / relocation remarks parsed, proposals; committed) |
 | `stocking/`, `bathymetry/` | the domain audits | identifier audits awaiting a matcher |
 | `municipal/` | `added_streams` cleaning | cleaned source layers |
 | `added_streams/` | `pipeline.atlas.waters.added_streams` | mapcheck / verify html, demo gpkg |
