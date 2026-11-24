@@ -21,10 +21,10 @@ them in chat; answers go here verbatim).
   that installed 0.9.0 apps refuse. Options 1–4 in the ticket: keep the budgets; move the worker's own state out of the
   feed (safe, about 121,700 B, a worker deploy); new feed and head formats in 0.9.1; the same with the feed waiting.
   Default until answered: budgets stay (135,000 B / 110,000 B gz). Recommended: option 2.
-- **T1047 datum changes: accept each proposed row?** 08HD006 (−5.0 m from 2025-06-05) and 08EF001 (+2.370 m from
-  2025-01-30) can be accepted now. 07FD001 (+94.826 m from 2026-08-05) and 08KH019 (+1.011 m from 2026-07-07) only after
-  the this-year line is fixed or 2027 begins (the file refuses them until then). 08MH153: recommended reject (a slow
-  creep, not a step). Default: all five stay proposed; nothing changes. Pictures: `handoff/PLAN/app-integration/T1047-shots/`.
+- **T1047 datum changes, the other three: accept / reject?** (08HD006 and 08EF001 answered 2026-11-24, below.)
+  07FD001 (+94.826 m from 2026-08-05) and 08KH019 (+1.011 m from 2026-07-07) only after the this-year line is fixed or
+  2027 begins (the file refuses them until then). 08MH153: recommended reject (a slow creep, not a step). Default: the
+  three stay proposed; nothing changes. Pictures: `handoff/PLAN/app-integration/T1047-shots/`.
 - **T1030 "N waters changed": what counts?** A: wording changes too. B (built): rules only. C: rules only, nothing shown
   at 0. With B, 0.9.0 would have read "2 waters changed" though 8,247 waters were reworded. Recommended: C.
 - **T1029 one-bank stripe, Q4–Q6** (a prototype in draft PR #112, not merged): the stripe from zoom 13; Q4 no stripe on
@@ -66,6 +66,14 @@ them in chat; answers go here verbatim).
   the list (recruiting pick, usage numbers, age group, installs range, vitals crash / ANR rates, …).
 - **Apply (you): T1046 production access** — on or after 2026-12-07, Play Console > Dashboard > "Apply for production",
   pasting the answers in your own words. Then tell Claude the date and, within about 7 days, Google's answer.
+
+## 2026-11-24: T1047 datum changes, 08HD006 + 08EF001 (answer, verbatim)
+- Asked (plain words, through the coordinator) whether to shift the history of 08HD006 (Salmon River near Sayward, 5.0 m
+  lower since 2025-06-05) and 08EF001 (2.37 m higher since 2025-01-30) so their normal range comes back: "Yes but make
+  sure it is a clean well documented update that happens which is easy to see". Both rows `accepted` (lane L16), the
+  page: `pipeline/docs/GAUGE-DATUM-CHANGES.md` (Environment Canada's notes, before/after pictures
+  `T1047-shots/accepted-<station>-{before,after}.png`, one-command undo); the data release's checks list each as its own
+  line. Live with the next data release (no app build). 07FD001, 08KH019, 08MH153 were not asked: still proposed.
 
 ## 2026-11-23: T1047 off-datum level (answers, verbatim)
 - T1047 top line: "Show the level reading (Recommended)"; the note: "just use new data line same as cap. keep it simple".
