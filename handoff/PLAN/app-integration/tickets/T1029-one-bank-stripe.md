@@ -167,3 +167,32 @@ the reach step has no geometry (its graph is topology; `extent.py` / `build.py` 
 atlas's section lines read into the reach run (a new input to `build_reach`'s caller) — not a contained change, and for
 today's only bank place with tributaries it moves nothing (12 kept, 0 dropped). `classify.py` is untouched (no
 POLICY_VERSION bump).
+
+## Owner answers (2026-11-24 ~12:50, verbatim)
+1. Which look: "B: split + closed dashes (Recommended)" — from zoom 13 up, the card carrying it below that.
+2. What "included" means for the 12 side creeks: "Not sure, show me".
+
+## Q5 show-me (`T1029-shots/v3-q5-creeks-show-me.png`, light, Salmon map, Aug 15) — text to paste to the owner
+**What is printed.** DFO, Region 6, under the heading "Kitimat River (including tributaries)": "on west bank between
+signs at Kitimat hatchery outfall." All, Apr 1 to Mar 31: No fishing for salmon. And "downstream of Highway #37 bridge."
+Coho Apr 1 to Oct 31: 4 per day, only 2 over 50 cm; Chum and Pink Apr 1 to Aug 31: 2 per day; Chinook Aug 1 to Dec 31:
+No fishing for chinook. The B.C. synopsis (p.51, `kitimat_river.r1`): "No Fishing on the west half of river between
+fishing boundary signs near Kitimat Hatchery outfall".
+
+**The 12 creeks.** One creek joins the closed stretch, on the west bank, 214 m above the downstream sign; the other 11
+all drain into it (two through the sewage-lagoon ponds). All are unnamed streams.
+
+**Reading 1 (today): the creeks keep today's answer.** On Aug 15 all 12 read SALMON Open: coho 4 a day (only 2 over
+50 cm), pink 2 a day, chum 2 a day; chinook and sockeye closed — from DFO's "Kitimat River (including tributaries),
+downstream of Highway #37 bridge" row, with the B.C. synopsis. No bank caveat. Nothing changes.
+
+**Reading 2: the creeks closed like the west bank.** All 12 change: an angler on any of them reads SALMON Closed, "No
+fishing for salmon", Apr 1 to Mar 31 (all year), from the west-bank row. Still no stripe and no bank caveat on a creek.
+
+**My reading (not fact):** DFO's "(including tributaries)" is the heading over the whole Kitimat table; the west-bank
+row is a small closure at the hatchery outfall on the river's own bank. It most plausibly means the river's west bank
+there, not every creek draining into that 746 m of bank: Reading 1.
+
+(How "today" was read: the web app over the live 0.9.0 release and atlas, each section tapped on Aug 15 and its card
+read; all 12 creeks are one salmon chain, so they answer alike. One tap, creek 975982, landed beside its line; its chain
+is the same.)
