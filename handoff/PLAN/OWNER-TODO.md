@@ -1,9 +1,9 @@
 # Owner to-do
 
-**The owner ticks items off in the Owner To-Do page: https://claude.ai/artifact/Lh2ougAwfxx1wNmCV18m8f** (owner 2026-11-11). Every open item for the owner is a row
-there (collection `todos`: title, detail, group, ticket, order, added, done, note). Claude adds rows with the
-ArtifactData tool when work produces something for the owner, and reads `done` and `note` back at the start of a
-session. This file keeps the long text and history.
+**Markdown only (owner 2026-11-24): the Owner To-Do artifact page is retired** ("we will make a new owner todo page (no
+artifact only md files that you ask)"). No chat writes artifact rows any more. Chats ask in chat, in batches, and write
+each answer here and in the ticket in the same turn. A new short page of open items only is T1080; the docs lean-out
+is T1081.
 
 Things only you can do. Claude keeps this list current while you are away; the work itself lives in
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
@@ -33,6 +33,8 @@ with the default Claude uses until you answer). Newest first inside each section
   row waits on the iOS release chat. Then, in App Store Connect: Apps → Can I Fish This? → Distribution → the "+" by
   iOS App → version 0.9.0 → Build → pick the build → paste the listing text and pictures (T1072) → App Privacy and
   the other answers → Version Release: "Manually release" and Phased Release on → Add for Review → Submit.
+- Answered 2026-11-24: the owner to-do goes markdown only, no artifact (T1080); and a ticket to audit and lean out
+  every markdown file and unify the docs (T1081, proposed chat D after 0.9.1).
 - **Question (you): three proposed chats.** 2b = 0.9.2 hardening (no features), S = store content (T1072; can run
   beside 0.9.2), 5i = iOS full release (T1071). Say yes or change them, and whether the iOS release comes before or
   after 0.9.2. Default until you answer: nothing starts; they stay marked "proposed" in the roadmap.

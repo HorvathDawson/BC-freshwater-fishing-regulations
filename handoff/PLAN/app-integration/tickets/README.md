@@ -322,6 +322,8 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1077 | "All sources" lists the bait rules' source, but the bait list on the page draws no Source line | OPEN — 0.9.2 (0.9.1 only if PR #126's lane takes it in the same change) | | 0.9.1 chat 2026-11-24 |
 | T1078 | A water closed all year by two rules names only one in its banner (Kirkup Creek) | OPEN — 0.9.1 if T1052's lane can take it in the same code (it rewrites this block), else 0.9.2 | | 0.9.1 chat 2026-11-24 |
 | T1079 | The Playwright MCP writes its console logs into the main checkout, whatever worktree a lane works in | OPEN — none (tooling; with the 0.9.2 chat) | | 0.9.1 chat 2026-11-24 |
+| T1080 | A new owner to-do page: markdown only, short, open items only (the artifact page is retired) | OPEN — planning chat, right after PR #114 merges | | owner 2026-11-24 |
+| T1081 | Audit every markdown file: delete the old, cut the bloated, unify the docs (1,326 files, about 134,000 lines) | OPEN — its own docs chat after 0.9.1 (proposed chat D); inventory first | | owner 2026-11-24 |
 
 ## Next after closed testing
 

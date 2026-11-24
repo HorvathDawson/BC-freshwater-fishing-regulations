@@ -58,6 +58,7 @@ Triage of everything ticketed since the roadmap was written. Severity / model / 
 | 0.9.2 (proposed chat 2b; owner has not said yes) | Harden: crash containment, failures that hide, release tooling and test flakiness; clear the report backlog so new reports stand out. No new features. | T1055, T1057, T1060, T1063, T1064, T1065, T1066, T1067, T1070, T1077 ("All sources" bait source with no line), T1078 (a two-rule all-year closure names one; in 0.9.1 instead if T1052's lane takes it), T1079 (Playwright logs land in the main checkout), T1074 (rule 28 vs runtime map layers), T1075 (a lake's "Not on lakes" gear line; may ride with T1051), T1073 (the app-update notice only when the phone can install it; owner 2026-11-24); about 4 lanes (Opus: T1060+T1073 / T1064+T1066+T1067 / T1065; Sonnet: T1055+T1057+T1063+T1070) |
 | Store content (proposed chat S, can run beside 0.9.2) | Screenshots and marketing words that sell the app, one source for both stores and the website. Pictures first, owner picks. | T1072 (with T319, T709), T1076 (the runbook's reshoot step cannot be followed as written) |
 | iOS full release (proposed chat 5i; owner 2026-11-24: "IOS can have full release soon") | The iPhone app on the App Store for everyone: distribution and compliance answers complete, production push proved, submitted by the owner. Does not wait for Play's 14 days. | T1071 (with T727, T996) |
+| Docs lean-out (proposed chat D, after 0.9.1; owner 2026-11-24) | A human can read the docs: old files deleted, bloated ones cut, one unified layout, and a guard that keeps it lean. Inventory first, owner agrees the layout. | T1081; T1080 (the new short owner page) is done first by the planning chat, after PR #114 |
 | 0.10 (chats 4a–4c) | The features: stocked lakes, bathymetry maps and charts, corridors; tides if it fits. | T1054 tides layer (or later), T1068 R8 leftovers, T1069 polygon route in pieces |
 | Launch on Play (chat 5) | Production access from Google (apply on or after 2026-12-07), then the public Play release. | none new (uses T1072's content) |
 
@@ -70,7 +71,7 @@ Triage of everything ticketed since the roadmap was written. Severity / model / 
 > "Release contents"). You are the planning chat: never write code, never run lanes, builds, emulators or heavy jobs.
 > You alone create ticket numbers (file + ledger row, check-tickets.mjs before every commit). Triage each item:
 > severity, release or future chat, model and lane size. Keep current: this roadmap, the release contents,
-> OWNER-TODO.md (plus the Owner To-Do artifact row) and play-production-access/ (feedback-log rows, releases.md,
+> OWNER-TODO.md (markdown only: the artifact page is retired, T1080) and play-production-access/ (feedback-log rows, releases.md,
 > questionnaire Q3/Q7/Q8). Find the other chats with ListAgents, read their restart pages, ticket their "For the
 > planning chat" items and tell each chat the Tnnn. When a chat's scope finishes, write the next chat's frozen scope
 > and prompt here. Small docs PRs to main with auto-merge, `docs(Tnnn): ...`. Questions in batches with pictures, each
