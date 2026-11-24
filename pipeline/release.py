@@ -1972,7 +1972,7 @@ def tag_release(ctx: Ctx, rid: str, r: dict) -> str:
                    f"-m 'data release {rid}' <sha> && git push {GH_REMOTE} refs/tags/data/{rid}")
     version = app_version()
     data_only = data_only_branch()
-    data_tag, app_tag = f"data/{rid}", f"v{version}"
+    data_tag, app_tag = f"data/{rid}", f"v{version}"  # path-label: a git tag name (data/<r-id>), not a path
     try:
         remote = {x: remote_tag_commit(x) for x in (data_tag, app_tag)}
     except RuntimeError as e:
@@ -2459,8 +2459,8 @@ def dry_run(ctx: Ctx) -> int:
           + (f"  ({target} staged {r['staged_at']})" if r.get("staged_at") else ""))
     try:
         rb, ver = release_branch(), app_version()
-        tags = (f"data/<r-id> only (a data-only release, app {ver} unchanged)" if data_only_branch() else
-                f"data/<r-id> + v{ver} (if not tagged yet)")
+        tags = (f"data/<r-id> only (a data-only release, app {ver} unchanged)" if data_only_branch() else  # path-label: a git tag name (data/<r-id>), not a path
+                f"data/<r-id> + v{ver} (if not tagged yet)")  # path-label: a git tag name (data/<r-id>), not a path
         print(f"{P}then (T995) tags {tags} on the pushed HEAD, pushes them, and prints the merge-back PR: "
               f"{merge_back_cmd(rb)}")
     except SystemExit as e:
@@ -2636,7 +2636,7 @@ def tag_problems(rid: str, r: dict) -> list[str]:
                 "--staging` (it tags a staged release and skips everything done)"]
     version = r.get("app_version") or app_version()
     out = []
-    data_tag, app_tag = f"data/{rid}", f"v{version}"
+    data_tag, app_tag = f"data/{rid}", f"v{version}"  # path-label: a git tag name (data/<r-id>), not a path
     try:
         at, v = remote_tag_commit(data_tag), remote_tag_commit(app_tag)
     except RuntimeError as e:

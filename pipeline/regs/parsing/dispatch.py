@@ -211,7 +211,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Dispatch exported batches through the Claude CLI (parallel subagents).")
     ap.add_argument("--work-dir", help="parse working dir (default: <out>/parse)")
     ap.add_argument("--entries-dir", help="catalogue region files dir (default: "
-                    "data/curated/regulations/synopsis) — batches fully covered by these "  # path-label: words in a help text
+                    "data/curated/regulations/synopsis) — batches fully covered by these "
                     "are skipped as already ingested")
     ap.add_argument("--model", default="sonnet", help="CLI model alias (default: sonnet — parsing is "
                     "mechanical; reserve opus for re-dispatching failures)")

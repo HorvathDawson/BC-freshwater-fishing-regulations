@@ -157,7 +157,7 @@ jobs:
           hits () { git ls-files -- $DIRS | grep '\.py$' \
                     | grep -vE '(^|/)(archive|\.venv|node_modules|__pycache__|graphify-out)/' | tr '\n' '\0' \
                     | xargs -0 grep -EHn "$1" 2>/dev/null \
-                    | grep -v ':[0-9]*: *#' | grep -v '`' | grep -vE "$2"; }
+                    | grep -v ':[0-9]*: *#' | grep -vE "$2"; }
           check () {
             n=$(hits "$2" "${3:-^$}" | wc -l | tr -d ' ')
             printf '  %-42s %3s\n' "$1" "$n"
@@ -176,16 +176,13 @@ jobs:
           # tests are exempt (they pin the real files on purpose)
           check "ROOT / \"data/<tree>/…\" one string"   '(ROOT|REPO|parents\[[0-9]\]|\.parent)\s*/\s*"data/(curated|generated|source)/' '^pipeline/tests/'
           check "/ \"entries\" outside a tmp fixture" '(_ROOT|__file__|parents\[[0-9]\])[^\n]*/ "entries"'
-          # (T994 7, T1021) THE MULTI-SEGMENT LITERAL: the one-segment pattern above (`"data/<file>.<ext>"`) never saw
-          # `Path("data/source/hydat.sqlite3")` or `default="data/curated/regulations/synopsis"`, so ten lived. Any quoted
-          # string (f / r too) that starts a path under data/ or the cache/ tree: the cwd decides what it means, so a
-          # path read or written comes from config.yaml (CURATED / GENERATED / SOURCE, `get_config().dfo_salmon_cache`).
-          # Tests are exempt (they pin the real files). NO FILE IS ALLOWLISTED: a string that only NAMES a path (words
-          # in a message or help text, provenance written into an output, a repo-relative name a repo-root command
-          # prints, git pathspecs) says so on its own line, `# path-label: <why>` (a reason of 10+ characters), and is
-          # never opened.
-          LABEL='^pipeline/tests/|# path-label: [^ ].{9,}$'
-          check "quoted data/… or cache/… literal"   "[\"'](data|cache)/[a-z_]+" "$LABEL"
+          # (T994 7, T1021) THE MULTI-SEGMENT LITERAL, read by the AST (scripts/check_data_paths.py: its docstring is the
+          # rule): any string that starts a path under data/ or cache/ (`"./data/x"`, `f"data/{x}"`, `"data/" + "x"`,
+          # `Path("data")`, `os.path.join("data", …)`, any case), in code: only a docstring or a comment is exempt, never
+          # a code line that happens to hold a backtick (the grep it replaced dropped those; so do the greps above no
+          # more). Tests are exempt. A string that only names a path says `# path-label: <why>`; the labels let through
+          # are listed and pinned (pipeline/tests/test_data_path_gate.py).
+          python scripts/check_data_paths.py || fail=1
           exit $fail
 
   # (T995) THE REQUIRED CHECK for main's branch protection (scripts/ci_paths.py REQUIRED): it always runs, and passes

@@ -12,7 +12,7 @@ from typing import Any
 
 ODBL_URL = "https://opendatacommons.org/licenses/odbl/1-0/"
 OSM_COPYRIGHT = "https://www.openstreetmap.org/copyright"
-NOTICE = "data/LICENSE-ODbL.md"
+NOTICE = "data/LICENSE-ODbL.md"  # path-label: the repo-relative name written into each _licence record, never opened
 
 
 def odbl(applies_to: str) -> dict:
