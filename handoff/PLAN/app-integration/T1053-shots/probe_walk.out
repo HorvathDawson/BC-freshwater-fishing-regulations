@@ -1,0 +1,88 @@
+============================== gnis:9405 Eagle Creek stream
+sections: ['360548981:0']
+   360548981:0 kind=stream name='Eagle Creek' gnis=9405 wsc=900-087856 order=2 len=3022 barrier=False
+ walk-up from reach (each upstream step, what may_enter says):
+     lake:328989582 kind=lake name='Dick Lake' gnis=23649 wsc=900-087856 order=2 len=0 barrier=False edge=lake_out -> 360548981:0  WHY=river_continuing owner=['wbk:328989582']
+       360856850:174 kind=stream name='Dick Creek' gnis=23637 wsc=900-087856-839583 order=2 len=2154 barrier=False edge=lake_in -> lake:328989582  WHY=None owner=['gnis:23637']
+         360409871:0 kind=stream name='' gnis= wsc=900-087856-839583-089333 order=1 len=796 barrier=False edge=confluence -> 360856850:174  WHY=None owner=None
+         360503230:0 kind=stream name='' gnis= wsc=900-087856-839583-676011 order=1 len=231 barrier=False edge=confluence -> 360856850:174  WHY=None owner=None
+         360536692:0 kind=stream name='' gnis= wsc=900-087856-839583-285736 order=1 len=659 barrier=False edge=confluence -> 360856850:174  WHY=None owner=None
+         360886835:0 kind=stream name='' gnis= wsc=900-087856-839583-750766 order=1 len=63 barrier=False edge=confluence -> 360856850:174  WHY=None owner=None
+         lake:329533542 kind=lake name='' gnis= wsc=900-087856-839583 order=2 len=0 barrier=False edge=lake_out -> 360856850:174  WHY=None owner=['gnis:23637']
+           360782926:8 kind=stream name='' gnis= wsc=900-087856-839583-808691 order=1 len=74 barrier=False edge=lake_in -> lake:329533542  WHY=None owner=None
+           360856850:2402 kind=stream name='Dick Creek' gnis=23637 wsc=900-087856-839583 order=1 len=71 barrier=False edge=lake_in -> lake:329533542  WHY=None owner=['gnis:23637']
+             lake:329533854 kind=lake name='' gnis= wsc=900-087856-839583 order=1 len=0 barrier=False edge=lake_out -> 360856850:2402  WHY=None owner=['gnis:23637']
+               360856850:2509 kind=stream name='Dick Creek' gnis=23637 wsc=900-087856-839583 order=1 len=174 barrier=False edge=lake_in -> lake:329533854  WHY=None owner=['gnis:23637']
+                 lake:329532944 kind=lake name='' gnis= wsc=900-087856-839583 order=1 len=0 barrier=False edge=lake_out -> 360856850:2509  WHY=None owner=['gnis:23637']
+                   360856850:2858 kind=stream name='Dick Creek' gnis=23637 wsc=900-087856-839583 order=1 len=50 barrier=False edge=lake_in -> lake:329532944  WHY=None owner=['gnis:23637']
+             lake:329533619 kind=lake name='' gnis= wsc=900-087856-839583-808691 order=1 len=0 barrier=False edge=lake_out -> 360782926:8  WHY=None owner=None
+           lake:329533812 kind=lake name='' gnis= wsc=900-087856-839583-750766 order=1 len=0 barrier=False edge=lake_out -> 360886835:0  WHY=None owner=None
+           lake:329533818 kind=lake name='' gnis= wsc=900-087856-839583-676011 order=1 len=0 barrier=False edge=lake_out -> 360503230:0  WHY=None owner=None
+             360503230:253 kind=stream name='' gnis= wsc=900-087856-839583-676011 order=1 len=194 barrier=False edge=lake_in -> lake:329533818  WHY=None owner=None
+               lake:329533585 kind=lake name='' gnis= wsc=900-087856-839583-676011 order=1 len=0 barrier=False edge=lake_out -> 360503230:253  WHY=None owner=None
+ tributaries_of_reach: 0
+ downstream of reach:
+============================== wbk:328989582 Dick Lake lake
+sections: ['lake:328989582']
+   lake:328989582 kind=lake name='Dick Lake' gnis=23649 wsc=900-087856 order=2 len=0 barrier=False
+ walk-up from reach (each upstream step, what may_enter says):
+     360856850:174 kind=stream name='Dick Creek' gnis=23637 wsc=900-087856-839583 order=2 len=2154 barrier=False edge=lake_in -> lake:328989582  WHY=None owner=['gnis:23637']
+       360409871:0 kind=stream name='' gnis= wsc=900-087856-839583-089333 order=1 len=796 barrier=False edge=confluence -> 360856850:174  WHY=None owner=None
+       360503230:0 kind=stream name='' gnis= wsc=900-087856-839583-676011 order=1 len=231 barrier=False edge=confluence -> 360856850:174  WHY=None owner=None
+       360536692:0 kind=stream name='' gnis= wsc=900-087856-839583-285736 order=1 len=659 barrier=False edge=confluence -> 360856850:174  WHY=None owner=None
+       360886835:0 kind=stream name='' gnis= wsc=900-087856-839583-750766 order=1 len=63 barrier=False edge=confluence -> 360856850:174  WHY=None owner=None
+       lake:329533542 kind=lake name='' gnis= wsc=900-087856-839583 order=2 len=0 barrier=False edge=lake_out -> 360856850:174  WHY=None owner=['gnis:23637']
+         360782926:8 kind=stream name='' gnis= wsc=900-087856-839583-808691 order=1 len=74 barrier=False edge=lake_in -> lake:329533542  WHY=None owner=None
+         360856850:2402 kind=stream name='Dick Creek' gnis=23637 wsc=900-087856-839583 order=1 len=71 barrier=False edge=lake_in -> lake:329533542  WHY=None owner=['gnis:23637']
+           lake:329533854 kind=lake name='' gnis= wsc=900-087856-839583 order=1 len=0 barrier=False edge=lake_out -> 360856850:2402  WHY=None owner=['gnis:23637']
+             360856850:2509 kind=stream name='Dick Creek' gnis=23637 wsc=900-087856-839583 order=1 len=174 barrier=False edge=lake_in -> lake:329533854  WHY=None owner=['gnis:23637']
+               lake:329532944 kind=lake name='' gnis= wsc=900-087856-839583 order=1 len=0 barrier=False edge=lake_out -> 360856850:2509  WHY=None owner=['gnis:23637']
+                 360856850:2858 kind=stream name='Dick Creek' gnis=23637 wsc=900-087856-839583 order=1 len=50 barrier=False edge=lake_in -> lake:329532944  WHY=None owner=['gnis:23637']
+                   lake:329533810 kind=lake name='' gnis= wsc=900-087856-839583 order=1 len=0 barrier=False edge=lake_out -> 360856850:2858  WHY=None owner=None
+           lake:329533619 kind=lake name='' gnis= wsc=900-087856-839583-808691 order=1 len=0 barrier=False edge=lake_out -> 360782926:8  WHY=None owner=None
+         lake:329533812 kind=lake name='' gnis= wsc=900-087856-839583-750766 order=1 len=0 barrier=False edge=lake_out -> 360886835:0  WHY=None owner=None
+         lake:329533818 kind=lake name='' gnis= wsc=900-087856-839583-676011 order=1 len=0 barrier=False edge=lake_out -> 360503230:0  WHY=None owner=None
+           360503230:253 kind=stream name='' gnis= wsc=900-087856-839583-676011 order=1 len=194 barrier=False edge=lake_in -> lake:329533818  WHY=None owner=None
+             lake:329533585 kind=lake name='' gnis= wsc=900-087856-839583-676011 order=1 len=0 barrier=False edge=lake_out -> 360503230:253  WHY=None owner=None
+ tributaries_of_reach: 18
+   + 360409871:0 kind=stream name='' gnis= wsc=900-087856-839583-089333 order=1 len=796 barrier=False None
+   + 360503230:0 kind=stream name='' gnis= wsc=900-087856-839583-676011 order=1 len=231 barrier=False None
+   + 360503230:253 kind=stream name='' gnis= wsc=900-087856-839583-676011 order=1 len=194 barrier=False None
+   + 360536692:0 kind=stream name='' gnis= wsc=900-087856-839583-285736 order=1 len=659 barrier=False None
+   + 360782926:8 kind=stream name='' gnis= wsc=900-087856-839583-808691 order=1 len=74 barrier=False None
+   + 360856850:174 kind=stream name='Dick Creek' gnis=23637 wsc=900-087856-839583 order=2 len=2154 barrier=False ['gnis:23637']
+   + 360856850:2402 kind=stream name='Dick Creek' gnis=23637 wsc=900-087856-839583 order=1 len=71 barrier=False ['gnis:23637']
+   + 360856850:2509 kind=stream name='Dick Creek' gnis=23637 wsc=900-087856-839583 order=1 len=174 barrier=False ['gnis:23637']
+   + 360856850:2858 kind=stream name='Dick Creek' gnis=23637 wsc=900-087856-839583 order=1 len=50 barrier=False ['gnis:23637']
+   + 360886835:0 kind=stream name='' gnis= wsc=900-087856-839583-750766 order=1 len=63 barrier=False None
+   + lake:329532944 kind=lake name='' gnis= wsc=900-087856-839583 order=1 len=0 barrier=False ['gnis:23637']
+   + lake:329533542 kind=lake name='' gnis= wsc=900-087856-839583 order=2 len=0 barrier=False ['gnis:23637']
+   + lake:329533585 kind=lake name='' gnis= wsc=900-087856-839583-676011 order=1 len=0 barrier=False None
+   + lake:329533619 kind=lake name='' gnis= wsc=900-087856-839583-808691 order=1 len=0 barrier=False None
+   + lake:329533810 kind=lake name='' gnis= wsc=900-087856-839583 order=1 len=0 barrier=False None
+   + lake:329533812 kind=lake name='' gnis= wsc=900-087856-839583-750766 order=1 len=0 barrier=False None
+   + lake:329533818 kind=lake name='' gnis= wsc=900-087856-839583-676011 order=1 len=0 barrier=False None
+   + lake:329533854 kind=lake name='' gnis= wsc=900-087856-839583 order=1 len=0 barrier=False ['gnis:23637']
+ downstream of reach:
+   v 360548981:0 kind=stream name='Eagle Creek' gnis=9405 wsc=900-087856 order=2 len=3022 barrier=False lake_out ['gnis:9405']
+============================== gnis:20408 Nelson Creek stream
+sections: ['360679993:0']
+   360679993:0 kind=stream name='Nelson Creek' gnis=20408 wsc=900-088087 order=3 len=5202 barrier=False
+ walk-up from reach (each upstream step, what may_enter says):
+     360548992:0 kind=stream name='Whyte Creek' gnis=2962 wsc=900-088087-340521 order=2 len=918 barrier=False edge=confluence -> 360679993:0  WHY=None owner=['gnis:2962']
+     360726143:0 kind=stream name='' gnis= wsc=900-088087-754765 order=1 len=573 barrier=False edge=confluence -> 360679993:0  WHY=None owner=None
+     lake:329533302 kind=lake name='' gnis= wsc=900-088087 order=1 len=0 barrier=False edge=lake_out -> 360679993:0  WHY=river_continuing owner=None
+       lake:329532969 kind=lake name='Whyte Lake' gnis=2963 wsc=900-088087-340521 order=2 len=0 barrier=False edge=lake_out -> 360548992:0  WHY=None owner=['wbk:329532969']
+         360548992:1008 kind=stream name='Whyte Creek' gnis=2962 wsc=900-088087-340521 order=2 len=471 barrier=False edge=lake_in -> lake:329532969  WHY=None owner=['gnis:2962']
+           360734336:0 kind=stream name='' gnis= wsc=900-088087-340521-504490 order=1 len=677 barrier=False edge=confluence -> 360548992:1008  WHY=None owner=None
+           lake:329533958 kind=lake name='' gnis= wsc=900-088087-340521 order=1 len=0 barrier=False edge=lake_out -> 360548992:1008  WHY=None owner=['gnis:2962']
+             360548992:1519 kind=stream name='Whyte Creek' gnis=2962 wsc=900-088087-340521 order=1 len=881 barrier=False edge=lake_in -> lake:329533958  WHY=None owner=['gnis:2962']
+ tributaries_of_reach: 7
+   + 360548992:0 kind=stream name='Whyte Creek' gnis=2962 wsc=900-088087-340521 order=2 len=918 barrier=False ['gnis:2962']
+   + 360548992:1008 kind=stream name='Whyte Creek' gnis=2962 wsc=900-088087-340521 order=2 len=471 barrier=False ['gnis:2962']
+   + 360548992:1519 kind=stream name='Whyte Creek' gnis=2962 wsc=900-088087-340521 order=1 len=881 barrier=False ['gnis:2962']
+   + 360726143:0 kind=stream name='' gnis= wsc=900-088087-754765 order=1 len=573 barrier=False None
+   + 360734336:0 kind=stream name='' gnis= wsc=900-088087-340521-504490 order=1 len=677 barrier=False None
+   + lake:329532969 kind=lake name='Whyte Lake' gnis=2963 wsc=900-088087-340521 order=2 len=0 barrier=False ['wbk:329532969']
+   + lake:329533958 kind=lake name='' gnis= wsc=900-088087-340521 order=1 len=0 barrier=False ['gnis:2962']
+ downstream of reach:

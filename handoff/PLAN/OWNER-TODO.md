@@ -9,6 +9,31 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-24: your four staging reports, ticketed for 0.9.1 (questions)
+
+- Store checks 2026-11-24 12:10: staging worker, 5 reports since 11-24: your four from Dick Lake, Nelson Creek and Eagle
+  Creek are T1050–T1053; the Harrison Lake one (e034e473) was answered 11-23 (gotcha, PR #85), now cited in T1046; no
+  staging crash defects (1 crawler). Production, TestFlight and Play not read in this check.
+- **T1050 ice fishing lines** (Dick Lake: "Lines: 1." and "Hook, lure or fly per line: 1." under Ice fishing repeat the
+  Gear tab). A: show a count under a way only where it differs from the Gear tab (here only the hut and ice-hole duties
+  stay). B: one line "Same gear as above: 1 line, 1 lure or fly". C: keep. Recommended / default once you pick: A.
+  Picture: `handoff/PLAN/app-integration/T1050-shots/report-now.png`.
+- **T1051 treble hooks on a lake** (yes, allowed on Dick Lake: p.80 "use of a treble hook is permitted unless single
+  hook is specified", p.8 barbed hooks allowed in lakes; the Gear tab says nothing). A: a second Hooks line "Treble and
+  barbed hooks allowed ⓘ" wherever nothing restricts hooks. B: the same on lakes only. C: keep silent, note in the ⓘ
+  only. Recommended: A. Picture: `handoff/PLAN/app-integration/T1051-shots/report-now.png`.
+- **T1052 fully closed water: one statement** (Nelson Creek). A: keep both calendars; one block "Closed to all fishing
+  all year, salmon included" / "The B.C. Synopsis row for Nelson Creek (and its tributaries) reads “No Fishing”." + the
+  source. B: smallest change, the banner says "No fishing for any fish, salmon included" and the salmon row's sentence
+  goes. C: A with one "All fish" calendar. Recommended: A. Picture: `handoff/PLAN/app-integration/T1052-shots/report-now.png`.
+- **T1053 walk through a head lake** (Eagle Creek ✱ flows out of Dick Lake; the walk stops at the lake, so Dick Creek
+  and 9 small streams above it stay under the zone rules; no written ruling covers this, it is as built). K: keep (as
+  built). L: a whole-water rule's walk climbs through its head lake when that lake has no row of its own (24 such lakes:
+  Dick, Cameron, Morice, Meziadin, Tsacha, Sooke …); the lake itself stays uncovered. M: through every head lake (36, incl.
+  Cowichan, Pitt, Slocan, Babine: much wider). Recommended: L, after a binding diff you read. Default: K until you rule.
+  Also the words: the rule's Sources sheet should say "Covers Eagle Creek and its tributary streams" (A, recommended) or
+  only show it in Technical detail (B). Picture: `handoff/PLAN/app-integration/T1053-shots/report-now.png`.
+
 ## 2026-11-24 08:25–08:50: 0.9.1 overnight questions, the answers (verbatim)
 
 - T905 salmon sizes: "Move worker state out (Recommended)" — the worker's own bookkeeping leaves the public feed (feed

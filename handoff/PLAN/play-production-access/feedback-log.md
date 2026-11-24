@@ -95,13 +95,19 @@ leave them out.
 | D05 | 2026-11-21 | in person | owner | 0.8.4 web | Opened from a search result, back went to the default map instead of the water | T989 | fixed | 0.8.5 |
 | D06 | 2026-11-23 | in person | owner | 0.8.5 web | The public gauge page's chart was a low-resolution 7-day chart with no forecast | T1039 | fixed, owner read pending | 0.9.0 (staging only, r-0aec88ed3edb; production build pending) |
 | D07 | 2026-11-23 | in person | owner | 0.8.5 | A gauge with a live level on the Water Office page showed no Level in the app | T1043 | fixed | 0.9.0 (staging only, r-0aec88ed3edb; production build pending) |
+| D08 | 2026-11-23 | in-app report (staging) | owner | 0.8.5 Android | A lake's lake trout read "hatchery only"; asked why (the book read the agreed way; added to the gotchas) | — (answered; T1046 cites it) | answered, no change | — |
+| D09 | 2026-11-24 | in-app report (staging) | owner | 0.9.0 web | A water closed to all fishing said it twice, salmon and game fish under separate headings | T1052 | open | — |
+| D10 | 2026-11-24 | in-app report (staging) | owner | 0.9.0 web | A creek closed with its tributaries: the sources did not say "tributaries", and streams above its head lake were left out | T1053 | open (part waits on an owner ruling) | — |
+| D11 | 2026-11-24 | in-app report (staging) | owner | 0.9.0 web | Asked whether treble hooks are allowed on a lake: the gear tab did not say | T1051 | open | — |
+| D12 | 2026-11-24 | in-app report (staging) | owner | 0.9.0 web | Ice fishing repeated the gear tab's line and hook counts | T1050 | open | — |
 
 ## Counts (refresh before applying)
 
 As of 2026-11-24: 16 tester rows from 7 tags (T-1 … T-4, TF-1, CT-1, CT-2; some may be the same person), 9 in-app
-report rows, 14 crash rows (39 in all), plus 7 developer rows. Of the 39: 25 fixed in a shipped release, 1 fixed with
+report rows, 14 crash rows (39 in all), plus 12 developer rows. Of the 39: 25 fixed in a shipped release, 1 fixed with
 the owner's read pending (F34), 6 fixed in 0.9.0 (on staging as r-0aec88ed3edb: F15, F16, F22, F24, and F21, F25 with the
 owner's read pending), 3 in progress (F06, F23, F35; F23 and F35 partly fixed in 0.9.0), 4 open.
-Developer rows: D01 fixed, owner read pending; D02–D05 fixed; D06 (owner read pending) and D07 fixed in 0.9.0.
+Developer rows: D01 fixed, owner read pending; D02–D05 fixed; D06 (owner read pending) and D07 fixed in 0.9.0; D08
+answered with no change; D09–D12 open (0.9.1).
 TODO (before applying): add every Play Console testing-feedback item (Monitor and improve > Ratings and reviews >
 Testing feedback) the owner reads, then recount.
