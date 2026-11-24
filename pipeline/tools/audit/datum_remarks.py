@@ -8,7 +8,7 @@ today's zero only by an ACCEPTED row of the curated `datum_change_stations.json`
 tool finds the candidates: every `STN_REMARKS` row of a roster station (`SOURCE/bc_hydrometric_stations.json`, the
 stations the app uses) whose wording names a datum, a relocation or a gauge zero (`WORDING`).
 
-WHAT A ROW SAYS. `station`, `name`, `realtime` (the roster's flag), `type` (HYDAT's remark type), `year` (null: a standing
+WHAT A ROW SAYS. `station`, `name`, `type` (HYDAT's remark type), `year` (null: a standing
 remark, HYDAT's -999), `remark` (VERBATIM, as HYDAT stores it), `words` (the wording it matched), `kind` (a SORT, not a
 decision: `change` a relocation / new zero / step, `kept` a move with the datum kept, `conversion` a constant to another
 datum, `quality` a datum's stability or definition, `other`), `date` (the one full date the remark states, else null with
@@ -164,8 +164,7 @@ def scan(hydat: Path, roster: list[dict]) -> list[dict]:
         k = kind(flat)
         d, d_why = the_date(flat)
         off, off_why, approx = the_offset(flat, k)
-        out.append({"station": st, "name": by_id[st].get("name"), "realtime": bool(by_id[st].get("realtime")),
-                    "type": types.get(code, str(code)), "year": None if year == -999 else year, "remark": text,
+        out.append({"station": st, "name": by_id[st].get("name"), "type": types.get(code, str(code)), "year": None if year == -999 else year, "remark": text,
                     "words": w, "kind": k, "date": d, "date_reason": d_why, "offset_m": off,
                     "offset_reason": off_why, "approximate": approx, "metres": metres(flat)})
     return out

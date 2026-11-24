@@ -41,7 +41,6 @@
   {
    "station": "07FA004",
    "name": "PEACE RIVER ABOVE PINE RIVER",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2000,
    "remark": "GEODETIC ELEVATION SUPPLIED BY B.C. HYDRO",
@@ -59,7 +58,6 @@
   {
    "station": "07FA004",
    "name": "PEACE RIVER ABOVE PINE RIVER",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2001,
    "remark": "GEODETIC ELEVATION SUPPLIED BY B.C. HYDRO. JUNE 13 TO JUNE 17 REVISED AUGUST 14, 2012",
@@ -77,7 +75,6 @@
   {
    "station": "07FA004",
    "name": "PEACE RIVER ABOVE PINE RIVER",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2002,
    "remark": "GEODETIC ELEVATION SUPPLIED BY B.C. HYDRO",
@@ -95,7 +92,6 @@
   {
    "station": "07FA004",
    "name": "PEACE RIVER ABOVE PINE RIVER",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2003,
    "remark": "GEODETIC ELEVATION SUPPLIED BY B.C. HYDRO",
@@ -113,7 +109,6 @@
   {
    "station": "07FA004",
    "name": "PEACE RIVER ABOVE PINE RIVER",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2004,
    "remark": "GEODETIC ELEVATION SUPPLIED BY B.C. HYDRO",
@@ -131,7 +126,6 @@
   {
    "station": "07FA004",
    "name": "PEACE RIVER ABOVE PINE RIVER",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2005,
    "remark": "GEODETIC ELEVATION SUPPLIED BY B.C. HYDRO",
@@ -149,7 +143,6 @@
   {
    "station": "07FA004",
    "name": "PEACE RIVER ABOVE PINE RIVER",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2006,
    "remark": "GEODETIC ELEVATION SUPPLIED BY B.C HYDRO",
@@ -167,7 +160,6 @@
   {
    "station": "07FA004",
    "name": "PEACE RIVER ABOVE PINE RIVER",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2007,
    "remark": "GEODETIC ELEVATION SUPPLIED BY B.C HYDRO",
@@ -185,7 +177,6 @@
   {
    "station": "07FA004",
    "name": "PEACE RIVER ABOVE PINE RIVER",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2008,
    "remark": "2008 GEODETIC ELEVATION SUPPLIED BY B.C HYDRO",
@@ -203,7 +194,6 @@
   {
    "station": "07FA004",
    "name": "PEACE RIVER ABOVE PINE RIVER",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2009,
    "remark": "2009 GEODETIC ELEVATION SUPPLIED BY B.C HYDRO",
@@ -221,7 +211,6 @@
   {
    "station": "07FA004",
    "name": "PEACE RIVER ABOVE PINE RIVER",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2010,
    "remark": "2010 GEODETIC ELEVATION SUPPLIED BY BC HYDRO",
@@ -239,7 +228,6 @@
   {
    "station": "07FB004",
    "name": "DICKEBUSCH CREEK NEAR THE MOUTH",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2015,
    "remark": "Datum stability is less than that defined by typical WSC standards for the period 2015 - 2018.",
@@ -257,7 +245,6 @@
   {
    "station": "07FB004",
    "name": "DICKEBUSCH CREEK NEAR THE MOUTH",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2016,
    "remark": "Datum stability is less than that defined by typical WSC standards for the period 2015 - 2018.",
@@ -275,7 +262,6 @@
   {
    "station": "07FB004",
    "name": "DICKEBUSCH CREEK NEAR THE MOUTH",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2017,
    "remark": "Datum stability is less than that defined by typical WSC standards for the period 2015 - 2018.",
@@ -293,7 +279,6 @@
   {
    "station": "07FB004",
    "name": "DICKEBUSCH CREEK NEAR THE MOUTH",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2018,
    "remark": "Datum stability is less than that defined by typical WSC standards for the period 2015 - 2018.",
@@ -311,7 +296,6 @@
   {
    "station": "07FB004",
    "name": "DICKEBUSCH CREEK NEAR THE MOUTH",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2019,
    "remark": "Datum stability is less than that defined by typical WSC standards for the period 2015 - 2019.",
@@ -329,7 +313,6 @@
   {
    "station": "07FB009",
    "name": "FLATBED CREEK AT KILOMETRE 110 HERITAGE HIGHWAY",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2015,
    "remark": "Datum definition for the periods 2015 to 2017, inclusive, was not defined to normal WSC practices.",
@@ -347,7 +330,6 @@
   {
    "station": "07FB009",
    "name": "FLATBED CREEK AT KILOMETRE 110 HERITAGE HIGHWAY",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2016,
    "remark": "Datum definition for the periods 2015 to 2017, inclusive, was not defined to normal WSC practices.",
@@ -365,7 +347,6 @@
   {
    "station": "07FB009",
    "name": "FLATBED CREEK AT KILOMETRE 110 HERITAGE HIGHWAY",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2017,
    "remark": "Datum definition for the periods 2015 to 2017, inclusive, was not defined to normal WSC practices.",
@@ -383,7 +364,6 @@
   {
    "station": "07FB009",
    "name": "FLATBED CREEK AT KILOMETRE 110 HERITAGE HIGHWAY",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2018,
    "remark": "Datum not defined tightly at this location for the 2018 review period.",
@@ -401,7 +381,6 @@
   {
    "station": "07FB009",
    "name": "FLATBED CREEK AT KILOMETRE 110 HERITAGE HIGHWAY",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2019,
    "remark": "Datum not defined tightly at this location for the 2019 review period.",
@@ -419,7 +398,6 @@
   {
    "station": "07FD001",
    "name": "KISKATINAW RIVER NEAR FARMINGTON",
-   "realtime": true,
    "type": "HISTORICAL DISCHARGE",
    "year": null,
    "remark": "STATION RELOCATED ON 2026-08-05.",
@@ -437,7 +415,6 @@
   {
    "station": "07FD001",
    "name": "KISKATINAW RIVER NEAR FARMINGTON",
-   "realtime": true,
    "type": "HISTORICAL WATER LEVELS",
    "year": null,
    "remark": "STATION RELOCATED ON 2026-08-05.",
@@ -455,7 +432,6 @@
   {
    "station": "08DB001",
    "name": "NASS RIVER ABOVE SHUMAL CREEK",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2018,
    "remark": "Station Relocated 6.5kms upstream for data starting Jan 18/2018. New assumed datum established.\nUp to Jan 17/2018 Add 22.547m to get to (605) CGVD2013 Epoch 2010. This is equivalent to the assumed zero.\nJan 18/2018 to present-Add 27.182 to get to (605) CGVD2013 Epoch 2010. This is equivalent to the assumed zero.\n",
@@ -476,7 +452,6 @@
   {
    "station": "08EB003",
    "name": "SKEENA RIVER AT GLEN VOWELL",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2008,
    "remark": "2008 STATION REACTIVATED ON SEP 24 THIS YEAR. LAST FULL YEAR OF OPERATIONS WAS 1987. DATUM CONSERVED",
@@ -494,7 +469,6 @@
   {
    "station": "08EB003",
    "name": "SKEENA RIVER AT GLEN VOWELL",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2009,
    "remark": "2009 STATION REACTIVATED ON SEP 24 2008. LAST FULL YEAR OF OPERATIONS WAS 1987. DATUM CONSERVED",
@@ -512,7 +486,6 @@
   {
    "station": "08EB003",
    "name": "SKEENA RIVER AT GLEN VOWELL",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2010,
    "remark": "2010 STATION REACTIVATED ON SEP 24 2008.  DATUM CONSERVED",
@@ -530,7 +503,6 @@
   {
    "station": "08EB005",
    "name": "SKEENA RIVER ABOVE BABINE RIVER",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2009,
    "remark": "2009 STATION REACTIVATED ON OCT 30 2008; LAST FULL YEAR OF OPERATIONS WAS 1995. DATUM CONSERVED",
@@ -548,7 +520,6 @@
   {
    "station": "08EB005",
    "name": "SKEENA RIVER ABOVE BABINE RIVER",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2010,
    "remark": "2010 STATION REACTIVATED ON OCT 30 2008; LAST FULL YEAR OF OPERATIONS WAS 1995. DATUM CONSERVED",
@@ -566,7 +537,6 @@
   {
    "station": "08EE003",
    "name": "BULKLEY RIVER NEAR HOUSTON",
-   "realtime": true,
    "type": "HISTORICAL WATER LEVELS",
    "year": null,
    "remark": "RELOCATED 130 M DOWNSTREAM IN 1971. DISCONTINUED DEC 31 1971. STATION RE-ESTABLISHED IN APR 1980 FOR B.C. WATER MANAGEMENT BRANCH, VICTORIA, B.C.\nSTATION RELOCATED IN 2010 DUE TO OPERATIONAL REASONS. ",
@@ -584,7 +554,6 @@
   {
    "station": "08EF001",
    "name": "SKEENA RIVER AT USK",
-   "realtime": true,
    "type": "HISTORICAL DISCHARGE",
    "year": null,
    "remark": "The gauging location moved January 30, 2025.  Water level and discharge will now be collected approximately 1.0km upstream from the original site, resulting in a minor basin area change and higher water level values due to the increase in elevation.",
@@ -603,7 +572,6 @@
   {
    "station": "08EF001",
    "name": "SKEENA RIVER AT USK",
-   "realtime": true,
    "type": "HISTORICAL WATER LEVELS",
    "year": null,
    "remark": "The gauging location moved on January 30, 2025.  Water level and discharge will now be collected approximately 1.0km upstream from the original site, resulting in a minor basin area change and higher water level values due to the increase in elevation.",
@@ -622,7 +590,6 @@
   {
    "station": "08EF001",
    "name": "SKEENA RIVER AT USK",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2025,
    "remark": "Station moved approximately 1km upstream of original location on 2025-01-30, causing a 2.370m jump in stage due to change in elevation.",
@@ -644,7 +611,6 @@
   {
    "station": "08FF002",
    "name": "HIRSCH CREEK NEAR THE MOUTH",
-   "realtime": true,
    "type": "HISTORICAL WATER LEVELS",
    "year": null,
    "remark": "STATION MOVED 30M UPSTREAM AND ACROSS TO THE RIGHT BANK ON SEP 9, 2005. DATUM MAINTAINED.",
@@ -663,7 +629,6 @@
   {
    "station": "08FF003",
    "name": "LITTLE WEDEENE RIVER BELOW BOWBYES CREEK",
-   "realtime": true,
    "type": "HISTORICAL WATER LEVELS",
    "year": null,
    "remark": "STATION RELOCATED MAY 23 1979 2.6 KM UPSTREAM. DRAINAGE AREA UP TO MAY 23 1979 WAS 185 KM2.\n\nSTATION RELOCATED APPROX. 0.5 KM DOWNSTREAM ON MAY 30, 2002. THIS RESULTED IN THE GAUGE DATUM BEING LOWERED BY 3.516M.",
@@ -684,7 +649,6 @@
   {
    "station": "08GA026",
    "name": "CAPILANO RIVER ABOVE EASTCAP CREEK",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2023,
    "remark": "The station was re-established on 2023-09-06.  The original benchmark network was found intact, and every effort was made to ensure the new station datum is similar to the historical station datum.  Instability in the benchmark network indicates the current assumed datum may vary +/- 0.020m from the historical assumed datum.",
@@ -703,7 +667,6 @@
   {
    "station": "08GB014",
    "name": "HORSESHOE RIVER ABOVE LOIS LAKE",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2012,
    "remark": "Gauge relocated approximately 1km upstream on May 9 2012. New assumed datum assigned but no tie between the two.",
@@ -722,7 +685,6 @@
   {
    "station": "08GC005",
    "name": "THEODOSIA RIVER DIVERSION ABOVE OLSEN LAKE",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2000,
    "remark": "ADD 161.021M TO CONVERT TO PACIFICA PAPER DATUM",
@@ -742,7 +704,6 @@
   {
    "station": "08GC005",
    "name": "THEODOSIA RIVER DIVERSION ABOVE OLSEN LAKE",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2001,
    "remark": "ADD 161.021M TO CONVERT TO PACIFICA PAPER DATUM",
@@ -762,7 +723,6 @@
   {
    "station": "08GC005",
    "name": "THEODOSIA RIVER DIVERSION ABOVE OLSEN LAKE",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2002,
    "remark": "ADD 161.021M TO CONVERT TO PACIFICA PAPER DATUM",
@@ -782,7 +742,6 @@
   {
    "station": "08GC005",
    "name": "THEODOSIA RIVER DIVERSION ABOVE OLSEN LAKE",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2003,
    "remark": "ADD 161.021M TO CONVERT TO PACIFICA PAPER DATUM",
@@ -802,7 +761,6 @@
   {
    "station": "08GC005",
    "name": "THEODOSIA RIVER DIVERSION ABOVE OLSEN LAKE",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2004,
    "remark": "ADD 161.021M TO CONVERT TO PACIFICA PAPER DATUM",
@@ -822,7 +780,6 @@
   {
    "station": "08GC005",
    "name": "THEODOSIA RIVER DIVERSION ABOVE OLSEN LAKE",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2005,
    "remark": "ADD 161.021M TO CONVERT TO PACIFICA PAPER DATUM",
@@ -842,7 +799,6 @@
   {
    "station": "08GC005",
    "name": "THEODOSIA RIVER DIVERSION ABOVE OLSEN LAKE",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2006,
    "remark": "ADD 161.021 METRES TO CONVERT TO PACIFICA PAPER DATUM",
@@ -862,7 +818,6 @@
   {
    "station": "08GC005",
    "name": "THEODOSIA RIVER DIVERSION ABOVE OLSEN LAKE",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2007,
    "remark": "ADD 161.021 METRES TO CONVERT TO PACIFICA PAPER DATUM",
@@ -882,7 +837,6 @@
   {
    "station": "08GC005",
    "name": "THEODOSIA RIVER DIVERSION ABOVE OLSEN LAKE",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2008,
    "remark": "2008 ADD 161.021 METRES TO CONVERT TO PACIFICA PAPER DATUM",
@@ -902,7 +856,6 @@
   {
    "station": "08GC005",
    "name": "THEODOSIA RIVER DIVERSION ABOVE OLSEN LAKE",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2009,
    "remark": "2009 ADD 161.021 METRES TO CONVERT TO PACIFICA PAPER DATUM",
@@ -922,7 +875,6 @@
   {
    "station": "08GC006",
    "name": "THEODOSIA RIVER DIVERSION BYPASS",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2000,
    "remark": "ADD 161.021M TO CONVERT TO PACIFICA PAPER DATUM",
@@ -942,7 +894,6 @@
   {
    "station": "08GC006",
    "name": "THEODOSIA RIVER DIVERSION BYPASS",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2001,
    "remark": "ADD 161.021M TO CONVERT TO PACIFICA PAPER DATUM",
@@ -962,7 +913,6 @@
   {
    "station": "08GC006",
    "name": "THEODOSIA RIVER DIVERSION BYPASS",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2002,
    "remark": "ADD 161.021M TO CONVERT TO PACIFICA PAPER DATUM - 9 DAY SHIFT USED FEB 02-11",
@@ -982,7 +932,6 @@
   {
    "station": "08GC006",
    "name": "THEODOSIA RIVER DIVERSION BYPASS",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2003,
    "remark": "ADD 161.021M TO CONVERT TO PACIFICA PAPER DATUM; STAGE SHIFT TABLE USED JUN 30- AUG 25, 2003.",
@@ -1002,7 +951,6 @@
   {
    "station": "08GC006",
    "name": "THEODOSIA RIVER DIVERSION BYPASS",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2004,
    "remark": "ADD 161.021M TO CONVERT TO PACIFICA PAPER DATUM",
@@ -1022,7 +970,6 @@
   {
    "station": "08GC006",
    "name": "THEODOSIA RIVER DIVERSION BYPASS",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2005,
    "remark": "ADD 161.021M TO CONVERT TO PACIFICA PAPER DATUM",
@@ -1042,7 +989,6 @@
   {
    "station": "08GC006",
    "name": "THEODOSIA RIVER DIVERSION BYPASS",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2006,
    "remark": "ADD 161.021 M TO CONVERT TO PACIFICA PAPER DATUM",
@@ -1062,7 +1008,6 @@
   {
    "station": "08GC006",
    "name": "THEODOSIA RIVER DIVERSION BYPASS",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2007,
    "remark": "ADD 161.021 M TO CONVERT TO PACIFICA PAPER DATUM",
@@ -1082,7 +1027,6 @@
   {
    "station": "08GC006",
    "name": "THEODOSIA RIVER DIVERSION BYPASS",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2008,
    "remark": "2008 ADD 161.021 M TO CONVERT TO PACIFICA PAPER DATUM",
@@ -1102,7 +1046,6 @@
   {
    "station": "08GC006",
    "name": "THEODOSIA RIVER DIVERSION BYPASS",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2009,
    "remark": "2009 ADD 161.021 M TO CONVERT TO PACIFICA PAPER DATUM",
@@ -1122,7 +1065,6 @@
   {
    "station": "08GC006",
    "name": "THEODOSIA RIVER DIVERSION BYPASS",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2010,
    "remark": "2010 ADD 161.021 M TO CONVERT TO PACIFICA PAPER DATUM",
@@ -1142,7 +1084,6 @@
   {
    "station": "08GC007",
    "name": "THEODOSIA RIVER BELOW OLSEN LAKE DIVERSION",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2000,
    "remark": "ADD 161.021M TO CONVERT TO PACIFICA PAPER DATUM",
@@ -1162,7 +1103,6 @@
   {
    "station": "08GC007",
    "name": "THEODOSIA RIVER BELOW OLSEN LAKE DIVERSION",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2001,
    "remark": "ADD 161.021M TO CONVERT TO PACIFICA PAPER DATUM",
@@ -1182,7 +1122,6 @@
   {
    "station": "08GC007",
    "name": "THEODOSIA RIVER BELOW OLSEN LAKE DIVERSION",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2002,
    "remark": "ADD 161.021M TO CONVERT TO PACIFICA PAPER DATUM",
@@ -1202,7 +1141,6 @@
   {
    "station": "08GC007",
    "name": "THEODOSIA RIVER BELOW OLSEN LAKE DIVERSION",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2003,
    "remark": "ADD 161.021M TO CONVERT TO PACIFICA PAPER DATUM",
@@ -1222,7 +1160,6 @@
   {
    "station": "08GC007",
    "name": "THEODOSIA RIVER BELOW OLSEN LAKE DIVERSION",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2004,
    "remark": "ADD 161.021M TO CONVERT TO PACIFICA PAPER DATUM",
@@ -1242,7 +1179,6 @@
   {
    "station": "08GC007",
    "name": "THEODOSIA RIVER BELOW OLSEN LAKE DIVERSION",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2005,
    "remark": "ADD 161.021M TO CONVERT TO PACIFICA PAPER DATUM",
@@ -1262,7 +1198,6 @@
   {
    "station": "08GC007",
    "name": "THEODOSIA RIVER BELOW OLSEN LAKE DIVERSION",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2006,
    "remark": "ADD 161.021 M. TO CONVERT TO PACIFICA PAPER DATUM",
@@ -1282,7 +1217,6 @@
   {
    "station": "08GC007",
    "name": "THEODOSIA RIVER BELOW OLSEN LAKE DIVERSION",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2007,
    "remark": "ADD 161.021 M. TO CONVERT TO PACIFICA PAPER DATUM",
@@ -1302,7 +1236,6 @@
   {
    "station": "08GC007",
    "name": "THEODOSIA RIVER BELOW OLSEN LAKE DIVERSION",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2008,
    "remark": "2008 ADD 161.021 M. TO CONVERT TO PACIFICA PAPER DATUM",
@@ -1322,7 +1255,6 @@
   {
    "station": "08GC007",
    "name": "THEODOSIA RIVER BELOW OLSEN LAKE DIVERSION",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2009,
    "remark": "2009 ADD 161.021 M. TO CONVERT TO PACIFICA PAPER DATUM, STAGE DISCHARGE RELATIONSHIP WAS NOT APPLICA",
@@ -1342,7 +1274,6 @@
   {
    "station": "08GC007",
    "name": "THEODOSIA RIVER BELOW OLSEN LAKE DIVERSION",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2010,
    "remark": "2010 ADD 161.021 M. TO CONVERT TO PACIFICA PAPER DATUM",
@@ -1362,7 +1293,6 @@
   {
    "station": "08HA002",
    "name": "COWICHAN RIVER AT LAKE COWICHAN",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2005,
    "remark": "ERROR IN CONVERSION TO APPROX. GSC DATUM CORRECTED THIS YEAR.",
@@ -1380,7 +1310,6 @@
   {
    "station": "08HA003",
    "name": "KOKSILAH RIVER AT COWICHAN STATION",
-   "realtime": true,
    "type": "HISTORICAL WATER LEVELS",
    "year": null,
    "remark": "STATION RELOCATED ON 2023-09-07.",
@@ -1398,7 +1327,6 @@
   {
    "station": "08HB022",
    "name": "NILE CREEK NEAR BOWSER",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2011,
    "remark": "STATION RELOCATED APPROXIMATELY 475 M UPSTREAM AND NEW ASSUMED DATUM ESTABLISHED SEP 1, 2011",
@@ -1417,7 +1345,6 @@
   {
    "station": "08HB025",
    "name": "BROWNS RIVER NEAR COURTENAY",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2007,
    "remark": "DATUM CONVERSION OF 20.000 M EFFECTIVE 2007-01-01 FOR DOWNSTREAM RELOCATION OF GAUGE",
@@ -1438,7 +1365,6 @@
   {
    "station": "08HB032",
    "name": "MILLSTONE RIVER AT NANAIMO",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2012,
    "remark": "Bridge construction in 2012. Station relocated to new bridge at same location 2012-11-01. Datum maintained.",
@@ -1457,7 +1383,6 @@
   {
    "station": "08HB075",
    "name": "DOVE CREEK NEAR THE MOUTH",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2007,
    "remark": "PERIODS FLAGGED \"E\" DUE TO LARGE SENSOR RESETS",
@@ -1475,7 +1400,6 @@
   {
    "station": "08HB082",
    "name": "COMOX LAKE NEAR COURTENAY",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2009,
    "remark": "2009 EXTREMELY POOR DATA QUALITY; SENSOR RESETS +0.077 TO -0.129; USE WITH DISCRETION",
@@ -1493,7 +1417,6 @@
   {
    "station": "08HB092",
    "name": "SOUTH NANAIMO RIVER NEAR JUNCTION",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2003,
    "remark": "STATION LOCATION MOVED 7 KM UPSTREAM IN 2003",
@@ -1511,7 +1434,6 @@
   {
    "station": "08HD006",
    "name": "SALMON RIVER NEAR SAYWARD",
-   "realtime": true,
    "type": "HISTORICAL WATER LEVELS",
    "year": null,
    "remark": "The station was relocated on June 5, 2025, 1.5km downstream to the Sayward Road bridge- the original station location from establishment in 1956 to 1981. The datum from that period is preserved, with original benchmark elevations used (converted from feet to meters). This datum was not preserved when the station was relocated in 1981 and again in 2015 to the most recent location. The datum change results in a ~5m drop in stage on the 2025 relocation date.\n",
@@ -1536,7 +1458,6 @@
   {
    "station": "08HD023",
    "name": "LITTLE OYSTER RIVER AT YORKE ROAD",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2006,
    "remark": "LOW WATER PERIOD JUL - OCT IN VARIABLE BACKWATER DUE TO BEAVER ACTIVITY. APPEARS BEAVER ACTIVITY IS GOING TO BE ONGOING.  RELOCATED 10 IN 2011, BEAVERS BACK IN 2012.",
@@ -1554,7 +1475,6 @@
   {
    "station": "08JA023",
    "name": "NECHAKO RESERVOIR AT SKINS LAKE SPILLWAY",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2021,
    "remark": "The datum at this station 08JA023 is poorly defined and is not tight for the period of at least 2013 to 2021. Two new benchmarks were installed this year to help improve datum definition",
@@ -1573,7 +1493,6 @@
   {
    "station": "08JB002",
    "name": "STELLAKO RIVER AT GLENANNAN",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2007,
    "remark": "STATION AND WATER LEVEL LOCATION MOVED UP 250 M FROM OUTLET OF FRANCOIS LAKE",
@@ -1591,7 +1510,6 @@
   {
    "station": "08JB007",
    "name": "NADINA LAKE NEAR NORALEE",
-   "realtime": true,
    "type": "HISTORICAL WATER LEVELS",
    "year": null,
    "remark": "STATION RELOCATED AT LAKE OUTLET AT DIFFERENT DATUM ON NOV 17 1974.",
@@ -1610,7 +1528,6 @@
   {
    "station": "08KC001",
    "name": "SALMON RIVER NEAR PRINCE GEORGE",
-   "realtime": true,
    "type": "HISTORICAL WATER LEVELS",
    "year": null,
    "remark": "The datum is variable and changed over the 5 year period between 2016 and 2021, to an undetermined degree, but likely to be within 0.009m of the old datum.",
@@ -1630,7 +1547,6 @@
   {
    "station": "08KD006",
    "name": "WILLOW RIVER ABOVE HAY CREEK",
-   "realtime": false,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2018,
    "remark": "STATION DESTROYED. NO DATA AFTER SEP 15, 2011.  STATION WILL HAVE TO BE MOVED TO A NEW LOCATION",
@@ -1649,7 +1565,6 @@
   {
    "station": "08LB020",
    "name": "BARRIERE RIVER AT THE MOUTH",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2016,
    "remark": "Station moved upstream 1.3km on Oct 4 2016. New Gauge installed on LB 5m downstream of Bridge on Barriere Town Road. New Benchmarks installed referenced to a an assumed datum.",
@@ -1669,7 +1584,6 @@
   {
    "station": "08LB078",
    "name": "LEMIEUX CREEK NEAR THE MOUTH",
-   "realtime": true,
    "type": "HISTORICAL WATER LEVELS",
    "year": null,
    "remark": "On 2014-01-01, 1.000m was added to the datum to avoid negative water levels.",
@@ -1689,7 +1603,6 @@
   {
    "station": "08LE111",
    "name": "SHUSWAP LAKE AT BLIND BAY",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2023,
    "remark": "MAXIMUM AND MINIMUM INSTANTANEOUS AND DAILY WATER LEVEL NOT VALID - THE STATION WAS ACTIVATED ON 2023-09-25.\nWater level established using water level transfer from 08LE070 however datum was not maintained between sites. \n\n",
@@ -1707,7 +1620,6 @@
   {
    "station": "08MG012",
    "name": "HARRISON LAKE NEAR HARRISON HOT SPRINGS",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2009,
    "remark": "2009 GEODETIC ELEVATION UPDATE TO BM 77C626 EFFECTIVE 1997 RESULTING IN 0.006 CORRECTION TO LOCAL DATUM TO OBTAIN GEODETIC",
@@ -1726,7 +1638,6 @@
   {
    "station": "08MG012",
    "name": "HARRISON LAKE NEAR HARRISON HOT SPRINGS",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2010,
    "remark": "2010 GEODETIC ELEVATION UPDATE TO BM 77C626 EFFECTIVE 1997 RESULTING IN VALUE TO CONVERT",
@@ -1744,7 +1655,6 @@
   {
    "station": "08MG014",
    "name": "HARRISON RIVER AT HARRISON MILLS",
-   "realtime": true,
    "type": "HISTORICAL WATER LEVELS",
    "year": null,
    "remark": "The station's assumed datum changed when re-established in 2013. The change is approximately -4.923 m difference from the 1938 to 1984 datum. The accuracy of the given datum adjustment has not been assessed at this time.",
@@ -1764,7 +1674,6 @@
   {
    "station": "08MH029",
    "name": "SUMAS RIVER NEAR HUNTINGDON",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2018,
    "remark": "The stability of three benchmarks installed on the bridge was disrupted by bridge construction/upgrades during 2018.  It is assumed the stability of the control benchmark was not impacted; however, this cannot be proved with certainty.  The event has introduced up to +/-0.015 m of uncertainty into the station datum.",
@@ -1785,7 +1694,6 @@
   {
    "station": "08MH044",
    "name": "FRASER RIVER AT WHONOCK",
-   "realtime": true,
    "type": "HISTORICAL WATER LEVELS",
    "year": null,
    "remark": "STATION RELOCATED AND RENAMED FROM FRASER RIVER AT WHONOCK TO FRASER RIVER AT ALBION ON 2026-09-15.",
@@ -1803,7 +1711,6 @@
   {
    "station": "08MH053",
    "name": "FRASER RIVER AT DEAS ISLAND TUNNEL",
-   "realtime": true,
    "type": "HISTORICAL WATER LEVELS",
    "year": null,
    "remark": "STATION RELOCATED ON 2026-05-15",
@@ -1821,7 +1728,6 @@
   {
    "station": "08MH141",
    "name": "COQUITLAM RIVER ABOVE COQUITLAM LAKE",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2022,
    "remark": "Station was relocated on 2022-08-30 to the right bank of the Coquitlam River to improve access to the gauging station.",
@@ -1839,7 +1745,6 @@
   {
    "station": "08MH155",
    "name": "NICOMEKL RIVER AT 203 STREET, LANGLEY",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2016,
    "remark": "During the period 2016 to 2019, the benchmark network was reduced to two temporary bench mark reference points which have demonstrated instability with each other.  Since no third reference point was available, and a defined error of +/- 0.010 m exists between the two Temporary Bench Marks in place for this period, a degree of uncertainty exists as to the stability of the gauge datum.",
@@ -1861,7 +1766,6 @@
   {
    "station": "08MH167",
    "name": "HAYWARD LAKE ABOVE RUSKIN DAM",
-   "realtime": false,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2008,
    "remark": "2008 GEODETIC ELEVATION SUPPLIED BY BC HYDRO",
@@ -1879,7 +1783,6 @@
   {
    "station": "08MH167",
    "name": "HAYWARD LAKE ABOVE RUSKIN DAM",
-   "realtime": false,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2009,
    "remark": "2009 GEODETIC ELEVATION SUPPLIED BY BC HYDRO",
@@ -1897,7 +1800,6 @@
   {
    "station": "08MH167",
    "name": "HAYWARD LAKE ABOVE RUSKIN DAM",
-   "realtime": false,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2010,
    "remark": "2010 GEODETIC ELEVATION SUPPLIED BY BC HYDRO",
@@ -1915,7 +1817,6 @@
   {
    "station": "08NB021",
    "name": "BEAVER RIVER ABOVE CUPOLA CREEK",
-   "realtime": true,
    "type": "HISTORICAL WATER LEVELS",
    "year": null,
    "remark": "STATION RELOCATED AND RENAMED FROM 08NB019- BEAVER RIVER NEAR THE MOUTH TO 08NB021-BEAVER RIVER ABOVE CUPOLA CREEK ON 2021-09-21.",
@@ -1933,7 +1834,6 @@
   {
    "station": "08NE087",
    "name": "DEER CREEK AT DEER PARK",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2000,
    "remark": "STATION TO BE MOVED UPSTREAM AFTER DEC 31, 2000.",
@@ -1951,7 +1851,6 @@
   {
    "station": "08NE087",
    "name": "DEER CREEK AT DEER PARK",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2001,
    "remark": "FIRST YEAR OF OPERATION AT NEW SITE 2 KM UPSTREAM OF OLD SITE. ",
@@ -1969,7 +1868,6 @@
   {
    "station": "08NE087",
    "name": "DEER CREEK AT DEER PARK",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2002,
    "remark": "SECOND YEAR OF OPERATION AT NEW SITE 2 KM UPSTREAM OF OLD SITE. ",
@@ -1987,7 +1885,6 @@
   {
    "station": "08NE130",
    "name": "WHATSHAN RIVER BELOW BARNES CREEK",
-   "realtime": true,
    "type": "HISTORICAL WATER LEVELS",
    "year": null,
    "remark": "STATION RELOCATED AND RENAMED FROM 08NE077- BARNES CREEK NEAR NEEDLES TO 08NE130- WHATSHAN RIVER BELOW BARNES CREEK ON 2020-06-02.",
@@ -2005,7 +1902,6 @@
   {
    "station": "08NG065",
    "name": "KOOTENAY RIVER AT FORT STEELE",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2003,
    "remark": "AUG 12, 2003 LOWERED DATUM 1.000M",
@@ -2025,7 +1921,6 @@
   {
    "station": "08NH115",
    "name": "SULLIVAN CREEK NEAR CANYON",
-   "realtime": false,
    "type": "HISTORICAL WATER LEVELS",
    "year": null,
    "remark": "From date of establishment to 2024-01-11 water level was published using a variable datum.",
@@ -2043,7 +1938,6 @@
   {
    "station": "08NJ061",
    "name": "REDFISH CREEK NEAR HARROP",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2020,
    "remark": "DATUM CHANGE resulting in 5.000m step in water level data on 2020-09-01.",
@@ -2064,7 +1958,6 @@
   {
    "station": "08NJ130",
    "name": "ANDERSON CREEK NEAR NELSON",
-   "realtime": true,
    "type": "HISTORICAL WATER LEVELS",
    "year": null,
    "remark": "Between 1996 to 2025 water level was published using a variable datum.",
@@ -2082,7 +1975,6 @@
   {
    "station": "08NK002",
    "name": "ELK RIVER AT FERNIE",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2003,
    "remark": "STATION RELOCATED 1 KM DOWNSTREAM ON JUN 03, 2003",
@@ -2100,7 +1992,6 @@
   {
    "station": "08NK026",
    "name": "HOSMER CREEK ABOVE DIVERSIONS",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2022,
    "remark": "Weir destroyed with high water/debris event November 15, 2021. Data beyond this point is invalid and not published. No valid consistent datum definition between 2021 and May 2023.",
@@ -2118,7 +2009,6 @@
   {
    "station": "08NK026",
    "name": "HOSMER CREEK ABOVE DIVERSIONS",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2024,
    "remark": "STATION RELOCATED 2024-08-28, RESULTING IN STEP CHANGE TO WATER LEVEL DATA.\n\nMINIMUM AND MAXIMUM INSTANTANEOUS AND DAILY WATER LEVEL NOT VALID- STATION RELOCATED 2024-08-28.",
@@ -2136,7 +2026,6 @@
   {
    "station": "08NM142",
    "name": "COLDSTREAM CREEK ABOVE MUNICIPAL INTAKE",
-   "realtime": false,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2019,
    "remark": "Station relocated 400m downstream 2019/09/26. Previous assumed datum was not transferred to new site. No datum continuity between sites. New station location found to be unsuitable for gauging after 2020. The new location data publication was ended as of Aug 20, 2020. Replaced with new station Coldstream Creek at Coldstream Creek Road (08NM248) as of 2021/04/26.",
@@ -2157,7 +2046,6 @@
   {
    "station": "08NM142",
    "name": "COLDSTREAM CREEK ABOVE MUNICIPAL INTAKE",
-   "realtime": false,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2020,
    "remark": "Station relocated 400m downstream 2019/09/26. Previous assumed datum was not transferred to new site. No datum continuity between sites. New station location found to be unsuitable for gauging after 2020. The new location data publication was ended as of Aug 20, 2020. Replaced with new station Coldstream Creek at Coldstream Creek Road (08NM248) as of 2021/04/26.",
@@ -2178,7 +2066,6 @@
   {
    "station": "08NM172",
    "name": "PEARSON CREEK NEAR THE MOUTH",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2021,
    "remark": "Station re-established for 2021 and new full benchmark network established May 20th, 2021 using historical benchmark B.M.2 (70) elevation 2.597m from historical station description. Unable to determine if datum was maintained as only one historical benchmark was found and stability is unknown.",
@@ -2198,7 +2085,6 @@
   {
    "station": "08NM240",
    "name": "TWO FORTY CREEK NEAR PENTICTON",
-   "realtime": false,
    "type": "HISTORICAL WATER LEVELS",
    "year": null,
    "remark": "Effective January 1, 2017, stage not published due to variable datum.",
@@ -2216,7 +2102,6 @@
   {
    "station": "08NM241",
    "name": "TWO FORTY-ONE CREEK NEAR PENTICTON",
-   "realtime": false,
    "type": "HISTORICAL WATER LEVELS",
    "year": null,
    "remark": "Effective Jan 1, 2017, stage not published due to variable datum.\nAll stage data and peaks and extremes are considered unpublishable due to variable operating datum as per previous years.",
@@ -2234,7 +2119,6 @@
   {
    "station": "08NM242",
    "name": "DENNIS CREEK NEAR 1780 METRE CONTOUR",
-   "realtime": true,
    "type": "HISTORICAL WATER LEVELS",
    "year": null,
    "remark": "Effective January 1, 2017, stage not published due to variable datum.",
@@ -2252,7 +2136,6 @@
   {
    "station": "08OA003",
    "name": "PREMIER CREEK NEAR DAAJING GIIDS",
-   "realtime": false,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2006,
    "remark": "MULTIPLE SENSOR RESETS DUE TO CONTINUOUS SILTING QUALIFIES DATA AS SOMEWHAT < USUAL QUALITY",
@@ -2270,7 +2153,6 @@
   {
    "station": "10BE013",
    "name": "SMITH RIVER NEAR THE MOUTH",
-   "realtime": true,
    "type": "HISTORICAL DISCHARGE",
    "year": null,
    "remark": "STATION RELOCATED 11 KMS DOWNSTREAM NEAR THE MOUTH IN 2001",
@@ -2288,7 +2170,6 @@
   {
    "station": "10BE013",
    "name": "SMITH RIVER NEAR THE MOUTH",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2002,
    "remark": "FIRST YEAR SINCE STATION RELOCATED 11 KMS DOWNSTREAM NEAR THE MOUTH",
@@ -2306,7 +2187,6 @@
   {
    "station": "10BE013",
    "name": "SMITH RIVER NEAR THE MOUTH",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2003,
    "remark": "SECOND YEAR SINCE STATION RELOCATED 11 KMS DOWNSTREAM NEAR THE MOUTH",
@@ -2324,7 +2204,6 @@
   {
    "station": "10BE013",
    "name": "SMITH RIVER NEAR THE MOUTH",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2004,
    "remark": "THIRD YEAR SINCE STATION RELOCATED 11 KMS DOWNSTREAM NEAR THE MOUTH",
@@ -2342,7 +2221,6 @@
   {
    "station": "10BE013",
    "name": "SMITH RIVER NEAR THE MOUTH",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2005,
    "remark": "FOURTH YEAR SINCE STATION RELOCATED 11 KMS DOWNSTREAM NEAR THE MOUTH",
@@ -2360,7 +2238,6 @@
   {
    "station": "10BE013",
    "name": "SMITH RIVER NEAR THE MOUTH",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2006,
    "remark": "4TH YEAR SINCE STATION RELOCATED 11 KMS DOWNSTREAM NEAR MOUTH",
@@ -2378,7 +2255,6 @@
   {
    "station": "10BE013",
    "name": "SMITH RIVER NEAR THE MOUTH",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2007,
    "remark": "STATION RELOCATED 11 KMS DOWNSTREAM IN 2001",
@@ -2396,7 +2272,6 @@
   {
    "station": "10BE013",
    "name": "SMITH RIVER NEAR THE MOUTH",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2008,
    "remark": "STATION RELOCATED 11 KMS DOWNSTREAM IN 2001",
@@ -2414,7 +2289,6 @@
   {
    "station": "10BE013",
    "name": "SMITH RIVER NEAR THE MOUTH",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2009,
    "remark": "2009 STATION RELOCATED 11 KMS DOWNSTREAM IN 2001",
@@ -2432,7 +2306,6 @@
   {
    "station": "10BE013",
    "name": "SMITH RIVER NEAR THE MOUTH",
-   "realtime": true,
    "type": "ANNUAL HYDROMETRIC",
    "year": 2010,
    "remark": "2010 STATION RELOCATED 11 KMS DOWNSTREAM IN 2001",

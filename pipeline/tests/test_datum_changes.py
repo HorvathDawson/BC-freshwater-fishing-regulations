@@ -302,7 +302,7 @@ def test_the_scan_keeps_roster_stations_and_their_wording_sorted(tmp_path):
         ("08ZZ001", 2, 2025, EF001_REMARK), ("08ZZ001", 5, -999, FD001_REMARK), ("08ZZ001", 2, 2024, "WATER LEVEL NOT AVAILABLE"),
         ("Z9", 5, -999, FD001_REMARK)])                                    # Z9 is not on the roster
     roster = tmp_path / "roster.json"
-    roster.write_text(json.dumps([{"station": "08ZZ001", "name": "TEST CREEK", "realtime": True}]))
+    roster.write_text(json.dumps([{"station": "08ZZ001", "name": "TEST CREEK"}]))
     a = R.build(hy, roster)
     assert [(r["station"], r["year"]) for r in a["remarks"]] == [("08ZZ001", None), ("08ZZ001", 2025)]
     assert a["remarks"][1]["remark"] == EF001_REMARK and a["remarks"][1]["offset_m"] == 2.37
