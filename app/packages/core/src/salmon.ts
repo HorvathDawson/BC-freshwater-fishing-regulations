@@ -928,6 +928,8 @@ export interface SalmonBookVM {
    *  pages, each PDF page null until the page's map gives it (`tabSources.salmonWithPdf`), for its Source line */
   readonly water: string | null;
   readonly pages: readonly { readonly printed: number; readonly pdf: number | null }[];
+  /** (T1036) the closure's rule (`entry::rule`), so the page's every-source sheet lists the rule this line cites */
+  readonly rule: string;
 }
 /** (T321) one DFO row in DFO's words: its species and dates cells (dates "All year" when blank) and the limits cell */
 export interface SalmonWordsRowVM { readonly species: string; readonly dates: string; readonly words: string }
@@ -1343,7 +1345,7 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     // (T851) the DFO regions this card speaks for: the feed's read time for the card is theirs alone (`salmonReadAt`)
     regions: named,
     source,
-    book: book.map(({ from, words, water, pages }) => ({ from, words, water, pages })),
+    book: book.map(({ from, words, water, pages, rule }) => ({ from, words, water, pages, rule })),
     dfoPages: regionsUsed.map((r) => ({ region: `Region ${r.toUpperCase()} ${P.regions[r]?.name ?? ""}`.trim(), url: P.regions[r]!.url })),
     sourceTitle: book.length ? SALMON_WORDS.sourceFoldBook : SALMON_WORDS.sourceFold,
     asOf: SALMON_WORDS.asOf(dates[dates.length - 1] ?? null),
@@ -1471,8 +1473,8 @@ function sourceBy(P: Payload, chains: readonly number[], who: (a: readonly numbe
  * never the days it answers the chain: a dated closure sorted first on the same chain takes some days from an all-year
  * one, which then lost its dates there (Statlu Creek, p.26, beside the Chehalis's May closure, p.22).
  */
-function bookToday(f: SalmonFacts, chains: readonly number[], day: number): (SalmonBookVM & { readonly t: string; readonly rule: string })[] {
-  const P = f.payload, out = new Map<string, SalmonBookVM & { readonly t: string; readonly rule: string }>();
+function bookToday(f: SalmonFacts, chains: readonly number[], day: number): (SalmonBookVM & { readonly t: string })[] {
+  const P = f.payload, out = new Map<string, SalmonBookVM & { readonly t: string }>();
   for (const c of chains) {
     const ch = P.chains[c]!;
     SALMON_SPECIES.forEach((_, k) => {

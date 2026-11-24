@@ -5,7 +5,8 @@
 import { describe, expect, it } from "vitest";
 import { LICENCE_ROWS } from "./menu/licences";
 import type { RegsPage } from "./regs/model";
-import { authorityUrl, conditionsSourcesOf, drawnRegsOf, regsSourcesOf, salmonShowsDfo, SOURCE_AUTHORITIES, sourcesText, type SourceLinkVM } from "./tabSources";
+import { authorityUrl, conditionsSourcesOf, regsSourcesOf, salmonShowsDfo, SOURCE_AUTHORITIES, sourcesText, type SourceLinkVM } from "./tabSources";
+import { drawnRegsOf } from "./regs/sheets/allsources";
 
 const box = (pdf: number, y: number) => ({ pdf, box: [10, y, 200, y + 12] as [number, number, number, number], size: [612, 792] as [number, number] });
 const book = (printed: number, pdf: number | null, b?: ReturnType<typeof box>[]) => ({ t: "book", printed, pdf, ...(b ? { box: b } : {}) });
@@ -97,10 +98,15 @@ describe("regsSourcesOf: only the authorities this page shows (owner 2026-11-22:
     expect(sourcesText(regsSourcesOf(drawn, { ...none, inSeason: true, dfo: true })))
       .toBe("Source B.C. Synopsis p.9 ↗ B.C. in-season changes ↗ DFO notices ↗ All sources ›");
   });
-  it("(#63 re-review) DFO, too, where a drawn rule is DFO's own (a DFO override): named by a sheet key, a source line's keys or a trout row's index", () => {
+  it("(#63 re-review) DFO, too, where a drawn rule is DFO's own (a DFO override): cited by a source line's keys, a line showing its page, or the trout table", () => {
     const line = (k: string) => [{ src: { who: "", aria: "", open: "srcs:gear", keys: [k], pages: [] } }];
     expect(sourcesText(regsSourcesOf(line("e::r1"), { ...none, rules: index(["e::r1"]) }))).toBe("Source DFO notices ↗ All sources ›");
-    expect(sourcesText(regsSourcesOf([[{ t: "link", s: "x", open: "rule:e::r2" }]], { ...none, rules: index(["e::r2"]) }))).toBe("Source DFO notices ↗ All sources ›");
+    // (T1036) the every-source sheet's one walk (`drawnSourceRules`): a line naming its rule beside the rule's page cites it;
+    // a link that only opens the rule's sheet, and a row that only opens a sheet (Possession), do not (neither lists them)
+    expect(sourcesText(regsSourcesOf([{ rule: "e::r2", text: [{ t: "text", s: "x" }, { t: "book", printed: 9, pdf: null }] }], { ...none, rules: index(["e::r2"]) })))
+      .toBe("Source B.C. Synopsis p.9 DFO notices ↗ All sources ›");
+    expect(sourcesText(regsSourcesOf([[{ t: "link", s: "x", open: "rule:e::r2" }], { open: "pos:pos", rule: "e::r2", says: "Possession" }],
+      { ...none, rules: index(["e::r2"]) }))).toBe("Source All sources ›");
     expect(sourcesText(regsSourcesOf([{ src: [7] }], { ...none, rules: index(["#7"]) }))).toBe("Source DFO notices ↗ All sources ›");
     // a drawn rule that is the book's, and a DFO rule nothing drawn names: no DFO
     expect(sourcesText(regsSourcesOf(line("e::r1"), { ...none, rules: index(["e::r9"]) }))).toBe("Source All sources ›");
