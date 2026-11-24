@@ -74,7 +74,7 @@ export function createReplacedState(o: ReplacedRefresh): ReplacedState {
       void o.sent()
         .then(() => o.refresh(r))
         .then((why) => { if (why !== null) show(r, why); },
-              (x: unknown) => show(r, `it failed: ${x instanceof Error ? x.message : String(x)}`));
+              (x: unknown) => { reportFailure(x); show(r, `it failed: ${x instanceof Error ? x.message : String(x)}`); });
     },
     subscribe(on) { subs.add(on); return () => { subs.delete(on); }; },
   };

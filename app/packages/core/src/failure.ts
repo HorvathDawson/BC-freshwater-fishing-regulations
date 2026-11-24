@@ -76,8 +76,8 @@ export function reportFailure(e: unknown): void {
   if (!later) { sink?.(e); return; }
   const done = later.then((x) => { if (!isEnvironment(x)) sink?.(x); }, (x: unknown) => { sink?.(e); sink?.(x); });
   looking.add(done);
-  const out = () => { looking.delete(done); };
-  void done.then(out, out);
+  // `done` holds no failure of its own (both its handlers only hand to the sink, which never throws)
+  void done.finally(() => { looking.delete(done); });
 }
 
 /**

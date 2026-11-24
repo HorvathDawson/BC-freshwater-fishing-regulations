@@ -222,6 +222,7 @@ export const FINE: Record<string, { n: number; why: string }> = {
   "packages/ui/src/recentSearches.ts": { n: 2, why: PREF },
   "packages/ui/src/regs.ts": { n: 11, why: `${WARM} (T737: the opener's geo, warmWaterPage; and an unnamed tap's regs-sid, down, water slice and access, warmUnnamedPage — the loader forgets a failed open and the page's own reads of the same files ask again and say it); ${UNCACHE}; a probe` },
   "packages/ui/src/release.ts": { n: 1, why: UNCACHE },
+  "packages/ui/src/replaced.ts": { n: 1, why: "T1016: reloadOnce — session storage that throws (a blocked or private window) means NO automatic reload (it could loop); the reason is returned, and createReplacedState shows it on the notice and reports it (ReplacedRefreshNotMade)" },
   "packages/ui/src/runTiming.ts": { n: 3, why: PREF },
   "packages/ui/src/spots.ts": { n: 2, why: "T314: one spot's fill kept and asked again next refresh; the retry runner (write() shows and reports)" },
   "packages/ui/src/sync.ts": { n: 2, why: "stamps: the update service shows these failures (SyncErrorSheet) and reports them (failSource)" },
