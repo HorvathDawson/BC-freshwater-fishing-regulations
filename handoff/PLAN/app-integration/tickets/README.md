@@ -333,7 +333,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1088 | Lakelse r5, a "Note: the mouth … signs" rule, walks onto every tributary | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24 |
 | T1089 | The build-assets bucket is over R2's 10 GB free tier: store the big source file compressed, and a runbook for refreshing the sources | OPEN — 0.9.2, or the first free lane before it | | owner 2026-11-24 |
 | T1090 | `data.canifishthis.ca/robots.txt` answers 404 (Search Console) | OPEN — 0.9.2 | | owner 2026-11-24 |
-| T1091 | A fresh Standard map fetches only the salmon head: what is drawn from the full salmon facts is missing until the Salmon map was opened | OPEN — medium until checked; 0.9.1 if a closure is missing, else 0.9.2 | | 0.9.1 chat 2026-11-24 |
+| T1091 | A fresh Standard map fetches only the salmon head: what is drawn from the full salmon facts is missing until the Salmon map was opened | OPEN — 0.9.2 (code reading 2026-11-24 found no missing closure; the cold-open test and a live check are left) | | 0.9.1 chat 2026-11-24 |
 
 ## Next after closed testing
 
