@@ -224,6 +224,33 @@ describe("(T1043) a bandless 72 h chart is scaled to its year", () => {
       expect(new Set(seen)).toEqual(new Set(["station file would not read"]));
     } finally { undo(); }
   });
+  // (review of #77) A SWITCH BETWEEN TWO BANDLESS STATIONS never draws the new one on the old one's year, and a first view
+  // is never drawn at the reading scale before its year. MUTATIONS: take the answer whatever its key (drop
+  // `yearAsk.value?.key === yKey`) -> a B frame on A's year; drop the `yearPending` hold -> a frame at "reading".
+  it("a switch draws each station only on its own year, and never at the reading scale first", async () => {
+    const { clearAnswers } = await import("./answers");
+    clearAnswers();
+    const at = bare.at;
+    const seriesFor = (st: string) => ({ ...bare, values: at.map(() => (st === "A" ? 0.59 : 5)),
+                                         now: { index: N - 1, value: st === "A" ? 0.59 : 5 } });
+    const two = { gaugeSeries: async (st: string) => ({ fetchedAt: 0, value: seriesFor(st) }) } as unknown as WaterSource;
+    const yearOf = (st: string) => ({ ...obs, level: seriesFor(st).values,
+      daily: st === "A" ? [["2026-01-04", 2.0, 1], ["2026-06-01", 0.5, 1]] : [["2026-01-04", 9.5, 1], ["2026-06-01", 4.0, 1]] });
+    const draft = { feed: { observations: async (st: string) => { await new Promise((r) => setTimeout(r, 5)); return yearOf(st); } } };
+    const frames: { st: string; scale: string; top: number }[] = [];
+    const { rerender } = renderHook(({ st }) => {
+      const r = useChartView(two, st as StationId, "72h", "level", undefined, 590, true, draft as never);
+      if (r.state === "ready" && r.value && !r.value.pending)
+        frames.push({ st, scale: r.value.shape.scale, top: Math.max(...r.value.shape.yTicks.map((t) => t.value)) });
+      return r;
+    }, { initialProps: { st: "A" } });
+    await waitFor(() => expect(frames.some((f) => f.st === "A")).toBe(true));
+    rerender({ st: "B" });
+    await waitFor(() => expect(frames.some((f) => f.st === "B")).toBe(true));
+    await new Promise((r) => setTimeout(r, 30));
+    // A's year runs 0.5 to 2 m, B's 4 to 9.5 m: an A frame tops out under 2.5, a B frame at 8 or more
+    expect(frames.filter((f) => f.scale !== "year" || (f.st === "A" ? f.top > 2.5 : f.top < 8))).toEqual([]);
+  });
   it("a banded chart never asks for the year, and keeps its scale", async () => {
     const { clearAnswers } = await import("./answers");
     clearAnswers();

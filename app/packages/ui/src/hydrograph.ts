@@ -172,17 +172,23 @@ export function minSpan(lo: number, hi: number): [number, number] {
 }
 
 /**
- * (T1043) THE YEAR'S RANGE, for a bandless 72 h chart's scale (`BuildInput.scaleTo`): the low and high of everything the
- * Year view draws as values (this year and the earlier years). Null when the year holds no value at all.
+ * (T1043) THE YEAR'S RANGE, for a bandless 72 h chart's scale (`BuildInput.scaleTo`): the 5th to the 95th percentile of
+ * everything the Year view draws as values (this year and the earlier years), so one storm day does not set the axis
+ * (Capilano's level year runs 0.52 to 2.96 m; its 72 h moved 0.017 m). The chart always holds its own 72 h values and
+ * today's reading as well (`buildHydrograph` widens to them). Null when the year holds no value at all.
  */
+const YEAR_SCALE_PCT = [0.05, 0.95] as const;
 export function yearScale(year: { values: readonly (number | null)[];
                                   priorYears?: readonly { values: readonly (number | null)[] }[] } | null):
   { lo: number; hi: number } | null {
   if (!year) return null;
-  let lo = Infinity, hi = -Infinity;
+  const all: number[] = [];
   for (const vs of [year.values, ...(year.priorYears ?? []).map((y) => y.values)])
-    for (const v of vs) if (v !== null && Number.isFinite(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
-  return Number.isFinite(lo) ? { lo, hi } : null;
+    for (const v of vs) if (v !== null && Number.isFinite(v)) all.push(v);
+  if (!all.length) return null;
+  all.sort((a, b) => a - b);
+  const at = (p: number) => all[Math.round(p * (all.length - 1))]!;
+  return { lo: at(YEAR_SCALE_PCT[0]), hi: at(YEAR_SCALE_PCT[1]) };
 }
 
 /** Log ticks: every 1, 2, 5 within the decades the data spans. */

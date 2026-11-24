@@ -222,11 +222,18 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
   const bandless = span === "72h" && !!whole && !whole.band.some((b) => b !== null);
   const yParam = whole?.parameter;
   const yKey = `yearscale:${seriesKey(station, "year", yParam, undefined)}`;
+  // The answer carries the key it was asked under: `useAsync` hands back the last key's answer for a render after a switch,
+  // and station B must never be drawn on station A's year (or Level on Flow's). Until THIS key's year has settled (or
+  // failed) the chart is held (`yearPending`: the last chart stays up, marked pending; a first view is loading), so the
+  // pane is not revealed at one scale and redrawn at another.
+  const wantsYear = bandless && !!draft && station !== null;
   const yearAsk = useAsync(
-    async () => askOnce(source, yKey, async () => draftSeriesOf(await draft!.feed.observations(station!), "year", yParam)),
-    `${yKey}#${v}`, bandless && !!draft && station !== null, yKey, () => peekAnswer(source, yKey));
-  const scaleTo = useMemo(() => (bandless && yearAsk.state === "ready" ? yearScale(yearAsk.value?.value ?? null) : null),
-                          [bandless, yearAsk]);
+    async () => askOnce(source, yKey, async () =>
+      ({ key: yKey, year: draftSeriesOf(await draft!.feed.observations(station!), "year", yParam)?.value ?? null })),
+    `${yKey}#${v}`, wantsYear, yKey, () => peekAnswer(source, yKey));
+  const yearHere = yearAsk.state === "ready" && yearAsk.value?.key === yKey ? yearAsk.value : null;
+  const yearPending = wantsYear && !yearHere && yearAsk.state !== "failed";
+  const scaleTo = useMemo(() => (bandless && yearHere ? yearScale(yearHere.year) : null), [bandless, yearHere]);
   const aged = series.state === "ready" && series.value ? series.value
     : series.state === "loading" && wantsDraft && drafted.state === "ready" ? drafted.value : null;
   const asOf = aged?.kept ? CONDITIONS_WORDS.keptAsOf(aged.fetchedAt) : null;
@@ -265,6 +272,7 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
 
   const current = useMemo<Async<ChartView | null>>(() => {
     if (series.state !== "ready" && !early) return series as Async<ChartView | null>;
+    if (yearPending) return { state: "loading", value: null, error: null };
     if (!s) return { state: "ready", value: null, error: null };
     const n = s.values.length;
     const bands = s.band.length === n ? s.band : Array.from({ length: n }, () => s.band[0] ?? null);
@@ -290,7 +298,7 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
     return { state: "ready", error: null,
              value: { shape, readout, zoomed: !!(shape.view && shape.full && isZoomed(shape.view, shape.full)),
                       pending: false, draft: both === early, asOf, ...actions } };
-  }, [series, s, early, asOf, span, box.width, box.height, st.domain, st.probe, actions, alsoRuns, drawForecast, daysKey, scaleTo]);
+  }, [series, s, early, asOf, span, box.width, box.height, st.domain, st.probe, actions, alsoRuns, drawForecast, daysKey, scaleTo, yearPending]);
 
   // The last chart drawn, for the frames between a switch and its answer.
   const last = useRef<ChartView | null>(null);

@@ -73,8 +73,11 @@ describe("(T1043) a chart with no band is scaled to its year", () => {
                                 scaleTo: { lo: 1, hi: 5000 } });
     expect(h.scale).toBe("log");
   });
-  it("the year's range is this year's and the earlier years' values; nothing to read is null", () => {
+  it("the year's range is the 5th to 95th percentile of this year's and the earlier years' values; nothing is null", () => {
     expect(yearScale({ values: [0.7, null, 1.9], priorYears: [{ values: [0.55, 2.21, null] }] })).toEqual({ lo: 0.55, hi: 2.21 });
+    // (review of #77) one storm day does not set the axis: 98 days near 0.6 m, one at 2.96, one at 0.52
+    const days = [...Array.from({ length: 98 }, (_, i) => 0.58 + (i % 5) / 100), 2.96, 0.52];
+    expect(yearScale({ values: days })).toEqual({ lo: 0.58, hi: 0.62 });
     expect(yearScale({ values: [null, Number.NaN], priorYears: [] })).toBeNull();
     expect(yearScale(null)).toBeNull();
   });
