@@ -36,7 +36,7 @@ export interface AtlasSource {
   nativeTag(): number;
 }
 
-type Channels = Pick<MapProps, "status" | "standing" | "lakes" | "salmon" | "method" | "issue" | "runs">;
+type Channels = Pick<MapProps, "status" | "standing" | "lakes" | "salmon" | "method" | "issue" | "halves" | "runs">;
 
 /**
  * (T369 D14) THE PHONE'S FEATURE-STATE QUEUE, per source-layer, in the order asked. A layer CLEARED is not sent as
@@ -274,7 +274,7 @@ export function useNativeColouring(o: {
    * old (or no) day profiles first and the values a render later — two style swaps, the first drawing the streams
    * without their colours (the flicker going to the Map tab).
    */
-  const { status, standing, lakes, salmon, method, issue, runs } = o;
+  const { status, standing, lakes, salmon, method, issue, halves, runs } = o;
   const statusDay = status ? readingDayOf(status.day) : 0;
   // (T796 A6) with the salmon handed over, the day's DFO finfish closures paint closed on Standard (`statusInput`)
   const statusIn = useMemo(() => (status ? statusInput(status, salmon) : null),
@@ -297,10 +297,10 @@ export function useNativeColouring(o: {
   const bankIn = useMemo(() => (salmon ? bankInput(salmon) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [salmon?.facts, o.atlasUrl]);
-  // (T1029 Q6) the rule book's one-half closures' labels (`bb`): the same feed, drawn by the Standard map
-  const halfIn = useMemo(() => (salmon ? halfInput(salmon) : null),
+  // (T1029 Q6) the rule book's one-half closures' labels (`bb`): from the salmon head alone, drawn by the Standard map
+  const halfIn = useMemo(() => (halves ? halfInput(halves) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [salmon?.facts, o.atlasUrl]);
+    [halves?.halves, o.atlasUrl]);
   const methodDay = method ? readingDayOf(method.day) : -1;
   const methodIn = useMemo(() => (method ? methodInput(method) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps

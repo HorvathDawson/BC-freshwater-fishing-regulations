@@ -47,7 +47,7 @@ const KEYS: Record<Channel, string> = {
   bank: bankInput({ facts: { payload: { p: { b: { r: "6", side: "west", bk: { "1": 1 } } }, unmapped: [{ chain: 1 }],
                                         chains: [{ l: [] }, { l: ["b"] }] } } as never, day: new Date(2026, 0, 1) })!.labels.key,
   // (T1029 Q6) the rule book's one-half closure: the side of the drawn line its closed half is on
-  half: halfInput({ facts: { payload: { bs: { "1": -1 } } } as never, day: new Date(2026, 0, 1) })!.labels.key,
+  half: halfInput({ halves: new Map([[1, "L"]]) }).labels.key,
 };
 
 describe("one colouring engine", () => {
@@ -77,7 +77,7 @@ describe("one colouring engine", () => {
     expect(src).toContain('toChannel("method", method ? methodInput(method) : null');
     expect(src).toContain('toChannel("salmon", salmon ? salmonInput(salmon) : null');
     expect(src).toContain('toChannel("bank", salmon ? bankInput(salmon) : null');   // (T1029) part of the salmon feed
-    expect(src).toContain('toChannel("half", salmon ? halfInput(salmon) : null');   // (T1029 Q6) and the book's halves
+    expect(src).toContain('toChannel("half", halves ? halfInput(halves) : null');   // (T1029 Q6) the book's halves: the head alone
     expect(src).toContain('toChannel("status", status ? statusInput(status, salmon) : null');   // (T796 A6) the finfish closures over it
     expect(src).toContain('toChannel("standing", standing ? standingInput(standing) : null');
     expect(src).toContain('toChannel("survey", lakes ? surveyInput(lakes) : null');

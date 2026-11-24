@@ -36,7 +36,7 @@
  * patched binding's per-tile event (`native/useColouring.ts`, deps.md). Only how a channel's style-borne values reach
  * the style differs: a paint call on the web, a style swap on the phone (`nativeStyle`'s `values`).
  */
-import { readingDayOf, dayProfiles, finfishDayLabels, isolateDay, methodDayProfiles, methodLabel, profileLabel, bookHalves, salmonBankLabels, salmonDayIndex,
+import { readingDayOf, dayProfiles, finfishDayLabels, isolateDay, methodDayProfiles, methodLabel, profileLabel, salmonBankLabels, salmonDayIndex,
          salmonDayProfiles, salmonLabel, stockRecency, type LakeFacts, type SalmonMapStatus, type WaterStatus, type MethodFacts, type RunTimingFacts, type SalmonFacts,
          type StatusIndex } from "@app/core";
 import type { ChannelValues, MapAdapter, MapHandle } from "./adapters/contract";
@@ -114,15 +114,19 @@ export function bankInput(s: SalmonFeed): ChannelInput | null {
 }
 
 /**
- * (T1029 Q6) THE RULE BOOK'S ONE-HALF CLOSURES, from the salmon feed (its payload's `bs`; the Map tab hands the feed over
- * in both colourings): each such section wears the side of the drawn line its closed half is on ("L" / "R": @app/core
- * `bookHalves`) in feature-state `bb`, fixed for the release; the Standard map's paint (`paint.ts` `bankHalfPaint`)
- * draws it. Its own key beside the one-bank `bk`: a section may carry both, and each colouring reads only its own. Null
- * where the release has none: nothing labelled, nothing drawn.
+ * (T1029 Q6) THE RULE BOOK'S ONE-HALF CLOSURES as the map is told them (`MapProps.halves`): per section, the side of the
+ * drawn line its closed half is on ("L" / "R": @app/core `bookHalves`, from the salmon HEAD's `bs` — never the slices,
+ * which the web reads only on the first Salmon press, and the Standard map is where these are drawn). Fixed for the
+ * release. Each such section wears it in feature-state `bb`; the Standard map's paint (`paint.ts` `bankHalfPaint`)
+ * draws it. Its own key beside the one-bank `bk`: a section may carry both, and each colouring reads only its own.
  */
-export function halfInput(s: SalmonFeed): ChannelInput | null {
-  const halves = bookHalves(s.facts);
-  if (!halves.size) return null;
+export interface HalvesFeed {
+  readonly halves: ReadonlyMap<number, "L" | "R">;
+}
+
+/** The half channel: "L" / "R" in feature-state `bb` on each section with a closed half; nothing elsewhere. */
+export function halfInput(s: HalvesFeed): ChannelInput {
+  const halves = s.halves;
   return {
     labels: { key: "bb", of: halves, label: (id) => halves.get(id) },
     valuesKey: "half",
