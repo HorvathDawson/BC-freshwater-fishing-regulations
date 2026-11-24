@@ -14,6 +14,13 @@ Mutation pins (2026-11-24, each run; the first test it fails):
   `parse` lets an accepted row through with no offset -> test_the_file_refuses_a_bad_row
   `check_remarks` skips the comparison                -> test_a_quoted_remark_must_be_the_records
   `the_offset` drops the sign of "drop in stage"      -> test_the_five_remarks_parse
+  review fixes (2026-11-24, each run):
+  the remark check raises for a proposed row / never raises -> test_a_quoted_remark_must_be_the_records
+  the this-year guard removed                         -> test_an_accepted_change_inside_the_this_year_line_is_refused
+  a moved station's levels back to `_sig4`            -> test_an_accepted_change_keeps_the_records_millimetres
+  end-of-record date kept / AFTER not the next day / "datum is similar" a change / the datum-signed size unflipped
+                                                      -> test_other_wordings_sort_and_parse (its 08EE003, 08KD006,
+                                                         08NE087, 08GA026, 08MG014 rows)
 """
 
 from __future__ import annotations
@@ -163,6 +170,38 @@ def test_a_change_inside_the_record_shifts_only_the_days_before_it(tmp_path):
     assert 4.0 <= min(b[0] for b in level.values()) and max(b[-1] for b in level.values()) <= 4.6
 
 
+def test_an_accepted_change_keeps_the_records_millimetres(tmp_path):
+    """+94.826 m (07FD001's size): `_sig4` would keep 1 cm of ~99 m; a moved station's levels keep 3 decimals."""
+    hy = _hydat(tmp_path / "hydat.sqlite3")
+    plain = build(hy, ["08ZZ001"], "t")
+    moved = build(hy, ["08ZZ001"], "t", datum.accepted([_row(status="accepted", offset_m=94.826,
+                                                             effective=date.today().isoformat())]))
+    got = [v for band in moved["stations"]["08ZZ001"]["level"].values() for v in band]
+    want = [v + 94.826 for band in plain["stations"]["08ZZ001"]["level"].values() for v in band]
+    assert got == pytest.approx(want, abs=0.0006) and all(v == round(v, 3) for v in got)
+    days = [v for d in moved["recentYears"]["08ZZ001"]["level"].values() for v in d if v is not None]
+    assert days and all(v == round(v, 3) and abs(v - round(v, 2)) < 0.0051 for v in days)
+    assert any(abs(v - round(v, 2)) > 0.0009 for v in days)                # millimetres survive, not centimetres
+    assert moved["stations"]["08ZZ001"]["discharge"] == plain["stations"]["08ZZ001"]["discharge"]
+
+
+def test_an_accepted_change_inside_the_this_year_line_is_refused():
+    """The station file's `daily` (this year, as it came) would mix both zeros: 07FD001 (2026-08-05) and 08KH019
+    (2026-07-07) cannot be accepted before the year turns; 08HD006 (2025-06-05) can."""
+    today = date(2026, 11, 24)
+    with pytest.raises(datum.DatumFileError, match="inside the this-year line"):
+        datum.parse({"_about": "t", "changes": [_row(status="accepted", effective="2026-08-05")]}, today=today)
+    assert datum.parse({"_about": "t", "changes": [_row(status="proposed", effective="2026-08-05")]}, today=today)
+    assert datum.parse({"_about": "t", "changes": [_row(status="accepted", effective="2025-06-05")]}, today=today)
+    assert datum.parse({"_about": "t", "changes": [_row(status="accepted", effective="2026-01-01")]}, today=today)
+    # in January the line starts on 1 December
+    with pytest.raises(datum.DatumFileError, match="inside the this-year line"):
+        datum.parse({"_about": "t", "changes": [_row(status="accepted", effective="2026-12-15")]},
+                    today=date(2027, 1, 10))
+    assert datum.parse({"_about": "t", "changes": [_row(status="accepted", effective="2026-08-05")]},
+                       today=date(2027, 1, 10))
+
+
 def test_offset_before_counts_only_the_changes_after_the_day():
     moves = [(date(2016, 1, 1), 3.0), (date(2025, 6, 5), -5.0)]
     assert datum.offset_before(moves, date(2015, 12, 31)) == -2.0
@@ -218,13 +257,23 @@ def test_a_missing_file_raises(tmp_path):
         datum.load(tmp_path / "absent.json")
 
 
-def test_a_quoted_remark_must_be_the_records(tmp_path):
+def test_a_quoted_remark_must_be_the_records(tmp_path, capsys):
     hy = _hydat(tmp_path / "hydat.sqlite3", remarks=[("08ZZ001", 5, -999, "STATION RELOCATED ON 2025-01-01.\n")])
-    ok = datum.load(_file(tmp_path, [_row(source="hydat_remark", remark="station relocated on  2025-01-01.")]))
-    datum.check_remarks(ok, hy)                                            # case and spacing aside
-    bad = datum.parse({"_about": "t", "changes": [_row(source="hydat_remark", remark="STATION MOVED ON 2025-01-01.")]})
+    ok = datum.load(_file(tmp_path, [_row(source="hydat_remark", remark="station relocated on  2025-01-01.",
+                                          status="accepted")]))
+    assert datum.check_remarks(ok, hy) == []                               # case and spacing aside
+    # an ACCEPTED row whose quote HYDAT no longer holds stops the run: it would move a record
+    bad = datum.parse({"_about": "t", "changes": [_row(source="hydat_remark", remark="STATION MOVED ON 2025-01-01.",
+                                                       status="accepted")]})
     with pytest.raises(datum.DatumFileError, match="holds no station remark"):
         datum.check_remarks(bad, hy)
+    # a proposed or rejected one is a warning, shown and returned (a reworded remark must not stop the HYDAT workflow)
+    for status in ("proposed", "rejected"):
+        held = datum.parse({"_about": "t", "changes": [_row(source="hydat_remark", remark="STATION MOVED ON 2025-01-01.",
+                                                            status=status)]})
+        got = datum.check_remarks(held, hy)
+        assert len(got) == 1 and "08ZZ001" in got[0] and status in got[0]
+        assert "08ZZ001" in capsys.readouterr().out
     with pytest.raises(FileNotFoundError):
         datum.check_remarks(ok, tmp_path / "absent.sqlite3")
 
@@ -283,6 +332,20 @@ def test_the_five_remarks_parse():
     ("STATION MOVED 30M UPSTREAM AND ACROSS TO THE RIGHT BANK ON SEP 9, 2005. DATUM MAINTAINED.", "kept", "2005-09-09", None),
     ("Datum stability is less than that defined by typical WSC standards for the period 2015 - 2018.", "quality", None, None),
     ("STATION AND WATER LEVEL LOCATION MOVED UP 250 M FROM OUTLET OF FRANCOIS LAKE", "change", None, None),
+    # review 2026-11-24: an end-of-record date is no change's date (08EE003, 08KD006); "AFTER" a date is the next day
+    # (08NE087); "datum is similar" is no change (08GA026); a signed change OF THE DATUM moves readings the other way
+    # (08MG014: HYDAT reads ~5.3 m higher from 2013)
+    ("RELOCATED 130 M DOWNSTREAM IN 1971. DISCONTINUED DEC 31 1971. STATION RE-ESTABLISHED IN APR 1980 FOR B.C. WATER "
+     "MANAGEMENT BRANCH, VICTORIA, B.C. STATION RELOCATED IN 2010 DUE TO OPERATIONAL REASONS.", "change", None, None),
+    ("STATION DESTROYED. NO DATA AFTER SEP 15, 2011. STATION WILL HAVE TO BE MOVED TO A NEW LOCATION", "other", None, None),
+    ("STATION TO BE MOVED UPSTREAM AFTER DEC 31, 2000.", "change", "2001-01-01", None),
+    ("The station was re-established on 2023-09-06. The original benchmark network was found intact, and every effort "
+     "was made to ensure the new station datum is similar to the historical station datum. Instability in the benchmark "
+     "network indicates the current assumed datum may vary +/- 0.020m from the historical assumed datum.",
+     "quality", "2023-09-06", None),
+    ("The station's assumed datum changed when re-established in 2013. The change is approximately -4.923 m difference "
+     "from the 1938 to 1984 datum. The accuracy of the given datum adjustment has not been assessed at this time.",
+     "change", None, 4.923),
 ])
 def test_other_wordings_sort_and_parse(text, kind, day, offset):
     k = R.kind(text)

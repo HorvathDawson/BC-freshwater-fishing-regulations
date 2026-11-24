@@ -61,8 +61,16 @@ def _day(v: object, where: str) -> date | None:
         raise DatumFileError(f"{where}: effective {v!r} is not a YYYY-MM-DD date") from e
 
 
-def parse(blob: object, where: str = "datum_change_stations.json") -> list[dict]:
-    """The rows of a parsed file, checked (DatumFileError names the row and the rule), sorted by (station, effective)."""
+def this_year_starts(today: date) -> date:
+    """The first day of the THIS-YEAR line (the station file's `daily`, `publish._record_start`): a change after it would
+    leave that line on two zeros."""
+    from pipeline.gauges.feed.publish import _record_start     # lazy: publish imports climatology, which imports this
+    return _record_start(today)
+
+
+def parse(blob: object, where: str = "datum_change_stations.json", today: date | None = None) -> list[dict]:
+    """The rows of a parsed file, checked (DatumFileError names the row and the rule), sorted by (station, effective).
+    `today` (the clock, injectable for a test) dates the this-year line an accepted change may not fall inside."""
     if not isinstance(blob, dict) or set(blob) != {"_about", "changes"}:
         raise DatumFileError(f"{where}: the file is {{_about, changes}} and nothing else")
     if not isinstance(blob["_about"], str) or not blob["_about"].strip():
@@ -101,6 +109,15 @@ def parse(blob: object, where: str = "datum_change_stations.json") -> list[dict]
         if row["status"] == "accepted" and (eff is None or off is None):
             raise DatumFileError(f"{at}: an accepted change needs its effective date and offset_m — without both it "
                                  "cannot put the record on today's zero")
+        # THE THIS-YEAR LINE (T1047 review): the station file's `daily` is this year's live record as it came, so a change
+        # inside it leaves the line on BOTH zeros (07FD001: ~0.07 m to ~95 m). Putting the record on today's zero would
+        # then draw the early part of the line ~95 m under its band. Until both publishers put `daily` on today's zero
+        # too (`publish.merge_daily` and its worker twin, rule 40), such a change cannot be accepted before the year turns.
+        if row["status"] == "accepted" and eff is not None and eff > this_year_starts(today or date.today()):
+            raise DatumFileError(f"{at}: accepted change on {eff} falls inside the this-year line (from "
+                                 f"{this_year_starts(today or date.today())}), which would then mix both zeros: accept it "
+                                 "once the year turns, or after both publishers put `daily` on today's zero "
+                                 "(publish.merge_daily + the feeds worker twin)")
         if not isinstance(row["note"], str) or not row["note"].strip():
             raise DatumFileError(f"{at}: note says why the row is here")
         if "evidence" in row and (not isinstance(row["evidence"], str) or not row["evidence"].strip()):
@@ -118,12 +135,12 @@ def validate_text(text: str) -> None:
     parse(json.loads(text))
 
 
-def load(path: Path | None = None) -> list[dict]:
+def load(path: Path | None = None, today: date | None = None) -> list[dict]:
     """Every row of the file (all statuses), checked. RAISES on a missing file (AGENTS 37): absent curated data is a bug."""
     path = Path(path or DATUM_FILE)
     if not path.is_file():
         raise FileNotFoundError(f"datum: no {path} — it is curated (T1047); restore it from git, never an empty list")
-    return parse(json.loads(path.read_text(encoding="utf-8")), str(path))
+    return parse(json.loads(path.read_text(encoding="utf-8")), str(path), today)
 
 
 def accepted(rows: list[dict]) -> dict[str, list[tuple[date, float]]]:
@@ -149,15 +166,24 @@ def digest(rows: list[dict]) -> str:
     return hashlib.sha256(json.dumps(acc, sort_keys=True).encode()).hexdigest()[:16]
 
 
-def check_remarks(rows: list[dict], hydat: Path) -> None:
+def check_remarks(rows: list[dict], hydat: Path) -> list[str]:
     """Every `hydat_remark` row's quote is one of its station's own STN_REMARKS (case and spacing aside), so a row cannot
-    claim a change the record does not state. RAISES naming the row."""
+    claim a change the record does not state. An ACCEPTED row's missing quote RAISES (it moves a record); a proposed or
+    rejected row's is a warning, printed and returned (it moves nothing, and a remark ECCC rewords in a new HYDAT must
+    not stop the unattended HYDAT workflow)."""
     if not Path(hydat).exists():
         raise FileNotFoundError(f"datum: no {hydat} (python data/fetch_data.py --layers hydat)")
     quoted = [r for r in rows if r["source"] == "hydat_remark"]
+    warned: list[str] = []
     with sqlite3.connect(f"file:{hydat}?mode=ro", uri=True) as con:
         for r in quoted:
             said = {_norm(t) for (t,) in con.execute(
                 "SELECT REMARK_EN FROM STN_REMARKS WHERE STATION_NUMBER = ?", (r["station"],))}
             if _norm(r["remark"]) not in said:
-                raise DatumFileError(f"datum: {r['station']}: HYDAT holds no station remark {r['remark'][:80]!r}")
+                msg = f"datum: {r['station']}: HYDAT holds no station remark {r['remark'][:80]!r}"
+                if r["status"] == "accepted":
+                    raise DatumFileError(msg)
+                warned.append(f"{msg} ({r['status']} row, moves nothing: re-quote it)")
+    for w in warned:
+        print(f"  ⚠️  {w}")
+    return warned

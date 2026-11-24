@@ -72,7 +72,7 @@ generated/review/dfo-*.md
 !generated/gauges/
 generated/gauges/*
 !generated/gauges/candidates.json
-# T1047: the datum / relocation remark proposals (`pipeline.gauges.generate.datum_remarks`); committed because the
+# T1047: the datum / relocation remark proposals (`pipeline.tools.audit.datum_remarks`); committed because the
 # curated datum_change_stations.json rows cite them and the owner reviews them
 !generated/gauges/datum_proposals.json
 

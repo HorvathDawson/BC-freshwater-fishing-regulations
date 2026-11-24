@@ -27,7 +27,7 @@ import argparse
 import json
 import re
 import sqlite3
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 from pipeline.common.curated import GENERATED, SOURCE
@@ -42,7 +42,8 @@ _CHANGE = re.compile(r"RELOCAT|\bMOVED\b|NEW SITE|NEW LOCATION|DATUM CHANGE|NEW 
                      r"(JUMP|DROP|STEP)( CHANGE)? IN (STAGE|WATER LEVEL)|\bSTEP IN WATER LEVEL|LOWERED|RAISED|"
                      r"ADDED TO THE DATUM|NOT (BEEN )?(PRESERVED|TRANSFERRED|MAINTAINED)|NO DATUM CONTINUITY|"
                      r"DATUM WAS NOT MAINTAINED|RE-ESTABLISHED", re.I)
-_KEPT = re.compile(r"DATUM (WAS )?(MAINTAINED|CONSERVED|PRESERVED)", re.I)
+# "every effort was made to ensure the new station datum is similar to the historical station datum" (08GA026): kept
+_KEPT = re.compile(r"DATUM (WAS )?(MAINTAINED|CONSERVED|PRESERVED)|DATUM IS SIMILAR TO", re.I)
 _STAGE_MOVED = re.compile(r"(JUMP|DROP|STEP)|LOWERED|RAISED|DATUM CHANGE|NOT (BEEN )?(PRESERVED|TRANSFERRED)", re.I)
 _CONVERSION = re.compile(r"\bTO CONVERT\b|\bTO GET TO\b|GEODETIC", re.I)
 _QUALITY = re.compile(r"STABILITY|UNCERTAIN|INSTABILITY|POORLY DEFINED|NOT DEFINED|VARIABLE( OPERATING)? DATUM|"
@@ -68,6 +69,9 @@ _SIGNED = (
     (re.compile(rf"LOWERED\s+(?:THE\s+)?(?:GAUGE\s+)?DATUM\s+(?:BY\s+)?(~|APPROX\.?\s*)?{_NUM}", re.I), +1),
     (re.compile(rf"DATUM\s+(?:BEING\s+|WAS\s+)?RAISED\s+(?:BY\s+)?(~|APPROX\.?\s*)?{_NUM}", re.I), -1),
     (re.compile(rf"RAISED\s+(?:THE\s+)?(?:GAUGE\s+)?DATUM\s+(?:BY\s+)?(~|APPROX\.?\s*)?{_NUM}", re.I), -1),
+    # a SIGNED change OF THE DATUM (08MG014: "assumed datum changed ... approximately -4.923 m difference from the 1938
+    # to 1984 datum"; HYDAT reads ~5.3 m HIGHER from 2013): the readings move the other way
+    (re.compile(rf"DATUM CHANGED\b.*?(~|APPROX\.?\s*|APPROXIMATELY\s*)?(-?\d+(?:\.\d+)?)\s*M\s+DIFFERENCE", re.I), -1),
     # "1.000m was added to the datum to avoid negative water levels": every reading 1 m higher
     (re.compile(rf"(~|APPROX\.?\s*)?{_NUM}\s+WAS\s+ADDED\s+TO\s+THE\s+DATUM", re.I), +1),
 )
@@ -81,7 +85,9 @@ def words(text: str) -> list[str]:
 
 def kind(text: str) -> str:
     """A sort for the reader, never a decision (see the module doc)."""
-    if _CHANGE.search(text) and not (_KEPT.search(text) and not _STAGE_MOVED.search(text)):
+    # "STATION WILL HAVE TO BE MOVED TO A NEW LOCATION" (08KD006): a move not made is no change
+    if _CHANGE.search(text) and not (_KEPT.search(text) and not _STAGE_MOVED.search(text)) \
+            and not re.search(r"\bWILL HAVE TO BE MOVED\b", text, re.I):
         return "change"
     if _CONVERSION.search(text):
         return "conversion"
@@ -92,15 +98,27 @@ def kind(text: str) -> str:
     return "other"
 
 
+#: a date right after these words ends a record, it does not change a zero (08EE003 "DISCONTINUED DEC 31 1971",
+#: 08KD006 "NO DATA AFTER SEP 15, 2011"): never the change's date
+_ENDS = re.compile(r"(DISCONTINUED|NO DATA (PUBLISHED )?AFTER|ENDED AS OF|DESTROYED ON)\s*(ON\s*)?$", re.I)
+#: "TO BE MOVED UPSTREAM AFTER DEC 31, 2000" (08NE087): the first day on the new site is the day after
+_AFTER = re.compile(r"\bAFTER\s*$", re.I)
+
+
 def dates(text: str) -> list[str]:
-    """Every full date the remark states, ISO, in order, distinct."""
+    """Every full date the remark states as a change's day, ISO, in order, distinct (an end-of-record date left out; a
+    date after "AFTER" read as the next day)."""
     found: list[tuple[int, str]] = []
     for rx, ymd in _DATES:
         for m in rx.finditer(text):
+            before = text[max(0, m.start() - 40):m.start()]
+            if _ENDS.search(before):
+                continue
             try:
-                found.append((m.start(), date(*ymd(m)).isoformat()))
+                d = date(*ymd(m))
             except ValueError:
                 continue
+            found.append((m.start(), (d + timedelta(days=1) if _AFTER.search(before) else d).isoformat()))
     out: list[str] = []
     for _, d in sorted(found):
         if d not in out:
@@ -115,7 +133,9 @@ def the_date(text: str) -> tuple[str | None, str | None]:
     if ds:
         return None, f"{len(ds)} dates stated ({', '.join(ds)}): which one the zero changed on is the reader's call"
     years = sorted(set(re.findall(r"\b(19\d{2}|20\d{2})\b", text)))
-    return None, (f"a year only ({', '.join(years)}), no day" if years else "no date stated")
+    ends = "; its full date ends a record (DISCONTINUED / NO DATA AFTER), not a change" if re.search(
+        r"(DISCONTINUED|NO DATA (PUBLISHED )?AFTER|ENDED AS OF|DESTROYED ON)\s*(ON\s*)?[A-Z]{3}", text, re.I) else ""
+    return None, (f"a year only ({', '.join(years)}), no day" if years else "no date stated") + ends
 
 
 def metres(text: str) -> list[float]:

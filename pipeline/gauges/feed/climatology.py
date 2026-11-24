@@ -124,6 +124,17 @@ def _sig4(v: float) -> float:
     return round(v, -int(floor(log10(abs(v)))) + 3)
 
 
+#: (T1047) A LEVEL PUT ON A NEW ZERO KEEPS THE RECORD'S MILLIMETRES. Four significant figures of 07FD001's ~95 m
+#: (+94.826 m) keep 1 cm; HYDAT records stage to the millimetre, so a moved station's levels are rounded to 3 decimals.
+#: Every other value is `_sig4` as before (no accepted change: clim.json byte-identical).
+MOVED_DECIMALS = 3
+
+
+def _lv(v: float, moved: bool) -> float:
+    """A level value as written: `_sig4`, or (a station whose record an accepted datum change moved) millimetres."""
+    return round(v, MOVED_DECIMALS) if moved else _sig4(v)
+
+
 def _quantile(xs: list[float], q: float) -> float:
     """Linear-interpolated quantile. `xs` must be sorted."""
     if not xs:
@@ -223,7 +234,7 @@ def level_shifts(points: list[tuple[int, float]]) -> list[int]:
     return level_shifts(pts[:k]) + [pts[k][0]] + level_shifts(pts[k:])
 
 
-def rating_of(pairs: list[tuple[float, float]]) -> list[list[float]] | None:
+def rating_of(pairs: list[tuple[float, float]], moved: bool = False) -> list[list[float]] | None:
     """[[flow knot, level p1, level p99], ...] over flow deciles; None under RATING_MIN_PAIRS pairs. See RATING_PAD_M."""
     if len(pairs) < RATING_MIN_PAIRS:
         return None
@@ -236,7 +247,7 @@ def rating_of(pairs: list[tuple[float, float]]) -> list[list[float]] | None:
         hs = sorted(h for q, h in pairs if lo <= q <= hi)
         if not hs:
             return None
-        out.append([_sig4(lo), _sig4(_quantile(hs, 0.01)), _sig4(_quantile(hs, 0.99))])
+        out.append([_sig4(lo), _lv(_quantile(hs, 0.01), moved), _lv(_quantile(hs, 0.99), moved)])
     out.append([_sig4(knots[-1]), out[-1][1], out[-1][2]])
     return out
 
@@ -265,7 +276,7 @@ def level_record(db, station: str, moves: list[tuple[date, float]] | None = None
     shifts = level_shifts(points)
     since = shifts[-1] if shifts else None
     pairs = [(fl[d], h) for d, h in lv.items() if d in fl and (since is None or d.year >= since)]
-    return {"since": since, "shifts": shifts, "rating": rating_of(pairs) if fl else None}
+    return {"since": since, "shifts": shifts, "rating": rating_of(pairs, bool(moves)) if fl else None}
 
 
 def _read(db, table: str, col: str, where: str, args: list, since: dict[str, int] | None = None,
@@ -312,7 +323,7 @@ def _read(db, table: str, col: str, where: str, args: list, since: dict[str, int
             days[st] += 1
             if yr in keep:
                 slot = recent[st].setdefault(yr, [None] * 366)
-                slot[yday - 1] = _sig4(val)
+                slot[yday - 1] = _lv(val, bool(moves and st in moves))
     return pooled, years, days, recent
 
 
@@ -376,7 +387,8 @@ def build(hydat: Path, stations: list[str] | None = None,
                 if len(vals) < MIN_OBS:
                     continue      # absent, not guessed
                 vals.sort()
-                bands[str(p)] = [_sig4(_quantile(vals, q / 100)) for q in PCTILES]
+                moved = param == "level" and st in moves
+                bands[str(p)] = [_lv(_quantile(vals, q / 100), moved) for q in PCTILES]
             if not bands:
                 continue
             envelope.setdefault(st, {})[param] = bands
