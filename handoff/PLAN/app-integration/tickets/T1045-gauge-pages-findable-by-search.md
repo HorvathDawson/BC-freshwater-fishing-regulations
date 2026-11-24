@@ -57,15 +57,28 @@ queries once the production site is deployed (the owner's).
 ## Not done yet
 No code change to any gauge-page file until #73 merges (coordinator, 2026-11-23).
 
-## Built (0.9.0, PR from main after #73)
-- Title "<gauge name> level and flow (<station>)", H1 "<name> level, flow and forecast", a visible lede in the static HTML; the gauge's own
-  name already holds the water's word, so nothing says "river river" (the build gate refuses a doubled word). The flow forecast is worded
-  "as many days as that run covers" (no number); only the weather has a horizon, `WEATHER_DAYS` (5), the one constant the page's weather
-  request and its words both read. Description: "Live flow or water level, the flow forecasts and the weather at ...".
-- Each water page links its good gauge pages (`main`, three at most, by name) with the anchor "<gauge name> level and flow", plain
-  `<a href>` in a `nav#gauge-links` after the app's root (the inert attribute, no script: a script blocks). Under the app's pane, as the
-  home page's row (T1011): a crawler reads it; it is not drawn over the pane. The app's Conditions tab stays state; the gauge page is its indexable face.
-- Gauge JSON-LD: a Place named by the gauge and its station, the WebPage's `about`; held to the page by the existing gate. No coordinates or readings.
-- Build gate (`gaugeWordsProblems`, and a water page without its link): title and heading words, no doubled word, a lede, "forecast" in the description.
-- Tests proved by mutation (title back to "conditions", no link row, JSON-LD without Place, a "5 days" flow lede, gate off, "River" added twice).
-- `T1045-shots/before-after.txt` and `gauge-page-top.png`. Not done: a ranking (Google decides; the recrawl is the owner's after the production deploy).
+## Built (0.9.0, PR #84, after its review)
+- Gauge page title "<gauge name> <words> (<station>)" and H1 "<name> <words>", where the words are what the RELEASE holds for the station
+  (`gaugeSubject` of `gauge_clim`): "level and flow", "flow", "level", or "conditions" when it holds nothing. A level-only gauge says
+  "level". "Forecast" is NOT in the title or heading: whether the BC River Forecast Centre runs one for a gauge is live data, not in
+  the release; the lede and description say it only as "the flow forecast where the BC River Forecast Centre runs one, for as many
+  days as that run covers". The weather has its own horizon, `WEATHER_DAYS` (5), the one constant. The gauge's own name already
+  holds the water's word, so nothing says "river river" (the build gate refuses a doubled word).
+- WATER PAGES (review: the first build hid a crawler-only row under the pane, which Google's "hidden text and links" policy names):
+  the water's Regulations view now draws a VISIBLE "River gauges for this water" list, the same for readers and crawlers: up to 3
+  links (core `pickWaterGauges`: own water, a lake it gauges, good section guides; never fair or weak; best first, then name),
+  each "<gauge name> <words>"; on the web a real anchor to `/gauge/<station>/<slug>`, on the phone a press to the water's Conditions
+  view. Read from the release by `readWaterGauges` (keyed reads: gauge, lake_gauge, core item_section, section_gauge, gauge_clim) through
+  `useWaterGauges`; drawn by the app's own pane, so the prerender and the live app carry it. A failed read is said, not an empty list.
+  The SEO build checks each pane against the same rows (`waterGaugesOf`) when the release carries conditions.
+- THE HOME PAGE'S T1011 ROW (`#site-links`, owner 2026-11-22) uses the same hidden pattern (clipped under the app, `inert`). NOT CHANGED
+  here: making it visible means a link list on the home map screen (an app design decision) and removing it undoes the owner's T1011
+  fix; flagged as an owner question.
+- Gauge JSON-LD: a Place named by the gauge and its station, with GeoCoordinates, the WebPage's `about`; the coordinates are shown on the
+  page ("at 49.0973, -121.9638") so the gate holds them.
+- Build gate (`gaugeWordsProblems`): title and heading words against the station's parameters, no doubled word, no "forecast" in title or
+  heading, a lede, the forecast only hedged.
+- Tests proved by mutation: cap 3 -> 4, fair guides allowed, no anchor on the web, words not from data, hedge removed (the build refuses),
+  section guide trust unfiltered. Component, data reader and SEO tests; `T1045-shots/before-after.txt` and `regs-{before,after}-{390,desktop}.png`.
+- Not done: a ranking (Google decides; the recrawl is the owner's after the production deploy); a water page's pane is checked against the
+  rows only in the unthreaded build and only when the release carries conditions (a threaded build's pages are files).

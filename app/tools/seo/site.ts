@@ -18,7 +18,7 @@ import { verifyAgainstApp } from "./verify";
 import { regionYear, yearCardHtml } from "./regionYear";
 import { pageSize, type PageSize } from "./budget";
 import { dotPicture, namesFile, regionLead } from "./regionMap";
-import { gaugeLinksRow, gaugesByWater, gaugeWordsProblems, chartInputsOf, chartScript, clientScript, findScript, LIVE, gaugeBody, gaugeDescription, gaugeModels, gaugesIndexBody, gaugeTitle, siteGaugeCardSvg, stationsFile, type GaugeModel, type GaugeRows } from "./gauges";
+import { waterGaugesOf, gaugeWordsProblems, chartInputsOf, chartScript, clientScript, findScript, LIVE, gaugeBody, gaugeDescription, gaugeModels, gaugesIndexBody, gaugeTitle, siteGaugeCardSvg, stationsFile, type GaugeModel, type GaugeRows } from "./gauges";
 import type { StationClim } from "@app/data";
 
 export interface PageRec {
@@ -61,11 +61,13 @@ export interface BuildOpts {
    * (T269) THE WATER PAGE: the app's own document with the water's regs pane prerendered in it (build.ts over pane.tsx and
    * prerender.ts), given the page's head tags. There is no other water page.
    */
-  readonly waterPage: (m: WaterModel, head: string, file: string, gaugeLinks: string) => Promise<WaterMade>;
+  readonly waterPage: (m: WaterModel, head: string, file: string) => Promise<WaterMade>;
   /** build only these waters (item ids): a sample to look at, never a release's site */
   readonly only?: ReadonlySet<string>;
   /** (T487) the release's gauges and the waters each serves (gauges.ts `readGaugeRows`); null: the release has none */
   readonly gauges?: GaugeRows | null;
+  /** (T1045) the release carries the conditions the app's water pane reads its gauge list from: check each pane for its links */
+  readonly waterGaugeLinks?: boolean;
   /** (T1039) each station's climatology from the same release (gauges.ts `readGaugeClim`), written into its page for the chart */
   readonly gaugeClim?: ReadonlyMap<string, readonly StationClim[]> | null;
   /** (T1039) the app's faces as `@font-face` rules (pane.tsx `fontFaceCss`), for the chart's words; absent: no app export */
@@ -176,10 +178,10 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     if (was) bad.push(`${path} and ${was} share a ${what === titles ? "title" : "description"}: ${v}`);
     what.set(v, path);
   };
-  // (T1045) the gauges are modelled first: each water page links its gauge pages
+  // (T1045) the gauges are modelled before the waters: a water page's gauge list is checked against them
   const byId = new Map(models.map((m) => [m.id, m]));
-  const gauges = o.gauges ? gaugeModels(o.gauges, (item) => { const m = byId.get(item); return m ? { id: m.id, name: m.name, path: waterPath(m) } : null; }) : [];
-  const gaugesOf = gaugesByWater(gauges);
+  const gauges = o.gauges ? gaugeModels(o.gauges, (item) => { const m = byId.get(item); return m ? { id: m.id, name: m.name, path: waterPath(m) } : null; }, o.gaugeClim) : [];
+  const gaugesOf = o.waterGaugeLinks && o.gauges ? waterGaugesOf(o.gauges, o.gaugeClim) : new Map<string, string[]>();
   const waterHash = new Map<string, string>(), waterRules = new Map<string, string>();
   const made: { path: string; hash: string; title: string; description: string; links: readonly string[]; page: Promise<WaterMade> }[] = [];
   const waterTopics = new Map<string, Map<TopicKey, string[]>>();
@@ -207,16 +209,15 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     waterTopics.set(m.id, topicLines(m));
     const head = headOf({ title, description, path, jsonld: waterLd(m, path, title, site, was), image: `/share/${slugOf(m.id)}.png` }, site);
     // (T279) asked at once, all of them: the build's render threads take them in parallel; kept in order below
-    const gl = gaugesOf.get(m.id) ?? [];
-    made.push({ path, hash, title, description, links: gl.map((g) => g.path), page: o.waterPage(m, head, outFile(path), gaugeLinksRow(gl)) });
+    made.push({ path, hash, title, description, links: gaugesOf.get(m.id) ?? [], page: o.waterPage(m, head, outFile(path)) });
     // (T406) the card's source: build.ts draws it as `share/<slug>.png` (share.ts) and ships the PNG only
     files.set(`share/${slugOf(m.id)}.svg`, shareSvg(m, site));
   }
   await verifyApp();
   for (const w of made) {
     const p = await w.page;
-    // (T1045) a water with a good gauge links its page(s), in the static HTML
-    if (p.html !== null) for (const href of w.links) if (!p.html.includes(`<a href="${href}">`)) bad.push(`${w.path}: no link to its gauge page ${href}`);
+    // (T1045) the pane lists the gauges its release names (the app's `readWaterGauges`): the build's own reading of the same rows must agree
+    if (p.html !== null) for (const href of w.links) if (!p.html.includes(`href="${href}"`)) bad.push(`${w.path}: its pane does not link its gauge page ${href}`);
     if (p.html !== null) { add("water", w.path, p.html, w.hash); continue; }
     bad.push(...p.problems.map((x) => `${w.path}: ${x}`));
     pages.push({ path: w.path, kind: "water", html: "", hash: w.hash, title: w.title, description: w.description, size: p.size });

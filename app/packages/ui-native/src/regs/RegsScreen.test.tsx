@@ -76,6 +76,23 @@ describe("<RegsScreen>", () => {
     expect(screen.queryByTestId("regs-lapsed")).toBeNull();
   });
 
+  it("(T1045) the gauges that read this water are links, drawn for everyone: an anchor on the web, a press to Conditions on the phone; none when none; a failure said", () => {
+    const gauges = { state: "ready" as const, error: null, value: [{ station: "08MH005", name: "Alouette River Near Haney", trust: "own" as const, parameters: ["discharge", "level"] as ("discharge" | "level")[] }] };
+    const onGauge = vi.fn();
+    mount({ gauges, onGauge });
+    const a = screen.getByTestId("gauge-link:08MH005");
+    expect([a.tagName, a.getAttribute("href"), a.textContent]).toEqual(["A", "/gauge/08MH005/alouette-river-near-haney", "Alouette River Near Haney level and flow"]);
+    expect(screen.getByTestId("regs-gauges").textContent).toContain("River gauges for this water");
+    expect(a.closest("[inert]")).toBeNull();
+    expect(a.closest("[data-nosnippet]")).toBeNull();
+    cleanup();
+    mount({ gauges: { state: "ready", error: null, value: [] } });
+    expect(screen.queryByTestId("regs-gauges")).toBeNull();
+    cleanup();
+    mount({ gauges: { state: "failed", error: new Error("x"), value: null } });
+    expect(screen.getByTestId("regs-gauges-failed").textContent).toBe("The gauges for this water could not be read.");
+  });
+
   it("(T1042) the words every water repeats are never Google's snippet: the licence block, the reference and the legal footer carry data-nosnippet; the rest does not", () => {
     mount();
     const marked = [...screen.getByTestId("regs-content").children].filter((e) => e.hasAttribute("data-nosnippet")).map((e) => e.getAttribute("data-testid"));

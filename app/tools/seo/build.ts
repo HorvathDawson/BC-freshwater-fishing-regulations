@@ -145,7 +145,7 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   const paneHref = `/assets/pane.${sha(`${PANE_CSS_VERSION}|${store.meta.release}|${template}|${a.on.iso}`)}.css`;
   const preload = ["Archivo_400Regular", "BricolageGrotesque_800ExtraBold"].map((f) => web?.url(f)).filter((u): u is string => !!u);
   const doc = { critical: PaneRenderer.critical(), cssHref: paneHref, preload };
-  let waterPage: (m: WaterModel, head: string, file: string, gaugeLinks: string) => Promise<WaterMade>;
+  let waterPage: (m: WaterModel, head: string, file: string) => Promise<WaterMade>;
   let cssParts: () => Promise<PaneCssParts[]>;
   let pool: PanePool | null = null, jobs: JobPool | null = null;
   if (a.bare) {
@@ -155,15 +155,15 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
     const { n, jobs: j, ...where } = a.threads;
     jobs = new JobPool(j, SHARE_CARD);
     pool = new PanePool(n, { ...where, origin: config.origin, doc }, jobs);
-    waterPage = (m, head, file, gaugeLinks) => pool!.page(m.id, m.focus, head, file, gaugeLinks);
+    waterPage = (m, head, file) => pool!.page(m.id, m.focus, head, file);
     cssParts = () => pool!.css();
   } else {
     const panes = new PaneRenderer({ source: makeReleaseSource(a.loader), loader: a.loader,
                                      ...(a.images ? { fishImages: a.images.fish } : {}) });
     // one render at a time: a render owns the hooks' answers (site.ts asks for every page at once)
     let chain: Promise<unknown> = Promise.resolve();
-    waterPage = (m, head, _file, gaugeLinks) => {
-      const p = chain.then(async () => ({ html: appDocument(template, { ...doc, head, gaugeLinks, item: m.id, region: m.focus, pane: await panes.water(m.id as ItemId) }) }));
+    waterPage = (m, head) => {
+      const p = chain.then(async () => ({ html: appDocument(template, { ...doc, head, item: m.id, region: m.focus, pane: await panes.water(m.id as ItemId) }) }));
       chain = p.catch(() => {});
       return p;
     };
@@ -181,7 +181,7 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
       build = await buildSite({
         store, site: config, release: { id: store.meta.release, validUntil: a.loader.manifest.regulations.valid_until },
         on: a.on, slugMap: a.slugMap ?? EMPTY_SLUG_MAP, previous: a.previous ?? null, ...(a.hubSplitAt ? { hubSplitAt: a.hubSplitAt } : {}),
-        waterPage, ...(a.only ? { only: a.only } : {}), gauges: gaugeRows, gaugeClim, gaugeFonts: fonts.css || null,
+        waterPage, ...(a.only ? { only: a.only } : {}), gauges: gaugeRows, gaugeClim, gaugeFonts: fonts.css || null, waterGaugeLinks: !!a.loader.manifest.files.conditions,
       });
       parts = await cssParts();
     } finally { await pool?.close(); }

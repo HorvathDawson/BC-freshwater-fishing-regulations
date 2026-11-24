@@ -21,10 +21,11 @@ import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, u
 import { openProbe } from "@app/data";
 import { Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
 import { Text } from "../Text";
-import { LEGAL_WORDS, now as clockNow, parseSheetKey, reportFailure, withInSeason, withSalmonSheets, type SalmonCardVM, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type TabSourcesVM, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
+import { LEGAL_WORDS, type WaterGauge, now as clockNow, parseSheetKey, reportFailure, withInSeason, withSalmonSheets, type SalmonCardVM, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type TabSourcesVM, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
 import { FreshDot } from "../menu/Fresh";
 import { NO_SNIPPET, WaterInset } from "../WaterFrame";
+import { WaterGauges } from "./WaterGauges";
 import { ReportLink } from "../menu/ReportLink";
 import { TYPE } from "../type";
 import { ViewSwipe, WaterViewsContext } from "../ViewSwipe";
@@ -38,7 +39,7 @@ import { ReadingColumn, RegsSide } from "./RegsWide";
 import { SheetHost } from "./SheetHost";
 import { SourceRow } from "../SourceRow";
 import { recallRegsScroll, rememberRegsScroll } from "./scrollMemory";
-import type { LayoutClass, RegsStart } from "@app/ui";
+import type { Async, LayoutClass, RegsStart } from "@app/ui";
 import { AnchorContext, useAnchors } from "./useAnchors";
 import { InSeasonBanners } from "./InSeasonBanner";
 import type { FishImages } from "./types";
@@ -74,6 +75,10 @@ export interface RegsScreenProps {
   gear?: Slot; methods?: Slot; licence?: Slot;
   /** (T516) the Reference fold's first state: closed; a render test opens it to read the folded lines */
   referenceOpen?: boolean;
+  /** (T1045) the gauges this water links ("River gauges for this water"); absent: none drawn */
+  gauges?: Async<readonly WaterGauge[]>;
+  /** (T1045) a press on a gauge on the phone: the water's Conditions view */
+  onGauge?: () => void;
   /** the last child of the scroll */
   footer?: React.ReactNode;
   /** (T211) the "Salmon · DFO" card, drawn ABOVE the Keep tab's provincial rules (owner 2026-10-28); absent → none. A
@@ -151,7 +156,7 @@ const START_WAIT = 50;
 const START_JUMP_MS = 150;
 
 export function RegsScreen({ page, palette, images, actions, onDate,
-                             gear, methods, licence, referenceOpen = false, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
+                             gear, methods, licence, referenceOpen = false, gauges, onGauge, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
                              lapsed = null, access = [], inSeason = [], glance = null, salmonStrip = null,
                              nameSource = null, asOf = null, scrollKey = null, sun = null, daylight = null, sources, troutSources, salmonCard = null }: RegsScreenProps) {
   // (T286) the open probe (test bed only): the page's first render, and its first layout (mounted, before paint)
@@ -300,6 +305,8 @@ export function RegsScreen({ page, palette, images, actions, onDate,
           <ReferenceFold vm={page.methods.reference} palette={palette} actions={keepActions} initiallyOpen={referenceOpen} />
         </WaterInset>
       )}
+      {/* (T1045) the gauges that read this water, as links to their pages: the people's view and the crawler's are this one list */}
+      {gauges && <WaterInset><WaterGauges gauges={gauges} palette={palette} onOpen={onGauge} /></WaterInset>}
       {/* (T236) every page's foot: not legal advice, and how current its sources are — (owner 2026-11-04) as fine print
           under a hairline, so it does not read as part of the page */}
       <WaterInset testID="regs-legal" noSnippet style={{ marginTop: 20, paddingTop: 10, gap: 2, borderTopWidth: 1, borderTopColor: palette.line }}>

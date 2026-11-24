@@ -48,14 +48,15 @@ export function pageLd(site: Site, path: string, title: string, asOf: string, cr
 }
 
 /**
- * (T1045) A gauge page's JSON-LD: the page about its place, the gauge, by the name and station the page shows. No coordinates
- * or readings (the gate holds every figure to the page, and the readings are drawn by script).
+ * (T1045) A gauge page's JSON-LD: the page about its place, the gauge, by the name, station and coordinates the page shows (the gate
+ * holds every figure to the page). No readings: they are drawn by script.
  */
-export function gaugeLd(site: Site, g: { name: string; station: string }, title: string, asOf: string, crumbs: readonly (readonly [string, string])[]): string {
+export function gaugeLd(site: Site, g: { name: string; station: string; lat: number | null; lon: number | null }, title: string, asOf: string, crumbs: readonly (readonly [string, string])[]): string {
   const url = `${site.origin}${crumbs[crumbs.length - 1]![1]}`;
   const [web, page, ...rest] = base(site, url, title, asOf, crumbs) as [Json, { [k: string]: Json }, ...Json[]];
   page.about = { "@id": `${url}#place` };
-  return script([web, page, ...rest, { "@type": "Place", "@id": `${url}#place`, name: g.name, identifier: g.station }]);
+  return script([web, page, ...rest, { "@type": "Place", "@id": `${url}#place`, name: g.name, identifier: g.station,
+    ...(g.lat !== null && g.lon !== null ? { geo: { "@type": "GeoCoordinates", latitude: Number(g.lat.toFixed(4)), longitude: Number(g.lon.toFixed(4)) } } : {}) }]);
 }
 
 export function aboutLd(site: Site, title: string, asOf: string): string {

@@ -200,8 +200,6 @@ export interface AppDocument {
   readonly critical: string; readonly cssHref: string;
   readonly preload: readonly string[];
   readonly item: string; readonly pane: string;
-  /** (T1045) the crawlable row of this water's gauge pages (gauges.ts `gaugeLinksRow`), after the app's root; none: no gauge */
-  readonly gaugeLinks?: string;
   /** (T304) the water's bundle region (`WaterModel.focus`): the app focuses the release on it before its first read */
   readonly region: string | null;
 }
@@ -232,7 +230,7 @@ export function appDocument(template: string, d: AppDocument): string {
     .replace(/<\/head>/, `${d.head}<meta name="cift:item" content="${d.item}"><meta name="cift:region" content="${d.region}">` +
       d.preload.map((f) => `<link rel="preload" href="${f}" as="font" type="font/woff2" crossorigin>`).join("") +
       `<style>${d.critical}</style><link rel="stylesheet" href="${d.cssHref}"></head>`)
-    .replace(/<div id="root"><\/div>/, `<div id="prerender">${d.pane}</div><div id="root"></div>${d.gaugeLinks ?? ""}${HANDOFF}`);
+    .replace(/<div id="root"><\/div>/, `<div id="prerender">${d.pane}</div><div id="root"></div>${HANDOFF}`);
   // (T1042) the PNG icons Google Search reads (the export's home page carries them; a template without them gets them here)
   return withIconLinks(t);
 }

@@ -1,36 +1,34 @@
-T1045 before / after on three LIVE gauge pages (before = canifishthis.ca today, GET; after = this PR's functions on the same name, station and water)
+T1045 before / after on three LIVE gauge pages (before = canifishthis.ca today, GET; after = this PR's functions on the same name, station, water and the release's own parameters)
 
-08MH005 Alouette River Near Haney
+08MH005 Alouette River Near Haney (release holds: discharge + level)
   title  before: Alouette River Near Haney conditions (08MH005)
-         after:  Alouette River Near Haney level and flow (08MH005)  [50]
+         after:  Alouette River Near Haney level and flow (08MH005)
   H1     before: Alouette River Near Haney
-         after:  Alouette River Near Haney level, flow and forecast
+         after:  Alouette River Near Haney level and flow
   lede   before: (none)
-         after:  Water level or flow, the flow forecast and the weather for Alouette River Near Haney, from Water Survey of Canada gauge 08MH005. Where the BC River Forecast Centre runs a forecast for this gauge it is shown for as many days as that run covers; the weather is for the next 5 days.
+         after:  Live level and flow, and the weather for Alouette River Near Haney, from Water Survey of Canada gauge 08MH005, with the flow forecast where the BC River Forecast Centre runs one, for as many days as that run covers. The weather is for the next 5 days.
   descr  before: Live flow, the last 7 days, the flow forecast and the weather at the Alouette River Near Haney gauge (08MH005), BC, for Alouette River. Free, from Water…
-         after:  Live flow or water level, the flow forecasts and the weather at the Alouette River Near Haney gauge (08MH005), BC, for Alouette River. Free, from Water…
+         after:  Live level or flow, the flow forecast where the BC River Forecast Centre runs one, and the weather at the Alouette River Near Haney gauge (08MH005), BC…
 
-08MF005 Fraser River at Hope
+08MF005 Fraser River at Hope (release holds: discharge + level)
   title  before: Fraser River at Hope conditions (08MF005)
-         after:  Fraser River at Hope level and flow (08MF005)  [45]
+         after:  Fraser River at Hope level and flow (08MF005)
   H1     before: Fraser River at Hope
-         after:  Fraser River at Hope level, flow and forecast
+         after:  Fraser River at Hope level and flow
   lede   before: (none)
-         after:  Water level or flow, the flow forecast and the weather for Fraser River at Hope, from Water Survey of Canada gauge 08MF005. Where the BC River Forecast Centre runs a forecast for this gauge it is shown for as many days as that run covers; the weather is for the next 5 days.
+         after:  Live level and flow, and the weather for Fraser River at Hope, from Water Survey of Canada gauge 08MF005, with the flow forecast where the BC River Forecast Centre runs one, for as many days as that run covers. The weather is for the next 5 days.
   descr  before: Live flow, the last 7 days, the flow forecast and the weather at the Fraser River at Hope gauge (08MF005), BC, for Fraser River. Free, from Water Survey…
-         after:  Live flow or water level, the flow forecasts and the weather at the Fraser River at Hope gauge (08MF005), BC, for Fraser River. Free, from Water Survey…
+         after:  Live level or flow, the flow forecast where the BC River Forecast Centre runs one, and the weather at the Fraser River at Hope gauge (08MF005), BC, for…
 
-08HA011 Cowichan River Near Duncan
+08HA011 Cowichan River Near Duncan (release holds: discharge + level)
   title  before: Cowichan River Near Duncan conditions (08HA011)
-         after:  Cowichan River Near Duncan level and flow (08HA011)  [51]
+         after:  Cowichan River Near Duncan level and flow (08HA011)
   H1     before: Cowichan River Near Duncan
-         after:  Cowichan River Near Duncan level, flow and forecast
+         after:  Cowichan River Near Duncan level and flow
   lede   before: (none)
-         after:  Water level or flow, the flow forecast and the weather for Cowichan River Near Duncan, from Water Survey of Canada gauge 08HA011. Where the BC River Forecast Centre runs a forecast for this gauge it is shown for as many days as that run covers; the weather is for the next 5 days.
+         after:  Live level and flow, and the weather for Cowichan River Near Duncan, from Water Survey of Canada gauge 08HA011, with the flow forecast where the BC River Forecast Centre runs one, for as many days as that run covers. The weather is for the next 5 days.
   descr  before: Live flow, the last 7 days, the flow forecast and the weather at the Cowichan River Near Duncan gauge (08HA011), BC, for Cowichan River. Free, from Water…
-         after:  Live flow or water level, the flow forecasts and the weather at the Cowichan River Near Duncan gauge (08HA011), BC, for Cowichan River. Free, from Water…
+         after:  Live level or flow, the flow forecast where the BC River Forecast Centre runs one, and the weather at the Cowichan River Near Duncan gauge (08HA011), BC…
 
-A water page's new link (static HTML, after the app's root; the Coquitlam-style example):
-  <style>#gauge-links{font:14px/1.6 system-ui,-apple-system,sans-serif;padding:12px 16px;text-align:center}#gauge-links a{color:inherit;display:inline-block;padding:4px 6px}</style><nav id="gauge-links" aria-label="River gauges for this water" inert><a href="/gauge/08MH005/alouette-river-near-haney">Alouette River Near Haney level and flow</a></nav>
-
-Shot: gauge-page-top.png (a gauge page built from the fixture: heading, lede). The link row is in the page's static HTML under the app's root: it is not drawn over the pane.
+A water page (Coquitlam River, fixture stub): the pane's new list under the Handling-fish reference, before the legal footer: regs-before-390.png / regs-after-390.png, regs-before-desktop.png / regs-after-desktop.png.
+Each is a real link on the web (a plain anchor to /gauge/<station>/<slug>) and a press to the water's Conditions view on the phone; up to 3; words from what the release holds for the gauge (level and flow, flow, level, conditions).

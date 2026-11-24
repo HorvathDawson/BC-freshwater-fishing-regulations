@@ -23,7 +23,7 @@ import { crashUrlFor, ORIGINS, REPORT_URLS } from "../../apps/mobile/src/env";
 import { clip, esc, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, type Site } from "./html";
 import type { GaugeConfig } from "./gaugeClient";
 import { FIND_BODY } from "./regionMap";
-import { bestServes, gaugePath, STALE_AFTER_MS, STORE_CONTACT, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
+import { bestServes, gaugePath, gaugeSubject, pickWaterGauges, STALE_AFTER_MS, STORE_CONTACT, TRUST_RANK, type GaugeParameter, type GaugeRows, type ServesTrust, type WaterGauge } from "@app/core";
 import type { StationClim } from "@app/data";
 import { readGaugeClim, readGaugeRows } from "@app/data/release";
 
@@ -40,11 +40,14 @@ export interface GaugeModel {
   readonly more: readonly WaterLink[];
   /** waters it is only a weak (rough) guide for */
   readonly rough: readonly WaterLink[];
+  /** (T1045) what the release holds for the station (`gauge_clim`): the words of its title, heading and links */
+  readonly parameters: readonly GaugeParameter[];
 }
 
 export { gaugePath };
 
-export function gaugeModels(rows: GaugeRows, water: (item: string) => WaterLink | null): GaugeModel[] {
+export function gaugeModels(rows: GaugeRows, water: (item: string) => WaterLink | null,
+                            clim?: ReadonlyMap<string, readonly Pick<StationClim, "parameter">[]> | null): GaugeModel[] {
   const best = bestServes(rows);
   const out: GaugeModel[] = [];
   for (const g of rows.gauges) {
@@ -53,7 +56,8 @@ export function gaugeModels(rows: GaugeRows, water: (item: string) => WaterLink 
     links.sort((a, b) => TRUST_RANK[a.t] - TRUST_RANK[b.t] || a.w.name.localeCompare(b.w.name) || a.w.id.localeCompare(b.w.id));
     out.push({ station: g.station, name: g.name, path: gaugePath(g.station, g.name), lat: g.lat, lon: g.lon,
                close: links.filter((l) => l.t !== "weak").map((l) => l.w),
-               main: links.filter((l) => TRUST_RANK[l.t] <= TRUST_RANK.good).map((l) => l.w), more: links.filter((l) => TRUST_RANK[l.t] > TRUST_RANK.good).map((l) => l.w), rough: links.filter((l) => l.t === "weak").map((l) => l.w) });
+               main: links.filter((l) => TRUST_RANK[l.t] <= TRUST_RANK.good).map((l) => l.w), more: links.filter((l) => TRUST_RANK[l.t] > TRUST_RANK.good).map((l) => l.w), rough: links.filter((l) => l.t === "weak").map((l) => l.w),
+               parameters: (clim?.get(g.station) ?? []).map((c) => c.parameter) });
   }
   return out.sort((a, b) => a.name.localeCompare(b.name) || a.station.localeCompare(b.station));
 }
@@ -221,28 +225,32 @@ export function gaugeConfig(g: GaugeModel, release: string, chart: ChartInputs):
 
 // ── the pages ────────────────────────────────────────────────────────────────────────────────────────────────────────
 /**
- * (T1045) a unique title under 60 characters: the name is cut, the station never. The words a searcher types ("<river> level",
- * "<river> flow") follow the gauge's own name, which already holds the water's word ("Alouette River Near Haney"): the title
- * adds none of its own, so it never says "river river" (`gaugeWordsProblems` holds that).
+ * (T1045) a unique title under 60 characters: the name is cut, the station never. The words a searcher types follow the gauge's
+ * own name, which already holds the water's word ("Alouette River Near Haney"), so the title adds none of its own and never says
+ * "river river". WHAT it measures is the release's (`gaugeSubject` of its `gauge_clim`): a level-only gauge says "level", a
+ * flow-only one "flow", one the release knows nothing of "conditions". "Forecast" is not in it: whether the River Forecast
+ * Centre runs one is live data, said in the lede and description as "where ... runs one".
  */
-export function gaugeTitle(g: Pick<GaugeModel, "name" | "station">): string {
-  const tail = ` level and flow (${g.station})`;
+export function gaugeTitle(g: Pick<GaugeModel, "name" | "station" | "parameters">): string {
+  const tail = ` ${gaugeSubject(g.parameters)} (${g.station})`;
   return `${clip(g.name, 60 - tail.length)}${tail}`;
 }
 /** (T1045) the page's one heading */
-export const gaugeHeading = (g: Pick<GaugeModel, "name">): string => `${g.name} level, flow and forecast`;
+export const gaugeHeading = (g: Pick<GaugeModel, "name" | "parameters">): string => `${g.name} ${gaugeSubject(g.parameters)}`;
+/** (T1045) the forecast, said only as what it is: the River Forecast Centre's run, where it runs one, for as many days as that run covers */
+export const FORECAST_WORDS = "where the BC River Forecast Centre runs one";
 /**
- * (T1045) the lede under the heading, in the static HTML: what the page shows, in the words a reader searches. The flow forecast
- * is the River Forecast Centre's run, as many days as that run covers (no number: it varies by gauge and run); only the weather
- * has a horizon of its own (`WEATHER_DAYS`).
+ * (T1045) the lede under the heading, in the static HTML: what the page shows. The flow forecast has no day count (it varies by
+ * gauge and run); only the weather has a horizon of its own (`WEATHER_DAYS`).
  */
-export const gaugeLede = (g: Pick<GaugeModel, "name" | "station">): string =>
-  `Water level or flow, the flow forecast and the weather for ${g.name}, from Water Survey of Canada gauge ${g.station}. ` +
-  `Where the BC River Forecast Centre runs a forecast for this gauge it is shown for as many days as that run covers; the weather is for the next ${WEATHER_DAYS} days.`;
+export const gaugeLede = (g: Pick<GaugeModel, "name" | "station" | "parameters">): string =>
+  `${gaugeSubject(g.parameters) === "conditions" ? "Live conditions" : `Live ${gaugeSubject(g.parameters)}`}, and the weather for ${g.name}, from Water Survey of Canada gauge ${g.station}, ` +
+  `with the flow forecast ${FORECAST_WORDS}, for as many days as that run covers. The weather is for the next ${WEATHER_DAYS} days.`;
 
 export function gaugeDescription(g: GaugeModel): string {
   const w = g.close[0]?.name ?? g.rough[0]?.name;
-  return clip(`Live flow or water level, the flow forecasts and the weather at the ${g.name} gauge (${g.station}), BC` +
+  const what = gaugeSubject(g.parameters) === "conditions" ? "conditions" : gaugeSubject(g.parameters).replace(" and ", " or ");
+  return clip(`Live ${what}, the flow forecast ${FORECAST_WORDS}, and the weather at the ${g.name} gauge (${g.station}), BC` +
     `${w ? `, for ${w}` : ""}. Free, from Water Survey of Canada data.`);
 }
 
@@ -265,7 +273,7 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
   return `<div class="gv"><nav class="crumbs"><a href="/">Home</a> › <a href="/gauges">River gauges</a> › ${esc(g.name)}</nav>` +
     `<h1>${esc(gaugeHeading(g))}</h1>` +
     `<p class="lede">${esc(gaugeLede(g))}</p>` +
-    `<p class="small">Water Survey of Canada gauge ${esc(g.station)} · read each time this page opens.</p>` +
+    `<p class="small">Water Survey of Canada gauge ${esc(g.station)}${g.lat !== null && g.lon !== null ? ` at ${g.lat.toFixed(4)}, ${g.lon.toFixed(4)}` : ""} · read each time this page opens.</p>` +
     `<div id="gauge-now" class="now-card"><p class="small">Reading the latest from the gauge…</p></div>` +
     `<noscript><p class="warn">The live reading, chart and weather need JavaScript.</p><style>#gauge-chart{display:none}</style></noscript>` +
     // (T1039) the app's own chart, drawn by its deferred script (gaugeChart.tsx); the box keeps its place meanwhile
@@ -288,41 +296,42 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
 }
 
 /**
- * (T1045) A WATER PAGE'S LINKS TO ITS GAUGE PAGES: plain `<a href>` in the page's static HTML, after the app's root (as the home
- * page's row, T1011: the prerendered pane covers the window and the row sits under it; without script it is the page's foot, with
- * script it is `inert` (the attribute, no script: a script here would block) so a Tab never lands on it; a crawler reads the links). The anchor says what the page is: "<gauge name> level and flow". At most
- * three, the gauges that are a good guide for this water, by name. "" for a water with no such gauge.
+ * (T1045) THE GAUGE PAGES EACH WATER'S PANE LINKS, from the release's rows: core's `pickWaterGauges` over what each station serves
+ * (the app reads the same rows in `readWaterGauges` and draws them under "River gauges for this water"). water item -> gauge paths.
  */
-export function gaugeLinksRow(gs: readonly Pick<GaugeModel, "name" | "path">[]): string {
-  if (gs.length === 0) return "";
-  const css = "#gauge-links{font:14px/1.6 system-ui,-apple-system,sans-serif;padding:12px 16px;text-align:center}#gauge-links a{color:inherit;display:inline-block;padding:4px 6px}";
-  return `<style>${css}</style><nav id="gauge-links" aria-label="River gauges for this water" inert>` +
-    gs.map((g) => `<a href="${esc(g.path)}">${esc(g.name)} level and flow</a>`).join(" · ") +
-    `</nav>`;
-}
-
-/** (T1045) the gauges whose page a water links: each water's good guides (`main`), by name, three at most */
-export function gaugesByWater(gs: readonly GaugeModel[]): Map<string, GaugeModel[]> {
-  const out = new Map<string, GaugeModel[]>();
-  for (const g of gs) for (const w of g.main) {
-    const l = out.get(w.id) ?? [];
-    if (l.length < 3) { l.push(g); out.set(w.id, l); }
+export function waterGaugesOf(rows: GaugeRows, clim: ReadonlyMap<string, readonly Pick<StationClim, "parameter">[]> | null | undefined): Map<string, string[]> {
+  const byWater = new Map<string, WaterGauge[]>();
+  const name = new Map(rows.gauges.map((g) => [g.station, g.name]));
+  for (const sv of rows.serves) {
+    const n = name.get(sv.station);
+    if (n === undefined) continue;
+    const l = byWater.get(sv.item) ?? [];
+    l.push({ station: sv.station, name: n, trust: sv.trust, parameters: (clim?.get(sv.station) ?? []).map((c) => c.parameter) });
+    byWater.set(sv.item, l);
   }
-  return out;
+  return new Map([...byWater].map(([item, l]) => [item, pickWaterGauges(l).map((g) => gaugePath(g.station, g.name))]).filter(([, l]) => (l as string[]).length > 0) as [string, string[]][]);
 }
 
-/** (T1045) what is wrong with a gauge page's search words: the title and heading carry them once, no word twice in a row, a lede, the forecast in the description */
+/**
+ * (T1045) what is wrong with a gauge page's search words, against the gauge's data: the title and heading say what the release
+ * holds for the station, once, no word twice in a row; the page has its lede; "forecast" is only ever hedged ("where the BC River
+ * Forecast Centre runs one"), never in the title or heading.
+ */
 export function gaugeWordsProblems(g: GaugeModel, title: string, description: string, body: string): string[] {
   const bad: string[] = [];
-  const h1 = /<h1>([^<]*)<\/h1>/.exec(body)?.[1] ?? "";
-  if (!/ level and flow \(/.test(title)) bad.push(`title "${title}" lacks "level and flow"`);
-  if (!/ level, flow and forecast$/.test(h1.replace(/&amp;/g, "&"))) bad.push(`heading "${h1}" lacks "level, flow and forecast"`);
+  const h1 = (/<h1>([^<]*)<\/h1>/.exec(body)?.[1] ?? "").replace(/&amp;/g, "&");
+  const subject = gaugeSubject(g.parameters);
+  if (!title.includes(` ${subject} (${g.station})`)) bad.push(`title "${title}" lacks "${subject}" (the release holds ${g.parameters.join(" + ") || "no parameter"} for the station)`);
+  if (!h1.endsWith(` ${subject}`)) bad.push(`heading "${h1}" lacks "${subject}"`);
   for (const [what, t] of [["title", title], ["heading", h1]] as const) {
+    if (/forecast/i.test(t)) bad.push(`${what} "${t}" says forecast: whether a forecast runs is live data`);
     const twice = /\b([A-Za-z]{3,})\s+\1\b/i.exec(t);
     if (twice) bad.push(`${what} "${t}" says "${twice[0]}" twice in a row`);
   }
   if (!body.includes('<p class="lede">')) bad.push("no lede");
-  if (!/forecast/i.test(description)) bad.push(`description lacks "forecast"`);
+  for (const [what, t] of [["description", description], ["lede", /<p class="lede">([^<]*)<\/p>/.exec(body)?.[1] ?? ""]] as const)
+    if (/forecast/i.test(t) && !t.includes(FORECAST_WORDS) && !(what === "description" && t.endsWith("…"))) bad.push(`${what} says forecast without "${FORECAST_WORDS}"`);
+  if (!/forecast/i.test(description) && !description.endsWith("…")) bad.push(`description lacks "forecast"`);
   return bad;
 }
 

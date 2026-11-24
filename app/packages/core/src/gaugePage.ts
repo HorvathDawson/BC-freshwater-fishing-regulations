@@ -26,6 +26,38 @@ export interface ServeRow { readonly station: string; readonly item: string; rea
 /** a release's gauges and the waters each serves (`@app/data/release` `readGaugeRows`, from its conditions + core files) */
 export interface GaugeRows { readonly gauges: readonly GaugeRow[]; readonly serves: readonly ServeRow[] }
 
+/** The quantities a gauge's chart is drawn in (`gauge_clim`'s parameter) */
+export type GaugeParameter = "discharge" | "level";
+
+/**
+ * (T1045) WHAT A GAUGE MEASURES, in the words a reader searches: from the parameters the release holds for the station
+ * ("flow" for discharge, "level"); none known: "conditions" (never a quantity the release does not say it has). The one place the
+ * gauge page's title, heading and the water page's link say it. The forecast is never in it: whether the River Forecast Centre
+ * runs one for a gauge is live data, not the release's.
+ */
+export function gaugeSubject(parameters: readonly GaugeParameter[]): "level and flow" | "flow" | "level" | "conditions" {
+  const flow = parameters.includes("discharge"), level = parameters.includes("level");
+  return flow && level ? "level and flow" : flow ? "flow" : level ? "level" : "conditions";
+}
+
+/** (T1045) A GAUGE A WATER LINKS: its page, and the words its link says */
+export interface WaterGauge { readonly station: string; readonly name: string; readonly trust: ServesTrust; readonly parameters: readonly GaugeParameter[] }
+export const WATER_GAUGES_MAX = 3;
+export const WATER_GAUGES_WORDS = { heading: "River gauges for this water", failed: "The gauges for this water could not be read." } as const;
+/** a link's words: "Alouette River Near Haney level and flow" */
+export const waterGaugeLabel = (g: Pick<WaterGauge, "name" | "parameters">): string => `${g.name} ${gaugeSubject(g.parameters)}`;
+/**
+ * (T1045) The gauges a water page links, at most `WATER_GAUGES_MAX`: the good guides (own water, a lake it gauges, a section it
+ * is a good gauge of; never a fair or weak one), best trust first, then by name. The ONE rule: the app's list (`readWaterGauges`)
+ * and the SEO build's check of it both read it.
+ */
+export function pickWaterGauges(all: readonly WaterGauge[]): WaterGauge[] {
+  const best = new Map<string, WaterGauge>();
+  for (const g of all) { const was = best.get(g.station); if (!was || TRUST_RANK[g.trust] < TRUST_RANK[was.trust]) best.set(g.station, g); }
+  return [...best.values()].filter((g) => TRUST_RANK[g.trust] <= TRUST_RANK.good)
+    .sort((a, b) => TRUST_RANK[a.trust] - TRUST_RANK[b.trust] || a.name.localeCompare(b.name) || a.station.localeCompare(b.station)).slice(0, WATER_GAUGES_MAX);
+}
+
 export const TRUST_RANK: Record<ServesTrust, number> = { own: 0, lake: 1, good: 2, fair: 3, weak: 4 };
 
 /** Each station's waters, each at its best trust (own, lake, good, fair, then weak). */

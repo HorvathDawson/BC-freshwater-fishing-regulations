@@ -16,12 +16,12 @@
  * default to T09's two functions (T21 bound them when it drew the page).
  */
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
-import { accessNeedsWeights, buildRegsPage, offlineAs, reported, headerOf, methodClassOn, pageAccessNotices as coreAccessNotices, partAccess,
+import { type WaterGauge, accessNeedsWeights, buildRegsPage, offlineAs, reported, headerOf, methodClassOn, pageAccessNotices as coreAccessNotices, partAccess,
          salmonCardLive, tapDay, type AccessNotice, type Day, type RegsInputs,
          type RegsPage, type RegsTarget, type SalmonCardLiveVM,
          type Weekday, type Who, bcNow, now as clockNow } from "@app/core";
 import { downstreamWater, openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
-import type { ReleaseLoader } from "@app/data/release";
+import { readWaterGauges, type ReleaseLoader } from "@app/data/release";
 /** a bundle region, as the loader names it */
 type Region = Awaited<ReturnType<ReleaseLoader["regionsOf"]>>[number];
 import { itemsOfSections, loadRegsInputs, openRegsStore, RegsStoreError, siblingItems, targetFor, warmRegsStore, type RegsExpect,
@@ -311,6 +311,15 @@ export function useAccessNotices(loader: Pick<ReleaseLoader, "paint" | "access">
   const asks = !!loader && !!store && !!subject;
   return useAsync(async () => (asks ? regsAccessNotices(loader!, store!, subject!) : []),
                   `access:${loader ? idOf(loader) : ""}:${store ? idOf(store) : ""}:${pageSubjectKey(subject)}`, asks);
+}
+
+/**
+ * (T1045) THE GAUGES THIS WATER LINKS (core `pickWaterGauges`, three at most): the regulations page lists them under
+ * "River gauges for this water". A failure is a state (and reported by `useAsync`), never an empty list.
+ */
+export function useWaterGauges(loader: ReleaseLoader | null, item: string | null): Async<WaterGauge[]> {
+  const asks = !!loader && !!item;
+  return useAsync(async () => (asks ? readWaterGauges(loader!, item!) : []), `water-gauges:${loader ? idOf(loader) : ""}:${item ?? ""}`, asks);
 }
 
 /** (T387) `pageSubjectOf`, held by its key: a new object only when the page's subject changes. */
