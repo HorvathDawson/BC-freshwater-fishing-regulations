@@ -273,7 +273,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1025 | Switching regs sub-tabs (What you can keep ↔ Licence) scrolls through every section between | DONE | 641725521, dd48e15d8 | closed tester via owner 2026-11-22 |
 | T1026 | The day picker stops at December 2026 although the synopsis is valid to March 31, 2027 | DONE | e2cdbee15 | closed tester via owner 2026-11-22 |
 | T1027 | Android R8: push the optimization / shrinking / obfuscation scores past ~72% (restate library keep rules, each walked) | OPEN — after 0.9.0 | T1003, T1009 | owner 2026-11-22 |
-| T1030 | The release manifest carries a changed-waters count (the inbox data row's "N waters changed") | OPEN — 0.9.0 batch | T867 | stopped: not small, see the file |
+| T1030 | The release manifest carries a changed-waters count (the inbox data row's "N waters changed") | DONE | T867 | f75e6aac1, 35f55b74d — per-water digest list in each release; count vs the release LATEST names; wording not counted; first release with the list states none |
 | T1028 | The trout schedule bar's open colour = the salmon bar's (owner 2026-11-23) | DONE | 391b37ddb | owner 2026-11-23 |
 | T1029 | One-bank DFO places: the one-side stripe on the Salmon map (T754 option B, the rest; owner Q4–Q6) | OPEN — after 0.9.0 | T754 | T754 (owner 2026-11-15 / 2026-11-22) |
 | T1031 | Sources round 3, the rest: one inline source format, a breakdown per species, one species sheet with Identification / Sources tabs | IN PROGRESS | T991 | owner 2026-11-22 ~23:55 (items 3–5); item 3 built by lane L22 (26839d85d, 5fdd46510, 315d8b3bb); items 1–2 by lane L23 (11d0e1915, bb3836936, PR #71) |
