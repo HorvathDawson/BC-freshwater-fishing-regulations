@@ -14,7 +14,7 @@ import { describe, expect, it } from "vitest";
 import { nativeAdapter, nativeRenderer, type NativeRefs } from "./adapters/native";
 import { webAdapter, webRenderer, type GlMapSlice } from "./adapters/web";
 import { baseAdapter, type MapHandle, type MapRenderer } from "./adapters/contract";
-import { CASING_PX, markWidth, paintFor, SELECTION_CASING, SELECTION_RINGS, streamWidths } from "./paint";
+import { CASING_PX, casedOnly, markWidth, paintFor, SELECTION_CASING, SELECTION_RINGS, streamWidths } from "./paint";
 import {
   MAP_STYLE, STYLE_META, colorExpression, isRuntimeLayer, layerIds, resolveTheme,
   toggleableGroups,
@@ -406,7 +406,7 @@ describe("the style adapter (platform-free: one implementation, tested for what 
       // (T735) dark wears look C (src/selection-look.test.ts pins it whole); light and cvd are today's
       if (theme === "dark") continue;
       expect([theme, casing.paint["line-color"], casing.paint["line-opacity"]])
-        .toEqual([theme, ["case", inseason, tk["color.ui.attention"], tk["color.highlight"]], shown]);
+        .toEqual([theme, ["case", inseason, tk["color.ui.attention"], tk["color.highlight"]], casedOnly(shown)]);
     }
     // (T1024) a ring's opacity is `shown` per tile zoom, 0 on a stream's polygon where its line is drawn (evaluated
     // zoom by zoom in tools/stream-polygon-ring.test.ts)
@@ -414,8 +414,9 @@ describe("the style adapter (platform-free: one implementation, tested for what 
       return [o[0], JSON.stringify(o).includes(JSON.stringify(shown))]; };
     expect([SELECTION_CASING, SELECTION_RINGS.lake, SELECTION_RINGS.wetland].map((id) =>
       [layer(id).type, layer(id)["source-layer"]])).toEqual([["line", "stream"], ["line", "lake"], ["line", "wetland"]]);
+    // (T1024) the casing's is `shown`, 0 on a stub line from its polygon's zoom (`casedOnly`)
     expect([layer(SELECTION_CASING).paint["line-opacity"], ringShown(SELECTION_RINGS.lake), ringShown(SELECTION_RINGS.wetland)])
-      .toEqual([shown, ["step", true], ["step", true]]);
+      .toEqual([casedOnly(shown), ["step", true], ["step", true]]);
     // the casing is the stream's own width (with its floors) plus the outline on each side, inside the zoom curve —
     // (T848) the drawn width only where a casing shows, the base width elsewhere (`markWidth`)
     const w = markWidth("casing", "plain", streamWidths("plain", resolveTheme("light"))) as unknown[];
