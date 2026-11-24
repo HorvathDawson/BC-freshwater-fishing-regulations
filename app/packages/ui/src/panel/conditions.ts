@@ -9,8 +9,8 @@ import { aheadDays, CONDITIONS_WORDS, donorLastReport, FORECAST_DAY_WORDS, forec
          forecastFigureLine, donorReads, donorSilent, donorState, leadGapLine, LEVEL_ONLY_LEAD, freshness, gaugeCountLine, noGaugeSentence,
          ownGaugeMap, readingAgeLine, readingHeading, readingIn, readingStanding, shownParameter, stageLine, stateAt,
          type GaugeTrace, type SectionKey, type Standing, bcMidnight, shiftDay, wallIso, now } from "@app/core";
-import { useGaugeTrace, useStationReading } from "../hooks";
-import { askOnce } from "../answers";
+import { READING_REUSE_MS, stationReading, useGaugeTrace, useStationReading } from "../hooks";
+import { askOnce, cardParameters } from "../answers";
 import { useAsync, type Async } from "../async";
 import { useBcToday } from "../today";
 import { routeLabels, routeValues, type RouteColourVM } from "../routeColour";
@@ -140,6 +140,9 @@ export interface ConditionsVM {
  * (T817) WHAT EACH GAUGE THAT SPEAKS FOR THIS SECTION MEASURES — its quantities as the bundle records them
  * (`gaugeParameters`, through the same answer the card's toggle reads, `useGaugeParameters`) — for core's
  * `conditionsOpening`. Ready with [] where nothing speaks.
+ * (T1043) and what each reports live today (its reading's `reports`), joined as the card joins them (`cardParameters`):
+ * Gun Creek (08ME030) has a level band only and reports a live flow, so its water is not "level only", and the switch
+ * and the note at the top say the same thing. A live unranked flow is still flow.
  */
 export function useSpeakerMeasures(source: WaterSource, section: SectionId | null):
   Async<readonly (readonly Parameter[])[]> {
@@ -148,8 +151,13 @@ export function useSpeakerMeasures(source: WaterSource, section: SectionId | nul
   const stations = speaker === null ? "" : speaker.kind === "lake" ? speaker.station
     : speaker.panel.members.map((m) => m.station).join(",");
   const got = useAsync(
-    () => Promise.all((stations ? stations.split(",") as StationId[] : []).map((st) =>
-      askOnce(source, `params:${st}`, () => source.gaugeParameters(st)))),
+    () => Promise.all((stations ? stations.split(",") as StationId[] : []).map(async (st) => {
+      const [banded, live] = await Promise.all([
+        askOnce(source, `params:${st}`, () => source.gaugeParameters(st)),
+        askOnce(source, `reading:${st}`, () => stationReading(source, st), READING_REUSE_MS),
+      ]);
+      return cardParameters(banded, live?.reports);
+    })),
     `measures:${section ?? ""}:${stations}`,
     spoken.state === "ready",
   );

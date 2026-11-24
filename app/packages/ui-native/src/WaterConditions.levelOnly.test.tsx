@@ -226,8 +226,34 @@ describe("a live level with no band is offered on the water's view (T1043)", () 
     ]);
   });
 
-  it("a level off the rating (T550: not in `reports`) stays out: Flow alone, as before", async () => {
-    const source = speaking("panel", ["discharge"], { ...BOTH_NOW, level: 0.592, reports: ["discharge"] });
-    expect((await firstView(source)).switch).toBe("none");
+  // (review of #77) GUN CREEK (08ME030), production 2026-11-23: a level band only, a live flow (7.8 m³/s) and level
+  // (4.271 m) reported. Its water is NOT "level only": the note and the switch agree, opening on Flow (unranked).
+  // MUTATION: `useSpeakerMeasures` without the readings' `reports` -> "Level only: no flow is measured here." over "Flow Level*".
+  it("Gun Creek's shape (a level band, a live flow): no level-only note, Flow and Level, the flow unranked", async () => {
+    const now = { discharge: 7.8, level: 4.271, percentile: 0.75, standing: "above", at: "2026-09-04T06:00:00Z",
+                  parameter: "level", reports: ["discharge", "level"] };
+    expect(await firstView(speaking("panel", ["level"], now))).toEqual({
+      note: null, figure: "7.8", switch: "Flow* Level", leadNote: null });
+    expect(screen.getByTestId("reading-no-record").textContent).toBe(NO_RECORD_LINE);
+  });
+
+  // (review of #77) 08HD006 (Salmon River near Sayward), production 2026-11-23: bands in both, the live level 2.058 m off
+  // the record's rating (T550: the publisher leaves it out of `reports`; the record is near 7 m). Level is offered (the
+  // band), but the live level is not today's reading: no "2.06 m stage" under Flow, and under Level the card says the
+  // station reports flow only today. MUTATION: `stationReading` keeps a figure missing from `reports` -> "2.06" shows.
+  it("08HD006's shape (an other-datum live level): never shown as today's reading", async () => {
+    const now = { discharge: 77, level: 2.058, percentile: 0.57, standing: "normal", at: "2026-09-04T06:00:00Z",
+                  parameter: "discharge", reports: ["discharge"] };
+    render(<WaterConditions source={speaking("panel", ["discharge", "level"], now)} item={WATER} tapSid={SEC} palette={LIGHT}
+                            opening="discharge" from={AT} />);
+    await waitFor(() => expect(screen.queryByTestId("reading-figure")).not.toBeNull());
+    await waitFor(() => expect(screen.queryByTestId("chart-quantity")).not.toBeNull());
+    const flow = [...card(), screen.getByTestId("gauge-card").textContent!.includes("2.06")];
+    await pickQuantity("Level");
+    await waitFor(() => expect(screen.queryByTestId("reading-other-quantity")).not.toBeNull());
+    expect([flow, [...card(), screen.getByTestId("gauge-card").textContent!.includes("2.06")]]).toEqual([
+      ["G1", "Flow* Level", "77", false],
+      ["G1", "Flow Level*", "Reports flow only today, not water level. Show Flow to see it.", false],
+    ]);
   });
 });
