@@ -70,8 +70,11 @@ def test_a_placed_one_bank_place_stands_beside_the_waters_other_places():
     assert (ch["sp"], ch["m"], ch["g"]) == (ch0["sp"], ch0["m"], ch0["g"])
     # exactly its own sections: s2 (11) is on the water but not the bank place's
     assert "6:bank" not in (payload["chains"][dict(sections)[11]].get("u") or [])
-    # (review of #61) only its own river's: the tributary its walk took (s4, 13) carries no bank caveat at all
-    assert 13 not in dict(sections) or "6:bank" not in (payload["chains"][dict(sections)[13]].get("u") or [])
+    # (review of #61) only its own river's sections stand beside: the tributary its walk took (s4, 13) carries no bank
+    # caveat. (T1029, owner 2026-11-24 "i think closed") it is the place's WHOLE: in its chain's `l`, closed to coho
+    trib = payload["chains"][dict(sections)[13]]
+    assert "6:bank" not in (trib.get("u") or []) and "6:bank" in trib["l"]
+    assert payload["verdicts"][trib["sp"][S.SPECIES.index("CO")][1]]["s"] == "closed"
     # the card: its bank, and its own chain with its rules and the days DFO speaks for it
     assert payload["p"]["6:bank"]["side"] == "west"
     (own,) = [u for u in payload["unmapped"] if payload["chains"][u["chain"]]["l"] == ["6:bank"]]

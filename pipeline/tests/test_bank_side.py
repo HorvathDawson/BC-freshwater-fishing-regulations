@@ -4,10 +4,12 @@ for ends with a side or a typed reason (never a guess, never a silent skip)."""
 from __future__ import annotations
 
 import json
+import random
 
 import pytest
 
-from pipeline.deliver.bank_side import Side, Why, bank_side, polygon_sections, report, sides_from_layer
+from pipeline.common.bank_side import drawn_banks, side_from_code
+from pipeline.deliver.bank_side import Side, Why, bank_side, bank_side_of_parts, polygon_sections, report, sides_from_layer
 
 #: the Kitimat's section at the hatchery signs as the 0.9.0 tiles write it (section 1234098): d/s sign first, u/s last —
 #: the line runs UPSTREAM, north-east
@@ -74,3 +76,27 @@ def test_the_answer_does_not_depend_on_the_order_asked(tmp_path):
     a = sides_from_layer(stream, {7: "west", 8: "west"})
     b = sides_from_layer(stream, {8: "west", 7: "west"})
     assert list(a) == list(b) == [7, 8] and a == b and (a[7].sign, a[8].sign) == (-1, 1)
+
+
+def test_the_atlas_code_is_the_same_rule_as_the_bundle_side():
+    # `drawn_banks` (numpy, every stream piece at the atlas build) and `bank_side_of_parts` (the bundle) must agree on
+    # every word for any line: one rule, two speeds
+    rnd = random.Random(1029)
+    for _ in range(300):
+        parts = []
+        for _p in range(rnd.choice([1, 1, 2])):
+            x, y = rnd.uniform(-130, -115), rnd.uniform(49, 59)
+            pts = [[x, y]]
+            for _i in range(rnd.randint(1, 12)):
+                x += rnd.uniform(-0.002, 0.002)
+                y += rnd.uniform(-0.002, 0.002)
+                pts.append([x, y])
+            parts.append(pts)
+        code = drawn_banks(parts)
+        for word in ("west", "east", "north", "south"):
+            assert side_from_code(code, word) == bank_side_of_parts(parts, word).sign, (parts, word, code)
+    # the Kitimat at the signs, drawn mouth -> source as FWA writes it: west is LEFT, north is ... the line runs NE
+    assert side_from_code(drawn_banks([KITIMAT]), "west") == -1
+    assert side_from_code("", "west") == 0
+    with pytest.raises(ValueError):
+        side_from_code("RL", "up")

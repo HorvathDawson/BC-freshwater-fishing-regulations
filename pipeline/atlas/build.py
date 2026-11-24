@@ -1536,6 +1536,9 @@ def write_graph(b: _Build) -> None:
         with (out / "waterbody_polys.pkl").open("wb") as _fh:
             _pk.dump({f"lake:{w}": pl for w, pl in wb_polys.items()}, _fh, protocol=5)
         print(f"  wrote waterbody_polys.pkl ({len(wb_polys):,} outlines)")
+    # (T1029) each stream piece's compass banks from its own final geometry, before graph.pkl is written
+    from pipeline.atlas.graph.graph import stamp_drawn_banks
+    print(f"  drawn banks stamped on {stamp_drawn_banks(graph, geoms):,} stream pieces")
     write_artifact(graph, str(out / "graph.pkl"), input_hashes=b.input_hashes)
     write_artifact(geoms, str(out / "geometries.pkl"), input_hashes=b.input_hashes)
     b.out = out

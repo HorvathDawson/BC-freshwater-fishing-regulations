@@ -163,6 +163,7 @@ def build_stream_graph(chains: list[BlkChain], fid_rows: list[FidRow],
             stream_order=order, stream_magnitude=mag,
             member_fids=tuple(r.fid for r in frs), edge_types=_edge_types(frs),
             member_wbks=tuple(sorted({str(r.wbk) for r in frs if r.wbk})),  # wetland/river overlays
+            left_right=frs[0].left_right,   # (T1029) the blue line's own: one value along its whole length
         )
 
     # --- lake nodes (one per wbk; name = layer GNIS, else a threading river) ---
@@ -323,3 +324,26 @@ def ancestors(graph: StreamGraph, node_id: str, guarded: bool = True) -> set[str
             seen.add(src)
             stack.append(src)
     return seen
+
+
+def stamp_drawn_banks(graph: StreamGraph, geoms: dict) -> int:
+    """(T1029) Stamp every stream piece's `drawn_banks` from its own geometry (mouth -> source, as FWA draws it): the
+    side of its line each compass bank is (`common.bank_side.drawn_banks`). A piece with no geometry keeps "" (no
+    answer, never a guess). Returns the count stamped. Sorted iteration: the graph is deterministic."""
+    from shapely.geometry import LineString, MultiLineString
+    from pipeline.common.bank_side import drawn_banks
+    n = 0
+    for nid in sorted(graph.nodes):
+        node = graph.nodes[nid]
+        if node.kind != NodeKind.stream:
+            continue
+        g = geoms.get(nid)
+        if isinstance(g, LineString):
+            parts = [[c[:2] for c in g.coords]]
+        elif isinstance(g, MultiLineString):
+            parts = [[c[:2] for c in p.coords] for p in g.geoms]
+        else:
+            continue
+        graph.nodes[nid] = replace(node, drawn_banks=drawn_banks(parts))
+        n += 1
+    return n

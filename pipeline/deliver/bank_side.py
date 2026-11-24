@@ -26,81 +26,11 @@ Deterministic: sections in sorted order, only the file's bytes read, no clock.
 from __future__ import annotations
 
 import json
-import math
-from dataclasses import dataclass
-from enum import Enum
 from pathlib import Path
 from typing import Dict, Iterable, Mapping, Optional, Tuple
 
-#: the compass words a bank is named by, as (east, north) unit vectors
-WORDS = {"west": (-1.0, 0.0), "east": (1.0, 0.0), "north": (0.0, 1.0), "south": (0.0, -1.0)}
-#: a segment running within this many degrees of the word's axis cannot say which bank the word means
-AXIS_DEG = 30.0
-#: the share of the section's length (of the segments that can say) that must agree
-AGREE = 0.8
-
-
-class Why(str, Enum):
-    """Why a section has no side (module docstring)."""
-    along_axis = "along_axis"
-    pieces_disagree = "pieces_disagree"
-    no_line = "no_line"
-    written_twice = "written_twice"
-    polygon_reach = "polygon_reach"
-
-
-@dataclass(frozen=True)
-class Side:
-    """+1 right / -1 left of the drawn line, or 0: no answer, and `why` (a `Why`) says which."""
-    sign: int
-    share: float          #: the share of the deciding length on the winning side (0 when nothing decides)
-    why: Optional[Why] = None
-
-    def __post_init__(self):
-        if (self.sign == 0) != (self.why is not None):
-            raise ValueError(f"a side is +1/-1 with no reason, or 0 with one: {self.sign} {self.why}")
-
-
-def _segments(coords: list) -> list[tuple[float, float, float]]:
-    """(dx, dy, length) in local metres for each segment of a WGS84 line."""
-    out = []
-    for (x0, y0), (x1, y1) in zip(coords, coords[1:]):
-        k = math.cos(math.radians((y0 + y1) / 2))
-        dx, dy = (x1 - x0) * 111_320 * k, (y1 - y0) * 110_540
-        n = math.hypot(dx, dy)
-        if n > 0:
-            out.append((dx, dy, n))
-    return out
-
-
-def bank_side(coords: list, word: str) -> Side:
-    """Which side of the line drawn through `coords` (as written, first point first) the `word` bank is."""
-    return bank_side_of_parts([coords], word)
-
-
-def bank_side_of_parts(parts: list[list], word: str) -> Side:
-    """`bank_side` over every part of a multi-line (a route can be written in pieces), each part as written."""
-    if word not in WORDS:
-        raise ValueError(f"bank word {word!r}: not one of {sorted(WORDS)}")
-    wx, wy = WORDS[word]
-    sin_axis = math.sin(math.radians(AXIS_DEG))
-    right = left = 0.0
-    for dx, dy, n in (seg for coords in parts for seg in _segments(coords)):
-        # the right-hand normal of (dx, dy) is (dy, -dx); its dot with the word's direction, per metre
-        along = (dy * wx - dx * wy) / n
-        if abs(along) < sin_axis:           # the segment runs along the word's axis: it cannot tell the banks apart
-            continue
-        if along > 0:
-            right += n
-        else:
-            left += n
-    total = right + left
-    if total == 0:
-        return Side(0, 0.0, Why.along_axis)
-    share = max(right, left) / total
-    if share < AGREE:
-        return Side(0, share, Why.pieces_disagree)
-    return Side(1 if right > left else -1, share)
+from pipeline.common.bank_side import (AGREE, AXIS_DEG, WORDS, Side, Why, bank_side,  # noqa: F401  (re-exported)
+                                      bank_side_of_parts)
 
 
 def _section_of(line: str) -> Optional[int]:
