@@ -26,6 +26,7 @@ One page, one pointer (T437): a new chat reads, in order,
    `main`; a release ships from its `release/<version>` branch. Hooks: `git config core.hooksPath .githooks`.
 
 **After 0.9.0:** the chats, their order and the prompts to paste are in `handoff/PLAN/ROADMAP-after-0.9.0.md` (owner 2026-11-24).
+The 0.9.1 follow-ups chat (roadmap row 2) keeps its own restart page: `handoff/PLAN/RESTART-091-chat.md`.
 
 A second chat working the parked tickets (T667 rest, T686, T602, loose nits) reads `handoff/PLAN/PARKED-TICKETS.md` instead of step 2; iOS: `handoff/PLAN/ios/START-HERE-ios.md`.
 
