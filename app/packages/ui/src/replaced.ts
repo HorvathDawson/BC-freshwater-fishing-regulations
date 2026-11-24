@@ -82,24 +82,34 @@ export function createReplacedState(o: ReplacedRefresh): ReplacedState {
 
 /** The web's session store, as `reloadOnce` reads it (the browser's `sessionStorage`). */
 export interface SessionStore { getItem(k: string): string | null; setItem(k: string, v: string): void }
-/** (T1016) the one-shot marker's key: the page code (entry script) a reload was made FROM */
+/** (T1016) the marker's key: every page code (entry script) this session reloaded FROM, a JSON list */
 export const RELOADED_FROM_KEY = "canifishthis.t1016.reloadedFrom";
+/** (T1016 review) at most this many automatic reloads in one browser session, whatever the codes */
+export const RELOADS_PER_SESSION = 3;
 
 /**
- * (T1016) THE CODE VERDICT'S AUTOMATIC RELOAD, AT MOST ONCE PER PAGE CODE. `entry`: this page's entry script. The session
- * store keeps the entry a reload was made from, across the reload: a page that comes back on the SAME code (a cached
- * page, a deploy that did not reach it) and meets a missing chunk again does not reload (why, returned); a page on new
- * code may reload once for a later deploy. A store that cannot be read or written (a private window, storage blocked):
- * no reload (it could loop), why returned. Null: reloading now.
+ * (T1016) THE CODE VERDICT'S AUTOMATIC RELOAD, AT MOST ONCE PER PAGE CODE PER SESSION. `entry`: this page's entry script.
+ * The session store keeps EVERY entry this session reloaded from, across reloads: a page whose code already reloaded once
+ * (back on the same code — a cached page; or bounced between two codes — A reloads onto B, B's chunk is missing on a stale
+ * edge that still names A, B reloads onto A: review #125) does not reload again (why, returned); and never more than
+ * `RELOADS_PER_SESSION` reloads in a session. A store that cannot be read, written or parsed (a private window, storage
+ * blocked): no reload (it could loop), why returned. Null: reloading now.
  */
 export function reloadOnce(o: { store: () => SessionStore; entry: string | null; reload: () => void }): string | null {
   if (!o.entry) return "this page's code is not known (no entry script), so a reload could not be told from a loop";
   try {
     const s = o.store();
-    if (s.getItem(RELOADED_FROM_KEY) === o.entry)
+    const kept = s.getItem(RELOADED_FROM_KEY);
+    const from: unknown = kept === null ? [] : JSON.parse(kept);
+    if (!Array.isArray(from) || !from.every((x) => typeof x === "string"))
+      return `the marker that stops a reload loop holds something else (${kept})`;
+    if (from.includes(o.entry))
       return `this page reloaded once already from this code (${o.entry}) and the chunk is still missing`;
-    s.setItem(RELOADED_FROM_KEY, o.entry);
-    if (s.getItem(RELOADED_FROM_KEY) !== o.entry) return "the marker that stops a reload loop did not keep";
+    if (from.length >= RELOADS_PER_SESSION)
+      return `this session reloaded ${from.length} times already (${from.join(", ")}); no more automatic reloads`;
+    const next = JSON.stringify([...from, o.entry]);
+    s.setItem(RELOADED_FROM_KEY, next);
+    if (s.getItem(RELOADED_FROM_KEY) !== next) return "the marker that stops a reload loop did not keep";
   } catch (x) {
     return `the marker that stops a reload loop could not be kept (${x instanceof Error ? x.message : String(x)})`;
   }

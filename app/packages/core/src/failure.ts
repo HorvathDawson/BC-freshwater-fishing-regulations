@@ -15,11 +15,11 @@
 /** Where reports go: set by the crash reporter when it is installed (`installCrashHandlers`). */
 let sink: ((e: unknown) => void) | null = null;
 /** (T1016) the sink's own "every report handed to the line" (the crash reporter's `sent`), or null (none: nothing waits) */
-let sinkSent: (() => Promise<void>) | null = null;
+let sinkSent: (() => Promise<unknown>) | null = null;
 
 /** @public — the crash reporter's hook (ui/crashReport.ts); `sent`: resolves once every report it took so far is handed to
  *  the line (`failuresSent`). Returns the undo. */
-export function setFailureSink(s: ((e: unknown) => void) | null, sent?: () => Promise<void>): () => void {
+export function setFailureSink(s: ((e: unknown) => void) | null, sent?: () => Promise<unknown>): () => void {
   const prev = sink, prevSent = sinkSent;
   sink = s;
   sinkSent = sent ?? null;
@@ -83,7 +83,7 @@ export function reportFailure(e: unknown): void {
 /**
  * (T1016) EVERY FAILURE REPORTED SO FAR IS ON ITS WAY: each second look in flight has put what it found in the sink, and the
  * sink has handed every report it took to the line (the crash reporter's `sent`: its POST issued, `keepalive`, so it
- * outlives the page). What a web page that refreshes itself waits for first (`@app/ui` `createReplacedState`): the
+ * outlives the page; never longer than its own wait, `SENT_WAIT_MS`). What a web page that refreshes itself waits for first (`@app/ui` `createReplacedState`): the
  * report of the very failure that asks for the refresh is not lost with the page. A look ends within its own wait
  * (`LOOK_MS`); no sink: nothing to wait for.
  */

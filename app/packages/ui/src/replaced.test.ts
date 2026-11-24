@@ -17,7 +17,7 @@ import { failuresSent, REFRESH_NOT_MADE, REPLACED_NAMES, REPLACED_WORDS, reportF
 import { createNet, sha256Hex, type Manifest } from "@app/data";
 import { createReplacedProbe } from "@app/data/release";
 import { releaseCache, releaseSource } from "@app/data/release/platform";
-import { createReplacedState, loadLiveRelease, LOOK_MS, RELOADED_FROM_KEY, reloadOnce, replacedTriage, siteProbe, type ReplacedRaised,
+import { createReplacedState, loadLiveRelease, LOOK_MS, RELOADED_FROM_KEY, RELOADS_PER_SESSION, reloadOnce, replacedTriage, siteProbe, type ReplacedRaised,
          type ReplacedState, type SessionStore } from "./replaced";
 
 const ORIGIN = "https://data.test";
@@ -423,7 +423,7 @@ describe("a chunk that is gone after a site deploy (AsyncRequireError)", () => {
     reportFailure(chunkError());
     await settle(); await settle();
     expect(order).toEqual([`report:${REPLACED_NAMES.code}`, `report:${REPLACED_NAMES.code}`, "reload"]);
-    expect([store.getItem(RELOADED_FROM_KEY), state.get()]).toEqual([ENTRY, null]);
+    expect([store.getItem(RELOADED_FROM_KEY), state.get()]).toEqual([JSON.stringify([ENTRY]), null]);
     // THE NEXT PAGE LIFE (the reload came back on the same code: a cached page): its own state, the same session store
     for (const u of undo.splice(1).reverse()) u();
     undo.push(setFailureSink((e) => { reported.push(e); order.push(`report:${(e as Error).name}`); }));
@@ -435,6 +435,26 @@ describe("a chunk that is gone after a site deploy (AsyncRequireError)", () => {
     expect((reported[reported.length - 1] as Error).message).toBe(
       `the automatic refresh of the replaced site code was not made: this page reloaded once already from this code (${ENTRY}) and the chunk is still missing`);
     expect(state.get()).toEqual({ kind: "code", release: null });   // the notice: "Reload ›" by hand
+  });
+
+  it("(review #125) no bounce: A reloads onto B, B (a stale edge still naming A) reloads onto A, A stops; a cap per session", () => {
+    const store = memoryStore(), reloads: string[] = [];
+    const A = "/_expo/static/js/web/index-a.js", B = "/_expo/static/js/web/index-b.js";
+    const at = (entry: string) => reloadOnce({ store: () => store, entry, reload: () => reloads.push(entry) });
+    expect([at(A), at(B), at(A), at(B)]).toEqual([null, null,
+      `this page reloaded once already from this code (${A}) and the chunk is still missing`,
+      `this page reloaded once already from this code (${B}) and the chunk is still missing`]);
+    expect(reloads).toEqual([A, B]);
+    // however many codes: never more than RELOADS_PER_SESSION automatic reloads in one session
+    const many = memoryStore(), n: string[] = [];
+    const codes = Array.from({ length: RELOADS_PER_SESSION + 2 }, (_, i) => `/_expo/static/js/web/index-${i}.js`);
+    const said = codes.map((entry) => reloadOnce({ store: () => many, entry, reload: () => n.push(entry) }));
+    expect([n.length, said[RELOADS_PER_SESSION]]).toEqual([RELOADS_PER_SESSION,
+      `this session reloaded ${RELOADS_PER_SESSION} times already (${codes.slice(0, RELOADS_PER_SESSION).join(", ")}); no more automatic reloads`]);
+    // a marker that holds something else: no reload
+    const odd = memoryStore(); odd.setItem(RELOADED_FROM_KEY, '{"a":1}');
+    expect(reloadOnce({ store: () => odd, entry: A, reload: () => n.push("odd") })).toBe('the marker that stops a reload loop holds something else ({"a":1})');
+    expect(n).toHaveLength(RELOADS_PER_SESSION);
   });
 
   it("reloadOnce: once per page code; a store that throws or does not keep never reloads (it could loop)", () => {

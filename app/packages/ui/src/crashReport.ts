@@ -223,9 +223,11 @@ export interface CrashReporter {
    *  not sent (off, offline, no answer, refused); `status` is the server's HTTP answer (null: none came). A refusal is
    *  reported (`reportFailure`), never only dropped. */
   sendExit(r: ExitRecord): Promise<SendAnswer>;
-  /** (T1016) Resolves once every send asked for so far is handed to the line (its POST issued, `keepalive`: it outlives the
-   *  page; one waiting its turn behind the 1 s gap is not). What a web page waits for before it reloads itself. */
-  sent(): Promise<void>;
+  /** (T1016) Resolves true once every send asked for so far is handed to the line (its POST issued, `keepalive`: it outlives
+   *  the page; one waiting its turn behind the 1 s gap is not). What a web page waits for before it reloads itself.
+   *  (review #125) Never longer than `SENT_WAIT_MS`: an earlier POST that stalls holds the ones behind it, so past the wait
+   *  it resolves false and says how many were not on the line (the refresh goes ahead without them). */
+  sent(): Promise<boolean>;
 }
 
 /** What one send came to: the worker's HTTP status (null when no answer came) and, on a refusal, its `error` words. */
@@ -235,6 +237,9 @@ export interface SendAnswer { sent: boolean; status: number | null; error: strin
 export function answerWords(a: SendAnswer): string {
   return `${a.status === null ? "no answer" : `HTTP ${a.status}`}${a.error ? ` (${a.error})` : ""}`;
 }
+
+/** (T1016 review #125) The longest a page that refreshes itself waits for its reports to be on the line (`sent`). */
+export const SENT_WAIT_MS = 5_000;
 
 /** (T1005) The least time between two crash sends: the worker's per-address gap (`CRASH_GAP_MS`, 1 s) and a margin. */
 export const CRASH_SEND_GAP_MS = 1_100;
@@ -278,9 +283,12 @@ export function createCrashReporter(o: {
   let lastAt = -Infinity;
   /** (T1016) settles once every send asked for so far is on the line (`sent`) */
   let handed: Promise<unknown> = Promise.resolve();
+  /** sends asked for and not yet on the line */
+  let waiting = 0;
   const spaced = (p: { format: string }): Promise<SendAnswer> => {
     let issued = () => {};
-    const on = new Promise<void>((ok) => { issued = ok; });
+    waiting++;
+    const on = new Promise<void>((ok) => { issued = ok; }).then(() => { waiting--; });
     handed = Promise.all([handed, on]);
     const next = lane.then(async () => {
       const wait = lastAt + gap - clock();
@@ -351,7 +359,13 @@ export function createCrashReporter(o: {
         return a;
       } catch (e) { return { sent: false, status: null, error: e instanceof Error ? e.message : String(e) }; }
     },
-    sent: () => handed.then(() => {}),
+    sent: () => new Promise<boolean>((ok) => {
+      const late = setTimeout(() => {
+        console.warn(`[crash-reports] ${waiting} report(s) were not on the line within ${SENT_WAIT_MS} ms (an earlier send is stalled): the page refreshes without them`);
+        ok(false);
+      }, SENT_WAIT_MS);
+      void handed.then(() => { clearTimeout(late); ok(true); });
+    }),
     async flush() {
       try {
         const text = o.store?.read();

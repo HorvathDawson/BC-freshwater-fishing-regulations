@@ -152,7 +152,7 @@ describe("the failed synopsis card closes without opening anything (T285)", () =
     setSynopsisNet(null);
     vi.spyOn(console, "warn").mockImplementation(() => {});
     const reported: unknown[] = [];
-    const undo = installCrashHandlers({ report: (e) => { reported.push(e); }, flush: async () => false, sendExit: async () => ({ sent: false, status: null, error: null }), sent: async () => {} }, {});
+    const undo = installCrashHandlers({ report: (e) => { reported.push(e); }, flush: async () => false, sendExit: async () => ({ sent: false, status: null, error: null }), sent: async () => true }, {});
     render(<SynopsisLoading palette={LIGHT} floating />);
     const err = new Error("synopsis: this release ships no page index (synopsis.append)");
     await act(async () => { await openBook(5, [], "android", vi.fn().mockRejectedValue(err)); });
