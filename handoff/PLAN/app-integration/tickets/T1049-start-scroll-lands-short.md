@@ -1,6 +1,10 @@
 # T1049 — A start link's scroll lands short: it jumps to the first measured section top and never re-checks
 
-Status: OPEN — 0.9.0 batch.
+Status: PARTIAL — ae65ef767 (the jump follows its section until it holds two ticks, at most ~2 s; a start off Regulations dropped and said; tests fail on main first, 8 mutations all killed; web check 2026-11-23: cold `tab=gear` Gear 1156 px, `tab=gear` Gear 1139, `tab=licence` Licence 2020 (was Methods 1818), `tab=methods` Methods 1676, `view=map&tab=gear` the Map with "start link: tab= does nothing on view=map: dropped" in the console); left (Claude): the device check below.
+
+## 0.9.0 device pass (Android)
+- A cold start from `https://staging.canifishthis.ca/?regs=gnis:3062&tab=licence` (once the phone opens links with a
+  page start, T1038): Licence selected, the page at Licence's top, not Methods.
 
 Source: independent review of #80 (T1038), 2026-11-23; on main too. On staging the Keep tab grows 903 → 1104 px about
 35 ms after the first layout, so a start's jump (`RegsScreen`, polled until the tab's section has a top, then once) lands

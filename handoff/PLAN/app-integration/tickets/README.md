@@ -287,7 +287,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1042 | Google shows the licence quote as the search snippet and a generic icon: per-page descriptions, `data-nosnippet`, PNG icons | DONE | 68b96c5b9, 5d36db0bf | owner 2026-11-23 (lane L27) |
 | T1044 | Plain words on some gauges: how to read the level (bands, our own words, sourced) | OPEN — after 0.9.0 | | owner 2026-11-23 (lane L27) |
 | T1045 | Gauge pages should come up for "<river> river forecast / level / flow" (title/H1 words, water-to-gauge links, JSON-LD) | OPEN — 0.9.0 batch (code after #73) | T1039 | owner 2026-11-23 (lane L27) |
-| T1049 | A start link's scroll lands short: it jumps to the first measured section top and never re-checks | OPEN — 0.9.0 batch | | review of #80 (T1038), 2026-11-23 |
+| T1049 | A start link's scroll lands short: it jumps to the first measured section top and never re-checks | PARTIAL — fixed + web check; left (Claude): 0.9.0 device pass | ae65ef767 | review of #80 (T1038), 2026-11-23 |
 
 ## Next after closed testing
 
