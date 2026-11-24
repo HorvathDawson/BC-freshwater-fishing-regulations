@@ -199,5 +199,11 @@ from __future__ import annotations
 #:     a walked section whose walk down first meets a designation printed for its own water only is passed through it
 #:     (`unit_not_on_tributaries`) and keeps the nearer tributary-reaching unit below as a carried "may need" — this one
 #:     moves placements (counted in T973). No classify.py outcome changed.
-POLICY_VERSION = "49"
+#: 50: (T1053, owner 2026-11-24 12:33 "Climb through every head lake") A WHOLE WATER'S WALK CLIMBS THROUGH THE LAKE IT
+#:     FLOWS OUT OF (`tributaries.A_WHOLE_WATERS_WALK_CLIMBS_ITS_HEAD_LAKE`, `build.climbs_head_lakes`): a book rule whose
+#:     every extent is `whole` enters its water's head lake as a tributary lake — the lake walked, never collected (T1),
+#:     every stream feeding it the rule's (Eagle Creek's closure now takes Dick Creek above Dick Lake). A stretch rule, a
+#:     DFO place and a licensing record stay as they were; each head lake is reported (`head_lake` diagnostic). No
+#:     classify.py outcome changed; the bump marks the binding diff.
+POLICY_VERSION = "50"
 

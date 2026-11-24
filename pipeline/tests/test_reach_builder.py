@@ -412,6 +412,8 @@ def test_policy_version_is_bumped_when_classify_changes():
         "a_mouth_never_flows_back_up": tributaries.A_MOUTH_NEVER_FLOWS_BACK_UP,
         "a_rowed_no_unit_water_carries_the_unit": licensing.A_ROWED_NO_UNIT_WATER_CARRIES_THE_UNIT,
         "only_a_unit_on_its_tributaries_claims_them": licensing.ONLY_A_UNIT_ON_ITS_TRIBUTARIES_CLAIMS_THEM,
+        # (T1053) pinned at 50
+        "a_whole_waters_walk_climbs_its_head_lake": tributaries.A_WHOLE_WATERS_WALK_CLIMBS_ITS_HEAD_LAKE,
     })
     expected.update({"confluence_cut_excludes_the_joining_water": True,
                      "confluence_water_without_a_row_goes_with_the_cut": True,
@@ -449,8 +451,9 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "a_dead_end_flows_where_its_water_flows": True,
                      "a_mouth_never_flows_back_up": True,
                      "a_rowed_no_unit_water_carries_the_unit": True,
-                     "only_a_unit_on_its_tributaries_claims_them": True})
-    assert cache.POLICY_VERSION == "49", "update this pin with the version it was taken at"
+                     "only_a_unit_on_its_tributaries_claims_them": True,
+                     "a_whole_waters_walk_climbs_its_head_lake": True})
+    assert cache.POLICY_VERSION == "50", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")
