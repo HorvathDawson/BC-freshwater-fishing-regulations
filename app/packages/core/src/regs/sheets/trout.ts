@@ -61,9 +61,23 @@ const link = (s: string, open: SheetKey): SheetBlock => ({ k: "link", line: [{ t
  * page (Lois Lake's own row, p.24: "Hatchery only: wild ones go back" on the Dolly Varden row). The one composer
  * (`lineSourcesOf` -> `sourceLineOf`) draws each page once, ascending, every rule's boxes on it.
  */
-function rowSourceLine(row: Pick<TroutRowVM, "src">, rules: Pick<RuleIndex, "get">): SheetBlock {
-  const pages = row.src.flatMap((ix, i): Run[] => { const b = ruleBook(rules.get(ix)); return b.length && i ? [text(" "), ...b] : [...b]; });
+function rowSourceLine(row: Pick<TroutRowVM, "key" | "src">, rules: Pick<RuleIndex, "get">): SheetBlock {
+  const pages = row.src.flatMap((ix, i): Run[] => {
+    const r = rules.get(ix);
+    // (W46) an index the store lacks (its noRule stand-in has no pages): reported, and the line names no page for it
+    if (r.missing) { reportFailure(new TroutRowRuleMissing(row.key, ix)); return []; }
+    const b = ruleBook(r);
+    return b.length && i ? [text(" "), ...b] : [...b];
+  });
   return { k: "source", line: [...pages, ...(pages.length ? [text(" ")] : []), { t: "link", s: TROUT_SHEET.ALL_SOURCES, open: TROUT_SOURCES_KEY } satisfies Run] };
+}
+
+/** (T1031 per-row pages) A rule a trout row cites (`TRow.src`) that the page's rules do not hold: its pages are unknown. */
+export class TroutRowRuleMissing extends Error {
+  constructor(readonly row: string, readonly ix: number) {
+    super(`trout row sheet ${row}: the cited rule #${ix} is not on this page`);
+    this.name = "TroutRowRuleMissing";
+  }
 }
 
 /** The row a key names in today's table, with its box. */
