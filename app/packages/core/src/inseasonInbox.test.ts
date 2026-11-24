@@ -3,7 +3,7 @@
  * notice is kept, the device's saved history round trip, and the words — each pinned whole (AGENTS 33).
  */
 import { describe, expect, it } from "vitest";
-import { EARLIER_DAYS, EARLIER_ROWS, INBOX_KEEP_DAYS_AFTER_END, INBOX_MAX_ITEMS, inboxDetail, inboxMark, inboxMerge, inboxObserve, inboxEventKind, inboxUnreadIds, inboxPrompted, inboxRead, inboxReadAll,
+import { EARLIER_DAYS, EARLIER_ROWS, INBOX_WORDS, INBOX_KEEP_DAYS_AFTER_END, INBOX_MAX_ITEMS, inboxDetail, inboxMark, inboxMerge, inboxObserve, inboxEventKind, inboxUnreadIds, inboxPrompted, inboxRead, inboxReadAll,
          inboxTarget, inboxText, inboxUnread, inboxVM, inboxWantsOpen, parseInbox, type InboxState } from "./inseasonInbox";
 import { setFailureSink } from "./failure";
 import { joinInSeason, type InSeasonFeed, type InSeasonLinks, type InSeasonRow } from "./inseason";
@@ -287,6 +287,22 @@ describe("(T867) since install, read on open, short, with the app's own updates"
     // a tap reads an update row too (not only a notice)
     expect(inboxUnread(inboxRead(s1, ["app:0.9.0"]))).toBe(1);
     expect(parseInbox(inboxText(s3))).toEqual(s3);
+  });
+  it("(T1030, owner 2026-11-24 \"Rules only, hide 0\") the row's whole words for a count absent, 0, 1 and many", () => {
+    const s0 = inboxObserve(null, { release: { id: "r-1", day: "2026-11-10" }, app: "0.9.1" }, "2026-11-22");
+    const row = (changed: number | undefined) => {
+      const s = inboxObserve(s0, { release: { id: "r-2", day: "2026-11-20", changed, changedFrom: "r-1" }, app: "0.9.1" }, "2026-11-22");
+      const r = inboxVM(s, "2026-11-22").groups.flatMap((g) => g.rows).find((x) => x.id === "data:r-2")!;
+      return [s.events!.find((e) => e.id === "data:r-2")!.changed, r.text, r.label];
+    };
+    expect([row(undefined), row(0), row(1), row(37)]).toEqual([
+      [null, "", "Unread. Data update: Regulations data updated Nov 20"],
+      // the history keeps the 0 the release stated (a true answer); only the words leave it out
+      [0, "", "Unread. Data update: Regulations data updated Nov 20"],
+      [1, "1 water changed", "Unread. Data update: Regulations data updated Nov 20. 1 water changed"],
+      [37, "37 waters changed", "Unread. Data update: Regulations data updated Nov 20. 37 waters changed"]]);
+    expect([INBOX_WORDS.changed(null), INBOX_WORDS.changed(0), INBOX_WORDS.changed(1), INBOX_WORDS.changed(2)])
+      .toEqual(["", "", "1 water changed", "2 waters changed"]);
   });
   it("(T1030) the count is said only when it was taken against the release this device held before", () => {
     const s0 = inboxObserve(null, { release: { id: "r-1", day: "2026-11-10" }, app: "0.9.1" }, "2026-11-22");

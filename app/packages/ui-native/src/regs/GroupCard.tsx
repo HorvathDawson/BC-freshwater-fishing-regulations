@@ -8,7 +8,7 @@
 import { Fragment, useState } from "react";
 import { Image, View } from "react-native";
 import { Text } from "../Text";
-import { WORDS, type FishPicVM, type GroupVM, type KindVM, type Line, type NotKeptVM, type SizeVM, type TierVM, type TreeNodeVM } from "@app/core";
+import { OPEN, WORDS, type FishPicVM, type GroupVM, type KindVM, type Line, type NotKeptVM, type SizeVM, type TierVM, type TreeNodeVM } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
 import { LineText, TermText, type KeepActions } from "./LineText";
@@ -24,7 +24,7 @@ import { Icon } from "../icons";
  */
 function HowTell({ palette, actions, top = 0 }: { palette: Palette; actions: KeepActions; top?: number }) {
   return (
-    <RegsPress accessibilityRole="link" onPress={() => actions.onSheet("hatch")} box={{ w: 44, h: 32 }}
+    <RegsPress accessibilityRole="link" onPress={() => actions.onSheet(OPEN.hatch)} box={{ w: 44, h: 32 }}
                style={{ minHeight: 32, paddingTop: top }}>
       <Text style={[TYPE.metaBold, { color: palette.accent }]}>{WORDS.HOW_TELL}</Text>
     </RegsPress>

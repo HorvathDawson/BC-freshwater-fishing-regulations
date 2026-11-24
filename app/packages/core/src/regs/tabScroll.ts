@@ -38,11 +38,24 @@ export const START_OWN_SLACK = 1;
  * (T1049 review) Is a scroll event at `y` the start's own jump, rather than the reader's? By POSITION, never by time: on a
  * slow phone the event of a programmatic jump can arrive long after it was made. `asked` is every y the start has asked the
  * page for (a late event of an earlier jump still counts); `maxY` is the page's last scrollable y (content - view), null when
- * the event did not say. A jump asked beyond the page's end lands on `maxY`: that is its own too. No jump asked yet: only
- * the page settling at the top is not the reader.
+ * the event did not say. A jump asked beyond the page's end lands on `maxY`: that is its own too. (T1049 cold start) So does
+ * one beyond an end the page HAD while the start followed (`ends`): the page grew between the jump and its event, and the
+ * event says the new end. No jump asked yet: only the page settling at the top is not the reader.
  */
-export function isStartOwnScroll(y: number, asked: readonly number[], maxY: number | null): boolean {
+export function isStartOwnScroll(y: number, asked: readonly number[], maxY: number | null, ends: readonly number[] = []): boolean {
   if (asked.length === 0) return y <= 0;
   const near = (a: number, b: number) => Math.abs(a - b) <= START_OWN_SLACK;
-  return asked.some((a) => near(y, a) || (maxY != null && a > maxY && near(y, maxY)));
+  const all = maxY != null ? [maxY, ...ends] : ends;
+  return asked.some((a) => near(y, a) || all.some((m) => a > m && near(y, m)));
+}
+
+/**
+ * (T1049 review) The page end (content - view) a start keeps while it follows, for `isStartOwnScroll`'s `ends`: only a REAL
+ * one — the content laid out taller than the view, and the start's section drawn. An early layout's end (0, or the view's
+ * own height under `flexGrow`) would make the reader's scroll to the top (Home) look like the start's own and be undone.
+ * Null: not kept.
+ */
+export function startEndOf(contentH: number, viewH: number, sectionDrawn: boolean): number | null {
+  const end = contentH - viewH;
+  return sectionDrawn && viewH > 0 && end > 0 ? end : null;
 }

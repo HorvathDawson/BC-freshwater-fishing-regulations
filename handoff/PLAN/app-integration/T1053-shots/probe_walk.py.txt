@@ -1,0 +1,64 @@
+"""L19 read-only probe: Eagle Creek (gnis:9405) tributary walk vs Dick Lake (wbk:328989582), Nelson (gnis:20408)."""
+import json, sys
+from pathlib import Path
+from pipeline.common.io.serialize import read_artifact
+from pipeline.atlas.registry import load_registry
+from pipeline.atlas.graph import tributaries as T
+
+build = Path(sys.argv[1])
+reg = load_registry(str(build / "registry.json"))
+g = read_artifact(str(build / "graph.pkl"))
+
+def item(iid):
+    return reg.get(iid)
+
+def desc(nid):
+    n = g.nodes.get(nid)
+    if n is None:
+        return f"{nid} (not in graph)"
+    return (f"{nid} kind={n.kind.name if hasattr(n.kind,'name') else n.kind} name={n.display_name!r} gnis={n.gnis_id} "
+            f"wsc={n.wsc} order={n.stream_order} len={round(n.length_m)} barrier={n.is_barrier}")
+
+# which item owns each node
+owner = {}
+for it in reg.values():
+    if getattr(it, "kind", "") == "area":
+        continue
+    for s in getattr(it, "section_ids", []) or []:
+        owner.setdefault(s, []).append(it.id)
+
+for iid in ["gnis:9405", "wbk:328989582", "gnis:20408"]:
+    it = item(iid)
+    print("=" * 30, iid, it.name if it else None, it.kind if it else None)
+    secs = list(it.section_ids)
+    print("sections:", secs)
+    for s in secs:
+        print("  ", desc(s))
+    reach = frozenset(secs)
+    ctx = T.reach_context(g, reach)
+    print(" walk-up from reach (each upstream step, what may_enter says):")
+    seen = set(reach); stack = sorted(reach); depth = {s: 0 for s in reach}
+    steps = 0
+    while stack and steps < 200:
+        node = stack.pop()
+        for ei in g.up_adj.get(node, []):
+            e = g.edges[ei]
+            src = e.from_node
+            if src in seen:
+                continue
+            seen.add(src)
+            why = T.may_enter(ctx, src, node, e)
+            depth[src] = depth[node] + 1
+            print(f"   {'  '*depth[src]}{desc(src)} edge={e.kind} -> {node}  WHY={why} owner={owner.get(src)}")
+            steps += 1
+            if depth[src] < 8:
+                stack.append(src)
+    tribs = T.tributaries_of_reach(g, reach)
+    print(" tributaries_of_reach:", len(tribs))
+    for s in sorted(tribs):
+        print("   +", desc(s), owner.get(s))
+    print(" downstream of reach:")
+    for s in secs:
+        for ei in g.down_adj.get(s, []):
+            e = g.edges[ei]
+            print("   v", desc(e.to_node), e.kind, owner.get(e.to_node))

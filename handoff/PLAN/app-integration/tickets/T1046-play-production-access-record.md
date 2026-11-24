@@ -32,6 +32,12 @@ Follows T371 (the Closed track and the 12 × 14 rule) and T863 (production build
 4. **On or after 2026-12-07** (owner): check ≥12 opted in for 14 days, fill the TODOs, apply (Dashboard > "Apply for
    production"). Record the date and Google's answer in the README's clock table and here.
 
+## Reports answered without a ticket of their own
+
+- `e034e473bf96ab93` (staging, the owner, 0.8.5 Android, 2026-11-23): "Why does Harrison lake have hatchery only lake
+  trout" — answered as the book read the agreed way (RULINGS C2), no change; `pipeline/docs/GOTCHAS.md` "Harrison Lake's
+  lake trout show hatchery only" (PR #85); feedback log D08. Cited here so `python -m pipeline reports` stops calling it NEW.
+
 ## Acceptance
 
 Google approves production access; the clock table and this ticket record the dates. Until then every new report and
