@@ -27,11 +27,12 @@ const stamp = (ms) => {
 };
 const deviceMs = (d) => Number(d.sh('date +%s').trim()) * 1000;
 
-/** WorkManager's job(s) of the app (`#u0aN/<id> <app>/…SystemJobService` in `dumpsys jobscheduler`, a registered job's
- *  header line: its short hash first): their JobScheduler ids. WorkManager schedules a periodic work as a one-off job
- *  with a minimum latency, so no "periodic" flag is read; the app's only WorkManager work is the background check. */
+/** WorkManager's job(s) of the app: the "Registered jobs" headers of `dumpsys jobscheduler`
+ *  (`JOB #u0aN/<id>: <hash> <app>/…SystemJobService`), their JobScheduler ids. WorkManager schedules a periodic work as
+ *  a one-off job with a minimum latency, so no "periodic" flag is read; the app's only WorkManager work is the
+ *  background check. */
 function workJobs(d) {
-  const re = new RegExp(`^\\s+[0-9a-f]+ #u\\d+a\\d+/(\\d+) ${APP_ID.replace(/\./g, '\\.')}/${WORK.replace(/\./g, '\\.')}$`);
+  const re = new RegExp(`JOB #u\\d+a\\d+/(\\d+): [0-9a-f]+ ${APP_ID.replace(/\./g, '\\.')}/${WORK.replace(/\./g, '\\.')}$`);
   return [...new Set(d.sh('dumpsys jobscheduler').split('\n').map((l) => re.exec(l)?.[1]).filter(Boolean))];
 }
 
