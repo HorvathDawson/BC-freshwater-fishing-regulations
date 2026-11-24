@@ -159,6 +159,7 @@ checked on every app push as before.
 - `staging-smoke.yml` and `staging-security.yml`: DELETED (owner 2026-11-21: never run; the deploy scripts run the same checks). The T994 6 hardening of both is moot.
 - A red `docs-ci` stays the newest finished run for that workflow until a `handoff/**` push goes green (ci_status falls
   back to it when a sha has no docs run). A ledger fix is always such a push.
+- (T1021, 2026-11-24: the allowlist below is GONE: each entry moved onto a config key or marked `# path-label: <why>`.)
 - F2-owned, left on the shrinking ALLOWLIST in pipeline-ci's grep (remove an entry when fixed): every
   `cache/dfo_salmon` default in `pipeline/regs/dfo_salmon/` (fetch.py:94, wording.py:174-175, untangle.py:619,
   splitwork.py:35-36, churn.py:55, validate.py:202, entries.py:1204) and `closure_mouths.py:164`
