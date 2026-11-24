@@ -26,7 +26,7 @@
 import { describeBy, shownParameter, SMALL_WATER_TEXT_KEY, type IndexCut, type IndexWater, type NearPlace, type SearchIndexData, type WaterFix } from "@app/core";
 import { num, str, type Db, type Row } from "../sql/db";
 import * as BQ from "../sql/queries";
-import { boxOfGeoRows, pointOfGeoRows, continuedOrds, gaugeWatersOf, link, nearHit, parametersOf, pentadsOf, placesOf, pointerHits, rankNameHits, routesOf, withNameSources, seriesOf, sid,
+import { boxOfGeoRows, climSeries, pointOfGeoRows, continuedOrds, gaugeWatersOf, link, nearHit, parametersOf, placesOf, pointerHits, rankNameHits, routesOf, withNameSources, sid,
          traceDown, withNear, decodeLen, type DownOf, type RouteFacts } from "../sql/shared";
 import type { Observations } from "../feed/http";
 import type { Aged, BasinMember, BundleCounts, BundleInfo, GaugeLink, ItemId, NameHit, NearHit, Panel, PanelMember,
@@ -35,7 +35,7 @@ import type { DbName, ReleaseLoader } from "./loader";
 import { buildStandingClasses, type StandingClasses } from "../standing";
 import { decodeBasinGrid, type BasinGrid } from "../basinGrid";
 import { CONDITIONS_META, CROSS, fileFor, META, RELEASE_QUERIES as R, type PackName } from "./queries";
-import { CLIM_CODEC, decodeDownBlock, decodeNear, DOWN_BLOCK_BITS, downSlot, invertNear, type DownBlock,
+import { decodeDownBlock, decodeNear, DOWN_BLOCK_BITS, downSlot, invertNear, type DownBlock,
          type NearByOrd } from "./packed";
 
 /** The lowest SQLite parameter ceiling any driver may have been compiled with. */
@@ -639,7 +639,7 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
       const param = parameter ?? shownParameter(obs ?? {});
       const clim = await all(R.CLIMATOLOGY!, station, param);
       // (T686) a climate/2 file carries clim/3 (T975: the only codec read; a release cut before T182: in conditions)
-      return seriesOf(pentadsOf(clim[0]?.bands as Uint8Array | null | undefined, CLIM_CODEC), obs, span, param, model);
+      return climSeries(clim[0]?.bands as Uint8Array | null | undefined, obs, span, param, model);
     },
 
     async gaugeParameters(station) {

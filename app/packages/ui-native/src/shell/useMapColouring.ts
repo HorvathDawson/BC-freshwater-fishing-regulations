@@ -258,7 +258,8 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   const methodFeed = mapTab === "map" ? method.feed : null;
   // (T759) the stripe's labels ride the salmon facts already held; the map draws them in the Salmon view only
   const issueFeed = useIssueColour({ source, facts: salmon.facts, mapTab: mapTab === "map" });
-  return { pickedHorizon: hz.horizon, noteVisible, setZoomedOut, zoomedOut, vintage, mixedPair, unproven, statusIndex, statusOk, lakeFeed, imagery, layers,
+  // (T1038) `setHorizon`: the horizon set as a start sets it (`initialHorizon`), not a chip's pick (which may move the quantity)
+  return { pickedHorizon: hz.horizon, setHorizon: hz.pick, noteVisible, setZoomedOut, zoomedOut, vintage, mixedPair, unproven, statusIndex, statusOk, lakeFeed, imagery, layers,
            flowParam, horizon, horizonChipsShown, setFlowParam, pickDay, onChooseLayer, mm, credits, cond, gauges,
            mapStatus, salmonFeed, salmonOffered, salmonLoading, methodFeed, issueFeed, gearMarked,
            regsLayer: salmonLoading ? "salmon" as RegsLayer : regsShown,

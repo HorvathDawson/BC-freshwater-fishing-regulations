@@ -18,7 +18,8 @@ import { verifyAgainstApp } from "./verify";
 import { regionYear, yearCardHtml } from "./regionYear";
 import { pageSize, type PageSize } from "./budget";
 import { dotPicture, namesFile, regionLead } from "./regionMap";
-import { clientScript, findScript, joinScript, LIVE, gaugeBody, gaugeDescription, gaugeModels, gaugesIndexBody, gaugeTitle, siteGaugeCardSvg, stationsFile, type GaugeModel, type GaugeRows } from "./gauges";
+import { chartInputsOf, chartScript, clientScript, findScript, LIVE, gaugeBody, gaugeDescription, gaugeModels, gaugesIndexBody, gaugeTitle, siteGaugeCardSvg, stationsFile, type GaugeModel, type GaugeRows } from "./gauges";
+import type { StationClim } from "@app/data";
 
 export interface PageRec {
   readonly path: string; readonly kind: "water" | "region" | "letter" | "topic" | "changes" | "about" | "privacy" | "gauge" | "gauges";
@@ -65,9 +66,15 @@ export interface BuildOpts {
   readonly only?: ReadonlySet<string>;
   /** (T487) the release's gauges and the waters each serves (gauges.ts `readGaugeRows`); null: the release has none */
   readonly gauges?: GaugeRows | null;
+  /** (T1039) each station's climatology from the same release (gauges.ts `readGaugeClim`), written into its page for the chart */
+  readonly gaugeClim?: ReadonlyMap<string, readonly StationClim[]> | null;
+  /** (T1039) the app's faces as `@font-face` rules (pane.tsx `fontFaceCss`), for the chart's words; absent: no app export */
+  readonly gaugeFonts?: string | null;
 }
 export interface SiteBuild {
   readonly files: ReadonlyMap<string, string>; readonly pages: readonly PageRec[];
+  /** (T1039) the binary files the site build itself makes: the gauge chart's pictures */
+  readonly binary: ReadonlyMap<string, Uint8Array>;
   readonly slugSteps: Steps; readonly slugMap: SlugMap; readonly removed: readonly { id: string; slug: string; region: number }[];
   readonly snapshot: Snapshot; readonly models: readonly WaterModel[]; readonly cssHref: string; readonly regions: readonly number[];
   /** (T487) the gauge pages built */
@@ -147,7 +154,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   const waterPath = (m: WaterModel) => `/water/${slugOf(m.id)}`;
 
   const pages: PageRec[] = [];
-  const files = new Map<string, string>();
+  const files = new Map<string, string>(), binary = new Map<string, Uint8Array>();
   const add = (kind: PageRec["kind"], path: string, html: string, hash = sha(stable(html))) => {
     // the gates that read a page's HTML run here, as it is made: JSON-LD held to the page, its title and description
     bad.push(...(kind === "water" ? checkWaterPage(html, site.origin) : checkJsonLd(html, site.origin)).map((x) => `${path}: ${x}`));
@@ -325,18 +332,20 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   if (gauges.length) {
     const client = clientScript(), clientHref = `/assets/gauge.${sha(client, 10)}.js`;
     files.set(clientHref.slice(1), client);
-    const join = joinScript(), joinHref = `/assets/join.${sha(join, 10)}.js`;       // (T911) the Join the test card's script
-    files.set(joinHref.slice(1), join);
+    // (T1039) the app's own chart, one deferred script for every gauge page; each page carries its station's climatology
+    const chart = await chartScript(), chartHref = `/assets/gauge-chart.${sha(chart.js, 10)}.js`;
+    files.set(chartHref.slice(1), chart.js);
+    for (const [name, bytes] of chart.assets) binary.set(name, bytes);
     const gaugeCrumbs = (g: GaugeModel): [string, string][] => [["Home", "/"], ["River gauges", "/gauges"], [g.name, g.path]];
     for (const g of gauges) {
       const title = gaugeTitle(g), description = gaugeDescription(g);
       unique(titles, title, g.path); unique(descriptions, description, g.path);
       // lastmod moves with what the build wrote (name, waters, place), not with the release id the live half names
-      add("gauge", g.path, shellOf(g.path, title, description, gaugeBody(g, release.id, clientHref, asOf, site.contact, joinHref), pageLd(site, g.path, title, asOf, gaugeCrumbs(g)),
+      add("gauge", g.path, shellOf(g.path, title, description, gaugeBody(g, release.id, clientHref, asOf, chartHref, chartInputsOf(o.gaugeClim, g.station, o.gaugeFonts ?? null)), pageLd(site, g.path, title, asOf, gaugeCrumbs(g)),
           `/gauge/${g.station}/card.png`, false), sha(JSON.stringify(g)));   // (T908, owner 2026-11-19) no "Browse by region": it leads to the hidden site map
     }
     const title = clip(`River gauges in BC: live flow and weather — ${site.name}`, 60);
-    const description = clip(`Live flow, the last 7 days, flow forecasts and the weather at ${gauges.length} BC river gauges on waters with fishing regulations.`);
+    const description = clip(`Live flow, this year's record, flow forecasts and the weather at ${gauges.length} BC river gauges on waters with fishing regulations.`);
     unique(titles, title, "/gauges"); unique(descriptions, description, "/gauges");
     add("gauges", "/gauges", shellOf("/gauges", title, description, gaugesIndexBody(gauges, asOf), pageLd(site, "/gauges", title, asOf, [["Home", "/"], ["River gauges", "/gauges"]]), "/share/gauge.png"),
         sha(JSON.stringify(gauges.map((g) => [g.station, g.name, g.path]))));
@@ -390,5 +399,5 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     waters: Object.fromEntries(models.map((m) => [m.id, { slug: slugOf(m.id), name: m.name, hash: waterHash.get(m.id)!, rules: waterRules.get(m.id)! }])),
   };
   files.set("snapshot.json", `${JSON.stringify(snapshot, null, 1)}\n`);
-  return { files, pages, slugSteps, slugMap, removed, snapshot, models, cssHref, regions, gauges };
+  return { files, binary, pages, slugSteps, slugMap, removed, snapshot, models, cssHref, regions, gauges };
 }

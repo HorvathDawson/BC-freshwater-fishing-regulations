@@ -16,7 +16,7 @@ tab / sheet / scroll as a start that waited for the next Regulations page and la
 1. The start's jump follows its section while the page settles: made again while the target moves, done once it has held
    (two 100 ms ticks), at most ~2 s. Web and phone (one component).
 2. A start on another view than Regulations is dropped, and its keys are said (`dropped`, `reportDropped`), never kept to
-   land later.
+   land later — one rule for the web and the phone (`pageStartOn`; the phone's link reports them as its problems).
 3. Tests that fail on main first, proved by mutation; web check; device check on the 0.9.0 device pass.
 
 Depends: none (T1038 #80 touches the same effect: whichever lands second is rebased). Size: S. Owner: no.

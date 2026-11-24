@@ -123,6 +123,15 @@ export function holdsMapStatus(r: Route, start: RegsStart | null): boolean {
   return start !== null && waterFrame(r)?.view === "regs";
 }
 
+/**
+ * (T1038) THE START A WATER'S PAGE IS HANDED: a phone link's start is for the water it names (`forItem`), so a page of
+ * another water on screen while the link's water opens never takes it; the web's start (`forItem` null) is the first
+ * water's page's, as before.
+ */
+export function startForFrame(start: RegsStart | null, forItem: ItemId | null, frameItem: ItemId | null): RegsStart | null {
+  return start !== null && (forItem === null || forItem === frameItem) ? start : null;
+}
+
 export interface StartLink {
   route: Route;
   /** the Shell's one day (null = today) */
@@ -273,23 +282,27 @@ const TABS: readonly Tab[] = ["keep", "gear", "methods", "licence"];
 const AGES = ["adult", "u16"] as const;
 const RESIDENCIES = ["resident", "non_resident", "non_resident_alien"] as const;
 
+/**
+ * (T1049) A PAGE START IS THE REGULATIONS PAGE'S, on the web and the phone alike: a link to a water's Map or Conditions
+ * keeps none (it would wait for the next Regulations page and land there, unasked), and its tab / sheet / scroll are said.
+ */
+export function pageStartOn(view: View, regs: RegsStart, has: (k: string) => boolean, who: string): { regs: RegsStart | null; dropped: string[] } {
+  if (view === "regs") return { regs, dropped: [] };
+  return { regs: null, dropped: (["tab", "sheet", "scroll"] as const).filter(has).map((k) => `${who}: ${k}= does nothing on view=${view}: dropped`) };
+}
+
 /** (T1049) Says what a start link dropped (`dropped`), each once — never dropped without a word. */
 export function reportDropped(l: Pick<StartLink, "dropped"> | null): void {
   for (const d of l?.dropped ?? []) reportFailure(new Error(d));
 }
 
-/** The link in a page's query string (`location.search`), or null when it names no water. Throws on a bad value. */
-export function parseStartLink(search: string, now: Date = bcNow()): StartLink | null {
-  const q = new URLSearchParams(search);
-  const item = q.get("regs");
-  const bad = (k: string, what: string): never => { throw new Error(`start link: ${k}=${q.get(k)} is not ${what}`); };
-  const ITEM = /^[a-z]+:-?\d+$/;
-  // (T369) the place: both keys or neither
-  const blkS = q.get("blk"), mS = q.get("m");
-  if ((blkS === null) !== (mS === null)) bad(blkS === null ? "m" : "blk", `a place without ${blkS === null ? "blk" : "m"}`);
-  const where: StreamPlace | null = blkS === null ? null
-    : { blk: /^-?\d+$/.test(blkS) ? Number(blkS) : bad("blk", "a stream key"),
-        m: /^\d+$/.test(mS!) ? Number(mS) : bad("m", "a distance in metres") };
+/** A link key's value read, or a throw naming the key, its value and what it should be. */
+export type LinkBad = (k: string, what: string) => never;
+/**
+ * (T1038) THE LINK'S DAY AND HORIZON, READ ONE WAY for the web's start link and the phone's app link (`appLink.ts`): `date`
+ * (null: today; a day gone by opens as today, `past`, and the start says so) and `horizon` (null: Now).
+ */
+export function linkDay(q: URLSearchParams, bad: LinkBad, now: Date = bcNow()): { day: Date | null; past: boolean; horizon: Horizon | null } {
   const dateS = q.get("date");
   let day: Date | null = null;
   let past = false;
@@ -305,6 +318,44 @@ export function parseStartLink(search: string, now: Date = bcNow()): StartLink |
   const horizonS = q.get("horizon");
   const horizon: Horizon | null = horizonS === null ? null
     : HORIZONS.find((h) => String(h) === horizonS) ?? bad("horizon", HORIZONS.join("|"));
+  return { day, past, horizon };
+}
+/**
+ * (T1038) WHERE A WATER'S LINK PUTS ITS REGULATIONS PAGE AND WHO IS FISHING, read one way for the web and the phone: `tab`
+ * (Keep), `sheet`, `scroll` (0), and `age` / `res` (null: neither, the session's angler stands).
+ */
+export function linkPage(q: URLSearchParams, bad: LinkBad): { regs: RegsStart; who: Who | null } {
+  const tabS = q.get("tab") ?? "keep";
+  const tab = (TABS as readonly string[]).includes(tabS) ? (tabS as Tab) : bad("tab", "a tab");
+  const sheetS = q.get("sheet");
+  const sheet = sheetS === null ? null : parseSheetKey(sheetS) ?? bad("sheet", "a sheet key");
+  const scrollS = q.get("scroll");
+  const scroll = scrollS === null ? 0 : /^\d+$/.test(scrollS) ? Number(scrollS) : bad("scroll", "a scroll offset");
+
+  const age = q.get("age"), res = q.get("res");
+  if (age !== null && !(AGES as readonly string[]).includes(age)) bad("age", AGES.join("|"));
+  if (res !== null && !(RESIDENCIES as readonly string[]).includes(res)) bad("res", RESIDENCIES.join("|"));
+  const who: Who | null = age === null && res === null ? null
+    : { age: (age ?? "adult") as Who["age"], residency: (res ?? "resident") as Who["residency"] };
+  return { regs: { tab, sheet, scroll }, who };
+}
+/** (T203, T1038) `whole=1`: the water's Map framed on the whole water — on the Map view with no part named, else not. */
+export const linkWhole = (q: URLSearchParams, view: View, part: number | null): boolean =>
+  view === "map" && part === null && q.get("whole") === "1";
+
+/** The link in a page's query string (`location.search`), or null when it names no water. Throws on a bad value. */
+export function parseStartLink(search: string, now: Date = bcNow()): StartLink | null {
+  const q = new URLSearchParams(search);
+  const item = q.get("regs");
+  const bad = (k: string, what: string): never => { throw new Error(`start link: ${k}=${q.get(k)} is not ${what}`); };
+  const ITEM = /^[a-z]+:-?\d+$/;
+  // (T369) the place: both keys or neither
+  const blkS = q.get("blk"), mS = q.get("m");
+  if ((blkS === null) !== (mS === null)) bad(blkS === null ? "m" : "blk", `a place without ${blkS === null ? "blk" : "m"}`);
+  const where: StreamPlace | null = blkS === null ? null
+    : { blk: /^-?\d+$/.test(blkS) ? Number(blkS) : bad("blk", "a stream key"),
+        m: /^\d+$/.test(mS!) ? Number(mS) : bad("m", "a distance in metres") };
+  const { day, past, horizon } = linkDay(q, bad, now);
   if (item === null && where === null) {
     // (T269) `?show=<item>`: the map, framed on that water (nothing lit)
     const show = q.get("show");
@@ -335,18 +386,7 @@ export function parseStartLink(search: string, now: Date = bcNow()): StartLink |
   const ix = index("ix", "a part index");
   const part = where === null ? ix : null;
 
-  const tabS = q.get("tab") ?? "keep";
-  const tab = (TABS as readonly string[]).includes(tabS) ? (tabS as Tab) : bad("tab", "a tab");
-  const sheetS = q.get("sheet");
-  const sheet = sheetS === null ? null : parseSheetKey(sheetS) ?? bad("sheet", "a sheet key");
-  const scrollS = q.get("scroll");
-  const scroll = scrollS === null ? 0 : /^\d+$/.test(scrollS) ? Number(scrollS) : bad("scroll", "a scroll offset");
-
-  const age = q.get("age"), res = q.get("res");
-  if (age !== null && !(AGES as readonly string[]).includes(age)) bad("age", AGES.join("|"));
-  if (res !== null && !(RESIDENCIES as readonly string[]).includes(res)) bad("res", RESIDENCIES.join("|"));
-  const who: Who | null = age === null && res === null ? null
-    : { age: (age ?? "adult") as Who["age"], residency: (res ?? "resident") as Who["residency"] };
+  const { regs, who } = linkPage(q, bad);
 
   const viewS = q.get("view");
   const view = viewS === null ? "regs" : (VIEWS as readonly string[]).includes(viewS) ? (viewS as View) : bad("view", VIEWS.join("|"));
@@ -356,7 +396,7 @@ export function parseStartLink(search: string, now: Date = bcNow()): StartLink |
 
   const place: LinkPlace | null = where && { ...where, view };
   // the whole water: asked (`whole=1`)
-  const whole = view === "map" && part === null && q.get("whole") === "1";
+  const whole = linkWhole(q, view, part);
   const route = item === null ? HOME : reduce(HOME, openWater({ item: item as ItemId, part, view, whole }));
   // (T369 D5) a tapped frame's address: the tap's point, or a tap with none
   const hereS = q.get("here");
@@ -364,9 +404,8 @@ export function parseStartLink(search: string, now: Date = bcNow()): StartLink |
   if (hereS !== null && !hm) bad("here", "a lat,lon point");
   const tap = hm ? { at: { lat: Number(hm[1]), lon: Number(hm[2]) } } : q.get("tap") === "1" ? { at: null } : null;
   // (T1049) a page start is the Regulations page's: on another view it is dropped, and said
-  const unused = view === "regs" ? [] : (["tab", "sheet", "scroll"] as const).filter((k) => q.has(k));
-  const link: StartLink = { route, day, regs: view === "regs" ? { tab, sheet, scroll } : null, who, theme, arrive: item as ItemId | null, place,
-                            notice: past ? "day-past" : null, horizon, tap,
-                            ...(unused.length ? { dropped: unused.map((k) => `start link: ${k}= does nothing on view=${view}: dropped`) } : {}) };
+  const start = pageStartOn(view, regs, (k) => q.has(k), "start link");
+  const link: StartLink = { route, day, regs: start.regs, who, theme, arrive: item as ItemId | null, place,
+                            notice: past ? "day-past" : null, horizon, tap, ...(start.dropped.length ? { dropped: start.dropped } : {}) };
   return link;
 }
