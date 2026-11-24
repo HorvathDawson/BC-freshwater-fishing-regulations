@@ -30,6 +30,9 @@ Mutation pins (2026-11-24, each run; the first test it fails):
   (release side, test_release_command.py) the checks do not print the lines / compare against no commit / ignore the
   live release's file                                 -> test_a_moved_gauge_level_record_is_its_own_line_...,
                                                          test_gauge_records_reads_the_datum_file_at_the_live_commit
+  (review #121) the clim build prints proposed rows too  -> test_the_clim_build_prints_a_line_per_accepted_change_...
+  gauge_records lets a git / schema failure raise, or hides it -> test_gauge_records_that_cannot_be_compared_...
+  the stage line counts an uncompared record as moved -> test_an_uncompared_gauge_record_ships_said_...
 """
 
 from __future__ import annotations
@@ -421,6 +424,25 @@ def test_set_status_moves_one_row_only_and_undoes(tmp_path, monkeypatch):
         datum.set_status("08HD006", "accepted", None, p)                        # an acceptance needs its decision
     with pytest.raises(datum.DatumFileError, match="has 0 rows"):
         datum.set_status("08ZZ999", "proposed", None, p)
+
+
+def test_the_clim_build_prints_a_line_per_accepted_change_and_none_for_a_proposal(tmp_path, monkeypatch, capsys):
+    """`climatology.main` (the build's clim stage) prints the plain line of every ACCEPTED change and nothing for a
+    proposed one: what the owner reads in the build log is what moved."""
+    import sys
+    from pipeline.gauges.feed import climatology as C
+    hy = _hydat(tmp_path / "hydat.sqlite3")
+    roster = tmp_path / "roster.json"
+    roster.write_text(json.dumps([{"station": "08ZZ001"}]), encoding="utf-8")
+    rows = datum.parse({"_about": "t", "changes": [_row(station="08ZZ001", status="accepted"),
+                                                   _row(station="08ZZ002", offset_m=4.0)]})
+    monkeypatch.setattr(C.datum_file, "load", lambda: rows)
+    monkeypatch.setattr(sys, "argv", ["climatology", "--hydat", str(hy), "--out", str(tmp_path / "clim.json"),
+                                      "--stations", str(roster)])
+    C.main()
+    out = capsys.readouterr().out
+    assert "08ZZ001 level record moved 3.0 m down to the gauge's new zero (measured from the live feed, 2025-01-01)" in out
+    assert "08ZZ002" not in out and "1 accepted" in out and "1 proposed/rejected" in out
 
 
 # ------------------------------------------------------------------------------------------------ the proposals

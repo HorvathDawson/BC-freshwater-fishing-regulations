@@ -333,6 +333,38 @@ def test_gauge_records_reads_the_datum_file_at_the_live_commit(monkeypatch):
     assert lines == [want] and "every accepted change listed" in txt
 
 
+def test_gauge_records_that_cannot_be_compared_are_said_and_recorded_not_a_stop(monkeypatch):
+    """A git failure or a schema refusal of the datum file at the live commit is never a halt of stage 4 and never hidden:
+    it is the one recorded line "could not be compared: <reason>"."""
+    import subprocess
+    from pipeline.gauges.feed import datum
+    monkeypatch.setattr(datum, "load", lambda: [])
+    monkeypatch.setattr(R, "git_has_commit", lambda rev: True)
+
+    def git_fails(commit, repo):
+        raise subprocess.CalledProcessError(128, ["git", "show"], stderr=b"fatal: bad object abc")
+    monkeypatch.setattr(datum, "rows_at", git_fails)
+    lines, txt = R.gauge_records("abc")
+    assert lines == [f"{R.GAUGE_UNCOMPARED} the datum file at the live release's commit abc (CalledProcessError: "
+                     "fatal: bad object abc)"] and lines[0] in txt
+
+    def refused(commit, repo):
+        raise datum.DatumFileError("08HD006: status 'maybe' is not one of the statuses")
+    monkeypatch.setattr(datum, "rows_at", refused)
+    lines, _ = R.gauge_records("abc")
+    assert lines[0].startswith(R.GAUGE_UNCOMPARED) and "DatumFileError: 08HD006: status 'maybe'" in lines[0]
+
+
+def test_an_uncompared_gauge_record_ships_said_in_the_stage_and_on_the_ledger(world, capsys):
+    line = f"{R.GAUGE_UNCOMPARED} the datum file at the live release's commit c0ffee (CalledProcessError: fatal)"
+    world["gauge_records"] = [line]
+    assert _staging() == 0
+    out = capsys.readouterr().out
+    assert line in out and "gauge level records NOT compared" in out
+    assert json.loads(R.LEDGER.read_text())["releases"][NEW]["checks"]["gauge_records"] == [line]
+    assert line in (R.HOME / "checks" / NEW / "gauge_records.txt").read_text()
+
+
 def test_ids_gone_with_no_alias_are_listed_and_kept_and_never_stop_the_release(world, capsys):
     world["gone"] = [{"id": "wbk:3", "name": "Lost Pond"}]
     assert _staging() == 0

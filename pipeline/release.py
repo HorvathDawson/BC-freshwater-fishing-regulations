@@ -1027,15 +1027,27 @@ def live_counts(before_rid: str | None, after_rid: str, led: dict) -> tuple[dict
     return after, LC.diff_text(before, after, before_rid or "(no live release)", after_rid)
 
 
+#: (T1047) the one line a release records when the gauge records could not be compared (said, never a stop)
+GAUGE_UNCOMPARED = "could not be compared:"
+
+
 def gauge_records(since: str | None) -> tuple[list[str], str]:
     """(T1047, owner 2026-11-24: "a clean well documented update ... which is easy to see") the gauge LEVEL RECORDS this
     release moves onto a new zero, one plain line per station (`datum.record_changes`): the datum change file as
     committed at `since` (the live release's commit) against the file now. No commit recorded (or not in this clone):
-    every accepted change is listed, said so. Listed, never a stop. (lines, text)"""
+    every accepted change is listed, said so. Listed, never a stop: the file at the live commit that cannot be read (a
+    git failure, a row its schema refuses) is SHOWN and RECORDED as the one line "could not be compared: <reason>"
+    (W46: said, not hidden, and not a halt of stage 4). (lines, text)"""
     from pipeline.gauges.feed import datum
     now_rows = datum.load()
     if since and git_has_commit(since):
-        then = datum.rows_at(since, Path(REPO_ROOT))
+        try:
+            then = datum.rows_at(since, Path(REPO_ROOT))
+        except (subprocess.CalledProcessError, datum.DatumFileError, ValueError, OSError) as e:
+            why = (e.stderr.decode(errors="replace").strip() if isinstance(e, subprocess.CalledProcessError) and e.stderr
+                   else "") or str(e)
+            line = f"{GAUGE_UNCOMPARED} the datum file at the live release's commit {since[:12]} ({type(e).__name__}: {why})"
+            return [line], f"gauge level records (T1047 datum changes): {line}"
         basis = f"against the live release's commit {since[:12]}" + (" (no datum file then)" if then is None else "")
         lines = datum.record_changes(then or [], now_rows)
     else:
@@ -1761,7 +1773,9 @@ def stage_checks(ctx: Ctx) -> str:
     r["fingerprint"] = fingerprint(rid)
     save_ledger(ctx.led)
     return (f"manifest ok, app gate ok (min app {ctx.min_app or 'manifest stamp'}), bindings {done['status']}, "
-            f"{n_gone} item id(s) gone with no alias, {len(recs)} gauge level record(s) moved")
+            f"{n_gone} item id(s) gone with no alias, "
+            + ("gauge level records NOT compared (see above)" if recs and recs[0].startswith(GAUGE_UNCOMPARED)
+               else f"{len(recs)} gauge level record(s) moved"))
 
 
 def stage_inseason(ctx: Ctx, rid: str, r: dict) -> str:

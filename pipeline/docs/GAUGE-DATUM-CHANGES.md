@@ -75,9 +75,17 @@ ranks it; nothing else in the feed moves.
 ## How it goes live
 
 No app build is needed. The next data release does it: `pipeline build` reruns its `clim` stage (its key holds the
-accepted rows), which rewrites `clim.json` and the bundle's normal ranges, and the release upload puts both on R2; the
-feeds worker reads the new `clim.json` on its next run and ranks the level. The bundle and `clim.json` must go up
-together: a `clim.json` on R2 ahead of the bundle would rank the level against the OLD band in the app.
+accepted rows), which rewrites `clim.json` and the bundle's normal ranges (`gauge_clim`), and the release upload puts
+both on R2; the feeds worker reads the new `clim.json` on its next run and ranks the level. Safe order: merge, the
+staging data release, then the production upload.
+
+**The one early path is STAGING, and nobody has to run it.** `feeds-hydat.yml` has no cron, but the STAGING feeds
+worker starts it by itself, on `main`, with upload, as soon as Environment Canada lists a newer HYDAT
+(`app/workers/feeds/src/index.ts`, the `hydat` maintenance event; `dispatch.ts` `DEFAULT_REF = TRUNK`). If that happens
+after this change is on `main` and before the staging data release, staging's `clim.json` moves first: staging ranks the
+level on today's zero while the staging app still draws the old band (the release's `gauge_clim`), so for these two
+gauges the live line sits metres off the band until the staging data release. Production cannot be reached that way: its
+`clim.json` changes only through `deploy/prod/upload.sh`, which puts `clim.json` and the release up in one run.
 
 ## How to undo it (one command per station)
 
