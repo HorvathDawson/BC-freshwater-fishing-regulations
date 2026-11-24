@@ -1,6 +1,6 @@
 # T1045 — Gauge pages should come up for "<river> river forecast / level / flow" (0.9.0)
 
-Status: OPEN — 0.9.0 batch. MEASURED 2026-11-23; code waits for PR #73 (T1039, which rewrites `app/tools/seo/gauges.ts` and
+Status: DONE in PR (independent review pending) — 838b5b83d
 `gaugeClient.ts`) to merge, then is built from main in its own PR.
 
 Source: owner 2026-11-23: "we want to make sure our gauge data pages (or condition tab for a river) come up when someone
@@ -56,3 +56,16 @@ queries once the production site is deployed (the owner's).
 
 ## Not done yet
 No code change to any gauge-page file until #73 merges (coordinator, 2026-11-23).
+
+## Built (0.9.0, PR from main after #73)
+- Title "<gauge name> level and flow (<station>)", H1 "<name> level, flow and forecast", a visible lede in the static HTML; the gauge's own
+  name already holds the water's word, so nothing says "river river" (the build gate refuses a doubled word). The flow forecast is worded
+  "as many days as that run covers" (no number); only the weather has a horizon, `WEATHER_DAYS` (5), the one constant the page's weather
+  request and its words both read. Description: "Live flow or water level, the flow forecasts and the weather at ...".
+- Each water page links its good gauge pages (`main`, three at most, by name) with the anchor "<gauge name> level and flow", plain
+  `<a href>` in a `nav#gauge-links` after the app's root (the inert attribute, no script: a script blocks). Under the app's pane, as the
+  home page's row (T1011): a crawler reads it; it is not drawn over the pane. The app's Conditions tab stays state; the gauge page is its indexable face.
+- Gauge JSON-LD: a Place named by the gauge and its station, the WebPage's `about`; held to the page by the existing gate. No coordinates or readings.
+- Build gate (`gaugeWordsProblems`, and a water page without its link): title and heading words, no doubled word, a lede, "forecast" in the description.
+- Tests proved by mutation (title back to "conditions", no link row, JSON-LD without Place, a "5 days" flow lede, gate off, "River" added twice).
+- `T1045-shots/before-after.txt` and `gauge-page-top.png`. Not done: a ranking (Google decides; the recrawl is the owner's after the production deploy).
