@@ -24,7 +24,7 @@
  * The Shell holds only the state more than one of these needs (the camera, the day, which sheet is open) and hands it
  * down. Every answer on every screen comes from a hook (rule 25).
  */
-import { WATER_SCREEN_WORDS, appTooOld, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM, type NotFishingKind, bcNow, now as clockNow } from "@app/core";
+import { WATER_SCREEN_WORDS, appTooOld, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM, type NotFishingKind, bcNow, now as clockNow, reportFailure } from "@app/core";
 import { openProbe, type ItemId, type SectionId } from "@app/data";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
@@ -359,7 +359,7 @@ export function Shell(p: ShellProps) {
   const inboxOpensWater = useCallback((item: string) => {
     setBellOpen(false);
     if (searching) go({ type: "search", open: false });
-    nav.opener.item(item as ItemId, "regs");
+    void nav.opener.item(item as ItemId, "regs");
   }, [searching, go, nav.opener]);
   // (T867) the release in use and the app's version, for the inbox's data / app update rows; a row opens the More tab
   // (its Data block) or What's new
@@ -401,11 +401,16 @@ export function Shell(p: ShellProps) {
     // `initialHorizon` do at a page's start (absent: a notification's tap leaves them)
     if (openReq.day !== undefined) setMapDay(openReq.day);
     if (openReq.horizon !== undefined) col.setHorizon(openReq.horizon);
-    // (T1038) ...and its page start, handed to THAT water's page (`startFor`) as `regsStart` is; a new start per request,
-    // so a link to the water already open applies it again
-    if (openReq.item && openReq.regs) { setStart(openReq.regs); setStartFor(openReq.item as ItemId); }
     // (T989) a water a link or tap opened is a LANDING like a start link's: leaving it frames the map on that water
-    if (openReq.item) { search.landOn(openReq.item as ItemId); nav.opener.item(openReq.item as ItemId, openReq.view ?? "conditions", openReq.part ?? null, openReq.whole ?? false); }
+    if (openReq.item) {
+      const item = openReq.item as ItemId, regs = openReq.regs;
+      search.landOn(item);
+      // (T1038) ...and its page start, handed to THAT water's page (`startFor`) as `regsStart` is, once the open has
+      // ROUTED (a link's part is checked first: the page still on screen, another part, never takes it); a new start per
+      // request, so a link to the water already open applies it again. An open overtaken or gone stale hands none.
+      void nav.opener.item(item, openReq.view ?? "conditions", openReq.part ?? null, openReq.whole ?? false)
+        .then((opened) => { if (opened && regs) { setStart(regs); setStartFor(item); } }, reportFailure);
+    }
     // (T605) a region page's `/?fit=` tapped on the phone: the browse map, framed on the region's box
     else if (openReq.fit) { go({ type: "close" }); nav.toTab("map"); search.landOnBox(openReq.fit); }
     // (T1038) a `/?date=` link: the browse map (on the day set above), as the web's browse start opens

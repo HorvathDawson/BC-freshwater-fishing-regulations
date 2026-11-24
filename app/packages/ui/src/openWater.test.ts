@@ -222,6 +222,16 @@ describe("(T925) every named water opens with its Map view, however it is opened
     expect(sent.map((a) => (a as { part?: number | null }).part)).toEqual([1, null]);
   });
 
+  it("(T1038) an open by id says when it has routed: at once, after the part check, or false when overtaken", async () => {
+    const sent: RouteAction[] = [];
+    expect(await waterOpener(source, (a) => sent.push(a)).item(VEDDER, "map")).toBe(true);
+    const opener = waterOpener(source, (a) => sent.push(a), { partCount: async () => 3 });
+    expect(await opener.item(VEDDER, "map", 2)).toBe(true);
+    const slow = opener.item(VEDDER, "map", 1);
+    void opener.item(VEDDER, "regs");                                       // overtakes the one still checking its part
+    expect(await slow).toBe(false);
+  });
+
   it("(T1034) a link's part is checked against the water's parts: in range it opens there; out of range it is reported and the water opens without it", async () => {
     const seen: string[] = [];
     const off = setFailureSink((e) => seen.push(String((e as Error).message)));

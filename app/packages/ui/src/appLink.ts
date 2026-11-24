@@ -23,6 +23,8 @@ const ITEM = /^[a-z]+:-?\d+$/;
 const DAY_KEYS = ["date", "horizon"] as const;
 /** (T1038) the water page's keys: carried on a water's link (the web reads them on no other) */
 const PAGE_KEYS = ["tab", "sheet", "scroll", "age", "res", "whole"] as const;
+/** (T1038) the keys only a water's link opens (its view, part and theme) */
+const WATER_KEYS = ["view", "part", "theme"] as const;
 /** the keys the phone opens from a link */
 const READ_KEYS = new Set<string>(["regs", "view", "part", "theme", "fit", ...DAY_KEYS, ...PAGE_KEYS]);
 
@@ -103,6 +105,8 @@ export function parseAppLink(url: string, now: Date = bcNow()): AppLink | null {
     for (const k of keys) if (q.has(k)) problems.push(`app link: ${k}= does nothing on a link that ${why}: dropped`);
   };
   if (!water) idle(PAGE_KEYS, "names no water");
+  // (T1038 review) and the water's own keys: a box's or a day's link opens the map, no water's view, part or theme
+  if (!water) idle(WATER_KEYS, "names no water");
   const { day, past, horizon } = linkDay(sp, bad, now);
   const days: LinkDays = { day, past, horizon };
   const { regs: start, who } = water ? linkPage(sp, bad) : { regs: { tab: "keep" as const, sheet: null, scroll: 0 }, who: null };

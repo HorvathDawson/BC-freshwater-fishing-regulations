@@ -155,6 +155,18 @@ describe("(T1038) a link with a day and no water or box: the map on that day, as
     expect([web.route, { day: web.day, past: web.notice === "day-past", horizon: web.horizon }])
       .toEqual([HOME, { day: (got as { day: Date | null }).day, past: (got as { past: boolean }).past, horizon: (got as { horizon: unknown }).horizon }]);
   });
+  it("(T1038 review) a water's own keys on it (view, part, theme) are said, never dropped without a word; a box's link too", async () => {
+    const seen: string[] = [];
+    setFailureSink((e) => seen.push(String((e as Error).message)));
+    try {
+      expect(await resolveAppLink("https://canifishthis.ca/?date=2026-12-24&view=map&part=1&theme=dark", none, NOW))
+        .toEqual({ home: true, ...D0, day: new Date(2026, 11, 24, 12) });
+      expect(seen).toEqual(["view", "part", "theme"].map((k) => `app link: ${k}= does nothing on a link that names no water: dropped`));
+      seen.length = 0;
+      await resolveAppLink("https://canifishthis.ca/?fit=-118,49,-114,52&theme=light", none, NOW);
+      expect(seen).toEqual(["app link: theme= does nothing on a link that names no water: dropped"]);
+    } finally { setFailureSink(null); }
+  });
   it("naming today and Now opens nothing more, as the bare link (the web's start is no link then either)", async () => {
     expect(await resolveAppLink("https://canifishthis.ca/?date=2026-10-22", none, NOW)).toBeNull();
     expect(parseStartLink("?date=2026-10-22", NOW)).toBeNull();
