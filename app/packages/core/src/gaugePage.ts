@@ -26,6 +26,20 @@ export interface ServeRow { readonly station: string; readonly item: string; rea
 /** a release's gauges and the waters each serves (`@app/data/release` `readGaugeRows`, from its conditions + core files) */
 export interface GaugeRows { readonly gauges: readonly GaugeRow[]; readonly serves: readonly ServeRow[] }
 
+/** The quantities a gauge's chart is drawn in (`gauge_clim`'s parameter) */
+export type GaugeParameter = "discharge" | "level";
+
+/**
+ * (T1045) WHAT A GAUGE MEASURES, in the words a reader searches: from the parameters the release holds for the station
+ * ("flow" for discharge, "level"); none known: "conditions" (never a quantity the release does not say it has). The one place the
+ * gauge page's title, heading and the water page's link say it. The forecast is never in it: whether the River Forecast Centre
+ * runs one for a gauge is live data, not the release's.
+ */
+export function gaugeSubject(parameters: readonly GaugeParameter[]): "level and flow" | "flow" | "level" | "conditions" {
+  const flow = parameters.includes("discharge"), level = parameters.includes("level");
+  return flow && level ? "level and flow" : flow ? "flow" : level ? "level" : "conditions";
+}
+
 export const TRUST_RANK: Record<ServesTrust, number> = { own: 0, lake: 1, good: 2, fair: 3, weak: 4 };
 
 /** Each station's waters, each at its best trust (own, lake, good, fair, then weak). */

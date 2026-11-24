@@ -12,7 +12,7 @@ import { buildAll, type Built } from "./build";
 import { TODAY } from "./fixture";
 import { checkJsonLd } from "./jsonld";
 import { pngSize } from "./share";
-import { browserSafe, chartInputsOf, gaugeModels, gaugePath, gaugeTitle, LIVE, moreSummary, type GaugeRows } from "./gauges";
+import { browserSafe, chartInputsOf, FORECAST_WORDS, gaugeBody, gaugeDescription, gaugeHeading, gaugeLede, gaugeModels, gaugePath, gaugeTitle, gaugeWordsProblems, LIVE, moreSummary, WEATHER_DAYS, type GaugeModel, type GaugeRows } from "./gauges";
 import { readConfig } from "./build";
 import { STORE_CONTACT } from "@app/core";
 
@@ -158,10 +158,69 @@ describe("T487 gauge pages", () => {
 
   it("a station's title keeps its number however long the name; the path is the name's slug", () => {
     const long = { station: "08AB123", name: "A Very Long River Name Indeed That Goes On And On Below The Long Falls" };
-    expect(gaugeTitle(long).length).toBeLessThanOrEqual(60);
-    expect(gaugeTitle(long)).toMatch(/\(08AB123\)$/);
+    expect(gaugeTitle({ ...long, parameters: ["discharge", "level"] }).length).toBeLessThanOrEqual(60);
+    expect(gaugeTitle({ ...long, parameters: [] })).toMatch(/\(08AB123\)$/);
     expect(gaugePath("08MH001", "Chilliwack River at Vedder Crossing")).toBe("/gauge/08MH001/chilliwack-river-at-vedder-crossing");
     expect(gaugeModels({ gauges: [{ station: "X1", name: "N", item: null, lat: null, lon: null }], serves: [] }, () => null)).toEqual([]);
+  });
+});
+
+describe("(T1045) gauge pages for the searcher's words", () => {
+  const g = (name: string, parameters: GaugeModel["parameters"], station = "08MH005") => ({ station, name, parameters });
+  const model = (name: string, parameters: GaugeModel["parameters"]): GaugeModel => ({ station: "08MH005", name, path: "/gauge/08MH005/x", lat: 49.2, lon: -122.4,
+    close: [{ id: "w", name: "Alouette River", path: "/water/alouette-river" }], main: [], more: [], rough: [], parameters });
+  const body = (m: GaugeModel) => gaugeBody(m, "r-x", "/c.js", "2026-11-23", "/ch.js", { clim: [], fonts: null });
+  it("the words come from what the release holds for the station: level, flow, both, or none known; never twice, never 'forecast'", () => {
+    expect(gaugeTitle(g("Alouette River Near Haney", ["discharge", "level"]))).toBe("Alouette River Near Haney level and flow (08MH005)");
+    expect(gaugeTitle(g("Alouette River Near Haney", ["level"]))).toBe("Alouette River Near Haney level (08MH005)");
+    expect(gaugeTitle(g("Alouette River Near Haney", ["discharge"]))).toBe("Alouette River Near Haney flow (08MH005)");
+    expect(gaugeTitle(g("Alouette River Near Haney", []))).toBe("Alouette River Near Haney conditions (08MH005)");
+    expect(gaugeHeading(g("Alouette River Near Haney", ["level"]))).toBe("Alouette River Near Haney level");
+    expect(gaugeTitle(g("A Very Long River Name Indeed That Goes On And On Below The Long Falls", ["discharge", "level"])).length).toBeLessThanOrEqual(60);
+    // the fixture's gauges: 08MH001 has discharge climatology (flow), 08MH016 none (conditions)
+    const byStation = (st: string) => gaugePages().find((x) => x.path.startsWith(`/gauge/${st}`))!;
+    expect(byStation("08MH001").title).toMatch(/ flow \(08MH001\)$/);
+    expect(byStation("08MH016").title).toMatch(/ conditions \(08MH016\)$/);
+    for (const gp of gaugePages()) {
+      expect(gp.html, gp.path).toMatch(/<h1>[^<]*<\/h1><p class="lede">/);
+      expect(gp.title + text(gp.html.match(/<h1>[^<]*<\/h1>/)![0]), gp.path).not.toMatch(/forecast|\b(\w{3,}) \1\b/i);
+    }
+  });
+  it("the flow forecast is only ever 'where the BC River Forecast Centre runs one', with no day count; the weather has its own horizon (the one constant)", () => {
+    const m = model("Alouette River Near Haney", ["discharge"]);
+    const l = gaugeLede(m);
+    expect(l).toContain(FORECAST_WORDS);
+    expect(l).toContain(`The weather is for the next ${WEATHER_DAYS} days.`);
+    expect(l.replace(`${WEATHER_DAYS} days`, "")).not.toMatch(/\d+[- ]days?\b/i);
+    expect(gaugeDescription(m)).toContain(FORECAST_WORDS);
+    const p = gaugePages()[0]!;
+    expect(p.html).toContain(`forecast_days=${WEATHER_DAYS}`);
+  });
+  it("the gate checks the words against the data: a level-only gauge titled 'level and flow', a doubled word, a forecast claimed outright, no lede", () => {
+    const lvl = model("Alouette River Near Haney", ["level"]);
+    expect(gaugeWordsProblems(lvl, gaugeTitle(lvl), gaugeDescription(lvl), body(lvl))).toEqual([]);
+    expect(gaugeWordsProblems(lvl, "Alouette River Near Haney level and flow (08MH005)", gaugeDescription(lvl), body(lvl))).toEqual([expect.stringMatching(/lacks "level" \(the release holds level for the station\)/)]);
+    expect(gaugeWordsProblems(lvl, "Alouette River Near Haney conditions (08MH005)", gaugeDescription(lvl), body(lvl))).toEqual([expect.stringMatching(/lacks "level"/)]);
+    expect(gaugeWordsProblems(lvl, "Alouette River River level (08MH005)", gaugeDescription(lvl), body(lvl))).toEqual([expect.stringMatching(/"River River" twice/)]);
+    expect(gaugeWordsProblems(lvl, "Alouette River Near Haney level forecast (08MH005)", gaugeDescription(lvl), body(lvl)).join()).toMatch(/says forecast/);
+    expect(gaugeWordsProblems(lvl, gaugeTitle(lvl), "Live level and the flow forecast.", body(lvl)).join()).toMatch(/description says forecast without/);
+    expect(gaugeWordsProblems(lvl, gaugeTitle(lvl), gaugeDescription(lvl), body(lvl).replace('<p class="lede">', "<p>"))).toEqual(["no lede"]);
+    expect(gaugeWordsProblems(lvl, gaugeTitle(lvl), gaugeDescription(lvl), body(lvl).replace(/<h1>[^<]*<\/h1>/, "<h1>Alouette</h1>"))).toEqual([expect.stringMatching(/heading "Alouette" lacks "level"/)]);
+  });
+  it("a gauge page's JSON-LD names its place by name, station and coordinates, and the gate holds each to the page", () => {
+    for (const gp of gaugePages()) {
+      const ld = JSON.parse(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(gp.html)![1]!.replace(/\\u003c/g, "<"))["@graph"];
+      const place = ld.find((n: { "@type": string }) => n["@type"] === "Place");
+      expect(place).toMatchObject({ identifier: gp.path.split("/")[2], name: expect.any(String) });
+      expect(ld.find((n: { "@type": string }) => n["@type"] === "WebPage").about).toEqual({ "@id": place["@id"] });
+      expect(checkJsonLd(gp.html, site.origin), gp.path).toEqual([]);
+    }
+    const vedder = gaugePages().find((x) => x.path.startsWith("/gauge/08MH001"))!;
+    expect(/"geo":\{"@type":"GeoCoordinates","latitude":49\.0973,"longitude":-121\.9638\}/.test(vedder.html)).toBe(true);
+    expect(text(vedder.html)).toContain("at 49.0973, -121.9638");
+  });
+  it("(owner 2026-11-23) a water page carries no link to a gauge page: gauge pages are reached by share links, /gauges and the sitemap", () => {
+    for (const w of built.build.pages.filter((x) => x.kind === "water")) expect(w.html, w.path).not.toMatch(/href="\/gauge\//);
   });
 });
 

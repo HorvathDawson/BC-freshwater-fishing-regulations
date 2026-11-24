@@ -23,7 +23,7 @@ import { crashUrlFor, ORIGINS, REPORT_URLS } from "../../apps/mobile/src/env";
 import { clip, esc, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, type Site } from "./html";
 import type { GaugeConfig } from "./gaugeClient";
 import { FIND_BODY } from "./regionMap";
-import { bestServes, gaugePath, STALE_AFTER_MS, STORE_CONTACT, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
+import { bestServes, gaugePath, gaugeSubject, STALE_AFTER_MS, STORE_CONTACT, TRUST_RANK, type GaugeParameter, type GaugeRows, type ServesTrust } from "@app/core";
 import type { StationClim } from "@app/data";
 import { readGaugeClim, readGaugeRows } from "@app/data/release";
 
@@ -40,11 +40,14 @@ export interface GaugeModel {
   readonly more: readonly WaterLink[];
   /** waters it is only a weak (rough) guide for */
   readonly rough: readonly WaterLink[];
+  /** (T1045) what the release holds for the station (`gauge_clim`): the words of its title, heading and links */
+  readonly parameters: readonly GaugeParameter[];
 }
 
 export { gaugePath };
 
-export function gaugeModels(rows: GaugeRows, water: (item: string) => WaterLink | null): GaugeModel[] {
+export function gaugeModels(rows: GaugeRows, water: (item: string) => WaterLink | null,
+                            clim?: ReadonlyMap<string, readonly Pick<StationClim, "parameter">[]> | null): GaugeModel[] {
   const best = bestServes(rows);
   const out: GaugeModel[] = [];
   for (const g of rows.gauges) {
@@ -53,7 +56,8 @@ export function gaugeModels(rows: GaugeRows, water: (item: string) => WaterLink 
     links.sort((a, b) => TRUST_RANK[a.t] - TRUST_RANK[b.t] || a.w.name.localeCompare(b.w.name) || a.w.id.localeCompare(b.w.id));
     out.push({ station: g.station, name: g.name, path: gaugePath(g.station, g.name), lat: g.lat, lon: g.lon,
                close: links.filter((l) => l.t !== "weak").map((l) => l.w),
-               main: links.filter((l) => TRUST_RANK[l.t] <= TRUST_RANK.good).map((l) => l.w), more: links.filter((l) => TRUST_RANK[l.t] > TRUST_RANK.good).map((l) => l.w), rough: links.filter((l) => l.t === "weak").map((l) => l.w) });
+               main: links.filter((l) => TRUST_RANK[l.t] <= TRUST_RANK.good).map((l) => l.w), more: links.filter((l) => TRUST_RANK[l.t] > TRUST_RANK.good).map((l) => l.w), rough: links.filter((l) => l.t === "weak").map((l) => l.w),
+               parameters: (clim?.get(g.station) ?? []).map((c) => c.parameter) });
   }
   return out.sort((a, b) => a.name.localeCompare(b.name) || a.station.localeCompare(b.station));
 }
@@ -180,6 +184,8 @@ export const LIVE = {
   crash: crashUrlFor(REPORT_URLS.production),
   env: "production",
 } as const;
+/** the days the page asks the weather for (the one number; the page's words say it from here) */
+export const WEATHER_DAYS = 5;
 const OPEN_METEO = "https://api.open-meteo.com/v1/forecast";
 /** WMO weather codes 0-99 in the app's sky words (data/spots/words.ts `skyWord`) */
 const SKY: Readonly<Record<string, string>> = Object.fromEntries(Array.from({ length: 100 }, (_, c) => [String(c), skyWord(c)]));
@@ -204,7 +210,7 @@ export function gaugeConfig(g: GaugeModel, release: string, chart: ChartInputs):
     weather: g.lat === null || g.lon === null ? null
       // (T1039) and the measures a spot's weather window shows: cloud cover, pressure, humidity (data/spots/weather.ts FIELDS)
       : `${OPEN_METEO}?${weatherPlace(g.lat, g.lon)}&current=temperature_2m,precipitation,weather_code,wind_speed_10m,cloud_cover,pressure_msl,relative_humidity_2m` +
-        "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max&timezone=Etc%2FGMT%2B7&forecast_days=5",
+        `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max&timezone=Etc%2FGMT%2B7&forecast_days=${WEATHER_DAYS}`,
     weatherAttribution: OPEN_METEO_ATTRIBUTION, sky: SKY,
     crash: LIVE.crash, env: LIVE.env, release,
     // the app's own feed base (apps/mobile env.ts `feed`): the chart reads the station's file the app reads
@@ -218,15 +224,33 @@ export function gaugeConfig(g: GaugeModel, release: string, chart: ChartInputs):
 }
 
 // ── the pages ────────────────────────────────────────────────────────────────────────────────────────────────────────
-/** a unique title under 60 characters: the name is cut, the station never */
-export function gaugeTitle(g: Pick<GaugeModel, "name" | "station">): string {
-  const tail = ` conditions (${g.station})`;
+/**
+ * (T1045) a unique title under 60 characters: the name is cut, the station never. The words a searcher types follow the gauge's
+ * own name, which already holds the water's word ("Alouette River Near Haney"), so the title adds none of its own and never says
+ * "river river". WHAT it measures is the release's (`gaugeSubject` of its `gauge_clim`): a level-only gauge says "level", a
+ * flow-only one "flow", one the release knows nothing of "conditions". "Forecast" is not in it: whether the River Forecast
+ * Centre runs one is live data, said in the lede and description as "where ... runs one".
+ */
+export function gaugeTitle(g: Pick<GaugeModel, "name" | "station" | "parameters">): string {
+  const tail = ` ${gaugeSubject(g.parameters)} (${g.station})`;
   return `${clip(g.name, 60 - tail.length)}${tail}`;
 }
+/** (T1045) the page's one heading */
+export const gaugeHeading = (g: Pick<GaugeModel, "name" | "parameters">): string => `${g.name} ${gaugeSubject(g.parameters)}`;
+/** (T1045) the forecast, said only as what it is: the River Forecast Centre's run, where it runs one, for as many days as that run covers */
+export const FORECAST_WORDS = "where the BC River Forecast Centre runs one";
+/**
+ * (T1045) the lede under the heading, in the static HTML: what the page shows. The flow forecast has no day count (it varies by
+ * gauge and run); only the weather has a horizon of its own (`WEATHER_DAYS`).
+ */
+export const gaugeLede = (g: Pick<GaugeModel, "name" | "station" | "parameters">): string =>
+  `${gaugeSubject(g.parameters) === "conditions" ? "Live conditions" : `Live ${gaugeSubject(g.parameters)}`}, and the weather for ${g.name}, from Water Survey of Canada gauge ${g.station}, ` +
+  `with the flow forecast ${FORECAST_WORDS}, for as many days as that run covers. The weather is for the next ${WEATHER_DAYS} days.`;
 
 export function gaugeDescription(g: GaugeModel): string {
   const w = g.close[0]?.name ?? g.rough[0]?.name;
-  return clip(`Live flow, this year's record, the flow forecasts and the weather at the ${g.name} gauge (${g.station}), BC` +
+  const what = gaugeSubject(g.parameters) === "conditions" ? "conditions" : gaugeSubject(g.parameters).replace(" and ", " or ");
+  return clip(`Live ${what}, the flow forecast ${FORECAST_WORDS}, and the weather at the ${g.name} gauge (${g.station}), BC` +
     `${w ? `, for ${w}` : ""}. Free, from Water Survey of Canada data.`);
 }
 
@@ -247,8 +271,9 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
   const line = (w: WaterLink) => `<li><a href="${esc(w.path)}">${esc(w.name)} fishing regulations</a></li>`;
   const cfg = JSON.stringify(gaugeConfig(g, release, chart)).replace(/</g, "\\u003c");
   return `<div class="gv"><nav class="crumbs"><a href="/">Home</a> › <a href="/gauges">River gauges</a> › ${esc(g.name)}</nav>` +
-    `<h1>${esc(g.name)}</h1>` +
-    `<p class="small">Water Survey of Canada gauge ${esc(g.station)} · read each time this page opens.</p>` +
+    `<h1>${esc(gaugeHeading(g))}</h1>` +
+    `<p class="lede">${esc(gaugeLede(g))}</p>` +
+    `<p class="small">Water Survey of Canada gauge ${esc(g.station)}${g.lat !== null && g.lon !== null ? ` at ${g.lat.toFixed(4)}, ${g.lon.toFixed(4)}` : ""} · read each time this page opens.</p>` +
     `<div id="gauge-now" class="now-card"><p class="small">Reading the latest from the gauge…</p></div>` +
     `<noscript><p class="warn">The live reading, chart and weather need JavaScript.</p><style>#gauge-chart{display:none}</style></noscript>` +
     // (T1039) the app's own chart, drawn by its deferred script (gaugeChart.tsx); the box keeps its place meanwhile
@@ -268,6 +293,29 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
     `<div id="gauge-get-app"></div></div></div>` +
     `<script type="application/json" id="gauge-config">${cfg}</script><script src="${esc(clientHref)}" defer></script>` +
     `<script src="${esc(chartHref)}" defer></script>`;
+}
+
+/**
+ * (T1045) what is wrong with a gauge page's search words, against the gauge's data: the title and heading say what the release
+ * holds for the station, once, no word twice in a row; the page has its lede; "forecast" is only ever hedged ("where the BC River
+ * Forecast Centre runs one"), never in the title or heading.
+ */
+export function gaugeWordsProblems(g: GaugeModel, title: string, description: string, body: string): string[] {
+  const bad: string[] = [];
+  const h1 = (/<h1>([^<]*)<\/h1>/.exec(body)?.[1] ?? "").replace(/&amp;/g, "&");
+  const subject = gaugeSubject(g.parameters);
+  if (!title.includes(` ${subject} (${g.station})`)) bad.push(`title "${title}" lacks "${subject}" (the release holds ${g.parameters.join(" + ") || "no parameter"} for the station)`);
+  if (!h1.endsWith(` ${subject}`)) bad.push(`heading "${h1}" lacks "${subject}"`);
+  for (const [what, t] of [["title", title], ["heading", h1]] as const) {
+    if (/forecast/i.test(t)) bad.push(`${what} "${t}" says forecast: whether a forecast runs is live data`);
+    const twice = /\b([A-Za-z]{3,})\s+\1\b/i.exec(t);
+    if (twice) bad.push(`${what} "${t}" says "${twice[0]}" twice in a row`);
+  }
+  if (!body.includes('<p class="lede">')) bad.push("no lede");
+  for (const [what, t] of [["description", description], ["lede", /<p class="lede">([^<]*)<\/p>/.exec(body)?.[1] ?? ""]] as const)
+    if (/forecast/i.test(t) && !t.includes(FORECAST_WORDS) && !(what === "description" && t.endsWith("…"))) bad.push(`${what} says forecast without "${FORECAST_WORDS}"`);
+  if (!/forecast/i.test(description) && !description.endsWith("…")) bad.push(`description lacks "forecast"`);
+  return bad;
 }
 
 export function gaugesIndexBody(gs: readonly GaugeModel[], asOf: string): string {

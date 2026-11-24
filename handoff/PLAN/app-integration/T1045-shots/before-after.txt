@@ -1,0 +1,33 @@
+T1045 before / after on three LIVE gauge pages (before = canifishthis.ca today, GET; after = this PR's functions on the same name, station, water and the release's own parameters)
+
+08MH005 Alouette River Near Haney (release holds: discharge + level)
+  title  before: Alouette River Near Haney conditions (08MH005)
+         after:  Alouette River Near Haney level and flow (08MH005)
+  H1     before: Alouette River Near Haney
+         after:  Alouette River Near Haney level and flow
+  lede   before: (none)
+         after:  Live level and flow, and the weather for Alouette River Near Haney, from Water Survey of Canada gauge 08MH005, with the flow forecast where the BC River Forecast Centre runs one, for as many days as that run covers. The weather is for the next 5 days.
+  descr  before: Live flow, the last 7 days, the flow forecast and the weather at the Alouette River Near Haney gauge (08MH005), BC, for Alouette River. Free, from Water…
+         after:  Live level or flow, the flow forecast where the BC River Forecast Centre runs one, and the weather at the Alouette River Near Haney gauge (08MH005), BC…
+
+08MF005 Fraser River at Hope (release holds: discharge + level)
+  title  before: Fraser River at Hope conditions (08MF005)
+         after:  Fraser River at Hope level and flow (08MF005)
+  H1     before: Fraser River at Hope
+         after:  Fraser River at Hope level and flow
+  lede   before: (none)
+         after:  Live level and flow, and the weather for Fraser River at Hope, from Water Survey of Canada gauge 08MF005, with the flow forecast where the BC River Forecast Centre runs one, for as many days as that run covers. The weather is for the next 5 days.
+  descr  before: Live flow, the last 7 days, the flow forecast and the weather at the Fraser River at Hope gauge (08MF005), BC, for Fraser River. Free, from Water Survey…
+         after:  Live level or flow, the flow forecast where the BC River Forecast Centre runs one, and the weather at the Fraser River at Hope gauge (08MF005), BC, for…
+
+08HA011 Cowichan River Near Duncan (release holds: discharge + level)
+  title  before: Cowichan River Near Duncan conditions (08HA011)
+         after:  Cowichan River Near Duncan level and flow (08HA011)
+  H1     before: Cowichan River Near Duncan
+         after:  Cowichan River Near Duncan level and flow
+  lede   before: (none)
+         after:  Live level and flow, and the weather for Cowichan River Near Duncan, from Water Survey of Canada gauge 08HA011, with the flow forecast where the BC River Forecast Centre runs one, for as many days as that run covers. The weather is for the next 5 days.
+  descr  before: Live flow, the last 7 days, the flow forecast and the weather at the Cowichan River Near Duncan gauge (08HA011), BC, for Cowichan River. Free, from Water…
+         after:  Live level or flow, the flow forecast where the BC River Forecast Centre runs one, and the weather at the Cowichan River Near Duncan gauge (08HA011), BC…
+
+Owner 2026-11-23: no gauge links on water pages and none from Conditions (the earlier 'River gauges for this water' list was removed); gauge pages are reached by share links, /gauges and the sitemap.

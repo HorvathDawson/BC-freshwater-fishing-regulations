@@ -113,18 +113,6 @@ function compressedTotals(b: SiteBuild): { pages: number; rawBytes: number; gzip
   }
   return { pages, rawBytes, gzipBytes, brBytes };
 }
-/**
- * (T1011) WHAT THE HOME PAGE'S LINK ROW GETS WRONG (tools/web-shell.mjs `withHomeLinks`): a link to a page this build did not
- * make, a region page it made that the row does not name, or no row at all. Empty: the row and the site agree.
- */
-export function homeLinkProblems(template: string, pages: readonly { readonly path: string; readonly kind: string }[]): string[] {
-  const row = /<nav id="site-links"[^>]*>([\s\S]*?)<\/nav>/.exec(template)?.[1];
-  if (row === undefined) return ["the app's index.html has no home link row (tools/web-shell.mjs withHomeLinks)"];
-  const hrefs = [...row.matchAll(/<a href="([^"]+)"/g)].map((m) => m[1]!), made = new Set(pages.map((p) => p.path));
-  return [...hrefs.filter((h) => !made.has(h)).map((h) => `the home page links ${h}, which this build did not make`),
-          ...pages.filter((p) => p.kind === "region" && !hrefs.includes(p.path)).map((p) => `the home page does not link ${p.path}`)];
-}
-
 export interface Built {
   readonly legacy: LegacyBuilt | null; readonly build: SiteBuild; readonly files: ReadonlyMap<string, string>;
   /** (T406) the binary files: each water's share card, `share/<slug>.png` */
@@ -224,7 +212,6 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   problems.push(...chartJsProblems(files));
   if (web) problems.push(...web.problems);
   // (T1011) the home page (the app's own index.html) links the site's pages: only pages this build made, every region's
-  if (a.app && !a.only) problems.push(...homeLinkProblems(a.app.template, build.pages));
   if (gaugeRows && !a.only && !build.gauges.length) problems.push("the release's conditions file names no gauge that serves a water with a page (no /gauge pages)");
   const noTtf = a.app ? FACES_REQUIRED.filter((f) => !a.app!.font(f)) : [];
   if (noTtf.length) problems.push(`the app's web export has no file for the face(s) ${noTtf.join(", ")}`);

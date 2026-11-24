@@ -1,6 +1,6 @@
 # T1045 — Gauge pages should come up for "<river> river forecast / level / flow" (0.9.0)
 
-Status: OPEN — 0.9.0 batch. MEASURED 2026-11-23; code waits for PR #73 (T1039, which rewrites `app/tools/seo/gauges.ts` and
+Status: DONE in PR #84 (review fixes in; independent re-review pending) — 859b10591, fc3626905, 4af1ba636, 0922cb1f3
 `gaugeClient.ts`) to merge, then is built from main in its own PR.
 
 Source: owner 2026-11-23: "we want to make sure our gauge data pages (or condition tab for a river) come up when someone
@@ -56,3 +56,24 @@ queries once the production site is deployed (the owner's).
 
 ## Not done yet
 No code change to any gauge-page file until #73 merges (coordinator, 2026-11-23).
+
+## Owner answers on PR #84 (2026-11-23, verbatim)
+- On the visible "River gauges for this water" list: "I don't like those there gauges only linked from conditions tab and even there I don't think we should have links. Gauge tabs are kind of separate and from the share. I don't know either way regulations are separate"
+- On the home page's hidden link row: "Drop the hidden row (Recommended)"
+So: NO water -> gauge link anywhere (not on the regulations view, not from Conditions); gauge pages are reached by share links, the `/gauges` index and the sitemap. The T1011 home row is dropped (T1011's ticket says why).
+
+## Built (0.9.0, PR #84)
+- Gauge page title "<gauge name> <words> (<station>)" and H1 "<name> <words>", where the words are what the RELEASE holds for the station
+  (`gaugeSubject` of `gauge_clim`): "level and flow", "flow", "level", or "conditions" when it holds nothing. A level-only gauge says
+  "level". "Forecast" is NOT in the title or heading: whether the BC River Forecast Centre runs one for a gauge is live data, not in
+  the release; the lede and description say it only as "the flow forecast where the BC River Forecast Centre runs one, for as many
+  days as that run covers". The weather has its own horizon, `WEATHER_DAYS` (5), the one constant. The gauge's own name already
+  holds the water's word, so nothing says "river river" (the build gate refuses a doubled word).
+- A visible lede in the static HTML; the gauge's coordinates shown ("at 49.0973, -121.9638").
+- Gauge JSON-LD: a Place named by the gauge and its station, with GeoCoordinates, the WebPage's `about`; held to the page by the existing gate.
+- Build gate (`gaugeWordsProblems`): title and heading words against the station's parameters, no doubled word, no "forecast" in title or
+  heading, a lede, the forecast only hedged. There is NO gate that asks for a water -> gauge link (a test asserts a water page has none).
+- Removed after the owner's answers: the water-view gauge list (`pickWaterGauges`, `readWaterGauges`, `useWaterGauges`, the web/native
+  anchor pair and their tests) and the T1011 home row (`withHomeLinks`, `homeLinkProblems`).
+- Tests proved by mutation: words not from data, hedge removed (the build refuses), "forecast" in a title, doubled word. `T1045-shots/before-after.txt`.
+- Not done: a ranking (Google decides; the recrawl is the owner's after the production deploy).

@@ -13,16 +13,13 @@ import { buildRegsPage, type RegsPage } from "@app/core";
 import { loadRegsInputs, openRegsStore } from "@app/data/regs";
 import { openRegsFixture } from "@app/data/release/node";
 import { BUDGET, blockingScripts, checkBudget, measure, pageSize } from "./budget";
-import { BARE_APP, buildAll, homeLinkProblems, readConfig, writeSite, type Built } from "./build";
+import { buildAll, readConfig, writeSite, type Built } from "./build";
 import { pngSize } from "./share";
 import { SHARE_H, SHARE_W } from "./html";
 import { openFixture, TODAY } from "./fixture";
 import { headersFile, hostWorker, HSTS, redirectFor, redirectsFile } from "./hosting";
 import { checkJsonLd, waterLd } from "./jsonld";
 import { buildDayOf, formerName, listWaterOrds, regionBox, waterModel } from "./model";
-import { appDocument } from "./prerender";
-// @ts-expect-error a plain .mjs tool (no types)
-import { HOME_LINKS, withHomeLinks } from "../web-shell.mjs";
 import { descriptionOf, regionLabel } from "./html";
 import { fitQuery, parseStartLink } from "@app/ui";
 import { SHARE_LINE } from "./site";
@@ -583,35 +580,6 @@ describe("the static output", () => {
     expect(existsSync(join(OUT, cssPath()))).toBe(true);
     expect(() => writeSite(join(APP, "seo-out"), built.files)).toThrow(/inside a dist folder/);
     expect(readFileSync(join(APP, "../.gitignore"), "utf8")).toMatch(/^app\/\*\*\/dist\/$/m);
-  });
-});
-
-describe("(T1011) the home page leads crawlers to the site's pages", () => {
-  const page = (path: string) => ({ path, kind: path.startsWith("/region/") ? "region" : "other" });
-  const ALL = (HOME_LINKS as [string, string][]).map(([h]) => page(h));
-  it("`/` (the app's index.html) carries a plain <a href> to the gauges, every region, About and Privacy, after the app's root", () => {
-    const home = withHomeLinks(BARE_APP);
-    const row = /<nav id="site-links"[^>]*>([\s\S]*?)<\/nav>/.exec(home)![1]!;
-    expect([...row.matchAll(/<a href="([^"]+)">/g)].map((m) => m[1])).toEqual(
-      ["/gauges", ...[1, 2, 3, 4, 5, 6, 7, 8].map((r) => `/region/${r}`), "/about", "/privacy"]);
-    expect(home.indexOf('<nav id="site-links"')).toBeGreaterThan(home.indexOf('<div id="root"></div>'));   // never over the map
-    expect(withHomeLinks(home)).toBe(home);                                                                  // a second run: the same page
-  });
-  it("the build refuses a row naming a page it did not make, missing a region it made, or no row at all", () => {
-    const home = withHomeLinks(BARE_APP);
-    expect(homeLinkProblems(home, ALL)).toEqual([]);
-    expect(homeLinkProblems(home, ALL.filter((p) => p.path !== "/gauges"))).toEqual(["the home page links /gauges, which this build did not make"]);
-    expect(homeLinkProblems(home, [...ALL, page("/region/9")])).toEqual(["the home page does not link /region/9"]);
-    expect(homeLinkProblems(BARE_APP, ALL)).toEqual(["the app's index.html has no home link row (tools/web-shell.mjs withHomeLinks)"]);
-  });
-  it("every page the row names that the fixture build makes is linked (its regions all are)", () => {
-    const made = new Set(built.build.pages.map((p) => p.path));
-    for (const p of built.build.pages.filter((x) => x.kind === "region")) expect((HOME_LINKS as [string, string][]).map(([h]) => h), p.path).toContain(p.path);
-    expect(made.has("/about") && made.has("/privacy")).toBe(true);
-  });
-  it("a water page does not carry the row (its document is the app's pane)", () => {
-    const d = { head: "", critical: "", cssHref: "/c.css", preload: [], item: "gnis:1", region: "2", pane: "<p>pane</p>" };
-    expect(appDocument(withHomeLinks(BARE_APP), d)).toBe(appDocument(BARE_APP, d));
   });
 });
 

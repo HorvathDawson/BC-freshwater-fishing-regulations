@@ -10,7 +10,7 @@ import { createHash } from "node:crypto";
 import type { RegsStore } from "@app/data/regs";
 import { fitQuery, slugShard, SLUG_SHARDS } from "@app/ui";
 import { aboutBody, privacyBody, CSS, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, clip, descriptionOf, esc, headOf, NOT_LEGAL, notFoundBody, regionLabel, shell, titleOf, waterRegion, type Release, type Site } from "./html";
-import { aboutLd, checkJsonLd, pageLd, waterLd } from "./jsonld";
+import { aboutLd, checkJsonLd, gaugeLd, pageLd, waterLd } from "./jsonld";
 import { appPage, formerNames, listWaterOrds, managementUnits, nearestTowns, regionBox, rulesKey, waterModel, type Box, type BuildDay, type WaterModel } from "./model";
 import { TOPICS, topicLines, type TopicKey } from "./topics";
 import { assignSlugs, type SlugMap, type Steps } from "./slug";
@@ -18,7 +18,7 @@ import { verifyAgainstApp } from "./verify";
 import { regionYear, yearCardHtml } from "./regionYear";
 import { pageSize, type PageSize } from "./budget";
 import { dotPicture, namesFile, regionLead } from "./regionMap";
-import { chartInputsOf, chartScript, clientScript, findScript, LIVE, gaugeBody, gaugeDescription, gaugeModels, gaugesIndexBody, gaugeTitle, siteGaugeCardSvg, stationsFile, type GaugeModel, type GaugeRows } from "./gauges";
+import { gaugeWordsProblems, chartInputsOf, chartScript, clientScript, findScript, LIVE, gaugeBody, gaugeDescription, gaugeModels, gaugesIndexBody, gaugeTitle, siteGaugeCardSvg, stationsFile, type GaugeModel, type GaugeRows } from "./gauges";
 import type { StationClim } from "@app/data";
 
 export interface PageRec {
@@ -176,6 +176,8 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     if (was) bad.push(`${path} and ${was} share a ${what === titles ? "title" : "description"}: ${v}`);
     what.set(v, path);
   };
+  const byId = new Map(models.map((m) => [m.id, m]));
+  const gauges = o.gauges ? gaugeModels(o.gauges, (item) => { const m = byId.get(item); return m ? { id: m.id, name: m.name, path: waterPath(m) } : null; }, o.gaugeClim) : [];
   const waterHash = new Map<string, string>(), waterRules = new Map<string, string>();
   const made: { path: string; hash: string; title: string; description: string; page: Promise<WaterMade> }[] = [];
   const waterTopics = new Map<string, Map<TopicKey, string[]>>();
@@ -327,8 +329,6 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   }
 
   // ── gauge pages (T487): one per station serving a water with a page; their live half reads the feed in the browser ──
-  const byId = new Map(models.map((m) => [m.id, m]));
-  const gauges = o.gauges ? gaugeModels(o.gauges, (item) => { const m = byId.get(item); return m ? { id: m.id, name: m.name, path: waterPath(m) } : null; }) : [];
   if (gauges.length) {
     const client = clientScript(), clientHref = `/assets/gauge.${sha(client, 10)}.js`;
     files.set(clientHref.slice(1), client);
@@ -340,8 +340,10 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     for (const g of gauges) {
       const title = gaugeTitle(g), description = gaugeDescription(g);
       unique(titles, title, g.path); unique(descriptions, description, g.path);
+      const body = gaugeBody(g, release.id, clientHref, asOf, chartHref, chartInputsOf(o.gaugeClim, g.station, o.gaugeFonts ?? null));
+      bad.push(...gaugeWordsProblems(g, title, description, body).map((x) => `${g.path}: ${x}`));
       // lastmod moves with what the build wrote (name, waters, place), not with the release id the live half names
-      add("gauge", g.path, shellOf(g.path, title, description, gaugeBody(g, release.id, clientHref, asOf, chartHref, chartInputsOf(o.gaugeClim, g.station, o.gaugeFonts ?? null)), pageLd(site, g.path, title, asOf, gaugeCrumbs(g)),
+      add("gauge", g.path, shellOf(g.path, title, description, body, gaugeLd(site, g, title, asOf, gaugeCrumbs(g)),
           `/gauge/${g.station}/card.png`, false), sha(JSON.stringify(g)));   // (T908, owner 2026-11-19) no "Browse by region": it leads to the hidden site map
     }
     const title = clip(`River gauges in BC: live flow and weather — ${site.name}`, 60);
