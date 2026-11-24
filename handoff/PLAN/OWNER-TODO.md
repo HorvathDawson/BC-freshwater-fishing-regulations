@@ -9,6 +9,15 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-24 ~08:35: 0.9.1 overnight questions, the answers (verbatim)
+
+- T905 salmon sizes: "Move worker state out (Recommended)" — the worker's own bookkeeping leaves the public feed (feed
+  to about 121,700 B, a feeds worker deploy); the salmon file's gate stays 110,000 B gz.
+- T1030 what "N waters changed" counts: "Rules only, hide 0 (Recommended)" — rule changes only, and no count shown at 0.
+- T1029 the one-bank stripe (build it, from which zoom): "Should make it more visible right now it isn't ?" — read as:
+  build the stripe, but the pictured stripe is too faint; new pictures with a bolder stripe before anything is built in.
+- T1047 datum rows: "Idk what this wants" — not answered; asked again in plainer words.
+
 ## 2026-11-24: 0.9.1 overnight questions (asked, not answered yet)
 
 Pictures and options for all eight are on one page: https://claude.ai/artifact/UZhX9gBLs6JiynhgVcWuFR (the 0.9.1 chat asks
