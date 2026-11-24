@@ -44,8 +44,9 @@ release command's own pushes: its preflight ran these checks); an empty reason i
 pipeline module failed in the no-data tier):
   - app: step 4 becomes `vitest related --run <the changed app code files> <the tree scanners>` — vitest's import
     graph, so a core change runs every package's tests that import it (most of the suite: ~2 min here);
-  - pipeline: the test files that import a changed module directly (+ the changed tests), as CI runs them (its marker
-    expression, in chunks), capped at related_tests.PY_CAP with the rest named.
+  - pipeline: the test files that import a changed module directly (+ the changed tests), then one level up (the
+    tests of a module that imports a changed one, at most related_tests.PY_UP_CAP), as CI runs them (its marker
+    expression, in chunks), capped at related_tests.PY_CAP in all with the rest named.
 And the steps run in TWO LANES AT ONCE (`--serial`: one after another): the pipeline's (Python) and the rest (node),
 each step's output printed whole when it ends, so the hook takes the longer lane, not the sum. A full run (no
 --changed) runs no related step: its whole set is the suites. `scripts/before_pr.sh` (T1041) is the once-before-the-PR
@@ -101,7 +102,7 @@ SKIP_ENV = "BEFORE_PUSH_SKIP"
 COMMITS = "commit messages (Conventional Commits: node app/tools/check-commits.mjs)"
 #: (T1041) the --changed steps that run the tests the change reaches
 APP_RELATED = "app: related tests + tree scanners (vitest related)"
-PY_RELATED = "the pipeline's related tests (direct importers, as CI runs them)"
+PY_RELATED = "the pipeline's related tests (importers, one level up, as CI runs them)"
 SCANNERS = "app tree scanners (app/tools tests that read the tree)"
 NO_TIER = "the pipeline's source scanners (--no-tier)"
 #: (T1041) the steps of the Python lane (the pipeline's: step_area "pipeline"); every other step is the node lane's

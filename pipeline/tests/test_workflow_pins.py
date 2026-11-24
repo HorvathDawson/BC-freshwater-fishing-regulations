@@ -378,3 +378,20 @@ def test_run_timing_publish_refuses_when_the_release_moved_since_it_bound():
     assert run.index('"$NOW" != "$TILES"') < run.index("feed.publish")
     assert "exit 1" in run[run.index('"$NOW" != "$TILES"'):run.index("feed.publish")]
     assert "the release moved" in run
+
+
+def test_the_mutation_jobs_skip_their_setup_when_the_pr_changes_nothing_they_mutate():
+    """(T1041 review, 0.9.1) each mutation job asks the script's gate first (right after the checkout, on the runner's
+    python3, nothing installed), and every later step waits on its answer, so a docs-only or an app-only PR costs the
+    Python job a checkout and a git diff. Mutations: drop an `if:`, move the gate after the setup, or skip on a broken
+    gate -> fails."""
+    doc = _load("mutation.yml")
+    for name, part in (("python", "py"), ("typescript", "ts")):
+        steps = doc["jobs"][name]["steps"]
+        assert steps[0]["uses"].startswith("actions/checkout@")
+        gate = steps[1]
+        assert gate["id"] == "gate" and "uses" not in gate and gate["continue-on-error"] is True
+        assert gate["run"] == f'python3 scripts/mutation_report.py {part} --base "$BASE_SHA" --head "$HEAD_SHA" --gate'
+        # only a "no" skips: a gate that broke (no output) runs the part as before
+        assert all(st.get("if") == "steps.gate.outputs.run != 'false'" for st in steps[2:]), name
+        assert any(st.get("uses") == "./.github/actions/app-setup" for st in steps[2:])

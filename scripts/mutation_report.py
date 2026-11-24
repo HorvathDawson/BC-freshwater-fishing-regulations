@@ -195,11 +195,15 @@ def mutmut_survivors(xml: str) -> tuple[dict[str, int], list[tuple[str, str, str
     return counts, out
 
 
+def py_changed(base: str, head: str) -> dict[str, list[int]]:
+    """The Python part's files and the lines it would mutate (git only: the gate runs it before any setup)."""
+    return py_files(added_lines(git("diff", "-U0", "--no-renames", f"{base}...{head}", "--", "pipeline/", "scripts/")))
+
+
 def run_py(base: str, head: str, budget: int, rep: Report, runner=bounded, mutmut: str | None = None) -> None:
     import before_push as BP
     markers = BP.tier_markers(BP.workflow_steps())
-    files, left = cap_lines(py_files(added_lines(git("diff", "-U0", "--no-renames", f"{base}...{head}", "--",
-                                                    "pipeline/", "scripts/"))))
+    files, left = cap_lines(py_changed(base, head))
     if not files:
         rep.lines.append("no changed pipeline or scripts source line (tests and conftest are not mutated)")
         return
@@ -210,7 +214,7 @@ def run_py(base: str, head: str, budget: int, rep: Report, runner=bounded, mutmu
     total: dict[str, int] = {}
     plan = []
     for f, lines in files.items():
-        tests, said = RT.pytest_related([f], ROOT)
+        tests, said = RT.pytest_related([f], ROOT, depth=1)        # direct importers: each mutant runs them all
         if not tests:
             rep.lines.append(f"`{f}`: {len(lines)} changed line(s), NO test imports or names it — every mutant "
                              "would live (not run)")
@@ -301,11 +305,18 @@ export default { ...base, test: { ...base.test, globalSetup: [], projects } };
 """
 
 
-def run_ts(base: str, head: str, budget: int, rep: Report, runner=bounded) -> None:
+def ts_changed(base: str, head: str) -> tuple[dict[str, list[int]], list[str]]:
+    """The TypeScript part's source files and the lines it would mutate, and the PR's changed app test files (git
+    only: the gate runs it before any setup)."""
     changed = added_lines(git("diff", "-U0", "--no-renames", f"{base}...{head}", "--", "app/"))
     tests_changed = [f for f in changed if TS_TEST.search(f) and f.startswith("app/") and (ROOT / f).is_file()]
     src = {f: ls for f, ls in changed.items() if TS_SRC.match(f) and not TS_TEST.search(f)
            and not f.endswith(".d.ts") and "/node_modules/" not in f and (ROOT / f).is_file()}
+    return src, tests_changed
+
+
+def run_ts(base: str, head: str, budget: int, rep: Report, runner=bounded) -> None:
+    src, tests_changed = ts_changed(base, head)
     files, left = cap_lines(src)
     if not files:
         rep.lines.append("no changed app source line (app/packages, app/apps; tests are not mutated)")
@@ -353,6 +364,42 @@ def run_ts(base: str, head: str, budget: int, rep: Report, runner=bounded) -> No
             (ROOT / f).write_bytes(b)
 
 
+#: what each part mutates, as the gate's skip says it
+WHAT = {"py": "pipeline/**/*.py and scripts/*.py (not tests or conftest)",
+        "ts": "app/packages/** and app/apps/** .ts/.tsx (not tests, not .d.ts)"}
+
+
+def _output(key: str, value: str) -> None:
+    """A step output (`$GITHUB_OUTPUT`); printed as `key=value` when there is none (a local run)."""
+    out = os.environ.get("GITHUB_OUTPUT")
+    if out:
+        with open(out, "a", encoding="utf-8") as f:
+            f.write(f"{key}={value}\n")
+    print(f"{key}={value}")
+
+
+def gate(part: str, base: str, head: str, rep: Report) -> bool:
+    """(T1041 review, 0.9.1) THE CHEAP FIRST STEP, before the job's setup (the app's dependencies, the venv, the tool):
+    does the PR change a line this part mutates? git and the standard library only (the runner's python3). Sets the
+    step output `run`; a skip is SAID in the job summary (the report, with what this part mutates). A gate that cannot
+    read the diff says so as a warning and lets the part run (the report then says what it finds)."""
+    try:
+        files = py_changed(base, head) if part == "py" else ts_changed(base, head)[0]
+    except Exception as e:                   # report-only: said, and the part runs as before the gate
+        print(f"::warning title=mutation report::the gate could not read the diff ({type(e).__name__}: {e}); "
+              "the part runs")
+        _output("run", "true")
+        return True
+    if files:
+        print(f"mutation-gate: {len(files)} changed file(s) with lines to mutate: {', '.join(sorted(files)[:8])}"
+              f"{' …' if len(files) > 8 else ''}")
+        _output("run", "true")
+        return True
+    rep.lines.append(f"skipped before the setup (the gate): the PR changes no line this part mutates ({WHAT[part]})")
+    _output("run", "false")
+    return False
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("part", choices=("py", "ts"))
@@ -360,12 +407,19 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--head", required=True)
     ap.add_argument("--budget", type=int, default=900, help="seconds this part may take (default 900)")
     ap.add_argument("--mutmut", default=None, help="py: the mutmut to run (default: beside the pipeline's interpreter)")
+    ap.add_argument("--gate", action="store_true",
+                    help="(T1041 review) only say whether the PR changes a line this part mutates (step output `run`); "
+                         "a skip is written to the job summary. Runs before any setup")
     a = ap.parse_args(argv)
     if a.budget < 60:
         print("mutation-report: --budget below 60 s leaves no room for one mutant", file=sys.stderr)
         return 2
     rep = Report(f"Mutation report: {'pipeline Python (mutmut ' + MUTMUT if a.part == 'py' else 'app TypeScript (Stryker ' + STRYKER})")
     t0 = time.time()
+    if a.gate:
+        if not gate(a.part, a.base, a.head, rep):
+            write(rep, t0)
+        return 0
     try:
         if a.part == "py":
             run_py(a.base, a.head, a.budget, rep, mutmut=a.mutmut)
