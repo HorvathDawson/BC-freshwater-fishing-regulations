@@ -1,6 +1,6 @@
 # T1045 — Gauge pages should come up for "<river> river forecast / level / flow" (0.9.0)
 
-Status: DONE in PR #84 (review fixes in; independent re-review pending) — 880e5b6fe, 134b75f6e, cd86d9c72
+Status: DONE in PR #84 (review fixes in; independent re-review pending) — 859b10591, fc3626905, 4af1ba636, 0922cb1f3
 `gaugeClient.ts`) to merge, then is built from main in its own PR.
 
 Source: owner 2026-11-23: "we want to make sure our gauge data pages (or condition tab for a river) come up when someone
