@@ -1,6 +1,6 @@
 # T1036 — The every-source sheet ("All sources ›") lists rules the screen does not draw, and misses the drawn gear on salmon-only days
 
-Status: PARTIAL — d29a19c5a, ea1155dee (lane L5); second group a65823345 (lane L17, owner 2026-11-24); left (Claude): put the head question to the owner (lane L17 report, `T1036-shots/other-group-*`) and apply his pick
+Status: PARTIAL — d29a19c5a, ea1155dee (lane L5); second group a65823345, review fix 926470546 (lane L17, owner 2026-11-24); left (Claude): put the head question to the owner (lane L17 report, `T1036-shots/other-group-*`) and apply his pick
 
 Source: the independent review of PR #63 (T991 round 3, 2026-11-23), probing the live release r-741815c6090d over 8 waters ×
 parts × 9 days. The Source row was fixed in #63 to cite exactly what the drawn tabs cite (`drawnRegsOf`,
@@ -60,10 +60,13 @@ sources" sheet (built: no): **"Add back but maybe have them separate?"**
 **What is in it, exactly.** Below the drawn lines' rules (group 1, unchanged), under one head (`ALL_SOURCES.OTHER`, built:
 "Also in the fish and possession sheets"), grouped by source as group 1: every rule a sheet ONE TAP from the drawn
 screen cites that no drawn line cites. Core `allsources.ts`:
-- the sheets (`reachableSheets`): every sheet key a drawn line opens (its `open`) — a fish row's sheet (`other:` /
-  `sp:` / `tf:`), Possession's (`pos:pos`), a rule's or a term's sheet a drawn line opens — and each one's tabs
-  (Identification | Sources); never the every-source sheet itself, never a per-row gear line's (`srcs:gl|…`, not
-  drawn since T900);
+- the sheets (`reachableSheets`): every sheet a press of the drawn screen opens — a view model's whole key (`open`, an
+  Other fish row's `id`) and (review of #126, fixed: the first build read `open` only and missed every key a component
+  builds) each key a component builds, now from ONE place, core `OPEN` (sheetKey.ts): trout rows (`tf:`, `tf:…|id`),
+  the hatchery link (`hatch`), caveat / timed lines and a closed banner's "Who says so ›" (`rule:`), boat chips
+  (`rule:`), term ⓘs (`gl:`, from a run or a `term` / `terms` field), the salmon card's rows (`sp:`, `sp:…|src`; the
+  card is handed beside the page, its sheets through `withSalmonSheets`) — and each one's tabs; never the every-source
+  sheet itself, never a per-row gear line's (`srcs:gl|…`, not drawn since T900);
 - what a sheet cites (`sheetCitations`): each row of its Sources list (never an "Overruled" card: it does not apply
   here), each rule whose sheet a line opens beside that rule's page ("Who says so ›" + "B.C. Synopsis p.N", as
   Possession's sheet does), a rule's own sheet its rule; one tap only: a link inside a sheet ("See every regulation
@@ -95,3 +98,22 @@ change: nothing one tap away).
 
 **Owner question**: the second group's head: A "Also in the fish and possession sheets" (built: says where the rules
 are) or B "Other rules for this water" (shorter); or not separate after all.
+
+## Review of #126 fixes (lane L17, 2026-11-24, 926470546)
+- MED (fixed): the sheets one tap away were read from `open` fields only, so every key a component composes itself was
+  missed (on the 6 fixture pages with a trout table: `tf:*`, `hatch`, `gl:*`, a caveat's `rule:`). The keys are now
+  built in one place (core `OPEN`, sheetKey.ts) by every component that builds one (TroutCard, SalmonCard, KeepBlocks
+  caveat / timed / closed-banner lines, BoatsLine, LineText's term ⓘ, GroupCard's hatchery link, RegsScreen's class
+  badge, the sheet blocks' rule rows), and `reachableSheets` reads those view-model fields through the same builders.
+  **The probe's oracle is now independent of core**: `pressedSheets` (regs/testing/allSources.ts) presses every press
+  target of the drawn screen and records the key the screen asks its sheets for; core's list must hold every pressed
+  sheet (beyond them only a section Source sheet no line draws), and the second group's oracle reads the pressed
+  sheets. Synthetic core case: rules cited ONLY by `tf:` / `hatch` / `rule:` (caveat, banner, boat) / `gl:` (run,
+  field) / `sp:` sheets land in group 2. 13 of 14 mutations killed; the 14th (the salmon card's sheets not held for
+  the walk) is equivalent on today's data: a salmon Sources sheet lists only the card's book closures (group 1 already)
+  and DFO rows (no rule key).
+- LOW 2 (fixed): the page's own `src:all` always gets its sheets (`allSourcesSheet(ctx, sheet)`, required; sheets.ts
+  passes `sheetOf`), pinned.
+- LOW 1 (the head drawn weaker than the "B.C. SYNOPSIS" kicker under it): left for the owner's look, unchanged.
+- New find: `drawnCitations` (group 1, from #96) counts the bait Source line's keys (`srcs:bait`), but BaitList draws no
+  Source line: group 1 may list rules no drawn line cites (the press oracle never opens `srcs:bait`).
