@@ -32,8 +32,9 @@ const slow = (bucket) => new Transform({
   },
 });
 
-/** Start the proxy on 127.0.0.1 (the emulator reaches it as 10.0.2.2). Resolves to { port, setRate, bytes, close }. */
-export function startThrottleProxy({ rate }) {
+/** Start the proxy on 127.0.0.1 (the emulator reaches it as 10.0.2.2). Resolves to { port, setRate, bytes, close }.
+ *  (T1049) `connectDelayMs`: every new connection is held that long before it is opened (a slow line's first byte). */
+export function startThrottleProxy({ rate, connectDelayMs = 0 }) {
   const bucket = makeBucket(rate);
   const sockets = new Set();
   let bytes = 0;
@@ -53,16 +54,21 @@ export function startThrottleProxy({ rate }) {
   server.on('connect', (req, client, head) => {
     track(client);
     const [host, port] = String(req.url).split(':');
-    const up = net.connect(Number(port) || 443, host, () => {
-      client.write('HTTP/1.1 200 Connection Established\r\n\r\n');
-      if (head?.length) up.write(head);
-      client.pipe(up);
-      up.on('data', (c) => { bytes += c.length; });
-      up.pipe(slow(bucket)).pipe(client);
-    });
-    track(up);
-    up.on('error', () => client.destroy());
-    client.on('close', () => up.destroy());
+    const open = () => {
+      if (client.destroyed) return;
+      const up = net.connect(Number(port) || 443, host, () => {
+        client.write('HTTP/1.1 200 Connection Established\r\n\r\n');
+        if (head?.length) up.write(head);
+        client.pipe(up);
+        up.on('data', (c) => { bytes += c.length; });
+        up.pipe(slow(bucket)).pipe(client);
+      });
+      track(up);
+      up.on('error', () => client.destroy());
+      client.on('close', () => up.destroy());
+    };
+    // (T1049) held before the tunnel opens: the client's TLS waits with it (a slow line's first byte)
+    if (connectDelayMs > 0) setTimeout(open, connectDelayMs); else open();
   });
   server.on('connection', track);
   return new Promise((resolve, reject) => {
