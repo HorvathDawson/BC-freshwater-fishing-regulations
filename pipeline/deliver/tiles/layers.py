@@ -122,14 +122,17 @@ WATER: tuple[LayerSpec, ...] = (
     ),
     LayerSpec(
         name="lake", geometry="polygon", ladder="area", mvt_id=True,
-        attrs=("section_id", "name", "water", "area_m2"),
+        attrs=("section_id", "name", "water", "area_m2", "lz"),
         why="Standing water big enough to fish — and a stream's polygon (a river's wide reach, "
             "a slough's). Same identity fields as stream. `water` is THE WATER KIND, the "
             "registry's `item.kind` (stream | lake): the style draws a `stream` polygon in "
             "stream colours (`lake_flowing`), so a slough never reads as a lake. `area_m2` "
             "earns its place twice: it sets the outline width (sqrt, so one big lake does "
             "not swamp every small one) and it is the label's collision sort key, which is "
-            "what stops a cluster of ponds crowding out the lake somebody came for.",
+            "what stops a cluster of ponds crowding out the lake somebody came for. `lz` (T1024), on a "
+            "stream's polygon only: the first zoom its route line is in `stream` under the same id, absent when it "
+            "has none — the selection rings the polygon only where the line (and its casing) is not drawn "
+            "(`stream_polygon_lines.py` proves it on the written files).",
     ),
     LayerSpec(
         name="under_lake", geometry="line", ladder="area", minzoom=10,
@@ -154,12 +157,13 @@ WATER: tuple[LayerSpec, ...] = (
     ),
     LayerSpec(
         name="wetland", geometry="polygon", ladder="area", minzoom=9, mvt_id=True,
-        attrs=("section_id", "name", "water"),
+        attrs=("section_id", "name", "water", "lz"),
         why="Marsh and swamp. `water` is the registry's kind (stream | wetland: a slough drawn as "
             "a wetland is a stream, `wetland_flowing`). Drawn, occasionally regulated, never searched for by name — "
             "and `name` is here for the tap sheet, not a label: no wetland symbol layer "
             "exists. `area_m2` went with it; wetland has no width spec and no label to "
-            "sort, so it was 2.6% of the archive answering nothing.",
+            "sort, so it was 2.6% of the archive answering nothing. `lz`: as on `lake` (T1024), a slough drawn as a "
+            "wetland (Taylor Slough, the Okanagan River Oxbows).",
     ),
     LayerSpec(
         name="not_fishing_water", geometry="polygon", ladder="area", minzoom=9, decorative=True,

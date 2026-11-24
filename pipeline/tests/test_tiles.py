@@ -320,8 +320,8 @@ def test_every_waterbody_becomes_a_node_so_zone_rules_can_reach_it():
 #: compatibility key) and the administrative geography; `name` is for map labels only. Adding a property, above all a
 #: status, a rule or anything a data release changes, must be a decision made here, so it fails until this list moves.
 TILE_INVENTORY = {
-    "stream": ("section_id", "name", "ord", "sc"), "stream_name": ("name", "ord"), "lake": ("section_id", "name", "water", "area_m2"), "under_lake": (),
-    "wetland": ("section_id", "name", "water"), "not_fishing_water": ("kind",), "contour": ("item", "depth_m", "index"),
+    "stream": ("section_id", "name", "ord", "sc"), "stream_name": ("name", "ord"), "lake": ("section_id", "name", "water", "area_m2", "lz"), "under_lake": (),
+    "wetland": ("section_id", "name", "water", "lz"), "not_fishing_water": ("kind",), "contour": ("item", "depth_m", "index"),
     "park": ("area_id", "name", "kind"), "eco_reserve": ("area_id", "name"), "sign_zone": ("area_id", "name", "cuts"),
     "wma": ("area_id", "name"), "indigenous_land": ("area_id", "name", "name_indigenous", "group"),
     "no_access": ("area_id", "name", "kind"), "watershed": (), "parcel": (),

@@ -59,8 +59,9 @@ def _drawn(path) -> dict[str, dict]:
 
 def test_a_section_outside_bc_is_in_no_water_layer(tmp_path):
     out = _atlas(tmp_path)
-    export_waterbodies(tmp_path, "", out)
-    export_streams(tmp_path, out)
+    route_zooms: dict = {}
+    export_streams(tmp_path, out, route_zooms=route_zooms)
+    export_waterbodies(tmp_path, "", out, route_zooms=route_zooms)
     lake, stream = (_drawn(out / f"{n}.geojsonl") for n in ("lake", "stream"))
     under = (out / "under_lake.geojsonl").read_bytes().splitlines()         # the dotted routes carry no id
     # the creek's polygon in B.C. is in BOTH its layers: the polygon (water: stream) and its route as the creek
