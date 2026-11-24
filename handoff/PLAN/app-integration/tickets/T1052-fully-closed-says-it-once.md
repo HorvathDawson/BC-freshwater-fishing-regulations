@@ -74,7 +74,8 @@ calendars; replace the two statements with one block: "Closed to all fishing all
   the card) is not drawn (`BannerVM.salmon`); both calendars stay; the Source line is the closure's own.
 - Line words (PROPOSALS, not the owner's): own row "The B.C. Synopsis row for Nelson Creek reads “No Fishing”."; walked
   tributary "Little Qualicum River’s row covers its tributaries: “No Fishing - All tributaries”." (the book line as
-  `describe` cleans it; no second full stop after a line ending its own sentence).
+  `describe` cleans it; no second full stop after a line ending its own sentence). Each line keeps the level the banner
+  gave it ("This water", "From downstream", "Federal / parks", "Named area").
 - Kept as two statements (by design): part-year closures; salmon by DFO or by another rule (two sources, neither
   dropped); "unless opened" park closures; "closed all year on N stretches" banners.
 
@@ -96,3 +97,31 @@ in-season notice on top, no glance, no salmon); `salmonBook.test.ts` pins `today
 Owner questions left: (1) the row-line words above; (2) a water closed to all fishing for PART of the year by one rule
 (130 parts today, e.g. Buckley Creek Nov 1–Apr 30): keep two statements (default) or a merged headline such as "Closed
 to all fishing until Apr 30, salmon included" (proposal).
+
+## Review round 1 (#131, 2026-11-24)
+
+- MED 1 (never drop a source): a merge now also needs every salmon closure to be one the banner cites (salmon ⊆ banner
+  and banner ⊆ the salmon's all-year closures); pinned by "two all-year closures, the banner cites one" (core test).
+  `banner.ts` (the closer list, T1078) is untouched.
+- MED 3: the line keeps its level label (merged parts: From downstream 555, This water 213, Federal / parks 145, Named
+  area 23).
+- LOW 5: the `page.status`, `b.kind` and empty-chain guards are gone (only a closed day's banner carries a chain; the
+  tidal banner's is empty, and the two rule sets must be equal and non-empty); new cases pin a tidal page, a closed day
+  naming no closure, and a card whose all-year list names a closure it does not carry. 9 new mutants, all killed.
+- LOW 6: the Source links name the row for a screen reader: "Who says so: the rules behind the Nelson Creek row",
+  "B.C. Synopsis page 25, the passages behind the Nelson Creek row marked, opens the PDF" (asserted in the WaterScreen test).
+- MED 2, THE REAL TEXTS (936 merged parts): own row reading exactly "No Fishing" 122; own row with another line 259
+  (National Parks and Ecological Reserves 76, National Park Reserves 68, UBC Malcolm Knapp lakes 16, Whiteswan inlet and
+  outlet streams 15 …); walked tributary with a bare "No Fishing" 163 (Brunette 74, Fording 13, Tsolum 11 …); walked
+  tributary quoting another line 392, mostly the mainstem's own extent: Brunette 94 ("No Fishing upstream of Burnaby Lake
+  or from Cariboo Dam to Salamander Creek"), Squamish 88 ("No Fishing tributaries EXCEPT: …"), Bulkley 34, Puntledge 22,
+  Capilano 22, Sustut 16, Chilliwack 13. Pictures (390 px light, three real cases side by side): option A as built
+  `T1052-shots/wordings-A-light.png` (Nelson Creek own row, Pup Creek a tidy Tsolum tributary, Crayfish Creek a Brunette
+  tributary with the long extent line); option B, a proposal not built, `T1052-shots/wordings-B-light.png`: a walked
+  tributary says the pipeline's own `facts.applies_trib` words "Inherited from Brunette River: its row covers its
+  tributaries." with no quote (the line stays one tap away under Who says so); own rows as A. The owner picks.
+- `nelson-after-light.png` is re-shot with the level label; `nelson-after-dark.png` predates it (no "This water").
+
+Left (Claude): a brief two-statement frame when stepping a part or a day (the page draws before the day's salmon card
+lands, then merges). Not fixed here: a fix would hold the closed banner until the card is in, which touches the T1049
+"coming" wait; a follow-up for the planning chat.
