@@ -1,6 +1,6 @@
 # T1024 — "Weird highlighting on the lake" (Gravel Slough)
 
-Status: IN REVIEW — fixed in 6704a3504 + d298683a7 + 50b018058 (lane L29), needs the 0.9.0 tile build; owner: OWNER-TODO "T1024 Gravel Slough highlight: look at the before/after shots"
+Status: IN REVIEW — fixed in 6704a3504 + d298683a7 + 50b018058 (lane L29, in the 0.9.0 tile build) + 3781d22a5 (stub outline, lane L10 0.9.1: needs the 0.9.1 tile build); owner: OWNER-TODO "T1024 Gravel Slough highlight: look at the before/after shots" (+ `T1024-shots/stub-oxbows-*.png`)
 
 Source: STAGING report `3444007425e9d3bd`, 2026-11-23 05:32Z, Android 0.8.5 (staging build), water · map, Gravel Slough
 (`gnis:8009`) part 0, zoom 14.3 at 49.202, -121.904. Verbatim: "Weird highlighting on the lake here".
@@ -55,5 +55,37 @@ ringed; the stub still draws as the creek. 239 polygons on the live atlas (2026-
 Okanagan River Oxbows 1281106 (67 m route in a 57,000 m² loop). The build check now requires: `lz` = the line's first
 zoom on a route that is no stub, or no `lz` with no line or a stub (5% slack each side of 0.3: the check measures the
 written WGS84 geometry, the export BC Albers). Tests: 4 more mutations caught.
+
+## Stub polygons: one outline, not two (lane L10, 0.9.1, 3781d22a5)
+The #81 review: a stub polygon has no `lz`, so it is ringed wherever it is drawn, and where its stub line is drawn the
+stub's own selection casing ran inside the ring — the double outline again. Measured on the live 0.9.0 layer files: 270
+stream polygons carry no `lz`, 21 with no line and 249 with a stub (one line each); 201 stubs are drawn BEFORE their
+polygon (McNaughton Creek: line z7, polygon z10), 24 at the same zoom, 24 after (the Oxbows 1281106: polygon z11, line
+z13). So the casing cannot just skip stubs: below the polygon's zoom the stub is all there is of the water.
+
+Fix: the export writes `pz` on the stub line, the first zoom its polygon is drawn at (`export_streams`, from the
+`poly_z` it already computed; absent on every other line). The selection casing and look C's glow (`paint.ts`
+`CASED_LINES`, the one rule, on both runtime layers) take no line from its `pz`: a filter at the tile's zoom, as the gauge
+dots' is on web and native, so no paint reads the zoom twice. The ring is unchanged. Browse selection, part halo and the
+T518 in-season outline are all that casing, so all three follow. The casing and ring are runtime layers
+(`runtime-style.ts`), not `layers.source.json`: `pnpm style:build` changes nothing. Build check
+(`stream_polygon_lines.py`): every line of a polygon with no `lz` carries `pz` = the polygon's first zoom as written;
+no other line carries `pz` (`stub_without_pz`, `pz_not_the_polygon_zoom`, `pz_off_a_stub`). Run over the live layer
+files given the values the export writes: 17,070 stream polygons, 249 stub lines with `pz`, no offenders. Today's files
+(no `pz`) are refused, so the 0.9.1 tile build must be a full water export again.
+
+Mixes (pixel-diffed, Oxbows z12/z14/z16, `stub-oxbows-matrix.png`): old app + new tiles = today (pz ignored); new app +
+old tiles = today (no line has pz). Only new + new changes, and only on the stub.
+
+Tests: `app/tools/stream-polygon-ring.test.ts` evaluates the casing's and the glow's filter per tile zoom (plain line,
+side channel, stub pz 10, stub pz 4), three themes; `pipeline/tests/test_tile_stream_polygon_lz.py` the export's `pz` and
+five new check cases. 10 mutations, all caught (4 app, 2 export, 4 check).
+
+Shots (phone 412 px, water Map tab, part 1 lit, z12/z14/z16): `T1024-shots/stub-oxbows-light.png`,
+`stub-oxbows-dark.png`. Before = today's app over the live 0.9.0 atlas; after = this branch over a scratch copy of that
+atlas with `pz` written into the stub lines' tiles (835 tiles, the exact values above). Web only, not the emulator.
+
+**The 0.9.1 tile build must include:** a full water export with this code (as 0.9.0's did for `lz`), and the app from
+this branch.
 
 Depends: none. Size: S. Owner: look at the shots.
