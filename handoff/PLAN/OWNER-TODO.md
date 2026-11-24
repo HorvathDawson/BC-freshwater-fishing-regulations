@@ -9,6 +9,10 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-23: T1042 search description (answer, verbatim)
+- T1042 description facts: "Season windows (Recommended)" — option b of `T1042-shots/live-samples.txt`: open windows from the year strip,
+  boats, steady marks; nothing from the build day. Built on PR #78.
+
 ## 2026-11-23 ~10:50: T1031 inline sources (answers, verbatim)
 - T1031 inline look: "Yes, as built (Recommended)" — the one Source line (`T1031-shots/inline-*`), kept as built (PR #69).
 - T1031 the book's name: "'B.C. Synopsis' everywhere (Recommended)" — a rule's in-sentence link reads "B.C. Synopsis p.N ↗",

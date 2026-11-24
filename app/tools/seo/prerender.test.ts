@@ -4,6 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { LayoutStyles, mergeLayouts, parse } from "./layouts";
+import { ICON_LINKS } from "../web-icons.mjs";
 import { afterPaint, appDocument, asLink, HANDOFF, linkHeader, mergeThemes, shortHash, ThemeVars } from "./prerender";
 import { BARE_APP } from "./build";
 
@@ -75,7 +76,8 @@ describe("the header's controls and the document", () => {
     const t = '<html lang="en"><head><title>canifishthis</title><link rel="preload" href="/m.css" as="style">\n<link rel="stylesheet" href="/m.css"></head>' +
       '<body><noscript>JS</noscript><div id="root"></div><script src="/app.js" defer></script></body></html>';
     const d = appDocument(t, { head: "<title>X</title>", critical: "#prerender{}", cssHref: "/assets/pane.1.css", preload: ["/f.woff2"], item: "gnis:1", region: "7a", pane: "<div>pane</div>" });
-    expect(d).toBe('<html lang="en-CA"><head>\n<link rel="stylesheet" href="/m.css" media="print" onload="this.media=\'all\'"><title>X</title>' +
+    // (T1042) the PNG icons' links follow <head>
+    expect(d).toBe('<html lang="en-CA"><head>' + ICON_LINKS + '\n<link rel="stylesheet" href="/m.css" media="print" onload="this.media=\'all\'"><title>X</title>' +
       '<meta name="cift:item" content="gnis:1"><meta name="cift:region" content="7a"><link rel="preload" href="/f.woff2" as="font" type="font/woff2" crossorigin><style>#prerender{}</style>' +
       '<link rel="stylesheet" href="/assets/pane.1.css"></head><body><div id="prerender"><div>pane</div></div><div id="root"></div>' +
       `${HANDOFF}${afterPaint("/app.js")}</body></html>`);

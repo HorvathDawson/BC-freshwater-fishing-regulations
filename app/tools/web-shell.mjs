@@ -37,6 +37,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { createHash } from "node:crypto";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { withIconLinks } from "./web-icons.mjs";
 import { FONT_DIR, FONTS_RECORD, servedPath } from "./emit-web-fonts.mjs";
 
 const here = (p) => fileURLToPath(new URL(p, import.meta.url));
@@ -224,7 +225,8 @@ export function shellExport(dir, f = cohoFacts()) {
   const frame0 = Object.fromEntries(THEMES.map((t) => [t, frame0Uri(t)]));
   const fonts = shellFonts(root);
   const index = join(root, "index.html");
-  writeFileSync(index, withHomeLinks(withHomeHead(paintFirst(withBootCoho(readFileSync(index, "utf8"), bootCoho(f, { frame0 }))))));
+  // (T1042) the home page names the PNG icons: Google reads a site's favicon from it
+  writeFileSync(index, withIconLinks(withHomeLinks(withHomeHead(paintFirst(withBootCoho(readFileSync(index, "utf8"), bootCoho(f, { frame0 })))))));
   return { frame0, fonts };
 }
 
