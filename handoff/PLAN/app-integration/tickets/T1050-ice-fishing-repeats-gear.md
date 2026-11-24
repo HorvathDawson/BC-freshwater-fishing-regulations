@@ -1,6 +1,6 @@
 # T1050 — Methods: "Ice fishing" repeats the Gear tab's line and hook counts
 
-Status: DONE — 2c072f33d (0.9.1; pipeline only, the app unchanged; reaches anglers with the 0.9.1 data release. Old apps read the new frames: a way's `while` was always optional)
+Status: DONE — 2c072f33d, 9e6e45694 (the mini release re-cut) (0.9.1; pipeline only, the app unchanged; reaches anglers with the 0.9.1 data release. Old apps read the new frames: a way's `while` was always optional)
 
 Source: in-app report `4eedeb08d1964b44` (staging feeds worker, the owner, 2026-11-24 18:50 UTC), reason "other", on
 Dick Lake `wbk:328989582`, part 0, "Today, Nov 24", Regulations view, web, app 0.9.0 (build 43, 127bf43), release
