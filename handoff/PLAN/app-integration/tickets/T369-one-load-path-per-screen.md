@@ -2,6 +2,10 @@
 
 Status: DONE — 75a907e3b (2026-11-04; batch 6c of RELEASE-PLAN-0.5.0, beside T368).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T369 | One load path per screen: same output whatever the way in (refresh, tab/view switch, search, map tap, step, list pick); a net comparing every way in | DONE | 75a907e3b | owner 2026-11-03 (batch 6c, in 0.5.0); left: unnamed reach across a data update needs native `section_measure` (owner) |
+
 ## The rule (owner 2026-11-03)
 "Make sure all pages have single path to load and that it produces same output regardless of the item that triggers
 the load whether a refresh or tab switch in regs pane or search etc. Should always be consistent regardless of

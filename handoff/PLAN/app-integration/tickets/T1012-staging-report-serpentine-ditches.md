@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS — registry fix 034f9a7b8, proved on a side atlas (lane L6, 2026-11-22); left (Claude): ship it with the 0.9.0 data release's atlas rebuild (promote needs `--accept-boundary-loss`: 2 automatic lake boundaries, below).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1012 | Staging report: Serpentine River (`gnis:24978`) part 2 shows ditches on its mainstem in salmon mode | IN PROGRESS — fix 034f9a7b8 (2300 + 1450 ditches leave 7 rivers, side-atlas binding diff attributed); left (Claude): ship with the 0.9.0 atlas rebuild | | staging report 2026-11-22 (`e552b9f0b31e2698`) |
+
 Source: `GET /reports` on the STAGING feeds worker, read 2026-11-22 18:15 (report `e552b9f0b31e2698`). Android 0.8.5
 (build 43, 558c527), staging, release `r-741815c6090d`, tiles `4ae7b62955bc9990.fc51e82f7c91`; water · map, salmon
 mode, Serpentine River (`gnis:24978`) part 2, zoom 11 at 49.112, -122.788. Reason "rule". Verbatim: "Has ditches on

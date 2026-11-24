@@ -5,6 +5,10 @@ Status: DONE — 4817a2e7 (code + tests + fixtures), 40d6a47c (docs + shots). He
 button); golden header parity re-keyed (`GOLDEN_MAP_ACTION_IDS`). Shots: T71-shots/ (light + dark, Vedder + Bella
 Coola). Not in scope, left as built (no owner ruling): the strip's Conditions opens the tapped reach, not `mid_sid`.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T71 | one Map entry: drop the regs header's Map button | DONE | 4817a2e7, 40d6a47c | — |
+
 Source: decisions.md (audit plan, call 3): "Keep only one Map entry (the view strip; drop the header's Map button)".
 Still built: `core/regs/header.ts` emits `{kind:"map"}` when `canMap`; `page.ts` defaults `canMap` true;
 `RegsHeader.tsx` draws it; RegsScreen/WaterScreen wire `onMap`. The decision text 485677bc lives only in worktree

@@ -2,6 +2,10 @@
 
 Status: DONE — e4f98d84e, c21037796, 4089f60cd, b58aa325a, fe11e0af7, be6484e1b, 554558a12; shipped in 0.8.4 (cut e769f710a, data r-fec3fab4c5aa; 0.9.0 audit 2026-11-22, every hash is an ancestor of origin/main and of e769f710a). (Earlier status: IN PROGRESS — e4f98d84e, c21037796, 4089f60cd, b58aa325a, fe11e0af7, be6484e1b, 554558a12; built and verified on live r-6258ffded676; left (Claude): ships with the next data release. (Earlier note: IN REVIEW — built: two entries (e4f98d84e, c21037796), entry B saveable per closed area (4089f60cd), the build step (b58aa325a, fe11e0af7, be6484e1b, 554558a12, 2026-11-15). The owner's closed areas are confirmed: 16 pieces in data/curated/dfo_salmon/closed_areas.json (Thompson 3, Shuswap 1, Babine 11 circles + the Gullwing line, 2026-11-15..17), their cuts landed. Worker half T757 live (staging `dfo.pieces: 1`); Babine circles drawn as circles: T812. VERIFIED on the live release r-6258ffded676 (2026-11-20, last section): 17 pieces, 5 bound inside their places, 12 Babine circles carried, all 17 ids in feed and release; the 17th id is the unconfirmed Tsezakwa Creek circle. owner: OWNER-TODO "Every check or look is taken as done" (11-20); left (Claude): main chat review + merge; ships with the next data release.))
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T573 | A DFO row that names closed areas becomes two entries (the Thompson, Babine Lake) | DONE | e4f98d84e, c21037796, 4089f60cd, b58aa325a, fe11e0af7, be6484e1b, 554558a12 | — |
+
 Supersedes T572 (2026-11-20 audit).
 
 Owner 2026-11-10, on the Thompson (T572): "we need a way to represent this … it is like it should become 2 entries?"

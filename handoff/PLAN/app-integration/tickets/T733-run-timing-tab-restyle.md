@@ -2,6 +2,10 @@
 
 Status: OPEN (after closed testing; small)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T733 | Switching to the Run timing tab holds the screen for about a quarter second (the tab's own restyle; every other switch is 0 ms after T716) | OPEN (after closed testing; small) | — | from T716's measurements 2026-11-14 (262 ms); measure first on the newest build; filed in the 11-14 tidy-up so the note is not lost |
+
 Source: T716's measurements, 2026-11-14 (`T716-stream-tap-slow-no-feedback.md`, "Run timing 262 ms: the tab's own
 restyle, no salmon work in it"). Carried as a loose note until the 2026-11-14 tidy-up; tickets are the sole source.
 

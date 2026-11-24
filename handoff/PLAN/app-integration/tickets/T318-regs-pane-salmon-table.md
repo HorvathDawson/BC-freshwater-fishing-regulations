@@ -3,6 +3,10 @@
 Status: DONE (b7b3c1434, 048caf48a) (no APK) (owner 2026-10-31, with phone screenshots of the Fraser on 0.3.0: T318-shots/owner-fraser-regs.png,
 owner-fraser-salmon.png).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T318 | Regs pane: time-of-day closure in the year bar; salmon species/quota table; ocean image only (both in ID pane); stray source box | DONE | b7b3c1434, 048caf48a | owner 2026-10-31 |
+
 ## Work
 1. **"At certain times" (e.g. no fishing 60 min after sunset → 60 min before sunrise):** not a separate boxed note under the
    bar. Integrate it with the year bar: a short clear line right under the bar ("Daylight only: closed from 1 h after sunset

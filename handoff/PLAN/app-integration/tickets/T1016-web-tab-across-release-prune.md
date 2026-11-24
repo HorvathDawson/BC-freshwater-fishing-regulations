@@ -2,6 +2,10 @@
 
 Status: PARTIAL — built d787d0dff, review fixes 36862bbbc (lane L6, 2026-11-24); left (Claude): the feeds worker deploy with the 0.9.1 batch (its `expected` class for the two names), the owner's pick of the words (lane report, pictures in `../T1016-shots/`), and a production-export check of the chunk case
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1016 | Web: a tab kept open across two releases (or a site deploy) meets 404s on pruned files / a gone chunk: say it, reload | PARTIAL — left (Claude): feeds worker deploy (0.9.1), owner's word pick, export check of the chunk case | d787d0dff 36862bbbc | all |
+
 Source: T1005 triage. Production keeps the live release and the previous one (`deploy/prod/upload.sh` prunes the rest
 24 h on). The 404 kinds of T1005 (`3d5ded1b72ff865f`, `2c766955748940d9`, `f6d0af3f051de23a`, `bb863fcb6535d696`, …)
 were all a crawler holding a cached r-fc137c4040fa; but a READER's tab opened before two releases and still open after

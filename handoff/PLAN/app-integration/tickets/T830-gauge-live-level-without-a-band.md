@@ -2,6 +2,10 @@
 
 Status: DONE 3eb8a4e28 (CI green 2026-11-17; staging feeds worker e6622d00 deployed, index carries `reports`; was: app chat; worker + data layer + app; one owner pick in part 2).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T830 | A gauge that reports a live level but has no level history shows no Level (Capilano at Canyon, 15 more) | DONE | 3eb8a4e28 | owner 2026-11-17 (gauges) |
+
 Source: owner 2026-11-17 ~00:50, in the app chat (verbatim): "also for gauges should look into why capilano river at
 canyon gauge doesnt have level but i can find level for it online like here
 https://metrovancouver.org/services/water/seymour-and-capilano-river-levels with 2023 - 2026 Flow & Level Continuous

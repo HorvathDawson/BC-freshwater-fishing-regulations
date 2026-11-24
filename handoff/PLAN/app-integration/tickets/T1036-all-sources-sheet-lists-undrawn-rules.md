@@ -2,6 +2,10 @@
 
 Status: DONE (owner question default built: list only what the drawn tabs cite) — d29a19c5a, ea1155dee (#96 review fixes) (lane L5, 0.9.1 batch, 2026-11-24).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1036 | The every-source sheet ("All sources ›") lists rules the screen does not draw, and misses the drawn gear on salmon-only days | DONE | d29a19c5a, ea1155dee | lane L5 (0.9.1): built from the drawn tabs (`withDrawnSources`), probe extended to the sheet; owner question (species-sheet rules in the page sheet) default built: not listed, T1036-shots/ |
+
 Source: the independent review of PR #63 (T991 round 3, 2026-11-23), probing the live release r-741815c6090d over 8 waters ×
 parts × 9 days. The Source row was fixed in #63 to cite exactly what the drawn tabs cite (`drawnRegsOf`,
 `WaterScreen.sources.test.tsx`). The sheet behind its "All sources ›" (`src:all`, T990,

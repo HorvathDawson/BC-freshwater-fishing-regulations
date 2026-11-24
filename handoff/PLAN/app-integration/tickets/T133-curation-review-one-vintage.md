@@ -4,6 +4,10 @@ Status: DONE — 94e06e52, review 5052824f — built as PLAN §4 phase 2 + the o
 green. Takes effect on the owner's next `pipeline build` (the artifacts on disk predate the digests — until then every
 entry reads "awaiting build", see owner Q1).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T133 | curation review phase 2: one vintage on screen | DONE | 94e06e52, 5052824f | digests live from r-b518a2b507fa (reach rerun, no binding changed) |
+
 Source: handoff/PLAN/curation-review/PLAN.md §4 "Phase 2: one vintage on screen" (and §5); split out of T97.
 
 ## Work

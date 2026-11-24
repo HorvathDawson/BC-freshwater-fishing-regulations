@@ -2,6 +2,10 @@
 
 Status: DONE — 6b02feb06, 188392691, 4bc03ac14, b7749b726, f21981ea2. Salmon findings D1–D5 settled and built on the owner's 2026-11-12 answers, the follow-ups built, and the D3 tiers render test added.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T671 | The T462 audit's salmon findings D1–D5 | DONE | 6b02feb06, 188392691, 4bc03ac14, b7749b726, f21981ea2 | — |
+
 Closed by the 2026-11-20 audit: the one left item, the D3 render test, landed in f21981ea2 (SalmonCard.test.tsx +19 lines); D1/D4/D5 4bc03ac14, follow-ups b7749b726; D2 fix accepted by the owner ('Accept all as built: ... T671 D2 fix').
 
 Source: `handoff/PLAN/app-integration/T462-audit.md` (85ba2e821), findings D1–D5. Owner instruction 2026-11-11 (through

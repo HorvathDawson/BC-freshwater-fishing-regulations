@@ -3,6 +3,10 @@
 Status: DONE — e3688e2b (pipeline) + c7ccec1f (app) + d7b9ed24 (adversarial review), lane-T126; live after a feed republish (below). Found
 2026-10-22 while building T52 (correctness, band 2).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T126 | forecast reading bugs: CLEVER times 8 h off, 5-day summary on a 10-day run, dots ignore horizon | DONE | e3688e2b, c7ccec1f, d7b9ed24 | live after a feed republish (owner R2 upload) |
+
 1. **CLEVER timestamps are Pacific Standard Time, read as UTC.** Best fit against 305 gauges is 8 h off UTC. The
    +1/+3/+5/+10 chips (`publish.py` `forecast_at`, nearest step within half a step) therefore read the forecast 8 h
    off. Fix the parse at the source (pipeline/gauges/feed/forecast.py `series()`), pin with a recorded CSV fixture and

@@ -2,6 +2,10 @@
 
 Status: PARTIAL — 54778147e: parts 1 and 2 built (lane L2, 2026-11-22). left (Claude): part 3 (rebuild index-requests-top-100.md from Search Console once it has weeks of data; move the Columbia, Kootenay, Similkameen, Kettle and Peace in) and the former name under the name in the app's pane (needs `alias` in the core region slices: a pipeline change).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1011 | Website: 156 waters partly outside B.C. get pages (`outside_bc` is a count); renamed waters' former names in title / description / JSON-LD / lists; static home links; top-100 indexing list | PARTIAL | 54778147e | left (Claude): part 3 (top-100 from Search Console) and the former name in the app pane (needs `alias` in core slices) |
+
 Source: owner 2026-11-22 asked for the top 100 pages to submit for indexing, ranked by how much BC searches for fishing
 each water (`handoff/PLAN/seo/index-requests-top-100.md`, written that day). The research found these two gaps.
 

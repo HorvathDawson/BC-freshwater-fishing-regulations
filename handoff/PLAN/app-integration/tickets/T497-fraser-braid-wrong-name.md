@@ -3,6 +3,10 @@
 Status: DONE — 1ab627c95; proved by r-6dce77a24e6a (binding diff accepted 2026-11-08; owner accepted the moved list `shots/T497-moved.md`), carried on in r-d14bdb180f55 (52298df0a).
 Earlier: IN REVIEW — next release (1ab627c95) — owner 2026-11-08 (phone, r-25a89ce9f8e6); owner accepted the moved list 2026-11-08 (on staging in r-6dce77a24e6a; production is the owner's run). Part of T495 gate 1 (no wrong regs).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T497 | Lower Fraser braids carry the Fraser's name (Nicomen / Maria Slough); a 2-stretch "Fraser River" water | DONE | 1ab627c95 | — |
+
 A section shown as "Fraser River" is a braid of Nicomen Slough; same for Maria Slough. The lowest stretch reads
 "Fraser River — stretch 1 of 2", as if a second 2-stretch Fraser water exists. Framing is right.
 

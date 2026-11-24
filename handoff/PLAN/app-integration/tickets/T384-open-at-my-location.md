@@ -2,6 +2,10 @@
 
 Status: DONE (owner 2026-11-04: "also when we open the app default should be the persons current location", in 0.5.0) — a4873c54e.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T384 | The app opens on the reader's current location (a start link still wins; asks once; denied → today's default) | DONE | a4873c54e | owner 2026-11-04 (in 0.5.0) |
+
 ## Done (a4873c54e)
 - One path: `@app/ui` `useMyLocation` gained `open()` (the press's off → on, centred at `OPEN_ZOOM` 12 — a town; a press
   stays street scale 15); the map's `me.zoom` carries it (Map.native, web `useMe`). `useOpenAtMe` + `opensAtMe` decide:

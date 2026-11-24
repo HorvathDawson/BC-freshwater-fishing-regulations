@@ -2,6 +2,10 @@
 
 Status: DONE — 48710b7cb, ed962781d, b569fb5e2; replaced by T517, whose phone check covers it (2026-11-09 audit)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T509 | Fraser lowest part read "2 stretches · stretch 1 of 2": a stretch is named by its own ends | DONE — 48710b7cb, ed962781d, b569fb5e2; replaced by T517, whose phone check covers it (2026-11-09 audit) | 48710b7cb, ed962781d, b569fb5e2 | owner 2026-11-08 (phone); T495 gate 1 |
+
 Was: IN REVIEW — 48710b7cb, ed962781d, b569fb5e2 + T517, in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (Fraser parts named by their ends).
 Earlier: IN REVIEW — 48710b7cb, ed962781d (owner "Ends only"); the 114 bare names are done by T517 (one part per run: 0 bare names on its side release r-d62af06225a2), which replaces `stretchEnds`; owner sees it with T517.
 

@@ -6,6 +6,10 @@ Status: DONE — 358b5076a (lane wf_754f5fcd-d71-2; found 2026-10-22 by the Perr
 Perry Creek's own row becomes a 20-a-day group (9 new strings); card gate 0 problems on 7,180 cards. Left: ships with the
 next deliver (answers rebuild).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T127 | displaced rule still shows "counts toward" and bounds the card gate | DONE | 2a0458f2, 358b5076, 77566458 | live after the next deliver |
+
 - On Perry Creek (gnis:14741) the St. Mary River's "trout/char 1 on all tributaries" row (r2) still lists brook trout
   as "counts toward this one (1)", though the reader DISPLACED r2 for brook trout (reason `own_row`: Perry Creek's own
   "brook trout 20" governs). Source: a displaced ("replaced") role still produces a cross-reference item

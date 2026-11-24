@@ -2,6 +2,10 @@
 
 Status: DONE — 3b3e6a1c2 (closed on the owner's word 2026-11-20; see the last section)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T563 | A percentile alert follows each day's percentile, not the line of the day it was saved | DONE | 3b3e6a1c2 | — |
+
 Source: Owner 2026-11-09 (owner checks page, T527): "it should be the percentile of each day so you set percentile on nov 4 then on dec 31 you want it to alert if the percentile crosses that bound for the percentile on that day not the day it was set".
 
 ## Work

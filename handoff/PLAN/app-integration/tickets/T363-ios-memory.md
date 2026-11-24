@@ -2,6 +2,10 @@
 
 Status: DROPPED — merged into T88 (2026-11-05 audit; the work continues there) — was: PARTIAL 2026-11-05 — 089c8a00f (memory scenario), bf8ca3820; simulator measured (ios-t313g); the real iPhone is T364's run.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T363 | iOS memory: T360's per-screen method on the Simulator, then a real iPhone (sim 420 MB, 665 MB peak panning) | DROPPED — merged into T88 (2026-11-05) | 089c8a00f, bf8ca3820 | sim footprint 147–290 MB, rule book no leak, memory warning frees nothing; real iPhone left (T364) |
+
 Run T360's per-screen measurement on the iOS Simulator (boot, pans, water sheet, Conditions, Salmon, rule-book
 PDF), then on a real iPhone once T88 gives a signed build. Simulator showed RSS 420 MB, 665 MB peak panning (T313).
 Apply T360's fixes and check they help on iOS too. Size: S–M.

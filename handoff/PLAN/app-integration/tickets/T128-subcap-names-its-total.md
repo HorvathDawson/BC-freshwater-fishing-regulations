@@ -8,6 +8,10 @@ kind `says`/`sentence` now led by "Of your N … a day …"; card gate 0 problem
 hatchery sub-cap (pinned on Region 2 and Region 1 streams instead); no live group has a total limited to one kind of
 water (z8 r5 is a one-kind row without a group, T80) — that branch is pinned on the fixture.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T128 | sub-cap line names its total ("of your 5 trout and char a day in streams, up to 2 may be…") | DONE | 59aba774, c7d9f57f, 77566458, c410ca42, e839d0cd, 6d768bd6, bb46f5f1, 001e8ffd | — |
+
 Golden re-cut (001e8ffd): golden.json is NOT edited. `conformance/src/regs/subcapTotal.ts` `subcapSentence` is the one
 rewrite of page v36's old kind sentences ("Up to K may be X", "Only K of the T may be X", "Up to K X (part of the T from
 streams)") into the owner's: the golden's own K, fish and wild-steelhead clause, led by the store's "Of your N … a day …"

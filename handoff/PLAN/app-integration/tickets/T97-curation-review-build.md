@@ -4,6 +4,10 @@ Status: DONE — phase 1 303f6d9d; phases 2–5 were T133–T136, all DONE (ledg
 Owner approved PLAN.md 2026-10-23 ("The review app changes seem good"), all §6 defaults (Q5, Q34–Q41).
 This ticket is now PHASE 1 (marks that last) plus the umbrella; phases 2–5 are T133–T136; a later salmon pass is T132.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T97 | curation review phase 1 (marks that last) + umbrella | DONE | 303f6d9d, 15c04705, 5717c9fb | phase 1 done; phases 2–5 → T133–T136 |
+
 Source: PLAN.md §4 phases 1–5, §5 (how review fits the pipeline), §6 Q2–Q9 (a3f66b7c, T66).
 
 ## Work (phase 1 here; 2 → T133, 3 → T134, 4 → T135, 5 → T136)

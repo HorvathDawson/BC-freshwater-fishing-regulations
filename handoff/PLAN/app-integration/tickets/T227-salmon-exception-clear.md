@@ -2,6 +2,10 @@
 
 Status: DONE — 4f2e22a3, 6af1ffa5 (DFO proposals), f35fdc75 (follow-ups), 3dd41b02 (round 3)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T227 | closed-to-game-fish waters open for salmon: the salmon year bar at the top, region closure, species notes, plain closed row | DONE | 4f2e22a3, 6af1ffa5, f35fdc75, 3dd41b02 | owner 2026-10-28 (Cowichan); shots T227-shots/; `salmonTimelineKey` for the merge lane |
+
 Source: owner 2026-10-28 ("Cowichan has no fishing generally but salmon are open on certain sections, but when you view
 the regs this isn't very clear"), with add-ons the same day: the salmon bar at the top; region notes beside their
 species; a closed-all-year salmon answer is a plain row; one timeline once every DFO place is mapped; the whole glance

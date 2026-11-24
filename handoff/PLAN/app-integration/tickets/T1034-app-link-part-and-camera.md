@@ -2,6 +2,10 @@
 
 Status: PARTIAL — 77d9de76d, 2ddaa795f (the link's `part` opens that part, checked against the water's part count at the open: a part that is not there is reported and the water opens without it; the old-camera symptom was NOT reproduced here); left (Claude): device check of the camera with another water open; the other read-but-dropped keys are T1038.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1034 | A `regs=` link opened over another water keeps the old camera (the link's `part` is read and dropped) | PARTIAL — left (Claude): device check of the camera; other keys T1038 | 77d9de76d, 2ddaa795f | lane L18 emulator 2026-11-23 |
+
 Source: lane L18, Android emulator, 2026-11-23: a `regs=` link opened while another water was on screen kept the old
 camera instead of framing the linked water/part.
 

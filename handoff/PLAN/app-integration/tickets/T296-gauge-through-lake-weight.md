@@ -2,6 +2,10 @@
 
 Status: DONE — code done 2026-10-30 (owner accepted the rule; map + saved spots added); shipped in 0.4.0 (635862b83, paint/5 live).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T296 | Gauge reached through a lake down-weighted when a closer no-lake gauge exists; caution line | DONE | 635862b83 | 10-30: rule accepted; ONE weighting (core `answering`/`lakeDamped`, Python twin) for sheet, map (paint/5 `panel_member.lake`) and saved spots; caution line; shipped in 0.4.0 (paint/5 live) |
+
 Source: owner: "the condition gauge through a lake we need to be careful of. if no gauge is downstream I agree that is fine
 but if there are other gauges closer they should take almost full amount of the prediction because through a lake acts as
 a natural dampening system for the measurement. so it becomes less important."

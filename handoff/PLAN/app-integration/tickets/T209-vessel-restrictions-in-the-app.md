@@ -2,6 +2,10 @@
 
 Status: DONE (98485018d, c63427bbd)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T209 | vessel restrictions in the app: boats line (electric only, no powered boats, power cap, speed, towing, no vessels) on the water page + map sheet | DONE | 98485018d, c63427bbd, 81598325e, 2841fb605 | boats line on the page (6 kinds, golden test); 162 electric_only rules store max_power_kw 7.5 (owner 10-28, pipeline/tools/electric_kw.py); owner 2026-11-12 ANSWERED: undrawn-part … (detail: ticket file) |
+
 Source: owner 2026-10-26. The catalogue holds `vessel_rule` rules (speed limits, no powered boats, electric motors
 only …). The app should show them on the water page and the map sheet.
 

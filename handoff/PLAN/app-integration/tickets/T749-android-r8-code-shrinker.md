@@ -2,6 +2,10 @@
 
 Status: DONE — 35dce9bf3, 362c44e6b (closed on the owner's word 2026-11-20; see the last section)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T749 | Android: turn the code shrinker (R8) back on with keep rules, behind a device proof (dex is 30.4 MB of the 38.8 MB bundle). Next free ticket: read the ledger | DONE | 35dce9bf3, 362c44e6b | — |
+
 Source: T741 survey 2026-11-14 (owner, verbatim: "can you make sure to keep working on optimizations? make app faster
 and lighter for both ios and android"). History: T250, where the first APK built with R8 died at start and R8 was
 turned off.

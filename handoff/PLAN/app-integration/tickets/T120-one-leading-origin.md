@@ -2,6 +2,10 @@
 
 Status: DONE — f757d3e00; review e49f688e8 (pin hardened: `.get("status")`, qualified `_keepish`/`KEEPS`, literal keep tests). `common.lead_origin` is the one function (main_res, year.leading_answer, _week_answer call it); AST pin + mutation tests in `pipeline/tests/test_answers_lead_origin.py` (smoke). Answers diff: 0 strings changed — the rebuilt answers are byte-identical to live (sha 0c52b8ce…; the 3 live `week` rows, Lower West Arm kokanee, have agreeing origins), so the fix is latent today; card gate 0 problems; no rebuild needed. Left: the app keeps its own TS port `mainRes` (app/packages/core/src/regs/card.ts:169, used by grouphead.ts and caveats.ts) — a second copy of this decision on the app side → owner question Q-T120 below (default: fold into T125).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T120 | one leading origin: weekday rows take the most permissive | DONE | f757d3e0, 74a712ce, e49f688e, 97b93246 | Q66 (app mainRes) |
+
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding answers 3
 (CONFIRMED code divergence; live impact narrow).
 

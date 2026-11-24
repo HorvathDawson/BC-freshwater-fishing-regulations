@@ -2,6 +2,10 @@
 
 Status: PARTIAL — 0a44b1c75, 4ed75f4a1, de8268ac1, 49081552b, 0dfb92695 (items 1-7, for 0.9.0), 3d06be883 (review lows, 0.9.1); owner: OWNER-TODO "move the repo to a free organisation" (after 0.9.0), then Claude: the slug flip and the merge-queue rule
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1041 | A red CI run or a review finding stops costing an hour or two: related tests on push, `scripts/before_pr.sh`, a report-only mutation job, merge-queue-ready workflows; the org move after 0.9.0 | PARTIAL — owner: OWNER-TODO "move the repo to a free organisation" (after 0.9.0); then the slug flip + merge-queue rule | 0a44b1c75, 4ed75f4a1, de8268ac1, 49081552b, 0dfb92695, 3d06be883 | owner 2026-11-23 |
+
 Source: owner 2026-11-23 (the 0.9.0 batch chat): a red CI run or a bug found in review cost an hour or two each.
 
 ## Why we lost time (checked)
@@ -205,3 +209,79 @@ What names the owner or the repo, or depends on the personal account:
 ## Not done / not verified
 - A mutating run of the TypeScript part on GitHub's runners (Stryker's sandbox-free `inPlace` run there).
 - The keepalive setting on the owner's clone (his).
+
+## One file per ledger row and per owner item (0.9.1, roadmap row 2; branch `chore/T1041-one-file-per-row`)
+
+Owner 2026-11-24: "One file per ledger row and per OWNER-TODO item, with README/OWNER-TODO built from them." Why: on
+2026-11-23/24 a dozen lanes each edited the same three files (the ledger table in `tickets/README.md`, `tickets/DONE.md`,
+the 3,500-line `OWNER-TODO.md`); nearly every PR hit a merge conflict there and had to merge main and re-run its checks.
+
+### Design (decided before the migration)
+1. **A ledger row lives in its ticket file**, as a one-row table right under the Status paragraph: the old table's
+   header line, its `|---|` line, and the row, byte for byte as it stood in README.md / DONE.md. No second file per
+   ticket: the row and the Status line are closed together (T437), so one file keeps that in one diff; the table form
+   reads as the ledger always did and needs no new parser (the same cell split). Every one of the 983 rows had a ticket
+   file (the guard already required it): no file had to be made.
+2. **An owner item is one file** in `handoff/PLAN/owner-todo/`: line 1 `order: <number>` (higher = nearer the top; a
+   tie goes by file name, so two PRs that both add a top item still never conflict), a blank line, then the item. An
+   item is one `## ` section of the old page, word for word (its pictures and references are in its text);
+   `_head.md` holds the page's head. The done state stays where it is kept today, on the Owner To-Do page (collection
+   `todos`); the file keeps the history text, as the page did. Bullet-level items were measured and not used: of the 74
+   sections, 50 are bullets only (with their continuation lines), 1 is bullets with blank lines between, 23 hold prose,
+   numbered lists, tables or `###` sub-sections (one of them 1,411 lines) that do not split into items without
+   rewording. A section is what one lane
+   or one answer round writes, so per-section files remove the conflict seen (every lane adding a section at the top).
+3. **The views are built, never committed** (option a): `node app/tools/ledger.mjs` writes
+   `handoff/PLAN/views/LEDGER.md` (rows not DONE / DROPPED), `views/DONE.md` (DONE / DROPPED) and `views/OWNER-TODO.md`,
+   git-ignored; `.githooks/post-checkout` and `post-merge` rebuild them. A committed view conflicts on every merge, and
+   a merge driver needs per-clone config that GitHub's merge button does not have. The view a row lands in follows its
+   status keyword: T540's "DONE.md holds only DONE / DROPPED" holds by construction, and a row never moves by hand.
+   `tickets/README.md` keeps how the system works and the owner questions; its `## Ledger` section is a pointer.
+   `OWNER-TODO.md` is a pointer page (how to read and add items).
+4. **Every reader works from the new source, no guard loosened.** `check-tickets.mjs` reads each file's row (Status
+   keyword agreement, DONE hashes, IN REVIEW / PARTIAL steps, the 240-character cap, the commit-subject rule) and the
+   owner items (a step's `owner: OWNER-TODO "<text>"` must be in one; the dead-path guard covers the items and the
+   pointer page), plus new refusals: a row in its file twice or another ticket's row, a row typed into README.md, a
+   `tickets/DONE.md`, a `## ` section in OWNER-TODO.md, a malformed item file. `ledgerIds` (the commit-scope check,
+   commitlint) reads the files. `pipeline reports` already read the ticket files (the row is in them now). docs-ci,
+   `scripts/ci_paths.py` (docs area), `before_push.py` (docs tests) and `test_workflow_pins.py` name `ledger.mjs` and
+   its test. Each check's test was re-pointed and mutation-checked (below).
+5. **The migration is a tool, re-runnable**: `--import` splits the old files of a work tree and refuses to write unless
+   the round trip holds; `--resolve` carries an old-style side's edits during a merge; `--merge <ref>` is the one
+   command for a new-style branch taking a newer main.
+
+### The round trip (`roundTrip`, checked without the import's own parser)
+- Rows: the raw row lines of README.md + DONE.md against the rows of the two built views, as sorted lists (normalised:
+  the order, by id, and which table a row sits in: 82 closed rows that sat in README.md are in the DONE view). Every
+  ticket file minus its row block is its old text byte for byte.
+- Owner to-do: the non-blank lines of the old page against those of the built page, in order (normalised: blank lines,
+  one between items, none at an item's end; a whitespace-only line counts as blank).
+- Counts on main be4df3d6a (the import commit): 244 rows in README.md + 739 in DONE.md = 983 rows in, 983 ticket files
+  with their row out (162 in the LEDGER view, 821 in DONE); 74 owner sections in, 74 item files out (+ `_head.md`);
+  3,340 owner non-blank lines in and out; nothing dropped, nothing doubled. `ledger.test.ts` re-runs this on the files
+  as they stood at be4df3d6a (from git history), so it keeps proving it after the old files are gone.
+
+### Recipes
+- **A branch that still edits README.md / DONE.md / OWNER-TODO.md the old way** (`release/0.9.0`, any open PR):
+  `git merge origin/main`, then `node app/tools/ledger.mjs --resolve` (then `node app/tools/check-tickets.mjs` and
+  `git commit`). The carry is 3-way against the merge base: the branch's changed rows, ticket text, added / edited /
+  removed sections and its README text (outside the ledger) land in the files; a clash (both sides changed one row or
+  one item differently) is left with markers AND unmerged in git's index, so `git commit` refuses it until settled.
+- **This branch, right before it merges** (main moved, and `release/0.9.0` has merged back): one command,
+  `node app/tools/ledger.mjs --merge origin/main` (merge, carry, the guard, the merge commit; it stops at the first
+  thing left to settle by hand).
+
+### Mutation (each killed by the tests named)
+- `ledger.test.ts`, 14 mutants of `ledger.mjs`, all killed: closed-row placement, the strip's blank line, the carry's
+  row precedence and text side, the round trip's dropped-row and owner-line reports, duplicate headings, a new top
+  item's order, id order, the index marking of a clash, README text, DONE.md removal, a removed item, two row tables.
+- `check-tickets.test.ts`, 10 mutants of `check-tickets.mjs`, all killed: the README / DONE.md / OWNER-TODO.md
+  refusals, owner-file problems, a file's row problems, the keyword agreement, the owner-text step, the pointer page's
+  dead paths, the cap, the commit-subject rule.
+
+### Not done
+- Merging: not before `release/0.9.0` has merged back into main (that chat cherry-picks ledger fixes between the two;
+  restructuring main under it mid-release would hurt it). Then the `--merge origin/main` command above, on this branch.
+- `handoff/PLAN/owner-todo/_head.md` keeps the old page's head word for word, which still says "this file keeps the
+  long text" and "README.md is the ledger": its wording is the owner's page, left for the planning chat.
+- The RESTART-091 page's row for this item and the memory notes that name OWNER-TODO.md are the orchestrator's.

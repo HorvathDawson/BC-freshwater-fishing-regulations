@@ -3,6 +3,10 @@
 Status: DONE 2026-10-29, ef431b717 (owner 2026-10-29: "add a way to update a spot with additional visits and you can rank the visit then we can
 use that to instead predict how good the day will be").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T294 | Spot visits: add visits, rate each, predict how good coming days look from your rated visits (similarity-weighted) | DONE | ef431b717 | owner 2026-10-29; rating 1–5 stars (owner approved) |
+
 ## Work
 1. **Visits:** a spot keeps a list of visits (date/time, conditions captured as today for the first visit: flow, weather,
    lead-up rain; notes; photos). "Add a visit" on the spot page records a new one now (or for a past date, filled in from the

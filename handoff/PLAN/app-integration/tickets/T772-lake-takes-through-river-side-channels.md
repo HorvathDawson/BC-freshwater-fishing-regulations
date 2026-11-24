@@ -2,6 +2,10 @@
 
 Status: DONE — fa098f1f4, d5547fe69. A lake's tributary walk leaves its through-river's side channels out (Kitsumkalum Lake); owner OK'd the changes 2026-11-17; marks re-saved cb008158f.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T772 | A lake "including tributaries" takes its through-river's own side channels (Kitsumkalum Lake: 16 pieces, 14.6 km of the Kitsumkalum River above the lake) | DONE | fa098f1f4, d5547fe69, cb008158f | — |
+
 Closed by the 2026-11-20 audit: built on lane/t804-t807 (fa098f1f4, d5547fe69), and the lane is an ancestor of redesign/stream-sections. The owner OK'd the side-stream changes 2026-11-17 ~15:04 (e59d7146f) and said 'land it' at ~17:01; the 20 marks were re-saved (cb008158f). Shipped with the 0.8.0 data release and later releases.
 
 Source: second-look fix lane B, 2026-11-15 night (`second-look-fixes-2026-11-15.md`, Regions 2-8 finding 1).

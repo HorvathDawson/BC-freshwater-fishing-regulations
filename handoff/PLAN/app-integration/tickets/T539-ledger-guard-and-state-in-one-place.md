@@ -2,6 +2,10 @@
 
 Status: DONE — 7323ce649, 87c1530a8 (NO_STEP_YET drained to zero and the allowance removed; the restart page's owner section is a pointer to OWNER-TODO and the README's owner questions) (Earlier status: PARTIAL — 7323ce649; left (Claude): drain NO_STEP_YET (62 older IN REVIEW / PARTIAL rows) and move the restart page's owner-waiting sections to OWNER-TODO (see "Built" below).)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T539 | Ledger guard checks IN REVIEW can close; restart page holds no state; docs guard (dead paths, rule ids); close T529 | DONE | 7323ce649, 87c1530a8 | — |
+
 Source: workflow review 2026-11-09 (verified against the files). Rank 7.
 
 ## Today

@@ -3,6 +3,10 @@
 Status: DONE (92f0583cb) 2026-10-29 (removed: Names/Proposals/Low-cuts tabs + TopNav entries + keys; NamesReview.tsx, ProposalsView.tsx; GET /api/names/{queue,progress,candidates}, GET /api/proposals + reuse.proposals_view; their tests. Kept: variants.py (marks_for backs POST /api/marks scope name), per-entry low-cut panel, all data + pipeline). Was: OPEN (unblocked by owner 2026-10-29 — do it now; owner 2026-10-29: "after this we can remove the name tab from review curation tool"; waits on the T224
 close-out in the current rebuild — coverage names accepted, obvious gauge names accepted, held gauge names answered).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T290 | Remove the Names, Proposals and Low-confidence cuts tabs from the curation review tool | DONE | 92f0583cb | owner 2026-10-29 |
+
 ## Work
 Also the **Low-confidence cuts** tab (owner 2026-10-29). Any open item those tabs held is settled in chat.
 

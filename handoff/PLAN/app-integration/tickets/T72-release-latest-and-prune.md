@@ -2,6 +2,10 @@
 
 Status: DONE — 0eb70144. See Outcome.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T72 | release LATEST pointer + prune old releases | DONE | 0eb70144 | Q7 answered: 22 old releases pruned |
+
 Source: `pipeline/tools/publish.py` and `serve-tiles.mjs` pick the newest `data/release/r-*` by mtime; there is no
 `data/release/LATEST`; 10 `r-*` folders on disk; implement_progress: "Old releases kept until N10".
 

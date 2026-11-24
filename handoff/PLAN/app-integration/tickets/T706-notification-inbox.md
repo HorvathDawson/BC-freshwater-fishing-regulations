@@ -2,6 +2,10 @@
 
 Status: DONE — 10ad08512, 8205a5c8a (left (Claude): nothing; the owner looks at it in the post-release checks).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T706 | Notification history: the bell opens an inbox of in-season notices | DONE | 10ad08512, 8205a5c8a | owner 2026-11-13; New/Earlier, Mark all as read, unread-only badge, kept to end + 30 days / 200 max; folds in the T230 auto-sheet; commit subjects say T700 (number clash); owner … (detail: ticket file) |
+
 Numbering: the two commits' subjects say "T700"; that number was taken meanwhile by the regs-header ticket
 (T700-regs-header-names-its-own-part.md), so this ticket is T706. The commits are this ticket's.
 

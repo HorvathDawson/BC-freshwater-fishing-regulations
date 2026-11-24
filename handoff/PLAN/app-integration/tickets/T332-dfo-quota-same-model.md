@@ -3,6 +3,10 @@
 Status: DONE (merged by T349 2026-11-02, merge 0c276aa10; staging guard SALMON_NEEDS). Ships with the next APK (salmon/3 needs app 0.5.0). Was: IN REVIEW — branch `dfo/t332-shared-quota` (a618808c2, 29ddde218, 616a3ec93). (owner 2026-10-30: "please tidy them. yes and double check them all. and how they lead to the quota
 structure data (which should have same format as trout ones for consistency like same size datatype, quotas etc.)").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T332 | DFO salmon quotas in the same quota/lengths model as game-fish rules; wording list tidied, checked, accepted | DONE (merged by T349 2026-11-02; staging guard SALMON_NEEDS) | a618808c2, 29ddde218, 616a3ec93, 0c276aa10 | merge; release with minAppVersion, then feeds worker deploy + sync-inputs; owner: 1 doubtful wording entry (Fort Babine) |
+
 ## Why
 T320 gave DFO salmon its own verdict shape `q` = {d, h, o, mx, w, mo, a, u}. The game-fish rules already have a quota
 tree (aggregate + children), `lengths` (ordered size ranges, each with its own take — memory lengths-replaces-size-

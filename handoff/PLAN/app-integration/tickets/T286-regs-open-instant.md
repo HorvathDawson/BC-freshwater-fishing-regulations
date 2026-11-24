@@ -3,6 +3,10 @@
 Status: DONE 2026-10-29 — a3cc1f269 (owner 2026-10-29: "should make the regulation opening faster when a click happens on mobile too. it should
 never be slow enough to need a loading icon").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T286 | Tap → regulations instant on phones (≤150 ms to content, never a spinner): measure, batch reads, cache, prefetch on settle | DONE | a3cc1f269 | regs-open bench: first tap small 992→151 ms (spinner gone), Fraser 309→118–123, lake 163→44–95 to commit; reopen drawn in first render; SQL calls/page 100–207 → 26–34 (pinned) |
+
 ## Work
 1. Measure tap → pane drawn with content on the testbed emulator (and a low-end profile) for: a small stream, a big
    multi-part river (Fraser), a lake; split the time (hit test, SQLite reads through the T264 serial queue, decompress,

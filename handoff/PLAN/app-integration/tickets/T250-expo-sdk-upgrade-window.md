@@ -2,6 +2,10 @@
 
 Status: DONE — owner's phone walk = the 2026-11-08 phone check on 0.6.9 (built on SDK 58), all 11 items passed. Was: IN REVIEW — SDK 58 done on the dev branch (320785434, 8b4491d6b, 1c47932e9); check green; Android, iOS simulator and web walks pass (2026-11-06); the owner's phone walk left.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T250 | Expo SDK / dependency upgrade window (MapLibre RN patch re-apply) | DONE | 320785434 8b4491d6b 1c47932e9 | owner 2026-10-28 (P16); before T244 |
+
 Source: owner 2026-10-28 — approved proposal P16 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
 ## Work

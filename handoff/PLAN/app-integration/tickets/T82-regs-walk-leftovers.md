@@ -6,6 +6,10 @@ prototype reader's (reader/2026-10-23-app-rerun.md; first run reader/2026-10-23-
 not applicable (tests.md §4 fixes the gate at 390x844; no prototype 1280 reader record). Finding → T138 (DONE, d8997fbd).
 No deliver needed (app code and tools only; no data changes). T41 can close as DONE.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T82 | T41 leftovers: reader gate run, caveat box O3, sheet height O5 | DONE | f7075463, d8997fbd, 663242b1, 7b9cf940 | — |
+
 Source: T41-walk/REPORT.md — O3: x15p2 "At certain times" has no grey box; O5: sheets open taller on a phone than in
 the prototype. `handoff/PLAN/app-integration/reader/` does not exist: the comprehension reader gate (tests.md §4) has
 never run. Owner 2026-10-22 delegated the look calls ("the prototype is a reference, not the end-all … Claude decides").

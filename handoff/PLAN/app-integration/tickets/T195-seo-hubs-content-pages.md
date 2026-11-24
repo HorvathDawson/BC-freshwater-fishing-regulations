@@ -2,6 +2,10 @@
 
 Status: DONE — 21a2d17ff, b1a5c7fa8 (+ 1c4dd582, 435ce2d8); hubs, weekend, season-changes, /changes (snapshot kept between releases). Raster share images + species season calendar moved to T406.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T195 | SEO: region hubs, weekend/changes pages, share images | DONE 11-05 | 21a2d17ff, b1a5c7fa8, 1c4dd582, 435ce2d8 | raster share images + species calendar → T406 |
+
 Source: T188 plan, handoff/PLAN/seo/PLAN.md sections 1 and 5.
 ## Work
 Region hub pages linking every water; "open this weekend", season-start calendar, "rule changes this year" from the

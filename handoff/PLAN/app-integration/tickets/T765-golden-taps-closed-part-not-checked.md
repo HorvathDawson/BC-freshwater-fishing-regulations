@@ -2,6 +2,10 @@
 
 Status: DONE 2cdce6538 (landed 2026-11-17, CI green, 6/6 Android benches; was: IN PROGRESS (built on branch app-fix/t765-t768; not merged) (filed 2026-11-16 by the app chat; found by the main chat on release r-46e4355a7277).)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T765 | Golden taps (`app/tools/regs-recut/taps.py`): a golden part that is closed all year has no label, so its declared index is not checked; on r-46e4355a7277 x15p9 silently landed on the next closed part of the Fraser. Check every declared part by its ends or km mark, better declare by ends | DONE | 2cdce6538 | the main chat 2026-11-16 03:08 (it fixed the declaration by hand, 53d8e74c5); the tool = the app chat's area |
+
 Source: the main chat, 2026-11-16 03:08. Area: the app chat (`app/tools/regs-recut/`).
 
 ## What happened

@@ -2,6 +2,10 @@
 
 Status: DONE (1cca5a8ff) 2026-11-04 (was: OPEN — before 0.5.0) (owner 2026-11-03: "we need the run timing to always be synced").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T373 | Run timing always matches the release's map: the release builds/binds it for its own handles, refuses otherwise | DONE 11-04 | 1cca5a8ff | owner 2026-11-03 |
+
 Found by the UI chat 2026-11-03: the run-timing feed was bound on 10-29 to handles 10cbcb72…, the local release
 carries 822db448…, so Run timing paints nothing (the app refuses a paint index whose handles are not the tiles').
 Cause: the feed is its own stream (T199) and its BASE is an owner step "once per atlas" (`runtiming.feed.base`) — a

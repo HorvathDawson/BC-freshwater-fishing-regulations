@@ -9,6 +9,10 @@ the Shell's "Flows into" → `opener.flow` was unpinned (reverting it failed no 
 No fixture water flows into a split-lake area, so item 1's group on a "Flows into" is pinned at the route/opener level
 (back-layers `splitLake`, openWater.test `flow`), and in a render only via the tap path.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T58 | back follow-ups | DONE | 21d41623, 9ec8114a | — |
+
 1. A split lake can be stacked twice: open area 1, tap a tributary, "Flows into" lands in area 2 → the lake twice in
    the stack. The opener must know a split lake's sibling areas (loader `siblingOrds`) so `sameWater` matches.
 2. Parts-sheet rows do nothing: `RegsScreen` never passes `onPart` to `SheetHost`.

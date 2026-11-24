@@ -2,6 +2,10 @@
 
 Status: DONE (owner 2026-11-13 by dialog: the two vessel entries in build 30 are fine; nothing to change; already built in build 30: c63427bbd, 2841fb605; finding f13d96890)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T712 | Vessel restriction section shows the book's words with the location text (Harrison r4; survey same shape) | DONE | c63427bbd, 2841fb605, f13d96890 | owner 2026-11-13 by dialog: the two vessel entries in build 30 are fine, nothing to change |
+
 Source: owner 2026-11-13, Harrison River harrison_river.r4: "in the vessel restriuction section it should say the words with the location text and a user can infer it". Book: "Speed restriction or no powered boats in small bays along the river as signed"; the app shows a bare "No powered boats".
 ## Work
 1. Show the book's wording including its location text in the vessel restriction section, not a bare "No powered boats".

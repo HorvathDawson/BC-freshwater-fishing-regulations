@@ -2,6 +2,10 @@
 
 Status: PARTIAL — ae65ef767, a2478c6dc, d2239c54d (a reader's drag, tab press or own scroll ends the follow; a tab never drawn said after ~5 s; the jump follows its section until it holds two ticks, at most ~2 s; a start off Regulations dropped and said; tests fail on main first, 8 mutations all killed; web check 2026-11-23: cold `tab=gear` Gear 1156 px, `tab=gear` Gear 1139, `tab=licence` Licence 2020 (was Methods 1818), `tab=methods` Methods 1676, `view=map&tab=gear` the Map with "start link: tab= does nothing on view=map: dropped" in the console); review lows fixed b3de2bbc1 (below); left (Claude): the device check below.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1049 | A start link's scroll lands short: it jumps to the first measured section top and never re-checks | PARTIAL — fixed + web check; left (Claude): 0.9.0 device pass | ae65ef767, a2478c6dc, d2239c54d, b3de2bbc1 | review of #80 (T1038), 2026-11-23 |
+
 ## 0.9.0 device pass (Android)
 - A cold start from `https://staging.canifishthis.ca/?regs=gnis:3062&tab=licence` (once the phone opens links with a
   page start, T1038): Licence selected, the page at Licence's top, not Methods.

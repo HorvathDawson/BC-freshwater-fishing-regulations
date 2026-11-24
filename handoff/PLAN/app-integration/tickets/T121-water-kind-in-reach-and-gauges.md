@@ -2,6 +2,10 @@
 
 Status: DONE — 7c11c27b, d5899459 (adversarial review: wiring pinned). Reach: no binding moved; bundle: +18 gauged sections (river polygons and sloughs).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T121 | water kind in reach and gauges via kind_of | DONE | 7c11c27b, 35dd2ff1, d5899459, 82c59195 | no binding moved; +18 gauged river polygons at deliver; delivered r-012fb43aa175 |
+
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, findings reach 8 and
 the Python half of cross 8 (PLAUSIBLE).
 

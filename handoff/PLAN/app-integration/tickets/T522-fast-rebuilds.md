@@ -3,6 +3,10 @@
 Status: DONE — 0dbb9e6ad, 665b4d9e1, 30d36b7e8; proved by the cold/warm/fresh runs below (65 files byte-identical) and the first real build on the new key: r-d14bdb180f55 at 52298df0a, then `build --hold-latest` (2026-11-09 15:40) reused every stage.
 Earlier: IN REVIEW — merged 2026-11-09 after the proof below; the stage-level code key starts on the next real `pipeline build` (reach and deliver rerun once for the new key form).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T522 | Rebuilds rerun only what changed: reach/deliver keyed on the code they imported; delivery steps reused when nothing they read moved (fast path in pipeline/README) | DONE | 0dbb9e6ad, 665b4d9e1, 30d36b7e8 | — |
+
 Source: owner 2026-11-08, "the constant rebuilds take so long".
 
 ## Found (manifest + build-logs, 2026-11-06 … 11-08)

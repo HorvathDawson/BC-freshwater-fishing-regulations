@@ -2,6 +2,10 @@
 
 Status: DONE — 8ad09bf33, 9f287e8d3, 65694b0b4, 986c6e190, 244d086e3, af0bb8a04, f0ff36ea8, de8be35a4, ee8a5de29, 2caea0ca0; shipped in 0.8.4 (cut e769f710a, data r-fec3fab4c5aa; 0.9.0 audit 2026-11-22, every hash is an ancestor of origin/main and of e769f710a). (Earlier status: IN PROGRESS — 8ad09bf33, 9f287e8d3, 65694b0b4, 986c6e190, 244d086e3, af0bb8a04; merged via c6c46d7f9; owner looks approved 11-20; left (Claude): the atlas half (wbk variant registry pass, 21-23 of the 31) ships with the next atlas rebuild; the number-names follow-up is on lane/t926-numbers, not merged; the rest ships with the next data release. (Earlier note: IN REVIEW — owner: OWNER-TODO "T926 = every entry in name_variants.json finds its water" (owner looks at the pictures, then main chat review + merge; ships with the next data release — 21 of the 31 need the atlas registry pass, see "Lane 2026-11-20").))
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T926 | Search: every entry in name_variants.json, as it stands, finds its water (31 misses today); nothing else (owner) | DONE | 8ad09bf33, 9f287e8d3, 65694b0b4, 986c6e190, 244d086e3, af0bb8a04, f0ff36ea8, de8be35a4, ee8a5de29, 2caea0ca0 | — |
+
 Source: owner 2026-11-19 (main chat), verbatim: "did we ever make sure handle name variants of water bodies?" Measured the
 same evening (read-only probe, scratchpad `search-probe/`: the real `queryIndex` on release r-6258ffded676's index, 19,782
 waters + 2,917 aliases, ~52k queries, found = in the top 40):

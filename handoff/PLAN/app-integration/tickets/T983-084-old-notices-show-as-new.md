@@ -4,6 +4,10 @@ Status: DONE — shipped 0.8.5 (cbaedc24e, 2026-11-21).
 is the notice's own effective date, else "first seen Nov 19": core `rowDate` / `INBOX_WORDS.firstSeen`, whole-string
 tests); left (Claude): merge + combined review.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T983 | After updating to 0.8.4, 7 expired in-season notices show as New (Nov 19): notice ids stable across releases; ended notices not current | DONE (shipped 0.8.5) | cbaedc24e | owner 2026-11-21 (Android 0.8.4) |
+
 ## Measured (2026-11-21, against the live feeds data.canifishthis.ca + data-staging, and git)
 1. **Ids did not change.** The 32 rows carry the same ids in production and staging (content hashes, worker `rowId`,
    pinned in `workers/feeds/test/events.test.ts`); every id has its entry in the release-independent `matches.json`.

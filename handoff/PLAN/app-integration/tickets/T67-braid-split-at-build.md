@@ -4,3 +4,7 @@ Status: DONE — owner accepted every cut on round 3 and it was promoted 2026-10
 Assessment: scratchpad sloughs/braids-assessment.md (lane wf_937ae915-731) — the problem today with examples, where
 splitting happens, whether the build step is the right place, cost (atlas/reach/tiles), risks (split fix changes the
 trib walk → binding diff; end cuts halve a water; atlas build non-deterministic → subtract an old-vs-old diff), plan.
+
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T67 | braid splitting as a build step | DONE | 1497beb0, ed1a5c0, cb3e0654, b91018e5, 5a6e7911 | promoted 10-24; own phase `cut_braids` 10-28 (parity + bindings identical) |

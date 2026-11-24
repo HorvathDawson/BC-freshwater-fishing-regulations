@@ -2,6 +2,10 @@
 
 Status: DONE — aca09a946 (closed on the owner's word 2026-11-20; see the last section)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T636 | Conditions map: a "level only" gauge is shown by its ring colour, not a text tag | DONE | aca09a946 | — |
+
 Source: owner 2026-11-11: "the level only tag in the conditions map is a lot it should be a border color or something instead to indicate it".
 
 ## Now

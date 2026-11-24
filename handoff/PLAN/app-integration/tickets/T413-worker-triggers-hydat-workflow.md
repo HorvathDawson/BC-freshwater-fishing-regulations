@@ -4,6 +4,10 @@ Status: DONE in code 2026-11-05 — a355ed884, d0e0e45f9 (goes live with the nex
 disappear after a while. Either trigger it when needed from R2 [the worker] or assume a human sees the email then
 triggers it manually." **No GitHub schedule, for this or any feed.**
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T413 | A new HYDAT starts its workflow: the worker (with an owner-made token) or the owner after the email; never a GitHub schedule | DONE in code (deploy with next worker; owner token) | a355ed884, d0e0e45f9 | owner 11-05 |
+
 - **Today (works, no change):** the worker detects a new HYDAT (T301) and emails the owner the exact Actions button
   ("feeds — HYDAT → climatology → R2", upload: true). The owner presses it.
 - **This ticket:** the worker calls GitHub's workflow_dispatch for `feeds-hydat.yml` (staging) itself on that

@@ -2,6 +2,10 @@
 
 Status: DONE — 7276735f, review fix 91ea0abc (app; plus a one-line publisher fix that lands on the next feed publish, see As built).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T106 | one shown quantity: read the declared parameter (08ME030) | DONE | 7276735f, f17523c2, 91ea0abc, 82a37db5 | publisher line lands on the next feed publish |
+
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding gauges 2 =
 cross 4 (CONFIRMED on `data/generated/gauges/feeds/08ME030.json`).
 

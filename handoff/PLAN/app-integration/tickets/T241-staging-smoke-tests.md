@@ -2,6 +2,10 @@
 
 Status: DONE — ec26ed584 (2026-10-29)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T241 | staging smoke tests after every deploy (CDP driver vs staging) | DONE | ec26ed584 | 18 checks phone+desktop, 52 s, green; in site.sh/upload.sh; manual workflow not yet run (branch unpushed) |
+
 Source: owner 2026-10-28 — approved proposal P7 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
 ## Work

@@ -2,6 +2,10 @@
 
 Status: OPEN — owner 2026-11-07 (chat 7). This is the release goal; every chat works this list first. 2026-11-19: production serves the new site, data r-6258ffded676 and the feeds + data workers, and the gated build 39 (0.8.3, production) is on Play Closed waiting for Google's review (STATUS 2026-11-19 evening). Left: gate 2 T360 (PARTIAL), gate 3 T401 (PARTIAL, owner: not urgent), step 3 T463 (owner runs /code-review ultra), store T319 / T390 / T514, and the closed-testing clock itself (T371).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T495 | THE NEAR GOAL: Play closed testing on production, four gates (no wrong regs, no crashes, smooth map, clean first run) | OPEN | — | production live 11-19; build 39 on Closed awaiting Google; left: T360, T401, T463, T319/T390/T514, T371 clock |
+
 ## The goal
 Get the app out to the first users (Play closed testing: 12 testers × 14 days) without a bad first experience,
 **on production**: canifishthis.ca, the prod Cloudflare workers and R2. The website has to move from v1 to the new

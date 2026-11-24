@@ -3,6 +3,10 @@
 Status: DONE (d5e3fcf8e; emulator-checked 2026-11-06) (owner 2026-10-31, on 0.3.0: "the location doesn't change and update with where the user is. It locks to the
 first location it seems").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T308 | Location dot keeps updating with you (not stuck at first fix) | DONE (emulator-checked 11-06) | d5e3fcf8e | owner 2026-10-31 |
+
 ## Work
 While "My location" is on (shown, not only following), keep a foreground location watch running and move the dot with
 every fix (native: locate.native.ts watch → me.fix → our own dot from T303 d51ca02c8; web: watchPosition). Following

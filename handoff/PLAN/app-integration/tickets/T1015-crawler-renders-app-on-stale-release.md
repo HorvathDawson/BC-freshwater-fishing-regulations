@@ -2,6 +2,10 @@
 
 Status: OPEN — next release batch.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1015 | Google's renderer runs the web app on cached old releases: does the indexed page show the app's boot error? | OPEN — next release batch | | Search Console rendered-page check, then the fallback if needed |
+
 Source: T1005 triage. One install (`a916f6f81cd61f75`, a search engine's page renderer: a pinned clock, a fixed install
 id, cached resources) sent ~450 production crash reports from `/water/` pages, 2026-11-19 → 11-23: 0.8.5's bundle
 booting manifests of r-fc137c4040fa / r-6258ffded676 / r-fec3fab4c5aa ("release … is not one this app reads": the boot

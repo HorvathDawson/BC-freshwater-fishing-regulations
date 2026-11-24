@@ -2,6 +2,10 @@
 
 Status: DONE (owner 2026-11-04, in 0.5.0) — 93b7cde1b (one clock, the sweep, the net, the sun card).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T382 | The regulations' today is B.C.'s (bcNow everywhere a day is decided); sunrise / sunset on the B.C. clock at the water | DONE | 93b7cde1b | owner 2026-11-04 (in 0.5.0) |
+
 ## Asks (owner 2026-11-04)
 - T368 Q6, corrected: the app's "today" was the PHONE's date (not B.C.'s as first said). Owner: "no bc time makes sense
   i agree with that".

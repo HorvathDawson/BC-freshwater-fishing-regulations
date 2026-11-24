@@ -2,6 +2,10 @@
 
 Status: DONE — promoted 2026-10-28, live r-46be3c135e68 (tiles db853e9556df81a6.16b3906b04bf). Commits: 4c90fe68, 64c28a2b.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T220 | braid channels close: no channel line ends where the water goes on (prune closure + one zoom per side-channel run) | DONE | 4c90fe68, 64c28a2b | owner 10-28 FIX complete; 1,041 -> 97 dangling ends, no existing binding moved; live r-46be3c135e68 |
+
 Source: owner 2026-10-28 screenshot, Skeena at Salvus / Gitnadoiks (MU 6-10): side channels left the river and stopped
 on bars. Owner picked FIX "complete" (not "drop", no line thinning).
 

@@ -2,6 +2,10 @@
 
 Status: PARTIAL — items 1-3 DONE (c77eeb601, 2026-11-22); item 4 (the PHONE app card naming a skipped listed place) not done: it is the bundle/deliver side (`pipeline/deliver`), outside the review-app lane. left (Claude): item 4, the phone card naming a skipped listed place.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T775 | Review app, rest-of places after T761: preview says "the build refuses it" (it does not), checklist empty until a preview, listed places not on the map, skipped listed places not named on the card | PARTIAL — items 1-3 DONE; item 4 (the phone app card naming a skipped listed place) open: bundle/deliver side; left (Claude): item 4, phone card | c77eeb601, dd942ce76 | T761 lane report and sweep, 2026-11-15 night |
+
 Source: T761 lane report and the sweep, 2026-11-15 night.
 
 ## What is wrong

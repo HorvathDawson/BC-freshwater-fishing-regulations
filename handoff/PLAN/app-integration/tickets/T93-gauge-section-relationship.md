@@ -3,6 +3,10 @@
 Status: DONE (0e31959c, b4ca30d9, Q31 default: see below) — relationship + pluggable policy built; owner 2026-10-28 (Q31)
 made the default "drainage, plus tributary gauges across a continuation link". Reaches readers with the next deliver (bundle + release).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T93 | gauge ↔ section relationship table (policy) | DONE | 0e31959c, b4ca30d9 | `rel` + distance bucket on section_gauge (conditions 870,919 B ≤ 950,000), `gauge_relation` candidates (bundle), POLICIES; default `drainage_continued` (Q31, owner 2026-10-28): … (detail: ticket file) |
+
 Source: memory `gauge-representativeness-is-policy`; owner 2026-09-02: the gauge rule should be a tunable policy.
 `section_gauge` is still `(sid PK, station, trust, mag)` — no up/downstream, channel distance or same-watercourse;
 `pipeline/hydro/shed.py`'s drainage gate is the only rule.

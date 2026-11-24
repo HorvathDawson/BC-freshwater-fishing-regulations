@@ -2,6 +2,10 @@
 
 Status: DONE (886a926e2, 2696f6609, 72920f8de, 7de67f607, 6248996c7, 51cf4a832, 30ddaa454)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T254 | bad connections: CDP harness (`app/tools/bad-net.mjs`: Slow 3G / 2G-ish / flaky / offline-then-back, local build + staging) + before/after, low-bandwidth mode (auto from the meter / browser / NetInfo + More → Data Automatic/On/Off), answer-first gate, per-size timeouts, retries, Range resume, slow / offline / still-loading states, PDF offered with size, fonts never block | DONE | 886a926e2, 2696f6609, 72920f8de, 7de67f607, 51cf4a832 | owner 2026-10-29; 2G went from never-starts to working; flaky from "Regulations unavailable" to 10–47 s; rest is bytes → T256 |
+
 Source: owner 2026-10-29 — make the app work well on BAD connections (rural BC, 1–2 bars, flaky): simulate bad
 connections, and use a different loading strategy when the connection is poor.
 

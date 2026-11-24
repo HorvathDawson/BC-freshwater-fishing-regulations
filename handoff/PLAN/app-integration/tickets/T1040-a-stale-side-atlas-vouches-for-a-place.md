@@ -2,6 +2,10 @@
 
 Status: DONE — 14f0d682e (2026-11-23)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1040 | A stale side atlas still vouches for a proposal after its cut moves (side_dir's digest does not cover the cut's position) | DONE | 14f0d682e | PR #48 independent review, 2026-11-23 |
+
 Source: independent review of PR #48 (T779), 2026-11-23: a low finding, older than that PR.
 
 ## What is wrong

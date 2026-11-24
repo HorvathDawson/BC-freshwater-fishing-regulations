@@ -3,6 +3,10 @@
 Status: DONE — 8d3de7e0, 92d47b1c (test move), 3d17b1df (docs); adversarial review: see "Adversarial review" (publisher
 fix + app wording, 90edf4ae). App part ships with the next app build; the full fix needs a FEED REPUBLISH (owner, `publish.py`).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T143 | Conditions horizons say "no forecast" (Level: publisher stopped at the first model) | DONE | ce46639f, 90edf4ae, fd584a83, 92d47b1c, 3d17b1df, 8d3de7e0 | feed republish (local done; R2 owner) |
+
 Source: Owner 2026-10-23 (app walk). "when i click on +1, +3, +5, +10 it says no forecast for gauges here even tho there definitely is. this is for
 every gauge. but the change option works." Likely since T123 (donorState: a horizon with no percentile → "no-forecast")
 or a feed/app format mismatch (T106 declared quantity, T126; the feed republish is still pending on OWNER-TODO).

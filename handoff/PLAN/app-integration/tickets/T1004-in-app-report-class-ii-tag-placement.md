@@ -2,6 +2,10 @@
 
 Status: IN REVIEW — owner: OWNER-TODO "Look (you): T1004 Class II line under the name" (built, code d27c09e24, PR open; after-shots in T1004-shots/built-*).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1004 | In-app report: the Class II tag sits far right of the water's name, "kind of hidden" (Skeena part 11) | IN REVIEW | | owner 11-22: "right under the water body name"; built d27c09e24 (PR feat/T1004-class-ii-line); look: T1004-shots/built-*; T802 closes with it |
+
 Source: `GET /reports` on the production feeds worker, read 2026-11-22 (report `c1f639871183168d`; T985 holds the
 four before it, T979 the fifth). Android 0.8.4 (42), production, release `r-fec3fab4c5aa`; water · regulations,
 Skeena River (`gnis:2936`) part 11 "From 1.5 km upstream of the Zymoetz River confluence up to the Chimdemash Creek

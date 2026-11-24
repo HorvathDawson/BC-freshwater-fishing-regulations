@@ -2,6 +2,10 @@
 
 Status: DONE (built in T21 under other names) — 3665f151 (GroupCard.tsx / PlainRow.tsx; this ticket's component names were not used).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T26 | RN group components | DONE (in T21, other names) | 3665f151 | — |
+
 Phase 1 · Depends on T17 (`GroupVM`/`GroupHeadVM`/`OriginVM`), T18 (`TreeNodeVM`, `TierVM`, `KindVM`, `FishPicVM`), T19
 (`NotKeptVM`, worked), T20 (fish image map), T22, T23, T25 (`LineText`, `LineHandlers`) · Blocks T27, T29 · Decisions D4 (a),
 D12 (a) · Size 1 day

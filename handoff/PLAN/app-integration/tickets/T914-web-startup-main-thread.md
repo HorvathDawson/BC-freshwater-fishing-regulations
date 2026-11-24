@@ -2,6 +2,10 @@
 
 Status: OPEN (after 0.8.3; owner 2026-11-19 ~12:00 "yes ticket it").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T914 | Web start: break up the first script's evaluation and the first screen's build (mobile Lighthouse) (owner) | OPEN | after 0.8.3 | owner 2026-11-19 ~12:00 |
+
 Owner 2026-11-19 ~12:00 (main chat), asked what else could be done about "most of that delay is the main code starting
 up, which these changes don't touch" (T910's result), verbatim: "yes ticket it".
 

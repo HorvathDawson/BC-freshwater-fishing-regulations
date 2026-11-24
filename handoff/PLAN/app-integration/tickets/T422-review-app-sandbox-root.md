@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-05 — 5820c2ae4 (see Outcome). Was: OPEN (leftover of T331 item 2, split out 2026-11-05).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T422 | Review app sandbox: one temp root instead of four CURATION_* path overrides | DONE | 5820c2ae4 | T331 leftover 11-05; `CURATED_ROOT` + `curated.make_root`, old four refused, grep gate test_curated_root.py |
+
 `CURATION_MARKS`, `CURATION_SPLITS_JSON`, `CURATION_ENTRIES_DIR`, `CURATION_DFO_DIR` (curation-review/backend `reuse.py`,
 `dfo.py`) still repoint curated files one by one. They are the review app's sandbox: ~15 test files start the app with
 them, and `regs/review/parity.py` / `gate.py` set `CURATION_ENTRIES_DIR` / `CURATION_BUILD` for side builds. A path

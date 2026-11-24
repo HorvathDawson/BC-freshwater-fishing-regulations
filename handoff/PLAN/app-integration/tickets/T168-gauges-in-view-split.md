@@ -3,6 +3,10 @@
 Status: DONE — lane-T168, bfee90d9 (code + tests); this ticket update follows it. App only; no rebuild, no deliver: every fact needed was already in the bundle
 and the release (`gauge.item_id`, `gauge.sid`, `item_section`, `water_continue`).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T168 | "N gauges in view": split gauges on this water from donor gauges; not-reporting gauges under a closed drop-down (owner 2026-10-24) | DONE | bfee90d9, fcddee67 | app |
+
 Source: owner 2026-10-23: "when it says (13 gauges in view) we need to make a division between real gauges and donor
 gauges." Seen on Nicomen Slough: 13 = its own 2 gauges + 11 Fraser gauges lending an estimate. Scope added 2026-10-24
 (owner): "nicomen slough has so many not reporting gauges. they need to be hidden under drop down."

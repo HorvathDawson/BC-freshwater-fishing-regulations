@@ -2,6 +2,10 @@
 
 Status: POSTPONED
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T626 | Deferred: one view of "open to fish" and "fish in the stream" together | POSTPONED | — | owner 2026-11-10: not a now item |
+
 Source: owner 2026-11-10: "in future we might want to make a way to see the set of open + fish in stream in theory
 too but that is not a now item, could add to deferred."
 

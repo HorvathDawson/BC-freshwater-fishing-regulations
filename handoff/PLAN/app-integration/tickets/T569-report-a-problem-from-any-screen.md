@@ -2,6 +2,10 @@
 
 Status: DONE — 774befd64, a6d57826f; report link + Reports tab detail rows; worker deployed staging + production.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T569 | Report a problem from the screen you are on (Conditions has no way in) | DONE | 774befd64, a6d57826f | — |
+
 Source: Owner 2026-11-09: "I sent a report after navigating away from the conditions pane to the about tab because there
 is no report an issue button on the conditions tab. You need to add that too, it is a bug."
 

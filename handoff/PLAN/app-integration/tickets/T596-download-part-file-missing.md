@@ -2,6 +2,10 @@
 
 Status: IN REVIEW — 845734782, ae308c372 (release install and prune run one at a time; the queue has no swallowing catch). The acceptance read is `GET /crashes`, which answers 403 without the RUN_TOKEN (checked 2026-11-20 on staging and production; the lane may not read the token). owner: OWNER-TODO "T595/T596 /crashes reads (run token)": he (or a session he gives the token) runs the two curls and records that kind 4219b587 has not come back on builds from 0.7.3.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T596 | A release download fails with "NoSuchFileException … .sqlite.part" (owner phone, 0.7.0) | IN REVIEW — owner: OWNER-TODO "T595/T596 /crashes reads (run token)" | 845734782 | /crashes needs the run token: the owner's two curls (kind 4219b587) |
+
 Source: worker `GET /crashes` 2026-11-10, kind 4219b587: once, the owner's phone (install c909e605), 0.7.0 build 22,
 2026-11-09 23:07 UTC, while taking release r-d14bdb180f55: `java.nio.file.NoSuchFileException:
 /data/user/0/ca.canifishthis.app/files/release/r-d14bdb180f55/water-a8aca53ad7f4.sqlite.part`.

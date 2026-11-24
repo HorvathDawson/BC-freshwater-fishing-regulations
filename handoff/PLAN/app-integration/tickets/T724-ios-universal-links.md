@@ -2,6 +2,10 @@
 
 Status: PARTIAL (built: 9af44b246, ffd44b943, f9d47f0d9; the Team ID is in place since 2026-11-14 (4cc85a914), so every site build writes `apple-app-site-association`; left (Claude): the simulator `openurl` run, then the verified hand-off on a signed build (needs the App ID with Associated Domains on, T88)).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T724 | iOS: shared links open the app as universal links (IOS-7) | PARTIAL (left (Claude): the simulator `openurl` run; the verified hand-off needs a signed build with Associated Domains, T88) | 9af44b246, ffd44b943, f9d47f0d9, 4cc85a914 | owner 2026-11-14; `associatedDomains` for both hosts; the site build writes `apple-app-site-association` only when a Team ID is configured (`CIFT_IOS_TEAM_ID` or … (detail: ticket file) |
+
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-7 in
 `handoff/PLAN/ios/START-HERE-ios.md` (approved to start there, "Unattended day"). Simulator only; no Apple account.

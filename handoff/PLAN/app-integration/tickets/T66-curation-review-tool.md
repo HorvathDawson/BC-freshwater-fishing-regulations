@@ -5,3 +5,7 @@ Q5, Q33–Q41); the build is T96 (phase 0, safe now) and T97 (phases 1–5, afte
 regulations for correctness, plus how it integrates. We want it to be proper before someone puts effort in."
 Step 1 (running): read-only audit → designs → critique → handoff/PLAN/curation-review/PLAN.md. Step 2: owner reads
 the plan. Step 3: build the agreed tool changes as follow-up tickets.
+
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T66 | curation review tool | DONE | a3f66b7c (plan) | plan approved 2026-10-23; build → T96, T97, T133–T136 |

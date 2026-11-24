@@ -2,6 +2,10 @@
 
 Status: DONE — 215f171bc, c087e337d; owner 2026-11-09 on build 24: no crash or freeze
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T351 | Native crash in the foreground, Android 37 / 0.4.0 (2 reports, no stack) | DONE — 215f171bc, c087e337d; owner 2026-11-09 on build 24: no crash or freeze | 215f171bc, c087e337d | 2026-11-02; 11-06 not reproduced in simulation; 11-09 emulator peak 379 MB (old APK) / 314 MB (HEAD+decay), no crash; left: owner build-22 session |
+
 Was: OPEN (from T346, 2026-11-02).
 
 Evidence (staging crash store, `private/crashes/`): two foreground native exits on 0.4.0 (build 7, 89ebd94), platform

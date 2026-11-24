@@ -2,6 +2,10 @@
 
 Status: DONE — cb1e01549; owner 2026-11-09 on build 24: fine
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T531 | Each calendar sits with its own species (salmon under DFO, the rest under B.C. rules); legend text full contrast | DONE — cb1e01549; owner 2026-11-09 on build 24: fine | cb1e01549 | mockup approved 11-09; species placed by rule source (core `speciesBlocks`); shots T531-built-*.png |
+
 Was: IN REVIEW — owner phone look on 0.7.2 (mockup approved 2026-11-09: "i like the new mockup more please add as new patch release")
 
 Owner 2026-11-09 (Vedder River screenshot): salmon should live under the "SALMON (DFO)" calendar and trout/char, kokanee,

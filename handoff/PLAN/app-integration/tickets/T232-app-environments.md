@@ -2,6 +2,10 @@
 
 Status: DONE (3d171c8f) — native device run is the owner's (build commands below)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T232 | app environments: local / staging / production by `EXPO_PUBLIC_APP_ENV` (phone default staging), one config (`env.ts` → `ENDPOINTS`), dev switch + badge on About, eas.json profiles | DONE | 3d171c8f | owner 2026-10-28; build commands in the ticket; prod host unused until T86 |
+
 Source: owner 2026-10-28: app builds need selectable environments (local / staging / production) so a dev build on
 the owner's phone reads STAGING data (data-staging.canifishthis.ca, feeds there; site staging.canifishthis.ca).
 

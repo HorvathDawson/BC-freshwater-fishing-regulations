@@ -2,6 +2,10 @@
 
 Status: POSTPONED (owner 2026-11-20 with T709: after this release; earlier "these are after closed")
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T715 | Store video: the command builds its own starting state (fresh install, release, clock, settings, its own saved spot), checked on screen | POSTPONED (owner 2026-11-20 with T709; earlier "after closed") | — | owner 2026-11-13 ("create a proper state"); before the next regeneration for a store upload; follows T709 |
+
 Source: owner 2026-11-13, after approving the first cut ("the video looks good"): "should make a ticket create a proper
 state". Follows T709 (`node app/tools/store-video/run.mjs`, f535ebdca).
 

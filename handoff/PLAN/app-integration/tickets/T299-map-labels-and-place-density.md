@@ -2,6 +2,10 @@
 
 Status: DONE 6c9e8c570, 34a1f817f (2026-10-30; basemap + atlas rebuilds and the release are the owner's batch, see Builds owed).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T299 | Water names on the map again (streams + lakes by size); basemap place names by importance; nothing outside BC | DONE | 6c9e8c570, 34a1f817f | water names placed first + `stream_name` merged/smoothed tile layer; places by kind/zoom (LM z7 111→8); basemap cut 7 drops names outside BC; builds owed: basemap, atlas … (detail: ticket file) |
+
 Source: owner: "make it so stream names show up on map still? Archived version had the display names show up on the vector
 tile of streams and same for lakes etc. this is important to add back. Also the density of the OSM pmtile town names /
 place names on the base tile feels off it puts a ton of names on the screen but should show most important first and hide

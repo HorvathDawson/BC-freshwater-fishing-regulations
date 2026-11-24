@@ -2,6 +2,10 @@
 
 Status: DONE — 235408838, fa098f1f4, 3593c2c9b, cb008158f, da515cfeb. a DFO place's side streams are derived from its own words, else the exact heading, else river only; stored values only as stated exceptions; review app shows the deciding words; 20 marks re-saved for the owner.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T807 | A DFO place's side streams are derived from the exact heading its row sits under and its own words; a saved value is only a stated exception (ten places go river-only; a named creek keeps its side streams; the Kitimat outfall strip takes them) | DONE | 235408838, fa098f1f4, 3593c2c9b, cb008158f, da515cfeb | — |
+
 Closed by the 2026-11-20 audit: built fa098f1f4 (side_streams.derive, review app, check), owner 17:01 rulings applied 3593c2c9b, marks re-saved by Claude on the owner's word cb008158f, merged with da515cfeb; owner OK'd the changes (e59d7146f); shipped from 0.8.0.
 
 Source: owner 2026-11-16 (`handoff/PLAN/OWNER-TODO.md`, "Answers by batch" and "Re-check of saves"): "this depends if the

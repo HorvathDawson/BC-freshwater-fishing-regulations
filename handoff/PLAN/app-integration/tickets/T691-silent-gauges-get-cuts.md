@@ -3,6 +3,10 @@
 Status: DONE (1935c1dc9 phase 1; 1965900be + 8a1ce30f1 phase 2; released r-f749475d0962 2026-11-13)
 gate and gauge placement lines for the 32
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T691 | A silent gauge station ECCC still calls Active gets its cut (Q113): 32 new gauge cuts; phase 2 the owner's seven match calls | DONE | 1935c1dc9, 1965900be, 8a1ce30f1 | owner 2026-11-12 "silent doesn't mean retired" (RULINGS P53) + 2026-11-13 answers: cut_at / reads below / cut false; released r-f749475d0962 |
+
 Source: owner 2026-11-12, answering Q113 (T122), verbatim: "silent doesn't mean retired so we should add cuts Incase they
 start transmitting again?". RULINGS P53. The coordinator's reading (silent but not retired = cut; retired/discontinued =
 none) is the rule built.

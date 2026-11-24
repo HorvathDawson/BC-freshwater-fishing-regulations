@@ -2,6 +2,10 @@
 
 Status: DONE — 1468cfba5. Rides the next APK (native: the binding patch). iOS unchanged (read only).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T707 | Pinch release carries its zoom on Android (owner, build 29: "No zoom flick"): MapLibre's own scale momentum gated on the last touch event's span and the first finger's speed only, so phone flicks stopped dead; the binding patch carries it itself (MapLibre's size/curve, both fingers' span rate, 40 ms stillness gate); test bed `zoom-flick`, guard `app/tools/pinch-momentum.test.ts` | DONE (rides the next APK; builds on T452, T420) | 1468cfba5 | owner phone check "map zoom carries momentum after a pinch" |
+
 Owner phone report, build 29 (Android, 2026-11-13): "No zoom flick on map in app so zoom is clunky gesture wise".
 
 ## Cause (measured, not guessed)

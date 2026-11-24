@@ -2,6 +2,10 @@
 
 Status: DONE — 84bf729f4, 3d807829d; owner 2026-11-09 on build 24: fine
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T506 | Conditions: sources and notes at the bottom of the pane | DONE — 84bf729f4, 3d807829d; owner 2026-11-09 on build 24: fine | 84bf729f4 | owner 2026-11-08 (phone) |
+
 Was: IN REVIEW — 84bf729f4, in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (Conditions: sources last).
 Earlier: IN REVIEW — 84bf729f4; owner sees it on the next build. Owner 2026-11-08 (phone).
 

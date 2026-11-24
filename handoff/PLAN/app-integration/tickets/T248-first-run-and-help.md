@@ -2,6 +2,10 @@
 
 Status: DONE — 5436081e6 (web walked desktop + phone; native not walked on a device)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T248 | first-run walkthrough + help page (after T236's disclaimer notice) | DONE | 5436081e6 | 4 cards after the notice, skippable, once per device; More -> Help generated from legend tokens; shots T248-shots/ |
+
 Source: owner 2026-10-28 — approved proposal P14 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
 ## Work

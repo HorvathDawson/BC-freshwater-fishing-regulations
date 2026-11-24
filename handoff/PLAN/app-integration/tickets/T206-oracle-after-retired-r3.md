@@ -2,6 +2,10 @@
 
 Status: DONE (29fbfc377) — re-cut on r-f6918815ca78
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T206 | app golden parity after the retired overlapping rules AND the zone daily-quota rename (page v36 oracle) | DONE | 3797095c 29fbfc377 | order-only amendment (rename flips), ORACLE_RETIRED + Lois fold, on-parts, handle re-pins; check green bar release-budget (T203) |
+
 Source: overlapping-rules.md, accepted 2026-10-26 and applied (decisions.md). The release r-3d6399afd7e2 drops
 `z1:trout_quota.r3`, `z2:trout_char_quota.r3`, `khartoum_lake.r3` and `lois_lake.r3`. The binding diff shows only those 4
 rules changed. card_check found 0 problems, test_q44 passes, and the full pytest suite is green apart from the

@@ -2,6 +2,10 @@
 
 Status: DONE 99d8ac9bc, b15f1165b (lane L28, PR #77; owner answered 2026-11-23); follow-up 66a331eef, 874929277, 6b36d695d (lane L8, 2026-11-24): datum change file (5 rows, all proposed), HYDAT remark proposals, the record put on today's zero for an accepted row. Left: the owner's accept/reject per row, then a clim.json + data release; the this-year line (below).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1047 | Under Level, an other-datum station's chart drew its live levels against the old-datum band (08HD006); follow-up: datum change file (all rows proposed), remark proposals, record on today's zero for accepted rows | DONE (follow-up L8 11-24 built; the 5 rows await the owner's accept/reject, then clim.json + data release) | 99d8ac9bc, b15f1165b, 66a331eef, 874929277, 6b36d695d | #77 review 2026-11-23, item 3; L32 findings; owner 2026-11-23 |
+
 Source: independent review of PR #77 (T1043), 2026-11-23, item 3; split out by lane L28. Production 2026-11-23:
 08HD006 (Salmon River near Sayward) reports a live level of 2.058 m that the publisher leaves out of `reports` (T550:
 off the record's rating; the record is near 7 m). The other T550 stations: 07FD001, 08EF001, 08KH019, 08MH153 (each has a

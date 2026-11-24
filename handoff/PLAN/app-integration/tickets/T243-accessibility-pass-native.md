@@ -2,6 +2,10 @@
 
 Status: DONE — 98bb69021, cbaf6e30a, e0e70fed5, d12bd8799, d34ea54e3. Leftovers (the screens T257 was rewriting, the owner's phone walk) → T258.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T243 | accessibility pass (native) | DONE | 98bb69021, cbaf6e30a, e0e70fed5, d12bd8799, d34ea54e3 | shell press gate (36 states), contrast tokens, axe web walk clean, camera reduce-motion; leftovers → T258 |
+
 Source: owner 2026-10-28 — approved proposal P9 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
 ## Work

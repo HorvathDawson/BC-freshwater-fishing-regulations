@@ -2,6 +2,10 @@
 
 Status: DONE (fetched 2026-10-30, release r-c7e8327b781d; prod upload is the owner's; the old archive `data/source/hydat.20260717.sqlite3` can be deleted). Commits: dc0943c70.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T301 | New HYDAT release: refresh stored daily flows + normals | DONE | dc0943c70 | owner 2026-10-30; HYDAT 20261019, release r-c7e8327b781d; prod upload human; old archive hydat.20260717 can be deleted |
+
 ## Work
 Confirm the new ECCC HYDAT release (version/date), download it (resumable, checksum), rebuild what depends on it: the
 stored past-day flows (T274 `pipeline/gauges/feed/hydat_daily.py` → staging `feeds/hydat/`), normals/percentiles used by

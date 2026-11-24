@@ -2,6 +2,10 @@
 
 Status: DONE — 825cf1a8, f2e98e0d.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T44 | one WaterFrame | DONE | 825cf1a8, f2e98e0d | — |
+
 Phase 4 · Depends on T23 (RegsScreen), one-water-screen (openWater / WaterViews), P15 (WaterMapView) · Size 1 day
 
 ## Owner (2026-10-21)

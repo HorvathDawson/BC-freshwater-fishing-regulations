@@ -2,6 +2,10 @@
 
 Status: DONE (9046ffa63) — owner set up Play 2026-10-29: app created, AAB versionCode 4 on internal testing, testers opt-in link saved, service account play-uploader@canifishthis.iam.gserviceaccount.com invited; `play-upload.py --max-version-code` answered 4 from the API (no hash: owner console work).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T268 | OWNER: Google Play setup when account verification completes — create app ca.canifishthis.app, Play App Signing, first AAB by hand, internal testers + opt-in link, app content (data safety, rating, privacy policy), service-account JSON | DONE | 9046ffa63 | owner 2026-10-29; unblocks T267 |
+
 Unblocks T267 (Claude side, done: upload key, `deploy/staging/build-apk.sh --play`). Only the owner can do these, in
 Play Console and Google Cloud. Package **ca.canifishthis.app**.
 

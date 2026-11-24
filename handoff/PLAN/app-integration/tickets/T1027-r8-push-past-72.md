@@ -2,6 +2,10 @@
 
 Status: OPEN — after 0.9.0.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1027 | Android R8: push the optimization / shrinking / obfuscation scores past ~72% (restate library keep rules, each walked) | OPEN — after 0.9.0 | T1003, T1009 | owner 2026-11-22 |
+
 Source: owner 2026-11-22 23:45 (dialog on T1009): "Do 1 but make a ticket to push higher in future" — 72% accepted for
 0.9.0 (T1003/T1009), this ticket to go higher later.
 

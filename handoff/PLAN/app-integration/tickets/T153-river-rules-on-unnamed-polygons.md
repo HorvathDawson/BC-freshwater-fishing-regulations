@@ -3,6 +3,10 @@
 Status: DONE — 62e9cb7c (built on Q124's stated default behind one flag; the owner's answer can flip it). Rebuild:
 reach rerun → binding diff → deliver (no atlas rebuild; POLICY_VERSION 27 invalidates the reach cache).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T153 | a river's rules on unnamed lake polygons on its course (Q124 default, one flag) | DONE | 52462f99, 62e9cb7c | reach rerun: 569 polygons on 154 rivers, 284 rules gain, 0 lose; delivered r-9cf1fef180a8 |
+
 Source: T148 census structural finding (handoff/PLAN/sloughs/v2/census.md, signals 6–7), 2026-10-23.
 
 ## Problem

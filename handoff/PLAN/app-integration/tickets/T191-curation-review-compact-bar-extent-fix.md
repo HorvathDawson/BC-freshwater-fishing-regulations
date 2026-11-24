@@ -2,6 +2,10 @@
 
 Status: DONE (3679fb02b). Owner to try it in the pilot (T136).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T191 | curation review: one-row top bar (secondary filters fold), "fix extent" per rule + entry (op, 1-2 points: map split / any split / NEW confluence, lake inlet/outlet, map click; items; tributaries; read-only preview) as Mark.extent_fix, in tickets for T185 | DONE | 3679fb02b | — (pilot dropped 2026-10-25; the owner uses it in the real review) |
+
 Source: the owner during the T136 pilot on the T189 screen: the filter bar is too tall; "we have no way to change
 extents? like choose op and 1 or 2 splits. if something is wrong we cant fix it". Correction: the ops are whole,
 upstream, downstream, between (the catalogue's own names, shown in those words) — not "from"/"to".

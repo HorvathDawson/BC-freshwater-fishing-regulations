@@ -2,6 +2,10 @@
 
 Status: DONE — df6f6d22e (items 3, 6); 31d770acf (item 2: `scripts/before_push.py`, T993 G2 item 7); d0f0d6ab1 (item 4: the live-data tier on the candidate, T993 G2 item 16); item 1 is practice. The pre-push hook the owner approved 2026-11-21 ("Yes, versioned hook") is built in T995.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T791 | A smaller check plan: rehearse the release once, run the tests once, run the data tests on the new release | DONE (the pre-push hook moved to T995) | df6f6d22e, 31d770acf, d0f0d6ab1 | owner 2026-11-16 01:45 "Everything takes so long maybe we should have less tests all the time and do it together at end or something", "Feels wasteful"; general audit, guards … (detail: ticket file) |
+
 Source: owner 2026-11-16 01:45 "Everything takes so long maybe we should have less tests all the time and do it together at end or something", "Feels wasteful"; general audit, guards checker (`handoff/PLAN/audit-2026-11-16/guards.md`).
 
 ## Measured

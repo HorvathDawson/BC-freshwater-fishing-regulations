@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-06 (chat 3, a89deff00 backend, 544d85a10 frontend) — from the audit (T333–T335, 2026-11-05). Severity: **medium**. Verified by a second reader.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T434 | Review app: errors turned into empty answers (medium) | DONE | a89deff00 544d85a10 | audit 11-05 |
+
 Source: `handoff/PLAN/audit-2026-11-05/` (findings: review-deploy 4, 5, 6, 7, 8; tests 15; `*.verified.md` has the evidence per finding).
 
 ## What happens

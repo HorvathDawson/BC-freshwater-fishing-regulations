@@ -2,6 +2,10 @@
 
 Status: DONE — c7a09348a, 5a4f5e245, fa0c7a1c5, 8967ca419, 731447000. Worker emits closed-area pieces and states its feed shape; the app's minimum feed shape and the deploy refusals are merged (item 3 superseded by T759 / item 6); the production worker was deployed 2026-11-19.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T757 | Feeds worker and app: closed areas inside a DFO place (T573 pieces `<water_id>#closed:<key>`) are live locations: the worker emits `locs` for them and says its feed shape in `/status.json`; a bound piece the feed lacks reads "not known" and is reported, never open. | DONE | c7a09348a, 5a4f5e245, fa0c7a1c5, 8967ca419, 731447000 | — |
+
 Closed by the 2026-11-20 audit: the worker half merged (c7a09348a); item 5 (5a4f5e245) and item 6 (fa0c7a1c5, via 7875490fe) merged with merge/t759; item 7's deploy refusals merged (8967ca419, fix 731447000). The ticket says item 3 was superseded by T759 / item 6. The production feeds worker with closed-area pieces was deployed 2026-11-19 (OWNER-TODO '0.8.3 to production', step 1).
 
 Source: Android chat 2026-11-15 (its pipeline lane's T573 build step), agreed between the two chats the same day.

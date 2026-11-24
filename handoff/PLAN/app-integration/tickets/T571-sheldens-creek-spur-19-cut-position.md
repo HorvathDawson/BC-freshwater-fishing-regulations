@@ -2,6 +2,10 @@
 
 Status: DONE — 998b4e6ab, df08a776a, e8ffdf96d. The Spur 19 question is settled by the owner's 2026-11-16 picks (T806): Sheldens Creek is drawn on to the road bridge ("Extend to the bridge", then "Right (Recommended)") and the place binds the whole creek; the picture after the rebuild is owed under T806.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T571 | Sheldens Creek: the "Spur 19 Bridge site" cut looks misplaced | DONE | 998b4e6ab, df08a776a, e8ffdf96d | — |
+
 Closed by the 2026-11-20 audit: owner answered the Sheldens placement 2026-11-16 20:01 and 20:25 (OWNER-TODO, verbatim picks), built in 998b4e6ab / df08a776a / e8ffdf96d (Sheldens one item, binds the hand-drawn channel); remaining picture is T806's 'owed: 2783'.
 
 Owner, problem report saved in the review app 2026-11-09 (marks.jsonl, DFO place

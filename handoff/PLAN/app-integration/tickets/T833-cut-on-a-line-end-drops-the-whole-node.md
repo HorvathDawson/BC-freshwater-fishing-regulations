@@ -2,6 +2,10 @@
 
 Status: DONE — 20ccb1cd8, dad1dea26, 5debac3ef, a5638c5e7. an end cut takes across only the lines meeting at its point (junctions within STUB_M), POLICY 46; the Gitnadoix powerline cut and label restored.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T833 | A cut on a line's end drops every line touching that node, not just the lines meeting at the cut (Gitnadoix powerline) | DONE | 20ccb1cd8, dad1dea26, 5debac3ef, a5638c5e7 | — |
+
 Closed by the 2026-11-20 audit: fix and STUB_M tolerance landed on land/rebuild-1116, province binding diff vs rebuild2 empty, merged a5638c5e7 and shipped with the 0.8.0 data.
 
 Source: the rebuild follow-up worker, 2026-11-17 04:15 (land/rebuild-1116, T803 item 11 Gitnadoix).

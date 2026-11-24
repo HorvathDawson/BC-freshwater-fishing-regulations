@@ -4,6 +4,10 @@ Status: DONE — 5b8066d7 (data); workflow wf_dc7c8506-0c6 (census → revise �
 handoff/PLAN/sloughs/v2/ (census.md, sweep2.md with its Verification section, candidates_v2.json.gz 2,424 records,
 census.py, revise.py, local_entries.py, not_in_candidates_elong6.csv). Next: T149 (review page).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T148 | sloughs/canals second sweep by FWA feature codes + inside line codes, calibrated on the owner's marks | DONE | 5b8066d7 | (data: handoff/PLAN/sloughs/v2); 2,424 candidates; 275 not-fishing waters drawn as lakes |
+
 Source: owner 2026-10-23: "we should have also looked at lakes with feature codes in mind … go through the lakes again
 with the ones I labelled in mind to do a second sweep plus revision". Part of T55.
 

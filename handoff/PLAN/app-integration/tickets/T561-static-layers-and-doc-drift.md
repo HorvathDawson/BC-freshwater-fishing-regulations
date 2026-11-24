@@ -2,6 +2,10 @@
 
 Status: PARTIAL — pipeline side of all 8 items committed (9b5edac88, 36d196b7f, 56a9d60ef, 6326e3264, 3488e571d, df0b0d0d7, 41ecaabb5, 247112b44). Owner 2026-11-11: the union no-access share goes to the app with the next release format change, not on its own. left (Claude): item 1 an `access` source key in SOURCE_KEYS; item 2 the union share in core/access.ts (with the next format change); item 4 gate.py:13 docstring; item 6 staleness.ts wording; item 8 review-lane docstrings (apply/export/write_through/apply_proposals, data/curated/review/README.md marks rule + its test).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T561 | Static layers: real source dates, no-access overlap, OSM fetch checks; pipeline docs match the code | PARTIAL | 9b5edac88, 36d196b7f, 56a9d60ef, 6326e3264, 3488e571d, df0b0d0d7, 41ecaabb5, 247112b44 | left (Claude): `access` source key; union share in access.ts (with the next format change, owner 11-11); staleness.ts wording; review-lane docstrings |
+
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 17 of 17; highest severity 2 of 5.
 
 Line numbers are the reviewers' and may be off by a few; "Second opinion" is what the verifier corrected. Fixes are proposals: re-read the code before building.

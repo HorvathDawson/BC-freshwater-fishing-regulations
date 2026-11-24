@@ -2,6 +2,10 @@
 
 Status: DONE — shipped in 0.8.3 (merged e57342a5b; staging + production 2026-11-19).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T911 | "Join the test" opens a small popup: email me, or copy the address (owner) | DONE — shipped in 0.8.3 (staging + production 2026-11-19) | e57342a5b | owner 2026-11-19 ~07:55 |
+
 Owner 2026-11-19 ~07:55 (main chat), verbatim: "on the join the test buttons it should have a popup with either a
 straight to email button or a copy email option?"
 

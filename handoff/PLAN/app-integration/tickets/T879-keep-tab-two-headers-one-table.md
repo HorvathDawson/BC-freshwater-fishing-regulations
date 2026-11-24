@@ -2,6 +2,10 @@
 
 Status: DONE (1ea9e5279; in 0.8.2 on app/integrate-082, ledger brought up to date 2026-11-19). Was: PARTIAL — built, tests moved; left (Claude): merge into 0.8.2. Lane `app/t879-two-headers-one-table`.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T879 | "What you can keep": two headers, one table — salmon in the one fish list, each row tagged DFO / B.C. (owner) | DONE | 1ea9e5279 | owner 2026-11-18 ~20:53; approved ~22:58 ("all are good"); lane app/t879-two-headers-one-table |
+
 Owner 2026-11-18 ~22:58 (app chat), on the re-sent proposal pictures, verbatim: "all are good ( T878 … T879 … T881 …
 T883 … T886 … ) except sunrise/set should be a bit better in same spot" — T879 approved for 0.8.2 as pictured.
 

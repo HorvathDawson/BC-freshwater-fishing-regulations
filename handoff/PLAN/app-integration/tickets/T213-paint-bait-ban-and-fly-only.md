@@ -2,6 +2,10 @@
 
 Status: DONE — 74caddda, 898fd9e6; reworked 0c203100 (marks on Standard, switch by Layers, day strip)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T213 | paint bait-ban and fly-fishing-only waters distinctly from general restrictions | DONE | 74caddda, 898fd9e6, 0c203100 | release file `method` (308 kB gz, strip projection); 10-28 rework: marks on Standard (ink edge under the status line: solid fly only, dashed bait ban; lake ring), Bait & fly mode … (detail: ticket file) |
+
 Source: owner 2026-10-27. The map paints a water "has restrictions" whatever they are; bait ban and fly fishing only
 (and similar method restrictions) should read differently at a glance — own colour/pattern or a symbol, in the
 standard regulation map mode, legend included, cvd-safe, beside the T211 Standard/Salmon toggle. Future ticket.

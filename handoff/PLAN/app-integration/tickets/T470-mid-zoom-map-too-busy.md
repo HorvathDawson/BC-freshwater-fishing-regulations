@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-07 — 85ee6156d (tokens, themes and the mask ramp in 225ad72a5, swept by a concurrent commit). Variant B (owner: "Ok let's try that"). Pending: stress-pan cost check (T420 test bed); dark closed / own on faded small streams is the owner's to keep or answer. WCAG pass 2026-11-09 (a9d19c7be): `tools/map-contrast.test.ts` (1.4.11, 3:1 on the ground); dark base and cvd selection lifted to 3:1; light / cvd own, base and missing recorded under 3:1, a casing is the owner's call (Q176).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T470 | Mid-zoom map (z7–z10) too busy: calmer hierarchy, 3 variants (A weight only / B small waters recede / C closed leads) | DONE 2026-11-07 | 85ee6156d, 225ad72a5, a9d19c7be | B built (owner 2026-11-07, Q170); order × zoom fade tunable (`fadeByOrder`); stress-pan cost pending (T420 test bed); WCAG 1.4.11 checker 11-09: dark base + cvd selection to 3:1 … (detail: ticket file) |
+
 Source: owner 2026-11-07: "on desktop or mobile, when in a middle zoom value it feels very very busy. we still want a lot
 of the info but need to find a way to make it a little less abrasive." Their screenshot: web, about z8, Lower Mainland
 from Powell River to the Fraser Canyon.

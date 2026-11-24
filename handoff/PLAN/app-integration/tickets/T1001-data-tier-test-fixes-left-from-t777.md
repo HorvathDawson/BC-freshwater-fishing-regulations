@@ -2,6 +2,10 @@
 
 Status: DONE (f3ecf0c8e, lane L6, 2026-11-22).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1001 | Two data-tier test fixes left from T777 (the Deadman stretch-end test on the live tree; in-season tests between a promote and a release) | DONE | f3ecf0c8e | all (depends T777; from T777's 2026-11-16 additions) |
+
 Source: T777's 2026-11-16 additions, left when T777 closed (lane test/T777-test-isolation, 2026-11-22): both are
 `needs_atlas` tests, so neither runs on CI's tier or in a worktree without the atlas, and the T931 lane had
 `test_review_closed_areas.py` and `test_curation_review_screen.py` open in the same hours.

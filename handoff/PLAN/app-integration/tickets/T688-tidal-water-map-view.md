@@ -2,6 +2,10 @@
 
 Status: DONE (92849a835)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T688 | A wholly tidal water's Map view (Deas Slough) keeps the last camera and says "not available": frame the water, say it is tidal | DONE | 92849a835 | build 29 emulator run 2026-11-12; left: emulator check on the next APK |
+
 Source: emulator run on build 29 (app 0.7.7), 2026-11-12. Evidence: `bcfish-session-backup-2026-11-12/apk-077/11-tidal-deas-slough.png`
 (Regulations view: the tidal card, correct) and `12-tidal-deas-slough-map.png` / `.txt` (Map view: the camera still on the
 Okanagan, the bar "The parts of this water are not available").

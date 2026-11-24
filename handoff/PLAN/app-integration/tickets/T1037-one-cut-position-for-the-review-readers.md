@@ -2,6 +2,10 @@
 
 Status: OPEN — needs a decision on what "the cut's position" is for a reader with no extent (not small; no build output changes until then)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1037 | Two review readers (`audit.primary_split_pos`, `reuse.host_rows`) pick a cut's position by different rules (157 of 190 multi-row cuts disagree); the build's is per extent (`extent._cut_at`) | OPEN — needs the position rule decided | T776 | PR #48 independent review, 2026-11-23 |
+
 Source: independent review of PR #48 (T775 / T776 lane), 2026-11-23. Not changed in that PR: the brief said to change it only
 if the build's own rule was clear and changing it moved no build output.
 

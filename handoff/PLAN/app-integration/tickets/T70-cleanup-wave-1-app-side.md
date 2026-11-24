@@ -3,6 +3,10 @@
 Status: DONE — 52ec4cb5, 799614a5, 4615ee0f, 1e8cbdb5, ac95e09f, a7947f99, de3cb79d, review ef11d8e4 (lane wf_63a2801d-ce3-3). All code
 items done; left: three filesystem steps outside a worktree lane (below) and the strict `pnpm check` run at merge.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T70 | cleanup wave 1, app side + stale worktrees + `pnpm clean` | DONE | 52ec4cb5, 799614a5, 4615ee0f, 1e8cbdb5, ac95e09f, a7947f99, de3cb79d, fd3f8c06, ef11d8e4, 17e4fe8f | merger steps done 2026-10-24 (clean + strict green); Q17 dead follow-branch → T63 |
+
 Source: handoff/PLAN/audit/PLAN.md §2 "Wave 1" items 1.1–1.7, 1.13. The pipeline half landed (7ea5300b, 8f459d98,
 974359b2, 15a32b5c); the app half did not. T61 is wave 2 only. Checked on disk 2026-10-22:
 - 1.1 `app/tools/render-setup.js` + `.d.ts` still tracked.

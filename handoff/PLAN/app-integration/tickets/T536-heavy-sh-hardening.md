@@ -2,6 +2,10 @@
 
 Status: DONE — fad79daf0 (shell test 37/37; see Built).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T536 | heavy.sh: a stopped wrapper stops its job, a bad memory reading is safe, `--status` + heartbeat, duplicate refused | DONE | fad79daf0 | workflow review 2026-11-09; shell test scripts/tests/heavy.test.sh |
+
 Source: workflow review 2026-11-09 (verified against the code; signal behaviour read, not fired). Rank 4.
 
 ## Today (`scripts/heavy.sh`)

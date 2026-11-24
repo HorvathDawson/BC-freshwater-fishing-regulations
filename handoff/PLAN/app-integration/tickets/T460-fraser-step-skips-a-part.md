@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-06 — 96f7b5919, 92a25d8ee (Q1: case (a), the rules are right, 950c2a3; Q2: the step fixed). Owner: phone check on 0.6.8.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T460 | Fraser: ▲ from Williams Lake River confluence offers 2 parts (a side channel skips part 15) | DONE 2026-11-06 | 96f7b5919, 92a25d8ee | rules right (950c2a3); 8 waters' steps change, side-channel forks kept; phone check 0.6.8 |
+
 Owner: "upstream of Fraser at Williams Lake River confluence → Region 7A boundary has 2 upstream Fraser options?
 Shouldn't it only have 1? It gives an option to basically skip one of the sections."
 

@@ -2,6 +2,10 @@
 
 Status: DONE d3c7376a0 (owner 2026-11-17 15:04 after the desktop shots: "Keep it (Recommended)"; was: IN PROGRESS (proposal: pictures to the owner))
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T752 | Desktop: the water's Map tab as a split (map one side, the part's text the other) — look proposal, two variants | DONE | d3c7376a0 | owner 2026-11-15: "on desktop the section navigator should maybe be map on one side and text on other (split column?) thoughts?"; patch + sheets in ~/bcfish-session-backup-2026-11-12/desktop-split/ |
+
 Source: owner 2026-11-15, staging website, desktop, a water's page, Map tab (Fraser River, part 4 of 19), verbatim:
 "on desktop the section navigator should maybe be map on one side and text on other (split column?) thoughts?"
 His screenshot at about 1512x760: the map is a strip about 1512x270, wider than the content column, and the controls

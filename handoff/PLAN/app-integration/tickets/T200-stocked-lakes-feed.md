@@ -2,6 +2,10 @@
 
 Status: OPEN — NEXT AFTER CLOSED TESTING (first). Was POSTPONED (deferred, owner 2026-11-05).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T200 | stocked lakes: feed the prepared Stocked mode; NEXT AFTER CLOSED TESTING, first (plan: research/stocking-feasibility.md; matcher = lake code picks, FISS point + name confirm, frozen reviewed file) | OPEN | — | owner 2026-11-13: "after the closed release we will do stocking and depth maps next"; starts once Play closed testing is running; owner: licence link, class B, streams, history … (detail: ticket file) |
+
 Source: owner 2026-10-25 ("at the end, alongside the stocked and bathy maps"); decisions.md "OWNER 2026-10-21 — lake
 Stocked / Depth modes: prepared, not fed yet".
 

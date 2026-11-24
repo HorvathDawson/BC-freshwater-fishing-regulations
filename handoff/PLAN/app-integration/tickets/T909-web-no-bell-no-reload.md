@@ -2,6 +2,10 @@
 
 Status: DONE — shipped in 0.8.3 (merged 96d9e4aab; staging + production 2026-11-19).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T909 | Web app: no bell and no reload in the search bar (owner) | DONE — shipped in 0.8.3 (staging + production 2026-11-19) | 96d9e4aab | owner 2026-11-19 ~07:20 |
+
 Owner 2026-11-19 ~07:20 (main chat), verbatim: "also staging still has the bell and reload but bell does nothing on
 webapp?" Asked (dialog: remove both on web / bell only / make the bell work on web); owner picked "Remove both on web
 (Recommended)".

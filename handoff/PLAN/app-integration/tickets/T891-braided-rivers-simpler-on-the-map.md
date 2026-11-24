@@ -2,6 +2,10 @@
 
 Status: DONE — part one (2b5a1748a, 07ee36ad5), on production since 0.8.3; part two (braids simplified harder at low and middle zoom) MOVED to T699 by the owner 2026-11-20 ("Fold into T699 later").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T891 | Braided rivers drawn simpler: side channels thinner than the main channel; braids simplified in the tile build (owner) | DONE | 2b5a1748a, 07ee36ad5 | owner 2026-11-18 ~22:02; part two moved to T699 (owner 2026-11-20) |
+
 Owner 2026-11-18 ~22:02 (main chat), staging map shot of the Lillooet River braids near Pemberton, MU 2-9
 (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/8b47b3ee-image.png), verbatim: "Isn't
 braiding like this supposed to be simplified more ?". Asked how (dialog: main bold + braids thin / fill the river

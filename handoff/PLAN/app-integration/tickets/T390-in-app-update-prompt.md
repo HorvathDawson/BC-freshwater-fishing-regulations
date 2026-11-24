@@ -2,6 +2,10 @@
 
 Status: PARTIAL — 0798fd27b, c62aeb4b8, a2b614425, 0b96e8848 (code + tests merged; shipped in 0.6.2 and 0.6.5); left (Claude): the "Test bed" checks 1-4 below on the current APK, including a Play internal install one build behind (OWNER-TODO lists it as "9. Claude: the in-app update prompt checked (T390, stalled since Nov 6) and T514.").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T390 | The app notices a newer version of itself and offers an Update button (Play in-app update; strong prompt when a release needs a newer app) | PARTIAL (code + tests merged; left (Claude): test-bed checks 1-4 on the current APK) | 0798fd27b, c62aeb4b8, a2b614425, 0b96e8848 | owner 2026-11-04 (after 0.5.0); expo-in-app-updates; iOS stub until T88; left: emulator/phone checks with the next APK (ticket test bed) |
+
 The app should know when a newer version of itself exists and let the reader update from inside it, with one button.
 
 - **Android:** Google Play's in-app updates (Play Core "flexible" update: the download runs in the background, then a

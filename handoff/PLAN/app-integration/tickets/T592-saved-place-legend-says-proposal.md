@@ -2,6 +2,10 @@
 
 Status: DONE — 4089f60cd, 2026-11-10 — `checklist.showsProposal` (frontend test); not looked at in a browser on the Forks
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T592 | A saved place's map legend still lists "proposal (not applied)" | DONE | 4089f60cd | T532 leftover f; our proposal leaves the map once the place holds his save |
+
 Source: T532 round 9 (the Forks), leftover f.
 
 ## Today

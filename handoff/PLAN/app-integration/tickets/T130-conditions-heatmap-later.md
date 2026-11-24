@@ -4,6 +4,10 @@ Status: DONE — b4f3a40f, cd95bb63, review c9d48ea7 (lane wf_58c33d34-a73-1). H
 maxzoom; the Change chip stays greyed "Flow only" under Level/Temperature and a tap moves to Flow. No tile rebuild
 needed; T64's build picks up BASIN_HANDOVER_Z = 8 and simply stops writing z8 basin tiles.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T130 | Conditions: zoom out further before the basin heat map; Change chip greyed under Level | DONE | b4f3a40f, cd95bb63, b5218057, c9d48ea7 | Q-T130a/b (defaults built) |
+
 ## Owner
 "make it so conditions needs more zoom out to get heat map; should be able to zoom out quite a bit more first."
 Also (same session): the Change chip "disappeared" — it is hidden under Level/Temperature (Flow only) and that choice now

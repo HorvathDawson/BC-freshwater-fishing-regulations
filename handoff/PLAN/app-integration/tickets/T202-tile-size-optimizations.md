@@ -2,6 +2,10 @@
 
 Status: DONE — basemap d4589cb5 / 6f25c3c9, atlas aeba83ca + b17dfa1f (web promoteId fix) (release r-c706f5eaa2a3, 2026-10-27)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T202 | tile size optimizations (basemap z13 options, attributes, precision, simplification) | DONE | d4589cb5 (basemap), aeba83ca b17dfa1f (atlas) | basemap 918.4 → 274.5 MB (z13 + roads rebuild, wetland dropped, fills/coast on a coarser grid); atlas 239.3 → 176.1 MB (MVT-id only, lake attrs, 2048/1024 grids, mu z12 overzoom … (detail: ticket file) |
+
 Source: owner 2026-10-25 — "another item in last band is the tile size optimizations."
 
 ## Starting point

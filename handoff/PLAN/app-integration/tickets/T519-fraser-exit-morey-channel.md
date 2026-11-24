@@ -2,6 +2,10 @@
 
 Status: DONE — 935ed7b37, 254befbeb, d3bb57acb, a804a5d78; owner 2026-11-09 on build 24: fine ("not sure how to check but don't see anything weird")
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T519 | Fraser exit reads Morey Channel (own side channel) since T497; T59 rule regressed | DONE — 935ed7b37, 254befbeb, d3bb57acb, a804a5d78; owner 2026-11-09 on build 24: fine ("not sure how to check but don't see anything weird") | 935ed7b37, 254befbeb, d3bb57acb, a804a5d78 | T517 lane 2026-11-08 |
+
 Was: IN REVIEW — 935ed7b37, 254befbeb, d3bb57acb, a804a5d78, in r-d14bdb180f55 (52298df0a); owner: OWNER-TODO "Phone check with build 22" (the Fraser's exit reads the sea, not Morey Channel).
 Earlier: OPEN — fixed in the T517 side build (topology `channel_of_o`: a smaller stream on the main river's own watershed code is its channel, never its exit); 3 exits change (`T517` Results); owner review with T517 before promote.
 

@@ -2,6 +2,10 @@
 
 Status: DROPPED — merged into T239 (2026-11-05 audit; the work continues there) — was: OPEN (found by T239, 2026-11-05).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T414 | Review app: "only these entries" filter for the yearly synopsis diff | DROPPED — merged into T239 (2026-11-05) | — | from T239 11-05 |
+
 `python -m pipeline.tools.synopsis_diff … --ids-out <file>` writes the entries a new book added or changed. The
 runbook (`handoff/PLAN/runbooks/annual-synopsis.md`) has the owner review ONLY those. The review app needs a filter
 that takes that list (a file path or `#ids=` param) and limits the entry queue to it, with progress over the list.

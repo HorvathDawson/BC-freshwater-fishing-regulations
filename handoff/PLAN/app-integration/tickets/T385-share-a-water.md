@@ -2,6 +2,10 @@
 
 Status: DONE (owner 2026-11-04: "in the app we should have a share button on a river that sends the website link", in 0.5.0) — a4873c54e.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T385 | Share a water: the share sheet with its website link (the reload address) | DONE | a4873c54e | owner 2026-11-04 (in 0.5.0) |
+
 ## Done (a4873c54e)
 - Share sits in the water header's back row, beside × (every view: Regulations, Conditions, Map), Lucide `share-2`.
 - `@app/ui` `useShare` / `shareLink`: `linkSearch` (the address bar's function) over the route alone + day + horizon,

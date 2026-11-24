@@ -2,6 +2,10 @@
 
 Status: OPEN — 0.9.0 batch, not small (see Why); left (Claude): design the count, then a release build to prove it
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1030 | The release manifest carries a changed-waters count (the inbox data row's "N waters changed") | OPEN — 0.9.0 batch | T867 | stopped: not small, see the file |
+
 T867 (PR feat/T867-inbox) shows a data-release row in the notifications inbox: "Regulations data updated <day>", and
 "N waters changed" once the manifest says it. Nothing in the manifest says it today, so the row omits it (rule 32); the
 slot is `InboxTrack.release.changed` in `@app/ui` `useInSeasonInbox` (Shell reads it from the manifest).

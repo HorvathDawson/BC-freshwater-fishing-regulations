@@ -2,6 +2,10 @@
 
 Status: DONE — b3b950e5e (built, used by every staging release since 2026-11-12); the last left item (the pointer-free smoke group before the upload) DROPPED by the owner 2026-11-20.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T537 | `release --staging`: in-season resolve before the promote, resume from the smoke, after-chores named, prod checks staging first | DONE | b3b950e5e | leftover (pointer-free smoke group) DROPPED, owner 2026-11-20 |
+
 Source: workflow review 2026-11-09 (verified against the code). Rank 5.
 
 ## Today

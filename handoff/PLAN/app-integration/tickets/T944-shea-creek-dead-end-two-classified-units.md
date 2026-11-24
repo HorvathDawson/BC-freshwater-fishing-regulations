@@ -2,6 +2,10 @@
 
 Status: DONE — d23bbc9b6; shipped in 0.8.4 (cut e769f710a, data r-fec3fab4c5aa; 0.9.0 audit 2026-11-22, every hash is an ancestor of origin/main and of e769f710a). (Earlier status: IN PROGRESS — fixed on lane/lc-reach-leftovers; left (Claude): main chat review + merge; a reach run + bundle (the next release) carries it.)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T944 | Shea Creek dead-end piece 773423 carries both the Bulkley's and the Morice's Classified Waters units | DONE | d23bbc9b6 | — |
+
 Source: lane/t936-t931 (T931 group B, slow tier), 2026-11-20.
 
 ## What

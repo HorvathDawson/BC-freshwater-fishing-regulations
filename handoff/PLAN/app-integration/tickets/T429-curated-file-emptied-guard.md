@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-05 (chat 3, 467affc51) — from the audit (T333–T335, 2026-11-05). Severity: **high**. Verified by a second reader.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T429 | A missing review input can empty a curated file (high) | DONE | 467affc51 | audit 11-05; GENERATED_ROOT: no (test hooks only) |
+
 Source: `handoff/PLAN/audit-2026-11-05/` (findings: pipeline 1, 4; `*.verified.md` has the evidence per finding).
 
 ## What happens

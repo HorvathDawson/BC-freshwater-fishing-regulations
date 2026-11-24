@@ -2,6 +2,10 @@
 
 Status: DONE — 3c38c1d9b, 5d928a1fb, a461fbc50, a424dc8a0 (items 3, 6, 7, 9, 12); ea6d534f2 (#2), 60ed4ac17 (#8), d0f0d6ab1 (#10) in T993 lane G2; a3ca419e2 (#1, #4, #5, #11) in T993 lane G3 (details in T993's G3 notes). Merged and green on GitHub 2026-11-21 (3a0fa7c3b).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T788 | Gates that hide their cause or do not fire when they should (found by the audit and by last night's release) | DONE | 3c38c1d9b, 5d928a1fb, a461fbc50, a424dc8a0, ea6d534f2, 60ed4ac17, d0f0d6ab1, a3ca419e2 | general audit 2026-11-16, code and guards checkers (`handoff/PLAN/audit-2026-11-16/code.md`, `handoff/PLAN/audit-2026-11-16/guards.md`) |
+
 Source: general audit 2026-11-16, code and guards checkers (`handoff/PLAN/audit-2026-11-16/code.md`, `handoff/PLAN/audit-2026-11-16/guards.md`).
 
 1. `pieces_gate.fetch_status` swallows every error: a 403, a DNS failure, a timeout and bad JSON all read "the worker

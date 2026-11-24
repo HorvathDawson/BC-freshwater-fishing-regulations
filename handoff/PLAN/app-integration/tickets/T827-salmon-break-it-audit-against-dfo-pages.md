@@ -2,6 +2,10 @@
 
 Status: OPEN (future; owner 2026-11-16; after the salmon landing).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T827 | A fresh agent tries to break every salmon rule against DFO's own pages | OPEN | — | owner 2026-11-16 (future) |
+
 Source: owner 2026-11-16 (verbatim): "We want to create a future ticket to do a similar check of all salmon regulations
 to the webpages with a fresh agent that tries to break it and look for issues in the regulations".
 

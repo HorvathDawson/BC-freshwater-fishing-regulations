@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-20 (33aa04409, shots 8bcbb359a 7008a6c73; independent review clean, web checked, smoke green).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T935 | iPhone: the year bars' closed days and the Closed key swatch draw no colour (owner) | DONE | 33aa04409 8bcbb359a 7008a6c73 | owner 2026-11-20 "On apple DFO calendar when closed has no color" |
+
 Source: owner 2026-11-20 ~00:11 (main chat), photo of his iPhone `T935-shots/owner-2026-11-20-fraser-iphone.jpg` (Fraser
 River, CPR Bridge at Mission → Landstrom Bar, Nov 20). Verbatim: "On apple DFO calendar when closed has no color". The
 SALMON bar shows only its open run (Oct–Nov 30); Jan–Oct and Dec are blank, and the key's "✕ Closed" has no swatch.

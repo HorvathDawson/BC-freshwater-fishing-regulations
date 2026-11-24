@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS — lane L6: the sideways case (the T928 tester's picture) reproduced on the iPhone simulator and fixed in 3a8d5333b (a hard home re-renders the edge view so React commits 0); the grey lower part not reproduced on this build; left (Claude): the Android emulator walk
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T938 | iPhone: after search → water → Back, the browse map draws only its top part (found chasing T928) | IN PROGRESS — lane L6: the sideways case (T928's picture) reproduced and fixed (a hard home re-renders the edge view so React commits 0); the grey lower part not reproduced; left (Claude): the Android emulator walk | 3e8189d79, 3a8d5333b | main chat lane 2026-11-20, simulator; in 0.8.3 too |
+
 Source: found 2026-11-20 by the main chat's T929/T928 lane on the iOS simulator (iPhone 17e, 390 pt), while trying to
 reproduce T928. Reproduces every time, on the 0.8.3 build (1f989bb48) and on lane/t929-t928.
 Shot: lane/t929-t928 `handoff/PLAN/app-integration/tickets/T928-shots/ios-browse-map-part-drawn-after-search-water-back.png`.

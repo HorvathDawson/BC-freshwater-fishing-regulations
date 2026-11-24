@@ -2,6 +2,10 @@
 
 Status: DONE — 4734dbdca (items 3, 4); items 1, 2 kept as they are on the owner's answer
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T629 | Owner: four places where our text differs from the printed book (no value changes) | DONE | 4734dbdca | WILD paragraph sourced + out of the transcription; our notes moved out; items 1, 2 kept (owner) |
+
 Source: T553 report 2026-11-11. None of these changes a rule value. Each needs the owner's reading.
 
 1. Region 7B possession exception: our wording against the printed wording, p.64.

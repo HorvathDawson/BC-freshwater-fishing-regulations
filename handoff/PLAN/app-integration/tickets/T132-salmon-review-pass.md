@@ -2,6 +2,10 @@
 
 Status: DROPPED — folded into T164 (the DFO review mode, umbrella over T95/T132) (ledger check 2026-11-03).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T132 | curation review: salmon (DFO) pass | DROPPED (folded into T164) | — | later, after the first pass |
+
 Source: owner 2026-10-23, approving the curation review plan: "We could also maybe make it do salmon review. But for now
 it seems good." Q36 (default kept): DFO salmon entries, overrides, steelhead waters, cross-references and name variants
 are NOT in the first pass.

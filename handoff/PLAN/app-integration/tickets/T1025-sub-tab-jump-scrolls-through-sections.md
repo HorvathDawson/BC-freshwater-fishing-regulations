@@ -2,6 +2,10 @@
 
 Status: DONE (641725521, dd48e15d8) — a regs sub-tab press now JUMPS (`animated: false`), so no pass through Gear/Methods and the scroll-spy highlight cannot flicker. RegsScreen.test asserts the jump. NOT recorded on an emulator.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1025 | Switching regs sub-tabs (What you can keep ↔ Licence) scrolls through every section between | DONE | 641725521, dd48e15d8 | closed tester via owner 2026-11-22 |
+
 Source: a closed tester, relayed by the owner 2026-11-22 (screen recording, Android dark, Alouette River "From 216 Street
 bridge up to the Alouette boundary signs"). Verbatim: "The only weirdness I've seen is toggling between What you can keep
 and Licence … It goes through all sections, but that's not unreasonable". Same message: "Really nice! Very information

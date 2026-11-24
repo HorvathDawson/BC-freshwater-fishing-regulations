@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-18 (71284eac6, 459b96e0f; data release r-fc137c4040fa on staging 20:16, smoke 19/0/0).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T846 | A decided fish answer says "keep" where a take-0 sub-cap over part of the pool releases it (Bella Coola cutthroat, 35 waters; the trout table is right) | DONE | 71284eac6, 459b96e0f (r-fc137c4040fa) | T810 L re-review 2026-11-18; fixed at source (rows/evaluate `_subcap_released`), province audit found no other water |
+
 Source: T810 L re-review 2026-11-18. On the Bella Coola tributaries (Ape, Assanany, Burnt Bridge Creeks, Atnarko River;
 79 cells, 35 waters) `atnarko_bella_coola_rivers.r4` ("all cutthroat trout catch and release") is a take-0 sub-cap holding
 only some of the pool's fish. `rows/evaluate.py` (the subcap loop) turns it into a "limit" line and never sets the fish's

@@ -2,6 +2,10 @@
 
 Status: DONE — 275cbd2f5; owner 2026-11-11 let chat 11 make this one fix in chat 10's lane. `group_for` returns no group for a member a withdrawn override matches; pinned by `test_a_withdrawn_cut_is_not_rebuilt_from_the_mark_that_still_names_it`; both tests fail with the guard off. `marks.jsonl` untouched.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T639 | Review proposals: `build()` rebuilds a cut the owner's mark withdrew (Alouette / Allco) | DONE | 275cbd2f5 | owner let chat 11 fix it in chat 10's lane; guard in group_for + pinning test |
+
 Source: suite trace 2026-11-11. Lane: chat 10 (`pipeline/regs/review/` is theirs; chat 11 did not touch it).
 
 Failing: `test_curation_review_split_preview::test_every_proposal_is_shown_under_its_real_id_and_the_build_lands_the_same`.

@@ -2,6 +2,10 @@
 
 Status: DONE — a1f32fee.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T15 | presenter: inherited line, where-you-can't-fish, possession | DONE | a1f32fee | — |
+
 Phase 1 · Depends on T00, T06 (`RuleView`, rule `plain`), T07 (`Settled.standing`, verdict roles), T08 (`CardModel.R`), T12 · Blocks T21, T25 · Decisions — · Size ½ day
 
 Target **regs v33 @ 04765ab5** (prototype script from line 892; page_v36.js same commit).

@@ -2,6 +2,10 @@
 
 Status: DONE — 8436b380e (08GC005 above the Theodosia's canal; the 28 left gaugeless; intake cut: owner "Leave it", 2026-11-12)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T696 | Diversion gauges: Q103 + follow-ups answered; 08GC005 speaks above the Theodosia canal, labelled "measures a diversion"; the 28 left gaugeless | DONE | 8436b380e | owner 2026-11-12; RULINGS P54; intake cut answered "Leave it" (no cut); ships with the next deliver + app build |
+
 Source: owner 2026-11-12 (dialog option, verbatim): "Canal gauge also serves river" — the diversion gauge is shown on the
 nearby river sections too, labelled as measuring a diversion; it must not outrank a real river gauge, only fill sections
 that have none. RULINGS P54.

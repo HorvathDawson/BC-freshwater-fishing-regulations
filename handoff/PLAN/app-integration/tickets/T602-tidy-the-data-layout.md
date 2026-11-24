@@ -2,6 +2,10 @@
 
 Status: OPEN
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T602 | Tidy the data layout into fetched, curated, built, released (rules page; nothing built beside a source) | OPEN | — | T599 step 4; after T600, T601 |
+
 Source: T599 findings step 4 (§4, §5); owner 2026-11-10: "nice split between the different source types".
 
 ## Work

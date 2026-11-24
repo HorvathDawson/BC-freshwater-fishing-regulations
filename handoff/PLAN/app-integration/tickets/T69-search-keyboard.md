@@ -4,3 +4,7 @@ Status: DONE — 448ebe1b, 389e451a (review). Wide web: Escape / the panel's ✕
 - Focus after closing search goes to the page body. Needs a "focused but closed" state (focusing the field re-opens).
 - Tab order runs against what you see: the results panel is drawn before the top bar.
 Acceptance: keyboard-only walk test (open, type, pick, close, Esc) with focus asserted at each step.
+
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T69 | search on desktop: keyboard leftovers | DONE | 448ebe1b, 389e451a | — |

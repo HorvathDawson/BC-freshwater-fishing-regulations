@@ -4,6 +4,10 @@ Status: DONE — 2ac30e42 (fixes), 9259fa16 (the six gates), 2633355 (same hash,
 2026-10-23. Leftover copy → proposed ticket "T60-copy" (Outcome F6); owner question Q-T60a (Outcome F9).
 Owner 2026-10-22: Fable-model agents audit the app for consistency.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T60 | consistency auditors (N16, Fable) | DONE | 2ac30e42, 9259fa16, ed367f33, d02e1448 | six mutation-pinned gates in pnpm check; F1–F5 fixed; copy move → T180; Q162 |
+
 Checks to build, each pinned with a mutation test: route equality (one route per place), one surface per action (Map
 was offered twice), data-vs-UI (every number/word on screen traces to the bundle or core words), one icon set, one
 colouring pathway, back everywhere. Run the auditors on the Fable model; each finding becomes a fix or a ticket.

@@ -2,6 +2,10 @@
 
 Status: DONE — df1c8bf1 (tokens, gate, option shots), 41ace93b (review: light is spruce, not the selection's magenta). Built with the Q-T146a default; Q-T146b (spruce vs selection) default built.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T146 | no-access colour apart from base (light spruce, dark ice cyan) | DONE | 01f76c76, 41ace93b, 38e6628b, df1c8bf1 | app |
+
 Source: Owner 2026-10-23 (app walk). "the no public access color is awkward too. it is very similar to base regs". Related: T54 (no-access
 streams, Q1–Q3), T47 (status colours you can tell apart; Palette D stands).
 

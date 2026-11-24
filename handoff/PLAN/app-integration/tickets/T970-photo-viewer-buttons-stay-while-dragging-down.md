@@ -2,6 +2,10 @@
 
 Status: PARTIAL — the chrome (✕, counter, arrows) now fades with the drag down, gone by the time the ground is half gone (`photoDismissLook().chrome`, `PhotoViewer.tsx`); a spring-back brings it back; pinned in `PhotoViewer.motion.test.tsx` (mutation-checked). Code 8c5dfce63. left (Claude): the Android look, light + dark.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T970 | Photo viewer: the buttons stay at full strength while the photo is dragged down to close | PARTIAL — built + render-tested (8c5dfce63); left: the Android look, light + dark | 8c5dfce63 | L4 Android looks 2026-11-20 |
+
 Source: L4 Android device-looks pass 2026-11-20 (T836 bench, emulator, `photo-zoom`), found on the shot taken mid-drag.
 
 ## What was seen

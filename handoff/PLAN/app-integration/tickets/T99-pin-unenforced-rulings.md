@@ -6,6 +6,10 @@ mutation-pinned; C-4 cites C2. Review replaced three tautologies (Z1 Region 4 la
 "Review" below) and added Z1's no-carve-out check over every section. No rebuild needed (tests and a read-only
 tool only). Left: T8's unnamed-tributary placement (below) and Q-T99a.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T99 | pin the rulings nothing enforces (Z1 base+deltas, 12 ◐ rulings, C-4 citation) | DONE | f8742374, 53d57288, f3bc2b4b, 857bed9a | — |
+
 ## Result (2026-10-22, bundle reach_digest dc21329d925d042d)
 
 **Z1** — `pipeline/tools/base_deltas.py` (`python -m pipeline.tools.base_deltas [--per N]`). Per section, day and

@@ -2,6 +2,10 @@
 
 Status: DONE — a7235f996, 3d807829d, d14bdb180f55, 52298df0a; owner 2026-11-09 on build 24: fine
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T482 | Salmon section: region rules into the species rows (sizes on each row, daylight one line), DFO source a closed fold; R1/R2/R6 header-format regression | DONE — a7235f996, 3d807829d, d14bdb180f55, 52298df0a; owner 2026-11-09 on build 24: fine | a7235f996 | owner 2026-11-07 (Vedder) |
+
 Was: IN REVIEW — a7235f996, in build 22 (3d807829d) + in r-d14bdb180f55 (52298df0a); owner: OWNER-TODO "Phone check with build 22" (Vedder salmon section).
 Earlier: IN REVIEW — merged into redesign/stream-sections 2026-11-07 (a7235f996), after r-1b4f54fb6ed9 and the 0.6.9 APKs. Ships with the next release; the owner was sent the before/after Vedder shots 11-07.
 

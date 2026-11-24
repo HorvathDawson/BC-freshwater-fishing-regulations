@@ -2,6 +2,10 @@
 
 Status: POSTPONED (deferred, owner 2026-11-13, verbatim: "Then the last 2 items for after closed testing should be moved to deferred with stocked lakes and bathy map etc.."). Moved to the deferred group with stocked lakes and the bathymetry map; earlier 2026-11-12: "this is after closed build though".
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T695 | Fold more small widenings into the stream; draw the stream line instead of the unnamed polygons a river runs through (the 456, Q124/T153; real lakes stay lakes) | POSTPONED (deferred, owner 2026-11-13: moved to deferred with stocked lakes and bathy map; earlier "after closed build" 2026-11-12) | — | RULINGS E27; measure first; links T686 (candidate 9), T678 D1 |
+
 Source: owner 2026-11-12, verbatim: "the unnamed polygons depends if it is actually a lake... I thought we already
 captured most of these. We could do another ticket in future to combine more small widenings as part of the stream. In
 that ticket it could also remove those lakes and instead replace it with the stream line below it instead. Since if it is

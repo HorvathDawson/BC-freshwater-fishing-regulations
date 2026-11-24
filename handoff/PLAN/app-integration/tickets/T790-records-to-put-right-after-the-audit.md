@@ -2,6 +2,10 @@
 
 Status: PARTIAL (docs and small tickets; main chat; items 1 and 7 DONE 2b4e0d826; item 4's ledger half DONE c0f8da79c (47 DONE/DROPPED rows to DONE.md); left (Claude): items 2, 3, 4 (stale statuses, missing ticket numbers), 5, 6 (the lost follow-ups still to ticket), 8, 9)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T790 | Records to put right: answers shown as open, stale ledger rows, stalled tickets, readings missing from the rulings file, lost follow-ups | PARTIAL (items 1, 7 and item 4's ledger half done: 2b4e0d826, c0f8da79c; left (Claude): 2, 3, 4 rest, 5, 6, 8, 9) | c0f8da79c, 2b4e0d826 | general audit 2026-11-16, decisions checker (`handoff/PLAN/audit-2026-11-16/decisions.md`) |
+
 Source: general audit 2026-11-16, decisions checker (`handoff/PLAN/audit-2026-11-16/decisions.md`).
 
 1. T754 one-bank places: the owner answered "Build it this way (Recommended)" (2026-11-15, round 4); the ticket, the

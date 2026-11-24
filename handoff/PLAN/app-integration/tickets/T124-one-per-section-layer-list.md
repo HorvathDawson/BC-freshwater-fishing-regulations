@@ -2,6 +2,10 @@
 
 Status: DONE — 4976bf2b, review fix b78a9bb0 (app only; ships with the next app build, no data rebuild).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T124 | one per-section layer list in map | DONE | 4976bf2b, 5887de97, b78a9bb0, 7a72d388 | app only; native route colours wetland sloughs |
+
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, findings app 3 and 4
 (CONFIRMED, latent).
 

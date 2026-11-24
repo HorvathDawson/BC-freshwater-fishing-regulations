@@ -2,6 +2,10 @@
 
 Status: DONE — 05a8b704 (lane-T112, one code commit with T112).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T119 | one acceptance gate for ingest, validator and review app | DONE | 9cde1fbe, f99cd705, 05a8b704 | no rebuild |
+
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding matching 2
 (CONFIRMED in code).
 

@@ -2,6 +2,10 @@
 
 Status: DONE (808784f1, e20796648, 29326f97f) — the Cascade map; owner answers 2026-10-28 implemented; release r-6e96911055ce
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T229 | DFO salmon cascade on the Skeena: plain explanation + Cascade map (review app, DFO mode); the order read from the Region 6 page | DONE | 808784f1, e20796648, 29326f97f | release r-6e96911055ce: more specific place wins within a tier (Kitsumkalum mouth closed Jul 1–Aug 31, Morice Forks), tidal-Area rows section E only, eulachon its own line; Q3/Q6 to T164 |
+
 Source: owner 2026-10-28: "make sure the cascade regs in Skeena are correctly done … go over how the cascade works and
 make sure I agree. maybe on a map use colors to show the different cascading, multi colour if multiple apply."
 

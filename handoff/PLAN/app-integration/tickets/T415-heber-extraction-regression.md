@@ -2,6 +2,10 @@
 
 Status: DROPPED — merged into T239 (2026-11-05 audit; the work continues there) — was: OPEN (found by T239's dry run, 2026-11-05).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T415 | Extraction regression: Heber River's text (found by T239's dry run) | DROPPED — merged into T239 (2026-11-05) | — | from T239 11-05; before the next book |
+
 A fresh extraction of the current book reproduces 1,512 of 1,515 entries. Chilliwack/Vedder and Coquihalla differ only
 because curators hand-fixed their text (expected). Heber is a real regression: the extractor changed since the 09-24
 run and now reads that row differently. Find the change in `pipeline/regs/extraction`, fix it, and pin it with a

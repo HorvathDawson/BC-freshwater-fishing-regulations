@@ -2,6 +2,10 @@
 
 Status: DONE — ae4181e30
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T263 | the bell says a data update is waiting for Wi-Fi / ready / needs a newer app (today: failures + in-season only) | DONE | ae4181e30 | owner 2026-10-29 via T255 |
+
 Source: owner 2026-10-29 (T255 brief: a bigger update → "update available/needed at the top + in the bell/
 notifications"). Today the release's state reaches only the sync button's label/dot and More → Data; the bell
 (`Shell.tsx` `notices`, `bellLabel`, `InSeasonNotice`) lists in-season changes and FAILED updates only, so a release

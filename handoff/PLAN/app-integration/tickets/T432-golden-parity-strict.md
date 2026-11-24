@@ -4,6 +4,10 @@ Status: DONE 2026-11-05 — f00ed83d3. `test-full.sh` runs the app step with `RE
 naming sync.mjs; release runbook + MAP.md say so); `tools/no-silent-skips.test.ts` allowlists the 59 app skip sites with counts;
 `test_smoke_coverage.py` makes every pipeline test file smoke-listed, data/slow-only or in `smoke_pending.txt` (148, shrink-only).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T432 | The app's golden parity passes green on zero cases; no app skip gate (high) | DONE | f00ed83d3 | audit 11-05 |
+
 Source: `handoff/PLAN/audit-2026-11-05/` (findings: tests 1, 2, 7; `*.verified.md` has the evidence per finding).
 
 ## What happens

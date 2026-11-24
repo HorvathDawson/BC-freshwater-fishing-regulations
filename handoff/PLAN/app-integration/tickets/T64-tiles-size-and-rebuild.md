@@ -5,6 +5,10 @@ and the S2 easy size wins. Never replace the tiles dir: promote pmtiles + meta +
 Tiles and bundle share a vintage (rebuild both or check the handle digest). Acceptance: size table before/after;
 private land visible from z11; no basin seams; strict + smoke.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T64 | tiles: S2 size wins + tile rebuild | DONE | ebfbba7d, 05096efd | built and promoted with r-9b51c28ce0fe: atlas.pmtiles 548 -> 228 MB, basemap 918 -> 876 MB; map look on OWNER-TODO |
+
 2026-10-22 (release size, not tiles): `store.common.train_zdict` is now best-of-8 sample offsets (keeps the dictionary
 that packs the table smallest; deterministic). One offset let a 0.6% rows_row change swap the dictionary (regs-3 gz
 319,894 → 427,578) and refuse the release at 14,027,828 B; same answers now pack to 13,844,550 B gz (gate 14,000,000).

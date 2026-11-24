@@ -3,6 +3,10 @@
 Status: DONE — fcbd8d0f, de300379, review fixes in the commit that adds "Adversarial review" below (lane-T145; web shots in handoff/PLAN/app-integration/T145-shots/; native is drawn by the same
 code but was not run on a device: rides T50)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T145 | spot markers: small capped squares, deselect on tap off | DONE | fcbd8d0f, de300379, 43300623 | app; native guard needs the device run (T50) |
+
 Source: Owner 2026-10-23 (app walk). "the new spot markers look really bad and take up a ton of space and dont deselect if click off them etc.
 they get way too big too." Rework of T131.
 

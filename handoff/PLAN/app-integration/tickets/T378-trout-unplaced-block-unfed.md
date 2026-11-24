@@ -2,6 +2,10 @@
 
 Status: DONE (135828021; owner 2026-11-04: in 0.5.0) — the block deleted (the ticket's second answer). Commits: 135828021.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T378 | Trout's "couldn't be placed" caveat block is unfed (`item.uncertain` never loaded; `item.unresolved` is licensing) | DONE | 135828021 | T372 survey, 2026-11-04 |
+
 Core `uncertainOf` (regs/caveats.ts) draws "? Check: rules for parts of this water that couldn't be placed on the map"
 from `inp.item.uncertain`. Nothing fills it: the store's `item.unresolved` is unresolved LICENSING (schema.sql:97,
 store/build.py:371), and data `regs/inputs.ts` says `item.uncertain` is not loaded. So the block never shows.

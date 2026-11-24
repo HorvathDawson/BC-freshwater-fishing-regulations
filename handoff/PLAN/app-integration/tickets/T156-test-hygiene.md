@@ -2,6 +2,10 @@
 
 Status: DONE — 23cee506 (lane-T157); adversarial review 4b82d910
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T156 | test hygiene: hydat sandbox stub release; temp gate fixtures outside the app tree | DONE | 9c6cbd46, 7714418a, 23cee506 | tests; delivered r-9cf1fef180a8 |
+
 Source: merges 2026-10-23 (T145 review; batch 6 lanes).
 
 ## Work

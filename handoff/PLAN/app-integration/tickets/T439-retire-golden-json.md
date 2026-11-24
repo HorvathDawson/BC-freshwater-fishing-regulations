@@ -2,6 +2,10 @@
 
 Status: DONE — 9fc2a3953 (owner 2026-11-06: "the golden as before is bad and we should retire it and the tests with it").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T439 | Retire golden.json and the tests that only compare against it | DONE | 9fc2a3953 | — (states.json holds the tap questions; uncovered items listed in the ticket) |
+
 ## Why
 `app/fixtures/golden/golden.json` (with `pins.json`, `tokens.json`, `inventory.json`) was extracted ONCE from the
 regulations prototype (`app/design/regs-v11.html`, v38), deleted in T87. `sync.mjs` calls it FROZEN, but it was

@@ -2,6 +2,10 @@
 
 Status: DONE (d54842ec, b8b5b357, 0a129a14) — owner decisions 2026-10-24 (decisions.md Q164, Q162).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T186 | web prefetch after first paint (region's regs file; core + wasm on idle) + core-words chevrons (Q164, Q162) | DONE | d54842ec, b8b5b357, 0a129a14 | first tap still fetches water + access → T182 |
+
 Strict check (`REGS_STORE_REQUIRED=1 pnpm -C app check`, through heavy.sh, unfiltered): green against
 r-bb4331929428 (the release the walk was cut on: 373 files / 8,208 tests passed, 27 skipped). Against the main
 checkout's newest release r-0ed3c2b2a0a7 (written by another lane during this work) the release-pinned conformance

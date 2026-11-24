@@ -4,6 +4,10 @@ Status: DONE 2026-10-29 — in release r-62e2f3a8c81e (atlas c1029). Owner spot-
 listed below (OWNER-TODO); a reject → `python -m pipeline.tools.mined_names` → next build. Earlier: 009aeec0, 39cc91e2,
 2ea061c4.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T224 | name variants from local sources (municipal, ECCC, DFO, synopsis, OSM, BC GNIS), each with its real source | DONE | 009aeec0, 39cc91e2, 2ea061c4 | in r-62e2f3a8c81e (Kilgard Creek shown, Lonzo variant; 169 shown, 12 not in atlas); owner spot-check 20 in OWNER-TODO / Names tab |
+
 Source: owner 2026-10-28: 08MH079's stream is FWA-unnamed but Abbotsford's municipal layer calls it "KILGARD CREEK", and
 the app has no such variant — "we could find many more". Add-ons the same day: every variant carries its REAL source and
 evidence wherever provenance shows, never a borrowed label (a municipal name is never "official"); give existing

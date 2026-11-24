@@ -2,6 +2,10 @@
 
 Status: PARTIAL (874bbd00a, 8937f6b73, d109408fd, 8a1ce30f1: all built and released, wording a-c in r-f749475d0962; owner: OWNER-TODO "T89 six waters" for Frog/Redfern/Squirrel).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T708 | Missing-cuts audit fixes (before closed testing): Pitt r2 "at Grant Narrows" label, Ruby Creek r1 between, Gagnon signs 200 m above the unnamed lake, Deena/Mamin cuts onto bridges, Kootenay dolphin re-anchor, 3 unmatched lakes matched; McArthur / Lakelse / Tlell wording | PARTIAL | 874bbd00a, 8937f6b73, d109408fd, 8a1ce30f1 | all built and released (r-a9914d6b25b7; the owner's wording answers a-c in r-f749475d0962); owner: OWNER-TODO "T89 six waters" (Frog/Redfern/Squirrel stay unplaced) |
+
 Source: `handoff/PLAN/research/missing-cuts-audit.md` (2026-11-13, release r-adc4e248a163) and the owner's answers
 the same day; follow-up research 2026-11-13 (this ticket, read-only, no data changed). Before closed testing.
 Pictures (Esri imagery, scratch): `deena_cut.jpg`, `mamin_cut.jpg`, `mcrae_cut.jpg` from the follow-up lane; Gagnon:

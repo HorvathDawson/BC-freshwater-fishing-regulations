@@ -2,6 +2,10 @@
 
 Status: DONE — 2b49a643b
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T700 | Regulations header named the first part of its picker choice, not its own (Capilano part 3: map "Capilano Lake → Source", Regs "Cable Pool Bridge footbridge → Capilano Lake outlet"); rules always the part's own; 304 parts / 206 waters | DONE — 2b49a643b; option for the owner in the ticket (book wording as the long label) | 2b49a643b | owner phone 2026-11-13 |
+
 Owner 2026-11-13, phone (0.7.7 build 29, release r-0a9930fb8826), Capilano River: Map tab "PART 3 OF 3 · Capilano
 Lake → Source"; "Show regulations for this part" → Regulations header "Cable Pool Bridge footbridge → Capilano Lake
 outlet". "This section got a different location text in regulation panel?"

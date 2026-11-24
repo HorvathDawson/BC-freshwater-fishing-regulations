@@ -2,6 +2,10 @@
 
 Status: DONE — items 1, 3, 4 in their own tickets (1db9d5d8a, 31ee818a0, 2f09829fe), item 2 Python half 63a3e6173, JS half ff787ac34 (confirmed 2026-11-12)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T601 | Every reader knows a build is finished and which version it reads (COMPLETE marker, one latest(), feed format tag) | DONE | 1db9d5d8a, 31ee818a0, 2f09829fe, 63a3e6173, ff787ac34 | items 1, 3, 4 landed in T547, T557, T554; item 2 Python half `manifest.live` |
+
 Source: T599 findings step 3 (§1 "where a reader guesses a path or a vintage", §5); owner accepted 2026-11-10.
 
 ## Work

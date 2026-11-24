@@ -3,6 +3,10 @@
 Status: IN PROGRESS (merged onto `redesign/stream-sections` 2026-11-16 via `merge/held-group1`, the owner's merge order;
 left (Claude): the device runs under Results; shared code, so Android's figure changes too, the ticket's default "do it").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T738 | The first-install bar counts every file that is downloading, not one at a time (it read 38.8 MB with 116 MB on disk after a relaunch; both platforms) | IN PROGRESS (merged onto redesign/stream-sections 2026-11-16 via `merge/held-group1`; left (Claude): the Android bg-install and iOS first-open device runs in the ticket) | — | T722 simulator proof 2026-11-14 (iOS chat); Android downloads the same way |
+
 Source: T722's simulator proof, 2026-11-14 (branch `ios/t722-install`, run on build 347281f96). After the app was
 force-closed at 104.3 MB on disk and reopened, the bar read "38.8 of 479.3 MB" while 116.3 MB were on disk. An earlier
 run showed 27.3 MB with about 180 MB down. Shot: sent to the owner 2026-11-14 (`proof4/relaunch-4s.png` in the iOS

@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-06 (chat 3; 93d274234 item 1, 5b5865c89 items 2–3).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T402 | Two tests fail only in the full suites: split_preview real_ids empty (memo/module leak), back.test day sheet under load | DONE | 93d274234 5b5865c89 | full run 2026-11-05 |
+
 1. **pipeline/tests/test_curation_review_split_preview.py::test_every_proposal_is_shown_under_its_real_id…** — in the
    full pytest run `dfo.real_ids()` (curation-review/backend/dfo.py:901) returned `{}`; alone, 6/6 pass. Suspect: the
    `_REAL_IDS_MEMO` keyed on file stamps keeps an empty answer from an earlier test that pointed `reuse.MARKS_PATH` /

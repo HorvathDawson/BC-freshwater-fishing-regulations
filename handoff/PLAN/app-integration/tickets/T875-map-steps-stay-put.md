@@ -2,6 +2,10 @@
 
 Status: DONE — 1c0911f91 + 93efeda60 review fixes. Landed on redesign/stream-sections with app/integrate-081-web after the full tier.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T875 | The water Map tab's ▼ / ▲ steps stay put, part to part and water to water, on phone and desktop (owner) | DONE | 1c0911f91, 93efeda60 | app chat; owner 2026-11-18 (T872–T874 approved ~20:53) |
+
 Owner 2026-11-18 ~20:33, verbatim: "The ui shifts here when moving upstream in desktop too".
 
 His two phone shots (Android, dark), the water page's Map tab: the Vedder River, "PART 1 OF 1", "Lowest part" and

@@ -2,6 +2,10 @@
 
 Status: DONE — shipped in 0.8.3 (merged 1aeb9f3f2; staging + production 2026-11-19).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T915 | Day calendar: no size jump in January; a desktop-shaped popup on wide web (owner) | DONE — shipped in 0.8.3 (staging + production 2026-11-19) | 1aeb9f3f2 | owner 2026-11-19 ~12:45 |
+
 Owner 2026-11-19 ~12:45 (main chat), verbatim: "calendar still jumpy in size from january to other dates because of
 "Only days in 2026 can be chosen: the regulations here are one calendar year." make calendar popup look better on
 desktop (good for mobile but desktop doesnt like mobile popup)".

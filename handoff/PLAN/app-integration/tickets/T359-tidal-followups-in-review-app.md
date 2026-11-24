@@ -2,6 +2,10 @@
 
 Status: DONE (c16f72eba) — items 1–3 built; item 4 stays an owner decision (shown as the follow-up's why)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T359 | Tidal follow-ups visible in the review app: a Follow-ups filter with each row's why, a "whole water is tidal" answer | DONE | c16f72eba | owner 2026-11-03; item 4 (DEM point → cut?) owner decision |
+
 Owner 2026-11-03: "make it so the review app is able to show the tidal follow ups and I will review. I thought we
 already confirmed they were good before."
 

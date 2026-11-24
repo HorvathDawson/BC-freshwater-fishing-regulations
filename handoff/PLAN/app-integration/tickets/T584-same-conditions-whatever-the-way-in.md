@@ -2,6 +2,10 @@
 
 Status: DONE — 5a2e4117b (closed on the owner's word 2026-11-20; see the last section)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T584 | Conditions reads the same whatever the way in (group strip, picks, part step) | DONE | 5a2e4117b | — |
+
 Source: T580 audit 2026-11-10 (owner: "stuff like this should never happen … look for other things like that").
 Findings, with file:line, the state that shows each and the proposed fix: `handoff/PLAN/app-integration/T580-findings.md`.
 

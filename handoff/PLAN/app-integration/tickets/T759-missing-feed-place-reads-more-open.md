@@ -3,6 +3,10 @@
 Status: DONE (be4b662b5; landed 2026-11-17 with dee772e67 + 731447000; staging feeds worker deployed 2026-11-17).
 not merged; left: worker + app halves (the other chat), vectors lines, merge)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T759 | A DFO rule we cannot match (new wording, unconfirmed close match, reworded closed area) is an ISSUE on its river: the colour stays what still applies, the line gets an issue look, every stretch a banner quoting the row; no "not known" | DONE | be4b662b5 | main chat 2026-11-15 after T758; trace in curation-review/feed-missing-location-2026-11-15.md; first design ("check", `known`) superseded |
+
 Source: main chat 2026-11-15, after T758. Trace with real data: `handoff/PLAN/curation-review/feed-missing-location-2026-11-15.md`.
 Decision: `handoff/PLAN/OWNER-TODO.md`, "2026-11-15 evening" rounds 1, 2, 3, 5 and 6 (verbatim there; they are the
 authority over this page).

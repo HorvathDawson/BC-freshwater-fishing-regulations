@@ -2,6 +2,10 @@
 
 Status: DONE — 41f541a9 (adversarial review: no change). Measured: no bundle row changes today (latent defect closed).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T140 | bundle regions of a water + area families ask the one region membership (G3) | DONE | 41f541a9, 35dd2ff1, 82c59195 | latent: no bundle row changes; delivered r-012fb43aa175 |
+
 Source: T115's leftovers (owner Q99, 2026-10-23: "yes, as T140 with a measured diff").
 
 ## Decision being unified

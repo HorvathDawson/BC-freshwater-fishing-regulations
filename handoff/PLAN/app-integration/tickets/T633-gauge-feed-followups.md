@@ -2,6 +2,10 @@
 
 Status: PARTIAL — items 1–8 built (a6bf038be, 2ebfe0787, 52878ceb6, 9995fcf13, 07dbf3791, 78b6846e2; item 4 by T585: 04316bd91, c58640b86, e4add6e9a; item 6 this pass); left (Claude): item 9 (next bundle build)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T633 | Gauge feed follow-ups: generated policy constants, refuse untagged feed, contract test on worker output, card wording, HYDAT mismatch warning | PARTIAL — items 1–8 built (4 by T585, 6: the web keeps the week in IndexedDB); left (Claude): item 9 (next bundle build) | a6bf038be, 2ebfe0787, 52878ceb6, 9995fcf13, 07dbf3791, 78b6846e2 | T550/T557/T585 leftovers; owner questions answered 11-11 |
+
 Source: gauges lane report 2026-11-11.
 
 ## Work

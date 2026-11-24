@@ -2,6 +2,10 @@
 
 Status: DONE (4e39f3fb)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T216 | better "How this was decided": interpretation, what overrode what, sources | DONE | 4e39f3fb | story.ts: layers base → water → exceptions, why + printed page per step; tests on Fraser two-region, R5 spring-closure lift, sub-cap, closed water |
+
 Source: owner 2026-10-27. The prototype's "How this was decided" ladder (app/packages/core/src/regs/decided.ts; T190 grouped
 two-region headings) explains a day's answer. Make it better and clearer for an angler: for the water + date, show
 which rules applied (region base → water row → exceptions), what each one overrode or was overridden by (stricter wins,

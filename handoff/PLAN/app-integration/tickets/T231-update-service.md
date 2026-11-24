@@ -2,6 +2,10 @@
 
 Status: DONE — 5681f6b8, 5c2b9cfb (staging e2e: the moved feed fetched, the others 304).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T231 | update service: feeds + release checked on the origin (ETag/sha), verified downloads, atomic staged swap applied at a safe moment; sync button states + bell sync section | DONE | 5681f6b8, 5c2b9cfb | native device run not done (tested over the in-memory phone); worker weak-ETag compare (T225) |
+
 Source: owner 2026-10-28 — "the app must check the data origin (R2 via the data worker) for new updates and download
 them: new feeds (gauges, DFO, in-season) and bigger updates (a new release manifest: bundle files, salmon slices,
 synopsis PDF, tiles/basemap). Build the FRAMEWORK, wired into the existing sync button." Add-on (owner, same day): the

@@ -4,6 +4,10 @@ Status: DONE, REVIEWED — 3e89b917 (code + pins) + review 3bf1e1e1 (pins harden
 leaves core: boundaries). Rebuild: deliver + fixture/golden
 re-cut (below).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T161 | the pipeline ships each fish's leading origin (rows 33); mainRes only reads it | DONE | 23be8123, d0bc72fd, 3bf1e1e1, 3e89b917 | deliver + fixture re-cut (rows 33); delivered r-9cf1fef180a8 |
+
 Source: Q66 decided by Claude 2026-10-23 (owner rule: computed where the data lives). The app picks a fish's "main"
 origin itself; common.lead_origin decides it in the pipeline. Ship it in the store/release, make mainRes read it, pin
 no second copy. Ships: deliver + fixture re-cut + app. Size: S.

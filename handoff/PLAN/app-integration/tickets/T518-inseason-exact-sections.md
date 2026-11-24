@@ -2,6 +2,10 @@
 
 Status: DONE — ece44d1f3, 46ce5a22d, fd09e65af; carried by T520, whose owner look covers it (2026-11-09 audit)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T518 | In-season notice shows on exactly the sections it covers (its own ends + map highlight), not its whole part | DONE — ece44d1f3, 46ce5a22d, fd09e65af; carried by T520, whose owner look covers it (2026-11-09 audit) | ece44d1f3, 46ce5a22d, fd09e65af | carried by T520; shots/T520-*.png |
+
 Was: IN REVIEW — carried by T520 (ece44d1f3, 46ce5a22d, fd09e65af), in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (a notice's "Where:" + map outline, Fraser part 2).
 Earlier: IN REVIEW — carried by T520 (ece44d1f3, 46ce5a22d, fd09e65af): banner says "Where: <ends>", the water map outlines exactly the covered sections; shots/T520-*.png light + dark (Fraser part 2, Pitt part 0). Proof pending: the next APK.
 

@@ -3,6 +3,10 @@
 Status: DONE 2026-11-05 (6f0a04a1c; owner 2026-11-05: "the feeds in staging never updated after release to get the new forecast
 detail; when a feeds worker release happens it should rerun feeds automatically").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T392 | A feeds worker release reruns the feeds: the deployed version is in every reuse key; deploy/staging/feeds.sh deploys then runs every job | DONE 11-05 | 6f0a04a1c | owner 2026-11-05 |
+
 **Cause:** the gauge job reuses the day's forecast output (and each station's) while its key `GAUGE_REV` matches, and the
 DFO job carries regions on `DFO_REV`. Both were hand-bumped constants; the forecast-detail release did not bump
 `GAUGE_REV`, so the old output stood until the next day's new issuance.

@@ -2,6 +2,10 @@
 
 Status: DONE (owner 2026-11-04, in 0.5.0) — 2a9bd4aed (app + net), 47c5b66f0 (pipeline: section lengths, rides the 0.5.0 rebuild).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T387 | Every tap on a part gives the same page: per-section facts (access first) become part-level; a net over every part | DONE (point-bound: sun line, scroll memory — owner) | 2a9bd4aed, 47c5b66f0 | owner 2026-11-04 (in 0.5.0) |
+
 ## Ask (owner 2026-11-04)
 "the issue with nicomen slough is not all of them when clicked will get the land use warnings so yes it is one section
 but in the one section not all clicks are equal." — "we need to make sure similar things dont happen for other items

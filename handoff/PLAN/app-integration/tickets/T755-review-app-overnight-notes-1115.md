@@ -2,6 +2,10 @@
 
 Status: DONE — 9d8d2f381, 3920760a4, 40bafe8be, 2ec440168 (closed on the owner's word 2026-11-20; see the last section)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T755 | Review app: the owner's overnight notes — region ends named by this water's crossing, a named water takes its own channels, tributaries only / excepted tributaries in marks + editor + apply + suggester, Qualicum refused at the save, earlier-mark and size/tributary warnings. | DONE | 9d8d2f381, 3920760a4, 40bafe8be, 2ec440168 | — |
+
 Source: a read-only triage of the 84 marks saved overnight (`~/bcfish-session-backup-2026-11-12/marks-triage-1115.md`) and
 T742. His notes, verbatim:
 

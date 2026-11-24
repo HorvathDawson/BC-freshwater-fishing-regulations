@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS (iOS chat, docs lane; screenshots after T718).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T727 | iOS: store pack, everything except what needs the Apple account (IOS-10) | IN PROGRESS (iOS chat, docs lane; screenshots after T718) | — | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-10 in handoff/PLAN/ios/START-HERE-ios.md |
+
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-10 in
 `handoff/PLAN/ios/START-HERE-ios.md` (approved to start there, "Unattended day"). Simulator only; no Apple account.

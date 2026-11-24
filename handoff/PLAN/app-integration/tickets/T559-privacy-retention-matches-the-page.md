@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS — cfcdf7e07, fb5f387a3; W2 backups + W6 counters merged; reads 11-20 held back 31/8, pruned 0; left (Claude): re-read the production bucket's lifecycle rules (needs a Cloudflare login). (Earlier note: IN PROGRESS — cfcdf7e07 (W2 backups: personal records daily-only within the page's dates, never monthly; prune + POST /run/forget-report; deploys check daily/ ≤ 30 d), fb5f387a3 (W6 counters purged daily). Owner parts answered: the digest may carry a report's words, trimmed (T627, owner 2026-11-10 "we want a nice easy to read summary", DONE); the production backup bucket was created 2026-11-18 with staging's lifecycle (daily 30 d, monthly 400 d) on the owner's "Yes, create it", first production backup run ok. Reads done by lane L3 2026-11-20 (below): both backups ok, daily-only, `personalHeldBack` 31 staging / 8 production, `pruned` 0 on both (nothing past its window yet). left (Claude): main chat review; the production bucket's lifecycle rules were not re-read (no Cloudflare login in the lane).)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T559 | Privacy: backups and rate-limit records are deleted when the privacy page says they are | IN PROGRESS — left (Claude): re-read the production bucket's lifecycle rules (needs a Cloudflare login) | cfcdf7e07, fb5f387a3 | proof recorded in the ticket (L3 2026-11-20); lifecycle rules not re-read |
+
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 15 of 17; highest severity 3 of 5.
 
 Line numbers are the reviewers' and may be off by a few; "Second opinion" is what the verifier corrected. Fixes are proposals: re-read the code before building.

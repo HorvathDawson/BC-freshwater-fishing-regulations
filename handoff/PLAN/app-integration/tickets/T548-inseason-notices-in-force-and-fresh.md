@@ -2,6 +2,10 @@
 
 Status: DONE — bf782ad11, 6dd3fd9e5, 09320de47, 65df4ce38, 0bdb754e0, e2f235509, 3a90a1591; shipped in 0.8.4 (cut e769f710a, data r-fec3fab4c5aa; 0.9.0 audit 2026-11-22, every hash is an ancestor of origin/main and of e769f710a). (Earlier status: IN PROGRESS — 65df4ce38, 0bdb754e0, e2f235509, 3a90a1591, 09320de47 (items 1+9, 2+3, 4, 6 done; worker parts deployed with the staging worker 2026-11-12 and production 2026-11-18; item 8's per-release links replaced by T673 on the owner's word; 2026-11-20 09320de47: the one-off end rule removed per the owner's 2026-11-11 answer, item 4's per-row reading built, items 7 and 10 closed as covered by T693 and T673). left (Claude): main chat review + merge (lane/l1-feeds; review fix 6dd3fd9e5), then the next app build carries it (the review app's in-force column reads the same rule at once) 2026-11-20 07:18: merged (27e98e4eb). 2026-11-20 10:35: leftover L5 built on lane/la-feeds-leftovers (bf782ad11: a feed refused for its rows says how many of how many and which, in the report and the inbox line); left (Claude): main chat review + merge, then the next app build.)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T548 | In-season notices: a notice still in force is shown, the feed has a stale rule, and the app says it reads it | DONE | bf782ad11, 6dd3fd9e5, 09320de47, 65df4ce38, 0bdb754e0, e2f235509, 3a90a1591 | — |
+
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 4 of 17; highest severity 5 of 5.
 
 Line numbers are the reviewers' and may be off by a few; "Second opinion" is what the verifier corrected. Fixes are proposals: re-read the code before building.

@@ -4,6 +4,10 @@ Status: DONE — 00398a3b, review fix 64b96b55 (selected face size, spotFace) (l
 the same code but not run on a device: rides T50). Owner 2026-10-22: "make spots on the map a) look better and b)
 clickable to open the spot."
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T131 | spot pins look better and open the spot on tap | DONE | 00398a3b, fafcd21a, 64b96b55 | Q-T131-1..5 (defaults built); native tap with T50 |
+
 ## Built
 - `@app/core` spotPins.ts: `SPOT_PIN` (44 px target, 30/36 px face, group under 40 px, names from z11), `spotMarkers`
   (greedy grouping in id order, splitZoom, names de-overlapped, the selected first), `spotPress`, words, `spotBack`.

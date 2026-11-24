@@ -2,6 +2,10 @@
 
 Status: DONE — 70d7f91f0. Constraints on every CI install, timeouts, superseded app-ci runs cancelled, app-ci paths cover the parity tests, hydat key first; push b753bddcb (2026-11-19) ran both workflows green with pip freeze printed.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T543 | CI: constraints.txt on every install, timeouts, cancel superseded runs, app-ci paths cover the parity tests | DONE | 70d7f91f0 | — |
+
 Closed by the 2026-11-20 audit: Push b753bddcb (2026-11-19): pipeline run 44513347954 and app run 44513347948 both success; the pipeline log prints pip freeze (numpy==2.5.1, pydantic==2.13.4, shapely==2.1.2).
 
 Source: workflow review 2026-11-09 (verified against the workflows). Rank 11. No GitHub `schedule:` trigger was found

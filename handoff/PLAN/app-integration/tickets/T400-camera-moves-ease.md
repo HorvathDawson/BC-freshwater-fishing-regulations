@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-05 — adfbe330e, d91f300f6 (owner feel check on the next APK)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T400 | Camera moves choppy on the phone: fitBounds flew (the binding's default "fly" easing); now eased | DONE | adfbe330e, d91f300f6 | measured 11-05: no refine rounds on 4 arrivals, 0 moves on return; owner feel check on the APK |
+
 **Cause (main):** the binding's `Camera.fitBounds` defaults to `easing: "fly"` (`@maplibre/maplibre-react-native`
 `Camera.tsx`: `fitBounds … easing = "fly"`); every framing went through `fitBounds` with 450 ms — a fly arc (out, then
 back in) squeezed into 450 ms, through zooms whose tiles were not loaded. **Also:** the water copy's ceiling was a

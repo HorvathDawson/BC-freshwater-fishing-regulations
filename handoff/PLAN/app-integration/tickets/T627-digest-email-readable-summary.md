@@ -2,6 +2,10 @@
 
 Status: DONE — efe94f572; look approved; DEPLOYED to staging 2026-11-11; owner read the staging digest 2026-11-12: "looks good"
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T627 | Digest email: an easy-to-read summary of reports and errors (words kept, trimmed) | DONE — look approved, deployed to staging 11-11 (version 912dfcf6); owner read the digest 2026-11-12: "looks good" | efe94f572 | owner 2026-11-10 on T609; samples rendered 11-11 (quiet day, bad day) |
+
 Source: owner 2026-11-10 ("we want a nice easy to read summary"), answering T609's question whether a report's words
 belong in the digest email or only a count.
 

@@ -2,6 +2,10 @@
 
 Status: DONE e40851285 (landed 2026-11-17, CI green; 4/4 Android benches; was: IN PROGRESS (built on branch app-fix/t838-day-label, not merged))
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T838 | Drop the loose "Conditions: today" line above the estimate card (the switch names the day) | DONE | e40851285 | owner 2026-11-17 (app) |
+
 Source: owner 2026-11-17 ~11:46, app chat, with a web screenshot of a spot's "Estimate for this spot" card (verbatim):
 "having random conditions today text here is weird too". Dialog 11:48: "Drop it (Recommended)".
 

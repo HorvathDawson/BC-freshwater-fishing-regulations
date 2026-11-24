@@ -2,6 +2,10 @@
 
 Status: PARTIAL — items 2 and 6 (Python) done (cc50a2379, 63a3e6173); items 3 and 5 done (0b23c1403, built in `full_next` 2026-11-12); left (Claude): items 1, 4, 7, 8 (item 6's JS half is done: ff787ac34, confirmed 2026-11-12)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T560 | One home for shared helpers: id slug, name key, live release reader, atomic write, cut tolerances | PARTIAL — left (Claude): items 1, 4, 7, 8 (item 6 both halves done) | cc50a2379, 63a3e6173, ff787ac34, 0b23c1403 | item 2 (paint sync reads the encoder's twin + the build's threshold), item 6 Python half (`manifest.live`, 8 readers); items 3 (`wsc.code_owner`) and 5 (`tolerances.meets_at`, one … (detail: ticket file) |
+
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 16 of 17; highest severity 2 of 5.
 
 Line numbers are the reviewers' and may be off by a few; "Second opinion" is what the verifier corrected. Fixes are proposals: re-read the code before building.

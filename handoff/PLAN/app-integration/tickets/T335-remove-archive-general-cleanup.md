@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-06 (chat 3, a40989161) — scope approved by the owner (below).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T335 | Remove archive/ + general cleanup (stray files, old side builds, releases to live+previous, dead scripts) | DONE | a40989161 | owner 2026-10-30 |
+
 1. Delete `archive/` (211 tracked files, 22 MB: old cron-runner, mobile, pipeline, r2-worker, scripts, webapp) and
    `pipeline/docs/archive/`. First move anything still READ by live code (several app/tools/*.mjs, the feeds worker,
    pipeline/__init__.py and pipeline-ci.yml mention "archive/") to its proper home, or drop the reference.

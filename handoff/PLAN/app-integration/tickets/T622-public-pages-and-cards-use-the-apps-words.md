@@ -2,6 +2,10 @@
 
 Status: DONE — 1aed37981 (closed on the owner's word 2026-11-20; see the last section)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T622 | The public pages and share cards use the app's own words and day; with T605 | DONE | 1aed37981 | — |
+
 Source: T608 part B (owner 2026-11-10: "audit the app web vs native more"),
 `handoff/PLAN/app-integration/T608B-findings.md`: 28 findings G1–G28, each with file:line of both copies, the state
 that shows it, and the fix. Rows marked P there are plausible, not fully traced: confirm before fixing, close with a

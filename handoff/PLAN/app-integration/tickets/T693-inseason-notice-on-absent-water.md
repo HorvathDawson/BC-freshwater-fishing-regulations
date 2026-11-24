@@ -2,6 +2,10 @@
 
 Status: DONE — df0136892 (left (Claude): a look on the next staging check).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T693 | In-season notice matched to a water this release does not hold: into the bell ("not on the map yet"), reported once (BC Fish and Wildlife notices, not DFO) | DONE | df0136892 | owner 2026-11-12 "Fix gap 1 only"; RULINGS O6; gap 2 = T694, per-release files = T673 (parked) |
+
 Source: owner 2026-11-12, by dialog: "Fix gap 1 only". In-season notices are BC Fish and Wildlife's, not DFO's. RULINGS O6.
 
 ## The gap (proved by a test that failed before)

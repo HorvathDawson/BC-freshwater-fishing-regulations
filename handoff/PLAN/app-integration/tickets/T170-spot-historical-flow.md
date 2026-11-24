@@ -2,6 +2,10 @@
 
 Status: DONE — ef762537 (app) + 298cee48, lane-T170 (with T171). App only: no feed, bundle or release change.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T170 | a spot gets the flow of its own day (historical) on refresh or on request | DONE | ef762537, 298cee48, a09374b0 | app; GeoMet direct from the browser (no proxy) |
+
 Source: owner 2026-10-23: "spots should be able to get historical flow on a day with a refresh and have option to get
 it". Related: T51 follow-up (a spot backdated to an earlier day froze TODAY's gauge reading and panel, because capture
 reads the live feed whatever the visit time — so its "flow then" is today's), S1 (spot lead-up), spots/refresh.ts.

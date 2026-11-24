@@ -2,6 +2,10 @@
 
 Status: DONE (built in T21) — 3665f151, then the T39/T40 gates.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T27 | RN `OtherFish`, `KeepTab`, Keep render gates | DONE (in T21) | 3665f151 | — |
+
 Phase 1 · Depends on T19 (`OtherFishRowVM`, `PlainRowVM`), T21 (`KeepVM` with `order`, Keep parity), T23, T24, T25, T26 · Blocks
 T29, T41 · Decisions D4 (a), D12 (a) · Size 1 day
 

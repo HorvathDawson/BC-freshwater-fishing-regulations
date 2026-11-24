@@ -2,6 +2,10 @@
 
 Status: DONE — 7b60c75f1, 3f6e558ec (closed on the owner's word 2026-11-20; see the last section)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T747 | A water's Map opened from search frames the part its bar names, not the whole water (the Skeena read as the province on the desktop strip); one label for two marks with the same words; an unframable part reported. Next free ticket T750 | DONE | 7b60c75f1, 3f6e558ec | — |
+
 Source: owner 2026-11-14, staging website (dff2c7a22, desktop, light), verbatim: "i clicked search skeena then clicked
 view skeena river then it went to this it is the section view but it is fully zoomed out instead of on the first
 section". Screenshot: Skeena River, Map tab, "PART 1 OF 18 · Tidal boundary → Skeena River Ecological Reserve boundary

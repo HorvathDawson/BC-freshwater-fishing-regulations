@@ -4,6 +4,10 @@ Status: DONE — 9f434cd3 (lane wf_63a2801d-ce3-1); review fixes a9455d40 (`stem
 explained below); MU-group lines clean; every unnamed section has a page. Nothing must rerun. Left: the two
 not-seen classes and the 3 "lake at reach top" sections below (recorded, no default change).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T57 | unnamed streams: real-data regs sweep incl. trib rules | DONE | 9f434cd3, b846c925, a9455d40, 5dac27c8, 21289c24 | — |
+
 ## Result (2026-10-22, bundle reach_digest dc21329d925d042d, handles d768d6e135e62b99, release r-2f33edfe8452)
 
 **Pages.** `pipeline/tests/test_unnamed_trib_sweep.py::test_every_unnamed_section_has_a_page` (needs_bundle):

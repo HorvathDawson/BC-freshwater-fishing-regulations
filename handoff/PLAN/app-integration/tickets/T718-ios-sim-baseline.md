@@ -2,6 +2,10 @@
 
 Status: DONE — cc2027743, 8d6fe60de, 6572ee881, 59aaa4de8, 884f16adc. iOS 0.7.9 simulator build and baseline recorded: build time, minimum iOS 16.4, first open split, the 11 scenarios with every failure's cause, memory, shots; the crash-send failure traced and its app fix merged.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T718 | iOS: build 0.7.9 for the simulator and record the baseline (IOS-1) | DONE | cc2027743, 8d6fe60de, 6572ee881, 59aaa4de8, 884f16adc | — |
+
 Closed by the 2026-11-20 audit: acceptance (a report with the 11 scenarios, build time, first-open time, memory table, shots, every failure with cause) is the ticket's Results + 'Baseline triage' table (shots in handoff/PLAN/ios/shots/baseline/, memory table in T725); crash fix merged 884f16adc.
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is

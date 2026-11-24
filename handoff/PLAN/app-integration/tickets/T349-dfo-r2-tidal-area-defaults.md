@@ -2,6 +2,10 @@
 
 Status: DONE (f5fc9c356, a2415b239; live build 2026-11-03 with T326 → release r-d0ad76a6e6a1)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T349 | DFO scope defaults as entries (R2 Areas 28/29, 13/15/16; every region), non-retention = closed, shared quotas (R5B MUs, Squamish) as aggregate tiers; T332 merged | DONE | f5fc9c356, 910e83d39, 0404b09ae | owner 2026-11-02 (f5fc9c356, a2415b239); atlas promoted (+5 drains_to areas), live build r-d0ad76a6e6a1 with T326; staging held by SALMON_NEEDS (app 0.5.0); worker parity → T350 |
+
 Owner 2026-11-02. Found by the Cascade tab's region view (`curation-review/backend/region_cascade.py`).
 
 ## What the pages say that the code does not encode

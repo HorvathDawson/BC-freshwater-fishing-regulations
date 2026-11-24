@@ -3,6 +3,10 @@
 Status: DONE 2026-10-27 — shipped by the 10-27 atlas build + reach + tiles (b6b5000e171023c9.0d7666619a1c) in release Commits: ef91524b, c321204d.
 r-c706f5eaa2a3; after-numbers and a shot below (T152 lane, 2026-10-27 night).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T152 | sewage basins, tailing ponds, dumps (275) drawn as fishable lakes | DONE | ef91524b, c321204d | live since the 10-27 atlas/tiles build (r-c706f5eaa2a3): 245 bindings removed, 275 muted fills |
+
 Source: T148 census (handoff/PLAN/sloughs/v2/census.md table B), 2026-10-23.
 
 ## Problem

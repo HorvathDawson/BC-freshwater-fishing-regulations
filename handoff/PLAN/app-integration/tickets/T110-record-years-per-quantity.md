@@ -2,6 +2,10 @@
 
 Status: DONE — ad835645 (pipeline + app), 999b2659 (adversarial review fixes). Ships with the next deliver (bundle schema + paint/4): see As built.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T110 | record years per quantity (Level-mode weights) | DONE | ad835645, 31ade2ee, 999b2659, c97c4a98 | delivered r-b518a2b507fa (paint/4) |
+
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding gauges 4
 (CONFIRMED on `bundle.sqlite`).
 

@@ -2,6 +2,10 @@
 
 Status: POSTPONED (deferred with T930, owner 2026-11-20: after the bathymetry map, stocked lakes and charts; T200/T201/T634).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T932 | Audit name_variants.json: joined multi-lake lines, wrong targets, twins, book-print forms (owner) | POSTPONED (deferred with T930: after bathy map, stocked lakes, charts) | | owner 2026-11-20 "audit the name variants" |
+
 Source: owner 2026-11-20 00:03 (main chat), verbatim: "Add another ticket alongside the indigenous name one to audit the
 name variants." Context: T926 makes search find every entry as the file stands (owner: "use the name variants file as it
 stands … less hacky"); this ticket checks what the file itself holds.

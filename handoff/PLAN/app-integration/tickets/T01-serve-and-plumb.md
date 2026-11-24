@@ -2,6 +2,10 @@
 
 Status: DONE — c5119071 (built as a loader prop with no `/regs.sqlite` route; README §0 / D22).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T01 | release loader, the one day, the tapped section to the water screen | DONE | c5119071 | — (loader prop, no `/regs.sqlite` route; D22) |
+
 Phase 0 · Depends on — (parallel with T00) · Blocks T11, T23 · Decisions D1 (map action), D7 (date pill) · Size ½ day
 
 ## Goal

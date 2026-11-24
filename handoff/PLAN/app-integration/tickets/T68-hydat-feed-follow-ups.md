@@ -8,6 +8,10 @@ Data block summary reads "Some dates not recorded". Follow-ups F1–F3 below.
 - The roster-drift notice's command uses the default roster path even with `--stations`.
 - scripts/update-hydat.sh stops before upload; document/automate the R2 upload step (human-run with credentials).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T68 | HYDAT / feed follow-ups | DONE | e25d05fd, 17610988, 0fa29df4, 98817665 | F1/F2 follow-ups in ticket |
+
 ## As built (e25d05fd)
 1. **Forecasts line.** `publish.py` `newest_forecast_issue` writes `index.json` `forecastIssuedAt`. It holds the newest
    run's `issuedAt` across every station and model, copied as the station files carry it, so the line and a station's

@@ -2,6 +2,10 @@
 
 Status: PARTIAL 2026-11-09 — 25a6b7d54, 17d5f0dc3, fe0f4e659, 2bdcc1931, 84ef47b (peak 379 MB on the build-21-era APK; allocator decay A/B unfinished, held out of build 22); left (Claude): the decay A/B rerun (t360-nodecay) and the real-phone GPU memory + Vulkan/OpenGL check
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T360 | App memory footprint: measure Android RSS by screen/feature, find what grows past ~400 MB (T351 crashes at 406/435 MB) | PARTIAL | 25a6b7d54, 17d5f0dc3, fe0f4e659, 2bdcc1931, 84ef47b | 11-09: idle/replaced SQLite closed, per-source panel cache, status index capped, rule-book copy reused; peak 379 MB (old APK) / 314 MB (HEAD+decay, not clean A/B); left: decay A/B … (detail: ticket file) |
+
 Owner 2026-11-03: "could we look into the memory footprint of the app". Evidence: the two 0.4.0 foreground native
 crashes (T351) happened at 406 MB and 435 MB in use (one SIGSEGV); background LOW_MEMORY kills at 169 MB (0.3.0, 0.4.0).
 

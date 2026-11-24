@@ -2,6 +2,10 @@
 
 Status: DONE — 4c005321e, bc7ea9464, 67b512369. iOS cleared feature-state uses a non-null sentinel ("" / false); no null write in packages/map; simulator proof PASS.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T832 | iOS: a river can keep an old colour after a horizon change or a feed refresh (null feature-state writes dropped) | DONE | 4c005321e, bc7ea9464, 67b512369 | — |
+
 Closed by the 2026-11-20 audit: fix merged 4c005321e (0.8.1 lane A) with ios-null-clears.test.ts; the owed iOS simulator proof ran 67b512369 (run ios-2026-11-19T00-56-09: PASS, river goes grey at +1/+10 and back at Now).
 
 Source: found by the T826 agent 2026-11-17 (T826 part 5's cause, the same on the colouring path).

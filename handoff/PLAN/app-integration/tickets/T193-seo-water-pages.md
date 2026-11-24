@@ -2,6 +2,10 @@
 
 Status: DONE — 21a2d17ff, b1a5c7fa8 (+ 1c4dd582, 435ce2d8); real-release pages on staging. Gauges: the water page IS the app (T269), its Conditions tab shows them; wiring the build into the prod release = T240/T404 runbook.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T193 | SEO: static water pages + About, built in the release job | DONE 11-05 | 21a2d17ff, b1a5c7fa8, 1c4dd582, 435ce2d8 | — |
+
 Source: T188 plan, handoff/PLAN/seo/PLAN.md sections 1 and 5.
 ## Work
 app/tools/build-seo.mjs renders /water/<slug> HTML (full rules in plain words, today's line, book page, gauges, Open in

@@ -4,6 +4,10 @@ Status: DONE (aad8f7313) 2026-11-05 — gate, baseline, accepted diffs, fast tie
 `--check-against` is a heavy run, owed (below). Source: owner 2026-11-05: "what about if we need a new extractor for the synopsis? we will need to make sure the
 extractor is producing the same output etc? then we can compare the 2? or what is the workflow".
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T426 | A changed synopsis extractor must still read the current book the same way (baseline + row diff + fast pages) | DONE | aad8f7313 | whole-book --check-against owed (heavy); Heber = first accepted diff |
+
 ## Why
 The annual runbook (`runbooks/annual-synopsis.md` step 2) fixes the extractor for the NEW book's layout, then diffs the
 new book against last year's entries. Nothing proves the changed extractor still reads the CURRENT book as before, so

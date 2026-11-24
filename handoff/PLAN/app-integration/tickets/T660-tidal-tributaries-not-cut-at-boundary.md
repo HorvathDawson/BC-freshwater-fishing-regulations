@@ -2,6 +2,10 @@
 
 Status: DONE — 12358ece6, cb41409bb, 7a9a796d0, ce81473a3. Creeks crossing into tidal water are tidal; shore cuts built into build 27, which was promoted and released (r-303b4007a70a); the rule was later refined by T665 and replaced by the coast rule (T685, RULINGS E21).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T660 | Tidal: streams entering a removed tidal mainstem are not cut at the tidal boundary (Skeena, Nass estuaries) | DONE | 12358ece6, cb41409bb, 7a9a796d0, ce81473a3 | — |
+
 Closed by the 2026-11-20 audit: build 27 (shore cuts 12358ece6, cb41409bb, 7a9a796d0, ce81473a3) became the live atlas and was released r-303b4007a70a; next-rebuild-results.md parity is 'against the live atlas (build 27)'.
 
 Source: owner 2026-11-11 on the T632 tidal sheets (3 and 4 good, but): "it is weird how all the streams that go into

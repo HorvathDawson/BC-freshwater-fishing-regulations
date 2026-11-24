@@ -4,6 +4,10 @@ Status: DONE (785fc9914) — built 2026-11-13 for this release. Takes effect whe
 (feeds worker deploy, then `deploy/staging/sync-inputs.sh`) with the final build. Run timing (the old item 5) is not part
 of it: still bound to one atlas's `section_handles` (see "Not in this ticket").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T673 | One in-season matches file for every release (`inseason-links/4`): FWA blue line key + metres, any release places it on the sections it touches | DONE | 785fc9914 | owner 2026-11-13 "Why not just have a single file that does both?" / "please add that to this release"; RULINGS O7; live when the main session deploys the feeds worker then syncs inputs |
+
 Source: T555 item 2 (data pipeline review 2026-11-09). In-season notices are BC Fish and Wildlife in-season regulation
 changes, not DFO.
 

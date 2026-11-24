@@ -2,6 +2,10 @@
 
 Status: DONE in code 2026-10-29 (owner: "we should have it stored"); staging R2 seeded; worker not involved. Commit: 1719acb57
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T274 | Past-day flow (HYDAT daily means) stored on our data host; dayFlow.ts no longer calls ECCC GeoMet | DONE (staging seeded; prod upload human) | 1719acb57 | owner 2026-10-29 |
+
 Source: the T270 audit found `dayFlow.ts` asking ECCC GeoMet (`api.weather.gc.ca`) from the device for a spot's visit-day flow older than the feed's record.
 
 ## Done

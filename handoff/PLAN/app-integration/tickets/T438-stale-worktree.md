@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-06 (chat 3, ed591aa70) — from the audit (T333–T335, 2026-11-05). Severity: **low**. Verified by a second reader.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T438 | A locked agent worktree (1.4 GB) under .claude/worktrees (low) | DONE | ed591aa70 |  audit 11-05 |
+
 Source: `handoff/PLAN/audit-2026-11-05/` (findings: tests 17; `*.verified.md` has the evidence per finding).
 
 ## What happens

@@ -2,6 +2,10 @@
 
 Status: DONE (2026-10-27) — 740f37b8.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T74 | native colouring engine + native map gaps | DONE | 740f37b8 | Android: per-tile event via the binding patch, one engine, hatches/pill via Images, expo-location; emulator 13 pans / 49 frames 0 grey; iOS → T217; lake modes wait on lake facts in a release |
+
 Source: `map/colouring.ts` has `coloursEachTile = platform === "web"`; `ui/lakeColour.ts`: native "has no per-tile event
 yet … keeps its lakes plain"; native still uses the pushed "status" mode (wave item 2.19). T50 refers to "the native
 engine ticket" — this is it. N2-F1: hatches (`no_access` and the others) and the gauge pill are plain on native (RN has

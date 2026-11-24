@@ -3,6 +3,10 @@
 Status: DONE (7b0738a3f, 940dde702; in 0.8.2 on app/integrate-082, ledger brought up to date 2026-11-19). Was: PARTIAL — 7b0738a3f + 940dde702 on lane app/fix-dup-pics (off app/integrate-081-web); left (Claude): merge into
 app/integrate-081-web (0.8.1 web; phones at their next build).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T868 | Each fish's picture once per sheet: the Whitefish sheet drew them twice (owner) | DONE | 7b0738a3f, 940dde702 | owner 2026-11-18 |
+
 Owner 2026-11-18 ~20:20 (Android, dark theme; Coquitlam River → Regulations → What you can keep → the Whitefish sheet),
 verbatim: "Has duplicate images here too".
 

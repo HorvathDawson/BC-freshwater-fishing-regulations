@@ -2,6 +2,10 @@
 
 Status: DONE (f7b41c208; landed 2026-11-17 in land/app-1117 (copies 1280 px, WebP 75)).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T732 | The phone's backup carries saved spots first, photos second, never the downloaded release (Android Auto Backup skips everything past 25 MB today) | DONE | f7b41c208 | audit G14, 2026-11-14; owner words relayed by the Android chat ("save spots with prioirty", "images can be compressed if still visible"); owner 2026-11-14 evening: "Only need to … (detail: ticket file) |
+
 Source: audit finding G14 (`handoff/PLAN/ios/parity-audit.md`, pass 2, 2026-11-14): on Android, saved spots and photos
 are never in the Google backup, because the installed release (~480 MB) puts the app over Auto Backup's 25 MB limit and
 Android then skips the whole backup. Owner 2026-11-14, as relayed by the Android chat (the iOS chat did not hear it

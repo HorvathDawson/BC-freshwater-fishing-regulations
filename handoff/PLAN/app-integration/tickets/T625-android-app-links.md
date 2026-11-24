@@ -2,6 +2,10 @@
 
 Status: PARTIAL — 8399427db (code built 2026-11-11, items 2–3: site build writes `/.well-known/assetlinks.json`, app.json intent filter (`autoVerify`) for canifishthis.ca + staging.canifishthis.ca, the phone reads a tapped link via `appLink.native.ts` → `resolveAppLink` → the Shell's open request); left (Claude): item 4 on the emulator (`adb shell pm get-app-links ca.canifishthis.app` says verified; a tapped link opens that water) on a Play-installed build; owner: OWNER-TODO "A shared link (T625): open a link someone sent you; it lands on the right water."
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T625 | A shared link opens the installed app (Android App Links: assetlinks.json + intent filter) | PARTIAL | 8399427db | owner 2026-11-10; needs the app signing fingerprint from Play Console; site file + intent filter + link reader built; left (Claude): emulator `pm get-app-links` verified + phone … (detail: ticket file) |
+
 Source: owner 2026-11-10: "but we can't set up app link until we are in closed testing stage? unless you know how."
 It does not need closed testing. It needs two things that exist already on internal testing.
 

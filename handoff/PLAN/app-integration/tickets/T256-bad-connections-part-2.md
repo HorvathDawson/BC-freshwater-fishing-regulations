@@ -2,6 +2,10 @@
 
 Status: DONE (5e1888580, 19fd5e25f, 51db891b8, 01d1aac07, 7d426803f, b214318e9, 1056d1de3) — request-walk pin re-cut waits for a release with slices
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T256 | bad connections part 2: fewer bytes per answer (water/core by region), a start link before paint, Conditions chart before its envelope, the phone installer on resilient fetch, bundle size, request walk first-run | DONE | 5e1888580, 19fd5e25f, 51db891b8, 01d1aac07, 7d426803f, b214318e9, 1056d1de3 | R2 named tap Slow 3G 51 → 22 s, 2G timeout → 82 s (answer slices); pin re-cut on the first sliced release |
+
 Source: T254's measurements (owner 2026-10-29, "make the app work well on BAD connections"). T254 made the app order,
 survive and say what it is doing on a poor line; what is left is the BYTES an answer costs, which no ordering can hide.
 Numbers: `node app/tools/bad-net.mjs` (T254 ticket, "Measured").

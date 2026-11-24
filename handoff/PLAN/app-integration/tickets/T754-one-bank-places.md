@@ -3,6 +3,10 @@
 Status: DONE 2026-11-22 (5953ef057, eeb19b4f3, lane L20): the words and the other bank's verdict. The one-side stripe and owner
 questions 4–6 are T1029.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T754 | Places that cover one bank of a river only (Kitimat west bank; Nakina): store the bank, name it on the card, colour one side | DONE 2026-11-22 (words + the other bank's verdict, owner Q2 "Other bank: the water's other rules"; the one-side stripe and Q4–Q6 → T1029) | 5953ef057, eeb19b4f3, 7084e2fa5 | owner 2026-11-15: "we should have a way to define one half of the river closing maybe? could color only west or east side?"; 2 rivers, 3 records; recommended: bank left/right looking downstream + one-side stripe |
+
 Source: owner 2026-11-15, while labelling DFO salmon places: "also for kitimat it is (on west bank between signs at
 Kitimat hatchery outfall. · ) we should have a way to define one half of the river closing maybe? could color only
 west or east side? could be an option in extent i think this is the only river like this? but worth at least doing the

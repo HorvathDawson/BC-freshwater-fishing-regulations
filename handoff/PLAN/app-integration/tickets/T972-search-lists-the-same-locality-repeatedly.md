@@ -2,6 +2,10 @@
 
 Status: PARTIAL — the 10 'Thompson Plateau' rows are ten distinct gazetteer points (data/source/bc_places.json; 101 name+kind groups, 311 rows in all), not one record repeated. `tellPlacesApart` (core `searchIndex.ts`) gives each repeated row where it lies — "Locality · 22 km N of Kamloops · every named water around it"; no row dropped. Code bc5a3df47. left (Claude): the device look. Owner may prefer merging near-identical points (a data call, not done).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T972 | Search for "Thompson" lists "Thompson Plateau" locality five times, identical lines | PARTIAL — built + tested (bc5a3df47): repeated names say where they lie; left: the look on a device | bc5a3df47 | L4 Android looks 2026-11-20 |
+
 Source: L4 Android device-looks pass 2026-11-20 (T730 look, emulator).
 
 ## What was seen

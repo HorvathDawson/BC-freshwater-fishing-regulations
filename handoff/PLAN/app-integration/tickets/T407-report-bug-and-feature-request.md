@@ -3,6 +3,10 @@
 Status: DROPPED — merged into T242 (2026-11-05 audit; the work continues there) — was: IN PROGRESS — built (app, worker, review app); ships with 0.6.0 (the staging feeds worker deploys with the
 release, not ahead of the app).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T407 | Report a problem: "App bug" and "Feature request" reasons (for testing) | DROPPED — merged into T242 (2026-11-05) | — | owner 11-05; worker deploys with 0.6.0 |
+
 Source: owner 2026-11-05: "in the app we should add a separate button for bug in report a problem and feature request so
 I could use those when testing".
 

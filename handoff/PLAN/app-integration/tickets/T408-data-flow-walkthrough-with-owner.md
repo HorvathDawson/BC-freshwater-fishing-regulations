@@ -2,6 +2,10 @@
 
 Status: DONE — bddc6406b, 1d271317f; data-flow.md rewritten with T324; closed by the 2026-11-09 ticket audit
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T408 | Walk the owner through the data flow one question at a time, then simplify it to match (first task of the data-and-build chat) | DONE — bddc6406b, 1d271317f; data-flow.md rewritten with T324; closed by the 2026-11-09 ticket audit | bddc6406b, 1d271317f | walkthrough done 11-05: data-flow-decisions.md; T324–T337 re-scoped, T412/T413 filed; data-flow.md rewrite with T324 |
+
 Was: PARTIAL (2026-11-05) — walkthrough done, every stream decided (`handoff/PLAN/data-flow-decisions.md`); T324, T325, T266, T295, T297, T337 re-scoped, T412 + T413 filed. Left: data-flow.md rewritten to the pipeline as built (with T324). Was: OPEN — FIRST task of the next chat.
 
 Source: owner 2026-11-05: wants an agent that asks them about the pipeline cleanup "to really understand what we want in

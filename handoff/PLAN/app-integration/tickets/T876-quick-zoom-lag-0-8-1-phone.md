@@ -2,6 +2,10 @@
 
 Status: DONE (b7c24e218, 9b12cdbe3; in 0.8.2 on app/integrate-082, ledger brought up to date 2026-11-19). Was: IN PROGRESS (app chat). Fix on lane app/t876-zoom-lag (b7c24e218): on a phone the labels wait while the zoom moves and come back 250 ms after the camera rests (owner 21:40: streams, colours, smoothness first). Emulator: quick pinch 42 → 57 fps, render 21.6 → 10.7 ms/frame; zoom-out not worse. Left (Claude): into the 0.8.2 phone build; the owner's feel on his Pixel.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T876 | Quick pinch-zoom lags on the phone (owner trace 20:35); an old issue, not a 0.8.1 regression (owner 20:51) | DONE | b7c24e218, 9b12cdbe3 | owner 2026-11-18, after launch |
+
 Owner 2026-11-18 20:37, verbatim: "More laggy quick zoom in and out."
 Trace: his Pixel 9 ("tokay", Android CP3A.261005.005), System Tracing, captured 20:35:
 `/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/88da0716-trace-tokay-CP3A.261005.005-2026-11-18-20-35-10.perfetto-trace`

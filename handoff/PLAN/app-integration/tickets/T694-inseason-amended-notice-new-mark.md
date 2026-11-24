@@ -2,6 +2,10 @@
 
 Status: DONE — 10ad08512, 8205a5c8a (built with T706; left (Claude): nothing — owner look is the T706 post-release check).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T694 | A new or amended in-season notice carries a "New" / "Updated" mark until seen | DONE | 10ad08512, 8205a5c8a | owner 2026-11-13 "Yes add it in."; Updated only when the feed links it (status changed + previous); seen per device; built with T706; RULINGS O8 |
+
 Source: owner 2026-11-13, un-postponing it: "Yes add it in." In-season notices are BC Fish and Wildlife's, not DFO's.
 Was POSTPONED 2026-11-12 (gap 2 of the in-season lane; T693 built gap 1).
 

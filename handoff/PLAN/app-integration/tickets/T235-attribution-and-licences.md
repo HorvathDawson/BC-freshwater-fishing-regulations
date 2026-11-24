@@ -2,6 +2,10 @@
 
 Status: DONE — cf41b443 (web walked desktop + phone; native style unit-tested, not walked on a device)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T235 | data attribution: map credits naming what is drawn (web + native), source credits on the sheets, About → Sources & licences (ODbL / OGL-BC / OGL-Canada / DFO / PSF / Esri) | DONE | cf41b443 | ODbL decided 10-28 (no file; map + Sources credit); city licences added; owner: confirm Burnaby/Abbotsford wording; native ⓘ on a device rides T77 |
+
 Source: owner 2026-10-28 — approved proposal P1 ("credits must live in the proper location, like attribution on the
 map").
 

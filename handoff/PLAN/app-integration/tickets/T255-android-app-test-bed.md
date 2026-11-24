@@ -2,6 +2,10 @@
 
 Status: DONE — 657f44e33, d37f77f29, 47a8c3449, 43d22b03c, b700a3608, b6ac5f2af (+ this close)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T255 | Android app test bed: Maestro flows + adb network control + scenario runner/report (feeds, big update, offline, spots offline, report outbox; T223 sync seam) | DONE | 47a8c3449, d37f77f29, 43d22b03c, b700a3608, b6ac5f2af | found T262–T265; fixed NetInfo deaf subscribers + spots reconnect refresh |
+
 Source: owner 2026-10-29 — a reusable APP TEST BED in the Android emulator (reuse T50's AVD/tooling) proving the app
 behaves with downloads, sync and offline: new feeds, a bigger update (Wi-Fi/metered, update needed), offline launch /
 mid-session / reconnect, spots offline (photos, captured weather/gauge context, refresh on reconnect; a sync-adapter

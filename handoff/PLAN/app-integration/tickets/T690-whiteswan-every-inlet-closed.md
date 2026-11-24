@@ -2,6 +2,10 @@
 
 Status: DONE — c41d54742. Every Whiteswan inlet and the outlet down to the falls are No Fishing; the 12 inlets became items in the final full_next and shipped in r-adc4e248a163.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T690 | Whiteswan Lake's inlet & outlet streams: every inlet (15) and the outlet down to the falls No Fishing; only the outlet below the falls is the exception (Aug 1-Mar 31 closed; rainbow 5, release the rest) | DONE | c41d54742 | — |
+
 Closed by the 2026-11-20 audit: the final full_next with T690 (12 inlet items, r1 16 sections) went into candidate r-adc4e248a163, on staging 2026-11-13 (chain finished, attributed diff names T690); T790 item 4 lists T690 as shipped.
 `whiteswan_lakes_inlet_outlet_streams.r1` in that build's binding diff (2 → 16 sections expected)
 

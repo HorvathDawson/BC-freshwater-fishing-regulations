@@ -3,6 +3,10 @@
 Status: DONE (481bc8266) 2026-11-03 except partial coverage per species/day (left, see Done) — salmon/4 + dfo-feed/3, needs the batch-3 rebuild (found by T350 lean pass, 2026-11-02). Owner rule: all cascade / default / quota logic is resolved in
 Python and shipped pre-resolved.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T356 | Salmon card: move what core salmon.ts still resolves (region closure by id string, water-bucket tier, header sizes, partial coverage) into the Python file; `shared` bucket lost without a region daily note | DONE (partial coverage left in TS) | 481bc8266 | salmon/4 + dfo-feed/3 2026-11-03; needs the batch-3 rebuild |
+
 `app/packages/core/src/salmon.ts` still decides these answers itself:
 - **Region closure** (`regionClosedChain`, :235-238): reads the tier from the location id string
   (`l.split(":")[1] === "region"`) and replaces the chain's answer with the header's `closed` note. Python already does

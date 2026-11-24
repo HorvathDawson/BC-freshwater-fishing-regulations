@@ -2,6 +2,10 @@
 
 Status: DONE — 81f03ed26 (all four findings; the acceptance holds). What the findings proposed beyond a pin — one date reader for both languages, a format bump that does not strand older apps — is T676.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T556 | Python and TypeScript copies of one rule are pinned by shared fixtures: DFO parser + fingerprint, feed formats; parity tests never skip silently | DONE | 81f03ed26 | one Python-written vector file the worker test reproduces (DFO fingerprints, typed rows, calendars, name key; nothing had drifted); T671 rows in one shared file; feed formats … (detail: ticket file) |
+
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 12 of 17; highest severity 3 of 5.
 
 Line numbers are the reviewers' and may be off by a few; "Second opinion" is what the verifier corrected. Fixes are proposals: re-read the code before building.

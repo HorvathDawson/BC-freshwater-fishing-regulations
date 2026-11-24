@@ -2,6 +2,10 @@
 
 Status: DONE (c22030e48). Owner to re-run the pilot (T136) on the new screen.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T189 | curation review from the pilot: source pinned, each rule's extent in words (tributaries, carve-outs), entry extent on top, tributary + lake-split calls in the mark, one pre-check per fact | DONE | c22030e48 | — (pilot dropped 2026-10-25; the screen serves the real review) |
+
 Source: the owner during the T136 pilot (T184 screen): "I can not see the extent for each rule. The
 formatting of the page is really bad. Too much content being repeated. The parse + original src image
 should be stickied at top so I don't go up then down then up. Also make sure we can select if

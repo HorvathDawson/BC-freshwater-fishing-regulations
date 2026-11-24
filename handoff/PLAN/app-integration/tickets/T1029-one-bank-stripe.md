@@ -2,6 +2,10 @@
 
 Status: OPEN — after 0.9.0; needs owner looks (T754 questions 4 and 6) and question 5.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1029 | One-bank DFO places: the one-side stripe on the Salmon map (T754 option B, the rest; owner Q4–Q6) | OPEN — after 0.9.0 | T754 | T754 (owner 2026-11-15 / 2026-11-22) |
+
 Source: T754 (owner approved option B 2026-11-15 round 4; question 2 answered 2026-11-22 23:45, "Other bank: the water's
 other rules"). T754 built the words and the verdict (5953ef057, eeb19b4f3): a placed one-bank place stands beside the water's other
 places (`u`, `p[lid].side`), the stretch paints by the other bank's answer and the card shows the one-side caveat. What

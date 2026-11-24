@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-16 (on the shared branch as 4e793d61f, in Play internal build 33 after six green benches; the owner read the sentences 11:57: "Fine as it is (Recommended)").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T762 | The trout "Through the year" line on a keep day stops at the next closure and never says when it ends or when keeping returns ("You can keep them until Sep 30. Then closed from Oct 1." on a Fraser stretch closed only in October); 94 answer keys (about 1,795 parts) show the form; cause in core `plainrow.ts` `runTxt`, a port of the prototype | DONE 2026-11-16 (4e793d61f, in Play internal build 33; owner 11:57: "Fine as it is") | 4e793d61f | trout display review 2026-11-15 (data note 2), traced by the app chat; owner 2026-11-15: not held for the trout redesign |
+
 Owner 2026-11-15 about 22:48 (relayed word for word by the main chat): "Do not hold stuff for the trout redosgn. That is a separate
 exploration thing that might not go anywhere". So this is NOT held for the trout display pick.
 

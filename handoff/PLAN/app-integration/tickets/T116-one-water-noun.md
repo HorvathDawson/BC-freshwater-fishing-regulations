@@ -2,6 +2,10 @@
 
 Status: DONE — 4cf77c7a, review fix 0c533d4a.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T116 | one water noun: wetlands called "river" | DONE | 4cf77c7a, 86e6ad40, 0c533d4a, 91b2952e | — |
+
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding app 2 and the
 TypeScript half of cross 8 (CONFIRMED).
 

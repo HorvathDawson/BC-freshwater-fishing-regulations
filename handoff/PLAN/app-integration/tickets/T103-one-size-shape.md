@@ -3,6 +3,10 @@
 Status: DONE — 677158f80. Answers diff: exactly 24 `plain` strings (Bennett 6, Morley/Tagish/Teslin 18),
 no `title`, no `bands`; card gate 0 problems. Rebuild: deliver. Left: owner question below.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T103 | one size shape: plain words contradict bands/title (24 strings) | DONE | 326e8848, 677158f8, 92cba91f, 671eabad | live after the next deliver; Q62–Q63 |
+
 Source: owner 2026-10-22 ("look for other spots where this same trap of multiple things that should be checking the
 same thing failing to have a unified function … simplify by unifying the code checks and logic where possible");
 unification audit 2026-10-22, finding 1 (CONFIRMED on `data/generated/regs/ui-rules-answers.json`).

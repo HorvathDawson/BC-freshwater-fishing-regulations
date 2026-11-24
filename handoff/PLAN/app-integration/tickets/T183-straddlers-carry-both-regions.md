@@ -3,6 +3,10 @@
 Status: DONE (0a1d5b590..1ba63301, 1ca8bfda; promoted r-98c43091c440). Asked as: Owner 2026-10-24 (braid review, then confirmed when asked about the conflict with T115): "Those straddle
 pieces are supposed to get both regions regulations" → "Both regions (reverse T115)".
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T183 | straddling pieces carry BOTH regions' rules (reverses T115, owner 2026-10-24) | DONE | 0a1d5b590..1ba63301, 1ca8bfda | promoted r-98c43091c440; stricter wins, 5 m minimum, Skeena 2 from Exchamsiks; card gate 0 |
+
 ## Work
 - `pipeline/registry/regions.py` `region_sections` (T115's one home-filtered membership) becomes raw membership: a
   section is in every region whose polygon it lies in (by length > SLIVER_M, so a touch is not membership). Keep ONE

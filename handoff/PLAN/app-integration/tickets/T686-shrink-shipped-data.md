@@ -2,6 +2,10 @@
 
 Status: DONE — shipped in 0.8.5 data (packed formats on) (4eece8ec1, 2026-11-21).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T686 | Shrink shipped data across the board: survey every shipped file, measure candidate savings, propose (no design yet). Next free ticket T689 | DONE (shipped in 0.8.5 data (packed formats on)) | 4eece8ec1 lane/l8-shrink | owner 2026-11-12 ("Raise now, shrink later"); RULINGS O5; candidate 8 = T699 and candidate 9 = T695, both deferred (owner 2026-11-13) |
+
 Source: owner 2026-11-12 (T678 release stopped at the size gate): "Raise now, shrink later, but the ticket should cover
 ways to shrink data across the board, not just ponds." RULINGS O5 raised `core`, `conditions` and the web's
 `first_search`; this ticket is the "shrink later".

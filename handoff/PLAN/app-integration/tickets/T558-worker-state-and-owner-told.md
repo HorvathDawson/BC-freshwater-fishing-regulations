@@ -2,6 +2,10 @@
 
 Status: PARTIAL — afbdaf2d2 (W3 reads), 924221934 (W8 + item 5), dd7032d6c (W9), 026ca775b (W13 etag), 069d61d45 (item 3 channel), e777f33e8 (item 2 daily jobs watched), cb1ac2397 (item 6 no window), 306056ce9 (item 4 worker half). left (Claude): item 2's outside heartbeat (a second worker), item 4's app outbox (refused queued report shown, send() honest), item 7 (review app), item 8 (report/3 locator).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T558 | Feeds worker: a failed state read is not written back empty; the owner hears when crons, backup or email stop; queued reports are not lost | PARTIAL — left: outside heartbeat, app outbox half of item 4, items 7 (review app) and 8 | afbdaf2d2, 924221934, dd7032d6c, 026ca775b, 069d61d45, e777f33e8, cb1ac2397, 306056ce9 | data pipeline review 2026-11-09 (verified); rank 14, severity 3, 8 findings; + T608C W3, W8, W9, W13 |
+
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 14 of 17; highest severity 3 of 5.
 
 Line numbers are the reviewers' and may be off by a few; "Second opinion" is what the verifier corrected. Fixes are proposals: re-read the code before building.

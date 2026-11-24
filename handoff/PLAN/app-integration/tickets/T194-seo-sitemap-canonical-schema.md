@@ -2,6 +2,10 @@
 
 Status: DONE — 21a2d17ff, b1a5c7fa8 (+ 1c4dd582, 435ce2d8); sitemap/canonicals/JSON-LD verified on staging against the real release.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T194 | SEO: sitemap, robots, canonicals, JSON-LD + build gates | DONE 11-05 | 21a2d17ff, b1a5c7fa8, 1c4dd582, 435ce2d8 | — |
+
 Source: T188 plan, handoff/PLAN/seo/PLAN.md sections 2 and 3.
 ## Work
 sitemap.xml (chunked; lastmod only on changed content), robots.txt, canonical + title + description per page, JSON-LD

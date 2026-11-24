@@ -2,6 +2,10 @@
 
 Status: DONE — 1aed37981, baf4720a9 (items 1-5); the region / bounds key: a088c9cd0, 54778147e, 28e68fb69 (T1010's `?fit=w,s,e,n`, web and phone); the gauge key not wanted (owner 2026-11-12).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T605 | One B.C. clock: what T551 left (gauge page script, items 3/4/8, re-read on return to the app, static hub day words); the region key is T1010's `?fit=` (web + phone) | DONE | 1aed37981, baf4720a9, a088c9cd0, 54778147e, 28e68fb69 | — |
+
 Source: T551's report 2026-11-10 (commits d3b7f080e, e1142f148, 7af7f39e4). T551's ticket file numbers the items.
 
 ## Work

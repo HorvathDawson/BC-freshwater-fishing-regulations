@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS (merged onto `redesign/stream-sections` 2026-11-16 via `merge/held-group1` (70d30e77f); the Android benches (update-freeze, big-update, regs-open, tap-stalls and the rest) all PASS on the merged APK, 2026-11-16 (b60d6436e); left (Claude): a look at the curtain on an Android screen, §4)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T746 | While new data is applied the app shows a loading mark and a line of text, not a still screen (Android, iPhone, web). Next free ticket T747 (T742 to T745 are taken by the Android chat) | IN PROGRESS (merged 70d30e77f via `merge/held-group1` 2026-11-16; Android benches pass, b60d6436e; left (Claude): a look at the curtain on Android) | 889a194ea, 2a0ab83f9, 70d30e77f | owner 2026-11-14, relayed by the Android chat: "also when changes apply to app we want to make it so that it has a loading icon with text like splash so it doesnt looking like it … (detail: ticket file) |
+
 Source: owner 2026-11-14 (evening), relayed by the Android chat, verbatim: "also when changes apply to app we want to make
 it so that it has a loading icon with text like splash so it doesnt looking like it is frozen. (applying changes as in
 new data regs)".

@@ -3,6 +3,10 @@
 Status: DONE (8ad715d6 … ee1234e0; live after the feed republish). Earlier: IN PROGRESS — BUILT in lane wf_e8f2adba-933-2 (8ad715d6 pipeline + the app commit after it), awaiting review
 and merge; live only after a feed republish (publish.py writes `change`). Ticket 6ffda443.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T52 | Conditions "Expected change" | DONE | 8ad715d6, 1089d4a2, be32f926, 9a050ec1, 7b47a6ab, ee1234e0 | live after the feed republish |
+
 Phase 4 · Depends on the gauge feed + forecast (pipeline/gauges/feed/forecast.py), Conditions horizons (Now · +1 · +3 · +5
 · +10), the colouring engine's standing channel, T47 palette D · Size 2–3 days (pipeline + app)
 

@@ -2,6 +2,10 @@
 
 Status: DONE — df5da53a, 51f77e32 (adversarial review). App-only: `section_gauge` is unchanged, no deliver needed.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T105 | one gauge speaker for map and sheet (54,401 sections disagree) | DONE | df5da53a, d532f31e, 51f77e32, 46af7a18 | Q90–Q93 defaults |
+
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, findings gauges 1 and
 12 (CONFIRMED on `bundle.sqlite`).
 

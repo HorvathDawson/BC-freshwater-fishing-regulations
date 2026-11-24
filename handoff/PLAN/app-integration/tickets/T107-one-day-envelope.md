@@ -2,6 +2,10 @@
 
 Status: DONE — 4a93cf64 (review a06c1b01)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T107 | one day's envelope: Python band_for vs TS bandAt | DONE | 4a93cf64, 1399d3d7, a06c1b01, 4965f6ec | — |
+
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding gauges 3 =
 cross 3 (CONFIRMED in code).
 

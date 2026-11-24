@@ -7,6 +7,10 @@ stocking / bathymetry / salmon code as "prepared"; prove every script unneeded b
 Includes the ONE name normaliser (owner accepts a reviewed binding diff), retiring the dev bundle + riffle fixture
 (N6), finishing P20 (no regs.sqlite, N5).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T61 | cleanup wave 2: old pathways/duplicates | DONE | 9db616f0, 884fe9c7, 46cab8cd, baeda569, 0ad1a84, 32e8610e3, ac11effbf, fad95e8e | lanes A/B/C + 2.8 normaliser merged and promoted (r-5380a42dab54, no binding change); 2.17 done in T63; 2.13 pinned |
+
 ## Items (audit PLAN.md §2 wave 2; checked against git 2026-10-22)
 - ALREADY DONE, do not redo: 2.5 water_continue made by the bundle (a6aa4d86); N7 deliver key covers the raw gpkg and
   clim.json (b274cd3a); N8 the atlas records the matches.json it cut at (f9ff2207).

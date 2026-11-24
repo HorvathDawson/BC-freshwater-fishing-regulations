@@ -2,6 +2,10 @@
 
 Status: DONE — 31b04ca5c, 2c316de53, 243b46352, 719fd569c, b1f6f23dc, 4f591c31a, 4bc03ac14; shipped in 0.8.4 (cut e769f710a, data r-fec3fab4c5aa; 0.9.0 audit 2026-11-22, every hash is an ancestor of origin/main and of e769f710a). (Earlier status: IN PROGRESS (2026-11-20, b1f6f23dc, review fixes 719fd569c 243b46352 2c316de53) — items 1, 3 and 4 done (4f591c31a, 4bc03ac14); item 2 built on the owner's 2026-11-20 pick (per-feed `minAppVersion`), branch lane/l1-feeds. left (Claude): main chat review + merge, then the staging feeds worker deploy (the worker stamps the dfo / inseason / live indexes) and the next app build (the gate ships in the app; an app older than it ignores the field) 2026-11-20 07:18: merged (27e98e4eb), staging feeds worker deployed (stamps live). 2026-11-20 10:35: leftovers L2-L4 built on lane/la-feeds-leftovers (31b04ca5c: a refused gauge file asked again only by its validator, the More row shows any gauge-file hold steadily, the foreground obs sync reports); left (Claude): main chat review + merge, then the next app build.)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T676 | The release and the live feed read a DFO date cell the same way; a feed format bump does not strand an older app | DONE | 31b04ca5c, 2c316de53, 243b46352, 719fd569c, b1f6f23dc, 4f591c31a, 4bc03ac14 | — |
+
 Source: T556 (data pipeline review 2026-11-09, findings 1 and 3). T556 pinned the two languages with shared fixtures and
 generated the format strings; these two are changes of behaviour, not pins.
 

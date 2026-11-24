@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS (app chat + owner) — production builds made: 0.8.3 Android production build 39 on Play Closed testing (in Google's review; replaced 38 on the owner's pick, 2026-11-19); iPhone 0.8.2 build 39 approved for TestFlight External, 0.8.3 build 41 in Beta App Review (added to the External group by T918). Left: Google's approval of Play Closed build 39 and Apple's of build 41 (no action); then the testers are invited (owner).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T863 | 0.8.1 to friends: production builds, Play closed testing and TestFlight external (owner) | IN PROGRESS — production builds on Play Closed (39, Google review) and TestFlight External (0.8.2 approved; 41 in review) | 9caeddba5, 592bba8a5 | owner 2026-11-18 |
+
 Owner 2026-11-18 ~18:00, verbatim (after asking "can i open external iphone testing to send to a few friends to help me
 test?"): "lets wait for 0.8.1 then do the prod build then full closed release and external release for andorid and apople".
 

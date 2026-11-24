@@ -2,6 +2,10 @@
 
 Status: DONE — f856e42f2 (closed on the owner's word 2026-11-20; see the last section)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T566 | Switching between the maps causes issues sometimes (owner, Pixel 9, build 24) | DONE | f856e42f2 | — |
+
 Source: Owner 2026-11-09 (owner checks page, T512): "it is okay but not perfect. it is good to pan around, lags a tiny bit rarely but switching between the maps causes issues sometimes."
 
 ## Work

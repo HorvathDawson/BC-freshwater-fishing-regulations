@@ -2,6 +2,10 @@
 
 Status: DONE — be8b4693 (re-run passed 39/39: 111dcea3) — source: reader gate 2026-10-23 (handoff/PLAN/app-integration/reader/2026-10-23-app.md), the one miss (Q12).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T137 | reader shooter: TALL cards shot drops the Other fish list (re-shoot + re-run the gate) | DONE | be8b4693, 111dcea3 | — |
+
 ## Today
 `app/tools/compare-regs.mjs` `tall()` clips a `cards` shot at the bottom of the last `[data-testid=keep-group]` /
 `[data-testid=keep-plain]` block. The Keep tab's Other fish list (`keep-otherfish`, KeepBlocks.tsx `OtherFish`) comes

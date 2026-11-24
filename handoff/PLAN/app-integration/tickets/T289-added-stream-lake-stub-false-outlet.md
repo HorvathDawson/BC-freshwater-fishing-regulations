@@ -2,6 +2,10 @@
 
 Status: DONE 2026-10-29 (852ecc4f; atlas promoted; release r-1f5d93644c5b, local LATEST — verified: Thomas + 4 tribs bind burnaby_lake_s_tributaries, Noons piece tidal, Cranberry mark on the mainstem with `low`)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T289 | Added-stream lake stub makes a false lake outlet (Thomas Creek open under Burnaby Lake tribs) | DONE | 852ecc4f | generic connector re-join inside the lake; Thomas + Angelo; binding diff = expected only |
+
 Source: owner 2026-10-29 — Thomas Creek (Burnaby, added stream blk -2000000382) should be closed under "BURNABY LAKE'S
 TRIBUTARIES 2-8 — No Fishing" (printed p.22) but shows open.
 

@@ -2,6 +2,10 @@
 
 Status: DONE — 6e1289e3a, 0399ce248, 19a3704de
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1021 | The CI "no hard-coded data path" gate misses every multi-segment literal (T994 finding 7; ~10 live) | DONE | 6e1289e3a, 0399ce248, 19a3704de | — |
+
 Source: T994 audit finding 7 (`handoff/PLAN/audit-2026-11-21/t994-audit.md`), checked still true 2026-11-22 (lane L13):
 `.github/workflows/pipeline-ci.yml` "No hardcoded curated or source paths" matches `"data/<one segment>.<ext>"` only, so a
 literal like `Path("data/source/hydat.sqlite3")` passes. Still in the tree: `pipeline/atlas/build.py:338,343` (source_ref

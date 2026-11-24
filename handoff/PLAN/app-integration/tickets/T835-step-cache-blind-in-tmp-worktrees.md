@@ -2,6 +2,10 @@
 
 Status: DONE d95792c17, 3c29901e2 (lane/bugs-080 2026-11-17: the recorder traces a checkout under /tmp (T799) and a trace with no repo module is never kept)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T835 | The step cache reuses stale outputs in a worktree under /tmp (`_trace.install` skips /tmp) | DONE | d95792c17, 3c29901e2 | T834 worker 2026-11-17 |
+
 Source: the T834 worker, 2026-11-17. `pipeline/_trace.py` `install()` skips every path under `/private/tmp` and `/tmp`
 (the system-path skip list). A lane worktree in the session scratchpad lives there, so a deliver step records no
 modules or reads, and the step cache then reuses old outputs whatever the code says: the worker's second side build

@@ -2,6 +2,10 @@
 
 Status: DONE (f52055bb, 5b13ab24) — web. Native needs nothing (see below).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T253 | background prefetch of the files an unnamed-stream tap reads (view region + neighbours only, capped; good connection only; T231 cache path; Updates log + More "Offline data") | DONE | f52055bb, 5b13ab24 | owner 2026-10-28; tap 5.4 s → 0.25 s at Fast 4G; native installs whole |
+
 Source: owner 2026-10-28 — "tapping an UNNAMED stream is slow the first time (it pulls the lazy files …). Make it fast
 by PREFETCHING in the background when it's cheap."
 

@@ -3,6 +3,10 @@
 Status: DONE 6f91a86dd, 2e36c8934 (in r-86d43303bee2 and r-fc137c4040fa, on staging 2026-11-18).
 Found by the app chat's Nass check 2026-11-18 (the Nass trout table kept lake trout in November); main chat's area.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T854 | Region 6 streams kept lake trout Nov 1-June 30 (book: released like every trout and char; owner) | DONE | 6f91a86dd, 2e36c8934 (r-86d43303bee2) | owner 2026-11-18 |
+
 ## The owner (2026-11-18, verbatim)
 
 - To the main chat's question ("Region 6 streams: should lake trout follow the two stream trout rules …"):

@@ -2,6 +2,10 @@
 
 Status: DONE (landed e0434e1b8 with the T810 cutover, CI green 2026-11-18 06:27; 0.8.0).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T845 | A first start on data this app cannot read says so plainly, not "the map data could not be loaded" | DONE | e0434e1b8 | app chat 2026-11-18 (T810 cutover bench) |
+
 Source: app chat 2026-11-18, found by the T810 cutover bench. The 0.8.0 candidate (trout 4+) on the live staging release (trout 1)
 failed every start with "The map data could not be loaded. Check the connection and try again." The release order makes
 this rare (data release first, then 0.8.0), but the no-silent-fallbacks rule wants the real reason said. The main chat

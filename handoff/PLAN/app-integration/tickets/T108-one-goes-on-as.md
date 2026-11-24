@@ -3,6 +3,10 @@
 Status: DONE — fb1b12a5 (code + tests on lane-T108), adversarial review 93d39ad3 (window pins, spec wording). Ships with the next deliver: bundle `section_span` and
 `water_continue` change only when `python -m pipeline.deliver` rebuilds the bundle.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T108 | one "goes on as": continuation vs spans (11 of 17 pairs) | DONE | fb1b12a5, 551c8090, 93d39ad3, c38fbbec | delivered r-b518a2b507fa |
+
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding cross 1
 (CONFIRMED: `water_continue` joined to the span lower-end tokens in `bundle.sqlite`).
 

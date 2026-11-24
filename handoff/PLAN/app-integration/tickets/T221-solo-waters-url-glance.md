@@ -2,6 +2,10 @@
 
 Status: DONE — 73625e35, 4a5f7a40, 9784a7b0. At-a-glance table kept by the owner (no counts on folded rows).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T221 | solo waters open on regs (no Map), URL follows the water, one salmon table, plain size rule, count line before its size box, at-a-glance species table (kept, no counts) | DONE | 73625e35, 9784a7b0 | owner 2026-10-28 web feedback (Dala River) |
+
 Source: owner feedback 2026-10-28 on the web app (Dala River).
 
 ## Items

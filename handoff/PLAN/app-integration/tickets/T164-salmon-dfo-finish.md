@@ -2,6 +2,10 @@
 
 Status: DONE — acceptance recorded on the live release r-741815c6090d (lane L10, 2026-11-22; see "Acceptance on the live release" below): dossier 0 open; the 5 active locators splitwork still lists need no cut (2 tidal, 3 lake parts); every active water place carries a mark but the 3 lake parts; today's re-fetch places all 275 live locations (0 unplaced, no changes); the Skeena, Fraser and Cowichan carry their dated salmon rules.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T164 | salmon (DFO): finish the dossier, place the 96+7 splits, review the extents, fetch + place current quotas | DONE | 7f1b3e414 | acceptance recorded on r-741815c6090d (lane L10 2026-11-22): dossier 0, no active locator can take a cut (2 tidal, 3 lake parts), re-fetch 275 placed / 0 unplaced, Skeena / Fraser / Cowichan dated |
+
 Source: owner 2026-10-23: "make sure we have a ticket to finish the salmon dossier stuff and finish adding the splits
 needed for salmon regulations and doing all the curation review for the extents so that we could fetch the current
 quotas etc for all extents and be able to place them." Umbrella over T95 (plan) and T132 (review pass); the design and

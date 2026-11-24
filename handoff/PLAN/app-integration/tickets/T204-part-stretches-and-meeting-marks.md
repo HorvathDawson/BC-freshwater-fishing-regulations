@@ -2,6 +2,10 @@
 
 Status: DONE (9e0960ec; built in r-8b43fb267199)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T204 | a part's separate stretches and a mark at every place two parts meet (T203 items 4–5) | DONE | 9e0960ec | built in r-8b43fb267199 (Kanaka: bridge + falls marks, 610 stretch rows); owner phone check |
+
 Source: T203 lane 2026-10-25. Owner: non-adjacent stretches of one part are SEPARATE stretches on the map (own label,
 own selection); Kanaka Creek's end labels are wrong.
 

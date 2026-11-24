@@ -2,6 +2,10 @@
 
 Status: DONE — 279ec371, a2159a32, 5dcce89d, d9e87835, 459811a8. Leftovers moved: O3/O5 → T82 (DONE), the native walk → T50 (ledger check 2026-11-03).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T41 | web parity walk, side-by-sides, reader gate | DONE | 279ec371, a2159a32, 5dcce89d, d9e87835, 459811a8 | reader run + O3 + O5 → T82; native walk → T50 |
+
 Phase 4 · Depends on T27, T29, T35, T37, T38, T39, T40 · Blocks release · Decisions D1, D2, D5 (`--ref 04765ab5`), D7 ·
 Size 1 day
 

@@ -2,6 +2,10 @@
 
 Status: DONE — a3a982a17, 1900e1776 (closed on the owner's word 2026-11-20; see the last section)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T900 | Gear and Methods: cleaner, easier to read (owner) | DONE | a3a982a17, 1900e1776 | — |
+
 Owner 2026-11-19 ~01:12 (app chat), two desktop shots of a Fraser water's Gear and Methods
 (/Users/dawson.horvath/.claude/uploads/699dcd1b-ff73-4ed1-a69c-69feb621d839/9fe767d8-image.png and the one before it in that folder; if gone, re-shoot any Lower Fraser water's Gear/Methods),
 verbatim: "gear and methods i feel like we could clean up a little bit and make it easier to read. this can be a future

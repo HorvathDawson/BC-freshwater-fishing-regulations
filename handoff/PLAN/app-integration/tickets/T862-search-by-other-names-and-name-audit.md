@@ -2,6 +2,10 @@
 
 Status: OPEN — future (owner 2026-11-18 17:30: "this is a future ticket i think"); after 0.8.1.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T862 | Search finds a water by its other names (Baker Lake → Sixteen Mile Lake); audit the stocking/bathymetry name variations (owner) | OPEN | main chat + app chat | owner 2026-11-18, future (after 0.8.1) |
+
 ## The owner (2026-11-18 ~17:30, verbatim)
 
 "tyhe search doesnt show this? (Waters with an official name plus a different name that search also finds: 1,078

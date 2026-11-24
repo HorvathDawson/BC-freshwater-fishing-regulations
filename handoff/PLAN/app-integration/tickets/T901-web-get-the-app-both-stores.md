@@ -2,6 +2,10 @@
 
 Status: DONE (2d3e89299, merged into 0.8.2; review: nothing blocking, lows fixed in 4a2e1af; owner saw the redone pictures). Launch: set PLAY_PUBLIC / APP_STORE_PUBLIC in core storeLinks.ts (pnpm run store-pages checks them).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T901 | The web's "Get the app": a Google Play button and an App Store button (owner) | DONE | 2d3e89299 | owner 2026-11-19 ~01:14 |
+
 Owner 2026-11-19 ~01:14 (app chat), verbatim: "the web app get the app should link to both google play and apple depending
 on button you click".
 

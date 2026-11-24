@@ -2,6 +2,10 @@
 
 Status: DONE d95792c17 (lane/bugs-080 2026-11-17: a skipped root that holds the repo skips only paths outside it; test_stepcache passes under the temp dir)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T799 | Ten `test_stepcache` tests fail when the repo lives under the system temp folder (the recorder sees "0 modules, 0 reads"); a release rehearsed from a scratch worktree would hit it | DONE | d95792c17 | the app chat, 2026-11-16 10:40 (merge of T757 + T758 checked in a worktree under /private/tmp) |
+
 Source: the app chat, 2026-11-16 10:40. In a worktree under `/private/tmp` (two different heads, one of them untouched
 code) the same ten tests of `pipeline/tests/test_stepcache.py` fail; all 20 pass in the main checkout. The recorder
 reports "0 modules, 0 reads" when the repo's path is under the system temp folder (most likely it treats temp paths as

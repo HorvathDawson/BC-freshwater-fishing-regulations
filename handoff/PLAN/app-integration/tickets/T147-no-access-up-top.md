@@ -2,6 +2,10 @@
 
 Status: DONE — 1e663952 (core words, page path, block, shots), d5d032d8 (square corners), e5903a77 (review: the page path pinned); colour from df1c8bf1 + 41ace93b (T146; light block is now spruce). Built with T54 Q1 default (permit-only = gentle note).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T147 | "no public access" leads the regulations page | DONE | 01f76c76, e5903a77, 38e6628b, d5d032d8, 1e663952 | app |
+
 Source: owner 2026-10-23 (app walk): "make the no public access a bigger part of the regulations at the top and more
 obvious". Related: T54 (no-access streams; permit-only areas get the gentle note, Q1–Q3), T146 (its colour).
 

@@ -2,6 +2,10 @@
 
 Status: POSTPONED.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T447 | An app icon made by an artist (the favicon-derived set ships until then) | POSTPONED | — | owner 2026-11-06 |
+
 Source: owner 2026-11-06: the favicon-derived icon set (`app-integration/T244-shots/icons-preview.png`) ships as is,
 "but deferred ticket to get one made by artist".
 

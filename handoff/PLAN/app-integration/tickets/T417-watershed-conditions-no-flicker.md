@@ -3,6 +3,10 @@
 Status: DONE in code 2026-11-05 — 44ecbaad6 (0.6.1 batch; phone check with the next APK). Owner report: 2026-11-05 20:21
 on 0.6.0 build 9, report dbc65e804d2692ba (More screen, regulations map, z8.6 at 49.134,-122.776).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T417 | Watershed conditions: the last watershed's days stay up until the next is loaded (no flicker); the watershed is the one most on screen (visible bounds, cos-weighted grid), "none" only with none on screen; one load path (the map's settle) | DONE in code — phone check with the next APK | 44ecbaad6 | owner report 11-05 on 0.6.0; emulator check not run (no test-bed APK built) |
+
 "When moving between watersheds it flickers when switching the schedule view for the watershed conditions. Instead it
 should load the new one in the background and only move over after it is ready. Also it should use which watershed is
 most in screen, so it won't show none when you are centered next to the watershed on an ocean for example."

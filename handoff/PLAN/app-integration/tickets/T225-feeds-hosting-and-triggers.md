@@ -3,6 +3,10 @@
 Status: DROPPED — merged into T412 (2026-11-05 audit; the work continues there) — was: OPEN — STAGING SCHEDULE ON (2026-10-28, Phase A below); acceptance = a week with no hand runs; prod switch-on is the owner's. Was: design first; owner picks the host (owner 2026-10-28: "how to make the feeds work the best as possible,
 where they should live, how they are triggered etc").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T225 | feeds: where they live, how they're triggered, alerting (gauges, DFO, HYDAT) | DROPPED — merged into T412 (2026-11-05) | — | host = Cloudflare Workers cron; STAGING schedule ON 10-28 (Phase A: retries/breaker/stale carry, per-source failure measures, R2 inputs synced); acceptance = a week unattended; prod = owner |
+
 Source: owner 2026-10-28. Today every feed runs only when someone runs it on this Mac; OWNER-TODO carries "set up the
 feed cron + R2 sync" for the gauges (T177) and DFO salmon (T211 part 2), plus `FEED_NOTIFY_URL` and
 `scripts/update-hydat.sh`.

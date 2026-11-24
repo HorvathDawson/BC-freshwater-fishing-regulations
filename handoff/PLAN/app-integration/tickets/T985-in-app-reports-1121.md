@@ -2,6 +2,10 @@
 
 Status: DONE — shipped 0.8.5; emulator walk PASS #1/#3 (2ccf1ea45, 2026-11-21).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T985 | In-app reports 2026-11-21 (4 items: chart flicker on model change, Chilliwack downstream label, map uncoloured after Conditions, drag the chart date bar) | DONE (shipped 0.8.5; emulator walk PASS #1/#3) | 2ccf1ea45 | prod /reports, read 2026-11-21 |
+
 Source: `GET /reports` on the production feeds worker, read 2026-11-21 12:50. The fifth report (2026-11-20 23:38,
 Squamish River, "make the map a lot bigger") is T979.
 

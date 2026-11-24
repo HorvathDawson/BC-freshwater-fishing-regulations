@@ -2,6 +2,10 @@
 
 Status: DONE — 96abc2b58 (web walked desktop + phone on the real release; native not walked on a device)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T247 | search upgrades (fuzzy, MU/region/town, recents) | DONE | 96abc2b58 | in-memory index, typos, MU/region/town, region/MU on rows, recents; core `item_area` (live release gets MU/region search with its next cut); shots T247-shots/ |
+
 Source: owner 2026-10-28 — approved proposal P13 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
 ## Work

@@ -2,6 +2,10 @@
 
 Status: DONE on the data side, 319a447a0, a9fbaa802, eafa7b9f5 (Fraser data lane, 2026-11-14/15); the re-marks and cut acceptances wait on the owner
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T743 | The Fraser's DFO places: cuts checked, proposals fixed, a dossier to label from | DONE data side 2026-11-14 (suggester + dossier); Fraser marks reset at the owner's ask (cleared marks + places restored); 2026-11-15 channels / Redsand / spot checks / nine cuts report, Redsand through-river fix; re-marks + the nine cuts wait on the owner | 319a447a0, a9fbaa802, eafa7b9f5 | owner 2026-11-14 ("fix up fraser and make sure all the cuts are good and fix proposals") |
+
 Source: owner 2026-11-14: "also please try to fix up fraser and make sure all the cuts are good and fix proposals etc."
 
 

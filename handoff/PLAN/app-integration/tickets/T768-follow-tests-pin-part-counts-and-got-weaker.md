@@ -3,6 +3,10 @@
 Status: DONE — the made-up-part-end proof is met and rerunnable (`app/tools/part-end-proof.mjs`, 1716bcb87, f8916d70f);
 the three weaker tests are mutation-checked; T993 item 10 (ff946c86e, c5d66fccc). See "Done, 2026-11-22" at the end.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T768 | App follow tests type part counts and names by hand (twelve stopped the r-46e4355a7277 release, 39918037e still types "of 21"), three got weaker in that commit, and `release-perf.test.ts` + two live-release tests never run where they should. One content pin per water in one file; the rest read the group | DONE (made-up part end fails only the content pin: `tools/part-end-proof.mjs`; + T993 item 10) | b4a664be8, 5d928a1fb, 36559a549, ff946c86e, c5d66fccc, 1716bcb87, f8916d70f | the general audit 2026-11-16 (`audit-2026-11-16/guards.md`); the app chat's own commit |
+
 Source: `handoff/PLAN/audit-2026-11-16/guards.md` and `code.md`. Area: app tests.
 
 ## What is wrong

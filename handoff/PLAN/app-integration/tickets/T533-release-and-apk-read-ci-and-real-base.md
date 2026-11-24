@@ -2,6 +2,10 @@
 
 Status: DONE — 98b0ccea1 (see Built; CI reads red today: pipeline-ci run 42734778050).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T533 | Release and APK preflight read CI's result for HEAD and check everything since the last ship (FAST_FAIL_BASE) | DONE | 98b0ccea1 | workflow review 2026-11-09; scripts/ci_status.py |
+
 Source: workflow review 2026-11-09 (owner-led; each finding re-read against the code by a second reviewer). Rank 1.
 
 ## Today

@@ -2,6 +2,10 @@
 
 Status: DONE (55c09f699; owner 2026-11-04: "lets not do the phone walk because the internal and closed testing will cover it").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T77 | D1 phone testing | DONE | 55c09f699 | all (owner) |
+
 Source: handoff/PLAN/app-data/D1-phone-testing.md — owner 2026-10-21: "do both options"; neither done.
 implement_progress queue K: "D1 phone testing needs the owner". Every "NOT verified on a device" note waits on this:
 S1 photo picking/downscale, IndexedDB, netinfo dev build, Vulkan vs OpenGL, A4/A8 perf budgets, gestures (two-finger

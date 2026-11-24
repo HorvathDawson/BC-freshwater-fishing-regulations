@@ -2,6 +2,10 @@
 
 Status: DONE — 459e01458, 304feaeec (closed on the owner's word 2026-11-20; see the last section)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T610 | A "same place" grouping writes why on the place (the Serpentine link had no note) | DONE | 459e01458, 304feaeec | — |
+
 Source: found 2026-11-10 while testing T607; coordinator: "ticket + fix … in your lane".
 
 ## Today

@@ -3,6 +3,10 @@
 Status: DONE (b52942134, 86476b6e2) — rides the next release + a feeds-worker deploy (owner 2026-10-31: "It should be urgent yes. Because it could mean a quota changed but with a new wording.
 Also display a specific waters unparsed items if they exist (wording change happened). Yes make this a ticket.")
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T321 | DFO limits wording as a closed registry: unknown clause → row flagged, water card shows DFO's words, URGENT alert; closes hours-in-words / "in the aggregate" / "see exception" gaps | DONE (next release + feeds worker deploy; owner reviews 85 proposed entries) | b52942134, 86476b6e2 (needs T320) | owner 2026-10-31 |
+
 ## Why
 T320's guard is "every NUMBER in a limits cell is read". A restriction in WORDS passes as fully read:
 - "one hour before sunrise to one hour after sunset" (14 rows): the hours are dropped.

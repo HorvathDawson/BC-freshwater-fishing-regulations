@@ -2,6 +2,10 @@
 
 Status: DONE (2026-11-06, 73daab938). Not a style expression: the words are the binding's `ReactTagResolver.kt` ("`reactTag` 2298 resolved to `view` null which is null or a wrong type") — a feature-state / query / watch call resolved on the UI thread after its view had gone (the map left the screen, or a style load re-made the atlas source). `native/goneView.ts`: such a rejection is dropped only for a tag known to be gone (a replaced atlas source, or any once the map unmounted); a live view's still reports. Item 3 (scrubber) not needed: the message is now known.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T445 | Map error "… resolved to … null which is null or a wrong type" (Android 0.6.1/0.6.2; names scrubbed) | DONE | 73daab938 | worker /crashes 2026-11-06 |
+
 Source: staging worker `GET /crashes` (read 2026-11-06), kind 655fec4ac8cca138: 0.6.1 (build 10) and 0.6.2 (build 11),
 Android 37 (owner's phone), route map, `java.lang.Throwable`, no stack, 2 reports. The words are MapLibre Native's
 expression error ("… resolved to … null which is null or a wrong type") with the names scrubbed to '…' by the report

@@ -2,6 +2,10 @@
 
 Status: DONE 45fff5e63 (CI green 2026-11-17; checked on the Android emulator: a cold launch shows the coho from the first frame, scratch t843/launch-*-frames.png, sent to the owner; in 0.8.0).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T843 | On opening the app the old circling fish shows before the new swimming coho (the native launch picture was never moved to the coho) | DONE | 45fff5e63 | owner 2026-11-17 (app) |
+
 Source: owner 2026-11-17 ~17:30, in the app chat (Play internal 0.7.12), verbatim: "riught now on current app version
 the old loading icon shows up before the new swimming fish one when the app is opened."
 

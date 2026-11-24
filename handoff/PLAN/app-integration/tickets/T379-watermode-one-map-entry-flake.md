@@ -2,6 +2,10 @@
 
 Status: DONE — 75a907e3b (2026-11-04, with T369).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T379 | WaterMode "ONE MAP ENTRY" test is timing-dependent (page back to loading after the Keep tab) — pre-existing, not T342/T376 | DONE | 75a907e3b | found 2026-11-04; spinner show-timer race (with T369) |
+
 `packages/ui-native/src/WaterMode.test.tsx` › ONE MAP ENTRY (T71): `regs-header` never appears — the page shows the
 loading spinner after the Keep tab appeared. Measured 2026-11-04 in a clean worktree: it fails run ALONE on 0b8a47e7f
 (the session's start), 777a4fc2b, 61f819c52 (once passed, then failed twice) and 09d2d845e (3/3), and passed inside the

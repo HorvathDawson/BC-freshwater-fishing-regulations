@@ -2,6 +2,10 @@
 
 Status: OPEN (owner answered 2026-11-16, batches 5 and 6 in OWNER-TODO "Answers by batch"; each item is carried elsewhere: 1 Babine Lake → the 7 matching circles confirmed, the rest a later owner item, split and circles T812; 2 Gosnell / Thautil → T804 (one stated rule); 3 Gitnadoix → powerline on the mouth (T803, T833: 5debac3ef); 4 eulachon → T770 (DONE); 5 Kitimat east bank "Both banks closed (Recommended)", one-bank T754. Close when T803, T804 and T812 land)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T781 | Skeena cascade review on the built release: Babine Lake reads open inside its 13 unconfirmed closed areas, Gosnell Creek and the Thautil closed by the Morice row, Gitnadoix coho open below the powerline, the eulachon line missing | OPEN (owner answered 2026-11-16; items carried by T812, T804, T803/T833, T770 (done), T754) | — | `curation-review/skeena-cascade-review-2026-11-15.md` |
+
 Source: `handoff/PLAN/curation-review/skeena-cascade-review-2026-11-15.md` (Part 2: 11 of 13 checks pass, one passes
 with three exceptions, one fails).
 

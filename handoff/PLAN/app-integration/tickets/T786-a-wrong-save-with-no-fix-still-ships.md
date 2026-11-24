@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-17 (126ac0488): release gate `pipeline/regs/review/wrong_saves.py`; see the last section.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T786 | A place whose last save is "wrong" with no fix still ships its older drawing (the owner: "I want you to for it to be redrawn… Just be safe") | DONE | 2026-11-17 126ac0488: release gate `review.wrong_saves` in fast-fail + preflight; lists 4 today (Stave, Pitt entries; Thompson, Morice DFO), no allowance | owner 2026-11-15 evening, round 1; general audit 2026-11-16, decisions checker item 1 (`handoff/PLAN/audit-2026-11-16/decisions.md`) |
+
 Source: owner 2026-11-15 evening, round 1; general audit 2026-11-16, decisions checker item 1 (`handoff/PLAN/audit-2026-11-16/decisions.md`).
 
 ## What is wrong

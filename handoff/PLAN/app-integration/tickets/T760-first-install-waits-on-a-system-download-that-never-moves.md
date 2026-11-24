@@ -2,6 +2,10 @@
 
 Status: IN REVIEW — merged c62c1fa51 (Android, 2026-11-16); iPhone half 455ced856 (lane L6, a Wi-Fi-only job held on mobile data is an honest wait, reason 3) with the iPhone twin run 3 of 3 (6fdb3d8db); owner: OWNER-TODO "a first install on mobile data with" (optional phone check)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T760 | First install waits for ever, without a word, on a system download that is paused and never moves (found on the emulator: rows left by cut-short bench runs, adopted after `pm clear`); the bench must clear the downloader; the T756 bench check reads the wrong log line. Next free ticket T761 | IN REVIEW (iPhone half 455ced856: a Wi-Fi-only job held on mobile data is an honest wait; iPhone twin run 3 of 3, lane L6); owner: OWNER-TODO "a first install on mobile data with" (optional phone check) | fa93e83f0, e600c5dc1, c62c1fa51, 455ced856 | iOS chat 2026-11-15 (R8 bench); first install on Android is the Android chat's area |
+
 Source: 2026-11-15, the R8 bench (T749). Traced on the emulator, not inferred.
 
 ## What happened

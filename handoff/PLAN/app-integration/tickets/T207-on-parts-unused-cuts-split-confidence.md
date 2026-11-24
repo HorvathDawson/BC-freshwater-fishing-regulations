@@ -2,6 +2,10 @@
 
 Status: DONE (04315ec5 0e605022 48239620 c127eff6) — built in r-d32f814feac0
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T207 | "on parts" is a note; unused-cut false positives; split confidence end to end; White/Fulton/Chuckwalla/Cranberry cuts | DONE | 04315ec5 0e605022 48239620 c127eff6 | built in r-d32f814feac0; 8 DFO scopes bound; Burton/Kootenay decided by the owner 2026-10-26 (445643c2) and bound; 18 left as high severity |
+
 Source: owner 2026-10-26 (decisions.md "T207"). Audit: handoff/PLAN/curation-review/split-name-audit.md "Unused, re-audited".
 
 ## What was done

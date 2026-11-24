@@ -2,6 +2,10 @@
 
 Status: DONE (655d3000a; traced: by design, no change).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T713 | Trace why trout_quota.r5b, trout_char_quota.r6b, r9b (steelhead) bind nowhere | DONE | 655d3000a | traced: lake twins of the zone wild-steelhead release; no book-known lake in Regions 1/5/6 (only Lois, Khartoum in R2); by design, already T89 BY_DESIGN; no change |
+
 Source: boundary-name pack (PACK.md ~line 218): trout_quota.r5b (Region 1 "All wild steelhead"), trout_char_quota.r6b (Region 5 "ALL STEELHEAD"), trout_char_quota.r9b (Region 6 "all ...") were already unresolved in the old release; cause not traced. Owner 2026-11-13: needs tracing.
 ## Work
 1. Trace each rule from catalogue to bundle: what scope it names, why placement finds no water.

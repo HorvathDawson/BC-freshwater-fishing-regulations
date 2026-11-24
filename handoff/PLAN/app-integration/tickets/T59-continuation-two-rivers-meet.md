@@ -4,6 +4,10 @@ Status: DONE (live in r-36fbc5326506) — c5b1e3d0 (pipeline), app part 87ba267c
 `python -m pipeline.deliver release` (merger; no atlas / reach / tiles rerun); after it the two `needs_bundle` pins
 below pass. Owner review of the exit list (Q1) and the fallback (Q2) below, both with defaults.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T59 | two rivers meet (Atnarko/Bella Coola); Fraser exit → Annacis | DONE | c5b1e3d0, 36df866f, 463c013b, c432f6df | live in r-36fbc5326506 |
+
 Owner 2026-10-22: "think of things like this as one system; bella coola atnarko is another example."
 
 - The app already treats a `water_continue` row as one system (cross replaces the back step, 87ba267c). Atnarko →

@@ -2,6 +2,10 @@
 
 Status: DONE 2026-10-27 (Q153 + Q155 shipped in release r-bda3fea28838; Q154 measured, left off — owner) Commits: 00153bf6.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T174 | remaining answered → grey → answered gaps on main rivers (321/84 runs; Gravel Slough connectors) | DONE | 00153bf6 | r-bda3fea28838: +407 Flow / +327 Level, 0 changed/lost; Q154 measured, off |
+
 Source: T169's census (2026-10-24). Inside side-channel waters the unexplained gaps are 0; outside them, these remain
 (Flow / Level runs), each with a reason, but two classes are the owner's rule ("a predicted section flows into unpredicted
 then back into predicted without reason") applied to ORDINARY river pieces, outside T169's narrow scope:

@@ -2,6 +2,10 @@
 
 Status: DONE — 36559a549. WaterMode's cross-water taps wait for a settled, enabled arrow; load proof 10/10 twice.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T849 | WaterMode's cross-water test waits for the ▲ before it taps (CI flake on d6cbad35d) | DONE | 36559a549 | — |
+
 Closed by the 2026-11-20 audit: fix built on the branch and merged as 36559a549 (2026-11-18).
 
 Source: app CI on d6cbad35d, attempt 2 (2026-11-18): "across waters: ▲ on the Vedder opens the Chilliwack's map at its

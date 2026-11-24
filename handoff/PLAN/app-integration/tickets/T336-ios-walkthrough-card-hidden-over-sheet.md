@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-05 — ed1cf4a81; verified on the simulator (ios-t313g: walkthrough 25 of 25, shot T313-shots/10-walk-17-over-layers-T336-ios.jpg).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T336 | iOS: walkthrough card over the Layers sheet missing from the accessibility tree (VoiceOver can't reach it) | DONE 11-05 | ed1cf4a81 | sim walk 25 of 25 |
+
 At step 17 ("Try the satellite view") the Layers sheet is open and the card is drawn over it, but on iOS neither the
 card's words nor its buttons (`guide-skip`, `guide-primary`) are in the accessibility tree (XCUITest / Maestro saw only
 the sheet: "Layers | Done | Map | Satellite"). So VoiceOver can probably not reach Back / Next / Show me / Skip there,

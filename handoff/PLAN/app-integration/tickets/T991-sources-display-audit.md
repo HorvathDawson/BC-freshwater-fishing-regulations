@@ -12,6 +12,10 @@ T1031 holds the rest (one inline source format, a breakdown per species, one spe
 tabs), each bigger than a lane's day.
 Owner 2026-11-21: next release, not 0.8.5.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T991 | Sources display audit: one consistent way sources are shown across the app (next release) | PARTIAL | 3428dcb83, 3e3a1e2ae | round 3 (lane L21): a Source row per tab (Regulations: each page the drawn tabs cite, highlighted, the water's own marked; Conditions; no Map row), T991-shots/round3-*; left (Claude): T1031, T1036 |
+
 Source: owner 2026-11-21, verbatim: "Add another ticket for a sources display audit (for next release we want to make
 sources much more consistent across the board) not for this release".
 

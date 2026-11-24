@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS (worker half done 2026-11-22, lane L5, `fix/T996-apns-check`: APNs accepts the staging worker's provider token on both hosts, the token is reused ~50 min then made again, a dead device token is dropped and logged; left (Claude): the 0.9.0 TestFlight build, then the owner's phone steps below, then production's APNs secrets and its first send).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T996 | Test the Apple push service end to end (registration, wake-up delivery, token reuse over 1 h+) | IN PROGRESS (worker half proved on staging 2026-11-22, 6be78401b: token accepted both hosts, reused 50 min then remade, dead tokens dropped + logged; left (Claude): 0.9.0 TestFlight build, then the owner phone steps in T996) | T994 | owner 2026-11-21, next release |
+
 Source: owner 2026-11-21, verbatim: "Add ticket to test apple push service in next release. (The next chat)."
 
 ## Context

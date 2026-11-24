@@ -3,6 +3,10 @@
 Status: DONE (1c735272e) in code 2026-11-03; feed size estimated 2026-11-04 (+5–11 kB gz); worker redeploy left (with 0.5.0) — data chat (owner 2026-11-03: "add this to the list for us to do here"); with the UI chat's forecast day
 chips (T367: "Now · Tue 4 · Wed 5 · … · Fri 14 · Change"), before 0.5.0.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T375 | Forecast feed publishes every day +1..+10 (HORIZONS in publish.py + worker), for the UI chat's day chips | DONE in code 11-03 (worker redeploy + feed size left) | 1c735272e | owner 2026-11-03 |
+
 Today the feed ranks only +1, +3, +5, +10 (`pipeline/gauges/feed/publish.py` `HORIZONS`, the worker's copy
 `app/workers/feeds/src/gauges/publish.ts` `HORIZONS`; emitted to the app as `FORECAST_DAYS` by
 `pipeline.tools.emit.gauge_policy` → core `gauge-policy.generated.ts`). The chips need every day.

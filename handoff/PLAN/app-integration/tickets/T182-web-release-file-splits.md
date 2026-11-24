@@ -4,6 +4,10 @@ Status: DONE (afbd6d79, 715ecc46, 00ad9565, be778427) — split files live since
 Source: T129's measured walk on r-bb4331929428 (its ticket has the byte table) — proposals that change the
 release format, so not done there.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T182 | release file splits for the web (section_down, part_geo, nearest town in core, conditions) | DONE | afbd6d79, 715ecc46, 00ad9565, be778427 | per-file gates + cold_load (2.98 of 3.35 MB); total → 20 MB offline backstop (14.90); salmon on the first Salmon press (web), method after paint; feed headers → T86 |
+
 Biggest first:
 1. An unnamed tap fetches all of `conditions` (2.88 MB) only to walk `section_down` for "Tributary of …": give
    `section_down` (628 kB) its own file → unnamed tap 8.53 → ~6.3 MB.

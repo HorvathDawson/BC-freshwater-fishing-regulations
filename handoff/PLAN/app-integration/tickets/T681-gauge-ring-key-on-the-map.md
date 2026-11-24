@@ -2,6 +2,10 @@
 
 Status: DONE (d84c664e1)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T681 | The gauge-reporting key (T636 ring line) on the map, not in the bottom bar | DONE | d84c664e1 | owner 2026-11-12; overrides T367 for this line only; other legends stay in the bar |
+
 Source: owner 2026-11-12, verbatim: "the condition gauge reporting legend should be on the map insatead of at the bottom bar".
 
 ## Work

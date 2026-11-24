@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS (merged onto `redesign/stream-sections` 2026-11-16 with T760 in merge 3 (c62c1fa51); bench settled 076ff72ad: three bg-install sessions 8/8; left (Claude): work 5's iPhone twin run (T722 is merged))
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T756 | Reopening the app mid-download throws away a first install's big files when they were queued "Wait for Wi-Fi": `queue` removes every running Wi-Fi-only job because the reopen (now on Wi-Fi) asks "go". Keep a running job; fix the `bg-install` bench's 15-minute wait, failure text and notification tap. | IN PROGRESS (merged c62c1fa51 with T760, 2026-11-16; Android bench settled; left (Claude): the iPhone twin run) | 81591d974, c62c1fa51 | R8 lane capture 2026-11-15 (T749); Android chat: "a defect by our own rules"; rule is T298's, not R8, not T737 |
+
 Source: found 2026-11-15 by the R8 lane (T749) while the `bg-install` bench hung on a slow line; mechanism read from the
 code by the iOS chat the same day. The Android chat (first install on Android is its area) found no decision that
 accepts it and asked for this ticket: "It is a defect by our own rules".

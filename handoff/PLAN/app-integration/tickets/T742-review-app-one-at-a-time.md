@@ -2,6 +2,10 @@
 
 Status: DONE (review-app lane, 2026-11-14: 98a7a646b, 2a14a32fd, 52a89a87a, bd1489030, 7cff9cc72; unpushed; the owner restarts his copy to get it)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T742 | Review app: no grouping (one place at a time), region ends in every picker, and faster | DONE (review-app lane, 2026-11-14; unpushed; owner restarts his copy) | 98a7a646b, 2a14a32fd, 52a89a87a, bd1489030, 7cff9cc72 | owner 2026-11-14 while labelling the Fraser ("remove the grouping option", "region cuts are in all the app", "SO SO SO slow") |
+
 Source: owner 2026-11-14, while labelling the Fraser's DFO places: "the fraser marks are all fucked up the groups are all
 messed up. i think we should just remove the grouping option in the review app it makes it have a lot of glitches instead
 one at a time is better I think. we should revise the review curation then also make sure the region cuts are in all the

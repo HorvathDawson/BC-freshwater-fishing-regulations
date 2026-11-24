@@ -2,6 +2,10 @@
 
 Status: DONE — 2a2aa0e75; shipped in 0.8.4 (cut e769f710a, data r-fec3fab4c5aa; 0.9.0 audit 2026-11-22, every hash is an ancestor of origin/main and of e769f710a). (Earlier status: IN PROGRESS — built on lane/t971-flow-leads, 2a2aa0e75; left (Claude): merge lane/t971-flow-leads into redesign/stream-sections after review.)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T971 | Conditions: picking Level in the gauge card also re-ranks the estimate card above it | DONE | 2a2aa0e75 | — |
+
 Source: L4 Android device-looks pass 2026-11-20 (T728 look, emulator).
 
 ## What was seen

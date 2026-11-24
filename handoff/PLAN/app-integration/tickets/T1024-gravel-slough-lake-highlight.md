@@ -2,6 +2,10 @@
 
 Status: IN REVIEW — fixed in 6704a3504 + d298683a7 + 50b018058 (lane L29), needs the 0.9.0 tile build; owner: OWNER-TODO "T1024 Gravel Slough highlight: look at the before/after shots"
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1024 | Staging report: "weird highlighting on the lake" at Gravel Slough | IN REVIEW — owner: OWNER-TODO "T1024 Gravel Slough highlight: look at the before/after shots" | 6704a3504, d298683a7, 50b018058 | ring on a stream polygon only below its line's zoom (tile `lz`; none for no line or a stub route, 239), checked in the tile build; needs the 0.9.0 tile build |
+
 Source: STAGING report `3444007425e9d3bd`, 2026-11-23 05:32Z, Android 0.8.5 (staging build), water · map, Gravel Slough
 (`gnis:8009`) part 0, zoom 14.3 at 49.202, -121.904. Verbatim: "Weird highlighting on the lake here".
 

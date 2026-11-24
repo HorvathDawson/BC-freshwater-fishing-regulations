@@ -2,6 +2,10 @@
 
 Status: DONE — 49b7226b6, 68bf25229. The iOS `tap-stalls` bench is ported and passes on the simulator at the Android 300 ms limit (worst stall 227 ms).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T720 | iOS: no-stall bench `tap-stalls` on the simulator (IOS-3) | DONE | 49b7226b6, 68bf25229 | — |
+
 Closed by the 2026-11-20 audit: acceptance 'bench passes on the simulator with the same threshold' met: Phase 2 run `ios-benches` 5 of 5 steps PASS (68bf25229).
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is

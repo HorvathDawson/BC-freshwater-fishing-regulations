@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-05 — 089c8a00f, 35699d3e5, bf8ca3820 (test bed), ed1cf4a81 (T336), 5b832c347 + 59fc7bb24 (T362); run ios-t313g: 11/11 scenarios pass on 0.5.0 (f74621e99).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T313 | iOS simulator build + basic tests (install, map/regs, offline, satellite, location, walkthrough, PDF) | DONE 11-05 | 089c8a00f, 35699d3e5, bf8ca3820 | ios-t313g 11/11 on 0.5.0 (crash, memory, perf incl.); real phone = T364 |
+
 ## Work
 1. `expo prebuild --platform ios` in a temp worktree (like build-apk.sh), pods, build a Debug/Release app for the iOS
    Simulator (no Apple developer account needed). MapLibre RN iOS build (see T217 binding patch).

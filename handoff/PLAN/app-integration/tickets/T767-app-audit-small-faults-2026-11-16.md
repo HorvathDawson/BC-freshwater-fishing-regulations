@@ -2,6 +2,10 @@
 
 Status: DONE 2cdce6538 (landed 2026-11-17, CI green, 6/6 Android benches; was: IN PROGRESS (built on branch `app-fix/t766-t767`, 2026-11-17; all four fixed with a test that fails before; Android benches owed before merge).)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T767 | Four small app faults from the audit: the fetch-ahead lane does not give way on a promoted file (T737, speed), the Flow / Level pick carries to the next reach (T728), a rejected `waterRegionsOf` is swallowed (`ui/src/prefetch.ts`), check no screen shows a salmon verdict's short text without "hatchery marked only" | DONE | 2cdce6538 | the general audit 2026-11-16 |
+
 Source: `handoff/PLAN/audit-2026-11-16/code.md` and `guards.md` (the main chat's audit). Area: the app.
 
 ## The four

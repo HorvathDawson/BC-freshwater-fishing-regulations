@@ -2,6 +2,10 @@
 
 Status: DONE in code (20bd48088; owner 2026-11-04: "we should fix this here", in 0.5.0); live with the release rebuild.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T370 | Web: `water-{region}` slices each repeat ~0.7 MB of shared rules/keys; one shared web file instead (measure first) | DONE in code (rebuild; re-pin the walk) | 20bd48088 | found 2026-11-03 (after 0.5.0) |
+
 Every region's `water-*` slice is 0.74–0.86 MB gz, small regions included: per contract.py (T256) "its rules, statics and
 keys are whole in every slice". So a web visitor's first tap pays ~0.7 MB that is the same in every region, and a second
 region pays it again. Idea: put the shared part in ONE web file (fetched once, cached) and leave only the region's own

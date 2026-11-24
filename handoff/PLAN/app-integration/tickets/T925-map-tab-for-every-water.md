@@ -2,6 +2,10 @@
 
 Status: DONE (landed on redesign/stream-sections 2026-11-20 01:50 in b5634ba92 34a10b157 70dce488f 2a4bedabb; owner approved the pictures).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T925 | A water with one section gets its Map view too; the tapped part stays marked (tester via owner) | DONE | b5634ba92 34a10b157 70dce488f 2a4bedabb | tester 2026-11-19 via owner |
+
 Source: a tester relayed by the owner 2026-11-19 (`T925-shots/tester-2026-11-19-cheakamus.png`, Cheakamus River's
 Regulations card shows only Regulations | Conditions). Tester, verbatim: "when you click on a river it highlights for just a
 second and if there is a way to see the section actually on the map as well as the description that would be super helpful.

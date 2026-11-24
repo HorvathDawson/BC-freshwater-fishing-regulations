@@ -2,6 +2,10 @@
 
 Status: DONE — shipped 0.8.5; emulator walk PASS (f96f0d800, 2026-11-21).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T989 | Opened from a Google result, back (top right) goes to the default map instead of the water | DONE (shipped 0.8.5; emulator walk PASS) | f96f0d800 | owner 2026-11-21 |
+
 Source: owner 2026-11-21: "when a user opens a water body page from Google itself it is on regulation page but if they go
 back at top right it goes to default location instead of the location of the water body they were viewing".
 

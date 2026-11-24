@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-05 (bfc758925; owner report 2026-11-05, 0.5.0 build 8, water gnis:14589, Regulations).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T393 | Regional DFO size rules (adult chinook, 30 cm / 25 cm minimums) on the species rows, not loose lines | DONE 11-05 | bfc758925 | owner report 2026-11-05 |
+
 The regional DFO block lists size rules as loose lines: 'An "adult chinook" in Region 2 is defined as being over 50 cm
 except in the following areas where an…', 'All retained chinook, chum, pink, and sockeye must measure 30 cm or more', 'All
 retained coho must measure 25 cm or more'. Owner: should these live on the species row itself?

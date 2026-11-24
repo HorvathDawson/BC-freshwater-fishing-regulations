@@ -2,6 +2,10 @@
 
 Status: DONE — 3d5f19de (lane-T157); adversarial review 4b82d910
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T158 | depth contours vs no-access fills: contours held off lake fills, deep navy | DONE | 9c6cbd46, 7714418a, 3d5f19de | app style; delivered r-9cf1fef180a8 |
+
 Source: T146 adversarial review, 2026-10-23: dark no-access #50E4FF is ΔE 4.7 from the depth-contour colour, so contours
 vanish on a no-access lake when the Depth layer is on (e.g. Coquitlam Lake). Add the pair to the colour gate and move
 one of them (contours are the cheaper move). Size: S.

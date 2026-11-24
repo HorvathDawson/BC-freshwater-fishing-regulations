@@ -2,6 +2,10 @@
 
 Status: OPEN (main chat). After production.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T885 | DFO's lake parts on the map (Babine's 12 creek-mouth circles, Mabel north, Osoyoos north basin); said in words until then (owner) | OPEN | main chat | owner 2026-11-18 ~21:13 |
+
 Owner 2026-11-18 ~21:13: "There are some more check DFO too"; then, on the 31 DFO places with no extent (dialog,
 his own words): "We should have had no unmapped stream items???! For lakes the parts should say in words in the salmon
 section for now? We do try to map them if possible tho".

@@ -3,6 +3,10 @@
 Status: DONE — 9cc8724f (2026-10-23; smoke only: the app builds, installs, opens and runs on
 the emulator; no code changed; every problem found is a line in T50 "Found by T172")
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T172 | Android smoke on the emulator (builds, installs, opens, main screens) — before cleanup; full parity stays T50 | DONE | 9cc8724f, 04c7da78 | 9 findings → T50 "Found by T172" (status-bar insets, pin press, stale-install error) |
+
 Source: owner 2026-10-23: "maybe do a simple android emulation before cleanup but do full emulator work and comparison
 after cleanup. that way we show it at least works before". The full parity walk and system-bar work stay T50 (after
 cleanup).

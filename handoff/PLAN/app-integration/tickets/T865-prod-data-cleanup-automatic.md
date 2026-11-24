@@ -2,6 +2,10 @@
 
 Status: DONE — 4f4b5c827, 8b279ce64. production prunes old releases after each promote (upload.sh, allowlist); v1 dropped by drop-v1.sh at the switch.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T865 | Production data clean-up is automatic: old releases and the v1 layout (owner) | DONE | 4f4b5c827, 8b279ce64 | — |
+
 Closed by the 2026-11-20 audit: both commits merged on the dev branch; the switch happened 2026-11-18 ~23:05-23:21 (OWNER-TODO): bc-fishing-cron schedules removed, main's three update workflows gone, deploy/prod/drop-v1.sh freed 20,019 objects / 8.57 GB, smoke --production 8/0/0.
 switch, on the owner's word, turn off `bc-fishing-cron` + `main`'s three update workflows and run
 `deploy/prod/drop-v1.sh` (PRODUCTION.md step 11).

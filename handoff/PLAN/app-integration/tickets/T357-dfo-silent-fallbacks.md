@@ -2,6 +2,10 @@
 
 Status: DONE (ece8c87f4) (Python side) 2026-11-03; worker's dfo-feed/1 upgrade waits on a prod R2 check (found by T350 lean pass, 2026-11-02).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T357 | DFO silent fallbacks: release ships no header notes (so no header closure) when the dated page is not cached; corrupt prior feed read as none; dfo-feed/1 upgrade leftover | DONE (Python; worker /1 upgrade waits on prod R2 check) | ece8c87f4 | T350 lean pass 2026-11-02 |
+
 - **Header notes missing → no header closure** (`pipeline/deliver/salmon.py:518`): when no cached page matches the
   feed's `date_modified`, the release ships NO header notes for that region, said only on stdout. With no notes,
   `quota.header_closure` finds nothing, so a region whose header closes salmon (5A, 7) answers from the table's 2025

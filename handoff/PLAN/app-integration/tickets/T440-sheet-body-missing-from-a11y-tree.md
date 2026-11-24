@@ -2,6 +2,10 @@
 
 Status: DONE — 48efaa5fb (Sheet fix + test), 6c48c1047 (test bed appUp re-read); emulator proof 2026-11-06 below.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T440 | Android: the first-run notice's body (and "I understand") is missing from the accessibility tree (Sheet scroll dialog) | DONE | 48efaa5fb 6c48c1047 | found 2026-11-06 by the T293/T420 emulator runs; the test bed cannot dismiss the notice |
+
 Source: found 2026-11-06 by the T293/T420 emulator runs (test-bed APK of redesign/stream-sections @ 329e00542, Expo SDK 58,
 n1_pixel Android 15). After a data clear the "Before you fish" sheet is drawn (title, three points, I understand, Sources
 and licences — screenshot `app/tools/testbed/out/runs/base3/notice.png`), but `uiautomator dump`

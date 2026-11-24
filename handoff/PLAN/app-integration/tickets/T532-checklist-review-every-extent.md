@@ -2,6 +2,10 @@
 
 Status: DONE — 75581bbe4, 4d266e1b2, d217da561, 34f8d3e27. The extents checklist (DFO places + regulation extents, one interface, one water at a time) through round 10; the owner accepted it as built and labelled every DFO place with it.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T532 | Checklist review for every extent (DFO + regulations, one interface): rows generated from the extent + source words, ✓/?/✗, numbered pins, one decision; scales to new DFO items | DONE | 75581bbe4, 4d266e1b2, d217da561, 34f8d3e27 | — |
+
 Closed by the 2026-11-20 audit: OWNER-TODO 'ANSWERED 2026-11-12 (owner: close as answered / accept as built): Review app: the checklist is ready (T532, 2026-11-09)'; the owner then labelled all DFO places through it (STATUS 2026-11-15).
 
 Owner 2026-11-09, on the round-4 mockup (shots: scratchpad t525-r4-*.png; copied to shots/T532-mockup-*.png): "definitely

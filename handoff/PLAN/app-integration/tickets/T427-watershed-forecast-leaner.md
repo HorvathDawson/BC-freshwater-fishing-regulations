@@ -3,6 +3,10 @@
 Status: DONE 2026-11-05, 9e865e284 (owner look 2026-11-06: good) — was: OPEN — owner 2026-11-05 (screenshot, Conditions map bottom bar): "make this the watershed forecast a bit leaner.
 basically it uses more lines then what we need we can combine some of them together etc just to make it a bit less thick."
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T427 | Conditions legend's watershed forecast: leaner (about 4 rows, merged title/verdict, labels on the ramp) | DONE (owner look 2026-11-06: good) | 9e865e284 | owner 11-05 (screenshot) |
+
 ## Today (7 lines + a bordered card)
 1. "Flow vs. past years, this date" · "31 reaches coloured"
 2. the histogram over 3. the Low → High ramp, 4. the "Normal" bracket, 5. "Low · Normal · High"

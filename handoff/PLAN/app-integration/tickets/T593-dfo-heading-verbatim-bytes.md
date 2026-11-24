@@ -2,6 +2,10 @@
 
 Status: OPEN — ticket only; waits on the owner's next scrape (human run)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T593 | Keep DFO's heading bytes verbatim in the scrape | OPEN — waits on the owner's next scrape (a new stored field re-keys DFO entries; check marks' fingerprints then) | — | T532 leftover h |
+
 Source: T532 round 7 (the Morice heading), leftover h.
 
 ## Today

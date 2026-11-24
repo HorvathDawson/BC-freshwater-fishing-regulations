@@ -2,6 +2,10 @@
 
 Status: DROPPED — merged into T240 (prod cut-over list); contact guard done e45841b85 (2026-11-09 audit)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T86 | production hosting + ship config | DROPPED — merged into T240 (prod cut-over list); contact guard done e45841b85 (2026-11-09 audit) | — | parked by owner 2026-10-28 (prod a while off; SEO prod too); includes the data-worker double-gzip fix before any prod release |
+
 Was: POSTPONED (owner 2026-10-28: prod is a while off). Owner needed (credentials, billing, name). 2026-11-05: the contact guard is DONE (e45841b85); the hosting work is done with T404's switch; T240 tracks the list.
 
 Source: needed to ship, tracked nowhere: "The feed only stays current with a SCHEDULED publisher (owner)"

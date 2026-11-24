@@ -4,6 +4,10 @@ Status: DONE 2026-11-19 (7d85dd1bc round 1 + fa459e908 review fixes; landed on r
 Items 3-4 (rebuild only what changed; production reusing staging's pages) not started: not needed now that a full
 build takes ~8 min; reopen as a new ticket if the build grows again.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T917 | The website's page build (build-seo) takes ~15 min per site: profile, more threads, rebuild only changed pages (owner) | DONE | 7d85dd1bc fa459e908 | owner 2026-11-19 ~15:42 "make that a future ticket" |
+
 Owner 2026-11-19 ~15:42 (main chat), watching the 0.8.3 production website build ("building the water pages, about 3,000
 done so far"), verbatim: "this is so slow ... im sure we could speed it up make that a future ticket".
 

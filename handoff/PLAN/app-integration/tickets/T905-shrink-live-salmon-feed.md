@@ -2,6 +2,10 @@
 
 Status: OPEN (main chat; measured 2026-11-24, waits for the owner's pick of the options at the end).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T905 | Shrink the live salmon feed back under its old size (owner) | OPEN | main chat | owner 2026-11-19 ~06:40, later |
+
 T870 (2026-11-19) added each place's printed DFO rows (`pr`) to the live salmon feed: index.json grew to ~133 kB
 (15.7 kB gzipped) and its size check was raised from 112 kB to 135 kB. Owner 2026-11-19 ~06:40, on that question,
 verbatim: "okay we will work to shrink it down later."

@@ -2,6 +2,10 @@
 
 Status: DONE — 5befc9c32 (items 1-3), 4e0ac69e0 (item 4); the pre-push range is T1019 (Earlier status: IN PROGRESS — lane L13 (docs/T539-ledger-cleanup).)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1022 | Release-tooling smalls: is_app_path counts dev tooling, a memory-note reference in release.py, prod_instructions names only PRODUCTION.md, T866 inventory line numbers | DONE | 5befc9c32, 4e0ac69e0 | — |
+
 Source: `handoff/PLAN/NEXT-SESSION-2026-11-22-after-ci-chat.md` Next item 5. The pre-push range
 (`merge-base(origin/main,HEAD)..HEAD`) is T1019 (lane L6), not here.
 ## Work

@@ -2,6 +2,10 @@
 
 Status: DONE — 410dbc63 (with T151: header, Map view list, golden exclusion, decisions, shots), 08b842d0 (fixtures, text-scale snapshot); adversarial review 56c68c19 (focus after a pick, back pinned, one copy of the words, source pins out of core).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T150 | drop the regs header's "Parts" button; the part list lives in the Map view | DONE | c3eafff5, 56c68c19, 4f978f5f, 08b842d0, 410dbc63 | app; delivered r-9cf1fef180a8 |
+
 Source: owner 2026-10-23: "dont we want to remove 'parts' from reg page since map is now at the top tabs?" Follows owner
 call 3 (decisions.md 2026-10-22, T71: the view strip is the one Map entry; the header lost its Map button but kept
 Parts when the picker has a choice — core/src/regs/header.ts).

@@ -4,6 +4,10 @@ Status: DONE 2026-11-05 in code (3350c391d; 0.6.1 batch; not on a phone yet). Re
 `part-steps`): FAIL before (Part 2 after the steps: sections 316504 and 316506 drawn by the copy AND the atlas,
 copy_until 11 at camera z10.90), PASS after (none drawn twice). Owner look on the next APK.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T411 | The highlighted part still zigzagged after stepping (Coquitlam ▼ to part 1, ▲ to part 2): a deeper pass RAISED a copied section's ceiling and one pass mixed z11 + z7 tile pieces; the ceiling now only comes down (shallowest zoom found, or a piece's own tile grid) and the settle fallback runs the copy's pass | DONE in code, 0.6.1 batch (owner look on APK) | 3350c391d | owner 11-05; test bed part-steps FAIL→PASS |
+
 Reported: owner 2026-11-05 on 0.6.0 (About says 0.6.0), so the T399 fix (adfbe330e) is on the phone and the
 zigzag remains on the step path. The T399 emulator check only opened Part 1 directly; this path was never checked.
 

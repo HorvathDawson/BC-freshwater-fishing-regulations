@@ -3,6 +3,10 @@
 Status: DONE — merged and delivered 2026-10-23 (release r-3d516ac1bc9e, fixtures 22835b2f, test fix bb632aa9; smoke green). Polygon walk
 74e10c03 ba6dde1d da1ab3e9 20faf224 2ffbae66 1fbc2488 (were 8d57e759 … de39b70c), Q44 rule 92c188b4, review fix a2fae3cf.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T101 | gauges walk through slough/canal polygons + Q44 side-channel rule | DONE | 74e10c03, 2ffbae66, 92c188b4, a2fae3cf, f99f2cd8, bb632aa9, 22835b2f | Q83, Q84 (defaults built) |
+
 Owner 2026-10-22: "if a slough or canal is fully polygon only it should still be able to get gauge info of neighbours
 if the propagation means it would have values if it was just a stream itself."
 

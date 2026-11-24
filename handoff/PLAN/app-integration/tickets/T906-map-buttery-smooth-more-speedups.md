@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS (main chat; emulator lane with the T903 rerun; each candidate lands only on a measured win).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T906 | The map buttery smooth: measure more speed-ups beside T903 (owner) | IN PROGRESS | main chat | owner 2026-11-19 ~06:50 |
+
 Owner 2026-11-19 ~06:50 (main chat), verbatim: "could we test oother speed ups at same time? we want the map buttery
 smooth ideally".
 

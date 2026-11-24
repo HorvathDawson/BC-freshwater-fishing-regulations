@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-07 0f4b0063a (owner: "could display daylight only text here better too").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T473 | "Daylight only" as today's real hours with the status | DONE 2026-11-07 | 0f4b0063a | owner 2026-11-07; offsets parsed from the rule's words |
+
 Under the year bar's status the line reads "Daylight only · fishing 07:04–18:37 PT": sunrise minus the rule's "before sunrise"
 minutes to sunset plus its "after sunset" minutes, at the water's point on the picked day (`core/sun.ts daylightRange`,
 `@app/ui useDaylight`, drawn by `YearStrip` `hours`). The rule's own words ("Daylight only: closed from 1 h after sunset to

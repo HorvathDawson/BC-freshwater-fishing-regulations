@@ -2,6 +2,10 @@
 
 Status: DONE (2026-10-29) — b96ffb83f, 38a508b3e
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T265 | a big update held for Wi-Fi does not start when Wi-Fi returns (low mode still "cellular" when the metered change lands; nothing re-asks) | DONE | b96ffb83f, 38a508b3e | phoneNetwork re-asks when the low mode clears; big-update Wi-Fi step PASS |
+
 Source: T255 test bed 2026-10-29 (`run.mjs big-update`, emulator, release APK on staging test channel). A release over
 the metered line (`test-updates.mjs big`, ~270 MB) on mobile data correctly reads "An update is waiting for Wi-Fi"
 (sync button, More → Data, Updates log `waiting-wifi`). Wi-Fi back (unmetered, validated — `dumpsys connectivity`):

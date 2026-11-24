@@ -3,6 +3,10 @@
 Status: DONE 2026-11-06 (chat 3; 151b9f76a, dc93125ab, 9567f95b6..7db9105ee) — tidal.json is the one tidal truth; Mamquam
 not tidal (owner 11-06); the 3 proposed DFO cuts accepted by the owner and applied; proposal_overrides.json KEPT (below).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T326 | Lock tidal: waters/tidal.json replaces 4 tidal records; split confidence folded in | DONE | 151b9f76a dc93125ab 9567f95b6 7db9105ee | owner 2026-10-30; tidal.json + write-through + mouth aliases done (151b9f76a, dc93125ab), release r-d0ad76a6e6a1; left: 8 follow-up marks, Mamquam, proposal_overrides fold |
+
 Replaces `tidal_waters.json`, the splits tidal flag, `decided/tidal.json` and handoff
 `curation-review/tidal/owner-decisions.json` (4 records of one fact). Also fold `review/proposal_overrides.json` (split
 confidence) into the split records. Blocked on: 7 open tidal marks + Mamquam (owner). Depends: T325. Size: S–M.

@@ -2,6 +2,10 @@
 
 Status: DONE (7bc81d896, 8e433846a; in 0.8.2 on app/integrate-082, ledger closed 2026-11-19 night).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T894 | The app's version files per build and per version (Play: play/<versionCode>.json; iPhone: ios/<version>.json) | DONE | 7bc81d896, 8e433846a | in 0.8.2 (app/integrate-082); ledger closed 2026-11-19 night |
+
 From the second independent review of T888 (2026-11-19 ~00:27):
 1. Medium, Play: play.json names whatever was uploaded last, on any track (appUpdater.native.ts ~L89). With 0.8.3 in
    closed testing and 0.8.2 offered to a production user, the popup says "Version 0.8.3 is out", Update installs 0.8.2,

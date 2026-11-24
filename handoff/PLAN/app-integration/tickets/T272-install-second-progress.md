@@ -3,6 +3,10 @@
 Status: DONE 2026-10-29 — abaf19343, e8db24c51 (+ App.tsx in f0357560b) (owner 2026-10-29 on Android: "it downloaded everything then at 100% it took a very long
 time to open. it needs a second loading bar so the user doesnt get confused").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T272 | First install: second progress bar after download ("Setting up on this device") with real progress; measure + cut the post-download step | DONE | abaf19343, e8db24c51, f0357560b | 100 % → map 112 s → 11 s (emulator); assets fetched beside the download, paced under the 429 limit; hash follows the download |
+
 ## Work
 1. Measure on the APK (testbed emulator + timings in the Updates log) what runs between download 100% and the map: unzip /
    verify / SQLite import / index build / first queries. Suspect T264's serialized SQLite queue and the T262 streaming path.

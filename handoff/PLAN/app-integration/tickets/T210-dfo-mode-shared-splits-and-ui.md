@@ -2,6 +2,10 @@
 
 Status: DONE (0805e479)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T210 | DFO review mode: proposed splits shared along the river, Place y without a new split, simpler new-split UI | DONE | 0805e479 | proposals deduped across all marks (2 distinct; 1 duplicate pair folded), server reuses ids, Place y with existing-cut fix, 3-step new-split UI; owner tries it |
+
 Source: owner 2026-10-26, using the DFO extents mode (T164).
 
 1. A split proposed on one DFO location (a `new_splits` entry in a mark) must show on EVERY other DFO location / entry

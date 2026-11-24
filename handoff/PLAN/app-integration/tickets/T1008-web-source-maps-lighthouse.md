@@ -2,6 +2,10 @@
 
 Status: DONE — 8cd3341a8: the web's maps are served, checked before they ship (lane L2, 2026-11-22).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1008 | Website: serve the web's source maps (repo is public), checked before they ship (debug ids, sources tracked or node_modules) | DONE | 8cd3341a8 | owner 2026-11-22 (Lighthouse) |
+
 Source: owner 2026-11-22 (Lighthouse on https://canifishthis.ca, unscored): "Large JavaScript file is missing a source
 map" for `…web/index-76f27ad….js`. (The same report's two chrome-extension rows are React DevTools', not ours.)
 

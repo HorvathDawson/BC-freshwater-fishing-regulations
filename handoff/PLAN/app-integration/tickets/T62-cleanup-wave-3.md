@@ -3,6 +3,10 @@
 Status: DONE — app lane b619ca7b…bb31281e merged; pipeline lane (3.1, 3.3) merged; 3.9 merged (dfo_salmon); 3.2 c6a967bc. Source: handoff/PLAN/audit/PLAN.md §2 "Wave 3". Includes Shell.tsx (re-spec P14/P17 against today's
 shell first, N13), export_ui_rules, other files over the size line. Behaviour unchanged: tests green before/after.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T62 | cleanup wave 3: split long files | DONE | b619ca7b…bb31281e, acba5347e…f627ecc3a, c6a967bc | app + pipeline lanes merged (byte-identical outputs; live r-bb4331929428); 3.9 dfo_salmon done (whatchanged archived, README index); 3.2 atlas/build.py: phased main(), --gnis … (detail: ticket file) |
+
 ## Outcome (app lane)
 
 Wave items 3.4, 3.5, 3.6, 3.7, 3.8 and 3.10 are done. Each split is its own commit on redesign/stream-sections (from

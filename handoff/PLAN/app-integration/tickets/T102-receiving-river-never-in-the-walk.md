@@ -3,6 +3,10 @@
 Status: DONE — part B 06b8d1cb + 149714b6 (one entry check `may_enter`; reach rerun digest identical, binding diff vs reaches/full EMPTY). Part A done (95e78dd5: `THE_WALK_NEVER_ENTERS_A_PARENT` + one `_refusal` for walk and seeds; seed-only check removed; POLICY_VERSION 23) — reach rerun binding diff vs reaches/full EMPTY (0 rules, 0 unresolved, 0 licensing); REVIEWED (b44461d5: code_runs now takes the parent rule too; rerun digest identical, diff EMPTY); open: owner call on order guard for equal codes (see Owner questions). Raised 2026-10-22 from the owner's question on T90 ("I thought the tributary logic handled the Harrison,
 using the WSC").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T102 | receiving river never walked into (parent-code check in the walk) | DONE | b6749f62, 60786bc9, 402786c9, b8f5fb3f, 95e78dd5, 0c4a9366, b44461d5, e0bc10a0, 06b8d1cb, 149714b6, bb614474 | part B = one entry check `may_enter` (rides the batch-4 reach rerun); delivered r-941dcc149b17 |
+
 ## Why
 - The tributary walk (pipeline/atlas/graph/tributaries.py) keeps the receiving river out by STREAM ORDER
   (`_breaks_strahler`: "a bigger river cannot be a tributary"); the WSC there only OVERRIDES that in favour of a genuine

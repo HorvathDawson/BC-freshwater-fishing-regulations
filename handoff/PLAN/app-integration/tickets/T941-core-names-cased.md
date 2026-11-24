@@ -2,6 +2,10 @@
 
 Status: DONE — 10ddff399; shipped in 0.8.4 (cut e769f710a, data r-fec3fab4c5aa; 0.9.0 audit 2026-11-22, every hash is an ancestor of origin/main and of e769f710a). (Earlier status: IN PROGRESS — lane/lb-rules-leftovers done; left (Claude): main chat review + merge.)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T941 | Search rows and neighbour-water names show a water's name cased, as the water page does (core item.name via display_case at bundle export) | DONE | 10ddff399 | — |
+
 Source: main chat 2026-11-20 (review of the T926 number-names lane). A water's shown name is stored in the registry as
 its source gives it, and some sources shout: "GREY HORSE LAKE #1", "KITWANGA MILL POND". The water page and the map
 label case it with the one caser (`pipeline/deliver/bundle/place_names.py` `display_case`), but the core file's

@@ -2,6 +2,10 @@
 
 Status: DONE — owner phone check 2026-11-08 passed (0.6.9). Was: IN REVIEW — 8ffc41135 ecc12a476 (owner phone check; the reading steps' words are Claude's draft, in the recording)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T456 | Guided walkthrough reworked: show the real use, never cover its target, teach reading rules + conditions | DONE | 8ffc41135 ecc12a476 (owner phone check) | owner 2026-11-06 (tester feedback) |
+
 Owner: "The tutorial needs work. Make it actually show the use and make sure it doesn't cover items like in the
 example. Also it should show examples of how to read the rules, how to read the conditions etc."
 

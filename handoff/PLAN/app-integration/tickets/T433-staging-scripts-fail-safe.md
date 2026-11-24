@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-05 (chat 3, 4d8b72626) — from the audit (T333–T335, 2026-11-05). Severity: **high**. Verified by a second reader.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T433 | Staging scripts: upload can take staging dark; sync and HYDAT mask failures (high) | DONE | 4d8b72626 | audit 11-05 |
+
 Source: `handoff/PLAN/audit-2026-11-05/` (findings: review-deploy 1, 2, 3, 12, 14; `*.verified.md` has the evidence per finding).
 
 ## What happens

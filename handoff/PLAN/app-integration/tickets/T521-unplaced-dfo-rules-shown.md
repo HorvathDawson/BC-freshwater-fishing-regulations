@@ -4,6 +4,10 @@ Status: DONE — c7d4226b2 + 1650a4b2f. Feeds worker NOT deployed: it ships with
 live unplaced.json rows have no `items` and fail to parse, so the app reports the read and says it on the card's feed
 line and in the bell).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T521 | A new DFO location with no mapped place still shows: matched water → its Salmon card's DFO rules; new water → the bell (worker unplaced.json `items`) | DONE | c7d4226b2, 1650a4b2f | owner 11-09 |
+
 Owner 2026-11-09: when DFO publishes a location no curated place matches, "we need to rebuild (still will show on
 front end tho so it isnt missing before it is fixed and matched)".
 

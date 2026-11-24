@@ -7,6 +7,10 @@ holds no registry water of their name — Mackenzie Creek 4-21, Frog/Hidden/Secr
 Squirrel Lake 6-1 — need the water located and named in the registry (owner Q-A below), then an atlas registry
 rebuild + reach + deliver.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T89 | rules that bind no water (10 unmatched + 3 no extent) | DONE | 010b5c28, 1ea79ca0, 894854c0, d47a38cd, 5f1eec34 | 6 rows / 21 rules await a located water: proposals in curation-review/t89-awaiting-water.json (Q45) |
+
 Source: memory `unplaced-extent-rules`; `data/generated/reaches/full/report.json` lists 33 unresolved rules. 5 are
 expected (`*.r5b`/`r6b`/`r9b` steelhead quota siblings); 2 are working exclusions (Columbia, Kootenay carry no trib rule).
 The rest render nowhere:

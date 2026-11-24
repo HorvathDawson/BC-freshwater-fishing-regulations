@@ -2,6 +2,10 @@
 
 Status: DONE — round 2 (owner rule 2026-11-22; whole-river rule answered 2026-11-23): 4cdf3245f 5644e8ef1 (round 1, #37: 92ebd9c5d dcc18bb8f, superseded).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T997 | Water map: two boundary labels at almost the same place draw on top of each other (Nicomekl River Part 2) | DONE | 92ebd9c5d dcc18bb8f 4cdf3245f 5644e8ef1 | round 2: only the lit part's two ends, hung apart; owner 2026-11-23 "Keep the two labels" under whole river |
+
 Source: owner 2026-11-21, phone screenshot (Android, dark mode), "Add ticket for this ui bug too for next chat".
 Shot: `handoff/PLAN/app-integration/T997-shots/nicomekl-labels-overlap.png`.
 

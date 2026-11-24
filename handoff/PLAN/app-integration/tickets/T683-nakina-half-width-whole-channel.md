@@ -2,6 +2,10 @@
 
 Status: DONE (62afe1d38)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T683 | Nakina River: half-width DFO rule binds the whole channel between the signs, card carries DFO's centre-line-to-north-bank words | DONE | 62afe1d38 | — |
+
 Source: owner 2026-11-12, Owner To-Do row `nakina-half-width`, "Whole channel + note". RULINGS E19 (E4: a cut cannot take half a river's width). Proposal patch: `T664-pending/`.
 
 ## Work

@@ -2,6 +2,10 @@
 
 Status: DONE — shipped 0.8.5; emulator walk PASS (a81713e56, 2026-11-21).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T990 | Regulations pane: one Sources button at the foot listing every source (per-section buttons kept) | DONE (shipped 0.8.5; emulator walk PASS) | a81713e56 | owner 2026-11-21 |
+
 Source: owner 2026-11-21, verbatim: "in the regulation pane we should have a source button at button with all regulation
 sources in one consistent spot. Keep the one sources too but this is in addition".
 Placement, owner 2026-11-21, verbatim: "It will be at bottom of page of regs". So it is the last item at the END of the

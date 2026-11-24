@@ -2,6 +2,10 @@
 
 Status: DONE (f7b41c208; landed 2026-11-17 in land/app-1117: bar listener + highlight unset; Chehalis is data (08MG001 silent); owner re-tests on the 0.7.12 build).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T826 | iOS: the Conditions panel and map differ from Android (no gauge markers, no bar, Chehalis empty); the tap highlight stays after going back | DONE | f7b41c208 | owner iPhone build 36, 2026-11-16 |
+
 Source: owner 2026-11-16 ~21:50, in the app chat, on iPhone TestFlight build 36, verbatim: "also the condition panel is
 very glitchy on apple. it doesnt show the info the same as android the mao doesnt have gauge markers the current
 conditions view doesnt show the bar and when i click on chehalis it doesnt show conditions for it? also the highlights

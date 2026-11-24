@@ -2,6 +2,10 @@
 
 Status: DONE in PR (independent review pending) — 68b96c5b9, 5d36db0bf
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1042 | Google shows the licence quote as the search snippet and a generic icon: per-page descriptions, `data-nosnippet`, PNG icons | DONE | 68b96c5b9, 5d36db0bf | owner 2026-11-23 (lane L27) |
+
 Source: owner 2026-11-23: "the search for canifishthis looks like this says license stuff first? and has the wrong icon".
 Google's result for /water/coquitlam-river showed "From the rule book: If you are a resident of B.C. and disabled: You may
 qualify for a basic freshwater angling licence at the reduced fee of $1.14." and a default icon.

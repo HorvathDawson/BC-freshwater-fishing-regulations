@@ -2,6 +2,10 @@
 
 Status: DONE — 03fc2eb2 (curated file, loader, auto-matcher, review tab) + the app commit.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T230 | provincial in-season changes: curated matches (+ auto 22/32), banners on matched waters, unmatched notice + badge, review In-season tab | DONE | 03fc2eb2 + app commit | owner 2026-10-28; feed = T225 `feeds/inseason/index.json`; R2 matches.json upload is the owner's; shots T230-shots/ |
+
 Source: owner 2026-10-28 design for provincial IN-SEASON changes; the feed is T225's `feeds/inseason/index.json`
 (`inseason-feed/1`, `app/workers/feeds/src/inseason.ts`).
 

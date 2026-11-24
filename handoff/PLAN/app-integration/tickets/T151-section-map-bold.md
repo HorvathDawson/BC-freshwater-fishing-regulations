@@ -2,6 +2,10 @@
 
 Status: DONE — 410dbc63 (map cue, tokens, labels, shots), 08b842d0 (state-handle pin, fixtures); adversarial review 56c68c19 (mark labels in the loaded Archivo_400Regular face, pinned). Built with Q123's default (dim the others).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T151 | water Map view: one line width, selected part by dimming; labels in the loaded face | DONE | c3eafff5, 56c68c19, 4f978f5f, 08b842d0, 410dbc63 | app; delivered r-9cf1fef180a8 |
+
 Source: owner 2026-10-23: "the bold in the section map view is also weird and makes the reg legend hard to follow".
 
 ## Work

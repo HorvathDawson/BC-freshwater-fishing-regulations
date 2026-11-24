@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-06 — 4754c6f8d, 7dd2f991f; proved: two side tile builds with unchanged inputs give the same `tile_version` and byte-identical pmtiles (below).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T305 | tile_version is not deterministic (tippecanoe temp path in pmtiles metadata) | DONE | 4754c6f8d, 7dd2f991f | found by the 10-31 build pass; release id moved on every tile rebuild |
+
 ## Problem
 tippecanoe writes its own command line into the pmtiles metadata (`generator_options`). That command line includes a
 RANDOM temp dir (`/var/folders/…/tiles-lowband-<random>/low.mbtiles`), so every tile build hashes to a new

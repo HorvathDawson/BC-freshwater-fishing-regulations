@@ -2,6 +2,10 @@
 
 Status: DONE (reports read + privacy wording approved 2026-11-06; T407 phone check stays with T407) — was PARTIAL: built and tested (960d2d8, 31c8d04); 2026-11-06 the crash TEST BED proves all three kinds on the emulator (c1c838f58, run.mjs crash-bed: a JS error, an unhandled promise, a native SIGSEGV each reach the worker's own POST /crash handler on a local stub, no staging write) and fixed a double report of a JS fatal; left (owner): read GET /crashes once, approve the privacy wording, T407's phone check after the 0.6.0 worker deploy; iOS is T362.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T242 | crash + error reporting (privacy-light) | DONE 2026-11-06 (reports read, privacy wording approved) | 960d2d8, 31c8d04, c1c838f58 | built (worker POST /crash, scrubbed payload, Data switch, privacy page, Android ApplicationExitInfo native kills); 11-06 test bed `crash-bed`: JS error, unhandled promise, native … (detail: ticket file) |
+
 Source: owner 2026-10-28 — approved proposal P8 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
 ## Work

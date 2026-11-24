@@ -2,6 +2,10 @@
 
 Status: DONE — 57bb1144e, 7d3cf3501, 30364003d, 10f0f037a, c6065568e (closed on the owner's word 2026-11-20; see the last section)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T244 | app store readiness (icon, splash, listing, privacy labels, internal tracks) | DONE | 57bb1144e, 7d3cf3501, 30364003d, 10f0f037a, c6065568e | — |
+
 Source: owner 2026-10-28 — approved proposal P10 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
 ## Work

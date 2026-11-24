@@ -2,6 +2,10 @@
 
 Status: DONE — a2727a3b0; shipped in 0.8.4 (cut e769f710a, data r-fec3fab4c5aa; 0.9.0 audit 2026-11-22, every hash is an ancestor of origin/main and of e769f710a). (Earlier status: IN PROGRESS — a2727a3b0; part header follows the Source end name; Kanaka shots approved 11-20; left (Claude): ships with the next data release. (Earlier note: IN REVIEW (code + tests done, a2727a3b0; in the live release r-6258ffded676; the Kanaka Creek shots taken on staging 2026-11-20, `T711-shots/`. owner: OWNER-TODO "Picks taken: T594, T598, T610 closed; T711" ("Source" in both, 11-20); left (Claude): main chat review + merge; ships with the next data release).))
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T711 | Part header text follows the "Source" end name (P55, 62 tops) | DONE | a2727a3b0 | — |
+
 Source: owner 2026-11-13, boundary-name review: "Source" stands for Kanaka, Mat, Coquitlam and the other tops among the 62 changed by P55. Bug: the part header text still says "up to a lake outlet" while the name says "→ Source".
 ## Work
 1. Find where the part header sentence is built and why it ignores the end name (header derives the end kind separately from the name).

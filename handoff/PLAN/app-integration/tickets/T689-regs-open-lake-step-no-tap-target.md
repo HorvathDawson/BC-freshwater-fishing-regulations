@@ -2,6 +2,10 @@
 
 Status: DONE — 606037505, 1c5ab986c. The test bed's tap target accepts a lake's own still water; regs-open passes with the Cultus lake step; own-rules lake colour option B applied.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T689 | Test bed `regs-open`: the lake step ("Cultus") found no tap target on build 29 — the T478 probe skipped every still-water point, so no lake could be a target (test bed only: hand taps open the lake) | DONE | 606037505, 1c5ab986c | — |
+
 Closed by the 2026-11-20 audit: regs-open rerun on the next test-bed APK passed: T678-progress 2026-11-13 (0.7.8 test-bed APK) 'regs-open 13/13 steps PASS (small, Fraser, Cultus)', and 19/19 on 0.7.9 (2026-11-14).
 next test-bed APK (no APK may be built in the lane that fixed it).
 

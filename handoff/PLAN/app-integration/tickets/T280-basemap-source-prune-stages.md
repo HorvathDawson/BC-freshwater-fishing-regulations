@@ -4,6 +4,10 @@ Status: DONE 2026-10-29 (65894d8bf; staging r-164ca35636ea; prod upload human, b
 doesnt look much different simplifying is always good … basemap in data that we get from pmtile directly then a translation
 from that to the one we ship (with the other simplification we already did before). make sure it uses proper range requests").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T280 | Basemap two stages: raw Protomaps source via range requests → pruned + simplified ship copy (forest/green-space simplification, visual gate); fixes pan hitches | DONE | 65894d8bf | 274.5→225.5 MB, green vertices −52 %, render gate ≤2 % (worst 1.97 %); staging r-164ca35636ea; pan after-update 174/57→31/11 >50 ms, steady state within emulator noise; prod publish human |
+
 Source: T273 measured pan hitches on new basemap tiles: 89 frames >50 ms on the drawn map vs 10 with the forest/green-space
 layer removed (emulator, indicative).
 

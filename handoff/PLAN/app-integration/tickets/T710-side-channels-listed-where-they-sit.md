@@ -2,6 +2,10 @@
 
 Status: DONE (shipped in r-a9914d6b25b7 on staging: 023c61c9d, 523d2e45c, e25736f4b).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T710 | Parts list: a side channel is listed next to the main-stem part it runs beside | DONE | 023c61c9d, 523d2e45c, e25736f4b | owner 2026-11-13 "List it where it sits"; 8 waters / 33 part numbers; shipped r-a9914d6b25b7 (staging); side-channel name wording still open (owner) |
+
 Source: owner 2026-11-13, boundary-name review (pack: ~/bcfish-session-backup-2026-11-12/boundary-names/PACK.md, Skeena Reserve). Split accepted; owner chose "List it where it sits". Today side channels are numbered after all main-stem parts (the closed Reserve side channel is part 18).
 ## Work
 1. COUNT FIRST, change nothing: how many waters and parts the reorder touches (waters with at least one side-channel part, and parts whose number moves). Report the numbers to the owner before any change.

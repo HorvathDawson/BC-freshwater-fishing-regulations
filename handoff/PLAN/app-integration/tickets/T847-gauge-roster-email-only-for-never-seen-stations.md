@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-18 (6432825f5, 7371677ef, 1ff1db9f2; staging feeds worker deployed 13:2x, version 5d796dcd).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T847 | The gauge roster email names only stations the roster has never seen, each once (owner: the feed already follows ECCC's list) | DONE | 6432825f5 7371677ef 1ff1db9f2 | owner 2026-11-18 12:18 |
+
 Source: owner 2026-11-18 ~12:05, on the "ECCC's real-time station list changed" email (10 joined, 13 left), verbatim:
 "why does it have to refresh here? … shouldnt it automatically pick up the changes and handle it without needing a
 refresh unless it was. anever before seen gauge?"

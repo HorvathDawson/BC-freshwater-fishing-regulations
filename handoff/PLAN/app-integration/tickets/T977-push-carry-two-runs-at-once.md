@@ -3,6 +3,10 @@
 Status: POSTPONED — decided 2026-11-22 (lane L5, 0.9.0 batch): a DOCUMENTED ACCEPT, no lease now. Revisit when the
 staging or production `/status` shows a carried wake ("part N of a wake begun …"), i.e. past 1,500 registered phones.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T977 | Push wake carry-over: two feed runs at once both read it (duplicate silent pushes, or a wake's circle overwritten); no small fix, a lease when worth it | POSTPONED (documented accept 2026-11-22, lane L5: needs > 1,500 phones; lease built when /status first shows a carried wake) | | lane LF 2026-11-20, T739 review |
+
 Source: the combined review of T739 (lane LA), 2026-11-20; lane LF checked whether a small fix exists.
 
 ## The problem

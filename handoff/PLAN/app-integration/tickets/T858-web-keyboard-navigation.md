@@ -4,6 +4,10 @@ Status: PARTIAL — item 1 merged (da865828d, c49d0764b); item 2 done 5407adcba 
 commit; owner 2026-11-18 ~16:55: "these can be in 0.8.1 web version? since it doesnt change app it shouldnt effect release
 of app?").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T858 | Web: keyboard navigation in lists, starting with search (↑/↓ move the highlight, Enter opens; owner) | PARTIAL — search keyboard merged; item 2 done (parts list, Spots, menu list; reading pages ruled out); left: item 3 staging check at desktop width | da865828d, c49d0764b, 5407adcba | owner 2026-11-18 |
+
 Owner 2026-11-18 ~16:50 (to the main chat, relayed to the app chat), verbatim: "in the webapp we shopuld have keyboard
 navigation like in search bar using arrows to move highlight etc."
 

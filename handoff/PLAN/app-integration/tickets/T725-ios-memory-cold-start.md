@@ -2,6 +2,10 @@
 
 Status: IN REVIEW — measured on 0.7.9 (68bf25229); lane L6: the memory-warning trim proven on the simulator (83653e704: the warning now reaches the app, `[trim]` 14 databases, 263 → 257 MB); owner: OWNER-TODO "oldest iPhone / iPad" (the oldest supported iPhone)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T725 | iOS: memory table and cold start re-measured on 0.7.9 (IOS-8) | IN REVIEW (lane L6: the memory-warning trim proven on the simulator, 263 → 257 MB); owner: OWNER-TODO "oldest iPhone / iPad" | 68bf25229, 83653e704 | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-8 in handoff/PLAN/ios/START-HERE-ios.md |
+
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-8 in
 `handoff/PLAN/ios/START-HERE-ios.md` (approved to start there, "Unattended day"). Simulator only; no Apple account.

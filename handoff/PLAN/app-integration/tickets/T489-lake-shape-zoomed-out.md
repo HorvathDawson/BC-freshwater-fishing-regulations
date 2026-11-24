@@ -2,6 +2,10 @@
 
 Status: DONE — owner phone 2026-11-08: zoomed-out lakes "definitely look better" (staging r-25a89ce9f8e6). Was: IN REVIEW — side build + shots done (68b6d132d); left: owner look at the shots, ships with the next tiles rebuild. Owner 2026-11-07 (0.6.9 on the phone).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T489 | Lakes lose too much shape when zoomed out (tile simplification) | DONE | 68b6d132d | owner 2026-11-07; ships with a tiles rebuild |
+
 Owner: "lake polygons lose almost too much shape when zoomed out."
 
 ## Do

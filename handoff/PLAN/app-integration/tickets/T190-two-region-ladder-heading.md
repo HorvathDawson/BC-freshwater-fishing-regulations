@@ -2,6 +2,10 @@
 
 Status: DONE (221d2c85a)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T190 | a two-region piece's decision ladder heads both regions' rules with one region | DONE | 221d2c85a | app only (decided.ts) |
+
 Source: T183 test re-pin lane, 2026-10-24 (commit 4e2bd4ca).
 
 ## Problem

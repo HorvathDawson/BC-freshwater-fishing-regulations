@@ -2,6 +2,10 @@
 
 Status: DONE in code 2026-11-05 (8d1500036; owner report 2026-11-05, 0.5.0 build 8, map). Phone check with the next APK.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T396 | Trout & more legend in 2 lines, both mode legends one height (no jump on switch) | DONE in code 11-05 (phone check next APK) | 8d1500036 | owner report 2026-11-05 |
+
 The Trout & more legend wraps to 3 lines where 2 should fit, and because the Salmon legend is a different height the
 bottom bar jumps when switching between Salmon and Trout & more. Fit it in 2 lines (phone width ~390 dp, the T283 text
 size) and give both modes' legends the same height. Ties to T377 (tappable/collapsible legend).

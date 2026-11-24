@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-05 (08837f197, 7b20ec0da; owner 11-05: region bar and map button accepted as they are — bar stays on the first screen, the button opens the whole map, no region start link).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T406 | SEO: raster (PNG) share images + species-by-region season calendar | DONE 11-05 | 08837f197, 7b20ec0da | owner accepted region bar + map button as they are |
+
 Source: T195 leftovers (2026-11-05). Share cards are SVG (`/share/<slug>.svg`); Facebook, X and most chat apps do not
 render an SVG `og:image`, so a shared water link shows no picture. The species season-start calendar needs the
 per-species year strips, not the water strip.

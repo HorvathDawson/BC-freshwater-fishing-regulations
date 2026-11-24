@@ -2,6 +2,10 @@
 
 Status: DROPPED — superseded: folded into T212 / T166 (owner 2026-10-28, decisions.md "2026-10-28 — tidal water").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T98 | tidal water spec: Fraser below Mission (RULINGS C-2, K7/K8) | DROPPED | — | superseded: folded into T212/T166 (owner 2026-10-28): the tidal piece is removed from the freshwater map |
+
 Owner's spec (2026-10-28): when the tidal splits land (T212 proposals → T185/T166 cuts), the piece of a stream in the
 tidal region is REMOVED from the freshwater map — no freshwater rules there, the Fraser below Mission included. That
 closes C-2 and retires K8 once built. Tributary handling: the owner believes no tributary rule is affected; checked in

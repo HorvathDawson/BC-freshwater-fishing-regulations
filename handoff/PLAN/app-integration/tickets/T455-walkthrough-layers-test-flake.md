@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-06 — 2290b6e25
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T455 | Walkthrough "Layers" test skips the ground step under load (flaky) | DONE | 2290b6e25 | chat 5 2026-11-06 |
+
 `pnpm check` on 56c18c597 (quiet machine, under `scripts/heavy.sh`): 1 failed / 6700 passed. The failure was
 `packages/ui-native/src/Walkthrough.test.tsx` › "(owner 2026-10-29) Layers: open, switch the ground, fish obstacles
 on — then Next puts them back": log `[layers, obstacles, restore]`, expected `[layers, ground, obstacles, restore]`.

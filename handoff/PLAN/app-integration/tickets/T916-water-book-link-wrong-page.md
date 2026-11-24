@@ -2,6 +2,10 @@
 
 Status: DONE — shipped in 0.8.3 (merged de2cb25bb; staging + production 2026-11-19).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T916 | "This water in the rule book p.7" on Sweltzer River points at the wrong page (owner) | DONE — shipped in 0.8.3 (staging + production 2026-11-19) | de2cb25bb | owner 2026-11-19 ~12:55 |
+
 Owner 2026-11-19 ~12:55 (main chat, phone screenshot of Sweltzer River, Regulations, What you can keep, 0.8.2 on
 staging), verbatim: "Has page 7 link at top (which is wrong) with real page 26 at bottom. Should remove top one...".
 Screenshot: scratchpad (session 1db4ea05) t916-owner-sweltzer.png. The top line "This water in the rule book p.7 ↗"

@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS — both built and pinned in component tests; left (Claude): see both on the emulator on the next APK (`saved-spots` scenario)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T674 | After "Save alert" the confirmation stays on screen; a saved spot off the map has no screen-reader button | IN PROGRESS (both built, component tests; left (Claude): emulator check on the next APK) | 04572e8d3 | T603 emulator run 2026-11-11; (a) `AlertMe` scrolls its block into the pane's view after a save; (b) `spotsInView`, both maps |
+
 Source: T603's recorded emulator run 2026-11-11 ("Seen on the way"), two app bugs the test bed found.
 
 ## Bugs

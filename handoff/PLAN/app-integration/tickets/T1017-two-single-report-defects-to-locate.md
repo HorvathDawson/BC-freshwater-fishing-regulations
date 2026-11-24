@@ -2,6 +2,10 @@
 
 Status: OPEN — next release batch.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1017 | Two one-report defects to locate: `expression.evaluate is not a function` (web), iOS "Unable to open URL" on Runs | OPEN — next release batch | | both; item 1 after T1008 |
+
 Source: T1005 triage (production `GET /crashes`, 2026-11-22). Neither could be placed from its minified stack or its
 scrubbed message; the web one needs the source maps T1008 serves, the iOS one the link it tried.
 

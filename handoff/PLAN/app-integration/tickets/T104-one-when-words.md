@@ -4,6 +4,10 @@ Status: DONE — 677158f80, 92cba91f0 (review: `DateRange.words` also calls `whe
 plains (Campbell, Nicomekl, Serpentine, Harrison, Pitt, Slocan, Fraser above Mission title only (no plain: a gate);
 Lower West Arm r3 r4 r5 plains); card gate 0 problems. Rebuild: deliver. Left: owner questions below.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T104 | one "when" in words: titles/plain drop hours and weekdays | DONE | 677158f8, 92cba91f, 671eabad | live after the next deliver; Q64–Q65 |
+
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding 2
 (CONFIRMED on `ui-rules-export.json` / `ui-rules-answers.json`).
 

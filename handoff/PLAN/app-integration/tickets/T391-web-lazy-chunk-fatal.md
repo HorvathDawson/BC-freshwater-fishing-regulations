@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-04 (191953b4b; found reading the 0.5.0 crash reports).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T391 | Every web water page filed a fatal "Requiring unknown module": Metro reports the lazy-chunk miss as fatal while ErrorUtils is set; the asking moment runs without it | DONE 11-04 | 191953b4b | crash reports 2026-11-04 |
+
 **Reports:** kind 5f6c515b (0.5.0 web, 9 then 10, 5 installs: the staging smoke runs and a fresh visit) and e7557774
 (0.3.0 web, same cause). Fatal, route water / other.
 

@@ -2,6 +2,10 @@
 
 Status: DONE — 3abb3dc4e (owner OK 2026-11-18 ~20:53). Landed on redesign/stream-sections with app/integrate-081-web after the full tier.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T872 | Conditions: the watershed "by day" card folded unless someone opens it (owner) | DONE | 3abb3dc4e | app chat; owner 2026-11-18 (T872–T874 approved ~20:53) |
+
 Owner 2026-11-18 ~20:30, verbatim, looking at Mamquam River → Conditions, the "Squamish watershed · Flow vs. past years,
 by day" card: "These section should be collapsed in conditions I think unless someone expands"
 

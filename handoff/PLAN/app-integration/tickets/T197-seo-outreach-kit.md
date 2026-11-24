@@ -2,6 +2,10 @@
 
 Status: DONE — 1c4dd582, 435ce2d8; drafts complete and tested; sending is the owner's (OWNER-TODO), after prod is live.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T197 | SEO: outreach kit (drafts only, no sending; no bots or link schemes) | DONE 11-05 | 1c4dd582, 435ce2d8 | owner sends by hand after prod (OWNER-TODO) |
+
 Source: T188 plan, handoff/PLAN/seo/PLAN.md section 7. Owner rule: no spam bots, link schemes or auto-posting.
 ## Work
 Honest copy and templates for BC angling clubs, forums, the Freshwater Fisheries Society, tackle shops (QR counter card)

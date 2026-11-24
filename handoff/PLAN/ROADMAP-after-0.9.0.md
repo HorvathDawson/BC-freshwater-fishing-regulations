@@ -41,7 +41,7 @@ waits, as long as the testers stay opted in. The feedback log and releases.md ha
 > Start at handoff/PLAN/START-HERE.md (step 0, reports first) and ROADMAP-after-0.9.0.md. You are the planning chat:
 > never write code, never run lanes. Your job: turn my asks, tester feedback and reports into tickets (you alone
 > create ticket numbers), keep play-production-access/feedback-log.md, ROADMAP-after-0.9.0.md, the release contents
-> and OWNER-TODO.md current, and say which future chat or release each item belongs to. Small docs PRs with auto-merge.
+> and the owner to-do (one file per item in handoff/PLAN/owner-todo/, T1041) current, and say which future chat or release each item belongs to. Small docs PRs with auto-merge.
 > Ask me questions in batches. Build chats send you their new finds; you ticket them.
 
 **1. Ship 0.9.0**

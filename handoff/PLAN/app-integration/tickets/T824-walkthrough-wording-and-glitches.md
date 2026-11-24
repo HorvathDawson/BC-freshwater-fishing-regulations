@@ -2,6 +2,10 @@
 
 Status: DONE (f7b41c208; landed 2026-11-17 in land/app-1117 (10 steps); owner re-tests on the 0.7.12 build).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T824 | The walkthrough: "rings what to tap" wording; glitches with the keyboard and a lagging highlight | DONE | f7b41c208 | owner iPhone build 36, 2026-11-16 |
+
 Source: owner 2026-11-16 ~21:45, in the app chat (on iPhone build 36), verbatim: "in the tutorial it says on first
 slide each step rings what to tap (should say something like highlight instead? the tutorial is really glitchy too with
 keyboard and the highlighting following the items with a delay etc etc".

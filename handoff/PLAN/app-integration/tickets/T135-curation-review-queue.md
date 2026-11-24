@@ -4,6 +4,10 @@ Status: DONE — 8d0f5d76, adversarial review fixes 9b8de2e3 (lane-T135). Owner 
 Takes effect on merge: no rebuild. The run-based factors read the served reach run as it is; a reach run (already
 part of every `python -m pipeline build --no-tiles`) refreshes them, and the screen re-reads it by file stamp.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T135 | curation review phase 4: queue, pre-checks, ticket export | DONE | 8d0f5d76, 19dbc1ee, 9b8de2e3, 0a2be2da | no rebuild |
+
 Source: handoff/PLAN/curation-review/PLAN.md §4 "Phase 4: queue, pre-checks and output" (and §5); split out of T97.
 
 ## Work

@@ -2,6 +2,10 @@
 
 Status: DONE in code 2026-11-05 (5b69686c2, 8658433c3, f42d32696, aea5620a1, f421b8bca, c1114b75d, 6326964ad; item 4 with the item-1 chat). Phone check with the next APK; owner design calls listed below.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T377 | T367 leftovers: forecast-day list by basin (after T376), tappable/collapsible legend, Runs peak markers, closed/open second cue, multi-model hydrograph, dead code | DONE in code 11-05 (phone check next APK; owner design calls in ticket) | 5b69686c2, 8658433c3, f42d32696, aea5620a1, c1114b75d, 6326964ad | T367 close, 2026-11-04 |
+
 1. **Forecast-day list by watershed** (owner idea, T367 round 3 A2): a list of days with each day's standing for a basin
    (`basinStandings`); tap a day to show it. Browse uses the map-centre basin, a water its own basin, no fallback.
    T376 (e21cdbeac) gives: browse `col.centreBasin` (`{ id, name } | null`; undefined off Conditions or not yet answered)

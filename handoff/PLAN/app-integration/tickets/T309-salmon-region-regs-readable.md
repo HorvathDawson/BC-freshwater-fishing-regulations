@@ -3,6 +3,10 @@
 Status: DONE (cbbd809d4, dfecc1b89 selectable text; phone long-press copy to be checked on the next APK) (owner 2026-10-31: "improve the way the region salmon regs show up right now they are walls of text. Also we
 want to make it so we can copy text on the app").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T309 | Region salmon rules readable (rows, chips, wording folded); copyable text in the app | DONE | cbbd809d4, dfecc1b89 | owner 2026-10-31 |
+
 ## Work
 1. Region-wide salmon (DFO) rules in the regs pane / salmon card: structure them like the game-fish rows — species chips,
    one row per rule (what, when, how many), the DFO wording under a "Full wording" fold, area/subarea names as small tags,

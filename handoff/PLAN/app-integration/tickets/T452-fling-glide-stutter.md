@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-06 — e63c921c3 (owner on 0.6.7: "the fling glide feels good")
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T452 | A fling's glide stutters as it goes (Pixel 9, 0.6.6) | DONE | e63c921c3 | owner 0.6.7: feels good |
+
 Owner: "the panning is a bit better, zoomed out and in are similar now; still feels a little stuttery — if you flick
 the screen the way it moves stutters a bit as it goes."
 

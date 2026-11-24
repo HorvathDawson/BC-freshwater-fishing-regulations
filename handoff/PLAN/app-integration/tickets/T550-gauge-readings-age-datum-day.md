@@ -2,6 +2,10 @@
 
 Status: DONE — 722535c83, 8f8e589c0, 61a97ca16, 7e08a527f, 5c7b9719d, 0b94e262c, 06052992c. All six items built; staging worker deployed 2026-11-12 (e1fbe67d1), clim.json / HYDAT envelope rebuilt with the datum cuts (230b92d75). The week of /status for the 00:05 case is T597's item 1.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T550 | Gauges: a reading's age gates its rank, level percentiles survive datum shifts, one day for the percentile | DONE | 722535c83, 8f8e589c0, 61a97ca16, 7e08a527f, 5c7b9719d, 0b94e262c, 06052992c | — |
+
 Closed by the 2026-11-20 audit: both named proofs happened (staging worker deploy e1fbe67d1 2026-11-12; HYDAT envelope rebuilt locally and on staging 230b92d75); the week-of-status check is the same item as T597 item 1 (shared commit 5c7b9719d), left there.
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 6 of 17; highest severity 4 of 5.

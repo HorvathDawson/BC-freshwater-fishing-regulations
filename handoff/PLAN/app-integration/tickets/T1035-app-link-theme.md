@@ -2,6 +2,10 @@
 
 Status: DONE — 77d9de76d, 2ddaa795f (theme is parsed, applied in App via `applyAppLink`, SESSION ONLY: never saved, as the web start link's `theme=` is; a bad value drops the key, is reported, the theme is unchanged; not seen on a device).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1035 | `theme=dark` on a `regs=` link does not switch the theme on the phone | DONE | 77d9de76d, 2ddaa795f | lane L18 emulator 2026-11-23 |
+
 Source: lane L18, Android emulator, 2026-11-23.
 
 ## Finding (lane L15)

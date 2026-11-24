@@ -3,6 +3,10 @@
 Status: DONE — merged 98b66c7e4, fixed f030e3938 (first real run 2026-11-19: 0.8.3 build 41 added to "testers ext" and submitted for Beta App Review).
 mocked; left (Claude/main chat): the first real run against App Store Connect, then merge).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T918 | TestFlight: a new iPhone build is added to the External group (and sent for beta review) by the upload script (owner) | DONE — 0.8.3 build 41 in "testers ext", waiting for Beta App Review (2026-11-19) | 98b66c7e4 f030e3938 | owner 2026-11-19 ~15:49 |
+
 Owner 2026-11-19 (main chat), verbatim: "when we push new apple one will it update the version automatically for testers"
 -> told: no, an External group gets each build only when it is added (and the first build of a version waits for Beta
 App Review); "can we make it auto update it for the group too?" -> yes, built here.

@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-07, 0184d8e (owner report, web at about 2000 px: "on a wide desktop the legend stacks?").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T469 | Legend: one row (fold button in it) on a wide screen, not two rows plus a strip | DONE 2026-11-07 | 0184d8e | owner 2026-11-07; web ≥ 900 px only, phones unchanged |
+
 Cause: the regulations key (`LegendRows`, T396) is two fixed rows chosen to give a 390 dp phone a bar of a set height
 (Closed · Own rules · Base rules / No access · Fly only · Bait ban · Not fishable), whatever the width; and the fold
 button (T377) had a 41 px head row to itself. At 2000 px that was 107 px of bar for one line of words.

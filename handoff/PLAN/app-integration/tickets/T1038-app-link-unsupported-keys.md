@@ -2,6 +2,10 @@
 
 Status: PARTIAL — 94c0a117d, 1a5574b00, 06b85846a (all eight keys carried on a water's link, `date`/`horizon` on a box's and on a day-only link (`/?date=`: the map on that day, as the web); read by the web start link's own readers and handed through the Shell's one open request; a link to the water already open re-applies its tab/sheet/scroll; tests per key, mutation-proved; web check of each key 2026-11-23); left (Claude): the device check below. Still reported, not carried (said with `reportFailure`): a page key on a link with no water (the web ignores it too) and `whole` where it does nothing.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1038 | Carry a phone link's date, tab, sheet, scroll, age, res, horizon and whole (today reported and dropped) | PARTIAL — all 8 carried (web readers, one open request), day-only links, start re-applied; left (Claude): 0.9.0 device pass | 94c0a117d, 1a5574b00, 06b85846a | lane L15 on T1034, 2026-11-23 |
+
 Source: lane L15 on T1034, 2026-11-23. The web start link carries these keys (`parseStartLink`); the phone's link path
 (`parseAppLink`) did not, and listed them as read while dropping them. T1034 now REPORTS each one (`reportFailure`: "<key>=
 is not opened by the phone yet (T1038): dropped") and opens the water without it, so nothing is dropped silently.

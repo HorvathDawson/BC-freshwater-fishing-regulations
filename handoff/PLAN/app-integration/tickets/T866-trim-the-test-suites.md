@@ -2,6 +2,10 @@
 
 Status: DONE (2026-11-22: both lanes landed by PR — the speedups (#16, 67c6c813c) and the 5 duplicates + the wording fold (#17: c7894a5e8, 979b13f60, a65145a81); the owner did not pick pytest-xdist; "Left for later" lines below are small follow-ups, not this ticket).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T866 | Trim the test suites: combine overlapping tests, remove true duplicates (owner) | DONE | 67c6c813c, c7894a5e8, 979b13f60, a65145a81 | owner 2026-11-18, after the 0.8.1 releases; 2026-11-22: CI vitest on 4 shards, bare SEO builds, two slow tests fast (#16); 5 duplicates removed, 30 wording files folded into two tables (#17) |
+
 Owner 2026-11-18 ~19:10 (to the app chat), verbatim: "We should make a ticket for after the releases to try and clean up
 tests and reduce there being way too many tests. We could combine a bunch and maybe remove some that are duplicates".
 

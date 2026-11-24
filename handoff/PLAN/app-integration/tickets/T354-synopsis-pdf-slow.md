@@ -2,6 +2,10 @@
 
 Status: DONE — 5d4f0e7f9 cc3203218; owner phone check 2026-11-08 passed (0.6.9). Was: IN REVIEW (code done 2026-11-03; left: emulator timing before/after, owner looks at the photo pages).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T354 | Synopsis PDF slow to open: shipped copy 25 -> 11.7 MB (render-gated), opens IN THE APP (react-native-pdf) at the page, highlight appended in place; no fallbacks, failures reported | DONE | 5d4f0e7f9 cc3203218 | owner 2026-11-02/03; left: dev build on emulator, test bed pdf scenarios |
+
 Opening the rule book (synopsis PDF) from a water page takes a very long time. Find out where the time goes:
 - downloading the whole PDF on first open (size?);
 - copying or decoding before display;

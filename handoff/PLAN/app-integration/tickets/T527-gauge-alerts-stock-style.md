@@ -2,6 +2,10 @@
 
 Status: DONE — 402cf8b39, 1e1b56e3a, 3d807829d; owner 2026-11-09 on build 24: alert add flow fine; percentile alert must follow each day's percentile, not the line of the day it was saved → T563
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T527 | Gauge alerts stock-style: crosses above / below a value or a percentile for the day (presets + custom), once per crossing, 2 % re-arm; plain list + gauge → condition → value; v1.1 ±% / cadence replaced, ±% alerts refused + said | DONE — 402cf8b39, 1e1b56e3a, 3d807829d; owner 2026-11-09 on build 24: alert add flow fine; percentile alert must follow each day's percentile, not the line of the day it was saved → T563 | 402cf8b39, 1e1b56e3a | owner 2026-11-09 "a clean alerting system like … stocks"; shots/T527-*.png |
+
 Was: IN REVIEW — 402cf8b39, 1e1b56e3a, in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (the checklist below); worker unchanged.
 Earlier: IN REVIEW (build 22) — phone check on the APK (checklist below); worker unchanged
 

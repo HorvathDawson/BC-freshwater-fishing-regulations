@@ -2,6 +2,10 @@
 
 Status: DROPPED (owner 2026-11-06: the one B.C. clock stays). Was: OPEN — after 0.5.0 (owner 2026-11-04: "this seems too confusing could be make fixing time zones to be a ticket then we just set it to constant bc time for now? with labelled timezone in the sunrise/se
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T383 | Per-water time zones (coords → zone at build, the app's own offset rule per zone); 0.5.0 keeps one B.C. clock | DROPPED (owner 2026-11-06: one B.C. clock stays) | — | owner 2026-11-04 (after 0.5.0) |
+
 For 0.5.0 (T382): one constant B.C. clock, UTC−7 ("PT"), for the regulations' day and for sunrise / sunset, the zone
 labelled on the sun line.
 

@@ -2,6 +2,10 @@
 
 Status: DONE (2df8add7b, 4ac91de6f, 83c9995d7) 2026-11-05 — runbook, diff tool, carry/replay tool, dry run (diff explained), T414 (the review app's "only these entries" list), T415 (Heber extraction fixed). Owner choice left: Heber's whitespace (T415 part, last point).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T239 | annual synopsis update: runbook + book diff tool + dry run | DONE (T414 + T415 done; owner choice: Heber's whitespace) | 2df8add7b, 4ac91de6f, 83c9995d7 | runbook `handoff/PLAN/runbooks/annual-synopsis.md`; dry run 1,512/1,515 unchanged, 3 explained (extraction vs hand-fixed text); 2 follow-ups in the ticket |
+
 Source: owner 2026-10-28 — approved proposal P5 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
 ## Work

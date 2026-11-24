@@ -2,6 +2,10 @@
 
 Status: DONE — 35276cdc2, 53b90e7f9; owner 2026-11-09 on build 24: card shares; page follow-up → T564
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T511 | Gauge share card: forecast in words, readable axis, normal range (climatology band) behind the chart | DONE — 35276cdc2, 53b90e7f9; owner 2026-11-09 on build 24: card shares; page follow-up → T564 | 35276cdc2 | owner 2026-11-08; follow-up of T487 |
+
 Was: IN REVIEW — 35276cdc2, in the staging feeds worker deployed at 53b90e7f9; owner: OWNER-TODO "Look at" (a shared gauge link's preview card, with T487).
 Earlier: IN REVIEW — 35276cdc2; owner looks at a shared link's preview (not deployed: feeds worker deploy is the owner's / next release). Follow-up of T487 (owner 2026-11-08, after seeing the Chilliwack at Vedder Crossing card).
 

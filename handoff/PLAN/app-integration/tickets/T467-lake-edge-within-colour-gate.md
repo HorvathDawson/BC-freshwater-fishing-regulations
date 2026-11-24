@@ -2,6 +2,10 @@
 
 Status: DONE — built as picked, owner checked 2026-11-23: 2a4633ecc 349ff4080.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T467 | Lakes: a visible shoreline (a shade of the fill) inside the colour-blind gate | DONE | 2a4633ecc 349ff4080 | the shaded band as picked; owner 2026-11-23 likes it, "keep cvd solid"; no shade over satellite |
+
 T457's lighter fill (0.4 light / 0.75 dark) failed `tools/status-colours-distinct.test.ts`: closed vs own and no access
 vs base were too close for colour-blind readers once washed out. 0.5 and 0.55 failed too. So the fill stayed solid,
 and only the 1.5× shoreline shipped. In a colour mode that shoreline is the SAME colour as the fill (`follow`), so it

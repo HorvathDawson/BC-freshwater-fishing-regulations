@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-04 (561115e24, c706d67ac, ec5b37257; items 6–7 → T367, UI chat). items 1–5, 8 DONE 2026-11-03 (data side; needs the batch-3 rebuild); items 6–7 are UI → T367 (UI chat). Owner list below. (owner 2026-10-31). Depends on T332 (salmon in the shared quota tree) — do on top of it.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T343 | Regional salmon rules cleanup: drop facility-100 m dup + measuring notes, fresh+tidal daily into the bucket line, adult-chinook size per water (default 50 cm), fold or drop every header note; spawning salmon image | DONE 11-04 (data side; items 6–7 → T367) | 561115e24, c706d67ac, ec5b37257 | owner 2026-10-31 |
+
 The region header notes (`regs.dfo_salmon.header`, shown as "region rules" on the salmon card) are mostly not worth
 showing on their own. Work each into the place it belongs, or drop it:
 

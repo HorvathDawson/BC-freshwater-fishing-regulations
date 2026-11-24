@@ -2,6 +2,10 @@
 
 Status: DONE — 738f6608f, e1345fae2, 1358a2de4, fab4c0f6f, 353429f7a, 1ce54b2fa, 1e75ce6e9. Keep and Gear show what the release holds (K1–K5, G1, G3, G4), G2/G5 built on the owner's answers, G7 classified-water terms and the fee line on the Licence tab, and the website's text model carries the new fields.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T670 | Keep and Gear tabs: show the regulations the release holds and the screens left out (T462 audit K1–K5, G1–G5, G7) | DONE | 738f6608f, e1345fae2, 1358a2de4, fab4c0f6f, 353429f7a, 1ce54b2fa, 1e75ce6e9 | — |
+
 Closed by the 2026-11-20 audit: presenters 738f6608f; web text model e1345fae2 (possession `also`, `back`) and 353429f7a (G7 terms); G2/G5 1358a2de4; G7 fab4c0f6f; fee line 1ce54b2fa/1e75ce6e9; owner accepted the K/G wordings ('Accept all as built'); shipped in every app build since 0.7.7, production 0.8.3.
 
 Source: `handoff/PLAN/app-integration/T462-audit.md` (85ba2e821), owner 2026-11-11. Rule for this ticket (owner, same

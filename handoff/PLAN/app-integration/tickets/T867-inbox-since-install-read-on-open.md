@@ -3,6 +3,10 @@
 Status: PARTIAL, left (Claude): T1030 (the release carries a changed-waters count) for the data row to say "N waters changed" (owner 2026-11-22 23:55 "Build all four"; code 1d488995b, in review: PR feat/T867-inbox).
 Known LOW items left as they are (re-review of PR #58): (a) the bell opened by hand while the walkthrough is still due reads nothing until the tour ends; (b) if the apply curtain starts while the sheet is up, the rows read and show under Earlier in the same open. Gap: no test covers the apply-curtain exclusion on its own.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T867 | Notifications inbox: since install only, read once seen, short, with data and app updates (owner) | PARTIAL | app chat | left (Claude): T1030 (release changed-waters count) for "N waters changed" (code 1d488995b, in review) |
+
 Owner 2026-11-18 ~19:50 (to the app chat), verbatim: "I don't think the inbox works properly for the app all in season
 still show up under earlier always and data updates and stuff don't show up in history etc. also the history after
 viewed I thought was supposed to then be read and not a giant list. All the in season don't need to show too. Just stuff

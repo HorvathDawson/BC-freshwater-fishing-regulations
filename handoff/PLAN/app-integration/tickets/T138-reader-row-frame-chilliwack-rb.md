@@ -2,6 +2,10 @@
 
 Status: DONE — d8997fbd. No deliver needed (a test tool + two testIDs). No reader re-run needed (the gate passed).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T138 | reader shooter: chilliwack-p2-row-rb frame misses the rainbow row | DONE | d8997fbd | — |
+
 ## Today
 `app/tools/compare-regs.mjs` `frames()` row mode is meant to give "the one screenful with that fish's row just under
 the pin bar". For `chilliwack-p2-row-rb` (state chw2_1010, row RB) the PNG starts at the box head "Of these, only 1 may

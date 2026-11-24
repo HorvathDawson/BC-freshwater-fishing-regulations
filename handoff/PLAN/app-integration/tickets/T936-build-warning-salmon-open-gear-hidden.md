@@ -2,6 +2,10 @@
 
 Status: DONE — cff5478e9, 0f8a4143d; shipped in 0.8.4 (cut e769f710a, data r-fec3fab4c5aa; 0.9.0 audit 2026-11-22, every hash is an ancestor of origin/main and of e769f710a). (Earlier status: IN PROGRESS — built on lane/t936-t931 (cff5478e9); left (Claude): main chat review + merge.)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T936 | Build warning: salmon open on a game-fish-closed day that carries a B.C. gear rule (owner) | DONE | cff5478e9, 0f8a4143d | — |
+
 Source: owner 2026-11-20 ~01:03 (main chat), after T934. Asked whether a B.C. closure closes salmon: yes, a FULL closure
 does (rule book p.77; T796 A5 puts it on the salmon chains). The leftover case: the game-fish strip reads closed on a day
 by species closures that together close every game fish (no single full closure), DFO has salmon open or release that

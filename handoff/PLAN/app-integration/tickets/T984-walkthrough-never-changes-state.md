@@ -13,6 +13,10 @@ its ring, a tap on the search field and a swipe under the dim change nothing, th
 after Next x5 and after a Skip) and the walkthrough scenario in `run-ios.mjs`. Help's Replay still moves the app to the Map
 tab (the tour's start). Device checks (Android, iPhone) not run.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T984 | ASAP: the guided walkthrough only walks through (no state changes, instant highlights, can't be broken by zooming) | DONE (shipped 0.8.5; emulator walk PASS) | 4f9738a3f | owner 2026-11-21 |
+
 Source: owner 2026-11-21: "the tutorial should be only a walk through not modify the state … right now it changes data
 and is very slow in highlighting parts. which the user could zoom past and break it. it should just walk through instead
 and then not change the state."

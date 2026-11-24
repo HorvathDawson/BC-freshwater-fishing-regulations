@@ -2,6 +2,10 @@
 
 Status: DONE — d3b7f080e, e1142f148, 7af7f39e4. Items 1, 2, 5, 6, 7 and the clock gate (app/tools/clock.test.ts) landed; the gauge page script, items 3, 4, 8 went to T605.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T551 | "Today" rolls over at midnight B.C. time everywhere, from one clock; site pages do not print a stale day | DONE | d3b7f080e, e1142f148, 7af7f39e4 | — |
+
 Closed by the 2026-11-20 audit: built items merged; everything left (gauge page script, items 3, 4, 8) was taken over by T605 ('One B.C. clock: what T551 left'), whose items 1-5 are built.
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 7 of 17; highest severity 4 of 5.

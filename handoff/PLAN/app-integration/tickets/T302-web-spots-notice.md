@@ -3,6 +3,10 @@
 Status: DONE 8c0337a3e, 7e752a935 (web; owner 2026-10-30: "make it so spots in the webapp instead just say something about how they work locally on
 the phone app but they don't sync to web yet. Coming soon will be accounts etc").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T302 | Web Spots tab → notice: spots live in the phone app, no web sync yet, accounts coming; web save entry points + walkthrough spot steps adjusted | DONE | 8c0337a3e, 7e752a935 | owner 2026-10-30; web Spots tab + add → notice (Get the app), walk skips spots on web; shots T302-shots/ |
+
 ## Work
 1. On web, the Spots tab shows a short, friendly notice instead of the spot list/capture: spots are saved on your phone in the
    Can I Fish This? app; they don't sync to the website yet; accounts that sync phone and web are coming. A "Get the app"

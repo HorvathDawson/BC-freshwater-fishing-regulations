@@ -2,6 +2,10 @@
 
 Status: DONE — 25471b393, a3518f5d2, 56b18e8bb, f5831c1ac, be87eb86e, 001e23697, 30aa93f43, 23a65adfa. The Okanagan River Oxbows are one registry item (88 sections, one search hit), promoted and released to staging in r-483b295de57c.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T664 | Okanagan River Oxbows: one water, not 31 items (search and map list every channel) | DONE | 25471b393, a3518f5d2, 56b18e8bb, f5831c1ac, be87eb86e, 001e23697, 30aa93f43, 23a65adfa | — |
+
 Closed by the 2026-11-20 audit: promoted f5831c1ac, staging release r-483b295de57c done (23a65adfa re-cut by `release --staging`; OWNER-TODO 'Staging: release r-483b295de57c is live'); test_stepcache red fixed 8c6b53935.
 
 Source: owner 2026-11-11: "the oxbows should be combined as one item. Right now a shit load come up in the search etc..

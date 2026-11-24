@@ -2,6 +2,10 @@
 
 Status: DONE (2026-10-29) — b96ffb83f
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T262 | Android first install crashes (OutOfMemoryError in expo fetch, 8 MB range bodies on the Java heap); resumes on relaunch | DONE | b96ffb83f | native DownloadTask to disk; friendly retryable first-run error; install PASS, peak Java heap 35 MB |
+
 Source: T255 test bed, 2026-10-29 (release APK, staging, AVD n1_pixel API 35, Wi-Fi). A clean app's first run died
 55 s in: `FATAL EXCEPTION: expo.modules.AsyncFunctionQueue … java.lang.OutOfMemoryError: Failed to allocate a 8388627
 byte allocation with 982256 free bytes … growth limit 201326592 … at expo.modules.fetch.ResponseSink.finalize`. A

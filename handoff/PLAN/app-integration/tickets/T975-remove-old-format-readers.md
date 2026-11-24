@@ -2,6 +2,10 @@
 
 Status: DONE — shipped in 0.8.5 (packed readers only) (ee1b47819, 2026-11-21).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T975 | Remove the old-format data readers/writers (near/1, down/1, climate/1, paint/5, the SHIP_PACKED_FORMATS switch) once packed formats are live in production | DONE (shipped in 0.8.5 (packed readers only)) | ee1b47819 | owner 2026-11-20 13:37 (after T686 switch-on) |
+
 Source: owner 2026-11-20 13:37: "Yes add the ticket to clean up dead code please". This came after the main chat
 explained the order:
 1. 0.8.4 reads both formats while production data stays old (this release).

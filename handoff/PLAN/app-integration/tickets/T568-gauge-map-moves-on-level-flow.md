@@ -2,6 +2,10 @@
 
 Status: DONE — 1c57e7c07, 694479e25 (closed on the owner's word 2026-11-20; see the last section)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T568 | The gauge map moves when Level / Flow is tapped on the chart | DONE | 1c57e7c07, 694479e25 | — |
+
 Source: Owner 2026-11-09: "when you click level vs flow on chart the location of gauge map changes in an obnoxious way
 this is important to fix too".
 

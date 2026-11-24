@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-05 — f29410a41 (found fixing pipeline CI, 897984554).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T421 | Review proposals: a missing build reads as "binding moved" (silent registry fallback) | DONE | f29410a41 | CI fix 11-05 |
+
 `pipeline/regs/review/proposals.py` `Sources.item()` returns `{}` when `build` is None or has no `registry.json`. The
 class docstring allows that for a new split's anchor (falls back to the mark's stamped point "and says so"), but
 `applied_keys` uses the same read SILENTLY: with no build, the two Campbell River DFO marks (cut at "Quinsam River")

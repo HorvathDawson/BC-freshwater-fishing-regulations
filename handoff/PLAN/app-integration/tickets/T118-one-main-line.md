@@ -3,6 +3,10 @@
 Status: DONE — 0ac0fc2b, review 0f918ea0 (lane-T118). Ships with the next deliver; the measured bundle output is unchanged, so a
 deliver run is only needed to carry the code, not to change data.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T118 | one main line for spans and continuation | DONE | 0ac0fc2b, 348f9519, 0f918ea0, 749482e9 | no shipped row changes (13 waters' exit evidence moves, no water_exit row); delivered r-012fb43aa175 |
+
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding cross 2
 (PLAUSIBLE, partly checked on `bundle.sqlite`).
 

@@ -6,6 +6,10 @@ Adversarial review: 720e9a6f, 388e6f08, a97c63a0, 9835fa2e, 2b86b39f (see Advers
 Lane lane-T125 (wf_144b677f-89c-3). Item 8 gauges 9 done by T159 (ce1cf83c, 06b83665); Q118 decided. Item 7's per-quantity record years in the handoff scripts: left as recorded. Rebuild: reach rerun +
 deliver (items 4, 5 ride the next reach rerun; 1-3, 8 ship with deliver); app check after the regs fixture re-cut.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T125 | latent duplicate checks: pins and small helpers | DONE | 370a3978, 7fcdfaab, bffe4431, 81c05b55, 4c0b6272, e81ee1b7, 8d720fb9, 84525b29, 4076c58b, 1fdecc94, ddcd5aca, 1b106ff9, 0e5baf51, 720e9a6f, 388e6f08, a97c63a0, 9835fa2e, 2b86b39f | item 8 gauges 9 done by T159 (ce1cf83c, 06b83665; Q118 decided); answers 12 ba5d5873 + reach 11 580ca3f7 done 2026-10-28; delivered r-d72230f10993 |
+
 ## As built
 1. `vocab.says_no_fishing(kind, take, may_target)` is the one closure test: `bundle.rules._is_species_closure`,
    `is_blanket_closure`, `closure_grade`, `labels._is_closure` + the label branch, the model's `closure_kind` and

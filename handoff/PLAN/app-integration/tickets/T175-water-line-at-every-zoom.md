@@ -3,6 +3,10 @@
 Status: DONE — lane-T175, e8999343 (code + tests, with T176); this ticket update follows it. App only: no rebuild, no
 deliver, no new data — the geometry is the tiles', the box the release's `waterBox` (already shipped).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T175 | a water's own line shows at every zoom on its Conditions / water map (copy from tiles, clamp the opening zoom) | DONE | e8999343, 1f46e968 | app; native not run (T172/T50) |
+
 Source: owner 2026-10-24: "the map in conditions tab of a stream sometimes doesn't show the stream because it is too
 zoomed out it needs to copy the stream line then display at all zooms maybe?"
 

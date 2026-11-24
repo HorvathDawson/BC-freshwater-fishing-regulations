@@ -2,6 +2,10 @@
 
 Status: DONE — d65d4e15d (closed on the owner's word 2026-11-20; see the last section)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T761 | DFO rest-of places: own bounds, the listed areas honoured, dormant / undrawable listed places no longer take or blank the rest, and "areas and times" (the rest-of rule shows on a listed stretch on the days that stretch has no rule); every leftover-worded place uses rest-of (owner 2026-11-15 night) | DONE | d65d4e15d | — |
+
 Source: owner, 2026-11-15 22:12 and 22:14 (OWNER-TODO "2026-11-15 night — owner answers"): "this iss handled by rest of
 option in extents" (the Skeena sockeye pair) and "all items wih same structure as that shoul duse rest of extent type
 too"; his earlier "Rest-of extents: fix both (Recommended)" (round 4). Findings: `final-marks-second-look-2026-11-15.md`

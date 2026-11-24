@@ -4,6 +4,10 @@ Status: DONE — the 34 new terms reach the app with the next release built from
 here). (owner 2026-10-29: "the glossary doesnt have everything in the synopsis terms and definitions page. also we
 should have the scroll bar with alphabet. and be formatted to be more modern in style. make sure this is fuzzy search too").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T288 | Glossary: every Synopsis definition (printed p.80), A–Z scrubber, modern layout, fuzzy search | DONE | 732f100f1, 64ae838bf | terms ship with the next release from ≥732f100f1 |
+
 ## Work
 1. **Complete:** diff the app's glossary against the Synopsis "Terms and definitions" page (printed p.80; the repo PDF is not
    byte-identical to gov.bc.ca — cite printed pages) and any other definition boxes it points to. Add every missing term

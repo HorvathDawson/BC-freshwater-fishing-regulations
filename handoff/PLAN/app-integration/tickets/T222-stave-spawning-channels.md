@@ -2,6 +2,10 @@
 
 Status: DONE — live r-0fa7927b16e5 (2026-10-28), atlas 10cbcb72e9f907cf, tiles 10cbcb72e9f907cf.edc12ab96087 Commits: e8ff6db1, 0f40f008, c47572af, 2ea061c4, f010a2b1.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T222 | Stave spawning channels (Ruskin/Northrop): add the FWA side channels so Stave r1/r2 can bind | DONE | e8ff6db1, 0f40f008, c47572af, 2ea061c4, f010a2b1 | Ruskin named FWA channels, Northrop from OSM; r1/r2 bind 4+1 sections, no existing binding moved; live r-0fa7927b16e5 |
+
 Source: owner 2026-10-27 "needs a split" list (decisions.md): "Stave at Ruskin Dam (and channels): should already exist —
 find the existing splits and bind." Applied in 540995d4 for the z2 marking rule; Stave r1/r2 stayed undrawn because the
 Ruskin and Northrop spawning channels are FWA side channels (blks 355993381-4, 355997566-7) with NO sections in the atlas.

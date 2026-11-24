@@ -2,6 +2,10 @@
 
 Status: IN REVIEW — owner: OWNER-TODO "Look (you): T940 satellite after-shots" (row to add; emulator shot waits for the 0.9.0 APK); owner approved the set 2026-11-22; built (code 7a9213671, PR open); after-shots in T940-shots/. Not released: needs the 0.9.0 app build.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T940 | Satellite: one colour set for all water lines, the same in light and dark (owner) | IN REVIEW | | owner approved the set 11-22; code 7a9213671, PR feat/T940-satellite-set; after-shots T940-shots/; ships with the 0.9.0 app build |
+
 Source: owner 2026-11-20 (dialog after T923), on the satellite outline: "Satellite should maybe just be its own colors?
 Best for satellite?"; then picked "Yes, open a ticket" for the stream and lake lines. After this release.
 

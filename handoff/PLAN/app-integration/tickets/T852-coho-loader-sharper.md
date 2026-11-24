@@ -2,6 +2,10 @@
 
 Status: DONE — dc6a19b13, 0f3ada780. coho loader sheets baked at 2.5 px/dp (phones) and 2 px/css px (web); the line under it set as the owner's pick B.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T852 | The coho loader drawn sharp (sheet baked at 1.5 px/dp; phones draw ~2.6), and the line under it set nicer (0.8.1) | DONE | dc6a19b13, 0f3ada780 | — |
+
 Closed by the 2026-11-20 audit: owner picked B 2026-11-18 14:04 (2ef385a37); both commits are on the dev branch and shipped from 0.8.1 (production 0.8.3).
 
 Today (T814/T844): the sheet is baked at 1.5 px per dp (`tools/build-coho.mjs` FRAME_PX 288 for a 192 dp loader;

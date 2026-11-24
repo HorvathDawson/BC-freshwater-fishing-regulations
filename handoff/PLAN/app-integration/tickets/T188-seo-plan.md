@@ -3,6 +3,10 @@
 Status: DROPPED — merged into T409 (2026-11-05 audit; the work continues there) — was: PARTIAL — plan done; build T192-T198: 192-195, 197 DONE; T196 left (T405), T198 owner steps.
 us up in the search results."
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T188 | get found in search: per-water static pages, sitemap, structured data, Search Console, outreach plan (no spam bots) | DROPPED — merged into T409 (2026-11-05) | plan | T196 → T405; T198 owner steps |
+
 ## Principle
 Rank by being the best answer to what anglers search ("can I fish the Vedder River today", "Thompson River steelhead
 closure", "Kootenay Lake regulations"). No automated posting or link-spam bots: search engines penalise them and they

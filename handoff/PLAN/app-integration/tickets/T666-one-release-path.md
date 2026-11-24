@@ -2,6 +2,10 @@
 
 Status: DONE — 24c74a64e, 23a65adfa, 09985e595. One release path: the release refreshes what follows it on the candidate; proven by twelve real `release --staging` runs (r-483b295de57c through r-6258ffded676).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T666 | One release path: everything cut from the live release is refreshed by the release itself; preflight lists every failure at once | DONE | 24c74a64e, 23a65adfa, 09985e595 | — |
+
 Closed by the 2026-11-20 audit: 24c74a64e built; first real run r-483b295de57c (23a65adfa) and eleven more through r-6258ffded676 (09985e595), each committing its follows re-cut; owner accepted the defaults ('Accept all as built: ... T666 release path defaults').
 
 Source: owner 2026-11-11, after build 27's release took six runs: "this feels hard to do a release, maybe we should

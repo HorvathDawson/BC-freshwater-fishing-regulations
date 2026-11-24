@@ -2,6 +2,10 @@
 
 Status: DONE as far as this ticket goes — 700091331, ae1390ec2, c658f5ca2, c2309ea74, ccc732b71, 20e14339b, f78f166fc; items 1–4 done; what is left of 5, 6, 7 is T562's work list (read 2026-11-10: nothing else of this ticket is open)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T545 | Review marks: every mark in force lands in its curated file or the save says it did not | DONE — the rest is T562's list | 700091331, ae1390ec2, c2309ea74, 20e14339b, f78f166fc | data pipeline review 2026-11-09 (verified); rank 1, severity 3, 7 findings |
+
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 1 of 17; highest severity 3 of 5.
 
 Line numbers are the reviewers' and may be off by a few; "Second opinion" is what the verifier corrected. Fixes are proposals: re-read the code before building.
