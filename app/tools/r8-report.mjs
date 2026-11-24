@@ -11,6 +11,9 @@
  *        mapping.txt: our rules, AGP's defaults and every library's consumer rules) holds -dontoptimize, -dontshrink or
  *        -dontobfuscate (from any source, named); and, with --aab, when the bundle has no r8.json or no mapping
  *        (BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map), or a category is under its floor (FLOORS).
+ *        (T1027) FAILS too, naming the library, when the configuration holds a package-wide rule (`<pkg>.**`) of a
+ *        library whose own rules plugins/with-r8.js skips (SKIPPED): ignoreFrom stopped matching (its coordinates
+ *        moved), and the floors alone would miss a small one.
  *        Prints ONE line on stdout: "R8 optimization N%, shrinking N%, obfuscation N% (floors …; DEX N MB)" (the build's
  *        output and the owner's release email), or "R8 configuration ok (no -dont* pass)" without --aab.
  *   node app/tools/r8-report.mjs rules --config <configuration.txt> --seeds <seeds.txt>
@@ -30,8 +33,20 @@ import { fileURLToPath } from "node:url";
  * rule shows up as a failed build here, not as a Play notice. Raise them when a narrowed rule lifts a score; never lower
  * one to get a build through (the ticket says why first). Play's alert line is 25 in every category.
  */
-export const FLOORS = { optimization: 70, shrinking: 70, obfuscation: 70 };   // measured 72.0 / 72.3 / 72.5 (T1009, 2026-11-22)
+export const FLOORS = { optimization: 75, shrinking: 75, obfuscation: 75 };   // measured 76.0 / 76.4 / 76.5 (T1027, 2026-11-24; T1009 72.0 / 72.3 / 72.5)
 export const PLAY_LINE = 25;
+/**
+ * (T1027) The libraries whose own keep rules R8 skips (plugins/with-r8.js IGNORED_RULES, same coordinates) and the
+ * package their rules held whole. r8-keep-rules.pro (our own file) restates narrow rules in some of these packages,
+ * so only a rule from ANOTHER source counts.
+ */
+export const SKIPPED = [
+  { id: "host.exp.exponent:expo.modules.notifications", pkg: "expo.modules.notifications" },
+  { id: "host.exp.exponent:expo.modules.taskmanager", pkg: "expo.modules.taskmanager" },
+  { id: "host.exp.exponent:expo.modules.backgroundtask", pkg: "expo.modules.backgroundtask" },
+  { id: "io.legere:pdfiumandroid", pkg: "io.legere.pdfiumandroid" },
+];
+const OWN_RULES = /\/app\/proguard-rules\.pro\)?$/;
 const KINDS = ["optimization", "shrinking", "obfuscation"];
 const R8_JSON = "BUNDLE-METADATA/com.android.tools/r8.json";
 const AAB_MAP = "BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map";
@@ -89,6 +104,34 @@ export function scoreLine(scores, dexBytes, floors = FLOORS) {
     `Play's line ${PLAY_LINE}%${dexBytes === undefined ? "" : `; DEX ${(dexBytes / 1e6).toFixed(1)} MB uncompressed`})`;
 }
 
+/** configuration.txt → its -keep rules, each whole (a rule may run over several lines up to its closing brace) */
+function keepRules(configText) {
+  const rules = [];
+  let cur = null;
+  for (const r of rulesBySource(configText)) {
+    if (cur) { cur.line += ` ${r.line}`; if (r.line.includes("}")) { rules.push(cur); cur = null; } continue; }
+    if (!/^-keep/.test(r.line)) continue;
+    if (r.line.includes("{") && !r.line.includes("}")) cur = { ...r }; else rules.push(r);
+  }
+  return rules;
+}
+const CLASS_SPEC = /^-keep\S*\s+(?:@\S+\s+)?(?:(?:public|final|abstract)\s+)*(?:class|interface|enum|@interface)\s+(\S+)/;
+
+/**
+ * (T1027) the package-wide rules (`<pkg>.**…`) of a SKIPPED library that R8 still read, from any source but our own
+ * proguard-rules.pro: [{ id, rule, source }] (none is the only passing answer)
+ */
+export function skippedRulesBack(configText, skipped = SKIPPED) {
+  const out = [];
+  for (const r of keepRules(configText)) {
+    if (OWN_RULES.test(r.source)) continue;
+    const m = CLASS_SPEC.exec(r.line);
+    if (!m) continue;
+    for (const s of skipped) if (m[1].startsWith(`${s.pkg}.**`)) out.push({ id: s.id, rule: r.line, source: r.source });
+  }
+  return out;
+}
+
 /** the broad keep rules (a `**` package wildcard) with what each matches among the kept items (seeds.txt) */
 export function broadRules(configText, seedsText) {
   const classes = new Set(), members = new Map();
@@ -98,16 +141,9 @@ export function broadRules(configText, seedsText) {
     if (i < 0) classes.add(l);
     else members.set(l.slice(0, i), (members.get(l.slice(0, i)) ?? 0) + 1);
   }
-  const rules = [];
-  let cur = null;
-  for (const r of rulesBySource(configText)) {   // a rule may run over several lines up to its closing brace
-    if (cur) { cur.line += ` ${r.line}`; if (r.line.includes("}")) { rules.push(cur); cur = null; } continue; }
-    if (!/^-keep/.test(r.line)) continue;
-    if (r.line.includes("{") && !r.line.includes("}")) cur = { ...r }; else rules.push(r);
-  }
   const out = [];
-  for (const r of rules) {
-    const m = /^-keep\S*\s+(?:@\S+\s+)?(?:(?:public|final|abstract)\s+)*(?:class|interface|enum|@interface)\s+(\S+)/.exec(r.line);
+  for (const r of keepRules(configText)) {
+    const m = CLASS_SPEC.exec(r.line);
     if (!m || !m[1].includes("**")) continue;
     const re = new RegExp(`^${m[1].replace(/[.$]/g, "\\$&").replace(/\*\*/g, "\u0000").replace(/\*/g, "[^.]*").replace(/\u0000/g, ".+")}$`);
     let c = 0, n = 0;
@@ -142,6 +178,10 @@ function main(argv) {
     return 0;
   }
   const fails = passesOff(text).map((r) => `R8's configuration turns a pass off: ${r.line}  (from ${r.source})`);
+  for (const b of skippedRulesBack(text)) {
+    fails.push(`R8 read ${b.id}'s own package-wide rule, which plugins/with-r8.js skips (IGNORED_RULES: did its coordinates ` +
+      `move?): ${b.rule.slice(0, 120)}  (from ${b.source})`);
+  }
   const aab = opt("--aab");
   let line = "R8 configuration ok (no -dontoptimize / -dontshrink / -dontobfuscate)";
   if (aab) {

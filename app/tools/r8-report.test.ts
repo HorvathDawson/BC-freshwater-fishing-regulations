@@ -9,7 +9,9 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { FLOORS, PLAY_LINE, belowFloors, broadRules, passesOff, scoreLine, scoresOf, shortSource } from "./r8-report.mjs";
+import { FLOORS, PLAY_LINE, SKIPPED, belowFloors, broadRules, passesOff, scoreLine, scoresOf, shortSource, skippedRulesBack } from "./r8-report.mjs";
+// @ts-expect-error -- plain CommonJS config plugin
+import withR8 from "../apps/mobile/plugins/with-r8.js";
 
 const TOOL = resolve(process.cwd(), "tools/r8-report.mjs");   // vitest runs from app/
 const HEAD = (f: string) => `# The proguard configuration file for the following section is ${f}\n`;
@@ -73,8 +75,12 @@ describe("T1009: the bundle's scores (r8.json) and the floors", () => {
   it("a category under its floor is named; at the floor passes", () => {
     const floors = { optimization: 50, shrinking: 60, obfuscation: 65 };
     expect(belowFloors(scoresOf(json), floors)).toEqual([{ kind: "obfuscation", got: 64.9, floor: 65 }]);
-    expect(belowFloors({ optimization: 72, shrinking: 72.3, obfuscation: 69.9 })).toEqual([{ kind: "obfuscation", got: 69.9, floor: FLOORS.obfuscation }]);
+    expect(belowFloors({ optimization: 76, shrinking: 76.4, obfuscation: 74.9 })).toEqual([{ kind: "obfuscation", got: 74.9, floor: FLOORS.obfuscation }]);
     expect(belowFloors({ optimization: 50, shrinking: 60, obfuscation: 65 }, floors)).toEqual([]);
+  });
+
+  it("(T1027) the floors are the ones the narrowed rules earned: raised, never lowered (AGENTS rule 34b)", () => {
+    expect(FLOORS).toEqual({ optimization: 75, shrinking: 75, obfuscation: 75 });
   });
 
   it("the floors are at or over Play's alert line, every category", () => {
@@ -91,7 +97,7 @@ describe("T1009: check --aab reads the bundle itself (r8.json, proguard.map, the
   const MAP = "BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map";
   const R8 = "BUNDLE-METADATA/com.android.tools/r8.json";
   const good = { options: { isObfuscationEnabled: true, isOptimizationsEnabled: true, isShrinkingEnabled: true },
-                 stats: { noObfuscationPercentage: 27.54, noOptimizationPercentage: 27.97, noShrinkingPercentage: 27.68 } };
+                 stats: { noObfuscationPercentage: 23.49, noOptimizationPercentage: 23.96, noShrinkingPercentage: 23.65 } };   // T1027's build
   /** a stand-in AAB: a zip with the named entries (python3's zipfile; `unzip` reads it as it reads a real bundle) */
   function aab(entries: Record<string, string>) {
     const d = mkdtempSync(join(tmpdir(), "r8-aab-"));
@@ -106,7 +112,7 @@ describe("T1009: check --aab reads the bundle itself (r8.json, proguard.map, the
   it("a whole bundle over the floors passes, one line with the scores and the DEX size", () => {
     const r = run("check", "--config", file(CONFIG), "--aab", aab({ ...dex, [MAP]: "a -> b:\n", [R8]: JSON.stringify(good) }));
     expect(r.status, r.stderr).toBe(0);
-    expect(r.stdout.trim()).toBe(`R8 optimization 72%, shrinking 72.3%, obfuscation 72.5% (floors ${FLOORS.optimization}/` +
+    expect(r.stdout.trim()).toBe(`R8 optimization 76%, shrinking 76.4%, obfuscation 76.5% (floors ${FLOORS.optimization}/` +
       `${FLOORS.shrinking}/${FLOORS.obfuscation}; Play's line 25%; DEX 0.0 MB uncompressed)`);
   });
 
@@ -141,5 +147,34 @@ describe("T1009: the broad keep rules, with what they match", () => {
     ]);
     expect(shortSource(out[0].source)).toBe("lib-1.0/proguard.txt");
     expect(shortSource("/x/y/app/apps/mobile/android/app/proguard-rules.pro")).toBe("app/apps/mobile/android/app/proguard-rules.pro");
+  });
+});
+
+describe("T1027: a skipped library's package-wide rules never come back unseen", () => {
+  const OWN = HEAD("/x/app/apps/mobile/android/app/proguard-rules.pro");
+  // our own narrow restatements in those packages (r8-keep-rules.pro rules 8-10): never counted
+  const ours = `${OWN}-keepnames class expo.modules.notifications.** implements android.os.Parcelable\n` +
+    "-keep class io.legere.pdfiumandroid.util.PdfiumNativeSourceBridge { byte[] buffer; int read(long, long); }\n";
+  const lib = (coord: string, rule: string) => `${HEAD(`${coord} (extracted file: /g/transformed/x/proguard.txt)`)}${rule}\n`;
+
+  it("the list is with-r8.js's IGNORED_RULES, in the same order", () => {
+    expect(SKIPPED.map((s: { id: string }) => s.id)).toEqual(withR8.IGNORED_RULES);
+  });
+
+  it("our own rules in those packages pass; the old library rules fail by name, wherever they come from", () => {
+    expect(skippedRulesBack(`${CONFIG}${ours}`)).toEqual([]);
+    // a moved coordinate: ignoreFrom no longer matches, the rule is back under a new name
+    const back = `${CONFIG}${ours}${lib("host.exp.exponent:expo.modules.taskmanager-next:59.0.0", "-keep class expo.modules.taskmanager.** {*;}")}` +
+      lib("io.legere:pdfiumandroid:1.0.40", "-keepclasseswithmembernames class io.legere.pdfiumandroid.** {\n     public <methods>;\n}");
+    expect(skippedRulesBack(back).map((b: { id: string }) => b.id)).toEqual(["host.exp.exponent:expo.modules.taskmanager", "io.legere:pdfiumandroid"]);
+    const r = run("check", "--config", file(back));
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain("r8-report: R8 read host.exp.exponent:expo.modules.taskmanager's own package-wide rule, which plugins/with-r8.js skips " +
+      "(IGNORED_RULES: did its coordinates move?): -keep class expo.modules.taskmanager.** {*;}  (from host.exp.exponent:expo.modules.taskmanager-next:59.0.0");
+    expect(r.stderr).toContain("r8-report: R8 read io.legere:pdfiumandroid's own package-wide rule");
+  });
+
+  it("a narrow library rule in such a package (not `<pkg>.**`) is not counted", () => {
+    expect(skippedRulesBack(`${CONFIG}${lib("io.legere:pdfiumandroid:1.0.32", "-keep class io.legere.pdfiumandroid.util.Size { *; }")}`)).toEqual([]);
   });
 });

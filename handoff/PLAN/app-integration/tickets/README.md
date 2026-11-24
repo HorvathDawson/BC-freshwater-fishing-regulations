@@ -270,7 +270,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1024 | Staging report: "weird highlighting on the lake" at Gravel Slough | IN REVIEW — owner: OWNER-TODO "T1024 Gravel Slough highlight: look at the before/after shots" | 6704a3504, d298683a7, 50b018058 | ring on a stream polygon only below its line's zoom (tile `lz`; none for no line or a stub route, 239), checked in the tile build; needs the 0.9.0 tile build |
 | T1025 | Switching regs sub-tabs (What you can keep ↔ Licence) scrolls through every section between | DONE | 641725521, dd48e15d8 | closed tester via owner 2026-11-22 |
 | T1026 | The day picker stops at December 2026 although the synopsis is valid to March 31, 2027 | DONE | e2cdbee15 | closed tester via owner 2026-11-22 |
-| T1027 | Android R8: push the optimization / shrinking / obfuscation scores past ~72% (restate library keep rules, each walked) | OPEN — after 0.9.0 | T1003, T1009 | owner 2026-11-22 |
+| T1027 | Android R8: push the optimization / shrinking / obfuscation scores past ~72% (restate library keep rules, each walked) | IN PROGRESS — 76.0/76.4/76.5, floors 75, walked; WorkManager InputMerger fix (every R8 build since T1003); left (Claude): independent review + merge | T1003, T1009 | owner 2026-11-22 |
 | T1030 | The release manifest carries a changed-waters count (the inbox data row's "N waters changed") | OPEN — 0.9.0 batch | T867 | stopped: not small, see the file |
 | T1028 | The trout schedule bar's open colour = the salmon bar's (owner 2026-11-23) | DONE | 391b37ddb | owner 2026-11-23 |
 | T1029 | One-bank DFO places: the one-side stripe on the Salmon map (T754 option B, the rest; owner Q4–Q6) | OPEN — after 0.9.0 | T754 | T754 (owner 2026-11-15 / 2026-11-22) |
