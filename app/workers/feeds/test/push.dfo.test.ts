@@ -88,7 +88,10 @@ describe("a DFO run wakes only when the answers changed (M1)", () => {
     expect(dfoAnswersChanged(ix, run2)).toBe(false);
     // (re-review) the region's whole record counts: a header note, a limit; and the top-level pairs
     expect(dfoAnswersChanged(ix, { ...ix, regions: { "4": { ...ix.regions["4"], notes: [{ k: "closed", t: "until 2027" }] } } })).toBe(true);
-    expect(dfoAnswersChanged(ix, { ...ix, regions: { "4": { ...ix.regions["4"], header: "another-limit" } } })).toBe(true);
+    // (T905) the keys that moved to the private state are bookkeeping too: the first run after that deploy reads a last
+    // index carrying them (its header digest, unresolved names, texts…) and publishes one without — no wake
+    const before = { ...ix, regions: { "4": { ...ix.regions["4"], changed: "a", header: "d1", unresolved: [{ name: "X" }], texts: ["t"] } } };
+    expect(dfoAnswersChanged(before, ix)).toBe(false);
     expect(dfoAnswersChanged(ix, { ...ix, pairs: { a: "b" } })).toBe(true);
     expect(dfoAnswersChanged(ix, { ...ix, regions: { "4": { ...ix.regions["4"], stale: true } } })).toBe(true);
     expect(dfoAnswersChanged(ix, { ...ix, regions: { "4": { ...ix.regions["4"], asof: "2025-05-01" } } })).toBe(true);

@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { runDfo } from "../src/dfo";
 import { fetchRegion } from "../src/dfo/fetch";
-import { readPairs } from "../src/dfo/live";
+import { readPairs, regionsWithState } from "../src/dfo/live";
 import { FEED_FORMATS, FEED_MIN_APP } from "../../../packages/core/src/feedFormats.generated";
 import { MemStore, privStore, REPO } from "./dfo.scenario";
 
@@ -66,10 +66,11 @@ describe("runDfo in the Worker shape", () => {
         "notified.json",
         "raw/region4-eng.html",
         "rows/region-4.json",               // (T366) the row digest's baseline: this page's rows
+        "state.json",                       // (T905) each region's own bookkeeping, out of the published index
         "wording.json",                     // (T324) the synced registry, read only
         "writes.json",
       ]);
-      const r7 = (got.index.regions as Record<string, { stale: boolean; failures: number }>)["7"]!;
+      const r7 = regionsWithState(got.index, got.state)["7"] as { stale: boolean; failures: number };
       expect(r7).toMatchObject({ stale: true, failures: 2 });
       expect(got.notices.map((n) => n.key)).toEqual(["dfo-fetch:7:2026-10-27T00:00:00+00:00"]);
       expect(posted).toHaveLength(1);

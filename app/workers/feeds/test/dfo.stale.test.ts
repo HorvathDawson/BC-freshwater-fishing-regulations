@@ -11,7 +11,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import worker, { DFO_RETRY_KEY, DFO_RETRY_MAX, dfoRetryDue, nextDfoRetry, type DfoRetry } from "../src/index";
 import { runDfo } from "../src/dfo";
 import { fetchRegion } from "../src/dfo/fetch";
-import { STALE_AFTER_HOURS, staleAt } from "../src/dfo/live";
+import { regionsWithState, STALE_AFTER_HOURS, staleAt } from "../src/dfo/live";
 import { SourceError } from "../src/health";
 import type { R2BucketLike } from "../src/io";
 import { STALE_AFTER } from "../../../packages/core/src/staleness";
@@ -50,7 +50,9 @@ describe("a failed fetch in runDfo", () => {
     feed.m.set("index.json", prevIndex(checked, failures));
     const got = await runDfo({ fetch: async () => new Response(""), feed, priv: privStore(), now: NOW, regions: ["4"],
                                fetcher: async () => { throw new Error("region 4: HTTP 503 after 4 attempts"); } });
-    return { r4: (got.index.regions as Record<string, { stale: boolean; failures: number; checked: string }>)["4"]!, got };
+    // (T905) `failures` is in the run's private state; the last index here is one from before it (the keys on it), so
+    // these runs also read through the cutover's seeding
+    return { r4: regionsWithState(got.index, got.state)["4"] as { stale: boolean; failures: number; checked: string }, got };
   };
 
   it("one failed fetch with a fresh last answer (18 h, the 2026-11-18 case) is NOT stale; it is counted and nobody is emailed", async () => {
@@ -84,7 +86,7 @@ describe("a failed fetch in runDfo", () => {
     const waits: number[] = [];
     const got = await runDfo({ fetch: async () => answers.shift()!, feed, priv, now: NOW, regions: ["4"],
                                fetchOptions: { sleep: async (ms) => void waits.push(ms), random: () => 0 } });
-    const r4 = (got.index.regions as Record<string, { stale: boolean; failures: number; checked: string }>)["4"]!;
+    const r4 = regionsWithState(got.index, got.state)["4"] as { stale: boolean; failures: number; checked: string };
     expect(r4).toMatchObject({ stale: false, failures: 0 });
     expect(r4.checked).not.toBe(ago(18));
     expect(waits).toEqual([5000]);
@@ -201,7 +203,8 @@ describe('the "50 * * * *" cron', () => {
     expect(BUCKET.m.has(RETRY)).toBe(false);
     const ix = JSON.parse(BUCKET.m.get("feeds/dfo/index.json")!);
     expect(Object.keys(ix.regions)).toEqual(["4"]); // only the region it was for
-    expect(ix.regions["4"]).toMatchObject({ stale: false, failures: 0 });
+    expect(ix.regions["4"]).toMatchObject({ stale: false });
+    expect(JSON.parse(BUCKET.m.get("private/feeds/dfo/state.json")!).regions["4"]).toMatchObject({ failures: 0 }); // (T905)
     // 3. nothing due any more: the next hour asks nothing
     const before = asked.length;
     await cron(BUCKET);

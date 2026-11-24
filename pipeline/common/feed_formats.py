@@ -22,6 +22,10 @@ FEEDS = {
     "dfo_pairs": ("dfo-pairs/1", "R2 private/feeds/dfo/pairs.json (T668): deliver/salmon_pairs.py writes through "
                                  "sync_inputs, the feeds worker reads it and carries it into feeds/dfo/index.json "
                                  "`pairs`, the app reads it there (core salmonFeed.ts)"),
+    "dfo_state": ("dfo-state/1", "R2 private/feeds/dfo/state.json (T905): the feeds worker (dfo/live.ts) writes and "
+                                 "reads back its own per-region bookkeeping (page hash, texts, fetch failures…), "
+                                 "regs/dfo_salmon/live.py the same in <feed dir>.state.json beside its feed; never "
+                                 "served, the app never reads it"),
     "inseason_feed": ("inseason-feed/1", "feeds/inseason/index.json: the feeds worker writes (inseason.ts), the app "
                                          "reads (core inseason.ts)"),
     "inseason_links": ("inseason-links/4", "feeds/inseason/matches.json: regs/inseason/publish.py writes, the feeds "

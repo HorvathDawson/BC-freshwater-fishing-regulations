@@ -26255,6 +26255,19 @@
       "DFO Region 6: a closed area no curated wording names (DFO reworded it inside its place) on Babine Lake: 'Pierre Ck.' — No fishing for salmon — within a 400 m radius of the mouth of Pierre Ck.. The answers stand; every stretch of Babine Lake shows a banner quoting it, and its line the issue look, until you place the closed area in DFO review"
      ]
     ],
+    "region_keys": [
+     "asof",
+     "bucket",
+     "checked",
+     "gone",
+     "held",
+     "name",
+     "notes",
+     "shared",
+     "sizes",
+     "stale",
+     "url"
+    ],
     "slug": "6",
     "unplaced": 0,
     "verdicts": [
@@ -29800,6 +29813,19 @@
       "dfo-drift:1:ad2dd59e02e4eb3d",
       "DFO Region 1: new wording on Quatse River: '100 m upstream and downstream of the Quatse River hatchery weir' — read as 1:quatse-river:100m-upstream-and-downstream-of-th (0.99), whose answer it now gives; every stretch of Quatse River shows a banner quoting it, and its line the issue look, until you confirm it in DFO review. Confirm (or refute) it in DFO review after: python -m pipeline.regs.dfo_salmon.live queue --regions 1"
      ]
+    ],
+    "region_keys": [
+     "asof",
+     "bucket",
+     "checked",
+     "gone",
+     "held",
+     "name",
+     "notes",
+     "shared",
+     "sizes",
+     "stale",
+     "url"
     ],
     "slug": "1",
     "unplaced": 1,
@@ -33465,6 +33491,19 @@
       "dfo-gone:1:1:quatse-river:100m-upstream-and-downstream-of-th:07f23567d4f1",
       "DFO Region 1: 1:quatse-river:100m-upstream-and-downstream-of-th (Quatse River: '100m upstream and downstream of the Quatse River Hatchery weir') is no longer on DFO's page: its rule left the feed and the wider rule of its water answers. Read DFO's page: if the row is still printed, the page was misread"
      ]
+    ],
+    "region_keys": [
+     "asof",
+     "bucket",
+     "checked",
+     "gone",
+     "held",
+     "name",
+     "notes",
+     "shared",
+     "sizes",
+     "stale",
+     "url"
     ],
     "slug": "1",
     "unplaced": 0,
@@ -37157,6 +37196,19 @@
       "DFO Region 1: a reworded wording read as 1:quatse-river:100m-upstream-and-downstream-of-th, not yet confirmed on Quatse River: '100 m upstream and downstream of the Quatse River hatchery weir' — All | Apr 1 to Mar 31 | No fishing. The answers stand; every stretch of Quatse River shows a banner quoting it, and its line the issue look, until you confirm it in DFO review"
      ]
     ],
+    "region_keys": [
+     "asof",
+     "bucket",
+     "checked",
+     "gone",
+     "held",
+     "name",
+     "notes",
+     "shared",
+     "sizes",
+     "stale",
+     "url"
+    ],
     "slug": "1",
     "unplaced": 0,
     "verdicts": [
@@ -40806,6 +40858,19 @@
     },
     "name": "exact_rewording",
     "notices": [],
+    "region_keys": [
+     "asof",
+     "bucket",
+     "checked",
+     "gone",
+     "held",
+     "name",
+     "notes",
+     "shared",
+     "sizes",
+     "stale",
+     "url"
+    ],
     "slug": "1",
     "unplaced": 0,
     "verdicts": [
@@ -44427,6 +44492,19 @@
       "dfo-gone:1:1:cayeghle-river:including-colonial-river:dfd42cbcdf5e",
       "DFO Region 1: 1:cayeghle-river:including-colonial-river (Cayeghle River: 'including Colonial River.') is no longer on DFO's page: its rule left the feed and the wider rule of its water answers. Read DFO's page: if the row is still printed, the page was misread"
      ]
+    ],
+    "region_keys": [
+     "asof",
+     "bucket",
+     "checked",
+     "gone",
+     "held",
+     "name",
+     "notes",
+     "shared",
+     "sizes",
+     "stale",
+     "url"
     ],
     "slug": "1",
     "unplaced": 0,
@@ -51277,6 +51355,19 @@
       "DFO Region 6: a water no entry knows, 'Invented Creek': 'all waters' — 1 rule held unplaced; no section can show it until the water is bound. Bind it in DFO review after: python -m pipeline.regs.dfo_salmon.live queue --regions 6"
      ]
     ],
+    "region_keys": [
+     "asof",
+     "bucket",
+     "checked",
+     "gone",
+     "held",
+     "name",
+     "notes",
+     "shared",
+     "sizes",
+     "stale",
+     "url"
+    ],
     "slug": "6",
     "unplaced": 1,
     "verdicts": [
@@ -52791,6 +52882,20 @@
     },
     "name": "no_default_sentence",
     "notices": [],
+    "region_keys": [
+     "asof",
+     "bucket",
+     "checked",
+     "gone",
+     "held",
+     "hours",
+     "name",
+     "notes",
+     "shared",
+     "sizes",
+     "stale",
+     "url"
+    ],
     "slug": "3",
     "unplaced": 0,
     "verdicts": [
@@ -53352,6 +53457,20 @@
     },
     "name": "sentence_without_a_place",
     "notices": [],
+    "region_keys": [
+     "asof",
+     "bucket",
+     "checked",
+     "gone",
+     "held",
+     "hours",
+     "name",
+     "notes",
+     "shared",
+     "sizes",
+     "stale",
+     "url"
+    ],
     "slug": "3",
     "unplaced": 0,
     "verdicts": [
@@ -55876,6 +55995,19 @@
       "dfo-gone:1:1:campbell-river:from-a-fishing-boundary-sign-at-th:bd28e511c01c",
       "DFO Region 1: 1:campbell-river:from-a-fishing-boundary-sign-at-th (Campbell River: 'from a fishing boundary sign at the end of Maple Street downstream to the fishing boundary sign at the cement block.') is no longer on DFO's page: its rule left the feed and the wider rule of its water answers. Read DFO's page: if the row is still printed, the page was misread"
      ]
+    ],
+    "region_keys": [
+     "asof",
+     "bucket",
+     "checked",
+     "gone",
+     "held",
+     "name",
+     "notes",
+     "shared",
+     "sizes",
+     "stale",
+     "url"
     ],
     "slug": "1",
     "unplaced": 1,
@@ -59541,6 +59673,19 @@
       "DFO Region 1: new location on Quatse River: 'within signed boundaries at the hatchery fence' — 1 rule held unplaced; every stretch of Quatse River shows a banner quoting it, and its line the issue look, until it is matched to a place in DFO review. Place it in DFO review after: python -m pipeline.regs.dfo_salmon.live queue --regions 1"
      ]
     ],
+    "region_keys": [
+     "asof",
+     "bucket",
+     "checked",
+     "gone",
+     "held",
+     "name",
+     "notes",
+     "shared",
+     "sizes",
+     "stale",
+     "url"
+    ],
     "slug": "1",
     "unplaced": 1,
     "verdicts": [
@@ -63167,6 +63312,19 @@
       "dfo-new:1:5c5ecd0dc18ce3ff",
       "DFO Region 1: new location on Campbell River: 'within signed boundaries at the Tyee Spit' — 1 rule held unplaced; every stretch of Campbell River shows a banner quoting it, and its line the issue look, until it is matched to a place in DFO review. Place it in DFO review after: python -m pipeline.regs.dfo_salmon.live queue --regions 1"
      ]
+    ],
+    "region_keys": [
+     "asof",
+     "bucket",
+     "checked",
+     "gone",
+     "held",
+     "name",
+     "notes",
+     "shared",
+     "sizes",
+     "stale",
+     "url"
     ],
     "slug": "1",
     "unplaced": 1,
@@ -66874,6 +67032,19 @@
     },
     "name": "unmatched_undrawn",
     "notices": [],
+    "region_keys": [
+     "asof",
+     "bucket",
+     "checked",
+     "gone",
+     "held",
+     "name",
+     "notes",
+     "shared",
+     "sizes",
+     "stale",
+     "url"
+    ],
     "slug": "1",
     "unplaced": 0,
     "verdicts": [
@@ -70523,6 +70694,19 @@
      ]
     ],
     "page": "<html>nothing</html>",
+    "region_keys": [
+     "asof",
+     "bucket",
+     "checked",
+     "gone",
+     "held",
+     "name",
+     "notes",
+     "shared",
+     "sizes",
+     "stale",
+     "url"
+    ],
     "slug": "1",
     "unplaced": 0,
     "verdicts": [
@@ -74396,6 +74580,20 @@
     },
     "name": "unread_not_asked",
     "notices": [],
+    "region_keys": [
+     "asof",
+     "bucket",
+     "checked",
+     "gone",
+     "held",
+     "hours",
+     "name",
+     "notes",
+     "shared",
+     "sizes",
+     "stale",
+     "url"
+    ],
     "slug": "1",
     "unplaced": 0,
     "verdicts": [
@@ -78079,6 +78277,19 @@
     },
     "name": "unread_stale",
     "notices": [],
+    "region_keys": [
+     "asof",
+     "bucket",
+     "checked",
+     "gone",
+     "held",
+     "name",
+     "notes",
+     "shared",
+     "sizes",
+     "stale",
+     "url"
+    ],
     "slug": "1",
     "unplaced": 0,
     "verdicts": [
@@ -89782,6 +89993,28 @@
    }
   },
   "notices": [],
+  "region_keys": [
+   "asof",
+   "bucket",
+   "checked",
+   "gone",
+   "held",
+   "hours",
+   "name",
+   "notes",
+   "shared",
+   "sizes",
+   "stale",
+   "url"
+  ],
+  "state_keys": [
+   "sha256",
+   "changed",
+   "failures",
+   "header",
+   "unresolved",
+   "texts"
+  ],
   "unplaced": 0,
   "verdicts": [
    {

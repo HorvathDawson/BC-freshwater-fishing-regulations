@@ -92,8 +92,104 @@ def test_todays_pages_join_every_location(tmp_path):
     # T332: the quota trees (game-fish TreeTier nodes) add ~22 kB to the ~74 kB of T320; gzip on the wire
     # T343: + each note's `fold`; T573: + 17 closed areas (~1.4 kB); T759: + `issues` (the 8 undrawn places' rows,
     # ~2 kB) and an empty `gone` per region; T870: + each place's DFO rows as printed (`pr`, the card's Source (DFO):
-    # ~21 kB raw, repeated words that gzip well)
-    assert (tmp_path / "index.json").stat().st_size < 135_000
+    # ~21 kB raw, repeated words that gzip well) — 132,987 B (15,763 gz -9) under a 135,000 check.
+    # T905 (owner 2026-11-24, "Move worker state out"): each region's own bookkeeping (`STATE_KEYS`: sha256, changed,
+    # failures, header, unresolved, texts) moved to the private state beside the feed: MEASURED 121,688 B (14,334 gz -9)
+    # on these pages; the check sits just above it
+    assert (tmp_path / "index.json").stat().st_size < 122_000
+    # none of it is published; all of it is kept, beside the feed dir (never inside it, never synced)
+    assert not any(set(r) & set(L.STATE_KEYS) for r in ix["regions"].values())
+    st = json.loads(L.state_path(tmp_path).read_text(encoding="utf-8"))
+    assert L.state_path(tmp_path).parent == tmp_path.parent and st == got["state"]
+    assert st["format"] == "dfo-state/1" and set(st["regions"]) == set(ix["regions"])
+    assert all(set(r) == set(L.STATE_KEYS) for r in st["regions"].values())
+
+
+def _words(ix: dict) -> dict:
+    """every place as an app reads it, in words (each run numbers its verdict / gear tables its own way)"""
+    vv, gg = ix["verdicts"], ix["gears"]
+    w = lambda runs, items: [x if k % 2 == 0 or x < 0 else items[x] for k, x in enumerate(runs)]   # noqa: E731
+    return {lid: {**c, "sp": [w(r, vv) for r in c["sp"]], "g": w(c["g"], gg), **({"o": w(c["o"], gg)} if "o" in c else {})}
+            for lid, c in ix["locs"].items()}
+
+
+def _with_state(ix: dict, state: dict) -> dict:
+    """The index a publisher before T905 wrote: each region's bookkeeping on its public record."""
+    return {**ix, "regions": {s: {**r, **state["regions"].get(s, {})} for s, r in ix["regions"].items()}}
+
+
+def test_t905_the_first_run_after_the_cutover_seeds_its_state_from_the_last_index_and_loses_no_row(tmp_path):
+    """THE CUTOVER (T905): the last index is one a publisher before T905 wrote (the bookkeeping on each region), with no
+    state file. The run seeds the state from it ONCE: no page counts as changed (`changed` stays the last read's), no
+    page's text is re-told, the failures in a row go on counting — and every place's rows and every word an app reads
+    are what the index before held (the index loses only `STATE_KEYS`)."""
+    out = tmp_path / "feed"
+    first = L.run(out, fetcher=_pages(), now=AT, notify_url="http://n", sender=Sender())
+    before = _with_state(first["index"], first["state"])
+    assert before["regions"]["6"]["sha256"] and before["regions"]["6"]["texts"]
+    before["regions"]["6"]["failures"] = 2                                     # two fetches in a row had failed
+    (out / "index.json").write_text(json.dumps(before), encoding="utf-8")       # as a pre-T905 run left it
+    L.state_path(out).unlink()
+    s = Sender()
+    after = L.run(out, fetcher=_pages({"6": OSError("down")}), now=_later(6), notify_url="http://n", sender=s)
+    ix, st = after["index"], after["state"]["regions"]
+    # the bookkeeping carried over, none of it re-derived from nothing
+    for slug, r in before["regions"].items():
+        want = {k: r[k] for k in L.STATE_KEYS}
+        if slug == "6":
+            want["failures"] = 3                       # its fetch failed again: counted on from the last index's 2
+        assert st[slug] == want, slug
+    assert all(r["changed"] == AT for r in st.values())                        # same pages: no page "changed"
+    assert s.sent == [] and not any(n["key"].startswith("dfo-text:") for n in after["notices"])
+    # nothing an app reads is lost: every place, its year, its rows as printed and in DFO's words (region 6's carried);
+    # every region's record but its bookkeeping (only `checked` moved: a later read of the same pages)
+    assert _words(ix) == _words(before) and len(ix["locs"]) == 271
+    assert sum(len(c.get("pr", ())) for c in ix["locs"].values()) == 439
+    assert sum(len(c.get("x", ())) for c in ix["locs"].values()) > 0
+    for slug, r in before["regions"].items():
+        assert {k: v for k, v in r.items() if k not in L.STATE_KEYS and k != "checked"} == \
+            {k: v for k, v in ix["regions"][slug].items() if k != "checked"}, slug
+    read = lambda i: {w: v for w, v in i["issues"]["waters"].items() if v["r"] != "6"}   # noqa: E731 — 6 was not read
+    assert read(ix) == read(before) and read(ix)
+    # the next run reads the state file, not the index (which no longer carries the keys)
+    again = L.run(out, fetcher=_pages(), now=_later(12), notify_url="http://n", sender=s)
+    assert again["state"]["regions"]["6"]["failures"] == 0 and again["state"]["regions"]["6"]["sha256"] == st["6"]["sha256"]
+    assert again["state"]["regions"]["6"]["changed"] == AT and s.sent == []
+
+
+def test_t905_a_page_text_change_is_told_from_the_private_state():
+    """The state is what the next run reads its last text from: with the index carrying none, a page whose general text
+    changed is still told once (old vs new), and a page that did not is not."""
+    import tempfile
+    with tempfile.TemporaryDirectory() as t:
+        out = Path(t) / "feed"
+        L.run(out, fetcher=_pages(), regions=["1"], now=AT, notify_url="http://n", sender=Sender())
+        assert "texts" not in json.loads((out / "index.json").read_text())["regions"]["1"]
+        old = "Learn more about fishing for salmon in B.C."                    # a text the page prints, no rule
+        assert old in L.page_texts((FIX / "region1-eng.html").read_text(encoding="utf-8"), "1")
+        s = Sender()
+        L.run(out, fetcher=_pages({"1": _r1({old: "Learn more about salmon in B.C."})}), regions=["1"],
+              now=_later(6), notify_url="http://n", sender=s)
+        assert [t.splitlines()[0] for t in s.sent] == [
+            "DFO Region 1: the page's general text changed — review the header; the feed reads no rule from it "
+            "(1 gone, 1 new)"]
+        assert s.sent[0].splitlines()[1:] == [f"- was: {old}", "+ now: Learn more about salmon in B.C."]
+
+
+def test_t905_an_unreadable_or_foreign_state_stops_the_run(tmp_path):
+    """(T558 / T357) a state file that is there but will not read, or is not a dfo-state/1, stops the run (the last
+    files stand) — never read as "no state", which would re-read every page for the first time."""
+    out = tmp_path / "feed"
+    L.run(out, fetcher=_pages(), regions=["1"], now=AT, notify_url="http://n", sender=Sender())
+    good = L.state_path(out).read_text(encoding="utf-8")
+    for bad, why in (('{"format": "dfo-state/1", "regi', "unreadable"), ('{"format": "dfo-state/2", "regions": {}}',
+                                                                         "not a dfo-state/1"), ("[]", "not a dfo-state/1")):
+        L.state_path(out).write_text(bad, encoding="utf-8")
+        with pytest.raises(RuntimeError, match=why):
+            L.run(out, fetcher=_pages(), regions=["1"], now=_later(6), notify_url="http://n", sender=Sender())
+        assert L.state_path(out).read_text(encoding="utf-8") == bad
+    L.state_path(out).write_text(good, encoding="utf-8")
+    assert L.run(out, fetcher=_pages(), regions=["1"], now=_later(6), notify_url="http://n", sender=Sender())["state"]
 
 
 def _unseen() -> str:
@@ -146,20 +242,21 @@ def test_a_failed_fetch_keeps_the_last_answers_and_is_stale_only_past_the_line(t
     one = L.run(tmp_path, fetcher=down, regions=["6"], now=_later(18), notify_url="http://n", sender=s)
     r6 = one["index"]["regions"]["6"]
     # a failed fetch with a fresh last answer is NOT stale: counted, said in `unread`, nobody emailed
-    assert not r6["stale"] and r6["failures"] == 1 and r6["checked"] == AT and r6["asof"] == "2026-08-28" and s.sent == []
+    # (T905) `failures` is the run's own bookkeeping: its private state, not the index
+    assert not r6["stale"] and one["state"]["regions"]["6"]["failures"] == 1 and r6["checked"] == AT and r6["asof"] == "2026-08-28" and s.sent == []
     assert one["index"]["issues"]["unread"]["6"] == "stale"
     assert sum(1 for c in one["index"]["locs"].values() if c["r"] == "6") == 150          # T573: 137 + Babine's 13 closed areas
     two = L.run(tmp_path, fetcher=down, regions=["6"], now=_later(30), notify_url="http://n", sender=s)
-    assert not two["index"]["regions"]["6"]["stale"] and two["index"]["regions"]["6"]["failures"] == 2 and s.sent == []
+    assert not two["index"]["regions"]["6"]["stale"] and two["state"]["regions"]["6"]["failures"] == 2 and s.sent == []
     # past the line (30 h, the app's DFO line): stale, and the owner is told once for the outage
     three = L.run(tmp_path, fetcher=down, regions=["6"], now=_later(31), notify_url="http://n", sender=s)
-    assert three["index"]["regions"]["6"]["stale"] and three["index"]["regions"]["6"]["failures"] == 3
+    assert three["index"]["regions"]["6"]["stale"] and three["state"]["regions"]["6"]["failures"] == 3
     assert len(s.sent) == 1 and "Region 6: no good read since" in s.sent[0] and "marked stale" in s.sent[0]
     L.run(tmp_path, fetcher=down, regions=["6"], now=_later(40), notify_url="http://n", sender=s)
     assert len(s.sent) == 1
     # a read ends it
-    back = L.run(tmp_path, fetcher=_pages(), regions=["6"], now=_later(41), notify_url="http://n", sender=s)["index"]
-    assert not back["regions"]["6"]["stale"] and back["regions"]["6"]["failures"] == 0
+    back = L.run(tmp_path, fetcher=_pages(), regions=["6"], now=_later(41), notify_url="http://n", sender=s)
+    assert not back["index"]["regions"]["6"]["stale"] and back["state"]["regions"]["6"]["failures"] == 0
 
 
 def test_stale_at_reads_the_age_of_the_last_good_read():
@@ -229,9 +326,10 @@ def golden() -> dict:
     moved = [dict(WATER[0], when={"dates": [{"from_month": 8, "from_day": 1, "to_month": 9, "to_day": 15}]})] + WATER[1:]
     locs, verdicts, gears = _cals({"6:a": REGION, "6:b(i)": BAND, "6:kispiox": moved, "6:resort": BAND})
     feed = {"format": L.FORMAT, "at": AT, "verdicts": verdicts, "gears": gears, "locs": locs, "unplaced": 0,
+            # (T905) as the feed publishes a region since the run's own bookkeeping moved to its private state: no
+            # sha256 / changed / failures / header (salmonFeed.test.ts reads it with them too, as an index before it)
             "regions": {"6": {"name": "Skeena", "url": S.PAGE_URL.format(slug="6"), "asof": "2026-10-20",
-                              "sha256": "x", "changed": AT, "checked": AT, "stale": False, "held": None,
-                              "failures": 0, "notes": feed_notes, "header": H.digest(feed_notes)[:16],
+                              "checked": AT, "stale": False, "held": None, "notes": feed_notes,
                               **S.header_answers(feed_notes)}}}
     expect = [L.compose(c["l"], locs, verdicts, c.get("u", ()), "n" in c) for c in payload["chains"]]
     # (T356) a feed whose header closes the region: every place with rules answers with the closure (verdict `c`), and
