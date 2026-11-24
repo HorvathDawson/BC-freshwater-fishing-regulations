@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -732,6 +733,10 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
                                                    upstream=_upstream,
                                                    section_regions=_sregions)
             del _sregions
+            # (T1029, look B) per section a one-bank place stands beside: which side of the drawn line its bank is
+            from pipeline.deliver.bank_side import stamp_payload as _bank_sides
+            for _lid, _why in _bank_sides(_payload, _salmon_secs, (Path(tiles) if tiles else GENERATED.tiles) / "layers").items():
+                print(f"     salmon: {_lid}: no bank side on {_why} — no cue drawn there", file=sys.stderr)
             _salmon.write_bundle(db, _payload, _salmon_secs)
             cov.filled("salmon_section", len(_salmon_secs))
             # (T228) each DFO place's own words, for a salmon cut no split names; its chains' places, narrowest first

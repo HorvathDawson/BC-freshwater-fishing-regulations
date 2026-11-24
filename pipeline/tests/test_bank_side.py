@@ -100,3 +100,21 @@ def test_the_atlas_code_is_the_same_rule_as_the_bundle_side():
     assert side_from_code("", "west") == 0
     with pytest.raises(ValueError):
         side_from_code("RL", "up")
+
+
+def test_the_payload_gets_each_bank_places_side_on_the_sections_it_stands_beside(tmp_path):
+    from pipeline.deliver.bank_side import stamp_payload
+    (tmp_path / "stream.geojsonl").write_text(_row(7, KITIMAT) + _row(8, [[-128.0, 54.0], [-128.001, 54.0001]]))
+    (tmp_path / "lake.geojsonl").write_text("")
+    payload = {"chains": [{"l": []}, {"l": ["6:river"], "u": ["6:bank"]}, {"l": ["6:bank"]}, {"l": ["6:other"], "u": ["6:bank"]}],
+               "p": {"6:bank": {"side": "west"}, "6:river": {}, "6:other": {}}}
+    # 7: beside on the stretch; 8: beside but its line runs along the word's axis; 9: the bank place in `l` (a creek)
+    why = stamp_payload(payload, [(7, 1), (8, 3), (9, 2)], tmp_path)
+    assert payload["p"]["6:bank"]["bk"] == {"7": -1}
+    assert why == {"6:bank": {"along_axis": [8]}}
+    assert "bk" not in payload["p"]["6:river"]
+    # two one-bank places beside one section: refused, never shipped (the app would refuse the file)
+    payload["p"]["6:other"] = {"side": "west"}
+    payload["chains"][1]["u"] = ["6:bank", "6:other"]
+    with pytest.raises(ValueError, match="two one-bank places"):
+        stamp_payload(payload, [(7, 1)], tmp_path)

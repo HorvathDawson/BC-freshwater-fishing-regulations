@@ -100,6 +100,39 @@ def report(sides: Mapping[int, Side], label: str = "") -> Tuple[Dict[int, int], 
     return ok, bad
 
 
+def stamp_payload(payload: dict, sections, layers: Path) -> Dict[str, Dict[str, list]]:
+    """(T1029, look B) THE ONE-BANK CUE'S DATA, in the salmon payload: for every DFO place worded for one bank
+    (`p[lid]["side"]`), on each section it stands BESIDE (its lid in the section's chain's `u`), which side of the
+    drawn line its bank is — `p[lid]["bk"] = {"<section>": +1 | -1}`, measured on the tiles' own `layers/stream.geojsonl`
+    (and `lake.geojsonl`: a polygon reach is reported, never striped). Additive: an app that does not read `bk` draws as
+    before. Returns {lid: {reason: [sections]}} for every section with no side (the build prints it), never a guess."""
+    beside: Dict[str, list] = {}
+    chains = payload.get("chains") or []
+    for sid, c in sorted(sections):
+        for lid in (chains[c].get("u") or []) if c < len(chains) else []:
+            beside.setdefault(lid, []).append(sid)
+    out: Dict[str, Dict[str, list]] = {}
+    taken: set = set()
+    for lid, pl in sorted((payload.get("p") or {}).items()):
+        word = pl.get("side") if isinstance(pl, dict) else None
+        if not word or not beside.get(lid):
+            continue
+        sides = sides_from_layer(Path(layers) / "stream.geojsonl", {s: word for s in beside[lid]},
+                                 Path(layers) / "lake.geojsonl")
+        ok, bad = report(sides)
+        if ok:
+            pl["bk"] = {str(s): v for s, v in sorted(ok.items())}
+            twice = sorted(set(ok) & taken)
+            if twice:
+                # the app refuses such a file (core `salmon.ts`): stop here, naming them, never ship it
+                raise ValueError(f"salmon: section(s) {twice} stand beside two one-bank places ({lid} and another): "
+                                 "one cue per section — the curated places overlap")
+            taken |= set(ok)
+        if bad:
+            out[lid] = bad
+    return out
+
+
 if __name__ == "__main__":
     import argparse
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
