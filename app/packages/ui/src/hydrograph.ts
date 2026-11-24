@@ -117,11 +117,7 @@ export interface Hydrograph {
   log: boolean;
   /** (T1043) What set the y range (`ScaleSource`). */
   scale: ScaleSource;
-  /**
-   * (T1047) The record is on another zero than the line (T550): the band is left out on purpose, so the key gives no
-   * "short record" reason for it.
-   */
-  recordApart: boolean;
+
   /**
    * The chart's whole time extent (record + forecast) and the window on screen, epoch ms. Null when the series
    * carries no stamps (an index-laid chart cannot zoom).
@@ -270,8 +266,6 @@ export interface BuildInput {
    * Read only when no band is on screen; a chart with a band keeps its own scale. Null or absent: none to hand.
    */
   scaleTo?: { lo: number; hi: number } | null;
-  /** (T1047) The record is on another zero than this line: no band is drawn on purpose (`Hydrograph.recordApart`). */
-  recordApart?: boolean;
 }
 
 /**
@@ -534,7 +528,6 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
     alsoForecasts,
     log,
     scale,
-    recordApart: input.recordApart ?? false,
     full,
     view,
     plot: { x: padLeft, y: padTop, width: innerW, height: innerH },

@@ -40,7 +40,8 @@ export interface Conditions {
   reports?: readonly Parameter[];
   /**
    * (T1047) Quantities the station file carries live but the publisher left out of `reports`: on another zero than the
-   * record (T550, 08HD006's level). Their figure is null above; a chart of one draws its line without the record.
+   * record (T550, 08HD006's level). Shown unranked, as a reading with no record (owner 2026-11-23: "just use new data line
+   * same as cap"); a chart of one draws its line without the record.
    */
   offRecord?: readonly Parameter[];
 }
@@ -83,13 +84,15 @@ export function useStationReading(
 export const READING_REUSE_MS = READING_POLL_MS / 2;
 
 /** One station's reading as the conditions view holds it — what `useStationReading` and the prefetch ask. */
-/** (T1043) Does the publisher stand behind this quantity of the reading (`reports`; absent: a feed from before it)? */
-const stood = (reports: readonly Parameter[] | undefined, q: Parameter): boolean => !reports || reports.includes(q);
-
-/** (T1047) the quantities a reading carries that its `reports` leave out; null when none (or a feed from before it) */
-function offRecordOf(r: { reports?: readonly Parameter[]; discharge: number | null; level: number | null }):
-  readonly Parameter[] | null {
-  const out = (["discharge", "level"] as const).filter((q) => r[q] !== null && !stood(r.reports, q));
+/**
+ * (T1047) the quantities a reading carries that its `reports` leave out; null when none, on a feed from before `reports`,
+ * and when the index row is ANOTHER publisher run than the file's reading (`rankedAt` set, T585 F8: the feed's `same`):
+ * that row's `reports` are not this reading's, so the file is trusted (#77 review: an on-datum level a run behind).
+ */
+function offRecordOf(r: { reports?: readonly Parameter[]; discharge: number | null; level: number | null;
+                          rankedAt?: string | null }): readonly Parameter[] | null {
+  if (!r.reports || r.rankedAt !== undefined) return null;
+  const out = (["discharge", "level"] as const).filter((q) => r[q] !== null && !r.reports!.includes(q));
   return out.length ? out : null;
 }
 
@@ -111,12 +114,7 @@ export async function stationReading(source: Pick<WaterSource, "gaugeNow">, stat
     // no name, and inventing one here would mean a second place that decides what a
     // station is called. The caller already holds the name — it came with the donor.
     station, stationName: null, trust: null, trace: [],
-    // (T1043, T550) A FIGURE THE PUBLISHER LEFT OUT OF `reports` IS NOT TODAY'S READING: a live level off the record's
-    // rating is on another datum (08HD006: 2.06 m live against a record near 7 m), so it is not shown as one; the card then
-    // says the station reports flow only today, as its row and dot do. A feed from before `reports`: as it came.
-    discharge: stood(now.value.reports, "discharge") ? now.value.discharge : null,
-    level: stood(now.value.reports, "level") ? now.value.level : null,
-    parameter: now.value.parameter,
+    discharge: now.value.discharge, level: now.value.level, parameter: now.value.parameter,
     percentile: now.value.percentile, standing: now.value.standing,
     fetchedAt: now.fetchedAt, observedAt: now.value.at || null,
     ...(now.value.rankedAt !== undefined ? { rankedAt: now.value.rankedAt } : {}),

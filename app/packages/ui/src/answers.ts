@@ -98,7 +98,10 @@ export function cardParameters(banded: readonly Parameter[],
  * Nothing is said while the bundle's quantities are still being read (`known` false).
  */
 export function noRecordLine(shown: Parameter, banded: readonly Parameter[], known: boolean,
-                             reports: readonly Parameter[] | null | undefined): string | null {
+                             reports: readonly Parameter[] | null | undefined,
+                             /** (T1047) quantities read live on another zero than the record: Capilano's line too */
+                             offRecord: readonly Parameter[] | null | undefined = null): string | null {
+  if (known && offRecord?.includes(shown)) return NO_RECORD_LINE;
   return known && !banded.includes(shown) && !!reports?.includes(shown) ? NO_RECORD_LINE : null;
 }
 

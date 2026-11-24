@@ -251,8 +251,8 @@ describe("(T1043) a bandless 72 h chart is scaled to its year", () => {
     // A's year runs 0.5 to 2 m, B's 4 to 9.5 m: an A frame tops out under 2.5, a B frame at 8 or more
     expect(frames.filter((f) => f.scale !== "year" || (f.st === "A" ? f.top > 2.5 : f.top < 8))).toEqual([]);
   });
-  // (T1047) A RECORD ON ANOTHER ZERO: `lineOnly` draws the line alone (no band, no earlier years, no year asked) and says
-  // why the key has no band (`recordApart`). MUTATION: drop the band strip -> envelopes drawn, scale "band".
+  // (T1047) A RECORD ON ANOTHER ZERO: `lineOnly` draws the line alone (no band, no earlier years, no year asked).
+  // MUTATION: drop the band strip -> envelopes drawn, scale "band".
   it("lineOnly: a banded series drawn as its line alone, at its reading scale, never asking the year", async () => {
     const { clearAnswers } = await import("./answers");
     clearAnswers();
@@ -261,7 +261,7 @@ describe("(T1043) a bandless 72 h chart is scaled to its year", () => {
                                                     feedOf() as never, true, [], [], true));
     await waitFor(() => expect(result.current.state).toBe("ready"));
     const v = result.current.state === "ready" ? result.current.value! : null;
-    expect([v!.shape.envelopes.length, v!.shape.scale, v!.shape.recordApart, v!.shape.priorYears.length]).toEqual([0, "reading", true, 0]);
+    expect([v!.shape.envelopes.length, v!.shape.scale, v!.shape.priorYears.length]).toEqual([0, "reading", 0]);
     expect(peekAnswer(banded, `yearscale:${seriesKey("08HD006" as StationId, "year", "level", undefined)}`)).toBeNull();
   });
   it("a banded chart never asks for the year, and keeps its scale", async () => {

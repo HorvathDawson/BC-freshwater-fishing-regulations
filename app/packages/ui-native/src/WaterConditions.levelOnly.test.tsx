@@ -252,30 +252,14 @@ describe("a live level with no band is offered on the water's view (T1043)", () 
       .toEqual([null, null, "Flow* Level", "7.8"]);
   });
 
-  // (review of #77) 08HD006 (Salmon River near Sayward), production 2026-11-23: bands in both, the live level 2.058 m off
-  // the record's rating (T550: the publisher leaves it out of `reports`; the record is near 7 m). Level is offered (the
-  // band), but the live level is not today's reading: no "2.06 m stage" under Flow, and under Level the card says the
-  // station reports flow only today. MUTATION: `stationReading` keeps a figure missing from `reports` -> "2.06" shows.
-  it("08HD006's shape (an other-datum live level): never shown as today's reading", async () => {
-    const now = { discharge: 77, level: 2.058, percentile: 0.57, standing: "normal", at: "2026-09-04T06:00:00Z",
-                  parameter: "discharge", reports: ["discharge"] };
-    render(<WaterConditions source={speaking("panel", ["discharge", "level"], now)} item={WATER} tapSid={SEC} palette={LIGHT}
-                            opening="discharge" from={AT} />);
-    await waitFor(() => expect(screen.queryByTestId("reading-figure")).not.toBeNull());
-    await waitFor(() => expect(screen.queryByTestId("chart-quantity")).not.toBeNull());
-    const flow = [...card(), screen.getByTestId("gauge-card").textContent!.includes("2.06")];
-    await pickQuantity("Level");
-    await waitFor(() => expect(screen.queryByTestId("reading-other-quantity")).not.toBeNull());
-    expect([flow, [...card(), screen.getByTestId("gauge-card").textContent!.includes("2.06")]]).toEqual([
-      ["G1", "Flow* Level", "77", false],
-      ["G1", "Flow Level*", "Reports flow only today, not water level. Show Flow to see it.", false],
-    ]);
-  });
-
-  // (T1047, 0.9.0) UNDER LEVEL 08HD006's LIVE LINE IS DRAWN WITHOUT THE RECORD: its band (about 6.5 to 8 m) is on another
-  // zero than the live 2.06 m, so no band, no earlier years, and no "short record" reason in the key; under Flow the band
-  // stays. MUTATION: `ConditionsPanel` passes `lineOnly` false -> "normal range" in the Level key.
-  it("08HD006 under Level: the live line alone, the other-zero note in the key; Flow keeps its band", async () => {
+  // (T1047, owner 2026-11-23: top line "Show the level reading (Recommended)"; note "just use new data line same as cap.
+  // keep it simple") 08HD006 (Salmon River near Sayward), production 2026-11-23: bands in both; the live level 2.058 m is
+  // off the record's rating (T550: the publisher leaves it out of `reports`; the record is near 7 m). Under Level: today's
+  // reading, unranked, in Capilano's words ("Too new to say if this is high or low."), and the live line drawn
+  // alone (no band; the key's note is Capilano's). Flow keeps its band and its rank.
+  // MUTATIONS: `noRecordLine` without its `offRecord` check -> the flow standing "(ranked on flow)" under 2.06;
+  // `ConditionsPanel`/`useStationChart` without `offRecord` -> the old-zero band in the Level key.
+  it("08HD006 under Level: today's level, unranked as Capilano's, its live line alone; Flow keeps its band", async () => {
     const now = { discharge: 77, level: 2.058, percentile: 0.57, standing: "normal", at: "2026-09-04T06:00:00Z",
                   parameter: "discharge", reports: ["discharge"] };
     const at = ["2026-09-04T03:00:00Z", "2026-09-04T04:00:00Z", "2026-09-04T05:00:00Z", "2026-09-04T06:00:00Z"];
@@ -288,15 +272,15 @@ describe("a live level with no band is offered on the water's view (T1043)", () 
                      gaugeSeries: async (_st: string, _span: string, p: "discharge" | "level") => seriesOf(p ?? "discharge") } as unknown as WaterSource;
     render(<WaterConditions source={source} item={WATER} tapSid={SEC} palette={LIGHT} opening="discharge" from={AT} />);
     await waitFor(() => expect(screen.queryByTestId("chart-legend")).not.toBeNull());
-    const flowKey = screen.getByTestId("chart-legend").textContent;
+    const flow = [...card(), screen.queryByTestId("reading-no-record"), screen.getByTestId("chart-legend").textContent!.includes("10th–90th")];
     await pickQuantity("Level");
-    await waitFor(() => expect(screen.queryByTestId("reading-other-quantity")).not.toBeNull());
     await waitFor(() => expect(screen.getByTestId("chart-unit").textContent).toBe("m"));
-    const levelKey = screen.getByTestId("chart-legend").textContent;
-    expect([flowKey!.includes("10th–90th"), levelKey!.includes("10th–90th") || levelKey!.includes("short record"), levelKey!.includes("reading"),
-            screen.getByTestId("chart-record-apart").textContent])
-      .toEqual([true, false, true, CONDITIONS_WORDS.key.recordApart]);
-    expect(CONDITIONS_WORDS.key.recordApart).toBe(
-      "This gauge's level is measured from a different zero than its record, so there is no normal range to compare it with.");
+    await waitFor(() => expect(screen.queryByTestId("reading-no-record")).not.toBeNull());
+    const levelKey = screen.getByTestId("chart-legend").textContent!;
+    expect([flow, [...card(), screen.getByTestId("reading-no-record").textContent,
+                   levelKey.includes("10th–90th"), levelKey.includes(CONDITIONS_WORDS.key.noEnvelope)]]).toEqual([
+      ["G1", "Flow* Level", "77", null, true],
+      ["G1", "Flow Level*", "2.06", NO_RECORD_LINE, false, true],
+    ]);
   });
 });

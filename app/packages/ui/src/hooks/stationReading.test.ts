@@ -57,3 +57,25 @@ describe("stationReading → the card's two lines", () => {
       .toBe("There is a reading here, but no record to compare it against.");
   });
 });
+
+// (T1047, #77 review) THE OFF-DATUM MARK IS THE SAME READING'S: `reports` come from the index row, the figures from the station
+// file, and the two can be different publisher runs (`rankedAt` set: the feed's `same` false). Only when they are the same
+// reading is a figure missing from `reports` marked `offRecord`; a row a run behind is not this reading's, so the file is
+// trusted. MUTATION: drop `r.rankedAt !== undefined` from `offRecordOf` -> an on-datum level a run behind is marked.
+describe("(T1047) offRecord: a figure the same reading's `reports` leave out", () => {
+  const fetchedAt = Date.parse("2026-09-01T11:50:00Z");
+  const level = { discharge: 77, level: 2.058, parameter: "discharge" as const, reports: ["discharge" as const] };
+  it("the same reading (no `rankedAt`): the level is marked, and still shown", async () => {
+    const c = await stationReading(source({ fetchedAt, value: reading(level) }), ST);
+    expect([c.offRecord, c.level]).toEqual([["level"], 2.058]);
+  });
+  it("a row a run behind (`rankedAt` set): nothing is marked, the file is trusted", async () => {
+    const c = await stationReading(source({ fetchedAt, value: reading({ ...level, rankedAt: "2026-09-01T11:00:00Z" }) }), ST);
+    expect([c.offRecord, c.level]).toEqual([undefined, 2.058]);
+  });
+  it("a feed from before `reports`, or a reading the row stands behind whole: nothing is marked", async () => {
+    const a = await stationReading(source({ fetchedAt, value: reading({ discharge: 77, level: 2.058 }) }), ST);
+    const b = await stationReading(source({ fetchedAt, value: reading({ discharge: 77, level: 2.058, reports: ["discharge", "level"] }) }), ST);
+    expect([a.offRecord, b.offRecord]).toEqual([undefined, undefined]);
+  });
+});

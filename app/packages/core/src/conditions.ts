@@ -325,11 +325,6 @@ export const CONDITIONS_WORDS = {
   key: { reading: "reading", middleHalf: "normal range", band: "10th–90th", median: "median",
          /** (T367) the legend's one note where the record is too short for a normal range */
          noEnvelope: "no normal range (short record)",
-         /**
-          * (T1047, PROPOSED 2026-11-23, for the owner's pick) under a chart whose record is on another zero than the live
-          * line (T550's off-datum level: 08HD006, 08EF001, 07FD001, 08KH019, 08MH153), in place of `noEnvelope`
-          */
-         recordApart: "This gauge's level is measured from a different zero than its record, so there is no normal range to compare it with.",
          /** (T367) a model's legend entry: tap to draw it */
          model: (label: string, on: boolean) => `${label} forecast${on ? ", drawn. Tap to hide it" : ". Tap to draw it"}`,
          /** (T398) the legend entry that turns the forecast off: the measured line alone */

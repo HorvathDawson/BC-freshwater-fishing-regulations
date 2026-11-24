@@ -295,7 +295,6 @@ export function useChartView(source: Pick<WaterSource, "gaugeSeries">, station: 
       box, domain: st.domain, probe: st.probe, days: drawForecast ? days : NO_DAYS,
       ticks: (v) => chartTicks(v, span, tickCount(box.width)),
       scaleTo,
-      recordApart: lineOnly,
     });
     const p = shape.probe;
     const readout = p ? {

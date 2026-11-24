@@ -59,7 +59,7 @@ export function GaugeChart({ source, station, feed }: { source: PageSource; stat
   const c = got.state === "ready" ? got.value : null, rq = c ? readingQuantityOf(c) : null;
   const vm = useStationChart(source, station, { width, feed: feed ?? null, offRecord: c?.offRecord ?? null,
                                                ...(rq ? { reports: c!.reports ?? null, readingQuantity: rq.quantity } : {}) });
-  const noRecord = noRecordLine(vm.shown, vm.banded, vm.known, rq ? c!.reports : null);
+  const noRecord = noRecordLine(vm.shown, vm.banded, vm.known, rq ? c!.reports : null, c?.offRecord ?? null);
   const failed = vm.chart.state === "failed" || vm.series.state === "failed";
   return h(View, { onLayout: measure, testID: "gauge-page-chart", style: { gap: 12 } },
     noRecord ? h(Text, { testID: "reading-no-record", style: { ...TYPE.bodyStrong, color: palette.ink } }, noRecord) : null,

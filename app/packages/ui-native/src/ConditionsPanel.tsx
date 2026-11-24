@@ -187,7 +187,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
 
   const reading = vm.reading;
   // (T830) a quantity the station reads live with no band: Python's line in place of a standing, and no dot
-  const noRecord = noRecordLine(shown, banded, known, reading?.reports);
+  const noRecord = noRecordLine(shown, banded, known, reading?.reports, reading?.offRecord);
 
   /*
    * THE HEADLINE'S DETAIL ROWS (P16): the lead gauge's own reading — or, where no gauge
