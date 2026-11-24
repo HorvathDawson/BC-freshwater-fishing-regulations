@@ -512,12 +512,18 @@ COUNT_SAYS = ("max", "min", "unlimited")
 SAYS_ONLY_WHAT_DIFFERS = ("ice_fishing",)
 
 
-def repeats_main_count(c: dict, main: Optional[dict]) -> bool:
+def repeats_main_count(c: dict, main: Optional[dict], held: Sequence[dict] = ()) -> bool:
     """T1050 (owner 2026-11-24, "Only what differs"): an ice-fishing count clause that says the same count as the
     slot's MAIN answer (the Gear tab's: Dick Lake's ice-fishing "1 line" and "1 hook, lure or fly" beside the province's
-    1 line and 1 attachment) repeats it, and is not listed under the way (it stays in `circumstantial`, so it is still
-    cited). A count that differs, a spec (`must_be` / `requires`) and a slot with no main count are kept."""
+    1 line and 1 attachment) repeats it, and is not listed under the way (the frame keeps it in `circumstantial` and
+    `decides`). A count that differs, a spec (`must_be` / `requires`) and a slot with no main count are kept. So is a
+    count whose main answer the Gear tab splits into a shore count and a boat count (`held` all boat: `_from_a_boat`,
+    Kootenay Lake's main body "1 line (rod) from shore; no limit from a boat"): there the ice count says which applies
+    on the ice, so it is not a repeat (review of #130). Dick Lake's "1 line (2 while alone in a boat)" is one plain
+    count with a boat exception, and its ice count is a repeat."""
     if main is None or c.get("must_be") or c.get("requires") or not any(f in c for f in COUNT_SAYS):
+        return False
+    if _from_a_boat(held):
         return False
     b = main["c"]
     return c.get("max") == b.get("max") and c.get("min") == b.get("min") and \
@@ -702,7 +708,8 @@ def resolve(active: Sequence[Rule], kind: Optional[str], lawful: Sequence[str], 
                     w["for"] = of
                 info = [circ_ref(e) for e in circ if k in e["circ"]
                         and e["c"].get("slot") != "bait"
-                        and not (k in SAYS_ONLY_WHAT_DIFFERS and repeats_main_count(e["c"], top(e["c"].get("slot"))))]
+                        and not (k in SAYS_ONLY_WHAT_DIFFERS
+                                 and repeats_main_count(e["c"], top(e["c"].get("slot")), circ_for(e["c"].get("slot"))))]
                 if info:
                     w["while"] = info
                 acts = list(dict.fromkeys(a for r in conduct_rules

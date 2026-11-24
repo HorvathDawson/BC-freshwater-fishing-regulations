@@ -203,6 +203,15 @@ def test_t1050_ice_fishing_says_only_the_counts_that_differ():
     _, a4 = _dick_lake(extra=(sl, sm))
     set_line = next(w for w in a4["ways"] if w["method"] == "set_lining")
     assert set_line["while"] == [{"clause": ["z6:set_lining::set_lining.r2", 0], "while": ["set_lining"]}]
+    # review of #130: where the Gear tab splits the line count into shore and boat (Kootenay Lake's main body, frame 437
+    # of r-0aec88ed3edb: "1 line (rod) from shore; no limit from a boat"), the ice "1 line" says which applies on the ice:
+    # kept; its attachment count (one plain count on the Gear tab) still goes
+    koot = G.Rule("w:kootenay_lake::kootenay_lake.r9", 0, {"family": "gear_and_method", "type": "tackle_restriction",
+                                                          "gear": [{"slot": "lines_per_angler", "unlimited": True,
+                                                                    "when": {"angler": "in_boat"}}]})
+    ice5, a5 = _dick_lake(extra=(koot,))
+    assert a5["counts"]["lines_per_angler"]["says"] == "1 line (rod) from shore; no limit from a boat"
+    assert ice5["while"] == [{"clause": [r2b, 0], "while": ["ice_fishing"]}]
 
 
 def test_t1050_repeats_main_count():
@@ -214,6 +223,16 @@ def test_t1050_repeats_main_count():
     assert not G.repeats_main_count({"max": 1.0, "slot": "lines_per_angler"}, None)
     assert not G.repeats_main_count({"must_be": ["marked"], "slot": "ice_hut"}, main)
     assert G.repeats_main_count({"unlimited": True}, {"c": {"unlimited": True}})
+    # the same max is not enough: the least and "no limit" are the count too; a spec beside a count is a spec
+    assert not G.repeats_main_count({"max": 1.0, "min": 1.0}, main)
+    assert not G.repeats_main_count({"max": 1.0, "unlimited": True}, main)
+    assert not G.repeats_main_count({"max": 1.0}, {"c": {"max": 1.0, "unlimited": True}})
+    assert not G.repeats_main_count({"max": 1.0, "must_be": ["marked"]}, main)
+    assert not G.repeats_main_count({"max": 1.0, "requires": ["x"]}, main)
+    # a main count the Gear tab says from shore (every circumstance a boat) is not a plain count
+    boat = [{"circ": ["in_boat"], "targeting_codes": [], "note": None, "c": {"unlimited": True}}]
+    assert not G.repeats_main_count({"max": 1.0}, main, boat)
+    assert G.repeats_main_count({"max": 1.0}, main, [{**boat[0], "circ": ["alone_in_boat"]}])
 
 
 def test_hook_answer():
