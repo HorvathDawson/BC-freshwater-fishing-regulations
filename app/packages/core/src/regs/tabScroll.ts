@@ -48,3 +48,14 @@ export function isStartOwnScroll(y: number, asked: readonly number[], maxY: numb
   const all = maxY != null ? [maxY, ...ends] : ends;
   return asked.some((a) => near(y, a) || all.some((m) => a > m && near(y, m)));
 }
+
+/**
+ * (T1049 review) The page end (content - view) a start keeps while it follows, for `isStartOwnScroll`'s `ends`: only a REAL
+ * one — the content laid out taller than the view, and the start's section drawn. An early layout's end (0, or the view's
+ * own height under `flexGrow`) would make the reader's scroll to the top (Home) look like the start's own and be undone.
+ * Null: not kept.
+ */
+export function startEndOf(contentH: number, viewH: number, sectionDrawn: boolean): number | null {
+  const end = contentH - viewH;
+  return sectionDrawn && viewH > 0 && end > 0 ? end : null;
+}

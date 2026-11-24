@@ -12,6 +12,7 @@ import type { ItemId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { openRegsFixture } from "@app/data/release/node";
 import { LIGHT } from "./theme";
+import { InSeasonContext } from "@app/ui";
 import type { RegsScreenProps } from "./regs/RegsScreen";
 
 const coming: boolean[] = [];
@@ -44,6 +45,20 @@ describe("<WaterScreen> (T1049 cold start) the page is told its salmon card is s
     land(new Error("salmon: damaged"));
     await waitFor(() => expect(coming.at(-1)).toBe(false), LOADED);
     expect({ whileWaiting, pending: !!screen.queryByTestId("salmon-pending") }).toEqual({ whileWaiting: true, pending: true });
+  }, 30_000);
+
+  it("(T1049 review) the in-season feed's first answer not in yet: coming (its notices are drawn first on the page); in: not", async () => {
+    const base = { matched: [], unmatched: [], ended: [], data: null, release: null };
+    const tree = (pending: boolean) => (
+      <InSeasonContext.Provider value={{ ...base, pending }}>
+        <WaterScreen source={makeFixtureSource()} item={"gnis:8634" as ItemId} palette={LIGHT} loader={openRegsFixture()} day={new Date(2026, 9, 10, 12)} part={0} />
+      </InSeasonContext.Provider>);
+    const r = render(tree(true));
+    await waitFor(() => expect(screen.getByTestId("keep-tab")).toBeTruthy(), LOADED);
+    const whileWaiting = coming.at(-1);
+    r.rerender(tree(false));
+    await waitFor(() => expect(coming.at(-1)).toBe(false), LOADED);
+    expect(whileWaiting).toBe(true);
   }, 30_000);
 
   it("a release that ships no salmon: never coming", async () => {

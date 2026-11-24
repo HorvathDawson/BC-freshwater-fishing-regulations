@@ -132,6 +132,15 @@ export function startForFrame(start: RegsStart | null, forItem: ItemId | null, f
   return start !== null && (forItem === null || forItem === frameItem) ? start : null;
 }
 
+/**
+ * (T1049 review) A page says its start is SPENT (landed, ended by the reader, or torn down unfinished: the page left for
+ * another water, the app closed it): the host's start after that. Only the start the page was handed is cleared — a newer
+ * one (a link that came while the old one was ending) is kept for its page. A start is used once, by the page it was for.
+ */
+export function startSpent(held: RegsStart | null, spent: RegsStart): RegsStart | null {
+  return held === spent ? null : held;
+}
+
 export interface StartLink {
   route: Route;
   /** the Shell's one day (null = today) */

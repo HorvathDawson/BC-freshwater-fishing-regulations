@@ -41,6 +41,9 @@ export interface InSeasonNow {
   readonly failure?: string | null;
   /** (T548 L5) that failure was the feed's ROWS (more than half unreadable): how many of how many, for the inbox line */
   readonly failureRows?: { readonly unread: number; readonly of: number } | null;
+  /** (T1049 review) the feed's first answer is not in yet (a cold start's fetch on its way): a page's notices may still
+   *  come; false once it answered (with notices, none, its capture or a failure). Absent: not asked (no source). */
+  readonly pending?: boolean;
 }
 
 const NONE: InSeasonNow = { matched: [], unmatched: [], ended: [], data: null, release: null };
@@ -63,6 +66,8 @@ export function useInSeason(source: InSeasonSource | null | undefined, epoch = 0
   const [data, setData] = useState<InSeasonData | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
   const [failureRows, setFailureRows] = useState<InSeasonNow["failureRows"]>(null);
+  // (T1049 review) the first answer of this source is in (a later re-ask never makes the page "coming" again)
+  const [answered, setAnswered] = useState(false);
   // (T520) the device's release changed (a data update applied): the links are asked again (T673: the same file is
   // read on any release, but which waters it holds and their section lines are the new release's)
   const heldRelease = useRef(release);
@@ -76,7 +81,8 @@ export function useInSeason(source: InSeasonSource | null | undefined, epoch = 0
       if (d) setData(d);
       setFailure(source.failure?.() ?? null);
       setFailureRows(source.failureRows?.() ?? null);
-    }, reportFailure);
+      setAnswered(true);
+    }, (e: unknown) => { if (live) setAnswered(true); reportFailure(e); });
     return () => { live = false; };
     // (T231) `epoch`: bumped when the update service sees the feed move (the source was told to forget it)
   }, [source, tick, epoch, release]);
@@ -92,10 +98,11 @@ export function useInSeason(source: InSeasonSource | null | undefined, epoch = 0
     return gone;
   }, key, !!holds && waters.length > 0);
   const absent = asked.state === "ready" && asked.value.size ? asked.value : null;
+  const pending = !!source && !answered;
   const out = useMemo(() => (data && base
-    ? { ...(absent ? joinInSeason(data.feed, data.links, today, absent) : base), data, release, failure, failureRows }
-    : failure ? { ...NONE, failure, failureRows } : NONE),
-    [data, base, absent, today, release, failure, failureRows]);
+    ? { ...(absent ? joinInSeason(data.feed, data.links, today, absent) : base), data, release, failure, failureRows, pending }
+    : failure ? { ...NONE, failure, failureRows, pending } : source ? { ...NONE, pending } : NONE),
+    [data, base, absent, today, release, failure, failureRows, pending, source]);
   useEffect(() => {
     if (!absent) return;
     for (const c of base?.matched ?? []) {
@@ -152,7 +159,15 @@ const TOLD = new Set<string>();
 export function useInSeasonCovers(store: Pick<RegsStore, "navRows" | "statics"> | null,
                                   lines: Pick<LineReads, "hasLines" | "sectionLine"> | null,
                                   page: InSeasonPage | null, day: Date | null): readonly InSeasonOnPage[] {
-  const { data } = useContext(InSeasonContext);
+  return useCoversState(store, lines, page, day).covers;
+}
+
+/** `useInSeasonCovers` and (T1049 review) whether the page's notices may still come: the feed's first answer not in, or
+ *  this page's lines / ends still being read for a change on it (until then the covers are []). */
+function useCoversState(store: Pick<RegsStore, "navRows" | "statics"> | null,
+                        lines: Pick<LineReads, "hasLines" | "sectionLine"> | null,
+                        page: InSeasonPage | null, day: Date | null): { covers: readonly InSeasonOnPage[]; pending: boolean } {
+  const { data, pending: feedPending } = useContext(InSeasonContext);
   const iso = isoDayOf(day ?? bcNow());
   const matched = useMemo(() => (data ? joinInSeason(data.feed, data.links, iso).matched : []), [data, iso]);
   const here = useMemo(() => (page ? matched.filter((c) => c.waters?.[page.item]) : []), [matched, page?.item]);
@@ -205,7 +220,8 @@ export function useInSeasonCovers(store: Pick<RegsStore, "navRows" | "statics"> 
       reportFailure(new Error(f, read.state === "failed" ? { cause: read.error } : undefined));
     }
   }, [out]);
-  return out;
+  const pending = !!page && (feedPending === true || tableWait || (needs && read.state === "loading"));
+  return { covers: out, pending };
 }
 
 /** (T520) The open release's section lines, once per release: what `useInSeasonCovers` places a range on. */
@@ -214,7 +230,8 @@ export function useReleaseLines(loader: Pick<ReleaseLoader, "manifest" | "db"> |
 }
 
 /**
- * The banners on one Regulations page, for its day (null: today): `useInSeasonCovers`, worded.
+ * The banners on one Regulations page, for its day (null: today): `useInSeasonCovers`, worded; and (T1049 review)
+ * `pending`: its notices may still come (the feed's first answer, or this page's lines, not in yet).
  *
  * (T694) An unread notice carries its "New" / "Updated" mark (the inbox's, `InSeasonInboxContext`). Shown on the page,
  * it is SEEN: read in the inbox at once, while this page keeps the mark it was opened with (taken once per notice per
@@ -222,8 +239,8 @@ export function useReleaseLines(loader: Pick<ReleaseLoader, "manifest" | "db"> |
  */
 export function useInSeasonBanners(store: Pick<RegsStore, "navRows" | "statics"> | null,
                                    lines: Pick<LineReads, "hasLines" | "sectionLine"> | null,
-                                   page: InSeasonPage | null, day: Date | null): readonly InSeasonBannerVM[] {
-  const covers = useInSeasonCovers(store, lines, page, day);
+                                   page: InSeasonPage | null, day: Date | null): { banners: readonly InSeasonBannerVM[]; pending: boolean } {
+  const { covers, pending } = useCoversState(store, lines, page, day);
   const inbox = useContext(InSeasonInboxContext);
   const marks = useRef<{ item: string | null; of: Map<string, InboxArrival | null> }>({ item: null, of: new Map() });
   const banners = useMemo(() => {
@@ -234,7 +251,7 @@ export function useInSeasonBanners(store: Pick<RegsStore, "navRows" | "statics">
   }, [covers, inbox, page?.item]);
   const marked = banners.filter((b) => b.mark).map((b) => b.id).join(",");
   useEffect(() => { if (marked && inbox) inbox.read(marked.split(",")); }, [marked, inbox]);
-  return banners;
+  return { banners, pending };
 }
 
 /** (T700) Whether an inbox row opened this page at one of these notices: true once (the banners open). */

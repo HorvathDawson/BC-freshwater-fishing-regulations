@@ -87,7 +87,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   /** (T38) the hatch sheet's two drawings, registered by the app. */
   /** (T41) where the page starts (the web start link, a test affordance), handed on to the page once */
   start?: RegsStart | null;
-  onStarted?: () => void;
+  onStarted?: (start: RegsStart) => void;
   /** (T221, a try) the Keep tab's at-a-glance table: the quota groups and Salmon folded into the species list. */
   glance?: boolean;
   /** (T254) ask the whole page again (the wrapper remounts it) */
@@ -162,7 +162,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   const inSeasonPage = useInSeasonPage(pageItem, inputs.value?.partIx ?? null, entries);
   // (T520) where each lands: core's `inSeasonCover` over the water's section lines (read only for a part-covering change)
   const inSeasonLines = useReleaseLines(loader ?? null);
-  const inSeason = useInSeasonBanners(store.value ?? null, inSeasonLines, inSeasonPage, day);
+  const { banners: inSeason, pending: inSeasonComing } = useInSeasonBanners(store.value ?? null, inSeasonLines, inSeasonPage, day);
   // (T236) the page's foot: how current the regulations, the salmon feed and the in-season changes are
   const inSeasonAt = useContext(InSeasonContext).data?.feed.fetchedAt ?? null;
   // (T227) the day's book gear as if open, for a day only salmon may be fished (core `gearIfFished`)
@@ -274,7 +274,8 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
       <RegsScreen page={page} palette={palette} nameSource={s?.nameSource ?? null} images={fishImages} onDate={() => setDayOpen(true)} layout={layout} sun={sun} daylight={daylight} sources={sources} troutSources={trout}
                   start={start} onStarted={onStarted} scrollKey={regsScrollKey(item, part, section)}
                   // (T1049 cold start) the salmon card above the sections still on its way: a start link waits for it to land
-                  coming={salmonComing}
+                  // (T1049 review) and the page's in-season notices, drawn first on the page, still on their way
+                  coming={salmonComing || inSeasonComing}
                   // past the release's last day in force, the page leads with core's out-of-date sentence (none unstamped)
                   lapsed={regsLapsedNote(loader.manifest?.regulations?.valid_until, clockNow())}
                   // (T54, T367) the access notices: pinned strips under the header

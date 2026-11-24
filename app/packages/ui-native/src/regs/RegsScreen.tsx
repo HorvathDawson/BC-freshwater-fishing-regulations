@@ -19,9 +19,9 @@
  */
 import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { openProbe } from "@app/data";
-import { Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
+import { AppState, Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
 import { Text } from "../Text";
-import { LEGAL_WORDS, now as clockNow, parseSheetKey, reportFailure, withInSeason, withSalmonSheets, type SalmonCardVM, tabScrollY, isStartOwnScroll, startTick, START_FOLLOW_0, START_TICK_MS, type StartFollow, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type TabSourcesVM, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
+import { LEGAL_WORDS, now as clockNow, environmentError, parseSheetKey, reportFailure, startEndSentence, withInSeason, withSalmonSheets, type SalmonCardVM, tabScrollY, isStartOwnScroll, startEndOf, startTick, START_FOLLOW_0, START_TICK_MS, type StartFollow, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type TabSourcesVM, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
 import { FreshDot } from "../menu/Fresh";
 import { NO_SNIPPET, WaterInset } from "../WaterFrame";
@@ -37,7 +37,7 @@ import { RegsHeader } from "./RegsHeader";
 import { ReadingColumn, RegsSide } from "./RegsWide";
 import { SheetHost } from "./SheetHost";
 import { SourceRow } from "../SourceRow";
-import { recallRegsScroll, rememberRegsScroll } from "./scrollMemory";
+import { recallRegsScroll, regsScrollItem, rememberRegsScroll } from "./scrollMemory";
 import type { LayoutClass, RegsStart } from "@app/ui";
 import { AnchorContext, useAnchors } from "./useAnchors";
 import { InSeasonBanners } from "./InSeasonBanner";
@@ -102,7 +102,7 @@ export interface RegsScreenProps {
    * when done, so the host hands the start to this page once (a new day remounts the page).
    */
   start?: RegsStart | null;
-  onStarted?: () => void;
+  onStarted?: (start: RegsStart) => void;
   /**
    * The release's edition has lapsed (core `regsLapsedNote`: past `regulations.valid_until`): its sentence, drawn first
    * in the scroll with the out-of-date dot (`FreshDot`, the Data block's). Null/absent: in force, or no stamp — nothing.
@@ -191,28 +191,56 @@ export function RegsScreen({ page, palette, images, actions, onDate,
   const startEnds = useRef<number[]>([]);
   /** (T1049 cold start) a start is following (its ends are kept only then) */
   const startOn = useRef(false);
+  /** (T1049 review) the tab the start following is for (its section must be drawn before a page end is kept) */
+  const startTab = useRef<Tab>("keep");
+  const recordStartEnd = (h: number) => {
+    const end = startEndOf(h, viewH.current, startTab.current === "keep" || store.getSections()[startTab.current] != null);
+    if (end != null) startEnds.current.push(end);
+  };
   /** (T1049 cold start) `coming`, read by the follow's timer (a prop change does not restart a start) */
   const comingNow = useRef(coming);
   comingNow.current = coming;
+  /** (T1049 review) the water this page shows (its scroll key's item): a start is for the water it was handed with */
+  const waterNow = useRef(regsScrollItem(scrollKey));
+  waterNow.current = regsScrollItem(scrollKey);
+  /** (T1049 review) the app in front: time in the background is not the follow's (core `startTick`, `active`) */
+  const activeNow = useRef(AppState.currentState !== "background" && AppState.currentState !== "inactive");
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (st) => { activeNow.current = st !== "background" && st !== "inactive"; });
+    return () => sub.remove();
+  }, []);
   // (T1049) and FOLLOWED until the page has SETTLED (core `startTick`): the first measured top is not the last. On staging
   // the Keep tab grew 903 → 1104 px ~35 ms after the first layout; on a slow phone's cold start (0.9.0 device pass) the
   // salmon card, waiting on its feed, landed 201 dp above the sections seconds after a follow that had already stopped
   // (~2 s), so Gear and Licence were left short. The start jumps again whenever the page is not where it wants it, and is
-  // done once target, content and scroll hold still with nothing still `coming`; a page still moving ~30 s after its
-  // section was drawn ends the follow and is said. The reader's drag, tab press or own scroll ends it at once.
+  // done once target, content and scroll hold still with nothing still `coming`. Bounded twice (core): a page still moving
+  // with nothing to come is said as a defect; a part still on its way past the line's own give-up drops the start as the
+  // line's. The reader's drag, tab press, sheet or own scroll ends it at once.
+  // (T1049 review) A start is SPENT once, for the page it was handed to: landed or ended, and also when the follow is torn
+  // down unfinished (the page left for another water, unmounted): `onStarted(start)` then too, so the host never hands it
+  // to the next page (the web: another water opened at this link's tab; the phone: Back re-applying it).
   useEffect(() => {
     const first = firstStart.current;
     firstStart.current = false;
     if (!start) return;
     if (!first) { setSheet(start.sheet); restoring.current = false; }
-    if (first && start.tab === "keep" && start.scroll === 0) { onStarted?.(); return; }
+    if (first && start.tab === "keep" && start.scroll === 0) { onStarted?.(start); return; }
     let s: StartFollow = START_FOLLOW_0;
-    startTaken.current = false; startAsked.current = []; startEnds.current = []; startOn.current = true;
+    const water = waterNow.current;
+    startTaken.current = false; startAsked.current = []; startEnds.current = []; startOn.current = true; startTab.current = start.tab;
     startLog("begin", { tab: start.tab, scroll: start.scroll, first });
-    const done = (why: string) => { clearInterval(timer); startOn.current = false; startLog("done", { why, at: s.at, drawn: s.drawn, tops: store.getSections(), ch: contentH.current, sy: scrollY.current }); onStarted?.(); };
+    const end = (why: string) => {
+      clearInterval(timer);
+      startOn.current = false;
+      startLog("done", { why, at: s.at, drawn: s.drawn, tops: store.getSections(), ch: contentH.current, sy: scrollY.current });
+      onStarted?.(start);
+    };
     const timer = setInterval(() => {
+      // another water on this page: the start was for the one it was handed with — spent, never landed here
+      if (waterNow.current !== water) { end("moved"); return; }
       const top = start.tab === "keep" ? 0 : store.getSections()[start.tab];
-      const [next, step] = startTick(s, { now: clockNow(), target: top == null ? null : tabScrollY(start.tab, store.getSections()) + start.scroll,
+      const [next, step] = startTick(s, { now: clockNow(), active: activeNow.current,
+        target: top == null ? null : tabScrollY(start.tab, store.getSections()) + start.scroll,
         contentH: contentH.current, viewH: viewH.current, scrollY: scrollY.current, loading: comingNow.current, taken: startTaken.current });
       s = next;
       if (step.do === "wait") return;
@@ -225,11 +253,18 @@ export function RegsScreen({ page, palette, images, actions, onDate,
       }
       // (T1049) a tab this page never draws (Gear on a closed day): said, and the start is done — never polled for ever
       if (step.why === "no-section") reportFailure(new Error(`start link: tab=${start.tab} has no section on this page: the page opens at its top`));
-      // (T1049 cold start) a page that never held still: the follow stops where it is, and that is said
-      if (step.why === "cap") reportFailure(new Error(`start link: tab=${start.tab}: the page was still moving ${Math.round((clockNow() - (s.drawn ?? clockNow())) / 1000)} s after its section was drawn${comingNow.current ? " (a part of it still coming)" : ""}: the follow stopped`));
-      done(step.why);
+      // (T1049 review) a page that never held still with nothing to come: a defect, said; a part still on its way past the
+      // line's own give-up: the line's (core `environmentError`: shown by the part's own pending face, never a defect report)
+      const secs = Math.round((s.clock - (s.drawn ?? s.clock)) / 1000);
+      if (step.why === "cap") reportFailure(new Error(startEndSentence(start.tab, "cap", secs)));
+      if (step.why === "coming-cap") reportFailure(environmentError(new Error(startEndSentence(start.tab, "coming-cap", secs))));
+      end(step.why);
     }, START_TICK_MS);
-    return () => { clearInterval(timer); startOn.current = false; };
+    return () => {
+      clearInterval(timer);
+      // torn down unfinished (unmounted, or a newer start handed over): this start is spent all the same
+      if (startOn.current) { startOn.current = false; startLog("done", { why: "torn-down" }); onStarted?.(start); }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once per start: a start is applied to the page it is handed to
   }, [start]);
   // (T50) back where the reader was: the remembered scroll, once the content is tall enough to hold it (polled: images
@@ -268,7 +303,8 @@ export function RegsScreen({ page, palette, images, actions, onDate,
     return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once per mount, like the start link
   }, []);
-  const openSheet = (k: SheetKey) => { actions.onSheet(k); setSheet(k); };
+  // (T1049 review) a sheet the reader opens is the reader acting: a start still following stops there
+  const openSheet = (k: SheetKey) => { startTaken.current = true; actions.onSheet(k); setSheet(k); };
   useEffect(() => {
     if (!debugOn()) return;
     const g = globalThis as { __regsDebug?: RegsDebug };
@@ -371,7 +407,7 @@ export function RegsScreen({ page, palette, images, actions, onDate,
                                      if (scrollKey && !restoring.current) rememberRegsScroll(scrollKey, y); }}
                   onLayout={(e) => { viewH.current = e.nativeEvent.layout.height; store.setViewport(e.nativeEvent.layout.height); }}
                   onContentSizeChange={(_w, h) => { startLog("size", { h }); contentH.current = h; store.setContentHeight(h); remeasure();
-                                                 if (startOn.current && viewH.current > 0) startEnds.current.push(h - viewH.current); }}>
+                                                 if (startOn.current) recordStartEnd(h); }}>
         {/* (T456) the walkthrough brings a step's control on this page into view */}
         <CoachScrollContext.Provider value={coachScroll.scroller}>
           {swipe ? <ViewSwipe swipe={swipe} testId="view-swipe-body">{read}</ViewSwipe> : read}
