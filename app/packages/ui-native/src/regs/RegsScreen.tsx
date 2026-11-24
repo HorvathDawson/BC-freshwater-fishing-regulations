@@ -306,7 +306,7 @@ export function RegsScreen({ page, palette, images, actions, onDate,
         </WaterInset>
       )}
       {/* (T1045) the gauges that read this water, as links to their pages: the people's view and the crawler's are this one list */}
-      {gauges && <WaterInset><WaterGauges gauges={gauges} palette={palette} onOpen={onGauge} /></WaterInset>}
+      {gauges && <WaterGauges gauges={gauges} palette={palette} onOpen={onGauge} />}
       {/* (T236) every page's foot: not legal advice, and how current its sources are — (owner 2026-11-04) as fine print
           under a hairline, so it does not read as part of the page */}
       <WaterInset testID="regs-legal" noSnippet style={{ marginTop: 20, paddingTop: 10, gap: 2, borderTopWidth: 1, borderTopColor: palette.line }}>
