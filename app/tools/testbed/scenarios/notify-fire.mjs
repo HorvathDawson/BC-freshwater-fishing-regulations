@@ -101,8 +101,7 @@ export const notifyFire = {
         throw new Error('POST_NOTIFICATIONS is not granted after the save');
       }
       saved = true;
-      return `saved · permission ${asked ? 'asked and allowed' : 'already allowed'} · channels: ${
-        ['gauges', 'updates', 'app'].filter((c) => new RegExp(`mId='${c}'|id=${c}\\b`).test(d.sh(`dumpsys notification --noredact | grep -A2 "${APP_ID}" || true`))).join(', ') || 'none seen'}`;
+      return `saved · permission ${asked ? 'asked and allowed' : 'already allowed'}`;
     });
 
     try {
