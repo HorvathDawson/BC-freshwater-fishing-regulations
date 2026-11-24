@@ -11,7 +11,7 @@
                   (T354: + `append`, the page index the app's cited-page-first append needs; synopsis.py)
      "sources": {"synopsis": {title, date}, "dfo"|"fwa"|"basemap"|"hydat": {date}},   (only when the build passes it)
      "bundle":  {"entries_digest": "<16 hex>", "reach_digest": "<16 hex>"},          (only when the build passes it)
-     "water_digests": {url, bytes, gz, sha256, format, waters},   (T1030: the release's per-water digest list)
+     "water_digests": {url, bytes, sha256, format, waters},  (of the uncompressed list: no zlib-build field)   (T1030: the release's per-water digest list)
      "changed_waters": <int>,       (T1030: waters whose rules differ from the release it replaces; ABSENT: unknown)
      "changed_waters_from": "<id>"} (T1030: the release that count was taken against; with it, or neither)
 

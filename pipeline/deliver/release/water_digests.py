@@ -295,10 +295,12 @@ def attach(final: Path, before: dict, say: Callable[[str], None] = print) -> Opt
     rid = m["data_release"]
     lst = water_digests(final)
     raw = raw_bytes(lst)
-    gz = gzip.compress(raw, compresslevel=9, mtime=0)
-    (final / FILENAME).write_bytes(gz)
-    m[MANIFEST_KEY] = {"url": f"{rid}/{FILENAME}", "bytes": len(raw), "gz": len(gz),
-                       "sha256": hashlib.sha256(raw).hexdigest(), "format": FORMAT, "waters": len(lst["waters"])}
+    (final / FILENAME).write_bytes(gzip.compress(raw, compresslevel=9, mtime=0))
+    # what the manifest says of the list is its CONTENT only — the uncompressed bytes' length and sha256 (as every release
+    # file's sha256 is of its raw bytes) — never the compressed length, which follows the zlib build (macOS and CI's
+    # Linux write the same JSON in other gzip bytes), so the manifest is the same whichever machine built the release
+    m[MANIFEST_KEY] = {"url": f"{rid}/{FILENAME}", "bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest(),
+                       "format": FORMAT, "waters": len(lst["waters"])}
     if before.get("id") == rid:
         n, frm = before.get("count"), before.get("from")
         say(f"changed_waters: {rid} is the release it replaces, built again — its own count is kept "

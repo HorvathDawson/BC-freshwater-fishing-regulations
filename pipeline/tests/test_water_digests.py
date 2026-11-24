@@ -337,3 +337,20 @@ def test_the_built_mini_release_names_its_list_and_states_no_count(tmp_path_fact
     assert lst_ is not None and m[WD.MANIFEST_KEY]["waters"] == len(lst_["waters"]) > 0
     assert WD.COUNT_KEY not in m and WD.FROM_KEY not in m
     assert sorted(lst_["waters"]) == sorted(WD.water_digests(d)["waters"])
+
+
+def test_the_manifest_names_the_list_by_its_content_never_by_its_gzip_bytes(tmp_path, monkeypatch):
+    """(T1030, CI 45405205568) CI's Linux zlib writes the same JSON in other gzip bytes than macOS: the manifest's block
+    must say only what follows the content (raw length, raw sha256), so a release built on either machine states the same
+    manifest. Two zlib "builds" (levels 9 and 1) give one manifest."""
+    big = {f"w:{i}": hashlib.sha256(str(i).encode()).hexdigest()[:16] for i in range(500)}
+    monkeypatch.setattr(WD, "water_digests", lambda d: _list(**big))
+    real = gzip.compress
+    seen = []
+    for level in (9, 1):
+        monkeypatch.setattr(WD.gzip, "compress", lambda b, compresslevel=9, mtime=0, _l=level: real(b, _l, mtime=0))
+        new = _release(tmp_path / f"z{level}", "r-new")
+        WD.attach(new, WD.previous_state(None), say=lambda s: None)
+        seen.append(((new / "manifest.json").read_bytes(), (new / WD.FILENAME).read_bytes()))
+    assert len(seen[0][1]) != len(seen[1][1])                                 # the gzip bytes do differ, in length too
+    assert seen[0][0] == seen[1][0]                                           # the manifest does not
