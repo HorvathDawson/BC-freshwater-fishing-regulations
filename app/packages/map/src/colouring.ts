@@ -36,8 +36,8 @@
  * patched binding's per-tile event (`native/useColouring.ts`, deps.md). Only how a channel's style-borne values reach
  * the style differs: a paint call on the web, a style swap on the phone (`nativeStyle`'s `values`).
  */
-import { readingDayOf, dayProfiles, finfishDayLabels, isolateDay, methodDayProfiles, methodLabel, profileLabel, salmonDayIndex, salmonDayProfiles,
-         salmonLabel, stockRecency, type LakeFacts, type SalmonMapStatus, type WaterStatus, type MethodFacts, type RunTimingFacts, type SalmonFacts,
+import { readingDayOf, dayProfiles, finfishDayLabels, isolateDay, methodDayProfiles, methodLabel, profileLabel, salmonBankLabels, salmonDayIndex,
+         salmonDayProfiles, salmonLabel, stockRecency, type LakeFacts, type SalmonMapStatus, type WaterStatus, type MethodFacts, type RunTimingFacts, type SalmonFacts,
          type StatusIndex } from "@app/core";
 import type { ChannelValues, MapAdapter, MapHandle } from "./adapters/contract";
 import { SALMON_LABEL_KEY, type StandingValues, type StatusDay, type Tokens } from "./style";
@@ -72,7 +72,7 @@ export interface LakeFeed {
 }
 
 /** The colourings that label sections: one per question a release's data answers on the map. */
-export type Channel = "status" | "standing" | "stocked" | "survey" | "salmon" | "method" | "runs" | "issue";
+export type Channel = "status" | "standing" | "stocked" | "survey" | "salmon" | "method" | "runs" | "issue" | "bank";
 
 /**
  * (T211) THE SALMON COLOURING as the map is told it — ONLY on a proven pair: the release's DFO salmon (each section's
@@ -93,6 +93,23 @@ export function salmonInput(s: SalmonFeed): ChannelInput {
     labels: { key: SALMON_LABEL_KEY, of: f, label: (id) => salmonLabel(f, id) },
     valuesKey: `${salmonDayIndex(s.day)}:${s.only ?? ""}`,
     values: () => isolateDay(salmonDayProfiles(f, s.day), s.only ?? null),
+  };
+}
+
+/**
+ * (T1029, look B, owner 2026-11-24) THE ONE-BANK CUE, from the salmon feed: each section a DFO place for one bank stands
+ * beside wears "<side><bank chain>" ("Ls42": @app/core `salmonBankLabels`) in feature-state `bk`, fixed for the facts;
+ * the style (`paint.ts` `bankHalfPaint` / `bankCuePaint`) paints that half in the bank chain's answer on the salmon day,
+ * so a new day is the salmon channel's paint change and no call here. Null where the facts carry no `bk` (a release
+ * before T1029): nothing is labelled and no cue is drawn.
+ */
+export function bankInput(s: SalmonFeed): ChannelInput | null {
+  const banks = salmonBankLabels(s.facts);
+  if (!banks.size) return null;
+  return {
+    labels: { key: "bk", of: banks, label: (id) => banks.get(id) },
+    valuesKey: "bank",
+    values: () => null,
   };
 }
 
@@ -425,11 +442,11 @@ export class Colouring {
 
 /**
  * THE KEYS ONLY THE ENGINE WRITES on a section: the channels' labels (the day-profile `p`, the `standing` value, the
- * lake facts' `stocked` and `survey`, the salmon `sp`, the method `gm`) — and `status` / `salmon`, the keys of the pushed path T74 removed.
+ * lake facts' `stocked` and `survey`, the salmon `sp`, the method `gm`, the run `rt`, the issue `gi`, the bank `bk`) — and `status` / `salmon`, the keys of the pushed path T74 removed.
  * Pushed through `data` they would be a second pathway beside the engine (owner 2026-10-21: "it should be a single
  * pathway"): both maps refuse them, and report it (tools/one-colouring-engine.test.ts).
  */
-export const ENGINE_KEYS: readonly string[] = ["p", "standing", "status", "stocked", "survey", "sp", "salmon", "gm", "rt", "gi"];
+export const ENGINE_KEYS: readonly string[] = ["p", "standing", "status", "stocked", "survey", "sp", "salmon", "gm", "rt", "gi", "bk"];
 
 type Pushed = Record<string, Record<string, Record<string, unknown>>>;
 

@@ -129,6 +129,11 @@ export interface SalmonPlace {
    *  the bank. It stands beside its sections' places (in their chains' `u`, never `l`), so the page answers by the water's
    *  other rules and the card names the bank (`salmonCard` `side`). Absent on any other place and in an older release. */
   readonly side?: SalmonBank;
+  /** (T1029, look B) on a one-bank place (`side`): for each section it stands BESIDE (its id, as a string), which side
+   *  of the drawn tile line its bank is — 1 right, -1 left of the line's own direction (`pipeline/deliver/bank_side.py`,
+   *  measured on the exported line). The map draws that half of the stretch in the bank's own answer
+   *  (`salmonBankLabels`). Absent on any other place, on a bank no side was measured for, and in an older release. */
+  readonly bk?: Readonly<Record<string, 1 | -1>>;
 }
 /** (T754) the bank words, the rule book's `side` words */
 export const SALMON_BANKS = ["north", "south", "east", "west"] as const;
@@ -306,6 +311,23 @@ function checkPayload(P: Payload): Payload {
   // (T754) a one-bank place names a bank of the four
   for (const [lid, pl] of Object.entries(P.p ?? {}))
     if (!isBook(pl) && pl.side !== undefined && !SALMON_BANKS.includes(pl.side)) bad(`place ${lid}: bank ${String(pl.side)}`);
+  // (T1029) a one-bank place's drawn sides: section id -> 1 | -1, only beside a `side`, its own chain one of `unmapped`,
+  // and one bank per section (a section wears ONE bank label on the map)
+  const bankBy = new Map<string, string>();
+  for (const [lid, pl] of Object.entries(P.p ?? {})) {
+    const bk = (pl as { bk?: unknown }).bk;
+    if (bk === undefined) continue;
+    if (isBook(pl) || pl.side === undefined) bad(`place ${lid}: drawn banks (bk) on a place for no one bank`);
+    if (bk === null || typeof bk !== "object" || Array.isArray(bk) || !Object.keys(bk).length) bad(`place ${lid}: bk ${JSON.stringify(bk)}`);
+    for (const [sid, v] of Object.entries(bk as Record<string, unknown>)) {
+      if (!/^(0|[1-9]\d*)$/.test(sid) || (v !== 1 && v !== -1)) bad(`place ${lid}: bk section ${sid} side ${JSON.stringify(v)}`);
+      const was = bankBy.get(sid);
+      if (was !== undefined) bad(`section ${sid}: beside two one-bank places (${was}, ${lid})`);
+      bankBy.set(sid, lid);
+    }
+    const own = bankChains(P, lid);
+    if (own.length !== 1) bad(`place ${lid}: ${own.length} own chains in unmapped (l exactly [${lid}]), not 1`);
+  }
   for (const [lid, o] of Object.entries(P.off ?? {}))
     if (!o || !SALMON_OFF_KINDS.includes(o.k) || typeof o.w !== "string" || typeof o.r !== "string" || !Array.isArray(o.items))
       bad(`off ${lid}: not {why, k, r, w, items}`);
@@ -320,6 +342,40 @@ function checkPayload(P: Payload): Payload {
   for (const [lid, rows] of Object.entries(P.pr ?? {}))
     if (!Array.isArray(rows) || !rows.length || rows.some((r) => typeof r !== "string" || !r)) bad(`pr ${lid}: not a list of rows`);
   return P;
+}
+
+/** (T1029) a one-bank place's OWN chain(s): the chains of `unmapped` whose places are exactly [lid] (its rules, as the
+ *  card's one-side caveat reads them). The release has exactly one (checked on decode). */
+const bankChains = (P: Payload, lid: string): number[] => [...new Set(P.unmapped.map((u) => u.chain)
+  .filter((c) => { const l = P.chains[c]?.l; return l?.length === 1 && l[0] === lid; }))].sort((a, b) => a - b);
+
+/** (T1029) the bank's half of a section, on the map: "L" / "R" (the side of the drawn line) + its chain label (`s<chain>`) */
+export type SalmonBankLabel = `${"L" | "R"}s${number}`;
+
+const BANK_LABELS = new WeakMap<Payload, ReadonlyMap<number, SalmonBankLabel>>();
+
+/**
+ * (T1029, look B, owner 2026-11-24) THE ONE-BANK CUE'S LABELS: for every section a one-bank place stands beside (its
+ * `bk`), the side of the drawn line its bank is ("L" left, "R" right) and the bank place's own chain label (`s<chain>`,
+ * `salmonLabel`'s form) — "Ls42". Fixed for the facts: the map sets it once per section (feature-state `bk`) and the
+ * style paints that half in the bank chain's answer for the day, as the line paints its own chain's (`salmonDayProfiles`).
+ * A release with no `bk` gives none: no cue is drawn. Under a live feed (`withSalmonFeed`) a bank place whose own chain
+ * the feed no longer lists in `unmapped` (DFO's page no longer carries the place) gives none for its sections: the card
+ * lists it nowhere either. Two own chains is a broken file (decode refuses it), said here too.
+ */
+export function salmonBankLabels(f: SalmonFacts): ReadonlyMap<number, SalmonBankLabel> {
+  const P = f.payload, hit = BANK_LABELS.get(P);
+  if (hit) return hit;
+  const out = new Map<number, SalmonBankLabel>();
+  for (const [lid, pl] of Object.entries(P.p ?? {})) {
+    if (isBook(pl) || !pl.bk) continue;
+    const own = bankChains(P, lid);
+    if (own.length > 1) throw new SalmonError(`salmon: place ${lid} has ${own.length} own chains`);
+    if (!own.length) continue;
+    for (const [sid, v] of Object.entries(pl.bk)) out.set(Number(sid), `${v === 1 ? "R" : "L"}s${own[0]!}`);
+  }
+  BANK_LABELS.set(P, out);
+  return out;
 }
 
 /** (T356) the region header note `id` of one of the chain's regions (its closure's words) */

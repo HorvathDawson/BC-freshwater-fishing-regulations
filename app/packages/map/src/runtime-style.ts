@@ -337,16 +337,16 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       paint: issuePaint(part, sMode, tk, markWidth("issue", sMode, sw)),
     })),
     /*
-     * (T1029, DRAFT) THE ONE-BANK CUE (`bankHalfPaint`, `bankCuePaint`, look B): the stretch drawn wider and split down
-     * the middle, the side and the colours by feature-state (`bk`, `bks`, `bko`); nothing sets them yet but the picture
-     * harness, so no frame draws one. Shown only in the colourings that answer a rule (Salmon, Standard): on the plain map
+     * (T1029) THE ONE-BANK CUE (`bankHalfPaint`, `bankCuePaint`, look B): the stretch drawn wider and split down the
+     * middle, the side and the bank's chain by feature-state (`bk`, the bank channel's label); built with no day (the
+     * salmon day is installed later, by the adapter, as `stream-closed`'s), so the first frame draws none. Shown only in the colourings that answer a rule (Salmon, Standard): on the plain map
      * a visible layer of its own layout would be one more bucket per stream tile (the map lab's `lab.test.ts`). The layout
      * is the other overlays' (butt caps, round joins), so where they are shown it adds no bucket. The adapter shows /
      * hides them with the mode.
      */
     ...(["right", "left"] as const).flatMap((side) => [
-      { id: BANK_LAYERS[side], paint: bankHalfPaint(side, tk, sw.base) },
-      { id: BANK_CUE_LAYERS[side], paint: bankCuePaint(side, tk, sw.base) },
+      { id: BANK_LAYERS[side], paint: bankHalfPaint(side, sMode, tk, NO_VALUES, sw.base) },
+      { id: BANK_CUE_LAYERS[side], paint: bankCuePaint(side, sMode, tk, NO_VALUES, sw.base) },
     ]).map(({ id, paint }) => ({
       id, type: "line" as const, source: "atlas", "source-layer": "stream", minzoom: BANK_MINZOOM,
       layout: shownIn(BANK_MODES.includes(sMode), { "line-cap": "butt" as const, "line-join": "round" as const }),

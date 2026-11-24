@@ -6,7 +6,7 @@
  * Hand-built payload in `build`'s shape (the Kitimat's west bank between the hatchery outfall signs).
  */
 import { describe, expect, it } from "vitest";
-import { decodeSalmonHead, salmonCard, SalmonError, type SalmonFacts } from "./salmon";
+import { decodeSalmonHead, salmonBankLabels, salmonCard, SalmonError, type SalmonFacts } from "./salmon";
 import { WORDS } from "./regs/words";
 
 const WHOLE = "6:kitimat-river:whole", BANK = "6:kitimat-river:on-west-bank-between-signs-at-kiti";
@@ -73,5 +73,57 @@ describe("a DFO place for one bank of the river (T754)", () => {
   it("the file is checked on decode: a bank is one of the four words", () => {
     expect(decodeSalmonHead(head(payload({ side: "west" })), HANDLES).p?.[BANK]).toMatchObject({ side: "west" });
     expect(() => decodeSalmonHead(head(payload({ side: "left" })), HANDLES)).toThrow(SalmonError);
+  });
+});
+
+/**
+ * (T1029, look B) THE ONE-BANK CUE'S LABELS: per section the bank place stands beside (`bk`, the pipeline's measured side
+ * of the drawn line), "L"/"R" + the bank place's OWN chain label (`s2` here: the `unmapped` chain whose places are exactly
+ * the bank's). Checked on decode: sides 1 / -1 on section ids, only beside a `side`, one own chain, one bank per section.
+ */
+describe("the one-bank cue's labels (T1029)", () => {
+  const withBk = (bk: unknown, more: object = {}) => ({ ...payload({ side: "west", bk }), ...more });
+  const factsOf = (p: object): SalmonFacts => {
+    const P = decodeSalmonHead(head(p), HANDLES);
+    return { handles: HANDLES, chains: P.chains.length, payload: P, loaded: ["6"], chainOf: () => 0 };
+  };
+
+  it("labels each section beside the bank: its side of the drawn line, then the bank's own chain", () => {
+    const labels = salmonBankLabels(factsOf(withBk({ "10": -1, "11": 1 })));
+    expect([...labels]).toEqual([[10, "Ls2"], [11, "Rs2"]]);
+  });
+
+  it("a release without `bk` (or a place without `side`) labels nothing: no cue, the map as before", () => {
+    expect(salmonBankLabels(factsOf(payload({ side: "west" }))).size).toBe(0);
+    expect(salmonBankLabels(factsOf(payload({}))).size).toBe(0);
+  });
+
+  it("the own chain is the unmapped one whose places are exactly the bank's, never the chain it stands beside", () => {
+    // a second unmapped entry on the chain the bank stands beside (l = [WHOLE]) changes nothing
+    const p = withBk({ "10": 1 });
+    const more = { unmapped: [{ items: ["gnis:1"], r: "6", w: "x", chain: 1 }, ...p.unmapped] };
+    expect([...salmonBankLabels(factsOf({ ...p, ...more }))]).toEqual([[10, "Rs2"]]);
+  });
+
+  it("a composed payload (a live feed) that no longer lists the bank's own chain labels nothing for it", () => {
+    const f = factsOf(withBk({ "10": 1 }));
+    const composed = { ...f, payload: { ...f.payload, unmapped: [] } } as SalmonFacts;
+    expect(salmonBankLabels(composed).size).toBe(0);
+  });
+
+  it("the file is checked on decode: `bk` is section id -> 1 | -1, beside a `side`, one own chain, one bank a section", () => {
+    expect(decodeSalmonHead(head(withBk({ "10": -1 })), HANDLES).p?.[BANK]).toMatchObject({ bk: { "10": -1 } });
+    for (const bk of [{ "10": 2 }, { "10": 0 }, { "10": "1" }, { "x": 1 }, { "-3": 1 }, { "01": 1 }, {}, [1], null, 1])
+      expect(() => decodeSalmonHead(head(withBk(bk)), HANDLES), JSON.stringify(bk)).toThrow(SalmonError);
+    // only on a place for one bank
+    expect(() => decodeSalmonHead(head(payload({ bk: { "10": 1 } })), HANDLES)).toThrow(/for no one bank/);
+    // its own chain: exactly one
+    expect(() => decodeSalmonHead(head(withBk({ "10": 1 }, { unmapped: [] })), HANDLES)).toThrow(/0 own chains/);
+    // one bank per section: a second one-bank place beside section 10
+    const p = withBk({ "10": 1 });
+    const two = { ...p, p: { ...p.p, "6:kitimat-river:east": { r: "6", side: "east", bk: { "10": -1 } } },
+                  chains: [...p.chains, { ...p.chains[2]!, l: ["6:kitimat-river:east"] }],
+                  unmapped: [...p.unmapped, { items: ["gnis:3225"], r: "6", w: "east", chain: 3 }] };
+    expect(() => decodeSalmonHead(head(two), HANDLES)).toThrow(/beside two one-bank places/);
   });
 });

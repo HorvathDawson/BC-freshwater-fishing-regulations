@@ -124,9 +124,11 @@ export interface ChannelValues {
   runs: { readonly key: string; readonly basins: Readonly<Record<string, "spawn" | "pass" | "off">> } | null;
   /** (T759) the issue stripe is in the labels (`gi`), nothing for the style: always null. */
   issue: null;
+  /** (T1029) the one-bank cue is in the labels (`bk`, fixed for the release); its day is the salmon's: always null. */
+  bank: null;
 }
 export const NO_VALUES: ChannelValues =
-  { status: null, standing: null, stocked: null, survey: null, salmon: null, method: null, runs: null, issue: null };
+  { status: null, standing: null, stocked: null, survey: null, salmon: null, method: null, runs: null, issue: null, bank: null };
 
 /** A token is a colour, a number, or a dash pattern (an array of line-width multiples). */
 export type Tokens = Record<string, string | number | number[]>;
