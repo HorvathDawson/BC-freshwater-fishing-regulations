@@ -22,7 +22,6 @@ import { LICENCE_ROWS } from "./menu/licences";
 import { bookText, type Line, type Run } from "./regs/line";
 import type { RuleIndex, RuleView } from "./regs/inputs";
 import type { RegsPage, SourceLineVM } from "./regs/model";
-import type { GearTabsVM } from "./salmon";
 import type { SheetKey } from "./regs/sheetKey";
 import { ALL_SOURCES_KEY } from "./regs/sheets/allsources";
 import { TROUT_SOURCES_KEY } from "./regs/sheets/trout";
@@ -32,6 +31,8 @@ import { ALL_SOURCES, TROUT_NAV, WORDS } from "./regs/words";
 import { SOURCE_AUTHORITIES, SOURCE_LINE, type AuthorityId } from "./sourceNames";
 
 export { SOURCE_AUTHORITIES, SOURCE_LINE, RULE_BOOK, type AuthorityId } from "./sourceNames";
+// (T1036) what the Regulations tab draws is the every-source sheet's input too: it lives beside that sheet
+export { drawnRegsOf } from "./regs/sheets/allsources";
 
 
 /** An authority's page: its Sources-and-licences row's. A row without one is a programming error, thrown (never a blank link). */
@@ -215,23 +216,6 @@ function citedWeb(v: unknown, out: Map<string, string>, seen = new Set<unknown>(
 
 /** "All sources ›": the page's every-source sheet (T990). */
 const ALL_SOURCES_LINK = { label: ALL_SOURCES.LINK, open: ALL_SOURCES_KEY, aria: ALL_SOURCES.ARIA } as const;
-
-/**
- * (#63 review) WHAT THE REGULATIONS TAB DRAWS, as RegsScreen and WaterScreen draw it: the header, the Keep tab, the Gear and
- * Methods tabs AS DRAWN (`gearTabsFor`: on a day only salmon may be fished they are the day's gear "if fished", not
- * `page.gear`, which is the closed day's), the salmon gear lines, Methods' boats and the "Handling fish" reference (drawn
- * under Methods only while Methods is), and the Licence tab as drawn (`licenceTabFor`). The Source row cites exactly what
- * these cite — never a sheet's rules (a sheet is not on the screen) and never `page.gear` on a day it is not drawn.
- */
-export function drawnRegsOf(page: Pick<RegsPage, "header" | "keep" | "boats" | "methods">, tabs: GearTabsVM, licence: RegsPage["licence"],
-                            /** (T1031 item 3) the Source lines drawn inside the tabs that no VM above carries: the trout
-                             *  table's (`troutSourcesOf`: no page of its own) and the salmon card's book closures */
-                            lines: readonly TabSourcesVM[]): readonly unknown[] {
-  // the Methods tab draws no `reference`: the page's own is drawn under it (RegsScreen), never the "if fished" tab's
-  const methods = tabs.methods ? { ...tabs.methods, reference: null } : null;
-  return [page.header, page.keep, tabs.gear, tabs.salmonGear, methods, tabs.methods ? page.boats : null,
-          tabs.methods ? page.methods?.reference ?? null : null, licence, lines];
-}
 
 /**
  * The rules the drawn view models name: a sheet key or key list naming a rule (`rule:<entry>::<rule>`, a source line's

@@ -4,6 +4,8 @@
  * Methods draw the day's gear "if fished", not `page.gear`), every fold opened, the set of synopsis pages the row links equals
  * the set of pages the drawn tabs link ("B.C. Synopsis page N"), plus the water's own rule-book row (T474), marked "this water".
  * The review found both ways wrong: pages lost on salmon-only days, and pages listed that nothing on the screen cites.
+ * (T1036) The every-source sheet behind the row's "All sources ›" had the same two faults: on the same cases its rows' pages
+ * equal the drawn tabs' pages and the drawn trout table's (its line's "Who says so ›" opens them), nothing else.
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -22,6 +24,7 @@ import vedder1010 from "./regs/fixtures/vedder_1010.json";
 import glenn615 from "./regs/fixtures/glenn_615.json";
 import { LIGHT } from "./theme";
 import { TEST_TROUT_SOURCES } from "./regs/testing/sources";
+import { sheetExpected, sheetPages } from "./regs/testing/allSources";
 
 afterEach(cleanup);
 const LOADED = { timeout: 20_000 } as const;
@@ -95,6 +98,9 @@ describe("the Regulations Source row cites exactly what the drawn screen cites (
     const p = probe();
     expect(p.listed).toEqual(p.expected);
     expect(p.listed.length).toBeGreaterThan(0);
+    // (T1036) the every-source sheet: the drawn tabs' pages and the drawn trout table's, nothing else
+    const sheet = sheetPages({ act, fireEvent, screen });
+    expect(sheet.all).toEqual(sheetExpected(p.drawn, sheet.trout));
   }, 40_000);
 });
 
@@ -117,6 +123,9 @@ describe("the trout table's Source line on a real page (T1031 item 3)", () => {
     const p = probe();
     expect(p.listed).toEqual(p.expected);
     expect(p.listed.includes(6)).toBe(false);
+    // (T1036) the every-source sheet lists the table's rules (p.6 among them: "Who says so ›" opens them) and the drawn tabs'
+    const sheet = sheetPages({ act, fireEvent, screen });
+    expect([sheet.trout.includes(6), sheet.all]).toEqual([true, sheetExpected(p.drawn, sheet.trout)]);
   }, 40_000);
 });
 

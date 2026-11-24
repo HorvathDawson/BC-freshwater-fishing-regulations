@@ -4,7 +4,9 @@
  * built from THOSE (`drawnRegsOf(page, tabs, licence)` in WaterScreen's `shown`), never from `page.gear` / `page.methods` /
  * `page.licence`. The fixture release has no such day (every part closed to game fish there is closed to salmon too, T796:
  * the salmon bar reads the book's closure), so the salmon feed's bar is stubbed OPEN for the day: `salmonStripOf` answers
- * "open" — the stubbed loader's feed — and everything else is the app's own wiring.
+ * "open" — the stubbed loader's feed — and everything else is the app's own wiring. (T1036) The every-source sheet behind
+ * the row's "All sources ›" is built from the same drawn tabs: its rows' pages are the drawn ones (and the drawn trout
+ * table's), so the "if fished" gear's pages are in it and the closed day's undrawn rules are not.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -22,6 +24,7 @@ vi.mock("@app/core", async (orig) => {
 });
 const { WaterScreen } = await import("./WaterScreen");
 const { LIGHT } = await import("./theme");
+const { sheetExpected, sheetPages } = await import("./regs/testing/allSources");
 
 afterEach(cleanup);
 const LOADED = { timeout: 20_000 } as const;
@@ -96,6 +99,10 @@ describe("a day only salmon may be fished, through WaterScreen (#63 re-review)",
     const p = probe();
     expect(p.listed).toEqual(p.expected);
     expect(p.listed).toEqual([8, 9, 21, 22]);
+    // (T1036) the sheet: the drawn "if fished" gear's p.8 and p.21 are in it
+    const sheet = sheetPages({ act, fireEvent, screen });
+    expect(sheet.all).toEqual(sheetExpected(p.drawn, sheet.trout));
+    expect([sheet.all.includes(8), sheet.all.includes(21)]).toEqual([true, true]);
   }, 40_000);
 
   it("(T1031) a salmon BOOK closure's page, drawn on the card's own Source line, is in the foot row too", async () => {
@@ -108,5 +115,10 @@ describe("a day only salmon may be fished, through WaterScreen (#63 re-review)",
     expect(card).toEqual([77]);
     expect(p.drawn.has(77) && p.listed.includes(77)).toBe(true);
     expect(p.listed).toEqual(p.expected);
+    // (T1036) the every-source sheet: the drawn pages, but for the card's p.77 — the hand-made place above names p.77 for
+    // a rule the book prints on p.9 (drawn on the closed banner here), and a sheet row is the rule's own, its pages the
+    // rule's (a release's places carry their rule's own pages). Listing the closure's rule is pinned in allsources.test.ts
+    const sheet = sheetPages({ act, fireEvent, screen });
+    expect(sheet.all).toEqual(sheetExpected([...p.drawn].filter((x) => x !== 77), sheet.trout));
   }, 40_000);
 });
