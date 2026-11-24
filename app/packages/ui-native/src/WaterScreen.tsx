@@ -155,6 +155,8 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   }, [netMode.offline]);   // eslint-disable-line react-hooks/exhaustive-deps -- only the line coming back
   // (T254) a release that ships salmon draws a card on every page: until it is in, its place says why
   const salmonExpected = !!loader?.manifest?.files?.salmon && !tidalPage;
+  // (T1049 cold start) the card is expected and still on its way (its feed): the pane waits for it, and so does a start link
+  const salmonComing = salmonExpected && salmon.state === "loading";
   // (T230) the provincial in-season changes matched to this water / part, in effect on THE day (informational)
   // (T517) the page covers the map entry holding its part (`inSeasonPageOf`)
   const inSeasonPage = useInSeasonPage(pageItem, inputs.value?.partIx ?? null, entries);
@@ -228,7 +230,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   // why it cannot be drawn — what the Shell waits for before it shows a pane opened over the map (`shell/paneReveal.ts`)
   const failedWhole = (item !== null && sheet.state === "failed") || !loader || !!regsError;
   usePaneReady(failedWhole
-    || (drawn && access.state !== "loading" && !(salmonExpected && salmon.state === "loading")));
+    || (drawn && access.state !== "loading" && !salmonComing));
   useEffect(() => {
     if (!drawn || !openProbe.on()) return;
     openProbe.mark("commit");
@@ -271,6 +273,8 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
       {frame(null, (
       <RegsScreen page={page} palette={palette} nameSource={s?.nameSource ?? null} images={fishImages} onDate={() => setDayOpen(true)} layout={layout} sun={sun} daylight={daylight} sources={sources} troutSources={trout}
                   start={start} onStarted={onStarted} scrollKey={regsScrollKey(item, part, section)}
+                  // (T1049 cold start) the salmon card above the sections still on its way: a start link waits for it to land
+                  coming={salmonComing}
                   // past the release's last day in force, the page leads with core's out-of-date sentence (none unstamped)
                   lapsed={regsLapsedNote(loader.manifest?.regulations?.valid_until, clockNow())}
                   // (T54, T367) the access notices: pinned strips under the header

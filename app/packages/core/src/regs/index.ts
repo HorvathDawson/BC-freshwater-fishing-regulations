@@ -37,6 +37,7 @@ export * from "./trout";
 export * from "./waterbook";
 export * from "./edge";
 export * from "./tabScroll";
+export * from "./startFollow";
 export * from "./sheets";
 export * from "./sheets/trout";
 export * from "./sheets/allsources";

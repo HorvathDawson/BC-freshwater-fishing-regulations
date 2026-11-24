@@ -341,15 +341,84 @@ describe("<RegsScreen>", () => {
     } finally { setFailureSink(null); vi.useRealTimers(); }
   });
 
-  it("(T1049) a page that never stops moving: the start stops following after ~2 s and says started", () => {
+  it("(T1049 cold start) a page that never holds still: followed ~30 s from its section being drawn, then stopped and SAID", async () => {
     vi.useFakeTimers();
+    const { setFailureSink } = await import("@app/core");
+    const seen: string[] = [];
+    setFailureSink((e) => seen.push((e as Error).message));
     try {
       const store = createTabStore(), onStarted = vi.fn();
       mount({ store, start: { tab: "gear", sheet: null, scroll: 0 }, onStarted });
       (scrollEl() as unknown as { scroll: () => void }).scroll = () => {};
-      for (let i = 0; i < 40; i++) act(() => { store.setSections({ gear: 1500 + i, methods: 2100, methodsHeight: 400, licence: 2700 }); vi.advanceTimersByTime(100); });
-      expect(onStarted.mock.calls.length).toBe(1);
-    } finally { vi.useRealTimers(); }
+      for (let i = 0; i < 295; i++) act(() => { store.setSections({ gear: 1500 + i, methods: 2100, methodsHeight: 400, licence: 2700 }); vi.advanceTimersByTime(100); });
+      const before = onStarted.mock.calls.length;
+      for (let i = 295; i < 320; i++) act(() => { store.setSections({ gear: 1500 + i, methods: 2100, methodsHeight: 400, licence: 2700 }); vi.advanceTimersByTime(100); });
+      expect({ before, started: onStarted.mock.calls.length, seen })
+        .toEqual({ before: 0, started: 1, seen: ["start link: tab=gear: the page was still moving 30 s after its section was drawn: the follow stopped"] });
+    } finally { setFailureSink(null); vi.useRealTimers(); }
+  });
+
+  describe("(T1049 cold start) a slow phone: a part above the sections lands seconds after the page is drawn", () => {
+    const S = { gear: 1500, methods: 2100, methodsHeight: 400, licence: 2700 };
+    const grown = (d: number) => ({ gear: S.gear + d, methods: S.methods + d, methodsHeight: 400, licence: S.licence + d });
+    const setup = (coming: boolean) => {
+      const store = createTabStore(), onStarted = vi.fn();
+      const start = { tab: "licence" as const, sheet: null, scroll: 0 };   // the host's one start (a new one would be a new link)
+      const tree = (c: boolean) => (
+        <WaterFrame palette={LIGHT} face="regulations">
+          <RegsScreen troutSources={TEST_TROUT_SOURCES} sources={TEST_SOURCES} page={page} palette={LIGHT} actions={NOOP} onDate={() => {}}
+                      gear={<Text>gear section</Text>} methods={<Text>methods section</Text>} licence={<Text>licence section</Text>}
+                      store={store} start={start} onStarted={onStarted} coming={c} />
+        </WaterFrame>);
+      const { rerender } = render(tree(coming));
+      const to = vi.fn();
+      (scrollEl() as unknown as { scroll: typeof to }).scroll = to;
+      return { store, onStarted, tops: () => to.mock.calls.map((c) => (c[0] as { top: number }).top), arrive: () => rerender(tree(false)) };
+    };
+    it("the salmon card, still coming, lands 201 px above the sections 6 s on (the 0.9.0 device pass): the start waits for it and lands", () => {
+      vi.useFakeTimers();
+      try {
+        const p = setup(true);
+        act(() => { p.store.setSections(S); vi.advanceTimersByTime(6000); });   // drawn, still for 6 s: the card still coming
+        const waiting = p.onStarted.mock.calls.length;
+        p.arrive();                                                          // the card is in: a new render
+        act(() => { p.store.setSections(grown(201)); vi.advanceTimersByTime(1000); });
+        expect({ waiting, tops: p.tops(), started: p.onStarted.mock.calls.length,
+                 tab: screen.getByRole("tab", { name: "Licence" }).getAttribute("aria-selected") })
+          .toEqual({ waiting: 0, tops: [2702, 2903], started: 1, tab: "true" });
+      } finally { vi.useRealTimers(); }
+    });
+    it("a page growing in steps over 22 s, a 3 s pause among them, while a part is still coming: lands on the last top", () => {
+      vi.useFakeTimers();
+      try {
+        const p = setup(true);
+        act(() => { p.store.setSections(S); vi.advanceTimersByTime(2000); });
+        act(() => { p.store.setSections(grown(40)); vi.advanceTimersByTime(2000); });
+        act(() => { p.store.setSections(grown(90)); vi.advanceTimersByTime(3000); });     // the pause: 30 ticks of nothing
+        act(() => { p.store.setSections(grown(150)); vi.advanceTimersByTime(15_000); });
+        const waiting = p.onStarted.mock.calls.length;
+        p.arrive();                                                          // the card is in: a new render
+        act(() => { p.store.setSections(grown(351)); vi.advanceTimersByTime(1000); });
+        expect({ waiting, tops: p.tops(), started: p.onStarted.mock.calls.length })
+          .toEqual({ waiting: 0, tops: [2702, 2742, 2792, 2852, 3053], started: 1 });
+      } finally { vi.useRealTimers(); }
+    });
+    it("the reader's drag while the card is still coming: the follow stops there, no jump when it lands", () => {
+      vi.useFakeTimers();
+      try {
+        const p = setup(true);
+        act(() => { p.store.setSections(S); vi.advanceTimersByTime(3000); });
+        const key = Object.keys(scrollEl()).find((k) => k.startsWith("__reactFiber"))!;
+        let f = (scrollEl() as unknown as Record<string, { return: unknown; memoizedProps?: Record<string, unknown> }>)[key] as
+          { return: unknown; memoizedProps?: Record<string, unknown> } | null;
+        while (f && typeof f.memoizedProps?.onScrollBeginDrag !== "function") f = f.return as typeof f;
+        act(() => { (f!.memoizedProps!.onScrollBeginDrag as () => void)(); vi.advanceTimersByTime(100); });
+        const after = p.onStarted.mock.calls.length;
+        p.arrive();                                                          // the card is in: a new render
+        act(() => { p.store.setSections(grown(201)); vi.advanceTimersByTime(1000); });
+        expect({ after, tops: p.tops(), started: p.onStarted.mock.calls.length }).toEqual({ after: 1, tops: [2702], started: 1 });
+      } finally { vi.useRealTimers(); }
+    });
   });
 
   it("(T1038) a NEW start on the page already open (a link to the water on screen) is applied again: tab, scroll and sheet", () => {
@@ -366,14 +435,14 @@ describe("<RegsScreen>", () => {
       const { rerender } = render(tree({ tab: "gear", sheet: null, scroll: 0 }));
       const to = vi.fn();
       (scrollEl() as unknown as { scroll: typeof to }).scroll = to;
-      act(() => { store.setSections({ gear: 1500, methods: 2100, methodsHeight: 400, licence: 2700 }); vi.advanceTimersByTime(400); });   // (T1049) a start is done once its top has held
+      act(() => { store.setSections({ gear: 1500, methods: 2100, methodsHeight: 400, licence: 2700 }); vi.advanceTimersByTime(600); });   // (T1049) a start is done once its top has held (300 ms of wall time)
       rerender(tree(null));                                                   // the host took it (onStarted)
       rerender(tree({ tab: "licence", sheet: "pos:pos", scroll: 30 }));      // the next link's start, same page
-      act(() => { vi.advanceTimersByTime(400); });
+      act(() => { vi.advanceTimersByTime(600); });
       const sheetUp = screen.getAllByRole("heading").map((h) => h.textContent).includes("Possession");
       rerender(tree(null));
       rerender(tree({ tab: "keep", sheet: null, scroll: 0 }));               // and one that lands on the top, sheet shut
-      act(() => { vi.advanceTimersByTime(400); });
+      act(() => { vi.advanceTimersByTime(600); });
       expect({ calls: to.mock.calls.map((c) => (c[0] as { top: number }).top), started: onStarted.mock.calls.length, sheetUp,
                sheetAfter: screen.getAllByRole("heading").map((h) => h.textContent).includes("Possession"),
                tab: screen.getByRole("tab", { name: "What you can keep" }).getAttribute("aria-selected") })
