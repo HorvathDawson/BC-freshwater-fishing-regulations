@@ -20,6 +20,19 @@ with the default Claude uses until you answer). Newest first inside each section
 - Answered 2026-11-24: the release table carries a short goal per release (ROADMAP-after-0.9.0.md, "Release contents").
 - New from you 2026-11-24: iOS store distribution and compliance (T1071), better screenshots and marketing content
   before the full release (T1072), the app-update notice only when the phone can install it (T1073, 0.9.2).
+- **Do (you): Play Production staged rollout of 0.9.0 (build 44), once Google grants production access** (T1046,
+  T240). Build 44 is on Internal and Closed since 2026-11-24 (Google's review of the Closed release pending). Play
+  will not let Production be used until the production-access application is approved; the application opens
+  2026-12-07 and this does not move that date or the Closed test clock. Then, in Play Console: Test and release →
+  Production → Create new release → Add from library → pick build 44 (or the newest build then on Closed) → release
+  notes → Next → set the rollout percentage (start at 20%) → Save → Publishing overview → Send for review. Raise the
+  percentage from the same Production page once the crash numbers look clean.
+- **Do (you): App Store submission of 0.9.0** (T1071), once the iOS production build is on TestFlight (building
+  2026-11-24 from release/0.9.0; the build number goes here when it uploads). Before you click, T1071's checklist has
+  to exist (App Privacy, export compliance, age rating, content rights, review notes): it is not written yet, so this
+  row waits on the iOS release chat. Then, in App Store Connect: Apps → Can I Fish This? → Distribution → the "+" by
+  iOS App → version 0.9.0 → Build → pick the build → paste the listing text and pictures (T1072) → App Privacy and
+  the other answers → Version Release: "Manually release" and Phased Release on → Add for Review → Submit.
 - **Question (you): three proposed chats.** 2b = 0.9.2 hardening (no features), S = store content (T1072; can run
   beside 0.9.2), 5i = iOS full release (T1071). Say yes or change them, and whether the iOS release comes before or
   after 0.9.2. Default until you answer: nothing starts; they stay marked "proposed" in the roadmap.
