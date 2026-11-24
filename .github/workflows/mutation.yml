@@ -1,0 +1,60 @@
+name: mutation
+
+# (T1041, owner 2026-11-23 "Report only") THE MUTATION REPORT: on a pull request, mutate ONLY its changed lines —
+# Stryker for the app's TypeScript, mutmut for the pipeline's Python — and list in each job's summary the mutants no
+# test killed (a changed line whose behaviour no test pins: AGENTS rule 33). NEVER A REQUIRED CHECK and never a red PR:
+# not in the "main trunk (T995)" ruleset, `continue-on-error` on both jobs, and scripts/mutation_report.py exits 0 once
+# it has started (a tool that broke is said in the summary and as a warning). No merge_group: a queue waits only on the
+# required checks. The work and its bounds are scripts/mutation_report.py's (its docstring); each part stops at its
+# --budget (900 s) under the job's timeout-minutes.
+
+on:
+  pull_request:
+
+concurrency:
+  group: mutation-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: mutation (pipeline Python, report only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    continue-on-error: true
+    env: { PIPELINE_PY: .venv/bin/python }
+    steps:
+      # full history, no old file contents: the PR's merge base and its diff. The PR's HEAD, not GitHub's merge
+      # commit: the diff's line numbers are the head's
+      - uses: actions/checkout@v5
+        with: { fetch-depth: 0, filter: "blob:none", ref: "${{ github.event.pull_request.head.sha }}" }
+      - uses: ./.github/actions/app-setup
+      # the tool, every version exact (scripts/mutation-requirements.txt; constraints.txt holds the shared ones)
+      - run: .venv/bin/pip install -r scripts/mutation-requirements.txt -c constraints.txt
+      - name: Mutate the changed pipeline lines, list the survivors
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: .venv/bin/python scripts/mutation_report.py py --base "$BASE_SHA" --head "$HEAD_SHA" --budget 900
+
+  typescript:
+    name: mutation (app TypeScript, report only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+        with: { fetch-depth: 0, filter: "blob:none", ref: "${{ github.event.pull_request.head.sha }}" }
+      - uses: ./.github/actions/app-setup
+      # Stryker on this runner only, both packages exact: the lockfile is changed here and never committed (the app's
+      # own dependencies stay as they are; app/deps.md)
+      - name: Stryker 10.1.1 (this runner only)
+        working-directory: app
+        run: pnpm add -D -w @stryker-mutator/core@10.1.1 @stryker-mutator/vitest-runner@10.1.1
+      - name: Mutate the changed app lines, list the survivors
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: .venv/bin/python scripts/mutation_report.py ts --base "$BASE_SHA" --head "$HEAD_SHA" --budget 900

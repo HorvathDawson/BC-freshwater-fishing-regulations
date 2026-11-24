@@ -23,6 +23,9 @@ on:
   # (T998) `edited` too: a PR title fixed by hand re-runs the `commits` job (a re-run reads the old title)
   pull_request:
     types: [opened, synchronize, reopened, edited]
+  # (T1041) A MERGE QUEUE's group runs this too, filtered as its pull requests were (scripts/ci_paths.py FILTERED),
+  # so the required check reports on the group. Nothing sends the event until a ruleset turns a queue on.
+  merge_group:
 
 concurrency:
   group: docs-${{ github.ref }}

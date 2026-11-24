@@ -15,8 +15,8 @@ from it as `release/<version>` at scope lock (`python -m pipeline release --cut 
 
 THE AREAS are what each CI workflow watches. A push to `main` / `release/**` runs a workflow only when its area changed
 (the `on: push: paths:` lists, which must equal these: `pipeline/tests/test_workflow_pins.py`). A pull request runs
-every workflow; its first job, `changes`, asks this file whether the PR touched the area, and the real jobs run only
-then (`if:`), so a required check never waits on a workflow that did not run: each workflow's last job (`REQUIRED`)
+every workflow (and, T1041, every merge queue group); its first job, `changes`, asks this file whether the PR touched
+the area, and the real jobs run only then (`if:`), so a required check never waits on a workflow that did not run: each workflow's last job (`REQUIRED`)
 always runs and passes when every job before it passed or was skipped. `before_push.py --changed` reads the same areas,
 so the hook and CI agree on what a change has to pass.
 """
@@ -173,22 +173,31 @@ def pr_paths(base: str, head: str) -> list[str]:
     return [x for x in _git("diff", "--name-only", "--no-renames", f"{base}...{head}").splitlines() if x]
 
 
+#: (T1041) the events whose jobs run only when the change touched the area: event -> what the change is called. A
+#: MERGE QUEUE's group (`merge_group`: the trunk + the queued pull requests, base_sha = the trunk's tip) is filtered as
+#: its pull requests were, so a required `ok` check reports on it as on the PR. The event exists only once a ruleset
+#: turns a merge queue on (post-0.9.0, after the move to an organisation): until then nothing sends it.
+FILTERED = {"pull_request": "pull request", "merge_group": "merge group"}
+
+
 def github(area: str, env=os.environ, paths_of=pr_paths) -> tuple[bool, str]:
     """(does the area's workflow run its jobs, why). A push (or a manual run) was already chosen by the workflow's own
-    path filter: everything runs. A pull request runs its jobs only when it touched the area."""
+    path filter: everything runs. A pull request (or (T1041) a merge queue's group) runs its jobs only when it touched
+    the area."""
     if area not in AREAS:
         raise SystemExit(f"ci-paths: no area {area!r} (one of {', '.join(AREAS)})")
     event = env.get("EVENT_NAME", "")
-    if event != "pull_request":
+    if event not in FILTERED:
         return True, f"{event or 'no event'}: the workflow's own trigger chose this run, every job runs"
+    what = FILTERED[event]
     base, head = env.get("BASE_SHA", ""), env.get("HEAD_SHA", "")
     if not base or not head:
-        raise SystemExit("ci-paths: a pull_request run needs BASE_SHA and HEAD_SHA (the PR's base and head commits)")
+        raise SystemExit(f"ci-paths: a {event} run needs BASE_SHA and HEAD_SHA (the {what}'s base and head commits)")
     paths = paths_of(base, head)
     hit = [p for p in paths if matches(p, AREAS[area])]
     if not hit:
-        return False, f"the pull request changes {len(paths)} path(s), none in {area}: its jobs are skipped (a pass)"
-    return True, f"{len(hit)} of the pull request's {len(paths)} path(s) are in {area}: " + ", ".join(hit[:12]) \
+        return False, f"the {what} changes {len(paths)} path(s), none in {area}: its jobs are skipped (a pass)"
+    return True, f"{len(hit)} of the {what}'s {len(paths)} path(s) are in {area}: " + ", ".join(hit[:12]) \
         + (" …" if len(hit) > 12 else "")
 
 

@@ -303,9 +303,12 @@ def test_the_strip_and_the_gate_agree_on_every_quote_of_the_corpus():
     assert n > 3000 and disagree == [], disagree[:10]
 
 
-def _render_in_threads(render, pages=(5, 9, 14, 20, 26, 31, 40, 47), each: int = 3) -> list[str]:
-    """`render(pdf_page)` from len(pages) threads at once, `each` times; the errors raised."""
+def _render_in_threads(render, pages=(5, 9, 14, 20, 26, 31, 40, 47), each: int = 3, deadline: float = 120) -> list[str]:
+    """`render(pdf_page)` from len(pages) threads at once, `each` times; the errors raised. (T1041) A thread still
+    rendering after `deadline` s is an error too ("HUNG"), never a wait: unlocked pdfium can deadlock as well as raise
+    or crash (#73's CI run 45300843329 waited out the mutation child's 600 s timeout)."""
     import threading
+    import time
     errs: list[str] = []
 
     def work(i):
@@ -314,11 +317,15 @@ def _render_in_threads(render, pages=(5, 9, 14, 20, 26, 31, 40, 47), each: int =
                 render(pages[(i + k) % len(pages)])
         except Exception as ex:  # noqa: BLE001 — the failure is the finding
             errs.append(repr(ex))
-    ts = [threading.Thread(target=work, args=(i,)) for i in range(len(pages))]
+    ts = [threading.Thread(target=work, args=(i,), daemon=True) for i in range(len(pages))]
     for t in ts:
         t.start()
+    end = time.monotonic() + deadline
     for t in ts:
-        t.join()
+        t.join(max(0.0, end - time.monotonic()))
+    hung = sum(t.is_alive() for t in ts)
+    if hung:
+        errs.append(f"HUNG: {hung} of {len(ts)} render thread(s) still running after {deadline} s")
     return errs
 
 
@@ -385,27 +392,45 @@ def test_every_pdfium_object_a_render_makes_is_closed_by_name_inside_the_lock(ba
 #: later `PdfDocument` in the same process then fails with "PDFium: Data format error" (T63: this test, run in-process,
 #: was the leak behind test_synopsis_pages' 4 order-dependent errors in the full suite).
 _MUTATION = """
-import contextlib, sys
+import contextlib, os, sys
 sys.path.insert(0, sys.argv[1])
 sys.path.insert(0, sys.argv[2])
 import evidence, synopsis_pages
 from pipeline.tests.test_review_screen import _render_in_threads
 synopsis_pages.PDFIUM_LOCK = contextlib.nullcontext()
-print(len(_render_in_threads(lambda n: evidence._render.__wrapped__(n, 1.0))))
+errs = _render_in_threads(lambda n: evidence._render.__wrapped__(n, 1.0), deadline=60)
+print(*([e for e in errs if e.startswith("HUNG")] or ["no hang"]), sep=chr(10))
+print(len(errs), flush=True)
+os._exit(0)     # a hung (daemon) render thread must not hold the exit
 """
 
 
 def test_the_render_lock_is_pinned_by_mutation():
     """MUTATION: no lock (`PDFIUM_LOCK` a no-op) — renders in flight together fail, and
-    `test_pages_render_from_many_threads_at_once` fails on it. In a child process (see `_MUTATION`)."""
+    `test_pages_render_from_many_threads_at_once` fails on it. In a child process (see `_MUTATION`). The unlocked
+    renders raise, crash the child, or (T1041, a GitHub runner) deadlock: a hang is counted after 60 s, so the child
+    always ends in about a minute; the outer timeout is only a backstop."""
     import subprocess
     import sys
     got = subprocess.run([sys.executable, "-c", _MUTATION, str(REPO / "curation-review" / "backend"), str(REPO)],
-                         capture_output=True, text=True, timeout=600, cwd=REPO)
+                         capture_output=True, text=True, timeout=240, cwd=REPO)
     if got.returncode < 0:     # killed by a signal: unlocked pdfium can crash the process outright — a failure too
         return
     assert got.returncode == 0, got.stderr[-2000:]
     assert int(got.stdout.strip().splitlines()[-1]) > 0, got.stdout
+
+
+def test_a_render_that_never_returns_is_a_hang_reported_in_time():
+    """(T1041) the unlocked-render mutation deadlocked on a GitHub runner and waited out its 600 s timeout: a render
+    thread still running at the deadline is reported ("HUNG") and the call returns. Mutation: join with no timeout ->
+    this test never ends (pytest's own guard stops it)."""
+    import threading
+    import time
+    stop = threading.Event()
+    t0 = time.monotonic()
+    errs = _render_in_threads(lambda n: stop.wait(600), deadline=1)
+    stop.set()
+    assert errs == ["HUNG: 8 of 8 render thread(s) still running after 1 s"] and time.monotonic() - t0 < 10
 
 
 def test_a_split_whose_old_mark_went_stale_is_to_verify_again():
