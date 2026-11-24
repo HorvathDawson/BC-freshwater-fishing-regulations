@@ -30,7 +30,7 @@ import { makeReleaseSource } from "@app/data/release";
 import type { FishImages } from "@app/ui-native";
 import { readAppExport, type AppExport } from "./appExport";
 import { webFonts } from "./webFonts";
-import { BUDGET, checkBudget, lighthouseConfig, measure, type Measured } from "./budget";
+import { BUDGET, chartJsProblems, checkBudget, lighthouseConfig, measure, type Measured } from "./budget";
 import { FACES_REQUIRED, fontFaceCss, paneCss as paneCss_, PaneRenderer, type PaneCssParts } from "./pane";
 import { PanePool } from "./panePool";
 import type { WaterModel } from "./model";
@@ -40,14 +40,15 @@ import { JobPool } from "./jobs";
 import { threadCounts, type ThreadCounts } from "./threads";
 import { withFavicon } from "./favicon";
 import { appSiteAssociationFile, assetLinksFile, headersFile, IOS_TEAM_ID_RE, hostRules, hostWorker, redirectsFile } from "./hosting";
-import type { Site } from "./html";
+import { descriptionHasFacts, type Site } from "./html";
 import { legacyRedirects, legacyWorker, type Crosswalk, type LegacyBuilt } from "./legacy";
 import { buildDayOf, type BuildDay } from "./model";
 import { buildSite, changesOf, rulesSha, type Snapshot, type SiteBuild, type WaterMade } from "./site";
 import { listWaterOrds, rulesKey } from "./model";
 import { gzipSync } from "node:zlib";
 import { EMPTY_SLUG_MAP, type SlugMap } from "./slug";
-import { readGaugeRows, type GaugeRows } from "./gauges";
+import { readGaugeClim, readGaugeRows, type GaugeRows } from "./gauges";
+import type { StationClim } from "@app/data";
 
 const APP = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 export const DEFAULT_OUT = join(APP, "dist/seo");
@@ -92,6 +93,8 @@ export interface BuildArgs {
   readonly bare?: boolean;
   /** (T487) the gauges, given (a test over the regs fixture, which carries no conditions file); absent: read from the release */
   readonly gauges?: GaugeRows | null;
+  /** (T1039) each station's climatology, given (beside `gauges`, for the same reason); absent: read from the release */
+  readonly gaugeClim?: ReadonlyMap<string, readonly StationClim[]> | null;
 }
 /** The app document a test builds into when no web export is given: the export's shape, no script. */
 export const BARE_APP = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><title>canifishthis</title>` +
@@ -171,16 +174,19 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   const binary = new Map<string, Uint8Array>(), toDraw: [string, string][] = [];
   // (T487) the gauges and the waters each serves (null: a release with no conditions file, the regs fixture)
   const gaugeRows = a.gauges !== undefined ? a.gauges : await readGaugeRows(a.loader);
+  // (T1039) each station's climatology, written into its page for the app's chart
+  const gaugeClim = a.gaugeClim !== undefined ? a.gaugeClim : gaugeRows ? await readGaugeClim(a.loader) : null;
   try {
     try {
       build = await buildSite({
         store, site: config, release: { id: store.meta.release, validUntil: a.loader.manifest.regulations.valid_until },
         on: a.on, slugMap: a.slugMap ?? EMPTY_SLUG_MAP, previous: a.previous ?? null, ...(a.hubSplitAt ? { hubSplitAt: a.hubSplitAt } : {}),
-        waterPage, ...(a.only ? { only: a.only } : {}), gauges: gaugeRows,
+        waterPage, ...(a.only ? { only: a.only } : {}), gauges: gaugeRows, gaugeClim, gaugeFonts: fonts.css || null,
       });
       parts = await cssParts();
     } finally { await pool?.close(); }
     files = new Map(build.files);
+    for (const [name, bytes] of build.binary) binary.set(name, bytes);     // (T1039) the gauge chart's pictures
     for (const [name, svg] of build.files) {
       if (!/^share\/[^/]+\.svg$/.test(name)) continue;
       files.delete(name);
@@ -197,7 +203,7 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   files.set("_headers", headersFile());
   files.set(".well-known/assetlinks.json", assetLinksFile());
   if (a.iosTeamId) files.set(".well-known/apple-app-site-association", appSiteAssociationFile(a.iosTeamId));
-  withFavicon(files);
+  withFavicon(files, binary);
   files.set("_redirects", redirectsFile(build.removed, build.regions));
   files.set("redirects.json", `${JSON.stringify(hostRules(config, config.alsoHosts), null, 1)}\n`);
   files.set("host-worker.js", hostWorker(config, build.removed, build.regions));
@@ -214,6 +220,8 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   const cards = [...binary].filter(([n]) => n.startsWith("share/")).map(([, b]) => b.length);
   const share = { files: cards.length, bytes: cards.reduce((x, y) => x + y, 0), largest: Math.max(0, ...cards) };
   if (share.largest > BUDGET.sharePngBytes) problems.push(`a share card is ${share.largest} B, over ${BUDGET.sharePngBytes}`);
+  // (T1039) the gauge chart's script, gzip (the one page script that is not a few KB)
+  problems.push(...chartJsProblems(files));
   if (web) problems.push(...web.problems);
   // (T1011) the home page (the app's own index.html) links the site's pages: only pages this build made, every region's
   if (a.app && !a.only) problems.push(...homeLinkProblems(a.app.template, build.pages));
@@ -227,7 +235,9 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   const waters = build.pages.filter((p) => p.kind === "water").length;
   if (waters !== build.models.length) problems.push(`${waters} water pages for ${build.models.length} waters with rules`);
   const sample = ["/about", ...build.pages.filter((p) => p.kind === "region").slice(0, 1).map((p) => p.path),
-                  ...build.pages.filter((p) => p.kind === "water").slice(0, 3).map((p) => p.path)];
+                  ...build.pages.filter((p) => p.kind === "water").slice(0, 3).map((p) => p.path),
+                  // (T1039) a gauge page: its deferred chart script is the heaviest on the site
+                  ...build.pages.filter((p) => p.kind === "gauge").slice(0, 1).map((p) => p.path)];
   files.set("lighthouserc.json", `${JSON.stringify(lighthouseConfig(sample.map((p) => `${p.slice(1)}/index.html`)), null, 1)}\n`);
   // uniqueness and length report: what Search Console's duplicate / "title too long" findings would otherwise tell us later
   const titles = build.pages.map((p) => p.title), descs = build.pages.map((p) => p.description);
@@ -235,6 +245,8 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
     pages: build.pages.length,
     uniqueTitles: new Set(titles).size, uniqueDescriptions: new Set(descs).size,
     titlesOver60: titles.filter((t) => t.length > 60).length, descriptionsOver155: descs.filter((t) => t.length > 155).length,
+    // (T1042) waters whose page held no fact that fits a description: shown here, never silently the template
+    descriptionsWithoutFacts: build.models.filter((m) => !descriptionHasFacts(m)).length,
     emptyTitleOrDescription: titles.filter((t) => !t).length + descs.filter((t) => !t).length,
   };
   if (quality.uniqueTitles !== quality.pages || quality.uniqueDescriptions !== quality.pages) problems.push(`titles/descriptions are not unique: ${JSON.stringify(quality)}`);

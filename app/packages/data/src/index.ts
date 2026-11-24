@@ -21,6 +21,8 @@ export type { WaterSource } from "./source";
 export type { Db, Row } from "./sql/db";
 
 export { FEED_TTL_MS, httpFeed, type GaugeFeed } from "./feed/http";
+// (T1039) the public gauge page's source: the app's chart over the feed and the station's climatology
+export { stationChartSource, type StationClim } from "./feed/stationSource";
 // (T315) the gauges' last week, kept on the phone for offline
 export { gaugeHistory } from "./feed/history";
 // (T256) the Conditions chart before its envelope: the observations and forecast, no normal range

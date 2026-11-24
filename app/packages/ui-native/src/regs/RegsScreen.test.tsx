@@ -76,6 +76,12 @@ describe("<RegsScreen>", () => {
     expect(screen.queryByTestId("regs-lapsed")).toBeNull();
   });
 
+  it("(T1042) the words every water repeats are never Google's snippet: the licence block, the reference and the legal footer carry data-nosnippet; the rest does not", () => {
+    mount();
+    const marked = [...screen.getByTestId("regs-content").children].filter((e) => e.hasAttribute("data-nosnippet")).map((e) => e.getAttribute("data-testid"));
+    expect(marked).toEqual(["regs-licence", "regs-reference", "regs-legal"]);
+  });
+
   it("licence-last: Keep, Gear, Methods, Licence, then the footer, in the one scroll; absent sections are not drawn", () => {
     mount({ footer: <Text testID="foot">foot</Text> });
     expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")))

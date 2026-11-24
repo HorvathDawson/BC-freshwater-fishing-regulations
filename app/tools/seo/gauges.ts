@@ -6,8 +6,8 @@
  * facts the feeds worker writes beside each gauge's share card (`feeds/cards/<station>.json`) and the weather at the
  * gauge (Open-Meteo). What the build writes here is what does not move between feed runs: the gauge's name and number,
  * the waters it serves (one line each to that water's regulations page — never an open/closed word on this page), and
- * "Open on the website" (the web app on that water's Conditions view) beside the "Get the app" block (`getAppBlock`)
- * (the phone app takes no links yet, D1; T514).
+ * "Open on the website" (the web app on that water's Conditions view) above the web app's own "Get the app" block (ui-native
+ * `GetAppBlock`, mounted by the chart's script; T1039).
  *
  * WHICH GAUGES: every station in the release that serves at least one water with a page — its own water (`gauge.item_id`),
  * a lake it gauges (`lake_gauge`), or a section it is the panel gauge of (`section_gauge`, good / fair; weak ones are
@@ -23,10 +23,11 @@ import { crashUrlFor, ORIGINS, REPORT_URLS } from "../../apps/mobile/src/env";
 import { clip, esc, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, type Site } from "./html";
 import type { GaugeConfig } from "./gaugeClient";
 import { FIND_BODY } from "./regionMap";
-import { appStoreLink, TESTFLIGHT_URL, WEB_SPOTS_WORDS, bestServes, gaugePath, getAppBlock, playStoreLink, type GetAppSlot, STALE_AFTER_MS, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
-import { readGaugeRows } from "@app/data/release";
+import { bestServes, gaugePath, STALE_AFTER_MS, STORE_CONTACT, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
+import type { StationClim } from "@app/data";
+import { readGaugeClim, readGaugeRows } from "@app/data/release";
 
-export { readGaugeRows, type GaugeRows };
+export { readGaugeClim, readGaugeRows, type GaugeRows };
 
 export interface WaterLink { readonly id: string; readonly name: string; readonly path: string }
 export interface GaugeModel {
@@ -68,18 +69,20 @@ const HERE = dirname(fileURLToPath(import.meta.url));
  */
 const CORE = join(HERE, "../../packages/core/src");
 export const CORE_INLINE: readonly (readonly [file: string, names: readonly string[]])[] = [
-  ["clock.ts", ["BC_PERMANENT_FROM", "BC_TIME_LABEL", "bcOffsetHours"]],
+  ["clock.ts", ["BC_PERMANENT_FROM", "BC_TIME_LABEL", "bcOffsetHours", "bcClockTime"]],
+  // (T1039, owner 2026-11-23: "could add other almanac info too?") the app's sunrise and sunset (the water page's sun line)
+  // and its weather figures and words (a spot's record and weather window)
+  ["sun.ts", ["RAD", "J2000", "UNIX_JD", "DAY_MS", "sunTimes", "SUN_WORDS", "bare", "short", "sunLine"]],
+  ["weatherFigure.ts", ["round1", "weatherFigure"]],
+  ["spotWords.ts", ["SPOT_WINDOW"]],
   ["flow.ts", ["MONTHS", "monthAbbr", "WEEKDAY_NAMES", "weekdayAbbr"]],
   // (T908) the Conditions legend's "Normal" band, and where a percentile sits on the colour bar
   ["gauge-policy.generated.ts", ["PERCENTILE_KNOTS"]],
   ["flow.ts", ["KNOTS", "standing", "NORMAL_BAND"]],
-  // (T908) the forecast options: the models' dashes and the app's own toggle logic (change.ts)
-  ["conditions.ts", ["REALTIME_ONLY", "FORECAST_MODEL_CONTROL", "forecastModelOption", "FLOW_LEGEND"]],
+  // (T908) the colour bar's legend words (T1039: the forecast options are the app's chart's own now, gaugeChart.tsx)
+  ["conditions.ts", ["FLOW_LEGEND"]],
   ["day.ts", ["pad2", "HOUR_MS", "bcWall", "fromBcWall", "bcMidnight", "bcFields", "bcDayWords", "bcWeekdayAbbr", "bcStampWords", "bcClockWords", "bcIsoDayWords"]],
-  ["chartTicks.ts", ["niceTicks"]],
-  ["chartMarks.ts", ["RULE_GAP", "LABEL_GAP", "IMPORTANCE", "MARK_ROWS", "markTextWidth", "meets", "layoutDayMarks"]],
-  ["alerts.ts", ["normalRangeOf"]],
-  ["change.ts", ["STEADY_RATIO", "OBSERVED_TREND", "observedTrend", "FORECAST_DASH", "OTHER_MODEL_DASH", "forecastDash", "NO_MODEL_PICK", "pickModel", "realtimeOnly", "forecastDrawn"]],
+  ["change.ts", ["STEADY_RATIO", "OBSERVED_TREND", "observedTrend"]],
   ["freshness.ts", ["AGO_WORDS", "ageWords", "freshness", "MAY_BE_OLD", "READING_LEAD", "readingAgeParts", "readingAgeWords", "readingAgeBrief"]],
   ["standing.ts", ["figure", "BAND_WORDS", "PRIOR_BAND_WORDS", "bandOfWord", "bandWord", "standingNowLine", "gaugeSummaryLine", "side", "daysShort", "daysNear"]],
 ];
@@ -111,23 +114,64 @@ export function clientScript(): string {
   return `(function(){"use strict";\nconst STALE_AFTER_MS=${STALE_AFTER_MS};\n${core}\n${js}\ngaugePage(document,Date.now,window.fetch.bind(window)).catch(function(e){console.error(e)});\n})();\n`;
 }
 
-/** (T911) joinClient.ts as one plain, self-hosted script, calling itself on load. It reports through the gauge page's own
- *  reporter (gaugeClient.ts `pageReporter` and what it calls, written in from their source) at the page's #gauge-config. */
+/** the page reporter (gaugeClient.ts `pageReporter` and what it calls), written into a region hub's find script */
 const JOIN_REPORTER: readonly string[] = ["isEnvironment", "crashReport", "pageReporter"];
-export function joinScript(): string {
-  const js = plain(readFileSync(join(HERE, "joinClient.ts"), "utf8"));
-  if (/^\s*import\b/m.test(js)) throw new Error("seo: joinClient.ts must not import anything (it ships as one plain script)");
-  const reporter = inlineCore("gaugeClient.ts", JOIN_REPORTER, HERE);
-  // the card is drawn on gauge pages only, each with its #gauge-config; one without it is a build defect, thrown (the
-  // mailto links still work)
-  const start = `var c=document.getElementById("gauge-config");if(!c||!c.textContent)throw new Error("join card: no #gauge-config on this page");` +
-    `joinPopup(document,function(){return window.navigator.clipboard;},pageReporter(JSON.parse(c.textContent),window.fetch.bind(window),Date.now));`;
-  return `(function(){"use strict";\n${reporter}\n${js}\n${start}\n})();\n`;
-}
 
 /** (T1010) a region hub's water search: its script (regionMap.ts) with the page reporter written in, as the Join card's */
 export function findScript(): string {
   return `(function(){"use strict";\n${inlineCore("gaugeClient.ts", JOIN_REPORTER, HERE)}\n${FIND_BODY}\n})();\n`;
+}
+
+/**
+ * (T1039, owner Q183 2026-11-23: "App's chart, ~260 KB") THE APP'S CHART AS THE PAGE'S SECOND SCRIPT: gaugeChart.tsx and the
+ * app code it draws with (@app/ui-native `StationChart`, @app/ui `useStationChart`, @app/data's feed and series code, React and
+ * react-native-web), bundled into one minified file the page loads deferred, after its words. Resolved as the app's web build
+ * and the tests resolve them (vitest.config.ts): react-native is react-native-web, each `.web` sibling first, react-native-svg's
+ * web entry, the gesture handler's ES-module build. A bundle that does not build stops the site build (thrown).
+ */
+/**
+ * A bundle that reads an environment variable (an EXPO_PUBLIC_ one, inlined by Metro in the app) would throw in the
+ * browser: the site build stops instead. React's own `typeof process` checks are guarded and stay; NODE_ENV is defined.
+ */
+export function browserSafe(js: string): void {
+  const env = /\bprocess\.env\b(?!\.NODE_ENV\b)[.\w]*/.exec(js);
+  if (env) throw new Error(`seo: the gauge chart's script reads ${env[0]}, which no browser has`);
+}
+
+export interface ChartBundle {
+  readonly js: string;
+  /** the pictures the bundle names (the coho loader's sheets), at their served paths under /assets/chart/ */
+  readonly assets: ReadonlyMap<string, Uint8Array>;
+}
+export async function chartScript(): Promise<ChartBundle> {
+  // loaded here, not at the top: esbuild refuses to start in a DOM-like test environment (jsdom), and the tests that run
+  // this file's other scripts there never build the chart
+  const { build: esbuild } = await import("esbuild");
+  const nm = (p: string) => join(HERE, "../../node_modules", p);
+  const out = join(HERE, ".chart-bundle");                  // nothing is written there (write: false): the paths name the files
+  const r = await esbuild({
+    stdin: { contents: `import { mountGaugeChart } from "./gaugeChart";\nmountGaugeChart(document, window.fetch.bind(window), Date.now);\n`,
+             resolveDir: HERE, loader: "ts", sourcefile: "gauge-chart-entry.ts" },
+    bundle: true, minify: true, format: "iife", platform: "browser", target: "es2020", write: false, logLevel: "silent",
+    outdir: out, entryNames: "gauge-chart", assetNames: "chart/[name].[hash]", publicPath: "/assets",
+    alias: { "react-native": "react-native-web", "react-native-svg": nm("react-native-svg/lib/module/ReactNativeSVG.web.js"),
+             "@react-native/assets-registry/registry": "react-native-web/asset-registry",
+             "react-native-gesture-handler": nm("react-native-gesture-handler/lib/module/index.js") },
+    resolveExtensions: [".web.tsx", ".web.ts", ".web.js", ".tsx", ".ts", ".js", ".mjs", ".json"],
+    // react-native-svg's touch sound: a `require` made on Android only (SvgTouchableMixin, `Platform.OS === "android"`), of a
+    // TurboModule react-native-web has no registry for; left out of the bundle, as Metro's web build never runs it either
+    external: ["../fabric/NativeSvgSoundModule"],
+    define: { "process.env.NODE_ENV": '"production"', __DEV__: "false", global: "globalThis" },
+    // a picture the app's components import is served as its own file, as the app's web export serves it
+    loader: { ".js": "jsx", ".webp": "file", ".png": "file" },
+  });
+  if (r.errors.length) throw new Error(`seo: the gauge chart's script did not build: ${r.errors.map((e) => e.text).join("; ")}`);
+  const main = r.outputFiles.find((f) => f.path === join(out, "gauge-chart.js"));
+  if (!main) throw new Error("seo: the gauge chart's build wrote no gauge-chart.js");
+  const js = main.text;
+  browserSafe(js);
+  const assets = new Map(r.outputFiles.filter((f) => f !== main).map((f) => [`assets/${f.path.slice(out.length + 1)}`, f.contents] as const));
+  return { js, assets };
 }
 
 /** the production hosts the page names; deploy/staging/site.sh points a staging copy at staging's */
@@ -140,15 +184,36 @@ const OPEN_METEO = "https://api.open-meteo.com/v1/forecast";
 /** WMO weather codes 0-99 in the app's sky words (data/spots/words.ts `skyWord`) */
 const SKY: Readonly<Record<string, string>> = Object.fromEntries(Array.from({ length: 100 }, (_, c) => [String(c), skyWord(c)]));
 
-export function gaugeConfig(g: GaugeModel, release: string): GaugeConfig {
+/** (T1039) the chart's inputs the build writes into each page: the station's climatology and the app's faces */
+export interface ChartInputs { readonly clim: readonly StationClim[]; readonly fonts: string | null }
+
+/**
+ * A station's chart inputs from the release's climatology map (`readGaugeClim`): its rows (none: the release has no envelope
+ * for it, which the app charts the same way) and the app's faces. No map at all is a build that skipped the read: refused,
+ * since every page would chart no normal range.
+ */
+export function chartInputsOf(clim: ReadonlyMap<string, readonly StationClim[]> | null | undefined, station: string, fonts: string | null): ChartInputs {
+  if (!clim) throw new Error("seo: gauge pages without the release's climatology (gaugeClim) would draw no normal range");
+  return { clim: clim.get(station) ?? [], fonts };
+}
+
+export function gaugeConfig(g: GaugeModel, release: string, chart: ChartInputs): GaugeConfig {
   return {
     station: g.station,
     facts: `${LIVE.data}/feeds/cards/${g.station}.json`,
     weather: g.lat === null || g.lon === null ? null
-      : `${OPEN_METEO}?${weatherPlace(g.lat, g.lon)}&current=temperature_2m,precipitation,weather_code,wind_speed_10m` +
+      // (T1039) and the measures a spot's weather window shows: cloud cover, pressure, humidity (data/spots/weather.ts FIELDS)
+      : `${OPEN_METEO}?${weatherPlace(g.lat, g.lon)}&current=temperature_2m,precipitation,weather_code,wind_speed_10m,cloud_cover,pressure_msl,relative_humidity_2m` +
         "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max&timezone=Etc%2FGMT%2B7&forecast_days=5",
     weatherAttribution: OPEN_METEO_ATTRIBUTION, sky: SKY,
     crash: LIVE.crash, env: LIVE.env, release,
+    // the app's own feed base (apps/mobile env.ts `feed`): the chart reads the station's file the app reads
+    live: `${LIVE.data}/feeds/live`,
+    clim: chart.clim.map((c) => ({ parameter: c.parameter, bands: Buffer.from(c.bands).toString("base64") })),
+    fonts: chart.fonts || null,
+    contact: STORE_CONTACT,
+    // (T1039) where the day's sunrise and sunset are worked out (the gauge's own point; core `sunLine`, read time)
+    place: g.lat === null || g.lon === null ? null : { lat: g.lat, lon: g.lon },
   };
 }
 
@@ -161,36 +226,8 @@ export function gaugeTitle(g: Pick<GaugeModel, "name" | "station">): string {
 
 export function gaugeDescription(g: GaugeModel): string {
   const w = g.close[0]?.name ?? g.rough[0]?.name;
-  return clip(`Live flow, the last 7 days, the flow forecast and the weather at the ${g.name} gauge (${g.station}), BC` +
+  return clip(`Live flow, this year's record, the flow forecasts and the weather at the ${g.name} gauge (${g.station}), BC` +
     `${w ? `, for ${w}` : ""}. Free, from Water Survey of Canada data.`);
-}
-
-/**
- * (T514, T901) the page's two store buttons, "Google Play" and "App Store" (owner 2026-11-19: one button per store). Each
- * is greyed "coming soon" until its page is public: Play while core's `PLAY_PUBLIC` is false, the App Store while core's
- * `APP_STORE_PUBLIC` is false (`appStoreLink()` null); then its link. A phone with the app installed opens the app (T625).
- */
-export function openInAppControl(play: string | null = playStoreLink(), appStore: string | null = appStoreLink(),
-                                 contact: string | null = null, testflight: string | null = TESTFLIGHT_URL): string {
-  const blk = getAppBlock(play, appStore, contact, false, testflight);
-  const P = WEB_SPOTS_WORDS.join.popup;
-  // (T911) a Join the test link still is the mailto (it works with no script); joinClient.ts opens its card over it
-  const slot = (x: GetAppSlot) => x.kind === "store"
-    ? `<a class="app" href="${esc(x.url)}">${esc(x.label)}</a>`
-    : `<a class="app" href="${esc(x.ask.mailto!)}" data-join="join-${x.store}">${esc(x.label)}</a>`;
-  const card = (x: GetAppSlot) => {
-    if (x.kind !== "join") return "";
-    const id = `join-${x.store}`, addr = x.ask.address;
-    return `<dialog id="${id}" class="join" aria-labelledby="${id}-h" data-copied="${esc(P.copied)}" data-refused="${esc(P.refused)}">` +
-      `<button type="button" class="x" data-close aria-label="${esc(P.close)}">\u2715</button>` +
-      `<h2 id="${id}-h">${esc(x.label)}</h2><p>${esc(P[x.store])}</p>` +
-      `<div class="acts"><a class="app" href="${esc(x.ask.mailto!)}">${esc(P.email)}</a>` +
-      (addr ? `<button type="button" class="app alt" data-copy="${esc(addr)}">${esc(P.copy)}</button>` : "") + `</div>` +
-      `<p class="small" role="status" data-said></p>` + (addr ? `<p class="addr" data-addr hidden>${esc(addr)}</p>` : "") + `</dialog>`;
-  };
-  return (blk.coming ? `<p class="small coming">${esc(blk.coming)}</p>` : "") +
-    (blk.lead ? `<p class="small joins">${esc(blk.lead)}</p>` : "") +
-    (blk.slots.length ? `<div class="stores">${blk.slots.map(slot).join("")}</div>` + blk.slots.map(card).join("") : "");
 }
 
 /**
@@ -205,18 +242,18 @@ export function moreSummary(g: Pick<GaugeModel, "main" | "more" | "rough">): str
 }
 
 /** the page body: everything that does not move between feed runs; the live sections are filled by gaugeClient.ts */
-export function gaugeBody(g: GaugeModel, release: string, clientHref: string, asOf: string, contact: string | null = null,
-                          joinHref: string | null = null): string {
+export function gaugeBody(g: GaugeModel, release: string, clientHref: string, asOf: string, chartHref: string, chart: ChartInputs): string {
   const first = g.close[0] ?? g.rough[0]!;
   const line = (w: WaterLink) => `<li><a href="${esc(w.path)}">${esc(w.name)} fishing regulations</a></li>`;
-  const cfg = JSON.stringify(gaugeConfig(g, release)).replace(/</g, "\\u003c");
+  const cfg = JSON.stringify(gaugeConfig(g, release, chart)).replace(/</g, "\\u003c");
   return `<div class="gv"><nav class="crumbs"><a href="/">Home</a> › <a href="/gauges">River gauges</a> › ${esc(g.name)}</nav>` +
     `<h1>${esc(g.name)}</h1>` +
     `<p class="small">Water Survey of Canada gauge ${esc(g.station)} · read each time this page opens.</p>` +
     `<div id="gauge-now" class="now-card"><p class="small">Reading the latest from the gauge…</p></div>` +
-    `<noscript><p class="warn">The live reading, chart and weather need JavaScript.</p></noscript>` +
-    `<div id="gauge-chart"></div>` +
-    `<div id="gauge-weather"><p class="small">Reading the forecast…</p></div>` +
+    `<noscript><p class="warn">The live reading, chart and weather need JavaScript.</p><style>#gauge-chart{display:none}</style></noscript>` +
+    // (T1039) the app's own chart, drawn by its deferred script (gaugeChart.tsx); the box keeps its place meanwhile
+    `<h2>Readings and forecast</h2><div id="gauge-chart"><p class="small">Drawing the chart…</p></div><div id="gauge-credit"></div>` +
+    `<div id="gauge-weather"><p class="small">Reading the forecast…</p></div><div id="gauge-sun"></div>` +
     `<h2>Waters this gauge serves</h2>` +
     (g.main.length ? `<ul>${g.main.map(line).join("")}</ul>` : "") +
     // (T908) the fair and weak guides are one fold, never the page's body
@@ -225,10 +262,12 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
     `<p class="small">Waters as of <time datetime="${esc(asOf)}">${esc(asOf)}</time>, from release ${esc(release)}.</p>` +
     `<div class="card"><p>See this gauge with the map, alerts and every other gauge in the app.</p>` +
     // (owner 2026-11-08) the website now; the phone app greyed until its store listing is public (T514)
-    `<div class="opens"><a class="app" href="${esc(`${first.path}?view=conditions`)}">Open on the website</a>` +
-    `${openInAppControl(undefined, undefined, contact)}</div></div></div>` +
+    `<div class="opens"><a class="app" href="${esc(`${first.path}?view=conditions`)}">Open on the website</a></div>` +
+    // (T1039, owner 2026-11-23: "chart should use same buttons as spots too for now") the web app's own "Get the app"
+    // block (ui-native `GetAppBlock`), drawn by the chart's script
+    `<div id="gauge-get-app"></div></div></div>` +
     `<script type="application/json" id="gauge-config">${cfg}</script><script src="${esc(clientHref)}" defer></script>` +
-    (joinHref ? `<script src="${esc(joinHref)}" defer></script>` : "");
+    `<script src="${esc(chartHref)}" defer></script>`;
 }
 
 export function gaugesIndexBody(gs: readonly GaugeModel[], asOf: string): string {

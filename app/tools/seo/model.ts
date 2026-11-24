@@ -27,6 +27,8 @@ export interface PartModel {
    *  (`keep.strip.legend`: the strip bit and the release's label — "fly fishing only", "bait ban"); empty: no strip.
    *  Read by the topic hubs (topics.ts), so a hub lists a water by its year, not by the build day's sentences. */
   readonly marks: readonly { readonly bit: number; readonly label: string }[];
+  /** (T1042) the strip's runs with their bits (bit 1 closed, 4/8 fly, 16 bait): what a mark "holds on every open day" is read from; null: no strip */
+  readonly yearBits: readonly { readonly bits: number | null; readonly days: number }[] | null;
   readonly partIx: number; readonly label: string;
   readonly status: Status;
   /** the presenter's strip words ("Open today", "Closed", ...) or its banner's headline */
@@ -148,7 +150,7 @@ function sectionsOf(page: Omit<RegsPage, "sheet">): Section[] {
   if (k.otherFish?.length) {
     // (T670 K2 / T672) a row's fish its number does not hold for ("Release every mountain whitefish.") go under the row,
     // as the app draws them: without the line the row reads "Whitefish · 15 a day" for a fish that must go back
-    put("Other fish", [...k.otherFish.flatMap((o) => [item([o.name, o.value, o.week, o.sizeHint].filter(Boolean).join(" · ")),
+    put("Other fish", [...k.otherFish.flatMap((o) => [item(`${[o.name, o.value, o.week].filter(Boolean).join(" · ")}${o.sizeHint ? ` ${o.sizeHint}` : ""}`),
                                                       ...o.back.map((b) => item(b.says)), ...o.stamps.map((s) => item(s))]),
                        ...k.otherFishKey.map((x) => item(x.says))]);
   }
@@ -215,7 +217,7 @@ export function partModel(page: RegsPage): PartModel {
   return {
     partIx: page.target.kind === "part" ? page.target.partIx : 0, label: page.header.place?.full ?? page.header.name,
     status: page.status, today: banner?.big[0] ?? banner?.paras[0] ?? (strip || TODAY_WORDS[page.status]),
-    sections: sectionsOf(bare), year: yearOf(page),
+    sections: sectionsOf(bare), year: yearOf(page), yearBits: page.keep.strip?.runs.map((r) => ({ bits: r.bits, days: r.days })) ?? null,
     marks: (page.keep.strip?.legend ?? []).map((l) => ({ bit: l.bit, label: l.label })),
   };
 }

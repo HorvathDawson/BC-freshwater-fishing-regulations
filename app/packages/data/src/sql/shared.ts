@@ -9,7 +9,7 @@ import { forecastFor, type Observations } from "../feed/http";
 import type { Aged, GaugeLink, GaugeWaters, ItemId, NameHit, NearHit, Parameter, PanelRoute, PointerHit, SectionId,
               Series, StationId } from "../index";
 import { num, str, type Cell, type Row } from "./db";
-import { unclim3 } from "../release/packed";
+import { CLIM_CODEC, unclim3 } from "../release/packed";
 
 /** (T300) a model's place in the publisher's order (CLEVER, COFFEE, ELF); a model outside it comes after. */
 const modelRank = (m: string): number => {
@@ -179,6 +179,16 @@ export function f16(h: number): number {
   if (e === 0) return s * m * 2 ** -24;
   if (e === 31) return m ? NaN : s * Infinity;
   return s * (1 + m / 1024) * 2 ** (e - 15);
+}
+
+/**
+ * (T1039) A STATION'S SERIES: the feed's observations over the release's climatology blob for that quantity (clim/3, T975).
+ * The one expression the release source's `gaugeSeries` and the gauge page's source (`stationChartSource`) answer with, so
+ * the page and the app chart one gauge from the same arithmetic.
+ */
+export function climSeries(bands: Uint8Array | null | undefined, obs: Observations | null, span: "72h" | "year",
+                           param: Parameter, model?: string): Aged<Series> | null {
+  return seriesOf(pentadsOf(bands, CLIM_CODEC), obs, span, param, model);
 }
 
 /**

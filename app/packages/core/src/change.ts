@@ -64,6 +64,19 @@ export function forecastDrawn(on: boolean | null, runs: readonly { model: string
   return !(runs.length > 0 && runs.every((r) => r.model === "ELF"));
 }
 
+/**
+ * (T1039) A RUN THE APP OFFERS in a quantity: its series has a finite middle value in that quantity (`level_mid` on a level
+ * chart, `mid` on a flow chart). CLEVER publishes flow only, so it is not offered on a level chart; ELF publishes both. Age is
+ * not part of it: a run past its working-day line (staleness.ts `byWeekdays`) is still offered, and said to be "likely out of
+ * date" where its issue is shown. THE ONE RULE behind the chart's model list (data feed/http.ts `forecastFor`) and the gauge
+ * page's facts (workers/feeds card.ts `cardModel`).
+ */
+export function runOffered(series: { readonly mid?: readonly (number | null)[] | null; readonly level_mid?: readonly (number | null)[] | null } | null | undefined,
+                           parameter: "discharge" | "level"): boolean {
+  const mid = parameter === "level" ? series?.level_mid : series?.mid;
+  return (mid ?? []).some((v) => v !== null && Number.isFinite(v));
+}
+
 /** Is a run's model one the publisher names (and so one with a colour and a dash of its own)? */
 export const isForecastModel = (m: string): m is ForecastModel => (FORECAST_MODELS as readonly string[]).includes(m);
 

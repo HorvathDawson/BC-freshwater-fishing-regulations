@@ -18,7 +18,8 @@ import { verifyAgainstApp } from "./verify";
 import { regionYear, yearCardHtml } from "./regionYear";
 import { pageSize, type PageSize } from "./budget";
 import { dotPicture, namesFile, regionLead } from "./regionMap";
-import { clientScript, findScript, joinScript, LIVE, gaugeBody, gaugeDescription, gaugeModels, gaugesIndexBody, gaugeTitle, siteGaugeCardSvg, stationsFile, type GaugeModel, type GaugeRows } from "./gauges";
+import { chartInputsOf, chartScript, clientScript, findScript, LIVE, gaugeBody, gaugeDescription, gaugeModels, gaugesIndexBody, gaugeTitle, siteGaugeCardSvg, stationsFile, type GaugeModel, type GaugeRows } from "./gauges";
+import type { StationClim } from "@app/data";
 
 export interface PageRec {
   readonly path: string; readonly kind: "water" | "region" | "letter" | "topic" | "changes" | "about" | "privacy" | "gauge" | "gauges";
@@ -65,9 +66,15 @@ export interface BuildOpts {
   readonly only?: ReadonlySet<string>;
   /** (T487) the release's gauges and the waters each serves (gauges.ts `readGaugeRows`); null: the release has none */
   readonly gauges?: GaugeRows | null;
+  /** (T1039) each station's climatology from the same release (gauges.ts `readGaugeClim`), written into its page for the chart */
+  readonly gaugeClim?: ReadonlyMap<string, readonly StationClim[]> | null;
+  /** (T1039) the app's faces as `@font-face` rules (pane.tsx `fontFaceCss`), for the chart's words; absent: no app export */
+  readonly gaugeFonts?: string | null;
 }
 export interface SiteBuild {
   readonly files: ReadonlyMap<string, string>; readonly pages: readonly PageRec[];
+  /** (T1039) the binary files the site build itself makes: the gauge chart's pictures */
+  readonly binary: ReadonlyMap<string, Uint8Array>;
   readonly slugSteps: Steps; readonly slugMap: SlugMap; readonly removed: readonly { id: string; slug: string; region: number }[];
   readonly snapshot: Snapshot; readonly models: readonly WaterModel[]; readonly cssHref: string; readonly regions: readonly number[];
   /** (T487) the gauge pages built */
@@ -147,7 +154,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   const waterPath = (m: WaterModel) => `/water/${slugOf(m.id)}`;
 
   const pages: PageRec[] = [];
-  const files = new Map<string, string>();
+  const files = new Map<string, string>(), binary = new Map<string, Uint8Array>();
   const add = (kind: PageRec["kind"], path: string, html: string, hash = sha(stable(html))) => {
     // the gates that read a page's HTML run here, as it is made: JSON-LD held to the page, its title and description
     bad.push(...(kind === "water" ? checkWaterPage(html, site.origin) : checkJsonLd(html, site.origin)).map((x) => `${path}: ${x}`));
@@ -247,7 +254,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
       yearCardHtml(name, regionYear(ws)) +
       (letters ? `<h2>Waters in ${esc(name)} by first letter</h2><ul class="cols">${[...letters].map(([l, xs]) => `<li><a href="${path}/waters-${l.toLowerCase()}">${l === "0" ? "Other" : l} (${xs.length})</a></li>`).join("")}</ul>`
         : `<h2>All waters in ${esc(name)}</h2>${list(ws)}`) +
-      `<div class="legal"><p>${built()} This is not a legal document. Check the official synopsis before you fish.</p></div>`;
+      `<div class="legal" data-nosnippet><p>${built()} This is not a legal document. Check the official synopsis before you fish.</p></div>`;
     const description = clip(`Full BC freshwater fishing regulations for ${ws.length} waters in ${name}: what you can keep and when each water is open, in plain words.`);
     unique(titles, title, path); unique(descriptions, description, path);
     add("region", path, shellOf(path, title, description, body, pageLd(site, path, title, asOf, [["Home", "/"], [name, path]])));
@@ -257,7 +264,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
       const ld = clip(`${xs.length} waters in ${name} with ${lname}: the full rules for each, in plain words.`);
       const lb = `<nav class="crumbs"><a href="/">Home</a> › <a href="${path}">${esc(name)}</a> › ${l === "0" ? "Other" : l}</nav><h1>${esc(name)} waters: ${esc(lname)}</h1>` +
         `<p>${xs.length} waters, from release ${esc(release.id)}.</p>${mapCard(r)}${list(xs)}` +
-        `<div class="legal"><p>${built()} This is not a legal document. Check the official synopsis before you fish.</p></div>`;
+        `<div class="legal" data-nosnippet><p>${built()} This is not a legal document. Check the official synopsis before you fish.</p></div>`;
       unique(titles, lt, lp); unique(descriptions, ld, lp);
       add("letter", lp, shellOf(lp, lt, ld, lb, pageLd(site, lp, lt, asOf, [["Home", "/"], [name, path], [l === "0" ? "Other" : l, lp]])));
     }
@@ -272,7 +279,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     const ibody = `<nav class="crumbs"><a href="/">Home</a> › ${esc(t.hub)}</nav><h1>${esc(t.hub)} in B.C.</h1>` +
       `<p>${total} waters have a rule on this, listed by region. Each water page has the full rule.</p>` +
       `<ul>${rows.map(([r, w]) => `<li><a href="${regionPath(r)}/${t.key}">${esc(regionLabel(r))}</a> (${w.length})</li>`).join("")}</ul>` +
-      `<div class="legal"><p>${built()} ${esc(NOT_LEGAL)}</p></div>`;
+      `<div class="legal" data-nosnippet><p>${built()} ${esc(NOT_LEGAL)}</p></div>`;
     unique(titles, ititle, ipath); unique(descriptions, idesc, ipath);
     add("topic", ipath, shellOf(ipath, ititle, idesc, ibody, pageLd(site, ipath, ititle, asOf, [["Home", "/"], [t.hub, ipath]])));
     for (const [r, ws] of rows) {
@@ -284,7 +291,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
         `<p>${ws.length} waters in ${esc(nm)}${ws.length > ls.length ? `; the first ${ls.length} by name are listed, every water is on <a href="${regionPath(r)}">the ${esc(nm)} page</a>` : ""}. Each water page has the rule in full.</p>` +
         mapCard(r) + `<ul class="cols">${ls.map(listItem).join("")}</ul>` +
         `<p><a href="${ipath}">${esc(t.hub)} in all regions</a></p>` +
-        `<div class="legal"><p>${built()} ${esc(NOT_LEGAL)}</p></div>`;
+        `<div class="legal" data-nosnippet><p>${built()} ${esc(NOT_LEGAL)}</p></div>`;
       unique(titles, title, p); unique(descriptions, desc, p);
       add("topic", p, shellOf(p, title, desc, body, pageLd(site, p, title, asOf, [["Home", "/"], [nm, regionPath(r)], [t.hub, p]])));
     }
@@ -312,7 +319,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
       `<h2>Rules changed (${changed.length})</h2>${ul(changed)}<h2>New waters (${added.length})</h2>${ul(added)}` +
       `<h2>Waters no longer listed (${gone.length})</h2><ul class="cols">${gone.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` +
       (reworded ? `<p>Wording updated on ${reworded} ${reworded === 1 ? "water" : "waters"}: the rules there are the same.</p>` : "") +
-      `<div class="legal"><p>This is not a legal document. Check the official synopsis before you fish.</p></div>`;
+      `<div class="legal" data-nosnippet><p>This is not a legal document. Check the official synopsis before you fish.</p></div>`;
     const description = clip(`${changed.length} waters with changed rules, ${added.length} new and ${gone.length} removed since release ${prev.release}.`);
     unique(titles, title, path); unique(descriptions, description, path);
     add("changes", path, shellOf(path, title, description, body, pageLd(site, path, title, asOf, [["Home", "/"], ["Changes", path]])));
@@ -325,18 +332,20 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   if (gauges.length) {
     const client = clientScript(), clientHref = `/assets/gauge.${sha(client, 10)}.js`;
     files.set(clientHref.slice(1), client);
-    const join = joinScript(), joinHref = `/assets/join.${sha(join, 10)}.js`;       // (T911) the Join the test card's script
-    files.set(joinHref.slice(1), join);
+    // (T1039) the app's own chart, one deferred script for every gauge page; each page carries its station's climatology
+    const chart = await chartScript(), chartHref = `/assets/gauge-chart.${sha(chart.js, 10)}.js`;
+    files.set(chartHref.slice(1), chart.js);
+    for (const [name, bytes] of chart.assets) binary.set(name, bytes);
     const gaugeCrumbs = (g: GaugeModel): [string, string][] => [["Home", "/"], ["River gauges", "/gauges"], [g.name, g.path]];
     for (const g of gauges) {
       const title = gaugeTitle(g), description = gaugeDescription(g);
       unique(titles, title, g.path); unique(descriptions, description, g.path);
       // lastmod moves with what the build wrote (name, waters, place), not with the release id the live half names
-      add("gauge", g.path, shellOf(g.path, title, description, gaugeBody(g, release.id, clientHref, asOf, site.contact, joinHref), pageLd(site, g.path, title, asOf, gaugeCrumbs(g)),
+      add("gauge", g.path, shellOf(g.path, title, description, gaugeBody(g, release.id, clientHref, asOf, chartHref, chartInputsOf(o.gaugeClim, g.station, o.gaugeFonts ?? null)), pageLd(site, g.path, title, asOf, gaugeCrumbs(g)),
           `/gauge/${g.station}/card.png`, false), sha(JSON.stringify(g)));   // (T908, owner 2026-11-19) no "Browse by region": it leads to the hidden site map
     }
     const title = clip(`River gauges in BC: live flow and weather — ${site.name}`, 60);
-    const description = clip(`Live flow, the last 7 days, flow forecasts and the weather at ${gauges.length} BC river gauges on waters with fishing regulations.`);
+    const description = clip(`Live flow, this year's record, flow forecasts and the weather at ${gauges.length} BC river gauges on waters with fishing regulations.`);
     unique(titles, title, "/gauges"); unique(descriptions, description, "/gauges");
     add("gauges", "/gauges", shellOf("/gauges", title, description, gaugesIndexBody(gauges, asOf), pageLd(site, "/gauges", title, asOf, [["Home", "/"], ["River gauges", "/gauges"]]), "/share/gauge.png"),
         sha(JSON.stringify(gauges.map((g) => [g.station, g.name, g.path]))));
@@ -390,5 +399,5 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     waters: Object.fromEntries(models.map((m) => [m.id, { slug: slugOf(m.id), name: m.name, hash: waterHash.get(m.id)!, rules: waterRules.get(m.id)! }])),
   };
   files.set("snapshot.json", `${JSON.stringify(snapshot, null, 1)}\n`);
-  return { files, pages, slugSteps, slugMap, removed, snapshot, models, cssHref, regions, gauges };
+  return { files, binary, pages, slugSteps, slugMap, removed, snapshot, models, cssHref, regions, gauges };
 }
