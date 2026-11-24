@@ -728,7 +728,7 @@ def main() -> None:
         "To use it: the owner reviews and accepts it with `python -m pipeline.regs.steelhead.accept` (prints the "
         "waters added / dropped; `--write` writes data/curated/waters/steelhead_waters.json, keeping that file's "
         "$comment), then the reach run and the bundle."],
-        "generated": {"source": "data/generated/steelhead/steelhead_waters.json",
+        "generated": {"source": "data/generated/steelhead/steelhead_waters.json",  # path-label: provenance written into the output, never opened
                       "generator": "pipeline.regs.steelhead.known_waters",
                       "date": fetched_on(), "fingerprint": fingerprint(waters)},
         "waters": waters}

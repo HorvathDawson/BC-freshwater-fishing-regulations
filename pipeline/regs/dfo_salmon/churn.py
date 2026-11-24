@@ -40,6 +40,7 @@ from typing import Dict, List, Optional, Set, Tuple
 
 from pipeline.regs.dfo_salmon.fetch import (
     ALL_SLUGS,
+    DEFAULT_CACHE,
     PAGES,
     _USER_AGENT,
     load_cached,
@@ -52,7 +53,8 @@ logger = logging.getLogger(__name__)
 
 _CDX = "https://web.archive.org/cdx/search/cdx"
 _WB = "https://web.archive.org/web/{ts}id_/https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region{slug}-eng.html"
-_HISTORY = Path("cache/dfo_salmon/history")
+#: (T1021) the cache's history/ (`fetch.DEFAULT_CACHE`, config.yaml `cache.dfo_salmon`)
+_HISTORY = DEFAULT_CACHE / "history"
 
 #: Above this similarity, two scopes on the same water are the same reach reworded.
 _DRIFT_THRESHOLD = 0.75

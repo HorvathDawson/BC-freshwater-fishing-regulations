@@ -125,6 +125,16 @@ class ProjectConfig:
         return self.get_path("data_accessor", "coast_gpkg_path")
 
     # ========================================================================
+    # Caches (T1021)
+    # ========================================================================
+
+    @property
+    def dfo_salmon_cache(self) -> Path:
+        """DFO's saved salmon region pages (`cache.dfo_salmon`): raw/, history/, manifest.json. Gitignored machine
+        state, written by `pipeline.regs.dfo_salmon.fetch` / `churn`; one name for every reader."""
+        return self.get_path("cache", "dfo_salmon")
+
+    # ========================================================================
     # Data Fetch
     # ========================================================================
 

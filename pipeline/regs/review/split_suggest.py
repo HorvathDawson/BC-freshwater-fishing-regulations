@@ -345,7 +345,7 @@ def ambiguous_item(eid: str, rid: str, rule: dict, pay: dict, resolved: dict, id
             "reason": (f"{sid} matched both lake ends ({lo:,.0f} / {hi:,.0f} m); builder took {used:,.0f} m"
                        + ("" if proposed is None else ("; agrees" if agrees else f"; the words say {proposed:,.0f} m"))),
             "evidence": [f"{pay.get('_src')}: ambiguous_cut payload (candidates, used, toward {toward})",
-                         "data/curated/waters/cuts.json anchor: " + (json.dumps(anchor) if anchor else
+                         "data/curated/waters/cuts.json anchor: " + (json.dumps(anchor) if anchor else  # path-label: words in a message
                                                                        "generated lake split (no curated anchor)")],
             "preverify": pv,
             "pick": {"builder": used, "proposed": proposed, "agrees": agrees},

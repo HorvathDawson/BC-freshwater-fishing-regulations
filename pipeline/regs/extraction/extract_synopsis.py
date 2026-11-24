@@ -1676,7 +1676,8 @@ def main(argv: Optional[List[str]] = None) -> None:
     elif args.page:
         # Single page extraction (for testing)
         p = FishingSynopsisParser()
-        PDF_PATH = os.path.join("data", "source", "fishing_synopsis.pdf")
+        from project_config import get_config
+        PDF_PATH = get_config().synopsis_pdf_path      # (T1021) was os.path.join("data", "source", …): the cwd's
 
         with pdfplumber.open(PDF_PATH) as pdf:
             page_result = p.extract_rows(
