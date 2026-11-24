@@ -1,6 +1,6 @@
 # T1024 — "Weird highlighting on the lake" (Gravel Slough)
 
-Status: IN REVIEW — fixed in 6704a3504 + d298683a7 + 50b018058 (lane L29, in the 0.9.0 tile build) + 3781d22a5 (stub outline, lane L10 0.9.1: needs the 0.9.1 tile build); owner: OWNER-TODO "T1024 Gravel Slough highlight: look at the before/after shots" (+ `T1024-shots/stub-oxbows-*.png`)
+Status: IN REVIEW — fixed in 6704a3504 + d298683a7 + 50b018058 (lane L29, in the 0.9.0 tile build) + 3781d22a5, ff79377f1 (stub outline, lane L10 0.9.1: needs the 0.9.1 tile build); owner: OWNER-TODO "T1024 Gravel Slough highlight: look at the before/after shots" (+ `T1024-shots/stub-oxbows-*.png`)
 
 Source: STAGING report `3444007425e9d3bd`, 2026-11-23 05:32Z, Android 0.8.5 (staging build), water · map, Gravel Slough
 (`gnis:8009`) part 0, zoom 14.3 at 49.202, -121.904. Verbatim: "Weird highlighting on the lake here".
@@ -65,8 +65,9 @@ z13). So the casing cannot just skip stubs: below the polygon's zoom the stub is
 
 Fix: the export writes `pz` on the stub line, the first zoom its polygon is drawn at (`export_streams`, from the
 `poly_z` it already computed; absent on every other line). The selection casing and look C's glow (`paint.ts`
-`CASED_LINES`, the one rule, on both runtime layers) take no line from its `pz`: a filter at the tile's zoom, as the gauge
-dots' is on web and native, so no paint reads the zoom twice. The ring is unchanged. Browse selection, part halo and the
+`casedOnly`, the one rule, wrapping both opacities) are opacity 0 on a line from its `pz`: a step per tile zoom, as the
+ring's `lz`. Not a filter: one was tried and split the casing's bucket from the stream's (`lab.test.ts`, the map lab's
+one-bucket switch, caught it in the app suite); the opacity version is pixel-identical in every shot. The ring is unchanged. Browse selection, part halo and the
 T518 in-season outline are all that casing, so all three follow. The casing and ring are runtime layers
 (`runtime-style.ts`), not `layers.source.json`: `pnpm style:build` changes nothing. Build check
 (`stream_polygon_lines.py`): every line of a polygon with no `lz` carries `pz` = the polygon's first zoom as written;
@@ -77,9 +78,9 @@ files given the values the export writes: 17,070 stream polygons, 249 stub lines
 Mixes (pixel-diffed, Oxbows z12/z14/z16, `stub-oxbows-matrix.png`): old app + new tiles = today (pz ignored); new app +
 old tiles = today (no line has pz). Only new + new changes, and only on the stub.
 
-Tests: `app/tools/stream-polygon-ring.test.ts` evaluates the casing's and the glow's filter per tile zoom (plain line,
+Tests: `app/tools/stream-polygon-ring.test.ts` evaluates the casing's and the glow's opacity per tile zoom (selected and part) (plain line,
 side channel, stub pz 10, stub pz 4), three themes; `pipeline/tests/test_tile_stream_polygon_lz.py` the export's `pz` and
-five new check cases. 10 mutations, all caught (4 app, 2 export, 4 check).
+five new check cases; `selection-look` / `parity` pin the look inside `casedOnly`. 10 mutations, all caught (4 app, 2 export, 4 check).
 
 Shots (phone 412 px, water Map tab, part 1 lit, z12/z14/z16): `T1024-shots/stub-oxbows-light.png`,
 `stub-oxbows-dark.png`. Before = today's app over the live 0.9.0 atlas; after = this branch over a scratch copy of that
