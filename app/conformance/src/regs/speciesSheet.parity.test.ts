@@ -132,6 +132,7 @@ describe.skipIf(gate.skip)("T1031 the species sheet over the golden states", () 
 const KOKANEE: readonly string[] = [
   "B.C. Synopsis",
   // a rule's own page link names the book as every one does (WORDS.BOOK; owner 2026-11-23: "B.C. Synopsis" everywhere)
-  `Release kokanee from streams · Release every one · ${WORDS.BOOK} p.21 ${WORDS.LINK_OUT}`,
-  `Possession: twice the daily quota · Possession limit · ${WORDS.BOOK} p.21 ${WORDS.LINK_OUT}`,
+  // (0.9.0 re-cut, r-0aec88ed3edb) each page link carries its rule's highlight box now (T991): "[hl]"
+  `Release kokanee from streams · Release every one · ${WORDS.BOOK} p.21 ${WORDS.LINK_OUT}[hl]`,
+  `Possession: twice the daily quota · Possession limit · ${WORDS.BOOK} p.21 ${WORDS.LINK_OUT}[hl]`,
 ];

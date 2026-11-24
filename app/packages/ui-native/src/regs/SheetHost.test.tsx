@@ -140,7 +140,8 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     const links = screen.getAllByRole("link").map((e) => e.textContent);
     expect(links).toEqual(["B.C. Synopsis p.8 ↗", "B.C. Synopsis p.10 ↗"]);
     fireEvent.click(screen.getByText("B.C. Synopsis p.8 ↗"));
-    expect(h.onBook).toHaveBeenCalledWith(10);
+    // (0.9.0 re-cut, r-0aec88ed3edb) the page opens with its rule's highlight box (T991), as the frozen page carries it
+    expect(h.onBook).toHaveBeenCalledWith(10, [{ box: [215, 394.79, 311.51, 408.43], pdf: 10, size: [576, 756] }]);
     cleanup();
     host("gl:catch_and_release");
     // the release ships the printed → PDF map (export.pdf_pages): the glossary page is a link

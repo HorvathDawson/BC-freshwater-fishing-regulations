@@ -1966,19 +1966,20 @@ def test_the_cut_stops_when_what_the_app_reads_moved_and_its_dry_run_prints_the_
     from pipeline.tools.emit import app_reads as AR
     run, here, table = cut_repo
     newest = max(table["apps"], key=AR.ver)
+    nxt = ".".join(newest.split(".")[:2] + [str(int(newest.split(".")[2]) + 1)])  # the cut is the patch after the newest row
     monkeypatch.setattr(R, "fetch_trunk", lambda: None)
-    monkeypatch.setattr(R, "trunk_decision", lambda: RV.decide("0.8.5", "x", [_commit("fix(T1): a bug")]))
+    monkeypatch.setattr(R, "trunk_decision", lambda: RV.decide(newest, "x", [_commit("fix(T1): a bug")]))
     monkeypatch.setattr(R, "remote_ref_exists", lambda ref: False)
     made = []
     monkeypatch.setattr(R, "cut_branch", lambda b, commit=None: made.append((b, commit)) or 0)
     state = lambda: (run("for-each-ref"), run("count-objects", "-v"))                          # noqa: E731
     before = state()
-    assert R.main(["--cut", "--dry-run"]) == 0 and R.main(["--cut", "0.8.6", "--dry-run"]) == 0
+    assert R.main(["--cut", "--dry-run"]) == 0 and R.main(["--cut", nxt, "--dry-run"]) == 0
     out = capsys.readouterr().out
     row = json.dumps({"reads": table["apps"][newest]["reads"]}, sort_keys=True)
-    assert out.count(f"app_reads.json (T1048): app 0.8.6: the same formats as {newest}; the version commit adds\n"
-                     f'  "0.8.6": {row}') == 2
-    assert "would cut release/0.8.6" in out and state() == before and made == []
+    assert out.count(f"app_reads.json (T1048): app {nxt}: the same formats as {newest}; the version commit adds\n"
+                     f'  "{nxt}": {row}') == 2
+    assert f"would cut release/{nxt}" in out and state() == before and made == []
 
     pack = here / AR.PACK_TS                                             # water's format moves on main
     text = pack.read_text()
@@ -1987,24 +1988,24 @@ def test_the_cut_stops_when_what_the_app_reads_moved_and_its_dry_run_prints_the_
     run("commit", "-qam", "water moves", "--no-verify")
     run("update-ref", "refs/remotes/origin/main", "HEAD")
     before = state()
-    for argv in (["--cut", "0.8.6", "--dry-run"], ["--cut", "0.8.6"]):
+    for argv in (["--cut", nxt, "--dry-run"], ["--cut", nxt]):
         assert R.main(argv) == 1
         err = capsys.readouterr().err
         assert f"release --cut: refused: {AR.TABLE_REL}: what the app reads moved since {newest} (water: " \
                f"['{old_fmt}'] -> ['water/99'])" in err
         assert "--reads-moved" in err and "Nothing was made" in err
     assert state() == before and made == []
-    assert R.main(["--cut", "0.8.6", "--reads-moved", "water/99 ships in 0.8.6"]) == 0
+    assert R.main(["--cut", nxt, "--reads-moved", f"water/99 ships in {nxt}"]) == 0
     assert "the formats moved since" in capsys.readouterr().out and len(made) == 1
     after = json.loads(run("show", f"{made[0][1]}:{AR.TABLE_REL}"))
-    assert after["apps"]["0.8.6"]["reads"]["water"] == ["water/99"] and after["apps"][newest] == table["apps"][newest]
+    assert after["apps"][nxt]["reads"]["water"] == ["water/99"] and after["apps"][newest] == table["apps"][newest]
     with pytest.raises(SystemExit):
         R.main(["--cut", "--data-only", "--reads-moved", "x"])
     # a row already recorded for the version: kept when it is what the app reads, refused when it is not
-    doc, what = AR.for_cut(after, "0.8.6", after["apps"]["0.8.6"]["reads"])
+    doc, what = AR.for_cut(after, nxt, after["apps"][nxt]["reads"])
     assert doc == after and "already recorded" in what
     with pytest.raises(AR.CutRefused, match="recorded already reading other formats"):
-        AR.for_cut(after, "0.8.6", table["apps"][newest]["reads"])
+        AR.for_cut(after, nxt, table["apps"][newest]["reads"])
 
 
 def test_reads_in_reads_from_a_tree_what_current_reads_reads_from_the_checkout():
