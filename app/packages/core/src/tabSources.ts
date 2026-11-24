@@ -20,11 +20,10 @@
 import type { BookBox } from "./answers.generated";
 import { LICENCE_ROWS } from "./menu/licences";
 import { bookText, type Line, type Run } from "./regs/line";
-import type { RuleIndex, RuleView } from "./regs/inputs";
+import type { RuleIndex } from "./regs/inputs";
 import type { RegsPage, SourceLineVM } from "./regs/model";
-import type { GearTabsVM } from "./salmon";
 import type { SheetKey } from "./regs/sheetKey";
-import { ALL_SOURCES_KEY } from "./regs/sheets/allsources";
+import { ALL_SOURCES_KEY, drawnSourceRules } from "./regs/sheets/allsources";
 import { TROUT_SOURCES_KEY } from "./regs/sheets/trout";
 import type { InSeasonBannerVM } from "./inseason";
 import type { SalmonBookVM, SalmonCardVM } from "./salmon";
@@ -217,42 +216,6 @@ function citedWeb(v: unknown, out: Map<string, string>, seen = new Set<unknown>(
 const ALL_SOURCES_LINK = { label: ALL_SOURCES.LINK, open: ALL_SOURCES_KEY, aria: ALL_SOURCES.ARIA } as const;
 
 /**
- * (#63 review) WHAT THE REGULATIONS TAB DRAWS, as RegsScreen and WaterScreen draw it: the header, the Keep tab, the Gear and
- * Methods tabs AS DRAWN (`gearTabsFor`: on a day only salmon may be fished they are the day's gear "if fished", not
- * `page.gear`, which is the closed day's), the salmon gear lines, Methods' boats and the "Handling fish" reference (drawn
- * under Methods only while Methods is), and the Licence tab as drawn (`licenceTabFor`). The Source row cites exactly what
- * these cite — never a sheet's rules (a sheet is not on the screen) and never `page.gear` on a day it is not drawn.
- */
-export function drawnRegsOf(page: Pick<RegsPage, "header" | "keep" | "boats" | "methods">, tabs: GearTabsVM, licence: RegsPage["licence"],
-                            /** (T1031 item 3) the Source lines drawn inside the tabs that no VM above carries: the trout
-                             *  table's (`troutSourcesOf`: no page of its own) and the salmon card's book closures */
-                            lines: readonly TabSourcesVM[]): readonly unknown[] {
-  // the Methods tab draws no `reference`: the page's own is drawn under it (RegsScreen), never the "if fished" tab's
-  const methods = tabs.methods ? { ...tabs.methods, reference: null } : null;
-  return [page.header, page.keep, tabs.gear, tabs.salmonGear, methods, tabs.methods ? page.boats : null,
-          tabs.methods ? page.methods?.reference ?? null : null, licence, lines];
-}
-
-/**
- * The rules the drawn view models name: a sheet key or key list naming a rule (`rule:<entry>::<rule>`, a source line's
- * `keys`, a block's `rule`), and the trout table's rule indexes (`src`). A string with no such rule names nothing.
- */
-function drawnRules(v: unknown, rules: Pick<RuleIndex, "get" | "has"> & { byKey(k: string): RuleView | null }, out: RuleView[], seen = new Set<unknown>(), field = ""): RuleView[] {
-  if (typeof v === "string") {
-    const k = v.startsWith("rule:") ? v.slice(5) : v;
-    if (/^\S+::\S+$/.test(k)) { const r = rules.byKey(k); if (r && !r.missing) out.push(r); }
-    return out;
-  }
-  if (typeof v === "number") { if (field === "src" && rules.has(v)) out.push(rules.get(v)); return out; }
-  if (!v || typeof v !== "object" || seen.has(v)) return out;
-  seen.add(v);
-  if (Array.isArray(v)) { for (const x of v) drawnRules(x, rules, out, seen, field); return out; }
-  const o = v as Record<string, unknown>;
-  for (const k in o) drawnRules(o[k], rules, out, seen, k);
-  return out;
-}
-
-/**
  * The Regulations tab's Source row: every synopsis page the DRAWN tabs cite (`drawnRegsOf`: their "Rule book p.N ↗" runs
  * and section source lines), each with every highlight box those cite on it, plus the water's own rule-book row
  * (`waterPagesOf`, T474: always linked), that link marked "(this water)" (owner 2026-11-22: "Page 9 is not the water body
@@ -270,7 +233,8 @@ export function regsSourcesOf(drawn: readonly unknown[], o: { waterPages: Line; 
   const web: { name: string; url: string }[] = [];
   if (o.inSeason) web.push(authorityWeb("inseason"));
   // (#63 re-review) DFO where the page shows DFO's salmon, or a drawn rule is DFO's own (a DFO override)
-  if (o.dfo || drawnRules(drawn, { get: (i) => o.rules.get(i), has: (i) => o.rules.has(i), byKey: (k) => byKey.call(o.rules, k) }, [])
+  // (T1036) the drawn rules are the every-source sheet's (one walk, `drawnSourceRules`), so the two name DFO alike
+  if (o.dfo || drawnSourceRules(drawn, { get: (i) => o.rules.get(i), has: (i) => o.rules.has(i), byKey: (k) => byKey.call(o.rules, k) })
     .some((r) => r.f.source === "dfo")) web.push(authorityWeb("dfo"));
   for (const [url, s] of citedWeb(drawn, new Map())) web.push({ name: s, url });
   // (T1031 item 3) composed as every Source line is (`sourceLineOf`)
