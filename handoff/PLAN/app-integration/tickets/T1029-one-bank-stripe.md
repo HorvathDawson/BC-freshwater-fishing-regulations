@@ -234,3 +234,40 @@ Q4 (polygon reach, "Along the bank edge"): DESIGNED, NOT BUILT — the edge rule
 Device walk (add to the device list): on the pinned MapLibre Native (pin.env 3a6b955), a one-bank stretch at z12
 (nothing), z13, z14, z16 in Salmon and Standard: the two halves offset to their sides (`line-offset` from a zoom curve),
 the closed dashes on the bank's half only (one fixed `line-dasharray` per layer), light + dark.
+
+## Owner answer on the 12 creeks (2026-11-24 ~12:15 MST, verbatim)
+"i think closed we need a clean way to have this calculated from extents so it fits into structure nicely"
+= Reading 2: the creeks draining into the closed bank read salmon Closed from the west-bank row; no stripe, no bank
+caveat on a creek ("No stripe on creeks and only tributaries on the one bank side get included" stands). It must be
+COMPUTED from the extent in the normal structure, never a hand list and never a Kitimat special case.
+
+### The clean way, measured (lane L18) — and what it costs (NOT built: needs atlas + reach + bundle runs, heavy hold)
+What already is: the REACH run binds the 12 creeks to the bank place through the ordinary tributary walk (the place's
+heading "(including tributaries)", T807) — `reaches/full/dfo_salmon.jsonl.gz` row
+`6:kitimat-river:on-west-bank-between-signs-at-kiti` holds 13 sections. They are DROPPED only at delivery:
+`deliver.salmon`'s one-bank branch keeps the river's own sections (beside, `u`) and discards the walk's (review of #61),
+so the creeks answer by their other places (Open).
+
+The bank side of a tributary needs NO geometry at reach time: FWA's `LEFT_RIGHT_TRIBUTARY` (the side a stream enters
+its parent, looking downstream) is in the source streams layer and not yet carried into the atlas. Measured: 360639090
+(the one creek joining the stretch) = RIGHT; the Kitimat flows SW at the signs, so right looking downstream = WEST —
+the same answer `bank_side`'s geometry gives. (The others' values are relative to THEIR parents, not the Kitimat: they
+take their root's side.)
+
+Plan (each step general for every one-bank extent; a typed reason where it cannot say, never a guess):
+1. Atlas: carry `LEFT_RIGHT_TRIBUTARY` per blue line into the graph (a field on the stored graph: an atlas rebuild,
+   `build --atlas` beside the live one, then `build_parity`).
+2. Reach (`dfo_salmon.resolve_all` → the walk's roots): a place with a bank keeps the tributary systems whose ROOT joins
+   its own stem inside the extent on that bank; the bank word → "left/right looking downstream" from the stem stretch's
+   flow direction (the atlas knows mouth→source per line, `cutting.line_coords_2d`); roots with `NONE`/unknown side →
+   `tributary_side_undetermined`, kept as today and reported; the other bank → `tributary_other_bank`, out of the place.
+   A reach rerun; `binding_diff` before/after must show the Kitimat place unchanged (all 12 on the west bank) and
+   nothing else moving. A second case: none in the data today (the Nakina place has no tributaries; the book's
+   `kitimat_river.r1` has `includes_tributaries: false`) — a synthetic test pins the other-bank and undetermined paths.
+3. Deliver (`deliver.salmon` one-bank branch): the place's TRIBUTARY sections ride in their chains' `l` as any place
+   (whole width: Closed for salmon all year, attributed to the west-bank row), no `bk`, no caveat; its own river's
+   sections stay beside (`u`) with `bk`. A bundle build; the salmon diff shows exactly the 12 creeks going Open →
+   Closed. RULINGS E28 amended with his two answers.
+Cost: one atlas build beside the live one + parity, one reach run, one bundle/release build, then the 0.9.1 data
+release. Step 3 alone (no side filter) would already close the 12 today, but would not honour "only tributaries on the
+one bank side" for a future place — so it waits for 1–2.
