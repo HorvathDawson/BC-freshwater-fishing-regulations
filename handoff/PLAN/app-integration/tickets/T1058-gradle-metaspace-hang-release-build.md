@@ -1,6 +1,6 @@
 # T1058 — A production Android build hangs for an hour after BUILD SUCCESSFUL (Gradle daemon out of Metaspace)
 
-Status: DONE — 551cb1ce8. What happened: the daemon log shows `stop()` (Metaspace expiry, 81 % of 512 MiB) BEFORE
+Status: DONE — 551cb1ce8, e01373329. What happened: the daemon log shows `stop()` (Metaspace expiry, 81 % of 512 MiB) BEFORE
 "dispatching the build result", then "Timed out waiting for finished message from client". In 13 other expiring builds
 (11-19 to 11-24) the result went out first and nothing hung, so this is a race. It is not a crash: the build itself
 succeeded. The fix: `plugins/with-gradle-memory.js` writes `-Xmx2048m -XX:MaxMetaspaceSize=1024m` at prebuild (test:
