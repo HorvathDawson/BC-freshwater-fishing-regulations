@@ -5,6 +5,7 @@
  * reported by the gate that owns it.
  */
 import { existsSync, readFileSync } from "node:fs";
+import { inflateSync } from "node:zlib";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { beforeAll, describe, expect, it } from "vitest";
@@ -15,17 +16,37 @@ import { BUDGET, blockingScripts, checkBudget, measure, pageSize } from "./budge
 import { BARE_APP, buildAll, homeLinkProblems, readConfig, writeSite, type Built } from "./build";
 import { pngSize } from "./share";
 import { SHARE_H, SHARE_W } from "./html";
-import { TODAY } from "./fixture";
+import { openFixture, TODAY } from "./fixture";
 import { headersFile, hostWorker, HSTS, redirectFor, redirectsFile } from "./hosting";
 import { checkJsonLd, waterLd } from "./jsonld";
-import { buildDayOf, formerName, regionBox } from "./model";
+import { buildDayOf, formerName, listWaterOrds, regionBox, waterModel } from "./model";
 import { appDocument } from "./prerender";
 // @ts-expect-error a plain .mjs tool (no types)
 import { HOME_LINKS, withHomeLinks } from "../web-shell.mjs";
-import { regionLabel } from "./html";
+import { descriptionOf, regionLabel } from "./html";
 import { fitQuery, parseStartLink } from "@app/ui";
 import { SHARE_LINE } from "./site";
 
+/** the smallest alpha in an 8-bit RGBA, non-interlaced PNG (inflate its IDATs, undo the row filters): 255 = every pixel opaque */
+function minAlpha(png: Uint8Array): number {
+  const b = Buffer.from(png);
+  const w = b.readUInt32BE(16), h = b.readUInt32BE(20);
+  if (b[24] !== 8 || b[25] !== 6 || b[28] !== 0) throw new Error("minAlpha: not an 8-bit RGBA PNG, not interlaced");
+  const idat: Buffer[] = [];
+  for (let at = 8; at < b.length;) { const n = b.readUInt32BE(at), t = b.toString("ascii", at + 4, at + 8); if (t === "IDAT") idat.push(b.subarray(at + 8, at + 8 + n)); at += 12 + n; }
+  const raw = inflateSync(Buffer.concat(idat)), stride = w * 4, out = Buffer.alloc(stride * h);
+  for (let y = 0; y < h; y++) {
+    const f = raw[y * (stride + 1)]!;
+    for (let x = 0; x < stride; x++) {
+      const v = raw[y * (stride + 1) + 1 + x]!, a = x >= 4 ? out[y * stride + x - 4]! : 0, u = y > 0 ? out[(y - 1) * stride + x]! : 0, c = x >= 4 && y > 0 ? out[(y - 1) * stride + x - 4]! : 0;
+      const pa = Math.abs(u - c), pb = Math.abs(a - c), pc = Math.abs(a + u - 2 * c);
+      out[y * stride + x] = (v + (f === 0 ? 0 : f === 1 ? a : f === 2 ? u : f === 3 ? (a + u) >> 1 : (pa <= pb && pa <= pc ? a : pb <= pc ? u : c))) & 255;
+    }
+  }
+  let min = 255;
+  for (let i = 3; i < out.length; i += 4) min = Math.min(min, out[i]!);
+  return min;
+}
 const APP = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const OUT = join(APP, "dist/seo-test");
 const site = readConfig();
@@ -172,7 +193,7 @@ describe("(T866) a bare build", () => {
     const bare = await buildAll({ loader: openRegsFixture(), on: TODAY, bare: true });
     expect(sameAsFull(bare)).toEqual(sameAsFull(built));
     // and it skips what it says it skips (else the full build `built` checks nothing the bare ones do not)
-    expect(bare.binary.size).toBe(0);
+    expect([...bare.binary.keys()].filter((n) => n.startsWith("share/"))).toEqual([]);   // (T1042: the icons are in it)
     expect(bare.build.pages.filter((p) => p.kind === "water").every((p) => p.html === "")).toBe(true);
     expect(built.binary.size).toBeGreaterThan(20);
   }, 120_000);
@@ -188,6 +209,49 @@ describe("T194 sitemap, robots, canonicals, structured data", () => {
     expect(built.files.get("robots.txt")).toContain(`Sitemap: ${site.origin}/sitemap.xml`);
     expect(built.files.get("robots.txt")).toMatch(/Disallow: \/api\//);
   });
+
+  it("(T1042) a water's description is its own facts, not the template and not the licence quote; every page names the PNG icons", () => {
+    const ws = waters();
+    const descOf = (h: string) => /<meta name="description" content="([^"]*)">/.exec(h)![1]!;
+    const facts = ws.filter((p) => !/from the B\.C\. synopsis\.$/.test(descOf(p.html)));
+    expect(facts.length).toBeGreaterThan(ws.length / 2);   // the fixture's waters hold rules: most say them
+    for (const p of ws) {
+      const d = descOf(p.html);
+      expect(d, p.path).not.toMatch(/in plain words|licence|\$\d/i);
+      expect(/<meta property="og:description" content="([^"]*)">/.exec(p.html)![1], p.path).toBe(d);
+    }
+    expect(new Set(facts.map((p) => descOf(p.html).replace(/^.*?\): /, ""))).size).toBeGreaterThan(1);   // not one sentence on every page
+    for (const [path, html] of built.files) if (path.endsWith(".html")) expect(html, path).toContain(`<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png">`);
+    expect(built.binary.has("apple-touch-icon.png") && built.binary.has("favicon-48x48.png")).toBe(true);
+    // every build-made shared block is kept out of a snippet: the legal box (a hub's, About's) AND the footer on every page
+    for (const p of built.build.pages.filter((x) => x.kind !== "water")) {
+      expect(p.html, p.path).toContain("<footer><span data-nosnippet>");
+      if (["region", "letter", "topic"].includes(p.kind)) expect(p.html, p.path).toContain(`class="legal" data-nosnippet`);
+    }
+    for (const p of ["/about"]) expect(built.build.pages.find((x) => x.path === p)!.html, p).toContain(`class="legal" data-nosnippet`);
+    // the touch icon is opaque: iOS draws a transparent corner black (the PNG's colour type 6 carries alpha: every pixel's A is 255)
+    expect(minAlpha(built.binary.get("apple-touch-icon.png")!)).toBe(255);
+    expect(minAlpha(built.binary.get("favicon-48x48.png")!)).toBeLessThan(255);   // the proof can fail: the tile's rounded corners are transparent
+  });
+
+  it("(T1042) a description is the SAME on every day of the year (independent review: 18 of 58 waters changed on 24 days)", async () => {
+    const { store } = await openFixture();
+    const ords = await listWaterOrds(store);
+    const seen = new Map<number, Set<string>>(), sizes: string[] = [];
+    // every 3rd day of a leap-free year, from Jan 1 (the strip's own year); the fixture's waters are few, a model is a store read
+    for (let d = 0; d < 365; d += 3) {
+      const on = buildDayOf(new Date(2026, 0, 1 + d, 12));
+      for (const ord of ords) {
+        const m = await waterModel(store, ord, on);
+        if (!m) continue;
+        (seen.get(ord) ?? seen.set(ord, new Set()).get(ord)!).add(descriptionOf(m));
+        for (const p of m.parts) for (const sct of p.sections) for (const i of sct.items) if (/·\s*·/.test(i.text)) sizes.push(i.text);
+      }
+    }
+    expect([...seen].filter(([, v]) => v.size !== 1).map(([o, v]) => [o, [...v]])).toEqual([]);
+    expect(seen.size).toBeGreaterThan(20);
+    expect(sizes).toEqual([]);   // no "· ·" in a row ("Kokanee · 5 a day · · size limit")
+  }, 600_000);
 
   it("every canonical is the page's own https canifishthis.ca URL; titles <= 60, descriptions <= 155, all unique", () => {
     const titles = new Set<string>(), descs = new Set<string>();
@@ -376,7 +440,7 @@ describe("T195 hubs and dated pages", () => {
     // and a build on a closed day and on an open day publish the same description
     const later = await buildAll({ loader: openRegsFixture(), on: buildDayOf(new Date(2026, 6, 15, 12)), bare: true });
     const was = new Map(waters().map((p) => [p.path, p.description]));
-    expect(later.build.pages.filter((p) => p.kind === "water").every((p) => was.get(p.path) === p.description)).toBe(true);
+    expect(later.build.pages.filter((p) => p.kind === "water" && was.get(p.path) !== p.description).map((p) => [was.get(p.path), p.description])).toEqual([]);
     // (T622 G23) the region in it is the water's own code, as the app names it ("Region 7A"); (T672 W4, owner
     // 2026-11-12) a water in several regions names every hub number instead ("Regions 5, 6, 7": the West Road)
     let several = 0;

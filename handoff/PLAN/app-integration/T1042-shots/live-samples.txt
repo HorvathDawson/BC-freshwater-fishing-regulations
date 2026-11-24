@@ -1,0 +1,35 @@
+T1042 samples from the LIVE release r-741815c6090d, FINAL text (owner 2026-11-23: season windows). Each description is the same on the 6 days swept (Jan 15, Mar 15, May 20, Jul 15, Sep 20, Nov 23).
+Waters: 19766. Description differs between those days: 0. Without any fact (descriptionsWithoutFacts): 277. Before this change (a, the Other fish / Hooks version): 448.
+
+Coquitlam River: Coquitlam River
+  Coquitlam River fishing regulations, B.C. (near Port Coquitlam, Region 2): Open Jul 1–Apr 30; No powered boats on parts.  [120]
+  year: [["open 120","closed 61","open 184"],["open 120","closed 61","open 184"],["open 120","closed 61","open 184"]] marks: [["open","closed"],["open","closed"],["open","closed"]]
+
+Chilliwack / Vedder: Vedder River
+  Vedder River fishing regulations, B.C. (Region 2): Open Jul 1–May 31.  [69]
+  year: [["open 151","closed 30","open 184"],["open 151","closed 30","open 184"]] marks: [["open","closed","fly fishing only","bait ban"],["open","closed","fly fishing only","bait ban"]]
+
+Capilano River: Capilano River
+  Capilano River fishing regulations, B.C. (near West Vancouver, Region 2): its season, what you can keep, gear and limits, from the B.C. synopsis.  [145]
+  year: [["open 365"],["closed 365"],["closed 365"]] marks: [["open","bait ban"],["closed"],["closed"]]
+
+A lake: Lac Le Jeune: Lac Le Jeune
+  Lac Le Jeune fishing regulations, B.C. (near Lac Le Jeune, Region 3): Open all year; Speed limit 20 km/h.  [105]
+  year: [["open 365"]] marks: [["open"]]
+
+A stream closed in winter: Hamilton Creek
+  Hamilton Creek fishing regulations, B.C. (near Qualicum Beach, Region 1): Open Jun 1–Jul 14, Sep 1–Nov 30; bait ban.  [116]
+  year: [["closed 151","open 44","closed 48","open 91","closed 31"]] marks: [["open","closed","bait ban"]]
+
+A water that had no stable facts before (Rugged Creek): Rugged Creek
+  Rugged Creek fishing regulations, B.C. (near Zeballos, Region 1): Open May 1–Oct 31; bait ban.  [94]
+  year: [["closed 120","open 184","closed 61"]] marks: [["open","closed","bait ban"]]
+
+A water with no fact now: Brunette River
+  Brunette River fishing regulations, B.C. (near New Westminster, Region 2): its season, what you can keep, gear and limits, from the B.C. synopsis.  [146]
+  year: [["open 365"],["closed 365"],["open 365"]] marks: [["open"],["closed"],["open"]]
+Notes
+- Built as the owner chose (2026-11-23, "Season windows"): the open windows from the year strip, the vessel rules (Boats), and the strip's marks only when they hold on every open day (Vedder's "fly fishing only" and "bait ban" are on only part of its open year, so they are not in).
+- Not in any more: Other fish rows and the Hooks line (the build day's), the licence, any dated line.
+- 277 of 19,766 waters have no fact: mostly waters in parts whose stretches have different windows (Capilano: one stretch open all year, two closed all year). They say "its season, what you can keep, gear and limits, from the B.C. synopsis."; the build counts them in budget.json.
+- Checked: the description of every water is the same on 6 days of the year (0 differ); the fixture is swept on 122 days of the year in site.test.ts.

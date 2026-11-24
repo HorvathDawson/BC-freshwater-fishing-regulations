@@ -254,7 +254,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
       yearCardHtml(name, regionYear(ws)) +
       (letters ? `<h2>Waters in ${esc(name)} by first letter</h2><ul class="cols">${[...letters].map(([l, xs]) => `<li><a href="${path}/waters-${l.toLowerCase()}">${l === "0" ? "Other" : l} (${xs.length})</a></li>`).join("")}</ul>`
         : `<h2>All waters in ${esc(name)}</h2>${list(ws)}`) +
-      `<div class="legal"><p>${built()} This is not a legal document. Check the official synopsis before you fish.</p></div>`;
+      `<div class="legal" data-nosnippet><p>${built()} This is not a legal document. Check the official synopsis before you fish.</p></div>`;
     const description = clip(`Full BC freshwater fishing regulations for ${ws.length} waters in ${name}: what you can keep and when each water is open, in plain words.`);
     unique(titles, title, path); unique(descriptions, description, path);
     add("region", path, shellOf(path, title, description, body, pageLd(site, path, title, asOf, [["Home", "/"], [name, path]])));
@@ -264,7 +264,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
       const ld = clip(`${xs.length} waters in ${name} with ${lname}: the full rules for each, in plain words.`);
       const lb = `<nav class="crumbs"><a href="/">Home</a> › <a href="${path}">${esc(name)}</a> › ${l === "0" ? "Other" : l}</nav><h1>${esc(name)} waters: ${esc(lname)}</h1>` +
         `<p>${xs.length} waters, from release ${esc(release.id)}.</p>${mapCard(r)}${list(xs)}` +
-        `<div class="legal"><p>${built()} This is not a legal document. Check the official synopsis before you fish.</p></div>`;
+        `<div class="legal" data-nosnippet><p>${built()} This is not a legal document. Check the official synopsis before you fish.</p></div>`;
       unique(titles, lt, lp); unique(descriptions, ld, lp);
       add("letter", lp, shellOf(lp, lt, ld, lb, pageLd(site, lp, lt, asOf, [["Home", "/"], [name, path], [l === "0" ? "Other" : l, lp]])));
     }
@@ -279,7 +279,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     const ibody = `<nav class="crumbs"><a href="/">Home</a> › ${esc(t.hub)}</nav><h1>${esc(t.hub)} in B.C.</h1>` +
       `<p>${total} waters have a rule on this, listed by region. Each water page has the full rule.</p>` +
       `<ul>${rows.map(([r, w]) => `<li><a href="${regionPath(r)}/${t.key}">${esc(regionLabel(r))}</a> (${w.length})</li>`).join("")}</ul>` +
-      `<div class="legal"><p>${built()} ${esc(NOT_LEGAL)}</p></div>`;
+      `<div class="legal" data-nosnippet><p>${built()} ${esc(NOT_LEGAL)}</p></div>`;
     unique(titles, ititle, ipath); unique(descriptions, idesc, ipath);
     add("topic", ipath, shellOf(ipath, ititle, idesc, ibody, pageLd(site, ipath, ititle, asOf, [["Home", "/"], [t.hub, ipath]])));
     for (const [r, ws] of rows) {
@@ -291,7 +291,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
         `<p>${ws.length} waters in ${esc(nm)}${ws.length > ls.length ? `; the first ${ls.length} by name are listed, every water is on <a href="${regionPath(r)}">the ${esc(nm)} page</a>` : ""}. Each water page has the rule in full.</p>` +
         mapCard(r) + `<ul class="cols">${ls.map(listItem).join("")}</ul>` +
         `<p><a href="${ipath}">${esc(t.hub)} in all regions</a></p>` +
-        `<div class="legal"><p>${built()} ${esc(NOT_LEGAL)}</p></div>`;
+        `<div class="legal" data-nosnippet><p>${built()} ${esc(NOT_LEGAL)}</p></div>`;
       unique(titles, title, p); unique(descriptions, desc, p);
       add("topic", p, shellOf(p, title, desc, body, pageLd(site, p, title, asOf, [["Home", "/"], [nm, regionPath(r)], [t.hub, p]])));
     }
@@ -319,7 +319,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
       `<h2>Rules changed (${changed.length})</h2>${ul(changed)}<h2>New waters (${added.length})</h2>${ul(added)}` +
       `<h2>Waters no longer listed (${gone.length})</h2><ul class="cols">${gone.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` +
       (reworded ? `<p>Wording updated on ${reworded} ${reworded === 1 ? "water" : "waters"}: the rules there are the same.</p>` : "") +
-      `<div class="legal"><p>This is not a legal document. Check the official synopsis before you fish.</p></div>`;
+      `<div class="legal" data-nosnippet><p>This is not a legal document. Check the official synopsis before you fish.</p></div>`;
     const description = clip(`${changed.length} waters with changed rules, ${added.length} new and ${gone.length} removed since release ${prev.release}.`);
     unique(titles, title, path); unique(descriptions, description, path);
     add("changes", path, shellOf(path, title, description, body, pageLd(site, path, title, asOf, [["Home", "/"], ["Changes", path]])));

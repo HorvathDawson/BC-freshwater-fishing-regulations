@@ -4,9 +4,9 @@
  * critical part inlined, system fonts. (T269) A WATER'S page is not drawn here: it is the app's own regs pane, prerendered
  * (pane.tsx, prerender.ts); this file gives it only its head (`headOf`).
  */
-import { regionWords, SYNOPSIS_PDF } from "@app/core";
+import { BOOK_DAYS, MONTHS, regionWords, SYNOPSIS_PDF } from "@app/core";
 import meta from "../../packages/map/style/style.meta.json" with { type: "json" };
-import type { WaterModel } from "./model";
+import type { PartModel, WaterModel } from "./model";
 
 export interface Site {
   readonly origin: string; readonly name: string; readonly contact: string | null;
@@ -117,14 +117,89 @@ export function clip(s: string, max = 155): string {
   return `${t.slice(0, max - 1).replace(/\s+\S*$/, "").replace(/[,;:\s]+$/, "")}…`;
 }
 
+/** (T1042) what a description says when the page holds no fact: shown in budget.json (`descriptionsWithoutFacts`), never silent */
+export const FACTLESS_TAIL = "its season, what you can keep, gear and limits, from the B.C. synopsis.";
+const FACTLESS_SHORT = "regulations from the B.C. synopsis.";
+const DESC_MAX = 155;
+/** a sentence naming the build day or a date: a description is written once a release (T622 G2), so these are never in it */
+const DAY_WORDS = /\b(today|tomorrow|tonight|now|until|then)\b|\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\.? \d/i;
+
+/** day index of the calendar year (0 = Jan 1, the strip's own order) as "Jun 15": the calendar's own BOOK_DAYS and month words */
+function mdOf(i: number): string {
+  const d = BOOK_DAYS[((i % 365) + 365) % 365]!;
+  return `${MONTHS[d.month - 1]!.slice(0, 3)} ${d.day}`;
+}
+
 /**
- * The meta description of a water page. (T622 G2) NO DAY-RELATIVE WORD: it is written once a release, so "Closed to fishing
- * today" was the build day's answer for weeks. The page itself, and the app, say open or closed for the day the reader is on.
+ * (T1042, owner 2026-11-23 "Season windows") THE WINDOWS A PART IS OPEN TO FISHING, from its year strip (the presenter's own
+ * closed / open runs over the calendar year; a run that ends Dec 31 and one that starts Jan 1 are one): "Jun 1–Jul 14".
+ * null: no strip, or a run the strip does not know. The strip is the water's, not a species'.
+ */
+export function openWindows(runs: PartModel["year"]): string[] | null {
+  if (!runs || runs.length === 0 || runs.some((r) => r.closed === null)) return null;
+  const spans: { open: boolean; a: number; b: number }[] = [];
+  let at = 0;
+  for (const r of runs) { spans.push({ open: !r.closed, a: at, b: at + r.days - 1 }); at += r.days; }
+  if (spans.length > 1 && spans[0]!.open === spans[spans.length - 1]!.open) { const last = spans.pop()!; spans[0]!.a = last.a - 365; }
+  return spans.filter((x) => x.open).map((x) => (x.b - x.a >= 364 ? "all year" : x.a === x.b ? mdOf(x.a) : `${mdOf(x.a)}–${mdOf(x.b)}`));
+}
+
+/** The marks the strip holds on EVERY open day of the year ("fly fishing only", "bait ban"): the legend's marks whose bit every open run carries. */
+function steadyMarks(p: PartModel): string[] {
+  if (!p.yearBits) return [];
+  const open = p.yearBits.filter((r) => r.bits === null || (r.bits & 1) === 0);
+  if (open.length === 0 || open.some((r) => r.bits === null)) return [];
+  return p.marks.filter((k) => k.bit > 1 && open.every((r) => ((r.bits ?? 0) & k.bit) !== 0)).map((k) => k.label);
+}
+
+/**
+ * (T1042) THE FACTS OF A PAGE, in the page's own words, each TRUE ON EVERY DAY OF THE YEAR (the independent review built the
+ * fixture on 24 days: Other fish rows and the Hooks line are the build day's, so a description from them changed with the day).
+ * What is year-stable and read here: the open windows (`openWindows`, the strip's year), the vessel rules (the Boats section,
+ * the same on every day: site.test.ts sweeps a whole year to prove it) and the strip's marks that hold on every open day.
+ * Only what every part says, no dated line, no day word.
+ */
+export function factsOf(m: Pick<WaterModel, "parts">): string[] {
+  if (m.parts.length === 0) return [];
+  const out: string[] = [];
+  const trim = (t: string) => t.replace(/[.\s]+$/, "");
+  const wins = m.parts.map((p) => openWindows(p.year));
+  if (wins.every((w) => w !== null) && new Set(wins.map((w) => w!.join("|"))).size === 1) {
+    const w = wins[0]!;
+    if (w.length === 0) out.push("Closed all year");
+    else if (w[0] === "all year") out.push("Open all year");
+    else if (w.length <= 4) out.push(`Open ${w.join(", ")}`);
+  }
+  const boats = (p: PartModel) => p.sections.filter((s) => s.title === "Boats").flatMap((s) => s.items).filter((i) => !i.head && !i.dated && !DAY_WORDS.test(i.text)).map((i) => trim(i.text));
+  const first = boats(m.parts[0]!).find((b) => m.parts.every((p) => boats(p).includes(b)));
+  if (first) out.push(first);
+  const marks = m.parts.map(steadyMarks);
+  out.push(...marks[0]!.filter((k) => marks.every((x) => x.includes(k))));
+  return out;
+}
+
+/**
+ * The meta description of a water page (and its og:description). (T622 G2) NO DAY-RELATIVE WORD: it is written once a
+ * release. (T1042) It was one template on every page, which Google ignores
+ * (developers.google.com/search/docs/appearance/snippet: identical descriptions on every page are not helpful), so it took a
+ * passage of the page instead, the licence quote. Now: the water's name and place, then `factsOf` while they fit in 155
+ * characters, a whole fact or none. A long name drops "fishing regulations", then "B.C.", before it drops a fact; with no
+ * fact the text says so in whole words (`descriptionHasFacts` is how the build counts them), and is never cut mid-sentence.
  */
 export function descriptionOf(m: WaterModel, label: string = m.name, town: string | null = null): string {
   const where = town ? `near ${town}, ${waterRegions(m)}` : waterRegions(m);
-  return clip(`${label} fishing regulations, B.C. (${where}): the season, what you can keep, gear and limits, in plain words.`);
+  const heads = [`${label} fishing regulations, B.C. (${where}): `, `${label}, B.C. (${where}): `, `${label} (${where}): `];
+  const facts = factsOf(m);
+  for (const head of heads) {
+    const got: string[] = [];
+    for (const f of facts) if ((head + [...got, f].join("; ")).length + 1 <= DESC_MAX) got.push(f);
+    if (got.length) return `${head}${got.join("; ")}.`;
+  }
+  for (const head of heads) for (const tail of [FACTLESS_TAIL, FACTLESS_SHORT]) if ((head + tail).length <= DESC_MAX) return head + tail;
+  return clip(`${label} (${where})`);   // a name too long for any whole sentence: the name, cut at a word
 }
+/** does the description hold a fact (the build's count of those that do not) */
+export const descriptionHasFacts = (m: Pick<WaterModel, "parts">): boolean => factsOf(m).length > 0;
 
 export function aboutBody(site: Site, asOf: string): string {
   const contact = site.contact ? `<p>Contact: <a href="mailto:${esc(site.contact)}">${esc(site.contact)}</a></p>` : "";
@@ -135,7 +210,7 @@ export function aboutBody(site: Site, asOf: string): string {
     `River gauges come from Environment and Climate Change Canada and the Water Survey of Canada; salmon notices from Fisheries and Oceans Canada; ` +
     `stocking records from the Freshwater Fisheries Society of BC. Their terms of use are respected.</p>` +
     `<p>Every page on this site is built from the same release as the app, so the two never disagree.</p>` +
-    `<div class="legal"><p>${esc(NOT_LEGAL)} <a href="${esc(SYNOPSIS_PDF)}" rel="noopener">Official synopsis (PDF)</a>.</p></div>` +
+    `<div class="legal" data-nosnippet><p>${esc(NOT_LEGAL)} <a href="${esc(SYNOPSIS_PDF)}" rel="noopener">Official synopsis (PDF)</a>.</p></div>` +
     `<p>If a rule looks wrong, tell me; every report gets a reply and a fix.</p>${contact}` +
     `<p><a class="app" href="${esc(site.origin)}/">Open the app</a></p>`;
 }
@@ -273,5 +348,5 @@ export function shell(s: Shell, site: Site): string {
   return `<!doctype html><html lang="en-CA"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">` +
     `${headOf(s, site)}<style>${CRITICAL}</style><link rel="stylesheet" href="${esc(s.cssHref)}"></head><body>` +
     `<header class="top"><div><a href="/">${esc(site.name)}</a><a href="/about">About</a></div></header>` +
-    `<main>${s.body}</main><footer>${esc(NOT_LEGAL)} <a href="/privacy">Privacy policy</a></footer></body></html>`;
+    `<main>${s.body}</main><footer><span data-nosnippet>${esc(NOT_LEGAL)}</span> <a href="/privacy">Privacy policy</a></footer></body></html>`;
 }

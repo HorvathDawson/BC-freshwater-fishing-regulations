@@ -40,7 +40,7 @@ import { JobPool } from "./jobs";
 import { threadCounts, type ThreadCounts } from "./threads";
 import { withFavicon } from "./favicon";
 import { appSiteAssociationFile, assetLinksFile, headersFile, IOS_TEAM_ID_RE, hostRules, hostWorker, redirectsFile } from "./hosting";
-import type { Site } from "./html";
+import { descriptionHasFacts, type Site } from "./html";
 import { legacyRedirects, legacyWorker, type Crosswalk, type LegacyBuilt } from "./legacy";
 import { buildDayOf, type BuildDay } from "./model";
 import { buildSite, changesOf, rulesSha, type Snapshot, type SiteBuild, type WaterMade } from "./site";
@@ -203,7 +203,7 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   files.set("_headers", headersFile());
   files.set(".well-known/assetlinks.json", assetLinksFile());
   if (a.iosTeamId) files.set(".well-known/apple-app-site-association", appSiteAssociationFile(a.iosTeamId));
-  withFavicon(files);
+  withFavicon(files, binary);
   files.set("_redirects", redirectsFile(build.removed, build.regions));
   files.set("redirects.json", `${JSON.stringify(hostRules(config, config.alsoHosts), null, 1)}\n`);
   files.set("host-worker.js", hostWorker(config, build.removed, build.regions));
@@ -245,6 +245,8 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
     pages: build.pages.length,
     uniqueTitles: new Set(titles).size, uniqueDescriptions: new Set(descs).size,
     titlesOver60: titles.filter((t) => t.length > 60).length, descriptionsOver155: descs.filter((t) => t.length > 155).length,
+    // (T1042) waters whose page held no fact that fits a description: shown here, never silently the template
+    descriptionsWithoutFacts: build.models.filter((m) => !descriptionHasFacts(m)).length,
     emptyTitleOrDescription: titles.filter((t) => !t).length + descs.filter((t) => !t).length,
   };
   if (quality.uniqueTitles !== quality.pages || quality.uniqueDescriptions !== quality.pages) problems.push(`titles/descriptions are not unique: ${JSON.stringify(quality)}`);
