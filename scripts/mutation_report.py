@@ -55,7 +55,8 @@ TS_TEST = re.compile(r"\.test\.(ts|tsx)$")
 
 def bounded(cmd: list[str], secs: float | None, cwd: Path, env: dict | None = None) -> tuple[int, str]:
     """(exit code, stdout + stderr) of `cmd`, stopped at `secs` (124, as coreutils' timeout: macOS has none): the
-    whole process group goes, the tool's own children (pytest, vitest workers) with it."""
+    whole process group goes, the tool's own children (pytest, vitest workers) with it. SIGINT first (a tool stops as
+    on Ctrl-C and keeps what it finished: mutmut's cache), then TERM, then KILL."""
     import signal
     p = subprocess.Popen(cmd, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
                          start_new_session=True)
@@ -63,12 +64,18 @@ def bounded(cmd: list[str], secs: float | None, cwd: Path, env: dict | None = No
         out, _ = p.communicate(timeout=secs)
         return p.returncode, out
     except subprocess.TimeoutExpired:
-        os.killpg(p.pid, signal.SIGTERM)
-        try:
-            out, _ = p.communicate(timeout=20)
-        except subprocess.TimeoutExpired:
-            os.killpg(p.pid, signal.SIGKILL)
-            out, _ = p.communicate()
+        for sig in (signal.SIGINT, signal.SIGTERM):
+            try:
+                os.killpg(p.pid, sig)
+                out, _ = p.communicate(timeout=20)
+                return 124, out
+            except subprocess.TimeoutExpired:
+                continue
+            except ProcessLookupError:       # it ended between the timeout and the signal
+                out, _ = p.communicate()
+                return 124, out
+        os.killpg(p.pid, signal.SIGKILL)
+        out, _ = p.communicate()
         return 124, out
 
 
@@ -196,13 +203,19 @@ def run_py(base: str, head: str, budget: int, rep: Report, runner=bounded, mutmu
     py = os.environ.get("PIPELINE_PY") or str(ROOT / ".venv" / "bin" / "python")
     mutmut = mutmut or str(Path(py).parent / "mutmut")
     total: dict[str, int] = {}
+    plan = []
     for f, lines in files.items():
         tests, said = RT.pytest_related([f], ROOT)
         if not tests:
             rep.lines.append(f"`{f}`: {len(lines)} changed line(s), NO test imports or names it — every mutant "
                              "would live (not run)")
             continue
-        left_s = int(deadline - time.time())
+        plan.append((f, lines, tests))
+    # each file an equal share of what is left (CI, 2026-11-23: one 190-line file took the whole budget, two files got
+    # none), the smaller changes first
+    plan.sort(key=lambda x: len(x[1]))
+    for i, (f, lines, tests) in enumerate(plan):
+        left_s = int((deadline - time.time()) / (len(plan) - i))
         if left_s < 30:
             rep.problems.append(f"the {budget} s budget ran out before `{f}` ({len(lines)} changed lines)")
             continue
@@ -215,7 +228,8 @@ def run_py(base: str, head: str, budget: int, rep: Report, runner=bounded, mutmu
             rc, said_run = runner([mutmut, "run", "--paths-to-mutate", f, "--tests-dir", str(Path(tests[0]).parent),
                                    "--runner", cmd, "--use-patch-file", str(patch), "--no-progress"], left_s, ROOT)
             if rc == 124:
-                rep.problems.append(f"`{f}`: stopped at the budget; the mutants that finished are counted")
+                rep.problems.append(f"`{f}`: stopped at its share of the budget ({left_s} s); what finished is "
+                                    "counted below, if mutmut kept it")
             elif rc & 1:                      # mutmut's bit 1: a fatal error (a red baseline, a tool failure)
                 rep.problems.append(f"`{f}`: mutmut stopped (rc={rc}): {said_run.strip()[-400:]}")
             xrc, xml = runner([mutmut, "junitxml"], 120, ROOT)

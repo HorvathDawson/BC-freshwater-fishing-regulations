@@ -107,7 +107,18 @@ def test_the_python_part_runs_each_file_against_its_importers_and_says_every_gap
     rep2 = MR.Report("py")
     MR.run_py("b", "h", 900, rep2, runner=lambda cmd, secs, cwd, env=None: (124, "") if cmd[1] == "run" else (0, XML),
               mutmut="mutmut")
-    assert any("stopped at the budget" in p for p in rep2.problems)
+    assert any("stopped at its share of the budget" in p for p in rep2.problems)
+    # (CI 2026-11-23: one 190-line file took the whole 900 s) each file gets an equal share of what is left, the
+    # smaller change first. Mutation: give the first file all that is left -> fails.
+    secs = {}
+    def timing(cmd, s, cwd, env=None):
+        if cmd[1] == "run":
+            secs[cmd[cmd.index("--paths-to-mutate") + 1]] = s
+        return (0, "") if cmd[1] == "run" else (0, XML)
+    monkeypatch.setattr(MR, "py_files", lambda changed: {"pipeline/a.py": [1, 2, 3], "pipeline/b.py": [7]})
+    MR.run_py("b", "h", 900, MR.Report("py"), runner=timing, mutmut="mutmut")
+    assert list(secs) == ["pipeline/b.py", "pipeline/a.py"] and 440 <= secs["pipeline/b.py"] <= 450
+    assert secs["pipeline/a.py"] >= 890                       # the first finished at once: the rest is the last one's
 
 
 def test_the_typescript_part_mutates_line_ranges_against_nearby_tests(monkeypatch, tmp_path):
@@ -188,3 +199,13 @@ def test_the_python_part_picks_pipeline_and_scripts_sources(monkeypatch, tmp_pat
     changed = {p: [1] for p in ("pipeline/a.py", "scripts/b.py", "pipeline/tests/test_a.py", "pipeline/conftest.py",
                                 "app/x.py", "pipeline/gone.py")}
     assert sorted(MR.py_files(changed)) == ["pipeline/a.py", "scripts/b.py"]
+
+
+def test_a_stopped_tool_gets_a_ctrl_c_first(tmp_path):
+    """bounded(): at its time a tool is sent SIGINT first (mutmut keeps what it finished, as on Ctrl-C), 124 back.
+    Mutation: TERM first -> the child's 'saved' line never prints."""
+    child = tmp_path / "child.py"
+    child.write_text("import time, sys\ntry:\n    time.sleep(60)\nexcept KeyboardInterrupt:\n    print('saved')\n")
+    rc, out = MR.bounded([sys.executable, str(child)], 1, tmp_path)
+    assert rc == 124 and "saved" in out
+    assert MR.bounded([sys.executable, "-c", "print('ok')"], 30, tmp_path) == (0, "ok\n")
