@@ -280,7 +280,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1032 | Highlight boxes for region and province rule text (the Source row's p.8/9/10/49 open marked) | DONE | 2c7f8cab2, d03699f73 | owner 2026-11-23 |
 | T1034 | A `regs=` link opened over another water keeps the old camera (the link's `part` is read and dropped) | PARTIAL — left (Claude): device check of the camera; other keys T1038 | 77d9de76d, 2ddaa795f | lane L18 emulator 2026-11-23 |
 | T1035 | `theme=dark` on a `regs=` link does not switch the theme on the phone | DONE | 77d9de76d, 2ddaa795f | lane L18 emulator 2026-11-23 |
-| T1036 | The every-source sheet ("All sources ›") lists rules the screen does not draw, and misses the drawn gear on salmon-only days | OPEN | T991 | #63 review 2026-11-23 (live release probe); the Source row was fixed in #63 |
+| T1036 | The every-source sheet ("All sources ›") lists rules the screen does not draw, and misses the drawn gear on salmon-only days | DONE | d29a19c5a, ea1155dee | lane L5 (0.9.1): built from the drawn tabs (`withDrawnSources`), probe extended to the sheet; owner question (species-sheet rules in the page sheet) default built: not listed, T1036-shots/ |
 | T1038 | Carry a phone link's date, tab, sheet, scroll, age, res, horizon and whole (today reported and dropped) | PARTIAL — all 8 carried (web readers, one open request), day-only links, start re-applied; left (Claude): 0.9.0 device pass | 94c0a117d, 1a5574b00, 06b85846a | lane L15 on T1034, 2026-11-23 |
 | T1037 | Two review readers (`audit.primary_split_pos`, `reuse.host_rows`) pick a cut's position by different rules (157 of 190 multi-row cuts disagree); the build's is per extent (`extent._cut_at`) | OPEN — needs the position rule decided | T776 | PR #48 independent review, 2026-11-23 |
 | T1039 | The public gauge page draws the web app's own chart (same data, windows, zoom, every forecast model) | IN REVIEW — owner: OWNER-TODO "Look (you): T1039 gauge page after-shots"; staging feeds worker deploy + 0.9.0 staging site build to show | 9f8603f17, 44af0d16f, 1b983b5ad, f181f241f, 085ce5e6f, 6a4ebf3ab, 145cf8542 | owner 2026-11-23; lane L25 |
@@ -292,7 +292,6 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1044 | Plain words on some gauges: how to read the level (bands, our own words, sourced) | OPEN — after 0.9.0 | | owner 2026-11-23 (lane L27) |
 | T1046 | Play production access: closed-test record, feedback log linked to releases, questionnaire | OPEN — until Google approves (apply on/after 2026-12-07) | T371, T863 | owner 2026-11-23; record in `handoff/PLAN/play-production-access/` |
 
-| T1048 | `release --cut` writes the new version's app_reads row in its version commit | OPEN — 0.9.1 | | the 0.9.0 cut, 2026-11-24 (6ea5b344a added it by hand) |
 | T1049 | A start link's scroll lands short: it jumps to the first measured section top and never re-checks | PARTIAL — fixed + web check; left (Claude): 0.9.0 device pass | ae65ef767, a2478c6dc, d2239c54d | review of #80 (T1038), 2026-11-23 |
 | T1045 | Gauge pages should come up for "<river> river forecast / level / flow" (title/H1 words, water-to-gauge links, JSON-LD) | DONE | 859b10591, fc3626905, 4af1ba636, 0922cb1f3 | owner 2026-11-23 (lane L27) |
 

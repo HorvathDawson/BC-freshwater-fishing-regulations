@@ -84,7 +84,29 @@ def reads_of(pack_files: dict, also: dict[str, list[str]]) -> dict[str, list[str
 def current_reads(root: Path = REPO_ROOT) -> dict[str, list[str]]:
     """What the app in this tree reads: the contract (Python, the source of pack.generated.ts) + the app's ALSO_READS."""
     from pipeline.deliver.release import contract as C
-    also_src = _ALSO_READS.search((root / MANIFEST_TS).read_text(encoding="utf-8"))
+    return reads_of(C.FILES, _also_reads(lambda rel: (root / rel).read_text(encoding="utf-8")))
+
+
+def reads_in(show) -> dict[str, list[str]]:
+    """(T1048) what the app in ANOTHER tree reads (`show(<repo path>)` -> its text, e.g. a commit's): the contract as
+    that tree's app compiles it (pack.generated.ts, held to contract.py by `emit.pack --check`) + its ALSO_READS. A
+    file that is not there raises, naming it (never an empty row)."""
+    def read(rel: str) -> str:
+        text = show(rel)
+        if text is None:
+            raise SystemExit(f"app_reads: the tree has no {rel}: what its app reads cannot be told")
+        return text
+    pack = read(PACK_TS)
+    if _PACK_FILES not in pack:
+        raise SystemExit(f"app_reads: {PACK_TS} no longer declares `{_PACK_FILES.strip()}`: teach "
+                         "pipeline/tools/emit/app_reads.py its new shape")
+    files, _ = json.JSONDecoder().raw_decode(pack[pack.index(_PACK_FILES) + len(_PACK_FILES):])
+    return reads_of(files, _also_reads(read))
+
+
+def _also_reads(read) -> dict[str, list[str]]:
+    """The app's ALSO_READS (`read(<repo path>)` -> text): {file: the older formats its reader still takes}."""
+    also_src = _ALSO_READS.search(read(MANIFEST_TS))
     if not also_src:
         raise SystemExit(f"app_reads: {MANIFEST_TS} no longer declares ALSO_READS the way this reads it: teach "
                          "pipeline/tools/emit/app_reads.py its new shape (an older format a reader takes must be in the table)")
@@ -95,11 +117,11 @@ def current_reads(root: Path = REPO_ROOT) -> dict[str, list[str]]:
             raise SystemExit(f"app_reads: ALSO_READS has an entry this does not know ({part!r}): teach "
                              "pipeline/tools/emit/app_reads.py where its formats are listed (`_ALSO_SOURCES`)")
         const, where = _ALSO_SOURCES[name]
-        got = _const_reads((root / where).read_text(encoding="utf-8"), const)
+        got = _const_reads(read(where), const)
         if got is None:
             raise SystemExit(f"app_reads: {where} no longer declares {const} as a literal list")
         also[name] = got
-    return reads_of(C.FILES, also)
+    return also
 
 
 def app_version(root: Path = REPO_ROOT) -> str:
@@ -113,11 +135,12 @@ def load(path: Path = TABLE) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def dump(doc: dict) -> str:
-    # one line per version, oldest first: a recorded row that changes is one changed line in the diff
+def dump(doc: dict, about: str = ABOUT) -> str:
+    # one line per version, oldest first: a recorded row that changes is one changed line in the diff. `about`: the
+    # cut (T1048) keeps its base's own _about, so its version commit adds one line and changes none
     rows = [f"  {json.dumps(v)}: {json.dumps(doc['apps'][v], ensure_ascii=False, sort_keys=True)}"
             for v in sorted(doc["apps"], key=ver)]
-    return '{\n "_about": ' + json.dumps(ABOUT, ensure_ascii=False) + ',\n "apps": {\n' + ",\n".join(rows) + "\n }\n}\n"
+    return '{\n "_about": ' + json.dumps(about, ensure_ascii=False) + ',\n "apps": {\n' + ",\n".join(rows) + "\n }\n}\n"
 
 
 def check_problems(doc: dict, version: str, reads: dict[str, list[str]]) -> list[str]:
@@ -146,6 +169,58 @@ def record(doc: dict, version: str, reads: dict[str, list[str]], replace: str | 
     apps = {**doc["apps"], version: {"reads": reads}}
     what = (f"app {version}: row REPLACED ({replace})" if row is not None else f"app {version}: recorded")
     return {**doc, "apps": apps}, what
+
+
+def _moved(old: dict[str, list[str]], new: dict[str, list[str]]) -> str:
+    """'' when the two rows read the same; else each file that differs, old -> new."""
+    return "; ".join(f"{n}: {old.get(n) or 'nothing'} -> {new.get(n) or 'nothing'}"
+                     for n in sorted(set(old) | set(new)) if old.get(n) != new.get(n))
+
+
+def for_cut(doc: dict, version: str, reads: dict[str, list[str]], reads_moved: str | None = None,
+            shipped: tuple[str, ...] = ()) -> tuple[dict, str]:
+    """(T1048) THE ROW THE CUT'S VERSION COMMIT ADDS: (the table with `version`'s row, what was decided). `reads` is what
+    the app on the cut's base reads (`reads_in`). The row is the same formats as the newest version recorded before
+    `version`; when the app's reads MOVED since it, the cut stops and says which files, unless `reads_moved` says why
+    the move is meant (`release --cut --reads-moved "<why>"`, the owner's call). A row already recorded for `version`
+    stays when it is what the app reads and is refused when it is not (a recorded row never changes quietly).
+    (T1048 review) `shipped`: the versions a `v*` tag says shipped; one below `version` with no row on the base is a
+    release branch not merged back yet (its row is there): refused, naming it, or the cut would compare against an
+    older row and the two merge-backs would conflict. `reads_moved` given when nothing moved is refused (the reason
+    would be dropped)."""
+    unmerged = sorted((v for v in shipped if ver(v) < ver(version) and v not in doc["apps"]), key=ver)
+    if unmerged:
+        raise CutRefused(f"{', '.join('v' + v for v in unmerged)} shipped, but the base has no row for "
+                         f"{', '.join(unmerged)}: merge release/{unmerged[-1]} back into the trunk first (its version "
+                         "commit holds the row), then cut. Nothing was made")
+    row = doc["apps"].get(version)
+    if row is not None:
+        if row["reads"] == reads:
+            return doc, f"app {version}: already recorded, the formats the app reads"
+        raise CutRefused(f"app {version} is recorded already reading other formats than the app reads "
+                         f"({_moved(row['reads'], reads)}): fix the table on {version}'s base before the cut")
+    before = [v for v in doc["apps"] if ver(v) < ver(version)]
+    if not before:
+        raise CutRefused(f"no app version before {version} is recorded: `{_BY} --backfill` writes the table")
+    prev = max(before, key=ver)
+    moved = _moved(doc["apps"][prev]["reads"], reads)
+    if moved and not reads_moved:
+        raise CutRefused(f"what the app reads moved since {prev} ({moved}): an app built as {version} reads other "
+                         f"formats than {prev}. If that is meant: python -m pipeline release --cut {version} "
+                         f"--reads-moved \"<why>\"; if not, land the fix before the cut. Nothing was made")
+    if reads_moved and not moved:
+        raise CutRefused(f"--reads-moved was given ({reads_moved!r}), but nothing the app reads moved since {prev}: "
+                         "cut without it. Nothing was made")
+    what = (f"app {version}: the same formats as {prev}" if not moved
+            else f"app {version}: the formats moved since {prev} ({moved}): {reads_moved}")
+    return {**doc, "apps": {**doc["apps"], version: {"reads": reads}}}, what
+
+
+class CutRefused(RuntimeError):
+    """(T1048) the cut cannot write the new version's app_reads row; the message says why and what to do."""
+
+
+TABLE_REL = TABLE.relative_to(REPO_ROOT).as_posix()
 
 
 def _git(root: Path, *args: str) -> str | None:

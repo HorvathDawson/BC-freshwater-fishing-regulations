@@ -4,7 +4,9 @@
  * built from THOSE (`drawnRegsOf(page, tabs, licence)` in WaterScreen's `shown`), never from `page.gear` / `page.methods` /
  * `page.licence`. The fixture release has no such day (every part closed to game fish there is closed to salmon too, T796:
  * the salmon bar reads the book's closure), so the salmon feed's bar is stubbed OPEN for the day: `salmonStripOf` answers
- * "open" — the stubbed loader's feed — and everything else is the app's own wiring.
+ * "open" — the stubbed loader's feed — and everything else is the app's own wiring. (T1036) The every-source sheet behind
+ * the row's "All sources ›" is built from the same drawn tabs: its rows' pages are the drawn ones (and the drawn trout
+ * table's), so the "if fished" gear's pages are in it and the closed day's undrawn rules are not.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -13,15 +15,22 @@ import type { ItemId } from "@app/data";
 import { makeReleaseSource, type ReleaseLoader } from "@app/data/release";
 import { openRegsFixture } from "@app/data/release/node";
 
+/** (T1036) what the screen hands the Source row: the drawn view models and the part's rule index (the sheet's keys' oracle) */
+const handed = vi.hoisted(() => ({ drawn: null as unknown, rules: null as unknown }));
 vi.mock("@app/core", async (orig) => {
   const m = await orig<typeof import("@app/core")>();
   return { ...m, salmonStripOf: (...a: Parameters<typeof m.salmonStripOf>) => {
     const s = m.salmonStripOf(...a);
     return s && { ...s, status: "open" as const, by: "dfo" as const };
+  }, regsSourcesOf: (...a: Parameters<typeof m.regsSourcesOf>) => {
+    handed.drawn = a[0]; handed.rules = a[1].rules;
+    return m.regsSourcesOf(...a);
   } };
 });
 const { WaterScreen } = await import("./WaterScreen");
 const { LIGHT } = await import("./theme");
+const { expectedKeys, sheetExpected, sheetPages } = await import("./regs/testing/allSources");
+type ProbeIndex = import("./regs/testing/allSources").ProbeIndex;
 
 afterEach(cleanup);
 const LOADED = { timeout: 20_000 } as const;
@@ -55,6 +64,17 @@ const FACTS_BOOK = { ...FACTS, payload: {
   chains: [FACTS.payload.chains[0]!, { r: ["2"], w: "Chilliwack River", l: [BOOK], sp: all(2), g: [0, -1], m: [0, 3], a: all(0) }],
   p: { [BOOK]: { water: "Ecological Reserves", static: 1, book: { rule: "zp:superior_closures::superior_closures.r3", pages: [77] } } },
   static: { [BOOK]: { sp: all(2), g: [0, -1] } },
+} } as unknown as SalmonFacts;
+
+/** (T1036) a book closure whose rule nothing else on the Chilliwack's page cites: Region 4's spring stream closure (p.34),
+ *  its place carrying the rule's own page, as a release's places do */
+const BOOK_R4 = "book:z4:spring_stream_closure::spring_stream_closure.r1";
+const FACTS_R4 = { ...FACTS, payload: {
+  ...FACTS.payload,
+  verdicts: [...FACTS.payload.verdicts, { s: "closed", t: "Closed to all fishing by the B.C. Synopsis (p.34): No Fishing" }],
+  chains: [FACTS.payload.chains[0]!, { r: ["2"], w: "Chilliwack River", l: [BOOK_R4], sp: all(2), g: [0, -1], m: [0, 3], a: all(0) }],
+  p: { [BOOK_R4]: { water: "Every stream in Region 4", static: 1, book: { rule: "z4:spring_stream_closure::spring_stream_closure.r1", pages: [34] } } },
+  static: { [BOOK_R4]: { sp: all(2), g: [0, -1] } },
 } } as unknown as SalmonFacts;
 
 /** Open every fold of the page (a fold's lines are on the tab, one tap away), until none is left closed. */
@@ -96,6 +116,11 @@ describe("a day only salmon may be fished, through WaterScreen (#63 re-review)",
     const p = probe();
     expect(p.listed).toEqual(p.expected);
     expect(p.listed).toEqual([8, 9, 21, 22]);
+    // (T1036) the sheet: the drawn "if fished" gear's p.8 and p.21 are in it
+    const sheet = sheetPages({ act, fireEvent, screen });
+    expect(sheet.all).toEqual(sheetExpected(p.drawn, sheet.trout));
+    expect([sheet.all.includes(8), sheet.all.includes(21)]).toEqual([true, true]);
+    expect(sheet.keys).toEqual(expectedKeys(handed.drawn, handed.rules as ProbeIndex));
   }, 40_000);
 
   it("(T1031) a salmon BOOK closure's page, drawn on the card's own Source line, is in the foot row too", async () => {
@@ -108,5 +133,24 @@ describe("a day only salmon may be fished, through WaterScreen (#63 re-review)",
     expect(card).toEqual([77]);
     expect(p.drawn.has(77) && p.listed.includes(77)).toBe(true);
     expect(p.listed).toEqual(p.expected);
+    // (T1036) the every-source sheet: the drawn pages, but for the card's p.77 — the hand-made place above names p.77 for
+    // a rule the book prints on p.9 (drawn on the closed banner here), and a sheet row is the rule's own, its pages the
+    // rule's (a release's places carry their rule's own pages). Listing the closure's rule is pinned in allsources.test.ts
+    const sheet = sheetPages({ act, fireEvent, screen });
+    expect(sheet.all).toEqual(sheetExpected([...p.drawn].filter((x) => x !== 77), sheet.trout));
+    expect(sheet.keys).toEqual(expectedKeys(handed.drawn, handed.rules as ProbeIndex));
+  }, 40_000);
+
+  it("(T1036) a book closure's rule that nothing else on the screen cites is in the every-source sheet, its page with it", async () => {
+    const loader = withSalmon(FACTS_R4);
+    render(<WaterScreen source={makeReleaseSource(loader)} item={"gnis:8634" as ItemId} palette={LIGHT} part={3}
+                        loader={loader} day={new Date(2026, 9, 10, 12)} />);
+    await waitFor(() => expect(screen.getByTestId("salmon-card")).toBeTruthy(), LOADED);
+    const p = probe();
+    const sheet = sheetPages({ act, fireEvent, screen });
+    const rule = "z4:spring_stream_closure::spring_stream_closure.r1";
+    // cited only by the card's closure line: not among the drawn tabs' rules, yet listed, and p.34 with it
+    expect([expectedKeys(handed.drawn, handed.rules as ProbeIndex).includes(rule), sheet.keys.includes(rule), p.drawn.has(34)]).toEqual([false, true, true]);
+    expect([sheet.all, sheet.keys]).toEqual([sheetExpected(p.drawn, sheet.trout), [...expectedKeys(handed.drawn, handed.rules as ProbeIndex), rule].sort()]);
   }, 40_000);
 });
