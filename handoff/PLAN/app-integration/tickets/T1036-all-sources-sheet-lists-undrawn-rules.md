@@ -1,6 +1,6 @@
 # T1036 — The every-source sheet ("All sources ›") lists rules the screen does not draw, and misses the drawn gear on salmon-only days
 
-Status: DONE (owner question default built: list only what the drawn tabs cite) — d29a19c5a (lane L5, 0.9.1 batch, 2026-11-24).
+Status: DONE (owner question default built: list only what the drawn tabs cite) — d29a19c5a, ea1155dee (#96 review fixes) (lane L5, 0.9.1 batch, 2026-11-24).
 
 Source: the independent review of PR #63 (T991 round 3, 2026-11-23), probing the live release r-741815c6090d over 8 waters ×
 parts × 9 days. The Source row was fixed in #63 to cite exactly what the drawn tabs cite (`drawnRegsOf`,
@@ -46,3 +46,8 @@ opens a sheet (Possession: its rule shows no page on the tab) are NOT listed. Pi
 (closed; before: "Possession: twice the daily quota" p.13, which nothing on the screen cites): `T1036-shots/`
 before-/after-qualicum-jun1-{light,dark}.png. The trout table's rules ARE listed (its line opens them): on the Vedder
 that brings p.6 (the province's steelhead quota), which the table never says.
+
+#96 review (ea1155dee): the Source row now names DFO from the sheet's own walk (`drawnSourceRules`; no row changes today:
+neither r-741815c6090d nor r-0aec88ed3edb holds a DFO-source rule); a cited rule the index lacks is reported
+(`AllSourcesRuleMissing`) and gets no row; the probe compares rule keys (`rule-row:<key>`) and pins the salmon closures
+argument (Region 4's spring closure on the Chilliwack, cited by nothing else).
