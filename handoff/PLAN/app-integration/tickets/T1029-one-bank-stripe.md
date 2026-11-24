@@ -1,6 +1,6 @@
 # T1029 — One-bank DFO places: the one-side stripe on the Salmon map (T754 option B, the rest)
 
-Status: IN PROGRESS — owner picked B from z13 (2026-11-24); app layers + bank sides built, bundle and app wiring left (plan below; needs a scratch bundle build); Q5 show-me sent, the binding rule stays proposed; Q4 designed, not built; DRAFT PR #112.
+Status: IN PROGRESS — built on the draft PR #112 (owner picked B from z13; creeks: "i think closed … calculated from extents"): atlas FWA side + drawn banks, reach one-bank tributaries, delivery (creeks closed whole width), bundle `p[lid].bk`, app cue wired; heavy gates run clean (below); left: Q6 on the Standard map, Q4 (designed), device walk, independent review, the 0.9.1 data release.
 
 Source: T754 (owner approved option B 2026-11-15 round 4; question 2 answered 2026-11-22 23:45, "Other bank: the water's
 other rules"). T754 built the words and the verdict (5953ef057, eeb19b4f3): a placed one-bank place stands beside the water's other
@@ -271,3 +271,50 @@ Plan (each step general for every one-bank extent; a typed reason where it canno
 Cost: one atlas build beside the live one + parity, one reach run, one bundle/release build, then the 0.9.1 data
 release. Step 3 alone (no side filter) would already close the 12 today, but would not honour "only tributaries on the
 one bank side" for a future place — so it waits for 1–2.
+
+
+## Built (lane L18, 2026-11-24 afternoon) — commits dc347175c, 8101dcd3d, 9eee990f3, a9b6a735b
+- Atlas: every stream piece carries FWA's `LEFT_RIGHT_TRIBUTARY` (`StreamNode.left_right`; FWA's LEFT / RIGHT / NONE /
+  UNKNOWN, refused otherwise) and `drawn_banks` (which side of its own line each compass word is, `common.bank_side`,
+  one rule shared with the bundle, proved equal on 300 random lines).
+- Reach (`reach.dfo_salmon.one_bank_tributaries`): a one-bank place keeps only the tributary systems whose root joins
+  its stretch on that bank; the other bank → `tributary_other_bank` (out of the place), unreadable →
+  `tributary_side_undetermined` (kept as before, reported); diagnostic `one_bank_tributaries`. Synthetic tests (other
+  bank, a braid to both banks, FWA NONE, a stretch piece with no drawn answer, a pond on the way), 5 mutations caught.
+- Delivery: the walk's tributaries ride their chains' `l` as any place (whole width, no caveat, no stripe); a chain is
+  keyed by `speaks` too (the place's own card chain keeps its `n`). The bundle ships `p[lid].bk = {section: ±1}` for each
+  section a bank place stands beside (`deliver.bank_side.stamp_payload`; a section beside two bank places stops the
+  build; no side → reported, no cue).
+- App: core decodes and checks `bk`; a `bank` colouring channel labels each such section "L|R" + the bank place's own
+  chain (`bk`, fixed per release); the halves read the salmon day through the style (`slice` / `match`, no `in` scan);
+  from z13; nothing on Standard yet. `tools/bank-cue.test.ts`, `salmonBank.test.ts` and three pinned app tests updated.
+
+## The heavy gates (side builds in the lane's worktree, never the live data)
+- Atlas (`pipeline.atlas.build --full`, 43 min): `build_parity` IDENTICAL (21,298 items, 4,612,858 sections, 11,393
+  boundaries); `section_handles.txt` byte-identical; graph: 1,958,585 nodes / 1,548,408 edges, 0 nodes differing beyond
+  the two new fields. 1,237,216 stream pieces stamped; 1,236,869 carry FWA's side. Kitimat stretch `drawn_banks` "R-"
+  (west = left of the drawn line), creek 360639090:0 = RIGHT (west looking downstream).
+- Reach (18 min): `binding_diff` "no binding changed"; all 369 DFO place rows identical; the new diagnostic: the Kitimat
+  bank place keeps all 12 tributaries (west bank), none other-bank, none undetermined.
+- Bundle (12 min): salmon per section vs the live bundle: exactly 12 sections differ — the 12 creeks, now with the
+  west-bank place first in `l`: closed for every species on Aug 15 (was coho 4 / pink 2 / chum 2 open). The stretch
+  unchanged (beside, `u`); `p` changed only by `bk` on the Kitimat (1234098: -1) and the Nakina (1218332: -1) places;
+  the unmapped list identical once chains are resolved. Salmon head: +35 B gz (≈101,515 of the 110,000 gate).
+- Web shots of the REAL wiring, `built-b-{light,dark}.png` (z12/13/14/16): the same app over the 0.9.0 release (no `bk`:
+  draws as today — new app + old data) and over that release with the bundle's `p[lid].bk` in its salmon head (the only
+  change; the creeks' closure arrives with the full data release, not shown). Old app + new data: the 0.9.0 parser checks
+  only `p[lid].side` and never reads `bk`.
+
+## Proposed RULINGS E28 amendment (for the PR; not in RULINGS.md until accepted)
+"(Owner 2026-11-24, T1029: 'No stripe on creeks and only tributaries on the one bank side get included'; on the
+Kitimat's 12 creeks: 'i think closed we need a clean way to have this calculated from extents so it fits into structure
+nicely'.) A one-bank place whose words take tributaries takes only the tributaries that JOIN ITS STRETCH ON THAT BANK —
+FWA's own LEFT_RIGHT_TRIBUTARY at the root, against the stretch's drawn banks — and those take its rule across their whole
+width, with no stripe and no bank caveat; the stretch itself stays beside the water's other places. A tributary whose
+side cannot be read stays and is reported (`tributary_side_undetermined`); one on the other bank leaves the place
+(`tributary_other_bank`)."
+
+## Left
+Q6 on the Standard / Trout map (the rule book's `side` rule; one in the book, `kitimat_river.r1`): needs its per-section
+side in the regs data the Standard map reads — not built. Q4 polygon reaches: designed, not built (above). The device
+walk (above). An independent review. The 0.9.1 data release carries it.
