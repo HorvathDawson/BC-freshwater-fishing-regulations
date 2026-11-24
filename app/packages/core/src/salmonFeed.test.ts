@@ -91,6 +91,23 @@ describe("the DFO feed over the release", () => {
     expect(pickSalmon(r, parseSalmonFeed({ ...G.feed, locs: rest })).payload.unmapped).toEqual([]);
   });
 
+  it("(T905) an index with the publisher's old bookkeeping on each region and one without it read the same", () => {
+    // the golden is today's index: the publisher keeps sha256 / changed / failures / header / unresolved / texts in its
+    // private state (no dfo-feed bump). An index written before (the capture an installed app holds) carries them on
+    // every region: the app reads neither set, so the two compose to the same answers, card and lines
+    const KEPT = ["sha256", "changed", "failures", "header", "unresolved", "texts"];
+    expect(Object.keys(G.feed.regions["6"]).filter((k) => KEPT.includes(k))).toEqual([]);
+    const old = { ...G.feed, regions: { "6": { ...G.feed.regions["6"], sha256: "x".repeat(64), changed: G.feed.at, failures: 2,
+                                               header: "0123456789abcdef", unresolved: [{ name: "Nowhere Creek" }], texts: ["Read the notices."] } } };
+    const [a, b] = [parseSalmonFeed(old), parseSalmonFeed(G.feed)];
+    expect([a === null, b === null]).toEqual([false, false]);
+    const [la, lb] = [withSalmonFeed(release(), a!), withSalmonFeed(release(), b!)];
+    expect(la.payload).toEqual(lb.payload);
+    const card = (f: SalmonFacts) => salmonCard(f, { sids: [11], item: "gnis:4674" }, new Date(2026, 8, 10));
+    expect(card(la)).toEqual(card(lb));
+    expect(salmonFeedLine(la)).toBe(salmonFeedLine(lb));
+  });
+
   it("refuses what is not a whole dfo-feed/3 (an older capture too)", () => {
     expect([parseSalmonFeed(null), parseSalmonFeed({ ...G.feed, format: "x" }), parseSalmonFeed({ ...G.feed, format: "dfo-feed/1" }),
             parseSalmonFeed({ ...G.feed, locs: { a: { r: "6", sp: [[0, 99]], g: [] } } }),

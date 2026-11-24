@@ -162,10 +162,11 @@ def test_the_feed_carries_the_header_and_a_change_tells_once(tmp_path, monkeypat
     fetch = lambda html: (lambda slug: (html, "2026-10-28T00:00:00Z"))               # noqa: E731
     one = L.run(tmp_path, fetcher=fetch(HEADER), regions=["6"], now="2026-10-28T00:00:00Z", notify_url="http://n",
                 sender=lambda u, t: sent.append(t), entries_dir=tmp_path / "none")
-    reg = one["index"]["regions"]["6"]
-    assert _kinds(reg["notes"])[:2] == ["daylight", "facility"] and reg["header"]
+    reg, own = one["index"]["regions"]["6"], one["state"]["regions"]["6"]
+    # (T905) the header's digest and the kept text are the run's own bookkeeping: in its private state, not the index
+    assert _kinds(reg["notes"])[:2] == ["daylight", "facility"] and own["header"] and "header" not in reg
     assert not any("general text changed" in t for t in sent)
-    assert reg["bucket"]["tree"]["n"] == 4 and reg["texts"]                    # T320: the bucket and the kept text
+    assert reg["bucket"]["tree"]["n"] == 4 and own["texts"] and "texts" not in reg   # T320: the bucket and the kept text
     changed = HEADER.replace("is 4. Individual", "is 2. Individual")
     two = L.run(tmp_path, fetcher=fetch(changed), regions=["6"], now="2026-10-28T06:00:00Z", notify_url="http://n",
                 sender=lambda u, t: sent.append(t), entries_dir=tmp_path / "none")

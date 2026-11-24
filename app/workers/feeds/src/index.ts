@@ -19,7 +19,7 @@
 import { meteredFetch, meteredStore, newMeter, r2Store, readStored, setDeployId, writeMerged, type Meter, type R2BucketLike } from "./io";
 import { runGauges } from "./gauges";
 import { runDfo } from "./dfo";
-import { QUEUE_ACTION, SHAPE, STALE_AFTER_HOURS } from "./dfo/live";
+import { QUEUE_ACTION, regionsWithState, SHAPE, STALE_AFTER_HOURS } from "./dfo/live";
 import { runInSeason } from "./inseason";
 import { channelOf, compose, deliver, readState, sendApk, sendTest, type FeedEvent, type NotifyConfig } from "./events";
 import { MATCH_ACTION, parseApk, sampleDfoEvents, splitRosterAction } from "./email";
@@ -411,7 +411,8 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
         meter: m,
         log,
       });
-      const regions = (s.index as any).regions ?? {};
+      // (T905) `failures` is the run's own bookkeeping (priv state.json, out of the published index): read with it
+      const regions = regionsWithState(s.index, s.state);
       held = dfoHeld(regions);
       for (const [slug, r] of Object.entries<any>(regions)) {
         const src = `dfo-region-${slug}`;

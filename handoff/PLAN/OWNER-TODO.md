@@ -9,7 +9,33 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
-## 2026-11-24: 0.9.1 overnight questions (asked, not answered yet)
+## 2026-11-24 08:25–08:50: 0.9.1 overnight questions, the answers (verbatim)
+
+- T905 salmon sizes: "Move worker state out (Recommended)" — the worker's own bookkeeping leaves the public feed (feed
+  to about 121,700 B, a feeds worker deploy); the salmon file's gate stays 110,000 B gz.
+- T1030 what "N waters changed" counts: "Rules only, hide 0 (Recommended)" — rule changes only, and no count shown at 0.
+- T1029 the one-bank stripe (build it, from which zoom): "Should make it more visible right now it isn't ?" — read as:
+  build the stripe, but the pictured stripe is too faint; new pictures with a bolder stripe before anything is built in.
+- T1047 datum rows: first "Idk what this wants"; asked again in plain words (shift the history of 08HD006 by 5.0 m and
+  08EF001 by 2.37 m so their normal range comes back): "Yes but make sure it is a clean well documented update that
+  happens which is easy to see" — accept those two rows; the change must be documented and easy to see (what moved,
+  by how much, from which note). 07FD001, 08KH019 and 08MH153 were not asked: they stay proposed.
+- T1029 Q4, a one-bank stripe where the river is drawn as a polygon: "Along the bank edge".
+- T1029 Q5, the 12 side creeks the Kitimat bank closure binds: "No stripe on creeks and only tributaries on the one
+  bank side get included" — no stripe on creeks; and a one-bank place that includes tributaries takes only the
+  tributaries that join on that bank (a binding change, not only a look).
+- T1029 Q6, the rule book's own west-half rule: "Yes, stripe it too (Recommended)".
+- T1016 the notice words: "Force refresh instead?"; asked how (auto unless typing / always / keep the notice):
+  "Always auto refresh" — a web tab whose data was replaced reloads itself at once onto the live release, with no
+  notice to press, even mid-typing (the same for a tab opened before a site update).
+- T1031 trout row sources, A or B: "Go on to B" — every rule listed in the row's breakdown too (a Python change,
+  ships with the 0.9.1 data release).
+- T1036 rules shown only in a species sheet, and Possession, on the "All sources" sheet: "Add back but maybe have
+  them separate?" — add them back, under their own heading apart from what the screen draws; pictures of the
+  separate group before it merges.
+- T1024 the stub polygon's after look: "Yes, after is right (Recommended)".
+
+## 2026-11-24: 0.9.1 overnight questions (as asked; the answers are in the section above)
 
 Pictures and options for all eight are on one page: https://claude.ai/artifact/UZhX9gBLs6JiynhgVcWuFR (the 0.9.1 chat asks
 them in chat; answers go here verbatim).
@@ -21,10 +47,10 @@ them in chat; answers go here verbatim).
   that installed 0.9.0 apps refuse. Options 1–4 in the ticket: keep the budgets; move the worker's own state out of the
   feed (safe, about 121,700 B, a worker deploy); new feed and head formats in 0.9.1; the same with the feed waiting.
   Default until answered: budgets stay (135,000 B / 110,000 B gz). Recommended: option 2.
-- **T1047 datum changes: accept each proposed row?** 08HD006 (−5.0 m from 2025-06-05) and 08EF001 (+2.370 m from
-  2025-01-30) can be accepted now. 07FD001 (+94.826 m from 2026-08-05) and 08KH019 (+1.011 m from 2026-07-07) only after
-  the this-year line is fixed or 2027 begins (the file refuses them until then). 08MH153: recommended reject (a slow
-  creep, not a step). Default: all five stay proposed; nothing changes. Pictures: `handoff/PLAN/app-integration/T1047-shots/`.
+- **T1047 datum changes, the other three: accept / reject?** (08HD006 and 08EF001 answered 2026-11-24, below.)
+  07FD001 (+94.826 m from 2026-08-05) and 08KH019 (+1.011 m from 2026-07-07) only after the this-year line is fixed or
+  2027 begins (the file refuses them until then). 08MH153: recommended reject (a slow creep, not a step). Default: the
+  three stay proposed; nothing changes. Pictures: `handoff/PLAN/app-integration/T1047-shots/`.
 - **T1030 "N waters changed": what counts?** A: wording changes too. B (built): rules only. C: rules only, nothing shown
   at 0. With B, 0.9.0 would have read "2 waters changed" though 8,247 waters were reworded. Recommended: C.
 - **T1029 one-bank stripe, Q4–Q6** (a prototype in draft PR #112, not merged): the stripe from zoom 13; Q4 no stripe on
@@ -49,6 +75,10 @@ them in chat; answers go here verbatim).
 - Salmon head size gate (T796, T905): "Raise to 110,000 (Recommended)". 100,000 → 110,000; the shrink is T905.
 - The side atlas (T1012, T803): "yes promote if it fixes all the issues??" — promoted only after the four checks (inputs, preflight, binding diff, vintage) pass.
 - The main checkout: "Yes, switch and go (Recommended)" — release/0.9.0 for Steps 2–5, back to main after.
+- Cold-start tab links (T1049; device pass: tab=gear 0/6, tab=licence 1/6 on a cold start, fine when the app is open): "Ship, fix in 0.9.1 (Rec.)". 0.9.0 ships with it as a known issue; the 0.9.1 chat owns the fix.
+- The 0.9.0 What's new bullets (the five in changelog.ts): "OK as written (Rec.)". The draft mark is cleared on release/0.9.0 (the entry is only there until the merge-back).
+- The v0.9.0 tag (it was at a98dd68f9, before the WorkManager, crash and tab fixes): "Yes but in future we can use release candidates ?". Moved to the commit the production build uses. Release candidates for later releases go to the planning chat as a runbook item: tag each staging candidate `v<x.y.z>-rc.<n>`, and tag `v<x.y.z>` only at the production commit.
+- The production Android build's CI check (docs-ci lookback of 30 runs misses the green ancestor run; the checker bug is with the 0.9.1 chat): "Yes, with the reason (Rec.)". The build runs with a CI_CHECK_SKIP that states the reason.
 
 ## 2026-11-23: Google Play production access, the closed-test clock (T1046)
 - **Clock:** every tester opted in on 2026-11-23 (you). 14 days → **earliest apply 2026-12-07**, if at least 12 stay
@@ -62,6 +92,14 @@ them in chat; answers go here verbatim).
   the list (recruiting pick, usage numbers, age group, installs range, vitals crash / ANR rates, …).
 - **Apply (you): T1046 production access** — on or after 2026-12-07, Play Console > Dashboard > "Apply for production",
   pasting the answers in your own words. Then tell Claude the date and, within about 7 days, Google's answer.
+
+## 2026-11-24: T1047 datum changes, 08HD006 + 08EF001 (answer, verbatim)
+- Asked (plain words, through the coordinator) whether to shift the history of 08HD006 (Salmon River near Sayward, 5.0 m
+  lower since 2025-06-05) and 08EF001 (2.37 m higher since 2025-01-30) so their normal range comes back: "Yes but make
+  sure it is a clean well documented update that happens which is easy to see". Both rows `accepted` (lane L16), the
+  page: `pipeline/docs/GAUGE-DATUM-CHANGES.md` (Environment Canada's notes, before/after pictures
+  `T1047-shots/accepted-<station>-{before,after}.png`, one-command undo); the data release's checks list each as its own
+  line. Live with the next data release (no app build). 07FD001, 08KH019, 08MH153 were not asked: still proposed.
 
 ## 2026-11-23: T1047 off-datum level (answers, verbatim)
 - T1047 top line: "Show the level reading (Recommended)"; the note: "just use new data line same as cap. keep it simple".

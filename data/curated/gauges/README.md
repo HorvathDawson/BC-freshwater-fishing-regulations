@@ -13,3 +13,7 @@ The review QUEUE (matches promote did not promote) is machine output: `data/gene
 (committed, so `check_curated --ci` sees it in CI). The datum / relocation remarks HYDAT holds for the roster, parsed
 (`python -m pipeline.tools.audit.datum_remarks`), are machine PROPOSALS too: `data/generated/gauges/datum_proposals.json`. Never regenerate `matches.json` to "check something":
 `python -m pipeline.tools.audit.check_curated` says whether it is stale and prints the command.
+
+The datum changes the owner accepted, one section per station (Environment Canada's note verbatim, the date and offset,
+what the app showed before and after, pictures, the one-command undo): `pipeline/docs/GAUGE-DATUM-CHANGES.md`.
+Set a row: `python -m pipeline.gauges.feed.datum --set <station> <status> ...` (through `curated_write`).

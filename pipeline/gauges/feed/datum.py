@@ -19,14 +19,24 @@ accepted row must carry an effective date and an offset. The one consumer is `cl
 an accepted change's `effective` gets its `offset_m` added (`offset_before`), so the band, the recent years and the
 rating are on today's zero and the publishers rank the live level again. With no accepted row nothing changes for any
 station: `clim.json` is byte-identical (`test_datum_changes`).
+
+WHO DECIDED (2026-11-24): an accepted or rejected row carries `decision` = {`by`, `on` (YYYY-MM-DD), `asked` (the
+question as it was put, plain words), `words` (the answer, verbatim)}; a proposed row has none. THE PLAIN LINE
+(`plain_line`, `record_changes`): what a release says per station when an accepted change starts or stops moving its
+record ("08HD006 level record moved 5.0 m down to the gauge's new zero (Environment Canada note, 2025-06-05)"); the
+climatology build prints it, and the release's checks list it against the live release's commit (`rows_at`;
+`pipeline.release.gauge_records`). Undo, per station: `python -m pipeline.gauges.feed.datum --set <station> proposed`.
+The page for the owner: `pipeline/docs/GAUGE-DATUM-CHANGES.md`.
 """
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import re
 import sqlite3
+import subprocess
 from datetime import date
 from pathlib import Path
 
@@ -38,7 +48,9 @@ DATUM_FILE = CURATED.gauges.datum_change_stations
 STATUSES = ("proposed", "accepted", "rejected")
 SOURCES = ("hydat_remark", "owner")
 REQUIRED = ("station", "effective", "offset_m", "offset_from", "source", "status", "note")
-OPTIONAL = ("remark", "evidence")
+OPTIONAL = ("remark", "evidence", "decision")
+#: (2026-11-24) an accepted / rejected row's record of who decided, when, the question and the answer verbatim
+DECISION_KEYS = ("by", "on", "asked", "words")
 _STATION = re.compile(r"^\d{2}[A-Z]{2}\d{3}$")
 
 
@@ -66,6 +78,26 @@ def this_year_starts(today: date) -> date:
     leave that line on two zeros."""
     from pipeline.gauges.feed.publish import _record_start     # lazy: publish imports climatology, which imports this
     return _record_start(today)
+
+
+def _check_decision(row: dict, at: str) -> None:
+    """An accepted or rejected row says who decided, on what day, what was asked and the answer verbatim; a proposed row
+    has no decision (nobody has made one)."""
+    d = row.get("decision")
+    if row["status"] == "proposed":
+        if d is not None:
+            raise DatumFileError(f"{at}: a proposed row has no `decision` (nobody has decided it yet)")
+        return
+    if not isinstance(d, dict) or set(d) != set(DECISION_KEYS):
+        raise DatumFileError(f"{at}: an {row['status']} row records the decision as {{{', '.join(DECISION_KEYS)}}}: "
+                             "who, the day, the question as asked and the answer verbatim")
+    for k in DECISION_KEYS:
+        if not isinstance(d[k], str) or not d[k].strip():
+            raise DatumFileError(f"{at}: decision.{k} is text")
+    try:
+        date.fromisoformat(d["on"])
+    except ValueError as e:
+        raise DatumFileError(f"{at}: decision.on {d['on']!r} is not a YYYY-MM-DD date") from e
 
 
 def parse(blob: object, where: str = "datum_change_stations.json", today: date | None = None) -> list[dict]:
@@ -122,6 +154,7 @@ def parse(blob: object, where: str = "datum_change_stations.json", today: date |
             raise DatumFileError(f"{at}: note says why the row is here")
         if "evidence" in row and (not isinstance(row["evidence"], str) or not row["evidence"].strip()):
             raise DatumFileError(f"{at}: evidence, when present, is text")
+        _check_decision(row, at)
         key = (st, row["effective"])
         if key in seen:
             raise DatumFileError(f"{at}: two rows for the change on {row['effective']}")
@@ -187,3 +220,105 @@ def check_remarks(rows: list[dict], hydat: Path) -> list[str]:
     for w in warned:
         print(f"  ⚠️  {w}")
     return warned
+
+
+# ------------------------------------------------------------------------------------------------ the plain line
+
+def _metres(off: float) -> str:
+    """5.0 -> "5.0", 2.37 -> "2.37", 94.826 -> "94.826": the offset as the file holds it, millimetres at most."""
+    s = f"{abs(off):.3f}".rstrip("0")
+    return s + "0" if s.endswith(".") else s
+
+
+def plain_line(row: dict) -> str:
+    """One accepted change in plain words, as a release lists it: which way and how far the station's level record moved,
+    and on whose word ("08HD006 level record moved 5.0 m down to the gauge's new zero (Environment Canada note,
+    2025-06-05)"). `offset_m` is what is ADDED to the old record, so a negative offset moves it down."""
+    off = float(row["offset_m"])
+    way = "down" if off < 0 else "up"
+    said = "Environment Canada note" if row["source"] == "hydat_remark" else "measured from the live feed"
+    return f"{row['station']} level record moved {_metres(off)} m {way} to the gauge's new zero ({said}, {row['effective']})"
+
+
+def _moved(rows: list[dict]) -> dict[tuple, dict]:
+    return {(r["station"], r["effective"], float(r["offset_m"])): r for r in rows if r["status"] == "accepted"}
+
+
+def record_changes(before: list[dict], after: list[dict]) -> list[str]:
+    """What moved between two versions of the file, one plain line per change, by station: an accepted change the
+    `before` file did not have (`plain_line`), and one it had that `after` no longer accepts (the record goes back)."""
+    was, now = _moved(before), _moved(after)
+    out = [(k, plain_line(now[k])) for k in now if k not in was]
+    out += [(k, f"{k[0]} level record back on HYDAT's own zero: the {_metres(k[2])} m "
+                f"{'down' if k[2] < 0 else 'up'} change of {k[1]} is no longer accepted") for k in was if k not in now]
+    return [line for _, line in sorted(out)]
+
+
+def rows_at(commit: str, repo: Path) -> list[dict] | None:
+    """The file's rows as committed at `commit` of the git repo `repo` (the live release's commit), or None when the file
+    did not exist at that commit (a release built before T1047). Any git failure raises."""
+    rel = Path(DATUM_FILE).resolve().relative_to(Path(repo).resolve()).as_posix()
+    run = dict(cwd=repo, capture_output=True, check=True)
+    if not subprocess.run(["git", "ls-tree", "--name-only", commit, "--", rel], **run).stdout.strip():
+        return None
+    blob = subprocess.run(["git", "show", f"{commit}:{rel}"], **run).stdout
+    return parse(json.loads(blob), f"{rel} at {commit[:12]}")
+
+
+# ------------------------------------------------------------------------------------------------ the one command
+
+def set_status(station: str, status: str, decision: dict | None, path: Path | None = None) -> dict | None:
+    """Put `station`'s ONE change row at `status` (with its `decision`, or none for `proposed`), through
+    `curated_write` (validated by `validate_text`, backed up, logged with `CURATED_WRITE_BY`). Every other row and every
+    other field is left exactly as it is. The undo of an acceptance is `set_status(<station>, "proposed", None)`."""
+    from pipeline.common import curated_write
+    path = Path(path or DATUM_FILE)
+    blob = json.loads(path.read_text(encoding="utf-8"))
+    hits = [r for r in blob["changes"] if r["station"] == station]
+    if len(hits) != 1:
+        raise DatumFileError(f"{path}: {station} has {len(hits)} rows; this command sets exactly one")
+    row = hits[0]
+    row["status"] = status
+    row.pop("decision", None)
+    if decision is not None:
+        row["decision"] = {k: decision[k] for k in DECISION_KEYS}
+    text = json.dumps(blob, indent=1, ensure_ascii=False) + "\n"
+    validate_text(text)
+    return curated_write.write(path, text, tool="pipeline.gauges.feed.datum --set",
+                               source=f"{station} -> {status}", validate=validate_text)
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description="Set one gauge's datum change row (T1047). Undo an acceptance: "
+                                             "`--set <station> proposed`.")
+    ap.add_argument("--set", nargs=2, metavar=("STATION", "STATUS"), required=True)
+    ap.add_argument("--by", help="who decided (accepted / rejected)")
+    ap.add_argument("--on", help="the day decided, YYYY-MM-DD")
+    ap.add_argument("--asked", help="the question as it was put")
+    ap.add_argument("--words", help="the answer, verbatim")
+    a = ap.parse_args(argv)
+    station, status = a.set
+    if status not in STATUSES:
+        ap.error(f"STATUS is one of {STATUSES}")
+    given = {k: getattr(a, k) for k in DECISION_KEYS}
+    if status == "proposed":
+        if any(given.values()):
+            ap.error("a proposed row has no decision: leave out --by/--on/--asked/--words")
+        decision = None
+    else:
+        if not all(given.values()):
+            ap.error(f"an {status} row needs --by, --on, --asked and --words (the answer verbatim)")
+        decision = given
+    rec = set_status(station, status, decision)
+    print(f"  {station}: {status}" + ("  (already so: nothing written)" if rec is None else
+                                      f"  written by {rec['by']}, backup {rec['backup']}"))
+    rows = load()
+    for r in rows:
+        if r["station"] == station and r["status"] == "accepted":
+            print(f"  the next clim.json: {plain_line(r)}")
+    print("  makes it live: the next data release rebuilds clim.json (`pipeline build`'s clim stage) and the bundle")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
