@@ -1,6 +1,6 @@
 # Restart page: the 0.9.1 follow-ups chat (roadmap row 2)
 
-Written 2026-11-24 06:45 MST by the 0.9.1 chat, at the end of its overnight run beside the 0.9.0 chat. It never
+Written 2026-11-24 06:15 MST by the 0.9.1 chat, at the end of its overnight run beside the 0.9.0 chat. It never
 touched the main checkout. Scope is frozen to `handoff/PLAN/ROADMAP-after-0.9.0.md` row 2. The name is not
 NEXT-SESSION-* on purpose: the guard keeps at most two of those, and they are the 0.9.0 chat's. The 0.9.0 chat has its
 own restart page (START-HERE step 2); this page is only for 0.9.1.
