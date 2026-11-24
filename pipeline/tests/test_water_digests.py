@@ -354,3 +354,31 @@ def test_the_manifest_names_the_list_by_its_content_never_by_its_gzip_bytes(tmp_
         seen.append(((new / "manifest.json").read_bytes(), (new / WD.FILENAME).read_bytes()))
     assert len(seen[0][1]) != len(seen[1][1])                                 # the gzip bytes do differ, in length too
     assert seen[0][0] == seen[1][0]                                           # the manifest does not
+
+
+def test_the_mini_release_check_reads_the_list_by_content_under_another_release_id(tmp_path):
+    """(T1030, CI 45410159283) CI cuts the same rows into other SQLite bytes, so another release id: the check must read
+    the list's block as it reads each file's — by content, its url (which names the id) left out — and must still see a
+    list whose content moved."""
+    import shutil
+    from pipeline.tools import mini_release as MR
+    src = MR.COMMITTED
+    rid = (src / "LATEST").read_text().strip()
+    root = tmp_path / "other"
+    shutil.copytree(src, root)
+    (root / rid).rename(root / "r-000000000000")
+    m = json.loads((root / "r-000000000000" / "manifest.json").read_text())
+    m["data_release"] = "r-000000000000"
+    for e in [*m["files"].values(), m[WD.MANIFEST_KEY]]:
+        e["url"] = e["url"].replace(rid, "r-000000000000")
+    if m.get("synopsis"):
+        m["synopsis"]["url"] = m["synopsis"]["url"].replace(rid, "r-000000000000")
+    (root / "r-000000000000" / "manifest.json").write_text(json.dumps(m, indent=1, sort_keys=True) + "\n")
+    (root / "LATEST").write_text("r-000000000000\n")
+    assert MR.release_content(root) == MR.release_content(src)
+    p = root / "r-000000000000" / WD.FILENAME
+    lst = json.loads(gzip.decompress(p.read_bytes()))
+    lst["waters"][sorted(lst["waters"])[0]] = "0" * 16
+    p.write_bytes(gzip.compress(WD.raw_bytes(lst), mtime=0))
+    got = MR.release_content(root)
+    assert got["water_digests"] != MR.release_content(src)["water_digests"]

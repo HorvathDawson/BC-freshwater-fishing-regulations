@@ -764,9 +764,12 @@ def release_content(root: Path) -> dict[str, str]:
                 raw = _sqlite_content(db, Path(t))
             out[name] = hashlib.sha256(raw).hexdigest()
     # (T1030) the per-water digest list the manifest names beside the files, by what it holds (gunzipped)
+    # — and its url dropped from the manifest as every file's is: it names the release id, which follows the files' bytes
+    # (CI's SQLite and zlib cut the same rows into another id; run 45410159283)
     wd = man.get("water_digests")
     if wd is not None:
         out["water_digests"] = hashlib.sha256(gzip.decompress((Path(root) / wd["url"]).read_bytes())).hexdigest()
+        wd.pop("url")
     man.pop("data_release", None)
     for f in man["files"].values():
         for k in _BYTE_FIELDS:
