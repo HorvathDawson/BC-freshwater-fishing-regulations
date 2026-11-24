@@ -320,7 +320,9 @@ export const INBOX_WORDS = {
   dataTag: "Data update",
   appTag: "App update",
   dataTitle: (day: string) => `Regulations data updated ${day}`,
-  changed: (n: number) => `${n} ${n === 1 ? "water" : "waters"} changed`,
+  /** (T1030, owner 2026-11-24: "Rules only, hide 0") how many waters' rules the release changed: none stated (null) or 0
+   *  says nothing (""), as a release that states no count. The saved row keeps the 0 the release stated; only the words drop it. */
+  changed: (n: number | null) => (n === null || n === 0 ? "" : `${n} ${n === 1 ? "water" : "waters"} changed`),
   appTitle: (version: string) => `Updated to ${version}`,
   ended: "Ended",
   posted: "Posted",
@@ -375,7 +377,7 @@ export interface InboxRowVM {
   readonly water: string;
   /** "Region 4" (an update row: "") */
   readonly region: string;
-  /** the change's text (a data update: "12 waters changed", or "" when the release does not say) */
+  /** the change's text (a data update: "12 waters changed", or "" when the release does not say or says 0) */
   readonly text: string;
   /** "Not on the map yet", or null */
   readonly note: string | null;
@@ -407,7 +409,7 @@ export function inboxVM(s: InboxState | null, today: string, fresh: ReadonlySet<
     const data = e.kind === "data";
     const tag = data ? INBOX_WORDS.dataTag : INBOX_WORDS.appTag;
     const water = data ? INBOX_WORDS.dataTitle(dayWords(e.at, today)) : INBOX_WORDS.appTitle(e.version ?? "");
-    const text = data && e.changed !== null ? INBOX_WORDS.changed(e.changed) : "";
+    const text = data ? INBOX_WORDS.changed(e.changed) : "";
     const date = data ? "" : dayWords(e.at, today);
     return mk({ id: e.id, kind: e.kind, unread, tag, date, water, region: "", text, note: null,
                 label: `${unread ? "Unread. " : ""}${tag}: ${water}${text ? `. ${text}` : ""}` }, e.at);

@@ -50,6 +50,12 @@ with the default Claude uses until you answer). Newest first inside each section
   bank side get included" — no stripe on creeks; and a one-bank place that includes tributaries takes only the
   tributaries that join on that bank (a binding change, not only a look).
 - T1029 Q6, the rule book's own west-half rule: "Yes, stripe it too (Recommended)".
+- T1029, asked again 2026-11-24 ~11:25 with four bolder looks (A split solid, B split + closed dashes, C split +
+  label, D stripe outside the line; each from zoom 13 up): "B: split + closed dashes (Recommended)".
+- T1029, what "included" means for the Kitimat place's 12 side creeks (told: only one creek joins the closed stretch,
+  on the west bank, and the other 11 join through it, so by his west-side rule all 12 stay; today they answer Open):
+  "Not sure, show me" — not decided; he gets the DFO notice's exact wording and a map of the 12 creeks with today's
+  answer on each. Until then the creeks answer as today and the west-side rule stays a proposal.
 - T1016 the notice words: "Force refresh instead?"; asked how (auto unless typing / always / keep the notice):
   "Always auto refresh" — a web tab whose data was replaced reloads itself at once onto the live release, with no
   notice to press, even mid-typing (the same for a tab opened before a site update).
