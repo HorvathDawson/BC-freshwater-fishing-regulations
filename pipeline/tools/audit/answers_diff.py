@@ -31,7 +31,8 @@ starts, so every day is covered once; a weekday or hours moment is compared per 
     gear        each gear element's verdict (bait, lures, methods, barbs), hook, fly only, bait ban, the counted gear
                 (lines, hooks, weight, hook gap: the deciding rule's most / least, and its words)
     boats       the boat rules in force (`gear.vessel`)
-    licence     per angler profile: the documents needed (or none); the classified-water designations
+    licence     per angler profile: the documents needed (or none); the classified-water designations (the closures to
+                the non-resident alien, `alien_closures`, by the net below, their rules as rule ids)
     water       the key's steelhead presence, steelhead rules, water kind, tidal flag
     the rest    every section frame (ladder, rows, gear, licence, display) whole, rule refs as rule ids: a difference no
                 field above explains is listed as "wording only" (only text fields differ) or "other" (its field paths
@@ -140,6 +141,11 @@ RULE_KEYS = {
                        "specs",
                        "active", "timed", "in_part", "side", "lifts", "downrigger", "light", "rules"}),
     "display": frozenset({"closing", "closers", "unless_opened", "by", "lifts"}),
+    # (T1020) T789 G8's closures to the non-resident alien, `alien_closures[].rule`: a rule's export index like any
+    # other (rule ids are per entry, AGENTS rule 8; a release that renumbers its rules moves it). Read as an index,
+    # 28,714 sections of the 0.8.4 -> 0.8.5 pair were "other" with the same closure on both sides, and a closure that
+    # really changed rule at an unchanged index would have been missed.
+    "licence": frozenset({"rule"}),
 }
 LIC_KEYS = frozenset({"holds", "designations", "considered", "wrong_water", "waived", "not_yet_mapped", "req", "terms",
                       "by", "presumes_by"})
