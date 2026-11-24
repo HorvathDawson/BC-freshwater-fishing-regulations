@@ -195,7 +195,11 @@ CREATE TABLE cut_place (split_id TEXT PRIMARY KEY, blk INTEGER NOT NULL, m INTEG
 -- the reader follows `entry_ids` ("see Lonzo Creek") instead.
 CREATE TABLE entry (entry_id TEXT PRIMARY KEY, item_id TEXT, name TEXT, full_name TEXT,
                     verbatim TEXT, symbols TEXT, mus TEXT, pages TEXT, scope_note TEXT,
-                    extents TEXT, matched TEXT NOT NULL DEFAULT '[]', see TEXT, authority TEXT);
+                    extents TEXT, matched TEXT NOT NULL DEFAULT '[]', see TEXT, authority TEXT,
+                    includes_tributaries INTEGER);
+-- (T1053) `includes_tributaries`: the ROW's own flag (1 / 0, NULL: the row says nothing), which every rule of it whose
+-- own flag is unset inherits (AGENTS 9) — so a reader can say a rule's scope in words ("covers … and its tributary
+-- streams") without the reach run.
 -- (T981) `authority`: a LOCAL AUTHORITY's closure (the local-closures entry source, `pipeline.regs.local_closures`):
 -- JSON {body, instrument, section?, url, quote}, cited where a book row cites its `pages` (it prints on none); NULL
 -- for every synopsis row.
