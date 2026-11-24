@@ -458,6 +458,8 @@ export function issuePaint(part: keyof typeof ISSUE_LAYERS, mode: string, tokens
  * (`salmon.closed`, `status.closed`): the colour token `color.<bks>` the line itself would wear for that answer.
  */
 export const BANK_LAYERS = { right: "stream-bank-r", left: "stream-bank-l" } as const;
+/** the colourings a stripe is shown in: those that answer a rule (Salmon, Standard) */
+export const BANK_MODES: readonly string[] = ["salmon", "profile"];
 /** the stripe's own width (px), and the gap between it and the line's edge */
 export const BANK_STRIPE_PX = 3;
 export const BANK_GAP_PX = 0.5;
@@ -470,7 +472,7 @@ export function bankStripePaint(side: keyof typeof BANK_LAYERS, tokens: Tokens, 
   const sign = side === "right" ? 1 : -1;
   return {
     "line-color": ["match", ["coalesce", ["feature-state", "bks"], ""],
-      ...BANK_COLOURS.flatMap((t) => [t.replace(/^color\./, ""), tokens[t]]), "rgba(0,0,0,0)"],
+      ...BANK_COLOURS.flatMap((t) => [t.replace(/^color\./, ""), tokens[t]]), tokens["color.water.unmapped"]],
     "line-width": BANK_STRIPE_PX,
     "line-offset": withinZoomCurve(streamWidth, (w) => ["*", sign, ["+", ["/", w, 2], BANK_GAP_PX + BANK_STRIPE_PX / 2]]),
     "line-opacity": ["case", ["==", ["coalesce", ["feature-state", "bk"], 0], sign], 1, 0],

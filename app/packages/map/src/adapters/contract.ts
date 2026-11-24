@@ -16,7 +16,7 @@ import {
   MAP_STYLE, NO_VALUES, STYLE_META, followerMode, followersOf, isRuntimeLayer, profileChannel,
   IMAGERY_WATER_LAYERS, onImageryTokens, resolveTheme, type ChannelValues, type Tokens,
 } from "../style";
-import { SALMON_CASING_LAYER, salmonCasingPaint, ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, focusTheOthers, hideTheOthers, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, NOBASELINE_LAYER, nobaselineOpacity, RUNS_PASS_LAYER, runsPassPaint,
+import { BANK_LAYERS, BANK_MODES, SALMON_CASING_LAYER, salmonCasingPaint, ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, focusTheOthers, hideTheOthers, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, NOBASELINE_LAYER, nobaselineOpacity, RUNS_PASS_LAYER, runsPassPaint,
          paintFor, ringPaint, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS, type SelectionCue,
          markShownIn, markWidth, splitStream, STREAM_HEAVY, streamWidths, takesAccessFromStatus } from "../paint";
 import { landOutline, openedPaint, waterOnImagery } from "../on-imagery";
@@ -275,6 +275,8 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
         for (const [prop, value] of Object.entries(onGround(quiet(issuePaint(part, mode, tokens, iw, values)), iw, tokens, true, iw)))
           h.setPaint(ISSUE_LAYERS[part], prop, value);
       }
+      // (T1029, prototype) the one-bank stripe: shown in the colourings that answer a rule only (runtime-style's note)
+      for (const side of ["right", "left"] as const) h.setVisibility(BANK_LAYERS[side], BANK_MODES.includes(mode));
       // the selection's outline goes with the stream: its width is the stream's, its colour the theme's (full strength)
       const sel = markWidth("casing", mode, sw);
       for (const [prop, value] of Object.entries(onGround(casingPaint(sel, tokens), sel, tokens, false)))
