@@ -25,6 +25,8 @@ One page, one pointer (T437): a new chat reads, in order,
    `origin/main` (`feat/`, `fix/`, `perf/`, `test/`, `ci/`, `docs/`, `chore/` + ticket id; commits and PR titles `type(Tnnn): subject`), open a PR with auto-merge, never push to
    `main`; a release ships from its `release/<version>` branch. Hooks: `git config core.hooksPath .githooks`.
 
+**After 0.9.0:** the chats, their order and the prompts to paste are in `handoff/PLAN/ROADMAP-after-0.9.0.md` (owner 2026-11-24).
+
 A second chat working the parked tickets (T667 rest, T686, T602, loose nits) reads `handoff/PLAN/PARKED-TICKETS.md` instead of step 2; iOS: `handoff/PLAN/ios/START-HERE-ios.md`.
 
 iOS hardening (owner reopened it 2026-11-14, own chat, simulator work first): `handoff/PLAN/ios/START-HERE-ios.md`.
