@@ -120,6 +120,10 @@ export const startLand = {
   id: 'start-land',
   title: `A start link lands on its tab from a cold start (${TABS.join(', ')} × ${RUNS}${VARIANTS.length ? `, variants ${VARIANTS.join('/')}` : ''})`,
   async run(ctx) {
+    // the phone online on Wi-Fi first: a run left offline (a line the system judged dead) reads no feed, and its salmon
+    // card is the capture's, in at the first layout: not the slow start this scenario is for
+    if (ctx.device.netState() === 'none') await ctx.device.net('wifi');
+    ctx.finding(`the phone's network at the start: ${ctx.device.netState()}`);
     if (!PROXY) return startLand.steps(ctx);
     const [rate, delay] = PROXY.split(':').map(Number);
     const proxy = await startThrottleProxy({ rate, connectDelayMs: delay || 0 });
