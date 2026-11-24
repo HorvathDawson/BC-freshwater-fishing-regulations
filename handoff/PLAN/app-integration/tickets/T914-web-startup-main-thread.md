@@ -13,8 +13,13 @@ core/regs 196, react-native-web 259, react-native-gesture-handler 237, ui-native
 map/style.meta.json 117, map 110. Desktop is 98.
 
 ## Owner's Lighthouse run on production 0.9.0, pasted 2026-11-24 (planning chat: "more stuff to add")
-Build `web/index-eff5c34….js`, data release r-0aec88ed3edb. The run's page, device and throttling were not given:
-ask, or re-measure with T910's method before comparing with the numbers above.
+Build `web/index-eff5c34….js`, data release r-0aec88ed3edb. Owner 2026-11-24 (answer to "which page and
+device"): PageSpeed Insights, opened from Search Console, on `https://canifishthis.ca` (the start page `/`),
+"mobile": `https://pagespeed.web.dev/analysis/https-canifishthis-ca/hcg2notentrn1pdxvbma3c?form_factor=mobile`.
+So it is Google's hosted Lighthouse with its mobile profile (a slowed mid-range phone on slow 4G; the exact
+throttling is PageSpeed's, not ours), not T910's local method: compare like with like, and re-run PageSpeed on the
+same URL after each step. The score and the timing metrics (FCP, LCP, TBT, Speed Index) of this run were not pasted:
+read them from the link while it lasts.
 - Minimize main-thread work: 25.2 s (Other 13,359 ms; Script Evaluation 10,226; Garbage Collection 856; Script
   Parsing & Compilation 575; Style & Layout 179; Rendering 44; Parse HTML & CSS 10).
 - Reduce JavaScript execution time: 10.8 s. `web/index-….js` 23,518 ms total CPU (9,314 evaluation, 521 parse);
