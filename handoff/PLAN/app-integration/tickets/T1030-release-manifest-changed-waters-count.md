@@ -1,6 +1,6 @@
 # T1030 — The release manifest carries a changed-waters count (the inbox's "N waters changed")
 
-Status: DONE — f75e6aac1, 35f55b74d, 7287c181a, c2c1e832c (0.9.1; needs the 0.9.1 data release + app build; the first release carrying the list states no count)
+Status: DONE — f75e6aac1, 35f55b74d, 7287c181a, c2c1e832c, d52a04440 (0.9.1; needs the 0.9.1 data release + app build; the first release carrying the list states no count)
 
 T867 (PR feat/T867-inbox) shows a data-release row in the notifications inbox: "Regulations data updated <day>", and
 "N waters changed" once the manifest says it. Nothing in the manifest says it today, so the row omits it (rule 32); the
@@ -63,7 +63,7 @@ tiles), `--previous` a scratch copy of 0.8.5 given its list: `changed_waters: 2 
 r-741815c6090d`; its list is byte-for-byte the one read back from 0.9.0's shipped files (14 s, ~1.2 GB, 108 kB gzip).
 The committed mini release was re-cut (same id; `--check` matches a rebuild).
 
-## Owner question (behaviour unchanged until answered)
+## Owner question (answered 2026-11-24)
 
 With wording left out, 0.9.0's sweep ("rule book" -> "B.C. Synopsis" on 8,247 waters' salmon cards) would have read
 "2 waters changed" (Kitimat, Nakina: the only waters whose rules moved); a release changing nothing but words reads
@@ -73,3 +73,16 @@ With wording left out, 0.9.0's sweep ("rule book" -> "B.C. Synopsis" on 8,247 wa
   B. keep rules-only (built now) — the number says where the rules moved; a 0 reads "0 waters changed";
   C. rules-only, and say nothing when it is 0 (the row keeps "Regulations data updated <day>").
 Recommended default: B or C (C if "0 waters changed" reads odd on a data release).
+
+**Owner's answer (2026-11-24, verbatim): "Rules only, hide 0 (Recommended)"** — option C.
+
+## Built (lane L17, 0.9.1, 2026-11-24): d52a04440
+
+The count stays rules-only. When it is 0 the inbox row says NO count, as when the release states none: core's
+`INBOX_WORDS.changed(n)` composes absent (null) and 0 as `""`, 1 as "1 water changed", N as "N waters changed", and
+`inboxVM` uses it for every data row. **Where 0 is dropped: the app's composer, not Python.** The manifest keeps stating
+`changed_waters: 0` (a true answer the release computed; "we asked and there are none" is a different claim from
+"we have not asked", rule 32), and the saved inbox history keeps the 0 too; only the words leave it out. Proof:
+`inseasonInbox.test.ts` pins the whole `text` and `label` for absent / 0 / 1 / 37 and the four sentences;
+`InboxRelease.shell.test.tsx` (the real Shell) has a release stating 0 -> history 0, text "". Both fail on main ("0
+waters changed"); the mutation dropping the 0 guard is killed by both.
