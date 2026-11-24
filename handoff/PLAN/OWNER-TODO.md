@@ -19,6 +19,10 @@ with the default Claude uses until you answer). Newest first inside each section
   (Recommended)" — the transfer is your click.
 - Later the same day: "i think we should do repo move after m0.9.0" — so the move, the slug flip and the merge-queue
   ruleset are a post-0.9.0 follow-up; only the `merge_group` triggers went in now (they do nothing until a queue exists).
+- **Do (you), any time, one line: keep the push connection alive** (T1041: GitHub closed git's ssh connection under a
+  420 s pre-push hook; with a keepalive the same push went through). In the main checkout:
+  `git config core.sshCommand "ssh -i ~/.ssh/id_ed25519_personal -o ServerAliveInterval=15 -o ServerAliveCountMax=8"`
+  (every worktree shares it). Or add `ServerAliveInterval 15` under `Host github.com-personal` in ~/.ssh/config.
 - **Do (you), after 0.9.0 ships: move the repo to a free organisation** (details: T1041, "Transfer checklist"):
   1. Create a free GitHub organisation (github.com/organizations/plan, Free); you are its owner.
   2. Repo Settings -> General -> Danger zone -> Transfer -> the organisation (keep the name).

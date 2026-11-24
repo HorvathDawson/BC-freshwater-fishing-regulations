@@ -31,6 +31,8 @@ def _tree(tmp_path: Path) -> Path:
         "pipeline/tests/test_through_mid.py": "from pipeline.a.mid import X\n",
         "pipeline/tests/test_near.py": "from pipeline.a.near import PIN\n",
         "pipeline/tests/test_other.py": "x = 1\n",
+        "pipeline/tests/test_script.py": "SCRIPT = ROOT / 'scripts' / 'tool.py'\n",
+        "scripts/tool.py": "print(1)\n",
     }
     for rel, text in files.items():
         (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
@@ -102,3 +104,13 @@ def test_on_this_repo_decided_reaches_the_test_that_failed_on_67():
                                 "pipeline/regs/extraction/passage_unlocated.json"])
     assert "pipeline/tests/test_local_closures.py" in got and "pipeline/tests/test_t1032_passage_boxes.py" in got
     assert len(got) < RT.PY_CAP
+
+
+def test_a_changed_script_reaches_the_tests_that_name_it(tmp_path):
+    """A scripts/*.py (or .sh) is loaded by path or run, never imported: the tests naming its file name. Mutation:
+    drop the `named` set -> fails."""
+    root = _tree(tmp_path)
+    got, said = RT.pytest_related(["scripts/tool.py", "scripts/gone.sh"], root)
+    assert got == ["pipeline/tests/test_script.py"]
+    assert said == ["scripts/tool.py: named by 1 test file(s)",
+                    "scripts/gone.sh: deleted — its tests run in the tier (scripts/before_pr.sh, CI)"]

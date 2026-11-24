@@ -82,6 +82,21 @@ Source: owner 2026-11-23 (the 0.9.0 batch chat): a red CI run or a bug found in 
    each. A real failing test still exits 1, and so does a passing test that leaves an unhandled rejection
    (both checked with throwaway test files). Pinned by `test_the_app_suite_takes_half_the_cores_on_a_laptop`.
 
+6. **The push connection: what actually kills a long hook** (found on this PR's second push, a merge of main: the hook
+   passed in 370 s under load, then git died silently, "command terminated abnormally", nothing pushed). Measured with
+   a pre-push hook that only sleeps 420 s, on `git push --dry-run` (no ref written), twice at once: plain ssh ->
+   "Connection to github.com closed by remote host", rc 141 (SIGPIPE: the 2026-11-22 death); with
+   `ssh -o ServerAliveInterval=15 -o ServerAliveCountMax=8` -> the push went through. GitHub drops the idle ssh
+   session; a keepalive holds it. This clone's `core.sshCommand` is `ssh -i ~/.ssh/id_ed25519_personal` and ssh's
+   settings for `github.com-personal` have `serveraliveinterval 0`. Built: the hook passes its push URL
+   (`--remote-url "$2"`) and WARNS (never fails) when neither git's ssh command nor ssh's settings for that host keep
+   the connection alive, printing the one-line fix; `before_push.py --hook` prints it too. Setting it is the owner's
+   (his clone's config): OWNER-TODO. Until then a lane pushes with
+   `GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_personal -o ServerAliveInterval=15 -o ServerAliveCountMax=8" git push`
+   (no config changed; this PR's third push did so: 193 s hook, pushed).
+   Also: related tests and scripts. A changed scripts/*.py or *.sh (loaded by path or run, never imported) reaches the
+   test files that name it, in the hook and in the mutation report (which now mutates scripts/*.py too).
+
 ## Measured (this Mac, 18 cores; GitHub's runners are slower)
 - **Hook time**, the same change (one comment in `core/src/tabSources.ts` + one in `display/decided.py`, `--changed
   --no-tier`). Quiet machine, before: **200 s** (11 steps one after another, tree scanners only). Busy machine (other
@@ -138,5 +153,11 @@ What names the owner or the repo, or depends on the personal account:
    into each stacked PR. A ruleset change is the owner's (or his OK).
 3. The worker token re-issued (owner, above) and a HYDAT dispatch checked on staging.
 
+- **Mutation jobs on GitHub's runners** (this PR, run 45292340840): python 79 s, typescript 126 s end to end, almost
+  all of it setup (checkout, pnpm install, venv, Stryker install): the PR's first diff had no pipeline/ or app source
+  line to mutate, so each said so. The mutating runs are measured locally (above); the push after scripts/*.py joined
+  the Python part mutates this PR's own scripts (read its summary for that time).
+
 ## Not done / not verified
-- The CI time of the mutation jobs on GitHub's runners: read off this PR's own run.
+- A mutating run of the TypeScript part on GitHub's runners (Stryker's sandbox-free `inPlace` run there).
+- The keepalive setting on the owner's clone (his).

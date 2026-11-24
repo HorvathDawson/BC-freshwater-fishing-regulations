@@ -359,3 +359,24 @@ def test_main_lists_the_failures_in_the_plans_order_whatever_lane_ended_first(mo
     assert BP.main(["--changed", "--no-tier"], runner=lambda s: 1 if s.name in bad else 0) == 1
     err = capsys.readouterr().err
     assert err.index("- the pipeline's source scanners") < err.index("- app gates (pnpm check:fast)")
+
+
+def test_the_hook_warns_when_the_push_connection_has_no_keepalive():
+    """(T1041) measured 2026-11-23: a pre-push hook that slept 420 s on `git push --dry-run` — plain ssh, "Connection
+    to github.com closed by remote host", rc 141; with ServerAliveInterval the same push went through. The hook says
+    so (a warning, never a failure) unless git's ssh command or ssh's settings for the host keep it alive. Mutation:
+    always return None -> fails."""
+    assert BP.ssh_host("git@github.com-personal:o/r.git") == "github.com-personal"
+    assert BP.ssh_host("ssh://git@github.com:22/o/r.git") == "github.com"
+    assert BP.ssh_host("https://github.com/o/r.git") is None and BP.ssh_host("/tmp/origin.git") is None
+    off = lambda h: "hostname github.com\nserveraliveinterval 0\n"          # noqa: E731
+    on = lambda h: "hostname github.com\nserveraliveinterval 30\n"          # noqa: E731
+    url = "git@github.com-personal:o/r.git"
+    warn = BP.keepalive_said(url, "ssh -i ~/.ssh/k", ssh_g=off)
+    assert "no keepalive" in warn and 'git config core.sshCommand "ssh -i ~/.ssh/k ' + BP.KEEPALIVE + '"' in warn
+    assert BP.keepalive_said(url, "ssh -i k -o ServerAliveInterval=15", ssh_g=off) is None
+    assert BP.keepalive_said(url, None, ssh_g=on) is None
+    assert BP.keepalive_said("https://github.com/o/r.git", None, ssh_g=off) is None
+    assert "could not read ssh's settings" in BP.keepalive_said(url, None, ssh_g=lambda h: None)
+    hook = (ROOT / ".githooks" / "pre-push").read_text()
+    assert '--remote-url "${2:-}"' in hook

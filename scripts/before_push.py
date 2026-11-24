@@ -87,6 +87,8 @@ HOOK = """# (T995) the hooks are versioned in .githooks/: pre-push runs `scripts
 # the message follows Conventional Commits (T998: node app/tools/check-commits.mjs --edit).
 # Turn them on once per clone (every worktree of it shares the setting):
 git config core.hooksPath .githooks
+# (T1041) keep git's ssh connection up while the hook runs (GitHub closed it under a 420 s hook):
+git config core.sshCommand "$(git config --get core.sshCommand || echo ssh) -o ServerAliveInterval=15 -o ServerAliveCountMax=8"
 # skip once, in an emergency only (say so in the commit or the PR): git push --no-verify
 # turn them off: git config --unset core.hooksPath"""
 #: (T995) the ticket guard on its own: what a push that changes no app file still runs (`pnpm check:fast` holds it)
@@ -302,6 +304,47 @@ def step_area(step: Step) -> str:
     raise ValueError(f"before-push: no area for step {step.name!r}")
 
 
+#: (T1041) what keeps git's SSH connection to GitHub up while the hook runs: measured 2026-11-23 with a hook that slept
+#: 420 s on `git push --dry-run` — plain ssh: "Connection to github.com closed by remote host", rc 141 (SIGPIPE, the
+#: 2026-11-22 death); with these options the same push went through
+KEEPALIVE = "-o ServerAliveInterval=15 -o ServerAliveCountMax=8"
+
+
+def ssh_host(url: str) -> str | None:
+    """The ssh host (or Host alias) of a remote URL, None for a non-ssh one: git@host:path, ssh://[user@]host[:port]/."""
+    if url.startswith("ssh://"):
+        m = re.match(r"ssh://(?:[^@/]+@)?([^:/]+)", url)
+    elif "://" in url:
+        return None                          # https, file, git: no ssh connection to keep
+    else:
+        m = re.match(r"(?:[^@/:]+@)?([^:/]+):", url)
+    return m.group(1) if m else None
+
+
+def keepalive_said(url: str, ssh_command: str | None, ssh_g=None) -> str | None:
+    """(T1041) None when the push connection is kept alive (the ssh command git uses, or ssh's own settings for the
+    host, name a ServerAliveInterval above 0) or the remote is not ssh; else the warning, with the fix. Never fails."""
+    host = ssh_host(url)
+    if host is None:
+        return None
+    if ssh_command and re.search(r"ServerAliveInterval[= ]+[1-9]", ssh_command):
+        return None
+    if ssh_g is None:
+        def ssh_g(h):
+            got = subprocess.run(["ssh", "-G", h], capture_output=True, text=True)
+            return got.stdout if got.returncode == 0 else None
+    out = ssh_g(host)
+    if out is None:
+        return f"before-push: could not read ssh's settings for {host} (ssh -G): keepalive unknown"
+    m = re.search(r"^serveraliveinterval (\d+)$", out, re.M)
+    if m and int(m.group(1)) > 0:
+        return None
+    cmd = f"{ssh_command or 'ssh'} {KEEPALIVE}"
+    return (f"before-push: WARNING: git's ssh connection to {host} has no keepalive; GitHub closes it while a long hook "
+            f"runs (a 420 s hook: the push died, SIGPIPE). Once per clone: git config core.sshCommand \"{cmd}\" "
+            f"(or ServerAliveInterval 15 under `Host {host}` in ~/.ssh/config)")
+
+
 def _git_local_vars() -> set[str]:
     """git's own list of the variables that tie a process to ONE repository (`git rev-parse --local-env-vars`)."""
     out = subprocess.run(["git", "rev-parse", "--local-env-vars"], capture_output=True, text=True, check=True).stdout
@@ -408,6 +451,8 @@ def main(argv=None, runner=run_step, stdin=sys.stdin) -> int:
     ap.add_argument("--app-suite", action="store_true")
     ap.add_argument("--hook", action="store_true")
     ap.add_argument("--changed", action="store_true")
+    ap.add_argument("--remote-url", default=None,
+                    help="(T1041) the hook's $2: the push URL, checked for an ssh keepalive (a warning, never a failure)")
     ap.add_argument("--serial", action="store_true",
                     help="(T1041) run the steps one after another, not in the two lanes at once")
     ap.add_argument("--pre-push", action="store_true",
@@ -424,6 +469,12 @@ def main(argv=None, runner=run_step, stdin=sys.stdin) -> int:
         print(f"before-push: SKIPPED (nothing run): {skip}")
         return 0
     areas, ranges, paths = None, None, None
+    if a.remote_url:
+        ssh_cmd = os.environ.get("GIT_SSH_COMMAND") or subprocess.run(
+            ["git", "config", "--get", "core.sshCommand"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
+        warn = keepalive_said(a.remote_url, ssh_cmd or None)
+        if warn:
+            print(warn, file=sys.stderr)
     if a.pre_push:
         said, paths, ranges = pushed(stdin.read().splitlines())
         for ln in said:

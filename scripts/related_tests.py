@@ -17,7 +17,8 @@ tests" step. A changed non-code file (a fixture, a .gz) has no import graph: lis
 THE PIPELINE: the test files that import a changed module DIRECTLY (`import a.b` / `from a.b import c` / relative), and
 changed test files themselves. Not the transitive closure: through the package `__init__`s it is ~400 of ~550 files
 for one leaf module (the whole tier, minutes). A changed non-Python file under pipeline/ (a pinned JSON beside its
-module) counts as a change to each module whose source names its file name. A changed conftest.py is said, not
+module) counts as a change to each module whose source names its file name; a changed scripts/*.py or *.sh (loaded by
+path or run, never imported) reaches the test files that name its file name. A changed conftest.py is said, not
 followed (it reaches every test under it: the tier's job). The list is capped at `PY_CAP` files (direct-import counts
 here: decided.py 5, salmon.py 27, common/curated.py 50 at 111 s); past it, the rest are NAMED as left to
 `scripts/before_pr.sh` and the PR's tier — never dropped quietly.
@@ -92,9 +93,19 @@ def pytest_related(paths: list[str], root: Path = ROOT, cap: int = PY_CAP) -> tu
     said: list[str] = []
     changed_tests = sorted(p for p in paths if _is_test(p, tps) and (root / p).is_file())
     sources: set[str] = set()
+    named: set[str] = set()                  # tests that name a changed script by its file name
     for p in paths:
         if Path(p).name == "conftest.py" and (p == "conftest.py" or p.startswith("pipeline/")):
             said.append(f"{p}: a conftest reaches every test under it — left to the tier (scripts/before_pr.sh, CI)")
+        elif p.startswith("scripts/") and Path(p).suffix in (".py", ".sh"):
+            if not (root / p).is_file():
+                said.append(f"{p}: deleted — its tests run in the tier (scripts/before_pr.sh, CI)")
+                continue
+            # a script is loaded by path (spec_from_file_location) or run, never imported: the tests naming it
+            readers = sorted(rel for m, rel in mods.items() if _is_test(rel, tps)
+                             and Path(p).name in (root / rel).read_text(encoding="utf-8"))
+            named |= set(readers)
+            said.append(f"{p}: named by {len(readers)} test file(s)")
         elif not p.startswith("pipeline/") or _is_test(p, tps):
             continue
         elif p.endswith(".py"):
@@ -108,7 +119,7 @@ def pytest_related(paths: list[str], root: Path = ROOT, cap: int = PY_CAP) -> tu
             said.append(f"{p}: read by {', '.join(readers) or 'no pipeline module that names it'}")
         else:
             said.append(f"{p}: deleted — its readers' tests run in the tier (scripts/before_pr.sh, CI)")
-    importers = sorted({mods[i] for s in sources for i in rev.get(s, ()) if _is_test(mods[i], tps)}
+    importers = sorted(({mods[i] for s in sources for i in rev.get(s, ()) if _is_test(mods[i], tps)} | named)
                        - set(changed_tests))
     picked = changed_tests + importers
     if sources:

@@ -12,7 +12,7 @@ Why: reviews this session kept finding new branches with no test that could fail
 to fail"). A survivor here is a changed line whose behaviour no test pins.
 
 WHAT IS MUTATED: the lines the PR adds (`git diff -U0 <base>...<head>`), in
-  - py: pipeline/**/*.py that are not tests or conftest — mutmut's `--use-patch-file` (only the patch's added lines),
+  - py: pipeline/**/*.py and scripts/*.py that are not tests or conftest — mutmut's `--use-patch-file` (only the patch's added lines),
     one file at a time, its runner the tests that import that file directly (scripts/related_tests.py, CI's no-data
     markers, `-x`), so a mutant costs one short pytest run;
   - ts: app/packages/** and app/apps/** .ts/.tsx that are not tests — Stryker's `--mutate <file>:<from>-<to>` line
@@ -162,7 +162,7 @@ def write(rep: Report, t0: float) -> None:
 
 def py_files(changed: dict[str, list[int]]) -> dict[str, list[int]]:
     tps = RT.testpaths(ROOT)
-    return {f: ls for f, ls in changed.items() if f.startswith("pipeline/") and f.endswith(".py")
+    return {f: ls for f, ls in changed.items() if f.startswith(("pipeline/", "scripts/")) and f.endswith(".py")
             and Path(f).name != "conftest.py" and not RT._is_test(f, tps) and (ROOT / f).is_file()}
 
 
@@ -187,9 +187,9 @@ def run_py(base: str, head: str, budget: int, rep: Report, runner=bounded, mutmu
     import before_push as BP
     markers = BP.tier_markers(BP.workflow_steps())
     files, left = cap_lines(py_files(added_lines(git("diff", "-U0", "--no-renames", f"{base}...{head}", "--",
-                                                    "pipeline/"))))
+                                                    "pipeline/", "scripts/"))))
     if not files:
-        rep.lines.append("no changed pipeline source line (tests and conftest are not mutated)")
+        rep.lines.append("no changed pipeline or scripts source line (tests and conftest are not mutated)")
         return
     rep.lines += [f"left out (past {MAX_LINES} changed lines): {x}" for x in left]
     deadline = time.time() + budget
@@ -199,8 +199,8 @@ def run_py(base: str, head: str, budget: int, rep: Report, runner=bounded, mutmu
     for f, lines in files.items():
         tests, said = RT.pytest_related([f], ROOT)
         if not tests:
-            rep.lines.append(f"`{f}`: {len(lines)} changed line(s), NO test imports it — every mutant would live "
-                             "(not run)")
+            rep.lines.append(f"`{f}`: {len(lines)} changed line(s), NO test imports or names it — every mutant "
+                             "would live (not run)")
             continue
         left_s = int(deadline - time.time())
         if left_s < 30:

@@ -476,6 +476,9 @@ W47. **`main` is the protected trunk; every change reaches it through a pull req
       before a push that updates it with a change of substance) run **`scripts/before_pr.sh`**: the whole app vitest
       suite and the pipeline no-data tier, both through heavy.sh, at once; it ends with one line,
       `before-pr: PASS|FAIL (app suite rc=<n>, pipeline tier rc=<n>, <s> s)`. Open the PR only on PASS.
+      **A long hook needs an ssh keepalive**: GitHub closes an idle ssh session (a 420 s hook: "closed by remote
+      host", SIGPIPE, nothing pushed). The hook warns when there is none; until the clone's `core.sshCommand` has it,
+      push with `GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_personal -o ServerAliveInterval=15 -o ServerAliveCountMax=8"`.
     - **Mutation report** (`.github/workflows/mutation.yml`, T1041): every PR gets the mutants of its changed lines
       that no test killed (Stryker for app TypeScript, mutmut for pipeline Python) in the job summary. Report only:
       never a required check, never red. Read it with the self-check for silent fallbacks (W46) before asking for review.

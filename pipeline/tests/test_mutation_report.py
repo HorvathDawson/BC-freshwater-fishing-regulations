@@ -100,7 +100,7 @@ def test_the_python_part_runs_each_file_against_its_importers_and_says_every_gap
     assert [c[c.index("--paths-to-mutate") + 1] for c in run] == ["pipeline/a.py", "pipeline/b.py"]
     assert "pipeline/tests/test_a.py" in run[0][run[0].index("--runner") + 1]
     assert " -x " in run[0][run[0].index("--runner") + 1] and "--use-patch-file" in run[0]
-    assert any("`pipeline/c.py`" in x and "NO test imports it" in x for x in rep.lines)
+    assert any("`pipeline/c.py`" in x and "NO test imports or names it" in x for x in rep.lines)
     assert rep.counts == {"killed": 1, "survived": 1, "timeout": 1, "suspicious": 0} and len(rep.survivors) == 1
     assert any("`pipeline/b.py`: mutmut stopped (rc=1): baseline failed" in p for p in rep.problems)
     assert any("`pipeline/b.py`: no mutmut results" in p for p in rep.problems)
@@ -176,3 +176,15 @@ def test_the_workflow_is_report_only_pinned_and_on_pull_requests_alone():
     reqs = [ln for ln in (ROOT / "scripts" / "mutation-requirements.txt").read_text().splitlines()
             if ln and not ln.startswith("#")]
     assert all("==" in ln for ln in reqs), reqs                # every version exact
+
+
+def test_the_python_part_picks_pipeline_and_scripts_sources(monkeypatch, tmp_path):
+    """pipeline/**.py and scripts/*.py are mutated; tests, conftest and deleted files are not."""
+    for rel in ("pipeline/a.py", "scripts/b.py", "pipeline/tests/test_a.py", "pipeline/conftest.py", "app/x.py"):
+        (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / rel).write_text("x")
+    (tmp_path / "pytest.ini").write_text("[pytest]\ntestpaths = pipeline/tests\n")
+    monkeypatch.setattr(MR, "ROOT", tmp_path)
+    changed = {p: [1] for p in ("pipeline/a.py", "scripts/b.py", "pipeline/tests/test_a.py", "pipeline/conftest.py",
+                                "app/x.py", "pipeline/gone.py")}
+    assert sorted(MR.py_files(changed)) == ["pipeline/a.py", "scripts/b.py"]
