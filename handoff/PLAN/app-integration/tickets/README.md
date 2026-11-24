@@ -269,7 +269,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1021 | The CI "no hard-coded data path" gate misses every multi-segment literal (T994 finding 7; ~10 live) | OPEN | — | T994 audit finding 7, checked 2026-11-22 |
 | T1019 | The pre-push commit check reads the PR's range (`merge-base(origin/main, HEAD)..HEAD`, as docs-ci), not `<remote old>..<local>` | DONE | 44f689ba1 | depends T995, T998; 0.9.0 batch brief (lane L6, 2026-11-22) |
 | T1023 | Staging report: "Flows into X" should open the receiving water's section on the map, not its regulations (Liumchen Creek) | DONE | 641725521, dd48e15d8 | staging report 2026-11-23 (`c9abc20745908d89`) |
-| T1024 | Staging report: "weird highlighting on the lake" at Gravel Slough | OPEN | | staging report 2026-11-23 (`3444007425e9d3bd`) |
+| T1024 | Staging report: "weird highlighting on the lake" at Gravel Slough | IN REVIEW — owner: OWNER-TODO "T1024 Gravel Slough highlight: look at the before/after shots" | 6704a3504, d298683a7, 50b018058 | ring on a stream polygon only below its line's zoom (tile `lz`; none for no line or a stub route, 239), checked in the tile build; needs the 0.9.0 tile build |
 | T1025 | Switching regs sub-tabs (What you can keep ↔ Licence) scrolls through every section between | DONE | 641725521, dd48e15d8 | closed tester via owner 2026-11-22 |
 | T1026 | The day picker stops at December 2026 although the synopsis is valid to March 31, 2027 | DONE | e2cdbee15 | closed tester via owner 2026-11-22 |
 | T1027 | Android R8: push the optimization / shrinking / obfuscation scores past ~72% (restate library keep rules, each walked) | OPEN — after 0.9.0 | T1003, T1009 | owner 2026-11-22 |
@@ -292,6 +292,8 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1044 | Plain words on some gauges: how to read the level (bands, our own words, sourced) | OPEN — after 0.9.0 | | owner 2026-11-23 (lane L27) |
 | T1045 | Gauge pages should come up for "<river> river forecast / level / flow" (title/H1 words, water-to-gauge links, JSON-LD) | OPEN — 0.9.0 batch (code after #73) | T1039 | owner 2026-11-23 (lane L27) |
 | T1046 | Play production access: closed-test record, feedback log linked to releases, questionnaire | OPEN — until Google approves (apply on/after 2026-12-07) | T371, T863 | owner 2026-11-23; record in `handoff/PLAN/play-production-access/` |
+
+| T1049 | A start link's scroll lands short: it jumps to the first measured section top and never re-checks | PARTIAL — fixed + web check; left (Claude): 0.9.0 device pass | ae65ef767, a2478c6dc, d2239c54d | review of #80 (T1038), 2026-11-23 |
 
 ## Next after closed testing
 

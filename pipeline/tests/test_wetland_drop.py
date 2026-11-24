@@ -46,7 +46,7 @@ def _build(tmp_path):
 
 def test_only_the_unnamed_wetland_in_no_item_is_left_out(tmp_path):
     out = _build(tmp_path)
-    counts = export_waterbodies(tmp_path, "", out)
+    counts = export_waterbodies(tmp_path, "", out, route_zooms={"lake:3": None})
     assert counts == {"wetland": 3, "lake": 1}
     drawn = {orjson.loads(x)["properties"]["section_id"]
              for x in (out / "wetland.geojsonl").read_bytes().splitlines()}

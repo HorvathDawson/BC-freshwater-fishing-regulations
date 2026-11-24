@@ -136,7 +136,11 @@ export interface StartLink {
   route: Route;
   /** the Shell's one day (null = today) */
   day: Date | null;
-  regs: RegsStart;
+  /** (T1049) null: none — a link to a water's Map or Conditions carries no page start (it would wait for the next
+   *  Regulations page and land there, unasked); its tab / sheet / scroll are said in `dropped` */
+  regs: RegsStart | null;
+  /** (T1049) what the link named that it does not open (`reportDropped` says each); absent: nothing */
+  dropped?: readonly string[];
   /** the angler, or null: the session's default stands */
   who: Who | null;
   theme: "light" | "dark" | null;
@@ -278,6 +282,20 @@ const TABS: readonly Tab[] = ["keep", "gear", "methods", "licence"];
 const AGES = ["adult", "u16"] as const;
 const RESIDENCIES = ["resident", "non_resident", "non_resident_alien"] as const;
 
+/**
+ * (T1049) A PAGE START IS THE REGULATIONS PAGE'S, on the web and the phone alike: a link to a water's Map or Conditions
+ * keeps none (it would wait for the next Regulations page and land there, unasked), and its tab / sheet / scroll are said.
+ */
+export function pageStartOn(view: View, regs: RegsStart, has: (k: string) => boolean, who: string): { regs: RegsStart | null; dropped: string[] } {
+  if (view === "regs") return { regs, dropped: [] };
+  return { regs: null, dropped: (["tab", "sheet", "scroll"] as const).filter(has).map((k) => `${who}: ${k}= does nothing on view=${view}: dropped`) };
+}
+
+/** (T1049) Says what a start link dropped (`dropped`), each once — never dropped without a word. */
+export function reportDropped(l: Pick<StartLink, "dropped"> | null): void {
+  for (const d of l?.dropped ?? []) reportFailure(new Error(d));
+}
+
 /** A link key's value read, or a throw naming the key, its value and what it should be. */
 export type LinkBad = (k: string, what: string) => never;
 /**
@@ -385,7 +403,9 @@ export function parseStartLink(search: string, now: Date = bcNow()): StartLink |
   const hm = hereS === null ? null : /^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/.exec(hereS);
   if (hereS !== null && !hm) bad("here", "a lat,lon point");
   const tap = hm ? { at: { lat: Number(hm[1]), lon: Number(hm[2]) } } : q.get("tap") === "1" ? { at: null } : null;
-  const link: StartLink = { route, day, regs, who, theme, arrive: item as ItemId | null, place,
-                            notice: past ? "day-past" : null, horizon, tap };
+  // (T1049) a page start is the Regulations page's: on another view it is dropped, and said
+  const start = pageStartOn(view, regs, (k) => q.has(k), "start link");
+  const link: StartLink = { route, day, regs: start.regs, who, theme, arrive: item as ItemId | null, place,
+                            notice: past ? "day-past" : null, horizon, tap, ...(start.dropped.length ? { dropped: start.dropped } : {}) };
   return link;
 }

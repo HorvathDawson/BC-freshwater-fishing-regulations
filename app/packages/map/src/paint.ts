@@ -3,7 +3,7 @@
  * style composer (`runtime-style.ts`, the first frame) and the adapter (`adapters/contract.ts`, every frame after it)
  * share. One module, so the first frame and every frame after it are painted the same way.
  */
-import type { GearMark } from "@app/core";
+import { ATLAS_MAX_ZOOM, type GearMark } from "@app/core";
 import { MAP_STYLE, NO_VALUES, STYLE_META, colorExpression, finfishOver, profileChannel, profileDay, salmonLabelIn,
          type ChannelValues, type ColorMode, type Tokens } from "./style";
 
@@ -99,9 +99,25 @@ export function glowPaint(streamWidth: unknown, tokens: Tokens): Record<string, 
            "line-opacity": ["case", ON, Number(tokens["opacity.selection.glow"]), 0] };
 }
 
-/** A selected lake's or wetland's ring. */
+/**
+ * (T1024) IS THIS POLYGON RINGED AT TILE ZOOM `z`: standing water always; a STREAM'S polygon (a slough, a river's wide
+ * reach, tile `water` = "stream") only where its route line is not drawn. Such a polygon carries `lz`, the first zoom its
+ * line is in the `stream` layer under the same section id (pipeline tiles/export.py; none when it never gets one, and
+ * never on standing water — so `lz` alone decides, and no water kind is read here). Where the line
+ * is drawn its casing lights the water, and a ring too drew a second outline round it plus a box round every section's
+ * piece of the polygon (Gravel Slough, staging report 3444007425e9d3bd). Where it is not (below `lz`; the 22 polygons
+ * with no line, the Okanagan River Oxbows) the ring is all the selection has. The tiles' check that `lz` tells the
+ * truth: pipeline tiles/stream_polygon_lines.py.
+ */
+const ringedAt = (z: number) => ["any", ["!", ["has", "lz"]], [">", ["number", ["get", "lz"]], z]];
+/** The ring's opacity: OUTLINE_SHOWN where `ringedAt` the tile's zoom (a step per zoom, as `["zoom"]` may only be the
+ *  input of a top-level step in a paint property), 0 elsewhere. The camera's zoom floored is the tile's (512 px tiles). */
+const RING_SHOWN = ["step", ["zoom"], ["case", ringedAt(0), OUTLINE_SHOWN, 0],
+  ...Array.from({ length: ATLAS_MAX_ZOOM }, (_, i) => [i + 1, ["case", ringedAt(i + 1), OUTLINE_SHOWN, 0]]).flat()];
+
+/** A selected lake's or wetland's ring (and a stream polygon's, where its line is not drawn: `ringedAt`). */
 export function ringPaint(tokens: Tokens): Record<string, unknown> {
-  return { "line-color": outlineColour(tokens), "line-width": RING_PX, "line-opacity": OUTLINE_SHOWN };
+  return { "line-color": outlineColour(tokens), "line-width": RING_PX, "line-opacity": RING_SHOWN };
 }
 
 /**

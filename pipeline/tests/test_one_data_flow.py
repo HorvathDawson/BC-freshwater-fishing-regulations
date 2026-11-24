@@ -95,8 +95,8 @@ def test_the_review_app_neither_builds_nor_promotes_an_atlas():
 def test_the_tiles_carry_only_what_is_read():
     from pipeline.deliver.tiles.layers import BY_NAME, contract
     assert BY_NAME["stream"].attrs == ("section_id", "name", "ord", "sc")      # T891: `sc` read by the style (side channels)
-    assert BY_NAME["lake"].attrs == ("section_id", "name", "water", "area_m2")
-    assert BY_NAME["wetland"].attrs == ("section_id", "name", "water")
+    assert BY_NAME["lake"].attrs == ("section_id", "name", "water", "area_m2", "lz")   # T1024: `lz` read by the ring
+    assert BY_NAME["wetland"].attrs == ("section_id", "name", "water", "lz")
     on_disk = json.loads((REPO_ROOT / "pipeline/deliver/tiles/tile-contract.json").read_text())
     # the TILE carries the section id once, as the MVT id (T202): the contract lists the properties without it
     assert on_disk["layers"]["stream"]["attrs"] == list(BY_NAME["stream"].attrs[1:])

@@ -8,6 +8,8 @@ const NOW = new Date(2026, 9, 22, 9, 30);   // Thu Oct 22 2026, local
 /** no day keys (today, Now) and no page keys (Keep at the top, the session's angler, not whole) */
 const D0 = { day: null, past: false, horizon: null };
 const P0 = { regs: { tab: "keep", sheet: null, scroll: 0 }, who: null, whole: false };
+/** (T1049) the same on a water's Map or Conditions view: no page start */
+const PN = { ...P0, regs: null };
 
 const page = (item: string) => `<head><meta name="cift:item" content="${item}"><meta name="cift:region" content="2"></head>`;
 
@@ -16,8 +18,8 @@ describe("(T625) a shared link opened by the installed app", () => {
     expect(parseAppLink("https://canifishthis.ca/water/vedder-river", NOW)).toEqual({ slug: "vedder-river", item: null, view: "regs", part: null, theme: null, days: D0, page: P0, problems: [] });
     expect(parseAppLink("https://staging.canifishthis.ca/water/vedder-river/?view=conditions&date=2030-07-01&horizon=3", NOW))
       .toEqual({ slug: "vedder-river", item: null, view: "conditions", part: null, theme: null,
-        days: { day: new Date(2030, 6, 1, 12), past: false, horizon: 3 }, page: P0, problems: [] });
-    expect(parseAppLink("https://canifishthis.ca/?regs=gnis:3062&view=map", NOW)).toEqual({ slug: null, item: "gnis:3062", view: "map", part: null, theme: null, days: D0, page: P0, problems: [] });
+        days: { day: new Date(2030, 6, 1, 12), past: false, horizon: 3 }, page: PN, problems: [] });
+    expect(parseAppLink("https://canifishthis.ca/?regs=gnis:3062&view=map", NOW)).toEqual({ slug: null, item: "gnis:3062", view: "map", part: null, theme: null, days: D0, page: PN, problems: [] });
     expect(parseAppLink("https://canifishthis.ca/", NOW)).toEqual({ slug: null, item: null, view: "regs", part: null, theme: null, days: D0, page: P0, problems: [] });
   });
 
@@ -45,7 +47,7 @@ describe("(T625) a shared link opened by the installed app", () => {
   it("(T1034, T1035) the link's part and theme are carried to the open, never read and dropped; a bad one throws", async () => {
     const fetcher = async (_u: string) => new Response(page("gnis:3062"));
     expect(await resolveAppLink("https://canifishthis.ca/?regs=gnis:3062&view=map&part=2&theme=dark", fetcher, NOW))
-      .toEqual({ item: "gnis:3062", view: "map", part: 2, theme: "dark", ...D0, ...P0 });
+      .toEqual({ item: "gnis:3062", view: "map", part: 2, theme: "dark", ...D0, ...PN });
     expect(await resolveAppLink("https://canifishthis.ca/water/vedder-river?part=0&theme=light", fetcher, NOW))
       .toEqual({ item: "gnis:3062", view: "regs", part: 0, theme: "light", ...D0, ...P0 });
   });
@@ -55,7 +57,7 @@ describe("(T625) a shared link opened by the installed app", () => {
     setFailureSink((e) => seen.push(String((e as Error).message)));
     try {
       expect(await resolveAppLink("https://canifishthis.ca/?regs=gnis:3062&part=-1&theme=blue&view=map", async () => { throw new Error("no fetch"); }, NOW))
-        .toEqual({ item: "gnis:3062", view: "map", part: null, theme: null, ...D0, ...P0 });
+        .toEqual({ item: "gnis:3062", view: "map", part: null, theme: null, ...D0, ...PN });
       expect(seen).toEqual(["app link: part=-1 is not a part number: opened without a part", "app link: theme=blue is not light|dark: the theme is unchanged"]);
     } finally { setFailureSink(null); }
   });
@@ -69,7 +71,7 @@ describe("(T625) a shared link opened by the installed app", () => {
   it("resolves a slug through the page on the link's own host; ?regs= needs no fetch; the bare link opens nothing", async () => {
     const fetcher = vi.fn(async (_u: string) => new Response(page("gnis:3062")));
     expect(await resolveAppLink("https://staging.canifishthis.ca/water/vedder-river?view=conditions", fetcher, NOW))
-      .toEqual({ item: "gnis:3062", view: "conditions", part: null, theme: null, ...D0, ...P0 });
+      .toEqual({ item: "gnis:3062", view: "conditions", part: null, theme: null, ...D0, ...PN });
     expect(fetcher).toHaveBeenCalledWith("https://staging.canifishthis.ca/water/vedder-river");
     expect(await resolveAppLink("https://canifishthis.ca/?regs=gnis:5", fetcher, NOW)).toEqual({ item: "gnis:5", view: "regs", part: null, theme: null, ...D0, ...P0 });
     expect(await resolveAppLink("https://canifishthis.ca/", fetcher)).toBeNull();
@@ -102,7 +104,7 @@ describe("(T1038) the web start link's other keys, carried by the phone as the w
     ["scroll", "tab=licence&scroll=900", { regs: { tab: "licence", sheet: null, scroll: 900 } }],
     ["age", "age=u16", { who: { age: "u16", residency: "resident" } }],
     ["res", "res=non_resident", { who: { age: "adult", residency: "non_resident" } }],
-    ["whole", "view=map&whole=1", { whole: true }],
+    ["whole", "view=map&whole=1", { whole: true, regs: null }],
   ])("%s lands where the web lands", (_k, q, want) => {
     const { app, web } = both(q);
     expect(app).toEqual({ ...D0, ...P0, ...want });
@@ -138,7 +140,7 @@ describe("(T1038) the web start link's other keys, carried by the phone as the w
   it("a water page's link carries them through its page's item", async () => {
     expect(await resolveAppLink("https://canifishthis.ca/water/vedder-river?view=map&whole=1&date=2026-12-24&tab=gear&age=u16", async () => new Response(page("gnis:3062")), NOW))
       .toEqual({ item: "gnis:3062", view: "map", part: null, theme: null, day: new Date(2026, 11, 24, 12), past: false, horizon: null,
-                 regs: { tab: "gear", sheet: null, scroll: 0 }, who: { age: "u16", residency: "resident" }, whole: true });
+                 regs: null, who: { age: "u16", residency: "resident" }, whole: true });
   });
 });
 
@@ -178,5 +180,16 @@ describe("(T1038) startForFrame: a link's start is its own water's page's", () =
   it("handed to that water only; the web's (no water named) to the first page; none is none", () => {
     expect([startForFrame(S, "gnis:1" as never, "gnis:1" as never), startForFrame(S, "gnis:1" as never, "gnis:2" as never),
             startForFrame(S, null, "gnis:2" as never), startForFrame(null, null, "gnis:2" as never)]).toEqual([S, null, S, null]);
+  });
+});
+
+describe("(T1049) a phone link to a water's Map or Conditions keeps no page start, as the web's", () => {
+  it.each(["map", "conditions"])("view=%s: no start; its tab, sheet and scroll are said", (view) => {
+    const q = `view=${view}&tab=gear&sheet=pos:pos&scroll=40`;
+    const app = parseAppLink(`https://canifishthis.ca/?regs=gnis:3062&${q}`, NOW)!;
+    const web = parseStartLink(`?regs=gnis:3062&${q}`, NOW)!;
+    expect([app.page.regs, web.regs]).toEqual([null, null]);
+    expect(app.problems).toEqual(["tab", "sheet", "scroll"].map((k) => `app link: ${k}= does nothing on view=${view}: dropped`));
+    expect(web.dropped).toEqual(app.problems.map((p) => p.replace("app link", "start link")));
   });
 });

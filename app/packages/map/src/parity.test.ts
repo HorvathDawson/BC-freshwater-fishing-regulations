@@ -408,9 +408,14 @@ describe("the style adapter (platform-free: one implementation, tested for what 
       expect([theme, casing.paint["line-color"], casing.paint["line-opacity"]])
         .toEqual([theme, ["case", inseason, tk["color.ui.attention"], tk["color.highlight"]], shown]);
     }
+    // (T1024) a ring's opacity is `shown` per tile zoom, 0 on a stream's polygon where its line is drawn (evaluated
+    // zoom by zoom in tools/stream-polygon-ring.test.ts)
+    const ringShown = (id: string) => { const o = layer(id).paint["line-opacity"] as unknown[];
+      return [o[0], JSON.stringify(o).includes(JSON.stringify(shown))]; };
     expect([SELECTION_CASING, SELECTION_RINGS.lake, SELECTION_RINGS.wetland].map((id) =>
-      [layer(id).type, layer(id)["source-layer"], layer(id).paint["line-opacity"]])).toEqual([
-      ["line", "stream", shown], ["line", "lake", shown], ["line", "wetland", shown]]);
+      [layer(id).type, layer(id)["source-layer"]])).toEqual([["line", "stream"], ["line", "lake"], ["line", "wetland"]]);
+    expect([layer(SELECTION_CASING).paint["line-opacity"], ringShown(SELECTION_RINGS.lake), ringShown(SELECTION_RINGS.wetland)])
+      .toEqual([shown, ["step", true], ["step", true]]);
     // the casing is the stream's own width (with its floors) plus the outline on each side, inside the zoom curve —
     // (T848) the drawn width only where a casing shows, the base width elsewhere (`markWidth`)
     const w = markWidth("casing", "plain", streamWidths("plain", resolveTheme("light"))) as unknown[];
