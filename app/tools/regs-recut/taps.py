@@ -225,7 +225,9 @@ PART_GROWN_IS: dict = {
     'x27p2_1010': ('From the mouth up to Region 5 boundary', 3),
     'x19p1_1010': ("Mainstem only · From the Exchamsiks River confluence up to the top of Hell's Gate (1.5 km above the Kitsumkalum)", 55),
     'x13p4_1010': ('From Anahim Lake up to the top of the river (through 3 lakes)', 27),
-    'x9p1_1010': ('Upstream of Koocanusa Reservoir · From the Koocanusa Reservoir upstream end up to the White River confluence', 56),
+    # (T1012, 0.9.0 atlas) 56 -> 53: three ditch pieces (2300 + 1450 lines) left the Kootenay upper; kootenay_river_upper
+    # r1-r7 each lose exactly those 3 (binding diff r-741815c6090d -> r-0aec88ed3edb), nothing else on the part moves
+    'x9p1_1010': ('Upstream of Koocanusa Reservoir · From the Koocanusa Reservoir upstream end up to the White River confluence', 53),
     'x9p0_1010': ('From the B.C. border up to the Lake Koocanusa outlet', 1),
     'x5p0_1010': ('Upstream of Josephine Falls / See exceptions · From the Josephine Falls up to the top of the river', 11),
     'x17p7_1010': ('From the fishing boundary signs 100 m upstream of adult fish counting fence up to the juvenile counting weir', 1),
