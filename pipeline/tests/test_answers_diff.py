@@ -1192,3 +1192,29 @@ def test_t1020_a_renumbered_alien_closure_rule_is_no_change_and_a_new_rule_at_th
     with M.patch.dict(AD.RULE_KEYS, {"licence": frozenset()}):
         assert [x["block"] for x in _diff(a, b)["groups"]] == ["net:licence"]
         assert _diff(a, b2)["groups"] == []
+
+
+def test_t1020_the_same_rule_id_under_another_entry_is_another_rule(pair, tmp_path):
+    """(T1020 review) a rule is `(entry_id, rule_id)` (AGENTS rule 8: `rule_id` is unique only within an entry). A has
+    E1's and E2's `t1020.x` appended, B E2's then E1's: B's closure at A's index names E2's rule where A's names E1's —
+    one change; at the next index it names E1's — none."""
+    a, b = pair
+    e1, e2 = ("r9:t1020_one@9-9", "t1020.x"), ("r9:t1020_two@9-9", "t1020.x")
+    _add_rules(a, [e1, e2])
+    _add_rules(b, [e2, e1])
+    n = len(province_store(a).export_subset()["rule_ids"]) - 2
+    _plant_alien(a, n)                                              # A: E1's t1020.x
+    b2 = tmp_path / "b2" / b.name
+    shutil.copytree(b, b2)
+    _plant_alien(b, n + 1)                                          # B: E1's t1020.x, one index later
+    assert _diff(a, b)["groups"] == []
+    _plant_alien(b2, n)                                             # B: E2's t1020.x at A's index
+    r = _diff(a, b2)
+    g = _only(r, "other")
+    assert len(r["groups"]) == 1 and g["block"] == "net:licence"
+    # MUTATION: a rule resolved to its `rule_id` alone (the part after the last ":") reads E1's and E2's as one rule
+    import unittest.mock as M
+    real = AD.Release.rid
+    with M.patch.object(AD.Release, "rid", lambda self, i: (lambda v: v.rsplit(":", 1)[-1] if isinstance(v, str)
+                                                             else v)(real(self, i))):
+        assert _diff(a, b2)["groups"] == []
