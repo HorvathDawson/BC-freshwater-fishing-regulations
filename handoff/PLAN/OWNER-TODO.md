@@ -26,6 +26,12 @@ with the default Claude uses until you answer). Newest first inside each section
   all year, salmon included" / "The B.C. Synopsis row for Nelson Creek (and its tributaries) reads “No Fishing”." + the
   source. B: smallest change, the banner says "No fishing for any fish, salmon included" and the salmon row's sentence
   goes. C: A with one "All fish" calendar. Recommended: A. Picture: `handoff/PLAN/app-integration/T1052-shots/report-now.png`.
+  ANSWERED 12:33: "One block, both calendars (Recommended)". Built (lane L22, 936 waters). Left for you: the line under
+  the headline is a proposal ("The B.C. Synopsis row for Nelson Creek reads “No Fishing”." / on a tributary "Little
+  Qualicum River’s row covers its tributaries: “…”."), and a water closed to all fishing for PART of the year by one
+  rule (130 today) keeps its two statements unless you want a headline like "Closed to all fishing until Apr 30, salmon
+  included". Pictures: `handoff/PLAN/app-integration/T1052-shots/nelson-after-light.png` (and -dark, nelson-before-*,
+  skagit-two-sources-*).
 - **T1053 walk through a head lake** (Eagle Creek ✱ flows out of Dick Lake; the walk stops at the lake, so Dick Creek
   and 9 small streams above it stay under the zone rules; no written ruling covers this, it is as built). K: keep (as
   built). L: a whole-water rule's walk climbs through its head lake when that lake has no row of its own (24 such lakes:

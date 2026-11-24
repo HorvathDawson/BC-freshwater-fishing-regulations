@@ -1,6 +1,6 @@
 # T1052 — A water closed to all fishing says it twice (a Salmon row and a game-fish "Closed all year" block)
 
-Status: OPEN — 0.9.1; owner: OWNER-TODO "T1052 fully closed water: one statement" (which words), then an app build.
+Status: IN REVIEW — owner: OWNER-TODO "T1052 fully closed water: one statement" (the row-line words are a proposal; part-year case). Code 33ecb6b96 (lane L22); ships with the next app build, no data release.
 
 Source: in-app report `19a865256d6dd70d` (staging feeds worker, the owner, 2026-11-24 18:47 UTC), reason "other", on
 Nelson Creek `gnis:20408`, part 0, "Today, Nov 24", Regulations view, web, app 0.9.0 (build 43, 127bf43), release
@@ -54,3 +54,45 @@ Only when the same closure(s) close salmon and every game fish on the day shown;
 
 Size: M. Needs: owner pick; app build (a data release only if a frame flag is needed). Safe for 0.9.1.
 Depends: none. Owner: yes (the words). Default: A, built only once picked.
+
+## Owner's answer (2026-11-24 ~12:33 MST, verbatim)
+
+Question: "Nelson Creek: a water closed to all fishing says it twice, once in the Salmon row and once in the 'Closed all
+year' block. How should it read?" Answer: **"One block, both calendars (Recommended)"** (the option's text: keep the two
+calendars; replace the two statements with one block: "Closed to all fishing all year, salmon included", with the book's
+"No Fishing" line and its source). Earlier he had said the two calendars are fine.
+
+## Built (lane L22, 33ecb6b96)
+
+- Core `closedWithSalmon(page, card, rules)` (`core/src/regs/withSalmon.ts`), called once in `WaterScreen`'s `shown`
+  (the one load path). It merges ONLY where the data says it is one closure: the salmon card's `todayBy` is "book" (every
+  species on every chain answered today by the rule book's places, T796 A5), the book closures' rule keys (`entry::rule`)
+  equal the banner chain's, each is all year in the release's `static` year (`bookAllYear`), the banner has no reopening,
+  no merged-stretch fold, no `facts.unless_opened`, and the card has no DFO notice, finfish closure, undrawn or one-bank
+  place. No text is matched. New card fields: `todayBy`, `bookAllYear` (salmon.ts).
+- The banner then says the owner's headline and one line per closure; the Salmon row (and, without the glance table,
+  the card) is not drawn (`BannerVM.salmon`); both calendars stay; the Source line is the closure's own.
+- Line words (PROPOSALS, not the owner's): own row "The B.C. Synopsis row for Nelson Creek reads “No Fishing”."; walked
+  tributary "Little Qualicum River’s row covers its tributaries: “No Fishing - All tributaries”." (the book line as
+  `describe` cleans it; no second full stop after a line ending its own sentence).
+- Kept as two statements (by design): part-year closures; salmon by DFO or by another rule (two sources, neither
+  dropped); "unless opened" park closures; "closed all year on N stretches" banners.
+
+Live bundle r-0aec88ed3edb, Nov 24 2026, the release's salmon (no live feed): 20,680 page parts, 1,534 closed; **936
+parts on 936 waters get the one block** (555 of them on a walked tributary, 176 on several-part waters), e.g. Nelson
+Creek, Eagle Creek, Crocker Creek, Brunette River (part 2), Kakwa River (part 1). Not merged among closed-all-year: 181
+"unless opened" (National Parks), 107 merged-stretch banners, 7 salmon by another book rule (Still Creek: Brunette's
+row), 5 salmon by DFO (Skagit River part 1), 1 salmon closure not all year (Kirkup Creek), 1 card with a DFO place
+(Babine Lake east). Closed part of the year: 296, of which 130 by the same book rule (kept as two statements: a wording
+for them is an owner question).
+
+Pictures (web, 390 px): `T1052-shots/nelson-before-{light,dark}.png`, `nelson-after-{light,dark}.png`, the not-merged
+two-source case `skagit-two-sources-{light,dark}.png`.
+
+Tests: `core/src/regs/withSalmon.test.ts` (decision table, whole strings), `ui-native/src/WaterScreen.oneClosure.test.tsx`
+(fixture release + core's salmon card: one block, tributary, several-part water, two sources, another rule, part year,
+in-season notice on top, no glance, no salmon); `salmonBook.test.ts` pins `todayBy`/`bookAllYear`. 12 mutants, all killed.
+
+Owner questions left: (1) the row-line words above; (2) a water closed to all fishing for PART of the year by one rule
+(130 parts today, e.g. Buckley Creek Nov 1–Apr 30): keep two statements (default) or a merged headline such as "Closed
+to all fishing until Apr 30, salmon included" (proposal).
