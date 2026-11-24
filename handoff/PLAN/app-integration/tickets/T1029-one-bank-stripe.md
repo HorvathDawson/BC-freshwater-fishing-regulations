@@ -1,6 +1,6 @@
 # T1029 — One-bank DFO places: the one-side stripe on the Salmon map (T754 option B, the rest)
 
-Status: OPEN — owner answered Q1/Q4–Q6 2026-11-24; v2 looks (A–D) shot for his pick (lane L18, 0.9.1), default built = B; Q5's binding change measured + proposed, not built (needs geometry in the reach step); DRAFT PR, not merged before his pick.
+Status: IN PROGRESS — owner picked B from z13 (2026-11-24); app layers + bank sides built, bundle and app wiring left (plan below; needs a scratch bundle build); Q5 show-me sent, the binding rule stays proposed; Q4 designed, not built; DRAFT PR #112.
 
 Source: T754 (owner approved option B 2026-11-15 round 4; question 2 answered 2026-11-22 23:45, "Other bank: the water's
 other rules"). T754 built the words and the verdict (5953ef057, eeb19b4f3): a placed one-bank place stands beside the water's other
