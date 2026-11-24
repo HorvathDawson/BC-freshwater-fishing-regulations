@@ -282,6 +282,8 @@ app bundle goes to Internal, and that same build is promoted to Closed. A stagin
 
    The first prints the highest versionCode Play holds (the build just uploaded). Done when it prints
    `committed: versionCode <n> on track 'alpha'`. Google reviews it before testers get it.
+   Closed is the track the production-access application is judged on (T1046): Step 8's
+   `play-production-access/releases.md` row and "Fixed in" updates are owed for this build.
 5. **Production track** **[you]**: in Play Console, the same build to Production with a staged rollout (for example
    20 %, then 100 %). Production waits for Step 7's data.
 

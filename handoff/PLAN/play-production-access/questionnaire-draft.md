@@ -58,7 +58,7 @@ about missing gauges), map display (labels off their place, an iPhone map at two
 stay, land closed to fishing hard to see), and a few behaviours (the day picker stopping at December, sub-tabs
 scrolling, the app not opening at the user's location). Crash reports were mostly early (0.4.0–0.6.x: data updates and
 map views) and are fixed; the late ones were mostly one search engine's page renderer running the website. Testers also
-said the app was clear: one wrote that it is "information dense but still readable" (F15).
+said the app was clear: one was positive overall on how much fits on a screen while staying readable (F15).
 TODO: add Play Console testing-feedback items and recount.
 
 ---
@@ -132,8 +132,8 @@ TODO: add the Play-feedback rows and the 0.9.0 items once 0.9.0 ships (`releases
   Android vitals), and the crash-free share from our own reports for the build applied with.
 - **The rules are checked against the rule book:** every rule shows its rule-book page; the owner reviewed the
   regulations water by water in a review tool before release (TODO owner: one line on how much was reviewed).
-- **Testers' feedback is answered:** 27 of 39 tester, report and crash rows fixed in a shipped release, 3 more fixed for
-  0.9.0, the rest ticketed (`feedback-log.md`; TODO refresh).
+- **Testers' feedback is answered:** 25 of 39 tester, report and crash rows fixed in a shipped release, 1 more
+  shipped and waiting on the owner's check, 3 fixed for 0.9.0, the rest in progress or ticketed (`feedback-log.md`; TODO refresh).
 - **Policy:** the Data safety answers match what the app sends (`handoff/PLAN/play/data-safety.md`); privacy policy at
   canifishthis.ca (TODO owner: confirm the URL in Play Console); no ads; no account.
 
