@@ -37,6 +37,13 @@ searches for a river forecast on google."
    (`about`), as water pages already do. No fabricated Dataset / rating markup.
 5. A gate in the SEO build: every gauge page's title and H1 hold the query words; every water with a gauge links it.
 
+## Added 2026-11-23 (coordinator, from the T1042 review) — hold the build to these
+- The title must not say "river" twice: a gauge or water already named "Alouette River" reads "Alouette River level and flow",
+  never "Alouette River river level". Build the title from the name with a trailing "River" / "Creek" / "Lake" etc. kept once.
+- "5-day forecast" is the WEATHER's horizon (Open-Meteo, 5 days); the flow forecast's horizon varies by gauge and run. Word
+  each by its actual horizon (the weather 5 days; the flow forecast as many days as that gauge's run holds), never one
+  "5-day forecast" for both.
+
 ## Google's guidance to follow (read when building)
 developers.google.com/search/docs/appearance/title-link (a descriptive, unique title that names the page, not stuffed);
 /appearance/snippet (a per-page description); /fundamentals/seo-starter-guide (descriptive anchor text, crawlable `<a href>`

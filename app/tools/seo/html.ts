@@ -4,9 +4,9 @@
  * critical part inlined, system fonts. (T269) A WATER'S page is not drawn here: it is the app's own regs pane, prerendered
  * (pane.tsx, prerender.ts); this file gives it only its head (`headOf`).
  */
-import { regionWords, SYNOPSIS_PDF } from "@app/core";
+import { BOOK_DAYS, MONTHS, regionWords, SYNOPSIS_PDF } from "@app/core";
 import meta from "../../packages/map/style/style.meta.json" with { type: "json" };
-import type { WaterModel } from "./model";
+import type { PartModel, WaterModel } from "./model";
 
 export interface Site {
   readonly origin: string; readonly name: string; readonly contact: string | null;
@@ -47,9 +47,7 @@ const vars = (th: "light" | "dark"): string =>
   `--ink:${T(th, "color.ui.ink")};--card:${T(th, "color.ui.card")};--scrim:color-mix(in srgb,${T(th, "color.ui.shadow")} ${Math.round(Number((meta.themes as Record<string, Record<string, unknown>>)[th]?.["opacity.ui.scrim"]) * 100)}%,transparent);--muted:${T(th, "color.ui.sub")};--line:${T(th, "color.ui.line2")};--accent:${T(th, "color.ui.accent")};` +
   `--accent-ink:${T(th, "color.ui.on-accent")};--open:${T(th, "color.status.open")};--closed:${T(th, "color.status.closed")};--soft:${T(th, "color.ui.wash")};` +
   // (T908) the gauge page's standing colours: the map's "Flow vs. past years" ramp (layers.source.json `standing`, p0 f1 ... p100 f7), one stop per band
-  `--b-much-below:${T(th, "color.flow.f1")};--b-below:${T(th, "color.flow.f3")};--b-normal:${T(th, "color.flow.f4")};--b-above:${T(th, "color.flow.f5")};--b-much-above:${T(th, "color.flow.f7")};--flow-ramp:${rampOf(th)};` +
-  // (T908) each forecast model's colour (the app's `Palette.forecast`, color.ui.forecast.<model>)
-  `--m-CLEVER:${T(th, "color.ui.forecast.clever")};--m-COFFEE:${T(th, "color.ui.forecast.coffee")};--m-ELF:${T(th, "color.ui.forecast.elf")}`;
+  `--b-much-below:${T(th, "color.flow.f1")};--b-below:${T(th, "color.flow.f3")};--b-normal:${T(th, "color.flow.f4")};--b-above:${T(th, "color.flow.f5")};--b-much-above:${T(th, "color.flow.f7")};--flow-ramp:${rampOf(th)}`;
 export const SHARE_GROUND = T("light", "color.ui.accent");
 /** (T406) the share card: its size (the size Facebook and X ask for a large-image card) and its face (share.ts loads it) */
 export const SHARE_W = 1200, SHARE_H = 630, SHARE_FONT = "Archivo";
@@ -73,13 +71,7 @@ ul{padding-left:1.1rem}li{margin:.25rem 0}li.sub{list-style:none;margin-left:-1.
 .bk{font-size:.85rem;white-space:nowrap}.part{border-top:1px solid var(--line);margin-top:1.4rem}
 .legal{background:var(--soft);border-radius:.5rem;padding:.7rem 1rem;margin:1.5rem 0}
 .cols{columns:2 14rem;list-style:none;padding:0}.cols li{break-inside:avoid}
-.card{border:1px solid var(--line);padding:.8rem 1rem;margin:1rem 0}.card>p{margin:0 0 .5rem}.card .app{border-radius:0;margin:0}.opens{display:flex;flex-wrap:wrap;gap:.5rem}.opens .coming,.opens .joins{flex-basis:100%;margin:0}.opens .stores{flex-basis:100%;display:flex;flex-wrap:wrap;gap:.5rem}.opens .stores .app{flex:1 1 11rem;text-align:center}.card h2{margin-top:0}
-dialog.join{position:fixed;inset:0;margin:auto;width:min(26rem,calc(100vw - 2rem));max-height:calc(100vh - 2rem);overflow:auto;box-sizing:border-box;padding:1rem 1.2rem 1.2rem;border:1.5px solid var(--ink);background:var(--card);color:var(--ink)}
-dialog.join::backdrop{background:var(--scrim)}dialog.join h2{margin:0 2.5rem .6rem 0;font-size:1.15rem}dialog.join p{margin:.4rem 0}
-dialog.join .x{position:absolute;top:.4rem;right:.4rem;width:2.5rem;height:2.5rem;border:0;background:none;color:var(--ink);font-size:1.3rem;cursor:pointer}
-dialog.join .acts{display:flex;flex-wrap:wrap;gap:.5rem;margin:.8rem 0 .2rem}dialog.join .acts .app{flex:1 1 9rem;margin:0;text-align:center;border:0;font:inherit;font-weight:600;cursor:pointer;border-radius:0}
-dialog.join .acts .app.alt{background:transparent;color:var(--accent);border:1.5px solid var(--ink);padding:calc(.65rem - 1.5px) calc(1rem - 1.5px)}
-dialog.join .addr{font-weight:600;user-select:all;word-break:break-all}
+.card{border:1px solid var(--line);padding:.8rem 1rem;margin:1rem 0}.card>p{margin:0 0 .5rem}.card .app{border-radius:0;margin:0}.opens{display:flex;flex-wrap:wrap;gap:.5rem}#gauge-get-app{margin-top:1rem}.card h2{margin-top:0}
 .lead{display:grid;gap:1rem;align-items:start;margin:.6rem 0 1rem}@media(min-width:44rem){.lead{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
 .mapcard{position:relative;border:1px solid var(--line);background:var(--soft)}.mapcard .tag2{position:absolute;top:.4rem;left:.4rem;font-size:.8rem;background:var(--card);color:var(--muted);padding:.1rem .4rem}
 .mapcard .dots{display:block;width:100%;height:auto;max-height:26rem}.mapcard .dots path{fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linecap:round;opacity:.75}
@@ -96,14 +88,8 @@ dialog.join .addr{font-weight:600;user-select:all;word-break:break-all}
 .gv .ramp{margin:.3rem 0 .6rem}.gv .ramptitle{margin:.2rem 0}.gv .rampbar{display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--muted)}.gv .rampbar span{flex:0 0 2.6rem}.gv .rampbar span:last-child{text-align:left}.gv .rampbar span:first-child{text-align:right}
 .gv .bar{position:relative;flex:1;height:12px;background:var(--flow-ramp);margin-top:6px}.gv .mark{position:absolute;top:-6px;bottom:-4px;width:4px;margin-left:-2px;background:var(--ink);box-shadow:0 0 0 2px var(--soft)}
 .gv .rampnormal{position:relative;height:1.3rem;margin:2px 3rem 0}.gv .rampnormal div{position:absolute;top:0;height:100%;box-sizing:border-box;border:1px solid var(--muted);border-top:0;text-align:center;font-size:.8rem;color:var(--muted);line-height:1.1rem}
-.gv .models{display:flex;flex-wrap:wrap;gap:.4rem;margin:.3rem 0}.gv .chip{font:inherit;font-size:.85rem;border:1px solid var(--line);background:transparent;color:var(--ink);padding:.3rem .55rem;display:inline-flex;align-items:center;gap:.4rem;cursor:pointer}.gv .chip[aria-pressed=true]{border-color:var(--ink);font-weight:600}.gv .chip svg{display:inline-block}.gv .chip line{stroke:var(--muted);stroke-width:3;stroke-linecap:round}
-.gv .chip.m-CLEVER line,.gv .fc.m-CLEVER{stroke:var(--m-CLEVER)}.gv .chip.m-COFFEE line,.gv .fc.m-COFFEE{stroke:var(--m-COFFEE)}.gv .chip.m-ELF line,.gv .fc.m-ELF{stroke:var(--m-ELF)}.gv .fc{stroke-linecap:round;opacity:1}
 .warn{border-left:3px solid var(--accent);padding:.3rem .7rem;background:var(--soft)}
-.gv svg{display:block;max-width:100%;height:auto}.gv .axis{stroke:var(--muted);stroke-width:1}.gv .grid{stroke:var(--line);stroke-width:1}.gv .tick{font-size:13px;fill:var(--muted)}.gv .today{font-size:13px;font-weight:700;fill:var(--ink)}
-.gv .obs{fill:none;stroke:var(--accent);stroke-width:2.5}.gv .area{fill:var(--accent);opacity:.12}.gv .fc{fill:none;stroke:var(--accent);stroke-width:2;stroke-dasharray:7 5;opacity:.75}
-.gv .dot{fill:var(--accent)}.gv .now{stroke:var(--ink);stroke-width:2}.gv .bandw{fill:var(--muted);opacity:.14}.gv .bandn{fill:var(--muted);opacity:.22}
-.gv #gauge-chart{margin:.4rem 0}.gv .key{list-style:none;margin:.4rem 0;padding:0;display:flex;flex-wrap:wrap;gap:.4rem}.gv .key li{border:1px solid var(--line);padding:.25rem .5rem;font-size:.85rem;display:flex;gap:.4rem;align-items:center}.gv .key svg{display:inline-block}.gv .key .k-head{font-weight:600}.gv .key line{stroke-width:3}.gv .key .fc{stroke-width:3}
-.gv .fd caption{text-align:left;font-weight:600;padding:.4rem 0}
+.gv #gauge-chart{margin:.4rem 0;min-height:550px}
 .wx{border-collapse:collapse;width:100%;font-size:.9rem}.wx th,.wx td{text-align:left;padding:.25rem .4rem;border-bottom:1px solid var(--line)}
 .tag{font-size:.8rem;color:var(--muted)}footer{border-top:1px solid var(--line);margin-top:2rem;padding:1rem;text-align:center;font-size:.9rem;color:var(--muted)}
 `;
@@ -131,14 +117,89 @@ export function clip(s: string, max = 155): string {
   return `${t.slice(0, max - 1).replace(/\s+\S*$/, "").replace(/[,;:\s]+$/, "")}…`;
 }
 
+/** (T1042) what a description says when the page holds no fact: shown in budget.json (`descriptionsWithoutFacts`), never silent */
+export const FACTLESS_TAIL = "its season, what you can keep, gear and limits, from the B.C. synopsis.";
+const FACTLESS_SHORT = "regulations from the B.C. synopsis.";
+const DESC_MAX = 155;
+/** a sentence naming the build day or a date: a description is written once a release (T622 G2), so these are never in it */
+const DAY_WORDS = /\b(today|tomorrow|tonight|now|until|then)\b|\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\.? \d/i;
+
+/** day index of the calendar year (0 = Jan 1, the strip's own order) as "Jun 15": the calendar's own BOOK_DAYS and month words */
+function mdOf(i: number): string {
+  const d = BOOK_DAYS[((i % 365) + 365) % 365]!;
+  return `${MONTHS[d.month - 1]!.slice(0, 3)} ${d.day}`;
+}
+
 /**
- * The meta description of a water page. (T622 G2) NO DAY-RELATIVE WORD: it is written once a release, so "Closed to fishing
- * today" was the build day's answer for weeks. The page itself, and the app, say open or closed for the day the reader is on.
+ * (T1042, owner 2026-11-23 "Season windows") THE WINDOWS A PART IS OPEN TO FISHING, from its year strip (the presenter's own
+ * closed / open runs over the calendar year; a run that ends Dec 31 and one that starts Jan 1 are one): "Jun 1–Jul 14".
+ * null: no strip, or a run the strip does not know. The strip is the water's, not a species'.
+ */
+export function openWindows(runs: PartModel["year"]): string[] | null {
+  if (!runs || runs.length === 0 || runs.some((r) => r.closed === null)) return null;
+  const spans: { open: boolean; a: number; b: number }[] = [];
+  let at = 0;
+  for (const r of runs) { spans.push({ open: !r.closed, a: at, b: at + r.days - 1 }); at += r.days; }
+  if (spans.length > 1 && spans[0]!.open === spans[spans.length - 1]!.open) { const last = spans.pop()!; spans[0]!.a = last.a - 365; }
+  return spans.filter((x) => x.open).map((x) => (x.b - x.a >= 364 ? "all year" : x.a === x.b ? mdOf(x.a) : `${mdOf(x.a)}–${mdOf(x.b)}`));
+}
+
+/** The marks the strip holds on EVERY open day of the year ("fly fishing only", "bait ban"): the legend's marks whose bit every open run carries. */
+function steadyMarks(p: PartModel): string[] {
+  if (!p.yearBits) return [];
+  const open = p.yearBits.filter((r) => r.bits === null || (r.bits & 1) === 0);
+  if (open.length === 0 || open.some((r) => r.bits === null)) return [];
+  return p.marks.filter((k) => k.bit > 1 && open.every((r) => ((r.bits ?? 0) & k.bit) !== 0)).map((k) => k.label);
+}
+
+/**
+ * (T1042) THE FACTS OF A PAGE, in the page's own words, each TRUE ON EVERY DAY OF THE YEAR (the independent review built the
+ * fixture on 24 days: Other fish rows and the Hooks line are the build day's, so a description from them changed with the day).
+ * What is year-stable and read here: the open windows (`openWindows`, the strip's year), the vessel rules (the Boats section,
+ * the same on every day: site.test.ts sweeps a whole year to prove it) and the strip's marks that hold on every open day.
+ * Only what every part says, no dated line, no day word.
+ */
+export function factsOf(m: Pick<WaterModel, "parts">): string[] {
+  if (m.parts.length === 0) return [];
+  const out: string[] = [];
+  const trim = (t: string) => t.replace(/[.\s]+$/, "");
+  const wins = m.parts.map((p) => openWindows(p.year));
+  if (wins.every((w) => w !== null) && new Set(wins.map((w) => w!.join("|"))).size === 1) {
+    const w = wins[0]!;
+    if (w.length === 0) out.push("Closed all year");
+    else if (w[0] === "all year") out.push("Open all year");
+    else if (w.length <= 4) out.push(`Open ${w.join(", ")}`);
+  }
+  const boats = (p: PartModel) => p.sections.filter((s) => s.title === "Boats").flatMap((s) => s.items).filter((i) => !i.head && !i.dated && !DAY_WORDS.test(i.text)).map((i) => trim(i.text));
+  const first = boats(m.parts[0]!).find((b) => m.parts.every((p) => boats(p).includes(b)));
+  if (first) out.push(first);
+  const marks = m.parts.map(steadyMarks);
+  out.push(...marks[0]!.filter((k) => marks.every((x) => x.includes(k))));
+  return out;
+}
+
+/**
+ * The meta description of a water page (and its og:description). (T622 G2) NO DAY-RELATIVE WORD: it is written once a
+ * release. (T1042) It was one template on every page, which Google ignores
+ * (developers.google.com/search/docs/appearance/snippet: identical descriptions on every page are not helpful), so it took a
+ * passage of the page instead, the licence quote. Now: the water's name and place, then `factsOf` while they fit in 155
+ * characters, a whole fact or none. A long name drops "fishing regulations", then "B.C.", before it drops a fact; with no
+ * fact the text says so in whole words (`descriptionHasFacts` is how the build counts them), and is never cut mid-sentence.
  */
 export function descriptionOf(m: WaterModel, label: string = m.name, town: string | null = null): string {
   const where = town ? `near ${town}, ${waterRegions(m)}` : waterRegions(m);
-  return clip(`${label} fishing regulations, B.C. (${where}): the season, what you can keep, gear and limits, in plain words.`);
+  const heads = [`${label} fishing regulations, B.C. (${where}): `, `${label}, B.C. (${where}): `, `${label} (${where}): `];
+  const facts = factsOf(m);
+  for (const head of heads) {
+    const got: string[] = [];
+    for (const f of facts) if ((head + [...got, f].join("; ")).length + 1 <= DESC_MAX) got.push(f);
+    if (got.length) return `${head}${got.join("; ")}.`;
+  }
+  for (const head of heads) for (const tail of [FACTLESS_TAIL, FACTLESS_SHORT]) if ((head + tail).length <= DESC_MAX) return head + tail;
+  return clip(`${label} (${where})`);   // a name too long for any whole sentence: the name, cut at a word
 }
+/** does the description hold a fact (the build's count of those that do not) */
+export const descriptionHasFacts = (m: Pick<WaterModel, "parts">): boolean => factsOf(m).length > 0;
 
 export function aboutBody(site: Site, asOf: string): string {
   const contact = site.contact ? `<p>Contact: <a href="mailto:${esc(site.contact)}">${esc(site.contact)}</a></p>` : "";
@@ -149,7 +210,7 @@ export function aboutBody(site: Site, asOf: string): string {
     `River gauges come from Environment and Climate Change Canada and the Water Survey of Canada; salmon notices from Fisheries and Oceans Canada; ` +
     `stocking records from the Freshwater Fisheries Society of BC. Their terms of use are respected.</p>` +
     `<p>Every page on this site is built from the same release as the app, so the two never disagree.</p>` +
-    `<div class="legal"><p>${esc(NOT_LEGAL)} <a href="${esc(SYNOPSIS_PDF)}" rel="noopener">Official synopsis (PDF)</a>.</p></div>` +
+    `<div class="legal" data-nosnippet><p>${esc(NOT_LEGAL)} <a href="${esc(SYNOPSIS_PDF)}" rel="noopener">Official synopsis (PDF)</a>.</p></div>` +
     `<p>If a rule looks wrong, tell me; every report gets a reply and a fix.</p>${contact}` +
     `<p><a class="app" href="${esc(site.origin)}/">Open the app</a></p>`;
 }
@@ -287,5 +348,5 @@ export function shell(s: Shell, site: Site): string {
   return `<!doctype html><html lang="en-CA"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">` +
     `${headOf(s, site)}<style>${CRITICAL}</style><link rel="stylesheet" href="${esc(s.cssHref)}"></head><body>` +
     `<header class="top"><div><a href="/">${esc(site.name)}</a><a href="/about">About</a></div></header>` +
-    `<main>${s.body}</main><footer>${esc(NOT_LEGAL)} <a href="/privacy">Privacy policy</a></footer></body></html>`;
+    `<main>${s.body}</main><footer><span data-nosnippet>${esc(NOT_LEGAL)}</span> <a href="/privacy">Privacy policy</a></footer></body></html>`;
 }

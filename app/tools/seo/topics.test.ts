@@ -10,7 +10,7 @@ import { buildAll } from "./build";
 import { buildDayOf, type PartModel, type WaterModel } from "./model";
 import { topicLines, YEAR_TOPICS } from "./topics";
 
-const part = (o: Partial<PartModel>): PartModel => ({ year: null, marks: [], partIx: 0, label: "x", status: "open", today: "", sections: [], ...o });
+const part = (o: Partial<PartModel>): PartModel => ({ year: null, yearBits: null, marks: [], partIx: 0, label: "x", status: "open", today: "", sections: [], ...o });
 const water = (...parts: PartModel[]): WaterModel =>
   ({ ord: 0, id: "gnis:1", name: "Eaton Creek", kind: "stream", regions: [2], region: 2, focus: "2", status: "open", answer: "", parts,
      neighbours: [], mid: null, book: [], at: [] });

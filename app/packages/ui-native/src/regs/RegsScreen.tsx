@@ -24,7 +24,7 @@ import { Text } from "../Text";
 import { LEGAL_WORDS, parseSheetKey, withInSeason, withSalmonSheets, type SalmonCardVM, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type TabSourcesVM, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
 import { FreshDot } from "../menu/Fresh";
-import { WaterInset } from "../WaterFrame";
+import { NO_SNIPPET, WaterInset } from "../WaterFrame";
 import { ReportLink } from "../menu/ReportLink";
 import { TYPE } from "../type";
 import { ViewSwipe, WaterViewsContext } from "../ViewSwipe";
@@ -227,7 +227,7 @@ export function RegsScreen({ page, palette, images, actions, onDate,
     if (!node) return null;
     const s = section(tab);
     return (
-      <View ref={s.ref} onLayout={s.onLayout} collapsable={false} nativeID={`regs-${tab}`} testID={`regs-${tab}`}>
+      <View ref={s.ref} onLayout={s.onLayout} collapsable={false} nativeID={`regs-${tab}`} testID={`regs-${tab}`} {...(tab === "licence" ? NO_SNIPPET : {})}>
         {node}
       </View>
     );
@@ -259,13 +259,13 @@ export function RegsScreen({ page, palette, images, actions, onDate,
       {/* (T516, owner 2026-11-08) the "Handling fish" reference closes the page, after Licence: it is background reading,
           not one of the tabs (null on a closed day, as before) */}
       {methods && page.methods?.reference && (
-        <WaterInset testID="regs-reference">
+        <WaterInset testID="regs-reference" noSnippet>
           <ReferenceFold vm={page.methods.reference} palette={palette} actions={keepActions} initiallyOpen={referenceOpen} />
         </WaterInset>
       )}
       {/* (T236) every page's foot: not legal advice, and how current its sources are — (owner 2026-11-04) as fine print
           under a hairline, so it does not read as part of the page */}
-      <WaterInset testID="regs-legal" style={{ marginTop: 20, paddingTop: 10, gap: 2, borderTopWidth: 1, borderTopColor: palette.line }}>
+      <WaterInset testID="regs-legal" noSnippet style={{ marginTop: 20, paddingTop: 10, gap: 2, borderTopWidth: 1, borderTopColor: palette.line }}>
         <Text style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub }}>{LEGAL_WORDS.footer}</Text>
         {asOf && <Text testID="regs-as-of" style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub }}>{asOf}</Text>}
       </WaterInset>

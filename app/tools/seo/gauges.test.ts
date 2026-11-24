@@ -3,16 +3,21 @@
  * worker's /gauge routes (the card mapped from R2, never drawn; a missing one answered with the site card and marked).
  * The page's live half: gaugeClient.test.ts.
  */
+import { randomBytes } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { BUDGET, chartJsProblems } from "./budget";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { openRegsFixture } from "@app/data/release/node";
 import { buildAll, type Built } from "./build";
 import { TODAY } from "./fixture";
 import { checkJsonLd } from "./jsonld";
 import { pngSize } from "./share";
-import { gaugeModels, gaugePath, gaugeTitle, LIVE, moreSummary, type GaugeRows } from "./gauges";
+import { browserSafe, chartInputsOf, gaugeModels, gaugePath, gaugeTitle, LIVE, moreSummary, type GaugeRows } from "./gauges";
 import { readConfig } from "./build";
+import { STORE_CONTACT } from "@app/core";
 
 const site = readConfig();
+const CLIM = Uint8Array.from([1, 2, 3, 250, 251]);
 const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 let built: Built, rows: GaugeRows, ids: string[];
 
@@ -30,7 +35,9 @@ beforeAll(async () => {
       { station: "08MH016", item: ids[2]!, trust: "weak" }, { station: "08MH016", item: ids[3]!, trust: "weak" },
     ],
   };
-  built = await buildAll({ loader: openRegsFixture(), on: TODAY, gauges: rows, crosswalk: { "w-one": [ids[0]!] } });
+  // (T1039) the climatology the release would hold: one station's flow bands (bytes the page carries whole, never read here)
+  built = await buildAll({ loader: openRegsFixture(), on: TODAY, gauges: rows, crosswalk: { "w-one": [ids[0]!] },
+                           gaugeClim: new Map([["08MH001", [{ parameter: "discharge" as const, bands: CLIM }]]]) });
 }, 300_000);
 
 const gaugePages = () => built.build.pages.filter((p) => p.kind === "gauge");
@@ -54,7 +61,8 @@ describe("T487 gauge pages", () => {
     const links = [...p.html.matchAll(/<a href="(\/water\/[^"?]+)">([^<]*) fishing regulations<\/a>/g)].map((x) => x[1]);
     expect(links).toEqual([path(ids[0]!), path(ids[1]!)]);                 // own water first, then the fair one; the weak duplicate folded
     expect(p.html).toContain(`<a class="app" href="${path(ids[0]!)}?view=conditions">Open on the website</a>`);
-    expect(p.html).toContain(`<p class="small coming">Coming soon to Google Play and the App Store.</p>`);
+    // (T1039) the "Get the app" block is the web app's own, drawn by the chart's script (gaugePage.parity.test.ts)
+    expect(p.html).toContain(`<div id="gauge-get-app"></div>`);
     const q = gaugePages().find((x) => x.path.startsWith("/gauge/08MH016"))!;
     expect(q.html).toMatch(/<details><summary>A rough guide for 2 more waters<\/summary>/);
     for (const g of gaugePages()) {
@@ -81,7 +89,71 @@ describe("T487 gauge pages", () => {
     expect(cfg.facts).toBe(`${LIVE.data}/feeds/cards/${cfg.station}.json`);
     expect([LIVE.data, LIVE.crash, cfg.env]).toEqual(["https://data.canifishthis.ca", "https://feeds.canifishthis.ca/crash", "production"]);
     expect(cfg.weather).toMatch(/^https:\/\/api\.open-meteo\.com\/v1\/forecast\?latitude=49\.\d\d&longitude=-121\.\d\d&/);
+    // (T1039) the spot window's measures, and the gauge's point for the day's sun
+    expect(cfg.weather).toContain("&current=temperature_2m,precipitation,weather_code,wind_speed_10m,cloud_cover,pressure_msl,relative_humidity_2m&");
+    const g = rows.gauges.find((x) => x.station === cfg.station)!;
+    expect(cfg.place).toEqual({ lat: g.lat, lon: g.lon });
     expect(cfg.sky["61"]).toBe("Rain");
+  });
+
+  it("(T1039) the chart is the app's: a second deferred script, the app's feed base and the station's climatology in the config", () => {
+    const p = gaugePages().find((g) => g.path.startsWith("/gauge/08MH001/"))!;
+    const src = /<script src="(\/assets\/gauge-chart\.[0-9a-f]{10}\.js)" defer><\/script>/.exec(p.html)![1]!;
+    const js = built.files.get(src.slice(1))!;
+    // the app's own components and data code are in it, by their own words (not a page's re-drawing)
+    for (const w of ["Real-time only", "Scroll to zoom", "gauge-page-chart", "/obs.json"]) expect(js, w).toContain(w);
+    expect(js).not.toMatch(/feeds\/cards\//);                                    // the chart never reads the share card's facts
+    expect(p.html).toMatch(/<div id="gauge-chart"><p class="small">Drawing the chart…<\/p><\/div><div id="gauge-credit"><\/div>/);
+    const cfg = JSON.parse(/<script type="application\/json" id="gauge-config">([^<]*)<\/script>/.exec(p.html)![1]!);
+    expect(cfg.live).toBe(`${LIVE.data}/feeds/live`);
+    expect(cfg.clim).toEqual([{ parameter: "discharge", bands: Buffer.from(CLIM).toString("base64") }]);
+    // a station the release holds no climatology for: none, as the app has none for it
+    const other = gaugePages().find((g) => g.path.startsWith("/gauge/08MH016/"))!;
+    expect(JSON.parse(/id="gauge-config">([^<]*)<\/script>/.exec(other.html)![1]!).clim).toEqual([]);
+    // (T1039, owner: "same buttons as spots") the web app's Get the app block, mounted by the chart's script: no static copy,
+    // no Join script of the page's own; its contact is the one the web app is exported with
+    expect(p.html).toContain('<div id="gauge-get-app"></div>');
+    // (T1039 review) with no JavaScript the chart's box (550 px, "Drawing the chart…") is not shown at all
+    expect(p.html).toContain('<noscript><p class="warn">The live reading, chart and weather need JavaScript.</p><style>#gauge-chart{display:none}</style></noscript>');
+    // the chart's script is within its budget, and a gauge page is in the Lighthouse sample
+    expect(chartJsProblems(built.files)).toEqual([]);
+    expect(JSON.parse(built.files.get("lighthouserc.json")!).ci.collect.url.some((u: string) => u.startsWith("gauge/"))).toBe(true);
+    expect(p.html).not.toMatch(/join\.[0-9a-f]{10}\.js|data-join=|<dialog/);
+    expect(cfg.contact).toBe(STORE_CONTACT);
+    const pkg = JSON.parse(readFileSync(new URL("../../apps/mobile/package.json", import.meta.url), "utf8")).scripts;
+    for (const k of ["export:web", "export:web:staging"]) expect(pkg[k], k).toContain(`EXPO_PUBLIC_CONTACT=${STORE_CONTACT} `);
+    // the coho loader's sheets the app's LoadingState names, served beside the script
+    expect([...built.binary.keys()].filter((k) => k.startsWith("assets/chart/")).length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("(T1039) the Conditions card charts through the component the page mounts (one chart, two callers; gaugePage.parity.test.ts)", () => {
+    const panel = readFileSync(new URL("../../packages/ui-native/src/ConditionsPanel.tsx", import.meta.url), "utf8");
+    const page = readFileSync(new URL("./gaugeChart.tsx", import.meta.url), "utf8");
+    expect(panel).toMatch(/<StationChart vm=\{sc\}/);
+    expect(panel).toMatch(/useStationChart\(source, station,/);
+    expect(panel).not.toMatch(/<Hydrograph\b/);
+    expect(page).toMatch(/h\(StationChart, \{ vm, palette/);
+    expect(page).toMatch(/useStationChart\(source, station,/);
+  });
+
+  it("(T1039) the chart's script may not read an environment variable a browser lacks; NODE_ENV and React's guarded checks pass", () => {
+    expect(() => browserSafe('x=process.env.EXPO_PUBLIC_DATA_BASE')).toThrow(/reads process\.env\.EXPO_PUBLIC_DATA_BASE/);
+    expect(() => browserSafe("x=process.env")).toThrow(/reads process\.env/);
+    expect(() => browserSafe('if("production"!==process.env.NODE_ENV)a();typeof process=="object"&&process.emit("x")')).not.toThrow();
+  });
+
+  it("(T1039 review) the chart's script over its gzip budget is a build problem, named", () => {
+    const big = randomBytes(BUDGET.chartJsGzipBytes + 20_000).toString("latin1");
+    expect(chartJsProblems(new Map([["assets/gauge-chart.0123456789.js", big]]))[0])
+      .toMatch(new RegExp(`^assets/gauge-chart\\.0123456789\\.js is \\d+ B gzip, over ${BUDGET.chartJsGzipBytes}$`));
+    expect(chartJsProblems(new Map([["assets/gauge-chart.0123456789.js", "x".repeat(BUDGET.chartJsGzipBytes)]]))).toEqual([]);   // compresses to nothing
+  });
+
+  it("(T1039) a station's chart inputs: its rows, none when the release has none for it; no climatology map at all is refused", () => {
+    const rowsOf = new Map([["08MH001", [{ parameter: "discharge" as const, bands: CLIM }]]]);
+    expect(chartInputsOf(rowsOf, "08MH001", "F")).toEqual({ clim: [{ parameter: "discharge", bands: CLIM }], fonts: "F" });
+    expect(chartInputsOf(rowsOf, "08XX001", null)).toEqual({ clim: [], fonts: null });
+    for (const none of [null, undefined]) expect(() => chartInputsOf(none, "08MH001", null)).toThrow(/without the release's climatology/);
   });
 
   it("a station's title keeps its number however long the name; the path is the name's slug", () => {

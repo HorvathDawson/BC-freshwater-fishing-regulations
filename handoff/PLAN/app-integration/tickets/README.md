@@ -283,9 +283,11 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1036 | The every-source sheet ("All sources ›") lists rules the screen does not draw, and misses the drawn gear on salmon-only days | OPEN | T991 | #63 review 2026-11-23 (live release probe); the Source row was fixed in #63 |
 | T1038 | Carry a phone link's date, tab, sheet, scroll, age, res, horizon and whole (today reported and dropped) | OPEN — 0.9.0 batch | | lane L15 on T1034, 2026-11-23 |
 | T1037 | Two review readers (`audit.primary_split_pos`, `reuse.host_rows`) pick a cut's position by different rules (157 of 190 multi-row cuts disagree); the build's is per extent (`extent._cut_at`) | OPEN — needs the position rule decided | T776 | PR #48 independent review, 2026-11-23 |
+| T1039 | The public gauge page draws the web app's own chart (same data, windows, zoom, every forecast model) | IN REVIEW — owner: OWNER-TODO "Look (you): T1039 gauge page after-shots"; staging feeds worker deploy + 0.9.0 staging site build to show | 9f8603f17, 44af0d16f, 1b983b5ad, f181f241f, 085ce5e6f, 6a4ebf3ab, 145cf8542 | owner 2026-11-23; lane L25 |
 | T1040 | A stale side atlas still vouches for a proposal after its cut moves (side_dir's digest does not cover the cut's position) | DONE | 14f0d682e | PR #48 independent review, 2026-11-23 |
 | T1043 | Capilano at Canyon still shows no Level in the app (0.8.6): the water view's Flow / Level switch reads the long record only | DONE | 88648625f, eb4591227, f7cdf00bb, 228006397, 66978f86d, 19a8485bb, 2602d207b, bdcd0f27d | owner 2026-11-23: "i still dont know why 0.8.6 capilano at canyon gauge doesnt have level like website does here (https://wateroffice.ec.gc.ca/report/real_time_e.html?stn=08GA031) add as ticket"; lane L28 |
 | T1047 | Under Level, an other-datum station's chart drew its live levels against the old-datum band (08HD006) | IN REVIEW — owner: OWNER-TODO "T1047 off-datum level note" | 99d8ac9bc | #77 review 2026-11-23, item 3; L32 findings |
+| T1042 | Google shows the licence quote as the search snippet and a generic icon: per-page descriptions, `data-nosnippet`, PNG icons | DONE | 68b96c5b9, 5d36db0bf | owner 2026-11-23 (lane L27) |
 | T1044 | Plain words on some gauges: how to read the level (bands, our own words, sourced) | OPEN — after 0.9.0 | | owner 2026-11-23 (lane L27) |
 | T1045 | Gauge pages should come up for "<river> river forecast / level / flow" (title/H1 words, water-to-gauge links, JSON-LD) | OPEN — 0.9.0 batch (code after #73) | T1039 | owner 2026-11-23 (lane L27) |
 
@@ -363,6 +365,7 @@ The ticket is closed and the owner never answered; the build stands on the defau
 - Q31 (T93) was answered 2026-10-28 (above, in its row's own words): drainage plus tributary gauges across a continuation link.
 
 ### Answered (recently, for the record)
+- Q183 (T1039, gauge page chart) — owner 2026-11-23: chart "App's chart, ~260 KB (Recommended)" (option B); ELF "Yes, fix in 0.9.0 (Recommended)".
 - Q176 (map line casing, T470) — owner 2026-11-09 (owner checks page): no casing, as built.
 - Q178, Q179, Q180 — owner 2026-11-09: Q178 "not right now" (an in-season closure does not change status or map colour; as built, T230/T472). Q179 "sure": shorten / purge the backups to match the privacy page (T559). Q180 "dfo surveys are just in addition to psf curve. psf is primary": PSF is always the curve shown; a DFO survey is added beside it and never replaces it (reverses the 10-24 "DFO where it is better" replace rule; T552).
 - Q170 — owner 2026-11-07: B ("Ok let's try that but should add a note that we could tune the parameters on the threshold of magnitude of streams to zoom"); built in T470, the order × zoom fade is one block (`fadeByOrder`).

@@ -20,6 +20,15 @@ with the default Claude uses until you answer). Newest first inside each section
 - T1043 estimate under Level, and the chart's scale: "add ranked on flow at top. also the scale of the chart should use
   the year data if not enough histroical data exists." Built on PR #77: "(ranked on flow)" at the top of the estimate box
   while Level is picked; a 72 h chart with no normal range scales to that quantity's year data. Closed.
+## 2026-11-23: T1042 search description (answer, verbatim)
+- T1042 description facts: "Season windows (Recommended)" — option b of `T1042-shots/live-samples.txt`: open windows from the year strip,
+  boats, steady marks; nothing from the build day. Built on PR #78.
+
+## 2026-11-23: lane L25 (0.9.0 batch) — one pick
+- **Look (you): T1039 gauge page after-shots** — the app's own chart on the gauge page (72 h / Year, Flow / Level, zoom, every model): `handoff/PLAN/app-integration/T1039-shots/after-page-chilliwack-desktop.png`, `after-page-chilliwack-phone-390.png`, `after-page-chilliwack-year-desktop.png`, and Two Forty Creek with ELF offered `after-page-two-forty-elf-desktop.png` / `after-page-two-forty-elf-phone-390.png` (before: `before-*`). Shows on staging after the feeds worker deploy and the 0.9.0 staging site build.
+- T1039 follow-ups 2026-11-23, verbatim: "chart should use same buttons as spots too for now" — built: the Spots tab's own "Get the app" block on the gauge page, both test buttons (`T1039-shots/after-get-app-*`); "could add other almanac info too?" — built: sunrise/sunset and the spot window's cloud, pressure, humidity (`T1039-shots/after-almanac-*`); moon left out (the app has none), see T1039.
+- Pick: T1039 gauge page chart (Q183) — answered 2026-11-23, verbatim: chart "App's chart, ~260 KB (Recommended)"; ELF "Yes, fix in 0.9.0 (Recommended)". Closed; lane L25 builds both.
+
 ## 2026-11-23 ~10:50: T1031 inline sources (answers, verbatim)
 - T1031 inline look: "Yes, as built (Recommended)" — the one Source line (`T1031-shots/inline-*`), kept as built (PR #69).
 - T1031 the book's name: "'B.C. Synopsis' everywhere (Recommended)" — a rule's in-sentence link reads "B.C. Synopsis p.N ↗",

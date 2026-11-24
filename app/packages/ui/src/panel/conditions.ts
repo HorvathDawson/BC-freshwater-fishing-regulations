@@ -9,7 +9,7 @@ import { aheadDays, CONDITIONS_WORDS, donorLastReport, FORECAST_DAY_WORDS, forec
          forecastFigureLine, donorReads, donorSilent, donorState, leadGapLine, LEVEL_ONLY_LEAD, freshness, gaugeCountLine, noGaugeSentence,
          ownGaugeMap, readingAgeLine, readingHeading, readingIn, readingStanding, shownParameter, stageLine, stateAt,
          type GaugeTrace, type SectionKey, type Standing, bcMidnight, shiftDay, wallIso, now } from "@app/core";
-import { READING_REUSE_MS, stationReading, useGaugeTrace, useStationReading } from "../hooks";
+import { READING_REUSE_MS, stationReading, useGaugeTrace, useStationReading, type Conditions } from "../hooks";
 import { askOnce, cardParameters } from "../answers";
 import { useAsync, type Async } from "../async";
 import { useBcToday } from "../today";
@@ -44,6 +44,17 @@ export interface ReadingVM {
   /** (T367) the reading's percentile, 0–1, for the standing's dot in the map's colour; null without a record */
   percentile: number | null;
   age: string;
+}
+
+/**
+ * (T1039) THE READING'S QUANTITY AND FIGURE, or null: the publisher's declared quantity (T106, `shownParameter`) when the
+ * reading has a value in it. What the gauge card's reading says, and what its chart is told the station reads (the Conditions
+ * card here, the public gauge page through `useStationChart`'s `readingQuantity`), so the two cannot pick differently.
+ */
+export function readingQuantityOf(c: Pick<Conditions, "discharge" | "level" | "parameter">): { quantity: Parameter; figure: number } | null {
+  const quantity = shownParameter(c);
+  const figure = quantity ? readingIn(c, quantity) : null;
+  return quantity && figure !== null ? { quantity, figure } : null;
 }
 
 /**
@@ -262,8 +273,8 @@ export function useConditionsView(
   let reading: ReadingVM | null = null;
   // THE DECLARED QUANTITY (T106): the publisher's `parameter`, the one its percentile is about. 08ME030 reports both
   // and declares level; reading whichever value was present printed its discharge beside the level percentile.
-  const shown: Parameter | null = c ? shownParameter(c) : null;
-  const figure = c && shown ? readingIn(c, shown) : null;
+  const rq = c ? readingQuantityOf(c) : null;
+  const shown: Parameter | null = rq?.quantity ?? null, figure = rq?.figure ?? null;
   if (c && shown && figure !== null) {
     reading = {
       heading: readingHeading(name),

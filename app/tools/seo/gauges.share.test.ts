@@ -29,7 +29,7 @@ beforeAll(async () => {
       { station: "08ZZ001", item: "gnis:999999999", trust: "own" }, { station: "08XX002", item: ids[3]!, trust: "lake" },
     ],
   };
-  built = await buildAll({ loader, on: TODAY, gauges: rows, bare: true });
+  built = await buildAll({ loader, on: TODAY, gauges: rows, bare: true, gaugeClim: new Map() });
   // the app's side: ask the one rule of the same release's store, for the waters the stations serve
   const store = await openRegsStore(loader);
   pageIds = new Set();

@@ -60,7 +60,7 @@ export interface Conditions {
 export const READING_POLL_MS = FEED_TTL_MS;
 
 export function useStationReading(
-  source: WaterSource, station: StationId | null,
+  source: Pick<WaterSource, "gaugeNow">, station: StationId | null,
 ): Async<Conditions> {
   // P02: re-asked every READING_POLL_MS while a view holds it (the feed's own cache lives as long), keeping the last
   // reading on screen meanwhile; each tick also re-renders, so its age line moves on.
@@ -93,7 +93,7 @@ function offRecordOf(r: { reports?: readonly Parameter[]; discharge: number | nu
   return out.length ? out : null;
 }
 
-export async function stationReading(source: WaterSource, station: StationId | null): Promise<Conditions> {
+export async function stationReading(source: Pick<WaterSource, "gaugeNow">, station: StationId | null): Promise<Conditions> {
   const empty: Conditions = {
     station: null, stationName: null, discharge: null, level: null, parameter: null, percentile: null,
     standing: null, trust: null, fetchedAt: null, observedAt: null, trace: [],
@@ -215,7 +215,7 @@ export function useGaugeGeoJSON(
  * first's promise — `useAsync` alone shares nothing between callers.
  */
 export function useSeries(
-  source: WaterSource, station: StationId | null, span: "72h" | "year",
+  source: Pick<WaterSource, "gaugeSeries">, station: StationId | null, span: "72h" | "year",
   parameter?: Parameter, model?: string, enabled = true,
 ): Async<Series | null> {
   const key = seriesKey(station, span, parameter, model);
@@ -236,7 +236,7 @@ export function useSeries(
 
 /** Which quantities this station can be charted in — an empty list means no envelope. */
 export function useGaugeParameters(
-  source: WaterSource, station: StationId | null,
+  source: Pick<WaterSource, "gaugeParameters">, station: StationId | null,
 ): Async<readonly Parameter[]> {
   // Through the answer store, so a prefetched donor's quantities are known the instant it is picked — otherwise the
   // chart would ask for the station's "auto" series first and its picked quantity a frame later (two loads).
