@@ -225,7 +225,7 @@ export interface CrashReporter {
   sendExit(r: ExitRecord): Promise<SendAnswer>;
   /** (T1016) Resolves true once every send asked for so far is handed to the line (its POST issued, `keepalive`: it outlives
    *  the page; one waiting its turn behind the 1 s gap is not). What a web page waits for before it reloads itself.
-   *  (review #125) Never longer than `SENT_WAIT_MS`: an earlier POST that stalls holds the ones behind it, so past the wait
+   *  (review of PR 125) Never longer than `SENT_WAIT_MS`: an earlier POST that stalls holds the ones behind it, so past the wait
    *  it resolves false and says how many were not on the line (the refresh goes ahead without them). */
   sent(): Promise<boolean>;
 }
@@ -238,7 +238,7 @@ export function answerWords(a: SendAnswer): string {
   return `${a.status === null ? "no answer" : `HTTP ${a.status}`}${a.error ? ` (${a.error})` : ""}`;
 }
 
-/** (T1016 review #125) The longest a page that refreshes itself waits for its reports to be on the line (`sent`). */
+/** (T1016 review of PR 125) The longest a page that refreshes itself waits for its reports to be on the line (`sent`). */
 export const SENT_WAIT_MS = 5_000;
 
 /** (T1005) The least time between two crash sends: the worker's per-address gap (`CRASH_GAP_MS`, 1 s) and a margin. */

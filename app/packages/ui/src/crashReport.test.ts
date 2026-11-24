@@ -139,7 +139,7 @@ describe("the reporter (T242)", () => {
     // nothing asked for: at once
     expect(await Promise.race([rig().r.sent().then(() => "sent"), tick().then(() => "held")])).toBe("sent");
   });
-  it("(T1016 review #125) sent() waits at most SENT_WAIT_MS: an earlier POST that stalls holds the next; past the wait, false and said", async () => {
+  it("(T1016 review of PR 125) sent() waits at most SENT_WAIT_MS: an earlier POST that stalls holds the next; past the wait, false and said", async () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     try {

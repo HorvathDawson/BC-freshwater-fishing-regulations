@@ -437,7 +437,7 @@ describe("a chunk that is gone after a site deploy (AsyncRequireError)", () => {
     expect(state.get()).toEqual({ kind: "code", release: null });   // the notice: "Reload ›" by hand
   });
 
-  it("(review #125) no bounce: A reloads onto B, B (a stale edge still naming A) reloads onto A, A stops; a cap per session", () => {
+  it("(review of PR 125) no bounce: A reloads onto B, B (a stale edge still naming A) reloads onto A, A stops; a cap per session", () => {
     const store = memoryStore(), reloads: string[] = [];
     const A = "/_expo/static/js/web/index-a.js", B = "/_expo/static/js/web/index-b.js";
     const at = (entry: string) => reloadOnce({ store: () => store, entry, reload: () => reloads.push(entry) });

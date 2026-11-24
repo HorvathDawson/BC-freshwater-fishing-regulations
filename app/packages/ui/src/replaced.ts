@@ -91,7 +91,7 @@ export const RELOADS_PER_SESSION = 3;
  * (T1016) THE CODE VERDICT'S AUTOMATIC RELOAD, AT MOST ONCE PER PAGE CODE PER SESSION. `entry`: this page's entry script.
  * The session store keeps EVERY entry this session reloaded from, across reloads: a page whose code already reloaded once
  * (back on the same code — a cached page; or bounced between two codes — A reloads onto B, B's chunk is missing on a stale
- * edge that still names A, B reloads onto A: review #125) does not reload again (why, returned); and never more than
+ * edge that still names A, B reloads onto A: review of PR 125) does not reload again (why, returned); and never more than
  * `RELOADS_PER_SESSION` reloads in a session. A store that cannot be read, written or parsed (a private window, storage
  * blocked): no reload (it could loop), why returned. Null: reloading now.
  */
