@@ -1,6 +1,6 @@
 # T1036 — The every-source sheet ("All sources ›") lists rules the screen does not draw, and misses the drawn gear on salmon-only days
 
-Status: DONE (owner question default built: list only what the drawn tabs cite) — d29a19c5a, ea1155dee (#96 review fixes) (lane L5, 0.9.1 batch, 2026-11-24).
+Status: PARTIAL — d29a19c5a, ea1155dee (lane L5); second group a65823345 (lane L17, owner 2026-11-24); left (Claude): put the head question to the owner (lane L17 report, `T1036-shots/other-group-*`) and apply his pick
 
 Source: the independent review of PR #63 (T991 round 3, 2026-11-23), probing the live release r-741815c6090d over 8 waters ×
 parts × 9 days. The Source row was fixed in #63 to cite exactly what the drawn tabs cite (`drawnRegsOf`,
@@ -51,3 +51,47 @@ that brings p.6 (the province's steelhead quota), which the table never says.
 neither r-741815c6090d nor r-0aec88ed3edb holds a DFO-source rule); a cited rule the index lacks is reported
 (`AllSourcesRuleMissing`) and gets no row; the probe compares rule keys (`rule-row:<key>`) and pins the salmon closures
 argument (Region 4's spring closure on the Chilliwack, cited by nothing else).
+
+## Owner's answer (2026-11-24, verbatim)
+Asked whether the rules shown only inside a species sheet, and Possession, should also be listed on the page's "All
+sources" sheet (built: no): **"Add back but maybe have them separate?"**
+
+## Built (lane L17, 0.9.1, 2026-11-24, a65823345): a second group, under its own head — a proposal for the owner's pick
+**What is in it, exactly.** Below the drawn lines' rules (group 1, unchanged), under one head (`ALL_SOURCES.OTHER`, built:
+"Also in the fish and possession sheets"), grouped by source as group 1: every rule a sheet ONE TAP from the drawn
+screen cites that no drawn line cites. Core `allsources.ts`:
+- the sheets (`reachableSheets`): every sheet key a drawn line opens (its `open`) — a fish row's sheet (`other:` /
+  `sp:` / `tf:`), Possession's (`pos:pos`), a rule's or a term's sheet a drawn line opens — and each one's tabs
+  (Identification | Sources); never the every-source sheet itself, never a per-row gear line's (`srcs:gl|…`, not
+  drawn since T900);
+- what a sheet cites (`sheetCitations`): each row of its Sources list (never an "Overruled" card: it does not apply
+  here), each rule whose sheet a line opens beside that rule's page ("Who says so ›" + "B.C. Synopsis p.N", as
+  Possession's sheet does), a rule's own sheet its rule; one tap only: a link inside a sheet ("See every regulation
+  line ›", "Fishing more than one water today? ›") is not followed;
+- minus group 1: no rule is in both. A card the screen does not draw (a closed day's) opens no sheet, so nothing of it
+  is listed. A cited rule the index lacks is reported (`AllSourcesRuleMissing`, by "sheet") and gets no row (W46).
+Built from the same drawn view models and the page's own sheets, when the sheet is opened (lazily, once).
+`withInSeason` keeps the second group after the first.
+
+**Qualicum River part 1, Jun 1** (live release r-0aec88ed3edb): the page draws no Possession row and no fish row (closed
+all year to all fishing: the Keep tab is the two closed strips and the "Closed all year" card), so no sheet is one tap
+away and the second group is empty: Possession p.13 is NOT back there. It came (before #96) from the undrawn card's
+deciding rules, which this definition leaves out. If the owner wants p.13 on that page, the definition must widen to
+the undrawn card (a different question). **p.7**: listed only where a reachable sheet really cites it — on the Peace
+River (Aug 1) the White sturgeon sheet's "No fishing for white sturgeon" (p.7) is in group 2; the T916 licences row
+that came from the card rows stays out.
+
+**Proof.** `allsources.test.ts` (the second group's rows and order by source, the overruled card, the tab, the two-tap
+link, the page-less rule link, the undrawn gear line and undrawn sheet, the reported missing rule, in-season keeping
+it, a page whose drawn lines cite nothing); the UI probe (`WaterScreen.sources` / `salmonOnly`,
+`regs/testing/allSources.ts` `expectedOtherKeys`, read by these words, not by core's walk): group 1 = the drawn rules,
+group 2 = the reachable sheets' rules minus group 1, one head (none where the group is empty: gnis:8634 part 3), no
+rule in both, on the 9 fixture cases, the Vedder and the salmon-only days. 12 fail on main; 9 mutations killed.
+
+**Pictures** (web 390 px, light + dark, the live release): `../T1036-shots/other-group-peace-aug1-before-after-*.png`
+(before: the sheet ends; after: the second group below), `other-group-peace-aug1-headings-*.png` (A built "Also in the
+fish and possession sheets" | B "Other rules for this water"), `other-group-qualicum-jun1-before-after-*.png` (no
+change: nothing one tap away).
+
+**Owner question**: the second group's head: A "Also in the fish and possession sheets" (built: says where the rules
+are) or B "Other rules for this water" (shorter); or not separate after all.
