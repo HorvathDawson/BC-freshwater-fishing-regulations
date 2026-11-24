@@ -1,6 +1,6 @@
 # T1041 — A red CI run or a review finding stops costing an hour or two
 
-Status: PARTIAL — 0a44b1c75, 4ed75f4a1, de8268ac1, 49081552b, 0dfb92695 (items 1-7, for 0.9.0); owner: OWNER-TODO "move the repo to a free organisation" (after 0.9.0), then Claude: the slug flip and the merge-queue rule
+Status: PARTIAL — 0a44b1c75, 4ed75f4a1, de8268ac1, 49081552b, 0dfb92695 (items 1-7, for 0.9.0), 3d06be883 (review lows, 0.9.1); owner: OWNER-TODO "move the repo to a free organisation" (after 0.9.0), then Claude: the slug flip and the merge-queue rule
 
 Source: owner 2026-11-23 (the 0.9.0 batch chat): a red CI run or a bug found in review cost an hour or two each.
 
@@ -106,6 +106,33 @@ Source: owner 2026-11-23 (the 0.9.0 batch chat): a red CI run or a bug found in 
    `test_a_render_that_never_returns_is_a_hang_reported_in_time` (proved by mutation). The child returns in under a
    second here (8 errors, no hang). Also `test_a_stopped_tool_gets_a_ctrl_c_first` now stands the child in (its real
    child raced its own start-up under load, a before-PR run 2026-11-23).
+
+## Review lows (0.9.1)
+The two low findings of the review of PR #79, fixed in 3d06be883 (lane L4, 2026-11-24):
+- **(a) The mutation job was not path-gated.** Each job's first step after the checkout is now
+  `python3 scripts/mutation_report.py <py|ts> --base … --head … --gate`: git and the runner's python3 only, nothing
+  installed. It works out the same files and lines the part would mutate (`py_changed` / `ts_changed`). When there are
+  none, the step sets `run=false`, the job summary says "skipped before the setup (the gate) … (what this part mutates)",
+  and the app setup, the tool install and the run are skipped. A gate that breaks gives no answer: its step shows the
+  failure (`continue-on-error`) and the part runs as it did before the gate (`if: … != 'false'`), so a broken gate never
+  skips a part.
+  Pinned: `test_the_gate_skips_a_part_with_no_line_to_mutate_and_says_so` (test_mutation_report.py) and
+  `test_the_mutation_jobs_skip_their_setup_when_the_pr_changes_nothing_they_mutate` (test_workflow_pins.py).
+- **(b) `scripts/related_tests.py` found only direct importers.** It now also goes ONE LEVEL UP: the test files that
+  import a module which imports a changed one.
+  - The cap: at most `PY_UP_CAP` = 10 level-up files, inside `PY_CAP` = 25 in all, direct importers first. So the hook
+    is never slower than the old 25-file cap allowed.
+  - Skipped: a package `__init__` is never followed as the middle (it re-exports into most of the tree). Each one is
+    named in the step's note, and so is every level-up file past the cap ("one level up: N more …; 10 taken (at most
+    10), M left to scripts/before_pr.sh and the PR's tier: …").
+  - Measured on #67's change (decided.py + passage_boxes.py + passage_unlocated.json): 5 -> 15 files, 8 s -> 11 s
+    (46 -> 103 tests, CI's markers). The `display` package `__init__` was not followed (named).
+  - The mutation report keeps the direct importers (`depth=1`), because each mutant runs its whole list.
+  - Tests: `test_one_level_up_reaches_the_tests_of_a_module_that_imports_the_change`,
+    `test_one_level_up_has_its_own_cap_and_never_goes_through_an_init` (test_related_tests.py). The cap message is
+    updated.
+- Mutation-proved: 8 mutants, all killed (no level-up; follow an `__init__`; ignore the level-up cap; the report not at
+  depth 1; the gate always "run"; the skip left out of the summary; a gate error escaping; one `if:` dropped).
 
 ## Measured (this Mac, 18 cores; GitHub's runners are slower)
 - **Hook time**, the same change (one comment in `core/src/tabSources.ts` + one in `display/decided.py`, `--changed

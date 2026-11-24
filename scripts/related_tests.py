@@ -15,13 +15,18 @@ package that imports it. That is most of the suite for a core file (core's index
 tests" step. A changed non-code file (a fixture, a .gz) has no import graph: listed, its readers left to the PR.
 
 THE PIPELINE: the test files that import a changed module DIRECTLY (`import a.b` / `from a.b import c` / relative), and
-changed test files themselves. Not the transitive closure: through the package `__init__`s it is ~400 of ~550 files
-for one leaf module (the whole tier, minutes). A changed non-Python file under pipeline/ (a pinned JSON beside its
+changed test files themselves; then (T1041 review, 0.9.1) ONE LEVEL UP: the test files that import a module which
+imports a changed one directly (a test of `mid` when `mid` imports the changed `leaf`), at most `PY_UP_CAP` of them. Not the transitive closure:
+through the package `__init__`s it is ~400 of ~550 files for one leaf module (the whole tier, minutes), so a package
+`__init__` is never the middle of a level-up (it re-exports into most of the tree) — each one skipped is named. The
+level-up files come after every direct one and fill only the room left under the cap. A changed non-Python file under pipeline/ (a pinned JSON beside its
 module) counts as a change to each module whose source names its file name; a changed scripts/*.py or *.sh (loaded by
 path or run, never imported) reaches the test files that name its file name. A changed conftest.py is said, not
-followed (it reaches every test under it: the tier's job). The list is capped at `PY_CAP` files (direct-import counts
-here: decided.py 5, salmon.py 27, common/curated.py 50 at 111 s); past it, the rest are NAMED as left to
-`scripts/before_pr.sh` and the PR's tier — never dropped quietly.
+followed (it reaches every test under it: the tier's job). The list is capped at `PY_CAP` files IN ALL, direct
+importers first (direct-import counts here: decided.py 5, salmon.py 27, common/curated.py 50 at 111 s), so the level-up
+never makes the hook slower than the cap already allowed; past it, the rest are NAMED as left to `scripts/before_pr.sh`
+and the PR's tier — never dropped quietly. The mutation report asks for the direct importers only (`depth=1`): each
+mutant runs its whole test list.
 """
 from __future__ import annotations
 
@@ -32,8 +37,12 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-#: the pipeline test files the hook runs at most (salmon.py's 27 direct importers: 71 s here)
+#: the pipeline test files the hook runs at most, direct and one level up together (salmon.py's 27 direct importers:
+#: 71 s here)
 PY_CAP = 25
+#: (T1041 review) of those, one level up at most: a leaf's level-up is often dozens of files (decided.py: 36, dfo
+#: fetch.py: 57), and the hook must stay short (git holds its push connection open while it runs)
+PY_UP_CAP = 10
 #: what `vitest related` can follow (its import graph)
 APP_CODE = re.compile(r"\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$")
 
@@ -85,8 +94,10 @@ def import_graph(root: Path = ROOT) -> tuple[dict[str, str], dict[str, set[str]]
     return mods, rev
 
 
-def pytest_related(paths: list[str], root: Path = ROOT, cap: int = PY_CAP) -> tuple[list[str], list[str]]:
-    """(the test files to run, what was chosen and why, one line each) for these changed paths."""
+def pytest_related(paths: list[str], root: Path = ROOT, cap: int = PY_CAP, depth: int = 2,
+                   up_cap: int = PY_UP_CAP) -> tuple[list[str], list[str]]:
+    """(the test files to run, what was chosen and why, one line each) for these changed paths. `depth` 2 (the hook):
+    the direct importers, then one level up; 1 (the mutation report): the direct importers only."""
     tps = testpaths(root)
     mods, rev = import_graph(root)
     by_path = {p: m for m, p in mods.items()}
@@ -124,12 +135,27 @@ def pytest_related(paths: list[str], root: Path = ROOT, cap: int = PY_CAP) -> tu
     picked = changed_tests + importers
     if sources:
         said.append(f"{len(sources)} changed pipeline module(s): {len(importers)} test file(s) import one directly")
+    if sources and depth >= 2:
+        mids = {i for s in sources for i in rev.get(s, ()) if not _is_test(mods[i], tps)} - sources
+        inits = sorted(m for m in mids if mods[m].endswith("__init__.py"))
+        follow = mids - set(inits)
+        up = sorted({mods[t] for m in follow for t in rev.get(m, ()) if _is_test(mods[t], tps)} - set(picked))
+        picked += up[:up_cap]
+        said.append(f"one level up: {len(up)} more test file(s) import one of the {len(follow)} module(s) that import "
+                    f"a changed one" + (f"; {min(len(up), up_cap)} taken (at most {up_cap}), {len(up) - up_cap} left to "
+                                        f"scripts/before_pr.sh and the PR's tier: "
+                                        f"{', '.join(Path(x).name for x in up[up_cap:up_cap + 8])}"
+                                        f"{' …' if len(up) > up_cap + 8 else ''}" if len(up) > up_cap else ""))
+        if inits:
+            said.append(f"one level up, not followed through {len(inits)} package __init__(s) (they re-export into most "
+                        f"of the tree; the tier's job): {', '.join(inits[:6])}{' …' if len(inits) > 6 else ''}")
     if changed_tests:
         said.append(f"{len(changed_tests)} changed test file(s)")
     if len(picked) > cap:
         left = picked[cap:]
-        said.append(f"CAPPED at {cap} of {len(picked)} test files: {len(left)} left to scripts/before_pr.sh and the "
-                    f"PR's tier: {', '.join(Path(x).name for x in left[:8])}{' …' if len(left) > 8 else ''}")
+        said.append(f"CAPPED at {cap} of {len(picked)} test files (direct importers first): {len(left)} left to "
+                    f"scripts/before_pr.sh and the PR's tier: {', '.join(Path(x).name for x in left[:8])}"
+                    f"{' …' if len(left) > 8 else ''}")
         picked = picked[:cap]
     return picked, said
 

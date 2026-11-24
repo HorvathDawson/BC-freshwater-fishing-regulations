@@ -89,7 +89,8 @@ def test_the_python_part_runs_each_file_against_its_importers_and_says_every_gap
     monkeypatch.setattr(MR, "git", lambda *a: "")
     related = {"pipeline/a.py": ["pipeline/tests/test_a.py"], "pipeline/b.py": ["pipeline/tests/test_b.py"],
                "pipeline/c.py": []}
-    monkeypatch.setattr(MR.RT, "pytest_related", lambda paths, root: (related[paths[0]], []))
+    depths = set()                         # (T1041 review) the report asks for the direct importers only
+    monkeypatch.setattr(MR.RT, "pytest_related", lambda paths, root, depth=2: depths.add(depth) or (related[paths[0]], []))
     monkeypatch.setattr(MR, "ROOT", tmp_path)
     (tmp_path / "pipeline").mkdir()
     for f in files:
@@ -105,6 +106,7 @@ def test_the_python_part_runs_each_file_against_its_importers_and_says_every_gap
     MR.run_py("b", "h", 900, rep, runner=runner, mutmut="mutmut")
     run = [c for c in calls if c[1] == "run"]
     assert [c[c.index("--paths-to-mutate") + 1] for c in run] == ["pipeline/a.py", "pipeline/b.py"]
+    assert depths == {1}
     assert "pipeline/tests/test_a.py" in run[0][run[0].index("--runner") + 1]
     assert " -x " in run[0][run[0].index("--runner") + 1] and "--use-patch-file" in run[0]
     assert any("`pipeline/c.py`" in x and "NO test imports or names it" in x for x in rep.lines)
@@ -250,7 +252,7 @@ def test_a_mutated_file_is_put_back_as_it_was_uncommitted_edits_too(monkeypatch,
     monkeypatch.setattr(MR, "ROOT", tmp_path)
     monkeypatch.setattr(MR, "py_files", lambda changed: {"pipeline/a.py": [1]})
     monkeypatch.setattr(MR, "git", lambda *a: "")
-    monkeypatch.setattr(MR.RT, "pytest_related", lambda paths, root: (["pipeline/tests/test_a.py"], []))
+    monkeypatch.setattr(MR.RT, "pytest_related", lambda paths, root, depth=2: (["pipeline/tests/test_a.py"], []))
 
     def runner(cmd, secs, cwd, env=None):
         if cmd[1] == "run":
@@ -259,3 +261,45 @@ def test_a_mutated_file_is_put_back_as_it_was_uncommitted_edits_too(monkeypatch,
         return 0, XML
     MR.run_py("b", "h", 900, MR.Report("py"), runner=runner, mutmut="mutmut")
     assert (tmp_path / "pipeline" / "a.py").read_text() == "x = 1  # an uncommitted edit\n"
+
+
+def test_the_gate_skips_a_part_with_no_line_to_mutate_and_says_so(monkeypatch, tmp_path, capsys):
+    """(T1041 review, 0.9.1) the cheap first step: `run=true` only when the PR changes a line this part mutates, a skip
+    written to the job summary, a gate that cannot read the diff warned and the part run. Mutations: always say true,
+    or skip the summary, or let the git error out (a red job): this fails."""
+    for rel in ("pipeline/a.py", "pipeline/tests/test_a.py", "app/packages/core/src/a.ts", "app/packages/core/src/a.test.ts"):
+        (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / rel).write_text("x\n")
+    (tmp_path / "pytest.ini").write_text("[pytest]\ntestpaths = pipeline/tests\n")
+    monkeypatch.setattr(MR, "ROOT", tmp_path)
+    out, summary = tmp_path / "out", tmp_path / "summary.md"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(out))
+    monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary))
+
+    def diff(*files):                       # `git diff -U0 … -- <spec>`: the files under the pathspec, one line each
+        def git(*args):
+            spec = tuple(args[args.index("--") + 1:])
+            return "".join(f"+++ b/{f}\n@@ -1 +1 @@\n" for f in files if f.startswith(spec))
+        return git
+
+    def gate(part, *files):
+        out.write_text("")
+        summary.write_text("")
+        monkeypatch.setattr(MR, "git", diff(*files))
+        assert MR.main([part, "--base", "b", "--head", "h", "--gate"]) == 0
+        return out.read_text(), summary.read_text()
+
+    assert gate("py", "pipeline/a.py", "README.md") == ("run=true\n", "")
+    o, s = gate("py", "pipeline/tests/test_a.py", "app/packages/core/src/a.ts", "README.md")
+    assert o == "run=false\n" and "skipped before the setup (the gate): the PR changes no line this part mutates " \
+                                   "(pipeline/**/*.py and scripts/*.py (not tests or conftest))" in s
+    assert gate("ts", "app/packages/core/src/a.ts")[0] == "run=true\n"
+    o, s = gate("ts", "app/packages/core/src/a.test.ts", "pipeline/a.py")
+    assert o == "run=false\n" and "no line this part mutates (app/packages/** and app/apps/**" in s
+
+    def broken(*a):
+        raise RuntimeError("git diff failed (rc=128): bad revision")
+    monkeypatch.setattr(MR, "git", broken)
+    out.write_text("")
+    assert MR.main(["py", "--base", "b", "--head", "h", "--gate"]) == 0 and out.read_text() == "run=true\n"
+    assert "::warning title=mutation report::the gate could not read the diff (RuntimeError" in capsys.readouterr().out
