@@ -1,7 +1,7 @@
 """THE FISH SHEET (trout table plan, T810 ticket H; spec 3.4, contract 2.3 `FishSheet`, Q-D6, Q-D10): what a tap on one
 row of the trout table opens. Three parts on screen: "Here, today" (Python's `here` lines, below), "How to tell it"
 (the app's pictures and FISH_TIPS: content, not law) and "Sources" (`src`, this fish's rules first, cut to 4 here; the
-app never cuts or sorts a list; since T1031 option B the app's breakdown reads the row's whole `src` instead: below). The coming change stays in the date set (`DateSet.sheet`), because it changes by
+app never cuts or sorts a list). The coming change stays in the date set (`DateSet.sheet`), because it changes by
 segment while the sheet does not.
 
 EVERY SENTENCE IS G'S (`trout/words.py`), whole, and none says "today" (the app's heading does; contract Q-D2): the
@@ -43,10 +43,7 @@ from pipeline.deliver.answers.trout import words as W
 #: the stamps said are the ones the post-pass licence answer still lists for the fish. False = every stamp the row
 #: carries, whatever the licence answer says (a stamp `drop_closed_steelhead_stamp` dropped would be said)
 A_STAMP_FROM_THE_POST_PASS_LICENCE = True
-#: Sources: this fish's rules first, at most 4 (Q-D6). False = the whole list.
-#: (T1031 option B, owner 2026-11-24 "Go on to B") The app from 0.9.1 no longer draws this cut list: a row sheet's
-#: breakdown lists every rule of the row (`TRow.src`, the same list uncut, in its order). The cut stays because an
-#: installed 0.9.0 refuses a sheet citing more than 4 rules (`core/src/regs/trout.ts` holding check: no table at all).
+#: Sources: this fish's rules first, at most 4 (Q-D6). False = the whole list
 A_SOURCES_CUT_TO_FOUR = True
 
 SOURCES_MAX = 4

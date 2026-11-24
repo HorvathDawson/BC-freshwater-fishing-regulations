@@ -127,7 +127,7 @@ breakdown also lists every rule of the row (Lois Lake's p.24 rule then has its o
 ## Option B built (0.9.1 lane L15, 2026-11-24, branch `feat/T1031-trout-row-breakdown-all-rules`)
 **Owner answer, 2026-11-24 morning, verbatim: "Go on to B".** It overrides the cut to 4 for this list: contract Q-D6 ("A
 sheet's `src` is that list cut to 4", from build spec 3.4 "this fish's rules first, up to 4", a design-spec line, not a
-RULINGS.md ruling) and spec 3.4's Sources row now say so; `sheets.py` `A_SOURCES_CUT_TO_FOUR` says why the cut stays.
+RULINGS.md ruling) and spec 3.4's Sources row now say so (`sheets.py` is left untouched: any deliver-code edit moves the committed mini release's code digest).
 **Built (app only, 1ba8cddbd).** The row sheet's "Where each rule comes from" draws EVERY rule of `TRow.src` (Python's whole
 list, deciding rule first, the old four as its head, then the rest in Python's order; by authority as before) instead of
 `FishSheet.src`. No word changes; the Source line (A) is unchanged and now names exactly the breakdown's pages.
