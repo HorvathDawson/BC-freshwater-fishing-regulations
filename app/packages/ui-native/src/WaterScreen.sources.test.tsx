@@ -7,7 +7,7 @@
  * (T1036) The every-source sheet behind the row's "All sources ›" had the same two faults: on the same cases its rows' pages
  * equal the drawn tabs' pages and the drawn trout table's (its line's "Who says so ›" opens them), nothing else.
  */
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { SalmonFacts } from "@app/core";
 import type { ItemId } from "@app/data";
@@ -24,7 +24,22 @@ import vedder1010 from "./regs/fixtures/vedder_1010.json";
 import glenn615 from "./regs/fixtures/glenn_615.json";
 import { LIGHT } from "./theme";
 import { TEST_TROUT_SOURCES } from "./regs/testing/sources";
-import { sheetExpected, sheetPages } from "./regs/testing/allSources";
+import { expectedKeys, sheetExpected, sheetPages, type ProbeIndex } from "./regs/testing/allSources";
+import { setFailureSink } from "@app/core";
+
+/** (T1036) what the screen hands the Source row: the drawn view models and the part's rule index (the sheet's keys' oracle) */
+const handed = vi.hoisted(() => ({ drawn: null as unknown, rules: null as unknown }));
+vi.mock("@app/core", async (orig) => {
+  const m = await orig<typeof import("@app/core")>();
+  return { ...m, regsSourcesOf: (...a: Parameters<typeof m.regsSourcesOf>) => {
+    handed.drawn = a[0]; handed.rules = a[1].rules;
+    return m.regsSourcesOf(...a);
+  } };
+});
+// (T1036, W46) a rule a drawn line cites that the index lacks is reported: none on these pages
+let missing: string[] = [], undoSink = () => {};
+beforeEach(() => { missing = []; undoSink = setFailureSink((e) => { if ((e as Error).name === "AllSourcesRuleMissing") missing.push((e as Error).message); }); });
+afterEach(() => undoSink());
 
 afterEach(cleanup);
 const LOADED = { timeout: 20_000 } as const;
@@ -101,6 +116,9 @@ describe("the Regulations Source row cites exactly what the drawn screen cites (
     // (T1036) the every-source sheet: the drawn tabs' pages and the drawn trout table's, nothing else
     const sheet = sheetPages({ act, fireEvent, screen });
     expect(sheet.all).toEqual(sheetExpected(p.drawn, sheet.trout));
+    // and its rules: exactly those the drawn view models cite (a missed rule that shares a page, or has none, fails here)
+    expect([sheet.keys, missing]).toEqual([expectedKeys(handed.drawn, handed.rules as ProbeIndex), []]);
+    expect(sheet.keys.length).toBeGreaterThan(0);
   }, 40_000);
 });
 
@@ -126,6 +144,7 @@ describe("the trout table's Source line on a real page (T1031 item 3)", () => {
     // (T1036) the every-source sheet lists the table's rules (p.6 among them: "Who says so ›" opens them) and the drawn tabs'
     const sheet = sheetPages({ act, fireEvent, screen });
     expect([sheet.trout.includes(6), sheet.all]).toEqual([true, sheetExpected(p.drawn, sheet.trout)]);
+    expect([sheet.keys, missing]).toEqual([expectedKeys(handed.drawn, handed.rules as ProbeIndex), []]);
   }, 40_000);
 });
 

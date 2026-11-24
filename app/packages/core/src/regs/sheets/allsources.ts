@@ -53,29 +53,38 @@ const showsSource = (o: Record<string, unknown>): boolean =>
   Object.values(o).some((v) => Array.isArray(v) && v.some((r) => !!r && typeof r === "object" && ((r as { t?: unknown }).t === "book" || (r as { t?: unknown }).t === "web")));
 
 /**
- * (T1036) The rules the DRAWN view models cite (`drawnRegsOf`), once each, first seen first: a drawn section Source line's
+ * (T1036) THE ONE WALK OF WHAT THE DRAWN SCREEN CITES (`drawnRegsOf`), read by the Source row (a drawn DFO rule names DFO,
+ * `regsSourcesOf`) and by the every-source sheet: the rules, once each, first seen first — a drawn section Source line's
  * `keys` (never a per-row gear line's, `srcs:gl|…`, not drawn since T900), a line naming its `rule` that shows that rule's
- * page or cited page, and the drawn trout table's `src`. A key the index lacks names nothing.
+ * page or cited page, and the drawn trout table's `src`. `missing`: what a drawn line cites that the part's index does not
+ * hold (a key, or `#<index>` for a trout table's), each once — never a row, and reported by the sheet (W46).
  */
-export function drawnSourceRules(drawn: readonly unknown[], rules: Pick<RuleIndex, "get" | "has" | "byKey">): RuleView[] {
+export function drawnCitations(drawn: readonly unknown[], rules: Pick<RuleIndex, "get" | "has" | "byKey">): { rules: RuleView[]; missing: string[] } {
   const byKey = rules.byKey;
-  if (!byKey) throw new Error("drawnSourceRules: the rule index has no byKey; the drawn rules cannot be read");
-  const out = new Map<string, RuleView>(), walked = new Set<unknown>();
-  const add = (r: RuleView | null | undefined) => { if (r && !r.missing && !out.has(r.key)) out.set(r.key, r); };
+  if (!byKey) throw new Error("drawnCitations: the rule index has no byKey; the drawn rules cannot be read");
+  const out = new Map<string, RuleView>(), missing = new Set<string>(), walked = new Set<unknown>();
+  const add = (r: RuleView | null | undefined, cited: string) => {
+    if (!r || r.missing) missing.add(cited);
+    else if (!out.has(r.key)) out.set(r.key, r);
+  };
   const walk = (v: unknown, field: string): void => {
-    if (typeof v === "number") { if (field === "src" && rules.has(v)) add(rules.get(v)); return; }
+    if (typeof v === "number") { if (field === "src") add(rules.has(v) ? rules.get(v) : null, `#${v}`); return; }
     if (!v || typeof v !== "object" || walked.has(v)) return;
     walked.add(v);
     if (Array.isArray(v)) { for (const x of v) walk(x, field); return; }
     const o = v as Record<string, unknown>;
     if (typeof o.open === "string" && o.open.startsWith("srcs:") && !o.open.startsWith("srcs:gl|") && Array.isArray(o.keys))
-      for (const k of o.keys) if (typeof k === "string") add(byKey.call(rules, k));
-    if (typeof o.rule === "string" && showsSource(o)) add(byKey.call(rules, o.rule));
+      for (const k of o.keys) if (typeof k === "string") add(byKey.call(rules, k), k);
+    if (typeof o.rule === "string" && showsSource(o)) add(byKey.call(rules, o.rule), o.rule);
     for (const k in o) walk(o[k], k);
   };
   walk(drawn, "");
-  return [...out.values()];
+  return { rules: [...out.values()], missing: [...missing] };
 }
+
+/** The rules the drawn screen cites (`drawnCitations`). */
+export const drawnSourceRules = (drawn: readonly unknown[], rules: Pick<RuleIndex, "get" | "has" | "byKey">): RuleView[] =>
+  drawnCitations(drawn, rules).rules;
 
 /** What the page draws on its own (no salmon feed, no "if fished" gear): the page's sheet before the screen's wrap. */
 const pageDrawn = (page: SheetCtx["page"]): readonly unknown[] =>
@@ -103,13 +112,33 @@ function sheetOfRules(rules: readonly RuleView[], page: Pick<RegsPage, "header" 
     blocks: groups.length ? [{ k: "sources", groups }] : [{ k: "para", text: [text(ALL_SOURCES.NONE)] }] };
 }
 
-/** The page's own `src:all`: the rules the page cites drawn alone (`pageDrawn`); the screen re-builds it from what it draws. */
-export const allSourcesSheet = (ctx: SheetCtx): SheetVM => sheetOfRules(drawnSourceRules(pageDrawn(ctx.page), ctx.inp.rules), ctx.page);
-
-/** (T1036) A salmon card's book closure whose rule the page's index does not hold (W46: said by its place and pages, and reported). */
+/** (T1036) A rule a drawn line cites (a key, or `#<index>` for the trout table's) or a salmon card's book closure names, that
+ *  the page's index does not hold (W46: reported; a closure is still said by its place and pages, a line's rule is no row). */
 export class AllSourcesRuleMissing extends Error {
-  constructor(readonly rule: string) { super(`every-source sheet: the book closure's rule ${rule} is not on this page`); this.name = "AllSourcesRuleMissing"; }
+  constructor(readonly rule: string, readonly by: "line" | "closure") {
+    super(`every-source sheet: ${by === "closure" ? "the book closure's rule" : "the drawn rule"} ${rule} is not on this page`);
+    this.name = "AllSourcesRuleMissing";
+  }
 }
+
+/** The drawn rules (each one the index lacks reported) and the book closures' rows: the sheet. */
+function drawnSheet(drawn: readonly unknown[], rules: Pick<RuleIndex, "get" | "has" | "byKey">, page: Pick<RegsPage, "header" | "day">,
+                    book: readonly Pick<SalmonBookVM, "rule" | "water" | "words" | "pages">[]): SheetVM {
+  const cited = drawnCitations(drawn, rules), listed = cited.rules, more: SourceRowVM[] = [];
+  for (const k of cited.missing) reportFailure(new AllSourcesRuleMissing(k, "line"));
+  for (const b of book) {
+    const r = rules.byKey?.(b.rule) ?? null;
+    if (r && !r.missing) { if (!listed.some((x) => x.key === r.key)) listed.push(r); continue; }
+    // (W46) never dropped: the closure as its card line says it, its pages linked as there
+    reportFailure(new AllSourcesRuleMissing(b.rule, "closure"));
+    more.push({ key: null, title: b.water, quote: b.words, role: "",
+                book: b.pages.flatMap((x, i): Run[] => [...(i ? [text(" ")] : []), { t: "book", printed: x.printed, pdf: x.pdf }]) });
+  }
+  return sheetOfRules(listed, page, more);
+}
+
+/** The page's own `src:all`: the rules the page cites drawn alone (`pageDrawn`); the screen re-builds it from what it draws. */
+export const allSourcesSheet = (ctx: SheetCtx): SheetVM => drawnSheet(pageDrawn(ctx.page), ctx.inp.rules, ctx.page, []);
 
 /**
  * (T1036) The page's `sheet` with `src:all` built from what the SCREEN draws: `drawn` (`drawnRegsOf(page, tabs, licence,
@@ -120,19 +149,7 @@ export function withDrawnSources(page: Pick<RegsPage, "sheet" | "header" | "day"
                                  rules: Pick<RuleIndex, "get" | "has" | "byKey">,
                                  book: readonly Pick<SalmonBookVM, "rule" | "water" | "words" | "pages">[] = []): RegsPage["sheet"] {
   let vm: SheetVM | null = null;
-  const build = (): SheetVM => {
-    const listed = drawnSourceRules(drawn, rules), more: SourceRowVM[] = [];
-    for (const b of book) {
-      const r = rules.byKey?.(b.rule) ?? null;
-      if (r && !r.missing) { if (!listed.some((x) => x.key === r.key)) listed.push(r); continue; }
-      // (W46) never dropped: the closure as its card line says it, its pages linked as there
-      reportFailure(new AllSourcesRuleMissing(b.rule));
-      more.push({ key: null, title: b.water, quote: b.words, role: "",
-                  book: b.pages.flatMap((x, i): Run[] => [...(i ? [text(" ")] : []), { t: "book", printed: x.printed, pdf: x.pdf }]) });
-    }
-    return sheetOfRules(listed, page, more);
-  };
-  return (k) => (k === ALL_SOURCES_KEY ? (vm ??= build()) : page.sheet(k));
+  return (k) => (k === ALL_SOURCES_KEY ? (vm ??= drawnSheet(drawn, rules, page, book)) : page.sheet(k));
 }
 
 /**

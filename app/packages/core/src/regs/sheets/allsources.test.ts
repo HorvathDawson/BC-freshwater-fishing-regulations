@@ -4,7 +4,7 @@
  * day only salmon may be fished, nothing of a closed day's gear, a drawn line's own rule, the drawn trout table's rules.
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { ALL_SOURCES_KEY, AllSourcesRuleMissing, allSourcesSheet, drawnRegsOf, drawnSourceRules, withDrawnSources, withInSeason } from "./allsources";
+import { ALL_SOURCES_KEY, AllSourcesRuleMissing, allSourcesSheet, drawnCitations, drawnRegsOf, drawnSourceRules, withDrawnSources, withInSeason } from "./allsources";
 import { ALL_SOURCES } from "../words";
 import { sheetOf } from "../sheets";
 import { parseSheetKey } from "../sheetKey";
@@ -19,6 +19,7 @@ const RULES: Record<string, unknown> = {
   "a::1": rule("a::1"),
   "b::1": rule("b::1", {}, { source: "dfo" }),
   "c::1": rule("c::1", { book: [], cited: { link: "StanleyParkVan.com", url: "https://stanleyparkvan.com/x.html", quote: "q" } }),
+  "m::1": { ...rule("m::1"), missing: true },   // the index's stand-in for a rule it does not hold
   "g::1": rule("g::1"), "h::1": rule("h::1"), "w::1": rule("w::1"), "p::1": rule("p::1"), "t::1": rule("t::1"), "k::1": rule("k::1"),
 };
 const BY_IX = ["t::1"];
@@ -81,6 +82,27 @@ describe("the every-source sheet lists what the drawn screen cites (T1036)", () 
   });
 });
 
+describe("a cited rule the page's index lacks (T1036, W46)", () => {
+  let reports: unknown[] = [], undo = () => {};
+  beforeEach(() => { reports = []; undo = setFailureSink((e) => reports.push(e)); });
+  afterEach(() => undo());
+  const said = () => reports.map((e) => [(e as Error).name, (e as AllSourcesRuleMissing).rule, (e as AllSourcesRuleMissing).by]);
+  it("a source line's key, a line's rule and a trout table's index: each reported once, and no row for any", () => {
+    const drawn = [src(["a::1", "zz::9", "m::1"]), src(["zz::9"], "srcs:always"),
+      { rule: "yy::1", text: [{ t: "book", printed: 9, pdf: 11 }] }, { kind: "table", src: [0, 5] }];
+    expect(drawnCitations(drawn, INDEX)).toEqual({ rules: [RULES["a::1"], RULES["t::1"]], missing: ["zz::9", "m::1", "yy::1", "#5"] });
+    const host = { sheet: () => null, header: { name: "Lost Lagoon" }, day: { month: 7, day: 15 } } as unknown as RegsPage;
+    expect(keysOf(withDrawnSources(host, drawn, INDEX)(ALL_SOURCES_KEY)!)).toEqual(["a::1", "t::1"]);
+    expect(said()).toEqual([["AllSourcesRuleMissing", "zz::9", "line"], ["AllSourcesRuleMissing", "m::1", "line"], ["AllSourcesRuleMissing", "yy::1", "line"],
+      ["AllSourcesRuleMissing", "#5", "line"]]);
+  });
+  it("the page's own sheet reports them too; a page citing only what its index holds reports nothing", () => {
+    allSourcesSheet(ctx(page({ gear: gear(["a::1", "gone::1"]) })));
+    allSourcesSheet(ctx());
+    expect(said()).toEqual([["AllSourcesRuleMissing", "gone::1", "line"]]);
+  });
+});
+
 describe("the salmon card's book closures in the every-source sheet (T1036)", () => {
   let reports: unknown[] = [], undo = () => {};
   beforeEach(() => { reports = []; undo = setFailureSink((e) => reports.push(e)); });
@@ -95,7 +117,7 @@ describe("the salmon card's book closures in the every-source sheet (T1036)", ()
     const g = rowsOf(withDrawnSources(host, [], INDEX, [closure("gone::1")])(ALL_SOURCES_KEY)!);
     expect(g).toEqual([{ where: ALL_SOURCES.BOOK, rows: [{ key: null, title: "Skeena River", quote: "Closed to all fishing (all year)", role: "",
       book: [{ t: "book", printed: 77, pdf: 83 }, { t: "text", s: " " }, { t: "book", printed: 78, pdf: null }] }] }]);
-    expect(reports.map((e) => [(e as Error).name, (e as AllSourcesRuleMissing).rule])).toEqual([["AllSourcesRuleMissing", "gone::1"]]);
+    expect(reports.map((e) => [(e as Error).name, (e as AllSourcesRuleMissing).rule, (e as AllSourcesRuleMissing).by])).toEqual([["AllSourcesRuleMissing", "gone::1", "closure"]]);
   });
   it("any other key is the page's own sheet", () => {
     const own = { key: "hatch", title: "t", sub: null, blocks: [] } as SheetVM;
