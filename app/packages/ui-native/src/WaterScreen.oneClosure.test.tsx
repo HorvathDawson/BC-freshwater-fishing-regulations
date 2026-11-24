@@ -11,7 +11,7 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { inSeasonBanner, type SalmonFacts } from "@app/core";
 import type { ItemId } from "@app/data";
 import { makeReleaseSource, type ReleaseLoader } from "@app/data/release";
-import { openRegsFixture } from "@app/data/release/node";
+import { openRegsFixture, sectionNames } from "@app/data/release/node";
 import type { RegsScreenProps } from "./regs/RegsScreen";
 
 /** (the in-season case) a B.C. notice the screen is handed for the water, drawn first on the page */
@@ -78,6 +78,9 @@ const said = () => ({
   calendars: [!!screen.queryByTestId("salmon-block"), !!screen.queryByTestId("keep-strip")],
 });
 
+/** a part by its ends (T667), never by its number */
+const partOf = (item: string, lo: string, hi: string) => sectionNames(openRegsFixture()).part(item, lo, hi);
+
 const WILKIE = "r4:wilkie_creek@4-30::wilkie_creek.r1";
 const ONE_BLOCK = (line: string, page: number) => `Closed to all fishing all year, salmon included${line}SourceB.C. Synopsis p.${page} ↗Who says so ›`;
 
@@ -98,10 +101,10 @@ describe("<WaterScreen> (T1052) a water closed to all fishing says it once", () 
 
   it("a several-part water: its closed part (a walked tributary of Wahleach Lake) gets the block naming the row it inherits; its open part keeps its Salmon row", async () => {
     const facts = bookFacts("r2:wahleach_jones_lake_s_tributaries@2-3::wahleach_jones_lake_s_tributaries.r1", "Wahleach Lake", 26);
-    await open("gnis:22472", 1, facts);
+    await open("gnis:22472", await partOf("gnis:22472", "lake_inlet:wbk:329177886", "source"), facts);
     expect(said()).toEqual({ banner: ONE_BLOCK("Wahleach Lake’s row covers its tributaries: “No Fishing”.", 26), salmonRow: false, calendars: [true, true] });
     cleanup();
-    await open("gnis:22472", 0, facts);
+    await open("gnis:22472", await partOf("gnis:22472", "mouth", "lake_outlet:wbk:329177886"), facts);
     expect([said().banner, said().salmonRow]).toEqual([null, true]);
   }, 60_000);
 
@@ -119,7 +122,7 @@ describe("<WaterScreen> (T1052) a water closed to all fishing says it once", () 
 
   it("closed to all fishing for part of the year only (the Cowichan, Nov 15–Apr 15, the same rule): today's two statements", async () => {
     // the book place's year: closed Jan 1–Apr 15 and Nov 15–Dec 31 (file days), the rule's own dates
-    await open("gnis:12227", 5, bookFacts("r1:cowichan_river_see_map_below@1-4::cowichan_river.r3", "Cowichan River", 15, [0, 1, 106, -1, 319, 1]));
+    await open("gnis:12227", await partOf("gnis:12227", "cowichan_river__greendale_trestle", "lake_outlet:wbk:329101302"), bookFacts("r1:cowichan_river_see_map_below@1-4::cowichan_river.r3", "Cowichan River", 15, [0, 1, 106, -1, 319, 1]));
     expect([said().banner?.includes("salmon included"), said().salmonRow]).toEqual([false, true]);
   }, 40_000);
 
