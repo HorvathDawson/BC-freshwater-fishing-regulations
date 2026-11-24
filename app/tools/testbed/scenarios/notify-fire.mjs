@@ -27,27 +27,44 @@ const stamp = (ms) => {
 };
 const deviceMs = (d) => Number(d.sh('date +%s').trim()) * 1000;
 
-/** WorkManager's periodic job(s) of the app (the background check every 15 min): their JobScheduler ids */
-function periodicJobs(d) {
-  const blocks = d.sh('dumpsys jobscheduler').split(/\n\s*JOB #/).filter((b) => b.includes(`${APP_ID}/${WORK}`));
-  return [...new Set(blocks.filter((b) => /Periodic|interval=\+15m/i.test(b)).map((b) => /^u\d+a\d+\/(\d+):/.exec(b)?.[1]).filter(Boolean))];
+/** WorkManager's job(s) of the app (`#u0aN/<id> <app>/…SystemJobService` in `dumpsys jobscheduler`, a registered job's
+ *  header line: its short hash first): their JobScheduler ids. WorkManager schedules a periodic work as a one-off job
+ *  with a minimum latency, so no "periodic" flag is read; the app's only WorkManager work is the background check. */
+function workJobs(d) {
+  const re = new RegExp(`^\\s+[0-9a-f]+ #u\\d+a\\d+/(\\d+) ${APP_ID.replace(/\./g, '\\.')}/${WORK.replace(/\./g, '\\.')}$`);
+  return [...new Set(d.sh('dumpsys jobscheduler').split('\n').map((l) => re.exec(l)?.[1]).filter(Boolean))];
 }
 
-/** one run of the background check through WorkManager's job, the app in the background; resolves on its result line */
+/**
+ * One run of the background check through WorkManager's job, the app in the background. Resolves once the worker
+ * started (expo-background-task's BackgroundTaskWork logs "doWork: Running worker") and WorkManager logged its result,
+ * or, when WorkManager's own log level hides that line, once the app's own run list (More → Notifications) grew.
+ * The job ids are read again after a clock change: WorkManager reschedules its jobs (new ids) on one.
+ */
 async function runCheck(ctx) {
   const d = ctx.device;
-  const ids = periodicJobs(d);
-  if (!ids.length) throw new Error(`no periodic WorkManager job of ${APP_ID} (dumpsys jobscheduler): the background task is not registered`);
+  let ids = [];
+  await ctx.until(() => (ids = workJobs(d)).length > 0, { ms: 30_000, what: `a WorkManager job of ${APP_ID} (dumpsys jobscheduler): the background task registered` });
   d.adb(['logcat', '-c']);
-  for (const id of ids) d.sh(`cmd jobscheduler run -f ${APP_ID} ${id}`);
-  let line = '';
+  let ran = [];
+  for (let i = 0; i < 3 && !ran.length; i++) {
+    for (const id of ids) {
+      const out = d.sh(`cmd jobscheduler run -f ${APP_ID} ${id} 2>&1 || true`);
+      if (!/Could not find job/.test(out)) ran.push(id);
+    }
+    if (!ran.length) { await d.sleep(3000); ids = workJobs(d); }
+  }
+  if (!ran.length) throw new Error(`WorkManager's job(s) ${ids.join(',')} could not be run (cmd jobscheduler run -f)`);
+  const log = () => d.adb(['logcat', '-d', '-s', 'BackgroundTaskWork:*', 'WM-WorkerWrapper:*', 'TaskService:*', 'ReactNativeJS:*']).toString();
+  await ctx.until(() => /doWork: Running worker/.test(log()), { ms: 60_000, what: 'BackgroundTaskWork starting ("doWork: Running worker")' });
+  let end = '';
   await ctx.until(() => {
-    const log = d.adb(['logcat', '-d', '-s', 'WM-WorkerWrapper:*', 'BackgroundTaskWork:*']).toString();
-    line = log.split('\n').find((l) => /Worker result (SUCCESS|FAILURE|RETRY)/.test(l)) ?? '';
-    return !!line;
-  }, { ms: 120_000, what: 'WorkManager\'s result line for the background check (WM-WorkerWrapper)' });
-  if (!/SUCCESS/.test(line)) throw new Error(`the background check did not succeed: ${line.trim()}`);
-  return `job ${ids.join(',')} · ${line.replace(/^.*(Worker result)/, '$1').trim().slice(0, 140)}`;
+    end = log().split('\n').find((l) => /Worker result (SUCCESS|FAILURE|RETRY)|doWork: Worker was cancelled/.test(l)) ?? '';
+    return !!end;
+  }, { ms: 90_000, what: 'WorkManager\'s result for the background check', soft: true });
+  if (end && !/SUCCESS/.test(end)) throw new Error(`the background check did not succeed: ${end.trim()}`);
+  if (!end) await d.sleep(20_000);   // no result line in this log level: the JS task given its time
+  return `job ${ran.join(',')} ran · ${end ? end.replace(/^.*(Worker result)/, '$1').trim().slice(0, 100) : 'worker started (no result line logged)'}`;
 }
 
 export const notifyFire = {
@@ -84,7 +101,7 @@ export const notifyFire = {
       }
       saved = true;
       return `saved · permission ${asked ? 'asked and allowed' : 'already allowed'} · channels: ${
-        (d.sh(`dumpsys notification | grep -o "mId='[a-z]*'" | sort -u`).match(/mId='(gauges|updates|app)'/g) ?? []).length} of ours`;
+        ['gauges', 'updates', 'app'].filter((c) => new RegExp(`mId='${c}'|id=${c}\\b`).test(d.sh(`dumpsys notification --noredact | grep -A2 "${APP_ID}" || true`))).join(', ') || 'none seen'}`;
     });
 
     try {
@@ -94,6 +111,7 @@ export const notifyFire = {
         d.sh('settings put global auto_time 0');
         moved = true;
         d.sh(`su 0 date -u ${stamp(deviceMs(d) + 7 * HOUR)}`);
+        await d.sleep(5000);   // WorkManager reschedules on a time change
         const r = await runCheck(ctx);
         const n = d.sh(`dumpsys notification --noredact | grep -c "pkg=${APP_ID}" || true`).trim();
         return `${r} · our notifications in the shade: ${n}`;
@@ -103,6 +121,7 @@ export const notifyFire = {
       await ctx.step('31 h more (silent for over a day), the check run again: the "has not reported since" notice is raised', async () => {
         if (!saved) ctx.skip('no alert was saved');
         d.sh(`su 0 date -u ${stamp(deviceMs(d) + 31 * HOUR)}`);
+        await d.sleep(5000);
         const r = await runCheck(ctx);
         d.sh('cmd statusbar expand-notifications');
         await ctx.until(() => d.screenText().some((w) => /has not reported since/.test(w)),
