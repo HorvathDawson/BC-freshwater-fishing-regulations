@@ -10,7 +10,13 @@
      "synopsis": {id, url, bytes, sha256} | null,   (T215: OUR copy of the synopsis PDF, raw, beside the data files)
                   (T354: + `append`, the page index the app's cited-page-first append needs; synopsis.py)
      "sources": {"synopsis": {title, date}, "dfo"|"fwa"|"basemap"|"hydat": {date}},   (only when the build passes it)
-     "bundle":  {"entries_digest": "<16 hex>", "reach_digest": "<16 hex>"}}           (only when the build passes it)
+     "bundle":  {"entries_digest": "<16 hex>", "reach_digest": "<16 hex>"},          (only when the build passes it)
+     "water_digests": {url, bytes, gz, sha256, format, waters},   (T1030: the release's per-water digest list)
+     "changed_waters": <int>}       (T1030: waters whose rules differ from the release it replaces; ABSENT: unknown)
+
+`water_digests` / `changed_waters` (T1030, `water_digests.py`) are written by the build after the id is minted and are
+outside it (`rebase.said_of` reads neither): the count depends on the predecessor, so the same content cut after two
+different releases is one id. The app reads `changed_waters` (the inbox's "N waters changed"), never the list.
 
 `bundle` (T133) names the corpus and the reach run the release was cut from — its bundle's `meta` digests — so the
 curation-review tool can tell that a release IS the bundle beside it (and so carries each entry's digest, the bundle's

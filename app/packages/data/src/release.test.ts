@@ -80,6 +80,15 @@ describe("manifest", () => {
   it("refuses a format it does not know", () => {
     expect(() => parseManifest({ format: "app-manifest/1" })).toThrow(/format/);
   });
+  it("(T1030) changed_waters is additive: absent or a count is read, anything else is named at the boundary", () => {
+    expect(M().changed_waters).toBeUndefined();
+    expect(M({ changed_waters: 0 }).changed_waters).toBe(0);
+    expect(M({ changed_waters: 12 }).changed_waters).toBe(12);
+    for (const bad of [-1, 1.5, "12", null])
+      expect(() => M({ changed_waters: bad as unknown as number })).toThrow(`manifest: changed_waters ${JSON.stringify(bad)} is not a count`);
+    // the list the next build counts against rides beside it; this app reads nothing of it
+    expect(M({ water_digests: { url: "r-2/water-digests.json.gz" } } as unknown as Partial<Manifest>).data_release).toBe("r-2");
+  });
   it("a data-only release lists only the changed files and no tiles", () => {
     expect(diff(HELD, M())).toEqual({ files: ["core"], tiles: false, basemap: false, assets: false, synopsis: false });
   });

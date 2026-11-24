@@ -249,9 +249,10 @@ def _all(a) -> int:
         tiles = ["--tiles", str(a.tiles), "--tiles-release-root", str(rel_root)] if a.tiles else []
         # (T936) the release's build reports (the salmon-open, gear-hidden list) beside the release command's checks
         reports = (dest / "release-checks") if dest else GENERATED.bundle.parent / "release" / "checks"
+        prev = previous_args(rel_root)
         _step(["release", "--bundle", str(bundle), "--store", str(d / "regs.sqlite"), "--status-index",
                str(d / "status_index.bin"), "--export-dir", str(d), "--out-root", str(d / "release"),
-               "--reports", str(reports), *tiles])
+               "--reports", str(reports), *tiles, *prev])
         # (T202) THE BASEMAP THE RELEASE NAMES LIVES BESIDE THE RELEASES (data/release/basemap/<id>/, T75), not in this
         # staging folder, which holds only the new r-* folder. The vintage check resolves the manifest's basemap url
         # under the staging release, so it is shown the released basemaps there; only r-* folders are promoted below.
@@ -309,6 +310,16 @@ def _all(a) -> int:
         return 0
     finally:
         shutil.rmtree(d, ignore_errors=True)
+
+
+def previous_args(rel_root: Path) -> list:
+    """(T1030) `--previous <the release LATEST names>` for the release step: the release this one replaces (what
+    `pipeline release` diffs against too), whose per-water list the manifest's changed_waters counts against. No
+    pointer: none, and the release step says the count is unknown. A pointer naming a pruned folder is passed as it is:
+    the release step says that release is not on disk."""
+    from pipeline.deliver.release.manifest import LATEST
+    ptr = Path(rel_root) / LATEST
+    return ["--previous", str(Path(rel_root) / ptr.read_text(encoding="utf-8").strip())] if ptr.is_file() else []
 
 
 def main(argv=None) -> int:

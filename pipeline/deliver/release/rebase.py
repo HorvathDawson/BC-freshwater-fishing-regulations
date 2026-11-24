@@ -62,6 +62,15 @@ def rebase(src: Path, basemap: dict, out_root: Path | None = None) -> Path:
     new["files"] = {k: {**v, "url": move(v["url"])} for k, v in m["files"].items()}
     if m.get("synopsis") is not None:
         new["synopsis"] = {**m["synopsis"], "url": move(m["synopsis"]["url"])}
+    # (T1030) the per-water digest list is the files' (the same files: the same list), and the count is against the
+    # release this one replaces — `src`, whose regulations are these: none changed. No list: no count.
+    from pipeline.deliver.release.water_digests import COUNT_KEY, MANIFEST_KEY
+    digests = m.get(MANIFEST_KEY)
+    if digests is not None:
+        new[MANIFEST_KEY] = {**digests, "url": move(digests["url"])}
+        new[COUNT_KEY] = 0
+    else:
+        new.pop(COUNT_KEY, None)
     out_root = Path(out_root or src.parent)
     final = out_root / rid
     if final.exists():
@@ -70,7 +79,7 @@ def rebase(src: Path, basemap: dict, out_root: Path | None = None) -> Path:
     shutil.rmtree(stage, ignore_errors=True)
     stage.mkdir(parents=True)
     try:
-        for e in [*m["files"].values(), *([m["synopsis"]] if m.get("synopsis") else [])]:
+        for e in [*m["files"].values(), *([m["synopsis"]] if m.get("synopsis") else []), *([digests] if digests else [])]:
             shutil.copy2(src / e["url"].split("/", 1)[1], stage / e["url"].split("/", 1)[1])
         (stage / "manifest.json").write_text(json.dumps(new, indent=1, sort_keys=True) + "\n")
         stage.rename(final)
