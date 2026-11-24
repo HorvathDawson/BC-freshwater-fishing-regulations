@@ -1,6 +1,6 @@
 # T1049 — A start link's scroll lands short: it jumps to the first measured section top and never re-checks
 
-Status: DONE — ae65ef767, a2478c6dc, d2239c54d, b3de2bbc1 (below), 09f6346e0, eb8e2092a, 5f8a37cbc (cold start on a slow phone, 0.9.1: the follow waits on wall time for the page to settle and for the salmon card still coming, capped 30 s and said; device: slow cold `tab=gear` 6/6, `tab=licence` 6/6 landed, was 2/12 and 0/11; a drag stops it; warm re-apply lands; web `tab=gear` 1156, `tab=licence` 2075 px). Earlier: a reader's drag, tab press or own scroll ends the follow; a tab never drawn said after ~5 s; a start off Regulations dropped and said; web check 2026-11-23: cold `tab=gear` Gear 1156 px, `tab=licence` Licence 2020 (was Methods 1818), `tab=methods` Methods 1676, `view=map&tab=gear` the Map with the drop said.
+Status: PARTIAL — ae65ef767, a2478c6dc, d2239c54d, b3de2bbc1 (below), 09f6346e0, eb8e2092a, 5f8a37cbc, 53e9106e2 (cold start on a slow phone, 0.9.1: the follow waits on wall time for the page to settle and for the salmon card still coming, bounded (30 s with nothing coming: a defect report; 180 s with a part still coming: dropped as the line's), spent once for its page; device: slow cold `tab=gear` 6/6, `tab=licence` 6/6 landed, was 2/12 and 0/11; a drag stops it; warm re-apply lands; web `tab=gear` 1156, `tab=licence` 2075 px). Earlier: a reader's drag, tab press or own scroll ends the follow; a tab never drawn said after ~5 s; a start off Regulations dropped and said; web check 2026-11-23: cold `tab=gear` Gear 1156 px, `tab=licence` Licence 2020 (was Methods 1818), `tab=methods` Methods 1676, `view=map&tab=gear` the Map with the drop said. left (Claude): review and merge of #122, then the device check on a release build.
 
 ## 0.9.0 device pass (Android)
 - A cold start from `https://staging.canifishthis.ca/?regs=gnis:3062&tab=licence` (once the phone opens links with a
@@ -73,4 +73,31 @@ not exercise the wait; the same component and condition serve it.
 Tests: core `startFollow.test.ts` (the device pass's card 6 s on, steps over 22 s with a 3 s pause, a clamped target, a
 layout moving the scroll, a page moving for ever, ticks back to back), `RegsScreen.test.tsx` (3 fail on main first),
 `WaterScreen.startComing.test.tsx`; 14 mutations all killed.
-Not verified: a real phone; iOS; a start whose card never arrives (the 30 s cap and its report, by test only).
+Not verified: a real phone; iOS; a start whose card never arrives (the bounds and their reports, by test only).
+
+## Review of #122 (0.9.1)
+Fixed (53e9106e2), each with a test that fails on the code before it (6), 28 mutations all killed:
+1. A slow line is not a defect. With a part still `coming` the 30 s bound does not end the follow; it goes on to
+   `START_COMING_MAX_MS` (180 s, above the feed's own give-up on a bad line, ~152 s: 4 tries of 20 s to a first byte + a
+   small file at 4 kB/s, the backoffs between; pinned against the net policy by `data/src/net/startFollow.policy.test.ts`),
+   then the start is dropped where the page is and said as the line's (`environmentError`: shown by the card's own pending
+   face, never a crash report). The 30 s bound with nothing coming counts from the section drawn or the last part that
+   came, whichever is later, and stays a defect report. Both sentences are composed in core (`startEndSentence`), pinned whole.
+2. A start is spent once, for its page: `onStarted(start)` also when the follow is torn down unfinished (unmounted) or the
+   page shows another water; the Shell clears only the start it was handed (`startSpent`), never a newer one.
+3. (a) In-season notices count as coming: `useInSeason` says `pending` until the feed's first answer, and
+   `useInSeasonBanners` until this page's lines are read for a change on it (the page's own hooks; WaterScreen passes
+   `coming` = salmon card or notices still on their way). (b) A sheet the reader opens ends the follow. (c) The follow runs
+   on its own clock: each gap between ticks counts at most 1 s and none while the app is away (AppState), so a return
+   from the background is not a false cap.
+4. A page end is kept for the clamp rule only once real (`startEndOf`: content taller than the view, the start's section
+   drawn): an early layout's end of 0 never makes the reader's Home look like the start's. The wiring is pinned by a test.
+5. This ticket said DONE before review: PARTIAL until #122 is merged and device-checked.
+
+STILL NOT COVERED: growth that lands more than 300 ms after a still page with nothing said to be coming: fonts or
+images that resize late, or any part the page does not count as `coming`. Such a start lands on the last top it held.
+
+Device after the review fixes (build 53e9106e2, emulator-5556, the same slow line): `tab=gear` 3/3 landed (the card was in
+at the first layout in all three: no late card on this batch), `tab=licence` 3/3 (the card late in all three, 0.4, 0.5
+and 13.2 s after the page: two jumps each, Licence at the scroll's top); a drag during the follow: "taken" 67 ms later,
+no jump after; warm re-apply of `tab=gear`: landed.
