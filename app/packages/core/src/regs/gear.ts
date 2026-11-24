@@ -22,7 +22,7 @@ import { ruleSub } from "./level";
 import { cap, clean } from "./names";
 import type { SheetKey } from "./sheetKey";
 import { BOOK_DAYS, bookIndex, displayOnBookDay, fmtDay, isTodayOf } from "./strip";
-import { GEAR, GEAR_LINES, RANK_LEVEL, WD3, WORDS } from "./words";
+import { GEAR, GEAR_LINES, HOOKS_ALLOWED_TERMS, RANK_LEVEL, WD3, WORDS } from "./words";
 
 /** level word ("B.C.", "This water’s") → the chip word page v36 drew for it ("Province", "This water") */
 export type ChipWords = ReadonlyMap<string, string>;
@@ -188,6 +188,30 @@ export function closedFoot(inp: RegsInputs, ctx: Pick<GearCtx, "day" | "banner">
 
 type Block = { k: "mode" | GearLineVM["k"]; label: string; values: string[]; terms: string[][]; cites: readonly number[] };
 
+/** The frame's hook answers (`GearAnswer.hook`) that leave barbed hooks allowed: no barb ban (p.8: "the use of barbed hooks
+ *  in lakes is permitted, unless noted in the Regional Water-Specific Tables"). */
+const BARBED_OK: ReadonlySet<GearAnswer["hook"]> = new Set(["trebles_and_barbs", "single", "any"]);
+/** … and treble hooks: no hook-point limit (p.80: "use of a treble hook is permitted unless 'single hook' is specified"). */
+const TREBLE_OK: ReadonlySet<GearAnswer["hook"]> = new Set(["trebles_and_barbs", "any_barbless"]);
+
+/**
+ * (T1051, owner 2026-11-24 "Say it everywhere") what the day's hook answer leaves allowed, per water, or null: treble and
+ * barbed hooks on Dick Lake (`trebles_and_barbs`); treble hooks alone where barbless is required and the points are not
+ * limited (`any_barbless`: Quesnel Lake); barbed hooks alone where a single hook is required (`single`). The frame decided
+ * the hook (`gear.resolve`); a fly mode (`fly`) is the frame's too, and a fly is "a single-pointed hook" (p.80 "artificial
+ * fly"), so no fly-only water says treble hooks. A water whose answer is a single barbless hook (every stream, unless its
+ * row lifts that) says nothing more.
+ */
+export function hooksAllowed(g: GearAnswer): { says: string; terms: readonly string[] } | null {
+  const barbed = BARBED_OK.has(g.hook), treble = TREBLE_OK.has(g.hook) && !g.counts.points_per_hook && g.fly === null;
+  const H = GEAR.HOOKS_ALLOWED, T = HOOKS_ALLOWED_TERMS;
+  // one ⓘ (the owner's "an info button"): the p.80 single-hook words; the section's source line carries p.8
+  if (barbed && treble) return { says: H.both, terms: [T.treble] };
+  if (treble) return { says: H.treble, terms: [T.treble] };
+  if (barbed) return { says: H.barbed, terms: [T.barbed] };
+  return null;
+}
+
 /**
  * prototype buildGear's summary half: the parts the day's sentence names (a part the sentence leaves out is not drawn), a
  * fly-only mode first, then Lines · Hooks (attach + hook parts) · Weight on the line, each value without its leading
@@ -226,6 +250,18 @@ export function gearLines(g: GearAnswer, ctx: GearCtx): { mode: GearVM["mode"]; 
       blocks.splice(after < 0 ? blocks.length : after, 0, hook);
     }
     hook.values.push(words); hook.terms.push([]); hook.cites = [...hook.cites, ...gap.cites];
+  }
+  // (T1051, owner 2026-11-24 "Say it everywhere") the Hooks row's second line: what the frame's hook answer leaves allowed
+  // ("Treble and barbed hooks allowed" on Dick Lake, where the sentence names no hook: ROUND13 G), with its ⓘ
+  const allowed = hooksAllowed(g);
+  if (allowed) {
+    let hook = blocks.find((b) => b.k === "hook");
+    if (!hook) {
+      hook = { k: "hook", label: GEAR_LINES.find(([k]) => k === "hook")![1], values: [], terms: [], cites: [] };
+      const after = blocks.findIndex((b) => b.k === "weight");
+      blocks.splice(after < 0 ? blocks.length : after, 0, hook);
+    }
+    hook.values.push(allowed.says); hook.terms.push(tip(allowed.terms));
   }
   const drawn = blocks.map((b) => b.k);
   const rowOf = (says: string): Block["k"] => mode ? "mode" : /\bfly\b|\bflies\b|hook|lure/i.test(says) ? "hook"

@@ -329,7 +329,13 @@ export const GEAR = Object.freeze({
   RULE_SUB: " rule · ", SUB_SEP: " · ",
   /** prototype learnChipWords: the chip word that is never learned (a match key) */
   CHIP_NOT_LEARNED: "Region",
+  /** (T1051, owner 2026-11-24 "Say it everywhere") the Hooks row's second line: what the day's hook answer leaves allowed */
+  HOOKS_ALLOWED: Object.freeze({ both: "Treble and barbed hooks allowed", treble: "Treble hooks allowed", barbed: "Barbed hooks allowed" }),
 });
+/** (T1051) the ⓘ of the Hooks row's second line, glossary ids (keys, never said): p.80 "single hook" ("use of a treble
+ *  hook is permitted unless 'single hook' is specified"); the hook term quoting p.8 ("the use of barbed hooks in lakes is
+ *  permitted, unless noted in the Regional Water-Specific Tables") */
+export const HOOKS_ALLOWED_TERMS = Object.freeze({ treble: "def_single_hook", barbed: "single_barbless_hook" });
 
 // ── T31 the Bait item (page v36 ELEM, gearParts bait WHY; prototype yesNo, buildGear bait cell). Verbatim. ──
 /** page v36 ELEM: the gear frame's element and method codes as the page names them. */
