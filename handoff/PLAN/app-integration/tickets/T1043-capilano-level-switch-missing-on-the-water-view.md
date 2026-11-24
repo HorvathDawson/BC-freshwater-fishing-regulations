@@ -1,6 +1,6 @@
 # T1043 — Capilano at Canyon still shows no Level in the app (0.8.6), though the Water Office page has it
 
-Status: DONE 88648625f, eb4591227, f7cdf00bb, 228006397, 66978f86d (lane L28, branch `fix/T1043-capilano-level`, PR #77; app-only, ships in the next app build).
+Status: DONE 88648625f, eb4591227, f7cdf00bb, 228006397, 66978f86d, 19a8485bb, 2602d207b, bdcd0f27d (lane L28, branch `fix/T1043-capilano-level`, PR #77; app-only, ships in the next app build).
 
 Source: owner 2026-11-23 (verbatim): "i still dont know why 0.8.6 capilano at canyon gauge doesnt have level like website
 does here (https://wateroffice.ec.gc.ca/report/real_time_e.html?stn=08GA031) add as ticket".
@@ -100,6 +100,27 @@ again; other-datum: no switch).
 - Shots (local web over production data, 390 px): `T1043-shots/after2-web-capilano-level-top.png` ("(ranked on flow)"
   under the heading), `after2-web-capilano-level-72h.png` (the 72 h level on its year's scale), `after2-web-capilano-flow-banded.png`
   (Flow, a banded chart: unchanged against `after-web-capilano-flow.png`).
+
+## Independent review of #77 (2026-11-23) — fixed
+1. **Gun Creek (08ME030): the note and the switch disagreed** (a level band only, a live flow 7.8 m³/s: "Level only: no
+   flow is measured here." over "Flow Level*"). Decision: the water's opening sees each speaker's live `reports`, joined
+   as the card joins them (`useSpeakerMeasures` -> `cardParameters`), because a live unranked flow is still flow (T830
+   offered it; "Flow leads"). Gun Creek now opens on Flow, unranked ("Too new to say if this is high or low."), the
+   estimate box says "(ranked on water level)", and no level-only note (19a8485bb). The lead note "No gauge here reports
+   flow today, so the gauge shown is chosen on water level." was then false over that flow: not drawn when the lead reports
+   a live flow (bdcd0f27d). Tests: Gun Creek's real shape through `WaterConditions`, with and without the feed index.
+2. **Year scale race** (2602d207b): the year answer carries its key, so a switch never draws station B (or Level) on
+   A's (or Flow's) year; the chart is held (pane not revealed) until this key's year has settled or failed. Test: a switch
+   between two bandless stations records every drawn frame: none at the reading scale, none on the other's year.
+3. **08HD006's off-datum live level** (19a8485bb): `stationReading` drops a figure the publisher left out of `reports`, so
+   2.06 m is never today's reading (no stage under Flow; under Level the card says it reports flow only today). Test:
+   08HD006's real shape. The chart under Level still draws the off-datum line against the band: **T1047** (owner pick).
+4. **Robust year range** (2602d207b): `yearScale` is the 5th to 95th percentile of the year's values (Capilano's level
+   year 0.52-2.96 m no longer sets the axis); the 72 h values and today's reading stay inside it.
+Mutations, each fails one test: take the year whatever its key; drop the hold; raw min/max; the opening without `reports`;
+the lead note without its check; keep an unstood figure.
+Shots: `T1043-shots/review-capilano-level-72h-p5-p95.png`, `review-gun-creek-opening.png`,
+`review-08HD006-salmon-sayward-level.png` (local web over production data, 390 px).
 
 ## Not verified
 - Not run on an Android or iOS build (web only; the code path is shared `ui` + `ui-native`).
