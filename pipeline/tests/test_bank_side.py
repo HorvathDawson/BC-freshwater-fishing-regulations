@@ -118,3 +118,43 @@ def test_the_payload_gets_each_bank_places_side_on_the_sections_it_stands_beside
     payload["chains"][1]["u"] = ["6:bank", "6:other"]
     with pytest.raises(ValueError, match="two one-bank places"):
         stamp_payload(payload, [(7, 1)], tmp_path)
+
+
+def _book_db(rules):
+    import sqlite3
+    db = sqlite3.connect(":memory:")
+    db.execute("CREATE TABLE rule (entry_id TEXT, rule_id TEXT, conditions TEXT, when_ TEXT, take INTEGER, parts TEXT)")
+    db.execute("CREATE TABLE ruleset (set_id INTEGER, entry_id TEXT, rule_id TEXT)")
+    db.execute("CREATE TABLE section_ruleset (sid INTEGER, set_id INTEGER)")
+    for i, (rid, side, when, take, what, sids) in enumerate(rules):
+        db.execute("INSERT INTO rule VALUES ('e', ?, ?, ?, ?, ?)",
+                   (rid, json.dumps({"side": side} if side else {}), when, take, json.dumps({"what": what})))
+        db.execute("INSERT INTO ruleset VALUES (?, 'e', ?)", (i, rid))
+        for s in sids:
+            db.execute("INSERT INTO section_ruleset VALUES (?, ?)", (s, i))
+    return db
+
+
+def test_the_rule_books_one_half_closures_are_drawn_and_nothing_else(tmp_path):
+    """(T1029 Q6, owner 2026-11-24 "Yes, stripe it too") an undated "No fishing" worded for one half: its side per
+    section in `bs`; a dated one, or any other kind of rule, draws nothing and says why."""
+    from pipeline.deliver.bank_side import BOOK_DATED, BOOK_NOT_CLOSURE, stamp_book_sides
+    (tmp_path / "stream.geojsonl").write_text(_row(7, KITIMAT) + _row(8, KITIMAT[::-1]) + _row(9, KITIMAT))
+    (tmp_path / "lake.geojsonl").write_text("")
+    payload = {}
+    why = stamp_book_sides(payload, _book_db([
+        ("r1", "west", None, 0, "No fishing", [7, 8]),
+        ("r2", "west", '{"seasons":[1]}', 0, "No fishing", [9]),
+        ("r3", "west", None, 2, "Trout 2 a day", [9]),
+        ("r4", None, None, 0, "No fishing", [9]),
+    ]), tmp_path)
+    assert payload["bs"] == {"7": -1, "8": 1}
+    assert why == {"e::r2": {BOOK_DATED: [9]}, "e::r3": {BOOK_NOT_CLOSURE: [9]}}
+    # nothing to draw: no key at all (an older-shaped payload)
+    empty = {}
+    stamp_book_sides(empty, _book_db([("r2", "west", '{"x":1}', 0, "No fishing", [9])]), tmp_path)
+    assert "bs" not in empty
+    # two halves on one section: refused
+    with pytest.raises(ValueError, match="both halves"):
+        stamp_book_sides({}, _book_db([("r1", "west", None, 0, "No fishing", [7]),
+                                       ("r5", "east", None, 0, "No fishing", [7])]), tmp_path)

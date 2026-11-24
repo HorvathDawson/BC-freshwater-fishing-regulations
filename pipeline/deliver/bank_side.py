@@ -133,6 +133,58 @@ def stamp_payload(payload: dict, sections, layers: Path) -> Dict[str, Dict[str, 
     return out
 
 
+#: (T1029 Q6) why a rule book `side` rule draws no cue on the Standard map (the card still says it)
+BOOK_DATED = "dated_side_rule"            # the map has no day for a rule book side rule: its dates cannot be drawn
+BOOK_NOT_CLOSURE = "side_rule_not_a_closure"  # the cue says "this half is closed"; any other rule would be a new look
+
+
+def stamp_book_sides(payload: dict, db, layers: Path) -> Dict[str, Dict[str, list]]:
+    """(T1029 Q6, owner 2026-11-24: "Yes, stripe it too") THE RULE BOOK'S OWN `side` RULES ("No Fishing on the west half
+    of river …", `kitimat_river.r1`), drawn as look B on the Standard / Trout map: per section a closure worded for one
+    half binds, which side of the drawn line that half is — `payload["bs"] = {"<section>": +1 | -1}` (additive: the salmon
+    payload is the release's one JSON file the Map tab reads in every colouring; an app that does not read `bs` draws as
+    before). Only an UNDATED CLOSURE is drawn (no `when`, nothing kept): a dated one, or any other kind, is reported with a
+    typed reason (`BOOK_DATED`, `BOOK_NOT_CLOSURE`) and draws nothing; a section whose side cannot be read too (`Why`).
+    Two side rules on one section naming different halves stop the build. Returns {rule: {reason: [sections]}}."""
+    import json as _json
+    rules = db.execute("SELECT entry_id, rule_id, conditions, when_, take, parts FROM rule "
+                       "WHERE conditions LIKE ? ORDER BY entry_id, rule_id", ('%"side"%',)).fetchall()
+    rows = []
+    for entry, rule, cond, when, take, parts in rules:
+        sets = [x for (x,) in db.execute("SELECT set_id FROM ruleset WHERE entry_id = ? AND rule_id = ?", (entry, rule))]
+        if not sets:
+            continue
+        q = ",".join("?" * len(sets))
+        for (sid,) in db.execute(f"SELECT sid FROM section_ruleset WHERE set_id IN ({q}) ORDER BY sid", sets):
+            rows.append((sid, entry, rule, cond, when, take, parts))
+    out: Dict[str, Dict[str, list]] = {}
+    want: Dict[str, Dict[int, str]] = {}
+    for sid, entry, rule, cond, when, take, parts in rows:
+        word = (_json.loads(cond or "{}") or {}).get("side")
+        if not word:
+            continue
+        key = f"{entry}::{rule}"
+        what = ((_json.loads(parts or "{}") or {}).get("what") or "").lower()
+        if when:
+            out.setdefault(key, {}).setdefault(BOOK_DATED, []).append(sid)
+        elif take != 0 or not what.startswith("no fishing"):
+            out.setdefault(key, {}).setdefault(BOOK_NOT_CLOSURE, []).append(sid)
+        else:
+            want.setdefault(key, {})[sid] = word
+    signs: Dict[int, int] = {}
+    for key, secs in sorted(want.items()):
+        ok, bad = report(sides_from_layer(Path(layers) / "stream.geojsonl", secs, Path(layers) / "lake.geojsonl"))
+        for reason, ss in bad.items():
+            out.setdefault(key, {}).setdefault(reason, []).extend(ss)
+        for s, v in ok.items():
+            if signs.get(s, v) != v:
+                raise ValueError(f"B.C. Synopsis: section {s} has side rules naming both halves ({key} and another)")
+            signs[s] = v
+    if signs:
+        payload["bs"] = {str(s): v for s, v in sorted(signs.items())}
+    return out
+
+
 if __name__ == "__main__":
     import argparse
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])

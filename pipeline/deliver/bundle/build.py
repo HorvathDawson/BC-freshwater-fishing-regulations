@@ -737,6 +737,10 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
             from pipeline.deliver.bank_side import stamp_payload as _bank_sides
             for _lid, _why in _bank_sides(_payload, _salmon_secs, (Path(tiles) if tiles else GENERATED.tiles) / "layers").items():
                 print(f"     salmon: {_lid}: no bank side on {_why} — no cue drawn there", file=sys.stderr)
+            # (T1029 Q6) the rule book's own one-half closures, drawn the same way on the Standard / Trout map
+            from pipeline.deliver.bank_side import stamp_book_sides as _book_sides
+            for _rule, _why in _book_sides(_payload, db, (Path(tiles) if tiles else GENERATED.tiles) / "layers").items():
+                print(f"     B.C. Synopsis: {_rule}: no side cue on {_why}", file=sys.stderr)
             _salmon.write_bundle(db, _payload, _salmon_secs)
             cov.filled("salmon_section", len(_salmon_secs))
             # (T228) each DFO place's own words, for a salmon cut no split names; its chains' places, narrowest first
