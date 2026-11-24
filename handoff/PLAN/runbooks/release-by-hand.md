@@ -392,7 +392,12 @@ that time").
 - **The production-access record** (T1046), on an app release: add a row to
   `handoff/PLAN/play-production-access/releases.md` (version, date, builds, tracks, what changed for testers, the
   feedback rows it answered), and in `feedback-log.md` set "Fixed in" to this version and status to "fixed" on every
-  row the release closes (a row reading "0.9.0 (pending)" becomes "0.9.0"). Commit both by PR with the merge back.
+  row the release closes (a row reading "0.9.0 (pending)" becomes "0.9.0"). Then bring `questionnaire-draft.md` up to
+  date for the release (owner 2026-11-24: "keep the google release questions for closed with how releases do feedback
+  and everything up to date"): Q3 (feedback summary and how it was collected) gets the new rows; Q7 (changes made from
+  the closed test) gets this release's fixes, each citing its feedback row; Q8 (readiness) gets fresh numbers (crash and
+  ANR rates from Android vitals if the owner gives them, tests, the device pass). Commit all three by PR with the merge
+  back.
 
 ## A fix during the release
 
@@ -464,3 +469,4 @@ Staging has no rollback. The next release replaces it.
       phones (you); watch a day
 - [ ] Step 8: merge the release branch back by PR; `git switch main && git pull --ff-only`
 - [ ] Step 8: `play-production-access/releases.md` row added; "Fixed in" set on the feedback rows it closes
+- [ ] Step 8: `play-production-access/questionnaire-draft.md` Q3, Q7, Q8 updated for this release

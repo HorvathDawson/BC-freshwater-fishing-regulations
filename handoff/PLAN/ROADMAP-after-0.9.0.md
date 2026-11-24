@@ -9,6 +9,9 @@ Sonnet for UI, docs, mechanical work and most reviews.
 - At most 3–4 lanes at once, one ticket each, reports of 15 lines or fewer.
 - One review round. Lanes run `scripts/before_pr.sh` and check their own diff first (W46, mutation-proved tests).
 - Each chat keeps its own restart page and ledger rows current, so the next chat starts cheap.
+- Every chat keeps the Play production-access record current (owner 2026-11-24): each piece of feedback becomes a
+  feedback-log row and a ticket; each release adds a releases.md row, sets "Fixed in", and updates questionnaire Q3, Q7
+  and Q8.
 - Questions are batched with pictures and go out by push notification. CONFIRM_PROD is only ever typed by the owner.
 
 Owner's order: "repo move first maybe? the 0.9.1 then feature then launch".
