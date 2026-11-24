@@ -30,7 +30,11 @@ typed by hand that the commits need not compute. The types and the cutover are `
 The cut's one commit on the branch sets `expo.version` in app.json + package.json, opens the anglers' entry in
 `app/packages/core/src/changelog.ts` (EMPTY: write its 3–5 plain bullets on the branch and commit them; the app build
 and CI refuse it until then) and writes the developer `CHANGELOG.md` (the commits, by type). Preflight's `version`
-check holds app.json to the computed version (the rehearsal prints it with its commits).
+check holds app.json to the computed version (the rehearsal prints it with its commits). (T1048) It also adds the new
+version's row to `pipeline/deliver/release/app_reads.json` (what the app on main reads, the same formats as the
+newest recorded version); `--cut --dry-run` prints that row. When what the app reads moved since that version, the
+cut stops naming each file (old -> new) and makes nothing; if the move is meant (the owner's call):
+`--cut <x.y.z> --reads-moved "<why>"`.
 
 **Nothing bumps the app** (docs, CI, tests, data and pipeline only): `--cut` says so. A data release then ships from
 the day's data branch: `--cut --data-only` makes `release/data-<YYYY-MM-DD>` from origin/main (refused when an app

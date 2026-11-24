@@ -8,7 +8,9 @@ python -m pipeline release --staging --dry-run --rehearse-follows   # + (T680) r
     python -m pipeline release --cut                          # (T998) at scope lock: the version the commits compute,
                                                               # confirmed, then release/<x.y.z> from origin/main
     python -m pipeline release --cut <x.y.z>                  # the same, the version typed (refused if it disagrees)
-    python -m pipeline release --cut --dry-run                # (T998) the computed version and its commits; nothing made
+    python -m pipeline release --cut --dry-run                # (T998) the computed version and its commits, (T1048) the
+                                                              # app_reads row its version commit adds; nothing made
+    python -m pipeline release --cut <x.y.z> --reads-moved WHY  # (T1048) the app's formats moved since the last row, meant
     python -m pipeline release --cut --data-only              # (T998) release/data-<YYYY-MM-DD>: data, no app change
     python -m pipeline release --prod <r-id>                  # HUMAN-ONLY: re-upload THAT checked release to production
 
@@ -515,15 +517,36 @@ def _show(rev: str, path: str) -> str | None:
     return _git("show", f"{rev}:{path}").decode()
 
 
-def version_commit(version: str, d: "RV.Decision", base: str | None = None, day: str | None = None) -> str:
+def app_reads_row(version: str, base: str | None = None, reads_moved: str | None = None) -> tuple[str, str, dict]:
+    """(T1048) the version commit's app_reads.json on `base` (origin/main): (the table's text with `version`'s row,
+    what was decided, the row). The row is what the app on `base` reads, which must be the newest recorded version's
+    formats unless `reads_moved` says why not (`app_reads.for_cut`). READS ONLY (git rev-parse / cat-file / show: no
+    ref, index or file moves), so `--cut --dry-run` prints it. A refusal raises `app_reads.CutRefused`, a tree this
+    cannot read SystemExit, both naming the cause."""
+    from pipeline.tools.emit import app_reads as AR
+    base = base or f"{GH_REMOTE}/{TRUNK}"
+    base_sha = _git("rev-parse", f"{base}^{{commit}}").decode().strip()
+    table = _show(base_sha, AR.TABLE_REL)
+    if table is None:
+        raise AR.CutRefused(f"{base} has no {AR.TABLE_REL}")
+    doc = json.loads(table)
+    new, what = AR.for_cut(doc, version, AR.reads_in(lambda rel: _show(base_sha, rel)), reads_moved)
+    return AR.dump(new, about=doc.get("_about", AR.ABOUT)), what, new["apps"][version]
+
+
+def version_commit(version: str, d: "RV.Decision", base: str | None = None, day: str | None = None,
+                   reads_moved: str | None = None) -> str:
     """(T998) THE RELEASE BRANCH'S FIRST COMMIT, made on `base` (origin/main) without a checkout (a temporary index):
     app.json + package.json at `version`, the anglers' changelog entry opened, the developer CHANGELOG.md entry
-    written. Returns its id; nothing else moves."""
+    written, and (T1048) `version`'s row in app_reads.json (`app_reads_row`; its refusal raises). Returns its id;
+    nothing else moves."""
     import tempfile
+    from pipeline.tools.emit import app_reads as AR
     base = base or f"{GH_REMOTE}/{TRUNK}"
     day = day or today()
     base_sha = _git("rev-parse", f"{base}^{{commit}}").decode().strip()
-    files = {}
+    table, reads_said, _ = app_reads_row(version, base_sha, reads_moved)
+    files = {AR.TABLE_REL: table}
     for path in (APP_JSON_REL, APP_PKG_REL):
         text = _show(base_sha, path)
         if text is None:
@@ -549,7 +572,8 @@ def version_commit(version: str, d: "RV.Decision", base: str | None = None, day:
         tree = g("write-tree")
         msg = (f"chore(release): {version}, its version in app.json and package.json, a draft changelog entry\n\n"
                f"Made by `python -m pipeline release --cut` (T998): {d.base} + {d.level} from the commits since "
-               f"{d.since}. The anglers' notes in {CHANGELOG_TS} are written by hand; {CHANGELOG_MD} lists the commits.\n")
+               f"{d.since}. The anglers' notes in {CHANGELOG_TS} are written by hand; {CHANGELOG_MD} lists the commits.\n"
+               f"{AR.TABLE_REL} (T1048): {reads_said}.\n")
         return g("commit-tree", tree, "-p", base_sha, "-m", msg)
 
 
@@ -2472,13 +2496,30 @@ def dry_run(ctx: Ctx) -> int:
 
 # ---------------------------------------------------------------------------------------------------------------- cut
 
-def cut(version: str | None, data_only: bool = False, dry_run: bool = False, ask=input) -> int:
+def _cut_row(version: str, reads_moved: str | None) -> bool:
+    """(T1048) print the app_reads row the version commit adds (dry run or not); False (printed why) when the cut
+    stops on it."""
+    from pipeline.tools.emit import app_reads as AR
+    try:
+        _, what, row = app_reads_row(version, reads_moved=reads_moved)
+    except (AR.CutRefused, SystemExit, subprocess.CalledProcessError, RuntimeError) as e:
+        print(f"release --cut: refused: {AR.TABLE_REL}: {e}", file=sys.stderr)
+        return False
+    print(f"release --cut: {AR.TABLE_REL} (T1048): {what}; the version commit adds\n"
+          f"  {json.dumps(version)}: {json.dumps(row, ensure_ascii=False, sort_keys=True)}")
+    return True
+
+
+def cut(version: str | None, data_only: bool = False, dry_run: bool = False, ask=input,
+        reads_moved: str | None = None) -> int:
     """(T995, T998) AT SCOPE LOCK: the version the commits on origin/main compute (printed with the commits that decided
     it), confirmed by the owner — typed at the prompt, or given as `version` (refused when it disagrees, naming both) —
     then `release/<version>` made from a fresh origin/main with ONE commit (`version_commit`: app.json + package.json,
     the anglers' changelog entry opened, CHANGELOG.md), and pushed. `data_only`: `release/data-<today>` at origin/main
-    itself, refused when an app commit bumps the app. `dry_run`: the decision only, nothing made. The checkout is not
-    switched; it says what to switch to."""
+    itself, refused when an app commit bumps the app. `dry_run`: the decision and (T1048) the app_reads row the version
+    commit would add, nothing made (it fetches origin/main and the v* tags, as the real cut does, and reads git: no
+    branch, commit object, tag or push). The cut stops when what the app reads moved since the newest recorded version,
+    naming the files, unless `reads_moved` says why. The checkout is not switched; it says what to switch to."""
     if version is not None and not re.fullmatch(r"\d+\.\d+\.\d+", version):
         print(f"release --cut: {version!r} is not x.y.z", file=sys.stderr)
         return 2
@@ -2506,6 +2547,8 @@ def cut(version: str | None, data_only: bool = False, dry_run: bool = False, ask
                       "only). A data release: python -m pipeline release --cut --data-only", file=sys.stderr)
                 return 1
             if dry_run:
+                if not _cut_row(d.version, reads_moved):
+                    return 1
                 print(f"release --cut --dry-run: would cut release/{d.version} once you confirm it; nothing was made")
                 return 0
             if not is_tty():
@@ -2523,6 +2566,8 @@ def cut(version: str | None, data_only: bool = False, dry_run: bool = False, ask
                 return 1
             print(f"release --cut: {why}")
         branch = CP.release_branch(version)
+        if not _cut_row(version, reads_moved):
+            return 1
     if dry_run:
         print(f"release --cut --dry-run: would cut {branch} from {GH_REMOTE}/{TRUNK}; nothing was made")
         return 0
@@ -2541,8 +2586,8 @@ def cut(version: str | None, data_only: bool = False, dry_run: bool = False, ask
               file=sys.stderr)
         return 1
     try:
-        commit = None if data_only else version_commit(version, d)
-    except (subprocess.CalledProcessError, RuntimeError, ValueError) as e:
+        commit = None if data_only else version_commit(version, d, reads_moved=reads_moved)
+    except (subprocess.CalledProcessError, RuntimeError, ValueError, SystemExit) as e:
         print(f"release --cut: the version commit could not be made ({e}); nothing was pushed", file=sys.stderr)
         return 1
     rc = cut_branch(branch, commit)
@@ -2706,14 +2751,19 @@ def main(argv: list[str] | None = None) -> int:
                     help="(T547) go on with an atlas behind its curated inputs; the reason is required and printed")
     ap.add_argument("--jobs", type=int, default=2, help="the build's --jobs (default 2, at most 4)")
     ap.add_argument("--reupload", action="store_true", help="upload to staging again even if the ledger says it is")
+    ap.add_argument("--reads-moved", default=None, metavar="WHY",
+                    help="(T1048) with --cut: what the app reads moved since the newest recorded app version, and that "
+                         "is meant (the owner's call): the version commit records the new formats; the reason is printed")
     ap.add_argument("--data-only", action="store_true",
                     help="(T998) with --cut: release/data-<YYYY-MM-DD> from origin/main, a data release with no app "
                          "change (refused when an app commit bumps the app)")
     a = ap.parse_args(argv)
     if a.data_only and (a.cut is None or a.cut):
         ap.error("--data-only goes with a bare --cut (the version stays the shipped one)")
+    if a.reads_moved is not None and (a.cut is None or a.data_only or not a.reads_moved.strip()):
+        ap.error("--reads-moved WHY goes with an app --cut, and needs the reason")
     if a.cut is not None:
-        return cut(a.cut or None, data_only=a.data_only, dry_run=a.dry_run)
+        return cut(a.cut or None, data_only=a.data_only, dry_run=a.dry_run, reads_moved=a.reads_moved)
     if a.prod:
         if a.dry_run:
             r = load_ledger().get("releases", {}).get(a.prod, {})

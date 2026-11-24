@@ -1710,7 +1710,10 @@ def cutting(monkeypatch):
     monkeypatch.setattr(R, "fetch_trunk", lambda: w.__setitem__("fetched", w["fetched"] + 1))
     monkeypatch.setattr(R, "remote_ref_exists", lambda ref: ref in w["remote"])
     monkeypatch.setattr(R, "trunk_decision", lambda: w["decision"])
-    monkeypatch.setattr(R, "version_commit", lambda v, d: w["commits"].append(v) or "ab12cd34ef5600000")
+    monkeypatch.setattr(R, "version_commit", lambda v, d, reads_moved=None: w["commits"].append(v) or "ab12cd34ef5600000")
+    w["rows"] = []                                   # (T1048) the app_reads row: its own real-git tests below
+    monkeypatch.setattr(R, "app_reads_row", lambda v, base=None, reads_moved=None: w["rows"].append(v) or (
+        "{}", f"app {v}: the same formats as 0.8.5", {"reads": {"water": ["water/3"]}}))
     monkeypatch.setattr(R, "cut_branch", lambda b, commit=None: w["cuts"].append((b, commit)) or 0)
     monkeypatch.setattr(R, "is_tty", lambda: True)
     monkeypatch.setattr(R, "today", lambda: "2026-11-22")
@@ -1789,10 +1792,13 @@ def test_a_data_only_cut_makes_the_days_branch_at_main_and_refuses_app_changes(c
         R.main(["--cut", "0.9.0", "--data-only"])
 
 
-def test_the_version_commit_sets_the_version_opens_the_entry_and_writes_the_changelog(tmp_path, monkeypatch):
-    """(T998) on real git, with no checkout: one commit on origin/main changing exactly the four files; the version
-    strings and nothing else; an empty draft entry first; CHANGELOG.md grouped by type. Nothing else moves."""
+@pytest.fixture
+def cut_repo(tmp_path, monkeypatch):
+    """(T998, T1048) a real git repo holding the files the version commit reads, its HEAD as origin/main, and REPO_ROOT
+    pointed at it: (run(git args) -> stdout, the repo, the app_reads table it holds). The table's newest row is what
+    this tree's app reads (whatever version the checkout carries), so a cut of it moves nothing."""
     import subprocess
+    from pipeline.tools.emit import app_reads as AR
     env = {k: v for k, v in __import__("os").environ.items() if not k.startswith("GIT_")}
     git = ["git", "-c", "user.email=t@t", "-c", "user.name=t", "-c", "init.defaultBranch=main", "-c",
            "commit.gpgsign=false"]
@@ -1801,9 +1807,14 @@ def test_the_version_commit_sets_the_version_opens_the_entry_and_writes_the_chan
     run = lambda *a: subprocess.run([*git, *a], cwd=here, check=True, capture_output=True, text=True,   # noqa: E731
                                     env=env).stdout.strip()
     real = Path(R.REPO_ROOT)
-    for rel in (R.APP_JSON_REL, R.APP_PKG_REL, R.CHANGELOG_TS):
+    for rel in (R.APP_JSON_REL, R.APP_PKG_REL, R.CHANGELOG_TS, AR.PACK_TS, AR.MANIFEST_TS, AR.PAINT_TS):
         (here / rel).parent.mkdir(parents=True, exist_ok=True)
         (here / rel).write_text((real / rel).read_text())
+    table = AR.load()
+    newest = max(table["apps"], key=AR.ver)
+    table["apps"][newest] = {"reads": AR.reads_in(lambda rel: (here / rel).read_text())}
+    (here / AR.TABLE_REL).parent.mkdir(parents=True, exist_ok=True)
+    (here / AR.TABLE_REL).write_text(AR.dump(table))
     # the code under test runs its own git (commit-tree) without the -c flags above: the fixture repo carries the
     # identity itself, as a CI runner has none of its own (no global user.name / user.email)
     for key, value in (("user.email", "t@t"), ("user.name", "t"), ("commit.gpgsign", "false")):
@@ -1811,17 +1822,26 @@ def test_the_version_commit_sets_the_version_opens_the_entry_and_writes_the_chan
     run("add", ".")
     run("commit", "-qm", "base", "--no-verify")
     run("update-ref", "refs/remotes/origin/main", "HEAD")
-    head = run("rev-parse", "HEAD")
     monkeypatch.setattr(R, "REPO_ROOT", str(here))
     for k in [k for k in __import__("os").environ if k.startswith("GIT_")]:
         monkeypatch.delenv(k)
+    return run, here, table
+
+
+def test_the_version_commit_sets_the_version_opens_the_entry_and_writes_the_changelog(cut_repo):
+    """(T998) on real git, with no checkout: one commit on origin/main changing exactly the five files; the version
+    strings and nothing else; an empty draft entry first; CHANGELOG.md grouped by type; (T1048) the new version's
+    app_reads row. Nothing else moves."""
+    from pipeline.tools.emit import app_reads as AR
+    run, here, table = cut_repo
+    head = run("rev-parse", "HEAD")
     old = R.CP.app_version(here / R.APP_JSON_REL)
     d = RV.decide(old, "the cutover b5dd8ade3", [_commit("feat(T985): a layer"), _commit("fix(T1): a bug")])
     sha = R.version_commit("9.9.9", d, day="2026-11-22")
     assert run("rev-parse", "HEAD") == head and run("status", "--porcelain") == ""          # nothing else moved
     assert run("rev-parse", f"{sha}^") == head
     assert sorted(run("diff", "--name-only", head, sha).split()) == sorted(
-        [R.APP_JSON_REL, R.APP_PKG_REL, R.CHANGELOG_TS, R.CHANGELOG_MD])
+        [R.APP_JSON_REL, R.APP_PKG_REL, R.CHANGELOG_TS, R.CHANGELOG_MD, AR.TABLE_REL])
     diff = run("diff", "-U0", head, sha, "--", R.APP_JSON_REL, R.APP_PKG_REL)
     assert [ln for ln in diff.splitlines() if ln[:1] in "+-" and ln[:3] not in ("+++", "---")] == [
         f'-    "version": "{old}",', '+    "version": "9.9.9",', f'-  "version": "{old}",', '+  "version": "9.9.9",']
@@ -1831,11 +1851,86 @@ def test_the_version_commit_sets_the_version_opens_the_entry_and_writes_the_chan
     md = run("show", f"{sha}:{R.CHANGELOG_MD}")
     assert md.startswith(RV.CHANGELOG_TITLE) and "## 9.9.9 (2026-11-22)" in md and "### Features" in md
     msg = run("log", "-1", "--format=%B", sha)
+    newest = max(table["apps"], key=AR.ver)
+    assert f"{AR.TABLE_REL} (T1048): app 9.9.9: the same formats as {newest}." in msg
     assert msg.startswith("chore(release): 9.9.9, its version in app.json and package.json, a draft changelog entry")
     assert RV.parse(msg).type == "chore" and not RV.is_ignored(msg) and len(RV.header_of(msg)) <= 100
     assert R.with_changelog_entry(ts, "9.9.9", "x") == ts                   # an entry already there stays
     with pytest.raises(RuntimeError, match="its version is not written once"):
         R.with_version('{"expo": {"version": "1.0.0"}, "x": {"version": "1.0.0"}}', R.APP_JSON_REL, "2.0.0")
+
+
+def test_the_cuts_version_commit_adds_the_new_versions_app_reads_row(cut_repo):
+    """(T1048) the 0.9.0 cut left the row out (6ea5b344a added it by hand). The version commit's app_reads.json is its
+    base's with ONE row added, the new version reading what the newest recorded version reads, and `--check` passes on
+    it. Mutations: drop the table from the version commit's files, or record the row under the old version: this
+    fails."""
+    from pipeline.tools.emit import app_reads as AR
+    run, here, table = cut_repo
+    head = run("rev-parse", "HEAD")
+    newest = max(table["apps"], key=AR.ver)
+    d = RV.decide(R.CP.app_version(here / R.APP_JSON_REL), "x", [_commit("fix(T1): a bug")])
+    sha = R.version_commit("9.9.9", d, day="2026-11-22")
+    after = json.loads(run("show", f"{sha}:{AR.TABLE_REL}"))
+    assert after["apps"]["9.9.9"] == {"reads": table["apps"][newest]["reads"]}
+    assert {v: r for v, r in after["apps"].items() if v != "9.9.9"} == table["apps"] and after["_about"] == table["_about"]
+    diff = run("diff", "-U0", head, sha, "--", AR.TABLE_REL).splitlines()
+    added = [ln for ln in diff if ln.startswith("+") and not ln.startswith("+++")]
+    removed = [ln for ln in diff if ln.startswith("-") and not ln.startswith("---")]
+    assert [ln[:10] for ln in added] == [f'+  "{newest}"', '+  "9.9.9"']           # the row, and a comma on the last
+    assert [ln[1:] + "," for ln in removed] == [ln[1:] for ln in added[:1]]
+    reads = AR.reads_in(lambda rel: run("show", f"{sha}:{rel}"))
+    assert AR.check_problems(after, "9.9.9", reads) == []                 # the release branch's `--check` passes
+
+
+def test_the_cut_stops_when_what_the_app_reads_moved_and_its_dry_run_prints_the_row(cut_repo, monkeypatch, capsys):
+    """(T1048) a format that moved since the newest recorded version stops the cut, naming the file, old -> new, before
+    anything is made; `--reads-moved WHY` records the new formats (the owner's call). `--cut --dry-run` prints the row
+    and makes nothing: no ref, no object. Mutations: skip the comparison, or return before the row in the dry run:
+    this fails."""
+    import re
+    from pipeline.tools.emit import app_reads as AR
+    run, here, table = cut_repo
+    newest = max(table["apps"], key=AR.ver)
+    monkeypatch.setattr(R, "fetch_trunk", lambda: None)
+    monkeypatch.setattr(R, "trunk_decision", lambda: RV.decide("0.8.5", "x", [_commit("fix(T1): a bug")]))
+    monkeypatch.setattr(R, "remote_ref_exists", lambda ref: False)
+    made = []
+    monkeypatch.setattr(R, "cut_branch", lambda b, commit=None: made.append((b, commit)) or 0)
+    state = lambda: (run("for-each-ref"), run("count-objects", "-v"))                          # noqa: E731
+    before = state()
+    assert R.main(["--cut", "--dry-run"]) == 0 and R.main(["--cut", "0.8.6", "--dry-run"]) == 0
+    out = capsys.readouterr().out
+    row = json.dumps({"reads": table["apps"][newest]["reads"]}, sort_keys=True)
+    assert out.count(f"app_reads.json (T1048): app 0.8.6: the same formats as {newest}; the version commit adds\n"
+                     f'  "0.8.6": {row}') == 2
+    assert "would cut release/0.8.6" in out and state() == before and made == []
+
+    pack = here / AR.PACK_TS                                             # water's format moves on main
+    text = pack.read_text()
+    old_fmt = re.search(r'"water": \{\s*"format": "([^"]+)"', text).group(1)
+    pack.write_text(text.replace(f'"format": "{old_fmt}"', '"format": "water/99"', 1))
+    run("commit", "-qam", "water moves", "--no-verify")
+    run("update-ref", "refs/remotes/origin/main", "HEAD")
+    before = state()
+    for argv in (["--cut", "0.8.6", "--dry-run"], ["--cut", "0.8.6"]):
+        assert R.main(argv) == 1
+        err = capsys.readouterr().err
+        assert f"release --cut: refused: {AR.TABLE_REL}: what the app reads moved since {newest} (water: " \
+               f"['{old_fmt}'] -> ['water/99'])" in err
+        assert "--reads-moved" in err and "Nothing was made" in err
+    assert state() == before and made == []
+    assert R.main(["--cut", "0.8.6", "--reads-moved", "water/99 ships in 0.8.6"]) == 0
+    assert "the formats moved since" in capsys.readouterr().out and len(made) == 1
+    after = json.loads(run("show", f"{made[0][1]}:{AR.TABLE_REL}"))
+    assert after["apps"]["0.8.6"]["reads"]["water"] == ["water/99"] and after["apps"][newest] == table["apps"][newest]
+    with pytest.raises(SystemExit):
+        R.main(["--cut", "--data-only", "--reads-moved", "x"])
+    # a row already recorded for the version: kept when it is what the app reads, refused when it is not
+    doc, what = AR.for_cut(after, "0.8.6", after["apps"]["0.8.6"]["reads"])
+    assert doc == after and "already recorded" in what
+    with pytest.raises(AR.CutRefused, match="recorded already reading other formats"):
+        AR.for_cut(after, "0.8.6", table["apps"][newest]["reads"])
 
 
 def test_the_release_pushes_go_to_the_release_branch_and_skip_the_hook_saying_why(monkeypatch):
