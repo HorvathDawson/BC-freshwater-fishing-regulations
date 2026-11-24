@@ -196,7 +196,16 @@ export function forecastDayMark(dayName: string): string {
  * the other, unlabelled).
  */
 export function standingRankedIn(standing: string, declared: "discharge" | "level"): string {
-  return `${standing} (ranked on ${declared === "level" ? "water level" : "flow"})`;
+  return `${standing} ${rankedOnWords(declared)}`;
+}
+
+/**
+ * (T567) "(ranked on flow)" / "(ranked on water level)": the words that say which quantity a standing was ranked in, once.
+ * (T1043, owner 2026-11-23: "add ranked on flow at top") the estimate box says them at its top while the card shows the
+ * other quantity (the estimate is the lead's, in Flow: T971).
+ */
+export function rankedOnWords(declared: "discharge" | "level"): string {
+  return `(ranked on ${declared === "level" ? "water level" : "flow"})`;
 }
 
 /**

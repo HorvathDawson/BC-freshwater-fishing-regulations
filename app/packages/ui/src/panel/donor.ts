@@ -3,7 +3,7 @@ import { type DonorRow, type Horizon, type PanelAnswer, type Quantity, type Wate
          type StationId } from "@app/data";
 import { changeLowWaterNote, donorState, CONDITIONS_WORDS, disagreeNote, donorBecause, donorCounted, donorDetailLine, donorFacts, donorRelation, donorLastReport,
          donorPinTitle, donorReads, donorReason, donorRowLabel, donorSilent, donorVotes, donorWeightLine,
-         estimateHeadline, estimateRange, estimateSentence, gaugeChoiceLabel, HORIZON_LABELS, isAhead, metresApart,
+         estimateHeadline, estimateRange, estimateSentence, gaugeChoiceLabel, HORIZON_LABELS, isAhead, metresApart, rankedOnWords,
          panelCamera, ROUTE_MARK_PX, refusalIsAboutTheDay, regulatedNote, SAME_PLACE_M, shortRecordNote, silentLine, sizeApart, tidalNote,
          throughLakeNote, interval,
          backwaterNote, diversionNote, unplacedNote, type SectionKey } from "@app/core";
@@ -129,6 +129,11 @@ export type DonorVM =
   | {
       ok: true;
       heading: string;
+      /**
+       * (T1043, owner 2026-11-23: "add ranked on flow at top") which quantity the estimate is ranked in, said at the top of
+       * the box when it is not the one the card shows (core `rankedOnWords`: "(ranked on flow)"); null when they agree.
+       */
+      rankedNote: string | null;
       headline: string;
       /** "by then", drawn quieter after the headline, on a forecast; null for now. */
       headlineSuffix: string | null;
@@ -389,6 +394,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
   return {
     ok: true,
     heading: HORIZON_LABELS[o.horizon].heading,
+    rankedNote: o.quantity && o.rankedIn && o.rankedIn !== o.quantity ? rankedOnWords(o.rankedIn) : null,
     headline: estimateHeadline(e, o.horizon),
     // "by then" is about a DAY; Change spans the window and its heading says so
     headlineSuffix: isAhead(o.horizon) && o.horizon !== "change" ? CONDITIONS_WORDS.byThen : null,

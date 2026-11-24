@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Band } from "@app/core";
-import { buildHydrograph, logTicks, niceTicks, DEFAULT_BOX } from "./hydrograph";
+import { buildHydrograph, logTicks, minSpan, niceTicks, yearScale, DEFAULT_BOX } from "./hydrograph";
 
 const BAND: Band = [18.8, 23.0, 30.6, 39.0, 56.6];   // 08MH001, 30 Aug, real
 const flat = <T,>(n: number, v: T): T[] => Array.from({ length: n }, () => v);
@@ -14,6 +14,72 @@ describe("ticks", () => {
   });
   it("log ticks are 1, 2, 5 per decade", () => {
     expect(logTicks(10, 1000)).toEqual([10, 20, 50, 100, 200, 500, 1000]);
+  });
+});
+
+// (T1043) CAPILANO AT CANYON'S 72 H LEVEL, 2026-11-21..23 (EC realtime, real): 0.585 to 0.6 m with no band. The axis
+// stepped 0.005 m and wrote "0.59 0.59 0.6 0.6". MUTATION: drop `[lo, hi] = minSpan(lo, hi)` from `buildHydrograph` ->
+// the Capilano labels repeat. One rule for every station and either quantity (`minSpan`), no station named in the code.
+describe("(T1043) no two gridlines carry the same label", () => {
+  const CAPILANO = [0.592, 0.592, 0.591, 0.585, 0.585, 0.593, 0.592, 0.6, 0.592, 0.585, 0.595, 0.592];
+  const labels = (values: number[]) => buildHydrograph({ values, bands: values.map(() => null), xLabels: [] })
+    .yTicks.map((t) => t.label);
+  it("Capilano's barely-moving level: distinct labels, round values, the line inside them", () => {
+    const got = labels(CAPILANO);
+    expect(got).toEqual(["0.58", "0.59", "0.6", "0.61"]);
+  });
+  it("any size: a lake at 340 m moving 3 cm, a flow of 1.8, one at 1,000, and one crossing 10", () => {
+    for (const values of [[340.21, 340.23, 340.24], [1.8, 1.8, 1.81], [1001, 1004, 1009], [9.98, 9.99, 9.995]]) {
+      const got = labels(values);
+      expect(new Set(got).size, `${values} -> ${got}`).toBe(got.length);
+      expect(got.length, `${values} -> ${got}`).toBeGreaterThanOrEqual(3);
+    }
+  });
+  it("leaves an axis that already reads apart alone, and never goes below 0", () => {
+    expect(minSpan(8.3, 59.5)).toEqual([8.3, 59.5]);
+    expect(minSpan(0.001, 0.003)[0]).toBe(0);
+    const [lo, hi] = minSpan(0.585, 0.6);
+    expect(lo <= 0.585 && hi >= 0.6).toBe(true);
+  });
+});
+
+// (T1043, owner 2026-11-23: "the scale of the chart should use the year data if not enough histroical data exists")
+// MUTATIONS: drop the `if (byYear)` widening -> the Capilano case scales to its own wiggle ("reading", top < 1);
+// let `byYear` ignore a band (drop `!banded &&`) -> the banded chart's scale moves and reads "year".
+describe("(T1043) a chart with no band is scaled to its year", () => {
+  const CAPILANO = [0.592, 0.592, 0.591, 0.585, 0.585, 0.593, 0.592, 0.6, 0.592, 0.585, 0.595, 0.592];
+  const YEAR = { lo: 0.55, hi: 2.21 };      // 2026's daily levels at Canyon run ~0.55 to ~2.2 m
+  const top = (h: ReturnType<typeof buildHydrograph>) => Math.max(...h.yTicks.map((t) => t.value));
+  it("no band: the year's low and high set the axis (with the usual padding), and it says so", () => {
+    const h = buildHydrograph({ values: CAPILANO, bands: CAPILANO.map(() => null), xLabels: [], scaleTo: YEAR });
+    expect(h.scale).toBe("year");
+    expect(top(h)).toBeGreaterThanOrEqual(2);
+    expect(Math.min(...h.yTicks.map((t) => t.value))).toBeLessThanOrEqual(0.6);
+  });
+  it("no year either: the drawn values and the minimum span, said as `reading`", () => {
+    for (const scaleTo of [undefined, null]) {
+      const h = buildHydrograph({ values: CAPILANO, bands: CAPILANO.map(() => null), xLabels: [], scaleTo });
+      expect([h.scale, h.yTicks.map((t) => t.label)]).toEqual(["reading", ["0.58", "0.59", "0.6", "0.61"]]);
+    }
+  });
+  it("a band on screen keeps today's scale: the year is not read", () => {
+    const values = flat(72, 15.7);
+    const plain = buildHydrograph({ values, bands: flat(72, BAND), xLabels: [] });
+    const given = buildHydrograph({ values, bands: flat(72, BAND), xLabels: [], scaleTo: { lo: 1, hi: 900 } });
+    expect([given.scale, given.yTicks]).toEqual(["band", plain.yTicks]);
+  });
+  it("a log axis (a year of flow) is its own scale", () => {
+    const h = buildHydrograph({ values: [10, 100, 1000], bands: [null, null, null], xLabels: [], log: true,
+                                scaleTo: { lo: 1, hi: 5000 } });
+    expect(h.scale).toBe("log");
+  });
+  it("the year's range is the 5th to 95th percentile of this year's and the earlier years' values; nothing is null", () => {
+    expect(yearScale({ values: [0.7, null, 1.9], priorYears: [{ values: [0.55, 2.21, null] }] })).toEqual({ lo: 0.55, hi: 2.21 });
+    // (review of #77) one storm day does not set the axis: 98 days near 0.6 m, one at 2.96, one at 0.52
+    const days = [...Array.from({ length: 98 }, (_, i) => 0.58 + (i % 5) / 100), 2.96, 0.52];
+    expect(yearScale({ values: days })).toEqual({ lo: 0.58, hi: 0.62 });
+    expect(yearScale({ values: [null, Number.NaN], priorYears: [] })).toBeNull();
+    expect(yearScale(null)).toBeNull();
   });
 });
 

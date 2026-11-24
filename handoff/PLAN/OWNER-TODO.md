@@ -9,6 +9,15 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-23: T1047 off-datum level (answers, verbatim)
+- T1047 top line: "Show the level reading (Recommended)"; the note: "just use new data line same as cap. keep it simple".
+  Built on PR #77 (b15f1165b): under Level an off-datum station (08HD006 …) reads as Capilano does: today's level,
+  "Too new to say if this is high or low.", its live line with no band; the proposed note dropped. Closed.
+
+## 2026-11-23: T1043 Capilano level (answers, verbatim)
+- T1043 estimate under Level, and the chart's scale: "add ranked on flow at top. also the scale of the chart should use
+  the year data if not enough histroical data exists." Built on PR #77: "(ranked on flow)" at the top of the estimate box
+  while Level is picked; a 72 h chart with no normal range scales to that quantity's year data. Closed.
 ## 2026-11-23 ~15:00: T1041 faster CI checks (answers, verbatim) — one item for you, AFTER 0.9.0
 - Local checks: "Both (Recommended)" — related tests before each push + full app suite and pipeline tier once before
   opening the PR. Built: the pre-push hook runs `vitest related` + the pipeline tests importing a changed module;

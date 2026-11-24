@@ -38,6 +38,12 @@ export interface Conditions {
   kept?: true;
   /** (T830) The quantities the publisher says the station reports live, ranked or not (`Reading.reports`). */
   reports?: readonly Parameter[];
+  /**
+   * (T1047) Quantities the station file carries live but the publisher left out of `reports`: on another zero than the
+   * record (T550, 08HD006's level). Shown unranked, as a reading with no record (owner 2026-11-23: "just use new data line
+   * same as cap"); a chart of one draws its line without the record.
+   */
+  offRecord?: readonly Parameter[];
 }
 
 // NO `useConditions` (T105): it read the station `section_gauge` matched to a reach for the sheet's reading, a second
@@ -78,6 +84,18 @@ export function useStationReading(
 export const READING_REUSE_MS = READING_POLL_MS / 2;
 
 /** One station's reading as the conditions view holds it — what `useStationReading` and the prefetch ask. */
+/**
+ * (T1047) the quantities a reading carries that its `reports` leave out; null when none, on a feed from before `reports`,
+ * and when the index row is ANOTHER publisher run than the file's reading (`rankedAt` set, T585 F8: the feed's `same`):
+ * that row's `reports` are not this reading's, so the file is trusted (#77 review: an on-datum level a run behind).
+ */
+function offRecordOf(r: { reports?: readonly Parameter[]; discharge: number | null; level: number | null;
+                          rankedAt?: string | null }): readonly Parameter[] | null {
+  if (!r.reports || r.rankedAt !== undefined) return null;
+  const out = (["discharge", "level"] as const).filter((q) => r[q] !== null && !r.reports!.includes(q));
+  return out.length ? out : null;
+}
+
 export async function stationReading(source: Pick<WaterSource, "gaugeNow">, station: StationId | null): Promise<Conditions> {
   const empty: Conditions = {
     station: null, stationName: null, discharge: null, level: null, parameter: null, percentile: null,
@@ -101,6 +119,7 @@ export async function stationReading(source: Pick<WaterSource, "gaugeNow">, stat
     fetchedAt: now.fetchedAt, observedAt: now.value.at || null,
     ...(now.value.rankedAt !== undefined ? { rankedAt: now.value.rankedAt } : {}),
     ...(now.value.reports ? { reports: now.value.reports } : {}),
+    ...(offRecordOf(now.value) ? { offRecord: offRecordOf(now.value)! } : {}),
     ...(now.kept ? { kept: true as const } : {}),
   };
 }

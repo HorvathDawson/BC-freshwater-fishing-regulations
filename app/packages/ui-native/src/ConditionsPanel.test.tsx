@@ -9,7 +9,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 import { CHANGE_LOW_WATER, changeSourceLine, CONDITIONS_WORDS, NO_RECORD_LINE, noGaugeSentence, readingHeading, standingLong,
-         stageLine, TIDAL_NOTE, BACKWATER_NOTE } from "@app/core";
+         stageLine, TIDAL_NOTE, BACKWATER_NOTE, rankedOnWords } from "@app/core";
 import type { Panel, WaterSource, SectionId } from "@app/data";
 import { clearPanelCache } from "@app/ui";
 import type { MenuControls } from "@app/ui";
@@ -117,8 +117,9 @@ describe("the conditions panel", () => {
                               scroll={false} day={new Date(2026, 8, 4, 12)} horizon={0} onHorizon={() => {}} />);
       await waitFor(() => expect(screen.getByTestId("estimate-tile")).toBeTruthy());
       await waitFor(() => expect(screen.getByTestId("panel-horizons")).toBeTruthy());
-      const out = { estimate: screen.getByTestId("estimate-tile").textContent, horizons: screen.getByTestId("panel-horizons").textContent,
-                    flowOnly: screen.queryByText("Flow only") };
+      const note = screen.queryByTestId("estimate-ranked-on")?.textContent ?? null;
+      const out = { estimate: screen.getByTestId("estimate-tile").textContent!.replace(note ?? "", ""),
+                    horizons: screen.getByTestId("panel-horizons").textContent, flowOnly: screen.queryByText("Flow only"), note };
       cleanup();
       clearPanelCache();
       return out;
@@ -128,6 +129,9 @@ describe("the conditions panel", () => {
     expect(level.estimate).toBe(flow.estimate);
     expect(level.horizons).toBe(flow.horizons);
     expect(level.flowOnly).toBeNull();
+    // (T1043, owner 2026-11-23: "add ranked on flow at top") and the box says, at its top, that it is ranked on flow
+    expect([flow.note, level.note]).toEqual([null, rankedOnWords("discharge")]);
+    expect(rankedOnWords("discharge")).toBe("(ranked on flow)");
   });
 
   it("never puts one quantity's figure under the other's chart (T567)", async () => {

@@ -17,7 +17,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { LEVEL_ONLY_WATER } from "@app/core";
+import { CONDITIONS_WORDS, LEVEL_ONLY_WATER, NO_RECORD_LINE } from "@app/core";
 import { makeFixtureSource } from "@app/data/fixture";
 import type { ItemId, Panel, SectionId, WaterSource } from "@app/data";
 import { clearAnswers, clearPanelCache } from "@app/ui";
@@ -197,5 +197,90 @@ describe("a Flow / Level pick stays on its reach (T767)", () => {
     await settle();
     await waitFor(() => expect(screen.queryByTestId("chart-quantity")).not.toBeNull());
     expect([next, card()[1]]).toEqual(["Flow* Level", "Flow* Level"]);   // each reach opens as it opens
+  });
+});
+
+/*
+ * (T1043, owner 2026-11-23: "i still dont know why 0.8.6 capilano at canyon gauge doesnt have level like website does")
+ * CAPILANO AT CANYON'S SHAPE: a flow band, a live level on every row and too short a level record for a band. T830 offered
+ * that level on the card from the publisher's `reports`; T817's water choices (`offer`, the bundle's bands alone) then
+ * decided the switch on a water's view, so it never showed there. MUTATION: drop `|| available.includes(q)` from
+ * `cardQuantity` -> "no switch" and Level cannot be reached.
+ */
+describe("a live level with no band is offered on the water's view (T1043)", () => {
+  it("Capilano's shape: Flow and Level, Level drawn unranked with Python's line, Flow one tap back", async () => {
+    const source = speaking("panel", ["discharge"], { ...BOTH_NOW, level: 0.592, reports: ["discharge", "level"] });
+    render(<WaterConditions source={source} item={WATER} tapSid={SEC} palette={LIGHT} opening="discharge" from={AT} />);
+    await waitFor(() => expect(screen.queryByTestId("reading-figure")).not.toBeNull());
+    await waitFor(() => expect(screen.queryByTestId("chart-quantity")).not.toBeNull());
+    const flow = card();
+    await pickQuantity("Level");
+    await waitFor(() => expect(screen.queryByTestId("reading-no-record")).not.toBeNull());
+    const level = [...card(), screen.getByTestId("reading-no-record").textContent, screen.queryByTestId("reading-dot")];
+    await pickQuantity("Flow");
+    await waitFor(() => expect(screen.queryByTestId("reading-no-record")).toBeNull());
+    expect([flow, level, card()]).toEqual([
+      ["G1", "Flow* Level", "12.5"],
+      ["G1", "Flow Level*", "0.59", NO_RECORD_LINE, null],
+      ["G1", "Flow* Level", "12.5"],
+    ]);
+  });
+
+  // (review of #77) GUN CREEK (08ME030), production 2026-11-23: a level band only, a live flow (7.8 m³/s) and level
+  // (4.271 m) reported. Its water is NOT "level only": the note and the switch agree, opening on Flow (unranked).
+  // MUTATION: `useSpeakerMeasures` without the readings' `reports` -> "Level only: no flow is measured here." over "Flow Level*";
+// the lead note without its `reports` check -> "No gauge here reports flow today, …" under a flow of 7.8 m³/s.
+  it("Gun Creek's shape (a level band, a live flow): no level-only note, Flow and Level, the flow unranked", async () => {
+    const now = { discharge: 7.8, level: 4.271, percentile: 0.75, standing: "above", at: "2026-09-04T06:00:00Z",
+                  parameter: "level", reports: ["discharge", "level"] };
+    expect(await firstView(speaking("panel", ["level"], now))).toEqual({
+      note: null, figure: "7.8", switch: "Flow* Level", leadNote: null });
+    expect(screen.getByTestId("reading-no-record").textContent).toBe(NO_RECORD_LINE);
+  });
+
+  it("Gun Creek through the feed (its lead chosen on level): no \"No gauge here reports flow today\" over its live flow", async () => {
+    const now = { discharge: 7.8, level: 4.271, percentile: 0.75, standing: "above", at: "2026-09-04T06:00:00Z",
+                  parameter: "level", reports: ["discharge", "level"] };
+    const feed = { index: async () => ({ listed: ["G1"], stations: {
+      G1: { percentile: 0.75, parameter: "level" as const, level: 0.75, reports: ["discharge", "level"],
+            observedAt: "2026-09-04T06:00:00Z" } } }) } as never;
+    render(<WaterConditions source={speaking("panel", ["level"], now)} item={WATER} tapSid={SEC} palette={LIGHT}
+                            opening="discharge" from={AT} feed={feed} />);
+    await waitFor(() => expect(screen.queryByTestId("reading-figure")).not.toBeNull());
+    await waitFor(() => expect(screen.queryByTestId("estimate-ranked-on")).not.toBeNull());   // the estimate is on level
+    expect([screen.queryByTestId("conditions-note"), screen.queryByTestId("lead-note"), card()[1], card()[2]])
+      .toEqual([null, null, "Flow* Level", "7.8"]);
+  });
+
+  // (T1047, owner 2026-11-23: top line "Show the level reading (Recommended)"; note "just use new data line same as cap.
+  // keep it simple") 08HD006 (Salmon River near Sayward), production 2026-11-23: bands in both; the live level 2.058 m is
+  // off the record's rating (T550: the publisher leaves it out of `reports`; the record is near 7 m). Under Level: today's
+  // reading, unranked, in Capilano's words ("Too new to say if this is high or low."), and the live line drawn
+  // alone (no band; the key's note is Capilano's). Flow keeps its band and its rank.
+  // MUTATIONS: `noRecordLine` without its `offRecord` check -> the flow standing "(ranked on flow)" under 2.06;
+  // `ConditionsPanel`/`useStationChart` without `offRecord` -> the old-zero band in the Level key.
+  it("08HD006 under Level: today's level, unranked as Capilano's, its live line alone; Flow keeps its band", async () => {
+    const now = { discharge: 77, level: 2.058, percentile: 0.57, standing: "normal", at: "2026-09-04T06:00:00Z",
+                  parameter: "discharge", reports: ["discharge"] };
+    const at = ["2026-09-04T03:00:00Z", "2026-09-04T04:00:00Z", "2026-09-04T05:00:00Z", "2026-09-04T06:00:00Z"];
+    const seriesOf = (p: "discharge" | "level") => ({ fetchedAt: Date.now() - 60_000, value: {
+      step: "1h", from: "feed", parameter: p, at,
+      values: p === "level" ? [1.9, 2.0, 2.05, 2.058] : [60, 66, 72, 77],
+      band: at.map(() => (p === "level" ? [6, 6.5, 7, 7.5, 8] : [20, 40, 60, 90, 140])),
+      now: { index: 3, value: p === "level" ? 2.058 : 77 }, forecast: null, forecasts: [], priorYears: [] } });
+    const source = { ...speaking("panel", ["discharge", "level"], now),
+                     gaugeSeries: async (_st: string, _span: string, p: "discharge" | "level") => seriesOf(p ?? "discharge") } as unknown as WaterSource;
+    render(<WaterConditions source={source} item={WATER} tapSid={SEC} palette={LIGHT} opening="discharge" from={AT} />);
+    await waitFor(() => expect(screen.queryByTestId("chart-legend")).not.toBeNull());
+    const flow = [...card(), screen.queryByTestId("reading-no-record"), screen.getByTestId("chart-legend").textContent!.includes("10th–90th")];
+    await pickQuantity("Level");
+    await waitFor(() => expect(screen.getByTestId("chart-unit").textContent).toBe("m"));
+    await waitFor(() => expect(screen.queryByTestId("reading-no-record")).not.toBeNull());
+    const levelKey = screen.getByTestId("chart-legend").textContent!;
+    expect([flow, [...card(), screen.getByTestId("reading-no-record").textContent,
+                   levelKey.includes("10th–90th"), levelKey.includes(CONDITIONS_WORDS.key.noEnvelope)]]).toEqual([
+      ["G1", "Flow* Level", "77", null, true],
+      ["G1", "Flow Level*", "2.06", NO_RECORD_LINE, false, true],
+    ]);
   });
 });

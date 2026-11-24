@@ -9,8 +9,8 @@ import { aheadDays, CONDITIONS_WORDS, donorLastReport, FORECAST_DAY_WORDS, forec
          forecastFigureLine, donorReads, donorSilent, donorState, leadGapLine, LEVEL_ONLY_LEAD, freshness, gaugeCountLine, noGaugeSentence,
          ownGaugeMap, readingAgeLine, readingHeading, readingIn, readingStanding, shownParameter, stageLine, stateAt,
          type GaugeTrace, type SectionKey, type Standing, bcMidnight, shiftDay, wallIso, now } from "@app/core";
-import { useGaugeTrace, useStationReading, type Conditions } from "../hooks";
-import { askOnce } from "../answers";
+import { READING_REUSE_MS, stationReading, useGaugeTrace, useStationReading, type Conditions } from "../hooks";
+import { askOnce, cardParameters } from "../answers";
 import { useAsync, type Async } from "../async";
 import { useBcToday } from "../today";
 import { routeLabels, routeValues, type RouteColourVM } from "../routeColour";
@@ -34,6 +34,8 @@ export interface ReadingVM {
   figures: Readonly<Partial<Record<Parameter, number>>>;
   /** (T830) The quantities the publisher says it reports live, ranked or not; null on a feed from before it. */
   reports: readonly Parameter[] | null;
+  /** (T1047) Quantities it carries live on another zero than its record (`Conditions.offRecord`); [] when none. */
+  offRecord: readonly Parameter[];
   /** (T567) On a forecast day, whose this figure is: "Today's reading" (the day asked has its own line, `forecast`); else null. */
   scope: string | null;
   /** (T567) On a forecast day, the lead gauge's forecast for the day asked, finished; null on Now / Change or without a row. */
@@ -151,6 +153,9 @@ export interface ConditionsVM {
  * (T817) WHAT EACH GAUGE THAT SPEAKS FOR THIS SECTION MEASURES — its quantities as the bundle records them
  * (`gaugeParameters`, through the same answer the card's toggle reads, `useGaugeParameters`) — for core's
  * `conditionsOpening`. Ready with [] where nothing speaks.
+ * (T1043) and what each reports live today (its reading's `reports`), joined as the card joins them (`cardParameters`):
+ * Gun Creek (08ME030) has a level band only and reports a live flow, so its water is not "level only", and the switch
+ * and the note at the top say the same thing. A live unranked flow is still flow.
  */
 export function useSpeakerMeasures(source: WaterSource, section: SectionId | null):
   Async<readonly (readonly Parameter[])[]> {
@@ -159,8 +164,13 @@ export function useSpeakerMeasures(source: WaterSource, section: SectionId | nul
   const stations = speaker === null ? "" : speaker.kind === "lake" ? speaker.station
     : speaker.panel.members.map((m) => m.station).join(",");
   const got = useAsync(
-    () => Promise.all((stations ? stations.split(",") as StationId[] : []).map((st) =>
-      askOnce(source, `params:${st}`, () => source.gaugeParameters(st)))),
+    () => Promise.all((stations ? stations.split(",") as StationId[] : []).map(async (st) => {
+      const [banded, live] = await Promise.all([
+        askOnce(source, `params:${st}`, () => source.gaugeParameters(st)),
+        askOnce(source, `reading:${st}`, () => stationReading(source, st), READING_REUSE_MS),
+      ]);
+      return cardParameters(banded, live?.reports);
+    })),
     `measures:${section ?? ""}:${stations}`,
     spoken.state === "ready",
   );
@@ -275,6 +285,7 @@ export function useConditionsView(
       stage: shown === "discharge" && c.level != null ? stageLine(c.level) : null,
       figures: { ...(c.discharge != null ? { discharge: c.discharge } : {}), ...(c.level != null ? { level: c.level } : {}) },
       reports: c.reports ?? null,
+      offRecord: c.offRecord ?? [],
       scope: dayName ? FORECAST_DAY_WORDS.today : null,
       forecast: dayName && cardRow
         ? (quantity === "level" && donorState(cardRow, ask).kind === "flow-only" ? leadGapLine(dayName)
@@ -316,7 +327,9 @@ export function useConditionsView(
       ? traced.value : null,
     gauges: gaugeChoices(panel.rows, lead, { ref, horizon }),
     gaugeGroups: gaugeChoiceGroups(panel.rows, lead, ask, sides),
-    ahead, sides, count, leadNote: levelOnly ? LEVEL_ONLY_LEAD : null,
+    // (T1043) "No gauge here reports flow today" is false where the lead reports a live flow it has no record to rank
+    // against (Gun Creek, 08ME030): the card's own line says that, so the note is not drawn
+    ahead, sides, count, leadNote: levelOnly && !reading?.reports?.includes("discharge") ? LEVEL_ONLY_LEAD : null,
     own: speaker?.kind === "lake" && spoken.state === "ready" && spoken.value.at
       ? { station: speaker.station, name, ...spoken.value.at, live: reading !== null,
           ...ownGaugeMap(speaker.station, { percentile: c?.percentile ?? null, observedAt: c?.observedAt ?? null }, ask) }

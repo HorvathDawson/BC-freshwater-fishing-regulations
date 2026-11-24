@@ -45,6 +45,11 @@ export interface StationChartInput {
   readonly feed?: { observations?: GaugeFeed["observations"] } | null;
   /** (T567, T604) the days marked on the plot beside today's rule */
   readonly days?: readonly ChartDay[];
+  /**
+   * (T1047) the quantities the station carries live on another zero than its record (the reading's `offRecord`): charted as
+   * the line alone, with no band, earlier years or year scale
+   */
+  readonly offRecord?: readonly Parameter[] | null;
 }
 
 export interface StationChartVM {
@@ -107,7 +112,7 @@ export function useStationChart(source: ChartSource, station: StationId | null, 
   const allRuns = anyRun.state === "ready" ? anyRun.value?.forecasts ?? [] : null;
   const drawsForecast = forecastDrawn(pickState.on, allRuns);
   const chart = useChartView(source, station, span, param, drawn, i.width, charts, draft, drawsForecast, pickState.also,
-                             i.days ?? NO_DAYS);
+                             i.days ?? NO_DAYS, !!i.offRecord?.includes(shown));
   const series = useSeries(source, station, span, param, drawn, charts);
   const runs = series.state === "ready" ? series.value?.forecasts ?? [] : [];
   // (T398) switched off, no run is drawn: nothing below speaks for one (the ELF note, About this forecast)

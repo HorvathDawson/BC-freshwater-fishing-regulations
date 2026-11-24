@@ -115,6 +115,9 @@ export interface Hydrograph {
   alsoForecasts: readonly AlsoForecastShape[];
   /** True when the y scale is logarithmic — a whole year of flow spans two orders. */
   log: boolean;
+  /** (T1043) What set the y range (`ScaleSource`). */
+  scale: ScaleSource;
+
   /**
    * The chart's whole time extent (record + forecast) and the window on screen, epoch ms. Null when the series
    * carries no stamps (an index-laid chart cannot zoom).
@@ -146,6 +149,48 @@ const fmt = (v: number): string =>
     : v >= 100 ? String(Math.round(v))
       : v >= 10 ? String(Math.round(v * 10) / 10)
         : String(Math.round(v * 100) / 100);
+
+/** The finest step `fmt` can write at `v`'s size: two ticks closer than this read the same ("0.59", "0.59"). */
+const fmtStep = (v: number): number => (v >= 1000 ? 100 : v >= 100 ? 1 : v >= 10 ? 0.1 : 0.01);
+
+/** How many gridlines a linear axis asks `niceTicks` for. */
+const Y_TICKS = 4;
+
+/**
+ * (T1043) THE SMALLEST LINEAR AXIS: `Y_TICKS` of `fmt`'s finest steps, widened about the middle (never below 0). Capilano's
+ * level moved 0.01 m in 72 h, so `niceTicks` stepped 0.005 and `fmt` wrote "0.59 0.59 0.6 0.6". Every station, either
+ * quantity: a span this wide steps at least one `fmtStep`, so no two gridlines carry the same label. A flat record draws
+ * as a near-flat line, which is what it is.
+ */
+export function minSpan(lo: number, hi: number): [number, number] {
+  // the step at the top the axis will END at (widening can carry 9.99 past 10, where `fmt` writes tenths), and 1% over, so
+  // `niceTicks`' span / count never lands a float's hair under one step and picks the decade below
+  const step = Math.max(fmtStep(Math.abs(hi)), fmtStep(Math.abs(hi) + (Y_TICKS * fmtStep(Math.abs(hi))) / 2));
+  const want = Y_TICKS * step * 1.01;
+  if (hi - lo >= want) return [lo, hi];
+  const from = Math.max(0, (lo + hi) / 2 - want / 2);
+  return [from, from + want];
+}
+
+/**
+ * (T1043) THE YEAR'S RANGE, for a bandless 72 h chart's scale (`BuildInput.scaleTo`): the 5th to the 95th percentile of
+ * everything the Year view draws as values (this year and the earlier years), so one storm day does not set the axis
+ * (Capilano's level year runs 0.52 to 2.96 m; its 72 h moved 0.017 m). The chart always holds its own 72 h values and
+ * today's reading as well (`buildHydrograph` widens to them). Null when the year holds no value at all.
+ */
+const YEAR_SCALE_PCT = [0.05, 0.95] as const;
+export function yearScale(year: { values: readonly (number | null)[];
+                                  priorYears?: readonly { values: readonly (number | null)[] }[] } | null):
+  { lo: number; hi: number } | null {
+  if (!year) return null;
+  const all: number[] = [];
+  for (const vs of [year.values, ...(year.priorYears ?? []).map((y) => y.values)])
+    for (const v of vs) if (v !== null && Number.isFinite(v)) all.push(v);
+  if (!all.length) return null;
+  all.sort((a, b) => a - b);
+  const at = (p: number) => all[Math.round(p * (all.length - 1))]!;
+  return { lo: at(YEAR_SCALE_PCT[0]), hi: at(YEAR_SCALE_PCT[1]) };
+}
 
 /** Log ticks: every 1, 2, 5 within the decades the data spans. */
 export function logTicks(lo: number, hi: number): number[] {
@@ -215,7 +260,19 @@ export interface BuildInput {
   ticks?: ((view: Domain) => readonly { t: number; label: string }[]) | null;
   /** (T567, T604) The days to mark besides today: where each falls on the clock (epoch ms), its words, and whose it is. */
   days?: readonly { at: number; label: string; kind: "conditions" | "regs" }[];
+  /**
+   * (T1043, owner 2026-11-23: "the scale of the chart should use the year data if not enough histroical data exists")
+   * THE RANGE A BANDLESS CHART IS SCALED TO: the quantity's past-year values (what the Year view draws), low and high.
+   * Read only when no band is on screen; a chart with a band keeps its own scale. Null or absent: none to hand.
+   */
+  scaleTo?: { lo: number; hi: number } | null;
 }
+
+/**
+ * (T1043) WHAT SET A LINEAR AXIS'S RANGE: the normal band on screen (`band`), the year's values for a chart with no band
+ * (`year`, `BuildInput.scaleTo`), or neither (`reading`: the drawn values alone, `minSpan` the last step). A log axis is `log`.
+ */
+export type ScaleSource = "band" | "year" | "reading" | "log";
 
 /**
  * Build every path and tick for one hydrograph.
@@ -294,11 +351,19 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
     y.values.forEach((v, i) => {
       if (v !== null && Number.isFinite(v) && seenAt(i)) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
     });
+  let banded = false;
   for (const [i, b] of bands.entries()) {
     if (!b || (i < vals.length && !seenAt(i))) continue;
+    banded = true;
     lo = Math.min(lo, b[0]);
     hi = Math.max(hi, b[4]);
   }
+  // (T1043) NO BAND ON SCREEN: the year's own values set the scale, so a wiggle of a centimetre is drawn as one, not as
+  // spikes across the whole plot (Capilano at Canyon's level: two years of record, no band)
+  const scaleTo = input.scaleTo;
+  const byYear = !banded && !log && !!scaleTo && Number.isFinite(scaleTo.lo) && Number.isFinite(scaleTo.hi);
+  if (byYear) { lo = Math.min(lo, scaleTo!.lo); hi = Math.max(hi, scaleTo!.hi); }
+  const scale: ScaleSource = log ? "log" : banded ? "band" : byYear ? "year" : "reading";
   if (!Number.isFinite(lo) || !Number.isFinite(hi)) { lo = 0; hi = 1; }
   if (hi === lo) hi = lo + 1;
   if (log) {
@@ -307,6 +372,7 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
     const pad = (hi - lo) * 0.18;
     lo = Math.max(0, lo - pad);
     hi += pad * 0.4;
+    [lo, hi] = minSpan(lo, hi);
   }
 
   const L0 = log ? Math.log10(Math.max(lo, 1e-6)) : lo;
@@ -368,7 +434,7 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
   }).filter((y) => y.d !== "");
 
   const medianPts = trace((b) => b[2]);
-  const yValues = log ? logTicks(10 ** L0, 10 ** L1).slice(0, 7) : niceTicks(lo, hi, 4);
+  const yValues = log ? logTicks(10 ** L0, 10 ** L1).slice(0, 7) : niceTicks(lo, hi, Y_TICKS);
 
   const nowIndex = nowI;
   const nowValue = input.nowValue ?? (nowIndex >= 0 ? vals[nowIndex] ?? null : null);
@@ -461,6 +527,7 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
     forecast,
     alsoForecasts,
     log,
+    scale,
     full,
     view,
     plot: { x: padLeft, y: padTop, width: innerW, height: innerH },
