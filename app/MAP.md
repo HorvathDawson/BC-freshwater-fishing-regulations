@@ -42,6 +42,12 @@ data/release/r-*/ (R2 in production)
                          (T910: the rules, `reads.rules()`, are inflated in a worker on the web — `regs/rulesDecode.web.ts`
                          over fflate's own UMD build, `fflateWorker.generated.ts`; the phone's `rulesDecode.native.ts` as before)
                          └─▶ @app/ui hooks ─▶ @app/ui-native screens ─▶ apps/mobile App.tsx
+a page older than what is served (T1016, web only: apps/mobile `replaced.web.ts`; the phone's twin installs nothing) ─▶ core
+                   `setFailureTriage`: a reported 404 is asked of the live pointer (data `release/replaced.ts`), a chunk
+                   that would not load of the site's own page (ui `siteProbe`); a set the pointer no longer names / a deploy
+                   since: ui `replacedTriage` raises the notice (ui-native `ReplacedBanner`: load the new data → the one
+                   in-session apply, `loadLiveRelease`; reload) and reports `ReleaseReplaced` / `SiteReplaced` (the worker's
+                   `expected`); a file the live release names, a chunk the live deploy lacks: reported as it is
 gauge feed (index.json, per-station) ─▶ packages/data/src/feed/http.ts ─▶ panels / conditions
 in-season feed + links (feeds/inseason/, T230) ─▶ packages/data/src/feed/inseason.ts ─▶ ui inseason.ts ─▶ banners, notice
 feed gate (T676 item 2): every feed index carries `minAppVersion` (FEED_MIN_APP, pipeline/common/feed_formats.py) ─▶

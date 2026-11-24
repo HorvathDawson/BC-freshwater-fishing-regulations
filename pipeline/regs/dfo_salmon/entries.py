@@ -39,6 +39,7 @@ from pathlib import Path
 from typing import Dict, List, NamedTuple, Optional
 
 from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, PAGES, normalize_slug
+from pipeline.regs.dfo_salmon.fetch import DEFAULT_CACHE as F_DEFAULT_CACHE
 from pipeline.regs.dfo_salmon.cascade import Scope, build_scopes, resolution_chain
 from pipeline.regs.parsing.entry_models import Extent
 from pipeline.regs.dfo_salmon.locations import Location, normalize
@@ -1201,7 +1202,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("--history", action="store_true",
                     help="seed: also take every location from cached historical versions, "
                          "so a seasonal revival is an exact hit rather than a review item")
-    ap.add_argument("--history-dir", type=Path, default=Path("cache/dfo_salmon/history"))
+    ap.add_argument("--history-dir", type=Path, default=F_DEFAULT_CACHE / "history")
     ap.add_argument("--verbose", action="store_true")
     ap.add_argument("--dry-run", action="store_true",
                     help="bind-whole: report what would be written, change nothing")

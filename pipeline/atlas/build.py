@@ -335,17 +335,17 @@ def _added_name_variant_entries(variants: list[dict]) -> list[dict]:
         elif city == "osm":
             # T222: a stream taken from OpenStreetMap (data/source/municipal/osm_streams.geojson), never official
             nm = {"name": v["name"], "source": "osm", "note": f"added:{v.get('kind', '')}",
-                  "source_label": "OpenStreetMap", "source_ref": "data/source/municipal/osm_streams.geojson"}
+                  "source_label": "OpenStreetMap", "source_ref": "data/source/municipal/osm_streams.geojson"}  # path-label: provenance written into the registry, never opened
         elif city == "manual":
             # T806: a channel drawn by hand (data/source/municipal/manual_streams.geojson) carries the name of the water
             # it continues; today Sheldens Creek, whose only source is DFO's salmon regulations (never official)
             nm = {"name": v["name"], "source": "dfo", "note": f"added:{v.get('kind', '')}",
-                  "source_label": "DFO salmon regulations", "source_ref": "data/source/municipal/manual_streams.geojson"}
+                  "source_label": "DFO salmon regulations", "source_ref": "data/source/municipal/manual_streams.geojson"}  # path-label: provenance written into the registry, never opened
         else:
             # T224: a city's name (its own minted stream, or an FWA line it maps): the city layer, never official
             nm = {"name": v["name"], "source": "municipal", "note": f"added:{v.get('kind', '')}",
                   "source_label": CITY_LABELS.get(city, "Municipal stream layer"),
-                  **({"source_ref": f"data/source/municipal ({city})"} if city else {})}
+                  **({"source_ref": f"data/source/municipal ({city})"} if city else {})}  # path-label: provenance written into the registry, never opened
         out.append({"target": {"blk": str(v["target_blk"]), "gnis_id": str(v.get("target_gnis") or "")},
                     "names": [nm]})
     return out

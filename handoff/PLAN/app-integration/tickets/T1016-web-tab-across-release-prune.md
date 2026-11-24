@@ -1,6 +1,6 @@
 # T1016 — Web: a tab kept open across two releases (or a site deploy) meets 404s on files production no longer serves
 
-Status: OPEN — next release batch.
+Status: PARTIAL — built d787d0dff, review fixes 36862bbbc (lane L6, 2026-11-24); left (Claude): the feeds worker deploy with the 0.9.1 batch (its `expected` class for the two names), the owner's pick of the words (lane report, pictures in `../T1016-shots/`), and a production-export check of the chunk case
 
 Source: T1005 triage. Production keeps the live release and the previous one (`deploy/prod/upload.sh` prunes the rest
 24 h on). The 404 kinds of T1005 (`3d5ded1b72ff865f`, `2c766955748940d9`, `f6d0af3f051de23a`, `bb863fcb6535d696`, …)
@@ -18,3 +18,43 @@ mask and sprites), and one opened before a site deploy loads a chunk that is gon
 3. Tests for both, against a fake origin.
 
 Depends: none. Size: M. Owner: no.
+
+## Built (lane L6, 2026-11-24, d787d0dff)
+- **One second look before a report** (core `failure.ts` `setFailureTriage`), installed by the web only
+  (`apps/mobile` `replaced.web.ts`; `replaced.native.ts` installs nothing: a phone reads its installed set and its code is
+  in the binary). `@app/ui` `replaced.ts` `replacedTriage`:
+  - a 404 (`<url>: HTTP 404`, or a status + url: MapLibre's AJAXError, the outside mask's, now carried) under the release
+    root is asked of the live pointer, read fresh (`@app/data` `release/replaced.ts`): a path only the opened manifest
+    names → the notice and a report renamed `ReleaseReplaced`; a path the LIVE manifest names → the 404 as it is (a defect);
+    the pointer not answering → the 404 as it is. The in-season "no lines" failure carries its read's 404 as its cause.
+  - a chunk that would not load (`AsyncRequireError`) is asked again with the site's own page (`siteProbe`): a 404 and a
+    page that no longer names this page's entry → the "Reload" notice and `SiteReplaced`; a 404 while it does → a defect;
+    no answer → the line's (not reported).
+- **The notice** (ui-native `ReplacedBanner`, the slow/offline bar's look, above the Shell): data → "This page’s data was
+  replaced by a newer release. / Load the new data ›", whose action is the app's one in-session apply
+  (`loadLiveRelease`: the update service stages the live release, `apply` boots onto it); code → "The app was updated since
+  this page opened. / Reload ›". Words new (no existing message fits): the owner's pick is open.
+- **The worker** (`crashes.ts` EXPECTED += `/^(ReleaseReplaced|SiteReplaced): /`): needs a deploy; until then the renamed
+  reports arrive as `defect` under the new names. `tools/wire.test.ts` proves the app's scrubbed payloads class `expected`.
+- **Reproduced on the web** (Expo dev server over a fake origin: r-0aec88ed3edb as A, aliases B and C, A and its tile folder
+  pruned): the Conditions tab's first read 404s (conditions, flow-area, flow-small), the notice shows, its action applies C and
+  the panel loads (`../T1016-shots/prune-{light,dark}{,-after}.png`). The chunk case is proved by tests only (the dev server
+  loads chunks another way).
+
+## Review #101 fixes (lane L6, 2026-11-24, 36862bbbc)
+- No look holds a report for good: the pointer read and the site probe's asks are aborted after 10 s (`POINTER_MS`,
+  `LOOK_MS`), and the triage reports the failure as it is past `LOOK_MS` whatever the probe does (a stalled read used to
+  hold the report, and every later release-root 404 joining it, until the tab closed).
+- A chunk asked again with no answer is reported (as on main), now as a NEW error that says so first ("no answer when
+  asked again (…)": the worker's existing `network` class); the error the part shows is never written.
+- The worker's name anchor is pinned (`…: ReleaseReplaced: …` inside another message stays a defect).
+- A late 404 of a read made on A that lands after the apply to C is judged against A (App keeps every set the page opened,
+  `openedSets`): renamed `ReleaseReplaced`, raised for A, so no notice shows on C.
+
+## Known, left for the planning chat (not changed tonight; the pointer format stays)
+- (a) A 404 on the PREVIOUS release (which production promises to keep 24 h) is classed `replaced`: a too-early prune by
+  `deploy/prod/upload.sh` would be masked as expected. Telling previous from older needs a `previous` field on the pointer.
+- (b) The web has no app-version gate (`appVersion: null` on the web), so the notice's button can apply in session a
+  release that needs newer site code. This predates T1016: the Shell's safe-moment apply does the same.
+- (c) The staged-release case can take two presses of the notice's action (review finding on #101; not reproduced by
+  the lane).

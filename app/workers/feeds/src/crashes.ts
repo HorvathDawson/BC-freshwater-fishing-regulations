@@ -178,6 +178,10 @@ const EXPECTED = [
   /SecurityException: Unsupported path \/data\/local\/tmp\//i,   // an emulator-only path the OS refuses (T603 item 6, T595)
   /names file out of date \(HTTP 404\)/,            // (T1010) a region page older than the release it sits on: its names file was replaced (the page says "reload it")
   /Failed to initialize WebGL/,                     // (T1005) a browser with no WebGL: the app says the map cannot draw (MapUnavailable)
+  // (T1016) a browser tab older than what the server serves: a file of a release the live pointer no longer names (404),
+  // or a code chunk gone after a site deploy. The app tells these from a defect (a file the LIVE release names stays a
+  // defect) and names them so; the page says it with one action (load the new data / reload)
+  /^(ReleaseReplaced|SiteReplaced): /,
   // (T1005) our own DAY limit refusing an exit record (builds before 127296a64 report it). The 1 s GAP's 429 ("too many
   // reports; try again in a minute") stays a defect: a client sending too fast (the app spaces its sends since fe477309b)
   /was refused by the crash server: HTTP 429 \(too many (reports|new error kinds) today\)/,

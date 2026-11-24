@@ -201,7 +201,8 @@ export function useInSeasonCovers(store: Pick<RegsStore, "navRows" | "statics"> 
       const k = `${f}|${p.change.id}|${page?.item}`;
       if (TOLD.has(k)) continue;
       TOLD.add(k);
-      reportFailure(new Error(f));
+      // (T1016) the lines' read failure goes with it: a 404 of a release the pointer no longer names is told by it
+      reportFailure(new Error(f, read.state === "failed" ? { cause: read.error } : undefined));
     }
   }, [out]);
   return out;

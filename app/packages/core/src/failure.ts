@@ -44,10 +44,30 @@ export function environmentError<E extends Error>(e: E): E {
   return e;
 }
 
+/**
+ * (T1016) A SECOND LOOK BEFORE A FAILURE IS REPORTED: asked of every failure that is not the environment's. `null` — the
+ * failure is reported as it is, at once (every failure but the few the look is for); a promise — what it resolves to is
+ * reported instead (a known state named so, `REPLACED_NAMES`), or nothing when it resolves to the environment's (a probe
+ * that found the line down). A look that throws or rejects: the failure is reported as it is, AND the look's own failure.
+ * Set by the web app (`apps/mobile` replaced.web.ts: a 404 of a release the pointer no longer names, a code chunk gone
+ * after a deploy); none on a phone.
+ */
+let triage: ((e: unknown) => Promise<unknown> | null) | null = null;
+
+/** @public — the web app's second look (`apps/mobile` replaced.web.ts); returns the undo. */
+export function setFailureTriage(t: ((e: unknown) => Promise<unknown> | null) | null): () => void {
+  const prev = triage;
+  triage = t;
+  return () => { triage = prev; };
+}
+
 /** Report a failure the app caught (non-fatal) — unless it is the environment's. */
 export function reportFailure(e: unknown): void {
   if (isEnvironment(e)) return;
-  sink?.(e);
+  let later: Promise<unknown> | null;
+  try { later = triage?.(e) ?? null; } catch (x) { sink?.(e); sink?.(x); return; }
+  if (!later) { sink?.(e); return; }
+  void later.then((x) => { if (!isEnvironment(x)) sink?.(x); }, (x: unknown) => { sink?.(e); sink?.(x); });
 }
 
 const once = new Set<string>();
