@@ -106,9 +106,10 @@ describe("the profile colour mode", () => {
         // T377's closed stripe (`stream-closed`, on with the day's `closed` labels), and T735's glow under the part's
         // casing (`selection-glow`, look C: dark only; a theme with no glow has no such layer), and T759's issue stripe
         // (`stream-issue-casing` + `stream-issue-stripe`, off outside `salmon`), and T848's heavy line (`stream-heavy`: the
-        // stream's lit and closed sections over it), and T887's keep casing (`stream-salmon-casing`, off outside `salmon`) — all
-        // validated with the real paint
-        expect(patched, theme).toBe(theme === "dark" ? 25 : 24);
+        // stream's lit and closed sections over it), and T887's keep casing (`stream-salmon-casing`, off outside `salmon`), and T1029's one-bank cue (its two halves
+        // `stream-bank-r`/`-l` and their closed cues `stream-bank-cue-r`/`-l`: painted with the stream since the cue reads
+        // the salmon day; opacity 0 on Standard) — all validated with the real paint
+        expect(patched, theme).toBe(theme === "dark" ? 29 : 28);
         for (const e of validateStyleMin(style as never)) problems.push(`${theme}: ${e.message}`);
       }
     expect(problems).toEqual([]);
