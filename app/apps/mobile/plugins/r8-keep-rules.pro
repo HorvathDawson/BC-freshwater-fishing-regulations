@@ -15,6 +15,15 @@
 #    "Failed to create an instance of class androidx.work.impl.WorkDatabase" and the app dies before the first frame.
 -keep class * extends androidx.room.RoomDatabase { <init>(); }
 
+# 1b. THE SAME PATTERN IN WORKMANAGER ITSELF (found 2026-11-24 by T1027's notify-fire walk; in every R8 build since
+#     T1003). Every WorkSpec stores its input merger by CLASS NAME (`androidx.work.OverwritingInputMerger`), and
+#     WorkerWrapper makes it by reflection (getDeclaredConstructor().newInstance()) before each run. WorkManager's own
+#     rule `-keep class * extends androidx.work.InputMerger` keeps the name but, in full mode, not the constructor:
+#     "WM-InputMerger: NoSuchMethodException: androidx.work.OverwritingInputMerger.<init> []", "Could not create Input
+#     Merger", and the worker never runs: expo-background-task's check (gauge alerts, the update and new-version
+#     notices) never ran with the app closed.
+-keep class * extends androidx.work.InputMerger { <init>(); }
+
 # 2. MemoryTrim (modules/memory-trim, T360) finds MapLibre's map views by comparing class NAMES with
 #    "org.maplibre.android.maps.MapView" and calls `onLowMemory` by name (getMethod). Renamed: no map is told to drop its
 #    tiles on a trim (silent: the trim event says `maps: 0`).

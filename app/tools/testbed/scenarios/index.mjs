@@ -48,6 +48,7 @@ import { troutTable } from './trout-table.mjs';
 import { oldAppGate } from './old-app-gate.mjs';
 import { modeSwitch } from './mode-switch.mjs';
 import { pushAbsent } from './push-absent.mjs';
+import { notifyFire } from './notify-fire.mjs';
 import { smallLooks } from './small-looks.mjs';
 
-export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, savedSpots, twoDays, routeScroll, report, crash, crashBed, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, bgUpdate, locate, gestures, walkthrough, gaugeOffline, gaugeLevel, memory, waterNav, heapprof, edge, feel, partSteps, tabSwitch, glide, photoZoom, stepShots, paneOpen, mapIdle, switchPan, regsSwitch, retireSwap, zoomFlick, zoomPinch, tapStalls, backFlash, openRace, troutTable, oldAppGate, modeSwitch, pushAbsent, smallLooks];
+export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, savedSpots, twoDays, routeScroll, report, crash, crashBed, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, bgUpdate, locate, gestures, walkthrough, gaugeOffline, gaugeLevel, memory, waterNav, heapprof, edge, feel, partSteps, tabSwitch, glide, photoZoom, stepShots, paneOpen, mapIdle, switchPan, regsSwitch, retireSwap, zoomFlick, zoomPinch, tapStalls, backFlash, openRace, troutTable, oldAppGate, modeSwitch, pushAbsent, notifyFire, smallLooks];
