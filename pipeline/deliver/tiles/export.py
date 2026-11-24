@@ -21,6 +21,7 @@ from pathlib import Path
 
 from pipeline.deliver.tiles import ladder
 from pipeline.deliver.tiles.layers import BY_NAME, LAKE_LINK, LayerSpec
+from pipeline.deliver.tiles.stream_polygon_lines import is_stub
 from pipeline.deliver.bundle.place_names import area_display, area_name_uncleaned, is_shouting
 from pipeline.deliver.tiles.names import display
 from pipeline.common.fishing_water import not_fishing_kind
@@ -161,7 +162,8 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None,
     ``export_waterbodies`` below.
 
     (T1024) `route_zooms`, when given, is filled with EVERY stream's own polygon of the graph: the first zoom its route is
-    drawn at in the `stream` layer, or None when it has none (no sidecar line: the Okanagan River Oxbows). The polygon
+    drawn at in the `stream` layer, or None when it has none (no sidecar line: the Okanagan River Oxbows) or only a stub
+    (`stream_polygon_lines.is_stub`: the route still draws, but does not stand for the polygon). The polygon
     carries it as `lz` (``export_waterbodies``), so the selection rings it only where its line is not drawn."""
     from pipeline.common.section_handles import read as _read_handles
 
@@ -275,7 +277,11 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None,
                      for o in ((e.from_node if e.to_node == sec else e.to_node),) if o in run_zoom]
             write({"section_id": sid[sec], "name": owners.label(sec, node), "ord": ord_},
                   min([ladder.zoom_for_magnitude(mag, spec.minzoom)] + run_z), sec)
-            poly_routes.append(sec)
+            # (T1024) a STUB route (shorter than STUB_RATIO of its polygon's long side: the Okanagan River Oxbows'
+            # 67 m in a 57,000 m2 loop) does not stand for its polygon: reported as no line, so the polygon stays ringed
+            wb = wb_polys.get(sec)
+            if wb is None or wb.is_empty or not is_stub(g.length, wb):
+                poly_routes.append(sec)
             # (T493 reopened) the polygon is the river where it is drawn: its first zoom exactly as
             # `export_waterbodies` draws it (a ghost, not-fishing water or an undrawn wetland is not drawn)
             pl = wb_polys.get(sec)
