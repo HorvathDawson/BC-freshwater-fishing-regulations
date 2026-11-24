@@ -21,7 +21,7 @@ overnight, and the repo move comes after it.
 | # | Chat | Scope (frozen) |
 |---|---|---|
 | P | Planning (runs in the background, alongside every chat) | Intake and planning only, never code: the owner's new asks, tester feedback and reports become tickets + feedback-log rows; it keeps the roadmap, the release contents and OWNER-TODO current. Build chats never write new tickets: they hand new finds to this chat. |
-| 1 | Ship 0.9.0 | Finish `runbooks/release-by-hand.md` from where the restart page says: the staging check, the emulator device pass, the owner's production commands, Play Closed, and the releases/feedback-log rows. |
+| 1 | Ship 0.9.0 — DONE 2026-11-24 (production data, site, feeds worker; Play build 44 on Internal + Closed; iPhone build 45 uploaded; `release/0.9.0` merged back, PR #140) | Finish `runbooks/release-by-hand.md` from where the restart page says: the staging check, the emulator device pass, the owner's production commands, Play Closed, and the releases/feedback-log rows. |
 | 2 | 0.9.1 follow-ups (opens tonight, runs overnight beside chat 1) | Trout per-row source pages. T1029 (owner Q4–6 with pictures, in the morning). T1030. The T1047 follow-up: a datum-change list seeded from HYDAT `STN_REMARKS`, with owner-accepted rows for 08KH019/08MH153. The stub-polygon double outline (#81 review). The T1049 and T1041 low findings. Any 0.9.0 device-pass bugs. One file per ledger row and per OWNER-TODO item, with README/OWNER-TODO built from them. Added by the owner 2026-11-24: T905 (salmon feed back under its old size, so the gate can come back down from 110,000 B), T1027 (R8 scores past ~72%), T1016 (a tab open across a release reloads), T1036 (the "All sources" sheet matches the screen), T1021 (the hard-coded-path gate), T1020 (the licence-frame diff gap), T1048 (the cut writes the app_reads row). |
 | 5i | iOS full release (FIRST after 0.9.1; owner 2026-11-24) | T1071: the App Store distribution and compliance checklist (App Privacy, export compliance, age rating, content rights, availability, review notes), production push proved (T996), the release step list; the owner submits 0.9.x to the App Store. Docs and owner clicks, no feature work. |
 | S | Store content (beside 5i; owner approved 2026-11-24) | T1072: 2–3 screenshot directions as pictures, the owner picks, one set in every Play and App Store size, one source of listing words for both stores and the website. T1076: the reshoot tool builds its own store-shots export. With T319, T709. |
@@ -49,7 +49,7 @@ order of 3, 2b and D after the iOS release is the planning chat's proposal; the 
 | Chat | Session | Restart page |
 |---|---|---|
 | P planning | `bc-freshwater-fishing-regulations-8e` | this file + the ledger; it alone numbers tickets (from T1055) |
-| 1 ship 0.9.0 | `bc-freshwater-fishing-regulations-37` | `NEXT-SESSION-…-after-090.md` once Step 8 is done (name to come) |
+| 1 ship 0.9.0 | `bc-freshwater-fishing-regulations-37` | `handoff/PLAN/NEXT-SESSION-2026-11-24-after-090.md` (chat finished 2026-11-24) |
 | 2 0.9.1 follow-ups | `bc-freshwater-fishing-regulations-56` | `handoff/PLAN/RESTART-091-chat.md` |
 
 Build chats list new finds under "For the planning chat" on their restart page and message the planning chat; it
@@ -61,7 +61,7 @@ Triage of everything ticketed since the roadmap was written. Severity / model / 
 
 | Release / chat | Goal (short) | Tickets added by triage |
 |---|---|---|
-| 0.9.0 (chat 1) | Ship the batch of small fixes from closed-test feedback to production, Play Closed and TestFlight. | none (frozen; shipping) |
+| 0.9.0 (chat 1) | Ship the batch of small fixes from closed-test feedback to production, Play Closed and TestFlight. | none (shipped 2026-11-24) |
 | 0.9.1 (chat 2) | Follow-ups to 0.9.0, anything found broken on its device pass, and the owner's four staging reports (gear, closed-water and tributary wording; a data release). | T1058 Gradle Metaspace hang and T1059 `ci_status --strict` (both bite its Play build; the 0.9.1 chat took them 2026-11-24), T1061 "Flows into" blank band, T1083 the web start link refuses `wsc:` ids (HIGH: confirmed on production 0.9.0), T1086 ruling RU-14 rewritten with T1053, T1087 the Brunette's "upstream of Burnaby Lake" closure bound to the whole river (HIGH until traced), T1050–T1053 (the owner's four staging reports) as the 0.9.1 chat triaged them |
 | Chat 3 | Move the repo to an org and turn on the merge queue; settle how releases are tagged. | T1062 release candidates (rc tags): plan first, owner agrees |
 | 0.9.2 (chat 2b; owner approved 2026-11-24) | Harden: crash containment, failures that hide, release tooling and test flakiness; clear the report backlog so new reports stand out. No new features. | T1055, T1057, T1060, T1063, T1064, T1065, T1066, T1067, T1070, T1077 ("All sources" bait source with no line), T1078 (a two-rule all-year closure names one), T1079 (Playwright logs land in the main checkout), T1074 (rule 28 vs runtime map layers), T1075 (a lake's "Not on lakes" gear line), T1073 (the app-update notice only when the phone can install it; owner 2026-11-24); about 4 lanes (Opus: T1060+T1073 / T1064+T1066+T1067 / T1065; Sonnet: T1055+T1057+T1063+T1070) |
