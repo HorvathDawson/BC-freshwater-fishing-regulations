@@ -1,6 +1,6 @@
 # T1016 — Web: a tab kept open across two releases (or a site deploy) meets 404s on files production no longer serves
 
-Status: PARTIAL — built d787d0dff, review fixes 36862bbbc (lane L6), automatic refresh b38201d83 (lane L17, owner 2026-11-24); left (Claude): the feeds worker deploy with the 0.9.1 batch (its `expected` class for the two names), and a production-export check of the chunk case
+Status: PARTIAL — built d787d0dff, review fixes 36862bbbc (lane L6), automatic refresh b38201d83, 03f70b777 (lane L17, owner 2026-11-24); left (Claude): the feeds worker deploy with the 0.9.1 batch (its `expected` class for the two names), and a production-export check of the chunk case
 
 Source: T1005 triage. Production keeps the live release and the previous one (`deploy/prod/upload.sh` prunes the rest
 24 h on). The 404 kinds of T1005 (`3d5ded1b72ff865f`, `2c766955748940d9`, `f6d0af3f051de23a`, `bb863fcb6535d696`, …)
@@ -63,7 +63,7 @@ Depends: none. Size: M. Owner: no.
 - Asked about the notice's words: **"Force refresh instead?"**
 - Asked how (auto unless typing / always / keep the notice): **"Always auto refresh"**
 
-## Built (lane L17, 0.9.1, 2026-11-24, b38201d83): the tab refreshes itself
+## Built (lane L17, 0.9.1, 2026-11-24, b38201d83, 03f70b777): the tab refreshes itself
 - **At once, typing or not, no notice to press.** `ReleaseReplaced` → the live release put in use through the same one
   in-session apply (`loadLiveRelease` → the app's `apply`); `SiteReplaced` → the page reloads (`replaced.web.ts`
   `autoReload`). `@app/ui` `createReplacedState({ refresh, sent, inUse })` decides; App hands it the two refreshes.
