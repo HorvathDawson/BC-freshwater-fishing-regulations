@@ -385,7 +385,8 @@ THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER = True
 #: and the 640 sections above it. The same test as a confluence cut's joining water
 #: (`CONFLUENCE_WATER_WITHOUT_A_ROW_GOES_WITH_THE_CUT`, ruling 2026-09-30): no row of its own, it goes
 #: with the lake. Only for a lake that is the ENTRY'S OWN water — a lake at the top of a river reach
-#: still ends that reach ("X River downstream of Y Lake" does not take what feeds Y Lake).
+#: still ends that reach ("X River downstream of Y Lake" does not take what feeds Y Lake); a WHOLE water's
+#: head lake is climbed (`A_WHOLE_WATERS_WALK_CLIMBS_ITS_HEAD_LAKE`, T1053).
 #: Applied by `reach.build._expander` through `through_inlets`. False = the mutation pin.
 A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY = True
 

@@ -1237,7 +1237,8 @@ def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, 
         # the lake at its top stops the walk as a lake at any reach's top does. The Nass's
         # closure "from signs below the Meziadin confluence up to the Hwy 37 bridge" takes the
         # Meziadin River from the Nass to the Meziadin Lake outlet and never the 1,178 streams
-        # feeding the lake (Hanna, Tintina, Strohn …), which the Meziadin's own row stops at too.
+        # feeding the lake (Hanna, Tintina, Strohn …). (T1086) That holds for the NASS's stretch rule only: the
+        # Meziadin River's OWN ✱ row is a whole-water rule and climbs through Meziadin Lake (RULINGS T18, T1053).
         stems: set[str] = set()
         for row in expand.confluence:
             if row.get("with_cut") and row.get("own_row"):
