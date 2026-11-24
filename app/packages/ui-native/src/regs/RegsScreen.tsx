@@ -21,7 +21,7 @@ import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, u
 import { openProbe } from "@app/data";
 import { Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
 import { Text } from "../Text";
-import { LEGAL_WORDS, parseSheetKey, reportFailure, withInSeason, withSalmonSheets, type SalmonCardVM, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type TabSourcesVM, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
+import { LEGAL_WORDS, now as clockNow, parseSheetKey, reportFailure, withInSeason, withSalmonSheets, type SalmonCardVM, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type TabSourcesVM, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
 import { FreshDot } from "../menu/Fresh";
 import { NO_SNIPPET, WaterInset } from "../WaterFrame";
@@ -209,7 +209,7 @@ export function RegsScreen({ page, palette, images, actions, onDate,
       if (y !== at && followed < START_FOLLOW) {
         at = y; held = 0; followed += 1;
         store.selectTab(start.tab);
-        startJumpUntil.current = Date.now() + START_JUMP_MS;
+        startJumpUntil.current = clockNow() + START_JUMP_MS;
         scroll.current?.scrollTo({ y, animated: false });
         return;
       }
@@ -334,7 +334,7 @@ export function RegsScreen({ page, palette, images, actions, onDate,
                                      // (T1049) a scroll that is not the start's own jump is the reader's (a wheel, keys, a
                                      // web drag: react-native-web fires no onScrollBeginDrag for those)
                                      // (before its first jump only a scroll off the top: the page settling at 0 is not the reader)
-                                     if (Date.now() > startJumpUntil.current && (startJumpUntil.current > 0 || y > 0)) startTaken.current = true;
+                                     if (clockNow() > startJumpUntil.current && (startJumpUntil.current > 0 || y > 0)) startTaken.current = true;
                                      if (scrollKey && !restoring.current) rememberRegsScroll(scrollKey, y); }}
                   onLayout={(e) => { viewH.current = e.nativeEvent.layout.height; store.setViewport(e.nativeEvent.layout.height); }}
                   onContentSizeChange={(_w, h) => { contentH.current = h; store.setContentHeight(h); remeasure(); }}>
