@@ -21,7 +21,7 @@ import { MAP_STYLE, NO_VALUES, STYLE_META, defaultView, resolveTheme, withFollow
 import { NO_ASSETS, type TileEndpoints } from "./endpoints";
 import { gaugeLayers, gaugeSource } from "./gaugeDots";
 import { landOutline } from "./on-imagery";
-import { BANK_CUE_LAYERS, BANK_LAYERS, BANK_MODES, bankCuePaint, bankHalfPaint, SALMON_CASING_LAYER, salmonCasingPaint, ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, hasGlow, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, markShownIn, markWidth, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS, splitStream, STREAM_HEAVY, streamWidths } from "./paint";
+import { BANK_CUE_LAYERS, BANK_LAYERS, BANK_MINZOOM, BANK_MODES, bankCuePaint, bankHalfPaint, SALMON_CASING_LAYER, salmonCasingPaint, ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, hasGlow, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, markShownIn, markWidth, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS, splitStream, STREAM_HEAVY, streamWidths } from "./paint";
 import { traceLayers, traceSources } from "./trace-overlay";
 import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY, copyFilter } from "./water-copy";
 import { BASEMAP_LABELS, basemapLabelPaint, placesByImportance, WATER_NAMES } from "./labels";
@@ -348,7 +348,7 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       { id: BANK_LAYERS[side], paint: bankHalfPaint(side, tk, sw.base) },
       { id: BANK_CUE_LAYERS[side], paint: bankCuePaint(side, tk, sw.base) },
     ]).map(({ id, paint }) => ({
-      id, type: "line" as const, source: "atlas", "source-layer": "stream",
+      id, type: "line" as const, source: "atlas", "source-layer": "stream", minzoom: BANK_MINZOOM,
       layout: shownIn(BANK_MODES.includes(sMode), { "line-cap": "butt" as const, "line-join": "round" as const }),
       paint,
     }))];

@@ -1,4 +1,5 @@
-"""T1029 (prototype) — which side of the DRAWN line a named bank is, from the line as written, never assumed."""
+"""T1029 — which side of the DRAWN line a named bank is, from the line as written, never assumed; every section asked
+for ends with a side or a typed reason (never a guess, never a silent skip)."""
 
 from __future__ import annotations
 
@@ -6,11 +7,16 @@ import json
 
 import pytest
 
-from pipeline.deliver.bank_side import bank_side, sides_from_layer
+from pipeline.deliver.bank_side import Side, Why, bank_side, polygon_sections, report, sides_from_layer
 
 #: the Kitimat's section at the hatchery signs as the 0.9.0 tiles write it (section 1234098): d/s sign first, u/s last —
 #: the line runs UPSTREAM, north-east
 KITIMAT = [[-128.682089, 54.03179], [-128.6805, 54.0335], [-128.6788, 54.0352], [-128.676787, 54.037269]]
+
+
+def _row(sid, coords, gtype="LineString", **props):
+    return json.dumps({"type": "Feature", "geometry": {"type": gtype, "coordinates": coords},
+                       "properties": {"section_id": sid, **props}}, separators=(",", ":")) + "\n"
 
 
 def test_the_kitimat_west_bank_is_left_of_its_drawn_line():
@@ -24,22 +30,47 @@ def test_the_kitimat_west_bank_is_left_of_its_drawn_line():
 def test_a_line_along_the_words_axis_has_no_answer():
     # a river flowing due west: "west bank" names neither bank
     s = bank_side([[-120.0, 50.0], [-120.01, 50.0001]], "west")
-    assert (s.sign, s.share) == (0, 0.0) and "axis" in s.why
+    assert (s.sign, s.share, s.why) == (0, 0.0, Why.along_axis)
 
 
 def test_a_meander_whose_pieces_disagree_has_no_answer():
     # north for 100 m, then south for 100 m: west is left, then right
     s = bank_side([[-120.0, 50.0], [-120.0, 50.0009], [-119.999, 50.0009], [-119.999, 50.0]], "west")
-    assert s.sign == 0 and "disagree" in s.why
+    assert s.sign == 0 and s.why is Why.pieces_disagree
 
 
-def test_a_section_read_from_the_layer_file(tmp_path):
-    f = tmp_path / "stream.geojsonl"
-    row = {"type": "Feature", "geometry": {"type": "LineString", "coordinates": KITIMAT},
-           "properties": {"section_id": 7, "ord": 7}, "tippecanoe": {"layer": "stream", "minzoom": 5, "maxzoom": 13}}
-    f.write_text(json.dumps(row, separators=(",", ":")) + "\n")
-    assert sides_from_layer(f, {7: "west"})[7].sign == -1
-    with pytest.raises(SystemExit, match=r"no line for section\(s\) \[8\]"):
-        sides_from_layer(f, {7: "west", 8: "west"})
+def test_a_side_and_a_reason_never_come_together():
+    with pytest.raises(ValueError):
+        Side(1, 1.0, Why.along_axis)
+    with pytest.raises(ValueError):
+        Side(0, 0.0)
+
+
+def test_every_section_asked_for_ends_with_a_side_or_a_typed_reason(tmp_path):
+    stream, lake = tmp_path / "stream.geojsonl", tmp_path / "lake.geojsonl"
+    stream.write_text(_row(7, KITIMAT, ord=7) + _row(9, KITIMAT) + _row(9, KITIMAT)
+                      + _row(11, [[-128.0, 54.0], [-128.001, 54.0001]]) + _row(12, KITIMAT))
+    # 12: a river wide enough to be a polygon reach (its route still in the stream layer); 13: a lake, not a river
+    lake.write_text(_row(12, [[[0, 0], [1, 0], [1, 1], [0, 0]]], "Polygon", water="stream")
+                    + _row(13, [[[0, 0], [1, 0], [1, 1], [0, 0]]], "Polygon", water="lake"))
+    got = sides_from_layer(stream, {7: "west", 8: "west", 9: "west", 11: "west", 12: "west"}, lake)
+    assert sorted(got) == [7, 8, 9, 11, 12]
+    assert got[7].sign == -1
+    assert got[8].why is Why.no_line
+    assert got[9].why is Why.written_twice
+    assert got[11].why is Why.along_axis
+    assert got[12].why is Why.polygon_reach
+    ok, bad = report(got)
+    assert ok == {7: -1}
+    assert bad == {"no_line": [8], "written_twice": [9], "along_axis": [11], "polygon_reach": [12]}
+    assert polygon_sections(lake, [12, 13]) == frozenset({12})
     with pytest.raises(ValueError, match="bank word"):
-        bank_side(KITIMAT, "upstream")
+        sides_from_layer(stream, {7: "upstream"})
+
+
+def test_the_answer_does_not_depend_on_the_order_asked(tmp_path):
+    stream = tmp_path / "stream.geojsonl"
+    stream.write_text(_row(7, KITIMAT) + _row(8, KITIMAT[::-1]))
+    a = sides_from_layer(stream, {7: "west", 8: "west"})
+    b = sides_from_layer(stream, {8: "west", 7: "west"})
+    assert list(a) == list(b) == [7, 8] and a == b and (a[7].sign, a[8].sign) == (-1, 1)

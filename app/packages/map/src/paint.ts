@@ -483,6 +483,8 @@ export function issuePaint(part: keyof typeof ISSUE_LAYERS, mode: string, tokens
  */
 export const BANK_LAYERS = { right: "stream-bank-r", left: "stream-bank-l" } as const;
 export const BANK_CUE_LAYERS = { right: "stream-bank-cue-r", left: "stream-bank-cue-l" } as const;
+/** (owner 2026-11-24: "from zoom 13 up, the card carrying it below that") the first zoom the cue is drawn at */
+export const BANK_MINZOOM = 13;
 /** the colourings a stripe is shown in: those that answer a rule (Salmon, Standard) */
 export const BANK_MODES: readonly string[] = ["salmon", "profile"];
 /** the stretch's drawn width: this many times the stream's own, at least `BANK_MIN_PX` */

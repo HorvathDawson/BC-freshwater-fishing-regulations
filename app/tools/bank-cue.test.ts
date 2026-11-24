@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { createPropertyExpression, latest } from "@maplibre/maplibre-gl-style-spec";
-import { BANK_CUE_LAYERS, BANK_LAYERS, BANK_MIN_PX, BANK_WIDEN } from "../packages/map/src/paint";
+import { BANK_CUE_LAYERS, BANK_LAYERS, BANK_MIN_PX, BANK_MINZOOM, BANK_WIDEN } from "../packages/map/src/paint";
 import { runtimeStyle } from "../packages/map/src/runtime-style";
 import { resolveTheme } from "../packages/map/src/style";
 
@@ -66,6 +66,11 @@ describe("(T1029) one bank: a wider line split down the middle", () => {
       expect(left.paint?.["line-dasharray"]).toEqual(get("stream-closed").paint?.["line-dasharray"]);
     });
   }
+  it("drawn from zoom 13 up only (owner 2026-11-24): every bank layer starts there", () => {
+    expect(BANK_MINZOOM).toBe(13);
+    for (const id of [...Object.values(BANK_LAYERS), ...Object.values(BANK_CUE_LAYERS)])
+      expect((layers("light", "salmon").find((l) => l.id === id) as { minzoom?: number } | undefined)?.minzoom).toBe(13);
+  });
   it("hidden on the plain map (no bucket of its own there)", () => {
     for (const id of [...Object.values(BANK_LAYERS), ...Object.values(BANK_CUE_LAYERS)])
       expect(layers("light", "plain").find((l) => l.id === id)?.layout?.["visibility"]).toBe("none");
