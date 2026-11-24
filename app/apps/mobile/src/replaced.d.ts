@@ -21,3 +21,10 @@ export declare function installReplaced(o: {
 
 /** The code notice's action: the page loaded again (the web); a phone never raises it. */
 export declare function reloadPage(): void;
+
+/**
+ * (T1016, owner 2026-11-24 "Always auto refresh") The code verdict's AUTOMATIC reload, at most once per page code
+ * (`@app/ui` `reloadOnce` over the browser's `sessionStorage`, which survives the reload): null — reloading now; else why
+ * not (it would loop, or the marker cannot be kept), and the notice shows that. A phone never raises it.
+ */
+export declare function autoReload(): string | null;

@@ -17,7 +17,11 @@
 /** what was replaced: the data release this page opened, or the site's code */
 export type ReplacedKind = "data" | "code";
 
-/** (T1016) the reader's words: one line and its one action (owner's pick pending: T1016 report) */
+/**
+ * (T1016) the reader's words: one line and its one action. (Owner 2026-11-24, "Always auto refresh") the page refreshes
+ * itself (`@app/ui` `createReplacedState`); these are said only when that automatic refresh could not be made (the
+ * after-loop fallback: the failure shown, its action a refresh by hand).
+ */
 export const REPLACED_WORDS = {
   data: {
     line: "This page’s data was replaced by a newer release.",
@@ -42,6 +46,18 @@ export function replacedError(kind: ReplacedKind, o: { opened: string | null; li
     : `a code chunk of the site this page opened is no longer served (HTTP 404); the site was deployed since: ${was}`;
   const e = new Error(message, { cause: o.cause });
   e.name = REPLACED_NAMES[kind];
+  return e;
+}
+
+/** (T1016) the name of the defect report "the automatic refresh could not be made" (not `expected`: a refresh that does
+ *  not take, or a reload that would loop, is ours to fix) */
+export const REFRESH_NOT_MADE = "ReplacedRefreshNotMade";
+
+/** (T1016) the automatic refresh of a replaced page was not made: why, as a defect report (`REFRESH_NOT_MADE`) */
+export function refreshNotMade(kind: ReplacedKind, release: string | null, why: string): Error {
+  const what = kind === "data" ? `release ${release ?? "?"}'s replaced data` : "the replaced site code";
+  const e = new Error(`the automatic refresh of ${what} was not made: ${why}`);
+  e.name = REFRESH_NOT_MADE;
   return e;
 }
 
