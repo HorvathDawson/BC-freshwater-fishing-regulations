@@ -9,12 +9,10 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
-## 2026-11-23: T1047 off-datum level — one look (PR #77)
-- Look: T1047 off-datum level note — 08HD006 (Salmon River near Sayward) under Level now draws its live line with no normal
-  range, and the key says (PROPOSED words): "This gauge's level is measured from a different zero than its record, so there
-  is no normal range to compare it with." Keep, reword, or drop? Also: the card above still says "Reports flow only today,
-  not water level. Show Flow to see it." over that line; keep it? Picture:
-  `handoff/PLAN/app-integration/T1043-shots/t1047-08HD006-level-line-only.png`.
+## 2026-11-23: T1047 off-datum level (answers, verbatim)
+- T1047 top line: "Show the level reading (Recommended)"; the note: "just use new data line same as cap. keep it simple".
+  Built on PR #77 (b15f1165b): under Level an off-datum station (08HD006 …) reads as Capilano does: today's level,
+  "Too new to say if this is high or low.", its live line with no band; the proposed note dropped. Closed.
 
 ## 2026-11-23: T1043 Capilano level (answers, verbatim)
 - T1043 estimate under Level, and the chart's scale: "add ranked on flow at top. also the scale of the chart should use
