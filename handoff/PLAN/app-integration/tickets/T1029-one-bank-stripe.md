@@ -35,7 +35,8 @@ What was built, just far enough to shoot honestly:
   with a fixed `line-offset` (± half the stream's width + 2 px), opacity by feature-state `bk`, colour by feature-state
   `bks` = the token the line itself would wear (`salmon.closed`, `status.closed`). NOT wired: nothing in the app sets
   `bk`/`bks` yet — the picture harness sets them from the values above (in the product: the bundle's per-section side +
-  the bank place's own salmon day). The day is Aug 15 2026: the Kitimat bank place is "No fishing for salmon Apr 1 to
+  the bank place's own salmon day). Shown in the Salmon and Standard colourings only (the adapter follows the mode): a
+  visible layer of its own on the plain map is one more stream bucket per tile (`lab.test.ts`). The day is Aug 15 2026: the Kitimat bank place is "No fishing for salmon Apr 1 to
   Mar 31", the river at the signs is open (keep salmon) by its "downstream of Highway 37 bridge" place.
 - Shots: web (dev Metro over the live 0.9.0 release and atlas, read-only), phone 412 px, light and dark, browse map.
   Not run on the emulator: MapLibre Native's `line-offset` is not checked (the spec validator takes the layers for both).
