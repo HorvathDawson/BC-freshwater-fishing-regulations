@@ -16,7 +16,9 @@ import { makeReleaseSource, type ReleaseLoader } from "@app/data/release";
 import { openRegsFixture } from "@app/data/release/node";
 
 /** (T1036) what the screen hands the Source row: the drawn view models and the part's rule index (the sheet's keys' oracle) */
-const handed = vi.hoisted(() => ({ drawn: null as unknown, rules: null as unknown }));
+const handed = vi.hoisted(() => ({ drawn: null as unknown, rules: null as unknown,
+  /** (T1036) the page's own sheets, as the screen hands them to the every-source sheet (the second group's oracle) */
+  sheet: null as unknown as (k: string) => never }));
 vi.mock("@app/core", async (orig) => {
   const m = await orig<typeof import("@app/core")>();
   return { ...m, salmonStripOf: (...a: Parameters<typeof m.salmonStripOf>) => {
@@ -25,11 +27,14 @@ vi.mock("@app/core", async (orig) => {
   }, regsSourcesOf: (...a: Parameters<typeof m.regsSourcesOf>) => {
     handed.drawn = a[0]; handed.rules = a[1].rules;
     return m.regsSourcesOf(...a);
+  }, withDrawnSources: (...a: Parameters<typeof m.withDrawnSources>) => {
+    handed.sheet = a[0].sheet as never;
+    return m.withDrawnSources(...a);
   } };
 });
 const { WaterScreen } = await import("./WaterScreen");
 const { LIGHT } = await import("./theme");
-const { expectedKeys, sheetExpected, sheetPages } = await import("./regs/testing/allSources");
+const { expectedKeys, expectedOtherKeys, sheetExpected, sheetPages } = await import("./regs/testing/allSources");
 type ProbeIndex = import("./regs/testing/allSources").ProbeIndex;
 
 afterEach(cleanup);
@@ -121,6 +126,7 @@ describe("a day only salmon may be fished, through WaterScreen (#63 re-review)",
     expect(sheet.all).toEqual(sheetExpected(p.drawn, sheet.trout));
     expect([sheet.all.includes(8), sheet.all.includes(21)]).toEqual([true, true]);
     expect(sheet.keys).toEqual(expectedKeys(handed.drawn, handed.rules as ProbeIndex));
+    expect(sheet.other).toEqual(expectedOtherKeys(handed.drawn, handed.sheet, handed.rules as ProbeIndex, sheet.keys));
   }, 40_000);
 
   it("(T1031) a salmon BOOK closure's page, drawn on the card's own Source line, is in the foot row too", async () => {
@@ -139,6 +145,7 @@ describe("a day only salmon may be fished, through WaterScreen (#63 re-review)",
     const sheet = sheetPages({ act, fireEvent, screen });
     expect(sheet.all).toEqual(sheetExpected([...p.drawn].filter((x) => x !== 77), sheet.trout));
     expect(sheet.keys).toEqual(expectedKeys(handed.drawn, handed.rules as ProbeIndex));
+    expect(sheet.other).toEqual(expectedOtherKeys(handed.drawn, handed.sheet, handed.rules as ProbeIndex, sheet.keys));
   }, 40_000);
 
   it("(T1036) a book closure's rule that nothing else on the screen cites is in the every-source sheet, its page with it", async () => {
@@ -152,5 +159,6 @@ describe("a day only salmon may be fished, through WaterScreen (#63 re-review)",
     // cited only by the card's closure line: not among the drawn tabs' rules, yet listed, and p.34 with it
     expect([expectedKeys(handed.drawn, handed.rules as ProbeIndex).includes(rule), sheet.keys.includes(rule), p.drawn.has(34)]).toEqual([false, true, true]);
     expect([sheet.all, sheet.keys]).toEqual([sheetExpected(p.drawn, sheet.trout), [...expectedKeys(handed.drawn, handed.rules as ProbeIndex), rule].sort()]);
+    expect(sheet.other).toEqual(expectedOtherKeys(handed.drawn, handed.sheet, handed.rules as ProbeIndex, sheet.keys));
   }, 40_000);
 });

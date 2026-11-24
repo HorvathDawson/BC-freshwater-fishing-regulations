@@ -4,7 +4,7 @@
  * day only salmon may be fished, nothing of a closed day's gear, a drawn line's own rule, the drawn trout table's rules.
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { ALL_SOURCES_KEY, AllSourcesRuleMissing, allSourcesSheet, drawnCitations, drawnRegsOf, drawnSourceRules, withDrawnSources, withInSeason } from "./allsources";
+import { ALL_SOURCES_KEY, AllSourcesRuleMissing, allSourcesSheet, drawnCitations, drawnRegsOf, drawnSourceRules, reachableSheets, withDrawnSources, withInSeason } from "./allsources";
 import { ALL_SOURCES } from "../words";
 import { sheetOf } from "../sheets";
 import { parseSheetKey } from "../sheetKey";
@@ -20,6 +20,7 @@ const RULES: Record<string, unknown> = {
   "b::1": rule("b::1", {}, { source: "dfo" }),
   "c::1": rule("c::1", { book: [], cited: { link: "StanleyParkVan.com", url: "https://stanleyparkvan.com/x.html", quote: "q" } }),
   "m::1": { ...rule("m::1"), missing: true },   // the index's stand-in for a rule it does not hold
+  "x::1": rule("x::1"), "y::1": rule("y::1"), "z::1": rule("z::1"), "o::1": rule("o::1"), "d::1": rule("d::1", {}, { source: "dfo" }),
   "g::1": rule("g::1"), "h::1": rule("h::1"), "w::1": rule("w::1"), "p::1": rule("p::1"), "t::1": rule("t::1"), "k::1": rule("k::1"),
 };
 const BY_IX = ["t::1"];
@@ -122,5 +123,73 @@ describe("the salmon card's book closures in the every-source sheet (T1036)", ()
   it("any other key is the page's own sheet", () => {
     const own = { key: "hatch", title: "t", sub: null, blocks: [] } as SheetVM;
     expect(withDrawnSources({ ...host, sheet: (k: string) => (k === "hatch" ? own : null) } as unknown as RegsPage, [], INDEX)("hatch")).toBe(own);
+  });
+});
+
+/**
+ * (T1036, owner 2026-11-24: "Add back but maybe have them separate?") THE SECOND GROUP: under its own head, below the drawn
+ * lines' rules, every rule a sheet one tap from the drawn screen cites (a fish row's, both its tabs; Possession's) that no
+ * drawn line cites. Never an "Overruled" card, never a sheet two taps away, never a sheet no drawn line opens.
+ */
+describe("the every-source sheet's second group: what the sheets one tap away cite (T1036, owner 2026-11-24)", () => {
+  let reports: unknown[] = [], undo = () => {};
+  beforeEach(() => { reports = []; undo = setFailureSink((e) => reports.push(e)); });
+  afterEach(() => undo());
+  const book = (printed: number) => ({ t: "book", printed, pdf: printed + 2 });
+  const link = (open: string) => ({ t: "link", s: "Who says so ›", open });
+  const rows = (keys: string[], overruled = false) =>
+    ({ k: "sources", ...(overruled ? { overruled: true } : {}), groups: [{ where: "B.C. Synopsis", rows: keys.map((key) => ({ key, title: null, quote: "q", role: "", book: [] })) }] });
+  const SHEETS: Record<string, unknown> = {
+    // a fish row's sheet, its Sources tab: two listed (a::1 is drawn already), one overruled, a link two taps away
+    "other:o0": { key: "other:o0", title: "Kokanee", sub: null, tabs: [{ label: "Identification", open: "other:o0|id", on: false }, { label: "Sources", open: "other:o0", on: true }],
+                  blocks: [rows(["g::1", "a::1", "d::1"]), rows(["h::1"], true), { k: "link", line: [{ t: "link", s: "See every regulation line ›", open: "src:r1" }] }] },
+    // its Identification tab: a source line naming a rule beside its page
+    "other:o0|id": { key: "other:o0|id", title: "Kokanee", sub: null, blocks: [{ k: "source", line: [link("rule:x::1"), { t: "text", s: " " }, book(49)] }] },
+    // two taps away (the row's every line): not followed
+    "src:r1": { key: "src:r1", title: "t", sub: null, blocks: [rows(["w::1"])] },
+    // Possession: its "Who says so ›" beside p.13; a rule link with no page beside it cites nothing; a rule the index lacks
+    "pos:pos": { key: "pos:pos", title: "Possession", sub: null, blocks: [{ k: "source", line: [link("rule:p::1"), { t: "text", s: " " }, book(13)] },
+                 { k: "link", line: [link("rule:t::1")] }, { k: "fold", summary: "s", open: false, body: [rows(["m::1"])] }] },
+    // a per-row gear line's sheet (not drawn since T900) and a sheet no drawn line opens (a closed day's card): never read
+    "srcs:gl|hook": { key: "srcs:gl|hook", title: "t", sub: null, blocks: [rows(["y::1"])] },
+    "other:o5": { key: "other:o5", title: "t", sub: null, blocks: [rows(["z::1"])] },
+  };
+  const keep = { trout: null, otherFish: [{ name: "Kokanee", open: "other:o0", id: "other:o0|id" }],
+                 possession: { label: "Possession", open: "pos:pos", rule: "p::1", says: "Possession: 2 days’ quota.", value: "2 days’ quota", also: [] } };
+  const p = page({ keep, methods: null });
+  const sheetOfPage = (k: string) => (SHEETS[k] ?? null) as SheetVM | null;
+  const built = () => withDrawnSources({ ...p, sheet: sheetOfPage } as unknown as RegsPage,
+    drawnRegsOf(p as never, gearTabsFor(p as never, null, null, null), null, []), INDEX)(ALL_SOURCES_KEY)!;
+  const groupsOf = (b: unknown) => (b as { groups: Groups }).groups.map((g) => [g.where, g.rows.map((r) => r.key)]);
+
+  it("below the drawn rules, under its head: each rule a reachable sheet cites that no drawn line does, by source", () => {
+    const vm = built();
+    expect(vm.blocks.map((b) => b.k)).toEqual(["sources", "head", "sources"]);
+    expect(groupsOf(vm.blocks[0])).toEqual([[ALL_SOURCES.BOOK, ["a::1"]], [ALL_SOURCES.DFO, ["b::1"]]]);
+    expect(vm.blocks[1]).toEqual({ k: "head", text: "Also in the fish and possession sheets" });
+    // g::1 and d::1 (the fish sheet's list), x::1 (its other tab's line), p::1 (Possession's): never a::1 again, never
+    // h::1 (overruled), w::1 (two taps), t::1 (no page beside it), y::1 / z::1 (no drawn line opens their sheets)
+    expect(groupsOf(vm.blocks[2])).toEqual([[ALL_SOURCES.BOOK, ["g::1", "x::1", "p::1"]], [ALL_SOURCES.DFO, ["d::1"]]]);
+    // m::1, cited by Possession's sheet and not held by the index: reported, no row (W46)
+    expect(reports.map((e) => [(e as Error).name, (e as AllSourcesRuleMissing).rule, (e as AllSourcesRuleMissing).by]))
+      .toEqual([["AllSourcesRuleMissing", "m::1", "sheet"]]);
+  });
+  it("the sheets one tap away: what drawn lines open, never the every-source sheet itself or a per-row gear line's", () => {
+    expect(reachableSheets([{ open: "src:all" }, { open: "srcs:gl|hook" }, { open: "pos:pos" }, { open: "other:o0" }, { open: "gear" }, { open: "pos:pos" }]))
+      .toEqual(["pos:pos", "other:o0"]);
+  });
+  it("nothing reachable cites more: no head, no second group; the in-season changes keep the second group after the first", () => {
+    const none = withDrawnSources({ ...page({ methods: null }), sheet: () => null } as unknown as RegsPage,
+      drawnRegsOf(page({ methods: null }) as never, gearTabsFor(page({ methods: null }) as never, null, null, null), null, []), INDEX)(ALL_SOURCES_KEY)!;
+    expect(none.blocks.map((b) => b.k)).toEqual(["sources"]);
+    const vm = withInSeason(() => built(), [BANNER])(ALL_SOURCES_KEY)!;
+    expect([vm.blocks.map((b) => b.k), groupsOf(vm.blocks[0]).map((g) => g[0])]).toEqual([["sources", "head", "sources"], [ALL_SOURCES.BOOK, ALL_SOURCES.INSEASON, ALL_SOURCES.DFO]]);
+  });
+  it("a page whose drawn lines cite nothing still lists what its sheets cite, under the head", () => {
+    const bare = page({ keep, gear: null, methods: null });
+    const vm = withDrawnSources({ ...bare, sheet: sheetOfPage } as unknown as RegsPage,
+      drawnRegsOf(bare as never, gearTabsFor(bare as never, null, null, null), null, []), INDEX)(ALL_SOURCES_KEY)!;
+    expect(vm.blocks.map((b) => b.k)).toEqual(["para", "head", "sources"]);
+    expect(groupsOf(vm.blocks[2])).toEqual([[ALL_SOURCES.BOOK, ["g::1", "a::1", "x::1", "p::1"]], [ALL_SOURCES.DFO, ["d::1"]]]);
   });
 });

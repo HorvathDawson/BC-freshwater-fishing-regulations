@@ -4,7 +4,10 @@
  * table's every-rule sheet (its Source line's "Who says so ›", where the table is drawn) the same way. Each sheet is
  * closed again (Done), so the screen is as it was. The test hands in its testing library (`act`, `fireEvent`, `screen`):
  * only a test file may import it (check-boundaries).
+ * (T1036, owner 2026-11-24) The sheet has two groups: what the drawn lines cite, then under its head (`ALL_SOURCES.OTHER`)
+ * what the sheets one tap away cite. Each is read apart, by where its rows are drawn (before or after that head).
  */
+import { ALL_SOURCES } from "@app/core";
 export interface ProbeLib {
   act(f: () => void): unknown;
   fireEvent: { click(e: Element): unknown };
@@ -14,20 +17,29 @@ export interface ProbeLib {
 const PAGE = /^B\.C\. Synopsis page (\d+),/;
 const sorted = <T,>(xs: Iterable<T>): T[] => [...new Set(xs)].sort();
 
-function opened({ act, fireEvent, screen }: ProbeLib, open: Element): { pages: number[]; keys: string[] } {
+function opened({ act, fireEvent, screen }: ProbeLib, open: Element): { pages: number[]; keys: string[]; otherPages: number[]; other: string[]; heads: number } {
   act(() => { fireEvent.click(open); });
   const body = screen.getByTestId("sheet-body"), links = [...body.querySelectorAll("[role=link]")];
-  const pages = [...new Set(links.flatMap((e) => { const m = PAGE.exec(e.getAttribute("aria-label") ?? ""); return m ? [Number(m[1])] : []; }))];
-  const keys = [...body.querySelectorAll('[data-testid^="rule-row:"]')].map((e) => e.getAttribute("data-testid")!.slice("rule-row:".length));
+  const heads = [...body.querySelectorAll("[role=heading]")].filter((e) => e.textContent === ALL_SOURCES.OTHER);
+  /** drawn after the second group's head */
+  const second = (e: Element) => !!heads[0] && !!(heads[0].compareDocumentPosition(e) & 4 /* Node.DOCUMENT_POSITION_FOLLOWING */);
+  const pagesOf = (els: Element[]) => [...new Set(els.flatMap((e) => { const m = PAGE.exec(e.getAttribute("aria-label") ?? ""); return m ? [Number(m[1])] : []; }))].sort((a, b) => a - b);
+  const rows = [...body.querySelectorAll('[data-testid^="rule-row:"]')];
+  const keyOf = (e: Element) => e.getAttribute("data-testid")!.slice("rule-row:".length);
+  const out = { pages: pagesOf(links.filter((e) => !second(e))), keys: sorted(rows.filter((e) => !second(e)).map(keyOf)),
+                otherPages: pagesOf(links.filter(second)), other: sorted(rows.filter(second).map(keyOf)), heads: heads.length };
   act(() => { fireEvent.click(screen.getByLabelText("Done")); });
-  return { pages: pages.sort((a, b) => a - b), keys: sorted(keys) };
+  return out;
 }
 
-/** `all` / `keys`: the every-source sheet's pages and rules; `trout`: the trout table's sheet's pages ([] where no table). */
-export function sheetPages(lib: ProbeLib): { all: number[]; keys: string[]; trout: number[] } {
+/** `all` / `keys`: the every-source sheet's first group's pages and rules (what the drawn lines cite); (T1036) `other` /
+ *  `otherPages`: its second group's (what the sheets one tap away cite), `heads` how many times that group's head is drawn;
+ *  `trout`: the trout table's sheet's pages ([] where no table). */
+export function sheetPages(lib: ProbeLib): { all: number[]; keys: string[]; other: string[]; otherPages: number[]; heads: number; trout: number[] } {
   const all = opened(lib, lib.screen.getByTestId("regs-all-sources-button"));
   const table = lib.screen.queryByTestId("trout-sources");
-  return { all: all.pages, keys: all.keys, trout: table ? opened(lib, table).pages : [] };
+  return { all: all.pages, keys: all.keys, other: all.other, otherPages: all.otherPages, heads: all.heads,
+           trout: table ? opened(lib, table).pages : [] };
 }
 
 /** The pages the every-source sheet must list: those the drawn tabs link, and the drawn trout table's (its line opens them). */
@@ -59,5 +71,49 @@ export function expectedKeys(drawn: unknown, index: ProbeIndex): string[] {
     for (const [k, x] of Object.entries(o)) go(x, k);
   };
   go(drawn, "");
+  return sorted(out);
+}
+
+/** A sheet as the probe reads it: its blocks and tabs (`SheetVM`, read by shape). */
+type ProbeSheet = { blocks: readonly unknown[]; tabs?: readonly { open: string }[] } | null;
+
+/**
+ * (T1036) The second group's rules, read by the ticket's words, not by core's walk: open every sheet a drawn line opens
+ * (its `open`; not the every-source sheet itself, not a per-row gear line's `srcs:gl|…`), and each of its tabs; take each
+ * rule it lists in a Sources list (not an "Overruled" card), each rule whose sheet a line opens beside a "B.C. Synopsis
+ * p.N" / cited page, and a rule's own sheet's rule; minus `first` (the first group); the index's key for each it holds.
+ */
+export function expectedOtherKeys(drawn: unknown, sheet: (k: string) => ProbeSheet, index: ProbeIndex, first: readonly string[]): string[] {
+  const keys: string[] = [], opens: string[] = [], seen = new Set<unknown>();
+  const go = (v: unknown, into: (o: Record<string, unknown>) => void): void => {
+    if (!v || typeof v !== "object" || seen.has(v)) return;
+    seen.add(v);
+    if (Array.isArray(v)) { v.forEach((x) => go(x, into)); return; }
+    into(v as Record<string, unknown>);
+    for (const x of Object.values(v as Record<string, unknown>)) go(x, into);
+  };
+  go(drawn, (o) => { if (typeof o.open === "string" && /^(sp|tf|other|pos|src|share|multi|rule|gl|hatch|srcs):?/.test(o.open)
+                         && o.open !== "src:all" && !o.open.startsWith("srcs:gl|")) opens.push(o.open); });
+  const done = new Set<string>();
+  const read = (k: string) => {
+    if (done.has(k)) return;
+    done.add(k);
+    const vm = sheet(k);
+    if (!vm) return;
+    if (k.startsWith("rule:")) keys.push(k.slice(5));
+    go(vm.blocks, (o) => {
+      if (o.k === "sources" && o.overruled !== true)
+        for (const g of o.groups as { rows: { key: string | null }[] }[]) for (const r of g.rows) if (r.key) keys.push(r.key);
+      const runs = Object.values(o).filter(Array.isArray).flat() as { t?: string; open?: string }[];
+      if (typeof o.open === "string" && o.open.startsWith("rule:") && runs.some((r) => r?.t === "book" || r?.t === "web")) keys.push(o.open.slice(5));
+      for (const line of Object.values(o).filter(Array.isArray) as { t?: string; open?: string }[][])
+        if (line.some((r) => r?.t === "book" || r?.t === "web"))
+          for (const r of line) if (r?.t === "link" && r.open?.startsWith("rule:")) keys.push(r.open.slice(5));
+    });
+    for (const t of vm.tabs ?? []) read(t.open);
+  };
+  opens.forEach(read);
+  const out = new Set<string>();
+  for (const k of keys) { const r = index.byKey?.(k); if (r && !r.missing && !first.includes(r.key)) out.add(r.key); }
   return sorted(out);
 }
