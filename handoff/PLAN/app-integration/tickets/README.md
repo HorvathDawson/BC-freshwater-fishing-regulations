@@ -190,7 +190,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T902 | Desktop Runs: every fish chip shows, no sideways scroll (owner) | DONE | cd5740b21 | owner 2026-11-19 ~01:16 |
 | T903 | Map modes paint only what differs from a default (Salmon red, Conditions/Runs grey) (owner) | DONE — shipped in 0.8.3 (staging + production 2026-11-19) | 6106a9fd8 | owner 2026-11-19 ~01:33 |
 | T904 | Desktop Conditions: the map fills the window behind; no white bars (owner) | DONE — shipped in 0.8.3 (staging + production 2026-11-19) | 97b80400f | owner 2026-11-19 ~06:40 |
-| T905 | Shrink the live salmon feed back under its old size (owner) | OPEN | main chat | owner 2026-11-19 ~06:40, later |
+| T905 | Shrink the live salmon feed back under its old size (owner) | IN PROGRESS | 6ba240568 | owner 2026-11-24 option 2 "Move worker state out": built, the public index 132,987 -> 121,688 B (check 122,000); left (Claude): review, merge, staging feeds deploy; production deploy the owner's |
 | T906 | The map buttery smooth: measure more speed-ups beside T903 (owner) | IN PROGRESS | main chat | owner 2026-11-19 ~06:50 |
 | T908 | Gauge (forecast) pages: cleaner, answering how the river is now (owner) | DONE — shipped in 0.8.3 (staging + production 2026-11-19) | bcb7d775e | owner 2026-11-19 ~07:00 |
 | T909 | Web app: no bell and no reload in the search bar (owner) | DONE — shipped in 0.8.3 (staging + production 2026-11-19) | 96d9e4aab | owner 2026-11-19 ~07:20 |
