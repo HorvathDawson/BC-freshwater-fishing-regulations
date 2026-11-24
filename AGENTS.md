@@ -275,7 +275,11 @@ A6. **Commit only your own paths: `git commit -- <paths>`.** Several agents shar
     broad `{ *; }` keep rule to get a build through (T1009 lists what keeps the scores down). (T1027) R8 skips the own
     rules of the libraries in `with-r8.js` `IGNORED_RULES` (AGP `ignoreFrom`, external AARs only) and
     `r8-keep-rules.pro` restates what each reaches by name: a library added there needs its walk (`notify-fire`,
-    `memory` for the PDF viewer, …), and an update of one of them a fresh look at what it reaches by name.
+    `memory` for the PDF viewer, …), and an update of one of them a fresh look at what it reaches by name;
+    `r8-report.mjs check` fails, by name, when one of their package-wide rules comes back. Before the app SCHEDULES a
+    notification for later (today it raises each one at once): expo-notifications' ChannelAwareTrigger and
+    TimeIntervalTrigger have no serialVersionUID, so R8 must first keep what Java computes theirs from (rule 8 says
+    what), or a notification scheduled before an update will not load after it.
 
 ## Curated data, and the artifacts you must not regenerate casually
 

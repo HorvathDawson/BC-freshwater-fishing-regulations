@@ -66,8 +66,9 @@
 # each with its reason; everything else in it is shrunk, optimized and renamed like our own code. Only an EXTERNAL
 # dependency (an AAR) can be dropped this way; a library built from node_modules (expo-modules-core,
 # react-native-svg) keeps its rules (AGP's ignoreFrom does not filter project dependencies, measured 2026-11-24).
-# A library update can need a new name: its walk is in the T1027 ticket; the floors in r8-report.mjs catch a
-# library whose coordinates moved (its broad rule would come back and the scores fall).
+# A library update can need a new name: its walk is in the T1027 ticket. `r8-report.mjs check` fails, naming the
+# library, when R8's merged configuration holds any of these libraries' package-wide rules again (its coordinates
+# moved, so ignoreFrom no longer matches): the floors alone would miss task-manager + background-task (~0.6 points).
 
 # 8. expo-notifications (was `-keep class expo.modules.notifications.** {*;}`, 279 classes, 2,028 members).
 #    a. Its Parcelable classes (Notification, NotificationRequest, NotificationResponse, triggers, ...) go into the
@@ -80,6 +81,11 @@
 #       stored in SharedPreferences as Java serialization (Base64Serialization: scheduled requests, categories), which
 #       reads class names, field NAMES and serialVersionUID back, also after an update. Kept: the names, every
 #       instance field (not removed, not renamed, and the classes of their types named) and the serialization hooks.
+#       LATENT (T1027 review): ChannelAwareTrigger (the base of every trigger) and TimeIntervalTrigger declare no
+#       serialVersionUID, so Java computes one from the class's interfaces, modifiers and member signatures, which R8
+#       now changes build to build: a notification SCHEDULED for later before an app update would not load after it.
+#       The app schedules none today (it raises each notice at once); scheduling one needs a rule for this first
+#       (AGENTS rule 34b).
 -keepnames class expo.modules.notifications.** implements java.io.Serializable
 -keepclassmembers,includedescriptorclasses class expo.modules.notifications.** implements java.io.Serializable {
   static final long serialVersionUID;
