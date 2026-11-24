@@ -211,14 +211,35 @@ def test_the_python_part_picks_pipeline_and_scripts_sources(monkeypatch, tmp_pat
     assert sorted(MR.py_files(changed)) == ["pipeline/a.py", "scripts/b.py"]
 
 
-def test_a_stopped_tool_gets_a_ctrl_c_first(tmp_path):
-    """bounded(): at its time a tool is sent SIGINT first (mutmut keeps what it finished, as on Ctrl-C), 124 back.
-    Mutation: TERM first -> the child's 'saved' line never prints."""
-    child = tmp_path / "child.py"
-    child.write_text("import time, sys\ntry:\n    time.sleep(60)\nexcept KeyboardInterrupt:\n    print('saved')\n")
-    rc, out = MR.bounded([sys.executable, str(child)], 1, tmp_path)
-    assert rc == 124 and "saved" in out
+def test_a_stopped_tool_gets_a_ctrl_c_first(monkeypatch, tmp_path):
+    """bounded(): at its time a tool's process group is sent SIGINT first (mutmut keeps what it finished, as on
+    Ctrl-C), then TERM, then KILL, each only while it still runs; 124 back. Stood in for (a real child raced its own
+    start-up under load: the before-PR tier, 2026-11-23). Mutation: TERM first -> fails."""
+    import signal
+    import subprocess as sp
+    sent = []
+
+    class Fake:
+        pid, returncode = 4242, None
+
+        def __init__(self, *a, **k):
+            self.calls = 0
+
+        def communicate(self, timeout=None):
+            self.calls += 1
+            if self.calls <= stop_after:
+                raise sp.TimeoutExpired("tool", timeout)
+            return ("kept\n", None)
+    monkeypatch.setattr(MR.subprocess, "Popen", Fake)
+    monkeypatch.setattr(MR.os, "killpg", lambda pid, sig: sent.append((pid, sig)))
+    for stop_after, want in ((1, [signal.SIGINT]), (2, [signal.SIGINT, signal.SIGTERM]),
+                             (3, [signal.SIGINT, signal.SIGTERM, signal.SIGKILL])):
+        sent.clear()
+        assert MR.bounded(["tool"], 1, tmp_path) == (124, "kept\n"), stop_after
+        assert sent == [(4242, s) for s in want], stop_after
+    monkeypatch.undo()
     assert MR.bounded([sys.executable, "-c", "print('ok')"], 30, tmp_path) == (0, "ok\n")
+
 
 
 def test_a_mutated_file_is_put_back_as_it_was_uncommitted_edits_too(monkeypatch, tmp_path):

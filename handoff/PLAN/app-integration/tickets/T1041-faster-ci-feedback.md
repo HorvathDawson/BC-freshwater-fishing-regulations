@@ -97,6 +97,16 @@ Source: owner 2026-11-23 (the 0.9.0 batch chat): a red CI run or a bug found in 
    Also: related tests and scripts. A changed scripts/*.py or *.sh (loaded by path or run, never imported) reaches the
    test files that name it, in the hook and in the mutation report (which now mutates scripts/*.py too).
 
+7. **The render-lock mutation test hung on a runner** (coordinator 2026-11-23: #73's CI run 45300843329 failed only
+   on `test_review_screen.py::test_the_render_lock_is_pinned_by_mutation`, its child at the 600 s timeout). Unlocked
+   pdfium from 8 threads can deadlock as well as raise or crash, and `_render_in_threads` joined with no limit.
+   Now its threads are daemons joined against a deadline; one still rendering is reported ("HUNG: n of 8 …") and the
+   call returns. The mutation child uses 60 s, prints what hung and `os._exit`s; the outer timeout is 240 s, only a
+   backstop. A hang counts as the mutation caught, as a crash already did. New test
+   `test_a_render_that_never_returns_is_a_hang_reported_in_time` (proved by mutation). The child returns in under a
+   second here (8 errors, no hang). Also `test_a_stopped_tool_gets_a_ctrl_c_first` now stands the child in (its real
+   child raced its own start-up under load, a before-PR run 2026-11-23).
+
 ## Measured (this Mac, 18 cores; GitHub's runners are slower)
 - **Hook time**, the same change (one comment in `core/src/tabSources.ts` + one in `display/decided.py`, `--changed
   --no-tier`). Quiet machine, before: **200 s** (11 steps one after another, tree scanners only). Busy machine (other
