@@ -165,7 +165,7 @@ export function sheetOf(ctx: SheetCtx, key: SheetKey): SheetVM | null {
   if (key.startsWith("gl:")) return glossSheet(key, ctx.inp, key.slice(3).split(","));
   if (key === "pos:pos") return possessionSheet(key, ctx);
   if (key === "hatch") return hatchSheet(key, ctx.inp);
-  if (key === ALL_SOURCES_KEY) return allSourcesSheet(ctx);
+  if (key === ALL_SOURCES_KEY) return allSourcesSheet(ctx, (k) => sheetOf(ctx, k));
   if (key.startsWith("srcs:")) return srcsSheet(ctx, key);
   if (key === TROUT_SOURCES_KEY) {
     // (T810 P) the trout table's sheets: only where today's table is drawn (a table, not refused)

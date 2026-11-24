@@ -11,3 +11,6 @@ export function installReplaced(_o: { state: ReplacedState; manifestUrl: string;
 
 /** Never called on a phone (no code notice is raised there): a call is a defect, thrown to be shown and reported. */
 export function reloadPage(): void { throw new Error("reloadPage: a phone has no page to reload"); }
+
+/** Never called on a phone (no verdict is raised there: no triage): a call is a defect, thrown to be shown and reported. */
+export function autoReload(): string | null { throw new Error("autoReload: a phone has no page to reload"); }
