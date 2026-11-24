@@ -1,6 +1,6 @@
 # T1047 — Under Level, an other-datum station's chart still draws its live levels against the old-datum band
 
-Status: DONE 99d8ac9bc, b15f1165b (lane L28, PR #77; owner answered 2026-11-23).
+Status: DONE 99d8ac9bc, b15f1165b (lane L28, PR #77; owner answered 2026-11-23); follow-up 66a331eef, 874929277 (lane L8, 2026-11-24): datum change file (5 rows, all proposed), HYDAT remark proposals, the record put on today's zero for an accepted row. Left: the owner's accept/reject per row, then a clim.json + data release; the this-year line (below).
 
 Source: independent review of PR #77 (T1043), 2026-11-23, item 3; split out by lane L28. Production 2026-11-23:
 08HD006 (Salmon River near Sayward) reports a live level of 2.058 m that the publisher leaves out of `reports` (T550:
@@ -58,3 +58,46 @@ be different publisher runs, so `offRecord` holds only for the same reading (no 
 the file is trusted. Tests (mutation-checked): `WaterConditions.levelOnly.test.tsx` (08HD006 under Level: "2.06", the
 no-record line, no band key, Capilano's key note; Flow its band), `stationReading.test.ts` (same reading marked; a row a
 run behind not; a feed before `reports` not). Shot: `T1043-shots/t1047-08HD006-level-reading.png`.
+
+## After 0.9.0, built (lane L8, 2026-11-24, 66a331eef, 874929277): the datum change file and the rating drop
+1. **Proposals** (`python -m pipeline.tools.audit.datum_remarks`, HYDAT 20261019, read-only): every `STN_REMARKS` row of
+   a roster station (2,324, the stations the app uses) naming a datum, relocation or gauge zero, verbatim, with the date
+   and offset parsed when the remark states them, else null with the reason. `data/generated/gauges/datum_proposals.json`
+   (committed like `candidates.json`): 127 remarks at 58 stations, 32 sorted `change`. Beyond the five, relocations whose
+   live level may now be on a new zero: **08MH044** (Fraser at Whonock, relocated + renamed Albion 2026-09-15; HYDAT to
+   2025) and **08MH053** (Fraser at Deas Island, relocated 2026-05-15; HYDAT to 2024): both level-only, so no rating and
+   the T550 guard cannot see a new zero; **08HA003** (relocated 2023-09-07) and **08NK026** (relocated 2024-08-28, "step
+   change") sit inside HYDAT with fewer than 2 years after, below the shift detector's reach. None is added to the file.
+2. **The file**: `data/curated/gauges/datum_change_stations.json` (`CURATED.gauges.datum_change_stations`, README row,
+   written through `curated_write`, schema `pipeline.gauges.feed.datum.validate_text`, `load` raises on a missing file).
+   One row per change: station, effective, `offset_m` (metres to ADD to a level on the old zero), `offset_from`, source
+   (`hydat_remark` + the remark verbatim, checked against HYDAT; or `owner`), status, note, evidence. **All five rows are
+   `proposed`**; `datum.accepted` returns accepted rows only (test; no other module reads the key, AST test).
+3. **The consumer** (`climatology.build(datum=...)`): an ACCEPTED row with an offset adds it to every level dated before
+   `effective`, before the shift test, the pooling and the rating: band, recent years (`priorYears`) and rating are on
+   today's zero, so both publishers (they only read clim.json; no feed format change, no worker change) see the live pair
+   on the rating, report and rank the level, and the app drops `offRecord` and draws the band again. The `clim` stage key
+   carries the accepted rows' digest (a proposed edit reruns nothing). Proof with only proposed rows: the fixture's
+   clim.json AND every file the Python publisher writes are byte-identical (`test_datum_changes`); on the real HYDAT the
+   whole roster's clim.json (1,951 stations) is byte-identical to origin/main's
+   (sha256 f27bd322…, both built from HYDAT 20261019 through heavy.sh). Mutations (8, listed in the test's docstring) each fail a test.
+4. **Owner's morning look** (evidence: saved station files fetched 2026-10-28, record = clim.json HYDAT 20261019; "on
+   rating" = the live (flow, level) day inside the record's rating ±0.5 m):
+
+| station | HYDAT remark | proposed effective / offset | live data | question |
+|---|---|---|---|---|
+| 08HD006 Salmon nr Sayward | relocated 2025-06-05, 1956-81 datum restored, "~5m drop in stage" | 2025-06-05 / −5.0 m (remark, approximate) | 300/300 days of 2026 on rating with −5.0 (0 as is) | accept? |
+| 08EF001 Skeena at Usk | moved ~1 km upstream 2025-01-30, "2.370m jump in stage" | 2025-01-30 / +2.370 m (remark) | 300/300 on rating with +2.370 (110 as is) | accept? |
+| 07FD001 Kiskatinaw nr Farmington | "STATION RELOCATED ON 2026-08-05." (no size) | 2026-08-05 / +94.826 m (measured: each day after vs like-flow days before) | 83/83 after the move on rating with it (0 as is); live reads ~95.0 m | accept the measured offset? |
+| 08KH019 Moffat nr Horsefly | none | 2026-07-07 / +1.011 m (measured across the step at 1.37 m³/s) | step 1.29 → 2.30 m in one day, flow smooth; 112/112 after on rating with it (3 as is). `T1047-shots/datum-08KH019.png` | accept? |
+| 08MH153 Fishtrap at the Boundary | none | none (no day, no single offset) | creep, not a step: stage up Jul-Sep as flow falls to 0.01 m³/s, 2024 HYDAT already +0.3 m. `T1047-shots/datum-08MH153.png` | reject as a datum change (recommended)? |
+
+Caveats for the owner: a RELOCATED gauge is a new cross-section; the offset aligns the zero, the band's shape stays the
+old site's (08HD006's January floods sit inside the 0.5 m pad only because the top bin is wide). 08HD006's offset is the
+remark's "~5m".
+
+**Still left** (Claude, after the owner's answers): flip the accepted rows to `accepted` (through `curated_write`),
+rebuild clim.json (the HYDAT workflow or the `clim` stage) and the next data release; then the year chart's THIS-YEAR
+line: the station file's `daily` for 07FD001 and 08KH019 (changes inside 2026) mixes both zeros until the year turns.
+Putting it on today's zero is a publisher change on both sides (Python `merge_daily` and the worker twin, rule 40), not
+built here.
