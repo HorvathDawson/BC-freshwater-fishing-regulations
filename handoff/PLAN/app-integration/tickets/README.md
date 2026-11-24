@@ -278,7 +278,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1032 | Highlight boxes for region and province rule text (the Source row's p.8/9/10/49 open marked) | DONE | 2c7f8cab2, d03699f73 | owner 2026-11-23 |
 | T1034 | A `regs=` link opened over another water keeps the old camera (the link's `part` is read and dropped) | PARTIAL — 0.9.0 crash across waters fixed; left (Claude): device check of the camera and the fix; other keys T1038 | 77d9de76d, 2ddaa795f, 9520ae1eb | lane L18 emulator 2026-11-23 |
 | T1035 | `theme=dark` on a `regs=` link does not switch the theme on the phone | DONE | 77d9de76d, 2ddaa795f | lane L18 emulator 2026-11-23 |
-| T1036 | The every-source sheet ("All sources ›") lists rules the screen does not draw, and misses the drawn gear on salmon-only days | DONE | d29a19c5a, ea1155dee | lane L5 (0.9.1): built from the drawn tabs (`withDrawnSources`), probe extended to the sheet; owner question (species-sheet rules in the page sheet) default built: not listed, T1036-shots/ |
+| T1036 | The every-source sheet ("All sources ›") lists rules the screen does not draw, and misses the drawn gear on salmon-only days | PARTIAL — left (Claude): the owner's pick of the second group's head, then apply it | d29a19c5a, ea1155dee, a65823345, 926470546 | owner 11-24 "Add back but maybe have them separate?": second group = what sheets one tap away cite, minus the drawn; T1036-shots/other-group-* |
 | T1038 | Carry a phone link's date, tab, sheet, scroll, age, res, horizon and whole (today reported and dropped) | PARTIAL — all 8 carried (web readers, one open request), day-only links, start re-applied; left (Claude): 0.9.0 device pass | 94c0a117d, 1a5574b00, 06b85846a | lane L15 on T1034, 2026-11-23 |
 | T1037 | Two review readers (`audit.primary_split_pos`, `reuse.host_rows`) pick a cut's position by different rules (157 of 190 multi-row cuts disagree); the build's is per extent (`extent._cut_at`) | OPEN — needs the position rule decided | T776 | PR #48 independent review, 2026-11-23 |
 | T1039 | The public gauge page draws the web app's own chart (same data, windows, zoom, every forecast model) | IN REVIEW — owner: OWNER-TODO "Look (you): T1039 gauge page after-shots"; staging feeds worker deploy + 0.9.0 staging site build to show | 9f8603f17, 44af0d16f, 1b983b5ad, f181f241f, 085ce5e6f, 6a4ebf3ab, 145cf8542 | owner 2026-11-23; lane L25 |
@@ -305,7 +305,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1060 | App robustness: no React error boundary, and three one-render stale states | OPEN —  | | planning chat 2026-11-24 |
 | T1061 | A Map opened through "Flows into" shows a blank band of about 120 px (Skeena) | OPEN —  | | planning chat 2026-11-24 |
 | T1062 | Release candidates: tag `vX.Y.Z-rc.N` and promote, instead of moving the version tag after late fixes | OPEN —  | | planning chat 2026-11-24 |
-| T1063 | `scripts/heavy.sh`: a release build should not queue behind other chats' check tiers | OPEN —  | | planning chat 2026-11-24 |
+| T1063 | `scripts/heavy.sh`: a fair queue (longest wait first), a release build ahead of check tiers, and test runs inside the lock | OPEN — 0.9.2 (medium since 2026-11-24) | | planning chat 2026-11-24 |
 | T1064 | T1016 follow-ups: the release pointer names its previous release; the web applies new data only when the app version can read it | OPEN —  | | planning chat 2026-11-24 |
 | T1065 | T1047 follow-ups: level-only relocated stations, too-recent stations, and the two-sided publisher change | OPEN —  | | planning chat 2026-11-24 |
 | T1066 | Two hidden failures in the feeds code: the HYDAT release check and the DFO cache readers | OPEN —  | | planning chat 2026-11-24 |
@@ -322,6 +322,15 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1077 | "All sources" lists the bait rules' source, but the bait list on the page draws no Source line | OPEN — 0.9.2 (0.9.1 only if PR #126's lane takes it in the same change) | | 0.9.1 chat 2026-11-24 |
 | T1078 | A water closed all year by two rules names only one in its banner (Kirkup Creek) | OPEN — 0.9.1 if T1052's lane can take it in the same code (it rewrites this block), else 0.9.2 | | 0.9.1 chat 2026-11-24 |
 | T1079 | The Playwright MCP writes its console logs into the main checkout, whatever worktree a lane works in | OPEN — none (tooling; with the 0.9.2 chat) | | 0.9.1 chat 2026-11-24 |
+| T1080 | A new owner to-do page: markdown only, short, open items only (the artifact page is retired) | OPEN — planning chat, right after PR #114 merges | | owner 2026-11-24 |
+| T1081 | Audit every markdown file: delete the old, cut the bloated, unify the docs (1,326 files, about 134,000 lines) | OPEN — its own docs chat after 0.9.1 (proposed chat D); inventory first | | owner 2026-11-24 |
+| T1082 | An in-app star-rating prompt that does not get in the way (design first) | OPEN — 0.10 or 0.11; design page for the owner first | | owner 2026-11-24, via the 0.9.1 chat |
+| T1083 | The web start link refuses `wsc:` item ids, yet the app writes them into its own URL (reload and share fail) | OPEN — HIGH, confirmed on production 0.9.0; 0.9.1 | | 0.9.1 chat 2026-11-24 |
+| T1084 | FWA `LEFT_RIGHT_TRIBUTARY` is UNKNOWN for 188 streams, so a one-bank rule cannot tell which side they join | OPEN — 0.9.2, or with T1029 | | 0.9.1 chat 2026-11-24 |
+| T1085 | Ice fishing says "terminal attractor" where the Gear tab says "hook" | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24 |
+| T1086 | RULINGS RU-14 (the Meziadin's row stops at Meziadin Lake) is outdated by T1053's head-lake walk | OPEN — 0.9.1, with T1053 | | 0.9.1 chat 2026-11-24 |
+| T1087 | `brunette_river.r1` "No Fishing upstream of Burnaby Lake" is curated as `whole` on the Brunette itself: is the river wrongly closed? | OPEN — HIGH until traced; 0.9.1 if wrong, else 0.9.2 | | 0.9.1 chat 2026-11-24 |
+| T1088 | Lakelse r5, a "Note: the mouth … signs" rule, walks onto every tributary | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24 |
 
 ## Next after closed testing
 

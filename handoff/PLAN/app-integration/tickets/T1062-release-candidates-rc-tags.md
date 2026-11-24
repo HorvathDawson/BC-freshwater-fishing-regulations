@@ -12,3 +12,6 @@ Source: owner idea during the 0.9.0 release, relayed by the 0.9.0 chat 2026-11-2
 a written plan the owner agreed to; then one release done with rc tags and no moved tag.
 
 Severity: process. Release: with chat 3 (repo move + merge queue), or before 0.10. Model: Sonnet for the plan, Opus for the cut change. Size: M. Owner: yes (agree the plan).
+
+Owner 2026-11-24 (planning chat question, picked "With the repo-move chat"): the plan is written in chat 3; nothing is
+built before the owner agrees it.

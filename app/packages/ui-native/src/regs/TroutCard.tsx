@@ -18,7 +18,7 @@
  */
 import { useState } from "react";
 import { PixelRatio, View, useWindowDimensions } from "react-native";
-import { TROUT_NAV, WORDS, type TabSourcesVM, type TroutBoxVM, type TroutRowVM, type TroutVM } from "@app/core";
+import { OPEN, TROUT_NAV, WORDS, type TabSourcesVM, type TroutBoxVM, type TroutRowVM, type TroutVM } from "@app/core";
 import { Text } from "../Text";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
@@ -38,9 +38,9 @@ function rowOf(r: TroutRowVM, actions: KeepActions, images: FishImages | undefin
   return {
     key: r.key, name: r.name, label: r.label, tag: r.tag, sub: r.sub, lines: r.lines, quiet: r.quiet, date: r.date, origin: r.origin, a11y: r.a11y,
     pic: { source: images?.[r.fish]?.[0]?.thumb, more: TROUT_NAV.MORE, label: WORDS.LOOKS_LIKE(r.name), testID: `pic:${r.key}`,
-           onPress: () => actions.onSheet(`tf:${r.key}|id`) },
+           onPress: () => actions.onSheet(OPEN.troutLooks(r.key)) },
     // (T1031) the row opens the fish's species sheet on Sources, its picture on Identification
-    open: () => actions.onSheet(`tf:${r.key}`),
+    open: () => actions.onSheet(OPEN.troutRow(r.key)),
   };
 }
 
@@ -76,7 +76,7 @@ export function TroutCard({ t, palette, actions, images, kicker = false, todayAt
       {(kicker || t.hatchLink) && (
         <View testID="trout-kline" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", columnGap: 12 }}>
           {kicker ? <Text testID="kicker:trout" accessibilityRole="header" style={[TYPE.kicker, { color: palette.sub }]}>{t.fold.name}</Text> : <View />}
-          {t.hatchLink && link(t.hatchLink, "trout-hatch", () => actions.onSheet("hatch"))}
+          {t.hatchLink && link(t.hatchLink, "trout-hatch", () => actions.onSheet(OPEN.hatch))}
         </View>
       )}
       <Text selectable testID="trout-top" style={[big ? TYPE.lead : TYPE.screen, { color: palette.ink, marginTop: 4 }]}>{t.top.lead}</Text>

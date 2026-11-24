@@ -13,7 +13,7 @@ import type { SalmonFacts } from "@app/core";
 import type { ItemId } from "@app/data";
 import { makeReleaseSource, type ReleaseLoader } from "@app/data/release";
 import { openRegsFixture } from "@app/data/release/node";
-import { drawnRegsOf, gearTabsFor, regsSourcesOf, type RegsPage } from "@app/core";
+import { drawnRegsOf, gearTabsFor, reachableSheets, regsSourcesOf, type RegsPage, type SalmonCardVM } from "@app/core";
 import { WaterScreen } from "./WaterScreen";
 import { WaterFrame } from "./WaterFrame";
 import { RegsScreen } from "./regs/RegsScreen";
@@ -24,16 +24,30 @@ import vedder1010 from "./regs/fixtures/vedder_1010.json";
 import glenn615 from "./regs/fixtures/glenn_615.json";
 import { LIGHT } from "./theme";
 import { TEST_TROUT_SOURCES } from "./regs/testing/sources";
-import { expectedKeys, sheetExpected, sheetPages, type ProbeIndex } from "./regs/testing/allSources";
+import { expectedKeys, expectedOtherKeys, pressedSheets, sheetExpected, sheetPages, type ProbeIndex } from "./regs/testing/allSources";
 import { setFailureSink } from "@app/core";
 
 /** (T1036) what the screen hands the Source row: the drawn view models and the part's rule index (the sheet's keys' oracle) */
-const handed = vi.hoisted(() => ({ drawn: null as unknown, rules: null as unknown }));
+const handed = vi.hoisted(() => ({ drawn: null as unknown, rules: null as unknown,
+  /** (T1036) the page's own sheets, as the screen hands them to the every-source sheet */
+  sheet: null as unknown as (k: string) => never,
+  /** (review of PR 126) the salmon card handed beside them (its rows open sp: sheets) */
+  salmon: null as unknown,
+  /** the sheets the screen itself reads to draw an open sheet (RegsScreen's host page: `withSalmonSheets`), and the keys
+   *  it was asked for since the last press (the press oracle, `pressedSheets`) */
+  host: null as unknown as (k: string) => never, opened: { keys: [] as string[] } }));
 vi.mock("@app/core", async (orig) => {
   const m = await orig<typeof import("@app/core")>();
   return { ...m, regsSourcesOf: (...a: Parameters<typeof m.regsSourcesOf>) => {
     handed.drawn = a[0]; handed.rules = a[1].rules;
     return m.regsSourcesOf(...a);
+  }, withDrawnSources: (...a: Parameters<typeof m.withDrawnSources>) => {
+    handed.sheet = a[0].sheet as never; handed.salmon = a[4] ?? null;
+    return m.withDrawnSources(...a);
+  }, withSalmonSheets: (...a: Parameters<typeof m.withSalmonSheets>) => {
+    const f = m.withSalmonSheets(...a);
+    handed.host = f as never;
+    return (k: Parameters<typeof f>[0]) => { handed.opened.keys.push(k); return f(k); };
   } };
 });
 // (T1036, W46) a rule a drawn line cites that the index lacks is reported: none on these pages
@@ -90,10 +104,11 @@ function probe() {
   return { listed: [...listed].sort((a, b) => a - b), expected: [...new Set([...drawn, ...own])].sort((a, b) => a - b), own, drawn };
 }
 
-type Case = { item: string; part: number; day: [number, number]; salmon?: true };
+/** `bare`: (T1036) no sheet one tap away cites a rule the drawn lines do not (the second group is not drawn) */
+type Case = { item: string; part: number; day: [number, number]; salmon?: true; bare?: true };
 const CASES: Case[] = [
-  { item: "gnis:8634", part: 3, day: [9, 10], salmon: true },
-  { item: "gnis:8634", part: 3, day: [9, 10] },
+  { item: "gnis:8634", part: 3, day: [9, 10], salmon: true, bare: true },
+  { item: "gnis:8634", part: 3, day: [9, 10], bare: true },
   { item: "gnis:8634", part: 0, day: [2, 15], salmon: true },
   { item: "gnis:2936", part: 11, day: [7, 15] },
   { item: "gnis:2936", part: 11, day: [10, 22] },
@@ -119,6 +134,16 @@ describe("the Regulations Source row cites exactly what the drawn screen cites (
     // and its rules: exactly those the drawn view models cite (a missed rule that shares a page, or has none, fails here)
     expect([sheet.keys, missing]).toEqual([expectedKeys(handed.drawn, handed.rules as ProbeIndex), []]);
     expect(sheet.keys.length).toBeGreaterThan(0);
+    // (T1036, owner 2026-11-24 "Add back but maybe have them separate?") the second group, under its one head: what the
+    // sheets one tap from the drawn screen cite (a fish row's, Possession's), none of the first group's
+    // (review of PR 126) the sheets one tap away, read by pressing every press target of the screen, not by core's walk:
+    // core's list holds every one of them; what core lists beyond them is only a section Source sheet no line draws
+    // (the bait list draws no Source line), whose rules are the first group's already
+    const pressed = pressedSheets({ act, fireEvent, screen }, () => document.body, handed.opened);
+    const core: string[] = reachableSheets(handed.drawn as unknown[], handed.salmon as SalmonCardVM | null);
+    expect([pressed.filter((k) => !core.includes(k)), core.filter((k) => !pressed.includes(k) && !k.startsWith("srcs:"))]).toEqual([[], []]);
+    expect([sheet.other, sheet.heads]).toEqual([expectedOtherKeys(pressed, handed.host, handed.rules as ProbeIndex, sheet.keys), c.bare ? 0 : 1]);
+    expect([sheet.other.length > 0, sheet.other.filter((k) => sheet.keys.includes(k))]).toEqual([!c.bare, []]);
   }, 40_000);
 });
 
@@ -145,6 +170,8 @@ describe("the trout table's Source line on a real page (T1031 item 3)", () => {
     const sheet = sheetPages({ act, fireEvent, screen });
     expect([sheet.trout.includes(6), sheet.all]).toEqual([true, sheetExpected(p.drawn, sheet.trout)]);
     expect([sheet.keys, missing]).toEqual([expectedKeys(handed.drawn, handed.rules as ProbeIndex), []]);
+    expect(sheet.other).toEqual(expectedOtherKeys(pressedSheets({ act, fireEvent, screen }, () => document.body, handed.opened),
+                                                  handed.host, handed.rules as ProbeIndex, sheet.keys));
   }, 40_000);
 });
 

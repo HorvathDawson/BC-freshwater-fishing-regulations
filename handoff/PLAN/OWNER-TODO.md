@@ -1,9 +1,9 @@
 # Owner to-do
 
-**The owner ticks items off in the Owner To-Do page: https://claude.ai/artifact/Lh2ougAwfxx1wNmCV18m8f** (owner 2026-11-11). Every open item for the owner is a row
-there (collection `todos`: title, detail, group, ticket, order, added, done, note). Claude adds rows with the
-ArtifactData tool when work produces something for the owner, and reads `done` and `note` back at the start of a
-session. This file keeps the long text and history.
+**Markdown only (owner 2026-11-24): the Owner To-Do artifact page is retired** ("we will make a new owner todo page (no
+artifact only md files that you ask)"). No chat writes artifact rows any more. Chats ask in chat, in batches, and write
+each answer here and in the ticket in the same turn. A new short page of open items only is T1080; the docs lean-out
+is T1081.
 
 Things only you can do. Claude keeps this list current while you are away; the work itself lives in
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
@@ -11,6 +11,18 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## 2026-11-24: planning chat (roadmap row P) started
 
+- 0.9.0 release, two answers given to the 0.9.0 chat and relayed by it (recorded here by the planning chat, which
+  now keeps this file):
+  - ~11:30, on the stalled production Android build: "you can run it for me". The 0.9.0 chat ran command 1
+    (`build-apk --production`) for him, that time only.
+  - 11:59: "okay i am leaving you to the release of everything. can i release new prod data now?" The 0.9.0 chat's
+    reading (its own, not confirmed word for word by the owner): go for 0.9.0's remaining CONFIRM_PROD steps from its
+    session (iOS TestFlight production build, site, feeds worker), this release only. The owner ran the data release
+    himself. Done as of the relay: production data, site (smoke 18/18), feeds worker, Play build 44 on Internal and
+    Closed; the iOS build was still building. This does not change the standing rule: CONFIRM_PROD is the owner's
+    unless he says so that time.
+  - The v0.9.0 tag was moved to 65f84020c (versionCode 44) on his earlier OK; the merge-back PR carries the Play
+    record updates.
 - Store checks 2026-11-24 13:30 (planning chat, every source read): TestFlight 6 items, all T982; Play reviews none;
   production worker: one new crash kind on 0.8.5 (T1055); the four production reports of 11-21 are T985's (ids now
   written there). About 40 old items (0.7.x–0.8.2, mostly staging) show as new only because no ticket cites their id:
@@ -33,11 +45,12 @@ with the default Claude uses until you answer). Newest first inside each section
   row waits on the iOS release chat. Then, in App Store Connect: Apps → Can I Fish This? → Distribution → the "+" by
   iOS App → version 0.9.0 → Build → pick the build → paste the listing text and pictures (T1072) → App Privacy and
   the other answers → Version Release: "Manually release" and Phased Release on → Add for Review → Submit.
-- **Question (you): three proposed chats.** 2b = 0.9.2 hardening (no features), S = store content (T1072; can run
-  beside 0.9.2), 5i = iOS full release (T1071). Say yes or change them, and whether the iOS release comes before or
-  after 0.9.2. Default until you answer: nothing starts; they stay marked "proposed" in the roadmap.
-- **Question (you): T1062 release candidates (rc tags).** Your idea from the 0.9.0 release. Default: planned with
-  chat 3 (repo move), a written plan for you to agree before anything is built.
+- Answered 2026-11-24: the owner to-do goes markdown only, no artifact (T1080); and a ticket to audit and lean out
+  every markdown file and unify the docs (T1081, proposed chat D after 0.9.1).
+- Answered 2026-11-24 (multiple choice in chat): next chat after 0.9.1 = "iOS full release first"; approved chats =
+  0.9.2 hardening, Store content, iOS full release, Docs lean-out (all four); rc tags (T1062) = "With the repo-move
+  chat"; the old owner to-do history (T1080) = "Delete it". The order and each chat's prompt to paste are in
+  ROADMAP-after-0.9.0.md.
 
 ## 2026-11-24 12:15–12:33: staging reports and the Kitimat creeks, the answers (verbatim)
 
