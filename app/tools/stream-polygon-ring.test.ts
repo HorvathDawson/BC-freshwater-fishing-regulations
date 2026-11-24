@@ -13,10 +13,10 @@
  *
  * (The #81 review) A polygon whose route is a STUB has no `lz` and is ringed wherever it is drawn, so its stub's casing
  * drew a second outline inside the ring. The stub line carries `pz`, its polygon's first zoom; the casing (and look C's
- * glow) takes no line from its `pz` — checked by EVALUATING their filter per tile zoom with MapLibre's own evaluator.
+ * glow) is opacity 0 on it from its `pz` — checked by EVALUATING their opacity per tile zoom, as the ring's.
  */
 import { describe, expect, it } from "vitest";
-import { createPropertyExpression, featureFilter, latest } from "@maplibre/maplibre-gl-style-spec";
+import { createPropertyExpression, latest } from "@maplibre/maplibre-gl-style-spec";
 import { runtimeStyle } from "../packages/map/src/runtime-style";
 import { SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS } from "../packages/map/src/paint";
 
@@ -76,7 +76,8 @@ describe("(T1024) a stream's polygon is ringed only where its line is not drawn"
     // (T735) look C's glow is drawn by the dark theme only (a theme with no glow has no such layer)
     for (const l of [layer(ls, SELECTION_CASING), ...ls.filter((x) => x.id === SELECTION_GLOW)]) {
       it(`${theme} ${l.id}: every line on \`stream\`, but a stub from its polygon's zoom (the ring is its outline)`, () => {
-        expect(l["source-layer"]).toBe("stream");
+        // no filter: the casing stays in one bucket with the stream (the map lab's switch); the opacity decides
+        expect([l["source-layer"], l.filter ?? null]).toEqual(["stream", null]);
         expect({
           // where the ring stops the line's casing lights the water: any line with no `pz`, at every zoom
           line: takenAlong(l, { ord: 3 }),
@@ -94,9 +95,11 @@ describe("(T1024) a stream's polygon is ringed only where its line is not drawn"
   });
 });
 
-/** does `l`'s filter take a line with `props` at each zoom ([zoom, 1 | 0]; no filter: every line) */
+/** is `l` drawn on a SELECTED line with `props`, and on the PART you are on, at each zoom ([zoom, 1 | 0]: both, or neither) */
 function takenAlong(l: Layer, props: Record<string, unknown>) {
-  if (l.filter === undefined) return ZOOMS.map((z) => [z, 1]);
-  const f = featureFilter(l.filter as never, `layers[${l.id}].filter`);
-  return ZOOMS.map((z) => [z, f.filter({ zoom: z } as never, { type: 2, properties: props } as never) ? 1 : 0]);
+  return ZOOMS.map((z) => {
+    const [sel, part] = [{ selected: true }, { part: true }].map((st) => opacity(l, z, props, st) > 0);
+    if (sel !== part) throw new Error(`${l.id} z${z}: selected ${sel} but part ${part}`);
+    return [z, sel ? 1 : 0];
+  });
 }
