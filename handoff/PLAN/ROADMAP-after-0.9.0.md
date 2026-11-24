@@ -15,9 +15,10 @@ Owner's order: "repo move first maybe? the 0.9.1 then feature then launch".
 
 | # | Chat | Scope (frozen) |
 |---|---|---|
+| P | Planning (runs in the background, alongside every chat) | Intake and planning only, never code: the owner's new asks, tester feedback and reports become tickets + feedback-log rows; it keeps the roadmap, the release contents and OWNER-TODO current. Build chats never write new tickets: they hand new finds to this chat. |
 | 1 | Ship 0.9.0 | Finish `runbooks/release-by-hand.md` from where the restart page says: the staging check, the emulator device pass, the owner's production commands, Play Closed, and the releases/feedback-log rows. |
 | 2 | Repo move + merge queue | T1041's "after 0.9.0" checklist: the owner moves the repo to a free GitHub org, then the slug flip, the `GITHUB_DISPATCH_TOKEN` re-issue on both feeds workers, the rulesets and the merge queue. |
-| 3 | 0.9.1 follow-ups | Trout per-row source pages. T1029 (owner Q4–6 with pictures). T1030. The T1047 follow-up: a datum-change list seeded from HYDAT `STN_REMARKS`, with owner-accepted rows for 08KH019/08MH153. The stub-polygon double outline (#81 review). The T1049 and T1041 low findings. Any 0.9.0 device-pass bugs. |
+| 3 | 0.9.1 follow-ups | Trout per-row source pages. T1029 (owner Q4–6 with pictures). T1030. The T1047 follow-up: a datum-change list seeded from HYDAT `STN_REMARKS`, with owner-accepted rows for 08KH019/08MH153. The stub-polygon double outline (#81 review). The T1049 and T1041 low findings. Any 0.9.0 device-pass bugs. One file per ledger row and per OWNER-TODO item, with README/OWNER-TODO built from them (today's ~6 merge clashes on those two files). |
 | 4a | 0.10 feature: stocked lakes | T200 (+ T634 stocking half): research the source and licence, pictures of the Stocked mode, then build. |
 | 4b | 0.10 feature: bathymetry maps and charts | T201, T218, T219 (+ T634 depth half): the owner says "0.10 is bathy maps/ charts too". |
 | 4c | 0.10 feature: corridors | T79 (imagery corridor + pools validation): the owner says "coul look into the corridors again too". Research and pictures first. |
@@ -30,6 +31,13 @@ for 14 days (from 2026-11-23, so 2026-12-07 at the earliest) and the questionnai
 waits, as long as the testers stay opted in. The feedback log and releases.md have to stay current in every chat.
 
 ## Prompts to paste (one per chat)
+
+**P. Planning (background, keep it open)**
+> Start at handoff/PLAN/START-HERE.md (step 0, reports first) and ROADMAP-after-0.9.0.md. You are the planning chat:
+> never write code, never run lanes. Your job: turn my asks, tester feedback and reports into tickets (you alone
+> create ticket numbers), keep play-production-access/feedback-log.md, ROADMAP-after-0.9.0.md, the release contents
+> and OWNER-TODO.md current, and say which future chat or release each item belongs to. Small docs PRs with auto-merge.
+> Ask me questions in batches. Build chats send you their new finds; you ticket them.
 
 **1. Ship 0.9.0**
 > Start at handoff/PLAN/START-HERE.md (step 0, reports first). You orchestrate. Scope: ship 0.9.0 only, nothing new.
