@@ -4,6 +4,7 @@ Recorded: CI was red from 10-29 to 11-09 and nobody saw it; no release or APK sc
 from __future__ import annotations
 
 import importlib.util
+import json
 import os
 import subprocess
 import sys
@@ -23,11 +24,16 @@ def run(sha, status="completed", conclusion="success", n=1):
 
 
 def fake(per_workflow):
-    def runs_of(wf, branch=None, commit=None):
+    """gh as it answers: `--commit` the runs at it; `page=N` (T1059) that page of all runs; else the newest `limit`."""
+    def runs_of(wf, branch=None, commit=None, limit=30, page=None):
         got = per_workflow.get(wf, [])      # (T993) a workflow a test does not name has no runs
         if isinstance(got, Exception):
             raise got
-        return [r for r in got if r["headSha"] == commit] if commit else got
+        if commit:
+            return [r for r in got if r["headSha"] == commit][:limit]
+        if page is not None:
+            return got[(page - 1) * CI.PER_PAGE:page * CI.PER_PAGE]
+        return got[:limit]
     return runs_of
 
 
@@ -135,3 +141,98 @@ def test_the_production_store_builds_ask_strictly():
     for build in ("build-apk", "build-ios-testflight"):
         assert f"build_gates {build} ${{PROD:+--strict}}" in (ROOT / f"deploy/staging/{build}.sh").read_text(), build
 
+
+
+# ── (T1059) the strict ancestor search reads every run, not the newest 30 of all branches ──────────────────────────
+# Recorded 2026-11-24 from the live repo (read-only): docs-ci's runs, two pages of `gh api …/runs --jq PAGE_JQ`. The
+# 0.9.0 build commit (defb62b4c) had no docs-ci run; its green ancestor run (15a257ca9, main) was number 109 of all
+# branches' runs, so `build-apk.sh --production --dry-run` said "no finished run" and the build used CI_CHECK_SKIP.
+REC = json.loads((ROOT / "pipeline/tests/fixtures/ci_status_docs_ci_runs_2026-11-24.json").read_text())
+REC_SHA = REC["sha"]
+
+
+def recorded(ancestors):
+    """the recorded docs-ci answers through the real page reader; the other workflows green at the sha."""
+    def runs_of(wf, branch=None, commit=None, limit=30, page=None):
+        if wf != "docs-ci.yml":
+            return [run(REC_SHA)] if commit == REC_SHA else []
+        if commit:
+            return []                                              # docs-ci never ran on the build commit
+        if page is not None:
+            pages = REC["pages"]
+            return CI.parse_page(json.dumps(pages[page - 1]), "rec") if page <= len(pages) else []
+        return [r for pg in REC["pages"] for r in pg["runs"]][:limit]  # what the old query (newest 30) saw
+    git = {"is_ancestor": lambda a, b: b == REC_SHA and a in ancestors,
+           "changed": lambda a, b: REC["changed_since_15a257ca9"] if a.startswith("15a257ca9") else ["handoff/x.md"]}
+    return runs_of, git
+
+
+def test_a_green_ancestor_run_past_the_newest_30_is_found():
+    runs_of, git = recorded(set(REC["ancestors_of_sha"]))
+    first = [r for pg in REC["pages"] for r in pg["runs"]].index(
+        next(r for pg in REC["pages"] for r in pg["runs"] if r["headSha"].startswith("15a257ca9")))
+    assert first > 100                                             # past gh's 30, and past the first page too
+    rc, lines = CI.check(REC_SHA, runs_of=runs_of, strict=True, **git)
+    assert rc == 0, lines
+    assert ("ok    docs-ci.yml: no run on defb62b4c31f; nothing in its area changed since its green run on "
+            "15a257ca9a78") in lines
+
+
+def test_a_truly_missing_ancestor_run_is_still_a_stop_that_says_so():
+    runs_of, git = recorded(set())                                 # no run anywhere is at an ancestor
+    n = len({r["databaseId"] for pg in REC["pages"] for r in pg["runs"]})   # 113: one run moved pages while recording
+    assert n == sum(len(pg["runs"]) for pg in REC["pages"]) - 1
+    rc, lines = CI.check(REC_SHA, runs_of=runs_of, strict=True, **git)
+    assert rc == 1
+    assert (f"STOP  docs-ci.yml: no finished run on defb62b4c31f or any commit before it, among all {n} runs of the "
+            "workflow (--strict)") in lines
+
+
+def test_a_run_shifted_onto_the_next_page_is_read_once():
+    """a run started while paging pushes page 1's last run onto page 2: it is one run, not two."""
+    full = [run("d" * 40, n=i) for i in range(CI.PER_PAGE)]
+    pages = {1: full, 2: [full[-1], run("e" * 40, n=500)]}
+    rc, lines = CI.check(HEAD, runs_of=lambda wf, page=None, **k: pages.get(page, []) if wf == "docs-ci.yml" and
+                         page else ([run(HEAD)] if k.get("commit") == HEAD and wf != "docs-ci.yml" else []),
+                         strict=True, is_ancestor=lambda a, b: False, changed=lambda a, b: [])
+    assert rc == 1 and any(f"among all {CI.PER_PAGE + 1} runs" in ln for ln in lines), lines
+
+
+def test_too_many_runs_to_reach_an_ancestor_is_cannot_tell_not_no_run():
+    """(W46) MAX_PAGES full pages and no ancestor: said, exit 2 — never "no run"."""
+    full = [run("d" * 40, n=i) for i in range(CI.PER_PAGE)]
+    asked = []
+
+    def runs_of(wf, branch=None, commit=None, limit=30, page=None):
+        if wf != "docs-ci.yml":
+            return [run(HEAD)] if commit == HEAD else []
+        if page is not None:
+            asked.append(page)
+            return [{**r, "databaseId": page * 1000 + i} for i, r in enumerate(full)]
+        return []
+    rc, lines = CI.check(HEAD, runs_of=runs_of, strict=True, is_ancestor=lambda a, b: False, changed=lambda a, b: [])
+    assert rc == 2 and asked == list(range(1, CI.MAX_PAGES + 1))
+    assert any(ln.startswith(f"STOP  docs-ci.yml: CANNOT TELL — read the newest {CI.PER_PAGE * CI.MAX_PAGES} runs")
+               for ln in lines), lines
+
+
+def test_gh_runs_pages_through_the_api_and_unreadable_pages_cannot_tell(monkeypatch):
+    seen = []
+
+    class Done:
+        returncode, stderr = 0, ""
+        stdout = json.dumps(REC["pages"][1])
+
+    monkeypatch.setattr(CI.subprocess, "run", lambda args, **k: seen.append(args) or Done)
+    got = CI.gh_runs("docs-ci.yml", page=2)
+    assert got == REC["pages"][1]["runs"] and got[0]["headSha"] and "databaseId" in got[0]
+    assert seen[0][:4] == ["gh", "api", "-X", "GET"]
+    assert "repos/{owner}/{repo}/actions/workflows/docs-ci.yml/runs" in seen[0]
+    assert f"per_page={CI.PER_PAGE}" in seen[0] and "page=2" in seen[0] and CI.PAGE_JQ in seen[0]
+    Done.stdout = "{}"
+    try:
+        CI.gh_runs("docs-ci.yml", page=1)
+    except CI.CannotTell as e:
+        assert "unreadable output" in str(e)
+    else:
+        raise AssertionError("an unreadable page must be CannotTell")
