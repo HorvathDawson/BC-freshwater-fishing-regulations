@@ -35,11 +35,10 @@ with the default Claude uses until you answer). Newest first inside each section
   the other answers → Version Release: "Manually release" and Phased Release on → Add for Review → Submit.
 - Answered 2026-11-24: the owner to-do goes markdown only, no artifact (T1080); and a ticket to audit and lean out
   every markdown file and unify the docs (T1081, proposed chat D after 0.9.1).
-- **Question (you): three proposed chats.** 2b = 0.9.2 hardening (no features), S = store content (T1072; can run
-  beside 0.9.2), 5i = iOS full release (T1071). Say yes or change them, and whether the iOS release comes before or
-  after 0.9.2. Default until you answer: nothing starts; they stay marked "proposed" in the roadmap.
-- **Question (you): T1062 release candidates (rc tags).** Your idea from the 0.9.0 release. Default: planned with
-  chat 3 (repo move), a written plan for you to agree before anything is built.
+- Answered 2026-11-24 (multiple choice in chat): next chat after 0.9.1 = "iOS full release first"; approved chats =
+  0.9.2 hardening, Store content, iOS full release, Docs lean-out (all four); rc tags (T1062) = "With the repo-move
+  chat"; the old owner to-do history (T1080) = "Delete it". The order and each chat's prompt to paste are in
+  ROADMAP-after-0.9.0.md.
 
 ## 2026-11-24 12:15–12:33: staging reports and the Kitimat creeks, the answers (verbatim)
 

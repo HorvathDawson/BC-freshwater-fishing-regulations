@@ -23,6 +23,6 @@ App Privacy answers, review notes, age rating) and T863 (TestFlight external, ap
 A page under `handoff/PLAN/ios/` the owner pastes from, with no unanswered line; the App Store version submitted by
 the owner; the release recorded in STATUS.
 
-Depends: T727 (draft), T1072 (shots, text). Severity: launch work, no defect. Release: its own chat, before the Play
-launch (iOS has no 14-day wait). Model: Sonnet (docs), Opus only if a privacy answer needs the code read. Size: M.
+Depends: T727 (draft), T1072 (shots, text). Severity: launch work, no defect. Release: its own chat (roadmap 5i), the first
+chat after 0.9.1 (owner 2026-11-24, picked "iOS full release first"). Model: Sonnet (docs), Opus only if a privacy answer needs the code read. Size: M.
 Owner: yes (App Store Connect entries, the submit, any legal answers).

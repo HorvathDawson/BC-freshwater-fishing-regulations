@@ -11,7 +11,8 @@ lines, most of it history. Related: PR #114 (T1041: one file per owner item, the
 1. A new page the owner can read in a few minutes: only what is open, newest first, in three groups: Do (clicks and
    commands, with the steps), Decide (questions, each with its default), Look (pictures and checks). One or two lines
    per item, a link to its ticket for the detail.
-2. Everything answered or done moves out of the page into a history file (git keeps it; nobody reads it by default).
+2. Everything answered or done is deleted from the working tree (owner 2026-11-24, picked "Delete it": git keeps
+   every line); no history file.
 3. No artifact: remove the artifact link and rule from the page, AGENTS, the roadmap prompt and the restart pages.
    Chats ask the owner in chat, in batches, and write each answer into the ticket and the page in the same turn.
 4. Fit it to PR #114's one-file-per-item layout: build after #114 merges (or fold the two together), so the page is
