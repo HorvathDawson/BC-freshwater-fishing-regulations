@@ -21,9 +21,9 @@ answers per LOCATION and day: per species the verdict index (or -1: this locatio
 lines. The app re-composes each release chain from it, narrowest location first, exactly as `deliver.salmon.
 chain_calendar` does (`compose` here is the reference, pinned against it), so the app still decides nothing.
 
-    index.json    {format: "dfo-feed/3", at, regions: {slug: {name, url, asof, sha256, changed, checked, stale, held,
-                   failures, notes, header, unresolved, bucket?, shared, sizes}}, verdicts, gears, locs: {location_id: {r, sp: [5 runs], g: runs, x?}},
-                   unplaced: n, issues, dfo}  notes: the region header's typed notes (`header.py`); header: their digest
+    index.json    {format: "dfo-feed/3", at, regions: {slug: {name, url, asof, checked, stale, held, notes, gone,
+                   bucket?, shared, sizes}}, verdicts, gears, locs: {location_id: {r, sp: [5 runs], g: runs, x?, pr?}},
+                   unplaced: n, issues, dfo}  notes: the region header's typed notes (`header.py`)
                    x (T321): the rows the location's card shows in DFO's words ({k: new|unread|note, sp, d, t})
                    gone (T549): the places DFO dropped, the wider rule answering [{location_id, water, place, page}]
                    issues (T759, owner 2026-11-15): the rules on today's pages we cannot (yet) stand behind, by WATER —
@@ -36,6 +36,12 @@ chain_calendar` does (`compose` here is the reference, pinned against it), so th
                      worker's /status.json serves the same. A release that binds a piece needs pieces >= 1
     unplaced.json the places the page lists that no curated location knows (part 4) — their rules HELD, never dropped
     <out>.notified.json   BESIDE the feed dir, never synced: the notices already sent (`gauges.feed.notify`)
+    <out>.state.json      BESIDE the feed dir, never synced (T905, owner 2026-11-24): {format: "dfo-state/1", regions:
+                   {slug: {sha256, changed, failures, header, unresolved, texts}}} — the run's own bookkeeping
+                   (`STATE_KEYS`), read back by the next run and by nobody else; out of the public index, which they
+                   grew by ~11 kB. The worker's twin is R2 private/feeds/dfo/state.json. With no state file, the run
+                   seeds it ONCE from the last index's regions (an index written before T905 still carries them), so
+                   the cutover run neither re-tells a page's text nor counts a page as changed (`_read_state`)
 
 Per region, every run (no credits, no secrets — safe on a cron):
   * fetch (validated, atomic; `fetch.fetch_region`), every page fetched kept in `cache/dfo_salmon/history/` once
@@ -73,7 +79,7 @@ from pathlib import Path
 from typing import Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 
 from pipeline.common.curated import GENERATED
-from pipeline.common.feed_formats import FEED_FORMATS, FEED_MIN_APP
+from pipeline.common.feed_formats import DFO_STATE_KEYS, FEED_FORMATS, FEED_MIN_APP
 from pipeline.deliver import salmon as S
 from pipeline.regs.dfo_salmon import fetch as F
 
@@ -84,6 +90,13 @@ logger = logging.getLogger(__name__)
 FORMAT = FEED_FORMATS["dfo_feed"]          # (T556) typed once, in pipeline/common/feed_formats.py
 MIN_APP = FEED_MIN_APP["dfo_feed"]         # (T676 item 2) the index's `minAppVersion`: the oldest app that reads it
 OUT_DIR = Path(GENERATED.regs.dfo_salmon) / "feed"
+#: (T905, owner 2026-11-24 "Move worker state out") the private state file's format (`<out>.state.json`)
+STATE_FORMAT = FEED_FORMATS["dfo_state"]
+#: (T905) A REGION'S OWN BOOKKEEPING: what only this publisher reads back (the page hash and when it last moved, the
+#: fetches that failed in a row, the header's digest, the header names no water binds, the page's general text). Kept
+#: in the private state, never in the public index; no app reads one (core salmonFeed.ts `SalmonFeedRegion`). The
+#: worker's `dfo/state.ts STATE_KEYS` is the same list: one table, `feed_formats.DFO_STATE_KEYS`, emitted for it.
+STATE_KEYS = DFO_STATE_KEYS
 #: (T851) a region is STALE when its last good read (`checked`) is older than this at a run whose fetch failed — not
 #: because one fetch failed (2026-11-18: one 5xx at the daily run marked every region stale). 30 h is the app's own
 #: line for the DFO feed (app/packages/core/src/staleness.ts `STALE_AFTER.dfo`: the daily cron plus 6 h), so a region
@@ -651,6 +664,38 @@ def _same_format(prev: dict) -> dict:
     return prev
 
 
+def state_path(out: Path) -> Path:
+    """(T905) The private state: BESIDE the feed directory (as `<out>.notified.json`), so it is never published with
+    the feed. Resolved first: `--out .` would otherwise name `./.state.json`, inside the published directory."""
+    out = Path(out).resolve()
+    return out.parent / f"{out.name}.state.json"
+
+
+def _read_state(out: Path, prev: dict) -> Dict[str, dict]:
+    """(T905) Each region's bookkeeping (`STATE_KEYS`) as the last run left it. The state file when there is one (an
+    unreadable one, or one in another format, STOPS the run, as an unreadable index does); with none — the first run
+    after T905, or a first run at all — the last index's regions, ONCE: an index written before T905 still carries
+    the keys, so the cutover run compares the page hash and the page's text with the last read's (no page counted as
+    changed, no text re-told). A first run at all has neither: every page is read for the first time, as before."""
+    p = state_path(out)
+    got = _read(p, None)
+    if got is None:
+        seeded = {s: {k: r[k] for k in STATE_KEYS if k in r} for s, r in (prev.get("regions") or {}).items()}
+        if any(seeded.values()):
+            logger.info("no private state %s: seeded once from the last index's regions (%s)", p,
+                        ", ".join(s for s, r in seeded.items() if r))
+        return seeded
+    if not isinstance(got, dict) or got.get("format") != STATE_FORMAT or not isinstance(got.get("regions"), dict):
+        raise RuntimeError(f"{p}: not a {STATE_FORMAT} state file; restore it or remove it (the next run then seeds it "
+                           "from the last index)")
+    return got["regions"]
+
+
+def _split(reg: dict) -> Tuple[dict, dict]:
+    """(T905) A region's record as the run builds it -> (what the index publishes, the private bookkeeping)."""
+    return ({k: v for k, v in reg.items() if k not in STATE_KEYS}, {k: reg[k] for k in STATE_KEYS if k in reg})
+
+
 def _set_bucket(reg: dict) -> None:
     """(T320) the salmon bucket — the header's combined daily / possession — beside the notes it is read from; (T356)
     with the region's `shared` and `sizes`, as the release's region carries them (`deliver.salmon.header_answers`)."""
@@ -695,7 +740,8 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
         sender=None, typed_dir: Optional[Path] = None, scrape_dir: Optional[Path] = None, dry_run: bool = False,
         marks_path: Optional[Path] = None, with_marks: bool = True) -> dict:
     """One feed run. `fetcher(slug)` → (html, fetched_at) or raises. Writes `<out>/index.json` + `unplaced.json`,
-    sends the due notices; returns `{index, unplaced, notices, sent, previews}`.
+    sends the due notices; returns `{index, state, unplaced, notices, sent, previews}`. (T905) `state`: what the run
+    wrote to `state_path(out)`, each region's bookkeeping (`STATE_KEYS`), which `index` no longer carries.
 
     T759: `index.issues` — per water, the rules of the regions READ this run that we cannot stand behind yet
     (`issues_of`); a region not read (not asked, held, fetch failed) carries none and is named in `issues.unread`.
@@ -712,6 +758,11 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
     out = Path(out)
     at = now or _now()
     prev = _same_format(_read(out / "index.json", {}))
+    # (T905) each region as the last run left it: its public record with its private bookkeeping back on it — the
+    # bookkeeping from the state only (an index before T905 still carrying it is read through `_read_state`'s seed)
+    no_state = not state_path(out).exists()        # the cutover (or a first run): the state is seeded this run
+    state = _read_state(out, prev)
+    prev_regions = {s: {**_split(r)[0], **(state.get(s) or {})} for s, r in (prev.get("regions") or {}).items()}
     prev_unplaced = {(u["region"], u["fingerprint"]): u for u in _read(out / "unplaced.json", [])}
     todo = [F.normalize_slug(s) for s in regions] if regions else [s for s in F.ALL_SLUGS if not F.PAGES[s].is_stub]
     verdicts, gears = S._Interner(), S._Interner()
@@ -725,14 +776,14 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
     no_water: List[dict] = []
     unread: Dict[str, str] = {}                                # (T759) slug -> why no issues were read for it
     for slug in F.ALL_SLUGS:                                   # regions not asked this run keep their last answers
-        if slug not in todo and slug in (prev.get("regions") or {}):
+        if slug not in todo and slug in prev_regions:
             locs.update(_carry(prev, slug, verdicts, gears))
-            region_out[slug] = prev["regions"][slug]
+            region_out[slug] = prev_regions[slug]
             unread[slug] = "not asked"
             unplaced += [u for (r, _), u in prev_unplaced.items() if r == slug]
     for slug in todo:
         page = F.PAGES[slug]
-        was = (prev.get("regions") or {}).get(slug) or {}
+        was = prev_regions.get(slug) or {}
         reg = {"name": page.name, "url": F._BASE.format(slug=slug), "asof": was.get("asof"),
                "sha256": was.get("sha256"), "changed": was.get("changed"), "checked": was.get("checked"),
                "stale": False, "held": None, "failures": 0,
@@ -847,17 +898,29 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
         if scrape_dir is not None and not dry_run:              # one vintage: the typed rows ARE this page's
             emit_region(slug, html, Path(scrape_dir), typed_dir)
 
-    index = {"format": FORMAT, "minAppVersion": MIN_APP, "at": at, "regions": {s: region_out[s] for s in F.ALL_SLUGS if s in region_out},
+    # (T905) each region split: the index publishes what an app reads, the state keeps the run's own bookkeeping
+    split = {s: _split(region_out[s]) for s in F.ALL_SLUGS if s in region_out}
+    index = {"format": FORMAT, "minAppVersion": MIN_APP, "at": at, "regions": {s: pub for s, (pub, _) in split.items()},
              "verdicts": verdicts.items, "gears": gears.items, "locs": dict(sorted(locs.items())),
              "unplaced": len(unplaced), "dfo": dict(SHAPE),
              "issues": {"waters": dict(sorted(issues.items())), "no_water": no_water,
                         "unread": {s: unread[s] for s in F.ALL_SLUGS if s in unread}}}
+    state_out = {"format": STATE_FORMAT, "regions": {s: own for s, (_, own) in split.items()}}
     if dry_run:
-        return {"index": index, "unplaced": unplaced, "notices": notices, "sent": None, "previews": previews}
-    _write(out / "index.json", index)
+        return {"index": index, "state": state_out, "unplaced": unplaced, "notices": notices, "sent": None,
+                "previews": previews}
+    # (T905) THE ORDER. Steady state: the index, then the state — a run that fails between the two leaves the last
+    # state, so the next run compares against it again and finds the same change (the notices are sent after both
+    # writes, so a failed run sent none: told once, by the next run); state first would lose an urgent text notice
+    # for good. The cutover (no state file read): the state first — an index without the keys written over no state
+    # would leave the next run with neither, and it would read every page for the first time.
+    for p, doc in ([(state_path(out), state_out), (out / "index.json", index)] if no_state
+                   else [(out / "index.json", index), (state_path(out), state_out)]):
+        _write(p, doc)
     _write(out / "unplaced.json", sorted(unplaced, key=lambda u: (u["region"], u["fingerprint"])))
     sent = notify.send_due_checked(notices, out, url=notify_url, sender=sender, key_of=notice_key, message_of=notice_text)
-    return {"index": index, "unplaced": unplaced, "notices": notices, "sent": sent, "previews": previews}
+    return {"index": index, "state": state_out, "unplaced": unplaced, "notices": notices, "sent": sent,
+            "previews": previews}
 
 
 def _read_typed(typed_dir: Path, slug: str) -> Optional[dict]:

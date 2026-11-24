@@ -19,6 +19,7 @@ rules for working here). The root `README.md` has the layout and the rebuild com
 | [18-how-regulations-are-stored](18-how-regulations-are-stored.md) | The catalogue format the parser writes |
 | [19-dfo-salmon-pipeline](19-dfo-salmon-pipeline.md) | DFO salmon: fetch, parse, untangle, curate |
 | [REACH-BUILDER](REACH-BUILDER.md) | The reach builder as built: how a rule binds to sections |
+| [GAUGE-DATUM-CHANGES](GAUGE-DATUM-CHANGES.md) | Gauges whose zero moved: each accepted shift, Environment Canada's note, before/after, the one-command undo |
 
 Numbering has gaps because superseded docs were removed; the numbers are kept so links resolve.
 

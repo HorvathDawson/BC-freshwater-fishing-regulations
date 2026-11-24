@@ -1,6 +1,6 @@
 # T1047 — Under Level, an other-datum station's chart still draws its live levels against the old-datum band
 
-Status: DONE 99d8ac9bc, b15f1165b (lane L28, PR #77; owner answered 2026-11-23); follow-up 66a331eef, 874929277, 6b36d695d (lane L8, 2026-11-24): datum change file (5 rows, all proposed), HYDAT remark proposals, the record put on today's zero for an accepted row. Left: the owner's accept/reject per row, then a clim.json + data release; the this-year line (below).
+Status: DONE 99d8ac9bc, b15f1165b (lane L28, PR #77; owner answered 2026-11-23); follow-up 66a331eef, 874929277, 6b36d695d (lane L8, 2026-11-24): datum change file, HYDAT remark proposals, the record put on today's zero for an accepted row; owner 2026-11-24 accepted 08HD006 + 08EF001, built by lane L16 (78af8ebb4, e07717163): live with the next data release. Left: 07FD001, 08KH019, 08MH153 (not asked, still proposed); the this-year line (below).
 
 Source: independent review of PR #77 (T1043), 2026-11-23, item 3; split out by lane L28. Production 2026-11-23:
 08HD006 (Salmon River near Sayward) reports a live level of 2.058 m that the publisher leaves out of `reports` (T550:
@@ -120,3 +120,48 @@ built here.
    2001-01-01; 08GA026 change -> quality; 08MG014 offset null -> +4.923 (approximate).
 Proof: with no accepted row the real roster's clim.json is still byte-identical to origin/main's (sha256 f27bd322…,
 through heavy.sh). Commit 6b36d695d.
+
+## Owner, 2026-11-24 (verbatim, through the coordinator): 08HD006 and 08EF001
+Asked in plain words whether to shift the history of 08HD006 (Salmon River near Sayward, 5.0 m lower since 2025-06-05)
+and 08EF001 (2.37 m higher since 2025-01-30) so their normal range comes back: "Yes but make sure it is a clean well
+documented update that happens which is easy to see". 07FD001, 08KH019, 08MH153 were NOT asked: they stay `proposed`.
+
+## Built (lane L16, 2026-11-24): the two rows accepted, documented, easy to see
+1. **The rows**: both `accepted` through `curated_write` (`python -m pipeline.gauges.feed.datum --set <station> accepted
+   --by owner --on 2026-11-24 --asked … --words …`, `CURATED_WRITE_BY` "Claude (lane L16, T1047), on the owner's answer of
+   2026-11-24"). Each carries `decision` {by, on, asked, words (verbatim)}; the schema now requires it on an accepted /
+   rejected row and refuses it on a proposed one. The diff of the file: only those two rows, `status` + `decision`.
+2. **The page**: `pipeline/docs/GAUGE-DATUM-CHANGES.md` (linked from the docs index and the gauges README): per station
+   Environment Canada's note verbatim, the date, the offset and its sign, the app before / after, the pictures, how it
+   goes live, the one-command undo (`… datum --set <station> proposed`).
+3. **Easy to see**: no release channel covered gauge climatology (the binding diff, gone ids, live counts and
+   `answers_diff` are all regs). Added the smallest one: the data release's checks (stage 4) list each gauge level record
+   the release moves against the live release's commit, one plain line per station ("08HD006 level record moved 5.0 m
+   down to the gauge's new zero (Environment Canada note, 2025-06-05)"; an undo reads "… back on HYDAT's own zero …"),
+   printed, written to `checks/<r-id>/gauge_records.txt`, kept on the ledger (`checks.gauge_records`), counted in the
+   stage line; listed, never a stop (`release.gauge_records`, `datum.record_changes` / `rows_at`). The climatology build
+   prints the same line per accepted row. The anglers' What's new was not touched (their words are the owner's).
+4. **Proof on real data (scratch, HYDAT 20261019 read-only, through heavy.sh)**: clim.json before (sha f27bd322…, = the
+   Mac's live one) and after: only 08HD006 and 08EF001 differ, and only their level band, `recentYears` (2024) and
+   `ratings`; flow bands, `stats` and the other 1,949 stations identical. Today's band (pentad 65, p10–p90): 08HD006
+   6.736–8.156 → 1.736–3.156 m; 08EF001 2.218–3.432 → 4.588–5.802 m. The Python publisher on a saved ECCC snapshot
+   (2026-11-24 15:47Z): before `reports` ["discharge"] for both; after ["discharge","level"], level ranked 0.95 (08HD006,
+   3.178 m at 300 m³/s) and 0.46 (08EF001, 5.046 m at 441 m³/s). The feeds worker (TS) on one recording of both
+   stations with each clim.json: the same 433 files as Python, the same reports and ranks; worker gauge tests 49/49.
+5. **Pictures** (local web over production data, the live files frozen; after = the climate file's level blob packed from
+   the after clim.json exactly as the release packs it (the before clim.json reproduces production's blob byte for
+   byte), the index row and station file as the publisher writes them): `T1047-shots/accepted-08HD006-{before,after}.png`,
+   `T1047-shots/accepted-08EF001-{before,after}.png`. Before: "Too new to say", line alone. After: band back, reading
+   ranked ("(ranked on flow)": flow leads under the owner's rule; the level's own rank is in the feed).
+6. **Live**: no app build. The 0.9.1 data release: `pipeline build` reruns `clim` (its key holds the accepted rows), so
+   clim.json and the bundle's gauge_clim move together, and the release upload puts clim.json on R2 beside the release.
+   Safe order: merge, the 0.9.1 STAGING data release, then the production upload. The one early path is staging and
+   needs no person: `feeds-hydat.yml` has no cron, but the staging feeds worker starts it itself on `main` with upload
+   when ECCC lists a newer HYDAT (`index.ts` hydat event, `dispatch.ts` `DEFAULT_REF = TRUNK`). If that comes before
+   the staging data release, staging ranks these two levels on today's zero while the staging app still draws the old
+   band (`gauge_clim`), the live line metres off it, until that release. Production cannot be reached that way: its
+   clim.json changes only through `deploy/prod/upload.sh`, which puts clim.json and the release up in one run.
+Tests: `test_datum_changes.py` (+7), `test_release_command.py` (+4); 14 mutations each caught (listed in the docstring).
+Review #121 (e07717163): the early STAGING path written down (above); the clim build's printed lines pinned to accepted
+rows; a datum file the live commit cannot give (git failure, schema refusal) is recorded as "could not be compared:
+<reason>" in the checks output, `gauge_records.txt` and the ledger, and stage 4 goes on.

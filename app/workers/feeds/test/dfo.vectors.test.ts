@@ -18,7 +18,7 @@ import { readDates } from "../src/dfo/dates";
 import { byFingerprint, loadEntryFile, reconcile } from "../src/dfo/entries";
 import { digest, parseHeader, resolve } from "../src/dfo/header";
 import { build } from "../src/dfo/feed";
-import { carry, QUEUE_ACTION, ROW_HELD_VERDICT, typePage } from "../src/dfo/live";
+import { carry, QUEUE_ACTION, ROW_HELD_VERDICT, STATE_KEYS, typePage } from "../src/dfo/live";
 import { fingerprint, landmarks, normalize } from "../src/dfo/locations";
 import { key } from "../src/dfo/names";
 import { dumps } from "../src/dfo/pyjson";
@@ -243,7 +243,12 @@ describe("the live feed: the worker's runDfo == the Python's live.run", () => {
   type Feed = { locs: Record<string, { r: string; sp: number[][]; g: number[]; o?: number[]; x?: unknown; pr?: string[] }>; verdicts: unknown[]; gears: unknown[]; unplaced: number;
                 issues: unknown; dfo: unknown; gone: Record<string, unknown[]>; notices: [string, string][] };
   type Case = Feed & { name: string; slug: string; edits: [string, string][]; page?: string; fail?: boolean; first?: string[]; entries?: Record<string, unknown>[] };
-  const L = V.live as Feed & { cases: Record<string, Case> };
+  const L = V.live as Feed & { cases: Record<string, Case>; state_keys: string[] };
+  // (T905) the keys of a published region (the Python's `region_keys`; the worker's own `holds`, robust mode's, aside):
+  // none of STATE_KEYS, which live in priv state.json — every region there carries exactly those
+  const published = (ix: { regions: Record<string, object> }) =>
+    [...new Set(Object.values(ix.regions).flatMap((r) => Object.keys(r)))].filter((k) => k !== "holds").sort();
+  const kept = (priv: MemStore) => Object.values<object>(JSON.parse(priv.m.get("state.json")!).regions).map((r) => Object.keys(r).sort());
   const KINDS = ["dfo-new:", "dfo-drift:", "dfo-new_water:", "dfo-issue:", "dfo-gone:", "dfo-held:", "dfo-fetch:"];
   const lines = (f: Pick<Feed, "gears">, runs: number[]) => runs.map((x, k) => (k % 2 ? (x >= 0 ? f.gears[x] : null) : x));
   // (T770) `o`, another fish's closure lines, by the lines themselves too (absent where none, on both sides)
@@ -283,12 +288,17 @@ describe("the live feed: the worker's runDfo == the Python's live.run", () => {
                                notices: f.notices.map(([k, t]) => [k, action(t)] as [string, string]) });
 
   it("the saved pages: 274 places, the issues, the shape — every one as the Python's", async () => {
-    const feed = new MemStore();
-    const got = await runDfo({ fetch: async () => new Response(""), feed, priv: privStore(), now: "2026-10-28T12:00:00Z", regions: Object.keys(V.pages),
+    const feed = new MemStore(), priv = privStore();
+    const got = await runDfo({ fetch: async () => new Response(""), feed, priv, now: "2026-10-28T12:00:00Z", regions: Object.keys(V.pages),
                                entries: entriesOf(), fetcher: async (s) => [page(s), null] });
     expect(Object.keys(L.locs).length).toBe(274);
     const ix = JSON.parse(feed.m.get("index.json")!);
     expect(view(ix, got.notices)).toEqual(want(L));
+    // (T905) one list of the private keys on both sides; the same published keys; each region's bookkeeping kept
+    expect([...STATE_KEYS]).toEqual(L.state_keys);
+    expect(published(ix)).toEqual((L as unknown as { region_keys: string[] }).region_keys);
+    expect(published(ix).filter((k) => (STATE_KEYS as readonly string[]).includes(k))).toEqual([]);
+    expect(kept(priv)).toEqual(Object.keys(V.pages).map(() => [...STATE_KEYS].sort()));
     expect(L.unplaced).toBe(0);
     // the order the ticket names (toEqual ignores key order): waters by id in the published bytes, each list by key
     const ids = Object.keys(ix.issues.waters);
@@ -314,6 +324,7 @@ describe("the live feed: the worker's runDfo == the Python's live.run", () => {
     const got = await runDfo({ ...base, now: "2026-10-28T18:00:00Z", regions: [c.slug],
                                fetcher: async (s) => { if (c.fail && s === c.slug) throw new Error("down"); return [s === c.slug ? html : page(s), null]; } });
     expect(view(JSON.parse(feed.m.get("index.json")!), got.notices)).toEqual(want(c));
+    expect(published(JSON.parse(feed.m.get("index.json")!))).toEqual((c as unknown as { region_keys: string[] }).region_keys); // (T905)
   });
   it("what the cases say (the Python's words, read back)", () => {
     const kinds = (c: Case) => Object.values((c.issues as any).waters as Record<string, { list: { kind: string; why?: string }[] }>) // eslint-disable-line @typescript-eslint/no-explicit-any
