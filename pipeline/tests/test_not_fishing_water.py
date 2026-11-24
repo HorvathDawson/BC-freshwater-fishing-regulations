@@ -98,7 +98,7 @@ def test_the_tiles_draw_it_in_no_water_layer(tmp_path):
     (tmp_path / "section_handles.txt").write_text("lake:1\nlake:2\n")
     out = tmp_path / "layers"
     out.mkdir()
-    counts = export_waterbodies(tmp_path, "", out)
+    counts = export_waterbodies(tmp_path, "", out, route_zooms={})
     assert counts == {"lake": 1, "not_fishing_water": 1}
     nf = [orjson.loads(x) for x in (out / "not_fishing_water.geojsonl").read_bytes().splitlines()]
     assert nf[0]["properties"] == {"kind": "tailings"}   # decorative: no id — only what it is (T292)

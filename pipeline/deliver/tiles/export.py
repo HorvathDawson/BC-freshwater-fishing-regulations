@@ -150,14 +150,19 @@ class Owners:
 
 
 def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None,
-                   tidal: frozenset = frozenset(), tidal_geoms: list | None = None) -> dict:
+                   tidal: frozenset = frozenset(), tidal_geoms: list | None = None,
+                   route_zooms: dict[str, int | None] | None = None) -> dict:
     """Flowing water, from the geometry sidecar: every stream LINE, and the route through a
     polygon that is a STREAM's own (`Owners.kind`: a river's wide reach, a slough — the registry
     folded them into their water, `registry.flowing`), written to the `stream` layer under the
     polygon's section id so the river has no hole at the zooms its polygon is not yet drawn at
     (FREV/sloughs F4: 65 of 141 such polygons first drew 1-7 zoom levels later than the line
     beside them). Lakes' routes go to `under_lake`; lake and wetland shapes come from
-    ``export_waterbodies`` below."""
+    ``export_waterbodies`` below.
+
+    (T1024) `route_zooms`, when given, is filled with EVERY stream's own polygon of the graph: the first zoom its route is
+    drawn at in the `stream` layer, or None when it has none (no sidecar line: the Okanagan River Oxbows). The polygon
+    carries it as `lz` (``export_waterbodies``), so the selection rings it only where its line is not drawn."""
     from pipeline.common.section_handles import read as _read_handles
 
     _, sid = _read_handles(build_dir)
@@ -201,6 +206,8 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None,
     #: known and `fill_zooms` has closed the holes inside each water; and each stream's own polygon's first zoom
     pending: list[tuple[str, dict]] = []
     poly_z: dict[str, int] = {}
+    #: (T1024) the stream polygons whose route this writes, for `route_zooms`
+    poly_routes: list[str] = []
 
     def write(props: dict, minzoom: int, sec: str) -> None:
         drawn_z[sec] = max(spec.minzoom, min(minzoom, spec.maxzoom))
@@ -268,6 +275,7 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None,
                      for o in ((e.from_node if e.to_node == sec else e.to_node),) if o in run_zoom]
             write({"section_id": sid[sec], "name": owners.label(sec, node), "ord": ord_},
                   min([ladder.zoom_for_magnitude(mag, spec.minzoom)] + run_z), sec)
+            poly_routes.append(sec)
             # (T493 reopened) the polygon is the river where it is drawn: its first zoom exactly as
             # `export_waterbodies` draws it (a ghost, not-fishing water or an undrawn wetland is not drawn)
             pl = wb_polys.get(sec)
@@ -334,6 +342,11 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None,
     drawn_z = filled
     for sec, props in pending:
         _write(_to4326(geoms[sec], tf), props, drawn_z[sec])
+    if route_zooms is not None:
+        # (T1024) each stream polygon's route's first zoom, as written; None for one with no route (none to write)
+        route_zooms.update({sec: None for sec, n in graph.nodes.items()
+                            if _kind(n) != "stream" and owners.kind.get(sec) == "stream"})
+        route_zooms.update({sec: drawn_z[sec] for sec in poly_routes})
     # (T493) THE CREEK THROUGH A HIDDEN LAKE: below the lake's first zoom its route is drawn in the STREAM layer under
     # the LAKE's section id, so the creek has no gap, the stretch wears the lake's status and a tap opens the lake.
     links = lake_link_zooms(graph, lake_z, drawn_z)
@@ -589,8 +602,8 @@ def wetland_is_drawn(nid: str, node, owners: "Owners") -> bool:
     return bool((node.display_name or "").strip() or node.name_tuples)
 
 
-def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path, *, tidal: frozenset = frozenset(),
-                       tidal_geoms: list | None = None) -> dict:
+def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path, *, route_zooms: dict[str, int | None],
+                       tidal: frozenset = frozenset(), tidal_geoms: list | None = None) -> dict:
     """Standing water — from the graph, exactly like streams.
 
     Every waterbody in the province is now an edgeless node carrying its FWA polygon as sidecar
@@ -601,6 +614,10 @@ def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path, *, tidal: froz
     A lake node has TWO geometries and they mean different things: the polygon is its shape and
     is what this draws; the under-lake fid run is the route a river takes through it and is
     drawn separately, dotted, by ``export_streams``.
+
+    (T1024) `route_zooms` is ``export_streams``' (run it first): a stream's own polygon carries `lz`, its route's first
+    zoom in the `stream` layer, and none when it has no route. A stream polygon `route_zooms` does not name is refused —
+    an `lz` left off by mistake would ring a slough twice, over its casing.
     """
     from pipeline.common.section_handles import read as _read_handles
 
@@ -660,6 +677,10 @@ def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path, *, tidal: froz
             continue
         lname = "wetland" if kind == "wetland" else "lake"
         spec = BY_NAME[lname]
+        water = owners.kind.get(nid) or kind
+        if water == "stream" and nid not in route_zooms:
+            raise SystemExit(f"{nid}: a stream's own polygon `export_streams` did not report (route_zooms) — run "
+                             "export_streams first and pass its route_zooms (T1024)")
         if lname not in writers:
             writers[lname] = _writer(out_dir, spec)
         write, _ = writers[lname]
@@ -669,8 +690,11 @@ def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path, *, tidal: froz
             # THE WATER KIND, the registry's: `stream` on a river's wide reach or a slough's
             # polygon, so the style draws it in stream colours (`lake_flowing`); else the
             # layer's own kind. The same `item.kind` the bundle carries, from the same file.
-            "water": owners.kind.get(nid) or kind,
+            "water": water,
             "area_m2": round(g.area),
+            # (T1024) a stream's polygon: the first zoom its route line is drawn at (none: it has none). The app's
+            # selection rings the polygon only below it; from it the line's casing lights the water.
+            "lz": route_zooms[nid] if water == "stream" else None,
         }, ladder.zoom_for_area(g.area, spec.minzoom))
     counts = {lname: close() for lname, (_, close) in writers.items()}
     (out_dir / UNDRAWN_FILE).write_text(json.dumps({

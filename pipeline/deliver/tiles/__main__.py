@@ -129,11 +129,15 @@ def main() -> None:
         pieces = _tidal.tidal_pieces(build_dir)
         print(f"  tidal pieces   {len(pieces):>9,}  (below the atlas's tidal boundaries, not drawn)")
         tgeoms: list = []
+        route_zooms: dict[str, int | None] = {}
         counts |= export.export_streams(build_dir, layer_dir, limit=a.limit, tidal=pieces,
-                                        tidal_geoms=tgeoms)
+                                        tidal_geoms=tgeoms, route_zooms=route_zooms)
         counts |= export.export_stream_names(layer_dir)
-        counts |= export.export_waterbodies(build_dir, a.gpkg, layer_dir, tidal=pieces,
+        counts |= export.export_waterbodies(build_dir, a.gpkg, layer_dir, route_zooms=route_zooms, tidal=pieces,
                                             tidal_geoms=tgeoms)
+        # (T1024) every stream polygon's `lz` against the stream layer AS WRITTEN (no third case)
+        from pipeline.deliver.tiles.stream_polygon_lines import check as _check_lz
+        print(f"  stream polygons {_check_lz(layer_dir):>8,}  (each `lz` its line's first zoom, or no line, T1024)")
         counts |= _tidal.export_tidal(a.gpkg, layer_dir, tgeoms)
 
     print(f"\nfeatures: {sum(counts.values()):,}")
