@@ -94,7 +94,7 @@ WATER: tuple[LayerSpec, ...] = (
     LayerSpec(
         name="stream", geometry="line", ladder="magnitude", mvt_id=True,
         flows="mouth_to_source",
-        attrs=("section_id", "name", "ord", "sc"),
+        attrs=("section_id", "name", "ord", "sc", "pz"),
         why="Every flowing reach, and the route through a polygon that is a STREAM's own (a "
             "river's wide reach, a slough: the registry's kind) under that polygon's section id, "
             "so the river has no hole at the zooms its polygon is not drawn at. `section_id` is "
@@ -104,6 +104,11 @@ WATER: tuple[LayerSpec, ...] = (
             "`sc` (T891) is `1` on a braid's SIDE CHANNEL only (`export.is_side_channel_piece`: FWA secondary "
             "flow, not a canal, never a river's own line) and ABSENT on the main channel, so it costs nothing "
             "where it says nothing; the style draws a side channel thinner, in the same colour (one water). "
+            "`pz` (T1024) is on a stream polygon's STUB route only (`stream_polygon_lines.is_stub`: the polygon "
+            "carries no `lz` and is always ringed), and only one lying inside that polygon (`INSIDE_M`): the first "
+            "zoom that polygon is drawn at. From it the app draws no "
+            "selection casing round the stub, so the ringed polygon has one outline, not two; below it the stub's "
+            "casing lights the water (`stream_polygon_lines.py` proves it on the written files). "
             "(`alt`, `mus` and `areas` were carried and read by nothing — search is the "
             "bundle's — so they are gone, 2026-10-03; containment is the bundle's `area:` items.)",
     ),
