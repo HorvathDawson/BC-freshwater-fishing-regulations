@@ -74,3 +74,9 @@ Risk: low (part 2), unknown until the cause is found (part 1). Size: S–M. Owne
   full-window root, so it never shows over the map; without script the root is hidden and the row shows. Water pages take
   it out (`appDocument`). The SEO build refuses a row naming a page it did not make or missing a region (`homeLinkProblems`,
   pinned in `site.test.ts`). Lighthouse not re-run (no deploy from a lane).
+
+## Dropped 2026-11-23 (T1045, owner: "Drop the hidden row (Recommended)")
+The home page's crawlable link row (`#site-links`: `withHomeLinks`, `homeLinkProblems`, and their tests) is REMOVED. It sat clipped under
+the app's root and was `inert` with script: links meant only for crawlers, which Google's spam policies ("Hidden text and links",
+developers.google.com/search/docs/essentials/spam-policies#hidden-text-and-links) name. The sitemap already lists the gauges, regions,
+About and Privacy; the pages stay reachable that way.

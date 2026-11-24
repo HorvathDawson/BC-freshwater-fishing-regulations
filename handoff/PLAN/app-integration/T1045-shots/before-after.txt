@@ -30,5 +30,4 @@ T1045 before / after on three LIVE gauge pages (before = canifishthis.ca today, 
   descr  before: Live flow, the last 7 days, the flow forecast and the weather at the Cowichan River Near Duncan gauge (08HA011), BC, for Cowichan River. Free, from Water…
          after:  Live level or flow, the flow forecast where the BC River Forecast Centre runs one, and the weather at the Cowichan River Near Duncan gauge (08HA011), BC…
 
-A water page (Coquitlam River, fixture stub): the pane's new list under the Handling-fish reference, before the legal footer: regs-before-390.png / regs-after-390.png, regs-before-desktop.png / regs-after-desktop.png.
-Each is a real link on the web (a plain anchor to /gauge/<station>/<slug>) and a press to the water's Conditions view on the phone; up to 3; words from what the release holds for the gauge (level and flow, flow, level, conditions).
+Owner 2026-11-23: no gauge links on water pages and none from Conditions (the earlier 'River gauges for this water' list was removed); gauge pages are reached by share links, /gauges and the sitemap.

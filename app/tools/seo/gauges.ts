@@ -23,7 +23,7 @@ import { crashUrlFor, ORIGINS, REPORT_URLS } from "../../apps/mobile/src/env";
 import { clip, esc, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, type Site } from "./html";
 import type { GaugeConfig } from "./gaugeClient";
 import { FIND_BODY } from "./regionMap";
-import { bestServes, gaugePath, gaugeSubject, pickWaterGauges, STALE_AFTER_MS, STORE_CONTACT, TRUST_RANK, type GaugeParameter, type GaugeRows, type ServesTrust, type WaterGauge } from "@app/core";
+import { bestServes, gaugePath, gaugeSubject, STALE_AFTER_MS, STORE_CONTACT, TRUST_RANK, type GaugeParameter, type GaugeRows, type ServesTrust } from "@app/core";
 import type { StationClim } from "@app/data";
 import { readGaugeClim, readGaugeRows } from "@app/data/release";
 
@@ -293,23 +293,6 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
     `<div id="gauge-get-app"></div></div></div>` +
     `<script type="application/json" id="gauge-config">${cfg}</script><script src="${esc(clientHref)}" defer></script>` +
     `<script src="${esc(chartHref)}" defer></script>`;
-}
-
-/**
- * (T1045) THE GAUGE PAGES EACH WATER'S PANE LINKS, from the release's rows: core's `pickWaterGauges` over what each station serves
- * (the app reads the same rows in `readWaterGauges` and draws them under "River gauges for this water"). water item -> gauge paths.
- */
-export function waterGaugesOf(rows: GaugeRows, clim: ReadonlyMap<string, readonly Pick<StationClim, "parameter">[]> | null | undefined): Map<string, string[]> {
-  const byWater = new Map<string, WaterGauge[]>();
-  const name = new Map(rows.gauges.map((g) => [g.station, g.name]));
-  for (const sv of rows.serves) {
-    const n = name.get(sv.station);
-    if (n === undefined) continue;
-    const l = byWater.get(sv.item) ?? [];
-    l.push({ station: sv.station, name: n, trust: sv.trust, parameters: (clim?.get(sv.station) ?? []).map((c) => c.parameter) });
-    byWater.set(sv.item, l);
-  }
-  return new Map([...byWater].map(([item, l]) => [item, pickWaterGauges(l).map((g) => gaugePath(g.station, g.name))]).filter(([, l]) => (l as string[]).length > 0) as [string, string[]][]);
 }
 
 /**

@@ -12,9 +12,9 @@ import { buildAll, type Built } from "./build";
 import { TODAY } from "./fixture";
 import { checkJsonLd } from "./jsonld";
 import { pngSize } from "./share";
-import { browserSafe, chartInputsOf, FORECAST_WORDS, gaugeBody, gaugeDescription, gaugeHeading, gaugeLede, gaugeModels, gaugePath, gaugeTitle, gaugeWordsProblems, LIVE, moreSummary, waterGaugesOf, WEATHER_DAYS, type GaugeModel, type GaugeRows } from "./gauges";
+import { browserSafe, chartInputsOf, FORECAST_WORDS, gaugeBody, gaugeDescription, gaugeHeading, gaugeLede, gaugeModels, gaugePath, gaugeTitle, gaugeWordsProblems, LIVE, moreSummary, WEATHER_DAYS, type GaugeModel, type GaugeRows } from "./gauges";
 import { readConfig } from "./build";
-import { pickWaterGauges, STORE_CONTACT, waterGaugeLabel, type WaterGauge } from "@app/core";
+import { STORE_CONTACT } from "@app/core";
 
 const site = readConfig();
 const CLIM = Uint8Array.from([1, 2, 3, 250, 251]);
@@ -207,20 +207,6 @@ describe("(T1045) gauge pages for the searcher's words", () => {
     expect(gaugeWordsProblems(lvl, gaugeTitle(lvl), gaugeDescription(lvl), body(lvl).replace('<p class="lede">', "<p>"))).toEqual(["no lede"]);
     expect(gaugeWordsProblems(lvl, gaugeTitle(lvl), gaugeDescription(lvl), body(lvl).replace(/<h1>[^<]*<\/h1>/, "<h1>Alouette</h1>"))).toEqual([expect.stringMatching(/heading "Alouette" lacks "level"/)]);
   });
-  it("a water page's pane lists its gauges: the release's gauge pages for the water, three at most, good guides only, best first", () => {
-    const wg = (station: string, name: string, trust: WaterGauge["trust"]): WaterGauge => ({ station, name, trust, parameters: ["discharge"] });
-    const picked = pickWaterGauges([wg("S5", "Echo", "good"), wg("S1", "Zulu", "own"), wg("S2", "Alpha", "good"), wg("S3", "Bravo", "good"), wg("S4", "Kilo", "fair"), wg("S6", "Mike", "weak"),
-                                    wg("S2", "Alpha", "fair")]);
-    expect(picked.map((x) => x.station)).toEqual(["S1", "S2", "S3"]);   // own first, then good by name; the 4th good (Echo) is cut at 3; fair and weak never
-    expect(waterGaugeLabel(picked[1]!)).toBe("Alpha flow");
-    expect(pickWaterGauges([wg("S4", "Kilo", "fair"), wg("S6", "Mike", "weak")])).toEqual([]);   // no good guide: no link
-    const rows: GaugeRows = { gauges: [{ station: "A", name: "A River", item: "w1", lat: null, lon: null }, { station: "B", name: "B River", item: null, lat: null, lon: null }, { station: "C", name: "C River", item: null, lat: null, lon: null },
-                                       { station: "D", name: "D River", item: null, lat: null, lon: null }, { station: "E", name: "E River", item: null, lat: null, lon: null }],
-      serves: [{ station: "A", item: "w1", trust: "own" }, ...["B", "C", "D", "E"].map((s) => ({ station: s, item: "w1", trust: "good" as const })), { station: "E", item: "w2", trust: "weak" as const }] };
-    const clim = new Map([["A", [{ parameter: "level" as const }]]]);
-    expect(waterGaugesOf(rows, clim).get("w1")).toEqual(["/gauge/A/a-river", "/gauge/B/b-river", "/gauge/C/c-river"]);   // 5 gauges serve it: three links
-    expect(waterGaugesOf(rows, clim).has("w2")).toBe(false);   // a weak guide is no link
-  });
   it("a gauge page's JSON-LD names its place by name, station and coordinates, and the gate holds each to the page", () => {
     for (const gp of gaugePages()) {
       const ld = JSON.parse(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(gp.html)![1]!.replace(/\\u003c/g, "<"))["@graph"];
@@ -233,8 +219,8 @@ describe("(T1045) gauge pages for the searcher's words", () => {
     expect(/"geo":\{"@type":"GeoCoordinates","latitude":49\.0973,"longitude":-121\.9638\}/.test(vedder.html)).toBe(true);
     expect(text(vedder.html)).toContain("at 49.0973, -121.9638");
   });
-  it("a water page no longer carries a hidden gauge row", () => {
-    for (const w of built.build.pages.filter((x) => x.kind === "water")) expect(w.html, w.path).not.toContain("gauge-links");
+  it("(owner 2026-11-23) a water page carries no link to a gauge page: gauge pages are reached by share links, /gauges and the sitemap", () => {
+    for (const w of built.build.pages.filter((x) => x.kind === "water")) expect(w.html, w.path).not.toMatch(/href="\/gauge\//);
   });
 });
 

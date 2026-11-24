@@ -40,24 +40,6 @@ export function gaugeSubject(parameters: readonly GaugeParameter[]): "level and 
   return flow && level ? "level and flow" : flow ? "flow" : level ? "level" : "conditions";
 }
 
-/** (T1045) A GAUGE A WATER LINKS: its page, and the words its link says */
-export interface WaterGauge { readonly station: string; readonly name: string; readonly trust: ServesTrust; readonly parameters: readonly GaugeParameter[] }
-export const WATER_GAUGES_MAX = 3;
-export const WATER_GAUGES_WORDS = { heading: "River gauges for this water", failed: "The gauges for this water could not be read." } as const;
-/** a link's words: "Alouette River Near Haney level and flow" */
-export const waterGaugeLabel = (g: Pick<WaterGauge, "name" | "parameters">): string => `${g.name} ${gaugeSubject(g.parameters)}`;
-/**
- * (T1045) The gauges a water page links, at most `WATER_GAUGES_MAX`: the good guides (own water, a lake it gauges, a section it
- * is a good gauge of; never a fair or weak one), best trust first, then by name. The ONE rule: the app's list (`readWaterGauges`)
- * and the SEO build's check of it both read it.
- */
-export function pickWaterGauges(all: readonly WaterGauge[]): WaterGauge[] {
-  const best = new Map<string, WaterGauge>();
-  for (const g of all) { const was = best.get(g.station); if (!was || TRUST_RANK[g.trust] < TRUST_RANK[was.trust]) best.set(g.station, g); }
-  return [...best.values()].filter((g) => TRUST_RANK[g.trust] <= TRUST_RANK.good)
-    .sort((a, b) => TRUST_RANK[a.trust] - TRUST_RANK[b.trust] || a.name.localeCompare(b.name) || a.station.localeCompare(b.station)).slice(0, WATER_GAUGES_MAX);
-}
-
 export const TRUST_RANK: Record<ServesTrust, number> = { own: 0, lake: 1, good: 2, fair: 3, weak: 4 };
 
 /** Each station's waters, each at its best trust (own, lake, good, fair, then weak). */

@@ -35,7 +35,7 @@ afterEach(cleanup);
 
 describe("<WaterScreen> outside B.C. (T42)", () => {
   it("only the Keep tab: no Gear, Methods or Licence section", async () => {
-    const loader = { release: "r-x", manifest: { files: {} } } as unknown as ReleaseLoader;   // (T1045) the gauge list reads manifest.files
+    const loader = { release: "r-x", manifest: {} } as unknown as ReleaseLoader;
     render(<WaterScreen source={makeFixtureSource()} item={"gnis:8634" as ItemId} palette={LIGHT} loader={loader}
                         day={new Date(2026, 9, 10, 12)} />);
     await waitFor(() => expect(screen.getByTestId("keep-tab")).toBeTruthy());

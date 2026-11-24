@@ -57,28 +57,23 @@ queries once the production site is deployed (the owner's).
 ## Not done yet
 No code change to any gauge-page file until #73 merges (coordinator, 2026-11-23).
 
-## Built (0.9.0, PR #84, after its review)
+## Owner answers on PR #84 (2026-11-23, verbatim)
+- On the visible "River gauges for this water" list: "I don't like those there gauges only linked from conditions tab and even there I don't think we should have links. Gauge tabs are kind of separate and from the share. I don't know either way regulations are separate"
+- On the home page's hidden link row: "Drop the hidden row (Recommended)"
+So: NO water -> gauge link anywhere (not on the regulations view, not from Conditions); gauge pages are reached by share links, the `/gauges` index and the sitemap. The T1011 home row is dropped (T1011's ticket says why).
+
+## Built (0.9.0, PR #84)
 - Gauge page title "<gauge name> <words> (<station>)" and H1 "<name> <words>", where the words are what the RELEASE holds for the station
   (`gaugeSubject` of `gauge_clim`): "level and flow", "flow", "level", or "conditions" when it holds nothing. A level-only gauge says
   "level". "Forecast" is NOT in the title or heading: whether the BC River Forecast Centre runs one for a gauge is live data, not in
   the release; the lede and description say it only as "the flow forecast where the BC River Forecast Centre runs one, for as many
   days as that run covers". The weather has its own horizon, `WEATHER_DAYS` (5), the one constant. The gauge's own name already
   holds the water's word, so nothing says "river river" (the build gate refuses a doubled word).
-- WATER PAGES (review: the first build hid a crawler-only row under the pane, which Google's "hidden text and links" policy names):
-  the water's Regulations view now draws a VISIBLE "River gauges for this water" list, the same for readers and crawlers: up to 3
-  links (core `pickWaterGauges`: own water, a lake it gauges, good section guides; never fair or weak; best first, then name),
-  each "<gauge name> <words>"; on the web a real anchor to `/gauge/<station>/<slug>`, on the phone a press to the water's Conditions
-  view. Read from the release by `readWaterGauges` (keyed reads: gauge, lake_gauge, core item_section, section_gauge, gauge_clim) through
-  `useWaterGauges`; drawn by the app's own pane, so the prerender and the live app carry it. A failed read is said, not an empty list.
-  The SEO build checks each pane against the same rows (`waterGaugesOf`) when the release carries conditions.
-- THE HOME PAGE'S T1011 ROW (`#site-links`, owner 2026-11-22) uses the same hidden pattern (clipped under the app, `inert`). NOT CHANGED
-  here: making it visible means a link list on the home map screen (an app design decision) and removing it undoes the owner's T1011
-  fix; flagged as an owner question.
-- Gauge JSON-LD: a Place named by the gauge and its station, with GeoCoordinates, the WebPage's `about`; the coordinates are shown on the
-  page ("at 49.0973, -121.9638") so the gate holds them.
+- A visible lede in the static HTML; the gauge's coordinates shown ("at 49.0973, -121.9638").
+- Gauge JSON-LD: a Place named by the gauge and its station, with GeoCoordinates, the WebPage's `about`; held to the page by the existing gate.
 - Build gate (`gaugeWordsProblems`): title and heading words against the station's parameters, no doubled word, no "forecast" in title or
-  heading, a lede, the forecast only hedged.
-- Tests proved by mutation: cap 3 -> 4, fair guides allowed, no anchor on the web, words not from data, hedge removed (the build refuses),
-  section guide trust unfiltered. Component, data reader and SEO tests; `T1045-shots/before-after.txt` and `regs-{before,after}-{390,desktop}.png`.
-- Not done: a ranking (Google decides; the recrawl is the owner's after the production deploy); a water page's pane is checked against the
-  rows only in the unthreaded build and only when the release carries conditions (a threaded build's pages are files).
+  heading, a lede, the forecast only hedged. There is NO gate that asks for a water -> gauge link (a test asserts a water page has none).
+- Removed after the owner's answers: the water-view gauge list (`pickWaterGauges`, `readWaterGauges`, `useWaterGauges`, the web/native
+  anchor pair and their tests) and the T1011 home row (`withHomeLinks`, `homeLinkProblems`).
+- Tests proved by mutation: words not from data, hedge removed (the build refuses), "forecast" in a title, doubled word. `T1045-shots/before-after.txt`.
+- Not done: a ranking (Google decides; the recrawl is the owner's after the production deploy).

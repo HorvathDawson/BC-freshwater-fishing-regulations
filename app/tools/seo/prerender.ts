@@ -190,8 +190,6 @@ export const afterPaint = (src: string): string => `<script type="module">` +
 
 /** (T844) the web export's opening coho, between its marks (tools/web-shell.mjs `MARKED`) */
 export const BOOT_COHO = /<!--boot-coho-->[\s\S]*?<!--\/boot-coho-->/g;
-/** (T1011) the home page's crawlable link row and its style, between their marks (tools/web-shell.mjs `HOME_LINKS_MARKED`) */
-export const HOME_LINKS = /<!--home-links-->[\s\S]*?<!--\/home-links-->/g;
 
 export interface AppDocument {
   /** the page's head: title, description, canonical, social tags, JSON-LD (built by site.ts) */
@@ -211,8 +209,7 @@ export interface AppDocument {
  */
 export function appDocument(template: string, d: AppDocument): string {
   // (T844) the export's opening coho (tools/web-shell.mjs) is the app's first paint, not a water page's: the pane is that
-  // (T1011) and the home page's link row: a water page is the app's pane, its links its own
-  let t = template.replace(BOOT_COHO, "").replace(HOME_LINKS, "");
+  let t = template.replace(BOOT_COHO, "");
   const need = (re: RegExp, what: string) => { if (!re.test(t)) throw new Error(`seo: the app's index.html has no ${what}`); };
   // (T304) every water page names its region: a page without one would land reading the whole core + water files
   if (d.region === null || regionOfTile(d.region) !== d.region) throw new Error(`seo: water ${d.item} names no bundle region (${d.region})`);

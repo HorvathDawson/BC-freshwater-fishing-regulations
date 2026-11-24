@@ -28,7 +28,7 @@ import { ScrollView } from "react-native";
 import { NET_WORDS, asOfLine, closeForFinfish, dayRange, gearIfFished, gearTabsFor, licenceIfFished, licenceTabFor, regsLapsedNote, drawnRegsOf, regsSourcesOf, salmonBookSourcesOf, salmonShowsDfo, salmonWithPdf, troutSourcesOf, waterPagesOf, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget, bcNow, now as clockNow } from "@app/core";
 import { openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { InSeasonContext, mapDayOf, regsDay, useAccessNotices, useWaterGauges, useInSeasonBanners, useReleaseLines, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
+import { InSeasonContext, mapDayOf, regsDay, useAccessNotices, useInSeasonBanners, useReleaseLines, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
          useSalmonCard, useNet, usePageSubject,
          useDaylight, useFrameView, useInSeasonPage, useMapEntries, useRegsTarget, useRegulations, useSunLine, useWater, type LatLon, type RegsStart } from "@app/ui";
 import { LoadingState, useDelayedShow } from "./LoadingState";
@@ -130,8 +130,6 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   const pageItem = inputs.value?.item ?? null;
   const subject = usePageSubject(inputs.value ?? null);
   const access = useAccessNotices(loader, store.value ?? null, subject);
-  // (T1045) the gauges this water links, under "River gauges for this water"
-  const gauges = useWaterGauges(loader, item);
   // (T211) the Salmon card: DFO's salmon for (T387) the page's part, on THE day — the same card for every tap on it
   // (T692, owner 2026-11-12 "tidal card only") a TIDAL page asks no salmon: DFO's tidal rules are not in this feed, so the
   // card and bar read "Closed" over the tidal card for a water DFO does not list
@@ -275,7 +273,6 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
                   lapsed={regsLapsedNote(loader.manifest?.regulations?.valid_until, clockNow())}
                   // (T54, T367) the access notices: pinned strips under the header
                   access={access.value ?? []}
-                  gauges={gauges} onGauge={() => views?.onView("conditions")}
                   inSeason={inSeason}
                   asOf={asOfLine({ release: loader.manifest ?? null, inSeasonAt, now: clockNow(),
                                    salmonAt: salmon.value ? salmon.value.feedAt ?? null : undefined })}

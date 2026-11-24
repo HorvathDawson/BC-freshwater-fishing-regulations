@@ -3,7 +3,7 @@
  * a section it is the gauge of), from the conditions + core files. The one reader for the SEO build (every station) and the
  * app's Share on a gauge (one station): the rule that turns them into "has a page" is core's `gaugePageStations`.
  */
-import { pickWaterGauges, type GaugeParameter, type GaugeRow, type GaugeRows, type ServeRow, type ServesTrust, type WaterGauge } from "@app/core";
+import type { GaugeRow, GaugeRows, ServeRow, ServesTrust } from "@app/core";
 import type { StationClim } from "../feed/stationSource";
 import type { ReleaseLoader } from "./loader";
 import { fileFor } from "./queries";
@@ -58,33 +58,4 @@ export async function readGaugeClim(loader: ReleaseLoader): Promise<ReadonlyMap<
     out.set(String(r.station), l);
   }
   return out;
-}
-
-/**
- * (T1045) THE GAUGES A WATER PAGE LINKS: this water's own gauge, the gauge of a lake it is, the good gauges of its sections
- * (core `item_section` -> conditions), each with the quantities the release holds for the station (`gauge_clim`), then core's
- * `pickWaterGauges` (three at most). Keyed reads, never a join across files. [] when the release carries no conditions file.
- */
-export async function readWaterGauges(loader: ReleaseLoader, item: string): Promise<WaterGauge[]> {
-  if (!loader.manifest.files.conditions) return [];
-  const cond = await loader.db("conditions"), core = await loader.db("core");
-  const found: { station: string; name: string; trust: ServesTrust }[] = [];
-  for (const r of await cond.all("SELECT station, name FROM gauge WHERE item_id = ?", item)) found.push({ station: String(r.station), name: String(r.name), trust: "own" });
-  for (const r of await cond.all("SELECT g.station AS station, g.name AS name FROM lake_gauge l JOIN gauge g ON g.station = l.station WHERE l.item_id = ?", item)) found.push({ station: String(r.station), name: String(r.name), trust: "lake" });
-  const sids = (await core.all("SELECT s.sid AS sid FROM item_section s JOIN item i ON i.ord = s.ord WHERE i.item_id = ?", item)).map((r) => Number(r.sid));
-  for (let at = 0; at < sids.length; at += 200) {
-    const part = sids.slice(at, at + 200);
-    for (const r of await cond.all(`SELECT sg.station AS station, g.name AS name, sg.trust AS trust FROM section_gauge sg JOIN gauge g ON g.station = sg.station WHERE sg.trust = 'good' AND sg.sid IN (${part.map(() => "?").join(",")})`, ...part))
-      found.push({ station: String(r.station), name: String(r.name), trust: "good" });
-  }
-  if (!found.length) return [];
-  const climDb = await loader.db(fileFor(loader.manifest.files, "climate"));
-  const stations = [...new Set(found.map((f) => f.station))];
-  const params = new Map<string, GaugeParameter[]>();
-  for (const r of await climDb.all(`SELECT station, parameter FROM gauge_clim WHERE station IN (${stations.map(() => "?").join(",")}) ORDER BY station, parameter`, ...stations)) {
-    const p = String(r.parameter);
-    if (p !== "discharge" && p !== "level") continue;
-    params.set(String(r.station), [...(params.get(String(r.station)) ?? []), p]);
-  }
-  return pickWaterGauges(found.map((f) => ({ ...f, parameters: params.get(f.station) ?? [] })));
 }
