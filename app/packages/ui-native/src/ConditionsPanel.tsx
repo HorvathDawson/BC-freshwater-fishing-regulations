@@ -15,13 +15,12 @@ import { useContext, useMemo, useRef, useState, type ReactNode } from "react";
 import { ScrollView, View, type LayoutChangeEvent } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
-import { CHANGE_LEGEND, CHANGE_LOW_WATER, chartLabel, figureIn, CONDITIONS_WORDS, forecastChartLabel, forecastModelOption,
-         forecastRunLine, noChartSentence, OTHER_QUANTITY_WORDS, readingRanked, standingRankedIn, waterReportWhere, dayLabel, regsDayLink, bcNow, conditionsSourcesOf, type ChartSpan } from "@app/core";
+import { CHANGE_LEGEND, figureIn, CONDITIONS_WORDS, OTHER_QUANTITY_WORDS, readingRanked, standingRankedIn, waterReportWhere, dayLabel,
+         regsDayLink, bcNow, conditionsSourcesOf, type ChartSpan } from "@app/core";
 import type { Parameter, WaterSource, SectionId, StationId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
-import { cardParameters, cardQuantity, changeChartModel, changeView, chartParameter, currentFigure, forecastDrawn, pickModel, realtimeOnly,
-         useChartPrefs, useChartView, useConditionsView, useForecastAttribution, useGaugeParameters,
-         noRecordLine, useGaugeShare, usePrefetchGauges, useSeries, type ChangeVM, type ShareControl, type GaugeChoiceVM, type GaugeGroupVM, type Horizon,
+import { changeView, currentFigure, useConditionsView, useForecastAttribution, useStationChart,
+         noRecordLine, useGaugeShare, usePrefetchGauges, type ChangeVM, type ShareControl, type GaugeChoiceVM, type GaugeGroupVM, type Horizon,
          type PanelFeed } from "@app/ui";
 import { GaugeGroups } from "./GaugeGroups";
 import { WaterReportLink } from "./menu/ReportLink";
@@ -34,13 +33,12 @@ import { SharePortContext } from "./SharePortContext";
 import { AlertMe } from "./AlertMe";
 import { Icon } from "./icons";
 import Svg, { Circle, Path } from "react-native-svg";
-import { ChartControls } from "./ChartControls";
 import { Credits } from "./Credits";
 import { LoadingState } from "./LoadingState";
 import { usePaneReady } from "./shell/paneReveal";
 import { DonorPanel, donorTone, rampAt } from "./DonorPanel";
 import { GaugeTrace } from "./GaugeTrace";
-import { Hydrograph } from "./Hydrograph";
+import { StationChart } from "./StationChart";
 import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
 import { TYPE } from "./type";
 import { flowRampStops, GUTTER, SPACE, type Palette, round } from "./theme";
@@ -131,66 +129,32 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   // detector sits INSIDE the ScrollView — a browser reads `touch-action` only up to the nearest scroll container.
   const bodySwipe = useContext(WaterViewsContext)?.bodySwipe ?? null;
 
-  // WHICH QUANTITIES THIS STATION CAN ANSWER IN, asked of the bundle rather than assumed:
-  // 237 BC stations measure stage and never discharge.
-  // (T830) and any the publisher says it reports live with no band (Capilano's level): offered, drawn unranked
-  const params = useGaugeParameters(source, station);
-  const banded = params.state === "ready" ? params.value : [];
-  const available = cardParameters(banded, vm.reading?.reports);
-  const [own, setOwn] = useState<Parameter | null>(null);
-  // (T584) the reader's span and model pick are kept for the session, so every way into a water reads them alike
-  const { span, setSpan, pick: pickState, setPick } = useChartPrefs();
-  const picked = parameter ?? own;
-  const pick = onParameter ?? setOwn;
-  const param = chartParameter(picked, available);
-  // The series is not asked until the station's quantities are known: asked earlier it is the station's "auto" series
-  // and then the picked one a moment later — two loads, and the flicker between them.
-  const known = params.state !== "loading";
-  // (T581, F1) the card is about the quantity ASKED, always; a station silent in it says so (`silent`), never draws the other
-  const { shown, silent, options } = cardQuantity(picked, available, known, vm.reading?.quantity, offer);
-  const charts = known && !silent;
-  // WHICH MODEL. Left alone the freshest run is chosen — a UI default, not a judgement.
-  // (T377) and the other models drawn beside it, and the forecast switch, as one pick (`pickModel`)
-  const model = pickState.model;
-  // (T398) WHETHER A FORECAST IS DRAWN: the reader's switch, null until touched (`forecastDrawn` decides the default —
-  // off where ELF is the only model, ELF being opt-in).
-  const forecastOn = pickState.on;
-  // THE CHART IS BUILT FOR THE WIDTH IT IS DRAWN AT (owner 2026-10-21: "the plot doesnt scale to fill page"):
-  // measured here, the paths are made for exactly that box and the labels stay label-sized. (T920) The card's inside:
-  // its width less its padding and border, so the plot is drawn 1:1, never scaled down into the card.
+  // THE CHART BUILT FOR THE WIDTH IT IS DRAWN AT (owner 2026-10-21: "the plot doesnt scale to fill page"): measured here,
+  // the paths are made for exactly that box and the labels stay label-sized. (T920) The card's inside: its width less its
+  // padding and border, so the plot is drawn 1:1, never scaled down into the card.
   const [chartW, setChartW] = useState(0);
   const measure = (e: LayoutChangeEvent) => {
     const w = Math.round(e.nativeEvent.layout.width) - 2 * (SPACE.s3 + 1);
     if (w > 0 && w !== chartW) setChartW(w);
   };
-  // UNDER CHANGE THE CHART DRAWS THE CHANGE'S OWN LEAD MODEL, not the freshest run (T144 review, `changeChartModel`).
-  // The station's change rides every series of the station, so the freshest one (the same request the default makes,
-  // shared by `askOnce`) says which.
   const link = regsDay === undefined ? null : regsDayLink(regsDay, bcNow());
-  const anyRun = useSeries(source, station, span, param, undefined, charts);
-  const drawn = changeChartModel(model, horizon,
-                                 anyRun.state === "ready" ? anyRun.value?.change : null);
-  // (T256) on a poor line the chart draws the feed's observations and forecast first; the normal range joins them
-  const draft = useMemo(() => (feed?.observations ? { feed: { observations: feed.observations.bind(feed) },
-                                                      parameter: picked ?? undefined } : null), [feed, picked]);
-  const allRuns = anyRun.state === "ready" ? anyRun.value?.forecasts ?? [] : null;
-  const drawsForecast = forecastDrawn(forecastOn, allRuns);
-  const chart = useChartView(source, station, span, param, drawn, chartW, charts, draft, drawsForecast, pickState.also,
-                            // (T582, T604) the horizon's own day AND the regulations day when it is inside the window: all drawn
-                            // (a chosen Conditions day does not hide the regulations day); the same day is one mark
-                            useMemo(() => [
-                              ...(vm.ahead ? [{ at: vm.ahead.at, label: vm.ahead.label, kind: "conditions" as const }] : []),
-                              ...(link?.kind === "inside" ? [{ at: link.at, label: link.mark, kind: "regs" as const }] : []),
-                            ], [vm.ahead, link?.kind === "inside" ? link.at : null, link?.kind === "inside" ? link.mark : null]));
-  const series = useSeries(source, station, span, param, drawn, charts);
+  // (T1039) THE GAUGE'S CHART, as the public gauge page charts it too (`useStationChart` + `StationChart`): its quantities,
+  // span, model pick, series and drawn chart
+  const sc = useStationChart(source, station, {
+    parameter, onParameter, reports: vm.reading?.reports, readingQuantity: vm.reading?.quantity, offer, horizon, width: chartW, feed,
+    // (T582, T604) the horizon's own day AND the regulations day when it is inside the window: all drawn (a chosen
+    // Conditions day does not hide the regulations day); the same day is one mark
+    days: useMemo(() => [
+      ...(vm.ahead ? [{ at: vm.ahead.at, label: vm.ahead.label, kind: "conditions" as const }] : []),
+      ...(link?.kind === "inside" ? [{ at: link.at, label: link.mark, kind: "regs" as const }] : []),
+    ], [vm.ahead, link?.kind === "inside" ? link.at : null, link?.kind === "inside" ? link.mark : null]),
+  });
+  const { banded, available, picked, shown, silent, known, charts, span, chart, series, runs, run } = sc;
   // EVERY DONOR'S CHART, ASKED NOW (owner 2026-10-21: "get all the data when the page opens rather than one gauge at a
   // time when clicked"), so the gauge switch draws from what is already here.
-  usePrefetchGauges(source, vm.gauges.map((g) => g.station as StationId), span, picked, model ?? undefined);
+  usePrefetchGauges(source, vm.gauges.map((g) => g.station as StationId), span, picked, sc.pickState.model ?? undefined);
   const tint = colour ?? palette.live;
   const forecast = chart.state === "ready" ? chart.value?.shape.forecast : null;
-  const runs = series.state === "ready" ? series.value?.forecasts ?? [] : [];
-  // (T398) switched off, no run is drawn: nothing below speaks for one (the ELF note, About this forecast)
-  const run = (drawsForecast && series.state === "ready" ? series.value?.forecast : null) ?? null;
   // The Centre's disclaimer, verbatim, while its forecast is drawn (the same condition the chart draws it under).
   const disclaimer = forecast && run?.disclaimer ? run.disclaimer : null;
   // THE EXPECTED CHANGE (T52), under Change only: each model's own words for the charted gauge, its days as a line with
@@ -203,7 +167,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   // (T456) the walkthrough: its Flow / Level and 72 h / Year steps see (and Show me sets) the chart's two toggles, and the
   // page scrolls a step's control into view
   const coachScroll = useCoachScroller();
-  const readingRing = useCoachTarget("cond:reading"), chartRing = useCoachTarget("cond:chart");
+  const readingRing = useCoachTarget("cond:reading");
 
   // (T508) DRAWN WHOLE: every first answer in (who speaks, the panel and its routes, the reading), and the chart's —
   // its quantities known, its record drawn (not loading, not the last chart dimmed while the next loads). What a pane
@@ -320,62 +284,8 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
       {/* (T823) a gauge much bigger than this water still speaks for it, with the release's own warning */}
       {vm.smallWater && <Text testID="small-water" style={{ ...TYPE.meta, color: palette.sub }}>{vm.smallWater}</Text>}
       {change && <ChangeBlock palette={palette} change={change} colour={tint} />}
-      {/* (T920, owner 2026-11-19: "level/flow selector is messy") THE CHART'S TWO TOGGLES, the old segmented look, together
-          on ONE row directly over the chart they change (Flow | Level only where both are offered). Drawn whether or not a
-          chart is: a gauge silent in the quantity asked keeps the other one tap away (T817) */}
-      <View testID="chart-toggles" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: SPACE.s2 }}>
-        <ChartControls<Parameter> palette={palette} value={shown} testID="chart-quantity" coach="cond:quantity"
-                                  label={W.controls.quantity} onPick={pick}
-                                  options={options.map((p) => [p, W.quantity[p]] as const)} />
-        <ChartControls<Span> palette={palette} value={span} label={W.controls.span} testID="chart-span" coach="cond:span"
-                             onPick={setSpan}
-                             options={[["72h", W.spanShort["72h"], W.span["72h"]],
-                                       ["year", W.spanShort.year, W.span.year]] as const} />
-      </View>
-      {chart.state === "loading" && charts && (
-        <LoadingState palette={palette} size={72} label={W.loadingRecord} style={{ alignItems: "center", paddingVertical: SPACE.s4 }} />
-      )}
-      {/* THE LAST CHART STAYS UP, DIMMED, while a gauge not yet in hand loads — never a spinner in its place. */}
-      {/* (T367) under Change the Change chart above is the one chart: the flow chart under it said the same twice */}
-      {view && !change && charts && (
-        <View ref={chartRing} collapsable={false} style={{ opacity: view.pending ? 0.45 : 1 }} aria-busy={view.pending}>
-          <Hydrograph shape={view.shape} palette={palette} colour={tint}
-                      unit={UNIT[shown]} view={view}
-                      forecastLabel={run && forecast ? forecastChartLabel(run) : undefined}
-                      models={runs.length > 0 ? runs.map((f) => {
-                        // (T377) several at once: each entry says whether its trace is on the chart; (T895) its colour and
-                        // dash are the model's own (`modelLook`, in the Hydrograph), whichever others are on
-                        const also = view.shape.alsoForecasts.some((a) => a.key === f.model);
-                        return { key: f.model, label: forecastModelOption(f), on: f.model === run?.model || also,
-                                 onPress: () => setPick((p) => pickModel(p, f.model, run?.model ?? null, drawsForecast)) };
-                      }) : undefined}
-                      realtime={runs.length > 0 ? { on: !drawsForecast, onPress: () => setPick(realtimeOnly) } : undefined}
-                      label={chartLabel(span)} />
-        </View>
-      )}
-      {view?.pending && (
-        <Text style={{ ...TYPE.meta, color: palette.faint }} accessibilityLiveRegion="polite">{W.loadingRecord}</Text>
-      )}
-      {view && !view.pending && view.draft && (
-        <Text style={{ ...TYPE.meta, color: palette.faint }} accessibilityLiveRegion="polite">{W.envelopeLoading}</Text>
-      )}
-      {chart.state === "ready" && !view && charts && (
-        <Text style={{ ...TYPE.body, color: palette.sub }}>{noChartSentence(span)}</Text>
-      )}
-      {/* (T300) ONLY ELF: the one model drawn is the low-water one because no other has a forecast here — said, not hidden */}
-      {run && forecast && run.model === "ELF" && runs.length === 1 && (
-        <Text testID="only-elf" style={{ ...TYPE.meta, color: palette.sub }}>{W.onlyModel(run.model)}</Text>
-      )}
-      {/* (T300) THE MODEL'S OWN INFORMATION, shut by default: when the run was made (local, labelled — core), and for ELF
-          what it is. The Centre's disclaimer and the credits are under Sources and notes at the foot of the page. */}
-      {run?.series && run.issuedAt && (
-        <About palette={palette} label={W.aboutForecast}>
-          <Text style={{ ...TYPE.meta, color: palette.sub }}>
-            {forecastRunLine({ model: run.model, issuedAt: run.issuedAt, horizonDays: run.horizonDays })}
-          </Text>
-          {run.model === "ELF" && <Text style={{ ...TYPE.meta, color: palette.sub }}>{CHANGE_LOW_WATER}</Text>}
-        </About>
-      )}
+      {/* (T1039) the chart's toggles, the chart and its run's own lines: the one component the gauge page draws too */}
+      <StationChart vm={sc} palette={palette} colour={tint} hideChart={!!change} />
       {/* THE CARD'S FOOT: when the reading was taken (and how fresh), then the offline note. (T920, owner 2026-11-19: "we
           dont need the data release code just the last date") the data release is not said here */}
       {(foot || view?.asOf) && (
@@ -455,21 +365,6 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
     return <View style={{ ...KEPT_STYLE, opacity: 0.45 }} pointerEvents="none" aria-busy testID="conditions-kept" accessibilityElementsHidden>{kept.current}</View>;
   kept.current = page;
   return <View style={KEPT_STYLE}>{page}</View>;
-}
-
-/** (T300) A shut-by-default line of detail: one toggle, its text when opened. */
-function About({ palette, label, children }: { palette: Palette; label: string; children: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <View style={{ gap: SPACE.s2 }}>
-      <Pressable {...hitProps({ w: 200, h: 36 })} onPress={() => setOpen(!open)} accessibilityRole="button" aria-expanded={open}
-                 style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2, alignSelf: "flex-start" }}>
-        <Text style={{ ...TYPE.metaBold, color: palette.sub }}>{label}</Text>
-        <Icon name={open ? "collapse" : "expand"} colour={palette.sub} size={14} />
-      </Pressable>
-      {open && <View testID="about-forecast" style={{ gap: SPACE.s1 }}>{children}</View>}
-    </View>
-  );
 }
 
 /**

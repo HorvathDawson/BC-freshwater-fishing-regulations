@@ -160,7 +160,7 @@ function draftKey(station: StationId | null, span: ChartSpan, parameter: Paramet
 
 const NO_DAYS: readonly { at: number; label: string; kind: "conditions" | "regs" }[] = [];
 
-export function useChartView(source: WaterSource, station: StationId | null, span: ChartSpan,
+export function useChartView(source: Pick<WaterSource, "gaugeSeries">, station: StationId | null, span: ChartSpan,
                              parameter: Parameter | undefined, model: string | undefined,
                              width: number, enabled = true, draft: ChartDraft | null = null,
                              /** (T398) false: the measured line alone — no forecast drawn, none in the time axis */

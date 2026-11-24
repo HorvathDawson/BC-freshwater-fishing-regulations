@@ -4,7 +4,9 @@
  * app's Share on a gauge (one station): the rule that turns them into "has a page" is core's `gaugePageStations`.
  */
 import type { GaugeRow, GaugeRows, ServeRow, ServesTrust } from "@app/core";
+import type { StationClim } from "../feed/stationSource";
 import type { ReleaseLoader } from "./loader";
+import { fileFor } from "./queries";
 
 /** null when the release carries no conditions file (the regs fixture). `station`: only that station's rows. */
 export async function readGaugeRows(loader: ReleaseLoader, station?: string): Promise<GaugeRows | null> {
@@ -35,4 +37,25 @@ export async function readGaugeRows(loader: ReleaseLoader, station?: string): Pr
     for (const item of itemOfSid.get(Number(r.sid)) ?? []) serves.push({ station: String(r.station), item, trust: t });
   }
   return { gauges, serves };
+}
+
+/**
+ * (T1039) EACH STATION'S CLIMATOLOGY, as the release holds it (`gauge_clim`: a quantity and its clim/3 bands, in the climate
+ * file, or in conditions for a release cut before T182 — `fileFor`): what the site build writes into a gauge page, so the
+ * page charts the station from the very bands the app reads (@app/data `stationChartSource`). The same query as the app's
+ * `CLIMATOLOGY`, for every station at once. null: the release carries no conditions file (the regs fixture).
+ */
+export async function readGaugeClim(loader: ReleaseLoader): Promise<ReadonlyMap<string, StationClim[]> | null> {
+  if (!loader.manifest.files.conditions) return null;
+  const db = await loader.db(fileFor(loader.manifest.files, "climate"));
+  const out = new Map<string, StationClim[]>();
+  for (const r of await db.all("SELECT station, parameter, bands FROM gauge_clim ORDER BY station, parameter")) {
+    const p = String(r.parameter);
+    if (p !== "discharge" && p !== "level") continue;           // the quantities a chart is drawn in (`parametersOf`)
+    if (!(r.bands instanceof Uint8Array)) throw new Error(`gauge_clim ${String(r.station)} ${p}: bands is not a blob`);
+    const l = out.get(String(r.station)) ?? [];
+    l.push({ parameter: p, bands: r.bands });
+    out.set(String(r.station), l);
+  }
+  return out;
 }

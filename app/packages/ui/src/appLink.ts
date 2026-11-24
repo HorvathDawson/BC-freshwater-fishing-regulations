@@ -5,25 +5,28 @@
  * names its water in `<meta name="cift:item">` (`startLink.web.ts`), so the phone reads that page for the slug's item
  * instead of keeping a second slug table (AGENTS rule 5: a link carries `item_id` or a durable place, never a section id).
  *
- * Read here: `/water/<slug>[?view=]` and the start link `/?regs=<item>[&view=][&part=][&theme=]`, on `APP_LINK_HOSTS`. A bare `/` just opens
+ * Read here: `/water/<slug>[?view=]` and the start link `/?regs=<item>[&view=][&part=][&theme=]`, on `APP_LINK_HOSTS`.
+ * (T1038) and the web start link's `date`, `horizon`, `tab`, `sheet`, `scroll`, `age`, `res` and `whole`, read by the SAME
+ * readers `parseStartLink` uses (`linkDay`, `linkPage`, `linkWhole`), so a link lands on the phone where it lands on the web. A bare `/` just opens
  * the app. (T605, T1010) `/?fit=w,s,e,n` — a region page's "Open the map" — opens the map framed on that box (the intent
  * filter takes `/`, so the phone gets it; it was refused as unread and reported before), read by the web's own `fitOf`. Anything else on those hosts (a place `blk`+`m`, `show`, a browse tab…) is a link the phone does not read yet:
  * it throws, naming what it saw, and the caller reports it — it never opens some other page silently.
  */
-import { APP_LINK_HOSTS, reportFailure } from "@app/core";
+import { APP_LINK_HOSTS, bcNow, reportFailure, type Horizon, type Who } from "@app/core";
 import type { ItemId } from "@app/data";
 import type { View } from "./route";
-import { fitOf, type FitBox } from "./startLink";
+import { fitOf, linkDay, linkPage, linkWhole, type FitBox, type LinkBad, type RegsStart } from "./startLink";
 
 const VIEWS: readonly View[] = ["regs", "conditions", "map"];
 const ITEM = /^[a-z]+:-?\d+$/;
+/** (T1038) the day keys: carried on every link, as the web's start link reads them on every link */
+const DAY_KEYS = ["date", "horizon"] as const;
+/** (T1038) the water page's keys: carried on a water's link (the web reads them on no other) */
+const PAGE_KEYS = ["tab", "sheet", "scroll", "age", "res", "whole"] as const;
+/** (T1038) the keys only a water's link opens (its view, part and theme) */
+const WATER_KEYS = ["view", "part", "theme"] as const;
 /** the keys the phone opens from a link */
-const READ_KEYS = new Set(["regs", "view", "part", "theme", "fit"]);
-/**
- * (T1038) the web start link's keys the phone does not open yet: said when a link carries one (reported, the water still
- * opens without it) — never read and dropped without a word
- */
-const UNSUPPORTED_KEYS = new Set(["date", "horizon", "tab", "sheet", "scroll", "age", "res", "whole"]);
+const READ_KEYS = new Set<string>(["regs", "view", "part", "theme", "fit", ...DAY_KEYS, ...PAGE_KEYS]);
 
 export interface AppLink {
   /** the water page's slug (`/water/<slug>`), or null */
@@ -37,19 +40,32 @@ export interface AppLink {
   readonly theme: "light" | "dark" | null;
   /** (T605) `?fit=w,s,e,n`: the map framed on this box, no water. Absent: none. */
   readonly fit?: FitBox;
+  /** (T1038) the link's day and horizon (`linkDay`), on a water's link or a box's */
+  readonly days: LinkDays;
+  /** (T1038) where the water's Regulations page starts, who is fishing and the whole water (`linkPage`, `linkWhole`) */
+  readonly page: LinkPage;
   /**
    * (T1034, T1035) what in the link was not opened, each said once by `resolveAppLink` (`reportFailure`): a bad `part` or
-   * `theme` (that key alone is dropped, the water opens) and a key the phone does not open yet
+   * `theme` (that key alone is dropped, the water opens) and (T1038) a key on a link it does nothing on
    */
   readonly problems: readonly string[];
 }
 
+/** (T1038) The day a link opens on (null: today), whether the day it named had passed (opened as today, said), and the
+ *  Conditions horizon (null: Now) — what the web's start link hands the Shell as `initialDay` / `initialHorizon`. */
+export interface LinkDays { readonly day: Date | null; readonly past: boolean; readonly horizon: Horizon | null }
+/** (T1038) A water link's page start (`regsStart` on the web), its angler (null: the session's stands) and `whole`. */
+export interface LinkPage { readonly regs: RegsStart; readonly who: Who | null; readonly whole: boolean }
+
 /** What a tapped link opens: a water on a view, or (T605) the map framed on a box. */
-export type AppLinkOpen = { readonly item: ItemId; readonly view: View; readonly part: number | null; readonly theme: "light" | "dark" | null }
-  | { readonly fit: FitBox };
+export type AppLinkOpen = ({ readonly item: ItemId; readonly view: View; readonly part: number | null; readonly theme: "light" | "dark" | null }
+                           & LinkDays & LinkPage)
+  | ({ readonly fit: FitBox } & LinkDays)
+  /** (T1038) a link naming a day or horizon and no water or box (`/?date=`): the map on that day, as the web opens it */
+  | ({ readonly home: true } & LinkDays);
 
 /** The link's reading, or null when it is not an address of ours (another scheme or host: not a share link). Throws on one of ours the phone cannot read. */
-export function parseAppLink(url: string): AppLink | null {
+export function parseAppLink(url: string, now: Date = bcNow()): AppLink | null {
   const m = /^https:\/\/([^/?#:]+)(\/[^?#]*)?(?:\?([^#]*))?/i.exec(url);
   if (!m || !APP_LINK_HOSTS.includes(m[1]!.toLowerCase())) return null;
   const path = (m[2] ?? "/").replace(/(.)\/$/, "$1");
@@ -60,8 +76,7 @@ export function parseAppLink(url: string): AppLink | null {
     q.set(decodeURIComponent(i < 0 ? kv : kv.slice(0, i)), i < 0 ? "" : decodeURIComponent(kv.slice(i + 1)));
   }
   const problems: string[] = [];
-  for (const k of q.keys()) if (UNSUPPORTED_KEYS.has(k)) problems.push(`app link: ${k}= is not opened by the phone yet (T1038): dropped`);
-  const unread = [...q.keys()].filter((k) => !READ_KEYS.has(k) && !UNSUPPORTED_KEYS.has(k));
+  const unread = [...q.keys()].filter((k) => !READ_KEYS.has(k));
   if (unread.length) throw new Error(`app link: ${url} carries ${unread.join(", ")}, which the app does not open yet`);
   const viewS = q.get("view") ?? "regs";
   if (!(VIEWS as readonly string[]).includes(viewS)) throw new Error(`app link: view=${viewS} is not ${VIEWS.join("|")}`);
@@ -80,12 +95,29 @@ export function parseAppLink(url: string): AppLink | null {
   const themeOk = themeS === "light" || themeS === "dark";
   if (themeS !== undefined && !themeOk) problems.push(`app link: theme=${themeS} is not light|dark: the theme is unchanged`);
   const theme = themeOk ? themeS : null;
+  // (T1038) the web start link's own readers: a bad value throws, as it does there (the web then opens nothing either)
+  const sp = new URLSearchParams([...q]);
+  const bad: LinkBad = (k, what) => { throw new Error(`app link: ${k}=${q.get(k)} is not ${what}`); };
+  const water = slug !== null || regs !== null;
   const fitS = q.get("fit");
-  if (fitS === undefined) return { slug, item: regs as ItemId | null, view, part, theme, problems };
+  // the keys a link of this kind does nothing with — on the web too — are said, never dropped without a word
+  const idle = (keys: readonly string[], why: string) => {
+    for (const k of keys) if (q.has(k)) problems.push(`app link: ${k}= does nothing on a link that ${why}: dropped`);
+  };
+  if (!water) idle(PAGE_KEYS, "names no water");
+  // (T1038 review) and the water's own keys: a box's or a day's link opens the map, no water's view, part or theme
+  if (!water) idle(WATER_KEYS, "names no water");
+  const { day, past, horizon } = linkDay(sp, bad, now);
+  const days: LinkDays = { day, past, horizon };
+  const { regs: start, who } = water ? linkPage(sp, bad) : { regs: { tab: "keep" as const, sheet: null, scroll: 0 }, who: null };
+  const whole = linkWhole(sp, view, part);
+  if (water && q.has("whole") && !whole) problems.push(`app link: whole=${q.get("whole")} frames the whole water only as whole=1 on view=map with no part: dropped`);
+  const page: LinkPage = { regs: start, who, whole };
+  if (fitS === undefined) return { slug, item: regs as ItemId | null, view, part, theme, days, page, problems };
   const fit = fitOf(fitS);
   if (typeof fit === "string") throw new Error(`app link: fit=${fitS} is not ${fit}`);
-  if (slug || regs) throw new Error(`app link: ${url} names a box beside a water (a link frames one or the other)`);
-  return { slug, item: null, view, part, theme, problems, fit };
+  if (water) throw new Error(`app link: ${url} names a box beside a water (a link frames one or the other)`);
+  return { slug, item: null, view, part, theme, days, page, problems, fit };
 }
 
 /** The item a water page names (`<meta name="cift:item">`). Throws when it names none: a stale or broken page. */
@@ -99,15 +131,18 @@ export function itemOfWaterPage(html: string): ItemId {
  * The water a tapped link opens, or null when it opens the app and nothing more (the bare start link). A `/water/<slug>`
  * is read from its own page on the host the link came from; a failed fetch throws (reported by the caller).
  */
-export async function resolveAppLink(url: string, fetcher: (u: string) => Promise<Response> = (u) => fetch(u)): Promise<AppLinkOpen | null> {
-  const link = parseAppLink(url);
+export async function resolveAppLink(url: string, fetcher: (u: string) => Promise<Response> = (u) => fetch(u),
+                                     now: Date = bcNow()): Promise<AppLinkOpen | null> {
+  const link = parseAppLink(url, now);
   if (!link) return null;
   for (const p of link.problems) reportFailure(new Error(p));
-  if (link.fit) return { fit: link.fit };
-  if (link.item) return { item: link.item, view: link.view, part: link.part, theme: link.theme };
-  if (!link.slug) return null;
+  if (link.fit) return { fit: link.fit, ...link.days };
+  const opens = (item: ItemId): AppLinkOpen => ({ item, view: link.view, part: link.part, theme: link.theme, ...link.days, ...link.page });
+  if (link.item) return opens(link.item);
+  // (T1038) no water and no box: the map on the link's day or horizon (the web's browse start); naming neither, nothing
+  if (!link.slug) return link.days.day !== null || link.days.past || link.days.horizon !== null ? { home: true, ...link.days } : null;
   const page = `${/^https:\/\/[^/?#]+/i.exec(url)![0]}/water/${link.slug}`;
   const r = await fetcher(page);
   if (!r.ok) throw new Error(`app link: ${page} answered ${r.status}`);
-  return { item: itemOfWaterPage(await r.text()), view: link.view, part: link.part, theme: link.theme };
+  return opens(itemOfWaterPage(await r.text()));
 }

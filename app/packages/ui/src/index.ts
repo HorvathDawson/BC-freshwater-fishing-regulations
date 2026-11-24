@@ -20,6 +20,8 @@ export * from "./hooks";
 export * from "./panel";
 export * from "./hydrograph";
 export * from "./chart";
+// (T1039) one gauge's chart as data: the Conditions card's and the public gauge page's
+export * from "./stationChart";
 export * from "./sprite";
 export * from "./search";
 export * from "./recentSearches";

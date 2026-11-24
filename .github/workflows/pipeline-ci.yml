@@ -27,6 +27,9 @@ on:
   # run stays pending forever. Its `changes` job asks scripts/ci_paths.py whether the PR touched this area; the jobs
   # run only then (`if:`, a skip counts as a pass), and `pipeline ok`, the required check, always reports.
   pull_request:
+  # (T1041) A MERGE QUEUE's group runs this too, filtered as its pull requests were (scripts/ci_paths.py FILTERED),
+  # so the required check reports on the group. Nothing sends the event until a ruleset turns a queue on.
+  merge_group:
   workflow_dispatch:
 
 # (T994 6) least privilege: the job reads the repo and nothing else

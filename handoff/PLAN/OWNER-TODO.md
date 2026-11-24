@@ -9,9 +9,40 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-23 ~15:00: T1041 faster CI checks (answers, verbatim) — one item for you, AFTER 0.9.0
+- Local checks: "Both (Recommended)" — related tests before each push + full app suite and pipeline tier once before
+  opening the PR. Built: the pre-push hook runs `vitest related` + the pipeline tests importing a changed module;
+  `scripts/before_pr.sh` runs both whole suites.
+- Mutation in CI: "Report only (Recommended)" — on changed lines, Stryker for app TS, mutmut for Python; non-blocking.
+  Built: `.github/workflows/mutation.yml` (not a required check).
+- PR chains: "Merge queue (Recommended)". Timing: "All now". Merge queue needs an org: "Move to a free org
+  (Recommended)" — the transfer is your click.
+- Later the same day: "i think we should do repo move after m0.9.0" — so the move, the slug flip and the merge-queue
+  ruleset are a post-0.9.0 follow-up; only the `merge_group` triggers went in now (they do nothing until a queue exists).
+- **Do (you), any time, one line: keep the push connection alive** (T1041: GitHub closed git's ssh connection under a
+  420 s pre-push hook; with a keepalive the same push went through). In the main checkout:
+  `git config core.sshCommand "ssh -i ~/.ssh/id_ed25519_personal -o ServerAliveInterval=15 -o ServerAliveCountMax=8"`
+  (every worktree shares it). Or add `ServerAliveInterval 15` under `Host github.com-personal` in ~/.ssh/config.
+- **Do (you), after 0.9.0 ships: move the repo to a free organisation** (details: T1041, "Transfer checklist"):
+  1. Create a free GitHub organisation (github.com/organizations/plan, Free); you are its owner.
+  2. Repo Settings -> General -> Danger zone -> Transfer -> the organisation (keep the name).
+  3. Re-issue the feeds worker's `GITHUB_DISPATCH_TOKEN`: a new fine-grained token, resource owner = the organisation,
+     only this repo, Actions: read and write. Put it on BOTH feeds workers:
+     `npx --prefix app wrangler secret put GITHUB_DISPATCH_TOKEN -c app/workers/feeds/wrangler.toml` (staging) and
+     `... -c app/workers/feeds/wrangler.prod.toml` (production); then revoke the old token (runbooks/secrets.md).
+  4. Check the 4 Actions secrets (CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY)
+     and the 3 rulesets are still on the repo (Settings -> Secrets / Rules).
+  5. On your machine: `git remote set-url origin git@github.com-personal:<org>/BC-freshwater-fishing-regulations.git`.
+  6. Tell Claude the org name: the slug flip (repo.ts + ci_paths.py + 4 tests) and the merge-queue rule go in as one PR.
+
 ## 2026-11-23: T1042 search description (answer, verbatim)
 - T1042 description facts: "Season windows (Recommended)" — option b of `T1042-shots/live-samples.txt`: open windows from the year strip,
   boats, steady marks; nothing from the build day. Built on PR #78.
+
+## 2026-11-23: lane L25 (0.9.0 batch) — one pick
+- **Look (you): T1039 gauge page after-shots** — the app's own chart on the gauge page (72 h / Year, Flow / Level, zoom, every model): `handoff/PLAN/app-integration/T1039-shots/after-page-chilliwack-desktop.png`, `after-page-chilliwack-phone-390.png`, `after-page-chilliwack-year-desktop.png`, and Two Forty Creek with ELF offered `after-page-two-forty-elf-desktop.png` / `after-page-two-forty-elf-phone-390.png` (before: `before-*`). Shows on staging after the feeds worker deploy and the 0.9.0 staging site build.
+- T1039 follow-ups 2026-11-23, verbatim: "chart should use same buttons as spots too for now" — built: the Spots tab's own "Get the app" block on the gauge page, both test buttons (`T1039-shots/after-get-app-*`); "could add other almanac info too?" — built: sunrise/sunset and the spot window's cloud, pressure, humidity (`T1039-shots/after-almanac-*`); moon left out (the app has none), see T1039.
+- Pick: T1039 gauge page chart (Q183) — answered 2026-11-23, verbatim: chart "App's chart, ~260 KB (Recommended)"; ELF "Yes, fix in 0.9.0 (Recommended)". Closed; lane L25 builds both.
 
 ## 2026-11-23: lane L29 (0.9.0 batch) — one look
 - **T1024 Gravel Slough highlight: look at the before/after shots** (`handoff/PLAN/app-integration/T1024-shots/gravel-before-after.png`, `oxbows-before-after.png`, `gun-before-after.png`): where a slough's or wide reach's line is drawn, only the line is outlined — no ring round each piece of its polygon; where it is not yet drawn (zoomed out, or no line at all) the polygon keeps its ring. Note Gun Creek z13: the wide 3 km² reach shows only its line's outline. Say if it reads right.
