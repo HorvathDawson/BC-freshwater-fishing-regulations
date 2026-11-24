@@ -513,5 +513,12 @@
   ],
   "current": null,
   "mask": null
+ },
+ "water_digests": {
+  "bytes": 480,
+  "format": "water-digests/1",
+  "sha256": "3aade702408078f064d0e80b2653e72a8e5ab9dd9d5b9029d07eefac537bbd0f",
+  "url": "r-e230fd22e7bb/water-digests.json.gz",
+  "waters": 9
  }
 }
