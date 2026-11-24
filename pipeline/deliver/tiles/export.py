@@ -275,12 +275,11 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None,
             run_z = [run_zoom[o] for ei in list(graph.up_adj.get(sec, ())) + list(graph.down_adj.get(sec, ()))
                      for e in (graph.edges[ei],)
                      for o in ((e.from_node if e.to_node == sec else e.to_node),) if o in run_zoom]
-            write({"section_id": sid[sec], "name": owners.label(sec, node), "ord": ord_},
-                  min([ladder.zoom_for_magnitude(mag, spec.minzoom)] + run_z), sec)
             # (T1024) a STUB route (shorter than STUB_RATIO of its polygon's long side: the Okanagan River Oxbows'
             # 67 m in a 57,000 m2 loop) does not stand for its polygon: reported as no line, so the polygon stays ringed
             wb = wb_polys.get(sec)
-            if wb is None or wb.is_empty or not is_stub(g.length, wb):
+            stub = wb is not None and not wb.is_empty and is_stub(g.length, wb)
+            if not stub:
                 poly_routes.append(sec)
             # (T493 reopened) the polygon is the river where it is drawn: its first zoom exactly as
             # `export_waterbodies` draws it (a ghost, not-fishing water or an undrawn wetland is not drawn)
@@ -290,6 +289,12 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None,
                     and not getattr(node, "not_fishing", "")
                     and (_kind(node) != "wetland" or wetland_is_drawn(sec, node, owners))):
                 poly_z[sec] = max(p_spec.minzoom, min(ladder.zoom_for_area(pl.area, p_spec.minzoom), p_spec.maxzoom))
+            # (T1024, the #81 review) ...and the stub says from which zoom its polygon is drawn (`pz`): from there the
+            # polygon's ring is the selection's outline and the app draws no casing round the stub inside it (two outlines
+            # again); below it the stub is all there is of the water, and its casing lights it
+            write({"section_id": sid[sec], "name": owners.label(sec, node), "ord": ord_,
+                   "pz": poly_z.get(sec) if stub else None},
+                  min([ladder.zoom_for_magnitude(mag, spec.minzoom)] + run_z), sec)
             continue
         if _kind(node) != "stream":
             # A lake node's sidecar geometry is the route THROUGH the lake, not the lake.

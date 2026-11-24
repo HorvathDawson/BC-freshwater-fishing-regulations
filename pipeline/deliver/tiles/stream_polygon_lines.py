@@ -17,6 +17,11 @@ the proof, read from the files the archive is built from — never from the dict
   not a stub; or carries no `lz` and has no line, or only a stub. There is no third case. (The stub test here is on the
   written WGS84 geometry in local metres, the export's on BC Albers: `STUB_SLACK` either side of the ratio absorbs that.)
 
+  And the STUB SAYS WHERE ITS POLYGON IS (the #81 review, 2026-11-24): a polygon without `lz` is ringed at every zoom it
+  is drawn at, so its stub's own selection casing drew a second outline inside the ring (249 stubs on the live atlas,
+  201 of them drawn before their polygon). Every line of a polygon with no `lz` carries `pz`, the polygon's first zoom
+  as written; the app draws no casing on a line from its `pz` (app `paint.ts` `CASED`). No other line carries `pz`.
+
 `check` raises naming every offender's kind and a few section ids; the tile build runs it after the export
 (`tiles/__main__.py`), before tippecanoe.
 """
@@ -85,43 +90,62 @@ def stream_polygons(layer_dir: Path) -> tuple[dict[int, dict], list[int]]:
             for line in fh:
                 if '"water":"stream"' not in line and '"lz":' not in line:
                     continue
-                props = _tail(line)["properties"]
+                t = _tail(line)
+                props = t["properties"]
                 if props.get("water") == "stream":
-                    out[props["section_id"]] = {**props, "_geom": json.loads(line)["geometry"]}
+                    out[props["section_id"]] = {**props, "_geom": json.loads(line)["geometry"],
+                                                "_z": t["tippecanoe"]["minzoom"]}
                 elif "lz" in props:
                     standing_lz.append(props["section_id"])
     return out, sorted(standing_lz)
 
 
-def line_zooms(layer_dir: Path, wanted: set[int]) -> dict[int, tuple[int, float]]:
-    """{section id: (the FIRST zoom any line of it is drawn at in the stream layer, their length in metres)}, for the
-    ids in `wanted`."""
+def line_zooms(layer_dir: Path, wanted: set[int]) -> tuple[dict[int, tuple[int, float]], dict[int, list]]:
+    """({section id: (the FIRST zoom any line of it is drawn at in the stream layer, their length in metres)}, for the
+    ids in `wanted`; {section id: the `pz` of each of its lines (None: it has none)} for those ids and for EVERY line
+    that carries a `pz`)."""
     out: dict[int, tuple[int, float]] = {}
+    pzs: dict[int, list] = {}
     for name in LINE_FILES:
         with (layer_dir / name).open() as fh:
             for line in fh:
                 t = _tail(line)
                 sid = t["properties"].get("section_id")
+                pz = t["properties"].get("pz")
+                if sid in wanted or pz is not None:
+                    pzs.setdefault(sid, []).append(pz)
                 if sid in wanted:
                     z = t["tippecanoe"]["minzoom"]
                     n = _metres(shape(json.loads(line)["geometry"])).length
                     z0, n0 = out.get(sid, (z, 0.0))
                     out[sid] = (min(z, z0), n0 + n)
-    return out
+    return out, pzs
 
 
 def offenders(layer_dir: Path) -> tuple[int, dict[str, list[int]]]:
-    """(how many stream polygons, the polygons that break the rule by how: `lz_without_line`, `lz_not_the_line_zoom`,
-    `lz_on_a_stub`, `line_without_lz` (a line that is no stub), `lz_on_standing_water`)."""
+    """(how many stream polygons, the sections that break the rule by how: `lz_without_line`, `lz_not_the_line_zoom`,
+    `lz_on_a_stub`, `line_without_lz` (a line that is no stub), `lz_on_standing_water`; and on the lines, `stub_without_pz`
+    (a line of a polygon with no `lz` that does not say the polygon's zoom), `pz_not_the_polygon_zoom`, `pz_off_a_stub`
+    (a `pz` on a line of a polygon with `lz`, or of no stream polygon))."""
     polys, standing_lz = stream_polygons(layer_dir)
-    lines = line_zooms(layer_dir, set(polys))
+    lines, pzs = line_zooms(layer_dir, set(polys))
     bad: dict[str, list[int]] = {"lz_without_line": [], "lz_not_the_line_zoom": [], "lz_on_a_stub": [],
-                                 "line_without_lz": [], "lz_on_standing_water": standing_lz}
+                                 "line_without_lz": [], "lz_on_standing_water": standing_lz,
+                                 "stub_without_pz": [], "pz_not_the_polygon_zoom": [],
+                                 "pz_off_a_stub": sorted(s for s, v in pzs.items()
+                                                         if s not in polys and any(z is not None for z in v))}
     for sid in sorted(polys):
         lz = polys[sid].get("lz")
         if sid in lines:
             poly = _metres(shape(polys[sid]["_geom"]))
             zoom, length = lines[sid]
+            marks = pzs[sid]
+            if lz is not None and any(z is not None for z in marks):
+                bad["pz_off_a_stub"].append(sid)
+            elif lz is None and None in marks:
+                bad["stub_without_pz"].append(sid)
+            elif lz is None and any(z != polys[sid]["_z"] for z in marks):
+                bad["pz_not_the_polygon_zoom"].append(sid)
         if lz is None:
             if sid in lines and not is_stub(length, poly, STUB_RATIO + STUB_SLACK):
                 bad["line_without_lz"].append(sid)
@@ -135,10 +159,12 @@ def offenders(layer_dir: Path) -> tuple[int, dict[str, list[int]]]:
 
 
 def check(layer_dir: Path) -> int:
-    """Raise unless every stream polygon's `lz` tells the truth about its line; return how many stream polygons."""
+    """Raise unless every stream polygon's `lz` tells the truth about its line, and every stub's `pz` about its polygon;
+    return how many stream polygons."""
     n, bad = offenders(layer_dir)
     if bad:
-        raise SystemExit("polygons whose `lz` does not match the stream layer (T1024): " + "; ".join(
+        raise SystemExit("stream polygons whose `lz` / stub lines whose `pz` do not match the layers (T1024): " + "; ".join(
             f"{k} {len(v):,} (e.g. {v[:5]})" for k, v in sorted(bad.items()))
-            + " — `export_waterbodies` writes `lz` from `export_streams`' route zooms; rerun the whole water export")
+            + " — `export_waterbodies` writes `lz` from `export_streams`' route zooms, `export_streams` a stub's `pz`; "
+            "rerun the whole water export")
     return n

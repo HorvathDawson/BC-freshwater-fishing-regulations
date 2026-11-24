@@ -115,6 +115,18 @@ const ringedAt = (z: number) => ["any", ["!", ["has", "lz"]], [">", ["number", [
 const RING_SHOWN = ["step", ["zoom"], ["case", ringedAt(0), OUTLINE_SHOWN, 0],
   ...Array.from({ length: ATLAS_MAX_ZOOM }, (_, i) => [i + 1, ["case", ringedAt(i + 1), OUTLINE_SHOWN, 0]]).flat()];
 
+/**
+ * (T1024, the #81 review) THE LINES A SELECTION CASES: every stream line but a STUB inside its own ringed polygon. A
+ * stream polygon whose route is a stub (shorter than 0.3 of the polygon's long side: the Okanagan River Oxbows 1281106,
+ * 67 m in a 57,000 m2 loop) carries no `lz`, so it is ringed wherever it is drawn — the stub cannot light it — and the
+ * stub's own casing inside the ring was a second outline. The stub's line carries `pz`, the first zoom its polygon is
+ * drawn at (pipeline tiles/export.py, proved on the written files by tiles/stream_polygon_lines.py); from `pz` the ring
+ * is the outline and the casing (and look C's glow) is not drawn, below it the stub is all there is of the water and is
+ * cased. A filter, evaluated at the tile's zoom (as `gaugeDots`' is, on web and native): no paint reads the zoom twice,
+ * and no line without `pz` changes. Old tiles carry no `pz`, so every line is cased as before.
+ */
+export const CASED_LINES = ["any", ["!", ["has", "pz"]], [">", ["number", ["get", "pz"]], ["zoom"]]];
+
 /** A selected lake's or wetland's ring (and a stream polygon's, where its line is not drawn: `ringedAt`). */
 export function ringPaint(tokens: Tokens): Record<string, unknown> {
   return { "line-color": outlineColour(tokens), "line-width": RING_PX, "line-opacity": RING_SHOWN };

@@ -21,7 +21,7 @@ import { MAP_STYLE, NO_VALUES, STYLE_META, defaultView, resolveTheme, withFollow
 import { NO_ASSETS, type TileEndpoints } from "./endpoints";
 import { gaugeLayers, gaugeSource } from "./gaugeDots";
 import { landOutline } from "./on-imagery";
-import { SALMON_CASING_LAYER, salmonCasingPaint, ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, hasGlow, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, markShownIn, markWidth, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS, splitStream, STREAM_HEAVY, streamWidths } from "./paint";
+import { SALMON_CASING_LAYER, salmonCasingPaint, ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, CASED_LINES, casingPaint, glowPaint, hasGlow, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, markShownIn, markWidth, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS, splitStream, STREAM_HEAVY, streamWidths } from "./paint";
 import { traceLayers, traceSources } from "./trace-overlay";
 import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY, copyFilter } from "./water-copy";
 import { BASEMAP_LABELS, basemapLabelPaint, placesByImportance, WATER_NAMES } from "./labels";
@@ -225,8 +225,9 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       { id: COPY_LINE, type: "line" as const, source: COPY_SOURCE, filter: copyFilter("stream"),
         layout: { "line-cap": "round" as const, "line-join": "round" as const }, paint: copyLine },
     ];
+    // (T1024) every line but a stub inside its ringed polygon (`CASED_LINES`)
     const casing = {
-      id: SELECTION_CASING, type: "line" as const, source: "atlas", "source-layer": "stream",
+      id: SELECTION_CASING, type: "line" as const, source: "atlas", "source-layer": "stream", filter: CASED_LINES,
       layout: { "line-cap": "round" as const, "line-join": "round" as const },
       paint: casingPaint(markWidth("casing", sMode, sw), tk),
     };
@@ -248,7 +249,7 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
      * colour reads, every other mode is 0 — so nothing can leak, and nothing is missing.
      */
     // (T735) look C's glow, directly under the casing; a theme with no glow (opacity 0) has no such layer
-    const glow = { id: SELECTION_GLOW, type: "line" as const, source: "atlas", "source-layer": "stream",
+    const glow = { id: SELECTION_GLOW, type: "line" as const, source: "atlas", "source-layer": "stream", filter: CASED_LINES,
       layout: { "line-cap": "round" as const, "line-join": "round" as const },
       paint: glowPaint(markWidth("glow", sMode, sw), tk) };
     return [...copied, ...(hasGlow(tk) ? [glow] : []), casing,
