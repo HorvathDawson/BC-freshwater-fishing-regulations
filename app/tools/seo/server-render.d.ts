@@ -14,5 +14,6 @@ declare module "react-native-web/dist/modules/ImageLoader" {
 /** (T1039) the gauge page's chart mounts the app's chart in the browser (gaugeChart.tsx): the one client entry it reads */
 declare module "react-dom/client" {
   import type { ReactNode } from "react";
-  export function createRoot(container: Element): { render(element: ReactNode): void; unmount(): void };
+  export function createRoot(container: Element, options?: { onUncaughtError?: (error: unknown, info: unknown) => void }):
+    { render(element: ReactNode): void; unmount(): void };
 }

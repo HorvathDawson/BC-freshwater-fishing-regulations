@@ -109,6 +109,15 @@ gauge `webapp-chilliwack-chart-desktop.png`.
    marked "likely out of date" (its `dueBy` rule), and draws as before; the 0.9.0 page reads facts only for the reading
    and the credit, so it works with the old worker too.
 
+## Re-review of #73 (6b6db85ec): MERGE after two W46 fixes, done
+
+- A page whose config parsed but lacks `#gauge-chart` or `#gauge-get-app` is shown AND reported (the run mark no longer
+  hides it from the page's load check without a report).
+- Both React roots (the chart, Get the app) are made with `onUncaughtError` (`renderInto`): a render error writes the
+  failure line into its box and is reported, never an empty box. Proved in `gaugeChart.failure.test.ts`: a root without
+  the handler, a handler that only shows or only reports, and an unreported missing place each fail it.
+- The `feed` pass-through for #77's year scale is L28's (coordinator, 2026-11-23): #73 lands first.
+
 ## Options (sizes measured 2026-11-23; today's page = 3.2 KB gz HTML + 9.6 KB gz script + 3.1 KB gz facts)
 
 - **A. The app's chart AND the app's data path, as is.** New page bundle: React + react-dom + react-native-web +

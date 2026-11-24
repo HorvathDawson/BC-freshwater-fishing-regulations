@@ -13,7 +13,7 @@
  * feed itself, as in the app.
  */
 import "./globals";
-import { createElement as h, useState } from "react";
+import { createElement as h, useState, type ReactElement } from "react";
 import { createRoot } from "react-dom/client";
 import { View, useColorScheme, type LayoutChangeEvent } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -71,26 +71,50 @@ export function GaugeChartRoot(props: { source: PageSource; station: StationId }
 /** mounts the chart in #gauge-chart from the page's #gauge-config */
 export function mountGaugeChart(doc: Document, fetchImpl: typeof fetch, now: () => number): void {
   const cfgEl = doc.getElementById("gauge-config"), box = doc.getElementById("gauge-chart"), getApp = doc.getElementById("gauge-get-app");
-  // (T1039 review) ran: the page's own script (gaugeClient.ts) says the chart failed when this mark is missing at load
+  // (T1039 review) ran: the page's own script (gaugeClient.ts) says the chart failed when this mark is missing at load; from
+  // here on a failure is this script's to show AND report
   box?.setAttribute("data-mounted", "");
-  if (!cfgEl?.textContent || !box || !getApp) {
-    // a page built without them: said where the chart goes (with no config there is no endpoint to report to)
-    if (box) box.innerHTML = `<p class="warn">${CHART_FAILED}</p>`;
-    throw new Error("gauge chart: no #gauge-config, #gauge-chart or #gauge-get-app on this page");
+  const shown = (where: Element | null) => { if (where) where.innerHTML = `<p class="warn">${CHART_FAILED}</p>`; };
+  let cfg: GaugeConfig;
+  try {
+    if (!cfgEl?.textContent) throw new Error("gauge chart: no #gauge-config on this page");
+    cfg = JSON.parse(cfgEl.textContent) as GaugeConfig;
+  } catch (e) {
+    // no config (or one that does not parse): said where the chart goes; there is no endpoint to report it to
+    shown(box);
+    throw e;
   }
-  const cfg = JSON.parse(cfgEl.textContent) as GaugeConfig;
-  const report = pageReporter(cfg, fetchImpl, now);
-  setFailureSink(report);
+  setFailureSink(pageReporter(cfg, fetchImpl, now));
+  if (!box || !getApp) {
+    // (T1039 re-review) the config parsed: a page built without its chart's or Get the app's place is shown AND reported
+    shown(box);
+    const e = new Error(`gauge chart: no ${box ? "#gauge-get-app" : "#gauge-chart"} on this page`);
+    reportFailure(e);
+    throw e;
+  }
   try {
     if (cfg.fonts) { const s = doc.createElement("style"); s.textContent = cfg.fonts; doc.head.appendChild(s); }
     const source = stationChartSource(cfg.station as StationId, httpFeed(cfg.live, fetchImpl), climOf(cfg));
-    createRoot(box).render(h(GaugeChartRoot, { source, station: cfg.station as StationId }));
+    renderInto(box, h(GaugeChartRoot, { source, station: cfg.station as StationId }));
   } catch (e) {
-    box.innerHTML = `<p class="warn">${CHART_FAILED}</p>`;
+    shown(box);
     reportFailure(e);
   }
   // (T1039, owner 2026-11-23: "chart should use same buttons as spots too for now") the web app's own "Get the app" block
-  createRoot(getApp).render(h(GaugePageGetApp, { contact: cfg.contact }));
+  renderInto(getApp, h(GaugePageGetApp, { contact: cfg.contact }));
+}
+
+/**
+ * (T1039 re-review, W46) A REACT ROOT THAT SAYS ITS OWN FAILURE: a render error (React 19 empties the root) is said where it
+ * was drawn (`CHART_FAILED`) and reported (core `reportFailure`, to the page's reporter), never a silently empty box.
+ */
+export function renderInto(container: Element, element: ReactElement): void {
+  createRoot(container, {
+    onUncaughtError: (e: unknown) => {
+      container.innerHTML = `<p class="warn">${CHART_FAILED}</p>`;
+      reportFailure(e);
+    },
+  }).render(element);
 }
 
 /** the Spots tab's "Get the app" block, in the page's theme */
