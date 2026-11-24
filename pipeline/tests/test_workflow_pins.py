@@ -269,9 +269,10 @@ NOT_READ = {
     ("test_workflow_pins.py", "handoff/PLAN/STATUS.md"): "a key of this table",
     ("check-test-anchors.test.ts", "data/curated/waters/cuts.json"): "the scanner's own input text, never read",
     ("maplibre-pin.test.ts", "README.md"): "a file name in the archive-t420/ listing, not the root README",
+    ("ledger.test.ts", "README.md"): "a file name in a made-up tickets / owner-todo folder, not the root README",
 }
 #: tests that docs-ci runs too: their reads are covered by the docs area as well as their own
-DOCS_RUN = {"check-tickets.test.ts", "start-here.test.ts"}
+DOCS_RUN = {"check-tickets.test.ts", "start-here.test.ts", "ledger.test.ts"}
 
 
 @functools.lru_cache(maxsize=1)
