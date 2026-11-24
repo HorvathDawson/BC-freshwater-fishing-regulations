@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { act, cleanup, render, waitFor } from "@testing-library/react";
 import { INBOX_WORDS, INSEASON_FAILURES, INSEASON_LINKS_FORMAT, bcNow, isoDayOf, joinInSeason, setFailureSink } from "@app/core";
 import { httpInSeason } from "@app/data";
-import { InSeasonContext, useInSeason, useInSeasonCovers, useInSeasonInbox, type InboxTrack, type InSeasonInboxState, type InSeasonNow, type InSeasonOnPage } from "./inseason";
+import { InSeasonContext, useInSeason, useInSeasonBanners, useInSeasonCovers, useInSeasonInbox, type InboxTrack, type InSeasonInboxState, type InSeasonNow, type InSeasonOnPage } from "./inseason";
 
 afterEach(cleanup);
 const mem = (t: string | null = null) => ({ read: () => t, write: (x: string) => { t = x; } });
@@ -365,5 +365,53 @@ describe("useInSeason (T693): a notice matched to a water this release does not 
       await waitFor(() => expect(seen.map((e) => (e as Error).message)).toEqual([INSEASON_FAILURES.noHolds("store: damaged")]));
       expect([out.v!.matched.length, out.v!.unmatched.length]).toEqual([3, 0]);
     } finally { undo(); }
+  });
+});
+
+describe("(T1049 review) the page's in-season notices may still come: `pending`, a start link waits for it", () => {
+  it("useInSeason: pending until the source's first answer (none, or a failure: reported)", async () => {
+    let answer: (v: null) => void = () => {};
+    let fail: (e: Error) => void = () => {};
+    const slow = { latest: () => new Promise<null>((ok) => { answer = ok; }) } as never;
+    const broken = { latest: () => new Promise<null>((_, no) => { fail = no; }) } as never;
+    const seen: unknown[] = [];
+    const undo = setFailureSink((e) => seen.push(e));
+    try {
+      const a: { v?: InSeasonNow } = {}, b: { v?: InSeasonNow } = {};
+      function One({ src, out }: { src: never; out: { v?: InSeasonNow } }) { out.v = useInSeason(src); return null; }
+      render(<><One src={slow} out={a} /><One src={broken} out={b} /></>);
+      const before = [a.v!.pending, b.v!.pending];
+      await act(async () => { answer(null); fail(new Error("in-season: damaged")); });
+      expect({ before, after: [a.v!.pending, b.v!.pending], seen: seen.map((e) => (e as Error).message) })
+        .toEqual({ before: [true, true], after: [false, false], seen: ["in-season: damaged"] });
+    } finally { undo(); }
+  });
+  it("no source: never pending", () => {
+    const out: { v?: InSeasonNow } = {};
+    function None() { out.v = useInSeason(null); return null; }
+    render(<None />);
+    expect(out.v!.pending ?? false).toBe(false);
+  });
+  it("useInSeasonBanners: pending while the feed has not answered, and while this page's lines are read for a change on it", async () => {
+    const nav = { sections: [{ sid: 1, partIx: 0 }, { sid: 2, partIx: 0 }] };
+    let linesIn: () => void = () => {};
+    const gate = new Promise<void>((ok) => { linesIn = ok; });
+    const store = { navRows: async () => { await gate; return nav; }, statics: async () => ({ ends: { a: ["A"], b: ["B"] } }) } as never;
+    const lines = { hasLines: async () => true, sectionLine: async (h: number) => ({ blk: 7, from: (h - 1) * 100, to: h * 100 }) };
+    const feed = { format: "inseason-feed/1" as const, fetchedAt: "x", source: "s", removed: [],
+                   rows: [{ id: "is-a", region: "2", water: "W", effective: "", from: null, to: null, change: "No fishing" }] };
+    const data = { feed, links: { format: INSEASON_LINKS_FORMAT, notices: { "is-a": { waters: { "gnis:1": { runs: [[7, 100, 200]] as const, ends: [["a", "b"]] as const } } } } } };
+    const out: { v?: { banners: readonly unknown[]; pending: boolean } } = {};
+    function Page() { out.v = useInSeasonBanners(store, lines, { item: "gnis:1", ord: 5, pieces: null }, null); return null; }
+    const base = { matched: [], unmatched: [], ended: [], release: "r-1" };
+    const r = render(<InSeasonContext.Provider value={{ ...base, data: null, pending: true }}><Page /></InSeasonContext.Provider>);
+    const feedWait = { ...out.v! };
+    r.rerender(<InSeasonContext.Provider value={{ ...base, data, pending: false }}><Page /></InSeasonContext.Provider>);
+    await act(async () => { await new Promise((ok) => setTimeout(ok, 20)); });   // the ends are in; the lines are still held
+    const linesWait = { ...out.v! };
+    await act(async () => { linesIn(); });
+    await waitFor(() => expect(out.v!.banners).toHaveLength(1));
+    expect({ feedWait, linesWait: linesWait.pending, after: out.v!.pending })
+      .toEqual({ feedWait: { banners: [], pending: true }, linesWait: true, after: false });
   });
 });

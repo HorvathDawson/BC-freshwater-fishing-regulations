@@ -9,7 +9,51 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
-## 2026-11-24: your four staging reports, ticketed for 0.9.1 (questions)
+## 2026-11-24: planning chat (roadmap row P) started
+
+- Store checks 2026-11-24 13:30 (planning chat, every source read): TestFlight 6 items, all T982; Play reviews none;
+  production worker: one new crash kind on 0.8.5 (T1055); the four production reports of 11-21 are T985's (ids now
+  written there). About 40 old items (0.7.x–0.8.2, mostly staging) show as new only because no ticket cites their id:
+  T1057 ties them up.
+- Answered 2026-11-24: "no play closed testing feedback all was through the app pathway. users dont know how to use
+  play one and I dont either." Recorded in the questionnaire (Q3: four channels, no Play form) and the feedback log.
+- Answered 2026-11-24: the release table carries a short goal per release (ROADMAP-after-0.9.0.md, "Release contents").
+- New from you 2026-11-24: iOS store distribution and compliance (T1071), better screenshots and marketing content
+  before the full release (T1072), the app-update notice only when the phone can install it (T1073, 0.9.2).
+- **Do (you): Play Production staged rollout of 0.9.0 (build 44), once Google grants production access** (T1046,
+  T240). Build 44 is on Internal and Closed since 2026-11-24 (Google's review of the Closed release pending). Play
+  will not let Production be used until the production-access application is approved; the application opens
+  2026-12-07 and this does not move that date or the Closed test clock. Then, in Play Console: Test and release →
+  Production → Create new release → Add from library → pick build 44 (or the newest build then on Closed) → release
+  notes → Next → set the rollout percentage (start at 20%) → Save → Publishing overview → Send for review. Raise the
+  percentage from the same Production page once the crash numbers look clean.
+- **Do (you): App Store submission of 0.9.0** (T1071), once the iOS production build is on TestFlight (building
+  2026-11-24 from release/0.9.0; the build number goes here when it uploads). Before you click, T1071's checklist has
+  to exist (App Privacy, export compliance, age rating, content rights, review notes): it is not written yet, so this
+  row waits on the iOS release chat. Then, in App Store Connect: Apps → Can I Fish This? → Distribution → the "+" by
+  iOS App → version 0.9.0 → Build → pick the build → paste the listing text and pictures (T1072) → App Privacy and
+  the other answers → Version Release: "Manually release" and Phased Release on → Add for Review → Submit.
+- **Question (you): three proposed chats.** 2b = 0.9.2 hardening (no features), S = store content (T1072; can run
+  beside 0.9.2), 5i = iOS full release (T1071). Say yes or change them, and whether the iOS release comes before or
+  after 0.9.2. Default until you answer: nothing starts; they stay marked "proposed" in the roadmap.
+- **Question (you): T1062 release candidates (rc tags).** Your idea from the 0.9.0 release. Default: planned with
+  chat 3 (repo move), a written plan for you to agree before anything is built.
+
+## 2026-11-24 12:15–12:33: staging reports and the Kitimat creeks, the answers (verbatim)
+
+- T1029, the 12 side creeks at the Kitimat hatchery west-bank closure (shown the picture: reading 1 keep as today,
+  reading 2 closed like the west bank): "i think closed we need a clean way to have this calculated from extents so
+  it fits into structure nicely" — the creeks read salmon Closed from the west-bank row, worked out from the extent
+  by the normal tributary machinery for any one-bank closure (no hand list); no stripe and no bank note on a creek.
+- T1050 ice fishing repeats the Gear tab's counts: "Only what differs (Recommended)".
+- T1051 treble and barbed hooks: "Say it everywhere (Recommended)" — a second Hooks line on every water where it is
+  true (replaces the ROUND13 G call that kept it silent).
+- T1052 a fully closed water says it twice: "One block, both calendars (Recommended)".
+- T1053 should a river's tributary rule climb through its head lake: "Climb through every head lake" — all 36, also
+  where the lake has a row of its own (not the recommended option); built behind a before/after list he reads before
+  it ships. The Sources wording ("and its tributary streams") was part of the options, not asked alone: a proposal.
+
+## 2026-11-24: your four staging reports, ticketed for 0.9.1 (as asked; the answers are in the section above)
 
 - Store checks 2026-11-24 12:10: staging worker, 5 reports since 11-24: your four from Dick Lake, Nelson Creek and Eagle
   Creek are T1050–T1053; the Harrison Lake one (e034e473) was answered 11-23 (gotcha, PR #85), now cited in T1046; no
@@ -50,12 +94,12 @@ with the default Claude uses until you answer). Newest first inside each section
   bank side get included" — no stripe on creeks; and a one-bank place that includes tributaries takes only the
   tributaries that join on that bank (a binding change, not only a look).
 - T1029 Q6, the rule book's own west-half rule: "Yes, stripe it too (Recommended)".
-- T1029, asked again 2026-11-24 ~11:25 with four bolder looks (A split solid, B split + closed dashes, C split +
+- T1029, asked again 2026-11-24 ~11:50 with four bolder looks (A split solid, B split + closed dashes, C split +
   label, D stripe outside the line; each from zoom 13 up): "B: split + closed dashes (Recommended)".
 - T1029, what "included" means for the Kitimat place's 12 side creeks (told: only one creek joins the closed stretch,
   on the west bank, and the other 11 join through it, so by his west-side rule all 12 stay; today they answer Open):
   "Not sure, show me" — not decided; he gets the DFO notice's exact wording and a map of the 12 creeks with today's
-  answer on each. Until then the creeks answer as today and the west-side rule stays a proposal.
+  answer on each. Answered 12:15 (top section): closed, computed from extents.
 - T1016 the notice words: "Force refresh instead?"; asked how (auto unless typing / always / keep the notice):
   "Always auto refresh" — a web tab whose data was replaced reloads itself at once onto the live release, with no
   notice to press, even mid-typing (the same for a tab opened before a site update).

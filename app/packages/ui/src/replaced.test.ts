@@ -13,11 +13,12 @@
  *   the line      a failed fetch (no answer) is the environment's: never reported, never a notice — told apart from a 404
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { REPLACED_NAMES, reportFailure, setFailureSink, setFailureTriage } from "@app/core";
+import { failuresSent, REFRESH_NOT_MADE, REPLACED_NAMES, REPLACED_WORDS, reportFailure, setFailureSink, setFailureTriage } from "@app/core";
 import { createNet, sha256Hex, type Manifest } from "@app/data";
 import { createReplacedProbe } from "@app/data/release";
 import { releaseCache, releaseSource } from "@app/data/release/platform";
-import { createReplacedState, loadLiveRelease, LOOK_MS, replacedTriage, siteProbe, type ReplacedState } from "./replaced";
+import { createReplacedState, loadLiveRelease, LOOK_MS, RELOADED_FROM_KEY, RELOADS_PER_SESSION, reloadOnce, replacedTriage, siteProbe, type ReplacedRaised,
+         type ReplacedState, type SessionStore } from "./replaced";
 
 const ORIGIN = "https://data.test";
 const BASE = `${ORIGIN}/release/`;
@@ -88,6 +89,12 @@ const C = release("r-cccccccccccc", "tA.000000000003", ["core", "water", "regs-1
 
 let reported: unknown[] = [];
 let state: ReplacedState;
+/** every automatic refresh the state asked for, and what the next one answers (null: made) */
+let refreshes: ReplacedRaised[] = [];
+let refreshWith: (r: ReplacedRaised) => Promise<string | null>;
+/** the state as App.tsx makes it: the refresh, core's `failuresSent`, the release in use (the set opened last) */
+const newState = () => createReplacedState({ refresh: (r) => { refreshes.push(r); return refreshWith(r); }, sent: failuresSent,
+                                             inUse: () => opened[opened.length - 1]?.data_release ?? null });
 let undo: Array<() => void> = [];
 /** every set this page opened, the one in use last (App.tsx `openedSets`) */
 let opened: Manifest[] = [];
@@ -112,7 +119,9 @@ const names = () => reported.map((e) => (e as Error).name);
 
 beforeEach(() => {
   reported = [];
-  state = createReplacedState();
+  refreshes = [];
+  refreshWith = async () => null;
+  state = newState();
   origin = fakeOrigin();
   undo = [setFailureSink((e) => reported.push(e))];
 });
@@ -136,7 +145,8 @@ describe("a tab booted on release A, then B and C published and A pruned (T1016 
     expect((reported[0] as Error).message).toBe(
       `a file of release r-aaaaaaaaaaaa is no longer served (HTTP 404); the server's release is r-cccccccccccc: ${(e as Error).message}`);
     expect((reported[0] as Error).cause).toBe(e);
-    expect(state.get()).toEqual({ kind: "data", release: "r-aaaaaaaaaaaa" });
+    // (owner 2026-11-24 "Always auto refresh") refreshed by itself, no notice
+    expect([refreshes, state.get()]).toEqual([[{ kind: "data", release: "r-aaaaaaaaaaaa" }], null]);
     expect(origin.asked.filter((u) => u === POINTER)).toHaveLength(1);
   });
 
@@ -181,6 +191,81 @@ describe("a tab booted on release A, then B and C published and A pruned (T1016 
   });
 });
 
+describe("(T1016, owner 2026-11-24 \"Always auto refresh\") a replaced set is refreshed BY ITSELF, once", () => {
+  const dec = (b: Uint8Array) => new TextDecoder().decode(b);
+  /** the reports in the order the sink took them, and the app's apply, on one line */
+  let order: string[] = [];
+  const watch = () => { order = []; undo.push(setFailureSink((e) => { reported.push(e); order.push(`report:${(e as Error).name}`); })); };
+  const staging = fakeUpdates;
+
+  it("its report is in the sink first, then the app's one apply, once; the read that failed is read again on the new release", async () => {
+    install();
+    watch();
+    origin.publish(A);
+    const srcA = await boot(A.m);
+    origin.publish(B);
+    origin.publish(C);
+    origin.prune("r-aaaaaaaaaaaa/", "tiles/tA.000000000001/");
+    const svc = staging("ready");                     // the update service staged C (its own check)
+    let again: Promise<string> | null = null;
+    const apply = () => { order.push("apply"); again = (async () => dec(await (await boot(C.m)).bytes("regs-3")))(); };
+    refreshWith = () => new Promise((ended) => loadLiveRelease(svc, apply, ended));
+    // two reads of A fail at once (the slice, the water file): one verdict, one refresh
+    const e1 = await failureOf(srcA.bytes("regs-3"));
+    const e2 = await failureOf(srcA.bytes("water"));
+    reportFailure(e1);
+    reportFailure(e2);
+    await settle(); await settle();
+    expect(order).toEqual([`report:${REPLACED_NAMES.data}`, `report:${REPLACED_NAMES.data}`, "apply"]);
+    expect(await again).toBe("r-cccccccccccc:regs-3");          // the read that failed, made again on C
+    expect([refreshes, state.get()]).toEqual([[{ kind: "data", release: "r-aaaaaaaaaaaa" }], null]);
+    // a late 404 of a read made on A, after the apply: reported as replaced, never refreshed again
+    reportFailure(await failureOf(srcA.bytes("lines")));
+    await settle(); await settle();
+    expect(order).toEqual([`report:${REPLACED_NAMES.data}`, `report:${REPLACED_NAMES.data}`, "apply", `report:${REPLACED_NAMES.data}`]);
+    expect(refreshes).toHaveLength(1);
+  });
+
+  it("no loop: the same verdict again after its refresh (the apply went back to A) is never refreshed again", async () => {
+    install();
+    watch();
+    origin.publish(A);
+    const srcA = await boot(A.m);
+    origin.publish(C);
+    origin.prune("r-aaaaaaaaaaaa/");
+    let applies = 0;
+    // the apply starts, and the boot goes back to A (T555: said and reported by the apply itself): the page is on A still
+    refreshWith = () => new Promise((ended) => loadLiveRelease(staging("ready"), () => { applies++; }, ended));
+    reportFailure(await failureOf(srcA.bytes("regs-3")));
+    await settle(); await settle();
+    reportFailure(await failureOf(srcA.bytes("regs-1")));
+    await settle(); await settle();
+    expect([applies, refreshes.length, state.get(), names()]).toEqual([1, 1, null, [REPLACED_NAMES.data, REPLACED_NAMES.data]]);
+  });
+
+  it("a refresh that could not be made (nothing staged): the notice shows the failure, reported as a defect once; never again", async () => {
+    install();
+    watch();
+    origin.publish(A);
+    const srcA = await boot(A.m);
+    origin.publish(C);
+    origin.prune("r-aaaaaaaaaaaa/");
+    const none = staging("current");                  // its check stages nothing
+    let applies = 0;
+    refreshWith = () => new Promise((ended) => loadLiveRelease(none, () => { applies++; }, ended));
+    reportFailure(await failureOf(srcA.bytes("regs-3")));
+    await settle(); await settle();
+    expect([applies, state.get(), names()]).toEqual([0, { kind: "data", release: "r-aaaaaaaaaaaa" }, [REPLACED_NAMES.data, REFRESH_NOT_MADE]]);
+    expect((reported[1] as Error).message).toBe(
+      "the automatic refresh of release r-aaaaaaaaaaaa's replaced data was not made: the update service staged no newer release (its release phase: current)");
+    reportFailure(await failureOf(srcA.bytes("regs-1")));
+    await settle(); await settle();
+    expect([none.checks.length, refreshes.length, names()]).toEqual([1, 1, [REPLACED_NAMES.data, REFRESH_NOT_MADE, REPLACED_NAMES.data]]);
+    // the notice's words (core, whole): the failure said, its action the same apply by hand
+    expect(REPLACED_WORDS.data).toEqual({ line: "This page’s data was replaced by a newer release.", action: "Load the new data ›", a11y: "Load the new data" });
+  });
+});
+
 describe("a 404 that is a defect stays a defect (T1016 item 2, W46)", () => {
   it("a file missing from the release the pointer DOES name: reported as it is, no notice", async () => {
     install();
@@ -194,7 +279,7 @@ describe("a 404 that is a defect stays a defect (T1016 item 2, W46)", () => {
     reportFailure(e);
     await settle();
     expect(reported).toEqual([e]);
-    expect(state.get()).toBeNull();
+    expect([refreshes, state.get()]).toEqual([[], null]);
   });
 
   it("the page's own release still live, its file gone: a defect; a 404 off the release root: reported at once, nothing asked", async () => {
@@ -209,7 +294,7 @@ describe("a 404 that is a defect stays a defect (T1016 item 2, W46)", () => {
     expect(reported).toEqual([feed]);              // not a release file: no look, sent at once
     await settle();
     expect(reported).toEqual([feed, e]);
-    expect(state.get()).toBeNull();
+    expect([refreshes, state.get()]).toEqual([[], null]);
   });
 
   it("a 404 the pointer cannot explain (the pointer does not answer): the 404 is reported as it is", async () => {
@@ -223,7 +308,7 @@ describe("a 404 that is a defect stays a defect (T1016 item 2, W46)", () => {
     reportFailure(e);
     await settle();
     expect(reported).toEqual([e]);
-    expect(state.get()).toBeNull();
+    expect([refreshes, state.get()]).toEqual([[], null]);
   });
 });
 
@@ -282,7 +367,7 @@ describe("(T1016 review) no look holds a report for good", () => {
     reportFailure(e);
     await settle();
     expect(names()).toEqual([REPLACED_NAMES.data]);
-    expect(state.get()).toEqual({ kind: "data", release: "r-aaaaaaaaaaaa" });   // useReplacedNotice shows it only on A
+    expect([refreshes, state.get()]).toEqual([[], null]);   // the page is on C: nothing to refresh, no notice
   });
 });
 
@@ -299,7 +384,7 @@ describe("a 404 told apart from a failed line", () => {
     reportFailure(e);
     await settle();
     expect(reported).toEqual([]);
-    expect(state.get()).toBeNull();
+    expect([refreshes, state.get()]).toEqual([[], null]);
     expect(origin.asked.filter((u) => u === POINTER)).toEqual([]);
   });
 });
@@ -323,7 +408,73 @@ describe("a chunk that is gone after a site deploy (AsyncRequireError)", () => {
     await settle();
     expect(names()).toEqual([REPLACED_NAMES.code]);
     expect((reported[0] as Error).cause).toBe(e);
-    expect(state.get()).toEqual({ kind: "code", release: null });
+    expect([refreshes, state.get()]).toEqual([[{ kind: "code", release: null }], null]);
+  });
+
+  it("(owner 2026-11-24 \"Always auto refresh\") the reports are in the sink, then the page reloads ONCE; back on the same code, it stops", async () => {
+    const store = memoryStore();
+    const order: string[] = [];
+    undo.push(setFailureSink((e) => { reported.push(e); order.push(`report:${(e as Error).name}`); }));
+    refreshWith = async () => reloadOnce({ store: () => store, entry: ENTRY, reload: () => order.push("reload") });
+    const page = `<script src="/_expo/static/js/web/index-5555cccc6666.js" defer></script>`;
+    install(site({ chunk: 404, page }));
+    // two chunks gone at once: both reports first, one reload
+    reportFailure(chunkError());
+    reportFailure(chunkError());
+    await settle(); await settle();
+    expect(order).toEqual([`report:${REPLACED_NAMES.code}`, `report:${REPLACED_NAMES.code}`, "reload"]);
+    expect([store.getItem(RELOADED_FROM_KEY), state.get()]).toEqual([JSON.stringify([ENTRY]), null]);
+    // THE NEXT PAGE LIFE (the reload came back on the same code: a cached page): its own state, the same session store
+    for (const u of undo.splice(1).reverse()) u();
+    undo.push(setFailureSink((e) => { reported.push(e); order.push(`report:${(e as Error).name}`); }));
+    state = newState();
+    install(site({ chunk: 404, page }));
+    reportFailure(chunkError());
+    await settle(); await settle();
+    expect(order.slice(3)).toEqual([`report:${REPLACED_NAMES.code}`, `report:${REFRESH_NOT_MADE}`]);   // no second reload
+    expect((reported[reported.length - 1] as Error).message).toBe(
+      `the automatic refresh of the replaced site code was not made: this page reloaded once already from this code (${ENTRY}) and the chunk is still missing`);
+    expect(state.get()).toEqual({ kind: "code", release: null });   // the notice: "Reload ›" by hand
+  });
+
+  it("(review of PR 125) no bounce: A reloads onto B, B (a stale edge still naming A) reloads onto A, A stops; a cap per session", () => {
+    const store = memoryStore(), reloads: string[] = [];
+    const A = "/_expo/static/js/web/index-a.js", B = "/_expo/static/js/web/index-b.js";
+    const at = (entry: string) => reloadOnce({ store: () => store, entry, reload: () => reloads.push(entry) });
+    expect([at(A), at(B), at(A), at(B)]).toEqual([null, null,
+      `this page reloaded once already from this code (${A}) and the chunk is still missing`,
+      `this page reloaded once already from this code (${B}) and the chunk is still missing`]);
+    expect(reloads).toEqual([A, B]);
+    // however many codes: never more than RELOADS_PER_SESSION automatic reloads in one session
+    const many = memoryStore(), n: string[] = [];
+    const codes = Array.from({ length: RELOADS_PER_SESSION + 2 }, (_, i) => `/_expo/static/js/web/index-${i}.js`);
+    const said = codes.map((entry) => reloadOnce({ store: () => many, entry, reload: () => n.push(entry) }));
+    expect([n.length, said[RELOADS_PER_SESSION]]).toEqual([RELOADS_PER_SESSION,
+      `this session reloaded ${RELOADS_PER_SESSION} times already (${codes.slice(0, RELOADS_PER_SESSION).join(", ")}); no more automatic reloads`]);
+    // a marker that holds something else: no reload
+    const odd = memoryStore(); odd.setItem(RELOADED_FROM_KEY, '{"a":1}');
+    expect(reloadOnce({ store: () => odd, entry: A, reload: () => n.push("odd") })).toBe('the marker that stops a reload loop holds something else ({"a":1})');
+    expect(n).toHaveLength(RELOADS_PER_SESSION);
+  });
+
+  it("reloadOnce: once per page code; a store that throws or does not keep never reloads (it could loop)", () => {
+    let reloads = 0;
+    const reload = () => { reloads++; };
+    const store = memoryStore();
+    expect(reloadOnce({ store: () => store, entry: ENTRY, reload })).toBeNull();
+    expect(reloadOnce({ store: () => store, entry: ENTRY, reload })).toBe(
+      `this page reloaded once already from this code (${ENTRY}) and the chunk is still missing`);
+    // a page on new code may reload once for a later deploy
+    expect(reloadOnce({ store: () => store, entry: "/_expo/static/js/web/index-2.js", reload })).toBeNull();
+    expect(reloads).toBe(2);
+    const blocked = () => { throw new DOMException("The operation is insecure.", "SecurityError"); };
+    expect(reloadOnce({ store: blocked, entry: ENTRY, reload })).toBe(
+      "the marker that stops a reload loop could not be kept (The operation is insecure.)");
+    expect(reloadOnce({ store: () => ({ getItem: () => null, setItem: () => {} }), entry: ENTRY, reload }))
+      .toBe("the marker that stops a reload loop did not keep");
+    expect(reloadOnce({ store: () => store, entry: null, reload }))
+      .toBe("this page's code is not known (no entry script), so a reload could not be told from a loop");
+    expect(reloads).toBe(2);
   });
 
   it("the site's page still names this entry: the chunk is missing from the live deploy — a defect, as it is", async () => {
@@ -332,7 +483,7 @@ describe("a chunk that is gone after a site deploy (AsyncRequireError)", () => {
     reportFailure(e);
     await settle();
     expect(reported).toEqual([e]);
-    expect(state.get()).toBeNull();
+    expect([refreshes, state.get()]).toEqual([[], null]);
   });
 
   it("the chunk loads now (a passing fault): reported as it is; no answer: reported as the line's, the part's error untouched", async () => {
@@ -353,9 +504,15 @@ describe("a chunk that is gone after a site deploy (AsyncRequireError)", () => {
       `no answer when asked again (Failed to fetch): ${down.message}`, down]);
     expect({ ...down, message: down.message, name: down.name }).toEqual(before);   // derived, never written
     expect((down as { environment?: unknown }).environment).toBeUndefined();
-    expect(state.get()).toBeNull();
+    expect([refreshes, state.get()]).toEqual([[], null]);
   });
 });
+
+/** the browser's session store, in memory (it survives a page life as `sessionStorage` survives a reload) */
+function memoryStore(): SessionStore {
+  const m = new Map<string, string>();
+  return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => { m.set(k, v); } };
+}
 
 /** the update service as `loadLiveRelease` reads it: its release phase, its listeners, the checks asked */
 function fakeUpdates(start: "current" | "downloading" | "ready") {

@@ -43,14 +43,16 @@ TODO (numbers): active testers per week and sessions (Play Console > Statistics,
 ### Q3. Summarise the feedback you received and how you collected it.
 
 **Draft answer:**
-We collected feedback through five channels, each logged with its ticket and the release that fixed it
+We collected feedback through four channels, each logged with its ticket and the release that fixed it
 (`feedback-log.md`):
 1. **In the app:** "Report a problem" sends the screen, the water and the tester's words to our server; crash reports
    arrive automatically (no personal data; see `handoff/PLAN/play/data-safety.md`).
-2. **Google Play testing feedback** (Play Console, read by the owner).
-3. **TestFlight feedback** from iPhone testers (screenshots with comments).
-4. **Messages and in person:** testers sent the owner screenshots and screen recordings, which he passed on.
-5. **Email:** the "Join the test" address.
+2. **TestFlight feedback** from iPhone testers (screenshots with comments).
+3. **Messages and in person:** testers sent the owner screenshots and screen recordings, which he passed on.
+4. **Email:** the "Join the test" address.
+
+No feedback came through Google Play's own testing-feedback form (owner 2026-11-24: "all was through the app
+pathway"; testers did not know how to use the Play form), so the in-app report is the channel we pointed testers to.
 
 What it said, in short (counts as of 2026-11-24; TODO refresh before applying): 16 pieces of tester feedback from at
 least 7 testers, 9 in-app reports and 14 crash kinds. Most were about wording that was hard to read (gear lines, gauge
@@ -63,7 +65,6 @@ renderer running the website. Testers also said the app was clear: one was posit
 screen while staying readable (F15). Of the 39 rows, 25 are fixed in a shipped release and 6 more in 0.9.0 (F15, F16,
 F21, F22, F24, F25), which is on staging only (r-0aec88ed3edb, 2026-11-24): not yet on Closed testing, its
 production build pending. TODO: reword once 0.9.0 reaches Closed.
-TODO: add Play Console testing-feedback items and recount.
 
 ---
 
@@ -124,7 +125,7 @@ plausible, not that it is met.
   or side channel is outlined once instead of boxed (F25); "Flows into" opens the receiving water's map (F24); the
   day picker runs to March 31, 2027 (F16); regs sub-tabs jump (F15); app fixes from the production crash triage
   (F35, part).
-TODO: add the Play-feedback rows; confirm 0.9.0 reached Closed testing (`releases.md`).
+TODO: confirm 0.9.0 reached Closed testing (`releases.md`).
 
 ### Q8. How did you decide that your app is ready for production?
 
@@ -160,11 +161,11 @@ TODO: add the Play-feedback rows; confirm 0.9.0 reached Closed testing (`release
 1. Q1: the recruiting-ease pick; asked vs opted-in counts; time to reach 12.
 2. Q2: features testers did not reach; where testers live and fish; active testers per week and sessions (Play Console Statistics, TestFlight
    Sessions); share of testers who reported.
-3. Q3: the Play Console testing-feedback items (Monitor and improve > Ratings and reviews > Testing feedback), then
-   recount.
+3. Q3: recount before applying (owner 2026-11-24: no Play Console testing feedback came in; all of it came through
+   the app).
 4. Q4: the target age group as set in Play Console > App content.
 5. Q5: the rule book's page count; the no-ads / no-account wording.
 6. Q6: the installs range; B.C. licence sales (source, year); website visits.
-7. Q7: the Play-feedback rows and 0.9.0's items once it ships.
+7. Q7: 0.9.0's items once it ships.
 8. Q8: Android vitals crash and ANR rates (28 days); crash-free share for the build; how much of the regulations
    was reviewed; the privacy policy URL; refresh the fixed counts.
