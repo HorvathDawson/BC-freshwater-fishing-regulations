@@ -285,6 +285,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1037 | Two review readers (`audit.primary_split_pos`, `reuse.host_rows`) pick a cut's position by different rules (157 of 190 multi-row cuts disagree); the build's is per extent (`extent._cut_at`) | OPEN — needs the position rule decided | T776 | PR #48 independent review, 2026-11-23 |
 | T1040 | A stale side atlas still vouches for a proposal after its cut moves (side_dir's digest does not cover the cut's position) | DONE | 14f0d682e | PR #48 independent review, 2026-11-23 |
 | T1041 | A red CI run or a review finding stops costing an hour or two: related tests on push, `scripts/before_pr.sh`, a report-only mutation job, merge-queue-ready workflows; the org move after 0.9.0 | PARTIAL — owner: OWNER-TODO "move the repo to a free organisation" (after 0.9.0); then the slug flip + merge-queue rule | 0a44b1c75, 4ed75f4a1, de8268ac1, 49081552b, 0dfb92695 | owner 2026-11-23 |
+| T1042 | Google shows the licence quote as the search snippet and a generic icon: per-page descriptions, `data-nosnippet`, PNG icons | DONE | 68b96c5b9, 5d36db0bf | owner 2026-11-23 (lane L27) |
 | T1044 | Plain words on some gauges: how to read the level (bands, our own words, sourced) | OPEN — after 0.9.0 | | owner 2026-11-23 (lane L27) |
 | T1045 | Gauge pages should come up for "<river> river forecast / level / flow" (title/H1 words, water-to-gauge links, JSON-LD) | OPEN — 0.9.0 batch (code after #73) | T1039 | owner 2026-11-23 (lane L27) |
 

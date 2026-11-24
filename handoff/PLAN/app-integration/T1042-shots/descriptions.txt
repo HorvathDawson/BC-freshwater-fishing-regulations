@@ -1,0 +1,234 @@
+T1042 before / after: the meta description (and og:description) of the waters in the committed regs FIXTURE release (not the province; built on 2026-10-27).
+before = the old template; after = this PR. Real waters are rebuilt with the 0.9.0 data release.
+
+/water/wilkes-creek
+  before: Wilkes Creek fishing regulations, B.C. (Region 2): the season, what you can keep, gear and limits, in plain words.
+  after:  Wilkes Creek fishing regulations, B.C. (Region 2): Kokanee · release; Whitefish · 15 a day; Hooks: One hook, lure or fly, Single barbless hook, no trebles.  [155 chars]
+
+/water/anderson-river
+  before: Anderson River fishing regulations, B.C. (Region 3): the season, what you can keep, gear and limits, in plain words.
+  after:  Anderson River fishing regulations, B.C. (Region 3): Kokanee · release; Whitefish · 15 a day.  [93 chars]
+
+/water/brunette-river
+  before: Brunette River fishing regulations, B.C. (Region 2): the season, what you can keep, gear and limits, in plain words.
+  after:  Brunette River fishing regulations, B.C. (Region 2): its season, what you can keep, gear and limits, from the B.C. synopsis.  [124 chars]
+
+/water/iron-river
+  before: Iron River fishing regulations, B.C. (Region 1): the season, what you can keep, gear and limits, in plain words.
+  after:  Iron River fishing regulations, B.C. (Region 1): Kokanee · release; Bass · no limit; Hooks: One hook, lure or fly, Single barbless hook, no trebles.  [148 chars]
+
+/water/glenn-creek
+  before: Glenn Creek fishing regulations, B.C. (Region 4): the season, what you can keep, gear and limits, in plain words.
+  after:  Glenn Creek fishing regulations, B.C. (Region 4): Kokanee · release; Whitefish · 15 a day; Hooks: One hook, lure or fly, Single barbless hook, no trebles.  [154 chars]
+
+/water/ape-creek
+  before: Ape Creek fishing regulations, B.C. (Region 5): the season, what you can keep, gear and limits, in plain words.
+  after:  Ape Creek fishing regulations, B.C. (Region 5): Kokanee · release; Whitefish · 15 a day; Hooks: One hook, lure or fly, Single barbless hook, no trebles.  [152 chars]
+
+/water/little-slocan-river
+  before: Little Slocan River fishing regulations, B.C. (Region 4): the season, what you can keep, gear and limits, in plain words.
+  after:  Little Slocan River fishing regulations, B.C. (Region 4): Kokanee · release; Whitefish · 15 a day.  [98 chars]
+
+/water/bella-coola-river
+  before: Bella Coola River fishing regulations, B.C. (Region 5): the season, what you can keep, gear and limits, in plain words.
+  after:  Bella Coola River fishing regulations, B.C. (Region 5): Kokanee · release; Whitefish · 15 a day; No angling (from a powered boat).  [130 chars]
+
+/water/cowichan-river
+  before: Cowichan River fishing regulations, B.C. (Region 1): the season, what you can keep, gear and limits, in plain words.
+  after:  Cowichan River fishing regulations, B.C. (Region 1): Engine limit 7.5 kW (10 hp) on parts.  [90 chars]
+
+/water/kootenay-river
+  before: Kootenay River fishing regulations, B.C. (Region 4): the season, what you can keep, gear and limits, in plain words.
+  after:  Kootenay River fishing regulations, B.C. (Region 4): its season, what you can keep, gear and limits, from the B.C. synopsis.  [124 chars]
+
+/water/peace-river
+  before: Peace River fishing regulations, B.C. (Region 7B): the season, what you can keep, gear and limits, in plain words.
+  after:  Peace River fishing regulations, B.C. (Region 7B): its season, what you can keep, gear and limits, from the B.C. synopsis.  [122 chars]
+
+/water/dean-river
+  before: Dean River fishing regulations, B.C. (Region 5): the season, what you can keep, gear and limits, in plain words.
+  after:  Dean River fishing regulations, B.C. (Region 5): its season, what you can keep, gear and limits, from the B.C. synopsis.  [120 chars]
+
+/water/elk-river
+  before: Elk River fishing regulations, B.C. (Region 4): the season, what you can keep, gear and limits, in plain words.
+  after:  Elk River fishing regulations, B.C. (Region 4): Kokanee · release; Whitefish · 15 a day; Electric motors only.  [110 chars]
+
+/water/lois-river
+  before: Lois River fishing regulations, B.C. (Region 2): the season, what you can keep, gear and limits, in plain words.
+  after:  Lois River fishing regulations, B.C. (Region 2): Kokanee · release; Whitefish · 15 a day; Hooks: One hook, lure or fly, Single barbless hook, no trebles.  [153 chars]
+
+/water/atlin-river
+  before: Atlin River fishing regulations, B.C. (Region 6): the season, what you can keep, gear and limits, in plain words.
+  after:  Atlin River fishing regulations, B.C. (Region 6): Kokanee · release; Whitefish · 15 a day; Hooks: One hook, lure or fly, Single barbless hook, no trebles.  [154 chars]
+
+/water/babine-river
+  before: Babine River fishing regulations, B.C. (Region 6): the season, what you can keep, gear and limits, in plain words.
+  after:  Babine River fishing regulations, B.C. (Region 6): its season, what you can keep, gear and limits, from the B.C. synopsis.  [122 chars]
+
+/water/fording-river
+  before: Fording River fishing regulations, B.C. (Region 4): the season, what you can keep, gear and limits, in plain words.
+  after:  Fording River fishing regulations, B.C. (Region 4): its season, what you can keep, gear and limits, from the B.C. synopsis.  [123 chars]
+
+/water/coquitlam-river
+  before: Coquitlam River fishing regulations, B.C. (Region 2): the season, what you can keep, gear and limits, in plain words.
+  after:  Coquitlam River fishing regulations, B.C. (Region 2): Kokanee · release; Whitefish · 15 a day; No powered boats on parts.  [121 chars]
+
+/water/duncan-river
+  before: Duncan River fishing regulations, B.C. (Region 4): the season, what you can keep, gear and limits, in plain words.
+  after:  Duncan River fishing regulations, B.C. (Region 4): its season, what you can keep, gear and limits, from the B.C. synopsis.  [122 chars]
+
+/water/wahleach-creek
+  before: Wahleach Creek fishing regulations, B.C. (Region 2): the season, what you can keep, gear and limits, in plain words.
+  after:  Wahleach Creek fishing regulations, B.C. (Region 2): its season, what you can keep, gear and limits, from the B.C. synopsis.  [124 chars]
+
+/water/nitinat-river
+  before: Nitinat River fishing regulations, B.C. (Region 1): the season, what you can keep, gear and limits, in plain words.
+  after:  Nitinat River fishing regulations, B.C. (Region 1): its season, what you can keep, gear and limits, from the B.C. synopsis.  [123 chars]
+
+/water/koch-creek
+  before: Koch Creek fishing regulations, B.C. (Region 4): the season, what you can keep, gear and limits, in plain words.
+  after:  Koch Creek fishing regulations, B.C. (Region 4): Kokanee · release; Whitefish · 15 a day; Hooks: One hook, lure or fly, Single barbless hook, no trebles.  [153 chars]
+
+/water/west-road-blackwater-river
+  before: West Road (Blackwater) River fishing regulations, B.C. (Regions 5, 6, 7): the season, what you can keep, gear and limits, in plain words.
+  after:  West Road (Blackwater) River fishing regulations, B.C. (Regions 5, 6, 7): Kokanee · release; Whitefish · 15 a day; Electric motors only.  [136 chars]
+
+/water/sumas-river
+  before: Sumas River fishing regulations, B.C. (Region 2): the season, what you can keep, gear and limits, in plain words.
+  after:  Sumas River fishing regulations, B.C. (Region 2): Kokanee · release; Whitefish · 15 a day; Hooks: One hook, lure or fly, Single barbless hook, no trebles.  [154 chars]
+
+/water/talchako-river
+  before: Talchako River fishing regulations, B.C. (Region 5): the season, what you can keep, gear and limits, in plain words.
+  after:  Talchako River fishing regulations, B.C. (Region 5): Kokanee · release; Whitefish · 15 a day.  [93 chars]
+
+/water/wigwam-river
+  before: Wigwam River fishing regulations, B.C. (Region 4): the season, what you can keep, gear and limits, in plain words.
+  after:  Wigwam River fishing regulations, B.C. (Region 4): its season, what you can keep, gear and limits, from the B.C. synopsis.  [122 chars]
+
+/water/wilkie-creek
+  before: Wilkie Creek fishing regulations, B.C. (Region 4): the season, what you can keep, gear and limits, in plain words.
+  after:  Wilkie Creek fishing regulations, B.C. (Region 4): No fishing here on any day of the year.  [90 chars]
+
+/water/quinsam-river
+  before: Quinsam River fishing regulations, B.C. (Region 1): the season, what you can keep, gear and limits, in plain words.
+  after:  Quinsam River fishing regulations, B.C. (Region 1): its season, what you can keep, gear and limits, from the B.C. synopsis.  [123 chars]
+
+/water/skeena-river
+  before: Skeena River fishing regulations, B.C. (Region 6): the season, what you can keep, gear and limits, in plain words.
+  after:  Skeena River fishing regulations, B.C. (Region 6): its season, what you can keep, gear and limits, from the B.C. synopsis.  [122 chars]
+
+/water/south-atnarko-river
+  before: South Atnarko River fishing regulations, B.C. (Region 5): the season, what you can keep, gear and limits, in plain words.
+  after:  South Atnarko River fishing regulations, B.C. (Region 5): Kokanee · release; Whitefish · 15 a day.  [98 chars]
+
+/water/vedder-river
+  before: Vedder River fishing regulations, B.C. (Region 2): the season, what you can keep, gear and limits, in plain words.
+  after:  Vedder River fishing regulations, B.C. (Region 2): Kokanee · release; Whitefish · 15 a day; Hooks: One hook, lure or fly, Single barbless hook, no trebles.  [155 chars]
+
+/water/zymoetz-river
+  before: Zymoetz River fishing regulations, B.C. (Region 6): the season, what you can keep, gear and limits, in plain words.
+  after:  Zymoetz River fishing regulations, B.C. (Region 6): its season, what you can keep, gear and limits, from the B.C. synopsis.  [123 chars]
+
+/water/okanagan-river
+  before: Okanagan River fishing regulations, B.C. (Region 8): the season, what you can keep, gear and limits, in plain words.
+  after:  Okanagan River fishing regulations, B.C. (Region 8): No powered boats.  [70 chars]
+
+/water/kitimat-river
+  before: Kitimat River fishing regulations, B.C. (Region 6): the season, what you can keep, gear and limits, in plain words.
+  after:  Kitimat River fishing regulations, B.C. (Region 6): Kokanee · release; Whitefish · 15 a day; No powered boats.  [110 chars]
+
+/water/little-river
+  before: Little River fishing regulations, B.C. (Region 3): the season, what you can keep, gear and limits, in plain words.
+  after:  Little River fishing regulations, B.C. (Region 3): Kokanee · release; Whitefish · 15 a day; Hooks: One hook, lure or fly, Single barbless hook, no trebles.  [155 chars]
+
+/water/hamill-creek
+  before: Hamill Creek fishing regulations, B.C. (Region 4): the season, what you can keep, gear and limits, in plain words.
+  after:  Hamill Creek fishing regulations, B.C. (Region 4): Kokanee · release; Whitefish · 15 a day; Hooks: One hook, lure or fly, Single barbless hook, no trebles.  [155 chars]
+
+/water/columbia-river
+  before: Columbia River fishing regulations, B.C. (Region 4): the season, what you can keep, gear and limits, in plain words.
+  after:  Columbia River fishing regulations, B.C. (Region 4): No powered boats — in wetlands.  [84 chars]
+
+/water/fraser-river
+  before: Fraser River fishing regulations, B.C. (Regions 2, 3, 5, 7): the season, what you can keep, gear and limits, in plain words.
+  after:  Fraser River fishing regulations, B.C. (Regions 2, 3, 5, 7): its season, what you can keep, gear and limits, from the B.C. synopsis.  [132 chars]
+
+/water/thompson-river
+  before: Thompson River fishing regulations, B.C. (Region 3): the season, what you can keep, gear and limits, in plain words.
+  after:  Thompson River fishing regulations, B.C. (Region 3): its season, what you can keep, gear and limits, from the B.C. synopsis.  [124 chars]
+
+/water/campbell-river
+  before: Campbell River fishing regulations, B.C. (Region 1): the season, what you can keep, gear and limits, in plain words.
+  after:  Campbell River fishing regulations, B.C. (Region 1): its season, what you can keep, gear and limits, from the B.C. synopsis.  [124 chars]
+
+/water/schooler-creek
+  before: Schooler Creek fishing regulations, B.C. (Region 7B): the season, what you can keep, gear and limits, in plain words.
+  after:  Schooler Creek fishing regulations, B.C. (Region 7B): Kokanee · release; Whitefish · 15 a day.  [94 chars]
+
+/water/chilliwack-river
+  before: Chilliwack River fishing regulations, B.C. (Region 2): the season, what you can keep, gear and limits, in plain words.
+  after:  Chilliwack River fishing regulations, B.C. (Region 2): its season, what you can keep, gear and limits, from the B.C. synopsis.  [126 chars]
+
+/water/williston-lake-zone-b
+  before: Williston Lake — Zone B fishing regulations, B.C. (Region 7B): the season, what you can keep, gear and limits, in plain words.
+  after:  Williston Lake — Zone B fishing regulations, B.C. (Region 7B): Kokanee · 10 a day; Whitefish · 15 a day; Hooks: One hook, lure or fly.  [134 chars]
+
+/water/kootenay-lake-main-body
+  before: Kootenay Lake — Main Body fishing regulations, B.C. (Region 4): the season, what you can keep, gear and limits, in plain words.
+  after:  Kootenay Lake — Main Body fishing regulations, B.C. (Region 4): Kokanee · release; Whitefish · 15 a day; Unlimited lines (rods) per angler (from a boat).  [153 chars]
+
+/water/kootenay-lake-upper-west-arm
+  before: Kootenay Lake — Upper West Arm fishing regulations, B.C. (Region 4): the season, what you can keep, gear and limits, in plain words.
+  after:  Kootenay Lake — Upper West Arm fishing regulations, B.C. (Region 4): Kokanee · release; Whitefish · 15 a day; Hooks: One hook, lure or fly.  [139 chars]
+
+/water/kootenay-lake-lower-west-arm
+  before: Kootenay Lake — Lower West Arm fishing regulations, B.C. (Region 4): the season, what you can keep, gear and limits, in plain words.
+  after:  Kootenay Lake — Lower West Arm fishing regulations, B.C. (Region 4): Kokanee · release · Weekends: keep 5 · Weekdays: release; Whitefish · 15 a day.  [148 chars]
+
+/water/lake-koocanusa
+  before: Lake Koocanusa fishing regulations, B.C. (Region 4): the season, what you can keep, gear and limits, in plain words.
+  after:  Lake Koocanusa fishing regulations, B.C. (Region 4): Kokanee · 15 a day; Whitefish · 15 a day; Hooks: One hook, lure or fly.  [124 chars]
+
+/water/teslin-lake
+  before: Teslin Lake fishing regulations, B.C. (Region 6): the season, what you can keep, gear and limits, in plain words.
+  after:  Teslin Lake fishing regulations, B.C. (Region 6): Kokanee · 10 a day; Whitefish · 5 a day; Hooks: One hook, lure or fly.  [120 chars]
+
+/water/osoyoos-lake
+  before: Osoyoos Lake fishing regulations, B.C. (Region 8): the season, what you can keep, gear and limits, in plain words.
+  after:  Osoyoos Lake fishing regulations, B.C. (Region 8): Kokanee · 5 a day · · size limit; Whitefish · 15 a day; No vessels — in 5 signed swimming areas.  [147 chars]
+
+/water/atlin-lake
+  before: Atlin Lake fishing regulations, B.C. (Region 6): the season, what you can keep, gear and limits, in plain words.
+  after:  Atlin Lake fishing regulations, B.C. (Region 6): Kokanee · 10 a day; Whitefish · 5 a day; Hooks: One hook, lure or fly.  [119 chars]
+
+/water/morley-lake
+  before: Morley Lake fishing regulations, B.C. (Region 6): the season, what you can keep, gear and limits, in plain words.
+  after:  Morley Lake fishing regulations, B.C. (Region 6): Kokanee · 10 a day; Whitefish · 5 a day; Hooks: One hook, lure or fly.  [120 chars]
+
+/water/bennett-lake
+  before: Bennett Lake fishing regulations, B.C. (Region 6): the season, what you can keep, gear and limits, in plain words.
+  after:  Bennett Lake fishing regulations, B.C. (Region 6): Kokanee · 10 a day; Whitefish · 5 a day; Hooks: One hook, lure or fly.  [121 chars]
+
+/water/tenas-lake
+  before: Tenas Lake fishing regulations, B.C. (Region 5): the season, what you can keep, gear and limits, in plain words.
+  after:  Tenas Lake fishing regulations, B.C. (Region 5): Kokanee · 5 a day; Whitefish · 15 a day; Hooks: One hook, lure or fly.  [119 chars]
+
+/water/wahleach-lake
+  before: Wahleach Lake fishing regulations, B.C. (Region 2): the season, what you can keep, gear and limits, in plain words.
+  after:  Wahleach Lake fishing regulations, B.C. (Region 2): Kokanee · 5 a day; Whitefish · 15 a day; Hooks: One hook, lure or fly.  [122 chars]
+
+/water/lois-lake
+  before: Lois Lake fishing regulations, B.C. (Region 2): the season, what you can keep, gear and limits, in plain words.
+  after:  Lois Lake fishing regulations, B.C. (Region 2): Kokanee · 5 a day; Whitefish · 15 a day; Hooks: One hook, lure or fly, Single barbless hook, no trebles.  [152 chars]
+
+/water/okanagan-lake
+  before: Okanagan Lake fishing regulations, B.C. (Region 8): the season, what you can keep, gear and limits, in plain words.
+  after:  Okanagan Lake fishing regulations, B.C. (Region 8): Kokanee · 5 a day; Whitefish · 15 a day; No vessels — various locations (as buoyed and signed).  [147 chars]
+
+/water/nitinat-lake
+  before: Nitinat Lake fishing regulations, B.C. (Region 1): the season, what you can keep, gear and limits, in plain words.
+  after:  Nitinat Lake fishing regulations, B.C. (Region 1): Tidal water.  [63 chars]
+
+/water/shuswap-lake
+  before: Shuswap Lake fishing regulations, B.C. (Region 3): the season, what you can keep, gear and limits, in plain words.
+  after:  Shuswap Lake fishing regulations, B.C. (Region 3): Kokanee · 5 a day; Whitefish · 15 a day; Hooks: One hook, lure or fly, Single barbless hook, no trebles.  [155 chars]

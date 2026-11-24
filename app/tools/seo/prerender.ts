@@ -13,6 +13,7 @@
  */
 import type { LayoutClass } from "@app/ui";
 import { regionOfTile } from "@app/data/release";
+import { withIconLinks } from "../web-icons.mjs";
 
 const COLOUR = /rgba?\([^)]*\)|#[0-9a-fA-F]{3,8}\b/g;
 /** SVG presentation attributes holding a colour: moved into `style`, where a CSS variable works. */
@@ -230,5 +231,6 @@ export function appDocument(template: string, d: AppDocument): string {
       d.preload.map((f) => `<link rel="preload" href="${f}" as="font" type="font/woff2" crossorigin>`).join("") +
       `<style>${d.critical}</style><link rel="stylesheet" href="${d.cssHref}"></head>`)
     .replace(/<div id="root"><\/div>/, `<div id="prerender">${d.pane}</div><div id="root"></div>${HANDOFF}`);
-  return t;
+  // (T1042) the PNG icons Google Search reads (the export's home page carries them; a template without them gets them here)
+  return withIconLinks(t);
 }
