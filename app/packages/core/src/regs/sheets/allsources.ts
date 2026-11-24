@@ -10,8 +10,15 @@
  * the card rows' deciding rules are cited by nothing on the screen. A rule is listed where a drawn line cites it: a drawn
  * section Source line's rules (`srcs:*` `keys`; its pages are theirs), a drawn line that names its rule and shows its source
  * (a `rule` beside a "Rule book p.N ↗" or a cited page run), and the drawn trout table's rules (`src`: its Source line opens
- * them, `src:trout`). A species sheet's own rules (a row's "See every regulation line ›", `tf:` / `other:` / `sp:`) and a
- * row that only opens a sheet (Possession) are one tap further and not listed (the ticket's default, an owner question).
+ * them, `src:trout`).
+ *
+ * (T1036, owner 2026-11-24: "Add back but maybe have them separate?") A SECOND GROUP, under its own head below the first
+ * (`ALL_SOURCES.OTHER`): every rule a sheet REACHABLE from the drawn screen cites that no drawn line cites — a fish row's
+ * sheet (`other:` / `sp:` / `tf:`, both its tabs), the Possession row's (`pos:pos`), any sheet a drawn line opens
+ * (`reachableSheets`). A sheet cites a rule by a row of its Sources list (never an "Overruled" card: it does not apply
+ * here) or by a line that opens the rule's sheet beside its page ("Who says so ›" + "B.C. Synopsis p.N"). One tap only:
+ * a link inside a sheet (its "See every regulation line ›", "Fishing more than one water today? ›") is not followed. No
+ * rule is in both groups; a card the screen does not draw (a closed day's) opens no sheet, so nothing of it is listed.
  */
 import { ruleBook } from "../book";
 import type { RuleIndex, RuleView } from "../inputs";
@@ -22,7 +29,9 @@ import type { RegsPage, SheetCtx, SheetVM, SourceRowVM } from "../model";
 import { clean } from "../names";
 import type { SheetKey } from "../sheetKey";
 import { fmtDay } from "../strip";
-import { gearTabsFor, type GearTabsVM, type SalmonBookVM } from "../../salmon";
+import { OPEN, parseSheetKey } from "../sheetKey";
+import { gearTabsFor, salmonTable, type GearTabsVM, type SalmonBookVM, type SalmonCardVM } from "../../salmon";
+import { withSalmonSheets } from "../../salmonSheets";
 import type { TabSourcesVM } from "../../tabSources";
 import { WORDS, ALL_SOURCES } from "../words";
 
@@ -82,6 +91,93 @@ export function drawnCitations(drawn: readonly unknown[], rules: Pick<RuleIndex,
   return { rules: [...out.values()], missing: [...missing] };
 }
 
+const str = (v: unknown): v is string => typeof v === "string" && v.length > 0;
+const rowsOf = (v: unknown): Record<string, unknown>[] =>
+  Array.isArray(v) ? v.filter((x): x is Record<string, unknown> => !!x && typeof x === "object") : [];
+
+/**
+ * (T1036) THE SHEETS ONE TAP FROM THE DRAWN SCREEN, first seen first: every key a drawn press opens. (Review of PR 126) Read
+ * the way the components open them, through the same builders (`OPEN`, sheetKey.ts): a view model's whole key (`open`; an
+ * Other fish row's `id`, its picture); a term run's ⓘ (`{t:"term", ids}`); a trout table's rows (each row's Sources and
+ * Identification tabs) and its hatchery link; a caveat or timed line naming its rule (`{what, rule}`); a closed banner's
+ * closure (`{text, scope, rule, book}`, its "Who says so ›"); a boat chip (`{kind, text, rule}`); a term drawn from a field
+ * (`term`, `terms`, `questionTerms`); a salmon table's rows (`species`: each code's Sources and Identification tabs). Never the
+ * every-source sheet itself, never a per-row gear line's (`srcs:gl|…`: not drawn since T900, as `drawnCitations` reads
+ * it). The probe presses every press target of the drawn screen and holds this list to what opened.
+ */
+export function reachableSheets(drawn: readonly unknown[],
+                                /** the salmon card drawn beside the page (its species table built from it, as SalmonCard
+                                 *  draws it), or null */
+                                salmon: SalmonCardVM | null = null): SheetKey[] {
+  const out = new Set<SheetKey>(), walked = new Set<unknown>();
+  const add = (k: string | null) => {
+    const key = k === null ? null : parseSheetKey(k);
+    if (key && key !== ALL_SOURCES_KEY && !key.startsWith("srcs:gl|")) out.add(key);
+  };
+  const walk = (v: unknown): void => {
+    if (!v || typeof v !== "object" || walked.has(v)) return;
+    walked.add(v);
+    if (Array.isArray(v)) { for (const x of v) walk(x); return; }
+    const o = v as Record<string, unknown>;
+    if (str(o.open)) add(o.open);
+    if (str(o.id)) add(o.id);
+    if (o.t === "term" && Array.isArray(o.ids)) add(OPEN.terms(o.ids as string[]));
+    if (o.kind === "table" && Array.isArray(o.boxes)) {
+      for (const b of rowsOf(o.boxes)) for (const r of rowsOf(b.rows)) if (str(r.key)) { add(OPEN.troutRow(r.key)); add(OPEN.troutLooks(r.key)); }
+      if (o.hatchLink) add(OPEN.hatch);
+    }
+    if (Array.isArray(o.what) && str(o.rule)) add(OPEN.rule(o.rule));
+    // a closed banner's closure: its Source line's "Who says so ›"
+    if (str(o.text) && "scope" in o && Array.isArray(o.book) && str(o.rule)) add(OPEN.rule(o.rule));
+    // a term's ⓘ drawn from a view model's field (a row's `term`, a gear or licence line's `terms`, the Who question's)
+    if (str(o.term) && !str(o.open)) add(OPEN.terms([o.term]));   // a row that opens its own sheet draws no ⓘ (Possession)
+    for (const f of ["terms", "questionTerms"] as const) {
+      const ids = o[f];
+      if (Array.isArray(ids) && ids.length && ids.every(str)) add(OPEN.terms(ids));
+    }
+    if (str(o.kind) && str(o.text) && str(o.rule) && Object.keys(o).length === 3) add(OPEN.rule(o.rule));
+    if (Array.isArray(o.species))
+      for (const r of rowsOf(o.species)) if (str(r.code) && str(r.statusLabel)) { add(OPEN.salmonRow(r.code)); add(OPEN.salmonLooks(r.code)); }
+    for (const f in o) walk(o[f]);
+  };
+  walk(drawn);
+  if (salmon) { walk(salmon); walk(salmonTable(salmon)); }
+  return [...out];
+}
+
+/**
+ * (T1036) THE RULES A SHEET CITES, first seen first: a row of its Sources list (`sources`, never the "Overruled" cards), a
+ * line that opens a rule's sheet and shows its page or cited page (`rule:<key>` beside a book / web run), and a rule's own
+ * sheet (`rule:<key>`) its rule. Inside the sheet only: its swiped pages and folds are its own; a link to another sheet is
+ * not followed.
+ */
+export function sheetCitations(key: SheetKey, vm: SheetVM): string[] {
+  const out = new Set<string>(), walked = new Set<unknown>();
+  if (key.startsWith("rule:")) out.add(key.slice(5));
+  const isRun = (r: unknown): r is { t?: unknown; open?: unknown } => !!r && typeof r === "object";
+  const walk = (v: unknown): void => {
+    if (!v || typeof v !== "object" || walked.has(v)) return;
+    walked.add(v);
+    if (Array.isArray(v)) {
+      // a line: its rule links count where the line shows a page
+      if (v.some((r) => isRun(r) && (r.t === "book" || r.t === "web")))
+        for (const r of v) if (isRun(r) && r.t === "link" && typeof r.open === "string" && r.open.startsWith("rule:")) out.add(r.open.slice(5));
+      for (const x of v) walk(x);
+      return;
+    }
+    const o = v as Record<string, unknown>;
+    if (o.k === "sources") {
+      if (o.overruled !== true)
+        for (const g of o.groups as readonly { rows: readonly SourceRowVM[] }[]) for (const r of g.rows) if (r.key) out.add(r.key);
+      return;
+    }
+    if (typeof o.open === "string" && o.open.startsWith("rule:") && showsSource(o)) out.add(o.open.slice(5));
+    for (const f in o) walk(o[f]);
+  };
+  walk(vm.blocks);
+  return [...out];
+}
+
 /** The rules the drawn screen cites (`drawnCitations`). */
 export const drawnSourceRules = (drawn: readonly unknown[], rules: Pick<RuleIndex, "get" | "has" | "byKey">): RuleView[] =>
   drawnCitations(drawn, rules).rules;
@@ -100,30 +196,67 @@ export function inSeasonRows(banners: readonly InSeasonBannerVM[]): SourceRowVM[
     ({ key: null, title: b.head, quote: b.text, role: "", book: [{ t: "web", s: ALL_SOURCES.PROVINCE_SITE, url: b.url }] }));
 }
 
-/** The sheet of `rules` (and `more`, rows that are no rule of this page): by source (the synopsis, DFO, a local authority).
- *  Empty groups are not drawn. */
-function sheetOfRules(rules: readonly RuleView[], page: Pick<RegsPage, "header" | "day">, more: readonly SourceRowVM[] = []): SheetVM {
+/** `rules` (and `more`, rows that are no rule of this page) by source (the synopsis, DFO, a local authority); empty groups
+ *  are not drawn. */
+function groupsOf(rules: readonly RuleView[], more: readonly SourceRowVM[] = []): Group[] {
   const local = rules.filter((r) => !!r.facts?.cited);
   const dfo = rules.filter((r) => r.f.source === "dfo" && !local.includes(r));
   const book = rules.filter((r) => !dfo.includes(r) && !local.includes(r));
   const all: [string, SourceRowVM[]][] = [[ALL_SOURCES.BOOK, [...book.map(rowOf), ...more]], [ALL_SOURCES.DFO, dfo.map(rowOf)], [ALL_SOURCES.LOCAL, local.map(rowOf)]];
-  const groups: Group[] = all.filter(([, rows]) => rows.length).map(([where, rows]) => ({ where, rows }));
+  return all.filter(([, rows]) => rows.length).map(([where, rows]) => ({ where, rows }));
+}
+
+/** The sheet: the drawn rules' groups (or "No rule on this page cites a source."), then (T1036) the reachable sheets' own
+ *  rules under their head, when there are any. */
+function sheetOfRules(rules: readonly RuleView[], page: Pick<RegsPage, "header" | "day">, more: readonly SourceRowVM[] = [],
+                      other: readonly RuleView[] = []): SheetVM {
+  const groups = groupsOf(rules, more), second = groupsOf(other);
   return { key: ALL_SOURCES_KEY, title: ALL_SOURCES.TITLE, sub: `${page.header.name}${WORDS.DOT}${fmtDay(page.day)}`,
-    blocks: groups.length ? [{ k: "sources", groups }] : [{ k: "para", text: [text(ALL_SOURCES.NONE)] }] };
+    blocks: [groups.length ? { k: "sources", groups } : { k: "para", text: [text(ALL_SOURCES.NONE)] },
+             ...(second.length ? [{ k: "head", text: ALL_SOURCES.OTHER } as const, { k: "sources", groups: second } as const] : [])] };
 }
 
 /** (T1036) A rule a drawn line cites (a key, or `#<index>` for the trout table's) or a salmon card's book closure names, that
  *  the page's index does not hold (W46: reported; a closure is still said by its place and pages, a line's rule is no row). */
 export class AllSourcesRuleMissing extends Error {
-  constructor(readonly rule: string, readonly by: "line" | "closure") {
-    super(`every-source sheet: ${by === "closure" ? "the book closure's rule" : "the drawn rule"} ${rule} is not on this page`);
+  constructor(readonly rule: string, readonly by: "line" | "closure" | "sheet") {
+    super(`every-source sheet: ${by === "closure" ? "the book closure's rule" : by === "sheet" ? "the rule a sheet cites" : "the drawn rule"} ${rule} is not on this page`);
     this.name = "AllSourcesRuleMissing";
   }
 }
 
-/** The drawn rules (each one the index lacks reported) and the book closures' rows: the sheet. */
+/**
+ * (T1036) The second group's rules: what the sheets one tap from the drawn screen cite (`reachableSheets`, each with its
+ * tabs, `sheetCitations`), minus `listed` (the first group). `sheet`: the page's own sheets (never the wrapped `src:all`).
+ * A cited rule the index lacks is reported and gets no row (W46).
+ */
+function sheetsRules(drawn: readonly unknown[], salmon: SalmonCardVM | null, sheet: RegsPage["sheet"],
+                     rules: Pick<RuleIndex, "get" | "has" | "byKey">, listed: readonly RuleView[]): RuleView[] {
+  const keys = new Set<string>(), opened = new Set<SheetKey>();
+  const open = (k: SheetKey) => {
+    if (opened.has(k)) return;
+    opened.add(k);
+    const vm = sheet(k);
+    if (!vm) return;
+    for (const r of sheetCitations(k, vm)) keys.add(r);
+    for (const t of vm.tabs ?? []) open(t.open);
+  };
+  for (const k of reachableSheets(drawn, salmon)) open(k);
+  const have = new Set(listed.map((r) => r.key)), out: RuleView[] = [];
+  for (const k of keys) {
+    const r = rules.byKey?.(k) ?? null;
+    if (!r || r.missing) { reportFailure(new AllSourcesRuleMissing(k, "sheet")); continue; }
+    if (!have.has(r.key)) { have.add(r.key); out.push(r); }
+  }
+  return out;
+}
+
+/** The drawn rules (each one the index lacks reported) and the book closures' rows, then (T1036) the reachable sheets'
+ *  own rules (`sheet`: the sheets those presses open — always given, so no every-source sheet goes without its second
+ *  group, review of PR 126): the sheet. */
 function drawnSheet(drawn: readonly unknown[], rules: Pick<RuleIndex, "get" | "has" | "byKey">, page: Pick<RegsPage, "header" | "day">,
-                    book: readonly Pick<SalmonBookVM, "rule" | "water" | "words" | "pages">[]): SheetVM {
+                    book: readonly Pick<SalmonBookVM, "rule" | "water" | "words" | "pages">[], sheet: RegsPage["sheet"],
+                    salmon: SalmonCardVM | null = null): SheetVM {
   const cited = drawnCitations(drawn, rules), listed = cited.rules, more: SourceRowVM[] = [];
   for (const k of cited.missing) reportFailure(new AllSourcesRuleMissing(k, "line"));
   for (const b of book) {
@@ -134,11 +267,13 @@ function drawnSheet(drawn: readonly unknown[], rules: Pick<RuleIndex, "get" | "h
     more.push({ key: null, title: b.water, quote: b.words, role: "",
                 book: b.pages.flatMap((x, i): Run[] => [...(i ? [text(" ")] : []), { t: "book", printed: x.printed, pdf: x.pdf }]) });
   }
-  return sheetOfRules(listed, page, more);
+  return sheetOfRules(listed, page, more, sheetsRules(drawn, salmon, sheet, rules, listed));
 }
 
-/** The page's own `src:all`: the rules the page cites drawn alone (`pageDrawn`); the screen re-builds it from what it draws. */
-export const allSourcesSheet = (ctx: SheetCtx): SheetVM => drawnSheet(pageDrawn(ctx.page), ctx.inp.rules, ctx.page, []);
+/** The page's own `src:all`: the rules the page cites drawn alone (`pageDrawn`), and what the page's own sheets (`sheet`,
+ *  the page's `sheetOf`) one tap away cite; the screen re-builds it from what it draws (`withDrawnSources`). */
+export const allSourcesSheet = (ctx: SheetCtx, sheet: RegsPage["sheet"]): SheetVM =>
+  drawnSheet(pageDrawn(ctx.page), ctx.inp.rules, ctx.page, [], sheet);
 
 /**
  * (T1036) The page's `sheet` with `src:all` built from what the SCREEN draws: `drawn` (`drawnRegsOf(page, tabs, licence,
@@ -147,9 +282,14 @@ export const allSourcesSheet = (ctx: SheetCtx): SheetVM => drawnSheet(pageDrawn(
  */
 export function withDrawnSources(page: Pick<RegsPage, "sheet" | "header" | "day">, drawn: readonly unknown[],
                                  rules: Pick<RuleIndex, "get" | "has" | "byKey">,
-                                 book: readonly Pick<SalmonBookVM, "rule" | "water" | "words" | "pages">[] = []): RegsPage["sheet"] {
+                                 book: readonly Pick<SalmonBookVM, "rule" | "water" | "words" | "pages">[] = [],
+                                 /** (review of PR 126) the salmon card drawn beside the page (its rows open `sp:` sheets the
+                                  *  page alone does not hold: `withSalmonSheets`), or null */
+                                 salmon: SalmonCardVM | null = null): RegsPage["sheet"] {
   let vm: SheetVM | null = null;
-  return (k) => (k === ALL_SOURCES_KEY ? (vm ??= drawnSheet(drawn, rules, page, book)) : page.sheet(k));
+  const sheets = salmon ? withSalmonSheets(page.sheet, salmon) : page.sheet;
+  return (k) => (k === ALL_SOURCES_KEY
+    ? (vm ??= drawnSheet(drawn, rules, page, book, sheets, salmon)) : page.sheet(k));
 }
 
 /**
@@ -162,6 +302,7 @@ export function withInSeason(sheet: (k: SheetKey) => SheetVM | null, banners: re
     if (k !== ALL_SOURCES_KEY || !vm) return vm;
     const first = vm.blocks[0], groups: Group[] = first?.k === "sources" ? first.groups.map((x) => ({ where: x.where, rows: [...x.rows] })) : [];
     if (banners.length) groups.splice(groups.length && groups[0]!.where === ALL_SOURCES.BOOK ? 1 : 0, 0, { where: ALL_SOURCES.INSEASON, rows: inSeasonRows(banners) });
-    return { ...vm, blocks: groups.length ? [{ k: "sources", groups }] : [{ k: "para", text: [text(ALL_SOURCES.NONE)] }] };
+    // (T1036) the first block is the drawn rules' (the changes are the screen's); the second group follows as it was
+    return { ...vm, blocks: [groups.length ? { k: "sources", groups } : { k: "para", text: [text(ALL_SOURCES.NONE)] }, ...vm.blocks.slice(1)] };
   };
 }

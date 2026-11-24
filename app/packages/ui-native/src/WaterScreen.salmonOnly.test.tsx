@@ -16,7 +16,14 @@ import { makeReleaseSource, type ReleaseLoader } from "@app/data/release";
 import { openRegsFixture } from "@app/data/release/node";
 
 /** (T1036) what the screen hands the Source row: the drawn view models and the part's rule index (the sheet's keys' oracle) */
-const handed = vi.hoisted(() => ({ drawn: null as unknown, rules: null as unknown }));
+const handed = vi.hoisted(() => ({ drawn: null as unknown, rules: null as unknown,
+  /** (T1036) the page's own sheets, as the screen hands them to the every-source sheet */
+  sheet: null as unknown as (k: string) => never,
+  /** (review of PR 126) the salmon card handed beside them (its rows open sp: sheets) */
+  salmon: null as unknown,
+  /** the sheets the screen itself reads to draw an open sheet (RegsScreen's host page: `withSalmonSheets`), and the keys
+   *  it was asked for since the last press (the press oracle, `pressedSheets`) */
+  host: null as unknown as (k: string) => never, opened: { keys: [] as string[] } }));
 vi.mock("@app/core", async (orig) => {
   const m = await orig<typeof import("@app/core")>();
   return { ...m, salmonStripOf: (...a: Parameters<typeof m.salmonStripOf>) => {
@@ -25,14 +32,35 @@ vi.mock("@app/core", async (orig) => {
   }, regsSourcesOf: (...a: Parameters<typeof m.regsSourcesOf>) => {
     handed.drawn = a[0]; handed.rules = a[1].rules;
     return m.regsSourcesOf(...a);
+  }, withDrawnSources: (...a: Parameters<typeof m.withDrawnSources>) => {
+    handed.sheet = a[0].sheet as never; handed.salmon = a[4] ?? null;
+    return m.withDrawnSources(...a);
+  }, withSalmonSheets: (...a: Parameters<typeof m.withSalmonSheets>) => {
+    const f = m.withSalmonSheets(...a);
+    handed.host = f as never;
+    return (k: Parameters<typeof f>[0]) => { handed.opened.keys.push(k); return f(k); };
   } };
 });
 const { WaterScreen } = await import("./WaterScreen");
 const { LIGHT } = await import("./theme");
-const { expectedKeys, sheetExpected, sheetPages } = await import("./regs/testing/allSources");
+const { expectedKeys, expectedOtherKeys, pressedSheets, sheetExpected, sheetPages } = await import("./regs/testing/allSources");
+const { reachableSheets } = await import("@app/core");
 type ProbeIndex = import("./regs/testing/allSources").ProbeIndex;
 
 afterEach(cleanup);
+
+/**
+ * (T1036, review of PR 126) The second group on a salmon day, read by pressing every press target of the screen: the salmon
+ * card's rows open their species sheets (`sp:<code>`, `sp:<code>|src`), and core's list holds each sheet that opened (beyond
+ * them only a section Source sheet no line draws); the second group is what those sheets cite, minus the first.
+ */
+function expectOther(first: readonly string[], other: readonly string[]) {
+  const pressed = pressedSheets({ act, fireEvent, screen }, () => document.body, handed.opened);
+  const core: string[] = reachableSheets(handed.drawn as unknown[], handed.salmon as never);
+  expect([pressed.filter((k) => !core.includes(k)), core.filter((k) => !pressed.includes(k) && !k.startsWith("srcs:")),
+          pressed.some((k) => k.startsWith("sp:"))]).toEqual([[], [], true]);
+  expect(other).toEqual(expectedOtherKeys(pressed, handed.host, handed.rules as ProbeIndex, first));
+}
 const LOADED = { timeout: 20_000 } as const;
 const all = (v: number) => [[0, v], [0, v], [0, v], [0, v], [0, v]];
 /** Every section of the fixture on one DFO chain, open to salmon Sep 1–Dec 31 (as WaterScreen.salmon.test.tsx). */
@@ -121,6 +149,7 @@ describe("a day only salmon may be fished, through WaterScreen (#63 re-review)",
     expect(sheet.all).toEqual(sheetExpected(p.drawn, sheet.trout));
     expect([sheet.all.includes(8), sheet.all.includes(21)]).toEqual([true, true]);
     expect(sheet.keys).toEqual(expectedKeys(handed.drawn, handed.rules as ProbeIndex));
+    expectOther(sheet.keys, sheet.other);
   }, 40_000);
 
   it("(T1031) a salmon BOOK closure's page, drawn on the card's own Source line, is in the foot row too", async () => {
@@ -139,6 +168,7 @@ describe("a day only salmon may be fished, through WaterScreen (#63 re-review)",
     const sheet = sheetPages({ act, fireEvent, screen });
     expect(sheet.all).toEqual(sheetExpected([...p.drawn].filter((x) => x !== 77), sheet.trout));
     expect(sheet.keys).toEqual(expectedKeys(handed.drawn, handed.rules as ProbeIndex));
+    expectOther(sheet.keys, sheet.other);
   }, 40_000);
 
   it("(T1036) a book closure's rule that nothing else on the screen cites is in the every-source sheet, its page with it", async () => {
@@ -152,5 +182,6 @@ describe("a day only salmon may be fished, through WaterScreen (#63 re-review)",
     // cited only by the card's closure line: not among the drawn tabs' rules, yet listed, and p.34 with it
     expect([expectedKeys(handed.drawn, handed.rules as ProbeIndex).includes(rule), sheet.keys.includes(rule), p.drawn.has(34)]).toEqual([false, true, true]);
     expect([sheet.all, sheet.keys]).toEqual([sheetExpected(p.drawn, sheet.trout), [...expectedKeys(handed.drawn, handed.rules as ProbeIndex), rule].sort()]);
+    expectOther(sheet.keys, sheet.other);
   }, 40_000);
 });
