@@ -210,3 +210,18 @@ stream's own row or a nearer ✱ row; a dated inherited closure still closes (T4
 open: `retention` (built default: that row says something about keeping or closing for the fish) or `any` (any rule of
 that row, a bait ban too). Test: `pipeline/tests/test_t1053_all_year_closure_yields.py` (mutation-proved). GOTCHAS:
 "Which "including tributaries" rule a stream answers to". RULINGS: T4, T14 and T18 amendments, proposed.
+
+## The owner on unnamed ponds on a creek's line (relayed; received 15:33 MST by `date`), verbatim
+
+Asked (by the coordinator): should the ~3,650 unnamed polygons on a creek's own line (Q124's default) keep following the
+creek — yes, part of the creek / no, zone rules / show me.
+
+Answer: **"only the polygon ponds that we have listed as piece of stream. (for example oxbows or slough lakes etc etc )
+make sense? using the process we already have"**
+
+So no build change: a polygon takes a stream's rules (walked ones included) only when the existing process lists it
+as a piece of that stream (it belongs to the stream's registry item); a lake that is a water of its own is never covered
+by a tributary rule. Measured (`lakecheck.py`): 3,657 walked lake polygons live, 3,668 after T1053, all held by stream
+items. Pinned: `test_t1053_head_lakes.py::test_a_walk_covers_a_pond_only_where_the_registry_lists_it_as_a_piece_of_the_stream`
+(mutation: the registry ignored, or `STREAMS_ONLY` off, both red). **He has in effect answered Q124 (T153's open owner
+question) with "using the process we already have": the planning chat can close it.**

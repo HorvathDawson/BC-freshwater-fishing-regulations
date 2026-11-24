@@ -26,8 +26,14 @@ to the lake either only streams that is important too". In plain words:
    Creek's all-year ✱ "No Fishing". Which row counts as "speaking" is still open (a row about keeping or closing, the
    built default, or any row at all): `read.ladder.ALL_YEAR_INHERITED_CLOSURE_YIELDS`.
 4. **Tributary rules cover streams, never lakes** (RULINGS T1). A walk climbs THROUGH a lake to reach the streams feeding
-   it, and never covers the lake: Dick Lake stays on Region 2's rules while Dick Creek above it takes Eagle Creek's. A
-   small polygon the registry counts as part of a stream (a widening on a creek) is that stream, not a lake.
+   it, and never covers the lake: Dick Lake stays on Region 2's rules while Dick Creek above it takes Eagle Creek's.
+   The ONE exception is a pond the existing process has listed as a PIECE OF A STREAM (it belongs to the stream's
+   registry item: an unnamed widening on the creek's line, an oxbow, a slough lake — T153 / Q124's default, the
+   "process we already have"): it is the stream and takes the stream's rules, walked ones included. Bowman Slough
+   (`wbk:329103932`, a slough held as a stream) takes Williston Lake's Zone A rule with its streams. Owner 2026-11-24
+   ~15:30: "only the polygon ponds that we have listed as piece of stream. (for example oxbows or slough lakes etc etc )
+   make sense? using the process we already have". Measured: 3,657 such polygons are bound by walks in the live run
+   (3,668 with T1053), every one held by a stream item; no lake that is a water of its own is bound by any walk.
 5. **A whole-water ✱ rule climbs through its head lake** (RULINGS T18): Eagle Creek's "No Fishing" reaches Dick Creek
    above Dick Lake. A stretch rule ("downstream of Y Lake") still stops at the lake, and so do DFO places and licensing.
 

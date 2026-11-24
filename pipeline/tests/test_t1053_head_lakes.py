@@ -144,3 +144,40 @@ def test_mutation_the_policy_switch_restores_the_stop(eagle, monkeypatch):
 ])
 def test_only_a_book_rule_on_its_whole_water_climbs(rule, climbs):
     assert reach_build.climbs_head_lakes(rule) is climbs
+
+
+# ------------------------------------------------------------------ a walk covers a pond only as a piece of its stream
+
+class _Item:
+    def __init__(self, kind, sections):
+        self.kind, self.section_ids = kind, list(sections)
+
+
+def _ponds():
+    """A river (R) with a creek (C) joining; the creek runs through two polygons: `lake:oxbow`, which the registry lists
+    as a piece of the creek (an oxbow / slough pond, the existing process: T153, Q124), and `lake:own`, a lake that is a
+    water of its own (a lake item). Above them `c_up`."""
+    nodes = [_n("river", order=4, blk="R"), _n("c_low", order=2, blk="C"), _n("lake:oxbow", order=2, kind=L),
+             _n("c_mid", order=2, blk="C", at=200.0), _n("lake:own", order=2, kind=L), _n("c_up", order=1, blk="C", at=400.0)]
+    edges = [("c_low", "river", "confluence"), ("lake:oxbow", "c_low", "lake_out"), ("c_mid", "lake:oxbow", "lake_in"),
+             ("lake:own", "c_mid", "lake_out"), ("c_up", "lake:own", "lake_in")]
+    reg = {"gnis:1": _Item("stream", ["c_low", "lake:oxbow", "c_mid", "c_up"]), "wbk:2": _Item("lake", ["lake:own"])}
+    return _g(nodes, edges), reg
+
+
+def test_a_walk_covers_a_pond_only_where_the_registry_lists_it_as_a_piece_of_the_stream():
+    """Owner 2026-11-24 (~15:30): "only the polygon ponds that we have listed as piece of stream. (for example oxbows or
+    slough lakes etc etc ) make sense? using the process we already have"; and "tributary rules dont apply to the lake
+    either only streams". The creek's listed pond is the creek; a lake that is a water of its own is walked through,
+    never covered."""
+    g, reg = _ponds()
+    got = expand(g, {"river"}, only=True, registry=reg)
+    assert got == {"c_low", "lake:oxbow", "c_mid", "c_up"}
+    assert "lake:own" in tributaries_of_reach(g, {"river"})          # walked through
+
+
+def test_mutation_without_the_registry_every_polygon_is_a_lake():
+    """The pin: what decides is the registry's listing. Asked without it (the node kind alone) the listed pond is a lake
+    and is not covered — so the listing, not the polygon, is what the walk follows."""
+    g, _reg = _ponds()
+    assert "lake:oxbow" not in expand(g, {"river"}, only=True)
