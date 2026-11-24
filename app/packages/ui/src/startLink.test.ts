@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { HOME, reduce, waterFrame } from "./route";
 import { openWater } from "./openWater";
 import { fitQuery, holdsMapStatus, pageRegion, parseStartLink, reportDropped, routeSearch, slugShard, slugShardPath, SLUG_SHARDS, START_NOTICE_REACH_GONE,
-         startNoticeLine, WATER_PATH } from "./startLink";
+         startNoticeLine, startSpent, WATER_PATH } from "./startLink";
 import type { ItemId } from "@app/data";
 
 const NOW = new Date(2026, 9, 22, 9, 30);   // Thu Oct 22 2026, local
@@ -217,5 +217,12 @@ describe("(T1049) a page start on another view", () => {
     setFailureSink((e) => seen.push((e as Error).message));
     try { reportDropped(map); reportDropped(regs); reportDropped(null); } finally { setFailureSink(null); }
     expect(seen).toEqual(map.dropped);
+  });
+});
+
+describe("startSpent (T1049 review: a start is used once, by the page it was handed to)", () => {
+  it("the start the page spent is cleared; a newer one the host already holds is kept for its page", () => {
+    const a = { tab: "licence" as const, sheet: null, scroll: 0 }, b = { tab: "gear" as const, sheet: null, scroll: 0 };
+    expect([startSpent(a, a), startSpent(b, a), startSpent(null, a)]).toEqual([null, b, null]);
   });
 });

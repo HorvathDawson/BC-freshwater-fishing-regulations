@@ -35,14 +35,46 @@ for 14 days (from 2026-11-23, so 2026-12-07 at the earliest) and the questionnai
 (screenshots T319, the "Open in the app" link T514) and the production checklist (T240, T404). Nothing breaks while it
 waits, as long as the testers stay opted in. The feedback log and releases.md have to stay current in every chat.
 
+## Who is who (2026-11-24; `ListAgents` shows the live names)
+
+| Chat | Session | Restart page |
+|---|---|---|
+| P planning | `bc-freshwater-fishing-regulations-8e` | this file + the ledger; it alone numbers tickets (from T1055) |
+| 1 ship 0.9.0 | `bc-freshwater-fishing-regulations-37` | `NEXT-SESSION-…-after-090.md` once Step 8 is done (name to come) |
+| 2 0.9.1 follow-ups | `bc-freshwater-fishing-regulations-56` | `handoff/PLAN/RESTART-091-chat.md` |
+
+Build chats list new finds under "For the planning chat" on their restart page and message the planning chat; it
+replies with the Tnnn.
+
+## Release contents (kept by the planning chat)
+
+Triage of everything ticketed since the roadmap was written. Severity / model / size are on each ticket's last line.
+
+| Release / chat | Goal (short) | Tickets added by triage |
+|---|---|---|
+| 0.9.0 (chat 1) | Ship the batch of small fixes from closed-test feedback to production, Play Closed and TestFlight. | none (frozen; shipping) |
+| 0.9.1 (chat 2) | Follow-ups to 0.9.0, anything found broken on its device pass, and the owner's four staging reports (gear, closed-water and tributary wording; a data release). | T1058 Gradle Metaspace hang and T1059 `ci_status --strict` (both bite its Play build), T1061 "Flows into" blank band, T1050–T1053 (the owner's four staging reports) as the 0.9.1 chat triaged them |
+| Chat 3 | Move the repo to an org and turn on the merge queue; settle how releases are tagged. | T1062 release candidates (rc tags): plan first, owner agrees |
+| 0.9.2 (proposed chat 2b; owner has not said yes) | Harden: crash containment, failures that hide, release tooling and test flakiness; clear the report backlog so new reports stand out. No new features. | T1055, T1057, T1060, T1063, T1064, T1065, T1066, T1067, T1070, T1074 (rule 28 vs runtime map layers), T1075 (a lake's "Not on lakes" gear line; may ride with T1051), T1073 (the app-update notice only when the phone can install it; owner 2026-11-24); about 4 lanes (Opus: T1060+T1073 / T1064+T1066+T1067 / T1065; Sonnet: T1055+T1057+T1063+T1070) |
+| Store content (proposed chat S, can run beside 0.9.2) | Screenshots and marketing words that sell the app, one source for both stores and the website. Pictures first, owner picks. | T1072 (with T319, T709), T1076 (the runbook's reshoot step cannot be followed as written) |
+| iOS full release (proposed chat 5i; owner 2026-11-24: "IOS can have full release soon") | The iPhone app on the App Store for everyone: distribution and compliance answers complete, production push proved, submitted by the owner. Does not wait for Play's 14 days. | T1071 (with T727, T996) |
+| 0.10 (chats 4a–4c) | The features: stocked lakes, bathymetry maps and charts, corridors; tides if it fits. | T1054 tides layer (or later), T1068 R8 leftovers, T1069 polygon route in pieces |
+| Launch on Play (chat 5) | Production access from Google (apply on or after 2026-12-07), then the public Play release. | none new (uses T1072's content) |
+
 ## Prompts to paste (one per chat)
 
 **P. Planning (background, keep it open)**
-> Start at handoff/PLAN/START-HERE.md (step 0, reports first) and ROADMAP-after-0.9.0.md. You are the planning chat:
-> never write code, never run lanes. Your job: turn my asks, tester feedback and reports into tickets (you alone
-> create ticket numbers), keep play-production-access/feedback-log.md, ROADMAP-after-0.9.0.md, the release contents
-> and OWNER-TODO.md current, and say which future chat or release each item belongs to. Small docs PRs with auto-merge.
-> Ask me questions in batches. Build chats send you their new finds; you ticket them.
+> Start in a scratchpad worktree of origin/main and read everything from there (never touch the main checkout). Then
+> handoff/PLAN/START-HERE.md (step 0, reports first; link the git-ignored worker tokens from the main checkout into
+> the worktree's app/workers/feeds/ so both workers are read) and ROADMAP-after-0.9.0.md (row P, "Who is who",
+> "Release contents"). You are the planning chat: never write code, never run lanes, builds, emulators or heavy jobs.
+> You alone create ticket numbers (file + ledger row, check-tickets.mjs before every commit). Triage each item:
+> severity, release or future chat, model and lane size. Keep current: this roadmap, the release contents,
+> OWNER-TODO.md (plus the Owner To-Do artifact row) and play-production-access/ (feedback-log rows, releases.md,
+> questionnaire Q3/Q7/Q8). Find the other chats with ListAgents, read their restart pages, ticket their "For the
+> planning chat" items and tell each chat the Tnnn. When a chat's scope finishes, write the next chat's frozen scope
+> and prompt here. Small docs PRs to main with auto-merge, `docs(Tnnn): ...`. Questions in batches with pictures, each
+> batch also as a push notification; answers into the ticket and OWNER-TODO the same turn. CONFIRM_PROD is the owner's.
 
 **1. Ship 0.9.0**
 > Start at handoff/PLAN/START-HERE.md (step 0, reports first). You orchestrate. Scope: ship 0.9.0 only, nothing new.

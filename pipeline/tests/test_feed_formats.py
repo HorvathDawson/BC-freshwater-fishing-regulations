@@ -19,6 +19,7 @@ def test_every_python_writer_reads_the_table():
         "dfo_feed": dfo.FORMAT, "inseason_links": inseason.FORMAT, "gauge_feed": gauges.FEED_FORMAT,
         "runtiming_index": runtiming.INDEX_FORMAT, "runtiming_runs": runtiming.RUNS_FORMAT,
         "runtiming_paint": runtiming.PAINT_FORMAT, "dfo_pairs": salmon_pairs.FORMAT,
+        "dfo_state": dfo.STATE_FORMAT,          # (T905) the publisher's private bookkeeping, beside its feed
         # written and read in TypeScript only (the feeds worker writes, the app reads): one table all the same
         "inseason_feed": FF.FEED_FORMATS["inseason_feed"],
     } == FF.FEED_FORMATS

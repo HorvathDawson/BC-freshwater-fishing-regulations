@@ -9,6 +9,62 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-24: planning chat (roadmap row P) started
+
+- Store checks 2026-11-24 13:30 (planning chat, every source read): TestFlight 6 items, all T982; Play reviews none;
+  production worker: one new crash kind on 0.8.5 (T1055); the four production reports of 11-21 are T985's (ids now
+  written there). About 40 old items (0.7.x–0.8.2, mostly staging) show as new only because no ticket cites their id:
+  T1057 ties them up.
+- Answered 2026-11-24: "no play closed testing feedback all was through the app pathway. users dont know how to use
+  play one and I dont either." Recorded in the questionnaire (Q3: four channels, no Play form) and the feedback log.
+- Answered 2026-11-24: the release table carries a short goal per release (ROADMAP-after-0.9.0.md, "Release contents").
+- New from you 2026-11-24: iOS store distribution and compliance (T1071), better screenshots and marketing content
+  before the full release (T1072), the app-update notice only when the phone can install it (T1073, 0.9.2).
+- **Question (you): three proposed chats.** 2b = 0.9.2 hardening (no features), S = store content (T1072; can run
+  beside 0.9.2), 5i = iOS full release (T1071). Say yes or change them, and whether the iOS release comes before or
+  after 0.9.2. Default until you answer: nothing starts; they stay marked "proposed" in the roadmap.
+- **Question (you): T1062 release candidates (rc tags).** Your idea from the 0.9.0 release. Default: planned with
+  chat 3 (repo move), a written plan for you to agree before anything is built.
+
+## 2026-11-24 12:15–12:33: staging reports and the Kitimat creeks, the answers (verbatim)
+
+- T1029, the 12 side creeks at the Kitimat hatchery west-bank closure (shown the picture: reading 1 keep as today,
+  reading 2 closed like the west bank): "i think closed we need a clean way to have this calculated from extents so
+  it fits into structure nicely" — the creeks read salmon Closed from the west-bank row, worked out from the extent
+  by the normal tributary machinery for any one-bank closure (no hand list); no stripe and no bank note on a creek.
+- T1050 ice fishing repeats the Gear tab's counts: "Only what differs (Recommended)".
+- T1051 treble and barbed hooks: "Say it everywhere (Recommended)" — a second Hooks line on every water where it is
+  true (replaces the ROUND13 G call that kept it silent).
+- T1052 a fully closed water says it twice: "One block, both calendars (Recommended)".
+- T1053 should a river's tributary rule climb through its head lake: "Climb through every head lake" — all 36, also
+  where the lake has a row of its own (not the recommended option); built behind a before/after list he reads before
+  it ships. The Sources wording ("and its tributary streams") was part of the options, not asked alone: a proposal.
+
+## 2026-11-24: your four staging reports, ticketed for 0.9.1 (as asked; the answers are in the section above)
+
+- Store checks 2026-11-24 12:10: staging worker, 5 reports since 11-24: your four from Dick Lake, Nelson Creek and Eagle
+  Creek are T1050–T1053; the Harrison Lake one (e034e473) was answered 11-23 (gotcha, PR #85), now cited in T1046; no
+  staging crash defects (1 crawler). Production, TestFlight and Play not read in this check.
+- **T1050 ice fishing lines** (Dick Lake: "Lines: 1." and "Hook, lure or fly per line: 1." under Ice fishing repeat the
+  Gear tab). A: show a count under a way only where it differs from the Gear tab (here only the hut and ice-hole duties
+  stay). B: one line "Same gear as above: 1 line, 1 lure or fly". C: keep. Recommended / default once you pick: A.
+  Picture: `handoff/PLAN/app-integration/T1050-shots/report-now.png`.
+- **T1051 treble hooks on a lake** (yes, allowed on Dick Lake: p.80 "use of a treble hook is permitted unless single
+  hook is specified", p.8 barbed hooks allowed in lakes; the Gear tab says nothing). A: a second Hooks line "Treble and
+  barbed hooks allowed ⓘ" wherever nothing restricts hooks. B: the same on lakes only. C: keep silent, note in the ⓘ
+  only. Recommended: A. Picture: `handoff/PLAN/app-integration/T1051-shots/report-now.png`.
+- **T1052 fully closed water: one statement** (Nelson Creek). A: keep both calendars; one block "Closed to all fishing
+  all year, salmon included" / "The B.C. Synopsis row for Nelson Creek (and its tributaries) reads “No Fishing”." + the
+  source. B: smallest change, the banner says "No fishing for any fish, salmon included" and the salmon row's sentence
+  goes. C: A with one "All fish" calendar. Recommended: A. Picture: `handoff/PLAN/app-integration/T1052-shots/report-now.png`.
+- **T1053 walk through a head lake** (Eagle Creek ✱ flows out of Dick Lake; the walk stops at the lake, so Dick Creek
+  and 9 small streams above it stay under the zone rules; no written ruling covers this, it is as built). K: keep (as
+  built). L: a whole-water rule's walk climbs through its head lake when that lake has no row of its own (24 such lakes:
+  Dick, Cameron, Morice, Meziadin, Tsacha, Sooke …); the lake itself stays uncovered. M: through every head lake (36, incl.
+  Cowichan, Pitt, Slocan, Babine: much wider). Recommended: L, after a binding diff you read. Default: K until you rule.
+  Also the words: the rule's Sources sheet should say "Covers Eagle Creek and its tributary streams" (A, recommended) or
+  only show it in Technical detail (B). Picture: `handoff/PLAN/app-integration/T1053-shots/report-now.png`.
+
 ## 2026-11-24 08:25–08:50: 0.9.1 overnight questions, the answers (verbatim)
 
 - T905 salmon sizes: "Move worker state out (Recommended)" — the worker's own bookkeeping leaves the public feed (feed
@@ -25,6 +81,12 @@ with the default Claude uses until you answer). Newest first inside each section
   bank side get included" — no stripe on creeks; and a one-bank place that includes tributaries takes only the
   tributaries that join on that bank (a binding change, not only a look).
 - T1029 Q6, the rule book's own west-half rule: "Yes, stripe it too (Recommended)".
+- T1029, asked again 2026-11-24 ~11:50 with four bolder looks (A split solid, B split + closed dashes, C split +
+  label, D stripe outside the line; each from zoom 13 up): "B: split + closed dashes (Recommended)".
+- T1029, what "included" means for the Kitimat place's 12 side creeks (told: only one creek joins the closed stretch,
+  on the west bank, and the other 11 join through it, so by his west-side rule all 12 stay; today they answer Open):
+  "Not sure, show me" — not decided; he gets the DFO notice's exact wording and a map of the 12 creeks with today's
+  answer on each. Answered 12:15 (top section): closed, computed from extents.
 - T1016 the notice words: "Force refresh instead?"; asked how (auto unless typing / always / keep the notice):
   "Always auto refresh" — a web tab whose data was replaced reloads itself at once onto the live release, with no
   notice to press, even mid-typing (the same for a tab opened before a site update).
@@ -47,10 +109,10 @@ them in chat; answers go here verbatim).
   that installed 0.9.0 apps refuse. Options 1–4 in the ticket: keep the budgets; move the worker's own state out of the
   feed (safe, about 121,700 B, a worker deploy); new feed and head formats in 0.9.1; the same with the feed waiting.
   Default until answered: budgets stay (135,000 B / 110,000 B gz). Recommended: option 2.
-- **T1047 datum changes: accept each proposed row?** 08HD006 (−5.0 m from 2025-06-05) and 08EF001 (+2.370 m from
-  2025-01-30) can be accepted now. 07FD001 (+94.826 m from 2026-08-05) and 08KH019 (+1.011 m from 2026-07-07) only after
-  the this-year line is fixed or 2027 begins (the file refuses them until then). 08MH153: recommended reject (a slow
-  creep, not a step). Default: all five stay proposed; nothing changes. Pictures: `handoff/PLAN/app-integration/T1047-shots/`.
+- **T1047 datum changes, the other three: accept / reject?** (08HD006 and 08EF001 answered 2026-11-24, below.)
+  07FD001 (+94.826 m from 2026-08-05) and 08KH019 (+1.011 m from 2026-07-07) only after the this-year line is fixed or
+  2027 begins (the file refuses them until then). 08MH153: recommended reject (a slow creep, not a step). Default: the
+  three stay proposed; nothing changes. Pictures: `handoff/PLAN/app-integration/T1047-shots/`.
 - **T1030 "N waters changed": what counts?** A: wording changes too. B (built): rules only. C: rules only, nothing shown
   at 0. With B, 0.9.0 would have read "2 waters changed" though 8,247 waters were reworded. Recommended: C.
 - **T1029 one-bank stripe, Q4–Q6** (a prototype in draft PR #112, not merged): the stripe from zoom 13; Q4 no stripe on
@@ -92,6 +154,14 @@ them in chat; answers go here verbatim).
   the list (recruiting pick, usage numbers, age group, installs range, vitals crash / ANR rates, …).
 - **Apply (you): T1046 production access** — on or after 2026-12-07, Play Console > Dashboard > "Apply for production",
   pasting the answers in your own words. Then tell Claude the date and, within about 7 days, Google's answer.
+
+## 2026-11-24: T1047 datum changes, 08HD006 + 08EF001 (answer, verbatim)
+- Asked (plain words, through the coordinator) whether to shift the history of 08HD006 (Salmon River near Sayward, 5.0 m
+  lower since 2025-06-05) and 08EF001 (2.37 m higher since 2025-01-30) so their normal range comes back: "Yes but make
+  sure it is a clean well documented update that happens which is easy to see". Both rows `accepted` (lane L16), the
+  page: `pipeline/docs/GAUGE-DATUM-CHANGES.md` (Environment Canada's notes, before/after pictures
+  `T1047-shots/accepted-<station>-{before,after}.png`, one-command undo); the data release's checks list each as its own
+  line. Live with the next data release (no app build). 07FD001, 08KH019, 08MH153 were not asked: still proposed.
 
 ## 2026-11-23: T1047 off-datum level (answers, verbatim)
 - T1047 top line: "Show the level reading (Recommended)"; the note: "just use new data line same as cap. keep it simple".

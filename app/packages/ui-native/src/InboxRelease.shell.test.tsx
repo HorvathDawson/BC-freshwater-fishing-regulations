@@ -1,7 +1,8 @@
 /**
  * (T1030) THE INBOX'S DATA-UPDATE ROW SAYS HOW MANY WATERS THE RELEASE CHANGED — what the release in use states
  * (`manifest.changed_waters`, counted against `changed_waters_from`), passed by the real Shell — said only when the
- * device held that release before; a release that states none says nothing of it (rule 32), never 0.
+ * device held that release before; a release that states none says nothing of it (rule 32), never 0; a release that
+ * states 0 says nothing either (owner 2026-11-24: "Rules only, hide 0"), and the history keeps its 0.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render } from "@testing-library/react";
@@ -47,6 +48,10 @@ describe("(T1030) the data-update row's count is the release's own", () => {
     cleanup();
     const one = await rowAfterMount(1);
     expect([one.changed, one.text]).toEqual([1, "1 water changed"]);
+  });
+  it("(owner 2026-11-24 \"Rules only, hide 0\") a release that states 0 says nothing of it; the history keeps the 0", async () => {
+    const r = await rowAfterMount(0);
+    expect([r.id, r.changed, r.text]).toEqual([`data:${r.release}`, 0, ""]);
   });
   it("a count taken against a release this device did not hold says nothing of it", async () => {
     const r = await rowAfterMount(12, "r-between");
