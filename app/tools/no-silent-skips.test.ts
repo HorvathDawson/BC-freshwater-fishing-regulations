@@ -145,6 +145,7 @@ const ALLOW: Record<string, { n: number; why: string }> = {
   "tools/release-perf.test.ts": { n: 1, why: `${TIER2} (RELEASE_DIR + BUNDLE)` },
   "tools/release-placeable.test.ts": { n: 1, why: `${TIER2} (RELEASE_DIR / TIER2=1)` },
   "tools/release-tributary-lines.test.ts": { n: 1, why: `${TIER2} (T892: RELEASE_DIR / TIER2=1)` },
+  "tools/rowpages-shots.test.ts": { n: 1, why: `${SHOTS} (T1031_SHOTS=1)` },
   "tools/search-golden.test.ts": { n: 2, why: `${LIVE}; the area half needs a release with the area tables` },
   "tools/testbed/run-ios.mjs": { n: 2, why: TESTBED },
   "tools/testbed/scenarios-ios/audit-fixes.mjs": { n: 4, why: `${TESTBED} (T723: ⚠/↩ not on the water reached; G5 Precise switch and G9 refused link not reachable on the simulator, unit-tested)` },

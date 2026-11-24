@@ -14,7 +14,7 @@ rule_ids_sha256, answers_sha256, layout, blob_codec, about_bundle, card_check) a
 
     from pipeline.deliver.store.release import province_store
     st = province_store()                       # data/release/LATEST
-    st = province_store(Path("data/release/r-…"))
+    st = province_store(Path("data/release/r-…"))  # path-label: a docstring example
 """
 from __future__ import annotations
 

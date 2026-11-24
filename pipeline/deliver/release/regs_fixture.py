@@ -317,7 +317,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         from pipeline.common.curated import GENERATED
         rel = newest_release(GENERATED.release)
     if rel is None or not (rel / "manifest.json").exists():
-        raise FixtureError(f"regs fixture: no release at {rel or 'data/release/r-*'}")
+        raise FixtureError(f"regs fixture: no release at {rel or 'data/release/r-*'}")  # path-label: words in an error message
     if a.trout_cases:
         from pipeline.tools.emit import trout_vectors as TV
         if "trout" not in ((json.loads((rel / "manifest.json").read_text()).get("regulations") or {})

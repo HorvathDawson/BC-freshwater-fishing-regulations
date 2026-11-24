@@ -143,7 +143,7 @@ def merge_pass2(by_id: dict, order: list, doc2: dict) -> tuple[dict, list]:
 #: DFO'S DEFAULT RULE (owner 2026-10-28) — DFO Pacific's recreational-fishing definitions page, cached with the
 #: other DFO pages (data/source/dfo_tidal_areas/2026-10-28/fm-gp/rec/definitions-eng.html, snapshot 20260421173623)
 DEFAULT_URL = "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/definitions-eng.html"
-DEFAULT_CACHE = "data/source/dfo_tidal_areas/2026-10-28/fm-gp/rec/definitions-eng.html"
+DEFAULT_CACHE = "data/source/dfo_tidal_areas/2026-10-28/fm-gp/rec/definitions-eng.html"  # path-label: provenance text in the output (the page's date), never opened
 DEFAULT_QUOTE = ("Tidal water boundary: Unless otherwise specified, the tidal boundary is a straight line drawn between "
                  "the two most seaward points of land located on either side of the mouth of a river or stream.")
 DEFAULT_REASON = "DFO default (unless otherwise specified): the mouth"

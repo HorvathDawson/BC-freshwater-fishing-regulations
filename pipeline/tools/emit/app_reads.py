@@ -177,12 +177,22 @@ def _moved(old: dict[str, list[str]], new: dict[str, list[str]]) -> str:
                      for n in sorted(set(old) | set(new)) if old.get(n) != new.get(n))
 
 
-def for_cut(doc: dict, version: str, reads: dict[str, list[str]], reads_moved: str | None = None) -> tuple[dict, str]:
+def for_cut(doc: dict, version: str, reads: dict[str, list[str]], reads_moved: str | None = None,
+            shipped: tuple[str, ...] = ()) -> tuple[dict, str]:
     """(T1048) THE ROW THE CUT'S VERSION COMMIT ADDS: (the table with `version`'s row, what was decided). `reads` is what
     the app on the cut's base reads (`reads_in`). The row is the same formats as the newest version recorded before
     `version`; when the app's reads MOVED since it, the cut stops and says which files, unless `reads_moved` says why
     the move is meant (`release --cut --reads-moved "<why>"`, the owner's call). A row already recorded for `version`
-    stays when it is what the app reads and is refused when it is not (a recorded row never changes quietly)."""
+    stays when it is what the app reads and is refused when it is not (a recorded row never changes quietly).
+    (T1048 review) `shipped`: the versions a `v*` tag says shipped; one below `version` with no row on the base is a
+    release branch not merged back yet (its row is there): refused, naming it, or the cut would compare against an
+    older row and the two merge-backs would conflict. `reads_moved` given when nothing moved is refused (the reason
+    would be dropped)."""
+    unmerged = sorted((v for v in shipped if ver(v) < ver(version) and v not in doc["apps"]), key=ver)
+    if unmerged:
+        raise CutRefused(f"{', '.join('v' + v for v in unmerged)} shipped, but the base has no row for "
+                         f"{', '.join(unmerged)}: merge release/{unmerged[-1]} back into the trunk first (its version "
+                         "commit holds the row), then cut. Nothing was made")
     row = doc["apps"].get(version)
     if row is not None:
         if row["reads"] == reads:
@@ -198,6 +208,9 @@ def for_cut(doc: dict, version: str, reads: dict[str, list[str]], reads_moved: s
         raise CutRefused(f"what the app reads moved since {prev} ({moved}): an app built as {version} reads other "
                          f"formats than {prev}. If that is meant: python -m pipeline release --cut {version} "
                          f"--reads-moved \"<why>\"; if not, land the fix before the cut. Nothing was made")
+    if reads_moved and not moved:
+        raise CutRefused(f"--reads-moved was given ({reads_moved!r}), but nothing the app reads moved since {prev}: "
+                         "cut without it. Nothing was made")
     what = (f"app {version}: the same formats as {prev}" if not moved
             else f"app {version}: the formats moved since {prev} ({moved}): {reads_moved}")
     return {**doc, "apps": {**doc["apps"], version: {"reads": reads}}}, what

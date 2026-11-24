@@ -1785,6 +1785,7 @@ def test_a_data_only_cut_makes_the_days_branch_at_main_and_refuses_app_changes(c
     assert R.main(["--cut", "--data-only"]) == 0
     out = capsys.readouterr().out
     assert cutting["cuts"] == [("release/data-2026-11-22", None)] and cutting["commits"] == []
+    assert cutting["rows"] == []                       # (T1048 review) app.json stays: no app_reads row is computed
     assert "a data-only release: app.json stays 0.8.5; the ship tags only data/<r-id>" in out
     cutting["remote"] = {"refs/heads/release/data-2026-11-22"}
     assert R.main(["--cut", "--data-only"]) == 1 and "exists on origin already" in capsys.readouterr().err
@@ -1931,6 +1932,38 @@ def test_the_cut_stops_when_what_the_app_reads_moved_and_its_dry_run_prints_the_
     assert doc == after and "already recorded" in what
     with pytest.raises(AR.CutRefused, match="recorded already reading other formats"):
         AR.for_cut(after, "0.8.6", table["apps"][newest]["reads"])
+
+
+def test_reads_in_reads_from_a_tree_what_current_reads_reads_from_the_checkout():
+    """(T1048 review) the cut's row comes from `reads_in` over origin/main's files; on this tree it must be what
+    `current_reads` (contract.py + ALSO_READS, the `--check` side) says. The cut_repo fixture builds its newest row with
+    `reads_in` itself, so only this pins it. Mutation: `reads_in` drops ALSO_READS -> paint loses paint/4, fails."""
+    from pipeline.tools.emit import app_reads as AR
+    root = Path(R.REPO_ROOT)
+    assert AR.reads_in(lambda rel: (root / rel).read_text(encoding="utf-8")) == AR.current_reads()
+
+
+def test_the_cut_refuses_an_unmerged_shipped_release_a_bare_table_and_an_idle_reads_moved(cut_repo, capsys):
+    """(T1048 review) a `v*` tag below the cut with no row on the base (release/<it> not merged back: cutting 0.9.1
+    then would compare against 0.8.5's row, and the two merge-backs conflict) stops the cut naming it; a table with no
+    `_about` is refused (never a default header swapped in); `--reads-moved` when nothing moved is refused (its reason
+    would be dropped). Mutations: skip any of the three checks -> fails."""
+    from pipeline.tools.emit import app_reads as AR
+    run, here, table = cut_repo
+    run("tag", "v9.0.0")
+    with pytest.raises(AR.CutRefused, match=r"v9\.0\.0 shipped, but the base has no row for 9\.0\.0: merge "
+                                            r"release/9\.0\.0 back"):
+        R.app_reads_row("9.9.9")
+    assert R.app_reads_row("8.9.9")[1].startswith("app 8.9.9: the same formats as")   # a tag above the cut: no bar
+    run("tag", "-d", "v9.0.0")
+    with pytest.raises(AR.CutRefused, match="--reads-moved was given .'x'., but nothing the app reads moved since"):
+        R.app_reads_row("9.9.9", reads_moved="x")
+    bare = {k: v for k, v in table.items() if k != "_about"}
+    (here / AR.TABLE_REL).write_text(json.dumps(bare))
+    run("commit", "-qam", "no about", "--no-verify")
+    run("update-ref", "refs/remotes/origin/main", "HEAD")
+    with pytest.raises(AR.CutRefused, match="app_reads.json has no `_about`"):
+        R.app_reads_row("9.9.9")
 
 
 def test_the_release_pushes_go_to_the_release_branch_and_skip_the_hook_saying_why(monkeypatch):

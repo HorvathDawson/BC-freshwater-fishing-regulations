@@ -52,7 +52,7 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
-from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import CURATED, REPO_ROOT, SOURCE
 from pipeline.common.feed_formats import FEED_FORMATS, FEED_MIN_APP
 from pipeline.gauges.feed.climatology import PCTILES
 from pipeline.gauges.feed.change import combine_day as _combine_day, forecast_days, gauge_scale as _gauge_scale
@@ -191,7 +191,7 @@ def _thinned(series: list, last: tuple) -> list:
 # owner task, so another kind joins it without a new field — sent to the owner once (`pipeline.gauges.feed.notify`)
 # and read by the app (the Data sources page's HYDAT line). Each names the exact command that clears it.
 HYDAT_ACTION = "scripts/update-hydat.sh"
-ROSTER_PATH = "data/source/bc_hydrometric_stations.json"
+ROSTER_PATH = "data/source/bc_hydrometric_stations.json"  # path-label: the name a notice prints in a repo-root command; roster_shown maps the file to it
 ROSTER_ACTION = (f"rm {ROSTER_PATH} && "
                  "(cd data && PYTHONPATH=.. ../.venv/bin/python fetch_data.py --layers hydrometric_stations) && "
                  "scripts/heavy.sh build 40 -- .venv/bin/python -m pipeline build")
@@ -1174,7 +1174,7 @@ def main() -> None:
     latest = None
     if not args.no_release_check:
         try:
-            sys.path.insert(0, str(Path("data").resolve()))
+            sys.path.insert(0, str(REPO_ROOT / "data"))      # (T1021) data/fetch_data.py, anchored at the repo root
             from fetch_data import hydat_latest_release       # noqa: PLC0415
             latest = hydat_latest_release()
         except Exception:

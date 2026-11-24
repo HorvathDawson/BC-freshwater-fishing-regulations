@@ -396,11 +396,13 @@ class Generated(BaseModel):
     review: Path
     #: (T435) the slough finder's output (`slough-automark.json`, `candidates_v2.json.gz`) the slough review reads
     sloughs: Path
+    #: (T1021) the T185 proposals' side rebuilds, one directory per proposal id + digest (`proposals.side_dir`)
+    side: Path
     #: The shipped set (`data/release`), NOT a build artifact: only what an app downloads (P08/P18).
     release: Path
 
     _abs = field_validator("base", "reaches", "bundle", "tiles", "added_streams", "scratch",
-                           "runtiming", "inseason", "review", "sloughs", "release", mode="before")(_absolute)
+                           "runtiming", "inseason", "review", "sloughs", "side", "release", mode="before")(_absolute)
 
     # --- builds -----------------------------------------------------------------------
 

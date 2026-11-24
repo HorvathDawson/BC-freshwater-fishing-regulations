@@ -167,7 +167,7 @@ from pipeline.common.curated import CURATED, GENERATED, REPO_ROOT
 HOME = GENERATED.bundle.parent / "release"
 LEDGER = HOME / "ledger.json"
 #: the git paths a build reads: code + the curated tree (+ the scripts/deploy the release runs)
-COMMITTED = ("pipeline", "data/curated", "scripts", "deploy", "project_config.py", "config.yaml")
+COMMITTED = ("pipeline", "data/curated", "scripts", "deploy", "project_config.py", "config.yaml")  # path-label: git pathspecs, run with cwd=REPO_ROOT
 #: the reach-run files the binding diff reads (`binding_diff.diff_runs`) + the report naming its digest
 BASELINE_FILES = ("report.json", "rule_section.jsonl.gz", "rule_unresolved.jsonl", "licensing_section.jsonl",
                   # T546 item 8: DFO places, tidal / outside, the curator's diagnostics
@@ -530,8 +530,16 @@ def app_reads_row(version: str, base: str | None = None, reads_moved: str | None
     if table is None:
         raise AR.CutRefused(f"{base} has no {AR.TABLE_REL}")
     doc = json.loads(table)
-    new, what = AR.for_cut(doc, version, AR.reads_in(lambda rel: _show(base_sha, rel)), reads_moved)
-    return AR.dump(new, about=doc.get("_about", AR.ABOUT)), what, new["apps"][version]
+    if not doc.get("_about"):
+        raise AR.CutRefused(f"{base}'s {AR.TABLE_REL} has no `_about`: the table is not what "
+                            "pipeline/tools/emit/app_reads.py writes; fix it on the trunk first")
+    new, what = AR.for_cut(doc, version, AR.reads_in(lambda rel: _show(base_sha, rel)), reads_moved, shipped_versions())
+    return AR.dump(new, about=doc["_about"]), what, new["apps"][version]
+
+
+def shipped_versions() -> tuple[str, ...]:
+    """(T1048 review) the app versions a `v<x.y.z>` tag says shipped (the local tags: the cut fetched origin's first)."""
+    return tuple(t[1:] for t in _git("tag", "-l", "v*").decode().split() if re.fullmatch(r"v\d+\.\d+\.\d+", t))
 
 
 def version_commit(version: str, d: "RV.Decision", base: str | None = None, day: str | None = None,
@@ -1972,7 +1980,7 @@ def tag_release(ctx: Ctx, rid: str, r: dict) -> str:
                    f"-m 'data release {rid}' <sha> && git push {GH_REMOTE} refs/tags/data/{rid}")
     version = app_version()
     data_only = data_only_branch()
-    data_tag, app_tag = f"data/{rid}", f"v{version}"
+    data_tag, app_tag = f"data/{rid}", f"v{version}"  # path-label: a git tag name (data/<r-id>), not a path
     try:
         remote = {x: remote_tag_commit(x) for x in (data_tag, app_tag)}
     except RuntimeError as e:
@@ -2459,8 +2467,8 @@ def dry_run(ctx: Ctx) -> int:
           + (f"  ({target} staged {r['staged_at']})" if r.get("staged_at") else ""))
     try:
         rb, ver = release_branch(), app_version()
-        tags = (f"data/<r-id> only (a data-only release, app {ver} unchanged)" if data_only_branch() else
-                f"data/<r-id> + v{ver} (if not tagged yet)")
+        tags = (f"data/<r-id> only (a data-only release, app {ver} unchanged)" if data_only_branch() else  # path-label: a git tag name (data/<r-id>), not a path
+                f"data/<r-id> + v{ver} (if not tagged yet)")  # path-label: a git tag name (data/<r-id>), not a path
         print(f"{P}then (T995) tags {tags} on the pushed HEAD, pushes them, and prints the merge-back PR: "
               f"{merge_back_cmd(rb)}")
     except SystemExit as e:
@@ -2636,7 +2644,7 @@ def tag_problems(rid: str, r: dict) -> list[str]:
                 "--staging` (it tags a staged release and skips everything done)"]
     version = r.get("app_version") or app_version()
     out = []
-    data_tag, app_tag = f"data/{rid}", f"v{version}"
+    data_tag, app_tag = f"data/{rid}", f"v{version}"  # path-label: a git tag name (data/<r-id>), not a path
     try:
         at, v = remote_tag_commit(data_tag), remote_tag_commit(app_tag)
     except RuntimeError as e:

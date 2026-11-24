@@ -44,6 +44,8 @@ export { ErrorState } from "./ErrorState";
 export { ApplyCurtain } from "./ApplyCurtain";
 // (T231) the "Updated to …" toast and the device's word on its network (online, metered) for the update service
 export { UpdateToast } from "./UpdateToast";
+// (T1016) this page older than what the server serves: the line and its one action
+export { ReplacedBanner } from "./ReplacedBanner";
 export { connectivity } from "./connectivity";
 export { MenuContext } from "./menu/MenuContext";
 export type { MenuInfo } from "./menu/MenuHost";

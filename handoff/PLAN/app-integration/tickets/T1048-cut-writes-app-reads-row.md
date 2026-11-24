@@ -1,6 +1,6 @@
 # T1048 — `release --cut` writes the new version's app_reads row in its version commit
 
-Status: DONE — ec4480b66 (0.9.1, owner 2026-11-24: in the 0.9.1 bundle)
+Status: DONE — ec4480b66, caa44668c (0.9.1, owner 2026-11-24: in the 0.9.1 bundle)
 
 The 0.9.0 cut (`pipeline/release.py` `cut`, about line 2475) made the version commit without a row for 0.9.0 in
 `pipeline/deliver/release/app_reads.json`. The release lane had to add it by hand (6ea5b344a, "Same formats as 0.8.5:
@@ -25,3 +25,7 @@ pack.generated.ts + ALSO_READS) and `for_cut` (the same formats as the newest re
 naming each file old -> new). `--cut --dry-run` prints the row; `--reads-moved "<why>"` records a meant move. Tests:
 `test_the_cuts_version_commit_adds_the_new_versions_app_reads_row`, `test_the_cut_stops_when_what_the_app_reads_moved_and_its_dry_run_prints_the_row`
 (the first failed on main; five mutations killed). A dry run against origin/main moved no ref.
+- Review lows (PR #95's review, caa44668c): a shipped `v*` tag below the cut with no row on the base (release/<it> not
+  merged back) stops the cut naming it; a base table with no `_about` is refused (no default header swapped in);
+  `--reads-moved` when nothing moved is refused; tests pin `reads_in` == `current_reads` on this tree and that a
+  data-only cut computes no row. Six mutations, all killed.
