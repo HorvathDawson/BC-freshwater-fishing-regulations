@@ -1,6 +1,6 @@
 # T1052 — A water closed to all fishing says it twice (a Salmon row and a game-fish "Closed all year" block)
 
-Status: IN REVIEW — owner: OWNER-TODO "T1052 fully closed water: one statement" (the row-line words are a proposal; part-year case). Code 33ecb6b96 (lane L22); ships with the next app build, no data release.
+Status: IN REVIEW — owner: OWNER-TODO "T1052 fully closed water: one statement" (the row-line words are a proposal; part-year case). Code 33ecb6b96 5e2ca0048 (lane L22); ships with the next app build, no data release.
 
 Source: in-app report `19a865256d6dd70d` (staging feeds worker, the owner, 2026-11-24 18:47 UTC), reason "other", on
 Nelson Creek `gnis:20408`, part 0, "Today, Nov 24", Regulations view, web, app 0.9.0 (build 43, 127bf43), release
