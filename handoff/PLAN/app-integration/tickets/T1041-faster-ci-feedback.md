@@ -1,6 +1,6 @@
 # T1041 — A red CI run or a review finding stops costing an hour or two
 
-Status: PARTIAL — 0a44b1c75, 4ed75f4a1 (items 1-6, for 0.9.0); owner: OWNER-TODO "move the repo to a free organisation" (after 0.9.0), then Claude: the slug flip and the merge-queue rule
+Status: PARTIAL — 0a44b1c75, 4ed75f4a1, de8268ac1, 49081552b (items 1-6, for 0.9.0); owner: OWNER-TODO "move the repo to a free organisation" (after 0.9.0), then Claude: the slug flip and the merge-queue rule
 
 Source: owner 2026-11-23 (the 0.9.0 batch chat): a red CI run or a bug found in review cost an hour or two each.
 
