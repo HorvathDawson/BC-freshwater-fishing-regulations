@@ -1,0 +1,60 @@
+"""L19 read-only sizing: walking rules on a whole stream whose walk stops at the stream's HEAD LAKE
+(RIVER_CONTINUING at a lake_out edge into the item's top), and what streams sit above that lake."""
+import json, sys, glob
+from pathlib import Path
+from pipeline.common.io.serialize import read_artifact
+from pipeline.atlas.registry import load_registry
+from pipeline.atlas.graph import tributaries as T
+from pipeline.common.models import NodeKind
+
+build = Path(sys.argv[1]); run = Path(sys.argv[2]); syn = Path(sys.argv[3])
+reg = load_registry(str(build / "registry.json"))
+g = read_artifact(str(build / "graph.pkl"))
+
+walking = set()
+for line in open(run / "rule_diagnostic.jsonl"):
+    d = json.loads(line)
+    if d["kind"] == "tributaries":
+        walking.add((d["entry_id"], d["rule_id"]))
+ext = {}
+for line in open(run / "rule_extent.jsonl"):
+    d = json.loads(line)
+    ext.setdefault((d["entry_id"], d["rule_id"]), []).append(d["op"])
+entries = {}
+for f in glob.glob(str(syn / "region-*.json")):
+    d = json.load(open(f))
+    for e in (d["entries"] if isinstance(d, dict) and "entries" in d else d):
+        entries[e["entry_id"]] = e
+
+rows = []
+for (eid, rid) in sorted(walking):
+    if set(ext.get((eid, rid), [])) != {"whole"}:
+        continue
+    e = entries.get(eid)
+    if not e:
+        continue
+    for iid in e.get("matched", []):
+        it = reg.get(iid)
+        if it is None or it.kind != "stream":
+            continue
+        secs = frozenset(it.section_ids)
+        ctx = T.reach_context(g, secs)
+        for s in sorted(secs):
+            for ei in g.up_adj.get(s, []):
+                ed = g.edges[ei]
+                src = ed.from_node
+                n = g.nodes.get(src)
+                if src in secs or n is None or n.kind != NodeKind.lake:
+                    continue
+                why = T.may_enter(ctx, src, s, ed)
+                if why != T.RIVER_CONTINUING:
+                    continue
+                above = T.subtree(g, {src})
+                streams = [x for x in above if g.nodes[x].kind == NodeKind.stream]
+                km = sum(g.nodes[x].length_m for x in streams) / 1000
+                named = sorted({g.nodes[x].display_name for x in streams if g.nodes[x].display_name})
+                rows.append((eid, rid, iid, it.name, src, g.nodes[src].display_name, len(streams), round(km, 1), named[:6]))
+print(len(rows), "head-lake stops on whole-stream walking rules;",
+      len({r[0] for r in rows}), "entries;", round(sum(r[7] for r in rows), 1), "km of streams above")
+for r in rows:
+    print(r)
