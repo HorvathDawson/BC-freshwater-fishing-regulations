@@ -1,6 +1,6 @@
 # T905 — Shrink the live salmon feed back under its old size
 
-Status: IN PROGRESS (option 2 built in 6ba240568, d163d5416: lane L14, branch perf/T905-worker-state-out-of-feed, waits for review + merge); left (Claude): the STAGING feeds-worker deploy (deploy/staging/feeds.sh) and a read of its first DFO run (seeded once, no wake, state.json in R2 private); then PRODUCTION deploy/prod/feeds.sh, the owner's. The salmon head gate (110,000) is not part of option 2.
+Status: IN PROGRESS (option 2 built in 6ba240568, d163d5416, 3e368e516: lane L14, branch perf/T905-worker-state-out-of-feed, waits for review + merge); left (Claude): the STAGING feeds-worker deploy (deploy/staging/feeds.sh) and a read of its first DFO run (seeded once, no wake, state.json in R2 private); then PRODUCTION deploy/prod/feeds.sh, the owner's. The salmon head gate (110,000) is not part of option 2.
 
 T870 (2026-11-19) added each place's printed DFO rows (`pr`) to the live salmon feed: index.json grew to ~133 kB
 (15.7 kB gzipped) and its size check was raised from 112 kB to 135 kB. Owner 2026-11-19 ~06:40, on that question,
@@ -73,7 +73,8 @@ Owner 2026-11-24, verbatim: "Move worker state out (Recommended)" — option 2. 
 110,000 B gz (not touched here).
 
 **What moved.** Each region's own bookkeeping, `STATE_KEYS` = `sha256`, `changed`, `failures`, `header`, `unresolved`,
-`texts` (live.py and dfo/live.ts, one list; the DFO vectors' `live.state_keys` pin the worker's to the Python's), out of
+`texts` (one table, `pipeline/common/feed_formats.py DFO_STATE_KEYS`, emitted into `feedFormats.generated.ts` for
+the worker's `dfo/state.ts`; the DFO vectors' `live.state_keys` check it too), out of
 the public `feeds/dfo/index.json` into a private state `{format: "dfo-state/1", regions: {slug: {…}}}`: the worker's R2
 `private/feeds/dfo/state.json` (the prefix no route serves), the Python's `<feed dir>.state.json` beside its feed dir
 (as `.notified.json`; the upload scripts copy the feed dir's own files only). No `dfo-feed` bump, no `FEED_MIN_APP` move.
@@ -84,7 +85,8 @@ the public `feeds/dfo/index.json` into a private state `{format: "dfo-state/1", 
 | after | 121,688 | 14,334 |
 | the private state beside it | 11,392 | |
 
-The check: 135,000 -> 122,000 (`test_todays_pages_join_every_location`, the measured number in its comment).
+The check: 135,000 -> 124,000 (`test_todays_pages_join_every_location`, the measured number in its comment; review
+2026-11-24: ~2.3 kB of room, about the margin the 135,000 check had, so the next small feature does not trip it).
 
 **No app reads a moved key** (`SalmonFeedRegion` in core `salmonFeed.ts` reads name, url, asof, checked, stale, held,
 notes, bucket, shared, sizes, hours, holds; `salmonIssues.ts` reads `issues` only; `composeFeedPayload` copies named
@@ -99,8 +101,12 @@ skips every STATE_KEY (`REGION_BOOKKEEPING`), so the cutover run (last index wit
 
 **The cutover.** The first run with no state file seeds it ONCE from the last index's regions (an index written before
 this still carries the keys), logged: the same hash (no page "changed", no extra history copy), the same text (nothing
-re-told), the failures counted on. Then it writes the state BEFORE the index (a state that failed to write leaves the
-last index, with its keys, for the next run to seed from). A state file that will not read, or is not `dfo-state/1`,
+re-told), the failures counted on. THE WRITE ORDER (review 2026-11-24): at the cutover the state goes first (an index
+without the keys over no state would leave the next run with neither); every run after it writes the index, then the
+state, so a run that fails between the two leaves the last state and the next run finds the same change again. The
+notices are sent after both writes, so the failed run told nothing and the next run tells it once; what repeats is
+`changed` (the next run's time), the worker's history copy of the page, and a failed fetch's count (one short). Pinned
+on both sides by the order the writes are made in (`test_t905_the_write_order…`, dfo.t905.state.test.ts "the order"). A state file that will not read, or is not `dfo-state/1`,
 fails the run and the last files stand (T558). With neither (a fresh bucket), every page is a first read, as before.
 
 **Deploy (not done by the lane).** The worker is the publisher of `feeds/dfo/` (its cron; the Python writes this Mac's
@@ -113,4 +119,5 @@ run after updating seeds the same way). Python updated, worker not: the public f
 deployed. A rollback of the worker to a build before T905: it finds no keys on the index, reads every page as a first
 read (no text notice that run, `changed` = that run) and puts the keys back; redeploying T905 then reads the state file
 it left: once a state file is there it is the only source of the keys (an index's are read only by the seed,
-when there is none), so the page hash and text are those of the last T905 run (a text change made meanwhile is told).
+when there is none), so the page hash and text are those of the last T905 run (a text change made meanwhile is told). Pinned on
+both sides ("after a rollback the state wins over keys left on the index").
