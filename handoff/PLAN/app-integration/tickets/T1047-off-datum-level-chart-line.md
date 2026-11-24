@@ -1,6 +1,6 @@
 # T1047 — Under Level, an other-datum station's chart still draws its live levels against the old-datum band
 
-Status: OPEN.
+Status: IN REVIEW — 99d8ac9bc built; owner: OWNER-TODO "T1047 off-datum level note"
 
 Source: independent review of PR #77 (T1043), 2026-11-23, item 3; split out by lane L28. Production 2026-11-23:
 08HD006 (Salmon River near Sayward) reports a live level of 2.058 m that the publisher leaves out of `reports` (T550:
@@ -23,3 +23,24 @@ stands alone), (b) the band only, no live line, (c) the live line with no band a
 datum. Then one rule for every T550 station, a test on 08HD006's shape, a shot.
 
 Depends: T550. Size: S. Owner: yes (which of a-c). Default: none until he picks.
+
+## Findings (lane L32, 2026-11-23; `scratchpad/l32/T1047-findings.txt` of the 0.9.0 batch session)
+For all five stations the datum changed AFTER HYDAT's last level year: 08HD006 2025-06-05 (about 5 m), 08EF001
+2025-01-30 (+2.37 m), 07FD001 and 08KH019 step in the live feed in 2026, 08MH153 drifts off the rating (likely weeds, not
+a new zero). No record year is on today's zero.
+
+## Built for 0.9.0 (99d8ac9bc, lane L28, coordinator 2026-11-23)
+Under Level the chart draws the live line ALONE: no normal band, no earlier years, no year scale (they would mix zeros),
+keyed on the publisher's off-datum flag (a figure the station file carries that `reports` leaves out: `offRecord`), so
+any station the publisher flags gets it. In the key, in place of "no normal range (short record)", the PROPOSED words
+(`CONDITIONS_WORDS.key.recordApart`, for the owner's pick): "This gauge's level is measured from a different zero than its
+record, so there is no normal range to compare it with." Flow keeps its band. Tests: `WaterConditions.levelOnly.test.tsx`
+(08HD006's shape: Level key has the note and no band key; Flow has its band), `chart.render.test.tsx` (`lineOnly`: no band,
+scale "reading", no year asked). Mutations: panel passes no `lineOnly`; note not drawn; band not stripped; no
+`offRecord` -> each fails. Shot: `T1043-shots/t1047-08HD006-level-line-only.png`.
+Open with the words: the card above still says "Reports flow only today, not water level. Show Flow to see it." (T1043
+19a8485bb) over a drawn level line; the owner's look decides whether that line stays.
+
+## After 0.9.0
+A frozen datum-change file with owner-accepted rows, then the rating drop (L32's follow-up), so the record can be put on
+today's zero instead of being left out.
