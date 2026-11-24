@@ -19,7 +19,7 @@ import { useFonts } from "expo-font";
 // WOFF2 from our own /assets/fonts/ (`fonts.web.ts`). `tools/font-imports.test.ts` holds both to the faces drawn.
 import { FONT_SOURCES } from "./fonts";
 import { applyLine, DOWNLOAD_NOTE_WORDS, downloadFraction, failedStartLine, restartsByItself, INSTALL_WORDS, stillLine, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
-         versionLine, createFeedGate, now as clockNow } from "@app/core";
+         versionLine, createFeedGate, failuresSent, now as clockNow } from "@app/core";
 import { createNet, shareFetch, timedFetch, loadManifest, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, gaugeHistory, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, noteHeld, followSavedItems, openRunTimingStore,
          type Held, type Manifest, type UpdateService, type WaterSource } from "@app/data";
 import { bootSaid, type MobileDataGate, type ReleaseLoader } from "@app/data/release";
@@ -28,7 +28,7 @@ import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeS
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { Button, COHO_WIDTH, cohoHeight, connectivity, ErrorState, LoadingState, LoaderLine, loaderLineText, SayingLine, TYPE, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, ReplacedBanner, setLinkFailedSink, type ThemeName,
          platformLine, drawPhoneScreensOnWeb, type ShellProps, type UpdatesLogControls } from "@app/ui-native";
-import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, AlertLinesRefresh, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useApplyCurtain, createReplacedState, loadLiveRelease, useReplacedNotice, useDownloadStill, useReleaseBoot, useBootTries, useRetryByItself, retriesByItselfNow, useSpots, type MapTiles,
+import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, AlertLinesRefresh, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useApplyCurtain, createReplacedState, loadLiveRelease, useReplacedNotice, useDownloadStill, useReleaseBoot, useBootTries, useRetryByItself, retriesByItselfNow, useSpots, type MapTiles, type ReplacedRaised,
          loadRegsStore, reportFailure, startNeedsRelease, startNoticeLine,
          type AddressState, type PairingInput, type Route, type SpotPhotos, type StartLink, type StatusSource,
          useAppUpdate } from "@app/ui";
@@ -45,7 +45,7 @@ import { makeAppUpdater } from "./appUpdater";
 import { resolveStart, startLink } from "./startLink";
 import { exitSource } from "./exitInfo";
 import { trimOnPressure } from "./memoryTrim";
-import { installReplaced, reloadPage } from "./replaced";
+import { autoReload, installReplaced, reloadPage } from "./replaced";
 import { backgroundDownloads, excludeFromBackup } from "./bgDownload";
 import { releaseSplash } from "./splash";
 // (T234) the phone's local notifications (gauge alerts, new data ready) and their background check; none on the web
@@ -483,9 +483,18 @@ export default function App() {
   // (T723 G9) a link the phone would not open is said on the same toast (and was reported by `openLink`)
   useEffect(() => setLinkFailedSink(setToast), []);
   // (T1016) a page older than what the server serves (a web tab across releases or a site deploy): a 404 of a set the
-  // live pointer no longer names, or a chunk gone after a deploy, is said with one action and reported as expected; the
-  // data notice's action is this same in-session apply (`loadLiveRelease`), the code notice's a reload (replaced.web.ts)
-  const replacedState = useMemo(() => createReplacedState(), []);
+  // live pointer no longer names, or a chunk gone after a deploy, is reported as expected and (owner 2026-11-24, "Always
+  // auto refresh") refreshes the page by itself once its report is on the line: data, this same in-session apply
+  // (`loadLiveRelease`); code, a reload once per page code (replaced.web.ts `autoReload`). Only a refresh that could not
+  // be made shows the notice (its action the same refresh by hand) and is reported as a defect.
+  // set on every render, before any effect: a verdict (raised from a failure's report) always meets this render's closures
+  const refreshRef = useRef<(r: ReplacedRaised) => Promise<string | null>>(null!);
+  refreshRef.current = (r) => (r.kind === "code" ? Promise.resolve(autoReload())
+    : new Promise((ended) => loadLiveRelease(updates, apply, ended)));
+  const heldRef = useRef(heldRelease);
+  heldRef.current = heldRelease;
+  const replacedState = useMemo(() => createReplacedState({ refresh: (r) => refreshRef.current(r), sent: failuresSent,
+                                                            inUse: () => heldRef.current }), []);
   // every set this page has opened, the one in use last: a late 404 of a read made before an apply is judged by its own set
   const openedSets = useRef<Manifest[]>([]);
   if (booted && openedSets.current[openedSets.current.length - 1] !== booted.manifest) openedSets.current.push(booted.manifest);

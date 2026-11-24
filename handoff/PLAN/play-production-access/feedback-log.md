@@ -80,6 +80,7 @@ Each row is one crash kind, or one triage of many kinds. Counts and stacks are i
 | F37 | 2026-11-22 | crash report (prod) | auto | web | A search engine's renderer runs the web app on a cached old release | T1015 | open | — |
 | F38 | 2026-11-22 | crash report (prod) | auto | web | A tab left open across two releases met missing files | T1016 | open | — |
 | F39 | 2026-11-22 | crash report (prod) | auto | web, iPhone | Two single-report defects still to locate | T1017 | open | — |
+| F40 | 2026-11-24 | crash report (prod) | auto | 0.8.5 | A new crash kind, two reports: a read of a missing value (stack not yet read) | T1055 | open | — |
 
 ## The developer's own finds on a shipped build (not tester feedback)
 
@@ -100,14 +101,15 @@ leave them out.
 | D10 | 2026-11-24 | in-app report (staging) | owner | 0.9.0 web | A creek closed with its tributaries: the sources did not say "tributaries", and streams above its head lake were left out | T1053 | open (part waits on an owner ruling) | — |
 | D11 | 2026-11-24 | in-app report (staging) | owner | 0.9.0 web | Asked whether treble hooks are allowed on a lake: the gear tab did not say | T1051 | open | — |
 | D12 | 2026-11-24 | in-app report (staging) | owner | 0.9.0 web | Ice fishing repeated the gear tab's line and hook counts | T1050 | open | — |
+| D13 | 2026-11-24 | in person | owner | 0.8.5 → 0.9.0 Android | The app announced an update while the build was on a track the phone could not install from yet | T1073 | open | — |
 
 ## Counts (refresh before applying)
 
 As of 2026-11-24: 16 tester rows from 7 tags (T-1 … T-4, TF-1, CT-1, CT-2; some may be the same person), 9 in-app
-report rows, 14 crash rows (39 in all), plus 12 developer rows. Of the 39: 25 fixed in a shipped release, 1 fixed with
+report rows, 15 crash rows (40 in all), plus 13 developer rows. Of the 40: 25 fixed in a shipped release, 1 fixed with
 the owner's read pending (F34), 6 fixed in 0.9.0 (on staging as r-0aec88ed3edb: F15, F16, F22, F24, and F21, F25 with the
-owner's read pending), 3 in progress (F06, F23, F35; F23 and F35 partly fixed in 0.9.0), 4 open.
+owner's read pending), 3 in progress (F06, F23, F35; F23 and F35 partly fixed in 0.9.0), 5 open (F40 added 2026-11-24).
 Developer rows: D01 fixed, owner read pending; D02–D05 fixed; D06 (owner read pending) and D07 fixed in 0.9.0; D08
-answered with no change; D09–D12 open (0.9.1).
-TODO (before applying): add every Play Console testing-feedback item (Monitor and improve > Ratings and reviews >
-Testing feedback) the owner reads, then recount.
+answered with no change; D09–D12 open (0.9.1); D13 open (0.9.2).
+Play Console testing feedback: none came in (owner 2026-11-24: all feedback came through the app; testers did not
+know how to use the Play form). Recount before applying.

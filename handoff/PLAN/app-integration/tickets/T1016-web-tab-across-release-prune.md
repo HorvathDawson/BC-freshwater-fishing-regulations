@@ -1,6 +1,6 @@
 # T1016 — Web: a tab kept open across two releases (or a site deploy) meets 404s on files production no longer serves
 
-Status: PARTIAL — built d787d0dff, review fixes 36862bbbc (lane L6, 2026-11-24); left (Claude): the feeds worker deploy with the 0.9.1 batch (its `expected` class for the two names), the owner's pick of the words (lane report, pictures in `../T1016-shots/`), and a production-export check of the chunk case
+Status: PARTIAL — built d787d0dff, review fixes 36862bbbc (lane L6), automatic refresh b38201d83, 03f70b777, review #125 fixes 81b177cdd (lane L17, owner 2026-11-24); the reload + keepalive were proven with fakes only, not in a real browser; left (Claude): the feeds worker deploy with the 0.9.1 batch (its `expected` class for the two names), a production-export check of the chunk case, a real-browser check of the reload and the keepalive send, LOW 2 (offline / blocked storage is reported as the ReplacedRefreshNotMade defect: environment noise), LOW 3 (a too-early prune is now auto-refreshed under an `expected` report)
 
 Source: T1005 triage. Production keeps the live release and the previous one (`deploy/prod/upload.sh` prunes the rest
 24 h on). The 404 kinds of T1005 (`3d5ded1b72ff865f`, `2c766955748940d9`, `f6d0af3f051de23a`, `bb863fcb6535d696`, …)
@@ -58,3 +58,47 @@ Depends: none. Size: M. Owner: no.
   release that needs newer site code. This predates T1016: the Shell's safe-moment apply does the same.
 - (c) The staged-release case can take two presses of the notice's action (review finding on #101; not reproduced by
   the lane).
+
+## Owner's answers (2026-11-24, verbatim)
+- Asked about the notice's words: **"Force refresh instead?"**
+- Asked how (auto unless typing / always / keep the notice): **"Always auto refresh"**
+
+## Built (lane L17, 0.9.1, 2026-11-24, b38201d83, 03f70b777): the tab refreshes itself
+- **At once, typing or not, no notice to press.** `ReleaseReplaced` → the live release put in use through the same one
+  in-session apply (`loadLiveRelease` → the app's `apply`); `SiteReplaced` → the page reloads (`replaced.web.ts`
+  `autoReload`). `@app/ui` `createReplacedState({ refresh, sent, inUse })` decides; App hands it the two refreshes.
+- **No loop.** One automatic refresh per verdict (kind + release) per page life: further 404s of the same set while the
+  apply runs, or a late read of the set the page left, are reported (`ReleaseReplaced`) and never refreshed again; a data
+  verdict for a set no longer in use is not refreshed at all. An apply the boot refuses goes back and says so itself
+  (T555's line, reported there): not said twice. A reload at most once per page CODE: `reloadOnce` keeps the entry script
+  it reloaded from in `sessionStorage` (`canifishthis.t1016.reloadedFrom`, survives the reload); the page back on the
+  same code (a cached page) meeting the missing chunk again does not reload; new code may reload once for a later
+  deploy. Storage that throws (a blocked/private window) or does not keep the marker: no reload (it could loop).
+- **Reports first.** The refresh waits for core `failuresSent()`: every second look in flight has put its report in
+  the sink, and the crash reporter's new `sent()` says every POST it was asked for is issued (`keepalive: true`, so it
+  outlives the page; one waiting out the 1 s gap is waited for). The reports stay `ReleaseReplaced` / `SiteReplaced`
+  (class expected).
+- **The banner: kept only as the after-loop fallback** (W46: a failure is shown and reported). It shows when the
+  automatic refresh could not be made (the update service staged nothing, a reload that would loop, the marker
+  unkept), its action the same refresh by hand, and the failure is reported as `ReplacedRefreshNotMade` (a DEFECT:
+  `tools/wire.test.ts` pins its class). Words and look unchanged, so knip has nothing to remove.
+- **Web only** (34a): `replaced.web.ts` `autoReload`; `replaced.native.ts` `autoReload` throws if ever called (a phone
+  installs no triage, so no verdict is raised there), as its `reloadPage` does.
+- **Tests** (fake origin, `ui/replaced.test.ts`): the reports are in the sink before the apply, one apply for two
+  404s, the failed read made again on C; no second refresh after the apply went back; nothing staged → notice + one
+  defect report, never again; two chunks → both reports, then one reload; the next page life on the same code → no
+  reload, notice, defect; `reloadOnce` on new code / throwing store / unkept store / no entry. `core/failure.test.ts`
+  (`failuresSent` order), `ui/crashReport.test.ts` (`sent()` across the gap). 12 fail on main; nine mutations killed.
+- **Pictures**: none re-shot. No new element: the fallback is the same bar, words and look as
+  `../T1016-shots/prune-{light,dark}.png`; what a reader now sees on the automatic path is the loaded panel,
+  `../T1016-shots/prune-{light,dark}-after.png`.
+
+## Review #125 fixes (lane L17, 2026-11-24, 81b177cdd)
+- MED: `reloadOnce` remembered only the last entry, so a tab could bounce A -> B -> A (an edge still naming the old code
+  during CDN propagation or a rollback). The session store keeps EVERY entry reloaded from this session (a JSON list) and
+  at most `RELOADS_PER_SESSION` (3) automatic reloads a session; past either, the notice and `ReplacedRefreshNotMade`.
+  Pinned: the A-B-A case, the cap, a marker of another shape; the last-entry-only guard and the uncapped one are killed.
+- LOW 1: the crash reporter's `sent()` had no bound (a stalled earlier POST held the refresh and the notice). It resolves
+  false after `SENT_WAIT_MS` (5 s), says how many reports were not on the line, and the refresh goes ahead. Pinned with a
+  never-answering crash server; the unbounded wait is killed.
+- Not done (left, Status line): LOW 2, LOW 3; and the reload + keepalive are proven with fakes only.
