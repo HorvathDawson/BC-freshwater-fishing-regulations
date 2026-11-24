@@ -1,6 +1,6 @@
 # T1024 — "Weird highlighting on the lake" (Gravel Slough)
 
-Status: IN REVIEW — fixed in 6704a3504 (lane L29); owner: OWNER-TODO "T1024 Gravel Slough highlight: look at the before/after shots"
+Status: IN REVIEW — fixed in 6704a3504 + d298683a7 (lane L29), needs the 0.9.0 tile build; owner: OWNER-TODO "T1024 Gravel Slough highlight: look at the before/after shots"
 
 Source: STAGING report `3444007425e9d3bd`, 2026-11-23 05:32Z, Android 0.8.5 (staging build), water · map, Gravel Slough
 (`gnis:8009`) part 0, zoom 14.3 at 49.202, -121.904. Verbatim: "Weird highlighting on the lake here".
@@ -21,14 +21,36 @@ the tiles write into the `stream` layer under the same section id (`export_strea
 looked at z14 on the NE loop, where the polygon is a few px wide; at z14 it is a notch at each seam, at z15–16 it is plain. Not
 data, not the T467 shoreline or the T1000 outside drawing.
 
-Fix (6704a3504): the two selection rings take only standing water — the `lake` / `wetland` fills' own filter
-(`water != stream`). A stream's polygon is lit by its route's casing alone, as every other stream; a lake or wetland is
-ringed as before. One style (`runtimeStyle`) for web and native, so Android takes the same change. Test
-`app/tools/stream-polygon-ring.test.ts` evaluates each ring's filter with MapLibre's evaluator against the fills, every
-theme; proved by mutation (no filter: 3 fail; `water == lake`: 3 fail).
+Fix, round 1 (6704a3504): the rings took standing water only. Review of #81 found the gap: 22 stream polygons never
+get a line (20 Okanagan River Oxbows pieces, Adskwatim Creek 1544569, Taylor Slough 1798879: no sidecar line) and 1,992
+are drawn 1–5 zooms before it (476 over 0.1 km²: Gun Creek polygon z8 / line z13, Gravel Slough 1360583 z10 / z12), so
+the selection lit nothing there. Measured on the live layer files: the same 22 / 1,992 / 476.
 
-Shots (`T1024-shots/`, phone 412 px, Map tab, part 0): `before-z14/z15/z16-staging.png` (the staging site) and
-`after-z14/z15/z16.png` (this branch's dev web against staging data; the dev server's fallback font differs, the map
-is the point). Not run on the emulator (web shows it; the style is shared).
+Fix, round 2 (d298683a7): every stream polygon carries `lz` in the tiles — its route line's first zoom in `stream`
+(`export_streams` reports it per polygon, `export_waterbodies` writes it; none when there is no line; a stream polygon
+the streams export did not report is refused). The ring (`paint.ts` `ringPaint`) shows below `lz`, or always without
+one; from `lz` the line's casing lights the water (the seam-free case). A step per tile zoom in `line-opacity` (no
+`["zoom"]` in a filter), accepted by the spec validator for web and native (`tools/style-valid.test.ts`). The water map's
+part halo and the T518 in-season outline are the same `OUTLINE_SHOWN`, so they follow. Data check
+`pipeline/deliver/tiles/stream_polygon_lines.py`, run by the tile build after the export, on the files as written: every
+stream polygon carries `lz` = its line's first zoom, or no `lz` and no line; no `lz` on standing water.
+
+Tests (mutation-proved): `app/tools/stream-polygon-ring.test.ts` evaluates the ring per zoom, three themes, `selected` /
+`part` / `inseason` (4 mutations, each 18 fail); `pipeline/tests/test_tile_stream_polygon_lz.py` runs the real
+exporters on a small atlas and the check on hand-written files (6 mutations caught).
+
+**The 0.9.0 tile build must include:** a full water export with this code (`python -m pipeline.deliver.tiles`, not
+`--tiles-only` over old layer files: the check refuses layer files without `lz`, 17,049 offenders on today's files)
+and the app built from this branch together with those tiles. App with old tiles = today's staging look (stream polygons
+ringed over the casing again, no worse than staging); new tiles with an old app = `lz` ignored.
+
+Shots (`T1024-shots/`, phone 412 px, water Map tab): `gravel-before-after.png` (z11/12/14/16), `oxbows-before-after.png`
+(z11/13/15), `gun-before-after.png` (z8/11/13). Before = the staging site; after = this branch's dev web over staging
+data with the staging atlas given `lz` from the live layer files (a scratch copy, the exact values the new export
+writes). Not run on the emulator.
+
+Left (not fixed, a follow-up): a stream polygon whose route is a STUB (Okanagan River Oxbows 1281106: route 67 m in a
+57,000 m² loop) has `lz`, so from z13 only the stub is lit; 239 polygons have a route under 0.3 of their long side
+(14 over 0.05 km²). Ringing those too needs a length rule (route vs polygon) — a choice, not made here.
 
 Depends: none. Size: S. Owner: look at the shots.
