@@ -52,12 +52,18 @@ waits, as long as the testers stay opted in. The feedback log and releases.md ha
 > next restart page.
 
 **2. 0.9.1 follow-ups (paste tonight; runs overnight)**
-> Start at handoff/PLAN/START-HERE.md (step 0) and ROADMAP-after-0.9.0.md row 2. You orchestrate on Fable; scope frozen
+> First make a scratchpad worktree of origin/main and read everything from it: the main checkout is on release/0.9.0
+> and has neither this roadmap nor the newest tickets. Then START-HERE.md (step 0) and ROADMAP-after-0.9.0.md row 2. You orchestrate on Fable; scope frozen
 > to row 2. I'm asleep: work overnight unattended, at most 4 lanes, one ticket each (group the small ones), the model
 > by task (Opus for pipeline/data/Android/tricky app logic, Sonnet for docs and mechanical work), one review round, PRs
 > to main with auto-merge once the independent review is clean. Another chat is shipping 0.9.0 tonight: never touch the
 > main checkout (it is on release/0.9.0), only scratchpad worktrees off origin/main; no staging data release, no staging
-> deploy, no Play or APK build (that chat owns them); heavy jobs only through scripts/heavy.sh. The 0.9.0 fixes on
+> deploy, no Play or APK build, no emulator (that chat owns them); heavy jobs only through scripts/heavy.sh. Never write
+> into the main checkout's data/ (data/release, LATEST, tiles, curated): a lane that needs a build or release writes
+> into its own worktree; a test that reads the live release may see 0.9.0 promoted mid-run, so rerun it before calling
+> it red. T1027 measures Android builds: start it only after the 0.9.0 chat's Play Closed promote (the restart page
+> says when), and run its Gradle builds through heavy.sh. Write your own memory in-flight file; never rewrite the
+> 0.9.0 chat's. The 0.9.0 fixes on
 > release/0.9.0 (T796 gate 110,000 B, T1012, T666 fixtures) are not on main until that chat merges it back. Do the
 > one-file-per-ledger-row lane last, after the others merge. T1029 waits for my morning answers (prepare the pictures
 > overnight). Leave questions batched with pictures for the morning, send one push notification when the night's work
