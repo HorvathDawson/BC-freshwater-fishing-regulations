@@ -16,7 +16,7 @@
 //                  that words the standing (T511). No open / closed status: the card is conditions only.
 //   climatology    feeds/live/clim.json, read ONCE per run (and only when a card is to be drawn), kept for the listed
 //                  stations; a run without it draws cards without the band and says so (an event).
-import { changeShort, type SourceChange } from "../../../../../packages/core/src/change";
+import { changeShort, runOffered, type SourceChange } from "../../../../../packages/core/src/change";
 import { CONDITIONS_WORDS } from "../../../../../packages/core/src/conditions";
 import { localDate, localStamp } from "../../../../../packages/core/src/day";
 import { standing } from "../../../../../packages/core/src/flow";
@@ -32,7 +32,7 @@ import { Canvas, fillBand, fit, hex, measure, png, stroke, text, wrap, type Pt, 
 
 export const CARD_W = 1200, CARD_H = 630;
 /** bumped when the drawing changes without its inputs changing (every card is redrawn once) */
-export const CARD_REV = 3;
+export const CARD_REV = 4;
 export const CARDS_PREFIX = "feeds/cards/";
 export const MISSING_PREFIX = "private/cards-missing/";
 export const CARD_STATE = "private/feeds/cards/state.json";
@@ -42,9 +42,11 @@ export const STATIONS_PATH = "/gauge/stations.json";
 export const CARD_GROUND = "#5F26E0", CARD_INK = "#FFFFFF";
 const DAY = 86_400_000, WEEK = 7 * DAY;
 const MODELS = ["CLEVER", "COFFEE", "ELF"];
+/** how far ahead the share card's picture draws its run (the page's facts carry the whole run, T1039) */
+const PICTURE_DAYS = 10;
 
 type Row = [string, number | null, number | null];
-interface Series { at?: string[]; mid?: (number | null)[] }
+interface Series { at?: string[]; mid?: (number | null)[]; level_mid?: (number | null)[] }
 /** the slice of a published station file (feeds/live/<station>.json, app/packages/data feed/http.ts StationFile) a card reads */
 export interface CardStation {
   station: string;
@@ -53,7 +55,7 @@ export interface CardStation {
   now?: { discharge: number | null; level: number | null; at: string | null; percentile: number | null; parameter?: "discharge" | "level" } | null;
   recent?: Row[];
   daily?: Row[];
-  forecasts?: Record<string, { model?: string; issuedAt?: string; series?: Series | null }> | null;
+  forecasts?: Record<string, { model?: string; issuedAt?: string; horizonDays?: number; series?: Series | null }> | null;
   /** the station's expected change (the publisher's `change_source`): the forecast is worded from it, by core (T622 G9) */
   change?: SourceChange | null;
 }
@@ -81,7 +83,8 @@ export interface CardModel {
   week: [number, number][];
   /** the run drawn: the station's own first model with a current run (T347 working-day line, `dueBy`) */
   forecast: { model: string; issuedAt: string; issued: string; dueBy: number; points: [number, number][] } | null;
-  /** (T908) EVERY model with a current run, in the station's own order (the page's forecast options); `forecast` is the first */
+  /** (T908, T1039) EVERY run the app offers in the card's quantity (core `runOffered`; old ones too, judged by `dueBy` where
+   *  said), whole, in the station's own order: the page's forecast options. `forecast` is the picture's, not necessarily the first */
   forecasts: { model: string; issuedAt: string; issued: string; dueBy: number; horizonDays: number; points: [number, number][] }[];
   /** (T908) the reading's rank 0-1 (the feed's `percentile`, what `standing` was worded from), for the page's colour bar; null: none */
   percentile: number | null;
@@ -136,24 +139,33 @@ export function cardModel(station: string, name: string, f: CardStation | null, 
   }
   let forecast: CardModel["forecast"] = null, forecastOld: CardModel["forecastOld"] = null;
   const forecasts: CardModel["forecasts"] = [];
-  if (parameter === "discharge" && f?.forecasts) {
-    const order = [...(f.change?.models ?? []), ...MODELS].filter((m, i, a) => a.indexOf(m) === i);
+  if (parameter && f?.forecasts) {
+    const order = [...(f.change?.models ?? []), ...MODELS, ...Object.keys(f.forecasts).sort()].filter((m, i, a) => a.indexOf(m) === i);
+    const from = week.length ? week[week.length - 1]![0] : now;
     for (const m of order) {
       const run = f.forecasts[m];
       const s = run?.series;
-      if (!run || !s?.at || !s.mid) continue;
-      const from = week.length ? week[week.length - 1]![0] : now;
-      const points = s.at.map((a, i) => [Date.parse(a.length === 10 ? `${a}T12:00:00-08:00` : a), s.mid![i]] as const)
-        .filter((p): p is readonly [number, number] => Number.isFinite(p[0]) && typeof p[1] === "number" && p[0] >= from && p[0] <= now + 10 * DAY)
-        .map((p) => [p[0], p[1]] as [number, number]);
-      if (!points.length) continue;
+      // (T1039, owner 2026-11-23) THE PAGE'S RUNS ARE THE ONES THE APP OFFERS (core `runOffered`): in the card's quantity, old
+      // or not (a run past its working-day line is offered and said "likely out of date" by its `dueBy`, as the app says it)
+      if (!run || !s?.at || !runOffered(s, parameter)) continue;
       // the Centre's stamps are its own clock, a fixed UTC−8 (core staleness.ts CENTRE_OFFSET_MS)
       const issued = run.issuedAt ? Date.parse(/[zZ]|[+-]\d\d:\d\d$/.test(run.issuedAt) ? run.issuedAt : `${run.issuedAt}-08:00`) : NaN;
       if (!Number.isFinite(issued)) continue;
-      if (byWeekdays(issued, now) === "stale") { if (!forecast) forecastOld ??= { model: m, issued: pacific(issued) }; continue; }
-      const run1 = { model: m, issuedAt: new Date(issued).toISOString(), issued: pacific(issued), dueBy: forecastDueBy(issued), points };
-      forecasts.push({ ...run1, horizonDays: Math.max(1, Math.round((points[points.length - 1]![0] - now) / DAY)) });
-      if (!forecast) { forecast = run1; forecastOld = null; }
+      const mid = parameter === "level" ? s.level_mid : s.mid;
+      // the whole run from the last measured point on (T1039: never cut at 10 days; ELF runs 30 to 60)
+      const points = s.at.map((a, i) => [Date.parse(a.length === 10 ? `${a}T12:00:00-08:00` : a), mid?.[i]] as const)
+        .filter((p): p is readonly [number, number] => Number.isFinite(p[0]) && typeof p[1] === "number" && Number.isFinite(p[1]) && p[0] >= from)
+        .map((p) => [p[0], p[1]] as [number, number]);
+      if (!points.length) continue;
+      const run1 = { model: m, issuedAt: new Date(issued).toISOString(), issued: pacific(issued), dueBy: forecastDueBy(issued) };
+      forecasts.push({ ...run1, points,
+                       horizonDays: run.horizonDays ?? Math.max(1, Math.round((points[points.length - 1]![0] - now) / DAY)) });
+      // THE SHARE CARD'S PICTURE (unchanged): its first current flow run, cut at 10 days; an old one is said, not drawn
+      if (parameter !== "discharge" || forecast) continue;
+      const drawn = points.filter((p) => p[0] <= now + PICTURE_DAYS * DAY);
+      if (!drawn.length) continue;
+      if (byWeekdays(issued, now) === "stale") { forecastOld ??= { model: m, issued: pacific(issued) }; continue; }
+      forecast = { ...run1, points: drawn }; forecastOld = null;
     }
   }
   const unit = parameter === null ? null : parameter === "level" ? "m" : "m³/s";

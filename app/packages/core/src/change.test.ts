@@ -4,6 +4,7 @@
  * publisher's side). Today is Thu 22 Oct 2026.
  */
 import { describe, expect, it } from "vitest";
+import { runOffered } from "./change";
 import { CHANGE_LEGEND, CHANGE_POLICY, CHANGE_STOP_RATIOS, changeDay, changeDotLabel, changeModelsNote, changeShort, changeSparkWords, changeHeadline,
          changeLine, changeRange, changeRatio, changeReachNote, changeReads, changeSentence, changeSourceLine,
          changeSourceName, CHANGE_LOW_WATER, changeLowWaterNote, codedChange, ratioWords, type SourceChange,
@@ -320,5 +321,15 @@ describe("the station's change, by the models the publisher chose (T144)", () =>
       + "still falling on the last day shown.");
     expect(CHANGE_LOW_WATER).toBe("ELF is a low-water model: it carries the river's recent fall forward and has no "
       + "rain or snowmelt in it, so it cannot see a rise coming.");
+  });
+});
+
+// (T1039) the one rule for which runs the app offers: a finite middle value in the chart's quantity; age plays no part
+describe("runOffered", () => {
+  it("offers a run in a quantity only when its series has a finite middle value in it", () => {
+    const flowOnly = { mid: [null, 3], level_mid: [null, null] }, both = { mid: [3], level_mid: [1.2] };
+    expect([runOffered(flowOnly, "discharge"), runOffered(flowOnly, "level")]).toEqual([true, false]);
+    expect([runOffered(both, "discharge"), runOffered(both, "level")]).toEqual([true, true]);
+    expect([runOffered({ mid: [Number.NaN, null] }, "discharge"), runOffered(null, "discharge"), runOffered({}, "level")]).toEqual([false, false, false]);
   });
 });

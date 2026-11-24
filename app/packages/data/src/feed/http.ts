@@ -19,7 +19,7 @@
 // `standing` comes from core rather than being restated here. A second copy of the
 // thresholds is a second answer to "is this river low", and the feed and the sheet
 // would eventually disagree about the same reading (AGENTS rule 23).
-import { FeedNeedsNewerApp, gaugeFeedRefusal, isFeedTooNew, parseSemver, reportFailure, reportOnce, shownParameter, standing,
+import { FeedNeedsNewerApp, gaugeFeedRefusal, runOffered, isFeedTooNew, parseSemver, reportFailure, reportOnce, shownParameter, standing,
          type FeedGate, type GaugeFeedFile, type SourceChange, now as clockNow } from "@app/core";
 import type { Aged, Forecast, Parameter, Reading, StationId } from "../index";
 import type { AheadDays, StationChange } from "../panel";
@@ -203,7 +203,7 @@ export function forecastFor(raw: RawForecast | null | undefined,
   const mid = level ? s?.level_mid : s?.mid;
   const lo = level ? s?.level_lo : s?.lo;
   const hi = level ? s?.level_hi : s?.hi;
-  const has = (mid ?? []).some((v) => v !== null && Number.isFinite(v));
+  const has = runOffered(s, parameter);
   // The HEADLINE number is discharge in every model, so a level chart keeps the ribbon and
   // drops the summary rather than printing "8.2 m" over a run measured in m3/s.
   return {

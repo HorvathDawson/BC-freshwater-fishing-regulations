@@ -27,3 +27,10 @@ export const appStoreLink = (): string | null => (APP_STORE_PUBLIC ? APP_STORE_U
 
 /** The Play address to link to, or null while the listing is not public (the button says the Android app is coming). */
 export const playStoreLink = (): string | null => (PLAY_PUBLIC ? PLAY_STORE_URL : null);
+
+/**
+ * (T244, T1039) THE STORE CONTACT every app build is made with (`EXPO_PUBLIC_CONTACT` in apps/mobile's `export:web` and the
+ * store build scripts): "Join the Android test" emails it. The public gauge page's "Get the app" block is the web app's own
+ * (ui-native `GetAppBlock`), so it uses this too; `tools/seo/gauges.test.ts` holds the web export's value to it.
+ */
+export const STORE_CONTACT = "support@canifishthis.ca";

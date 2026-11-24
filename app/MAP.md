@@ -141,7 +141,9 @@ back (`apps/mobile` `startLink.web.ts`, `systemBack.web.ts`, `waterSlugs.ts` ove
 (T487) **A gauge's page** is `/gauge/<station>/<slug>` (`seo/gauges.ts`, index at `/gauges`, in the sitemap): a static hub-style
 page naming the waters the gauge serves (one regulations link each, no open/closed word) whose live half (`seo/gaugeClient.ts`,
 shipped as one plain script) reads the facts the feeds worker writes beside each card (`feeds/cards/<station>.json`) and
-Open-Meteo at the gauge. Its preview card is drawn in the feeds worker's gauge run (`workers/feeds/src/gauges/card/`: a tiny
+Open-Meteo at the gauge. (T1039) Its chart is the app's own: `seo/gaugeChart.tsx` mounts `ui-native` `StationChart` over `ui`
+`useStationChart` (the Conditions card's pair) on `data` `stationChartSource` (the live feed file over the station's `gauge_clim`
+rows, which the build writes into the page), bundled by esbuild into one deferred script (`gauges.ts` `chartScript`). Its preview card is drawn in the feeds worker's gauge run (`workers/feeds/src/gauges/card/`: a tiny
 palette rasteriser + glyphs pre-drawn from Archivo, `workers/feeds/tools/card_glyphs.py`), stored on R2, and only MAPPED by the site worker
 (`seo/legacy.ts`: `/gauge/<station>/card.png` → R2 binding CARDS; missing → `/share/gauge.png` + a `private/cards-missing/`
 marker the gauge run reports). The worker reads which gauges have pages from the site's `/gauge/stations.json`. (T530) The slug/path/URL is one core function (`core/gaugePage.ts`) used by this build and by the app's Share on the Conditions gauge card (`ui` `useGaugeShare`, `ui-native` `GaugeShare`).
