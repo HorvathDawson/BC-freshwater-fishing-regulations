@@ -1,10 +1,10 @@
 # T1041 — A red CI run or a review finding stops costing an hour or two
 
-Status: PARTIAL — 0a44b1c75, 4ed75f4a1, de8268ac1, 49081552b, 0dfb92695 (items 1-7, for 0.9.0), 3d06be883 (review lows, 0.9.1); owner: OWNER-TODO "move the repo to a free organisation" (after 0.9.0), then Claude: the slug flip and the merge-queue rule
+Status: PARTIAL — 0a44b1c75, 4ed75f4a1, de8268ac1, 49081552b, 0dfb92695 (items 1-7, for 0.9.0), 3d06be883 (review lows, 0.9.1), 43cec978d, 1583fe40c (one file per ledger row / owner item, 0.9.1: PR open, merges after release/0.9.0 is back on main); owner: OWNER-TODO "move the repo to a free organisation" (after 0.9.0), then Claude: the slug flip and the merge-queue rule; left (Claude): `node app/tools/ledger.mjs --merge origin/main` on chore/T1041-one-file-per-row once release/0.9.0 has merged back, then merge it
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1041 | A red CI run or a review finding stops costing an hour or two: related tests on push, `scripts/before_pr.sh`, a report-only mutation job, merge-queue-ready workflows; the org move after 0.9.0 | PARTIAL — owner: OWNER-TODO "move the repo to a free organisation" (after 0.9.0); then the slug flip + merge-queue rule | 0a44b1c75, 4ed75f4a1, de8268ac1, 49081552b, 0dfb92695, 3d06be883 | owner 2026-11-23 |
+| T1041 | A red CI run or a review finding stops costing an hour or two: related tests on push, `scripts/before_pr.sh`, a report-only mutation job, merge-queue-ready workflows; the org move after 0.9.0 | PARTIAL — owner: OWNER-TODO "move the repo to a free organisation" (after 0.9.0); then the slug flip + merge-queue rule | 0a44b1c75, 4ed75f4a1, de8268ac1, 49081552b, 0dfb92695, 3d06be883, 43cec978d, 1583fe40c | owner 2026-11-23; one-file-per-row PR: `ledger.mjs --merge origin/main` after release/0.9.0 merges back |
 
 Source: owner 2026-11-23 (the 0.9.0 batch chat): a red CI run or a bug found in review cost an hour or two each.
 
