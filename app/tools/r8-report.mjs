@@ -30,7 +30,7 @@ import { fileURLToPath } from "node:url";
  * rule shows up as a failed build here, not as a Play notice. Raise them when a narrowed rule lifts a score; never lower
  * one to get a build through (the ticket says why first). Play's alert line is 25 in every category.
  */
-export const FLOORS = { optimization: 70, shrinking: 70, obfuscation: 70 };   // measured 72.0 / 72.3 / 72.5 (T1009, 2026-11-22)
+export const FLOORS = { optimization: 75, shrinking: 75, obfuscation: 75 };   // measured 76.0 / 76.4 / 76.5 (T1027, 2026-11-24; T1009 72.0 / 72.3 / 72.5)
 export const PLAY_LINE = 25;
 const KINDS = ["optimization", "shrinking", "obfuscation"];
 const R8_JSON = "BUNDLE-METADATA/com.android.tools/r8.json";

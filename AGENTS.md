@@ -272,7 +272,10 @@ A6. **Commit only your own paths: `git commit -- <paths>`.** Several agents shar
     scores, the ones Play reads, over the floors) and `play-upload.py --mapping` sends the mapping with the AAB. The
     trial flag `CANIFISHTHIS_R8` is removed and refused; R8 off is only the test bed's comparison escape
     (`session.sh --no-r8="<reason>"`), refused for every build that can reach a phone. Never lower a floor or add a
-    broad `{ *; }` keep rule to get a build through (T1009 lists what keeps the scores down).
+    broad `{ *; }` keep rule to get a build through (T1009 lists what keeps the scores down). (T1027) R8 skips the own
+    rules of the libraries in `with-r8.js` `IGNORED_RULES` (AGP `ignoreFrom`, external AARs only) and
+    `r8-keep-rules.pro` restates what each reaches by name: a library added there needs its walk (`notify-fire`,
+    `memory` for the PDF viewer, …), and an update of one of them a fresh look at what it reaches by name.
 
 ## Curated data, and the artifacts you must not regenerate casually
 
