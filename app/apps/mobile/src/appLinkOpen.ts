@@ -22,6 +22,8 @@ export interface OpenRequest {
   regs?: RegsStart;
   /** (T1038) the water's Map framed on the whole water */
   whole?: boolean;
+  /** (T1038) no water, no box: the map (a `/?date=` link), on the request's day and horizon */
+  home?: boolean;
 }
 export interface AppLinkDeps {
   setTheme: (t: "light" | "dark") => void;
@@ -33,11 +35,12 @@ export interface AppLinkDeps {
 }
 
 export function applyAppLink(o: AppLinkOpen, d: AppLinkDeps): void {
-  if (!("fit" in o) && o.theme) d.setTheme(o.theme);
-  if (!("fit" in o) && o.who) d.setWho(o.who);
+  if ("item" in o && o.theme) d.setTheme(o.theme);
+  if ("item" in o && o.who) d.setWho(o.who);
   d.setNotice(o.past ? START_NOTICE_WORDS["day-past"] : null);
   const days = { day: o.day, horizon: o.horizon ?? 0 };
-  d.setOpenRequest((r) => ("fit" in o ? { item: null, fit: o.fit, ...days, n: (r?.n ?? 0) + 1 }
+  d.setOpenRequest((r) => ("home" in o ? { item: null, home: true, ...days, n: (r?.n ?? 0) + 1 }
+                          : "fit" in o ? { item: null, fit: o.fit, ...days, n: (r?.n ?? 0) + 1 }
                                       : { item: o.item, view: o.view, part: o.part, ...days, regs: o.regs,
                                           ...(o.whole ? { whole: true } : {}), n: (r?.n ?? 0) + 1 }));
 }

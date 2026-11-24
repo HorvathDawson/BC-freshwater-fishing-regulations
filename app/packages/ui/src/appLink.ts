@@ -19,7 +19,7 @@ import { fitOf, linkDay, linkPage, linkWhole, type FitBox, type LinkBad, type Re
 
 const VIEWS: readonly View[] = ["regs", "conditions", "map"];
 const ITEM = /^[a-z]+:-?\d+$/;
-/** (T1038) the day keys: carried on a water's link and a box's, as the web's start link reads them on both */
+/** (T1038) the day keys: carried on every link, as the web's start link reads them on every link */
 const DAY_KEYS = ["date", "horizon"] as const;
 /** (T1038) the water page's keys: carried on a water's link (the web reads them on no other) */
 const PAGE_KEYS = ["tab", "sheet", "scroll", "age", "res", "whole"] as const;
@@ -58,7 +58,9 @@ export interface LinkPage { readonly regs: RegsStart; readonly who: Who | null; 
 /** What a tapped link opens: a water on a view, or (T605) the map framed on a box. */
 export type AppLinkOpen = ({ readonly item: ItemId; readonly view: View; readonly part: number | null; readonly theme: "light" | "dark" | null }
                            & LinkDays & LinkPage)
-  | ({ readonly fit: FitBox } & LinkDays);
+  | ({ readonly fit: FitBox } & LinkDays)
+  /** (T1038) a link naming a day or horizon and no water or box (`/?date=`): the map on that day, as the web opens it */
+  | ({ readonly home: true } & LinkDays);
 
 /** The link's reading, or null when it is not an address of ours (another scheme or host: not a share link). Throws on one of ours the phone cannot read. */
 export function parseAppLink(url: string, now: Date = bcNow()): AppLink | null {
@@ -101,7 +103,6 @@ export function parseAppLink(url: string, now: Date = bcNow()): AppLink | null {
     for (const k of keys) if (q.has(k)) problems.push(`app link: ${k}= does nothing on a link that ${why}: dropped`);
   };
   if (!water) idle(PAGE_KEYS, "names no water");
-  if (!water && fitS === undefined) idle(DAY_KEYS, "names no water or box");
   const { day, past, horizon } = linkDay(sp, bad, now);
   const days: LinkDays = { day, past, horizon };
   const { regs: start, who } = water ? linkPage(sp, bad) : { regs: { tab: "keep" as const, sheet: null, scroll: 0 }, who: null };
@@ -134,7 +135,8 @@ export async function resolveAppLink(url: string, fetcher: (u: string) => Promis
   if (link.fit) return { fit: link.fit, ...link.days };
   const opens = (item: ItemId): AppLinkOpen => ({ item, view: link.view, part: link.part, theme: link.theme, ...link.days, ...link.page });
   if (link.item) return opens(link.item);
-  if (!link.slug) return null;
+  // (T1038) no water and no box: the map on the link's day or horizon (the web's browse start); naming neither, nothing
+  if (!link.slug) return link.days.day !== null || link.days.past || link.days.horizon !== null ? { home: true, ...link.days } : null;
   const page = `${/^https:\/\/[^/?#]+/i.exec(url)![0]}/water/${link.slug}`;
   const r = await fetcher(page);
   if (!r.ok) throw new Error(`app link: ${page} answered ${r.status}`);

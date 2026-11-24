@@ -123,6 +123,15 @@ export function holdsMapStatus(r: Route, start: RegsStart | null): boolean {
   return start !== null && waterFrame(r)?.view === "regs";
 }
 
+/**
+ * (T1038) THE START A WATER'S PAGE IS HANDED: a phone link's start is for the water it names (`forItem`), so a page of
+ * another water on screen while the link's water opens never takes it; the web's start (`forItem` null) is the first
+ * water's page's, as before.
+ */
+export function startForFrame(start: RegsStart | null, forItem: ItemId | null, frameItem: ItemId | null): RegsStart | null {
+  return start !== null && (forItem === null || forItem === frameItem) ? start : null;
+}
+
 export interface StartLink {
   route: Route;
   /** the Shell's one day (null = today) */

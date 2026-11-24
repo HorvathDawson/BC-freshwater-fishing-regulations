@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { setFailureSink } from "@app/core";
 import { itemOfWaterPage, parseAppLink, resolveAppLink } from "./appLink";
-import { parseStartLink } from "./startLink";
-import { waterFrame } from "./route";
+import { parseStartLink, startForFrame } from "./startLink";
+import { HOME, waterFrame } from "./route";
 
 const NOW = new Date(2026, 9, 22, 9, 30);   // Thu Oct 22 2026, local
 /** no day keys (today, Now) and no page keys (Keep at the top, the session's angler, not whole) */
@@ -125,8 +125,7 @@ describe("(T1038) the web start link's other keys, carried by the phone as the w
     expect(at(`${W}&whole=1`).problems).toEqual(["app link: whole=1 frames the whole water only as whole=1 on view=map with no part: dropped"]);
     expect(at(`${W}&view=map&part=1&whole=1`).page.whole).toBe(false);
     expect(at("https://canifishthis.ca/?date=2026-12-24&tab=gear").problems).toEqual([
-      "app link: tab= does nothing on a link that names no water: dropped",
-      "app link: date= does nothing on a link that names no water or box: dropped"]);
+      "app link: tab= does nothing on a link that names no water: dropped"]);
     const box = at("https://canifishthis.ca/?fit=-118,49,-114,52&date=2026-12-24&horizon=3&age=u16");
     expect([box.days, box.problems]).toEqual([{ day: new Date(2026, 11, 24, 12), past: false, horizon: 3 },
                                               ["app link: age= does nothing on a link that names no water: dropped"]]);
@@ -140,5 +139,32 @@ describe("(T1038) the web start link's other keys, carried by the phone as the w
     expect(await resolveAppLink("https://canifishthis.ca/water/vedder-river?view=map&whole=1&date=2026-12-24&tab=gear&age=u16", async () => new Response(page("gnis:3062")), NOW))
       .toEqual({ item: "gnis:3062", view: "map", part: null, theme: null, day: new Date(2026, 11, 24, 12), past: false, horizon: null,
                  regs: { tab: "gear", sheet: null, scroll: 0 }, who: { age: "u16", residency: "resident" }, whole: true });
+  });
+});
+
+describe("(T1038) a link with a day and no water or box: the map on that day, as the web's browse start", () => {
+  const none = async () => { throw new Error("no fetch"); };
+  it.each([
+    ["date", "date=2026-12-24", { day: new Date(2026, 11, 24, 12) }],
+    ["horizon", "horizon=3", { horizon: 3 }],
+    ["a day gone by (today, said)", "date=2026-10-01", { past: true }],
+  ])("%s opens the map there, as the web does", async (_k, q, want) => {
+    const got = await resolveAppLink(`https://canifishthis.ca/?${q}`, none, NOW);
+    expect(got).toEqual({ home: true, ...D0, ...want });
+    const web = parseStartLink(`?${q}`, NOW)!;
+    expect([web.route, { day: web.day, past: web.notice === "day-past", horizon: web.horizon }])
+      .toEqual([HOME, { day: (got as { day: Date | null }).day, past: (got as { past: boolean }).past, horizon: (got as { horizon: unknown }).horizon }]);
+  });
+  it("naming today and Now opens nothing more, as the bare link (the web's start is no link then either)", async () => {
+    expect(await resolveAppLink("https://canifishthis.ca/?date=2026-10-22", none, NOW)).toBeNull();
+    expect(parseStartLink("?date=2026-10-22", NOW)).toBeNull();
+  });
+});
+
+describe("(T1038) startForFrame: a link's start is its own water's page's", () => {
+  const S = { tab: "gear" as const, sheet: null, scroll: 0 };
+  it("handed to that water only; the web's (no water named) to the first page; none is none", () => {
+    expect([startForFrame(S, "gnis:1" as never, "gnis:1" as never), startForFrame(S, "gnis:1" as never, "gnis:2" as never),
+            startForFrame(S, null, "gnis:2" as never), startForFrame(null, null, "gnis:2" as never)]).toEqual([S, null, S, null]);
   });
 });

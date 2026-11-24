@@ -49,3 +49,12 @@ describe("(T1038) the notice line", () => {
       .toEqual(["a", "b", null, null]);
   });
 });
+
+describe("(T1038) a link with a day and no water or box", () => {
+  it("asks the Shell for the map on that day and horizon; no theme or angler is read off it", () => {
+    const XMAS = new Date(2026, 11, 24, 12);
+    const r = run({ home: true, day: XMAS, past: false, horizon: 3 }, { item: "x", n: 2 });
+    expect([r.req, r.setTheme.mock.calls.length, r.setWho.mock.calls.length])
+      .toEqual([{ item: null, home: true, day: XMAS, horizon: 3, n: 3 }, 0, 0]);
+  });
+});

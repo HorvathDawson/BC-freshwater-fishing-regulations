@@ -169,9 +169,16 @@ export function RegsScreen({ page, palette, images, actions, onDate,
   // (T37) the one sheet over the page: every sheet key a press opens — in any section — lands here (the caller hears it too)
   const [sheet, setSheet] = useState<SheetKey | null>(start?.sheet ?? null);
   // (T41) the start link's scroll: polled until the tab's section has a measured top (images and fonts move it), once
+  // (T1038) per START, not per mount: a phone link to the water already on screen hands this page a new one, applied as a
+  // fresh page applies its first — its sheet (none: shut), its tab and offset (Keep at 0 is the top)
+  // `first`: the start the page MOUNTED with (none at mount: every later one is a new start on an open page)
+  const firstStart = useRef(true);
   useEffect(() => {
+    const first = firstStart.current;
+    firstStart.current = false;
     if (!start) return;
-    if (start.tab === "keep" && start.scroll === 0) { onStarted?.(); return; }
+    if (!first) { setSheet(start.sheet); restoring.current = false; }
+    if (first && start.tab === "keep" && start.scroll === 0) { onStarted?.(); return; }
     const timer = setInterval(() => {
       if (start.tab !== "keep" && store.getSections()[start.tab] == null) return;
       clearInterval(timer);
@@ -180,8 +187,8 @@ export function RegsScreen({ page, palette, images, actions, onDate,
       onStarted?.();
     }, 100);
     return () => clearInterval(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per mount: a start is applied to the page it opened
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per start: a start is applied to the page it is handed to
+  }, [start]);
   // (T50) back where the reader was: the remembered scroll, once the content is tall enough to hold it (polled: images
   // and fonts grow it), or after ~3 s as far as it goes. A start link wins (it says where to go).
   // Until then the page's own first scroll events (a layout settling at 0) do not overwrite the memory.

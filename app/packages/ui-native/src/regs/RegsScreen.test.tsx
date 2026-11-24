@@ -10,7 +10,7 @@ import { Text } from "react-native";
 import { inSeasonBanner, type RegsPage } from "@app/core";
 import { LIGHT } from "../theme";
 import { WaterFrame } from "../WaterFrame";
-import { forgetRegsScroll, recallRegsScroll, regsScrollKey } from "./scrollMemory";
+import { forgetRegsScroll, recallRegsScroll, regsScrollKey, rememberRegsScroll } from "./scrollMemory";
 import { RegsScreen, type RegsScreenProps } from "./RegsScreen";
 import { createTabStore } from "./tabStore";
 import vedder1010 from "./fixtures/vedder_1010.json";
@@ -186,6 +186,57 @@ describe("<RegsScreen>", () => {
                tab: screen.getByRole("tab", { name: "Gear" }).getAttribute("aria-selected") })
         .toEqual({ heading: ["Possession"], before: [0, 0], calls: [[{ top: 1542, left: 0, behavior: "auto" }]], started: 1, tab: "true" });
     } finally { vi.useRealTimers(); }
+  });
+
+  it("(T1038) a NEW start on the page already open (a link to the water on screen) is applied again: tab, scroll and sheet", () => {
+    vi.useFakeTimers();
+    try {
+      const store = createTabStore(), onStarted = vi.fn();
+      const withSheets = { ...page, sheet: (k: string) => (page as unknown as { sheets: Record<string, unknown> }).sheets[k] ?? null } as RegsPage;
+      const tree = (start: RegsScreenProps["start"]) => (
+        <WaterFrame palette={LIGHT} face="regulations">
+          <RegsScreen troutSources={TEST_TROUT_SOURCES} sources={TEST_SOURCES} page={withSheets} palette={LIGHT} actions={NOOP} onDate={() => {}}
+                      gear={<Text>gear section</Text>} methods={<Text>methods section</Text>} licence={<Text>licence section</Text>}
+                      store={store} start={start} onStarted={onStarted} />
+        </WaterFrame>);
+      const { rerender } = render(tree({ tab: "gear", sheet: null, scroll: 0 }));
+      const to = vi.fn();
+      (scrollEl() as unknown as { scroll: typeof to }).scroll = to;
+      act(() => { store.setSections({ gear: 1500, methods: 2100, methodsHeight: 400, licence: 2700 }); vi.advanceTimersByTime(200); });
+      rerender(tree(null));                                                   // the host took it (onStarted)
+      rerender(tree({ tab: "licence", sheet: "pos:pos", scroll: 30 }));      // the next link's start, same page
+      act(() => { vi.advanceTimersByTime(200); });
+      const sheetUp = screen.getAllByRole("heading").map((h) => h.textContent).includes("Possession");
+      rerender(tree(null));
+      rerender(tree({ tab: "keep", sheet: null, scroll: 0 }));               // and one that lands on the top, sheet shut
+      act(() => { vi.advanceTimersByTime(200); });
+      expect({ calls: to.mock.calls.map((c) => (c[0] as { top: number }).top), started: onStarted.mock.calls.length, sheetUp,
+               sheetAfter: screen.getAllByRole("heading").map((h) => h.textContent).includes("Possession"),
+               tab: screen.getByRole("tab", { name: "What you can keep" }).getAttribute("aria-selected") })
+        .toEqual({ calls: [1502, 2732, 0], started: 3, sheetUp: true, sheetAfter: false, tab: "true" });
+    } finally { vi.useRealTimers(); }
+  });
+
+  it("(T1038) a new start on the open page wins over a scroll memory still being restored", () => {
+    vi.useFakeTimers();
+    forgetRegsScroll();
+    try {
+      const store = createTabStore(), key = regsScrollKey("gnis:1", null, 7)!;
+      rememberRegsScroll(key, 1234);
+      const tree = (start: RegsScreenProps["start"]) => (
+        <WaterFrame palette={LIGHT} face="regulations">
+          <RegsScreen troutSources={TEST_TROUT_SOURCES} sources={TEST_SOURCES} page={page} palette={LIGHT} actions={NOOP} onDate={() => {}}
+                      gear={<Text>gear section</Text>} methods={<Text>methods section</Text>} licence={<Text>licence section</Text>}
+                      store={store} scrollKey={key} start={start} onStarted={() => {}} />
+        </WaterFrame>);
+      const { rerender } = render(tree(null));                               // restoring 1234: content not tall enough yet
+      const to = vi.fn();
+      (scrollEl() as unknown as { scroll: typeof to }).scroll = to;
+      act(() => { store.setSections({ gear: 1500, methods: 2100, methodsHeight: 400, licence: 2700 }); vi.advanceTimersByTime(300); });
+      rerender(tree({ tab: "licence", sheet: null, scroll: 30 }));
+      act(() => { vi.advanceTimersByTime(4000); });                          // the memory's ~3 s give-up has passed
+      expect(to.mock.calls.map((c) => (c[0] as { top: number }).top)).toEqual([2732]);
+    } finally { vi.useRealTimers(); forgetRegsScroll(); }
   });
 
   it("(T41) the dev-only walk hook: opens a sheet by key (a bad key: false); gone on unmount and outside dev (T810 cutover: no pin bar lines)", () => {
