@@ -88,7 +88,8 @@ expression is plain MapLibre style JSON.
 - **A** `v2-a-*`: on the stretch the line is drawn WIDER (T = max(1.5 × the stream's width, 6 px)) and split down the
   middle: the west half the closed colour, the east half the line's own. Reads "one bank closed" from z14; at z11–12 the
   stretch reads mostly red (river closed).
-- **B** `v2-b-*` (RECOMMENDED, built as the default): A + the app's own closed cue (`color.cue.closed` /
+- **B** `v2-b-*` (RECOMMENDED, built as the draft default, 238235297: `paint.ts` `bankHalfPaint` / `bankCuePaint`, four
+  runtime layers `stream-bank-{r,l}` + `stream-bank-cue-{r,l}`, `tools/bank-cue.test.ts`, 4 mutations caught): A + the app's own closed cue (`color.cue.closed` /
   `dash.cue.closed`, the paper dashes of `stream-closed`) down the middle of the closed half only. Reads "one bank closed"
   from z14 (z13 borderline); below that a red-and-white tick. The dashes are the colour-blind cue the closed line already
   has (T377), so it reads "closed" without the red.
