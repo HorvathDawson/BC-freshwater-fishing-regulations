@@ -11,6 +11,18 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## 2026-11-24: planning chat (roadmap row P) started
 
+- 0.9.0 release, two answers given to the 0.9.0 chat and relayed by it (recorded here by the planning chat, which
+  now keeps this file):
+  - ~11:30, on the stalled production Android build: "you can run it for me". The 0.9.0 chat ran command 1
+    (`build-apk --production`) for him, that time only.
+  - 11:59: "okay i am leaving you to the release of everything. can i release new prod data now?" The 0.9.0 chat's
+    reading (its own, not confirmed word for word by the owner): go for 0.9.0's remaining CONFIRM_PROD steps from its
+    session (iOS TestFlight production build, site, feeds worker), this release only. The owner ran the data release
+    himself. Done as of the relay: production data, site (smoke 18/18), feeds worker, Play build 44 on Internal and
+    Closed; the iOS build was still building. This does not change the standing rule: CONFIRM_PROD is the owner's
+    unless he says so that time.
+  - The v0.9.0 tag was moved to 65f84020c (versionCode 44) on his earlier OK; the merge-back PR carries the Play
+    record updates.
 - Store checks 2026-11-24 13:30 (planning chat, every source read): TestFlight 6 items, all T982; Play reviews none;
   production worker: one new crash kind on 0.8.5 (T1055); the four production reports of 11-21 are T985's (ids now
   written there). About 40 old items (0.7.x–0.8.2, mostly staging) show as new only because no ticket cites their id:
