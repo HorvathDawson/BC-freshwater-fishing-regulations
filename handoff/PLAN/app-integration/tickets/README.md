@@ -324,6 +324,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1079 | The Playwright MCP writes its console logs into the main checkout, whatever worktree a lane works in | OPEN — none (tooling; with the 0.9.2 chat) | | 0.9.1 chat 2026-11-24 |
 | T1080 | A new owner to-do page: markdown only, short, open items only (the artifact page is retired) | OPEN — planning chat, right after PR #114 merges | | owner 2026-11-24 |
 | T1081 | Audit every markdown file: delete the old, cut the bloated, unify the docs (1,326 files, about 134,000 lines) | OPEN — its own docs chat after 0.9.1 (proposed chat D); inventory first | | owner 2026-11-24 |
+| T1082 | An in-app star-rating prompt that does not get in the way (design first) | OPEN — 0.10 or 0.11; design page for the owner first | | owner 2026-11-24, via the 0.9.1 chat |
 
 ## Next after closed testing
 
