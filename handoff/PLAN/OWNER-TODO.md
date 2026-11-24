@@ -9,6 +9,23 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-24: planning chat (roadmap row P) started
+
+- Store checks 2026-11-24 13:30 (planning chat, every source read): TestFlight 6 items, all T982; Play reviews none;
+  production worker: one new crash kind on 0.8.5 (T1055); the four production reports of 11-21 are T985's (ids now
+  written there). About 40 old items (0.7.x–0.8.2, mostly staging) show as new only because no ticket cites their id:
+  T1057 ties them up.
+- Answered 2026-11-24: "no play closed testing feedback all was through the app pathway. users dont know how to use
+  play one and I dont either." Recorded in the questionnaire (Q3: four channels, no Play form) and the feedback log.
+- Answered 2026-11-24: the release table carries a short goal per release (ROADMAP-after-0.9.0.md, "Release contents").
+- New from you 2026-11-24: iOS store distribution and compliance (T1071), better screenshots and marketing content
+  before the full release (T1072), the app-update notice only when the phone can install it (T1073, 0.9.2).
+- **Question (you): three proposed chats.** 2b = 0.9.2 hardening (no features), S = store content (T1072; can run
+  beside 0.9.2), 5i = iOS full release (T1071). Say yes or change them, and whether the iOS release comes before or
+  after 0.9.2. Default until you answer: nothing starts; they stay marked "proposed" in the roadmap.
+- **Question (you): T1062 release candidates (rc tags).** Your idea from the 0.9.0 release. Default: planned with
+  chat 3 (repo move), a written plan for you to agree before anything is built.
+
 ## 2026-11-24 12:15–12:33: staging reports and the Kitimat creeks, the answers (verbatim)
 
 - T1029, the 12 side creeks at the Kitimat hatchery west-bank closure (shown the picture: reading 1 keep as today,

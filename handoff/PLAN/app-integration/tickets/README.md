@@ -297,6 +297,28 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1052 | A water closed to all fishing says it twice (a Salmon row and a game-fish "Closed all year" block; Nelson Creek) | OPEN — 0.9.1; owner pick of the words, then app build | | staging report 19a865256d6dd70d (owner 2026-11-24); lane L19 |
 | T1053 | Eagle Creek ✱: the walk stops at its head lake (Dick Lake), and Sources never says "tributaries" | OPEN — 0.9.1 for the Sources words; the head-lake walk waits on an owner ruling | | staging report 3eaf5ac25fc39d73 (owner 2026-11-24); lane L19 |
 | T1054 | Tides: a tide condition / forecast layer | OPEN — future (0.10 or later), unscoped | | owner 2026-11-24, relayed by the 0.9.0 chat |
+| T1055 | A new production crash kind on 0.8.5: `TypeError: Cannot read properties of undefined` (2 reports) | OPEN —  | | planning chat 2026-11-24 |
+| T1056 | Harrison Lake shows a hatchery-only lake trout rule: is it right? | DROPPED — duplicate (answered 2026-11-23, PR #85) | | — |
+| T1057 | `pipeline reports` lists about 40 old items as NEW: tie each id to a ticket or a class | OPEN —  | | planning chat 2026-11-24 |
+| T1058 | A production Android build hangs for an hour after BUILD SUCCESSFUL (Gradle daemon out of Metaspace) | OPEN —  | | planning chat 2026-11-24 |
+| T1059 | `scripts/ci_status.py --strict` says "no finished run" when the green run is on an ancestor more than 30 runs back | OPEN —  | | planning chat 2026-11-24 |
+| T1060 | App robustness: no React error boundary, and three one-render stale states | OPEN —  | | planning chat 2026-11-24 |
+| T1061 | A Map opened through "Flows into" shows a blank band of about 120 px (Skeena) | OPEN —  | | planning chat 2026-11-24 |
+| T1062 | Release candidates: tag `vX.Y.Z-rc.N` and promote, instead of moving the version tag after late fixes | OPEN —  | | planning chat 2026-11-24 |
+| T1063 | `scripts/heavy.sh`: a release build should not queue behind other chats' check tiers | OPEN —  | | planning chat 2026-11-24 |
+| T1064 | T1016 follow-ups: the release pointer names its previous release; the web applies new data only when the app version can read it | OPEN —  | | planning chat 2026-11-24 |
+| T1065 | T1047 follow-ups: level-only relocated stations, too-recent stations, and the two-sided publisher change | OPEN —  | | planning chat 2026-11-24 |
+| T1066 | Two hidden failures in the feeds code: the HYDAT release check and the DFO cache readers | OPEN —  | | planning chat 2026-11-24 |
+| T1067 | Release tooling gaps: `app_reads --check` on a format change, and `answers_diff`'s licence keys and count | OPEN —  | | planning chat 2026-11-24 |
+| T1068 | T1027 leftovers: scheduled notifications across an update, the `offline` bench step, a cold-start stall | OPEN —  | | planning chat 2026-11-24 |
+| T1069 | A Kildala-style polygon route is written in 10 pieces | OPEN —  | | planning chat 2026-11-24 |
+| T1070 | Timing-dependent app tests: `chart.render.test.tsx` waits a fixed 30 ms; vitest times out under load | OPEN —  | | planning chat 2026-11-24 |
+| T1071 | iOS App Store full release: distribution and compliance information | OPEN — its own chat, before the Play launch (iOS has no 14-day wait) | | planning chat 2026-11-24 |
+| T1072 | Better store screenshots and marketing content, before the full release (both stores) | OPEN —  | | planning chat 2026-11-24 |
+| T1073 | The "app update" notice shows only when this phone can actually install the update | OPEN —  | | planning chat 2026-11-24 |
+| T1074 | AGENTS rule 28 says map layers come only from `layers.source.json`, but every stream overlay is a runtime layer | OPEN —  | | planning chat 2026-11-24 |
+| T1075 | A lake's Gear line "Not allowed: Water insects and crayfish · Not on lakes." reads oddly | OPEN —  | | planning chat 2026-11-24 |
+| T1076 | The release runbook's "reshoot store pictures" step cannot be followed: the tool needs a store-shots build of the site | OPEN — with the store content chat (T1072), before the next Play listing update | | 0.9.0 chat 2026-11-24 |
 
 ## Next after closed testing
 
