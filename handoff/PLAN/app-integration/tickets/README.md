@@ -286,6 +286,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1040 | A stale side atlas still vouches for a proposal after its cut moves (side_dir's digest does not cover the cut's position) | DONE | 14f0d682e | PR #48 independent review, 2026-11-23 |
 | T1044 | Plain words on some gauges: how to read the level (bands, our own words, sourced) | OPEN — after 0.9.0 | | owner 2026-11-23 (lane L27) |
 | T1045 | Gauge pages should come up for "<river> river forecast / level / flow" (title/H1 words, water-to-gauge links, JSON-LD) | OPEN — 0.9.0 batch (code after #73) | T1039 | owner 2026-11-23 (lane L27) |
+| T1046 | Play production access: closed-test record, feedback log linked to releases, questionnaire | OPEN — until Google approves (apply on/after 2026-12-07) | T371, T863 | owner 2026-11-23; record in `handoff/PLAN/play-production-access/` |
 
 ## Next after closed testing
 

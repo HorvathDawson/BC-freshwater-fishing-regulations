@@ -387,6 +387,10 @@ that time").
   ```
 
   It merges itself once the four required checks pass. Then `git switch main && git pull --ff-only`.
+- **The production-access record** (T1046), on an app release: add a row to
+  `handoff/PLAN/play-production-access/releases.md` (version, date, builds, tracks, what changed for testers, the
+  feedback rows it answered), and in `feedback-log.md` set "Fixed in" to this version and status to "fixed" on every
+  row the release closes (a row reading "0.9.0 (pending)" becomes "0.9.0"). Commit both by PR with the merge back.
 
 ## A fix during the release
 
@@ -457,3 +461,4 @@ Staging has no rollback. The next release replaces it.
 - [ ] Step 7: rehearse (Claude); data, website, feeds worker (you, with the commands Claude hands you); smoke;
       phones (you); watch a day
 - [ ] Step 8: merge the release branch back by PR; `git switch main && git pull --ff-only`
+- [ ] Step 8: `play-production-access/releases.md` row added; "Fixed in" set on the feedback rows it closes
