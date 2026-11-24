@@ -94,7 +94,7 @@ def test_the_review_app_neither_builds_nor_promotes_an_atlas():
 @pytest.mark.smoke  # T667 D6: a guard beside the file's first test
 def test_the_tiles_carry_only_what_is_read():
     from pipeline.deliver.tiles.layers import BY_NAME, contract
-    assert BY_NAME["stream"].attrs == ("section_id", "name", "ord", "sc")      # T891: `sc` read by the style (side channels)
+    assert BY_NAME["stream"].attrs == ("section_id", "name", "ord", "sc", "pz")   # T891 `sc`, T1024 `pz`: read by the style
     assert BY_NAME["lake"].attrs == ("section_id", "name", "water", "area_m2", "lz")   # T1024: `lz` read by the ring
     assert BY_NAME["wetland"].attrs == ("section_id", "name", "water", "lz")
     on_disk = json.loads((REPO_ROOT / "pipeline/deliver/tiles/tile-contract.json").read_text())

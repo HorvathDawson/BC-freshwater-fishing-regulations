@@ -676,13 +676,18 @@ def bundle_section_measure(b: sqlite3.Connection) -> List[tuple]:
 def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, out_root: Path,
           data_release: Optional[str] = None, tiles: Optional[dict] = None, basemap: Optional[dict] = None,
           lakes: Optional[Path] = None, sources: Optional[dict] = None, synopsis: Optional[Path] = None,
-          reports: Optional[Path] = None) -> Path:
+          reports: Optional[Path] = None, previous: Optional[Path] = None) -> Path:
     """Write the release; return its directory (only the shipped files + manifest.json). `tiles`/`basemap`/`sources`
     are the manifest's blocks (manifest.py); `lakes` an optional lakes/1 file (pipeline/deliver/lake_facts.py), shipped
     as the file `lakes`; None (the default, and `deliver all`) ships none. Reads nothing past the bundle: the continuation
     links are the bundle's own `water_continue`. `reports` (T936): the build reports' root — the release's own lists are
-    written to `<reports>/<release id>/` (never shipped); None writes none (the warnings are still printed)."""
+    written to `<reports>/<release id>/` (never shipped); None writes none (the warnings are still printed).
+    `previous` (T1030): the release this one replaces (`deliver all`: the one LATEST names) — its per-water digest list
+    is what `manifest.changed_waters` counts against (`water_digests.py`); None, or one that wrote no list: no count."""
     from pipeline.deliver.answers.card_check import STAMP_NAME, stamp_problems
+    from pipeline.deliver.release import water_digests as WD
+    # (T1030) read BEFORE anything is written: a rebuild into the root `previous` lies in replaces that folder
+    before = WD.previous_state(previous)
     answers = export_dir / "ui-rules-answers.json"
     bad = stamp_problems(answers, answers.read_bytes())
     if bad:
@@ -820,6 +825,8 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
         # T517 (owner 2026-11-09: fail fast; review finding 8): the names and run rules on the SHIPPED water file too
         from pipeline.deliver.answers.display.name_check import check_release as _name_check
         _name_check(final)
+        # (T1030) the release's own per-water digest list, and the changed-waters count against `previous`'s
+        WD.attach(final, before)
         if reports is not None and _gear_hidden is not None:   # (T936) beside the release's other reports, by its id
             try:                                        # after ship(), before LATEST: a failed report never strands it
                 SALMON_GEAR.write(_gear_hidden, Path(reports) / final.name)

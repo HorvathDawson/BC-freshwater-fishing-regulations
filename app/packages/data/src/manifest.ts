@@ -61,6 +61,14 @@ export function parseManifest(json: unknown): Manifest {
         || typeof e.format !== "string" || typeof e.bytes !== "number")
       throw new ManifestError(`manifest: file ${JSON.stringify(name)} lacks a url, bytes, sha256 or format`);
   }
+  // (T1030) the inbox's "N waters changed": a count, or absent (the build could not count). Anything else is a drifted
+  // manifest, named here — the inbox's history would refuse it later, and lose every row with it
+  const changed = (m as { changed_waters?: unknown }).changed_waters;
+  if (changed !== undefined && !(Number.isInteger(changed) && (changed as number) >= 0))
+    throw new ManifestError(`manifest: changed_waters ${JSON.stringify(changed)} is not a count`);
+  const from = (m as { changed_waters_from?: unknown }).changed_waters_from;
+  if (from !== undefined && typeof from !== "string")
+    throw new ManifestError(`manifest: changed_waters_from ${JSON.stringify(from)} is not a release id`);
   return m as Manifest;
 }
 

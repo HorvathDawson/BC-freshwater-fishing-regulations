@@ -362,10 +362,13 @@ export function Shell(p: ShellProps) {
     void nav.opener.item(item as ItemId, "regs");
   }, [searching, go, nav.opener]);
   // (T867) the release in use and the app's version, for the inbox's data / app update rows; a row opens the More tab
-  // (its Data block) or What's new
+  // (its Data block) or What's new. (T1030) `changed`: how many waters the release says it changed, and `changedFrom`
+  // the release it counted against — absent: null, and the row says nothing of it (rule 32; core says it only when this
+  // device held that release)
   const manifest = loader?.manifest ?? null;
   const track = useMemo(() => ({
-    release: manifest ? { id: manifest.data_release, day: manifest.published ?? null } : null,
+    release: manifest ? { id: manifest.data_release, day: manifest.published ?? null,
+                          changed: manifest.changed_waters ?? null, changedFrom: manifest.changed_waters_from ?? null } : null,
     app: menuInfo?.appVersion ?? null,
   }), [manifest, menuInfo?.appVersion]);
   const inboxOpensUpdate = useCallback((kind: "data" | "app") => {

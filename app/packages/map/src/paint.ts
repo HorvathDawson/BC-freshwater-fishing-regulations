@@ -77,6 +77,24 @@ const edgeLook = (tokens: Tokens): boolean => Number(tokens["flag.selection.edge
 export const SELECTION_GLOW = "selection-glow";
 export const hasGlow = (tokens: Tokens): boolean => Number(tokens["opacity.selection.glow"]) > 0;
 
+/** A paint value per TILE ZOOM: `at(z)` for z = 0..ATLAS_MAX_ZOOM as one top-level step (`["zoom"]` may only be the
+ *  input of a top-level step in a paint property). The camera's zoom floored is the tile's (512 px tiles). */
+const perTileZoom = (at: (z: number) => unknown) =>
+  ["step", ["zoom"], at(0), ...Array.from({ length: ATLAS_MAX_ZOOM }, (_, i) => [i + 1, at(i + 1)]).flat()];
+
+/**
+ * (T1024, the #81 review) A STUB'S CASING GIVES WAY TO ITS POLYGON'S RING. A stream polygon whose route is a stub
+ * (shorter than 0.3 of the polygon's long side: the Okanagan River Oxbows 1281106, 67 m in a 57,000 m2 loop) carries no
+ * `lz`, so it is ringed wherever it is drawn — the stub cannot light it — and the stub's own casing inside the ring was a
+ * second outline. The stub's line carries `pz`, the first zoom its polygon is drawn at (pipeline tiles/export.py, proved on
+ * the written files by tiles/stream_polygon_lines.py): from `pz` the casing (and look C's glow) is opacity 0 on it and the
+ * ring is the outline; below it the stub is all there is of the water and is cased. In the opacity, per tile zoom, as the
+ * ring's `lz` is — not a filter: a filter would split the casing's bucket from the stream's (the map lab's one-bucket
+ * switch, `lab.ts`). A line without `pz` (every line of old tiles) is cased exactly as before.
+ */
+const stubAt = (z: number) => ["all", ["has", "pz"], ["<=", ["number", ["get", "pz"]], z]];
+export const casedOnly = (opacity: unknown) => perTileZoom((z) => ["case", stubAt(z), 0, opacity]);
+
 /** The stream casing's paint: the stream's own width (`streamWidth`, with its floors) plus the outline each side. */
 export function casingPaint(streamWidth: unknown, tokens: Tokens): Record<string, unknown> {
   const px = casingPx(tokens);
@@ -88,6 +106,7 @@ export function casingPaint(streamWidth: unknown, tokens: Tokens): Record<string
     paint["line-color"] = ["case", ON, tokens["color.selection.edge"], tokens["color.ui.attention"]];
     paint["line-opacity"] = ["case", ON, 1, ["all", INSEASON, WATER], Number(tokens["opacity.selection.casing.others"]), OUTLINE_SHOWN];
   }
+  paint["line-opacity"] = casedOnly(paint["line-opacity"]);
   return paint;
 }
 
@@ -96,7 +115,7 @@ export function glowPaint(streamWidth: unknown, tokens: Tokens): Record<string, 
   const px = casingPx(tokens);
   return { "line-color": tokens["color.ui.attention"], "line-blur": 6,
            "line-width": withinZoomCurve(streamWidth, (v) => ["+", v, 2 * px + 12]),
-           "line-opacity": ["case", ON, Number(tokens["opacity.selection.glow"]), 0] };
+           "line-opacity": casedOnly(["case", ON, Number(tokens["opacity.selection.glow"]), 0]) };
 }
 
 /**
@@ -110,10 +129,8 @@ export function glowPaint(streamWidth: unknown, tokens: Tokens): Record<string, 
  * truth: pipeline tiles/stream_polygon_lines.py.
  */
 const ringedAt = (z: number) => ["any", ["!", ["has", "lz"]], [">", ["number", ["get", "lz"]], z]];
-/** The ring's opacity: OUTLINE_SHOWN where `ringedAt` the tile's zoom (a step per zoom, as `["zoom"]` may only be the
- *  input of a top-level step in a paint property), 0 elsewhere. The camera's zoom floored is the tile's (512 px tiles). */
-const RING_SHOWN = ["step", ["zoom"], ["case", ringedAt(0), OUTLINE_SHOWN, 0],
-  ...Array.from({ length: ATLAS_MAX_ZOOM }, (_, i) => [i + 1, ["case", ringedAt(i + 1), OUTLINE_SHOWN, 0]]).flat()];
+/** The ring's opacity: OUTLINE_SHOWN where `ringedAt` the tile's zoom, 0 elsewhere (`perTileZoom`). */
+const RING_SHOWN = perTileZoom((z) => ["case", ringedAt(z), OUTLINE_SHOWN, 0]);
 
 /** A selected lake's or wetland's ring (and a stream polygon's, where its line is not drawn: `ringedAt`). */
 export function ringPaint(tokens: Tokens): Record<string, unknown> {

@@ -9,11 +9,76 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-24 08:25–08:50: 0.9.1 overnight questions, the answers (verbatim)
+
+- T905 salmon sizes: "Move worker state out (Recommended)" — the worker's own bookkeeping leaves the public feed (feed
+  to about 121,700 B, a feeds worker deploy); the salmon file's gate stays 110,000 B gz.
+- T1030 what "N waters changed" counts: "Rules only, hide 0 (Recommended)" — rule changes only, and no count shown at 0.
+- T1029 the one-bank stripe (build it, from which zoom): "Should make it more visible right now it isn't ?" — read as:
+  build the stripe, but the pictured stripe is too faint; new pictures with a bolder stripe before anything is built in.
+- T1047 datum rows: first "Idk what this wants"; asked again in plain words (shift the history of 08HD006 by 5.0 m and
+  08EF001 by 2.37 m so their normal range comes back): "Yes but make sure it is a clean well documented update that
+  happens which is easy to see" — accept those two rows; the change must be documented and easy to see (what moved,
+  by how much, from which note). 07FD001, 08KH019 and 08MH153 were not asked: they stay proposed.
+- T1029 Q4, a one-bank stripe where the river is drawn as a polygon: "Along the bank edge".
+- T1029 Q5, the 12 side creeks the Kitimat bank closure binds: "No stripe on creeks and only tributaries on the one
+  bank side get included" — no stripe on creeks; and a one-bank place that includes tributaries takes only the
+  tributaries that join on that bank (a binding change, not only a look).
+- T1029 Q6, the rule book's own west-half rule: "Yes, stripe it too (Recommended)".
+- T1016 the notice words: "Force refresh instead?"; asked how (auto unless typing / always / keep the notice):
+  "Always auto refresh" — a web tab whose data was replaced reloads itself at once onto the live release, with no
+  notice to press, even mid-typing (the same for a tab opened before a site update).
+- T1031 trout row sources, A or B: "Go on to B" — every rule listed in the row's breakdown too (a Python change,
+  ships with the 0.9.1 data release).
+- T1036 rules shown only in a species sheet, and Possession, on the "All sources" sheet: "Add back but maybe have
+  them separate?" — add them back, under their own heading apart from what the screen draws; pictures of the
+  separate group before it merges.
+- T1024 the stub polygon's after look: "Yes, after is right (Recommended)".
+
+## 2026-11-24: 0.9.1 overnight questions (as asked; the answers are in the section above)
+
+Pictures and options for all eight are on one page: https://claude.ai/artifact/UZhX9gBLs6JiynhgVcWuFR (the 0.9.1 chat asks
+them in chat; answers go here verbatim).
+
+- **Know first (no answer needed):** every Android build with R8 on (new in 0.9.0) stripped a WorkManager constructor, so
+  the background check never ran with the app closed (no gauge alerts, no update notices). Fixed on main (T1027, PR #109);
+  the 0.9.0 chat cherry-picks it into 0.9.0 before its Play build.
+- **T905 salmon feed and salmon file sizes: which way down?** Neither gets under its old size without a format change
+  that installed 0.9.0 apps refuse. Options 1–4 in the ticket: keep the budgets; move the worker's own state out of the
+  feed (safe, about 121,700 B, a worker deploy); new feed and head formats in 0.9.1; the same with the feed waiting.
+  Default until answered: budgets stay (135,000 B / 110,000 B gz). Recommended: option 2.
+- **T1047 datum changes: accept each proposed row?** 08HD006 (−5.0 m from 2025-06-05) and 08EF001 (+2.370 m from
+  2025-01-30) can be accepted now. 07FD001 (+94.826 m from 2026-08-05) and 08KH019 (+1.011 m from 2026-07-07) only after
+  the this-year line is fixed or 2027 begins (the file refuses them until then). 08MH153: recommended reject (a slow
+  creep, not a step). Default: all five stay proposed; nothing changes. Pictures: `handoff/PLAN/app-integration/T1047-shots/`.
+- **T1030 "N waters changed": what counts?** A: wording changes too. B (built): rules only. C: rules only, nothing shown
+  at 0. With B, 0.9.0 would have read "2 waters changed" though 8,247 waters were reworded. Recommended: C.
+- **T1029 one-bank stripe, Q4–Q6** (a prototype in draft PR #112, not merged): the stripe from zoom 13; Q4 no stripe on
+  a polygon reach (c); Q5 no stripe on the 12 tributaries; Q6 the rule book's west half gets the stripe. Those are the
+  lane's recommendations; nothing is built into the app until answered.
+- **T1016 the two notice texts** (merged with these as default): "This page's data was replaced by a newer release. /
+  Load the new data ›" and "The app was updated since this page opened. / Reload ›". Pictures:
+  `handoff/PLAN/app-integration/T1016-shots/`. Also yours to say go on: the feeds worker deploy that classes these
+  reports as expected.
+- **T1031 trout rows:** A (merged): every page behind a row on its Source line. B: every rule in the row's breakdown
+  too (a Python change and a data release). Pictures: `handoff/PLAN/app-integration/T1031-shots/` (`rowpages-*`).
+- **T1036 "All sources":** should a species sheet's own rules, and Possession, be listed in the page's sheet? Built: no.
+  Pictures: `handoff/PLAN/app-integration/T1036-shots/`.
+- **T1024 stub polygons: look at the after shots** (the ring alone on a selected river polygon whose route is a short
+  stub; needs the 0.9.1 tile build). On the page above.
+- Store checks 2026-11-24 00:50: TestFlight 6 items, all already ticketed (T982); Play none; production worker nothing
+  new since the last check. With the worker tokens the reports command also lists 36 old items (app 0.7.x–0.8.0, up to
+  2026-11-18, mostly the staging worker) as never ticketed: handed to the planning chat, not ticketed by the 0.9.1 chat.
+
 ## 2026-11-24: 0.9.0 release answers (verbatim)
 
 - Salmon head size gate (T796, T905): "Raise to 110,000 (Recommended)". 100,000 → 110,000; the shrink is T905.
 - The side atlas (T1012, T803): "yes promote if it fixes all the issues??" — promoted only after the four checks (inputs, preflight, binding diff, vintage) pass.
 - The main checkout: "Yes, switch and go (Recommended)" — release/0.9.0 for Steps 2–5, back to main after.
+- Cold-start tab links (T1049; device pass: tab=gear 0/6, tab=licence 1/6 on a cold start, fine when the app is open): "Ship, fix in 0.9.1 (Rec.)". 0.9.0 ships with it as a known issue; the 0.9.1 chat owns the fix.
+- The 0.9.0 What's new bullets (the five in changelog.ts): "OK as written (Rec.)". The draft mark is cleared on release/0.9.0 (the entry is only there until the merge-back).
+- The v0.9.0 tag (it was at a98dd68f9, before the WorkManager, crash and tab fixes): "Yes but in future we can use release candidates ?". Moved to the commit the production build uses. Release candidates for later releases go to the planning chat as a runbook item: tag each staging candidate `v<x.y.z>-rc.<n>`, and tag `v<x.y.z>` only at the production commit.
+- The production Android build's CI check (docs-ci lookback of 30 runs misses the green ancestor run; the checker bug is with the 0.9.1 chat): "Yes, with the reason (Rec.)". The build runs with a CI_CHECK_SKIP that states the reason.
 
 ## 2026-11-23: Google Play production access, the closed-test clock (T1046)
 - **Clock:** every tester opted in on 2026-11-23 (you). 14 days → **earliest apply 2026-12-07**, if at least 12 stay
@@ -77,7 +142,7 @@ with the default Claude uses until you answer). Newest first inside each section
 - Pick: T1039 gauge page chart (Q183) — answered 2026-11-23, verbatim: chart "App's chart, ~260 KB (Recommended)"; ELF "Yes, fix in 0.9.0 (Recommended)". Closed; lane L25 builds both.
 
 ## 2026-11-23: lane L29 (0.9.0 batch) — one look
-- **T1024 Gravel Slough highlight: look at the before/after shots** (`handoff/PLAN/app-integration/T1024-shots/gravel-before-after.png`, `oxbows-before-after.png`, `gun-before-after.png`): where a slough's or wide reach's line is drawn, only the line is outlined — no ring round each piece of its polygon; where it is not yet drawn (zoomed out, or no line at all) the polygon keeps its ring. Note Gun Creek z13: the wide 3 km² reach shows only its line's outline. Say if it reads right.
+- **T1024 Gravel Slough highlight: look at the before/after shots** (`handoff/PLAN/app-integration/T1024-shots/gravel-before-after.png`, `oxbows-before-after.png`, `gun-before-after.png`): where a slough's or wide reach's line is drawn, only the line is outlined — no ring round each piece of its polygon; where it is not yet drawn (zoomed out, or no line at all) the polygon keeps its ring. Note Gun Creek z13: the wide 3 km² reach shows only its line's outline. Say if it reads right. Also (0.9.1, PR #111) `stub-oxbows-light.png` / `stub-oxbows-dark.png` and `stub-nazko-light.png` / `stub-nazko-dark.png`: where a polygon's line is only a short stub inside it, the polygon keeps its ring and the stub no longer gets a second outline inside it (`stub-oxbows-matrix.png`: old app or old tiles look exactly as today).
 
 ## 2026-11-23 ~10:50: T1031 inline sources (answers, verbatim)
 - T1031 inline look: "Yes, as built (Recommended)" — the one Source line (`T1031-shots/inline-*`), kept as built (PR #69).

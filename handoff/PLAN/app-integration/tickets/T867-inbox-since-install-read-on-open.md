@@ -1,6 +1,6 @@
 # T867 — The notifications inbox: only what happened since install, read once seen, short, with data and app updates
 
-Status: PARTIAL, left (Claude): T1030 (the release carries a changed-waters count) for the data row to say "N waters changed" (owner 2026-11-22 23:55 "Build all four"; code 1d488995b, in review: PR feat/T867-inbox).
+Status: DONE — 312c20693, d26b1d0c2; the data row's "N waters changed" came with T1030 (f75e6aac1, PR #105: said only when the count was taken against the release the device held before)
 Known LOW items left as they are (re-review of PR #58): (a) the bell opened by hand while the walkthrough is still due reads nothing until the tour ends; (b) if the apply curtain starts while the sheet is up, the rows read and show under Earlier in the same open. Gap: no test covers the apply-curtain exclusion on its own.
 
 Owner 2026-11-18 ~19:50 (to the app chat), verbatim: "I don't think the inbox works properly for the app all in season
