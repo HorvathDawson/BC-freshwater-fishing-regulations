@@ -295,7 +295,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1050 | Methods: "Ice fishing" repeats the Gear tab's line and hook counts (Dick Lake) | OPEN — 0.9.1; owner pick of the words, then pipeline + data release | | staging report 4eedeb08d1964b44 (owner 2026-11-24); lane L19 |
 | T1051 | A lake's Gear tab says nothing about treble or barbed hooks (both allowed; Dick Lake) | OPEN — 0.9.1; owner pick of the words, then app build | | staging report 437acc75d93a4a1a (owner 2026-11-24); lane L19 |
 | T1052 | A water closed to all fishing says it twice (a Salmon row and a game-fish "Closed all year" block; Nelson Creek) | OPEN — 0.9.1; owner pick of the words, then app build | | staging report 19a865256d6dd70d (owner 2026-11-24); lane L19 |
-| T1053 | Eagle Creek ✱: the walk stops at its head lake (Dick Lake), and Sources never says "tributaries" | OPEN — 0.9.1 for the Sources words; the head-lake walk waits on an owner ruling | | staging report 3eaf5ac25fc39d73 (owner 2026-11-24); lane L19 |
+| T1053 | Eagle Creek ✱: the walk stops at its head lake (Dick Lake), and Sources never says "tributaries" | PARTIAL — owner: OWNER-TODO "T1053 walk through a head lake"; built on feat/T1053-walk-climbs-head-lakes (draft PR); waits for the owner to read the head-lake list and pick the Sources words, then the 0.9.1 data release | 21f13ae62, 61829dbbf | staging report 3eaf5ac25fc39d73 (owner 2026-11-24); lane L19 |
 | T1054 | Tides: a tide condition / forecast layer | OPEN — future (0.10 or later), unscoped | | owner 2026-11-24, relayed by the 0.9.0 chat |
 
 ## Next after closed testing
