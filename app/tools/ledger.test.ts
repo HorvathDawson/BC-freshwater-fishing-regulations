@@ -19,7 +19,7 @@ import { describe, expect, it } from "vitest";
 import {
   HEAD_FILE, LEDGER_POINTER, OLD_DONE, OWNER_DIR, OWNER_PAGE, README, ROW_HEADER, ROW_SEP, carry, gitMerge3, importOld,
   insertRow, itemFile, ledgerViews, ownerTodoText, readOwnerItems, roundTrip, setRow, splitOwnerTodo, stripRow, tableRows,
-  ticketRow, treeAt,
+  ticketRow, treeAt, claimPath, claimProblems, staleViews, readWorkTree,
 } from "./ledger.mjs";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
@@ -131,6 +131,24 @@ describe("the owner to-do", () => {
   });
 });
 
+describe("the number claims and conflict markers (T1041 review)", () => {
+  const t = [{ name: "T5-a.md", text: "" }, { name: "T6-b.md", text: "" }];
+  it("every ticket file has its claim naming it, every claim a ticket of its number", () => {
+    expect(claimProblems(t, [{ name: "T5", text: "T5-a.md\n" }, { name: "T6", text: "T6-b.md\n" }])).toEqual([]);
+    expect(claimProblems(t, [{ name: "T5", text: "T5-a.md\n" }])).toEqual([
+      "T6: no number claim handoff/PLAN/app-integration/tickets/ids/T6 (node app/tools/ledger.mjs --claim writes it): two PRs that take one number must collide there"]);
+    expect(claimProblems(t, [{ name: "T5", text: "T5-other.md\n" }, { name: "T6", text: "T6-b.md\n" }, { name: "T7", text: "T7-gone.md\n" }])).toEqual([
+      'T5: handoff/PLAN/app-integration/tickets/ids/T5 claims "T5-other.md", but the ticket file is T5-a.md: one number, one ticket',
+      'handoff/PLAN/app-integration/tickets/ids/T5: claims "T5-other.md", which is not a ticket file of that number',
+      'handoff/PLAN/app-integration/tickets/ids/T7: claims "T7-gone.md", which is not a ticket file of that number']);
+  });
+  it("an owner item or the head holding a conflict marker line is refused", () => {
+    const got = readOwnerItems([{ name: HEAD_FILE, text: "# h\n>>>>>>> old-style side\n" }, { name: "a.md", text: itemFile(1, "## A\n<<<<<<< new-style side") }]).problems;
+    expect(got).toEqual([`${OWNER_DIR}/_head.md: holds a merge-conflict marker line (<<<<<<< / >>>>>>>): settle it`,
+      `${OWNER_DIR}/a.md: holds a merge-conflict marker line (<<<<<<< / >>>>>>>): settle it`]);
+  });
+});
+
 const OLD = {
   tickets: [ticket("T1", "OPEN."), ticket("T2", "DONE — abc1234"), ticket("T3", "DROPPED — not needed"), ticket("T10", "IN PROGRESS — lane")]
     .map((text, k) => ({ name: `${["T1", "T2", "T3", "T10"][k]}-x.md`, text })),
@@ -200,7 +218,8 @@ const oldTree = (o: typeof OLD): Tree => new Map([...o.tickets.map((t) => [`${T}
 const newTree = (o: typeof OLD): Tree => {
   const out = importOld(o);
   return new Map([...out.tickets.map((t) => [`${T}/${t.name}`, t.text] as [string, string]), [README, out.readme], [OWNER_PAGE, out.ownerPage],
-    ...out.ownerFiles.map((f) => [`${OWNER_DIR}/${f.name}`, f.text] as [string, string])]);
+    ...out.ownerFiles.map((f) => [`${OWNER_DIR}/${f.name}`, f.text] as [string, string]),
+    ...out.claims.map((c) => [claimPath(c.name), c.text] as [string, string])]);
 };
 /** OLD as an old-style branch edited it: T1 closed (Status + row), T4 added, an owner item added on top, one edited,
  *  one removed, README's owner questions edited */
@@ -223,7 +242,8 @@ describe("the carry of an old-style side (pure)", () => {
     expect(ticketRow("T1-x.md", at(`${T}/T1-x.md`)).row?.line).toBe(row("T1", "DONE", "fff0001"));
     expect(at(`${T}/T1-x.md`)).toMatch(/^Status: DONE — fff0001$/m);
     expect(ticketRow("T4-x.md", at(`${T}/T4-x.md`)).row?.line).toBe(row("T4", "OPEN"));
-    expect([...res.write.keys()].filter((p) => p.startsWith(T)).sort()).toEqual([`${T}/README.md`, `${T}/T1-x.md`, `${T}/T4-x.md`]);
+    expect([...res.write.keys()].filter((p) => p.startsWith(T)).sort()).toEqual([`${T}/README.md`, `${T}/T1-x.md`, `${T}/T4-x.md`, `${T}/ids/T4`]);
+    expect(res.write.get(claimPath("T4"))).toBe("T4-x.md\n");                 // the added ticket claims its number
     expect(res.remove).toEqual(new Set([OLD_DONE, `${OWNER_DIR}/decisions-undated.md`]));
     expect(at(README)).toContain("q2 (asked on the branch)");
     expect(tableRows(at(README))).toEqual([]);
@@ -249,6 +269,69 @@ describe("the carry of an old-style side (pure)", () => {
   });
 });
 
+describe("the carry: nothing vanishes (each case a conflict with a FILE)", () => {
+  const base = oldTree(OLD), neu = newTree(OLD);
+  const item = (tree: Tree, heading: string) => [...tree].find(([p, t]) => p.startsWith(OWNER_DIR) && t.includes(`\n${heading}`));
+  const NEWEST = "## 2026-11-24: newest (verbatim)";
+  it("an owner item edited on the old side and removed on the new side comes back with markers", () => {
+    const neu2 = new Map(neu); neu2.delete(item(neu, NEWEST)![0]);
+    const old = oldTree({ ...OLD, ownerTodo: OLD.ownerTodo.replace("- a\n", "- a (edited on the release)\n") });
+    const r = carry({ base, old, neu: neu2 }, gitMerge3);
+    expect(r.conflicts.map((c: { path: string }) => c.path)).toEqual([`${OWNER_DIR}/2026-11-24-newest-verbatim.md`]);
+    expect(r.write.get(`${OWNER_DIR}/2026-11-24-newest-verbatim.md`)).toMatch(/<<<<<<< new-style side\n\(removed on the new-style side\)\n=======\n## 2026-11-24: newest \(verbatim\)\n\n- a \(edited on the release\)/);
+  });
+  it("an owner item removed on the old side and edited on the new side keeps its file, with markers", () => {
+    const [p, t] = item(neu, NEWEST)!;
+    const neu2 = new Map(neu); neu2.set(p, t.replace("- a\n", "- a (edited on main)\n"));
+    const old = oldTree({ ...OLD, ownerTodo: OLD.ownerTodo.replace(/## 2026-11-24: newest[\s\S]*?(?=## 2026-11-23)/, "") });
+    const r = carry({ base, old, neu: neu2 }, gitMerge3);
+    expect(r.conflicts.map((c: { path: string }) => c.path)).toEqual([p]);
+    expect(r.remove.has(p)).toBe(false);
+    expect(r.write.get(p)).toContain("- a (edited on main)");
+    expect(r.write.get(p)).toMatch(/\n=======\n\(removed on the old-style side\)\n>>>>>>> old-style side\n$/);
+  });
+  it("a row changed on the old side whose file is gone (renamed) on the new side is written back with markers", () => {
+    const neu2 = new Map(neu); neu2.set(`${T}/T1-renamed.md`, neu.get(`${T}/T1-x.md`)!); neu2.delete(`${T}/T1-x.md`);
+    const old = oldTree({ ...OLD, readme: OLD.readme.replace(row("T1", "OPEN"), row("T1", "IN PROGRESS — the release")) });
+    const r = carry({ base, old, neu: neu2 }, gitMerge3);
+    expect(r.conflicts.map((c: { path: string }) => c.path)).toEqual([`${T}/T1-x.md`]);
+    expect(r.write.get(`${T}/T1-x.md`)).toContain(row("T1", "IN PROGRESS — the release"));
+    expect(r.write.get(`${T}/T1-x.md`)).toMatch(/^<<<<<<< new-style side\n\(this file is gone on the new-style side/);
+  });
+  it("a ticket the old side removes goes, with its claim (no conflict)", () => {
+    const old = oldTree({ ...OLD, tickets: OLD.tickets.filter((t) => t.name !== "T3-x.md"), readme: OLD.readme.replace(row("T3", "DROPPED — not needed"), "") });
+    const r = carry({ base, old, neu }, gitMerge3);
+    expect([r.conflicts, r.remove.has(`${T}/T3-x.md`), r.remove.has(claimPath("T3"))]).toEqual([[], true, true]);
+  });
+  it("an old-side section under a heading already used is carried as a second item, and is a conflict", () => {
+    const old = oldTree({ ...OLD, ownerTodo: `${OLD.ownerTodo.trimEnd()}\n\n${NEWEST}\n\n- a second one, from the release\n` });
+    const r = carry({ base, old, neu }, gitMerge3);
+    const [p] = r.conflicts.map((c: { path: string }) => c.path);
+    expect(r.write.get(p)).toContain("- a second one, from the release");
+    expect(r.conflicts[0].why).toMatch(/adds a second item headed/);
+  });
+  it("a heading both sides renamed is a conflict, never two silent copies", () => {
+    const [p, t] = item(neu, NEWEST)!;
+    const neu2 = new Map(neu); neu2.delete(p); neu2.set(`${OWNER_DIR}/main-name.md`, t.replace(NEWEST, "## 2026-11-24: newest, as main calls it"));
+    const old = oldTree({ ...OLD, ownerTodo: OLD.ownerTodo.replace(NEWEST, "## 2026-11-24: newest, as the release calls it") });
+    const r = carry({ base, old, neu: neu2 }, gitMerge3);
+    expect(r.conflicts.map((c: { why: string }) => c.why)).toEqual([expect.stringMatching(/renamed "## 2026-11-24: newest \(verbatim\)" to "## 2026-11-24: newest, as the release calls it"; the new-style side removed or renamed it too/)]);
+  });
+  it("an old-side item added on top goes ABOVE the current top, a number no item holds", () => {
+    const neu2 = new Map(neu); neu2.set(`${OWNER_DIR}/main-top.md`, itemFile(40, "## 2026-11-26: newer on main"));
+    const old = oldTree({ ...OLD, ownerTodo: OLD.ownerTodo.replace(NEWEST, `## 2026-11-25: from the release\n\n- r\n\n${NEWEST}`) });
+    const r = carry({ base, old, neu: neu2 }, gitMerge3);
+    const added = [...r.write].find(([, t]) => t.includes("from the release"))!;
+    expect(added[1]).toMatch(/^order: 50\n/);
+  });
+  it("an old-side ticket whose number the new side already took is a conflict on the claim", () => {
+    const neu2 = new Map(neu); neu2.set(`${T}/T4-main.md`, insertRow(ticket("T4", "OPEN."), row("T4", "OPEN"))); neu2.set(claimPath("T4"), "T4-main.md\n");
+    const r = carry({ base, old: oldTree(BRANCH), neu: neu2 }, gitMerge3);
+    expect(r.conflicts.map((c: { path: string }) => c.path)).toEqual([claimPath("T4")]);
+    expect(r.write.get(claimPath("T4"))).toBe("<<<<<<< new-style side\nT4-main.md\n=======\nT4-x.md\n>>>>>>> old-style side");
+  });
+});
+
 describe("--resolve through git, both ways (a made-up repository)", () => {
   const write = (dir: string, tree: Tree) => { for (const [p, text] of tree) { mkdirSync(dirname(join(dir, p)), { recursive: true }); writeFileSync(join(dir, p), text); } };
   const repo = () => {
@@ -266,7 +349,9 @@ describe("--resolve through git, both ways (a made-up repository)", () => {
   const resolve = (dir: string) => spawnSync(process.execPath, [SCRIPT, "--resolve"], { cwd: dir, env: cleanEnv(), encoding: "utf8" });
   const settled = (dir: string, git: (...a: string[]) => string) => {
     expect(git("diff", "--name-only", "--diff-filter=U")).toBe("");
-    expect(readdirSync(join(dir, T)).sort()).toEqual(["README.md", "T1-x.md", "T10-x.md", "T2-x.md", "T3-x.md", "T4-x.md"]);
+    expect(readdirSync(join(dir, T)).sort()).toEqual(["README.md", "T1-x.md", "T10-x.md", "T2-x.md", "T3-x.md", "T4-x.md", "ids"]);
+    expect(readdirSync(join(dir, T, "ids")).sort()).toEqual(["T1", "T10", "T2", "T3", "T4"]);
+    expect(staleViews(dir)).toEqual([]);
     expect(ticketRow("T1-x.md", readFileSync(join(dir, T, "T1-x.md"), "utf8")).row?.status).toBe("DONE");
     expect(ticketRow("T4-x.md", readFileSync(join(dir, T, "T4-x.md"), "utf8")).row?.status).toBe("OPEN");
     expect(readFileSync(join(dir, README), "utf8")).toContain("q2 (asked on the branch)");
@@ -281,6 +366,9 @@ describe("--resolve through git, both ways (a made-up repository)", () => {
     expect([r.status, r.stderr]).toEqual([0, ""]);
     expect(r.stdout).toMatch(/carried from the old-style side \(the branch being merged in\): 2 ticket files, 2 rows, 3 owner items, 1 README text; 2 removed/);
     settled(dir, git);
+    const t2 = join(dir, T, "T2-x.md");
+    writeFileSync(t2, setRow(readFileSync(t2, "utf8"), row("T2", "DONE", "abc1234", "a title edited after the views were built")));
+    expect(staleViews(dir)).toEqual(["handoff/PLAN/views/DONE.md"]);                    // self-declaring: --check / the guard's warning
   });
   it("an old-style branch merges the new-style main (release/0.9.0, any open PR)", () => {
     const { dir, git } = repo();
@@ -303,6 +391,37 @@ describe("--resolve through git, both ways (a made-up repository)", () => {
     expect(r.stderr).toContain(`${p}: both sides changed it`);
     expect(git("diff", "--name-only", "--diff-filter=U")).toBe(p);
     expect(() => git("commit", "--no-edit")).toThrow(/unmerged|not possible/i);
+  });
+  it("an item the release edits and main removes stays UNMERGED: a plain commit refuses (no silent loss)", () => {
+    const { dir, git } = repo();
+    git("checkout", "-q", "-b", "main2", "main");
+    git("rm", "-q", `${OWNER_DIR}/2026-11-23-no-blank-before-the-next-heading.md`); git("commit", "-q", "-m", "main drops an item");
+    git("checkout", "-q", "old");
+    writeFileSync(join(dir, OWNER_PAGE), readFileSync(join(dir, OWNER_PAGE), "utf8").replace("text\n", "text, edited on the release\n"));
+    git("commit", "-q", "-am", "the release edits the item");
+    spawnSync("git", ["merge", "--no-ff", "--no-commit", "main2"], { cwd: dir, env: cleanEnv() });
+    const r = resolve(dir);
+    expect(r.status).toBe(1);
+    expect(r.stderr).toMatch(/edited on the old-style side and removed on the new-style side/);
+    expect(git("diff", "--name-only", "--diff-filter=U")).toBe(`${OWNER_DIR}/2026-11-23-no-blank-before-the-next-heading.md`);
+    expect(() => git("commit", "--no-edit")).toThrow(/unmerged|not possible/i);
+  });
+  it("(claims) two new-style branches that take one ticket number COLLIDE in git; different numbers merge", () => {
+    const { dir, git } = repo();
+    const add = (branch: string, name: string) => {
+      git("checkout", "-q", "-b", branch, "main");
+      writeFileSync(join(dir, T, name), insertRow(ticket(idOf(name), "OPEN."), row(idOf(name), "OPEN")));
+      writeFileSync(join(dir, claimPath(idOf(name))), `${name}\n`);
+      git("add", "-A"); git("commit", "-q", "-m", `add ${name}`);
+    };
+    const idOf = (n: string) => n.split("-")[0]!;
+    add("a", "T50-from-a.md"); add("b", "T50-from-b.md"); add("c", "T51-from-c.md");
+    git("checkout", "-q", "main"); git("merge", "-q", "--no-ff", "a", "-m", "merge a");
+    const b = spawnSync("git", ["merge", "--no-ff", "b", "-m", "merge b"], { cwd: dir, env: cleanEnv(), encoding: "utf8" });
+    expect([b.status, b.stdout]).toEqual([1, expect.stringMatching(/CONFLICT \(add\/add\): Merge conflict in handoff\/PLAN\/app-integration\/tickets\/ids\/T50/)]);
+    git("merge", "--abort");
+    git("merge", "-q", "--no-ff", "c", "-m", "merge c");                                   // another number: clean
+    expect(claimProblems(readWorkTree(dir).tickets, readWorkTree(dir).claims)).toEqual([]);
   });
   it("outside a merge it refuses, saying how to start one", () => {
     const { dir } = repo();

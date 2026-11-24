@@ -53,7 +53,8 @@ changes the numbers).
 | Google's answer | OWNER: ____ (approved / keep testing; date) |
 
 If a tester drops out and the count goes under 12, the 14 days start again from the day it is back at 12: write the new
-date in the table and in `OWNER-TODO.md`.
+date in the table and in the owner to-do: a new item file in `handoff/PLAN/owner-todo/` (T1041; never `OWNER-TODO.md`
+itself, which is a pointer page).
 
 ## Checklist to apply
 

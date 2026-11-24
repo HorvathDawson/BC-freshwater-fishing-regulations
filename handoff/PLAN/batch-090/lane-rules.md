@@ -26,7 +26,7 @@ Repo: /Users/dawson.horvath/dev/personal/BC-freshwater-fishing-regulations. You 
   `node app/tools/check-tickets.mjs` before each commit; never name a Tnnn without its file + ledger row. Update each
   ticket's Status + ledger row in the same PR (DONE names the code commit hashes: commit code first, then the ledger).
   The row is the one-row table under the ticket file's Status line, and an owner item is its own file in
-  `handoff/PLAN/owner-todo/` (T1041): never edit `tickets/README.md`'s ledger, a `DONE.md` or `OWNER-TODO.md` for them.
+  `handoff/PLAN/owner-todo/` (T1041; a new ticket also gets its number's claim: `node app/tools/ledger.mjs --claim`): never edit `tickets/README.md`'s ledger, a `DONE.md` or `OWNER-TODO.md` for them.
   New tickets: next free number — re-check `origin/main` ticket files AND open PR branches right before committing
   (other lanes add tickets). Commit messages end with "Co-Authored-By: Claude <your model> <noreply@anthropic.com>".
 - Push; open PRs (`gh pr create --base main`, title ≤93 chars, body ends

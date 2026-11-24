@@ -35,8 +35,9 @@ use that as the sole source of future work."
   - `POSTPONED` — deliberately parked, with the owner's word.
   - `DONE` — merged into `redesign/stream-sections`, acceptance met.
   - `DROPPED` — will not be done; one line why (owner or recorded Claude call).
-- **Adding a ticket:** write the file with its row under the Status line, add any owner call to "Owner questions" with its default,
-  commit with explicit paths (`git commit -- <paths>`; never `-A`/`-a`/`git add .` — other lanes share the branch).
+- **Adding a ticket:** write the file with its row under the Status line, run `node app/tools/ledger.mjs --claim` (it
+  writes `tickets/ids/Tnn`, the number's claim: two PRs that take one number collide there), add any owner call to "Owner questions" with its default,
+  commit with explicit paths, the claim with them (`git commit -- <paths>`; never `-A`/`-a`/`git add .` — other lanes share the branch).
 - **Closing a ticket (the lane's last step):** set `Status: DONE — <commit hashes>` (plus one line of anything
   notable), update the row under it (status, commits, what's left "—"; the row moves to the DONE view by itself), move any answered owner question to Answered,
   commit those files with explicit paths. Anything found and not done becomes a new ticket, not a footnote.
@@ -58,9 +59,12 @@ under its `Status:` line (same five cells as ever):
     | Tnnn | the ticket's title | OPEN | — | what's left, a pointer (240 characters at most) |
 
 `node app/tools/ledger.mjs` builds the tables into `handoff/PLAN/views/LEDGER.md` (every row not DONE / DROPPED) and
-`handoff/PLAN/views/DONE.md` (the closed ones), git-ignored; the post-checkout and post-merge hooks rebuild them. So two
-PRs that touch different tickets never conflict. A row's view follows its status keyword: nothing to move by hand.
-`node app/tools/check-tickets.mjs` checks the rows in the ticket files, and refuses a row typed here.
+`handoff/PLAN/views/DONE.md` (the closed ones), git-ignored; the git hooks rebuild them after a checkout, merge, commit
+or rebase, but a view MAY BE STALE (another worktree, a reset): `node app/tools/ledger.mjs --check` says so and the
+ticket guard warns. So two PRs that touch different tickets never conflict. A row's view follows its status keyword.
+A NEW ticket also claims its number: `node app/tools/ledger.mjs --claim` writes `tickets/ids/Tnnn` (the file's name);
+two PRs that take one number then collide there in git instead of both merging. `node app/tools/check-tickets.mjs`
+checks the rows and claims, and refuses this section holding anything but this text.
 
 ## Next after closed testing
 

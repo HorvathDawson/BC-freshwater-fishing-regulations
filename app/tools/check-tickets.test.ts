@@ -14,7 +14,8 @@ import { CLOSED, RUNBOOK_MAKES, LEFT_CELL_MAX, checkDocs, checkLedger, citedPath
 import { LEDGER_POINTER, OWNER_PAGE_TEXT, ROW_HEADER, ROW_SEP, ledgerViews, readOwnerItems, readWorkTree, setRow, stripRow, ticketRow } from "./ledger.mjs";
 
 type Legacy = { readme: string; doneLedger: string | null; ownerPage: string };
-type Input = { tickets: { name: string; text: string }[]; subjects: string[]; ownerTodo: string; ownerProblems: string[]; legacy: Legacy };
+type Input = { tickets: { name: string; text: string }[]; subjects: string[]; ownerTodo: string; ownerProblems: string[]; legacy: Legacy;
+  claims: { name: string; text: string }[] };
 const repoRoot = new URL("../..", import.meta.url).pathname;
 /** the repo as it is: every ticket file with its row (T1041), the owner items, the old places */
 const repo = readRepo(repoRoot) as Input;
@@ -77,6 +78,7 @@ describe("the guard fires (mutation)", () => {
     const t84 = real.tickets.find((t) => idOfFile(t.name) === "T84")!;
     const input = { ...noGit, tickets: [...real.tickets, { name: "T84-another-slug.md", text: t84.text }] };
     expect(checkLedger(input)).toEqual([
+      'T84: handoff/PLAN/app-integration/tickets/ids/T84 claims "T84-ticket-ledger-guard.md", but the ticket file is T84-another-slug.md: one number, one ticket',
       "T84: more than one ticket file (T84-another-slug.md, T84-ticket-ledger-guard.md)",
     ]);
   });
@@ -97,7 +99,8 @@ describe("the guard fires (mutation)", () => {
 
   it("on a ticket file removed while commits still name it", () => {
     const input = { ...real, tickets: real.tickets.filter((t) => idOfFile(t.name) !== "T84") };
-    expect(checkLedger(input)).toEqual(["T84: named in a commit subject but missing from the ledger"]);
+    expect(checkLedger(input)).toEqual(["T84: named in a commit subject but missing from the ledger",
+      'handoff/PLAN/app-integration/tickets/ids/T84: claims "T84-ticket-ledger-guard.md", which is not a ticket file of that number']);
   });
 
   it("(T1041) on a row twice in one file, a row of another ticket, a block with no row", () => {
@@ -182,6 +185,28 @@ describe("T1041 the old places hold no row and no item", () => {
     expect(readOwnerItems(files).problems).toEqual([]);
     const broken = readOwnerItems(files.map((f, i) => (i === 1 ? { ...f, text: f.text.replace(/^order: .*\n\n/, "") } : f)));
     expect(checkLedger({ ...noGit, ownerProblems: broken.problems })).toEqual([`handoff/PLAN/owner-todo/${files[1]!.name}: the first line must be "order: <number>" and the second blank`]);
+  });
+  it("the pointer texts are exact: a bullet appended to OWNER-TODO.md, a line added to README's ledger section, fail", () => {
+    const ownerPage = `${real.legacy.ownerPage}- Look (you): something added the old way\n`;
+    expect(checkLedger({ ...noGit, legacy: { ...noGit.legacy, ownerPage } })).toEqual([
+      `handoff/PLAN/OWNER-TODO.md is not the pointer page (it differs at line ${OWNER_PAGE_TEXT.split("\n").length}): an owner item is a file of its own in handoff/PLAN/owner-todo/ (T1041); text added here never reaches the view`]);
+    const readme = real.legacy.readme.replace(LEDGER_POINTER.trim(), `${LEDGER_POINTER.trim()}\n- T1099 is next (typed here the old way)`);
+    expect(checkLedger({ ...noGit, legacy: { ...noGit.legacy, readme } })).toEqual([
+      'handoff/PLAN/app-integration/tickets/README.md: its "## Ledger" section is not the pointer text (ledger.mjs LEDGER_POINTER): a row lives in its ticket file (T1041), nothing is written there']);
+  });
+  it("(T1041) every ticket claims its number in tickets/ids/, and the claims must be given", () => {
+    expect(real.claims.length).toBe(real.tickets.length);
+    expect(checkLedger({ ...noGit, claims: real.claims.filter((c) => c.name !== "T84") })).toEqual([
+      "T84: no number claim handoff/PLAN/app-integration/tickets/ids/T84 (node app/tools/ledger.mjs --claim writes it): two PRs that take one number must collide there"]);
+    const { claims: _none, ...without } = noGit;
+    expect(() => checkLedger(without as Input)).toThrow(/needs claims/);
+  });
+  it("(T1041) a conflict marker left in a ticket or an owner item fails", () => {
+    expect(checkLedger(withTicket(noGit, "T84", (t) => `${t}\n<<<<<<< new-style side\nx\n=======\ny\n>>>>>>> old-style side\n`))).toEqual([
+      "T84: T84-ticket-ledger-guard.md holds a merge-conflict marker line (<<<<<<< / >>>>>>>): settle it"]);
+    const files = readWorkTree(repoRoot).ownerFiles!;
+    const marked = readOwnerItems(files.map((f, i) => (i === 2 ? { ...f, text: `${f.text}>>>>>>> old-style side\n` } : f)));
+    expect(marked.problems).toEqual([`handoff/PLAN/owner-todo/${files[2]!.name}: holds a merge-conflict marker line (<<<<<<< / >>>>>>>): settle it`]);
   });
   it("(T540, now by construction) a row's view follows its status: T84 reopened leaves the DONE view by itself", () => {
     const reopened = withRow(noGit, "T84", withStatus(rowOf(noGit, "T84"), "OPEN"));

@@ -33,7 +33,8 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { OLD_DONE, OWNER_DIR, OWNER_PAGE, README, readOwnerTodo, tableRows, ticketRow } from "./ledger.mjs";
+import { CLAIMS_DIR, LEDGER_POINTER, MARKER, OLD_DONE, OWNER_DIR, OWNER_PAGE, OWNER_PAGE_TEXT, README, claimProblems, ledgerSection,
+         readOwnerTodo, readWorkTree, staleViews, tableRows, ticketRow } from "./ledger.mjs";
 
 /** (T540) The closed statuses: their rows are built into the DONE view (`ledger.mjs` isClosed). */
 export const CLOSED = ["DONE", "DROPPED"];
@@ -99,20 +100,28 @@ export const ledgerRows = tableRows;
  *   may cite) and ownerProblems what is wrong with those files; legacy — the old places (README.md, DONE.md or null when
  *   it is gone, OWNER-TODO.md), which must hold no row and no item (it must be given: never "nothing old to check").
  */
-export function checkLedger({ tickets, subjects, ownerTodo, ownerProblems = [], legacy }) {
+export function checkLedger({ tickets, subjects, ownerTodo, ownerProblems = [], legacy, claims }) {
   if (!legacy || typeof legacy.readme !== "string" || typeof legacy.ownerPage !== "string" || legacy.doneLedger === undefined)
     throw new Error(`checkLedger needs legacy: { readme, doneLedger (null when ${OLD_DONE} is gone), ownerPage } (T1041)`);
-  const problems = [...ownerProblems];
+  if (!Array.isArray(claims)) throw new Error(`checkLedger needs claims (the files of ${CLAIMS_DIR}/, T1041): never "no claims to check"`);
+  const problems = [...ownerProblems, ...claimProblems(tickets, claims)];
   const oldRows = tableRows(legacy.readme);
   if (oldRows.length) problems.push(`${README} holds ${oldRows.length} ledger row(s) (${oldRows.slice(0, 3).map((r) => r.id).join(", ")}…): ` +
     "a row lives in its ticket file under the Status line (T1041); `node app/tools/ledger.mjs --resolve` carries an old-style branch's rows");
+  else if (ledgerSection(legacy.readme) !== LEDGER_POINTER)
+    problems.push(`${README}: its "## Ledger" section is not the pointer text (ledger.mjs LEDGER_POINTER): a row lives in its ticket file (T1041), nothing is written there`);
   if (legacy.doneLedger !== null) problems.push(`${OLD_DONE} exists: closed rows live in their ticket files and are built into handoff/PLAN/views/DONE.md (T1041); ` +
     "carry its rows (`node app/tools/ledger.mjs --resolve` in a merge), then git rm it");
   const sections = legacy.ownerPage.split("\n").filter((l) => l.startsWith("## "));
   if (sections.length) problems.push(`${OWNER_PAGE} holds a "## " section (${sections[0].slice(0, 60)}): an owner item is a file of its own in ${OWNER_DIR}/ (T1041)`);
+  else if (legacy.ownerPage !== OWNER_PAGE_TEXT) {
+    const at = legacy.ownerPage.split("\n").findIndex((l, i) => l !== OWNER_PAGE_TEXT.split("\n")[i]);
+    problems.push(`${OWNER_PAGE} is not the pointer page (it differs at line ${at + 1}): an owner item is a file of its own in ${OWNER_DIR}/ (T1041); text added here never reaches the view`);
+  }
   for (const { name, text } of tickets) {
     const id = idOfFile(name);
     if (!id) { problems.push(`${name}: file name does not start with a ticket id (Tnn-slug.md)`); continue; }
+    if (MARKER.test(text)) problems.push(`${id}: ${name} holds a merge-conflict marker line (<<<<<<< / >>>>>>>): settle it`);
     const head = text.split("\n").slice(0, STATUS_WITHIN);
     const line = head.find((l) => /^Status:/.test(l));
     if (!line) { problems.push(`${id}: no "Status:" line in the first ${STATUS_WITHIN} lines of ${name}`); continue; }
@@ -274,7 +283,7 @@ export function readRepo(repoRoot) {
   const owner = readOwnerTodo(repoRoot);
   const legacy = { readme: readFileSync(join(repoRoot, README), "utf8"), ownerPage: readFileSync(join(repoRoot, OWNER_PAGE), "utf8"),
                    doneLedger: existsSync(join(repoRoot, OLD_DONE)) ? readFileSync(join(repoRoot, OLD_DONE), "utf8") : null };
-  return { tickets, subjects, ownerTodo: owner.text, ownerProblems: owner.problems, legacy };
+  return { tickets, subjects, ownerTodo: owner.text, ownerProblems: owner.problems, legacy, claims: readWorkTree(repoRoot).claims };
 }
 
 /**
@@ -320,6 +329,9 @@ if (isMain) {
       "\n\n  Every ticket file needs a Status line and its row under it; DONE needs its commit hashes; IN REVIEW / PARTIAL name their step.");
   }
   if (docProblems.length) console.error(`✗ the handoff docs are wrong (T539):\n  ` + docProblems.join("\n  "));
+  // (T1041) a stale or missing view is a WARNING, never a failure (CI has no views): the one command that rebuilds them
+  const stale = staleViews(repoRoot);
+  if (stale.length) console.warn(`⚠ views missing or stale (${stale.join(", ")}): node app/tools/ledger.mjs rebuilds them`);
   if (problems.length || docProblems.length) process.exit(1);
   console.log(`✓ ticket ledger whole, handoff docs guard passes`);
 }

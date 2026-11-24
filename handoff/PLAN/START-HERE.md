@@ -18,11 +18,13 @@ One page, one pointer (T437): a new chat reads, in order,
    batch chat, stopped early for credits; open PRs, lanes' State lines in tickets, then the question round and the cut).
 3. The top entry of `handoff/PLAN/STATUS.md` (what changed last), and the owner to-do (what only the owner can do):
    `node app/tools/ledger.mjs` builds it into `handoff/PLAN/views/OWNER-TODO.md` from one file per item in
-   `handoff/PLAN/owner-todo/` (T1041; `handoff/PLAN/OWNER-TODO.md` says how to add one).
+   `handoff/PLAN/owner-todo/` (T1041; `handoff/PLAN/OWNER-TODO.md` says how to add one). A view may be stale (the hooks
+   rebuild it after a checkout, merge, commit or rebase): `node app/tools/ledger.mjs` rebuilds, `--check` says.
 4. Chat length (owner 2026-11-21): recommend a new chat at natural breaks (a release shipped, a batch done) and /compact
    before a heavy step when the context is long. Update the restart page first.
 5. The work list: `handoff/PLAN/views/LEDGER.md` (the ledger of rows in work, built by `node app/tools/ledger.mjs` from the
-   row each ticket file holds under its Status line; closed rows: `views/DONE.md`). How tickets work, and the owner
+   row each ticket file holds under its Status line; closed rows: `views/DONE.md`; a new ticket also claims its number:
+   `node app/tools/ledger.mjs --claim`). How tickets work, and the owner
    questions: `handoff/PLAN/app-integration/tickets/README.md`. Tickets are the sole source of work.
 6. The branch (T995, `AGENTS.md` W47): `main` is the protected trunk. Work on a short-lived branch from a fresh
    `origin/main` (`feat/`, `fix/`, `perf/`, `test/`, `ci/`, `docs/`, `chore/` + ticket id; commits and PR titles `type(Tnnn): subject`), open a PR with auto-merge, never push to

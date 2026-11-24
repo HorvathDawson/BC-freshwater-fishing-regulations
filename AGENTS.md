@@ -416,9 +416,10 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
       every ticket file has a Status line and exactly one ledger row of its own, whose leading keyword agrees. **One file
       per row and per owner item (T1041):** a ticket's row is the one-row table right under its Status paragraph, in its
       own file; an owner item is a file of its own in `handoff/PLAN/owner-todo/` (`order: <n>`, a blank line, its `## `
-      section). The tables are built, never committed: `node app/tools/ledger.mjs` writes `handoff/PLAN/views/LEDGER.md`
+      section). A ticket's number is claimed by `tickets/ids/Tnnn` (its file's name; `node app/tools/ledger.mjs --claim`
+      writes it), so two PRs that take one number collide in git. The tables are built, never committed: `node app/tools/ledger.mjs` writes `handoff/PLAN/views/LEDGER.md`
       (rows in work), `views/DONE.md` (DONE / DROPPED: a row's view follows its status) and `views/OWNER-TODO.md`
-      (git-ignored; the post-checkout / post-merge hooks rebuild them), so PRs on different tickets or items never
+      (git-ignored; the git hooks rebuild them, and a stale one is a warning of the guard), so PRs on different tickets or items never
       conflict. A row typed into `tickets/README.md`, a `tickets/DONE.md`, or a `## ` section in `OWNER-TODO.md` fails the
       guard; a branch that still edits them the old way runs `git merge origin/main` then `node app/tools/ledger.mjs
       --resolve` (it carries the branch's rows and items into the files). DONE names its commit hashes

@@ -28,10 +28,11 @@ own restart page (START-HERE step 2); this page is only for 0.9.1.
 
 ## Owner questions
 
-All eight, with pictures, are on https://claude.ai/artifact/UZhX9gBLs6JiynhgVcWuFR and in `handoff/PLAN/OWNER-TODO.md`
-(section "2026-11-24: 0.9.1 overnight questions"). Ask them in chat in batches, most blocking first (T905, T1047 rows,
-T1030 count, T1029 Q4–Q6, T1016 words, T1031 A or B, T1036, T1024 look), and write each answer into OWNER-TODO and
-its ticket in the same turn.
+All eight, with pictures, are on https://claude.ai/artifact/UZhX9gBLs6JiynhgVcWuFR and in the owner item
+`handoff/PLAN/owner-todo/2026-11-24-0-9-1-overnight-questions-asked-not-answered-yet.md` (one file per item since T1041;
+`node app/tools/ledger.mjs` builds the whole to-do into `handoff/PLAN/views/OWNER-TODO.md`). Ask them in chat in
+batches, most blocking first (T905, T1047 rows, T1030 count, T1029 Q4–Q6, T1016 words, T1031 A or B, T1036, T1024
+look), and write each answer into that item file and its ticket in the same turn.
 
 ## Next, in order
 
