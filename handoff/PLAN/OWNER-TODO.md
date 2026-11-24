@@ -9,6 +9,10 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-23: T1042 search description (answer, verbatim)
+- T1042 description facts: "Season windows (Recommended)" — option b of `T1042-shots/live-samples.txt`: open windows from the year strip,
+  boats, steady marks; nothing from the build day. Built on PR #78.
+
 ## 2026-11-23: lane L29 (0.9.0 batch) — one look
 - **T1024 Gravel Slough highlight: look at the before/after shots** (`handoff/PLAN/app-integration/T1024-shots/gravel-before-after.png`, `oxbows-before-after.png`, `gun-before-after.png`): where a slough's or wide reach's line is drawn, only the line is outlined — no ring round each piece of its polygon; where it is not yet drawn (zoomed out, or no line at all) the polygon keeps its ring. Note Gun Creek z13: the wide 3 km² reach shows only its line's outline. Say if it reads right.
 
