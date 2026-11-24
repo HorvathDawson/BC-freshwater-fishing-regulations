@@ -902,11 +902,16 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     .map((u, i) => ({ u, i }))
     .sort((a, b) => cmpTuple([a.u.region, a.u.fingerprint], [b.u.region, b.u.fingerprint]) || a.i - b.i)
     .map((x) => x.u);
-  // (T905) the state first: an index written over a state that was not would leave the next run with neither (no
-  // state.json and an index without the keys), and it would read every page for the first time. Put only when it moved.
+  // (T905) THE ORDER (live.run's). Steady state: the index, then the state — a run that fails between the two leaves
+  // the last state, so the next run compares against it again and finds the same change (the notices are sent after
+  // both puts, so a failed run sent none: told once, by the next run); state first would lose an urgent text notice for
+  // good. The cutover (no state.json read): the state first — an index without the keys over no state would leave the
+  // next run with neither, and it would read every page for the first time. The state is put only when it moved.
   const stateText = JSON.stringify(state);
-  if (stateText !== stateRead) await deps.priv.put(STATE_KEY, stateText, { contentType: "application/json" });
+  const putState = async () => { if (stateText !== stateRead) await deps.priv.put(STATE_KEY, stateText, { contentType: "application/json" }); };
+  if (stateRead === null) await putState();
   await deps.feed.put("index.json", feedText(index), { contentType: "application/json", cacheControl: "public, max-age=300, stale-while-revalidate=3600" });
+  if (stateRead !== null) await putState();
   await feedStore.put("unplaced.json", feedText(unplacedSorted), { contentType: "application/json", cacheControl: "public, max-age=300, stale-while-revalidate=3600" });
   if (aware) {
     // a region not run this time keeps its last inputs; one held / failed this run has none (re-typed next run)

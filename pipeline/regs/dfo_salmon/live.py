@@ -79,7 +79,7 @@ from pathlib import Path
 from typing import Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 
 from pipeline.common.curated import GENERATED
-from pipeline.common.feed_formats import FEED_FORMATS, FEED_MIN_APP
+from pipeline.common.feed_formats import DFO_STATE_KEYS, FEED_FORMATS, FEED_MIN_APP
 from pipeline.deliver import salmon as S
 from pipeline.regs.dfo_salmon import fetch as F
 
@@ -95,8 +95,8 @@ STATE_FORMAT = FEED_FORMATS["dfo_state"]
 #: (T905) A REGION'S OWN BOOKKEEPING: what only this publisher reads back (the page hash and when it last moved, the
 #: fetches that failed in a row, the header's digest, the header names no water binds, the page's general text). Kept
 #: in the private state, never in the public index; no app reads one (core salmonFeed.ts `SalmonFeedRegion`). The
-#: worker's `dfo/live.ts STATE_KEYS` is the same list (pinned by the DFO vectors, `state_keys`).
-STATE_KEYS = ("sha256", "changed", "failures", "header", "unresolved", "texts")
+#: worker's `dfo/state.ts STATE_KEYS` is the same list: one table, `feed_formats.DFO_STATE_KEYS`, emitted for it.
+STATE_KEYS = DFO_STATE_KEYS
 #: (T851) a region is STALE when its last good read (`checked`) is older than this at a run whose fetch failed — not
 #: because one fetch failed (2026-11-18: one 5xx at the daily run marked every region stale). 30 h is the app's own
 #: line for the DFO feed (app/packages/core/src/staleness.ts `STALE_AFTER.dfo`: the daily cron plus 6 h), so a region
@@ -760,6 +760,7 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
     prev = _same_format(_read(out / "index.json", {}))
     # (T905) each region as the last run left it: its public record with its private bookkeeping back on it — the
     # bookkeeping from the state only (an index before T905 still carrying it is read through `_read_state`'s seed)
+    no_state = not state_path(out).exists()        # the cutover (or a first run): the state is seeded this run
     state = _read_state(out, prev)
     prev_regions = {s: {**_split(r)[0], **(state.get(s) or {})} for s, r in (prev.get("regions") or {}).items()}
     prev_unplaced = {(u["region"], u["fingerprint"]): u for u in _read(out / "unplaced.json", [])}
@@ -908,10 +909,14 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
     if dry_run:
         return {"index": index, "state": state_out, "unplaced": unplaced, "notices": notices, "sent": None,
                 "previews": previews}
-    # the state first: an index written over a state that was not would leave the next run with neither (no state file
-    # and an index without the keys), and it would read every page for the first time
-    _write(state_path(out), state_out)
-    _write(out / "index.json", index)
+    # (T905) THE ORDER. Steady state: the index, then the state — a run that fails between the two leaves the last
+    # state, so the next run compares against it again and finds the same change (the notices are sent after both
+    # writes, so a failed run sent none: told once, by the next run); state first would lose an urgent text notice
+    # for good. The cutover (no state file read): the state first — an index without the keys written over no state
+    # would leave the next run with neither, and it would read every page for the first time.
+    for p, doc in ([(state_path(out), state_out), (out / "index.json", index)] if no_state
+                   else [(out / "index.json", index), (state_path(out), state_out)]):
+        _write(p, doc)
     _write(out / "unplaced.json", sorted(unplaced, key=lambda u: (u["region"], u["fingerprint"])))
     sent = notify.send_due_checked(notices, out, url=notify_url, sender=sender, key_of=notice_key, message_of=notice_text)
     return {"index": index, "state": state_out, "unplaced": unplaced, "notices": notices, "sent": sent,

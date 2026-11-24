@@ -121,6 +121,55 @@ describe("T905: the region bookkeeping is private", () => {
     }
   });
 
+  it("the order: the cutover puts the state first; steady state the index first, and a failure between them tells the change once", async () => {
+    const order: string[] = [];
+    const watch = (s: MemStore, tag: string, fail?: () => string | null) => {
+      const put = s.put.bind(s);
+      s.put = async (k: string, b: string) => {
+        order.push(`${tag}:${k}`);
+        if (fail?.() === k) throw new Error("R2 PUT 500");
+        await put(k, b);
+      };
+      return s;
+    };
+    let failKey: string | null = null;
+    const feed = watch(new MemStore(), "feed"), priv = watch(privStore(), "priv", () => failKey);
+    const posted: string[] = [];
+    const go = (now: string, pageOf = page) => runDfo({ feed, priv, now, regions: ["1"], entries, notifyUrl: "https://ntfy.example/dfo",
+      fetch: async (_u: unknown, init?: RequestInit) => { posted.push(String(init?.body ?? "")); return new Response("ok"); },
+      fetcher: async (s) => [pageOf(s), null] });
+    const firstTwo = () => order.filter((k) => k === `priv:${STATE_KEY}` || k === "feed:index.json");
+    await go(T0);
+    expect(firstTwo()).toEqual([`priv:${STATE_KEY}`, "feed:index.json"]);            // the cutover: state first
+    const was = "Learn more about fishing for salmon in B.C.";
+    const moved = (s: string) => (s === "1" ? page("1").replace(was, "Learn more about salmon in B.C.") : page(s));
+    const last = priv.m.get(STATE_KEY);
+    order.length = 0;
+    failKey = STATE_KEY;
+    await expect(go(T1, moved)).rejects.toThrow(/R2 PUT 500/);
+    expect(firstTwo()).toEqual(["feed:index.json", `priv:${STATE_KEY}`]);            // steady: the index first
+    expect(JSON.parse(feed.m.get("index.json")!).at).toBe(T1);
+    expect([priv.m.get(STATE_KEY) === last, posted.some((b) => b.includes("general text changed"))]).toEqual([true, false]);
+    failKey = null;
+    const again = await go(T2, moved);
+    await go("2026-10-29T06:00:00Z", moved);
+    expect(posted.filter((b) => b.includes("general text changed"))).toHaveLength(1);  // told once, by the next run
+    expect(again.state.regions["1"]!.changed).toBe(T2);                              // what repeats: `changed` moves on
+  });
+
+  it("after a rollback the state wins over keys an old worker left on the index", async () => {
+    const feed = new MemStore(), priv = privStore();
+    const first = await run(feed, priv, T0);
+    const ix = JSON.parse(feed.m.get("index.json")!);
+    Object.assign(ix.regions["1"], { sha256: "0".repeat(64), changed: "2020-01-01T00:00:00Z", failures: 7, header: "x", unresolved: [],
+                                     texts: ["a text the rolled-back worker read"] });
+    feed.m.set("index.json", JSON.stringify(ix));
+    const got = await run(feed, priv, T1, { changeAware: false });
+    expect(got.state.regions["1"]).toEqual(first.state.regions["1"]);              // the same page: nothing moved
+    expect(got.notices.filter((n) => n.key.startsWith("dfo-text:"))).toEqual([]);
+    expect(Object.keys(JSON.parse(feed.m.get("index.json")!).regions["1"]).filter((k) => (STATE_KEYS as readonly string[]).includes(k))).toEqual([]);
+  });
+
   it("an unchanged state is not rewritten (one R2 put saved a run)", async () => {
     const feed = new MemStore(), priv = privStore();
     await run(feed, priv, T0);

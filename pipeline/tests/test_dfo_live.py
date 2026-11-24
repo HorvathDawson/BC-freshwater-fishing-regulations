@@ -95,8 +95,9 @@ def test_todays_pages_join_every_location(tmp_path):
     # ~21 kB raw, repeated words that gzip well) — 132,987 B (15,763 gz -9) under a 135,000 check.
     # T905 (owner 2026-11-24, "Move worker state out"): each region's own bookkeeping (`STATE_KEYS`: sha256, changed,
     # failures, header, unresolved, texts) moved to the private state beside the feed: MEASURED 121,688 B (14,334 gz -9)
-    # on these pages; the check sits just above it
-    assert (tmp_path / "index.json").stat().st_size < 122_000
+    # on these pages. The check leaves ~2.3 kB, about the margin the 135,000 one had (2,013 B over 132,987), so the
+    # next small feature does not trip it; anything bigger is a size decision again
+    assert (tmp_path / "index.json").stat().st_size < 124_000
     # none of it is published; all of it is kept, beside the feed dir (never inside it, never synced)
     assert not any(set(r) & set(L.STATE_KEYS) for r in ix["regions"].values())
     st = json.loads(L.state_path(tmp_path).read_text(encoding="utf-8"))
@@ -174,6 +175,57 @@ def test_t905_a_page_text_change_is_told_from_the_private_state():
             "DFO Region 1: the page's general text changed — review the header; the feed reads no rule from it "
             "(1 gone, 1 new)"]
         assert s.sent[0].splitlines()[1:] == [f"- was: {old}", "+ now: Learn more about salmon in B.C."]
+
+
+def test_t905_the_write_order_index_then_state_and_a_failure_between_tells_the_change_once(tmp_path, monkeypatch):
+    """Steady state: the index, then the state. A run that fails between the two leaves the last state, so the next run
+    finds the same page-text change again and tells it ONCE (the failed run sent nothing: notices go after the writes).
+    What repeats: `changed` takes the next run's time. The cutover (no state file): the state first."""
+    out, real, order = tmp_path / "feed", L._write, []
+
+    def write(fail=None):
+        def w(p, obj):
+            order.append(Path(p).name)
+            if fail is not None and Path(p) == fail:
+                raise OSError("disk full")
+            real(p, obj)
+        return w
+    monkeypatch.setattr(L, "_write", write())
+    L.run(out, fetcher=_pages(), regions=["1"], now=AT, notify_url="http://n", sender=Sender())
+    assert order == ["feed.state.json", "index.json", "unplaced.json"]                      # the cutover: state first
+    order.clear()
+    L.run(out, fetcher=_pages(), regions=["1"], now=_later(1), notify_url="http://n", sender=Sender())
+    assert order == ["index.json", "feed.state.json", "unplaced.json"]                      # steady: index first
+    last = L.state_path(out).read_text(encoding="utf-8")
+    was = "Learn more about fishing for salmon in B.C."
+    moved = _pages({"1": _r1({was: "Learn more about salmon in B.C."})})
+    monkeypatch.setattr(L, "_write", write(fail=L.state_path(out)))
+    s = Sender()
+    with pytest.raises(OSError, match="disk full"):
+        L.run(out, fetcher=moved, regions=["1"], now=_later(6), notify_url="http://n", sender=s)
+    assert s.sent == [] and L.state_path(out).read_text(encoding="utf-8") == last
+    assert json.loads((out / "index.json").read_text(encoding="utf-8"))["at"] == _later(6)   # the index went first
+    monkeypatch.setattr(L, "_write", real)
+    for h in (7, 8):
+        got = L.run(out, fetcher=moved, regions=["1"], now=_later(h), notify_url="http://n", sender=s)
+    assert [t.splitlines()[0] for t in s.sent] == [
+        "DFO Region 1: the page's general text changed — review the header; the feed reads no rule from it (1 gone, 1 new)"]
+    assert got["state"]["regions"]["1"]["changed"] == _later(7)
+
+
+def test_t905_after_a_rollback_the_state_wins_over_keys_left_on_the_index(tmp_path):
+    """A worker rolled back to before T905 puts the keys back on the index; once T905 runs again, the state file is
+    the only source of them (an index's are read only by the seed, when there is no state file)."""
+    out = tmp_path / "feed"
+    first = L.run(out, fetcher=_pages(), regions=["1"], now=AT, notify_url="http://n", sender=Sender())
+    ix = json.loads((out / "index.json").read_text(encoding="utf-8"))
+    ix["regions"]["1"].update({"sha256": "0" * 64, "changed": "2020-01-01T00:00:00Z", "failures": 7, "header": "x",
+                               "unresolved": [], "texts": ["a text the rolled-back worker read"]})
+    (out / "index.json").write_text(json.dumps(ix), encoding="utf-8")
+    s = Sender()
+    got = L.run(out, fetcher=_pages(), regions=["1"], now=_later(6), notify_url="http://n", sender=s)
+    assert got["state"]["regions"]["1"] == first["state"]["regions"]["1"]       # the same page: nothing moved
+    assert s.sent == [] and not set(got["index"]["regions"]["1"]) & set(L.STATE_KEYS)
 
 
 def test_t905_an_unreadable_or_foreign_state_stops_the_run(tmp_path):

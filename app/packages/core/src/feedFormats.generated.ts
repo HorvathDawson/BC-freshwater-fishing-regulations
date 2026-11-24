@@ -34,3 +34,6 @@ export const FEED_MIN_APP = {
   gaugeFeed: "0.0.0",
   runtimingIndex: "0.0.0",
 } as const;
+
+/** (T905) the keys of a DFO region's own bookkeeping: in the private dfo-state file, never the index */
+export const DFO_STATE_KEYS = ["sha256", "changed", "failures", "header", "unresolved", "texts"] as const;

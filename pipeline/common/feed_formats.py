@@ -55,3 +55,7 @@ FEED_MIN_APP = {
     "gauge_feed": "0.0.0",
     "runtiming_index": "0.0.0",
 }
+
+#: (T905) the keys of a DFO region's own bookkeeping, kept in the `dfo_state` file and never in the published index
+#: (regs/dfo_salmon/live.py and the worker's dfo/state.ts read this one list; AGENTS 40)
+DFO_STATE_KEYS = ("sha256", "changed", "failures", "header", "unresolved", "texts")
