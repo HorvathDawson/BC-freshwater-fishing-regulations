@@ -1,6 +1,6 @@
 # Restart page: the 0.9.1 follow-ups chat (roadmap row 2)
 
-Written 2026-11-24 06:15 MST by the 0.9.1 chat, at the end of its overnight run beside the 0.9.0 chat. It never
+Written 2026-11-24 07:55 MST by the 0.9.1 chat, at the end of its overnight run beside the 0.9.0 chat. It never
 touched the main checkout. Scope is frozen to `handoff/PLAN/ROADMAP-after-0.9.0.md` row 2. The name is not
 NEXT-SESSION-* on purpose: the guard keeps at most two of those, and they are the 0.9.0 chat's. The 0.9.0 chat has its
 own restart page (START-HERE step 2); this page is only for 0.9.1.
@@ -20,10 +20,10 @@ own restart page (START-HERE step 2); this page is only for 0.9.1.
 | T1047 datum-change list | Merged (#103). Five rows, all proposed; nothing changes until the owner accepts rows. |
 | T1027 R8 scores | Merged (#108): 72 → 76 on all three, floors 75. The WorkManager keep rule and the `notify-fire` walk merged first as #109; the 0.9.0 chat cherry-picks that fix into 0.9.0. |
 | T905 salmon feed and head sizes | STOPPED after measuring (#94, docs): no shrink is safe for installed 0.9.0 apps. Owner picks 1 of 4 options. Budgets unchanged. |
-| T1030 changed-waters count | Approved, on auto-merge (#105), last seen fixing a conflict with main and a stale mini release. Needs the 0.9.1 data release and app build; the first release carrying it shows no count. Owner question open (what counts). |
-| T1024 stub-polygon double outline | Approved, on auto-merge (#111). Needs the 0.9.1 tile build (a full water export). Owner look. |
+| T1030 changed-waters count | Merged (#105). Needs the 0.9.1 data release and app build; the first release carrying it shows no count. Owner question open (what counts). |
+| T1024 stub-polygon double outline | Merged (#111). Needs the 0.9.1 tile build (a full water export). Owner look. |
 | T1029 one-bank stripe | Pictures only, draft PR #112: NOT to be merged. Build after the owner answers Q4–Q6. |
-| One file per ledger row / OWNER-TODO item | Lane L12 building it (scope T1041, branch `chore/T1041-one-file-per-row`). Its PR is to be re-imported on the then-current main and merged only AFTER `release/0.9.0` has merged back (the release branch edits the old three files). |
+| One file per ledger row / OWNER-TODO item | Built and reviewed, review fixes in (#114, scope T1041, branch `chore/T1041-one-file-per-row`). HELD on purpose: after `release/0.9.0` has merged back, run `node app/tools/ledger.mjs --merge origin/main` on that branch, check, then merge. |
 | 0.9.0 device-pass bugs | None handed over. |
 
 ## Owner questions
@@ -35,7 +35,7 @@ its ticket in the same turn.
 
 ## Next, in order
 
-1. Check #105 and #111 merged; review the one-file-per-row PR (one independent review) and hold its merge as said.
+1. Ask the owner the eight questions in chat batches. Every other row-2 PR is merged; #114 is held as said and #112 is a draft.
 2. Build what the owner's answers unlock: T1029 (the stripe), T905 (the option picked), T1047 (flip accepted rows
    through `curated_write`, rebuild clim.json), T1030 (A or C if picked).
 3. After 0.9.0 is on production AND `release/0.9.0` is merged back into main (the T666 fixture re-cut comes with it):
@@ -69,5 +69,10 @@ its ticket in the same turn.
 - T1049: a clamped start jump can still be taken for the reader's when the page grows before the scroll event.
 - T1024: a selection rule inside a layer filter splits the stream bucket (`lab.test.ts` guards it); a Kildala-style
   polygon route is written in 10 pieces.
+- From the 0.9.0 chat: `scripts/ci_status.py` `strict_judge` searches an ancestor's runs with gh's default limit
+  of 30 across all branches, so on a busy night `build-apk.sh --dry-run` says "docs-ci.yml: no finished run" although
+  a green run exists on an ancestor (it will bite the 0.9.1 build too); a stale FAILED nav answer can flash
+  "unavailable" for one render (`app/packages/ui/src/frameView.ts`); `useRegsTarget`'s `found` is stale for one
+  render on a frame with no part; the app has no React error boundary, so any render throw is a full app crash.
 - Tests: `app/packages/ui/src/chart.render.test.tsx` is timing-dependent (a fixed 30 ms wait); vitest times out
   ("Timeout calling onTaskUpdate") under machine load.
