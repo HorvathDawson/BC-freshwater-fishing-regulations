@@ -217,6 +217,27 @@ describe("the gauge page shows what the app shows for one station", () => {
     expect(text(got.html)).toMatch(/\bm\b/);
   });
 
+  // (T1043, owner 2026-11-23: "the scale of the chart should use the year data if not enough histroical data exists") THE
+  // PAGE HANDS ITS FEED TO THE CHART (`mountGaugeChart`: one `httpFeed`, read by the source and the chart), so a station with
+  // no normal range is scaled to its year on the page as in the app. MUTATION: `GaugeChart` passes no `feed` to
+  // `useStationChart` -> the axis is the 72 h wiggle's (top under 2 m).
+  it("(T1043) a bandless station on the page is scaled to its year (the feed handed to the chart)", async () => {
+    const lo = { ...STATION, now: { discharge: null, level: 1.63, at: iso(NOW - H), percentile: null, parameter: "level" },
+                 recent: STATION.recent.map((r) => [r[0], 1.6 + Number(r[1]) / 100, null]),
+                 daily: days(-300, 300).map((d, i) => [d, 1 + (i % 21) / 10, null]), priorYears: {}, forecasts: {} };
+    const index = { ...INDEX, stations: { [ST]: { percentile: null, parameter: "level", reports: ["level"], observedAt: lo.now.at } } };
+    const top = async (withFeed: boolean) => {
+      const feed = httpFeed(BASE, feedFetch(() => new Response(JSON.stringify(lo)), index));
+      const view = render(h(GaugeChartRoot, { source: stationChartSource(ST, feed, []), station: ST, ...(withFeed ? { feed } : {}) }));
+      const html = await settled(() => view.container.querySelector('[data-testid="gauge-page-chart"]')?.innerHTML ?? "", "<path");
+      cleanup();
+      const ticks = [...html.matchAll(/>(\d+(?:\.\d+)?)<\/text>/g)].map((m) => Number(m[1]));
+      return Math.max(...ticks);
+    };
+    const [without, withFeed] = [await top(false), await top(true)];
+    expect([without < 2, withFeed >= 2.5]).toEqual([true, true]);
+  });
+
   it("(T1039, owner 2026-11-23: \"same buttons as spots\") the page's Get the app block IS the Spots tab's: the same markup", async () => {
     const page = render(h(GaugePageGetApp, { contact: STORE_CONTACT }));
     const pageHtml = page.container.querySelector('[data-testid="get-app"]')!.outerHTML;

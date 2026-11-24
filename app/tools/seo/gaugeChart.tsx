@@ -18,12 +18,14 @@ import { createRoot } from "react-dom/client";
 import { View, useColorScheme, type LayoutChangeEvent } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { reportFailure, setFailureSink } from "@app/core";
-import { httpFeed, stationChartSource, type StationClim, type StationId } from "@app/data";
+import { httpFeed, stationChartSource, type GaugeFeed, type StationClim, type StationId } from "@app/data";
 import { noRecordLine, readingQuantityOf, useStationChart, useStationReading, type ChartSource } from "@app/ui";
 import type { WaterSource } from "@app/data";
 
 /** what the page asks of its source: the chart's two questions and the station's reading */
 export type PageSource = ChartSource & Pick<WaterSource, "gaugeNow">;
+/** the page's live feed as the chart reads it (its observations: the year scale, the early draft) */
+export type PageFeed = { observations?: GaugeFeed["observations"] };
 import { GetAppBlock } from "../../packages/ui-native/src/GetAppBlock";
 import { StationChart } from "../../packages/ui-native/src/StationChart";
 import { Text } from "../../packages/ui-native/src/Text";
@@ -40,7 +42,11 @@ export function climOf(cfg: Pick<GaugeConfig, "clim">): StationClim[] {
 }
 
 /** the page's chart: one station, the app's chart at the width of the page's column */
-export function GaugeChart({ source, station }: { source: PageSource; station: StationId }) {
+/**
+ * (T1043, T1047) `feed`: the page's live feed file (the one its source reads), so the chart reads the year the app's does for a
+ * station with no normal range (its year scale) and draws its observations before the envelope (T256). Absent: neither.
+ */
+export function GaugeChart({ source, station, feed }: { source: PageSource; station: StationId; feed?: PageFeed | null }) {
   const palette = THEMES[useColorScheme() === "dark" ? "dark" : "light"];
   const [width, setWidth] = useState(0);
   const measure = (e: LayoutChangeEvent) => {
@@ -51,7 +57,8 @@ export function GaugeChart({ source, station }: { source: PageSource; station: S
   // Conditions card's does (`readingQuantityOf`): a level-only gauge with no climatology (T830) charts level, unranked
   const got = useStationReading(source, station);
   const c = got.state === "ready" ? got.value : null, rq = c ? readingQuantityOf(c) : null;
-  const vm = useStationChart(source, station, { width, ...(rq ? { reports: c!.reports ?? null, readingQuantity: rq.quantity } : {}) });
+  const vm = useStationChart(source, station, { width, feed: feed ?? null, offRecord: c?.offRecord ?? null,
+                                               ...(rq ? { reports: c!.reports ?? null, readingQuantity: rq.quantity } : {}) });
   const noRecord = noRecordLine(vm.shown, vm.banded, vm.known, rq ? c!.reports : null);
   const failed = vm.chart.state === "failed" || vm.series.state === "failed";
   return h(View, { onLayout: measure, testID: "gauge-page-chart", style: { gap: 12 } },
@@ -64,7 +71,7 @@ export function GaugeChart({ source, station }: { source: PageSource; station: S
  * (T1039 review) THE PAGE'S ROOT: the app's chart under react-native-gesture-handler's root, as the app runs under one
  * (apps/mobile gestureRoot.tsx): without it the chart's pinch, drag and double-tap recognisers do not run.
  */
-export function GaugeChartRoot(props: { source: PageSource; station: StationId }) {
+export function GaugeChartRoot(props: { source: PageSource; station: StationId; feed?: PageFeed | null }) {
   return h(GestureHandlerRootView, { style: { flex: 1 } }, h(GaugeChart, props));
 }
 
@@ -94,8 +101,10 @@ export function mountGaugeChart(doc: Document, fetchImpl: typeof fetch, now: () 
   }
   try {
     if (cfg.fonts) { const s = doc.createElement("style"); s.textContent = cfg.fonts; doc.head.appendChild(s); }
-    const source = stationChartSource(cfg.station as StationId, httpFeed(cfg.live, fetchImpl), climOf(cfg));
-    renderInto(box, h(GaugeChartRoot, { source, station: cfg.station as StationId }));
+    // ONE feed, read by the source AND handed to the chart (the year scale and the early draft read its observations)
+    const feed = httpFeed(cfg.live, fetchImpl);
+    const source = stationChartSource(cfg.station as StationId, feed, climOf(cfg));
+    renderInto(box, h(GaugeChartRoot, { source, station: cfg.station as StationId, feed }));
   } catch (e) {
     shown(box);
     reportFailure(e);
