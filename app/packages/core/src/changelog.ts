@@ -36,6 +36,12 @@ export function notesOn(e: ChangelogEntry, os: "android" | "ios" | "web"): reado
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    // (T998) opened by `python -m pipeline release --cut`: write 3-5 plain bullets for anglers (never commit
+    // subjects); check-changelog refuses the entry until it has one, and the owner clears `draft`
+    version: "0.9.0", date: "2026-11-23", draft: true, notes: [
+    ],
+  },
+  {
     version: "0.8.5", date: "2026-11-21", notes: [
       "Regulations: one Sources button at the foot of the page lists every source behind the rules",
       "Conditions: plainer words for how a river compares with normal, and a clear note where no gauge can speak for the water",
