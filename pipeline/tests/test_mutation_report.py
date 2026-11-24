@@ -52,14 +52,18 @@ XML = """<?xml version="1.0" ?>
 +++ b
 -    return 1
 +    return 2</failure><system-out>    return 1</system-out></testcase>
-<testcase name="Mutant #3" file="pipeline/a.py" line="5"><failure message="bad_timeout">t</failure></testcase>
+<testcase name="Mutant #3" file="pipeline/a.py" line="5"><error type="timeout" message="bad_timeout">t</error></testcase>
+<testcase name="Mutant #4" file="pipeline/a.py" line="5"><skipped type="skipped" message="untested">u</skipped></testcase>
+<testcase name="Mutant #5" file="pipeline/a.py" line="4"><failure message="ok_suspicious">s</failure></testcase>
 </testsuite></testsuites>"""
 
 
 def test_mutmut_and_stryker_results_name_each_survivor():
+    # (CI 2026-11-23) a mutant a stopped run never reached is untested, never "killed"; a timeout is an <error>
     counts, surv = MR.mutmut_survivors(XML)
-    assert counts == {"killed": 1, "survived": 1, "timeout": 1, "suspicious": 0}
-    assert surv == [("pipeline/a.py:12", "survived: `return 1`", "--- a\n+++ b\n-    return 1\n+    return 2")]
+    assert counts == {"killed": 1, "survived": 1, "timeout": 1, "suspicious": 1, "untested": 1}
+    assert surv[0] == ("pipeline/a.py:12", "survived: `return 1`", "--- a\n+++ b\n-    return 1\n+    return 2")
+    assert surv[1][1].startswith("suspicious") and len(surv) == 2
     report = {"files": {"packages/core/src/x.ts": {"mutants": [
         {"status": "Killed", "mutatorName": "A", "replacement": "1", "location": {"start": {"line": 1, "column": 2}}},
         {"status": "Survived", "mutatorName": "ConditionalExpression", "replacement": "false",
@@ -87,6 +91,9 @@ def test_the_python_part_runs_each_file_against_its_importers_and_says_every_gap
                "pipeline/c.py": []}
     monkeypatch.setattr(MR.RT, "pytest_related", lambda paths, root: (related[paths[0]], []))
     monkeypatch.setattr(MR, "ROOT", tmp_path)
+    (tmp_path / "pipeline").mkdir()
+    for f in files:
+        (tmp_path / f).write_text("x = 1\n")
     calls = []
 
     def runner(cmd, secs, cwd, env=None):
@@ -101,7 +108,10 @@ def test_the_python_part_runs_each_file_against_its_importers_and_says_every_gap
     assert "pipeline/tests/test_a.py" in run[0][run[0].index("--runner") + 1]
     assert " -x " in run[0][run[0].index("--runner") + 1] and "--use-patch-file" in run[0]
     assert any("`pipeline/c.py`" in x and "NO test imports or names it" in x for x in rep.lines)
-    assert rep.counts == {"killed": 1, "survived": 1, "timeout": 1, "suspicious": 0} and len(rep.survivors) == 1
+    assert rep.counts == {"killed": 1, "survived": 1, "timeout": 1, "suspicious": 1, "untested": 1}
+    assert len(rep.survivors) == 2
+    assert [c for c in calls if c[1] == "junitxml"][0][2:] == ["--untested-policy", "skipped", "--suspicious-policy",
+                                                               "failure"]
     assert any("`pipeline/b.py`: mutmut stopped (rc=1): baseline failed" in p for p in rep.problems)
     assert any("`pipeline/b.py`: no mutmut results" in p for p in rep.problems)
     rep2 = MR.Report("py")
@@ -209,3 +219,22 @@ def test_a_stopped_tool_gets_a_ctrl_c_first(tmp_path):
     rc, out = MR.bounded([sys.executable, str(child)], 1, tmp_path)
     assert rc == 124 and "saved" in out
     assert MR.bounded([sys.executable, "-c", "print('ok')"], 30, tmp_path) == (0, "ok\n")
+
+
+def test_a_mutated_file_is_put_back_as_it_was_uncommitted_edits_too(monkeypatch, tmp_path):
+    """A stopped mutmut can leave its mutant on disk: the file is written back from the bytes read before the run,
+    never `git checkout` (which threw away a local uncommitted fix, 2026-11-23). Mutation: skip the write -> fails."""
+    (tmp_path / "pipeline").mkdir()
+    (tmp_path / "pipeline" / "a.py").write_text("x = 1  # an uncommitted edit\n")
+    monkeypatch.setattr(MR, "ROOT", tmp_path)
+    monkeypatch.setattr(MR, "py_files", lambda changed: {"pipeline/a.py": [1]})
+    monkeypatch.setattr(MR, "git", lambda *a: "")
+    monkeypatch.setattr(MR.RT, "pytest_related", lambda paths, root: (["pipeline/tests/test_a.py"], []))
+
+    def runner(cmd, secs, cwd, env=None):
+        if cmd[1] == "run":
+            (tmp_path / "pipeline" / "a.py").write_text("x = 2  # the mutant, left by a stopped run\n")
+            return 124, ""
+        return 0, XML
+    MR.run_py("b", "h", 900, MR.Report("py"), runner=runner, mutmut="mutmut")
+    assert (tmp_path / "pipeline" / "a.py").read_text() == "x = 1  # an uncommitted edit\n"

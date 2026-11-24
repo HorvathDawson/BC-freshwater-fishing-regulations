@@ -156,7 +156,14 @@ What names the owner or the repo, or depends on the personal account:
 - **Mutation jobs on GitHub's runners** (this PR, run 45292340840): python 79 s, typescript 126 s end to end, almost
   all of it setup (checkout, pnpm install, venv, Stryker install): the PR's first diff had no pipeline/ or app source
   line to mutate, so each said so. The mutating runs are measured locally (above); the push after scripts/*.py joined
-  the Python part mutates this PR's own scripts (read its summary for that time).
+  the Python part mutates this PR's own scripts: run 45297808690, python **16 min** (the 900 s budget + setup;
+  typescript 102 s, nothing to mutate). That run showed three faults, fixed in de8268ac1 and the commit after it:
+  one 190-line file took the whole budget (now each file an equal share, smaller changes first); after the stop
+  mutmut's results could not be read (now SIGINT first, as Ctrl-C: it keeps what it finished); and mutants a stopped
+  run never reached were counted as killed (now `--untested-policy skipped`: "untested", and timeouts are counted).
+  Locally after the fixes, the same diff with `--budget 300`: 328 s, killed 20, survived 22, timeout 1, untested 675.
+  The report also restores a mutated file from the bytes read before the run, never `git checkout` (which threw
+  away an uncommitted local edit once).
 
 ## Not done / not verified
 - A mutating run of the TypeScript part on GitHub's runners (Stryker's sandbox-free `inPlace` run there).

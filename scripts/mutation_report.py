@@ -174,17 +174,22 @@ def py_files(changed: dict[str, list[int]]) -> dict[str, list[int]]:
 
 
 def mutmut_survivors(xml: str) -> tuple[dict[str, int], list[tuple[str, str, str]]]:
-    """`mutmut junitxml`: (counts by outcome, the survivors as (file:line, the mutated line, the diff))."""
-    counts = {"killed": 0, "survived": 0, "timeout": 0, "suspicious": 0}
+    """`mutmut junitxml --untested-policy skipped --suspicious-policy failure`: (counts by outcome, the survivors as
+    (file:line, the mutated line, the diff)). A survivor is a <failure> bad_survived, a suspicious one a <failure>
+    ok_suspicious, a timeout an <error>, a mutant a stopped run never reached a <skipped> (untested: never "killed")."""
+    counts = {"killed": 0, "survived": 0, "timeout": 0, "suspicious": 0, "untested": 0}
     out = []
     for tc in ET.fromstring(xml).iter("testcase"):
-        fail = tc.find("failure")
-        if fail is None:
+        fail, err, skip = tc.find("failure"), tc.find("error"), tc.find("skipped")
+        if skip is not None:
+            counts["untested"] += 1
+        elif err is not None:
+            counts["timeout"] += 1
+        elif fail is None:
             counts["killed"] += 1
-            continue
-        kind = (fail.get("message") or "").removeprefix("bad_")
-        counts[kind if kind in counts else "survived"] += 1
-        if kind in ("survived", "suspicious"):
+        else:
+            kind = "suspicious" if "suspicious" in (fail.get("message") or "") else "survived"
+            counts[kind] += 1
             src = (tc.findtext("system-out") or "").strip()
             out.append((f"{tc.get('file')}:{tc.get('line')}", f"{kind}: `{src[:120]}`", fail.text or ""))
     return counts, out
@@ -224,6 +229,7 @@ def run_py(base: str, head: str, budget: int, rep: Report, runner=bounded, mutmu
         cmd = f"{shlex.quote(py)} -m pytest -x -q -p no:cacheprovider -m {shlex.quote(markers)} " + " ".join(tests)
         rep.lines.append(f"`{f}`: {len(lines)} changed line(s); tests: {', '.join(Path(t).name for t in tests)}")
         (ROOT / ".mutmut-cache").unlink(missing_ok=True)
+        orig = (ROOT / f).read_bytes()        # put back as it was (an uncommitted edit too), never `git checkout`
         try:
             rc, said_run = runner([mutmut, "run", "--paths-to-mutate", f, "--tests-dir", str(Path(tests[0]).parent),
                                    "--runner", cmd, "--use-patch-file", str(patch), "--no-progress"], left_s, ROOT)
@@ -232,7 +238,8 @@ def run_py(base: str, head: str, budget: int, rep: Report, runner=bounded, mutmu
                                     "counted below, if mutmut kept it")
             elif rc & 1:                      # mutmut's bit 1: a fatal error (a red baseline, a tool failure)
                 rep.problems.append(f"`{f}`: mutmut stopped (rc={rc}): {said_run.strip()[-400:]}")
-            xrc, xml = runner([mutmut, "junitxml"], 120, ROOT)
+            xrc, xml = runner([mutmut, "junitxml", "--untested-policy", "skipped", "--suspicious-policy", "failure"],
+                              120, ROOT)
             if xrc or "<testsuites" not in xml:
                 rep.problems.append(f"`{f}`: no mutmut results to read (rc={xrc}): {xml.strip()[-200:]}")
                 continue
@@ -242,7 +249,7 @@ def run_py(base: str, head: str, budget: int, rep: Report, runner=bounded, mutmu
             rep.survivors += surv
         finally:
             # mutmut mutates in place: a stopped run can leave its mutant on disk
-            subprocess.run(["git", "checkout", "--", f], cwd=ROOT, capture_output=True)
+            (ROOT / f).write_bytes(orig)
             patch.unlink(missing_ok=True)
             (ROOT / ".mutmut-cache").unlink(missing_ok=True)
     rep.counts = total
@@ -320,6 +327,7 @@ def run_ts(base: str, head: str, budget: int, rep: Report, runner=bounded) -> No
     app = ROOT / "app"
     cfg, vcfg, out = app / ".mutation-stryker.json", app / ".mutation-vitest.config.mts", app / ".mutation-report.json"
     vcfg.write_text(VITEST_CONFIG, encoding="utf-8")
+    orig = {f: (ROOT / f).read_bytes() for f in files}
     cfg.write_text(json.dumps({
         "testRunner": "vitest", "plugins": ["@stryker-mutator/vitest-runner"],
         "vitest": {"configFile": vcfg.name, "related": False}, "coverageAnalysis": "perTest", "inPlace": True,
@@ -340,8 +348,9 @@ def run_ts(base: str, head: str, budget: int, rep: Report, runner=bounded) -> No
     finally:
         for p in (cfg, vcfg, out):
             p.unlink(missing_ok=True)
-        # inPlace: Stryker restores the files itself; a stopped run may not have
-        subprocess.run(["git", "checkout", "--", *files], cwd=ROOT, capture_output=True)
+        # inPlace: Stryker restores the files itself; a stopped run may not have (as they were, uncommitted edits too)
+        for f, b in orig.items():
+            (ROOT / f).write_bytes(b)
 
 
 def main(argv: list[str] | None = None) -> int:
