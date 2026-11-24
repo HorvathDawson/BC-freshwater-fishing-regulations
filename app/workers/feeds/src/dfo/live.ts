@@ -30,6 +30,7 @@ import { byFingerprint, loadEntryFile, reconcile, waterById, type EntryFile, typ
 import { build, type TypedFeed } from "./feed";
 import { ALL_SLUGS, fetchRegion, isoSeconds, normalizeSlug, PAGES, pageUrl, REAL_SLUGS, type FetchRegionOptions, type RegionSnapshot } from "./fetch";
 import { sha256 } from "./hash";
+import { STATE_KEYS } from "./state";
 import { digest, parseHeader, resolve, type Note } from "./header";
 import { extract, type Location, type Structure } from "./locations";
 import { key } from "./names";
@@ -51,13 +52,8 @@ export const MIN_APP = FEED_MIN_APP.dfoFeed;
 /** (T905, owner 2026-11-24 "Move worker state out") the private state's format (priv `state.json`) */
 export const STATE_FORMAT = FEED_FORMATS.dfoState;
 export const STATE_KEY = "state.json";
-/**
- * (T905) A REGION'S OWN BOOKKEEPING: what only this run reads back — the page hash and when it last moved, the fetches
- * that failed in a row, the header's digest, the header names no water binds, the page's general text. In priv
- * `state.json`, never in the published index (they were ~11 kB of it); no app reads one (core salmonFeed.ts
- * `SalmonFeedRegion`). live.py's STATE_KEYS is the same list (the vectors' `live.state_keys` pin it).
- */
-export const STATE_KEYS = ["sha256", "changed", "failures", "header", "unresolved", "texts"] as const;
+/** (T905) a region's own bookkeeping, the keys priv `state.json` holds and the index does not (./state.ts) */
+export { STATE_KEYS };
 export interface DfoState { format: typeof STATE_FORMAT; regions: Record<string, Record<string, unknown>> }
 const SPECIES_N = [...SPECIES];
 /**

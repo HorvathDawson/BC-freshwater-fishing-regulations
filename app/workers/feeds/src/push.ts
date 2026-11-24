@@ -21,7 +21,7 @@
 // Stored at private/push/tokens/<sha256(token)>.json — never backed up (backup.ts `personalKind`: "never"): a lost store
 // is rebuilt by the phones: one with notifications on registers its token again when it changed, or when its last
 // register is over PUSH_REFRESH_MS (7 days) old (packages/data notify/push.ts).
-import { STATE_KEYS } from "./dfo/live";
+import { STATE_KEYS } from "./dfo/state";
 import { jsonResponse, readJsonBody, type R2BucketLike } from "./io";
 import { dailyTotal, LIMIT_PREFIXES, listKeys, PUSH_NEW_TOKENS_PER_DAY_TOTAL, rateLimit, sha256hex, noSalt, type ReportEnv } from "./reports";
 
