@@ -1,6 +1,6 @@
 # T1051 — "Are treble hooks allowed here?": a lake's Gear tab says nothing about treble or barbed hooks
 
-Status: DONE — 5c68e2bda (0.9.1; app only: the frame already ships `hook` and `fly` for every part, so it needs the 0.9.1 app build, no data release; it works on the 0.9.0 data)
+Status: DONE — 5c68e2bda, 474f38bb0 (the frozen VM fixtures) (0.9.1; app only: the frame already ships `hook` and `fly` for every part, so it needs the 0.9.1 app build, no data release; it works on the 0.9.0 data)
 
 Source: in-app report `437acc75d93a4a1a` (staging feeds worker, the owner, 2026-11-24 18:49 UTC), reason "rule", on
 Dick Lake `wbk:328989582`, part 0, "Today, Nov 24", Regulations view, web, app 0.9.0 (build 43, 127bf43), release
