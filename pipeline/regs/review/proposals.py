@@ -1531,8 +1531,11 @@ def side_dir(p: Mapping) -> str:
     rebuild made for one state of the proposal never vouches for another."""
     # T562: `_cut_slug`, not a bare cut — two proposal ids alike in their first 40 characters AND their digest's first
     # six never share a directory (an id that fits in 40 keeps the directory it had)
-    from pipeline.common.curated import GENERATED                    # (T1021) generated.side, repo-relative as before
-    return _rel(Path(GENERATED.side) / f"t185-{_cut_slug(p['id'], 40)}-{p['digest'][:6]}")
+    # (T1021) generated.side, repo-relative to the config's root as before (`REPO` may be a test's tree: readers join
+    # this name to it)
+    from pipeline.common.curated import GENERATED, REPO_ROOT
+    side = Path(GENERATED.side).relative_to(REPO_ROOT).as_posix()
+    return f"{side}/t185-{_cut_slug(p['id'], 40)}-{p['digest'][:6]}"
 
 
 def changes_cuts(p: Mapping, props: Iterable[Mapping]) -> bool:
