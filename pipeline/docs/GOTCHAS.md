@@ -205,6 +205,18 @@ Dala (p.50), Ksi Hlginx (p.52), Triumph (p.54), and the West Road mainstem (Regi
 
 ---
 
+## Harrison Lake's lake trout show "hatchery only" (a bare "trout" line covers char)
+
+- **Harrison Lake** (Region 2). The row reads "No wild trout over 50 cm, 1 bull trout over 60 cm". The book's
+  definitions say a rule for "trout" also applies to char unless char are specifically left out, and the owner's
+  2026-11-18 rule (CATALOGUE_PARSE_PROMPT.md, labels.py) leaves out only the char the same row gives its own line:
+  here bull trout. So `harrison_lake.r1` is `TROUT_CHAR` except `DV`, origin wild, take 0 over 50 cm: it covers
+  lake trout and brook trout too. Every lake trout the zone lets you keep is over 50 cm, so a keepable one must be a
+  hatchery fish, and the trout card shows lake trout as "hatchery only" (in practice: no wild lake trout kept here).
+  Looks like a parse error; it is the book read the agreed way. Owner 2026-11-23: "okay that makes sense. just
+  confusing regulations can you add this one to gotchas?" If the owner ever reads "trout" here as trout only, the
+  change is one line: add `LT` (and `EB`) to `species_except` in region-2.json.
+
 ## An "All" closure against a species row on the same DFO place (the Tatshenshini, the Cowichan)
 
 **2026-11-12 · owner ruling T671 D1 · DFO salmon · `pipeline/deliver/salmon.py` `_all_closure_wins`, RULINGS L24**

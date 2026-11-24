@@ -39,6 +39,18 @@ ticket guard (`node app/tools/check-tickets.mjs`) always runs — inside step 3 
 so a docs / handoff-only push takes seconds. `BEFORE_PUSH_SKIP=<reason>` skips every step and prints the reason (the
 release command's own pushes: its preflight ran these checks); an empty reason is refused.
 
+(T1041) `--changed` ALSO RUNS THE TESTS THE CHANGE REACHES (`scripts/related_tests.py`), because both red CI runs of
+2026-11-23 were checks this hook skipped (#63: a core change broke ui-native tests; #67: a test importing a changed
+pipeline module failed in the no-data tier):
+  - app: step 4 becomes `vitest related --run <the changed app code files> <the tree scanners>` — vitest's import
+    graph, so a core change runs every package's tests that import it (most of the suite: ~2 min here);
+  - pipeline: the test files that import a changed module directly (+ the changed tests), as CI runs them (its marker
+    expression, in chunks), capped at related_tests.PY_CAP with the rest named.
+And the steps run in TWO LANES AT ONCE (`--serial`: one after another): the pipeline's (Python) and the rest (node),
+each step's output printed whole when it ends, so the hook takes the longer lane, not the sum. A full run (no
+--changed) runs no related step: its whole set is the suites. `scripts/before_pr.sh` (T1041) is the once-before-the-PR
+half: the whole app suite and the no-data tier through heavy.sh.
+
 THE HOOKS ARE VERSIONED (T995, owner 2026-11-21): `.githooks/pre-push` runs `--changed`, `.githooks/commit-msg` checks the
 message (T998: Conventional Commits, `app/tools/check-commits.mjs --edit`).
 They are on once a clone says `git config core.hooksPath .githooks` (`--hook` prints it; nothing is installed here).
@@ -53,6 +65,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -60,6 +73,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(Path(__file__).resolve().parent))      # beside it, however it is loaded (the tests: by path)
 import ci_paths as CP  # noqa: E402  (T995) the trunk and CI's areas, typed once
+import related_tests as RT  # noqa: E402  (T1041) the tests a change reaches
 WORKFLOW = ROOT / ".github" / "workflows" / "pipeline-ci.yml"
 #: pipeline-ci steps not run here, each with why (a step added to the workflow runs unless it is named here)
 SKIP = {"Tile tools (tippecanoe, pmtiles)": "installs the tile tools on the runner (here: brew install tippecanoe pmtiles)"}
@@ -73,6 +87,8 @@ HOOK = """# (T995) the hooks are versioned in .githooks/: pre-push runs `scripts
 # the message follows Conventional Commits (T998: node app/tools/check-commits.mjs --edit).
 # Turn them on once per clone (every worktree of it shares the setting):
 git config core.hooksPath .githooks
+# (T1041) keep git's ssh connection up while the hook runs (GitHub closed it under a 420 s hook):
+git config core.sshCommand "$(git config --get core.sshCommand || echo ssh) -o ServerAliveInterval=15 -o ServerAliveCountMax=8"
 # skip once, in an emergency only (say so in the commit or the PR): git push --no-verify
 # turn them off: git config --unset core.hooksPath"""
 #: (T995) the ticket guard on its own: what a push that changes no app file still runs (`pnpm check:fast` holds it)
@@ -83,6 +99,13 @@ DOCS_TESTS = ("tools/check-tickets.test.ts", "tools/start-here.test.ts")
 SKIP_ENV = "BEFORE_PUSH_SKIP"
 #: (T998) the commit-message step's name: it runs first, whatever the change
 COMMITS = "commit messages (Conventional Commits: node app/tools/check-commits.mjs)"
+#: (T1041) the --changed steps that run the tests the change reaches
+APP_RELATED = "app: related tests + tree scanners (vitest related)"
+PY_RELATED = "the pipeline's related tests (direct importers, as CI runs them)"
+SCANNERS = "app tree scanners (app/tools tests that read the tree)"
+NO_TIER = "the pipeline's source scanners (--no-tier)"
+#: (T1041) the steps of the Python lane (the pipeline's: step_area "pipeline"); every other step is the node lane's
+PY_LANE = ("CI: ", "the pipeline's ")
 
 
 def commits_step(ranges: list[str] | None = None) -> "Step":
@@ -97,6 +120,7 @@ class Step:
     name: str
     cmd: tuple[str, ...]
     script: str | None = None       # a workflow step's `run`, executed with `bash -e` (as fast-fail's ci_step)
+    note: tuple[str, ...] = ()      # (T1041) what the step chose and why, printed above its output
 
 
 def py() -> str:
@@ -197,15 +221,49 @@ def changed_paths(trunk: str = CP.TRUNK) -> tuple[str, list[str]]:
     return base, sorted(x for x in paths if x)
 
 
+def related_steps(paths: list[str], markers: str, app: bool = True, py: bool = True) -> dict[str, Step]:
+    """(T1041) the steps that run the tests these changed paths reach: the app's (`vitest related` over the changed app
+    code, with the tree scanners, which import nothing they scan) and the pipeline's (the direct importers)."""
+    out: dict[str, Step] = {}
+    if app:
+        files, app_said = RT.app_related(paths, ROOT)
+        scan = app_scanners()
+        out["app"] = Step(APP_RELATED, ("pnpm", "-C", "app", "exec", "vitest", "related", "--run", "--passWithNoTests",
+                                        *files, *scan),
+                          note=(f"{len(files)} changed app code file(s) + {len(scan)} tree scanner(s)", *app_said))
+    if not py:
+        return out
+    tests, said = RT.pytest_related(paths, ROOT)
+    if tests:
+        out["pipeline"] = Step(PY_RELATED, ("bash", "scripts/pytest-chunked.sh", "--only", RT.only_regex(tests), "--",
+                                            "-q", "-p", "no:cacheprovider", "-m", markers), note=tuple(said))
+    else:
+        out["pipeline"] = Step(PY_RELATED, (), note=(*said, "no pipeline test file changed or imports a changed module"))
+    return out
+
+
 def plan(tier: bool = True, app_suite: bool = False, steps: list[dict] | None = None,
-         areas: set[str] | None = None, ranges: list[str] | None = None) -> list[Step]:
+         areas: set[str] | None = None, ranges: list[str] | None = None,
+         paths: list[str] | None = None) -> list[Step]:
     """Every step, or (T995, `areas` given) only those of the areas changed — the commit messages (T998, over `ranges`)
-    and the ticket guard always."""
+    and the ticket guard always. (T1041) With the changed `paths` too, the tests they reach: the pipeline's direct
+    importers after its scanners, and the app's tree scanners step becomes `vitest related` over the change + them."""
     if areas is not None:
         out = [commits_step(ranges)]
         out += [] if "app" in areas else [Step("ticket guard (node app/tools/check-tickets.mjs)", TICKETS)]
         full = plan(tier=tier, app_suite=app_suite, steps=steps)
-        return out + [s for s in full if s.name != COMMITS and step_area(s) in areas]
+        kept = [s for s in full if s.name != COMMITS and step_area(s) in areas]
+        names = {s.name for s in kept}
+        # the whole app suite (--app-suite) and the whole tier already hold every related test
+        app_rel, py_rel = SCANNERS in names and not app_suite, NO_TIER in names
+        if paths is None or not (app_rel or py_rel):
+            return out + kept
+        rel = related_steps(paths, tier_markers(workflow_steps() if steps is None else steps), app=app_rel, py=py_rel)
+        for s in kept:
+            out.append(rel["app"] if s.name == SCANNERS and app_rel else s)
+            if s.name == NO_TIER:
+                out.append(rel["pipeline"])
+        return out
     steps = workflow_steps() if steps is None else steps
     out: list[Step] = [commits_step(ranges)]
     for s in steps:
@@ -219,12 +277,11 @@ def plan(tier: bool = True, app_suite: bool = False, steps: list[dict] | None = 
         out.append(Step("CI: Tests (the no-data tier, in chunks)", (*heavy, "bash", "scripts/pytest-chunked.sh", "--",
                                                                     "-q", "-m", markers)))
     else:
-        out.append(Step("the pipeline's source scanners (--no-tier)", (py(), "-m", "pytest", "-q", "-p",
+        out.append(Step(NO_TIER, (py(), "-m", "pytest", "-q", "-p",
                                                                        "no:cacheprovider", "-m", markers,
                                                                        *py_scanners())))
     out.append(Step("app gates (pnpm check:fast)", ("pnpm", "-C", "app", "run", "-s", "check:fast")))
-    out.append(Step("app tree scanners (app/tools tests that read the tree)",
-                    ("pnpm", "-C", "app", "exec", "vitest", "run", *app_scanners())))
+    out.append(Step(SCANNERS, ("pnpm", "-C", "app", "exec", "vitest", "run", *app_scanners())))
     out.append(Step("feeds worker tests", ("pnpm", "-C", "app", "exec", "vitest", "run", "--root", "workers/feeds")))
     # (T995 review) docs-ci's second step: the guard's own tests and the start-here page (a handoff-only push runs it)
     out.append(Step("docs: the ticket guard's tests and the start-here page (docs-ci)",
@@ -236,7 +293,7 @@ def plan(tier: bool = True, app_suite: bool = False, steps: list[dict] | None = 
 
 def step_area(step: Step) -> str:
     """(T995) the CI area a step stands for (scripts/ci_paths.py AREAS): what `--changed` keeps it by."""
-    if step.name.startswith(("CI: ", "the pipeline's source scanners")):
+    if step.name.startswith(PY_LANE):
         return "pipeline"
     if step.name.startswith("docs: ") or step.name == COMMITS:      # (T998) docs-ci's `commits` job runs it on CI
         return "docs"
@@ -245,6 +302,47 @@ def step_area(step: Step) -> str:
     if step.name.startswith("app"):
         return "app"
     raise ValueError(f"before-push: no area for step {step.name!r}")
+
+
+#: (T1041) what keeps git's SSH connection to GitHub up while the hook runs: measured 2026-11-23 with a hook that slept
+#: 420 s on `git push --dry-run` — plain ssh: "Connection to github.com closed by remote host", rc 141 (SIGPIPE, the
+#: 2026-11-22 death); with these options the same push went through
+KEEPALIVE = "-o ServerAliveInterval=15 -o ServerAliveCountMax=8"
+
+
+def ssh_host(url: str) -> str | None:
+    """The ssh host (or Host alias) of a remote URL, None for a non-ssh one: git@host:path, ssh://[user@]host[:port]/."""
+    if url.startswith("ssh://"):
+        m = re.match(r"ssh://(?:[^@/]+@)?([^:/]+)", url)
+    elif "://" in url:
+        return None                          # https, file, git: no ssh connection to keep
+    else:
+        m = re.match(r"(?:[^@/:]+@)?([^:/]+):", url)
+    return m.group(1) if m else None
+
+
+def keepalive_said(url: str, ssh_command: str | None, ssh_g=None) -> str | None:
+    """(T1041) None when the push connection is kept alive (the ssh command git uses, or ssh's own settings for the
+    host, name a ServerAliveInterval above 0) or the remote is not ssh; else the warning, with the fix. Never fails."""
+    host = ssh_host(url)
+    if host is None:
+        return None
+    if ssh_command and re.search(r"ServerAliveInterval[= ]+[1-9]", ssh_command):
+        return None
+    if ssh_g is None:
+        def ssh_g(h):
+            got = subprocess.run(["ssh", "-G", h], capture_output=True, text=True)
+            return got.stdout if got.returncode == 0 else None
+    out = ssh_g(host)
+    if out is None:
+        return f"before-push: could not read ssh's settings for {host} (ssh -G): keepalive unknown"
+    m = re.search(r"^serveraliveinterval (\d+)$", out, re.M)
+    if m and int(m.group(1)) > 0:
+        return None
+    cmd = f"{ssh_command or 'ssh'} {KEEPALIVE}"
+    return (f"before-push: WARNING: git's ssh connection to {host} has no keepalive; GitHub closes it while a long hook "
+            f"runs (a 420 s hook: the push died, SIGPIPE). Once per clone: git config core.sshCommand \"{cmd}\" "
+            f"(or ServerAliveInterval 15 under `Host {host}` in ~/.ssh/config)")
 
 
 def _git_local_vars() -> set[str]:
@@ -266,17 +364,83 @@ def step_env(environ: dict[str, str] | None = None) -> dict[str, str]:
     return environ
 
 
+#: (T1041) where a step's output goes while the lanes run at once: the lane's own file (printed whole at the step's end)
+_OUT = threading.local()
+
+
 def run_step(step: Step) -> int:
     # the pipeline's interpreter first on PATH (a workflow step's `python`): this checkout's .venv or PIPELINE_PY's
     env = step_env()
+    out = getattr(_OUT, "f", None)
+    io = {"stdout": out, "stderr": subprocess.STDOUT} if out is not None else {}
+    if not step.cmd:                         # (T1041) a step with nothing to run: its note says why
+        return 0
     if step.script is None:
-        return subprocess.run(list(step.cmd), cwd=ROOT, env=env).returncode
+        return subprocess.run(list(step.cmd), cwd=ROOT, env=env, **io).returncode
     with tempfile.NamedTemporaryFile("w", suffix=".sh", prefix="before-push-", delete=False) as f:
         f.write(step.script)
     try:
-        return subprocess.run([*step.cmd, f.name], cwd=ROOT, env=env).returncode
+        return subprocess.run([*step.cmd, f.name], cwd=ROOT, env=env, **io).returncode
     finally:
         os.unlink(f.name)
+
+
+def lanes(steps: list[Step]) -> list[list[Step]]:
+    """(T1041) the two lanes that run at once: the pipeline's steps (Python) and the rest (node); empty lanes dropped.
+    Each lane keeps the plan's order. The commit messages and the ticket guard lead the node lane (seconds)."""
+    py = [s for s in steps if s.name.startswith(PY_LANE)]
+    rest = [s for s in steps if not s.name.startswith(PY_LANE)]
+    return [x for x in (rest, py) if x]
+
+
+def run_all(steps: list[Step], runner, parallel: bool) -> dict[str, int]:
+    """Every step's exit code, by name. In lanes (`parallel`), each step's output is held in a file and printed whole,
+    its header, note and timing with it, when it ends; one after another otherwise (the output as it comes)."""
+    rcs: dict[str, int] = {}
+    lock = threading.Lock()
+
+    def one(s: Step, held: bool) -> None:
+        t = time.time()
+        if not held:
+            print(f"── {s.name}", flush=True)
+            for ln in s.note:
+                print(f"   {ln}", flush=True)
+            rc = runner(s)
+            print(f"   {'ok' if rc == 0 else f'FAILED (rc={rc})'} ({round(time.time() - t)} s)", flush=True)
+            rcs[s.name] = rc
+            return
+        with tempfile.TemporaryFile("w+", prefix="before-push-lane-") as f:
+            _OUT.f = f
+            try:
+                rc = runner(s)
+            except BaseException as e:      # a runner that raised: its step failed, said, and the lane goes on
+                print(f"before-push: {s.name} raised {e!r}", file=f)
+                rc = 1
+            finally:
+                _OUT.f = None
+            f.seek(0)
+            text = f.read()
+        with lock:
+            print(f"── {s.name}", flush=True)
+            for ln in s.note:
+                print(f"   {ln}")
+            sys.stdout.write(text)
+            print(f"   {'ok' if rc == 0 else f'FAILED (rc={rc})'} ({round(time.time() - t)} s)", flush=True)
+            rcs[s.name] = rc
+
+    groups = lanes(steps)
+    if not parallel or len(groups) < 2:
+        for s in steps:
+            one(s, held=False)
+        return rcs
+    print(f"before-push: {len(groups)} lanes at once ({', '.join(f'{len(g)} step(s)' for g in groups)}; --serial: "
+          "one after another); each step's output is printed whole when it ends", flush=True)
+    threads = [threading.Thread(target=lambda g=g: [one(s, held=True) for s in g]) for g in groups]
+    for th in threads:
+        th.start()
+    for th in threads:
+        th.join()
+    return rcs
 
 
 def main(argv=None, runner=run_step, stdin=sys.stdin) -> int:
@@ -287,6 +451,10 @@ def main(argv=None, runner=run_step, stdin=sys.stdin) -> int:
     ap.add_argument("--app-suite", action="store_true")
     ap.add_argument("--hook", action="store_true")
     ap.add_argument("--changed", action="store_true")
+    ap.add_argument("--remote-url", default=None,
+                    help="(T1041) the hook's $2: the push URL, checked for an ssh keepalive (a warning, never a failure)")
+    ap.add_argument("--serial", action="store_true",
+                    help="(T1041) run the steps one after another, not in the two lanes at once")
     ap.add_argument("--pre-push", action="store_true",
                     help="(T995 review) the hook: --changed over the refs git sends on stdin, not the working tree")
     a = ap.parse_args(argv)
@@ -300,7 +468,13 @@ def main(argv=None, runner=run_step, stdin=sys.stdin) -> int:
             return 2
         print(f"before-push: SKIPPED (nothing run): {skip}")
         return 0
-    areas, ranges = None, None
+    areas, ranges, paths = None, None, None
+    if a.remote_url:
+        ssh_cmd = os.environ.get("GIT_SSH_COMMAND") or subprocess.run(
+            ["git", "config", "--get", "core.sshCommand"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
+        warn = keepalive_said(a.remote_url, ssh_cmd or None)
+        if warn:
+            print(warn, file=sys.stderr)
     if a.pre_push:
         said, paths, ranges = pushed(stdin.read().splitlines())
         for ln in said:
@@ -317,7 +491,7 @@ def main(argv=None, runner=run_step, stdin=sys.stdin) -> int:
         areas = CP.areas_of(paths)
         print(f"before-push --changed: {len(paths)} path(s) since {base[:12]} (the merge base with "
               f"{CP.REMOTE}/{CP.TRUNK}); areas: {', '.join(sorted(areas)) or 'none (the ticket guard only)'}")
-    steps = plan(tier=not a.no_tier, app_suite=a.app_suite, areas=areas, ranges=ranges)
+    steps = plan(tier=not a.no_tier, app_suite=a.app_suite, areas=areas, ranges=ranges, paths=paths)
     if a.only:
         steps = [s for s in steps if re.search(a.only, s.name)]
         if not steps:
@@ -325,18 +499,14 @@ def main(argv=None, runner=run_step, stdin=sys.stdin) -> int:
             return 2
     if a.list:
         for s in steps:
-            print(f"  {s.name}" + ("" if s.script is not None else f"\n      $ {' '.join(s.cmd)}"))
+            print(f"  {s.name}" + ("" if s.script is not None else f"\n      $ {' '.join(s.cmd) or '(nothing to run)'}")
+                  + "".join(f"\n      # {ln}" for ln in s.note))
         for name, why in SKIP.items():
             print(f"  (not run) CI: {name}: {why}")
         return 0
-    failed, t0 = [], time.time()
-    for s in steps:
-        print(f"── {s.name}", flush=True)
-        t = time.time()
-        rc = runner(s)
-        print(f"   {'ok' if rc == 0 else f'FAILED (rc={rc})'} ({round(time.time() - t)} s)", flush=True)
-        if rc:
-            failed.append(s.name)
+    t0 = time.time()
+    rcs = run_all(steps, runner, parallel=not a.serial)
+    failed = [s.name for s in steps if rcs.get(s.name, 1)]
     secs = round(time.time() - t0)
     tail = ("\nnot run here: app-ci's web and native bundle exports"
             + ("" if a.app_suite else ", app-ci's whole vitest suite (--app-suite)")

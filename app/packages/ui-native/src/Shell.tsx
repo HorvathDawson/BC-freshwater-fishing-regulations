@@ -24,12 +24,12 @@
  * The Shell holds only the state more than one of these needs (the camera, the day, which sheet is open) and hands it
  * down. Every answer on every screen comes from a hook (rule 25).
  */
-import { WATER_SCREEN_WORDS, appTooOld, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM, type NotFishingKind, bcNow, now as clockNow } from "@app/core";
+import { WATER_SCREEN_WORDS, appTooOld, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM, type NotFishingKind, bcNow, now as clockNow, reportFailure } from "@app/core";
 import { openProbe, type ItemId, type SectionId } from "@app/data";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
 import { bottomBarShown, tabsAsRail, useLayoutClass, spotPins, useDayFlow, useLikeVisit, useMapRail, useStationNames, useMyLocation, useOpenAtMe, opensAtMe, useShare, useGaugePageCheck, useMenu, useDataFacts, useSync, useAppUpdate,
-         BackLayerContext, InSeasonContext, InSeasonInboxContext, useIdleOnce, useInSeason, loadRegsStore, useInSeasonInbox, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useWaterRegionsAhead, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, pressCueStore, tapAhead, useTapAwaiting, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
+         BackLayerContext, InSeasonContext, InSeasonInboxContext, useIdleOnce, useInSeason, loadRegsStore, useInSeasonInbox, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useWaterRegionsAhead, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, startForFrame, pressCueStore, tapAhead, useTapAwaiting, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { visitSpot } from "@app/data/spots";
 import { connectivity } from "./connectivity";
@@ -155,6 +155,8 @@ export function Shell(p: ShellProps) {
   const regsPrefetch = useRegsPrefetch(loader, source, mapDay);
   /** (T41) the start link's page start, until the page it opened has applied it (a later water never sees it) */
   const [start, setStart] = useState<RegsStart | null>(p.regsStart ?? null);
+  /** (T1038) the water a link's start is for (null: the web's start, the first water's page) */
+  const [startFor, setStartFor] = useState<ItemId | null>(null);
   const [dayOpen, setDayOpen] = useState(false);
   const [layersOpen, setLayersOpen] = useState(false);
   /** (T173) The tapped fish obstacle mark's tile properties, while its sheet is up. */
@@ -357,7 +359,7 @@ export function Shell(p: ShellProps) {
   const inboxOpensWater = useCallback((item: string) => {
     setBellOpen(false);
     if (searching) go({ type: "search", open: false });
-    nav.opener.item(item as ItemId, "regs");
+    void nav.opener.item(item as ItemId, "regs");
   }, [searching, go, nav.opener]);
   // (T867) the release in use and the app's version, for the inbox's data / app update rows; a row opens the More tab
   // (its Data block) or What's new
@@ -395,10 +397,24 @@ export function Shell(p: ShellProps) {
     if (!openReq || openReq.n <= openedTap.n) return;
     openedTap.n = openReq.n;
     if (searching) go({ type: "search", open: false });
+    // (T1038) a link's day and horizon set the Shell's one day and horizon, as the web start link's `initialDay` /
+    // `initialHorizon` do at a page's start (absent: a notification's tap leaves them)
+    if (openReq.day !== undefined) setMapDay(openReq.day);
+    if (openReq.horizon !== undefined) col.setHorizon(openReq.horizon);
     // (T989) a water a link or tap opened is a LANDING like a start link's: leaving it frames the map on that water
-    if (openReq.item) { search.landOn(openReq.item as ItemId); nav.opener.item(openReq.item as ItemId, openReq.view ?? "conditions", openReq.part ?? null); }
+    if (openReq.item) {
+      const item = openReq.item as ItemId, regs = openReq.regs;
+      search.landOn(item);
+      // (T1038) ...and its page start, handed to THAT water's page (`startFor`) as `regsStart` is, once the open has
+      // ROUTED (a link's part is checked first: the page still on screen, another part, never takes it); a new start per
+      // request, so a link to the water already open applies it again. An open overtaken or gone stale hands none.
+      void nav.opener.item(item, openReq.view ?? "conditions", openReq.part ?? null, openReq.whole ?? false)
+        .then((opened) => { if (opened && regs) { setStart(regs); setStartFor(item); } }, reportFailure);
+    }
     // (T605) a region page's `/?fit=` tapped on the phone: the browse map, framed on the region's box
     else if (openReq.fit) { go({ type: "close" }); nav.toTab("map"); search.landOnBox(openReq.fit); }
+    // (T1038) a `/?date=` link: the browse map (on the day set above), as the web's browse start opens
+    else if (openReq.home) { go({ type: "close" }); nav.toTab("map"); }
     else { go({ type: "close" }); nav.toTab("conditions"); }
   }, [openReq?.n]);   // eslint-disable-line react-hooks/exhaustive-deps -- once per tap
   // (T234 v1.1) A NEW-APP-VERSION TAP: the bell opens on its "App update" (with what's new), the version asked now
@@ -556,7 +572,7 @@ export function Shell(p: ShellProps) {
     ? <WaterModeHost frame={frame} nav={nav} col={col} source={source} palette={palette} loader={loader} tiles={tiles}
                      theme={theme} feed={feed} rail={rail} spotLayer={spotLayer} camera={camera}
                      waterCamera={waterCamera} fishImages={p.fishImages}
-                     mapDay={mapDay} onDay={setMapDay} start={start} onStarted={() => setStart(null)} />
+                     mapDay={mapDay} onDay={setMapDay} start={startForFrame(start, startFor, frame.item)} onStarted={() => setStart(null)} />
     : null;
   /*
    * (owner 2026-10-29) THE MAP MADE READY BEHIND A LANDING: a page that started on a water (a `/water/<slug>` page) has

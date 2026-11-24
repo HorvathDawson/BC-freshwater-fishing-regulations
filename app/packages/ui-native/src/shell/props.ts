@@ -96,7 +96,17 @@ export interface ShellProps {
                   /** (T1034) a link's part of the water */
                   part?: number | null;
                   /** (T605) a region page's link on the phone: the map framed on this box (`item` null) */
-                  fit?: readonly [number, number, number, number] } | null;
+                  fit?: readonly [number, number, number, number];
+                  /** (T1038) a link's day (the Shell's one day, null today), as `initialDay`; absent: left as it is */
+                  day?: Date | null;
+                  /** (T1038) a link's Conditions horizon, as `initialHorizon`; absent: left as it is */
+                  horizon?: Horizon;
+                  /** (T1038) where the linked water's Regulations page starts, as `regsStart` */
+                  regs?: RegsStart;
+                  /** (T1038) the linked water's Map framed on the whole water (`whole=1`) */
+                  whole?: boolean;
+                  /** (T1038) a link with a day and no water or box (`/?date=`): the map, as the web's browse start */
+                  home?: boolean } | null;
   /** (T234 v1.1) a new-app-version notification was tapped (a count): the bell opens on its "App update", checked now */
   openUpdate?: number;
   /** (T50) every route the Shell moves to, for an app that must put the reader back after Android recreates the
