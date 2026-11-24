@@ -41,7 +41,7 @@ export function applyAppLink(o: AppLinkOpen, d: AppLinkDeps): void {
   const days = { day: o.day, horizon: o.horizon ?? 0 };
   d.setOpenRequest((r) => ("home" in o ? { item: null, home: true, ...days, n: (r?.n ?? 0) + 1 }
                           : "fit" in o ? { item: null, fit: o.fit, ...days, n: (r?.n ?? 0) + 1 }
-                                      : { item: o.item, view: o.view, part: o.part, ...days, regs: o.regs,
+                                      : { item: o.item, view: o.view, part: o.part, ...days, regs: o.regs ?? undefined,
                                           ...(o.whole ? { whole: true } : {}), n: (r?.n ?? 0) + 1 }));
 }
 

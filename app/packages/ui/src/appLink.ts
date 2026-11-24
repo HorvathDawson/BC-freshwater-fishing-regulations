@@ -15,7 +15,7 @@
 import { APP_LINK_HOSTS, bcNow, reportFailure, type Horizon, type Who } from "@app/core";
 import type { ItemId } from "@app/data";
 import type { View } from "./route";
-import { fitOf, linkDay, linkPage, linkWhole, type FitBox, type LinkBad, type RegsStart } from "./startLink";
+import { fitOf, linkDay, linkPage, linkWhole, pageStartOn, type FitBox, type LinkBad, type RegsStart } from "./startLink";
 
 const VIEWS: readonly View[] = ["regs", "conditions", "map"];
 const ITEM = /^[a-z]+:-?\d+$/;
@@ -55,7 +55,8 @@ export interface AppLink {
  *  Conditions horizon (null: Now) — what the web's start link hands the Shell as `initialDay` / `initialHorizon`. */
 export interface LinkDays { readonly day: Date | null; readonly past: boolean; readonly horizon: Horizon | null }
 /** (T1038) A water link's page start (`regsStart` on the web), its angler (null: the session's stands) and `whole`. */
-export interface LinkPage { readonly regs: RegsStart; readonly who: Who | null; readonly whole: boolean }
+/** (T1049) `regs` null: the link is to the water's Map or Conditions, which keeps no page start (`pageStartOn`) */
+export interface LinkPage { readonly regs: RegsStart | null; readonly who: Who | null; readonly whole: boolean }
 
 /** What a tapped link opens: a water on a view, or (T605) the map framed on a box. */
 export type AppLinkOpen = ({ readonly item: ItemId; readonly view: View; readonly part: number | null; readonly theme: "light" | "dark" | null }
@@ -112,7 +113,10 @@ export function parseAppLink(url: string, now: Date = bcNow()): AppLink | null {
   const { regs: start, who } = water ? linkPage(sp, bad) : { regs: { tab: "keep" as const, sheet: null, scroll: 0 }, who: null };
   const whole = linkWhole(sp, view, part);
   if (water && q.has("whole") && !whole) problems.push(`app link: whole=${q.get("whole")} frames the whole water only as whole=1 on view=map with no part: dropped`);
-  const page: LinkPage = { regs: start, who, whole };
+  // (T1049) the web's rule: a page start only on the Regulations view; on another its keys are said
+  const onView = pageStartOn(view, start, (k) => q.has(k), "app link");
+  if (water) problems.push(...onView.dropped);
+  const page: LinkPage = { regs: onView.regs, who, whole };
   if (fitS === undefined) return { slug, item: regs as ItemId | null, view, part, theme, days, page, problems };
   const fit = fitOf(fitS);
   if (typeof fit === "string") throw new Error(`app link: fit=${fitS} is not ${fit}`);
