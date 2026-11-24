@@ -4,7 +4,7 @@
  * critical part inlined, system fonts. (T269) A WATER'S page is not drawn here: it is the app's own regs pane, prerendered
  * (pane.tsx, prerender.ts); this file gives it only its head (`headOf`).
  */
-import { regionWords, SYNOPSIS_PDF } from "@app/core";
+import { BOOK_DAYS, MONTHS, regionWords, SYNOPSIS_PDF } from "@app/core";
 import meta from "../../packages/map/style/style.meta.json" with { type: "json" };
 import type { PartModel, WaterModel } from "./model";
 
@@ -138,13 +138,10 @@ const DESC_MAX = 155;
 /** a sentence naming the build day or a date: a description is written once a release (T622 G2), so these are never in it */
 const DAY_WORDS = /\b(today|tomorrow|tonight|now|until|then)\b|\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\.? \d/i;
 
-const LAST_DAY = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-const MONTH3 = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-/** day index of the calendar year (0 = Jan 1, the strip's own order) as "Jun 15" */
+/** day index of the calendar year (0 = Jan 1, the strip's own order) as "Jun 15": the calendar's own BOOK_DAYS and month words */
 function mdOf(i: number): string {
-  let m = 0, d = ((i % 365) + 365) % 365;
-  while (d >= LAST_DAY[m]!) { d -= LAST_DAY[m]!; m++; }
-  return `${MONTH3[m]} ${d + 1}`;
+  const d = BOOK_DAYS[((i % 365) + 365) % 365]!;
+  return `${MONTHS[d.month - 1]!.slice(0, 3)} ${d.day}`;
 }
 
 /**
