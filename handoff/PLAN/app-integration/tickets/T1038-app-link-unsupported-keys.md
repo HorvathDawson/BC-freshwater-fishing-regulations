@@ -1,6 +1,6 @@
 # T1038 — Carry a phone link's date, tab, sheet, scroll, age, res, horizon and whole (today they are reported and dropped)
 
-Status: PARTIAL — 94c0a117d, 1a5574b00 (all eight keys carried on a water's link, `date`/`horizon` on a box's and on a day-only link (`/?date=`: the map on that day, as the web); read by the web start link's own readers and handed through the Shell's one open request; a link to the water already open re-applies its tab/sheet/scroll; tests per key, mutation-proved; web check of each key 2026-11-23); left (Claude): the device check below. Still reported, not carried (said with `reportFailure`): a page key on a link with no water (the web ignores it too) and `whole` where it does nothing.
+Status: PARTIAL — 94c0a117d, 1a5574b00, 06b85846a (all eight keys carried on a water's link, `date`/`horizon` on a box's and on a day-only link (`/?date=`: the map on that day, as the web); read by the web start link's own readers and handed through the Shell's one open request; a link to the water already open re-applies its tab/sheet/scroll; tests per key, mutation-proved; web check of each key 2026-11-23); left (Claude): the device check below. Still reported, not carried (said with `reportFailure`): a page key on a link with no water (the web ignores it too) and `whole` where it does nothing.
 
 Source: lane L15 on T1034, 2026-11-23. The web start link carries these keys (`parseStartLink`); the phone's link path
 (`parseAppLink`) did not, and listed them as read while dropping them. T1034 now REPORTS each one (`reportFailure`: "<key>=
@@ -30,6 +30,10 @@ Depends: T1034. Size: M. Owner: no.
   top), and the Shell hands a link's start only to the page of the water it names (`startForFrame`). The re-apply test
   failed before the change; a second bug it found (a page mounted with no start treated the first later one as its
   mount's) is fixed and pinned. 34 mutations, all killed.
+- (review of #80) A link to ANOTHER PART of the water on screen: the page still open took the start while the opener
+  checked the linked part. `opener.item` now resolves when it has routed (false when overtaken) and the Shell hands the
+  start over only then (`Shell.appLinkPart.test.tsx`, failing first, real fixture release). `view`/`part`/`theme` on a
+  link naming no water are reported. 38 mutations, all killed.
 - Web check (Expo web, staging data, 390x844): `date=2026-12-24` (Thu, Dec 24), `tab=gear` (Gear selected, scrolled),
   `tab=licence&age=u16&res=non_resident` (Licence, Under 16), `sheet=pos:pos` (Possession sheet open), `scroll=600` (600 px),
   `date=2026-10-01` (the "has passed" notice), `view=conditions&horizon=3` ("Forecast · 3 days ahead"), `view=map&whole=1`
