@@ -12,7 +12,7 @@ import { buildAll, type Built } from "./build";
 import { TODAY } from "./fixture";
 import { checkJsonLd } from "./jsonld";
 import { pngSize } from "./share";
-import { browserSafe, chartInputsOf, gaugeModels, gaugePath, gaugeTitle, LIVE, moreSummary, type GaugeRows } from "./gauges";
+import { browserSafe, chartInputsOf, gaugeBody, gaugeDescription, gaugeHeading, gaugeLede, gaugeLinksRow, gaugeModels, gaugePath, gaugesByWater, gaugeTitle, gaugeWordsProblems, LIVE, moreSummary, WEATHER_DAYS, type GaugeRows } from "./gauges";
 import { readConfig } from "./build";
 import { STORE_CONTACT } from "@app/core";
 
@@ -40,6 +40,7 @@ beforeAll(async () => {
                            gaugeClim: new Map([["08MH001", [{ parameter: "discharge" as const, bands: CLIM }]]]) });
 }, 300_000);
 
+const rowsModels = () => gaugeModels(rows, (item) => { const m = built.build.models.find((x) => x.id === item); return m ? { id: m.id, name: m.name, path: `/water/${built.build.slugMap.waters[m.id]!.slug}` } : null; });
 const gaugePages = () => built.build.pages.filter((p) => p.kind === "gauge");
 
 describe("T487 gauge pages", () => {
@@ -162,6 +163,60 @@ describe("T487 gauge pages", () => {
     expect(gaugeTitle(long)).toMatch(/\(08AB123\)$/);
     expect(gaugePath("08MH001", "Chilliwack River at Vedder Crossing")).toBe("/gauge/08MH001/chilliwack-river-at-vedder-crossing");
     expect(gaugeModels({ gauges: [{ station: "X1", name: "N", item: null, lat: null, lon: null }], serves: [] }, () => null)).toEqual([]);
+  });
+});
+
+describe("(T1045) gauge pages for the searcher's words", () => {
+  const g = (name: string, station = "08MH005") => ({ station, name });
+  it("the title, heading and lede carry level, flow and forecast once; a name that holds its water's word is not given it twice", () => {
+    expect(gaugeTitle(g("Alouette River Near Haney"))).toBe("Alouette River Near Haney level and flow (08MH005)");
+    expect(gaugeHeading(g("Alouette River Near Haney"))).toBe("Alouette River Near Haney level, flow and forecast");
+    expect(gaugeTitle(g("A Very Long River Name Indeed That Goes On And On Below The Long Falls")).length).toBeLessThanOrEqual(60);
+    for (const gp of gaugePages()) {
+      expect(gp.title, gp.path).toMatch(/ level and flow \(08MH0\d\d\)$/);
+      expect(gp.html, gp.path).toMatch(/<h1>[^<]* level, flow and forecast<\/h1><p class="lede">/);
+      expect(gp.title + text(gp.html.match(/<h1>[^<]*<\/h1>/)![0]), gp.path).not.toMatch(/\b(\w{3,}) \1\b/i);
+    }
+  });
+  it("the lede gives the weather's horizon (the one constant) and no day count for the flow forecast, whose run varies", () => {
+    const l = gaugeLede(g("Alouette River Near Haney"));
+    expect(l).toContain(`the weather is for the next ${WEATHER_DAYS} days`);
+    expect(l.replace(`${WEATHER_DAYS} days`, "")).not.toMatch(/\d+[- ]days?\b/i);
+    expect(l).toMatch(/as many days as that run covers/);
+    const p = gaugePages()[0]!;
+    expect(text(p.html)).toContain(gaugeLede(rowsModels().find((m) => p.path === m.path)!));
+    expect(p.html).toContain(`forecast_days=${WEATHER_DAYS}`);
+  });
+  it("the gate names what is wrong: no level-and-flow title, a doubled word, no lede, no forecast word", () => {
+    const m = rowsModels()[0]!;
+    const body = gaugeBody(m, "r-x", "/c.js", "2026-11-23", "/ch.js", { clim: [], fonts: null });
+    expect(gaugeWordsProblems(m, gaugeTitle(m), gaugeDescription(m), body)).toEqual([]);
+    expect(gaugeWordsProblems(m, "Alouette River conditions (08MH005)", gaugeDescription(m), body)).toEqual([expect.stringMatching(/lacks "level and flow"/)]);
+    expect(gaugeWordsProblems(m, "Alouette River River level and flow (08MH005)", gaugeDescription(m), body)).toEqual([expect.stringMatching(/"River River" twice/)]);
+    expect(gaugeWordsProblems(m, gaugeTitle(m), "Live flow.", body)).toEqual([expect.stringMatching(/lacks "forecast"/)]);
+    expect(gaugeWordsProblems(m, gaugeTitle(m), gaugeDescription(m), body.replace('<p class="lede">', "<p>"))).toEqual(["no lede"]);
+    expect(gaugeWordsProblems(m, gaugeTitle(m), gaugeDescription(m), body.replace(/<h1>[^<]*<\/h1>/, "<h1>Alouette</h1>"))).toEqual([expect.stringMatching(/lacks "level, flow and forecast"/)]);
+  });
+  it("a water links its good gauge pages in its static HTML, by a descriptive anchor; a water with none has no row", () => {
+    const waterPage = (id: string) => built.build.pages.find((x) => x.path === `/water/${built.build.slugMap.waters[id]!.slug}`)!.html;
+    const h0 = waterPage(ids[0]!);
+    expect(h0).toContain(`<nav id="gauge-links" aria-label="River gauges for this water" inert><a href="/gauge/08MH001/chilliwack-river-at-vedder-crossing">Chilliwack River at Vedder Crossing level and flow</a></nav>`);
+    expect(waterPage(ids[3]!)).not.toContain("gauge-links");   // only a weak guide serves it
+    expect(gaugesByWater(rowsModels()).get(ids[0]!)!.map((x) => x.station)).toEqual(["08MH001"]);
+    expect(gaugeLinksRow([{ name: "Chilliwack River at Vedder Crossing", path: "/gauge/08MH001/x" }])).toContain(`<a href="/gauge/08MH001/x">Chilliwack River at Vedder Crossing level and flow</a>`);
+    expect(gaugeLinksRow([])).toBe("");
+    // the weak-only gauge (08MH016) is no link on its waters; the third water has no good gauge
+    expect(gaugesByWater(rowsModels()).has(ids[2]!)).toBe(false);
+    expect(gaugesByWater(rowsModels()).get(ids[1]!)).toBeUndefined();   // a fair guide is the fold's, not a link
+  });
+  it("a gauge page's JSON-LD names its place by the gauge's name and station, and the gate holds it to the page", () => {
+    for (const gp of gaugePages()) {
+      const ld = JSON.parse(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(gp.html)![1]!.replace(/\\u003c/g, "<"))["@graph"];
+      const place = ld.find((n: { "@type": string }) => n["@type"] === "Place");
+      expect(place).toMatchObject({ identifier: gp.path.split("/")[2], name: expect.any(String) });
+      expect(ld.find((n: { "@type": string }) => n["@type"] === "WebPage").about).toEqual({ "@id": place["@id"] });
+      expect(checkJsonLd(gp.html, site.origin), gp.path).toEqual([]);
+    }
   });
 });
 

@@ -180,6 +180,8 @@ export const LIVE = {
   crash: crashUrlFor(REPORT_URLS.production),
   env: "production",
 } as const;
+/** the days the page asks the weather for (the one number; the page's words say it from here) */
+export const WEATHER_DAYS = 5;
 const OPEN_METEO = "https://api.open-meteo.com/v1/forecast";
 /** WMO weather codes 0-99 in the app's sky words (data/spots/words.ts `skyWord`) */
 const SKY: Readonly<Record<string, string>> = Object.fromEntries(Array.from({ length: 100 }, (_, c) => [String(c), skyWord(c)]));
@@ -204,7 +206,7 @@ export function gaugeConfig(g: GaugeModel, release: string, chart: ChartInputs):
     weather: g.lat === null || g.lon === null ? null
       // (T1039) and the measures a spot's weather window shows: cloud cover, pressure, humidity (data/spots/weather.ts FIELDS)
       : `${OPEN_METEO}?${weatherPlace(g.lat, g.lon)}&current=temperature_2m,precipitation,weather_code,wind_speed_10m,cloud_cover,pressure_msl,relative_humidity_2m` +
-        "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max&timezone=Etc%2FGMT%2B7&forecast_days=5",
+        `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max&timezone=Etc%2FGMT%2B7&forecast_days=${WEATHER_DAYS}`,
     weatherAttribution: OPEN_METEO_ATTRIBUTION, sky: SKY,
     crash: LIVE.crash, env: LIVE.env, release,
     // the app's own feed base (apps/mobile env.ts `feed`): the chart reads the station's file the app reads
@@ -218,15 +220,29 @@ export function gaugeConfig(g: GaugeModel, release: string, chart: ChartInputs):
 }
 
 // ── the pages ────────────────────────────────────────────────────────────────────────────────────────────────────────
-/** a unique title under 60 characters: the name is cut, the station never */
+/**
+ * (T1045) a unique title under 60 characters: the name is cut, the station never. The words a searcher types ("<river> level",
+ * "<river> flow") follow the gauge's own name, which already holds the water's word ("Alouette River Near Haney"): the title
+ * adds none of its own, so it never says "river river" (`gaugeWordsProblems` holds that).
+ */
 export function gaugeTitle(g: Pick<GaugeModel, "name" | "station">): string {
-  const tail = ` conditions (${g.station})`;
+  const tail = ` level and flow (${g.station})`;
   return `${clip(g.name, 60 - tail.length)}${tail}`;
 }
+/** (T1045) the page's one heading */
+export const gaugeHeading = (g: Pick<GaugeModel, "name">): string => `${g.name} level, flow and forecast`;
+/**
+ * (T1045) the lede under the heading, in the static HTML: what the page shows, in the words a reader searches. The flow forecast
+ * is the River Forecast Centre's run, as many days as that run covers (no number: it varies by gauge and run); only the weather
+ * has a horizon of its own (`WEATHER_DAYS`).
+ */
+export const gaugeLede = (g: Pick<GaugeModel, "name" | "station">): string =>
+  `Water level or flow, the flow forecast and the weather for ${g.name}, from Water Survey of Canada gauge ${g.station}. ` +
+  `Where the BC River Forecast Centre runs a forecast for this gauge it is shown for as many days as that run covers; the weather is for the next ${WEATHER_DAYS} days.`;
 
 export function gaugeDescription(g: GaugeModel): string {
   const w = g.close[0]?.name ?? g.rough[0]?.name;
-  return clip(`Live flow, this year's record, the flow forecasts and the weather at the ${g.name} gauge (${g.station}), BC` +
+  return clip(`Live flow or water level, the flow forecasts and the weather at the ${g.name} gauge (${g.station}), BC` +
     `${w ? `, for ${w}` : ""}. Free, from Water Survey of Canada data.`);
 }
 
@@ -247,7 +263,8 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
   const line = (w: WaterLink) => `<li><a href="${esc(w.path)}">${esc(w.name)} fishing regulations</a></li>`;
   const cfg = JSON.stringify(gaugeConfig(g, release, chart)).replace(/</g, "\\u003c");
   return `<div class="gv"><nav class="crumbs"><a href="/">Home</a> › <a href="/gauges">River gauges</a> › ${esc(g.name)}</nav>` +
-    `<h1>${esc(g.name)}</h1>` +
+    `<h1>${esc(gaugeHeading(g))}</h1>` +
+    `<p class="lede">${esc(gaugeLede(g))}</p>` +
     `<p class="small">Water Survey of Canada gauge ${esc(g.station)} · read each time this page opens.</p>` +
     `<div id="gauge-now" class="now-card"><p class="small">Reading the latest from the gauge…</p></div>` +
     `<noscript><p class="warn">The live reading, chart and weather need JavaScript.</p><style>#gauge-chart{display:none}</style></noscript>` +
@@ -268,6 +285,45 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
     `<div id="gauge-get-app"></div></div></div>` +
     `<script type="application/json" id="gauge-config">${cfg}</script><script src="${esc(clientHref)}" defer></script>` +
     `<script src="${esc(chartHref)}" defer></script>`;
+}
+
+/**
+ * (T1045) A WATER PAGE'S LINKS TO ITS GAUGE PAGES: plain `<a href>` in the page's static HTML, after the app's root (as the home
+ * page's row, T1011: the prerendered pane covers the window and the row sits under it; without script it is the page's foot, with
+ * script it is `inert` (the attribute, no script: a script here would block) so a Tab never lands on it; a crawler reads the links). The anchor says what the page is: "<gauge name> level and flow". At most
+ * three, the gauges that are a good guide for this water, by name. "" for a water with no such gauge.
+ */
+export function gaugeLinksRow(gs: readonly Pick<GaugeModel, "name" | "path">[]): string {
+  if (gs.length === 0) return "";
+  const css = "#gauge-links{font:14px/1.6 system-ui,-apple-system,sans-serif;padding:12px 16px;text-align:center}#gauge-links a{color:inherit;display:inline-block;padding:4px 6px}";
+  return `<style>${css}</style><nav id="gauge-links" aria-label="River gauges for this water" inert>` +
+    gs.map((g) => `<a href="${esc(g.path)}">${esc(g.name)} level and flow</a>`).join(" · ") +
+    `</nav>`;
+}
+
+/** (T1045) the gauges whose page a water links: each water's good guides (`main`), by name, three at most */
+export function gaugesByWater(gs: readonly GaugeModel[]): Map<string, GaugeModel[]> {
+  const out = new Map<string, GaugeModel[]>();
+  for (const g of gs) for (const w of g.main) {
+    const l = out.get(w.id) ?? [];
+    if (l.length < 3) { l.push(g); out.set(w.id, l); }
+  }
+  return out;
+}
+
+/** (T1045) what is wrong with a gauge page's search words: the title and heading carry them once, no word twice in a row, a lede, the forecast in the description */
+export function gaugeWordsProblems(g: GaugeModel, title: string, description: string, body: string): string[] {
+  const bad: string[] = [];
+  const h1 = /<h1>([^<]*)<\/h1>/.exec(body)?.[1] ?? "";
+  if (!/ level and flow \(/.test(title)) bad.push(`title "${title}" lacks "level and flow"`);
+  if (!/ level, flow and forecast$/.test(h1.replace(/&amp;/g, "&"))) bad.push(`heading "${h1}" lacks "level, flow and forecast"`);
+  for (const [what, t] of [["title", title], ["heading", h1]] as const) {
+    const twice = /\b([A-Za-z]{3,})\s+\1\b/i.exec(t);
+    if (twice) bad.push(`${what} "${t}" says "${twice[0]}" twice in a row`);
+  }
+  if (!body.includes('<p class="lede">')) bad.push("no lede");
+  if (!/forecast/i.test(description)) bad.push(`description lacks "forecast"`);
+  return bad;
 }
 
 export function gaugesIndexBody(gs: readonly GaugeModel[], asOf: string): string {
