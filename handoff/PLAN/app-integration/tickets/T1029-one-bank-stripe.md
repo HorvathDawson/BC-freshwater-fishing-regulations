@@ -318,3 +318,12 @@ side cannot be read stays and is reported (`tributary_side_undetermined`); one o
 Q6 on the Standard / Trout map (the rule book's `side` rule; one in the book, `kitimat_river.r1`): needs its per-section
 side in the regs data the Standard map reads — not built. Q4 polygon reaches: designed, not built (above). The device
 walk (above). An independent review. The 0.9.1 data release carries it.
+
+## Q4 — LEFT (coordinator 2026-11-24: do not build now; build when the first case appears)
+Owner's answer: "Along the bank edge". The measured rule (`v2-q4-bank-edge-*`, Kildala 1846283): the polygon's OUTER
+ring, split where the route's two ends meet it; the arc on the bank's side of the drawn route (+1/-1 as `bank_side`);
+minus where it touches another water polygon; minus the END CAPS (from each end, segments within 35° of square to the
+route); islands (inner rings) never striped; written with the water on its right so the band sits inside the water.
+Cost: a new `bank_edge` tile layer (the tile export) + a tile build + one runtime layer in the app. No one-bank place sits
+on a polygon reach in today's data; the build prints `polygon_reach` (a typed reason, visible in the bundle log) when one
+appears — then build it.
