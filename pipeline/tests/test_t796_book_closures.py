@@ -77,9 +77,10 @@ def test_a_chain_dfo_closes_every_day_takes_the_book_place_too(monkeypatch):
     assert dict(secs) == dict(sections) and "static" not in out
 
 
-def test_the_salmon_head_gate_is_the_owners_100_kb():
+def test_the_salmon_head_gate_is_the_owners_110_kb():
+    """(owner 2026-11-16 100 kB, T796 A5; owner 2026-11-24 "Raise to 110,000 (Recommended)", the 0.9.0 release)"""
     from pipeline.deliver.release.build import SIZE_GATES
-    assert SIZE_GATES["salmon"] == 100_000
+    assert SIZE_GATES["salmon"] == 110_000
 
 
 def test_the_owners_raises_for_the_book_closures():
