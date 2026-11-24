@@ -21,6 +21,7 @@
 // Stored at private/push/tokens/<sha256(token)>.json — never backed up (backup.ts `personalKind`: "never"): a lost store
 // is rebuilt by the phones: one with notifications on registers its token again when it changed, or when its last
 // register is over PUSH_REFRESH_MS (7 days) old (packages/data notify/push.ts).
+import { STATE_KEYS } from "./dfo/state";
 import { jsonResponse, readJsonBody, type R2BucketLike } from "./io";
 import { dailyTotal, LIMIT_PREFIXES, listKeys, PUSH_NEW_TOKENS_PER_DAY_TOTAL, rateLimit, sha256hex, noSalt, type ReportEnv } from "./reports";
 
@@ -560,8 +561,10 @@ export async function wakePhones(env: PushEnv, fetch_: Fetch, at: Date, why: str
  * keys sorted: the last feed is read back from its published bytes, the new one is the run's object (other key order).
  */
 /** a region's own run bookkeeping (dfo/live.ts `reg`): never a reason to wake. `changed` is when the page hash last
- *  moved, so it follows `sha256`; a page whose bytes moved with no other field changing reads the same to a phone. */
-const REGION_BOOKKEEPING = new Set(["at", "checked", "failures", "sha256", "page", "changed"]);
+ *  moved, so it follows `sha256`; a page whose bytes moved with no other field changing reads the same to a phone.
+ *  (T905) and every key that moved to the private state (dfo/live.ts STATE_KEYS: no app reads one): the first run after
+ *  that deploy reads a last index that still carries them and publishes one that does not — never a wake on that. */
+const REGION_BOOKKEEPING = new Set(["at", "checked", "page", ...STATE_KEYS]);
 const stable = (v: unknown): string => JSON.stringify(v, (_k, x: unknown) =>
   x && typeof x === "object" && !Array.isArray(x)
     ? Object.fromEntries(Object.keys(x as object).sort().map((k) => [k, (x as Record<string, unknown>)[k]])) : x);

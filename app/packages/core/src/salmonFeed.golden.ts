@@ -1046,12 +1046,9 @@ export const SALMON_FEED_GOLDEN = {
     "name": "Skeena",
     "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html",
     "asof": "2026-10-20",
-    "sha256": "x",
-    "changed": "2026-10-27T18:00:00Z",
     "checked": "2026-10-27T18:00:00Z",
     "stale": false,
     "held": null,
-    "failures": 0,
     "notes": [
      {
       "id": "6:daylight:c4e3b46f",
@@ -1255,7 +1252,6 @@ export const SALMON_FEED_GOLDEN = {
       "t": "Reminder: There is no fishing for eulachon in Region 6."
      }
     ],
-    "header": "eac787cad402ef22",
     "bucket": {
      "tree": {
       "node": "tier",
@@ -1873,12 +1869,9 @@ export const SALMON_FEED_GOLDEN = {
     "name": "Skeena",
     "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html",
     "asof": "2026-10-20",
-    "sha256": "x",
-    "changed": "2026-10-27T18:00:00Z",
     "checked": "2026-10-27T18:00:00Z",
     "stale": false,
     "held": null,
-    "failures": 0,
     "notes": [
      {
       "id": "6:closed:t356",
@@ -2088,7 +2081,6 @@ export const SALMON_FEED_GOLDEN = {
       "t": "Reminder: There is no fishing for eulachon in Region 6."
      }
     ],
-    "header": "eac787cad402ef22",
     "bucket": {
      "tree": {
       "node": "tier",

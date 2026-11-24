@@ -14,7 +14,7 @@ import json
 import sys
 
 from pipeline.common.curated import REPO_ROOT
-from pipeline.common.feed_formats import FEED_MIN_APP, FEEDS
+from pipeline.common.feed_formats import DFO_STATE_KEYS, FEED_MIN_APP, FEEDS
 
 OUT = REPO_ROOT / "app" / "packages" / "core" / "src" / "feedFormats.generated.ts"
 
@@ -40,7 +40,9 @@ def render() -> str:
             "/** (T676 item 2) The oldest app that reads each feed index's format: every writer stamps it as the index's\n"
             " *  `minAppVersion`; an older app that carries the gate (core feedGate.ts) refuses the index, keeps its last\n"
             " *  capture and raises the update prompt. A format bump raises it in the same edit. */\n"
-            "export const FEED_MIN_APP = {\n" + "\n".join(mins) + "\n} as const;\n")
+            "export const FEED_MIN_APP = {\n" + "\n".join(mins) + "\n} as const;\n\n"
+            "/** (T905) the keys of a DFO region's own bookkeeping: in the private dfo-state file, never the index */\n"
+            f"export const DFO_STATE_KEYS = {json.dumps(list(DFO_STATE_KEYS))} as const;\n")
 
 
 def main(argv=None) -> int:
