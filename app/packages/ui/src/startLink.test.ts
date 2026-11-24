@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { HOME, reduce, waterFrame } from "./route";
 import { openWater } from "./openWater";
-import { fitQuery, holdsMapStatus, pageRegion, parseStartLink, routeSearch, slugShard, slugShardPath, SLUG_SHARDS, START_NOTICE_REACH_GONE,
+import { fitQuery, holdsMapStatus, pageRegion, parseStartLink, reportDropped, routeSearch, slugShard, slugShardPath, SLUG_SHARDS, START_NOTICE_REACH_GONE,
          startNoticeLine, WATER_PATH } from "./startLink";
 import type { ItemId } from "@app/data";
 
@@ -93,8 +93,8 @@ describe("parseStartLink (T41: the web test deep link)", () => {
   });
 
   it("a URL-encoded sheet key is read whole", () => {
-    expect([parseStartLink("?regs=gnis:1&sheet=rule%3Azp%3Aconduct%3A%3Ar2", NOW)!.regs.sheet,
-            parseStartLink("?regs=gnis:1&sheet=srcs:gl%7Chook", NOW)!.regs.sheet])
+    expect([parseStartLink("?regs=gnis:1&sheet=rule%3Azp%3Aconduct%3A%3Ar2", NOW)!.regs!.sheet,
+            parseStartLink("?regs=gnis:1&sheet=srcs:gl%7Chook", NOW)!.regs!.sheet])
       .toEqual(["rule:zp:conduct::r2", "srcs:gl|hook"]);
   });
 
@@ -152,8 +152,9 @@ describe("(T256, T345) the map's status waits for the regulations page only whil
     const map = parseStartLink("?regs=gnis:19986&ix=2&view=map", NOW)!;
     const cond = parseStartLink("?regs=gnis:19986&ix=2&view=conditions", NOW)!;
     const regs = parseStartLink("?regs=gnis:19986&ix=2", NOW)!;
-    // the old rule (`!!regsStart && route.mode === "water"`) held all three, and only the page's start released it
-    expect([map, cond, regs].map((l) => !!l.regs && l.route.mode === "water")).toEqual([true, true, true]);
+    // the old rule (`!!regsStart && route.mode === "water"`) held all three, and only the page's start released it;
+    // (T1049) a link to the Map or Conditions view now carries no page start at all
+    expect([map, cond, regs].map((l) => !!l.regs && l.route.mode === "water")).toEqual([false, false, true]);
     expect([holdsMapStatus(map.route, map.regs), holdsMapStatus(cond.route, cond.regs),
             holdsMapStatus(regs.route, regs.regs), holdsMapStatus(regs.route, null)]).toEqual([false, false, true, false]);
     // the reader leaves the page for the Map view before it applied its start: the hold ends there too
@@ -200,5 +201,21 @@ describe("(T624) a water page's address, and the slug reader both Shares use", (
       const broken = slugReader("https://bad.test", async () => new Response("<!doctype html>", { headers: { "content-type": "application/json" } }));
       expect([await broken.of("gnis:1"), got.length]).toEqual([null, 1]);
     } finally { undo(); }
+  });
+});
+
+describe("(T1049) a page start on another view", () => {
+  it("is dropped (no start waits for the next Regulations page) and said, each key once; on Regulations it is the start", async () => {
+    const map = parseStartLink("?regs=gnis:3062&view=map&tab=gear&sheet=pos:pos", NOW)!;
+    expect([map.regs, map.dropped]).toEqual([null, ["start link: tab= does nothing on view=map: dropped",
+                                                    "start link: sheet= does nothing on view=map: dropped"]]);
+    expect(parseStartLink("?regs=gnis:3062&view=conditions", NOW)!.dropped).toBeUndefined();
+    const regs = parseStartLink("?regs=gnis:3062&tab=gear&scroll=40", NOW)!;
+    expect([regs.regs, regs.dropped]).toEqual([{ tab: "gear", sheet: null, scroll: 40 }, undefined]);
+    const { setFailureSink } = await import("@app/core");
+    const seen: string[] = [];
+    setFailureSink((e) => seen.push((e as Error).message));
+    try { reportDropped(map); reportDropped(regs); reportDropped(null); } finally { setFailureSink(null); }
+    expect(seen).toEqual(map.dropped);
   });
 });

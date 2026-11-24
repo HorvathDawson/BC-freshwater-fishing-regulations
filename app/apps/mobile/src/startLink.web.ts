@@ -15,7 +15,7 @@
 import type { WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import type { RegsStore } from "@app/data/regs";
-import { pageRegion, parseStartLink, reportFailure, setRegsFirstStart, setStartRegion, WATER_PATH,
+import { pageRegion, parseStartLink, reportDropped, reportFailure, setRegsFirstStart, setStartRegion, WATER_PATH,
          type StartLink } from "@app/ui";
 import { placeReads, resolveStartLink } from "@app/ui/place";
 import { preloadParts } from "@app/ui-native";
@@ -48,6 +48,9 @@ export function startLink(): StartLink | null {
     // for it now, beside the release's first files (its pane is the first screen there); any other start draws the map,
     // whose code is in the first script, and the chunk comes once the line is quiet and the browser idle (the Shell)
     if (water) void preloadParts();
+    // (T1049) what the link named and does not open is said (once the crash reporter is installed, as the region's)
+    for (const d of link?.dropped ?? []) console.error(d);
+    if (link?.dropped) queueMicrotask(() => reportDropped(link));
     return link;
   }
   catch (e) { console.error(e instanceof Error ? e.message : String(e)); return null; }

@@ -143,6 +143,9 @@ export interface RegsScreenProps {
   scrollKey?: string | null;
 }
 
+/** (T1049) ticks (100 ms) a start's target must hold before the start is done; ticks it is followed at most (~2 s) */
+const START_STEADY = 2, START_FOLLOW = 20;
+
 export function RegsScreen({ page, palette, images, actions, onDate,
                              gear, methods, licence, referenceOpen = false, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
                              lapsed = null, access = [], inSeason = [], glance = null, salmonStrip = null,
@@ -169,14 +172,24 @@ export function RegsScreen({ page, palette, images, actions, onDate,
   // (T37) the one sheet over the page: every sheet key a press opens — in any section — lands here (the caller hears it too)
   const [sheet, setSheet] = useState<SheetKey | null>(start?.sheet ?? null);
   // (T41) the start link's scroll: polled until the tab's section has a measured top (images and fonts move it), once
+  // (T1049) and FOLLOWED: the first measured top is not the last (on staging the Keep tab grows 903 → 1104 px ~35 ms after
+  // the first layout, so a jump to it landed short: Licence on Methods). The jump is made again while the target moves,
+  // and the start is done once it has held for START_STEADY ticks, or after START_FOLLOW ticks of a page still moving.
   useEffect(() => {
     if (!start) return;
     if (start.tab === "keep" && start.scroll === 0) { onStarted?.(); return; }
+    let at: number | null = null, held = 0, followed = 0;
     const timer = setInterval(() => {
       if (start.tab !== "keep" && store.getSections()[start.tab] == null) return;
+      const y = tabScrollY(start.tab, store.getSections()) + start.scroll;
+      if (y !== at && followed < START_FOLLOW) {
+        at = y; held = 0; followed += 1;
+        store.selectTab(start.tab);
+        scroll.current?.scrollTo({ y, animated: false });
+        return;
+      }
+      if (++held < START_STEADY && followed < START_FOLLOW) { followed += 1; return; }
       clearInterval(timer);
-      store.selectTab(start.tab);
-      scroll.current?.scrollTo({ y: tabScrollY(start.tab, store.getSections()) + start.scroll, animated: false });
       onStarted?.();
     }, 100);
     return () => clearInterval(timer);
