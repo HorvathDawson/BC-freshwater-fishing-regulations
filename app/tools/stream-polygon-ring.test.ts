@@ -10,11 +10,15 @@
  * Checked by EVALUATING the real runtime style's ring opacity (MapLibre's own evaluator) per tile zoom, every theme, for
  * the browse selection (`selected`), a water map's part (`part`) and an in-season outline (`inseason`) — all three are
  * the one `OUTLINE_SHOWN` — and the casing that takes over on the line.
+ *
+ * (The #81 review) A polygon whose route is a STUB has no `lz` and is ringed wherever it is drawn, so its stub's casing
+ * drew a second outline inside the ring. The stub line carries `pz`, its polygon's first zoom; the casing (and look C's
+ * glow) is opacity 0 on it from its `pz` — checked by EVALUATING their opacity per tile zoom, as the ring's.
  */
 import { describe, expect, it } from "vitest";
 import { createPropertyExpression, latest } from "@maplibre/maplibre-gl-style-spec";
 import { runtimeStyle } from "../packages/map/src/runtime-style";
-import { SELECTION_CASING, SELECTION_RINGS } from "../packages/map/src/paint";
+import { SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS } from "../packages/map/src/paint";
 
 type Layer = { id: string; type: string; "source-layer"?: string; filter?: unknown; paint?: Record<string, unknown> };
 const THEMES = ["light", "dark", "cvd"] as const;
@@ -67,8 +71,47 @@ describe("(T1024) a stream's polygon is ringed only where its line is not drawn"
     }
   }
 
-  it("where the ring stops the line's casing lights the water: the casing on `stream` takes every line", () => {
-    const c = layer(layersOf("light"), SELECTION_CASING);
-    expect([c["source-layer"], c.filter ?? null]).toEqual(["stream", null]);
+  for (const theme of THEMES) {
+    const ls = layersOf(theme);
+    // (T735) look C's glow is drawn by the dark theme only (a theme with no glow has no such layer)
+    for (const l of [layer(ls, SELECTION_CASING), ...ls.filter((x) => x.id === SELECTION_GLOW)]) {
+      it(`${theme} ${l.id}: every line on \`stream\`, but a stub from its polygon's zoom (the ring is its outline)`, () => {
+        // no filter: the casing stays in one bucket with the stream (the map lab's switch); the opacity decides
+        expect([l["source-layer"], l.filter ?? null]).toEqual(["stream", null]);
+        expect({
+          // where the ring stops the line's casing lights the water: any line with no `pz`, at every zoom
+          line: takenAlong(l, { ord: 3 }),
+          sideChannel: takenAlong(l, { ord: 3, sc: 1 }),
+          // the Oxbows' stub, its polygon first drawn at z10: cased below it only
+          stub: takenAlong(l, { ord: 2, pz: 10 }),
+          // a stub whose polygon is drawn from the layer's first zoom: never cased
+          early: takenAlong(l, { ord: 2, pz: 4 }),
+        }).toEqual({ line: shown(0), sideChannel: shown(0), stub: shown(0, 10), early: shown(0, 4) });
+      });
+      // (review of #111) the other states, on a line WITHOUT `pz` (every line of old tiles and nearly every line of new):
+      // an unlit line is never cased, an in-season one is (the casing; never the glow). A `pz` read with no guard is an
+      // evaluation error, and MapLibre falls back to the property's default, 1 — every unlit line cased
+      it(`${theme} ${l.id}: unlit and in-season lines with no \`pz\` keep today's opacity`, () => {
+        const casing = l.id === SELECTION_CASING;
+        expect({
+          unlit: ZOOMS.map((z) => [z, opacity(l, z, { ord: 3 }, {})]),
+          inseason: ZOOMS.map((z) => [z, opacity(l, z, { ord: 3 }, { inseason: true }) > 0 ? 1 : 0]),
+          inseasonStub: ZOOMS.map((z) => [z, opacity(l, z, { ord: 2, pz: 10 }, { inseason: true }) > 0 ? 1 : 0]),
+        }).toEqual({ unlit: shown(99), inseason: casing ? shown(0) : shown(99),
+                     inseasonStub: casing ? shown(0, 10) : shown(99) });
+      });
+    }
+  }
+  it("look C's glow exists in a theme (so the loop above checks it)", () => {
+    expect(THEMES.some((t) => layersOf(t).some((l) => l.id === SELECTION_GLOW))).toBe(true);
   });
 });
+
+/** is `l` drawn on a SELECTED line with `props`, and on the PART you are on, at each zoom ([zoom, 1 | 0]: both, or neither) */
+function takenAlong(l: Layer, props: Record<string, unknown>) {
+  return ZOOMS.map((z) => {
+    const [sel, part] = [{ selected: true }, { part: true }].map((st) => opacity(l, z, props, st) > 0);
+    if (sel !== part) throw new Error(`${l.id} z${z}: selected ${sel} but part ${part}`);
+    return [z, sel ? 1 : 0];
+  });
+}

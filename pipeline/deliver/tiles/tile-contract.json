@@ -6,7 +6,8 @@
       "attrs": [
         "name",
         "ord",
-        "sc"
+        "sc",
+        "pz"
       ],
       "featureId": "section_id",
       "decorative": false,

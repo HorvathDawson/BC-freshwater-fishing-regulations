@@ -2,10 +2,11 @@
  * (T735, owner 2026-11-16: look C) THE PART YOU ARE ON, in dark: a thin dark casing so the status colour carries, a soft
  * light glow outside it, and the in-season casing on the water's other parts at 0.35. Light (and cvd) are what they were:
  * the 2.5 px highlight / attention casing and no glow layer at all. All of it rides palette tokens, never a theme's name.
+ * (T1024) Every opacity here is inside `casedOnly`: 0 on a stub line from its polygon's zoom (tools/stream-polygon-ring.test.ts).
  */
 import { describe, expect, it } from "vitest";
 import { baseAdapter, type MapHandle } from "./adapters/contract";
-import { casingPaint, glowPaint, SELECTION_CASING, SELECTION_GLOW } from "./paint";
+import { casedOnly, casingPaint, glowPaint, SELECTION_CASING, SELECTION_GLOW } from "./paint";
 import { runtimeStyle } from "./runtime-style";
 import { resolveTheme } from "./style";
 
@@ -21,8 +22,8 @@ describe("(T735) look C: dark only, through tokens", () => {
             t["opacity.selection.casing.others"]]).toEqual([1.5, 1, t["color.ui.page"], 0.4, 0.35]);
     const p = casingPaint(2, t);
     expect(p["line-color"]).toEqual(["case", ON, t["color.ui.page"], t["color.ui.attention"]]);
-    expect(p["line-opacity"]).toEqual(["case", ON, 1, ["all", FS("inseason"), FS("water")], 0.35,
-      ["case", FS("selected"), 1, FS("part"), 1, FS("inseason"), 1, 0]]);
+    expect(p["line-opacity"]).toEqual(casedOnly(["case", ON, 1, ["all", FS("inseason"), FS("water")], 0.35,
+      ["case", FS("selected"), 1, FS("part"), 1, FS("inseason"), 1, 0]]));
     expect(p["line-width"]).toEqual(["+", 2, 3]);                      // 2 + 2 * 1.5
   });
 
@@ -31,7 +32,7 @@ describe("(T735) look C: dark only, through tokens", () => {
     const g = glowPaint(2, t);
     expect(g["line-color"]).toBe(t["color.ui.attention"]);
     expect(g["line-blur"]).toBe(6);
-    expect(g["line-opacity"]).toEqual(["case", ON, 0.4, 0]);
+    expect(g["line-opacity"]).toEqual(casedOnly(["case", ON, 0.4, 0]));
     expect(g["line-width"]).toEqual(["+", 2, 15]);                      // 2 + 2 * 1.5 + 12
   });
 
@@ -50,7 +51,7 @@ describe("(T735) look C: dark only, through tokens", () => {
       expect(layers.some((l) => l.id === SELECTION_GLOW)).toBe(false);
       const p = layers.find((l) => l.id === SELECTION_CASING)!.paint;
       expect(p["line-color"]).toEqual(["case", FS("inseason"), t["color.ui.attention"], t["color.highlight"]]);
-      expect(p["line-opacity"]).toEqual(["case", FS("selected"), 1, FS("part"), 1, FS("inseason"), 1, 0]);
+      expect(p["line-opacity"]).toEqual(casedOnly(["case", FS("selected"), 1, FS("part"), 1, FS("inseason"), 1, 0]));
       expect(casingPaint(2, t)["line-width"]).toEqual(["+", 2, 5]);             // 2 + 2 * 2.5
     }
   });
@@ -61,8 +62,8 @@ describe("(T735) look C: dark only, through tokens", () => {
                            setFeatureState: () => {}, clearFeatureStates: () => {} };
     const a = baseAdapter("native");
     a.setLayerMode(h, "stream", "plain", "dark");
-    expect(calls["line-opacity"]).toEqual(["case", ON, 0.4, 0]);
+    expect(calls["line-opacity"]).toEqual(casedOnly(["case", ON, 0.4, 0]));
     a.setLayerMode(h, "stream", "plain", "light");
-    expect(calls["line-opacity"]).toEqual(["case", ON, 0, 0]);
+    expect(calls["line-opacity"]).toEqual(casedOnly(["case", ON, 0, 0]));
   });
 });
