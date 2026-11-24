@@ -196,3 +196,41 @@ there, not every creek draining into that 746 m of bank: Reading 1.
 (How "today" was read: the web app over the live 0.9.0 release and atlas, each section tapped on Aug 15 and its card
 read; all 12 creeks are one salmon chain, so they answer alike. One tap, creek 975982, landed beside its line; its chain
 is the same.)
+
+## Build of look B (lane L18, 0.9.1, after the owner's pick) — what is built, what is left
+Built and tested (0cc340500; no data release needed for these):
+- The app's four runtime layers (`stream-bank-{r,l}` halves, `stream-bank-cue-{r,l}` closed dashes, one fixed dash per
+  layer as MapLibre Native needs) from zoom 13 up (`BANK_MINZOOM`, owner 2026-11-24); `tools/bank-cue.test.ts`
+  (evaluates the runtime style; mutation-proved). Nothing sets `bk`/`bks`/`bko` yet, so no frame draws a cue.
+- `pipeline/deliver/bank_side.py` production-grade: deterministic (sorted, file bytes only), every section asked for
+  ends with a side (+1/-1) or a TYPED reason (`Why`: along_axis, pieces_disagree, no_line, written_twice,
+  polygon_reach) — never a guess; `report()` gives what ships and what the build must print. On the live 0.9.0 layers:
+  Kitimat 1234098 → -1 (west = left of the drawn line); Kildala 1846283 → `polygon_reach` (the report the brief asked
+  for: a one-bank place landing on a polygon reach is seen, not skipped). `test_bank_side.py`, 5 mutations caught.
+
+Left (the plan; needs a scratch bundle build, i.e. heavy.sh, held 2026-11-24 for the 0.9.0 production build):
+1. Bundle (`deliver/bundle/build.py`, right after `_salmon.build`; the tiles dir is already read there for access and
+   undrawn): for each `p[lid]` with `side`, its sections = those whose chain's `u` holds `lid`; `sides_from_layer(
+   <tiles>/layers/stream.geojsonl, {sid: side}, <tiles>/layers/lake.geojsonl)`; ship `p[lid]["bk"] = {sid: ±1}` and
+   print `report()`'s reasons (a polygon reach included). Additive: the 0.9.0 app's parser checks only `p[lid].side`
+   (`release/0.9.0` `core/src/salmon.ts` L308) and ignores other keys; no `bk` → no cue (new app + old data). Size: the
+   salmon head is 101,480 B gz in the 0.9.0 release against the 110,000 B gate; `bk` adds ~21 B per bank place (2 today).
+2. Rule book `side` (Q6, "Yes, stripe it too"): the same per-section side for a synopsis rule with `side` (the regs
+   bundle's beside rows, `f.side`), so the Standard/Trout colouring sets `bks = status.<the rule's own answer>`.
+3. App: `packages/data` decodes `p[lid].bk`; the salmon colouring path (`map/src/colouring.ts`, `web/useChannels`,
+   `native/useColouring`) sets per bank section `bk` = the sign, `bks = salmon.<category of the bank place's own chain
+   that day>`, `bko = salmon.<the section's own category>`; cleared on day / mode change like `sp`. Creeks: none (a bank
+   place's tributaries carry no `bk`; owner: "No stripe on creeks").
+4. Style source (rule 28): every stream overlay today (`stream-closed`, the issue stripe, gear marks) is a runtime layer
+   in `runtime-style.ts`; `layers.source.json`'s DSL has no construct for an offset half-line by feature-state. Putting
+   look B there needs a style-builder extension — a question for the coordinator (keep the runtime-layer form, as
+   `stream-closed`, or extend the builder).
+5. Proof: scratch bundle (heavy), `app_reads` / `pack --check` / size gates, old app + new data and new app + old data,
+   web shots of the REAL wired build `built-b-*` (light + dark, z12/13/14/16).
+
+Q4 (polygon reach, "Along the bank edge"): DESIGNED, NOT BUILT — the edge rule and the Kildala picture above
+(`v2-q4-bank-edge-*`); needs its own tile layer (a tile build). Until then `bank_side` reports `polygon_reach`.
+
+Device walk (add to the device list): on the pinned MapLibre Native (pin.env 3a6b955), a one-bank stretch at z12
+(nothing), z13, z14, z16 in Salmon and Standard: the two halves offset to their sides (`line-offset` from a zoom curve),
+the closed dashes on the bank's half only (one fixed `line-dasharray` per layer), light + dark.
