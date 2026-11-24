@@ -82,6 +82,12 @@ export const WORDS = Object.freeze({
   MERGED: (n: number, sections: number) => `Closed all year on ${n} stretches (${sections} sections)`,
   DOT: " · ", SECTION: "section", SECTIONS: "sections",
   TIDAL_WATER: "Tidal water",
+  // (T1052, owner 2026-11-24 "One block, both calendars") a water the same closure shuts to all fishing, salmon too, all
+  // year: one statement. The headline is the owner's pick; the row lines are proposals (ticket option A).
+  CLOSED_ALL_FISHING_YEAR: "Closed to all fishing all year, salmon included",
+  // (a book line that ends its own sentence takes no second full stop)
+  BOOK_ROW_READS: (row: string, line: string) => `The ${RULE_BOOK} row for ${row} reads “${line}”${/[.!?]$/.test(line) ? "" : "."}`,
+  BOOK_ROW_TRIBS: (row: string, line: string) => `${row}’s row covers its tributaries: “${line}”${/[.!?]$/.test(line) ? "" : "."}`,
   // T16 the header (prototype hdr / placeGo; page v36 subtitle)
   /** (T405) the date button's name starts with what it shows ("Today Nov 4"): a name holding the visible words (WCAG 2.5.3) */
   DATE_ARIA: (dayWord: string, date: string) => `${dayWord} ${date}, change date`,

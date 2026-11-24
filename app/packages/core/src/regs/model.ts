@@ -168,6 +168,9 @@ export interface BannerVM {
   readonly chain: readonly { text: string; scope: string; rule: RuleKey; book: Line }[];  // .closechain li
   readonly reopen: { text: string; day: Day } | null;  // "See the rules from then ›" → sets the day
   readonly merged: { label: string; items: readonly { text: string; level: string | null; rule: RuleKey | null; book: Line }[] } | null;   // page v36 mergedHtml
+  /** (T1052) the closure(s) here close the salmon too, by the same rule, all year (`closedWithSalmon`): the banner says it
+   *  for both and the Salmon row of the species list is not drawn. Absent: the banner speaks for game fish only. */
+  readonly salmon?: true;
 }
 
 /** prototype per-article block; page v36 cardBlock / treeBlock / rowTitle / scopeBadge */
