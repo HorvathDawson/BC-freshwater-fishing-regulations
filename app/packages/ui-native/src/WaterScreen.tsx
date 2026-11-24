@@ -25,7 +25,7 @@
 import { ErrorState } from "./ErrorState";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView } from "react-native";
-import { NET_WORDS, asOfLine, closeForFinfish, dayRange, gearIfFished, gearTabsFor, licenceIfFished, licenceTabFor, regsLapsedNote, drawnRegsOf, regsSourcesOf, salmonBookSourcesOf, salmonShowsDfo, salmonWithPdf, troutSourcesOf, waterPagesOf, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget, bcNow, now as clockNow } from "@app/core";
+import { NET_WORDS, asOfLine, closeForFinfish, dayRange, gearIfFished, gearTabsFor, licenceIfFished, licenceTabFor, regsLapsedNote, drawnRegsOf, regsSourcesOf, withDrawnSources, salmonBookSourcesOf, salmonShowsDfo, salmonWithPdf, troutSourcesOf, waterPagesOf, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget, bcNow, now as clockNow } from "@app/core";
 import { openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { InSeasonContext, mapDayOf, regsDay, useAccessNotices, useInSeasonBanners, useReleaseLines, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
@@ -185,9 +185,11 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
     // (T1031 item 3) the trout table's Source line, drawn on the Keep tab, and the salmon card's book closures: drawn lines
     const trout = page.keep.trout?.kind === "table" ? troutSourcesOf(page) : null;
     const lines = [...(trout ? [trout] : []), ...(salmonShown?.book ?? []).map(salmonBookSourcesOf)];
-    const sources = regsSourcesOf(drawnRegsOf(page, tabs, licence, lines),
+    const drawn = drawnRegsOf(page, tabs, licence, lines);
+    const sources = regsSourcesOf(drawn,
       { waterPages, inSeason: inSeason.length > 0, dfo: salmonShowsDfo(salmonStrip, glance && !!salmon.value), rules: inputs.value.rules });
-    return { page, salmonStrip, tabs, licence, sources, trout };
+    // (T1036) the every-source sheet ("All sources ›") lists the rules those same drawn tabs cite (core `withDrawnSources`)
+    return { page: { ...page, sheet: withDrawnSources(page, drawn, inputs.value.rules, salmonShown?.book ?? []) }, salmonStrip, tabs, licence, sources, trout };
   }, [regs, inputs.value, salmon.value, salmonShown, gearAnyway, licenceAnyway, waterPages, inSeason.length, glance]);
   // (T45) how much room the window gives (the app shell's width; never read here): the page arranges itself for it
   const layout = useLayoutClass();

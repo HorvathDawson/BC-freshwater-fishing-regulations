@@ -530,8 +530,16 @@ def app_reads_row(version: str, base: str | None = None, reads_moved: str | None
     if table is None:
         raise AR.CutRefused(f"{base} has no {AR.TABLE_REL}")
     doc = json.loads(table)
-    new, what = AR.for_cut(doc, version, AR.reads_in(lambda rel: _show(base_sha, rel)), reads_moved)
-    return AR.dump(new, about=doc.get("_about", AR.ABOUT)), what, new["apps"][version]
+    if not doc.get("_about"):
+        raise AR.CutRefused(f"{base}'s {AR.TABLE_REL} has no `_about`: the table is not what "
+                            "pipeline/tools/emit/app_reads.py writes; fix it on the trunk first")
+    new, what = AR.for_cut(doc, version, AR.reads_in(lambda rel: _show(base_sha, rel)), reads_moved, shipped_versions())
+    return AR.dump(new, about=doc["_about"]), what, new["apps"][version]
+
+
+def shipped_versions() -> tuple[str, ...]:
+    """(T1048 review) the app versions a `v<x.y.z>` tag says shipped (the local tags: the cut fetched origin's first)."""
+    return tuple(t[1:] for t in _git("tag", "-l", "v*").decode().split() if re.fullmatch(r"v\d+\.\d+\.\d+", t))
 
 
 def version_commit(version: str, d: "RV.Decision", base: str | None = None, day: str | None = None,

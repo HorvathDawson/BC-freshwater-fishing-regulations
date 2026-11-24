@@ -25,7 +25,8 @@ function Row({ r, palette, actions }: { r: SourceRowVM; palette: Palette; action
     </View>
   ) : <Text style={[TYPE.regsBody, { color: palette.ink }]}>{r.quote}</Text>;
   return (
-    <View style={{ paddingVertical: 6 }}>
+    // (T1036) a rule's row names its rule for tests (`rule-row:<key>`): which rules a sheet lists, not only their pages
+    <View style={{ paddingVertical: 6 }} testID={r.key ? `rule-row:${r.key}` : undefined}>
       {r.key ? <RegsPress accessibilityRole="button" accessibilityLabel={r.title ?? r.quote} onPress={() => actions.onSheet(`rule:${r.key}`)} box={LINE}>{words}</RegsPress> : words}
       <Text style={[TYPE.meta, { color: palette.sub }]}>
         <Text>{r.role}</Text>
