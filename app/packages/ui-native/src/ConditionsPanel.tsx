@@ -142,6 +142,8 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   // span, model pick, series and drawn chart
   const sc = useStationChart(source, station, {
     parameter, onParameter, reports: vm.reading?.reports, readingQuantity: vm.reading?.quantity, offer, horizon, width: chartW, feed,
+    // (T1047) a quantity it carries live on another zero than its record: drawn as its line alone
+    offRecord: vm.reading?.offRecord,
     // (T582, T604) the horizon's own day AND the regulations day when it is inside the window: all drawn (a chosen
     // Conditions day does not hide the regulations day); the same day is one mark
     days: useMemo(() => [
@@ -185,7 +187,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
 
   const reading = vm.reading;
   // (T830) a quantity the station reads live with no band: Python's line in place of a standing, and no dot
-  const noRecord = noRecordLine(shown, banded, known, reading?.reports);
+  const noRecord = noRecordLine(shown, banded, known, reading?.reports, reading?.offRecord);
 
   /*
    * THE HEADLINE'S DETAIL ROWS (P16): the lead gauge's own reading — or, where no gauge

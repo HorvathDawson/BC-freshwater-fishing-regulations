@@ -105,6 +105,21 @@ describe("(T830) the card's quantities and its no-record line", () => {
     const c = cardQuantity("level", cardParameters(["discharge"], ["discharge", "level"]), true, "discharge");
     expect([c.shown, c.silent, c.options]).toEqual(["level", false, ["discharge", "level"]]);
   });
+  // (T1043, owner 2026-11-23: "i still dont know why 0.8.6 capilano at canyon gauge doesnt have level") a water's view
+  // passes the water's choices (T817 `offer`, from the bundle's bands alone): the lead's live level is offered too.
+  // MUTATION: drop `|| available.includes(q)` from `cardQuantity` -> Flow alone under Flow, so Level cannot be picked.
+  it("offers Capilano's live level beside the water's choices, the same before and after the pick", () => {
+    const capilano = cardParameters(["discharge"], ["discharge", "level"]);
+    const water = ["discharge"] as const;                                           // Capilano's bands: flow only
+    expect([cardQuantity("discharge", capilano, true, "discharge", water),
+            cardQuantity("level", capilano, true, "discharge", water)]).toEqual([
+      { shown: "discharge", silent: false, options: ["discharge", "level"] },
+      { shown: "level", silent: false, options: ["discharge", "level"] },
+    ]);
+    // a level off the rating (T550, another datum) is not in `reports`: Flow alone, as before
+    expect(cardQuantity("discharge", cardParameters(["discharge"], ["discharge"]), true, "discharge", water).options)
+      .toEqual(["discharge"]);
+  });
   it("says Python's words for a quantity offered from `reports` alone, and nothing for a banded one", () => {
     expect(noRecordLine("level", ["discharge"], true, ["discharge", "level"])).toBe(NO_RECORD_LINE);
     expect(NO_RECORD_LINE).toBe("Too new to say if this is high or low.");          // owner 2026-11-17 09:57, "Plainer"

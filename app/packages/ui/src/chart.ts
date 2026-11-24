@@ -17,7 +17,7 @@ import { useAsync, type Async } from "./async";
 import { askOnce, cardParameters, chartParameter, peekAnswer, seriesKey } from "./answers";
 import { useFeedVersion } from "./feedVersion";
 import { READING_REUSE_MS, stationReading } from "./hooks";
-import { buildHydrograph, DEFAULT_BOX, type Box, type Hydrograph } from "./hydrograph";
+import { buildHydrograph, DEFAULT_BOX, yearScale, type Box, type Hydrograph } from "./hydrograph";
 
 const NO_MODELS: readonly string[] = [];
 
@@ -173,7 +173,12 @@ export function useChartView(source: Pick<WaterSource, "gaugeSeries">, station: 
                              also: readonly string[] = NO_MODELS,
                              /** (T567, T604) the days marked on the plot beside today's rule: the Conditions day asked and the
                                  regulations day (either, both, or none; the same day twice is one mark) */
-                             days: readonly { at: number; label: string; kind: "conditions" | "regs" }[] = NO_DAYS): Async<ChartView | null> {
+                             days: readonly { at: number; label: string; kind: "conditions" | "regs" }[] = NO_DAYS,
+                             /**
+                              * (T1047) THE RECORD IS ON ANOTHER ZERO than the live line (T550, 08HD006's level): the line is
+                              * drawn alone, with no normal band, no earlier years and no year scale (they would mix zeros)
+                              */
+                             lineOnly = false): Async<ChartView | null> {
   const key = seriesKey(station, span, parameter, model);
   const daysKey = days.map((d) => `${d.kind}:${d.at}:${d.label}`).join("|");
   // (owner 2026-10-29) a feed the update service took redraws the chart in place: a refresh of the same series (its
@@ -211,8 +216,31 @@ export function useChartView(source: Pick<WaterSource, "gaugeSeries">, station: 
   const whole = series.state === "ready" ? series.value?.value ?? null : null;
   const early = series.state === "loading" && wantsDraft && drafted.state === "ready" ? drafted.value?.value ?? null : null;
   const both = whole ?? early;
-  const s = useMemo(() => (both && !drawForecast && both.forecast ? { ...both, forecast: null } : both),
-                    [both, drawForecast]);
+  const s = useMemo(() => {
+    const f = both && !drawForecast && both.forecast ? { ...both, forecast: null } : both;
+    return f && lineOnly ? { ...f, band: [], yearBand: [], priorYears: [] } : f;
+  }, [both, drawForecast, lineOnly]);
+  // (T1043, owner 2026-11-23: "the scale of the chart should use the year data if not enough histroical data exists")
+  // A 72 H CHART WITH NO BAND IS SCALED TO ITS YEAR. The release's Year series is null for exactly these stations (no
+  // envelope: `seriesOf`), so the year is read where the Year view's values come from: the feed's own record of this year
+  // and the earlier years (`draftSeriesOf`, the same join with no band). Asked only once the series is known to have no
+  // band; no feed to read it from (`draft` null) or no value in it: the chart scales to its own values and says so
+  // (`Hydrograph.scale` "reading"). A failed read is reported (`useAsync`, T368).
+  const bandless = span === "72h" && !lineOnly && !!whole && !whole.band.some((b) => b !== null);
+  const yParam = whole?.parameter;
+  const yKey = `yearscale:${seriesKey(station, "year", yParam, undefined)}`;
+  // The answer carries the key it was asked under: `useAsync` hands back the last key's answer for a render after a switch,
+  // and station B must never be drawn on station A's year (or Level on Flow's). Until THIS key's year has settled (or
+  // failed) the chart is held (`yearPending`: the last chart stays up, marked pending; a first view is loading), so the
+  // pane is not revealed at one scale and redrawn at another.
+  const wantsYear = bandless && !!draft && station !== null;
+  const yearAsk = useAsync(
+    async () => askOnce(source, yKey, async () =>
+      ({ key: yKey, year: draftSeriesOf(await draft!.feed.observations(station!), "year", yParam)?.value ?? null })),
+    `${yKey}#${v}`, wantsYear, yKey, () => peekAnswer(source, yKey));
+  const yearHere = yearAsk.state === "ready" && yearAsk.value?.key === yKey ? yearAsk.value : null;
+  const yearPending = wantsYear && !yearHere && yearAsk.state !== "failed";
+  const scaleTo = useMemo(() => (bandless && yearHere ? yearScale(yearHere.year) : null), [bandless, yearHere]);
   const aged = series.state === "ready" && series.value ? series.value
     : series.state === "loading" && wantsDraft && drafted.state === "ready" ? drafted.value : null;
   const asOf = aged?.kept ? CONDITIONS_WORDS.keptAsOf(aged.fetchedAt) : null;
@@ -251,6 +279,7 @@ export function useChartView(source: Pick<WaterSource, "gaugeSeries">, station: 
 
   const current = useMemo<Async<ChartView | null>>(() => {
     if (series.state !== "ready" && !early) return series as Async<ChartView | null>;
+    if (yearPending) return { state: "loading", value: null, error: null };
     if (!s) return { state: "ready", value: null, error: null };
     const n = s.values.length;
     const bands = s.band.length === n ? s.band : Array.from({ length: n }, () => s.band[0] ?? null);
@@ -265,6 +294,7 @@ export function useChartView(source: Pick<WaterSource, "gaugeSeries">, station: 
       log: span === "year" && s.parameter === "discharge",
       box, domain: st.domain, probe: st.probe, days: drawForecast ? days : NO_DAYS,
       ticks: (v) => chartTicks(v, span, tickCount(box.width)),
+      scaleTo,
     });
     const p = shape.probe;
     const readout = p ? {
@@ -275,7 +305,7 @@ export function useChartView(source: Pick<WaterSource, "gaugeSeries">, station: 
     return { state: "ready", error: null,
              value: { shape, readout, zoomed: !!(shape.view && shape.full && isZoomed(shape.view, shape.full)),
                       pending: false, draft: both === early, asOf, ...actions } };
-  }, [series, s, early, asOf, span, box.width, box.height, st.domain, st.probe, actions, alsoRuns, drawForecast, daysKey]);
+  }, [series, s, early, asOf, span, box.width, box.height, st.domain, st.probe, actions, alsoRuns, drawForecast, daysKey, scaleTo, yearPending, lineOnly]);
 
   // The last chart drawn, for the frames between a switch and its answer.
   const last = useRef<ChartView | null>(null);
