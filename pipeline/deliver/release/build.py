@@ -112,7 +112,10 @@ def built_formats() -> Dict[str, str]:
 #: leave 1 %).
 #: (T975) the packed gates are the only ones: the old forms' (near 2,250,000, down 1,250,000, climate 1,650,000) went
 #: with the switch that wrote them
-SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_650_000, "lakes": 100_000, "salmon": 100_000,
+#: (owner 2026-11-24, 0.9.0 release, question dialog: "Raise to 110,000 (Recommended)"; RULINGS O5 "raise now, shrink
+#: later") `salmon` 100,000 → 110,000: the 0.9.0 side build measured the head 101,480 B gz (live r-741815c6090d: 97,723,
+#: +3.8 %; T754 one-bank places / T812 Babine circles likely, not measured). The shrink is T905.
+SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_650_000, "lakes": 100_000, "salmon": 110_000,
               **{f"salmon-{r}": 320_000 for r in (*SH.REGIONS, "x")}, "salmon-6": 460_000, "method": 600_000,
               # (T388) water + `part_line` (79,253 B gz measured alone on the 2026-11-04 bundle; water was 2,409,579 in
               # r-b86b60ca533b → ~2.49 MB, too close to 2.5 MB) → 2,650,000
