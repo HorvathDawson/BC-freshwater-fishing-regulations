@@ -19,8 +19,10 @@ the proof, read from the files the archive is built from — never from the dict
 
   And the STUB SAYS WHERE ITS POLYGON IS (the #81 review, 2026-11-24): a polygon without `lz` is ringed at every zoom it
   is drawn at, so its stub's own selection casing drew a second outline inside the ring (249 stubs on the live atlas,
-  201 of them drawn before their polygon). Every line of a polygon with no `lz` carries `pz`, the polygon's first zoom
-  as written; the app draws no casing on a line from its `pz` (app `paint.ts` `CASED`). No other line carries `pz`.
+  201 of them drawn before their polygon; all 249 lie inside it). A stub INSIDE its polygon (within `INSIDE_M`) carries
+  `pz`, the polygon's first zoom as written; the app draws no casing on a line from its `pz` (app `paint.ts`
+  `casedOnly`). A stub that leaves its polygon carries none (it never drew a second outline inside the ring, and the
+  tapped line must stay cased). No other line carries `pz`.
 
 `check` raises naming every offender's kind and a few section ids; the tile build runs it after the export
 (`tiles/__main__.py`), before tippecanoe.
@@ -41,6 +43,10 @@ from shapely.ops import transform
 STUB_RATIO = 0.3
 #: the check's allowance either side of STUB_RATIO: it measures the written WGS84 geometry, the export BC Albers
 STUB_SLACK = 0.05
+#: (T1024) a stub lies INSIDE its polygon when it is within this many metres of it (the route's ends sit on the outline)
+INSIDE_M = 5.0
+#: the check's allowance either side of INSIDE_M (local metres against BC Albers, and the 6-decimal written coordinates)
+INSIDE_SLACK = 1.0
 
 
 def long_side(poly) -> float:
@@ -101,10 +107,10 @@ def stream_polygons(layer_dir: Path) -> tuple[dict[int, dict], list[int]]:
 
 
 def line_zooms(layer_dir: Path, wanted: set[int]) -> tuple[dict[int, tuple[int, float]], dict[int, list]]:
-    """({section id: (the FIRST zoom any line of it is drawn at in the stream layer, their length in metres)}, for the
-    ids in `wanted`; {section id: the `pz` of each of its lines (None: it has none)} for those ids and for EVERY line
-    that carries a `pz`)."""
-    out: dict[int, tuple[int, float]] = {}
+    """({section id: (the FIRST zoom any line of it is drawn at in the stream layer, their length in metres, their WGS84
+    geometries)}, for the ids in `wanted`; {section id: the `pz` of each of its lines (None: it has none)} for those ids
+    and for EVERY line that carries a `pz`)."""
+    out: dict[int, tuple] = {}
     pzs: dict[int, list] = {}
     for name in LINE_FILES:
         with (layer_dir / name).open() as fh:
@@ -116,35 +122,42 @@ def line_zooms(layer_dir: Path, wanted: set[int]) -> tuple[dict[int, tuple[int, 
                     pzs.setdefault(sid, []).append(pz)
                 if sid in wanted:
                     z = t["tippecanoe"]["minzoom"]
-                    n = _metres(shape(json.loads(line)["geometry"])).length
-                    z0, n0 = out.get(sid, (z, 0.0))
-                    out[sid] = (min(z, z0), n0 + n)
+                    g = shape(json.loads(line)["geometry"])
+                    z0, n0, gs = out.get(sid, (z, 0.0, ()))
+                    out[sid] = (min(z, z0), n0 + _metres(g).length, (*gs, g))
     return out, pzs
 
 
 def offenders(layer_dir: Path) -> tuple[int, dict[str, list[int]]]:
     """(how many stream polygons, the sections that break the rule by how: `lz_without_line`, `lz_not_the_line_zoom`,
     `lz_on_a_stub`, `line_without_lz` (a line that is no stub), `lz_on_standing_water`; and on the lines, `stub_without_pz`
-    (a line of a polygon with no `lz` that does not say the polygon's zoom), `pz_not_the_polygon_zoom`, `pz_off_a_stub`
-    (a `pz` on a line of a polygon with `lz`, or of no stream polygon))."""
+    (a stub INSIDE its polygon, within INSIDE_M, that does not say the polygon's zoom), `pz_not_the_polygon_zoom`,
+    `pz_outside_its_polygon` (a `pz` on a stub that leaves its polygon: the casing would go from a line the ring does not
+    outline), `pz_off_a_stub` (a `pz` on a line of a polygon with `lz`, or of no stream polygon))."""
     polys, standing_lz = stream_polygons(layer_dir)
     lines, pzs = line_zooms(layer_dir, set(polys))
     bad: dict[str, list[int]] = {"lz_without_line": [], "lz_not_the_line_zoom": [], "lz_on_a_stub": [],
                                  "line_without_lz": [], "lz_on_standing_water": standing_lz,
-                                 "stub_without_pz": [], "pz_not_the_polygon_zoom": [],
+                                 "stub_without_pz": [], "pz_not_the_polygon_zoom": [], "pz_outside_its_polygon": [],
                                  "pz_off_a_stub": sorted(s for s, v in pzs.items()
                                                          if s not in polys and any(z is not None for z in v))}
     for sid in sorted(polys):
         lz = polys[sid].get("lz")
         if sid in lines:
             poly = _metres(shape(polys[sid]["_geom"]))
-            zoom, length = lines[sid]
+            zoom, length, geoms = lines[sid]
             marks = pzs[sid]
+            # (written WGS84, measured in one local frame: the polygon's)
+            k = math.cos(math.radians(shape(polys[sid]["_geom"]).centroid.y))
+            local = lambda g: transform(lambda x, y, z=None: (x * 111_320 * k, y * 110_540), g)  # noqa: E731
+            within = lambda m: all(local(g).within(local(shape(polys[sid]["_geom"])).buffer(m)) for g in geoms)  # noqa: E731
             if lz is not None and any(z is not None for z in marks):
                 bad["pz_off_a_stub"].append(sid)
-            elif lz is None and None in marks:
+            elif lz is None and any(z is not None for z in marks) and not within(INSIDE_M + INSIDE_SLACK):
+                bad["pz_outside_its_polygon"].append(sid)
+            elif lz is None and None in marks and within(INSIDE_M - INSIDE_SLACK):
                 bad["stub_without_pz"].append(sid)
-            elif lz is None and any(z != polys[sid]["_z"] for z in marks):
+            elif lz is None and any(z is not None and z != polys[sid]["_z"] for z in marks):
                 bad["pz_not_the_polygon_zoom"].append(sid)
         if lz is None:
             if sid in lines and not is_stub(length, poly, STUB_RATIO + STUB_SLACK):

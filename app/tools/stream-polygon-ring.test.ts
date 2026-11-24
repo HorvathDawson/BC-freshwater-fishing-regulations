@@ -88,6 +88,18 @@ describe("(T1024) a stream's polygon is ringed only where its line is not drawn"
           early: takenAlong(l, { ord: 2, pz: 4 }),
         }).toEqual({ line: shown(0), sideChannel: shown(0), stub: shown(0, 10), early: shown(0, 4) });
       });
+      // (review of #111) the other states, on a line WITHOUT `pz` (every line of old tiles and nearly every line of new):
+      // an unlit line is never cased, an in-season one is (the casing; never the glow). A `pz` read with no guard is an
+      // evaluation error, and MapLibre falls back to the property's default, 1 — every unlit line cased
+      it(`${theme} ${l.id}: unlit and in-season lines with no \`pz\` keep today's opacity`, () => {
+        const casing = l.id === SELECTION_CASING;
+        expect({
+          unlit: ZOOMS.map((z) => [z, opacity(l, z, { ord: 3 }, {})]),
+          inseason: ZOOMS.map((z) => [z, opacity(l, z, { ord: 3 }, { inseason: true }) > 0 ? 1 : 0]),
+          inseasonStub: ZOOMS.map((z) => [z, opacity(l, z, { ord: 2, pz: 10 }, { inseason: true }) > 0 ? 1 : 0]),
+        }).toEqual({ unlit: shown(99), inseason: casing ? shown(0) : shown(99),
+                     inseasonStub: casing ? shown(0, 10) : shown(99) });
+      });
     }
   }
   it("look C's glow exists in a theme (so the loop above checks it)", () => {
