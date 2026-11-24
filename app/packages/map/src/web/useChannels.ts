@@ -9,7 +9,7 @@ import { readingDayOf, salmonDayIndex } from "@app/core";
 import { useEffect, useRef } from "react";
 import type * as maplibregl from "maplibre-gl";
 import type { WebRenderer } from "../adapters/web";
-import { LABEL_SOURCE_LAYERS, bankInput, issueInput, methodInput, runsInput, runsKeyOf, salmonInput, standingInput, statusInput, stockedInput, surveyInput, withoutEngineKeys,
+import { LABEL_SOURCE_LAYERS, bankInput, halfInput, issueInput, methodInput, runsInput, runsKeyOf, salmonInput, standingInput, statusInput, stockedInput, surveyInput, withoutEngineKeys,
          type Channel, type ChannelInput, type TileRenderer, type TileSections } from "../colouring";
 import type { MapProps } from "../map-props";
 import { sourceTiles, tileIds } from "./tileIds";
@@ -67,6 +67,8 @@ export function useChannels(refs: WebMapRefs, { wasLit, wasWater, wasCue, wasNea
             [salmon?.facts, salmonDay, salmon?.only, at.atlas]);
   // (T1029) the one-bank cue: the salmon feed's bank places, one label per section for the facts (the day is the salmon's)
   useEffect(() => toChannel("bank", salmon ? bankInput(salmon) : null, "bank"), [salmon?.facts, at.atlas]);
+  // (T1029 Q6) the rule book's one-half closures: the same feed, their own label (`bb`), drawn by the Standard map
+  useEffect(() => toChannel("half", salmon ? halfInput(salmon) : null, "half"), [salmon?.facts, at.atlas]);
   // (T213) the gear marks: profile labels once per release, the day in the gear layers' paint
   const methodDay = method ? readingDayOf(method.day) : -1;
   useEffect(() => toChannel("method", method ? methodInput(method) : null, `method:${methodDay}`),

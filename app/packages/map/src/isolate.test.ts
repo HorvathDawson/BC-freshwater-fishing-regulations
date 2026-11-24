@@ -19,7 +19,8 @@ describe("(T377) one class alone on the map", () => {
   it("the status input's values are the day with that class alone, under a key of their own", () => {
     const all = statusInput({ index, day: DAY }), own = statusInput({ index, day: DAY, only: "own" });
     expect(all.values()).toEqual(dayProfiles(index, DAY));
-    expect(own.values()).toEqual(isolateDay(dayProfiles(index, DAY), "own"));
+    // (T1029 Q6) and the class alone said, for what no day label carries (the rule book's closed halves)
+    expect(own.values()).toEqual({ ...isolateDay(dayProfiles(index, DAY), "own"), alone: ["own"] });
     expect(own.valuesKey).not.toBe(all.valuesKey);
     expect(statusInput({ index, day: DAY, only: null }).valuesKey).toBe(all.valuesKey);
   });

@@ -6,7 +6,7 @@
  * Hand-built payload in `build`'s shape (the Kitimat's west bank between the hatchery outfall signs).
  */
 import { describe, expect, it } from "vitest";
-import { decodeSalmonHead, salmonBankLabels, salmonCard, SalmonError, type SalmonFacts } from "./salmon";
+import { bookHalves, decodeSalmonHead, salmonBankLabels, salmonCard, SalmonError, type SalmonFacts } from "./salmon";
 import { WORDS } from "./regs/words";
 
 const WHOLE = "6:kitimat-river:whole", BANK = "6:kitimat-river:on-west-bank-between-signs-at-kiti";
@@ -125,5 +125,35 @@ describe("the one-bank cue's labels (T1029)", () => {
                   chains: [...p.chains, { ...p.chains[2]!, l: ["6:kitimat-river:east"] }],
                   unmapped: [...p.unmapped, { items: ["gnis:3225"], r: "6", w: "east", chain: 3 }] };
     expect(() => decodeSalmonHead(head(two), HANDLES)).toThrow(/beside two one-bank places/);
+  });
+});
+
+/**
+ * (T1029 Q6, owner 2026-11-24: "Yes, stripe it too") THE RULE BOOK'S ONE-HALF CLOSURES (`bs`, top level): per section the
+ * side of the drawn line its closed half is on. A section may carry a one-bank place's `bk` AND a book half (Kitimat
+ * 1234098): the two are read apart.
+ */
+describe("the rule book's one-half closures (T1029 Q6)", () => {
+  const factsOf = (p: object): SalmonFacts => {
+    const P = decodeSalmonHead(head(p), HANDLES);
+    return { handles: HANDLES, chains: P.chains.length, payload: P, loaded: ["6"], chainOf: () => 0 };
+  };
+
+  it("gives each section its closed half's side of the drawn line", () => {
+    expect([...bookHalves(factsOf({ ...payload({ side: "west" }), bs: { "1234098": -1, "7": 1 } }))])
+      .toEqual([[7, "R"], [1234098, "L"]]);
+  });
+
+  it("none in a release without `bs`; a section's `bk` is no book half, and `bs` no bank label", () => {
+    expect(bookHalves(factsOf(payload({ side: "west" }))).size).toBe(0);
+    const both = factsOf({ ...payload({ side: "west", bk: { "10": 1 } }), bs: { "10": -1 } });
+    expect([...bookHalves(both)]).toEqual([[10, "L"]]);
+    expect([...salmonBankLabels(both)]).toEqual([[10, "Rs2"]]);
+  });
+
+  it("the file is checked on decode: `bs` is a non-empty map of section id -> 1 | -1", () => {
+    expect(decodeSalmonHead(head({ ...payload({}), bs: { "1234098": -1 } }), HANDLES).bs).toEqual({ "1234098": -1 });
+    for (const bs of [{ "10": 2 }, { "10": 0 }, { "10": "-1" }, { "x": 1 }, { "-3": 1 }, { "01": 1 }, {}, [1], null, 1])
+      expect(() => decodeSalmonHead(head({ ...payload({}), bs }), HANDLES), JSON.stringify(bs)).toThrow(SalmonError);
   });
 });

@@ -519,9 +519,9 @@ it("the lift that ends a long press is cancelled, so the browser makes no click 
     expect(log).toEqual(['set atlas/stream number:311274 {"other":3}']);
     const why = "the map colours sections through the colouring engine only "
       + "(MapProps.status, MapProps.standing, MapProps.lakes, MapProps.salmon, MapProps.method, MapProps.runs)";
-    expect(errors).toEqual([`pushed p/standing/status/stocked/survey/sp/salmon/gm/rt/gi/bk on "stream" refused: ${why}`,
-                            `pushed p/standing/status/stocked/survey/sp/salmon/gm/rt/gi/bk on "lake" refused: ${why}`,
-                            `pushed p/standing/status/stocked/survey/sp/salmon/gm/rt/gi/bk on "basin" refused: ${why}`]);
+    expect(errors).toEqual([`pushed p/standing/status/stocked/survey/sp/salmon/gm/rt/gi/bk/bb on "stream" refused: ${why}`,
+                            `pushed p/standing/status/stocked/survey/sp/salmon/gm/rt/gi/bk/bb on "lake" refused: ${why}`,
+                            `pushed p/standing/status/stocked/survey/sp/salmon/gm/rt/gi/bk/bb on "basin" refused: ${why}`]);
   });
 
   it("T317: the marks are map layers — a ring each, a label each labelled one — and no DOM marker moves with the map", async () => {

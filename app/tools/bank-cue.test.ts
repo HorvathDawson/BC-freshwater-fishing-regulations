@@ -4,11 +4,14 @@
  * chain s1), the other half in the line's own (`sp`) — and the closed cue on the bank's half only, only when the bank's
  * answer is closed. Checked by EVALUATING (MapLibre's own evaluator) the style `nativeStyle` builds with the day
  * installed — the adapter's own paint, the call every later day repaints with — in every theme; and the first frame
- * (`runtimeStyle`, no day) draws none.
+ * (`runtimeStyle`, no day) draws none. (T1029 Q6) The Standard map draws the rule book's one-half closures the same way
+ * from its own label `bb`; each colouring reads only its own key.
  */
 import { describe, expect, it } from "vitest";
 import { createPropertyExpression, latest } from "@maplibre/maplibre-gl-style-spec";
 import { BANK_CUE_LAYERS, BANK_LAYERS, BANK_MIN_PX, BANK_MINZOOM, BANK_WIDEN, bankCuePaint, bankHalfPaint } from "../packages/map/src/paint";
+import { profileLabel, type StatusIndex, type WaterStatus } from "@app/core";
+import { statusInput } from "../packages/map/src/colouring";
 import { nativeStyle } from "../packages/map/src/native-style";
 import { runtimeStyle } from "../packages/map/src/runtime-style";
 import { resolveTheme, type ChannelValues } from "../packages/map/src/style";
@@ -95,19 +98,94 @@ describe("(T1029) one bank: a wider line split down the middle", () => {
       expect(left.paint?.["line-dasharray"]).toEqual(get("stream-closed").paint?.["line-dasharray"]);
     });
   }
-  it("Standard (profile) shows the layers but draws nothing on them yet, whatever the label", () => {
-    // the paint itself, with every day installed (on a map the salmon day may arrive before or after the status day)
+  /*
+   * (T1029 Q6, owner 2026-11-24: "Yes, stripe it too") THE STANDARD MAP draws the rule book's one-half closures the same
+   * way from its OWN label `bb` (the side of the drawn line the closed half is on): that half closed, the other the line's
+   * own, the cue on the closed half. Each colouring reads only its own key: a section may carry both (Kitimat 1234098).
+   */
+  for (const theme of ["light", "dark", "cvd"]) {
+    const all = handed(theme, "profile");
+    const get = (id: string) => all.find((l) => l.id === id)!;
+    const stream = get("stream");
+    const t = resolveTheme(theme);
+    const BOOK = { bb: "L", sp: "s0", p: "p1" };
+    it(`${theme}: Standard draws the book's closed half from \`bb\`: closed there, the line's own across, the cue on it`, () => {
+      const left = get(BANK_LAYERS.left), right = get(BANK_LAYERS.right);
+      const cueL = get(BANK_CUE_LAYERS.left), cueR = get(BANK_CUE_LAYERS.right);
+      const closed = hex(t["color.status.closed"]), own = colour(value(stream, "line-color", 14, ORD7, BOOK));
+      expect(own).toBe(hex(t["color.status.own"]));
+      expect(colour(value(left, "line-color", 14, ORD7, BOOK))).toBe(closed);
+      expect(colour(value(right, "line-color", 14, ORD7, BOOK))).toBe(own);
+      expect(colour(value(right, "line-color", 14, ORD7, { ...BOOK, bb: "R" }))).toBe(closed);
+      expect(colour(value(left, "line-color", 14, ORD7, { ...BOOK, bb: "R" }))).toBe(own);
+      for (const half of [left, right]) {
+        expect(value(half, "line-opacity", 14, ORD7, BOOK)).toBe(1);
+        expect(value(half, "line-opacity", 14, ORD7, { sp: "s0", p: "p1" })).toBe(0);     // no half: nothing drawn
+        expect(value(half, "line-opacity", 14, ORD7, { ...BOOK, p: "n" })).toBe(0);       // no access: the dots alone
+        expect(value(half, "line-opacity", 14, ORD7, WEST)).toBe(0);                      // a one-bank place's `bk`: not Standard's
+      }
+      expect([value(cueL, "line-opacity", 14, ORD7, BOOK), value(cueR, "line-opacity", 14, ORD7, BOOK)]).toEqual([1, 0]);
+      expect([value(cueL, "line-opacity", 14, ORD7, { ...BOOK, bb: "R" }), value(cueR, "line-opacity", 14, ORD7, { ...BOOK, bb: "R" })]).toEqual([0, 1]);
+      expect(value(cueL, "line-opacity", 14, ORD7, { ...BOOK, p: "n" })).toBe(0);
+      expect(value(cueL, "line-opacity", 14, ORD7, WEST)).toBe(0);
+      for (const id of ALL) expect([id, get(id).layout?.["visibility"]]).not.toEqual([id, "none"]);
+    });
+    it(`${theme}: a section with both keys (Kitimat 1234098): each colouring reads its own, the Salmon map never \`bb\``, () => {
+      const both = { bk: "Ls1", bb: "R", sp: "s0", p: "p1" };
+      const salmon = handed(theme, "salmon");
+      const s = (id: string) => salmon.find((l) => l.id === id)!;
+      // Salmon: the bank (left, chain s1 closed); the book's right half is not its business
+      expect(colour(value(s(BANK_LAYERS.left), "line-color", 14, ORD7, both))).toBe(hex(t["color.salmon.closed"]));
+      expect(colour(value(s(BANK_LAYERS.right), "line-color", 14, ORD7, both))).toBe(hex(t["color.salmon.open"]));
+      expect([value(s(BANK_CUE_LAYERS.left), "line-opacity", 14, ORD7, both), value(s(BANK_CUE_LAYERS.right), "line-opacity", 14, ORD7, both)]).toEqual([1, 0]);
+      for (const id of ALL) expect(value(s(id), "line-opacity", 14, ORD7, { bb: "L", sp: "s0", p: "p1" })).toBe(0);
+      // Standard: the book's half (right) closed, the left the line's own
+      expect(colour(value(get(BANK_LAYERS.right), "line-color", 14, ORD7, both))).toBe(hex(t["color.status.closed"]));
+      expect(colour(value(get(BANK_LAYERS.left), "line-color", 14, ORD7, both))).toBe(hex(t["color.status.own"]));
+      expect([value(get(BANK_CUE_LAYERS.left), "line-opacity", 14, ORD7, both), value(get(BANK_CUE_LAYERS.right), "line-opacity", 14, ORD7, both)]).toEqual([0, 1]);
+    });
+  }
+  it("Standard under a legend isolate: the closed half follows closed — grey and no cue unless Closed is the class shown", () => {
+    // the status day as the Map tab's status input makes it (`statusInput`, `only` the legend's tap): profiles 0 closed,
+    // 1 own, 2 base
+    const index = {
+      handles: "0".repeat(16), reachDigest: "0".repeat(16), sections: 3, waters: 0, profiles: 3,
+      profileOf: (s: unknown) => Number(s) - 10, profileCodeOn: (p: number) => (["closed", "own", "base"] as const)[p]!,
+      codeOn: () => "base", waterCodeOn: () => "base",
+    } as unknown as StatusIndex;
+    const t = resolveTheme("light");
+    const at = (only: WaterStatus | null) => {
+      const status = statusInput({ index, day: new Date(2026, 5, 1), only }).values() as ChannelValues["status"];
+      const all = handed("light", "profile", { ...VALUES, status });
+      return (id: string) => all.find((l) => l.id === id)!;
+    };
+    const closedLabel = profileLabel(index, 10), ownLabel = profileLabel(index, 11);
+    const book = { bb: "L", p: ownLabel, sp: "s0" };
+    for (const only of [null, "closed"] as const) {
+      const get = at(only);
+      expect(colour(value(get(BANK_LAYERS.left), "line-color", 14, ORD7, book))).toBe(hex(t["color.status.closed"]));
+      expect(value(get(BANK_CUE_LAYERS.left), "line-opacity", 14, ORD7, book)).toBe(1);
+    }
+    for (const only of ["own", "base"] as const) {
+      const get = at(only);
+      // what a closed line wears under this isolate: the mode's missing grey
+      const greyed = colour(value(get("stream"), "line-color", 14, ORD7, { p: closedLabel }));
+      expect(greyed).not.toBe(hex(t["color.status.closed"]));
+      expect([only, colour(value(get(BANK_LAYERS.left), "line-color", 14, ORD7, book))]).toEqual([only, greyed]);
+      expect([only, value(get(BANK_CUE_LAYERS.left), "line-opacity", 14, ORD7, book)]).toEqual([only, 0]);
+      // the other half: the line's own under the isolate
+      expect(colour(value(get(BANK_LAYERS.right), "line-color", 14, ORD7, book)))
+        .toBe(colour(value(get("stream"), "line-color", 14, ORD7, book)));
+    }
+  });
+  it("Standard with no status day, and its first frame: nothing drawn", () => {
     const t = resolveTheme("light");
     for (const side of ["left", "right"] as const) {
-      expect(bankHalfPaint(side, "profile", t, VALUES, 2)["line-opacity"]).toBe(0);
-      expect(bankCuePaint(side, "profile", t, VALUES, 2)["line-opacity"]).toBe(0);
+      expect(bankHalfPaint(side, "profile", t, { ...VALUES, status: null }, 2)["line-opacity"]).toBe(0);
+      expect(bankCuePaint(side, "profile", t, { ...VALUES, status: null }, 2)["line-opacity"]).toBe(0);
     }
-    const all = handed("light", "profile");
-    for (const id of ALL) {
-      const l = all.find((x) => x.id === id)!;
-      expect(l.layout?.["visibility"]).not.toBe("none");
-      expect(value(l, "line-opacity", 14, ORD7, WEST)).toBe(0);
-    }
+    const first = firstFrame("light", "profile");
+    for (const id of ALL) expect(value(first.find((x) => x.id === id)!, "line-opacity", 14, ORD7, { bb: "L", p: "p1" })).toBe(0);
   });
   it("no salmon day installed, and the first frame: nothing drawn", () => {
     const noDay = handed("light", "salmon", { ...VALUES, salmon: null });

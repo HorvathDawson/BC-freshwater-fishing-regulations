@@ -16,7 +16,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { DeviceEventEmitter } from "react-native";
-import { Colouring, LABEL_SOURCE_LAYERS, bankInput, issueInput, methodInput, runsInput, runsKeyOf, salmonInput, standingInput, statusInput, stockedInput, surveyInput,
+import { Colouring, LABEL_SOURCE_LAYERS, bankInput, halfInput, issueInput, methodInput, runsInput, runsKeyOf, salmonInput, standingInput, statusInput, stockedInput, surveyInput,
          type Channel, type ChannelInput, type LabelTarget, type TileRenderer } from "../colouring";
 import type { MapAdapter } from "../adapters/contract";
 import type { MapProps } from "../map-props";
@@ -297,6 +297,10 @@ export function useNativeColouring(o: {
   const bankIn = useMemo(() => (salmon ? bankInput(salmon) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [salmon?.facts, o.atlasUrl]);
+  // (T1029 Q6) the rule book's one-half closures' labels (`bb`): the same feed, drawn by the Standard map
+  const halfIn = useMemo(() => (salmon ? halfInput(salmon) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [salmon?.facts, o.atlasUrl]);
   const methodDay = method ? readingDayOf(method.day) : -1;
   const methodIn = useMemo(() => (method ? methodInput(method) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -318,6 +322,7 @@ export function useNativeColouring(o: {
   useEffect(() => toChannel("stocked", stockedIn), [stockedIn]);     // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => toChannel("salmon", salmonIn), [salmonIn]);        // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => toChannel("bank", bankIn), [bankIn]);              // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => toChannel("half", halfIn), [halfIn]);              // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => toChannel("method", methodIn), [methodIn]);        // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => toChannel("issue", issueIn), [issueIn]);          // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => toChannel("runs", runsIn), [runsIn]);              // eslint-disable-line react-hooks/exhaustive-deps
@@ -325,6 +330,7 @@ export function useNativeColouring(o: {
   const values = useMemo<ChannelValues>(() => ({
     issue: null,   // (T759) the stripe is labels (`gi`) and a layer; the style reads no values
     bank: null,    // (T1029) the one-bank cue is labels (`bk`); its day is the salmon channel's
+    half: null,    // (T1029 Q6) the book's closed halves are labels (`bb`); the style reads no values
     status: (statusIn?.values() ?? null) as ChannelValues["status"],
     standing: (standingIn?.values() ?? null) as ChannelValues["standing"],
     survey: (surveyIn?.values() ?? null) as ChannelValues["survey"],

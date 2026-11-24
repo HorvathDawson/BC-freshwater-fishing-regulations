@@ -214,6 +214,12 @@ interface Payload {
   readonly feedOnly?: Readonly<Record<string, number>>;
   /** (T549 item 5, the live feed's) places whose row the feed could not read this run: their last answers stand */
   readonly held?: readonly string[];
+  /** (T1029 Q6, owner 2026-11-24: "Yes, stripe it too") THE RULE BOOK'S ONE-HALF CLOSURES (kitimat_river.r1, "No Fishing
+   *  on the west half…"): section id -> the side of the drawn tile line the CLOSED half is on (1 right, -1 left;
+   *  `pipeline/deliver/bank_side.py`). Only ever "this half is closed, all year" (the pipeline refuses a dated or
+   *  non-closure side rule). The Standard map draws that half closed (`bookHalves`). Absent: no section has one, or a
+   *  release before it. */
+  readonly bs?: Readonly<Record<string, 1 | -1>>;
 }
 /** (T812, owner 2026-11-16: "we want the circles to just be circles on the map not separate sections of the lake") ONE
  *  CLOSED AREA DRAWN AS A CIRCLE: `c` its centre [lon, lat], `radius` metres, `g` its ring at true ground radius as the
@@ -338,6 +344,13 @@ function checkPayload(P: Payload): Payload {
         || a.g[0]![0] !== a.g[a.g.length - 1]![0] || a.g[0]![1] !== a.g[a.g.length - 1]![1] || typeof a.w !== "string")
       bad(`ca ${lid}: not {c, radius, g (a closed ring), chain, r, w, items}`);
   }
+  // (T1029 Q6) the book's one-half closures: a non-empty map of section id -> 1 | -1
+  if (P.bs !== undefined) {
+    const bs: unknown = P.bs;
+    if (bs === null || typeof bs !== "object" || Array.isArray(bs) || !Object.keys(bs).length) bad(`bs ${JSON.stringify(bs)}`);
+    for (const [sid, v] of Object.entries(bs as Record<string, unknown>))
+      if (!/^(0|[1-9]\d*)$/.test(sid) || (v !== 1 && v !== -1)) bad(`bs section ${sid} side ${JSON.stringify(v)}`);
+  }
   // (T870) a place's printed rows are strings, never an empty list
   for (const [lid, rows] of Object.entries(P.pr ?? {}))
     if (!Array.isArray(rows) || !rows.length || rows.some((r) => typeof r !== "string" || !r)) bad(`pr ${lid}: not a list of rows`);
@@ -375,6 +388,22 @@ export function salmonBankLabels(f: SalmonFacts): ReadonlyMap<number, SalmonBank
     for (const [sid, v] of Object.entries(pl.bk)) out.set(Number(sid), `${v === 1 ? "R" : "L"}s${own[0]!}`);
   }
   BANK_LABELS.set(P, out);
+  return out;
+}
+
+const BOOK_HALVES = new WeakMap<Payload, ReadonlyMap<number, "L" | "R">>();
+
+/**
+ * (T1029 Q6, owner 2026-11-24: "Yes, stripe it too") THE RULE BOOK'S ONE-HALF CLOSURES ON THE MAP: per section, the side
+ * of the drawn line its closed half is on ("L" left, "R" right; the payload's `bs`). The Standard map draws that half in
+ * the closed colour with closed's cue, the other half in the line's own answer — the Salmon map's one-bank look.
+ * Empty: no section has one (or a release before it), and nothing is drawn.
+ */
+export function bookHalves(f: SalmonFacts): ReadonlyMap<number, "L" | "R"> {
+  const P = f.payload, hit = BOOK_HALVES.get(P);
+  if (hit) return hit;
+  const out = new Map<number, "L" | "R">(Object.entries(P.bs ?? {}).map(([sid, v]) => [Number(sid), v === 1 ? "R" : "L"]));
+  BOOK_HALVES.set(P, out);
   return out;
 }
 
