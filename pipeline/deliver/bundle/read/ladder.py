@@ -68,6 +68,20 @@ OWN_ROW_REPLACES_INHERITED = True
 #: 4; named so a test can switch it off and prove the step decides it.
 NEARER_ROW_BEATS_FARTHER = True
 
+#: POLICY (PROPOSAL, owner 2026-11-24 ~15:20, T1053: "keep earlier rule of closure always winning unless it is exempt)
+#: this does not include no fishiong all year rulings tho those will yield in that case. only the dated closures."; and
+#: ~15:14: "make sure upstream includes tributarties still overrides lower includes tributtaries that it conflicts
+#: with"): AN INHERITED ALL-YEAR "NO FISHING" YIELDS TO THE STREAM'S OWN ROW, OR TO A NEARER ✱ ROW. The closure
+#: exception of T4 / T14 narrows to DATED closures: an inherited closure whose own `when` has no dates or times
+#: (all year) and that closes outright (`closure_grade` "full") is taken out (`own_row` / `nearer_row`) on a section
+#: where the water's own row, or a nearer ✱ row (`trib_nearer`), speaks: Frosst Creek's own "No Fishing Oct 15-Apr 15"
+#: decides Frosst Creek, not Sweltzer River's all-year ✱ "No Fishing" climbed through Cultus Lake. A dated inherited
+#: closure still closes (Kettle River's tributaries' Jul 25-Sept 15 on the Granby), and a stream with no row keeps the
+#: all-year closure (Dick Creek closes with Eagle Creek). WHICH ROW "speaks" is the open question (`_yields_to`):
+#: "retention" = a rule of that row about keeping or closing (a `retention_limit`) that speaks for the fish asked,
+#: any day; "any" = any rule of that row at all (a bait ban too). None = off (T4/T14 as before: the mutation pin).
+ALL_YEAR_INHERITED_CLOSURE_YIELDS = "retention"
+
 #: The states of a rule that is IN the answer (`effective_rules`). With `trace=True` the answer also
 #: holds the rules that took part and lost, each with a state outside this set ("lifted",
 #: "displaced", "moot"), its `reason` (`LOSS_REASONS`) and `by` (the rule that beat it).
@@ -485,6 +499,7 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
     _step1_in_force(s)
     _step3_lifts(s)
     _step3b_own_row_replaces(s)
+    _step3c_all_year_inherited_closure_yields(s)
     _step2_about_this_fish(s)
     _step4_competition(s)
     _step4a_water_dates_on_a_water_kind(s)
@@ -884,6 +899,46 @@ def _own_replacement(s: _Ask, k):
                                   "side", "within", "condition_of")):
             return o
     return None
+
+
+def _all_year(x: dict) -> bool:
+    """An all-year rule: its own `when` holds no dates, weekdays or hours (it is in force every moment)."""
+    return not x.get("when")
+
+
+def _yields_to(s: _Ask, k):
+    """(`ALL_YEAR_INHERITED_CLOSURE_YIELDS`) the rule an inherited all-year full closure `k` yields to on this section,
+    with its reason (`own_row` / `nearer_row`) — or None."""
+    from pipeline.deliver.bundle.rules import closure_grade
+    mode = ALL_YEAR_INHERITED_CLOSURE_YIELDS
+    every, here = s.every, s.here
+    x = every[k]
+    if mode is None or here[k] != "trib" or x["_rank"] != 0 or closure_grade(x) != "full" or not _all_year(x):
+        return None
+    for o in sorted(here):
+        y = every[o]
+        if o[0] == k[0] or y["_rank"] != 0 or y.get("standing") or y.get("family") == "information" \
+                or y.get("dimension") == "lift" or o in s.undrawn:
+            continue
+        if here[o] == "reach":
+            why = "own_row"
+        elif here[o] == "trib" and (o[0], k[0]) in s.nearer:
+            why = "nearer_row"
+        else:
+            continue
+        if mode == "retention" and not (y.get("type") == "retention_limit" and speaks_for(y, s.fish)):
+            continue
+        return o, why
+    return None
+
+
+def _step3c_all_year_inherited_closure_yields(s: _Ask) -> None:
+    """3c. AN INHERITED ALL-YEAR "NO FISHING" YIELDS TO THE OWN OR A NEARER ✱ ROW (`ALL_YEAR_INHERITED_CLOSURE_YIELDS`)."""
+    for k in sorted(s.live - s.lifted - s.replaced):
+        got = _yields_to(s, k)
+        if got is not None:
+            s.replaced.add(k)
+            s.why.setdefault(k, (got[1], got[0]))
 
 
 def _step3b_own_row_replaces(s: _Ask) -> None:
