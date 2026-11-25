@@ -2,6 +2,10 @@
 
 Status: DONE in code 2026-11-05 (65e8bd6d7; owner report 2026-11-05, 0.5.0 build 8, water gnis:21100 Nicomekl River, Regulations). Phone check with the next APK.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T395 | Vessel restrictions: own tab under Methods and gear, out of the top of the regs pane | DONE in code 11-05 (phone check next APK) | 65e8bd6d7 | owner report 2026-11-05 |
+
 The vessel restrictions sit at the top of the water's regulations in an odd format. Owner: a new tab under Methods and
 gear for vessel restrictions, and move them there (out of the top of the pane).
 

@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1085 | Ice fishing says "terminal attractor" where the Gear tab says "hook" | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24 |
+
 Source: the 0.9.1 chat, 2026-11-24, PR #130 (T1050): clause `zp:allowable_methods.r2b`.
 
 ## Work

@@ -2,6 +2,10 @@
 
 Status: DONE — d41f8522, 087388c2, 6e9e0443 (trout-line and Other-fish stamp lines now compared).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T12 | golden parity harness | DONE | d41f8522, 087388c2, 6e9e0443 | — |
+
 Phase 0 · Depends on T05 (creates `golden.ts`), T09 (`inputsOf`), T10 (fixture fallback) · Blocks T13–T21, T28, T30–T36 · Decisions — · Size ¾ day
 
 ## Goal

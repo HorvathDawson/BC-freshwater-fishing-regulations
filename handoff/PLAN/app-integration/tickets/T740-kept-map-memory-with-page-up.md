@@ -2,6 +2,10 @@
 
 Status: OPEN (owner 2026-11-17 ~15:11: "After 0.8.0 (Recommended)"; 2026-11-18 put on the 0.8.1 list ("All these fixes can go in 0.8.1"), not built in 0.8.1 to 0.8.3; first step: one like-for-like measure; fix may be small)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T740 | The map kept under a water's page costs memory: +49 to +66 MB with a page up on iPhone, 389 MB peak with the rule book over it (Android not paired) | OPEN (owner: after 0.8.0, then the 0.8.1 list; not built yet; one like-for-like measure first) | — | iOS chat's memory scenario 2026-11-14 (T725) after T717; option: drop the hidden map's tiles while keeping camera and colouring |
+
 Source: iOS chat's memory scenario, 2026-11-14 (written in T725, fd045cd3c), after T717 (6c4547b13: the browse map is
 kept mounted, hidden, under a water's page so Back shows it at once).
 

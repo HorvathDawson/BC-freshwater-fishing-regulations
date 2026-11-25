@@ -2,6 +2,10 @@
 
 Status: DONE — 6dd5ff5e8; site smoke 18/18 and release --staging rerun done (r-a178299f6005)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T529 | /changes compares a water's rules (text + where), not its parts: T517's re-cut made it 180 KB (budget 30 KB) and stopped the staging site redeploy — site down on 0.6.9 | DONE — 6dd5ff5e8; site smoke 18/18 and release --staging rerun done (r-a178299f6005) | 6dd5ff5e8 | owner 2026-11-09 "proper fix to the comparison, not a bigger limit" |
+
 Was: IN REVIEW — 6dd5ff5e8; staging site serves 0.7.0 (site_gate ok, 2026-11-09); left (Claude): the site smoke + `release --staging --min-app-version 0.7.0` rerun.
 Earlier: OPEN — ship-blocker for the staging site (do first)
 

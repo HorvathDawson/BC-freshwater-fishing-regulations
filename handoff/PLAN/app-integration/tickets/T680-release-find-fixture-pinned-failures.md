@@ -2,6 +2,10 @@
 
 Status: DONE (d14e2565b)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T680 | Release: find fixture-pinned test failures before the push | DONE | d14e2565b | whole app check after the re-cut, every failure in one stop; --dry-run --rehearse-follows; in-text anchor rule; worker tsc in check:fast |
+
 Source: release r-483b295de57c stopped four times on 2026-11-11, each found one CI round at a time:
 1. a changed golden page (by design, the fixtures were re-cut on the candidate);
 2. an untracked ticket file failing the ticket guard;

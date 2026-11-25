@@ -2,6 +2,10 @@
 
 Status: OPEN — later (not build 22); design first, the owner checks off a mockup before any code
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T528 | River Forecast Centre flood + hazard advisories in Conditions: feeds worker fetches them, placed on waters/gauges in Python, UI from an owner-approved mockup | OPEN — later; mockup first | — | owner 2026-11-09 "not now … at least one mockup that i check off" |
+
 Owner 2026-11-09: "add a ticket to somehow incorporate (https://bcrfc.env.gov.bc.ca/warnings/index.htm) river flood and
 hazard advisorys into conditions not now but in a tricket will need to see how to incorporate it into it but should be
 clean and will need at least one mockup that i check off on how it will be done please the feed worker getting this

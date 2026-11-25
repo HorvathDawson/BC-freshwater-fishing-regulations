@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS (a standing pass; `perf/t741` merged onto `redesign/stream-sections` 2026-11-16 via `merge/held-group1`; left (Claude): the Android measures named in the rounds above).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T741 | Faster and lighter on iPhone and Android: a standing optimisation pass (cold start, first install, tap to page, memory, app size, download size). Next free ticket T742 | IN PROGRESS (standing pass; `perf/t741` merged onto redesign/stream-sections 2026-11-16 via `merge/held-group1`; lossy or visible savings are owner proposals) | — | owner 2026-11-14: "can you make sure to keep working on optimizations? make app faster and lighter for both ios and android". Builds on T360, T686, T716, T717, T719, T720, T722, T725, T737, T738, T740 |
+
 Source: owner 2026-11-14 (evening), verbatim: "can you make sure to keep working on optimizations? make app faster and
 lighter for both ios and android".
 

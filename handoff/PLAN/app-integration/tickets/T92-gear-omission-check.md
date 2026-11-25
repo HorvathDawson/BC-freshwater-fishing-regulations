@@ -3,6 +3,10 @@
 Status: DONE — de0581e1 + review fix 750ba2ad. `catalogue_parts/gear_omission.py` (12-phrase vocabulary),
 wired into `validate_catalogue.post_model_checks`; catalogue has 0 unexplained misses and 5 kept gaps (below).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T92 | gear omission check | DONE | de0581e1, b931f93d, 750ba2ad, 9c78ef20 | — |
+
 Source: memory `gear-rules-need-rework` — "It prevents inversion, not omission — the 8 dropped conjuncts need a
 validator". `validate_catalogue.py` and `catalogue_parts/checks.py` check field → text only (`count_in_words`). A quick
 check was noisy (161 "electric motor" hits likely stored under another name), so it needs a phrase → field vocabulary.

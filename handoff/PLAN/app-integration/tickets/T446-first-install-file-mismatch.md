@@ -2,6 +2,10 @@
 
 Status: DONE (7fc594427): the cause was SDK 58's async `write`/`move`; emulator fresh install clean.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T446 | First install: a release file "does not match the manifest" (SDK 58 async write/move, unawaited) | DONE | cddfdbe10 7fc594427 | worker /crashes 2026-11-06 |
+
 Source: staging worker `GET /crashes` (read 2026-11-06), kind 708eb429638d84ff: 0.6.3 (build 12), Android 35 (the
 emulator test bed, walk-063b, 2026-11-06 16:31Z), route other, release none, non-fatal, thrown in `install`. The same
 run's download then completed and the map opened, so a retry recovered — but a file failing its check on a clean

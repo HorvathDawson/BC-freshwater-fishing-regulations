@@ -2,6 +2,10 @@
 
 Status: DONE — 72e95c144, 2026-11-10. Owner: option 3 — the behaviour stays (this wording and the older wordings that can take the extent); the button's label gives the row count, the line under it and a confirmation list each wording written and what is NOT written (a wording that cannot take it; any live wording of the same place, which has its own "same extent as…"). Test: frontend `saveForAllWords`. Not looked at in a browser
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T588 | "Save for all wordings": what it should cover | DONE | 72e95c144 | T532 leftover b; today: the older wordings only |
+
 Source: T532 round 6, leftover b.
 
 ## Today

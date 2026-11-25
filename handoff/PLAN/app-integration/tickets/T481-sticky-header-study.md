@@ -2,6 +2,10 @@
 
 Status: DONE — d2a7b4370. Owner approved the wording 11-07, no shot review (one Vedder pinned-bar shot for overlap only).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T481 | Sticky header on the keep tab: study, then the owner's "here-max + one breadcrumb" pin bar (water_max line 1, one breadcrumb, size words, "Fishing more than one water today? ›") | DONE | d2a7b4370 | owner 2026-11-07; wording approved 11-07, no shot review; release with the next one |
+
 Owner: "The sticky header feels hard to read right now. I still like the idea but maybe they need to combine instead into
 a single sentence when 2 items sticky. I think we could have same point across with less text. This is a regulatory and
 comprehension issue and might need more thorough look at how to display it?" (Vedder River, 390 px, scrolled.)

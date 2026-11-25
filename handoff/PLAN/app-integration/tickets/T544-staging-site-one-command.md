@@ -2,6 +2,10 @@
 
 Status: DONE — 64a111515. deploy/staging/site-all.sh is the one staging site command and the site stamps site-release.json; real deploys since 2026-11-12 with the smoke comparing it to the manifest.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T544 | Staging site deploy is one command; the site names the release it was built on and the smoke compares it | DONE | 64a111515 | — |
+
 Closed by the 2026-11-20 audit: T678-progress.md 2026-11-12: staging site redeployed on r-0a9930fb8826 by site-all.sh, smoke 19 pass / 0 warn / 0 fail ('site release matches the manifest release'); 11-13 /site-release.json = r-adc4e248a163.
 
 Source: workflow review 2026-11-09 (verified against the code). Rank 12.

@@ -2,6 +2,10 @@
 
 Status: DONE — edc097013, 3588acc70, 6b7654ef1, 4c8212ec7, f7b41c208. Python flags a section small next to the gauge that speaks for it (50x, owner) in flow-small; the app reads it and shows the release's sentence.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T823 | "Small next to its gauge": Python decides when a section's lead gauge reading needs a warning; the release ships it | DONE | edc097013, 3588acc70, 6b7654ef1, 4c8212ec7, f7b41c208 | — |
+
 Closed by the 2026-11-20 audit: pipeline half merged 6b7654ef1 (11-16), app read 4c8212ec7 and land/app-1117 f7b41c208; flow-small-*.bin.gz is in the production release r-6258ffded676 (data/release, LATEST), so the release that ships it has happened.
 
 Source: owner 2026-11-16 (relayed by the app chat, spots cleanup), on a 1.4 km² creek shown "Below normal" from a

@@ -2,6 +2,10 @@
 
 Status: IN REVIEW — merged parts d15784a4f; the last three (lane L6: the Save bar on the iPhone keyboard, the Conditions alert field above the decimal pad, the credits card in ModalBack) 9e9c40b61, 31ae56eda, 83dbd63d1, proven on the simulator (keyboard 7 of 7, 418f6f3a1); item 3, the 10 iOS scenario ports, DROPPED by the owner 2026-11-20; owner: OWNER-TODO "The Save bar over the iPhone keyboard (T723)"
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T723 | iOS: salmon, run timing, search, saved spots, photos work on the simulator (IOS-6) | IN REVIEW (lane L6, branch lane/l6-ios: the Save bar on the iPhone keyboard, the Conditions alert field above the decimal pad, the credits card in ModalBack, simulator keyboard 7 of 7; item 3 DROPPED by the owner 2026-11-20); owner: OWNER-TODO "The Save bar over the iPhone keyboard (T723)" | d15784a4f, 9e9c40b61, 31ae56eda, 83dbd63d1 | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-6 in handoff/PLAN/ios/START-HERE-ios.md |
+
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-6 in
 `handoff/PLAN/ios/START-HERE-ios.md` (approved to start there, "Unattended day"). Simulator only; no Apple account.

@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-07 0f4b0063a (owner: "we should always have a link somewhere that will open the regulation page for the specific waterbody if there is one for it").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T474 | "This water in the rule book p.N" link on every water with an entry | DONE 2026-11-07 | 0f4b0063a | owner 2026-11-07; rank-0 rule pages |
+
 The bundle DOES carry it: a rule's `facts.book` is its entry's printed pages with the PDF page (`pipeline/deliver/answers/display/decided.py
 book_pages`, from the entry's `pages` = catalogue `source_pages`). The rules at `baseRank` 0 are the water's own entries (rank 3 is
 the region's general pages, e.g. p.23). `core/regs/waterbook.ts waterBookOf` unions their pages; `RegsScreen` draws one link in a

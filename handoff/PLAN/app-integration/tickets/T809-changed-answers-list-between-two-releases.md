@@ -2,6 +2,10 @@
 
 Status: DONE — 9c033d495, a3f9a7fb3, 0b936544f, 8bfd53567, 372bde554, 46c18af28, 8c4620fcd (the tool and its leftovers); the cutover diff run and recorded 2026-11-22 (below). One finding became T1020.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T809 | A tool that lists every answer that changed between two releases, in plain words, as one page for the owner | DONE | 9c033d495, dac013480, a3f9a7fb3, 0b936544f, 8bfd53567, 372bde554, 46c18af28, 8c4620fcd | — |
+
 Source: the trout table build spec, `handoff/PLAN/design/trout-table-build-spec-2026-11-16.md`, section 5 ticket K and
 section 7; owner 2026-11-16 15:42, asked how to start: "Start steps 1 and 2" (step 2 = this tool). Today the
 changed-answers list he asks for before every shipment is put together by hand.

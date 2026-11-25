@@ -2,6 +2,10 @@
 
 Status: DROPPED — merged into T240 (2026-11-05 audit; the work continues there) — was: OPEN — ticket 7da6deff, 294dd4d5. Runs after the mass cleanup (T61–T63), heavy, alone.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T50 | Android emulator parity + system bars | DROPPED — merged into T240 (2026-11-05) | 7da6deff, 294dd4d5 (ticket), T74 follow-ups ee5d259f, e8225cd0, 58ea79bf, eb087bd7d | marks/PDF/insets/sheets/font-size restart fixed; back table + landscape walked; regs scroll kept across view/tab/back/recreate (emulator-verified 10-29) |
+
 Phase 4 · After the mass cleanup (owner 2026-10-22) · Depends on T48 (new top/bottom bars) merged · HEAVY (emulator + Gradle): run alone through heavy.sh · Size 1–2 days
 
 ## Owner (2026-10-22)

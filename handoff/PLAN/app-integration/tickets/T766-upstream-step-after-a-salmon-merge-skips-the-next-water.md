@@ -2,6 +2,10 @@
 
 Status: DONE 2cdce6538 (landed 2026-11-17, CI green, 6/6 Android benches; was: IN PROGRESS (built on branch `app-fix/t766-t767`, 2026-11-17; reproduced in a core test; Android step bench owed before merge).)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T766 | Upstream after a salmon merge (`core/src/waterNav.ts` `crossUp`): with parts 1, 3, 4 joined and side channel 2 not, Upstream from the joined entry goes to the side channel and the step into the next water cannot be reached. By reading; reproduce first | DONE | 2cdce6538 | the general audit 2026-11-16 (`audit-2026-11-16/code.md`); T750's code = the app chat's |
+
 Source: `handoff/PLAN/audit-2026-11-16/code.md` (the main chat's audit, 2026-11-16). Area: app core (T750's code).
 
 ## What the audit read

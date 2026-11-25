@@ -3,6 +3,10 @@
 Status: DONE 2026-11-05 — 86a5a4ebf: report `handoff/PLAN/audit-2026-11-05/REPORT.md`, fix tickets T429–T438. Was: POSTPONED — for the next credit cycle (owner 2026-10-30: "a ticket for next credit cycle on doing a big Fable audit
 to find duplicate datatypes/pathways/bad practices etc… thoroughly").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T333 | Big Fable audit: duplicate data types / pathways / bad practices, verified + ranked → cleanup tickets | DONE | 86a5a4ebf | owner 2026-10-30 |
+
 ## Scope
 A thorough multi-agent audit on Claude Fable (claude-fable-5-1), whole repo: pipeline/, app/ (core, data, ui-native,
 web, workers), curation-review/, deploy/, scripts/. Find:

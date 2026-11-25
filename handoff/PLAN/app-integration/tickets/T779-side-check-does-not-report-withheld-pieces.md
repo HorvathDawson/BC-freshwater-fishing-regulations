@@ -2,6 +2,10 @@
 
 Status: DONE — c77eeb601 (2026-11-22), dd942ce76, ff7cece62, 4916c3cf0, f7959c270, 47827d6bf (2026-11-23, review fixes). Tested on built data (`test_review_withheld_built.py`, slow): the Middle Shuswap places with T778's fix off are refused, with it on they land. Not yet seen in the browser.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T779 | The side check used when a DFO mark is landed (and the review app's preview) does not report a withheld piece; only the full reach run refuses it, 14 minutes in | DONE | c77eeb601, dd942ce76, ff7cece62, 4916c3cf0, f7959c270, 47827d6bf | T778, 2026-11-15 night |
+
 Source: T778, 2026-11-15 night. The two Middle Shuswap saves were landed with `apply dfo --side-checked` ("0 -> 17
 sections, bound"), and the full build then stopped 14 minutes into its reach run on a piece those places withheld.
 

@@ -2,6 +2,10 @@
 
 Status: DONE — 8779d6298, 31ee818a0, a6bf038be (item 2: worker constants generated), 52878ceb6 (contract on worker output), 2ebfe0787 (format-less file refused).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T557 | One gauge publisher (the worker); the gauge feed carries a format version the app checks | DONE | 8779d6298, 31ee818a0, a6bf038be, 52878ceb6, 2ebfe0787 | data pipeline review 2026-11-09 (verified); rank 13, severity 3, 4 findings |
+
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 13 of 17; highest severity 3 of 5.
 
 Line numbers are the reviewers' and may be off by a few; "Second opinion" is what the verifier corrected. Fixes are proposals: re-read the code before building.

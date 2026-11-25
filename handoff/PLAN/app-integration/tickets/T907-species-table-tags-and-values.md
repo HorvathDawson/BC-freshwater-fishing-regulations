@@ -2,6 +2,10 @@
 
 Status: DONE — shipped in 0.8.3 (merged 07342f70b, 4adce2db0; staging + production 2026-11-19).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T907 | "Species and limits" table: no B.C./DFO tag on rows, one value column, where each answer comes from (owner) | DONE — shipped in 0.8.3 (staging + production 2026-11-19) | 07342f70b, 4adce2db0 | owner 2026-11-19 ~06:50 |
+
 Owner 2026-11-19 ~06:50 (main chat), on a dark staging shot of the "Species and limits" table (Salmon DFO closed;
 Trout and char B.C. Release ⌄; Kokanee B.C. release ›; Whitefish 15 a day; …), verbatim: "for 4. in the menu for each
 species it is good. we should have somethign simialr in table too. also the trable is weird spacing with the same words

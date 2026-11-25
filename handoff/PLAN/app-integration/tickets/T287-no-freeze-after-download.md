@@ -3,6 +3,10 @@
 Status: DROPPED — merged into T360 (2026-11-05 audit; the work continues there) — was: PARTIAL 2026-11-05 — a3cc1f269, b3ca664cf, f1e2d5abc, 2bdcc1931 (update apply: no stall left; first-install mount not re-measured)
 not freeze. it should update in background cleanly").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T287 | No freeze when a download finishes: verify/unzip off the JS thread, prepare then swap at idle, minimal re-render | DROPPED — merged into T360 (2026-11-05) | a3cc1f269, b3ca664cf, f1e2d5abc, 2bdcc1931 | 11-05: unchanged decodes adopted, no blank map frame, no style swap for equal values: swap stalls 69·157·162 → 0, apply→commit 1139 → 586 ms; left: changed-files update + … (detail: ticket file) |
+
 ## Work
 1. Reproduce on the testbed emulator: an update (and a region/offline download) finishing while the user pans/taps; record
    JS-thread long tasks and dropped frames around the finish (T273 pan probe).

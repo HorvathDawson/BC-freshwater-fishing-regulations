@@ -2,6 +2,10 @@
 
 Status: DONE — fd99643c. Rebuild: deliver (bundle → release) for the flag to ship; no atlas or reach run.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T160 | 08HB074's standing Comox Lake backwater gets its own Level sentence | DONE | 52462f99, fd99643c | deliver; delivered r-9cf1fef180a8 |
+
 Source: Q49 decided by Claude 2026-10-23 (owner's T78 rule: disclose tidal OR backwater influence where the record shows
 it). 08HB074's HYDAT record names a standing "variable backwater from Comox Lake"; the tidal sentence is the wrong one.
 Add a backwater row (checkable reason) and its own Level sentence; episodic ice/beaver/slide remarks stay unread.

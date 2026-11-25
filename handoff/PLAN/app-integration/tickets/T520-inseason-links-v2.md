@@ -2,6 +2,10 @@
 
 Status: DONE — ece44d1f3, 46ce5a22d, fd09e65af, 9ef7e7600; owner 2026-11-09 on build 24: fine; the notice sits under salmon and should be at the top → T565
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T520 | In-season links/2: FWA-range coverage resolved on the Mac, content ids, checks in publish only, publish from the Mac only (workflow deleted; carries T518) | DONE — ece44d1f3, 46ce5a22d, fd09e65af, 9ef7e7600; owner 2026-11-09 on build 24: fine; the notice sits under salmon and should be at the top → T565 | ece44d1f3, 46ce5a22d, fd09e65af, 9ef7e7600, 28c0c7869 | staging live (32/32 matched); owner: GitHub R2 secrets (OWNER-TODO); T517 to ship the token→words table |
+
 Was: IN REVIEW — ece44d1f3, 46ce5a22d, fd09e65af, 9ef7e7600, 28c0c7869, in build 22 (3d807829d); staging 32/32 matched; owner: OWNER-TODO "Look at" (`shots/T520-*.png`) + owner: OWNER-TODO "Phone check with build 22"; GitHub R2 secrets: OWNER-TODO.
 Earlier: IN REVIEW — ece44d1f3, 46ce5a22d, fd09e65af, 9ef7e7600, 28c0c7869 (review fixes: end tokens said by core, stamps, per-input sync, ids with typography folded; staging re-synced, 32/32 matched). Proof pending: the owner's look at shots/T520-*.png and the next APK (the device half ships with it). The 32 notices cover exactly today's sections (diff against the live places, r-6dce77a24e6a: 0 differences); staging: links/2 synced, feeds worker deployed, feed reads matched 32 / unmatched 0. Owner 2026-11-08 change of plan: publish from the Mac only — the GitHub workflow is DELETED (not fixed); the review app runs deploy/staging/sync-inputs.sh after a save. Notes: a river's lake pieces (no line) ride as `lakes` places (Fraser, a Similkameen trib); the map outlines covered sections in the attention ink. Carries T518 (exact sections + ends on the page).
 

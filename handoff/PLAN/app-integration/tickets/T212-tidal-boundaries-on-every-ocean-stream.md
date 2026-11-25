@@ -4,6 +4,10 @@ Status: DONE 2026-10-29 (fe28e3d84..5ee1f591f, d99d28971) — every candidate ma
 32 cuts + the Noons Creek flag + 10 whole tidal waters shipped (r-ce76b4ed3624). One owner proposal open: the Mamquam
 Blind Channel (below). Research: 41393956.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T212 | tidal boundaries: a tidal split on every ocean-entering stream (research + proposals → marks → cuts) | DONE | 41393956, 8459fa16..e8c0c7cf, 68348561 | 10-29: all 1,168 marked and answered; 32 cuts + Noons flag + 10 whole tidal waters in r-ce76b4ed3624; open PROPOSAL: Mamquam Blind Channel whole-tidal (owner yes/no) |
+
 Source: owner 2026-10-27 — "critical"; start in the next work window.
 
 ## Goal

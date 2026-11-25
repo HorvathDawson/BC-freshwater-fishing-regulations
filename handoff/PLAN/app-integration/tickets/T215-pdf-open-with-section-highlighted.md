@@ -2,6 +2,10 @@
 
 Status: DONE 3e5ef46f 15d19068 7c513588
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T215 | open the PDF on the page with the entry's section highlighted | DONE | 3e5ef46f 15d19068 7c513588 | full PDF + highlight annotation, web verified (Cowichan p.15); phone unverified; owner uploads the release to R2 |
+
 Source: owner 2026-10-27. The app's "open PDF to page" goes to the printed page; it should show the row/passage the
 rule came from highlighted (the review app already makes a marked page image + row crop: `page N with it marked`).
 Options to weigh: a served page image with the highlight drawn (simple, works everywhere), or the PDF with a highlight

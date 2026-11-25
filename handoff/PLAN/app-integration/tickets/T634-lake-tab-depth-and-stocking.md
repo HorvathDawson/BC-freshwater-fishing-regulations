@@ -2,6 +2,10 @@
 
 Status: POSTPONED (deferred, owner 2026-11-13: "after the closed release we will do stocking and depth maps next"; the owner's 2026-11-20 answer marked it POSTPONED like T695/T699). Left (Claude) when it restarts: the path to ship in the ticket and item 6 (the app's Lake tab).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T634 | Lake tab: depth charts and stocking, to the owner's decisions (OGL, vector files, name variants, PDF compression) | POSTPONED (deferred, owner 2026-11-13: after the closed release; marked POSTPONED 2026-11-20 like T695/T699) | d55900aba, b8e65f2f0, a1d7da363 | owner 2026-11-11; restarts the data half of T200/T201/T218; NOT part of T495 (ships in a later release). First pass d55900aba; second pass b8e65f2f0 (PDFs 200 dpi 1-bit 748->201 … (detail: ticket file) |
+
 Source: the depth and stocking audit (T608 D, page https://claude.ai/artifact/7Dn9FwZu3N1aMGxsCR4ea3) and the owner's answers 2026-11-11.
 
 ## Owner decisions

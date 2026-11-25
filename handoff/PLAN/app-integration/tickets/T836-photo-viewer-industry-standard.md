@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS — merged 00edd4889 (2026-11-17: all four behaviours, tests); lane L6: the iPhone simulator bench 9 of 9 light and dark after one fix (a swipe also hid the buttons: 6fdb3d8db, tap maxDistance); left (Claude): the Android bench (open/close from the thumbnail, drag down, strip, tap vs double tap, that the buttons' layer passes touches), pinch rubber and fling glide feel; the counter over a light photo is T976
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T836 | The spot photo viewer behaves like the standard phone photo viewers (swipe down to close, tap to hide, counter, opens from its thumbnail) | IN PROGRESS — iPhone simulator 9 of 9 after the swipe-is-no-tap fix (6fdb3d8db, lane L6); left (Claude): the Android bench and the pinch / fling feel; counter readability is T976 | 00edd4889, 6fdb3d8db | Android + iPhone simulator bench (light/dark) |
+
 Source: owner 2026-11-17 ~11:15, in the app chat, verbatim: "the photo viewer could also use a little improvement to
 make it industry standard". Asked which of four standard (Apple / Google Photos) behaviours to add; picked all four
 (11:17): "Counter + smooth motion, Tap to hide the buttons, Swipe down to close, Opens from its thumbnail".

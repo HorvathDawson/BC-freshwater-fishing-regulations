@@ -2,6 +2,10 @@
 
 Status: DROPPED — merged into T410 (2026-11-05 audit; the work continues there) — was: PARTIAL — items 1 (Chip), 3, 5 (caption), 8 done with an exact-markup proof; 2 waits for the owner (Q); 4, 5b, 6, 7 left (each needs a look decision)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T260 | shared components part 2: Chip/Badge, SegmentedControl, EmptyState, Banner, SectionHeader, caption token, icon ladder, IconButton (rest of the T257 sweep) | DROPPED — merged into T410 (2026-11-05) | 2d60c72cb | Chip, EmptyState/NoneLine, caption token, Runs radii done with exact-markup proof; left: Badge, SegmentedControl (owner Q), Banner/SectionHeader, fontWeight literals, icon ladder, IconButton |
+
 Source: owner 2026-10-29 polish pass (T257 add-on: "extract generic reusable components, migrate call sites, guard").
 T257 extracted Button (small / link / busy / icon), LoadingState + useDelayedShow, ErrorState and round(); these are
 what its audit found and left, each to be extracted from the best existing instance with no look change (pixel-diff

@@ -2,6 +2,10 @@
 
 Status: DROPPED — merged into T360 (2026-11-05 audit; the work continues there) — was: PARTIAL 2026-11-05 — 49e303e96, d91f300f6 (z8/z12 measured; pan fps fails on the emulator; a real low-end phone left)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T245 | low-end Android performance budgets + fixes | DROPPED — merged into T360 (2026-11-05) | 49e303e96, d91f300f6 | budgets + `run.mjs perf`; 11-05: pan z9.9 44.6 fps, **z8 29.4**, z12 44.8 (emulator); cold 3.9 s, PSS 326 MB ✅; left: z8 cost is a visual choice (owner), real low-end phone |
+
 Source: owner 2026-10-28 — approved proposal P11 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
 ## Work

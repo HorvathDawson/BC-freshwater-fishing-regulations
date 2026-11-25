@@ -2,6 +2,10 @@
 
 Status: DONE (d647a301e) 2026-11-16 19:10: owner "Re-tick as right"; saved as marks line 2837; the live orphan test passes.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T811 | The owner's Squamish "downstream of the powerline crossing" tick reads "binding moved" (a side channel added to the shared water record; owner re-tick) | DONE | d647a301e | live orphan test; commit 7102afb9b |
+
 Found by: `pipeline/tests/test_marks_never_orphaned.py::test_no_owner_mark_is_orphaned_or_dropped_live` (needs_atlas,
 not in the CI tier), failing on marks line 2511 (scope dfo, target
 `2:squamish-river-including-powerhous:downstream-of-the-powerline-crossi`, verified 2026-11-09, P answered).

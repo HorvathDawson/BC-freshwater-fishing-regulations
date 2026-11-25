@@ -2,6 +2,10 @@
 
 Status: DONE — 1, 2, 9, 11 (a5990dd7b, 5debac3ef; carries 02f0fedca), 3 (RULINGS T16, f4d677c5c), 5 and 6 (GOTCHAS 4bd6e5333), 13 superseded (3d3b0e90e), 14 and 15 no change, 16 with T770; lane L10 2026-11-22: 7 (ebc15e364), 8 (0e6d0cdbd), 4 and 10 found already saved, 12 checked (no change: it already reads from the lower end); 4's label lookup stays T776.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T803 | Label follow-ups from the owner's answers of 2026-11-16: Cowichan tributaries mark off, Middle Shuswap main river only, Campbell and Fraser Region 3 re-saved, Mara Bridge cut name, Babine areas confirmed, Gitnadoix powerline at the mouth, a side channel renamed, gotchas, Stamp Falls cut 60 m down | DONE | a5990dd7b, 5debac3ef, 02f0fedca, f4d677c5c, 4bd6e5333, 3d3b0e90e, ebc15e364, 0e6d0cdbd | lane L10 2026-11-22: 7 Chemainus DFO sentence (ebc15e364, an atlas input), 8 Campbell re-saves (0e6d0cdbd), 4 and 10 found saved, 12 checked (already lower end first); 4's label lookup is T776 |
+
 Source: the owner's answers of 2026-11-16 by question dialog (`handoff/PLAN/OWNER-TODO.md`, "Answers by batch",
 batches 2 to 9). His words are quoted there; the work, one item each:
 

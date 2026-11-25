@@ -3,6 +3,10 @@
 Status: PARTIAL — built, merged and shipped through step 11: the cutover landed e0434e1b8 (2026-11-18 06:27, CI green); owner signed off the finals from staging 2026-11-18 12:18; 0.8.0 to Play internal and TestFlight 13:44 (8c73939b7); in production since 0.8.3 (2026-11-19). left (Claude): S2 dead-branch cleanup (optional; needs a coverage run, no provider is installed: see 2026-11-22). The MAP / AGENTS notes are written and T809's cutover diff is run and recorded (2026-11-22).
 or a release (owner 2026-11-15).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T810 | Trout and char block as the new table, built from the Python pipeline to the screen (umbrella; spec written; steps 3 to 7 wait for the owner's go) | PARTIAL — cutover landed and shipped (0.8.0, now production 0.8.3); notes + T809 diff done 11-22; left: S2 dead-branch cleanup (optional, needs a coverage run) | e0434e1b8, 8c73939b7 | owner 2026-11-16 15:18; `handoff/PLAN/design/trout-table-build-spec-2026-11-16.md` |
+
 Source: owner 2026-11-16 15:18: "have another opus agent spec out what would be involved in transitioning the trout
 portion of the app to the new table format. want it implemented clean from pythion up to front end. etc etc. use opus
 agent". The spec: `handoff/PLAN/design/trout-table-build-spec-2026-11-16.md` (tickets A to L for the main chat, M to S

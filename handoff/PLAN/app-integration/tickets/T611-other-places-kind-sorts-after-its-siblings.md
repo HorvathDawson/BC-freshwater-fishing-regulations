@@ -2,6 +2,10 @@
 
 Status: DONE — pipeline 8a0c44572 (`chain_order` takes `rides`); review app d7dc0d8fa (`curation-review/backend/cascade.py` passes `rides`, `salmon.rides_on_others` reads a stored place dict too; the `one_sibling` warning removed from `dfo.other_places_of`, the types and both components). Test + mutation: `test_t229_cascade_order.py` (the view's chain is [shut, open] and coho reads closed; without `rides` it is [open, shut]).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T611 | Salmon chain: a place of the "other places" kind sorts after the places it rides on | DONE | 8a0c44572, d7dc0d8fa | pipeline `chain_order` `rides` (8a0c44572); the review app's cascade view passes it and the one_sibling warning is gone (d7dc0d8fa, lane L10) |
+
 Source: T607 (2026-11-10), the one-sibling tie; coordinator: "file a ticket for the deliver lane … do not edit the
 chain".
 

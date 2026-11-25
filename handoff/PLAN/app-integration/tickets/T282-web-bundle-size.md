@@ -2,6 +2,10 @@
 
 Status: DONE 2026-10-30 — 3144e6fb7, 3c2a23c1d, d5a24fc3d (found by T269 on 2026-10-29). The bundle was not what held the hand-over: see "Outcome".
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T282 | Web app bundle 4 MB → lazy chunks so the app takes over fast on slow lines (43 s on Fast 3G today) | DONE | 3144e6fb7, 3c2a23c1d, d5a24fc3d | main bundle 3.54 MB → 2.20 MB raw (983 → 634 kB gzip; maplibre + rare parts in one later chunk); Fast 3G /water hand-over 39.6 → 37 s, / chrome 14.3 → 13.8 s — the water page … (detail: ticket file) |
+
 ## Work
 Measure the web export's JS by package (source-map-explorer or equivalent). Split what a first screen doesn't need
 (conditions charts, runs, menu pages, walkthroughs, review/debug code, large word tables) into lazy chunks; drop dead weight

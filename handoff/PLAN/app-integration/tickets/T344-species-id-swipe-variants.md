@@ -3,6 +3,10 @@
 Status: DONE in code (device check in the batch 5 emulator sitting) (09d2d845e) 2026-11-04 (was: OPEN (owner 2026-10-31: "for the species identification, if you clicked one that has multiple we should be)
 able to swipe between them, like whitefish (2 types)").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T344 | Species ID: a grouped species line (e.g. whitefish → lake + mountain) opens a swipeable set, one page per fish | DONE in code (device check in the batch 5 emulator sitting) 11-04 | 09d2d845e | owner 2026-10-31 |
+
 When a rule line names a group that covers several fish, tapping it should open the species ID view as a SWIPEABLE set
 (one page per fish, dots or "1 of 2"), not a single image:
 - "Whitefish" → lake whitefish + mountain whitefish (`lake-whitefish.webp`, `mountain-whitefish.webp`);

@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1088 | Lakelse r5, a "Note: the mouth … signs" rule, walks onto every tributary | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24 |
+
 Source: the 0.9.1 chat's T1053 lane, 2026-11-24. Evidence: the T1053 lane's before/after list, `head-lakes-before-after.md` in the T1053-shots folder on branch feat/T1053-walk-climbs-head-lakes (not pushed when reported).
 
 ## Work

@@ -3,6 +3,10 @@
 Status: DONE 2026-11-02 (6c08121b3; was OPEN) (owner 2026-10-31: "look if the digest collected any issues or crashes etc. with info. It should look for
 more than just ours with this bug").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T346 | Go through every crash + problem report the feeds worker collected (not just ours): group by cause, ticket each | DONE | 6c08121b3 | owner 2026-10-31 |
+
 The app sends crash reports and "Report a problem" reports to the staging feeds worker (`/crash`, the report store;
 the daily digest summarises them). Test-tagged reports from tools are marked and ignored (T291).
 

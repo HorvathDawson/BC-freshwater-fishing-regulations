@@ -2,6 +2,10 @@
 
 Status: DONE — 78a4eed8, 020f4ca8, 794f9c07, cfe405c8, 04357dad. Release r-2f33edfe8452 live locally; strict 7782 + smoke 18/18 green. R2 upload is the owner's (OWNER-TODO).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T56 | release rebuild: Twin Lakes + stream polygons + "See X" | DONE | 78a4eed8, 020f4ca8, 794f9c07, cfe405c8, 04357dad | R2 upload (owner) |
+
 ## What ships
 - Twin Lakes 2-8 and 18 more multi-polygon lakes bind every polygon (matcher b9a832ca, catalogue ad77fda, Main Lake →
   Mine Lake f455228). Reach rerun into data/generated/reaches/full_twin + binding diff

@@ -2,6 +2,10 @@
 
 Status: PARTIAL — (a), (b) DONE 2026-11-19 (30e052328, landed at d28344298); (c) bbab1fce1 and (d) a4eb6110c built 2026-11-22 (lane L9); review fixes 984b1bf8f (release check + ensure_pack hold the pack to its folder, `pack.unpacked` counted by checkRoom, a spent pack removed at boot, the no-fallback rule pinned). left (Claude): the device checks below (a first install from the 0.9.0 data release, which is the first to carry the pack; a cut data file resuming on the bg-update bench).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T919 | 0.8.3 leftovers: K_DOWN near-duplicate labels, Elaho p.23 twice, map assets still downloaded, T912 resume check | PARTIAL — (a), (b) DONE; (c) one packed download bbab1fce1 + (d) a cut data file resumes a4eb6110c built; left (Claude): device checks with the 0.9.0 data release | 30e052328, bbab1fce1, a4eb6110c | found by Claude 2026-11-19 |
+
 Small finds that did not block 0.8.3. Batch them into the next release.
 
 - (a) K_DOWN near-duplicate labels: "Lake Revelstoke's Tributaries · its tributaries" and "Chilko Lake's tributary streams'

@@ -2,6 +2,10 @@
 
 Status: POSTPONED
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T635 | Find where the fishways and government fish facilities are (the 23 m and 100 m no-fishing buffers) | POSTPONED | — | owner 2026-11-11: benched, data not good enough; findings kept (2e92f9f0b); CABD is CC BY-SA, commercial allowed |
+
 Source: owner 2026-11-11. Book p.9: no fishing "within 23 m downstream of the lower entrance to any fishway, canal, obstacle
 or leap" and "within a 100 m radius of any government facility operated for counting, passing or rearing fish (e.g.,
 fishway, fish hatchery)". Today these two are words only; the other three exceptions are drawn on the map. The owner looked

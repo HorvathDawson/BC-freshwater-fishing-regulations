@@ -2,6 +2,10 @@
 
 Status: DONE (1468f8bf0, merged into 0.8.2; review blocker (every menu page said ‹ More) fixed in a3ec100f4).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T897 | The More tab's back says "Back", not a tab's name; its head stays put while it scrolls (owner) | DONE | 1468f8bf0 | owner 2026-11-19 ~01:04, ~01:05 |
+
 Owner 2026-11-19 ~01:04 (app chat), desktop web shot of the More tab headed "‹ Spots / More", verbatim: "why does more
 link to spots?"
 

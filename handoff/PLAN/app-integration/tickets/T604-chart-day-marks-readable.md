@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS — owner's look at the web shots taken as done on his word 2026-11-20; left (Claude): emulator shots | 90e41efc6
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T604 | The chart's day marks are readable: no overlapping labels, today is obvious (two-days chart) | IN PROGRESS — owner's look taken as done (2026-11-20); left (Claude): emulator shots | 90e41efc6 | owner 2026-11-10 on build 25, with a shot |
+
 Source: owner 2026-11-10 on build 25 (Fraser, CPR Bridge at Mission → Landstrom Bar, regulations day Wed 11 Nov):
 "The only issue is the chart for 2 days. It has overlapping text and not obvious what current day is." Shot:
 `handoff/PLAN/app-integration/T604-shots/owner-phone-build25-before.png`.

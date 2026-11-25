@@ -2,6 +2,10 @@
 
 Status: PARTIAL — e843253e7, 011c8a8b8, 4771bb914, eb118fd15, 17791608a, e92983641 (staging 0457d354): fonts + WebCrypto verify kept, water pages 77-83 (were 67-83); the rest of TBT is the warm map behind the page (owner decision, below). OWNER 2026-11-05: build the map only when it is first seen on water pages (web-only), next chat; keep the Cloudflare scripts. Lazy map DONE in code 2026-11-05; MEASURED 2026-11-06 on the local rig: mobile 93·91·93 (was 88·85·78), desktop 1440 99·100·99 (below). left (Claude): the T269 page-vs-tap pairs, the phone-width manual check, then staging.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T409 | Water pages: next Lighthouse wins (fonts, WebCrypto/DecompressionStream verify, code splitting, sql.js after paint, cache headers) | PARTIAL | e843253e7, 011c8a8b8, 4771bb914, eb118fd15, 17791608a, e92983641 | lazy map measured 11-06 (local rig): mobile 93·91·93 (were 88·85·78), desktop 1440 99·100·99; left: T269 pairs, phone check, staging |
+
 Source: T405 outcome on staging (fc215b52): water pages Perf 77–88, LCP 2.1–2.5 s, CLS 0.002, A11y 100; region hubs
 97–100. What is left is the app's boot (TBT 350–520 ms) and bytes before first paint. Measure each item alone
 (Lighthouse mobile, vedder / cowichan / skeena, 3 runs median) and keep only what moves the score.

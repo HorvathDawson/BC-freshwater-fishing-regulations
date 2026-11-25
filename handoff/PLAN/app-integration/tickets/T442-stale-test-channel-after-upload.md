@@ -2,6 +2,10 @@
 
 Status: DONE — 51e05a4ef; staging test/ reset to r-4230bc0c1dd5 on 2026-11-06.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T442 | A staging upload left test/ on a cleared release: fresh test-bed installs 404 (walk-063) | DONE | 51e05a4ef | 2026-11-06: not an app bug; live/Play builds unaffected |
+
 Source: walk-063 (0/4) and probe-063. A fresh install of the test-bed APK (channel `test`) showed "The map data could
 not be loaded" on every scenario. Cause: `test/release/manifest.json` still named r-5a5999c94588 (the app logged
 `mobile data: go (483577736 bytes)` = that manifest's phone install size exactly; the live r-4230bc0c1dd5 is 474827955),

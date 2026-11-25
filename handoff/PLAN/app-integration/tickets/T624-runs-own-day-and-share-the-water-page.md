@@ -2,6 +2,10 @@
 
 Status: DONE — a938841a0 (closed on the owner's word 2026-11-20; see the last section)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T624 | Runs keeps its own day and names it; a shared water link is the water's own page (right preview) | DONE | a938841a0 | — |
+
 Source: owner 2026-11-10, answering T620's two open choices (T608B findings G10 and G17).
 
 ## Work

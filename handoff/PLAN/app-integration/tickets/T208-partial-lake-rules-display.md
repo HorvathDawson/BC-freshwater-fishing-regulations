@@ -3,6 +3,10 @@
 Status: DONE 2026-10-29 — display, map link and list built and in r-62e2f3a8c81e; the drawn outline is T281 Commits: 3fc83a0f, 08d19ed36.
 (waits on lake splits, deferred by the owner).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T208 | show rules that hold on an undrawn part of a lake ("area at the outlet … map 1") clearly, linked to the synopsis map | DONE | 3fc83a0f, 08d19ed36 | display + map link + list (30, 0 gaps) in r-62e2f3a8c81e; drawn outline → T281 (lake splits deferred) |
+
 Source: owner 2026-10-26, reviewing François Lake: "Char — 2 per day … in part: the area at the outlet of François
 Lake described on map 1" is held as an undrawn part (a note on the water, never colouring it).
 

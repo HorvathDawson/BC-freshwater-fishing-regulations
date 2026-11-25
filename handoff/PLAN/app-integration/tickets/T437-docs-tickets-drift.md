@@ -5,6 +5,10 @@ AGENTS 16/17/18/39/59 true; one START-HERE (5 NEXT-SESSION pages + 2 plans delet
 pointer. Not done (recorded): tests.md §2 kept (`tools/regs-walk.mjs` names its checks); archive/ pointers (AGENTS header,
 rule 21/37, `classify.py:17`, …) are T335's; findings 11 (golden.json freeze, owner), 12, 14 (test shapes) left open.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T437 | Docs and tickets: drift, stale statuses, one START-HERE (medium) | DONE | d9a72c206 | audit 11-05 |
+
 Source: `handoff/PLAN/audit-2026-11-05/` (findings: tests 5, 6, 8–12, 14, 16, 18–22; review-deploy 9, 10, 16; `*.verified.md` has the evidence per finding).
 
 ## What happens

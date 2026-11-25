@@ -2,6 +2,10 @@
 
 Status: DONE — 65691d11d, 752b5596e, 819419ebb; boundary labels anchored at their cut points; merged via e97c6932a; pictures approved by the owner 11-20.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T929 | Water map: boundary labels don't line up with the place they name; the part looks mis-framed (Chilliwack) (tester via owner) | DONE | 65691d11d, 752b5596e, 819419ebb | — |
+
 Source: a tester on iPhone relayed by the owner 2026-11-19 (`T928-shots/tester-2026-11-19-iphone.png`, top shot: Chilliwack
 River, Map, part 3 of 4 "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary"; the label
 boxes float away from the river, and the view shows Ross Lake / the Skagit, south-east of the part). Tester, verbatim:

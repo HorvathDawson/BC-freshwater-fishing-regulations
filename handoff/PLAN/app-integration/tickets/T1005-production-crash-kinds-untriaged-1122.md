@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS — triage recorded 2026-11-22 (lane L4), app fixes 127296a64, fe477309b; left (Claude): the worker's classes below (lane L5, `app/workers/feeds`), then a `GET /crashes` read that lists only T1014/T1016/T1017's kinds
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1005 | Production crash reports 11-15 → 11-22: ~20 kinds no ticket names (0.8.4 404s, PMTiles magic number, …): triage | IN PROGRESS — triaged kind by kind (11 of 20 from one search-engine renderer); app fixes in; left (Claude): the worker's classes (lane L5) | 127296a64, fe477309b | lane L5: the worker's classes (T1005 "What the worker needs"); then a /crashes read |
+
 Source: `GET /crashes?since=2026-11-15` on the production feeds worker (Bearer RUN_TOKEN), read 2026-11-22: 20 kinds,
 all class `defect`; none of their messages appears in `handoff/PLAN`. The largest (count, versions, message as stored):
 - 77, 0.8.4 (42): `Error: … HTTP 404`. 24 + 18, 0.8.4 (42): `in-season: could not ask this release which matched

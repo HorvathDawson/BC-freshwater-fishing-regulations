@@ -3,6 +3,10 @@
 Status: DONE 2026-11-05 — d91f300f6 (owner feel check on the next APK: OWNER-TODO phone checks)
 for gestures").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T312 | Map panning feels slow: 1:1 finger tracking, natural fling, no JS work per camera tick | DONE | d91f300f6 | drag 1:1 after MapLibre's 5 dp slop; fling glide per release speed = Android's own (2286 dp/s: 235 default → 389 → 780 dp); no per-tick JS; owner feel check on the APK |
+
 ## Work
 1. Measure on the emulator: finger travel vs map travel (should be 1:1 under the finger), fling distance/deceleration vs
    Google Maps-like feel, and whether JS work during a gesture (onRegionIsChanging handlers, colouring, prefetch) drops

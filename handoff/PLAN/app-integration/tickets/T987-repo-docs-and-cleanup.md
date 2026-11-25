@@ -3,6 +3,10 @@
 Status: DONE — ffba227f6, 5090e2f84, fef1e1973 (PR #27, merged 2026-11-22). Independent review: one defect (a still-tracked
 file described as removed), fixed in fef1e1973.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T987 | Repo README and docs up to date; clean-up pass (dead scripts, stale files, merged branches) | DONE | ffba227f6, 5090e2f84, fef1e1973 | owner 2026-11-21 |
+
 Source: owner 2026-11-21: "add deferred next release ticket to update readme and docs for repo and clean up stuff. (not
 for this release".
 

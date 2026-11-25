@@ -2,6 +2,10 @@
 
 Status: DONE (24879b00; merged into T199 2026-11-03, owner). T162 did the data (timing.json) + plan; T199 carries everything left (data refinement, yearly refresh, the app mode). Was: PARTIAL — data + plan; app integration awaits owner
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T162 | salmon/steelhead run timing: PSF + DFO parsed to `timing.json`; integration plan (handoff/PLAN/runtiming/PLAN.md) | DONE (merged into T199) | 24879b00 | data + plan done; everything left is in T199 (owner 2026-11-03) |
+
 Source: owner 2026-10-23: "add a ticket for adding run timing info that we scraped into the app too. will have to create
 the feed … we started implementing a run timing with the stream network on when fish would have to be passing through an
 area for each species etc. … it will need the data fetching and also the working out how to display it (probably as a

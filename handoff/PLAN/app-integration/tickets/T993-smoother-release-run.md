@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS (main chat 2026-11-21: owner picked it for this chat; inventory first). Plan item 11 (the one human runbook) written 2026-11-22, IN REVIEW: owner: OWNER-TODO "To read (you): the one release runbook and the gates page"; the other open items are their lanes' (T866, T978, T987, item 17).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T993 | Document + clean up every release / CI / CD process so a human can release from one runbook; checks do the remembering (0.8.5 stopped nine times) | IN PROGRESS (plan item 11, the one human runbook `handoff/PLAN/runbooks/release-by-hand.md`, IN REVIEW: owner: OWNER-TODO "To read (you): the one release runbook and the gates page") | T992 | owner 2026-11-21 |
+
 Source: owner 2026-11-21, during the 0.8.5 staging release, verbatim: "we need to have a ticket to make the review
 process smoother we always have so many issues we need to fix...".
 

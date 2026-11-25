@@ -2,6 +2,10 @@
 
 Status: DONE (0c88c2165, 2026-10-24: every entry binds; no change needed — see Outcome).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T155 | Still Creek and Nelson Creek: book entries with no water (named ditch/canal lines) | DONE | 0c88c2165 | measured: all three entries bind (99, 6, 9 sections); no change |
+
 Source: T148 census table C, 2026-10-23.
 
 ## Problem

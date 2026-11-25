@@ -2,6 +2,10 @@
 
 Status: DONE (fe10a015)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T251 | testing data updates: Updates log (dev/staging, ring buffer, check/force/offline/clear/apply/copy), staging test channel (`test/` + `deploy/staging/test-updates.mjs` + `app/tools/updates-e2e.mjs`), app version (app.json semver + build + sha + date; About, `X-App-Version`, `minAppVersion` gate), `published` stamped at publish | DONE | fe10a015 | owner 2026-10-28; prod data worker must allow `X-App-Version` (T86) |
+
 Source: owner 2026-10-28: (1) "we need a way to test the app data updates — it syncing with R2 when in service and
 tracking updates"; (2) "we need an app version too". Add-ons the same day: the web app's version tracks the release it
 ships with (web and data deploy together; store builds can lag, which `minAppVersion` handles); "Regulations as of

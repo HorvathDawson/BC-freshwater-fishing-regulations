@@ -2,6 +2,10 @@
 
 Status: DONE in code 2026-11-05 — 67f8be2a6 (live with the next staging release) — was OPEN (owner 2026-11-05, T408 walkthrough; `handoff/PLAN/data-flow-decisions.md` "Run timing").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T412 | One slow-feed pattern (run timing first; HYDAT clim + bathymetry follow): button-run workflow (never a GitHub schedule), auto binding base, same-bytes check | DONE in code (live with next staging release) | 67f8be2a6 | owner 11-05 (T408) |
+
 Run timing is made two ways today (Mac deliver, T373, and the manual `feeds-runtiming.yml`, which refuses until the
 owner uploads a binding base after each atlas promote). Owner: a slow feed like HYDAT and later bathymetry — "make sure
 it is producing same output … deployed to R2 directly".

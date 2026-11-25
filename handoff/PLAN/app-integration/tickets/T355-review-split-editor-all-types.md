@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-02 (c58790450, 0732a97f2, d9b7c7c40) — proposals only; owner to try it in the DFO tab.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T355 | Review split editor makes every split type (point, confluence, lake/outlet, area_boundary, border, offset on any) + proposal ids always become real split ids | DONE | c58790450, 0732a97f2, d9b7c7c40 | owner 2026-11-02; build-resolver preview, edit in place via `amends`, real-id guard |
+
 The new-split feature in the review app should produce every kind of split that splits.json supports, not just a
 hand-placed point. splits.json today holds: point 318, confluence 102, lake 18, area_boundary 4, lake_outlet 1,
 border 1.

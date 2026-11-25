@@ -2,6 +2,10 @@
 
 Status: DONE 2026-10-29 (owner 2026-10-29). Commits: 9f0b0a113, f3e0bde78
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T276 | DFO line by the mode switch; Runs tab legible on phones (bigger slider); spawner legend + Conditions → first-open tutorials; local /runtiming/ | DONE | 9f0b0a113, f3e0bde78 | owner 2026-10-29 |
+
 Source: owner: the DFO line ("Salmon rules from Fisheries and Oceans Canada (DFO), pages dated up to …. Waters DFO does not
 list are closed to salmon.") "should maybe go near the button used to change mode instead of in legend at bottom"; "the run
 tab is very hard to read on mobile feels small. the slider should be bigger and the spawner info [legend: 'Spawners counted

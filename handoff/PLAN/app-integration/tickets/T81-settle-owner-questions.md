@@ -2,6 +2,10 @@
 
 Status: DONE — 2fb23d92, 4b197646 (review: the map-chrome stragglers added) (decisions.md "CLAUDE 2026-10-22 (T81, owner delegated: audit call 11)"). The README table edits below are the merger's (this lane may not edit README).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T81 | settle the pending small owner questions | DONE | 2fb23d92, 116b0e19, 4b197646, bd824a69 | — |
+
 Source: owner call 11: "Claude makes judgement calls on the ~30 smaller pending questions and records them". There is
 no consolidated record; two threads of questions have already been lost. The README "Owner questions" table now lists
 every open call with its default; this ticket turns each delegated default into a recorded decision.

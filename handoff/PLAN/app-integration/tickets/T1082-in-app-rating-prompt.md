@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1082 | An in-app star-rating prompt that does not get in the way (design first) | OPEN — 0.10 or 0.11; design page for the owner first | | owner 2026-11-24, via the 0.9.1 chat |
+
 Source: owner 2026-11-24 ~14:25, relayed by the 0.9.1 chat, verbatim: "we need to add a random (sometimes on launch in
 a reasonable amount) star rating review on launch. must be uninvasive. (or could be after they use a certain feature?)
 needs thought for 0.10 maybe? or 0.11?"

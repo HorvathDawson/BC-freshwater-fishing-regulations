@@ -2,6 +2,10 @@
 
 Status: DONE — d5cb3680, f0bea808.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T03 | `openRegsStore`: format, digests, section versions, refusal | DONE | d5cb3680, f0bea808 | — |
+
 Phase 0 · Depends on T00, T02 · Blocks T04, T09, T10, T11, T12 · Decisions — · Size ½ day
 
 ## Goal

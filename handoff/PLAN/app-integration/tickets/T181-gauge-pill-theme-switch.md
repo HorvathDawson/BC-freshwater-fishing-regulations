@@ -2,6 +2,10 @@
 
 Status: DONE 7c43151a (see Outcome). Found by the T62 app lane (3.5 split of Map.web.tsx), not fixed there (not part of a no-behaviour split).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T181 | gauge pill keeps the theme the map was built with (check, then fix) | DONE | 7c43151a | confirmed (pill, pin, hatches kept the build theme); fixed + render test |
+
 `addPill` (app/packages/map/src/web/) draws the gauge pill with the theme captured when the map was created; switching
 light/dark/cvd afterwards may leave the pill in the old theme.
 

@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-07 (46f948264). Opened 2026-11-07 (owner: "lets move it over… only ship it in dev/staging no prod and just be a long press to get").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T476 | One Developer card behind the credits long-press (lab, data source, Updates log, build info); dev/staging only | DONE | 46f948264 | owner 2026-11-07; About loses dev rows |
+
 Today the developer tools are scattered:
 - Map lab (`MapLab.tsx` / `MapLabModal.tsx`): long-press on the map credits, `EXPO_PUBLIC_MAP_LAB=1` and not production.
 - About (`InfoPages.tsx`): data-source/channel picker (T232), Updates log link (T251), env badge.

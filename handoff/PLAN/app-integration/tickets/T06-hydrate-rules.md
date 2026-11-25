@@ -2,6 +2,10 @@
 
 Status: DONE — fc69e20a, c764595b, 1970139d.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T06 | hydrate 1: rule views, species names, `describe()` + oracle | DONE | fc69e20a, c764595b, 1970139d | — |
+
 Phase 0 · Depends on T00, T04 (types only) · Blocks T07, T08, T09, T13–T19, T30–T36 · Decisions — · Size 1 day
 (split if needed: T06a = `port/hydrate.mjs` oracle + `names.ts`/`time.ts`; T06b = `rules.ts` + `describe.ts`)
 

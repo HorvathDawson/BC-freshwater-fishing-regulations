@@ -2,6 +2,10 @@
 
 Status: DONE — 355ef4cc8 + 0df71bddc (review fixes) + 1b7801bfc (Section E dead piece) (2026-11-09; the owner restarts the review app, then marks the proposals)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T524 | A DFO place extent can be several pieces on different waters (union): Chilliwack-Vedder below Slesse + Sumas below Barrow Town pump station; dead-piece build gate; Forks; replaces-extent banner | DONE | 355ef4cc8 | owner 2026-11-09 review app "needs 2 extents combined or a different representation" |
+
 Owner 2026-11-09 (review app, DFO region 2): "from a line between 2 fishing boundary signs on either side of the
 Chilliwack River 100 m from the confluence of the Chilliwack River and Slesse Creek downstream including that portion
 of the Sumas River from the Barrow Town Pump Station downstream to fishing boundary signs near the confluence with the

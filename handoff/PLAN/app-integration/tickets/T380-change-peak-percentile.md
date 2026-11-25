@@ -2,6 +2,10 @@
 
 Status: DONE in code (528620c65; owner 2026-11-04, in 0.5.0); live with the worker deploy.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T380 | Change: percentile today and at the peak beside the ratio ("from the 5th to about the 95th, about 3× today's flow"); publisher + worker carry the peak percentile from the combined series | DONE in code (worker deploy) | 528620c65 | owner 2026-11-04 (in 0.5.0) |
+
 ## Ask (owner 2026-11-04)
 "when it says this (At its highest, about 3× today's flow — fairly confident, forecast from 4 gauges nearby.) could we
 also say what its peak will be percentile wise like will rise from 5th percentile flow to 95th percentile flow (about 3x

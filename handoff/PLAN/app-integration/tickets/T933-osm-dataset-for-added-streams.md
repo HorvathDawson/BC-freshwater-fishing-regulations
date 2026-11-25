@@ -2,6 +2,10 @@
 
 Status: POSTPONED (deferred with T930, owner 2026-11-20: after the bathymetry map, stocked lakes and charts).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T933 | A dataset for OpenStreetMap of the 324 streams we added (licence per city, missing-only, OSM import process) (owner) | POSTPONED (deferred with T930: after bathy map, stocked lakes, charts) | | owner 2026-11-20 "dataset for OSM" |
+
 Source: owner 2026-11-20 00:03 (main chat), verbatim: "Then another one to work on creating dataset for OSM to add I added
 streams." Goal: give back the streams this project added beyond the provincial FWA network so OpenStreetMap can carry them.
 

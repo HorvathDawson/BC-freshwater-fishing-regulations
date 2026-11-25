@@ -3,6 +3,10 @@
 Status: DONE (a0bf4876c; in 0.8.2 on app/integrate-082, ledger brought up to date 2026-11-19). Was: IN PROGRESS (lane app/t877-calendar-grid, worktree wt-t877; left (Claude): merge into app/integrate-081-web, then
 the look on a phone build).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T877 | "Which day?" calendar: six weeks every month, every day under its weekday (owner) | DONE | a0bf4876c | owner 2026-11-18 ~20:46 |
+
 Owner 2026-11-18 ~20:46, verbatim: "The calendar shifts around". Phone shots of the Regulations page's "Which day?" sheet
 on Babine Lake — Main Body, August 2026 and July 2026
 (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/069827ef-image.png,

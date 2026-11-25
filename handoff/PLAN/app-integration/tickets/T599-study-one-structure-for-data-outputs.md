@@ -2,6 +2,10 @@
 
 Status: DONE — a9587aabc
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T599 | Study: one structure for the pipeline's outputs, side files and intermediates (Zarr or other) | DONE | a9587aabc | owner accepted 2026-11-10: no format switch; four-class split + one curated writer; steps → T547, T600, T601, T602 |
+
 Source: owner 2026-11-10: "if we should restructure the data outputs and side cars and intermediates etc to all live in
 a nicely structured ZAR or similar maybe? We should see if it makes sense. Would it give us benefit … other options
 should be considered too because we want it to be easy to fit and manage and easy to expand."

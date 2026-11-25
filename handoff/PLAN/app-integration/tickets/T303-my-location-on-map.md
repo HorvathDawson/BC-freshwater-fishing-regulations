@@ -2,6 +2,10 @@
 
 Status: DONE on web 2026-10-30 (commit 1b74740); the emulator pass (mock location + T300's map-gesture item 5) is pending the heavy lock (held by t301-build). Owner 2026-10-30: "add location onto map. So it shows your current location".
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T303 | Show your current location on the map: my-location button, blue dot, centre/follow, asks only on tap | DONE on web (emulator pass pending: lock held) | 1b74740 | owner 2026-10-30 |
+
 ## Work
 1. A "my location" button with the map's zoom controls; tapping it asks for location the first time (never silently —
    same rule as locate.native.ts / locate.web.ts, foreground only), then shows the standard blue dot (with accuracy circle)

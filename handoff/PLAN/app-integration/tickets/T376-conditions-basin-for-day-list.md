@@ -2,6 +2,10 @@
 
 Status: DONE (e21cdbeac; the main part of the hook wiring was swept into e604eb5ae) 2026-11-04 — needs a bundle + release rebuild to ship (was: OPEN — data chat, for the UI chat's forecast-day list (T367, 2026-11-03); in 0.5.0 (batch 4)).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T376 | The Conditions view's watershed (map centre / a water's own, no fallback) + basin names, for the UI chat's forecast-day list | DONE 11-04 (bundle + release rebuild owed) | e21cdbeac | UI chat via T367, 2026-11-03 |
+
 The UI chat draws a list of forecast days (+1…+10), each with one watershed's standing from `basinStandings(basins, idx,
 quantity, horizon)` (data/src/standing.ts; the same values as the zoomed-out heat map). It needs from us:
 1. **Browse:** the watershed the Conditions map is centred on, on the map colouring (e.g. `col.centreBasin: { id, name }

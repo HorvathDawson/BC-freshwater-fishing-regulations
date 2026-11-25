@@ -4,6 +4,10 @@ Status: DONE (2026-11-05) — 770a4aaa9, abed46e5f, 9d5d52553 — items 1–5 bu
 deploy, never ahead (owner 2026-11-03: "make it so that this command works cleaner in future too"; batch 3 of
 RELEASE-PLAN-0.5.0.md).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T366 | DFO live refresh made clean: dry-run preview of changed rows + marks it stales, typed stamped with its page, fetched pages archived, rule-only changes re-checked in one click; then region 2 (FN1179 Fraser chum) | DONE | 770a4aaa9, abed46e5f, 9d5d52553 | b71bbcd11; refresh run 11-03 (regions 1, 2, 6; no marks moved; 9d5d52553 Fraser variants); 11-05 review-app vintage banner + worker row digest (urgent: false → NOTIFY_DIGEST) … (detail: ticket file) |
+
 Why: T361 showed a refresh can silently move owner marks to "rule changed" (the typed rows were a season old, then
 re-emitted from a newer page). Region 2 now needs one: staging's live fetch saw FN1179 (Fraser, mainstem upstream of
 the CPR Bridge at Mission: chum 2/day Nov 3–30), which no saved page has (newest region 2 copy 10-28, modified 10-16).

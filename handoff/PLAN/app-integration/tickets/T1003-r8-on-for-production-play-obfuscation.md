@@ -4,6 +4,10 @@ Status: IN PROGRESS — lane L1, branch perf/T1003-r8-release (c34b990ba, 6f0be8
 the mapping sent to Play, the benches green on this head ("Built" below); left (Claude): the independent review and
 merge, the 0.9.0 Play internal build, Play's DEX figures recorded here.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1003 | Android: R8 on for every release build, production included; mapping file uploaded to Play (Play Console: "Obfuscation 1%", under its 25% threshold) | IN PROGRESS — L1 perf/T1003-r8-release: built + benched + docs; left: review/merge, Play internal build + Play's figures | c34b990ba, 6f0be8f4d (after T749) | owner 2026-11-22 (Play Console notice) |
+
 Source: owner 2026-11-22, pasting the Play Console notice verbatim: "DEX code optimization is below our threshold.
 Improve your percentages in the following categories: Obfuscation (1%). Percentages under 25% in any category of your
 app may impact your visibility and publishing capabilities on Google Play. To prevent this, optimize your app by the

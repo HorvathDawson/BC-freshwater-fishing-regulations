@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS — lane merged (bff397878, 11-20); reviewed 2026-11-22: 3 pins fixed (a6f2a47cd Skutz Falls copied removed review words + unlabelled marks 25→22 by T944; 7e126231a T981's local-authority closure has no book page by design; 2f8d3b72e the Babine hand placement check had become always-true). The 3 refusals (T942, T944) and the panel invariant pass now. Left: T1000 (Adskwatim tile gap, 2 live tests red until the next tile build); `test_answers_one_kind_group.py` ~533 (Beattie: bull trout and lake trout became separate trout-group entries with no ruling named) needs its ruling or commit cited.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T931 | Live-data test tier: ~55 stale pins after the 11-15..11-19 rulings, one lake-loop invariant break (T753), env flakes | IN PROGRESS — reviewed + fixed 2026-11-22; left: T1000 tile gap (2 live tests), Beattie group split needs its ruling cited | 68224fd7d, 0d2effc0f, 9f4f53e97, 89fcc181e, a6f2a47cd, 7e126231a, 2f8d3b72e | main chat 2026-11-19 tier diagnosis |
+
 Source: main chat 2026-11-19 21:28. The first `scripts/test-full.sh` run in days (on lane/t920-batch) finished red. A
 read-only diagnosis (scratchpad `diag-a.log`, `diag-b.log`) found none of it comes from that branch: the 0.8.3 and 0.8.2
 "green" tiers were CI's no-data tier (`not needs_bundle and not needs_atlas …`, 1,650 deselected); the `needs_*` tests had

@@ -3,6 +3,10 @@
 Status: DONE (102236e9a) — owner decides the 8 proposals and applies them. Owner 2026-10-24: "we want to avoid making the review curation tool update files directly anyways. must
 be a better process to get the manual results in to entries etc."
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T185 | marks → proposals (one per mark, one per new split, each split with its confidence) → read-only "waiting to apply" list (the marks ARE the decisions, 2026-10-27) → Claude's `apply_proposals`: binding check, side rebuild where a cut changes, one commit each; fix mode lost its writers | DONE | 8d9383df, c76a9fd8 (writers removed), 102236e9a, 7b63f660 | Claude runs side chains + applies; owner changes a mark to change a proposal |
+
 ## The process
 1. Review (T184 artifact, anyone): writes MARKS only.
 2. Tickets: `python -m pipeline.regs.review.tickets` turns every wrong / unsure mark into a ticket (exists today).

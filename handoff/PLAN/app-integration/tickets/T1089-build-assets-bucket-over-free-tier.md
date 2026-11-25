@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1089 | The build-assets bucket is over R2's 10 GB free tier: store the big source file compressed, and a runbook for refreshing the sources | OPEN — 0.9.2, or the first free lane before it | | owner 2026-11-24 |
+
 Source: owner 2026-11-24 (planning chat): the `bc-fishing-build-assets` bucket "has too much data in it puts me
 beyond 10gb total free threshold. can we clean it up?" Offered four ways; his answer, verbatim: "yes compress it then
 we should have somethign mention hopw to rebuild it to update every so often too."

@@ -3,6 +3,10 @@
 Status: BLOCKED (owner) — waits for a Conservation Officer's answer to the T973 question (GOTCHAS.md, "Classified
 Waters licence").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T974 | Classified Waters "may need" note: clean up (firm unit or drop, remove the optional file and note) once a CO answers T973 | BLOCKED (owner) | | owner 2026-11-20 12:38 |
+
 Source: owner 2026-11-20 12:38: "we want to ticket cleaning this up once we get contact with a CO", about T973's
 "may need" note ("Stellako River Class II may apply here: the Endako has its own line without Classified Waters.
 Check with a CO.") and its separate optional data file, which apps before 0.8.4 ignore.

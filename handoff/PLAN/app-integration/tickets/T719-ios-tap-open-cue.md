@@ -2,6 +2,10 @@
 
 Status: DONE — 49b7226b6, efd9ada22, d6afcf124, d15784a4f. iOS tap cue at the lift (the tap-up patch) and the regs-open twin, merged 2026-11-16; the owner's iPhone look on build 36 passed.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T719 | iOS: tap open speed and cue, T716 parity (IOS-2) | DONE | 49b7226b6, efd9ada22, d6afcf124, d15784a4f | — |
+
 Closed by the 2026-11-20 audit: owner on build 36, 2026-11-16 ~21:22: "a-d worked good ... yes to (E) and (f)" (OWNER-TODO: 'iPhone build 36 test (a–f) done'); check e was T719's left; patch merged in d15784a4f.
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is

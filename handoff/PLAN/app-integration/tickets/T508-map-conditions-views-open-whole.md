@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-20 (f2428537b, 02364791a, 49dd973d3) — same owner question as T498, ticked (owner ruling 2026-11-20: every check or look is taken as done); emulator holds done.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T508 | A water opened into its Map / Conditions view appears in one piece (T498's hold for every view) | DONE | f2428537b, 02364791a, 49dd973d3 | follow-up of T498, 2026-11-08; T495 smooth map |
+
 Was: IN REVIEW — f2428537b, 02364791a (+ testbed 49dd973d3), in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (Map / Conditions views open whole).
 Earlier: IN REVIEW — f2428537b, 02364791a (+ testbed 49dd973d3); owner sees it on the next APK. Follow-up of T498. Part of T495 (smooth map).
 

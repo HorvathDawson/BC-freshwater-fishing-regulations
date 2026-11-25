@@ -3,6 +3,10 @@
 Status: DONE (60c285d22; style, ships with the next app build) — owner 2026-10-31: "the parks like Garibaldi park and other provincial parks didn't show up. Garibaldi is the
 important one at least because it closes the Pitt river". Scope narrowed by the owner: "The rules are correct there just no park polygon" — drawing only; no legend entry (the legend is for regulation items only).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T311 | Provincial parks missing — Garibaldi (closes upper Pitt): draw parks, bind park-scoped rules | DONE | 60c285d22 | owner 2026-10-31; parks were in tiles but 0.12 tint + no edge: green edge from z7 + stronger tint, style only (no tiles rebuild); rules unchanged (owner); no legend row (owner) |
+
 ## Work
 Investigate: is Garibaldi Provincial Park in the atlas park/area layer and the tiles (drawn?), and do the Synopsis rules for
 waters in Garibaldi Park (e.g. the upper Pitt closure) bind to the sections inside the park? Find why parks don't show

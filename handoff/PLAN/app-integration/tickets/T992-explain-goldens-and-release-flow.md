@@ -2,6 +2,10 @@
 
 Status: IN REVIEW (explanation written: `handoff/PLAN/runbooks/release-gates-explained.md`; simplifications proposed, not built); owner: OWNER-TODO "To read (you): the one release runbook and the gates page".
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T992 | Explain how golden pages, fixture re-cuts and the release command's gates work (and maybe simplify them) | IN REVIEW (explanation written: `handoff/PLAN/runbooks/release-gates-explained.md`; simplifications proposed, not built; owner: OWNER-TODO "To read (you): the one release runbook and the gates page") | | owner 2026-11-21 |
+
 (Was POSTPONED — owner 2026-11-21: a future ticket, not 0.8.5; picked up with T993 plan item 11, 2026-11-22.)
 
 Source: owner 2026-11-21, during the 0.8.5 staging release, verbatim: "add a ticket that is about how all this golden

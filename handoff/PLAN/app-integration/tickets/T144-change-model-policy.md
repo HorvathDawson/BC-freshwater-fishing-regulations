@@ -2,6 +2,10 @@
 
 Status: DONE — a156e1c2 (feed) + 89ee4423 (app) + b4fd96a9 (review fixes), lane-T144; live after a feed republish (below).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T144 | Change: CLEVER + COFFEE combined, ELF only last resort with a low-water caveat | DONE | 7b4d941f, b4fd96a9, a522525f, 89ee4423, a156e1c2 | feed republish (local done; R2 owner) |
+
 Source: Owner 2026-10-23 (app walk). "the change could use coffee and clever but no elf (can combine both if available too for more confident
 guessing) clever is better model i think but you can research them to see how you should use them. it can use elf if
 nothing else is there. but maybe have a warning for it being a low water forecast". Related: T52 (Expected change),

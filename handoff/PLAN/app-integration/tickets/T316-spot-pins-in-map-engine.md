@@ -3,6 +3,10 @@
 Status: DONE (55c09f699; owner checked the marks on the dev web app, 2026-11-04).
 Shouldn't it just be rendered in the actual map engine instead?? Like using geojson").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T316 | Spot + parking pins as map-engine GeoJSON layers (no lag on pan), clustering in the source | DONE | 55c09f699 | owner 2026-10-31 |
+
 ## Work
 Replace the React-overlay spot pins (and T310 parking P marks, clusters) with a GeoJSON source + symbol/circle layers in
 the map style (native MapLibre + web maplibre-gl), icon from the existing icon set as a map image, clustering via the

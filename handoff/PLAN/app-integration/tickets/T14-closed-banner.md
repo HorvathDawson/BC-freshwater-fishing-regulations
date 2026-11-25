@@ -2,6 +2,10 @@
 
 Status: DONE — 7affdf01, 5b7e858d, cb71e1d0 (closers moved to the pipeline).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T14 | presenter: closed banner + chain + tidal banner | DONE | 7affdf01, 5b7e858d, cb71e1d0 | — |
+
 Phase 1 · Depends on T00, T06 (`describe()`, `RuleView`), T07 (`Settled`: `status`, `broad`), T09, T12, T13 (`BOOK_DAYS`,
 `runOf`, `nextOpen`, `spanWords`, `StripVM.line`) · Blocks T21, T25 · Decisions — · Size ¾ day
 

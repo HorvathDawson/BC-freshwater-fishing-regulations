@@ -2,6 +2,10 @@
 
 Status: DONE — ebc435e5, 6a9384d3, review e7c4d3ca (app + pipeline code; the shipped bundle/release need a deliver to carry the keys — see As built).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T114 | one search key for SQL filter and ranking (barriere) | DONE | ebc435e5, 6a9384d3, 21021abb, e7c4d3ca, 4ae97a60, 48f712e9, 2683568e | delivered r-e88ea8112b1a (core 1.09 MB) |
+
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding app 1
 (CONFIRMED on `bundle.sqlite`). The pipeline half (one name normaliser) is T61 2.8; this ticket is the app split.
 

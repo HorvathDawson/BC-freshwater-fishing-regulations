@@ -2,6 +2,10 @@
 
 Status: DONE — shipped in 0.8.3 (merged 6106a9fd8; staging + production 2026-11-19).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T903 | Map modes paint only what differs from a default (Salmon red, Conditions/Runs grey) (owner) | DONE — shipped in 0.8.3 (staging + production 2026-11-19) | 6106a9fd8 | owner 2026-11-19 ~01:33 |
+
 Owner 2026-11-19 ~01:33 (app chat), verbatim: "i feel like salmon painting is still slow. maybe it should default stream
 color to red then only paint things different then that? might reduce the load when on salmon view? then goes back to
 default for normal rules after to keep it fast too. similar default grey for conditions and runs?"

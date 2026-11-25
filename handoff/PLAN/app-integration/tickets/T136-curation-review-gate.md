@@ -4,6 +4,10 @@ Status: DONE (tool side) — b42fc8cd, 12739188, review fixes 371f1a85 (lane-T13
 person's review time (owner question 1). Owner approved PLAN.md 2026-10-23 (defaults Q34–Q41).
 Takes effect on merge: no rebuild. (The new CLI flags change no default; `pipeline build` output is unchanged.)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T136 | curation review phase 5: parity gate + pilot | DONE | b42fc8cd, 12739188, 9b080497, 371f1a85, 0634891b | parity 3,405 rules, 0 unexplained; scratch E2E false-stale 0; pilot (Q114) DROPPED by the owner 2026-10-25 — the real review replaces it |
+
 Source: handoff/PLAN/curation-review/PLAN.md §4 "Phase 5: gate before full review" (and §5); split out of T97.
 
 ## Work

@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS — fix merged: 57d816fdb (gauge dots and the you-are-here pin), d7af5c02c (lines through an injected atlas reader), 278bcfb17; iPhone proof done (lane L6, 3e8189d79: route lines, gauge dots and the pin, light and dark); left (Claude): the Android half, route-scroll's T831 step on the emulator, shots beside the web
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T831 | The route map inside a water's Conditions view draws no gauge dots and no "you are here" pin on the phones | IN PROGRESS — fix merged; iPhone proof done (lane L6: route lines, gauge dots and the pin, light and dark); left (Claude): the Android route-scroll step and shots beside the web | 57d816fdb, d7af5c02c, 278bcfb17, 2f4b492aa | T826 agent 2026-11-17 |
+
 Source: found by the T826 agent 2026-11-17 while checking the owner's iPhone report (T826 part 1), on both Android
 and iOS; the web draws them.
 

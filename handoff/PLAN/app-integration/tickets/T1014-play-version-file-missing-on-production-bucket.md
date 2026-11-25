@@ -2,6 +2,10 @@
 
 Status: OPEN — next release batch (the file copy is the owner's: production R2).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1014 | Play update check: production phones read `app/android/play/43.json`, which only the staging bucket holds (HTTP 404) | OPEN — next release batch | | owner: copy 43.json to production R2; build-apk.sh --play to both buckets |
+
 Source: T1005 triage, crash kind `804e01a3d7d4fd97` (production, 3 Android 0.8.4 phones, build 42 c1f14c1, 2026-11-22
 01:53–18:08 UTC): `HTTP 404 for …` in `readJson` (`apps/mobile/src/appUpdater.native.ts` `STORE_FILES`).
 

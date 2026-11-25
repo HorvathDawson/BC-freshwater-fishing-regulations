@@ -2,6 +2,10 @@
 
 Status: DONE — 994b17e3a, f0390ac67, 50072cc45, 1d1e01d51, ccc732b71 (item 2, by the T545 lane); leftovers in T562
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T541 | Review app: run.sh proves its backend started; file domains commit; generated outputs stop dirtying the tree; pending-build command | DONE | 994b17e3a, f0390ac67, 50072cc45, ccc732b71 | workflow review 2026-11-09 (owner-led; verified against the code); rank 9 |
+
 Source: workflow review 2026-11-09 (verified against the code). Rank 9.
 
 ## Today

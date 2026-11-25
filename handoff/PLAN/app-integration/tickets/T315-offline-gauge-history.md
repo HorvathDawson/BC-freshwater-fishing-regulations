@@ -3,6 +3,10 @@
 Status: DONE — owner phone check 2026-11-08 passed (0.6.9). Was: IN REVIEW — built + unit-tested (b1827b9d0); needs the feeds worker deployed (owner) + emulator check (owner 2026-10-31: "in offline mode we didn't get the gauge feed data … the phone didn't store the gauge data
 for the last week … had no measured line").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T315 | Offline: keep the last week of gauge readings so charts still show the measured line | DONE | b1827b9d0 | owner 2026-10-31 |
+
 ## Work
 When online, the app caches each viewed (and saved-spot / followed) gauge's recent readings (≥7 days of the feed series +
 latest + forecast) on the device, refreshed with the feed; offline, Conditions charts draw the measured line from that

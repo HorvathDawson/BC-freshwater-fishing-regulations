@@ -2,6 +2,10 @@
 
 Status: PARTIAL — ae65ef767, a2478c6dc, d2239c54d, b3de2bbc1 (below), 09f6346e0, eb8e2092a, 5f8a37cbc, 53e9106e2 (cold start on a slow phone, 0.9.1: the follow waits on wall time for the page to settle and for the salmon card still coming, bounded (30 s with nothing coming: a defect report; 180 s with a part still coming: dropped as the line's), spent once for its page; device: slow cold `tab=gear` 6/6, `tab=licence` 6/6 landed, was 2/12 and 0/11; a drag stops it; warm re-apply lands; web `tab=gear` 1156, `tab=licence` 2075 px). Earlier: a reader's drag, tab press or own scroll ends the follow; a tab never drawn said after ~5 s; a start off Regulations dropped and said; web check 2026-11-23: cold `tab=gear` Gear 1156 px, `tab=licence` Licence 2020 (was Methods 1818), `tab=methods` Methods 1676, `view=map&tab=gear` the Map with the drop said. left (Claude): review and merge of #122, then the device check on a release build.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1049 | A start link's scroll lands short: it jumps to the first measured section top and never re-checks | PARTIAL — 0.9.1: a slow cold start waits for the salmon card, the in-season notices and a settled page; device gear 6/6, licence 6/6, was 2/12, 0/11; #107 no different; left (Claude): review and merge of #122, then the device check on a release build | ae65ef767, a2478c6dc, d2239c54d, b3de2bbc1, 09f6346e0, eb8e2092a, 5f8a37cbc, 53e9106e2 | review of #80 (T1038), 2026-11-23; 0.9.0 device pass |
+
 ## 0.9.0 device pass (Android)
 - A cold start from `https://staging.canifishthis.ca/?regs=gnis:3062&tab=licence` (once the phone opens links with a
   page start, T1038): Licence selected, the page at Licence's top, not Methods.

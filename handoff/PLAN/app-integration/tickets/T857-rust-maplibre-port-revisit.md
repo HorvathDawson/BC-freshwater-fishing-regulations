@@ -2,6 +2,10 @@
 
 Status: OPEN — FUTURE (not before it has phone SDKs; app chat).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T857 | Revisit the Rust port of MapLibre Native (mln-rs) for the phones once it has phone SDKs (owner; future) | OPEN — FUTURE | app chat | owner 2026-11-18 |
+
 Owner 2026-11-18 ~14:55, verbatim: "also should we use the rust port of map libre? seems really good ??", then on the answer
 (not yet): "add as a future ticket please."
 

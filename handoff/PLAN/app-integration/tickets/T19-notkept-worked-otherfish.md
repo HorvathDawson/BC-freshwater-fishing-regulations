@@ -2,6 +2,10 @@
 
 Status: DONE — 365a172f, fe2014cb, cd0a2a59.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T19 | presenter: not kept, How it adds up, quiet line, Other fish | DONE | 365a172f, fe2014cb, cd0a2a59 | — |
+
 Phase 1 · Depends on T00, T06, T08 (`CardModel.rows`, `line`), T12, T17 (`rowTitle`), T18 (`pictures`), T20 · Blocks T21, T26, T27 · Decisions — · Size ¾ day
 
 Target **regs v33 @ 04765ab5**: prototype buildKeep `nk` 1191, `els`/`worked` 1199–1201, `quiet`/`more` 1203, Other fish

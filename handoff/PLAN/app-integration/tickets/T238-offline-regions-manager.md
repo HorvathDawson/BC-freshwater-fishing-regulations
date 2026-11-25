@@ -2,6 +2,10 @@
 
 Status: DONE (b55c20c7b, 342454f7b, 685197125) — what does not depend on per-region tiles; the per-region map is T259 (deferred by owner 2026-10-29 to after this APK).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T238 | offline regions manager (phone): keep/delete regions, storage used | DONE | b55c20c7b, 6f3fc912f, 342454f7b, 685197125 | More → Offline maps (regs always all-B.C.; map all-or-nothing until T259; rule book row) |
+
 Source: owner 2026-10-28 — approved proposal P4 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
 ## Work

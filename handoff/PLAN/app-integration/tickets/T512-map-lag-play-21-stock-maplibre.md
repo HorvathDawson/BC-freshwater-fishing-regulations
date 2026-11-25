@@ -2,6 +2,10 @@
 
 Status: DONE — 1d504150c, 55d654a50; owner 2026-11-09 on build 24: fine ("okay but not perfect … switching between the maps causes issues sometimes" → T566)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T512 | Laggy main map on Play 0.6.9 build 21: builds 20/21 shipped STOCK MapLibre (not T420's lean patch); build-apk --play now refuses that | DONE — 1d504150c, 55d654a50; owner 2026-11-09 on build 24: fine ("okay but not perfect … switching between the maps causes issues sometimes" → T566) | 1d504150c, 55d654a50 | owner 2026-11-08 Pixel trace: render thread 100 % of a core, 55 map frames in 8.2 s (~147 ms CPU each); emulator lean flat after 16 switches, no map leak; stock A/B running |
+
 Was: IN REVIEW — GUARD (`build-apk.sh --play` refuses stock MapLibre); build 22 went to Play through it; owner: OWNER-TODO "Phone check with build 22" (main map lag on the Pixel).
 Earlier: IN REVIEW — GUARD; owner runs the next Play build with the patched MapLibre. Owner 2026-11-08 (Pixel 9 "tokay", trace `~/Downloads/trace-tokay-CP3A.261005.005-2026-11-08-12-15-47.perfetto-trace`): "laggy map … worst on the main map page. Conditions is very fast, and when switching between maps it gets worse." Follow-up of T420.
 

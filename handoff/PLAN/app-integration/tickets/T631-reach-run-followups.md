@@ -2,6 +2,10 @@
 
 Status: PARTIAL — items 1 and 3 done (197686263, a3518f5d2); item 5 answered by the owner 2026-11-12 (A: the three Skeena channels stay outside the DFO place; nothing to build); left (Claude): item 2 (the check flag: a bundle table + new page words, one change after the owner words the line), items 4, 6, 7, 8 (traces)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T631 | Reach run follow-ups: binding diff on DFO-only changes, check flag for unplaced pieces, id dry-run before promote | PARTIAL — left (Claude): items 2, 4, 6–8 | 197686263, a3518f5d2 | item 1: the release check keys the diff by run files, a DFO-only change is diffed; item 3 done; item 2 held 2026-11-12 night (not small: new bundle table + release file + new page … (detail: ticket file) |
+
 Source: T546 report 2026-11-11.
 
 ## Work

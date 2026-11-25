@@ -2,6 +2,10 @@
 
 Status: DONE — first API upload f977bd212 (versionCode 5, 0.2.0, release r-ce76b4ed3624), 2026-10-29
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T267 | Google Play internal testing for dev/staging builds: upload key (~/.canifishthis), config-plugin release signing, `build-apk.sh --play` (versionCode bump, AAB, API upload to internal, email) | DONE | 022ca080b, c66f90a4d, f977bd212, 2f8c1bd6c | owner 2026-10-29; versionCode 5 (0.2.0, r-ce76b4ed3624) on Play internal |
+
 Source: owner 2026-10-29 paid for a Google Play developer account. Chrome's APK scan hangs on our debug-signed sideload,
 so staging builds go through Play internal testing. Package `ca.canifishthis.app`.
 

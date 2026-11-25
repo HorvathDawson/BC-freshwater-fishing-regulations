@@ -2,6 +2,10 @@
 
 Status: PARTIAL (item 1 merged 7c077fdef (e39bcfed6); items 2 and 4 landed 45fff5e63 (8d7f17709); item 2's one-`says`-per-allowance 6c82b6d53, both allowances shown per the owner (1d3789b08); item 3, the Shuswap pier exemption, fixed as T789 K8 (dbaa009b9); left (Claude): item 5 (size sub-limit hint on other-fish rows, the Cowichan boats line's "on parts", the Halfway and Stellako part labels))
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T797 | Printed rules the page never shows: "No angling from powered boats" (7 rules), dead fin fish as sturgeon bait, the Shuswap pier exemptions, "wild" on the Pitt Lake caveat | PARTIAL (items 1-4 landed: 7c077fdef, 45fff5e63, 6c82b6d53, dbaa009b9 (T789 K8); left (Claude): item 5) | e39bcfed6, 8d7f17709, 6c82b6d53 | general audit 2026-11-16, answers checker D1, B2, B3, B4, E5, E6 (`handoff/PLAN/audit-2026-11-16/answers.md`) |
+
 Source: general audit 2026-11-16, answers checker D1, B2, B3, B4, E5, E6 (`handoff/PLAN/audit-2026-11-16/answers.md`).
 
 1. **"No angling from powered boats" is never shown** (errs OPEN): Atnarko / Bella Coola mainstems (p.43), Horsefly

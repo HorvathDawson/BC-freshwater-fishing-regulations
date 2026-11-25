@@ -3,6 +3,10 @@
 Status: DONE — 14294b999; proved by r-1b4f54fb6ed9's binding diff (2026-11-07): 15 rules moved, `powell_lake.r1` +587 sections, 0 lost; owner approved the Little Slocan check 11-07.
 Earlier: OPEN — fix built 2026-11-07 (14294b999); OWNER APPROVED 2026-11-07 (Little Slocan check: correct). Promote with the next release: data/generated/scratch/t468/reaches/full → live reaches, with the bundle built from it (T478's bundle uses it).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T468 | Powell River above Powell Lake misses the lake's incl.-tributaries closure (through-river read as the lake's own outlet) | DONE | 14294b999 | — |
+
 Owner, 2026-11-07: "POWELL LAKE 2-12 No Fishing Nov 1-Mar 31 … powell lake is closed including tributaries in
 november but powell river (above the lake) is not showing as closed". In the screenshot the inlet river NE of the
 lake draws base rules; every other inflow draws closed.

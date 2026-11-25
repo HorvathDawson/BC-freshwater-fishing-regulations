@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1119 | Boat launches, docks and the like on the basemap, always drawn, from OpenStreetMap, through every stage | OPEN — 0.10 at the earliest (owner 2026-11-25); research and pictures first | | owner picks what "etc" covers, the look, tap or not |
+
 Source: owner 2026-11-25 (planning chat), verbatim: "add a ticket to add boat luanch and docks etc etc to the basemap
 (will always be displayed) we will get this data from osm and will want it added all the way up properly will go in
 0.10 at min". Related: T280 (the basemap's two stages: raw source, then the pruned ship copy), T235 (attribution and

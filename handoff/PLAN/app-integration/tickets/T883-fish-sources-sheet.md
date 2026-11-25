@@ -2,6 +2,10 @@
 
 Status: PARTIAL (app chat) — left (Claude): pipeline steps[] with the main chat. Merged into 0.8.2 (app/integrate-082, 2026-11-19 ~00:06).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T883 | Every fish's "How this was decided" sheet: one readable layout (answer, then the steps that made it, each with its source), trout and other fish alike (owner) | PARTIAL — left (Claude): pipeline steps[] with the main chat; merged into 0.8.2 | 8b4943387, e4e98a35c, 3e1412fdf, a80a8e6a3 | owner 2026-11-18 ~21:30; approved ~22:58 |
+
 Owner 2026-11-18 ~22:58 (app chat), on the re-sent proposal pictures, verbatim: "all are good ( T878 … T879 … T881 …
 T883 … T886 … ) except sunrise/set should be a bit better in same spot" — T883 approved for 0.8.2.
 

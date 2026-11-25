@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1102 | `before_push --changed` skips the reach tests for a change to the DFO salmon reach step (a real break passed the hook) | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24, T1029 lane |
+
 Source: 0.9.1 chat 2026-11-24 ~23:40, from the T1029 lane: a change to `pipeline/atlas/reach/dfo_salmon.py` did not
 make `scripts/before_push.py --changed` run `test_reach_drops_nothing` or `test_review_proposals`, and a real break
 went through the hook (caught later).

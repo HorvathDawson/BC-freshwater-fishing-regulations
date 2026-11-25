@@ -2,6 +2,10 @@
 
 Status: DONE 2026-10-27 — atlas z13, the landuse filter and basemap z13 (owner rule) shipped under T202: aeba83ca, b17dfa1f, d4589cb5, 6f25c3c9; post-fix shots 8cc3af7e.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T85 | native install size: z13 overzoom + landuse filter (D32) | DONE | aeba83ca, b17dfa1f, d4589cb5, 6f25c3c9 | atlas z13 + basemap landuse filter + basemap z13 under the owner 2026-10-27 rule, all via T202 (basemap 918 -> 274.5 MB; audit clean on 6 extents; shots 8cc3af7e) |
+
 Source: decisions D32 and app-data/QUESTIONS.md: about −345 MB per native install, "scheduled before the first public
 native release". T64 names only parcels, basins and "S2 easy wins".
 

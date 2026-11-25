@@ -2,6 +2,10 @@
 
 Status: DONE — 04ead70fd; staging redeployed 2026-11-08 (index-a72c2148): Map ⇄ Conditions ⇄ Runs, 0 console errors.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T494 | Web map console TypeError `interpolationFactor is not a function` (paint expression binder) on 0.6.9 | DONE | 04ead70fd | found 2026-11-07 by the staging smoke (warn) |
+
 `TypeError: this.expression.interpolationFactor is not a function at Ca.setUniform` (maplibre-gl-js
 ProgramConfiguration). That call is made by a COMPOSITE expression binder: a paint property built as zoom+data
 dependent whose expression is now something else. Likely a paint property swapped at run time (`setPaintProperty`, e.g.

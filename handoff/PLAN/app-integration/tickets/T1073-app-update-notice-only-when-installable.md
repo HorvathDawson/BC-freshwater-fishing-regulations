@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1073 | The "app update" notice shows only when this phone can actually install the update | OPEN —  | | planning chat 2026-11-24 |
+
 Source: owner 2026-11-24 (planning chat), verbatim: "inside the app (for someone on closed and internal) got a
 notification for the app update when it went onto internal but it wont let install happen then so the notification is
 fake. should only show if thge user can actually download (maybe for 0.9.2)". Seen during the 0.9.0 release: the build

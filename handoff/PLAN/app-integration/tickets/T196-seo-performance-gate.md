@@ -2,6 +2,10 @@
 
 Status: DROPPED — merged into T409 (2026-11-05 audit; the work continues there) — was: PARTIAL — 21a2d17ff, b1a5c7fa8 (+ 1c4dd582, 435ce2d8); budget gate passes on the real release; Lighthouse: hubs/About 100, water pages fail (hand-over LCP/CLS) -> T405.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T196 | SEO: page performance budget + Lighthouse CI gate | DROPPED — merged into T409 (2026-11-05) | 21a2d17ff, b1a5c7fa8, 1c4dd582, 435ce2d8 | water pages fail Lighthouse at the app hand-over → T405 |
+
 Source: T188 plan, handoff/PLAN/seo/PLAN.md section 6.
 ## Work
 Gate in the release step beside T129's WEB_BUDGET: HTML <= 30 KB gzip, CSS <= 10 KB gzip, no blocking JS; Lighthouse CI

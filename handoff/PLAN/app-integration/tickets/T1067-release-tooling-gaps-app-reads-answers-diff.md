@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1067 | Release tooling gaps: `app_reads --check` on a format change, and `answers_diff`'s licence keys and count | OPEN —  | | planning chat 2026-11-24 |
+
 Source: the 0.9.1 chat's finds on T1048, T1030 and T1020 (RESTART-091-chat.md, 2026-11-24).
 
 ## Work

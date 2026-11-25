@@ -5,4 +5,8 @@ Trace where the 15 s goes (network timeout not failing fast? geocode/weather/gau
 and make the save path never wait on the network — T307's fail-fast rule. Test bed: time "tap Add spot → Save spot"
 offline; gate < 3 s.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T323 | Offline spot save took 15 s to reach "Save spot" (T307 target < 3 s): never wait on network | DONE (harness timed the wrong step; real offline Next → Save spot 1.9–2.0 s, 3 runs) | 415373ffd | T314 lane 2026-10-30 |
+
 Depends: T307. Size: S–M.

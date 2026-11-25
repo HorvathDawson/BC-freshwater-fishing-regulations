@@ -15,6 +15,10 @@ tree (daemon, workers, Hermes, node) plus about 3.2 GB for the three Kotlin comp
 reproduced (a race). The owner may delete the machine-wide workaround in `~/.gradle/gradle.properties` once this is on
 main; until then build-apk says that it overrides the project's value.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1058 | A production Android build hangs for an hour after BUILD SUCCESSFUL (Gradle daemon out of Metaspace) | DONE | 551cb1ce8, e01373329, 44be58a34, b2ae0ee3d | planning chat 2026-11-24 |
+
 Source: the 0.9.0 chat, 2026-11-24 10:14: prod `build-apk` printed BUILD SUCCESSFUL, the daemon expired at `MaxMetaspaceSize=512m`, and the `gradlew` client hung on a closed socket for over an hour. Evidence: `~/.gradle/daemon/9.4.1/daemon-53034.out.log`. Workaround in place: 1024m in `~/.gradle/gradle.properties` (machine-wide, not in the repo).
 
 ## Work

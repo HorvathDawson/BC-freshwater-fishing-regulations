@@ -2,6 +2,10 @@
 
 Status: DONE (50e432ba3; landed 2026-11-17 with the salmon twins).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T820 | The salmon year bar is empty on a closed day instead of the full red closed stripe | DONE | 50e432ba3 | owner iPhone build 36, 2026-11-16 |
+
 Source: owner 2026-11-16, in the app chat (~21:37, on iPhone build 36), verbatim: "also the calendar bar doesnt have a full red line for salmon when closed but
 instead it is empty with no color on the calendar bar..".
 

@@ -3,6 +3,10 @@
 Status: DONE (62ff4d515) (2026-10-30) — was OPEN — DECIDED (owner 2026-10-30: "The pond marks can be not exported tho it just means lakes? They don't need
 to be saved, build will never use").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T329 | Ponds (Q154): close the domain, no export (owner: pond = lake default, build never uses) | DONE | 62ff4d515 (needs T325) | owner 2026-10-30; closed.json lists ponds, decided/ponds.json deleted, tab locked |
+
 A pond call only confirms the default (a lake), so nothing reads it. Close the `pond` domain on the closed-domains list
 (T325, option a — marks.jsonl untouched), stop exporting `decided/ponds.json` and delete it, close the review tab.
 Depends: T325. Size: S.

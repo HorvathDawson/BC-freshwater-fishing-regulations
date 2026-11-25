@@ -2,6 +2,10 @@
 
 Status: DONE (50e432ba3; salmon twins landed 2026-11-17, with the main chat's pipeline half).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T796 | A stretch the book closes still shows an open salmon card; a DFO "Finfish closure" closes only the salmon card | DONE | 50e432ba3 | general audit 2026-11-16, answers checker A5 and A6 (`handoff/PLAN/audit-2026-11-16/answers.md`) |
+
 Source: general audit 2026-11-16, answers checker A5 and A6 (`handoff/PLAN/audit-2026-11-16/answers.md`).
 
 ## A5. Closed stretch, open salmon card (errs OPEN)

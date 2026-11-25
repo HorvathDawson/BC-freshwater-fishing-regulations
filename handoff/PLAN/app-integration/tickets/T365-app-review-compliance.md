@@ -3,6 +3,10 @@
 Status: DROPPED — merged into T88 (2026-11-05 audit; the work continues there) — was: PARTIAL 2026-11-05 — f74621e99, 38de56f (privacy manifest, encryption flag); the rest is the owner's (OWNER-TODO "iOS").
 (owner 2026-11-03: Android 0.5.0 first, iOS next; from the ticket check's iOS gaps.)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T365 | App Review compliance: privacy manifest, tracking declaration, final bundle id + name (CanIFish vs Can I Fish?) | DROPPED — merged into T88 (2026-11-05) | f74621e99, 38de56f81 | manifest + encryption flag in; met/missing list in the ticket; name, ASC forms, account = owner |
+
 Before the first TestFlight/App Store submit: `PrivacyInfo.xcprivacy` (required-reason APIs), the tracking
 declaration (none), privacy nutrition labels (with T244), final bundle id and product name (Xcode shows "CanIFish",
 the app says "Can I Fish?"), and the account-deletion rule only if T223 accounts ever ship. Size: S.

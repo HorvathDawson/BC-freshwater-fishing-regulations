@@ -2,6 +2,10 @@
 
 Status: DONE (owner rule 2026-11-22, T997 round 2: only the lit part's two ends are labelled, hung apart; code 4cdf3245f). Found 2026-11-06 by the step-screen lane while doing T443.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T465 | Water map: boundary labels with different words overlap zoomed out (Fraser top, z5.5) | DONE | 4cdf3245f | closed by the owner's rule 2026-11-22 (T997 round 2: only the lit part's two ends, hung apart); PR #51 closed unmerged |
+
 T443 drew one label for two same-words marks a few steps apart (Landstrom Bar). Marks with different words still
 pile up where several sit close together at a low zoom: the Fraser's top part (Williams Lake, about z5.5) shows
 overlapping boundary labels.

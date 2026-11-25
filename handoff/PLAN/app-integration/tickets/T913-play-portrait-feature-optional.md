@@ -2,6 +2,10 @@
 
 Status: DONE — shipped in 0.8.3 (merged 0813cc2b1; staging + production 2026-11-19).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T913 | Play refuses review: the portrait lock declares a required hardware feature (owner) | DONE — shipped in 0.8.3 (staging + production 2026-11-19) | 0813cc2b1 | owner 2026-11-19 ~11:05 |
+
 Owner 2026-11-19 ~11:05 (main chat), promoting 0.8.2 (37) to closed testing, pasted Play Console's stop: "We found
 some common issues that are preventing your app from being sent for review … Required hardware feature declarations
 are restricting your app's availability … android.hardware.screen.portrait affects Phone, Tablet, Desktop, and Android

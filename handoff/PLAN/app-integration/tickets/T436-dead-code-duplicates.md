@@ -6,6 +6,10 @@ Status: DONE 2026-11-06 — 971f40575, 817b52a99. Dead run-timing/audit modules 
 `lake`→`throughLake`, compile-checked). Left: the `bundle/build.py` by-name branch is T435's `_reach_run`;
 `generated.scratch` kept (a test and the T322 dry run still read it).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T436 | Dead code and duplicate helpers (tidy-up) (low) | DONE | 971f40575 817b52a99 | audit 11-05 |
+
 Source: `handoff/PLAN/audit-2026-11-05/` (findings: pipeline 2, 7, 17, 18; app 9, 10, 11, 16, 18; `*.verified.md` has the evidence per finding).
 
 ## What happens

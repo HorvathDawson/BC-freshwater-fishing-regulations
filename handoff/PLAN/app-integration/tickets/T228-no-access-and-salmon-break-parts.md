@@ -2,6 +2,10 @@
 
 Status: DONE (a757756b)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T228 | no-access land and salmon break a water's pieces (live salmon merge on the map); dormant gauges attach to nothing; trout includes char (C4) | DONE | a757756b | live r-c331a7a3c2cf: 34 waters gain a part (Coquitlam 4), no rule set moved; 1,618 dormant matched stations out of Conditions; owner re-cuts sync.mjs + regs-fixture |
+
 Source: owner 2026-10-28. (1) Coquitlam River: "why does coquitlam not separate the section in no access and the section
 below the no access? when navigating sections they got combined. no access should not allow adjacent sections to
 merge." Add-on, same day: "adjacent sections are merged in the front end only when BOTH the standard regulations AND

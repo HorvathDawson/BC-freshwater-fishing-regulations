@@ -2,6 +2,10 @@
 
 Status: DONE — 94cb6eca.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T07 | hydrate 2: ladder verdicts, `settle()` | DONE | 94cb6eca | — |
+
 Phase 0 · Depends on T05, T06, **T09** (the parity test needs `loadRegsInputs`; build order T06 → T09 → T07 → T08) · Blocks T08, T13, T14, T15, T19, T36 · Decisions — · Size 1 day
 
 ## Goal

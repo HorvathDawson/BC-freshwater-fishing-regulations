@@ -8,20 +8,23 @@
  *
  *   1. a `tickets/T*.md` file has no `Status:` line in its first lines, or one whose value is not a
  *      status the README defines;
- *   2. a ticket file is missing from the ledger, or a ledger row has no ticket file, or two files share an id (or a row
- *      is repeated). (T540) THE LEDGER IS TWO FILES: README.md holds the rows still in work and those closed lately,
- *      DONE.md (same `## Ledger` table) the closed ones, so a new chat reads only the first. Their rows are unioned; a
- *      row in both is a repeated row; DONE.md may hold ONLY DONE or DROPPED rows (an open ticket cannot hide there);
+ *   2. a ticket file has no ledger row, or holds more than one, or one with another ticket's id, or two files share an
+ *      id. (T1041) A TICKET'S ROW LIVES IN ITS OWN FILE: a one-row table under its Status paragraph (`ledger.mjs`
+ *      ROW_HEADER), so two PRs on different tickets never touch the same line. The tables are views built from those
+ *      rows (`node app/tools/ledger.mjs`, git-ignored); the view a row lands in follows its status keyword, so an open
+ *      ticket cannot hide among the closed ones (T540's rule, now by construction, pinned in ledger.test.ts). A row
+ *      typed the old way fails: README.md's `## Ledger` holding a row, a tickets/DONE.md, a `## ` section in
+ *      OWNER-TODO.md (`ledger.mjs --resolve` carries an old-style branch's edits into the files);
  *   3. a T-number named in a commit subject (since the tickets folder began) is not in the ledger;
  *   4. a ticket is DONE — in its file or in its ledger row — with no commit hash;
  *   5. (T437) a ticket file's leading status keyword differs from its ledger row's. Twelve had drifted (OPEN in the
  *      file, POSTPONED in the ledger; PARTIAL vs "DONE locally"): a lane closes the file AND the row in one commit.
  *   6. (T539) an IN REVIEW or PARTIAL status names its step: `owner: OWNER-TODO "<text>"` (the text must exist in
- *      OWNER-TODO.md) or `left (Claude): …`; one whose only step is Claude's is IN PROGRESS, not IN REVIEW. (The grandfather list
+ *      an owner-todo item, handoff/PLAN/owner-todo/*.md) or `left (Claude): …`; one whose only step is Claude's is IN PROGRESS, not IN REVIEW. (The grandfather list
  *      `NO_STEP_YET` was drained and removed, 2026-11-22.)
  *   6b. (T540) a ledger row's last cell is at most `LEFT_CELL_MAX` characters; the detail lives in the ticket file.
  *   7. (T539) the docs guard, `checkDocs`: STATUS.md starts with its title; every repo path a backticked token cites in
- *      START-HERE, the restart page and OWNER-TODO exists, and every path a runbook (handoff/PLAN/runbooks/*.md) cites,
+ *      START-HERE, the restart page, OWNER-TODO.md and the owner-todo items exists, and every path a runbook (handoff/PLAN/runbooks/*.md) cites,
  *      in backticks or in a command block (T628); the restart page holds no state (no release id, no build
  *      number: those live only in the STATUS top entry); AGENTS rule ids are unique.
  *
@@ -30,10 +33,10 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { CLAIMS_DIR, LEDGER_POINTER, MARKER, OLD_DONE, OWNER_DIR, OWNER_PAGE, OWNER_PAGE_TEXT, README, claimProblems, ledgerSection,
+         readOwnerTodo, readWorkTree, staleViews, tableRows, ticketRow } from "./ledger.mjs";
 
-/** (T540) The closed rows' file, beside README.md in the tickets folder. */
-export const DONE_LEDGER = "DONE.md";
-/** (T540) The only statuses a row in DONE.md may carry. */
+/** (T540) The closed statuses: their rows are built into the DONE view (`ledger.mjs` isClosed). */
 export const CLOSED = ["DONE", "DROPPED"];
 
 /** The repo-relative tickets folder. */
@@ -76,7 +79,7 @@ function stepProblems(id, kw, value, ownerTodo) {
   const owners = [...value.matchAll(OWNER_STEP)].map((m) => m[1]);
   const out = [];
   for (const text of owners)
-    if (!(ownerTodo ?? "").includes(text)) out.push(`${id}: Status cites OWNER-TODO "${text}", which OWNER-TODO.md does not contain`);
+    if (!(ownerTodo ?? "").includes(text)) out.push(`${id}: Status cites OWNER-TODO "${text}", which no owner-todo item holds (${OWNER_DIR}/)`);
   const claude = CLAUDE_STEP.test(value);
   if (!owners.length && !claude)
     out.push(`${id}: ${kw} names no step: add \`owner: OWNER-TODO "<text>"\` or \`left (Claude): …\` to the Status line`);
@@ -84,36 +87,41 @@ function stepProblems(id, kw, value, ownerTodo) {
   return out;
 }
 
-/** The ledger table under `## Ledger`: one `{ id, title, status, commits, left }` per row, in order. */
-export function ledgerRows(readme) {
-  const lines = readme.split("\n");
-  const start = lines.findIndex((l) => /^##\s+Ledger\b/.test(l));
-  if (start < 0) return [];
-  const rows = [];
-  for (const line of lines.slice(start + 1)) {
-    if (/^##\s/.test(line)) break;
-    const cells = line.split("|").slice(1, -1).map((c) => c.trim());
-    if (cells.length < 5 || !ID.test(cells[0]) || cells[0] !== idOfFile(cells[0])) continue;
-    const [id, title, status, commits, left] = cells;
-    rows.push({ id, title, status, commits, left });
-  }
-  return rows;
-}
+/** A table under `## Ledger` (a built view, or an old README.md / DONE.md): one `{ id, title, status, commits, left }` per row. */
+export const ledgerRows = tableRows;
 
 /**
  * Every way the ledger is not whole, as one sorted list of plain messages (empty = whole).
  *
- * @param {{ tickets: { name: string, text: string }[], readme: string, doneLedger: string, subjects: string[] }} input
- *   tickets — every `T*.md` in the folder (name + contents); readme — README.md; doneLedger — DONE.md (T540: the
- *   closed rows; both must be given); subjects — commit subjects since the tickets folder began; ownerTodo —
- *   handoff/PLAN/OWNER-TODO.md (the texts a status may cite).
+ * @param {{ tickets: { name: string, text: string }[], subjects: string[], ownerTodo: string, ownerProblems?: string[],
+ *           legacy: { readme: string, doneLedger: string | null, ownerPage: string } }} input
+ *   tickets — every `T*.md` in the folder (name + contents; each holds its own row, T1041); subjects — commit subjects
+ *   since the tickets folder began; ownerTodo — the owner to-do built from handoff/PLAN/owner-todo/ (the texts a status
+ *   may cite) and ownerProblems what is wrong with those files; legacy — the old places (README.md, DONE.md or null when
+ *   it is gone, OWNER-TODO.md), which must hold no row and no item (it must be given: never "nothing old to check").
  */
-export function checkLedger({ tickets, readme, doneLedger, subjects, ownerTodo }) {
-  if (typeof doneLedger !== "string") throw new Error(`checkLedger needs doneLedger (the text of ${TICKETS_DIR}/${DONE_LEDGER})`);
-  const problems = [];
+export function checkLedger({ tickets, subjects, ownerTodo, ownerProblems = [], legacy, claims }) {
+  if (!legacy || typeof legacy.readme !== "string" || typeof legacy.ownerPage !== "string" || legacy.doneLedger === undefined)
+    throw new Error(`checkLedger needs legacy: { readme, doneLedger (null when ${OLD_DONE} is gone), ownerPage } (T1041)`);
+  if (!Array.isArray(claims)) throw new Error(`checkLedger needs claims (the files of ${CLAIMS_DIR}/, T1041): never "no claims to check"`);
+  const problems = [...ownerProblems, ...claimProblems(tickets, claims)];
+  const oldRows = tableRows(legacy.readme);
+  if (oldRows.length) problems.push(`${README} holds ${oldRows.length} ledger row(s) (${oldRows.slice(0, 3).map((r) => r.id).join(", ")}…): ` +
+    "a row lives in its ticket file under the Status line (T1041); `node app/tools/ledger.mjs --resolve` carries an old-style branch's rows");
+  else if (ledgerSection(legacy.readme) !== LEDGER_POINTER)
+    problems.push(`${README}: its "## Ledger" section is not the pointer text (ledger.mjs LEDGER_POINTER): a row lives in its ticket file (T1041), nothing is written there`);
+  if (legacy.doneLedger !== null) problems.push(`${OLD_DONE} exists: closed rows live in their ticket files and are built into handoff/PLAN/views/DONE.md (T1041); ` +
+    "carry its rows (`node app/tools/ledger.mjs --resolve` in a merge), then git rm it");
+  const sections = legacy.ownerPage.split("\n").filter((l) => l.startsWith("## "));
+  if (sections.length) problems.push(`${OWNER_PAGE} holds a "## " section (${sections[0].slice(0, 60)}): an owner item is a file of its own in ${OWNER_DIR}/ (T1041)`);
+  else if (legacy.ownerPage !== OWNER_PAGE_TEXT) {
+    const at = legacy.ownerPage.split("\n").findIndex((l, i) => l !== OWNER_PAGE_TEXT.split("\n")[i]);
+    problems.push(`${OWNER_PAGE} is not the pointer page (it differs at line ${at + 1}): an owner item is a file of its own in ${OWNER_DIR}/ (T1041); text added here never reaches the view`);
+  }
   for (const { name, text } of tickets) {
     const id = idOfFile(name);
     if (!id) { problems.push(`${name}: file name does not start with a ticket id (Tnn-slug.md)`); continue; }
+    if (MARKER.test(text)) problems.push(`${id}: ${name} holds a merge-conflict marker line (<<<<<<< / >>>>>>>): settle it`);
     const head = text.split("\n").slice(0, STATUS_WITHIN);
     const line = head.find((l) => /^Status:/.test(l));
     if (!line) { problems.push(`${id}: no "Status:" line in the first ${STATUS_WITHIN} lines of ${name}`); continue; }
@@ -124,8 +132,17 @@ export function checkLedger({ tickets, readme, doneLedger, subjects, ownerTodo }
     if (kw === "IN REVIEW" || kw === "PARTIAL") problems.push(...stepProblems(id, kw, value, ownerTodo));
   }
 
+  // (T1041) every ticket file holds exactly one row, its own
+  const rows = [];
+  for (const { name, text } of tickets) {
+    if (!idOfFile(name)) continue;
+    const got = ticketRow(name, text);
+    problems.push(...got.problems);
+    if (got.row) rows.push(got.row);
+  }
+
   // (T540) the last cell of a ledger row is a pointer, not the ticket: the detail lives in the ticket file
-  for (const r of [...ledgerRows(readme), ...ledgerRows(doneLedger)])
+  for (const r of rows)
     if (r.left.length > LEFT_CELL_MAX)
       problems.push(`${r.id}: ledger row's last cell is ${r.left.length} characters (max ${LEFT_CELL_MAX}): keep the detail in the ticket file`);
 
@@ -136,17 +153,10 @@ export function checkLedger({ tickets, readme, doneLedger, subjects, ownerTodo }
     if (kw && idOfFile(name)) fileKw.set(idOfFile(name), kw);
   }
 
-  const rows = [...ledgerRows(readme).map((r) => ({ ...r, file: "README.md" })),
-                ...ledgerRows(doneLedger).map((r) => ({ ...r, file: DONE_LEDGER }))];
-  const seen = new Map();
+  const seen = new Set();
   for (const row of rows) {
-    if (seen.has(row.id))
-      problems.push(seen.get(row.id) === row.file ? `${row.id}: ledger row appears more than once`
-        : `${row.id}: ledger row appears more than once (in README.md and in ${DONE_LEDGER}: keep one)`);
-    seen.set(row.id, row.file);
+    seen.add(row.id);
     const kw = statusKeyword(row.status);
-    if (row.file === DONE_LEDGER && kw && !CLOSED.includes(kw))
-      problems.push(`${row.id}: ${DONE_LEDGER} holds only ${CLOSED.join(" or ")} rows, this one is ${kw} (move it back to README.md)`);
     if (!kw) problems.push(`${row.id}: ledger status "${row.status}" is not one of ${STATUSES.join(", ")}`);
     if (kw === "DONE" && !HASH.test(row.commits)) problems.push(`${row.id}: ledger row is DONE with no commit hash`);
     const fk = fileKw.get(row.id);
@@ -162,8 +172,6 @@ export function checkLedger({ tickets, readme, doneLedger, subjects, ownerTodo }
     if (names.length > 1) problems.push(`${id}: more than one ticket file (${[...names].sort().join(", ")})`);
 
   const files = new Set(namesById.keys());
-  for (const id of files) if (!seen.has(id)) problems.push(`${id}: ticket file has no ledger row in README.md or ${DONE_LEDGER}`);
-  for (const id of seen.keys()) if (!files.has(id)) problems.push(`${id}: ledger row has no ticket file`);
 
   const named = new Set(subjects.flatMap(ticketsIn));
   for (const id of named) if (!seen.has(id)) problems.push(`${id}: named in a commit subject but missing from the ledger`);
@@ -225,14 +233,18 @@ export function ruleIds(agents) {
  *
  * `runbooks` (T628): every `handoff/PLAN/runbooks/*.md`, read with `runbookPaths` (its command blocks too).
  *
- * @param {{ status: string, startHere: string, restartName: string, restart: string, ownerTodo: string, agents: string,
+ * `ownerTodo` (T1041): the owner to-do built from handoff/PLAN/owner-todo/; `ownerPage`: OWNER-TODO.md, its pointer page.
+ *
+ * @param {{ status: string, startHere: string, restartName: string, restart: string, ownerTodo: string, ownerPage: string, agents: string,
  *           runbooks: { name: string, text: string }[],
  *           exists: (p: string) => boolean, isIgnored: (p: string) => boolean }} input
  */
-export function checkDocs({ status, startHere, restartName, restart, ownerTodo, agents, runbooks, exists, isIgnored }) {
+export function checkDocs({ status, startHere, restartName, restart, ownerTodo, ownerPage, agents, runbooks, exists, isIgnored }) {
   const problems = [];
   if (!/^# /.test(status)) problems.push(`STATUS.md must start with its title ("# …"), not: ${status.split("\n")[0].slice(0, 60)}`);
-  for (const [name, text] of [["START-HERE.md", startHere], [restartName || "the restart page", restart], ["OWNER-TODO.md", ownerTodo]])
+  if (typeof ownerPage !== "string") problems.push(`no text was read for ${OWNER_PAGE} (ownerPage): the dead-path guard covers it`);
+  for (const [name, text] of [["START-HERE.md", startHere], [restartName || "the restart page", restart],
+                              ["OWNER-TODO.md", ownerPage ?? ""], [`the owner to-do (${OWNER_DIR}/)`, ownerTodo]])
     for (const p of citedPaths(text)) if (!exists(p) && !isIgnored(p)) problems.push(`${name} cites ${p}, which does not exist`);
   if (!Array.isArray(runbooks) || !runbooks.length) problems.push(`no runbook was read (${RUNBOOKS_DIR}/*.md): the dead-path guard covers them (T628)`);
   else {
@@ -255,34 +267,33 @@ export function checkDocs({ status, startHere, restartName, restart, ownerTodo, 
   return [...new Set(problems)].sort();
 }
 
-/** The repo's real inputs: the tickets folder, its README and DONE.md, and commit subjects since the folder began. */
+/** The repo's real inputs: the tickets folder, the owner to-do items, the old places, and commit subjects since the folder began. */
 export function readRepo(repoRoot) {
   const dir = join(repoRoot, TICKETS_DIR);
   const tickets = readdirSync(dir)
     .filter((n) => /^T.*\.md$/.test(n))
     .sort()
     .map((name) => ({ name, text: readFileSync(join(dir, name), "utf8") }));
-  const readme = readFileSync(join(dir, "README.md"), "utf8");
-  const doneLedger = readFileSync(join(dir, DONE_LEDGER), "utf8");   // (T540) a missing DONE.md is an error, never "no closed rows"
   const git = (...args) => execFileSync("git", ["-C", repoRoot, ...args], { encoding: "utf8" });
   // Subjects before the tickets folder used T-numbers of an older plan (e.g. "T3a"); they are not tickets.
   const firsts = git("log", "--diff-filter=A", "--format=%H", "--", TICKETS_DIR).trim().split("\n").filter(Boolean);
   if (!firsts.length) throw new Error(`no commit adds ${TICKETS_DIR}; cannot scope commit subjects`);
   const first = firsts[firsts.length - 1];
   const subjects = git("log", "--format=%s", "HEAD", "--not", `${first}^@`).split("\n").filter(Boolean);
-  const plan = join(repoRoot, "handoff/PLAN");
-  const ownerTodo = readFileSync(join(plan, "OWNER-TODO.md"), "utf8");
-  return { tickets, readme, doneLedger, subjects, ownerTodo };
+  const owner = readOwnerTodo(repoRoot);
+  const legacy = { readme: readFileSync(join(repoRoot, README), "utf8"), ownerPage: readFileSync(join(repoRoot, OWNER_PAGE), "utf8"),
+                   doneLedger: existsSync(join(repoRoot, OLD_DONE)) ? readFileSync(join(repoRoot, OLD_DONE), "utf8") : null };
+  return { tickets, subjects, ownerTodo: owner.text, ownerProblems: owner.problems, legacy, claims: readWorkTree(repoRoot).claims };
 }
 
 /**
- * (T998) Every ticket id with a ledger row (README.md + DONE.md), read as `checkLedger` reads them: what the commit
- * check (`tools/commitlint.config.mjs`) holds a `Tnnn` in a commit header against. A missing file throws.
+ * (T998) Every ticket id with a ledger row (T1041: the row in its ticket file), read as `checkLedger` reads them: what
+ * the commit check (`tools/commitlint.config.mjs`) holds a `Tnnn` in a commit header against. A missing folder throws.
  */
 export function ledgerIds(repoRoot) {
   const dir = join(repoRoot, TICKETS_DIR);
-  return new Set([readFileSync(join(dir, "README.md"), "utf8"), readFileSync(join(dir, DONE_LEDGER), "utf8")]
-    .flatMap((t) => ledgerRows(t).map((r) => r.id)));
+  return new Set(readdirSync(dir).filter((n) => /^T.*\.md$/.test(n))
+    .map((name) => ticketRow(name, readFileSync(join(dir, name), "utf8")).row?.id).filter(Boolean));
 }
 
 /** The docs checkLedger's sibling reads: real files, real existence, real git-ignore. */
@@ -304,7 +315,7 @@ export function readDocs(repoRoot) {
   const runbooks = readdirSync(join(repoRoot, RUNBOOKS_DIR)).filter((n) => n.endsWith(".md")).sort()
     .map((name) => ({ name, text: readFileSync(join(repoRoot, RUNBOOKS_DIR, name), "utf8") }));
   return { status: readFileSync(join(plan, "STATUS.md"), "utf8"), startHere, restartName, restart, runbooks,
-           ownerTodo: readFileSync(join(plan, "OWNER-TODO.md"), "utf8"), agents: readFileSync(join(repoRoot, "AGENTS.md"), "utf8"),
+           ownerTodo: readOwnerTodo(repoRoot).text, ownerPage: readFileSync(join(repoRoot, OWNER_PAGE), "utf8"), agents: readFileSync(join(repoRoot, "AGENTS.md"), "utf8"),
            exists: (p) => existsSync(join(repoRoot, p)), isIgnored };
 }
 
@@ -314,10 +325,13 @@ if (isMain) {
   const problems = checkLedger(readRepo(repoRoot));
   const docProblems = checkDocs(readDocs(repoRoot));
   if (problems.length) {
-    console.error(`✗ the ticket ledger is not whole (${TICKETS_DIR}/README.md + ${DONE_LEDGER}):\n  ` + problems.join("\n  ") +
-      "\n\n  Every ticket file needs a Status line and a ledger row; DONE needs its commit hashes; IN REVIEW / PARTIAL name their step.");
+    console.error(`✗ the ticket ledger is not whole (the row in each ${TICKETS_DIR}/T*.md, T1041):\n  ` + problems.join("\n  ") +
+      "\n\n  Every ticket file needs a Status line and its row under it; DONE needs its commit hashes; IN REVIEW / PARTIAL name their step.");
   }
   if (docProblems.length) console.error(`✗ the handoff docs are wrong (T539):\n  ` + docProblems.join("\n  "));
+  // (T1041) a stale or missing view is a WARNING, never a failure (CI has no views): the one command that rebuilds them
+  const stale = staleViews(repoRoot);
+  if (stale.length) console.warn(`⚠ views missing or stale (${stale.join(", ")}): node app/tools/ledger.mjs rebuilds them`);
   if (problems.length || docProblems.length) process.exit(1);
   console.log(`✓ ticket ledger whole, handoff docs guard passes`);
 }

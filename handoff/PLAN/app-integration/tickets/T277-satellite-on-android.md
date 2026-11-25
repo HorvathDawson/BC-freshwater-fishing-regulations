@@ -2,6 +2,10 @@
 
 Status: DONE 2026-10-29 — a7673eff4 (not reproduced on the emulator; probe hardened + logged) (owner 2026-10-29: "satellite should work in app if they have wifi").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T277 | Satellite imagery draws in the Android app whenever online; offline toggle says why | DONE | a7673eff4 | not reproduced (HEAD + owner APK draw it on the emulator); probe retries once and logs why it failed |
+
 ## Work
 Find why the Esri imagery layer doesn't show in the APK (style source on native, offline/bad-connection mode suppressing it,
 cleartext/UA/referrer on native requests, layer toggle hidden on native). Make it draw whenever the device is online (wifi or

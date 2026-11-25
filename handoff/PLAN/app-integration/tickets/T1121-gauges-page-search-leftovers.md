@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1121 | Web gauges page search: four leftovers from the T1107 review (report class, current-data mark on the list, place cap, plural) | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-25 |
+
 Source: the 0.9.1 chat's review of T1107 (PR #187), sent to the planning chat 2026-11-25. Not checked by the
 planning chat. Related: T1107, T1060 (failures that hide), T333.
 

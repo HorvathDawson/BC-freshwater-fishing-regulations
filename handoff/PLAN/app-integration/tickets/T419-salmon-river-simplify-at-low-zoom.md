@@ -3,6 +3,10 @@
 Status: DONE — owner phone 2026-11-08: Salmon River looks better (staging r-25a89ce9f8e6). Was: IN REVIEW — b40de633d: `SIMPLIFICATION` 5 -> 10 (z4-z12; z13 unchanged). Left: the next tile build, the same
 views before/after + tile bytes, then the owner's look.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T419 | Salmon River (Region 2) keeps too much detail when zoomed out; check stream simplification | DONE | b40de633d | owner 11-05 |
+
 ## Work
 1. Look at the Salmon River (Region 2, Fraser Valley / Langley) on the map at each zoom from z8 up to z13 (emulator +
    web). Screenshot the bad zooms. Find why its line keeps full detail when zoomed out: tippecanoe simplification on

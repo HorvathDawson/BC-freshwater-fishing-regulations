@@ -2,6 +2,10 @@
 
 Status: DONE — 10ddff399; shipped in 0.8.4 (cut e769f710a, data r-fec3fab4c5aa; 0.9.0 audit 2026-11-22, every hash is an ancestor of origin/main and of e769f710a). (Earlier status: IN PROGRESS — lane/lb-rules-leftovers done; left (Claude): main chat review + merge.)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T942 | Kitimat: the 2-over-50 cm rule (only 1 not a hatchery steelhead) is enforced but no longer shown | DONE | 10ddff399 | — |
+
 Source: lane/t936-t931 (T931 group A), 2026-11-20. Content missing on screen.
 
 ## What

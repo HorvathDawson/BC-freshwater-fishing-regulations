@@ -2,6 +2,10 @@
 
 Status: DONE — dd59a9f58, b185130de, d0c00bc9f (item 5)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T628 | Base rules pinned to print: fee table reader, replace refuses marked entries, entry_digest ledger, runbook path guard | DONE — fees equal print in every column (16 rows); ledger re-seed stays with the annual run; item 5 (reopened 11-11): a plain re-parse no longer replaces an unedited marked entry, `write()` requires the marks store | dd59a9f58, b185130de, d0c00bc9f | T553 follow-ups |
+
 Source: T553 report 2026-11-11.
 
 ## Work

@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1055 | A new production crash kind on 0.8.5: `TypeError: Cannot read properties of undefined` (2 reports) | OPEN —  | | planning chat 2026-11-24 |
+
 Source: production feeds worker, crash kind `fe6313a53dca22c6`, 2 reports, last 2026-11-23 06:40Z, app 0.8.5 (read by `pipeline reports`, planning chat 2026-11-24). It arrived one second before kind `9e825d06c018b12a` ("The source image could not be decoded", T1005), so it may be the same session.
 
 ## Work

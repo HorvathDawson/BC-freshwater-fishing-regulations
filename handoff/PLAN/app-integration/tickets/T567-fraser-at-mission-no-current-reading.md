@@ -2,6 +2,10 @@
 
 Status: DONE — fb042cdfa, 1c57e7c07, 694479e25 (closed on the owner's word 2026-11-20; see the last section)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T567 | Fraser at Mission: the app shows no current readings, the gauge page does | DONE | fb042cdfa, 1c57e7c07, 694479e25 | — |
+
 Source: Owner 2026-11-09: "the fraser at mission gauge has no current readings (but the gauge page for it does so there is an issue there?)".
 
 ## Work

@@ -76,3 +76,7 @@ curation-review/frontend/dist/
 # PSF run-timing pages: fetched, never committed (owner 2026-11-05: in git only the parsed timing.json; PSF grants no reuse, T162)
 data/source/runtiming/*.html
 data/source/runtiming/fetched.json
+
+# (T1041) the ledger and owner to-do VIEWS, built from one file per row / item by `node app/tools/ledger.mjs` (the
+# post-checkout and post-merge hooks run it): a committed view would conflict on every merge, which is what they ended
+handoff/PLAN/views/

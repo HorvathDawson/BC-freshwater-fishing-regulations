@@ -2,6 +2,10 @@
 
 Status: DONE — ec26ed584 (2026-10-29)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T249 | feeds/worker security (rate limits, token rotation, private/ never public, secrets inventory) | DONE | ec26ed584 | 429 on flood (feeds + data), token rotated on staging, check-public PASS, inventory in ticket; prod WAF rule = owner |
+
 Source: owner 2026-10-28 — approved proposal P15 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
 ## Work

@@ -2,6 +2,10 @@
 
 Status: DONE (d5e3fcf8e, 3404e25; emulator-checked 2026-11-06) (owner 2026-10-31: "When offline adding a spot takes a long time because it doesn't fast fail the trying to get data").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T307 | Adding a spot/visit offline is instant: fail fast on network, backfill later | DONE (emulator-checked 11-06; empty-.bak save wedge fixed) | d5e3fcf8e, 3404e25 | owner 2026-10-31 |
+
 ## Work
 Find every fetch the spot capture waits on (weather/Open-Meteo, gauge reading, day flow, hydat history, place lookup) and
 fail fast when the device is offline (NetInfo says no connection → don't even try; flaky → short timeout ~2–3 s) — save

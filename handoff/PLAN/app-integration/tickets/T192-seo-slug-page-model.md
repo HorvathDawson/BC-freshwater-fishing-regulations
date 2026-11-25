@@ -2,6 +2,10 @@
 
 Status: DONE — 21a2d17ff, b1a5c7fa8 (+ 1c4dd582, 435ce2d8); slug map from the first real-release build committed, v1 301s verified on staging.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T192 | SEO: stable slug map + per-water page model from the bundle (presenter code shared) | DONE 11-05 | 21a2d17ff, b1a5c7fa8, 1c4dd582, 435ce2d8 | — |
+
 Source: T188 plan, handoff/PLAN/seo/PLAN.md section 1 (owner 2026-10-24).
 ## Work
 Committed slug map (stable slugs, region suffix on collisions, 301 for removed waters). A page model per named water

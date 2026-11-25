@@ -2,6 +2,10 @@
 
 Status: DONE — 0ca408307, e5b0b4709, 79e7f4432, 7d4eca0d8, 42aead45f, merge d77d883bd; thicker satellite outline, one look in every theme (owner 2026-11-20 "Looks good, land it"); smoke green, pushed.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T923 | Not-fishable land (reserves, private) hard to see on satellite and light mode: darker same-hue outline (tester via owner) | DONE | 0ca408307, e5b0b4709, 79e7f4432, 7d4eca0d8, 42aead45f, merge d77d883bd | tester 2026-11-19 via owner |
+
 Source: a tester's feedback relayed by the owner 2026-11-19 (`T922-shots/tester-2026-11-19-3.png`). Tester, verbatim: "the
 color of the not disable land such as tribal land. It's hard to see when on satellite mode. ... Light mode is even harder
 to see". Owner: "I purposely made indigenous and private land a mild color because it was making the map super busy

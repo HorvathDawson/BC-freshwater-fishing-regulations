@@ -2,6 +2,10 @@
 
 Status: PARTIAL — owner: OWNER-TODO "T1053 walk through a head lake" (read the rebuilt before/after list `T1053-shots/head-lakes-before-after.md`; the Sources words are approved). Lane L21, 2026-11-24: built on `feat/T1053-walk-climbs-head-lakes` (walk 21f13ae62, words 61829dbbf, own-row yield ab9cfb59b + 9159e65fc), draft PR #166; nothing released. Left (no build, proposals): the Technical detail's effective value (T1105); DFO places and licensing records do not climb (T1106).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1053 | Eagle Creek ✱: the walk stops at its head lake (Dick Lake), and Sources never says "tributaries" | PARTIAL — owner: OWNER-TODO "T1053 walk through a head lake"; rebuilt list to read (climb + own row wins, review fixes), words approved; draft PR #166; left: T1105, T1106 | 21f13ae62, 61829dbbf, ab9cfb59b, 9159e65fc | staging report 3eaf5ac25fc39d73 (owner 2026-11-24); lane L19 |
+
 Source: in-app report `3eaf5ac25fc39d73` (staging feeds worker, the owner, 2026-11-24 18:45 UTC), reason "rule", on
 Eagle Creek `gnis:9405`, part 0, "Today, Nov 24", Regulations view, web, app 0.9.0 (build 43, 127bf43), release
 r-0aec88ed3edb (reach digest 7b6af6d1ab2452e0). No screenshot attached. The words, verbatim:

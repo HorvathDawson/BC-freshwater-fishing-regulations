@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1097 | Gradle daemons across lanes: `gradlew --stop` ends other lanes' builds; idle daemons hold about 2.4 GB outside heavy.sh | OPEN — 0.9.2, with T1063 | | 0.9.1 chat 2026-11-24, T1058 lane |
+
 Source: 0.9.1 chat 2026-11-24 22:34, finds of the T1058 / T1059 lane (PRs #154, #155).
 
 ## What was found

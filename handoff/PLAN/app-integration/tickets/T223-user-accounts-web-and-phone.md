@@ -2,6 +2,10 @@
 
 Status: POSTPONED (deferred, owner 2026-11-05; T437 aligned with the ledger) — was: OPEN — FAR FUTURE (owner 2026-10-28); default plan below; owner answers the questions first (no build yet).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T223 | user accounts shared between the web app and the phone app (sign-in, what syncs, offline) | POSTPONED (deferred, owner 2026-11-05) | — | far future; default plan: Firebase Auth + Worker + R2 users/<uid>/, no DB |
+
 Source: owner 2026-10-28: one account a person can use in both the web app and the native app.
 
 ## Default plan (owner 2026-10-28)

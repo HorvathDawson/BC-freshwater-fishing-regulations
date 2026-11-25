@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-19 (b49e10e49 + 20dd416f9 review fixes; benches 44/44, d28344298). Follow-up noted below: the map surface's dark backing.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T920 | Conditions: the gauge map goes below the gauge chart; check the white map box in dark mode (owner) | DONE | b49e10e49 20dd416f9 | owner 2026-11-19 ~16:30 "move the gauge map below the chart on conditions" |
+
 Owner 2026-11-19 ~16:30 (main chat), with a phone screenshot of a water's Conditions (Capilano River, dark mode;
 `T920-shots/owner-2026-11-19-capilano-conditions.png`), verbatim: "add a ticket to move the gauge map below the chart on
 conditions".

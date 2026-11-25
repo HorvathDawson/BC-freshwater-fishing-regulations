@@ -2,6 +2,10 @@
 
 Status: DONE (10c1833f7)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T682 | Move two gauges to the new river line (08NK016, 08MH028); the other nine and the 17 lake-outlet gauges keep today's placement | DONE | 10c1833f7 | — (check the release's "gauge placement: 2 station(s)" line) |
+
 Source: owner 2026-11-12, T678, Owner To-Do row `gauges-11-other-line`, "Take the suggestion". RULINGS P49.
 
 ## Work

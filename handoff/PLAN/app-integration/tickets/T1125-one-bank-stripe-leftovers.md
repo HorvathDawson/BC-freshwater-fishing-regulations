@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1125 | One-bank closures (T1029): a bank place that cannot be drawn, creeks with no side read, tests, the device walk | OPEN — 0.9.2 | | owner answers items 1 and 2 from pictures |
+
 Source: the 0.9.1 chat's T1029 lane (PR #112, look A, merged 2026-11-25), sent to the planning chat 02:12. Not
 checked by the planning chat. Related: T1029, T1074 (rule 28 and runtime map layers).
 

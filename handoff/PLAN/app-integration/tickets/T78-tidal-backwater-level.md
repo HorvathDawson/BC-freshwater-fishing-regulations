@@ -2,6 +2,10 @@
 
 Status: DONE (live in r-36fbc5326506) — c0412c4d (pipeline: gauge.tidal), 8185dd28 (app: Level-view sentence), ca52fa7c (review: whole-value pins). Reviewed 2026-10-22: live HYDAT reproduces 11 flagged / 7 in the roster; dev fixture differs only by gauge.tidal=0; targeted app + pipeline tests green. Left: the one deliver (below) so the live bundle/release carry the column; owner questions Q-T78a–c with defaults built.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T78 | tidal/backwater disclosure on Level | DONE | 4d35d021, c0412c4d, 8185dd28, 5aec64f3, ca52fa7c, c0ea4eb9 | live; Q47–Q49 |
+
 Source: decisions.md "a water's own gauge comes first" (owner): "In the Level view, check and disclose tidal or
 backwater influence where the record shows it (Port Coquitlam is tidal, with Fraser backwater)." The own-gauge REPORT:
 Level is led by the tidal gauges at Whonock, Mission, Port Mann. No gauge-side tidal flag exists in pipeline/gauges,

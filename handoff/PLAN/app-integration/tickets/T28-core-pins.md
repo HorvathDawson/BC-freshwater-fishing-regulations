@@ -2,6 +2,10 @@
 
 Status: DONE — 14b90015.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T28 | core `shortOf`, `pinChain`, `tabInView` | DONE | 14b90015 | — |
+
 Phase 2 · Depends on T00 (core `regs/` skeleton), T12 (golden loader), T17/T18 (the VM fields this fills: `TierVM.short`,
 `GroupVM.pinLine`) · Blocks T29 · Decisions D12 (a) · Size ½ day
 

@@ -3,6 +3,10 @@
 Status: DONE in PR #84 (review fixes in; independent re-review pending) — 859b10591, fc3626905, 4af1ba636, 0922cb1f3
 `gaugeClient.ts`) to merge, then is built from main in its own PR.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1045 | Gauge pages should come up for "<river> river forecast / level / flow" (title/H1 words, water-to-gauge links, JSON-LD) | DONE | 859b10591, fc3626905, 4af1ba636, 0922cb1f3 | owner 2026-11-23 (lane L27) |
+
 Source: owner 2026-11-23: "we want to make sure our gauge data pages (or condition tab for a river) come up when someone
 searches for a river forecast on google."
 

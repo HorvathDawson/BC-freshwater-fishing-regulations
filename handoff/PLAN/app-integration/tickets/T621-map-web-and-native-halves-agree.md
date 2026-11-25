@@ -2,6 +2,10 @@
 
 Status: DONE — d59ea5674 (G4), 1ed2bf7bd (G19), 9f3052f48 (G15), 7d3f88aa6 (gate). G5 built in T831 (57d816fdb, d7af5c02c: the phone's route map draws its pins and lines); G21 and the device looks went to T603 items 7-8.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T621 | The map's web and native halves agree (every MapProps key honoured by both, or listed as by design) | DONE | d59ea5674, 1ed2bf7bd, 9f3052f48, 7d3f88aa6 | — |
+
 Closed by the 2026-11-20 audit: gate in (map-props-gate.test.ts now lists no open gap; 'trace is honoured since T831 (T608B G5 closed)'); G21 + device checks taken over by T603 items 7-8 ('Added 2026-11-10 (T621: the map changes that need a device)').
 
 Source: T608 part B (owner 2026-11-10: "audit the app web vs native more"),

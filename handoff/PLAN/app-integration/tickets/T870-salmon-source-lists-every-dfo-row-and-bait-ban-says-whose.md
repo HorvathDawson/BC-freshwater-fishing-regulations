@@ -3,6 +3,10 @@
 Status: DONE — c9dc6ba69, a6f79b38a (closed on the owner's word 2026-11-20; see the last section)
 data release + feeds worker deploy carry it; pictures not taken (see Built).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T870 | Salmon card: Source (DFO) lists every DFO row behind its answers; each bait-ban line says whose, once; a whole-year window reads "all year" (owner) | DONE | c9dc6ba69, a6f79b38a | — |
+
 Owner 2026-11-18 ~20:25 (via the app chat), Mamquam River, What you can keep, salmon card (screenshot
 /Users/dawson.horvath/.claude/uploads/699dcd1b-ff73-4ed1-a69c-69feb621d839/7017ce4c-image.png), verbatim: "The source
 dfo here doesn't show the rows that actually produce the results above. It should have all the rows that apply in

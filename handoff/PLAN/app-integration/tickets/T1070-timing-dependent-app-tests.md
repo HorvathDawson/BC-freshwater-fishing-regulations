@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1070 | Timing-dependent app tests: `chart.render.test.tsx` waits a fixed 30 ms; vitest times out under load | OPEN —  | | planning chat 2026-11-24 |
+
 Source: the 0.9.1 chat (RESTART-091-chat.md, 2026-11-24): `app/packages/ui/src/chart.render.test.tsx` uses a fixed 30 ms wait; vitest reports "Timeout calling onTaskUpdate" when the machine is loaded.
 
 ## Work

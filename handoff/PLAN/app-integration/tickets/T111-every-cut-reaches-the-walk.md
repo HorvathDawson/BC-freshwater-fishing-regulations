@@ -2,6 +2,10 @@
 
 Status: DONE — ea894c8a (T111), 271b2747 (review fix). No binding moved.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T111 | every cut reaches the walk (second extent's window dropped) | DONE | ea894c8a, 271b2747, b8c00620 | no binding moved; leftovers → T141; delivered r-941dcc149b17 |
+
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding reach 5
 (CONFIRMED in code; the live list is from the reach agent).
 

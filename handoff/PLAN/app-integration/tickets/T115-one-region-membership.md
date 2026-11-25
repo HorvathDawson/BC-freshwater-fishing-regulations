@@ -2,6 +2,10 @@
 
 Status: DONE — e0461d31 (T115), 2699715d + 330c029e (review). 12 Fraser pairs + 3 steelhead-twin pairs + 1 licensing pair removed.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T115 | one home-filtered region membership (12 Fraser pairs) | DONE | e0461d31, 2699715d, 330c029e, b8c00620 | 12 Fraser + 3 steelhead-twin + 1 licensing pair removed; leftovers → T140; delivered r-941dcc149b17 |
+
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding reach 1
 (CONFIRMED in `rule_section.jsonl`).
 

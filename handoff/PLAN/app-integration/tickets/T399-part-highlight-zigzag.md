@@ -3,6 +3,10 @@
 Status: DONE 2026-11-04 in code (adfbe330e; owner, 0.5.0 Play internal: Coquitlam River, Part 1 of 3 — a pink casing and the
 yellow line cross each other like two different lines; upstream of the part's end the river is fine).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T399 | The water map's highlighted part zigzagged: the water copy drew a shallow zoom's line over the atlas below one shared ceiling; each copied section now stops at its own zoom (filter, no style swap) | DONE in code (owner look on APK) | adfbe330e | owner 2026-11-04 (0.5.0 phone) |
+
 **Cause:** the water copy (T175, `water-copy.ts`) keeps each section's line from the tiles of the zoom it was first
 seen at, and was drawn below ONE ceiling for the whole copy — the deepest zoom any section was kept at
 (`WaterCopy.ceiling`, applied as the copy layers' `maxzoom`). A main stem kept at z9 (z9's coarse tile line) was

@@ -2,6 +2,10 @@
 
 Status: DONE — 2c845cf2 (lane-T157); adversarial review 4b82d910
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T157 | Conditions follow-ups: switcher states, no record to compare, ELF caveat on map, handover drawn | DONE | 9c6cbd46, 4b82d910, 7714418a, 2c845cf2 | app; delivered r-9cf1fef180a8 |
+
 Source: T143 and T144 adversarial reviews, 2026-10-23.
 
 ## Work

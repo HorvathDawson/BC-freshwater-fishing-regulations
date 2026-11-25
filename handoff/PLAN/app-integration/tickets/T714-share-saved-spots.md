@@ -2,6 +2,10 @@
 
 Status: OPEN (after closed testing (owner 2026-11-13: "these are after closed"); priority for the owner to place; not in the 0.7.8 build; the store text does not promise it)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T714 | Share a saved spot, and a group of spots, by link or file (today Share sends a water only) | OPEN (after closed testing (owner 2026-11-13: "these are after closed")) | — | owner 2026-11-13; priority for the owner to place; decisions by dialog first (what travels, link vs file vs server, privacy text) |
+
 Source: owner 2026-11-13, on the store description: "we should add a ticket to share saved fishing spots tho and maybe
 every a group of spots". Today Share sends a water link only (water, view, place, day); a spot, its notes and photos
 never leave the phone (`handoff/PLAN/play/listing.md`, `handoff/PLAN/play/data-safety.md`).

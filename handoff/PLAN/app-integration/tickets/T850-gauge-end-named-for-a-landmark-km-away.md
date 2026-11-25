@@ -2,6 +2,10 @@
 
 Status: DONE bf22da0c2 (in r-86d43303bee2 and r-fc137c4040fa, on staging 2026-11-18). Owner: big issue (2026-11-18 13:43). Main chat's area: pipeline/deliver/bundle; found 2026-11-18 by the app chat's Nass salmon check.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T850 | A part ending at a gauge cut is named for a landmark up to 18 km away (Nass: "Canyon City bridge → Canyon City bridge"; 69 of 236) | DONE | bf22da0c2 (r-86d43303bee2) | owner 2026-11-18 (Nass names) |
+
 On the staging release r-f1f2e8da9666 the Nass's open coho stretch (Canyon City bridge → water survey station 08DB001,
 ~11.8 km) is titled "Canyon City (Gitwinksihlkw) bridge … → Canyon City (Gitwinksihlkw) bridge", and the next part
 "Canyon City bridge → Meziadin". The bundle's `split_near` row says gauge 08DB001 is 0.0 m from the bridge.

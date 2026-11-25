@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS — draft PR #112, independent review done (output correct; 1 HIGH + 3 MED + LOW); its fix round is built (fb32ed0b9, 9c561e10a, 60ed7424e, 94ba4543c; the owner's layer pick A: 39eb40e28). Built: look B from z13 on the Salmon map (`bk`) and the book's west half on the Standard map (Q6, `bs` → `bb`, from the salmon head alone); the 12 creeks closed, computed from the extent by FWA's side. Gates: atlas parity IDENTICAL, reach "no binding changed", bundle: exactly the 12 creeks differ, salmon head 101,518 B gz (gate 110,000); after the CRS fix the side atlas re-stamped: Kitimat "R-" → "RL", its 12 creeks unchanged. Owner: layering answered "A: cues above the stripe" (built, 39eb40e28); open: an undetermined-side creek kept (as built, a proposal) or dropped. Left: Q4 (designed), the device walk, the 0.9.1 data release (its atlas rebuild re-stamps the banks) and an app build.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1029 | One-bank DFO places: the one-side stripe on the Salmon map (T754 option B, the rest; owner Q4–Q6) | IN PROGRESS — draft PR #112 (look B from z13; creeks closed by FWA side, computed from extents; Q6 the book's half on Standard, from the salmon head); review done, fix round built (CRS of the bank stamp, W46 refusal, tests); owner's layer pick A built; 1 owner question, Q4 (designed), device walk, 0.9.1 data release left | T754 | T754 (owner 2026-11-15 / 2026-11-22 / 2026-11-24) |
+
 Source: T754 (owner approved option B 2026-11-15 round 4; question 2 answered 2026-11-22 23:45, "Other bank: the water's
 other rules"). T754 built the words and the verdict (5953ef057, eeb19b4f3): a placed one-bank place stands beside the water's other
 places (`u`, `p[lid].side`), the stretch paints by the other bank's answer and the card shows the one-side caveat. What

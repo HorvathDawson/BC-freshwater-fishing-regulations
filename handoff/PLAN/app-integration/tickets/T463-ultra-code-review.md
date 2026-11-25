@@ -2,6 +2,10 @@
 
 Status: OPEN (owner 2026-11-06, chat 5).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T463 | Deep code review of the branch before production (owner runs /code-review ultra; Claude triages) | OPEN | — | owner 2026-11-06 |
+
 ## What
 The owner runs `/code-review ultra` on `redesign/stream-sections`. It is a multi-agent cloud review of the local
 branch and is billed. Only the owner can start it; Claude cannot. Claude then:

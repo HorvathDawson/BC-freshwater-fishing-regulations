@@ -2,6 +2,10 @@
 
 Status: DONE — 0ae6e04e9, 3d807829d; owner 2026-11-09 on build 24: fine
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T488 | Park borders and fill nearly invisible in light mode | DONE — 0ae6e04e9, 3d807829d; owner 2026-11-09 on build 24: fine | 0ae6e04e9 | owner 11-08: B, colours only, width 1.0 (T311); light park tokens (cvd blocked by cvd.test, see ticket); shots/T488-applied.png |
+
 Was: IN REVIEW — 0ae6e04e9, in build 22 (3d807829d); owner: OWNER-TODO "Look at" (`shots/T488-applied.png`, or the map in light mode).
 Earlier: IN REVIEW — APPLIED 2026-11-08: Option B colours, width 1.0 (see Decision); proof pending: owner look at shots/T488-applied.png. Was OPEN — owner 2026-11-07 (0.6.9 on the phone).
 

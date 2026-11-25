@@ -2,6 +2,10 @@
 
 Status: DONE — c4f101908 (left (Claude): a look at the next emulator APK).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T692 | The tidal fill opens nothing when tapped (sheet and wiring removed, fill and label kept); a tidal page asks no salmon, so no "SALMON (DFO) Closed" over the tidal card | DONE | c4f101908 | owner 2026-11-12 by dialog; RULINGS P52; left: a look on the next emulator APK |
+
 Source: owner 2026-11-12, by dialog. Fill: "Keep fill, no tap sheet". The 16 wholly tidal waters: "Keep in search, tidal card only",
 with the stray "SALMON (DFO) Closed" line gone. RULINGS P52.
 

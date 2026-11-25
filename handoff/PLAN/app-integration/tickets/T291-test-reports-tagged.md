@@ -2,6 +2,10 @@
 
 Status: DROPPED — merged into T242 (2026-11-05 audit; the work continues there) — was: PARTIAL — built, tested, staging cleaned; worker deployed and verified live 2026-10-29; left: an APK rebuild that sends the tag (owner 2026-10-29: "can we clean up reports too? can add a test tag so that we can ignore test ones").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T291 | Test-tag problem/crash reports from tools, ignore them in digest + review, clean up staging reports | DROPPED — merged into T242 (2026-11-05) | 16fc227fc | built + staging cleaned (7 reports, 7 crash kinds deleted); verified live on the deployed worker 2026-10-29 (tagged report + crash land in reports-test/ and crashes-test/, none in … (detail: ticket file) |
+
 ## Work
 1. A `test` tag on problem reports and crash reports: set by every tool that sends one (testbed scenarios report/crash,
    smoke-staging, bad-net, request-walk, any unit/e2e that posts), and by a dev/staging build's hidden switch if useful.

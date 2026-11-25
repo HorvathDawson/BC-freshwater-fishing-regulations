@@ -2,6 +2,10 @@
 
 Status: DONE — c77eeb601 (2026-11-22): items 1-5. Audit rerun on the served atlas, before vs after: 19 findings resolved, 0 new (rows below).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T776 | Marks audit tool: last-row lookup reads a side line for 32 cut ids; section F does not model the build's channels; `dfo.cannot_edit_words` wording for a downstream watershed extent | DONE | c77eeb601 | marks audit and second look, 2026-11-15 night |
+
 Source: the marks audit and second look, 2026-11-15 night.
 
 ## What is wrong

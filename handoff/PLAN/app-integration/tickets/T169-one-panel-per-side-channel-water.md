@@ -3,6 +3,10 @@
 Status: DONE (lane-T169, 89b8e1a1) — not yet delivered. Owner 2026-10-23 delegated: "do what you think is best just make
 sure it is sane".
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T169 | one gauge panel for one side-channel water (Nicomen grey middle: connector vs adopted lines) | DONE | 89b8e1a1, d42f0741 | delivered r-46595c88e76e: Nicomen all 9 sections one panel (4740) |
+
 Source: owner 2026-10-23: "why did one section of nicomen slough not get conditions even though both ends of the lake
 did … why does the middle section have different gauges then the other parts?"
 

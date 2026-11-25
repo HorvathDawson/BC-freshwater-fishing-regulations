@@ -33,6 +33,10 @@ The pipeline's own words follow the rename through `pipeline/common/source_names
 not apply here") and the salmon book verdicts ("Closed to all fishing by the B.C. Synopsis (p.N): …") — NEEDS THE 0.9.0 DATA
 RELEASE (they are written into the bundle and the salmon file).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1031 | Sources round 3, the rest: one inline source format, a breakdown per species, one species sheet with Identification / Sources tabs | IN PROGRESS | T991 | items 3–5 owner 11-22; item 3 lane L22 (26839d85d, 5fdd46510, 315d8b3bb); items 1–2 lane L23 (11d0e1915, bb3836936); row pages A lane L3 (285449f89), B lane L15 (1ba8cddbd, owner 11-24) |
+
 Source: owner 2026-11-22 ~23:55 (the T991 round-2 answer, recorded verbatim in T991): "We also should clean up our inline
 sources. Right now the way they display is inconsistent.... We still want to have the break down source like the sheet in
 trout too. Each specieis have them as well? Also right now we have identification and sources open from clicking different

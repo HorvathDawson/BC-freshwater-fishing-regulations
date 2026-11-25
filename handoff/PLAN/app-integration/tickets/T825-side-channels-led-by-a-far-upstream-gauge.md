@@ -2,6 +2,10 @@
 
 Status: DONE (4ab80fac5; merged into redesign/stream-sections 2026-11-17).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T825 | 251 side-channel sections are led by a gauge far upstream (lower Fraser side channels read Red Pass) | DONE | 4ab80fac5 | T823 measurement 2026-11-16 |
+
 Source: the T823 worker's distribution over the live bundle: 251 led sections are 10× or more BIGGER than their lead
 gauge, almost all side channels. Main case: lower Fraser side channels led by 08KA007 (Fraser at Red Pass), 750 to
 1,300 km upstream; others on the Homathko, Similkameen, Kootenay and Bridge. Cause (worker's reading): a side channel

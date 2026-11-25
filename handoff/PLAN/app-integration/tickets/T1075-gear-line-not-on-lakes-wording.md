@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1075 | A lake's Gear line "Not allowed: Water insects and crayfish · Not on lakes." reads oddly | OPEN —  | | planning chat 2026-11-24 |
+
 Source: the 0.9.1 chat, 2026-11-24, seen on Dick Lake while working T1051. Picture:
 `handoff/PLAN/app-integration/T1051-shots/report-now.png`.
 

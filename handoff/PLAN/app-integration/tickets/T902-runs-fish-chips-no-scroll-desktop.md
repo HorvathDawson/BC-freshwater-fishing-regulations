@@ -2,6 +2,10 @@
 
 Status: DONE (cd5740b21, merged into 0.8.2; review: no blockers; the panel fills the window from 900 px so every chip fits one line).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T902 | Desktop Runs: every fish chip shows, no sideways scroll (owner) | DONE | cd5740b21 | owner 2026-11-19 ~01:16 |
+
 Owner 2026-11-19 ~01:16 (app chat), desktop web shot of the Runs map's bottom panel (All · Steelhead · Chinook · Chum ·
 Coho · Pink · Sock… cut off at the panel's right edge, a sideways-scrolling row inside a centred column with empty space
 both sides), verbatim: "in dekstop why do we need to scroll fish...".

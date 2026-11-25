@@ -3,6 +3,10 @@
 Status: DONE 2026-10-29, commit 0438013fa (owner 2026-10-29: "the name standard keeps irritating me" → "trout & more i think is good"; "the legend text
 should be a bit bigger for each map too. rn it is hard to read").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T283 | "Standard" map mode renamed "Trout & more"; legend text larger in every mode | DONE | 0438013fa | owner 2026-10-29 |
+
 ## Work
 1. Every user-visible "Standard" for the map mode becomes "Trout & more" (mode switch, walkthroughs, Help, report form's
    "Map colours", About/Updates, SEO/site copy if any). Internal keys (`standard`) stay; words live in the core words tables.

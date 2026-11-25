@@ -5,6 +5,10 @@ the flow of all the data streams too. … after we finish doing the review … l
 they will be useful like sloughs etc. … convert marks into that format for all the data types … Right now the whole flow
 feels really shitty and awkward.")
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T324 | One clean data flow: map every stream end to end, final curated file per data type, marks write through to it (T325), cleanup tickets | DONE | 73c04dbc2, e064ab2ea, f90fbb988 | T408 re-scope 11-05: naming pass, out of curated, check_curated --waters, steelhead accept, one wording copy, sync on push; data-flow.md rewritten |
+
 ## Today (the awkward part)
 - Marks (`data/curated/regulations/review/marks.jsonl`) are review STATE. T266's exporter turns them into
   `data/curated/decided/*.json` (sloughs, tidal, dfo, ponds, names, entries, splits…) — but each domain is read

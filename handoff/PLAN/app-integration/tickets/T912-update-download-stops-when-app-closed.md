@@ -2,6 +2,10 @@
 
 Status: DONE — shipped in 0.8.3 (merged 6a0545499, 4ebd13ecc; staging + production 2026-11-19).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T912 | A regulations data update stops downloading when the app is closed (owner) | DONE — shipped in 0.8.3 (staging + production 2026-11-19) | 6a0545499, 4ebd13ecc | left (Claude): integrate (0.8.3), staging data worker deploy · prod data worker = owner · owner 2026-11-19 ~10:50 |
+
 Owner 2026-11-19 ~10:50 (main chat), verbatim: "also iff i close app it doesnt continue to downlaod the regulation data
 updates." (He is on Android, Play 0.8.2 build 37; promoting it to closed testing for himself the same minute.)
 

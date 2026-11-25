@@ -4,6 +4,10 @@ Status: DONE — ce579bf86 (PR #15, merged 2026-11-22: the pinned upstream MapLi
 T993 wave 1 (lane/t978-build-checks). Leftovers: the TestFlight build's own fast-fail is in (T993 plan 5,
 `deploy/staging/build-ios-testflight.sh:28`); `liveRelease()` tests reading LATEST are T777's ground.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T978 | Release build checks never fail on this machine's state (worktree links, stale export, marks, mini release), only on code | DONE | ce579bf86 | owner 2026-11-20, 0.8.4 build stops; 2026-11-22 Android on pinned upstream MapLibre (#15) |
+
 Source: owner 2026-11-20: "Add a ticket to clean up all of these test to make these sort of failure impossible". The 0.8.4
 production build stopped four times in fast-fail, never on a code defect:
 1. A worktree without `cache/` (the patched MapLibre AAR), so the AAR lookup came back empty and the build exited with no message.

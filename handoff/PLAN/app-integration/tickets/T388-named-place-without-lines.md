@@ -2,6 +2,10 @@
 
 Status: DONE (dfe887d6a; live on r-d458fbe165ac, walk pin re-cut; owner 2026-11-04). Measured: water +79 kB gz (2,488,522), each water-<r> +4–23 kB; a Squamish River tap writes blk+m and reopens with no `lines` request.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T388 | A named water's link place never fetches `lines`: each part's runs in the water file (`part_line`, by ord, in the region slice); unnamed reaches keep `lines` | DONE | dfe887d6a | owner 2026-11-04 |
+
 Source: owner 2026-11-04, after the 0.5.0 walk re-cut (08b263ee7): the web's address bar (T369, `systemBack.web.ts` →
 `@app/ui` place.ts `placeOf` / `linkSearch` / `resolveStartLink`) read the `lines` file (1.2 MB gz, every stream section
 in B.C.) for any named water of several parts or stretches, and for every TAPPED frame — so tapping a named water fetched

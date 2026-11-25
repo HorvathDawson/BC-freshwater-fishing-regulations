@@ -2,6 +2,10 @@
 
 Status: DONE — 969ec8fe, 01bf3873 (review). No deliver needed (tooling only; no curated or shipped data changed).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T94 | gauge promote: `--only`, demotion guard | DONE | 969ec8fe, 28f03711, 01bf3873, 6753fd6f | first real match+promote dry-run is the owner's |
+
 Source: memory `gauge-regenerate-drifts`: on 2026-10-10 a full match + promote demoted 25 stations and rewrote 1,042
 rows. `pipeline/gauges/generate/promote.py` takes only `--dry-run` / `--out`; `pipeline/tools/check_curated.py` still
 prints the full `match … && promote` as the fix.

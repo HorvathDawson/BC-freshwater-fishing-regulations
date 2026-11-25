@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1062 | Release candidates: tag `vX.Y.Z-rc.N` and promote, instead of moving the version tag after late fixes | OPEN —  | | planning chat 2026-11-24 |
+
 Source: owner idea during the 0.9.0 release, relayed by the 0.9.0 chat 2026-11-24: 0.9.0's tag had to move after late fixes (T1027, T1034, T1049 cherry-picks).
 
 ## Work

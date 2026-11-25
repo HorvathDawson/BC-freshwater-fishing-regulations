@@ -2,6 +2,10 @@
 
 Status: DONE (3377f8a8b, lane L5 2026-11-22; staging worker deployed with it; acceptance 3 reworded, below).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T999 | Feeds worker backup copies reports incrementally (the daily backup fails, told, past ~4,500 reports) | DONE (3377f8a8b: unchanged records named from their snapshot, refreshed weekly; prune drops every reference; restore follows links) | 3377f8a8b | T994 finding 24 (a6d97778a note) |
+
 Source: T994 finding 24 (`handoff/PLAN/audit-2026-11-21/t994-audit.md` §24), fixed in part by `a6d97778a` (T994 lane
 F1, wave 1, 2026-11-21). Its note: "NOT done: incremental report copies. A daily snapshot stays whole for
 `restore-test.sh`, so a store past about 4,500 reports now fails the backup every day, which is told, not silent."

@@ -4,6 +4,10 @@ Status: DONE 2026-11-06 — 758041595, ead5863c6, 1ff647888, c691175, dd4e9240e,
 build in a short amount of time … all external bigger data is fetchable from r2 assets bucket"). After T324 (the
 renames move the files this inventories).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T416 | A fresh clone can build: inventory non-git inputs, mirror what only lives on the Mac, one bootstrap, timed clone→build proof | DONE (fresh clone = Mac side build, byte for byte: r-0fd5c0e4e8b8) | 758041595, ead5863c6, 1ff647888, dd4e9240e, 4978e58f4, b53af411a | owner 11-05; after T324 |
+
 T246 proved the BACKUPS restore (R2 state, curated tarball, release). This proves the other path: a new machine with
 only the git repo and the credentials can rebuild the same release.
 

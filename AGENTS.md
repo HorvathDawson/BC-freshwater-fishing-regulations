@@ -417,12 +417,20 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
       --write`); a route added or removed regenerates it in the same commit. No "splits" domain (lake splits are
       deferred).
     - **Ticket ledger** (T539): `node app/tools/check-tickets.mjs` must pass (in `pnpm check` and fast-fail). It checks that
-      every ticket file has a Status line and a ledger row whose leading keyword agrees (T540: the ledger is `tickets/README.md`
-      plus `tickets/DONE.md`, which holds only DONE / DROPPED rows; a row sits in exactly one); DONE names its commit hashes
+      every ticket file has a Status line and exactly one ledger row of its own, whose leading keyword agrees. **One file
+      per row and per owner item (T1041):** a ticket's row is the one-row table right under its Status paragraph, in its
+      own file; an owner item is a file of its own in `handoff/PLAN/owner-todo/` (`order: <n>`, a blank line, its `## `
+      section). A ticket's number is claimed by `tickets/ids/Tnnn` (its file's name; `node app/tools/ledger.mjs --claim`
+      writes it), so two PRs that take one number collide in git. The tables are built, never committed: `node app/tools/ledger.mjs` writes `handoff/PLAN/views/LEDGER.md`
+      (rows in work), `views/DONE.md` (DONE / DROPPED: a row's view follows its status) and `views/OWNER-TODO.md`
+      (git-ignored; the git hooks rebuild them, and a stale one is a warning of the guard), so PRs on different tickets or items never
+      conflict. A row typed into `tickets/README.md`, a `tickets/DONE.md`, or a `## ` section in `OWNER-TODO.md` fails the
+      guard; a branch that still edits them the old way runs `git merge origin/main` then `node app/tools/ledger.mjs
+      --resolve` (it carries the branch's rows and items into the files). DONE names its commit hashes
       (commit the code first, then the ledger); IN REVIEW / PARTIAL name their step as `owner: OWNER-TODO "<text that
-      exists in OWNER-TODO.md>"` or `left (Claude): …` (a ticket whose only step is Claude's is IN PROGRESS). The same
+      an owner-todo item holds>"` or `left (Claude): …` (a ticket whose only step is Claude's is IN PROGRESS). The same
       script is the docs guard: STATUS.md starts with its title, every repo path cited in START-HERE / the restart page /
-      OWNER-TODO exists, the restart page holds no release id or build number, and AGENTS rule ids are unique (the
+      OWNER-TODO.md / the owner items exists, the restart page holds no release id or build number, and AGENTS rule ids are unique (the
       lettered ones are `A` Absolute, `W` Working style; the Reading section's 45/46 are the numbers other files cite).
       It does not compare the Status text with the row's text beyond the keyword. After a cherry-pick, remap the hashes
       the tickets cite.

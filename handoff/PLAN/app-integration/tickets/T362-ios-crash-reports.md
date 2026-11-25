@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-05 — 5b832c347, 59fc7bb24 (iOS module), 5918cfa45 (privacy page), 089c8a00f + bf8ca3820 (test bed); verified: ios-t313g crash scenario.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T362 | iOS crash reports: no exit-info twin on iOS, so an iOS crash leaves no record (MetricKit or equivalent, into the T242 path) | DONE 11-05 | 5b832c347, 59fc7bb24, 5918cfa45 | signal/exception record → sent at next start, verified on the sim; system kills (jetsam/SIGKILL) not caught (MetricKit follow-up if needed) |
+
 Android records why the app died (exit-info, T242/T351/T352); on iOS that module is a no-op, so an iOS crash
 leaves nothing. Add an iOS path (MetricKit diagnostics or equivalent) that reports into the same crash-report
 endpoint as T242. Size: S–M.

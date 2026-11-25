@@ -2,6 +2,10 @@
 
 Status: DONE — 8319d401a
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T600 | One writer for curated data (validate, backup, atomic, log, provenance; no build step writes curated) | DONE | 8319d401a | 17 call sites in 14 modules on `curated_write`; review app's writes.py + marks.append handed over; guard test_curated_writer; per-record provenance not done (schemas refuse fields: on the log line) |
+
 Source: T599 findings step 2 (`handoff/PLAN/app-integration/T599-findings.md` §4, §5); owner 2026-11-10: "the
 recommendation looks good and is cleaner than what we have now"; "keeping curated data more strictly managed".
 

@@ -2,6 +2,10 @@
 
 Status: DONE — d9cb96fa, cdc1edb8.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T40 | a11y, 200% text, hit areas, style-token gate | DONE | d9cb96fa, cdc1edb8 | — |
+
 Phase 4 · Depends on T23–T29 (every regs component), T35, T37, T39 (`testing/census.ts`) · Blocks T41 · Decisions D1
 (header tabs are a tablist), D7 (date pill) · Size 1 day
 

@@ -2,6 +2,10 @@
 
 Status: DONE (app chat; merged into 0.8.2 at de20dba04 after two independent reviews; follow-ups in T894).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T888 | A newer app version: one popup on opening (the swimming coho, "Version X.Y.Z is out", what's new, Update / Not now), then the bell; Android and iOS (owner) | DONE | de20dba04 (merge into app/integrate-082) | owner 2026-11-18 ~23:25; approved ~23:42; two reviews; follow-ups T894 |
+
 Owner 2026-11-18 ~23:25, verbatim: "When a user opens the app and a new app version is available it should give a popup
 with the swimming fish and the new update list. That they need to dismiss (then it goes to Bell) for both apple and
 android ."

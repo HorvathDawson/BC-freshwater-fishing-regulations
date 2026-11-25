@@ -2,6 +2,10 @@
 
 Status: PARTIAL — items 1–4 built (1df1ed1af) and run on the emulator on the kept APK (commit 104e6513c): saved-spots, two-days, route-scroll all pass; items 5 and 6 built 2026-11-12; left (Claude): items 7–8 (the T621 device checks) and a rerun of the three on the next APK
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T603 | The emulator test bed covers saved spots (saved through the UI or one seeding helper) and the two-days line; scroll check for the blank route map | PARTIAL — left (Claude): items 7–8 (T621 device checks); rerun the three on the next APK; items 5–6 built 2026-11-12 (emulator `test` tag, SecurityException `expected`) | 1df1ed1af | owner 2026-11-10; scenarios `saved-spots` (UI path, no seeding needed), `two-days`, `route-scroll` + `lib/screen.mjs`; all pass on the kept APK (104e6513c); the blank route map … (detail: ticket file) |
+
 Source: owner 2026-11-10, on build 25's emulator run leaving saved-spot chips unchecked: "Emulator should test the
 saved spots too, we could mock it?"
 

@@ -2,6 +2,10 @@
 
 Status: DONE b75860825…e3dd669ed (2026-10-30) — merged into redesign/stream-sections; next APK.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T298 | First download continues in background with a notification, asks before using mobile data, fish sayings while downloading | DONE | b75860825…e3dd669ed | Android DownloadManager (local module), saved Always/Ask/Wi-Fi only setting, sayings; low-bandwidth mode hidden on phones; emulator verified |
+
 Source: owner: "for the initial download of the offline regs can we make it so it can work in background if user closes
 app? also it should ask user for permission to download off wifi if they are not connected. finally we want to add cute
 fish sayings that cycle as the download is happening. for downloading in the background it could become a notification

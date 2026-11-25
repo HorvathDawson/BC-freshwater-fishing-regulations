@@ -4,6 +4,10 @@ Status: DONE — 6b5f9039e; both were test drift, no app bug. Test bed 2026-11-0
 abf91d3). 2 of 4 passed: walkthrough (30/30 steps) and switch (32 swaps, 0 bare frames, 0 feature-state lost).
 The install itself passed: downloaded and up in 77 s, no crash.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T478 | 0.6.8 walk: Updates log flow stale after T476; Coquitlam River tap opens the lake (T457 outline?) | DONE | 6b5f9039e | found 2026-11-07; test bed run 2026-11-07T09-16-07 |
+
 1. **install → "Updates log: every source checked on start"** FAILS: the flow `open-updates-log` looks for More →
    About → Updates log. T476 (46f948264) moved that link into the Developer card behind the credits long-press, so
    About no longer has it (shot 003). This is test drift, not an app bug. Fix the flow to open the Developer card. It

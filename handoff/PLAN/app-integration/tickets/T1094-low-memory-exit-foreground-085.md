@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1094 | Android: the system ended the app for low memory in the foreground, 0.8.5 staging (kind `9588028ebf260364`) | OPEN — 0.9.2 (watch for it on 0.9.0 first) | | planning chat 2026-11-24 |
+
 Source: staging feeds worker, crash kind `9588028ebf260364`, 1 report, 2026-11-24 22:20Z, app 0.8.5: "NativeExit
 LOW_MEMORY while foreground, 118 MB in use: [UNDELIVERED BROADCAST] Can't deliver broadcast". Two seconds later the
 same install sent `804e01a3d7d4fd97` (HTTP 404, T1005 / T1014), so it restarted straight away. Read by

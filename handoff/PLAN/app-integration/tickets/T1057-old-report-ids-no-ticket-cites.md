@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1057 | `pipeline reports` lists about 40 old items as NEW: tie each id to a ticket or a class | OPEN —  | | planning chat 2026-11-24 |
+
 Source: planning chat step 0, 2026-11-24, and the 0.9.1 chat's hand-over ("36 old items, app 0.7.x–0.8.0, up to 2026-11-18, mostly the staging worker"). With both worker tokens: production 5 NEW, staging 35 NEW. Done by the planning chat already: the four production reports of 2026-11-21 are T985's (ids now written there).
 
 ## Work

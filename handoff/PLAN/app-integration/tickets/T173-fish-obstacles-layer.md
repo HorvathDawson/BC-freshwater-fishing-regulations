@@ -4,6 +4,10 @@ Status: DONE — c27db165 (data + tile layer), 88b60317 (app), f4923e1f (icons),
 reach readers with the next tile build (release lane, commands below); until then the switch draws nothing (the shipped
 atlas has no `obstacle` layer). Q165 answered 2026-10-28: owner treats PSCIS as OGL-BC; its culverts are in.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T173 | fish obstacles layer (falls, dams, culverts) from the BC Data Catalogue | DONE | c27db165, 88b60317, f4923e1f, PSCIS: see ticket | FISS + WRIS + PSCIS (Q165: OGL-BC, owner), 27,267 marks, atlas layer `obstacle` z10-13 +5.7 MB; reaches readers with the next tile build (commands in the ticket); shots T173-shots/ |
+
 Source: owner 2026-10-23 ("a fish obstacle layer could be interesting from the bc data catalogue"); started 2026-10-28.
 
 ## Work

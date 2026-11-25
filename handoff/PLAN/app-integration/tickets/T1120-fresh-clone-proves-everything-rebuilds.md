@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1120 | At the repo move, a fresh clone proves everything can be set up and rebuilt from nothing | OPEN — chat 3 (repo move), last step (owner 2026-11-25) | | the list of what lives outside git; the owner confirms the secrets list |
+
 Source: owner 2026-11-25 (planning chat), verbatim: "and when we do repo to free org swap we want to do a fresh
 install maybe just to make sure everythign can be redone properly from fresh install still. if that makes sense."
 Related: T1041 (the repo move checklist, roadmap chat 3), T1112 (one worktree setup command: venv, run tokens),

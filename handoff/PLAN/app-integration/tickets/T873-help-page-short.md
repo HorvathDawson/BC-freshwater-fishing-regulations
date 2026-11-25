@@ -2,6 +2,10 @@
 
 Status: DONE — c369c225a (owner OK 2026-11-18 ~20:53). Landed on redesign/stream-sections with app/integrate-081-web after the full tier.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T873 | A much shorter Help page: the map's key first, short labels, one-line facts (owner) | DONE | c369c225a | app chat; owner 2026-11-18 (T872–T874 approved ~20:53) |
+
 Owner 2026-11-18 ~20:32, on More → Help, verbatim: "This help page is way way to verbose it is not helpful..."
 
 Today (`core/src/help.ts` `HELP_WORDS` / `helpVM`, drawn by `ui-native/src/menu/HelpPage.tsx`): an intro paragraph;

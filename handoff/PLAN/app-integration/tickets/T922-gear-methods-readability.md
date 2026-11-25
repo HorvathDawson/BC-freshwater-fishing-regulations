@@ -2,6 +2,10 @@
 
 Status: DONE (landed on redesign/stream-sections 2026-11-20 01:50 in a88ddb254 474ff31ee 79b8686bd 6520d6c42 66dcc548a; owner approved the pictures).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T922 | Gear / Methods read as run-on sentences; "Roe" said plainly (tester via owner) | DONE | a88ddb254 474ff31ee 79b8686bd 6520d6c42 66dcc548a | tester 2026-11-19 via owner |
+
 Source: a tester's feedback relayed by the owner 2026-11-19 (screenshots `T922-shots/tester-2026-11-19-{1..4}.png`, Alice
 Lake, Gear + Methods). Tester, verbatim: "The way things are formatted here makes it seem like a confusing run-on sentence.
 Maybe start each new line with capital letters to separate different details or put periods at the end of each line or

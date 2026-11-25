@@ -2,6 +2,10 @@
 
 Status: OPEN — after 0.9.0 (ticket only; no build)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1044 | Plain words on some gauges: how to read the level (bands, our own words, sourced) | OPEN — after 0.9.0 | | owner 2026-11-23 (lane L27) |
+
 Source: owner 2026-11-23: "we could add words to some gauges too in a future (after 9.0.0 ticket) for example this has a
 breakdown of how to read the gauge level https://www.chilliwack.com/main/page.cfm?id=346".
 

@@ -2,6 +2,10 @@
 
 Status: DONE (86947fe9f; owner 2026-10-29: "can we just store all the layouts like we have now but have them be pre compressed?").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T279 | Water pages stored pre-compressed (br/gzip served by encoding), all three layouts kept; SEO build across ≤4 cores | DONE | 86947fe9f | 1.5 GB → 473 MB, 26.5 → 17 min; 59,381 files of 100,000; staging 11996b77 br, smoke 18/0/0 |
+
 Source: T269 made each /water page a snapshot of the app's pane in all three layouts (~75 KB raw, ~10 KB gzip; 19,936 pages
 = 1.5 GB raw, 26.5 min build on one core).
 

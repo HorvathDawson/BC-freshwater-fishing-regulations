@@ -4,6 +4,10 @@ Status: DONE (2026-11-03, owner) — the lean pass merged (4fb701fb7, audit/t350
 have bad datatypes or tech debt deviating from other datatypes like the trout freshwater ones … unified … solid … no
 weird fallbacks").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T350 | Quick audit: DFO salmon pipeline unified with freshwater datatypes, no fallbacks / dup paths / tech debt (after T349) | DONE | 4fb701fb7 | lean pass merged 4fb701fb7 → T356–T358; in-depth pass → T333 (owner 2026-11-03) |
+
 **Scope:** pipeline/regs/dfo_salmon/*, pipeline/deliver/salmon.py, app/workers/feeds/src/dfo/*, app/packages/core
 salmon*.ts, ui-native SalmonCard / RegionRules, and the review app's DFO / cascade backend.
 

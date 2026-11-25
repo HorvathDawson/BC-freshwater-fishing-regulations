@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS — fix built (lane L6, 2026-11-22: `export_waterbodies` draws nothing outside B.C.); left (Claude): run `test_one_water_kind.py -m ""` on the 0.9.0 release's tile build (needs that data release).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1000 | Tiles: an Adskwatim Creek stream polygon draws in the lake layer, not the stream layer (2 live tests red) | IN PROGRESS — fix 27c6812c8 (nothing outside B.C. drawn: 71 polygons off the map); left (Claude): the live gate on the 0.9.0 tile build | | T931 review 2026-11-22 |
+
 Source: T931 review on `test/T931-live-tier`, against LATEST r-741815c6090d. `pipeline/tests/test_one_water_kind.py:229`
 and `:453` fail. Section 1544569 is a stream polygon of Adskwatim Creek (`gnis:7384`, `lake:329268440`). The tile
 build of 2026-11-20 16:53 (`4ae7b62955bc9990.fc51e82f7c91`) draws it in the `lake` layer with `water: stream`, and not

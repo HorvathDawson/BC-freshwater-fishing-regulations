@@ -2,6 +2,10 @@
 
 Status: DONE — e3332e62.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T46 | fish ID on desktop | DONE | e3332e62 | — |
+
 Phase 4 · Depends on T20 (fish manifest/sprites), T36/T37 (sp: sheets, SheetHost), T45 (layout class) · Size 0.5–1 day
 
 ## Owner (2026-10-21)

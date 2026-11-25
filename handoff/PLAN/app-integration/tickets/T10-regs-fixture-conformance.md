@@ -2,6 +2,10 @@
 
 Status: DONE — c7b7708c.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T10 | regs fixture store + conformance suite | DONE | c7b7708c | — |
+
 Phase 0 · Depends on T03, T04, T09 · Blocks T11 (render tests), T12, T21+ in CI without the province store · Decisions — · Size 1 day
 
 ## Goal

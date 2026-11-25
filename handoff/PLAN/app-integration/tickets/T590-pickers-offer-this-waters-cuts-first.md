@@ -2,6 +2,10 @@
 
 Status: PARTIAL — af76fda95 (2026-11-10), c77eeb601 (2026-11-22): the one-click "use it" in the PLACE editor is built (`NewSplits`, `dfoExtent.useExistingCut`; not looked at in a browser). left: 3, stored suggestions (`dfo_fix_proposals.json` is hand-written; each row needs its geometry checked against the cuts within 200 m). left (Claude): item 3, stored suggestions as the existing cut.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T590 | Cut pickers offer this water's cuts first, and the nearest existing cut | PARTIAL — search, nearest shown, one-click "use it" in the place editor; stored suggestions open; left (Claude): stored suggestions | af76fda95, c77eeb601 | T532 leftover d; owner 11-10: reuse an existing cut within 200 m (built for entry B in T573) |
+
 Source: T532 leftover d; owner 2026-11-10 on T573: "if one is near one that already existed use the already
 existing one … applies to the pickers' proposals in general".
 

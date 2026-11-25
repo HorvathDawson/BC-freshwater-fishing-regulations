@@ -2,6 +2,10 @@
 
 Status: DONE (landed on redesign/stream-sections 2026-11-20 01:50 in 3c057089f 820fbcf32 32135b5d2; owner approved the pictures).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T924 | Layers sheet wording read "a little weird" (tester via owner) | DONE | 3c057089f 820fbcf32 32135b5d2 | tester 2026-11-19 via owner |
+
 Source: a tester's feedback relayed by the owner 2026-11-19 (`T922-shots/tester-2026-11-19-1.png`, the Layers sheet: Map
 "Drawn · works offline", Satellite "Esri imagery · online only", Corridors "Detail imagery along a stream · COMING SOON";
 Stocked / Depth "NO DATA YET"). Tester, verbatim: "Will the detailed imagery tab work on the offline mode?" then "This is

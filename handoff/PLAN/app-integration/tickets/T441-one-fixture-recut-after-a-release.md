@@ -2,6 +2,10 @@
 
 Status: DONE (deef924da; raw ids out of tests: 23c9aed6a).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T441 | One re-cut of every release-backed test fixture after a release (taps, fixture release, VM fixtures, section-lines, pinned ids) | DONE | deef924da, 23c9aed6a | 2026-11-06: four check rounds before 0.6.3 |
+
 Source: 2026-11-06, release r-4230bc0c1dd5. `pnpm check` needed four rounds before the 0.6.3 build, each finding the
 next frozen set still cut from the previous release (handles 822db… → 269777…):
 1. `app/fixtures/golden/taps.json` (`node app/tools/regs-recut/sync.mjs`, the documented step);

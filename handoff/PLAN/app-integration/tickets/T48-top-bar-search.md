@@ -2,6 +2,10 @@
 
 Status: DONE — d1b5680a, f733ec5e, 81000acf, 349968b0, 3f8c277f (keyboard leftovers → T69).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T48 | search in the top bar | DONE | d1b5680a, f733ec5e, 81000acf, 349968b0, 3f8c277f | — (keyboard → T69) |
+
 > **BUILT 2026-10-22 with the owner's changes (decisions.md "OWNER 2026-10-22 — answers" + "T48 BUILT"):** NO menu
 > button — the top bar is the field alone with the sync line at its top; the bottom bar is Map · Conditions · Spots ·
 > More (smaller); the rail is Layers alone. Where this ticket's Design says otherwise (the menu button, Spots on the

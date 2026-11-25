@@ -2,6 +2,10 @@
 
 Status: DONE (f7b41c208; landed 2026-11-17 in land/app-1117, proven on the simulator; owner re-tests on the 0.7.12 build).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T815 | iOS: the spots photo viewer's close ✕ sits under the status bar | DONE | f7b41c208 | owner iPhone build 36, 2026-11-16 |
+
 Source: owner 2026-11-16 ~21:22, testing iPhone TestFlight build 36 (app chat; pictures in the chat). Verbatim: "the picture viewer for spots has the x under the notification bar".
 
 ## Look at

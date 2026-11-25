@@ -2,6 +2,10 @@
 
 Status: DONE — e920d4d0d (closed on the owner's word 2026-11-20; see the last section)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T750 | Upstream and Downstream walk one line through every part (the release's river order, the parts list's); no branch picker. Next free ticket T751 | DONE | e920d4d0d | — |
+
 Source: owner 2026-11-14, staging website (dff2c7a22), Skeena River, Map tab, part 2 of 18 ("Skeena River Ecological
 Reserve boundary (km 63.5) → Skeena River Ecological Reserve boundary near the Exchamsiks River confluence"). Pressing
 Upstream opened "Which way upstream?" with two rows ("… near the Exchamsiks River confluence → Exchamsiks River

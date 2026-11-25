@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1093 | "Location request failed due to unsatisfied device settings" is an unhandled crash on 0.9.0 (kind `f7cb406a97ce7436`) | OPEN — 0.9.2 (missed the 0.9.1 cut) | | planning chat 2026-11-24 |
+
 Source: production feeds worker, crash kind `f7cb406a97ce7436`, 1 report, 2026-11-24 23:08Z, app 0.9.0 (the first
 crash kind seen on 0.9.0). The message is the Android location library's refusal when the phone's Location setting
 (or high-accuracy mode) is off although the app holds the permission. Read by `pipeline reports`, planning chat

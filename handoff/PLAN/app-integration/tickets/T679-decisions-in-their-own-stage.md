@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS — D2 and D6 built in c9488453c (owner 2026-11-12); D1 ponds, D3 nearer row, D4 word-read guard, D5 DFO confluence cuts and gauge placement #4 built in 9b0d6f4ae (+ f7f4fcfee), promoted with `full_t678b` (a5fe40636) and released in r-0a9930fb8826; the 11 other-line gauge cuts decided (RULINGS P49, T682); plan steps 1–3 done (#9 e1f1a268c, #2 8bc6eadbe, #4 b3a3938de); #14 done (9b0d6f4ae); lane L7 2026-11-20: #10 ece8f7a29, #11 7774bcbab, #12 rulings a493cf12d (+ 59e9589cc), #13 61f2bd774, step-10 code 5339c18ef (#1 and #6 behind switches, #15) and 94842bada (#18 dead code), all proved no output change; owner: OWNER-TODO "T679 #12: should the bundle carry"; left (Claude): wave 4 flips #1/#6 with the atlas rebuild and diffs, #18's continuation / places / part point, and L8's steps 5 (#8, #16, #17)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T679 | Each decision in its own stage (everything but tidal): 18 findings, owner D2–D6 answered 2026-11-12 | IN PROGRESS | c9488453c, 9b0d6f4ae, f7f4fcfee, e1f1a268c, 8bc6eadbe, b3a3938de, ece8f7a29, 7774bcbab, a493cf12d, 61f2bd774, 5339c18ef, 94842bada | owner 2026-11-11 "look for other things like that too"; D1–D6 + gauge placement released (r-0a9930fb8826); other-line gauge cuts decided (P49/T682); L7 2026-11-20: #10/#11/#12 … (detail: ticket file) |
+
 Source: owner 2026-11-11, about tidal: "we want to avoid it being a weird post processing step", "the cuts used for
 tidal should happen where cuts happen etc.", then: "Look for other things like that too". Tidal itself is T678; this
 ticket is every other stage. It mentions tidal only where another topic touches it.

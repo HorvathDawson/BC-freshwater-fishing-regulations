@@ -2,6 +2,10 @@
 
 Status: DONE — tiles 10cbcb72e9f907cf.edc12ab96087 + release r-0fa7927b16e5 (2026-10-28) Commits: 699c1392, 892db3d2, f010a2b1.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T113 | one name caser for tiles and bundle (O'rourke) | DONE | 699c1392, 892db3d2, f010a2b1 | tiles + deliver r-0fa7927b16e5: 0 casing changes left; O'Rourke right on card + map |
+
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding answers 6
 (CONFIRMED on `data/generated/tiles/layers/*.geojsonl` and `bundle.sqlite`). Related to T61 2.8 (one name
 normaliser, which handles matching keys); this ticket is display casing.

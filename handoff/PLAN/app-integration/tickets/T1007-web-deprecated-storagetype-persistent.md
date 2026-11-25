@@ -2,6 +2,10 @@
 
 Status: DONE — df4c72f0f: not our code; Cloudflare's injected bot script (lane L2, 2026-11-22).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1007 | Website: Chrome warns "StorageType.persistent is deprecated" (first party): Cloudflare's injected JavaScript Detections script, not our code; guard test | DONE | df4c72f0f | owner 2026-11-22 (Lighthouse) |
+
 Source: owner 2026-11-22 (Chrome DevTools / Lighthouse on https://canifishthis.ca), verbatim: "`StorageType.persistent`
 is deprecated. Please use standardized `navigator.storage` instead." Source column: "canifishthis.ca 1st party".
 

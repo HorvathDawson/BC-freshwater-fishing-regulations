@@ -7,7 +7,7 @@ One page, one pointer (T437): a new chat reads, in order,
    TestFlight tester feedback + the external review state, and Play reviews:
    `.venv/bin/python -m pipeline reports` (`--since YYYY-MM-DD`, `--only worker-prod,worker-staging,testflight,play`,
    `--no-save`, `--json`). Each item says the ticket that cites its id, or NEW. Anything NEW becomes a ticket that
-   writes the report id / crash hash in it; then add a new "Store checks" line to `OWNER-TODO.md`. The last-check time
+   writes the report id / crash hash in it; then add a "Store checks" item: a new file in `handoff/PLAN/owner-todo/` (T1041). The last-check time
    is kept in `cache/reports-last-check.json` (git-ignored; moved only when every source was read). Play closed-testing
    feedback has no API: ask the owner whether any came in.
    **Every new piece of feedback (a report, a crash kind, a TestFlight item, Play testing feedback, anything a tester told
@@ -16,11 +16,16 @@ One page, one pointer (T437): a new chat reads, in order,
 1. `AGENTS.md` (every rule), then `CLAUDE.md`.
 2. The newest restart page: **`handoff/PLAN/NEXT-SESSION-2026-11-24-after-090.md`** (written 2026-11-24: 0.9.0 shipped
    everywhere; the next chat comes from `ROADMAP-after-0.9.0.md`).
-3. The top entry of `handoff/PLAN/STATUS.md` (what changed last), and `handoff/PLAN/OWNER-TODO.md` (what only the
-   owner can do).
+3. The top entry of `handoff/PLAN/STATUS.md` (what changed last), and the owner to-do (what only the owner can do):
+   `node app/tools/ledger.mjs` builds it into `handoff/PLAN/views/OWNER-TODO.md` from one file per item in
+   `handoff/PLAN/owner-todo/` (T1041; `handoff/PLAN/OWNER-TODO.md` says how to add one). A view may be stale (the hooks
+   rebuild it after a checkout, merge, commit or rebase): `node app/tools/ledger.mjs` rebuilds, `--check` says.
 4. Chat length (owner 2026-11-21): recommend a new chat at natural breaks (a release shipped, a batch done) and /compact
    before a heavy step when the context is long. Update the restart page first.
-5. The work list: `handoff/PLAN/app-integration/tickets/README.md` (the ledger; tickets are the sole source of work).
+5. The work list: `handoff/PLAN/views/LEDGER.md` (the ledger of rows in work, built by `node app/tools/ledger.mjs` from the
+   row each ticket file holds under its Status line; closed rows: `views/DONE.md`; a new ticket also claims its number:
+   `node app/tools/ledger.mjs --claim`). How tickets work, and the owner
+   questions: `handoff/PLAN/app-integration/tickets/README.md`. Tickets are the sole source of work.
 6. The branch (T995, `AGENTS.md` W47): `main` is the protected trunk. Work on a short-lived branch from a fresh
    `origin/main` (`feat/`, `fix/`, `perf/`, `test/`, `ci/`, `docs/`, `chore/` + ticket id; commits and PR titles `type(Tnnn): subject`), open a PR with auto-merge, never push to
    `main`; a release ships from its `release/<version>` branch. Hooks: `git config core.hooksPath .githooks`.

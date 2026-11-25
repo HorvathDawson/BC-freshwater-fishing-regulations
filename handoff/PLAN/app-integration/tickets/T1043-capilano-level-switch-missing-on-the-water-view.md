@@ -2,6 +2,10 @@
 
 Status: DONE 88648625f, eb4591227, f7cdf00bb, 228006397, 66978f86d, 19a8485bb, 2602d207b, bdcd0f27d (lane L28, branch `fix/T1043-capilano-level`, PR #77; app-only, ships in the next app build).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1043 | Capilano at Canyon still shows no Level in the app (0.8.6): the water view's Flow / Level switch reads the long record only | DONE | 88648625f, eb4591227, f7cdf00bb, 228006397, 66978f86d, 19a8485bb, 2602d207b, bdcd0f27d | owner 2026-11-23: "i still dont know why 0.8.6 capilano at canyon gauge doesnt have level like website does here (https://wateroffice.ec.gc.ca/report/real_time_e.html?stn=08GA031) add as ticket"; lane L28 |
+
 Source: owner 2026-11-23 (verbatim): "i still dont know why 0.8.6 capilano at canyon gauge doesnt have level like website
 does here (https://wateroffice.ec.gc.ca/report/real_time_e.html?stn=08GA031) add as ticket".
 

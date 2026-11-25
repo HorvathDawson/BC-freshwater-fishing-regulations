@@ -2,6 +2,10 @@
 
 Status: DONE (f7b41c208; landed 2026-11-17 in land/app-1117, proven on the simulator; owner re-tests on the 0.7.12 build).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T821 | iOS: the back swipe flashes the previous menu for a moment | DONE | f7b41c208 | owner iPhone build 36, 2026-11-16 |
+
 Source: owner 2026-11-16, in the app chat (~21:40, on iPhone build 36), verbatim: "when i swiper to close on apple it flashes the menu back for a second before it
 goes back."
 

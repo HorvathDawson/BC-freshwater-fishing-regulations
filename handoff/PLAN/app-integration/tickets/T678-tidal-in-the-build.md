@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS (coast cut in the build + one tidal record: addbfd819, 26873ad75; built, promoted (a5fe40636) and released in r-0a9930fb8826 with T685; plan 6 answered by the owner 2026-11-12: no manual list, nothing to build; left (Claude): plan 2, plan 5 and the retirement of the polygon-rule readers (`shore.polygon_rule`, `HELD_*`, `atlas_tidal`, `inside_tidal.json`), each medium; the retirement's wait for the next promote is over (promotes 2026-11-13 onward); reasons in `T678-progress.md` 2026-11-12 next-atlas section)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T678 | Tidal in the build: one decision, made once, read everywhere (cut rule: DFO written boundary, then coast crossing, polygon for shading only) | IN PROGRESS | addbfd819, 26873ad75, a5fe40636, 8e8c3e79f | owner 2026-11-11; built, promoted and released (r-0a9930fb8826, with T685); plan 6 answered (no list); L7 2026-11-20: plan 2, plan 5 code and the legacy retirement landed (no … (detail: ticket file) |
+
 Source: owner 2026-11-11: "We need to make sure all the tidal logic and stream removal happens in the build of the
 graph etc if possible. Or where other tidal logic is we want to avoid it being a weird post processing step." And:
 "Also the cuts used for tidal should happen where cuts happen etc."

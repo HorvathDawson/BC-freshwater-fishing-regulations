@@ -2,6 +2,10 @@
 
 Status: DONE — 52eed5c80 (closed on the owner's word 2026-11-20; see the last section)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T582 | One day per water screen, and the same kept state on web and phone | DONE | 52eed5c80 | — |
+
 Source: T580 audit 2026-11-10 (owner: "stuff like this should never happen … look for other things like that").
 Findings, with file:line, the state that shows each and the proposed fix: `handoff/PLAN/app-integration/T580-findings.md`.
 

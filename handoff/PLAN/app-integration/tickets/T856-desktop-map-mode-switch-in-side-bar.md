@@ -2,6 +2,10 @@
 
 Status: DONE — b05790e0a, d5eace1af, a1d63b480, a6f4731eb, 1e2b46719, 8e82bd06d. desktop: Trout / Salmon switch on the top row after the day strip (owner's final pick); the nav rail see-through and floating over the map; phones unchanged.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T856 | Desktop: the Trout / Salmon map switch moves to the left side bar, under the Map button (owner) | DONE | b05790e0a, d5eace1af, a1d63b480, a6f4731eb, 1e2b46719, 8e82bd06d | — |
+
 Closed by the 2026-11-20 audit: owner's two final asks (15:05 'Top, after the day strip'; 15:06 see-through side bar) built and merged (d5eace1af, 1e2b46719, 8e82bd06d), on the production website since 2026-11-19.
 
 Owner 2026-11-18 ~14:20 (to the main chat, relayed), verbatim: "also on desktop can we move the salmon/trout toggle for

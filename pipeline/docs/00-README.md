@@ -35,5 +35,7 @@ restructure, done; `HANDOFF-dfo-curation`, the 2026-09 curation sitting guide) w
 
 ## Where the work is
 
-The ticket ledger, `handoff/PLAN/app-integration/tickets/README.md`, is the one work list.
+The ticket ledger is the one work list: each ticket file in `handoff/PLAN/app-integration/tickets/` holds its row,
+and `node app/tools/ledger.mjs` builds the table into `handoff/PLAN/views/LEDGER.md` (T1041; how it works: that
+folder's `README.md`).
 ⛔ **Parser runs spend credits and are human-only** — see the root `AGENTS.md` rule A1.

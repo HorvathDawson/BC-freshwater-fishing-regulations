@@ -2,6 +2,10 @@
 
 Status: DONE — 35339591e (built, tested, staging feeds worker deployed 2026-11-11; production takes it with its next worker deploy, the owner's).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T675 | An in-season row whose id moved while its content stayed is a re-key, not a change and not a removal (feeds worker) | DONE | 35339591e | found 2026-11-11 on staging (32 rows "changed" from their own text, 38 live notices in `removed`); fixed, mutation-checked, staging worker deployed and the feed put right; staging … (detail: ticket file) |
+
 Source: found 2026-11-11 reading staging's `feeds/inseason/index.json`. In-season notices are BC Fish and Wildlife's.
 
 ## Today (before the fix)

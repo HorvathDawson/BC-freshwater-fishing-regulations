@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1069 | A Kildala-style polygon route is written in 10 pieces | OPEN —  | | planning chat 2026-11-24 |
+
 Source: the 0.9.1 chat's find on T1024 (RESTART-091-chat.md, 2026-11-24). Also noted there: a selection rule inside a layer filter splits the stream bucket (`lab.test.ts` already guards it).
 
 ## Work

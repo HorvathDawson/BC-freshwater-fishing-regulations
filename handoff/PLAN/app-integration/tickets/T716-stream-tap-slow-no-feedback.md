@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-20 (3180f75a8, 98eb18e32) — the 0.7.9 phone check is taken as done (owner ruling 2026-11-20: every check or look is taken as done); emulator look on 0.7.9 passed (regs-open 19/19, cue 26-145 ms).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T716 | Tapping a stream takes a long time to open, with no feedback (build 0.7.8, Android): the tapped stretch lit at the lift (22-112 ms), the open started at the lift (page 352-402 ms, 39-78 ms after the click), the DFO salmon built per chain (no ~1 s stall) | DONE | 3180f75a8, 98eb18e32 | owner 2026-11-13 phone (twice); code done; emulator look done on 0.7.9 (2026-11-14); owner: phone check after 0.7.9 |
+
 Source: owner 2026-11-13, build 0.7.8 on their Android phone, verbatim: "When you click on a stream it is taking a very
 long time to open with no feedback it feels bad and slow. Want before closed testing"
 

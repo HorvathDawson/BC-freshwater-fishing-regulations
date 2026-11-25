@@ -2,6 +2,10 @@
 
 Status: DONE (2026-10-28, c357fcdb + the audit commit after it) — closed under the owner's lake-boundary rule; nothing moved, no owner call.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T91 | Atnarko campsite split location | DONE | c357fcdb 94599d8b | closed under the lake-boundary rule: campsite end = owner pin; Tenas Lake outlet @630.47 (edge facing the extent); 96/96 ambiguous_cut picks nearest the other end, nothing moved |
+
 Source: memory `ambiguous-cut-picks-silently`; owner said the campsite boundary is further downstream than the curated
 split. Untouched since (last commits on `atnarko_park_campsite`: 296bfc14 and older). The run records `ambiguous_cut`
 for `south_atnarko_river__tenas_lake`: 630.47 used, 2380.4 the other candidate. `atnarko_bella_coola_rivers.r2` binds

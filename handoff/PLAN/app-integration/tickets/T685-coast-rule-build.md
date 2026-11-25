@@ -2,6 +2,10 @@
 
 Status: DONE (434f16264)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T685 | Build the coast rule from the owner's 2026-11-12 answers (single rule; five whole-tidal sloughs; fix the automatic reading; polygon-edge cut placement) | DONE | 434f16264 | — (atlas promoted 2026-11-12; Turner/Noons stays fresh, owner E25 note) |
+
 Source: owner 2026-11-12, T678 Tidal Coast Proposal answers (`handoff/PLAN/app-integration/T678-coast-proposal.md`, line ids there). RULINGS E21–E24.
 
 ## Work

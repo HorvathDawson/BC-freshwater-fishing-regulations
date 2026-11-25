@@ -3,6 +3,10 @@
 Status: DROPPED — merged into T360 (2026-11-05 audit; the work continues there) — was: PARTIAL — item 1 done (ec01c1e2e, shipped in 0.4.0); left: item 2 (once-over) and item 3 (benchmark) (owner 2026-10-31: "Make sure no other map data has the [overlay] drawing method … Do a once over on app to
 check for bad stuff like that").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T317 | Audit: every map feature drawn by the map engine (no lagging overlays); once-over for per-frame JS / hot-path waste | DROPPED — merged into T360 (2026-11-05) | ec01c1e2e | owner 2026-10-31; item 1 shipped in 0.4.0; left: once-over (2) + benchmark (3) |
+
 ## Work
 1. Find every map feature drawn as React views positioned over the map (MarkerView/PointAnnotation/absolute views fed by
    project()/onRegionIsChanging, DOM markers on web) — gauge dots, obstacles, labels, badges, highlight rings, my-location,

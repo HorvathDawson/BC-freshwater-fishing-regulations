@@ -4,6 +4,10 @@ Status: DONE — 9475cfdb0, e04d6d87b, bf28dbc76, 28eaf73e9, 71403fec6, bbce1716
 `class`/`source`/`through`, optional release file `cw-through/1`, app 0.8.4 "may need" note; the CO question stays open,
 T974 cleans up after the answer).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T973 | Classified Waters carried through a tributary whose own row prints no unit, with its path (class, source, through); "may need" note; CO question open | DONE | 9475cfdb0, e04d6d87b, bf28dbc76, 28eaf73e9, 71403fec6, bbce17168 | — |
+
 Source: owner 2026-11-20 11:44 (dialog, on T944's changes): "We should maybe just make this a ticket and a gotcha that
 needs to be asked to a CO. Give info in the ticket. Doesn't hold release (keep what we have but on ticket reset we can
 measure it better etc and make a decision)".

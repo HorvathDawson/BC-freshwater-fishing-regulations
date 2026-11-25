@@ -4,6 +4,10 @@ Status: DONE 2026-11-05 — item 8 holds (data/release = live r-5a5999c94588 + p
 the review-app sandbox overrides left (below); 8 for after the batch, in the main checkout. Was OPEN (owner
 2026-10-30; T324 design approved, plan in handoff/PLAN/data-flow.md §4–5).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T331 | Curated config hygiene: declare all files, no env overrides, one sync list, dead files, source out of curated, deliver key, prune releases | DONE | 34d25bfd0, e5e34c238 | owner 2026-10-30; 1,3–7 done (proposals domain closed); 2 done for INSEASON_MATCHES + SLOUGH_PAGE_MARKS (review-app sandbox overrides need a design); 8 done 2026-10-31 (kept … (detail: ticket file) |
+
 1. Declare every curated file in config (`dfo_salmon/wording.json`, sloughs page-marks, `sub_lake_areas.json`);
    `wording.py`/`slough.py` read through `CURATED`.
 2. Drop `CURATION_*` env overrides that repoint a curated file (`CURATION_INSEASON_MATCHES`; tests use temp roots).

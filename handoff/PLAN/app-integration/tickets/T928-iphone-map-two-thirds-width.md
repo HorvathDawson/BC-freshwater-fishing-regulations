@@ -2,6 +2,10 @@
 
 Status: DONE — c71429593, 54b256e06; edge-back drag never leaves the screen; merged via e97c6932a; part-drawn browse map is T938.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T928 | iPhone: the main map fills only 2/3 of the screen after tab changes (tester via owner) | DONE | c71429593, 54b256e06 | — |
+
 Source: a tester on iPhone (TestFlight 0.8.3) relayed by the owner 2026-11-19 (`T928-shots/tester-2026-11-19-iphone.png`,
 middle shot: the map drawn in the right two-thirds, a dark empty strip on the left, the day bar and legend at full width).
 Tester, verbatim: "And now my map is only 2/3 my screen" / "Even when I change tabs" / "Like map conditions and runs" / "I

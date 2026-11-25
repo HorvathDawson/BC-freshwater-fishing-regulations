@@ -2,6 +2,10 @@
 
 Status: DONE — 0fee60f85, c23affc58, 3d807829d; owner 2026-11-09 on build 24: fine
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T499 | Pane's Map tab flickers when left open on the lowest Fraser stretch | DONE — 0fee60f85, c23affc58, 3d807829d; owner 2026-11-09 on build 24: fine | 0fee60f85, c23affc58 | owner 2026-11-08 (phone); T495 smooth map |
+
 Was: IN REVIEW — 0fee60f85 (+ testbed c23affc58), in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (Map tab on the lowest Fraser stretch).
 Earlier: IN REVIEW — 0fee60f85 (+ testbed c23affc58); owner sees it on the next APK. Owner 2026-11-08 (phone, 0.6.9). Part of T495 (smooth map).
 

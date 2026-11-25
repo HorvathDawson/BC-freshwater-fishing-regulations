@@ -2,6 +2,10 @@
 
 Status: DONE (1168ab1dc) — every reach run now writes the gz form; no conversion left (checked 2026-10-28).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T73 | smaller reach hand-off (N14, disk) | DONE | 1168ab1dc | all runs gz: ~0.75 GB each vs ~20 GB; no convert needed |
+
 Source: `data/generated/reaches/full/rule_section.jsonl` is ~20 GB (20,100,603,190 B on 2026-10-22); the reach step
 writes plain JSONL (`atlas/reach/io.py`); full_twin doubles it (~95 GB with copies); the disk was 89% full (103 GiB free)
 during the T56 rerun.

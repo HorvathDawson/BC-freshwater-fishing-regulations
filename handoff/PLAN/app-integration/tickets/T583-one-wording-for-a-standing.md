@@ -2,6 +2,10 @@
 
 Status: DONE — dad265255, 5a71f6bb1. One standing wording in core standing.ts with its gate and worker parity test; owner 2026-11-10 keeps the "Lower than 8 days in 10" estimate sentence (the measured-gauge words then moved to days-in-10 in T598).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T583 | One wording for a gauge's standing, everywhere | DONE | dad265255, 5a71f6bb1 | — |
+
 Closed by the 2026-11-20 audit: the only open item was the owner's keep/retire question, answered 2026-11-10 ('i like it', DECIDED section, 5a71f6bb1); gate tools/one-standing-words.test.ts is in.
 
 Source: T580 audit 2026-11-10 (owner: "stuff like this should never happen … look for other things like that").

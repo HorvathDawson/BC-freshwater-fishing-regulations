@@ -1,0 +1,4 @@
+order: 660
+
+## 2026-11-23: lane L29 (0.9.0 batch) — one look
+- **T1024 Gravel Slough highlight: look at the before/after shots** (`handoff/PLAN/app-integration/T1024-shots/gravel-before-after.png`, `oxbows-before-after.png`, `gun-before-after.png`): where a slough's or wide reach's line is drawn, only the line is outlined — no ring round each piece of its polygon; where it is not yet drawn (zoomed out, or no line at all) the polygon keeps its ring. Note Gun Creek z13: the wide 3 km² reach shows only its line's outline. Say if it reads right. Also (0.9.1, PR #111) `stub-oxbows-light.png` / `stub-oxbows-dark.png` and `stub-nazko-light.png` / `stub-nazko-dark.png`: where a polygon's line is only a short stub inside it, the polygon keeps its ring and the stub no longer gets a second outline inside it (`stub-oxbows-matrix.png`: old app or old tiles look exactly as today).

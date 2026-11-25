@@ -2,6 +2,10 @@
 
 Status: DROPPED (owner 2026-11-18 ~20:53: "Not this change"; the pictured proposal stays on branch app/t871-counts-once, acf6f8ba8, unmerged).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T871 | Trout table: say "counts toward the N" once per box (owner) | DROPPED | app chat | owner 2026-11-18 ~20:53: "Not this change" |
+
 Owner 2026-11-18 ~20:28, verbatim, looking at the Mamquam River trout table, where every row's right-hand cell says
 "counts toward the 2": "When they are all the same do you think it would be better to just have a single counts towards
 the 2". Then: "Make sure to give example for trout changes before so I can see and confirm".

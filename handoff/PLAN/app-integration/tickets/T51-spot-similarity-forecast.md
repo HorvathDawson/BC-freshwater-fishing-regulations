@@ -2,6 +2,10 @@
 
 Status: DONE — fa7235c0 + review fixes a6fd848d (ticket a7b94f4e). Lane wf_c3f10dea-7b4-2. Follow-ups below are small and none blocks it.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T51 | spot similarity forecast ("Like your visit?") | DONE | fa7235c0, 2f5cdc70, a6fd848d, aba28187 | — |
+
 Phase 4 · Depends on S1 (spot lead-up: weather + gauge frozen at capture), the gauge feed + forecast horizons, Open-Meteo
 weather, the T48 Spots tab · Size 1–2 days
 

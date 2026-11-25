@@ -2,6 +2,10 @@
 
 Status: DONE — a7df2f98b, 666683208, ea0d3d488, 116872b43, 87c1530a8 (items 1-4 done, the ledger's last cell capped at 240 characters by the guard; item 5 stays at its default, AGENTS.md unchanged, Q177) (Earlier status: PARTIAL — a7df2f98b, 666683208, ea0d3d488, 116872b43 (items 1-4 done; item 2's rule + guard 2026-11-12); left (Claude): cap the ledger's last cell (~200 characters, 27 rows over it); item 5 is the owner's, default unchanged (Q177))
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T540 | Cut start-of-chat reading: closed ledger rows to DONE.md, STATUS archive, dead order list, questions shipped on default | DONE | a7df2f98b, 666683208, ea0d3d488, 116872b43, 87c1530a8 | — |
+
 Source: workflow review 2026-11-09 (verified against the files). Rank 8.
 
 ## Today

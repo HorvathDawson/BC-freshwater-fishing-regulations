@@ -2,6 +2,10 @@
 
 Status: DONE — a125140a9, af396ea5d, a424dc8a0, 2399453d8, a49c54d9e, b0bcc2eda, 347d3388e, 0a610610c, 67e723567, 5b6dd066b, bd4400513, cefdb3fc5, a6d97778a, 21c1a6ed5, 12be2fa14, 80c389059, a3ca419e2, 8a89a73a9, 77ee9ca7d (every finding fixed, ticketed or closed: see "Closure 2026-11-22") (Earlier status: IN PROGRESS (main chat 2026-11-21: read-only audit agent first; findings become numbered lines here or new tickets).)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T994 | Production-level audit: non-standard practices and data-flow issues across the code | DONE | a125140a9, af396ea5d, a424dc8a0, 2399453d8, a49c54d9e, b0bcc2eda, 347d3388e, 0a610610c, 67e723567, 5b6dd066b, bd4400513, cefdb3fc5, a6d97778a, 21c1a6ed5, 12be2fa14, 80c389059, a3ca419e2, 8a89a73a9, 77ee9ca7d | — |
+
 Source: owner 2026-11-21, verbatim: "You could also get an agent to do a basic audit for non standard practices or
 issues with the flow of data etc. we want to make our code production level. Also clean up gha workflows and make sure
 we just waste less time with bad ci/cd of failed runs." (The GitHub Actions half is in T993's scope.)

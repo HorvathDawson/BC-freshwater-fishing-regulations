@@ -3,6 +3,10 @@
 Status: DONE (2bacfc7d..dabd3b8b). Asked as: Owner 2026-10-24: the review is better as "our old separate app — then we just clean it up". Phase 1's
 artifact (the 30-target pilot page) was published, then deleted at the owner's request; its code goes too.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T184 | keep the local curation review app and clean it up: entries only (splits by proxy on the map), human-reviewed state, artifact path removed | DONE | 2bacfc7d..dabd3b8b | — (pilot dropped by the owner 2026-10-25; the app serves the real review) |
+
 ## What the review is for (owner)
 Verify every ENTRY: (1) the regulation was parsed correctly (T text, R rules) and (2) its rules land on the right
 water and extent (P), with A (the angler's answer) as the final sanity check — then the entry is saved as

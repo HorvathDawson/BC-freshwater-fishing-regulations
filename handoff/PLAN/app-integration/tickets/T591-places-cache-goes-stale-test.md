@@ -2,6 +2,10 @@
 
 Status: DONE — 4089f60cd, 2026-11-10 — `test_review_checklist.py::test_the_places_cache_goes_stale_on_each_thing_it_is_made_from_and_on_nothing_else` (the mutation — dropping a key part — was not run by hand)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T591 | A test that the checklist's places cache goes stale when it must | DONE | 4089f60cd | T532 leftover e; five inputs, one test |
+
 Source: T532 round 8 (speed), leftover e.
 
 ## Today

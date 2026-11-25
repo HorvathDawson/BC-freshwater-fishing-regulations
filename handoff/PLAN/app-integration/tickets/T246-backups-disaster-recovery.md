@@ -2,6 +2,10 @@
 
 Status: DONE — ec26ed584 (2026-10-29)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T246 | backups / disaster recovery (R2 + inventory + restore test) | DONE | ec26ed584 | backup bucket + lifecycle; worker daily cron; curated/release scripts; restore test all hashes pass; restore not served end-to-end |
+
 Source: owner 2026-10-28 — approved proposal P12 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
 ## Work

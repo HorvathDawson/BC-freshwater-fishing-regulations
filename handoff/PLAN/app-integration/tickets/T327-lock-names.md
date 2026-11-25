@@ -3,6 +3,10 @@
 Status: DONE (0161c9fc6, 2026-10-30, branch cleanup/t327-t331) — was OPEN (owner 2026-10-30; T324 design approved, plan in
 handoff/PLAN/data-flow.md §4–5).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T327 | Lock names: owner name table out of code into a curated file; write Sheldens | DONE | 0161c9fc6 | owner 2026-10-30; `waters/name_calls.json` (read by `names.owner_calls`), mined_names --check byte-identical; Sheldens already written (f0b92de23), lands on next atlas build |
+
 Move `names.OWNER` (pipeline/regs/review/names.py) into `waters/mined_names.json` (or its own curated file);
 write Sheldens Creek (accepted, never written). Code reads the file only. Depends: T325. Size: S.
 

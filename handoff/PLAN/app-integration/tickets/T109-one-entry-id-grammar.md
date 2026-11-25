@@ -33,6 +33,10 @@ Status: DONE — 0ef3ed2fd (step 1), edb0653c6 (steps 2 + 3, Python), 1ca9bc00 (
 - Owner question (default built with): mint r7a:/r7b: ids for Zone A/B rows? Default: no — keep r7: and read the
   zone from the MUs (no resync).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T109 | one entry-id grammar (z7a reads "Region 7") | DONE | 0ef3ed2fd, edb0653c6, 1ca9bc00, 6d731a02 | delivered r-d72230f10993 (fixtures 76e7ef05) |
+
 ## Adversarial review of the left item (2026-10-23, lane-T125)
 No code defect found; nothing changed for T109 (the T125 review commits do not touch it).
 - End to end on a scratch deliver of this lane's code (live atlas + reach run): the export carries `provenance.region`,

@@ -2,6 +2,10 @@
 
 Status: DONE — 0fd94a0a9 (closed on the owner's word 2026-11-20; see the last section)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T570 | Indigenous land names show only when zoomed in a lot more | DONE | 0fd94a0a9 | — |
+
 Source: owner 2026-11-10: "indigenous land names shouldnt show until zoomed in a lot more."
 
 ## Today

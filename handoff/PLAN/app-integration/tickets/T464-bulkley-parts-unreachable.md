@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-06 — 1470734, 723f43116 (found while counting T460's changes; true before T460). Owner: phone check on 0.6.8.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T464 | Bulkley River: 6 of 12 parts unreachable by ▲/▼ (found by the T460 count; true before it) | DONE 2026-11-06 | 1470734, 723f43116 | only the Bulkley changes; release test every part reachable |
+
 On the live release r-67b456b5e64b, stepping ▲/▼ from the Bulkley River's lowest part through `loadWaterGroup` reaches
 6 of its 12 parts. Every other water with marks (649) reaches all its parts. The parts list still opens each part; only
 the steps miss them.

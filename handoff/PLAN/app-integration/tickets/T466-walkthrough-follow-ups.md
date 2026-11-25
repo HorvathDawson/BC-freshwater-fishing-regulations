@@ -2,6 +2,10 @@
 
 Status: DONE — 5c9ddce42, 5c9ddce42, 3d807829d; owner 2026-11-09 on build 24: tour fine
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T466 | Walkthrough follow-ups: scroll to dams/obstacles, a real spot creation, a closed example that stays closed (closed all year) | DONE — 5c9ddce42, 5c9ddce42, 3d807829d; owner 2026-11-09 on build 24: tour fine | 5c9ddce42 | owner 2026-11-06 |
+
 Was: IN REVIEW — 5c9ddce42 (5c9ddce42 was its worktree copy), in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (the walkthrough).
 Earlier: IN REVIEW — 5c9ddce42 (owner phone check; the new steps' words are Claude's draft)
 

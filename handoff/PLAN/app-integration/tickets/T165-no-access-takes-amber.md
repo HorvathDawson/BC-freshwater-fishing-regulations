@@ -3,6 +3,10 @@
 Status: DONE — f438d4178 (dotted grey layer, grey tokens, warning token, legend, gates, shots). Built as the owner
 decided (dotted grey); Q150 below records the details built by default.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T165 | no public access: streams dotted grey (owner), warning amber only in the page banner; own keeps amber | DONE | f438d417, bfd82ad6 | app style |
+
 Source: owner 2026-10-23 (after T146): "the no access color is still not aggressive enough. it is too benign. should be
 more warning maybe it could take the yellow or orange color then has its own regulation gets a different color?"
 Supersedes Q137/Q138 (T146's spruce / dash questions).

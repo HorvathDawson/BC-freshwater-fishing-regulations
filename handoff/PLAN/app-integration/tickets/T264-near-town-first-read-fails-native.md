@@ -2,6 +2,10 @@
 
 Status: DONE 2026-10-29 (root cause found and fixed; 10 cold starts, 0 failures) Commits: b96ffb83f, ae80ae39d
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T264 | "Could not read what is near this town" on Android, intermittent (first town read after a cold start) | DONE | b96ffb83f, ae80ae39d | root cause: expo shared-object registry race under a ~400-call burst; one app-wide SQLite queue, retry removed; near-cold ×10: 0 failures |
+
 Source: T255 test bed 2026-10-29 (release APK, staging r-0fa7927b16e5, emulator, AIRPLANE MODE). Cold start offline →
 search "Cultus" → tap the place row "Cultus Lake · Village" → "WATER NEAR CULTUS LAKE — Could not read what is near this
 town." (shot `../T255-shots/near-town-failed-offline.png`, run b3). The same tap passed in run b5 (offline and online)

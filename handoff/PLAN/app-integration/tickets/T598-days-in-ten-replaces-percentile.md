@@ -2,6 +2,10 @@
 
 Status: DONE — eb4bf2168 (closed on the owner's word 2026-11-20; see the last section)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T598 | "Days in 10" replaces the percentile wherever the reader sees it | DONE | eb4bf2168 | — |
+
 Source: owner 2026-11-10, on keeping "Lower than 8 days in 10": "also easier for a user uneducated to understand";
 asked whether measured gauges should say it the same way: "if it is user visible then yes probably better".
 

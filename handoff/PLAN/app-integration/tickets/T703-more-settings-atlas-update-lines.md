@@ -2,6 +2,10 @@
 
 Status: DONE — 3efa7b099 (ships with the next app build; pictures in ~/bcfish-session-backup-2026-11-12/more-settings/, before and after, phone width, light and dark)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T703 | More: a Settings screen (data, privacy, display), the Freshwater Atlas and basemap never "out of date" by age alone, the update lines above the sources table removed where they repeat it | DONE | 3efa7b099 | owner 2026-11-13 phone; ships with the next app build |
+
 Owner 2026-11-13, phone (0.7.7 build 29), the More tab, verbatim: "Fresh water atlas rarely changes it isn't stale. Also all
 the toggles for settings like crash reports or download source etc should be in a setting smenu in here. Also all the
 update info at top is redundant since it is in the table formatted nicer below it?"

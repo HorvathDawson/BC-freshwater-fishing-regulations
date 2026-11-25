@@ -3,6 +3,10 @@
 Status: DONE 71179834, b54c69c1, bc7bc016, 462f8488 (see Outcome). Source: T60's data-vs-UI gate (`app/tools/data-vs-ui.test.ts`) froze ~105 hand-written strings still typed
 in components as `KNOWN_COPY` (a list that may only shrink).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T180 | move the remaining ~105 component strings into core words (T60's KNOWN_COPY list empties) | DONE | 71179834, b54c69c1, bc7bc016, 462f8488 | KNOWN_COPY 95 → 0, no wording change; map gaugeDots attribution noted |
+
 Where: App.tsx attribution lines (duplicate `sourcesVM` publishers), SpotScreen (36), SpotCapture (13), SearchSheet (8),
 GaugeTrace (7), Hydrograph (6), Chrome (3), WaterScreen/WaterViews (4), Sheet Done/Close, Credits "Sources",
 FishSpinner "Loading", SpotsScreen "NO PHOTO".

@@ -2,6 +2,10 @@
 
 Status: DONE — 26c59849f; owner 2026-11-09 on build 24: keep cap 2 ("I notice no different"); iOS half stays with T88
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T448 | Native map: cap the drawing density at 2 like the web (binding patch exposes pixelRatio) | DONE — 26c59849f; owner 2026-11-09 on build 24: keep cap 2 ("I notice no different"); iOS half stays with T88 | 26c59849f | T420 follow-up 2026-11-06; Android: binding `maxPixelRatio` → the map SurfaceView a fixed smaller buffer (823×1567 vs 1080×2057), compositor scales; same scale/taps (shots … (detail: ticket file) |
+
 Was: PARTIAL — Android built and measured 2026-11-06 (26c59849f): the map's surface is 823×1567 instead of 1080×2057 (−42 % pixels), same scale, same tap. Left: the owner's phone check (the emulator cannot show fill savings), iOS (not done).
 
 Source: T420 (2026-11-06, 2b891823f): the web map now draws at `min(devicePixelRatio, 2)` (`packages/map/src/web/

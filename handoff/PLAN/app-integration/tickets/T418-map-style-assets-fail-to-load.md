@@ -4,6 +4,10 @@ Status: DONE in code 2026-11-05 — 370731ad3 (0.6.1 batch; phone check with the
 2026-11-05: every 0.5.0 report from 11-04 17:07 PST carried the same MapLibre Native errors: "Failed to load source outside", "Failed to load sprite" ×2, "Failed to load glyph range 0-255" for Noto
 Sans Italic / Regular / Medium. The one 0.6.0 report (11-05 20:21) carries none.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T418 | Map style assets failed on 0.5.0: a real gap, not a one-off. The in-session update (r-4e70 → r-5a59, new tile folder) pruned the old set's atlas, mask and map assets while its map was still drawn. The replaced set is now kept until the next launch or stage, and a failed style asset is reported once (MapLibre log watch) | DONE in code — phone check with the next APK | 370731ad3 | from reports 11-05; re-read the report feed after 2–3 days of 0.6.x |
+
 Find whether it was a one-off (network drop, a staging upload mid-way, the old release T403 fixed) or a real gap: a
 self-hosted asset (memory self-host-everything) missing from the release or not cached for offline use. If real: the
 asset ships with the install, and a failed style asset is reported once (reportFailure), not only logged. Check the

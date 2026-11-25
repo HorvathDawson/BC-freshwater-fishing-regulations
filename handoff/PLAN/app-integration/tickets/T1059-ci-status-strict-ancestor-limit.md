@@ -6,6 +6,10 @@ Status: DONE — 87e1783a3, 34c35758a (review: "no run" only when every run GitH
 after (that run was number 109 of 375). Tests replay the recorded pages (`pipeline/tests/fixtures/ci_status_docs_ci_runs_2026-11-24.json`);
 mutations (the old newest-30 query, one page only, the cap answering "no run", counting a shifted run twice) each fail them.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1059 | `scripts/ci_status.py --strict` says "no finished run" when the green run is on an ancestor more than 30 runs back | DONE | 87e1783a3, 34c35758a | planning chat 2026-11-24 |
+
 Source: the 0.9.0 chat, 2026-11-24 (also in RESTART-091-chat.md): `strict_judge` looks up an ancestor's runs with gh's default `--limit 30` across all branches, so on a busy night docs-ci's green ancestor (`15a257ca9`) fell out of range and `build-apk.sh --dry-run` stopped. The 0.9.0 production build used `CI_CHECK_SKIP`.
 
 ## Work

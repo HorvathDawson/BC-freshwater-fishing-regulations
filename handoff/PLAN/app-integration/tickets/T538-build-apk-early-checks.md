@@ -2,6 +2,10 @@
 
 Status: DONE — fcbcda2ba (used by every Play build since, 88681f9f0 … 8f2e96c8b); the last left item (an expected MapLibre build id file beside the patch) DROPPED by the owner 2026-11-20.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T538 | build-apk.sh: cheap checks before the lock, changelog required, Play notes from the changelog, MapLibre proof on both paths | DONE | fcbcda2ba | leftover (expected MapLibre build id file) DROPPED, owner 2026-11-20 |
+
 Source: workflow review 2026-11-09 (verified against the code). Rank 6.
 
 ## Today (`deploy/staging/build-apk.sh`)

@@ -4,6 +4,10 @@ Status: DONE (2026-11-04, atlas; 0d5d3577f). Prove whether two builds from the s
 2026-10-06 fixes may have cured it). Heavy: scripts/heavy.sh, background, mindful of memory. Acceptance: a needs_source
 test or a recorded diff with the cause of each difference.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T65 | determinism proof (N12) | DONE | 0d5d3577f | all (heavy) |
+
 ## Result (2026-11-04): the atlas IS deterministic
 Built twice from the same inputs (`python -m pipeline build --atlas` into `full_next` beside the promoted `full`, both
 27 min, under scripts/heavy.sh): promote's parity says IDENTICAL (21,317 items, 4,595,628 sections, 27,419 boundaries;

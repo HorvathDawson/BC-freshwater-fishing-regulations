@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1066 | Two hidden failures in the feeds code: the HYDAT release check and the DFO cache readers | OPEN —  | | planning chat 2026-11-24 |
+
 Source: the 0.9.1 chat's finds on T1021 (RESTART-091-chat.md, 2026-11-24). Owner rule `no-silent-fallbacks`.
 
 ## Work

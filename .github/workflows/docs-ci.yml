@@ -15,7 +15,8 @@ on:
   push:
     branches: [main, "release/**"]
     paths: ["handoff/**", "AGENTS.md", ".github/copilot-instructions.md", "app/tools/check-tickets.mjs",
-            "app/tools/check-tickets.test.ts", "app/tools/start-here.test.ts", ".github/workflows/docs-ci.yml",
+            "app/tools/check-tickets.test.ts", "app/tools/start-here.test.ts", "app/tools/ledger.mjs",
+            "app/tools/ledger.test.ts", ".github/workflows/docs-ci.yml",
             ".github/actions/app-setup/**", ".github/actions/changes/**", "scripts/ci_paths.py"]
   # (T995) EVERY pull request runs this workflow, with no path filter: a required check from a workflow that did not
   # run stays pending forever. Its `changes` job asks scripts/ci_paths.py whether the PR touched this area; the jobs
@@ -66,9 +67,11 @@ jobs:
       - name: The ticket ledger is whole, the handoff docs are right
         run: pnpm run tickets
       # `if: !cancelled()`: both run, so one push lists both failures
-      - name: The guard's own tests, and the one start-here page
+      # (T1041) ledger.test.ts: the row block, the views, the import's round trip on the real old files (git history:
+      # the clone above has it) and the carry of an old-style branch
+      - name: The guard's own tests, the ledger tool's, and the one start-here page
         if: ${{ !cancelled() }}
-        run: pnpm exec vitest run tools/check-tickets.test.ts tools/start-here.test.ts
+        run: pnpm exec vitest run tools/check-tickets.test.ts tools/start-here.test.ts tools/ledger.test.ts
 
   # (T998) EVERY COMMIT IN THE PULL REQUEST, AND ITS TITLE, FOLLOW CONVENTIONAL COMMITS (app/tools/check-commits.mjs,
   # the commit-msg hook's check). On every pull request, whatever it touched: no `changes` gate. The title is checked

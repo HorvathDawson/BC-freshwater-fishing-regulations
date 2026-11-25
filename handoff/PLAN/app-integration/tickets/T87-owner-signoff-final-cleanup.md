@@ -4,6 +4,10 @@ Status: DROPPED — merged into T240 (2026-11-05 audit; the work continues there
 (re-cut tooling to app/tools/regs-recut/, page v36 to app/fixtures/reference/) + 8a043348, 7e656fcb (deletions). Left: the owner's
 sign-off walk (web + phone), recorded in decisions.md.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T87 | owner sign-off walk, then final clean-up | DROPPED — merged into T240 (2026-11-05) | 1267d358, 8a043348, 7e656fcb | sign-off walk (owner); clean-up done 2026-10-28 |
+
 Source: implement_progress "FINAL CLEAN-UP PHASE (owner, 2026-10-20) — ONLY after the app is done AND the owner has …
 confirmed it looks like the prototype": remove app/design, then audit handoff/ in the repo and in memory. T63 has no
 owner gate.

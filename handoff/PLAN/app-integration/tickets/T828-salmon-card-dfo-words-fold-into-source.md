@@ -2,6 +2,10 @@
 
 Status: DONE 45fff5e63 (CI green 2026-11-17; with T829; in 0.8.0).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T828 | Salmon card: DFO's rows as printed fold into "Source (DFO)" | DONE | 45fff5e63 | owner 2026-11-16 (app) |
+
 Source: owner 2026-11-16, circling the block under the salmon species table: "why do we have this section in salmon";
 picked "Fold into Source (Recommended)".
 

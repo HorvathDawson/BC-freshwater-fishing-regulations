@@ -2,6 +2,10 @@
 
 Status: DONE — e2cdbee15 (no format change: the picker wraps past New Year to the release's valid-to; the answers already recur by month/day, weekdays are the real date's; checks a-d below). Not seen on a device.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1026 | The day picker stops at December 2026 although the synopsis is valid to March 31, 2027 | DONE | e2cdbee15 | closed tester via owner 2026-11-22 |
+
 Source: a closed tester, relayed by the owner 2026-11-22 (screenshots: the Sources list "Synopsis — Valid to Mar 31,
 2027", and "Which day?" showing December 2026 with the next-month arrow disabled). Verbatim: "Synopsis valid til March
 next year, but calendar doesn't go past the end of 2026. Might just be me not understanding all the different sources."

@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS (iOS release chat: the paste-from page is written, `handoff/PLAN/ios/APP-STORE-SUBMISSION.md`; the submission waits on the new pictures, T1072, and on the owner's open picks).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1071 | iOS App Store full release: distribution and compliance information | IN PROGRESS — the paste-from page is written (`handoff/PLAN/ios/APP-STORE-SUBMISSION.md`); the submission waits on the new pictures (T1072), the privacy page words (T1098) and the push proof (T996) | | planning chat 2026-11-24 |
+
 Source: owner 2026-11-24 (planning chat), verbatim: "another item to add is preparing the ios store distribution and
 compliance info ... IOS can have full release soon." Builds on T727 (the store pack drafted without the Apple account:
 App Privacy answers, review notes, age rating) and T863 (TestFlight external, approved since 0.8.2).

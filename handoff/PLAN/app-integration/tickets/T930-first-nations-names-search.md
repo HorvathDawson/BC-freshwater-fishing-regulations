@@ -2,6 +2,10 @@
 
 Status: POSTPONED (deferred, owner 2026-11-19: after the bathymetry map, stocked lakes, charts etc.; T200/T201/T634).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T930 | First Nations names as search names in name_variants.json (hand list of big waters, then BC Geographical Names) (owner) | POSTPONED (deferred, owner 2026-11-19: after bathy map, stocked lakes, charts; T200/T201/T634) | | owner 2026-11-19 "add to name_variants JSON in future" |
+
 Source: owner 2026-11-19 20:34 (main chat). After T926 (4) was dropped (the curated file holds no First Nations names), asked
 "How would we get the first Nations names otherwise?"; offered four sources (BC Geographical Names; OpenStreetMap
 `name:*` tags; a short hand list of the big waters; the Nations' own place-name maps, which need their permission).

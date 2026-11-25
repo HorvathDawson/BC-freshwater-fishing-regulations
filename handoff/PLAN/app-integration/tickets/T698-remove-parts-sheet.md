@@ -2,6 +2,10 @@
 
 Status: DONE — caa3a0133 (RULINGS P56; ships with the next app build)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T698 | Remove the Parts sheet (start link `sheet=parts` only since T150; "Closed all year · N stretches" on 45 waters) | DONE | caa3a0133 | owner 2026-11-12 "Remove the screen" (RULINGS P56); start link now refused and said; next app build |
+
 Owner 2026-11-12, dialog option verbatim: "Remove the screen". The sheet had no button since T150 (2026-10-23); it opened
 only with a start link `&sheet=parts`, and its second line said "Closed all year · N stretches" on 45 waters (T697).
 

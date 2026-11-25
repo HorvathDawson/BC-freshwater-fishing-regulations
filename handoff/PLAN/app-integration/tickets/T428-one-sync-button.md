@@ -4,6 +4,10 @@ Status: DONE — owner phone check 2026-11-08 passed (0.6.9). Was: IN REVIEW —
 confusing too — maybe the sync button at top in More menu can be combined with this so it actually syncs when you
 click it. Also use same look as sync button with fish near search bar." Do sometime (not urgent).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T428 | One sync control in More (the "Updates" row really syncs, same look as the map sync button) | DONE | e8f72da1c | owner 11-05 |
+
 Today More → Data has two refresh-looking things: "Refresh data: up to date" at the top and the circled "Updates" row
 (a sync icon over the per-feed "checked … · updated …" lines), which looks like a button but does nothing on tap.
 

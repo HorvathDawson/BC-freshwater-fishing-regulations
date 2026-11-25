@@ -2,6 +2,10 @@
 
 Status: DONE — 9c701a58b, 7377a604a, 4a787ac5d, 1db9d5d8a, 4acd5d0f1 (§1, §2, §4, §3 promote check); side-build proof 18db8478b (T606 item 1: 34 of 56 entries identical, the rest the day's DFO salmon inputs); §3 suffix order + §5 lake names in 0b23c1403 (T606 item 2), live in the promoted atlas. Item left: T606 item 3.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T547 | Atlas records the curated inputs it was built from; a release refuses an atlas older than its cuts, names or areas | DONE | 9c701a58b, 7377a604a, 4a787ac5d, 1db9d5d8a, 4acd5d0f1, 18db8478b, 0b23c1403 | — |
+
 Closed by the 2026-11-20 audit: the full side build proof is in T606 (18db8478b); §3 suffix + §5 built in 0b23c1403 and live (data/generated/atlas/full/registry.json: Tsacha, Kluskoil, Tundra, both Euchiniko items no longer carry West Road / Blackwater names, checked 2026-11-20).
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 3 of 17; highest severity 3 of 5.

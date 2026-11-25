@@ -3,6 +3,10 @@
 Status: DONE — b039349e (feed) + 73dd133e (app, Q161), lane-T177. Live after a FEED REPUBLISH (below); weights stay
 EQUAL (too few runs to weigh — measured below), the run archive now accumulates the record that will decide them.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T177 | combine CLEVER + COFFEE on every forecast day, weighted by measured skill (owner Q160) | DONE | b039349e, 73dd133e, af119f2c | feed republish; equal weights until the archive decides (T178); + spots record the trip day |
+
 Source: owner 2026-10-24 (Q160): "should combine models for change. look into which models is best to figure out how to
 combine." Today the +1/+3/+5/+10 horizons and T171's `aheadDays` take the FIRST model that answers a day
 (`change.day_model`), while the Change already combines CLEVER and COFFEE (geometric mean of ratios, equal weights —

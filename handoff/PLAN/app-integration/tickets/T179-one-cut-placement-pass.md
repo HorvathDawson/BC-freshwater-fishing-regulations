@@ -3,6 +3,10 @@
 Status: DONE — 90cc18504, 53f3819e, b93c95a6, 5c1ddc90, 6d7fd98e, cb858630 (promoted r-9b51c28ce0fe; post-promote fix in r-46a602244714). Owner 2026-10-24: "would it be better to revise how this is done? So that splits can merge with lake or
 gauge or other auto generated splits, but also handle real splits close together? This just feels fragile."
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T179 | one cut-placement pass: auto cuts merge into names, real cuts close together stay apart (order-independent) | DONE | 90cc18504, 53f3819e, b93c95a6, 5c1ddc90, 6d7fd98e, cb858630 | promoted r-9b51c28ce0fe; Koocanusa cut verified at the inlet; authored lake-anchor ends named again (r-46a602244714) |
+
 ## Why (what is fragile today)
 `pipeline/atlas/splits/sectionizer.py` cuts one split at a time and decides "same place?" as each arrives
 (`_pickup`), so the result depends on ORDER and on a radius:

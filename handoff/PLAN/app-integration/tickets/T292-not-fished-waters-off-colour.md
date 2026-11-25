@@ -2,6 +2,10 @@
 
 Status: PARTIAL — f67bd7142: app + pipeline done and the tiles carry `kind` (since the 10-30 build); left (Claude): the shots of the named tap sheet on current tiles (owner 2026-10-29: "make sure they are coloured properly too in the ui. they should be a off color").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T292 | Sewage basins, tailing ponds, dumps: off "not a fishing water" colour, no regs, tap says what it is, not in search | PARTIAL | f67bd7142 | left (Claude): the named tap-sheet shot on current tiles |
+
 ## Work
 1. Find how FWA waterbodies typed Settling Basin-Sewage, Mine-Tailing Pond, Dump (and any similar man-made non-fishing
    type: e.g. Settling Basin-Industrial, Reservoir-Fish Hatchery? — list them, ask before adding beyond the owner's three)

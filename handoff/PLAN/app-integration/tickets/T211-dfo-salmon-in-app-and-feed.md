@@ -2,6 +2,10 @@
 
 Status: DONE (parts 1, 2, 4) — 7dd3828c, afce6842, 28e7bfe9, 4b18a372; part 3 (historic matching) moved to the DFO-locations lane (coordinator 2026-10-27); owner: the feed cron + R2 sync (OWNER-TODO)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T211 | DFO salmon regs in the app (options), the DFO feed plan, historic extent matching, new-location alert | DONE | 7dd3828c9, 4b18a372 | card + toggle; live feed `regs.dfo_salmon.live` (offline = last capture), new-location alert → DFO mode via `live queue`; part 3 moved to the DFO-locations lane; owner: feed cron … (detail: ticket file) |
+
 Source: owner 2026-10-27.
 
 ## 1. Salmon regulations in the UI — OPTIONS for the owner

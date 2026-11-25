@@ -2,6 +2,10 @@
 
 Status: DONE — 2e6facf8a, a190b3c4a, f990aafed, 347281f96, d15784a4f. iOS background download, backup exclusion, free-space message and iOS wording merged 2026-11-16; the owner's phone checks a–d on build 36 passed, the one fault (spinner after reopen) fixed as T814.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T722 | iOS: downloads, offline, background and notices (IOS-5) | DONE | 2e6facf8a, a190b3c4a, f990aafed, 347281f96, d15784a4f | — |
+
 Closed by the 2026-11-20 audit: owner on build 36, 2026-11-16: "a-d worked good except after closing app and opening again the fish icon stopped moving" — that exception is T814 (DONE 94773621a); branch merged d15784a4f.
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is

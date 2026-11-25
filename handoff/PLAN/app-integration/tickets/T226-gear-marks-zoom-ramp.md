@@ -3,6 +3,10 @@
 Status: DONE (6db63d0e) — owner 2026-10-28: the T213 marks (ink edge under the status line, dashed for a bait ban) look very
 aggressive zoomed out.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T226 | bait-ban / fly-only marks fade in with zoom (gentle default, `late` variant) | DONE | 6db63d0e | paint.ts gearPaint ramps; shots T226-shots/ |
+
 ## Change
 `app/packages/map/src/paint.ts` `gearPaint` (web + native share it; contract.ts repaints through it):
 - opacity: top-level zoom `interpolate`, the day's `case` inside each stop (zoom may only feed a top-level interpolate);

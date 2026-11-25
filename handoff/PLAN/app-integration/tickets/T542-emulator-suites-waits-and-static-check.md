@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-20 (5107823ca) — all six suites green with the condition waits; wall times recorded under "Wall time" below.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T542 | Emulator suites wait on conditions; static check that every id and label a step uses exists | DONE | 5107823ca | six-suite emulator run + wall time (command in the ticket) |
+
 Source: workflow review 2026-11-09 (verified against the code). Rank 10.
 
 ## Today

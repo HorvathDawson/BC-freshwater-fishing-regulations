@@ -2,6 +2,10 @@
 
 Status: DONE — proved 2026-11-08: `pipeline release --staging` ran end to end twice (r-25a89ce9f8e6), resumed from its ledger. Was: IN REVIEW (2026-11-05, T408 re-scope, 9bc734bfa) — `python -m pipeline release --staging` (pipeline/release.py): preflight → baseline → `pipeline build --hold-latest` via heavy.sh (cached stages) → checks → promote LATEST → staging upload; stops at the first failure with a plain message, resumes from the ledger; `--dry-run` plan; tests `test_release_command.py` (17). Not run end to end (no build/upload by the agent). Runbook `handoff/PLAN/runbooks/release.md`. Earlier: 2026-10-31, ea9cade2a — stage timings + peak RSS + per-input reasons, parallel stages, cached rerun skips; 59 → 47.5 min. Not done: atlas DEM/FWA memoisation; tile_version determinism.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T295 | Faster full rebuild: stage timings, input-hash caching, parallel stages; do on the next full run | DONE | ea9cade2a, 9bc734bfa | T408: `pipeline release --staging` (resumable, cached build, checks, promote, staging); 59 → 47.5 min; runbooks/release.md |
+
 Was: OPEN (owner 2026-10-29: "maybe there are obvious ways to speed up the full rebuild for future? should be done the
 next time a full run is needed").
 

@@ -2,6 +2,10 @@
 
 Status: DONE 45fff5e63 (CI green 2026-11-17 22:28; Android benches: walkthrough PASS in the batch-1 bench; iPhone look waits with iOS benched; in 0.8.0).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T842 | The walkthrough on a phone: the highlight lags a scroll, the keyboard hides the target, too many steps for a first look | DONE | 45fff5e63 | owner 2026-11-17 (app) |
+
 Source: owner 2026-11-17 14:55, in the app chat, with two Android screenshots of the Play internal 0.7.12 build (step 3
 of 10, "Open its page", search "ved"), verbatim: "On the last release the walk through is still a bit glitchy. First
 image is a screen shot I caught when scrolling and the box has a weird delay tracking the box. It just feels

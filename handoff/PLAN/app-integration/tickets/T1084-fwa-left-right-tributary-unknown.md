@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1084 | FWA `LEFT_RIGHT_TRIBUTARY` is UNKNOWN for 188 streams, so a one-bank rule cannot tell which side they join | OPEN — 0.9.2, or with T1029 | | 0.9.1 chat 2026-11-24 |
+
 Source: the 0.9.1 chat, 2026-11-24 (T1029 ticket, draft PR #112): T1029 carries the field into the atlas; a one-bank place then reports `tributary_side_undetermined` for these streams.
 
 ## Work

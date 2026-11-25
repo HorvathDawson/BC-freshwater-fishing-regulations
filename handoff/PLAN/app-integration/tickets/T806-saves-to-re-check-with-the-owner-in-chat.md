@@ -2,6 +2,10 @@
 
 Status: DONE (e5d2f3cd1; owner 2026-11-17 15:18). Owed later: pictures for 2739 and 2783 after their fixes.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T806 | The 40 saves to re-check with the owner, in chat with a picture each: 5 he marked wrong, 35 written by Claude for him (11 live and open in Nov or Dec) | DONE | e5d2f3cd1; 34 answered 11-16, re-saved 2795-2839; owed: 2739 and 2783 pictures after their fixes | owner answers 2026-11-16 (`handoff/PLAN/OWNER-TODO.md`, "Answers by batch"), question 18 |
+
 Source: owner 2026-11-16, question 18: "can we sort this out now i want to review it and make it correct for sure";
 how: "In chat, with a picture each (Recommended)". T786 (ship DFO's words undrawn for a place marked wrong) stays
 open behind this: he chose to review now rather than answer it.

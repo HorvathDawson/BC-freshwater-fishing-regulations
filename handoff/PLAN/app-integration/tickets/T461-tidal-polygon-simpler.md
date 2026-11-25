@@ -2,6 +2,10 @@
 
 Status: PARTIAL 2026-11-06 — f3038a255 (the quieter look, owner approved). left (Claude): Work 1–2 (measure tidal_water per tile, then the per-zoom simplification at the tile build), riding a tile rebuild that ships with a release (tiles and bundle share a vintage); several release builds have passed without it.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T461 | Tidal-water polygon: simplify per zoom, quieter edge (measure first) | PARTIAL | f3038a255 | left (Claude): measure + simplify tidal_water at the tile build, with a release's tile rebuild |
+
 Owner: "the tidal polygon might be overwhelming stuff? should it be simplified more?"
 
 ## Today

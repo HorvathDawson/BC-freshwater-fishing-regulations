@@ -2,6 +2,10 @@
 
 Status: DONE — 3f43c1dd (feed) + ef762537 (app) + 298cee48 (review fix), lane-T170. Live after a FEED REPUBLISH (owner, below).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T171 | "Like your visit?": every forecast day uses the flow forecast (no weather-only gaps) | DONE | 3f43c1dd, ef762537, a09374b0 | feed republish (local; R2 owner) + app |
+
 Source: owner 2026-10-23: "in the how similar is a spot to when the spot was added section sometimes it has gaps and
 says weather only despite gauge forecast on both sides". T51's known gap (its follow-up "+2/+4 flow"): the strip's
 coming days read the feed's percentile only at the fixed HORIZONS (+1, +3, +5, +10 — `reading(row, "discharge", h)` in

@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS — two cuts in (02d0a8a90); left (Claude): the emulator timings before / after (both heavy locks with an emulator were taken 2026-11-22 evening)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1013 | Staging report: switching to Runs takes a very long time the first time (Android 0.8.5) | IN PROGRESS — read ahead on a phone + answer before the capture write; left (Claude): emulator timings before / after | 02d0a8a90 | emulator timings, fresh + warm (testbed mode-switch Runs leg) |
+
 Source: `GET /reports` on the STAGING feeds worker, read 2026-11-22 18:15 (report `50e342ef056ab300`). Android 0.8.5
 (build 43, 558c527), staging, release `r-741815c6090d`; screen "more", standard mode, zoom 6.9 at 49.522, -122.492.
 Reason "bug". Verbatim: "When you switch to runs it takes a very long time to load the first time?"

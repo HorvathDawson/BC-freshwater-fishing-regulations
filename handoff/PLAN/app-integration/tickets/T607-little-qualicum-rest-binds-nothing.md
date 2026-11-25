@@ -2,6 +2,10 @@
 
 Status: DONE — 2dbafca68 (the other_places extent kind, our proposal, the check-again flag). The owner re-saved "all open portions of the Little Qualicum River" as other_places 2026-11-15; the live reach run binds the rest ("all waters unless indicated below": outcome bound).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T607 | Little Qualicum "all waters unless indicated below" binds nothing: a whole-water sibling empties the rest | DONE | 2dbafca68 | — |
+
 Closed by the 2026-11-20 audit: owner's re-save in data/curated/review/marks.jsonl (2026-11-15, extent_fix op other_places); data/generated/reaches/full/dfo_salmon.jsonl.gz has 1:little-qualicum-river:all-waters-unless-indicated-below bound (was 0 sections).
 
 Source: the audit of the older DFO marks (T562 item 1, 2026-11-10); coordinator follow-up the same day.

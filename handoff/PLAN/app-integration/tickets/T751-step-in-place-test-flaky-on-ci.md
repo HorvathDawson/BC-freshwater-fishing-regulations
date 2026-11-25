@@ -2,6 +2,10 @@
 
 Status: DONE 52bf027de (2026-11-17 0.8.0 stock-take: the cross-water wait carries the file deadline; was: IN PROGRESS (2026-11-16: cause proven and the test fixed on branch `app-fix/t751-flaky-vedder`, test file only; left: the 31 sibling waits listed at the end))
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T751 | App test "▲ on the Vedder opens the Chilliwack's map … IN ITS PLACE" is flaky on GitHub's runners (red then green on identical code, twice) | DONE | 52bf027de | iOS chat 2026-11-15 (run 43694796944); red again on 44b9c25bf (run 43921202721) |
+
 Source: iOS chat, 2026-11-15. The app test "the water's Map view and the rest of the water screen agree … across waters:
 ▲ on the Vedder opens the Chilliwack's map at its lowest part IN ITS PLACE" went red then green on identical code twice
 in one night: ios/integration 107207143 → 3212f4936, and ios/t739-push ca91889bb (run 43694796944: first attempt red,

@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1114 | The App Store submission page carries its own copy of the listing words: print them from the one source | OPEN — before the App Store submission if cheap, else with T1081 | | store content chat 2026-11-24 |
+
 Source: store content chat 2026-11-24 23:50: `app/store-listing/listing.json` is now the one source of the listing
 words (PR #170), and `python3 deploy/staging/play-listing-push.py --appstore` prints the App Store fields. The iOS
 chat's page `handoff/PLAN/ios/APP-STORE-SUBMISSION.md` (T1071) holds a pasted copy, which will drift. Two drifts

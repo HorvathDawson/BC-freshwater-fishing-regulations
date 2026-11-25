@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS — F8, F12, F13, F14 built (5502ba714, 04316bd91, c58640b86, e4add6e9a); the owner accepted the new words 2026-11-12 (OWNER-TODO "Accept all as built": T585/T555 gauge wordings); the staging-only "Data release" line on the gauge card was removed by T920 (b49e10e49, owner-approved Conditions redesign). left (Claude): the emulator check under "Not device-tested" (cold-start "Updated to …" said once; offline kept-reading words).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T585 | Web and phone answer from the same feed and release, and say which | IN PROGRESS (F8, F12-F14 built; owner accepted the words 11-12; Data release line removed by T920; left (Claude): emulator check) | 5502ba714, 04316bd91, c58640b86, e4add6e9a | T580 F8, F12–F14; with T550; HYDAT-differs in T633 |
+
 Source: T580 audit 2026-11-10 (owner: "stuff like this should never happen … look for other things like that").
 Findings, with file:line, the state that shows each and the proposed fix: `handoff/PLAN/app-integration/T580-findings.md`.
 

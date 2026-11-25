@@ -2,6 +2,10 @@
 
 Status: PARTIAL — step 1 (the check tool) done 2f73c4076; left (Claude): step 2, the app's speed reading, unproven: no evidence yet that the app is wrong
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T736 | Staging check: the rule-book step fails when the app thinks the connection is slow (it asks before the 11.7 MB download; the check never answers; the line was not slow) | PARTIAL | 2f73c4076 | left (Claude): step 2 only if evidence shows the meter is wrong. step 1 done: the smoke presses Download it and says so; meter reading read, not changed (no evidence). staging … (detail: ticket file) |
+
 Source: staging redeploy of b2dba0297, 2026-11-14. `node app/tools/smoke-staging.mjs` failed 1 of 19 twice ("phone: rule
 book link opens the synopsis PDF", 60 s timeout), then passed 19 of 19 on a third run (46.8 s for that step) with the
 machine still loaded (load average about 27).

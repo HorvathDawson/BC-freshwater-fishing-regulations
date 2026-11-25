@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-06 — f3038a2 (owner approved the shots: "assume tidal and lakes are good"). Phone check on 0.6.8.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T457 | Lakes: opaque outline sized by the lake over a slightly transparent fill | DONE 2026-11-06 | f3038a2 | owner approved shots; phone check 0.6.8 |
+
 Owner: "lakes in the map could look better if they have an outline that is opaque then a fill that is slightly
 transparent? with the outline sized by the size of the lake so it is proportional?"
 

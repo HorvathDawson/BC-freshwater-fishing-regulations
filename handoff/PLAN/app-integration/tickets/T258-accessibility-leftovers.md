@@ -2,6 +2,10 @@
 
 Status: DROPPED — merged into T410 (2026-11-05 audit; the work continues there) — was: PARTIAL — items 1-3 done (see Built); item 4 is the owner's phone walk.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T258 | accessibility leftovers: T257's screens into the shell gate, web text-row labels, web targets, owner TalkBack/VoiceOver walk | DROPPED — merged into T410 (2026-11-05) | 2d60c72cb | items 1-3 done (7 states in the shell gate, role=group text rows, web targets kept >= 24 px); owner TalkBack/VoiceOver walk remains |
+
 Source: T243 (2026-10-29 overnight): what the pass did not reach.
 ## Work
 1. Into `a11y.shell.test.tsx`: the states T257 was rewriting during T243 — a water's Conditions panel with gauges

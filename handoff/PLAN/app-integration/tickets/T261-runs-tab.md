@@ -2,6 +2,10 @@
 
 Status: PARTIAL — 6df3861ea, a87b6a58a: app + feed (counts, adult series, field) built and on staging 2026-10-29; the Runs tab is in every native build since (core tabs.ts BROWSE_TABS). left (Claude): the native device run (Runs tab, slider, chips, sheet on the emulator, shots beside T261-shots/) and the counts-coverage note; then the owner look on the next phone check.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T261 | run timing v2: its own Runs tab (bell stays), date slider by pentad (Play, today, season), watershed groups zoomed out, multi-species chips with fish art (kept), DFO counts in the sheet ("No counts" otherwise), feed `n` + `basins` on staging | PARTIAL | 6df3861ea, a87b6a58a | left (Claude): emulator run of the Runs tab + counts-coverage note; then the owner look |
+
 Source: owner 2026-10-29 — run timing (T199) must be "really nice": its own bottom tab like Map / Conditions, a date
 slider, areas coloured zoomed out and streams zoomed in, multi-select species with the fish art, a scale of the run
 where the data has numbers ("no counts" otherwise, never invented), legend / tap sheet / credits / offline polish.

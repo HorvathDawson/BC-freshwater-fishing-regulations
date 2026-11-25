@@ -2,6 +2,10 @@
 
 Status: DONE — shipped 0.8.5 (eee8ae839, 2026-11-21).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T982 | TestFlight tester feedback 2026-11-20 (6 items: % of estimate, normal wording, gauge-absent sentence, photo icons, gauge boxes, open at my location) | DONE (shipped 0.8.5) | eee8ae839 | TestFlight feedback, read 2026-11-21 |
+
 Source: TestFlight feedback from an external tester (iPhone15,4, iOS 26.6.1), read 2026-11-21 with
 `node deploy/staging/testflight-feedback.mjs --days 30 --shots <dir>` (owner: "is there a way to have an agent get it?").
 Screenshots are in `T982-shots/`.

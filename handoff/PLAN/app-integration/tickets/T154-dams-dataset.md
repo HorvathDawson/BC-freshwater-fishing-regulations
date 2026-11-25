@@ -4,6 +4,10 @@ Status: DONE, REVIEWED — 216753d7 (fetch entry, dams.py, revise.py --dams) + r
 the lost census scratch); result below for the owner. No app change, no committed candidates change. Rebuild: none (the merger fetches the layer: `python data/fetch_data.py --layers
 dams`).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T154 | a dams layer (BC WRIS, OGL-BC) matched to FWA; T148 R2 reads it | DONE | 23be8123, d8fab861, 216753d7 | fetch layer `dams`; evidence only (Q-T154a); delivered r-9cf1fef180a8 |
+
 Source: T148 (R2 could not fire on the owner's three "dammed area" marks — Quinsam, South Nanaimo, Bonaparte — because no
 dam or obstruction dataset is in the repo; the waterfalls layer is OSM falls only). 2026-10-23.
 

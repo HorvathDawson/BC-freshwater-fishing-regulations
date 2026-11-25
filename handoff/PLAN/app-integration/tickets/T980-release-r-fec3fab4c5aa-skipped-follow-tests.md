@@ -2,6 +2,10 @@
 
 Status: DONE — shipped 0.8.5 (4f2b87a43, 2026-11-21).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T980 | Three follow tests skipped to ship r-fec3fab4c5aa (two T286 page-read budgets, the unnamed trib-closed fixture): fix them | DONE (shipped 0.8.5) | 4f2b87a43 | 2026-11-20 release |
+
 ## Measured and done (2026-11-21, lane/085-t983)
 1. The +5 page calls on both waters are all T973's `cw-through`: opened (1 meta read by the loader, 1 by the store's
    atlas check) and read whole (`cw_note`, `cw_year`, `section_cw`) by the FIRST tap, once a store — the prewarm did

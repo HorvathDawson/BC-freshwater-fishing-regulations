@@ -3,6 +3,10 @@
 Status: DONE — eb2405de0, 3ca087b56 (closed on the owner's word 2026-11-20; see the last section)
 Re-scoped (owner 2026-11-03): a signed device build and a TestFlight upload script; needs the $99 Apple Developer account (owner).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T88 | iOS: signed build + TestFlight upload (re-scoped; the simulator half is T313) | DONE | eb2405de0, 3ca087b56 | — |
+
 Source: owner deferred iOS at N1 ("code kept platform-neutral so iOS is a build later"); N2 status: "Device run, iOS:
 open". CocoaPods not installed; EdgeBack is iOS-only and has never run.
 

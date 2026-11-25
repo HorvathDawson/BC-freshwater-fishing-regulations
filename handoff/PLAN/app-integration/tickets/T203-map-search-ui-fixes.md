@@ -2,6 +2,10 @@
 
 Status: DONE (4430d187, 4ccacfee, 715ecc46; items 4–5 are T204)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T203 | app UI: jumpy "Flows into" chip over navigation, search always lands on the map, amber highlight | DONE | 4430d1875, 4ccacfeef, 715ecc46a | items 1-3 built; 4-5 (Kanaka end labels, non-adjacent stretches) need release data: one mark per meeting point + part stretches - see ticket Outcome |
+
 Source: owner 2026-10-25, using the app.
 
 ## Problems

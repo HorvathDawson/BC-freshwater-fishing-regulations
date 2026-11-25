@@ -5,6 +5,10 @@ The build pass did not cause them. Every one reads LIVE generated data (the atla
 the pass touched no live output, and the side rebuild of the same inputs is byte-identical to the live bundle and
 release data files (`build-pass-2026-10-31.md`).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T306 | slow suite: 8 failures on live data (status_index 198/6000 disagree, national parks, cayoosh split, water kind, t57 sweep, browser) | DONE 2026-11-06 — the last 6 were pins stale against T322 rulings; no data/release defect | f0b92de23, 876e63529, 1e061ed5f | found by the 10-31 build pass; not caused by it |
+
 | test | says |
 |---|---|
 | test_status_index::test_the_index_agrees_with_effective_rules_on_6000_section_days | **198 of 6000 disagree** (e.g. sid 322, 2025-07-14: index 0, reader 3). The release on staging is affected: look at this first |

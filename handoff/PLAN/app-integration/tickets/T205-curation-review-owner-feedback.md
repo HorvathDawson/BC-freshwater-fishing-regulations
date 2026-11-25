@@ -2,6 +2,10 @@
 
 Status: DONE (3639d5230)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T205 | curation review: zone entries without a map, species + sizes per rule, pilot removed, compact T/R/P/A widget, bigger show-on-map | DONE | 3639d5230 | owner tries it |
+
 Source: the owner on the local curation review app (T189/T191/T164), 2026-10-26.
 
 ## Built

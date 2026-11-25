@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1122 | The stores' data forms say what the privacy page now says (Play Data Safety, the iOS submission page) | OPEN — before the App Store submission (item 2) and the Play application (item 1) | | owner reads out the Data Safety form |
+
 Source: the 0.9.1 chat's T1098 lane, sent to the planning chat 2026-11-25. Related: T1098 (privacy page), T1099
 (iPhone privacy manifest), T1071 (App Store submission), T1046 (Play production access).
 

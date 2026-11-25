@@ -2,6 +2,10 @@
 
 Status: DONE — ec4480b66, caa44668c (0.9.1, owner 2026-11-24: in the 0.9.1 bundle)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1048 | `release --cut` writes the new version's app_reads row in its version commit | DONE | ec4480b66, caa44668c | — (the 0.9.1 cut is its first real use) |
+
 The 0.9.0 cut (`pipeline/release.py` `cut`, about line 2475) made the version commit without a row for 0.9.0 in
 `pipeline/deliver/release/app_reads.json`. The release lane had to add it by hand (6ea5b344a, "Same formats as 0.8.5:
 nothing the 0.9.0 app reads moved"). The release gates read that file (`app_gate.py`, `contract.py`), so a forgotten row

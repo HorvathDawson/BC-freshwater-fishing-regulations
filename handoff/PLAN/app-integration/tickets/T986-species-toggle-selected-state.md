@@ -2,6 +2,10 @@
 
 Status: DONE — shipped 0.8.5 (a2dc93a9b, 2026-11-21).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T986 | Trout / Salmon switch: which one is on is hard to tell (bar sits between the two) | DONE (shipped 0.8.5) | a2dc93a9b | tester via owner 2026-11-21 |
+
 Source: a tester, via the owner's messages 2026-11-21 12:43 (shot: `T986-shots/species-toggle-tester.png`, the app part
 only). Verbatim: "Its hard to tell which one is toggled for the trout/salmon … Because when the trout is toggled it could
 be both … You could like move the bar so it is on the left border instead?"

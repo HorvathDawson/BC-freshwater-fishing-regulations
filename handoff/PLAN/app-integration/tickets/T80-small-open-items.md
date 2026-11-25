@@ -4,6 +4,10 @@ Status: DROPPED — merged into T240 (2026-11-05 audit; the work continues there
 Deliver fix 53abfd9c: item 3's one-kind group stopped `pipeline.deliver all` (model.py refused it); the answers model now accepts exactly a TROUT_CHAR one-kind group on its own row's pool, and test_answers_one_kind_group.py runs the build's `validate_section` on the T80 waters (+2 mutation pins).
 Card-gate fix 3a6d20c3: the batch-3 deliver's 30 card-gate problems (Perry Creek's brook trout 20, a one-kind row HELD by the St. Mary's tributaries' 1) — item 3's group now fires only on a row no pool holds (`rows.A_ONE_KIND_GROUP_ONLY_ON_A_DRAWN_ROW`, parent_of decided once; model refuses the shape); card_check over the live bundle's full answers: 0 problems.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T80 | small open items (S1 minors, Kitimat witness, D19, flash, search, CI) | DROPPED — merged into T240 (2026-11-05) | ca5ecb26, 309cd3e8, b08af5e9, ea63d8cb, 46f49485, 53abfd9c, 2c2d3d69, 3a6d20c3, 55b30ec7, 128cc4e0, 84d5919d, fb5d72e5 | two open shapes, item 4/6 (see ticket) |
+
 Each item closes with a fix + test, or a recorded "no" with the reason:
 1. S1 photo minors (implement_progress): draft photos named after the first draft id; the web picker hangs where the
    input has no "cancel" event (Safari < 16.4); unit words "m" and "m3/s" in ui/leadUp.ts instead of words.ts; a second

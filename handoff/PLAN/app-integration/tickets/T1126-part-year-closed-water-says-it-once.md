@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1126 | A water closed for part of the year by one book rule says it once (T1052 follow-up, 130 waters) | OPEN — 0.9.2, pictures first | | owner: "Yes, merge those too" |
+
 Source: T1052 (owner's staging report of 2026-11-24, wording A merged in 0.9.1) left the part-year case as two
 statements. Owner, relayed by the 0.9.1 chat 2026-11-24: "Yes, merge those too". Not started; missed the 0.9.1 cut
 (0.9.1 chat 2026-11-25 02:12). The counts are in T1052: 296 waters closed part of the year, of which 130 by the same

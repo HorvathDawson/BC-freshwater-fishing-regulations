@@ -2,6 +2,10 @@
 
 Status: DONE (7958b3c60, e3d6d5f26; on staging in r-46e4355a7277, 2026-11-16).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T763 | Kootenay Lake Main Body's rainbow card says "20 a year · Record each on your licence right away" without "over 50 cm" (the book's yearly limit and record duty are for rainbow over 50 cm only); `pipeline/deliver/answers/card.py` `_duties` ignores the annual and record rules' size band; one answer key wrong today, the fault general | DONE | 7958b3c60, e3d6d5f26 | trout display review 2026-11-15 (data note 1), traced by the app chat; pipeline answers = the main chat's area |
+
 Source: trout display review 2026-11-15, data note 1 (`handoff/PLAN/design/trout-display-review-2026-11-15.md`); traced
 read-only by the app chat on release r-f749475d0962, 2026-11-15 22:45.
 

@@ -2,6 +2,10 @@
 
 Status: DONE bb242bbce, 312b365c7 2026-10-30, except the emulator gesture pass (heavy lock held by T298; run when free).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T300 | Conditions/Runs/legend polish: no ELF default, model text + credits collapsed at bottom, gauge-map gestures, Runs heat legend, obstacles in legend, shorter legend words, More-tab sync button | DONE (emulator gesture pass pending: lock held) | bb242bbce, 312b365c7 | owner 2026-10-30 |
+
 ## Work
 1. **Never default to the ELF forecast** on a gauge chart (pick CLEVER/COFFEE/other first; ELF only if the user picks it or it
    is the only one — and then say so).

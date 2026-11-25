@@ -2,6 +2,10 @@
 
 Status: DROPPED — folded into T366 (owner 2026-11-03: "im not sure why I need to review them if the locations match historic location"). The places are historic and unchanged, so the marks stand; the rule changes go to the digest (T366 item 4), and the test is fixed there
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T361 | Six region-1 DFO owner marks read "rule changed" after the 11-03 region-1 re-queue (test_marks_never_orphaned red) | DROPPED (folded into T366, owner 11-03: historic places, marks stand; rule changes go to the digest) | — | owner re-reviews the six |
+
 `test_marks_never_orphaned` fails since `python -m pipeline.regs.dfo_salmon.live queue --regions 1` (11-03 ~10:01,
 run to put the two held Nanaimo "tidal portions" places back in DFO mode). The step re-emits region 1 from the cached
 page (`cache/dfo_salmon/raw/region1-eng.html`, 10-27), refreshes `data/generated/regs/dfo_salmon/typed/region-1.json`,

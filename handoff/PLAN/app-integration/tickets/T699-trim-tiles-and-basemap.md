@@ -2,6 +2,10 @@
 
 Status: POSTPONED (deferred, owner 2026-11-13, verbatim: "Then the last 2 items for after closed testing should be moved to deferred with stocked lakes and bathy map etc.." Moved to the deferred group with stocked lakes and the bathymetry map; earlier answer "After closed testing").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T699 | Trim the map tiles and basemap (≈ 412 MB: zoom levels, per-layer detail, simplification per zoom); split out of T686 candidate 8 / group B question 4 | POSTPONED (deferred, owner 2026-11-13: moved to deferred with stocked lakes and bathy map; earlier "After closed testing") | — | links T686 (candidate 8); measure first, no shipped change |
+
 Source: T686 candidate 8 / group B question 4 (shrink shipped data): the atlas tiles and basemap are about 412 MB on disk
 (186.9 MB pmtiles + 215 MB basemap dir at the 2026-11-12 survey). Owner's earlier answer: "After closed testing"; now deferred.
 

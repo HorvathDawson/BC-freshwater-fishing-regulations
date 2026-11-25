@@ -2,6 +2,10 @@
 
 Status: PARTIAL — 0f6e7607c, aed6f6a25 (2026-11-10). 2026-11-22: items 1 (the entry/rule changed-extent guard), 2 and 3 (found names, lake names in `add_mined_names`) looked at and NOT started: 1 is mark-schema + save-path work, 2 and 3 are `pipeline/atlas/registry/mined.py` + `mine.py` (the atlas lane). Each is its own ticket-sized lane. left (Claude): items 1, 2, 3 (each its own lane).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T562 | Review marks, what T545 and T541 left: changed-extent guard for older marks, found-name freeze, lake names, check list in the app | PARTIAL — 4, 5, 7 done; 6 closed; items 1 (entry/rule guard), 2, 3 open: mark-schema / atlas-registry work, not leftovers; left (Claude): items 1, 2, 3 | 0f6e7607c, aed6f6a25 | T545 + T541 lane reports 2026-11-09 |
+
 Source: the T545 and T541 lanes' reports, 2026-11-09.
 
 ## Work

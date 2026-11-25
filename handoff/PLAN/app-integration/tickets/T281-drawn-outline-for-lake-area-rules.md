@@ -2,6 +2,10 @@
 
 Status: POSTPONED (deferred) (waits on lake splits — owner 2026-10-28, Q142, memory `lake-splits-deferred`).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T281 | Draw the lake area an in-part rule holds on (François map 1, Shuswap A/B/C, Mahood, Canim) | POSTPONED | — | from T208; waits on lake splits (owner deferral, Q142) |
+
 Source: T208's last work item ("later a drawn outline when lake splits land").
 
 ## Work

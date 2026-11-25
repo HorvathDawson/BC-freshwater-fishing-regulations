@@ -2,6 +2,10 @@
 
 Status: DONE (df294e791, 717813def; in 0.8.2 on app/integrate-082, ledger brought up to date 2026-11-19). Was: OPEN (app chat; built; lands after the owner sees the pictures).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T878 | Sunrise/sunset moves to a small line under the date; the empty place slot collapses (owner) | DONE | df294e791, 717813def | owner 2026-11-18 ~20:49; built, lands after the owner sees the pictures |
+
 Owner 2026-11-18 ~20:49, with a shot of Babine Lake — Main Body, verbatim: "There seems to be a ton of space used by the
 sunset/rise could we maybe move it to top of something? Where would be good?"
 

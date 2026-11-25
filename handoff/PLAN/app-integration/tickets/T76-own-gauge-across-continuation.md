@@ -7,6 +7,10 @@ time. Left: the merger's batched `pipeline.deliver` (no reach, no atlas, no tile
 the live bundle (expect only those 41 sections) and see `test_water_continue.py::test_the_chilliwack_continues_as_the_vedder_in_the_bundle`
 go green (fails on the live bundle until T59's Atnarko row ships). Review 4fba2181: catalogue pairings now read before the pickles load (peak memory); acceptance pinned on shipped data — `test_own_gauge_continuation.py::test_the_vedder_is_led_by_08mh001_in_the_bundle` (fails as 'predates' on the current live bundle; must pass after the deliver). Catalogue heads == live `entry` rows (1525, 0 differ), so the `built_with` guard will not trip.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T76 | own gauge across a continuation (Vedder) | DONE | ce29990c, 2470ef08, f648ab5c, 4fba2181, e5dfe217 | live in r-36fbc5326506 |
+
 Source: own-gauge REPORT.md: "Vedder (sid 313838): nothing leads" — its own gauge 08MH047 is retired and the Chilliwack
 gauges belong to another item, though `water_continue` links them. Owner 2026-10-22: Vedder/Chilliwack is "one system"
 (87ba267c). Call 10 kept the five constants, but they are not recorded as values in decisions.md.

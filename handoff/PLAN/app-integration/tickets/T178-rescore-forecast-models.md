@@ -3,6 +3,10 @@
 Status: PARTIAL — c97f30294: the feeds worker scores CLEVER vs COFFEE monthly and reports (deployed with the feeds worker, staging and production 2026-11-18/19); left (Claude): the first full-month verdict (2026-12-01 for November) and, if it moves, the reviewed weight change.
 full-month verdict (2026-12-01 for November) and, if it moves, the reviewed weight change.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T178 | re-score CLEVER vs COFFEE from the run archive (~6 weeks) and set the weights by the verdict | PARTIAL (worker scores monthly + reports; deployed; weights stay reviewed) | c97f30294 | first full verdict 2026-12-01 |
+
 Source: T177 (owner Q160 "look into which model is best"). On 2026-10-24 only 5 stations × 1 issue day × lead 1 could be
 scored, so the weights stayed equal. `python -m pipeline.gauges.feed.skill --feed data/generated/gauges/feeds` reads
 the run archive (`data/generated/gauges/feeds.runs/`) and prints the per-lead table and `skill.verdict` (equal until a

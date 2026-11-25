@@ -50,6 +50,8 @@ _SHARED = [".github/actions/changes/**", "scripts/ci_paths.py"]
 AREAS: dict[str, list[str]] = {
     "docs": ["handoff/**", "AGENTS.md", ".github/copilot-instructions.md",
              "app/tools/check-tickets.mjs", "app/tools/check-tickets.test.ts", "app/tools/start-here.test.ts",
+             # (T1041) the guard reads the rows and owner items through the ledger tool
+             "app/tools/ledger.mjs", "app/tools/ledger.test.ts",
              ".github/workflows/docs-ci.yml", ".github/actions/app-setup/**", *_SHARED],
     "app": ["app/**", ".github/workflows/app-ci.yml", ".github/actions/app-setup/**",
             "pipeline/deliver/bundle/schema.sql", "pipeline/deliver/bundle/indexes.sql",

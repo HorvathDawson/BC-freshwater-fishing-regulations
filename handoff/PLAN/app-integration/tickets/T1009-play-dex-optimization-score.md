@@ -5,6 +5,10 @@ scores and fails on a -dont* pass or under the floors (70/70/70; measured 72.0 /
 ("Measured" below); left (Claude): the independent review and merge, Play's figures and the card's word after the
 0.9.0 Play internal build.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1009 | Android: Play "DEX code optimization: Low": measure optimization / shrinking / obfuscation every build, narrow broad library keep rules, floors in a build check (after T1003) | IN PROGRESS — L1 perf/T1003-r8-release: scores + floors in the build; left: review/merge, Play's figures | 6f0be8f4d, c34b990ba | owner 2026-11-22 (Play Console card) |
+
 Source: owner 2026-11-22, pasting the Play Console card verbatim: "DEX code optimization — Low — Optimize your scores to
 improve your memory usage and overall performance for your users. Learn more", with "we want to make this better?
 new ticket".

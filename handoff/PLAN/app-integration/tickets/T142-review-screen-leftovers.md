@@ -3,6 +3,10 @@
 Status: DONE — 9c141d24 (blur, browser test), 8d0f5d76 (refusal wording, shared with T135), adversarial review fix 9b8de2e3 (lane-T135). Q96's partial "text and rules verified" mark is NOT built (owner default: no);
 documented below. Takes effect on merge: no rebuild.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T142 | review screen leftovers: focus after click, error wording, partial mark (Q96), draft-guard test | DONE | 9c141d24, 8d0f5d76, 9b8de2e3, 19dbc1ee | Q96 not built (default no) |
+
 Source: T134 "Left / follow-ups" and its adversarial review (T134-curation-review-screen.md).
 
 ## Work

@@ -2,6 +2,10 @@
 
 Status: DONE — 74cbc9bf0 (`python -m pipeline reports`; START-HERE step 0 is that one command; run live 2026-11-22: both workers, TestFlight and Play read)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1006 | One read-only command lists every new report (both workers, TestFlight, Play reviews); every chat runs it first | DONE | 74cbc9bf0 | — |
+
 Source: owner 2026-11-22, verbatim: "Also get next chat hand off to always look for more reports on Apple external
 test, feed worker ,.etc."
 

@@ -2,6 +2,10 @@
 
 Status: DONE 2026-10-29 (owner 2026-10-29: "we need everything moved to our server"). Commit: b43039fe5
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T270 | Map fonts + symbols (glyphs/sprites) from our own data host only, offline-capable; audit every third-party request | DONE | b43039fe5 | owner 2026-10-29 |
+
 Source: privacy-page check found glyphs + sprites load from `https://protomaps.github.io/basemaps-assets`
 (`app/packages/map/src/endpoints.ts` PM_ASSETS).
 

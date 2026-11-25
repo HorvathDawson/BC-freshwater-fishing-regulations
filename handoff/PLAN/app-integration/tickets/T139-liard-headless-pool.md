@@ -2,6 +2,10 @@
 
 Status: DONE — 8fb5f1ac, 67d72c8e (review) (needs `deliver` to ship).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T139 | third headless one-kind pool: Liard River watershed (7-53) | DONE | 8fb5f1ac, 85288617, 67d72c8e, c4a3da48 | delivered r-b518a2b507fa |
+
 Source: `pipeline/tests/test_answers_one_kind_group.py::test_every_shipped_headless_water_is_drawn_but_the_two_open_shapes`
 (needs_bundle) fails on the current bundle: besides the two known open shapes (Duncan DV, z8 r5) a third headless pool is
 shipped — `r7:liard_river_watershed_see_map_on_page_63@7-53::liard_river_watershed.r2`.

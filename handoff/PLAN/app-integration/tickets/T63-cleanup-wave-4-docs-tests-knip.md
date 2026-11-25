@@ -6,6 +6,10 @@ Status: DONE — 341fff64…9867bc86 (lane), merged 2026-10-24; strict app check
 - Tests: remove tautologies and duplicates, keep whole-value + mutation-pinned tests, faster suites.
 - knip in `pnpm check` (N23).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T63 | cleanup wave 4: docs, tests, knip | DONE | 341fff64, 11d29685, 9c22614a, 9867bc86 | MAP.md ×2, 16+ duplicate tests gone, knip in check, synopsis isolation fixed, 2.17 fixtures moved |
+
 - From T81 (Q17 = no): `useSearchView(..., follow)` / `subjectOf(..., follow)` in app/packages/ui/src/search.ts are only
   called with `false` outside tests (search.ts:387) — drop the parameter and the dead branch. Also `stationsFor` (no
   non-test caller) and the --noUnusedLocals leftovers T70 listed.

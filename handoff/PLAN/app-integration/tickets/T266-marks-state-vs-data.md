@@ -2,6 +2,10 @@
 
 Status: DONE (2026-11-05, cbb457042) — T408 re-scope landed: no `decided/`; the writers compute the marks' decisions in memory (`review.export.load`). Was IN REVIEW (2026-10-31, ec2d60bdd).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T266 | marks are review state; decided data in per-domain files via one exporter (tidal, DFO extents, sloughs, ponds, names) | DONE | ec2d60bdd, cbb457042 | T408 re-scope: `decided/` dropped; writers decide from marks.jsonl in memory (`review.export.load`); apply dry-run unchanged |
+
 Source: owner 2026-10-29: "should we get tidal marks into a separate file to simplify? so marks is just state of review
 then data goes into the individual files? could use a single exporter."
 

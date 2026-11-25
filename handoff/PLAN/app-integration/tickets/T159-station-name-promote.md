@@ -2,6 +2,10 @@
 
 Status: DONE (ce1cf83c, 06b83665) — 7 promoted by the owner; 08MH079's right match proposed below (a note, no promote)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T159 | gauge auto-promote checks every name the matcher accepted (Arrow Reservoir / Lower Arrow Lake) | DONE | ce1cf83c, 06b83665 | owner promoted 7 (10-28); 08MH079 proposed as Kilgard Creek (FWA-unnamed blk 356314888, a review.json bind) — a note, not promoted |
+
 Source: T125 item 8 "gauges 9"; Q118 decided by Claude 2026-10-23 (decisions.md owner-question triage).
 
 ## Work

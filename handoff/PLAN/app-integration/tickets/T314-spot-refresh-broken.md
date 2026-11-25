@@ -2,6 +2,10 @@
 
 Status: DONE (21d047df8, 9ce7f4079, d67341585) — emulator 2026-10-31 (`app/tools/testbed/out/runs/apk-0400`, SPOTS_AT Vedder): saved offline, back online the reconnect refresh filled weather + the 4-gauge estimate by itself; the page is identical before and after a manual Refresh. What stays on the visit day ("some days of the week before …", "the flow on the day … from the day's record") is unpublished data no refresh can fill until the day is over (harness now judges what the spot records, not the banner).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T314 | Spot data refresh doesn't work in 0.3.0 (pending weather/flow never fill) | DONE (emulator 10-31: spots 15/15 on the Vedder, gauges + weather filled on reconnect; 0.4.0) | 21d047df8, 9ce7f4079, d67341585 | owner 2026-10-31 |
+
 ## Work
 Reproduce on the emulator (0.3.0 build, staging): a spot saved offline or with pending weather/flow, then online → refresh
 (the spot page's refresh / the app's reconnect backfill, T294 refresh across visits, T307 fast-fail backfill). Find why it

@@ -2,6 +2,10 @@
 
 Status: OPEN (main chat). After production (owner 21:0x).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T880 | A DFO exception printed without "and tributaries" leaves out that stream only (Bulkley: Two Mile Creek; the Suskwa on the chinook row) (owner) | OPEN | main chat | owner 2026-11-18 ~20:59 |
+
 Owner 2026-11-18 ~20:59, a shot of DFO's Region 6 table
 (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/8d922a2e-image.png), Bulkley River, "all
 tributaries of the Bulkley River other than Morice River and tributaries, Suskwa River and tributaries, and Two Mile

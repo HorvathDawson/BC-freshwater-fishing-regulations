@@ -2,6 +2,10 @@
 
 Status: OPEN (after 0.8.3; owner 2026-11-19 ~12:00 "yes ticket it"; raised again 2026-11-24 with a production Lighthouse run: 0.9.2).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T914 | Web start: break up the first script's evaluation and the first screen's build (mobile Lighthouse) (owner) | OPEN | after 0.8.3 | owner 2026-11-19 ~12:00; again 2026-11-24 (production Lighthouse: 25.2 s main thread, 7.1 MB first load): 0.9.2 |
+
 Owner 2026-11-19 ~12:00 (main chat), asked what else could be done about "most of that delay is the main code starting
 up, which these changes don't touch" (T910's result), verbatim: "yes ticket it".
 

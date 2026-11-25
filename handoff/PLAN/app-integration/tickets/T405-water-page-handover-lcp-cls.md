@@ -2,6 +2,10 @@
 
 Status: DROPPED — merged into T409 (2026-11-05 audit; the work continues there) — was: PARTIAL — 5ba3155e5, db643ad12, f32ddb13a; CLS and A11y met; fish thumbnails (owner 11-05) took LCP to 2.1-2.5 s, Performance 77-88; TBT (app boot) still stops 95: owner decides the water-page target (below).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T405 | Water pages fail Lighthouse when the app takes over the prerendered pane (LCP 3-39 s, CLS 0.15-0.72; hubs score 100) | DROPPED — merged into T409 (2026-11-05) | 5ba3155e5, db643ad12, f32ddb13a | staging fc215b52: fish thumbnails (fish bytes 307 → 54 KB on Vedder), perf 77-88, LCP 2.1-2.5 s, CLS 0.002, A11y 100; TBT (app boot) stops 95 — owner picks target/option |
+
 Source: T196 gate on staging 2026-11-05 (release r-5a5999c94588, staging version 965c01af, lighthouse 12.8.2 mobile,
 simulated 4G). Hubs and About score Performance 100 / A11y 100 / LCP 1.3-1.4 s / CLS 0. `/water/vedder-river`:
 **Performance 45, A11y 97, LCP 38.9 s, CLS 0.154, TBT 750 ms.**

@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS (both steps approved by the owner 2026-11-14: iPhone, then "for android too."; iOS chat, branch `ios/t739-push`; ANDROID PUSH IS OFF THE TABLE FOR NOW, owner 2026-11-16 12:08 on Firebase: "we dont want this right now"; iPhone push unchanged). 2026-11-20 09:07: lane/l5-push merged (f9c2e42b5, reviewed twice), staging feeds worker deployed (push.missing.ios == [], 0 tokens); 2026-11-20 10:35: review leftovers L2 + L3 built on lane/la-feeds-leftovers (683042a46: every token listed; one run tells at most 1,500 phones and carries the rest to the next run, under the subrequest limit, said on /status); left (Claude): main chat review + merge, the staging feeds worker deploy, the TestFlight build with this release, then the owner phone test.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T739 | Push "wake-ups" so alerts and notices arrive on time: a content-free "check now" push from the feeds worker, iPhone only (APNs; no Android push, owner 2026-11-16) | IN PROGRESS (merged with T822 on `lane/l5-push` 2026-11-20: iPhone only, Android push removed (owner 2026-11-16, "we dont want this right now"), the approved privacy line in the page source; merged f9c2e42b5 + staging feeds worker deployed 09:07 (push.missing.ios == []); left (Claude): TestFlight build with this release, then the owner phone test; privacy wording question in OWNER-TODO 2026-11-20 07:33; 11-20 review leftovers L2+L3 (token list uncapped, 1,500 phones a run + carry-over) on lane/la-feeds-leftovers, left (Claude): main chat review + merge) | 683042a46 | owner 2026-11-14 ("okay i ticked push notifications for app yes build for iphone.", "for android too."); audit F3/G3 |
+
 Source: owner 2026-11-14, verbatim: "dont we want to use it for the notifications thought?" (on the Push Notifications
 box of the App ID), "there are also time sensitive notifications?" and "can we do this same push notification style to
 android?". Audit findings F3 / G3 (`handoff/PLAN/ios/parity-audit.md`): the app's own words say checks run "about every

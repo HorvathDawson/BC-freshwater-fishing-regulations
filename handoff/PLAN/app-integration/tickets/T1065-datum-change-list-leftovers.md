@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1065 | T1047 follow-ups: level-only relocated stations, too-recent stations, and the two-sided publisher change | OPEN —  | | planning chat 2026-11-24 |
+
 Source: the 0.9.1 chat's finds on T1047 (RESTART-091-chat.md, 2026-11-24).
 
 ## Work

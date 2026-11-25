@@ -2,6 +2,10 @@
 
 Status: DONE — 596a677c7, 6cbfd9bd6, 3bbd782e1, df555d0e2. a water's own daily quota above a region cap raises that cap for its fish (strict everywhere, RULINGS T17); the card leads with the region's number.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T834 | A water row's own printed quota takes that fish out of the region's stream share automatically (Kaslo, Keen like the Lardeau) | DONE | 596a677c7, 6cbfd9bd6, 3bbd782e1, df555d0e2 | — |
+
 Closed by the 2026-11-20 audit: owner's final model 11:10, changed waters OK 12:29, card wording 13:15 all recorded in the ticket; merged 596a677c7 + re-cut 6cbfd9bd6, regression fix 3bbd782e1; shipped from 0.8.0.
 
 Source: owner 2026-11-17 ~08:58 (verbatim, main chat): "It would just make the same limit tho. That is fine I guess but

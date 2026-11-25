@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS — items 1, 3, 4, 5 built (9312354, ed637de, ab6c897, 138f1a5e0, 5018a81d8, d707dcdfb); item 2 is its own ticket, T673; left (Claude): the emulator check under "Not device-tested" below.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T555 | Update service: a refused release never reads "Updated"; one byte count; every format bump is gated; saved ids follow aliases | IN PROGRESS (items 1, 3, 4, 5 built; item 2 split to T673; left (Claude): emulator check of the saved-id rewrite) | 9312354, ed637de, ab6c897, 138f1a5e0, 5018a81d8, d707dcdfb | data pipeline review 2026-11-09 (verified); rank 11, severity 3, 5 findings; item 4: gate derived from `app_reads.json` (every contract file per app version, `pnpm app-reads`) … (detail: ticket file) |
+
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 11 of 17; highest severity 3 of 5.
 
 Line numbers are the reviewers' and may be off by a few; "Second opinion" is what the verifier corrected. Fixes are proposals: re-read the code before building.

@@ -2,6 +2,10 @@
 
 Status: DONE — pipeline halves 8a0c44572, app half d199f0d4d, worker items 4, 6, 7, 8, 9, 10 in 6a56c583e, contract text 55cfffde4; staging feeds worker deployed 2026-11-12 00:08 UTC (version 88587c7d). The composed straddler answer under a live feed is T668's left item, not this ticket's.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T549 | DFO salmon: feed and release agree on the location set; a place the app cannot show is said, never dropped | DONE | 8a0c44572, d199f0d4d, 6a56c583e, 55cfffde4 | data pipeline review 2026-11-09; pipeline, app and worker halves built; staging worker deployed 11-12; the live straddler difference stays with T668 |
+
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 5 of 17; highest severity 4 of 5.
 
 Line numbers are the reviewers' and may be off by a few; "Second opinion" is what the verifier corrected. Fixes are proposals: re-read the code before building.

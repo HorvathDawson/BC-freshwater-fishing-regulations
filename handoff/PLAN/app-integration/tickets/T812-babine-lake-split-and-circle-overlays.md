@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS — the split landed (a9475700d, merge 8f6dd09cf; ef6480005, aa69b89d6; 2026-11-17 rebuild a5638c5e7); the circles are built (65035f248, b7df430dc, 7cb64faa1; PR #50). left (Claude): the independent review of PR #50, then the 0.9.0 data release ships the circles (`ca` in the salmon head).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T812 | Babine Lake: split on the Gullwing Creek line; creek-mouth closures drawn as circles, not lake sections | IN PROGRESS — left (Claude): independent review of PR #50, then the 0.9.0 data release ships the circles | a9475700d, 8f6dd09cf, ef6480005, aa69b89d6, 65035f248, b7df430dc, 7cb64faa1 | owner 2026-11-16; look picked 2026-11-22 "Yes, as shown" |
+
 Source: owner 2026-11-16, typed: "We want to split babine lake on the line like our other split lakes. Then we want the
 circles to just be circles on the map not separate sections of the lake. Otherwise it will be overboard." Before it:
 the four missing creek mouths found and accepted with name variants ("That sounds good can we add name variants? With

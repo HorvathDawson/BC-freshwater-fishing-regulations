@@ -3,6 +3,10 @@
 Status: DONE 2026-10-29 (owner 2026-10-29: "when moving from standard to salmon the map also resizes weird. it should only be the ui Commits: dbfeb4bf4, 70aa5e8e9
 block changing size and map staying the same").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T275 | Mode switch (Standard/Salmon/Runs) resizes the map; only the UI block should change, map fixed | DONE | dbfeb4bf4 (+70aa5e8e9) | owner 2026-10-29 |
+
 ## Work
 The map view keeps a fixed size and camera across a mode switch; only the overlay UI block (legend/bar) changes height and
 floats over the map. Find what ties the map's layout to the block (flex sibling, padding/inset change, safe-area recompute)

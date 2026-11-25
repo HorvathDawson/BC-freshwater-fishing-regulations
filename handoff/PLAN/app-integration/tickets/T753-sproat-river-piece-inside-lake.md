@@ -2,6 +2,10 @@
 
 Status: DONE — a458c1fd4, 3bbb20082. Same-lake loops leave their river and join their lake (Kotcho stays the river's); promoted 2026-11-15 and in every release since (r-46e4355a7277 on).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T753 | A piece of the Sproat River drawn inside Sproat Lake (two channels through a pond, 8.5 km from the river); 15 such same-lake loops on 11 waters | DONE | a458c1fd4, 3bbb20082 | — |
+
 Closed by the 2026-11-20 audit: both steps the owner picked ("yes do both steps") landed on redesign/stream-sections (a458c1fd4, 3bbb20082). STATUS 2026-11-15 (chat 13 end) says lake loops landed, with atlas/tiles/reach promoted. curation-review/rebuild-finish-2026-11-15.md verifies 7 loops moved and Kotcho kept. Shipped with r-46e4355a7277 and later releases.
 
 Owner, 2026-11-15, on the review app's DFO Region 1 place "Sproat River from Sproat Lake to fishing boundary signs

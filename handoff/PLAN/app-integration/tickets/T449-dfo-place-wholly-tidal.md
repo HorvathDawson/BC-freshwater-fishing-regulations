@@ -2,6 +2,10 @@
 
 Status: DONE — e83f7811e; the owner accepted both Nanaimo places as tidal water (11-06), marks applied 66aa4bebc, in r-1b4f and later.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T449 | A DFO place wholly in tidal water (Nanaimo below Cedar Bridge): a "tidal water" state, proposed, binds nothing | DONE | e83f7811e 66aa4bebc | owner 2026-11-06; rule proposes (tidal words + tidal-limit cut named, op downstream); owner's DFO mark accepts ("tidal water") / rejects; sweep: only the 2 Nanaimo places |
+
 Source: owner 2026-11-06 on the two Nanaimo River DFO places (region-1 `1:nanaimo-river:in-subarea-17-14-tidal-portions-of`
 and `…~2`: "in Subarea 17-14 (tidal portions of the Nanaimo River) from Cedar Bridge downstream" and "…from the Cedar
 Bridge to the white square boundary signs approximately 400 m downstream"). The Nanaimo's tidal limit is already the

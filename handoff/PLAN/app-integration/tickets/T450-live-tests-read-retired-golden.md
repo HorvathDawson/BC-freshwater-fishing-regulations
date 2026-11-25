@@ -2,6 +2,10 @@
 
 Status: DONE — dedd06cc5 (2026-11-06, chat 5)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T450 | Two pipeline "live" tests still read the retired golden.json (collection error) | DONE | dedd06cc5 | chat 5 2026-11-06 |
+
 Source: 2026-11-06 (chat 4): `pytest pipeline/tests -k …` stops at collection on
 `test_answers_keep_answers_live.py` and `test_answers_pipeline_needs_live.py` — both open
 `app/fixtures/golden/golden.json`, which T439 retired (owner: golden.json is gone). A collection error hides every other

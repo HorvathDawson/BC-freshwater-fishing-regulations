@@ -2,6 +2,10 @@
 
 Status: DONE — 3af0dbaa (lane-T167; merge into redesign/stream-sections)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T167 | More tab: simpler details, references on their own page, data freshness compact on the main tab, a real desktop layout | DONE | 3af0dbaa, de06c3ae | app; tiles date needs a manifest stamp (follow-up) |
+
 Source: owner 2026-10-23: "details in the more tab could be simplified a lot too. right now it is hard to read. separate
 out references to a separate thing. then this stuff [the data sources list: Synopsis, In-season changes, DFO salmon,
 Freshwater Atlas, Map tiles, Basemap, HYDAT, Live gauge readings, River forecasts, Weather, Satellite imagery — each with

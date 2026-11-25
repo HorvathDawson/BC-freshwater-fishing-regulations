@@ -2,6 +2,10 @@
 
 Status: DONE — shipped in 0.8.3 (merged e45dc6957, 398577e51; staging + production 2026-11-19).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T910 | Web first load: Lighthouse performance 46 on staging; make the first visit fast (owner) | DONE — shipped in 0.8.3 (staging + production 2026-11-19) | e45dc6957, 398577e51 | owner 2026-11-19 ~07:40 |
+
 Owner 2026-11-19 ~07:40 (main chat), a Lighthouse run on staging (mobile): Performance 46, Accessibility 95, Best
 Practices 81, SEO 58; FCP 7.1 s, LCP 7.9 s, TBT 530 ms, Speed Index 7.1 s, CLS 0.011; verbatim: "staging got this??"
 His findings shots: render-blocking CSS (controls-*.css, maplibre-gl-*.css, ~300 ms); font display (8 TTF faces from

@@ -2,6 +2,10 @@
 
 Status: DONE — c91ea1a1.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T11 | ui hooks, the one day | DONE | c91ea1a1 | — |
+
 Phase 0 · Depends on T01, T03, T09 (T10 for the render test) · Blocks T23, T33, T35 · Decisions D7 (the shared day) · Size ½ day
 
 ## Goal

@@ -2,6 +2,10 @@
 
 Status: DONE — 12a75940 (web + worker + review tab, e2e on staging), native device check via the T255 test bed 2026-10-29 (b6ac5f2af, report scenario PASS 6/6). Left to the owner: production endpoint, privacy wording sign-off.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T237 | report a problem: Send report (reason, email, offline queue via T231) → staging feeds worker POST /report (rate-limited, private R2, digest) → review-app Reports tab | DONE | 12a75940, cdbe98da2, b6ac5f2af | native device check = the T255 test bed `report` scenario (PASS 6/6, 2026-10-29); production endpoint + privacy wording are the owner's |
+
 Source: owner 2026-10-28 — approved proposal P3 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
 ## Work

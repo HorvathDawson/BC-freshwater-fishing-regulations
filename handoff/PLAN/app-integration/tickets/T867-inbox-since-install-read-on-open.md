@@ -3,6 +3,10 @@
 Status: DONE — 312c20693, d26b1d0c2; the data row's "N waters changed" came with T1030 (f75e6aac1, PR #105: said only when the count was taken against the release the device held before)
 Known LOW items left as they are (re-review of PR #58): (a) the bell opened by hand while the walkthrough is still due reads nothing until the tour ends; (b) if the apply curtain starts while the sheet is up, the rows read and show under Earlier in the same open. Gap: no test covers the apply-curtain exclusion on its own.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T867 | Notifications inbox: since install only, read once seen, short, with data and app updates (owner) | DONE | 312c20693, d26b1d0c2 | "N waters changed": T1030 (f75e6aac1, PR #105) |
+
 Owner 2026-11-18 ~19:50 (to the app chat), verbatim: "I don't think the inbox works properly for the app all in season
 still show up under earlier always and data updates and stuff don't show up in history etc. also the history after
 viewed I thought was supposed to then be read and not a giant list. All the in season don't need to show too. Just stuff

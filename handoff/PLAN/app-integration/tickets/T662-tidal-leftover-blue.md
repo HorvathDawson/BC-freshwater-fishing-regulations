@@ -2,6 +2,10 @@
 
 Status: DROPPED (owner 2026-11-11: the removal of streams wholly inside the tidal polygon, T660 lane, covers enough of it; the 191 freshwater receivers and 32 uncut runs are accepted as they are).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T662 | Stream lines still drawn over tidal water after the shore rule (creeks on tidal flats, 191 freshwater receivers, 32 uncut runs) | DROPPED | — | owner 2026-11-11: dropped; removing streams wholly inside the tidal polygon (T660 lane, next rebuild) covers enough of it |
+
 Source: T660 hand-back; owner 2026-11-11: "Leave for a later pass". After closed testing starts.
 
 What is left blue inside the tidal-water layer once T660's shore cuts are in:

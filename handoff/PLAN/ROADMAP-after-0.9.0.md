@@ -82,7 +82,7 @@ Triage of everything ticketed since the roadmap was written. Severity / model / 
 > "Release contents"). You are the planning chat: never write code, never run lanes, builds, emulators or heavy jobs.
 > You alone create ticket numbers (file + ledger row, check-tickets.mjs before every commit). Triage each item:
 > severity, release or future chat, model and lane size. Keep current: this roadmap, the release contents,
-> OWNER-TODO.md (markdown only: the artifact page is retired, T1080) and play-production-access/ (feedback-log rows, releases.md,
+> the owner to-do (one file per item in handoff/PLAN/owner-todo/, T1041; markdown only: the artifact page is retired, T1080) and play-production-access/ (feedback-log rows, releases.md,
 > questionnaire Q3/Q7/Q8). Find the other chats with ListAgents, read their restart pages, ticket their "For the
 > planning chat" items and tell each chat the Tnnn. When a chat's scope finishes, write the next chat's frozen scope
 > and prompt here. Small docs PRs to main with auto-merge, `docs(Tnnn): ...`. Questions in batches with pictures, each

@@ -2,6 +2,10 @@
 
 Status: DONE — 77e856247, 434449f3d (follow-up: an unnamed lake at a water's end is its Source; rides the next release; RULINGS P55)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T697 | Kanaka Creek's stretches named by their split names, never "stretch 1 of 2" (T204 follow-up); an unnamed lake at a water's own end is its Source/Mouth, mid-water "Unnamed lake near X" | DONE | 77e856247, 434449f3d | owner 2026-11-12 (RULINGS P55); 562 waters, 0 counted names; 62 tops "→ Source" (Kanaka "Cliff Park Falls → Source"), 5 mid-water ends "Unnamed lake (km N)"; rides the next release |
+
 Owner 2026-11-12, asked about T204's old phone-check line ("its lower part is two separately selectable stretches
 ('… · stretch 1 of 2'); say if the stretch wording should differ"): "No it has to use split names like we said before ??"
 

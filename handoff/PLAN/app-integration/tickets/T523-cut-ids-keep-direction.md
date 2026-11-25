@@ -2,6 +2,10 @@
 
 Status: DONE 229c464de (code), 1d58354b3 (data: 4 ids renamed, Quatse mark line diff-proven, 332 DFO rows unchanged; Squamish on OSM 5L32)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T523 | A cut id keeps its direction: offset cuts end `_u<m>m`/`_d<m>m`, no truncation clash `_2`; rename Quatse weir + Stamp lagoon pairs, owner mark carried | DONE | 229c464de, 1d58354b3 | owner 2026-11-09 review app "should say up and downstream"; "could do _u and _d" |
+
 Owner 2026-11-09 (review app): `quatse_river__quatse_river_hatchery_weir_100_m` / `…_100_m_2` "should say up and
 downstream instead".
 

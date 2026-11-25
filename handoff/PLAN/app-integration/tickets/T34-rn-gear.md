@@ -2,6 +2,10 @@
 
 Status: DONE — f93594ee.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T34 | RN Gear tab components | DONE | f93594ee | — |
+
 Phase 3 · Depends on T27 (RN Keep tab: the Line renderer, `TermButton`, sheet opening, theme/type tokens from T22), T30,
 T31 · Blocks T35 · Decisions **D6** (Rule book links: `Linking.openURL(SYNOPSIS_PDF)` on native, `#page=<pdf>` on web) ·
 Size ≤ 1 day

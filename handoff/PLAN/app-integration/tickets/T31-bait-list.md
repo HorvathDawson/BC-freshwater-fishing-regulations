@@ -2,6 +2,10 @@
 
 Status: DONE — efa0a841.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T31 | presenter: bait list | DONE | efa0a841 | — |
+
 Phase 3 · Depends on T00, T06, T09, T12, T13 (book days), T30 (`sourceLine`, `changeVM`, `bookBits`, `GearCtx`) · Blocks T34,
 T35 · Decisions — · Size ½ day
 

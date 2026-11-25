@@ -2,6 +2,10 @@
 
 Status: DONE — proved 2026-11-08: the release started with scripts/fast-fail.sh (all passed in 8 s). Was: IN REVIEW — 50c2260d9 (script + release/APK wiring; rule AGENTS 20a cc54044cc). Proof pending: the owner's next release/APK run starts with it.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T483 | Fast-fail: cheap checks before and while long jobs; every late failure a cheap check could catch is added (AGENTS 20a) | DONE | 50c2260d9 | owner 2026-11-07; proof: the next release/APK run starts with fast-fail; 2026-11-09: +7 checks from build 22 / r-d14bdb180f55 (format pairs, staging site version, goldens paired … (detail: ticket file) |
+
 Owner 2026-11-07: builds sometimes reveal easy failures only at the end. Run the cheap checks up front, or while a
 build waits, so they fail in a minute or two. Rule: AGENTS.md 20a — every late failure a cheap check could have
 caught becomes a new fast-fail item, added with its fix.

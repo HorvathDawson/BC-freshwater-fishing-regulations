@@ -2,6 +2,10 @@
 
 Status: PARTIAL — built d787d0dff, review fixes 36862bbbc (lane L6), automatic refresh b38201d83, 03f70b777, review #125 fixes 81b177cdd (lane L17, owner 2026-11-24); the reload + keepalive were proven with fakes only, not in a real browser; left (Claude): the feeds worker deploy with the 0.9.1 batch (its `expected` class for the two names), a production-export check of the chunk case, a real-browser check of the reload and the keepalive send, LOW 2 (offline / blocked storage is reported as the ReplacedRefreshNotMade defect: environment noise), LOW 3 (a too-early prune is now auto-refreshed under an `expected` report)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1016 | Web: a tab kept open across two releases (or a site deploy) meets 404s on pruned files / a gone chunk: say it, reload | PARTIAL — left (Claude): feeds worker deploy (0.9.1), export check of the chunk case, real-browser reload check, review LOW 2/3 | d787d0dff 36862bbbc b38201d83 03f70b777 81b177cdd | owner 11-24 "Always auto refresh": refreshes itself once per verdict, reports first; banner only as fallback |
+
 Source: T1005 triage. Production keeps the live release and the previous one (`deploy/prod/upload.sh` prunes the rest
 24 h on). The 404 kinds of T1005 (`3d5ded1b72ff865f`, `2c766955748940d9`, `f6d0af3f051de23a`, `bb863fcb6535d696`, …)
 were all a crawler holding a cached r-fc137c4040fa; but a READER's tab opened before two releases and still open after

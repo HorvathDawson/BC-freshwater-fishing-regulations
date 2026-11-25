@@ -2,6 +2,10 @@
 
 Status: DONE (555e7ee9 items 1, 2, 4; 33775c57 item 3)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T214 | app polish: quota sub-cap wording names its total, desktop no-swipe + Esc back, clearer part highlight, steady up/downstream buttons | DONE | 555e7ee9 33775c57 | items 1, 2, 4 (subcap lead + golden amendment, desktop no-swipe + Esc Back, reserved exit slot); item 3 part halo at full outline, others dim 0.25 (web light + dark) |
+
 Source: owner 2026-10-27.
 
 1. Quota sub-cap wording names its total: "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery

@@ -5,6 +5,10 @@ legend); ticket a43a7122; review c155f40f (banner survives a failed access fetch
 Q1–Q3 defaults. Left: the rebuild below (deliver all + release), then the
 needs_bundle checks; see "Built / left" at the foot.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T54 | no-access streams: fourth colour + banner | DONE | a43a7122, 83f28d54, fec02c29, a5f9b5eb, e08f791b, b291b598, c155f40f, 7c0798d7, bd12dfb9, 4d20b016, 128cc4e0 | live in r-36fbc5326506; Q54/Q55 |
+
 Owner 2026-10-22: "the private land of coquitlam watershed, seymour watershed etc and rsa zones etc... basically no
 access areas should color the streams a fourth color to show the user they can not access it. (regs are ok but access
 is not) then in the regulation tab it should make it clear that this is in an area you arent allowed to access. (is an

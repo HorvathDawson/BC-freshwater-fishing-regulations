@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-06 — bb32b33bb; measured locally 2026-11-06: Fast-3G hand-over on /water/vedder-river 47.6 / 44.6 s → 24.9 / 25.0 s (below). Staging shows it after the next deploy with a FULL `build-seo` (not the relink fast path).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T304 | Water-page landing focuses its own region so slow lines read the small region files (Vedder Fast-3G ~37 s today) | DONE | bb32b33bb (measured 11-06) | T282 finding 2026-10-31; `cift:region` meta + boot focus before first read; local Fast-3G 11-06: Vedder hand-over 47.6/44.6 → 24.9/25.0 s (core-2+water-2 instead of core+water) … (detail: ticket file) |
+
 Source: T282 measured /water/vedder-river on Fast 3G: the 647 kB bundle is in at ~0 s, but the hand-over waits for the
 whole core (1.4 MB) + whole water (2.2 MB) + regs-2 + sql.js wasm because no map region is focused on a landing, so the
 T256 per-region slices aren't used (~37 s).

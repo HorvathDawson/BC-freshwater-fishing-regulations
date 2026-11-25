@@ -4,6 +4,10 @@ Status: DONE 2026-11-05 — 9f002b2e2. The worker's vitest runs in `app-ci.yml` 
 the failure scan covers `workers/feeds/src` and the "logged below" catches now log (`tell`); `scheduled()` + `runTimingCheck`
 tested (`test/scheduled.test.ts`); the two skipped DFO suites + harness/typed_dump removed; REPORT_SALT required (503 / no deploy).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T431 | The feeds worker's own tests run nowhere; its silent catches (high) | DONE | 9f002b2e2 | audit 11-05 |
+
 Source: `handoff/PLAN/audit-2026-11-05/` (findings: app 2, 3/4, 7; tests 3, 4; `*.verified.md` has the evidence per finding).
 
 ## What happens

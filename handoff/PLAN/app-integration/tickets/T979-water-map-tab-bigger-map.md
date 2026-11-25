@@ -2,6 +2,10 @@
 
 Status: DONE — shipped 0.8.5 (cbaedc24e, 2026-11-21).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T979 | iPhone: the water page's Map tab could show a much bigger map (too much white space; Squamish) | DONE (shipped 0.8.5) | cbaedc24e | owner in-app report 2026-11-20 (0.8.3) |
+
 Source: owner's in-app report bbf794a9ba18466c, 2026-11-20 16:38, iPhone iOS 18.5, app 0.8.3 (build 40), screen "water ·
 map", Squamish River (gnis:25671). Verbatim: "We could make the map a lot bigger here. Right now there is a lot of white
 space".

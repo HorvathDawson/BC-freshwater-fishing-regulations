@@ -5,6 +5,10 @@ Status: PARTIAL — built in a draft PR (code 4816a87d4); left (Claude): the own
 match said; a failed file or live index said and reported. Current data = core `donorState` on the live index (words: "Reporting now" / "Not
 reporting today" / "Not a real-time gauge"). Conditions link = `routeSearch` of the Conditions tab. Pictures: `T1107-shots/`. Owner picks open: see the PR.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1107 | The web gauges page gets a search: by place, river or water, giving gauges only (nearest first) | PARTIAL — built in a draft PR (code 4816a87d4); left (Claude): the owner's look at T1107-shots/ (looks questions in the PR), then merge; web only, 0.9.1 site deploy | | owner 2026-11-25 |
+
 Source: owner 2026-11-25 ~00:20 (planning chat), verbatim: "in 0.9.1 we should make this page
 (https://canifishthis.ca/gauges) have a search option that allows search to nearest place etc like the main search bar
 it should be able to search by place or river etc to get gauge only" and "someone found the page by search so we want

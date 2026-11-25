@@ -2,6 +2,10 @@
 
 Status: DONE — df77c117f, 1554faf6d, 5f8eece82; owner 2026-11-09 on build 24: page works; forecast missing and the chart is small and hard to read → T564
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T487 | Share a gauge's conditions as a public page (live; 7-day gauge + forecast, weather; regs link only; generated preview card) | DONE — df77c117f, 1554faf6d, 5f8eece82; owner 2026-11-09 on build 24: page works; forecast missing and the chart is small and hard to read → T564 | df77c117f, 1554faf6d, 5f8eece82 | staging 11-08: 450 /gauge pages + /gauges in the sitemap; cards drawn in the feeds gauge run (R2, mapped by the site worker; missing → site card + digest); owner look at a page + a preview |
+
 Was: IN REVIEW — df77c117f, 1554faf6d, 5f8eece82, on staging; owner: OWNER-TODO "Look at" (a staging /gauge page + a shared link's preview).
 Earlier: IN REVIEW — built + on staging (df77c117f, 1554faf6d, 5f8eece82); proof pending: owner look at a page + a shared link's preview. Was OPEN — owner 2026-11-08: do it now (after T497). Owner 2026-11-07 (scope answered the same day).
 

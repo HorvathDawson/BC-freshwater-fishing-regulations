@@ -2,6 +2,10 @@
 
 Status: DROPPED — owner 2026-11-12: "Leave both charts as they are (accepted as built)"; one presenter would change what one chart shows, so nothing was built (read 2026-11-11, 44b0af0ce).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T630 | One hydrograph presenter for the app and the public gauge page | DROPPED | — | owner 2026-11-12: leave both charts as they are (accepted as built) |
+
 Source: T564 report 2026-11-11. The public gauge page still draws its own SVG; the app's presenter lives in `ui`,
 which the site build cannot import. T564's parity test compares shared `core` words, not the live app panel.
 

@@ -2,6 +2,10 @@
 
 Status: DONE — 6dad1d118, 75b1d2834; the checklist (T532) is the review screen now, owner look is on T532 (2026-11-09 audit)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T525 | DFO review screen easy + safe: current extent always visible, confirm keeps it, redo starts from it, every save shows old vs new | DONE — 6dad1d118, 75b1d2834; the checklist (T532) is the review screen now, owner look is on T532 (2026-11-09 audit) | 6dad1d118, 75b1d2834 | owner 2026-11-09 "hard to use right now and feels like i will make bad data" |
+
 Was: IN REVIEW — 6dad1d118, 75b1d2834 (round 3); owner: OWNER-TODO "Review app: start the DFO reviews" (restart it and look).
 Earlier: IN REVIEW — owner restarts the review app and looks
 

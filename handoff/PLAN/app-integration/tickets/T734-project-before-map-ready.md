@@ -2,6 +2,10 @@
 
 Status: DONE (514f2cc14; in build 32 = 0.7.10, Play internal 2026-11-14; owner phone check pending)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T734 | The app closed when a water was opened before its map was ready (`NullPointerException at MLRNMapView.project`): the binding now rejects instead of throwing, and the marks' label shift asks only a map that has drawn | DONE (in build 32 = 0.7.10, Play internal 2026-11-14; owner phone check pending) | 514f2cc14 | build 32 verify lane 2026-11-14 (2 crashes); binding patch + JS gate + tests (514f2cc14, 2d5f64048); fixed build: open-race 70 cycles, hold × 40, back-flash, regs-open, tap-stalls … (detail: ticket file) |
+
 Source: build 32's verify lane, 2026-11-14 (HEAD 59aaa4de8). The app closed twice with
 `java.lang.NullPointerException at org.maplibre.reactnative.components.mapview.MLRNMapView.project(MLRNMapView.kt:1653)`
 via `MLRNMapViewModule.project`: once in the test bed's `pane-open` hold (search → Open on the Fraser, 6th open), once by

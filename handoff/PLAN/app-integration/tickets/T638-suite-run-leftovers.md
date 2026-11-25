@@ -2,6 +2,10 @@
 
 Status: DONE — fad79daf0, c85f497c0. heavy.sh watches the physical footprint, the suite runs in chunks with a fresh bytecode cache, and the chunked full run has since finished with 0 failed.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T638 | Pipeline suite leftovers: export files regenerated, heavy.sh blind to compressed memory, stale bytecode, one clean chunked run | DONE | fad79daf0, c85f497c0 | — |
+
 Closed by the 2026-11-20 audit: items 2-3 (fad79daf0, c85f497c0; item 1 earlier); item 4 met by the chunked full tier: T678-progress 2026-11-13 'Pipeline suite ... chunked, unfiltered: fast 7,437 passed / 0 failed; slow 274 passed / 0 failed', STATUS 2026-11-19 'Full tier green (... pytest 7,724 ...)'.
 
 Source: suite trace report 2026-11-11 (commits 304feae, 8822df2, 68fca13, 553fe40).

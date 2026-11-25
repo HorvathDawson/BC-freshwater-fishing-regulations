@@ -2,6 +2,10 @@
 
 Status: DONE (e23994f5a) 2026-11-04 — NOT A BUG, the test was stale (found 2026-11-03 re-pinning test_dfo_salmon; failing before this session — not caused by T343/T366).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T374 | The Skeena tributary walk collects 11 lake sections (owner rule: walks pass lakes, collect streams) — may bind trout trib rules to lakes | DONE 11-04 (not a bug: the 11 are owner-confirmed sloughs folded into their creeks; test fixed) | e23994f5a | found 2026-11-03 |
+
 `test_dfo_salmon::test_a_watershed_walk_passes_through_its_lakes_but_collects_streams` fails on the current atlas: the
 walk of the Skeena collects 11 `lake:` sections (lake:328974096, lake:329030585, lake:329030607, lake:329031154,
 lake:329066047, lake:329066410, …). The owner's ruling (2026-09-24): a tributary walk passes THROUGH lakes and collects

@@ -2,6 +2,10 @@
 
 Status: DONE — 2dfe54f3f, a9dbc83de, 8f196181b, 6cc0268c1, 75b2a70b5 (web walked desktop + phone, light + dark; native not walked on a device)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T257 | polish pass: coach-mark tour, "Before you fish" sheet, one delayed FishSpinner for every wait, shared components + guards | DONE | 2dfe54f3f | owner 2026-10-29 polish pass |
+
 Source: owner 2026-10-29 polish pass (four items + add-ons: delayed spinner, generic components, pixel-diff proof).
 
 ## Work

@@ -4,6 +4,10 @@ Status: DONE — web 0d19c8881, 3150e5796, 299e048d0, 7e752a935 (headless, 390 +
 finding a regulation using the map and search and then how to read the regulations and how to look at conditions / what
 change means for it. also walking through adding a spot and why … then the app can have info on syncing and offline etc.").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T293 | One hands-on walkthrough: find a water (search + map), read its rules, read conditions and what change means, save a spot; Help pages for sync/offline | DONE | 0d19c8881, b00605a14 | owner 2026-10-29; web done (25-step hands-on walk on the Vedder incl. Layers, Show me, resume, back; Conditions map camera tour; Salmon/Runs hints; Help pages; shots T293-shots/) … (detail: ticket file) |
+
 ## Work
 1. Replace the separate first-run coach marks (T248 tour + T276 Runs/Conditions tours) with ONE guided, hands-on walkthrough
    the user does with real taps on a real water (a well-known one, e.g. Vedder River, chosen by the app; skippable at any

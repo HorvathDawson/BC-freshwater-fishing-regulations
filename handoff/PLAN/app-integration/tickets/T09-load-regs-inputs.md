@@ -2,6 +2,10 @@
 
 Status: DONE — 2721902a.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T09 | `loadRegsInputs()` | DONE | 2721902a | — |
+
 Phase 0 · Depends on T04, T05, T06 · Blocks T07 (parity), T08 (parity), T10, T11, T12, T13–T21 · Decisions — · Size 1 day
 (build order T06 → T09 → T07 → T08: this ticket needs `ruleIndex`/`viaOf` from T06, not `settle`)
 

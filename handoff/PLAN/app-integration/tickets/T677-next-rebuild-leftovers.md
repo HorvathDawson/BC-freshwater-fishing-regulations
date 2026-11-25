@@ -2,6 +2,10 @@
 
 Status: PARTIAL — items 4–7 closed (by T678/T685, RULINGS E21; below); item 2 answered by the owner 2026-11-12 (keep as built: the Strathcona Park rule covers the first 33 m of the Ucona); left (Claude): item 1 (measure the name rule), item 3 (by-place binding diff)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T677 | Next rebuild leftovers: item names follow piece count, a park rule gained 33 m, binding diff by place, the 32 new held lines on a map page, lines ending at the sea | PARTIAL — left (Claude): items 1, 3 | — | items 4–7 closed by T678/T685 (RULINGS E21); item 2 answered 2026-11-12 (keep the Ucona 33 m as built) |
+
 Source: the rebuild lane, 2026-11-11 (`handoff/PLAN/app-integration/next-rebuild-results.md`).
 
 ## Work

@@ -2,6 +2,10 @@
 
 Status: DONE — f9d3cf12, 89f0d3d2, 46ccd2d0 (redo).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T05 | core tap: `segmentIndex`, `weekdayOf`, `profileIndex`; taps.json parity | DONE | f9d3cf12, 89f0d3d2, 46ccd2d0 | — |
+
 Phase 0 · Depends on T00, T04 · Blocks T07, T09, T33 · Decisions — · Size ½ day
 
 ## Goal

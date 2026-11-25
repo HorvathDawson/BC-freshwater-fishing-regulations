@@ -2,6 +2,10 @@
 
 Status: DONE (59666231b): a tool gap, not a real change.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1020 | answers_diff: 28,714 licence frames differ on `alien_closures[].rule` across the 0.8.4 → production release pair (a tool gap or a real change) | DONE (a tool gap: the licence frame's rule ref resolved) | 59666231b | T809's cutover diff run, 2026-11-22 |
+
 Source: T809's cutover diff run, 2026-11-22 (lane L13): r-fec3fab4c5aa → r-741815c6090d, same atlas. One "other" group
 holds 28,714 sections (314 waters, 26,921 unnamed stretches): path `alien_closures[0].rule` (and `[1].rule`), before and
 after both reading as no licence line. Example: Ace Creek (`gnis:36488`), section 360804586:0.

@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1074 | AGENTS rule 28 says map layers come only from `layers.source.json`, but every stream overlay is a runtime layer | OPEN —  | | planning chat 2026-11-24 |
+
 Source: the 0.9.1 chat, 2026-11-24 (T1029 ticket and draft PR #112): stream-closed, the issue stripe and T1029's
 one-bank cue are added at run time; the source DSL cannot express an offset half-line keyed by feature-state.
 

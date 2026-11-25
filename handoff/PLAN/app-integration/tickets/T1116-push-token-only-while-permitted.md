@@ -3,6 +3,10 @@
 Status: DONE (code) — f4ef89f4c (app + feeds worker). Ships with the 0.9.1 app build AND a feeds worker deploy; the
 simulator walk of the three paths is not done (see As built).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1116 | A push token is registered only while the phone's notification permission is on; the worker drops tokens not re-registered for ~30 days | DONE — 0.9.1 (owner 2026-11-25); needs the app build + feeds worker deploy | f4ef89f4c | owner via the 0.9.1 chat, T1098 item g |
+
 Source: T1098 item g (iOS release chat's read of build 45). Owner 2026-11-25 ~00:50 MST, in the 0.9.1 chat (relayed),
 asked "say it on the page, or change the behaviour?": "that behaviour change can move to 0.9.1".
 

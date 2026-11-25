@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS (option 2 built in 6ba240568, d163d5416, 3e368e516: lane L14, branch perf/T905-worker-state-out-of-feed, waits for review + merge); left (Claude): the STAGING feeds-worker deploy (deploy/staging/feeds.sh) and a read of its first DFO run (seeded once, no wake, state.json in R2 private); then PRODUCTION deploy/prod/feeds.sh, the owner's. The salmon head gate (110,000) is not part of option 2.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T905 | Shrink the live salmon feed back under its old size (owner) | IN PROGRESS | 6ba240568, d163d5416, 3e368e516 | owner 2026-11-24 option 2 "Move worker state out": built, the public index 132,987 -> 121,688 B (check 124,000); left (Claude): review, merge, staging feeds deploy; production deploy the owner's |
+
 T870 (2026-11-19) added each place's printed DFO rows (`pr`) to the live salmon feed: index.json grew to ~133 kB
 (15.7 kB gzipped) and its size check was raised from 112 kB to 135 kB. Owner 2026-11-19 ~06:40, on that question,
 verbatim: "okay we will work to shrink it down later."

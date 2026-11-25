@@ -2,6 +2,10 @@
 
 Status: DONE (506132e69, lane L21, in T1053's PR): RU-14 itself still holds (it is the NASS stretch rule bounded at Meziadin Lake); its one outdated aside is rewritten.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1086 | RULINGS RU-14 (the Meziadin's row stops at Meziadin Lake) is outdated by T1053's head-lake walk | DONE — rewritten in T1053's PR (lane L21) | 506132e69 | 0.9.1 chat 2026-11-24 |
+
 Source: the 0.9.1 chat's T1053 lane, 2026-11-24. The owner ruled on T1053: "Climb through every head lake" (all 36, also where the lake has a row of its own). RU-14 says the opposite for the Meziadin. Evidence: the T1053 lane's before/after list, `head-lakes-before-after.md` in the T1053-shots folder on branch feat/T1053-walk-climbs-head-lakes (not pushed when reported).
 
 ## Work

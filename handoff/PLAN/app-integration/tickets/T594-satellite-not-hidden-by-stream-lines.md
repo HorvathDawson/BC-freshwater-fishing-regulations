@@ -2,6 +2,10 @@
 
 Status: DONE — dcfbf8f29 (closed on the owner's word 2026-11-20; see the last section)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T594 | Satellite view is not hidden by the stream lines | DONE | dcfbf8f29 | — |
+
 Source: owner problem report 2026-11-10 07:31 UTC (worker report 442a0ecc, build 24, z9.6 near Chilliwack): "we need to
 figure out a way to have better satellite where it isn't blocked by the streams lines." (The same report's other half,
 Indigenous land names, is T570.)

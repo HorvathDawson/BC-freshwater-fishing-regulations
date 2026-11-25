@@ -2,6 +2,10 @@
 
 Status: DONE — 3d19bf818, ff4864aec, bc745b149, 13b75473a, 1036ccd51, b90c57268, 461509f03. Items 1, 2, 3, 6, 7, 8 built; the owner-decision halves of items 4 and 5 went to T632, the follow-ups to T631; reach-only rerun 2026-11-10 reviewed (rules digest unchanged, 0 rules / 21 DFO places in the binding diff).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T546 | Reach run: a curated id, scope or closure piece that cannot be placed stops the run or is counted by the release check | DONE | 3d19bf818, ff4864aec, bc745b149, 13b75473a, 1036ccd51, b90c57268, 461509f03 | — |
+
 Closed by the 2026-11-20 audit: items 1-3, 6-8 merged; items 4-5 owner halves carried by T632 (its title: 'T546 items 4 and 5'), follow-ups by T631 ('follow-ups from T546'); the proof (reach rerun + binding diff) is recorded in the Status.
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 2 of 17; highest severity 3 of 5.

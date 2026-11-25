@@ -2,6 +2,10 @@
 
 Status: DONE — 53c8399ee + 172636aa2 review fixes (owner OK 2026-11-18 ~20:53). Landed on redesign/stream-sections with app/integrate-081-web after the full tier.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T874 | The walkthrough has only Back and Next (and Skip); Next does what Show me did (owner) | DONE | 53c8399ee, 172636aa2 | app chat; owner 2026-11-18 (T872–T874 approved ~20:53) |
+
 Source: owner, 2026-11-18 ~20:34, verbatim: "The tour should have only next and back and every next should be show me
 logic. Person can skip if they want. Otherwise it is weird".
 

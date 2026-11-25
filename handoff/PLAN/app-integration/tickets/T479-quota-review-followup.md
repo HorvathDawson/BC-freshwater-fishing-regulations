@@ -5,6 +5,10 @@ to tell hatchery instead. Also if a quota is bigger then the regional quota it s
 the how it adds up section I think should be turning into a collapsed section and change it to examples of how to
 interpret regulations." (Filed as T479: T478 was already taken by the 0.6.8 walk.)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T479 | T475 follow-up: "How to tell hatchery ›", "Exception to regional quota" (pipeline `over_region`), examples fold closed by default | DONE | 31dd63547 | owner 2026-11-07; owner look at the shots, then a release |
+
 1. `WORDS.HOW_TELL` = "How to tell hatchery ›" — the one word both places draw (GroupCard's origin `HowTell`, tree.ts's
    steelhead kind link). It always opens the hatch sheet, so it always means hatchery.
 2. Pipeline (`answers/tree.py over_region`, cascade stays in Python): a water's own tier, or a water's own total, carries

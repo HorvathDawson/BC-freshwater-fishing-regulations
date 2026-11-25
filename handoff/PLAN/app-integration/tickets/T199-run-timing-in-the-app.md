@@ -2,6 +2,10 @@
 
 Status: DROPPED — merged into T412 (2026-11-05 audit; the work continues there) — was: PARTIAL — feed + Run timing mode built and on staging (owner 2026-10-28); data refinement (step 2) open
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T199 | run timing in the app: its own feed (GH workflow → R2 `runtiming/`, paint index bound to the live atlas) + a Run timing map mode (species row, month from the day strip, passage dashed, tap sheet, offline capture) | DROPPED — merged into T412 (2026-11-05) | 318a07dd | owner: run feeds-runtiming.yml once on GH (secrets exist); rebuild the base after each atlas promote; data refinement (step 2) + native device run not done |
+
 Source: owner 2026-10-25 — "implementing and refining the run timings into the app. will be at end, alongside the
 stocked and bathy maps." Follows T162 (data + plan), MERGED into this ticket 2026-11-03 (owner): T162 is closed and its
 still-open items live here — data refinement (step 2), the yearly refresh (Inputs), and the attribution in credits.

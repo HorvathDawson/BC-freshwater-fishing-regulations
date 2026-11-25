@@ -2,6 +2,10 @@
 
 Status: DONE on staging (2026-11-08, worker 336fd079). Production has no feeds yet; the fix is in the code its first deploy uses. Part of T495 gate 1. Commits: 07ba10ade.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T513 | Gauges frozen on old readings (162 of 434, some since Oct 28): Cloudflare edge cache served stale ECCC CSVs to the feeds worker | DONE staging (prod has no feeds yet) | 07ba10ade | owner 2026-11-08 Capilano 0.742 vs 32.6 m³/s; `sourceFetch` no-store; staging 431/434 current |
+
 Owner 2026-11-08 (screenshot): Capilano River at Canyon (08GA031) showed 0.742 m³/s "observed 2026-11-06 08:45 PT ·
 checked 22 min ago", while ECCC read 32.6 m³/s and rising.
 

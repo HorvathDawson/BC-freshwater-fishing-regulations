@@ -3,6 +3,10 @@
 Status: DONE (13027245d fix + tests + POLICY_VERSION 31 + RULINGS E18; 525ab99e9 taps). Not promoted: the side
 run is `data/generated/scratch/peace/reach`, and the owner promotes it.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T187 | a braid piece between one window's two cuts is inside it (Peace Site C closure, 359005110:3454) | DONE | 13027245, 525ab99e, 0bc22c70 | found by the post-braid check; 1 rule changes |
+
 ## The defect
 
 The post-braid verification (2026-10-24) found that `359005110:3454` binds only zone and navigation rules. It is the

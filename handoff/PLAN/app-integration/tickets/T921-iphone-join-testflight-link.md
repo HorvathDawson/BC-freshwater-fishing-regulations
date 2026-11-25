@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-19 (82673b6f2; landed at d28344298).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T921 | "Join the iPhone test" opens the public TestFlight link (web app + website) (owner) | DONE | 82673b6f2 | owner 2026-11-19 "join apple trial we could have this link" |
+
 Source: owner 2026-11-19 (main chat), verbatim: "in the webapp where it says join apple trial we could have this link??
 https://testflight.apple.com/join/x7uVRt8j"
 

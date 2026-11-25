@@ -3,6 +3,10 @@
 Status: DONE — 6fed147f1, 84dfd1098 (84dfd1098 takes back T369 hunks 6fed147f1 swept in). Batch 6c of RELEASE-PLAN-0.5.0.
 Split out of T333 (the big audit stays after 0.5.0; this part does not wait for it).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T368 | Failures, fallbacks and reporting app-wide: rethrow, or show + `reportFailure`, or list; one failure face; scan net (split from T333) | DONE | 6fed147f1, 84dfd1098 | — (T369 lane: openWater/place sites the net flags; owner: "today" is the device's day) |
+
 ## The rule (owner 2026-11-03)
 "We don't like callbacks generally they hide issues. Fallbacks ... Make sure we get reports on failures like this ...
 This and minimal fallbacks should be true universally in app ... generally reusable and the reporting and error handling

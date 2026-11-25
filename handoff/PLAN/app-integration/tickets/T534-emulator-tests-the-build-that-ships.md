@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-20 (4b6f79411) — the stamp is proven on the emulator: test bed runs 2026-11-19T22-16-09 (commit 09985e595 clean) and 2026-11-20T02-59-17 (commit 1f989bb48 clean) both name libmaplibre build id 7bf3dc29141e550ff539a1768c092cb7f99c34c2 (patched, T420 lean) in their report header.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T534 | The emulator tests a build it can name: commit stamp, stale-APK refusal, patched MapLibre by default | DONE | 4b6f79411 | one emulator run proves the stamp (command in the ticket) |
+
 Source: workflow review 2026-11-09 (verified against the code). Rank 2.
 
 ## Today

@@ -2,6 +2,10 @@
 
 Status: DONE — 673e0df2a, 532d12d72, 0e2b483b6. Peace part 9 below W.A.C. Bennett Dam closed (dinosaur_lake.r1b), Williston's 30 cm rainbow minimum on all three parts, the Atnarko's no-powered-boats off the Bella Coola side channels.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T794 | Rules bound to the wrong part: the Peace closure below W.A.C. Bennett Dam, Williston Lake's 30 cm rainbow minimum, "No powered boats" on Bella Coola side channels | DONE | 673e0df2a, 532d12d72, 0e2b483b6 | — |
+
 Closed by the 2026-11-20 audit: the owner's go-ahead ("Go on all (Recommended)") and question 32 ("All three parts (Recommended)") are recorded in the ticket. All three fixes are on dev (673e0df2a, 532d12d72, 0e2b483b6); the rebuild3 release carries them (golden declarations 8391ff0ca; 0.8.0 follows 4b92c161c).
 
 Source: general audit 2026-11-16, answers checker A3, A7, B5 (`handoff/PLAN/audit-2026-11-16/answers.md`).

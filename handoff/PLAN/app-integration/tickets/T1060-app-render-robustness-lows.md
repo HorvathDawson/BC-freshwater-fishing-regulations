@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1060 | App robustness: no React error boundary, and three one-render stale states | OPEN —  | | planning chat 2026-11-24 |
+
 Source: review lows from PRs #107 and #115, handed over by the 0.9.0 and 0.9.1 chats 2026-11-24.
 
 ## Work

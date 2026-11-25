@@ -2,6 +2,10 @@
 
 Status: IN REVIEW — 9f8603f17 (ELF facts), 44af0d16f + 1b983b5ad (the app's chart on the page; the hook file came in the second), f181f241f (Get the app = the Spots tab's), 085ce5e6f + 145cf8542 (reviews of #73), 6a4ebf3ab (almanac); owner: OWNER-TODO "Look (you): T1039 gauge page after-shots". Shows on staging after the STAGING feeds worker deploy (ELF facts) and the 0.9.0 staging site build (the chart).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1039 | The public gauge page draws the web app's own chart (same data, windows, zoom, every forecast model) | IN REVIEW — owner: OWNER-TODO "Look (you): T1039 gauge page after-shots"; staging feeds worker deploy + 0.9.0 staging site build to show | 9f8603f17, 44af0d16f, 1b983b5ad, f181f241f, 085ce5e6f, 6a4ebf3ab, 145cf8542 | owner 2026-11-23; lane L25 |
+
 Source: owner 2026-11-23, verbatim: "the gauge website in 9.0.0 should also have the same chart as the website. right
 now it is only a lower resolution 7 day chart with no forecast?"
 

@@ -2,6 +2,10 @@
 
 Status: DONE — re-cut on r-fa1915a56adb (LATEST), golden parity green; tidal parts never listed in the water map. Commits: 3882c4b84.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T278 | Re-cut golden regs fixtures after the tidal cuts: PART_TIDAL declaration + renumbered parts (Fraser, Campbell, Brunette, Coquitlam…) | DONE | 3882c4b84 + next | c1029 lane 2026-10-29; parity green on r-fa1915a56adb; tidal parts never listed in the water map |
+
 ## Problem
 Release r-62e2f3a8c81e's 23 new tidal cuts renumber golden parts: Fraser (x15p*), Campbell (x16p3–p5), Brunette (x23p0),
 Coquitlam (x37*), possibly Skeena, Thompson, West Road. taps.py's declaration table (PART_MOVED / PART_GONE /

@@ -2,6 +2,10 @@
 
 Status: DONE — 0f6fe2868, 994941826, 764fe73fc, 39f46ef56, a5990dd7b. parts C (one wild limit, Lois/Khartoum; wild char hatchery-only), B (possession on the fish row where it differs) and D (Shamrock/Lonzo steelhead, Echoes Lakes, François Lake outlet area) landed on the owner's go.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T805 | Trout data gaps found by the adversarial review of the trout redesign: a wild quota stored per row reads 2 + 2 (Lois, Khartoum), Region 7 possession exceptions on no row, Shamrock Creek's impossible steelhead line, the cross-border quota, Echoes Lakes | DONE | 0f6fe2868, 994941826, 764fe73fc, 39f46ef56, a5990dd7b | — |
+
 Closed by the 2026-11-20 audit: owner go recorded for C (16:09), B and D (16:37), François Lake 19:09 'Outlet area only'; C/B/D merged 39f46ef56, François placement a5990dd7b shipped with the 11-17 rebuild (a5638c5e7).
 
 Source: `handoff/PLAN/design/trout-adversarial-review-2026-11-16.md`, finding 3 and "Data gaps".

@@ -2,6 +2,10 @@
 
 Status: DONE (0435b445e; merged into redesign/stream-sections 2026-11-17).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T813 | An added stream that continues an FWA line past its mouth is minted at the top measure (Port Moody's Schoolhouse Creek North) | DONE | 0435b445e | cut-fixes lane 2026-11-16 |
+
 Source: the Sheldens Creek extension (`lane/cuts-1116`, 998b4e6ab) found that the added-streams resolver treated a
 hand-drawn line past an FWA line's mouth as an extension past its SOURCE: minted at the top measure while the geometry
 sits at the bottom. That lane fixed it for hand-drawn (`manual`) sources only, so no city stream moved. Port Moody's

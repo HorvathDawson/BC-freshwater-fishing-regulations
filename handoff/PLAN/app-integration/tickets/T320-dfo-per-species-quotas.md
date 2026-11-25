@@ -4,6 +4,10 @@ Status: DONE (cf5301f59) — rides the next release + a feeds-worker deploy (own
 water/section (Skeena has sections too) like each extent has a list of quotas etc. we need to make them interpretable …
 The 4 salmon per day combined is the overall limit for the salmon bucket with sub amounts for each species within.").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T320 | DFO salmon quotas per species per water/extent (incl. Skeena sections) as structured data: bucket total + species sub-limits; app table shows them | DONE (next release + feeds worker deploy) | cf5301f59 | owner 2026-10-31 |
+
 ## Work
 1. **Parse (deterministic, no LLM):** DFO freshwater salmon pages list, per water / extent (incl. Skeena sections), a table of
    species × (daily limit, possession, size min/max, retention: keep / release / hatchery-marked only, dates). Extend the

@@ -2,6 +2,10 @@
 
 Status: DONE (f0357560b, e9ae79c82, 9573da40c; owner approved 2026-10-29: "yes that sounds good lets change the seo stuff to this").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T269 | Water pages ARE the app: `/water/<slug>` prerendered with the app's own regs pane (same look), app hydrates; hubs/sitemap/legacy 301s point at it; separate text-only water pages retired | DONE | f0357560b, e9ae79c82, 9573da40c | staging 74d9bd2f: page vs tap 0.1–0.5 % px; p95 9.6 KB gzip; back → map at the water, lit |
+
 Source: owner 2026-10-29: "make it so that all the regulation/condition pages that open when we click on a item double as seo
 pages … i just dont want users here they should be in the app instead"; "it shouldnt change look of pane".
 

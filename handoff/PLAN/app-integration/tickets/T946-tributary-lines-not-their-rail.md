@@ -2,6 +2,10 @@
 
 Status: DONE — 67ed64d77; shipped in 0.8.4 (cut e769f710a, data r-fec3fab4c5aa; 0.9.0 audit 2026-11-22, every hash is an ancestor of origin/main and of e769f710a). (Earlier status: IN PROGRESS — fixed on lane/lc-reach-leftovers; left (Claude): main chat review + merge.)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T946 | Tier 2 tributary lines: 20 parts (Lake Revelstoke tributaries DV, Iverson Creek) not what their rail sets | DONE | 67ed64d77 | — |
+
 Source: lane/t936-t931 (`scripts/test-full.sh`, step "release: table tributary lines = their sheets (T892)"),
 2026-11-20. T892 itself is DONE, so this is a new ticket.
 

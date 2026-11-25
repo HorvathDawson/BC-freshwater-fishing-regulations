@@ -2,6 +2,10 @@
 
 Status: PARTIAL — 680c1d6eb, 54a06dc89 (2026-11-10). The button is NOT built and was stopped 2026-11-22 as too big for a leftover lane: it is a new mark scope (schema, validators, `export` domain, an `apply` writer into `proposal_overrides.json`, write-through, the button on each proposed cut, API.md), the `closed_area` scope is the pattern. Own ticket-sized lane. left (Claude): the withdraw button (a new mark scope).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T589 | A cut proposal can be withdrawn (the Allco fence) | PARTIAL — Allco withdrawn (owner 11-10); the button open, stopped 11-22 as too big (new mark scope); left (Claude): the withdraw button | 680c1d6eb, 54a06dc89 | T532 leftover c; the Allco click is the owner's |
+
 Source: T532 round 6, leftover c.
 
 ## Today

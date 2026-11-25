@@ -3,6 +3,10 @@
 Status: DONE (481bc8266, cf7d7130a, 393e0eb92) 2026-11-03 — items 1–2 with T356 (salmon/4); item 3 by the owner's rule (below) (found by T350 lean pass, 2026-11-02). The DFO rules are `CatalogueRule`s (typed.py), but these ride
 beside the model (`extra="forbid"` would refuse them):
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T358 | DFO rule fields outside the catalogue model: `shared` prose scope, header sizes as `cm` not `lengths`, worker-only `open_ended` / `check` | DONE 11-03 (until further notice = all year, owner) | 481bc8266, cf7d7130a, 393e0eb92 | salmon/4 2026-11-03 |
+
 - **`shared`** (`pipeline/regs/dfo_salmon/quota.py:221`, T349): a prose scope string ("Management Units 5-6 to 5-11")
   on a retention rule. The freshwater model removed `aggregation_domain` for exactly this ("wants a structural link like
   `within`, not a sentence", catalogue_parts/rule.py:288-296). Give the model one structural "pooled across" field and

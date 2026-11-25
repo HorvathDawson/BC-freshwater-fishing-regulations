@@ -2,6 +2,10 @@
 
 Status: DONE (a2ba7396b; on staging in r-46e4355a7277, 2026-11-16; the side-check gap is T779).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T778 | A river side channel that enters the bounding lake on its own "straddles the cut" and stops the reach run (Middle Shuswap places at Mabel Lake, piece `355998688:691`); blocks tonight's release | DONE | a2ba7396b | `pipeline build` 2026-11-15 23:26, reach run refused (T632 gate) |
+
 Source: `pipeline build --hold-latest`, 2026-11-15 23:26 (log `data/generated/build-logs/2026-11-15T232613/reach.log`):
 the reach run REFUSED (`UnplacedGateError`, T632).
 

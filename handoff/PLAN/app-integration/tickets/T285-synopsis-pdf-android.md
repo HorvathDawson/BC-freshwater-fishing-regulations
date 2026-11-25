@@ -2,6 +2,10 @@
 
 Status: DONE 2026-10-29, 0e5f33dc8 (owner 2026-10-29, on the staging APK). Shots: `handoff/PLAN/app-integration/T285-shots/`.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T285 | Synopsis PDF fails to open in the Android app ("couldn't load synopsis") | DONE | 0e5f33dc8 | cause: replaced release's PDF 404; native download + live-manifest alternate, About via openBook, Close on the failed card |
+
 ## Cause (reproduced on the testbed emulator, release r-fa1915a56adb)
 - The installed release's synopsis URL (`<release>/r-xxx/synopsis-<id>.pdf`) answers **404**: staging keeps only the latest
   release's files, and the PDF (named by content) rides on under the new release. A device on the older release has nothing

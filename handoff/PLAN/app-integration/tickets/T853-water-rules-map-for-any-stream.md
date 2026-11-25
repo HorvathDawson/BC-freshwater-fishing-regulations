@@ -2,6 +2,10 @@
 
 Status: DONE — 203ecf76d, b9c097417. `python -m pipeline.tools.water_map` draws the Nass-style rules map for any water, salmon or freshwater, from a release.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T853 | One command draws the Nass-style rules map for any water, salmon or freshwater (owner) | DONE | 203ecf76d, b9c097417 | — |
+
 Closed by the 2026-11-20 audit: tool merged 203ecf76d (+ b9c097417), 11 tests; proof images (Nass, Vedder/Chilliwack, Kamloops Lake) sent to the owner (5efd062b5).
 we want? for both salmon or freshwater regs?").
 

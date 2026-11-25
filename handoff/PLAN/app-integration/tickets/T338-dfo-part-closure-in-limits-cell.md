@@ -2,6 +2,10 @@
 
 Status: DONE (01919949f, 7a4d3faec) 2026-11-03 (chat 5) — in typed.py; lands in the batch 3 release (typed rows re-read).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T338 | DFO part-closure in a limits cell (Fort Babine) reads as whole river closed | DONE | 01919949f, 7a4d3faec | 2026-11-03 (01919949f; ships with batch 3 release) |
+
 "No fishing for chinook from a point 100 m above Fort Babine bridge to Nichyeskwa Creek" (archived 2020/2022 R6
 pages) closes the WHOLE river in the reader; only that stretch is closed. Row is flagged (no number shown) but its
 status is wrong. Fix in the reader: a "from … to …" closure is a sub-extent note, not a water-wide closure. The one

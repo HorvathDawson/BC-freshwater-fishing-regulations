@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS — Lost Lagoon SHIPPED in 0.8.5 (local-closures source); round 2 of the inventory listed 2026-11-22 (5 proposal rows); left (owner, next release): review the other inventory rows.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T981 | Municipal / park-bylaw no-fishing waters (Lost Lagoon, Beaver Lake in Stanley Park, others) shown closed with the bylaw cited | IN PROGRESS (Lost Lagoon shipped 0.8.5; round 2 inventory listed 2026-11-22, 5 proposal rows; left: other rows, next release) | | owner 2026-11-20; 11-21: build the curated path + Lost Lagoon only (0.8.5). Built on lane/085-t981: `data/curated/regulations/local_closures/` (a second entry source, guard vs … (detail: ticket file) |
+
 Source: owner 2026-11-20: "Add a ticket to add lost lagoon and beaver lake in Stanley Park and any other municipal closed
 to fishing water bodies into the regulations".
 

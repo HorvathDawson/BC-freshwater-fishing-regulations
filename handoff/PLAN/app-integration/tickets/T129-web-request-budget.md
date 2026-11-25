@@ -3,6 +3,10 @@
 Status: DONE (ef40ed10, 36e4b3ae, 511aadb1) — owner 2026-10-22: "as long as it isn't too much of a raise. we can be smart
 on the webapp on how things are requested." (The release total gate went 14 → 15 MB, Q55.) Proposals below for the owner.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T129 | web request budget: gate first-paint / per-tap bytes, not only the release total | DONE | ef40ed10, 36e4b3ae, 511aadb1, 3ff84f30 | bytes table + WEB_BUDGET gates (release step + app test) + pinned request walk; splits → T182 |
+
 ## Why
 The release total is what a PHONE holds offline. The web app fetches lazily (MINIMAL-PACKAGING): paint first, then
 core/water, a region's regs file only on a tap in that region, conditions/near on demand. Nothing gates those web

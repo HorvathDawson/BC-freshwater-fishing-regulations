@@ -3,6 +3,10 @@
 Status: DONE (9907af3c0) 2026-11-04 (was: OPEN — bug (owner 2026-11-02: "when new feeds come in we need the map colors to update if they have new info.
 We got the new river forecast in but the colors didn't update and still showed blank")).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T348 | BUG: map colours do not refresh when a new feed arrives (forecast came in, map stayed blank); one feeds-changed signal for all feeds | DONE 11-04 | 9907af3c0 | owner 2026-11-02 |
+
 A fresh river-forecast feed reached the app, but the map's conditions colouring kept its old state (blank, no data)
 until something else forced a redraw.
 

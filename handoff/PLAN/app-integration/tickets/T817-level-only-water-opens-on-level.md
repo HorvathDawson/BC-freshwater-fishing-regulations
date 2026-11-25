@@ -2,6 +2,10 @@
 
 Status: DONE (f7b41c208; landed 2026-11-17 in land/app-1117; owner re-tests on the 0.7.12 build).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T817 | A water with only level data (Harrison Lake) opens its Conditions on Level, and says so; Level never takes Flow away (the Chehalis) | DONE | f7b41c208 | owner 2026-11-16 (refines T728) |
+
 Source: owner 2026-11-16 ~21:22, testing iPhone TestFlight build 36 (app chat; pictures in the chat). Verbatim: "also opening harrison lake then going to conditions should default to level only because there is no
 other data (the map looks super weird and not visible because of it) then when you switch to level the empty flow
 option disappers so if only level data exists it should show level data. just mention at top it is level data maybe...

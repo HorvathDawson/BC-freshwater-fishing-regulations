@@ -2,6 +2,10 @@
 
 Status: DROPPED — superseded: the plan exists (pipeline/regs/dfo_salmon/PLAN.md); the work is T164 (owner 2026-10-23).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T95 | salmon (DFO) regulations: the plan | DROPPED | — | plan exists (pipeline/regs/dfo_salmon/PLAN.md); work → T164 |
+
 Source: memory `zone-rules-are-the-base` ("salmon regs come later with DFO") and `dfo-salmon-churn-asymmetry`: curate
 the geography once, keyed on `(slug, section, normalized_name)` + a curated reach key; re-scrape rules every run; a
 vanished reach goes dormant, not deleted. T61 keeps the salmon code as "prepared".

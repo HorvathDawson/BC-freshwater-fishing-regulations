@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS (in build 32 as first built; one behaviour changed after the owner's 2026-11-16 answer "we should fix anything that doesnt seem desirable": 5f8ca1bb6 on branch `app-fix/small-looks-1116`, merged onto `redesign/stream-sections` 2026-11-16 (265fae08a; benches 572a6957a; Android back test fe89a5d47); left (Claude): the emulator look)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T730 | Search on the phone: swipe down to close, small recents, the map stays where search moved it, a fresh search each time | IN PROGRESS (in build 32 as first built; the 2026-11-16 change 5f8ca1bb6 merged onto redesign/stream-sections 2026-11-16 via `app-fix/small-looks-1116`; left (Claude): the emulator look) | b74512aee, 5f8ca1bb6 | owner 2026-11-14 ("you can't swipe down to close it also recent searchs take up a huge amount"; "it should have stayed at the location it moved to"; "it didn't reset search … (detail: ticket file) |
+
 Source: owner 2026-11-14, from using the app on a phone, verbatim:
 1. "When you open search on app you can't swipe down to close it also recent searchs take up a huge amount."
 2. "If you are in search and type something like thompson Then click on thompson river it moves to show it but then if you click back it goes back to original location when it feels like it should have stayed at the location it moved to Incase the user was just trying to get there. Then after clicking back the search closes but if you highlight search again it goes back to where you were highlighting it didn't reset search state"

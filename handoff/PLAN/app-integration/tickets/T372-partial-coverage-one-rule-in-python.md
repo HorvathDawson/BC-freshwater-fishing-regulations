@@ -3,6 +3,10 @@
 Status: DONE (part 1 4a7cb4a1d, part 2 777a4fc2b) 2026-11-04 (was: OPEN — before 0.5.0) (owner 2026-11-03: "the trout way seems more right, everything in python keeping single
 source of truth").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T372 | Partial coverage: one rule for trout + salmon (keep the answer + an undrawn-part caveat), resolved in Python | DONE 11-04 (needs a release rebuild for `n`) | 4a7cb4a1d, 777a4fc2b | owner 2026-11-03 |
+
 A water with a place the map does not draw yet (salmon: a DFO place not bound, 134 of 462 chains in r-4df5bccc9360;
 trout: a rule `classify` could not place, `item.unresolved` / `not_yet_mapped`) cannot say which stretch that place
 covers. Today the two disagree:

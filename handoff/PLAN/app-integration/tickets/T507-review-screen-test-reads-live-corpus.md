@@ -2,6 +2,10 @@
 
 Status: DONE — 7bb9d6c67 (found 2026-11-08, full pipeline suite, unrelated to T503).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T507 | test_the_corpus_tiers_match_plan_section_3 pins live-corpus counts (452 vs 445) | DONE — frozen sample fixture (58 entries, 19 cut points); one count-free live check | 7bb9d6c67 | found 2026-11-08; fixture like T491 |
+
 `pipeline/tests/test_review_screen.py::test_the_corpus_tiers_match_plan_section_3` counts tiers over the LIVE curated
 corpus: one tier now has 452 entries, the test pins 445. Curation changes (owner reviews / write-through) move it, as
 T491's test did. Give it its own frozen fixture (like T491), or turn the counts into bounds the plan states.

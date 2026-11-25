@@ -5,6 +5,10 @@ adversarial review fix (Mahood outlet cites no map; 19 rules cite a map, not 23)
 Lane lane-T100 (worktree wf_144b677f-89c-4). Rebuild: deliver (export + answers + store; bundle, reach and atlas
 unchanged) and a regs fixture re-cut after it.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T100 | lakes divided into closure areas: whole lake + area caveat citing the book's map (Q43 default) | DONE | f72b57d0, 8710bdd2, 1cccc29e, da79ce4d | deliver + fixture re-cut |
+
 Source: RULINGS K5 (2026-08: "a lake divided into internal closure areas is DEFERRED, never curated as a stream cut",
 ◐ held only by the review app's `deferred` status); memory `lake-splits-deferred`; data/curated/waters/
 sub_lake_areas.json: 67 rules name a place inside a water and bind to ALL of it (marked `widened`); only Kootenay,

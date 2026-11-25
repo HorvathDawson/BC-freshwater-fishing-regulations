@@ -2,6 +2,10 @@
 
 Status: DONE — owner phone check 2026-11-08 passed (0.6.9). Was: IN REVIEW (proposal) — 3a1026e20. Owner review of the Vedder River, What you can keep, phone width:
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T480 | One size style on the regs pane (chips; steelhead as a definition); access chip in the header tried and reverted (owner 11-07) | DONE | 3a1026e20, revert d6d964106 | owner 2026-11-07; proposal — size style for the owner's look; a better place for the access note is still open |
+
 1. "Why is size written now in 2 different styles? We need to commit to a single style."
 2. "Maybe the access may be restricted should live in header (without making it taller, just somewhere where there is
    whitespace already)?"

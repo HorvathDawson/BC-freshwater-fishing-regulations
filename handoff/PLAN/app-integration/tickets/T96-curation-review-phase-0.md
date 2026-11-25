@@ -19,6 +19,10 @@ id for `smoke.txt` (Tier 1 is no-data); the safety file's id covers the routes. 
 `feature_types` (a lake-only lift of a stream-only rule passes) — pre-existing, not in this ticket; Shuswap r8/r10 now
 repeat r7/r9's daily words in their verbatim — check nothing renders a rule's verbatim twice on the page.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T96 | curation review phase 0: tool safe + the 5 gate-failing entries (ingest R3/prov broken) | DONE | 3e841e31, 3760fd5f, f0228e09, 15723b83 | — |
+
 Source: handoff/PLAN/curation-review/PLAN.md §4 "Phase 0" and §6 Q1 (a3f66b7c, T66). Defect found there: 5 entries
 fail the gate and `validate_catalogue` — Shuswap Lake `min_cm` 50/60 "not in own verbatim"; `zp:set_lining`,
 `zp:spear_fishing`, `zp:bait`, `zp:white_sturgeon_licence` "exempts share no ground" — so ingest for region 3 and

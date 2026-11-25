@@ -3,6 +3,10 @@
 Status: DONE (d3577f2e3) 2026-11-04, owner call (was: OPEN, batch 6b of RELEASE-PLAN-0.5.0.md). Leftovers → T377;
 the SalmonCard caveat block → T372 part 2.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T367 | UI text clean-up as an owner back-and-forth (regs, conditions map, More): bad formatting, debloat top-level text; dev web app first, then the 0.5.0 APK | DONE 11-04 (owner call; leftovers → T377) | d3577f2e3 | owner 2026-11-03 (batch 6b) |
+
 Why: the owner wants a clean-up pass mostly in the regs pane, the conditions map pane and More: badly formatted text,
 and much less top-level text (debloat what shows before you tap in).
 

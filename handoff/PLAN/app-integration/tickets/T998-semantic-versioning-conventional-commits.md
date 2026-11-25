@@ -2,6 +2,10 @@
 
 Status: DONE — merged by PR #14 (6a16738db, 2026-11-22 18:06Z). On GitHub, docs-ci's `commits` job passed every later PR and refused one (#17: a 111-character header; replaced by #19). Follow-up: #22 exempts the 5 trunk commits that merged before the check was on.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T998 | Meaningful versions: SemVer for the app, the bump derived from Conventional Commits (1.0.0 at public launch) | DONE | 6a16738db | owner 2026-11-21; 2026-11-22: next release is 0.9.0 (owner accepted the computed bump; it waits for the next chat's work) |
+
 Source: owner 2026-11-21, verbatim: "We should make a standard versioning system too (when major minor patch happens)
 like to make versions meaningful". Dialog answers: 1.0.0 "At public launch (Recommended)"; who picks the bump:
 "Conventional Commits" (not the recommended ticket-derived option). Standing rule: industry best practice.

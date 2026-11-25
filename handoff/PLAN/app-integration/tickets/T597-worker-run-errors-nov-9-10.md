@@ -2,6 +2,10 @@
 
 Status: PARTIAL — items 1-3 built (5c7b9719d, ecd2de06a, 7834e740e), the prod sync-inputs twin in 5325db02f, staging worker deployed 2026-11-12; left (Claude): read a week of /status for item 1 (no whole-run gauge failure at the day turn)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T597 | Two feeds worker run failures 11-09/10 explained and guarded (gauges all-404 at 00:05 UTC; in-season format ahead of the worker) | PARTIAL — items 1-3 and the prod twin built; left (Claude): a week of /status for item 1 | 5c7b9719d, ecd2de06a, 7834e740e, 5325db02f | /status.json 2026-11-10; overlaps T550, T558 |
+
 Source: staging `/status.json` read 2026-11-10 19:37 UTC. All three feeds are OK now; these are their last errors.
 
 ## Today

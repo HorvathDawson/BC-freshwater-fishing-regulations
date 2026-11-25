@@ -3,6 +3,10 @@
 Status: OPEN — the record is set up (`handoff/PLAN/play-production-access/`); stays open until Google approves production
 access. Clock: all testers opted in 2026-11-23, earliest apply 2026-12-07.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1046 | Play production access: closed-test record, feedback log linked to releases, questionnaire | OPEN — until Google approves (apply on/after 2026-12-07) | T371, T863 | owner 2026-11-23; record in `handoff/PLAN/play-production-access/` |
+
 Source: owner 2026-11-23, verbatim: "can we add stuff to handoff and as a general ticket we now have all users opted
 into closed testing so 14 days start now. we want to make sure all feedback is recording and formatted and linked to new
 releases to show we have been working on it. it says to start preparing for the questionaire following the closed

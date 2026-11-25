@@ -2,6 +2,10 @@
 
 Status: DONE — 8c05e725, d5899459 (adversarial review: one carve-out walk). No binding moved.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T141 | carve-out walk seeds from the extent's cuts; braid cut reports side-channel crossings | DONE | 8c05e725, 35dd2ff1, d5899459, 82c59195 | no binding moved; delivered r-012fb43aa175 |
+
 Source: T111's leftovers (owner Q100, 2026-10-23: "yes, as T141 with a measured diff").
 
 ## Decision being unified

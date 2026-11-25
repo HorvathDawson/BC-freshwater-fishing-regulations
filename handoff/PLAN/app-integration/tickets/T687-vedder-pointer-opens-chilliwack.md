@@ -2,6 +2,10 @@
 
 Status: DONE — 5c294120d. A book 'see' pointer opens the water it names (Vedder, Bear, Cedar, Mara, Waneta); live in the released data.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T687 | Search "Vedder River": the book's pointer "see Chilliwack / Vedder Rivers" opened the Chilliwack: a pointer now opens the water it names | DONE | 5c294120d | — |
+
 Closed by the 2026-11-20 audit: checked read-only on the production release r-6258ffded676: core see_pointer row 'Vedder River' -> item gnis:3062 'Vedder River' (Bear Lake -> wbk:329101330 Bear Lake, Waneta Reservoir -> wbk:329262640, Cedar, Mara likewise).
 
 Source: emulator run on build 29 (app 0.7.7), 2026-11-12. Search "Vedder River", Open -> "Chilliwack River, Vedder

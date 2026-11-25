@@ -2,6 +2,10 @@
 
 Status: DONE — c9dc6ba69, a6f79b38a (closed on the owner's word 2026-11-20; see the last section)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T869 | The chinook annual limit says "over 50 cm" where it counts ADULT chinook, which is over 62 or 65 cm on some rivers (owner) | DONE | c9dc6ba69, a6f79b38a | — |
+
 Owner 2026-11-18 ~20:22 (via the app chat), verbatim: "For salmon  It is 10 max adult Chinook not over 50cm because some
 rivers adult is defined differently". His screenshot: Coquitlam River, What you can keep, the salmon block's header:
 "The total annual limit for chinook salmon over 50 cm is 10 fish from all fresh waters combined."

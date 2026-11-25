@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-05 — 62d96721d (the fix), 1473f95c7 (failures gate) — staging needs no republish.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T403 | A 0.5.0 phone opened the 0.4.0 data release it held (salmon/3, no lines): a release the app cannot read is never opened, installed or rolled back to | DONE 11-05 | 62d96721d, 1473f95c7 | staging crashes 2026-11-05 |
+
 Evidence (staging crash store, 2026-11-05 00:00–00:01 UTC, owner's phone, 0.5.0 build 8 9813980, android 37, one
 install, release r-4e709418ebd8, non-fatal JS):
 1. "salmon: not a salmon/4 file" (decodeSalmonHead, route map).

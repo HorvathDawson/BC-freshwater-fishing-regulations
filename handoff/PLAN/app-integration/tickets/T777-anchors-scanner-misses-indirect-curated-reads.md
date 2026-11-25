@@ -3,6 +3,10 @@
 Status: DONE — 64325c44a, cde142554, de0ff6c1f, 9888858d7, 8afba1746 (lane test/T777-test-isolation, then review/T777 after the review, 2026-11-22; merge pending). The two data-tier
 items of 2026-11-16 (the Deadman stretch-end test, the in-season tests between a promote and a release) moved to T1001.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T777 | The test-anchors scanner misses tests that read live curated state through app code (five tests went red on the owner's saves) | DONE | 64325c44a, cde142554, de0ff6c1f, 9888858d7, 8afba1746 | — (branch review/T777, merge pending; the two data-tier items: T1001) |
+
 Source: the full CI tier red on chat 13's head, 2026-11-15 night (4 tests), then `test_dfo_closures` the same way
 after `apply closed_areas`.
 

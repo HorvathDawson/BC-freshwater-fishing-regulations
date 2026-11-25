@@ -4,6 +4,10 @@ Status: DONE 2026-10-29, 85e854da2 (owner 2026-10-29: "restructure the spot info
 info and images you added and this is how similar that day was to the next few days and why. make it formatted a lot
 better for both mobile and desktop. right now it is a hard read").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T284 | Spot page restructured: That day · What you added · The next few days (similarity + why); phone + desktop layouts | DONE | 85e854da2 | owner 2026-10-29 |
+
 ## Work
 Re-lay the spot page (Spots tab → a spot) into three clearly headed blocks, same data, no new sources:
 1. **That day** — date, conditions as they were (flow/level vs normal, weather, water temp if any), compact and scannable.

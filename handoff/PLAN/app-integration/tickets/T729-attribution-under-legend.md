@@ -2,6 +2,10 @@
 
 Status: DONE — f7c024932, 5e07172a5, c099e9977 (closed on the owner's word 2026-11-20; see the last section)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T729 | The opened credits card is under the legend and cannot be read | DONE | f7c024932, 5e07172a5, c099e9977 | — |
+
 Source: owner 2026-11-14, verbatim: "attribution on app goes under the legends on the different map tabs."
 Clarified by the owner 2026-11-14 (dialog), verbatim: "i meant when you open the atrribtuion clicking on it it opens under the legend on the map so you cant read it"
 

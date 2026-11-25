@@ -2,6 +2,10 @@
 
 Status: DONE in code (step 3, 8ef2eebf4; the first live refresh remains) — was PARTIAL: step 1 done (d948fa0a9); step 2 built (cb20055c6) and in use: a kept copy (staging private/runtiming/src/sources.tar.gz, fetched 2026-10-29, seeded by hand 2026-11-08 while open.canada.ca was down) let r-25a89ce9f8e6 reach staging without open.canada.ca. left (Claude): see the workflow save its own copy after a successful refresh, and step 3 (the refresh as its own worker-started monthly job; a failed refresh emails the owner and never blocks a release). Owner 2026-11-07.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T485 | Run timing off the release path: skip when unchanged; last good NuSEDS/PSF on R2; refresh as its own job | DONE in code | d948fa0a9, cb20055c6, 8ef2eebf4 | step 3: the weekly worker check starts a monthly refresh (FETCHED date); left: first live refresh after the worker deploys |
+
 On 2026-11-07 open.canada.ca was down for hours. Every staging upload starts `feeds-runtiming.yml`, which re-downloads
 DFO NuSEDS (open.canada.ca) and the PSF pages, and the release pointer waits for it — so r-1b4f54fb6ed9 could not reach
 staging, though its tiles (and so its run timing) were unchanged. NuSEDS changes about once a year.

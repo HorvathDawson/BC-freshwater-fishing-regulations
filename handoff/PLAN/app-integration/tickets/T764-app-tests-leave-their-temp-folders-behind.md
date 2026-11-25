@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-16 00:39 (e62331249 on the shared branch; the whole app suite ran green with it, 7,714 passed, in the main chat's check; the 13 GB of Maestro output cleared at 00:39, 177 GB free. `fixture-release-*` is the pipeline's and goes with the main chat's T777).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T764 | App tests leave their temp folders behind: `releaseDir.ts` `nodeOpener()` and about thirty `mkdtempSync` sites never remove them; 184 GB in three days filled the Mac's disk on 2026-11-15 23:38. Fix: each vitest run gets its own temp folder, removed at the end, dead runs' folders removed at the next start | DONE 2026-11-16 (on the shared branch; whole app suite green with it; Maestro output cleared) | e62331249 | the main chat 2026-11-15 23:50 (disk full); app tests = the app chat's area |
+
 Source: the main chat, 2026-11-15 23:50, after the Mac's disk filled at about 23:38 (1.3 GB free) and stopped a
 night's work for an hour. Area: the app chat (app tests and tools).
 

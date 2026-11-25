@@ -2,6 +2,10 @@
 
 Status: DONE (355d2cc9c, lane L21, closes with T1053's PR #166): the verdict is RIGHT — printed p.22; the binding stands, nothing to propose.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1087 | `brunette_river.r1` "No Fishing upstream of Burnaby Lake" is curated as `whole` on the Brunette itself: is the river wrongly closed? | DONE — verdict RIGHT (printed p.22), closes with T1053's PR #166 | 355d2cc9c | 0.9.1 chat 2026-11-24 |
+
 Source: the 0.9.1 chat's T1053 lane, 2026-11-24: the rule reads "No Fishing upstream of Burnaby Lake …" but its extent is curated `whole` on the Brunette River, so it may be bound where it does not apply (the Brunette runs downstream of Burnaby Lake). It is also why 94 Brunette tributaries quote that extent line in T1052. Evidence: the T1053 lane's before/after list, `head-lakes-before-after.md` in the T1053-shots folder on branch feat/T1053-walk-climbs-head-lakes (not pushed when reported).
 
 ## Work

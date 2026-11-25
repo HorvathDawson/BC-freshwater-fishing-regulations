@@ -2,6 +2,10 @@
 
 Status: DONE — e0c84c800 (A), cde142554 (B, lane test/T777-test-isolation 2026-11-22; merge pending)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T792 | Two crashes: the review app's page renderer frees PDF objects outside its lock; child processes die after fork where a test process has used the map-projection library | DONE | e0c84c800, cde142554 | — (B on lane test/T777-test-isolation, merge pending) |
+
 Source: general audit 2026-11-16, guards checker section 5 (`handoff/PLAN/audit-2026-11-16/guards.md`); T777 described only the second, and its proposed fix would not help.
 
 ## A. The PDF library called outside its lock (stopped a release attempt; can crash the review app)

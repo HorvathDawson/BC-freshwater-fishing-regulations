@@ -2,6 +2,10 @@
 
 Status: DONE (live with the next bundle + release) (e21cdbeac) 2026-11-04 (was: OPEN (loose end turned into a ticket, 2026-10-31).)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T339 | 08MH044 cut still labelled Whonock; Bedford Channel lost its gauge — confirm | DONE (live with the next bundle + release) 11-04 | e21cdbeac | 2026-10-31 |
+
 After the 0.4.0 rebuild the 08MH044 cut moved Whonnock → Albion (HYDAT name "Fraser River at Albion") but the cut
 label still reads "Fraser River At Whonock". Bedford Channel lost its "fair" gauge 08KA007 (Fraser at Red Pass, ~900 km
 upstream — probably correct to lose). Rename the cut from HYDAT; confirm Bedford Channel's no-gauge is right. Size: S.

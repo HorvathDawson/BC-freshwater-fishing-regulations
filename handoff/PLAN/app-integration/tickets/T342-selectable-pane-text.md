@@ -4,6 +4,10 @@ Status: DONE in code (device check in the batch 5 emulator sitting) (e604eb5ae) 
 salmon regs. It should just make it so a user could use basic phone controls to copy the text that is on screen if
 they wanted (on the panes, not the map)").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T342 | Pane text copyable with the phone's own long-press controls; remove the salmon-only Copy button; map stays non-selectable | DONE in code (device check in the batch 5 emulator sitting) 11-04 | e604eb5ae | owner 2026-10-31 |
+
 ## Work
 1. Remove the salmon rules' Copy button (`RegionRules.tsx`, `SALMON_WORDS.ruleCopy` / `ruleCopied` in core
    `salmon.ts`) and its tests. Keep the Updates-log "Copy log" action (a different purpose) unless the owner says.

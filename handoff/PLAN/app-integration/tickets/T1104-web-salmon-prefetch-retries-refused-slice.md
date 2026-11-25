@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1104 | Web: the salmon prefetch asked for a refused slice up to 4 times in a minute | OPEN — 0.9.2, with T1091 | | 0.9.1 chat 2026-11-24, T1029 lane |
+
 Source: 0.9.1 chat 2026-11-24 ~23:40, seen by the T1029 lane on the web: a salmon slice the server refused was
 requested again up to 4 times within a minute, although the code says no retry before the next resume.
 

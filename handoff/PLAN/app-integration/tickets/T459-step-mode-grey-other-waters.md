@@ -2,6 +2,10 @@
 
 Status: DONE — owner phone check 2026-11-08 passed (0.6.9); pick A (receiving river kept coloured). Was: IN REVIEW — 77c985859; the owner picks the downstream option from the shots (out/t459/)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T459 | Stepping ▲/▼ along a water: grey out the other waters (receiving water kept, owner picks) | DONE | 77c985859 | owner picks the downstream option from out/t459 shots |
+
 Owner: "in the section navigation with up/downstream all other rivers should be greyed out I think, except downstream
 maybe. That way it is less distracting?"
 

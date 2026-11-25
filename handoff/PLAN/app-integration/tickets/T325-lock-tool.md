@@ -2,6 +2,10 @@
 
 Status: DONE (2026-11-05, cbb457042) — T408 re-scope landed: writers read marks.jsonl in memory, write only the final file; no `decided/`. Was IN REVIEW (2026-10-30, write-through); was OPEN (owner 2026-10-30; T324 design approved, plan in handoff/PLAN/data-flow.md §4–5).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T325 | Write-through: a saved mark lands in its domain's final curated file (no lock step; marks.jsonl never edited) | DONE | T266; cbb457042 | owner 2026-10-30 correction: no locking — backend runs the domain's apply after each mark (sloughs/names in-request, proposals debounced in background); refusal keeps the mark + … (detail: ticket file) |
+
 `python -m pipeline.regs.review.lock <domain>`: refuses until the domain's review is finished; writes the final file
 (no review fields, schema in data-flow.md §4, read through `CURATED`); proves a side build is byte-identical; then CLOSES
 the domain. Owner chose option (a): marks.jsonl is never edited — a closed-domains list

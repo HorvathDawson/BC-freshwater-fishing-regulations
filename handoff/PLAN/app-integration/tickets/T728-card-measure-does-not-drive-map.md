@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS (in build 32 as first built; one behaviour changed after the owner's 2026-11-16 answer "we should fix anything that doesnt seem desirable": 81a28e7c2 on branch `app-fix/small-looks-1116`, merged onto `redesign/stream-sections` 2026-11-16 (265fae08a; benches 572a6957a), in every app build since; left (Claude): the emulator look)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T728 | A Flow / Level pick in the Conditions card no longer changes the Conditions map's layer | IN PROGRESS (in build 32 as first built; the 2026-11-16 change 81a28e7c2 merged onto redesign/stream-sections 2026-11-16 via `app-fix/small-looks-1116`; left (Claude): the emulator look) | 6dd66973d, 81a28e7c2 | owner 2026-11-14 ("when you chang elvel/condition in the card it should not change cindition map layers too"); code + test done; left (Claude): an emulator look on the next APK |
+
 Source: owner 2026-11-14, verbatim: "when you chang elvel/condition in the card it should not change cindition map layers too"
 
 ## Problem

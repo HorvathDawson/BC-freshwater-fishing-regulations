@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1113 | Store pictures: the salmon scene depends on one water's live DFO notices and fails out of season | OPEN — with T1072, or 0.9.2 | | store content chat 2026-11-24 |
+
 Source: store content chat 2026-11-24 23:50: store-shots scene `19-regs-salmon` fails today because the Vedder page
 has no "Salmon (DFO)" block (live notices change through the season). The scene is not in the current set, so
 nothing is blocked.

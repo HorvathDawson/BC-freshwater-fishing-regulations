@@ -2,6 +2,10 @@
 
 Status: DONE — c7aa109f (step 1), 3b07fefc (step 2), 7552cab6 (POLICY_VERSION 24), 10cc45c6 (adversarial review fix); step 1 reach binding diff EMPTY, step 2 diff: 0 rules, 0 unresolved, 1 licensing record (−1 section, explained below). Gauge shed diff reviewed below (ships at deliver). Rebuild: reach + deliver (no atlas).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T117 | may_enter everywhere: other walks + outlet/WSC/edge-type owners | DONE | c7aa109f, 3b07fefc, 7552cab6, 5a07b674, 10cc45c6, 3aa88557 | 1 licensing section; gauge shed change ships at deliver (Q103); delivered r-941dcc149b17 |
+
 Source: owner 2026-10-22 (unify checks that decide the same thing; the motivating case is T90/T102); unification
 audit 2026-10-22, findings reach 2, 3, 4, cross 6, 7, 9, 10 and matching 5 (CONFIRMED in code; leaks PLAUSIBLE, not
 measurable without `graph.pkl`). This is the concrete list for T102 part B; T102 itself is unchanged. Do this after

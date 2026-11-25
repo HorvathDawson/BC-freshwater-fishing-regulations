@@ -2,6 +2,10 @@
 
 Status: DONE — d12bb0108, 8c6b53935, b644b39c2: both red tests are green (item 1 fixed, item 2 passes unchanged, stepcache fix); item 3 decided on the evidence (2026-11-22): the parked gate is DROPPED, not installed, and the five claims that heavy.sh runs fast-fail are deleted; the iPhone build runs fast-fail itself (T993 plan 5).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T661 | Two tests red after the hardening lanes (precheck test's session.sh half; review-gate live-tree test); then the parked heavy.sh gate (dropped, claims deleted) | DONE | d12bb0108, 8c6b53935, b644b39c2 | — |
+
 Source: scripts-hardening hand-back 2026-11-11. Both fail on the branch and stop fast-fail's changed-test step.
 
 ## Work

@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1078 | A water closed all year by two rules names only one in its banner (Kirkup Creek) | OPEN — 0.9.1 if T1052's lane can take it in the same code (it rewrites this block), else 0.9.2 | | 0.9.1 chat 2026-11-24 |
+
 Source: the 0.9.1 chat, 2026-11-24, PR #131 (T1052) census: Kirkup Creek (`gnis:12661`), the "Closed all year" banner cites only the Nov 1–Jun 14 closure; `banner.ts` lists only today's closer when nothing reopens.
 
 ## Work

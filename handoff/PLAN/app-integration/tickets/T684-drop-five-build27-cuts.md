@@ -2,6 +2,10 @@
 
 Status: DONE (434f16264)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T684 | Drop the build-27 cuts on five held lines with nothing tidal below (354087703, 354154029, 356341234, 360445710, 360861076) | DONE | 434f16264 | — (live with T685's promoted atlas) |
+
 Source: owner 2026-11-12, T678 item C, "Drop the cuts". RULINGS E20.
 
 ## Work

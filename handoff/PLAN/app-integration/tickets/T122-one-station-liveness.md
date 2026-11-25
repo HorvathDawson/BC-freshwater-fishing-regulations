@@ -3,6 +3,10 @@
 Status: DONE — 9fe57691, review 0f918ea0 (lane-T118). Ships with the next deliver (bundle code) and the next feed run
 (`pipeline.gauges.feed.publish`); measured bundle output unchanged, no station's liveness changes.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T122 | one station liveness (active/realtime/ECCC) | DONE | 9fe57691, 348f9519, 0f918ea0, 749482e9 | no station changes; Q113 cuts vs may_speak; delivered r-012fb43aa175 |
+
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding gauges 5
 (PLAUSIBLE).
 

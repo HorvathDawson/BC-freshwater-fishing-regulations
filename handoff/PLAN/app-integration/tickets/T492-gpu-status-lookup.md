@@ -2,6 +2,10 @@
 
 Status: POSTPONED — owner 2026-11-11: benched, performance is decent. Was: future, parked (owner 2026-11-07), start only on a measured trigger (below).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T492 | Stream colours chosen on the GPU (per-day status lookup), after T420 | POSTPONED | — | owner 2026-11-11: benched, performance is decent |
+
 T420's MapLibre patch cut feature-state work from 42 % to 2 % of CPU (owner: lag "a lot better" on the phone, 0.6.9).
 What remains CPU-side: each day/mode change re-states every visible feature. The step after that: each stream feature
 carries a small status index in the tiles; the colour is a GPU lookup into a per-day table (a texture / uniform), so a

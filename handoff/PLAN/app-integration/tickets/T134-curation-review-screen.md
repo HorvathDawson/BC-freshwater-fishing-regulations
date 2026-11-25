@@ -6,6 +6,10 @@ Takes effect on merge: no rebuild. The legible crops need the `row_boxes.json` s
 (`python -m pipeline.regs.extraction.row_boxes`, no credits, ~2 min); until then the evidence pane says so with that
 command and offers the extractor's own crop.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T134 | curation review phase 3: review screen separate from fixing | DONE | 18ad4bf8, 35f6e2db, b66105e6, 32f5654f, 5a9a2243 | leftovers → T142; row_boxes sidecar run by Claude |
+
 Source: handoff/PLAN/curation-review/PLAN.md §4 "Phase 3: a review screen, separate from fixing" (and §5); split out of T97.
 
 ## Work

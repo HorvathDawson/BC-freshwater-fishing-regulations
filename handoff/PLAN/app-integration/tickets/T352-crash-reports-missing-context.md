@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-05 — items 1–7 in code (T346 lane, 11-03); source maps 03492caa0.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T352 | Crash + problem reports lack context (water id, screen, module id, install id, stack normalising, background kills) | DONE 11-05 | 03492caa0 | 2026-11-02 |
+
 What the 7 crash kinds and 1 problem report held vs what was needed:
 1. No water/item id, section, or open pane on a crash (only `route` = water/map/other). The Coquitlam crash shows as
    route "water" with a minified stack; add the open item id and the screen/pane state.

@@ -2,6 +2,10 @@
 
 Status: DONE — 179c6cba5, c7a09348a. The feeds worker publishes the page-default places from the page's own sentence, equal to the Python on all 435 chains; staging since 2026-11-15, production worker deployed 2026-11-19.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T758 | The feeds worker's live salmon feed has no answer for the 7 region-default places (`1:default:region` …) the Python feed makes from the page's own sentence (T349): find what the app shows for such waters, then port it. | DONE | 179c6cba5, 99dfae816, c7a09348a | — |
+
 Closed by the 2026-11-20 audit: worker fix 179c6cba5 (equal to the Python on all 435 chains, 99dfae816), merged via c7a09348a 2026-11-16. The only item left, the production worker, was deployed 2026-11-19 with 0.8.3 (OWNER-TODO: 'Done by Claude: step 1 (feeds worker, version 0a3205f6 ...)').
 
 Source: found 2026-11-15 by the T757 worker lane when the worker's test copies of the curated DFO entries were

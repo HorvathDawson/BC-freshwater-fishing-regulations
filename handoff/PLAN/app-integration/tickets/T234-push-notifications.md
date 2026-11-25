@@ -2,6 +2,10 @@
 
 Status: POSTPONED (deferred, owner 2026-11-05; T437 aligned with the ledger) — what was built: PARTIAL 2026-11-05 — phone-only v1 built (13b963619, 77790b907, 8b7b45866, dd0a49dde); v1.1 reader-configured alerts, cadence, new-app-version notice and changelog built (665dcb49b, 3dbc91380, 981c60cf5); phone checks pending (next APK, checklist below).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T234 | notifications, phone-only: v1 gauge alerts + new data ready; v1.1 reader-set alerts (above/below/±% in 24 h), cadence (once per water per day default, own gap), More → Notifications cards + editor, new-app-version notice, changelog (About → What's new, bell bullets) | POSTPONED (deferred, owner 2026-11-05) | 13b963619, 77790b907, 8b7b45866, dd0a49dde, 665dcb49b, 3dbc91380, 981c60cf5 | phone checks on the next APK (checklist 1–17 in the ticket); owner: changelog draft, cadence readings; measure real delays, FCM only if late |
+
 Source: owner 2026-10-28: "add ability to have push notifications for regulation changes too, or set push
 notifications for specific condition changes or forecasted changes."
 

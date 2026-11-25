@@ -2,6 +2,10 @@
 
 Status: DONE — items 1, 2, 4 (975be7b2e, c6f79171f, 408f20d94, ebbe8d9b7, 2f09829fe); item 3 is T563 (3b3e6a1c2); item 5 in 40beda2f7 + 78b6846e2
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T554 | Gauge alerts say when their gauge is silent; alert rules stored safely; one writer for the HYDAT envelope | DONE | 975be7b2e, c6f79171f, 408f20d94, ebbe8d9b7, 2f09829fe, 40beda2f7, 78b6846e2 | data pipeline review 2026-11-09 (verified); rank 10, severity 3, 5 findings |
+
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 10 of 17; highest severity 3 of 5.
 
 Line numbers are the reviewers' and may be off by a few; "Second opinion" is what the verifier corrected. Fixes are proposals: re-read the code before building.

@@ -2,6 +2,10 @@
 
 Status: DONE — 9dec0425, 3a304861.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T15b | presenter: top caveat blocks | DONE | 9dec0425, 3a304861 | — |
+
 Phase 1 · Depends on T00, T06 (`describe()`, `RuleView`), T07 (`Settled.{inpart, side, anglerclosed, s}`, per-segment display +
 ladder), T09 (`RegsInputs.year`), T12, T13 (`rangeTxt`/`spanWords`, `daySegs`) · Blocks T21 (removes its 9-state exclusion), T25 · Decisions — · Size 1 day
 

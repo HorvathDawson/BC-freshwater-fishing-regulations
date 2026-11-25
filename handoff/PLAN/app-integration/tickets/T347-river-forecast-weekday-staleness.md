@@ -2,6 +2,10 @@
 
 Status: DONE (61f819c52) 2026-11-04 (was: OPEN, owner 2026-11-02). Live once the feeds worker is redeployed (batch 7, with 0.5.0).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T347 | River forecast weekday-only: stays on Conditions over weekends/holidays (staleness by publishing schedule), More-tab note | DONE 11-04 (live with the worker redeploy) | 61f819c52 | owner 2026-11-02 |
+
 The BC River Forecast Centre forecast updates on working days only. Over a weekend (and on stat holidays) the app
 currently treats Friday's forecast as stale, so it either disappears from the Conditions screen or gets a stale
 warning.

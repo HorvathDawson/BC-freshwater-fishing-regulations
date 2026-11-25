@@ -2,6 +2,10 @@
 
 Status: DONE (2026-10-27) — 41f15021.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T217 | iOS: the per-tile event and stretchable Images in the binding patch (T74 is Android only) | DONE | 41f15021 | simulator: 26 pans / 49 frames 0 grey; pill + hatches + At my location seen; first-view replay + pending states (iOS-only); pill content = stretch box on iOS |
+
 Source: T74 (2026-10-27). The binding patch (`app/patches/@maplibre__maplibre-react-native@11.5.0.patch`, deps.md) is
 Android only: `MLRNVectorSource.kt` reports each requested tile's section ids (`TileIds.kt`, the `MLRNTileIds` device
 event), and `setFeatureStates` / `watchTiles` / `nativeTag` and the `Images` stretch zones exist only in Kotlin. With

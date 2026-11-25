@@ -2,6 +2,10 @@
 
 Status: DONE — e4a5bef9, 2ebe4055.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T39 | dark theme + palette gate | DONE | e4a5bef9, 2ebe4055 | — |
+
 Phase 4 · Depends on T22 (tokens, D3 sub), T27 (Keep tab), T35 (Gear/Methods/Licence), T37 (sheets) · Blocks T41 ·
 Decisions D3 (sub), D4 (dark fish pictures) · Size 1 day
 

@@ -2,6 +2,10 @@
 
 Status: DONE — 2c072f33d, 295bbac15 (review: Kootenay's split count kept), 9e6e45694 + d0baa5fa0 (the mini release re-cut) (0.9.1; pipeline only, the app unchanged; reaches anglers with the 0.9.1 data release. Old apps read the new frames: a way's `while` was always optional)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1050 | Methods: "Ice fishing" repeats the Gear tab's line and hook counts (Dick Lake) | DONE — 0.9.1; needs the 0.9.1 data release | 2c072f33d, 295bbac15, 9e6e45694, d0baa5fa0 | staging report 4eedeb08d1964b44 (owner 2026-11-24); lane L19 |
+
 Source: in-app report `4eedeb08d1964b44` (staging feeds worker, the owner, 2026-11-24 18:50 UTC), reason "other", on
 Dick Lake `wbk:328989582`, part 0, "Today, Nov 24", Regulations view, web, app 0.9.0 (build 43, 127bf43), release
 r-0aec88ed3edb. No screenshot attached. The words, verbatim:

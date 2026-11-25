@@ -3,6 +3,10 @@
 Status: DONE 2026-10-29 — built and shipped (r-ce76b4ed3624: 33 tidal cuts + 10 whole tidal waters off the freshwater Commits: b49a29e11, d7b8f2f55, d99d28971.
 map); the phase-1 leftovers closed below. One owner proposal open (Mamquam Blind Channel, T212).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T166 | tidal areas cut: DFO tidal polygon → one clean cut across each stream (fix partial-channel blobs) | DONE | b49a29e11..d7b8f2f55, d99d28971 | 10-29: shipped in r-ce76b4ed3624 (33 cuts + 10 whole waters off the map); review app `_tidal` reads all tidal water with owners; RULINGS K8 retired / C-2 resolved … (detail: ticket file) |
+
 Source: owner 2026-10-23: "another ticket to add is doing a tidal areas cut. this will be a little bit tricky because our
 dfo tidal layer was cut mostly to the right spot but has a lot of areas where it cuts away only some of the stream
 (doesnt follow it very well) and we need to fix the blobs to work around that. this is a good after cleanup task".

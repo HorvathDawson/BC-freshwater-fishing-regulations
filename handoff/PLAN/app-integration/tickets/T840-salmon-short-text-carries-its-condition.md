@@ -2,6 +2,10 @@
 
 Status: OPEN (main chat; pipeline). After 0.8.0.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T840 | A salmon verdict's short text carries its own condition (two verdicts with different quota trees never share one `t`; lands with the app dropping its T767 join) | OPEN | — | app chat T767 2026-11-17 (after 0.8.0) |
+
 Source: the app chat's T767 item 4, 2026-11-17. Two salmon sections can share a verdict's short text `t` while their
 quota trees differ ("hatchery-marked only" lives only in `tree.says`). The app now joins the tree's words beside `t` on
 the card and puts them in the stretch-join key (app-fix/t766-t767 27186df29), so nothing is lost on screen; but the

@@ -2,6 +2,10 @@
 
 Status: OPEN (app chat leads: the screens; main chat: the words the pipeline writes). After production.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T890 | Word density: measure every page, then cut the over-dense ones (pictures first) (owner) | OPEN | app chat + main chat | owner 2026-11-18 ~21:43 |
+
 Owner 2026-11-18 ~21:43 (main chat), verbatim: "Another thing we should add a ticket for is checking every page for word
 density then try to reduce the over dense ones".
 

@@ -15,6 +15,10 @@ typecheck. Nothing to rerun (style only; no tiles/reach/deliver). Left: the ledg
 whoever closes the ledger; the warm dot vs `color.highlight` is not held (dark 3.9 worst-vision; the highlight is a
 casing on a line, the dot is a stroked circle) — accept, or ask the owner whether a dark warm should give up the orange. Also in normal vision the cvd theme's warm #BC7864 is 15.9 off `color.highlight` (light 33.2, dark 46.0). Not built: a test of build-style's three `outline.drawAfter` error paths; the wetland selection ring stays under the boundaries (the lake ring is now over them) — harmless, same as before T83.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T83 | map: boundaries under water, warm dot, sub-20 pairs | DONE | 111bd363, cbd3e139, e61a6e7d, 7bb14b79, a9dae070 | — |
+
 Source: T47 left (1) boundaries still drawn above the water (part 1 Q4, no owner answer) though the ticket says they
 must sit "under the water's status colour"; (2) the warm temperature dot is plum, reusing restricted; (4) pairs below 20
 recorded in the test: thin lines, permit/temperature, dark boundary 15, dark closed/base line 19.1. T47's (3) palette D

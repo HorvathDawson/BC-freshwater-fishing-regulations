@@ -2,6 +2,10 @@
 
 Status: DONE — 7355fc2e, review b78a9bb0 (app only; ships with the next app build, no data rebuild).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T123 | one donor state for Conditions and map labels | DONE | 7355fc2e, 5887de97, b78a9bb0, 7a72d388 | app only |
+
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding gauges 6
 (CONFIRMED in code; mostly masked today).
 

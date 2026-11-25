@@ -2,6 +2,10 @@
 
 Status: DONE — 05a8b704 (lane-T112, with T119; one code commit because the app's split check was replaced by T119's gate).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T112 | one entry walker over catalogue extents | DONE | 9cde1fbe, f99cd705, 05a8b704 | no rebuild (review app restart) |
+
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding matching 1
 (CONFIRMED).
 

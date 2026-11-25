@@ -2,6 +2,10 @@
 
 Status: DONE — f75e6aac1, 35f55b74d, 7287c181a, c2c1e832c, d52a04440 (0.9.1; needs the 0.9.1 data release + app build; the first release carrying the list states no count)
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1030 | The release manifest carries a changed-waters count (the inbox data row's "N waters changed") | DONE | f75e6aac1, 35f55b74d, 7287c181a, c2c1e832c, d52a04440 | (T867) per-water digest list per release; count vs LATEST, said only on a device that held it (changed_waters_from); wording not counted; owner 11-24 "Rules only, hide 0": 0 says nothing (core drops it, manifest keeps 0) |
+
 T867 (PR feat/T867-inbox) shows a data-release row in the notifications inbox: "Regulations data updated <day>", and
 "N waters changed" once the manifest says it. Nothing in the manifest says it today, so the row omits it (rule 32); the
 slot is `InboxTrack.release.changed` in `@app/ui` `useInSeasonInbox` (Shell reads it from the manifest).

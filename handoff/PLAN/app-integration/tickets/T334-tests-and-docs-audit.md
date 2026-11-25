@@ -3,6 +3,10 @@
 Status: DONE 2026-11-05 — 86a5a4ebf: report `handoff/PLAN/audit-2026-11-05/REPORT.md`, fix tickets T429–T438. Was: POSTPONED — (next credit cycle, with T333) (owner 2026-10-30: "add another ticket to audit all tests and
 documentation").
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T334 | Audit all tests and documentation (dead tests, gaps, stale/duplicate docs) → fix tickets | DONE | 86a5a4ebf | owner 2026-10-30 |
+
 ## Tests (pipeline/tests, app packages, workers, testbed)
 - Tests that cannot fail (seeded from their own input — memory checks-seeded-from-input-launder), skipped/xfail left
   behind, pins nobody can explain, duplicates of one check, slow tests that should be fast, fixtures from dead atlases.

@@ -2,6 +2,10 @@
 
 Status: OPEN.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T1080 | A new owner to-do page: markdown only, short, open items only (the artifact page is retired) | OPEN — planning chat, right after PR #114 merges | | owner 2026-11-24 |
+
 Source: owner 2026-11-24 (planning chat), verbatim: "we will make a new owner todo page (no artifact only md files
 that you ask)". The Owner To-Do artifact could not be opened by any chat on 2026-11-24, and `OWNER-TODO.md` is 3,654
 lines, most of it history. Related: PR #114 (T1041: one file per owner item, the page built from them), held until

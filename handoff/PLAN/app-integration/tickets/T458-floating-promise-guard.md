@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-06 — 935497ef9
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T458 | A guard against un-awaited promises (the T446 class of bug) | DONE 2026-11-06 | 935497ef9 | gate in pnpm check; 2 unhandled chains fixed |
+
 T446's cause (7fc594427): the Expo SDK 58 upgrade turned expo-file-system's `File.write` / `move` / `copy` into
 promises. Our calls were not awaited, so a rename moved an EMPTY file into place. Fresh installs got 0-byte release
 files, and the spots save (write, then rename) could have emptied a reader's spots file. TypeScript accepts a dropped

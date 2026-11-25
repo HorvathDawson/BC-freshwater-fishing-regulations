@@ -2,6 +2,10 @@
 
 Status: DONE 2026-11-11 — 85ba2e821 (the audit: `handoff/PLAN/app-integration/T462-audit.md`, 30 findings, read-only; no tickets filed yet: the owner decides which findings become work).
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T462 | Audit (multi-agent): every screen shows the regulations the release holds and the synopsis says | DONE 2026-11-11 | 85ba2e821, c9488453c | T462-audit.md: 30 findings (8 wrong shown, 9 missing, 10 misleading, 3 cosmetic); statuses and numbers clean, the gaps are rules no screen draws; G6 Pend d'Oreille (owner … (detail: ticket file) |
+
 Owner: "maybe ultra is good for doing some final audits on the code base and how the regulation data is presented."
 
 ## What

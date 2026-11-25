@@ -2,6 +2,10 @@
 
 Status: IN PROGRESS — slices 1–7 done (slices 1–2 9bdc5ea2e, 5e8d817d9; 3 by T666; 4a/4b 716999ebc, 0f7b29678; 5a c79b4516b; 5b 5618e63bc, 3e933cc04, 34a4e0f61, afb6a5eda; 4c 26535857f; 6 424a4be66; 7 1e924f612); slice 8 steps 1–3 done (the mini world through the real atlas + reach, acd561469, 4a7c92f10; deliver on invented inputs 1cb204a3f; the mini release r-0266d965cfb6 committed and held to a rebuild by content, c9f050557) and step 4's first batch (@app/data line.test.ts on the mini release, 1c1609e51); left (Claude): step 4's rest — the ~36 app test files on `openRegsFixture*` (ui, ui-native) one package per batch, the pipeline logic tests that build toy bundles, the page oracle on the mini release, shrinking the regs fixture to the D2 walks.
 
+| id | title | status | commits | what's left |
+|---|---|---|---|---|
+| T667 | Tests that grow with the app: fewer hand updates per release and per feature (audit and design first, Fable) | IN PROGRESS (slices 1–7 done; slice 8 steps 1–3 done: mini release r-0266d965cfb6 committed c9f050557, step 4 first batch 1c1609e51; left (Claude): step 4 rest — ~36 app test files on openRegsFixture*, toy-bundle pipeline tests, page oracle on the mini release, shrink the regs fixture) | 9bdc5ea2e, 5e8d817d9, 716999ebc, 0f7b29678, c79b4516b, fb91259ef, 5618e63bc, 3e933cc04, 34a4e0f61, afb6a5eda, 26535857f, 1e924f612, 424a4be66, acd561469, 4a7c92f10, 1cb204a3f, c9f050557, 1c1609e51 | owner 2026-11-11; closed-testing run; with T666 |
+
 Source: owner 2026-11-11: "we need to also make the tests more expandable; right now they get progressively more
 unwieldy ... a Fable task to improve the tests generally, to naturally grow with the app without too many hand
 updates needed every time."
