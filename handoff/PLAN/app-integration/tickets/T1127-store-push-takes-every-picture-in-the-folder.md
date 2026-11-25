@@ -29,4 +29,4 @@ Until then (owner page): clear the 34 old pictures from the main checkout, or up
 `--plan` must show 7 pictures per size.
 
 Severity: medium (wrong pictures on a public listing; only on a machine that has the leftovers). Model: Sonnet.
-Size: S. Owner: no (2026-11-25 12:35: "we can remove old store photos. we want this to be clean").
+Size: S. Owner: no (2026-11-25 12:15: "we can remove old store photos. we want this to be clean").
