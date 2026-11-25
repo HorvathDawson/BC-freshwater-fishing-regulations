@@ -23,8 +23,9 @@ g. Not said at all: the push token is registered even when the reader taps Don't
 ## Work
 1. Rewrite the page so each sentence is true on Android, iPhone and web (say the platform where they differ). Every
    changed sentence goes to the owner as a before/after list: it is his legal statement.
-2. (a) depends on an owner decision the iOS chat is asking: keep the install id on a report that carries an email
-   (then say so plainly), or leave it out (then the sentence is true as written). Record his pick here.
+2. (a) is words only. Owner 2026-11-24 ~23:25 (multiple choice in the iOS chat, relayed): "Strict: linked". The
+   install id stays on a report that carries an email, no code change; the page must stop saying the install id
+   cannot be connected to a person and say when it can (a report you send with your email).
 3. (g) is behaviour, not only words: propose to the owner either saying it, or not registering a token after
    Don't Allow, and a token age limit. A behaviour change is its own ticket.
 4. A test that pins the page's claims to the code where it cheaply can (the map app named per platform, the
@@ -36,5 +37,6 @@ The owner has read the before/after list; the page on production matches the app
 URL shows it before the submission.
 
 Severity: medium (a public legal statement that is partly untrue; Apple reads it). Release: before the App Store
-submission (T1071): a site-only change, with 0.9.1's site deploy or its own. Model: Sonnet (Opus not needed: the
+submission (T1071): a site-only change, routed to the 0.9.1 chat for its site deploy (the iOS chat does not take
+it: website code with pinned-string tests). Model: Sonnet (Opus not needed: the
 code facts are listed). Size: S. Owner: yes (reads the new words; item 2 and 3 picks; the production deploy).
