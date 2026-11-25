@@ -30,7 +30,7 @@ overnight, and the repo move comes after it.
 | D | Docs lean-out (after 2b; owner approved 2026-11-24) | T1081: inventory of every markdown file with a verdict, the owner agrees the layout, then the cut by folder and a guard that keeps it lean. T1080 (the new short owner page) is done before it by the planning chat. |
 | 4a | 0.10 feature: stocked lakes | T200 (+ T634 stocking half): research the source and licence, pictures of the Stocked mode, then build. |
 | 4b | 0.10 feature: bathymetry maps and charts | T201, T218, T219 (+ T634 depth half): the owner says "0.10 is bathy maps/ charts too". |
-| 4c | 0.10 feature: corridors | T79 (imagery corridor + pools validation): the owner says "coul look into the corridors again too". Research and pictures first. |
+| 4c | 0.10 feature: corridors | T1108 first (owner 2026-11-25: the Mapbox SDK for free offline corridor maps; research the terms and cost before the scope freezes). T79 (imagery corridor + pools validation): the owner says "coul look into the corridors again too". Research and pictures first. |
 | 5 | Launch (Play production) | T1046 (application from 2026-12-07; `play-production-access/`), T240, T404, T319, T514, T463, T495. |
 
 **What "launch" means** (owner asked "idk what launch ever needs"): Play only lets the app out of Closed testing after
