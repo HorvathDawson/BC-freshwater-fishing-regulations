@@ -341,6 +341,8 @@ export interface PushSend {
   /** (T1116) tokens not registered again for PUSH_TOKEN_MAX_AGE_DAYS: never woken, deleted (each logged by record id);
    *  present only when one was */
   stale?: number;
+  /** (T1116) stale tokens whose delete failed (a fault: the send is not ok; not woken; the daily sweep tries again) */
+  staleNotDeleted?: number;
   /**
    * (T739 L3) a wake too big for one run (over PUSH_SENDS_PER_RUN phones) goes out in parts, one per feed run: which
    * part this was, how many registered phones are still to be told (0: the wake is done), and when the wake began.
@@ -447,25 +449,33 @@ export async function sendWake(env: PushEnv, fetch_: Fetch, now: Date, asked: st
   for (const key of batch) {
     const o = await env.BUCKET.get(key);
     if (!o) continue;
+    let rec: PushRecord;
     try {
-      const rec = JSON.parse(await o.text()) as PushRecord;
+      rec = JSON.parse(await o.text()) as PushRecord;
       if (rec?.platform !== "ios") throw new Error(`not an iPhone's token (platform ${JSON.stringify(rec?.platform)})`);
-      // (T1116) a token not registered again for PUSH_TOKEN_MAX_AGE_DAYS is never woken: deleted here, before the
-      // daily sweep comes to it, and logged by record id as a dead one is
-      if (tokenStale(rec, now)) {
-        await env.BUCKET.delete(key);
-        out.stale = (out.stale ?? 0) + 1;
-        console.log(JSON.stringify({ job: "push", dropped: recordId(key), env: rec.env, why: staleWhy(rec) }));
-        continue;
-      }
-      recs.push({ key, rec });
     } catch (e) {
       // a record we wrote that does not parse (or names a platform with no push) is a fault: counted and said; deleted
       // (the iPhone registers again within 7 days, PUSH_REFRESH_MS on the phone)
       out.unreadable++;
       console.error(JSON.stringify({ job: "push", unreadableToken: key, error: String((e as Error)?.message ?? e) }));
       await env.BUCKET.delete(key);
+      continue;
     }
+    // (T1116) a token not registered again for PUSH_TOKEN_MAX_AGE_DAYS is never woken: deleted here, before the daily
+    // sweep comes to it, and logged by record id as a dead one is. A delete that fails is its own fault (counted in
+    // `staleNotDeleted`, the send not ok, said); the token is still not woken and the wake goes on (the sweep tries again)
+    if (tokenStale(rec, now)) {
+      try {
+        await env.BUCKET.delete(key);
+        out.stale = (out.stale ?? 0) + 1;
+        console.log(JSON.stringify({ job: "push", dropped: recordId(key), env: rec.env, why: staleWhy(rec) }));
+      } catch (e) {
+        out.staleNotDeleted = (out.staleNotDeleted ?? 0) + 1;
+        console.error(JSON.stringify({ job: "push", staleNotDeleted: recordId(key), error: String((e as Error)?.message ?? e) }));
+      }
+      continue;
+    }
+    recs.push({ key, rec });
   }
   out.ios.tokens = recs.length;
   // one credential per send (made only when there is someone to send to); (T994 #23) the kept one while it may be reused
@@ -514,7 +524,7 @@ export async function sendWake(env: PushEnv, fetch_: Fetch, now: Date, asked: st
       if (out.ios.errors.length < KEEP_ERRORS) out.ios.errors.push(why.slice(0, 200));
     }
   }
-  out.ok = !out.ios.failed && !out.unreadable && !carryError;
+  out.ok = !out.ios.failed && !out.unreadable && !carryError && !out.staleNotDeleted;
   // (T739 L3) the place kept for the next run, or the carry-over done. A carry that cannot be kept THROWS, as a lost
   // status does: the rest of the phones would silently never be told
   if (left || part > 1) out.carry = { part, left, since };
@@ -622,6 +632,7 @@ export async function wakePhones(env: PushEnv, fetch_: Fetch, at: Date, why: str
              ...(r.apns ? { apns: r.apns } : {}), ...(r.carry ? { carry: r.carry } : {}), ...(r.stale ? { stale: r.stale } : {}) };
     if (r.ios.failed) logErr(`push: ${r.ios.failed} wake(s) failed (${r.ios.errors.slice(0, 3).join("; ")})`);
     if (r.unreadable) logErr(`push: ${r.unreadable} stored token record(s) did not parse or were not an iPhone's; deleted (those phones register again within 7 days)`);
+    if (r.staleNotDeleted) logErr(`push: ${r.staleNotDeleted} token(s) not registered again for ${PUSH_TOKEN_MAX_AGE_DAYS} days could not be deleted (not woken; the daily sweep tries again)`);
     if (r.carryError) logErr(`push: the carry-over did not read (${r.carryError}); deleted, the wake began again at the first phone`);
     reached = r.ios.sent > 0 || (r.ios.tokens === 0 && r.ok);
   } catch (e) {

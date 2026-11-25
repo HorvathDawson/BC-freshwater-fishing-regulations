@@ -150,6 +150,21 @@ describe("the send never wakes a stale token (T1116)", () => {
     expect(h).toContain("1 token(s) not registered again for 30 days (deleted)");
   });
 
+  it("(review) a stale token whose delete fails: not woken, counted as its own fault, the send not ok, and the wake goes on", async () => {
+    capture();
+    const b = new MemBucket();
+    await seed(b, tok("a"), ago(31 * DAY));
+    await seed(b, tok("b"), ago(1 * DAY));
+    b.failDelete = true;
+    const urls: string[] = [];
+    const r = await sendWake({ BUCKET: b }, async (u) => { urls.push(u); return new Response(null); }, NOW, "gauges");
+    expect(urls).toEqual([]);                                   // no secrets: nothing sent to anyone, and no throw
+    expect(r).toMatchObject({ ok: false, staleNotDeleted: 1, unreadable: 0, ios: { tokens: 1 } });
+    expect("stale" in r).toBe(false);
+    const h = await (await worker.fetch(new Request("https://w.example/status"), { BUCKET: b } as never)).text();
+    expect(h).toContain("1 token(s) not registered again for 30 days could not be deleted (not woken)");
+  });
+
   it("with none stale the send's record has no `stale` field (its shape unchanged)", async () => {
     const b = new MemBucket();
     await seed(b, tok("b"), ago(1 * DAY));

@@ -8,7 +8,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { localStamp, MENU_WORDS, NOTIFY_WORDS, setFailureSink, type Band, type DataInput, type GaugeAlertRule } from "@app/core";
-import { createNotifySettings, NOTIFY_DEFAULT, type NotifyState, type PushStatus, type WaterSource } from "@app/data";
+import { createNotifySettings, createPushRegistrar, NOTIFY_DEFAULT, type NotifyState, type PushStatus, type WaterSource } from "@app/data";
 import { LayoutWidthContext, NotifyRoot, pushWanted, useNotifications, type NotifyControls, type NotifyPermission } from "@app/ui";
 import { LIGHT } from "../theme";
 import { MoreScreen } from "./MoreScreen";
@@ -536,12 +536,12 @@ describe("(T1116) the push token is sent only while the phone's permission is on
     expect(push.mock.calls).toEqual([[true], [false]]);
     expect(screen.getByTestId("notify-permission").textContent).toBe(NOTIFY_WORDS.permission.denied);
     expect(screen.getByRole("switch", { name: NOTIFY_WORDS.master.label }).getAttribute("aria-checked")).toBe("true");
-    await act(async () => { resume(); });                       // back again, nothing changed: nothing sent
-    await flush();
-    expect(push.mock.calls).toHaveLength(2);
+    await act(async () => { resume(); });                       // (review) back again, nothing changed: synced again
+    await flush();                                              // (the registrar decides whether anything is due)
+    expect(push.mock.calls).toEqual([[true], [false], [false]]);
     await act(async () => { resume("granted"); });
     await flush();
-    expect(push.mock.calls).toEqual([[true], [false], [true]]);
+    expect(push.mock.calls).toEqual([[true], [false], [false], [true]]);
     expect(screen.getByTestId("notify-permission").textContent).toBe(NOTIFY_WORDS.permission.granted);
   });
 
@@ -573,5 +573,37 @@ describe("(T1116) the push token is sent only while the phone's permission is on
     undo();
     expect(push).not.toHaveBeenCalled();
     expect(seen.map((e) => (e as Error).message)).toEqual(["permissions module gone"]);
+  });
+});
+
+/**
+ * (T1116 review) A PHONE THAT ONLY EVER RESUMES still re-sends its token: every return to the front syncs the push again
+ * and the registrar's 7-day check (PUSH_REFRESH_MS) decides. Without it the worker deleted the token after 30 days while
+ * the page said "registered". Through the real registrar, on a clock.
+ */
+describe("(T1116 review) a return to the front re-sends the token once it is due", () => {
+  it("resumed 1 day after the last register: nothing sent; 8 days after: one register", async () => {
+    const DAY = 86_400_000;
+    let t = Date.parse("2026-12-01T12:00:00Z");
+    const posts: string[] = [];
+    let kept: string | null = null;
+    const registrar = createPushRegistrar({
+      seam: { platform: "ios", env: "sandbox", token: async () => "ab".repeat(32), onToken: () => () => {} },
+      url: "https://w.example/push", store: { read: () => kept, write: (s) => { kept = s; } }, now: () => t,
+      fetch: async (u) => { posts.push(u.split("/").pop()!); return new Response(null, { status: 201 }); },
+    });
+    const k = controls({ on: true, updateReady: true }, "granted", "granted");
+    const c: NotifyControls = { ...k.c, platform: { ...k.platform, push: (on) => registrar.sync(on), pushStatus: registrar } };
+    render(<NotifyRoot controls={c}><div /></NotifyRoot>);
+    await flush();
+    expect(posts).toEqual(["register"]);                        // the start
+    t += 1 * DAY;
+    await act(async () => { k.resume(); });
+    await flush();
+    expect(posts).toEqual(["register"]);                        // 1 day on: not due, nothing sent
+    t += 7 * DAY;
+    await act(async () => { k.resume(); });
+    await flush();
+    expect(posts).toEqual(["register", "register"]);            // 8 days on: one register
   });
 });

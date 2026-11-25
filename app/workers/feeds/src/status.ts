@@ -309,6 +309,7 @@ function pushHtml(p: { missing: Record<string, string[]>; last: any }, now: Date
     (l.unreadable ? ` · <b class="failing">${esc(l.unreadable)} stored token record(s) did not parse or were not an iPhone's (deleted)</b>` : "") +
     // (T1116) tokens not registered again for 30 days: not woken, deleted (not a fault)
     (l.stale ? ` · ${esc(l.stale)} token(s) not registered again for ${PUSH_TOKEN_MAX_AGE_DAYS} days (deleted)` : "") +
+    (l.staleNotDeleted ? ` · <b class="failing">${esc(l.staleNotDeleted)} token(s) not registered again for ${PUSH_TOKEN_MAX_AGE_DAYS} days could not be deleted (not woken)</b>` : "") +
     // (review 2026-11-20, M2) a wake that threw: kept as {at, reason, ok: false, error}
     (typeof l.error === "string" ? ` · <b class="failing">not sent: ${esc(l.error)}</b>` : "") +
     (typeof l.carryError === "string" ? ` · <b class="failing">the carry-over did not read (${esc(l.carryError)}); the wake began again</b>` : "") : "never";

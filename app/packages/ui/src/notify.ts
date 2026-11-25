@@ -115,7 +115,14 @@ export function NotifyRoot({ controls, children }: { controls: NotifyControls | 
       pushed = want;
       c.platform.push(want).catch(reportFailure);
     };
-    const reread = () => { permission.read().catch(reportFailure); };
+    // (T1116 review) every read (start, each return to the front) syncs the push again, changed or not: a phone that only
+    // ever resumes would otherwise never re-send its token and the worker deletes it after 30 days while the page says
+    // "registered". The registrar's 7-day check (PUSH_REFRESH_MS) makes an unneeded register cost nothing. `pushed` is
+    // cleared BEFORE the read, so a changed answer (told through `permission.subscribe`) still sends once, not twice
+    const reread = () => {
+      pushed = null;
+      permission.read().then(sync, reportFailure);
+    };
     const undo = [c.settings.subscribe(sync), permission.subscribe(sync), c.platform.onResume(reread)];
     sync();
     reread();
