@@ -40,3 +40,13 @@ in should be renamed too maybe?" The new owner is `canifishthis`. The rename is 
 to you (planning chat's proposal: rename to `canifishthis` in the same cutover, so the slug flip is one change and
 the address reads canifishthis/canifishthis; GitHub redirects the old name too, as long as nobody makes a new repo
 at the old one). Actions minutes: a public repo is not counted, in an org as on a personal account.
+
+**13:38, from the repo-move chat (session `bc-freshwater-fishing-regulations-38`, started 13:12):**
+- Answered 13:25 in its dialog, your pick: "Rename now (Recommended)". The repo becomes canifishthis/canifishthis at
+  the transfer. The slug flip is draft PR #217; it merges only after the transfer and rename.
+- **Do (you), before the transfer click:** the second collaborator account with write access becomes an outside
+  collaborator after the transfer, and an org that requires two-factor removes an account without it. Check that
+  account has two-factor on, or drop it.
+- **Do (you), after the move, dated:** the new GITHUB_DISPATCH_TOKEN expires in at most 366 days (the org's cap).
+  Re-issue it on both feeds workers before it does; the repo-move chat gives the exact date when you make the token,
+  and it is written here then.
