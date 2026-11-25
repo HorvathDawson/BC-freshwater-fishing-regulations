@@ -303,7 +303,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1058 | A production Android build hangs for an hour after BUILD SUCCESSFUL (Gradle daemon out of Metaspace) | DONE | 551cb1ce8, e01373329, 44be58a34, b2ae0ee3d | planning chat 2026-11-24 |
 | T1059 | `scripts/ci_status.py --strict` says "no finished run" when the green run is on an ancestor more than 30 runs back | DONE | 87e1783a3, 34c35758a | planning chat 2026-11-24 |
 | T1060 | App robustness: no React error boundary, and three one-render stale states | OPEN —  | | planning chat 2026-11-24 |
-| T1061 | A Map opened through "Flows into" shows a blank band of about 120 px (Skeena) | OPEN —  | | planning chat 2026-11-24 |
+| T1061 | A Map opened through "Flows into" shows a blank band of about 120 px (Skeena) | OPEN — 0.9.2 (missed the 0.9.1 cut) | | planning chat 2026-11-24 |
 | T1062 | Release candidates: tag `vX.Y.Z-rc.N` and promote, instead of moving the version tag after late fixes | OPEN —  | | planning chat 2026-11-24 |
 | T1063 | `scripts/heavy.sh`: a fair queue (longest wait first), a release build ahead of check tiers, and test runs inside the lock | OPEN — 0.9.2 (medium since 2026-11-24) | | planning chat 2026-11-24 |
 | T1064 | T1016 follow-ups: the release pointer names its previous release; the web applies new data only when the app version can read it | OPEN —  | | planning chat 2026-11-24 |
@@ -335,7 +335,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1090 | `data.canifishthis.ca/robots.txt` answers 404 (Search Console) | OPEN — 0.9.2 | | owner 2026-11-24 |
 | T1091 | A fresh Standard map fetches only the salmon head: what is drawn from the full salmon facts is missing until the Salmon map was opened | OPEN — 0.9.2 (code reading 2026-11-24 found no missing closure; the cold-open test and a live check are left) | | 0.9.1 chat 2026-11-24 |
 | T1092 | Web: "Database deleted by request of the user" arrives as a crash report (kind `790ae7cc172f9424`) | OPEN — 0.9.2 | | planning chat 2026-11-24 |
-| T1093 | "Location request failed due to unsatisfied device settings" is an unhandled crash on 0.9.0 (kind `f7cb406a97ce7436`) | OPEN — 0.9.2 (0.9.1 if a lane is free) | | planning chat 2026-11-24 |
+| T1093 | "Location request failed due to unsatisfied device settings" is an unhandled crash on 0.9.0 (kind `f7cb406a97ce7436`) | OPEN — 0.9.2 (missed the 0.9.1 cut) | | planning chat 2026-11-24 |
 | T1094 | Android: the system ended the app for low memory in the foreground, 0.8.5 staging (kind `9588028ebf260364`) | OPEN — 0.9.2 (watch for it on 0.9.0 first) | | planning chat 2026-11-24 |
 | T1095 | Feature request: fish measurements on a saved location, several per location, editable on a revisit (report `0a9136aec3e19ab9`) | OPEN — 0.10, pictures first (owner 2026-11-24) | | planning chat 2026-11-24 |
 | T1096 | Methods: the page's ice-fishing clause carries no citation (the source is in the pipeline only) | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24, T1050's leftover |
@@ -358,12 +358,15 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1115 | The saved-spot page: a full fresh redesign (owner: still clunky); pictures first, with T1095 | OPEN — design in 0.9.2 (owner: "maybe in 0.9.2"); build when the direction is picked | | owner 2026-11-25 |
 | T1116 | A push token is registered only while the phone's notification permission is on; the worker drops tokens not re-registered for ~30 days | DONE — 0.9.1 (owner 2026-11-25); needs the app build + feeds worker deploy | f4ef89f4c | owner via the 0.9.1 chat, T1098 item g |
 | T1117 | The book's "ANDERSON" LAKE row (MU 1-3) is bound to Anderson Lake on Dove Creek (MU 1-6): wrong rules on production | OPEN — HIGH; 0.9.1, fixed inside PR #166 (T1053) | | 0.9.1 chat 2026-11-25 |
-| T1118 | Audit every name variant whose target sits in a different management unit than the book's row; a build check | OPEN — 0.9.2, first Opus lane (HIGH until the list exists) | | 0.9.1 chat 2026-11-25, behind T1117 |
+| T1118 | Audit every name variant whose target sits in a different management unit than the book's row; a build check | OPEN — 0.9.2, first Opus lane (HIGH until the list exists; a first pass of 98 bindings is in #166) | | 0.9.1 chat 2026-11-25, behind T1117 |
 | T1119 | Boat launches, docks and the like on the basemap, always drawn, from OpenStreetMap, through every stage | OPEN — 0.10 at the earliest (owner 2026-11-25); research and pictures first | | owner picks what "etc" covers, the look, tap or not |
 | T1120 | At the repo move, a fresh clone proves everything can be set up and rebuilt from nothing | OPEN — chat 3 (repo move), last step (owner 2026-11-25) | | the list of what lives outside git; the owner confirms the secrets list |
 | T1121 | Web gauges page search: four leftovers from the T1107 review (report class, current-data mark on the list, place cap, plural) | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-25 |
 | T1122 | The stores' data forms say what the privacy page now says (Play Data Safety, the iOS submission page) | OPEN — before the App Store submission (item 2) and the Play application (item 1) | | owner reads out the Data Safety form |
 | T1123 | iPhone may still show the "New app version" notification toggle text | OPEN — 0.9.2, with T1073 | | not checked yet |
+| T1124 | Push token while permitted (T1116): an untrue line when notifications are blocked, the sweep cap, retry, the device walk | OPEN — 0.9.2 | | owner picks the wording; 0.9.1 chat 2026-11-25 |
+| T1125 | One-bank closures (T1029): a bank place that cannot be drawn, creeks with no side read, tests, the device walk | OPEN — 0.9.2 | | owner answers items 1 and 2 from pictures |
+| T1126 | A water closed for part of the year by one book rule says it once (T1052 follow-up, 130 waters) | OPEN — 0.9.2, pictures first | | owner: "Yes, merge those too" |
 
 ## Next after closed testing
 

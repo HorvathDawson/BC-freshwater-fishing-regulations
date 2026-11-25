@@ -12,3 +12,7 @@ Source: the 0.9.1 chat (RESTART-091-chat.md, 2026-11-24): `app/packages/ui/src/c
 50 loaded runs of the chart test with no failure; the timeout does not appear in a full `before_pr` run beside another heavy job.
 
 Severity: low to medium (a false red costs a review round). Release: 0.9.2. Model: Sonnet. Size: S. Owner: no.
+
+## Added 2026-11-25 (0.9.1 chat)
+`packages/ui-native/src/WaterScreen.sources.test.tsx` times out at 40 s under machine load (twice on the night of
+the 0.9.1 cut; passes alone). It fails the pre-push hook and `before_pr`.
