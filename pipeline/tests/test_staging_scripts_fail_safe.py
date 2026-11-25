@@ -698,6 +698,7 @@ def gate_tree(tmp_path):
     FF_RC), heavy.sh (the lock: nothing past it runs), node (the changelog check, rc CL_RC), Xcode and CocoaPods."""
     t = tmp_path / "repo"
     for rel in ("deploy/staging/build-apk.sh", "deploy/staging/build-ios-testflight.sh", "deploy/lib/build-links.sh",
+                "deploy/lib/gradle-watch.sh",
                 "scripts/ci_paths.py", "app/tools/maplibre-android/pin.env"):
         (t / rel).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(ROOT / rel, t / rel)
