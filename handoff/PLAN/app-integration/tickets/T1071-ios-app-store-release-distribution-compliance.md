@@ -70,6 +70,12 @@ Owner: yes (App Store Connect entries, the submit, any legal answers).
   So the label carries 9 types, one ahead of the app; the next release owes the performance monitor and the
   privacy page words (sent to the planning chat). Performance Data answers: App Functionality, linked, no tracking.
 
+- 2026-11-25 14:25, asked as multiple choice (the planning chat's point for T1132): Performance Data on the
+  label is **"Not linked (Recommended)"**: purpose App Functionality, not linked, no tracking. This replaces the
+  "linked" this chat first asked him to set; he changes it on the screen. T1132 must send no install id with it.
+- Same day: he saw the new Header and Search Results picture slots and said **"i need search and header asset
+  too"**. They are T1134 (store content chat); Apple calls them optional, not a gate for Submit.
+
 ## Results (iOS release chat, 2026-11-24)
 - The page: `handoff/PLAN/ios/APP-STORE-SUBMISSION.md`. Restart page: `handoff/PLAN/ios/RESTART-ios-release-chat.md`.
 - Read against the uploaded build's code (0.9.0 (45), 65f84020c, an Opus lane, read only). What changed against the
