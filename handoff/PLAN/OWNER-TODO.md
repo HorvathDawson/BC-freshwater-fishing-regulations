@@ -89,10 +89,13 @@ with the default Claude uses until you answer). Newest first inside each section
 - Done 2026-11-24 ~23:30: you set the three push keys on the production feeds worker. The proof itself failed:
   your iPhone (0.9.0 (45)) is given no push token by the system, on Wi-Fi and on cellular (T996; the same as build 36
   on 11-16). Signing and the app's push code were checked and no fault found; no real iPhone has registered yet.
-- **Do (you), with the iOS chat: find why the iPhone gets no push token** (T996). In order: 1) restart the phone,
+- **Do (you), AFTER the iPhone release (your call 2026-11-25 ~00:20: "we should move this to after iphone release
+  I think. we could fix with a patch?"): find why the iPhone gets no push token** (T996). In order: 1) restart the phone,
   open the app, More → Notifications → Try again. 2) If still nothing: connect the phone to the Mac, open Console,
   pick the phone, filter on `apsd`, press Try again, and send the lines to the iOS chat. 3) Or install the same
-  TestFlight build on a second iPhone and try there. The App Store submission waits on this.
+  TestFlight build on a second iPhone and try there. The App Store submission no longer waits on this; it waits
+  on the new pictures (T1072) and the privacy page words (T1098) only. Until push works, an iPhone learns of new
+  data only through iOS's own background check, which can be late.
 - Reported 2026-11-24 22:55 (0.9.1 chat): a network outage stopped its lanes 16:15–22:15, all restarted, nothing
   lost. T1087 (the Brunette closure on the whole river) was read against the printed row: right, nothing to change.
 - **Do (you): Play Production staged rollout of 0.9.0 (build 44), once Google grants production access** (T1046,
