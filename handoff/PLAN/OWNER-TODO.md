@@ -80,6 +80,13 @@ with the default Claude uses until you answer). Newest first inside each section
 - 2026-11-25 00:40, your ask: at the repo move "do a fresh install ... to make sure everythign can be redone
   properly". Ticket T1120, the last step of the repo-move chat. Your part then: confirm a list of secrets (names
   only) that you can restore each one, about 10 minutes.
+- 2026-11-25 00:50, from the 0.9.1 chat: (a) the What's-new words for 0.9.1 are yours to clear; it drafts plain
+  ones as a proposal and lists them in its morning summary. (b) Production data: `pipeline release --prod` refuses
+  in every Claude session by code. The planning chat will not run the upload script under it and advised the 0.9.1
+  chat to leave production data, then the site and feeds, for you with the commands ready. (c) T1122: read out
+  Play Console's Data Safety answers so they can be checked against the new privacy page (about 10 minutes, before
+  the Play application). (d) The 0.9.1 chat says the release must run from the main checkout (clean, on `main`);
+  the planning chat has nothing in it and told it: clean tree only, fast-forward only, no stash or reset.
 - Asked 2026-11-25 ~00:20: "in 0.9.1 we should make this page (https://canifishthis.ca/gauges) have a search
   option ... search by place or river etc to get gauge only"; "someone found the page by search so we want it
   usable". Ticket T1107, sent to the 0.9.1 chat; you get a picture of the page with results before it ships.
