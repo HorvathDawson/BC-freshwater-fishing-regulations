@@ -54,6 +54,18 @@ square card with the hard ink shadow; no device frame, status bar, store badge, 
   `--reuse` serves the export already built).
 Part 2 (marketing words, T1072 work items 2-4) is not in this change.
 
+### Review round 2026-11-25 (the coordinator's review of PR #192) and what it changed
+- THE OUT-OF-COVERAGE BAND (south of the border, a flat dark grey where the data stops) is out of every map frame at every raw size. The camera is moved north (the zoom stays) until a
+  capture of the page shows none: `band`/`clearBand` in play-shots.mjs find a run of 12+ dark, nearly neutral grey rows that ends at the map's foot (the legend panel), drag the map down by its
+  height, and look again; the content check (checks.mjs) refuses a map shot whose `facts.band` is not null. 01-map, 04-salmon, 05-runs, 14-split-map and the map behind 06-search use it.
+  The conditions map (12) keeps its own camera (a pan changed the watershed it names), so its crop starts at the panel under the map and no map is shown in that part.
+- 11-cond-chart: the page is scrolled so the chart's own first line ("Scroll to zoom") is the first line of the scroller; the part holds the WHOLE chart, its forecast lines and the CLEVER / COFFEE / ELF
+  chips at every size (the gauge name and reading are above it; the water's name stays in the fixed header on phone).
+- Every part starts and ends on a whole line: the crops were re-picked from the new captures by eye at all four raw sizes, and the label bands now SHARE WHAT IS LEFT (3-7 % each, refused outside that,
+  store-shots.mjs `composeRaw`) so no crop has to be bent to make a sum come out.
+- A page that says "Slow connection" is not shot (checks.mjs); the search scene waits for its results instead of a fixed sleep.
+- Known, not fixed: on the tall phones and tablets the conditions panel names the watershed at the map's centre ("Lillooet" / "Seton Lake" watershed on iphone69 and the tablets, "Lower Fraser" on the phone), not the river's own.
+
 ### Owner additions, 2026-11-25 (verbatim) and what they changed
 - ~00:20: "picutres should be captured quicker ideally. also we should zoom them out a little more so it shows more content on the map views".
   - ZOOM: the map views (01-map, 04-salmon, 05-runs, 14-split-map) are shot one zoom step wider (2x the ground width; `ZOOM_OUT`, play-shots.mjs

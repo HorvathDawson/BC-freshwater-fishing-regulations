@@ -20,6 +20,15 @@ describe('store shot checks', () => {
     expect(judge('18-regs-trout', page({ ...ok, tableRowsInView: ['Brook trout'] }))[0]).toMatch(/species rows/);
     expect(judge('18-regs-trout', page({ tableHeadInView: false, tableRowsInView: [], stripInView: true })).length).toBe(3);
   });
+  it('(T1072) map shots refuse the out-of-coverage band, and an unmeasured view', () => {
+    expect(judge('01-map', page(), { band: null })).toEqual([]);
+    expect(judge('01-map', page(), { band: [400, 700] })[0]).toMatch(/grey out-of-coverage band/);
+    expect(judge('14-split-map', page(), {})[0]).toMatch(/not measured/);
+    for (const sc of ['04-salmon', '05-runs']) expect(judge(sc, page({ text: 'Runs' }), { band: [1, 2] })[0]).toMatch(/band/);
+  });
+  it('(T1072) a page that says "Slow connection" is not shot', () => {
+    expect(judge('01-map', page({ text: 'Slow connection — showing what I have' }), { band: null }).join()).toMatch(/Slow connection/);
+  });
   it('the conditions chart needs the forecast switched on', () => {
     expect(judge('11-cond-chart', page())).toEqual([]);
     expect(judge('11-cond-chart', page({ clever: false }))[0]).toMatch(/forecast/);

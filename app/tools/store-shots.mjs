@@ -28,7 +28,7 @@
 //    (tools/seo/fonts, the self-hosted WOFF2) and colours (the theme files, no colour literal here), the screen below in a
 //    rounded card. The page is drawn and captured by the same headless Chrome (a file:// page, dpr 1 = the store's pixels).
 // A shot with `compose` is two (or more) captures of the same size stacked into one picture, each a crop (from..to, fractions of
-// its height, summing to 1 so nothing is rescaled) with a label pill on the join: the Conditions map in Change over the map in
+// its height; the label bands share what is left, 3-7 % each, so nothing is rescaled) with a label pill on the join: the Conditions map in Change over the map in
 // Forecast; a river's sections on the map over one section's rules. Each part is a real capture, none is drawn.
 // A shot with `only` (target names) is in those targets' sets alone; T1072's set uses none: the SAME 7 frames, captions and order
 // for every target.
@@ -140,12 +140,13 @@ async function composeRaw(raw, shot) {
   const files = cs.map((c) => rawFile(raw, c.scene)), [W, H] = pngSize(files[0]);
   for (const f of files) { const [w, h] = pngSize(f); if (w !== W || h !== H) throw new Error(`store-shots: ${shot.scene}: ${f} is ${w}x${h}, the first part ${W}x${H}`); }
   const u = W / 100, ink = c('ink'), wash = c('wash');
-  // stacked top to bottom, each part under a label band (`label`); crops are fractions of a part's height, so the crops plus
-  // the bands (`band`, a fraction of the height each) must sum to 1 and nothing is rescaled
-  const band = shot.band ?? 0.05, bandPx = Math.round(band * H);
+  // stacked top to bottom, each part under a label band. (T1072) THE BAND IS WHAT IS LEFT: each part's crop (from..to, fractions of its height) is
+  // chosen to start and end on a whole line, and the label bands share the rest of the height equally (3-7 % each, refused outside that), so
+  // nothing is rescaled and no crop has to be bent to make the sum come out
   // (T319) a part's crop may differ per raw size (`at: { phone: [from, to], ... }`): the layouts differ between a phone and a tablet
   const fr = (p) => p.at?.[raw] ?? [p.from, p.to];
-  if (Math.abs(cs.reduce((a, c) => a + (fr(c)[1] - fr(c)[0]), 0) + band * cs.length - 1) > 0.001) throw new Error(`store-shots: ${shot.scene}: the compose crops plus the bands must sum to 1`);
+  const band = (1 - cs.reduce((a, c) => a + (fr(c)[1] - fr(c)[0]), 0)) / cs.length, bandPx = Math.round(band * H);
+  if (band < 0.03 || band > 0.07) throw new Error(`store-shots: ${shot.scene} at ${raw}: the crops leave ${(band * 100).toFixed(1)} % of the height for each label band, it must be 3-7 %`);
   let y = 0;
   const divs = cs.map((p, i) => { const last = i === cs.length - 1, n = last ? H - y - bandPx : Math.round((fr(p)[1] - fr(p)[0]) * H), top = y + bandPx; y = top + n;
     return `<div class="band" style="top:${top - bandPx}px">${esc(p.label ?? '')}</div><div style="position:absolute;left:0;top:${top}px;width:${W}px;height:${n}px;overflow:hidden"><img src="file://${files[i]}" style="position:absolute;left:0;top:${-Math.round(fr(p)[0] * H)}px;width:${W}px;height:${H}px"></div>`; });

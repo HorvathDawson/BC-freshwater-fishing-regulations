@@ -19,11 +19,11 @@ export const STATE = `(() => {
     waterTitle: q('water-title')?.innerText.trim() ?? '',
     modelsOff: ['CLEVER', 'COFFEE', 'ELF'].filter((m) => q('chart-model-' + m)?.getAttribute('aria-checked') === 'false') }; })()`;
 
-const BAD = /still loading|something went wrong|couldn.t load|could not load|no data to show/i;
+const BAD = /still loading|slow connection|something went wrong|couldn.t load|could not load|no data to show/i;
 const need = (cond, msg) => (cond ? [] : [msg]);
 
 export const CHECKS = {
-  '01-map': (s) => [...need(s.vis['map-day'] && s.canvas, 'the map (day bar + canvas) is not showing')],
+  '01-map': (s, facts = {}) => [...need(s.vis['map-day'] && s.canvas, 'the map (day bar + canvas) is not showing'), ...need(facts.band === null, `the grey out-of-coverage band (south of the border) is in the map view${facts.band ? ` (rows ${facts.band.join('-')})` : ' (not measured)'}`)],
   // shot 2, salmon on top (0cba57a73): the SALMON (DFO) block sits ABOVE the game-fish calendar in the page, both drawn
   // (T810 R) switched by what the page shows: the old card needs nothing more; the trout table (its fold `glance:trout`)
   // is shot OPEN (`keep-trout` drawn), never as a folded row
@@ -37,11 +37,11 @@ export const CHECKS = {
     ...need(/\d+(\.\d+)?\s*\n?\s*m³\/s/.test(s.text) || /m³\/s/.test(s.text), 'no flow reading on the card')],
   '12-cond-change': (s) => [...need(s.scale === '20 km', `map scale ${s.scale}, not 20 km`), ...need(/reaches coloured/.test(s.text), 'no coloured reaches (watershed days not loaded)'), ...need(s.ids.includes('map-horizons-change'), 'no Change control on the map')],
   '13-cond-forecast': (s) => [...need(s.scale === '20 km', `map scale ${s.scale}, not 20 km`), ...need(/reaches coloured/.test(s.text), 'no coloured reaches (watershed days not loaded)'), ...need(s.ids.includes('map-horizons-days') && /(Mon|Tue|Wed|Thu|Fri|Sat|Sun) \d+/.test(s.text), 'no forecast days on the map')],
-  '14-split-map': (s) => [...need(s.vis['map-day'] && s.canvas, 'the river map is not showing')],
+  '14-split-map': (s, facts = {}) => [...need(s.vis['map-day'] && s.canvas, 'the river map is not showing'), ...need(facts.band === null, `the grey out-of-coverage band (south of the border) is in the map view${facts.band ? ` (rows ${facts.band.join('-')})` : ' (not measured)'}`)],
   // the river is split into more than one part and one part's rules are open
   '15-split-rules': (s, facts) => [...need((facts.parts ?? 0) > 1, `the river has ${facts.parts ?? 'no readable number of'} parts, need more than one`), ...need(s.vis['keep-strip'], "the part's rules (keep-strip) are not showing")],
-  '04-salmon': (s) => [...need(s.vis['map-day'] && s.canvas, 'the map is not showing')],
-  '05-runs': (s) => [...need(/Runs/.test(s.text), 'the Runs tab is not showing')],
+  '04-salmon': (s, facts = {}) => [...need(s.vis['map-day'] && s.canvas, 'the map is not showing'), ...need(facts.band === null, `the grey out-of-coverage band (south of the border) is in the map view${facts.band ? ` (rows ${facts.band.join('-')})` : ' (not measured)'}`)],
+  '05-runs': (s, facts = {}) => [...need(/Runs/.test(s.text), 'the Runs tab is not showing'), ...need(facts.band === null, `the grey out-of-coverage band (south of the border) is in the map view${facts.band ? ` (rows ${facts.band.join('-')})` : ' (not measured)'}`)],
   // (T319) the phone's screens, drawn by the store-shots web build (EXPO_PUBLIC_STORE_SHOTS=1): never the website's own
   '07-saved-spot': (s) => [...need(!s.ids.includes('web-spots-notice'), 'the website\'s "get the app" notice is up: the web export was not built with EXPO_PUBLIC_STORE_SHOTS=1'),
     ...need(/Bridge pool/.test(s.text) && /tail-out below the bridge/.test(s.text), 'the sample spot (Bridge pool, its notes) is not showing')],
