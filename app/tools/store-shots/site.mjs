@@ -37,6 +37,15 @@ export async function assertStoreShotsSite(site, fetchFn = fetch) {
   return parseMarker(await res.text(), site);
 }
 
+/** what a site says about itself, for the report: its entry bundle (the build's hash), its Last-Modified, and the marker's commit if it has one.
+ *  A deployed site shows the RELEASED app, not this checkout; this is how the report says which one a scene came from. */
+export async function describeSite(site, fetchFn = fetch) {
+  const base = site.replace(/\/$/, ''), out = { site: base, bundle: null, lastModified: null, storeShotsCommit: null };
+  try { const r = await fetchFn(`${base}/`); out.lastModified = r.headers.get('last-modified'); const m = /_expo\/static\/js\/web\/([^"'<> ]+\.js)/.exec(await r.text()); out.bundle = m ? m[1] : null; } catch (e) { out.error = e.message; }
+  try { const r = await fetchFn(`${base}/${MARKER}`); if (r.ok) out.storeShotsCommit = JSON.parse(await r.text()).commit ?? null; } catch { /* a deployed site has none */ }
+  return out;
+}
+
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.json': 'application/json', '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml',
   '.ttf': 'font/ttf', '.woff2': 'font/woff2', '.woff': 'font/woff', '.map': 'application/json', '.ico': 'image/x-icon', '.wasm': 'application/wasm', '.pmtiles': 'application/octet-stream' };
 /** a static server for dir on a free port (127.0.0.1); `/` and unknown extension-less paths give index.html */

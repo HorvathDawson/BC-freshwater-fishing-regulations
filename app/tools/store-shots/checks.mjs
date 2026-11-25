@@ -7,7 +7,12 @@ export const STATE = `(() => {
   const vis = (e) => !!e && e.getBoundingClientRect().width > 0;
   const sal = [...document.querySelectorAll('*')].filter((x) => x.children.length === 0 && /^salmon \\(dfo\\)$/i.test(x.textContent.trim())).pop();
   const pressed = (id) => { const e = q(id); return !!e && ['aria-pressed', 'aria-checked', 'aria-selected'].some((a) => e.getAttribute(a) === 'true'); };
-  return { text: document.body.innerText, ids: [...new Set([...document.querySelectorAll('[data-testid]')].map((e) => e.dataset.testid))],
+  const leaf = (re) => [...document.querySelectorAll('*')].find((x) => x.children.length === 0 && re.test(x.textContent.trim()) && x.getBoundingClientRect().width > 0);
+  const inView = (e) => { if (!e) return false; const r = e.getBoundingClientRect(), sc = q('regs-scroll')?.getBoundingClientRect(); return r.top >= (sc ? sc.top - 1 : 0) && r.bottom <= window.innerHeight + 1; };
+  const stripR = q('keep-strip')?.getBoundingClientRect(), scR = q('regs-scroll')?.getBoundingClientRect();
+  return { text: document.body.innerText,
+    tableHeadInView: inView(leaf(/^Keep \\d+ trout and char today/)), tableRowsInView: ['Brook trout', 'Brown trout'].filter((n) => inView(leaf(new RegExp('^' + n)))),
+    stripInView: !!stripR && !!scR && stripR.bottom > scR.top && stripR.top < window.innerHeight, ids: [...new Set([...document.querySelectorAll('[data-testid]')].map((e) => e.dataset.testid))],
     vis: Object.fromEntries(['map-day', 'keep-strip', 'keep-trout', 'salmon-block', 'gauge-card', 'water-map-step-up', 'water-title', 'chart-model-CLEVER'].map((id) => [id, vis(q(id))])),
     keepTop: q('keep-strip')?.getBoundingClientRect().top ?? null, salmonHeadTop: sal?.getBoundingClientRect().top ?? null, salmonBlockTop: q('salmon-block')?.getBoundingClientRect().top ?? null,
     clever: pressed('chart-model-CLEVER'), canvas: !!document.querySelector('canvas.maplibregl-canvas'), scale: document.querySelector('.maplibregl-ctrl-scale')?.textContent.replace(/\\s+/g, ' ').trim() ?? null,
@@ -22,15 +27,16 @@ export const CHECKS = {
   // shot 2, salmon on top (0cba57a73): the SALMON (DFO) block sits ABOVE the game-fish calendar in the page, both drawn
   // (T810 R) switched by what the page shows: the old card needs nothing more; the trout table (its fold `glance:trout`)
   // is shot OPEN (`keep-trout` drawn), never as a folded row
-  '18-regs-trout': (s) => [...need(s.vis['keep-strip'], 'the game-fish calendar (keep-strip) is not showing'), ...need(/GAME FISH/i.test(s.text), 'no GAME FISH (B.C. RULES) heading'),
-    ...need(!(s.ids ?? []).includes('glance:trout') || s.vis['keep-trout'], 'the trout table is folded (glance:trout drawn, keep-trout not)')],
+  '18-regs-trout': (s) => [...need(s.tableHeadInView, 'the limits table\'s heading ("Keep N trout and char today") is not in the viewport'),
+    ...need((s.tableRowsInView ?? []).length >= 2, `the table's species rows are not in the viewport (in view: ${(s.tableRowsInView ?? []).join(', ') || 'none'})`),
+    ...need(s.stripInView === false, 'the season calendar (keep-strip) is still in the viewport: the shot must show the table, not the calendar')],
   '19-regs-salmon': (s) => [...need(s.salmonHeadTop !== null, 'no "Salmon (DFO)" block on the Vedder'), ...need(s.keepTop !== null, 'no game-fish calendar on the page'),
     ...need(s.salmonHeadTop !== null && s.keepTop !== null && s.salmonHeadTop < s.keepTop, `salmon is not above the game-fish calendar (salmon top ${s.salmonHeadTop}, game fish top ${s.keepTop}): the site serving the shots predates 0cba57a73`),
     ...need(/Open|Closed/.test(s.text), 'no open/closed answer on the page')],
   '11-cond-chart': (s) => [...need(s.vis['gauge-card'], 'no gauge card'), ...need(!(s.modelsOff ?? []).length, `forecast models left off on the chart: ${(s.modelsOff ?? []).join(', ')}`), ...need(s.clever, 'the CLEVER forecast is not switched on the chart (no forecast series; off season or feed empty)'),
     ...need(/\d+(\.\d+)?\s*\n?\s*m³\/s/.test(s.text) || /m³\/s/.test(s.text), 'no flow reading on the card')],
-  '12-cond-change': (s) => [...need(s.scale === '10 km', `map scale ${s.scale}, not 10 km`), ...need(/reaches coloured/.test(s.text), 'no coloured reaches (watershed days not loaded)'), ...need(s.ids.includes('map-horizons-change'), 'no Change control on the map')],
-  '13-cond-forecast': (s) => [...need(s.scale === '10 km', `map scale ${s.scale}, not 10 km`), ...need(/reaches coloured/.test(s.text), 'no coloured reaches (watershed days not loaded)'), ...need(s.ids.includes('map-horizons-days') && /(Mon|Tue|Wed|Thu|Fri|Sat|Sun) \d+/.test(s.text), 'no forecast days on the map')],
+  '12-cond-change': (s) => [...need(s.scale === '20 km', `map scale ${s.scale}, not 20 km`), ...need(/reaches coloured/.test(s.text), 'no coloured reaches (watershed days not loaded)'), ...need(s.ids.includes('map-horizons-change'), 'no Change control on the map')],
+  '13-cond-forecast': (s) => [...need(s.scale === '20 km', `map scale ${s.scale}, not 20 km`), ...need(/reaches coloured/.test(s.text), 'no coloured reaches (watershed days not loaded)'), ...need(s.ids.includes('map-horizons-days') && /(Mon|Tue|Wed|Thu|Fri|Sat|Sun) \d+/.test(s.text), 'no forecast days on the map')],
   '14-split-map': (s) => [...need(s.vis['map-day'] && s.canvas, 'the river map is not showing')],
   // the river is split into more than one part and one part's rules are open
   '15-split-rules': (s, facts) => [...need((facts.parts ?? 0) > 1, `the river has ${facts.parts ?? 'no readable number of'} parts, need more than one`), ...need(s.vis['keep-strip'], "the part's rules (keep-strip) are not showing")],

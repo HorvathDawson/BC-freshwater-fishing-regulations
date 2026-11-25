@@ -12,10 +12,12 @@ print what would change, then DELETE the edit; nothing reaches the listing. --co
 - Text: title "Can I Fish This?", the short and full descriptions from handoff/PLAN/play/store-description.md (the
   "## Short description" section, and "## Long description" to the end of the file). Over 30 / 80 / 4000 characters
   is refused before anything is sent.
-- Phone screenshots: every PNG/JPEG in --shots (default ~/bcfish-session-backup-2026-11-12/store-auto), in file-name
+- Phone screenshots: every PNG/JPEG in --shots (default: the repo's one set, STORE/play-phone), in file-name
   order, REPLACE the listing's phone screenshots (skipped when Play already holds the same files in the same order).
 - --no-shots (T319): text, icon and feature graphic only; every screenshot set on Play is left as it is.
-- Tablet screenshots (T319): --tablet7 / --tablet10 folders, the same way (7-inch and 10-inch sets); none = left as is.
+- Tablet screenshots (T319, T1072): --tablet7 / --tablet10 folders, the same way (7-inch and 10-inch sets); the defaults are
+  the repo's play-tablet7 / play-tablet10, the same committed set the App Store push reads (store-shots.mjs writes them);
+  --no-shots leaves all three sets alone.
 - Icon + feature graphic: handoff/PLAN/app-integration/store/graphics/{app-icon-512,feature-graphic-1024x500}.png,
   uploaded only when Play holds none or a different file (sha256).
 - Promo video: only with --video-url (a YouTube URL); otherwise the listing's video is left as it is.
@@ -38,6 +40,7 @@ UPLOAD = "https://androidpublisher.googleapis.com/upload/androidpublisher/v3/app
 SCOPE = ["https://www.googleapis.com/auth/androidpublisher"]
 ROOT = Path(__file__).resolve().parents[2]
 GRAPHICS = ROOT / "handoff/PLAN/app-integration/store/graphics"
+SET = GRAPHICS / "store/light"   # the one committed store set (app/tools/store-shots.mjs writes it; the App Store push reads it too)
 DESCRIPTION = ROOT / "handoff/PLAN/play/store-description.md"
 TITLE = "Can I Fish This?"
 LIMITS = {"title": 30, "shortDescription": 80, "fullDescription": 4000}
@@ -108,13 +111,13 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--package", default="ca.canifishthis.app")
     ap.add_argument("--language", action="append", help="listing language(s); default: those Play has of en-CA/en-US")
-    ap.add_argument("--shots", type=Path, default=Path.home() / "bcfish-session-backup-2026-11-12/store-auto")
+    ap.add_argument("--shots", type=Path, default=SET / "play-phone", help="phone screenshots (default: the repo's committed set)")
     ap.add_argument("--icon", type=Path, default=GRAPHICS / "app-icon-512.png")
     ap.add_argument("--feature", type=Path, default=GRAPHICS / "feature-graphic-1024x500.png")
     ap.add_argument("--video-url")
     ap.add_argument("--key", default=os.path.expanduser("~/.canifishthis/play-service-account.json"))
-    ap.add_argument("--tablet7", type=Path, help="7-inch tablet screenshots (T319); none = left as is")
-    ap.add_argument("--tablet10", type=Path, help="10-inch tablet screenshots (T319); none = left as is")
+    ap.add_argument("--tablet7", type=Path, default=SET / "play-tablet7", help="7-inch tablet screenshots (default: the repo's committed set)")
+    ap.add_argument("--tablet10", type=Path, default=SET / "play-tablet10", help="10-inch tablet screenshots (default: the repo's committed set)")
     ap.add_argument("--no-shots", action="store_true", help="text, icon and feature graphic only; screenshots left as they are")
     mode = ap.add_mutually_exclusive_group()
     mode.add_argument("--commit", action="store_true", help="commit the edit (default: validate, then delete it)")
@@ -127,8 +130,8 @@ def main():
     shots = [] if a.no_shots else sorted(p for p in a.shots.glob("*") if p.suffix.lower() in (".png", ".jpg", ".jpeg"))
     if not a.no_shots and not 2 <= len(shots) <= 8:
         die(f"{a.shots} holds {len(shots)} screenshots; Play takes 2-8 phone screenshots")
-    if a.no_shots and (a.tablet7 or a.tablet10):
-        die("--no-shots leaves every screenshot set alone; drop --tablet7 / --tablet10")
+    if a.no_shots:
+        a.tablet7 = a.tablet10 = None   # --no-shots leaves every screenshot set alone, the tablet defaults included
     images = {"icon": [a.icon], "featureGraphic": [a.feature]}
     if not a.no_shots:
         images["phoneScreenshots"] = shots
