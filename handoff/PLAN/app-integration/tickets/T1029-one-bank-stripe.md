@@ -1,6 +1,6 @@
 # T1029 — One-bank DFO places: the one-side stripe on the Salmon map (T754 option B, the rest)
 
-Status: IN PROGRESS — built on the draft PR #112 (owner picked B from z13; creeks: "i think closed … calculated from extents"): atlas FWA side + drawn banks, reach one-bank tributaries, delivery (creeks closed whole width), bundle `p[lid].bk`, app cue wired; heavy gates run clean (below); left: Q6 on the Standard map, Q4 (designed), device walk, independent review, the 0.9.1 data release.
+Status: IN PROGRESS — built on the draft PR #112, awaiting its independent review. Built: look B from z13 on the Salmon map (`bk`) and the book's west half on the Standard map (Q6, `bs` → `bb`, from the salmon head alone); the 12 creeks closed, computed from the extent by FWA's side. Gates: atlas parity IDENTICAL, reach "no binding changed", bundle: exactly the 12 creeks differ, salmon head 101,518 B gz (+38 B; gate 110,000). Left: Q4 (designed; build when a case appears), the device walk (MapLibre Native), the 0.9.1 data release (until then no `bk`/`bs`: nothing draws, the creeks stay open) and an app build.
 
 Source: T754 (owner approved option B 2026-11-15 round 4; question 2 answered 2026-11-22 23:45, "Other bank: the water's
 other rules"). T754 built the words and the verdict (5953ef057, eeb19b4f3): a placed one-bank place stands beside the water's other
@@ -314,10 +314,33 @@ width, with no stripe and no bank caveat; the stretch itself stays beside the wa
 side cannot be read stays and is reported (`tributary_side_undetermined`); one on the other bank leaves the place
 (`tributary_other_bank`)."
 
+## Q6 built (lane L18, 2026-11-24 evening) — commits 76b8ff39e, 1c2338823, 1ba481823
+- Bundle: a synopsis rule with `side` ships its sections' side of the drawn line in the salmon head, `bs = {section: ±1}`
+  (`deliver.bank_side`; today one: `kitimat_river.r1` → 1234098: -1). Core checks it (a non-empty map, sides ±1 only).
+- App: the Standard map's `half` channel labels each such section `bb` = "L"/"R" (`bookHalves`); the profile paint draws
+  that half `status.closed` + the closed cue, the other half the line's own colour, from z13 (look B, as Salmon).
+- Cold start (1ba481823): the halves are read from the salmon HEAD alone (`WaterSource.salmonHead` = the loader's
+  `salmon([])`, the head cached once and shared with a later Salmon read; `useBookHalves` → `MapProps.halves`, web and
+  native channels). Before it, a fresh Standard map drew the half only after a visit to Salmon (the web reads the slices on
+  the first Salmon press). Test: `useMapColouring.test.tsx` "the book's closed halves on a cold Standard map".
+- Proof (`T1029-shots/built-q6-{light,dark}.png`, z13/14/16, Aug 15): the same app, a fresh browser profile per run, Salmon
+  never opened; BEFORE over the 0.9.0 release, AFTER over it with the side bundle's salmon head, every `salmon-<r>` slice
+  REFUSED at the network in AFTER (the web's background prefetch asks for them; none arrived): 1234098 wears `bb = L` and
+  its west half draws closed. Note: the web's background prefetch (T253) fetches the salmon slices on a cold Standard map
+  anyway; that is the cache warm-up, not a read for the map.
+- Review of 1ba481823 (lane L18b): one path for web and native (BrowseHost → MapScreen → Map → both channel hooks); the
+  head is decoded once per loader and through `withLiveSalmon` keeps `bs` (`...P`); `bookHalves` is cached per payload, so
+  the map is handed the same object and nothing relabels per render; a failed read is reported by `useAsync`. No change.
+
 ## Left
-Q6 on the Standard / Trout map (the rule book's `side` rule; one in the book, `kitimat_river.r1`): needs its per-section
-side in the regs data the Standard map reads — not built. Q4 polygon reaches: designed, not built (above). The device
-walk (above). An independent review. The 0.9.1 data release carries it.
+Q4 polygon reaches: designed, not built (above). The device walk (above). The 0.9.1 data release carries `bk`, `bs` and
+the 12 creeks' closure; an app build carries the drawing.
+
+Seen in the Q6 proof, NOT fixed (a look; for the review and the owner): the four bank layers are the last stream layers
+(`runtime-style.ts`), drawn 1.5× the line's width, so on a bank stretch they cover the marks beside or down the line. On the
+Standard map the Kitimat's bait-ban dashes (`stream-gear-bait`, beside the line) are gone on the 746 m stretch in AFTER,
+also on its open east half (`built-q6-*`, z14/z16). On the Salmon map the issue stripe (T759, down the middle) would be
+covered the same way on a water with both (none seen today).
 
 ## Q4 — LEFT (coordinator 2026-11-24: do not build now; build when the first case appears)
 Owner's answer: "Along the bank edge". The measured rule (`v2-q4-bank-edge-*`, Kildala 1846283): the polygon's OUTER
