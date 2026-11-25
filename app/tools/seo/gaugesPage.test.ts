@@ -22,7 +22,7 @@ beforeAll(async () => {
 describe("T1107 the built /gauges page", () => {
   it("has the one-line lede, the search form, the Conditions-map link and the list", () => {
     expect(page).toContain(GAUGES_LEDE);
-    expect(page).toContain('role="search"');
+    expect(page).toContain('role="search" hidden');   // JavaScript off: the form stays hidden, the list alone
     expect(page).toContain('href="https://canifishthis.ca/?browse=conditions"');
     expect(page).toContain("/gauge/08MH001/");
     expect(page).toContain("River levels and flow in BC");

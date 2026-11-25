@@ -7,7 +7,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { HOME, parseStartLink, reduce, routeSearch } from "@app/ui";
 import { gaugesIndexBody, CONDITIONS_MAP_LINK } from "./gauges";
-import { LIVE_FAILED, LOAD_FAILED, NO_MATCH, STALE_FILE, gaugeFindForm, mountGaugeFind } from "./gaugeFind";
+import { LIVE_FAILED, LIVE_OLD, LOAD_FAILED, NO_MATCH, STALE_FILE, gaugeFindForm, mountGaugeFind } from "./gaugeFind";
 import { gaugeSearchFile, type GaugeSearchFile, type LiveIndex, type SearchGauge } from "./gaugeSearch";
 
 const G = (station: string, name: string, lat: number, lon: number, water: string, on: string[]): SearchGauge => ({ station, name, path: `/gauge/${station}/x`, lat, lon, water, on });
@@ -17,8 +17,9 @@ const FILE: GaugeSearchFile = gaugeSearchFile({
   waters: [{ item: "w:alpha", name: "Alpha River", kind: "river", size: null, areaHa: null, pieces: 3, regions: [], mus: [], near: null },
            { item: "w:beta", name: "Beta Creek", kind: "stream", size: null, areaHa: null, pieces: 1, regions: [], mus: [], near: null }],
   aliases: [], places: [{ place: "p1", name: "Townsville", kind: "town", lat: 50.01, lon: -120, pop: 500 }] }, GAUGES, "r-test");
-const LIVE: LiveIndex = { fetchedAt: "2026-11-25T12:00:00Z", listed: ["08AA001", "08AA002"], stations: {
-  "08AA001": { percentile: 50, observedAt: "2026-11-25T11:00:00Z" }, "08AA002": { percentile: null, observedAt: "2026-11-20T11:00:00Z" } } };
+const ago = (h: number) => new Date(Date.now() - h * 3600_000).toISOString();
+const LIVE: LiveIndex = { fetchedAt: ago(0), listed: ["08AA001", "08AA002"], stations: {
+  "08AA001": { percentile: 50, observedAt: ago(1) }, "08AA002": { percentile: null, observedAt: ago(120) } } };
 const cfg = { crash: "https://crash.test", env: "test", release: "r-test", live: "https://feed.test/index.json" };
 const tick = () => new Promise((r) => setTimeout(r, 0));
 const res = (body: unknown, status = 200) => Promise.resolve({ ok: status < 400, status, json: () => Promise.resolve(body) } as Response);
@@ -54,7 +55,7 @@ describe("T1107 the /gauges search page", () => {
   it("no match is said, never a blank", async () => { mount(); await type("Atlantis"); expect(said()).toBe(NO_MATCH("Atlantis")); expect(rows()).toEqual([]); });
   it("a gauge file that fails is said and reported; a 404 says reload and is reported as out of date", async () => {
     mount({ file: () => res({}, 500) }); await type("Alpha");
-    expect(said()).toBe(LOAD_FAILED("gauge search file 500")); expect(reports.length).toBe(1);
+    expect(said()).toBe(LOAD_FAILED("gauge search file HTTP 500")); expect(reports.length).toBe(1);
     mount({ file: () => res({}, 404) }); await type("Alpha");
     expect(said()).toContain("out of date"); expect((reports[0] as Error).message).toBe(STALE_FILE);
   });
@@ -62,6 +63,17 @@ describe("T1107 the /gauges search page", () => {
     mount({ live: () => res({}, 503) }); await type("Alpha");
     expect(said()).toBe(LIVE_FAILED); expect(reports.length).toBe(1); expect(rows().length).toBe(3);
     expect(rows().join()).not.toContain("Reporting");
+  });
+  it("a stale live feed shows no current-data words, says so (also to a screen reader) and is reported; a hung one does not blank the results", async () => {
+    mount({ live: () => res({ ...LIVE, fetchedAt: new Date(Date.now() - 5 * 3600_000).toISOString() }) }); await type("Alpha");
+    expect(said()).toBe(LIVE_OLD); expect(document.querySelector(".sr")!.textContent).toContain(LIVE_OLD); expect(reports.length).toBe(1);
+    expect(rows().length).toBe(3); expect(rows().join()).not.toContain("Reporting");
+    mount({ live: () => new Promise<Response>(() => {}) }); await type("Alpha");
+    expect(rows().length).toBe(3);
+  });
+  it("a fresh live feed shows the words", async () => {
+    mount({ live: () => res({ ...LIVE, fetchedAt: new Date().toISOString() }) }); await type("Alpha");
+    expect(rows().join()).toContain("Reporting now"); expect(reports.length).toBe(0);
   });
   it("the Conditions map link is the address the app itself writes for the Conditions tab, and it opens that tab", () => {
     const own = routeSearch(reduce(HOME, { type: "tab", tab: "conditions" }));
