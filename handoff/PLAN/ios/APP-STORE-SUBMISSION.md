@@ -59,8 +59,16 @@ Tick exactly these data types. Everything not in the table: leave unticked.
 
 Not collected (leave unticked): Name, Phone, Address, Health, Fitness, Financial, Sensitive Info, Contacts, Emails or
 Text Messages, Photos or Videos (they stay on the phone), Audio, Gameplay, Customer Support, Browsing History, Search
-History (search runs on the phone), User ID, Purchases, Advertising Data, Other Usage Data, Performance Data,
+History (search runs on the phone), User ID, Purchases, Advertising Data, Other Usage Data,
 Surroundings, Body, Other Data. "Used to track you": nothing. No ads, no advertising id, no analytics kit.
+
+**Performance Data: ticked on the label, NOT sent by the app (owner 2026-11-25).** He kept Diagnostics → Performance
+Data ticked ("keep ticked but next release will add to rpivacy page and add the performance monitor"), so the live
+label has 9 types and is one ahead of the app. Asked answers: App Functionality, linked Yes, tracking No (what the
+screen holds is to be confirmed by him). It is left out of the table above on purpose: the table is what the build
+sends, and `app/tools/privacy-manifest.test.ts` (T1099) holds the iPhone privacy manifest to it. So until T1132
+(0.10.1) ships the monitor, the manifest entry and the privacy page words, the label and the manifest disagree on
+this one type.
 
 **Linked: DECIDED (owner 2026-11-24, "Strict: linked").** For every row marked "see Linked below" answer **Yes,
 linked**; Coarse Location stays No. Why: a problem report is stored whole, so the email, the typed text, the map
