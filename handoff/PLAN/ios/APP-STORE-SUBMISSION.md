@@ -274,8 +274,8 @@ Known small things in build 45: About may say "build 44"; the privacy manifest i
 labels above carry (Product Interaction, the Analytics purpose) and marks every type "not linked" (T1099, next iPhone build). Apple does not compare these at review.
 
 Because the submission now waits for the new pictures, the choice is made on the day they are ready:
-- The newest iPhone production build uploaded by then. If 0.9.1's iPhone build exists and push is
-  proven on it, send 0.9.1 (the version page is then named 0.9.1). If not, send 0.9.0 (45).
+- The newest iPhone production build uploaded by then. The release once called 0.9.1 is cut as 0.10.0 (owner
+  2026-11-25). If the 0.10.0 iPhone build is on TestFlight, send it (the version page is then named 0.10.0; push proof is no longer a gate). If not, send 0.9.0 (45).
 - Never a staging build.
 
 ## 10. Production push (T996): not proven yet
