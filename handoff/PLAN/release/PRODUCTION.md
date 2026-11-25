@@ -39,12 +39,14 @@ phones). The order rules the gates enforce:
   serve yet (T790 item 7): the upload's pieces gate asks `https://feeds.canifishthis.ca` and refuses.
 - **The data goes before or with the phones** when the new app reads new data fields.
 
-**Store pictures (T704)**, after the staging site carries the final web build, before the Play listing is updated:
-`node app/tools/store-shots/run.mjs` (no arguments; headless Chrome, no credits). It re-shoots the 8 Play phone pictures
-from the staging site into `app/dist/store-shots/play-phone/` and FAILS (exit 1, `report.json` says which scene) when a
+**Store pictures (T704, T1076)**, from the release checkout, before the Play listing is updated:
+`scripts/heavy.sh store-shots 30 -- node app/tools/store-shots/run.mjs` (no arguments; headless Chrome, no credits). It
+builds its OWN store-shots web export of the checkout (`EXPO_PUBLIC_STORE_SHOTS=1`, into `app/dist/web-store-shots`, the
+staging app environment and live feeds; a few minutes), serves it on a local port, re-shoots the 8 Play phone pictures
+from it into `app/dist/store-shots/play-phone/` and FAILS (exit 1, `report.json` says which scene) when a
 shot's content is missing: salmon above the game-fish calendar, the forecast on the chart, more than one part on the
-river. Look at them, then upload to Play Console. A failure on shot 2 usually means the staging site is older than the
-app code: deploy the site first.
+river. Look at them, then upload to Play Console. `--reuse` serves the export already built (no rebuild); `--site URL` points at another store-shots build and is refused at
+once, with the instruction, when that site lacks the `store-shots-build.json` marker (staging and production never have it).
 
 The one-time first transition (buckets, the data worker, the www redirect, search engines, retiring v1) was done
 2026-11-18/19 and is removed from this page; it is in git: `git show a3ca419e2:handoff/PLAN/release/PRODUCTION.md`.

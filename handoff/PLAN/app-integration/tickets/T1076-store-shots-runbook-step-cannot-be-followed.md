@@ -1,6 +1,6 @@
 # T1076 — The release runbook's "reshoot store pictures" step cannot be followed: the tool needs a store-shots build of the site
 
-Status: OPEN.
+Status: DONE (PR on fix/T1076-store-shots-own-export; merge pending review).
 
 Source: the 0.9.0 chat, 2026-11-24, during the 0.9.0 release. Runbook Step 7 item 8 says to reshoot the store
 pictures (`node app/tools/store-shots/run.mjs`) before the Play listing update, but the tool needs the staging site
@@ -19,6 +19,14 @@ in the main checkout (not committed).
 ## Acceptance
 The runbook step followed as written produces every frame on a fresh checkout; pointing the tool at a normal build
 stops at once with the reason.
+
+## Done (2026-11-24)
+`app/tools/store-shots/site.mjs` builds the store-shots web export of the checkout (`EXPO_PUBLIC_STORE_SHOTS=1`, staging app
+env as `export:web:staging`, into `app/dist/web-store-shots`), writes the marker `store-shots-build.json`, and serves it on a
+free local port it closes at the end. `run.mjs` and `store-shots.mjs` use it when no site is given (`--reuse` skips the build;
+`--site`/`STORE_SHOTS_SITE` still work). Any site without the marker is refused before the first scene, naming what to do
+(play-shots.mjs has no default site any more). Runbook Step 7 item 8 and PRODUCTION.md say
+`scripts/heavy.sh store-shots 30 -- node app/tools/store-shots/run.mjs`. Tests: `store-shots/site.test.ts`.
 
 Depends: none (T319 owns the pictures themselves). Severity: low (listing pictures only). Release: with the store
 content chat (T1072), before the next Play listing update. Model: Sonnet. Size: S. Owner: no.
