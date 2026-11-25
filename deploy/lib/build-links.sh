@@ -123,25 +123,31 @@ build_links_frontend() {
 # build-ios-testflight.sh ask the same things the same way. heavy.sh runs no fast-fail of its own (T661: the gate parked
 # in T535 was dropped), so the build runs it. caught (T993 inventory, 2026-11-21): the iPhone build ran no fast-fail, no
 # CI check and no changelog check, while five places said heavy.sh ran fast-fail for it.
-#   build_reasons <who> <args…>   the reasoned escapes: --no-fast-fail=<why>, --no-ci-check=<why>, --no-notes=<why>
-#                                 (bare, or an empty reason: refused, exit 2); sets NOFF, NOCI, NONOTES
+#   build_reasons <who> <args…>   the reasoned escapes: --no-fast-fail=<why>, --no-ci-check=<why>, --no-notes=<why>,
+#                                 --no-rc-check=<why> (bare, or an empty reason: refused, exit 2); sets NOFF, NOCI,
+#                                 NONOTES, NORC
 #   build_check_changelog         (in the precheck) app.json's version has its changelog entry and it is the newest
 #                                 (scripts/check-changelog.mjs): a `bad` unless --no-notes=<why>, which is printed
+#   build_check_rc                (in the precheck, T1062) on an app release branch (release/x.y.z), HEAD is the newest
+#                                 release candidate's tree apart from the store build numbers (`python -m pipeline
+#                                 release --rc-check`): a `bad` naming the command that tags a new rc, unless
+#                                 --no-rc-check=<why>, which is printed; on any other branch it says none is asked
 #   build_ff_base <who> <sha> <what>  FAST_FAIL_BASE = <sha> (the commit the last build of this kind was made from) when
 #                                 it is a commit here, said, FFB set; else FFB empty and fast-fail's own default is said
 #   build_gates <who> [--strict]  after the precheck, before the lock: CI on HEAD (scripts/ci_status.py; --strict for a
 #                                 production build), then scripts/fast-fail.sh. Each stops the build (exit 1) or is
 #                                 skipped with its printed reason. Under the caller's DRY, a red CI is said and the run
 #                                 goes on, and fast-fail is only named.
-NOFF=; NOCI=; NONOTES=; FFB=
+NOFF=; NOCI=; NONOTES=; NORC=; FFB=
 build_reasons() {
   local who=$1 a; shift
   for a in "$@"; do
     case $a in
-      --no-fast-fail|--no-ci-check|--no-notes) echo "$who: $a needs a reason: $a=\"<why>\"" >&2; exit 2 ;;
+      --no-fast-fail|--no-ci-check|--no-notes|--no-rc-check) echo "$who: $a needs a reason: $a=\"<why>\"" >&2; exit 2 ;;
       --no-fast-fail=*) NOFF=${a#--no-fast-fail=}; [[ -n ${NOFF// /} ]] || { echo "$who: --no-fast-fail= needs a reason" >&2; exit 2; } ;;
       --no-ci-check=*) NOCI=${a#--no-ci-check=}; [[ -n ${NOCI// /} ]] || { echo "$who: --no-ci-check= needs a reason" >&2; exit 2; } ;;
       --no-notes=*) NONOTES=${a#--no-notes=}; [[ -n ${NONOTES// /} ]] || { echo "$who: --no-notes= needs a reason" >&2; exit 2; } ;;
+      --no-rc-check=*) NORC=${a#--no-rc-check=}; [[ -n ${NORC// /} ]] || { echo "$who: --no-rc-check= needs a reason" >&2; exit 2; } ;;
     esac
   done
 }
@@ -150,6 +156,22 @@ build_check_changelog() {
   if out=$(node scripts/check-changelog.mjs 2>&1); then ok "$out"
   elif [[ -n $NONOTES ]]; then ok "changelog: SKIPPED (--no-notes): $NONOTES — $out"
   else bad "$out (--no-notes=<reason> goes on)"; fi
+}
+build_check_rc() {
+  local out branch
+  branch=$(git rev-parse --abbrev-ref HEAD)
+  if [[ ! $branch =~ ^release/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then ok "release candidate: not asked on $branch (only on an app release branch, T1062)"
+  elif out=$(.venv/bin/python -m pipeline release --rc-check 2>&1); then ok "release candidate: $out"
+  elif [[ -n $NORC ]]; then ok "release candidate: SKIPPED (--no-rc-check): $NORC — $out"
+  else bad "release candidate: $out (--no-rc-check=<reason> goes on)"; fi
+}
+#   build_same_head <who> <sha>   (T1062 review) the inner run (past the heavy lock) builds the commit the precheck
+#                                 checked (BUILD_PRECHECK_SHA, exported before the lock), or stops: HEAD can move while
+#                                 the lock is waited for
+build_same_head() {
+  local who=$1 sha=$2
+  [[ -n ${BUILD_PRECHECK_SHA:-} ]] || { echo "$who: no BUILD_PRECHECK_SHA: the inner run was started by hand; run the script itself (its precheck exports it)" >&2; exit 1; }
+  [[ $sha == "$BUILD_PRECHECK_SHA" ]] || { echo "$who: HEAD is ${sha:0:12}, not ${BUILD_PRECHECK_SHA:0:12} the precheck checked (it moved while the lock was waited for); nothing was built: run it again" >&2; exit 1; }
 }
 build_ff_base() {
   local who=$1 sha=$2 what=$3

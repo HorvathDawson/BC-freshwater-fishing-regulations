@@ -134,6 +134,13 @@ def world(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(R, "tag_commit", lambda tag: w["tag_at"].get(tag))
     monkeypatch.setattr(R, "remote_tag_commit", lambda tag: w["remote_tags"].get(tag))
     monkeypatch.setattr(R, "is_ancestor", lambda a, b: (a, b) in w.get("ancestors", set()))
+    # (T1062) the release candidates on origin, read from the same remote tags; two commits are one tree apart from the
+    # build numbers when they are one commit or w["same_tree"] says so
+    monkeypatch.setattr(R, "remote_rcs", lambda v: {n: c for t, c in w["remote_tags"].items()
+                                                    if (n := R.rc_number(v, f"refs/tags/{t}"))})   # the real pattern
+    monkeypatch.setattr(R, "beyond_build_numbers", lambda a, b: [] if a == b or (a, b) in w.get("same_tree", set())
+                        else ["app/apps/mobile/src/a.tsx"])
+    monkeypatch.setattr(R, "fetch_branch", lambda b: w.setdefault("fetched_branches", []).append(b))
 
     def make_tag(tag, commit, message):
         w["made_tags"].append((tag, commit))
@@ -1130,6 +1137,7 @@ def test_the_fresh_copy_runs_ci_s_tier_on_a_clone_through_heavy(monkeypatch):
 @pytest.fixture
 def staged(world, monkeypatch):
     assert _staging() == 0
+    world["remote_tags"]["v0.9.0"] = world["tag_at"]["v0.9.0"] = "abc123"   # (T1062) `release --final` on rc.1
     world["calls"].clear()
     for k in ("CLAUDECODE", "AI_AGENT", "CLAUDE_CODE_ENTRYPOINT", "CONFIRM_PROD"):
         monkeypatch.delenv(k, raising=False)
@@ -1678,32 +1686,48 @@ def test_preflight_wants_head_to_be_the_branch_tip_and_never_says_push_from_anot
     assert world["calls"] == []
 
 
-def test_the_ship_tags_data_and_the_app_version_and_names_the_merge_back(world, capsys):
-    """(T995) at ship: data/<r-id> and v<version> on the pushed HEAD, pushed, recorded; the merge-back PR printed.
-    Mutation: drop the tagging from stage 7 and every line below fails."""
+def test_the_ship_tags_data_and_the_next_release_candidate_and_names_the_merge_back(world, capsys):
+    """(T995, T1062) at ship: data/<r-id> and v<version>-rc.1 on the uploaded commit, pushed, recorded; the merge-back
+    PR printed. A rerun at the same commit tags nothing; one at a new HEAD (a fix cherry-picked, the same r-id) tags
+    rc.2 on it, never touching rc.1; a HEAD that is the newest rc apart from the build numbers (a Play build's
+    versionCode commit) tags nothing new. No v0.9.0 is made at ship. Mutations: drop the tagging from stage 7, tag
+    `newest` instead of `newest + 1`, or skip the build-number comparison: this fails."""
     assert _staging() == 0
     out = capsys.readouterr().out
-    assert world["made_tags"] == [(f"data/{NEW}", "abc123"), ("v0.9.0", "abc123")]
-    assert world["pushed_tags"] == [[f"data/{NEW}", "v0.9.0"]]
+    assert world["made_tags"] == [(f"data/{NEW}", "abc123"), ("v0.9.0-rc.1", "abc123")]
+    assert world["pushed_tags"] == [[f"data/{NEW}", "v0.9.0-rc.1"]]
     rec = json.loads(R.LEDGER.read_text())["releases"][NEW]
-    assert rec["tags"] == {f"data/{NEW}": "abc123", "v0.9.0": "abc123"} and rec["ship_commit"] == "abc123"
-    assert f"tagged data/{NEW}, v0.9.0 at abc123, pushed data/{NEW}, v0.9.0" in out
-    assert rec["uploaded_commit"] == "abc123"
+    assert rec["tags"] == {f"data/{NEW}": "abc123", "v0.9.0-rc.1": "abc123"} and rec["ship_commit"] == "abc123"
+    assert f"tagged data/{NEW} at abc123, v0.9.0-rc.1 at abc123, pushed data/{NEW}, v0.9.0-rc.1" in out
+    assert rec["uploaded_commit"] == "abc123" and "v0.9.0" not in world["remote_tags"]
     assert ('gh pr create --base main --head release/0.9.0 --title "chore(release): merge release/0.9.0 back into '
             'main"') in out
     world["made_tags"].clear()
     assert _staging() == 0 and world["made_tags"] == []                   # a rerun on staging tags nothing again
-    assert "tagged already: " in capsys.readouterr().out
+    assert "tagged nothing new, pushed nothing (on origin already); v0.9.0-rc.1 (abc123) is abc123 apart from the " \
+           "build numbers: no new rc" in capsys.readouterr().out
+    world["head"] = "f1x0000"                                               # a fix cherry-picked: the next rc on it
+    assert _staging() == 0 and world["made_tags"] == [("v0.9.0-rc.2", "f1x0000")]
+    assert world["remote_tags"] == {f"data/{NEW}": "abc123", "v0.9.0-rc.1": "abc123", "v0.9.0-rc.2": "f1x0000"}
+    assert json.loads(R.LEDGER.read_text())["releases"][NEW]["ship_commit"] == "abc123"   # the data's commit stays
+    world["made_tags"].clear()
+    world["head"], world["same_tree"] = "c0de45", {("f1x0000", "c0de45")}  # only a versionCode commit since rc.2
+    assert _staging() == 0 and world["made_tags"] == []
+    assert "v0.9.0-rc.2 (f1x0000) is c0de45 apart from the build numbers: no new rc" in capsys.readouterr().out
 
 
-def test_a_data_only_release_tags_only_its_data(world, capsys):
-    """(T995) the app version was tagged by an earlier ship: it stays there; only data/<r-id> is made."""
+def test_a_version_tagged_final_already_gets_no_release_candidate(world, capsys):
+    """(T1062 transition) v0.9.0 was made by the old code at an earlier ship (no rc of it exists): the ship tags only
+    data/<r-id>, makes no rc, says why; the old tag stays where it is. Production then takes the old rule (below).
+    Mutation: drop the `final_at` branch and an rc is made for a released version: this fails."""
     world["remote_tags"]["v0.9.0"] = world["tag_at"]["v0.9.0"] = "0ld0000"
     assert _staging() == 0
     out = capsys.readouterr().out
     assert world["made_tags"] == [(f"data/{NEW}", "abc123")] and world["pushed_tags"] == [[f"data/{NEW}"]]
-    assert "v0.9.0 stays at 0ld0000 (the version was tagged by an earlier ship: this release ships data only)" in out
-    assert json.loads(R.LEDGER.read_text())["releases"][NEW]["tags"]["v0.9.0"] == "0ld0000"
+    assert ("no release candidate made: v0.9.0 is tagged final already at 0ld0000 (made before release candidates, "
+            "T1062); a change after it ships as the next version") in out
+    assert json.loads(R.LEDGER.read_text())["releases"][NEW]["tags"] == {f"data/{NEW}": "abc123"}
+    assert world["remote_tags"]["v0.9.0"] == "0ld0000"
 
 
 def test_a_data_tag_on_another_commit_stops_and_a_failed_tag_push_reruns_only_the_tags(world, capsys):
@@ -1720,19 +1744,19 @@ def test_a_data_tag_on_another_commit_stops_and_a_failed_tag_push_reruns_only_th
     world["rc"]["push-tags"], world["head"] = 0, "n3whead"                   # (T995 review) HEAD moved since the upload
     world["calls"].clear()
     assert _staging() == 0 and [c for c, _ in world["calls"]] == ["build"]   # no second upload or smoke
-    assert world["pushed_tags"][-1] == [f"data/{NEW}", "v0.9.0"]            # the tags made before are pushed now
-    assert world["remote_tags"] == {f"data/{NEW}": "abc123", "v0.9.0": "abc123"}   # at the UPLOADED commit
+    assert world["pushed_tags"][-1] == [f"data/{NEW}", "v0.9.0-rc.1"]       # the tags made before are pushed now
+    assert world["remote_tags"] == {f"data/{NEW}": "abc123", "v0.9.0-rc.1": "abc123"}   # at the UPLOADED commit
     assert json.loads(R.LEDGER.read_text())["releases"][NEW]["ship_commit"] == "abc123"
 
 
 def test_a_local_only_tag_elsewhere_stops_and_one_at_the_shipped_commit_is_pushed(world, capsys):
     """(T995 review) a local tag is never taken as pushed: at the uploaded commit it is pushed, elsewhere it stops."""
-    world["tag_at"]["v0.9.0"] = "st4le"
+    world["tag_at"]["v0.9.0-rc.1"] = "st4le"
     assert _staging() == 1
-    assert "a local-only tag v0.9.0 points at st4le, not at the uploaded commit abc123" in capsys.readouterr().err
-    world["tag_at"]["v0.9.0"] = "abc123"
+    assert "a local-only tag v0.9.0-rc.1 points at st4le, not at abc123, the commit it tags" in capsys.readouterr().err
+    world["tag_at"]["v0.9.0-rc.1"] = "abc123"
     assert _staging() == 0 and world["made_tags"] == [(f"data/{NEW}", "abc123")]
-    assert world["remote_tags"] == {f"data/{NEW}": "abc123", "v0.9.0": "abc123"}
+    assert world["remote_tags"] == {f"data/{NEW}": "abc123", "v0.9.0-rc.1": "abc123"}
 
 
 def test_a_release_with_no_upload_commit_is_not_tagged_at_a_guess(world, capsys):
@@ -1747,8 +1771,11 @@ def test_a_release_with_no_upload_commit_is_not_tagged_at_a_guess(world, capsys)
 
 
 def test_prod_checks_the_tags_point_at_the_shipped_commit(staged, monkeypatch, capsys):
-    """(T995) production ships only what its tags name. Mutation: drop `tag_problems` from prod and the upload runs."""
+    """(T995) production ships only what its tags name. Mutation: drop `tag_problems` from prod and the upload runs.
+    (T1062 transition) with no rc of the version on origin (v0.9.0 made before release candidates), the old rule: the
+    version tag at the ship commit or before it."""
     monkeypatch.setenv("CONFIRM_PROD", NEW)
+    del staged["remote_tags"]["v0.9.0-rc.1"]                               # a version tagged before T1062
     del staged["remote_tags"][f"data/{NEW}"]                                # only the local tag is left
     assert R.prod(NEW, ask=lambda _: NEW) == 1
     err = capsys.readouterr().err
@@ -2102,7 +2129,8 @@ def test_git_pushed_reads_the_release_branch_on_a_real_remote(tmp_path, monkeypa
 def test_the_rehearsal_names_the_tags_and_the_merge_back(world, capsys):
     assert R.main(["--staging", "--dry-run"]) == 0
     out = capsys.readouterr().out
-    assert "then (T995) tags data/<r-id> + v0.9.0 (if not tagged yet) on the pushed HEAD, pushes them" in out
+    assert ("then (T995) tags data/<r-id> + v0.9.0-rc.N, the next release candidate (T1062: none when HEAD is the "
+            "newest rc) on the pushed HEAD, pushes them") in out
     assert "gh pr create --base main --head release/0.9.0" in out
 
 
@@ -2173,3 +2201,260 @@ def test_the_shipping_branch_is_named_once():
     assert R.CP.shipping_branch("main", "0.8.5") == "release/0.8.5"
     assert R.CP.shipping_branch("release/data-tomorrow", "0.8.5") == "release/0.8.5"
     assert R.CP.data_branch("2026-11-22") == "release/data-2026-11-22"
+
+
+# ── (T1062) release candidates: the final tag, production's check, and the real git under them ──────────────────────
+
+def test_final_tags_the_newest_rc_and_refuses_everything_else(world, capsys):
+    """(T1062) `--final X.Y.Z` puts v<x.y.z> on the newest rc's commit, pushed — refused, saying why, with no rc, a
+    version other than app.json's, HEAD or origin's branch past the rc beyond the build numbers, a final tag already
+    there (on origin or only here), a data-only branch, or --dry-run. It never moves or deletes a tag. Mutations: drop
+    the comparison with the rc, or the exists check: this fails."""
+    assert R.main(["--final", "0.9.0"]) == 1
+    assert "refused: no release candidate of 0.9.0 on origin: the staging ship tags one" in capsys.readouterr().err
+    assert _staging() == 0 and world["remote_tags"]["v0.9.0-rc.1"] == "abc123"
+    capsys.readouterr()
+    world["made_tags"].clear()
+    assert R.main(["--final", "0.9.1"]) == 1
+    assert "refused: 0.9.1 is not app.json's version (0.9.0, on release/0.9.0)" in capsys.readouterr().err
+    assert R.main(["--final", "0.9.0"]) == 1                              # HEAD has a change the rc does not hold
+    err = capsys.readouterr().err
+    assert ("refused: HEAD and origin/release/0.9.0 not v0.9.0-rc.1 (abc123) apart from the build numbers (HEAD: "
+            "app/apps/mobile/src/a.tsx; origin/release/0.9.0: app/apps/mobile/src/a.tsx): tag a new rc first "
+            "(python -m pipeline release --staging --push)") in err
+    world["same_tree"] = {("abc123", "HEAD")}                              # only origin's branch moved on
+    assert R.main(["--final", "0.9.0"]) == 1 and "refused: origin/release/0.9.0 not v0.9.0-rc.1" in capsys.readouterr().err
+    world["same_tree"].add(("abc123", "origin/release/0.9.0"))
+    world["tag_at"]["v0.9.0"] = "0ldrc00"                                  # (review) a local-only final elsewhere
+    assert R.main(["--final", "0.9.0"]) == 1
+    assert ("refused: a local-only tag v0.9.0 points at 0ldrc00, not at the newest release candidate v0.9.0-rc.1 "
+            "(abc123): read it (git show v0.9.0); it is not on origin, so: git tag -d v0.9.0") in capsys.readouterr().err
+    del world["tag_at"]["v0.9.0"]
+    with pytest.raises(SystemExit):
+        R.main(["--final", "0.9.0", "--dry-run"])
+    assert world["made_tags"] == [] and world["pushed_tags"] == [[f"data/{NEW}", "v0.9.0-rc.1"]]
+    assert R.main(["--final", "0.9.0"]) == 0
+    assert "release --final: v0.9.0 at abc123 (= v0.9.0-rc.1), pushed." in capsys.readouterr().out
+    assert world["made_tags"] == [("v0.9.0", "abc123")] and world["pushed_tags"][-1] == ["v0.9.0"]
+    assert world["remote_tags"]["v0.9.0"] == "abc123" and world["fetched_branches"][-1] == "release/0.9.0"
+    assert R.main(["--final", "0.9.0"]) == 1                               # once only: a tag is never moved
+    assert "refused: v0.9.0 exists already (on origin at abc123): a tag is never moved" in capsys.readouterr().err
+    world["branch"], world["version"] = "release/data-2026-11-25", "0.9.0"
+    assert R.main(["--final", "0.9.0"]) == 1 and "is a data-only release" in capsys.readouterr().err
+    assert world["made_tags"] == [("v0.9.0", "abc123")]
+
+
+def test_prod_wants_the_final_tag_on_the_newest_rc_holding_the_data(staged, monkeypatch, capsys):
+    """(T1062) with rcs on origin: v<version> must be AT the newest rc's commit (before it is no longer enough), and
+    the commit the data shipped from at that commit or before it. Mutations: keep the old "v at or before the ship"
+    rule when rcs exist, or skip the data-in-rc check: this fails."""
+    monkeypatch.setenv("CONFIRM_PROD", NEW)
+    del staged["remote_tags"]["v0.9.0"]
+    assert R.prod(NEW, ask=lambda _: NEW) == 1
+    assert ("no tag v0.9.0 on origin: the final tag goes on the newest release candidate v0.9.0-rc.1 (abc123) once the "
+            "owner passed it: python -m pipeline release --final 0.9.0") in capsys.readouterr().err
+    staged["remote_tags"]["v0.9.0"], staged["ancestors"] = "0ther00", {("0ther00", "abc123")}
+    assert R.prod(NEW, ask=lambda _: NEW) == 1                            # before the ship: the old rule, not enough
+    assert "v0.9.0 points at 0ther00, not at the newest release candidate v0.9.0-rc.1 (abc123)" in capsys.readouterr().err
+    staged["remote_tags"]["v0.9.0-rc.2"] = "f1x0000"                       # a later rc: the final must be on it
+    staged["remote_tags"]["v0.9.0"] = "abc123"
+    assert R.prod(NEW, ask=lambda _: NEW) == 1
+    assert "v0.9.0 points at abc123, not at the newest release candidate v0.9.0-rc.2 (f1x0000)" in capsys.readouterr().err
+    staged["remote_tags"]["v0.9.0"] = "f1x0000"
+    assert R.prod(NEW, ask=lambda _: NEW) == 1
+    assert (f"{NEW} shipped from abc123, which is not v0.9.0-rc.2 (f1x0000), nor before it, nor it apart from the "
+            "build numbers: the newest rc does not hold the code") in capsys.readouterr().err
+    assert staged["calls"] == []
+    staged["same_tree"] = {("f1x0000", "abc123")}                          # (review) only the build numbers differ
+    assert R.prod(NEW, ask=lambda _: NEW) == 0
+    staged["calls"].clear()
+    staged["same_tree"] = set()
+    staged["ancestors"] = {("abc123", "f1x0000")}                          # rc.2 is the data's commit plus a fix
+    assert R.prod(NEW, ask=lambda _: NEW) == 0 and staged["calls"] == [("upload", {"CONFIRM_PROD": "canifishthis.ca"})]
+
+
+def test_release_candidates_on_real_git(tmp_path, monkeypatch, capsys):
+    """(T1062) on real git: `remote_rcs` lists only this version's rcs ON ORIGIN (annotated peeled; 0.9.10's and a
+    local-only one are not); `beyond_build_numbers` lets only app.json's versionCode / buildNumber differ; `rc_check`
+    (the store builds' precheck) passes HEAD = newest rc + a versionCode commit and refuses anything more, naming
+    the command; and the version rule ignores rc tags: the next version counts from the last x.y.z tag, and rcs are
+    not shipped versions. Mutations: match the rc pattern on a prefix only, compare app.json whole, or let
+    VERSION take a suffix: this fails."""
+    import subprocess
+    git = ["git", "-c", "user.email=t@t", "-c", "user.name=t", "-c", "init.defaultBranch=main"]
+    origin, here = tmp_path / "origin.git", tmp_path / "here"
+    subprocess.run([*git, "init", "-q", "--bare", str(origin)], check=True)
+    subprocess.run([*git, "init", "-q", str(here)], check=True)
+    run = lambda *a: subprocess.run([*git, *a], cwd=here, check=True, capture_output=True, text=True).stdout.strip()  # noqa: E731
+    app = here / R.APP_JSON_REL
+    app.parent.mkdir(parents=True)
+
+    def commit(code=1, version="0.9.0", other=None):
+        app.write_text(json.dumps({"expo": {"version": version, "ios": {"buildNumber": str(code)},
+                                            "android": {"versionCode": code}}}, indent=2) + "\n")
+        if other:
+            (here / "x.txt").write_text(other)
+        run("add", "-A")
+        run("commit", "-qm", f"c {code} {other}")
+        return run("rev-parse", "HEAD")
+    c1 = commit()
+    run("remote", "add", "origin", str(origin))
+    run("push", "-q", "origin", "HEAD:refs/heads/main", "HEAD:refs/heads/release/0.9.0")
+    monkeypatch.setattr(R, "REPO_ROOT", str(here))
+    monkeypatch.setattr(RV, "REPO_ROOT", str(here))
+    monkeypatch.setattr(R, "app_version", lambda: "0.9.0")
+    assert R.remote_rcs("0.9.0") == {} and R.rc_check() == 1
+    assert ("no release candidate of 0.9.0 on origin: tag one first, the staging ship does: python -m pipeline release "
+            "--staging --push") in capsys.readouterr().out
+    run("tag", "-a", "v0.9.0-rc.1", "-m", "rc 1", c1)
+    c2 = commit(other="a fix")
+    run("tag", "v0.9.0-rc.2", c2)
+    run("tag", "v0.9.10-rc.5", c2)
+    run("tag", "v0.9.0-rc.2-fix", c1)                                      # not an rc name: never read as rc.2
+    run("tag", "v0.8.6", c1)
+    run("push", "-q", "origin", "refs/tags/v0.9.0-rc.1", "refs/tags/v0.9.0-rc.2", "refs/tags/v0.9.10-rc.5",
+        "refs/tags/v0.9.0-rc.2-fix")
+    run("tag", "v0.9.0-rc.3", c2)                                          # local only: not a release candidate
+    assert R.remote_rcs("0.9.0") == {1: c1, 2: c2} and R.newest_rc("0.9.0") == ("v0.9.0-rc.2", c2)
+    c3 = commit(code=2, other="a fix")                                    # a Play build's versionCode commit
+    assert R.beyond_build_numbers(c2, c3) == [] and R.beyond_build_numbers(c1, c3) == ["x.txt"]
+    assert R.rc_check() == 0 and f"HEAD is v0.9.0-rc.2 ({c2[:12]}) apart from the build numbers" in capsys.readouterr().out
+    c4 = commit(code=2, version="0.9.1", other="a fix")
+    assert R.beyond_build_numbers(c3, c4) == [f"{R.APP_JSON_REL} beyond its build numbers"]
+    commit(code=2, version="0.9.0", other="another fix")
+    assert R.rc_check() == 1
+    assert (f"HEAD is not v0.9.0-rc.2 ({c2[:12]}) apart from the build numbers (x.txt): tag a new rc first: python -m "
+            "pipeline release --staging --push") in capsys.readouterr().out
+    assert RV.last_tag() == ("v0.8.6", "0.8.6") and R.shipped_versions() == ("0.8.6",)
+
+
+@pytest.fixture
+def rc_repo(tmp_path, monkeypatch):
+    """(T1062 review) a real clone on release/0.10.0 with a bare origin, the release command pointed at it: tags are
+    made, pushed and read by the real functions (`tag_release`, `final`, `tag_problems`); only the ledger write is
+    skipped. `commit(code, other)` = a commit setting app.json's build numbers to `code` (and x.txt to `other`)."""
+    import subprocess
+    git = ["git", "-c", "user.email=t@t", "-c", "user.name=t", "-c", "init.defaultBranch=main"]
+    origin, here = tmp_path / "origin.git", tmp_path / "here"
+    subprocess.run([*git, "init", "-q", "--bare", str(origin)], check=True)
+    subprocess.run([*git, "init", "-q", str(here)], check=True)
+    run = lambda *a: subprocess.run([*git, *a], cwd=here, check=True, capture_output=True, text=True).stdout.strip()  # noqa: E731
+    app = here / R.APP_JSON_REL
+    app.parent.mkdir(parents=True)
+
+    def commit(code=1, other=None):
+        app.write_text(json.dumps({"expo": {"version": "0.10.0", "ios": {"buildNumber": str(code)},
+                                            "android": {"versionCode": code}}}, indent=2) + "\n")
+        if other:
+            (here / "x.txt").write_text(other)
+        run("add", "-A")
+        run("commit", "-qm", f"c {code} {other}")
+        run("push", "-q", "origin", "HEAD:refs/heads/release/0.10.0")
+        return run("rev-parse", "HEAD")
+    run("remote", "add", "origin", str(origin))
+    run("checkout", "-q", "-b", "release/0.10.0")
+    for k, v in (("GIT_COMMITTER_NAME", "t"), ("GIT_COMMITTER_EMAIL", "t@t"), ("GIT_AUTHOR_NAME", "t"),
+                 ("GIT_AUTHOR_EMAIL", "t@t")):
+        monkeypatch.setenv(k, v)
+    monkeypatch.setattr(R, "REPO_ROOT", str(here))
+    monkeypatch.setattr(R, "app_version", lambda: "0.10.0")
+    monkeypatch.setattr(R, "save_ledger", lambda led: None)
+    monkeypatch.setattr(R, "PUSH_ENV", {})
+    hook = origin / "hooks" / "pre-receive"
+
+    def refuse(tag: str | None) -> None:                  # origin refuses a push of this tag (None: accepts all)
+        if tag is None:
+            hook.unlink(missing_ok=True)
+            return
+        hook.write_text(f"#!/bin/sh\nwhile read o n ref; do [ \"$ref\" = refs/tags/{tag} ] && exit 1; done\nexit 0\n")
+        hook.chmod(0o755)
+    import types
+    return types.SimpleNamespace(run=run, commit=commit, refuse=refuse, ctx=types.SimpleNamespace(led={}))
+
+
+def test_real_git_a_data_release_shipped_from_a_versioncode_commit_goes_to_production(rc_repo):
+    """(T1062 review, finding 1) r-1 ships from X (rc.1); a Play build commits the versionCode bump B; r-2 (new data,
+    no code) ships from B: no new rc, `--final` puts v0.10.0 on X, and production takes r-2 (B is X apart from the
+    build numbers). A code change after the rc is still refused. Mutation: drop the build-number clause from
+    `tag_problems`: r-2 is refused, this fails."""
+    g = rc_repo
+    x = g.commit()
+    r1 = {"uploaded_commit": x}
+    assert R.tag_release(g.ctx, "r-1", r1).startswith(f"tagged data/r-1 at {x[:12]}, v0.10.0-rc.1 at {x[:12]}")
+    b = g.commit(code=2)                                                    # the versionCode commit, pushed
+    r2 = {"uploaded_commit": b}
+    said = R.tag_release(g.ctx, "r-2", r2)
+    assert "v0.10.0-rc.1" in said and "no new rc" in said and R.remote_rcs("0.10.0") == {1: x}
+    assert R.final("0.10.0") == 0 and R.remote_tag_commit("v0.10.0") == x
+    assert R.tag_problems("r-1", r1) == [] and R.tag_problems("r-2", r2) == []
+    c = g.commit(code=2, other="a code change")
+    r3 = {"uploaded_commit": c, "ship_commit": c, "app_version": "0.10.0"}
+    g.run("tag", "-a", "data/r-3", "-m", "d", c)
+    g.run("push", "-q", "origin", "refs/tags/data/r-3")
+    assert any("does not hold the code this data release shipped with" in p for p in R.tag_problems("r-3", r3))
+
+
+def test_real_git_a_final_whose_push_failed_is_pushed_by_the_rerun_or_refused_when_stale(rc_repo, capsys):
+    """(T1062 review, finding 2) `--final`'s push refused: the local tag stays; the rerun pushes it (it is on the newest
+    rc). The staging ship stops on a local-only final, plainly. A local-only final on an OLDER rc (a new rc tagged
+    since) is refused, naming `git tag -d`, and never pushed. Mutations: refuse every local final, or push one that is
+    not on the newest rc: this fails."""
+    g = rc_repo
+    x = g.commit()
+    r1 = {"uploaded_commit": x}
+    R.tag_release(g.ctx, "r-1", r1)
+    g.refuse("v0.10.0")
+    assert R.final("0.10.0") == 1 and R.tag_commit("v0.10.0") == x and R.remote_tag_commit("v0.10.0") is None
+    assert "was made here but the push failed" in capsys.readouterr().err
+    g.refuse(None)
+    with pytest.raises(R.Stop, match="a local-only tag v0.10.0 points at"):
+        R.tag_release(g.ctx, "r-1", r1)                                    # a rerun of the ship stops on it
+    assert R.final("0.10.0") == 0 and R.remote_tag_commit("v0.10.0") == x
+    assert f"v0.10.0 at {x[:12]} (= v0.10.0-rc.1), made before, pushed." in capsys.readouterr().out
+    # the stale case: a final made on rc.1 whose push is refused, then a fix tags rc.2 (reset the scratch origin first)
+    g.run("tag", "-d", "v0.10.0")
+    g.run("push", "-q", "origin", ":refs/tags/v0.10.0")
+    g.refuse("v0.10.0")
+    assert R.final("0.10.0") == 1 and R.tag_commit("v0.10.0") == x
+    g.refuse(None)
+    g.run("tag", "-d", "v0.10.0")                                          # the ship would stop on it: set it aside
+    y = g.commit(other="a fix")
+    assert "v0.10.0-rc.2 at" in R.tag_release(g.ctx, "r-1", r1)
+    g.run("tag", "v0.10.0", x)                                             # the stale local final comes back
+    assert R.final("0.10.0") == 1
+    err = capsys.readouterr().err
+    assert (f"refused: a local-only tag v0.10.0 points at {x[:12]}, not at the newest release candidate v0.10.0-rc.2 "
+            f"({y[:12]})") in err and "git tag -d v0.10.0" in err
+    assert R.remote_tag_commit("v0.10.0") is None
+
+
+def test_real_git_rc_9_is_followed_by_rc_10(rc_repo):
+    """(T1062 review) the next rc is one past the newest BY NUMBER: rc.10 after rc.9, never rc.10 read as before rc.9
+    and never a leading zero. Mutation: take the newest by name (string order): this fails."""
+    g = rc_repo
+    x = g.commit()
+    for n in range(1, 10):
+        g.run("tag", f"v0.10.0-rc.{n}", x)
+    g.run("tag", "v0.10.0-rc.011", x)                                      # not an rc name
+    g.run("push", "-q", "origin", "--tags")
+    y = g.commit(other="a fix")
+    assert R.tag_release(g.ctx, "r-1", {"uploaded_commit": y}).startswith(f"tagged data/r-1 at {y[:12]}, "
+                                                                          f"v0.10.0-rc.10 at {y[:12]}")
+    assert max(R.remote_rcs("0.10.0")) == 10 and R.newest_rc("0.10.0") == ("v0.10.0-rc.10", y)
+    z = g.commit(other="another fix")                                     # and after rc.10, rc.11 (not "9" + 1)
+    assert f"v0.10.0-rc.11 at {z[:12]}" in R.tag_release(g.ctx, "r-1", {"uploaded_commit": y, "tags": {"x": y}})
+
+
+def test_a_comparison_that_fails_at_the_ship_is_a_stop_not_a_traceback(world, capsys, monkeypatch):
+    """(T1062 review, finding 3) the rerun's comparison with the newest rc fetches a missing commit: a git failure there
+    (after the upload) is a Stop naming it, never a traceback. Mutation: move the call out of the try: this fails."""
+    import subprocess
+    assert _staging() == 0
+    capsys.readouterr()
+
+    def down(a, b):
+        raise subprocess.CalledProcessError(128, ["git", "fetch"])
+    monkeypatch.setattr(R, "beyond_build_numbers", down)
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert "could not compare abc123 with v0.9.0-rc.1" in err and "only the tags are left" in err
