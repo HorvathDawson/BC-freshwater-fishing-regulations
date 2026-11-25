@@ -340,7 +340,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1095 | Feature request: fish measurements on a saved location, several per location, editable on a revisit (report `0a9136aec3e19ab9`) | OPEN — 0.10, pictures first (owner 2026-11-24) | | planning chat 2026-11-24 |
 | T1096 | Methods: the page's ice-fishing clause carries no citation (the source is in the pipeline only) | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24, T1050's leftover |
 | T1097 | Gradle daemons across lanes: `gradlew --stop` ends other lanes' builds; idle daemons hold about 2.4 GB outside heavy.sh | OPEN — 0.9.2, with T1063 | | 0.9.1 chat 2026-11-24, T1058 lane |
-| T1098 | The privacy page says things the app does not do (install id and email, Apple Maps, headers, token after Don't Allow) | OPEN — 0.9.1 site deploy, before the App Store submission (T1071); owner reads the new words | | iOS chat 2026-11-24 |
+| T1098 | The privacy page says things the app does not do (install id and email, Apple Maps, headers, token after Don't Allow) | IN PROGRESS — draft PR: words written, owner reads the before/after list and picks item g; then the 0.9.1 site deploy, before the App Store submission (T1071) | | iOS chat 2026-11-24 |
 | T1100 | More > Sources and licences: open-source notices missing for the shipped libraries and fonts | OPEN — 0.9.2 | | iOS chat 2026-11-24 |
 | T1102 | `before_push --changed` skips the reach tests for a change to the DFO salmon reach step (a real break passed the hook) | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24, T1029 lane |
 | T1103 | Item id kinds are hand-kept in four places (the T1083 bug's cause); one generated source; dead `name:` ids in the fixture release | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24, T1083 lane |
