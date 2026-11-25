@@ -363,7 +363,7 @@ def test_every_rule_carries_its_book_pages_and_why_it_applies(built):
     assert r5["applies"] == ("This water’s own row in the 2025–2027 BC Freshwater Fishing Regulations Synopsis: "
                             "Cowichan River.")             # ROUND13 P: the book by its title
     g5 = rules[ix["z7b:daily_quotas::arctic_grayling.r5"]]
-    assert g5["applies"] == "From the Region 7B table, for Williston Lake."
+    assert g5["applies"] == "From the Region 7B table, for Williston Lake. Covers Williston Lake and its tributary streams."   # (T1086)
     assert g5["applies_trib"] == ("Inherited from Williston Lake: the Region 7B table covers its "
                                   "tributaries.")
     assert rules[ix["z2:daily_quotas::trout_char_quota.r1"]]["applies"] == \

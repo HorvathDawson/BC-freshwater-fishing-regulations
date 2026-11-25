@@ -95,10 +95,12 @@ const PINNED: Record<string, Record<string, number[]>> = {
  * alone, no page) cites the pages of every rule behind its row (`TRow.src`, uncut), one run per rule in Python's order,
  * repeats as the runs hold them (the line draws each page once): a page beside the zone's where a rule printed there
  * decides the row (glenn DV p.40, vedder RB p.22, x15p2 ST p.23, the Vedder steelhead's p.6 licence duties).
+ * (0.10.0, r-71d09ad82e81, T1053) Glenn Creek is above Trout Lake: the Lardeau River's rules (p.38) now reach it, so its
+ * rainbow row cites p.38 too, and each sheet loses its "From Nov 1 every one goes back" line (one block fewer).
  */
 const ROW_PAGES: Record<string, Record<string, number[]>> = {
-  glenn_501: { "sheet:tf:CT#9": [34, 34, 34, 34], "sheet:tf:DV#6": [40, 34], "sheet:tf:EB#8": [34, 34, 34], "sheet:tf:GB#8": [34, 34, 34], "sheet:tf:LT#8": [34, 34, 34], "sheet:tf:RB#9": [36, 34, 34] },
-  glenn_615: { "sheet:tf:CT#9": [34, 34, 34, 34], "sheet:tf:DV#6": [40, 34], "sheet:tf:EB#8": [34, 34, 34], "sheet:tf:GB#8": [34, 34, 34], "sheet:tf:LT#8": [34, 34, 34], "sheet:tf:RB#9": [36, 34, 34] },
+  glenn_501: { "sheet:tf:CT#8": [34, 34, 34, 34], "sheet:tf:DV#6": [40, 34], "sheet:tf:EB#7": [34, 34, 34], "sheet:tf:GB#7": [34, 34, 34], "sheet:tf:LT#7": [34, 34, 34], "sheet:tf:RB#8": [38, 34, 34, 36] },
+  glenn_615: { "sheet:tf:CT#8": [34, 34, 34, 34], "sheet:tf:DV#6": [40, 34], "sheet:tf:EB#7": [34, 34, 34], "sheet:tf:GB#7": [34, 34, 34], "sheet:tf:LT#7": [34, 34, 34], "sheet:tf:RB#8": [38, 34, 34, 36] },
   klwa_1010: { "sheet:tf:CT#9": [37, 34, 34], "sheet:tf:DV#9": [37, 37, 34], "sheet:tf:EB#8": [37, 34], "sheet:tf:GB#8": [37, 34], "sheet:tf:LT#8": [37, 34], "sheet:tf:RB#9": [37, 34, 34] },
   klwa_1012: { "sheet:tf:CT#9": [37, 34, 34], "sheet:tf:DV#9": [37, 37, 34], "sheet:tf:EB#8": [37, 34], "sheet:tf:GB#8": [37, 34], "sheet:tf:LT#8": [37, 34], "sheet:tf:RB#9": [37, 34, 34] },
   vedder_1010: { "sheet:tf:CT#10": [21, 21, 21, 21, 21, 21], "sheet:tf:DV#11": [21, 21, 21, 21, 21, 21, 21], "sheet:tf:EB#10": [21, 21, 21, 21, 21, 21], "sheet:tf:GB#10": [21, 21, 21, 21, 21, 21], "sheet:tf:LT#11": [21, 21, 21, 21, 21, 21, 21], "sheet:tf:RB#10": [22, 21, 21, 21], "sheet:tf:ST#13": [21, 21, 6, 21, 6, 21, 21, 21, 21] },

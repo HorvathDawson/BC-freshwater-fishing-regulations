@@ -133,7 +133,7 @@ describe("(T53) <WaterScreen> for an unnamed reach: the store's page for the tap
     const b = page.keep.banner!;
     // (T1031 item 3, rule 33) pinned whole: the closure, then its Source line (its page by the synopsis's name, its rule's sheet)
     expect(screen.getByTestId("keep-banner").textContent)
-      .toBe("Closed all yearNo fishing for any game fish. From downstreamSourceB.C. Synopsis p.26 ↗Who says so ›");
+      .toBe("Closed all yearNo fishing for any game fish. From downstreamSourceB.C. Synopsis p.16 ↗Who says so ›");
     expect(b.big.join("") + b.paras.join("") + b.chain.map((c) => `${c.text} ${c.scope}`).join("")).toBe("Closed all yearNo fishing for any game fish. From downstream");
     // (T768) every rule of the chain is the receiving water's OWN rule (the reach was picked for being closed by
     // tributary rules; that they are all the one named water's, the water the page names, is not part of the pick)
