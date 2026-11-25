@@ -286,3 +286,11 @@ Answer: **"Yes, if it is the right lake (Recommended)"**
    rules they carry today in the live release (a live error), and with T1053 **nothing reopens**: Dove Creek's top piece
    and the 19 unnamed pieces stay under the Tsolum River's ✱ "No Fishing" (the yield there rests only on
    `anderson_lake.r4`; expected from the key diff, not rerun). The owner list says so.
+
+## The owner on the fix (2026-11-25, multiple choice, relayed), verbatim — T1117
+
+Asked: "Move the row to the unnamed Walbran lake (wbk:329504289)?" Answer: **"Yes, fix it in 0.9.1 (Recommended)"**.
+Done in this PR as T1117 (its own ticket): see T1117 for the change and the diff.
+
+T1117 done in this PR (19a8dc392): with the right lake, nothing reopens around Anderson Lake; Frosst Creek is the only
+"own row kept"; see T1117 for the diff.

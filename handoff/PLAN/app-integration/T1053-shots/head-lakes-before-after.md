@@ -6,11 +6,14 @@ lower includes tributtaries that it conflicts with"; "keep earlier rule of closu
 this does not include no fishiong all year rulings tho those will yield in that case. only the dated closures."; and
 "tributary rules dont apply to the lake either only streams".
 
-> **2026-11-25: Dove Creek's reopening rests on a WRONG binding.** The row "“ANDERSON” LAKE" (p.14, MU 1-3) is an unnamed
-> lake in the Walbran Creek watershed (FWA `wbk:329504289`), not the gazetted Anderson Lake near Comox that it is bound to
-> today (`wbk:329095566`, MU 1-6, on Dove Creek). Rebinding it (proposal in the T1053 ticket) makes the Dove Creek /
-> Anderson Lake reopening below disappear: nothing reopens outside the head lakes, and Frosst Creek stays the only "own row
-> kept". The Comox lake and Dove Creek also lose rules they wrongly carry in the live release.
+> **2026-11-25: wrong lake, FIXED (T1117).** The row “ANDERSON” LAKE (p.14, MU 1-3) is an unnamed lake in the Walbran
+> Creek watershed (FWA `wbk:329504289`); it was bound to the gazetted Anderson Lake near Courtenay (`wbk:329095566`,
+> MU 1-6, on Dove Creek). Owner: "Yes, fix it in 0.9.1 (Recommended)". Now bound to the Walbran lake. Diff of the fix
+> alone (side atlas + reach run): only `anderson_lake` r1–r4 move — the Courtenay lake and Dove Creek's top piece and
+> 19 unnamed streams (21.6 km) lose them; the Walbran lake and 25 unnamed streams around it (36.0 km) gain them; no other
+> rule, licence or DFO place moves. With the climb and the own-row rule, **nothing reopens anywhere** (live → branch:
+> 3,813 stream sections gain closed days, none loses any), and Frosst Creek is the only "own row kept". The Dove Creek
+> reopening described below in this list is GONE with the fix; it stays here as the record.
 
 **In short.**
 - The walk is unchanged from the first list: 22 head lakes pass their river's rules up to the streams above them
@@ -27,7 +30,7 @@ this does not include no fishiong all year rulings tho those will yield in that 
   streams (a rainbow on Asher Creek on Dec 1: release only today, 5 a day after), and Perry Creek's brook trout 20 a day
   reaches the streams above Richmond Lake. **It newly closes Cameron River above Cameron Lake (32.4 km) all year**, under
   the Little Qualicum's "No Fishing - All tributaries".
-- **Outside any head lake the same own-row rule reopens Dove Creek's top piece above Anderson Lake and 19 unnamed stream
+- **(GONE with the T1117 fix — wrong lake.) Outside any head lake the same own-row rule reopened Dove Creek's top piece above Anderson Lake and 19 unnamed stream
   pieces around the lake (20 pieces, 21.6 km; map `dove-creek-reopens.png`)** for catch and release, except Jul 15-Aug 31:
   the Tsolum River's all-year ✱ "No Fishing" gives way to Anderson Lake's ✱ "Trout and kokanee catch and release", the
   nearer row. The fish that reopen: cutthroat, Dolly Varden / bull trout, brook trout, brown trout, lake trout,

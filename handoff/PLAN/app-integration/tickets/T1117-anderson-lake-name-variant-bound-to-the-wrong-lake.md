@@ -1,6 +1,6 @@
 # T1117 — The book's "ANDERSON" LAKE row (MU 1-3, Walbran) is bound to Anderson Lake on Dove Creek (MU 1-6): wrong rules on production
 
-Status: OPEN.
+Status: DONE (19a8dc392, lane L21, in T1053's PR #166; ships with the 0.9.1 data release, which rebuilds the atlas).
 
 Source: 0.9.1 chat 2026-11-25 ~00:50 MST, found while checking the owner's Dove Creek question in T1053 (draft PR
 #166). HIGH, on production today.
@@ -21,3 +21,24 @@ regional rules; the answers diff lists exactly these waters; a test pins the bin
 
 Follow-up: T1118 (every name variant whose note records an MU mismatch). Severity: high (wrong, stricter rules
 shown on a real lake and creek). Release: 0.9.1 (owner). Model: Opus. Size: S. Owner: no (he decided).
+
+## Done (lane L21, 2026-11-25)
+
+- `data/curated/regulations/book_name_links.json`: the override for `"ANDERSON" LAKE` (MU 1-3) now names
+  `waterbody_keys: ["329504289"]` (was `gnis_ids: ["1657"]`); its note keeps the old text and adds the evidence.
+- `data/curated/waters/name_variants.json`: the regulation name "ANDERSON LAKE" moves from `wbk:329095566` (which keeps
+  its stocking name) to a new entry on `wbk:329504289` — as PROVOST DAM is done — so the atlas mints and names the
+  Walbran lake (side atlas: exactly one registry item added, `wbk:329504289` "Anderson Lake", MU 1-3; nothing else
+  changed; the atlas is current with its 14 inputs).
+- `matched` restamped deterministically: `backfill_matched` (`matched_ids` + `backfill`, restamp
+  `r1:anderson_lake@1-3` only) against the side registry; one line in region-1.json moved; the six pre-existing
+  disagreements were left alone. No marks file edited; the parser never ran.
+- Pinned: `pipeline/tests/test_t1053_anderson_binding.py` (reverting either curated file fails it).
+
+Diff (side reach run on the fixed atlas vs the same code on the live atlas): **4 rules move, all `anderson_lake`**:
+r1–r3 (fly only, bait ban, single barbless) from `lake:329095566` to `lake:329504289`; r4 (✱ trout and kokanee release)
+loses the Courtenay lake, Dove Creek's top piece and 19 unnamed streams (21.6 km) and gains the Walbran lake and 25
+unnamed streams feeding it and around it (36.0 km). 0 unresolved, 0 licensing, 0 DFO, 0 diagnostics changed. Answers:
+the 20 Dove Creek / unnamed pieces that the T1053 own-row rule had reopened close again (Tsolum River ✱ "No Fishing");
+live → branch, no section anywhere loses a closed day. The Walbran streams take a release, not a closure (no closed
+days change there).
