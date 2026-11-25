@@ -70,7 +70,9 @@ describe.skipIf(gate.skip)(`T12 harness parity (store: ${label})`, () => {
     expect(await Promise.all(["vedder_515", "klwa_1010", "klwa_1012", "x15p7_1010"].map(pick))).toEqual([
       // keys and frame ids come from taps.json (the Python reference decoder), never literals: a rebuild that adds an
       // answer key renumbers them (T56, batch 3), and the test is about the two decoders agreeing, not about a vintage
-      ["vedder_515", T.states.vedder_515!.akey, 1, { ...T.states.vedder_515!.cell, display: 109 }],   // (r-0fa7927b16e5) frame ids renumbered: 64 -> 109
+      // (0.10.0) the Vedder's display frame was a literal (109) and stopped the release re-cut when r-71d09ad82e81
+      // renumbered it to 112: it is read from taps.json like the rest
+      ["vedder_515", T.states.vedder_515!.akey, 1, T.states.vedder_515!.cell],
       ["klwa_1010", T.states.klwa_1010!.akey, 1, T.states.klwa_1010!.cell],
       ["klwa_1012", T.states.klwa_1012!.akey, 0, T.states.klwa_1012!.cell],
       ["x15p7_1010", T.states.x15p7_1010!.akey, 4, T.states.x15p7_1010!.cell],
