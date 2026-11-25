@@ -69,6 +69,9 @@ Owner: yes (App Store Connect entries, the submit, any legal answers).
   today); he answered **"keep ticked but next release will add to rpivacy page and add the performance monitor"**.
   So the label carries 9 types, one ahead of the app; the next release owes the performance monitor and the
   privacy page words (sent to the planning chat). Performance Data answers: App Functionality, linked, no tracking.
+- 2026-11-25 14:16: owner said **"i did 4 and 5"** (age rating and pricing, from the six-batch list). Not yet
+  confirmed by him: the age rating shown, App Privacy published, the Performance Data sub-answers. Next: the
+  version page (words, pictures, review information).
 
 ## Results (iOS release chat, 2026-11-24)
 - The page: `handoff/PLAN/ios/APP-STORE-SUBMISSION.md`. Restart page: `handoff/PLAN/ios/RESTART-ios-release-chat.md`.
