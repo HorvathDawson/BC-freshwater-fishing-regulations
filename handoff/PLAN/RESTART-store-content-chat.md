@@ -7,35 +7,37 @@ Rules of this chat: Fable orchestrates, Sonnet lanes (at most 2), one review rou
 `scripts/heavy.sh`; no store uploads (the owner gets the files and the steps); finds and owner-only items go to the
 planning chat; work only in scratchpad worktrees, never the main checkout.
 
-## State (2026-11-25 02:15; the chat opened 2026-11-24 ~23:05)
+## State (2026-11-25 14:00; the chat opened 2026-11-24 ~23:05). The chat's scope is DONE; what is left is below.
 
-1. **T1076: merged (#172).** The tool builds and serves its own store-shots export, refuses a normal site at the start
-   (`store-shots-build.json` marker), and the runbook step is `scripts/heavy.sh store-shots 30 -- node app/tools/store-shots/run.mjs`.
-   Its ticket still says IN PROGRESS: flip it to DONE with the merge hash.
-2. **Owner's pick (2026-11-24 ~23:42): direction A, the angler's questions**, 7 frames, map first, then "What can I keep?"
-   showing the limits table, not the season calendar. 2026-11-25: map views one zoom step wider; captures quicker; most
-   scenes may be shot from the website (`--web <url>`; only 07-saved-spot and 20-help need the store-shots build).
-3. **The one set: PR #192** (auto-merge set, CI running at 02:15). 35 PNGs in
-   `handoff/PLAN/app-integration/store/graphics/store/light/` (`appstore-6.9`, `appstore-6.5`, `play-phone`,
-   no tablet sets: dropped 2026-11-25); both push scripts read it with no arguments (plan modes clean, nothing sent).
-   Regenerate: `scripts/heavy.sh store-shots 30 -- node app/tools/store-shots.mjs --theme light` (about 6 minutes;
-   one frame: add `--reuse --scenes <nn> --only <target>`). One review round is spent. Known nits, owner asked:
-   both answered 2026-11-25 ("Drop tablet set. And you can get them to fix picture"): tablets dropped, frame 3's watershed name fixed (see T1072).
-4. **Listing words: merged (#170, #175).** One source `app/store-listing/listing.json` (+ `full-description.txt`);
-   `play-listing-push.py --appstore` prints the App Store fields. Owner's answers (2026-11-24 ~23:55) are in T1072:
-   promotional text = his short line, keywords without the name's words, Navigation / Sports, 500 MB, graphic kept.
-   Owner 2026-11-25 13:43: "hold play p[ictures until before prods release" (Play picture upload waits; play-phone frame 3
-   has two phone-width app faults, T1128, reshoot after its fix). Also his: a hand-started GitHub workflow for the pictures,
-   "can be part of new repo transfer" (sent to the planning chat to ticket).
-5. **Owner's steps (no uploads by Claude):** in the final message of the chat and in T1072. FIRST clear the 34 old
-   untracked pictures from the main checkout's `store/light/` or upload from a clean checkout (the push scripts take every
-   picture in a folder; `--plan` / `--check` must show 7 per size; a planning-chat ticket, PR #202, fixes the scripts). Play:
-   `.venv/bin/python deploy/staging/play-listing-push.py --commit`. App Store: `.venv/bin/python
-   deploy/staging/appstore-screenshots-push.py --check`, then `--commit`, once the version exists in App Store Connect.
-6. **iOS release chat** (`bc-freshwater-fishing-regulations-06`): told the words are ready (00:15); tell it the set is
-   on main the moment #192 merges.
-7. Planning chat numbered the finds: T1112 (worktree setup), T1113 (salmon scene on a pinned state), T1114 (the iOS
-   submission page prints from the one source).
+**On main**
+1. **T1076 DONE (#172):** the tool builds and serves its own store-shots export and refuses a normal site; the runbook
+   step is `scripts/heavy.sh store-shots 30 -- node app/tools/store-shots/run.mjs`.
+2. **The one set (T1072; #192, then #209, merge 4b21a95bc):** direction A, the angler's questions, 7 frames (the owner's
+   pick, 2026-11-24). 21 PNGs in `handoff/PLAN/app-integration/store/graphics/store/light/`: `appstore-6.9`,
+   `appstore-6.5`, `play-phone`, 7 each. No tablet sets (owner 2026-11-25: "Drop tablet set"); frame 3 reshot so its Change
+   panel names the chart's watershed (a check refuses any other name).
+   Regenerate: `scripts/heavy.sh store-shots 30 -- node app/tools/store-shots.mjs --theme light` (one frame: add
+   `--reuse --scenes <nn> --only <target>`).
+3. **Listing words (#170, #175):** one source `app/store-listing/listing.json` (+ `full-description.txt`);
+   `play-listing-push.py --appstore` prints the App Store fields. The owner's wording answers are in T1072.
+4. **T1127 DONE (#207):** both push scripts take each size's list from `app/tools/store-shots.json`; a stray or missing
+   picture stops plan / check / commit by name before any network call. The Play push clears the 7-inch and 10-inch slots.
+
+**Left (none of it this chat's to start)**
+- **The owner's uploads** (commands in T1072 "Owner's steps"). App Store pictures: with the iOS release chat
+  (`bc-freshwater-fishing-regulations-06`; told 2026-11-25 that frame 3 is on main at 4b21a95bc). **Play pictures are
+  HELD**, his words 13:43: "hold play p[ictures until before prods release" (the planning chat reads this as the Play
+  production release). A text-only Play push before then is `--no-shots`.
+- **Reshoot play-phone frame 3 after T1128** (two app faults at phone width: "Steady" struck through, last day column
+  clipped). Whoever closes T1128 tells the planning chat; the reshoot is the one-frame command above, then a PR.
+- **The 34 old untracked pictures in the main checkout:** the 0.10.0 chat clears them (owner: "we can remove old store
+  photos. we want this to be clean"). Until then an upload from that checkout stops by name.
+- **T1131:** a hand-started GitHub workflow that makes the pictures; with the repo-move chat, after the transfer (owner:
+  "can be part of new repo transfer").
+- **T1072 items not done (the owner's call):** website landing and share-page words (only the home meta description reads
+  the one source), the store video (T709).
+- Other tickets from this chat's finds: T1112 (worktree setup), T1113 (salmon scene on a pinned state), T1114 (the iOS
+  submission page prints from the one source).
 
 ## What the two stores do not let us share (checked 2026-11-24 on their pages)
 
