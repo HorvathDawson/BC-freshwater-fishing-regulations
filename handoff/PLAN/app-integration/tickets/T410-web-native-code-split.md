@@ -1,11 +1,11 @@
 # T410 — One clear web / native split in the app code
 
-Status: PARTIAL — items 1-4 done (8374cae0d..cd2be0916; listings 2026-11-06 below; full `pnpm -C app check` green 2026-11-06); the pass over the moved `.native` halves done on the emulator 2026-11-06 ("Native pass" below: 6/6, the spoken step not heard, no TalkBack); owner: OWNER-TODO "Accessibility (T243 → T258, 2026-10-29): a TalkBack / VoiceOver walk" (the T258/T260 items listed below). Was: OPEN — with the launch-and-hygiene chat (owner 2026-11-05: "make it so the web and app code are split out a
+Status: PARTIAL — items 1-4 done (8374cae0d..cd2be0916; listings 2026-11-06 below; full `pnpm -C app check` green 2026-11-06); the pass over the moved `.native` halves done on the emulator 2026-11-06 ("Native pass" below: 6/6, the spoken step not heard, no TalkBack); owner: see ## Owner (the T258/T260 items listed below). Was: OPEN — with the launch-and-hygiene chat (owner 2026-11-05: "make it so the web and app code are split out a
 little better … not sure the standard here but seems like something to clean up").
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T410 | One clear web / native split in the app code (platform files, a written rule, a guard) | PARTIAL (items 1-4 done; native pass done on the emulator 11-06, 6/6; T258/T260 owner items left) | 8374cae0d, 05b08c549, 450489c8b, 34e71f6a5, f24c83200, 005346269, 2f48f6623, cd2be0916 | owner: T258 TalkBack/VoiceOver walk + 200 % text (OWNER-TODO "Accessibility (T243 → T258, 2026-10-29): a TalkBack / VoiceOver walk"); T260 look answered 11-05 (ink fill; rest as is) |
+| T410 | One clear web / native split in the app code (platform files, a written rule, a guard) | PARTIAL (items 1-4 done; native pass done on the emulator 11-06, 6/6; T258/T260 owner items left) | 8374cae0d, 05b08c549, 450489c8b, 34e71f6a5, f24c83200, 005346269, 2f48f6623, cd2be0916 | owner: T258 TalkBack/VoiceOver walk + 200 % text (old owner to-do "Accessibility (T243 → T258, 2026-10-29): a TalkBack / VoiceOver walk"); T260 look answered 11-05 (ink fill; rest as is) |
 
 ## Today (2026-11-05)
 - 38 platform files (`*.web.ts(x)`, `*.native.ts(x)`, `*.ios` / `*.android`) — the Expo/Metro standard: the bundler
@@ -128,3 +128,7 @@ Release test-bed APK (`session.sh --build --crash-stub`, assembleRelease, JS bun
   still `ca.canifishthis.app/.MainActivity` (no browser) (shot 09). PASS.
 - **Memory trim** (memoryTrim.native): `am send-trim-memory … RUNNING_CRITICAL` → `[trim] level 15: 0 map(s), purge 2, 14
   database(s) shrunk`, the app alive (shot 10). PASS ("0 map(s)": the About page was in front, no map mounted).
+
+## Owner
+
+- [ ] 2026-10-29 — On a phone, a TalkBack / VoiceOver walk (map, water, regs, conditions, salmon, menu) at the largest system text; say if the bottom tab labels stopping at 1.3x (Q160) is wrong.

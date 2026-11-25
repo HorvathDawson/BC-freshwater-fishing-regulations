@@ -27,3 +27,7 @@ The owner has picked a direction from pictures; build tickets exist with frozen 
 Severity: design work (the owner's judgement of the page). Release: design in 0.9.2 (owner: "maybe in 0.9.2"); the
 build in 0.9.2 if small, else 0.10: decided when the direction is picked. Model: Sonnet for pictures and UI, Opus
 if the spot store changes shape. Size: M–L. Owner: yes (what is clunky; the pick).
+
+## Owner
+
+- [ ] 2026-11-25 — The saved-spot page ("still feels very clunky"): say what feels clunky, then pick a design direction from pictures (0.10.1).

@@ -150,3 +150,9 @@ the website use them.
 
 Depends: T319. Severity: launch work. Release: before the iOS full release (T1071) and the Play launch (chat 5).
 Model: Sonnet. Size: M. Owner: yes (picks the look and the words).
+
+## Owner
+
+- [ ] 2026-11-25 — Decide, do or drop: the website landing and share-page words, and the store video (T709) — the two parts never started that keep this ticket open.
+- [ ] 2026-11-25 — One word: "before prods release" for the Play pictures means the Play production release (the public launch), not the 0.10.0 data release. Correct?
+- [x] 2026-11-25 — Store pictures → "Drop tablet set. And you can get them to fix picture" (12:33); "hold play p[ictures until before prods release" (13:43); store pictures made by a hand-started GitHub workflow → "yes", "can be part of new repo transfer" (T1131).

@@ -97,3 +97,7 @@ put into the 10-31 batch (coordinator asked for it; stopped and reported per bri
 
 ## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
 review app "Sloughs" tab: 811 confirmed (801 narrow pre-marks + 10 single; folded by T322); still to call: 135 wide-marsh pre-marks + 314 on the owner list (113 intermittent) → ★ owner confirms (one / accept all visible = marks, scope `slough`) → fold into rivers → reach + deliver
+
+## Owner
+
+- [ ] 2026-10-28 — Confirm the slough / canal marks in the review app, Sloughs tab (`#sloughs/`): the wide-marsh pre-marks and the rest still to call (Q4); the 7 grey polygons (Nation, West Road, Honna) stay grey until you do. Default: nothing is reclassified without a dry run and your confirm.

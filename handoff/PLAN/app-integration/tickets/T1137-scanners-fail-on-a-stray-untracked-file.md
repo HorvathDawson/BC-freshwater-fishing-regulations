@@ -19,3 +19,7 @@ no chat deletes it).
 
 Acceptance: a push from a checkout holding an untracked `.py` under `data/generated/` passes the scanners.
 Severity: low. Model: Sonnet. Size: S. Owner: yes (one answer on the file).
+
+## Owner
+
+- [ ] 2026-11-25 — `data/generated/owner1028/one.py` sits untracked in the main checkout and makes two scanners fail pushes from there: is it yours and still needed? No chat deletes it.

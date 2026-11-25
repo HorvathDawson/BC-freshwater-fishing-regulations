@@ -1,6 +1,6 @@
 # T390 — The app notices it is not the latest version and offers an Update button
 
-Status: PARTIAL — 0798fd27b, c62aeb4b8, a2b614425, 0b96e8848 (code + tests merged; shipped in 0.6.2 and 0.6.5); left (Claude): the "Test bed" checks 1-4 below on the current APK, including a Play internal install one build behind (OWNER-TODO lists it as "9. Claude: the in-app update prompt checked (T390, stalled since Nov 6) and T514.").
+Status: PARTIAL — 0798fd27b, c62aeb4b8, a2b614425, 0b96e8848 (code + tests merged; shipped in 0.6.2 and 0.6.5); left (Claude): the "Test bed" checks 1-4 below on the current APK, including a Play internal install one build behind (old owner to-do lists it as "9. Claude: the in-app update prompt checked (T390, stalled since Nov 6) and T514.").
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|

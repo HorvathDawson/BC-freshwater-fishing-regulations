@@ -52,12 +52,8 @@ use that as the sole source of future work."
   that with explicit paths. `pipeline reports` and the commit check read `closed.tsv`, so a Tnnn in a subject or a report
   id a closed ticket cited still resolves. Reopening: put the file back from the tar, delete its line, run `--claim`.
 - **Owner calls never block work:** every open call carries a recommended default; build with it and record it
-  (owner call 11). The owner answers in one place: the "Owner questions" table below.
+  (owner call 11). The owner's open asks are lines of the ticket's own `## Owner` block (see "Owner blocks" below).
 - T84 adds a guard to `pnpm check` that keeps this ledger whole (T1041: it reads each file's row).
-- **A branch that still edits the old tables** (README.md's ledger, DONE.md, OWNER-TODO.md's sections; a release
-  branch cut before T1041): `git merge origin/main`, then `node app/tools/ledger.mjs --resolve`: it carries the branch's
-  rows, ticket text, owner items and README text into the files (3-way, against the merge base), leaves a real clash
-  unmerged in git's index with markers, and rebuilds the views. A branch already on the files merges as usual.
 
 ## Ledger
 
@@ -95,29 +91,34 @@ deferred rows (river widenings T695, map-tile trimming T699, T389, T626, T223, T
 
 ## Order for open tickets
 
-The order lives on the newest restart page named in `handoff/PLAN/START-HERE.md`, not here (T540: the 2026-10-22 list
+The order lives on the restart pages `handoff/PLAN/START-HERE.md` lists and in `handoff/PLAN/ROADMAP-after-0.9.0.md`, not here (T540: the 2026-10-22 list
 named 73 closed tickets out of 80; git has it, `git log -p -- handoff/PLAN/app-integration/tickets/README.md`).
 
-## Owner questions
+## Owner blocks (T1081)
 
-Every open owner call, with the default we build with until answered (owner call 11: Claude decides the smaller ones
-and records them; T81 records them in decisions.md). Answer here or in decisions.md; answered rows move to Answered.
+**Anything only the owner can do or decide is an `## Owner` block in the ticket it belongs to.** There is no owner
+to-do page or folder: `node app/tools/ledger.mjs` builds `handoff/PLAN/views/OWNER.md`, one short page of every open
+line, newest first, grouped by ticket (git-ignored, rebuilt by the hooks; `--check` says if it is stale).
 
-| # | ticket | question | default (built with) | kind |
-|---|---|---|---|---|
-| Q4 | T55 | Which finder candidates are sloughs/canals to reclassify? 7 grey polygons (Nation, West Road, Honna)? | nothing reclassified without owner review (dry-run + confirm); the 7 stay grey | owner |
-| Q9 | T77 | When to do phone testing D1a / D1b | D1a when the phone is at hand; D1b after the R2 bucket | owner |
-| Q10 | T79 | Imagery go/no-go; SPEC §12 (10 m pack, buffer, sources, licence, server, caps) | no offline imagery before the first native release; skip 10 m; 250 m buffer; online-only on web; pools a study | owner |
-| Q26 | T86 | R2 bucket, contact address (domain decided: canifishthis.ca, .com redirects; name "Can I Fish This?") (no ArcGIS key: owner 2026-10-21) | keep the name; staging bucket first; publisher every 30 min | owner (credentials) |
-| Q31 | T93 | Gauge representativeness policy — ANSWERED 2026-10-28: "drainage, plus tributary gauges across a continuation link" when a large share (Q44 LARGE_SHARE) (`drainage_continued`, decisions.md) | — | owner |
-| Q171 | T404 | Production's problem-report + crash endpoint | `https://feeds.canifishthis.ca/report` (custom domain on the prod feeds worker, workers.dev off) | owner 2026-11-08 |
-| Q172 | T404 | Production's backup bucket (you create it, staging's lifecycle rules) | `bc-fishing-regulations-backup` | owner |
-| Q173 | T404 | After the switch, every Play build (internal, closed) reads production; staging stays on the sideload APK page? | yes | owner 2026-11-08: yes |
-| Q174 | T404 | The prod data worker replaces v1's `bc-fishing-r2` in place (deploy/prod/data.wrangler.toml; it serves the v1 keys only until switch day)? | yes — check its name + route first; v1 keys deleted the same day (PRODUCTION.md step 11) | owner 2026-11-08 |
-| Q175 | T404 | Share links and the privacy page are `canifishthis.ca` in every environment (the staging site is noindex)? | yes | owner 2026-11-08: yes |
-| Q177 | T540 | Move AGENTS.md "Reading the regulations" (53 % of the file) into a file read only for regulation work? | no — AGENTS.md unchanged | owner |
-| Q181 | T973 | Ask a CO: is a tributary with its own no-unit row (Grave Creek under the Elk, Gosnell under the Morice, the Endako under the Stellako) inside the river's Classified Waters "[Includes Tributaries]"? | built 12:11: carried with its path, shown as a "may need" note until the CO answers | owner (ask a CO) |
-| Q182 | T723 | iPhone: keep the "Save spot" bar that rides on top of the keyboard while a spot's title or notes are typed (shots in OWNER-TODO 2026-11-20 12:15)? | keep it as built | owner |
+    ## Owner
+
+    - [ ] 2026-11-25 — the ask in one or two sentences; the options (A / B / C) and the default we build with.
+    - [x] 2026-11-25 — the ask → "his answer, verbatim" (2026-11-26)
+
+- **Add an ask:** a `- [ ] YYYY-MM-DD — <ask>` line (the date it was asked) under the ticket's `## Owner` heading (make the
+  heading at the end of the file when there is none). A longer ask continues on lines indented two spaces. Pictures and
+  files the ask needs stay beside the ticket (`Tnnn-shots/`) and are named in the line. A thing with no ticket yet is a
+  `## <short title>` section of `tickets/OWNER-UNFILED.md` with the same lines; the planning chat numbers a ticket for it,
+  moves the lines in and deletes the section.
+- **Answer one:** the chat writes the answer into the line in the same turn the owner gives it: `[ ]` becomes `[x]` and
+  the line ends `→ "his answer, verbatim" (date)`. An answered line stays as the record; nothing is copied elsewhere.
+- **See what is open:** `node app/tools/ledger.mjs`, then read `handoff/PLAN/views/OWNER.md` (one line per ask).
+- **A Status that waits on the owner** (IN REVIEW / PARTIAL) says `owner: see ## Owner`; the guard needs an open line in
+  the block. A DONE / DROPPED ticket has no open line (answer it or take it out), and `ledger.mjs --archive` refuses one.
+- `check-tickets.mjs` fails a block that does not parse (a line that is not `- [ ]` / `- [x]`, a missing or invalid date).
+  The format is `OWNER_LINE` in `app/tools/ledger.mjs`.
+
+## Answered owner calls, for the record
 
 ### Shipped on default (reverse any)
 

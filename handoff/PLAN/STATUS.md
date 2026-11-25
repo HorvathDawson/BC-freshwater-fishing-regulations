@@ -13,11 +13,11 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - Production: the data (r-0aec88ed3edb, you ran it), the website and the feeds worker are on 0.9.0; the production
   smoke test passed 18 of 18.
 - Phones: Android build 44 on Play Internal and Closed testing; iPhone build 45 uploaded to App Store Connect. The
-  Play Production rollout and the App Store submission are yours (OWNER-TODO).
+  Play Production rollout and the App Store submission are yours (`views/OWNER.md`).
 - Before shipping, the device pass found and fixed two defects (background checks never ran under the code shrinker;
   a crash moving a frame to another water). One known issue shipped: a cold-start tab link can land short (fixed for
   0.9.1).
-- The release branch merges back into main by PR #140. Restart page: `handoff/PLAN/NEXT-SESSION-2026-11-24-after-090.md`.
+- The release branch merges back into main by PR #140. Restart pages: `handoff/PLAN/START-HERE.md`.
 
 ## 2026-11-22 20:15: 0.9.0 batch chat, stopped early (low credits; no release)
 - Seven, then fourteen parallel lanes worked the 0.9.0 batch plus every small open ticket (your rule: no bathymetry,
@@ -29,7 +29,7 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - Waiting to merge: label overlap (T997), Apple push proven on staging + incremental backup, forecast errors, R8 on
   every Android build (obfuscation 1% → 72%), the Serpentine ditches, out-of-B.C. drawing, app UI smalls, ledger cleanup,
   and four draft lanes.
-- Your questions and production steps are in OWNER-TODO (top section).
+- Your questions and production steps are in `views/OWNER.md` (built by `node app/tools/ledger.mjs`).
 
 ## 2026-11-22 13:40: build/CI streamlining chat finished (no release)
 - `main` is now the protected trunk: every change is a pull request with four checks, and it merges itself when they pass.

@@ -229,7 +229,7 @@ regenerated owner list (187 lines) in the progress note. Left: owner reads the d
   piece, midpoint in the sea or in the river polygon of a blue line the atlas holds tidal): 1,204 lines / 1,827 edges,
   none named; 1,133 inside tidal river polygons (edge type 1450, the river's own construction lines: Fraser 385, Skeena
   290, Nass 158 …), 71 in the sea. A list changes no output (no piece to mark). Recommendation: no list; if wanted, the
-  71 sea lines in a new file beside `waters/shore_held.json`. Owner rows OWNER-TODO 11 and 13.
+  71 sea lines in a new file beside `waters/shore_held.json`. Owner rows old owner to-do 11 and 13.
 
 ## Lane L7, 2026-11-20 — plan 2, plan 5 code, legacy retirement (8e8c3e79f)
 Proof on the live atlas (no rebuild; the disk was too full for one): the atlas's own resolver

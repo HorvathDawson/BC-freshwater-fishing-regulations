@@ -1,10 +1,10 @@
 # T760 — First install waits for ever, without a word, on a system download that is paused and never moves; and the bench does not clear the downloader
 
-Status: IN REVIEW — merged c62c1fa51 (Android, 2026-11-16); iPhone half 455ced856 (lane L6, a Wi-Fi-only job held on mobile data is an honest wait, reason 3) with the iPhone twin run 3 of 3 (6fdb3d8db); owner: OWNER-TODO "a first install on mobile data with" (optional phone check)
+Status: IN REVIEW — merged c62c1fa51 (Android, 2026-11-16); iPhone half 455ced856 (lane L6, a Wi-Fi-only job held on mobile data is an honest wait, reason 3) with the iPhone twin run 3 of 3 (6fdb3d8db); owner: see ## Owner (optional phone check)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T760 | First install waits for ever, without a word, on a system download that is paused and never moves (found on the emulator: rows left by cut-short bench runs, adopted after `pm clear`); the bench must clear the downloader; the T756 bench check reads the wrong log line. Next free ticket T761 | IN REVIEW (iPhone half 455ced856: a Wi-Fi-only job held on mobile data is an honest wait; iPhone twin run 3 of 3, lane L6); owner: OWNER-TODO "a first install on mobile data with" (optional phone check) | fa93e83f0, e600c5dc1, c62c1fa51, 455ced856 | iOS chat 2026-11-15 (R8 bench); first install on Android is the Android chat's area |
+| T760 | First install waits for ever, without a word, on a system download that is paused and never moves (found on the emulator: rows left by cut-short bench runs, adopted after `pm clear`); the bench must clear the downloader; the T756 bench check reads the wrong log line. Next free ticket T761 | IN REVIEW (iPhone half 455ced856: a Wi-Fi-only job held on mobile data is an honest wait; iPhone twin run 3 of 3, lane L6); owner: see ## Owner (optional phone check) | fa93e83f0, e600c5dc1, c62c1fa51, 455ced856 | iOS chat 2026-11-15 (R8 bench); first install on Android is the Android chat's area |
 
 Source: 2026-11-15, the R8 bench (T749). Traced on the emulator, not inferred.
 
@@ -248,4 +248,8 @@ until the end would shorten a session.
   never down); the install ended on the map, all 4 jobs held at the kill claimed as they were, nothing queued again from
   zero, nothing called stuck. The same run is T738's relaunch proof on iOS (the bar never goes down after a reopen) and
   T756's "no running download is thrown away" on iOS.
-- Left: the owner's optional phone check (OWNER-TODO 2026-11-20 12:15, "a first install on mobile data with").
+- Left: the owner's optional phone check (old owner to-do 2026-11-20 12:15, "a first install on mobile data with").
+
+## Owner
+
+- [ ] 2026-11-20 — Optional, on a real iPhone: first install on mobile data, pick "Wait for Wi-Fi", leave it 40 minutes, then turn Wi-Fi on; it should wait quietly and start by itself. Default: ship as built (Android already behaves so).

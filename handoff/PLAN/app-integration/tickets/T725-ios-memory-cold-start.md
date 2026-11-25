@@ -1,10 +1,10 @@
 # T725 — iOS: memory table and cold start re-measured on 0.7.9 (IOS-8)
 
-Status: IN REVIEW — measured on 0.7.9 (68bf25229); lane L6: the memory-warning trim proven on the simulator (83653e704: the warning now reaches the app, `[trim]` 14 databases, 263 → 257 MB); owner: OWNER-TODO "oldest iPhone / iPad" (the oldest supported iPhone)
+Status: IN REVIEW — measured on 0.7.9 (68bf25229); lane L6: the memory-warning trim proven on the simulator (83653e704: the warning now reaches the app, `[trim]` 14 databases, 263 → 257 MB); owner: see ## Owner (the oldest supported iPhone)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T725 | iOS: memory table and cold start re-measured on 0.7.9 (IOS-8) | IN REVIEW (lane L6: the memory-warning trim proven on the simulator, 263 → 257 MB); owner: OWNER-TODO "oldest iPhone / iPad" | 68bf25229, 83653e704 | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-8 in handoff/PLAN/ios/START-HERE-ios.md |
+| T725 | iOS: memory table and cold start re-measured on 0.7.9 (IOS-8) | IN REVIEW (lane L6: the memory-warning trim proven on the simulator, 263 → 257 MB); owner: see ## Owner | 68bf25229, 83653e704 | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-8 in handoff/PLAN/ios/START-HERE-ios.md |
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-8 in
@@ -104,3 +104,7 @@ to 40 MB on the same step.
   The rule book steps failed in the bench (its `scroll-to` did not find the link on this build): no PDF numbers.
 - Left: the verdict on the oldest supported iPhone (owner, decision 2; the simulator says nothing about a phone's
   memory limit).
+
+## Owner
+
+- [ ] 2026-11-14 — The oldest iPhone / iPad the app supports: today's build needs iOS 16.4+, iPhone only. Keep, or widen? Default: keep.

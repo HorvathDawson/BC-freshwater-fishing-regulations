@@ -116,7 +116,7 @@ day) a small changelog: "What's new in <version>" in the update prompt, every ve
 - **Cadence:** each alert has a gap; the DEFAULT (`gapH: null`) is at most one notification per WATER per 24 h across all
   its alerts (`waterFired`, keyed by the durable item id, an unnamed reach by its gauge); or the alert's own gap: 1, 3,
   6, 12 h, 1 day, 2 days. A crossing the cadence holds back is kept PENDING and told at the first check the gap allows
-  if still past (dropped once back inside) — owner to confirm (OWNER-TODO). One alert's switch; an edit keeps when it
+  if still past (dropped once back inside) — owner to confirm (old owner to-do). One alert's switch; an edit keeps when it
   last fired.
 - **Migration:** notify.json is now `v: 2`; a v1 file reads whole (direction → kind, default cadence, on, state kept);
   an alert that cannot be read is reported (`reportOnce`), never dropped quietly.
@@ -194,7 +194,7 @@ v1.1 (same build):
 
 ## Left
 - The phone checks above (needs the batch APK).
-- Owner: review the changelog draft; confirm the cadence readings (OWNER-TODO); production `app/android/play.json`
+- Owner: review the changelog draft; confirm the cadence readings (old owner to-do); production `app/android/play.json`
   (prod R2) once a Play build reads production data.
 - Measure real delays on the owner's phone (the runs log); FCM push only if alerts arrive too late (owner 2026-11-05).
 - Later kinds (not v1): forecast crossings, in-season / DFO changes on followed waters, quiet hours; web push.

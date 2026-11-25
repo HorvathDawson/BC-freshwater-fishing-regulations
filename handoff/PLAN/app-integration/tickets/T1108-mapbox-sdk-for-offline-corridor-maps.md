@@ -48,3 +48,7 @@ The owner has the comparison (cost, terms, app size, privacy, work) and has pick
 
 Severity: feature idea. Release: 0.10, chat 4c (research first). Model: Sonnet for the terms and pricing read, Opus
 for sizing the engine question. Size: S (research). Owner: yes (the pick).
+
+## Owner
+
+- [ ] 2026-11-25 — Pick after the research page compares the Mapbox mobile SDK (free offline corridors, free until 25k users) with the alternatives; mobile would also switch to Mapbox online satellite and drop Esri (the web keeps Esri unless you say otherwise).

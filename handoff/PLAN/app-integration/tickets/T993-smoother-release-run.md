@@ -1,10 +1,10 @@
 # T993 — Document and clean up every release / CI / CD process, so a HUMAN can release by following it
 
-Status: IN PROGRESS (main chat 2026-11-21: owner picked it for this chat; inventory first). Plan item 11 (the one human runbook) written 2026-11-22, IN REVIEW: owner: OWNER-TODO "To read (you): the one release runbook and the gates page"; the other open items are their lanes' (T866, T978, T987, item 17).
+Status: IN PROGRESS (main chat 2026-11-21: owner picked it for this chat; inventory first). Plan item 11 (the one human runbook) written 2026-11-22, IN REVIEW: owner: see ## Owner; the other open items are their lanes' (T866, T978, T987, item 17).
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T993 | Document + clean up every release / CI / CD process so a human can release from one runbook; checks do the remembering (0.8.5 stopped nine times) | IN PROGRESS (plan item 11, the one human runbook `handoff/PLAN/runbooks/release-by-hand.md`, IN REVIEW: owner: OWNER-TODO "To read (you): the one release runbook and the gates page") | T992 | owner 2026-11-21 |
+| T993 | Document + clean up every release / CI / CD process so a human can release from one runbook; checks do the remembering (0.8.5 stopped nine times) | IN PROGRESS (plan item 11, the one human runbook `handoff/PLAN/runbooks/release-by-hand.md`, IN REVIEW: owner: see ## Owner) | T992 | owner 2026-11-21 |
 
 Source: owner 2026-11-21, during the 0.8.5 staging release, verbatim: "we need to have a ticket to make the review
 process smoother we always have so many issues we need to fix...".
@@ -270,3 +270,7 @@ Review of plan item 11 (2026-11-22, second agent): the code pointers to PRODUCTI
 (`site_gate.redeploy_steps` and its test, `deploy/prod/site.sh`, `deploy/prod/drop-v1.sh`); the runbook's Step 2 now
 names the `pieces` stop beside `site` (staging feeds worker before the data); the merge-back commands match what the
 release prints; the gates page gained the staging fingerprint stop, the tag stops and the push gate's someone-else case.
+
+## Owner
+
+- [ ] 2026-11-21 — Pick or drop the eight simplification ideas at the end of `handoff/PLAN/runbooks/release-gates-explained.md`.

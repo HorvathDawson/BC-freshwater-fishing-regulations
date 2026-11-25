@@ -1,10 +1,10 @@
 # T1010 — Website: a region page's "Open the map" opens on that region; the page leads people into the real app
 
-Status: IN REVIEW — owner: OWNER-TODO "T1010 region page option B: look at the after shots". Worker: crashes.ts EXPECTED gains the region names-file 404 — STAGING feeds-worker deploy (Claude, with the next staging release); PRODUCTION feeds-worker deploy is the owner's (his production command list, with the 0.9.0 release)
+Status: IN REVIEW — owner: see ## Owner. Worker: crashes.ts EXPECTED gains the region names-file 404 — STAGING feeds-worker deploy (Claude, with the next staging release); PRODUCTION feeds-worker deploy is the owner's (his production command list, with the 0.9.0 release)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1010 | Website: a region page's "Open the map" opens framed on the region (`?fit=w,s,e,n` start link, box from the release); redesign the page to lead into the app (water search, crawlable links kept below) | IN REVIEW — owner: OWNER-TODO "T1010 region page option B: look at the after shots" | a088c9cd0, 54778147e | option B built (dot picture, button, search); PR open |
+| T1010 | Website: a region page's "Open the map" opens framed on the region (`?fit=w,s,e,n` start link, box from the release); redesign the page to lead into the app (water search, crawlable links kept below) | IN REVIEW — owner: see ## Owner | a088c9cd0, 54778147e | option B built (dot picture, button, search); PR open |
 
 Source: owner 2026-11-22, on https://canifishthis.ca/region/4, verbatim: "if i click open map it doesnt center on region 4
 in the map. also that page should be designed better to lead users to go to the real app/map. it could have a search
@@ -93,3 +93,7 @@ part of building the picked look.
   `regionFind.test.ts` (the shipped script). Shots: `T1010-shots/after-B-*.png`.
 - Measured on Region 4 of r-741815c6090d (2823 waters): the picture is 26.8 KB raw, 7.8 KB gzip; the page 45 KB raw, 11.5 KB gzip; the names file
   (fetched only when someone searches) 124 KB raw, 23 KB gzip. Not run: Lighthouse (not run from the lane), the staging check.
+
+## Owner
+
+- [ ] 2026-11-22 — Look at the region page's option B (`handoff/PLAN/app-integration/T1010-shots/after-B-*.png`, phone and desktop, light and dark) and say if the look is right (A, B or C; A was recommended).

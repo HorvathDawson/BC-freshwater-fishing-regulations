@@ -45,3 +45,7 @@ start measured with the monitor on is not slower than with it off (bench). Sever
 says something the app does not do until this ships). Release: 0.10.1, by the owner's word, though that release is
 otherwise "no features": it is the one exception. Model: Opus (privacy-sensitive payload, worker and native start
 path). Size: M. Owner: yes (the design picks; the Data safety clicks).
+
+## Owner
+
+- [ ] 2026-11-25 — Picks on the one-page design: what is measured, a switch or not, linked to an install or not; and the Play Data safety clicks. Until it ships the App Store label is one data type ahead of the app.

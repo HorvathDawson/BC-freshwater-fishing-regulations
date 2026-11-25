@@ -1,6 +1,6 @@
 # T240 — production launch checklist (one list, in order)
 
-Status: OPEN — production went live 2026-11-18/19 (OWNER-TODO record 2026-11-18 22:13: data worker bc-fishing-r2, backup bucket bc-fishing-regulations-backup, feeds worker on feeds.canifishthis.ca, website; STATUS 2026-11-19: data r-6258ffded676 and website 0.8.3 on production). Done since (OWNER-TODO 2026-11-18 ~22:58 and ~23:05): the owner's Cloudflare steps, and the switch (bc-fishing-cron schedules removed, main's three update workflows gone, deploy/prod/drop-v1.sh run: T865). The STATE table below (2026-11-11) predates that and is not re-checked. Left: the GitHub production option + PROD_R2 secrets for feeds-hydat / feeds-runtiming and the prod run-timing publish (T404); the branch structure the owner asked for 2026-11-18 ~23:05 (main / staging / feature branches, the working branch protected like main; no ticket of its own yet). The prod runbook is handoff/PLAN/release/PRODUCTION.md.
+Status: OPEN — production went live 2026-11-18/19 (old owner to-do record 2026-11-18 22:13: data worker bc-fishing-r2, backup bucket bc-fishing-regulations-backup, feeds worker on feeds.canifishthis.ca, website; STATUS 2026-11-19: data r-6258ffded676 and website 0.8.3 on production). Done since (old owner to-do 2026-11-18 ~22:58 and ~23:05): the owner's Cloudflare steps, and the switch (bc-fishing-cron schedules removed, main's three update workflows gone, deploy/prod/drop-v1.sh run: T865). The STATE table below (2026-11-11) predates that and is not re-checked. Left: the GitHub production option + PROD_R2 secrets for feeds-hydat / feeds-runtiming and the prod run-timing publish (T404); the branch structure the owner asked for 2026-11-18 ~23:05 (main / staging / feature branches, the working branch protected like main; no ticket of its own yet). The prod runbook is handoff/PLAN/release/PRODUCTION.md.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
@@ -8,7 +8,7 @@ Status: OPEN — production went live 2026-11-18/19 (OWNER-TODO record 2026-11-1
 
 Source: owner 2026-10-28 — approved proposal P6 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 Pulls together what T86 (hosting), T198 (SEO redirects / Search Console), T225 (feeds), T232 (environments),
-handoff/PLAN/seo/staging.md "Findings (owner / prod)" and OWNER-TODO.md say prod needs. Staging is the rehearsal:
+handoff/PLAN/seo/staging.md "Findings (owner / prod)" and the old owner to-do page say prod needs. Staging is the rehearsal:
 everything below was done or measured on staging.canifishthis.ca / data-staging.canifishthis.ca first.
 
 ★ = owner only (credentials, billing, DNS, accounts). Everything else Claude can prepare (configs, scripts, a dry run
@@ -42,7 +42,7 @@ Prod pieces built (all in git, none run on production): `deploy/prod/upload.sh` 
 | 4 | Retire the old prod jobs (`bc-fishing-cron` worker; `main`'s `update-hydro.yml`, `update-in-season.yml`, `update-stocking.yml`) | OPEN, changed: done the SAME DAY as the switch, no 30-day wait (owner 2026-11-08, PRODUCTION.md step 11). The workflows still exist on `main`; `cron-runner/` is on `main` (not `archive/cron-runner/`, and not on this branch) | H |
 | 4 | Delete the v1 R2 layout (`stations.json`, `gauges.geojson`, `recent/`, `history/`, `climatology/`) | OPEN, changed: same day, not after 30 days (Q174) | H |
 | 5 | Prod site wrangler + script | DONE 21a2d17ff, 124f5257c: `deploy/prod/site.wrangler.toml`, `site.sh`; deploy is open | H |
-| 5 | `.com` / `www` hosts 301 to `https://canifishthis.ca` keeping path + query, HSTS | changed: a generated host worker (`deploy/prod/host.wrangler.toml`, 21a2d17ff; or a Cloudflare dynamic redirect rule, PRODUCTION.md step 7). Open, and the www rule dropped the path when OWNER-TODO last observed it (NOT re-checked today: `curl -sI https://www.canifishthis.ca/water/vedder-river`) | H |
+| 5 | `.com` / `www` hosts 301 to `https://canifishthis.ca` keeping path + query, HSTS | changed: a generated host worker (`deploy/prod/host.wrangler.toml`, 21a2d17ff; or a Cloudflare dynamic redirect rule, PRODUCTION.md step 7). Open, and the www rule dropped the path when old owner to-do last observed it (NOT re-checked today: `curl -sI https://www.canifishthis.ca/water/vedder-river`) | H |
 | 5 | Trailing slash 301; v1 `/waterbody/*` 301s; favicon | DONE in the site worker (`run_worker_first` in `site.wrangler.toml`), proven on staging (21a2d17ff); re-check the legacy 301 on prod | C staging / H prod |
 | 6 | Search Console Domain property (TXT) + Bing import; submit `/sitemap.xml` | OPEN (PRODUCTION.md step 10) | H |
 | 6 | Prod sends no `X-Robots-Tag` | DONE as a check: `smoke-staging.mjs --production` fails on it; prod run open | H |
@@ -71,7 +71,7 @@ Prod pieces built (all in git, none run on production): `deploy/prod/upload.sh` 
 | Feeds worker audit fixes (rate limits on IPv6 /64, in-season URL pinned, no rank without the envelope, caps) go to staging first | T609 (PARTIAL), T558 (PARTIAL) | NOT VERIFIED which are deployed to staging; check `wrangler deployments list -c app/workers/feeds/wrangler.toml` against the ticket's commit list | C staging |
 | Shared links open the installed app: the site must serve `/.well-known/assetlinks.json` on `canifishthis.ca` (Play app signing SHA-256 is in `@app/core` share.ts) and the APK carries the intent filter | T625 (PARTIAL, built 11-11) | OPEN: prod site deploy + a Play install to verify; a side-loaded staging APK cannot verify. Emulator proof (`adb shell pm get-app-links ca.canifishthis.app`) needs a Play-signed or locally re-signed build | C staging / H (Play install) |
 | Share page "Open in the app" points at the Play listing | T514 (PARTIAL): set `OPEN_IN_APP_URL` in `app/packages/core/src/share.ts` once the listing is public (default null = web app + greyed "coming soon") | OPEN, waits for the public listing | H (listing) then C (the one value) |
-| Play Console: Closed track, tester list (12 testers, 14 days), app-content forms (privacy URL, data safety, audience, ads none, content rating), requirements written down | T371 (IN PROGRESS); drafts `handoff/PLAN/play/*.md` done | OPEN, owner's Console steps (OWNER-TODO "T371") | H |
+| Play Console: Closed track, tester list (12 testers, 14 days), app-content forms (privacy URL, data safety, audience, ads none, content rating), requirements written down | T371 (IN PROGRESS); drafts `handoff/PLAN/play/*.md` done | OPEN, owner's Console steps (old owner to-do "T371") | H |
 | Store screenshots, shot list + titles | T319 (OPEN, back in 11-11) | generator built, waits on the owner's shot list | H list / C generate |
 | In-app update prompt so testers get fixes | T390 (PARTIAL, code merged) | left: emulator/phone checks with the next APK | C emulator |
 | First real `python -m pipeline release --staging` run (build, checks, promote, staging upload + smoke) is the proof of the release path that `--prod` reuses; then `release --prod <r-id>` | T666 (IN PROGRESS), PRODUCTION.md | staging run open; prod run | C staging / H prod |
@@ -131,7 +131,7 @@ T463 ultra review; the prod APK build; T88 Apple.
 - [ ] ★ Delete or disable `main`'s `.github/workflows/update-hydro.yml`, `update-in-season.yml`, `update-stocking.yml`
       (stocking moves to T200; the in-season "unmatched → issue" duty is now the feeds worker's email).
 - [ ] Leave the OLD R2 layout (`stations.json`, `gauges.geojson`, `recent/`, `history/`, `climatology/`) for 30 days for
-      old app installs, then delete (a dated reminder in OWNER-TODO).
+      old app installs, then delete (a dated reminder in old owner to-do).
 
 ## 5. Site + DNS + redirects (T198)
 - [x] Prod site wrangler (2026-11-05, 21a2d17ff): `deploy/prod/site.wrangler.toml` + `deploy/prod/site.sh` (owner runs with
@@ -158,7 +158,7 @@ T463 ultra review; the prod APK build; T88 Apple.
 
 ## 8. App config — production values (T232)
 - [ ] `eas.json` `production` profile: `EXPO_PUBLIC_APP_ENV=production` (set), plus `EXPO_PUBLIC_APP_BUILD`
-      (version + build number), `EXPO_PUBLIC_CONTACT=support@canifishthis.ca` (owner 2026-10-29; set in eas.json's three profiles, `build-apk.sh`, the `export:web` scripts; the mailbox must exist: OWNER-TODO).
+      (version + build number), `EXPO_PUBLIC_CONTACT=support@canifishthis.ca` (owner 2026-10-29; set in eas.json's three profiles, `build-apk.sh`, the `export:web` scripts; the mailbox must exist: old owner to-do).
 - [ ] Optional `EXPO_PUBLIC_ARCGIS_API_KEY` stays unset (owner 2026-10-21: no key).
 - [ ] Web prod export points at the prod data origin (`export:web` with `EXPO_PUBLIC_APP_ENV=production`).
 - [ ] The About page shows no environment badge on a production build reading production (T232 `aboutEnvVM`).

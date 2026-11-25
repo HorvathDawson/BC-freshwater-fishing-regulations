@@ -51,7 +51,7 @@ same for both no mentiuon needed)". Rule for the table: same rule for both origi
 hatchery = one row per fish saying "hatchery only", no wild row under Release; wild shown apart only when wild fish
 have a quota of their own. The spec's row model (one row per fish and origin) changes accordingly.
 
-## The accepted design, as one list (owner, 2026-11-16, rounds 10 to 14; his words are in OWNER-TODO.md)
+## The accepted design, as one list (owner, 2026-11-16, rounds 10 to 14; his words are in the old owner to-do page)
 1. Look: the round 8 tinted keep box with white rows and white boxes for tighter limits; NO outline or frame line.
 2. Text: the rule in force today is the bigger, bold text; the coming change is smaller and quieter on its own line
    underneath. Row spacing between rounds 8 and 9.
@@ -193,12 +193,12 @@ not count towards the regions 2? That seems wrong". Kaslo and Keen: B (count tow
 built is right; the shipped card's "Not part of the 2 from streams" line there is wrong and goes at the cutover).
 Follow-up asked: does T3a (Lardeau, Duncan lift) stand.
 
-## 2026-11-17 ~15:41: G2 answered by the owner (OWNER-TODO 15:34 and 15:41, verbatim there)
+## 2026-11-17 ~15:41: G2 answered by the owner (old owner to-do 15:34 and 15:41, verbatim there)
 Q1 what you keep here; Q2 "between/among them" (box number: "up to the N"); Q3a "only 1 over 50 cm"; Q3b once in the top line + Tagish lake trout "release 60-90 cm" form (exact book bounds); Q4 own line "In your possession"; Q5 gone (T834); Q6 "any size" once in the top line; Q7 the water's own kind, else "this water"; Q8 reopens once, steelhead "closed all year"; Q9 group the wild rows with clearer words than "only 2 of these 4", wild vs hatchery more obvious (FOLLOW-UP MOCKUP OWED), Dodd lake into the hard cases; Q10 box + one quiet line. Bugs to fix: Echoes double "both lakes together"; Fraser R3 closed table year bar. Pictures: scratchpad t810-g2/.
 
-2026-11-17 ~15:46, owner: rows with no limit of their own say "any of the 5" (not "up to the 5"); applies to G2 Q2 and Q9 too. Verbatim in OWNER-TODO 15:46.
+2026-11-17 ~15:46, owner: rows with no limit of their own say "any of the 5" (not "up to the 5"); applies to G2 Q2 and Q9 too. Verbatim in old owner to-do 15:46.
 
-2026-11-17 ~15:50, owner Q9: option 1, badges + "only 2 wild in all" (hatchery rows first, then wild rows grouped; filled HATCHERY / outlined WILD badge, a look change in O). OWNER-TODO 15:50.
+2026-11-17 ~15:50, owner Q9: option 1, badges + "only 2 wild in all" (hatchery rows first, then wild rows grouped; filled HATCHERY / outlined WILD badge, a look change in O). old owner to-do 15:50.
 ## 2026-11-17 14:10: M0 + M built (app chat, branch app/t810-m0-m)
 - M0: `OPTIONAL_VERSIONS = Object.freeze({ trout: 1 } as const)` in `core/src/regs/versions.ts`, in I0's line shape,
   with the bump rule beside it. `openRegsStore` walks it. An absent section is fine. A section at another version is
@@ -496,7 +496,7 @@ unpacks a rows frame as exactly five slots, so a rows-34 frame (six) breaks the 
   the River-rule section. Live: J 0 on 5,950 tables; card gate 0 on 9,251 groups.
 
 ## 2026-11-17 21:33: owner signs off the picture pack (R), with one wording change
-Verbatim in OWNER-TODO 21:33. (1) Rows with no limit of their own say "counts toward the 2" (replacing "any of the 2",
+Verbatim in old owner to-do 21:33. (1) Rows with no limit of their own say "counts toward the 2" (replacing "any of the 2",
 the 15:46 wording): Python's words (G2 builder, main chat); the app re-cuts the a11y golden and vectors after. (2) The
 table is signed off for the cutover, "also make sure to do the source table and the species row expansion when you
 click on one with the sources for that entry plus identification": P's fish sheet (`tf:<row key>`: "Here, today", "How
@@ -504,7 +504,7 @@ to tell it", the row's own Sources) and "Sources ›" (`table.src`) must be in t
 the sheet pictures before switching. R built on app/t810-r bb403c97f (selectors match old card or table; scenario
 `trout-table` written, run owed on the heavy lane with the side release on staging test/).
 
-## 2026-11-17 23:29: owner on the cutover look (verbatim in OWNER-TODO 23:29)
+## 2026-11-17 23:29: owner on the cutover look (verbatim in old owner to-do 23:29)
 The app's gates had cut the top line to 17 px and removed the fish tile (cutover a107d81cd); the owner keeps both as he
 signed off: "Keep it big, 23 px (Recommended)", "Keep the tile (Recommended)" — applied as named gate allowances
 (branch app/t810-cutover-keep-look 8ecf8d9ac: SIZE_ALLOW "trout-top"; census ALLOW "picture" for keep-tile and
@@ -512,7 +512,7 @@ keep-tile-more). The pin bar has nothing to pin after the switch: "Remove it (Re
 PinBar, the regs:rule CoachSpots). `elsewhere` on a table covering several keep rows: "Yes, name the fish
 (Recommended)" — each line starts with its fish where a table has more than one such line; Python writes the words (L).
 
-## 2026-11-18 00:35: owner on the simplify examples (verbatim in OWNER-TODO 00:35)
+## 2026-11-18 00:35: owner on the simplify examples (verbatim in old owner to-do 00:35)
 Pictures: 6 before/after (main chat's owner-examples.md; real web export, afters edited in the DOM). R4 cutthroat +
 rainbow: one band "counts toward the 2 · only 1 over 50 cm (20 in) between them" (yes). Bowron park creeks: one box line
 "In your possession: just 1, the same as the day" (yes). NOT approved: dropping the DV/LT "only 1, counting any …" lines
@@ -521,7 +521,7 @@ rainbow: one band "counts toward the 2 · only 1 over 50 cm (20 in) between them
 species drawn as one species group with one combined count; HATCHERY and WILD badges in the same spot (app); "only 4
 wild" goes (confirm on the next pictures). Next pictures from the app chat.
 
-## 2026-11-18 00:52: owner on round 2 (verbatim in OWNER-TODO 00:52)
+## 2026-11-18 00:52: owner on round 2 (verbatim in old owner to-do 00:52)
 Approved: the shared two-row box "counts toward the 2 · only 1 between them" (Fraser); 3+ row box words A "K total from
 these M" (was "only K of these M"); Group A for hatchery + wild of one fish (one row, one count). Owed, with pictures
 from the app chat: groups drawn as sub-groups of the grey card (words in the grey, white rows inside; no empty white
@@ -529,28 +529,28 @@ band cells; no group splitting another; ungrouped rows first); the Vedder hatche
 rule; "uses the 1 over 50 cm" dropped (the strip says it); a date shared by every row said once; lighter HATCHERY/WILD
 tags.
 
-## 2026-11-18 01:07: owner on round 3 (verbatim in OWNER-TODO)
+## 2026-11-18 01:07: owner on round 3 (verbatim in old owner to-do)
 Neither group look: keep the table's form (count on the right on every row, fish on the left) with a white box spanning
 all of a group's rows (round 2's look), ungrouped rows first, inner group last inside its outer one; rainbow above
 steelhead unless a water's own rainbow rule. Vedder's "River rule" apart doubted and the hatchery rainbow's "counts
 toward the 4" reads oddly: options owed. Hatchery/wild tags: neither; options owed. Chilliwack brook trout: the main
 chat's C2 change (owner) gives wild brook trout "50 cm or less" at the six lakes; wild lake trout release-only there.
 
-## 2026-11-18 01:22: owner on round 4 (verbatim in OWNER-TODO)
+## 2026-11-18 01:22: owner on round 4 (verbatim in old owner to-do)
 APPROVED everywhere: the count-column rules (R1 "counts toward the N"; R2 "counts toward the N · only k"; R3 one white
 box spanning its rows, "counts toward the N · only k between them" for 2 rows, "k total from these m" for 3+; R4 nested
 "only 1 between them"; R5 "uses the 1 over 50 cm" and "only 1, counting any …" gone, the result stated once); "any size"
 off the box head; ungrouped rows first, inner groups last; hatchery + wild as one row "50 cm (20 in) or less if wild"
 (no tags). Vedder: lead with 2 ("only one is an exception"): top line form owed, picture next.
 
-## 2026-11-18 01:28: owner on Vedder and three look questions (verbatim in OWNER-TODO)
+## 2026-11-18 01:28: owner on Vedder and three look questions (verbatim in old owner to-do)
 Vedder: "Keep 2 trout and char today" + subline "or 4 if they're hatchery rainbow trout 50 cm (20 in) or less", the
 rainbow row LAST (V2). Char HATCHERY ONLY: leave as is. "in your possession": keep. Madden's DV clause: he asks if it can
 go (it is 2, as is the general limit); the main chat to answer whether the DV 2 sits outside the general 2.
-2026-11-18 01:29, owner: sweep every region for implied groups like Region 2's DV/LT (verbatim in OWNER-TODO); sent to
+2026-11-18 01:29, owner: sweep every region for implied groups like Region 2's DV/LT (verbatim in old owner to-do); sent to
 the main chat's analyst on the live model.
 2026-11-18 01:42, owner: "uses your 1 over 50 cm" dropped everywhere, including the 1,387 tables where another fish in
-the box can pass 50 cm ("A: drop it everywhere"; verbatim in OWNER-TODO). All-regions sweep (L e88cb9991): the rest fit
+the box can pass 50 cm ("A: drop it everywhere"; verbatim in old owner to-do). All-regions sweep (L e88cb9991): the rest fit
 the approved rules and go into L.
 
 ## 2026-11-18 06:27: the cutover landed (e0434e1b8, CI green)

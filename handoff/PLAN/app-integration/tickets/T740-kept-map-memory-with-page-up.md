@@ -37,4 +37,8 @@ Measured only after T717, no before/after pair: 354-411 MB with a page up over 1
   here with the owner's call.
 - `back-flash` still 0 flash frames.
 
-2026-11-17 ~15:11, owner: see OWNER-TODO 15:11 (verbatim there).
+2026-11-17 ~15:11, owner: see old owner to-do 15:11 (verbatim there).
+
+## Owner
+
+- [x] 2026-11-17 — Kept-map memory: when? → "After 0.8.0 (Recommended)" (2026-11-17).

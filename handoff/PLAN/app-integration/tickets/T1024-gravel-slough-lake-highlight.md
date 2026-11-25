@@ -1,10 +1,10 @@
 # T1024 — "Weird highlighting on the lake" (Gravel Slough)
 
-Status: IN REVIEW — fixed in 6704a3504 + d298683a7 + 50b018058 (lane L29, in the 0.9.0 tile build) + 3781d22a5, ff79377f1, da40871a5 (stub outline, lane L10 0.9.1: needs the 0.9.1 tile build); owner: OWNER-TODO "T1024 Gravel Slough highlight: look at the before/after shots" (+ `T1024-shots/stub-oxbows-*.png`)
+Status: IN REVIEW — fixed in 6704a3504 + d298683a7 + 50b018058 (lane L29, in the 0.9.0 tile build) + 3781d22a5, ff79377f1, da40871a5 (stub outline, lane L10 0.9.1: needs the 0.9.1 tile build); owner: see ## Owner (+ `T1024-shots/stub-oxbows-*.png`)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1024 | Staging report: "weird highlighting on the lake" at Gravel Slough | IN REVIEW — owner: OWNER-TODO "T1024 Gravel Slough highlight: look at the before/after shots" (+ stub-oxbows shots) | 6704a3504, d298683a7, 50b018058, 3781d22a5, ff79377f1, da40871a5 | ring a stream polygon only below its line's zoom (`lz`, 0.9.0); a stub inside its polygon carries `pz` and is not cased inside the ring (249): needs the 0.9.1 tile build |
+| T1024 | Staging report: "weird highlighting on the lake" at Gravel Slough | IN REVIEW — owner: see ## Owner (+ stub-oxbows shots) | 6704a3504, d298683a7, 50b018058, 3781d22a5, ff79377f1, da40871a5 | ring a stream polygon only below its line's zoom (`lz`, 0.9.0); a stub inside its polygon carries `pz` and is not cased inside the ring (249): needs the 0.9.1 tile build |
 
 Source: STAGING report `3444007425e9d3bd`, 2026-11-23 05:32Z, Android 0.8.5 (staging build), water · map, Gravel Slough
 (`gnis:8009`) part 0, zoom 14.3 at 49.202, -121.904. Verbatim: "Weird highlighting on the lake here".
@@ -107,3 +107,7 @@ archive.
 this branch.
 
 Depends: none. Size: S. Owner: look at the shots.
+
+## Owner
+
+- [ ] 2026-11-23 — Look at the Gravel Slough highlight (`handoff/PLAN/app-integration/T1024-shots/gravel-before-after.png`, `oxbows-before-after.png`, `gun-before-after.png`, and the `stub-*` pair) and say if it reads right: a drawn slough's line is outlined alone, no ring round each polygon piece; an undrawn one keeps its ring.

@@ -1,10 +1,10 @@
 # T1052 — A water closed to all fishing says it twice (a Salmon row and a game-fish "Closed all year" block)
 
-Status: IN REVIEW — owner: OWNER-TODO "T1052 fully closed water: one statement" (the row-line words are a proposal; part-year case). Code 33ecb6b96 5e2ca0048 (lane L22); ships with the next app build, no data release.
+Status: IN REVIEW — owner: see ## Owner (the row-line words are a proposal; part-year case). Code 33ecb6b96 5e2ca0048 (lane L22); ships with the next app build, no data release.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1052 | A water closed to all fishing says it twice (a Salmon row and a game-fish "Closed all year" block; Nelson Creek) | IN REVIEW — owner: OWNER-TODO "T1052 fully closed water: one statement" | 33ecb6b96 5e2ca0048 | owner picked A 11-24 12:33; 936 waters merged; line words (A or B pictured) + part-year case are owner questions; lane L22 |
+| T1052 | A water closed to all fishing says it twice (a Salmon row and a game-fish "Closed all year" block; Nelson Creek) | IN REVIEW — owner: see ## Owner | 33ecb6b96 5e2ca0048 | owner picked A 11-24 12:33; 936 waters merged; line words (A or B pictured) + part-year case are owner questions; lane L22 |
 
 Source: in-app report `19a865256d6dd70d` (staging feeds worker, the owner, 2026-11-24 18:47 UTC), reason "other", on
 Nelson Creek `gnis:20408`, part 0, "Today, Nov 24", Regulations view, web, app 0.9.0 (build 43, 127bf43), release
@@ -129,3 +129,8 @@ to all fishing until Apr 30, salmon included" (proposal).
 Left (Claude): a brief two-statement frame when stepping a part or a day (the page draws before the day's salmon card
 lands, then merges). Not fixed here: a fix would hold the closed banner until the card is in, which touches the T1049
 "coming" wait; a follow-up for the planning chat.
+
+## Owner
+
+- [ ] 2026-11-24 — Check the line under the closed-water headline as built (A: quote the river's row; `handoff/PLAN/app-integration/T1052-shots/nelson-after-*.png`, `wordings-A-light.png`) and keep it or take B (a tributary says "Inherited from Brunette River: its row covers its tributaries.", `wordings-B-light.png`).
+- [x] 2026-11-24 — Fully closed water, one statement → "One block, both calendars (Recommended)"; second line → "A: quote the river's row"; the 130 waters closed for part of the year → "Yes, merge those too" (2026-11-24; the last is a follow-up PR, pictures first).

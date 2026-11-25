@@ -1,6 +1,6 @@
 # T940 — Satellite: one colour set for all water lines, the same in light and dark
 
-Status: IN REVIEW — owner: OWNER-TODO "Look (you): T940 satellite after-shots" (row to add; emulator shot waits for the 0.9.0 APK); owner approved the set 2026-11-22; built (code 7a9213671, PR open); after-shots in T940-shots/. Not released: needs the 0.9.0 app build.
+Status: IN REVIEW — owner: see ## Owner (row to add; emulator shot waits for the 0.9.0 APK); owner approved the set 2026-11-22; built (code 7a9213671, PR open); after-shots in T940-shots/. Not released: needs the 0.9.0 app build.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
@@ -76,3 +76,7 @@ Verbatim pick: "Build as proposed (Recommended)".
 ## Built (2026-11-23, lane L17): the cvd satellite set
 The six `color.imagery.status.*` tokens are themeable: light and dark keep the approved set, cvd has its own (#FEFF3A #6FABFA #EA90A1 #98AA08 #21AAF5 #DAFFFF for open, restricted, closed, own, base, no access). Same single painter and `IMAGERY_WATER_LAYERS`; the key's swatches follow (outline where under 3:1).
 New gate `tools/satellite-colours.test.ts`: (1) every colour of every theme reaches 3:1 on the satellite grounds (`color.ui.imagery.water`, `.forest`), with the ONE recorded exception: the approved light and dark closed (#FF3B6D) on the forest swatch is 2.26:1 (`UNDER`, may not slip; cvd has none); (2) under cvd every pair a view draws together is at least 20 apart for the worst reader (Viénot and Machado); the never-together pairs are recorded whole: open/base and restricted/base (Salmon-only colours against a Standard-only one). Mutations: own #B8C432 fails the separation test, closed #7A2030 fails the visibility test. After-shots: `T940-shots/cvd-after-standard.png`, `cvd-after-salmon.png`.
+
+## Owner
+
+- [ ] 2026-11-22 — Look at the satellite after-shots (`handoff/PLAN/app-integration/T940-shots/after-*`) and approve the one line-colour set (`T940-shots/proposal-vs-now.png`; the ticket recommends one).

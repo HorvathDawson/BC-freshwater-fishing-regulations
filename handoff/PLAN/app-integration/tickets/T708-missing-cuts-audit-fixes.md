@@ -1,10 +1,10 @@
 # T708 — Missing-cuts audit fixes: Pitt "at Grant Narrows", Ruby Creek, Gagnon signs, Deena/Mamin bridges, Tlell note, end names, unmatched lakes
 
-Status: PARTIAL (874bbd00a, 8937f6b73, d109408fd, 8a1ce30f1: all built and released, wording a-c in r-f749475d0962; owner: OWNER-TODO "T89 six waters" for Frog/Redfern/Squirrel).
+Status: PARTIAL (874bbd00a, 8937f6b73, d109408fd, 8a1ce30f1: all built and released, wording a-c in r-f749475d0962; owner: see ## Owner for Frog/Redfern/Squirrel).
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T708 | Missing-cuts audit fixes (before closed testing): Pitt r2 "at Grant Narrows" label, Ruby Creek r1 between, Gagnon signs 200 m above the unnamed lake, Deena/Mamin cuts onto bridges, Kootenay dolphin re-anchor, 3 unmatched lakes matched; McArthur / Lakelse / Tlell wording | PARTIAL | 874bbd00a, 8937f6b73, d109408fd, 8a1ce30f1 | all built and released (r-a9914d6b25b7; the owner's wording answers a-c in r-f749475d0962); owner: OWNER-TODO "T89 six waters" (Frog/Redfern/Squirrel stay unplaced) |
+| T708 | Missing-cuts audit fixes (before closed testing): Pitt r2 "at Grant Narrows" label, Ruby Creek r1 between, Gagnon signs 200 m above the unnamed lake, Deena/Mamin cuts onto bridges, Kootenay dolphin re-anchor, 3 unmatched lakes matched; McArthur / Lakelse / Tlell wording | PARTIAL | 874bbd00a, 8937f6b73, d109408fd, 8a1ce30f1 | all built and released (r-a9914d6b25b7; the owner's wording answers a-c in r-f749475d0962); owner: see ## Owner (Frog/Redfern/Squirrel stay unplaced) |
 
 Source: `handoff/PLAN/research/missing-cuts-audit.md` (2026-11-13, release r-adc4e248a163) and the owner's answers
 the same day; follow-up research 2026-11-13 (this ticket, read-only, no data changed). Before closed testing.
@@ -330,3 +330,8 @@ below Williston)" — needs another atlas build.
   Park") and (c) Tlell r5 `includes_tributaries: false` (-13 sections, unresolved `tidal`): corpus edits + T89/T100 pins
   in `T691-files/apply-with-promote.patch` (apply at the promote; they fail against the live release before it).
 - Kootenay "(km 123)" nit: d109408fd (a lake edge and a cut at one place need no km).
+
+## Owner
+
+- [ ] 2026-11-13 — Frog (5-6), Redfern (5-15) and Squirrel (6-1) lakes are still unmatched; you said "will look harder for frog and redfern later" (evidence in Work 8).
+- [x] 2026-11-13 — Hidden, Secret and Square (= Whitton) Lake → "add the 3 high confidence lakes" (2026-11-13).

@@ -91,7 +91,11 @@ the honest check (the emulator cannot judge placeholder richness).
 build without the lean AAR (`android-sdk-vulkan-13.6.1-fslean.aar`, present); the binding patch
 (`app/patches/@maplibre__maplibre-react-native@11.5.0.patch`) has `maxPixelRatio` + `prefetchZoomDelta`; `Map.native.tsx`
 passes the cap 2 (lab default `pixelCap: true`) and prefetch −1 / lab 4 (MapLibre's default). Left: the owner's phone check
-(OWNER-TODO "Phone check with build 22").
+(old owner to-do "Phone check with build 22").
 
 ## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
-owner 2026-11-04 (0.5.0 phone); 11-06 stressed emulator: frames missing tiles while moving 22.6→17.6 % (z13 travelling), 26.4→16.1 % (circling) after the T420 tile-event fix deb635819; not gone — prefetch-delta patch next if the owner still sees it; option 2 (29b1e561b): binding `prefetchZoomDelta` prop, deltas 2/3 vs 4 within run-to-run noise (3 runs each) → default kept; left: owner phone A/B (OWNER-TODO build 22), option 3; 11-08 build 22 command checked: lean SDK + prefetch default
+owner 2026-11-04 (0.5.0 phone); 11-06 stressed emulator: frames missing tiles while moving 22.6→17.6 % (z13 travelling), 26.4→16.1 % (circling) after the T420 tile-event fix deb635819; not gone — prefetch-delta patch next if the owner still sees it; option 2 (29b1e561b): binding `prefetchZoomDelta` prop, deltas 2/3 vs 4 within run-to-run noise (3 runs each) → default kept; left: owner phone A/B (old owner to-do build 22), option 3; 11-08 build 22 command checked: lean SDK + prefetch default
+
+## Owner
+
+- [ ] 2026-11-08 — Phone A/B of the pan-edge pop-in, option 3 (the run-to-run noise showed no win, so the default is kept; see Work): say if you want option 3 on your phone.

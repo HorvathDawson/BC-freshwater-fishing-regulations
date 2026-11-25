@@ -47,3 +47,7 @@ fail when the layer is emptied (mutation).
 
 Depends: T280. Severity: feature. Release: 0.10 at the earliest (owner). Model: Opus for the source and prune stage,
 Sonnet for the style, legend and pictures. Size: M. Owner: yes (the three questions above, with pictures).
+
+## Owner
+
+- [ ] 2026-11-25 — After the page with counts and pictures: three picks for boat launches, docks and the like on the basemap (what "etc" covers, the look, whether a tap does anything).

@@ -20,7 +20,7 @@ lakes the rule closes are 97 to 100 % inside; all 77 lakes closed by the nationa
 - A build check: a `within` closure that holds a lake less than (say) 50 % inside the area is listed for a decision.
 - Westwick and Priest lakes: the owner's call (open with a part-closed caveat, or closed).
 
-## Owner, 2026-11-16 (question dialog; verbatim in `handoff/PLAN/OWNER-TODO.md`, "Answers by batch")
+## Owner, 2026-11-16 (question dialog; verbatim in `handoff/PLAN/the old owner to-do page`, "Answers by batch")
 Go-ahead card: "Go on all (Recommended)" for the four barely-touched waters. Question 34 (Westwick Lakes, Priest Lake): "Both open with the note".
 
 ## Lane result (2026-11-16, branch `lane/book-rule-fixes-1116`, commit 07db8a6a8)

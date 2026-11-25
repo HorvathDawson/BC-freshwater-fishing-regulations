@@ -104,7 +104,7 @@ Release **r-46be3c135e68** (LATEST; tiles db853e9556df81a6.16b3906b04bf, basemap
 - Lighthouse mobile: hubs/About 100/100, LCP 1.3-1.4 s, CLS 0 (Cloudflare's injected script no longer shows); water
   pages Performance 40-45, CLS 0.15-0.72 at the app's hand-over → T405.
 - Production today (curl 2026-11-05): canifishthis.com + www.canifishthis.com already 301 to https://canifishthis.ca with
-  path + query (an owner redirect rule); **www.canifishthis.ca 301s to `/` and drops the path** (fix: OWNER-TODO);
+  path + query (an owner redirect rule); **www.canifishthis.ca 301s to `/` and drops the path** (fix: an owner step);
   http → https 301; no HSTS yet (v1 site).
 
 ## Phase D (2026-11-05 UTC): T405 hand-over + T406 PNG cards on staging

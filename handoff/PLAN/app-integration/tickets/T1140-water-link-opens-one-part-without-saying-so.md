@@ -115,3 +115,8 @@ waters, unknown until step 1). Release: a patch right after 0.10.0 is on product
 pictures (step 2) can start now beside the release, in a lane that builds nothing in the main checkout. The web
 ships by the site deploy alone; the phone apps follow in the same patch's builds. Model: Opus (page model and
 load paths), Sonnet for the pictures and the search page. Size: M. Owner: yes (picks A, B or C from pictures).
+
+## Owner
+
+- [ ] 2026-11-25 — Say yes to the label's words ("Part N of M", "other parts have different rules") from pictures; web first, right after the repo move.
+- [x] 2026-11-25 — Where a multi-part water's link lands → "A: Map with the parts"; move now → "Yes, move now, re-cut 0.10.0 after"; "web first right after repo move and make repo move happen asdap" (2026-11-25 15:14).

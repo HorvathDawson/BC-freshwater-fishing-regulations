@@ -73,7 +73,7 @@ R2's free tier is 10 GB. After every promote, `deploy/prod/upload.sh` runs `pipe
   A folder no pointer names but that went up under 24 h ago (server time) is kept, and said: a web tab opened on a
   release promoted earlier the same day still reads its files. It prints each key once deleted and the bytes freed
   (a delete that stops part way says how many went); `--dry-run` prints the plan as the pointer step would leave it.
-- **v1**: not automatic; `deploy/prod/drop-v1.sh` (done 2026-11-18: 20,019 objects, 8.57 GB, OWNER-TODO).
+- **v1**: not automatic; `deploy/prod/drop-v1.sh` (done 2026-11-18: 20,019 objects, 8.57 GB, owner-run).
 - Every `deploy/prod` script compares `--bucket` bare (`deploy/lib/bucket.sh`): `bc-fishing-regulations/` or
   `r2:bc-fishing-regulations` still needs `CONFIRM_PROD`.
 `runtiming/` is not pruned: its own publisher's content-named files (a few MB a refresh, `pipeline/runtiming/feed/publish.py`).

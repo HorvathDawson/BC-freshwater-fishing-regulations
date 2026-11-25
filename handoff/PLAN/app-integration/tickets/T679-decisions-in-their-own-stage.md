@@ -1,6 +1,6 @@
 # T679 — Each decision in its own stage (everything but tidal)
 
-Status: IN PROGRESS — D2 and D6 built in c9488453c (owner 2026-11-12); D1 ponds, D3 nearer row, D4 word-read guard, D5 DFO confluence cuts and gauge placement #4 built in 9b0d6f4ae (+ f7f4fcfee), promoted with `full_t678b` (a5fe40636) and released in r-0a9930fb8826; the 11 other-line gauge cuts decided (RULINGS P49, T682); plan steps 1–3 done (#9 e1f1a268c, #2 8bc6eadbe, #4 b3a3938de); #14 done (9b0d6f4ae); lane L7 2026-11-20: #10 ece8f7a29, #11 7774bcbab, #12 rulings a493cf12d (+ 59e9589cc), #13 61f2bd774, step-10 code 5339c18ef (#1 and #6 behind switches, #15) and 94842bada (#18 dead code), all proved no output change; owner: OWNER-TODO "T679 #12: should the bundle carry"; left (Claude): wave 4 flips #1/#6 with the atlas rebuild and diffs, #18's continuation / places / part point, and L8's steps 5 (#8, #16, #17)
+Status: IN PROGRESS — D2 and D6 built in c9488453c (owner 2026-11-12); D1 ponds, D3 nearer row, D4 word-read guard, D5 DFO confluence cuts and gauge placement #4 built in 9b0d6f4ae (+ f7f4fcfee), promoted with `full_t678b` (a5fe40636) and released in r-0a9930fb8826; the 11 other-line gauge cuts decided (RULINGS P49, T682); plan steps 1–3 done (#9 e1f1a268c, #2 8bc6eadbe, #4 b3a3938de); #14 done (9b0d6f4ae); lane L7 2026-11-20: #10 ece8f7a29, #11 7774bcbab, #12 rulings a493cf12d (+ 59e9589cc), #13 61f2bd774, step-10 code 5339c18ef (#1 and #6 behind switches, #15) and 94842bada (#18 dead code), all proved no output change; owner: see ## Owner; left (Claude): wave 4 flips #1/#6 with the atlas rebuild and diffs, #18's continuation / places / part point, and L8's steps 5 (#8, #16, #17)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
@@ -167,7 +167,7 @@ Owner 2026-11-20 11:02 (dialog), after the blocker measure (`T679-shots/own-gaug
   field-dictionary line. Measured alternative, not taken: composing each group's runs from its sections
   (`compose_runs` over the union) equals the join in 244 of 246 groups; the Shuswap (gnis:25478, a branch run's order)
   and gnis:3273 (three zero-length side-channel branch runs dropped) would change — a visible change for a maint item.
-- **(superseded below: #8 was built, then shipped on the owner's 10:45 "Ship it")** **#8 NOT BUILT — owner question (OWNER-TODO 2026-11-20 09:52; answered 09:59 above).** The app's "on this water" (`gaugeSide`: the gauge's
+- **(superseded below: #8 was built, then shipped on the owner's 10:45 "Ship it")** **#8 NOT BUILT — owner question (old owner to-do 2026-11-20 09:52; answered 09:59 above).** The app's "on this water" (`gaugeSide`: the gauge's
   water is this water or a `water_continue` of it) and the ranking's own (`panels.own_distances`: the same, walked along
   the water, a lake ends it) can differ; which one to keep is what the angler sees. Measured on the live bundle: the
   app's rule over 176,367 (section, panel member) pairs calls 12,306 own, and in 12 of 1,587 panels it differs between
@@ -266,7 +266,7 @@ Owner kept #10, #13, #15, #17 (#17 is lane L8's, with #8/#16); #14 was already d
   a missing / malformed / duplicate row). Proof: the export alone on the live bundle, `ui-rules-export.json`
   byte-identical. LEFT: `UNDRAWN_PART_TRIBUTARIES` / `EXCEPTED_RIVERS_CREEKS_CLOSED` need the bundle to carry a rule's
   own tributary scope (it drops `includes_tributaries: false`) and `tributary_excludes` (kept out on purpose,
-  `bundle/rules/row.py:84`) — an owner question (OWNER-TODO 2026-11-20) and L8's files.
+  `bundle/rules/row.py:84`) — an owner question (old owner to-do 2026-11-20) and L8's files.
 - **#13 added-stream hand fixes curated** (61f2bd774): `waters/added_stream_calls.json` (drop by name, the name-typo
   map, 77 src_ids, the Magnolia receiver), read by `added_streams.clean.calls()`; not an atlas input. Proof: the loaded
   file equals the old constants and the cleaned layers are byte-identical for all six sources (abbotsford 18,583,
@@ -315,4 +315,8 @@ pass, dev be924cbf3 against this lane): moved (section, gauge) pairs 611 -> 611 
 changed 0, `section_own` rows changed 0. No bundle output changes; no POLICY_VERSION bump.
 
 ## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
-owner 2026-11-11 "look for other things like that too"; D1–D6 + gauge placement released (r-0a9930fb8826); other-line gauge cuts decided (P49/T682); L7 2026-11-20: #10/#11/#12 rulings/#13/#15 done, #1/#6 behind switches, all no output change; L8: #17 built on lane/l8-shrink (answers byte-identical), #8 built + "Named lakes only" (lane/l8-blockers), SHIP_OWN_GAUGE_FLAG ON (owner 10:45 "Ship it"; ships with the next data release), #16 paint/6 built on the T686 switch; owner: OWNER-TODO "T679 #12: should the bundle carry"; left (Claude): wave 4 flips #1/#6 with the rebuild, #18 rest
+owner 2026-11-11 "look for other things like that too"; D1–D6 + gauge placement released (r-0a9930fb8826); other-line gauge cuts decided (P49/T682); L7 2026-11-20: #10/#11/#12 rulings/#13/#15 done, #1/#6 behind switches, all no output change; L8: #17 built on lane/l8-shrink (answers byte-identical), #8 built + "Named lakes only" (lane/l8-blockers), SHIP_OWN_GAUGE_FLAG ON (owner 10:45 "Ship it"; ships with the next data release), #16 paint/6 built on the T686 switch; owner: see ## Owner; left (Claude): wave 4 flips #1/#6 with the rebuild, #18 rest
+
+## Owner
+
+- [ ] 2026-11-20 — Should the bundle carry each rule's own tributary scope and the designations' `tributary_excludes` (yes lets the export derive `UNDRAWN_PART_TRIBUTARIES` and `EXCEPTED_RIVERS_CREEKS_CLOSED` instead of two id lists in code; it changes the bundle and export output)? Default: leave the two lists in code.

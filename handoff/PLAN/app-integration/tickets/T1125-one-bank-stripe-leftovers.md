@@ -23,3 +23,7 @@ checked by the planning chat. Related: T1029, T1074 (rule 28 and runtime map lay
 Acceptance: 1 and 2 answered by the owner from pictures and built; 3 tested; 4 a device picture per platform.
 Severity: medium (2 can show a closed bank as open or the reverse; count unknown). Release: 0.9.2. Model: Opus for
 1–2, Sonnet for 3–4. Size: M. Owner: yes (items 1 and 2).
+
+## Owner
+
+- [ ] 2026-11-25 — Pick, from pictures, what the map says for a bank place that cannot be drawn (Nakina) and for creeks whose side could not be read.

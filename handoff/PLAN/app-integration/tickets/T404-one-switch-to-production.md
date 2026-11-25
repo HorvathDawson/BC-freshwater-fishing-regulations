@@ -1,6 +1,6 @@
 # T404 — One switch to production, and the prod release runbook
 
-Status: IN PROGRESS — 124f5257c, 4f4b5c827, d63416d48; owner part done; --bucket on runtiming publish/base merged; left (owner): uncomment the workflow production option + add the PROD_R2 secrets. (Earlier note: IN PROGRESS — 124f5257c (merged 2026-11-07). The owner's part is done: Q171–Q175 answered (tickets/README; Q172 in OWNER-TODO batch 13) and production was run from PRODUCTION.md on 2026-11-18/19 (OWNER-TODO record 2026-11-18 22:13; STATUS 2026-11-19 evening); the prod prune landed with T865 (4f4b5c827). `--bucket` on `runtiming/feed/publish.py` + `base.py` built by lane L3 2026-11-20 (d63416d48; the workflow's production option stays commented). left (Claude): main chat review + merge; then the owner uncomments the workflow's production option and adds the PROD_R2 secrets. Earlier: IN REVIEW — built 2026-11-07 (b8d4bec0b) on branch worktree-agent-add737f1e347ca347 (not merged); proof pending: the owner reads handoff/PLAN/release/PRODUCTION.md and answers Q171–Q175; nothing production was run.)
+Status: IN PROGRESS — 124f5257c, 4f4b5c827, d63416d48; owner part done; --bucket on runtiming publish/base merged; left (owner): uncomment the workflow production option + add the PROD_R2 secrets. (Earlier note: IN PROGRESS — 124f5257c (merged 2026-11-07). The owner's part is done: Q171–Q175 answered (tickets/README; Q172 in old owner to-do batch 13) and production was run from PRODUCTION.md on 2026-11-18/19 (old owner to-do record 2026-11-18 22:13; STATUS 2026-11-19 evening); the prod prune landed with T865 (4f4b5c827). `--bucket` on `runtiming/feed/publish.py` + `base.py` built by lane L3 2026-11-20 (d63416d48; the workflow's production option stays commented). left (Claude): main chat review + merge; then the owner uncomments the workflow's production option and adds the PROD_R2 secrets. Earlier: IN REVIEW — built 2026-11-07 (b8d4bec0b) on branch worktree-agent-add737f1e347ca347 (not merged); proof pending: the owner reads handoff/PLAN/release/PRODUCTION.md and answers Q171–Q175; nothing production was run.)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
@@ -33,7 +33,7 @@ need a workflow for the transition. we dont need this yet but will need it event
   keep the path. Fix: Cloudflare → canifishthis.ca → Rules → Redirect Rules → the www rule → Dynamic
   `concat("https://canifishthis.ca", http.request.uri.path)`, 301, preserve query string — or deploy the generated host
   worker (`deploy/prod/host.wrangler.toml`). Check after: the curl above lands on `/water/vedder-river`.
-- The SEO launch steps (prod site deploy, managed robots.txt off, Search Console + Bing, outreach) — OWNER-TODO
+- The SEO launch steps (prod site deploy, managed robots.txt off, Search Console + Bing, outreach) — old owner to-do
   "SEO / domain" and T198.
 
 Links: T86 (production hosting + ship config), T240 (launch checklist), T198 (.com → .ca, Search Console), T371 (Play
@@ -119,3 +119,7 @@ check its name first); Q175 share links + privacy page are `canifishthis.ca` for
 - THE OWNER'S EDITS (also in the workflow header): (1) uncomment `- production` in the `target` options; (2) swap the two `AWS_*` env lines for the two commented prod lines; (3) add the secrets `PROD_R2_ACCESS_KEY_ID` / `PROD_R2_SECRET_ACCESS_KEY` (an R2 token scoped to `bc-fishing-regulations`). A production run also needs the production release live and its binding base at `bc-fishing-regulations/private/runtiming/base/<handles>.json.gz` (`deploy/prod/upload.sh` puts it there).
 - Stale comments fixed in `base.py` and `runtiming/feed/__init__.py`.
 
+## Owner
+
+- [ ] 2026-11-20 — Add the `PROD_R2_*` secrets in GitHub and uncomment the production option of the run-timing workflow (the owner part left of this switch).
+- [x] 2026-11-08 — After the switch every Play build reads production; share links and the privacy page are `canifishthis.ca` in every environment; the prod data worker replaces v1's in place → "yes" to each (Q173-Q175, 2026-11-08).

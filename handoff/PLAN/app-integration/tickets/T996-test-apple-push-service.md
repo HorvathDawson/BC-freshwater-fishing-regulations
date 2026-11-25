@@ -135,3 +135,7 @@ connection and no registration, and identityservicesd logged "asked for publicTo
 service holds no APNs token at all, so iOS has nothing to answer the app with: exactly the silence the app reports.
 The phone is an older spare iPhone (XR, iOS 18.5), in airplane mode on Wi-Fi during the tests. Not yet proven: that
 the app registers on a healthy iPhone; the second-iPhone test decides it. No app change indicated, no new ticket.
+
+## Owner
+
+- [ ] 2026-11-25 — After the iPhone release: install the same TestFlight build on a second iPhone and try there (your spare iPhone's push service gives no token; signing and the app's push code were checked). Your words: "we should move this to after iphone release I think. we could fix with a patch?"

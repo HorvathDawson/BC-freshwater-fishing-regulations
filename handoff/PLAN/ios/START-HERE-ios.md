@@ -18,7 +18,7 @@ ledger now, and git history (before T1081) holds the pages. What is left is what
   reset in the main checkout. Never `--no-fast-fail` / `--no-ci-check`.
 - Subagents: always pass a model, Opus or Sonnet. Owner 2026-11-16: "make sure you limit fable use on aubagents for
   now", then "only use when really needed". A fork runs on Fable, so it counts.
-- Read `date` before writing any time. Owner answers go into the ticket, `OWNER-TODO.md` and the To-Do page row the
+- Read `date` before writing any time. Owner answers go into the ticket's `## Owner` block (tickets/README.md) the
   same turn. He wants questions and pictures IN CHAT, in batches (dialog), with the picture in the same turn
   (SendUserFile); he cannot open repo paths.
 - Your ticket numbers: T769 is free, then T820 onward (the main chat uses T799 to T806 and on).

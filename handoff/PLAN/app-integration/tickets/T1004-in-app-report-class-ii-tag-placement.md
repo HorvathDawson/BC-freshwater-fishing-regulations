@@ -1,6 +1,6 @@
 # T1004 — In-app report 2026-11-21: the Class II tag sits far right of the water's name, "kind of hidden"
 
-Status: IN REVIEW — owner: OWNER-TODO "Look (you): T1004 Class II line under the name" (built, code d27c09e24, PR open; after-shots in T1004-shots/built-*).
+Status: IN REVIEW — owner: see ## Owner (built, code d27c09e24, PR open; after-shots in T1004-shots/built-*).
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
@@ -55,3 +55,7 @@ period, secondary colour out of period; a press opens the classified-waters term
 classBadge.test, RegsWide.test (order on phone/tablet/desktop). T802's card half is this line; its map half was declined (11-22 23:35).
 
 Press area (review fix): the line is a full-width press 24 px high (`CLASS_LINE_H`, one number for the style's min-height and the declared box), NO hitSlop: above it are the date pill and sun times, below it the place text and the tab row, so any slop would overlap a neighbour (largest non-overlapping slop: 0). It is a recorded exception to 44 (`SHORT_PRESS` in a11yAudit): the audit fails a declared box that is not the style's real min-height (mutation: h 30 and h 44 both fail) and fails the exception if it ever reaches 44. The same term is reachable from the Licence tab's ⓘ.
+
+## Owner
+
+- [ ] 2026-11-22 — Look at the Class II line under the water's name (`handoff/PLAN/app-integration/T1004-shots/built-before-*` / `built-after-*`, light and dark, every sub-tab): A now / B beside the name (B recommended).

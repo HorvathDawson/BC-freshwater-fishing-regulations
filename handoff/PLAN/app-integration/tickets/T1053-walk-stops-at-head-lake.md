@@ -1,10 +1,10 @@
 # T1053 — Eagle Creek "including tributaries": the walk stops at its head lake (Dick Lake), and Sources never says "tributaries"
 
-Status: PARTIAL — owner: OWNER-TODO "T1053 walk through a head lake" (read the rebuilt before/after list `T1053-shots/head-lakes-before-after.md`; the Sources words are approved). Lane L21, 2026-11-24: built on `feat/T1053-walk-climbs-head-lakes` (walk 21f13ae62, words 61829dbbf, own-row yield ab9cfb59b + 9159e65fc), draft PR #166; nothing released. Left (no build, proposals): the Technical detail's effective value (T1105); DFO places and licensing records do not climb (T1106).
+Status: PARTIAL — owner: see ## Owner (read the rebuilt before/after list `T1053-shots/head-lakes-before-after.md`; the Sources words are approved). Lane L21, 2026-11-24: built on `feat/T1053-walk-climbs-head-lakes` (walk 21f13ae62, words 61829dbbf, own-row yield ab9cfb59b + 9159e65fc), draft PR #166; nothing released. Left (no build, proposals): the Technical detail's effective value (T1105); DFO places and licensing records do not climb (T1106).
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1053 | Eagle Creek ✱: the walk stops at its head lake (Dick Lake), and Sources never says "tributaries" | PARTIAL — owner: OWNER-TODO "T1053 walk through a head lake"; rebuilt list to read (climb + own row wins, review fixes), words approved; draft PR #166; left: T1105, T1106 | 21f13ae62, 61829dbbf, ab9cfb59b, 9159e65fc | staging report 3eaf5ac25fc39d73 (owner 2026-11-24); lane L19 |
+| T1053 | Eagle Creek ✱: the walk stops at its head lake (Dick Lake), and Sources never says "tributaries" | PARTIAL — owner: see ## Owner; rebuilt list to read (climb + own row wins, review fixes), words approved; draft PR #166; left: T1105, T1106 | 21f13ae62, 61829dbbf, ab9cfb59b, 9159e65fc | staging report 3eaf5ac25fc39d73 (owner 2026-11-24); lane L19 |
 
 Source: in-app report `3eaf5ac25fc39d73` (staging feeds worker, the owner, 2026-11-24 18:45 UTC), reason "rule", on
 Eagle Creek `gnis:9405`, part 0, "Today, Nov 24", Regulations view, web, app 0.9.0 (build 43, 127bf43), release
@@ -298,3 +298,9 @@ Done in this PR as T1117 (its own ticket): see T1117 for the change and the diff
 
 T1117 done in this PR (19a8dc392): with the right lake, nothing reopens around Anderson Lake; Frosst Creek is the only
 "own row kept"; see T1117 for the diff.
+
+## Owner
+
+- [ ] 2026-11-24 — Read the head-lake list (`handoff/PLAN/app-integration/T1053-shots/head-lakes-before-after.md`: 22 head lakes, 42 rules gain water, none lose) and say if any should change; the 0.10.0 chat chose it on your word as a proposal you can change in 0.10.1.
+- [x] 2026-11-24 — Which version of the climb → "All 22, but a stream's own row wins"; Sources words → "Yes, these words (Recommended)"; plus typed: "tributary rules dont apply to the lake either only streams that is important too" (2026-11-24).
+- [x] 2026-11-24 — A dated inherited closure still closes unless the row is exempt; an all-year "No Fishing" yields to a stream's own row; the logic goes into GOTCHAS → "keep earlier rule of closure always winning unless it is exempt) this does not include no fishiong all year rulings tho those will yield in that case. only the dated closures. add all of this logic to gfotchas file please" (2026-11-24).

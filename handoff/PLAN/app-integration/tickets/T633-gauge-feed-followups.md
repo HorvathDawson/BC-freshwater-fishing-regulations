@@ -16,15 +16,12 @@ Source: gauges lane report 2026-11-11.
 5. A warning when the feed's HYDAT differs from the release's.
 6. The web keeps an offline week like the phone (T585 F14, web half).
 
-## Owner
-- Is 6 hours the right cutoff for a reading to count as current?
-- Run the HYDAT workflow so the datum-shift cut reaches clim.json (45 stations in HYDAT, 21 live), then read the shift list.
-
 Depends: T550, T557, T585. Size: M.
 
-## Owner answers 2026-11-11
-- 6 hours stays as the cutoff.
-- Run the HYDAT workflow on staging, then send the datum-shift station list to read.
+## Owner
+
+- [x] 2026-11-11 — Is 6 hours the right cutoff for a reading to count as current? → "6 hours stays as the cutoff." (2026-11-11)
+- [ ] 2026-11-11 — Run the HYDAT workflow on staging so the datum-shift cut reaches clim.json (45 stations in HYDAT, 21 live), then send the datum-shift station list to read.
 
 ## 2026-11-10 (UTC 11-11): HYDAT envelope rebuilt locally, on STAGING
 - Why local: the branch is ~312 commits ahead of origin, so the workflow would have built with old code. Ran the

@@ -9,7 +9,7 @@ Status: IN PROGRESS — the split landed (a9475700d, merge 8f6dd09cf; ef6480005,
 Source: owner 2026-11-16, typed: "We want to split babine lake on the line like our other split lakes. Then we want the
 circles to just be circles on the map not separate sections of the lake. Otherwise it will be overboard." Before it:
 the four missing creek mouths found and accepted with name variants ("That sounds good can we add name variants? With
-source?"), the Gullwing line "Due south" (worker branch `lane/babine-mouths`, 6b1aa369d; OWNER-TODO 18:54).
+source?"), the Gullwing line "Due south" (worker branch `lane/babine-mouths`, 6b1aa369d; old owner to-do 18:54).
 
 ## Data (main chat)
 - Split Babine Lake on the due-south Gullwing Creek line (Gullwing Creek mouth 54.48497,-125.36625 to the south shore
@@ -43,3 +43,7 @@ branch after the owner's round 3 answer).
 
 Review fixes 2026-11-23 (#50, lane L18, 7cb64faa1): a style with no `stream` layer is reported and draws no circles (never on
 top); the decode test holds a four-point ring that is not closed, so the closure check can fail (both mutation-proved).
+
+## Owner
+
+- [x] 2026-11-16 — Babine Lake → "We want to split babine lake on the line like our other split lakes. Then we want the circles to just be circles on the map not separate sections of the lake. Otherwise it will be overboard." (2026-11-16 18:56); the Gullwing Creek line → "Due south"; the four missing circles → "That sounds good can we add name variants? With source?" (18:54).

@@ -57,7 +57,7 @@ Branch `app-fix/t797-powered-boats` (not merged; app code, so it lands as its ow
   rivers only.
 - **Left:** the merge (benches + the full app suite); a "What's new" line with the next app version.
 
-## Owner, 2026-11-16 (question dialog; verbatim in `handoff/PLAN/OWNER-TODO.md`, "Answers by batch")
+## Owner, 2026-11-16 (question dialog; verbatim in `handoff/PLAN/the old owner to-do page`, "Answers by batch")
 Go-ahead card: "Go on all (Recommended)" (item 1 is fixed by the app chat on branch app-fix/t797-powered-boats; items 2 to 5 are pipeline display).
 
 ## Item 1 fixed on a branch, 2026-11-16 (the app chat; NOT merged)
@@ -76,7 +76,7 @@ Data note sent to the main chat: the Nicomekl / Serpentine rule reaches 27 side 
 (1/1, 22:01Z run) on the same `t797` APK (`--allow-stale`: only bench files and the dev mini-release changed since it
 was built). With the 12:28 runs, all six benches pass. Ready to land after the main chat's clear.
 
-2026-11-17 ~15:52, owner on item 2: "Show it (Recommended)": the dead-fin-fish-for-sturgeon allowance shows on sturgeon waters (the app reverses D18 a; the pipeline already computes also_allowed). OWNER-TODO 15:52.
+2026-11-17 ~15:52, owner on item 2: "Show it (Recommended)": the dead-fin-fish-for-sturgeon allowance shows on sturgeon waters (the app reverses D18 a; the pipeline already computes also_allowed). old owner to-do 15:52.
 ## Items 2-5 traced (lane/bugs-080b, 2026-11-17): the app's words, not the pipeline's
 - Item 2 (dead fin fish for sturgeon): the pipeline's bait row carries it (`gear.py` `also_allowed`, the sturgeon rules'
   `when_targeting: WSG`); the app does not show `also_allowed` on purpose (`core/src/regs/bait.ts` header: decision D18 a).

@@ -9,7 +9,7 @@ Status: PARTIAL (docs and small tickets; main chat; items 1 and 7 DONE 2b4e0d826
 Source: general audit 2026-11-16, decisions checker (`handoff/PLAN/audit-2026-11-16/decisions.md`).
 
 1. T754 one-bank places: the owner answered "Build it this way (Recommended)" (2026-11-15, round 4); the ticket, the
-   ledger and OWNER-TODO still say "options for the owner / six questions".
+   ledger and old owner to-do still say "options for the owner / six questions".
 2. T759: the shared ticket describes the rejected design; the rewritten ticket is on `data/t759-missing-place-check`.
 3. 14 owner readings of 2026-11-13 to 11-15 are not in `pipeline/docs/RULINGS.md` (rest-of with "areas and times";
    the tributary readings; lake loops; the T759 rule; one-bank; "Whole river is right"; "4 km as the book says"; the
@@ -23,7 +23,7 @@ Source: general audit 2026-11-16, decisions checker (`handoff/PLAN/audit-2026-11
    names the unticked row when Confirm is greyed; the Hope gauge (66 m reads 08MF076) and three gauge cuts never
    placed (08HD024, 08ME002, 08MH032); the About-page "not affiliated with the government" sentence (said built, on
    no branch); the approved push privacy line (written nowhere); leftovers of T549, T554, T673, T600.
-7. Fresh production commands in OWNER-TODO; delete the two out-of-date blocks (r-f749475d0962, r-a178299f6005).
+7. Fresh production commands in old owner to-do; delete the two out-of-date blocks (r-f749475d0962, r-a178299f6005).
    `release/PRODUCTION.md`: for a release with closed areas the feeds worker goes BEFORE or WITH the data.
 8. T778: the "test on built data" was not written (unit tests on hand-made graphs only).
 9. 5 of the owner's 17 reviewed continuation links are stale and stopped shipping; 4 new ones wait with no owner row
@@ -31,13 +31,13 @@ Source: general audit 2026-11-16, decisions checker (`handoff/PLAN/audit-2026-11
 
 ## Lane result (lane/bugs-080, 2026-11-17)
 Item 4, the ledger half: the 47 DONE / DROPPED rows still in README.md moved to DONE.md (`check-tickets` passes).
-Not done here: the stale rows' statuses (T690 … T738), the missing ticket numbers, items 1-3 and 5-9 (OWNER-TODO and
+Not done here: the stale rows' statuses (T690 … T738), the missing ticket numbers, items 1-3 and 5-9 (old owner to-do and
 RULINGS are the main chat's files today).
 
 ## Lane result, second round (lane/bugs-080b, 2026-11-17)
-- Item 1 DONE: T754's ticket, ledger row and OWNER-TODO row say the owner's answer ("Build it this way (Recommended)",
+- Item 1 DONE: T754's ticket, ledger row and old owner to-do row say the owner's answer ("Build it this way (Recommended)",
   2026-11-15 round 4) and "to build".
-- Item 7 DONE: OWNER-TODO's two out-of-date production command blocks (r-f749475d0962, r-a178299f6005) removed; the
+- Item 7 DONE: old owner to-do's two out-of-date production command blocks (r-f749475d0962, r-a178299f6005) removed; the
   fresh commands come with 0.8.0's data release. `release/PRODUCTION.md` "Every later release": the feeds worker goes
   first when the release carries closed areas (before or with the data).
 - Item 6, the lost follow-ups, still to ticket (not numbered here: lanes mint numbers that collide). The suggester
