@@ -1951,7 +1951,8 @@ def test_the_cuts_version_commit_adds_the_new_versions_app_reads_row(cut_repo):
     diff = run("diff", "-U0", head, sha, "--", AR.TABLE_REL).splitlines()
     added = [ln for ln in diff if ln.startswith("+") and not ln.startswith("+++")]
     removed = [ln for ln in diff if ln.startswith("-") and not ln.startswith("---")]
-    assert [ln[:10] for ln in added] == [f'+  "{newest}"', '+  "9.9.9"']           # the row, and a comma on the last
+    want = [f'+  "{newest}"', '+  "9.9.9"']               # the row, and a comma on the last; by each one's own length:
+    assert [ln[:len(w)] for ln, w in zip(added, want, strict=True)] == want   # a fixed 10 cut "0.10.0" (the 0.10.0 cut)
     assert [ln[1:] + "," for ln in removed] == [ln[1:] for ln in added[:1]]
     reads = AR.reads_in(lambda rel: run("show", f"{sha}:{rel}"))
     assert AR.check_problems(after, "9.9.9", reads) == []                 # the release branch's `--check` passes
