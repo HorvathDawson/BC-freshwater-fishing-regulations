@@ -110,3 +110,7 @@ settle was not filmed). Not covered: Reduce Motion, the fling glide's feel, a th
   drawing) "2 of 3" is hard to read. Phone viewers put a soft shade behind it; a small follow-up if wanted.
 - Not covered here: the Android bench, pinch rubber and fling glide (feel), and on Android that the buttons' layer
   passes touches. The fix is shared code, so Android gets it too (its taps had the same no-limit default).
+
+## Owner
+
+- [ ] 2026-11-20 — Look at the photo viewer on the emulator (`handoff/PLAN/app-integration/L4-android-shots-2026-11-20/T836/`: open and close the sheets, drag down) and say if it behaves like the standard phone photo viewers.

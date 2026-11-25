@@ -60,3 +60,7 @@ Coquitlam River -> Conditions, the chart at 1080x2400, shots in `handoff/PLAN/ap
 solid reading line, "Sat 21 Nov" quiet, dashed, to its right; no overlap; the hint "Pinch to zoom, tap to read a value" whole
 on the line under the controls), `two-days-regs-day-past-window.png` (11 days on: Today only, no regs mark). Not shot: a week
 apart, adjacent days, a Conditions day plus a regs day (the unit test covers them; the web shots of 11-20 show them). Dark not shot.
+
+## Owner
+
+- [ ] 2026-11-20 — Look at the two-days chart marks (`handoff/PLAN/app-integration/L4-android-shots-2026-11-20/T604/`) and say if the day marks read well.

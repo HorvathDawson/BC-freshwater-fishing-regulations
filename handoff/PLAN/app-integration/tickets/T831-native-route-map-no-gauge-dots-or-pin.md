@@ -71,3 +71,7 @@ the key line under it. iOS and the web set beside it are not part of this pass.
   with their labels ("100%", "level only") and the violet "you are here" pin with its label.
 - Shots: `handoff/PLAN/ios/shots/t831/ios-route-light.jpg`, `handoff/PLAN/ios/shots/t831/ios-route-dark.jpg`.
 - Left (Claude): the Android half (`route-scroll`'s T831 step on the emulator) and the shots beside the web's.
+
+## Owner
+
+- [ ] 2026-11-20 — Look at the route map in a water's Conditions view (`handoff/PLAN/app-integration/L4-android-shots-2026-11-20/T831/T831-route-pins.png`): gauge dots and pins.

@@ -80,3 +80,7 @@ layout (the Gboard handwriting popup sat over the left of the sheet in every sho
 
 ## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
 owner 2026-11-14 ("you can't swipe down to close it also recent searchs take up a huge amount"; "it should have stayed at the location it moved to"; "it didn't reset search state"); code + render tests done; left (Claude): an emulator look on the next APK
+
+## Owner
+
+- [ ] 2026-11-20 — Look at the search sheet (`handoff/PLAN/app-integration/L4-android-shots-2026-11-20/T730/`): recents as one block of tags, swipe down closes.
