@@ -22,6 +22,11 @@ python data/fetch_data.py --help     # the BC Freshwater Atlas layers and the ot
 
 then re-pin what changed with `python -m pipeline.tools.source_pins pin PATH` (it uploads the bytes; the owner's step).
 
+## Notes on `source/`
+
+`source/dfo_tidal_areas/` is 380 saved DFO web pages in dated folders (snapshots of the tidal-area descriptions the tidal boundary was read
+from, read by `pipeline/tools/audit/tidal_pass2.py`): keep them, they are the evidence. `source/pins.json` pins the big files that are not in git.
+
 ## The scripts here
 
 - `fetch_data.py` — the upstream fetcher (above).

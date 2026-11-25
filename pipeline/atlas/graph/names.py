@@ -196,7 +196,7 @@ def resolve_names(chains: list[BlkChain], fid_rows, *, curated_blks) -> list[Blk
     return out
 
 
-# ------------------------------------------------------------ name variations (docs/13, graph)
+# ------------------------------------------------------------ name variations (graph)
 
 _ABBREV = [(re.compile(r"\bL\.$"), "Lake"), (re.compile(r"\bCr\.$"), "Creek"),
            (re.compile(r"\bR\.$"), "River")]
@@ -331,7 +331,7 @@ def _candidate_nids(idx: dict, target: dict) -> set[str]:
 
 
 def apply_name_variants(graph: StreamGraph, entries: list[dict]) -> int:
-    """Attach compiled name variants (docs/13) to graph nodes as (name, source, note) tuples and
+    """Attach compiled name variants to graph nodes as (name, source, note) tuples and
     recompute display_name. A name flagged ``display: true`` in the file becomes the node's label
     even if its source ranks below gazette (e.g. the gauge-sourced 'Two Forty-One Creek' beats the
     inherited 'Penticton Creek'); otherwise the highest-priority tuple displays. Shouty

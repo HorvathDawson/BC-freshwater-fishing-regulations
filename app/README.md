@@ -1,211 +1,80 @@
-# canifishthis — app workspace
+# canifishthis: the app workspace
 
-Greenfield, mobile-first. Inherits **no code** from v1's webapp or mobile (the removed `archive/`, T335); those are prior art.
-**What is where today: [`MAP.md`](MAP.md).** This file is the WHY of the layers, the one React and the one map style.
-History: `13-build-plan.md` §4 (removed with archive/, T335: `git show d1b36ca44:pipeline/docs/archive/13-build-plan.md`).
+A pnpm workspace: one Expo / React Native app for iOS, Android and the web (phone, tablet, desktop), its packages, the
+feeds worker and every gate. It decides nothing about a regulation: it looks answers up in a release built by
+`pipeline/`. What is where: [`MAP.md`](MAP.md). Dependencies and why: [`deps.md`](deps.md). Android back: [`BACK.md`](BACK.md).
 
 ## Why the layers are shaped this way
 
-The previous two apps were created independently, so neither was ever the shared
-source. Four files that should have been one implementation diverged completely:
-
-| file | web | mobile | lines differing |
-|---|---|---|---|
-| `useDawnDusk.ts` | 77 | 83 | **every line** |
-| `waterbodyDataService.ts` | 1,157 | 116 | 1,203 |
-| `featureUtils.ts` | 407 | 171 | 494 |
-| `regulationsService.ts` | 144 | 89 | 134 |
-
-Nothing here prevents that by convention. `layers.json` states the rule and
-`tools/check-boundaries.mjs` fails CI on it.
-
-## Layout
-
+The two v1 apps were built apart, so four files that should have been one implementation diverged line for line (a
+1,157-line web data service against a 116-line mobile one). The layers make that impossible by construction;
+`layers.json` states the rule and `tools/check-boundaries.mjs` fails CI on it (AGENTS 22-27).
 ```
-packages/core       domain logic — pure TS, no React, no platform   100% shared
-packages/data       ONE WaterSource interface, one impl per platform interface shared
-packages/ui         headless React hooks (data, not elements)       100% shared
-packages/ui-native  the components (RN primitives), every layout     native app + web (phone, tablet, desktop)
-packages/map        the ONE <Map/>; both adapters behind it         100% shared
-apps/mobile         the one app shell: native, and web through RNW
-conformance         one suite, run against EVERY WaterSource
+packages/core       domain logic: pure TS, no React, no platform
+packages/data       ONE WaterSource interface, one implementation per platform
+packages/ui         headless React hooks (return data, not elements)
+packages/ui-native  every component, every layout (RN primitives; the web draws them through react-native-web)
+packages/map        the ONE <Map/>, both renderers behind it, one generated style
+apps/mobile         the one app shell: native, and web
+conformance         one suite, run against every WaterSource
 ```
 
-## One component set; desktop is a layout class
+There is no second component set: tablet and desktop are layout classes (`useLayoutClass()`: phone / tablet / desktop)
+of the same components. That stays cheap only while components hold no logic: behaviour lives in `@app/ui` hooks. If a
+layout wants to duplicate logic, the logic is in the wrong place.
 
-| target | components | why |
-|---|---|---|
-| native app | `@app/ui-native` | — |
-| **mobile web** | `@app/ui-native` via react-native-web | must look identical to the app **by construction**, not by discipline |
-| **tablet / desktop web** | `@app/ui-native`, arranged by `useLayoutClass()` | a different arrangement, not a stretched phone |
+## Web and native code
 
-The layout class (`@app/ui` `layout.ts`, T45) turns the window's width into `phone`,
-`tablet` or `desktop` from the breakpoint tokens; components take the class and arrange
-themselves (a reading column, a side column). There is no second app and no separate DOM
-component set (AGENTS rule 26).
+Where the platforms really differ, the difference is a FILE, never a branch: `foo.web.ts` + `foo.native.ts` typed by one
+`foo.d.ts`; callers import `./foo` and the bundler picks (vitest runs the `.web` half). A one-value difference may stay
+inline (`Platform.select`). `pnpm platform` (`tools/check-platform.mjs`) refuses an incomplete pair, a DOM API in shared
+code, and `Platform.OS` / `typeof window` outside its allow-list.
 
-**That stays cheap only while components hold no logic.** Behaviour lives in `@app/ui`
-hooks, so a wider arrangement is a purely presentational decision. The test: *if a layout
-wants to duplicate logic, the logic is in the wrong place.* Move it to a hook. That
-inversion is why `ui/` exists as a separate package from the component set.
-
-**Hooks are shared; components are not.** A hook returns data, so it runs under both
-renderers. `<div>` and `<View>` do not. This is the opposite of where most teams draw
-the line and it is why this works without committing to react-native-web up front.
-
-## Web and native code (T410)
-
-One app, one component set — and where the two platforms really differ, the difference is a FILE, never a branch:
-
-- **Logic that differs lives in a platform pair**: `foo.web.ts` + `foo.native.ts`, typed by one `foo.d.ts` (TypeScript
-  does not pick by platform; the bundler does). Callers import `./foo`. Metro bundles only the half for its platform,
-  so the web bundle never carries the phone's code and the APK never the browser's. vitest runs the `.web` half
-  (react-native-web is the test renderer, `vitest.config.ts`), so a `.native` half is proved by tsc and on a device.
-- **A one-value difference may stay inline** — a size, a flag that gates a call or a row, a word in a report:
-  `Platform.select({ web: …, default: … })`, or one `Platform.OS` comparison in a file on the allow-list.
-- **`core` reads no platform at all** (`check-boundaries`); `ui` hooks take the platform as an argument.
-- **The guard is `pnpm platform`** (`tools/check-platform.mjs`): a pair must be complete with equal exports; DOM APIs
-  are refused in shared files; and `Platform.OS` / `typeof window|document|navigator` outside a platform file is
-  refused except in `INLINE_ALLOWED` (each file, its count and why). A new branch is a new pair, not a new line there.
-
-Where it lives today: `ui-native/src` (`escapeBack`, `escapeCloses`, `searchFocus`, `touchDevice`, `connectivity`,
-`chartInput`, `windowSize`, `announce`, `swipeActivation`, `partAsk`, `FishSpinner`, `CohoLoader`, `WindowInset`; `regs/` `PdfViewer`,
-`synopsisPdf`; `menu/openOfficial`; `shell/prewarm`), `map/src` (`Map`, `tile-ids`), `packages/data/src` (the
-release drivers, the spots stores), `apps/mobile/src` (`appUpdater`, `envStore`, `locate`, `memoryTrim`, `notify`,
-`pickPhoto`, `share`, `startLink`, `systemBack`). The SEO site's own tools are `tools/seo/` (web only by nature).
-
-## Commands
+## Commands (run in `app/`)
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm check        # every gate, knip, typecheck, vitest (the steps: package.json scripts.check)
-pnpm check:fast   # every gate but vitest (app-ci's gates job; scripts/fast-fail.sh runs it)
-pnpm test         # vitest: packages, conformance, tools/*.test.ts (app-ci runs it on 4 shards)
-pnpm boundaries   # layer rules (layers.json)
-pnpm platform     # variant sets complete, shared code portable, no inline platform branch (T410)
-pnpm style        # rebuild the style, verify hash, fail if it was stale
-pnpm style:build  # after editing layers.source.json
-pnpm colours      # no colour literal outside tokens.json + themes/ (the one palette)
-pnpm deps         # every dependency justified in deps.md
-pnpm knip         # no unused file, export or dependency (allowances in knip.jsonc)
-pnpm clean        # delete every workspace dist/ (typecheck output; nothing reads it)
-pnpm tiles        # serve the local tiles, release and feeds for the dev app (tools/serve-tiles.mjs)
+pnpm dev:web       # Expo web: the phone UI in a browser, the fast loop
+pnpm dev:android   # expo run:android (JDK + Android SDK)
+pnpm dev:ios       # expo run:ios (Xcode + CocoaPods)
+pnpm tiles         # serve the local tiles, release and feeds for the dev app
+pnpm check         # every gate, knip, typecheck, vitest (the steps: package.json scripts.check)
+pnpm check:fast    # every gate but vitest;  pnpm test = vitest only (CI runs 4 shards)
+pnpm style:build   # after editing packages/map/style/layers.source.json
 ```
 
-Every gate and generated-file check in order: [`MAP.md`](MAP.md) "Gates". The feeds worker (`workers/feeds/`) is not in
-the workspace's `pnpm check`: `pnpm exec vitest run --root workers/feeds` (its own CI workflow, `feeds-worker-ci.yml`).
-
-### Running it
-
-```bash
-pnpm dev:web      # Expo web — the phone UI in a browser. The fast loop.
-pnpm dev:android  # expo run:android — needs a JDK + Android SDK
-pnpm dev:ios      # expo run:ios — needs Xcode + CocoaPods
-```
-
-All three are the **same Expo project** (`apps/mobile`) on three platforms, and all three
-render the same `Shell` out of `@app/ui-native`. That is the point: mobile web
-is not a port of the phone UI, it *is* the phone UI, compiled by react-native-web.
-
-`android/` and `ios/` are **not committed**. They are generated from `app.json` by
-`expo prebuild` (Continuous Native Generation) on the first `run:` — a config change is one
-edit, not two hand-applied ones. `pnpm --filter @app/mobile run prebuild` regenerates them.
-
-**Where `dev:web` lives.** Expo's web output is a *platform* of the `apps/mobile` project,
-not a separate app, so the web app — phone, tablet and desktop widths alike — is served by
-`apps/mobile`. Desktop is a layout class (above), not a second shell.
+Single-gate scripts (`boundaries`, `platform`, `style`, `colours`, `deps`, `knip`, ...) are in `package.json`. The
+feeds worker is not in `pnpm check`: `pnpm exec vitest run --root workers/feeds` (workflow `feeds-worker-ci.yml`).
+`android/` and `ios/` are generated from `app.json` by `expo prebuild` and never committed (`apps/mobile/README.md`).
 
 ## One React
 
-**react 19.3.0, react-dom 19.3.0, react-native 0.88.0, Expo SDK 58** (T250) — pinned as exact
-versions, not ranges, and pinned *again* as `pnpm.overrides` in the root `package.json`.
+react, react-dom and react-native are pinned to exact versions, and pinned again in the root `package.json`
+`pnpm.overrides`: `packages/ui` and `packages/map` declare react as a peer, and without the override pnpm installed two
+Reacts (`Invalid hook call`). The versions are Expo's SDK set, not an independent choice: bump them with the SDK or not
+at all (AGENTS 27; `npx expo install --check` is the authority).
 
-Why twice: `packages/ui` and `packages/map` declare `react` as a peer with range `*`, and
-pnpm's `auto-install-peers` cheerfully satisfied that with 19.2.8 while `apps/mobile` had
-19.2.3 — two Reacts, one bundle, `Invalid hook call`. Verified: before the overrides
-`pnpm ls -r` showed both; after, one. The override makes the pin structural instead of a
-thing six `package.json` files have to agree about.
+## How the two maps stay identical
 
-**19.3.0 specifically because Expo SDK 58 pins it** (SDK 57 pinned 19.2.3). The React version is not an independent
-choice — Expo's Metro config, `babel-preset-expo` and the native modules are built against
-one triple. `npx expo install --check` is the authority; bump the three together with the SDK
-or not at all. AGENTS 27 exists because the two v1 apps drifted to React 19 vs 18.3.1 by
-being created separately, which is exactly what an unpinned range reproduces.
+1. **One generated style.** `packages/map/style/layers.source.json` (+ `tokens.json`, `themes/`) builds `style.json`;
+   both renderers import it through `@app/map` and neither may modify it. `pnpm style` rebuilds and fails if the
+   committed output differs. The schema is `packages/map/style/schema/layers.schema.json`.
+2. **Four concepts:** a *source* (where geometry comes from), a *layer* (one drawn thing, in a toggleable group), a
+   *colour mode* (one geometry, many colourings: static, categorical over an enum, or continuous; they read
+   feature-state, so switching view refetches no tiles) and a *view* (which mode each layer uses). `pnpm style:build`
+   enforces: a mode over an enum colours every member (AGENTS 29), a continuous mode defines `missing`, colours are
+   tokens never literals, every theme defines every themeable token, an external source carries `attribution`.
+3. **An app cannot define layers:** `layers.json` bans `maplibre-gl` and `@maplibre/maplibre-react-native` outside
+   `packages/map`, and the contract exposes groups, not layers (AGENTS 28).
+4. **Parity is asserted:** `packages/map/src/parity.test.ts` drives both adapters through a recording handle and
+   requires the identical call sequence for a group toggle, every theme and a highlight.
 
-`.npmrc` sets `node-linker=hoisted`: Metro's resolver, Gradle autolinking and CocoaPods all
-assume a flat `node_modules`, and pnpm's isolated layout breaks them at bundle/build time
-rather than at install. The dependency gate is unaffected — `check-deps` reads
-`package.json`, not the tree.
-
-## How the two maps are kept identical
-
-Two apps drifting visually is the same failure as two apps drifting logically, and it
-is harder to notice. Three mechanisms, all enforced:
-
-### The layer schema
-
-`layers.source.json` is the authored file. Its shape is documented in
-[`style/schema/layers.schema.json`](packages/map/style/schema/layers.schema.json); the
-rules that matter are enforced by `pnpm style:build`.
-
-Four concepts, and the third is the one a naive schema gets wrong:
-
-| | what it is |
-|---|---|
-| **source** | where geometry comes from (our PMTiles, or an external set like parcels) |
-| **layer** | one drawn thing, in one **group** — the unit an app can toggle |
-| **colour mode** | **one geometry, many colourings.** `streams` can be drawn plain, by closure status, or by discharge. Same tiles, different paint |
-| **view** | a named picture: which colour mode each layer uses. This is what a user switches between |
-
-A colour mode is `static`, `categorical` (over a feature-state property, optionally
-declared over a named **enum**), or `continuous` (a stop ramp). Categorical and
-continuous modes read **feature-state**, so switching view or theme refetches no tiles —
-the closure colouring is the same bytes as the plain one.
-
-**The rules the build enforces** (each verified to fail):
-
-- a colour mode over an enum must colour **every member** — so `unknown` and
-  `default_only` cannot be silently dropped, the one failure with real consequences
-  (AGENTS 29)
-- a continuous mode must define `missing` — a feature with no reading must never inherit
-  a colour implying one
-- colours must be `{"token": "..."}`; literals are rejected
-- every theme must define every themeable token
-- an external source must carry `attribution`
-- a highlightable layer must declare `featureIdProperty`
-- views must name real layers and real modes; exactly one is default
-- stops must ascend
-
-**Adding a layer or colouring:** edit `layers.source.json` (plus `tokens.json` /
-`themes/*` for new colours), run `pnpm style:build`, commit the generated `style.json` +
-`style.meta.json`.
-
-**External layers** (private parcels, etc.) declare `"external": true` and must carry an
-`attribution` — a test fails without one, because a third-party tile source has licence
-terms our own pipeline does not.
-
-1. **One generated style.** `layers.source.json` → `style.json`. Both adapters import it
-   through `@app/map` and neither may modify it.
-2. **It cannot be hand-edited or go stale.** `pnpm style` rebuilds and fails if the
-   committed output differs. Verified: tampering exits 1.
-3. **An app cannot define layers.** `layers.json` bans `maplibre-gl` and
-   `@maplibre/maplibre-react-native` outside `packages/map`, so no app can reach the SDK
-   and add one of its own.
-4. **Parity is asserted, not assumed.** `packages/map/src/parity.test.ts` drives both
-   adapters through a recording handle and asserts they emit the **identical call
-   sequence** for a group toggle, for every theme, and for a highlight — not just that
-   they hold the same style. It also checks layer ids match and that the adapters'
-   surfaces differ only in `platform`.
-5. **Apps cannot address layers directly.** The contract exposes *groups*, not layers,
-   and there is no method to add a layer or set a colour outright.
+To add a layer or colouring: edit `layers.source.json` (and `tokens.json` / `themes/*` for new colours), run
+`pnpm style:build`, commit the generated `style.json` + `style.meta.json`.
 
 ## One palette
 
-Every colour in the app — map paint AND the phone's own surfaces — is a token in
-`packages/map/style/tokens.json` with a value per theme in `themes/*.json`. The map reads them
-through `resolveTheme()`; `palette` in `packages/ui-native/src/theme.ts` is built from them
-(`paletteFor`) and holds no value of its own; MapLibre's controls and markers take
-`mapChrome(theme)` from the same tokens. The app's chrome is the `color.ui.*` family, which the
-map's ΔE/duplicate guards skip and `theme.test.ts` / `tools/cvd.test.ts` hold instead. A theme
-value may name another token (`"@color.ui.ink"`) when two are one colour by design.
-`tools/check-colours.mjs` fails on a hex, `rgb()`/`hsl()` or named colour anywhere else.
+Every colour, map paint and phone surfaces alike, is a token in `packages/map/style/tokens.json` with a value per theme
+in `themes/*.json`. The map reads them through `resolveTheme()`; `palette` in `packages/ui-native/src/theme.ts` is built
+from them and holds no value of its own. `tools/check-colours.mjs` fails on a hex, `rgb()`, `hsl()` or named colour
+anywhere else.
