@@ -36,8 +36,6 @@ import re
 import sys
 from pathlib import Path
 
-from google.auth.transport.requests import AuthorizedSession
-from google.oauth2 import service_account
 from PIL import Image
 
 from store_shots_list import pictures
@@ -194,6 +192,10 @@ def main():
 
     if not os.path.isfile(a.key):
         die(f"no service-account key at {a.key} (owner step: create it in Google Cloud, grant it in Play Console)")
+    # (T1127) the Google client is imported only here, on the network path: plan mode and the picture-list refusal
+    # above run without it (CI has no google.auth).
+    from google.auth.transport.requests import AuthorizedSession
+    from google.oauth2 import service_account
     s = AuthorizedSession(service_account.Credentials.from_service_account_file(a.key, scopes=SCOPE))
     base = f"{API}/{a.package}/edits"
     edit = ok(s.post(base, json={}), "edits.insert")["id"]
