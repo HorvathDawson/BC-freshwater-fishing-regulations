@@ -49,6 +49,9 @@ with the default Claude uses until you answer). Newest first inside each section
   now sets and overrides it; `build-apk.sh` prints a note while it is still there). Nothing breaks if you leave it.
 - Done 2026-11-24 (seen 23:10 by the iOS chat's reports read): iPhone 0.9.0 (45) is with Apple for the external
   testers, state WAITING_FOR_BETA_REVIEW. Nothing to do until Apple answers (usually a day).
+- Answered 2026-11-24 ~23:05 (in the iOS chat, relayed; T1072): "we want the android and iphone images to use the
+  same set ideally. if it is possible. we should generate new images too." Written into T1072 and the store content
+  chat's prompt (roadmap row S): one new set from the 0.9.x app, the same frames for both stores.
 - **Do (you): the three push keys on the production feeds worker** (T996 step 1, still open: at 22:39 the production
   status page listed APNS_KEY, APNS_KEY_ID and APNS_TEAM_ID as missing, so iPhone alerts cannot be sent from
   production). From the main checkout, three commands, each asks for the value:
