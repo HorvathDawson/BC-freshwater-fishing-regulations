@@ -29,7 +29,7 @@ import { openProbe, type ItemId, type SectionId } from "@app/data";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
 import { bottomBarShown, tabsAsRail, useLayoutClass, spotPins, useDayFlow, useLikeVisit, useMapRail, useStationNames, useMyLocation, useOpenAtMe, opensAtMe, useShare, useGaugePageCheck, useMenu, useDataFacts, useSync, useAppUpdate,
-         BackLayerContext, InSeasonContext, InSeasonInboxContext, useIdleOnce, useInSeason, loadRegsStore, useInSeasonInbox, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useWaterRegionsAhead, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, startForFrame, pressCueStore, tapAhead, useTapAwaiting, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
+         BackLayerContext, InSeasonContext, InSeasonInboxContext, useIdleOnce, useInSeason, loadRegsStore, useInSeasonInbox, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useWaterRegionsAhead, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, startForFrame, startSpent, pressCueStore, tapAhead, useTapAwaiting, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { visitSpot } from "@app/data/spots";
 import { connectivity } from "./connectivity";
@@ -362,10 +362,13 @@ export function Shell(p: ShellProps) {
     void nav.opener.item(item as ItemId, "regs");
   }, [searching, go, nav.opener]);
   // (T867) the release in use and the app's version, for the inbox's data / app update rows; a row opens the More tab
-  // (its Data block) or What's new
+  // (its Data block) or What's new. (T1030) `changed`: how many waters the release says it changed, and `changedFrom`
+  // the release it counted against — absent: null, and the row says nothing of it (rule 32; core says it only when this
+  // device held that release)
   const manifest = loader?.manifest ?? null;
   const track = useMemo(() => ({
-    release: manifest ? { id: manifest.data_release, day: manifest.published ?? null } : null,
+    release: manifest ? { id: manifest.data_release, day: manifest.published ?? null,
+                          changed: manifest.changed_waters ?? null, changedFrom: manifest.changed_waters_from ?? null } : null,
     app: menuInfo?.appVersion ?? null,
   }), [manifest, menuInfo?.appVersion]);
   const inboxOpensUpdate = useCallback((kind: "data" | "app") => {
@@ -572,7 +575,7 @@ export function Shell(p: ShellProps) {
     ? <WaterModeHost frame={frame} nav={nav} col={col} source={source} palette={palette} loader={loader} tiles={tiles}
                      theme={theme} feed={feed} rail={rail} spotLayer={spotLayer} camera={camera}
                      waterCamera={waterCamera} fishImages={p.fishImages}
-                     mapDay={mapDay} onDay={setMapDay} start={startForFrame(start, startFor, frame.item)} onStarted={() => setStart(null)} />
+                     mapDay={mapDay} onDay={setMapDay} start={startForFrame(start, startFor, frame.item)} onStarted={(spent) => setStart((held) => startSpent(held, spent))} />
     : null;
   /*
    * (owner 2026-10-29) THE MAP MADE READY BEHIND A LANDING: a page that started on a water (a `/water/<slug>` page) has

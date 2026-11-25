@@ -180,6 +180,13 @@ def world(tmp_path: Path, monkeypatch):
     w["counts"] = {"items": 3}
     monkeypatch.setattr(R, "live_counts", lambda before, after, led: (
         dict(w["counts"]), f"live counts, {before} -> {after}: items {w['counts']['items']}"))
+    # (T1047) the gauge level records moved onto a new zero: read git + the datum file (pinned in test_datum_changes.py)
+    w["gauge_records"], w["gauge_records_since"] = [], []
+
+    def gauge_records(since):
+        w["gauge_records_since"].append(since)
+        return list(w["gauge_records"]), "gauge level records: " + ("; ".join(w["gauge_records"]) or "none moved")
+    monkeypatch.setattr(R, "gauge_records", gauge_records)
     monkeypatch.setattr(R, "diff_summary", lambda rep: f"{rep['rules_changed']} rule(s) bind different sections")
     # the manifest check's real body reads the size gate and publish.plan over real release files: pinned elsewhere
     monkeypatch.setattr(R, "manifest_problems", lambda rid: list(w.get("manifest_problems", [])))
@@ -290,6 +297,72 @@ def test_the_live_counts_are_printed_recorded_and_never_stop_the_release(world, 
     assert f"live counts, {LIVE} -> {NEW}: items 999999" in out
     assert json.loads(R.LEDGER.read_text())["releases"][NEW]["checks"]["counts"] == {"items": 999_999}
     assert (R.HOME / "checks" / NEW / "live_counts.txt").read_text() == f"live counts, {LIVE} -> {NEW}: items 999999\n"
+
+
+def test_a_moved_gauge_level_record_is_its_own_line_and_never_stops_the_release(world, capsys):
+    """(T1047, owner 2026-11-24 "easy to see") each gauge level record the release moves onto a new zero is printed as its
+    own line in the checks, written beside them and kept on the ledger, compared against the live release's commit."""
+    line = "08HD006 level record moved 5.0 m down to the gauge's new zero (Environment Canada note, 2025-06-05)"
+    world["gauge_records"] = [line]
+    R.save_ledger({"releases": {LIVE: {"commit": "c0ffee"}}})
+    assert _staging() == 0
+    out = capsys.readouterr().out
+    assert line in out and "1 gauge level record(s) moved" in out
+    rec = json.loads(R.LEDGER.read_text())["releases"][NEW]
+    assert rec["checks"]["gauge_records"] == [line]
+    assert line in (R.HOME / "checks" / NEW / "gauge_records.txt").read_text()
+    assert world["gauge_records_since"] == ["c0ffee"]                     # the live release's commit
+
+
+def test_gauge_records_reads_the_datum_file_at_the_live_commit(monkeypatch):
+    """The real `gauge_records`: the file at the live release's commit against the file now; no commit in this clone ->
+    every accepted change listed, said so."""
+    from pipeline.gauges.feed import datum
+    now = [{"station": "08HD006", "effective": "2025-06-05", "offset_m": -5.0, "source": "hydat_remark",
+            "status": "accepted"}]
+    monkeypatch.setattr(datum, "load", lambda: now)
+    monkeypatch.setattr(datum, "rows_at", lambda commit, repo: None)
+    monkeypatch.setattr(R, "git_has_commit", lambda rev: rev == "abc")
+    want = "08HD006 level record moved 5.0 m down to the gauge's new zero (Environment Canada note, 2025-06-05)"
+    lines, txt = R.gauge_records("abc")
+    assert lines == [want] and "against the live release's commit abc (no datum file then): 1 moved" in txt
+    monkeypatch.setattr(datum, "rows_at", lambda commit, repo: now)
+    assert R.gauge_records("abc") == ([], "gauge level records (T1047 datum changes), against the live release's "
+                                          "commit abc: none moved")
+    lines, txt = R.gauge_records(None)
+    assert lines == [want] and "every accepted change listed" in txt
+
+
+def test_gauge_records_that_cannot_be_compared_are_said_and_recorded_not_a_stop(monkeypatch):
+    """A git failure or a schema refusal of the datum file at the live commit is never a halt of stage 4 and never hidden:
+    it is the one recorded line "could not be compared: <reason>"."""
+    import subprocess
+    from pipeline.gauges.feed import datum
+    monkeypatch.setattr(datum, "load", lambda: [])
+    monkeypatch.setattr(R, "git_has_commit", lambda rev: True)
+
+    def git_fails(commit, repo):
+        raise subprocess.CalledProcessError(128, ["git", "show"], stderr=b"fatal: bad object abc")
+    monkeypatch.setattr(datum, "rows_at", git_fails)
+    lines, txt = R.gauge_records("abc")
+    assert lines == [f"{R.GAUGE_UNCOMPARED} the datum file at the live release's commit abc (CalledProcessError: "
+                     "fatal: bad object abc)"] and lines[0] in txt
+
+    def refused(commit, repo):
+        raise datum.DatumFileError("08HD006: status 'maybe' is not one of the statuses")
+    monkeypatch.setattr(datum, "rows_at", refused)
+    lines, _ = R.gauge_records("abc")
+    assert lines[0].startswith(R.GAUGE_UNCOMPARED) and "DatumFileError: 08HD006: status 'maybe'" in lines[0]
+
+
+def test_an_uncompared_gauge_record_ships_said_in_the_stage_and_on_the_ledger(world, capsys):
+    line = f"{R.GAUGE_UNCOMPARED} the datum file at the live release's commit c0ffee (CalledProcessError: fatal)"
+    world["gauge_records"] = [line]
+    assert _staging() == 0
+    out = capsys.readouterr().out
+    assert line in out and "gauge level records NOT compared" in out
+    assert json.loads(R.LEDGER.read_text())["releases"][NEW]["checks"]["gauge_records"] == [line]
+    assert line in (R.HOME / "checks" / NEW / "gauge_records.txt").read_text()
 
 
 def test_ids_gone_with_no_alias_are_listed_and_kept_and_never_stop_the_release(world, capsys):
@@ -1893,19 +1966,20 @@ def test_the_cut_stops_when_what_the_app_reads_moved_and_its_dry_run_prints_the_
     from pipeline.tools.emit import app_reads as AR
     run, here, table = cut_repo
     newest = max(table["apps"], key=AR.ver)
+    nxt = ".".join(newest.split(".")[:2] + [str(int(newest.split(".")[2]) + 1)])  # the cut is the patch after the newest row
     monkeypatch.setattr(R, "fetch_trunk", lambda: None)
-    monkeypatch.setattr(R, "trunk_decision", lambda: RV.decide("0.8.5", "x", [_commit("fix(T1): a bug")]))
+    monkeypatch.setattr(R, "trunk_decision", lambda: RV.decide(newest, "x", [_commit("fix(T1): a bug")]))
     monkeypatch.setattr(R, "remote_ref_exists", lambda ref: False)
     made = []
     monkeypatch.setattr(R, "cut_branch", lambda b, commit=None: made.append((b, commit)) or 0)
     state = lambda: (run("for-each-ref"), run("count-objects", "-v"))                          # noqa: E731
     before = state()
-    assert R.main(["--cut", "--dry-run"]) == 0 and R.main(["--cut", "0.8.6", "--dry-run"]) == 0
+    assert R.main(["--cut", "--dry-run"]) == 0 and R.main(["--cut", nxt, "--dry-run"]) == 0
     out = capsys.readouterr().out
     row = json.dumps({"reads": table["apps"][newest]["reads"]}, sort_keys=True)
-    assert out.count(f"app_reads.json (T1048): app 0.8.6: the same formats as {newest}; the version commit adds\n"
-                     f'  "0.8.6": {row}') == 2
-    assert "would cut release/0.8.6" in out and state() == before and made == []
+    assert out.count(f"app_reads.json (T1048): app {nxt}: the same formats as {newest}; the version commit adds\n"
+                     f'  "{nxt}": {row}') == 2
+    assert f"would cut release/{nxt}" in out and state() == before and made == []
 
     pack = here / AR.PACK_TS                                             # water's format moves on main
     text = pack.read_text()
@@ -1914,24 +1988,24 @@ def test_the_cut_stops_when_what_the_app_reads_moved_and_its_dry_run_prints_the_
     run("commit", "-qam", "water moves", "--no-verify")
     run("update-ref", "refs/remotes/origin/main", "HEAD")
     before = state()
-    for argv in (["--cut", "0.8.6", "--dry-run"], ["--cut", "0.8.6"]):
+    for argv in (["--cut", nxt, "--dry-run"], ["--cut", nxt]):
         assert R.main(argv) == 1
         err = capsys.readouterr().err
         assert f"release --cut: refused: {AR.TABLE_REL}: what the app reads moved since {newest} (water: " \
                f"['{old_fmt}'] -> ['water/99'])" in err
         assert "--reads-moved" in err and "Nothing was made" in err
     assert state() == before and made == []
-    assert R.main(["--cut", "0.8.6", "--reads-moved", "water/99 ships in 0.8.6"]) == 0
+    assert R.main(["--cut", nxt, "--reads-moved", f"water/99 ships in {nxt}"]) == 0
     assert "the formats moved since" in capsys.readouterr().out and len(made) == 1
     after = json.loads(run("show", f"{made[0][1]}:{AR.TABLE_REL}"))
-    assert after["apps"]["0.8.6"]["reads"]["water"] == ["water/99"] and after["apps"][newest] == table["apps"][newest]
+    assert after["apps"][nxt]["reads"]["water"] == ["water/99"] and after["apps"][newest] == table["apps"][newest]
     with pytest.raises(SystemExit):
         R.main(["--cut", "--data-only", "--reads-moved", "x"])
     # a row already recorded for the version: kept when it is what the app reads, refused when it is not
-    doc, what = AR.for_cut(after, "0.8.6", after["apps"]["0.8.6"]["reads"])
+    doc, what = AR.for_cut(after, nxt, after["apps"][nxt]["reads"])
     assert doc == after and "already recorded" in what
     with pytest.raises(AR.CutRefused, match="recorded already reading other formats"):
-        AR.for_cut(after, "0.8.6", table["apps"][newest]["reads"])
+        AR.for_cut(after, nxt, table["apps"][newest]["reads"])
 
 
 def test_reads_in_reads_from_a_tree_what_current_reads_reads_from_the_checkout():

@@ -1,7 +1,8 @@
 // T225 port of pipeline/regs/dfo_salmon/live.py `run`: THE LIVE DFO SALMON FEED, one Worker invocation.
 //
 //   feed  (published, R2 feeds/dfo/)   index.json, unplaced.json — byte-identical to the Python's
-//   priv  (never served)               notified.json (sent notices), manifest.json (fetch snapshots),
+//   priv  (never served)               state.json (T905: each region's own bookkeeping, STATE_KEYS — out of the
+//                                      public index), notified.json (sent notices), manifest.json (fetch snapshots),
 //                                      raw/region<slug>-eng.html (last good page), history/region<slug>_<stamp>.html
 //                                      (every changed page: the corpus), entries/region-<slug>.json (the curated
 //                                      entry files — see `EntrySource`), rows/region-<slug>.json (T366: the last
@@ -29,6 +30,7 @@ import { byFingerprint, loadEntryFile, reconcile, waterById, type EntryFile, typ
 import { build, type TypedFeed } from "./feed";
 import { ALL_SLUGS, fetchRegion, isoSeconds, normalizeSlug, PAGES, pageUrl, REAL_SLUGS, type FetchRegionOptions, type RegionSnapshot } from "./fetch";
 import { sha256 } from "./hash";
+import { STATE_KEYS } from "./state";
 import { digest, parseHeader, resolve, type Note } from "./header";
 import { extract, type Location, type Structure } from "./locations";
 import { key } from "./names";
@@ -47,6 +49,12 @@ import { feedMap, readBaseline, rowChanges, rowsNotice, ROWS_KEY, type RowChange
 export const FORMAT = FEED_FORMATS.dfoFeed;
 /** (T676 item 2) the index's `minAppVersion`: the oldest app that reads it (live.py's MIN_APP, one table) */
 export const MIN_APP = FEED_MIN_APP.dfoFeed;
+/** (T905, owner 2026-11-24 "Move worker state out") the private state's format (priv `state.json`) */
+export const STATE_FORMAT = FEED_FORMATS.dfoState;
+export const STATE_KEY = "state.json";
+/** (T905) a region's own bookkeeping, the keys priv `state.json` holds and the index does not (./state.ts) */
+export { STATE_KEYS };
+export interface DfoState { format: typeof STATE_FORMAT; regions: Record<string, Record<string, unknown>> }
 const SPECIES_N = [...SPECIES];
 /**
  * (T851) A region is STALE when its last good read (`checked`) is older than this at a run whose fetch failed — not
@@ -130,6 +138,8 @@ export interface Gone {
 
 export interface DfoResult {
   index: Record<string, unknown>;
+  /** (T905) what the run wrote to priv `state.json`: each region's bookkeeping, which `index` no longer carries */
+  state: DfoState;
   unplaced: Record<string, unknown>[];
   notices: Notice[];
   sent: { sent: string[]; failed: string[]; off: boolean };
@@ -535,6 +545,48 @@ async function readJson(store: Store, k: string, dflt: Json): Promise<Json> {
 
 const nowStamp = () => isoSeconds(new Date(), true);
 
+/**
+ * (T905, live._read_state) Each region's bookkeeping (STATE_KEYS) as the last run left it: priv `state.json` (`text`, as
+ * read; a failed read throws before this) when it is there (a body that does not parse, or another format, THROWS: the
+ * run fails, the last good files stand); with none — the first run after T905's deploy, or a first run at all — the last index's regions, ONCE: an
+ * index a worker before T905 wrote still carries the keys, so the cutover run compares the page hash and the page's
+ * text with the last read's (no page counted as changed, no text re-told, the failures counted on). Logged when it seeds.
+ */
+export function readState(text: string | null, prev: Json, log: (s: string) => void): Record<string, Record<string, unknown>> {
+  if (text === null) {
+    const seeded: Record<string, Record<string, unknown>> = {};
+    for (const [slug, r] of Object.entries((prev.regions || {}) as Record<string, Json>))
+      seeded[slug] = Object.fromEntries(STATE_KEYS.filter((k) => r && k in r).map((k) => [k, r[k]]));
+    const from = Object.entries(seeded).filter(([, r]) => Object.keys(r).length).map(([s]) => s);
+    if (from.length) log(`dfo: no private ${STATE_KEY}: seeded once from the last index's regions (${from.join(", ")})`);
+    return seeded;
+  }
+  let got: Json;
+  try {
+    got = loads(text);
+  } catch (e) {
+    throw new Error(`${STATE_KEY} is stored but does not parse (${e instanceof Error ? e.message : String(e)}); fix or delete it`);
+  }
+  if (!got || typeof got !== "object" || Array.isArray(got) || got.format !== STATE_FORMAT || !got.regions
+      || typeof got.regions !== "object" || Array.isArray(got.regions))
+    throw new Error(`${STATE_KEY} is not a ${STATE_FORMAT} state; fix or delete it (the next run then seeds it from the last index)`);
+  return got.regions;
+}
+
+/** (T905, live._split) A region's record as the run builds it -> [what the index publishes, the private bookkeeping]. */
+export function splitRegion(reg: Json): [Json, Record<string, unknown>] {
+  const keys = new Set<string>(STATE_KEYS);
+  return [Object.fromEntries(Object.entries(reg).filter(([k]) => !keys.has(k))),
+          Object.fromEntries(STATE_KEYS.filter((k) => k in reg).map((k) => [k, reg[k]]))];
+}
+
+/** (T905) Each published region with its bookkeeping back on it: the worker's own readers (/status `dfoHeld`, the
+ *  run's health record) read `failures` there, as they read it on the index before. */
+export function regionsWithState(index: Json, state: DfoState): Record<string, Json> {
+  return Object.fromEntries(Object.entries((index.regions || {}) as Record<string, Json>)
+    .map(([slug, r]) => [slug, { ...r, ...(state.regions[slug] || {}) }]));
+}
+
 /** (T668 option 2) The pair table as the feed carries it: `{format, release, pairs: [[a, b, answer]]}`. (T669 item 3,
  *  LF) `named`, when present: `[a, b, region of a, region of b, answer]` for two openings whose answer names other
  *  regions in another region pair (`pipeline.deliver.salmon_pairs.pairs`); additive, so an app before 0.8.4 reads
@@ -610,7 +662,12 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
   const regionOut: Record<string, Json> = {};
   const unplaced: Json[] = [];
   const notices: Notice[] = [];
-  const prevRegions = prev.regions || {};
+  // (T905) each region as the last run left it: its public record with its private bookkeeping back on it — the
+  // bookkeeping from the state only (an index before T905 still carrying it is read through readState's seed)
+  const stateRead = await deps.priv.get(STATE_KEY);
+  const lastState = readState(stateRead, prev, log);
+  const prevRegions: Record<string, Json> = Object.fromEntries(Object.entries((prev.regions || {}) as Record<string, Json>)
+    .map(([slug, r]) => [slug, { ...splitRegion(r)[0], ...(lastState[slug] || {}) }]));
   // (T759, live.run) the issues of the regions READ this run, by water; `unread` names the others and why
   const issues = new Map<string, IssueWater>();
   const noWater: Issue[] = [];
@@ -829,8 +886,10 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
 
   const sortedLocs: Record<string, Json> = {};
   for (const k of Object.keys(locs).sort(cmpStr)) sortedLocs[k] = locs[k];
+  // (T905) each region split: the index publishes what an app reads, priv state.json keeps the run's own bookkeeping
   const regions: Record<string, Json> = {};
-  for (const s of ALL_SLUGS) if (s in regionOut) regions[s] = regionOut[s];
+  const state: DfoState = { format: STATE_FORMAT, regions: {} };
+  for (const s of ALL_SLUGS) if (s in regionOut) [regions[s], state.regions[s]] = splitRegion(regionOut[s]);
   // robust: number verdicts / gears canonically (first use over the sorted locations; NOT_LISTED stays 0) so a carried
   // region and a re-typed one publish the same bytes — what lets an unchanged feed skip its write
   const [vItems, gItems] = robust ? canonical(sortedLocs, verdicts.items, gears.items) : [verdicts.items, gears.items];
@@ -843,7 +902,16 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     .map((u, i) => ({ u, i }))
     .sort((a, b) => cmpTuple([a.u.region, a.u.fingerprint], [b.u.region, b.u.fingerprint]) || a.i - b.i)
     .map((x) => x.u);
+  // (T905) THE ORDER (live.run's). Steady state: the index, then the state — a run that fails between the two leaves
+  // the last state, so the next run compares against it again and finds the same change (the notices are sent after
+  // both puts, so a failed run sent none: told once, by the next run); state first would lose an urgent text notice for
+  // good. The cutover (no state.json read): the state first — an index without the keys over no state would leave the
+  // next run with neither, and it would read every page for the first time. The state is put only when it moved.
+  const stateText = JSON.stringify(state);
+  const putState = async () => { if (stateText !== stateRead) await deps.priv.put(STATE_KEY, stateText, { contentType: "application/json" }); };
+  if (stateRead === null) await putState();
   await deps.feed.put("index.json", feedText(index), { contentType: "application/json", cacheControl: "public, max-age=300, stale-while-revalidate=3600" });
+  if (stateRead !== null) await putState();
   await feedStore.put("unplaced.json", feedText(unplacedSorted), { contentType: "application/json", cacheControl: "public, max-age=300, stale-while-revalidate=3600" });
   if (aware) {
     // a region not run this time keeps its last inputs; one held / failed this run has none (re-typed next run)
@@ -864,7 +932,7 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     messageOf: (n) => n.text,
     log,
   });
-  return { index, unplaced, notices: robust ? notices : notices.map(({ key, text }) => ({ key, text })), sent, skipped };
+  return { index, state, unplaced, notices: robust ? notices : notices.map(({ key, text }) => ({ key, text })), sent, skipped };
 }
 
 /** (T366) the page's rule-row changes on known places against the last typed page of the region (priv `rows/`): ONE

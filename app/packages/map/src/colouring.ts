@@ -36,8 +36,8 @@
  * patched binding's per-tile event (`native/useColouring.ts`, deps.md). Only how a channel's style-borne values reach
  * the style differs: a paint call on the web, a style swap on the phone (`nativeStyle`'s `values`).
  */
-import { readingDayOf, dayProfiles, finfishDayLabels, isolateDay, methodDayProfiles, methodLabel, profileLabel, salmonDayIndex, salmonDayProfiles,
-         salmonLabel, stockRecency, type LakeFacts, type SalmonMapStatus, type WaterStatus, type MethodFacts, type RunTimingFacts, type SalmonFacts,
+import { readingDayOf, dayProfiles, finfishDayLabels, isolateDay, methodDayProfiles, methodLabel, profileLabel, salmonBankLabels, salmonDayIndex,
+         salmonDayProfiles, salmonLabel, stockRecency, type LakeFacts, type SalmonMapStatus, type WaterStatus, type MethodFacts, type RunTimingFacts, type SalmonFacts,
          type StatusIndex } from "@app/core";
 import type { ChannelValues, MapAdapter, MapHandle } from "./adapters/contract";
 import { SALMON_LABEL_KEY, type StandingValues, type StatusDay, type Tokens } from "./style";
@@ -72,7 +72,7 @@ export interface LakeFeed {
 }
 
 /** The colourings that label sections: one per question a release's data answers on the map. */
-export type Channel = "status" | "standing" | "stocked" | "survey" | "salmon" | "method" | "runs" | "issue";
+export type Channel = "status" | "standing" | "stocked" | "survey" | "salmon" | "method" | "runs" | "issue" | "bank" | "half";
 
 /**
  * (T211) THE SALMON COLOURING as the map is told it — ONLY on a proven pair: the release's DFO salmon (each section's
@@ -93,6 +93,44 @@ export function salmonInput(s: SalmonFeed): ChannelInput {
     labels: { key: SALMON_LABEL_KEY, of: f, label: (id) => salmonLabel(f, id) },
     valuesKey: `${salmonDayIndex(s.day)}:${s.only ?? ""}`,
     values: () => isolateDay(salmonDayProfiles(f, s.day), s.only ?? null),
+  };
+}
+
+/**
+ * (T1029, look B, owner 2026-11-24) THE ONE-BANK CUE, from the salmon feed: each section a DFO place for one bank stands
+ * beside wears "<side><bank chain>" ("Ls42": @app/core `salmonBankLabels`) in feature-state `bk`, fixed for the facts;
+ * the style (`paint.ts` `bankHalfPaint` / `bankCuePaint`) paints that half in the bank chain's answer on the salmon day,
+ * so a new day is the salmon channel's paint change and no call here. Null where the facts carry no `bk` (a release
+ * before T1029): nothing is labelled and no cue is drawn.
+ */
+export function bankInput(s: SalmonFeed): ChannelInput | null {
+  const banks = salmonBankLabels(s.facts);
+  if (!banks.size) return null;
+  return {
+    labels: { key: "bk", of: banks, label: (id) => banks.get(id) },
+    valuesKey: "bank",
+    values: () => null,
+  };
+}
+
+/**
+ * (T1029 Q6) THE RULE BOOK'S ONE-HALF CLOSURES as the map is told them (`MapProps.halves`): per section, the side of the
+ * drawn line its closed half is on ("L" / "R": @app/core `bookHalves`, from the salmon HEAD's `bs` — never the slices,
+ * which the web reads only on the first Salmon press, and the Standard map is where these are drawn). Fixed for the
+ * release. Each such section wears it in feature-state `bb`; the Standard map's paint (`paint.ts` `bankHalfPaint`)
+ * draws it. Its own key beside the one-bank `bk`: a section may carry both, and each colouring reads only its own.
+ */
+export interface HalvesFeed {
+  readonly halves: ReadonlyMap<number, "L" | "R">;
+}
+
+/** The half channel: "L" / "R" in feature-state `bb` on each section with a closed half; nothing elsewhere. */
+export function halfInput(s: HalvesFeed): ChannelInput {
+  const halves = s.halves;
+  return {
+    labels: { key: "bb", of: halves, label: (id) => halves.get(id) },
+    valuesKey: "half",
+    values: () => null,
   };
 }
 
@@ -203,8 +241,11 @@ export function statusInput(s: ProfileStatus, salmon?: SalmonFeed | null): Chann
     labels: { key: "p", of: index, label: (id) => profileLabel(index, id) },
     valuesKey: `${readingDayOf(s.day)}:${only ?? ""}${fin.length ? `:${fin.join(",")}` : ""}`,
     values: (): StatusDay => {
-      const day = isolateDay(dayProfiles(index, s.day), only);
-      return fin.length ? { ...day, ...(shown ? { finfish: fin } : { finfishNone: fin }) } : day;
+      const base = dayProfiles(index, s.day), day = isolateDay(base, only);
+      // (T1029 Q6) the isolate, said (`isolateDay` hands back a new day only when it isolated): for the book's closed
+      // halves, which no day label carries
+      const away = only !== null && day !== base ? { alone: [only] as const } : {};
+      return fin.length ? { ...day, ...away, ...(shown ? { finfish: fin } : { finfishNone: fin }) } : { ...day, ...away };
     },
   };
 }
@@ -425,11 +466,11 @@ export class Colouring {
 
 /**
  * THE KEYS ONLY THE ENGINE WRITES on a section: the channels' labels (the day-profile `p`, the `standing` value, the
- * lake facts' `stocked` and `survey`, the salmon `sp`, the method `gm`) — and `status` / `salmon`, the keys of the pushed path T74 removed.
+ * lake facts' `stocked` and `survey`, the salmon `sp`, the method `gm`, the run `rt`, the issue `gi`, the bank `bk`, the book's half `bb`) — and `status` / `salmon`, the keys of the pushed path T74 removed.
  * Pushed through `data` they would be a second pathway beside the engine (owner 2026-10-21: "it should be a single
  * pathway"): both maps refuse them, and report it (tools/one-colouring-engine.test.ts).
  */
-export const ENGINE_KEYS: readonly string[] = ["p", "standing", "status", "stocked", "survey", "sp", "salmon", "gm", "rt", "gi"];
+export const ENGINE_KEYS: readonly string[] = ["p", "standing", "status", "stocked", "survey", "sp", "salmon", "gm", "rt", "gi", "bk", "bb"];
 
 type Pushed = Record<string, Record<string, Record<string, unknown>>>;
 

@@ -23,6 +23,8 @@ import { crashUrlFor, ORIGINS, REPORT_URLS } from "../../apps/mobile/src/env";
 import { clip, esc, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, type Site } from "./html";
 import type { GaugeConfig } from "./gaugeClient";
 import { FIND_BODY } from "./regionMap";
+import { gaugeFindForm } from "./gaugeFind";
+import type { SearchGauge } from "./gaugeSearch";
 import { bestServes, gaugePath, gaugeSubject, STALE_AFTER_MS, STORE_CONTACT, TRUST_RANK, type GaugeParameter, type GaugeRows, type ServesTrust } from "@app/core";
 import type { StationClim } from "@app/data";
 import { readGaugeClim, readGaugeRows } from "@app/data/release";
@@ -124,6 +126,24 @@ const JOIN_REPORTER: readonly string[] = ["isEnvironment", "crashReport", "pageR
 /** (T1010) a region hub's water search: its script (regionMap.ts) with the page reporter written in, as the Join card's */
 export function findScript(): string {
   return `(function(){"use strict";\n${inlineCore("gaugeClient.ts", JOIN_REPORTER, HERE)}\n${FIND_BODY}\n})();\n`;
+}
+
+/**
+ * (T1107) THE /gauges SEARCH'S SCRIPT: gaugeFindEntry.ts bundled (core's search index and the page's drawing, one plain script), with the page
+ * reporter written in before it (the entry names it as a global, as the region find's script is wrapped).
+ */
+export async function gaugeFindScript(): Promise<string> {
+  const { build: esbuild } = await import("esbuild");
+  const r = await esbuild({
+    entryPoints: [join(HERE, "gaugeFindEntry.ts")], absWorkingDir: join(HERE, "../.."),
+    bundle: true, minify: true, format: "iife", platform: "browser", target: "es2020", write: false, logLevel: "silent",
+    // the reporter is the page's own (written in below), never bundled from gaugeClient.ts
+    plugins: [], define: { "process.env.NODE_ENV": '"production"' },
+  });
+  if (r.errors.length) throw new Error(`seo: the gauges search script did not build: ${r.errors.map((e) => e.text).join("; ")}`);
+  const js = r.outputFiles[0]!.text;
+  browserSafe(js);
+  return `(function(){"use strict";\n${inlineCore("gaugeClient.ts", JOIN_REPORTER, HERE)}\n${js}\n})();\n`;
 }
 
 /**
@@ -321,8 +341,23 @@ export function gaugeWordsProblems(g: GaugeModel, title: string, description: st
   return bad;
 }
 
-export function gaugesIndexBody(gs: readonly GaugeModel[], asOf: string): string {
+/** (T1107) the search's gauges: each station's name, page, position, main water and the waters it is a gauge ON (own, lake, good) */
+export function searchGauges(gs: readonly GaugeModel[]): SearchGauge[] {
+  return gs.map((g) => ({ station: g.station, name: g.name, path: g.path, lat: g.lat, lon: g.lon,
+    water: (g.main[0] ?? g.close[0] ?? g.rough[0])?.name ?? null, on: g.main.map((w) => w.id) }));
+}
+
+/** (T1107) the one line a visitor from a search engine reads first: what the page is, and where the rules are */
+export const GAUGES_LEDE = "Find the river gauge nearest a town, or on a river or lake: live flow and level, the last 7 days and the forecast where one runs. " +
+  "Each gauge's page links to the fishing regulations of the waters it serves.";
+
+/** (owner 2026-11-25: "to view the conditions visually on a map go here") the line and its link text: a proposal, the owner's words are an example */
+export const CONDITIONS_MAP_WORDS = "To see the conditions of every water on a map, open the Conditions map.";
+export const CONDITIONS_MAP_LINK = "Open the Conditions map";
+
+export function gaugesIndexBody(gs: readonly GaugeModel[], asOf: string, find: { index: string; script: string; cfg: { crash: string | null; env: string; release: string; live: string }; conditions: string } | null = null): string {
   return `<nav class="crumbs"><a href="/">Home</a> › River gauges</nav><h1>River gauges in BC</h1>` +
+    `<p>${esc(GAUGES_LEDE)}</p>` + (find ? `<div class="card mapline"><p>${esc(CONDITIONS_MAP_WORDS)}</p><div class="opens"><a class="app" href="${esc(find.conditions)}">${esc(CONDITIONS_MAP_LINK)}</a></div></div>` : "") + (find ? `${gaugeFindForm(find.index, find.cfg)}<script src="${esc(find.script)}" defer></script>` : "") +
     `<p>${gs.length} Water Survey of Canada gauges on waters with fishing regulations: each page shows the live flow, the last ` +
     `7 days, the flow forecast where the BC River Forecast Centre runs one, and the weather at the gauge. ` +
     `List as of <time datetime="${esc(asOf)}">${esc(asOf)}</time>.</p>` +

@@ -623,7 +623,7 @@ def test_a_dead_piece_is_reported_once_however_many_variants_ride_it(monkeypatch
 
     def place(lid, resolved, dup=None):
         return NS(location_id=lid, binding=NS(resolved=resolved), is_variant=dup is not None, duplicate_of=dup,
-                  water_id=None, tidal_water=False)
+                  water_id=None, tidal_water=False, source_text={})
     target = place("2:x:target", True)
     ef = NS(locations=[place("2:x:target~2", False, target.location_id), target,
                        place("2:x:target~3", False, target.location_id)], waters=[], water=lambda _w: None)

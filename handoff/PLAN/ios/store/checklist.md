@@ -1,5 +1,7 @@
 # App Store Connect: ordered checklist (T727, PROPOSAL for the owner)
 
+**Superseded 2026-11-24 by `handoff/PLAN/ios/APP-STORE-SUBMISSION.md` (T1071), the page the owner pastes from. Where the two differ, that page is right (it was re-read against build 0.9.0 (45): push token, Precise vs Coarse, linked answers, the More menu paths). This page is kept as the evidence behind it.**
+
 A proposal, nothing entered. Order is the order of the screens in App Store Connect as far as I know them (check against the
 live screens). "Who": OWNER = only you can; DONE = already in the repo; ACCOUNT = needs the Apple Developer account first;
 T86 = needs production data and hosting live; OTHER LANE = being made by another lane (screenshots, video).
@@ -26,7 +28,7 @@ T86 = needs production data and hosting live; OTHER LANE = being made by another
 | # | Field | Value or page | Who |
 |---|---|---|---|
 | 11 | Promotional text (170 max, optional) | Play short description, 74 chars: see `listing.md` here | OWNER |
-| 12 | Description (4000 max) | `handoff/PLAN/play/store-description.md` unchanged, 3924 chars incl. the disclaimer (fits). Check "approximately 500 MB" against the real size; review notes say about 480 MB | DONE (text), OWNER to paste |
+| 12 | Description (4000 max) | `app/store-listing/listing.json` unchanged, 3924 chars incl. the disclaimer (fits). Check "approximately 500 MB" against the real size; review notes say about 480 MB | DONE (text), OWNER to paste |
 | 13 | Keywords (100 max) | `fishing,BC,regulations,rules,freshwater,river,lake,trout,salmon,steelhead,angling,license,flow,gauge` (exactly 100 characters, counted today; Apple may count commas, check) (`listing-draft.md`) | DONE |
 | 14 | Support URL | https://canifishthis.ca/about | DONE (page up when prod is) |
 | 15 | Marketing URL (optional) | https://canifishthis.ca | OWNER |
@@ -61,7 +63,7 @@ Owner settled "Can I Fish This?" on both stores (2026-11-13). Earlier decision (
 | Permission prompts | `app.json` plugins (photos, camera, location) | "Allow Can I Fish This? ..." (literal text) | what the person reads in iOS permission dialogs |
 | `APP_NAME` | `app/packages/core/src/menu/words.ts:9` | Can I Fish This? | the name inside the app (About, Legal, etc.) |
 | Store name | App Store Connect field 4 above | to be entered | search and the listing |
-| Listing text and subtitle | `store-description.md`, `listing-draft.md` | Can I Fish This? | description text |
+| Listing text and subtitle | `app/store-listing/listing.json`, `listing-draft.md` | Can I Fish This? | description text |
 | Changelog line | `app/packages/core/src/changelog.ts:201` | "New name on the home screen, Can I Fish?" | history text only |
 | Slug / Xcode product | `app.json:4` slug `canifishthis`, product name | canifishthis / CanIFish | not shown to users except in crash logs (T365) |
 

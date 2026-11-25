@@ -20,7 +20,7 @@ import {
   buildModel, buildRegsPage, drawnRows, listRows, makePlace, segmentIndex, setFailureSink, settle, tableCovers, tapDay, troutOf,
   TROUT_NAV, TroutRefused, type RegsInputs, type RegsPage, type RuleIndex, type TroutValue, type TroutVM,
   FISH, FISH_TIPS, SPECIES_SHEET, TROUT_SHEET, TROUT_SOURCES_KEY, troutIdSheet, TroutLooksMissing, WORDS, type SheetBlock, type SheetVM,
-  lineSourcesOf, sourcesText,
+  lineSourcesOf, sourcesText, bookText,
 } from "@app/core";
 import { openTroutFixture, TROUT_FIXTURE_ROOT } from "@app/data/release/node";
 import { loadRegsInputs, openRegsStore, targetFor, type RegsStore } from "@app/data/regs";
@@ -426,6 +426,38 @@ const lineOf = (b: SheetBlock): string => ("text" in b && Array.isArray(b.text) 
 /** The rule keys a sheet's Sources block lists, in its order. */
 const sourceKeys = (bs: readonly SheetBlock[]): (string | null)[] =>
   bs.flatMap((b) => (b.k === "sources" ? b.groups.flatMap((g) => g.rows.map((r) => r.key)) : []));
+/** (T1031 option B) Lois Lake's Dolly Varden row, its breakdown whole (6 rules; the frame's cut list was the first 4) */
+const LOIS_DV = [
+  "B.C. Synopsis",
+  "Keep up to 4 trout and char a day · “Trout/char: 4” · B.C. Synopsis p.21 ↗",
+  "At most 1 Dolly Varden/bull trout or lake trout a day · “1 char (bull trout, Dolly Varden, or lake trout)” · B.C. Synopsis p.21 ↗",
+  "At most 1 trout or char (not steelhead) over 50 cm (20 in) a day · “1 over 50 cm” · B.C. Synopsis p.21 ↗",
+  "No Dolly Varden/bull trout or lake trout under 60 cm (24 in) · “none under 60 cm” · B.C. Synopsis p.21 ↗",
+  "Possession: twice the daily quota · “Possession quotas = 2 daily quotas” · B.C. Synopsis p.21 ↗",
+  "No wild trout or char over 40 cm (16 in) · “no wild trout 40 cm or more” · B.C. Synopsis p.24 ↗[hl]",
+];
+/** (T1031 option B) the Vedder's steelhead row, its breakdown whole (9 rules; the frame's cut list was the first 4) */
+const VEDDER_ST = [
+  "B.C. Synopsis",
+  "Keep up to 4 trout and char a day · “Trout/char: 4” · B.C. Synopsis p.21 ↗",
+  "At most 2 trout or char over 50 cm (20 in) a day · “1 over 50 cm (2 hatchery steelhead over 50 cm allowed)” · B.C. Synopsis p.21 ↗",
+  "Up to 10 hatchery steelhead a licence year · “The annual province-wide quota for hatchery steelhead is 10.” · B.C. Synopsis p.6 ↗",
+  "Stop fishing after your daily limit of hatchery steelhead · “When you have caught and retained your daily quota of hatchery steelhead from any water, you must stop fishing that water for the remainder of that day.” · B.C. Synopsis p.21 ↗",
+  "Write each hatchery steelhead on your licence right away · “You must immediately record your retention of hatchery steelhead on your basic angling licence.” · B.C. Synopsis p.6 ↗",
+  "Possession: twice the daily quota · “Possession quotas = 2 daily quotas” · B.C. Synopsis p.21 ↗",
+  "Release wild trout and char from streams · “Wild trout/char from streams” · B.C. Synopsis p.21 ↗",
+  "At most 2 hatchery trout and char a day from streams · “2 from streams (must be hatchery)” · B.C. Synopsis p.21 ↗",
+  "At most 1 trout or char (not steelhead) over 50 cm (20 in) a day · “1 over 50 cm” · B.C. Synopsis p.21 ↗",
+];
+/** (T1031 option B) the breakdown's rows ("Where each rule comes from"), in drawn order. */
+const breakdownRows = (vm: SheetVM) =>
+  section(vm, SPECIES_SHEET.BREAKDOWN).flatMap((b) => (b.k === "sources" ? b.groups.flatMap((g) => g.rows) : []));
+/** (T1031 option B) the breakdown as drawn: each group's head, then each rule's title, the book's words and its pages
+ *  ("[hl]": the page link carries its rule's highlight), one string each */
+const breakdownText = (vm: SheetVM): string[] =>
+  section(vm, SPECIES_SHEET.BREAKDOWN).flatMap((b) => (b.k === "sources" ? b.groups.flatMap((g) => [g.where, ...g.rows.map((x) =>
+    [x.title ?? "", `“${x.quote}”`, ...x.book.map((l) => (l.t === "book" ? `${bookText(l)}${l.box?.length ? "[hl]" : ""}` : "s" in l ? l.s : ""))]
+      .filter((s) => s.trim()).join(" · "))]) : []));
 const linksOf = (vm: SheetVM): string[] =>
   // (T1031 item 3) the sheet's links: its "How to tell a hatchery fish ›" (a link block) and its Source line's "All sources ›"
   vm.blocks.flatMap((b) => (b.k === "source" || b.k === "link" ? b.line.flatMap((r) => (r.t === "link" && typeof r.open === "string" ? [r.open] : [])) : []));
@@ -477,12 +509,15 @@ describe("T810 P: the trout fish sheet over every vector", () => {
           expect(all.filter((x) => !whose(x)).every((x) => all.filter((y) => y.rule === x.rule).length === 1), at).toBe(true);
           expect(drawn.every((k) => k !== null && r.src.map(keyOf).includes(k)), at).toBe(true);
         }
-        // (T1031 item 4) then where each rule comes from: `FishSheet.src` exactly, by authority (each rule's pages highlighted)
-        expect(sourceKeys(section(vm, SPECIES_SHEET.BREAKDOWN)), at).toEqual(r.sheet.src.map(keyOf));
+        // (T1031 item 4; option B, owner 2026-11-24 "Go on to B") then where each rule comes from: EVERY rule of the row,
+        // `TRow.src` exactly (Python's whole list, in its order), by authority (each rule's pages highlighted). All of these
+        // rules are the synopsis's in the vectors, so the authority grouping keeps Python's order whole
+        expect(sourceKeys(section(vm, SPECIES_SHEET.BREAKDOWN)), at).toEqual(r.src.map(keyOf));
         expect(section(vm, TROUT_SHEET.SOURCES), at).toEqual([]);
-        expect(r.sheet.src.length, at).toBeLessThanOrEqual(4);
+        // the frame's own cut list stays at most 4 (an installed 0.9.0 refuses more) and is the whole list's head
+        expect([r.sheet.src.length <= 4, r.src.slice(0, r.sheet.src.length)], at).toEqual([true, [...r.sheet.src]]);
         expect(linksOf(vm).at(-1), at).toBe(TROUT_SOURCES_KEY);
-        if (!ascending(r.sheet.src)) unsortedSheet++;
+        if (!ascending(r.src)) unsortedSheet++;
       }
       const all = page.sheet(TROUT_SOURCES_KEY);
       expect([all?.title, sourceKeys(all?.blocks ?? [])], c.name).toEqual([TROUT_SHEET.SOURCES, f.src.map(keyOf)]);
@@ -531,18 +566,33 @@ describe("T810 P: the trout fish sheet over every vector", () => {
         const got = line.links.flatMap((l) => (l.k === "book" ? [[l.printed, l.pdf, new Set((l.box ?? []).map(boxKey))] as const] : []));
         expect(got, at).toEqual([...want.entries()].sort(([a], [z]) => a - z).map(([p, w]) => [p, w.pdf, w.boxes]));
         expect(line.links.at(-1), at).toMatchObject({ k: "sheet", label: TROUT_SHEET.ALL_SOURCES, open: TROUT_SOURCES_KEY });
-        // the breakdown's pages are all on the line; some rows' lines carry a page the breakdown (cut to 4) does not
-        const listed = new Set(r.sheet.src.flatMap((ix) => inp.rules.get(ix).facts!.book.map(([p]) => p)));
-        if ([...want.keys()].some((p) => !listed.has(p))) beyond++;
+        // (option B) the line's pages are exactly the breakdown's: every page the line names has its rule in the list
+        const listed = new Set(breakdownRows(vm).flatMap((x) => x.book.flatMap((l) => (l.t === "book" ? [l.printed] : []))));
+        expect([...want.keys()].filter((p) => !listed.has(p)), at).toEqual([]);
+        // (the measure, 2026-11-24: 19 of 356 rows) a page only the rules past Python's cut to 4 cite
+        if ([...want.keys()].some((p) => !r.sheet.src.some((ix) => inp.rules.get(ix).facts!.book.some(([q]) => q === p)))) beyond++;
         if (c.name === "lois-jul15" && r.key === "DV") lois = sourcesText(line);
       }
     }
     expect(rows).toBeGreaterThan(300);
-    // (the measure, 2026-11-24: 19 of 356 rows) a page only the cut rules cite: a line built from `FishSheet.src` fails here
+    // a line built from `FishSheet.src` fails here
     expect(beyond).toBeGreaterThan(10);
     // AGENTS 33, the whole line: Lois Lake's Dolly Varden row is Region 2's (p.21) AND the lake's own row's (p.24: its
     // "Hatchery only: wild ones go back", the 5th rule of the row, past the breakdown's four)
     expect(lois).toBe("Source B.C. Synopsis p.21 ↗ p.24 ↗ All sources ›");
+    expect(reports).toEqual([]);
+  });
+
+  it("(T1031 option B, owner 2026-11-24 \"Go on to B\") a row's breakdown lists EVERY rule that decided it, whole", async () => {
+    const sheetOf = async (name: string, row: string) => {
+      const c = V.cases.find((x) => x.name === name)!;
+      return pageOf(await inputsOfCase(c)).sheet(`tf:${row}`)!;
+    };
+    // AGENTS 33, the whole list. Lois Lake's Dolly Varden: Region 2's four, then possession (p.21) and the lake's own rule
+    // (p.24, "Hatchery only: wild ones go back"), the 5th and 6th, past the old cut to 4
+    expect(breakdownText(await sheetOf("lois-jul15", "DV"))).toEqual(LOIS_DV);
+    // the Vedder's steelhead: 9 rules, every one listed
+    expect(breakdownText(await sheetOf("vedder-jul15", "ST"))).toEqual(VEDDER_ST);
     expect(reports).toEqual([]);
   });
 

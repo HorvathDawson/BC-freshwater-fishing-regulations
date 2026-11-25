@@ -14,8 +14,8 @@ One page, one pointer (T437): a new chat reads, in order,
    the owner) becomes a ticket AND a row in `handoff/PLAN/play-production-access/feedback-log.md`** (anonymous tag, no
    names; T1046, the production-access record, until Google approves). Keep `questionnaire-draft.md` in step with it (Q3, Q7, Q8); each release updates it (runbook Step 8).
 1. `AGENTS.md` (every rule), then `CLAUDE.md`.
-2. The newest restart page: **`handoff/PLAN/NEXT-SESSION-2026-11-22-evening.md`** (written 2026-11-22 20:15: the 0.9.0
-   batch chat, stopped early for credits; open PRs, lanes' State lines in tickets, then the question round and the cut).
+2. The newest restart page: **`handoff/PLAN/NEXT-SESSION-2026-11-24-after-090.md`** (written 2026-11-24: 0.9.0 shipped
+   everywhere; the next chat comes from `ROADMAP-after-0.9.0.md`).
 3. The top entry of `handoff/PLAN/STATUS.md` (what changed last), and the owner to-do (what only the owner can do):
    `node app/tools/ledger.mjs` builds it into `handoff/PLAN/views/OWNER-TODO.md` from one file per item in
    `handoff/PLAN/owner-todo/` (T1041; `handoff/PLAN/OWNER-TODO.md` says how to add one). A view may be stale (the hooks

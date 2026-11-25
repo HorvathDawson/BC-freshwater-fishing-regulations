@@ -1,5 +1,7 @@
 # App Store age rating answers (T727, PROPOSAL for the owner)
 
+**Superseded 2026-11-24 by `handoff/PLAN/ios/APP-STORE-SUBMISSION.md` (T1071), the page the owner pastes from. Where the two differ, that page is right (it was re-read against build 0.9.0 (45): push token, Precise vs Coarse, linked answers, the More menu paths). This page is kept as the evidence behind it.**
+
 A proposal. Nothing is entered. Expected result: the lowest rating (4+ on the old scale; check which tiers Apple now shows,
 since Apple changed its age tiers in 2025 and the question list changed with it). Apple's question wording below is from
 memory of its categories: where a question may be worded differently on your screen, the answer still follows the "why".
@@ -8,7 +10,7 @@ Related earlier answer: `handoff/PLAN/app-integration/store/listing-draft.md` ("
 ## What the app is, and how I checked each claim (2026-11-14)
 | Claim | Checked how | Status |
 |---|---|---|
-| Fishing regulations and maps; no game | store-description.md, listing.md fact sheet | verified (docs) |
+| Fishing regulations and maps; no game | app/store-listing/listing.json, listing.md fact sheet | verified (docs) |
 | No accounts, no sign-in | T365 "Met" table; no sign-in code seen; `app.json` has no auth plugin | verified (T365 + app.json) |
 | No chat, no messages between users, no user-to-user content | no such feature in the fact sheet; no server stores user content except problem reports sent to the owner | verified from docs; no screen-by-screen walk |
 | Photos are the reader's own, kept on the phone | `app.json` photo and camera prompts say "stay on this device"; data-safety.md row 7 | verified (docs + prompts) |

@@ -612,6 +612,8 @@ def read(bundle: Path) -> dict:
             **({"see": _j(e["see"], [])} if e["see"] else {}),
             # T981: who closed it, on a local authority's closure only (it prints on no page)
             **({"authority": _j(e["authority"], None)} if e["authority"] else {}),
+            # T1053: the row covers its tributaries — every rule of it without a flag of its own inherits it (AGENTS 9)
+            **({"includes_tributaries": True} if e["includes_tributaries"] else {}),
         }
 
     rules = {}

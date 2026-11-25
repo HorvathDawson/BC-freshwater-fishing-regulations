@@ -1,0 +1,152 @@
+"""T1053: the per-head-lake binding diff the owner reads before anything ships.
+
+    python headlake_list.py ATLAS BEFORE AFTER LIVE OUTDIR
+
+BEFORE = the same code with `A_WHOLE_WATERS_WALK_CLIMBS_ITS_HEAD_LAKE` off (the mutation pin), AFTER = with it on, LIVE =
+the live release's reach run. Every section a rule gains BEFORE -> AFTER is attributed to the head lake(s) its walk
+climbed (the `head_lake` diagnostic of AFTER, `tributaries.subtree` of the lake); a gain under no climbed lake, any
+loss, any unresolved change, any licensing or DFO move is listed as OUTSIDE (the gate: it must be empty)."""
+import gzip
+import json
+import sys
+from collections import defaultdict
+from pathlib import Path
+
+from pipeline.atlas.graph import tributaries as T
+from pipeline.atlas.reach import outside
+from pipeline.atlas.reach.binding_diff import diff_runs
+from pipeline.atlas.reach.io import iter_rule_sections
+from pipeline.atlas.registry import load_registry
+from pipeline.common.io.serialize import read_artifact
+from pipeline.common.models import NodeKind
+from pipeline.regs.parsing import io as parse_io
+
+atlas, before, after, live, out = (Path(a) for a in sys.argv[1:6])
+out.mkdir(parents=True, exist_ok=True)
+
+heads = {}                                   # (eid, rid) -> [lake verdicts]
+for line in open(after / "rule_diagnostic.jsonl"):
+    d = json.loads(line)
+    if d["kind"] == "head_lake":
+        pl = d["payload"]; pl = json.loads(pl) if isinstance(pl, str) else pl; heads[(d["entry_id"], d["rule_id"])] = pl["lakes"]
+
+if (out / "binding_diff_live_after.json").exists():
+    rep_ba = json.load(open(out / "binding_diff_before_after.json"))
+else:
+    print("diff before -> after ...", flush=True)
+    rep_ba = diff_runs(before, after)
+    print("diff live -> after ...", flush=True)
+    rep_la = diff_runs(live, after)
+    json.dump(rep_ba, open(out / "binding_diff_before_after.json", "w"), indent=1, sort_keys=True, default=str)
+    json.dump(rep_la, open(out / "binding_diff_live_after.json", "w"), indent=1, sort_keys=True, default=str)
+
+changed = {}
+for k, v in (rep_ba.get("rules") or {}).items():
+    eid, rid = k.split("::", 1) if isinstance(k, str) else k
+    changed[(eid, rid)] = v
+print(len(changed), "rules changed before -> after", flush=True)
+
+want = set(changed)
+sets = {"before": defaultdict(set), "after": defaultdict(set)}
+for name, run in (("before", before), ("after", after)):
+    for e, r, s, scope in iter_rule_sections(run / "rule_section.jsonl.gz" if (run / "rule_section.jsonl.gz").exists()
+                                             else run / "rule_section.jsonl"):
+        if (e, r) in want:
+            sets[name][(e, r)].add(s)
+
+print("loading atlas ...", flush=True)
+reg = load_registry(str(atlas / "registry.json"))
+g = read_artifact(str(atlas / "graph.pkl"))
+entries_d = parse_io.read_all_entries(registry=reg)
+entries = list(entries_d.values())
+by_id = dict(entries_d)
+rowed = outside.rowed_waters(entries)
+item_of, iid_of = {}, {}
+for iid, it in sorted(reg.items()):
+    if iid.startswith("area:"):
+        continue                              # a zone / basin / MU: not a water
+    for s in it.section_ids:
+        item_of.setdefault(s, it)
+        iid_of.setdefault(s, iid)
+
+sub = {}
+def subtree(lake):
+    if lake not in sub:
+        sub[lake] = T.subtree(g, {lake})
+    return sub[lake]
+
+lakes = defaultdict(lambda: {"rules": [], "gained": set(), "river": set(), "entries": set()})
+outside_rows = []
+for key, ch in sorted(changed.items()):
+    gained = sets["after"][key] - sets["before"][key]
+    lost = sets["before"][key] - sets["after"][key]
+    climbed = [v for v in heads.get(key, []) if v["climbed"]]
+    left = set(gained)
+    for v in climbed:
+        mine = gained & subtree(v["lake"])
+        if mine:
+            L = lakes[v["lake"]]
+            L["rules"].append(key)
+            L["gained"] |= mine
+            L["entries"].add(key[0])
+            below = item_of.get(v["below"])
+            L["river"].add(below.name if below is not None else v["below"])
+        left -= mine
+    # A DEAD END of a water climbed above the lake (`A_DEAD_END_GOES_WITH_ITS_WATER`): no flow path up from the lake reaches
+    # it, but its watershed code is one the climb collected — attributed to that lake, and listed as such
+    for v in climbed:
+        codes = {g.nodes[x].wsc for x in (gained & subtree(v["lake"])) if x in g.nodes and g.nodes[x].wsc}
+        dead = {x for x in left if x in g.nodes and g.nodes[x].wsc in codes}
+        if dead:
+            L = lakes[v["lake"]]
+            L["gained"] |= dead
+            L.setdefault("dead_ends", set()).update(dead)
+            left -= dead
+    if left or lost:
+        outside_rows.append({"rule": "::".join(key),
+                             "wsc": sorted({g.nodes[x].wsc for x in left if x in g.nodes})[:5], "gained_outside": sorted(left)[:20], "n_gained_outside": len(left),
+                             "lost": sorted(lost)[:20], "n_lost": len(lost)})
+
+def rule_words(eid, rid):
+    e = by_id.get(eid) or {}
+    for r in e.get("rules") or []:
+        if r.get("rule_id") == rid:
+            return (r.get("verbatim") or "").strip()
+    return ""
+
+rows = []
+for lake, L in sorted(lakes.items(), key=lambda kv: -len(kv[1]["gained"])):
+    it = item_of.get(lake)
+    lake_name = (it.name if it is not None else "") or g.nodes[lake].display_name or "(unnamed lake)"
+    liid = iid_of.get(lake)
+    own = bool(liid and liid in rowed)
+    streams = [s for s in L["gained"] if g.nodes.get(s) is not None and g.nodes[s].kind == NodeKind.stream]
+    others = sorted(set(L["gained"]) - set(streams))
+    named = defaultdict(lambda: [0, 0.0])
+    unnamed = [0, 0.0]
+    for s in streams:
+        n = g.nodes[s]
+        w = item_of.get(s)
+        nm = (w.name if w is not None else "") or ""
+        if nm:
+            named[nm][0] += 1
+            named[nm][1] += n.length_m / 1000
+        else:
+            unnamed[0] += 1
+            unnamed[1] += n.length_m / 1000
+    km = sum(g.nodes[s].length_m for s in streams) / 1000
+    rows.append({"lake": lake, "lake_item": liid, "lake_name": lake_name, "own_row": own,
+                 "own_row_entries": [x[0] for x in rowed.get(liid, ())] if own else [],
+                 "river": sorted(L["river"]), "entries": sorted(L["entries"]),
+                 "rules": [{"rule": "::".join(k), "words": rule_words(*k)} for k in sorted(L["rules"])],
+                 "sections": len(L["gained"]), "stream_sections": len(streams), "km": round(km, 1),
+                 "named": {k: [v[0], round(v[1], 1)] for k, v in sorted(named.items())},
+                 "unnamed": [unnamed[0], round(unnamed[1], 1)], "non_stream": others[:10],
+                 "dead_ends": sorted(L.get("dead_ends") or ()),
+                 "section_ids": sorted(L["gained"]) if len(L["gained"]) <= 2000 else []})
+
+json.dump({"lakes": rows, "outside": outside_rows, "n_rules_changed": len(changed),
+           "head_lake_diags": len(heads),
+           "not_climbed": sorted({(v["lake"], v["reason"]) for vs in heads.values() for v in vs if not v["climbed"]})},
+          open(out / "head_lakes.json", "w"), indent=1, sort_keys=True, default=str)
+print(len(rows), "head lakes gained;", len(outside_rows), "rules with a change OUTSIDE a climbed lake")

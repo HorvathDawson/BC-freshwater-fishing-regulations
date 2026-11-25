@@ -1,5 +1,7 @@
 # App Review notes and category (T727, PROPOSAL for the owner)
 
+**Superseded 2026-11-24 by `handoff/PLAN/ios/APP-STORE-SUBMISSION.md` (T1071), the page the owner pastes from. Where the two differ, that page is right (it was re-read against build 0.9.0 (45): push token, Precise vs Coarse, linked answers, the More menu paths). This page is kept as the evidence behind it.**
+
 A proposal. Nothing is entered. The text between the lines is ready to paste into "Notes for App Review". Facts were checked
 against the code on 2026-11-14; where I could not, it says "check" outside the paste block.
 
@@ -69,7 +71,7 @@ description and the review notes. A custom EULA would be a legal document to wri
 ## Things to check before pasting (outside the block)
 1. Every tap path in "How to reach each feature" is from the fact sheet (`handoff/PLAN/play/listing.md`) and the store
    description, not walked on iOS: confirm the names (Spots tab, Conditions, map mode control) on the first iOS build (IOS-1).
-2. "about 480 MB" is the owner's figure; the Play listing says about 500 MB (`store-description.md`). Check the size of the
+2. "about 480 MB" is the owner's figure; the Play listing says about 500 MB (`app/store-listing/listing.json`). Check the size of the
    release the review build installs and use one number in both places.
 3. The background-mode paragraph REPLACES the T365 line "downloads the next regulations release in the background": the code
    says the check "never downloads a release" (`app/apps/mobile/src/notify.native.ts:8-9`, task at `:75-96`). A

@@ -150,7 +150,7 @@ def _open(d: Path, name: str, tmp: Path) -> sqlite3.Connection:
 def test_the_release_holds_only_the_manifests_files_and_every_hash_is_true(rel):
     d = rel[0]
     m = json.loads((d / "manifest.json").read_text())
-    listed = {Path(e["url"]).name for e in m["files"].values()}
+    listed = {Path(e["url"]).name for e in m["files"].values()} | {Path(m["water_digests"]["url"]).name}   # (T1030)
     assert {p.name for p in d.iterdir()} == listed | {"manifest.json"}
     import hashlib
     for name, e in m["files"].items():

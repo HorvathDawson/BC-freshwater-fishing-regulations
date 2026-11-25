@@ -98,6 +98,10 @@ if [[ -z ${MLN_LOCAL_MAVEN:-} ]]; then export MLN_LOCAL_MAVEN="$REPO/cache/mapli
 # (T978) the gitignored links the build reads (MapLibre repo, .venv, node_modules, run token, keystore): checked in the
 # precheck, every missing one listed with its fix
 source deploy/lib/build-links.sh
+# (T1058) both Gradle builds run through gradle_watched: --no-daemon, and a client still waiting after BUILD SUCCESSFUL /
+# FAILED (GRADLE_DONE_GRACE_S) or past GRADLE_MAX_S is stopped with a message and the build fails (deploy/lib/gradle-watch.sh)
+# shellcheck source=../lib/gradle-watch.sh
+source deploy/lib/gradle-watch.sh
 # (T978, 0.8.4 production build from a worktree) a missing repo once made a bare `find` fail and `set -e` end the script
 # with NO message. MLN_AAR = the pinned AAR (file name AND SOURCE.txt's commit, build-links.sh mln_pinned_aar) or empty;
 # a missing / ambiguous / unpinned one is listed by the precheck below with its fix (build_links_mln) and refused
@@ -380,7 +384,7 @@ NAME="canifishthis-staging-$VER-$SHA.apk"
 [[ -n $PLAY ]] && { OUT=$REPO/app/dist/aab; [[ -n $DRY ]] || mkdir -p "$OUT"; NAME="canifishthis-$VER-$CODE-$SHA.aab"; }
 if [[ -n $DRY && -n $PLAY ]]; then
   echo "[dry-run] (cd \$WT/app && pnpm install --offline --frozen-lockfile); expo prebuild (plugins/with-upload-signing.js)"
-  echo "[dry-run] (cd \$WT/$M/android && CANIFISHTHIS_UPLOAD_PROPERTIES=$SECRETS/upload-keystore.properties ./gradlew bundleRelease)"
+  echo "[dry-run] CANIFISHTHIS_UPLOAD_PROPERTIES=$SECRETS/upload-keystore.properties gradle_watched \$WT/$M/android bundleRelease (./gradlew --no-daemon, T1058)"
   echo "[dry-run] keep the Hermes map: data/sourcemaps/$VER-b$CODE-${SHA:0:7}/android/"
   echo "[dry-run] (T1003) keep R8's mapping.txt there too (r8-mapping.txt), or stop; (T1009) check R8's configuration and the AAB's scores (r8-report.mjs), or stop"
   echo "[dry-run] check the AAB is signed by $SECRETS/upload_certificate.pem; copy -> $OUT/$NAME"
@@ -395,7 +399,7 @@ if [[ -n $DRY ]]; then
   echo "[dry-run] (cd \$WT/app && pnpm install --offline --frozen-lockfile)"
   echo "[dry-run] (cd \$WT/$M && npx expo prebuild --platform android --no-install)"
   echo "[dry-run] cp $REPO/$M/android/app/debug.keystore \$WT/$M/android/app/; sdk.dir=$ANDROID_HOME > android/local.properties"
-  echo "[dry-run] (cd \$WT/$M/android && ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a --max-workers=4)"
+  echo "[dry-run] gradle_watched \$WT/$M/android assembleRelease -PreactNativeArchitectures=arm64-v8a --max-workers=4 (./gradlew --no-daemon, T1058)"
   echo "[dry-run] keep the Hermes map: data/sourcemaps/$VER-b$CODE-${SHA:0:7}/android/"
   echo "[dry-run] (T1003) keep R8's mapping.txt there too (r8-mapping.txt), or stop; (T1009) check R8's configuration (r8-report.mjs), or stop"
   echo "[dry-run] check the APK's libmaplibre.so build id: ${MLN_AAR:-NO pinned AAR (the build would stop here)}"
@@ -411,7 +415,7 @@ npx expo prebuild --platform android --no-install
 cp "$KS" android/app/debug.keystore
 echo "sdk.dir=$ANDROID_HOME" > android/local.properties
 if [[ -n $PLAY ]]; then
-  (cd android && CANIFISHTHIS_UPLOAD_PROPERTIES=$PROPS ./gradlew bundleRelease -PreactNativeArchitectures=${PLAY_ABIS:-arm64-v8a} --max-workers=4 -Dorg.gradle.workers.max=4)
+  (export CANIFISHTHIS_UPLOAD_PROPERTIES=$PROPS; gradle_watched android bundleRelease -PreactNativeArchitectures=${PLAY_ABIS:-arm64-v8a} --max-workers=4 -Dorg.gradle.workers.max=4)
   cd "$WT"
   keep_map
   AAB=$M/android/app/build/outputs/bundle/release/app-release.aab
@@ -462,7 +466,7 @@ Code shrinker (R8): on; ${R8_SCORES#R8 }"
   echo "uploaded versionCode $CODE ($ENVWORD) to Play track $TRACK ($TEST_URL)"
   exit 0
 fi
-(cd android && ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a --max-workers=4 -Dorg.gradle.workers.max=4)
+gradle_watched android assembleRelease -PreactNativeArchitectures=arm64-v8a --max-workers=4 -Dorg.gradle.workers.max=4
 cd "$WT"
 keep_map
 r8_check || { echo "build-apk: R8's configuration check failed (above); the APK was not copied" >&2; exit 1; }

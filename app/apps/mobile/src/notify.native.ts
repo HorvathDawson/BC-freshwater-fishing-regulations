@@ -23,8 +23,11 @@
  *               "check now" push starts PUSH_TASK: `runWake` (@app/data) — the update service's check in this runtime
  *               (it starts a newer release's download when the mobile-data setting allows) and then the SAME check as
  *               the periodic task, which stays. The worker learns the token and the platform, nothing else.
+ *               (T1116) Only while the phone's permission is granted as well (`@app/ui` `pushWanted`): the permission
+ *               is read again on every return to the front (`onResume`), so one turned off in the phone's settings
+ *               withdraws the token then, and one turned back on sends it again.
  */
-import { Linking, Platform } from "react-native";
+import { AppState, Linking, Platform } from "react-native";
 import { platformLine } from "@app/ui-native";
 import * as BackgroundTask from "expo-background-task";
 import * as Notifications from "expo-notifications";
@@ -155,6 +158,12 @@ export const notifications: NotifyControls | null = {
       if (!active && has) await BackgroundTask.unregisterTaskAsync(TASK);
     },
     ...(registrar ? { push: (active: boolean) => registrar.sync(active), pushStatus: registrar } : {}),
+    // (T1116) back to the front from anywhere else (the phone's settings among them): the permission is read again
+    onResume: (on) => {
+      let was = AppState.currentState;
+      const sub = AppState.addEventListener("change", (st) => { if (st === "active" && was !== "active") on(); was = st; });
+      return () => sub.remove();
+    },
   },
 };
 

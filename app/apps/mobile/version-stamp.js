@@ -3,7 +3,11 @@
  * bundling), before any file is transformed, so babel-preset-expo inlines the values like any `EXPO_PUBLIC_*`:
  *
  *   EXPO_PUBLIC_APP_VERSION       app.json `expo.version` — THE semver (package.json repeats it; a test holds them equal)
- *   EXPO_PUBLIC_APP_BUILD_NUMBER  app.json `android.versionCode` (= `ios.buildNumber`, the same test)
+ *   EXPO_PUBLIC_APP_BUILD_NUMBER_ANDROID  app.json `android.versionCode`
+ *   EXPO_PUBLIC_APP_BUILD_NUMBER_IOS      app.json `ios.buildNumber` (T1101: the iPhone's own number. The two agree in git, but
+ *                                 build-ios-testflight.sh sets the iPhone's in the build worktree only, so a build's
+ *                                 number is what ITS platform ships (CFBundleVersion), never the other's; src/config.ts
+ *                                 picks at run time with `Platform.select`)
  *   EXPO_PUBLIC_GIT_SHA           EAS's `EAS_BUILD_GIT_COMMIT_HASH`, else `git rev-parse HEAD`; unset outside a checkout
  *   EXPO_PUBLIC_BUILD_DATE        today (UTC), the day the bundle was made
  *
@@ -21,7 +25,8 @@ function gitSha(cwd) {
 function versionStamp(app, env, readSha, today = new Date()) {
   return {
     EXPO_PUBLIC_APP_VERSION: env.EXPO_PUBLIC_APP_VERSION || app.version,
-    EXPO_PUBLIC_APP_BUILD_NUMBER: env.EXPO_PUBLIC_APP_BUILD_NUMBER || String(app.android?.versionCode ?? ""),
+    EXPO_PUBLIC_APP_BUILD_NUMBER_ANDROID: env.EXPO_PUBLIC_APP_BUILD_NUMBER_ANDROID || String(app.android?.versionCode ?? ""),
+    EXPO_PUBLIC_APP_BUILD_NUMBER_IOS: env.EXPO_PUBLIC_APP_BUILD_NUMBER_IOS || String(app.ios?.buildNumber ?? ""),
     EXPO_PUBLIC_GIT_SHA: env.EXPO_PUBLIC_GIT_SHA || env.EAS_BUILD_GIT_COMMIT_HASH || readSha(),
     EXPO_PUBLIC_BUILD_DATE: env.EXPO_PUBLIC_BUILD_DATE || today.toISOString().slice(0, 10),
   };

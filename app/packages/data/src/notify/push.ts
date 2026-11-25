@@ -4,7 +4,8 @@
  * owner 2026-11-16: no Android push), our worker's address (`POST <url>/register|unregister`,
  * app/workers/feeds src/push.ts) and a small store of what was last sent.
  *
- *   on    (the reader has notifications on: `notifyActive`) the token is read and registered when it, its environment
+ *   on    (the reader has notifications on: `notifyActive`, and (T1116) the phone's permission is granted: `@app/ui`
+ *         `pushWanted` decides, this registrar only does as told) the token is read and registered when it, its environment
  *         or our address changed, or when the last register is older than PUSH_REFRESH_MS (7 days) — so a token the
  *         worker deleted (APNs called it dead, its store was lost) comes back within a week; an older one is
  *         unregistered first; a new token from the system (`onToken`) is sent the same way. (Review 2026-11-20, L1: it

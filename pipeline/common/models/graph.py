@@ -83,6 +83,16 @@ class StreamNode:
     # Stamped once by the atlas build from its one tidal record (`atlas.splits.coast.stamp_nodes`) before graph.pkl is
     # written; the reach and the tiles read it (`coast.read_tidal`). A pickle from before the field reads the default.
     tidal: str = ""
+    # (T1029, owner 2026-11-24: a one-bank place takes "only tributaries on the one bank side") FWA's
+    # LEFT_RIGHT_TRIBUTARY for a stream piece: the bank of its PARENT its blue line joins on, looking downstream
+    # ("LEFT" / "RIGHT" / "NONE"; "" for a lake or a pickle from before the field).
+    left_right: str = ""
+    # (T1029) which side of THIS piece's own line, as FWA draws it (mouth -> source), a compass bank is: two
+    # characters, the "east" word's side then the "north" word's, each "R" (right) / "L" (left) / "-" (no answer:
+    # the line runs along that word's axis or its pieces disagree, `deliver.bank_side`); "west" / "south" are the
+    # opposite side. Stamped once by the atlas build from the piece's geometry (`stamp_drawn_banks`); "" for a lake
+    # or a pickle from before the field.
+    drawn_banks: str = ""
 
     @property
     def is_barrier(self) -> bool:

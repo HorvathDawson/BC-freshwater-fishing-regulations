@@ -10,15 +10,15 @@ Source: `GET /reports` on the production feeds worker, read 2026-11-21 12:50. Th
 Squamish River, "make the map a lot bigger") is T979.
 
 ## Items
-1. 2026-11-21 17:48Z, Android 0.8.4 (42), Conditions tab, Chipmunk Creek, bug. Verbatim: "First load of this page from
+1. 2026-11-21 17:48Z (report `4d51dfb38c3ae4e9`), Android 0.8.4 (42), Conditions tab, Chipmunk Creek, bug. Verbatim: "First load of this page from
    conditions map when I clicked button to change model from default for forecast the chart flickered hard for a second
    before it settled". Reproduce; the chart should keep its old lines until the new model's are ready (no blank frame).
-2. 2026-11-21 07:36Z, iOS 0.8.4, Map tab, Chilliwack River, bug. Verbatim: "No downstream label on this stream".
+2. 2026-11-21 07:36Z (report `37c838a829a92d8c`), iOS 0.8.4, Map tab, Chilliwack River, bug. Verbatim: "No downstream label on this stream".
    Reproduce: which stretch, which label (the downstream end / direction label of the water Map tab).
-3. 2026-11-21 07:35Z, iOS 0.8.4, Map tab, Chilliwack River. Verbatim: "Went to map from conditions and the map is
+3. 2026-11-21 07:35Z (report `b7f3dbbdf393f768`), iOS 0.8.4, Map tab, Chilliwack River. Verbatim: "Went to map from conditions and the map is
    uncoloured here until I go upstream then back downstream or until I pan or zoom on map". A T451-type regression:
    reproduce on the test bed (Conditions → Map), fix, pin with a test bed walk.
-4. 2026-11-21 07:34Z, iOS 0.8.4, Conditions tab, feature. Verbatim: "The chart gestures do not work very well. When
+4. 2026-11-21 07:34Z (report `825c468c69d7426a`), iOS 0.8.4, Conditions tab, feature. Verbatim: "The chart gestures do not work very well. When
    checking specific date no way to drag the bar only click and zooming in and panning would interfere with that etc".
    Proposal for the owner (design): drag the date bar to scrub; pan/zoom stays two-finger or on the axis.
 

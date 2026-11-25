@@ -25,7 +25,7 @@
 import { ErrorState } from "./ErrorState";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView } from "react-native";
-import { NET_WORDS, asOfLine, closeForFinfish, dayRange, gearIfFished, gearTabsFor, licenceIfFished, licenceTabFor, regsLapsedNote, drawnRegsOf, regsSourcesOf, withDrawnSources, salmonBookSourcesOf, salmonShowsDfo, salmonWithPdf, troutSourcesOf, waterPagesOf, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget, bcNow, now as clockNow } from "@app/core";
+import { NET_WORDS, asOfLine, closeForFinfish, closedWithSalmon, dayRange, gearIfFished, gearTabsFor, licenceIfFished, licenceTabFor, regsLapsedNote, drawnRegsOf, regsSourcesOf, withDrawnSources, salmonBookSourcesOf, salmonShowsDfo, salmonWithPdf, troutSourcesOf, waterPagesOf, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget, bcNow, now as clockNow } from "@app/core";
 import { openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { InSeasonContext, mapDayOf, regsDay, useAccessNotices, useInSeasonBanners, useReleaseLines, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
@@ -87,7 +87,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   /** (T38) the hatch sheet's two drawings, registered by the app. */
   /** (T41) where the page starts (the web start link, a test affordance), handed on to the page once */
   start?: RegsStart | null;
-  onStarted?: () => void;
+  onStarted?: (spent: RegsStart) => void;
   /** (T221, a try) the Keep tab's at-a-glance table: the quota groups and Salmon folded into the species list. */
   glance?: boolean;
   /** (T254) ask the whole page again (the wrapper remounts it) */
@@ -155,12 +155,14 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   }, [netMode.offline]);   // eslint-disable-line react-hooks/exhaustive-deps -- only the line coming back
   // (T254) a release that ships salmon draws a card on every page: until it is in, its place says why
   const salmonExpected = !!loader?.manifest?.files?.salmon && !tidalPage;
+  // (T1049 cold start) the card is expected and still on its way (its feed): the pane waits for it, and so does a start link
+  const salmonComing = salmonExpected && salmon.state === "loading";
   // (T230) the provincial in-season changes matched to this water / part, in effect on THE day (informational)
   // (T517) the page covers the map entry holding its part (`inSeasonPageOf`)
   const inSeasonPage = useInSeasonPage(pageItem, inputs.value?.partIx ?? null, entries);
   // (T520) where each lands: core's `inSeasonCover` over the water's section lines (read only for a part-covering change)
   const inSeasonLines = useReleaseLines(loader ?? null);
-  const inSeason = useInSeasonBanners(store.value ?? null, inSeasonLines, inSeasonPage, day);
+  const { banners: inSeason, pending: inSeasonComing } = useInSeasonBanners(store.value ?? null, inSeasonLines, inSeasonPage, day);
   // (T236) the page's foot: how current the regulations, the salmon feed and the in-season changes are
   const inSeasonAt = useContext(InSeasonContext).data?.feed.fetchedAt ?? null;
   // (T227) the day's book gear as if open, for a day only salmon may be fished (core `gearIfFished`)
@@ -178,18 +180,21 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   // every synopsis page those DRAWN tabs cite, the in-season changes and DFO where the page shows them
   const shown = useMemo(() => {
     if (!regs || !inputs.value) return null;
-    const page = salmon.value ? closeForFinfish(regs, salmon.value.finfish) : regs;
+    // (T1052) a water one closure shuts to all fishing, salmon too, all year: the closed banner says it once, for both
+    const page = closedWithSalmon(salmon.value ? closeForFinfish(regs, salmon.value.finfish) : regs, salmonShown, inputs.value.rules);
     const salmonStrip = salmon.value ? salmonStripOf(salmon.value, page.keep.strip) : null;
     const tabs = gearTabsFor(page, gearAnyway, salmonStrip, salmon.value ?? null);
     const licence = licenceTabFor(page, licenceAnyway, salmonStrip);
     // (T1031 item 3) the trout table's Source line, drawn on the Keep tab, and the salmon card's book closures: drawn lines
+    // (T1052: not drawn where the closed banner says them; its chain cites the same rules)
     const trout = page.keep.trout?.kind === "table" ? troutSourcesOf(page) : null;
-    const lines = [...(trout ? [trout] : []), ...(salmonShown?.book ?? []).map(salmonBookSourcesOf)];
+    const salmonBook = page.keep.banner?.salmon ? [] : salmonShown?.book ?? [];
+    const lines = [...(trout ? [trout] : []), ...salmonBook.map(salmonBookSourcesOf)];
     const drawn = drawnRegsOf(page, tabs, licence, lines);
     const sources = regsSourcesOf(drawn,
       { waterPages, inSeason: inSeason.length > 0, dfo: salmonShowsDfo(salmonStrip, glance && !!salmon.value), rules: inputs.value.rules });
     // (T1036) the every-source sheet ("All sources ›") lists the rules those same drawn tabs cite (core `withDrawnSources`)
-    return { page: { ...page, sheet: withDrawnSources(page, drawn, inputs.value.rules, salmonShown?.book ?? []) }, salmonStrip, tabs, licence, sources, trout };
+    return { page: { ...page, sheet: withDrawnSources(page, drawn, inputs.value.rules, salmonBook, salmonShown) }, salmonStrip, tabs, licence, sources, trout };
   }, [regs, inputs.value, salmon.value, salmonShown, gearAnyway, licenceAnyway, waterPages, inSeason.length, glance]);
   // (T45) how much room the window gives (the app shell's width; never read here): the page arranges itself for it
   const layout = useLayoutClass();
@@ -228,7 +233,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   // why it cannot be drawn — what the Shell waits for before it shows a pane opened over the map (`shell/paneReveal.ts`)
   const failedWhole = (item !== null && sheet.state === "failed") || !loader || !!regsError;
   usePaneReady(failedWhole
-    || (drawn && access.state !== "loading" && !(salmonExpected && salmon.state === "loading")));
+    || (drawn && access.state !== "loading" && !salmonComing));
   useEffect(() => {
     if (!drawn || !openProbe.on()) return;
     openProbe.mark("commit");
@@ -271,6 +276,9 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
       {frame(null, (
       <RegsScreen page={page} palette={palette} nameSource={s?.nameSource ?? null} images={fishImages} onDate={() => setDayOpen(true)} layout={layout} sun={sun} daylight={daylight} sources={sources} troutSources={trout}
                   start={start} onStarted={onStarted} scrollKey={regsScrollKey(item, part, section)}
+                  // (T1049 cold start) the salmon card above the sections still on its way: a start link waits for it to land
+                  // (T1049 review) and the page's in-season notices, drawn first on the page, still on their way
+                  coming={salmonComing || inSeasonComing}
                   // past the release's last day in force, the page leads with core's out-of-date sentence (none unstamped)
                   lapsed={regsLapsedNote(loader.manifest?.regulations?.valid_until, clockNow())}
                   // (T54, T367) the access notices: pinned strips under the header

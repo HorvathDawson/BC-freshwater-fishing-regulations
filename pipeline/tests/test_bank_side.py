@@ -1,0 +1,196 @@
+"""T1029 — which side of the DRAWN line a named bank is, from the line as written, never assumed; every section asked
+for ends with a side or a typed reason (never a guess, never a silent skip)."""
+
+from __future__ import annotations
+
+import json
+import random
+
+import pytest
+
+from pipeline.common.bank_side import drawn_banks, side_from_code
+from pipeline.deliver.bank_side import Side, Why, bank_side, bank_side_of_parts, polygon_sections, report, sides_from_layer
+
+#: the Kitimat's section at the hatchery signs as the 0.9.0 tiles write it (section 1234098): d/s sign first, u/s last —
+#: the line runs UPSTREAM, north-east
+KITIMAT = [[-128.682089, 54.03179], [-128.6805, 54.0335], [-128.6788, 54.0352], [-128.676787, 54.037269]]
+
+
+def _row(sid, coords, gtype="LineString", **props):
+    return json.dumps({"type": "Feature", "geometry": {"type": gtype, "coordinates": coords},
+                       "properties": {"section_id": sid, **props}}, separators=(",", ":")) + "\n"
+
+
+def test_the_kitimat_west_bank_is_left_of_its_drawn_line():
+    # drawn upstream (NE), the west bank is on the LEFT; looking downstream it is the right bank (T754 §4)
+    assert bank_side(KITIMAT, "west").sign == -1
+    assert bank_side(KITIMAT, "east").sign == 1
+    # the same water drawn the other way round: the answer turns with the line, which is why it is measured
+    assert bank_side(KITIMAT[::-1], "west").sign == 1
+
+
+def test_a_line_along_the_words_axis_has_no_answer():
+    # a river flowing due west: "west bank" names neither bank
+    s = bank_side([[-120.0, 50.0], [-120.01, 50.0001]], "west")
+    assert (s.sign, s.share, s.why) == (0, 0.0, Why.along_axis)
+
+
+def test_a_meander_whose_pieces_disagree_has_no_answer():
+    # north for 100 m, then south for 100 m: west is left, then right
+    s = bank_side([[-120.0, 50.0], [-120.0, 50.0009], [-119.999, 50.0009], [-119.999, 50.0]], "west")
+    assert s.sign == 0 and s.why is Why.pieces_disagree
+
+
+def test_a_side_and_a_reason_never_come_together():
+    with pytest.raises(ValueError):
+        Side(1, 1.0, Why.along_axis)
+    with pytest.raises(ValueError):
+        Side(0, 0.0)
+
+
+def test_every_section_asked_for_ends_with_a_side_or_a_typed_reason(tmp_path):
+    stream, lake = tmp_path / "stream.geojsonl", tmp_path / "lake.geojsonl"
+    stream.write_text(_row(7, KITIMAT, ord=7) + _row(9, KITIMAT) + _row(9, KITIMAT)
+                      + _row(11, [[-128.0, 54.0], [-128.001, 54.0001]]) + _row(12, KITIMAT))
+    # 12: a river wide enough to be a polygon reach (its route still in the stream layer); 13: a lake, not a river
+    lake.write_text(_row(12, [[[0, 0], [1, 0], [1, 1], [0, 0]]], "Polygon", water="stream")
+                    + _row(13, [[[0, 0], [1, 0], [1, 1], [0, 0]]], "Polygon", water="lake"))
+    got = sides_from_layer(stream, {7: "west", 8: "west", 9: "west", 11: "west", 12: "west"}, lake)
+    assert sorted(got) == [7, 8, 9, 11, 12]
+    assert got[7].sign == -1
+    assert got[8].why is Why.no_line
+    assert got[9].why is Why.written_twice
+    assert got[11].why is Why.along_axis
+    assert got[12].why is Why.polygon_reach
+    ok, bad = report(got)
+    assert ok == {7: -1}
+    assert bad == {"no_line": [8], "written_twice": [9], "along_axis": [11], "polygon_reach": [12]}
+    assert polygon_sections(lake, [12, 13]) == frozenset({12})
+    with pytest.raises(ValueError, match="bank word"):
+        sides_from_layer(stream, {7: "upstream"})
+
+
+def test_the_answer_does_not_depend_on_the_order_asked(tmp_path):
+    stream = tmp_path / "stream.geojsonl"
+    stream.write_text(_row(7, KITIMAT) + _row(8, KITIMAT[::-1]))
+    a = sides_from_layer(stream, {7: "west", 8: "west"})
+    b = sides_from_layer(stream, {8: "west", 7: "west"})
+    assert list(a) == list(b) == [7, 8] and a == b and (a[7].sign, a[8].sign) == (-1, 1)
+
+
+def test_the_atlas_code_is_the_same_rule_as_the_bundle_side():
+    # `drawn_banks` (numpy, every stream piece at the atlas build) and `bank_side_of_parts` (the bundle) must agree on
+    # every word for any line: one rule, two speeds
+    rnd = random.Random(1029)
+    for _ in range(300):
+        parts = []
+        for _p in range(rnd.choice([1, 1, 2])):
+            x, y = rnd.uniform(-130, -115), rnd.uniform(49, 59)
+            pts = [[x, y]]
+            for _i in range(rnd.randint(1, 12)):
+                x += rnd.uniform(-0.002, 0.002)
+                y += rnd.uniform(-0.002, 0.002)
+                pts.append([x, y])
+            parts.append(pts)
+        code = drawn_banks(parts)
+        for word in ("west", "east", "north", "south"):
+            assert side_from_code(code, word) == bank_side_of_parts(parts, word).sign, (parts, word, code)
+    # the Kitimat at the signs, drawn mouth -> source as FWA writes it: west is LEFT, north is ... the line runs NE
+    assert side_from_code(drawn_banks([KITIMAT]), "west") == -1
+    assert side_from_code("", "west") == 0
+    with pytest.raises(ValueError):
+        side_from_code("RL", "up")
+
+
+def test_the_atlas_stamps_its_albers_lines_by_the_same_rule_as_the_tiles_wgs84_line():
+    """Review #112 (HIGH): the atlas geometries are EPSG:3005 metres; measured as if they were degrees, the Kitimat read
+    "R-" (the tiles' WGS84 line reads "RL") and north/south was opposite on 19.7% of lines. Through `stamp_drawn_banks`:
+    the Kitimat as the atlas holds it, and a line at 59° N whose east answer exists only with the per-degree east scale
+    (cos 59° = 0.52: unscaled it runs within 30° of east-west and says nothing)."""
+    from pyproj import Transformer
+    from shapely.geometry import LineString, MultiLineString
+    from pipeline.atlas.graph.graph import stamp_drawn_banks
+    from pipeline.common.models import NodeKind, StreamGraph, StreamNode
+    to_albers = Transformer.from_crs(4326, 3005, always_xy=True)
+    north59 = [[-133.15, 59.0], [-133.14, 59.004], [-133.13, 59.008]]
+    assert drawn_banks([KITIMAT]) == "RL" and drawn_banks([north59]) == "RL"
+    alb = lambda line: [to_albers.transform(x, y) for x, y in line]         # noqa: E731
+    g = StreamGraph()
+    for nid in ("kit:0", "n59:0", "two:0", "lake", "nogeom:0"):
+        g.nodes[nid] = StreamNode(node_id=nid, kind=NodeKind.lake if nid == "lake" else NodeKind.stream)
+    geoms = {"kit:0": LineString(alb(KITIMAT)), "n59:0": LineString(alb(north59)),
+             "two:0": MultiLineString([alb(KITIMAT[:2]), alb(KITIMAT[2:])]), "lake": LineString(alb(KITIMAT))}
+    assert stamp_drawn_banks(g, geoms) == 3
+    assert [g.nodes[n].drawn_banks for n in ("kit:0", "n59:0", "two:0", "lake", "nogeom:0")] == \
+        ["RL", "RL", drawn_banks([KITIMAT[:2], KITIMAT[2:]]), "", ""]
+    assert g.nodes["two:0"].drawn_banks == "R-"           # two parts, each measured as written (the join is no segment)
+    # a line in metres handed to the degrees rule is refused, never measured
+    with pytest.raises(ValueError, match="WGS84"):
+        drawn_banks([alb(KITIMAT)])
+    with pytest.raises(ValueError, match="WGS84"):
+        bank_side(alb(KITIMAT), "west")
+
+
+def test_the_payload_gets_each_bank_places_side_on_the_sections_it_stands_beside(tmp_path):
+    from pipeline.deliver.bank_side import stamp_payload
+    (tmp_path / "stream.geojsonl").write_text(_row(7, KITIMAT) + _row(8, [[-128.0, 54.0], [-128.001, 54.0001]]))
+    (tmp_path / "lake.geojsonl").write_text("")
+    payload = {"chains": [{"l": []}, {"l": ["6:river"], "u": ["6:bank"]}, {"l": ["6:bank"]}, {"l": ["6:other"], "u": ["6:bank"]}],
+               "p": {"6:bank": {"side": "west"}, "6:river": {}, "6:other": {}},
+               "unmapped": [{"chain": 2}, {"chain": 3}]}
+    # 7: beside on the stretch; 8: beside but its line runs along the word's axis; 9: the bank place in `l` (a creek)
+    why = stamp_payload(payload, [(7, 1), (8, 3), (9, 2)], tmp_path)
+    assert payload["p"]["6:bank"]["bk"] == {"7": -1}
+    assert why == {"6:bank": {"along_axis": [8]}}
+    assert "bk" not in payload["p"]["6:river"]
+    # two one-bank places beside one section: refused, never shipped (the app would refuse the file)
+    payload["p"]["6:other"] = {"side": "west"}
+    payload["chains"][1]["u"] = ["6:bank", "6:other"]
+    with pytest.raises(ValueError, match="two one-bank places"):
+        stamp_payload(payload, [(7, 1)], tmp_path)
+    # (review #112) a bank place with no own chain, or two, in `unmapped`: the app's decode refuses it, so the build does
+    for unmapped, n in (([{"chain": 3}], 0), ([{"chain": 2}, {"chain": 4}], 2)):
+        p2 = {"chains": [{"l": []}, {"l": ["6:river"], "u": ["6:bank"]}, {"l": ["6:bank"]}, {"l": ["6:other"]},
+                         {"l": ["6:bank"]}], "p": {"6:bank": {"side": "west"}, "6:river": {}}, "unmapped": unmapped}
+        with pytest.raises(ValueError, match=f"has {n} own chain"):
+            stamp_payload(p2, [(7, 1)], tmp_path)
+
+
+def _book_db(rules):
+    import sqlite3
+    db = sqlite3.connect(":memory:")
+    db.execute("CREATE TABLE rule (entry_id TEXT, rule_id TEXT, conditions TEXT, when_ TEXT, take INTEGER, parts TEXT)")
+    db.execute("CREATE TABLE ruleset (set_id INTEGER, entry_id TEXT, rule_id TEXT)")
+    db.execute("CREATE TABLE section_ruleset (sid INTEGER, set_id INTEGER)")
+    for i, (rid, side, when, take, what, sids) in enumerate(rules):
+        db.execute("INSERT INTO rule VALUES ('e', ?, ?, ?, ?, ?)",
+                   (rid, json.dumps({"side": side} if side else {}), when, take, json.dumps({"what": what})))
+        db.execute("INSERT INTO ruleset VALUES (?, 'e', ?)", (i, rid))
+        for s in sids:
+            db.execute("INSERT INTO section_ruleset VALUES (?, ?)", (s, i))
+    return db
+
+
+def test_the_rule_books_one_half_closures_are_drawn_and_nothing_else(tmp_path):
+    """(T1029 Q6, owner 2026-11-24 "Yes, stripe it too") an undated "No fishing" worded for one half: its side per
+    section in `bs`; a dated one, or any other kind of rule, draws nothing and says why."""
+    from pipeline.deliver.bank_side import BOOK_DATED, BOOK_NOT_CLOSURE, stamp_book_sides
+    (tmp_path / "stream.geojsonl").write_text(_row(7, KITIMAT) + _row(8, KITIMAT[::-1]) + _row(9, KITIMAT))
+    (tmp_path / "lake.geojsonl").write_text("")
+    payload = {}
+    why = stamp_book_sides(payload, _book_db([
+        ("r1", "west", None, 0, "No fishing", [7, 8]),
+        ("r2", "west", '{"seasons":[1]}', 0, "No fishing", [9]),
+        ("r3", "west", None, 2, "Trout 2 a day", [9]),
+        ("r4", None, None, 0, "No fishing", [9]),
+    ]), tmp_path)
+    assert payload["bs"] == {"7": -1, "8": 1}
+    assert why == {"e::r2": {BOOK_DATED: [9]}, "e::r3": {BOOK_NOT_CLOSURE: [9]}}
+    # nothing to draw: no key at all (an older-shaped payload)
+    empty = {}
+    stamp_book_sides(empty, _book_db([("r2", "west", '{"x":1}', 0, "No fishing", [9])]), tmp_path)
+    assert "bs" not in empty
+    # two halves on one section: refused
+    with pytest.raises(ValueError, match="both halves"):
+        stamp_book_sides({}, _book_db([("r1", "west", None, 0, "No fishing", [7]),
+                                       ("r5", "east", None, 0, "No fishing", [7])]), tmp_path)

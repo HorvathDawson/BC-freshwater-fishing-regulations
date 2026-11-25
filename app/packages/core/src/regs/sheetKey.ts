@@ -25,6 +25,29 @@ export type SheetKey =
   | "src:trout"
   /** (T990) the page's every source, from the button at the Regulations page's foot */
   | "src:all";
+/**
+ * (T1036 review) THE KEYS A SCREEN LINE BUILDS TO OPEN A SHEET, composed in this ONE place: a component that opens a sheet
+ * from a field of its view model (a trout row's key, a salmon row's code, a caveat / timed line's or a boat chip's rule, a
+ * term run's ids, the hatchery link) takes its key from here, never a string of its own; a view model that carries its key
+ * whole (`open`, an Other fish row's `id`) is opened as it is. The every-source sheet's walk of what is one tap away
+ * (`reachableSheets`) reads the same fields through the same builders, and the probe (`WaterScreen.sources.test.tsx`)
+ * presses every press target on the drawn screen to prove the two agree.
+ */
+export const OPEN = Object.freeze({
+  /** a rule's own sheet: a caveat or timed line, a boat chip, a Sources row */
+  rule: (rule: RuleKey): SheetKey => `rule:${rule}`,
+  /** a term run's ⓘ: one id, or "What these words mean" over several */
+  terms: (ids: readonly string[]): SheetKey => `gl:${ids.join(",")}`,
+  /** a trout table row: its fish sheet on Sources; its picture: on Identification */
+  troutRow: (key: string): SheetKey => `tf:${key}`,
+  troutLooks: (key: string): SheetKey => `tf:${key}|id`,
+  /** the trout table's hatchery link */
+  hatch: "hatch" as SheetKey,
+  /** a salmon table row: its species sheet on Sources; its picture: on Identification */
+  salmonRow: (code: string): SheetKey => `sp:${code}|src`,
+  salmonLooks: (code: string): SheetKey => `sp:${code}`,
+});
+
 /** (T810 P) a trout row key after `tf:` (trout.ts ROW_KEY): the "/" of a twin row is part of the key */
 const TF = /^tf:(?:CT|DV|EB|GB|LT|RB|ST)(?:\/(?:wild|hatchery))?(?:\|id)?$/;
 const SRCS = /^srcs:(?:bait|ways|always|boats|gear|gl\|(?:mode|lines|hook|weight))$/;

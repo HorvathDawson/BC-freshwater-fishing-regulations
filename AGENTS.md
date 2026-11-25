@@ -129,6 +129,10 @@ A6. **Commit only your own paths: `git commit -- <paths>`.** Several agents shar
     keeps lakes. `report.json` `tributaries_pending` is **8** — exactly the unresolved
     `no_extents` rules whose rule or entry asks for tributaries (no seed to walk from). A
     binding flagged pending is still never complete; nothing downstream may treat it so.
+    (T1053, RULINGS T18) A rule bound to its WHOLE water climbs through the lake that water flows out of
+    (`tributaries.A_WHOLE_WATERS_WALK_CLIMBS_ITS_HEAD_LAKE`, chosen by `build.climbs_head_lakes`): the lake walked, never
+    covered; a stretch rule, a DFO place and a licensing record still stop there. Each head lake is in the `head_lake`
+    diagnostic with its reason.
 16. **The review app and the builder share one implementation.** `entry_reaches` calls
     `pipeline.atlas.reach.classify`; covered items come from `pipeline.atlas.reach.covered`. That is enforced BY
     CONSTRUCTION (one module; `test_review_reaches.py` drives `entry_reaches` through `reach.extent`), not by a

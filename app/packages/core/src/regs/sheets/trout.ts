@@ -10,9 +10,11 @@
  * - (T1031) the Identification tab (`tf:<row>|id`, `troutIdSheet`), app content, not a rule: the fish manifest's pictures
  *   (both for Dolly Varden / bull trout), the tips (`FISH_TIPS`), and the hatchery link on a row that carries an origin, a
  *   label or a hatchery/wild split;
- * - the Sources tab (`tf:<row>`): the above, "How this was decided", then `FishSheet.src` exactly as given (Python cuts it
- *   to 4) by authority (species.ts `breakdown`), then its Source line: the pages of every rule behind the row (`TRow.src`,
- *   uncut, each its highlight) and "All sources ›" = `TroutTable.src` (`rowSourceLine`).
+ * - the Sources tab (`tf:<row>`): the above, "How this was decided", then (T1031 option B, owner 2026-11-24 "Go on to B")
+ *   EVERY rule behind the row, `TRow.src` exactly as given (Python's whole list, deciding rule first), by authority
+ *   (`breakdown`), then its Source line: the pages of those same rules (each its highlight) and "All sources ›" =
+ *   `TroutTable.src` (`rowSourceLine`). `FishSheet.src` (Python's cut to 4) is no longer drawn: the frame keeps it only
+ *   because an installed 0.9.0 refuses a sheet citing more than 4 rules (`trout.ts` holding check).
  * THE APP NEVER SORTS, UNIONS OR CUTS A RULE LIST (Q-D6): each list is mapped one index to one row, in order.
  *
  * A fish with no picture or no tips is REPORTED (`reportFailure`), never drawn as a blank section; the vectors' test holds
@@ -57,8 +59,8 @@ const link = (s: string, open: SheetKey): SheetBlock => ({ k: "link", line: [{ t
  * synopsis pages (or cited page, T981) of EVERY rule behind the row — `TRow.src`, Python's whole list (contract Q-D6: the
  * deciding rule, size, origin, possession, the duty, the date line), mapped one index to its own `ruleBook` runs in
  * Python's order, each run carrying that rule's highlight boxes — then "All sources ›" (the table's every-rule sheet).
- * Never the breakdown's four (`FishSheet.src`, cut by Python): the cut drops a rule the sheet's lines say, and with it a
- * page (Lois Lake's own row, p.24: "Hatchery only: wild ones go back" on the Dolly Varden row). The one composer
+ * The same rules the breakdown lists (option B); never `FishSheet.src`, Python's cut to 4: the cut drops a rule the sheet's
+ * lines say, and with it a page (Lois Lake's own row, p.24: "Hatchery only: wild ones go back" on the Dolly Varden row). The one composer
  * (`lineSourcesOf` -> `sourceLineOf`) draws each page once, ascending, every rule's boxes on it.
  */
 function rowSourceLine(row: Pick<TroutRowVM, "key" | "src">, rules: Pick<RuleIndex, "get">): SheetBlock {
@@ -101,11 +103,11 @@ export function troutFishSheet(key: SheetKey, t: TroutVM, rowKey: string, rules:
   for (const l of s.here) blocks.push(l.bold ? { k: "value", text: [text(l.t)] } : { k: "para", text: [text(l.t)] });
   for (const c of row.coming) blocks.push({ k: "para", text: [text(c)], tone: "small" });
   // (T883) How this was decided, where every rule of the row's whole list (`row.src`, uncut) has its stored role for this
-  // fish. (T1031 item 4) Then this fish's rules as Python gave them (cut to 4) by the authority each is from — a list that
-  // claims nothing, each rule its pages (highlighted). Then the table's every rule
+  // fish. (T1031 item 4; option B, owner 2026-11-24) Then EVERY rule of that list, in Python's order, by the authority each
+  // is from — a list that claims nothing, each rule its pages (highlighted). Then the table's every rule
   const flow = answers ? troutFlow(row, answers(row.fish), rules, water) : null;
   if (flow) blocks.push({ k: "head", text: WORDS.DECIDED }, { k: "flow", flow });
-  if (s.src.length) blocks.push({ k: "head", text: SPECIES_SHEET.BREAKDOWN }, breakdown(s.src.map((ix) => ({ r: rules.get(ix), role: "" }))));
+  if (row.src.length) blocks.push({ k: "head", text: SPECIES_SHEET.BREAKDOWN }, breakdown(row.src.map((ix) => ({ r: rules.get(ix), role: "" }))));
   blocks.push(rowSourceLine(row, rules));
   return { key, title: row.name, sub: row.label ?? box.label ?? row.origin, blocks };
 }

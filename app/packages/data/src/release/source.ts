@@ -599,6 +599,11 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
       return loader.salmon();
     },
 
+    // (T1029 Q6) the head alone: no region asked, so no slice is read (the loader's own head, read once)
+    salmonHead() {
+      return loader.salmon([]);
+    },
+
     methodFacts() {
       return loader.method();
     },

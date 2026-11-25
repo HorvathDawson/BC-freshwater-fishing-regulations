@@ -1,0 +1,2323 @@
+{
+ "lakes": [
+  {
+   "dead_ends": [
+    "360237352:0"
+   ],
+   "entries": [
+    "r6:babine_river@6-8"
+   ],
+   "km": 7487.1,
+   "lake": "lake:-24",
+   "lake_item": "wbk:-24",
+   "lake_name": "Babine Lake \u2014 Main Body",
+   "named": {
+    "Betty Creek": [
+     5,
+     9.0
+    ],
+    "Big Loon Creek": [
+     7,
+     12.0
+    ],
+    "Bristol Creek": [
+     5,
+     7.0
+    ],
+    "Bristow Creek": [
+     2,
+     16.4
+    ],
+    "Broughton Creek": [
+     2,
+     20.9
+    ],
+    "Byron Creek": [
+     3,
+     17.1
+    ],
+    "Coldwater Creek": [
+     1,
+     8.9
+    ],
+    "Covert Creek": [
+     5,
+     8.0
+    ],
+    "Cox Creek": [
+     1,
+     2.1
+    ],
+    "Cronin Creek": [
+     2,
+     15.7
+    ],
+    "Cross Creek": [
+     1,
+     19.1
+    ],
+    "Cynthia Creek": [
+     2,
+     5.8
+    ],
+    "Deasy Creek": [
+     6,
+     9.8
+    ],
+    "Debenture Creek": [
+     1,
+     10.4
+    ],
+    "Donalds Creek": [
+     2,
+     11.4
+    ],
+    "Doray Creek": [
+     3,
+     14.6
+    ],
+    "Duncan Creek": [
+     6,
+     22.2
+    ],
+    "Eggleston Creek": [
+     1,
+     4.6
+    ],
+    "Fedral Creek": [
+     1,
+     8.2
+    ],
+    "Fink Creek": [
+     2,
+     11.8
+    ],
+    "Five Mile Creek": [
+     2,
+     10.8
+    ],
+    "Four Mile Creek": [
+     2,
+     16.3
+    ],
+    "Fulton River": [
+     13,
+     73.8
+    ],
+    "Gravel Creek": [
+     1,
+     8.4
+    ],
+    "Guess Creek": [
+     9,
+     51.9
+    ],
+    "Guitar Creek": [
+     3,
+     5.6
+    ],
+    "Gullwing Creek": [
+     9,
+     13.5
+    ],
+    "Hagarty Creek": [
+     3,
+     5.4
+    ],
+    "Haul Creek": [
+     5,
+     8.0
+    ],
+    "Haystack Creek": [
+     2,
+     7.3
+    ],
+    "Hazelwood Creek": [
+     5,
+     10.1
+    ],
+    "Heal Creek": [
+     3,
+     13.3
+    ],
+    "Helene Creek": [
+     2,
+     3.7
+    ],
+    "Henrietta Creek": [
+     3,
+     35.4
+    ],
+    "Higgins Creek": [
+     1,
+     5.8
+    ],
+    "Kew Creek": [
+     1,
+     10.9
+    ],
+    "Ling Creek": [
+     17,
+     7.5
+    ],
+    "Little Joe Creek": [
+     4,
+     8.4
+    ],
+    "Maidment Creek": [
+     2,
+     1.4
+    ],
+    "Marjorie Creek": [
+     1,
+     3.2
+    ],
+    "Marlin Creek": [
+     2,
+     11.9
+    ],
+    "McKendrick Creek": [
+     3,
+     22.7
+    ],
+    "Morin Creek": [
+     2,
+     1.1
+    ],
+    "Morrison Creek": [
+     2,
+     4.0
+    ],
+    "Nata Creek": [
+     3,
+     17.5
+    ],
+    "Nicholson Creek": [
+     5,
+     9.3
+    ],
+    "O'Herin Creek": [
+     5,
+     5.3
+    ],
+    "Pierre Creek": [
+     4,
+     31.5
+    ],
+    "Pinkut Creek": [
+     16,
+     62.0
+    ],
+    "Regan Creek": [
+     3,
+     9.6
+    ],
+    "Shass Creek": [
+     6,
+     21.2
+    ],
+    "Sockeye Creek": [
+     1,
+     20.2
+    ],
+    "Stimson Creek": [
+     1,
+     9.2
+    ],
+    "Strimboldh Creek": [
+     2,
+     12.3
+    ],
+    "Sutherland River": [
+     10,
+     94.7
+    ],
+    "Tachek Creek": [
+     3,
+     39.9
+    ],
+    "Tahlo Creek": [
+     8,
+     35.2
+    ],
+    "Taka Creek": [
+     1,
+     11.9
+    ],
+    "Tanglechain Creek": [
+     6,
+     16.7
+    ],
+    "Twain Creek": [
+     2,
+     22.8
+    ],
+    "Williams Creek": [
+     2,
+     14.9
+    ]
+   },
+   "non_stream": [
+    "lake:328963068",
+    "lake:329026698",
+    "lake:329026717",
+    "lake:329026739",
+    "lake:329026743",
+    "lake:329026765",
+    "lake:329026779",
+    "lake:329026814",
+    "lake:329026868",
+    "lake:329026875"
+   ],
+   "own_row": true,
+   "own_row_entries": [
+    "r6:babine_lake@6-6"
+   ],
+   "river": [
+    "Babine River"
+   ],
+   "rules": [
+    {
+     "rule": "r6:babine_river@6-8::babine_river.r6",
+     "words": "Bait ban"
+    }
+   ],
+   "sections": 4995,
+   "stream_sections": 4883,
+   "unnamed": [
+    4650,
+    6477.5
+   ]
+  },
+  {
+   "dead_ends": [],
+   "entries": [
+    "r4:slocan_river@4-17"
+   ],
+   "km": 3765.7,
+   "lake": "lake:329523065",
+   "lake_item": "wbk:329523065",
+   "lake_name": "Slocan Lake",
+   "named": {
+    "Algiers Creek": [
+     1,
+     2.2
+    ],
+    "Allen Creek": [
+     1,
+     3.0
+    ],
+    "Arthur Creek": [
+     1,
+     5.1
+    ],
+    "Avison Creek": [
+     1,
+     3.4
+    ],
+    "Aylwin Creek": [
+     2,
+     7.1
+    ],
+    "Baby Ruth Creek": [
+     1,
+     3.1
+    ],
+    "Bartlett Creek": [
+     1,
+     5.6
+    ],
+    "Beatrice Creek": [
+     8,
+     13.1
+    ],
+    "Beaverton Creek": [
+     1,
+     3.1
+    ],
+    "Bettina Creek": [
+     1,
+     2.6
+    ],
+    "Bonanza Creek": [
+     2,
+     21.1
+    ],
+    "Bondholder Creek": [
+     1,
+     3.5
+    ],
+    "Brahms Creek": [
+     1,
+     1.7
+    ],
+    "Braille Creek": [
+     1,
+     0.6
+    ],
+    "Bremner Creek": [
+     6,
+     28.7
+    ],
+    "Burkitt Creek": [
+     1,
+     21.4
+    ],
+    "Cadden Creek": [
+     1,
+     5.2
+    ],
+    "Capella Creek": [
+     1,
+     2.1
+    ],
+    "Carpenter Creek": [
+     2,
+     25.8
+    ],
+    "Chatham Creek": [
+     1,
+     2.2
+    ],
+    "Climax Creek": [
+     1,
+     4.5
+    ],
+    "Cody Creek": [
+     2,
+     6.9
+    ],
+    "Coldwell Creek": [
+     1,
+     1.5
+    ],
+    "Congo Creek": [
+     1,
+     3.0
+    ],
+    "Cory Creek": [
+     1,
+     3.0
+    ],
+    "Cove Creek": [
+     1,
+     4.3
+    ],
+    "Dardanelles Creek": [
+     1,
+     2.7
+    ],
+    "Dayton Creek": [
+     1,
+     4.5
+    ],
+    "Dennis Creek": [
+     1,
+     11.4
+    ],
+    "Dixie Creek": [
+     2,
+     3.4
+    ],
+    "Emily Creek": [
+     1,
+     3.3
+    ],
+    "Enterprise Creek": [
+     3,
+     23.6
+    ],
+    "Evans Creek": [
+     12,
+     17.7
+    ],
+    "Fennell Creek": [
+     2,
+     10.9
+    ],
+    "Fingland Creek": [
+     1,
+     4.2
+    ],
+    "Fitzstubbs Creek": [
+     6,
+     31.6
+    ],
+    "Hamling Creek": [
+     3,
+     10.1
+    ],
+    "Harlow Creek": [
+     2,
+     9.1
+    ],
+    "Harris Creek": [
+     1,
+     2.1
+    ],
+    "Hasty Creek": [
+     2,
+     4.7
+    ],
+    "Hoben Creek": [
+     7,
+     8.1
+    ],
+    "Howson Creek": [
+     1,
+     5.1
+    ],
+    "Huss Creek": [
+     3,
+     3.8
+    ],
+    "Indian Creek": [
+     1,
+     9.0
+    ],
+    "Kane Creek": [
+     2,
+     17.7
+    ],
+    "Keene Creek": [
+     3,
+     12.5
+    ],
+    "Little Tim Creek": [
+     1,
+     3.2
+    ],
+    "Marten Creek": [
+     4,
+     7.5
+    ],
+    "Maurier Creek": [
+     2,
+     9.3
+    ],
+    "McEllis Creek": [
+     1,
+     2.2
+    ],
+    "McGuigan Creek": [
+     1,
+     5.1
+    ],
+    "Memphis Creek": [
+     1,
+     4.8
+    ],
+    "Miller Creek": [
+     1,
+     2.7
+    ],
+    "Monitor Creek": [
+     1,
+     5.0
+    ],
+    "Mountain Chief Creek": [
+     1,
+     1.7
+    ],
+    "Neepawa Creek": [
+     1,
+     2.4
+    ],
+    "Nemo Creek": [
+     4,
+     17.8
+    ],
+    "O.K. Creek": [
+     1,
+     3.3
+    ],
+    "Owl Creek": [
+     1,
+     4.7
+    ],
+    "Paupo Creek": [
+     1,
+     4.2
+    ],
+    "Printer Creek": [
+     1,
+     2.7
+    ],
+    "Prior Creek": [
+     1,
+     1.1
+    ],
+    "Rambler Creek": [
+     1,
+     2.6
+    ],
+    "Ranch Creek": [
+     1,
+     6.2
+    ],
+    "Rossland Creek": [
+     1,
+     5.1
+    ],
+    "Sandon Creek": [
+     1,
+     4.5
+    ],
+    "Scorpion Creek": [
+     1,
+     3.4
+    ],
+    "Seaton Creek": [
+     6,
+     8.1
+    ],
+    "Shannon Creek": [
+     1,
+     13.8
+    ],
+    "Sharp Creek": [
+     1,
+     8.6
+    ],
+    "Shea Creek": [
+     1,
+     1.8
+    ],
+    "Silverton Creek": [
+     3,
+     21.2
+    ],
+    "Simpson Creek": [
+     1,
+     2.2
+    ],
+    "Speculator Creek": [
+     1,
+     2.9
+    ],
+    "Springer Creek": [
+     1,
+     14.7
+    ],
+    "St. Clair Creek": [
+     1,
+     2.7
+    ],
+    "Timber Creek": [
+     1,
+     7.7
+    ],
+    "Tobin Creek": [
+     1,
+     3.6
+    ],
+    "Tributary Creek": [
+     1,
+     3.6
+    ],
+    "Tryon Creek": [
+     1,
+     2.3
+    ],
+    "Turris Creek": [
+     1,
+     2.0
+    ],
+    "Twigg Creek": [
+     1,
+     2.3
+    ],
+    "Van Tuyl Creek": [
+     1,
+     2.0
+    ],
+    "Vevey Creek": [
+     1,
+     9.3
+    ],
+    "Wakefield Creek": [
+     1,
+     2.2
+    ],
+    "Wee Sandy Creek": [
+     2,
+     12.2
+    ],
+    "Westmont Creek": [
+     1,
+     3.9
+    ],
+    "White Creek": [
+     2,
+     2.8
+    ],
+    "Wild Creek": [
+     1,
+     1.1
+    ],
+    "Wilson Creek": [
+     9,
+     42.2
+    ],
+    "Wragge Creek": [
+     5,
+     9.9
+    ]
+   },
+   "non_stream": [
+    "lake:328989115",
+    "lake:328989117",
+    "lake:328989130",
+    "lake:329523099",
+    "lake:329523109",
+    "lake:329523133",
+    "lake:329523142",
+    "lake:329523180",
+    "lake:329523222",
+    "lake:329523228"
+   ],
+   "own_row": true,
+   "own_row_entries": [
+    "r4:slocan_lake@4-17"
+   ],
+   "river": [
+    "Slocan River"
+   ],
+   "rules": [
+    {
+     "rule": "r4:slocan_river@4-17::slocan_river.r1",
+     "words": "No Fishing July 15-Aug 31 from 12 pm to midnight (EXCEPT Koch Creek upstream of falls located approximately 700 m downstream of\nthe Little Slocan Forest Service Road Koch Creek bridge crossing and Little Slocan Lake's tributaries; see Lemon Creek)"
+    },
+    {
+     "rule": "r4:slocan_river@4-17::slocan_river.r2",
+     "words": "Bait ban (where open), June 15-Oct 31"
+    },
+    {
+     "rule": "r4:slocan_river@4-17::slocan_river.r3",
+     "words": "Trout/char catch and release (EXCEPT Koch Creek upstream of falls and Little Slocan Lake's tributaries)"
+    }
+   ],
+   "sections": 3411,
+   "stream_sections": 3370,
+   "unnamed": [
+    3200,
+    3104.0
+   ]
+  },
+  {
+   "dead_ends": [
+    "360225253:0",
+    "360225254:0",
+    "360245427:0"
+   ],
+   "entries": [
+    "r6:morice_river@6-9"
+   ],
+   "km": 2860.3,
+   "lake": "lake:329385412",
+   "lake_item": "wbk:329385412",
+   "lake_name": "Morice Lake",
+   "named": {
+    "Atna River": [
+     12,
+     31.2
+    ],
+    "Bergeland Creek": [
+     5,
+     27.3
+    ],
+    "Copper Cliff Creek": [
+     1,
+     13.7
+    ],
+    "Fenton Creek": [
+     3,
+     9.2
+    ],
+    "Glacier Creek": [
+     3,
+     17.8
+    ],
+    "Loring Creek": [
+     1,
+     6.6
+    ],
+    "McBride Creek": [
+     10,
+     18.5
+    ],
+    "Mortella Creek": [
+     1,
+     5.5
+    ],
+    "Nanika River": [
+     21,
+     42.6
+    ],
+    "Nikun Creek": [
+     2,
+     9.5
+    ],
+    "Shadow Creek": [
+     2,
+     15.2
+    ],
+    "Stepp Creek": [
+     4,
+     3.6
+    ],
+    "Tsiyuh Creek": [
+     1,
+     5.4
+    ],
+    "Utem Creek": [
+     1,
+     2.7
+    ]
+   },
+   "non_stream": [
+    "lake:328982164",
+    "lake:329385431",
+    "lake:329385512",
+    "lake:329385560",
+    "lake:329385594",
+    "lake:329385595",
+    "lake:329385618",
+    "lake:329385759",
+    "lake:329386218",
+    "lake:329386572"
+   ],
+   "own_row": false,
+   "own_row_entries": [],
+   "river": [
+    "Morice River"
+   ],
+   "rules": [
+    {
+     "rule": "r6:morice_river@6-9::morice_river.r1",
+     "words": "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31"
+    },
+    {
+     "rule": "r6:morice_river@6-9::morice_river.r6",
+     "words": "Bait ban"
+    },
+    {
+     "rule": "r6:morice_river@6-9::morice_river.r7",
+     "words": "No angling from boats, Aug 15-Dec 31 (all parts)"
+    }
+   ],
+   "sections": 2589,
+   "stream_sections": 2573,
+   "unnamed": [
+    2506,
+    2651.5
+   ]
+  },
+  {
+   "dead_ends": [],
+   "entries": [
+    "r1:cowichan_river_see_map_below@1-4"
+   ],
+   "km": 1239.3,
+   "lake": "lake:329101302",
+   "lake_item": "wbk:329101302",
+   "lake_name": "Cowichan Lake",
+   "named": {
+    "Ashburnham Creek": [
+     1,
+     6.6
+    ],
+    "Beaver Creek": [
+     2,
+     5.6
+    ],
+    "Coonskin Creek": [
+     1,
+     3.4
+    ],
+    "Cottonwood Creek": [
+     3,
+     11.4
+    ],
+    "Croft Creek": [
+     1,
+     2.3
+    ],
+    "Death Creek": [
+     1,
+     0.7
+    ],
+    "East Robertson River": [
+     1,
+     10.3
+    ],
+    "Gnarly Creek": [
+     1,
+     1.0
+    ],
+    "Loon Creek": [
+     1,
+     1.2
+    ],
+    "March Creek": [
+     1,
+     3.2
+    ],
+    "McKay Creek": [
+     1,
+     9.9
+    ],
+    "Meade Creek": [
+     2,
+     19.0
+    ],
+    "Millar Creek": [
+     2,
+     5.0
+    ],
+    "Nineteen Creek": [
+     1,
+     10.0
+    ],
+    "Nixon Creek": [
+     2,
+     14.6
+    ],
+    "Rap Creek": [
+     1,
+     0.7
+    ],
+    "Raymond Creek": [
+     1,
+     6.0
+    ],
+    "Robertson River": [
+     2,
+     19.5
+    ],
+    "Shaw Creek": [
+     3,
+     16.6
+    ],
+    "Sheet Creek": [
+     1,
+     1.5
+    ],
+    "Sutton Creek": [
+     3,
+     15.4
+    ],
+    "Utility Creek": [
+     1,
+     1.2
+    ],
+    "Wardroper Creek": [
+     1,
+     5.1
+    ],
+    "Widow Creek": [
+     1,
+     7.0
+    ],
+    "Youbou Creek": [
+     1,
+     2.3
+    ]
+   },
+   "non_stream": [],
+   "own_row": true,
+   "own_row_entries": [
+    "r1:cowichan_lake_including_bear_lake@1-4"
+   ],
+   "river": [
+    "Cowichan River"
+   ],
+   "rules": [
+    {
+     "rule": "r1:cowichan_river_see_map_below@1-4::cowichan_river.r2",
+     "words": "No Fishing July 15-Aug 31"
+    }
+   ],
+   "sections": 1234,
+   "stream_sections": 1234,
+   "unnamed": [
+    1198,
+    1059.6
+   ]
+  },
+  {
+   "dead_ends": [],
+   "entries": [
+    "r4:lardeau_river@4-29+4-30"
+   ],
+   "km": 1396.3,
+   "lake": "lake:329120715",
+   "lake_item": "wbk:329120715",
+   "lake_name": "Trout Lake",
+   "named": {
+    "Abrahamson Creek": [
+     1,
+     7.8
+    ],
+    "Alpha Creek": [
+     1,
+     4.8
+    ],
+    "American Creek": [
+     1,
+     5.8
+    ],
+    "Asher Creek": [
+     4,
+     18.8
+    ],
+    "Batys Creek": [
+     3,
+     3.7
+    ],
+    "Benson Creek": [
+     1,
+     3.9
+    ],
+    "Bigger Creek": [
+     1,
+     5.1
+    ],
+    "Broadview Creek": [
+     1,
+     2.7
+    ],
+    "Brown Creek": [
+     2,
+     4.2
+    ],
+    "Bunker Hill Creek": [
+     1,
+     4.9
+    ],
+    "Burg Creek": [
+     1,
+     5.2
+    ],
+    "Cascading Creek": [
+     1,
+     4.2
+    ],
+    "Coon Creek": [
+     1,
+     2.2
+    ],
+    "Copper Queen Creek": [
+     1,
+     4.7
+    ],
+    "Corner Creek": [
+     1,
+     2.6
+    ],
+    "Craig Creek": [
+     1,
+     5.9
+    ],
+    "Culkeen Creek": [
+     1,
+     1.3
+    ],
+    "Cup Creek": [
+     1,
+     5.0
+    ],
+    "Daney Creek": [
+     3,
+     4.1
+    ],
+    "Dave Morgan Creek": [
+     1,
+     2.6
+    ],
+    "Ferguson Creek": [
+     1,
+     17.9
+    ],
+    "Finkle Creek": [
+     2,
+     6.6
+    ],
+    "Fissure Creek": [
+     1,
+     3.5
+    ],
+    "Five Mile Creek": [
+     1,
+     2.0
+    ],
+    "Gainer Creek": [
+     2,
+     12.5
+    ],
+    "Galena Creek": [
+     1,
+     4.4
+    ],
+    "Gerrard Creek": [
+     1,
+     3.5
+    ],
+    "Glenn Creek": [
+     1,
+     6.1
+    ],
+    "Halfway Creek": [
+     1,
+     4.6
+    ],
+    "Horsefly Creek": [
+     1,
+     4.1
+    ],
+    "Humphries Creek": [
+     2,
+     5.4
+    ],
+    "Index Creek": [
+     1,
+     2.6
+    ],
+    "Lardeau Creek": [
+     2,
+     29.9
+    ],
+    "Laughton Creek": [
+     3,
+     6.8
+    ],
+    "Le Beau Creek": [
+     2,
+     4.4
+    ],
+    "Lew Creek": [
+     3,
+     5.9
+    ],
+    "Mohican Creek": [
+     1,
+     2.5
+    ],
+    "Mountain Goat Creek": [
+     1,
+     10.4
+    ],
+    "Neil Creek": [
+     1,
+     3.2
+    ],
+    "North Brown Creek": [
+     1,
+     3.6
+    ],
+    "Ottawa Creek": [
+     1,
+     6.2
+    ],
+    "Parisian Creek": [
+     1,
+     5.2
+    ],
+    "Perry Lode Creek": [
+     1,
+     2.0
+    ],
+    "Rady Creek": [
+     1,
+     5.3
+    ],
+    "Sharon Creek": [
+     1,
+     3.7
+    ],
+    "Six Mile Creek": [
+     1,
+     1.5
+    ],
+    "Stobart Creek": [
+     1,
+     5.9
+    ],
+    "Surprise Creek": [
+     2,
+     5.7
+    ],
+    "Triune Creek": [
+     1,
+     3.4
+    ],
+    "Union Jack Creek": [
+     1,
+     1.5
+    ],
+    "Wilkie Creek": [
+     3,
+     26.0
+    ]
+   },
+   "non_stream": [
+    "lake:328967526",
+    "lake:329120735",
+    "lake:329120772",
+    "lake:329121048",
+    "lake:329121154",
+    "lake:329121201",
+    "lake:329121473",
+    "lake:329121478",
+    "lake:329121505"
+   ],
+   "own_row": true,
+   "own_row_entries": [
+    "r4:trout_lake@4-30"
+   ],
+   "river": [
+    "Lardeau River"
+   ],
+   "rules": [
+    {
+     "rule": "r4:lardeau_river@4-29+4-30::lardeau_river.r2",
+     "words": "Exempt from spring closure (Apr 1-Jun 14)"
+    },
+    {
+     "rule": "r4:lardeau_river@4-29+4-30::lardeau_river.r3",
+     "words": "exempt from trout/char release (Nov 1-Mar 31)"
+    },
+    {
+     "rule": "r4:lardeau_river@4-29+4-30::lardeau_river.r4",
+     "words": "Rainbow trout daily quota = 5 (any size)"
+    },
+    {
+     "rule": "r4:lardeau_river@4-29+4-30::lardeau_river.r5",
+     "words": "bull trout daily quota = 2 (any size)"
+    }
+   ],
+   "sections": 1212,
+   "stream_sections": 1203,
+   "unnamed": [
+    1132,
+    1090.6
+   ]
+  },
+  {
+   "dead_ends": [
+    "360223542:0",
+    "360235132:0",
+    "360235133:0",
+    "360247358:0"
+   ],
+   "entries": [
+    "r6:meziadin_river@6-16"
+   ],
+   "km": 1306.2,
+   "lake": "lake:329223895",
+   "lake_item": "wbk:329223895",
+   "lake_name": "Meziadin Lake",
+   "named": {
+    "Crook Creek": [
+     1,
+     6.0
+    ],
+    "Divi Creek": [
+     1,
+     6.2
+    ],
+    "Glace Creek": [
+     4,
+     8.4
+    ],
+    "Goldsmith Creek": [
+     1,
+     4.2
+    ],
+    "Hanna Creek": [
+     9,
+     38.6
+    ],
+    "Strohn Creek": [
+     9,
+     22.7
+    ],
+    "Surprise Creek": [
+     4,
+     21.6
+    ],
+    "Tintina Creek": [
+     9,
+     35.3
+    ]
+   },
+   "non_stream": [
+    "lake:329223991",
+    "lake:329224038",
+    "lake:329224170",
+    "lake:329224180",
+    "lake:329224237",
+    "lake:329224307",
+    "lake:329224331",
+    "lake:329224432",
+    "lake:329224618",
+    "lake:329225004"
+   ],
+   "own_row": false,
+   "own_row_entries": [],
+   "river": [
+    "Meziadin River"
+   ],
+   "rules": [
+    {
+     "rule": "r6:meziadin_river@6-16::meziadin_river.r1",
+     "words": "Bait ban"
+    }
+   ],
+   "sections": 1139,
+   "stream_sections": 1127,
+   "unnamed": [
+    1089,
+    1163.2
+   ]
+  },
+  {
+   "dead_ends": [
+    "360222181:0"
+   ],
+   "entries": [
+    "r6:lakelse_river@6-10"
+   ],
+   "km": 610.2,
+   "lake": "lake:329310750",
+   "lake_item": "wbk:329310750",
+   "lake_name": "Lakelse Lake",
+   "named": {
+    "Andalas Creek": [
+     3,
+     4.7
+    ],
+    "Clearwater Creek": [
+     2,
+     6.5
+    ],
+    "Ena Creek": [
+     1,
+     1.8
+    ],
+    "Furlong Creek": [
+     1,
+     6.8
+    ],
+    "Hatchery Creek": [
+     1,
+     13.2
+    ],
+    "Schulbuckhand Creek": [
+     1,
+     16.3
+    ],
+    "Sockeye Creek": [
+     2,
+     12.0
+    ],
+    "Williams Creek": [
+     4,
+     40.7
+    ]
+   },
+   "non_stream": [
+    "lake:329310858",
+    "lake:329310927",
+    "lake:329311023"
+   ],
+   "own_row": true,
+   "own_row_entries": [
+    "r6:lakelse_lake@6-11"
+   ],
+   "river": [
+    "Lakelse River"
+   ],
+   "rules": [
+    {
+     "rule": "r6:lakelse_river@6-10::lakelse_river.r3",
+     "words": "Bait ban"
+    },
+    {
+     "rule": "r6:lakelse_river@6-10::lakelse_river.r4",
+     "words": "no powered boats"
+    },
+    {
+     "rule": "r6:lakelse_river@6-10::lakelse_river.r5",
+     "words": "Note: The mouth of the river is designated by signs 1.7 km downstream of Lakelse River logging road bridge"
+    }
+   ],
+   "sections": 474,
+   "stream_sections": 471,
+   "unnamed": [
+    456,
+    508.1
+   ]
+  },
+  {
+   "dead_ends": [],
+   "entries": [
+    "r1:yakoun_river@6-13"
+   ],
+   "km": 190.4,
+   "lake": "lake:329163190",
+   "lake_item": "wbk:329163190",
+   "lake_name": "Yakoun Lake",
+   "named": {
+    "Baddeck Creek": [
+     1,
+     5.6
+    ],
+    "Delta Creek": [
+     1,
+     5.5
+    ],
+    "Etheline Creek": [
+     1,
+     5.2
+    ],
+    "Sandstone Creek": [
+     1,
+     8.2
+    ]
+   },
+   "non_stream": [],
+   "own_row": false,
+   "own_row_entries": [],
+   "river": [
+    "Yakoun River"
+   ],
+   "rules": [
+    {
+     "rule": "r1:yakoun_river@6-13::yakoun_river.r2",
+     "words": "Bait ban Nov 1-Apr 30"
+    },
+    {
+     "rule": "r1:yakoun_river@6-13::yakoun_river.r3",
+     "words": "Cutthroat trout catch and release"
+    },
+    {
+     "rule": "r1:yakoun_river@6-13::yakoun_river.r4",
+     "words": "No powered boats"
+    }
+   ],
+   "sections": 186,
+   "stream_sections": 186,
+   "unnamed": [
+    182,
+    165.9
+   ]
+  },
+  {
+   "dead_ends": [],
+   "entries": [
+    "r1:little_qualicum_river@1-6"
+   ],
+   "km": 221.3,
+   "lake": "lake:329467588",
+   "lake_item": "wbk:329467588",
+   "lake_name": "Cameron Lake",
+   "named": {
+    "B. P. Creek": [
+     1,
+     7.5
+    ],
+    "Cameron River": [
+     5,
+     32.4
+    ],
+    "Cop Creek": [
+     1,
+     4.6
+    ],
+    "Kammat Creek": [
+     3,
+     2.4
+    ],
+    "Yellows Creek": [
+     1,
+     3.5
+    ]
+   },
+   "non_stream": [
+    "lake:329468414",
+    "lake:329468486",
+    "lake:329468709"
+   ],
+   "own_row": false,
+   "own_row_entries": [],
+   "river": [
+    "Little Qualicum River"
+   ],
+   "rules": [
+    {
+     "rule": "r1:little_qualicum_river@1-6::little_qualicum_river.r1",
+     "words": "No Fishing July 15-Aug 31"
+    },
+    {
+     "rule": "r1:little_qualicum_river@1-6::little_qualicum_river.r2",
+     "words": "No Fishing - All tributaries"
+    }
+   ],
+   "sections": 177,
+   "stream_sections": 174,
+   "unnamed": [
+    163,
+    171.0
+   ]
+  },
+  {
+   "dead_ends": [],
+   "entries": [
+    "r4:elk_river_s_tributaries_see_exceptions@4-2+4-23"
+   ],
+   "km": 86.7,
+   "lake": "lake:329123422",
+   "lake_item": "wbk:329123422",
+   "lake_name": "Lower Elk Lake",
+   "named": {
+    "Nivelle Creek": [
+     2,
+     6.7
+    ]
+   },
+   "non_stream": [],
+   "own_row": true,
+   "own_row_entries": [
+    "r4:lower_elk_lake@4-23"
+   ],
+   "river": [
+    "Elk River"
+   ],
+   "rules": [
+    {
+     "rule": "r4:elk_river_s_tributaries_see_exceptions@4-2+4-23::elk_river_s_tributaries.r1",
+     "words": "No Fishing Sept 1-Oct 31"
+    },
+    {
+     "rule": "r4:elk_river_s_tributaries_see_exceptions@4-2+4-23::elk_river_s_tributaries.r2",
+     "words": "Trout/char daily quota = 1 (none under 30 cm)"
+    },
+    {
+     "rule": "r4:elk_river_s_tributaries_see_exceptions@4-2+4-23::elk_river_s_tributaries.r3",
+     "words": "bait ban, June 15-Aug 31"
+    },
+    {
+     "rule": "r4:elk_river_s_tributaries_see_exceptions@4-2+4-23::elk_river_s_tributaries.r4",
+     "words": "Bull trout catch and release"
+    }
+   ],
+   "sections": 98,
+   "stream_sections": 98,
+   "unnamed": [
+    96,
+    80.0
+   ]
+  },
+  {
+   "dead_ends": [],
+   "entries": [
+    "r1:sooke_river@1-2"
+   ],
+   "km": 93.4,
+   "lake": "lake:329504245",
+   "lake_item": "wbk:329504245",
+   "lake_name": "Sooke Lake",
+   "named": {
+    "Judge Creek": [
+     1,
+     7.3
+    ],
+    "Rithet Creek": [
+     1,
+     8.0
+    ]
+   },
+   "non_stream": [],
+   "own_row": false,
+   "own_row_entries": [],
+   "river": [
+    "Sooke River"
+   ],
+   "rules": [
+    {
+     "rule": "r1:sooke_river@1-2::sooke_river.r2",
+     "words": "No Fishing July 15-Aug 31"
+    }
+   ],
+   "sections": 86,
+   "stream_sections": 86,
+   "unnamed": [
+    84,
+    78.1
+   ]
+  },
+  {
+   "dead_ends": [],
+   "entries": [
+    "r2:brunette_river_s_tributaries@2-8"
+   ],
+   "km": 56.8,
+   "lake": "lake:329291868",
+   "lake_item": "wbk:329291868",
+   "lake_name": "Burnaby Lake",
+   "named": {
+    "Angelo Creek": [
+     1,
+     1.0
+    ],
+    "Ardley Creek": [
+     1,
+     0.6
+    ],
+    "Beaver Trib.1": [
+     1,
+     0.2
+    ],
+    "Beaver Trib.1-1": [
+     1,
+     0.4
+    ],
+    "Beaver Trib.2": [
+     1,
+     1.1
+    ],
+    "Beaver Trib.2-1": [
+     1,
+     0.1
+    ],
+    "Beaver Trib.3": [
+     1,
+     0.6
+    ],
+    "Beaver Trib.4": [
+     1,
+     0.5
+    ],
+    "Beaver Trib.5": [
+     1,
+     0.4
+    ],
+    "Beecher Trib.1": [
+     1,
+     0.1
+    ],
+    "Beecher Trib.2": [
+     1,
+     0.1
+    ],
+    "Beecher Trib.3": [
+     1,
+     1.1
+    ],
+    "Beecher Trib.4": [
+     1,
+     0.5
+    ],
+    "Black Bear Creek": [
+     1,
+     0.7
+    ],
+    "Bog Creek": [
+     1,
+     0.1
+    ],
+    "Buckingham Creek": [
+     1,
+     1.6
+    ],
+    "Buckingham Trib.1": [
+     1,
+     0.4
+    ],
+    "Buckingham Trib.3": [
+     1,
+     0.1
+    ],
+    "Chickadee Creek": [
+     1,
+     0.3
+    ],
+    "Chub Creek": [
+     1,
+     1.5
+    ],
+    "Chub Trib.1": [
+     1,
+     0.3
+    ],
+    "Chub Trib.1-1": [
+     1,
+     0.2
+    ],
+    "Corvus Creek": [
+     1,
+     0.1
+    ],
+    "Crab-Apple Creek": [
+     1,
+     1.9
+    ],
+    "Crab-Apple Trib.1": [
+     1,
+     0.6
+    ],
+    "Crab-Apple Trib.1.1": [
+     1,
+     0.1
+    ],
+    "Cranberry Creek": [
+     1,
+     0.3
+    ],
+    "Cutthroat Creek": [
+     1,
+     0.2
+    ],
+    "Deer Lake Brook": [
+     2,
+     4.4
+    ],
+    "Deer Lake Brook Trib.1": [
+     1,
+     0.3
+    ],
+    "Deer Lake Brook Trib.2": [
+     1,
+     0.2
+    ],
+    "Deer Lake Brook Trib.3": [
+     1,
+     0.5
+    ],
+    "Edgar Creek": [
+     1,
+     0.3
+    ],
+    "Elk Creek": [
+     1,
+     0.1
+    ],
+    "First Beach Creek": [
+     1,
+     0.6
+    ],
+    "Flume Creek": [
+     1,
+     0.9
+    ],
+    "Guichon Creek": [
+     1,
+     3.3
+    ],
+    "Guichon Trib.1": [
+     1,
+     0.1
+    ],
+    "Guichon Trib.3": [
+     1,
+     0.9
+    ],
+    "Oakalla Creek": [
+     1,
+     0.6
+    ],
+    "Oakalla Farm Creek": [
+     1,
+     0.8
+    ],
+    "Owl Creek": [
+     1,
+     0.4
+    ],
+    "Owl Trib.1": [
+     1,
+     0.2
+    ],
+    "Owl Trib.1-1": [
+     1,
+     0.1
+    ],
+    "Pole Line Creek": [
+     1,
+     0.2
+    ],
+    "Pollywog Creek": [
+     1,
+     0.9
+    ],
+    "Pollywog Trib.1": [
+     1,
+     0.2
+    ],
+    "Ramsay Trib.1": [
+     1,
+     0.4
+    ],
+    "Ramsay Trib.1-1": [
+     1,
+     0.2
+    ],
+    "Ramsay Trib.2": [
+     1,
+     0.5
+    ],
+    "Ramsay Trib.3": [
+     1,
+     0.2
+    ],
+    "Ramsay Trib.4": [
+     1,
+     0.2
+    ],
+    "Ramsay Trib.5": [
+     2,
+     1.8
+    ],
+    "Ramsay Trib.6": [
+     1,
+     0.5
+    ],
+    "Ramsay Trib.6-1": [
+     1,
+     0.1
+    ],
+    "Second Beach Creek": [
+     1,
+     0.8
+    ],
+    "Second Beach Trib.1": [
+     1,
+     0.4
+    ],
+    "Second Beach Trib.1-1": [
+     1,
+     0.2
+    ],
+    "Second Beach Trib.2": [
+     1,
+     0.3
+    ],
+    "Spartan Creek": [
+     1,
+     0.3
+    ],
+    "Spartan Creek Trib.2-1": [
+     1,
+     0.1
+    ],
+    "Spring Brook": [
+     1,
+     2.0
+    ],
+    "Station Creek": [
+     1,
+     0.7
+    ],
+    "Stickleback Creek": [
+     1,
+     0.8
+    ],
+    "Stickleback Creek Trib.1": [
+     1,
+     0.1
+    ],
+    "Still Creek": [
+     1,
+     9.2
+    ],
+    "Sumner Creek": [
+     1,
+     1.7
+    ],
+    "Sumner Trib": [
+     1,
+     0.2
+    ],
+    "Sunken Engine Creek": [
+     1,
+     2.4
+    ],
+    "Third Beach Creek": [
+     1,
+     0.8
+    ],
+    "Third Beach Trib.1": [
+     1,
+     0.1
+    ],
+    "Third Beach Trib.2": [
+     1,
+     0.0
+    ],
+    "Third Beach Trib.3": [
+     1,
+     0.2
+    ],
+    "Third Beach Trib.4": [
+     1,
+     0.2
+    ],
+    "Turtle Creek": [
+     1,
+     0.2
+    ],
+    "Willow Creek": [
+     1,
+     0.2
+    ]
+   },
+   "non_stream": [
+    "lake:329292504"
+   ],
+   "own_row": true,
+   "own_row_entries": [
+    "r2:burnaby_lake@2-8"
+   ],
+   "river": [
+    "Brunette River"
+   ],
+   "rules": [
+    {
+     "rule": "r2:brunette_river_s_tributaries@2-8::brunette_river_s_tributaries.r1",
+     "words": "No Fishing"
+    }
+   ],
+   "sections": 83,
+   "stream_sections": 82,
+   "unnamed": [
+    4,
+    1.7
+   ]
+  },
+  {
+   "dead_ends": [],
+   "entries": [
+    "r2:sweltzer_creek@2-3"
+   ],
+   "km": 71.1,
+   "lake": "lake:329083342",
+   "lake_item": "wbk:329083342",
+   "lake_name": "Cultus Lake",
+   "named": {
+    "Amadis Creek": [
+     1,
+     2.8
+    ],
+    "Ascaphus Creek": [
+     1,
+     2.2
+    ],
+    "Clear Creek": [
+     1,
+     3.1
+    ],
+    "Fin Creek": [
+     1,
+     1.0
+    ],
+    "Frosst Creek": [
+     1,
+     8.2
+    ],
+    "Laurel Creek": [
+     1,
+     0.7
+    ],
+    "Smith Falls Creek": [
+     5,
+     2.1
+    ],
+    "Teapot Creek": [
+     1,
+     2.4
+    ],
+    "Watt Creek": [
+     1,
+     5.1
+    ],
+    "Wilkin Creek": [
+     1,
+     0.7
+    ],
+    "Windfall Creek": [
+     1,
+     3.4
+    ]
+   },
+   "non_stream": [
+    "lake:329083393",
+    "lake:329083398",
+    "lake:329083439"
+   ],
+   "own_row": true,
+   "own_row_entries": [
+    "r2:cultus_lake@2-3"
+   ],
+   "river": [
+    "Sweltzer River"
+   ],
+   "rules": [
+    {
+     "rule": "r2:sweltzer_creek@2-3::sweltzer_creek.r1",
+     "words": "No Fishing"
+    }
+   ],
+   "sections": 60,
+   "stream_sections": 57,
+   "unnamed": [
+    42,
+    39.4
+   ]
+  },
+  {
+   "dead_ends": [],
+   "entries": [
+    "r6:nass_river@6-30"
+   ],
+   "km": 62.2,
+   "lake": "lake:329642554",
+   "lake_item": "wbk:329642554",
+   "lake_name": "Nass Lake",
+   "named": {},
+   "non_stream": [],
+   "own_row": false,
+   "own_row_entries": [],
+   "river": [
+    "Nass River"
+   ],
+   "rules": [
+    {
+     "rule": "r6:nass_river@6-30::nass_river.r1",
+     "words": "Bait ban"
+    }
+   ],
+   "sections": 49,
+   "stream_sections": 49,
+   "unnamed": [
+    49,
+    62.2
+   ]
+  },
+  {
+   "dead_ends": [],
+   "entries": [
+    "r1:keogh_river@1-13"
+   ],
+   "km": 37.6,
+   "lake": "lake:329457560",
+   "lake_item": "wbk:329457560",
+   "lake_name": "Keogh Lake",
+   "named": {},
+   "non_stream": [],
+   "own_row": false,
+   "own_row_entries": [],
+   "river": [
+    "Keogh River"
+   ],
+   "rules": [
+    {
+     "rule": "r1:keogh_river@1-13::keogh_river.r2",
+     "words": "No Fishing in all parts, Dec 1-May 31"
+    }
+   ],
+   "sections": 35,
+   "stream_sections": 35,
+   "unnamed": [
+    35,
+    37.6
+   ]
+  },
+  {
+   "dead_ends": [],
+   "entries": [
+    "r2:north_alouette_river@2-8"
+   ],
+   "km": 15.0,
+   "lake": "lake:329291909",
+   "lake_item": "wbk:329291909",
+   "lake_name": "Jacobs Lake",
+   "named": {
+    "Gwendoline Creek": [
+     4,
+     2.3
+    ],
+    "Jacobs Creek": [
+     1,
+     3.8
+    ],
+    "Mayfly Creek": [
+     1,
+     2.7
+    ]
+   },
+   "non_stream": [
+    "lake:329293341"
+   ],
+   "own_row": false,
+   "own_row_entries": [],
+   "river": [
+    "North Alouette River"
+   ],
+   "rules": [
+    {
+     "rule": "r2:north_alouette_river@2-8::north_alouette_river.r2",
+     "words": "No powered boats"
+    }
+   ],
+   "sections": 18,
+   "stream_sections": 17,
+   "unnamed": [
+    11,
+    6.2
+   ]
+  },
+  {
+   "dead_ends": [],
+   "entries": [
+    "r1:colquitz_river@1-1"
+   ],
+   "km": 2.6,
+   "lake": "lake:329676320",
+   "lake_item": "wbk:329676320",
+   "lake_name": "Beaver Lake",
+   "named": {
+    "O'Donnel Creek": [
+     5,
+     1.4
+    ]
+   },
+   "non_stream": [
+    "lake:329676690",
+    "lake:329676784",
+    "lake:329676852",
+    "lake:329676855"
+   ],
+   "own_row": true,
+   "own_row_entries": [
+    "r1:beaver_lake@1-1"
+   ],
+   "river": [
+    "Colquitz River"
+   ],
+   "rules": [
+    {
+     "rule": "r1:colquitz_river@1-1::colquitz_river.r1",
+     "words": "No Fishing"
+    }
+   ],
+   "sections": 13,
+   "stream_sections": 9,
+   "unnamed": [
+    4,
+    1.2
+   ]
+  },
+  {
+   "dead_ends": [],
+   "entries": [
+    "r2:eagle_creek@2-8"
+   ],
+   "km": 4.5,
+   "lake": "lake:328989582",
+   "lake_item": "wbk:328989582",
+   "lake_name": "Dick Lake",
+   "named": {
+    "Dick Creek": [
+     4,
+     2.4
+    ]
+   },
+   "non_stream": [
+    "lake:329532944",
+    "lake:329533542",
+    "lake:329533854"
+   ],
+   "own_row": false,
+   "own_row_entries": [],
+   "river": [
+    "Eagle Creek"
+   ],
+   "rules": [
+    {
+     "rule": "r2:eagle_creek@2-8::eagle_creek.r1",
+     "words": "No Fishing"
+    }
+   ],
+   "sections": 13,
+   "stream_sections": 10,
+   "unnamed": [
+    6,
+    2.0
+   ]
+  },
+  {
+   "dead_ends": [],
+   "entries": [
+    "r1:miller_creek@1-6"
+   ],
+   "km": 16.9,
+   "lake": "lake:329069976",
+   "lake_item": "wbk:329069976",
+   "lake_name": "Gooseneck Lake",
+   "named": {},
+   "non_stream": [],
+   "own_row": false,
+   "own_row_entries": [],
+   "river": [
+    "Miller Creek"
+   ],
+   "rules": [
+    {
+     "rule": "r1:miller_creek@1-6::miller_creek.r1",
+     "words": "No Fishing"
+    }
+   ],
+   "sections": 11,
+   "stream_sections": 11,
+   "unnamed": [
+    11,
+    16.9
+   ]
+  },
+  {
+   "dead_ends": [],
+   "entries": [
+    "r1:goldstream_river@1-2"
+   ],
+   "km": 1.6,
+   "lake": "lake:329676316",
+   "lake_item": "wbk:329676316",
+   "lake_name": "Butchart Lake",
+   "named": {},
+   "non_stream": [],
+   "own_row": false,
+   "own_row_entries": [],
+   "river": [
+    "Goldstream River"
+   ],
+   "rules": [
+    {
+     "rule": "r1:goldstream_river@1-2::goldstream_river.r1",
+     "words": "No Fishing"
+    }
+   ],
+   "sections": 6,
+   "stream_sections": 6,
+   "unnamed": [
+    6,
+    1.6
+   ]
+  },
+  {
+   "dead_ends": [],
+   "entries": [
+    "r1:puntledge_river@1-6"
+   ],
+   "km": 0.8,
+   "lake": "lake:329095632",
+   "lake_item": "wbk:329095632",
+   "lake_name": "Puntledge Lake",
+   "named": {},
+   "non_stream": [],
+   "own_row": false,
+   "own_row_entries": [],
+   "river": [
+    "Puntledge River"
+   ],
+   "rules": [
+    {
+     "rule": "r1:puntledge_river@1-6::puntledge_river.r5",
+     "words": "No Fishing tributaries"
+    }
+   ],
+   "sections": 3,
+   "stream_sections": 3,
+   "unnamed": [
+    3,
+    0.8
+   ]
+  },
+  {
+   "dead_ends": [],
+   "entries": [
+    "r4:perry_creek@4-20"
+   ],
+   "km": 1.2,
+   "lake": "lake:329524014",
+   "lake_item": "wbk:329524014",
+   "lake_name": "Richmond Lake",
+   "named": {},
+   "non_stream": [],
+   "own_row": false,
+   "own_row_entries": [],
+   "river": [
+    "Perry Creek"
+   ],
+   "rules": [
+    {
+     "rule": "r4:perry_creek@4-20::perry_creek.r1",
+     "words": "Bait ban"
+    },
+    {
+     "rule": "r4:perry_creek@4-20::perry_creek.r2",
+     "words": "Cutthroat trout and bull trout catch and release"
+    },
+    {
+     "rule": "r4:perry_creek@4-20::perry_creek.r3",
+     "words": "brook trout daily quota = 20"
+    }
+   ],
+   "sections": 2,
+   "stream_sections": 2,
+   "unnamed": [
+    2,
+    1.2
+   ]
+  }
+ ],
+ "n_rules_changed": 42,
+ "outside": [
+  {
+   "gained_outside": [
+    "360565541:1251"
+   ],
+   "lost": [],
+   "n_gained_outside": 1,
+   "n_lost": 0,
+   "rule": "zp:steelhead::steelhead.r1b",
+   "wsc": [
+    "400-536025-597113-989130-765430-369148"
+   ]
+  },
+  {
+   "gained_outside": [
+    "360565541:1251"
+   ],
+   "lost": [],
+   "n_gained_outside": 1,
+   "n_lost": 0,
+   "rule": "zp:steelhead::steelhead.r2b",
+   "wsc": [
+    "400-536025-597113-989130-765430-369148"
+   ]
+  },
+  {
+   "gained_outside": [
+    "360565541:1251"
+   ],
+   "lost": [],
+   "n_gained_outside": 1,
+   "n_lost": 0,
+   "rule": "zp:steelhead::steelhead.r4b",
+   "wsc": [
+    "400-536025-597113-989130-765430-369148"
+   ]
+  }
+ ]
+}

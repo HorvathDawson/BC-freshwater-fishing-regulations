@@ -156,6 +156,36 @@ def inherited_line(lifter: str, lifted: Sequence[str], doc: dict) -> str:
     return f"{lead}: {whose} exemption from {what} covers its tributaries."
 
 
+#: (T1053, PROPOSAL: the owner's wording pick is open) THE RULE'S TRIBUTARY SCOPE IN WORDS, on its `applies` line wherever
+#: it is shown: a rule that reaches its water's tributaries — its own `includes_tributaries`, else its row's (AGENTS 9), or
+#: `tributaries_only` — says so, so the water's own sheet no longer reads as if it covered the water alone (Eagle Creek,
+#: report 3eaf5ac25fc39d73). The key's words (p.4): "An asterisk symbol means the regulation applies to tributary streams
+#: as well." A rule held as a note on an undrawn part never walks (RULINGS T10) and says nothing.
+TRIB_KEY_PAGE = 4
+
+
+def covers_tributaries(x: dict, E: dict, water: Optional[str]) -> Optional[str]:
+    """(T1053) "Covers Eagle Creek and its tributary streams (✱, p.4)." — the rule's tributary scope in words, or None
+    for a rule that does not reach tributaries. Three shapes: the whole water and its tributaries; a stretch of it (any
+    extent not `whole`) and the streams joining that stretch; the tributaries only (`tributaries_only`)."""
+    f = x.get("fields") or {}
+    if f.get("undrawn_part"):
+        return None
+    own = f.get("includes_tributaries")
+    only = bool(f.get("tributaries_only"))
+    if not only and not (own if own is not None else E.get("includes_tributaries")):
+        return None
+    cite = f" (✱, p.{TRIB_KEY_PAGE})" if "Incl. Tribs" in (E.get("symbols") or []) else ""
+    ops = {e.get("op") for e in f.get("extents") or []}
+    w = water or "its water"
+    if only:
+        return f"Covers only the tributary streams{'' if ops <= {'whole'} else ' of the part it names'}, not {w} " \
+               f"itself{cite}."
+    if ops and ops <= {"whole"}:
+        return f"Covers {w} and its tributary streams{cite}."
+    return f"Covers the part of {w} it names and the tributary streams joining that part{cite}."
+
+
 def applies_here(x: dict, doc: dict) -> Tuple[str, Optional[str]]:
     """(`applies`, `applies_trib`): one line saying why a rule binds where it does — its scope, by
     the export's provenance rank and entry — and, for a water row's rule the tributary walk can
@@ -171,6 +201,7 @@ def applies_here(x: dict, doc: dict) -> Tuple[str, Optional[str]]:
         ch = str(E.get("chapter") or "")
         region = EID.region_words([EID.region_of(ch)]) if EID.is_water_row(ch) and EID.region_of(ch) else None
     trib = None
+    scope_water = None                 # T1053: the water a rule that walks is said to cover with its tributaries
     if rank is None:
         raise AnswersError(f"display: rule {x['id']} ships no provenance rank")
     name = trib_owner(x, doc["entries"])
@@ -187,6 +218,7 @@ def applies_here(x: dict, doc: dict) -> Tuple[str, Optional[str]]:
         # RULINGS P41: the book named by its title
         say = f"This water’s own row in the {BOOK_TITLE}: {name}."
         trib = f"Inherited from {name}: its row covers its tributaries."
+        scope_water = name
     else:
         # a table's line about named waters (Zone B's "all from Williston Lake and its
         # tributaries"): for, and inherited from, the waters it names
@@ -200,6 +232,12 @@ def applies_here(x: dict, doc: dict) -> Tuple[str, Optional[str]]:
             else f"A B.C. rule for {waters or _lc_place(name)}."
         trib = (f"Inherited from {waters or _lc_place(name)}: the "
                 f"{region + ' table' if region else 'B.C. rule'} covers its tributaries.")
+        scope_water = waters or _lc_place(name)
+    if scope_water is not None:
+        # T1053: the rule's tributary scope in words (a water row's rule, or a table's line about named waters)
+        scope = covers_tributaries(x, E, scope_water)
+        if scope:
+            say += " " + scope
     lifts = [(e.get("entry_id"), e.get("rule_id")) for e in (x.get("fields") or {}).get("exempts") or []]
     if lifts:
         words = []

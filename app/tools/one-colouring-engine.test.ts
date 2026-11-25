@@ -20,7 +20,7 @@ import { describe, expect, it } from "vitest";
 import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { STYLE_META } from "../packages/map/src/style";
-import { ENGINE_KEYS, issueInput, methodInput, runsInput, salmonInput, standingInput, statusInput, stockedInput, surveyInput, withoutEngineKeys,
+import { ENGINE_KEYS, bankInput, halfInput, issueInput, methodInput, runsInput, salmonInput, standingInput, statusInput, stockedInput, surveyInput, withoutEngineKeys,
          type Channel } from "../packages/map/src/colouring";
 import { statusFeed } from "../packages/ui/src/mapModes";
 
@@ -43,6 +43,11 @@ const KEYS: Record<Channel, string> = {
   runs: runsInput({ facts: { state: () => undefined, has: () => false } as never, slots: [6], pentad: 0 }).labels.key,
   // (T759) the issue stripe: a section of a water with a DFO rule the feed could not place
   issue: issueInput({ sections: new Set() }).labels.key,
+  // (T1029) the one-bank cue: a section a DFO place for one bank stands beside (its side and the bank's chain)
+  bank: bankInput({ facts: { payload: { p: { b: { r: "6", side: "west", bk: { "1": 1 } } }, unmapped: [{ chain: 1 }],
+                                        chains: [{ l: [] }, { l: ["b"] }] } } as never, day: new Date(2026, 0, 1) })!.labels.key,
+  // (T1029 Q6) the rule book's one-half closure: the side of the drawn line its closed half is on
+  half: halfInput({ halves: new Map([[1, "L"]]) }).labels.key,
 };
 
 describe("one colouring engine", () => {
@@ -58,7 +63,7 @@ describe("one colouring engine", () => {
       [`profile:${KEYS.status}`, `runs:${KEYS.runs}`, `salmon:${KEYS.salmon}`, `standing:${KEYS.standing}`,
        `stocked:${KEYS.stocked}`, `surveyed:${KEYS.survey}`]);
     expect(KEYS).toEqual({ status: "p", standing: "standing", stocked: "stocked", survey: "survey", salmon: "sp", method: "gm",
-                         runs: "rt", issue: "gi" });
+                         runs: "rt", issue: "gi", bank: "bk", half: "bb" });
   });
 
   it("the web map makes ONE engine and hands every channel to it through ONE function", () => {
@@ -67,10 +72,12 @@ describe("one colouring engine", () => {
     expect(src.match(/\bc\.set\(/g)?.length).toBe(1);
     expect(src.match(/toChannel\("(\w+)"/g)).toEqual(
       ['toChannel("status"', 'toChannel("standing"', 'toChannel("survey"', 'toChannel("stocked"', 'toChannel("salmon"',
-       'toChannel("method"', 'toChannel("issue"', 'toChannel("runs"']);
+       'toChannel("bank"', 'toChannel("half"', 'toChannel("method"', 'toChannel("issue"', 'toChannel("runs"']);
     expect(src).toContain('toChannel("runs", runs ? runsInput(runs) : null');
     expect(src).toContain('toChannel("method", method ? methodInput(method) : null');
     expect(src).toContain('toChannel("salmon", salmon ? salmonInput(salmon) : null');
+    expect(src).toContain('toChannel("bank", salmon ? bankInput(salmon) : null');   // (T1029) part of the salmon feed
+    expect(src).toContain('toChannel("half", halves ? halfInput(halves) : null');   // (T1029 Q6) the book's halves: the head alone
     expect(src).toContain('toChannel("status", status ? statusInput(status, salmon) : null');   // (T796 A6) the finfish closures over it
     expect(src).toContain('toChannel("standing", standing ? standingInput(standing) : null');
     expect(src).toContain('toChannel("survey", lakes ? surveyInput(lakes) : null');
@@ -80,11 +87,23 @@ describe("one colouring engine", () => {
     expect(src).not.toMatch(/ProfileColouring|profile-paint/);
   });
 
+  it("the phone's colouring hands the engine every channel the web does, each from the same input (the review of PR 112)", () => {
+    // removing a phone channel (the one-bank `bank`, the book's `half`) survived every test before this
+    const web = webMap(), phone = read("packages/map/src/native/useColouring.ts");
+    const names = (src: string) => [...src.matchAll(/toChannel\("(\w+)"/g)].map((m) => m[1]).sort();
+    expect(names(phone)).toEqual(names(web));
+    expect(names(phone)).toEqual(Object.keys(KEYS).sort());
+    expect(phone).toContain('const bankIn = useMemo(() => (salmon ? bankInput(salmon) : null)');
+    expect(phone).toContain('const halfIn = useMemo(() => (halves ? halfInput(halves) : null)');
+    expect(phone).toContain('useEffect(() => toChannel("bank", bankIn), [bankIn]);');
+    expect(phone).toContain('useEffect(() => toChannel("half", halfIn), [halfIn]);');
+  });
+
   it("the web map REFUSES the engine's keys in pushed data, on every path into `setData`", () => {
     // the refused keys are the channels' own, plus the removed pushed path's `status` — never restated
     // — the lake facts' `stocked` / `survey` included: a pushed lake value would be a second path to the same labels
     // (T211) and the salmon's: its chain label, and the removed pushed `salmon`
-    expect(ENGINE_KEYS).toEqual([KEYS.status, KEYS.standing, "status", KEYS.stocked, KEYS.survey, KEYS.salmon, "salmon", KEYS.method, KEYS.runs, KEYS.issue]);
+    expect(ENGINE_KEYS).toEqual([KEYS.status, KEYS.standing, "status", KEYS.stocked, KEYS.survey, KEYS.salmon, "salmon", KEYS.method, KEYS.runs, KEYS.issue, KEYS.bank, KEYS.half]);
     const why: string[] = [];
     expect(withoutEngineKeys({ stream: { 1: { p: "p0", standing: 3, status: "open", other: 2 }, 2: { standing: 4 } },
                                basin: { CHWK: { standing: 5 } },

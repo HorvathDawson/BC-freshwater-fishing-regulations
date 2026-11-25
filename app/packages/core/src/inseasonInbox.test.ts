@@ -3,7 +3,7 @@
  * notice is kept, the device's saved history round trip, and the words — each pinned whole (AGENTS 33).
  */
 import { describe, expect, it } from "vitest";
-import { EARLIER_DAYS, EARLIER_ROWS, INBOX_KEEP_DAYS_AFTER_END, INBOX_MAX_ITEMS, inboxDetail, inboxMark, inboxMerge, inboxObserve, inboxEventKind, inboxUnreadIds, inboxPrompted, inboxRead, inboxReadAll,
+import { EARLIER_DAYS, EARLIER_ROWS, INBOX_WORDS, INBOX_KEEP_DAYS_AFTER_END, INBOX_MAX_ITEMS, inboxDetail, inboxMark, inboxMerge, inboxObserve, inboxEventKind, inboxUnreadIds, inboxPrompted, inboxRead, inboxReadAll,
          inboxTarget, inboxText, inboxUnread, inboxVM, inboxWantsOpen, parseInbox, type InboxState } from "./inseasonInbox";
 import { setFailureSink } from "./failure";
 import { joinInSeason, type InSeasonFeed, type InSeasonLinks, type InSeasonRow } from "./inseason";
@@ -269,7 +269,7 @@ describe("(T867) since install, read on open, short, with the app's own updates"
     expect([s0.events, s0.base]).toEqual([undefined, { release: "r-1", app: "0.8.5" }]);
     // nothing moved: the same history back
     expect(inboxObserve(s0, { release: { id: "r-1", day: "2026-11-10" }, app: "0.8.5" }, "2026-11-23")).toBe(s0);
-    const s1 = inboxObserve(s0, { release: { id: "r-2", day: "2026-11-20", changed: 12 }, app: "0.9.0" }, "2026-11-22");
+    const s1 = inboxObserve(s0, { release: { id: "r-2", day: "2026-11-20", changed: 12, changedFrom: "r-1" }, app: "0.9.0" }, "2026-11-22");
     expect(inboxUnread(s1)).toBe(2);
     const vm = inboxVM(s1, "2026-11-22");
     expect(vm.groups.map((g) => [g.title, g.rows.map((r) => [r.kind, r.tag, r.water, r.date, r.text, r.label])])).toEqual([["New", [
@@ -280,13 +280,43 @@ describe("(T867) since install, read on open, short, with the app's own updates"
     // a release that does not say how many changed says nothing of it; one water is "1 water changed"
     const s2 = inboxObserve(s1, { release: { id: "r-3", day: null }, app: "0.9.0" }, "2026-11-25");
     expect(inboxVM(s2, "2026-11-25").groups[0]!.rows.find((r) => r.id === "data:r-3")!.label).toBe("Unread. Data update: Regulations data updated Nov 25");
-    const s3 = inboxObserve(s2, { release: { id: "r-4", day: "2026-11-26", changed: 1 }, app: "0.9.0" }, "2026-11-26");
+    const s3 = inboxObserve(s2, { release: { id: "r-4", day: "2026-11-26", changed: 1, changedFrom: "r-3" }, app: "0.9.0" }, "2026-11-26");
     expect(inboxVM(s3, "2026-11-26").groups[0]!.rows.find((r) => r.id === "data:r-4")!.text).toBe("1 water changed");
     // opened: read, then Earlier; the saved text reads back
     expect(inboxUnread(inboxReadAll(s3))).toBe(0);
     // a tap reads an update row too (not only a notice)
     expect(inboxUnread(inboxRead(s1, ["app:0.9.0"]))).toBe(1);
     expect(parseInbox(inboxText(s3))).toEqual(s3);
+  });
+  it("(T1030, owner 2026-11-24 \"Rules only, hide 0\") the row's whole words for a count absent, 0, 1 and many", () => {
+    const s0 = inboxObserve(null, { release: { id: "r-1", day: "2026-11-10" }, app: "0.9.1" }, "2026-11-22");
+    const row = (changed: number | undefined) => {
+      const s = inboxObserve(s0, { release: { id: "r-2", day: "2026-11-20", changed, changedFrom: "r-1" }, app: "0.9.1" }, "2026-11-22");
+      const r = inboxVM(s, "2026-11-22").groups.flatMap((g) => g.rows).find((x) => x.id === "data:r-2")!;
+      return [s.events!.find((e) => e.id === "data:r-2")!.changed, r.text, r.label];
+    };
+    expect([row(undefined), row(0), row(1), row(37)]).toEqual([
+      [null, "", "Unread. Data update: Regulations data updated Nov 20"],
+      // the history keeps the 0 the release stated (a true answer); only the words leave it out
+      [0, "", "Unread. Data update: Regulations data updated Nov 20"],
+      [1, "1 water changed", "Unread. Data update: Regulations data updated Nov 20. 1 water changed"],
+      [37, "37 waters changed", "Unread. Data update: Regulations data updated Nov 20. 37 waters changed"]]);
+    expect([INBOX_WORDS.changed(null), INBOX_WORDS.changed(0), INBOX_WORDS.changed(1), INBOX_WORDS.changed(2)])
+      .toEqual(["", "", "1 water changed", "2 waters changed"]);
+  });
+  it("(T1030) the count is said only when it was taken against the release this device held before", () => {
+    const s0 = inboxObserve(null, { release: { id: "r-1", day: "2026-11-10" }, app: "0.9.1" }, "2026-11-22");
+    const text = (s: ReturnType<typeof inboxObserve>, id: string) =>
+      inboxVM(s, "2026-11-30").groups.flatMap((g) => g.rows).find((r) => r.id === id)!.label;
+    // counted against r-1, the release held: said whole
+    expect(text(inboxObserve(s0, { release: { id: "r-2", day: "2026-11-20", changed: 4, changedFrom: "r-1" }, app: "0.9.1" }, "2026-11-22"), "data:r-2"))
+      .toBe("Unread. Data update: Regulations data updated Nov 20. 4 waters changed");
+    // counted against a release this device never held (it skipped it, or it never went out): nothing of it
+    expect(text(inboxObserve(s0, { release: { id: "r-3", day: "2026-11-20", changed: 4, changedFrom: "r-2" }, app: "0.9.1" }, "2026-11-22"), "data:r-3"))
+      .toBe("Unread. Data update: Regulations data updated Nov 20");
+    // a count that names no release it was taken against: nothing of it
+    expect(text(inboxObserve(s0, { release: { id: "r-4", day: "2026-11-20", changed: 4 }, app: "0.9.1" }, "2026-11-22"), "data:r-4"))
+      .toBe("Unread. Data update: Regulations data updated Nov 20");
   });
 
   it("an upgraded install that had no update record records one now: no row for the update it just took", () => {

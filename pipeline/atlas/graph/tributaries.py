@@ -385,9 +385,82 @@ THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER = True
 #: and the 640 sections above it. The same test as a confluence cut's joining water
 #: (`CONFLUENCE_WATER_WITHOUT_A_ROW_GOES_WITH_THE_CUT`, ruling 2026-09-30): no row of its own, it goes
 #: with the lake. Only for a lake that is the ENTRY'S OWN water — a lake at the top of a river reach
-#: still ends that reach ("X River downstream of Y Lake" does not take what feeds Y Lake).
+#: still ends that reach ("X River downstream of Y Lake" does not take what feeds Y Lake); a WHOLE water's
+#: head lake is climbed (`A_WHOLE_WATERS_WALK_CLIMBS_ITS_HEAD_LAKE`, T1053).
 #: Applied by `reach.build._expander` through `through_inlets`. False = the mutation pin.
 A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY = True
+
+#: A WHOLE WATER'S WALK CLIMBS THROUGH THE LAKE IT FLOWS OUT OF (T1053, owner 2026-11-24 12:33, "Climb through every
+#: head lake": all 36 head lakes with streams above, even where the lake has a row of its own). Eagle Creek ✱ flows out
+#: of Dick Lake; its walk read the lake as "the river going on above the reach" (`RIVER_CONTINUING`) and never reached
+#: Dick Creek or the 9 small streams feeding the lake. A rule bound to its WHOLE water (every extent `whole`, chosen by
+#: `reach.build`, which hands the walk `climb_from`) now enters such a HEAD LAKE as it enters any tributary lake: the
+#: lake is walked, never collected (T1, `STREAMS_ONLY`: it keeps its own row's rules, and a lake with no row stays on
+#: the zone's), and every stream flowing into it is the rule's tributary, the one on the outlet's blue line included —
+#: nothing of the rule's own water lies above the lake, so nothing there is "the river going on". The same as a lake in
+#: the middle of the river (`LAKE_MID_REACH_IS_THE_RIVER`): walked, its inflows tributaries. Every other guard stands
+#: above the lake (a carve-out, own water, a code divide, a canal, the receiving river, the order guard: a creek that is
+#: a lake's SECONDARY outlet still may not climb into it, `BIGGER_RIVER`). A STRETCH rule ("downstream of Y Lake") never
+#: climbs, and neither does a lake that any of the water flows into (`head_lakes`). False = the mutation pin.
+A_WHOLE_WATERS_WALK_CLIMBS_ITS_HEAD_LAKE = True
+
+
+def head_lakes(graph: StreamGraph, pieces, water=frozenset()) -> dict[str, tuple[str, int]]:
+    """`{lake: (the piece of `pieces` it flows out into, the edge)}` — the HEAD LAKES of `pieces`
+    (`A_WHOLE_WATERS_WALK_CLIMBS_ITS_HEAD_LAKE`): every lake not in `pieces` that drains into a STREAM piece of
+    `pieces` by a mainstem edge (`MAINSTEM_EDGE_KINDS`) while NOTHING of `pieces` or `water` (the rule's whole own
+    water) flows into it, directly or through further lakes above. A head lake that is itself of `water` (the row's
+    own lake: "Weaver Lake and Weaver Creek") is listed too, but never climbed: it is the row's water going on past the
+    rule's extents (rule 63), `OWN_WATER` in `head_lake_verdicts` — even where it carries the creek's own code, which
+    `reach_context` would otherwise read as a side channel of the reach. A lake the water flows into is the water passing
+    through it (`_lake_mid_reach`) or the water going on above it, never its head. Sorted: one answer per graph."""
+    pieces = frozenset(pieces)
+    mine = pieces | frozenset(water)
+    out: dict[str, tuple[str, int]] = {}
+    for d in sorted(pieces):
+        dn = graph.nodes.get(d)
+        if dn is None or dn.kind != NodeKind.stream:
+            continue
+        for ei in sorted(graph.up_adj.get(d, [])):
+            e = graph.edges[ei]
+            lake = e.from_node
+            ln = graph.nodes.get(lake)
+            if e.kind not in MAINSTEM_EDGE_KINDS or ln is None or ln.kind != NodeKind.lake \
+                    or lake in pieces or lake in out:
+                continue
+            if not _fed_by(graph, lake, mine):
+                out[lake] = (d, ei)
+    return out
+
+
+def _fed_by(graph: StreamGraph, lake_id: str, water: frozenset) -> bool:
+    """Does any node of `water` flow into the lake `lake_id`, directly or through lakes above it?"""
+    seen = {lake_id}
+    stack = [lake_id]
+    while stack:
+        cur = stack.pop()
+        for ei in sorted(graph.up_adj.get(cur, [])):
+            src = graph.edges[ei].from_node
+            if src in water:
+                return True
+            s = graph.nodes.get(src)
+            if s is not None and s.kind == NodeKind.lake and src not in seen:
+                seen.add(src)
+                stack.append(src)
+    return False
+
+
+def head_lake_verdicts(graph: StreamGraph, reach, *, climb_from, blocked=frozenset(),
+                       own=frozenset()) -> list[dict]:
+    """What a walk from `reach` that climbs the head lakes of `climb_from` does at each of them — the `head_lake`
+    diagnostic (`reach.build`, W46: a head lake not climbed says why). `{lake, below, climbed, reason}`: `reason` is
+    `may_enter`'s refusal (None when climbed)."""
+    ctx = reach_context(graph, reach, blocked=blocked, own=own, climb_from=climb_from)
+    out = []
+    for lake, (below, ei) in sorted(head_lakes(graph, climb_from, ctx.water).items()):
+        why = OWN_WATER if lake in ctx.water else may_enter(ctx, lake, below, graph.edges[ei])
+        out.append({"lake": lake, "below": below, "climbed": why is None, "reason": why})
+    return out
 
 
 def through_inlets(graph: StreamGraph, reach, lake_id: str) -> frozenset[str]:
@@ -717,7 +790,8 @@ class Reach:
     `reach` the sections the walk starts from; `codes` their watershed codes; `blocked` never entered;
     `own` the entry's own water (`THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER`); `guarded` the barrier and
     order guards (False only in tests); `cuts` the code runs' divides; `online` the lakes the walk entered
-    as the river passing through, each to the reach piece below it (filled by the walk)."""
+    as the river passing through, each to the reach piece below it (filled by the walk); `heads` the head lakes the
+    walk climbs (`A_WHOLE_WATERS_WALK_CLIMBS_ITS_HEAD_LAKE`); `water` the reach and the entry's own water as given."""
     graph: StreamGraph
     reach: frozenset
     codes: frozenset
@@ -728,6 +802,8 @@ class Reach:
     reach_blks: frozenset = frozenset()
     online: dict = field(default_factory=dict)
     _through: dict = field(default_factory=dict)
+    heads: frozenset = frozenset()
+    water: frozenset = frozenset()
 
     def at_boundary(self, node: str) -> bool:
         return node in self.reach or node in self.online
@@ -747,10 +823,14 @@ class Reach:
 
 
 def reach_context(graph: StreamGraph, reach, *, blocked=frozenset(), own=frozenset(),
-                  guarded: bool = True) -> Reach:
+                  guarded: bool = True, climb_from=frozenset()) -> Reach:
     """The `Reach` a walk from `reach` carries. A piece of `own` sharing a reach piece's watershed
-    code is a side channel of the reach's own river, not own water past the cut."""
+    code is a side channel of the reach's own river, not own water past the cut. `climb_from`: the pieces whose head
+    lakes the walk climbs (`A_WHOLE_WATERS_WALK_CLIMBS_ITS_HEAD_LAKE`; empty: none)."""
     reach = frozenset(reach)
+    water = reach | frozenset(own)
+    heads = frozenset(head_lakes(graph, climb_from, water)) - water \
+        if climb_from and A_WHOLE_WATERS_WALK_CLIMBS_ITS_HEAD_LAKE else frozenset()
     codes = _reach_codes(graph, reach)
     if THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER and own:
         own = frozenset(s for s in own if s not in reach and not (
@@ -761,7 +841,7 @@ def reach_context(graph: StreamGraph, reach, *, blocked=frozenset(), own=frozens
     reach_blks = frozenset(n.blk for r in reach if (n := graph.nodes.get(r)) is not None
                            and n.kind == NodeKind.stream and n.blk)
     return Reach(graph=graph, reach=reach, codes=codes, blocked=frozenset(blocked), own=own,
-                 guarded=guarded, cuts=cuts, reach_blks=reach_blks)
+                 guarded=guarded, cuts=cuts, reach_blks=reach_blks, heads=heads, water=water)
 
 
 def may_enter(ctx: Reach, src: str, dst: str, edge=None, *, via: str = FLOW) -> str | None:
@@ -812,7 +892,8 @@ def _continuing(ctx: Reach, src: str, dst: str, edge) -> str | None:
 
     Asked ONLY at the boundary: the same edge kind inside a tributary is that tributary's own
     continuation and must be followed. A lake with the reach carrying on above it is the river
-    passing through (`LAKE_MID_REACH_IS_THE_RIVER`)."""
+    passing through (`LAKE_MID_REACH_IS_THE_RIVER`); a head lake of a whole-water walk (`ctx.heads`) is no
+    continuing either: it is entered as a tributary lake (`A_WHOLE_WATERS_WALK_CLIMBS_ITS_HEAD_LAKE`)."""
     g = ctx.graph
     sn = g.nodes.get(src)
     src_is_lake = sn is not None and sn.kind == NodeKind.lake
@@ -830,6 +911,8 @@ def _continuing(ctx: Reach, src: str, dst: str, edge) -> str | None:
     if edge is not None and edge.kind in MAINSTEM_EDGE_KINDS:
         if src_is_lake and LAKE_MID_REACH_IS_THE_RIVER and _lake_mid_reach(g, src, ctx.reach, dst):
             return PASSING_THROUGH            # the river passing through a lake
+        if src in ctx.heads:
+            return None                       # the whole water's head lake: climbed as a tributary lake (T1053)
         return RIVER_CONTINUING
     return None
 
@@ -896,6 +979,7 @@ def tributaries_of_reach(
     guarded: bool = True,
     cuts: Iterable[tuple[str, float]] | None = None,
     own: set[str] | frozenset[str] = frozenset(),
+    climb_from: set[str] | frozenset[str] = frozenset(),
 ) -> frozenset[str]:
     """Sections draining INTO `reach`, recursively. Excludes `reach` itself.
 
@@ -929,9 +1013,12 @@ def tributaries_of_reach(
     its inflow on the river's own line is still the river. A lake's secondary outlet that carries
     the lake's code across a divide (`code_runs`) goes with the lake, not with the flow.
 
+    `climb_from` (pieces of `reach`) are those whose HEAD LAKES the walk climbs, as tributary lakes
+    (`A_WHOLE_WATERS_WALK_CLIMBS_ITS_HEAD_LAKE`, T1053): a rule bound to its whole water. Empty: none.
+
     Whether a step is taken is `may_enter`'s alone; this function only keeps the books.
     """
-    ctx = reach_context(graph, reach, blocked=blocked, own=own, guarded=guarded)
+    ctx = reach_context(graph, reach, blocked=blocked, own=own, guarded=guarded, climb_from=climb_from)
     out: set[str] = set()
     seen: set[str] = set(ctx.reach)
     stack: list[str] = sorted(ctx.reach)      # sorted: determinism, not correctness
@@ -1237,6 +1324,7 @@ def expand(
     cuts: Iterable[tuple[str, float]] | None = None,
     registry=None,
     own: set[str] | frozenset[str] = frozenset(),
+    climb_from: set[str] | frozenset[str] = frozenset(),
 ) -> frozenset[str]:
     """The section set a tributary-scoped rule actually covers.
 
@@ -1261,7 +1349,7 @@ def expand(
     excluded = frozenset(excluded)
     tribs = frozenset(
         s for s in tributaries_of_reach(graph, reach, blocked=excluded, passed=passed,
-                                        guarded=guarded, cuts=cuts, own=own)
+                                        guarded=guarded, cuts=cuts, own=own, climb_from=climb_from)
         if not STREAMS_ONLY or kind_of(graph, registry, s) == "stream")
     base = frozenset() if only else (reach - excluded)
     return base | tribs

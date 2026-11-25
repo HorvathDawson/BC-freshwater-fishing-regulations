@@ -257,9 +257,14 @@ export const inboxUnreadIds = (s: InboxState | null): readonly string[] =>
  * day it was published, null when the manifest states none) and the app's version. The first time a device sees them
  * there is nothing to compare with: they are recorded, no row (since install only). A release id or version that differs
  * from the last seen is a row. `changed`: how many waters the release changed, when it says (null: nothing is said).
+ * (T1030) `changedFrom`: the release that count was taken against. The count is said ONLY when it is the release this
+ * device held before (`base.release`): a device that skipped a release, or held one the count was not taken against (a
+ * staging-only release in between, a local LATEST that was never published), says nothing of it (rule 32), never a
+ * number about another step.
  */
 export function inboxObserve(state: InboxState | null,
-                             seen: { readonly release: { readonly id: string; readonly day: string | null; readonly changed?: number | null } | null;
+                             seen: { readonly release: { readonly id: string; readonly day: string | null; readonly changed?: number | null;
+                                                         readonly changedFrom?: string | null } | null;
                                      readonly app: string | null },
                              today: string): InboxState {
   const s: InboxState = state ?? { format: INBOX_FORMAT, rev: INBOX_REV, items: [] };
@@ -275,7 +280,9 @@ export function inboxObserve(state: InboxState | null,
   const added: InboxEvent[] = [];
   if (seen.release && b.release !== null && seen.release.id !== b.release)
     added.push({ id: `data:${seen.release.id}`, kind: "data", at: relDay ?? today, version: null,
-                 changed: seen.release.changed ?? null, read: false });
+                 // b.release is a release id here (the row needs one): an absent `changedFrom` never matches it
+                 changed: seen.release.changedFrom === b.release ? seen.release.changed ?? null : null,
+                 read: false });
   if (seen.app && b.app !== null && seen.app !== b.app)
     added.push({ id: `app:${seen.app}`, kind: "app", at: today, version: seen.app, changed: null, read: false });
   if (!added.length && b.release === next.release && b.app === next.app) return s;
@@ -313,7 +320,9 @@ export const INBOX_WORDS = {
   dataTag: "Data update",
   appTag: "App update",
   dataTitle: (day: string) => `Regulations data updated ${day}`,
-  changed: (n: number) => `${n} ${n === 1 ? "water" : "waters"} changed`,
+  /** (T1030, owner 2026-11-24: "Rules only, hide 0") how many waters' rules the release changed: none stated (null) or 0
+   *  says nothing (""), as a release that states no count. The saved row keeps the 0 the release stated; only the words drop it. */
+  changed: (n: number | null) => (n === null || n === 0 ? "" : `${n} ${n === 1 ? "water" : "waters"} changed`),
   appTitle: (version: string) => `Updated to ${version}`,
   ended: "Ended",
   posted: "Posted",
@@ -368,7 +377,7 @@ export interface InboxRowVM {
   readonly water: string;
   /** "Region 4" (an update row: "") */
   readonly region: string;
-  /** the change's text (a data update: "12 waters changed", or "" when the release does not say) */
+  /** the change's text (a data update: "12 waters changed", or "" when the release does not say or says 0) */
   readonly text: string;
   /** "Not on the map yet", or null */
   readonly note: string | null;
@@ -400,7 +409,7 @@ export function inboxVM(s: InboxState | null, today: string, fresh: ReadonlySet<
     const data = e.kind === "data";
     const tag = data ? INBOX_WORDS.dataTag : INBOX_WORDS.appTag;
     const water = data ? INBOX_WORDS.dataTitle(dayWords(e.at, today)) : INBOX_WORDS.appTitle(e.version ?? "");
-    const text = data && e.changed !== null ? INBOX_WORDS.changed(e.changed) : "";
+    const text = data ? INBOX_WORDS.changed(e.changed) : "";
     const date = data ? "" : dayWords(e.at, today);
     return mk({ id: e.id, kind: e.kind, unread, tag, date, water, region: "", text, note: null,
                 label: `${unread ? "Unread. " : ""}${tag}: ${water}${text ? `. ${text}` : ""}` }, e.at);

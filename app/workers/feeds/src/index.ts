@@ -19,7 +19,7 @@
 import { meteredFetch, meteredStore, newMeter, r2Store, readStored, setDeployId, writeMerged, type Meter, type R2BucketLike } from "./io";
 import { runGauges } from "./gauges";
 import { runDfo } from "./dfo";
-import { QUEUE_ACTION, SHAPE, STALE_AFTER_HOURS } from "./dfo/live";
+import { QUEUE_ACTION, regionsWithState, SHAPE, STALE_AFTER_HOURS } from "./dfo/live";
 import { runInSeason } from "./inseason";
 import { channelOf, compose, deliver, readState, sendApk, sendTest, type FeedEvent, type NotifyConfig } from "./events";
 import { MATCH_ACTION, parseApk, sampleDfoEvents, splitRosterAction } from "./email";
@@ -37,7 +37,7 @@ import { neverSeen } from "./gauges/publish";
 import { READING_MAX_AGE_HOURS } from "../../../packages/core/src/gauge-policy.generated";
 import { checkToken, dispatchOnce, OVERDUE_MS, unfinished, type Dispatch, type DispatchEnv } from "./dispatch";
 import { checkRunTiming, checkSourceRefresh } from "./runtiming";
-import { dfoAnswersChanged, handlePush, newRelease, pushMissing, PUSH_CARRY_KEY, PUSH_STATUS_KEY, sendWake, wakePhones, wakeReason, writePushFailure, type PushEnv } from "./push";
+import { dfoAnswersChanged, handlePush, newRelease, purgePushTokens, PUSH_TOKEN_MAX_AGE_DAYS, pushMissing, PUSH_CARRY_KEY, PUSH_STATUS_KEY, sendWake, wakePhones, wakeReason, writePushFailure, type PushEnv } from "./push";
 import { capEvents, CORS as REPORT_CORS, handleReport, listReportsCounted, purgeLimits, purgeReports, purgeTestReports, reportEvents, RETENTION_DAYS, RETENTION_STATUS_KEY, type ReportEnv } from "./reports";
 
 /** (T739) PushEnv: the APNs secrets (APNS_KEY, APNS_KEY_ID, APNS_TEAM_ID; src/push.ts; iPhone only, no FCM) */
@@ -411,7 +411,8 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
         meter: m,
         log,
       });
-      const regions = (s.index as any).regions ?? {};
+      // (T905) `failures` is the run's own bookkeeping (priv state.json, out of the published index): read with it
+      const regions = regionsWithState(s.index, s.state);
       held = dfoHeld(regions);
       for (const [slug, r] of Object.entries<any>(regions)) {
         const src = `dfo-region-${slug}`;
@@ -713,7 +714,9 @@ async function purge(env: Env, now = new Date()) {
   const crashes = await purgeCrashes(env.BUCKET, now);
   // (T559) the per-address counters, once their day is over (privacy page: "for a day's counting")
   const limits = await purgeLimits(env.BUCKET, now);
-  const out = { ...r, ok: r.ok && limits.ok && crashes.ok && testReports.ok, limits, crashes, testReports };
+  // (T1116) push tokens not registered again for PUSH_TOKEN_MAX_AGE_DAYS (privacy page)
+  const pushTokens = await purgePushTokens(env.BUCKET, now);
+  const out = { ...r, ok: r.ok && limits.ok && crashes.ok && testReports.ok && pushTokens.ok, limits, crashes, testReports, pushTokens };
   try {
     await env.BUCKET.put(RETENTION_STATUS_KEY, JSON.stringify(out), { httpMetadata: { contentType: "application/json", cacheControl: "no-store" } });
   } catch (e) { console.error(JSON.stringify({ job: "purge-reports", statusError: String(e) })); }
@@ -727,9 +730,12 @@ async function purge(env: Env, now = new Date()) {
       text: `The daily deletion of test reports older than 7 days failed (${testReports.deleted} deleted, ${testReports.failed} not): ${testReports.error}\n\nRetry: POST /run/purge-reports on the feeds worker (Bearer RUN_TOKEN).` }]),
     ...(limits.ok ? [] : [{ key: `limits-purge:${day}`, kind: "health" as const, title: `Rate-limit counter purge ${day} failed`, urgent: false, at: r.at,
       text: `The daily deletion of yesterday's rate-limit counters (salted address hashes; the privacy page keeps them "for a day's counting") failed (${limits.deleted} deleted, ${limits.failed} not): ${limits.error}\n\nRetry: POST /run/purge-reports on the feeds worker (Bearer RUN_TOKEN).` }]),
+    ...(pushTokens.ok ? [] : [{ key: `push-token-purge:${day}`, kind: "health" as const, title: `Push token purge ${day} failed`, urgent: false, at: r.at,
+      text: `The daily deletion of push tokens not registered again for ${PUSH_TOKEN_MAX_AGE_DAYS} days (privacy page) failed (${pushTokens.deleted} deleted, ${pushTokens.failed} not): ${pushTokens.error}\n\nRetry: POST /run/purge-reports on the feeds worker (Bearer RUN_TOKEN).` }]),
   ]);
   console.log(JSON.stringify({ job: "purge-reports", ok: out.ok, deleted: r.deleted, kept: r.kept, failed: r.failed, limits: { deleted: limits.deleted, failed: limits.failed },
-    crashes: { deleted: crashes.deleted, failed: crashes.failed }, testReports: { deleted: testReports.deleted, failed: testReports.failed }, told }));
+    crashes: { deleted: crashes.deleted, failed: crashes.failed }, testReports: { deleted: testReports.deleted, failed: testReports.failed },
+    pushTokens: { deleted: pushTokens.deleted, kept: pushTokens.kept, dated: pushTokens.dated, unreadable: pushTokens.unreadable, failed: pushTokens.failed }, told }));
   return out;
 }
 

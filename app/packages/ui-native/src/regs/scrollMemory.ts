@@ -21,6 +21,13 @@ export function regsScrollKey(item: string | null, part: number | null, tapSid: 
   return `${item ?? ""}|${part ?? ""}|${tapSid ?? ""}`;
 }
 
+/** (T1049 review) the water a memory key names (its item; an unnamed water: its tapped reach), null for none */
+export function regsScrollItem(key: string | null): string | null {
+  if (key == null) return null;
+  const [item, , tap] = key.split("|");
+  return item || (tap ? `reach:${tap}` : null);
+}
+
 export function rememberRegsScroll(key: string, y: number): void {
   memo.delete(key);                       // re-insert: the Map's order is the recency order
   memo.set(key, { y: Math.max(0, Math.round(y)) });

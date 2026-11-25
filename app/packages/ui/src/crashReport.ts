@@ -223,6 +223,11 @@ export interface CrashReporter {
    *  not sent (off, offline, no answer, refused); `status` is the server's HTTP answer (null: none came). A refusal is
    *  reported (`reportFailure`), never only dropped. */
   sendExit(r: ExitRecord): Promise<SendAnswer>;
+  /** (T1016) Resolves true once every send asked for so far is handed to the line (its POST issued, `keepalive`: it outlives
+   *  the page; one waiting its turn behind the 1 s gap is not). What a web page waits for before it reloads itself.
+   *  (review of PR 125) Never longer than `SENT_WAIT_MS`: an earlier POST that stalls holds the ones behind it, so past the wait
+   *  it resolves false and says how many were not on the line (the refresh goes ahead without them). */
+  sent(): Promise<boolean>;
 }
 
 /** What one send came to: the worker's HTTP status (null when no answer came) and, on a refusal, its `error` words. */
@@ -232,6 +237,9 @@ export interface SendAnswer { sent: boolean; status: number | null; error: strin
 export function answerWords(a: SendAnswer): string {
   return `${a.status === null ? "no answer" : `HTTP ${a.status}`}${a.error ? ` (${a.error})` : ""}`;
 }
+
+/** (T1016 review of PR 125) The longest a page that refreshes itself waits for its reports to be on the line (`sent`). */
+export const SENT_WAIT_MS = 5_000;
 
 /** (T1005) The least time between two crash sends: the worker's per-address gap (`CRASH_GAP_MS`, 1 s) and a margin. */
 export const CRASH_SEND_GAP_MS = 1_100;
@@ -273,11 +281,19 @@ export function createCrashReporter(o: {
   const clock = o.clock ?? clockNow;
   let lane: Promise<unknown> = Promise.resolve();
   let lastAt = -Infinity;
+  /** (T1016) settles once every send asked for so far is on the line (`sent`) */
+  let handed: Promise<unknown> = Promise.resolve();
+  /** sends asked for and not yet on the line */
+  let waiting = 0;
   const spaced = (p: { format: string }): Promise<SendAnswer> => {
+    let issued = () => {};
+    waiting++;
+    const on = new Promise<void>((ok) => { issued = ok; }).then(() => { waiting--; });
+    handed = Promise.all([handed, on]);
     const next = lane.then(async () => {
       const wait = lastAt + gap - clock();
       if (wait > 0) await sleep(wait);
-      const a = await send(p);          // never rejects
+      const a = await send(p, issued);  // never rejects
       lastAt = clock();
       return a;
     });
@@ -286,17 +302,19 @@ export function createCrashReporter(o: {
   };
   const post = spaced;
 
-  async function send(p0: { format: string }): Promise<SendAnswer> {
+  async function send(p0: { format: string }, issued: () => void = () => {}): Promise<SendAnswer> {
     const p = o.test ? { ...p0, test: true } : p0;
     let status: number | null = null;
     try {
-      const r = await f(o.url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p), keepalive: true });
+      const req = f(o.url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p), keepalive: true });
+      issued();
+      const r = await req;
       status = r.status;
       if (r.ok) return { sent: true, status, error: null };
       // a refusal says why: the worker answers {"ok":false,"error":"…"} (a 429's limit, a 400's field)
       const m = /"error"\s*:\s*"([^"\\]{1,120})"/.exec(await r.text());
       return { sent: false, status, error: m ? m[1]! : null };
-    } catch (e) { return { sent: false, status, error: e instanceof Error ? e.message : String(e) }; }
+    } catch (e) { issued(); return { sent: false, status, error: e instanceof Error ? e.message : String(e) }; }
   }
   /** (W46) a send the server REFUSED (an HTTP answer that is not ok) is reported, non-fatal, through this same reporter: a
    *  400 is a payload the worker does not take, and this is how the owner hears of it. No answer at all (offline, a lost
@@ -341,6 +359,13 @@ export function createCrashReporter(o: {
         return a;
       } catch (e) { return { sent: false, status: null, error: e instanceof Error ? e.message : String(e) }; }
     },
+    sent: () => new Promise<boolean>((ok) => {
+      const late = setTimeout(() => {
+        console.warn(`[crash-reports] ${waiting} report(s) were not on the line within ${SENT_WAIT_MS} ms (an earlier send is stalled): the page refreshes without them`);
+        ok(false);
+      }, SENT_WAIT_MS);
+      void handed.then(() => { clearTimeout(late); ok(true); });
+    }),
     async flush() {
       try {
         const text = o.store?.read();
@@ -400,7 +425,7 @@ export function installCrashHandlers(reporter: CrashReporter, g: Record<string, 
     if ((globalThis as { __openProbe?: boolean }).__openProbe)
       console.log(`[failure] ${String(e)} ${((e as { stack?: string } | null)?.stack ?? "").split("\n").slice(1, 5).join(" | ")}`);
     reporter.report(e, { kind: "js", fatal: false });
-  });
+  }, () => reporter.sent());
   const undo: Array<() => void> = [() => { delete g.__crashHandlers; unsink(); }];
   const eu = g.ErrorUtils as ErrorUtilsLike | undefined;
   if (eu?.setGlobalHandler) {

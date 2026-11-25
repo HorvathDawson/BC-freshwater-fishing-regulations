@@ -36,6 +36,17 @@ export function notesOn(e: ChangelogEntry, os: "android" | "ios" | "web"): reado
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    // (T998) opened by `python -m pipeline release --cut`: write 3-5 plain bullets for anglers (never commit
+    // subjects); check-changelog refuses the entry until it has one, and the owner clears `draft`
+    version: "0.9.0", date: "2026-11-24", notes: [
+      "Regulations: each tab names the rule-book pages behind it, a fish's sheet has its own Sources tab, and the Class II line sits right under the water's name",
+      "Conditions: a river with no normal range is charted against its own year, and a level-only gauge like Capilano's now shows its live level",
+      "Map: lake shores are softly shaded, boundary labels no longer pile on each other, and a selected slough is outlined once, not boxed",
+      "The bell shows only news since you installed, marks it read once you open it, and lists data and app updates",
+      "Shared links open the same part, tab and day they were sent from, and the day picker runs past New Year",
+    ],
+  },
+  {
     version: "0.8.5", date: "2026-11-21", notes: [
       "Regulations: one Sources button at the foot of the page lists every source behind the rules",
       "Conditions: plainer words for how a river compares with normal, and a clear note where no gauge can speak for the water",

@@ -29,7 +29,7 @@ Depends: T240, T244, T313. Size: M. Owner: picks the shot list/captions.
   1290×2796, 6.5" 1242×2688, 5.5" 1242×2208, iPad 13" 2048×2732. `play-shots.mjs` gained `iphone67`, `iphone55`,
   `ipad13`, a `09-offline` scene, and seeds the mode-hint tours as seen ("Where you are" covered the bottom bar).
 - **Shot list (PROPOSAL, owner picks):** map → search → today's rules → conditions → salmon → runs → offline, with titles
-  in the json. 49 light images made 2026-11-05 in `store/graphics/store/light/` (gitignored, regenerate).
+  in the json. 49 light images made 2026-11-05 in `store/graphics/store/light/` (gitignored then; SUPERSEDED by T1072: the set is now committed there, 7 frames in appstore-6.9 / appstore-6.5 / play-phone / play-tablet7 / play-tablet10, no 6.7" folder).
 - **Left:** the saved-spot shot (the web Spots tab is a "get the app" notice → the emulator test bed, heavy); dark set;
   the feature graphic's text; the owner's pick of shots and titles.
 
@@ -114,7 +114,7 @@ App Store: `appstore-screenshots-push.py --preview <clip>` checks it; today's cl
 6.9" slot takes 886x1920; its silent AAC track is 2 kbps, the spec says 256 kbps) and it is an Android recording (the
 owner's reading of Apple's page is footage from the iOS app). No preview is in the ASC plan.
 
-Play listing text (coordinator relayed the go, 2026-11-19): `store-description.md` checked: "we recommend" -> "I
+Play listing text (coordinator relayed the go, 2026-11-19): `app/store-listing/listing.json` checked: "we recommend" -> "I
 recommend" (owner 2026-11-18 "yes change all"); every feature it names is in the 0.8.2 code. `play-listing-push.py
 --no-shots` (new: text, icon, feature graphic only) validated on Play: en-US only, the change is the full description;
 icon and feature graphic unchanged. The `--commit` was refused by this session's permission check (an agent's relay is
@@ -181,3 +181,6 @@ automatically (the Seymour): `~/bcfish-session-backup-2026-11-12/store-t319-set4
 **Next chat:** a better preview video comes before the public release (T709). Kept for it: `app/tools/store-video/appstore.mjs`
 (the App Store cut and its rule check), `appstore-screenshots-push.py --preview ... --iphone-footage`, and the simulator
 notes above (recording works; the iOS driver is not written).
+
+## Superseded by T1072, 2026-11-24 (the one store set)
+The current set is T1072's direction A (7 frames, owner's pick 2026-11-24): `app/tools/store-shots.json` is its source, it is COMMITTED at `handoff/PLAN/app-integration/store/graphics/store/light/<target>/` (appstore-6.9 1320x2868, appstore-6.5 1242x2688, play-phone, play-tablet7, play-tablet10; `.gitignore` there tracks `store/light` only), and both push scripts read that folder with no arguments. Regenerate: `scripts/heavy.sh store-shots 30 -- node app/tools/store-shots.mjs --theme light`. The set descriptions above are history.

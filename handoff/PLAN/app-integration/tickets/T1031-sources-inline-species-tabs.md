@@ -1,6 +1,6 @@
 # T1031 — Sources round 3, the rest: one inline source format, a breakdown per species, one species sheet with tabs
 
-Status: IN PROGRESS — trout per-row pages built 285449f89 (lane L3, 2026-11-24, owner pick A/B open, section at the end); item 3 built, 26839d85d + 5fdd46510 + 315d8b3bb (lane L22, 2026-11-23, on T991's #63): ONE SOURCE LINE, core `sourceLineOf`
+Status: IN PROGRESS — trout per-row pages: A built 285449f89 (lane L3), then owner 2026-11-24 "Go on to B": B built 1ba8cddbd (lane L15, app only, section at the end); item 3 built, 26839d85d + 5fdd46510 + 315d8b3bb (lane L22, 2026-11-23, on T991's #63): ONE SOURCE LINE, core `sourceLineOf`
 (`tabSources.ts`) drawn by ui-native `SourceRow`: "Source  B.C. Synopsis p.8 ↗  p.49 ↗  <web> ↗  Who says so ›" ("↗" leaves the
 app, "›" opens a sheet; last line of the block it supports). On it: the Gear / Ways to fish / Boats / Reference lines (level words
 "Province · Region 6 · This water's" fold into the section's Sources sheet behind "Who says so ›"), the trout table (its pages,
@@ -35,7 +35,7 @@ RELEASE (they are written into the bundle and the salmon file).
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1031 | Sources round 3, the rest: one inline source format, a breakdown per species, one species sheet with Identification / Sources tabs | IN PROGRESS | T991 | owner 2026-11-22 ~23:55 (items 3–5); item 3 built by lane L22 (26839d85d, 5fdd46510, 315d8b3bb); items 1–2 by lane L23 (11d0e1915, bb3836936, PR #71); trout per-row pages by lane L3 (285449f89, owner pick A/B open) |
+| T1031 | Sources round 3, the rest: one inline source format, a breakdown per species, one species sheet with Identification / Sources tabs | IN PROGRESS | T991 | items 3–5 owner 11-22; item 3 lane L22 (26839d85d, 5fdd46510, 315d8b3bb); items 1–2 lane L23 (11d0e1915, bb3836936); row pages A lane L3 (285449f89), B lane L15 (1ba8cddbd, owner 11-24) |
 
 Source: owner 2026-11-22 ~23:55 (the T991 round-2 answer, recorded verbatim in T991): "We also should clean up our inline
 sources. Right now the way they display is inconsistent.... We still want to have the break down source like the sheet in
@@ -127,3 +127,25 @@ Pictures (web 390 px, light + dark, trout fixture release, harness `app/tools/ro
 **Owner question:** A (built) the Source line names every page behind the row, the breakdown keeps its four; or B the
 breakdown also lists every rule of the row (Lois Lake's p.24 rule then has its own entry; a Python change to
 `A_SOURCES_CUT_TO_FOUR`, Q-D6, and a data release).
+
+## Option B built (0.9.1 lane L15, 2026-11-24, branch `feat/T1031-trout-row-breakdown-all-rules`)
+**Owner answer, 2026-11-24 morning, verbatim: "Go on to B".** It overrides the cut to 4 for this list: contract Q-D6 ("A
+sheet's `src` is that list cut to 4", from build spec 3.4 "this fish's rules first, up to 4", a design-spec line, not a
+RULINGS.md ruling) and spec 3.4's Sources row now say so (`sheets.py` is left untouched: any deliver-code edit moves the committed mini release's code digest).
+**Built (app only, 1ba8cddbd).** The row sheet's "Where each rule comes from" draws EVERY rule of `TRow.src` (Python's whole
+list, deciding rule first, the old four as its head, then the rest in Python's order; by authority as before) instead of
+`FishSheet.src`. No word changes; the Source line (A) is unchanged and now names exactly the breakdown's pages.
+**Why not the Python change the brief planned:** an installed 0.9.0 holds every trout frame to `sheet.src.length <= 4`
+(`core/src/regs/trout.ts`, on `release/0.9.0` too) and on a breach reports and draws NO table. Uncutting `FishSheet.src`
+would have blanked the trout table on 632 of 1,442 tables (1,087 of 1,799 answer keys with a table; 1,570 of 9,128 rows
+cite more than 4 rules) of the live release r-0aec88ed3edb for every 0.9.0 phone. `TRow.src` already carries the whole
+list in Python's order (`FishSheet.src` == its first 4 on every row of that release, checked), so the frame is unchanged:
+trout section bytes unchanged, no app_reads / pack format change, `answers_diff` lists nothing. Needs only the 0.9.1 app
+build (any data from 0.9.0 on), no data release.
+Tests: `trout.release.test.ts` (every vector row: the breakdown's keys == `TRow.src`, the frame's list <= 4 and its head;
+the Source line's pages all in the breakdown; "(T1031 option B)" pins Lois Lake DV (6 rules) and the Vedder ST (9) whole),
+`SheetHost.test.tsx` (a row with more than 4 rules draws them all, in order). Fail on main / mutation-proved: drawing
+`FishSheet.src` fails 3 release tests + the SheetHost test; sorting the list fails 2. 118 of 356 vector rows grow.
+Pictures (web 390 px, light + dark, trout fixture release, harness `app/tools/rowpages-shots.test.ts`, `ROWPAGES_H=3000`,
+backdrop cropped): `T1031-shots/rowpages-b-built-{before,after}-{lois-dv,vedder-st,vedder-rb}-{light,dark}.png` (Vedder
+rainbow: 4 rules, unchanged). Lois DV equals the option-B mock-up, continued to the sixth rule and the Source line.

@@ -201,9 +201,9 @@
     "1-3"
    ]
   },
-  "note": "Lake in MU 1-3. FWA has MU 1-6, regulation has MU 1-3 (boundary issue). Piscivorous rainbow trout and kokanee population. BC Lakes Database: survey_id 1129, WBID 00105SANJ, watershed code 930-063200-41400. ACAT 9030. Location found from map.",
-  "gnis_ids": [
-   "1657"
+  "note": "Lake in MU 1-3. FWA has MU 1-6, regulation has MU 1-3 (boundary issue). Piscivorous rainbow trout and kokanee population. BC Lakes Database: survey_id 1129, WBID 00105SANJ, watershed code 930-063200-41400. ACAT 9030. Location found from map. CORRECTED 2026-11-25 (T1053, owner: \"Yes, fix it in 0.9.1 (Recommended)\"): the printed row (Region 1, printed p.14, MU 1-3) is \"Unnamed lake in the Walbran Creek Watershed approximately 7 km west/southwest of Mt. Walbran\"; the BC Lakes Database WBID 00105SANJ is FWA's WATERBODY_KEY_GROUP_CODE_50K of wbk 329504289 (unnamed, 10.9 ha, 48.678 N 124.604 W, group SANJ, MU 1-3). It was pinned to gnis 1657 / wbk 329095566, the gazetted Anderson Lake near Courtenay (MU 1-6, on Dove Creek), which is a different lake.",
+  "waterbody_keys": [
+   "329504289"
   ]
  },
  {

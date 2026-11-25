@@ -82,6 +82,14 @@ export const WORDS = Object.freeze({
   MERGED: (n: number, sections: number) => `Closed all year on ${n} stretches (${sections} sections)`,
   DOT: " · ", SECTION: "section", SECTIONS: "sections",
   TIDAL_WATER: "Tidal water",
+  // (T1052, owner 2026-11-24 "One block, both calendars") a water the same closure shuts to all fishing, salmon too, all
+  // year: one statement. The headline is the owner's pick; the row lines are proposals (ticket option A).
+  CLOSED_ALL_FISHING_YEAR: "Closed to all fishing all year, salmon included",
+  // (a book line that ends its own sentence takes no second full stop)
+  BOOK_ROW_READS: (row: string, line: string) => `The ${RULE_BOOK} row for ${row} reads “${line}”${/[.!?]$/.test(line) ? "" : "."}`,
+  BOOK_ROW_TRIBS: (row: string, line: string) => `${row}’s row covers its tributaries: “${line}”${/[.!?]$/.test(line) ? "" : "."}`,
+  /** (#131 review) what such a line's Source links are about, for a screen reader ("Who says so: the rules behind …") */
+  BOOK_ROW_OF: (row: string) => `the ${row} row`,
   // T16 the header (prototype hdr / placeGo; page v36 subtitle)
   /** (T405) the date button's name starts with what it shows ("Today Nov 4"): a name holding the visible words (WCAG 2.5.3) */
   DATE_ARIA: (dayWord: string, date: string) => `${dayWord} ${date}, change date`,
@@ -329,7 +337,14 @@ export const GEAR = Object.freeze({
   RULE_SUB: " rule · ", SUB_SEP: " · ",
   /** prototype learnChipWords: the chip word that is never learned (a match key) */
   CHIP_NOT_LEARNED: "Region",
+  /** (T1051, owner 2026-11-24 "Say it everywhere") the Hooks row's second line: what the day's hook answer leaves allowed */
+  HOOKS_ALLOWED: Object.freeze({ both: "Treble and barbed hooks allowed", treble: "Treble hooks allowed", barbed: "Barbed hooks allowed" }),
 });
+/** (T1051) the ⓘ of the Hooks row's second line, glossary ids (keys, never said): `both` (on "Treble and barbed hooks allowed"
+ *  and "Barbed hooks allowed") the release's "Treble and barbed hooks" term, quoting p.80's treble note and p.8's barbed-
+ *  in-lakes sentence (`glossary.t_treble_and_barbed`; a release without it draws no ⓘ); `treble` (on "Treble hooks allowed",
+ *  where barbless is required) p.80 "single hook" alone */
+export const HOOKS_ALLOWED_TERMS = Object.freeze({ both: "treble_and_barbed_hooks", treble: "def_single_hook" });
 
 // ── T31 the Bait item (page v36 ELEM, gearParts bait WHY; prototype yesNo, buildGear bait cell). Verbatim. ──
 /** page v36 ELEM: the gear frame's element and method codes as the page names them. */
@@ -450,6 +465,9 @@ export const ALL_SOURCES = Object.freeze({
   // change's own row links its page by the same name
   BOOK: SOURCE_AUTHORITIES.synopsis.name, INSEASON: SOURCE_AUTHORITIES.inseason.name, DFO: SOURCE_AUTHORITIES.dfo.name,
   LOCAL: "Local authority", PROVINCE_SITE: SOURCE_AUTHORITIES.inseason.name,
+  /** (T1036, owner 2026-11-24 "Add back but maybe have them separate?") the head of the second group: the rules the page's
+   *  fish and Possession sheets cite that no drawn line does (proposal; the other candidate: "Other rules for this water") */
+  OTHER: "Also in the fish and possession sheets",
 } as const);
 
 /** "Mon" … "Sun" (Monday first, as the calendar). */

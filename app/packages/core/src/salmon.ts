@@ -129,6 +129,11 @@ export interface SalmonPlace {
    *  the bank. It stands beside its sections' places (in their chains' `u`, never `l`), so the page answers by the water's
    *  other rules and the card names the bank (`salmonCard` `side`). Absent on any other place and in an older release. */
   readonly side?: SalmonBank;
+  /** (T1029, look B) on a one-bank place (`side`): for each section it stands BESIDE (its id, as a string), which side
+   *  of the drawn tile line its bank is — 1 right, -1 left of the line's own direction (`pipeline/deliver/bank_side.py`,
+   *  measured on the exported line). The map draws that half of the stretch in the bank's own answer
+   *  (`salmonBankLabels`). Absent on any other place, on a bank no side was measured for, and in an older release. */
+  readonly bk?: Readonly<Record<string, 1 | -1>>;
 }
 /** (T754) the bank words, the rule book's `side` words */
 export const SALMON_BANKS = ["north", "south", "east", "west"] as const;
@@ -209,6 +214,12 @@ interface Payload {
   readonly feedOnly?: Readonly<Record<string, number>>;
   /** (T549 item 5, the live feed's) places whose row the feed could not read this run: their last answers stand */
   readonly held?: readonly string[];
+  /** (T1029 Q6, owner 2026-11-24: "Yes, stripe it too") THE RULE BOOK'S ONE-HALF CLOSURES (kitimat_river.r1, "No Fishing
+   *  on the west half…"): section id -> the side of the drawn tile line the CLOSED half is on (1 right, -1 left;
+   *  `pipeline/deliver/bank_side.py`). Only ever "this half is closed, all year" (the pipeline refuses a dated or
+   *  non-closure side rule). The Standard map draws that half closed (`bookHalves`). Absent: no section has one, or a
+   *  release before it. */
+  readonly bs?: Readonly<Record<string, 1 | -1>>;
 }
 /** (T812, owner 2026-11-16: "we want the circles to just be circles on the map not separate sections of the lake") ONE
  *  CLOSED AREA DRAWN AS A CIRCLE: `c` its centre [lon, lat], `radius` metres, `g` its ring at true ground radius as the
@@ -306,6 +317,23 @@ function checkPayload(P: Payload): Payload {
   // (T754) a one-bank place names a bank of the four
   for (const [lid, pl] of Object.entries(P.p ?? {}))
     if (!isBook(pl) && pl.side !== undefined && !SALMON_BANKS.includes(pl.side)) bad(`place ${lid}: bank ${String(pl.side)}`);
+  // (T1029) a one-bank place's drawn sides: section id -> 1 | -1, only beside a `side`, its own chain one of `unmapped`,
+  // and one bank per section (a section wears ONE bank label on the map)
+  const bankBy = new Map<string, string>();
+  for (const [lid, pl] of Object.entries(P.p ?? {})) {
+    const bk = (pl as { bk?: unknown }).bk;
+    if (bk === undefined) continue;
+    if (isBook(pl) || pl.side === undefined) bad(`place ${lid}: drawn banks (bk) on a place for no one bank`);
+    if (bk === null || typeof bk !== "object" || Array.isArray(bk) || !Object.keys(bk).length) bad(`place ${lid}: bk ${JSON.stringify(bk)}`);
+    for (const [sid, v] of Object.entries(bk as Record<string, unknown>)) {
+      if (!/^(0|[1-9]\d*)$/.test(sid) || (v !== 1 && v !== -1)) bad(`place ${lid}: bk section ${sid} side ${JSON.stringify(v)}`);
+      const was = bankBy.get(sid);
+      if (was !== undefined) bad(`section ${sid}: beside two one-bank places (${was}, ${lid})`);
+      bankBy.set(sid, lid);
+    }
+    const own = bankChains(P, lid);
+    if (own.length !== 1) bad(`place ${lid}: ${own.length} own chains in unmapped (l exactly [${lid}]), not 1`);
+  }
   for (const [lid, o] of Object.entries(P.off ?? {}))
     if (!o || !SALMON_OFF_KINDS.includes(o.k) || typeof o.w !== "string" || typeof o.r !== "string" || !Array.isArray(o.items))
       bad(`off ${lid}: not {why, k, r, w, items}`);
@@ -316,10 +344,67 @@ function checkPayload(P: Payload): Payload {
         || a.g[0]![0] !== a.g[a.g.length - 1]![0] || a.g[0]![1] !== a.g[a.g.length - 1]![1] || typeof a.w !== "string")
       bad(`ca ${lid}: not {c, radius, g (a closed ring), chain, r, w, items}`);
   }
+  // (T1029 Q6) the book's one-half closures: a non-empty map of section id -> 1 | -1
+  if (P.bs !== undefined) {
+    const bs: unknown = P.bs;
+    if (bs === null || typeof bs !== "object" || Array.isArray(bs) || !Object.keys(bs).length) bad(`bs ${JSON.stringify(bs)}`);
+    for (const [sid, v] of Object.entries(bs as Record<string, unknown>))
+      if (!/^(0|[1-9]\d*)$/.test(sid) || (v !== 1 && v !== -1)) bad(`bs section ${sid} side ${JSON.stringify(v)}`);
+  }
   // (T870) a place's printed rows are strings, never an empty list
   for (const [lid, rows] of Object.entries(P.pr ?? {}))
     if (!Array.isArray(rows) || !rows.length || rows.some((r) => typeof r !== "string" || !r)) bad(`pr ${lid}: not a list of rows`);
   return P;
+}
+
+/** (T1029) a one-bank place's OWN chain(s): the chains of `unmapped` whose places are exactly [lid] (its rules, as the
+ *  card's one-side caveat reads them). The release has exactly one (checked on decode). */
+const bankChains = (P: Payload, lid: string): number[] => [...new Set(P.unmapped.map((u) => u.chain)
+  .filter((c) => { const l = P.chains[c]?.l; return l?.length === 1 && l[0] === lid; }))].sort((a, b) => a - b);
+
+/** (T1029) the bank's half of a section, on the map: "L" / "R" (the side of the drawn line) + its chain label (`s<chain>`) */
+export type SalmonBankLabel = `${"L" | "R"}s${number}`;
+
+const BANK_LABELS = new WeakMap<Payload, ReadonlyMap<number, SalmonBankLabel>>();
+
+/**
+ * (T1029, look B, owner 2026-11-24) THE ONE-BANK CUE'S LABELS: for every section a one-bank place stands beside (its
+ * `bk`), the side of the drawn line its bank is ("L" left, "R" right) and the bank place's own chain label (`s<chain>`,
+ * `salmonLabel`'s form) — "Ls42". Fixed for the facts: the map sets it once per section (feature-state `bk`) and the
+ * style paints that half in the bank chain's answer for the day, as the line paints its own chain's (`salmonDayProfiles`).
+ * A release with no `bk` gives none: no cue is drawn. Under a live feed (`withSalmonFeed`) a bank place whose own chain
+ * the feed no longer lists in `unmapped` (DFO's page no longer carries the place) gives none for its sections: the card
+ * lists it nowhere either. Two own chains is a broken file (decode refuses it), said here too.
+ */
+export function salmonBankLabels(f: SalmonFacts): ReadonlyMap<number, SalmonBankLabel> {
+  const P = f.payload, hit = BANK_LABELS.get(P);
+  if (hit) return hit;
+  const out = new Map<number, SalmonBankLabel>();
+  for (const [lid, pl] of Object.entries(P.p ?? {})) {
+    if (isBook(pl) || !pl.bk) continue;
+    const own = bankChains(P, lid);
+    if (own.length > 1) throw new SalmonError(`salmon: place ${lid} has ${own.length} own chains`);
+    if (!own.length) continue;
+    for (const [sid, v] of Object.entries(pl.bk)) out.set(Number(sid), `${v === 1 ? "R" : "L"}s${own[0]!}`);
+  }
+  BANK_LABELS.set(P, out);
+  return out;
+}
+
+const BOOK_HALVES = new WeakMap<Payload, ReadonlyMap<number, "L" | "R">>();
+
+/**
+ * (T1029 Q6, owner 2026-11-24: "Yes, stripe it too") THE RULE BOOK'S ONE-HALF CLOSURES ON THE MAP: per section, the side
+ * of the drawn line its closed half is on ("L" left, "R" right; the payload's `bs`). The Standard map draws that half in
+ * the closed colour with closed's cue, the other half in the line's own answer — the Salmon map's one-bank look.
+ * Empty: no section has one (or a release before it), and nothing is drawn.
+ */
+export function bookHalves(f: SalmonFacts): ReadonlyMap<number, "L" | "R"> {
+  const P = f.payload, hit = BOOK_HALVES.get(P);
+  if (hit) return hit;
+  const out = new Map<number, "L" | "R">(Object.entries(P.bs ?? {}).map(([sid, v]) => [Number(sid), v === 1 ? "R" : "L"]));
+  BOOK_HALVES.set(P, out);
+  return out;
 }
 
 /** (T356) the region header note `id` of one of the chain's regions (its closure's words) */
@@ -859,6 +944,12 @@ export interface SalmonCardVM extends SalmonBlockVM {
   readonly dfoPages: readonly { readonly region: string; readonly url: string }[];
   /** (T796, owner 2026-11-16 15:19) the rule book's closures answering the page's salmon today, each named: [] none */
   readonly book: readonly SalmonBookVM[];
+  /** (T1052) the rules (`entry::rule`) of `book` whose closure stands every day of its own year (the release's `static`
+   *  year of the book's place, as `bookToday` says "all year"). Absent on a hand-built card: none known */
+  readonly bookAllYear?: readonly string[];
+  /** (T1052) whose answers every salmon species on every chain of the page is today (`sourceBy`, the badge's): the rule
+   *  book's closures alone (`book`), DFO's, or both. Absent on a hand-built card: not known */
+  readonly todayBy?: SalmonSourceBy;
   /** (T796) the source fold's title: "Source (DFO)", or "Sources (rule book and DFO)" when `book` is not empty */
   readonly sourceTitle: string;
   /** "DFO page dated Aug 28, 2026" (the newest of the regions named). */
@@ -1346,6 +1437,9 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     regions: named,
     source,
     book: book.map(({ from, words, water, pages, rule }) => ({ from, words, water, pages, rule })),
+    // (T1052) the rules of `book` whose closure stands every day of its own year (payload `static`, the release's), and
+    // whose answers the salmon are today (the badge's)
+    bookAllYear: [...new Set(book.filter((b) => b.allYear).map((b) => b.rule))], todayBy,
     dfoPages: regionsUsed.map((r) => ({ region: `Region ${r.toUpperCase()} ${P.regions[r]?.name ?? ""}`.trim(), url: P.regions[r]!.url })),
     sourceTitle: book.length ? SALMON_WORDS.sourceFoldBook : SALMON_WORDS.sourceFold,
     asOf: SALMON_WORDS.asOf(dates[dates.length - 1] ?? null),
@@ -1473,8 +1567,8 @@ function sourceBy(P: Payload, chains: readonly number[], who: (a: readonly numbe
  * never the days it answers the chain: a dated closure sorted first on the same chain takes some days from an all-year
  * one, which then lost its dates there (Statlu Creek, p.26, beside the Chehalis's May closure, p.22).
  */
-function bookToday(f: SalmonFacts, chains: readonly number[], day: number): (SalmonBookVM & { readonly t: string })[] {
-  const P = f.payload, out = new Map<string, SalmonBookVM & { readonly t: string }>();
+function bookToday(f: SalmonFacts, chains: readonly number[], day: number): (SalmonBookVM & { readonly t: string; readonly allYear: boolean })[] {
+  const P = f.payload, out = new Map<string, SalmonBookVM & { readonly t: string; readonly allYear: boolean }>();
   for (const c of chains) {
     const ch = P.chains[c]!;
     SALMON_SPECIES.forEach((_, k) => {
@@ -1484,8 +1578,9 @@ function bookToday(f: SalmonFacts, chains: readonly number[], day: number): (Sal
       const year = P.static?.[lid]?.sp[k];
       if (!year) throw new SalmonError(`salmon: book place ${lid} has no year in static`);
       const t = P.verdicts[at(ch.sp[k]!, day)]!.t;
-      const words = year.every((x, j) => j % 2 === 0 || x >= 0) ? SALMON_WORDS.bookAllYear(t) : t;
-      if (!out.has(words)) out.set(words, { t, from: SALMON_WORDS.placeFromBook(p.book.pages, p.water), words, rule: p.book.rule,
+      const allYear = year.every((x, j) => j % 2 === 0 || x >= 0);
+      const words = allYear ? SALMON_WORDS.bookAllYear(t) : t;
+      if (!out.has(words)) out.set(words, { t, allYear, from: SALMON_WORDS.placeFromBook(p.book.pages, p.water), words, rule: p.book.rule,
                                             water: p.water ?? null, pages: p.book.pages.map((printed) => ({ printed, pdf: null })) });
     });
   }

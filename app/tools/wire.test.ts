@@ -6,7 +6,7 @@
 // sent through the worker's own validator, and a payload with every field filled accepted and inside the byte limit.
 import { describe, expect, it } from "vitest";
 import { CRASH_FORMAT, CRASH_KINDS, CRASH_LIMITS, CRASH_SHEETS, ROUTE_KINDS, crashPayload, createReplacedState, exitPayload, replacedTriage, type CrashContext } from "@app/ui";
-import { REPORT_FORMAT, REPORT_LIMITS, REPORT_REASONS, WATER_VIEWS, REPLACED_NAMES, replacedError, reportPayload, type Diagnostics, type ReportContext } from "@app/core";
+import { REPORT_FORMAT, REPORT_LIMITS, REPORT_REASONS, WATER_VIEWS, REPLACED_NAMES, refreshNotMade, replacedError, reportPayload, type Diagnostics, type ReportContext } from "@app/core";
 import * as worker from "../workers/feeds/src/crashes";
 import * as reports from "../workers/feeds/src/reports";
 
@@ -101,9 +101,13 @@ describe("(T1016) a tab older than what is served: the app's own reports are the
                                          cause: Object.assign(new Error(CHUNK), { name: "AsyncRequireError" }) });
     expect([sent(data), sent(code)]).toEqual(["expected", "expected"]);
     expect([sent(new Error(URL404)), sent(Object.assign(new Error(CHUNK), { name: "AsyncRequireError" }))]).toEqual(["defect", "defect"]);
+    // (owner 2026-11-24 "Always auto refresh") an automatic refresh that could not be made is ours to fix: a defect
+    expect([sent(refreshNotMade("data", "r-fc137c4040fa", "the update service staged no newer release (its release phase: current)")),
+            sent(refreshNotMade("code", null, "this page reloaded once already from this code (/x.js) and the chunk is still missing"))])
+      .toEqual(["defect", "defect"]);
   });
   it("(review) a chunk asked again with no answer is reported, and classes network (the line), never dropped", async () => {
-    const look = replacedTriage({ state: createReplacedState(), data: null, site: async () => { throw new TypeError("Failed to fetch"); } });
+    const look = replacedTriage({ state: createReplacedState({ refresh: async () => null, sent: async () => {}, inUse: () => null }), data: null, site: async () => { throw new TypeError("Failed to fetch"); } });
     const e = Object.assign(new Error(CHUNK), { name: "AsyncRequireError", request: "https://canifishthis.ca/x.js" });
     const out = await look(e);
     expect(sent(out as Error)).toBe("network");
