@@ -124,3 +124,10 @@ cost, told to him: until it works no server wake-up reaches an iPhone, so "new d
 own background check and can be late. The second-iPhone test is still the next step, whenever he has one. To watch
 (the planning chat): the store listing and the first-load notification ask (T1110) must not promise iPhone notices
 the app cannot deliver yet.
+
+## The phone's own log, 2026-11-25 ~00:20 MST (iOS release chat, relayed): it points to the phone, not the app
+Console over the cable, filter apsd, while the app retried: in 25 s apsd logged only timer housekeeping, no
+connection and no registration, and identityservicesd logged "asked for publicToken, got (null)". The phone's push
+service holds no APNs token at all, so iOS has nothing to answer the app with: exactly the silence the app reports.
+The phone is an older spare iPhone (XR, iOS 18.5), in airplane mode on Wi-Fi during the tests. Not yet proven: that
+the app registers on a healthy iPhone; the second-iPhone test decides it. No app change indicated, no new ticket.
