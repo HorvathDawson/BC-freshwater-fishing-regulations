@@ -348,7 +348,8 @@ export function RegsScreen({ page, palette, images, actions, onDate,
       {/* (T395) the vessel restrictions are no longer here: their own section under Methods (`MethodsTab` boats) */}
       {/* (T387 review) the glance folds the card into its table only when it has the card's row: a card still coming, or
           failed, is drawn here in its place (its pending / failed face) — never a silent gap */}
-      {(!glance || !glance.salmon) && (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon)}
+      {/* (T1052) a closed banner that says the salmon's closure too (core `closedWithSalmon`) is the card's one statement */}
+      {(!glance || !glance.salmon) && !page.keep.banner?.salmon && (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon)}
       <AnchorContext.Provider value={sink}>
           <KeepTab keep={page.keep} troutSources={troutSources} daylight={daylight} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} salmonStrip={salmonStrip}
                    glance={glance ? { salmon: glance.salmon && salmon

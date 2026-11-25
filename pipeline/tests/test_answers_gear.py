@@ -151,6 +151,90 @@ def test_rulings_on_hand_made_cases():
     assert "ice_fishing" not in {w["method"] for w in G.resolve([], "stream", [])["ways"]}
 
 
+def _dick_lake(ice_gear=None, extra=()):
+    """Dick Lake's gear rules as the 0.9.0 bundle holds them (r-0aec88ed3edb): the province's lines (1; 2 alone in a
+    boat on a lake) and one attachment, its ice-fishing allowance (`allowable_methods.r2b`, 1 line, 1 lure / fly /
+    attractor) and the ice-hut and ice-hole duties."""
+    tackle = {"family": "gear_and_method", "type": "tackle_restriction"}
+    ice = [{"max": 1.0, "slot": "lines_per_angler"},
+           {"max": 1.0, "members": ["artificial_lure", "artificial_fly", "terminal_attractor"],
+            "slot": "terminal_attachments_per_line"}] if ice_gear is None else ice_gear
+    rules = [
+        G.Rule("zp:terminal_tackle::terminal_tackle.r1", 4, {**tackle, "gear": [
+            {"max": 2.0, "slot": "lines_per_angler", "when": {"angler": "alone_in_boat", "water": "lake"}},
+            {"max": 1.0, "slot": "lines_per_angler"}]}),
+        G.Rule("zp:terminal_tackle::terminal_tackle.r6", 4, {**tackle, "gear": [
+            {"max": 1.0, "members": ["hook", "artificial_lure", "artificial_fly"],
+             "slot": "terminal_attachments_per_line"}]}),
+        G.Rule("zp:allowable_methods::allowable_methods.r2", 4, {**tackle, "type": "method_restriction", "gear": [
+            {"slot": "method", "allow": ["angling", "ice_fishing"]}]}),
+        G.Rule("zp:allowable_methods::allowable_methods.r2b", 4, {**tackle, "while": ["ice_fishing"], "gear": ice}),
+        G.Rule("zp:ice_huts::ice_huts.r1", 4, {"family": "conduct", "type": "conduct", "while": ["ice_fishing"],
+                                              "conduct": ["remove_ice_hut_before_breakup", "warn_others_of_ice_hole"]}),
+        *extra]
+    a = G.resolve(rules, "lake", ["angling", "ice_fishing"])
+    return next(w for w in a["ways"] if w["method"] == "ice_fishing"), a
+
+
+def test_t1050_ice_fishing_says_only_the_counts_that_differ():
+    """T1050 (owner 2026-11-24, "Only what differs"): Dick Lake's Methods tab said "Lines: 1." and "Hook, lure or fly per
+    line: 1." under Ice fishing, the Gear tab's own counts again. A count equal to the slot's main answer is left out of
+    the way's `while`; its duties stay, and the clauses stay cited (`circumstantial`). Mutation: without the filter both
+    counts are back under the way."""
+    ice, a = _dick_lake()
+    assert ice["allowed"] and "while" not in ice
+    assert ice["conduct"] == ["remove_ice_hut_before_breakup", "warn_others_of_ice_hole"]
+    r2b = "zp:allowable_methods::allowable_methods.r2b"
+    assert [c["clause"] for c in a["circumstantial"] if c["clause"][0] == r2b] == [[r2b, 0], [r2b, 1]]
+    assert r2b in a["decides"]
+    # a count that DIFFERS from the Gear tab's still shows (none does in the 0.9.0 bundle: a made-up 2 lines on the ice)
+    ice2, _ = _dick_lake([{"max": 2.0, "slot": "lines_per_angler"},
+                          {"max": 1.0, "members": ["artificial_lure"], "slot": "terminal_attachments_per_line"}])
+    assert ice2["while"] == [{"clause": [r2b, 0], "while": ["ice_fishing"]}]
+    # a spec and a count with no main answer on the Gear tab are not repeats
+    ice3, _ = _dick_lake([{"slot": "ice_hut", "must_be": ["marked"]}, {"max": 2.0, "slot": "hooks_per_line"}])
+    assert [c["clause"] for c in ice3["while"]] == [[r2b, 0], [r2b, 1]]
+    # only ice fishing: a set line's "1 line" counts set lines, not the Gear tab's rods, and stays
+    sl = G.Rule("z6:set_lining::set_lining.r2", 3, {"family": "gear_and_method", "type": "tackle_restriction",
+                                                   "while": ["set_lining"],
+                                                   "gear": [{"max": 1.0, "slot": "lines_per_angler"}]})
+    sm = G.Rule("z6:set_lining::set_lining.r1", 3, {"family": "gear_and_method", "type": "method_restriction",
+                                                   "gear": [{"slot": "method", "allow": ["set_lining"]}]})
+    _, a4 = _dick_lake(extra=(sl, sm))
+    set_line = next(w for w in a4["ways"] if w["method"] == "set_lining")
+    assert set_line["while"] == [{"clause": ["z6:set_lining::set_lining.r2", 0], "while": ["set_lining"]}]
+    # review of #130: where the Gear tab splits the line count into shore and boat (Kootenay Lake's main body, frame 437
+    # of r-0aec88ed3edb: "1 line (rod) from shore; no limit from a boat"), the ice "1 line" says which applies on the ice:
+    # kept; its attachment count (one plain count on the Gear tab) still goes
+    koot = G.Rule("w:kootenay_lake::kootenay_lake.r9", 0, {"family": "gear_and_method", "type": "tackle_restriction",
+                                                          "gear": [{"slot": "lines_per_angler", "unlimited": True,
+                                                                    "when": {"angler": "in_boat"}}]})
+    ice5, a5 = _dick_lake(extra=(koot,))
+    assert a5["counts"]["lines_per_angler"]["says"] == "1 line (rod) from shore; no limit from a boat"
+    assert ice5["while"] == [{"clause": [r2b, 0], "while": ["ice_fishing"]}]
+
+
+def test_t1050_repeats_main_count():
+    main = {"c": {"max": 1.0, "slot": "lines_per_angler"}}
+    assert G.repeats_main_count({"max": 1.0, "slot": "lines_per_angler", "members": ["x"]}, main)
+    assert not G.repeats_main_count({"max": 2.0, "slot": "lines_per_angler"}, main)
+    assert not G.repeats_main_count({"min": 1.0, "slot": "lines_per_angler"}, main)
+    assert not G.repeats_main_count({"unlimited": True, "slot": "lines_per_angler"}, main)
+    assert not G.repeats_main_count({"max": 1.0, "slot": "lines_per_angler"}, None)
+    assert not G.repeats_main_count({"must_be": ["marked"], "slot": "ice_hut"}, main)
+    assert G.repeats_main_count({"unlimited": True}, {"c": {"unlimited": True}})
+    # the same max is not enough: the least and "no limit" are the count too; a spec beside a count is a spec
+    assert not G.repeats_main_count({"max": 1.0, "min": 1.0}, main)
+    assert not G.repeats_main_count({"max": 1.0, "unlimited": True}, main)
+    assert not G.repeats_main_count({"max": 1.0}, {"c": {"max": 1.0, "unlimited": True}})
+    assert not G.repeats_main_count({"max": 1.0, "must_be": ["marked"]}, main)
+    assert not G.repeats_main_count({"max": 1.0, "requires": ["x"]}, main)
+    # a main count the Gear tab says from shore (every circumstance a boat) is not a plain count
+    boat = [{"circ": ["in_boat"], "targeting_codes": [], "note": None, "c": {"unlimited": True}}]
+    assert not G.repeats_main_count({"max": 1.0}, main, boat)
+    assert G.repeats_main_count({"max": 1.0}, main, [{**boat[0], "circ": ["alone_in_boat"]}])
+
+
 def test_hook_answer():
     single = G.Rule("s", 3, _x(type="tackle_restriction", gear=[
         {"slot": "barb", "only": ["barbless"]}, {"slot": "points_per_hook", "max": 1}]))

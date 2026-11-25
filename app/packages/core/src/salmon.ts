@@ -944,6 +944,12 @@ export interface SalmonCardVM extends SalmonBlockVM {
   readonly dfoPages: readonly { readonly region: string; readonly url: string }[];
   /** (T796, owner 2026-11-16 15:19) the rule book's closures answering the page's salmon today, each named: [] none */
   readonly book: readonly SalmonBookVM[];
+  /** (T1052) the rules (`entry::rule`) of `book` whose closure stands every day of its own year (the release's `static`
+   *  year of the book's place, as `bookToday` says "all year"). Absent on a hand-built card: none known */
+  readonly bookAllYear?: readonly string[];
+  /** (T1052) whose answers every salmon species on every chain of the page is today (`sourceBy`, the badge's): the rule
+   *  book's closures alone (`book`), DFO's, or both. Absent on a hand-built card: not known */
+  readonly todayBy?: SalmonSourceBy;
   /** (T796) the source fold's title: "Source (DFO)", or "Sources (rule book and DFO)" when `book` is not empty */
   readonly sourceTitle: string;
   /** "DFO page dated Aug 28, 2026" (the newest of the regions named). */
@@ -1431,6 +1437,9 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     regions: named,
     source,
     book: book.map(({ from, words, water, pages, rule }) => ({ from, words, water, pages, rule })),
+    // (T1052) the rules of `book` whose closure stands every day of its own year (payload `static`, the release's), and
+    // whose answers the salmon are today (the badge's)
+    bookAllYear: [...new Set(book.filter((b) => b.allYear).map((b) => b.rule))], todayBy,
     dfoPages: regionsUsed.map((r) => ({ region: `Region ${r.toUpperCase()} ${P.regions[r]?.name ?? ""}`.trim(), url: P.regions[r]!.url })),
     sourceTitle: book.length ? SALMON_WORDS.sourceFoldBook : SALMON_WORDS.sourceFold,
     asOf: SALMON_WORDS.asOf(dates[dates.length - 1] ?? null),
@@ -1558,8 +1567,8 @@ function sourceBy(P: Payload, chains: readonly number[], who: (a: readonly numbe
  * never the days it answers the chain: a dated closure sorted first on the same chain takes some days from an all-year
  * one, which then lost its dates there (Statlu Creek, p.26, beside the Chehalis's May closure, p.22).
  */
-function bookToday(f: SalmonFacts, chains: readonly number[], day: number): (SalmonBookVM & { readonly t: string })[] {
-  const P = f.payload, out = new Map<string, SalmonBookVM & { readonly t: string }>();
+function bookToday(f: SalmonFacts, chains: readonly number[], day: number): (SalmonBookVM & { readonly t: string; readonly allYear: boolean })[] {
+  const P = f.payload, out = new Map<string, SalmonBookVM & { readonly t: string; readonly allYear: boolean }>();
   for (const c of chains) {
     const ch = P.chains[c]!;
     SALMON_SPECIES.forEach((_, k) => {
@@ -1569,8 +1578,9 @@ function bookToday(f: SalmonFacts, chains: readonly number[], day: number): (Sal
       const year = P.static?.[lid]?.sp[k];
       if (!year) throw new SalmonError(`salmon: book place ${lid} has no year in static`);
       const t = P.verdicts[at(ch.sp[k]!, day)]!.t;
-      const words = year.every((x, j) => j % 2 === 0 || x >= 0) ? SALMON_WORDS.bookAllYear(t) : t;
-      if (!out.has(words)) out.set(words, { t, from: SALMON_WORDS.placeFromBook(p.book.pages, p.water), words, rule: p.book.rule,
+      const allYear = year.every((x, j) => j % 2 === 0 || x >= 0);
+      const words = allYear ? SALMON_WORDS.bookAllYear(t) : t;
+      if (!out.has(words)) out.set(words, { t, allYear, from: SALMON_WORDS.placeFromBook(p.book.pages, p.water), words, rule: p.book.rule,
                                             water: p.water ?? null, pages: p.book.pages.map((printed) => ({ printed, pdf: null })) });
     });
   }
