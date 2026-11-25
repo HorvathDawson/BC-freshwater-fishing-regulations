@@ -74,6 +74,15 @@ with the default Claude uses until you answer). Newest first inside each section
 - Asked 2026-11-25 ~00:20: "in 0.9.1 we should make this page (https://canifishthis.ca/gauges) have a search
   option ... search by place or river etc to get gauge only"; "someone found the page by search so we want it
   usable". Ticket T1107, sent to the 0.9.1 chat; you get a picture of the page with results before it ships.
+- Relayed 2026-11-25 ~00:25 by the 0.9.1 chat (your words typed in ITS chat, not seen by the planning chat): "would
+  you be able to walk through the full release tonight of everything?" and "i will give you permission this one
+  time to do all prod commands needed". Its reading: for the 0.9.1 release only it runs the production steps itself;
+  not a standing permission; anything its permission check refuses comes back to you as a command. The standing
+  rule is unchanged for every other chat and release: CONFIRM_PROD is yours. Also relayed: Dove Creek (T1053), your
+  pick "Yes, if it is the right lake"; the lane is checking the Anderson Lake binding before #166 leaves draft.
+  What may miss the 0.9.1 cut because it waits on a pick of yours: the T1029 look, the T1098 privacy sentences,
+  the T1107 gauges-page picture, the T1052 part-year waters. T1098 matters most: the App Store submission waits on
+  the privacy page being live, so if it misses the cut it needs its own site deploy afterwards.
 - **Read (you): the head-lake walk, draft PR #166 (T1053)**, sent to you by the 0.9.1 chat ~23:55. The list:
   the file head-lakes-before-after.md in that PR's T1053-shots folder (22 head lakes, 42
   rules gain water, none lose). One decision inside it: Dove Creek above Anderson Lake reopens for catch and
