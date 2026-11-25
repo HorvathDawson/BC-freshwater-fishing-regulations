@@ -58,4 +58,4 @@ order: 770
 - **Check (you), one word:** "before prods release" for the Play pictures is read by the planning chat as the Play
   production release (the public launch), not today's 0.10.0 data release. Say so if you meant today's.
 - **Decide (you), do or drop:** two parts of T1072 were never started and keep it open: the website landing and
-  share-page words, and the store video (T709). The store chat's scope is otherwise done (14:00).
+  share-page words, and the store video (T709). The store chat's scope is otherwise done (13:50).
