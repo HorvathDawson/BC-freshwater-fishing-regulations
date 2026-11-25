@@ -344,6 +344,9 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1099 | iPhone: the privacy manifest does not match the App Privacy labels the owner decided | OPEN — next iPhone build (0.9.1 or 0.9.2) | | iOS chat 2026-11-24 |
 | T1100 | More > Sources and licences: open-source notices missing for the shipped libraries and fonts | OPEN — 0.9.2 | | iOS chat 2026-11-24 |
 | T1101 | iPhone: About and the version headers show the Android build number | OPEN — next iPhone build (0.9.1 or 0.9.2) | | iOS chat 2026-11-24 |
+| T1102 | `before_push --changed` skips the reach tests for a change to the DFO salmon reach step (a real break passed the hook) | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24, T1029 lane |
+| T1103 | Item id kinds are hand-kept in four places (the T1083 bug's cause); one generated source; dead `name:` ids in the fixture release | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24, T1083 lane |
+| T1104 | Web: the salmon prefetch asked for a refused slice up to 4 times in a minute | OPEN — 0.9.2, with T1091 | | 0.9.1 chat 2026-11-24, T1029 lane |
 
 ## Next after closed testing
 

@@ -57,6 +57,9 @@ with the default Claude uses until you answer). Newest first inside each section
   status below shows on EU store pages). Build for review: "Newest by then" (0.9.1's iPhone build if it is uploaded
   and push is proven on it when the pictures are ready, else 0.9.0 (45)). Push proof: "Soon, on build 45": your
   three push-key commands (the Do row below), then the phone steps with the iOS chat.
+- Answered 2026-11-24 23:55 (multiple choice, planning chat): who builds and uploads the 0.9.1 iPhone build (nobody
+  was assigned; your "Newest by then" pick needs it): "0.9.1 chat". It builds it right after its Play Closed build;
+  the privacy page, privacy manifest and iPhone build-number fixes (T1098, T1099, T1101) are its lane too.
 - **Decide (you), before the App Store submission; the iOS chat will bring both up** (its read of build 45, 11-24):
   - DSA trader status (App Store Connect → Business → Compliance): a legal statement about you; only you can make it.
   - Content Rights, "I have the rights": the map's satellite layer is Esri World Imagery used without a key. Whether
