@@ -65,6 +65,10 @@ export interface HeaderVM {
   readonly tabs: readonly { tab: Tab; label: string }[];   // golden header.tabs; (T42) outside B.C. the Keep tab alone
   /** (T841) the classified-water badge ("Class II"), `classBadge.ts`; absent: none (not classified, or look A out of period) */
   readonly classed?: ClassBadgeVM;
+  /** (T1140) on a part of a water the map lists as several (`header.ts` `partWhereOf`): "Part 1 of 2", the Map tab's words
+   *  and count, and `others` — "Other parts of this water have different rules", the line that opens the list of parts —
+   *  where another part has other rules (else null). Absent: a water of one part (its header is unchanged). */
+  readonly part?: { readonly where: string; readonly others: string | null };
 }
 
 // ── 2.2 Keep tab (prototype buildKeep) ─────────────────────────────────────────────────────────────────────────────

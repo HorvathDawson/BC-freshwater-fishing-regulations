@@ -320,6 +320,36 @@ export function entryNames(g: WaterGroup, item: string): ReadonlyMap<number, str
   return out;
 }
 
+/**
+ * (T1140, owner 2026-11-25: the Squamish's plain link opened "Closed all year" on a reach inside an ecological reserve, and
+ * nothing said it was one part of two) WHERE EACH PART OF `item` SITS IN THE MAP'S LIST: the entry holding it is `n` of
+ * `of` — the very count the Map tab says ("Part 1 of 2", `partWhere`), over the same `mergeNav(group, live salmon key)` it
+ * draws — and whether ANOTHER entry has other rules (`differs`): another water of the group (a split lake's other area),
+ * another rule set (`grp`, the picker's choice), or, with the live salmon read, another salmon reading. Entries of one
+ * rule set and one salmon reading (two runs of one rule set a lake parts) are not "different". Empty for a group the map
+ * shows as ONE entry: then the page is the whole water's, and says nothing new (a single-part water is unchanged).
+ */
+export interface PartPlace { readonly n: number; readonly of: number; readonly differs: boolean }
+export type PartPlaces = ReadonlyMap<number, PartPlace>;
+
+export function entryPlaces(g: WaterGroup, item: string, salmonKey: ((sid: number) => string) | null): PartPlaces {
+  const out = new Map<number, PartPlace>();
+  const of = g.parts.length;
+  if (of < 2) return out;
+  // each entry's salmon reading, as `mergeNav` keys it (null: not read, never a difference)
+  const keys = salmonKey ? g.parts.map((p) => [...new Set(p.sids.map(salmonKey))].sort().join("|")) : null;
+  const other = (a: number, b: number) => {
+    const p = g.parts[a]!, q = g.parts[b]!;
+    return p.item !== q.item || p.grp !== q.grp || (keys !== null && keys[a] !== keys[b]);
+  };
+  g.parts.forEach((p, i) => {
+    if (p.item !== item) return;
+    const differs = g.parts.some((_, j) => j !== i && other(i, j));
+    for (const k of p.pieces) out.set(k, { n: i + 1, of, differs });
+  });
+  return out;
+}
+
 /** (T517) Every part of `item` → the pieces of the map entry holding it (a live-joined entry holds several): what a page
  *  on one part reads its in-season coverage over, so the banner covers what the map lights. */
 export function entryPieces(g: WaterGroup, item: string): ReadonlyMap<number, readonly number[]> {
@@ -505,6 +535,11 @@ export const WATER_MAP_WORDS = {
   /** (T875) A water of one part: the toggle's place held by a quiet line, so the bar is the same height on every water
    *  ("This river is one part"; the noun is `waterNoun`'s, as ⤢'s). */
   partsOne: (noun: string) => `This ${noun} is one part`,
+  /** (T1140) Where a part sits in the water's list: "Part 2 of 5" — the map's bar and the Regulations and Conditions heads. */
+  partOf: (n: number, of: number) => `Part ${n} of ${of}`,
+  /** (T1140, proposed words for the owner) Under the Regulations and Conditions heads of a part whose water has others with
+   *  other rules (`entryPlaces` `differs`): opens the Map with the list of parts open. */
+  partsOthers: "Other parts of this water have different rules",
   /** (T150) A row's mark: the part the map (and the Regulations view) is on. */
   partsHere: "✓",
   /** The mouth's link into the water it flows into: "Flows into Vedder River ›". */
@@ -524,7 +559,7 @@ export const WATER_MAP_WORDS = {
 export function partWhere(g: WaterGroup, i: number): string {
   const note = itemNote(g, i);
   // (T925, owner 2026-11-20: "It says part 1 of 1 should just say whole water") a water of one part is the whole water
-  const where = g.parts.length === 1 ? WATER_MAP_WORDS.whole("water") : `Part ${i + 1} of ${g.parts.length}`;
+  const where = g.parts.length === 1 ? WATER_MAP_WORDS.whole("water") : WATER_MAP_WORDS.partOf(i + 1, g.parts.length);
   return `${where}${note ? ` · ${note}` : ""}`;
 }
 

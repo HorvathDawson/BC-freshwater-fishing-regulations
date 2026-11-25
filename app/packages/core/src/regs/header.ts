@@ -18,6 +18,7 @@ import { fmtDay, isTodayOf } from "./strip";
 import { WD3, WORDS } from "./words";
 import { WEEKDAYS } from "../calendar.generated";
 import { classBadgeOf } from "./classBadge";
+import { WATER_MAP_WORDS, type PartPlaces } from "../waterNav";
 
 /** (T517) Each part's name as the water map names the entry holding it, by part index: `@app/core` `entryNames` over
  *  the SAME `mergeNav(group, live salmon key)` the map draws (`@app/ui` `useMapEntries`), so the header, the Parts sheet
@@ -97,6 +98,20 @@ export function downstreamLabel(inp: RegsInputs, downstream: string | null | und
   return inp.key?.kind === "stream" ? WORDS.TRIBUTARY_OF(downstream) : WORDS.FLOWS_INTO(downstream);
 }
 
+/**
+ * (T1140) WHICH PART OF HOW MANY, said on the head of a part whose water the map lists as several: "Part 1 of 2" (the
+ * Map tab's own words and count, `WATER_MAP_WORDS.partOf` over `entryPlaces`), and — where another entry has other rules
+ * — the line that opens the list of parts. Null where there is nothing to say: no named water, a group the map shows as
+ * one entry, or no places yet (the group not read: the screens wait for it on a water of several parts, `@app/ui`
+ * `useMapEntries`). A page's part that the places do not hold, on a water they list, is a caller's defect: throws.
+ */
+export function partWhereOf(inp: RegsInputs, places: PartPlaces | null | undefined): HeaderVM["part"] | null {
+  if (!inp.item || !places || places.size === 0) return null;
+  const p = places.get(inp.partIx);
+  if (!p) throw new Error(`regs header: the map lists no part ${inp.partIx} of ${inp.item.id}`);
+  return { where: WATER_MAP_WORDS.partOf(p.n, p.of), others: p.differs ? WATER_MAP_WORDS.partsOthers : null };
+}
+
 /** The header of the tapped part on `inp.day`. `status` is the day's as the strip read it (T13; null strip → tidal or
  *  outside); `downstream` (T53, an unnamed section only) the named water it flows into.
  *
@@ -107,7 +122,9 @@ export function downstreamLabel(inp: RegsInputs, downstream: string | null | und
 export function headerOf(inp: RegsInputs, o: { today: Day; status: "open" | "closed" | "tidal" | "outside" | "unknown";
                                                downstream?: string | null;
                                                /** (T517) the map's names of the parts (`PartNames`) */
-                                               names?: PartNames | null }): HeaderVM {
+                                               names?: PartNames | null;
+                                               /** (T1140) where each part sits in the map's list (`entryPlaces`) */
+                                               places?: PartPlaces | null }): HeaderVM {
   // a named water's name, or an unnamed reach's (its place); a handle OUTSIDE B.C. has neither (T09: no key, no place,
   // no item) and the header says no name — a documented rule, pinned by edge.test.ts
   const name = inp.item ? inp.item.name : inp.place ? inp.place.name : "";
@@ -120,6 +137,8 @@ export function headerOf(inp: RegsInputs, o: { today: Day; status: "open" | "clo
   const dayWord = isTodayOf(inp, o.today) ? WORDS.TODAY : WD3[WEEKDAYS.indexOf(inp.weekday)]!;
   // (T841) the classified-water badge, set only on a classified part (the frozen headers carry no key for it)
   const classed = classBadgeOf(inp);
+  // (T1140) set only on a part of a water the map lists as several: a water of one part keeps the header it had
+  const part = partWhereOf(inp, o.places);
   return {
     name,
     dayWord,
@@ -132,5 +151,6 @@ export function headerOf(inp: RegsInputs, o: { today: Day; status: "open" | "clo
     tabs: (o.status === "outside" || inp.tidalPart ? tabs.slice(0, 1) : o.status === "closed" ? tabs.filter(([t]) => t !== "licence") : tabs)
       .map(([tab, label]) => ({ tab, label })),
     ...(classed ? { classed } : {}),
+    ...(part ? { part } : {}),
   };
 }

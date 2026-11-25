@@ -15,6 +15,7 @@ import { buildMethods } from "./methods";
 import { edgeKind } from "./edge";
 import { FISH, type FishManifest } from "./fish.generated";
 import { headerOf, type PartNames } from "./header";
+import type { PartPlaces } from "../waterNav";
 import type { RegsInputs } from "./inputs";
 import { keepOf } from "./keep";
 import { buildLicence } from "./licence";
@@ -37,6 +38,9 @@ export interface RegsPageOpts {
   /** (T517) the map's names of the parts (`header.ts` `PartNames`, `@app/ui` `useMapEntries`): the header's and the Parts
    *  sheet's part names */
   readonly names?: PartNames | null;
+  /** (T1140) where each part sits in the map's list (`@app/core` `entryPlaces`, `@app/ui` `useMapEntries`): the header's
+   *  "Part 1 of 2" and its line to the list of parts */
+  readonly places?: PartPlaces | null;
   /** test-harness page id only — sheet keys never embed it (contracts §6 #1) */
   readonly pid?: string;
 }
@@ -64,7 +68,8 @@ export function buildRegsPage(inp: RegsInputs, opts: RegsPageOpts): RegsPage {
     version: "regs-v38",
     target: inp.target, day: inp.day, weekday: inp.weekday, today: isTodayOf(inp, opts.today), who: opts.who,
     status,
-    header: headerOf(inp, { today: opts.today, status, downstream: opts.downstream ?? null, names: opts.names ?? null }),
+    header: headerOf(inp, { today: opts.today, status, downstream: opts.downstream ?? null, names: opts.names ?? null,
+                              places: opts.places ?? null }),
     boats: boatsLine(inp),
     keep,
     gear, methods,
