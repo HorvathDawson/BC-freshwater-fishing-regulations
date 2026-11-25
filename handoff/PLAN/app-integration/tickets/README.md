@@ -300,7 +300,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1055 | A new production crash kind on 0.8.5: `TypeError: Cannot read properties of undefined` (2 reports) | OPEN —  | | planning chat 2026-11-24 |
 | T1056 | Harrison Lake shows a hatchery-only lake trout rule: is it right? | DROPPED — duplicate (answered 2026-11-23, PR #85) | | — |
 | T1057 | `pipeline reports` lists about 40 old items as NEW: tie each id to a ticket or a class | OPEN —  | | planning chat 2026-11-24 |
-| T1058 | A production Android build hangs for an hour after BUILD SUCCESSFUL (Gradle daemon out of Metaspace) | DONE | 551cb1ce8, e01373329 | planning chat 2026-11-24 |
+| T1058 | A production Android build hangs for an hour after BUILD SUCCESSFUL (Gradle daemon out of Metaspace) | DONE | 551cb1ce8, e01373329, 44be58a34 | planning chat 2026-11-24 |
 | T1059 | `scripts/ci_status.py --strict` says "no finished run" when the green run is on an ancestor more than 30 runs back | OPEN —  | | planning chat 2026-11-24 |
 | T1060 | App robustness: no React error boundary, and three one-render stale states | OPEN —  | | planning chat 2026-11-24 |
 | T1061 | A Map opened through "Flows into" shows a blank band of about 120 px (Skeena) | OPEN —  | | planning chat 2026-11-24 |

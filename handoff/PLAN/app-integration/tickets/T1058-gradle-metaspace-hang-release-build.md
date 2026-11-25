@@ -1,6 +1,6 @@
 # T1058 — A production Android build hangs for an hour after BUILD SUCCESSFUL (Gradle daemon out of Metaspace)
 
-Status: DONE — 551cb1ce8, e01373329. What happened: the daemon log shows `stop()` (Metaspace expiry, 81 % of 512 MiB) BEFORE
+Status: DONE — 551cb1ce8, e01373329, 44be58a34 (review: tee instead of tail -f; the log kept on any failure; a 2nd real build, 2 m 05 s, ended clean). What happened: the daemon log shows `stop()` (Metaspace expiry, 81 % of 512 MiB) BEFORE
 "dispatching the build result", then "Timed out waiting for finished message from client". In 13 other expiring builds
 (11-19 to 11-24) the result went out first and nothing hung, so this is a race. It is not a crash: the build itself
 succeeded. The fix: `plugins/with-gradle-memory.js` writes `-Xmx2048m -XX:MaxMetaspaceSize=1024m` at prebuild (test:
@@ -25,3 +25,8 @@ Source: the 0.9.0 chat, 2026-11-24 10:14: prod `build-apk` printed BUILD SUCCESS
 the generated gradle.properties carries the limit (test on the config plugin); a dead-daemon run ends with an error, not a hang.
 
 Severity: medium (silently blocks a Play build). Release: 0.9.1 (before its Play build). Model: Sonnet. Size: S. Owner: no.
+
+Left (review of #155, accepted): the grace and the time limit are read from bash's whole-second `$SECONDS` and polled
+every GRADLE_POLL_S (5 s), so each can run up to ~6 s late; a client that exits between the watcher's last check and
+its stop is a harmless miss (the kill finds no pid). heavy.sh's unfair lock queue (a waiter since 13:58 lost the lock
+twice to later arrivals) is T1063's, not this ticket's.
