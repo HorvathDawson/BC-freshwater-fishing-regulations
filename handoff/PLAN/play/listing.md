@@ -133,7 +133,7 @@ All files are in `handoff/PLAN/app-integration/store/graphics/`.
 | Video | none | optional |
 
 ## Pushing the listing to Play
-The short and full descriptions now live in `handoff/PLAN/play/store-description.md` (the owner's text); this page
+The short and full descriptions now live in `app/store-listing/listing.json` (the owner's text); this page
 is the fact sheet they are checked against. One command pushes title, both descriptions, the 8 phone screenshots
 (`node app/tools/store-shots/run.mjs` output, file-name order, replacing Play's), and the icon and feature graphic
 when Play's differ:

@@ -10,7 +10,7 @@ Related earlier answer: `handoff/PLAN/app-integration/store/listing-draft.md` ("
 ## What the app is, and how I checked each claim (2026-11-14)
 | Claim | Checked how | Status |
 |---|---|---|
-| Fishing regulations and maps; no game | store-description.md, listing.md fact sheet | verified (docs) |
+| Fishing regulations and maps; no game | app/store-listing/listing.json, listing.md fact sheet | verified (docs) |
 | No accounts, no sign-in | T365 "Met" table; no sign-in code seen; `app.json` has no auth plugin | verified (T365 + app.json) |
 | No chat, no messages between users, no user-to-user content | no such feature in the fact sheet; no server stores user content except problem reports sent to the owner | verified from docs; no screen-by-screen walk |
 | Photos are the reader's own, kept on the phone | `app.json` photo and camera prompts say "stay on this device"; data-safety.md row 7 | verified (docs + prompts) |

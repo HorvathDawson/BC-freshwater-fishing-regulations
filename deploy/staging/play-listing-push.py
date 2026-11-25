@@ -9,9 +9,9 @@
 Default is a DRY RUN: open an edit, apply everything (the images are uploaded INTO the edit), ask Play to VALIDATE it,
 print what would change, then DELETE the edit; nothing reaches the listing. --commit does the same and commits the edit.
 
-- Text: title "Can I Fish This?", the short and full descriptions from handoff/PLAN/play/store-description.md (the
-  "## Short description" section, and "## Long description" to the end of the file). Over 30 / 80 / 4000 characters
-  is refused before anything is sent.
+- Text (T1072): title, short and full descriptions from the one source, app/store-listing/listing.json (+ the
+  full-description.txt it names). Over 30 / 80 / 4000 characters is refused before anything is sent.
+--appstore (T1072) prints each App Store Connect field from the same source with its length and limit, to paste; no network.
 - Phone screenshots: every PNG/JPEG in --shots (default ~/bcfish-session-backup-2026-11-12/store-auto), in file-name
   order, REPLACE the listing's phone screenshots (skipped when Play already holds the same files in the same order).
 - --no-shots (T319): text, icon and feature graphic only; every screenshot set on Play is left as it is.
@@ -24,6 +24,7 @@ is refused by name, never resized. Any API error exits non-zero. Shares the key 
 """
 import argparse
 import hashlib
+import json
 import os
 import re
 import sys
@@ -38,8 +39,8 @@ UPLOAD = "https://androidpublisher.googleapis.com/upload/androidpublisher/v3/app
 SCOPE = ["https://www.googleapis.com/auth/androidpublisher"]
 ROOT = Path(__file__).resolve().parents[2]
 GRAPHICS = ROOT / "handoff/PLAN/app-integration/store/graphics"
-DESCRIPTION = ROOT / "handoff/PLAN/play/store-description.md"
-TITLE = "Can I Fish This?"
+LISTING = ROOT / "app/store-listing/listing.json"
+DESCRIPTION = LISTING
 LIMITS = {"title": 30, "shortDescription": 80, "fullDescription": 4000}
 CANDIDATE_LANGUAGES = ("en-CA", "en-US")
 MIME = {"PNG": "image/png", "JPEG": "image/jpeg"}
@@ -60,22 +61,44 @@ def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def read_listing() -> dict:
+    """The one source of the store words (app/store-listing/listing.json); the full description is the file it names."""
+    if not LISTING.is_file():
+        die(f"no listing source at {LISTING}")
+    src = json.loads(LISTING.read_text(encoding="utf-8"))
+    src["fullDescription"] = (LISTING.parent / src["fullDescriptionFile"]).read_text(encoding="utf-8").strip()
+    return src
+
+
 def read_text() -> dict:
-    """The two sections of store-description.md; Play counts characters (code points), newlines included."""
-    if not DESCRIPTION.is_file():
-        die(f"no description file at {DESCRIPTION}")
-    md = DESCRIPTION.read_text(encoding="utf-8")
-    short = re.search(r"^## Short description\s*\n(.*?)(?=^## )", md, re.S | re.M)
-    full = re.search(r"^## Long description\s*\n(.*)\Z", md, re.S | re.M)
-    if not short or not full:
-        die(f"{DESCRIPTION.name}: needs a '## Short description' section followed by '## Long description'")
-    text = {"title": TITLE, "shortDescription": short.group(1).strip(), "fullDescription": full.group(1).strip()}
+    """The Play text; Play counts characters (code points), newlines included."""
+    src = read_listing()
+    text = {"title": src["name"], "shortDescription": src["playShortDescription"], "fullDescription": src["fullDescription"]}
     for field, limit in LIMITS.items():
         if not text[field]:
             die(f"{field} is empty")
         if len(text[field]) > limit:
             die(f"{field} is {len(text[field])} characters; Play allows {limit}")
     return text
+
+
+def print_appstore() -> None:
+    """Every App Store Connect text field, its length and limit; nothing is sent (the owner pastes)."""
+    src = read_listing()
+    lim = src["limits"]
+    rows = [("Name", src["name"], lim["name"]), ("Subtitle", src["appStoreSubtitle"], lim["appStoreSubtitle"]),
+            ("Promotional text", src["appStorePromotionalText"], lim["appStorePromotionalText"]),
+            ("Description", src["fullDescription"], lim["fullDescription"]),
+            ("Keywords", src["appStoreKeywords"], lim["appStoreKeywords"]),
+            ("What's New (first version, proposal)", src["whatsNew"]["appStoreFirstVersionProposal"], src["whatsNew"]["appStoreLimit"]),
+            ("Support URL", src["urls"]["support"], None), ("Marketing URL", src["urls"]["marketing"], None),
+            ("Privacy policy URL", src["urls"]["privacy"], None)]
+    for field, value, limit in rows:
+        n = len(value.encode("utf-16-le")) // 2
+        print(f"=== {field}: {n}{'/' + str(limit) if limit else ''} characters {'(OVER)' if limit and n > limit else ''}\n{value}\n")
+    c = src["categories"]["appStore"]
+    print(f"=== Category: {c['primary']}, secondary {c['secondary']}")
+    print("nothing sent: this prints the one source (app/store-listing/listing.json) for App Store Connect.")
 
 
 def check_image(kind: str, path: Path) -> str:
@@ -116,10 +139,13 @@ def main():
     ap.add_argument("--tablet7", type=Path, help="7-inch tablet screenshots (T319); none = left as is")
     ap.add_argument("--tablet10", type=Path, help="10-inch tablet screenshots (T319); none = left as is")
     ap.add_argument("--no-shots", action="store_true", help="text, icon and feature graphic only; screenshots left as they are")
+    ap.add_argument("--appstore", action="store_true", help="print the App Store Connect fields with length/limit; sends nothing")
     mode = ap.add_mutually_exclusive_group()
     mode.add_argument("--commit", action="store_true", help="commit the edit (default: validate, then delete it)")
     mode.add_argument("--plan", action="store_true", help="send nothing: check the files, print what would be sent")
     a = ap.parse_args()
+    if a.appstore:
+        return print_appstore()
 
     if a.video_url and not re.match(r"^https://(www\.)?(youtube\.com/watch\?v=|youtu\.be/)[\w-]+", a.video_url):
         die(f"--video-url {a.video_url!r} is not a YouTube video URL")

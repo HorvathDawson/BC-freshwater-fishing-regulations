@@ -3,26 +3,9 @@
 Package `ca.canifishthis.app`. Same text serves Google Play and the App Store; limits noted per field. No line promises fish,
 a catch or legal advice (the app's own disclaimer applies: it is a reading aid, the printed synopsis and DFO notices rule).
 
-## Name
-Can I Fish This?  (owner 2026-11-06; the home-screen label is "Can I Fish?") — App Store subtitle / Play short title:
-"BC fishing rules, by the water"
-
-## Short + full description
-Moved to `handoff/PLAN/play/listing.md` (2026-11-04, T371). That file is the one copy, and the App Store uses the same
-text. It was updated for T384 (opens on your location), T385 (share) and T352 (install id).
-
-## Keywords (App Store, 100 chars, comma-separated)
-fishing,BC,regulations,rules,freshwater,river,lake,trout,salmon,steelhead,angling,license,flow,gauge
-
-## Categories
-- Play: Maps & Navigation (alt: Sports)
-- App Store: Sports (alt: Navigation)
-
-## Support
-- Support URL: https://canifishthis.ca/about (owner 2026-11-06)
-- Contact email: support@canifishthis.ca (owner 2026-10-29; the build's EXPO_PUBLIC_CONTACT is the same: eas.json profiles, build-apk.sh, export:web scripts; the privacy page keeps privacy@canifishthis.ca)
-- Privacy policy URL: https://canifishthis.ca/privacy  (live when the prod site is up, T240 section 5)
-- Marketing URL (App Store): https://canifishthis.ca
+## Name, descriptions, keywords, categories, URLs
+Moved to ONE source (T1072): `app/store-listing/listing.json` (+ `full-description.txt`); limits checked by `app/tools/store-listing.test.ts`.
+Facts (not words) are in `handoff/PLAN/play/listing.md`. Contact email: support@canifishthis.ca (owner 2026-10-29; the privacy page keeps privacy@canifishthis.ca).
 
 ## Age / content rating (answers; owner to submit)
 - Play (IARC): category Reference / Utility; no violence, sexual content, language, controlled substances, gambling, user-to-user
