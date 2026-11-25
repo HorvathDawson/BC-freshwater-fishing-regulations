@@ -1,0 +1,29 @@
+[
+ {
+  "number": 212,
+  "title": "test(T1048): the cut's row test reads a two-digit version (0.10.0)",
+  "head": "test/T1048-cut-row-test-two-digit-version",
+  "base": "main",
+  "draft": false,
+  "auto_merge": true,
+  "head_repo": "HorvathDawson/BC-freshwater-fishing-regulations"
+ },
+ {
+  "number": 209,
+  "title": "feat(T1072): drop the Play tablet sets; frame 3 names the river's own watershed",
+  "head": "feat/T1072-drop-tablets-fix-frame3",
+  "base": "main",
+  "draft": false,
+  "auto_merge": true,
+  "head_repo": "HorvathDawson/BC-freshwater-fishing-regulations"
+ },
+ {
+  "number": 207,
+  "title": "fix(T1127): store push scripts refuse stray or missing pictures, list from store-shots.json",
+  "head": "fix/T1127-push-refuses-strays",
+  "base": "main",
+  "draft": false,
+  "auto_merge": true,
+  "head_repo": "HorvathDawson/BC-freshwater-fishing-regulations"
+ }
+]
