@@ -51,7 +51,7 @@ at the old one). Actions minutes: a public repo is not counted, in an org as on 
   Re-issue it on both feeds workers before it does; the repo-move chat gives the exact date when you make the token,
   and it is written here then.
 
-**Answered about 14:35 in the repo-move chat's dialog (relayed 13:40):**
+**Answered in the repo-move chat's dialog shortly before 13:40 (the clock at the relay; the chat wrote "~14:35"):**
 - "okay i did org setup". Read back by the chat with `gh api`: two-factor required, base permission read. The
   Actions settings and the token policy cannot be read with your gh scopes; your words: "I set them as listed".
 - The second collaborator account: "Drop it". You remove it, or it falls off at the transfer. Part 1 of the plan is
