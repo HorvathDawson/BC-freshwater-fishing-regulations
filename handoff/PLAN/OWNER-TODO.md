@@ -165,7 +165,7 @@ with the default Claude uses until you answer). Newest first inside each section
 - **T1051 treble hooks on a lake** (yes, allowed on Dick Lake: p.80 "use of a treble hook is permitted unless single
   hook is specified", p.8 barbed hooks allowed in lakes; the Gear tab says nothing). A: a second Hooks line "Treble and
   barbed hooks allowed ⓘ" wherever nothing restricts hooks. B: the same on lakes only. C: keep silent, note in the ⓘ
-  only. Recommended: A. Picture: `handoff/PLAN/app-integration/T1051-shots/report-now.png`.
+  only. Recommended: A. Picture: `handoff/PLAN/app-integration/T1051-shots/report-now.png`. ANSWERED 11-24 12:33: "Say it everywhere (Recommended)"; built (T1051).
 - **T1052 fully closed water: one statement** (Nelson Creek). A: keep both calendars; one block "Closed to all fishing
   all year, salmon included" / "The B.C. Synopsis row for Nelson Creek (and its tributaries) reads “No Fishing”." + the
   source. B: smallest change, the banner says "No fishing for any fish, salmon included" and the salmon row's sentence
