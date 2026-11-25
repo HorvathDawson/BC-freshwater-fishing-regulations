@@ -1,6 +1,6 @@
 # T1036 — The every-source sheet ("All sources ›") lists rules the screen does not draw, and misses the drawn gear on salmon-only days
 
-Status: PARTIAL — d29a19c5a, ea1155dee (lane L5); second group a65823345, review fix 926470546 (lane L17, owner 2026-11-24); left (Claude): put the head question to the owner (lane L17 report, `T1036-shots/other-group-*`) and apply his pick
+Status: DONE — d29a19c5a, ea1155dee (lane L5); second group a65823345, review fix 926470546 (lane L17, owner 2026-11-24); the owner picked the built head, weight and empty-group rule (2026-11-24, below), nothing left to apply
 
 Source: the independent review of PR #63 (T991 round 3, 2026-11-23), probing the live release r-741815c6090d over 8 waters ×
 parts × 9 days. The Source row was fixed in #63 to cite exactly what the drawn tabs cite (`drawnRegsOf`,
@@ -98,6 +98,10 @@ change: nothing one tap away).
 
 **Owner question**: the second group's head: A "Also in the fish and possession sheets" (built: says where the rules
 are) or B "Other rules for this water" (shorter); or not separate after all.
+
+**Owner answers 2026-11-24 (verbatim)**: shown the two heads, first "I don't see the difference"; asked again pointing at
+the one grey line: "\"Also in the fish and possession sheets\"" (A, as built). The head's weight: "Leave it as drawn".
+No second group where nothing is one tap away: "Yes, only what the page can open (Recommended)" (as built).
 
 ## Review of #126 fixes (lane L17, 2026-11-24, 926470546)
 - MED (fixed): the sheets one tap away were read from `open` fields only, so every key a component composes itself was

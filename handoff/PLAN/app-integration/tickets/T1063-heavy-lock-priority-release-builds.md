@@ -8,6 +8,10 @@ Added 2026-11-24 (the 0.9.1 chat): there is no fair queue: the job that waited l
 minutes) lost the lock to later arrivals; and several lanes' vitest runs outside the lock pushed the load to 85–145,
 timing out render tests in pre-push hooks (see T1070). T1058's lane was asked to confirm.
 
+Evidence 2026-11-24 (0.9.1 chat, T1058 / T1059 lane): waiters retry `mkdir` every 20 s and the queue file only
+feeds `--status` (`scripts/heavy.sh` lines 226–253), so the lock goes to whoever retries first: a waiter queued at
+13:58 lost the lock twice to later arrivals (14:23 and 14:47).
+
 ## Work
 0. Fair queue: the lock goes to the longest waiter; vitest and other test runs from hooks take the lock (or a light
    lane of it) so they cannot pile up outside it.
