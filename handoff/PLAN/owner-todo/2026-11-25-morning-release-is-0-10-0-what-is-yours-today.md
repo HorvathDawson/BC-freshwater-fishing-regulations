@@ -83,3 +83,11 @@ order: 770
   Capilano, Chilliwack, Fraser, Skeena, Cowichan and more); most of those do name the stretch they show, but none
   says other parts exist. Proposed: a small first fix (every head says "Part N of M" and "other parts have different
   rules"), web first, then the landing you pick.
+- **Answered 15:14 (multiple choice): "Yes, move now, re-cut 0.10.0 after"; T1140 landing "A: Map with the parts"; the
+  label "web first right after repo move and make repo move happen asdap".** What happens: the staging run
+  finishes; then the transfer click (the repo-move chat hands it to you on the planning chat's word, about 20
+  minutes with you); then the merge queue (your OK), the T1140 label fix, the staging step again, and only then
+  your production commands, the phone builds and the App Store submit: probably tomorrow, not today. Done as a fix
+  on the same release branch, not a second cut (a second cut would collide with the 0.10.0 tag): same result,
+  version 0.10.0, with the label in it. Yours on the way: the transfer and the token; the merge-queue OK; a yes on
+  the label's words from pictures; then the production commands.
