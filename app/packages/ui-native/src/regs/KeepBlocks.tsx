@@ -40,7 +40,7 @@ export function ClosedBanner({ banner, palette, actions }: { banner: BannerVM; p
           <Text style={[TYPE.regsBody, { color: palette.ink }]}>{c.text} <Text style={[TYPE.meta, { color: palette.sub }]}>{c.scope}</Text></Text>
           {/* (T1031 item 3) the closure's pages (or its local authority's page, T981) then "Who says so ›" (its rule's sheet),
               as the one Source line, where a boxed "SOURCE" chip opened the rule beside the bare links */}
-          <SourceRow vm={lineSourcesOf(c.book, c.text, OPEN.rule(c.rule))} palette={palette} onBook={actions.onBook} onSheet={actions.onSheet}
+          <SourceRow vm={lineSourcesOf(c.book, c.about ?? c.text, OPEN.rule(c.rule))} palette={palette} onBook={actions.onBook} onSheet={actions.onSheet}
                      testID="closed-source" sheetTestID="chip:source" />
         </View>
       ))}

@@ -278,7 +278,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1032 | Highlight boxes for region and province rule text (the Source row's p.8/9/10/49 open marked) | DONE | 2c7f8cab2, d03699f73 | owner 2026-11-23 |
 | T1034 | A `regs=` link opened over another water keeps the old camera (the link's `part` is read and dropped) | PARTIAL — 0.9.0 crash across waters fixed; left (Claude): device check of the camera and the fix; other keys T1038 | 77d9de76d, 2ddaa795f, 9520ae1eb | lane L18 emulator 2026-11-23 |
 | T1035 | `theme=dark` on a `regs=` link does not switch the theme on the phone | DONE | 77d9de76d, 2ddaa795f | lane L18 emulator 2026-11-23 |
-| T1036 | The every-source sheet ("All sources ›") lists rules the screen does not draw, and misses the drawn gear on salmon-only days | PARTIAL — left (Claude): the owner's pick of the second group's head, then apply it | d29a19c5a, ea1155dee, a65823345, 926470546 | owner 11-24 "Add back but maybe have them separate?": second group = what sheets one tap away cite, minus the drawn; T1036-shots/other-group-* |
+| T1036 | The every-source sheet ("All sources ›") lists rules the screen does not draw, and misses the drawn gear on salmon-only days | DONE | d29a19c5a, ea1155dee, a65823345, 926470546 | owner 11-24 "Add back but maybe have them separate?": second group = what sheets one tap away cite, minus the drawn; T1036-shots/other-group-* |
 | T1038 | Carry a phone link's date, tab, sheet, scroll, age, res, horizon and whole (today reported and dropped) | PARTIAL — all 8 carried (web readers, one open request), day-only links, start re-applied; left (Claude): 0.9.0 device pass | 94c0a117d, 1a5574b00, 06b85846a | lane L15 on T1034, 2026-11-23 |
 | T1037 | Two review readers (`audit.primary_split_pos`, `reuse.host_rows`) pick a cut's position by different rules (157 of 190 multi-row cuts disagree); the build's is per extent (`extent._cut_at`) | OPEN — needs the position rule decided | T776 | PR #48 independent review, 2026-11-23 |
 | T1039 | The public gauge page draws the web app's own chart (same data, windows, zoom, every forecast model) | IN REVIEW — owner: OWNER-TODO "Look (you): T1039 gauge page after-shots"; staging feeds worker deploy + 0.9.0 staging site build to show | 9f8603f17, 44af0d16f, 1b983b5ad, f181f241f, 085ce5e6f, 6a4ebf3ab, 145cf8542 | owner 2026-11-23; lane L25 |
@@ -292,9 +292,9 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 
 | T1049 | A start link's scroll lands short: it jumps to the first measured section top and never re-checks | PARTIAL — 0.9.1: a slow cold start waits for the salmon card, the in-season notices and a settled page; device gear 6/6, licence 6/6, was 2/12, 0/11; #107 no different; left (Claude): review and merge of #122, then the device check on a release build | ae65ef767, a2478c6dc, d2239c54d, b3de2bbc1, 09f6346e0, eb8e2092a, 5f8a37cbc, 53e9106e2 | review of #80 (T1038), 2026-11-23; 0.9.0 device pass |
 | T1045 | Gauge pages should come up for "<river> river forecast / level / flow" (title/H1 words, water-to-gauge links, JSON-LD) | DONE | 859b10591, fc3626905, 4af1ba636, 0922cb1f3 | owner 2026-11-23 (lane L27) |
-| T1050 | Methods: "Ice fishing" repeats the Gear tab's line and hook counts (Dick Lake) | OPEN — 0.9.1; owner pick of the words, then pipeline + data release | | staging report 4eedeb08d1964b44 (owner 2026-11-24); lane L19 |
+| T1050 | Methods: "Ice fishing" repeats the Gear tab's line and hook counts (Dick Lake) | DONE — 0.9.1; needs the 0.9.1 data release | 2c072f33d, 295bbac15, 9e6e45694, d0baa5fa0 | staging report 4eedeb08d1964b44 (owner 2026-11-24); lane L19 |
 | T1051 | A lake's Gear tab says nothing about treble or barbed hooks (both allowed; Dick Lake) | OPEN — 0.9.1; owner pick of the words, then app build | | staging report 437acc75d93a4a1a (owner 2026-11-24); lane L19 |
-| T1052 | A water closed to all fishing says it twice (a Salmon row and a game-fish "Closed all year" block; Nelson Creek) | OPEN — 0.9.1; owner pick of the words, then app build | | staging report 19a865256d6dd70d (owner 2026-11-24); lane L19 |
+| T1052 | A water closed to all fishing says it twice (a Salmon row and a game-fish "Closed all year" block; Nelson Creek) | IN REVIEW — owner: OWNER-TODO "T1052 fully closed water: one statement" | 33ecb6b96 5e2ca0048 | owner picked A 11-24 12:33; 936 waters merged; line words (A or B pictured) + part-year case are owner questions; lane L22 |
 | T1053 | Eagle Creek ✱: the walk stops at its head lake (Dick Lake), and Sources never says "tributaries" | OPEN — 0.9.1 for the Sources words; the head-lake walk waits on an owner ruling | | staging report 3eaf5ac25fc39d73 (owner 2026-11-24); lane L19 |
 | T1054 | Tides: a tide condition / forecast layer | OPEN — future (0.10 or later), unscoped | | owner 2026-11-24, relayed by the 0.9.0 chat |
 | T1055 | A new production crash kind on 0.8.5: `TypeError: Cannot read properties of undefined` (2 reports) | OPEN —  | | planning chat 2026-11-24 |
@@ -313,7 +313,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1068 | T1027 leftovers: scheduled notifications across an update, the `offline` bench step, a cold-start stall | OPEN —  | | planning chat 2026-11-24 |
 | T1069 | A Kildala-style polygon route is written in 10 pieces | OPEN —  | | planning chat 2026-11-24 |
 | T1070 | Timing-dependent app tests: `chart.render.test.tsx` waits a fixed 30 ms; vitest times out under load | OPEN —  | | planning chat 2026-11-24 |
-| T1071 | iOS App Store full release: distribution and compliance information | OPEN — its own chat, before the Play launch (iOS has no 14-day wait) | | planning chat 2026-11-24 |
+| T1071 | iOS App Store full release: distribution and compliance information | IN PROGRESS — the paste-from page is written (`handoff/PLAN/ios/APP-STORE-SUBMISSION.md`); the submission waits on the new pictures (T1072), the privacy page words (T1098) and the push proof (T996) | | planning chat 2026-11-24 |
 | T1072 | Better store screenshots and marketing content, before the full release (both stores) | OPEN —  | | planning chat 2026-11-24 |
 | T1073 | The "app update" notice shows only when this phone can actually install the update | OPEN —  | | planning chat 2026-11-24 |
 | T1074 | AGENTS rule 28 says map layers come only from `layers.source.json`, but every stream overlay is a runtime layer | OPEN —  | | planning chat 2026-11-24 |
@@ -329,11 +329,24 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1084 | FWA `LEFT_RIGHT_TRIBUTARY` is UNKNOWN for 188 streams, so a one-bank rule cannot tell which side they join | OPEN — 0.9.2, or with T1029 | | 0.9.1 chat 2026-11-24 |
 | T1085 | Ice fishing says "terminal attractor" where the Gear tab says "hook" | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24 |
 | T1086 | RULINGS RU-14 (the Meziadin's row stops at Meziadin Lake) is outdated by T1053's head-lake walk | OPEN — 0.9.1, with T1053 | | 0.9.1 chat 2026-11-24 |
-| T1087 | `brunette_river.r1` "No Fishing upstream of Burnaby Lake" is curated as `whole` on the Brunette itself: is the river wrongly closed? | OPEN — HIGH until traced; 0.9.1 if wrong, else 0.9.2 | | 0.9.1 chat 2026-11-24 |
+| T1087 | `brunette_river.r1` "No Fishing upstream of Burnaby Lake" is curated as `whole` on the Brunette itself: is the river wrongly closed? | OPEN — verdict 2026-11-24 (0.9.1 chat, lane L21 read the printed row): RIGHT, the binding stands; closes with the T1053 PR, which carries the verdict | | 0.9.1 chat 2026-11-24 |
 | T1088 | Lakelse r5, a "Note: the mouth … signs" rule, walks onto every tributary | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24 |
 | T1089 | The build-assets bucket is over R2's 10 GB free tier: store the big source file compressed, and a runbook for refreshing the sources | OPEN — 0.9.2, or the first free lane before it | | owner 2026-11-24 |
 | T1090 | `data.canifishthis.ca/robots.txt` answers 404 (Search Console) | OPEN — 0.9.2 | | owner 2026-11-24 |
 | T1091 | A fresh Standard map fetches only the salmon head: what is drawn from the full salmon facts is missing until the Salmon map was opened | OPEN — 0.9.2 (code reading 2026-11-24 found no missing closure; the cold-open test and a live check are left) | | 0.9.1 chat 2026-11-24 |
+| T1092 | Web: "Database deleted by request of the user" arrives as a crash report (kind `790ae7cc172f9424`) | OPEN — 0.9.2 | | planning chat 2026-11-24 |
+| T1093 | "Location request failed due to unsatisfied device settings" is an unhandled crash on 0.9.0 (kind `f7cb406a97ce7436`) | OPEN — 0.9.2 (0.9.1 if a lane is free) | | planning chat 2026-11-24 |
+| T1094 | Android: the system ended the app for low memory in the foreground, 0.8.5 staging (kind `9588028ebf260364`) | OPEN — 0.9.2 (watch for it on 0.9.0 first) | | planning chat 2026-11-24 |
+| T1095 | Feature request: fish measurements on a saved location, several per location, editable on a revisit (report `0a9136aec3e19ab9`) | OPEN — 0.10, pictures first (owner 2026-11-24) | | planning chat 2026-11-24 |
+| T1096 | Methods: the page's ice-fishing clause carries no citation (the source is in the pipeline only) | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24, T1050's leftover |
+| T1097 | Gradle daemons across lanes: `gradlew --stop` ends other lanes' builds; idle daemons hold about 2.4 GB outside heavy.sh | OPEN — 0.9.2, with T1063 | | 0.9.1 chat 2026-11-24, T1058 lane |
+| T1098 | The privacy page says things the app does not do (install id and email, Apple Maps, headers, token after Don't Allow) | OPEN — 0.9.1 site deploy, before the App Store submission (T1071); owner reads the new words | | iOS chat 2026-11-24 |
+| T1099 | iPhone: the privacy manifest does not match the App Privacy labels the owner decided | OPEN — next iPhone build (0.9.1 or 0.9.2) | | iOS chat 2026-11-24 |
+| T1100 | More > Sources and licences: open-source notices missing for the shipped libraries and fonts | OPEN — 0.9.2 | | iOS chat 2026-11-24 |
+| T1101 | iPhone: About and the version headers show the Android build number | OPEN — next iPhone build (0.9.1 or 0.9.2) | | iOS chat 2026-11-24 |
+| T1102 | `before_push --changed` skips the reach tests for a change to the DFO salmon reach step (a real break passed the hook) | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24, T1029 lane |
+| T1103 | Item id kinds are hand-kept in four places (the T1083 bug's cause); one generated source; dead `name:` ids in the fixture release | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24, T1083 lane |
+| T1104 | Web: the salmon prefetch asked for a refused slice up to 4 times in a minute | OPEN — 0.9.2, with T1091 | | 0.9.1 chat 2026-11-24, T1029 lane |
 
 ## Next after closed testing
 
