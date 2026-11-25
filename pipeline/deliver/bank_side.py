@@ -55,18 +55,17 @@ def polygon_sections(lake_file: Path, sections: Iterable[int]) -> frozenset:
     return frozenset(out)
 
 
-def sides_from_layer(stream_file: Path, sections: Mapping[int, str], lake_file: Optional[Path] = None) -> Dict[int, Side]:
-    """{section id: its Side} for `sections` ({id: bank word}), read from the tiles' `stream` layer file (and, when given,
-    the `lake` layer file, for the polygon reaches). Every section asked for gets an answer or a typed reason."""
-    for w in set(sections.values()):
-        if w not in WORDS:
-            raise ValueError(f"bank word {w!r}: not one of {sorted(WORDS)}")
+def read_layer(stream_file: Path, sids: Iterable[int], lake_file: Optional[Path] = None) -> tuple:
+    """ONE PASS over the tiles' `stream` layer file (and the `lake` file, when given) for `sids`: ({section: its line's
+    parts}, {sections written twice}, {sections drawn as a polygon reach}) — what `sides_of` answers from. (Review #112:
+    the stream layer is ~2.5 GB; a build reads it once for all its one-bank places, not once per place.)"""
+    want = set(sids)
     lines: Dict[int, list] = {}
     twice: set = set()
     with Path(stream_file).open() as fh:
         for line in fh:
             sid = _section_of(line)
-            if sid not in sections:
+            if sid not in want:
                 continue
             if sid in lines:
                 twice.add(sid)
@@ -75,7 +74,17 @@ def sides_from_layer(stream_file: Path, sections: Mapping[int, str], lake_file: 
             if g["type"] not in ("LineString", "MultiLineString"):
                 raise ValueError(f"{stream_file}: section {sid} is a {g['type']} in the stream layer, not a line")
             lines[sid] = [g["coordinates"]] if g["type"] == "LineString" else g["coordinates"]
-    poly = polygon_sections(lake_file, sections) if lake_file is not None else frozenset()
+    poly = polygon_sections(lake_file, want) if lake_file is not None else frozenset()
+    return lines, frozenset(twice), poly
+
+
+def sides_of(read: tuple, sections: Mapping[int, str]) -> Dict[int, Side]:
+    """{section id: its Side} for `sections` ({id: bank word}) from a `read_layer` read that holds them all. Every
+    section asked for gets an answer or a typed reason."""
+    for w in set(sections.values()):
+        if w not in WORDS:
+            raise ValueError(f"bank word {w!r}: not one of {sorted(WORDS)}")
+    lines, twice, poly = read
     out: Dict[int, Side] = {}
     for sid in sorted(sections):
         if sid in poly:
@@ -87,6 +96,15 @@ def sides_from_layer(stream_file: Path, sections: Mapping[int, str], lake_file: 
         else:
             out[sid] = bank_side_of_parts(lines[sid], sections[sid])
     return out
+
+
+def sides_from_layer(stream_file: Path, sections: Mapping[int, str], lake_file: Optional[Path] = None) -> Dict[int, Side]:
+    """{section id: its Side} for `sections` ({id: bank word}), read from the tiles' `stream` layer file (and, when given,
+    the `lake` layer file, for the polygon reaches). Every section asked for gets an answer or a typed reason."""
+    for w in set(sections.values()):
+        if w not in WORDS:
+            raise ValueError(f"bank word {w!r}: not one of {sorted(WORDS)}")
+    return sides_of(read_layer(stream_file, sections, lake_file), sections)
 
 
 def report(sides: Mapping[int, Side], label: str = "") -> Tuple[Dict[int, int], Dict[str, list]]:
@@ -113,14 +131,22 @@ def stamp_payload(payload: dict, sections, layers: Path) -> Dict[str, Dict[str, 
             beside.setdefault(lid, []).append(sid)
     out: Dict[str, Dict[str, list]] = {}
     taken: set = set()
-    for lid, pl in sorted((payload.get("p") or {}).items()):
-        word = pl.get("side") if isinstance(pl, dict) else None
-        if not word or not beside.get(lid):
-            continue
-        sides = sides_from_layer(Path(layers) / "stream.geojsonl", {s: word for s in beside[lid]},
-                                 Path(layers) / "lake.geojsonl")
+    places = [(lid, pl, pl["side"]) for lid, pl in sorted((payload.get("p") or {}).items())
+              if isinstance(pl, dict) and pl.get("side") and beside.get(lid)]
+    # one pass over the layers for every place (review #112), not one per place
+    read = read_layer(Path(layers) / "stream.geojsonl", {s for lid, _pl, _w in places for s in beside[lid]},
+                      Path(layers) / "lake.geojsonl") if places else None
+    for lid, pl, word in places:
+        sides = sides_of(read, {s: word for s in beside[lid]})
         ok, bad = report(sides)
         if ok:
+            # (review #112) the app's decode refuses a `bk` place whose OWN chain (an `unmapped` chain whose places are
+            # exactly [lid]) is not exactly one (core `salmon.ts`): refused here first, never shipped
+            own = sorted({u["chain"] for u in payload.get("unmapped") or []
+                          if u["chain"] < len(chains) and list(chains[u["chain"]].get("l") or []) == [lid]})
+            if len(own) != 1:
+                raise ValueError(f"salmon: one-bank place {lid} has {len(own)} own chain(s) in unmapped {own} (l exactly "
+                                 f"[{lid}]), not 1: the app refuses such a file")
             pl["bk"] = {str(s): v for s, v in sorted(ok.items())}
             twice = sorted(set(ok) & taken)
             if twice:

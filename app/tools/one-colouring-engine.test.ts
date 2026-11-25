@@ -87,6 +87,18 @@ describe("one colouring engine", () => {
     expect(src).not.toMatch(/ProfileColouring|profile-paint/);
   });
 
+  it("the phone's colouring hands the engine every channel the web does, each from the same input (review #112)", () => {
+    // removing a phone channel (the one-bank `bank`, the book's `half`) survived every test before this
+    const web = webMap(), phone = read("packages/map/src/native/useColouring.ts");
+    const names = (src: string) => [...src.matchAll(/toChannel\("(\w+)"/g)].map((m) => m[1]).sort();
+    expect(names(phone)).toEqual(names(web));
+    expect(names(phone)).toEqual(Object.keys(KEYS).sort());
+    expect(phone).toContain('const bankIn = useMemo(() => (salmon ? bankInput(salmon) : null)');
+    expect(phone).toContain('const halfIn = useMemo(() => (halves ? halfInput(halves) : null)');
+    expect(phone).toContain('useEffect(() => toChannel("bank", bankIn), [bankIn]);');
+    expect(phone).toContain('useEffect(() => toChannel("half", halfIn), [halfIn]);');
+  });
+
   it("the web map REFUSES the engine's keys in pushed data, on every path into `setData`", () => {
     // the refused keys are the channels' own, plus the removed pushed path's `status` — never restated
     // — the lake facts' `stocked` / `survey` included: a pushed lake value would be a second path to the same labels
