@@ -71,6 +71,9 @@ with the default Claude uses until you answer). Newest first inside each section
 - Asked 2026-11-25 ~00:40: "free offline maps for corridors we could integrate mapbox mobile sdk with no navigation
   and it will be free until 25k users ... we could implement that in 0.10 ?" Ticket T1108, research first, with the
   corridors chat (roadmap 4c). You pick after the comparison page.
+- 2026-11-25 00:40, your ask: "add boat luanch and docks etc etc to the basemap (will always be displayed) we will
+  get this data from osm ... will go in 0.10 at min". Ticket T1119. Nothing for you yet: a page with counts and
+  pictures comes first, then three picks (what "etc" covers, the look, whether a tap does anything).
 - Asked 2026-11-25 ~00:20: "in 0.9.1 we should make this page (https://canifishthis.ca/gauges) have a search
   option ... search by place or river etc to get gauge only"; "someone found the page by search so we want it
   usable". Ticket T1107, sent to the 0.9.1 chat; you get a picture of the page with results before it ships.

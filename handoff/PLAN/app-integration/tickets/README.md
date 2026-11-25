@@ -361,6 +361,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1116 | A push token is registered only while the phone's notification permission is on; the worker drops tokens not re-registered for ~30 days | OPEN — 0.9.1 (owner 2026-11-25); app + feeds worker | | owner via the 0.9.1 chat, T1098 item g |
 | T1117 | The book's "ANDERSON" LAKE row (MU 1-3) is bound to Anderson Lake on Dove Creek (MU 1-6): wrong rules on production | OPEN — HIGH; 0.9.1, fixed inside PR #166 (T1053) | | 0.9.1 chat 2026-11-25 |
 | T1118 | Audit every name variant whose target sits in a different management unit than the book's row; a build check | OPEN — 0.9.2, first Opus lane (HIGH until the list exists) | | 0.9.1 chat 2026-11-25, behind T1117 |
+| T1119 | Boat launches, docks and the like on the basemap, always drawn, from OpenStreetMap, through every stage | OPEN — 0.10 at the earliest (owner 2026-11-25); research and pictures first | | owner picks what "etc" covers, the look, tap or not |
 
 ## Next after closed testing
 
