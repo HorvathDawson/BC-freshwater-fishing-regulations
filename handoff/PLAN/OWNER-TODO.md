@@ -33,7 +33,8 @@ with the default Claude uses until you answer). Newest first inside each section
   a feature request for fish measurements on a saved location (T1095, design first, 0.10 or later).
   Answered 2026-11-24 22:35 (multiple choice): the T1095 request came from "A tester"; design it in "0.10,
   pictures first"; iPhone 0.9.0 (45), which `pipeline reports` showed as READY_FOR_BETA_SUBMISSION (not yet with the
-  external TestFlight testers): "Submit it". Passed to the 0.9.1 chat to submit for Beta App Review.
+  external TestFlight testers): "Submit it". The 0.9.1 chat's real run was refused by its permission check (22:55), so
+  this is yours: see the Do row below.
 - Store checks 2026-11-24 13:30 (planning chat, every source read): TestFlight 6 items, all T982; Play reviews none;
   production worker: one new crash kind on 0.8.5 (T1055); the four production reports of 11-21 are T985's (ids now
   written there). About 40 old items (0.7.x–0.8.2, mostly staging) show as new only because no ticket cites their id:
@@ -43,6 +44,13 @@ with the default Claude uses until you answer). Newest first inside each section
 - Answered 2026-11-24: the release table carries a short goal per release (ROADMAP-after-0.9.0.md, "Release contents").
 - New from you 2026-11-24: iOS store distribution and compliance (T1071), better screenshots and marketing content
   before the full release (T1072), the app-update notice only when the phone can install it (T1073, 0.9.2).
+- **Do (you): send iPhone 0.9.0 (45) to the external TestFlight testers** (you chose "Submit it" 2026-11-24 22:35;
+  no Claude session may run it). From the main checkout, one command:
+  `node deploy/staging/testflight-distribute.mjs --version 0.9.0 --build 45`
+  It submits the build to group "testers ext" for Beta App Review (the dry run says READY_FOR_BETA_SUBMISSION). Tell
+  the planning chat when it is sent; Apple's review usually takes a day.
+- Reported 2026-11-24 22:55 (0.9.1 chat): a network outage stopped its lanes 16:15–22:15, all restarted, nothing
+  lost. T1087 (the Brunette closure on the whole river) was read against the printed row: right, nothing to change.
 - **Do (you): Play Production staged rollout of 0.9.0 (build 44), once Google grants production access** (T1046,
   T240). Build 44 is on Internal and Closed since 2026-11-24 (Google's review of the Closed release pending). Play
   will not let Production be used until the production-access application is approved; the application opens
