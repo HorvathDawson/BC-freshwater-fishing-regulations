@@ -12,7 +12,7 @@ exact wording, the line says "check on the screen".
 | Item | State |
 |---|---|
 | Build for review | DECIDED (owner 2026-11-24): the newest iPhone production build when the pictures are ready (section 9). 0.9.0 (45) is uploaded and is fit for review. |
-| Pictures | WAIT. Owner 2026-11-24: the submission waits for the new set (T1072, store content chat). Same frames on both stores. |
+| Pictures | READY 2026-11-25 (T1072, PR #192): 7 frames, the same set as Play, in `handoff/PLAN/app-integration/store/graphics/store/light/appstore-6.9/` and `appstore-6.5/`. Checked by this chat: 6.9" all 1320 x 2868, 6.5" all 1242 x 2688, PNG, no transparency. |
 | Production push (T996) | NOT PROVEN, and no longer a gate. Owner 2026-11-25: the proof moves to after the iPhone release; a fix, if one is needed, ships as an update. The production secrets are set; the owner's iPhone gets no push token from iOS, cause open (state in `RESTART-ios-release-chat.md`). |
 | App Privacy "linked" answers | DECIDED (owner 2026-11-24): strict, linked (section 3). |
 | Countries | DECIDED (owner 2026-11-24): all 175 countries. So the EU trader status (section 1) is shown on EU store pages: OPEN, yours. |
@@ -75,7 +75,7 @@ The version number must equal the build's: `0.9.0` for build 45 (rename the wait
 
 | Field | Answer |
 |---|---|
-| Screenshots | WAIT for T1072. iPhone 6.9" (1320 x 2868) is the set Apple needs; 6.5" (1242 x 2688) is optional once 6.9" is there. Up to 10, PNG or JPEG, no transparency. No iPad pictures (iPhone only). If the screen also demands another iPhone size, tell this chat. |
+| Screenshots | READY. iPhone 6.9": the 7 files in `handoff/PLAN/app-integration/store/graphics/store/light/appstore-6.9/` (1320 x 2868), in file-name order 01 to 07. iPhone 6.5" (optional): the 7 in `appstore-6.5/` (1242 x 2688). By hand: drag them onto the screen in that order. Or by script from the main checkout: `.venv/bin/python deploy/staging/appstore-screenshots-push.py` shows the plan and sends nothing, `--check` reads App Store Connect only, `--commit` uploads and is yours to run. No iPad pictures (iPhone only). If the screen also demands another iPhone size, tell this chat. |
 | App preview video | none (optional) |
 | Promotional Text (170) | PASTE block below |
 | Description (4000) | PASTE block below (3924) |
