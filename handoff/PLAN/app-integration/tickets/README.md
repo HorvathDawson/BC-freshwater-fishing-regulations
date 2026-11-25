@@ -313,7 +313,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1068 | T1027 leftovers: scheduled notifications across an update, the `offline` bench step, a cold-start stall | OPEN —  | | planning chat 2026-11-24 |
 | T1069 | A Kildala-style polygon route is written in 10 pieces | OPEN —  | | planning chat 2026-11-24 |
 | T1070 | Timing-dependent app tests: `chart.render.test.tsx` waits a fixed 30 ms; vitest times out under load | OPEN —  | | planning chat 2026-11-24 |
-| T1071 | iOS App Store full release: distribution and compliance information | OPEN — its own chat, before the Play launch (iOS has no 14-day wait) | | planning chat 2026-11-24 |
+| T1071 | iOS App Store full release: distribution and compliance information | IN PROGRESS — the paste-from page is written (`handoff/PLAN/ios/APP-STORE-SUBMISSION.md`); the submission waits on the new pictures (T1072), the privacy page words (T1098) and the push proof (T996) | | planning chat 2026-11-24 |
 | T1072 | Better store screenshots and marketing content, before the full release (both stores) | OPEN —  | | planning chat 2026-11-24 |
 | T1073 | The "app update" notice shows only when this phone can actually install the update | OPEN —  | | planning chat 2026-11-24 |
 | T1074 | AGENTS rule 28 says map layers come only from `layers.source.json`, but every stream overlay is a runtime layer | OPEN —  | | planning chat 2026-11-24 |

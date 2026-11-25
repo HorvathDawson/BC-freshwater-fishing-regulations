@@ -1,5 +1,7 @@
 # App Store listing fields from the Play items (T727 round 2, PROPOSAL)
 
+**Superseded 2026-11-24 by `handoff/PLAN/ios/APP-STORE-SUBMISSION.md` (T1071), the page the owner pastes from. Where the two differ, that page is right (it was re-read against build 0.9.0 (45): push token, Precise vs Coarse, linked answers, the More menu paths). This page is kept as the evidence behind it.**
+
 Source: the Play pages are the source (owner 2026-11-14): `handoff/PLAN/play/store-description.md` (owner's text),
 `handoff/PLAN/play/listing.md` (fact sheet), `handoff/PLAN/app-integration/store/listing-draft.md`. Nothing is entered.
 Limits are Apple's as the coordinator gave them; check them on the live screen.

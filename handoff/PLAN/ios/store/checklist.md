@@ -1,5 +1,7 @@
 # App Store Connect: ordered checklist (T727, PROPOSAL for the owner)
 
+**Superseded 2026-11-24 by `handoff/PLAN/ios/APP-STORE-SUBMISSION.md` (T1071), the page the owner pastes from. Where the two differ, that page is right (it was re-read against build 0.9.0 (45): push token, Precise vs Coarse, linked answers, the More menu paths). This page is kept as the evidence behind it.**
+
 A proposal, nothing entered. Order is the order of the screens in App Store Connect as far as I know them (check against the
 live screens). "Who": OWNER = only you can; DONE = already in the repo; ACCOUNT = needs the Apple Developer account first;
 T86 = needs production data and hosting live; OTHER LANE = being made by another lane (screenshots, video).
