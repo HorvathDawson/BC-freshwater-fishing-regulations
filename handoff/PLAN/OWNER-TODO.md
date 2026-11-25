@@ -60,6 +60,13 @@ with the default Claude uses until you answer). Newest first inside each section
 - Answered 2026-11-24 23:55 (multiple choice, planning chat): who builds and uploads the 0.9.1 iPhone build (nobody
   was assigned; your "Newest by then" pick needs it): "0.9.1 chat". It builds it right after its Play Closed build;
   the privacy page, privacy manifest and iPhone build-number fixes (T1098, T1099, T1101) are its lane too.
+- **Read (you): the head-lake walk, draft PR #166 (T1053)**, sent to you by the 0.9.1 chat ~23:55. The list:
+  the file head-lakes-before-after.md in that PR's T1053-shots folder (22 head lakes, 42
+  rules gain water, none lose). One decision inside it: Dove Creek above Anderson Lake reopens for catch and
+  release (the Tsolum River's all-year tributary closure gives way to Anderson Lake's nearer tributary row); the
+  0.9.1 chat is asking you. Your ponds answer (Q124) is built as a test in it; that line closes when #166 merges.
+  Two things it does not do are tickets now: Technical detail naming the rule that gave way (T1105), and whether
+  DFO places and licensing should climb head lakes too (T1106: a list first, then your ruling).
 - **Decide (you), before the App Store submission; the iOS chat will bring both up** (its read of build 45, 11-24):
   - DSA trader status (App Store Connect → Business → Compliance): a legal statement about you; only you can make it.
   - Content Rights, "I have the rights": the map's satellite layer is Esri World Imagery used without a key. Whether

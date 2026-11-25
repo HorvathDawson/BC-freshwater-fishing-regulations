@@ -347,6 +347,8 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1102 | `before_push --changed` skips the reach tests for a change to the DFO salmon reach step (a real break passed the hook) | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24, T1029 lane |
 | T1103 | Item id kinds are hand-kept in four places (the T1083 bug's cause); one generated source; dead `name:` ids in the fixture release | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24, T1083 lane |
 | T1104 | Web: the salmon prefetch asked for a refused slice up to 4 times in a minute | OPEN — 0.9.2, with T1091 | | 0.9.1 chat 2026-11-24, T1029 lane |
+| T1105 | Sources "Technical detail" should show the effective value when an inherited closure yields to a nearer row | OPEN — 0.9.2 (after T1053 ships); owner picks the words | | 0.9.1 chat 2026-11-24, T1053's leftover |
+| T1106 | The head-lake walk climbs for book rules only: DFO places and licensing do not climb; list the cases, the owner rules | OPEN — 0.9.2 (the list first) | | 0.9.1 chat 2026-11-24, T1053's leftover |
 
 ## Next after closed testing
 
