@@ -15,7 +15,7 @@ exact wording, the line says "check on the screen".
 | Pictures | READY 2026-11-25 (T1072, PR #192): 7 frames, the same set as Play, in `handoff/PLAN/app-integration/store/graphics/store/light/appstore-6.9/` and `appstore-6.5/`. Checked by this chat: 6.9" all 1320 x 2868, 6.5" all 1242 x 2688, PNG, no transparency. |
 | Production push (T996) | NOT PROVEN, and no longer a gate. Owner 2026-11-25: the proof moves to after the iPhone release; a fix, if one is needed, ships as an update. The production secrets are set; the owner's iPhone gets no push token from iOS, cause open (state in `RESTART-ios-release-chat.md`). |
 | App Privacy "linked" answers | DECIDED (owner 2026-11-24): strict, linked (section 3). |
-| Countries | DECIDED (owner 2026-11-24): all 175 countries. So the EU trader status (section 1) is shown on EU store pages: OPEN, yours. |
+| Countries | DECIDED (owner 2026-11-24): all 175 countries. EU trader status: DECIDED (owner 2026-11-25): not a trader (section 1). |
 | Everything else | drafted below |
 
 ## 1. Before the version page (account level, once)
@@ -23,7 +23,7 @@ exact wording, the line says "check on the screen".
 | Screen | Field | Answer |
 |---|---|---|
 | Business → Agreements | Free Apps Agreement | must say Active. YOURS to check; it is, if TestFlight works. |
-| Business → Compliance → Digital Services Act | Trader status | YOURS (a legal statement). Apple asks every developer, even without EU sales. "Not a trader" fits a free app made as a hobby with no income; "trader" publishes your address, phone and email on EU store pages. You chose all countries (section 7), so the status is shown on EU store pages. |
+| Business → Compliance → Digital Services Act | Trader status | PICK **not a trader** (your decision, 2026-11-25). Apple asks every developer, even without EU sales. |
 
 ## 2. App Information (left menu: General → App Information)
 

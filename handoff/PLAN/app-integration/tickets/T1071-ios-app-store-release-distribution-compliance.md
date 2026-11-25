@@ -54,6 +54,12 @@ Owner: yes (App Store Connect entries, the submit, any legal answers).
   proof and any fix follow the release, a fix shipping as an ordinary update. Known cost: until then no server wake-up
   reaches an iPhone, so "new data" and flow notices rely on iOS's own background check and can be late.
 
+- 2026-11-25 13:20, asked as multiple choice in chat:
+  - EU trader status (Digital Services Act): **"Not a trader"**. His legal statement; he clicks it.
+  - Content rights tick (Esri imagery without a key): he answered **"we will be changing it to mapbox soon so what
+    do you recommend?"**. This chat's recommendation: tick it now (the answer is the same with any imagery
+    source). His go on the tick is still awaited. The move to Mapbox is new to this chat; sent to the planning chat.
+
 ## Results (iOS release chat, 2026-11-24)
 - The page: `handoff/PLAN/ios/APP-STORE-SUBMISSION.md`. Restart page: `handoff/PLAN/ios/RESTART-ios-release-chat.md`.
 - Read against the uploaded build's code (0.9.0 (45), 65f84020c, an Opus lane, read only). What changed against the
