@@ -46,3 +46,6 @@ order: 770
 - **13:04, CI on release/0.10.0 was red** on one pipeline test (a fixed 10-character compare that cuts "0.10.0"; a
   test fault, confirmed by the 0.10.0 chat from the code). Its fix goes to main, then onto the release branch. The
   production builds' CI gate refuses until it is green, so the afternoon times may slip.
+- **Answered 13:23 in the iOS chat's walk-through (relayed):** EU trader status = "Not a trader" (in T1071). On content
+  rights you said "we will be changing it to mapbox soon": that is T1108 (the feature release, now 0.11); this
+  submission answers for Esri as the app ships today.
