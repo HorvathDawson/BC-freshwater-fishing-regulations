@@ -4,7 +4,7 @@ Status: OPEN.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1110 | Notifications are off after install: ask the reader on first load to turn on new-data notices; no other notice without the new-data one | OPEN — 0.9.2 (proposed); owner picks the words | | owner 2026-11-25 |
+| T1110 | Notifications are off after install: ask the reader on first load to turn on new-data notices; no other notice without the new-data one | OPEN — 0.10.1 (proposed); owner picks the words | | owner 2026-11-25 |
 
 Source: owner 2026-11-25 ~00:55 (planning chat), verbatim: "also notifications default off on install. need to make
 sure it asks user to turn it on for new data notifications on first loade tc". Related: T234 (new-version notice),

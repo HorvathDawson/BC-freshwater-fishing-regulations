@@ -4,7 +4,7 @@ Status: OPEN.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1091 | A fresh Standard map fetches only the salmon head: what is drawn from the full salmon facts is missing until the Salmon map was opened | OPEN — 0.9.2 (code reading 2026-11-24 found no missing closure; the cold-open test and a live check are left) | | 0.9.1 chat 2026-11-24 |
+| T1091 | A fresh Standard map fetches only the salmon head: what is drawn from the full salmon facts is missing until the Salmon map was opened | OPEN — 0.10.1 (code reading 2026-11-24 found no missing closure; the cold-open test and a live check are left) | | 0.9.1 chat 2026-11-24 |
 
 Source: the 0.9.1 chat, 2026-11-24 (T1029 ticket and draft PR #112, CDP proof on section 1234098): on a fresh
 Standard map only the salmon head is fetched; the full facts (shards) arrive only after the reader visits the Salmon

@@ -4,7 +4,7 @@ Status: OPEN.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1095 | Feature request: fish measurements on a saved location, several per location, editable on a revisit (report `0a9136aec3e19ab9`) | OPEN — 0.10, pictures first (owner 2026-11-24) | | planning chat 2026-11-24 |
+| T1095 | Feature request: fish measurements on a saved location, several per location, editable on a revisit (report `0a9136aec3e19ab9`) | OPEN — 0.11, pictures first (owner 2026-11-24) | | planning chat 2026-11-24 |
 
 Source: in-app report `0a9136aec3e19ab9` (staging worker, kind "feature"), 2026-11-24 19:32Z, verbatim: "Add a field
 for fish measurements in locations. Make it so you can add multiple per location and edit even when you revisit."

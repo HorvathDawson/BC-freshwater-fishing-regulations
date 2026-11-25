@@ -4,7 +4,7 @@ Status: OPEN.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1111 | The More page refreshes by pulling down, like the other pages | OPEN — 0.9.2 (proposed) | | owner 2026-11-25 |
+| T1111 | The More page refreshes by pulling down, like the other pages | OPEN — 0.10.1 (proposed) | | owner 2026-11-25 |
 
 Source: owner 2026-11-25 ~00:55 (planning chat), verbatim: "more page should have refresh by swipping down standard."
 

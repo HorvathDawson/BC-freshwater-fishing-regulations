@@ -4,7 +4,7 @@ Status: PARTIAL — 5c68e2bda, 474f38bb0, 4b45d37e1 (review fix) (0.9.1; needs t
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1051 | A lake's Gear tab says nothing about treble or barbed hooks (both allowed; Dick Lake) | PARTIAL — 0.9.1; app build + data release (glossary term); owner questions on the words | 5c68e2bda, 474f38bb0, 4b45d37e1 | staging report 437acc75d93a4a1a (owner 2026-11-24); lane L19 |
+| T1051 | A lake's Gear tab says nothing about treble or barbed hooks (both allowed; Dick Lake) | PARTIAL — 0.10.0; app build + data release (glossary term); owner questions on the words | 5c68e2bda, 474f38bb0, 4b45d37e1 | staging report 437acc75d93a4a1a (owner 2026-11-24); lane L19 |
 
 Source: in-app report `437acc75d93a4a1a` (staging feeds worker, the owner, 2026-11-24 18:49 UTC), reason "rule", on
 Dick Lake `wbk:328989582`, part 0, "Today, Nov 24", Regulations view, web, app 0.9.0 (build 43, 127bf43), release

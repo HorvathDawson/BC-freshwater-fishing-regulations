@@ -4,7 +4,7 @@ Status: OPEN.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1123 | iPhone may still show the "New app version" notification toggle text | OPEN — 0.9.2, with T1073 | | not checked yet |
+| T1123 | iPhone may still show the "New app version" notification toggle text | OPEN — 0.10.1, with T1073 | | not checked yet |
 
 Source: the 0.9.1 chat's T1098 lane, 2026-11-25: "ui-native may still show 'New app version' toggle text on iPhone
 (not checked)". Related: T1073 (the app-update notice only when the phone can install it), T234, T1110.

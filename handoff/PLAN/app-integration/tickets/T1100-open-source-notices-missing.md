@@ -4,7 +4,7 @@ Status: OPEN.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1100 | More > Sources and licences: open-source notices missing for the shipped libraries and fonts | OPEN — 0.9.2 | | iOS chat 2026-11-24 |
+| T1100 | More > Sources and licences: open-source notices missing for the shipped libraries and fonts | OPEN — 0.10.1 | | iOS chat 2026-11-24 |
 
 Source: iOS release chat 2026-11-24 ~23:40, its read of build 0.9.0 (45) at 65f84020c for T1071 (App Privacy and review risk). File: `app/packages/core/src/menu/licences.ts` lines 90–168.
 

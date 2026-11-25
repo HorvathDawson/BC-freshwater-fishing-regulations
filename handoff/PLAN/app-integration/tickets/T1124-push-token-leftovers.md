@@ -4,7 +4,7 @@ Status: OPEN.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1124 | Push token while permitted (T1116): an untrue line when notifications are blocked, the sweep cap, retry, the device walk | OPEN — 0.9.2 | | owner picks the wording; 0.9.1 chat 2026-11-25 |
+| T1124 | Push token while permitted (T1116): an untrue line when notifications are blocked, the sweep cap, retry, the device walk | OPEN — 0.10.1 | | owner picks the wording; 0.9.1 chat 2026-11-25 |
 
 Source: the 0.9.1 chat's T1116 lane and review (PR #194), sent to the planning chat 2026-11-25 02:12. Not checked by
 the planning chat. Related: T1116, T996 (production push proof), T1098 (the privacy page's row 10), T1110.

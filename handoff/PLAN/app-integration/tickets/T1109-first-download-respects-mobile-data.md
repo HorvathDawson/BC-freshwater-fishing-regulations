@@ -4,7 +4,7 @@ Status: OPEN.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1109 | The first download respects mobile data: ask before downloading on data, and ask again if Wi-Fi drops | OPEN — 0.9.2 (proposed); owner picks the words | | owner 2026-11-25, a tester's feedback |
+| T1109 | The first download respects mobile data: ask before downloading on data, and ask again if Wi-Fi drops | OPEN — 0.10.1 (proposed); owner picks the words | | owner 2026-11-25, a tester's feedback |
 
 Source: owner 2026-11-25 ~00:50 (planning chat), feedback from one tester, relayed: "we need to make sure the initial
 app download respects mobile data and if the user loses wifi or is on data it should ask the user if it is okay to

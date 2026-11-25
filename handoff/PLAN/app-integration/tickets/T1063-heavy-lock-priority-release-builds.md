@@ -4,7 +4,7 @@ Status: OPEN.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1063 | `scripts/heavy.sh`: a fair queue (longest wait first), a release build ahead of check tiers, and test runs inside the lock | OPEN — 0.9.2 (medium since 2026-11-24) | | planning chat 2026-11-24 |
+| T1063 | `scripts/heavy.sh`: a fair queue (longest wait first), a release build ahead of check tiers, and test runs inside the lock | OPEN — 0.10.1 (medium since 2026-11-24) | | planning chat 2026-11-24 |
 
 Source: the 0.9.0 chat, 2026-11-24: the 0.9.1 lanes' `before_pr` tiers made the production fast-fail take 30 minutes and queued the production build behind them.
 

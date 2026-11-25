@@ -4,7 +4,7 @@ Status: IN PROGRESS — draft PR #112, independent review done (output correct; 
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1029 | One-bank DFO places: the one-side stripe on the Salmon map (T754 option B, the rest; owner Q4–Q6) | IN PROGRESS — draft PR #112 (look B from z13; creeks closed by FWA side, computed from extents; Q6 the book's half on Standard, from the salmon head); review done, fix round built (CRS of the bank stamp, W46 refusal, tests); owner's layer pick A built; 1 owner question, Q4 (designed), device walk, 0.9.1 data release left | T754 | T754 (owner 2026-11-15 / 2026-11-22 / 2026-11-24) |
+| T1029 | One-bank DFO places: the one-side stripe on the Salmon map (T754 option B, the rest; owner Q4–Q6) | IN PROGRESS — draft PR #112 (look B from z13; creeks closed by FWA side, computed from extents; Q6 the book's half on Standard, from the salmon head); review done, fix round built (CRS of the bank stamp, W46 refusal, tests); owner's layer pick A built; 1 owner question, Q4 (designed), device walk, 0.10.0 data release left | T754 | T754 (owner 2026-11-15 / 2026-11-22 / 2026-11-24) |
 
 Source: T754 (owner approved option B 2026-11-15 round 4; question 2 answered 2026-11-22 23:45, "Other bank: the water's
 other rules"). T754 built the words and the verdict (5953ef057, eeb19b4f3): a placed one-bank place stands beside the water's other

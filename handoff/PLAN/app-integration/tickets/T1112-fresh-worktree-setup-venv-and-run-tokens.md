@@ -4,7 +4,7 @@ Status: OPEN.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1112 | A fresh worktree cannot pass the pre-push hook (no `.venv`) or read the workers' reports (no run tokens): one setup command | OPEN — 0.9.2, tooling | | store content chat 2026-11-24 |
+| T1112 | A fresh worktree cannot pass the pre-push hook (no `.venv`) or read the workers' reports (no run tokens): one setup command | OPEN — 0.10.1, tooling | | store content chat 2026-11-24 |
 
 Source: store content chat 2026-11-24 23:50 (three of its lanes hit it), and the planning chat and the iOS chat the
 same day. Every chat now works in a scratchpad worktree of origin/main, so every chat hits both.

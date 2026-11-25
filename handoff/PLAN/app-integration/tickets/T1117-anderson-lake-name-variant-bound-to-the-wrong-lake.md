@@ -4,7 +4,7 @@ Status: DONE (19a8dc392, lane L21, in T1053's PR #166; ships with the 0.9.1 data
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1117 | The book's "ANDERSON" LAKE row (MU 1-3) is bound to Anderson Lake on Dove Creek (MU 1-6): wrong rules on production | DONE — fixed in PR #166 (T1053); binding pinned by a test; ships with the 0.9.1 data release | 19a8dc392 | 0.9.1 chat 2026-11-25 |
+| T1117 | The book's "ANDERSON" LAKE row (MU 1-3) is bound to Anderson Lake on Dove Creek (MU 1-6): wrong rules on production | DONE — fixed in PR #166 (T1053); binding pinned by a test; ships with the 0.10.0 data release | 19a8dc392 | 0.9.1 chat 2026-11-25 |
 
 Source: 0.9.1 chat 2026-11-25 ~00:50 MST, found while checking the owner's Dove Creek question in T1053 (draft PR
 #166). HIGH, on production today.
