@@ -74,3 +74,7 @@ order: 770
 - **App Store (from the iOS chat, relayed):** every screen that needs no build is done and confirmed by you; App
   Privacy is published. Left: select the 0.10.0 build, Add for Review, Submit, after the build is on TestFlight and
   the privacy page is live on production (your site command).
+- **14:58, your report with two pictures: the Squamish River link opens on the ecological-reserve part and reads
+  "Closed", with nothing saying which part.** Ticket T1140, HIGH, the first patch after 0.10.0. Yours: pick where a
+  multi-part water's link lands (A the Map with the parts, your proposal; B a whole-water summary first; C the
+  longest part, labelled), from pictures. A list of every water this affects comes first.
