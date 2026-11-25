@@ -6,6 +6,12 @@ Source: owner 2026-11-25 ~00:55 (planning chat), verbatim: "also notifications d
 sure it asks user to turn it on for new data notifications on first loade tc". Related: T234 (new-version notice),
 T982 #6 (the location ask that was never offered again), T1098 item g (the push token and Don't Allow).
 
+Owner 2026-11-25 ~01:10, added: "also we shouldnt allow notifications without new data notifications". The planning
+chat's reading (confirm with him in the words batch): the new-data notice is the base one; no other notice of the
+app (a water's alerts, in-season changes, the app-update notice) can be on while new-data notices are off. Turning
+any notice on turns new-data on with it and says so; new-data cannot be switched off alone while another is on (the
+switch explains why, or switching it off switches all off after a confirmation).
+
 ## Work
 1. Evidence first: on a fresh install of 0.9.0, Android and iPhone, what is asked and when, what the app's own
    notification settings default to, and what a reader who never opens Settings receives.

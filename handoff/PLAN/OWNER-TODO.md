@@ -60,6 +60,10 @@ with the default Claude uses until you answer). Newest first inside each section
 - Answered 2026-11-24 23:55 (multiple choice, planning chat): who builds and uploads the 0.9.1 iPhone build (nobody
   was assigned; your "Newest by then" pick needs it): "0.9.1 chat". It builds it right after its Play Closed build;
   the privacy page, privacy manifest and iPhone build-number fixes (T1098, T1099, T1101) are its lane too.
+- Asked 2026-11-25 ~01:10: "the spot page needs rework still it still feels very clunky and I think we should have
+  a full fresh look redesign maybe in 0.9.2" → T1115, pictures first; you will be asked what feels clunky, then pick
+  a direction. And "we shouldnt allow notifications without new data notifications" → written into T1110 (my
+  reading: no other notice can be on while new-data notices are off; confirmed with you when its words are shown).
 - Asked 2026-11-25 ~00:50–00:55, three tickets, all proposed for 0.9.2 (say if any should be sooner): the first
   download asks before using mobile data and again if Wi-Fi drops (T1109; "this was feedback from one user"); the
   app asks on first load to turn on new-data notifications (T1110); the More page refreshes by pulling down (T1111).

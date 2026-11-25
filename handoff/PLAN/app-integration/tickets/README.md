@@ -352,8 +352,12 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1107 | The web gauges page gets a search: by place, river or water, giving gauges only (nearest first) | OPEN — 0.9.1 (owner 2026-11-25); web only | | owner 2026-11-25 |
 | T1108 | Idea: the Mapbox mobile SDK (no navigation) for free offline corridor maps; research the terms, cost and the two-engine question first | OPEN — 0.10, chat 4c (research first) | | owner 2026-11-25 |
 | T1109 | The first download respects mobile data: ask before downloading on data, and ask again if Wi-Fi drops | OPEN — 0.9.2 (proposed); owner picks the words | | owner 2026-11-25, a tester's feedback |
-| T1110 | Notifications are off after install: ask the reader on first load to turn on new-data notices | OPEN — 0.9.2 (proposed); owner picks the words | | owner 2026-11-25 |
+| T1110 | Notifications are off after install: ask the reader on first load to turn on new-data notices; no other notice without the new-data one | OPEN — 0.9.2 (proposed); owner picks the words | | owner 2026-11-25 |
 | T1111 | The More page refreshes by pulling down, like the other pages | OPEN — 0.9.2 (proposed) | | owner 2026-11-25 |
+| T1112 | A fresh worktree cannot pass the pre-push hook (no `.venv`) or read the workers' reports (no run tokens): one setup command | OPEN — 0.9.2, tooling | | store content chat 2026-11-24 |
+| T1113 | Store pictures: the salmon scene depends on one water's live DFO notices and fails out of season | OPEN — with T1072, or 0.9.2 | | store content chat 2026-11-24 |
+| T1114 | The App Store submission page carries its own copy of the listing words: print them from the one source | OPEN — before the App Store submission if cheap, else with T1081 | | store content chat 2026-11-24 |
+| T1115 | The saved-spot page: a full fresh redesign (owner: still clunky); pictures first, with T1095 | OPEN — design in 0.9.2 (owner: "maybe in 0.9.2"); build when the direction is picked | | owner 2026-11-25 |
 
 ## Next after closed testing
 
