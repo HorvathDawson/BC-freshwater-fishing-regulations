@@ -80,3 +80,61 @@ def test_fwa_left_right_is_read_strictly():
     for bad in ("UPSTREAM", "L"):
         with pytest.raises(ValueError):
             _left_right(bad)
+
+
+def _resolve(monkeypatch, graph, specific_area):
+    """`resolve_all` over one place on the synthetic graph: the walk binds every section, the stretch alone is S."""
+    from types import SimpleNamespace as NS
+    from pipeline.atlas.reach import build as B
+    from pipeline.atlas.reach import dfo_salmon as DS
+    from pipeline.atlas.reach.models import Outcome, RuleBinding
+    from pipeline.regs.dfo_salmon import entries as E
+    loc = NS(location_id="6:kit:bank", binding=NS(resolved=True), is_variant=False, duplicate_of=None, water_id=None,
+             tidal_water=False, source_text={"specific_area": specific_area})
+    ef = NS(locations=[loc], waters=[], water=lambda _w: None)
+    walk = tuple(sorted(set(NODES) - {"lk"}))
+    monkeypatch.setattr(DS, "_slugs", lambda: ["6"])
+    monkeypatch.setattr(E, "load", lambda *a, **k: ef)
+    monkeypatch.setattr(E, "to_reach_input", lambda l, *a, **k: ({"entry_id": l.location_id, "includes_tributaries": True},
+                                                                  [{"rule_id": "r", "extents": [], "includes_tributaries": True}]))
+    monkeypatch.setattr(B, "build_reach", lambda entry, rule, *a, **k: (RuleBinding(
+        entry["entry_id"], rule["rule_id"], Outcome.bound,
+        walk if entry.get("includes_tributaries") else ("stem:0", "stem:900")), []))
+    monkeypatch.setattr(DS, "dead_pieces", lambda *a, **k: [])
+    diags: list = []
+    rows = DS.resolve_all(None, graph, outside=frozenset(), diagnostics=diags, closed_areas=[])
+    return rows, diags
+
+
+def test_the_reach_run_writes_the_kept_sections_into_the_place_row(monkeypatch):
+    """(review #112, MED 4a) the wiring: the place's row holds only what `one_bank_tributaries` kept, its diagnostic
+    says why, and the tally for report.json counts the undetermined ones."""
+    from pipeline.atlas.reach.dfo_salmon import ONE_BANK_TRIBS, one_bank_counts
+    rows, diags = _resolve(monkeypatch, _graph(NODES, EDGES), "on west bank between signs at Kitimat hatchery outfall")
+    row = next(r for r in rows if r["location_id"] == "6:kit:bank")
+    assert row["sections"] == ["a2:0", "a3:0", "a:0", "c:0", "d:0", "stem:0", "stem:900"]
+    d = next(x for x in diags if x["kind"] == ONE_BANK_TRIBS)
+    assert d["payload"][TRIB_OTHER_BANK] == ["b2:0", "b:0"] and d["payload"]["bank"] == "west"
+    tally = one_bank_counts(diags)
+    assert (tally["places"], tally[TRIB_OTHER_BANK], tally[TRIB_SIDE_UNDETERMINED]) == (1, 2, 2)
+    assert tally["undetermined_by_place"] == {"6:kit:bank": ["c:0", "d:0"]}
+    # a place for no one bank keeps its whole walk, untouched
+    rows, diags = _resolve(monkeypatch, _graph(NODES, EDGES), "between signs at Kitimat hatchery outfall")
+    assert next(r for r in rows if r["location_id"] == "6:kit:bank")["sections"] == sorted(set(NODES) - {"lk"})
+    assert not [x for x in diags if x["kind"] == ONE_BANK_TRIBS]
+
+
+def test_an_atlas_without_the_bank_fields_is_refused_not_read_as_undetermined(monkeypatch):
+    """(review #112, MED 3, W46) a graph.pkl from before T1029 reads "" for both fields on every node: every tributary
+    would be kept silently. Refused, by name — through the reach run and directly."""
+    from pipeline.atlas.reach.dfo_salmon import ATLAS_LACKS_BANK_FIELDS, require_bank_fields
+    bare = _graph({k: (kind, "", "") for k, (kind, _lr, _b) in NODES.items()}, EDGES)
+    with pytest.raises(ValueError, match=ATLAS_LACKS_BANK_FIELDS):
+        _resolve(monkeypatch, bare, "on west bank between signs")
+    with pytest.raises(ValueError, match="drawn_banks"):
+        require_bank_fields(_graph({k: (kind, lr, "") for k, (kind, lr, _b) in NODES.items()}, EDGES))
+    with pytest.raises(ValueError, match="left_right"):
+        require_bank_fields(_graph({k: (kind, "", b) for k, (kind, _lr, b) in NODES.items()}, EDGES))
+    require_bank_fields(_graph(NODES, EDGES))       # the stamped graph passes
+    # a place with no tributaries never asks (an old atlas still binds every place that has none)
+    assert one_bank_tributaries({"stem:0"}, {"stem:0"}, bare, "west") == ({"stem:0"}, {})
