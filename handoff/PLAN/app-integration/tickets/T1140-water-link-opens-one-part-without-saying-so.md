@@ -1,10 +1,10 @@
 # T1140 — A water's plain link opens the rules of one part without saying which: the Squamish reads "Closed"
 
-Status: OPEN — HIGH, on production; the first fix after 0.10.0 ships (a patch of its own, not the hardening batch)
+Status: OPEN — HIGH, on production; the first release on the new org repo, a patch of its own that also tries the new release steps (owner 2026-11-25)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1140 | A water's plain link opens the rules of one part without saying which: the Squamish reads "Closed" | OPEN — HIGH, on production; the first fix after 0.10.0 ships (a patch of its own, not the hardening batch) | | owner 2026-11-25 with two pictures; owner picks where a multi-part link lands |
+| T1140 | A water's plain link opens the rules of one part without saying which: the Squamish reads "Closed" | OPEN — HIGH, on production; the first release on the new org repo, a patch of its own that also tries the new release steps (owner 2026-11-25) | | owner 2026-11-25 with two pictures; owner picks where a multi-part link lands |
 
 Source: owner 2026-11-25 14:55 (planning chat), with two pictures of the web app on production, verbatim: "big app
 bug we will want to fix asap.. basically if the user searches something liek squamish river regs and clicks the
@@ -12,6 +12,17 @@ link https://canifishthis.ca/water/squamish-river then it opens to regulatiosn t
 which section it leads with and in the case of squamish it is the eco resevre on it.. and it isnt labelled... so
 maybe from the basic links it should go to the map and the user can then select which section they want to view
 regulations for? also this case doesnt even say it is in the ecological reserve sectionb..."
+
+## Owner, same day 15:00 (planning chat), verbatim
+"it should happen as first thign on new org repo maytbe? and it will be the thing used for testing releases? also
+if it is a single part then it could open regulations directly"
+
+So: (1) this patch is the first release cut on canifishthis/canifishthis, and the release that tries the new
+release steps (T1062's release candidate; T1133's stage A files if they exist by then). Planning chat's guard on
+that, his to overrule: the fix is HIGH, so it does not wait for tooling. If the release-candidate build is not
+merged when the fix is reviewed, the patch ships by the runbook as today and the next release tries the new steps.
+(2) A water with a single part opens its Regulations tab directly, as now; only a water with more than one part
+gets the new landing. That is option A's rule and is taken as settled for B and C too.
 
 ## What the pictures show
 - `/water/squamish-river`, Regulations tab: the head says only "Squamish River". Salmon "Closed today", Game fish
