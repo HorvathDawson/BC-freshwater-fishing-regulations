@@ -121,11 +121,24 @@ Triage of everything ticketed since the roadmap was written. Severity / model / 
 > notification when the night's work is done, and keep the restart page current. Then, once 0.9.0 is on production,
 > cut 0.9.1 to staging + Play Closed with the production commands for me.
 
-**3. Repo move + merge queue**
-> Start at handoff/PLAN/START-HERE.md, then T1041's "after 0.9.0" checklist. Walk me through moving the repo to a free
-> GitHub org (my clicks). Then the slug-flip commit, the GITHUB_DISPATCH_TOKEN re-issue for both feeds workers (staging
-> is yours, prod is mine), checking the rulesets survived, and turning on the merge queue. One lane at most. Update the
-> restart page.
+**3. Repo move + merge queue** (rewritten 2026-11-25; the owner: "we will work on all this. plus repo swap")
+> First make a scratchpad worktree of origin/main and read from it; never touch the main checkout (the 0.10.0
+> release runs from it). Then handoff/PLAN/START-HERE.md (step 0), ROADMAP-after-0.9.0.md row 3, T1041's "Transfer
+> checklist", T1120, T1062, and handoff/PLAN/runbooks/fresh-machine.md and secrets.md. You orchestrate on Fable;
+> scope frozen to T1041's move, T1120 and T1062; one lane at a time (Sonnet for docs and the slug flip, Opus only for
+> the worker token path), one review round.
+> Order. (1) Prepare while 0.10.0 is still being released, changing nothing live: the list of everything that names
+> the repo or my account, the slug-flip commit as a draft PR, the token steps, the ruleset and merge-queue settings
+> written down, and T1120's list of what lives outside git. (2) THE MOVE ITSELF ONLY AFTER 0.10.0 IS ON PRODUCTION
+> and release/0.10.0 is merged back (ask the planning chat, session in "Who is who"): then walk me through the move
+> to a free GitHub org, my clicks. (3) Merge the slug flip, re-issue GITHUB_DISPATCH_TOKEN for both feeds workers
+> (staging is yours, production is my command), prove a worker-started workflow runs on the new repo, check the
+> rulesets and required checks survived, turn on the merge queue, tell every open chat the new remote URL. (4) T1120:
+> a fresh clone of the new repo in an empty folder, set up and rebuilt from the docs alone (heavy steps through
+> scripts/heavy.sh, never while a release build runs; no production step, no parser run); fix the docs it trips on.
+> (5) T1062: the release-candidate plan, one page for me to agree, nothing built.
+> Ask me as multiple choice in chat. CONFIRM_PROD is only ever mine. New finds go to the planning chat, which numbers
+> the tickets. Keep your own restart page (handoff/PLAN/RESTART-repo-move-chat.md).
 
 **5i. iOS full release (first after 0.9.1)**
 > First make a scratchpad worktree of origin/main and read from it. Then handoff/PLAN/START-HERE.md (step 0),

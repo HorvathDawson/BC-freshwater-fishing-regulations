@@ -19,3 +19,14 @@ order: 770
   summary, each one a proposal you can change in 0.10.1.
 - **The one-time permission of 00:30 was not used by the planning chat:** it ran no production command. It ends
   with this release.
+- **12:10 state (from the 0.10.0 chat):** the Mac slept from about 03:50 to 12:06 (lid closed), so the night
+  release stopped right after the cut. release/0.10.0 is cut and the new atlas is promoted; nothing is on staging
+  yet. Today it runs the rehearsal build, staging, the Android and iPhone builds, then hands you the production
+  commands. For a night run: keep the lid open, or the Mac on power with sleep off.
+- **12:10, your words: "it is the next day now. we will work on all this. plus repo swap".** The repo-move chat's
+  prompt is rewritten in the roadmap (chat 3): it prepares now and changes nothing live; the move itself comes after
+  0.10.0 is on production and merged back (the planning chat's order: a move in the middle of a release would change
+  the remote under the release branch, CI and the feeds workers' token). T1120, the fresh-clone proof, is its step 4.
+- **Decide (you):** 34 untracked store pictures dated Nov 5 sit in the main checkout under
+  handoff/PLAN/app-integration/store/graphics/store/light/. Not on main, nobody touched them. The store chat was
+  asked whether they are needed; nothing is deleted without your word.
