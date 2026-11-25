@@ -59,15 +59,6 @@ export interface AppVersionInputs {
   date?: string | undefined;
 }
 
-/**
- * (T1101) THE BUILD NUMBER THIS PLATFORM SHIPS: an iPhone's is its CFBundleVersion (`ios.buildNumber`), Android's and the web's
- * the versionCode. The two are only equal in git: the iPhone upload sets its own in the build worktree, so the bundle
- * stamps both and each platform reads its own (an empty one is unstated, never the other platform's).
- */
-export function platformBuild(os: string, b: { ios?: string | undefined; android?: string | undefined }): string | undefined {
-  return os === "ios" ? b.ios : b.android;
-}
-
 /** The version this bundle states. Unstamped (a unit test): "0.0.0", every other part null. A malformed part throws. */
 export function resolveAppVersion(i: AppVersionInputs): AppVersion {
   const v = i.version?.trim() || "0.0.0";

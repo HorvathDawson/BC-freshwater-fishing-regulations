@@ -5,7 +5,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { parseSemver, platformBuild, resolveAppVersion, versionLine, versionTag } from "@app/core";
+import { parseSemver, resolveAppVersion, versionLine, versionTag } from "@app/core";
 
 // @ts-expect-error -- plain CommonJS run by Metro's config (no types)
 import { versionStamp as stamp } from "../apps/mobile/version-stamp.js";
@@ -44,24 +44,20 @@ describe("the app's version", () => {
 
   // (T1101) the iPhone upload sets ios.buildNumber in its build worktree only (build-ios-testflight.sh), so the two differ
   // there (build 45 on the iPhone, versionCode 44 in git): each platform's bundle must say its own
-  it("each platform shows its own build number (an iPhone build 45 with versionCode 44 says 45 on the iPhone, 44 on Android)", () => {
+  it("the stamp carries each platform's own build number (an iPhone build 45 with versionCode 44: 45 for the iPhone, 44 for Android)", () => {
     const twin = { ...app, android: { ...app.android, versionCode: 44 }, ios: { ...app.ios, buildNumber: "45" } };
     const s = versionStamp(twin, {}, () => "abcdef1234567890", new Date("2026-11-24T12:00:00Z"));
-    const on = (os: string) => resolveAppVersion({ version: s.EXPO_PUBLIC_APP_VERSION, sha: s.EXPO_PUBLIC_GIT_SHA, date: s.EXPO_PUBLIC_BUILD_DATE,
-      build: platformBuild(os, { ios: s.EXPO_PUBLIC_APP_BUILD_NUMBER_IOS, android: s.EXPO_PUBLIC_APP_BUILD_NUMBER_ANDROID }) });
-    expect(versionLine(on("ios"))).toContain("build 45,");
-    expect(versionTag(on("ios"))).toContain("+45.");                       // the User-Agent / X-App-Version a data request carries
-    expect(versionLine(on("android"))).toContain("build 44,");
-    expect(versionLine(on("web"))).toContain("build 44,");                 // the web is unchanged: the versionCode
-    // a pinned number wins per platform, and a platform with no number says none (never the other's)
+    const on = (build: string | undefined) => resolveAppVersion({ version: s.EXPO_PUBLIC_APP_VERSION, sha: s.EXPO_PUBLIC_GIT_SHA, date: s.EXPO_PUBLIC_BUILD_DATE, build });
+    expect(versionLine(on(s.EXPO_PUBLIC_APP_BUILD_NUMBER_IOS))).toContain("build 45,");
+    expect(versionTag(on(s.EXPO_PUBLIC_APP_BUILD_NUMBER_IOS))).toContain("+45.");   // the User-Agent / X-App-Version a data request carries
+    expect(versionLine(on(s.EXPO_PUBLIC_APP_BUILD_NUMBER_ANDROID))).toContain("build 44,");
+    // a pinned number wins per platform
     expect(versionStamp(twin, { EXPO_PUBLIC_APP_BUILD_NUMBER_IOS: "99" }, () => "", new Date()).EXPO_PUBLIC_APP_BUILD_NUMBER_IOS).toBe("99");
-    const bare = versionStamp({ version: "1.0.0", android: { versionCode: 7 } }, {}, () => "", new Date());
-    expect(platformBuild("ios", { ios: bare.EXPO_PUBLIC_APP_BUILD_NUMBER_IOS || undefined, android: bare.EXPO_PUBLIC_APP_BUILD_NUMBER_ANDROID })).toBeUndefined();
   });
 
-  it("the app's one build read goes through platformBuild by Platform.OS, from the two stamped variables", () => {
+  it("the app's one build read picks per platform from the two stamped variables (config.ts cannot be imported here)", () => {
     const cfg = readFileSync(resolve(ROOT, "src/config.ts"), "utf8");
-    expect(cfg).toMatch(/platformBuild\(Platform\.OS,\s*\{\s*ios: process\.env\.EXPO_PUBLIC_APP_BUILD_NUMBER_IOS,\s*android: process\.env\.EXPO_PUBLIC_APP_BUILD_NUMBER_ANDROID/);
+    expect(cfg).toMatch(/build: Platform\.select\(\{ ios: process\.env\.EXPO_PUBLIC_APP_BUILD_NUMBER_IOS, default: process\.env\.EXPO_PUBLIC_APP_BUILD_NUMBER_ANDROID \}\)/);
     expect(cfg).not.toMatch(/EXPO_PUBLIC_APP_BUILD_NUMBER\b(?!_)/);
   });
 });

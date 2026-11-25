@@ -6,8 +6,8 @@
  *   EXPO_PUBLIC_APP_BUILD_NUMBER_ANDROID  app.json `android.versionCode`
  *   EXPO_PUBLIC_APP_BUILD_NUMBER_IOS      app.json `ios.buildNumber` (T1101: the iPhone's own number. The two agree in git, but
  *                                 build-ios-testflight.sh sets the iPhone's in the build worktree only, so a build's
- *                                 number is what ITS platform ships (CFBundleVersion), never the other's; `@app/core`
- *                                 `platformBuild` picks at run time by `Platform.OS`)
+ *                                 number is what ITS platform ships (CFBundleVersion), never the other's; src/config.ts
+ *                                 picks at run time with `Platform.select`)
  *   EXPO_PUBLIC_GIT_SHA           EAS's `EAS_BUILD_GIT_COMMIT_HASH`, else `git rev-parse HEAD`; unset outside a checkout
  *   EXPO_PUBLIC_BUILD_DATE        today (UTC), the day the bundle was made
  *
