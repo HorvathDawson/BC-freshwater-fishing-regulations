@@ -12,12 +12,15 @@ print what would change, then DELETE the edit; nothing reaches the listing. --co
 - Text (T1072): title, short and full descriptions from the one source, app/store-listing/listing.json (+ the
   full-description.txt it names). Over 30 / 80 / 4000 characters is refused before anything is sent.
 --appstore (T1072) prints each App Store Connect field from the same source with its length and limit, to paste; no network.
-- Phone screenshots: every PNG/JPEG in --shots (default: the repo's one set, STORE/play-phone), in file-name
+- Phone screenshots: the pictures in --shots (default: the repo's one set, STORE/play-phone), in file-name
   order, REPLACE the listing's phone screenshots (skipped when Play already holds the same files in the same order).
 - --no-shots (T319): text, icon and feature graphic only; every screenshot set on Play is left as it is.
 - Tablet screenshots (T319, T1072): --tablet7 / --tablet10 folders, the same way (7-inch and 10-inch sets); the defaults are
   the repo's play-tablet7 / play-tablet10, the same committed set the App Store push reads (store-shots.mjs writes them);
   --no-shots leaves all three sets alone.
+- (T1127) The pictures in each of the three folders must be EXACTLY the list app/tools/store-shots.json implies
+  (deploy/staging/store_shots_list.py): a leftover picture or a missing one stops the run by name, in every mode, before
+  any network call. Plan mode prints the count and names per size.
 - Icon + feature graphic: handoff/PLAN/app-integration/store/graphics/{app-icon-512,feature-graphic-1024x500}.png,
   uploaded only when Play holds none or a different file (sha256).
 - Promo video: only with --video-url (a YouTube URL); otherwise the listing's video is left as it is.
@@ -35,6 +38,8 @@ from pathlib import Path
 from google.auth.transport.requests import AuthorizedSession
 from google.oauth2 import service_account
 from PIL import Image
+
+from store_shots_list import pictures
 
 API = "https://androidpublisher.googleapis.com/androidpublisher/v3/applications"
 UPLOAD = "https://androidpublisher.googleapis.com/upload/androidpublisher/v3/applications"
@@ -153,7 +158,12 @@ def main():
     if a.video_url and not re.match(r"^https://(www\.)?(youtube\.com/watch\?v=|youtu\.be/)[\w-]+", a.video_url):
         die(f"--video-url {a.video_url!r} is not a YouTube video URL")
     text = read_text()
-    shots = [] if a.no_shots else sorted(p for p in a.shots.glob("*") if p.suffix.lower() in (".png", ".jpg", ".jpeg"))
+    try:   # (T1127) each size folder must hold exactly store-shots.json's list: a leftover or a gap stops the run, by name
+        shots = [] if a.no_shots else pictures(a.shots, "play-phone")
+        tablets = {} if a.no_shots else {k: pictures(d, t) for k, d, t in (
+            ("sevenInchScreenshots", a.tablet7, "play-tablet7"), ("tenInchScreenshots", a.tablet10, "play-tablet10")) if d}
+    except ValueError as e:
+        die(str(e))
     if not a.no_shots and not 2 <= len(shots) <= 8:
         die(f"{a.shots} holds {len(shots)} screenshots; Play takes 2-8 phone screenshots")
     if a.no_shots:
@@ -161,12 +171,10 @@ def main():
     images = {"icon": [a.icon], "featureGraphic": [a.feature]}
     if not a.no_shots:
         images["phoneScreenshots"] = shots
-    for kind, d in (("sevenInchScreenshots", a.tablet7), ("tenInchScreenshots", a.tablet10)):
-        if d:
-            tab = sorted(p for p in d.glob("*") if p.suffix.lower() in (".png", ".jpg", ".jpeg"))
-            if not 1 <= len(tab) <= 8:
-                die(f"{d} holds {len(tab)} screenshots; Play takes up to 8 per tablet size")
-            images[kind] = tab
+    for kind, tab in tablets.items():
+        if not 1 <= len(tab) <= 8:
+            die(f"{kind}: {len(tab)} screenshots; Play takes up to 8 per tablet size")
+        images[kind] = tab
     mime = {p: check_image(kind, p) for kind, paths in images.items() for p in paths}
     print(f"assets fit Play's rules: {len(shots)} screenshots, icon, feature graphic; text "
           f"{len(text['shortDescription'])}/80 short, {len(text['fullDescription'])}/4000 full")
@@ -179,6 +187,7 @@ def main():
               "  promo video: none given, the listing's is left as it is (Play takes a YouTube URL: --video-url)")
         for kind, paths in images.items():
             print(f"  {kind}: {len(paths)} (replaces Play's when the files or their order differ)")
+            print(f"    names: {', '.join(p.name for p in paths)}")
             for i, p in enumerate(paths, 1):
                 with Image.open(p) as im:
                     w, h = im.size

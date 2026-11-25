@@ -122,10 +122,10 @@ The first App Store version has no "What's New" field (Apple shows it from the s
 ## Owner's steps (Claude uploads nothing)
 - **FIRST, before any upload (found 2026-11-25):** the main checkout holds 34 old untracked pictures (dated Nov 5) under
   `handoff/PLAN/app-integration/store/graphics/store/light/` (13 in `play-phone`, 6 in `appstore-6.5`, and the old folders
-  `appstore-5.5`, `appstore-6.7`, `appstore-ipad13`). Both push scripts take every picture in a size folder, so an upload from
-  that checkout mixes old pictures in. Clear them (once no release is running from that checkout) or upload from a clean
-  checkout of main; `--plan` / `--check` must list exactly 7 per size, `01-01-map` … `07-06-search`. A ticket from the planning chat (PR #202) makes
-  the scripts refuse such leftovers.
+  `appstore-5.5`, `appstore-6.7`, `appstore-ipad13`). Both push scripts now REFUSE such leftovers (T1127): a picture
+  not in `app/tools/store-shots.json`'s list, or a listed one missing, stops every mode by name before any network call. Clear them
+  (once no release is running from that checkout) or upload from a clean checkout of main; `--plan` / `--check` list exactly 7
+  per size, `01-01-map` … `07-06-search`.
 - Play (pictures, tablets, text, icon, feature graphic): `.venv/bin/python deploy/staging/play-listing-push.py --plan` to read what
   would go, then the same with `--commit`.
 - App Store (once the version exists in App Store Connect): `.venv/bin/python deploy/staging/appstore-screenshots-push.py --check`
