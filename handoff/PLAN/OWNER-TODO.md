@@ -74,6 +74,12 @@ with the default Claude uses until you answer). Newest first inside each section
 - 2026-11-25 00:40, your ask: "add boat luanch and docks etc etc to the basemap (will always be displayed) we will
   get this data from osm ... will go in 0.10 at min". Ticket T1119. Nothing for you yet: a page with counts and
   pictures comes first, then three picks (what "etc" covers, the look, whether a tap does anything).
+- 2026-11-25 00:38, your addition to T1108: "in 0.10 when we add offline corridors we will switch mobile to use
+  mapbox online satellite too and remove esri from mobile." Recorded on T1108; the web keeps Esri unless you say
+  otherwise. It changes the privacy page, the store data answers and the credits; the research page lists them.
+- 2026-11-25 00:40, your ask: at the repo move "do a fresh install ... to make sure everythign can be redone
+  properly". Ticket T1120, the last step of the repo-move chat. Your part then: confirm a list of secrets (names
+  only) that you can restore each one, about 10 minutes.
 - Asked 2026-11-25 ~00:20: "in 0.9.1 we should make this page (https://canifishthis.ca/gauges) have a search
   option ... search by place or river etc to get gauge only"; "someone found the page by search so we want it
   usable". Ticket T1107, sent to the 0.9.1 chat; you get a picture of the page with results before it ships.
