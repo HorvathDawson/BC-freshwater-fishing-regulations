@@ -75,17 +75,40 @@ describe("(T1083) every kind of item id the bundle holds survives a link", () =>
       .toEqual([]);
   });
 
-  it("an id of no kind is still refused by every reader, naming it (a typo never opens some other water)", () => {
-    const refused = ["wsc:100--019698", "wsc:-100-019698", "gnis:-5", "area:12", "Vedder", "gnis:", "name:Vedder River"];
+  it("an id of no kind is refused by every reader, naming it (a typo never opens some other water)", () => {
+    const refused = ["wsc:100--019698", "wsc:-100-019698", "gnis:-5", "area:12", "Vedder", "gnis:", "name:Vedder River",
+      // (T1083 review) a key with more after its shape, a kind that is an Object property, a trailing space or newline
+      "gnis:3062abc", "constructor:1", "__proto__:1", "toString:1", "gnis:3062 ", "gnis:3062\n",
+      // longer than any id: the bundle's longest is 56 characters
+      `gnis:${"1".repeat(96)}`];
     expect(refused.map((id) => itemIdKind(id))).toEqual(refused.map(() => null));
-    expect(() => parseStartLink(`?regs=${refused[0]}`, NOW)).toThrow(`start link: regs=${refused[0]} is not an item id`);
-    expect(() => parseAppLink(`https://canifishthis.ca/?regs=${refused[0]}`, NOW)).toThrow(`app link: regs=${refused[0]} is not an item id`);
-    // the writer says so where it writes one
+    const said = (f: () => unknown): string => { try { f(); return "read"; } catch (e) { return (e as Error).message; } };
+    const page = (id: string) => `<head><meta name="cift:item" content="${id}"></head>`;
+    expect(refused.map((id) => [
+      said(() => parseStartLink(`?regs=${encodeURIComponent(id)}`, NOW)),
+      said(() => parseStartLink(`?show=${encodeURIComponent(id)}`, NOW)),
+      said(() => parseAppLink(`https://canifishthis.ca/?regs=${encodeURIComponent(id)}`, NOW)),
+      said(() => itemOfWaterPage(page(id))),
+    ])).toEqual(refused.map((id) => [
+      `start link: regs=${id} is not an item id`,
+      `start link: show=${id} is not an item id`,
+      `app link: regs=${id} is not an item id`,
+      `app link: the water page names no item (cift:item "${id}")`,
+    ]));
+    // the cap is the cap: an id of exactly 100 characters still reads
+    expect(itemIdKind(`gnis:${"1".repeat(95)}`)).toBe("gnis");
+  });
+
+  it("the writer says so where it writes an id the reader refuses, once a run per id", () => {
     const reported: unknown[] = [];
     const off = setFailureSink((e) => reported.push(e));
-    try { routeSearch(reduce(HOME, openWater({ item: "area:12" as ItemId, part: null, view: "regs" })), "", null, null, NOW); }
+    const write = (id: string) => routeSearch(reduce(HOME, openWater({ item: id as ItemId, part: null, view: "regs" })), "", null, null, NOW);
+    try { write("area:12"); write("area:12"); write("area:13"); write("gnis:3062"); }
     finally { off(); }
-    expect(reported.map(String)).toEqual(["Error: address: regs=area:12 is not an item id the start link reads (ITEM_ID_KINDS)"]);
+    expect(reported.map(String)).toEqual([
+      "Error: address: regs=area:12 is not an item id the start link reads (ITEM_ID_KINDS)",
+      "Error: address: regs=area:13 is not an item id the start link reads (ITEM_ID_KINDS)",
+    ]);
   });
 });
 

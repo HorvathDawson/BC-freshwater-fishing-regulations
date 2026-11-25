@@ -24,9 +24,13 @@ export const ITEM_ID_KINDS = {
   blk: /^-?\d+$/,
 } as const satisfies Readonly<Record<string, RegExp>>;
 export type ItemIdKind = keyof typeof ITEM_ID_KINDS;
+/** (T1083 review) The longest id a link may name: the longest the bundle holds is 56 characters (a `wsc:` code of 8
+ *  groups, 2026-11-24); a value past this is refused before any shape is tried. */
+const MAX_ITEM_ID = 100;
 
-/** The kind of item id `s` is, or null when it is none (an unknown kind, or a key not of its kind's shape). */
+/** The kind of item id `s` is, or null when it is none (an unknown kind, a key not of its kind's shape, or too long). */
 export function itemIdKind(s: string): ItemIdKind | null {
+  if (s.length > MAX_ITEM_ID) return null;
   const i = s.indexOf(":");
   if (i < 0) return null;
   const kind = s.slice(0, i);

@@ -15,7 +15,7 @@
  * the session's profile (D8), the sheet a `SheetKey` the page opens like any press would. A bad value throws, naming it,
  * so a typo in a test never opens some other page silently.
  */
-import { HORIZONS, parseSheetKey, type Horizon, type SheetKey, type Tab, type Who, bcNow, reportFailure } from "@app/core";
+import { HORIZONS, parseSheetKey, type Horizon, type SheetKey, type Tab, type Who, bcNow, reportFailure, reportOnce } from "@app/core";
 import { isItemId, type ItemId } from "@app/data";
 import { openWater } from "./openWater";
 import type { StreamPlace } from "@app/data/regs/place";
@@ -88,9 +88,10 @@ export function routeSearch(r: Route, current = "", place: StreamPlace | null = 
   const f = waterFrame(r);
   if (f && (f.item !== null || place)) {
     // (T1083) the start link reads the same kinds (`ITEM_ID_KINDS`): an id it would refuse is reported here, where it
-    // is written, not only on the reload that lands on the bare map
+    // is written, not only on the reload that lands on the bare map; once a run per id (the address is written on
+    // every route change, twice when a place is added)
     if (f.item !== null && !isItemId(f.item))
-      reportFailure(new Error(`address: regs=${f.item} is not an item id the start link reads (ITEM_ID_KINDS)`));
+      reportOnce(`address-item:${f.item}`, new Error(`address: regs=${f.item} is not an item id the start link reads (ITEM_ID_KINDS)`));
     if (f.item !== null) q.set("regs", f.item);
     if (place) { q.set("blk", String(place.blk)); q.set("m", String(place.m)); }
     // (T369 D5) a TAPPED frame says so, and where on the water the tap landed ("you are here")
