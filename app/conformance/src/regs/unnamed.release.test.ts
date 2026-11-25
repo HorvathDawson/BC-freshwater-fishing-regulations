@@ -24,7 +24,7 @@ const at = liveReleaseAt();
  * file — a handle is not durable (AGENTS 5), so none is typed here and a new atlas needs no re-pin. */
 const UNNAMED = { eve: [354089558, 0], salmon: [356003196, 0], base: [355991549, 0] } as const;
 let H: { eve: number; salmon: number; base: number };
-/** The page's default angler (decisions.md D8, `@app/ui` DEFAULT_WHO). */
+/** The page's default angler (decisions.md, "Showing the rules", `@app/ui` DEFAULT_WHO). */
 const ADULT_RESIDENT = { age: "adult", residency: "resident" } as const;
 
 it(`T53 unnamed streams on the live release${at.dir ? "" : ` — SKIPPED: ${at.reason}`}`, () => {

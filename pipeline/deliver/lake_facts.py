@@ -2,7 +2,7 @@
 Stocked lake modes colour by, through the one colouring engine, from DATA ALONE (the tiles' lake features carry only
 `section_id, name, water, area_m2`, so a new release recolours the lakes with no tile change).
 
-OWNER 2026-10-21 (handoff/PLAN/app-integration/decisions.md): "we dont have the stocking and bathy map data in a feed
+OWNER 2026-10-21 (handoff/PLAN/app-integration/decisions.md, "Map, colour and chrome"): "we dont have the stocking and bathy map data in a feed
 yet. but we just want it prepared for it when we do have the feed." So this module holds only what is source-agnostic:
 the file format (`lakes/1`), the binding rule a feed's identifiers must go through, and the per-section fold. NOTHING
 produces a lakes file today: there is no fetch, `deliver all` makes none, and the release ships no `lakes` unless

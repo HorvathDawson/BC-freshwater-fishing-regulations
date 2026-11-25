@@ -2,7 +2,7 @@
  * T192 — THE PAGE MODEL of one water, built ONLY from the release bundle (the regs store over the release's own files:
  * `water`, `regs-<region>`, `regs-sid`, `core`, `geo`) and the app's own presenter (`buildRegsPage` over `loadRegsInputs`).
  * Nothing here decides a regulation, an open/closed answer or a sentence: every word is a string the presenter produced
- * (decisions.md "water pages": the page and the app can never disagree). This file only SELECTS which presenter strings
+ * (decisions.md, "Stores, testers and privacy": the page and the app can never disagree). This file only SELECTS which presenter strings
  * a crawler-readable page carries and puts them in a stable order. `verify.ts` proves it.
  *
  * The angler is the adult resident, as the app defaults (the licence never changes open/closed).

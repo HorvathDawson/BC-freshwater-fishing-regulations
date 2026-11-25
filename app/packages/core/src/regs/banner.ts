@@ -3,7 +3,7 @@
  * that together cover the run (each with its level and Rule book page), the reopening link — after the prototype's "say
  * each sentence once" pass against the year strip — and "Closed all year on N stretches"; and the tidal banner.
  *
- * Owner rule 2026-10-21 (decisions.md): every answer drawn here is the PIPELINE's —
+ * Owner rule 2026-10-21 (decisions.md, "The backend answers; the app only reads"): every answer drawn here is the PIPELINE's —
  * - closed on a day is the display frame's `status` (one frame per book day: `inp.year.displayByDay`); the closures that
  *   close it are the frame's decided `closers` (display 18: page v36 closersAt's choice of `closing`, made by the pipeline,
  *   `display.closers_of`); "unless opened" is the frame's decided `unless_opened`;

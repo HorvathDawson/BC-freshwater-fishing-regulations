@@ -1,5 +1,5 @@
 /**
- * ONE ICON SET (ticket N1; owner 2026-10-22, decisions.md "icons: Lucide, rounded 1.75"). The app's chrome glyphs — the
+ * ONE ICON SET (ticket N1; owner 2026-10-22, decisions.md, "Map, colour and chrome"). The app's chrome glyphs — the
  * bottom bar, the map rail, the top bar's search / back / clear, every back and close — are drawn by ONE component
  * (`packages/ui-native/src/icons.tsx` `<Icon>`) from ONE table of Lucide paths. Before N1 they were drawn three ways
  * (two path tables, an inline Svg in RegsHeader, Views for the hamburger) plus typed unicode glyphs, in three sizes.

@@ -2,7 +2,7 @@
  * Three small Keep blocks (T15): the "By another water’s rule" line under the strip, the "Where you can’t fish" list at
  * the foot, and the card-level Possession row.
  *
- * Owner rule 2026-10-21 (decisions.md): every answer here is the PIPELINE's. The inherited lifts are the display frame's
+ * Owner rule 2026-10-21 (decisions.md, "The backend answers; the app only reads"): every answer here is the PIPELINE's. The inherited lifts are the display frame's
  * `inherited` (the pipeline decided the lift and wrote its sentence and caution); the no-fishing places are the day's
  * stored `shown` standing rules (T07 `settled.standing`) that carry the data's `where` heading and `plain` sentence; the
  * possession row is the rows frame's `page_possession` (T810 F0, rows 34: the lead sentence, its value words and rule,
