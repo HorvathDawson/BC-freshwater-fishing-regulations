@@ -16,8 +16,13 @@ minute that run's upload has ended and no CI run is in progress (chat 3, about 2
 merge queue (his OK) → T1140's label fix through the queue to main, cherry-picked onto release/0.10.0 → the staging
 step reruns → his production commands, the phone builds, the App Store submission (probably the next day) →
 merge-back → T1062's release-candidate build, T1120, T1131 (chat 3) and T1140's landing A as the next patch, the
-first release through a release candidate → docs lean-out (chat D, while no PR is open) → the hardening release →
+first release through a release candidate → the hardening release →
 the 0.11 features.
+
+Beside all of that from the moment the repo move is checked and 0.10.0 is running again (owner 2026-11-25): chat D
+(repo clean-up and docs lean-out: its inventory and layout first, then the cuts through the merge queue; its folder
+rename waits for a moment with no release in flight and no open PR) and T1120 (the fresh-clone check, chat 3, heavy
+steps never beside a release build).
 
 **Rules for every chat** (memory `credit-efficient-structure`, owner 2026-11-23; they start after the 0.9.0 chat):
 - Scope is frozen when the chat starts. New asks become tickets for the next chat unless something is broken.
@@ -183,14 +188,26 @@ Triage of everything ticketed since the roadmap was written. Severity / model / 
 > lanes are merged, cut 0.9.2 to staging and Play Closed and hand me the production commands (CONFIRM_PROD is mine).
 > Update play-production-access/releases.md and the feedback log's "Fixed in" column. Keep your own restart page.
 
-**D. Docs lean-out (right after the repo move, before 0.10.1: the planning chat's proposal, 2026-11-25, because the folder rename must land while no PR is open)**
-> First make a scratchpad worktree of origin/main and read from it. Then START-HERE.md and T1081 (T1080 is already
-> done). You orchestrate on Fable; scope frozen to T1081; docs only, no code beyond the docs guard. Read the section "Widened by the owner 2026-11-25"
-> in T1081 first: the goal is a repo a person can walk through. Step 1, one Sonnet lane: the map of the repo, the
-> inventory of every markdown file and ticket with a verdict, the proposed layout, the new name for handoff/ and how
-> closed tickets are distilled; show it to me as multiple-choice picks and wait for my yes. The rename is one scripted
-> commit while no PR is open (ask the planning chat). Code that should be cut is listed for tickets, not cut. Step 2, at most 3 lanes by folder (Sonnet; Opus for AGENTS): delete freely, merge, cut, fix every
-> citation. Step 3: the size guard. One review round. Report the file and line counts before and after.
+**D. Repo clean-up and docs lean-out** (owner 2026-11-25 15:22: "as soon as repo move is done and thigns are working on 0.10.0 again maybe we should (with merge queues etc start the big repoo clean and purge / doc cleanup etc also the fresh install check etc.)")
+> First make a scratchpad worktree of origin/main of canifishthis/canifishthis and read from it; never touch the
+> main checkout (the 0.10.0 release runs from it). Then handoff/PLAN/START-HERE.md (step 0), ROADMAP-after-0.9.0.md
+> row D and "Order from here", and T1081 with its section "Widened by the owner 2026-11-25". You orchestrate on
+> Fable; scope frozen to T1081; no code is cut by this chat (candidates go to the planning chat for tickets).
+> The goal in my words: a human can go through the code and not get super lost; much less content; tickets
+> distilled; handoff is a weird folder name.
+> Step 1, read-only, one Sonnet lane, can start while 0.10.0 is still being released: the one-screen map of the
+> repo; the inventory of every markdown file, ticket and picture folder with a verdict (keep, cut to N lines, merge
+> into X, delete); the proposed layout; the new name for handoff/; how closed tickets are distilled into an index.
+> Show it to me as multiple-choice picks and wait for my yes.
+> Step 2, after my yes, at most 3 Sonnet lanes by folder (Opus for AGENTS.md): delete freely (git is the safety
+> net), merge, cut, fix every citation; every PR through the merge queue; never my review files or marks.
+> Step 3, the folder rename: ONE scripted commit that changes every file that spells the path, landed only when the
+> planning chat says no release is in flight and no other PR is open (it breaks every open branch).
+> Step 4: a size guard in CI so it stays lean; a README per package and pipeline stage. Report file and line counts
+> before and after. One review round.
+> T1120 (the fresh-clone check) is the repo-move chat's; when it runs, anything it trips on in the docs is yours to
+> fix. Ask me as multiple choice in chat. New finds go to the planning chat, which numbers the tickets. Keep your
+> own restart page.
 
 **4a / 4b / 4c. A 0.10 feature** (one chat per feature)
 > Start at handoff/PLAN/START-HERE.md and ROADMAP-after-0.9.0.md row 4a (or 4b, 4c). Feature chat for 0.10. Research

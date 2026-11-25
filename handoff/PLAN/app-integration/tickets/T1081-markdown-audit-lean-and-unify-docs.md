@@ -4,7 +4,7 @@ Status: OPEN.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1081 | Audit every markdown file: delete the old, cut the bloated, unify the docs (1,326 files, about 134,000 lines) | OPEN — its own chat D, right after the repo move and before 0.10.1 (planning chat proposes; owner 2026-11-25 widened it); inventory and layout first | | owner 2026-11-24 |
+| T1081 | Audit every markdown file: delete the old, cut the bloated, unify the docs (1,326 files, about 134,000 lines) | OPEN — chat D starts as soon as the repo move is checked and 0.10.0 is running again (owner 2026-11-25); inventory and layout first, the folder rename at a quiet moment | | owner 2026-11-24 |
 
 Source: owner 2026-11-24 (planning chat), verbatim: "we need to add a ticket to audit all the md files and try to
 lean everything out a lot... so much md files a human couldnt read if they wanted rn some old and many bloated etc...
