@@ -313,7 +313,7 @@ def weight_of(share: float, role: str, years: int, same_river: bool = True) -> f
 
 # ------------------------------------------------------------------ a water's own gauge comes first
 #
-# OWNER 2026-10-22 (handoff/PLAN/app-integration/decisions.md): "the pitt could use its own gauge" — "it can still use
+# OWNER 2026-10-22 (handoff/PLAN/app-integration/decisions.md, "Gauges and flow"): "the pitt could use its own gauge" — "it can still use
 # auxiliary gauges but own gauge should be main (unless far from click) low magnitude compared to click spot."
 #
 # A water's OWN gauge is a station matched to that water (gauge.item_id is the section's water) — or to a water it is
@@ -435,7 +435,7 @@ def lead_shares(weights: list[float], lead: int | None, own_share: float = OWN_L
 
 # ------------------------------------------------------------------ a gauge reached through a lake
 #
-# OWNER 2026-10-29 (T296, decisions.md "a gauge reached through a lake"): "if no gauge is downstream I agree that is fine
+# OWNER 2026-10-29 (T296, decisions.md "Gauges and flow"): "if no gauge is downstream I agree that is fine
 # but if there are other gauges closer they should take almost full amount of the prediction because through a lake acts
 # as a natural dampening system for the measurement." A lake integrates the daily signal, so a gauge whose path to the
 # water crosses one says little about the water's day — but it is still the best there is when it is the only one.

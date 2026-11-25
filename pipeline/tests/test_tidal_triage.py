@@ -140,7 +140,7 @@ def test_straight_cut_threshold_is_150_m():
 
 
 def test_an_owner_decision_wins_over_every_other_class():
-    """decisions.md 2026-10-27: Capilano at the source text, Cowichan at the river mouth; owner
+    """decisions.md, "Cuts and boundaries": Capilano at the source text, Cowichan at the river mouth; owner
     2026-10-28: Nitinat River at its entry into Nitinat Lake (the lake and the river below are tidal)."""
     # T326: the calls file left handoff/ (all three superseded by marks); the triage takes the owner's own calls as
     # given (`main` passes the rows of waters/tidal_limits.json with no mark)

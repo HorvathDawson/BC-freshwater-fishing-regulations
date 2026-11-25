@@ -1,5 +1,5 @@
 /**
- * THE APP'S ICON SET (owner 2026-10-22, decisions.md "icons: Lucide, rounded 1.75"): Lucide, ISC licence.
+ * THE APP'S ICON SET (owner 2026-10-22, decisions.md, "Map, colour and chrome"): Lucide, ISC licence.
  *
  * The drawings are copied into `@app/ui-native` `icons.tsx` (no runtime dependency); this is the one record of where
  * they came from — the version they were copied at, and the notice the ISC licence asks every copy to carry. The menu's

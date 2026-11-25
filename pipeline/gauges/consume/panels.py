@@ -130,7 +130,7 @@ def flowing(graph, water_of: dict[str, str] | None = None, kind_of: dict[str, st
 
     Sized like a line, from its own `stream_magnitude`: the graph gives a polygon node the largest magnitude of the
     network lines under it (`graph.build_stream_graph`), which on a canal or slough is the through-line at its outlet —
-    see the real-graph measure in decisions.md "a polygon-only slough or canal gets gauges like a stream".
+    see the real-graph measure in decisions.md "Gauges and flow".
     """
     water_of = water_of or {}
     kind_of = kind_of or {}
@@ -219,7 +219,7 @@ def across_branch(share: float) -> frozenset[str]:
     across a BRANCH POINT — between a side channel (a slough, a side channel, a canal) and the river it branched from,
     in either direction, at its head or at its mouth.
 
-    Owner 2026-10-23 (decisions.md "OWNER 2026-10-23", Q44): "a gauge on a side channel or slough never answers Level
+    Owner 2026-10-23 (decisions.md "Gauges and flow", Q44): "a gauge on a side channel or slough never answers Level
     for the river it branched from (level is local to the backwater). It answers Flow for that river only when the side
     channel carries a large share of the river's flow; otherwise no."
 

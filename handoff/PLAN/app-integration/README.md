@@ -7,11 +7,10 @@ is the port tooling in `app/design/regs-v11/port/` (committed, run, outputs in `
 | file | what |
 |---|---|
 | `README.md` | this: order, conventions, how a ticket is verified, how to re-sync with the prototype |
-| `facts.md` | the code as it is (exact signatures), and 25 places the 10-19 plan was wrong |
 | `contracts.md` | `RegsPage` (the view model every component draws), `Line`/`Run`, `RegsInputs`, field → answers map |
 | `tokens.md` | prototype tokens light/dark vs the app theme, the type scale, spacing, per-role styles |
 | `tests.md` | every check.mjs check → its unit / render test or manual gate; the golden parity harness; the reader gate |
-| `decisions.md` | owner questions with a default so work never blocks; which tickets each one touches |
+| `decisions.md` | the owner's binding decisions in force, by subject, one line each (his date and the ticket) |
 | `tickets/NN-*.md` | the ordered backlog, ≤ ~1 day each |
 | `self-check.md` | three tickets dry-run against the real code |
 
@@ -51,7 +50,7 @@ The owner decided (2026-10-20):
   - P08 (`deliver release`);
   - P11 (the release reader: native offline install/update, web lazy).
   - The regs store is NOT a file beside `/province.sqlite`. Its tables are split across the **water**,
-    **regs-<region>** and **regs-sid** release files, opened over the `Db` seam (decisions D22).
+    **regs-<region>** and **regs-sid** release files, opened over the `Db` seam (decisions.md, "Offline, data and release").
 - **Before T16 / T23 / T29:**
   - N2 (the native map);
   - P13 (route state);

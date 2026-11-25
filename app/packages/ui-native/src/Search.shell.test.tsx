@@ -293,7 +293,7 @@ describe("a place is SHOWN by its tap; a water is framed by its tap and opened b
   });
 
   /**
-   * (owner 2026-10-22 late, decisions.md "back from a searched water lands on the map, at the water") A water opened
+   * (owner 2026-10-22 late, decisions.md, "Search, navigation and spots") A water opened
    * from a result CONSUMES the search: its ‹ and × name the map, and either one lands on the map — search closed, the
    * text gone — with the camera framed on that water: the SAME box search framed it with (its own outline), sent once
    * as the map comes back, never the camera from before search. One back, then nothing more to go back to.
@@ -445,7 +445,7 @@ describe("a place is SHOWN by its tap; a water is framed by its tap and opened b
 });
 
 /**
- * (owner 2026-10-22 late, decisions.md "closing search on desktop") ON A WIDE SCREEN search closes where the eye is:
+ * (owner 2026-10-22 late, decisions.md, "Search, navigation and spots") ON A WIDE SCREEN search closes where the eye is:
  * Escape (typed or not, the field focused or not), a click on the map beside the panel, and the panel's own close at
  * its top-right. The field's ✕ only clears what was typed. On a phone nothing changes.
  */
