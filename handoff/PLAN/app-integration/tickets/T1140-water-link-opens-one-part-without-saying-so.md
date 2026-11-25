@@ -24,6 +24,31 @@ merged when the fix is reviewed, the patch ships by the runbook as today and the
 (2) A water with a single part opens its Regulations tab directly, as now; only a water with more than one part
 gets the new landing. That is option A's rule and is taken as settled for B and C too.
 
+## Step 1 done 2026-11-25 15:08: the list (the 0.10.0 chat's read-only lane, on candidate r-71d09ad82e81)
+The file is `handoff/PLAN/app-integration/T1140-files/multi-part-waters.md` (every water, each part's status and
+span; game fish, adult resident, the day's statuses; read with the app's own page code, not re-derived).
+- **The rule today:** a plain link, the pre-rendered search page (`app/tools/seo/pane.tsx`, about line 64) and the
+  app's open-by-item all reach `targetFor(store, item, null)` (`app/packages/data/src/regs/inputs.ts`, about lines
+  184 to 198): the FIRST part in river order, mouth first, that has an answer. Size and open or closed play no part.
+- **478 waters** have two or more parts (456 show two or more on the Map tab). In 471 the lead is not the longest.
+- **(a) lead part closed, another part open: 89** (the Squamish is one).
+- **(b) the unsafe direction, lead part OPEN while another part is closed today: 156.** Among them the Capilano
+  (checked by hand on production: it heads with the lower reach and reads Game fish "Open"; nothing says parts 2 and
+  3 are closed all year), Chilliwack, Fraser, Skeena, Cowichan, Puntledge, Campbell, Nanaimo, Chehalis, Alouette,
+  Pitt, Coquihalla, Brunette, Kanaka, Lynn, Bulkley, Babine, Kootenay, Columbia, Shuswap, Peace, Liard.
+- What softens (b): most of those lead parts name their stretch in the head ("From the mouth up to ..."), so the
+  page is true for the stretch it names. What is missing everywhere: no Regulations head says "part N of M", and
+  nothing says other parts exist with other rules.
+- Only 11 lead parts head with the water's bare name (all side-channel parts); five of them are closed all year:
+  Squamish, Gordon, Thelwood, Rees, Comox. These five are the plain wrong-looking pages.
+- Not determined: the Salmon card's own open or closed per part.
+
+**What this changes (planning chat):** the fix has two speeds. First and small, the same on every platform: every
+Regulations and Conditions head of a multi-part water says "Part N of M" with the stretch's name, and one line
+under it, "Other parts of this water have different rules", that opens the parts list; the five bare-name closed
+leads get their area's name. That is a wording and one-component change and can ship alone, web first. Second, the
+landing (A, B or C), after the owner's pick.
+
 ## What the pictures show
 - `/water/squamish-river`, Regulations tab: the head says only "Squamish River". Salmon "Closed today", Game fish
   "Closed today", "Closed all year. No fishing for any game fish. Federal / parks", source B.C. Synopsis p.9

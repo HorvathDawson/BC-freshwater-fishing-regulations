@@ -78,3 +78,8 @@ order: 770
   "Closed", with nothing saying which part.** Ticket T1140, HIGH, the first patch after 0.10.0. Yours: pick where a
   multi-part water's link lands (A the Map with the parts, your proposal; B a whole-water summary first; C the
   longest part, labelled), from pictures. A list of every water this affects comes first.
+- **15:08, T1140's list is in:** 478 waters have more than one part. On 89 the link opens on a closed part while
+  another is open (the Squamish). On **156 it opens on an OPEN part while another part is closed today** (the
+  Capilano, Chilliwack, Fraser, Skeena, Cowichan and more); most of those do name the stretch they show, but none
+  says other parts exist. Proposed: a small first fix (every head says "Part N of M" and "other parts have different
+  rules"), web first, then the landing you pick.
