@@ -159,7 +159,7 @@ def test_a_dfo_places_diagnostics_are_written_not_discarded(monkeypatch, tmp_pat
     from pipeline.atlas.reach.models import Diagnostic, Outcome, RuleBinding
     from pipeline.regs.dfo_salmon import entries as E
     loc = SimpleNamespace(location_id="2:x:below", binding=SimpleNamespace(resolved=True), is_variant=False,
-                          duplicate_of=None, water_id=None, tidal_water=False)
+                          duplicate_of=None, water_id=None, tidal_water=False, source_text={})
     ef = SimpleNamespace(locations=[loc], waters=[], water=lambda w: None)
     monkeypatch.setattr(D, "_slugs", lambda: ["2"])
     monkeypatch.setattr(E, "load", lambda *a, **k: ef)
@@ -204,7 +204,7 @@ def _dfo_places(monkeypatch, *ids):
     from pipeline.atlas.reach import dfo_salmon as D
     from pipeline.regs.dfo_salmon import entries as E
     locs = [SimpleNamespace(location_id=i, binding=SimpleNamespace(resolved=True), is_variant=False,
-                            duplicate_of=None, water_id=None, tidal_water=False) for i in ids]
+                            duplicate_of=None, water_id=None, tidal_water=False, source_text={}) for i in ids]
     ef = SimpleNamespace(locations=locs, waters=[], water=lambda w: None)
     monkeypatch.setattr(D, "_slugs", lambda: ["1"])
     monkeypatch.setattr(E, "load", lambda *a, **k: ef)
