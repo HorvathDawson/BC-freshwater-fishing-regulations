@@ -1,648 +1,156 @@
-# Design — data types, matching, and the curation workflow
+# DFO salmon: design (why it is built this way)
 
-> **HISTORICAL design (2026-09; paths updated T987).** It was written before the build and the curated-data
-> restructure: the DFO entries are now `data/curated/dfo_salmon/places/` and the split anchors
-> `data/curated/waters/cuts.json`; the shared overrides.json files it names were removed (no curated override file
-> exists today). What is built: [`README.md`](README.md) and `pipeline/docs/19-dfo-salmon-pipeline.md`.
+What each module does and how to run it: [`README.md`](README.md). This page is the reasoning that is still true, merged
+in T1081 from the older design, data-flow, mapping, curation, plan and cascade pages (git history holds them).
 
-**Plan only. Nothing in §2–§5 is built yet**; §1 and §6 describe changes to existing
-code. Supersedes the matching described in CURATION.md.
+## 1. The one measurement the design follows
 
----
+Archived versions of the DFO pages, re-parsed with today's parser so any difference is the source moving, not us:
 
-## 0. The one idea
-
-Two things move at completely different speeds, and they measured out like this:
-
-| | changes | who authors it | where it lives |
+| span | waters | still present | rules |
 |---|---|---|---|
-| **where a rule applies** | ~never (Region 6: 0 of 76 waters in 9 years) | a human, once | the **bundle** |
-| **what the rule says** | ~50% per year | nobody — re-scraped | a **feed** |
+| Region 6, 2017-07 to now (9 yr) | 45 to 76 | 45 / 45 | rewritten many times |
+| Region 6, 2024-04 to now (2.3 yr) | 77 to 77 | 77 / 77 | +110 / -97 |
 
-So they become two artifacts with two lifetimes, joined by one stable key. Everything
-below follows from that.
-
----
-
-## 1. Dates — one canonical form, no fuzzy matching
-
-`interpret_dates` currently repairs a typo by asking `difflib` for the nearest month.
-That is the same class of guess as the name ladder and goes the same way.
-
-**Replace with an explicit variants table, then normalise to one shape.** Both steps are
-auditable; neither can invent a month.
+**The geography never moves; the rules turn over about half a year**. So the
+expensive half, which registry item a name is, where the cut-points sit, whether tributaries are in, is curated ONCE by a
+human and kept forever. The cheap half is thrown away and re-scraped every run. Reproduce the numbers with
+`python -m pipeline.regs.dfo_salmon.churn --regions 1 2 6 --detail` (it reads archived versions through the Wayback index).
 
 ```
-"Aprl 1 to Jun 15"
-  1. lowercase, strip
-  2. month variants table — explicit, hand-authored, NEVER fuzzy
-       aprl→apr · jaunary→jan · sept→sep · febuary→feb · futher→further
-  3. one separator:  "to" | "through" | "–" | "—"  →  "-"
-  4. collapse whitespace · collapse repeated dashes · drop a trailing calendar year
-  5. canonical:  "apr 1 - jun 15"
-  6. parse with pipeline.regs.dfo_salmon.dates
+  page -> fetch -> parse -> untangle -> locations --+--> typed -> feed        (scraped, disposable)
+                                                    | fingerprint
+                                                    v
+                               entries seed / reconcile -> CURATED locators   (human, durable)
+                                                    | join at read time
+                                                    v
+                                      reach run (atlas/reach/dfo_salmon.py) -> deliver/salmon.py -> release `salmon`
 ```
 
-Anything the table does not cover stays **unparsed and reported** — a new misspelling
-adds a row, it is never guessed.
+`locations.extract()` is the fork: a LOCATOR is a place a rule can attach to (a named water's reach, or a cascade default
+like section A or "tidal water Area 5"), carrying the scope text, the decomposed operation, landmark triage, tributary scope
+and its FINGERPRINT; a RULE RECORD is species x dates x limits with no identity of its own, only its locator's fingerprint,
+replaced wholesale every run (no ids, no diffing, no merge).
 
-```python
-MONTH_VARIANTS: dict[str, str]        # "aprl" -> "apr". One line per sighting.
-OPEN_ENDED = re.compile(r"until\s+fu\w*\s+notice")
+## 2. Identity: what a curated record must survive
 
-@dataclass(frozen=True)
-class DateWindow:
-    verbatim:      str          # exactly as published — always kept
-    canonical:     str | None   # "apr 1 - jun 15"
-    start:         str | None
-    end:           str | None   # None when open-ended
-    open_ended:    bool
-    normalised_by: list[str]    # ["month variant aprl→apr", "separator to→-"]
-```
+- `fingerprint(section, water, specific_area)` is the sha256[:16] of the normalised triple. It is the join key, the way a
+  gauge reading carries its station id. The feed never reads `location_id` (it exists only on the curated side, and a
+  curator merging two locators would silently re-key every rule beneath them); `feed.py` reads nothing curated.
+- `location_id` is assigned once and derived from nothing: deriving it from text would orphan a binding the day "Highway
+  37 Bridge" became "Highway 37 bridge".
+- `section` is an attribute with history, never part of the id: Section B became B(i)/B(ii) between 2018 and 2020 and
+  every Skeena binding had to survive.
+- `fingerprints` is a list: DFO flipped the Kispiox sign count between "three white triangular" and "the 4 triangular" and
+  back; the second flip must cost nothing. Wording drift is absorbed on the curated side.
+- `status: dormant` instead of deletion: these pages list OPENINGS, so a locator leaves when its fishery closes and returns
+  later (the Kispiox River Resort reach cycled out and back four times since 2024). Absence is not deletion.
+- A curated binding is never keyed on the scope string: it drifts constantly while the geography does not
+  (`churn.compare_reaches()` separates rewording from real change).
 
-`normalised_by` replaces `date_repaired_from`: it names *which rules fired*, so a
-surprising window traces back to the rule that produced it.
+What a human supplies per locator (and nothing can re-derive): `WaterBinding.item_ids` (the only place a name becomes
+geometry: an exact registry hit or a curator, never heuristic), `Binding.extents` (the cut-points, validated by the shared
+provincial `Extent` model), `Binding.tributaries` (three-valued, AGENTS 9) and `notes` / `spatial_caveat` (radius closures
+and lake lines that are text, not geometry, so the app must not draw them as a plain fill).
 
-Measured on the live corpus: 427/438 parse untouched, 11 need steps 2–4, **0 need a
-guess**.
+`entries seed` adds locators new to the page and NEVER edits an existing record. `entries reconcile` classifies every
+locator and never mutates:
 
-## 2. Matching — exactly like the provincial regs
+| outcome | severity | meaning |
+|---|--:|---|
+| `ok` | 0 | fingerprint resolves, nothing moved |
+| `dormant` / `revived` | 0 | absent from the page / published again; binding kept either way |
+| `drift` | 1 | wording changed, a near match exists: confirm the rebind |
+| `new` | 2 | no known locator on this water: needs a curator |
+| `section_moved` | 3 | re-scopes everything bound beneath it |
+| `structural` | 4 | banner set changed, locator count moved >20%, or >25% unbound: hold the region |
 
-**Delete the ladder. Delete the suggestions.** A DFO name matches the way a synopsis row
-matches and no other way:
+A held locator keeps its last-known-good binding and only that water is withheld: a scraper that goes dark because one new
+creek appeared is worse than one that carries 76 waters and flags the 77th.
 
-```
-name_verbatim ──► overrides.json (removed)      (THE SHARED FILE — see §3C)
-                  ├─ gnis_ids / waterbody_keys / …  → explicit, possibly several
-                  ├─ variant_of                     → the current gazetted name
-                  └─ skip                           → do not match this name
-                          │
-                          ▼
-                  registry name/variant index  (EXACT only)
-                          │
-                          ▼
-              matched · ambiguous · unmatched      ← there is no fourth outcome
-```
+## 3. Matching names to waters
 
-`pipeline.regs.matching.matcher.match_row` implements every step. The DFO side calls it and
-adds nothing.
+Exactly like the provincial regs: an exact registry name or variant hit binds (`match.py`), anything else is a suggestion
+the owner marks (`suggest.py`, `preverify.py` re-check each suggestion by a second method; AGENTS 65-68). DFO uses forms
+the Synopsis does not ("Zymoetz (Copper) River", "Queen Charlotte Islands" for Haida Gwaii). One Waters cell can glue a
+name, an alias, a note and a scope together; `untangle` separates them and groups on the CLEANED name, so "Morice River"
+and "Morice River (including tributaries)" are one river. A parenthetical like "Tatshenshini River (upstream of ...)" is a
+scope, not an alias. The Skeena appears twice (B(i), B(ii)) and stays twice: the CNR Railway Bridge at Terrace is a real
+cut with different rules each side, so waters key on `(section, name)`.
 
-### Measured, with the shared overrides file loaded
+Reach `kind` says what a scope sentence is doing, which decides how it becomes geometry: `whole_water`, `tributaries_only`,
+`whole_water_excluding`, `upstream_of` / `downstream_of` (one cut at an anchor), `between` (two anchors), `sign_bounded_zone`
+(a closure polygon inside boundary signs), `tributary_set`, `named_tributaries`, `described`. Anchors keep the boundary
+phrase verbatim; turning one into geometry is `atlas/splits/anchors.py` and the curated cuts, never a half-normalised guess.
 
-161 waters, against the shared overrides.json (removed) (482 rows):
+## 4. Region 6 is a cascade
 
-| outcome | n | % |
-|---|--:|--:|
-| exact registry name/variant | 117 | 73% |
-| **override, explicit ids** | **19** | **12%** |
-| ambiguous — several items | 4 | 2% |
-| unmatched — needs a curator | 21 | 13% |
-
-**136 bound (84%)**, of which 19 come free from work already done for the synopsis —
-Skeena, Kitimat, Kitsumkalum, Zymoetz, Suskwa, Bear, Fraser, Cowichan, Harrison,
-Thompson. Several carry notes worth having: *"FWA has MU 6-11, regulation has MU 6-10
-(boundary issue)"*.
-
-### `skip` does not belong in an override — DFO ignores it
-
-A `skip` means "this synopsis ROW is a pointer to another row that carries the real
-regulations" (*"VEDDER RIVER: See Chilliwack River"*). That is a fact about how the
-synopsis is laid out, not about which blue line a name means. DFO's table is laid out
-differently, so honouring it only suppresses good matches — measured, all three skips
-DFO hit are names the registry already resolves on its own:
-
-| DFO name | resolves to | how |
-|---|---|---|
-| `Ishkheenickh River` | `gnis:4069` Ksi Hlginx | the registry carries the old name as a variant |
-| `Tseax River` | `gnis:3828` Ksi Sii Aks | same |
-| `Little Campbell River` | `gnis:7250` (MU 2-4) | a variant of the Region 2 Campbell River; the region gate keeps it off the Island one |
-
-**An old name and its current gazetted name are the same water, so an override should
-link them, never refuse them.** `dfo_salmon.match.drop_skips()` filters skips out before
-the match. The legitimate negative outcome — *"we looked and there is no registry item
-for this name"* — is recorded in the **entry file** as
-`WaterBinding.resolution = "not_found"` with a reason, because that is a fact about
-this table, not about the name.
-
-> **A second bug this found:** `Proposal.bindable` required `len(item_ids) == 1`, which
-> silently refused every curated multi-water override — Fraser River in Region 2 names
-> **13** items, Nicomen Slough names 7. "Ambiguous" means the matcher could not choose;
-> a curated list is the opposite of that. Now `bindable` needs a non-empty list.
-
-### Bind to the typed id, not the item id
-
-`RegistryItem.id` is already `gnis:…` / `wbk:…` / `wsc:…` / `blk:…`, and `ref_ids`
-bridges a curated id to whatever item owns it after a rebuild. So:
-
-* **the override file is the source of truth** — it stores `gnis_ids`, which survive a
-  registry rebuild;
-* **`WaterBinding.item_ids` is the verified binding** (T337, owner 2026-11-05: the matches are done and
-  verified) — kept as written; every reach run CHECKS each id is in its registry and stops naming the
-  water when one is not (`atlas.reach.dfo_salmon.stale_bindings`). `match apply` is only for binding a
-  NEW name, never a step after a rebuild.
-
-## 3. One key, three files
-
-### The key
-
-Every row of the DFO table gets a **fingerprint** — a hash of the row's own location
-text. That is the only identifier that crosses a file boundary.
-
-```python
-def fingerprint(region: str, key: str, scope_text: str) -> str:
-    """sha256(...)[:16] of one normalised join. Nothing else goes in."""
-    return sha256(f"{region}|{normalize(key)}|{normalize(scope_text)}".encode()).hexdigest()[:16]
-
-#  named water row   key = the Waters cell        scope_text = the Specific area cell
-#  cascade row       key = the scope id           scope_text = the banner text
-#                          "A" · "B(i)" · "B(ii)" · "E" · "E:areas-5" · "F"
-```
-
-`normalize()` collapses only drift that has actually been observed — lowercase, strip
-punctuation, collapse whitespace, and a fixed synonym list (`Hwy`→`Highway`, `#16`→`16`,
-`metres`→`m`, `Ck.`→`Creek`, `&`→`and`). **Numbers are never normalised**: "three signs"
-versus "4 signs" is a real difference in what the source claims and must reach a human.
-
-**The section is deliberately NOT in a named water's fingerprint.** Measured: across 235
-live rows and 321 rows in the archive, no (water, specific area) pair ever appears under
-two sections — so including the section buys nothing and costs everything, because the
-one structural change in nine years (B splitting into B(i)/B(ii)) would have broken
-every Skeena fingerprint at once. For a *cascade* row the section key **is** the
-identity, so those keep it. That is what makes E, B(i) and B(ii) work like any other
-row.
-
-### The three files
+Every other region is a flat list of waters. Region 6 is nested boxes where the smallest box containing your water wins,
+and the page says so ("Section A applies if stream, specific area, time period, quotas or other species restrictions are
+not listed in the following sections"). Read flat, it says the opposite: section A alone reads "4 chinook a day".
 
 ```
-data/curated/dfo_salmon/places/region-6.json     CURATED · committed · rarely changes
-   location  →  fingerprints[]  +  extents  +  tributaries  +  notes
-                        │
-                        │  build_reach()
-                        ▼
-data/generated/regs/dfo_salmon/link/region-6.json          BUNDLE
-   fingerprint  →  section_ids[]
-                        ▲
-                        │  joined on the fingerprint, by the app
-                        │
-data/generated/regs/dfo_salmon/feed/region-6.json          FEED · re-scraped, never curated
-   fingerprint  →  species, dates, limits, gear, fishery notices
+A  all of Region 6 (the fallback)
+|- B   Skeena watershed (a header with no rules)
+|   |- B(i)  above the CNR Railway Bridge at Terrace      |- B(ii) below it
+|- C   Nass watershed   |- D  Haida Gwaii   |- F  Fraser part of Region 6: no salmon fishing (banner only, no rows)
+`- E   everything else on the mainland = Region 6 minus B, C, D, F  (a set difference, evaluated after its siblings)
+    `- E:areas-3-4-5-6, E:areas-5, E:areas-6   streams flowing into tidal Area N (about a stream's OUTLET)
 ```
 
-The feed carries **no match information at all** — no `location_id`, no `matched_by`, no
-status. It is the scrape, keyed by the row it came from. The link is the curated half,
-keyed the same way. `location_id` stays inside the entries file as a readable handle for
-curation and commits, and never leaves it.
+`cascade.build_scopes()` derives this tree and `chain_for(scope)` gives the lookup order, narrowest first (`E:areas-5, E,
+A`; `B(i), B, A`). The ladder, innermost first: this stretch of this river, this river anywhere, this tidal area, this
+lettered box, the box around it. 210 of Region 6's 235 rules sit on a named water. Each row carries a `precedence` (3 named
+water, 2 area catch-all, 1 section catch-all, 0 region default). Precedence is a property of the LOCATOR (where a statement
+sits), so it lives with the curated locators; the feed carries none and the join may never drop it (pinned by
+`test_the_skeena_cascade_resolves_through_the_join`).
 
-### What happens when the website changes
+- Section F publishes no rows: the banner closure is synthesised as a row with `source: "section_banner"`.
+- Exclusion lists are `<ul>` bullets (Babine Lake excludes a 400 m radius around 12 creeks); kept as `specific_area_bullets`.
+  A closed area inside a place is a location of its own (`closures.py`, AGENTS 68); its circle centre is the creek mouth
+  where it meets the lake shore (`closure_mouths.py`).
+- `colspan="6"` on a five-column table (the B(i) banner is authored wrong): the grid builder clamps spans.
+- When two rows on one water both cover a section, the one covering fewer sections answers first (`deliver.salmon.chain_order`).
+- The tidal-Area rows belong to E alone: each is bound to "drains to Area N" OUTSIDE E's siblings, else the "no chinook" row
+  covered 97% of the Skeena (the Skeena's mouth is in Area 4).
+- A row about another fish ("All | No fishing for eulachon") is not a salmon rule; it is its own line.
 
-| what changed | what breaks |
+## 5. The typed decode (`typed.py`): three defects the repo paid for once
+
+- `take=0` is not "closed". `may_target` separates "do not fish for this" (`no_fishing`) from "fish for it and release it"
+  (`non_retention`); a bare "0 per day" says neither, so it publishes the conservative way and is flagged for review.
+- A size sub-limit is its own rule pointing at its parent with `within` ("4 per day, only 2 over 50 cm" is two rules; one
+  rule carrying both numbers loses the 4).
+- A gear rule is scoped by what you fish FOR (`when_targeting`), not what you may keep.
+- An unreadable season goes to review; an unambiguous source typo ("Aprl 1") is published repaired and recorded; an EMPTY
+  dates cell is a fact: no window means all year. (`CatalogueRule` does not check that a window parses; this does.)
+- A limits wording not in the closed registry (`data/curated/dfo_salmon/wording.json`, `wording.py`) is flagged, never read
+  as free text. Pure function of the row: no model, no credits.
+
+## 6. The live feed and its refresh
+
+`live.py` fetches (validated, atomic), types, joins and writes ONE small `feed/index.json` the app reads, so a rule change
+reaches the app without a rebuild; the feeds worker (`app/workers/feeds/src/dfo/`) runs the same logic on a schedule. A
+fingerprint nobody curated is held in `unplaced.json` and the owner told once; `live queue` seeds it for DFO mode in the
+review app. `live run --dry-run` prints what a fetch would change against the typed rows in use (`refresh.py`): new,
+reworded, dropped and moved places (the only thing the owner re-reviews), row changes per place with their FN numbers, the
+marks that would move, and the urgent rows. A real run archives every fetched page once and stamps typed rows with the
+page's sha256 and `dateModified`. Early exit is on the hash, never `dateModified` (the 2017 and 2018 pages have none and
+Fishery Notice edits do not reliably move it). Publishing is never blocked by a hold; there are no credits or secrets, so it
+is safe to automate. Never a GitHub schedule (the worker's cron starts it).
+
+## 7. Invariants and where they are enforced
+
+| invariant | enforced by |
 |---|---|
-| a limit, a date, a gear rule | **nothing** — the feed carries the new value under the same fingerprint |
-| a row is reworded | **that one row**, until its new fingerprint is added to the location's `fingerprints[]` — a one-line edit |
-| a row is added (a new boundary) | **that one row** — it needs curating, like any new reach |
-| a row disappears | nothing — the location stays, with no rules under it this season |
-
-Everything else on the page keeps working throughout. A row that does not resolve is
-listed, not dropped:
-
-```jsonc
-// data/generated/regs/dfo_salmon/feed/region-6.json
-{ "region": "6", "scraped_at": "…", "source_sha256": "…",
-  "rules":     [ { "fingerprint": "d0ece960…", "species": "Sockeye",
-                   "dates": {…}, "limits_gear": "2 per day", … } ],
-  "unmatched": [ { "fingerprint": "7c31…", "waters": "Kispiox River",
-                   "specific_area": "downstream of the new weir",
-                   "species": "Coho", "dates": "…", "limits_gear": "…" } ] }
-```
-
-`unmatched` non-empty is the front-end notice: *"1 rule on the Kispiox could not be
-placed — check the DFO page."* Everything else still serves.
-
-### How the feed is built — the whole of it
-
-```python
-def build_feed(slug: str) -> FeedFile:
-    page   = fetch(slug)                       # or the cached snapshot
-    known  = {fp for ef_loc in load(slug).locations for fp in ef_loc.fingerprints}
-    rules, unmatched = [], []
-    for row in untangle(parse(page)):          # every table row, named + cascade
-        fp = fingerprint(slug, row.key, row.scope_text)
-        (rules if fp in known else unmatched).append(row.as_feed_rule(fp))
-    return FeedFile(region=slug, scraped_at=now(), source_sha256=sha256(page),
-                    rules=rules, unmatched=unmatched)
-```
-
-That is the entire scheduled job: **a set membership test per row.** No registry, no
-graph, no matcher, no network beyond the fetch. Nine pages, ~440 rows, milliseconds.
-
-A row is in `rules` or in `unmatched`. There is no third outcome and nothing is dropped.
-
-### The archive already absorbs most rewordings
-
-The entries file was seeded from the **superset of every archived version**, so a
-location already carries every wording DFO has published — 354 locations against 247 on
-the live page today. A reword to a form used in a previous season resolves immediately;
-only a genuinely new wording needs the one-line edit.
-
-### Reading a rule, for (section_id, date, species)
-
-1. every feed rule whose fingerprint maps to a section containing `section_id`;
-2. drop rules whose date window excludes the date, or whose species does not match;
-3. highest precedence wins — **named water › area catch-all › section catch-all ›
-   region default**;
-4. attach `fishery_notices` (live variation orders, the most perishable part);
-5. if the location has `spatial_caveat`, show its `notes[]` and do not draw it as a
-   plain fill;
-6. tag `authority: "dfo"` — a section can carry a provincial and a federal rule at once.
-
----
-
-## 3A. The data types
-
-Three files. Types below are the actual shapes, and every one reuses an existing model
-where the repo already has one.
-
-### `data/curated/dfo_salmon/places/region-<slug>.json` — CURATED, committed
-
-```python
-@dataclass
-class EntryFile:
-    region: str                 # "6", "5a" …
-    region_number: int          # 5 for both 5a and 5b
-    region_name: str
-    scopes:    list[Scope]          # the cascade tree; [] outside Region 6
-    waters:    list[WaterBinding]   # name -> registry item, once per waterbody
-    locations: list[EntryLocation]  # reach -> extent, many per water
-    structure: dict                 # last accepted page shape (structural-change guard)
-
-@dataclass
-class WaterBinding:
-    water_id:      str            # "6:babine-lake"  — readable, never leaves this file
-    name:          str            # verbatim, as DFO publishes it
-    region: str; region_number: int
-    aliases:       list[str]
-    sections:      list[str]      # which cascade scopes it appears under
-    item_ids:      list[str]      # RESOLVED CACHE of the name/override hit — gnis:… / wbk:…
-    tributaries:   bool | None    # when the NAME says so ("… and tributaries")
-    match:         dict           # {status, via, reason, candidates} — informational
-    locked:        bool; reviewed_by: str; reviewed_at: str; note: str
-
-@dataclass
-class EntryLocation:
-    location_id:  str             # "6:babine-lake:including-tributaries"
-    water_id:     str | None      # None for a cascade row
-    fingerprints: list[str]       # EVERY wording ever confirmed → THE LINK KEY
-    section:      str | None      # observed attribute, versioned; not identity
-    kind:         str             # water | section_default | area_default | region_default | closure
-    precedence:   int             # 3 named water · 2 area · 1 section · 0 region
-    source_text:  dict            # verbatim waters/specific_area/op/anchor_types
-    extents:      list[Extent]         # ← pipeline.regs.parsing.entry_models.Extent
-    tributaries:  bool | None          # None inherits the water's; → the rule's includes_tributaries
-    tributaries_only: bool
-    tributary_excludes: list[Extent]   # carve-outs → the rule's tributary_excludes
-    notes:        list[str]            # un-modelled spatial qualifiers
-    spatial_caveat: bool               # notes NARROW the extent → app must show them
-    status:       str             # active | dormant
-    duplicate_of: str | None; duplicate_confirmed: bool | None
-    locked:       bool; reviewed_by: str; reviewed_at: str
-```
-
-**`Extent` is the provincial model, imported — not re-declared**, and `to_reach_input` hands
-`build_reach` a catalogue-shaped entry and rules (`includes_tributaries` on the entry; extents,
-`tributaries_only` and `tributary_excludes` on each rule). That is what `build_reach`
-consumes, so there is one definition of "upstream of split s"
-in the repo and the DFO side cannot drift from it.
-
-### `data/generated/regs/dfo_salmon/link/region-<slug>.json` — BUNDLE, generated
-
-```python
-@dataclass
-class LinkFile:
-    region: str
-    bundle: str                 # registry/bundle version the sections came from
-    built_at: str
-    links: list[Link]
-    scopes: list[ScopeLink]
-
-@dataclass
-class Link:
-    fingerprints: list[str]     # every wording that resolves here
-    section_ids:  list[str]     # what build_reach resolved
-    precedence:   int
-    scope_id:     str | None    # which cascade scope this sits in
-    spatial_caveat: bool
-    notes:        list[str]
-```
-
-`section_ids` is valid **only for the named `bundle`** — never reuse a resolved section
-list across a rebuild (AGENTS rule 6).
-
-### `data/generated/regs/dfo_salmon/feed/region-<slug>.json` — FEED, generated
-
-```python
-@dataclass
-class FeedFile:
-    region: str
-    scraped_at: str
-    source_sha256: str          # the page hash this came from
-    date_modified: str | None   # the page's own stamp
-    rules:     list[FeedRule]
-    unmatched: list[UnmatchedRow]
-
-@dataclass
-class FeedRule:
-    fingerprint: str            # THE ONLY KEY. No location_id, no match info.
-    species:     str
-    dates:       DateWindow     # verbatim + canonical + start/end/open_ended
-    limits_gear: str            # verbatim — this is what gets displayed
-    daily_limit: int | None
-    no_fishing: bool; non_retention: bool; hatchery_marked_only: bool
-    bait_ban: bool; single_barbless_hook: bool
-    fishery_notices: list[dict]   # [{text: "FN0679", href: "…"}]
-
-@dataclass
-class UnmatchedRow:
-    fingerprint: str
-    waters: str; specific_area: str; section: str | None
-    species: str; dates: str; limits_gear: str
-```
-
----
-
-## 3B. How each file is produced
-
-```
-                    pac.dfo-mpo.gc.ca
-                           │
-        fetch ─────────────┴──────────────► cache/dfo_salmon/raw/*.html
-                                                     │
-        parse → untangle → locations ────────────────┤
-                                                     │
-                 ┌───────────────────────────────────┴──────────────────────┐
-                 │                                                          │
-    (a) entries seed --history                              (c) feed build
-        every location ever published,                          rules keyed by
-        unbound. Run once, then on demand.                      fingerprint; any
-                 │                                              fingerprint not in
-    (b) match apply                                             the entries file
-        name/override → waters[].item_ids                       → unmatched[]
-        (exact hits only)                                            │
-                 │                                                   ▼
-    (d) CURATION — the human pass (§4)                     data/generated/regs/dfo_salmon/feed/region-N.json
-        extents, new splits, overrides                             FEED
-                 │
-                 ▼
-    data/curated/dfo_salmon/places/region-<N>.json      ← the only hand-edited file
-                 │
-    (e) link build   (needs registry + graph)
-        build_reach(entry, rule) per location
-                 │
-                 ▼
-    data/generated/regs/dfo_salmon/link/region-N.json           BUNDLE
-```
-
-| step | command | when | needs |
-|---|---|---|---|
-| fetch | `dfo_salmon.fetch` | scheduled | network |
-| a. seed | `dfo_salmon.entries seed --history` | on demand | cached pages |
-| b. match | `dfo_salmon.match apply` | a new DFO name only (the reach run checks the rest, T337) | registry + overrides |
-| c. feed | `dfo_salmon.feed build` | **every scheduled run** | entries (for fingerprints) |
-| d. curate | the §4 workflow | until done | you |
-| e. link | `dfo_salmon.link build` | after a bundle rebuild | registry + graph (9.6 GB) |
-
-Only **(c)** runs on the schedule. It needs no registry, no graph, no network beyond the
-fetch — it is a dict lookup per row.
-
----
-
-## 3C. Overrides live in the shared overrides.json (removed) — the existing one
-
-**Do not add a DFO overrides file.** The shared file already answers DFO's questions,
-and this was measured, not assumed:
-
-* 25 of DFO's 159 water names already have an override row;
-* six of the seven waters DFO could not disambiguate were **already answered** there —
-  `Bear River` in Region 6 → `gnis:15535`, plus Lakelse, Yakoun, Pallant, Hope Slough,
-  Long Lake;
-* two more carry current gazetted names DFO's page has not caught up with —
-  `Ishkheenickh River` → *KSI HLGINX RIVER*, `Tseax River` → *KSI SII AKS RIVER*.
-
-An override states a fact about a **name in a region**, not about which authority
-published it. A bridge is a bridge; the Nass is the Nass. Splitting the file would mean
-curating the same fact twice and letting the two copies drift.
-
-DFO-authored rows go in the same file with a `note` recording the pass. If a genuine
-conflict ever appears — a name DFO means differently from the synopsis — add a
-`sources: ["dfo"]` discriminator then, not now.
-
-> **A bug this found:** `dfo_salmon.match` was calling
-> `load_overrides("__default__")`. That sentinel is resolved by
-> `reach.covered.make_matcher`, not by `load_overrides`, which treated it as a path,
-> found no file, and returned `[]`. Every match run so far used **zero overrides**.
-> Fixed to `reach.covered.DEFAULT_OVERRIDES`.
-
----
-
-## 4. The curation workflow — you and me
-
-**Unit of work is one waterbody.** 161 waters, ~2 reaches each. Top-heavy: Skeena 15,
-Stamp 14, Morice 9, Somass 8 — four sittings cover 46 reaches.
-
-Per water I hand you a card. I do the parsing; you make the calls I cannot.
-
-```
-────────────────────────────────────────────────────────────────────────────
-BABINE RIVER            region 6 · section B(i) · water_id 6:babine-river
-registry : BOUND  gnis:17687   (exact name)
-
-splits already on this water
-  s1  juvenile counting weir
-  s2  Nilkitkwa River → Babine River
-  s3  fishing boundary signs 100 m upstream of adult fish counting fence
-  s4  signs 80 m downstream of adult fish counting fence
-  s5  adult counting fence
-  s6  Fort Babine Bridge
-  s7  Nichyeskwa Creek → Babine River
-
-L1  op=between · needs 2 · anchors: confluence, boundary_sign
-    "from the Nilkitkwa River confluence with the Babine River downstream to the
-     Skeena River confluence"
-    my read: from = s2 ✓ · to = NEW (Skeena confluence)
-
-L2  op=whole_water · needs 0
-    "(whole water)"
-────────────────────────────────────────────────────────────────────────────
-```
-
-You answer one line per location. That is the whole "vocabulary" — the shorthand you
-type back so I do not have to ask a paragraph of questions per reach:
-
-```
-L1: s2, NEW "Babine River → Skeena River" confluence
-L2: ok
-```
-
-| you write | means |
-|---|---|
-| `s2` | use the existing split labelled s2 |
-| `NEW "<label>" <kind>` | author a new split; kind = `confluence` \| `point` \| `lake_outlet` |
-| `ok` | nothing to cut — the rule covers the whole water |
-| `skip <why>` | leave it unbound and record why |
-| `same as L1` | a duplicate wording — I fold it, and it can never be auto-regrouped |
-| `item = gnis:12345` | the registry binding is wrong or missing; use this |
-| `yes` / `no` | answering a guess I offered (see below) |
-
-I then write the `extents` into the entry file, any new splits **straight into
-`data/curated/waters/cuts.json`** under that waterbody's block, and an override if you corrected
-a name. One commit per water, so each is reviewable and revertible on its own.
-
-### The same pass builds the overrides
-
-When a name has no registry match I put my guess on the card and you rule on it. That
-is how the override file gets written — no separate session for it:
-
-```
-────────────────────────────────────────────────────────────────────────────
-CAYEGHLE RIVER          region 1 · water_id 1:cayeghle-river
-registry : **UNBOUND** — no exact name or variant match
-  my guess: "Cayeghle Creek"  gnis:30524   (DFO says River, the FWA gazetteer says Creek)
-  → right?
-
-L1  op=described · needs 0
-    "including Colonial River."
-    note: names a second water — if that is in scope this needs two items
-────────────────────────────────────────────────────────────────────────────
-```
-
-```
-guess: yes
-item = gnis:30524, gnis:30525      # Cayeghle + Colonial, both in scope
-L1: ok
-```
-
-and I write into a DFO overrides.json (never made):
-
-```jsonc
-{ "type": "override",
-  "criteria": { "name_verbatim": "CAYEGHLE RIVER", "region": "REGION 1 - Vancouver Island" },
-  "note": "DFO writes 'River'; FWA gazetteer has Cayeghle Creek. Scope names Colonial River too.",
-  "gnis_ids": ["30524", "30525"] }
-```
-
-Same schema the provincial matcher already reads, so it needs no new code — and because
-it keys on `gnis_ids`, it survives a registry rebuild.
-
-### Adding an override — the exact steps
-
-Overrides are written **during** the curation pass, never in a separate session. Three
-cases, and the card tells you which one you are in.
-
-**1 — the name is simply different.** DFO says River, the gazetteer says Creek.
-
-```
-CAYEGHLE RIVER          region 1 · UNBOUND
-  my guess: "Cayeghle Creek"  gnis:30524   → right?
-```
-`guess: yes` →
-```jsonc
-{ "type": "override",
-  "criteria": { "name_verbatim": "CAYEGHLE RIVER", "region": "REGION 1 - Vancouver Island" },
-  "note": "DFO writes 'River'; FWA gazetteer has Cayeghle Creek. [dfo pass 2026-08]",
-  "gnis_ids": ["30524"] }
-```
-
-**2 — one DFO name is several waters.** The reason `item_ids` is a list.
-
-```
-CHILLIWACK/VEDDER RIVER (INCLUDING SUMAS RIVER)     region 2 · UNBOUND
-  my guess: Chilliwack gnis:8634 + Vedder + Sumas   → which ids?
-```
-`item = gnis:8634, gnis:12345, gnis:67890` →
-```jsonc
-{ "criteria": { "name_verbatim": "CHILLIWACK/VEDDER RIVER (INCLUDING SUMAS RIVER)",
-                "region": "REGION 2 - Lower Mainland" },
-  "note": "One DFO row covering three waters. [dfo pass 2026-08]",
-  "gnis_ids": ["8634", "12345", "67890"] }
-```
-
-**3 — the name is right but ambiguous.** Several registry items share it.
-
-```
-YAKOUN RIVER            region 6 · AMBIGUOUS
-  candidate: Yakoun River  gnis:3485
-  candidate: Yakoun Lake   wbk:329163190
-```
-`item = gnis:3485` → an override with that single id, and a note saying why the lake was
-rejected. **This is the case where a heuristic silently picked the lake.**
-
-Then:
-
-```bash
-.venv/bin/python -m pipeline.regs.dfo_salmon.match apply     # re-resolves item_ids from the override
-.venv/bin/python -m pipeline.regs.dfo_salmon.match report    # the water should now be BOUND
-```
-
-`match apply` never overwrites a `locked` water, so a hand-corrected binding survives.
-Every override row carries `[dfo pass <date>]` in its note, so the DFO-authored rows are
-greppable inside the shared file without a schema change.
-
-### Order
-
-1. **28 overrides first** (§2) — the unbound and ambiguous waters. Pure desk work, no
-   geometry, and it unblocks their reaches.
-2. **The 4 heaviest waters** — Skeena, Stamp, Morice, Somass. 46 reaches.
-3. **96 single-reach waters** with a clean binding — should go fast.
-4. **The 13 cascade scopes** — `B(i)`/`B(ii)` are one split (the CNR Railway Bridge)
-   used twice.
-5. **The 3 tidal-area scopes** — needs the PFMA layer re-fetched first.
-
----
-
-## 5. Decisions taken
-
-| question | decision |
-|---|---|
-| where do new splits go? | **straight into `data/curated/waters/cuts.json`**, under the existing waterbody blocks. The anchors are shared between the two authorities; a bridge is a bridge. |
-| entries file format | its **own** format (§3A) — it carries scopes, waters and locations, which `splits.json` has no place for. |
-| how does a scrape link to curated work? | **one key — the fingerprint of the table row.** No second id, no resolution step. |
-| what does the feed carry? | the fingerprint and the rule. **No match information.** |
-| is the section in the fingerprint? | for a **cascade** row yes (it is the identity); for a **named water** no — measured 0 collisions in 556 rows, and excluding it survives a B → B(i)/B(ii) restructure. |
-| what happens to a row that will not link? | it is listed in `unmatched[]`. That single row is stale; every other row still serves. |
-| when do overrides get written? | **during the same curation pass** — I guess, you rule, I write. |
-
----
-
-## 6. Code to remove when this lands
-
-| what | why |
-|---|---|
-| `match.name_candidates` | the ladder — replaced by overrides |
-| `match._spelling_suggestions` | fuzzy — replaced by overrides |
-| `Proposal.suggestions` | nothing to suggest; a name matches or it does not |
-| `locations._repair_dates` difflib call | replaced by the month-variants table (§1) |
-| `dfo_salmon.entries.Binding` | the provincial `Extent` + three tributary fields, handed over in the catalogue shape |
-| a DFO overrides file | never created — the shared one already answers it (§3C) |
-
-### What DFO reuses rather than reimplements
-
-The duplication is worth naming, because the answer to "is DFO its own code path?" is
-mostly **no**:
-
-| concern | who owns it |
-|---|---|
-| name → registry item | `pipeline.regs.matching.matcher` — unchanged, called directly |
-| curator overrides | the shared overrides.json (removed) — the same file |
-| extent ops (`whole`/`upstream_of`/`between`/`within`) | `pipeline.regs.parsing.entry_models.Extent` |
-| tributary scope + carve-outs | the catalogue fields `includes_tributaries` / `tributaries_only` / `tributary_excludes` |
-| extent → sections, tributary walk | `pipeline.atlas.reach.build.build_reach` |
-| split anchors | `data/curated/waters/cuts.json` — the same file |
-| date windows | `pipeline.regs.dfo_salmon.dates` (the DFO feed's own; the synopsis uses `catalogue.parse_date_range`) |
-| species codes | `pipeline.regs.parsing.catalogue` (`FEDERAL_SALMON`, `SPECIES_GROUPS`) |
-
-What is genuinely DFO-only, and has to be: fetching and parsing *their* HTML
-(`fetch`/`parse`/`untangle`), the lettered cascade (`cascade`), and the fingerprint that
-links a scrape to curated work (`locations`). Everything downstream of "this reach is
-this extent on this item" is the machinery that already exists.
-
-Net: the matching path is *name → overrides → registry*, the same three steps the
-provincial regs take, with no DFO-specific cleverness in it at all.
+| every parsed row lands in exactly one rule | `untangle.verify()` |
+| the transcription reads nothing out of the limits cell | `test_the_transcription_reads_nothing_out_of_the_limits_cell` |
+| the feed takes no curated input | `test_the_feed_takes_no_curated_input` |
+| every scraped locator joins to a curated record | `test_no_scraped_rule_lands_on_a_locator_nobody_curated` |
+| every rule's `verbatim` is a span of its own row | `test_every_scraped_rule_types_and_keeps_its_chain_of_custody` |
+| `take=0` always says whether you may fish | `test_take_zero_says_whether_you_may_fish_at_all` |
+| an unreadable season never publishes as "no season" | `test_an_unreadable_season_goes_to_review_rather_than_publishing_as_none` |
+| a region that restructures holds rather than rebinding | `entries.reconcile` severity 4 |
+| a row that says "per day" always yields a quota | `test_a_row_that_says_per_day_always_yields_a_quota` |
+| the same page always produces the same feed | `test_the_feed_is_deterministic` |
+| the Skeena cascade resolves through the join | `test_the_skeena_cascade_resolves_through_the_join` |

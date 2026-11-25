@@ -196,7 +196,7 @@ class CatalogueRule(BaseModel):
     #: unreachable. See `GearClause`. This replaced `allowed`, `barbless`, `hook_count`,
     #: `lure`, `bait`, `max_lines`, `max_flies`, `max_weight_kg`, `min_gap_cm` and `max_gap_mm`,
     #: which are gone from the model and refused on load.
-    #: See pipeline/docs/07-gear-representation.md.
+    #: The slots and their bounds: `GearClause`; the written form is pipeline/docs/18-how-regulations-are-stored.md "Gear".
     gear: List[GearClause] = Field(default_factory=list)
     #: A RULE THE BOOK ASSERTS BUT DOES NOT PRINT AS ITS OWN CLAUSE, naming the rule it was read
     #: out of. "You may ONLY fish with a set line in lakes of Region 6 and Region 7A" makes two
