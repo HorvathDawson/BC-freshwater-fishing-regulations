@@ -115,6 +115,11 @@ with the default Claude uses until you answer). Newest first inside each section
   What may miss the 0.9.1 cut because it waits on a pick of yours: the T1029 look, the T1098 privacy sentences,
   the T1107 gauges-page picture, the T1052 part-year waters. T1098 matters most: the App Store submission waits on
   the privacy page being live, so if it misses the cut it needs its own site deploy afterwards.
+- **Handed to the 0.9.1 chat, 2026-11-25 00:50** (your words to the planning chat: "I told the agent they could do
+  these without me"): reading the head-lakes list in draft #166, picking the privacy sentences in #179, checking the
+  gauges search picture in #187, picking the one-bank stripe look in #112. None of the four waits on you for the
+  0.9.1 cut any more. The 0.9.1 chat lists what it chose for each in its morning summary, as proposals you can
+  change in 0.9.2 (planning chat's ask of it, not your words). The rows below about these four are kept for the record.
 - **Read (you): the head-lake walk, draft PR #166 (T1053)**, sent to you by the 0.9.1 chat ~23:55. The list:
   the file head-lakes-before-after.md in that PR's T1053-shots folder (22 head lakes, 42
   rules gain water, none lose). One decision inside it: Dove Creek above Anderson Lake reopens for catch and
