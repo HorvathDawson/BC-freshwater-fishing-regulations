@@ -13,7 +13,7 @@
  * and feed join on section and station ids, and a mixed set colours nothing.
  */
 import { Platform } from "react-native";
-import { APP_ENVS, resolveAppVersion, versionLine, type AppEnv } from "@app/core";
+import { APP_ENVS, platformBuild, resolveAppVersion, versionLine, type AppEnv } from "@app/core";
 import { imageryTiles } from "@app/map/colours";
 import { crashUrlFor, endpointsFor, pushUrlFor, reportUrlFor, resolveChannel, resolveEnv, UPDATE_CHANNELS, type UpdateChannel } from "./env";
 import { channelStore, envStore, restart } from "./envStore";
@@ -47,7 +47,8 @@ export function storedChannel(): UpdateChannel | null {
  */
 export const APP_VERSION = resolveAppVersion({
   version: process.env.EXPO_PUBLIC_APP_VERSION,
-  build: process.env.EXPO_PUBLIC_APP_BUILD_NUMBER,
+  // (T1101) each platform's own build number (CFBundleVersion on an iPhone, versionCode on Android and the web)
+  build: platformBuild(Platform.OS, { ios: process.env.EXPO_PUBLIC_APP_BUILD_NUMBER_IOS, android: process.env.EXPO_PUBLIC_APP_BUILD_NUMBER_ANDROID }),
   sha: process.env.EXPO_PUBLIC_GIT_SHA,
   date: process.env.EXPO_PUBLIC_BUILD_DATE,
 });
