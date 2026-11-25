@@ -16,7 +16,7 @@ Two rows (8, 9) go beyond the ticket's list; they are marked. Em dashes: none ad
 | 7 | d | Push token, first sentence | ... (a gauge alert, "New regulations data" or "New app version"), the app sends ... | ... (a gauge alert or "New regulations data"), the app sends ... | `notify.native.ts`: `VERSION_FILE` is null for the App Store build and for an iPhone with no channel, so `appVersion: VERSION_FILE !== null` is false and the switch is not offered |
 | 8 | e | Push token | ... a silent signal telling the app to check for new data; the signal carries no words ... | ... a silent signal telling the app to check for new data and, when a new data release is out and your download setting allows it, to start downloading it; the signal carries no words ... | `wake.ts`: the wake runs the update service check with `release: true` and can start the download |
 | 9 | f | No selling, no sharing | (Cloudflare, Open-Meteo, Esri, and Apple for push only) | (Cloudflare, Open-Meteo, Esri, Apple for push and for the App Store version check, and Google Play for its update check) | follows rows 2 |
-| 10 | g | Push token | (nothing) | The app sends the token only while the phone's own notification permission is on, and removes it if you turn that permission off. A token the app has not renewed for 30 days is deleted. (depends on the behaviour-change ticket; 30 is a placeholder) | owner 2026-11-25: "that behaviour change can move to 0.9.1" |
+| 10 | g | Push token | (nothing) | From version 0.9.1, the app sends the token only while this phone lets it show notifications and at least one is on; if you turn notifications off for the app in the phone's settings, the app tells my server to delete the token the next time you open it. A token the app has not sent again for 30 days is deleted (the app sends it again about once a week when you open it), and it is not used after those 30 days. (FINAL words, option 2: a proposal he can change) | owner 2026-11-25: "that behaviour change can move to 0.9.1" |
 
 ## Item g: DECIDED (owner 2026-11-25, typed, verbatim): "that behaviour change can move to 0.9.1"
 
@@ -26,9 +26,9 @@ Fact it rests on (verified): `useNotifications` writes the switch before it asks
 
 Row 10 (Push token paragraph, new sentences):
 
-> The app sends the token only while the phone's own notification permission is on, and removes it if you turn that permission off. A token the app has not renewed for 30 days is deleted.
+> From version 0.9.1, the app sends the token only while this phone lets it show notifications and at least one is on; if you turn notifications off for the app in the phone's settings, the app tells my server to delete the token the next time you open it. A token the app has not sent again for 30 days is deleted (the app sends it again about once a week when you open it), and it is not used after those 30 days.
 
-**Depends on the behaviour-change ticket.** The 30 is a placeholder until that lane fixes the day count (update `html.ts` and the pin in `site.test.ts` to match). This page must NOT go live before the behaviour change does: until then these two sentences are untrue.
+**Final words (option 2), a proposal the owner can change.** Facts from T1116 (PR #194), 30 days confirmed. "From version 0.9.1" is needed because 0.9.0 and earlier still register after Don't Allow. The page must go live with or after the 0.9.1 app and the feeds worker deploy of T1116.
 
 ## Not changed (checked, true as written)
 
