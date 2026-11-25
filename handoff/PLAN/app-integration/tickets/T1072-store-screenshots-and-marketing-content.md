@@ -32,6 +32,15 @@ Found by the iOS chat 2026-11-24 (facts, not yet acted on):
 3. The website's landing and "Get the app" block say the same thing (T901); the share page's "Open in the app" (T514).
 4. The store video (T709) if the owner wants one.
 
+Done so far (2026-11-24, part 2, listing words): ONE source `app/store-listing/listing.json` (+ `full-description.txt`), text moved verbatim
+(Play short/full parsed before and after: identical; `play-listing-push.py --plan` unchanged but for the source path). Read by
+`play-listing-push.py` (new `--appstore` prints each App Store Connect field with length/limit, no network) and `app/tools/web-shell.mjs`
+(home page meta description, `websiteHomeDescription`). Every field and its limit, and the forbidden words (Play metadata policy,
+Apple 2.3.10), are checked by `app/tools/store-listing.test.ts`. `store-description.md` deleted; `ios/store/listing.md` and the
+words sections of `listing-draft.md` now point at the source. What's New stays in `app/packages/core/src/changelog.ts` (`notesOn`
+for "android" and "ios"). Still open: feature graphic words (empty), the website's "Get the app" block words (they are button labels in
+`core/src/spotWords.ts`, not listing text), the share page words, the store video.
+
 ## Acceptance
 The owner picked a direction; the set and the text are in the repo and regenerate by one command; both listings and
 the website use them.
