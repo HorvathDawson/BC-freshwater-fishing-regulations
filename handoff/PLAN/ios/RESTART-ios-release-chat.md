@@ -4,6 +4,27 @@ Written 2026-11-24 23:20 MST by the iOS release chat. Scope is frozen to T1071: 
 works only in a scratchpad worktree of origin/main, numbers no tickets (the planning chat does), and never types
 CONFIRM_PROD. The owner does every App Store Connect click.
 
+## HANDED OVER 2026-11-25 16:10: this chat is retired (owner's call)
+The owner retired the iOS release chat; the planning chat (or a later chat started from this page) finishes it.
+Everything in App Store Connect that needs no build is filled and saved. What is left, in order:
+1. After the owner's production site command: open `https://canifishthis.ca/privacy` and check the T1098 words are
+   live (the sentence about the install id; see section 3 of `APP-STORE-SUBMISSION.md`).
+2. When the iPhone 0.10.0 build is on TestFlight (46 expected): give the owner three clicks on the version page
+   (Distribution, iOS App, version 0.10.0): select the build and Save; **Add for Review**; **Submit for Review**.
+   If export compliance is asked: "None of the algorithms mentioned above". Section 11 has what follows (approved:
+   "Pending Developer Release", he presses Release This Version; rejected: he pastes Apple's message).
+3. Record the submission and Apple's answer in T1071 and STATUS.
+4. After the release: push proof (T996) on a second iPhone, the State table row below.
+Loose ends, none a gate:
+- The uploaded screenshots are this chat's resize of the 6.9" frames to 1206 x 2622. The native set is PR #238
+  (open, auto-merge off; frame 3's re-crop is unconfirmed, on the owner's list via T1131).
+- Header and Search Results pictures (T1134): the owner has the four files and said he would upload them; that the
+  upload happened is NOT confirmed. PR #256 is open with a failing test (`app/tools/store-shots/creative.test.ts`
+  calls ffprobe at a Homebrew path); the repo-move chat fixes it.
+- The App Privacy label carries Performance Data (App Functionality, not linked, no tracking) ahead of the app:
+  T1132 (0.10.1) owes the monitor, the manifest entry and the privacy page words.
+- `~/Desktop/AppStore-pictures/` on the owner's Mac holds the files he dragged (made by this chat, outside the repo).
+
 ## The pages
 - `handoff/PLAN/ios/APP-STORE-SUBMISSION.md`: what the owner pastes from, in App Store Connect's order. Section 0 is
   the state table; keep it true.
