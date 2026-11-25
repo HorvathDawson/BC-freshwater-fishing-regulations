@@ -1,6 +1,6 @@
 # T1083 — The web start link refuses `wsc:` item ids, yet the app writes `?regs=wsc:…` into its own URL (reload and share fail)
 
-Status: DONE (e65bc413c, lane L24 2026-11-24): one list of id kinds, `@app/data` `ITEM_ID_KINDS`, read by the writer and every reader, web and phone.
+Status: DONE (e65bc413c, 887e21735, lane L24 2026-11-24): one list of id kinds, `@app/data` `ITEM_ID_KINDS`, read by the writer and every reader, web and phone.
 
 Source: the 0.9.1 chat, 2026-11-24, PR #131 lane, web build from main: "start link: regs=wsc:… is not an item id". The app itself writes `?regs=wsc:…` into the URL, so reloading or sharing the page of a `wsc:` water fails. 197 of the parts T1052 touches are `wsc:` waters. Evidence: a Playwright console log of 2026-11-24 20:19Z in the main checkout's git-ignored .playwright-mcp directory. NOT yet checked on production 0.9.0.
 
@@ -27,6 +27,12 @@ lands on the bare map. A reload or a shared link of a `wsc:` water loses the wat
   query and `?show=`, read by the web start link, the phone app link and the water-page reader (runs everywhere); the
   same trip for every item id of the release under test (skipped by name with no release). Mutants killed: wsc dropped
   from the list; the old regex back in each of the four readers; the writer's report removed.
+- Review round (PR #164): ids are capped at 100 characters (longest real: 56); refusals (`gnis:3062abc`, `constructor:1`,
+  `__proto__:1`, a trailing space or newline, a 101-character id) are asserted through all four readers; the writer
+  reports once a run per id (`reportOnce`); a web start-link refusal is now reported (`startLink.web.ts`, once), not
+  only a console line (W46: why production lost these links unreported), `apps/mobile/src/startLink.web.test.ts`.
+  Mutants killed: gnis end anchor, `hasOwn` -> `in`, the `show=` check, the `cift:item` check, the cap, the once, the
+  web report.
 - Browser (Playwright, Expo web dev server from the branch on the live release r-0aec88ed3edb, 390 px):
   `/?regs=wsc:100-019698-831000` opened Crayfish Creek's Regulations page, a reload kept the address and the page, and
   the console held no start-link refusal. Not checked: a `wsc:` water's `/water/<slug>` page (needs the SEO build) and a

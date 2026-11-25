@@ -325,7 +325,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1080 | A new owner to-do page: markdown only, short, open items only (the artifact page is retired) | OPEN — planning chat, right after PR #114 merges | | owner 2026-11-24 |
 | T1081 | Audit every markdown file: delete the old, cut the bloated, unify the docs (1,326 files, about 134,000 lines) | OPEN — its own docs chat after 0.9.1 (proposed chat D); inventory first | | owner 2026-11-24 |
 | T1082 | An in-app star-rating prompt that does not get in the way (design first) | OPEN — 0.10 or 0.11; design page for the owner first | | owner 2026-11-24, via the 0.9.1 chat |
-| T1083 | The web start link refuses `wsc:` item ids, yet the app writes them into its own URL (reload and share fail) | DONE — HIGH, on production 0.9.0; fixed for 0.9.1 (lane L24) | e65bc413c | 0.9.1 chat 2026-11-24 |
+| T1083 | The web start link refuses `wsc:` item ids, yet the app writes them into its own URL (reload and share fail) | DONE — HIGH, on production 0.9.0; fixed for 0.9.1 (lane L24) | e65bc413c, 887e21735 | 0.9.1 chat 2026-11-24 |
 | T1084 | FWA `LEFT_RIGHT_TRIBUTARY` is UNKNOWN for 188 streams, so a one-bank rule cannot tell which side they join | OPEN — 0.9.2, or with T1029 | | 0.9.1 chat 2026-11-24 |
 | T1085 | Ice fishing says "terminal attractor" where the Gear tab says "hook" | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24 |
 | T1086 | RULINGS RU-14 (the Meziadin's row stops at Meziadin Lake) is outdated by T1053's head-lake walk | OPEN — 0.9.1, with T1053 | | 0.9.1 chat 2026-11-24 |
