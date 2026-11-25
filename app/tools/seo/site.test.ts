@@ -9,7 +9,7 @@ import { inflateSync } from "node:zlib";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { beforeAll, describe, expect, it } from "vitest";
-import { buildRegsPage, type RegsPage } from "@app/core";
+import { buildRegsPage, directionsUrl, versionHeaders, type RegsPage } from "@app/core";
 import { loadRegsInputs, openRegsStore } from "@app/data/regs";
 import { openRegsFixture } from "@app/data/release/node";
 import { BUDGET, blockingScripts, checkBudget, measure, pageSize } from "./budget";
@@ -137,19 +137,34 @@ describe("T193 + T269 water pages (the app's own pane) and About", () => {
     expect(text(pv.html)).toMatch(/salted one-way hash/);
     // (T739) the push-token paragraph, whole: the owner's line with his 2026-11-20 pick "Claude's edit" (iPhone / Apple
     // only, "I/my", what the server keeps)
-    expect(text(pv.html)).toContain("Push token On an iPhone, when notifications are on and at least one is set (a gauge alert, "
-      + "“New regulations data” or “New app version”), the app sends my server a push token for this phone: an address Apple "
+    expect(text(pv.html)).toContain("Push token On an iPhone, when notifications are on and at least one is set (a gauge alert or "
+      + "“New regulations data”), the app sends my server a push token for this phone: an address Apple "
       + "issues so a message can reach the app. With it I keep only whether it is for Apple’s test or live push service and "
       + "when it was registered. I use it only to send, through Apple’s push service, a silent signal telling the app to check "
-      + "for new data; the signal carries no words, no waters and no location. I do not receive your alerts, the waters you "
+      + "for new data and, when a new data release is out and your download setting allows it, to start downloading it; the signal carries no words, no waters and no location. I do not receive your alerts, the waters you "
       + "watch or where you are. I do not store your IP address with it: to limit abuse I keep only a salted one-way hash of it "
       + "for a day’s counting. The token is deleted when you turn notifications off, or when Apple tells me it no longer works. "
+      + "From version 0.9.1, the app sends the token only while this phone lets it show notifications and at least one is on; if you turn notifications off for the app in the phone’s settings, the app tells my server to delete the token the next time you open it. A token the app has not sent again for 30 days is deleted (the app sends it again about once a week when you open it), and it is not used after those 30 days. "
       + "It is not linked to you or to an account and is not backed up.");
     expect(text(pv.html)).toContain("The app sends me three things: a problem report, only when you press Send; unless you switch "
       + "it off, a short error report when the app itself fails; and, on an iPhone with notifications on, a push token so I can "
       + "tell the app to check for new data.");
-    expect(text(pv.html)).toContain("The services named above (Cloudflare, Open-Meteo, Esri, and Apple for push only) receive only "
+    expect(text(pv.html)).toContain("The services named above (Cloudflare, Open-Meteo, Esri, Apple for push and for the App Store version check, and Google Play for its update check) receive only "
       + "the requests described here.");
+    // (T1098) the page's claims pinned to the code where it is cheap: the map app per platform, the headers sent, the install id with an email
+    const t = text(pv.html);
+    expect(t).toContain("Directions opens Apple Maps on an iPhone, and Google Maps on Android and the web");
+    expect(directionsUrl("ios", 49, -123)).toContain("maps.apple.com");
+    expect(directionsUrl("android", 49, -123)).toContain("google.com/maps");
+    expect(directionsUrl("web", 49, -123)).toContain("google.com/maps");
+    expect(t).toContain("from the phone app, your phone’s system name and version");
+    expect(versionHeaders({ version: "0.9.0", build: 45, sha: null, date: null }, { platform: "ios 18.1", ua: true })["User-Agent"]).toContain("ios 18.1");
+    expect(versionHeaders({ version: "0.9.0", build: 45, sha: null, date: null }, { platform: "web", ua: false })["User-Agent"]).toBeUndefined();
+    expect(t).toContain("It is stored in the same record as the install id, so a report with an email can be connected to you");
+    expect(t).toContain("The one way it can be connected is a problem report you send with your email address");
+    expect(t).not.toContain("which I cannot connect to a person;");
+    expect(t).not.toContain("New app version");
+    expect(t).toContain("on an iPhone from the App Store, the app asks Apple’s App Store which version is current");
     expect(text(pv.html)).not.toMatch(/Google issue|or Android|Google tell/);
     // (owner 2026-11-20 09:48) the page names its visit counter, so "This website" never says it runs no analytics
     expect(text(pv.html)).not.toMatch(/runs no analytics/);

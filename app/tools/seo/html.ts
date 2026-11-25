@@ -243,22 +243,23 @@ export function privacyBody(site: Site, asOf: string): string {
     `Open-Meteo’s servers see your device’s IP address as any website would; I do not control their records. ` +
     `Nothing else about you is sent with the request.</p>` +
     `<h2>Downloads from my servers</h2><p>The app downloads the regulations, the map and river-gauge readings (including past days’ flow) and salmon notices from my servers, ` +
-    `which run on Cloudflare. Each request carries the app’s version (so I can tell old versions from new) ` +
+    `which run on Cloudflare. Each request carries the app’s version and, from the phone app, your phone’s system name and version (so I can tell old versions from new) ` +
     `and, as with any web request, your IP address, which Cloudflare handles to serve the request. ` +
     `These downloads are the same for everyone and do not include your location, your spots or any identifier. ` +
-    `My servers, not the app, fetch the underlying data from Environment and Climate Change Canada and Fisheries and Oceans Canada.</p>` +
+    `My servers, not the app, fetch the underlying data from Environment and Climate Change Canada and Fisheries and Oceans Canada. ` +
+    `Looking for a newer version of the app itself goes through the store it came from: on an iPhone from the App Store, the app asks Apple’s App Store which version is current, and Apple sees that request and your IP address as any website would; on Android from Google Play, the check is Google Play’s own.</p>` +
     `<h2>Visit counts on the website</h2><p>The website (not the phone app) loads Cloudflare Web Analytics, which counts page visits so I can see how the site is used. ` +
     `It sets no cookies, stores nothing on your device and records no identifier; Cloudflare sees your IP address as it does for any request. ` +
     `Cloudflare may also run a short bot check on the website to keep automated traffic away.</p>` +
     `<h2>Map and satellite imagery</h2><p>The map is drawn from files on my servers. Its fonts and symbols come from my servers too. When you turn satellite imagery on, the app asks Esri for the picture tiles of the area ` +
     `you are looking at, so Esri sees those tile requests and your IP address. Imagery is shown only while online and is not stored.</p>` +
-    `<h2>Sharing and directions</h2><p>Share makes a link to the water you are viewing (the water, the view, the place on the map and the day) and hands it to the app you pick. Directions opens Google Maps with a spot’s parking point. Both happen only when you tap them, and what the other app does with what it receives follows that app’s own policy.</p>` +
+    `<h2>Sharing and directions</h2><p>Share makes a link to the water you are viewing (the water, the view, the place on the map and the day) and hands it to the app you pick. Directions opens Apple Maps on an iPhone, and Google Maps on Android and the web, with a spot’s parking point. Both happen only when you tap them, and what the other app does with what it receives follows that app’s own policy.</p>` +
     `<h2>Reporting a problem</h2><p>Sending a report is your choice, and the form shows exactly what will go. A report holds:</p><ul>` +
     `<li>the kind of problem and the words you wrote;</li>` +
     `<li>the details under “Include with your report” that you leave switched on (the water, part and section you were viewing, the day, the screen, ` +
     `the map colouring, the map’s layer, forecast day, zoom and centre (the middle of the map you were looking at, to about 100 m; if the map was centred on you, that is about where you were), the app version, data release, platform, ` +
     `the install id described below, and recent app errors);</li>` +
-    `<li>your email address, only if you type one. It is used only to reply, and only if you tick “You may contact me”.</li></ul>` +
+    `<li>your email address, only if you type one. It is used only to reply, and only if you tick “You may contact me”. It is stored in the same record as the install id, so a report with an email can be connected to you (and, through the same install id, to the error reports that install sent).</li></ul>` +
     `<p>Reports are stored privately on Cloudflare, are read only by me, and are not published. ` +
     `I do not store your IP address with a report: to limit abuse I keep only a salted one-way hash of it, which cannot be turned back into an address. ` +
     `Reports are deleted automatically 180 days after they are received, including any email in them. ` +
@@ -270,7 +271,7 @@ export function privacyBody(site: Site, asOf: string): string {
     `<li>the kind of screen you were on — map, conditions, runs, spots, menu or a water page — and, when a water was open, that water’s id number in my data ` +
     `and how its page was set (which view and part, whether the whole water was shown, whether a search or a spot was open); never the water’s name, where you were or what you searched for;</li>` +
     `<li>an install id: a random number the app makes once on your device, so I can tell whether several errors came from one install or from many. ` +
-    `It is not your device’s identifier or advertising identifier and is made from nothing about you or your device; the same id goes with a problem report you send. ` +
+    `It is not your device’s identifier or advertising identifier and is made from nothing about you or your device; the same id goes with a problem report you send, and if you type an email address in that report it is stored with the id in one record (see Reporting a problem). ` +
     `Uninstalling the app (or clearing its data) deletes it, and a new one is made;</li>` +
     `<li>the error itself: its type, its message with any quoted text, web address, e-mail address, coordinates and long numbers removed, and the app’s own code trace (file names and line numbers);</li>` +
     `<li>whether the error stopped the app, whether the phone closed the app while it was in the background, and the time.</li></ul>` +
@@ -289,18 +290,19 @@ export function privacyBody(site: Site, asOf: string): string {
     `and to limit abuse I keep only a salted one-way hash of it for a day’s counting. Error records are deleted automatically 90 days after the error was last seen.</p>` +
     // (T739) the push token: the owner's 2026-11-15 line ("Yes to both"), then his 2026-11-20 09:39 pick "Claude's edit":
     // iPhone / Apple only (no Android push), "I/my", and what the server keeps said whole. Change the app, change this.
-    `<h2>Push token</h2><p>On an iPhone, when notifications are on and at least one is set (a gauge alert, “New regulations data” ` +
-    `or “New app version”), the app sends my server a push token for this phone: an address Apple issues so a message can reach the app. ` +
+    `<h2>Push token</h2><p>On an iPhone, when notifications are on and at least one is set (a gauge alert or “New regulations data”), the app sends my server a push token for this phone: an address Apple issues so a message can reach the app. ` +
     `With it I keep only whether it is for Apple’s test or live push service and when it was registered. ` +
-    `I use it only to send, through Apple’s push service, a silent signal telling the app to check for new data; ` +
+    `I use it only to send, through Apple’s push service, a silent signal telling the app to check for new data and, when a new data release is out and your download setting allows it, to start downloading it; ` +
     `the signal carries no words, no waters and no location. I do not receive your alerts, the waters you watch or where you are. ` +
     `I do not store your IP address with it: to limit abuse I keep only a salted one-way hash of it for a day’s counting. ` +
     `The token is deleted when you turn notifications off, or when Apple tells me it no longer works. ` +
+    // (T1098 g) owner 2026-11-25: option 2, built by T1116 (PR #194): the page may go live only with or after the 0.9.1 app and the feeds worker deploy of T1116.
+    `From version 0.9.1, the app sends the token only while this phone lets it show notifications and at least one is on; if you turn notifications off for the app in the phone’s settings, the app tells my server to delete the token the next time you open it. A token the app has not sent again for 30 days is deleted (the app sends it again about once a week when you open it), and it is not used after those 30 days. ` +
     `It is not linked to you or to an account and is not backed up.</p>` +
     `<h2>This website</h2><p>The website serves plain pages. It sets no cookies and runs no advertising or tracking scripts; the scripts it runs are these: the visit counter described above (Cloudflare Web Analytics); on a river gauge page, the page’s own script, which reads that gauge’s latest flow and the weather forecast when the page opens, and the “Join the test” card’s script; and on a region page, a script for its water search, which reads that region’s list of water names from this website when you start typing. None of them sets a cookie or sends what you type or where you are; if one of them fails, a short error record (never what you typed) may be sent to my server, handled as the app’s error records described above. ` +
     `Cloudflare, which hosts it, sees ordinary request information such as your IP address.</p>` +
     `<h2>No selling, no sharing</h2><p>I do not sell your information, and I do not share it for advertising. ` +
-    `The services named above (Cloudflare, Open-Meteo, Esri, and Apple for push only) receive only the requests described here.</p>` +
+    `The services named above (Cloudflare, Open-Meteo, Esri, Apple for push and for the App Store version check, and Google Play for its update check) receive only the requests described here.</p>` +
     `<h2>Children</h2><p>The app is not aimed at children under 13 and does not knowingly collect their information. ` +
     `It asks for none beyond the optional report.</p>` +
     `<h2>Changes</h2><p>If this policy changes, this page will carry the new text and a new effective date.</p>` +
@@ -309,7 +311,7 @@ export function privacyBody(site: Site, asOf: string): string {
     `<p>Spots, photos, notes and settings live only on your device: delete them in the app, or uninstall the app, and they are gone.</p>` +
     `<p>To delete a problem report you sent (and any email address in it): write to ${mail} from that address, or with the date ` +
     `and the words of the report, and ask for it to be deleted. I delete it within 30 days and reply to confirm.</p>` +
-    `<p>Crash reports hold no name, email or place, only the random install id, which I cannot connect to a person; they are deleted automatically 90 days after the error was last seen. ` +
+    `<p>Crash reports hold no name, email or place, only the random install id, which on its own I cannot connect to a person. The one way it can be connected is a problem report you send with your email address: that report holds the email and the same install id in one record. Crash reports are deleted automatically 90 days after the error was last seen. ` +
     `Problem reports I am not asked to delete are deleted automatically 180 days after they are received. I keep nothing else about you.</p>` +
     `<h2>Contact</h2><p>Questions, or a request to delete a report: ${mail}.</p>` +
     `<p><a class="app" href="${esc(site.origin)}/">Open the app</a></p>`;
