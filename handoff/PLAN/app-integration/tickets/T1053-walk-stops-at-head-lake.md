@@ -1,6 +1,6 @@
 # T1053 — Eagle Creek "including tributaries": the walk stops at its head lake (Dick Lake), and Sources never says "tributaries"
 
-Status: PARTIAL — owner: OWNER-TODO "T1053 walk through a head lake" (read the rebuilt before/after list `T1053-shots/head-lakes-before-after.md`; the Sources words are approved). Lane L21, 2026-11-24: built on `feat/T1053-walk-climbs-head-lakes` (walk 21f13ae62, words 61829dbbf, own-row yield ab9cfb59b); nothing released.
+Status: PARTIAL — owner: OWNER-TODO "T1053 walk through a head lake" (read the rebuilt before/after list `T1053-shots/head-lakes-before-after.md`; the Sources words are approved). Lane L21, 2026-11-24: built on `feat/T1053-walk-climbs-head-lakes` (walk 21f13ae62, words 61829dbbf, own-row yield ab9cfb59b + 9159e65fc), draft PR #166; nothing released. Left (no build, proposals): the Technical detail's effective value (T1105); DFO places and licensing records do not climb (T1106).
 
 Source: in-app report `3eaf5ac25fc39d73` (staging feeds worker, the owner, 2026-11-24 18:45 UTC), reason "rule", on
 Eagle Creek `gnis:9405`, part 0, "Today, Nov 24", Regulations view, web, app 0.9.0 (build 43, 127bf43), release
@@ -240,3 +240,21 @@ not change); answers built on the climbed bundle with `ALL_YEAR_INHERITED_CLOSUR
 - A first run read a zone line ranked as a water (`z6:skeena_nass_winter_closure`) as a stream's own row and reopened
   56 Bulkley/Sustut tributaries; fixed (an own row must be an `r<region>:` water row), rerun, gone.
 - Lakes: 3,657 polygons live / 3,668 after, all listed by the process as pieces of streams; no lake water covered.
+
+## Review of #166 (fix round, lane L21, 2026-11-24 ~23:55 MST)
+
+Tests now pin what keeps closed streams closed (every reviewer mutation dies): the water-row guard (a zone line ranked
+as a water — `z6:skeena_nass_winter_closure`, the sturgeon and steelhead lines, 9,748 live sections — is never a stream's
+own row), only a NEARER ✱ row (`trib_nearer`), the own row must speak for the fish asked, partial closures never yield,
+an undrawn rule never yields, and `build.LICENSING_CLIMBS_HEAD_LAKES` (False, pinned in the policy test). The owner list
+now reads every answer key, named or not (Dove Creek's top piece + 19 unnamed pieces around Anderson Lake, 21.6 km,
+map), names the fish that reopen there (CT, DV, EB, GB, KO, LT, RB, ST; the rest stay closed), and has "where the climb
+closes, and where it opens or loosens" (Cameron River newly closed all year at the top; the Lardeau's exemptions and
+Perry Creek's brook trout 20 loosen).
+
+How the built rule reads the edge cases (no build change; none yields in today's data unless said):
+- a closure printed "Jan 1-Dec 31" carries dates, so it counts as DATED and still closes;
+- a one-species all-year closure ("No fishing for X") counts as FULL for that fish and yields like any other (5 inherited
+  rows are such; none yields today);
+- "X's tributaries" rows and watershed rows count as own rows when they are bound to the stream by their own place (none
+  yields today).
