@@ -3,7 +3,7 @@
 The page the owner pastes from is `handoff/PLAN/ios/APP-STORE-SUBMISSION.md`. This page keeps the counts, the flagged phrases and the picture check behind it.
 
 Written 2026-11-24 by the T1071 docs lane. Nothing is entered in App Store Connect. Counts were made with python `len()`.
-Apple limits are from memory of App Store Connect (check the live screen). Source of words: `handoff/PLAN/play/store-description.md` (owner decision 2026-11-14).
+Apple limits are from memory of App Store Connect (check the live screen). Source of words: `app/store-listing/listing.json` (owner decision 2026-11-14).
 
 # Part A: text to paste
 
@@ -46,7 +46,7 @@ First release on the App Store. Tap any lake, river or stream in British Columbi
 Why not the 0.9.0 changelog bullets: they describe changes from 0.8.5 (Sources tab, Class II line, bell). No App Store reader has seen 0.8.5. The proposal is built from the description's feature names.
 
 ### Description
-The paste block is in `handoff/PLAN/ios/APP-STORE-SUBMISSION.md` (section 4): the Play "Long description" of `handoff/PLAN/play/store-description.md`, unchanged, 3924 characters.
+The paste block is in `handoff/PLAN/ios/APP-STORE-SUBMISSION.md` (section 4): the Play "Long description" of `app/store-listing/listing.json`, unchanged, 3924 characters.
 
 ### URLs and other fields
 
