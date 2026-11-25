@@ -13,7 +13,7 @@ exact wording, the line says "check on the screen".
 |---|---|
 | Build for review | DECIDED (owner 2026-11-24): the newest iPhone production build when the pictures are ready (section 9). 0.9.0 (45) is uploaded and is fit for review. |
 | Pictures | WAIT. Owner 2026-11-24: the submission waits for the new set (T1072, store content chat). Same frames on both stores. |
-| Production push (T996) | NOT PROVEN. The production secrets are set (2026-11-24); the owner's iPhone gets no push token from iOS, cause open; a second iPhone is tried next (state in `RESTART-ios-release-chat.md`). Owner 2026-11-24: prove it soon, on build 45. The production feeds worker has no Apple push secrets (`/status.json`, read 2026-11-24 22:39 MST). Steps in section 10. |
+| Production push (T996) | NOT PROVEN, and no longer a gate. Owner 2026-11-25: the proof moves to after the iPhone release; a fix, if one is needed, ships as an update. The production secrets are set; the owner's iPhone gets no push token from iOS, cause open (state in `RESTART-ios-release-chat.md`). |
 | App Privacy "linked" answers | DECIDED (owner 2026-11-24): strict, linked (section 3). |
 | Countries | DECIDED (owner 2026-11-24): all 175 countries. So the EU trader status (section 1) is shown on EU store pages: OPEN, yours. |
 | Everything else | drafted below |
@@ -279,6 +279,10 @@ Because the submission now waits for the new pictures, the choice is made on the
 - Never a staging build.
 
 ## 10. Production push (T996): not proven yet
+
+**Owner 2026-11-25: this does not hold the submission.** It is finished after the release; if the cause is in the app,
+the fix goes out as an ordinary update (a new build through App Review, about a day). What users get meanwhile is the
+paragraph below.
 
 What is missing: the production feeds worker has no Apple push key, so it cannot wake any iPhone. Until it does, an
 iPhone still learns of new data from its own background check (when iOS allows, at best every 15 minutes or so, often

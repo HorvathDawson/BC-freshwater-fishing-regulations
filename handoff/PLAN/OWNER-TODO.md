@@ -74,6 +74,15 @@ with the default Claude uses until you answer). Newest first inside each section
 - Asked 2026-11-25 ~00:20: "in 0.9.1 we should make this page (https://canifishthis.ca/gauges) have a search
   option ... search by place or river etc to get gauge only"; "someone found the page by search so we want it
   usable". Ticket T1107, sent to the 0.9.1 chat; you get a picture of the page with results before it ships.
+- Relayed 2026-11-25 ~00:25 by the 0.9.1 chat (your words typed in ITS chat, not seen by the planning chat): "would
+  you be able to walk through the full release tonight of everything?" and "i will give you permission this one
+  time to do all prod commands needed". Its reading: for the 0.9.1 release only it runs the production steps itself;
+  not a standing permission; anything its permission check refuses comes back to you as a command. The standing
+  rule is unchanged for every other chat and release: CONFIRM_PROD is yours. Also relayed: Dove Creek (T1053), your
+  pick "Yes, if it is the right lake"; the lane is checking the Anderson Lake binding before #166 leaves draft.
+  What may miss the 0.9.1 cut because it waits on a pick of yours: the T1029 look, the T1098 privacy sentences,
+  the T1107 gauges-page picture, the T1052 part-year waters. T1098 matters most: the App Store submission waits on
+  the privacy page being live, so if it misses the cut it needs its own site deploy afterwards.
 - **Read (you): the head-lake walk, draft PR #166 (T1053)**, sent to you by the 0.9.1 chat ~23:55. The list:
   the file head-lakes-before-after.md in that PR's T1053-shots folder (22 head lakes, 42
   rules gain water, none lose). One decision inside it: Dove Creek above Anderson Lake reopens for catch and
@@ -89,10 +98,12 @@ with the default Claude uses until you answer). Newest first inside each section
 - Done 2026-11-24 ~23:30: you set the three push keys on the production feeds worker. The proof itself failed:
   your iPhone (0.9.0 (45)) is given no push token by the system, on Wi-Fi and on cellular (T996; the same as build 36
   on 11-16). Signing and the app's push code were checked and no fault found; no real iPhone has registered yet.
-- **Do (you), with the iOS chat: find why the iPhone gets no push token** (T996). In order: 1) restart the phone,
-  open the app, More → Notifications → Try again. 2) If still nothing: connect the phone to the Mac, open Console,
-  pick the phone, filter on `apsd`, press Try again, and send the lines to the iOS chat. 3) Or install the same
-  TestFlight build on a second iPhone and try there. The App Store submission waits on this.
+- **Do (you), AFTER the iPhone release (your call 2026-11-25 ~00:20: "we should move this to after iphone release
+  I think. we could fix with a patch?"): find why the iPhone gets no push token** (T996). Your Console log of 11-25 points to
+  the phone, not the app: that spare iPhone's push service holds no token at all. What is left is one step: install
+  the same TestFlight build on a second iPhone and try there. The App Store submission no longer waits on this; it waits
+  on the new pictures (T1072) and the privacy page words (T1098) only. Until push works, an iPhone learns of new
+  data only through iOS's own background check, which can be late.
 - Reported 2026-11-24 22:55 (0.9.1 chat): a network outage stopped its lanes 16:15–22:15, all restarted, nothing
   lost. T1087 (the Brunette closure on the whole river) was read against the printed row: right, nothing to change.
 - **Do (you): Play Production staged rollout of 0.9.0 (build 44), once Google grants production access** (T1046,
