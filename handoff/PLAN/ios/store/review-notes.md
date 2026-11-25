@@ -71,7 +71,7 @@ description and the review notes. A custom EULA would be a legal document to wri
 ## Things to check before pasting (outside the block)
 1. Every tap path in "How to reach each feature" is from the fact sheet (`handoff/PLAN/play/listing.md`) and the store
    description, not walked on iOS: confirm the names (Spots tab, Conditions, map mode control) on the first iOS build (IOS-1).
-2. "about 480 MB" is the owner's figure; the Play listing says about 500 MB (`store-description.md`). Check the size of the
+2. "about 480 MB" is the owner's figure; the Play listing says about 500 MB (`app/store-listing/listing.json`). Check the size of the
    release the review build installs and use one number in both places.
 3. The background-mode paragraph REPLACES the T365 line "downloads the next regulations release in the background": the code
    says the check "never downloads a release" (`app/apps/mobile/src/notify.native.ts:8-9`, task at `:75-96`). A
