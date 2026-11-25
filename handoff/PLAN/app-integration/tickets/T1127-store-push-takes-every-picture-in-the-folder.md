@@ -1,10 +1,10 @@
 # T1127 — The store push scripts upload every picture in a size folder, leftovers included
 
-Status: OPEN — before the next store upload if cheap, else 0.10.1
+Status: OPEN — now, the store chat (owner 2026-11-25: "we want this to be clean")
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1127 | The store push scripts upload every picture in a size folder, leftovers included | OPEN — before the next store upload if cheap, else 0.10.1 | | store chat 2026-11-25; owner clears 34 old pictures first |
+| T1127 | The store push scripts upload every picture in a size folder, leftovers included | OPEN — now, the store chat (owner 2026-11-25: "we want this to be clean") | | owner: "we can remove old store photos"; the 0.10.0 chat clears the main checkout |
 
 Source: the store content chat, 2026-11-25 12:15, after the 0.10.0 chat found 34 untracked pictures dated Nov 5 in
 the main checkout under `handoff/PLAN/app-integration/store/graphics/store/light/`. Not checked by the planning chat.
@@ -29,4 +29,4 @@ Until then (owner page): clear the 34 old pictures from the main checkout, or up
 `--plan` must show 7 pictures per size.
 
 Severity: medium (wrong pictures on a public listing; only on a machine that has the leftovers). Model: Sonnet.
-Size: S. Owner: yes (clears the old pictures: nothing there is deleted without his word).
+Size: S. Owner: no (2026-11-25 12:15: "we can remove old store photos. we want this to be clean").
