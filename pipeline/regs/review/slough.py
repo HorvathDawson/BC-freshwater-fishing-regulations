@@ -30,7 +30,7 @@ AUTOMARK = GENERATED.sloughs / "slough-automark.json"
 FINDER = GENERATED.sloughs / "candidates_v2.json.gz"
 #: the retired review page's database, read once (2026-10-28): the owner's free-text notes live only here
 PAGE_MARKS = CURATED.waters.slough_page_calls          # T331: declared in config.yaml; never env-overridable
-#: the width rule's cut (slough-automark.md): at or under this the owner called it stream 96% of the time
+#: the width rule's cut (the slough-automark report, cut in T1081): at or under this the owner called it stream 96% of the time
 NARROW_M = 44.0
 
 #: the queue's groups, in review order

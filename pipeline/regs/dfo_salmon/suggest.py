@@ -1307,7 +1307,7 @@ def _hunt_md(rows: list[dict], hunt: Mapping) -> str:
     syn = hunt.get("synopsis") or {}
     if syn:
         L += ["", "## Synopsis-side cuts (owner 2026-10-27: guessed LOW)", "",
-              "Not DFO locations — the synopsis rules' missing cuts (split-name-audit.md); for the owner to place.", ""]
+              "Not DFO locations — the synopsis rules' missing cuts (the split-name audit, cut in T1081); for the owner to place.", ""]
         for rid, v in syn.items():
             L.append(f"- **{rid}** — \"{v['text']}\": {v['proposal']}. Sources: {' ; '.join(v.get('sources') or [])}")
     return "\n".join(L) + "\n"

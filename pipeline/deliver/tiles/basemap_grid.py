@@ -11,7 +11,7 @@ vertices are dropped, and so are the rings and lines that collapse.
 
 Roads, places and boundaries are copied byte for byte: roads keep 4096, so a trail is never stair-stepped.
 
-Measured 2026-10-27 (handoff/PLAN/tiles/T202-basemap-audit.md):
+Measured 2026-10-27 (the T202 basemap audit, cut in T1081):
 - About −15% of the archive.
 - Shots at z10/12/14/16, light and dark, at Vancouver, Squamish backcountry, Chilcotin and Lac Le Jeune: at most
   0.19% of pixels differ (one-pixel shifts on river and coast edges). Nothing visible by eye.

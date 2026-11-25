@@ -22,7 +22,7 @@ const SOURCE_WORDS: Record<string, string> = {
   tidal_gauge: "tidal gauge",
 };
 const PROBLEMS = ["split misplaced", "wrong water", "split missing"];
-/** the triage classes and what they mean (T212 follow-up, `tidal-triage.md`); "review" = missed + sanity + multi-crossing */
+/** the triage classes and what they mean (T212 follow-up, the tidal-triage summary `tidal_triage` writes); "review" = missed + sanity + multi-crossing */
 export const TRIAGE_WORDS: Record<string, string> = {
   missed: "missed — words disagree, polygon unedited", sanity: "sanity — edited, but words disagree",
   "multi-crossing": "multi-crossing — the line goes in, out, in again (gaps filled)",

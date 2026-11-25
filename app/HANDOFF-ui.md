@@ -102,7 +102,6 @@ layers, 2 changed"). Adding a layer is one entry. Rules:
 - The sheet still opens from the Map tab only (`layersVM("map", …)`). The registry's `views` is the slot if Layers
   ever goes on the Conditions map.
 - The Map-tab legend strip WRAPS (`LegendStrip wrap`), so nothing overflows at 390 px.
-Shots: `handoff/PLAN/app-data/layers-menu/built/`.
 
 **Map.** Conditions colours by Flow, Level or Both. Gauge dots carry pill labels on the same
 ramp as the water; below z7 the water fades and each station becomes a soft disc. Route
@@ -110,7 +109,7 @@ reaches paint in `color.highlight` with downstream arrowheads.
 
 **Satellite and the phone's connection (owner 2026-10-21, late).** Esri World Imagery ships KEYLESS, as the original
 app did ("this is a non profit app"); `EXPO_PUBLIC_ARCGIS_API_KEY` is optional config (`apps/mobile/src/config.ts`,
-`handoff/PLAN/app-data/satellite/esri/README.md`). A phone hears itself go offline through
+the Esri terms are in the header of `packages/core/src/imagery.ts`). A phone hears itself go offline through
 `@react-native-community/netinfo` 12.0.1 (Expo SDK 57's and 58's version; why it is worth a native module: `deps.md`): one file
 names it (`ui-native/src/connectivity.native.ts`, loaded lazily), `netInfoConnectivity.ts` reads it (offline only on a
 definite no; each change said once). The one-tile probe stays as the fallback (`useImageryReach`: on choosing, on

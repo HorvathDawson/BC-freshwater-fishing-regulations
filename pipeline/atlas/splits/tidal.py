@@ -291,7 +291,7 @@ def read_resolved(build_dir) -> list[dict]:
 # ------------------------------------------------------------------------------------------------
 
 #: THE TIDAL PIECE IS THE WATER BELOW THE CUT, AND ONLY THAT WATER (owner 2026-10-28, RULINGS C-2;
-#: handoff/PLAN/curation-review/tidal/tributary-impact.md): `downstream_of` the tidal split on the water(s) that carry
+#: the tributary-impact report, cut in T1081): `downstream_of` the tidal split on the water(s) that carry
 #: it, by the same resolver a rule's extent uses (`reach.extent.resolve_extent`, AGENTS 16: one resolver; route measure
 #: on the cut's own blue line, braid channels cut at build). No tributary is part of it: a stream entering the tidal
 #: piece keeps its own water and stays its river's tributary — the walk runs on the full network and the reach takes

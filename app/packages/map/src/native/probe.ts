@@ -1,6 +1,6 @@
 /**
  * THE GREY-FRAME PROBE (T74) — development measurement only, the native counterpart of the colour-latency harness's
- * probe (handoff/PLAN/app-data/colour-latency). On while `globalThis.__colourProbe` is set (apps/mobile sets it from
+ * probe (the colour-latency harness, since cut from the repo). On while `globalThis.__colourProbe` is set (apps/mobile sets it from
  * `EXPO_PUBLIC_COLOUR_PROBE=1` in a development build); otherwise `colourProbe` returns null and the map registers no
  * frame listener at all.
  *

@@ -162,7 +162,7 @@ walk (T749); since T1003 `apps/mobile/plugins/with-r8.js` turns it on for every 
   there). Imported by exactly one file, `packages/map/src/Map.native.tsx`. **Android `nativeVariant: "vulkan"` is
   PROVISIONAL**: N1 measured 51–60 fps against the default OpenGL ES's 21–35 fps at z9–11, on the EMULATOR only (its
   GLES runs through a GLES→Metal translator); it must be A/B'd on a real mid Android phone before it is kept. Cost: the
-  native library per ABI plus ~1 MB of JS. Results: `handoff/PLAN/app-data/N1-SPIKE.md`, `n2/README.md`.
+  native library per ABI plus ~1 MB of JS. (The N1 spike's write-up was cut in T1081; git history holds it.)
   **PATCHED (T74 Android, T217 iOS, `app/patches/@maplibre__maplibre-react-native@11.5.0.patch`,
   `pnpm.patchedDependencies`)**: (1) the atlas `VectorSource` reports each tile it requests (MapLibre Native's `OnTileActionListener`) with the
   tile's MVT feature ids, read off the UI thread from the same local `.pmtiles` (`TileIds.kt`), as the device event

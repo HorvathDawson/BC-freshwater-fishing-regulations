@@ -274,7 +274,7 @@ species' own closure (closed either way).
 
 ## Kept city-layer names that are not real names (and labels that look wrong)
 
-**2026-10-29 · owner review · city layers (Burnaby, Port Moody, Squamish) · `handoff/PLAN/audit/c1029-owner-review.md`**
+**2026-10-29 · owner review · city layers (Burnaby, Port Moody, Squamish)**
 
 Names are shown **as sourced** (owner rule). City layers keep any feature that carries a name, so some kept
 "names" are asset codes or design designations, and some labels land on the wrong FWA line. This is a
@@ -442,7 +442,7 @@ it as a confirmed name in audits or when matching other sources.
 
 ## The Kasiks "Upper Pool" is a place we inferred
 
-**2026-11-15 · owner asked for the proposal · DFO salmon Region 6 · `data/generated/review/dfo-split-hunt.json` cut `kasiks_upper_pool_signs`, report `handoff/PLAN/curation-review/kasiks-upper-pool-2026-11-15.md`**
+**2026-11-15 · owner asked for the proposal · DFO salmon Region 6 · `data/generated/review/dfo-split-hunt.json` cut `kasiks_upper_pool_signs`**
 
 DFO splits the Kasiks River for coho at "fishing boundary signs located below the Upper Pool" (closed all year above,
 Sep 1 to Oct 31 open below). No public source names or locates "the Upper Pool": the wording is the same in the

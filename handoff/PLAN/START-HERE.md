@@ -33,11 +33,9 @@ One page, one pointer (T437): a new chat reads, in order,
 **After 0.9.0:** the chats, their order and the prompts to paste are in `handoff/PLAN/ROADMAP-after-0.9.0.md` (owner 2026-11-24).
 The 0.9.1 follow-ups chat (roadmap row 2) keeps its own restart page: `handoff/PLAN/RESTART-091-chat.md`.
 
-A second chat working the parked tickets (T667 rest, T686, T602, loose nits) reads `handoff/PLAN/PARKED-TICKETS.md` instead of step 2; iOS: `handoff/PLAN/ios/START-HERE-ios.md`.
+Parked work is tickets now (the ledger is the work list); iOS: `handoff/PLAN/ios/START-HERE-ios.md`.
 
 iOS hardening (owner reopened it 2026-11-14, own chat, simulator work first): `handoff/PLAN/ios/START-HERE-ios.md`.
 
 When a newer restart page is written, point line 2 here at it and delete the one it replaces (git keeps it). Pages
-that are not restart pages: `INBOX.md` (the owner's notes), `OWNER-PHONE.md` (what to watch for in testers' reports),
-`ticket-audit-2026-11-05.md` (proposals waiting on the owner), `implement_progress.md` and `IMPLEMENT-HANDOFF.md`
-(history still cited from code and tickets).
+that are not restart pages: `INBOX.md` (the owner's notes), `OWNER-PHONE.md` (what to watch for in testers' reports).

@@ -562,10 +562,10 @@ def read_braids(db, meta: dict, reach_dir: Path) -> List[dict]:
     scope (rule_id '') is the entry's `extents`."""
     # E15 IS GONE (T67, owner 2026-10-24): a braid across a cut is CUT at build (`splits.braid_sweep`), so
     # the bundle no longer marks one (`section_straddle` was dropped). The proposed cuts are reviewed from
-    # handoff/PLAN/braids/v2/cuts.json instead.
+    # the braid cuts file (braids/v2/cuts.json in the old handoff plan folder, cut in T1081; git history) instead.
     if not db.execute("SELECT 1 FROM sqlite_master WHERE name = 'section_straddle'").fetchone():
         raise SystemExit("water_map_export --braids: this bundle has no `section_straddle` — E15 is gone "
-                         "(T67: braids are cut at build); review handoff/PLAN/braids/v2/cuts.json")
+                         "(T67: braids are cut at build); the braid cuts review was retired in T1081")
     report = json.loads((reach_dir / "report.json").read_text())
     if report.get("digest") != meta["reach_digest"]:
         raise VintageError(f"water_map_export: reach run {reach_dir} is {report.get('digest')}, the bundle "

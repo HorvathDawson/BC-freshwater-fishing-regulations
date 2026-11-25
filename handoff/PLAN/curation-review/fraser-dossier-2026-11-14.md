@@ -4,7 +4,7 @@ For labelling the Fraser's DFO places one at a time. Read-only on marks: nothing
 `marks.jsonl`, `cuts.json` or `dfo-suggestions.json`. River km are FWA route measures on the Fraser main line
 (blk 356364114), from the atlas the release was built on (`atlas/full`, release r-f749475d0962).
 
-**2026-11-15:** the side channels (Seabird Island North, Herrling Island, Jeperson are in no item of the water record), the nine cuts checked against OSM and the ready-to-run rebuild list are in `handoff/PLAN/curation-review/fraser-channels-2026-11-15.md`.
+**2026-11-15:** the side channels (Seabird Island North, Herrling Island, Jeperson are in no item of the water record), the nine cuts checked against OSM and the ready-to-run rebuild list are in the Fraser-channels note (cut in T1081; git history).
 
 ## RESET 2026-11-14 23:35 — the Fraser places are unmarked again
 

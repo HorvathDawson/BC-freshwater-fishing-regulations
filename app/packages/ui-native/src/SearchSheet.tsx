@@ -1,7 +1,7 @@
 /**
  * (T48) SEARCH'S RESULTS SHEET, over the SAME map: names, aliases, and the towns you can ask "what is near here" about.
  *
- * Today's search screen became this sheet (approved transition, handoff/PLAN/app-data/search-topbar option 1): the top
+ * Today's search screen became this sheet (approved transition, the search-topbar mockups, option 1): the top
  * bar's field takes focus in place, the map behind stays MOUNTED and dims, and this sheet rises over it. There is no
  * preview map any more: the MAIN map frames what the reader looks at (`useSearchSession`'s focus, drawn by the Shell),
  * so a second MapLibre is never made.

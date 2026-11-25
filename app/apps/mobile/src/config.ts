@@ -99,7 +99,7 @@ export const MENU_INFO = {
  * app"): unset, the template is Esri's own ArcGIS Online World_Imagery MapServer, as the original app used, and that is
  * what ships. `EXPO_PUBLIC_ARCGIS_API_KEY` is OPTIONAL config: an ArcGIS Location Platform key (restricted by referrer /
  * app in the ArcGIS dashboard) switches the tiles to Esri's keyed endpoint, counted against that account's free tier.
- * Esri's terms on the keyless path: handoff/PLAN/app-data/satellite/esri/README.md. Never a key in the code.
+ * Esri's terms on the keyless path: app/packages/core/src/imagery.ts. Never a key in the code.
  */
 export const IMAGERY_TILES = imageryTiles(process.env.EXPO_PUBLIC_ARCGIS_API_KEY?.trim() || null);
 
