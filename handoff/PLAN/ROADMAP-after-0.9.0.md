@@ -135,8 +135,9 @@ Triage of everything ticketed since the roadmap was written. Severity / model / 
 > First make a scratchpad worktree of origin/main and read from it. Then START-HERE.md (step 0),
 > ROADMAP-after-0.9.0.md row S, T1072, T1076, T319. You orchestrate on Fable; scope frozen to T1072 + T1076; Sonnet
 > lanes, at most 2, one review round. First fix the reshoot tool (T1076) so it builds its own store-shots export.
-> Then show me 2–3 directions for the screenshot set as pictures, in chat, and wait for my pick. Then one set in
-> every Play and App Store size and one source of listing words for both stores and the website. No uploads to
+> Then show me 2–3 directions for the screenshot set as pictures, in chat, and wait for my pick. Then ONE new set
+> from the 0.9.x app, the same frames for Android and iPhone (my ask of 11-24), in every Play and App Store size, in
+> the repo where the push script looks, and one source of listing words for both stores and the website. No uploads to
 > either store: hand me the files and the steps. New finds go to the planning chat.
 
 **2b. 0.9.2 hardening (after chat 3)**
