@@ -25,3 +25,7 @@ Owner 2026-11-25 13:43, in the store chat (relayed): "hold play p[ictures until 
 picture upload until just before the production release; by then this ticket is fixed and play-phone frame 3 is
 reshot (the store chat's tool, or T1131's workflow). So this ticket now gates the Play listing pictures: whoever
 closes it tells the planning chat and the chat that holds the picture tool.
+
+The reshoot (store chat, 2026-11-25, as it closed): the ready store-shots export was in a worktree that is gone, and
+this ticket changes the app, so build a fresh export, without `--reuse`:
+`scripts/heavy.sh store-shots 30 -- node app/tools/store-shots.mjs --theme light --scenes <nn> --only play-phone`.
