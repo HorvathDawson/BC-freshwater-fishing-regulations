@@ -75,7 +75,7 @@ The version number must equal the build's: `0.9.0` for build 45 (rename the wait
 
 | Field | Answer |
 |---|---|
-| Screenshots | READY. iPhone 6.9": the 7 files in `handoff/PLAN/app-integration/store/graphics/store/light/appstore-6.9/` (1320 x 2868), in file-name order 01 to 07. iPhone 6.5" (optional): the 7 in `appstore-6.5/` (1242 x 2688). By hand: drag them onto the screen in that order. Or by script from the main checkout: `.venv/bin/python deploy/staging/appstore-screenshots-push.py` shows the plan and sends nothing, `--check` reads App Store Connect only, `--commit` uploads and is yours to run. No iPad pictures (iPhone only). If the screen also demands another iPhone size, tell this chat. |
+| Screenshots | READY. iPhone 6.9": the 7 files in `handoff/PLAN/app-integration/store/graphics/store/light/appstore-6.9/` (1320 x 2868), in file-name order 01 to 07. iPhone 6.5" (optional): the 7 in `appstore-6.5/` (1242 x 2688). By hand: drag them onto the screen in that order. By hand is the safe way today. The script (`deploy/staging/appstore-screenshots-push.py`: no arguments shows the plan and sends nothing, `--check` reads App Store Connect only, `--commit` uploads and is yours to run) takes every PNG in a size folder, and the main checkout holds old untracked pictures in these folders (found 2026-11-25), so from there it would mix old pictures in. Use it only once T1127 (PR #202) is on main or those old files are cleared, and only when the plan shows exactly 7 per size, named 01-01-map to 07-06-search. No iPad pictures (iPhone only). If the screen also demands another iPhone size, tell this chat. |
 | App preview video | none (optional) |
 | Promotional Text (170) | PASTE block below |
 | Description (4000) | PASTE block below (3924) |
@@ -274,8 +274,8 @@ Known small things in build 45: About may say "build 44"; the privacy manifest i
 labels above carry (Product Interaction, the Analytics purpose) and marks every type "not linked" (T1099, next iPhone build). Apple does not compare these at review.
 
 Because the submission now waits for the new pictures, the choice is made on the day they are ready:
-- The newest iPhone production build uploaded by then. If 0.9.1's iPhone build exists and push is
-  proven on it, send 0.9.1 (the version page is then named 0.9.1). If not, send 0.9.0 (45).
+- The newest iPhone production build uploaded by then. The release once called 0.9.1 is cut as 0.10.0 (owner
+  2026-11-25). If the 0.10.0 iPhone build is on TestFlight, send it (the version page is then named 0.10.0; push proof is no longer a gate). If not, send 0.9.0 (45).
 - Never a staging build.
 
 ## 10. Production push (T996): not proven yet

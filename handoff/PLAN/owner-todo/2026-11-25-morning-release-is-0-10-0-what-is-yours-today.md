@@ -33,3 +33,6 @@ order: 770
   into the listing (T1127 fixes the scripts). When the 0.10.0 release no longer runs from that checkout: `git clean
   -n` on that one folder to see the list, then `git clean -f` on it; or upload from a clean checkout of main. Then
   `--plan` must show 7 pictures per size. No chat deletes them for you.
+  **Answered 12:15, your words: "we can remove old store photos. we want this to be clean".** So it is no longer
+  yours to do: the 0.10.0 chat, which holds that checkout, removes them (a dry run first, that one folder only, stop
+  if anything else is listed), and the store chat builds T1127 now so a leftover can never ride along again.

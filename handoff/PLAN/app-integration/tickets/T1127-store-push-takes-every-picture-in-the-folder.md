@@ -1,10 +1,10 @@
 # T1127 — The store push scripts upload every picture in a size folder, leftovers included
 
-Status: IN PROGRESS — PR open on fix/T1127-push-refuses-strays; left (Claude): merge it
+Status: DONE (8702e420b, PR #207)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1127 | The store push scripts upload every picture in a size folder, leftovers included | IN PROGRESS — PR open on fix/T1127-push-refuses-strays; left (Claude): merge it | 8702e420b | owner still clears the 34 old pictures |
+| T1127 | The store push scripts upload every picture in a size folder, leftovers included | DONE (8702e420b, PR #207) | 8702e420b | the 0.10.0 chat clears the 34 old pictures from the main checkout (owner 2026-11-25: "we can remove old store photos") |
 
 Source: the store content chat, 2026-11-25 12:15, after the 0.10.0 chat found 34 untracked pictures dated Nov 5 in
 the main checkout under `handoff/PLAN/app-integration/store/graphics/store/light/`. Not checked by the planning chat.
@@ -29,7 +29,7 @@ Until then (owner page): clear the 34 old pictures from the main checkout, or up
 `--plan` must show 7 pictures per size.
 
 Severity: medium (wrong pictures on a public listing; only on a machine that has the leftovers). Model: Sonnet.
-Size: S. Owner: yes (clears the old pictures: nothing there is deleted without his word).
+Size: S. Owner: no (2026-11-25 12:15: "we can remove old store photos. we want this to be clean").
 
 ## Done (lane, 2026-11-25)
 - `deploy/staging/store_shots_list.py` mirrors store-shots.mjs (the 1-based `NN-<scene>.png` of each target's list) from
