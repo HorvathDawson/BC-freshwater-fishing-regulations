@@ -6,7 +6,7 @@
 import { useContext } from "react";
 import { View } from "react-native";
 import { Text } from "../../Text";
-import { WORDS, type SourceRowVM } from "@app/core";
+import { OPEN, WORDS, type SourceRowVM } from "@app/core";
 import { TYPE } from "../../type";
 import type { Palette } from "../../theme";
 import { LineText, TermTitles, termLabel, type KeepActions } from "../LineText";
@@ -27,7 +27,7 @@ function Row({ r, palette, actions }: { r: SourceRowVM; palette: Palette; action
   return (
     // (T1036) a rule's row names its rule for tests (`rule-row:<key>`): which rules a sheet lists, not only their pages
     <View style={{ paddingVertical: 6 }} testID={r.key ? `rule-row:${r.key}` : undefined}>
-      {r.key ? <RegsPress accessibilityRole="button" accessibilityLabel={r.title ?? r.quote} onPress={() => actions.onSheet(`rule:${r.key}`)} box={LINE}>{words}</RegsPress> : words}
+      {r.key ? <RegsPress accessibilityRole="button" accessibilityLabel={r.title ?? r.quote} onPress={() => actions.onSheet(OPEN.rule(r.key!))} box={LINE}>{words}</RegsPress> : words}
       <Text style={[TYPE.meta, { color: palette.sub }]}>
         <Text>{r.role}</Text>
         {r.role && r.book.length > 0 ? <Text>{" "}</Text> : null}
@@ -43,10 +43,10 @@ function Card({ r, where, palette, actions }: { r: SourceRowVM; where: string; p
     <View style={{ paddingVertical: 6, borderTopWidth: 1, borderTopColor: palette.line }}>
       {/* (T40) the tributaries ⓘ on its own line: a press grown to 44 × 44 around the glyph, named for the one word */}
       {r.trib ? <RegsPress accessibilityRole="button" accessibilityLabel={termLabel(["tributaries"], titles)} box={{ w: 16, h: TYPE.metaBold.lineHeight }}
-                           onPress={() => actions.onSheet("gl:tributaries")} style={{ alignSelf: "flex-start" }}>
+                           onPress={() => actions.onSheet(OPEN.terms(["tributaries"]))} style={{ alignSelf: "flex-start" }}>
                   <Text style={[TYPE.metaBold, { color: palette.accent }]}>{WORDS.TERM_ONE}</Text>
                 </RegsPress> : null}
-      <RegsPress accessibilityRole="button" accessibilityLabel={r.quote} disabled={!r.key} onPress={() => r.key && actions.onSheet(`rule:${r.key}`)} box={LINE}>
+      <RegsPress accessibilityRole="button" accessibilityLabel={r.quote} disabled={!r.key} onPress={() => r.key && actions.onSheet(OPEN.rule(r.key))} box={LINE}>
         <Text style={[TYPE.regsBody, { color: palette.ink }]}>{WORDS.SHEET_QUOTED(r.quote)}</Text>
       </RegsPress>
       {where ? <Text style={[TYPE.meta, { color: palette.sub }]}>{where}</Text> : null}
