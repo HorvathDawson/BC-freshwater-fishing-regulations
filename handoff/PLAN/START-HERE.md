@@ -1,41 +1,27 @@
 # Start here
 
-One page, one pointer (T437): a new chat reads, in order,
+A new chat reads, in order:
 
-0. **Reports first, every chat** (owner 2026-11-22: "always look for more reports on Apple external test, feed
-   worker, etc."). One read-only command (T1006) reads every source: both feeds workers' reports + crashes (GET only),
-   TestFlight tester feedback + the external review state, and Play reviews:
-   `.venv/bin/python -m pipeline reports` (`--since YYYY-MM-DD`, `--only worker-prod,worker-staging,testflight,play`,
-   `--no-save`, `--json`). Each item says the ticket that cites its id, or NEW. Anything NEW becomes a ticket that
-   writes the report id / crash hash in it; then add a "Store checks" item: a new file in `handoff/PLAN/owner-todo/` (T1041). The last-check time
-   is kept in `cache/reports-last-check.json` (git-ignored; moved only when every source was read). Play closed-testing
-   feedback has no API: ask the owner whether any came in.
-   **Every new piece of feedback (a report, a crash kind, a TestFlight item, Play testing feedback, anything a tester told
-   the owner) becomes a ticket AND a row in `handoff/PLAN/play-production-access/feedback-log.md`** (anonymous tag, no
-   names; T1046, the production-access record, until Google approves). Keep `questionnaire-draft.md` in step with it (Q3, Q7, Q8); each release updates it (runbook Step 8).
+0. **Reports first, every chat.** `.venv/bin/python -m pipeline reports` (`--since YYYY-MM-DD`, `--only
+   worker-prod,worker-staging,testflight,play`, `--no-save`, `--json`; read-only) reads both feeds workers' reports and
+   crashes, TestFlight feedback and review state, and Play reviews; each item names the ticket that cites it, or NEW.
+   Play closed-testing feedback has no API: ask the owner. **Every new piece of feedback (a report, a crash kind, a
+   tester's word, Play feedback) becomes a ticket AND a row in `handoff/PLAN/play-production-access/feedback-log.md`**
+   (anonymous tag, no names; T1046). Keep `questionnaire-draft.md` in step with it.
 1. `AGENTS.md` (every rule), then `CLAUDE.md`.
-2. The newest restart page: **`handoff/PLAN/NEXT-SESSION-2026-11-24-after-090.md`** (written 2026-11-24: 0.9.0 shipped
-   everywhere; the next chat comes from `ROADMAP-after-0.9.0.md`).
-3. The top entry of `handoff/PLAN/STATUS.md` (what changed last), and the owner to-do (what only the owner can do):
-   `node app/tools/ledger.mjs` builds it into `handoff/PLAN/views/OWNER-TODO.md` from one file per item in
-   `handoff/PLAN/owner-todo/` (T1041; `handoff/PLAN/OWNER-TODO.md` says how to add one). A view may be stale (the hooks
-   rebuild it after a checkout, merge, commit or rebase): `node app/tools/ledger.mjs` rebuilds, `--check` says.
-4. Chat length (owner 2026-11-21): recommend a new chat at natural breaks (a release shipped, a batch done) and /compact
-   before a heavy step when the context is long. Update the restart page first.
-5. The work list: `handoff/PLAN/views/LEDGER.md` (the ledger of rows in work, built by `node app/tools/ledger.mjs` from the
-   row each ticket file holds under its Status line; closed rows: `views/DONE.md`; a new ticket also claims its number:
-   `node app/tools/ledger.mjs --claim`). How tickets work, and the owner
-   questions: `handoff/PLAN/app-integration/tickets/README.md`. Tickets are the sole source of work.
-6. The branch (T995, `AGENTS.md` W47): `main` is the protected trunk. Work on a short-lived branch from a fresh
-   `origin/main` (`feat/`, `fix/`, `perf/`, `test/`, `ci/`, `docs/`, `chore/` + ticket id; commits and PR titles `type(Tnnn): subject`), open a PR with auto-merge, never push to
-   `main`; a release ships from its `release/<version>` branch. Hooks: `git config core.hooksPath .githooks`.
+2. Your chat's restart page: one short page per live chat (60 lines at most, deleted when its chat ends):
+   - `handoff/PLAN/restart/cleanup.md`: the clean-up chat (T1081).
+   - Not yet moved into `restart/` (their chats edit them where they are): `handoff/PLAN/RESTART-091-chat.md`,
+     `handoff/PLAN/RESTART-repo-move-chat.md`, `handoff/PLAN/RESTART-store-content-chat.md`,
+     `handoff/PLAN/ios/RESTART-ios-release-chat.md`.
+3. What changed last: the top entry of `handoff/PLAN/STATUS.md`.
+4. The work: `handoff/PLAN/views/LEDGER.md` (rows in work; closed rows `views/DONE.md`) and `handoff/PLAN/views/OWNER.md`
+   (what only the owner can do), both built by `node app/tools/ledger.mjs` (`--check` says if stale; `--next` / `--claim`
+   take a new ticket's number). Tickets are the sole source of work; how they work and the `## Owner` block format:
+   `handoff/PLAN/app-integration/tickets/README.md`.
+5. Branches (`AGENTS.md` W47): `main` is the protected trunk; work on a short-lived `type/Tnnn-slug` branch from a fresh
+   `origin/main`, open a PR with auto-merge, never push to `main`. A release ships from `release/<version>`.
+6. The chats, their order and prompts: `handoff/PLAN/ROADMAP-after-0.9.0.md`; iOS: `handoff/PLAN/ios/START-HERE-ios.md`.
 
-**After 0.9.0:** the chats, their order and the prompts to paste are in `handoff/PLAN/ROADMAP-after-0.9.0.md` (owner 2026-11-24).
-The 0.9.1 follow-ups chat (roadmap row 2) keeps its own restart page: `handoff/PLAN/RESTART-091-chat.md`.
-
-Parked work is tickets now (the ledger is the work list); iOS: `handoff/PLAN/ios/START-HERE-ios.md`.
-
-iOS hardening (owner reopened it 2026-11-14, own chat, simulator work first): `handoff/PLAN/ios/START-HERE-ios.md`.
-
-When a newer restart page is written, point line 2 here at it and delete the one it replaces (git keeps it). Pages
-that are not restart pages: `INBOX.md` (the owner's notes), `OWNER-PHONE.md` (what to watch for in testers' reports).
+Recommend a new chat at natural breaks (a release shipped, a batch done) and /compact before a heavy step; update the
+restart page first. Not restart pages: `handoff/PLAN/INBOX.md` (the owner's notes), `handoff/PLAN/OWNER-PHONE.md`.
