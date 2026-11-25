@@ -34,3 +34,9 @@ Yes for everything except the transfer click itself. The facts are from T1041's 
 its gates and its scripts carry the repo's name; a redirect probably covers both, but "probably" in the middle of a
 production release costs more than the 20 minutes saved. With part 1 done, the click can follow the merge-back at
 once.
+
+**13:11: the org exists.** Your words: "okay i created org ... org is https://github.com/canifishthis", and "the repo
+in should be renamed too maybe?" The new owner is `canifishthis`. The rename is the repo-move chat's first question
+to you (planning chat's proposal: rename to `canifishthis` in the same cutover, so the slug flip is one change and
+the address reads canifishthis/canifishthis; GitHub redirects the old name too, as long as nobody makes a new repo
+at the old one). Actions minutes: a public repo is not counted, in an org as on a personal account.

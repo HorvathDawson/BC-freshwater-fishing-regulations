@@ -128,7 +128,7 @@ Triage of everything ticketed since the roadmap was written. Severity / model / 
 > scope frozen to T1041's move, T1120 and T1062; one lane at a time (Sonnet for docs and the slug flip, Opus only for
 > the worker token path), one review round.
 > Order (the plan is the owner item "repo move, the org set up in the background" of 2026-11-25 12:25).
-> (1) Prepare while 0.10.0 is still being released, changing nothing live; I create the free org now and tell you its name: the list of everything that names
+> (1) Prepare while 0.10.0 is still being released, changing nothing live; the free org exists: github.com/canifishthis (owner 2026-11-25); ask me first whether the repo is renamed in the same cutover (planning chat proposes `canifishthis`): the list of everything that names
 > the repo or my account, the slug-flip commit as a draft PR, the token steps, the ruleset and merge-queue settings
 > written down, and T1120's list of what lives outside git. (2) THE MOVE ITSELF ONLY AFTER 0.10.0 IS ON PRODUCTION
 > and release/0.10.0 is merged back (ask the planning chat, session in "Who is who"): then walk me through the move
