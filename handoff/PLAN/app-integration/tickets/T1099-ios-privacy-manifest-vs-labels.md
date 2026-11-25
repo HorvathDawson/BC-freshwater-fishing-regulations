@@ -1,6 +1,6 @@
 # T1099 — iPhone: the privacy manifest does not match the App Privacy labels the owner decided
 
-Status: OPEN.
+Status: DONE — 4f703f6a2 (app.json manifest matches the labels; `app/tools/privacy-manifest.test.ts` compares them to `handoff/PLAN/ios/APP-STORE-SUBMISSION.md`). Ships with the next iPhone build.
 
 Source: iOS release chat 2026-11-24 ~23:40, its read of build 0.9.0 (45) at 65f84020c for T1071 (App Privacy and review risk). File: `app/apps/mobile/app.json` lines 74–131.
 
