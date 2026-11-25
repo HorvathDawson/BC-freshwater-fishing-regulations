@@ -113,17 +113,27 @@ describe("(T1140) the Regulations head says which part of how many, as the Map t
     }
   }, 240_000);
 
-  it("the page WAITS for the map's reading: with the live salmon slow to come, no page is drawn without 'Part n of m'", async () => {
-    // the salmon slices answer 1.5 s late (a slow line on the web): until then the map cannot know which pieces join, so
-    // the count it will say is not known — the page is drawn only after they came
+  it("the page WAITS for the water's parts: with their read slow to come, no page is drawn without 'Part n of m'", async () => {
+    // the group's read of the water's areas (the one query only it asks: `siblingOrds`) answers 1.5 s late
+    let came = false;
+    const late = <T,>(v: Promise<T>) => new Promise<T>((res) => setTimeout(() => { came = true; res(v); }, 1500));
+    const slow = openRegsFixtureWithLines(undefined, { db: (name, d) => name !== "core" ? d : {
+      all: (sql, ...ps) => (/part_of = \(SELECT COALESCE/.test(sql) ? late(d.all(sql, ...ps)) : d.all(sql, ...ps)),
+      get: (sql, ...ps) => d.get(sql, ...ps) } });
+    const head = await regsHead("gnis:8634", null, slow, () => came);
+    expect(head.where).toBe(await mapSays("gnis:8634", null));
+  }, 60_000);
+
+  it("the page does NOT wait for the live salmon (T1049): drawn while it is coming, already saying 'Part n of m'", async () => {
+    // the salmon slices answer 3 s late: the page is drawn before them, its count the map's of that moment (nothing joined)
     let came = false;
     const slow = new Proxy(loader, { get(t, k) {
-      if (k === "salmon") return (r?: readonly number[]) => new Promise((res) => setTimeout(() => { came = true; res(t.salmon(r as never)); }, 1500));
+      if (k === "salmon") return (r?: readonly number[]) => new Promise((res) => setTimeout(() => { came = true; res(t.salmon(r as never)); }, 3000));
       const v = Reflect.get(t, k, t);
       return typeof v === "function" ? v.bind(t) : v;
     } });
-    const head = await regsHead("gnis:8634", null, slow, () => came);
-    expect(head.where).toBe(await mapSays("gnis:8634", null));
+    const head = await regsHead("gnis:8634", null, slow);
+    expect([head.where, came]).toEqual([await mapSays("gnis:8634", null), false]);
   }, 60_000);
 
   it("the Conditions head says the same, and its line opens the parts too", async () => {
