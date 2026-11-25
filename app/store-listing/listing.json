@@ -1,7 +1,8 @@
 {
-  "_about": "THE store listing words (T1072), one source for Google Play, the App Store and the website. Read by deploy/staging/play-listing-push.py (Play text, App Store plan via --appstore), app/tools/web-shell.mjs (home page meta description) and checked by app/tools/store-listing.test.ts (every limit and forbidden word). Words are the owner's; edit them here only. Facts (not words) stay in handoff/PLAN/play/listing.md.",
+  "_about": "THE store listing words (T1072), one source for Google Play, the App Store and the website. Read by deploy/staging/play-listing-push.py (Play text, App Store plan via --appstore), app/tools/web-shell.mjs (home page meta description) and checked by app/tools/store-listing.test.ts (every limit and forbidden word). Words are the owner's; edit them here only. Facts (not words) stay in handoff/PLAN/play/listing.md. (T1134) creativeAssetLine is the one line under the name on the App Store creative assets (the Header and Search Results pictures and videos, tools/store-shots/creative.mjs); owner 2026-11-25: \"say rules and conditions by the water\". It is the subtitle with \"and conditions\" added: the subtitle itself is at its 30-character limit and cannot grow. Picture words only: it is sent to no store field.",
   "name": "Can I Fish This?",
   "appStoreSubtitle": "BC fishing rules, by the water",
+  "creativeAssetLine": "BC fishing rules and conditions, by the water",
   "playShortDescription": "Your pocket guide to BC fishing regulations. Less searching, more fishing!",
   "appStorePromotionalText": "Your pocket guide to BC fishing regulations. Less searching, more fishing!",
   "fullDescriptionFile": "full-description.txt",
