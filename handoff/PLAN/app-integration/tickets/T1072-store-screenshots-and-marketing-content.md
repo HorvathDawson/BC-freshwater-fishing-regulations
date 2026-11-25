@@ -19,7 +19,7 @@ a new version, so the set that goes up with the first version stays until the ne
 Found by the iOS chat 2026-11-24 (facts, not yet acted on):
 - The newest complete set is not in the repo: it is on the owner's machine at
   `~/bcfish-session-backup-2026-11-12/store-t319-final-082/` (rendered 2026-11-19 from 0.8.2; 7 frames each in
-  appstore-6.9 at 1320x2868, appstore-6.5 at 1242x2688, play-phone, play-tablet7, play-tablet10; no alpha).
+  appstore-6.9 at 1320x2868, appstore-6.5 at 1242x2688, play-phone, plus two tablet sets since dropped (2026-11-25); no alpha).
 - The repo's `store/light/` holds only the 2026-11-05 set, with a 6.7" folder. `deploy/staging/appstore-screenshots-push.py`
   defaults to that folder but expects appstore-6.9, so its default run finds no 6.9" pictures.
 - Nothing has been uploaded to App Store Connect yet.
@@ -51,9 +51,9 @@ square card with the hard ink shadow; no device frame, status bar, store badge, 
 - condMap fix (tablet10 12-cond-change "reads 5 km"): MapLibre's wheel handler piles up close events, which made the old pair-of-notches loop
   step over the level; now ONE wheel event at a time (about a fifth of a level), the scale bar settled between, out past the target then in to its first
   reading, so it cannot oscillate. The target is 20 km since the owner's zoom-out ask below (the content check and scene changed together).
-- WHERE: the finished set is committed at `handoff/PLAN/app-integration/store/graphics/store/light/{appstore-6.9,appstore-6.5,play-phone,play-tablet7,play-tablet10}/NN-<scene>.png`
+- WHERE: the finished set is committed at `handoff/PLAN/app-integration/store/graphics/store/light/{appstore-6.9,appstore-6.5,play-phone}/NN-<scene>.png` (the two Play tablet sets were dropped 2026-11-25)
   (`.gitignore` there now tracks `store/light` only; raw/ stays ignored). Both push scripts read it with no arguments
-  (`deploy/staging/appstore-screenshots-push.py`, `deploy/staging/play-listing-push.py`; the Play script's tablet defaults are the two tablet folders).
+  (`deploy/staging/appstore-screenshots-push.py`, `deploy/staging/play-listing-push.py`; the Play script has no tablet option: it clears the tablet slots).
 - REGENERATE: `scripts/heavy.sh store-shots 30 -- node app/tools/store-shots.mjs --theme light` (builds its own store-shots web export, T1076;
   `--reuse` serves the export already built).
 Part 2 (marketing words, T1072 work items 2-4) is not in this change.
@@ -68,7 +68,15 @@ Part 2 (marketing words, T1072 work items 2-4) is not in this change.
 - Every part starts and ends on a whole line: the crops were re-picked from the new captures by eye at all four raw sizes, and the label bands now SHARE WHAT IS LEFT (3-7 % each, refused outside that,
   store-shots.mjs `composeRaw`) so no crop has to be bent to make a sum come out.
 - A page that says "Slow connection" is not shot (checks.mjs); the search scene waits for its results instead of a fixed sleep.
-- Known, not fixed: on the tall phones and tablets the conditions panel names the watershed at the map's centre ("Lillooet" / "Seton Lake" watershed on iphone69 and the tablets, "Lower Fraser" on the phone), not the river's own.
+- Was known, now fixed (2026-11-25, see "Owner answers 2026-11-25 (tablets, frame 3)"): on the tall phones the conditions panel named the watershed most on screen ("Lillooet" on iphone69, "Lower Fraser" on the phone), not the river's own.
+
+### Owner answers 2026-11-25 (tablets, frame 3), relayed by the planning chat, his words: "Drop tablet set. And you can get them to fix picture"
+- Tablets dropped: targets `play-tablet7` / `play-tablet10` are gone from `store-shots.json` (and their per-size crops), the two folders are deleted,
+  `play-listing-push.py` has no `--tablet7/--tablet10`. It always clears the 7-inch and 10-inch slots (images.deleteall when Play holds any), so no old-set tablet picture stays;
+  with no tablet screenshots Play, to our understanding, shows the phone screenshots on tablet listings (the app loses only the larger-format treatment).
+- Frame 3 ("What is the river doing?"): the Change panel names the watershed MOST ON SCREEN (`useViewBasin`, ui/src/basin.ts; asked from the map's visible bounds), by design,
+  so on the tall 6.9 view the 20 km map held more Lillooet than Lower Fraser. The shot's scene now frames the map on the river's watershed, and `checks.mjs` refuses a capture whose panel
+  names another watershed. Not a wrong-name bug: the dash key "no gauge in this watershed reads that day" shows for Lower Fraser too (it appears whenever any listed day has no reading), so the frame's crop now ends above it (and above the tab bar's black rule); the phone's crop also now includes the day strip it used to cut off (its last column is clipped by the 360 px width, the app's own layout). `--scenes` now frames only the frames that use a re-shot scene and keeps the rest of each folder. Reshot 2026-11-25 for play-phone, appstore-6.9, appstore-6.5; the other 18 pictures are untouched.
 
 ### Owner additions, 2026-11-25 (verbatim) and what they changed
 - ~00:20: "picutres should be captured quicker ideally. also we should zoom them out a little more so it shows more content on the map views".
@@ -126,7 +134,7 @@ The first App Store version has no "What's New" field (Apple shows it from the s
   not in `app/tools/store-shots.json`'s list, or a listed one missing, stops every mode by name before any network call. Clear them
   (once no release is running from that checkout) or upload from a clean checkout of main; `--plan` / `--check` list exactly 7
   per size, `01-01-map` … `07-06-search`.
-- Play (pictures, tablets, text, icon, feature graphic): `.venv/bin/python deploy/staging/play-listing-push.py --plan` to read what
+- Play (pictures, text, icon, feature graphic; the 7-inch and 10-inch tablet slots are CLEARED, any old tablet screenshots on the listing are deleted in the same edit, plan mode says so): `.venv/bin/python deploy/staging/play-listing-push.py --plan` to read what
   would go, then the same with `--commit`.
 - App Store (once the version exists in App Store Connect): `.venv/bin/python deploy/staging/appstore-screenshots-push.py --check`
   (read-only), then `--commit`. The text fields are pasted from `handoff/PLAN/ios/APP-STORE-SUBMISSION.md`

@@ -21,6 +21,13 @@ export const STATE = `(() => {
 
 const BAD = /still loading|slow connection|something went wrong|couldn.t load|could not load|no data to show/i;
 const need = (cond, msg) => (cond ? [] : [msg]);
+export const WATERSHED = process.env.STORE_WATERSHED ?? 'Lower Fraser';
+/** the Change panel names the expected watershed (page text "<Name> watershed"). Its dash key "no gauge in this watershed reads that day" is on the page
+ *  whenever ANY listed day has no reading (Lower Fraser too), so it is not evidence of a wrong watershed: the frame's crop (store-shots.json) ends above it. */
+export const watershedProblems = (s, facts = {}) => {
+  const m = /^(.+) watershed$/m.exec(s.text ?? ''), name = m ? m[1].trim() : null;
+  return [...need(name === WATERSHED, `the Change panel names the "${name}" watershed, not "${WATERSHED}" (the river's own)${facts.watershedSeen ? `; tried: ${facts.watershedSeen.join(', ')}` : ''}`)];
+};
 
 export const CHECKS = {
   '01-map': (s, facts = {}) => [...need(s.vis['map-day'] && s.canvas, 'the map (day bar + canvas) is not showing'), ...need(facts.band === null, `the grey out-of-coverage band (south of the border) is in the map view${facts.band ? ` (rows ${facts.band.join('-')})` : ' (not measured)'}`)],
@@ -35,7 +42,9 @@ export const CHECKS = {
     ...need(/Open|Closed/.test(s.text), 'no open/closed answer on the page')],
   '11-cond-chart': (s) => [...need(s.vis['gauge-card'], 'no gauge card'), ...need(!(s.modelsOff ?? []).length, `forecast models left off on the chart: ${(s.modelsOff ?? []).join(', ')}`), ...need(s.clever, 'the CLEVER forecast is not switched on the chart (no forecast series; off season or feed empty)'),
     ...need(/\d+(\.\d+)?\s*\n?\s*m³\/s/.test(s.text) || /m³\/s/.test(s.text), 'no flow reading on the card')],
-  '12-cond-change': (s) => [...need(s.scale === '20 km', `map scale ${s.scale}, not 20 km`), ...need(/reaches coloured/.test(s.text), 'no coloured reaches (watershed days not loaded)'), ...need(s.ids.includes('map-horizons-change'), 'no Change control on the map')],
+  '12-cond-change': (s, facts = {}) => [...need(s.scale === '20 km', `map scale ${s.scale}, not 20 km`), ...need(/reaches coloured/.test(s.text), 'no coloured reaches (watershed days not loaded)'), ...need(s.ids.includes('map-horizons-change'), 'no Change control on the map'),
+    // (T1072) the panel names the watershed of the river in the chart above it (Kanaka Creek: Lower Fraser; STORE_WATERSHED), not whatever else the map holds most of
+    ...watershedProblems(s, facts)],
   '13-cond-forecast': (s) => [...need(s.scale === '20 km', `map scale ${s.scale}, not 20 km`), ...need(/reaches coloured/.test(s.text), 'no coloured reaches (watershed days not loaded)'), ...need(s.ids.includes('map-horizons-days') && /(Mon|Tue|Wed|Thu|Fri|Sat|Sun) \d+/.test(s.text), 'no forecast days on the map')],
   '14-split-map': (s, facts = {}) => [...need(s.vis['map-day'] && s.canvas, 'the river map is not showing'), ...need(facts.band === null, `the grey out-of-coverage band (south of the border) is in the map view${facts.band ? ` (rows ${facts.band.join('-')})` : ' (not measured)'}`)],
   // the river is split into more than one part and one part's rules are open

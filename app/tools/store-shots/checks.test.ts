@@ -38,9 +38,16 @@ describe('store shot checks', () => {
     expect(judge('15-split-rules', page(), { parts: 1 })[0]).toMatch(/more than one/);
     expect(judge('15-split-rules', page(), {})[0]).toMatch(/more than one/);
   });
+  it('(T1072) the Change panel must name the river\'s own watershed (Lower Fraser for Kanaka Creek), never the neighbour in view', () => {
+    const t = (w: string) => ({ text: `Change 3 reaches coloured\n${w} watershed\nNow`, ids: ['map-horizons-change'] });
+    expect(judge('12-cond-change', page(t('Lillooet')))[0]).toMatch(/names the "Lillooet" watershed, not "Lower Fraser"/);
+    expect(judge('12-cond-change', page({ text: 'Change 3 reaches coloured', ids: ['map-horizons-change'] }))[0]).toMatch(/names the "null" watershed/);
+    expect(judge('12-cond-change', page(t('Lillooet')), { watershedSeen: ['Lillooet', 'Seton Lake'] })[0]).toMatch(/tried: Lillooet, Seton Lake/);
+  });
   it('the Conditions maps need the 20 km camera and coloured reaches', () => {
-    expect(judge('12-cond-change', page({ text: 'Change 3 reaches coloured', ids: ['map-horizons-change'] }))).toEqual([]);
-    expect(judge('12-cond-change', page({ text: 'Change 3 reaches coloured', ids: ['map-horizons-change'], scale: '10 km' }))[0]).toMatch(/20 km/);
+    const ok = { text: 'Change 3 reaches coloured\nLower Fraser watershed\nNow', ids: ['map-horizons-change'] };
+    expect(judge('12-cond-change', page(ok))).toEqual([]);
+    expect(judge('12-cond-change', page({ ...ok, scale: '10 km' }))[0]).toMatch(/20 km/);
     expect(judge('13-cond-forecast', page({ text: 'Forecast still loading', ids: [] })).join()).toMatch(/still loading/);
   });
 });

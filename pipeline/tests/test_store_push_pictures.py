@@ -20,7 +20,7 @@ sys.path.insert(0, str(STAGING))
 import store_shots_list  # noqa: E402
 
 PLAY, ASC = STAGING / "play-listing-push.py", STAGING / "appstore-screenshots-push.py"
-TARGETS = ["play-phone", "play-tablet7", "play-tablet10", "appstore-6.9", "appstore-6.5"]
+TARGETS = ["play-phone", "appstore-6.9", "appstore-6.5"]
 
 
 def _run(script: Path, *args: str) -> subprocess.CompletedProcess:
@@ -41,7 +41,7 @@ def _set_copy(tmp_path: Path) -> Path:
 def _args(script: Path, root: Path) -> list[str]:
     if script == ASC:
         return ["--shots", str(root)]
-    return ["--shots", str(root / "play-phone"), "--tablet7", str(root / "play-tablet7"), "--tablet10", str(root / "play-tablet10")]
+    return ["--shots", str(root / "play-phone")]
 
 
 def test_helper_list_matches_what_the_json_implies():
@@ -62,11 +62,11 @@ def test_helper_list_is_what_is_committed():
 def test_the_real_set_passes_and_prints_counts(script):
     r = _run(script)
     assert r.returncode == 0, r.stdout + r.stderr
-    assert r.stdout.count("01-01-map.png") >= (3 if script == PLAY else 2)
+    assert r.stdout.count("01-01-map.png") >= (1 if script == PLAY else 2)
     assert "7 screenshots" in r.stdout or ": 7 " in r.stdout
 
 
-@pytest.mark.parametrize("script,folder", [(PLAY, "play-phone"), (PLAY, "play-tablet7"), (PLAY, "play-tablet10"),
+@pytest.mark.parametrize("script,folder", [(PLAY, "play-phone"),
                                            (ASC, "appstore-6.9"), (ASC, "appstore-6.5")])
 def test_a_stray_picture_stops_the_run_by_name(script, folder, tmp_path):
     root = _set_copy(tmp_path)
@@ -79,7 +79,7 @@ def test_a_stray_picture_stops_the_run_by_name(script, folder, tmp_path):
 @pytest.mark.parametrize("script", [PLAY, ASC], ids=["play", "appstore"])
 def test_a_missing_picture_stops_the_run_by_name(script, tmp_path):
     root = _set_copy(tmp_path)
-    folder = "appstore-6.5" if script == ASC else "play-tablet10"
+    folder = "appstore-6.5" if script == ASC else "play-phone"
     (root / folder / "03-21-rivers.png").unlink()
     r = _run(script, *_args(script, root))
     assert r.returncode != 0
@@ -94,3 +94,14 @@ def test_the_appstore_script_ignores_folders_it_has_no_slot_for(tmp_path):
     r = _run(ASC, "--shots", str(root))
     assert r.returncode == 0, r.stderr
     assert "09-old.png" not in r.stdout
+
+
+def test_the_play_push_has_no_tablet_set_and_says_it_clears_the_slots():
+    """T1072 (owner 2026-11-25 "Drop tablet set"): no tablet option; plan mode states both tablet slots are cleared."""
+    r = _run(PLAY)
+    assert r.returncode == 0, r.stderr
+    assert "sevenInchScreenshots: CLEARED" in r.stdout and "tenInchScreenshots: CLEARED" in r.stdout
+    assert "7-inch" in r.stdout and "10-inch" in r.stdout
+    assert _run(PLAY, "--tablet7", "x").returncode != 0
+    r = _run(PLAY, "--no-shots")
+    assert r.returncode == 0 and "CLEARED" not in r.stdout and "left as they are" in r.stdout
