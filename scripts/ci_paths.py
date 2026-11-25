@@ -34,7 +34,7 @@ ROOT = Path(__file__).resolve().parents[1]
 APP_JSON = ROOT / "app" / "apps" / "mobile" / "app.json"
 
 #: the repository on GitHub (owner/name: the workflow starts, the licence links); TypeScript: core/src/repo.ts
-REPO = "HorvathDawson/BC-freshwater-fishing-regulations"
+REPO = "canifishthis/canifishthis"
 #: the protected trunk; the remote every script fetches it from
 TRUNK, REMOTE = "main", "origin"
 #: a release branch is RELEASE_PREFIX + the app version (app/apps/mobile/app.json expo.version)

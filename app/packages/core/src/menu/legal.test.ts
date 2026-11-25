@@ -92,7 +92,7 @@ describe("Sources and licences (T235)", () => {
     expect(osm.files).toBe(ODBL_FILES);
     // (T667) WHICH repo files the list links is checked in tools/legal-files.test.ts (core reads no repo file)
     // (T995) on the trunk: the whole link, not a prefix (AGENTS 33)
-    expect(REPO_BLOB).toBe("https://github.com/HorvathDawson/BC-freshwater-fishing-regulations/blob/main");
+    expect(REPO_BLOB).toBe("https://github.com/canifishthis/canifishthis/blob/main");
     const land = licencesVM().rows.find((r) => r.k === "osmland")!;
     expect([land.licence, land.wording]).toEqual(["odbl", "© OpenStreetMap contributors"]);
     expect(land.shows).toContain("Malcolm Knapp");
