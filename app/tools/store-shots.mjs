@@ -1,12 +1,17 @@
 #!/usr/bin/env node
 // STORE SCREENSHOTS (T319) — the store listing's images from the web app, in one command:
-//   node tools/store-shots.mjs [--theme light|dark] [--only play-phone,appstore-6.9] [--no-shoot]
+//   node tools/store-shots.mjs [--theme light|dark] [--only play-phone,appstore-6.9] [--no-shoot] [--site URL] [--reuse]
+// (T1076) THE SITE: with no --site / STORE_SHOTS_SITE this builds its OWN store-shots web export (EXPO_PUBLIC_STORE_SHOTS=1) into
+// app/dist/web-store-shots and serves it on a local port for the run (store-shots/site.mjs; what is pinned and live is in its
+// header); --reuse serves the export already there without rebuilding. An explicit site is used as given but REFUSED at the start
+// unless it carries the store-shots marker (store-shots-build.json): a deployed site never does. Building is heavy: wrap the whole
+// run, `scripts/heavy.sh store-shots 30 -- node app/tools/store-shots.mjs ...`.
 // 0. store-shots/pick-river.mjs picks the day's river for the conditions split (owner 2026-11-19), into <raw>/river-pick.json.
 // 1. play-shots.mjs takes the raw screenshots (headless Chrome at each store size's viewport and pixel ratio) for every raw
 //    size the targets need, into <store>/graphics/raw/ (skipped with --no-shoot: the raw shots already there are framed again).
-//    EVERY shot is the web app (owner 2026-11-19: "can all images be generated with the webapp?"): the site in
-//    STORE_SHOTS_SITE must be a web export built with EXPO_PUBLIC_STORE_SHOTS=1, which draws the phone's Spots and Help lines
-//    (`@app/ui-native` storeShots.ts); the checks refuse the website's own "get the app" notice.
+//    EVERY shot is the web app (owner 2026-11-19: "can all images be generated with the webapp?"): the site is a web export
+//    built with EXPO_PUBLIC_STORE_SHOTS=1, which draws the phone's Spots and Help lines (`@app/ui-native` storeShots.ts); the
+//    checks refuse the website's own "get the app" notice.
 // 2. Each raw shot is framed at the store's exact pixel size: a title + one line in the app's own faces
 //    (tools/seo/fonts, the self-hosted WOFF2) and colours (the theme files, no colour literal here), the screen below in a
 //    rounded card. The page is drawn and captured by the same headless Chrome (a file:// page, dpr 1 = the store's pixels).
@@ -18,15 +23,19 @@
 // The shot list (order, titles, lines) and the target sizes are tools/store-shots.json: the owner's to pick and reword.
 // Output: <store>/graphics/store/<theme>/<target>/<nn>-<scene>.png. Refuses a missing raw shot (no silent gap).
 import fs from 'node:fs'; import os from 'node:os'; import path from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { open } from './regs-web/cdp.mjs';
+import { resolveSite } from './store-shots/site.mjs';
 
 const HERE = path.dirname(new URL(import.meta.url).pathname), APP = path.resolve(HERE, '..');
 const STORE = process.env.STORE_SHOTS_DIR ? path.resolve(process.env.STORE_SHOTS_DIR) : path.resolve(APP, '../handoff/PLAN/app-integration/store/graphics');   // (T701) run.mjs points it at its own folder
 const RAW = path.join(STORE, 'raw');
 const args = process.argv.slice(2), flag = (k) => args.includes(k), val = (k, d) => (args.includes(k) ? args[args.indexOf(k) + 1] : d);
 const THEME = val('--theme', 'light');
+// the server lives in this process, so a child that needs it must run async (spawnSync would block the server)
+const runAsync = (cmd, argv, opts) => new Promise((ok, no) => { const c = spawn(cmd, argv, { stdio: 'inherit', ...opts }); c.once('error', no); c.once('exit', (code) => ok(code)); });
 const ONLY = val('--only', null)?.split(',');
+for (const a of args) if (a.startsWith('--') && !['--theme', '--only', '--no-shoot', '--site', '--reuse'].includes(a)) throw new Error(`store-shots: unknown flag ${a} (flags: --theme, --only, --no-shoot, --site, --reuse)`);
 const { shots, targets } = JSON.parse(fs.readFileSync(path.join(HERE, 'store-shots.json'), 'utf8'));
 const use = Object.entries(targets).filter(([k]) => !ONLY || ONLY.includes(k));
 if (!use.length) throw new Error(`store-shots: no target named ${ONLY}; targets: ${Object.keys(targets).join(', ')}`);
@@ -44,14 +53,18 @@ const parts = (shot) => (shot.compose ?? [{ scene: shot.scene }]).map((p) => p.s
 const needed = [...new Set(usedBy(use).flatMap(parts))];
 // 0. the day's river (the chart and the change map open it), 1. the raw shots, one play-shots run for every raw size wanted
 if (!flag('--no-shoot')) {
-  if (needed.some((sc) => /^1[123]-cond-/.test(sc)) && !process.env.STORE_RIVER) {
-    const p = spawnSync(process.execPath, [path.join(HERE, 'store-shots/pick-river.mjs'), RAW], { stdio: 'inherit', cwd: APP });
-    if (p.status !== 0) throw new Error(`store-shots: pick-river failed (exit ${p.status}); nothing shot`);
-  }
-  const sizes = [...new Set(use.map(([, t]) => t.raw))].join(',');
-  const r = spawnSync(process.execPath, [path.join(HERE, 'play-shots.mjs'), RAW, '--only', needed.join(',')],
-    { stdio: 'inherit', env: { ...process.env, SIZES: sizes }, cwd: APP });
-  if (r.status !== 0) throw new Error(`store-shots: play-shots failed (exit ${r.status}); nothing framed`);
+  // (T1076) the site first: a site that is not a store-shots build is refused before anything else runs
+  const site = await resolveSite({ site: val('--site', process.env.STORE_SHOTS_SITE ?? null), reuse: flag('--reuse') });
+  try {
+    if (needed.some((sc) => /^1[123]-cond-/.test(sc)) && !process.env.STORE_RIVER) {
+      const p = spawnSync(process.execPath, [path.join(HERE, 'store-shots/pick-river.mjs'), RAW], { stdio: 'inherit', cwd: APP });
+      if (p.status !== 0) throw new Error(`store-shots: pick-river failed (exit ${p.status}); nothing shot`);
+    }
+    const sizes = [...new Set(use.map(([, t]) => t.raw))].join(',');
+    const code = await runAsync(process.execPath, [path.join(HERE, 'play-shots.mjs'), RAW, '--only', needed.join(',')],
+      { env: { ...process.env, SIZES: sizes, STORE_SHOTS_SITE: site.url }, cwd: APP });
+    if (code !== 0) throw new Error(`store-shots: play-shots failed (exit ${code}); nothing framed`);
+  } finally { await site.close(); }
 }
 const missing = use.flatMap(([name, t]) => listFor(name).flatMap((s) => parts(s).map((sc) => rawFile(t.raw, sc)))).filter((f) => !fs.existsSync(f));
 if (missing.length) throw new Error(`store-shots: raw shots missing (run without --no-shoot):\n  ${missing.join('\n  ')}`);
