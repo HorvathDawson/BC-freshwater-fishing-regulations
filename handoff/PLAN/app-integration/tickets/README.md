@@ -301,7 +301,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1056 | Harrison Lake shows a hatchery-only lake trout rule: is it right? | DROPPED — duplicate (answered 2026-11-23, PR #85) | | — |
 | T1057 | `pipeline reports` lists about 40 old items as NEW: tie each id to a ticket or a class | OPEN —  | | planning chat 2026-11-24 |
 | T1058 | A production Android build hangs for an hour after BUILD SUCCESSFUL (Gradle daemon out of Metaspace) | OPEN —  | | planning chat 2026-11-24 |
-| T1059 | `scripts/ci_status.py --strict` says "no finished run" when the green run is on an ancestor more than 30 runs back | DONE | 87e1783a3 | planning chat 2026-11-24 |
+| T1059 | `scripts/ci_status.py --strict` says "no finished run" when the green run is on an ancestor more than 30 runs back | DONE | 87e1783a3, 34c35758a | planning chat 2026-11-24 |
 | T1060 | App robustness: no React error boundary, and three one-render stale states | OPEN —  | | planning chat 2026-11-24 |
 | T1061 | A Map opened through "Flows into" shows a blank band of about 120 px (Skeena) | OPEN —  | | planning chat 2026-11-24 |
 | T1062 | Release candidates: tag `vX.Y.Z-rc.N` and promote, instead of moving the version tag after late fixes | OPEN —  | | planning chat 2026-11-24 |
