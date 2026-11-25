@@ -1,10 +1,10 @@
 # T1140 — A water's plain link opens the rules of one part without saying which: the Squamish reads "Closed"
 
-Status: OPEN — HIGH, on production; the first release on the new org repo, a patch of its own that also tries the new release steps (owner 2026-11-25)
+Status: PARTIAL — HIGH, on production. The first speed is built (5d57ac8c2: every head of a multi-part water says "Part n of m" and links to its other parts; the pre-rendered page too), in review; the landing and the words are the owner's: owner: OWNER-TODO "Ticket T1140, HIGH, the first patch after 0.10.0." The area's name (item 4) needs a pipeline and bundle field, not built
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1140 | A water's plain link opens the rules of one part without saying which: the Squamish reads "Closed" | OPEN — HIGH, on production; the first release on the new org repo, a patch of its own that also tries the new release steps (owner 2026-11-25) | | owner 2026-11-25 with two pictures; owner picks where a multi-part link lands |
+| T1140 | A water's plain link opens the rules of one part without saying which: the Squamish reads "Closed" | PARTIAL — HIGH, on production; first speed built, in review | 5d57ac8c2 | owner: OWNER-TODO "Ticket T1140, HIGH, the first patch after 0.10.0." (pick the landing A/B/C and the words, T1140-shots/before-after.md); the area's name needs a pipeline + bundle field |
 
 Source: owner 2026-11-25 14:55 (planning chat), with two pictures of the web app on production, verbatim: "big app
 bug we will want to fix asap.. basically if the user searches something liek squamish river regs and clicks the
@@ -48,6 +48,37 @@ Regulations and Conditions head of a multi-part water says "Part N of M" with th
 under it, "Other parts of this water have different rules", that opens the parts list; the five bare-name closed
 leads get their area's name. That is a wording and one-component change and can ship alone, web first. Second, the
 landing (A, B or C), after the owner's pick.
+
+## Built 2026-11-25 (lane L28): the part label, the line, the pre-rendered page (the first speed)
+App-only: the stretch's name, its place in the list and the count after joins were already in the page's model (the
+water map's group, read through `useMapEntries`); no pipeline or bundle change.
+- **Where the label is made (one place):** `app/packages/core/src/regs/header.ts` `partWhereOf`, from
+  `app/packages/core/src/waterNav.ts` `entryPlaces` (the Map tab's own count: the entry holding the part, over the same
+  `mergeNav(group, live salmon key)` the map draws) and the words `WATER_MAP_WORDS.partOf` / `partsOthers` (the Map bar's
+  `partWhere` uses `partOf` too). `HeaderVM.part` is set only on a water the map lists as several entries; a water of one
+  part keeps its header, pinned byte for byte to origin/main (`water/fixtures/t1140-single-part.json`).
+- **Every way in:** the Regulations view (`WaterScreen`) and the Conditions view (`WaterConditions`) both read it, and the
+  Regulations view waits for the map's reading (`useMapEntries` `settled`: the group, and on a group of several the live
+  salmon that joins it), so no part's answer is drawn without its "Part n of m": a plain link, a search, a start link, a
+  map tap, a saved spot and the step buttons all land on these two views. Web, Android and iPhone share the components.
+- **The line** "Other parts of this water have different rules" shows where another entry has another rule set, another
+  water of the group, or another salmon reading (on r-71d09ad82e81 with the live salmon: all 471 waters the map lists as
+  several; 7 multi-part waters join into one entry and keep the one-part header, as their Map tab says "Whole water").
+  Its press opens the Map tab with its list of parts open (route `{type: "view", view: "map", parts: true}`; the guard
+  `tools/one-parts-list.test.ts` holds it to that one move).
+- **The pre-rendered page** is the app's own Shell (`app/tools/seo/pane.tsx`), so it carries the head and the line; its
+  title ("<water> regulations") and description (`factsOf`: only what every part says) already never said Closed or
+  Open for the whole water from one part. `tools/seo/t1140.release.test.ts` pins both for the Squamish and the Capilano.
+- **Item 4 (the area's name) is NOT built: the bundle does not carry it.** The 11 bare-name leads are side channels with
+  no end tokens; their part facts hold only `label` / `runs` ("2 side channels, joining 11.6 km from the mouth"), and
+  neither the regs, water nor core files name Baynes Island Ecological Reserve (the closing rule is the book's
+  `zp:superior_closures` row, scoped "Federal / parks"; no access row covers it). The name exists only in the basemap's
+  label. Showing it needs the pipeline to write the closing area's name onto the part (the reserve polygon the
+  `within` extent bound) and the bundle to carry it: a pipeline + bundle change, stopped here as the brief asks. What the
+  11 read now: "Part n of m" and the line over the water's name (Burman, Bedwell, Thelwood, Rees, Squamish, Comox,
+  Manson, Shelagyote, Omineca: Part 1 of 2; Gordon: Part 1 of 3; Snehumption: Part 2 of 3); the closure block reads the
+  book row as before.
+- **Pictures:** `handoff/PLAN/app-integration/T1140-shots/` (`before-after.md`: the proposed words and the questions).
 
 ## What the pictures show
 - `/water/squamish-river`, Regulations tab: the head says only "Squamish River". Salmon "Closed today", Game fish
