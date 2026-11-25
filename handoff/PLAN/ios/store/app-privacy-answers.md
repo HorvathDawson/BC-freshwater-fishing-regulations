@@ -1,5 +1,7 @@
 # App Store Connect: App Privacy answers (T727, PROPOSAL for the owner)
 
+**Superseded 2026-11-24 by `handoff/PLAN/ios/APP-STORE-SUBMISSION.md` (T1071), the page the owner pastes from. Where the two differ, that page is right (it was re-read against build 0.9.0 (45): push token, Precise vs Coarse, linked answers, the More menu paths). This page is kept as the evidence behind it.**
+
 Everything here is a proposal. Nothing is entered anywhere. Round 3 (2026-11-14, afternoon): re-read against the reworded Play data-safety page and the reworded privacy page (`app/tools/seo/html.ts` `privacyBody`, effective 2026-11-14). Round 2 (owner 2026-11-14, mid-day): the Play pages are the source; Precise location, install-id purposes (Analytics + App Functionality) are DECIDED; email linked stays open (default linked). Drafted 2026-11-14 from three sources and the code:
 (A) `handoff/PLAN/app-integration/store/privacy-labels-draft.md` (Apple section), (B) `handoff/PLAN/play/data-safety.md`,
 (C) `app/apps/mobile/app.json` `ios.privacyManifests` (from line 42). Paths below are under `app/` unless stated.
