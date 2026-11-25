@@ -25,6 +25,10 @@
             "iphone69": [
               0.093,
               0.795
+            ],
+            "iphone63": [
+              0.115,
+              0.838
             ]
           }
         },
@@ -36,6 +40,10 @@
           "at": {
             "iphone69": [
               0.752,
+              0.912
+            ],
+            "iphone63": [
+              0.738,
               0.912
             ]
           }
@@ -56,6 +64,10 @@
             "iphone69": [
               0,
               0.471
+            ],
+            "iphone63": [
+              0,
+              0.471
             ]
           }
         },
@@ -66,6 +78,10 @@
           "label": "One section's rules",
           "at": {
             "iphone69": [
+              0.103,
+              0.532
+            ],
+            "iphone63": [
               0.103,
               0.532
             ]
@@ -87,6 +103,10 @@
             "iphone69": [
               0,
               0.55
+            ],
+            "iphone63": [
+              0,
+              0.55
             ]
           }
         },
@@ -98,6 +118,10 @@
           "at": {
             "iphone69": [
               0.59,
+              0.94
+            ],
+            "iphone63": [
+              0.568,
               0.94
             ]
           }
@@ -118,6 +142,10 @@
             "iphone69": [
               0.055,
               0.57
+            ],
+            "iphone63": [
+              0.055,
+              0.545
             ]
           }
         },
@@ -128,6 +156,10 @@
           "label": "Works with no signal",
           "at": {
             "iphone69": [
+              0.428,
+              0.813
+            ],
+            "iphone63": [
               0.428,
               0.813
             ]
@@ -156,7 +188,12 @@
       "raw": "iphone69",
       "w": 1242,
       "h": 2688
+    },
+    "appstore-6.3": {
+      "raw": "iphone63",
+      "w": 1206,
+      "h": 2622
     }
   },
-  "_targets": "Play phone; App Store 6.9\" (APP_IPHONE_67 slot) and 6.5\" (APP_IPHONE_65). No Play tablet sets (owner 2026-11-25: \"Drop tablet set\"; Play then shows the phone pictures on tablets), no 5.5\" (not required once 6.9\" is given) and no iPad (app.json supportsTablet false)."
+  "_targets": "Play phone; App Store 6.9\" (APP_IPHONE_67 slot), 6.5\" (APP_IPHONE_65) and 6.3\" 1206x2622 (iPhone with Dynamic Island, medium display; rendered natively, added 2026-11-25 because App Store Connect refused the 6.9\" files in that slot; API display type unconfirmed, APP_IPHONE_61). No Play tablet sets (owner 2026-11-25: \"Drop tablet set\"; Play then shows the phone pictures on tablets), no 5.5\" (not required once 6.9\" is given) and no iPad (app.json supportsTablet false)."
 }

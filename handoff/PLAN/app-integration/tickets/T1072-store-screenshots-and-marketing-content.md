@@ -51,7 +51,7 @@ square card with the hard ink shadow; no device frame, status bar, store badge, 
 - condMap fix (tablet10 12-cond-change "reads 5 km"): MapLibre's wheel handler piles up close events, which made the old pair-of-notches loop
   step over the level; now ONE wheel event at a time (about a fifth of a level), the scale bar settled between, out past the target then in to its first
   reading, so it cannot oscillate. The target is 20 km since the owner's zoom-out ask below (the content check and scene changed together).
-- WHERE: the finished set is committed at `handoff/PLAN/app-integration/store/graphics/store/light/{appstore-6.9,appstore-6.5,play-phone}/NN-<scene>.png` (the two Play tablet sets were dropped 2026-11-25)
+- WHERE: the finished set is committed at `handoff/PLAN/app-integration/store/graphics/store/light/{appstore-6.9,appstore-6.5,appstore-6.3,play-phone}/NN-<scene>.png` (the two Play tablet sets were dropped 2026-11-25)
   (`.gitignore` there now tracks `store/light` only; raw/ stays ignored). Both push scripts read it with no arguments
   (`deploy/staging/appstore-screenshots-push.py`, `deploy/staging/play-listing-push.py`; the Play script has no tablet option: it clears the tablet slots).
 - REGENERATE: `scripts/heavy.sh store-shots 30 -- node app/tools/store-shots.mjs --theme light` (builds its own store-shots web export, T1076;
@@ -128,6 +128,12 @@ Owner's wording answers (2026-11-24 ~23:55, multiple choice in the store content
 The first App Store version has no "What's New" field (Apple shows it from the second version on); Play's comes from the changelog.
 
 ## Owner's steps (Claude uploads nothing)
+- **2026-11-25, new iPhone size:** App Store Connect refused the 6.9" files (1320x2868) in the slot it now requires, "At least one
+  screenshot for iPhone with Dynamic Island (medium display)", portrait 1179x2556 or 1206x2622 (Apple's screenshot specifications,
+  https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/, read 2026-11-25).
+  New set `appstore-6.3` at 1206x2622, the same 7 frames rendered natively (402x874 @3), made by `store-shots.mjs`; the push script maps
+  it to `APP_IPHONE_61`, UNCONFIRMED until an owner `--check` run (a wrong name fails at the API). The iOS chat made a resized stopgap
+  outside the repo in the meantime. There are now three iPhone folders (`appstore-6.9`, `appstore-6.5`, `appstore-6.3`), 7 each, plus `play-phone`.
 - **FIRST, before any upload (found 2026-11-25):** the main checkout holds 34 old untracked pictures (dated Nov 5) under
   `handoff/PLAN/app-integration/store/graphics/store/light/` (13 in `play-phone`, 6 in `appstore-6.5`, and the old folders
   `appstore-5.5`, `appstore-6.7`, `appstore-ipad13`). Both push scripts now REFUSE such leftovers (T1127): a picture

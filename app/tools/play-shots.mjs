@@ -243,6 +243,8 @@ const SIZES = { phone: { width: 360, height: 640, dpr: 3, mobile: true, pre: '' 
   // (T319) App Store: 6.7" iPhone 1290x2796 (430x932 @3), 5.5" 1242x2208 (414x736 @3), 13" iPad 2048x2732 (1024x1366 @2)
   // (T319, 2026-11-18) 6.9" iPhone 1320x2868 (440x956 @3), the App Store's required iPhone size; its 6.5" set is framed from it
   iphone69: { width: 440, height: 956, dpr: 3, mobile: true, pre: 'iphone69-' },
+  // (T1072, 2026-11-25) 6.3" iPhone 1206x2622 (402x874 @3): the "iPhone with Dynamic Island (medium display)" slot, rendered natively
+  iphone63: { width: 402, height: 874, dpr: 3, mobile: true, pre: 'iphone63-' },
   iphone67: { width: 430, height: 932, dpr: 3, mobile: true, pre: 'iphone67-' }, iphone55: { width: 414, height: 736, dpr: 3, mobile: true, pre: 'iphone55-' },
   ipad13: { width: 1024, height: 1366, dpr: 2, mobile: true, pre: 'ipad13-' } };
 const sizeNames = (process.env.SIZES ?? 'phone').split(',');
