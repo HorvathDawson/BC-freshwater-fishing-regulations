@@ -94,7 +94,7 @@ Your pocket guide to BC fishing regulations. Less searching, more fishing!
 ```
 Keywords:
 ```
-fishing,BC,regulations,rules,freshwater,river,lake,trout,salmon,steelhead,angling,license,flow,gauge
+regulations,freshwater,river,lake,trout,salmon,steelhead,angling,license,flow,gauge,map,synopsis,dfo
 ```
 What's New (only if asked):
 ```
