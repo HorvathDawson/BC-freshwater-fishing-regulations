@@ -7,18 +7,31 @@ Rules of this chat: Fable orchestrates, Sonnet lanes (at most 2), one review rou
 `scripts/heavy.sh`; no store uploads (the owner gets the files and the steps); finds and owner-only items go to the
 planning chat; work only in scratchpad worktrees, never the main checkout.
 
-## State (2026-11-24, chat opened ~23:30)
+## State (2026-11-25 02:15; the chat opened 2026-11-24 ~23:05)
 
-1. **T1076 (reshoot tool builds its own export): lane running.** Branch `fix/T1076-store-shots-own-export`. It also
-   shoots the current app at all five sizes for the direction pictures.
-2. **Directions for the owner: not shown yet.** They need the T1076 captures. Three to show, as pictures, in chat:
-   the look, each frame and its caption. Then wait for his pick.
-3. **The one set: not started.** After the pick. It is committed where `deploy/staging/appstore-screenshots-push.py`
-   looks (`handoff/PLAN/app-integration/store/graphics/store/light/`, folders `appstore-6.9`, `appstore-6.5`,
-   `play-phone`, `play-tablet7`, `play-tablet10`); that folder is git-ignored today, so the ignore rule changes.
-4. **Listing words, one source: lane running** (plumbing only, wording unchanged). Branch
-   `feat/T1072-listing-words-one-source`. Wording proposals go to the owner as multiple choice after it lands.
-5. **Tell the iOS release chat** (session `bc-freshwater-fishing-regulations-06`) the moment the set is merged.
+1. **T1076: merged (#172).** The tool builds and serves its own store-shots export, refuses a normal site at the start
+   (`store-shots-build.json` marker), and the runbook step is `scripts/heavy.sh store-shots 30 -- node app/tools/store-shots/run.mjs`.
+   Its ticket still says IN PROGRESS: flip it to DONE with the merge hash.
+2. **Owner's pick (2026-11-24 ~23:42): direction A, the angler's questions**, 7 frames, map first, then "What can I keep?"
+   showing the limits table, not the season calendar. 2026-11-25: map views one zoom step wider; captures quicker; most
+   scenes may be shot from the website (`--web <url>`; only 07-saved-spot and 20-help need the store-shots build).
+3. **The one set: PR #192** (auto-merge set, CI running at 02:15). 35 PNGs in
+   `handoff/PLAN/app-integration/store/graphics/store/light/` (`appstore-6.9`, `appstore-6.5`, `play-phone`,
+   `play-tablet7`, `play-tablet10`); both push scripts read it with no arguments (plan modes clean, nothing sent).
+   Regenerate: `scripts/heavy.sh store-shots 30 -- node app/tools/store-shots.mjs --theme light` (about 6 minutes;
+   one frame: add `--reuse --scenes <nn> --only <target>`). One review round is spent. Known nits, owner asked:
+   the watershed name under the flow chart differs by size ("Lower Fraser" on the phone, "Lillooet" on the 6.9");
+   the tablets leave white space (phone layout on a tablet canvas).
+4. **Listing words: merged (#170, #175).** One source `app/store-listing/listing.json` (+ `full-description.txt`);
+   `play-listing-push.py --appstore` prints the App Store fields. Owner's answers (2026-11-24 ~23:55) are in T1072:
+   promotional text = his short line, keywords without the name's words, Navigation / Sports, 500 MB, graphic kept.
+5. **Owner's steps (no uploads by Claude):** in the final message of the chat and in T1072. Play:
+   `.venv/bin/python deploy/staging/play-listing-push.py --commit`. App Store: `.venv/bin/python
+   deploy/staging/appstore-screenshots-push.py --check`, then `--commit`, once the version exists in App Store Connect.
+6. **iOS release chat** (`bc-freshwater-fishing-regulations-06`): told the words are ready (00:15); tell it the set is
+   on main the moment #192 merges.
+7. Planning chat numbered the finds: T1112 (worktree setup), T1113 (salmon scene on a pinned state), T1114 (the iOS
+   submission page prints from the one source).
 
 ## What the two stores do not let us share (checked 2026-11-24 on their pages)
 

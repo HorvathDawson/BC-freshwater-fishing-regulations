@@ -115,6 +115,17 @@ with the default Claude uses until you answer). Newest first inside each section
   What may miss the 0.9.1 cut because it waits on a pick of yours: the T1029 look, the T1098 privacy sentences,
   the T1107 gauges-page picture, the T1052 part-year waters. T1098 matters most: the App Store submission waits on
   the privacy page being live, so if it misses the cut it needs its own site deploy afterwards.
+- **0.9.1 cut, 2026-11-25 02:12 (from the 0.9.1 chat):** all four handed reviews are in. What it chose, each a
+  proposal you can change in 0.9.2: #166 the head-lakes list as built, the "ANDERSON" LAKE row moved to the unnamed
+  Walbran lake, nothing reopens anywhere, 3,813 sections gain closed days, Frosst Creek the one own row kept; #112
+  stripe look A; #187 the gauge card with the button and the muted words "Reporting now / Not reporting today / Not
+  a real-time gauge", no dot; #179 privacy rows 1–9 as listed plus a row 10 on the push token (sent only while
+  notifications are allowed and one is on; deleted after 30 days unsent). Not in 0.9.1, moved to 0.9.2: T1061
+  (Skeena blank band), T1093 (location crash kind), the part-year closed waters (now T1126).
+- **Picks owed to you in 0.9.2, with pictures (nothing to do now):** T1124 the push line when notifications are
+  blocked in the phone's settings (today it says "no notification is on", which is untrue then); T1125 what the map
+  says for a bank place that cannot be drawn (Nakina) and for creeks whose side could not be read; T1126 how a
+  part-year closure reads as one statement.
 - **Handed to the 0.9.1 chat, 2026-11-25 00:50** (your words to the planning chat: "I told the agent they could do
   these without me"): reading the head-lakes list in draft #166, picking the privacy sentences in #179, checking the
   gauges search picture in #187, picking the one-bank stripe look in #112. None of the four waits on you for the

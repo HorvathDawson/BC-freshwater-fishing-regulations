@@ -22,3 +22,7 @@ The list exists with a verdict per row; the check fails on the T1117 case; accep
 Depends: T1117. Severity: high until the list exists (each hit is wrong rules on a real water; count unknown).
 Release: 0.9.2, first Opus lane (the list); fixes as the owner accepts them. Model: Opus. Size: M. Owner: yes
 (reviews the proposals).
+
+## First pass 2026-11-25 (0.9.1 chat, in PR #166)
+98 bindings whose note or target names another management unit; the list is the file mu-mismatch-bindings.md in the
+T1118-shots folder of that PR. No verdict per row yet: that is this ticket's first lane.
