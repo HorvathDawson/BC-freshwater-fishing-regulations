@@ -42,9 +42,12 @@ commit bumps the app); preflight takes it, the ship tags only `data/<r-id>`, and
 branch.
 
 The release builds and ships from that branch: preflight wants HEAD on `origin/release/<app.json's version>` (or the
-data branch). A fix lands on `main` first (a PR), then is cherry-picked onto the branch. At ship (stage 7, after the staging smoke) the release tags `data/<r-id>` and, on the
-version's first ship, `v<version>`, pushes the tags, and prints the PR that merges the branch back into `main`
-(`gh pr create --base main --head release/<version> …`). `--prod` refuses a release whose tags are missing or moved.
+data branch). A fix lands on `main` first (a PR), then is cherry-picked onto the branch. At ship (stage 7, after the staging smoke) the release tags `data/<r-id>` and (T1062) the next release
+candidate `v<version>-rc.N`, pushes the tags, and prints the PR that merges the branch back into `main`
+(`gh pr create --base main --head release/<version> …`). A rerun after a cherry-picked fix tags the next rc on the new
+HEAD; a rerun whose HEAD is the newest rc apart from app.json's build numbers tags nothing. No tag is ever moved: after
+the owner's look, `python -m pipeline release --final <version>` (Claude, on his word) puts `v<version>` on the newest
+rc's commit. `--prod` refuses a release whose tags are missing or point elsewhere.
 
 ## 1. Rehearse it (T666)
 
@@ -176,8 +179,10 @@ CONFIRM_PROD=<r-id> .venv/bin/python -m pipeline release --prod <r-id>
 
 - the ledger shows the release passed its checks and reached staging;
 - staging still serves it (a later staging release replaced it: ship that one);
-- its tags `data/<r-id>` and `v<version>` are on GitHub at the commit it shipped from (missing: rerun `--staging`, which
-  tags and skips the rest);
+- its tags are on GitHub: `data/<r-id>` at the commit it shipped from (missing: rerun `--staging`, which tags and skips
+  the rest), and (T1062) the final `v<version>` at the newest rc's commit, which holds that commit (missing:
+  `release --final <version>`). A version with no rc (tagged before T1062) keeps the old rule: `v<version>` at the
+  shipped commit or before it;
 - the release folder is unchanged since then (content fingerprint; the upload stamps `published` and `minAppVersion`
   are ignored);
 - `CONFIRM_PROD` names the release;
