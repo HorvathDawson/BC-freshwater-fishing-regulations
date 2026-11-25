@@ -42,8 +42,11 @@ class Side:
 
 
 def _segments(coords: list) -> list[tuple[float, float, float]]:
-    """(dx, dy, length) in local metres for each segment of a WGS84 line."""
+    """(dx, dy, length) in local metres for each segment of a WGS84 line (degrees only: metres are refused)."""
     out = []
+    for x, y in coords:
+        if abs(x) > 180 or abs(y) > 90:
+            raise ValueError(f"bank_side reads WGS84 lon/lat degrees; got {[x, y]} (metres? project to EPSG:4326 first)")
     for (x0, y0), (x1, y1) in zip(coords, coords[1:]):
         k = math.cos(math.radians((y0 + y1) / 2))
         dx, dy = (x1 - x0) * 111_320 * k, (y1 - y0) * 110_540
@@ -89,9 +92,15 @@ def drawn_banks(parts: list[list]) -> str:
     (the atlas stamps every stream piece). "west" / "south" are the opposite sides."""
     xs, ys = [], []
     for coords in parts:
-        a = np.asarray(coords, dtype=float)[:, :2]
+        a = np.asarray(coords, dtype=float)
         if len(a) < 2:
             continue
+        a = a[:, :2]
+        # (review #112) WGS84 degrees only: the east scale is per degree of longitude at the line's latitude, and a
+        # line in metres (the atlas's EPSG:3005) read as degrees gives a near-random north/south answer — refused
+        if not (np.all(np.abs(a[:, 0]) <= 180) and np.all(np.abs(a[:, 1]) <= 90)):
+            raise ValueError(f"drawn_banks reads WGS84 lon/lat degrees; got {a[0].tolist()} (metres? project to "
+                             "EPSG:4326 first)")
         xs.append(a[:, 0])
         ys.append(a[:, 1])
     if not xs:

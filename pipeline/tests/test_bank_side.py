@@ -102,12 +102,42 @@ def test_the_atlas_code_is_the_same_rule_as_the_bundle_side():
         side_from_code("RL", "up")
 
 
+def test_the_atlas_stamps_its_albers_lines_by_the_same_rule_as_the_tiles_wgs84_line():
+    """Review #112 (HIGH): the atlas geometries are EPSG:3005 metres; measured as if they were degrees, the Kitimat read
+    "R-" (the tiles' WGS84 line reads "RL") and north/south was opposite on 19.7% of lines. Through `stamp_drawn_banks`:
+    the Kitimat as the atlas holds it, and a line at 59° N whose east answer exists only with the per-degree east scale
+    (cos 59° = 0.52: unscaled it runs within 30° of east-west and says nothing)."""
+    from pyproj import Transformer
+    from shapely.geometry import LineString, MultiLineString
+    from pipeline.atlas.graph.graph import stamp_drawn_banks
+    from pipeline.common.models import NodeKind, StreamGraph, StreamNode
+    to_albers = Transformer.from_crs(4326, 3005, always_xy=True)
+    north59 = [[-133.15, 59.0], [-133.14, 59.004], [-133.13, 59.008]]
+    assert drawn_banks([KITIMAT]) == "RL" and drawn_banks([north59]) == "RL"
+    alb = lambda line: [to_albers.transform(x, y) for x, y in line]         # noqa: E731
+    g = StreamGraph()
+    for nid in ("kit:0", "n59:0", "two:0", "lake", "nogeom:0"):
+        g.nodes[nid] = StreamNode(node_id=nid, kind=NodeKind.lake if nid == "lake" else NodeKind.stream)
+    geoms = {"kit:0": LineString(alb(KITIMAT)), "n59:0": LineString(alb(north59)),
+             "two:0": MultiLineString([alb(KITIMAT[:2]), alb(KITIMAT[2:])]), "lake": LineString(alb(KITIMAT))}
+    assert stamp_drawn_banks(g, geoms) == 3
+    assert [g.nodes[n].drawn_banks for n in ("kit:0", "n59:0", "two:0", "lake", "nogeom:0")] == \
+        ["RL", "RL", drawn_banks([KITIMAT[:2], KITIMAT[2:]]), "", ""]
+    assert g.nodes["two:0"].drawn_banks == "R-"           # two parts, each measured as written (the join is no segment)
+    # a line in metres handed to the degrees rule is refused, never measured
+    with pytest.raises(ValueError, match="WGS84"):
+        drawn_banks([alb(KITIMAT)])
+    with pytest.raises(ValueError, match="WGS84"):
+        bank_side(alb(KITIMAT), "west")
+
+
 def test_the_payload_gets_each_bank_places_side_on_the_sections_it_stands_beside(tmp_path):
     from pipeline.deliver.bank_side import stamp_payload
     (tmp_path / "stream.geojsonl").write_text(_row(7, KITIMAT) + _row(8, [[-128.0, 54.0], [-128.001, 54.0001]]))
     (tmp_path / "lake.geojsonl").write_text("")
     payload = {"chains": [{"l": []}, {"l": ["6:river"], "u": ["6:bank"]}, {"l": ["6:bank"]}, {"l": ["6:other"], "u": ["6:bank"]}],
-               "p": {"6:bank": {"side": "west"}, "6:river": {}, "6:other": {}}}
+               "p": {"6:bank": {"side": "west"}, "6:river": {}, "6:other": {}},
+               "unmapped": [{"chain": 2}, {"chain": 3}]}
     # 7: beside on the stretch; 8: beside but its line runs along the word's axis; 9: the bank place in `l` (a creek)
     why = stamp_payload(payload, [(7, 1), (8, 3), (9, 2)], tmp_path)
     assert payload["p"]["6:bank"]["bk"] == {"7": -1}
@@ -118,6 +148,12 @@ def test_the_payload_gets_each_bank_places_side_on_the_sections_it_stands_beside
     payload["chains"][1]["u"] = ["6:bank", "6:other"]
     with pytest.raises(ValueError, match="two one-bank places"):
         stamp_payload(payload, [(7, 1)], tmp_path)
+    # (review #112) a bank place with no own chain, or two, in `unmapped`: the app's decode refuses it, so the build does
+    for unmapped, n in (([{"chain": 3}], 0), ([{"chain": 2}, {"chain": 4}], 2)):
+        p2 = {"chains": [{"l": []}, {"l": ["6:river"], "u": ["6:bank"]}, {"l": ["6:bank"]}, {"l": ["6:other"]},
+                         {"l": ["6:bank"]}], "p": {"6:bank": {"side": "west"}, "6:river": {}}, "unmapped": unmapped}
+        with pytest.raises(ValueError, match=f"has {n} own chain"):
+            stamp_payload(p2, [(7, 1)], tmp_path)
 
 
 def _book_db(rules):
