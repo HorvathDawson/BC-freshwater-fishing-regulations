@@ -176,7 +176,7 @@ def test_d_mutations_are_refused(region, entry_id, rule_id, mutate):
 @pytest.mark.parametrize("region,entry_id,pfx", [("1", "z1:daily_quotas", "trout_quota"),
                                                  ("2", "z2:daily_quotas", "trout_char_quota")])
 def test_d_r2b_is_the_tables_own_steelhead_quota(region, entry_id, pfx):
-    """Owner 2026-10-26 (overlapping-rules.md): the ST-only r3 is retired; r2b ("… (2 hatchery steelhead over
+    """Owner 2026-10-26 (the overlapping-rules note, cut in T1081): the ST-only r3 is retired; r2b ("… (2 hatchery steelhead over
     50 cm allowed …)") is the table's own steelhead quota at 50 cm, so r2 still leaves ST out. Mutation: r2b
     that no longer prints steelhead leaves r2's exclusion with nothing to stand on."""
     e = _zone(region, entry_id)

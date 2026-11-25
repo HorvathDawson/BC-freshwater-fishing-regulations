@@ -1,7 +1,7 @@
 """Q154: THE SAMPLE PONDS as a review target — a mark of scope "q154" is held against these.
 
 Q154 (owner 2026-10-28): should a small unnamed lake polygon a river runs through (the `river_widenings` set)
-take the river's rules? The proposed cutoff (q154-examples.md §4): under 1 ha AND avg width <= 2 x the
+take the river's rules? The proposed cutoff (the Q154 examples note §4, cut in T1081): under 1 ha AND avg width <= 2 x the
 modelled river width, man-made excluded. To decide, the owner marks a SAMPLE on the satellite map: "pool"
 (river rules) or "real lake"; "unsure" is a mark with P ?. The tally against the cutoff's prediction is the
 evidence. The sample is a read-only generated file (`data/generated/review/q154/sample.json`,

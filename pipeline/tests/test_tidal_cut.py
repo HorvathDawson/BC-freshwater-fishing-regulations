@@ -5,7 +5,7 @@
   piece     `downstream_of` the cut on every item that carries it — no tributary
             (`tidal.TIDAL_PIECE_HAS_NO_TRIBUTARIES`, `tidal_cut_owner`)
   order     the tributary walk runs on the FULL network; the tidal piece leaves each binding AFTER
-            it, so a creek entering tidal water stays its river's tributary (tributary-impact.md)
+            it, so a creek entering tidal water stays its river's tributary (the tributary-impact report, cut in T1081)
   loud      a rule left with no water is unresolved `tidal` and LISTED (`report.tidal_emptied`) —
             kitimat_river.r1 lies wholly below its proposed cut
   strict    a tidal split no item carries, or one the resolver cannot place, stops the run
