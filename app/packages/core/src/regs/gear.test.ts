@@ -11,6 +11,7 @@ import {
 import { levelTag } from "./level";
 import { ruleView } from "./rules";
 import { BOOK } from "./testing/speciesBook";
+import { setFailureSink } from "../failure";
 
 /** `prov.region` as the store ships it (T109: the pipeline's `entry_id.region_of`, stated here, never parsed by the app) */
 const SHIPPED_REGION: Record<string, string> = { "z2:streams": "2", "z2:s": "2" };
@@ -163,7 +164,7 @@ describe("(T1051) the Hooks row's second line: what the hook answer leaves allow
   // summaries as the release holds them (rule indexes made up)
   const rules = index([rule(0, "zp:g", 4, "B.C.", [[8, 10]]), rule(1, "z2:s", 3, "Region 2", [[21, 23]])]);
   const ctx = (): GearCtx => ({ day: { month: 11, day: 24 }, weekday: "Monday", today: true, rules,
-    glossary: new Set(["single_barbless_hook", "def_single_hook"]), chips: new Map([["B.C.", "Province"]]), banner: null });
+    glossary: new Set(["single_barbless_hook", "def_single_hook", "treble_and_barbed_hooks"]), chips: new Map([["B.C.", "Province"]]), banner: null });
   const p = (part: "lines" | "hook" | "attach" | "weight", says: string, cites: number[] = [0], terms: string[] = []) => ({ part, says, cites, terms });
   const lake = ga({ hook: "trebles_and_barbs", summary: { says: "1 line (2 while alone in a boat) with one hook, lure or fly. Weight on the line up to 1 kg (2.2 lb).",
     parts: [p("lines", "1 line (2 while alone in a boat)"), p("hook", "any hook", []), p("attach", "one hook, lure or fly"), p("weight", "weight on the line up to 1 kg (2.2 lb)")],
@@ -173,14 +174,14 @@ describe("(T1051) the Hooks row's second line: what the hook answer leaves allow
       p("weight", "weight on the line up to 1 kg (2.2 lb)")], terms: ["single_barbless_hook"], cites: [0, 1], changes: [] } });
   const hooks = (g: GearAnswer) => gearLines(g, ctx()).lines.filter((l) => l.k === "hook").map((l) => [l.values, l.valueTerms]);
 
-  it("Dick Lake: a second Hooks line, Treble and barbed hooks allowed, its one ⓘ the book's p.80 single-hook words", () => {
-    expect(hooks(lake)).toEqual([[["One hook, lure or fly", "Treble and barbed hooks allowed"], [[], ["def_single_hook"]]]]);
+  it("Dick Lake: a second Hooks line, Treble and barbed hooks allowed, its one ⓘ the Treble and barbed hooks term", () => {
+    expect(hooks(lake)).toEqual([[["One hook, lure or fly", "Treble and barbed hooks allowed"], [[], ["treble_and_barbed_hooks"]]]]);
   });
   it("Dick Creek (a stream: single barbless hook) is unchanged", () => {
     expect(hooks(creek)).toEqual([[["One hook, lure or fly", "Single barbless hook, no trebles"], [[], ["single_barbless_hook"]]]]);
   });
   it("says only what is true, per hook answer and fly mode", () => {
-    const says = (hook: GearAnswer["hook"], fly: GearAnswer["fly"] = null, counts: GearAnswer["counts"] = {}) => hooksAllowed(ga({ hook, fly, counts }))?.says ?? null;
+    const says = (hook: GearAnswer["hook"], fly: GearAnswer["fly"] = null, counts: GearAnswer["counts"] = {}) => hooksAllowed(ga({ hook, fly, counts }), rules)?.says ?? null;
     expect([says("trebles_and_barbs"), says("any_barbless"), says("single"), says("single_barbless"), says("any")])
       .toEqual(["Treble and barbed hooks allowed", "Treble hooks allowed", "Barbed hooks allowed", null, "Barbed hooks allowed"]);
     // a fly is a single-pointed hook (p.80): a fly-only water never says treble hooks
@@ -195,5 +196,36 @@ describe("(T1051) the Hooks row's second line: what the hook answer leaves allow
     const noHooks = ga({ hook: "trebles_and_barbs", summary: { says: "1 line. Weight on the line up to 1 kg.", parts: [p("lines", "1 line"), p("weight", "weight on the line up to 1 kg")],
       terms: [], cites: [0], changes: [] } });
     expect(gearLines(noHooks, ctx()).lines.map((l) => [l.k, l.values])).toEqual([["lines", ["1 line"]], ["hook", ["Treble and barbed hooks allowed"]], ["weight", ["Up to 1 kg"]]]);
+  });
+});
+
+describe("(T1051 review) no unqualified line where a part, a side, some hours or a circumstance holds a hook rule", () => {
+  // r-0aec88ed3edb: François Lake (map 1 outlet area), Mahood Lake (Mahood River outlet; western tip; Jul 1-Dec 31), Upper
+  // Arrow Lake (north-end drawdown area) and Pitt Lake (north of the head-of-lake signs) each hold "Single barbless hook — in
+  // part: …" in `in_part`; their whole-water hook answer is trebles_and_barbs (rule indexes made up)
+  const sbh = (rix: number, entry: string, name: string): RuleView => ruleView(rix,
+    { ...exp(entry, 0, name), fields: { gear: [{ slot: "barb", only: ["barbless"] }, { slot: "points_per_hook", max: 1 }] } },
+    { kind: "gear", title: "", book: [], applies: "" } as RuleFacts, BOOK, "reach");
+  const other = (rix: number): RuleView => ruleView(rix, { ...exp("w:x", 0, "X"), fields: { gear: [{ slot: "weight_per_line_kg", max: 1 }] } },
+    { kind: "gear", title: "", book: [], applies: "" } as RuleFacts, BOOK, "reach");
+  const lakes = [["w:francois_lake", "François Lake"], ["w:mahood_lake", "Mahood Lake"], ["w:upper_arrow_lake", "Upper Arrow Lake"], ["w:pitt_lake", "Pitt Lake"]] as const;
+  const rules = index([...lakes.map(([e, n], i) => sbh(i, e, n)), other(9)]);
+  const says = (o: Partial<GearAnswer>) => hooksAllowed(ga({ hook: "trebles_and_barbs", ...o }), rules)?.says ?? null;
+
+  it("François, Mahood, Upper Arrow and Pitt lakes: a single barbless hook in part, so no allowed line", () => {
+    expect(lakes.map((_, i) => says({ in_part: [i] }))).toEqual([null, null, null, null]);
+    // a part rule that says nothing of hooks leaves the line
+    expect(says({ in_part: [9] })).toBe("Treble and barbed hooks allowed");
+  });
+  it("a hook rule on one side, some hours, or in a circumstance: no line either", () => {
+    expect([says({ side: [0] }), says({ timed: [1] }), says({ circumstantial: [{ clause: [2, 0], targeting: ["SALMON"] }] })]).toEqual([null, null, null]);
+  });
+  it("an unknown hook answer draws no line and is reported (W46)", () => {
+    const got: unknown[] = [];
+    const undo = setFailureSink((e) => got.push(e));
+    try {
+      expect(hooksAllowed(ga({ hook: "double" as GearAnswer["hook"] }), rules)).toBeNull();
+    } finally { undo(); }
+    expect(got.map((e) => (e as Error).name)).toEqual(["UnknownHookAnswer"]);
   });
 });

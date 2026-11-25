@@ -18,6 +18,7 @@ import { MONTHS, WEEKDAYS } from "../calendar.generated";
 import type { BookBox } from "../answers.generated";
 import type { GearAnswer, GearValue, RegsInputs, RuleIndex, RuleView } from "./inputs";
 import type { BannerVM, ChangeVM, Day, GearLineVM, GearVM, SourceLineVM, Weekday } from "./model";
+import { reportFailure } from "../failure";
 import { ruleSub } from "./level";
 import { cap, clean } from "./names";
 import type { SheetKey } from "./sheetKey";
@@ -194,21 +195,43 @@ const BARBED_OK: ReadonlySet<GearAnswer["hook"]> = new Set(["trebles_and_barbs",
 /** … and treble hooks: no hook-point limit (p.80: "use of a treble hook is permitted unless 'single hook' is specified"). */
 const TREBLE_OK: ReadonlySet<GearAnswer["hook"]> = new Set(["trebles_and_barbs", "any_barbless"]);
 
+/** (T1051 review) a hook answer the table above does not know: reported, and no line is drawn (W46: never silent). */
+export class UnknownHookAnswer extends Error {
+  constructor(hook: string) { super(`regs gear: the frame's hook answer ${JSON.stringify(hook)} is not one the Hooks row knows`); this.name = "UnknownHookAnswer"; }
+}
+const KNOWN_HOOKS: ReadonlySet<string> = new Set(["trebles_and_barbs", "single", "any", "any_barbless", "single_barbless"]);
+/** the gear slots that say what a hook may be: its points and its barb */
+const HOOK_SLOTS: ReadonlySet<string> = new Set(["points_per_hook", "barb"]);
+
+/** Does a rule hold a clause on a hook's points or barb? */
+function speaksOfHooks(rules: RuleIndex, rix: number): boolean {
+  const gear = rules.get(rix).export.fields?.gear as readonly { slot?: string }[] | undefined;
+  return (gear ?? []).some((c) => HOOK_SLOTS.has(c.slot ?? ""));
+}
+
 /**
  * (T1051, owner 2026-11-24 "Say it everywhere") what the day's hook answer leaves allowed, per water, or null: treble and
  * barbed hooks on Dick Lake (`trebles_and_barbs`); treble hooks alone where barbless is required and the points are not
  * limited (`any_barbless`: Quesnel Lake); barbed hooks alone where a single hook is required (`single`). The frame decided
- * the hook (`gear.resolve`); a fly mode (`fly`) is the frame's too, and a fly is "a single-pointed hook" (p.80 "artificial
- * fly"), so no fly-only water says treble hooks. A water whose answer is a single barbless hook (every stream, unless its
- * row lifts that) says nothing more.
+ * the hook (`gear.resolve`); a fly mode (`fly`) is the frame's too, and a fly is "a single-pointed hook that is dressed
+ * only with fur, feathers, hair, textiles, tinsel and/or wire" (printed p.80 "artificial fly", PDF p.86 of the repo copy;
+ * the older "single or double hook" wording in `gear.py`'s fly-mode comment is not this book's), so no fly-only water says
+ * treble hooks. A water whose answer is a single barbless hook (every stream, unless its row lifts that) says nothing more.
+ *
+ * (T1051 review) The hook answer is the WHOLE water's: a hook rule held only in a part no map draws (`in_part`: François,
+ * Mahood, Upper Arrow and Pitt lakes' "Single barbless hook — in part: …"), on one side or some hours (`side`, `timed`), or
+ * only in a circumstance (`circumstantial`) would make an unqualified "allowed" untrue somewhere on the water: no line then,
+ * as before T1051 (the wording for those waters is the owner's question).
  */
-export function hooksAllowed(g: GearAnswer): { says: string; terms: readonly string[] } | null {
+export function hooksAllowed(g: GearAnswer, rules: RuleIndex): { says: string; terms: readonly string[] } | null {
+  if (!KNOWN_HOOKS.has(g.hook)) { reportFailure(new UnknownHookAnswer(g.hook)); return null; }
+  const partly = [...g.in_part, ...g.side, ...g.timed, ...g.circumstantial.map((c) => c.clause[0])];
+  if (partly.some((rix) => speaksOfHooks(rules, rix))) return null;
   const barbed = BARBED_OK.has(g.hook), treble = TREBLE_OK.has(g.hook) && !g.counts.points_per_hook && g.fly === null;
   const H = GEAR.HOOKS_ALLOWED, T = HOOKS_ALLOWED_TERMS;
-  // one ⓘ (the owner's "an info button"): the p.80 single-hook words; the section's source line carries p.8
-  if (barbed && treble) return { says: H.both, terms: [T.treble] };
+  if (barbed && treble) return { says: H.both, terms: [T.both] };
   if (treble) return { says: H.treble, terms: [T.treble] };
-  if (barbed) return { says: H.barbed, terms: [T.barbed] };
+  if (barbed) return { says: H.barbed, terms: [T.both] };
   return null;
 }
 
@@ -253,7 +276,7 @@ export function gearLines(g: GearAnswer, ctx: GearCtx): { mode: GearVM["mode"]; 
   }
   // (T1051, owner 2026-11-24 "Say it everywhere") the Hooks row's second line: what the frame's hook answer leaves allowed
   // ("Treble and barbed hooks allowed" on Dick Lake, where the sentence names no hook: ROUND13 G), with its ⓘ
-  const allowed = hooksAllowed(g);
+  const allowed = hooksAllowed(g, ctx.rules);
   if (allowed) {
     let hook = blocks.find((b) => b.k === "hook");
     if (!hook) {
