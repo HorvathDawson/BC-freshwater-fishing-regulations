@@ -115,3 +115,12 @@ Done: worker half on staging (PR #39, branch `fix/T996-apns-check`, head 3c18621
 - The owner's two TestFlight feedback items of 2026-11-25 06:37Z and 06:40Z, ids `ADcTz8stYyx3IE-aFrsdMMY` and
   `ACeTORpC4_17LbsatW-MECg` (no comment, one screenshot each), are his own pictures of the Notifications page for
   this proof, not tester feedback. Cited here so `pipeline reports` does not list them as new.
+
+## Owner 2026-11-25 ~00:20 MST (in the iOS release chat, relayed): moved to after the iPhone release
+Verbatim: "we should move this to after iphone release I think. we could fix with a patch?" The iOS chat's reading,
+recorded in T1071: production push no longer gates the App Store submission (this replaces his "Soon, on build 45"
+pick as a gate); the proof and any fix come after the release, a fix shipping as an ordinary iPhone update. Known
+cost, told to him: until it works no server wake-up reaches an iPhone, so "new data" and flow notices rely on iOS's
+own background check and can be late. The second-iPhone test is still the next step, whenever he has one. To watch
+(the planning chat): the store listing and the first-load notification ask (T1110) must not promise iPhone notices
+the app cannot deliver yet.
