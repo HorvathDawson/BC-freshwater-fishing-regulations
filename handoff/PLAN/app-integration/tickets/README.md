@@ -337,7 +337,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1092 | Web: "Database deleted by request of the user" arrives as a crash report (kind `790ae7cc172f9424`) | OPEN — 0.9.2 | | planning chat 2026-11-24 |
 | T1093 | "Location request failed due to unsatisfied device settings" is an unhandled crash on 0.9.0 (kind `f7cb406a97ce7436`) | OPEN — 0.9.2 (0.9.1 if a lane is free) | | planning chat 2026-11-24 |
 | T1094 | Android: the system ended the app for low memory in the foreground, 0.8.5 staging (kind `9588028ebf260364`) | OPEN — 0.9.2 (watch for it on 0.9.0 first) | | planning chat 2026-11-24 |
-| T1095 | Feature request: fish measurements on a saved location, several per location, editable on a revisit (report `0a9136aec3e19ab9`) | OPEN — 0.10 or later, design first | | planning chat 2026-11-24 |
+| T1095 | Feature request: fish measurements on a saved location, several per location, editable on a revisit (report `0a9136aec3e19ab9`) | OPEN — 0.10, pictures first (owner 2026-11-24) | | planning chat 2026-11-24 |
 
 ## Next after closed testing
 
