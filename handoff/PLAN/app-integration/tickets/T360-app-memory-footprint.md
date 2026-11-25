@@ -36,7 +36,7 @@ rule-book PDF, then `am send-trim-memory <pkg> RUNNING_CRITICAL`), satellite on 
 
 ## Checked by the main session (2026-11-03) — corrections and the plan
 - **Vulkan:** `["@maplibre/maplibre-react-native", { "android": { "nativeVariant": "vulkan" } }]` (apps/mobile/app.json).
-  It was PROVISIONAL from the N1 spike ("Vulkan provisional pending a real phone", app-data/n2/README.md, N1-SPIKE.md)
+  It was PROVISIONAL from the N1 spike ("Vulkan provisional pending a real phone", research/n2/README.md, N1-SPIKE.md)
   and was never judged on a phone. The SIGSEGV (status 11) makes the OpenGL variant the first thing to try.
 - **Correction:** MapLibre's "ambient cache" (`OfflineManager.setMaximumAmbientCacheSize`, `setTileCountLimit`) is the
   DISK tile cache. Capping it does not lower RAM. RAM is driven by the tiles in view, overzoom depth, layer count,

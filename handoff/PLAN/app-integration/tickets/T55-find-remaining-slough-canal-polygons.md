@@ -10,7 +10,7 @@ Owner 2026-10-22 (late), decisions.md "sloughs and canals look like streams in C
 canals as streams. Many such polygons are already marked as stream items; "the rest are still to be found … and stays
 postponed". This ticket is that postponed part. Do not start it with the braid / canal geometry work, which stays
 PAUSED (decisions.md names BRAIDS-HANDOFF.md for it; that file is not in the repo as of 2026-10-22 — the only braid
-material is handoff/PLAN/app-data/side-channels/shots/klesilkwa-braid.png).
+material is handoff/PLAN/research/side-channels/klesilkwa-braid.png).
 
 ## What is done (not this ticket)
 A polygon ALREADY folded into a stream item (`item.kind = 'stream'`, `section_span.shape = 1`; 146 sections on 48 items)

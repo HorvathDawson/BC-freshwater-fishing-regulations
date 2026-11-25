@@ -1,0 +1,82 @@
+{
+ "steps": {
+  "start": {
+   "zoom": 9.4,
+   "imagery": "none",
+   "tiles": [
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false"
+   ],
+   "maxzoom": 19,
+   "attribution": "Hydrometric data: Environment and Climate Change Canada | \u00a9 OpenStreetMap \u00b7 \u00a9 Protomaps | Province of British Columbia \u00b7 Freshwater Atlas & Freshwater Fishing Synopsis",
+   "onLine": true
+  },
+  "satellite-z12": {
+   "zoom": 12,
+   "imagery": "visible",
+   "tiles": [
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false"
+   ],
+   "maxzoom": 19,
+   "attribution": "Hydrometric data: Environment and Climate Change Canada | \u00a9 OpenStreetMap \u00b7 \u00a9 Protomaps | Powered by Esri \u00b7 Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community | Province of British Columbia \u00b7 Freshwater Atlas & Freshwater Fishing Synopsis",
+   "onLine": true
+  },
+  "satellite-z16": {
+   "zoom": 16,
+   "imagery": "visible",
+   "tiles": [
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false"
+   ],
+   "maxzoom": 19,
+   "attribution": "Hydrometric data: Environment and Climate Change Canada | \u00a9 OpenStreetMap \u00b7 \u00a9 Protomaps | Powered by Esri \u00b7 Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community | Province of British Columbia \u00b7 Freshwater Atlas & Freshwater Fishing Synopsis",
+   "onLine": true
+  },
+  "satellite-z18": {
+   "zoom": 18,
+   "imagery": "visible",
+   "tiles": [
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false"
+   ],
+   "maxzoom": 19,
+   "attribution": "Hydrometric data: Environment and Climate Change Canada | \u00a9 OpenStreetMap \u00b7 \u00a9 Protomaps | Powered by Esri \u00b7 Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community | Province of British Columbia \u00b7 Freshwater Atlas & Freshwater Fishing Synopsis",
+   "onLine": true
+  },
+  "offline": {
+   "zoom": 14,
+   "imagery": "none",
+   "tiles": [
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false"
+   ],
+   "maxzoom": 19,
+   "attribution": "Hydrometric data: Environment and Climate Change Canada | \u00a9 OpenStreetMap \u00b7 \u00a9 Protomaps | Province of British Columbia \u00b7 Freshwater Atlas & Freshwater Fishing Synopsis",
+   "onLine": false,
+   "note": "Satellite needs a connection. Showing the map until you are back online; satellite returns by itself.",
+   "satelliteChecked": "true"
+  },
+  "online-again": {
+   "zoom": 14,
+   "imagery": "visible",
+   "tiles": [
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false"
+   ],
+   "maxzoom": 19,
+   "attribution": "Hydrometric data: Environment and Climate Change Canada | \u00a9 OpenStreetMap \u00b7 \u00a9 Protomaps | Powered by Esri \u00b7 Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community | Province of British Columbia \u00b7 Freshwater Atlas & Freshwater Fishing Synopsis",
+   "onLine": true,
+   "note": null
+  }
+ },
+ "errors": [],
+ "esriSummary": {
+  "requests": 51,
+  "zooms": [
+   0,
+   10,
+   13,
+   15,
+   17,
+   19
+  ],
+  "statuses": [
+   200
+  ]
+ }
+}
