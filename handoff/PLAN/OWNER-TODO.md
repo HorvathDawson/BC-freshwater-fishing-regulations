@@ -74,6 +74,19 @@ with the default Claude uses until you answer). Newest first inside each section
 - 2026-11-25 00:40, your ask: "add boat luanch and docks etc etc to the basemap (will always be displayed) we will
   get this data from osm ... will go in 0.10 at min". Ticket T1119. Nothing for you yet: a page with counts and
   pictures comes first, then three picks (what "etc" covers, the look, whether a tap does anything).
+- 2026-11-25 00:38, your addition to T1108: "in 0.10 when we add offline corridors we will switch mobile to use
+  mapbox online satellite too and remove esri from mobile." Recorded on T1108; the web keeps Esri unless you say
+  otherwise. It changes the privacy page, the store data answers and the credits; the research page lists them.
+- 2026-11-25 00:40, your ask: at the repo move "do a fresh install ... to make sure everythign can be redone
+  properly". Ticket T1120, the last step of the repo-move chat. Your part then: confirm a list of secrets (names
+  only) that you can restore each one, about 10 minutes.
+- 2026-11-25 00:50, from the 0.9.1 chat: (a) the What's-new words for 0.9.1 are yours to clear; it drafts plain
+  ones as a proposal and lists them in its morning summary. (b) Production data: `pipeline release --prod` refuses
+  in every Claude session by code. The planning chat will not run the upload script under it and advised the 0.9.1
+  chat to leave production data, then the site and feeds, for you with the commands ready. (c) T1122: read out
+  Play Console's Data Safety answers so they can be checked against the new privacy page (about 10 minutes, before
+  the Play application). (d) The 0.9.1 chat says the release must run from the main checkout (clean, on `main`);
+  the planning chat has nothing in it and told it: clean tree only, fast-forward only, no stash or reset.
 - Asked 2026-11-25 ~00:20: "in 0.9.1 we should make this page (https://canifishthis.ca/gauges) have a search
   option ... search by place or river etc to get gauge only"; "someone found the page by search so we want it
   usable". Ticket T1107, sent to the 0.9.1 chat; you get a picture of the page with results before it ships.
@@ -102,6 +115,11 @@ with the default Claude uses until you answer). Newest first inside each section
   What may miss the 0.9.1 cut because it waits on a pick of yours: the T1029 look, the T1098 privacy sentences,
   the T1107 gauges-page picture, the T1052 part-year waters. T1098 matters most: the App Store submission waits on
   the privacy page being live, so if it misses the cut it needs its own site deploy afterwards.
+- **Handed to the 0.9.1 chat, 2026-11-25 00:50** (your words to the planning chat: "I told the agent they could do
+  these without me"): reading the head-lakes list in draft #166, picking the privacy sentences in #179, checking the
+  gauges search picture in #187, picking the one-bank stripe look in #112. None of the four waits on you for the
+  0.9.1 cut any more. The 0.9.1 chat lists what it chose for each in its morning summary, as proposals you can
+  change in 0.9.2 (planning chat's ask of it, not your words). The rows below about these four are kept for the record.
 - **Read (you): the head-lake walk, draft PR #166 (T1053)**, sent to you by the 0.9.1 chat ~23:55. The list:
   the file head-lakes-before-after.md in that PR's T1053-shots folder (22 head lakes, 42
   rules gain water, none lose). One decision inside it: Dove Creek above Anderson Lake reopens for catch and
