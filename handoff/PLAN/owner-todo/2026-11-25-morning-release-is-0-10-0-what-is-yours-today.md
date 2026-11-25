@@ -36,3 +36,7 @@ order: 770
   **Answered 12:15, your words: "we can remove old store photos. we want this to be clean".** So it is no longer
   yours to do: the 0.10.0 chat, which holds that checkout, removes them (a dry run first, that one folder only, stop
   if anything else is listed), and the store chat builds T1127 now so a leftover can never ride along again.
+- **Answered 12:33, store pictures (T1072), your words: "Drop tablet set. And you can get them to fix picture".** The
+  store chat drops the Play tablet sets and redoes frame 3 (it showed "Lillooet watershed" under a Lower Fraser
+  creek). If the wrong label comes from the app and not the shot, it becomes a ticket. T1127 (the upload scripts
+  refuse stray pictures) is built: PR #207.
