@@ -66,7 +66,11 @@ export function profileChannel(mode: ColorMode | undefined): ProfileChannel | nu
  * to `finfishNone`, the neutral grey, as a closed section's do. Absent (never an empty list) on a day with none: the
  * paint is then exactly the status day's.
  */
-export type StatusDay = DayProfiles & { readonly finfish?: readonly string[]; readonly finfishNone?: readonly string[] };
+export type StatusDay = DayProfiles & { readonly finfish?: readonly string[]; readonly finfishNone?: readonly string[];
+  /** (T1029 Q6) the class a legend tap shows alone (`isolateDay` moved every other class's labels to `none`), as a
+   *  one-item list (the day's own shape): what greys a closed answer the day carries no label for — the rule book's
+   *  closed half (`paint.ts` `bankHalfPaint`). Absent with no isolate. Not a label. */
+  readonly alone?: readonly [string] };
 /** The feature-state the salmon channel labels each section's chain in (`salmonInput`; the Salmon modes' `property`). */
 export const SALMON_LABEL_KEY = "sp";
 
@@ -124,9 +128,13 @@ export interface ChannelValues {
   runs: { readonly key: string; readonly basins: Readonly<Record<string, "spawn" | "pass" | "off">> } | null;
   /** (T759) the issue stripe is in the labels (`gi`), nothing for the style: always null. */
   issue: null;
+  /** (T1029) the one-bank cue is in the labels (`bk`, fixed for the release); its day is the salmon's: always null. */
+  bank: null;
+  /** (T1029 Q6) the rule book's closed halves are in the labels (`bb`, fixed for the release): always null. */
+  half: null;
 }
 export const NO_VALUES: ChannelValues =
-  { status: null, standing: null, stocked: null, survey: null, salmon: null, method: null, runs: null, issue: null };
+  { status: null, standing: null, stocked: null, survey: null, salmon: null, method: null, runs: null, issue: null, bank: null, half: null };
 
 /** A token is a colour, a number, or a dash pattern (an array of line-width multiples). */
 export type Tokens = Record<string, string | number | number[]>;

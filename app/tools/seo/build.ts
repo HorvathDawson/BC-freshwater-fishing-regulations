@@ -24,7 +24,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { openRegsStore } from "@app/data/regs";
 import { openRegsFixture, openReleaseDir, regsFixtureDir } from "@app/data/release/node";
-import { bcNow } from "@app/core";
+import { bcNow, type IndexPlace, type IndexWater, type SearchIndexData } from "@app/core";
 import type { ItemId } from "@app/data";
 import { makeReleaseSource } from "@app/data/release";
 import type { FishImages } from "@app/ui-native";
@@ -95,6 +95,8 @@ export interface BuildArgs {
   readonly gauges?: GaugeRows | null;
   /** (T1039) each station's climatology, given (beside `gauges`, for the same reason); absent: read from the release */
   readonly gaugeClim?: ReadonlyMap<string, readonly StationClim[]> | null;
+  /** (T1107) the release's whole search index data for the /gauges search; absent: read from the release, unless the gauges were given too (then none: no search) */
+  readonly gaugeSearch?: SearchIndexData<IndexWater, IndexPlace> | null;
 }
 /** The app document a test builds into when no web export is given: the export's shape, no script. */
 export const BARE_APP = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><title>canifishthis</title>` +
@@ -164,12 +166,14 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   const gaugeRows = a.gauges !== undefined ? a.gauges : await readGaugeRows(a.loader);
   // (T1039) each station's climatology, written into its page for the app's chart
   const gaugeClim = a.gaugeClim !== undefined ? a.gaugeClim : gaugeRows ? await readGaugeClim(a.loader) : null;
+  // (T1107) the main search's own read of the release (`WaterSource.searchIndex`), for the /gauges search
+  const gaugeSearch = a.gaugeSearch !== undefined ? a.gaugeSearch : a.gauges === undefined && gaugeRows ? await makeReleaseSource(a.loader).searchIndex() : null;
   try {
     try {
       build = await buildSite({
         store, site: config, release: { id: store.meta.release, validUntil: a.loader.manifest.regulations.valid_until },
         on: a.on, slugMap: a.slugMap ?? EMPTY_SLUG_MAP, previous: a.previous ?? null, ...(a.hubSplitAt ? { hubSplitAt: a.hubSplitAt } : {}),
-        waterPage, ...(a.only ? { only: a.only } : {}), gauges: gaugeRows, gaugeClim, gaugeFonts: fonts.css || null,
+        waterPage, ...(a.only ? { only: a.only } : {}), gauges: gaugeRows, gaugeClim, gaugeSearch, gaugeFonts: fonts.css || null,
       });
       parts = await cssParts();
     } finally { await pool?.close(); }

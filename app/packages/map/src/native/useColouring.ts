@@ -16,7 +16,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { DeviceEventEmitter } from "react-native";
-import { Colouring, LABEL_SOURCE_LAYERS, issueInput, methodInput, runsInput, runsKeyOf, salmonInput, standingInput, statusInput, stockedInput, surveyInput,
+import { Colouring, LABEL_SOURCE_LAYERS, bankInput, halfInput, issueInput, methodInput, runsInput, runsKeyOf, salmonInput, standingInput, statusInput, stockedInput, surveyInput,
          type Channel, type ChannelInput, type LabelTarget, type TileRenderer } from "../colouring";
 import type { MapAdapter } from "../adapters/contract";
 import type { MapProps } from "../map-props";
@@ -36,7 +36,7 @@ export interface AtlasSource {
   nativeTag(): number;
 }
 
-type Channels = Pick<MapProps, "status" | "standing" | "lakes" | "salmon" | "method" | "issue" | "runs">;
+type Channels = Pick<MapProps, "status" | "standing" | "lakes" | "salmon" | "method" | "issue" | "halves" | "runs">;
 
 /**
  * (T369 D14) THE PHONE'S FEATURE-STATE QUEUE, per source-layer, in the order asked. A layer CLEARED is not sent as
@@ -274,7 +274,7 @@ export function useNativeColouring(o: {
    * old (or no) day profiles first and the values a render later — two style swaps, the first drawing the streams
    * without their colours (the flicker going to the Map tab).
    */
-  const { status, standing, lakes, salmon, method, issue, runs } = o;
+  const { status, standing, lakes, salmon, method, issue, halves, runs } = o;
   const statusDay = status ? readingDayOf(status.day) : 0;
   // (T796 A6) with the salmon handed over, the day's DFO finfish closures paint closed on Standard (`statusInput`)
   const statusIn = useMemo(() => (status ? statusInput(status, salmon) : null),
@@ -293,6 +293,14 @@ export function useNativeColouring(o: {
   const salmonIn = useMemo(() => (salmon ? salmonInput(salmon) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [salmon?.facts, salmonDay, salmon?.only, o.atlasUrl]);
+  // (T1029) the one-bank cue's labels: the salmon feed's bank places, fixed for the facts (the day is the salmon's)
+  const bankIn = useMemo(() => (salmon ? bankInput(salmon) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [salmon?.facts, o.atlasUrl]);
+  // (T1029 Q6) the rule book's one-half closures' labels (`bb`): from the salmon head alone, drawn by the Standard map
+  const halfIn = useMemo(() => (halves ? halfInput(halves) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [halves?.halves, o.atlasUrl]);
   const methodDay = method ? readingDayOf(method.day) : -1;
   const methodIn = useMemo(() => (method ? methodInput(method) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -313,12 +321,16 @@ export function useNativeColouring(o: {
   useEffect(() => toChannel("survey", surveyIn), [surveyIn]);        // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => toChannel("stocked", stockedIn), [stockedIn]);     // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => toChannel("salmon", salmonIn), [salmonIn]);        // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => toChannel("bank", bankIn), [bankIn]);              // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => toChannel("half", halfIn), [halfIn]);              // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => toChannel("method", methodIn), [methodIn]);        // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => toChannel("issue", issueIn), [issueIn]);          // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => toChannel("runs", runsIn), [runsIn]);              // eslint-disable-line react-hooks/exhaustive-deps
   /** What the engine's `setChannel` would write for each channel (`Colouring.set`: `input.values()`, or null). */
   const values = useMemo<ChannelValues>(() => ({
     issue: null,   // (T759) the stripe is labels (`gi`) and a layer; the style reads no values
+    bank: null,    // (T1029) the one-bank cue is labels (`bk`); its day is the salmon channel's
+    half: null,    // (T1029 Q6) the book's closed halves are labels (`bb`); the style reads no values
     status: (statusIn?.values() ?? null) as ChannelValues["status"],
     standing: (standingIn?.values() ?? null) as ChannelValues["standing"],
     survey: (surveyIn?.values() ?? null) as ChannelValues["survey"],

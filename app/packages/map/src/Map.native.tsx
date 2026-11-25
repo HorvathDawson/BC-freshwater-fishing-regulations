@@ -127,7 +127,7 @@ const SETTLE_ASK_MS = 700;
 
 export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressStart, onPressObstacle, onPressNotFishing, chrome, onError,
                       onMoved, onMapPoint, onLongPress, onOpenLab, highlight, inSeason, water, waterLine, selection = "outline", marker, style, gauges,
-                      onVisible, pins, bare, fit, status, standing, lakes, salmon, method, issue, runs, focus, near,
+                      onVisible, pins, bare, fit, status, standing, lakes, salmon, method, issue, halves, runs, focus, near,
                       basemap, marks, onPressMark, spots, me, onImageryError: _noTileErrors,
                       onRegion: _noPrefetch, insetBottom = 0, insetTop = 0, zoomControls, trace, onOpenLink, useBackLayer, modalBack, onDrawn, lookKey, onLookDrawn }: MapProps) {
   // `onRegion` is accepted and never called: it feeds the WEB's prefetch, and a phone holds the release installed.
@@ -223,7 +223,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
                 : copyRef.current?.setFeatureState({ id }, { [key]: unsetValue(key) } as never))?.catch(report); } },
     // what a clear took that was not the engine's (the highlight, pushed data) is sent again by the effects below
     restore: () => { renderer.forget(); setGen((g) => g + 1); },
-    ready: styled && drawn, theme, atlasUrl: at.atlas, report, status, standing, lakes, salmon, method, issue, runs,
+    ready: styled && drawn, theme, atlasUrl: at.atlas, report, status, standing, lakes, salmon, method, issue, halves, runs,
   });
   const cv = colouring.values;
   /*

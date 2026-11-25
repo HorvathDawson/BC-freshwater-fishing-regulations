@@ -273,7 +273,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1027 | Android R8: push the optimization / shrinking / obfuscation scores past ~72% (restate library keep rules, each walked) | IN PROGRESS — 76.0/76.4/76.5, floors 75, walked; WorkManager InputMerger fix (every R8 build since T1003); left (Claude): independent review + merge | T1003, T1009 | owner 2026-11-22 |
 | T1030 | The release manifest carries a changed-waters count (the inbox data row's "N waters changed") | DONE | f75e6aac1, 35f55b74d, 7287c181a, c2c1e832c, d52a04440 | (T867) per-water digest list per release; count vs LATEST, said only on a device that held it (changed_waters_from); wording not counted; owner 11-24 "Rules only, hide 0": 0 says nothing (core drops it, manifest keeps 0) |
 | T1028 | The trout schedule bar's open colour = the salmon bar's (owner 2026-11-23) | DONE | 391b37ddb | owner 2026-11-23 |
-| T1029 | One-bank DFO places: the one-side stripe on the Salmon map (T754 option B, the rest; owner Q4–Q6) | OPEN — after 0.9.0 | T754 | T754 (owner 2026-11-15 / 2026-11-22) |
+| T1029 | One-bank DFO places: the one-side stripe on the Salmon map (T754 option B, the rest; owner Q4–Q6) | IN PROGRESS — draft PR #112 (look B from z13; creeks closed by FWA side, computed from extents; Q6 the book's half on Standard, from the salmon head); review done, fix round built (CRS of the bank stamp, W46 refusal, tests); owner's layer pick A built; 1 owner question, Q4 (designed), device walk, 0.9.1 data release left | T754 | T754 (owner 2026-11-15 / 2026-11-22 / 2026-11-24) |
 | T1031 | Sources round 3, the rest: one inline source format, a breakdown per species, one species sheet with Identification / Sources tabs | IN PROGRESS | T991 | items 3–5 owner 11-22; item 3 lane L22 (26839d85d, 5fdd46510, 315d8b3bb); items 1–2 lane L23 (11d0e1915, bb3836936); row pages A lane L3 (285449f89), B lane L15 (1ba8cddbd, owner 11-24) |
 | T1032 | Highlight boxes for region and province rule text (the Source row's p.8/9/10/49 open marked) | DONE | 2c7f8cab2, d03699f73 | owner 2026-11-23 |
 | T1034 | A `regs=` link opened over another water keeps the old camera (the link's `part` is read and dropped) | PARTIAL — 0.9.0 crash across waters fixed; left (Claude): device check of the camera and the fix; other keys T1038 | 77d9de76d, 2ddaa795f, 9520ae1eb | lane L18 emulator 2026-11-23 |
@@ -300,7 +300,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1055 | A new production crash kind on 0.8.5: `TypeError: Cannot read properties of undefined` (2 reports) | OPEN —  | | planning chat 2026-11-24 |
 | T1056 | Harrison Lake shows a hatchery-only lake trout rule: is it right? | DROPPED — duplicate (answered 2026-11-23, PR #85) | | — |
 | T1057 | `pipeline reports` lists about 40 old items as NEW: tie each id to a ticket or a class | OPEN —  | | planning chat 2026-11-24 |
-| T1058 | A production Android build hangs for an hour after BUILD SUCCESSFUL (Gradle daemon out of Metaspace) | OPEN —  | | planning chat 2026-11-24 |
+| T1058 | A production Android build hangs for an hour after BUILD SUCCESSFUL (Gradle daemon out of Metaspace) | DONE | 551cb1ce8, e01373329, 44be58a34, b2ae0ee3d | planning chat 2026-11-24 |
 | T1059 | `scripts/ci_status.py --strict` says "no finished run" when the green run is on an ancestor more than 30 runs back | DONE | 87e1783a3, 34c35758a | planning chat 2026-11-24 |
 | T1060 | App robustness: no React error boundary, and three one-render stale states | OPEN —  | | planning chat 2026-11-24 |
 | T1061 | A Map opened through "Flows into" shows a blank band of about 120 px (Skeena) | OPEN —  | | planning chat 2026-11-24 |
@@ -325,7 +325,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1080 | A new owner to-do page: markdown only, short, open items only (the artifact page is retired) | OPEN — planning chat, right after PR #114 merges | | owner 2026-11-24 |
 | T1081 | Audit every markdown file: delete the old, cut the bloated, unify the docs (1,326 files, about 134,000 lines) | OPEN — its own docs chat after 0.9.1 (proposed chat D); inventory first | | owner 2026-11-24 |
 | T1082 | An in-app star-rating prompt that does not get in the way (design first) | OPEN — 0.10 or 0.11; design page for the owner first | | owner 2026-11-24, via the 0.9.1 chat |
-| T1083 | The web start link refuses `wsc:` item ids, yet the app writes them into its own URL (reload and share fail) | OPEN — HIGH, confirmed on production 0.9.0; 0.9.1 | | 0.9.1 chat 2026-11-24 |
+| T1083 | The web start link refuses `wsc:` item ids, yet the app writes them into its own URL (reload and share fail) | DONE — HIGH, on production 0.9.0; fixed for 0.9.1 (lane L24) | e65bc413c, 887e21735 | 0.9.1 chat 2026-11-24 |
 | T1084 | FWA `LEFT_RIGHT_TRIBUTARY` is UNKNOWN for 188 streams, so a one-bank rule cannot tell which side they join | OPEN — 0.9.2, or with T1029 | | 0.9.1 chat 2026-11-24 |
 | T1085 | Ice fishing says "terminal attractor" where the Gear tab says "hook" | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24 |
 | T1086 | RULINGS RU-14 (the Meziadin's row stops at Meziadin Lake) is outdated by T1053's head-lake walk | DONE — rewritten in T1053's PR (lane L21) | 506132e69 | 0.9.1 chat 2026-11-24 |
@@ -341,15 +341,13 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1096 | Methods: the page's ice-fishing clause carries no citation (the source is in the pipeline only) | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24, T1050's leftover |
 | T1097 | Gradle daemons across lanes: `gradlew --stop` ends other lanes' builds; idle daemons hold about 2.4 GB outside heavy.sh | OPEN — 0.9.2, with T1063 | | 0.9.1 chat 2026-11-24, T1058 lane |
 | T1098 | The privacy page says things the app does not do (install id and email, Apple Maps, headers, token after Don't Allow) | OPEN — 0.9.1 site deploy, before the App Store submission (T1071); owner reads the new words | | iOS chat 2026-11-24 |
-| T1099 | iPhone: the privacy manifest does not match the App Privacy labels the owner decided | OPEN — next iPhone build (0.9.1 or 0.9.2) | | iOS chat 2026-11-24 |
 | T1100 | More > Sources and licences: open-source notices missing for the shipped libraries and fonts | OPEN — 0.9.2 | | iOS chat 2026-11-24 |
-| T1101 | iPhone: About and the version headers show the Android build number | OPEN — next iPhone build (0.9.1 or 0.9.2) | | iOS chat 2026-11-24 |
 | T1102 | `before_push --changed` skips the reach tests for a change to the DFO salmon reach step (a real break passed the hook) | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24, T1029 lane |
 | T1103 | Item id kinds are hand-kept in four places (the T1083 bug's cause); one generated source; dead `name:` ids in the fixture release | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24, T1083 lane |
 | T1104 | Web: the salmon prefetch asked for a refused slice up to 4 times in a minute | OPEN — 0.9.2, with T1091 | | 0.9.1 chat 2026-11-24, T1029 lane |
 | T1105 | Sources "Technical detail" should show the effective value when an inherited closure yields to a nearer row | OPEN — 0.9.2 (after T1053 ships); owner picks the words | | 0.9.1 chat 2026-11-24, T1053's leftover |
 | T1106 | The head-lake walk climbs for book rules only: DFO places and licensing do not climb; list the cases, the owner rules | OPEN — 0.9.2 (the list first) | | 0.9.1 chat 2026-11-24, T1053's leftover |
-| T1107 | The web gauges page gets a search: by place, river or water, giving gauges only (nearest first) | OPEN — 0.9.1 (owner 2026-11-25); web only | | owner 2026-11-25 |
+| T1107 | The web gauges page gets a search: by place, river or water, giving gauges only (nearest first) | PARTIAL — built in a draft PR (code 4816a87d4); left (Claude): the owner's look at T1107-shots/ (looks questions in the PR), then merge; web only, 0.9.1 site deploy | | owner 2026-11-25 |
 | T1108 | Idea: the Mapbox mobile SDK (no navigation) for free offline corridor maps; research the terms, cost and the two-engine question first | OPEN — 0.10, chat 4c (research first) | | owner 2026-11-25 |
 | T1109 | The first download respects mobile data: ask before downloading on data, and ask again if Wi-Fi drops | OPEN — 0.9.2 (proposed); owner picks the words | | owner 2026-11-25, a tester's feedback |
 | T1110 | Notifications are off after install: ask the reader on first load to turn on new-data notices; no other notice without the new-data one | OPEN — 0.9.2 (proposed); owner picks the words | | owner 2026-11-25 |
@@ -361,6 +359,11 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1116 | A push token is registered only while the phone's notification permission is on; the worker drops tokens not re-registered for ~30 days | OPEN — 0.9.1 (owner 2026-11-25); app + feeds worker | | owner via the 0.9.1 chat, T1098 item g |
 | T1117 | The book's "ANDERSON" LAKE row (MU 1-3) is bound to Anderson Lake on Dove Creek (MU 1-6): wrong rules on production | DONE — fixed in PR #166 (T1053); binding pinned by a test; ships with the 0.9.1 data release | 19a8dc392 | 0.9.1 chat 2026-11-25 |
 | T1118 | Audit every name variant whose target sits in a different management unit than the book's row; a build check | OPEN — 0.9.2, first Opus lane (HIGH until the list exists) | | 0.9.1 chat 2026-11-25, behind T1117 |
+| T1119 | Boat launches, docks and the like on the basemap, always drawn, from OpenStreetMap, through every stage | OPEN — 0.10 at the earliest (owner 2026-11-25); research and pictures first | | owner picks what "etc" covers, the look, tap or not |
+| T1120 | At the repo move, a fresh clone proves everything can be set up and rebuilt from nothing | OPEN — chat 3 (repo move), last step (owner 2026-11-25) | | the list of what lives outside git; the owner confirms the secrets list |
+| T1121 | Web gauges page search: four leftovers from the T1107 review (report class, current-data mark on the list, place cap, plural) | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-25 |
+| T1122 | The stores' data forms say what the privacy page now says (Play Data Safety, the iOS submission page) | OPEN — before the App Store submission (item 2) and the Play application (item 1) | | owner reads out the Data Safety form |
+| T1123 | iPhone may still show the "New app version" notification toggle text | OPEN — 0.9.2, with T1073 | | not checked yet |
 
 ## Next after closed testing
 

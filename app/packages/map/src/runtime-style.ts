@@ -21,7 +21,7 @@ import { MAP_STYLE, NO_VALUES, STYLE_META, defaultView, resolveTheme, withFollow
 import { NO_ASSETS, type TileEndpoints } from "./endpoints";
 import { gaugeLayers, gaugeSource } from "./gaugeDots";
 import { landOutline } from "./on-imagery";
-import { SALMON_CASING_LAYER, salmonCasingPaint, ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, hasGlow, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, markShownIn, markWidth, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS, splitStream, STREAM_HEAVY, streamWidths } from "./paint";
+import { BANK_CUE_LAYERS, BANK_LAYERS, BANK_MINZOOM, BANK_MODES, bankCuePaint, bankHalfPaint, GEAR_BANK_LAYERS, gearBankPaint, SALMON_CASING_LAYER, salmonCasingPaint, ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, hasGlow, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, markShownIn, markWidth, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS, splitStream, STREAM_HEAVY, streamWidths } from "./paint";
 import { traceLayers, traceSources } from "./trace-overlay";
 import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY, copyFilter } from "./water-copy";
 import { BASEMAP_LABELS, basemapLabelPaint, placesByImportance, WATER_NAMES } from "./labels";
@@ -316,8 +316,25 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       paint: runsPassPaint(sMode, tk, markWidth("runs", sMode, sw)),
     },
     /*
+     * (T1029) THE ONE-BANK CUE (`bankHalfPaint`, `bankCuePaint`, look B): the stretch drawn wider and split down the
+     * middle, the side and the bank's chain by feature-state (`bk`, the bank channel's label); built with no day (the
+     * salmon day is installed later, by the adapter, as `stream-closed`'s), so the first frame draws none. Shown only in the colourings that answer a rule (Salmon, Standard): on the plain map
+     * a visible layer of its own layout would be one more bucket per stream tile (the map lab's `lab.test.ts`). The layout
+     * is the other overlays' (butt caps, round joins), so where they are shown it adds no bucket. The adapter shows /
+     * hides them with the mode.
+     */
+    ...(["right", "left"] as const).flatMap((side) => [
+      { id: BANK_LAYERS[side], paint: bankHalfPaint(side, sMode, tk, NO_VALUES, sw.base) },
+      { id: BANK_CUE_LAYERS[side], paint: bankCuePaint(side, sMode, tk, NO_VALUES, sw.base) },
+    ]).map(({ id, paint }) => ({
+      id, type: "line" as const, source: "atlas", "source-layer": "stream", minzoom: BANK_MINZOOM,
+      layout: shownIn(BANK_MODES.includes(sMode), { "line-cap": "butt" as const, "line-join": "round" as const }),
+      paint,
+    })),
+    /*
      * (T377) CLOSED, STRIPED (`closedCuePaint`): a dashed stripe in the paper's colour down a closed stream — closed's
-     * cue besides its colour. Over the stream line, shown only where its mode and day paint the section closed; built
+     * cue besides its colour. Over the stream line and the one-bank stretch (T1029, owner 2026-11-25: "A: cues above the
+     * stripe": a fully closed river reads closed across both halves without its colour), shown only where its mode and day paint the section closed; built
      * with no day (nothing is closed until a day is installed), so the first frame draws none.
      */
     {
@@ -328,13 +345,23 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
     },
     /*
      * (T759) THE ISSUE STRIPE (`issuePaint`): dashes down a stream whose water has a DFO rule the feed could not place,
-     * over the line and over closed's own stripe, in the Salmon view only. Casing first, ink on it. Built with no
+     * over the line, the one-bank stretch (T1029 A) and closed's own stripe, in the Salmon view only. Casing first, ink on it. Built with no
      * section labelled and, outside Salmon, no opacity: the first frame draws none.
      */
     ...(["casing", "stripe"] as const).map((part) => ({
       id: ISSUE_LAYERS[part], type: "line" as const, source: "atlas", "source-layer": "stream",
       layout: shownIn(markShownIn("issue", sMode), { "line-cap": "butt" as const, "line-join": "round" as const }),
       paint: issuePaint(part, sMode, tk, markWidth("issue", sMode, sw)),
+    })),
+    /*
+     * (T1029, owner 2026-11-25: "A: cues above the stripe") THE LINE'S OWN CUES OVER THE ONE-BANK STRETCH: the closed cue
+     * and the issue stripe above are drawn AFTER the bank layers, and the gear edge (under the line elsewhere) is drawn
+     * again here, outside the widened stretch (`gearBankPaint`), so no cue of the line is hidden on a bank section.
+     */
+    ...GEAR_LEGEND.map((mark) => ({
+      id: GEAR_BANK_LAYERS[mark], type: "line" as const, source: "atlas", "source-layer": "stream", minzoom: BANK_MINZOOM,
+      layout: shownIn(BANK_MODES.includes(sMode) && markShownIn("gear", sMode), { "line-cap": "butt" as const, "line-join": "round" as const }),
+      paint: gearBankPaint(sMode, mark, tk, NO_VALUES, sw.base),
     }))];
   }) as { id: string; type?: string }[];
 

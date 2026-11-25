@@ -11,7 +11,7 @@
  * The answer per chain and day was decided at deliver time (`pipeline/deliver/salmon.py`); nothing here reads a rule.
  */
 import { useMemo, useState } from "react";
-import { feedFinfishOn, salmonIssueItems, type MethodFacts, type SalmonFacts } from "@app/core";
+import { bookHalves, feedFinfishOn, salmonIssueItems, type MethodFacts, type SalmonFacts } from "@app/core";
 import type { SalmonFeedSource, WaterSource } from "@app/data";
 import { useAsync } from "./async";
 import { useFeedVersion } from "./feedVersion";
@@ -130,6 +130,26 @@ export function useIssueColour(i: { source: WaterSource; facts: SalmonFacts | nu
   }, key, i.mapTab && items.length > 0);
   const sections = read.state === "ready" ? read.value : null;
   return useMemo(() => (i.mapTab && sections && sections.size ? { sections } : null), [i.mapTab, sections]);
+}
+
+/**
+ * (T1029 Q6, owner 2026-11-24: "Yes, stripe it too") THE RULE BOOK'S ONE-HALF CLOSURES for the Standard map: per section,
+ * the side of the drawn line its closed half is on (@app/core `bookHalves`, the salmon head's `bs`). Read from the salmon
+ * HEAD ALONE (`source.salmonHead`, no `salmon-<r>` slice): the web reads the slices only on the first Salmon press, and
+ * these are the Standard map's — a cold Standard map draws them. Asked like the salmon (`useSalmonColour`): on the Map
+ * tab, on a proven pair, once the day's status is in and the web has settled; kept per source. Null: none in the release,
+ * no salmon, or a source with no head to read.
+ */
+export interface HalvesFeedVM { readonly halves: ReadonlyMap<number, "L" | "R"> }
+export function useBookHalves(i: { source: WaterSource; paired: boolean; statusOk: boolean; mapTab: boolean;
+                                   settled?: boolean }): HalvesFeedVM | null {
+  const on = i.paired && i.statusOk && i.mapTab && i.settled !== false && !!i.source.salmonHead;
+  const [asked, setAsked] = useState<string | null>(null);
+  const key = `salmonhead:${sourceKey(i.source)}`;
+  if (on && asked !== key) setAsked(key);
+  const head = useAsync(() => i.source.salmonHead?.() ?? Promise.resolve(null), key, asked === key);
+  const halves = head.state === "ready" && head.value ? bookHalves(head.value) : null;
+  return useMemo(() => (i.mapTab && i.paired && halves && halves.size ? { halves } : null), [i.mapTab, i.paired, halves]);
 }
 
 /** The toggle's choice, kept for the session (Standard by default). */
