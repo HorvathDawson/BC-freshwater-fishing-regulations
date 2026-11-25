@@ -34,7 +34,7 @@ const WEB = val('--web', process.env.STORE_SHOTS_WEB ?? 'https://staging.canifis
 const GRAPHICS = path.join(ROOT, 'handoff/PLAN/app-integration/store/graphics');
 export const OUT = path.join(GRAPHICS, 'store/light/appstore-creative');
 const RAW = path.join(GRAPHICS, 'raw');   // ignored by git
-const FFMPEG = process.env.FFMPEG ?? '/opt/homebrew/bin/ffmpeg', FFPROBE = process.env.FFPROBE ?? '/opt/homebrew/bin/ffprobe';
+const FFMPEG = process.env.FFMPEG ?? 'ffmpeg', FFPROBE = process.env.FFPROBE ?? 'ffprobe';
 const PY = path.join(ROOT, '.venv/bin/python'), GENERATOR = path.join(APP, 'tools/fish-loader/fish_loader.py');
 
 /** The slots: pixel size, Apple's art safe area [x, y, w, h], the fish frame's width, the type sizes (px), the still's frame. */
