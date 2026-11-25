@@ -101,7 +101,7 @@ gradle_watched() {
   # said, and the log kept. A reader slower than that still loses nothing: the log grows as tee writes.
   was=-1
   while _gw_alive "$teepid"; do
-    size=$(wc -c <"$log" 2>/dev/null || echo 0)
+    size=$(wc -c <"$log")                       # this call's own file: a read that fails stops the build
     if (( size == was )); then quiet=$((quiet + 1)); else quiet=0; was=$size; fi
     if (( quiet >= GRADLE_DRAIN_S * 5 )); then
       echo "gradle-watch: the output did not end ${GRADLE_DRAIN_S} s after Gradle exited (a process still holds it); stopped showing it" >&2

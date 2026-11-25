@@ -467,8 +467,8 @@ JUSTIFIED: dict[tuple[str, str], str] = {
     ("deploy/lib/gradle-watch.sh", 'kill -TERM "${pids[@]}" 2>/dev/null || true'): "stopping: some pids already exited",
     ("deploy/lib/gradle-watch.sh", 'kill -KILL "$p" 2>/dev/null'): "stopping: the pid exited between probe and KILL",
     ("deploy/lib/gradle-watch.sh", 'wait "$pid" 2>/dev/null || true'): "reaping a client it stopped: the build is 124",
-    ("deploy/lib/gradle-watch.sh", 'kill "$tailpid" 2>/dev/null || true'): "the output follower, display only",
-    ("deploy/lib/gradle-watch.sh", 'wait "$tailpid" 2>/dev/null || true'): "reaping the output follower, display only",
+    ("deploy/lib/gradle-watch.sh", 'kill "$teepid" 2>/dev/null || true'): "tee held open past GRADLE_DRAIN_S: said, the build fails (125)",
+    ("deploy/lib/gradle-watch.sh", 'wait "$teepid" 2>/dev/null || true'): "reaping tee: the build's code is Gradle's (or 124/125), said above",
 }
 SCANNED_OUT = ("deploy/staging/build-apk.sh", "deploy/staging/build-ios-testflight.sh", "deploy/staging/build-ios-sim.sh")
 HIDES = re.compile(r"\|\| true\b|2>/dev/null|\|\| :")
