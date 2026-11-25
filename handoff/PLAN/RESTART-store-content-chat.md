@@ -25,7 +25,9 @@ planning chat; work only in scratchpad worktrees, never the main checkout.
 4. **Listing words: merged (#170, #175).** One source `app/store-listing/listing.json` (+ `full-description.txt`);
    `play-listing-push.py --appstore` prints the App Store fields. Owner's answers (2026-11-24 ~23:55) are in T1072:
    promotional text = his short line, keywords without the name's words, Navigation / Sports, 500 MB, graphic kept.
-5. **Owner's steps (no uploads by Claude):** in the final message of the chat and in T1072. Play:
+5. **Owner's steps (no uploads by Claude):** in the final message of the chat and in T1072. FIRST clear the 34 old
+   untracked pictures from the main checkout's `store/light/` or upload from a clean checkout (the push scripts take every
+   picture in a folder; `--plan` / `--check` must show 7 per size; a planning-chat ticket, PR #202, fixes the scripts). Play:
    `.venv/bin/python deploy/staging/play-listing-push.py --commit`. App Store: `.venv/bin/python
    deploy/staging/appstore-screenshots-push.py --check`, then `--commit`, once the version exists in App Store Connect.
 6. **iOS release chat** (`bc-freshwater-fishing-regulations-06`): told the words are ready (00:15); tell it the set is
