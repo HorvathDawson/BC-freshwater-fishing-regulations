@@ -2,7 +2,7 @@
 // a reworded caption or a retuned size cannot slip past. Pure functions (unit-tested in rules.test.ts); store-shots.mjs calls them.
 export const PLAY_CAPTION_MAX = 0.20;   // Play: the caption (title + line, padding above the card included) at most 20 % of the image height
 // the exact pixel sizes each target must have
-export const SIZES = { 'play-phone': [1080, 1920], 'appstore-6.9': [1320, 2868], 'appstore-6.5': [1242, 2688] };
+export const SIZES = { 'play-phone': [1080, 1920], 'appstore-6.9': [1320, 2868], 'appstore-6.5': [1242, 2688], 'appstore-6.3': [1206, 2622] };
 const COUNTS = { play: [2, 8], appstore: [1, 10] };   // Play: 2-8 phone shots; App Store: 1-10 per set
 // words a store refuses or that date a listing: rankings and superlatives, "new", "free", a call to download, prices, anything time-bound
 export const BANNED = [/\bbest\b/i, /#\s*1\b/, /\btop\b/i, /\bnew\b/i, /\bfree\b/i, /\bdownload/i, /\bpremium\b/i, /\bnumber one\b/i,

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // STORE SCREENSHOTS (T319) — the store listing's images from the web app, in one command:
-//   node tools/store-shots.mjs [--theme light|dark] [--only play-phone,appstore-6.9] [--scenes 01,18] [--no-shoot] [--site URL] [--reuse] [--web URL]
+//   node tools/store-shots.mjs [--theme light|dark] [--only play-phone,appstore-6.9,appstore-6.3] [--scenes 01,18] [--no-shoot] [--site URL] [--reuse] [--web URL]
 // (T1076) THE SITE: with no --site / STORE_SHOTS_SITE this builds its OWN store-shots web export (EXPO_PUBLIC_STORE_SHOTS=1) into
 // app/dist/web-store-shots and serves it on a local port for the run (store-shots/site.mjs; what is pinned and live is in its
 // header); --reuse serves the export already there without rebuilding. An explicit site is used as given but REFUSED at the start
@@ -65,7 +65,7 @@ const listFor = (name) => shots.filter((s) => !s.only || s.only.includes(name));
 const usedBy = (pairs) => shots.filter((s) => pairs.some(([name]) => listFor(name).includes(s)));
 const onRaw = (raw) => usedBy(use.filter(([, t]) => t.raw === raw));
 
-const RAW_PRE = { phone: '', iphone69: 'iphone69-', iphone67: 'iphone67-', iphone55: 'iphone55-', ipad13: 'ipad13-' };
+const RAW_PRE = { phone: '', iphone69: 'iphone69-', iphone63: 'iphone63-', iphone67: 'iphone67-', iphone55: 'iphone55-', ipad13: 'ipad13-' };
 const rawFile = (raw, scene) => path.join(RAW, `${RAW_PRE[raw] ?? `${raw}-`}${scene}.png`);
 
 // every capture the list needs: a shot's own scene, or each part of a composed one

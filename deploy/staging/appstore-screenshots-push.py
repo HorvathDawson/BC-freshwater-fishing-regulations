@@ -14,7 +14,10 @@ Three modes, the default sends nothing:
 
 Sets (folders under ROOT, default handoff/PLAN/app-integration/store/graphics/store/light, as app/tools/store-shots.mjs
 writes them): appstore-6.9 -> APP_IPHONE_67 (Apple's 6.9" slot, 1320x2868 / 1290x2796 / 1260x2736) and appstore-6.5 ->
-APP_IPHONE_65 (1242x2688 / 1284x2778). No iPad set: app.json has supportsTablet false. Each folder must hold EXACTLY the pictures app/tools/store-shots.json lists for it
+APP_IPHONE_65 (1242x2688 / 1284x2778) and appstore-6.3 -> APP_IPHONE_61 (the "iPhone with Dynamic Island (medium display)"
+slot Apple's 2026-11-25 spec requires, 1206x2622 / 1179x2556). UNCONFIRMED: the API display-type name for the 6.3" slot is
+APP_IPHONE_61 by long use for 1179x2556 pictures; Apple's enum page could not be read, so it stays unproven until the owner's
+--check run shows it; a wrong name fails loudly at the API (HTTP error, never skipped). No iPad set: app.json has supportsTablet false. Each folder must hold EXACTLY the pictures app/tools/store-shots.json lists for it
 (deploy/staging/store_shots_list.py; T1127): a leftover or a missing one stops every mode by name, before any network call.
 Folders with no slot here (an old appstore-6.7, -5.5, -ipad13) are never read. Each set takes 1-10 PNG/JPEG files
 without alpha; a wrong one is refused by name, never resized. The locale must already exist on the version (the app's
@@ -51,6 +54,8 @@ SHOTS = ROOT / "handoff/PLAN/app-integration/store/graphics/store/light"
 SETS = {
     "appstore-6.9": ("APP_IPHONE_67", {(1320, 2868), (1290, 2796), (1260, 2736)}),
     "appstore-6.5": ("APP_IPHONE_65", {(1242, 2688), (1284, 2778)}),
+    # UNCONFIRMED display-type name (see the docstring): proven only by an owner --check run; a wrong name is an API error
+    "appstore-6.3": ("APP_IPHONE_61", {(1206, 2622), (1179, 2556)}),
 }
 EDITABLE = "PREPARE_FOR_SUBMISSION,DEVELOPER_REJECTED,REJECTED,METADATA_REJECTED,INVALID_BINARY"
 
