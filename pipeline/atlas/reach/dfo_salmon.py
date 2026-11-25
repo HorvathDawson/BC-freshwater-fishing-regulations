@@ -336,9 +336,8 @@ def require_bank_fields(graph) -> None:
     """(T1029, review #112) A one-bank place's tributaries are read from two atlas fields (`StreamNode.left_right`,
     FWA's LEFT_RIGHT_TRIBUTARY, and `drawn_banks`). A graph.pkl written before them reads "" on every node, and every
     tributary would then be "undetermined" and kept with nothing looking wrong: refused, naming the fix."""
-    from pipeline.common.models import NodeKind
-    streams = [n for n in graph.nodes.values() if n.kind == NodeKind.stream]
-    lacks = [f for f in ("left_right", "drawn_banks") if streams and not any(getattr(n, f) for n in streams)]
+    # every node, whatever its kind (a lake's fields are "" by design): a stamped atlas has them on its stream pieces
+    lacks = [f for f in ("left_right", "drawn_banks") if graph.nodes and not any(getattr(n, f) for n in graph.nodes.values())]
     if lacks:
         raise ValueError(f"{ATLAS_LACKS_BANK_FIELDS}: no stream piece of this atlas carries {' or '.join(lacks)} "
                          f"(a graph.pkl from before T1029): rebuild the atlas (`pipeline.atlas.build`) before the reach "

@@ -87,7 +87,7 @@ describe("one colouring engine", () => {
     expect(src).not.toMatch(/ProfileColouring|profile-paint/);
   });
 
-  it("the phone's colouring hands the engine every channel the web does, each from the same input (review #112)", () => {
+  it("the phone's colouring hands the engine every channel the web does, each from the same input (the review of PR 112)", () => {
     // removing a phone channel (the one-bank `bank`, the book's `half`) survived every test before this
     const web = webMap(), phone = read("packages/map/src/native/useColouring.ts");
     const names = (src: string) => [...src.matchAll(/toChannel\("(\w+)"/g)].map((m) => m[1]).sort();
