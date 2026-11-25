@@ -1,6 +1,6 @@
 """THE THREE RELATIONS, against a binding base (`base.py`): which runs are on which section, never merged.
 
-Ported from the T162 prototype (handoff/PLAN/runtiming/integration-prototype.patch `pipeline/deliver/runs.py`, every
+Ported from the T162 prototype (the T162 integration prototype patch, cut in T1081, `pipeline/deliver/runs.py`, every
 rule measured there on the live atlas, 2026-10-24) onto the base's columns, so it runs without the atlas:
 
   spawning   PSF: the section's point lies in the run's Conservation Unit polygon, and the section is a stream of

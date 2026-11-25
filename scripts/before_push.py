@@ -11,7 +11,7 @@
     .venv/bin/python scripts/before_push.py --hook     # how to turn on the versioned hooks: printed, never installed
 
 Why: 0.8.4 and 0.8.5 stopped on failures GitHub had already found (a stale mini release, a worker test, a ticket
-ledger, tree-scanning inventory pins: 79 red runs in 30 days, `handoff/PLAN/audit-2026-11-21/t993-inventory.md`), each
+ledger, tree-scanning inventory pins: 79 red runs in 30 days, the T993 inventory, cut in T1081), each
 seen only after the push. The steps:
 
   1. EVERY named `run` step of .github/workflows/pipeline-ci.yml, read from the file at run time as fast-fail's

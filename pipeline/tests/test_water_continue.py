@@ -455,7 +455,7 @@ def test_the_chilliwack_continues_as_the_vedder_in_the_bundle(request):
     assert len({r[0] for r in rows}) == len({r[2] for r in rows}) == len(rows) > 0
     parts = set(b.execute("SELECT ord, part_ix FROM part"))
     assert all((a, p) in parts and (n, q) in parts for a, p, n, q in rows)
-    # OWNER 2026-10-21 (late): the 18 rows reviewed in handoff/PLAN/app-data/p15/continuations.md, less the one the FWA
+    # OWNER 2026-10-21 (late): the 18 rows reviewed in the p15 continuations note (cut in T1081), less the one the FWA
     # codes call reversed (Eagle Trib.5 "flows into" Eagle Trib.5-3); the 10 municipal continuations stay; T59 adds the
     # Atnarko as the Bella Coola. OWNER 2026-10-29: the bundle holds EXACTLY the reviewed set
     # (data/curated/waters/continuations.json) — Meadow Creek -> Meadow Creek Diversion (T224 named it from a gauge) is

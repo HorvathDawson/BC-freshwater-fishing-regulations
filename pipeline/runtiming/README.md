@@ -3,7 +3,7 @@
 When each salmon and steelhead run is in fresh water. T199 (owner 2026-10-28): it reaches the app as ITS OWN FEED,
 not the release — `pipeline/runtiming/feed/` (base → build → publish; the data contract is its `__init__.py`), run by
 `.github/workflows/feeds-runtiming.yml`, read by the Map tab's Run timing mode from R2 `runtiming/`.
-`handoff/PLAN/runtiming/PLAN.md` (T162) is the binding's history; its release file `runs/1` is superseded.
+The T162 plan (cut in T1081; git history) was the binding's history; its release file `runs/1` is superseded.
 
 ## Sources
 

@@ -182,7 +182,7 @@ SIMPLIFICATION_AT_MAX = 1.25
 #: THE TOP ZOOM'S GRID (T202, owner 2026-10-27: "the ~5.5 m line"): 2^10 = 1,024 units across a z13 tile (3.1 m at
 #: 49 N), with the tolerance cut to 1.25 units to match. The worst-case ground error is tolerance + half a grid unit:
 #: 1.25 x 3.13 + 1.57 = ~5.5 m, against ~4.3 m at the old 4,096 / 5. At any given error a coarser grid beats a larger
-#: tolerance (handoff/PLAN/tiles/T202-regulation-audit.md round 2 §6: detail 12 at the same 5.5 m saves ~6%, this
+#: tolerance (the T202 regulation audit, round 2 §6, cut in T1081: detail 12 at the same 5.5 m saves ~6%, this
 #: ~16% of z13, ~27 MB). Every shared node is still pinned, so sections still meet. TO GO BACK: TOP_DETAIL = 12 and
 #: SIMPLIFICATION_AT_MAX = 5 (the T85 line, ~4.3 m).
 TOP_DETAIL = 10

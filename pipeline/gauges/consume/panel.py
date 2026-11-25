@@ -161,7 +161,7 @@ MIN_TOTAL_WEIGHT = 0.05
 #: the section said nothing while a reporting gauge stood fifth. The panel is now a ranked reserve, deep enough per
 #: quantity that losing a few members still leaves an answer.
 #:
-#: EIGHT, MEASURED (handoff/PLAN/app-data/live-panels/scripts, live graph, feed 2026-10-21T18:00Z, against the shipped
+#: EIGHT, MEASURED (the live-panels evaluation scripts, cut in T1081; live graph, feed 2026-10-21T18:00Z, against the shipped
 #: panels): 4 / 6 / 8 / 12 per quantity give 12,417 / 14,194 / 15,050 / 16,990 member rows (10,589 shipped) and a
 #: paint file of +3.9 / +6.9 / +8.2 / +11.2 KB gzip against a 66 KB margin under its 1 MB gate. Flow gains an answer
 #: on 69 / 75 / 75 / 75 sections. Past 6 nothing more answers TODAY — 168k of 247k sections have a single candidate
@@ -171,7 +171,7 @@ MEMBERS_PER_QUANTITY = 8
 
 #: THE CORE of a panel: its first this-many members, best weight first — the panel as it stood before the reserve (the
 #: old cap, the best four overall). The app's `estimate` (app/packages/core/src/trust.ts `answering`, mirrored for
-#: measurement by handoff/PLAN/app-data/live-panels/scripts/evaluate.py) lets the lowest-weight RESERVE members stand
+#: measurement by the live-panels `evaluate.py`, cut in T1081) lets the lowest-weight RESERVE members stand
 #: back when bringing them in makes the answer too uncertain while a core member reports: a reserve member is there to
 #: answer, never to silence. Measured (live graph, feed 2026-10-21T18:00Z): with every reserve member voting, 54 Level
 #: sections (384 km) lost the answer their core gave on the same feed; with the back-off, none does, and the shipped
@@ -327,7 +327,7 @@ def weight_of(share: float, role: str, years: int, same_river: bool = True) -> f
 # WHO MAY LEAD is decided here at build time (`may_lead`, from the along-water distance and both catchments, which
 # only the pipeline has) and ships as each member's `lead` rank. WHAT LEADING MEANS (`leader_of`, `lead_shares`) runs
 # on every tap in the app; `leaderOf` / `leadShares` in app/packages/core/src/trust.ts are the mirror, and
-# app/tools/one-formula.test.ts executes both. Real-data evaluation: handoff/PLAN/app-data/own-gauge/REPORT.md.
+# app/tools/one-formula.test.ts executes both. Real-data evaluation: the own-gauge report (cut in T1081; git history).
 
 #: The least share of the answer a leading own gauge carries. "Main" — and the auxiliaries keep the other 30%,
 #: split in their usual proportion. A gauge already carrying more on its own merits keeps what it had.
