@@ -44,6 +44,11 @@ Owner: yes (App Store Connect entries, the submit, any legal answers).
     proven on it, otherwise 0.9.0 (45).
   - Production push proof: **"Soon, on build 45"**. He sets the three APNs secrets on the production worker and does
     the phone steps; the chat reads the status and watches an hour.
+- 2026-11-25 00:12, after the push proof attempt failed on his iPhone (T996), verbatim: "we should move this to after iphone
+  release I think. we could fix with a patch?" Reading (the chat's): production push is no longer a gate for the App
+  Store submission (this replaces "Soon, on build 45" as a gate; Work item 4 above is moved to after the release); the
+  proof and any fix follow the release, a fix shipping as an ordinary update. Known cost: until then no server wake-up
+  reaches an iPhone, so "new data" and flow notices rely on iOS's own background check and can be late.
 
 ## Results (iOS release chat, 2026-11-24)
 - The page: `handoff/PLAN/ios/APP-STORE-SUBMISSION.md`. Restart page: `handoff/PLAN/ios/RESTART-ios-release-chat.md`.

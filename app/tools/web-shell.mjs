@@ -175,11 +175,11 @@ export function shellFonts(root) {
 
 /**
  * (T910, owner 2026-11-19 ~11:40) THE HOME PAGE'S DESCRIPTION: `/` had none, the one SEO loss on production (Lighthouse
- * 92). The owner's store words (handoff/PLAN/play/store-description.md), under 155 characters as the site's pages are.
+ * 92). The owner's store words (app/store-listing/listing.json, `websiteHomeDescription`: the one source of the store words, T1072), under 155 characters as the site's pages are.
  * The water pages take it out: their own description is the page's (tools/seo `appDocument`).
  */
-export const HOME_DESCRIPTION = "Your pocket guide to BC fishing regulations: tap any lake, river or stream on an interactive map " +
-  "to view its fishing regulations and river conditions.";
+export const HOME_DESCRIPTION = JSON.parse(
+  readFileSync(fileURLToPath(new URL("../store-listing/listing.json", import.meta.url)), "utf8")).websiteHomeDescription;
 export const HOME_DESCRIPTION_TAG = `<meta name="description" content="${HOME_DESCRIPTION}">`;
 
 /** The export's index.html with the home description after its title (a second run: the same page). */
