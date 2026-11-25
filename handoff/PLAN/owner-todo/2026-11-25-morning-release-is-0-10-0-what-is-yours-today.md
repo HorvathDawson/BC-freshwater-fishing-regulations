@@ -40,3 +40,9 @@ order: 770
   store chat drops the Play tablet sets and redoes frame 3 (it showed "Lillooet watershed" under a Lower Fraser
   creek). If the wrong label comes from the app and not the shot, it becomes a ticket. T1127 (the upload scripts
   refuse stray pictures) is built: PR #207.
+- **Closed 13:04: the 34 old store pictures are gone from the main checkout**, deleted by the 0.10.0 chat on your
+  direct yes in its chat (dry run rechecked first; after it nothing untracked under that folder, the 35 current
+  pictures untouched, the checkout clean).
+- **13:04, CI on release/0.10.0 was red** on one pipeline test (a fixed 10-character compare that cuts "0.10.0"; a
+  test fault, confirmed by the 0.10.0 chat from the code). Its fix goes to main, then onto the release branch. The
+  production builds' CI gate refuses until it is green, so the afternoon times may slip.
