@@ -282,9 +282,9 @@ export function rampAt(ramp: Ramp, zoom: number): number {
   return ramp[ramp.length - 1]![1];
 }
 /** The dash: the token from z11 up, a longer one below it (the line is thin; a 1.2 dash is a few pixels). */
-function gearDash(tokens: Tokens): unknown {
+function gearDash(tokens: Tokens, k = 1): unknown {
   const d = tokens["dash.gear.bait"] as number[];
-  return ["step", ["zoom"], ["literal", d.map((n) => n * 2)], 11, ["literal", d]];
+  return ["step", ["zoom"], ["literal", d.map((n) => n * 2 * k)], 11, ["literal", d.map((n) => n * k)]];
 }
 /** The modes the marks ride on: the Standard map's status mode, and (owner 2026-10-28: "bait and fly rules also apply
  *  to salmon") the Salmon map's — the provincial gear rule holds for a salmon angler too. */
@@ -614,6 +614,38 @@ export function bankCuePaint(side: keyof typeof BANK_CUE_LAYERS, mode: string, t
     "line-opacity": bookDrawn(mode, values) ? bookAway(values) ? 0 : ["case", offNoAccessBank(["==", HALF_SIDE, SIDE_LETTER[side]], mode, values), 1, 0]
       : day === null || !closed.length ? 0
       : ["case", offNoAccessBank(["==", BANK_SIDE, SIDE_LETTER[side]], mode, values), ["match", BANK_CHAIN, closed, 1, 0], 0],
+  };
+}
+
+/**
+ * (T1029, owner 2026-11-25: "A: cues above the stripe") THE LINE'S OWN CUES STAY ON TOP OF THE ONE-BANK STRETCH. The bank
+ * layers draw the stretch wider (`BANK_WIDEN`), which would hide the gear edge beside the line (a wider line UNDER it,
+ * `gearPaint`); so over a bank section the edge is drawn again ABOVE the bank layers, as two thin edges just outside the
+ * widened stretch (`line-gap-width` = the stretch's width) — on the same sections and days as the edge itself
+ * (`gearShown`), only where a bank half is drawn. The closed cue and the issue stripe move above the bank layers instead
+ * (`runtime-style.ts`). One fixed dash per layer (MapLibre Native), as the edge's: the dash lengthened by
+ * `GEAR_BANK_DASH`, since the edge is thin here.
+ */
+export const GEAR_BANK_LAYERS = { fly: "stream-gear-fly-bank", bait: "stream-gear-bait-bank" } as const satisfies Record<GearMark, string>;
+const GEAR_BANK_DASH = 3;
+/** where a bank half is drawn in `mode` (the halves' own test), as a boolean expression; null: nowhere */
+function bankDrawnAt(mode: string, values: ChannelValues | null): unknown | null {
+  if (bookDrawn(mode, values)) return offNoAccessBank(["match", HALF_SIDE, ["L", "R"], true, false], mode, values);
+  if (bankDay(mode, values) === null) return null;
+  return offNoAccessBank(["match", BANK_SIDE, ["L", "R"], true, false], mode, values);
+}
+export function gearBankPaint(mode: string, mark: GearMark, tokens: Tokens, values: ChannelValues | null,
+                              streamWidth: unknown): Record<string, unknown> {
+  const shown = gearShown("stream", mode, mark, values);
+  const bank = bankDrawnAt(mode, values);
+  const ramp = GEAR_RAMPS[GEAR_RAMP];
+  return {
+    "line-color": tokens["color.gear.edge"],
+    "line-width": ["interpolate", ["linear"], ["zoom"], ...ramp.edge.flatMap(([z, f]) => [z, GEAR_EDGE_PX * f])],
+    "line-gap-width": withinZoomCurve(streamWidth, (w) => bankWidth(w)),
+    ...(mark === "bait" ? { "line-dasharray": gearDash(tokens, GEAR_BANK_DASH) } : {}),
+    "line-opacity": shown === null || bank === null ? 0
+      : ["interpolate", ["linear"], ["zoom"], ...ramp.opacity.flatMap(([z, o]) => [z, ["case", ["all", shown, bank], o, 0]])],
   };
 }
 

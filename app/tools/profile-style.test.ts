@@ -108,8 +108,9 @@ describe("the profile colour mode", () => {
         // (`stream-issue-casing` + `stream-issue-stripe`, off outside `salmon`), and T848's heavy line (`stream-heavy`: the
         // stream's lit and closed sections over it), and T887's keep casing (`stream-salmon-casing`, off outside `salmon`), and T1029's one-bank cue (its two halves
         // `stream-bank-r`/`-l` and their closed cues `stream-bank-cue-r`/`-l`: painted with the stream since the cue reads
-        // the salmon day; opacity 0 on Standard) — all validated with the real paint
-        expect(patched, theme).toBe(theme === "dark" ? 29 : 28);
+        // the salmon day; opacity 0 on Standard), and its gear edges outside the stretch (`stream-gear-fly-bank` /
+        // `-bait-bank`, owner 2026-11-25 "A: cues above the stripe") — all validated with the real paint
+        expect(patched, theme).toBe(theme === "dark" ? 31 : 30);
         for (const e of validateStyleMin(style as never)) problems.push(`${theme}: ${e.message}`);
       }
     expect(problems).toEqual([]);

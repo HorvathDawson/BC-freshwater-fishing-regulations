@@ -9,7 +9,8 @@
  */
 import { describe, expect, it } from "vitest";
 import { createPropertyExpression, latest } from "@maplibre/maplibre-gl-style-spec";
-import { BANK_CUE_LAYERS, BANK_LAYERS, BANK_MIN_PX, BANK_MINZOOM, BANK_WIDEN, bankCuePaint, bankHalfPaint } from "../packages/map/src/paint";
+import { BANK_CUE_LAYERS, BANK_LAYERS, BANK_MIN_PX, BANK_MINZOOM, BANK_WIDEN, CLOSED_CUE_LAYER, GEAR_BANK_LAYERS, GEAR_EDGE_PX, GEAR_LAYERS, ISSUE_LAYERS,
+         bankCuePaint, bankHalfPaint } from "../packages/map/src/paint";
 import { profileLabel, type StatusIndex, type WaterStatus } from "@app/core";
 import { statusInput } from "../packages/map/src/colouring";
 import { nativeStyle } from "../packages/map/src/native-style";
@@ -211,5 +212,65 @@ describe("(T1029) one bank: a wider line split down the middle", () => {
     const t = resolveTheme("light");
     expect(colour(value(left, "line-color", 14, ORD7, { bk: "Ls3", sp: "s0", p: "n" }))).not.toBe(hex(t["color.status.no_access"]));
     expect(colour(value(left, "line-color", 14, ORD7, { bk: "Ls1", sp: "s3", p: "n" }))).toBe(hex(t["color.status.no_access"]));
+  });
+});
+
+/**
+ * (T1029, owner 2026-11-25: "A: cues above the stripe") THE LINE'S OWN CUES ARE NEVER UNDER THE BANK STRETCH: the closed
+ * cue (T377) and the issue stripe (T759) are drawn after the four bank layers, and the gear edge — a wider line UNDER the
+ * stream elsewhere, which the widened stretch would hide — is drawn again after them, as two thin edges just outside the
+ * stretch, on the sections and days the edge itself is shown and only where a bank half is drawn.
+ */
+describe("(T1029 A) the line's cues over the one-bank stretch", () => {
+  const METHOD = { none: [], fly: ["mf"], bait: ["mb"] };
+  const withGear = { ...VALUES, method: METHOD } as unknown as ChannelValues;
+  const ABOVE = [CLOSED_CUE_LAYER, ISSUE_LAYERS.casing, ISSUE_LAYERS.stripe, ...Object.values(GEAR_BANK_LAYERS)];
+  for (const theme of ["light", "dark", "cvd"]) for (const mode of ["salmon", "profile"]) {
+    it(`${theme} ${mode}: the closed cue, the issue stripe and the gear edges draw after every bank layer`, () => {
+      for (const layers of [handed(theme, mode, withGear), firstFrame(theme, mode)]) {
+        const at = (id: string) => layers.findIndex((l) => l.id === id);
+        const lastBank = Math.max(...ALL.map(at));
+        expect(Math.min(...ALL.map(at))).toBeGreaterThan(at("stream"));
+        for (const id of ABOVE) expect([id, at(id) > lastBank]).toEqual([id, true]);
+        // the gear edge itself stays under the line (its colour stays the read)
+        for (const id of Object.values(GEAR_LAYERS.stream)) expect(at(id)).toBeLessThan(at("stream"));
+      }
+    });
+  }
+  it("a fully closed river reads closed across both halves: the closed cue shows on the stretch, above the halves", () => {
+    for (const theme of ["light", "cvd"]) {
+      const all = handed(theme, "salmon");
+      const cue = all.find((l) => l.id === CLOSED_CUE_LAYER)!;
+      // the line's own chain closed (s1) and the bank's closed (s1): the line's own cue is drawn on the stretch too
+      expect(Number(value(cue, "line-opacity", 16, ORD7, { ...WEST, sp: "s1" }))).toBeGreaterThan(0);
+      expect(Number(value(cue, "line-opacity", 16, ORD7, WEST))).toBe(0);         // the line open: none
+    }
+  });
+  for (const [mode, state, off] of [["profile", { bb: "L", p: "p1" }, { p: "p1" }], ["salmon", WEST, { sp: "s0", p: "p1" }]] as const) {
+    it(`${mode}: the gear edge over the stretch sits just outside it, where the edge is shown and a half is drawn`, () => {
+      const all = handed("light", mode, withGear);
+      const stream = all.find((l) => l.id === "stream")!;
+      for (const mark of ["bait", "fly"] as const) {
+        const edge = all.find((l) => l.id === GEAR_BANK_LAYERS[mark])!;
+        const gm = mark === "bait" ? "mb" : "mf";
+        for (const z of [13, 14, 16]) {
+          const full = Math.max(Number(value(stream, "line-width", z, ORD7)) * BANK_WIDEN, BANK_MIN_PX);
+          expect(Number(value(edge, "line-gap-width", z, ORD7, { ...state, gm }))).toBeCloseTo(full, 4);
+        }
+        expect(Number(value(edge, "line-width", 16, ORD7, { ...state, gm }))).toBeCloseTo(GEAR_EDGE_PX, 4);
+        expect(Number(value(edge, "line-opacity", 16, ORD7, { ...state, gm }))).toBe(1);
+        expect(Number(value(edge, "line-opacity", 16, ORD7, { ...off, gm }))).toBe(0);        // no bank half: none
+        expect(Number(value(edge, "line-opacity", 16, ORD7, { ...state, gm: "m0" }))).toBe(0); // no gear rule: none
+        expect(edge.minzoom).toBe(BANK_MINZOOM);
+        expect("line-dasharray" in (edge.paint ?? {})).toBe(mark === "bait");
+      }
+    });
+  }
+  it("no gear day, no bank day, the plain map and the first frame: no gear edge over a stretch", () => {
+    for (const layers of [handed("light", "profile"), handed("light", "salmon", { ...withGear, salmon: null }), firstFrame("light", "profile")])
+      for (const id of Object.values(GEAR_BANK_LAYERS))
+        expect(value(layers.find((x) => x.id === id)!, "line-opacity", 16, ORD7, { bb: "L", bk: "Ls1", sp: "s0", p: "p1", gm: "mb" })).toBe(0);
+    for (const id of Object.values(GEAR_BANK_LAYERS))
+      expect(handed("light", "plain").find((l) => l.id === id)?.layout?.["visibility"]).toBe("none");
   });
 });

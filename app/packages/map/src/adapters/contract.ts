@@ -16,7 +16,7 @@ import {
   MAP_STYLE, NO_VALUES, STYLE_META, followerMode, followersOf, isRuntimeLayer, profileChannel,
   IMAGERY_WATER_LAYERS, onImageryTokens, resolveTheme, type ChannelValues, type Tokens,
 } from "../style";
-import { BANK_CUE_LAYERS, BANK_LAYERS, BANK_MODES, bankCuePaint, bankHalfPaint, SALMON_CASING_LAYER, salmonCasingPaint, ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, focusTheOthers, hideTheOthers, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, NOBASELINE_LAYER, nobaselineOpacity, RUNS_PASS_LAYER, runsPassPaint,
+import { BANK_CUE_LAYERS, BANK_LAYERS, BANK_MODES, bankCuePaint, bankHalfPaint, GEAR_BANK_LAYERS, gearBankPaint, SALMON_CASING_LAYER, salmonCasingPaint, ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, focusTheOthers, hideTheOthers, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, NOBASELINE_LAYER, nobaselineOpacity, RUNS_PASS_LAYER, runsPassPaint,
          paintFor, ringPaint, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS, type SelectionCue,
          markShownIn, markWidth, splitStream, STREAM_HEAVY, streamWidths, takesAccessFromStatus } from "../paint";
 import { landOutline, openedPaint, waterOnImagery } from "../on-imagery";
@@ -283,6 +283,13 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
           h.setPaint(BANK_LAYERS[side], prop, value);
         for (const [prop, value] of Object.entries(quiet(bankCuePaint(side, mode, tokens, values, sw.base))))
           h.setPaint(BANK_CUE_LAYERS[side], prop, value);
+      }
+      // (T1029, owner 2026-11-25: "A: cues above the stripe") the gear edge over the bank stretch, outside it: the
+      // stream's mode, the status / salmon and method days, the stream's base width
+      for (const mark of GEAR_LEGEND) {
+        h.setVisibility(GEAR_BANK_LAYERS[mark], BANK_MODES.includes(mode) && markShownIn("gear", mode));
+        for (const [prop, value] of Object.entries(quiet(gearBankPaint(mode, mark, tokens, values, sw.base))))
+          h.setPaint(GEAR_BANK_LAYERS[mark], prop, value);
       }
       // the selection's outline goes with the stream: its width is the stream's, its colour the theme's (full strength)
       const sel = markWidth("casing", mode, sw);
