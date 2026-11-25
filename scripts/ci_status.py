@@ -71,22 +71,24 @@ def _gh(args: list[str], what: str) -> str:
     return got.stdout
 
 
-def parse_page(text: str, what: str) -> list[dict]:
-    """(T1059) one page of `gh api …/runs --jq PAGE_JQ`: its runs, newest first."""
+def parse_page(text: str, what: str) -> dict:
+    """(T1059) one page of `gh api …/runs --jq PAGE_JQ`: {"total": how many runs the workflow has, "runs": this page's,
+    newest first}."""
     try:
         got = json.loads(text)
-        runs = got["runs"]
+        runs, total = got["runs"], got["total"]
     except (ValueError, KeyError, TypeError) as e:
         raise CannotTell(f"{what}: unreadable output ({e})") from e
-    if not isinstance(runs, list):
-        raise CannotTell(f"{what}: unreadable output (runs is {type(runs).__name__})")
-    return runs
+    if not isinstance(runs, list) or not isinstance(total, int) or isinstance(total, bool):
+        raise CannotTell(f"{what}: unreadable output (runs {type(runs).__name__}, total {total!r})")
+    return {"total": total, "runs": runs}
 
 
 def gh_runs(workflow: str, branch: str | None = None, commit: str | None = None, limit: int = 30,
-            page: int | None = None) -> list[dict]:
+            page: int | None = None) -> list[dict] | dict:
     """The workflow's newest runs, newest first: at a commit (any branch), on a branch, or (neither) anywhere; `page`
-    (T1059): page N (from 1) of ALL its runs, PER_PAGE a page. The one place `gh` is called; tests replace it."""
+    (T1059): page N (from 1) of ALL its runs, PER_PAGE a page, as parse_page's {"total", "runs"}. The one place `gh` is
+    called; tests replace it."""
     if page is not None:
         what = f"gh api actions/workflows/{workflow}/runs page {page}"
         return parse_page(_gh(["api", "-X", "GET", f"repos/{{owner}}/{{repo}}/actions/workflows/{workflow}/runs",
@@ -176,12 +178,17 @@ def strict_judge(workflow: str, sha: str, runs_of, is_ancestor=git_is_ancestor, 
 def newest_finished_ancestor_run(workflow: str, sha: str, runs_of, is_ancestor) -> tuple[dict | None, int]:
     """(T1059) (the newest finished run, red or green, at an ancestor of the sha, or None when there is none; how many
     runs were read). Pages through ALL the workflow's runs (every branch, newest first) until one is found or the runs
-    end, so the answer does not hang on how many other branches ran since. MAX_PAGES full pages and still none:
-    CannotTell, said — never "no run"."""
+    end, so the answer does not hang on how many other branches ran since. "None" only when every run the workflow
+    had (page 1's total) was read; the runs ending short of it, or MAX_PAGES full pages and still none: CannotTell,
+    said — never "no run". Only a FINISHED run decides (red or green): a running or cancelled one is passed over."""
     seen: set = set()
     ancestor: dict[str, bool] = {}
+    total = None
     for page in range(1, MAX_PAGES + 1):
-        got = runs_of(workflow, page=page)
+        answer = runs_of(workflow, page=page)
+        got = answer["runs"]
+        if total is None:
+            total = answer["total"]             # runs started while paging are above page 1: never read, not counted
         for r in got:
             seen.add(r.get("databaseId") or id(r))  # a run started while paging pushes one onto the next page: count once
             anc = r.get("headSha") or ""
@@ -191,7 +198,10 @@ def newest_finished_ancestor_run(workflow: str, sha: str, runs_of, is_ancestor) 
                 ancestor[anc] = is_ancestor(anc, sha)
             if ancestor[anc]:
                 return r, len(seen)
-        if len(got) < PER_PAGE:                 # a short page is the last one: every run was read
+        if len(got) < PER_PAGE:                 # a short page is the last one
+            if len(seen) < total:
+                raise CannotTell(f"the runs ended after {len(seen)} of the {total} GitHub counts, none at {sha[:12]} "
+                                 f"or a commit before it: cannot say there is no run (T1059; or --skip REASON)")
             return None, len(seen)
     raise CannotTell(f"read the newest {len(seen)} runs ({MAX_PAGES} pages of {PER_PAGE}) and none is at "
                      f"{sha[:12]} or a commit before it; more runs exist (T1059: raise MAX_PAGES in scripts/ci_status.py, "
