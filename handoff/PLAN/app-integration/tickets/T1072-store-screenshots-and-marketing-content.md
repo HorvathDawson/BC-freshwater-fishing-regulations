@@ -20,6 +20,72 @@ Found by the iOS chat 2026-11-24 (facts, not yet acted on):
   defaults to that folder but expects appstore-6.9, so its default run finds no 6.9" pictures.
 - Nothing has been uploaded to App Store Connect yet.
 
+## Owner's pick (2026-11-24 ~23:42, verbatim answers)
+- Direction: "A. Angler's questions (Recommended)".
+- First two frames: "map then what you can keep but. the what can you keep should show the table not scheudle calendar".
+The mock-up he picked from: direction A of the three (scratchpad `directions/out/direction-A.png`; its definition is the 7 frames below).
+
+## Part 1 built: the one store picture set (branch feat/T1072-store-set-direction-a)
+THE SET: 7 frames, the SAME frames, captions and order in every target (Play phone 1080x1920, 7" 1200x1920, 10" 1600x2560;
+App Store 6.9" 1320x2868, 6.5" 1242x2688). Look: the light wash ground, title in Bricolage, one line in Archivo, the screen in a
+square card with the hard ink shadow; no device frame, status bar, store badge, or platform / store name.
+1. 01-map: "Can I fish here today?" / "Every B.C. lake and stream, coloured by today's rules"
+2. 18-regs-trout: "What can I keep?" / "How many, what size and until when" (the open trout table, NOT the season calendar)
+3. 21-rivers: "What is the river doing?" / "Flow against past years, and the forecast" (Flow and forecast over Change, next 10 days)
+4. 16-split-and-rules: "Do the rules change upstream?" / "A river split into its sections" (The river's sections over One section's rules)
+5. 22-salmon-runs: "Are salmon open?" / "DFO's freshwater notices and run timing" (Salmon openings over When the runs come)
+6. 23-spots-offline: "No signal?" / "Rules, the map and your spots stay on your phone" (A saved spot over Works with no signal)
+7. 06-search: "Where is that creek?" / "Search every named lake and stream"
+- Frame 2 shows the table: the water page's own scroller (`regs-scroll`; the water's name, tabs and date stay above it) is scrolled so
+  the table's heading "Keep N trout and char today" is its first line (play-shots.mjs `18-regs-trout`). The content check
+  (store-shots/checks.mjs) refuses the capture unless that heading and at least two species rows (Brook trout, Brown trout) are in the viewport
+  and the season calendar (`keep-strip`) is not.
+- Rules enforced in code (app/tools/store-shots/rules.mjs, tested): caption words (no Best / #1 / Top / New / Free / Download, no prices,
+  nothing time-bound, no platform or store name), exact size and image count per target (Play phone 2-8, App Store 1-10), the caption block
+  (title + line + padding above the card) MEASURED in the render at most 20 % of the height in every target (the run prints the widest per
+  target), and no alpha channel in any written PNG.
+- condMap fix (tablet10 12-cond-change "reads 5 km"): MapLibre's wheel handler piles up close events, which made the old pair-of-notches loop
+  step over the level; now ONE wheel event at a time (about a fifth of a level), the scale bar settled between, out past the target then in to its first
+  reading, so it cannot oscillate. The target is 20 km since the owner's zoom-out ask below (the content check and scene changed together).
+- WHERE: the finished set is committed at `handoff/PLAN/app-integration/store/graphics/store/light/{appstore-6.9,appstore-6.5,play-phone,play-tablet7,play-tablet10}/NN-<scene>.png`
+  (`.gitignore` there now tracks `store/light` only; raw/ stays ignored). Both push scripts read it with no arguments
+  (`deploy/staging/appstore-screenshots-push.py`, `deploy/staging/play-listing-push.py`; the Play script's tablet defaults are the two tablet folders).
+- REGENERATE: `scripts/heavy.sh store-shots 30 -- node app/tools/store-shots.mjs --theme light` (builds its own store-shots web export, T1076;
+  `--reuse` serves the export already built).
+Part 2 (marketing words, T1072 work items 2-4) is not in this change.
+
+### Review round 2026-11-25 (the coordinator's review of PR #192) and what it changed
+- THE OUT-OF-COVERAGE BAND (south of the border, a flat dark grey where the data stops) is out of every map frame at every raw size. The camera is moved north (the zoom stays) until a
+  capture of the page shows none: `band`/`clearBand` in play-shots.mjs find a run of 12+ dark, nearly neutral grey rows that ends at the map's foot (the legend panel), drag the map down by its
+  height, and look again; the content check (checks.mjs) refuses a map shot whose `facts.band` is not null. 01-map, 04-salmon, 05-runs, 14-split-map and the map behind 06-search use it.
+  The conditions map (12) keeps its own camera (a pan changed the watershed it names), so its crop starts at the panel under the map and no map is shown in that part.
+- 11-cond-chart: the page is scrolled so the chart's own first line ("Scroll to zoom") is the first line of the scroller; the part holds the WHOLE chart, its forecast lines and the CLEVER / COFFEE / ELF
+  chips at every size (the gauge name and reading are above it; the water's name stays in the fixed header on phone).
+- Every part starts and ends on a whole line: the crops were re-picked from the new captures by eye at all four raw sizes, and the label bands now SHARE WHAT IS LEFT (3-7 % each, refused outside that,
+  store-shots.mjs `composeRaw`) so no crop has to be bent to make a sum come out.
+- A page that says "Slow connection" is not shot (checks.mjs); the search scene waits for its results instead of a fixed sleep.
+- Known, not fixed: on the tall phones and tablets the conditions panel names the watershed at the map's centre ("Lillooet" / "Seton Lake" watershed on iphone69 and the tablets, "Lower Fraser" on the phone), not the river's own.
+
+### Owner additions, 2026-11-25 (verbatim) and what they changed
+- ~00:20: "picutres should be captured quicker ideally. also we should zoom them out a little more so it shows more content on the map views".
+  - ZOOM: the map views (01-map, 04-salmon, 05-runs, 14-split-map) are shot one zoom step wider (2x the ground width; `ZOOM_OUT`, play-shots.mjs
+    `zoomOut`: the wheel one event at a time until the scale bar's ground per pixel has doubled, cursor at the view's centre so the same waters
+    stay in frame); the conditions change map reads 20 km instead of 10 km. Streams and place labels still read at phone size.
+  - SPEED: the raw sizes are shot in PARALLEL (one Chrome worker per size, 4, inside the one heavy.sh job); fixed sleeps on a page became waits on the page
+    (`idle`: successive captures identical; `notch`: the scale bar steady); the content checks still run before every capture. MEASURED: a full run
+    took about 5 min per raw size, 20 min for four one after the other (heavy.sh heartbeats of the 2026-11-24 run); now 229 s for all four sizes shot together
+    (11 scenes x 4 sizes; per scene 9-45 s, the slowest 15-split-rules ~40 s, 12-cond-change ~40 s, 11-cond-chart ~23 s), 5 min 40 s wall with the
+    framing. FASTEST WAY TO REDO ONE FRAME: `scripts/heavy.sh store-shots 30 -- node app/tools/store-shots.mjs --theme light --reuse --scenes <nn> --only play-phone`
+    (serves the export already built, shoots just that scene, keeps the day's river pick, reframes): 12 s of shooting, about 20 s in all from the deployed site;
+    `--no-shoot` alone only reframes after a crop change in store-shots.json.
+- ~00:25: "could use website too for most pictures much quicker". `--web <url>` (or STORE_SHOTS_WEB): every scene that does not need the store-shots build is shot
+  from that DEPLOYED site; only 07-saved-spot and 20-help (the one table: app/tools/store-shots/scenes.mjs) come from the local export (built or `--reuse`). With
+  `--web` and only map/regs scenes asked for no export is built or served at all. A scene that needs the build is never shot from a site without the marker (refused with the
+  reason, T1076). The console and `report.json` (`sources`) say, per scene, which site it came from with its entry bundle and Last-Modified (staging answers no Last-Modified;
+  its bundle hash differs from the export's: it shows the RELEASED app, not the checkout). TIMING: all 4 sizes, 11 scenes, 9 from staging + 2 from the reused export: 277 s
+  of shooting (the export run: 229 s; the capture itself is not faster, the site is a network away), and what it saves is the export BUILD (several minutes of `expo export`, not re-timed). One scene
+  from staging with no export: 12 s. THE COMMITTED SET was shot from the local export (current main, store-shots build of 9996a5a3c), since staging may be older.
+
 ## Work
 1. Pictures first: 2–3 directions for the screenshot set (what each frame shows and its caption) from the 0.9.x app,
    for the owner to pick. Then one set, regenerated by the T319 command, in every Play and App Store size:
