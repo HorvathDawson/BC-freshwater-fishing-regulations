@@ -18,7 +18,7 @@
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { accessNeedsWeights, buildRegsPage, offlineAs, reported, headerOf, methodClassOn, pageAccessNotices as coreAccessNotices, partAccess,
          salmonCardLive, tapDay, type AccessNotice, type Day, type RegsInputs,
-         type RegsPage, type RegsTarget, type SalmonCardLiveVM,
+         type PartPlaces, type RegsPage, type RegsTarget, type SalmonCardLiveVM,
          type Weekday, type Who, bcNow, now as clockNow } from "@app/core";
 import { downstreamWater, openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
@@ -346,17 +346,19 @@ export function useRegulations(store: RegsStore | null, target: RegsTarget | nul
  * screen uses this; nobody calls buildRegsPage in a component.
  */
 export function useRegsPage(inputs: RegsInputs | null, who: Who, today: Day, downstream: string | null = null,
-                            names: ReadonlyMap<number, string> | null = null): RegsPage | null {
+                            names: ReadonlyMap<number, string> | null = null,
+                            places: PartPlaces | null = null): RegsPage | null {
   // (T53) `downstream`: an unnamed reach's named water down its flow — the header's label slot (core `downstreamLabel`);
-  // (T517) `names`: the parts as the water's map names them (`useMapEntries`) — the header's and the Parts sheet's
+  // (T517) `names`: the parts as the water's map names them (`useMapEntries`) — the header's and the Parts sheet's;
+  // (T1140) `places`: where each part sits in the map's list — the header's "Part 1 of 2" (`useMapEntries`)
   return useMemo(() => {
     if (!inputs) return null;
     const t = openProbe.on() ? performance.now() : 0;
-    const page = buildRegsPage(inputs, { today, who, downstream, names });
+    const page = buildRegsPage(inputs, { today, who, downstream, names, places });
     if (t) openProbe.span("build", performance.now() - t);
     return page;
   },
-    [inputs, who, today.month, today.day, downstream, names]);
+    [inputs, who, today.month, today.day, downstream, names, places]);
 }
 
 // ── (T286) the waters on screen, read before they are tapped ─────────────────────────────────────────────────────────────
@@ -474,15 +476,20 @@ export function useAnglerProfile(): readonly [Who, (who: Who) => void] {
 export function useWaterPlace(loader: ReleaseLoader | null, source: Pick<WaterSource, "traceToGauge" | "waterFor">,
                               item: ItemId | null, section: SectionId | null,
                               /** (T517) the parts as the water's map names them (`useMapEntries`) */
-                              names: ReadonlyMap<number, string> | null = null) {
+                              names: ReadonlyMap<number, string> | null = null,
+                              /** (T1140) where each part sits in the map's list (`useMapEntries`): the head's "Part 1 of 2" */
+                              places: PartPlaces | null = null) {
   const store = useRegsStore(loader);
   const found = useRegsTarget(store.value ?? null, item, section);
   const inputs = useRegulations(store.value ?? null, found.value ?? null, null);
   const down = useDownstreamWater(source, item, section);
   const inp = inputs.value ?? null;
-  const place = useMemo(() => (inp ? headerOf(inp, { today: regsDay(null).today, status: "unknown",
-                                                     downstream: down.value?.name ?? null, names }).place : null),
-                        [inp, down.value?.name, names]);
+  const head = useMemo(() => (inp ? headerOf(inp, { today: regsDay(null).today, status: "unknown",
+                                                    downstream: down.value?.name ?? null, names, places }) : null),
+                       [inp, down.value?.name, names, places]);
+  const place = head?.place ?? null;
+  // (T1140) the head's "Part 1 of 2" and its line to the list of parts, as the Regulations view says them
+  const part = head?.part ?? null;
   // (T387) the page's subject — its part, never the tap — so this view's notices are its Regulations page's
   const subject = usePageSubject(inp);
   const access = useAccessNotices(loader, store.value ?? null, subject);
@@ -492,5 +499,5 @@ export function useWaterPlace(loader: ReleaseLoader | null, source: Pick<WaterSo
   const noTarget = !!store.value && found.state === "ready" && !found.value;
   const settled = !loader || failed || noTarget
     || (inputs.state === "ready" && (subject === null || access.state === "ready") && (item !== null || section === null || down.state !== "loading"));
-  return { place, access: access.value ?? [], settled };
+  return { place, part, access: access.value ?? [], settled };
 }

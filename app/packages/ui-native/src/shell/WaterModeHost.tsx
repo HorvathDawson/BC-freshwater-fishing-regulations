@@ -72,6 +72,8 @@ export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles,
       ? <WaterMap source={source} item={item} palette={palette}>
           {/* P15: the parts, lit and framed from the release; ▼ / ▲, marks, the mouth's exit */}
           <WaterMapView loader={loader} day={mapDay} item={item} part={frame.part} tapSid={frame.tapSid} whole={frame.whole} palette={palette}
+                        // (T1140) opened from a head's "Other parts of this water have different rules": the list open
+                        listOpen={frame.parts === true}
                         map={{ at: tiles, theme, camera: waterCamera.current ?? camera.current,
                                basemap: mm.basemap, status: mapStatus, spots: spotLayer,
                                // T145: a tap off every spot clears the selected spot's pin, here as on the browse maps

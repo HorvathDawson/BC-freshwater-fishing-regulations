@@ -130,7 +130,10 @@ export function useShellNav({ source, loader, systemBack, initialRoute, onRoute 
         backLabel: exit.back,
         // (owner 2026-10-22 late) the one-tap way out of every water, back to the tab the first was opened from
         close: () => go({ type: "close" }), closeLabel: exit.close,
-        swipe: viewSwipe, bodySwipe: frame.view === "map" ? null : viewSwipe }
+        swipe: viewSwipe, bodySwipe: frame.view === "map" ? null : viewSwipe,
+        // (T1140) the heads' "Other parts of this water have different rules": onto the Map, its list of parts open
+        // (a named water's only: an unnamed reach has no Map)
+        ...(frameViews(frame).includes("map") ? { onParts: () => go({ type: "view", view: "map", parts: true }) } : {}) }
     : null;
   return { route, go, browse, tab, frame, item, adding, openSpot, toTab, back, escapeBack, backLayers, edge, opener, mapTab,
            waterViews, carrying };

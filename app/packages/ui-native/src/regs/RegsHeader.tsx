@@ -46,8 +46,11 @@ export function pickPlace(place: { full: string; short: string }, measuredHeight
  * NO ACTION IN THE NAME ROW (owner call 3): T71 dropped the Map button (the view strip is the one Map entry), T150 the
  * Parts button (the water's Map view lists the parts). The place label below keeps the part's name.
  */
-export function RegsHeader({ header: h, palette, tabs, onDate, onTab, onTerm, side = false, nameSource = null, sun = null }: {
+export function RegsHeader({ header: h, palette, tabs, onDate, onTab, onTerm, side = false, nameSource = null, sun = null, onParts }: {
   header: HeaderVM; palette: Palette;
+  /** (T1140) the line "Other parts of this water have different rules" pressed: the Map, its list of parts open (the
+   *  water frame's `onParts`); absent, the line is said, not pressed */
+  onParts?: () => void;
   /** (T841) the classified-water badge's press: opens its glossary term (`gl:<id>`); absent, the badge opens nothing */
   onTerm?: (id: string) => void;
   /** (T224) where the water's name came from when it is not the official one (`WaterTitle`'s `source`) */
@@ -85,8 +88,12 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onTab, onTerm, si
         {!side && !!sun && <SunLine sun={sun} palette={palette} align="end" dateInset={8 + dateInset} />}
         {h.classed && <ClassLine b={h.classed} palette={palette} onTerm={onTerm} />}
       </>)}
+      {/* (T1140) a part of a water of several: "Part 1 of 2" over its name, as the Map tab says it */}
+      {h.part && <PartWhere where={h.part.where} palette={palette} />}
       {/* (T878) no place label (a water of one part, Babine Lake — Main Body): no empty slot under the name */}
       {!!h.place && <Place place={h.place} palette={palette} />}
+      {/* (T1140) and where other parts have other rules, the line to the list of them */}
+      {h.part?.others && <PartsOthers words={h.part.others} palette={palette} onParts={onParts} />}
       {!side && <TabRow h={h} tabs={tabs} palette={palette} onTab={onTab} />}
     </View>
   );
@@ -224,6 +231,42 @@ export function Place({ place, palette, coach: coachKey = "regs:place" }: { plac
               style={[TYPE.metaSemi, { position: "absolute", left: GUTTER, right: 12, top: 0, opacity: 0 }]}>{shown}</Text>
       )}
     </View>
+  );
+}
+
+/**
+ * (T1140, a proposal for the owner) WHICH PART OF HOW MANY: "Part 1 of 2", over the part's name — the Map tab's own line
+ * ("PART 1 OF 2" in its bar: the same words, count and face — in the secondary ink, as every regs line: no folded colour, T22), on the
+ * Regulations and the Conditions heads alike.
+ */
+export function PartWhere({ where, palette }: { where: string; palette: Palette }) {
+  return (
+    <View style={{ paddingLeft: GUTTER, paddingRight: 12, paddingBottom: 2 }}>
+      <Text testID="regs-part-where" maxFontSizeMultiplier={CAPPED_SCALE} style={[TYPE.section, { color: palette.sub }]}>{where}</Text>
+    </View>
+  );
+}
+
+/**
+ * (T1140, a proposal for the owner: words "Other parts of this water have different rules") THE LINE TO THE OTHER PARTS,
+ * under the part's name: a press opens the water's Map with its list of parts open (`onParts`, the water frame's) — the
+ * list the Map tab's "Show all N parts" opens. Its own 44 px row: the tab row below leaves no room for a slop. With no
+ * `onParts` (a frame with no Map) the words are said, not pressed.
+ */
+export function PartsOthers({ words, palette, onParts }: { words: string; palette: Palette; onParts?: () => void }) {
+  const line = (
+    <>
+      <Icon name="parts" colour={onParts ? palette.accent : palette.sub} size={16} />
+      <Text maxFontSizeMultiplier={CAPPED_SCALE} style={[TYPE.metaSemi, { flexShrink: 1, color: onParts ? palette.accent : palette.sub }]}>{words}</Text>
+      {onParts && <Icon name="next" colour={palette.accent} size={14} />}
+    </>
+  );
+  const box = { paddingLeft: GUTTER, paddingRight: 12, minHeight: 44, flexDirection: "row" as const, alignItems: "center" as const, gap: 6, marginTop: -4 };
+  return onParts ? (
+    <RegsPress testID="regs-parts-others" onPress={onParts} accessibilityRole="button" accessibilityLabel={words} box={{ w: 44, h: 44 }}
+               style={box}>{line}</RegsPress>
+  ) : (
+    <View testID="regs-parts-others" accessible accessibilityLabel={words} style={box}>{line}</View>
   );
 }
 
