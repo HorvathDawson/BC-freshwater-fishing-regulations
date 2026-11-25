@@ -58,7 +58,8 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
                todayAt={keep.strip?.todayAt ?? null} months={keep.strip?.months ?? []} sources={troutSources} />
   );
   const folds: GlanceFold[] = !glance ? [] : [
-    ...(glance.salmon ? [{ key: "salmon", row: glance.salmon.row, body: glance.salmon.card, arrow: true }] : []),
+    // (T1052) the closed banner says the salmon's closure too (core `closedWithSalmon`): no Salmon row under it
+    ...(glance.salmon && !keep.banner?.salmon ? [{ key: "salmon", row: glance.salmon.row, body: glance.salmon.card, arrow: true }] : []),
     // (T810 O) ONE trout fold for the table (owner 15:47: the existing entry, its short line, the expand arrow); the other
     // fish's quota groups keep their own folds, unchanged
     ...keep.order.flatMap((b): GlanceFold[] => b === "trout" && trout ? [{ key: "trout", row: troutGlance(trout, keep.troutFrom), body: () => troutCard(false), arrow: true }]

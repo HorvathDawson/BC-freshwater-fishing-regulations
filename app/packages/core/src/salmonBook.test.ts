@@ -428,6 +428,8 @@ describe("(T796 X1) a region closed by its DFO page keeps its one closed stateme
       const before = card(1, on(5, 1)), may = card(2, on(5, 1));
       expect(may).toEqual({ ...before, badge: "B.C. Synopsis · DFO", rows: [{ ...before.rows[0]!, notes: [R4_WORDS, SPRING_WORDS] }], book: [book],
                             sourceTitle: "Sources (B.C. Synopsis and DFO)", note: FOLD_BOOK.note, year: { bars: [ALL_CLOSED_BAR], by: "both" },
+                            // (T1052) today's answers are the region's AND the book's; the book's closure is not all year
+                            todayBy: "both", bookAllYear: [],
                             // (T1031) each species' sources: the region's closure, then the book's closure by its rule
                             whoBy: Object.fromEntries(Object.entries(before.whoBy!).map(([sp, w]) => [sp, [...w!, { k: "book", from: book.from,
                               rule: "z4:spring_stream_closure::spring_stream_closure.r1", water: "Every stream in Region 4" }]])) });
