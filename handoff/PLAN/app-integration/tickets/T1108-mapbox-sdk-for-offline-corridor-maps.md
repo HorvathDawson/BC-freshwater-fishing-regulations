@@ -39,6 +39,10 @@ is a new third party that sees map requests; T1098, T1099), the App Store "conte
 satellite tiles inside MapLibre or require its own SDK for the whole map, and what the monthly-user count is counted
 on (the 25k free figure is the owner's; confirm it against the price page).
 
+Added 2026-11-25 13:23 (iOS chat): during the App Store walk-through the owner said of the content-rights answer "we
+will be changing it to mapbox soon". The 0.10.0 submission answers for Esri, as the app ships. When this ticket
+ships, two more places name the new provider: the App Privacy coarse-location row and the App Review notes.
+
 ## Acceptance
 The owner has the comparison (cost, terms, app size, privacy, work) and has picked; a build ticket follows his pick.
 
