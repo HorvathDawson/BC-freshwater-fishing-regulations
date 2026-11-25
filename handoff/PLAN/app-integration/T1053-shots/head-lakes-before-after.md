@@ -8,18 +8,70 @@ this does not include no fishiong all year rulings tho those will yield in that 
 
 **In short.**
 - The walk is unchanged from the first list: 22 head lakes pass their river's rules up to the streams above them
-  (15,894 stream pieces, about 19,500 km; 42 rules, all gains, nothing lost, no DFO place or licence moved).
+  (15,894 stream pieces, about 19,500 km; 39 rules climb, plus 3 B.C.-wide steelhead rules and one steelhead licence
+  record (`steelhead_targeting_known`) that gain one piece above Babine Lake as a knock-on; all gains, nothing lost, no
+  DFO place moved).
 - **Own row kept** (new): where a river's ALL-YEAR "No Fishing" reaches a stream that has a row of its own, or a nearer
   ✱ row, it gives way. Above the head lakes this changes ONE stream: **Frosst Creek answers exactly as today** (its own
   "No Fishing Oct 15-Apr 15", open Apr 16-30 and Jul 1-Oct 14), not Sweltzer River's all-year closure.
 - DATED closures still close, even a stream with its own row, unless it is exempt (unchanged: the Granby River stays
   closed Jul 25-Sept 15 under the Kettle's tributaries). A stream with no row still closes with its river: Dick Creek
   closes with Eagle Creek.
-- **Outside any head lake the same rule changes ONE more stream: Dove Creek above Anderson Lake** reopens (catch and
-  release) except Jul 15-Aug 31: the Tsolum River's all-year ✱ "No Fishing" gives way to Anderson Lake's ✱ "Trout and
-  kokanee catch and release", the nearer row. Everywhere else the rule only changes WHICH closure is named (both closed).
+- **The climb also LOOSENS in places** (section below): the Lardeau River's printed exemptions reach Trout Lake's
+  streams (a rainbow on Asher Creek on Dec 1: release only today, 5 a day after), and Perry Creek's brook trout 20 a day
+  reaches the streams above Richmond Lake. **It newly closes Cameron River above Cameron Lake (32.4 km) all year**, under
+  the Little Qualicum's "No Fishing - All tributaries".
+- **Outside any head lake the same own-row rule reopens Dove Creek's top piece above Anderson Lake and 19 unnamed stream
+  pieces around the lake (20 pieces, 21.6 km; map `dove-creek-reopens.png`)** for catch and release, except Jul 15-Aug 31:
+  the Tsolum River's all-year ✱ "No Fishing" gives way to Anderson Lake's ✱ "Trout and kokanee catch and release", the
+  nearer row. The fish that reopen: cutthroat, Dolly Varden / bull trout, brook trout, brown trout, lake trout,
+  kokanee, rainbow and steelhead (CT, DV, EB, GB, KO, LT, RB, ST); every other game fish (bass, perch, whitefish, burbot,
+  sturgeon, pike, walleye …) stays closed. Everywhere else the rule only changes WHICH closure is named (both closed).
 - Lakes: no lake that is a water of its own is covered by any tributary rule. Only ponds the process lists as a piece of
   a stream (oxbows, slough lakes, widenings) follow that stream: 3,657 such polygons today, 3,668 with this change.
+
+## Where the climb closes, and where it opens or loosens (per fish, live release → this branch)
+
+Every stretch of stream whose rule set changes was asked, per game fish, on the 1st and 15th of every month: closed /
+release only / a daily number (plain daily limits; a rule held only while doing something, or for foul-hooked fish, is
+left out). One section stands for each group of sections that share an answer, before and after.
+
+**Closes or tightens.** Top of the list: **Cameron River above Cameron Lake (32.4 km, 5 pieces) is newly closed all year**
+under the Little Qualicum River's "No Fishing - All tributaries" (with B. P., Cop, Kammat and Yellows creeks: 177 pieces).
+
+| Head lake | The climbed rule(s) | Pieces | What tightens (fish) |
+|---|---|---|---|
+| Cameron Lake | `little_qualicum_river.r1` No Fishing July 15-Aug 31<br>`little_qualicum_river.r2` No Fishing - All tributaries | 177 | closes: BB, BCB, CT, DV, EB, GB, GE, GR, IN, KO, LMB, LT, LW, MW, NP, RB, SMB, ST, WP, YP |
+| Slocan Lake | `slocan_river.r1` No Fishing July 15-Aug 31 from 12 pm to midnight (EXCEPT Koch Creek upstream of falls loca<br>`slocan_river.r2` Bait ban (where open), June 15-Oct 31<br>`slocan_river.r3` Trout/char catch and release (EXCEPT Koch Creek upstream of falls and Little Slocan Lake's | 3,398 | keep->release: CT, EB, GB, LT, RB, ST |
+| Yakoun Lake | `yakoun_river.r2` Bait ban Nov 1-Apr 30<br>`yakoun_river.r3` Cutthroat trout catch and release<br>`yakoun_river.r4` No powered boats | 186 | keep->release: CT |
+| Lower Elk Lake | `elk_river_s_tributaries.r1` No Fishing Sept 1-Oct 31<br>`elk_river_s_tributaries.r2` Trout/char daily quota = 1 (none under 30 cm)<br>`elk_river_s_tributaries.r3` bait ban, June 15-Aug 31<br>`elk_river_s_tributaries.r4` Bull trout catch and release | 98 | closes: BB, BCB, CT, DV, EB, GB, GE, GR, IN, KO, LT, LW, MW, RB, ST; keep->release: DV; quota down: EB, GB, LT |
+| Cultus Lake | `sweltzer_creek.r1` No Fishing | 59 | closes: BB, BCB, CT, DV, EB, GB, GE, GR, IN, KO, LMB, LT, LW, MW, NP, RB, SMB, ST, WP, WSG, YP |
+| Keogh Lake | `keogh_river.r2` No Fishing in all parts, Dec 1-May 31 | 35 | closes: BB, BCB, CT, DV, EB, GB, GE, GR, IN, KO, LMB, LT, LW, MW, NP, RB, SMB, ST, WP, YP |
+| Beaver Lake | `colquitz_river.r1` No Fishing | 13 | closes: BB, BCB, CT, DV, EB, GB, GE, GR, IN, KO, LMB, LT, LW, MW, NP, RB, SMB, ST, WP, YP |
+| Dick Lake | `eagle_creek.r1` No Fishing | 13 | closes: BB, BCB, CT, DV, EB, GB, GE, GR, IN, KO, LMB, LT, LW, MW, NP, RB, SMB, ST, WP, YP |
+| Gooseneck Lake | `miller_creek.r1` No Fishing | 11 | closes: BB, BCB, CT, DV, EB, GB, GE, GR, IN, KO, LMB, LT, LW, MW, NP, RB, SMB, ST, WP, YP |
+| Butchart Lake | `goldstream_river.r1` No Fishing | 6 | closes: BB, BCB, CT, DV, EB, GB, GE, GR, IN, KO, LMB, LT, LW, MW, NP, RB, SMB, ST, WP, YP |
+| Puntledge Lake | `puntledge_river.r5` No Fishing tributaries | 3 | closes: BB, BCB, CT, DV, EB, GB, GE, GR, IN, KO, LMB, LT, LW, MW, NP, RB, SMB, ST, WP, YP |
+| Richmond Lake | `perry_creek.r1` Bait ban<br>`perry_creek.r2` Cutthroat trout and bull trout catch and release<br>`perry_creek.r3` brook trout daily quota = 20 | 2 | keep->release: CT, DV |
+| Babine Lake — Main Body | `babine_river.r6` Bait ban<br>`steelhead.r1b` The annual province-wide quota for hatchery steelhead is 10.<br>`steelhead.r2b` All wild steelhead must be released.<br>`steelhead.r4b` You must immediately record your retention of hatchery steelhead on your basic angling lic | 1 | keep->release: ST |
+
+**Opens or loosens.**
+
+| Head lake | The climbed rule(s) | Pieces | What loosens (fish) |
+|---|---|---|---|
+| Trout Lake | `lardeau_river.r2` Exempt from spring closure (Apr 1-Jun 14)<br>`lardeau_river.r3` exempt from trout/char release (Nov 1-Mar 31)<br>`lardeau_river.r4` Rainbow trout daily quota = 5 (any size)<br>`lardeau_river.r5` bull trout daily quota = 2 (any size) | 1,194 | release->keep: CT, EB, GB, LT, RB, ST |
+| Yakoun Lake | `yakoun_river.r2` Bait ban Nov 1-Apr 30<br>`yakoun_river.r3` Cutthroat trout catch and release<br>`yakoun_river.r4` No powered boats | 186 | quota up: RB |
+| Richmond Lake | `perry_creek.r1` Bait ban<br>`perry_creek.r2` Cutthroat trout and bull trout catch and release<br>`perry_creek.r3` brook trout daily quota = 20 | 2 | quota up: EB |
+| Babine Lake — Main Body | `babine_river.r6` Bait ban<br>`steelhead.r1b` The annual province-wide quota for hatchery steelhead is 10.<br>`steelhead.r2b` All wild steelhead must be released.<br>`steelhead.r4b` You must immediately record your retention of hatchery steelhead on your basic angling lic | 1 | quota up: RB |
+
+The Lardeau River's printed exemptions climb through Trout Lake: e.g. Asher Creek, a rainbow on Dec 1 — release only
+today (Region 4's winter trout/char release), 5 a day after (`lardeau_river.r3` lifts the release; `lardeau_river.r4`
+"Rainbow trout daily quota = 5"). Perry Creek's "brook trout daily quota = 20" raises the brook trout number above
+Richmond Lake. The pieces above Babine Lake that become book-known steelhead water (one piece) answer rainbow by the
+steelhead rules.
+
+**No change to any fish's keep / release / closed answer** (the climbed rule is a bait ban, a boat rule, a note, or
+repeats what the zone already says): Babine Lake — Main Body (4,994); Morice Lake (2,589); Cowichan Lake (1,234); Meziadin Lake (1,139); Lakelse Lake (474); Sooke Lake (86); Burnaby Lake (83); Nass Lake (49); Jacobs Lake (18); Trout Lake (18); Slocan Lake (13); Cultus Lake (1).
 
 ## Own row kept (the climbed rule gives way)
 
@@ -33,7 +85,8 @@ lakes' climbed closures is dated except the Cowichan's and the Slocan's summer c
 
 ## The same rule outside any climb (for the record)
 
-Only **Dove Creek above Anderson Lake** changes what an angler may do (above). In 122 more stream parts an all-year
+Only **Dove Creek's top piece above Anderson Lake and 19 unnamed stream pieces around Anderson Lake** (20 pieces,
+21.6 km, Region 1) change what an angler may do (above; read over every answer key, named or not). In 122 more stream parts an all-year
 closure gives way to ANOTHER all-year "No Fishing" of a nearer row: the stream stays closed and the nearer row is the
 one named.
 

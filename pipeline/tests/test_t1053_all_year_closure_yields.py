@@ -89,3 +89,48 @@ def test_mutation_switch_off_restores_t4(tmp_path, monkeypatch, mode):
     monkeypatch.setattr(ladder, "ALL_YEAR_INHERITED_CLOSURE_YIELDS", mode)
     path = _tiny(tmp_path, [SWELTZER, FROSST, ZONE], via={"sweltzer.r1": "trib"})
     assert "sweltzer.r1" in _speaks(path, (7, 1))
+
+
+# ------------------------------------------------------------------ review of #166: what keeps closed streams closed
+
+def test_a_zone_line_ranked_as_a_water_is_no_own_row(tmp_path):
+    """`z6:skeena_nass_winter_closure` ranks as a water (rank 0, bound by its own place) but is a zone table's line, not
+    the stream's row: an inherited all-year closure does not yield to it. Without the water-row guard 9,748 live sections
+    (the Skeena/Nass winter closure, the sturgeon and steelhead lines) would reopen."""
+    zone = {"entry": "z6:skeena_nass_winter_closure", "rule": "skeena_nass_winter_closure.r1", "species": ALL,
+            "take": 0, "may_target": 0, "water": "stream",
+            "when": {"dates": [{"from_month": 1, "from_day": 1, "to_month": 6, "to_day": 15}]}}
+    bulkley = {**SWELTZER, "entry": "r6:bulkley", "rule": "bulkley.r2"}
+    path = _tiny(tmp_path, [bulkley, zone], via={"bulkley.r2": "trib"})
+    assert "bulkley.r2" in _speaks(path, (8, 1))
+
+
+def test_a_farther_star_row_does_not_lift_the_closure(tmp_path):
+    """Only a NEARER ✱ row (`trib_nearer`) takes an inherited all-year closure out: a second walked row that is not
+    nearer leaves it closing."""
+    other = {"entry": "r2:other_tribs", "rule": "other.r1", "species": ["TROUT_CHAR"], "take": 2}
+    path = _tiny(tmp_path, [SWELTZER, other], via={"sweltzer.r1": "trib", "other.r1": "trib"}, nearer=())
+    assert "sweltzer.r1" in _speaks(path, (7, 1))
+
+
+def test_retention_reading_the_own_row_must_speak_for_the_fish_asked(tmp_path):
+    """A trout-only own row reopens trout, never every fish: for a bass the all-year closure still speaks."""
+    trout = {"entry": "r2:frosst", "rule": "frosst.r2", "species": ["TROUT_CHAR"], "take": 2}
+    path = _tiny(tmp_path, [SWELTZER, trout], via={"sweltzer.r1": "trib"})
+    assert "sweltzer.r1" not in _speaks(path, (7, 1), "RB")
+    assert "sweltzer.r1" in _speaks(path, (7, 1), "SMB")
+
+
+def test_a_partial_closure_never_yields(tmp_path):
+    """Only a FULL closure yields: one with a condition (here a size band) is no all-year "No Fishing"."""
+    part = {**SWELTZER, "rule": "sweltzer.r2", "lengths": [{"min_cm": 50, "take": 0}]}
+    path = _tiny(tmp_path, [part, FROSST, ZONE], via={"sweltzer.r2": "trib"})
+    rows = {x["rule"]: x for x in R.effective_rules(1, (7, 1), "RB", path, trace=True)}
+    assert rows.get("sweltzer.r2", {}).get("reason") != "own_row"
+
+
+def test_an_undrawn_rule_is_no_row_that_speaks(tmp_path):
+    """A rule held as a note on an undrawn part of the stream's row does not speak, so the closure does not yield to it."""
+    note = {"entry": "r2:frosst", "rule": "frosst.r3", "species": ALL, "take": 2, "undrawn_part": "below the falls"}
+    path = _tiny(tmp_path, [SWELTZER, note], via={"sweltzer.r1": "trib"})
+    assert "sweltzer.r1" in _speaks(path, (7, 1))

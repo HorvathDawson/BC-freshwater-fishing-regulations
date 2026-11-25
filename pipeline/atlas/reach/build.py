@@ -201,7 +201,7 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
             # `regional=False`: a designation is the water's, not the region's (`build_reach`).
             reach = (lambda r, e=e, covered=covered, clip=clip: build_reach(
                 e, r, registry, graph, covered=covered, clip=clip, outside=outside,
-                regional=False, tidal=tidal, owned=owned, head_lakes=False))
+                regional=False, tidal=tidal, owned=owned, head_lakes=LICENSING_CLIMBS_HEAD_LAKES))
             placed, diags = place_record(e, rec, reach)
             placed, parked = without_national_parks(placed, parks)
             diags = list(diags) + parked
@@ -1289,6 +1289,11 @@ def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, 
     expand.heads = []
     return expand
 
+
+#: POLICY (T1053, proposal): A LICENSING RECORD'S WALK DOES NOT CLIMB A HEAD LAKE — its walk DOWN from each section
+#: (Li5, `licensing.first_classified_downstream`) already reaches the water below the lake. True = designations climb
+#: too (the mutation pin, `test_reach_builder.test_policy_version_is_bumped_when_classify_changes`).
+LICENSING_CLIMBS_HEAD_LAKES = False
 
 #: (T1053) the diagnostic a whole-water walk writes for its head lakes (`build_reach`): `{lakes: [{lake, name, below,
 #: climbed, reason}]}`, `reason` the walk's typed refusal of a lake it did not climb

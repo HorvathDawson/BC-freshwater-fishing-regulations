@@ -20,7 +20,10 @@ to the lake either only streams that is important too". In plain words:
 2. **A DATED closure inherited from a row further down still closes**, even a stream with its own row, unless that stream
    is exempt (a printed lift). The Granby River is closed Jul 25-Sept 15 by "Kettle River's tributaries: No Fishing
    Jul 25-Sept 15" although it has a row of its own (T4).
-3. **An ALL-YEAR inherited "No Fishing" yields** to the stream's own row, or to a nearer ✱ row. "All year" is the rule's
+3. **An ALL-YEAR inherited "No Fishing" yields** to the stream's own row — a WATER TABLE's row (`r<region>:`), never a
+   zone line, even one ranked as a water (the Skeena/Nass winter stream closure) — or to a nearer ✱ row, and only for the
+   fish that row speaks for (it is decided per fish: Dove Creek reopens for the trout, char, kokanee and steelhead
+   Anderson Lake's ✱ release names, and stays closed for bass, perch, whitefish …). "All year" is the rule's
    own `when`: no dates, weekdays or hours. Frosst Creek answers by its own "No Fishing Oct 15-Apr 15", not by Sweltzer
    River's all-year ✱ "No Fishing" reaching it through Cultus Lake; Dick Creek, which has no row, still closes with Eagle
    Creek's all-year ✱ "No Fishing". Which row counts as "speaking" is still open (a row about keeping or closing, the

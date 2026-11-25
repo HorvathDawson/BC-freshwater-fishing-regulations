@@ -414,6 +414,7 @@ def test_policy_version_is_bumped_when_classify_changes():
         "only_a_unit_on_its_tributaries_claims_them": licensing.ONLY_A_UNIT_ON_ITS_TRIBUTARIES_CLAIMS_THEM,
         # (T1053) pinned at 50
         "a_whole_waters_walk_climbs_its_head_lake": tributaries.A_WHOLE_WATERS_WALK_CLIMBS_ITS_HEAD_LAKE,
+        "licensing_climbs_head_lakes": reach_build.LICENSING_CLIMBS_HEAD_LAKES,
     })
     expected.update({"confluence_cut_excludes_the_joining_water": True,
                      "confluence_water_without_a_row_goes_with_the_cut": True,
@@ -452,7 +453,8 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "a_mouth_never_flows_back_up": True,
                      "a_rowed_no_unit_water_carries_the_unit": True,
                      "only_a_unit_on_its_tributaries_claims_them": True,
-                     "a_whole_waters_walk_climbs_its_head_lake": True})
+                     "a_whole_waters_walk_climbs_its_head_lake": True,
+                     "licensing_climbs_head_lakes": False})
     assert cache.POLICY_VERSION == "50", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
