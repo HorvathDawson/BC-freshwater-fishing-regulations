@@ -227,10 +227,14 @@
      ],
      "who": "Province ›"
     },
-    "terms": [],
+    "terms": [
+     "treble_and_barbed_hooks"
+    ],
     "valueTerms": [
      [],
-     []
+     [
+      "treble_and_barbed_hooks"
+     ]
     ],
     "values": [
      "One hook, lure or fly",
@@ -1602,8 +1606,6 @@
        "mark": "✓",
        "name": "Ice fishing",
        "notes": [
-        "Lines: 1.",
-        "Hook, lure or fly per line: 1.",
         "Remove your ice hut before breakup.",
         "Warn others of your ice hole."
        ],
@@ -8747,6 +8749,7 @@
   "steelhead": "Steelhead",
   "steelhead_stamp": "Steelhead Stamp",
   "stream": "Stream (from streams)",
+  "treble_and_barbed_hooks": "Treble and barbed hooks",
   "tributaries": "Tributaries (Incl. Tribs, ✱)",
   "under_16": "Anglers under 16"
  },

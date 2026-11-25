@@ -10162,6 +10162,10 @@
     "r4:duncan_river@4-19::duncan_river.r4": "trib",
     "r4:duncan_river@4-19::duncan_river.r5": "trib",
     "r4:kootenay_lake_s_tributaries@4-19+4-7::kootenay_lake_tributaries.r1": "trib",
+    "r4:lardeau_river@4-29+4-30::lardeau_river.r2": "trib",
+    "r4:lardeau_river@4-29+4-30::lardeau_river.r3": "trib",
+    "r4:lardeau_river@4-29+4-30::lardeau_river.r4": "trib",
+    "r4:lardeau_river@4-29+4-30::lardeau_river.r5": "trib",
     "r4:trout_lake_s_tributaries@4-30::trout_lakes_tributaries.r1": "trib"
    },
    "ranks": {
@@ -10171,6 +10175,10 @@
     "r4:duncan_river@4-19::duncan_river.r4": 1,
     "r4:duncan_river@4-19::duncan_river.r5": 1,
     "r4:kootenay_lake_s_tributaries@4-19+4-7::kootenay_lake_tributaries.r1": 1,
+    "r4:lardeau_river@4-29+4-30::lardeau_river.r2": 1,
+    "r4:lardeau_river@4-29+4-30::lardeau_river.r3": 1,
+    "r4:lardeau_river@4-29+4-30::lardeau_river.r4": 1,
+    "r4:lardeau_river@4-29+4-30::lardeau_river.r5": 1,
     "r4:trout_lake_s_tributaries@4-30::trout_lakes_tributaries.r1": 1
    },
    "settle": {
@@ -10247,7 +10255,7 @@
      "z4:invasive_species_notice::invasive_species_notice.r1",
      "z4:daily_quotas::species_quotas.r10",
      "z4:daily_quotas::species_quotas.r7",
-     "r4:duncan_river@4-19::duncan_river.r4",
+     "r4:lardeau_river@4-29+4-30::lardeau_river.r4",
      "z4:daily_quotas::species_quotas.r8",
      "z4:daily_quotas::species_quotas.r9",
      "zp:white_sturgeon_licence::white_sturgeon_licence.r4",
@@ -10342,7 +10350,7 @@
      },
      {
       "kind": "keep",
-      "pool": "r4:duncan_river@4-19::duncan_river.r4",
+      "pool": "r4:lardeau_river@4-29+4-30::lardeau_river.r4",
       "win": null,
       "daily": 5,
       "narrow": null,
@@ -10583,13 +10591,13 @@
       "H": {
        "status": "keep",
        "daily": 5,
-       "win": "r4:duncan_river@4-19::duncan_river.r4",
+       "win": "r4:lardeau_river@4-29+4-30::lardeau_river.r4",
        "narrow": null
       },
       "W": {
        "status": "keep",
        "daily": 5,
-       "win": "r4:duncan_river@4-19::duncan_river.r4",
+       "win": "r4:lardeau_river@4-29+4-30::lardeau_river.r4",
        "narrow": null
       }
      },
@@ -10668,30 +10676,14 @@
    "dayStatus": [
     [
      [
-      "release",
-      90
-     ],
-     [
       "keep",
-      214
-     ],
-     [
-      "release",
-      61
+      365
      ]
     ],
     [
      [
-      "release",
-      90
-     ],
-     [
       "keep",
-      214
-     ],
-     [
-      "release",
-      61
+      365
      ]
     ],
     [
@@ -10747,6 +10739,10 @@
     "r4:duncan_river@4-19::duncan_river.r4": "trib",
     "r4:duncan_river@4-19::duncan_river.r5": "trib",
     "r4:kootenay_lake_s_tributaries@4-19+4-7::kootenay_lake_tributaries.r1": "trib",
+    "r4:lardeau_river@4-29+4-30::lardeau_river.r2": "trib",
+    "r4:lardeau_river@4-29+4-30::lardeau_river.r3": "trib",
+    "r4:lardeau_river@4-29+4-30::lardeau_river.r4": "trib",
+    "r4:lardeau_river@4-29+4-30::lardeau_river.r5": "trib",
     "r4:trout_lake_s_tributaries@4-30::trout_lakes_tributaries.r1": "trib"
    },
    "ranks": {
@@ -10756,6 +10752,10 @@
     "r4:duncan_river@4-19::duncan_river.r4": 1,
     "r4:duncan_river@4-19::duncan_river.r5": 1,
     "r4:kootenay_lake_s_tributaries@4-19+4-7::kootenay_lake_tributaries.r1": 1,
+    "r4:lardeau_river@4-29+4-30::lardeau_river.r2": 1,
+    "r4:lardeau_river@4-29+4-30::lardeau_river.r3": 1,
+    "r4:lardeau_river@4-29+4-30::lardeau_river.r4": 1,
+    "r4:lardeau_river@4-29+4-30::lardeau_river.r5": 1,
     "r4:trout_lake_s_tributaries@4-30::trout_lakes_tributaries.r1": 1
    },
    "settle": {
@@ -10832,7 +10832,7 @@
      "z4:invasive_species_notice::invasive_species_notice.r1",
      "z4:daily_quotas::species_quotas.r10",
      "z4:daily_quotas::species_quotas.r7",
-     "r4:duncan_river@4-19::duncan_river.r4",
+     "r4:lardeau_river@4-29+4-30::lardeau_river.r4",
      "z4:daily_quotas::species_quotas.r8",
      "z4:daily_quotas::species_quotas.r9",
      "zp:white_sturgeon_licence::white_sturgeon_licence.r4",
@@ -10923,7 +10923,7 @@
      },
      {
       "kind": "keep",
-      "pool": "r4:duncan_river@4-19::duncan_river.r4",
+      "pool": "r4:lardeau_river@4-29+4-30::lardeau_river.r4",
       "win": null,
       "daily": 5,
       "narrow": null,
@@ -11164,13 +11164,13 @@
       "H": {
        "status": "keep",
        "daily": 5,
-       "win": "r4:duncan_river@4-19::duncan_river.r4",
+       "win": "r4:lardeau_river@4-29+4-30::lardeau_river.r4",
        "narrow": null
       },
       "W": {
        "status": "keep",
        "daily": 5,
-       "win": "r4:duncan_river@4-19::duncan_river.r4",
+       "win": "r4:lardeau_river@4-29+4-30::lardeau_river.r4",
        "narrow": null
       }
      },
@@ -11249,30 +11249,14 @@
    "dayStatus": [
     [
      [
-      "release",
-      90
-     ],
-     [
       "keep",
-      214
-     ],
-     [
-      "release",
-      61
+      365
      ]
     ],
     [
      [
-      "release",
-      90
-     ],
-     [
       "keep",
-      214
-     ],
-     [
-      "release",
-      61
+      365
      ]
     ],
     [
@@ -11328,6 +11312,10 @@
     "r4:duncan_river@4-19::duncan_river.r4": "trib",
     "r4:duncan_river@4-19::duncan_river.r5": "trib",
     "r4:kootenay_lake_s_tributaries@4-19+4-7::kootenay_lake_tributaries.r1": "trib",
+    "r4:lardeau_river@4-29+4-30::lardeau_river.r2": "trib",
+    "r4:lardeau_river@4-29+4-30::lardeau_river.r3": "trib",
+    "r4:lardeau_river@4-29+4-30::lardeau_river.r4": "trib",
+    "r4:lardeau_river@4-29+4-30::lardeau_river.r5": "trib",
     "r4:trout_lake_s_tributaries@4-30::trout_lakes_tributaries.r1": "trib"
    },
    "ranks": {
@@ -11337,6 +11325,10 @@
     "r4:duncan_river@4-19::duncan_river.r4": 1,
     "r4:duncan_river@4-19::duncan_river.r5": 1,
     "r4:kootenay_lake_s_tributaries@4-19+4-7::kootenay_lake_tributaries.r1": 1,
+    "r4:lardeau_river@4-29+4-30::lardeau_river.r2": 1,
+    "r4:lardeau_river@4-29+4-30::lardeau_river.r3": 1,
+    "r4:lardeau_river@4-29+4-30::lardeau_river.r4": 1,
+    "r4:lardeau_river@4-29+4-30::lardeau_river.r5": 1,
     "r4:trout_lake_s_tributaries@4-30::trout_lakes_tributaries.r1": 1
    },
    "settle": {
@@ -11413,7 +11405,7 @@
      "z4:invasive_species_notice::invasive_species_notice.r1",
      "z4:daily_quotas::species_quotas.r10",
      "z4:daily_quotas::species_quotas.r7",
-     "r4:duncan_river@4-19::duncan_river.r4",
+     "r4:lardeau_river@4-29+4-30::lardeau_river.r4",
      "z4:daily_quotas::species_quotas.r8",
      "z4:daily_quotas::species_quotas.r9",
      "zp:white_sturgeon_licence::white_sturgeon_licence.r4",
@@ -11504,7 +11496,7 @@
      },
      {
       "kind": "keep",
-      "pool": "r4:duncan_river@4-19::duncan_river.r4",
+      "pool": "r4:lardeau_river@4-29+4-30::lardeau_river.r4",
       "win": null,
       "daily": 5,
       "narrow": null,
@@ -11745,13 +11737,13 @@
       "H": {
        "status": "keep",
        "daily": 5,
-       "win": "r4:duncan_river@4-19::duncan_river.r4",
+       "win": "r4:lardeau_river@4-29+4-30::lardeau_river.r4",
        "narrow": null
       },
       "W": {
        "status": "keep",
        "daily": 5,
-       "win": "r4:duncan_river@4-19::duncan_river.r4",
+       "win": "r4:lardeau_river@4-29+4-30::lardeau_river.r4",
        "narrow": null
       }
      },
@@ -11830,30 +11822,14 @@
    "dayStatus": [
     [
      [
-      "release",
-      90
-     ],
-     [
       "keep",
-      214
-     ],
-     [
-      "release",
-      61
+      365
      ]
     ],
     [
      [
-      "release",
-      90
-     ],
-     [
       "keep",
-      214
-     ],
-     [
-      "release",
-      61
+      365
      ]
     ],
     [

@@ -585,7 +585,7 @@
        "to": 4
       }
      ],
-     "date": "until Oct 31, then release",
+     "date": null,
      "head": "Keep 5 in all",
      "inner": [],
      "kind": "keep",
@@ -594,9 +594,7 @@
      "rows": [
       {
        "a11y": "Brook trout. 2 total from these 4",
-       "coming": [
-        "From Nov 1 every one goes back."
-       ],
+       "coming": [],
        "date": null,
        "fish": "EB",
        "key": "EB",
@@ -638,9 +636,7 @@
       },
       {
        "a11y": "Brown trout. 2 total from these 4",
-       "coming": [
-        "From Nov 1 every one goes back."
-       ],
+       "coming": [],
        "date": null,
        "fish": "GB",
        "key": "GB",
@@ -682,9 +678,7 @@
       },
       {
        "a11y": "Lake trout. 2 total from these 4",
-       "coming": [
-        "From Nov 1 every one goes back."
-       ],
+       "coming": [],
        "date": null,
        "fish": "LT",
        "key": "LT",
@@ -726,9 +720,7 @@
       },
       {
        "a11y": "Cutthroat trout. only 1 over 50 cm (20 in). 2 total from these 4",
-       "coming": [
-        "From Nov 1 every one goes back."
-       ],
+       "coming": [],
        "date": null,
        "fish": "CT",
        "key": "CT",
@@ -777,10 +769,8 @@
        "tag": null
       },
       {
-       "a11y": "Rainbow trout. Duncan River’s tributaries. counts toward the 5",
-       "coming": [
-        "From Nov 1 every one goes back."
-       ],
+       "a11y": "Rainbow trout. Lardeau River’s tributaries. counts toward the 5",
+       "coming": [],
        "date": null,
        "fish": "RB",
        "key": "RB",
@@ -802,19 +792,21 @@
          }
         ],
         "src": [
-         1272,
+         1409,
          3136,
-         3145
+         3145,
+         1272
         ]
        },
        "split": false,
        "src": [
-        1272,
+        1409,
         3136,
-        3145
+        3145,
+        1272
        ],
        "sub": null,
-       "tag": "Duncan River’s tributaries"
+       "tag": "Lardeau River’s tributaries"
       }
      ],
      "strip": null,
@@ -870,7 +862,7 @@
     "Trout and char: Your own limit, counted across every Region 4 stream you fish.",
     "Trout and char: Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
     "Trout and char: Kept cutthroat trout over 50 cm (20 in) elsewhere? It counts here too: at most 1 over 50 cm (20 in) a day in all.",
-    "Rainbow trout: The Duncan River’s rule: 5 a day here. Rainbow trout you kept anywhere else count toward those 5. They also count toward Region 4’s 5 trout and char a day."
+    "Rainbow trout: The Lardeau River’s rule: 5 a day here. Rainbow trout you kept anywhere else count toward those 5. They also count toward Region 4’s 5 trout and char a day."
    ],
    "elsewhereLink": "Fished elsewhere today? ›",
    "fold": {
@@ -886,6 +878,7 @@
     3145,
     3138,
     3137,
+    1409,
     1272,
     1570
    ],
@@ -7569,7 +7562,7 @@
    "blocks": [
     {
      "applies": [
-      "This water’s own row in the 2025–2027 BC Freshwater Fishing Regulations Synopsis: Duncan River.",
+      "This water’s own row in the 2025–2027 BC Freshwater Fishing Regulations Synopsis: Duncan River. Covers the part of Duncan River it names and the tributary streams joining that part (✱, p.4).",
       "Inherited from Duncan River: its row covers its tributaries."
      ],
      "book": [
@@ -8085,6 +8078,7 @@
   "steelhead": "Steelhead",
   "steelhead_stamp": "Steelhead Stamp",
   "stream": "Stream (from streams)",
+  "treble_and_barbed_hooks": "Treble and barbed hooks",
   "tributaries": "Tributaries (Incl. Tribs, ✱)",
   "under_16": "Anglers under 16"
  },

@@ -185,7 +185,7 @@
      "k": "para",
      "text": [
       {
-       "s": "This water’s own row in the 2025–2027 BC Freshwater Fishing Regulations Synopsis: Chilliwack River.",
+       "s": "This water’s own row in the 2025–2027 BC Freshwater Fishing Regulations Synopsis: Chilliwack River. Covers the part of Chilliwack River it names and the tributary streams joining that part (✱, p.4).",
        "t": "text"
       }
      ]
@@ -513,6 +513,7 @@
   "steelhead": "Steelhead",
   "steelhead_stamp": "Steelhead Stamp",
   "stream": "Stream (from streams)",
+  "treble_and_barbed_hooks": "Treble and barbed hooks",
   "tributaries": "Tributaries (Incl. Tribs, ✱)",
   "under_16": "Anglers under 16"
  },
