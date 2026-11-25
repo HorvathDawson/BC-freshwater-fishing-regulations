@@ -64,7 +64,7 @@ export function resolveAppVersion(i: AppVersionInputs): AppVersion {
   const v = i.version?.trim() || "0.0.0";
   if (!parseSemver(v)) throw new Error(`app version "${v}" is not a semver (app.json expo.version)`);
   const b = i.build?.trim();
-  if (b && !/^\d+$/.test(b)) throw new Error(`app build number "${b}" is not a whole number (app.json android.versionCode)`);
+  if (b && !/^\d+$/.test(b)) throw new Error(`app build number "${b}" is not a whole number (app.json android.versionCode / ios.buildNumber)`);
   const sha = i.sha?.trim().toLowerCase() || null;
   if (sha && !/^[0-9a-f]{7,40}$/.test(sha)) throw new Error(`git sha "${sha}" is not a hex commit id`);
   const date = i.date?.trim() || null;

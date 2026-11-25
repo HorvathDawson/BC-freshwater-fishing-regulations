@@ -47,7 +47,8 @@ export function storedChannel(): UpdateChannel | null {
  */
 export const APP_VERSION = resolveAppVersion({
   version: process.env.EXPO_PUBLIC_APP_VERSION,
-  build: process.env.EXPO_PUBLIC_APP_BUILD_NUMBER,
+  // (T1101) each platform's own build number (CFBundleVersion on an iPhone, versionCode on Android and the web)
+  build: Platform.select({ ios: process.env.EXPO_PUBLIC_APP_BUILD_NUMBER_IOS, default: process.env.EXPO_PUBLIC_APP_BUILD_NUMBER_ANDROID }),
   sha: process.env.EXPO_PUBLIC_GIT_SHA,
   date: process.env.EXPO_PUBLIC_BUILD_DATE,
 });
