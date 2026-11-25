@@ -1,10 +1,10 @@
 # T1134 — App Store product page: the Header and Search Results pictures
 
-Status: IN REVIEW — PR open (stills first, videos next); the owner uploads by hand in App Store Connect
+Status: IN REVIEW — left (Claude): the videos land in the PR's second commit; the owner uploads by hand in App Store Connect
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1134 | App Store product page: the Header and Search Results pictures | IN REVIEW — PR open (stills first, videos next); the owner uploads by hand in App Store Connect | PR feat/T1134-appstore-creative-assets | owner uploads by hand; confirm the video codec rules on the upload screen |
+| T1134 | App Store product page: the Header and Search Results pictures | IN REVIEW — left (Claude): the videos land in the PR's second commit; the owner uploads by hand in App Store Connect | PR feat/T1134-appstore-creative-assets | owner uploads by hand; confirm the video codec rules on the upload screen |
 
 Source: owner 2026-11-25, in the iOS chat's App Store walk-through at the version page (relayed): "i need search
 and header asset too". Related: T1072 (the picture set, direction A), T1071 (the submission), T1131 (the pictures
