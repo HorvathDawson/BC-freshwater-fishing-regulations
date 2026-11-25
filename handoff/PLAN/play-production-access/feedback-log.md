@@ -110,14 +110,16 @@ leave them out.
 | D14 | 2026-11-25 | in person | owner | web | The gauges page, found by a visitor through a web search, had no way to search for a gauge by place or river | T1107 | open | — |
 | D15 | 2026-11-25 | in person | owner | 0.9.0 | Notifications are off after install and the app never asks to turn on new-data notices | T1110 | open | — |
 | D16 | 2026-11-25 | in person | owner | 0.9.0 | The More page does not refresh by pulling down | T1111 | open | — |
+| D17 | 2026-11-25 | in person | owner | 0.9.0 | The saved-spot page still feels clunky; a fresh redesign is wanted | T1115 | open | — |
+| D18 | 2026-11-25 | found in development | owner | 0.9.0 data | A lake and its creek showed another, same-named lake's stricter rules (a name bound across management units) | T1117 (audit: T1118) | open | — |
 
 ## Counts (refresh before applying)
 
 As of 2026-11-24: 17 tester rows from 8 tags (T-1 … T-5, TF-1, CT-1, CT-2; some may be the same person), 10 in-app
-report rows, 18 crash rows (45 in all), plus 16 developer rows. Of the 45: 25 fixed in a shipped release, 1 fixed with
+report rows, 18 crash rows (45 in all), plus 18 developer rows. Of the 45: 25 fixed in a shipped release, 1 fixed with
 the owner's read pending (F34), 6 fixed in 0.9.0 (shipped 2026-11-24, r-0aec88ed3edb: F15, F16, F22, F24, and F21, F25 with the
 owner's read pending), 3 in progress (F06, F23, F35; F23 and F35 partly fixed in 0.9.0), 10 open (F40–F44 added 2026-11-24, F45 on 11-25).
 Developer rows: D01 fixed, owner read pending; D02–D05 fixed; D06 (owner read pending) and D07 fixed in 0.9.0; D08
-answered with no change; D09–D12 open (0.9.1); D13 open (0.9.2); D14 open (0.9.1); D15, D16 open (0.9.2).
+answered with no change; D09–D12 open (0.9.1); D13 open (0.9.2); D14 open (0.9.1); D15–D17 open (0.9.2); D18 open (0.9.1).
 Play Console testing feedback: none came in (owner 2026-11-24: all feedback came through the app; testers did not
 know how to use the Play form). Recount before applying.

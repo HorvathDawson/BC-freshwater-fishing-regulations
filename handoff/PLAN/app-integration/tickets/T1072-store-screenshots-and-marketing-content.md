@@ -86,6 +86,23 @@ Part 2 (marketing words, T1072 work items 2-4) is not in this change.
 3. The website's landing and "Get the app" block say the same thing (T901); the share page's "Open in the app" (T514).
 4. The store video (T709) if the owner wants one.
 
+Done so far (2026-11-24, part 2, listing words): ONE source `app/store-listing/listing.json` (+ `full-description.txt`), text moved verbatim
+(Play short/full parsed before and after: identical; `play-listing-push.py --plan` unchanged but for the source path). Read by
+`play-listing-push.py` (new `--appstore` prints each App Store Connect field with length/limit, no network) and `app/tools/web-shell.mjs`
+(home page meta description, `websiteHomeDescription`). Every field and its limit, and the forbidden words (Play metadata policy,
+Apple 2.3.10), are checked by `app/tools/store-listing.test.ts`. `store-description.md` deleted; `ios/store/listing.md` and the
+words sections of `listing-draft.md` now point at the source. What's New stays in `app/packages/core/src/changelog.ts` (`notesOn`
+for "android" and "ios"). Still open: the website's "Get the app" block words (they are button labels in
+`core/src/spotWords.ts`, not listing text), the share page words, the store video.
+
+Owner's wording answers (2026-11-24 ~23:55, multiple choice in the store content chat, verbatim picks):
+- App Store promotional text: "Keep your short line" (the same text as Play's short description).
+- App Store keywords: "Drop the repeats (Recommended)": `regulations,freshwater,river,lake,trout,salmon,steelhead,angling,license,flow,gauge,map,synopsis,dfo` (100).
+- App Store category: "Navigation, Sports second (Recommended)". Play stays Maps & Navigation.
+- Download size and feature graphic: "Keep 500 MB, keep graphic (Recommended)": the description keeps "approximately 500 MB", the
+  iOS review notes say the same, and the Play feature graphic stays (its words are now in the source, `featureGraphicWords`).
+The first App Store version has no "What's New" field (Apple shows it from the second version on); Play's comes from the changelog.
+
 ## Acceptance
 The owner picked a direction; the set and the text are in the repo and regenerate by one command; both listings and
 the website use them.

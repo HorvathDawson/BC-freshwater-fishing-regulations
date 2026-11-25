@@ -79,9 +79,11 @@ def test_ci_paths_cover_what_the_jobs_read():
         for p in ("pipeline/regs/dfo_salmon/**", "pipeline/gauges/**", "requirements.txt", "app/workers/feeds/**"):
             assert p in paths, (ev, p)
         # a docs-only push runs the ledger / docs guard alone, never the app's jobs — but for the one runbook an app
-        # test reads (no-silent-skips.test.ts, T995 review): a named file, never a handoff folder
+        # test reads (no-silent-skips.test.ts, T995 review; privacy-manifest.test.ts, T1099): named files, never a handoff folder
         handoff = [p for p in _on(_load("app-ci.yml"))[ev]["paths"] if p.startswith("handoff")]
-        assert handoff == ["handoff/PLAN/runbooks/release.md"], ev
+        # (the second file is compared by name: a literal path here would make the PIPELINE area claim to read it)
+        assert [h for h in handoff if h.endswith("/release.md")] == ["handoff/PLAN/runbooks/release.md"], ev
+        assert sorted(h.rsplit("/", 1)[1] for h in handoff) == ["APP-STORE-SUBMISSION.md", "release.md"], ev
         assert "handoff/**" in _on(_load("docs-ci.yml"))[ev]["paths"], ev
 
 
