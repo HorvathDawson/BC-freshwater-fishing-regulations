@@ -4,7 +4,7 @@ Status: OPEN.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1108 | Idea: the Mapbox mobile SDK (no navigation) for free offline corridor maps; research the terms, cost and the two-engine question first | OPEN — 0.10, chat 4c (research first) | | owner 2026-11-25 |
+| T1108 | Idea: the Mapbox mobile SDK (no navigation) for free offline corridor maps; research the terms, cost and the two-engine question first | OPEN — 0.11, chat 4c (research first) | | owner 2026-11-25 |
 
 Source: owner 2026-11-25 ~00:40 (planning chat), verbatim: "i got an idea for free offline maps for corridors we could
 integrate mapbox mobile sdk with no navigation and it will be free until 25k users which should be more then good. we

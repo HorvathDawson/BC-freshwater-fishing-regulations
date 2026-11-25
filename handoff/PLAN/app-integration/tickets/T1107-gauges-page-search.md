@@ -7,7 +7,7 @@ reporting today" / "Not a real-time gauge"). Conditions link = `routeSearch` of 
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1107 | The web gauges page gets a search: by place, river or water, giving gauges only (nearest first) | PARTIAL — built in a draft PR (code 4816a87d4); left (Claude): the owner's look at T1107-shots/ (looks questions in the PR), then merge; web only, 0.9.1 site deploy | | owner 2026-11-25 |
+| T1107 | The web gauges page gets a search: by place, river or water, giving gauges only (nearest first) | PARTIAL — built in a draft PR (code 4816a87d4); left (Claude): the owner's look at T1107-shots/ (looks questions in the PR), then merge; web only, 0.10.0 site deploy | | owner 2026-11-25 |
 
 Source: owner 2026-11-25 ~00:20 (planning chat), verbatim: "in 0.9.1 we should make this page
 (https://canifishthis.ca/gauges) have a search option that allows search to nearest place etc like the main search bar

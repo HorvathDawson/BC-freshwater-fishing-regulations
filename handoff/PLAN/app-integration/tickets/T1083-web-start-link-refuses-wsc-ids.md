@@ -4,7 +4,7 @@ Status: DONE (e65bc413c, 887e21735, lane L24 2026-11-24): one list of id kinds, 
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1083 | The web start link refuses `wsc:` item ids, yet the app writes them into its own URL (reload and share fail) | DONE — HIGH, on production 0.9.0; fixed for 0.9.1 (lane L24) | e65bc413c, 887e21735 | 0.9.1 chat 2026-11-24 |
+| T1083 | The web start link refuses `wsc:` item ids, yet the app writes them into its own URL (reload and share fail) | DONE — HIGH, on production 0.9.0; fixed for 0.10.0 (lane L24) | e65bc413c, 887e21735 | 0.9.1 chat 2026-11-24 |
 
 Source: the 0.9.1 chat, 2026-11-24, PR #131 lane, web build from main: "start link: regs=wsc:… is not an item id". The app itself writes `?regs=wsc:…` into the URL, so reloading or sharing the page of a `wsc:` water fails. 197 of the parts T1052 touches are `wsc:` waters. Evidence: a Playwright console log of 2026-11-24 20:19Z in the main checkout's git-ignored .playwright-mcp directory. NOT yet checked on production 0.9.0.
 

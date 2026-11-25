@@ -4,7 +4,7 @@ Status: OPEN.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1096 | Methods: the page's ice-fishing clause carries no citation (the source is in the pipeline only) | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24, T1050's leftover |
+| T1096 | Methods: the page's ice-fishing clause carries no citation (the source is in the pipeline only) | OPEN — 0.10.1 | | 0.9.1 chat 2026-11-24, T1050's leftover |
 
 Source: 0.9.1 chat 2026-11-24 22:55, a "left" line of T1050 (PR #130): the ice clause the page prints is built in
 `app/packages/ui/src/methods.ts` (`waysVM`, about line 96) with no Source line; the citation for the ice rule lives

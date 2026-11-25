@@ -4,7 +4,7 @@ Status: OPEN.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1092 | Web: "Database deleted by request of the user" arrives as a crash report (kind `790ae7cc172f9424`) | OPEN — 0.9.2 | | planning chat 2026-11-24 |
+| T1092 | Web: "Database deleted by request of the user" arrives as a crash report (kind `790ae7cc172f9424`) | OPEN — 0.10.1 | | planning chat 2026-11-24 |
 
 Source: production feeds worker, crash kind `790ae7cc172f9424`, 1 report, 2026-11-25 01:24Z, app 0.8.5 (web, by the
 message: it is the browser's IndexedDB error when the site's stored data is cleared while a tab is open). Read by

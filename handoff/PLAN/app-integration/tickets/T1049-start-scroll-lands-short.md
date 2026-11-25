@@ -4,7 +4,7 @@ Status: PARTIAL — ae65ef767, a2478c6dc, d2239c54d, b3de2bbc1 (below), 09f6346e
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1049 | A start link's scroll lands short: it jumps to the first measured section top and never re-checks | PARTIAL — 0.9.1: a slow cold start waits for the salmon card, the in-season notices and a settled page; device gear 6/6, licence 6/6, was 2/12, 0/11; #107 no different; left (Claude): review and merge of #122, then the device check on a release build | ae65ef767, a2478c6dc, d2239c54d, b3de2bbc1, 09f6346e0, eb8e2092a, 5f8a37cbc, 53e9106e2 | review of #80 (T1038), 2026-11-23; 0.9.0 device pass |
+| T1049 | A start link's scroll lands short: it jumps to the first measured section top and never re-checks | PARTIAL — 0.10.0: a slow cold start waits for the salmon card, the in-season notices and a settled page; device gear 6/6, licence 6/6, was 2/12, 0/11; #107 no different; left (Claude): review and merge of #122, then the device check on a release build | ae65ef767, a2478c6dc, d2239c54d, b3de2bbc1, 09f6346e0, eb8e2092a, 5f8a37cbc, 53e9106e2 | review of #80 (T1038), 2026-11-23; 0.9.0 device pass |
 
 ## 0.9.0 device pass (Android)
 - A cold start from `https://staging.canifishthis.ca/?regs=gnis:3062&tab=licence` (once the phone opens links with a

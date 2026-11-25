@@ -4,7 +4,7 @@ Status: OPEN.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1061 | A Map opened through "Flows into" shows a blank band of about 120 px (Skeena) | OPEN — 0.9.2 (missed the 0.9.1 cut) | | planning chat 2026-11-24 |
+| T1061 | A Map opened through "Flows into" shows a blank band of about 120 px (Skeena) | OPEN — 0.10.1 (missed the 0.10.0 cut) | | planning chat 2026-11-24 |
 
 Source: the 0.9.0 device pass, emulator-5554, 2026-11-24 (the 0.9.0 chat). Seen on the Skeena River's Map opened from a tributary's "Flows into" (T1023).
 

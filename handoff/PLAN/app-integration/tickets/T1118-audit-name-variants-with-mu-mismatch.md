@@ -4,7 +4,7 @@ Status: OPEN.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1118 | Audit every name variant whose target sits in a different management unit than the book's row; a build check | OPEN — 0.9.2, first Opus lane (HIGH until the list exists; a first pass of 98 bindings is in #166) | | 0.9.1 chat 2026-11-25, behind T1117 |
+| T1118 | Audit every name variant whose target sits in a different management unit than the book's row; a build check | OPEN — 0.10.1, first Opus lane (HIGH until the list exists; a first pass of 98 bindings is in #166) | | 0.9.1 chat 2026-11-25, behind T1117 |
 
 Source: 0.9.1 chat 2026-11-25 ~00:50 MST, the wider question behind T1117: one name variant bound a book row from
 MU 1-3 to a same-named lake in MU 1-6, and its own note recorded the mismatch.

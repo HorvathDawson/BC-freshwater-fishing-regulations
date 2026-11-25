@@ -4,7 +4,7 @@ Status: OPEN.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1090 | `data.canifishthis.ca/robots.txt` answers 404 (Search Console) | OPEN — 0.9.2 | | owner 2026-11-24 |
+| T1090 | `data.canifishthis.ca/robots.txt` answers 404 (Search Console) | OPEN — 0.10.1 | | owner 2026-11-24 |
 
 Source: owner 2026-11-24 (planning chat), pasted from Google Search Console: "https://data.canifishthis.ca/robots.txt
 11/19/26, 12:11 PM — Not Fetched - Not found (404)". "another ticket too".

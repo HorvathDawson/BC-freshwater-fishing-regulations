@@ -4,7 +4,7 @@ Status: IN PROGRESS (PR #179, words only: a to f done; g decided by the owner 20
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1098 | The privacy page says things the app does not do (install id and email, Apple Maps, headers, token after Don't Allow) | IN PROGRESS — draft PR: words written, owner reads the before/after list and picks item g; then the 0.9.1 site deploy, before the App Store submission (T1071) | | iOS chat 2026-11-24 |
+| T1098 | The privacy page says things the app does not do (install id and email, Apple Maps, headers, token after Don't Allow) | IN PROGRESS — draft PR: words written, owner reads the before/after list and picks item g; then the 0.10.0 site deploy, before the App Store submission (T1071) | | iOS chat 2026-11-24 |
 
 Source: iOS release chat 2026-11-24 ~23:40, its read of build 0.9.0 (45) at 65f84020c for T1071 (App Privacy and review risk). The page is built by `app/tools/seo/html.ts` (lines 219–305). None of it blocks review on
 its own, but the policy URL is part of the submission, so it should be true before the owner submits.

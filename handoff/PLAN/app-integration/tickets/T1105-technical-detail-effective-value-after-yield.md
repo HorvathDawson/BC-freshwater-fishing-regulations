@@ -4,7 +4,7 @@ Status: OPEN.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1105 | Sources "Technical detail" should show the effective value when an inherited closure yields to a nearer row | OPEN — 0.9.2 (after T1053 ships); owner picks the words | | 0.9.1 chat 2026-11-24, T1053's leftover |
+| T1105 | Sources "Technical detail" should show the effective value when an inherited closure yields to a nearer row | OPEN — 0.10.1 (after T1053 ships); owner picks the words | | 0.9.1 chat 2026-11-24, T1053's leftover |
 
 Source: 0.9.1 chat 2026-11-24 ~23:55, a proposal left unbuilt by T1053 (draft PR #166): with the head-lake walk and
 the "own row wins" rule (`read.ladder.ALL_YEAR_INHERITED_CLOSURE_YIELDS`), an inherited all-year "No Fishing" can

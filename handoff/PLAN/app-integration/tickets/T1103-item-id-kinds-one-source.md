@@ -4,7 +4,7 @@ Status: OPEN.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1103 | Item id kinds are hand-kept in four places (the T1083 bug's cause); one generated source; dead `name:` ids in the fixture release | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24, T1083 lane |
+| T1103 | Item id kinds are hand-kept in four places (the T1083 bug's cause); one generated source; dead `name:` ids in the fixture release | OPEN — 0.10.1 | | 0.9.1 chat 2026-11-24, T1083 lane |
 
 Source: 0.9.1 chat 2026-11-24 ~23:40, finds of the T1083 lane (PR #164: the app refused `wsc:` ids because one list
 lacked the kind; 557 `wsc:` waters).

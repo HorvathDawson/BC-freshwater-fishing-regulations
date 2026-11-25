@@ -4,7 +4,7 @@ Status: OPEN.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1079 | The Playwright MCP writes its console logs into the main checkout, whatever worktree a lane works in | OPEN — none (tooling; with the 0.9.2 chat) | | 0.9.1 chat 2026-11-24 |
+| T1079 | The Playwright MCP writes its console logs into the main checkout, whatever worktree a lane works in | OPEN — none (tooling; with the 0.10.1 chat) | | 0.9.1 chat 2026-11-24 |
 
 Source: the 0.9.1 chat, 2026-11-24: logs land in the main checkout's git-ignored `.playwright-mcp/` directory.
 

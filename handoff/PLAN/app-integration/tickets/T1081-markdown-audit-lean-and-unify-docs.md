@@ -4,7 +4,7 @@ Status: OPEN.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1081 | Audit every markdown file: delete the old, cut the bloated, unify the docs (1,326 files, about 134,000 lines) | OPEN — its own docs chat after 0.9.1 (proposed chat D); inventory first | | owner 2026-11-24 |
+| T1081 | Audit every markdown file: delete the old, cut the bloated, unify the docs (1,326 files, about 134,000 lines) | OPEN — its own docs chat after 0.10.0 (proposed chat D); inventory first | | owner 2026-11-24 |
 
 Source: owner 2026-11-24 (planning chat), verbatim: "we need to add a ticket to audit all the md files and try to
 lean everything out a lot... so much md files a human couldnt read if they wanted rn some old and many bloated etc...

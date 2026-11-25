@@ -4,7 +4,7 @@ Status: OPEN.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1115 | The saved-spot page: a full fresh redesign (owner: still clunky); pictures first, with T1095 | OPEN — design in 0.9.2 (owner: "maybe in 0.9.2"); build when the direction is picked | | owner 2026-11-25 |
+| T1115 | The saved-spot page: a full fresh redesign (owner: still clunky); pictures first, with T1095 | OPEN — design in 0.10.1 (owner: "maybe in 0.9.2", the old name); build when the direction is picked | | owner 2026-11-25 |
 
 Source: owner 2026-11-25 ~01:10 (planning chat), verbatim: "the spot page needs rework still it still feels very
 clunky and I think we should have a full fresh look redesign maybe in 0.9.2". Related: T603, T674 (saved spots),
