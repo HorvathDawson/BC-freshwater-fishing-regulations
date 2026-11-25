@@ -7,6 +7,15 @@
  * THE PERMISSION IS ASKED ONLY WHEN THE READER TURNS SOMETHING ON (Android 13+ POST_NOTIFICATIONS) — never on open. A
  * refusal is kept as said (`permission: "denied"`) and shown where the switch is; the reader's choice is still saved, so
  * allowing it later in the phone's settings is all it takes. A refusal is the environment's: never reported.
+ *
+ * (T1116, owner 2026-11-25) THE PUSH TOKEN NEEDS THE PERMISSION. A silent push needs no permission on iPhone, so the
+ * token used to be registered as soon as a notification was switched on, "Don't Allow" or not. Now it is sent only while
+ * a notification is on AND the phone lets the app notify (`pushWanted`): not after "Don't Allow"; withdrawn (our worker
+ * deletes it) when the permission is found turned off in the phone's settings, at the next start or return to the
+ * front (`onResume`); sent again once it is allowed again. ONE permission read for the app (`NotifyRoot` holds it; the
+ * page and the push follow the same answer), read at start, on every return to the front, when the page opens, and set
+ * by the system dialog's answer. Without a token our server cannot wake the phone: the app still finds new data itself
+ * (the update service on start, every 3 h while open and on a return to the front; the periodic background check).
  */
 import { createElement, useCallback, useContext, useEffect, useMemo, useState, createContext, type ReactNode } from "react";
 import { findGauges, hasRecord, now as coreNow, normalRangeOf, refreshAlertLines, reportFailure, reportOnce, type AlertNow, type AlertQuantity, type Band,
@@ -36,6 +45,11 @@ export interface NotifyPlatform {
   push?(active: boolean): Promise<void>;
   /** (T822) what the push registration last did (`@app/data` `PushRegistrar`): said on More → Notifications, never silent */
   pushStatus?: { status(): PushStatus; subscribe(on: () => void): () => void };
+  /**
+   * (T1116) the app came back to the front: `on` is told each time (the reader may have turned the permission off or on
+   * in the phone's settings meanwhile, so it is read again); returns the undo
+   */
+  onResume(on: () => void): () => void;
 }
 
 export interface NotifyControls {
@@ -48,25 +62,66 @@ export interface NotifyControls {
 /** (T739) this build wakes its check by push (its words say so: core `NOTIFY_WORDS.introPushIos`) */
 const hasPush = (c: NotifyControls | null): boolean => typeof c?.platform.push === "function";
 
-const NotifyContext = createContext<NotifyControls | null>(null);
+/**
+ * (T1116) THE PUSH TOKEN IS SENT ONLY WHILE a notification is on (`notifyActive`) AND the phone's permission is granted:
+ * "Don't Allow", a permission not yet asked, and one turned off in the phone's settings all withdraw it.
+ */
+export const pushWanted = (state: NotifyState, permission: NotifyPermission | null): boolean =>
+  notifyActive(state) && permission === "granted";
 
-/** Keeps the background check scheduled while something is on, and hands the controls to the screens below. */
+/** (T1116) the app's one answer to "may this app notify?" (null until first read), and who is told when it changes */
+interface PermissionSource {
+  get(): NotifyPermission | null;
+  set(p: NotifyPermission): void;
+  /** asks the phone again (no dialog) and keeps the answer; a failed read throws (the caller reports it) */
+  read(): Promise<NotifyPermission>;
+  subscribe(on: () => void): () => void;
+}
+function permissionSource(platform: NotifyPlatform): PermissionSource {
+  let p: NotifyPermission | null = null;
+  const subs = new Set<() => void>();
+  const set = (n: NotifyPermission) => { if (n === p) return; p = n; for (const f of [...subs]) f(); };
+  return {
+    get: () => p, set,
+    read: async () => { const n = await platform.permission(); set(n); return n; },
+    subscribe(f) { subs.add(f); return () => { subs.delete(f); }; },
+  };
+}
+
+interface NotifyCtx { readonly controls: NotifyControls; readonly permission: PermissionSource }
+const NotifyContext = createContext<NotifyCtx | null>(null);
+
+/**
+ * Keeps the background check scheduled while something is on, keeps the push token in step (`pushWanted`), and hands
+ * the controls to the screens below.
+ */
 export function NotifyRoot({ controls, children }: { controls: NotifyControls | null; children?: ReactNode }) {
+  const ctx = useMemo<NotifyCtx | null>(() => (controls ? { controls, permission: permissionSource(controls.platform) } : null), [controls]);
   useEffect(() => {
-    if (!controls) return;
-    let was: boolean | null = null;
+    if (!ctx) return;
+    const { controls: c, permission } = ctx;
+    let scheduled: boolean | null = null;
+    let pushed: boolean | null = null;
     const sync = () => {
-      const now = notifyActive(controls.settings.read());
-      if (now === was) return;
-      was = now;
-      controls.platform.schedule(now).catch(reportFailure);
-      // (T739) the push token follows the same switch: on → registered, off → withdrawn (each start syncs it again)
-      controls.platform.push?.(now).catch(reportFailure);
+      const state = c.settings.read();
+      const on = notifyActive(state);
+      if (on !== scheduled) { scheduled = on; c.platform.schedule(on).catch(reportFailure); }
+      // (T739) the push token: registered or withdrawn, each start syncing it again; (T1116) only once the phone's
+      // permission is read, and registered only while it is granted
+      const p = permission.get();
+      if (p === null || !c.platform.push) return;
+      const want = pushWanted(state, p);
+      if (want === pushed) return;
+      pushed = want;
+      c.platform.push(want).catch(reportFailure);
     };
+    const reread = () => { permission.read().catch(reportFailure); };
+    const undo = [c.settings.subscribe(sync), permission.subscribe(sync), c.platform.onResume(reread)];
     sync();
-    return controls.settings.subscribe(sync);
-  }, [controls]);
-  return createElement(NotifyContext.Provider, { value: controls }, children);
+    reread();
+    return () => { for (const f of undo) f(); };
+  }, [ctx]);
+  return createElement(NotifyContext.Provider, { value: ctx }, children);
 }
 
 export interface NotificationsVM {
@@ -100,9 +155,10 @@ export interface NotificationsVM {
 
 /** The notifications' state and actions; null where the app has none (the web, a screen mounted alone). */
 export function useNotifications(): NotificationsVM | null {
-  const c = useContext(NotifyContext);
+  const ctx = useContext(NotifyContext);
+  const c = ctx?.controls ?? null;
   const [state, setState] = useState<NotifyState | null>(() => (c ? c.settings.read() : null));
-  const [permission, setPermission] = useState<NotifyPermission | null>(null);
+  const [permission, setPermission] = useState<NotifyPermission | null>(() => ctx?.permission.get() ?? null);
   const [asking, setAsking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
@@ -117,12 +173,14 @@ export function useNotifications(): NotificationsVM | null {
     setPushStatus(src.status());
     return src.subscribe(() => setPushStatus(src.status()));
   }, [c]);
+  // (T1116) the app's one permission answer (NotifyRoot's), read again when the page opens
   useEffect(() => {
-    if (!c) return;
-    let live = true;
-    c.platform.permission().then((p) => { if (live) setPermission(p); }, reportFailure);
-    return () => { live = false; };
-  }, [c]);
+    if (!ctx) return;
+    setPermission(ctx.permission.get());
+    const undo = ctx.permission.subscribe(() => setPermission(ctx.permission.get()));
+    ctx.permission.read().catch(reportFailure);
+    return undo;
+  }, [ctx]);
 
   const write = useCallback((fn: (s: NotifyState) => NotifyState) => {
     if (!c) return;
@@ -133,18 +191,20 @@ export function useNotifications(): NotificationsVM | null {
   }, [c]);
   /** turning something on: the permission is asked now, the first time (never on open) */
   const allow = useCallback(async () => {
-    if (!c) return;
-    const p = await c.platform.permission();
-    if (p === "granted") { setPermission(p); return; }
+    if (!ctx) return;
+    const p = await ctx.permission.read();
+    if (p === "granted") return;
     setAsking(true);
-    try { setPermission(await c.platform.ask()); } catch (e) { reportFailure(e); } finally { setAsking(false); }
-  }, [c]);
+    // (T1116) the answer is the app's: "Allow" sends the push token at once (NotifyRoot), "Don't Allow" never sends it
+    try { ctx.permission.set(await ctx.controls.platform.ask()); } catch (e) { reportFailure(e); } finally { setAsking(false); }
+  }, [ctx]);
 
   if (!c || !state) return null;
   return {
     state, permission, asking, error, canAppVersion: c.appVersion === true, push: hasPush(c), pushStatus,
-    // (re-review) the send that is pending or failed, again: the register while a notification is on, else the unregister
-    retryPush: () => { c.platform.push?.(notifyActive(state)).catch(reportFailure); },
+    // (re-review) the send that is pending or failed, again: the register while a notification is on (T1116: and the
+    // phone's permission granted), else the unregister
+    retryPush: () => { c.platform.push?.(pushWanted(state, permission)).catch(reportFailure); },
     setOn: async (on) => { write(setNotifyOn(on)); if (on) await allow(); },
     setUpdateReady: async (on) => { write((s) => (on ? setNotifyOn(true)(setReady(true)(s)) : setReady(false)(s))); if (on) await allow(); },
     setAppVersion: async (on) => { write((s) => (on ? setNotifyOn(true)(setAppVersionNotice(true)(s)) : setAppVersionNotice(false)(s))); if (on) await allow(); },

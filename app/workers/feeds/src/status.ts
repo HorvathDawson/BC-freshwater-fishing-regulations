@@ -3,6 +3,7 @@
 // state change of a feed (ok → degraded / failing / stale and back), never once per run.
 import { isVersioned, readStored, type Fetch, type Meter, type Store } from "./io";
 import { body as notifyBody } from "./notify";
+import { PUSH_TOKEN_MAX_AGE_DAYS } from "./push";
 import { fmtErrors, foldHealth, summarize, type FeedHealth, type RunHealth, type SourceRun } from "./health";
 import { FORMAT as WORDING_FORMAT } from "./dfo/wording";
 import { PIECES_SHAPE } from "./dfo/closures";
@@ -278,7 +279,9 @@ function dailyHtml(d: { backup: any; purge: any; push?: any }, now: Date): strin
       // (T999) the unchanged personal records named from an earlier snapshot, not copied again
       (typeof j.reused === "number" ? `, ${j.reused} named from ${j.base ? esc(j.base) : "no earlier snapshot"}${j.deferred ? ` (${j.deferred} refresh(es) left for a later day)` : ""}` : "")) +
     row("purge", d.purge, (j) => `reports ${j.deleted} deleted / ${j.kept} kept` +
-      (j.crashes ? ` · error kinds ${j.crashes.deleted} deleted` : "") + (j.limits ? ` · counters ${j.limits.deleted} deleted` : "")) +
+      (j.crashes ? ` · error kinds ${j.crashes.deleted} deleted` : "") + (j.limits ? ` · counters ${j.limits.deleted} deleted` : "") +
+      // (T1116) push tokens not registered again for 30 days; `dated`: the migration's records with no date, dated that day
+      (j.pushTokens ? ` · push tokens ${j.pushTokens.deleted} deleted / ${j.pushTokens.kept} kept${j.pushTokens.dated ? ` / ${j.pushTokens.dated} dated` : ""}` : "")) +
     `</table></div>` + (d.push ? pushHtml(d.push, now) : "");
 }
 
@@ -304,6 +307,8 @@ function pushHtml(p: { missing: Record<string, string[]>; last: any }, now: Date
   };
   const when = typeof l?.unreadable === "string" ? `<span class="failing">unreadable: ${esc(l.unreadable)}</span>` : l ? `${esc(l.at)} <small>(${ago(l.at, now)}) · ${esc(l.reason)}</small>` +
     (l.unreadable ? ` · <b class="failing">${esc(l.unreadable)} stored token record(s) did not parse or were not an iPhone's (deleted)</b>` : "") +
+    // (T1116) tokens not registered again for 30 days: not woken, deleted (not a fault)
+    (l.stale ? ` · ${esc(l.stale)} token(s) not registered again for ${PUSH_TOKEN_MAX_AGE_DAYS} days (deleted)` : "") +
     // (review 2026-11-20, M2) a wake that threw: kept as {at, reason, ok: false, error}
     (typeof l.error === "string" ? ` · <b class="failing">not sent: ${esc(l.error)}</b>` : "") +
     (typeof l.carryError === "string" ? ` · <b class="failing">the carry-over did not read (${esc(l.carryError)}); the wake began again</b>` : "") : "never";

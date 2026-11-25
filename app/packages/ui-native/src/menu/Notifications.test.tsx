@@ -9,7 +9,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { localStamp, MENU_WORDS, NOTIFY_WORDS, setFailureSink, type Band, type DataInput, type GaugeAlertRule } from "@app/core";
 import { createNotifySettings, NOTIFY_DEFAULT, type NotifyState, type PushStatus, type WaterSource } from "@app/data";
-import { LayoutWidthContext, NotifyRoot, useNotifications, type NotifyControls, type NotifyPermission } from "@app/ui";
+import { LayoutWidthContext, NotifyRoot, pushWanted, useNotifications, type NotifyControls, type NotifyPermission } from "@app/ui";
 import { LIGHT } from "../theme";
 import { MoreScreen } from "./MoreScreen";
 import { NotificationsPage } from "./NotificationsPage";
@@ -32,13 +32,17 @@ function controls(state: Partial<NotifyState> = {}, answer: NotifyPermission = "
   let text: string | null = JSON.stringify({ ...NOTIFY_DEFAULT, ...state });
   const settings = createNotifySettings({ read: () => text, write: (t) => { text = t; } });
   let perm = now;
+  const resumes = new Set<() => void>();
   const platform = {
     permission: vi.fn(async () => perm),
     ask: vi.fn(async () => { perm = answer; return answer; }),
     openSettings: vi.fn(),
     schedule: vi.fn(async (_active: boolean) => {}),
+    onResume: vi.fn((on: () => void) => { resumes.add(on); return () => { resumes.delete(on); }; }),
   };
-  return { c: { settings, platform } satisfies NotifyControls, platform, settings };
+  /** (T1116) the reader changed the permission in the phone's settings and came back to the app */
+  const resume = (p?: NotifyPermission) => { if (p) perm = p; for (const f of [...resumes]) f(); };
+  return { c: { settings, platform } satisfies NotifyControls, platform, settings, resume };
 }
 
 /** The reading on the card's 72 h chart, "now" on Nov 9. */
@@ -224,7 +228,7 @@ describe("More → Notifications (T234, T527)", () => {
     let stored = text;
     const settings = createNotifySettings({ read: () => stored, write: (t) => { stored = t; } });
     const c: NotifyControls = { settings, platform: { permission: async () => "granted", ask: async () => "granted",
-                                                      openSettings: () => {}, schedule: async () => {} } };
+                                                      openSettings: () => {}, schedule: async () => {}, onResume: () => () => {} } };
     render(<NotifyRoot controls={c}><Page /></NotifyRoot>);
     await flush();
     expect(screen.getByTestId("notify-alert-a").textContent).toContain("Vedder Crossing · Flow crosses above 50 m³/s · not fired yet");
@@ -477,5 +481,97 @@ describe("(T822) the push registration is said on More → Notifications, never 
     render(<NotifyRoot controls={c}><Page /></NotifyRoot>);
     await flush();
     expect(screen.queryByTestId("notify-push-status")).toBeNull();
+  });
+});
+
+/**
+ * (T1116, owner 2026-11-25) THE PUSH TOKEN NEEDS THE PHONE'S PERMISSION. A silent push needs none on iPhone, so the token
+ * was registered as soon as a notification was on, "Don't Allow" or not. Now: never after "Don't Allow"; registered on
+ * "Allow"; withdrawn when the permission is found off in the phone's settings at a start or a return to the front; sent
+ * again once it is back on. The switch keeps the reader's choice and the line under it says the phone blocks it.
+ */
+describe("(T1116) the push token is sent only while the phone's permission is on", () => {
+  function withPush(state: Partial<NotifyState>, answer: NotifyPermission, now: NotifyPermission) {
+    const k = controls(state, answer, now);
+    const push = vi.fn(async (_on: boolean) => {});
+    return { ...k, c: { ...k.c, platform: { ...k.platform, push } } satisfies NotifyControls, push };
+  }
+
+  it("the rule: a notification on AND the permission granted", () => {
+    const on = { ...NOTIFY_DEFAULT, on: true, updateReady: true };
+    expect([pushWanted(on, "granted"), pushWanted(on, "denied"), pushWanted(on, "undetermined"), pushWanted(on, null),
+            pushWanted(NOTIFY_DEFAULT, "granted")]).toEqual([true, false, false, false, false]);
+  });
+
+  it("\"Don't Allow\": the switch is on, the phone's refusal is said, and no token is ever sent", async () => {
+    const { c, push, platform, settings } = withPush({}, "denied", "undetermined");
+    render(<NotifyRoot controls={c}><Page /></NotifyRoot>);
+    await flush();
+    await act(async () => { fireEvent.click(screen.getByRole("switch", { name: NOTIFY_WORDS.updateReady.label })); });
+    await flush();
+    expect(platform.ask).toHaveBeenCalledTimes(1);
+    expect(settings.read()).toMatchObject({ on: true, updateReady: true });
+    expect(screen.getByRole("switch", { name: NOTIFY_WORDS.master.label }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByTestId("notify-permission").textContent).toBe(NOTIFY_WORDS.permission.denied);
+    expect(push.mock.calls).toEqual([[false]]);                 // the start's withdrawal only: never a register
+    expect(platform.schedule.mock.calls.at(-1)).toEqual([true]); // the background check still runs (it raises nothing unallowed)
+  });
+
+  it("\"Allow\": the token is sent once the phone has answered", async () => {
+    const { c, push } = withPush({}, "granted", "undetermined");
+    render(<NotifyRoot controls={c}><Page /></NotifyRoot>);
+    await flush();
+    await act(async () => { fireEvent.click(screen.getByRole("switch", { name: NOTIFY_WORDS.updateReady.label })); });
+    await flush();
+    expect(push.mock.calls).toEqual([[false], [true]]);
+  });
+
+  it("turned off in the phone's settings: withdrawn at the return to the front, and the line says so; back on: sent again", async () => {
+    const { c, push, resume } = withPush({ on: true, updateReady: true }, "granted", "granted");
+    render(<NotifyRoot controls={c}><Page /></NotifyRoot>);
+    await flush();
+    expect(push.mock.calls).toEqual([[true]]);
+    await act(async () => { resume("denied"); });
+    await flush();
+    expect(push.mock.calls).toEqual([[true], [false]]);
+    expect(screen.getByTestId("notify-permission").textContent).toBe(NOTIFY_WORDS.permission.denied);
+    expect(screen.getByRole("switch", { name: NOTIFY_WORDS.master.label }).getAttribute("aria-checked")).toBe("true");
+    await act(async () => { resume(); });                       // back again, nothing changed: nothing sent
+    await flush();
+    expect(push.mock.calls).toHaveLength(2);
+    await act(async () => { resume("granted"); });
+    await flush();
+    expect(push.mock.calls).toEqual([[true], [false], [true]]);
+    expect(screen.getByTestId("notify-permission").textContent).toBe(NOTIFY_WORDS.permission.granted);
+  });
+
+  it("turned off while the app was closed: the next start withdraws it (no page open)", async () => {
+    const { c, push, platform } = withPush({ on: true, updateReady: true }, "denied", "denied");
+    render(<NotifyRoot controls={c}><div /></NotifyRoot>);
+    await flush();
+    expect(push.mock.calls).toEqual([[false]]);
+    expect(platform.ask).not.toHaveBeenCalled();
+  });
+
+  it("\"Try again\" while the phone blocks notifications withdraws, never registers", async () => {
+    const { c, push } = withPush({ on: true, updateReady: true }, "denied", "denied");
+    const pushStatus = { status: (): PushStatus => ({ state: "failed", at: NOW, why: "x", environment: true }), subscribe: () => () => {} };
+    render(<NotifyRoot controls={{ ...c, platform: { ...c.platform, pushStatus } }}><Page /></NotifyRoot>);
+    await flush();
+    push.mockClear();
+    fireEvent.click(screen.getByTestId("notify-push-retry"));
+    expect(push.mock.calls).toEqual([[false]]);
+  });
+
+  it("a permission that cannot be read is reported, and no token is sent on a guess", async () => {
+    const seen: unknown[] = [];
+    const undo = setFailureSink((e) => seen.push(e));
+    const { c, push, platform } = withPush({ on: true, updateReady: true }, "granted", "granted");
+    platform.permission.mockRejectedValue(new Error("permissions module gone"));
+    render(<NotifyRoot controls={c}><div /></NotifyRoot>);
+    await flush();
+    undo();
+    expect(push).not.toHaveBeenCalled();
+    expect(seen.map((e) => (e as Error).message)).toEqual(["permissions module gone"]);
   });
 });

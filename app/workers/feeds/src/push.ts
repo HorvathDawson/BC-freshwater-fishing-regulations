@@ -2,7 +2,9 @@
 // is published. The phone then runs the SAME background check it runs on its own schedule (apps/mobile notify.native.ts,
 // packages/data notify/check.ts) and raises its own local notification if one of its rules fires. WHAT THIS SERVER
 // LEARNS: a device push token, its platform and its APNs environment — never the alert rules, the watched waters or a
-// location (owner 2026-11-14). A token the push service calls dead is deleted; unregister deletes it at once.
+// location (owner 2026-11-14). A token the push service calls dead is deleted; unregister deletes it at once; (T1116) one
+// not registered again for PUSH_TOKEN_MAX_AGE_DAYS (30) is deleted by the daily sweep and never woken. The app sends a
+// token only while a notification is on and the phone's notification permission is granted (packages/ui notify.ts).
 // IPHONE ONLY (owner 2026-11-16 12:08, on Firebase for Android: "we dont want this right now"): Android registers no
 // token, `platform: "android"` is refused (400) and there is no FCM sender.
 //
@@ -92,6 +94,86 @@ export function validatePush(raw: unknown): { ok: true; platform: PushPlatform; 
 }
 
 export const tokenKey = async (token: string) => `${TOKENS_PREFIX}${(await sha256hex(token)).slice(0, 40)}.json`;
+
+/**
+ * (T1116, owner 2026-11-25) A TOKEN NOT REGISTERED AGAIN FOR THIS MANY DAYS IS DELETED (privacy page). The app registers
+ * again at a start once its last register is 7 days old (packages/data notify/push.ts PUSH_REFRESH_MS), and only while a
+ * notification is on AND the phone's permission is granted (packages/ui notify.ts `pushWanted`); so a token whose phone
+ * turned notifications off, lost the permission without opening the app, or stopped opening it is gone 30 days after its
+ * last register. Checked by the daily sweep (`purgePushTokens`, the "25 9 * * *" purge) and by every send (`sendWake`:
+ * a stale token is never woken).
+ */
+export const PUSH_TOKEN_MAX_AGE_DAYS = 30;
+const PUSH_TOKEN_MAX_AGE_MS = PUSH_TOKEN_MAX_AGE_DAYS * 86_400_000;
+
+/** (T1116) when a record was last registered (ms), or null when its `at` does not read (the sweep dates it, below) */
+export function registeredAt(rec: { at?: unknown }): number | null {
+  const t = typeof rec.at === "string" ? Date.parse(rec.at) : NaN;
+  return Number.isFinite(t) ? t : null;
+}
+
+/** (T1116) older than PUSH_TOKEN_MAX_AGE_DAYS since its last register (exactly 30 days is still kept) */
+export const tokenStale = (rec: { at?: unknown }, now: Date): boolean => {
+  const t = registeredAt(rec);
+  return t !== null && now.getTime() - t > PUSH_TOKEN_MAX_AGE_MS;
+};
+
+/** (T996, T1116) a dropped token is named by its record id (its key's first 12 hex), never by the token */
+const recordId = (key: string) => key.slice(TOKENS_PREFIX.length, TOKENS_PREFIX.length + 12);
+const staleWhy = (rec: { at?: unknown }) => `not registered again for ${PUSH_TOKEN_MAX_AGE_DAYS} days (last ${String(rec.at)})`;
+
+export interface TokenPurge {
+  ok: boolean; at: string; deleted: number; kept: number; failed: number;
+  /** (T1116 migration) records with no `at` that reads: dated now (kept; they age from this sweep) */
+  dated: number;
+  /** records that do not parse: left for the send, which counts them as a fault and deletes them (`unreadable`) */
+  unreadable: number;
+  error?: string;
+}
+
+/**
+ * (T1116) THE DAILY TOKEN SWEEP: every stored token older than PUSH_TOKEN_MAX_AGE_DAYS since its last register is
+ * deleted, each drop logged by record id (as a dead token is, T996). MIGRATION: a record with no `at` that reads (none
+ * is expected: every register since T739 writes one) is never dropped on sight: it is DATED NOW (written back with
+ * `at` = this sweep), so it ages from the first sweep after the deploy and nobody's token goes at once. A delete or a
+ * write that fails is counted and the result is not ok (the purge tells the owner).
+ */
+export async function purgePushTokens(bucket: R2BucketLike, now: Date = new Date()): Promise<TokenPurge> {
+  const at = now.toISOString();
+  const res: TokenPurge = { ok: true, at, deleted: 0, kept: 0, failed: 0, dated: 0, unreadable: 0 };
+  if (!bucket.list) return { ...res, ok: false, error: "bucket cannot list" };
+  try {
+    for (const key of await listKeys(bucket, TOKENS_PREFIX, Infinity)) {
+      const o = await bucket.get(key);
+      if (!o) continue;
+      let rec: Partial<PushRecord>;
+      try { rec = JSON.parse(await o.text()) as Partial<PushRecord>; if (!rec || typeof rec !== "object") throw new Error("not an object"); }
+      catch (e) {
+        res.unreadable++;
+        console.error(JSON.stringify({ job: "push-tokens", unreadableToken: recordId(key), error: String((e as Error)?.message ?? e) }));
+        continue;
+      }
+      try {
+        if (registeredAt(rec) === null) {
+          await bucket.put(key, JSON.stringify({ ...rec, at }), { httpMetadata: { contentType: "application/json" } });
+          res.dated++;
+          console.log(JSON.stringify({ job: "push-tokens", dated: recordId(key), at }));
+        } else if (tokenStale(rec, now)) {
+          await bucket.delete(key);
+          res.deleted++;
+          console.log(JSON.stringify({ job: "push-tokens", dropped: recordId(key), env: rec.env ?? null, why: staleWhy(rec) }));
+        } else res.kept++;
+      } catch (e) {
+        res.failed++;
+        console.error(JSON.stringify({ job: "push-tokens", record: recordId(key), error: String((e as Error)?.message ?? e) }));
+      }
+    }
+    if (res.failed) { res.ok = false; res.error = `${res.failed} push token record(s) could not be deleted or dated`; }
+  } catch (e) {
+    res.ok = false; res.error = e instanceof Error ? e.message : String(e);
+  }
+  return res;
+}
 
 /** POST /push/register and /push/unregister */
 export async function handlePush(req: Request, env: PushEnv, action: "register" | "unregister", now: Date = new Date()): Promise<Response> {
@@ -256,6 +338,9 @@ export interface PushSend {
   /** token records that were stored but did not parse, or are not an iPhone's: a fault (counted, logged, shown on
    *  /status), each deleted */
   unreadable: number;
+  /** (T1116) tokens not registered again for PUSH_TOKEN_MAX_AGE_DAYS: never woken, deleted (each logged by record id);
+   *  present only when one was */
+  stale?: number;
   /**
    * (T739 L3) a wake too big for one run (over PUSH_SENDS_PER_RUN phones) goes out in parts, one per feed run: which
    * part this was, how many registered phones are still to be told (0: the wake is done), and when the wake began.
@@ -365,6 +450,14 @@ export async function sendWake(env: PushEnv, fetch_: Fetch, now: Date, asked: st
     try {
       const rec = JSON.parse(await o.text()) as PushRecord;
       if (rec?.platform !== "ios") throw new Error(`not an iPhone's token (platform ${JSON.stringify(rec?.platform)})`);
+      // (T1116) a token not registered again for PUSH_TOKEN_MAX_AGE_DAYS is never woken: deleted here, before the
+      // daily sweep comes to it, and logged by record id as a dead one is
+      if (tokenStale(rec, now)) {
+        await env.BUCKET.delete(key);
+        out.stale = (out.stale ?? 0) + 1;
+        console.log(JSON.stringify({ job: "push", dropped: recordId(key), env: rec.env, why: staleWhy(rec) }));
+        continue;
+      }
       recs.push({ key, rec });
     } catch (e) {
       // a record we wrote that does not parse (or names a platform with no push) is a fault: counted and said; deleted
@@ -403,7 +496,7 @@ export async function sendWake(env: PushEnv, fetch_: Fetch, now: Date, asked: st
       // (T996) a token APNs calls dead is dropped, and the log says which record and why (never the token itself)
       p.dead++;
       await env.BUCKET.delete(key);
-      const id = key.slice(TOKENS_PREFIX.length, TOKENS_PREFIX.length + 12);
+      const id = recordId(key);
       console.log(JSON.stringify({ job: "push", dropped: id, env: rec.env, why: r.dead }));
       p.dropped ??= [];
       if (p.dropped.length < KEEP_ERRORS) p.dropped.push(`${id}: ${r.dead}`);
@@ -441,7 +534,7 @@ export async function sendWake(env: PushEnv, fetch_: Fetch, now: Date, asked: st
     throw Object.assign(new Error(`push: sent (${out.ios.sent} of ${out.ios.tokens}) but the status was not written (${String((e as Error)?.message ?? e)})`), { send: out });
   }
   const log = { job: "push", reason: why, ios: { ...out.ios, errors: out.ios.errors.length }, ...(out.apns ? { apns: out.apns } : {}),
-                ...(out.carry ? { carry: out.carry } : {}) };
+                ...(out.carry ? { carry: out.carry } : {}), ...(out.stale ? { stale: out.stale } : {}) };
   if (out.ok) console.log(JSON.stringify(log)); else console.error(JSON.stringify({ ...log, errors: out.ios.errors }));
   for (const p of PUSH_PLATFORMS) if (out[p].tokens && out[p].missing.length) console.error(JSON.stringify({ job: "push", platform: p, notSent: out[p].tokens, missing: out[p].missing }));
   return out;
@@ -526,7 +619,7 @@ export async function wakePhones(env: PushEnv, fetch_: Fetch, at: Date, why: str
   try {
     const r = await sendWake(env, fetch_, at, why);
     push = { reason: r.reason, ok: r.ok, unreadable: r.unreadable, ios: { sent: r.ios.sent, failed: r.ios.failed, missing: r.ios.missing },
-             ...(r.apns ? { apns: r.apns } : {}), ...(r.carry ? { carry: r.carry } : {}) };
+             ...(r.apns ? { apns: r.apns } : {}), ...(r.carry ? { carry: r.carry } : {}), ...(r.stale ? { stale: r.stale } : {}) };
     if (r.ios.failed) logErr(`push: ${r.ios.failed} wake(s) failed (${r.ios.errors.slice(0, 3).join("; ")})`);
     if (r.unreadable) logErr(`push: ${r.unreadable} stored token record(s) did not parse or were not an iPhone's; deleted (those phones register again within 7 days)`);
     if (r.carryError) logErr(`push: the carry-over did not read (${r.carryError}); deleted, the wake began again at the first phone`);
