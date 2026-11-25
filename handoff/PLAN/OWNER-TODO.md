@@ -52,6 +52,11 @@ with the default Claude uses until you answer). Newest first inside each section
 - Answered 2026-11-24 ~23:05 (in the iOS chat, relayed; T1072): "we want the android and iphone images to use the
   same set ideally. if it is possible. we should generate new images too." Written into T1072 and the store content
   chat's prompt (roadmap row S): one new set from the 0.9.x app, the same frames for both stores.
+- **Decide (you), before the App Store submission; the iOS chat will bring both up** (its read of build 45, 11-24):
+  - DSA trader status (App Store Connect → Business → Compliance): a legal statement about you; only you can make it.
+  - Content Rights, "I have the rights": the map's satellite layer is Esri World Imagery used without a key. Whether
+    that fits Esri's terms is your call before you tick the box.
+  - The privacy page has sentences the app does not match (T1098): you read the before/after list before it goes up.
 - **Do (you): the three push keys on the production feeds worker** (T996 step 1, still open: at 22:39 the production
   status page listed APNS_KEY, APNS_KEY_ID and APNS_TEAM_ID as missing, so iPhone alerts cannot be sent from
   production). From the main checkout, three commands, each asks for the value:
