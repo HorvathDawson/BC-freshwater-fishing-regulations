@@ -604,6 +604,17 @@ export function treeAt(repo, ref) {
     .split("\0").filter((p) => p && isManaged(p));
   const tree = new Map();
   if (!listed.length) return tree;
+  // A partial clone (CI: `filter: blob:none`) holds no old file contents: `cat-file --batch` would then fetch each blob
+  // in its own round trip (a thousand of them: minutes). Fetch the missing ones in ONE request first.
+  if (git(repo, ["config", "--get", "--default", "", "remote.origin.promisor"]).trim() === "true") {
+    const oids = git(repo, ["ls-tree", "-r", "-z", ref, "--", TICKETS_DIR, OWNER_DIR, OWNER_PAGE]).split("\0").filter(Boolean)
+      .map((l) => l.split("\t")).filter(([, p]) => isManaged(p)).map(([meta]) => meta.split(" ")[2]);
+    const have = git(repo, ["cat-file", "--batch-check=%(objectname) %(objecttype)", "--batch-all-objects", "--unordered"],
+      { env: { ...cleanEnv(), GIT_NO_LAZY_FETCH: "1" } }).split("\n").reduce((set, l) => { set.add(l.split(" ")[0]); return set; }, new Set());
+    const want = [...new Set(oids)].filter((o) => !have.has(o));
+    if (want.length) git(repo, ["-c", "fetch.negotiationAlgorithm=noop", "fetch", "origin", "--no-tags", "--no-write-fetch-head",
+      "--recurse-submodules=no", "--filter=blob:none", "--stdin"], { input: want.join("\n") + "\n" });
+  }
   const out = execFileSync("git", ["-C", repo, "cat-file", "--batch"], { input: listed.map((p) => `${ref}:${p}`).join("\n") + "\n", env: cleanEnv(), maxBuffer: 1 << 30 });
   let at = 0;
   for (const p of listed) {

@@ -26,6 +26,8 @@ const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const SCRIPT = fileURLToPath(new URL("./ledger.mjs", import.meta.url));
 /** The main commit the import was written against: its README.md / DONE.md / OWNER-TODO.md are the real old files. */
 const MIGRATION_BASE = "be4df3d6a";
+/** A merge needs a committer even with --no-commit; a CI runner has none configured (the made-up repositories below). */
+const WHO = ["-c", "user.email=t@t", "-c", "user.name=t", "-c", "commit.gpgsign=false", "-c", "core.hooksPath=/dev/null"];
 const T = "handoff/PLAN/app-integration/tickets";
 const cleanEnv = () => Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith("GIT_")));
 
@@ -361,7 +363,7 @@ describe("--resolve through git, both ways (a made-up repository)", () => {
   };
   it("the new-style branch merges an old-style one (a newer main, before this lands)", () => {
     const { dir, git } = repo();
-    spawnSync("git", ["merge", "--no-ff", "--no-commit", "old"], { cwd: dir, env: cleanEnv() });
+    spawnSync("git", [...WHO, "merge", "--no-ff", "--no-commit", "old"], { cwd: dir, env: cleanEnv() });
     const r = resolve(dir);
     expect([r.status, r.stderr]).toEqual([0, ""]);
     expect(r.stdout).toMatch(/carried from the old-style side \(the branch being merged in\): 2 ticket files, 2 rows, 3 owner items, 1 README text; 2 removed/);
@@ -373,7 +375,7 @@ describe("--resolve through git, both ways (a made-up repository)", () => {
   it("an old-style branch merges the new-style main (release/0.9.0, any open PR)", () => {
     const { dir, git } = repo();
     git("checkout", "-q", "old");
-    spawnSync("git", ["merge", "--no-ff", "--no-commit", "main"], { cwd: dir, env: cleanEnv() });
+    spawnSync("git", [...WHO, "merge", "--no-ff", "--no-commit", "main"], { cwd: dir, env: cleanEnv() });
     const r = resolve(dir);
     expect([r.status, r.stderr]).toEqual([0, ""]);
     expect(r.stdout).toMatch(/carried from the old-style side \(this branch\)/);
@@ -385,7 +387,7 @@ describe("--resolve through git, both ways (a made-up repository)", () => {
     const p = `${T}/T1-x.md`;
     writeFileSync(join(dir, p), setRow(readFileSync(join(dir, p), "utf8"), row("T1", "IN PROGRESS — main's lane")));
     git("commit", "-q", "-am", "main moves T1");
-    spawnSync("git", ["merge", "--no-ff", "--no-commit", "old"], { cwd: dir, env: cleanEnv() });
+    spawnSync("git", [...WHO, "merge", "--no-ff", "--no-commit", "old"], { cwd: dir, env: cleanEnv() });
     const r = resolve(dir);
     expect(r.status).toBe(1);
     expect(r.stderr).toContain(`${p}: both sides changed it`);
@@ -399,7 +401,7 @@ describe("--resolve through git, both ways (a made-up repository)", () => {
     git("checkout", "-q", "old");
     writeFileSync(join(dir, OWNER_PAGE), readFileSync(join(dir, OWNER_PAGE), "utf8").replace("text\n", "text, edited on the release\n"));
     git("commit", "-q", "-am", "the release edits the item");
-    spawnSync("git", ["merge", "--no-ff", "--no-commit", "main2"], { cwd: dir, env: cleanEnv() });
+    spawnSync("git", [...WHO, "merge", "--no-ff", "--no-commit", "main2"], { cwd: dir, env: cleanEnv() });
     const r = resolve(dir);
     expect(r.status).toBe(1);
     expect(r.stderr).toMatch(/edited on the old-style side and removed on the new-style side/);
@@ -417,7 +419,7 @@ describe("--resolve through git, both ways (a made-up repository)", () => {
     const idOf = (n: string) => n.split("-")[0]!;
     add("a", "T50-from-a.md"); add("b", "T50-from-b.md"); add("c", "T51-from-c.md");
     git("checkout", "-q", "main"); git("merge", "-q", "--no-ff", "a", "-m", "merge a");
-    const b = spawnSync("git", ["merge", "--no-ff", "b", "-m", "merge b"], { cwd: dir, env: cleanEnv(), encoding: "utf8" });
+    const b = spawnSync("git", [...WHO, "merge", "--no-ff", "b", "-m", "merge b"], { cwd: dir, env: cleanEnv(), encoding: "utf8" });
     expect([b.status, b.stdout]).toEqual([1, expect.stringMatching(/CONFLICT \(add\/add\): Merge conflict in handoff\/PLAN\/app-integration\/tickets\/ids\/T50/)]);
     git("merge", "--abort");
     git("merge", "-q", "--no-ff", "c", "-m", "merge c");                                   // another number: clean
