@@ -1,0 +1,38 @@
+"""T1053 point 3: every LAKE polygon (graph NodeKind.lake) a walked tributary rule binds (scope trib), live and after."""
+import json, sys
+from collections import Counter, defaultdict
+from pathlib import Path
+from pipeline.atlas.reach.io import iter_rule_sections
+from pipeline.atlas.registry import load_registry
+from pipeline.common.io.serialize import read_artifact
+from pipeline.common.models import NodeKind
+from pipeline.atlas.reach.water_kind import kind_of
+atlas, out = Path(sys.argv[1]), Path(sys.argv[2])
+runs = sys.argv[3:]
+reg = load_registry(str(atlas / "registry.json"))
+g = read_artifact(str(atlas / "graph.pkl"))
+item_of = {}
+for iid, it in sorted(reg.items()):
+    if iid.startswith("area:"):
+        continue
+    for s in it.section_ids:
+        item_of.setdefault(s, (iid, it.name, it.kind))
+res = {}
+for run in runs:
+    hits = defaultdict(set)
+    for e, r, s, scope in iter_rule_sections(Path(run) / "rule_section.jsonl.gz"):
+        if scope != "trib":
+            continue
+        n = g.nodes.get(s)
+        if n is not None and n.kind == NodeKind.lake:
+            hits[s].add(f"{e}::{r}")
+    rows = []
+    for s, rules in sorted(hits.items()):
+        iid, name, kind = item_of.get(s, (None, None, None))
+        rows.append({"section": s, "item": iid, "item_name": name, "item_kind": str(kind),
+                     "water_kind": kind_of(g, reg, s), "area_ha": getattr(g.nodes[s], "area_ha", None),
+                     "rules": len(rules), "sample_rule": sorted(rules)[0]})
+    res[run] = {"lake_polygons": len(rows), "by_item_kind": Counter(r["item_kind"] for r in rows),
+                "by_water_kind": Counter(r["water_kind"] for r in rows), "rows": rows}
+    print(run, len(rows), res[run]["by_item_kind"], res[run]["by_water_kind"], flush=True)
+json.dump(res, open(out, "w"), indent=1, default=str)

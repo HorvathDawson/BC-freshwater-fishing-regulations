@@ -1,10 +1,61 @@
-# T1053 — what changes if a river's tributary rule climbs through its head lake (before / after)
+# T1053 — rebuilt list: every head lake climbed, a stream's own row wins (read again before it ships)
 
-For the owner, BEFORE anything ships. Built on branch `feat/T1053-walk-climbs-head-lakes`; a side reach run against the live atlas, compared with the same code with the change switched off (identical to the live release's run: 0 other differences). Nothing here is released.
+Built on branch `feat/T1053-walk-climbs-head-lakes` (side runs on the live atlas; nothing released). Built from your
+answers of 2026-11-24: "All 22, but a stream's own row wins"; "make sure upstream includes tributarties still overrides
+lower includes tributtaries that it conflicts with"; "keep earlier rule of closure always winning unless it is exempt)
+this does not include no fishiong all year rulings tho those will yield in that case. only the dated closures."; and
+"tributary rules dont apply to the lake either only streams".
 
-**In short:** 22 head lakes now pass their river's rules up to the streams above them: 15,894 stream pieces, about 19,527 km. 42 rules change, every change is a GAIN above one of these lakes; nothing is lost anywhere, no other rule, licence or DFO place moves. The lakes themselves are never covered by the river's rules (they keep their own row's rules, or the zone's). Map: `eagle-dick-lake-before-after.png`.
+**In short.**
+- The walk is unchanged from the first list: 22 head lakes pass their river's rules up to the streams above them
+  (15,894 stream pieces, about 19,500 km; 42 rules, all gains, nothing lost, no DFO place or licence moved).
+- **Own row kept** (new): where a river's ALL-YEAR "No Fishing" reaches a stream that has a row of its own, or a nearer
+  ✱ row, it gives way. Above the head lakes this changes ONE stream: **Frosst Creek answers exactly as today** (its own
+  "No Fishing Oct 15-Apr 15", open Apr 16-30 and Jul 1-Oct 14), not Sweltzer River's all-year closure.
+- DATED closures still close, even a stream with its own row, unless it is exempt (unchanged: the Granby River stays
+  closed Jul 25-Sept 15 under the Kettle's tributaries). A stream with no row still closes with its river: Dick Creek
+  closes with Eagle Creek.
+- **Outside any head lake the same rule changes ONE more stream: Dove Creek above Anderson Lake** reopens (catch and
+  release) except Jul 15-Aug 31: the Tsolum River's all-year ✱ "No Fishing" gives way to Anderson Lake's ✱ "Trout and
+  kokanee catch and release", the nearer row. Everywhere else the rule only changes WHICH closure is named (both closed).
+- Lakes: no lake that is a water of its own is covered by any tributary rule. Only ponds the process lists as a piece of
+  a stream (oxbows, slough lakes, widenings) follow that stream: 3,657 such polygons today, 3,668 with this change.
 
-**Please read the big ones first:** Babine, Slocan, Morice, Cowichan, Trout (Lardeau) and Meziadin lakes. Where the river's rule is a CLOSURE, every stream above the lake now closes with it, even where that stream or the lake has its own row (an inherited closure still closes, RULINGS T4/T14): **Sweltzer River's "No Fishing" now closes every stream feeding Cultus Lake all year, Frosst Creek included (its own row opened it Apr 16-30 and Jul 1-Oct 14)**, Cowichan River's "No Fishing July 15-Aug 31" reaches every Cowichan Lake stream, and Slocan River's July 15-Aug 31 afternoon closure and trout/char release reach every stream above Slocan Lake. **Opening direction:** the Lardeau River's printed EXEMPTIONS (spring closure, winter trout/char release) climb through Trout Lake too, so Trout Lake's streams take those lifts (RULINGS T13/T15), like the T468 Little Slocan case. **Meziadin:** RULINGS/AGENTS prose (RU-14) says the Meziadin's own row stops at Meziadin Lake; with this answer its bait ban now covers the ~1,100 streams feeding the lake.
+## Own row kept (the climbed rule gives way)
+
+| Stream | Above | The climbed rule that gives way | Its own row that answers | Answer |
+|---|---|---|---|---|
+| Frosst Creek (own row) | Cultus Lake | Sweltzer River ✱ "No Fishing" (all year) | "No Fishing Oct 15-Apr 15" | as today: closed Oct 15-Apr 15 and May 1-Jun 30 (Region 2 streams), open Apr 16-30 and Jul 1-Oct 14 |
+
+Every other stream above a climbed head lake that has a row of its own keeps BOTH: its own rules speak where the two
+say the same kind of thing (quota, release, bait, gear), and a climbed DATED closure still closes it (none of the 22
+lakes' climbed closures is dated except the Cowichan's and the Slocan's summer closures, which close as printed).
+
+## The same rule outside any climb (for the record)
+
+Only **Dove Creek above Anderson Lake** changes what an angler may do (above). In 122 more stream parts an all-year
+closure gives way to ANOTHER all-year "No Fishing" of a nearer row: the stream stays closed and the nearer row is the
+one named.
+
+| The farther row's all-year closure | yields to (nearer / own row) | how | waters (same answer, closed either way) |
+|---|---|---|---|
+| `r2:brunette_river@2-8::brunette_river.r1` No Fishing upstream of Burnaby Lake or from Caribo | `r2:burnaby_lake_s_tributaries@2-8::burnaby_lake_s_tributaries.r1` No Fishing | nearer_row | 95: Angelo Creek, Ardley Creek, Beaver Trib.1, Beaver Trib.1-1, Beaver Trib.2, Beaver Trib.2-1, Beaver Trib.3, Beaver Trib.4 … |
+| `r2:brunette_river_s_tributaries@2-8::brunette_river_s_tributaries.r1` No Fishing | `r2:burnaby_lake_s_tributaries@2-8::burnaby_lake_s_tributaries.r1` No Fishing | nearer_row | 95: Angelo Creek, Ardley Creek, Beaver Trib.1, Beaver Trib.1-1, Beaver Trib.2, Beaver Trib.2-1, Beaver Trib.3, Beaver Trib.4 … |
+| `r2:burnaby_lake_s_tributaries@2-8::burnaby_lake_s_tributaries.r1` No Fishing | `r2:still_creek@2-8::still_creek.r1` No Fishing | nearer_row | 33: Ardley Creek, Beecher Trib.1, Beecher Trib.2, Beecher Trib.3, Beecher Trib.4, Black Bear Creek, Bog Creek, Chub Creek … |
+| `r1:puntledge_river@1-6::puntledge_river.r5` No Fishing tributaries | `r1:cruickshank_river@1-6::cruickshank_river.r1` No Fishing | nearer_row | 7: Capes Creek, Comox Creek, Datsio Creek, Eric Creek, Idiens Creek, Kweishun Creek, Rees Creek |
+| `r5:dean_river@5-9::dean_river.r2` No Fishing from Iltasyuko River to Crag Creek | `r5:takia_river@5-10::takia_river.r1` No Fishing | nearer_row | 5: Compass Creek, Kohasganko Creek, Tahyesco River, Taiataeszi Creek, Tzeetsaytsul Creek |
+| `r2:squamish_river_s_tributaries@2-6::squamish_river_tributaries.r1` No Fishing tributaries EXCEPT: Ashlu Creek, Cheaka | `r2:mashiter_creek@2-7::mashiter_creek.r1` No Fishing | own_row | 1: Mashiter Creek |
+| `r2:burnaby_lake_s_tributaries@2-8::burnaby_lake_s_tributaries.r1` No Fishing | `r2:still_creek@2-8::still_creek.r1` No Fishing | own_row | 1: Still Creek |
+| `r1:harris_creek@1-3::harris_creek.r2` No Fishing upstream of and including Hemmingsen Cr | `r1:hemmingsen_creek@1-3::hemmingsen_creek.r1` No Fishing | own_row | 1: Hemmingsen Creek |
+| `r2:mosquito_creek@2-8::mosquito_creek.r1` No Fishing | `r2:wagg_creek@2-8::wagg_creek.r1` No Fishing | own_row | 1: Wagg Creek |
+| `r5:dean_river@5-9::dean_river.r2` No Fishing from Iltasyuko River to Crag Creek | `r5:takia_river@5-10::takia_river.r1` No Fishing | own_row | 1: Takia River |
+| `r1:puntledge_river@1-6::puntledge_river.r5` No Fishing tributaries | `r1:cruickshank_river@1-6::cruickshank_river.r1` No Fishing | own_row | 1: Cruickshank River |
+| `r2:squamish_river_s_tributaries@2-6::squamish_river_tributaries.r1` No Fishing tributaries EXCEPT: Ashlu Creek, Cheaka | `r2:cheekye_river@2-7::cheekye_river.r1` No Fishing (including Brohm Creek) | own_row | 1: Cheekye River |
+| `r2:squamish_river_s_tributaries@2-6::squamish_river_tributaries.r1` No Fishing tributaries EXCEPT: Ashlu Creek, Cheaka | `r2:cheekye_river@2-7::cheekye_river.r1` No Fishing (including Brohm Creek) | nearer_row | 1: Brohm River |
+| `r2:squamish_river_s_tributaries@2-6::squamish_river_tributaries.r1` No Fishing tributaries EXCEPT: Ashlu Creek, Cheaka | `r2:shovelnose_creek@2-6::shovelnose_creek.r1` No Fishing | own_row | 1: Shovelnose Creek |
+| `r1:puntledge_river@1-6::puntledge_river.r5` No Fishing tributaries | `r1:browns_river@1-6::browns_river.r1` No Fishing | own_row | 1: Browns River |
+| `r6:hays_creek_in_prince_rupert@6-14::hays_creek.r1` No Fishing upstream of fishing boundary signs down | `r6:oldfield_creek@6-14::oldfield_creek.r1` No Fishing | own_row | 1: Oldfield Creek |
+
 
 ## The lakes that change
 
@@ -36,8 +87,14 @@ For the owner, BEFORE anything ships. Built on branch `feat/T1053-walk-climbs-he
 Named counts are by water name (one creek can be several pieces). Unnamed = FWA streams with no name. Sums count a stream once per lake.
 
 ## Also moves (a knock-on, above Babine Lake)
-
 One stream piece above Babine Lake (`360565541:1251`, already in the Skeena River's tributary walk) becomes book-known steelhead water, because the Babine River's bait ban (a steelhead row's rule) now binds it: the B.C.-wide steelhead rules `zp:steelhead` r1b/r2b/r4b and the steelhead licence record `steelhead_targeting_known` gain that one piece.
+
+## Lake polygons
+
+3,657 FWA lake polygons are covered by walked tributary rules today and 3,668 with this change (+11, e.g. three ponds on
+Dick Creek). Every one is listed by the existing process as a piece of a stream (an unnamed widening on the creek's
+line, an oxbow, a slough lake: Bowman Slough). No lake that is a water of its own — named, or held by any registry water
+— is covered by any tributary rule; head lakes and lakes in the middle of a river are walked through, never covered.
 
 ## The head lakes from the question that do NOT change, and why
 
@@ -51,7 +108,7 @@ One stream piece above Babine Lake (`360565541:1251`, already in the Skeena Rive
 | unnamed lakes on the Gitnadoix, Skeena (2), Swift, Granby, Squamish, Flathead | — | climbed; the streams above were already the rule's |
 | unnamed lake on the Morice; St. Mary | — | the river itself goes on above it (not a head lake) |
 
-## What an angler reads (before = live release, after = this branch)
+## What an angler reads (before = live release, after = this branch: the climb AND the own-row rule)
 
 
 ### Dick Creek (`gnis:23637`)
@@ -77,7 +134,7 @@ Part 1: Does not include Sumas River · From the mouth up to the B.C. border
 
 | | before (live release) | after (this branch) |
 |---|---|---|
-| the year | Jan 1–Apr 15: closed (No fishing, Oct 15–Apr 15)<br>Apr 16–Apr 30: own<br>May 1–Jun 30: closed (No fishing, May 1–Jun 30)<br>Jul 1–Oct 14: own<br>Oct 15–Dec 31: closed (No fishing, Oct 15–Apr 15) | Jan 1–Apr 15: closed (No fishing, Oct 15–Apr 15; No fishing)<br>Apr 16–Apr 30: closed (No fishing)<br>May 1–Jun 30: closed (No fishing, May 1–Jun 30; No fishing)<br>Jul 1–Oct 14: closed (No fishing)<br>Oct 15–Dec 31: closed (No fishing, Oct 15–Apr 15; No fishing) |
+| the year | Jan 1–Apr 15: closed (No fishing, Oct 15–Apr 15)<br>Apr 16–Apr 30: own<br>May 1–Jun 30: closed (No fishing, May 1–Jun 30)<br>Jul 1–Oct 14: own<br>Oct 15–Dec 31: closed (No fishing, Oct 15–Apr 15) | Jan 1–Apr 15: closed (No fishing, Oct 15–Apr 15)<br>Apr 16–Apr 30: own<br>May 1–Jun 30: closed (No fishing, May 1–Jun 30)<br>Jul 1–Oct 14: own<br>Oct 15–Dec 31: closed (No fishing, Oct 15–Apr 15) |
 | NEW rule (trib) | — | **No fishing** — This water’s own row in the 2025–2027 BC Freshwater Fishing Regulations Synopsis: Sweltzer River. Covers Sweltzer River and its tributary streams (✱, p.4). / Inherited from Sweltzer River: its row covers its tributaries. |
 
 Part 2: None
@@ -85,6 +142,21 @@ Part 2: None
 | | before (live release) | after (this branch) |
 |---|---|---|
 | the year | — | — |
+
+
+### Dove Creek (`gnis:21542`)
+
+Part 1: From the mouth up to the Anderson Lake outlet
+
+| | before (live release) | after (this branch) |
+|---|---|---|
+| the year | Jan 1–Jul 14: closed (No fishing)<br>Jul 15–Aug 31: closed (No fishing; No fishing in streams, Jul 15–Aug 31)<br>Sep 1–Dec 31: closed (No fishing) | Jan 1–Jul 14: closed (No fishing)<br>Jul 15–Aug 31: closed (No fishing; No fishing in streams, Jul 15–Aug 31)<br>Sep 1–Dec 31: closed (No fishing) |
+
+Part 2: From Anderson Lake up to the top of the river
+
+| | before (live release) | after (this branch) |
+|---|---|---|
+| the year | Jan 1–Jul 14: closed (No fishing)<br>Jul 15–Aug 31: closed (No fishing; No fishing in streams, Jul 15–Aug 31)<br>Sep 1–Dec 31: closed (No fishing) | Jan 1–Jul 14: own<br>Jul 15–Aug 31: closed (No fishing in streams, Jul 15–Aug 31)<br>Sep 1–Dec 31: own |
 
 
 ### Robertson River (`gnis:6402`)
@@ -134,4 +206,5 @@ Part 3: Two stretches: from the mouth up to the downstream end of the stretch op
 
 
 
-"base" = only the zone's rules; "own" = the water's own rules decide; "closed" = no fishing. Day runs are the answer file's own segments.
+"base" = only the zone's rules; "own" = the water's own rules decide; "closed" = no fishing. A rule listed NEW on Frosst
+Creek is on its Sources page but gives way (its answer is unchanged).

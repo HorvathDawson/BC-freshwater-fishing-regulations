@@ -1,6 +1,6 @@
 # T1053 — Eagle Creek "including tributaries": the walk stops at its head lake (Dick Lake), and Sources never says "tributaries"
 
-Status: PARTIAL — owner: OWNER-TODO "T1053 walk through a head lake" (read the before/after list, pick the Sources words). Lane L21, 2026-11-24: both parts built on `feat/T1053-walk-climbs-head-lakes` (21f13ae62 walk, 61829dbbf words); waits for the owner to read the before/after list (`T1053-shots/head-lakes-before-after.md`) and pick the Sources words before the 0.9.1 data release. Nothing released.
+Status: PARTIAL — owner: OWNER-TODO "T1053 walk through a head lake" (read the rebuilt before/after list `T1053-shots/head-lakes-before-after.md`; the Sources words are approved). Lane L21, 2026-11-24: built on `feat/T1053-walk-climbs-head-lakes` (walk 21f13ae62, words 61829dbbf, own-row yield ab9cfb59b); nothing released.
 
 Source: in-app report `3eaf5ac25fc39d73` (staging feeds worker, the owner, 2026-11-24 18:45 UTC), reason "rule", on
 Eagle Creek `gnis:9405`, part 0, "Today, Nov 24", Regulations view, web, app 0.9.0 (build 43, 127bf43), release
@@ -225,3 +225,18 @@ by a tributary rule. Measured (`lakecheck.py`): 3,657 walked lake polygons live,
 items. Pinned: `test_t1053_head_lakes.py::test_a_walk_covers_a_pond_only_where_the_registry_lists_it_as_a_piece_of_the_stream`
 (mutation: the registry ignored, or `STREAMS_ONLY` off, both red). **He has in effect answered Q124 (T153's open owner
 question) with "using the process we already have": the planning chat can close it.**
+
+## Rebuilt list (lane L21, 2026-11-24 ~22:45 MST): the climb + "own row wins" (all-year closures only)
+
+`T1053-shots/head-lakes-before-after.md`, rebuilt for the owner to read again. Runs: the same reach runs (the walk did
+not change); answers built on the climbed bundle with `ALL_YEAR_INHERITED_CLOSURE_YIELDS` off and on.
+- **Own row kept above the head lakes: Frosst Creek only** — Sweltzer's all-year "No Fishing" gives way to its own
+  "No Fishing Oct 15-Apr 15"; it answers exactly as the live release. Dick Creek (no row) still closes with Eagle Creek.
+- **The rule alone, on the live binding** (no climb): `retention` and `any` give the SAME result — 123 stream parts on
+  118 waters change, of which ONE changes status: **Dove Creek above Anderson Lake** reopens for catch and release
+  (Tsolum River's all-year ✱ "No Fishing" gives way to Anderson Lake's ✱ "Trout and kokanee catch and release"); the
+  other 122 only name a different all-year closure (Burnaby Lake's tributaries over the Brunette's, Still Creek over
+  Burnaby Lake's tributaries, Cruickshank over Puntledge …). So the "which row counts" question changes nothing today.
+- A first run read a zone line ranked as a water (`z6:skeena_nass_winter_closure`) as a stream's own row and reopened
+  56 Bulkley/Sustut tributaries; fixed (an own row must be an `r<region>:` water row), rerun, gone.
+- Lakes: 3,657 polygons live / 3,668 after, all listed by the process as pieces of streams; no lake water covered.
