@@ -47,11 +47,51 @@ with the default Claude uses until you answer). Newest first inside each section
 - **Do (you), small, only after PR #155 (T1058) has merged: remove your machine-wide Gradle workaround.** Open
   `~/.gradle/gradle.properties` and delete the Metaspace line you added for the hang (it sets the same value the repo
   now sets and overrides it; `build-apk.sh` prints a note while it is still there). Nothing breaks if you leave it.
-- **Do (you): send iPhone 0.9.0 (45) to the external TestFlight testers** (you chose "Submit it" 2026-11-24 22:35;
-  no Claude session may run it). From the main checkout, one command:
-  `node deploy/staging/testflight-distribute.mjs --version 0.9.0 --build 45`
-  It submits the build to group "testers ext" for Beta App Review (the dry run says READY_FOR_BETA_SUBMISSION). Tell
-  the planning chat when it is sent; Apple's review usually takes a day.
+- Done 2026-11-24 (seen 23:10 by the iOS chat's reports read): iPhone 0.9.0 (45) is with Apple for the external
+  testers, state WAITING_FOR_BETA_REVIEW. Nothing to do until Apple answers (usually a day).
+- Answered 2026-11-24 ~23:05 (in the iOS chat, relayed; T1072): "we want the android and iphone images to use the
+  same set ideally. if it is possible. we should generate new images too." Written into T1072 and the store content
+  chat's prompt (roadmap row S): one new set from the 0.9.x app, the same frames for both stores.
+- Answered 2026-11-24 ~23:25 (multiple choice in the iOS chat, relayed; recorded in T1071): App Privacy "Linked to
+  you": "Strict: linked" (no code change; T1098 and T1099 follow it). Countries: "All 175 countries" (so the trader
+  status below shows on EU store pages). Build for review: "Newest by then" (0.9.1's iPhone build if it is uploaded
+  and push is proven on it when the pictures are ready, else 0.9.0 (45)). Push proof: "Soon, on build 45": your
+  three push-key commands (the Do row below), then the phone steps with the iOS chat.
+- Answered 2026-11-24 23:55 (multiple choice, planning chat): who builds and uploads the 0.9.1 iPhone build (nobody
+  was assigned; your "Newest by then" pick needs it): "0.9.1 chat". It builds it right after its Play Closed build;
+  the privacy page, privacy manifest and iPhone build-number fixes (T1098, T1099, T1101) are its lane too.
+- Asked 2026-11-25 ~01:10: "the spot page needs rework still it still feels very clunky and I think we should have
+  a full fresh look redesign maybe in 0.9.2" → T1115, pictures first; you will be asked what feels clunky, then pick
+  a direction. And "we shouldnt allow notifications without new data notifications" → written into T1110 (my
+  reading: no other notice can be on while new-data notices are off; confirmed with you when its words are shown).
+- Asked 2026-11-25 ~00:50–00:55, three tickets, all proposed for 0.9.2 (say if any should be sooner): the first
+  download asks before using mobile data and again if Wi-Fi drops (T1109; "this was feedback from one user"); the
+  app asks on first load to turn on new-data notifications (T1110); the More page refreshes by pulling down (T1111).
+  You pick the words of the two questions from pictures.
+- Asked 2026-11-25 ~00:40: "free offline maps for corridors we could integrate mapbox mobile sdk with no navigation
+  and it will be free until 25k users ... we could implement that in 0.10 ?" Ticket T1108, research first, with the
+  corridors chat (roadmap 4c). You pick after the comparison page.
+- Asked 2026-11-25 ~00:20: "in 0.9.1 we should make this page (https://canifishthis.ca/gauges) have a search
+  option ... search by place or river etc to get gauge only"; "someone found the page by search so we want it
+  usable". Ticket T1107, sent to the 0.9.1 chat; you get a picture of the page with results before it ships.
+- **Read (you): the head-lake walk, draft PR #166 (T1053)**, sent to you by the 0.9.1 chat ~23:55. The list:
+  the file head-lakes-before-after.md in that PR's T1053-shots folder (22 head lakes, 42
+  rules gain water, none lose). One decision inside it: Dove Creek above Anderson Lake reopens for catch and
+  release (the Tsolum River's all-year tributary closure gives way to Anderson Lake's nearer tributary row); the
+  0.9.1 chat is asking you. Your ponds answer (Q124) is built as a test in it; that line closes when #166 merges.
+  Two things it does not do are tickets now: Technical detail naming the rule that gave way (T1105), and whether
+  DFO places and licensing should climb head lakes too (T1106: a list first, then your ruling).
+- **Decide (you), before the App Store submission; the iOS chat will bring both up** (its read of build 45, 11-24):
+  - DSA trader status (App Store Connect → Business → Compliance): a legal statement about you; only you can make it.
+  - Content Rights, "I have the rights": the map's satellite layer is Esri World Imagery used without a key. Whether
+    that fits Esri's terms is your call before you tick the box.
+  - The privacy page has sentences the app does not match (T1098): you read the before/after list before it goes up.
+- **Do (you): the three push keys on the production feeds worker** (T996 step 1, still open: at 22:39 the production
+  status page listed APNS_KEY, APNS_KEY_ID and APNS_TEAM_ID as missing, so iPhone alerts cannot be sent from
+  production). From the main checkout, three commands, each asks for the value:
+  `npx --prefix app wrangler secret put APNS_KEY -c app/workers/feeds/wrangler.prod.toml`, then the same with
+  `APNS_KEY_ID`, then `APNS_TEAM_ID`. Then the phone test in T996. The iOS chat (row 5i) needs this proven before
+  the build that goes to App Review; it will ask you about it.
 - Reported 2026-11-24 22:55 (0.9.1 chat): a network outage stopped its lanes 16:15–22:15, all restarted, nothing
   lost. T1087 (the Brunette closure on the whole river) was read against the printed row: right, nothing to change.
 - **Do (you): Play Production staged rollout of 0.9.0 (build 44), once Google grants production access** (T1046,
@@ -64,7 +104,8 @@ with the default Claude uses until you answer). Newest first inside each section
 - **Do (you): App Store submission of 0.9.0** (T1071), build 0.9.0 (45), uploaded to App Store Connect 2026-11-24
   ~15:30 from release/0.9.0 65f84020c (TestFlight shows it after Apple's processing). Before you click, T1071's checklist has
   to exist (App Privacy, export compliance, age rating, content rights, review notes): it is not written yet, so this
-  row waits on the iOS release chat. Then, in App Store Connect: Apps → Can I Fish This? → Distribution → the "+" by
+  row waits on the iOS release chat, AND on the new picture set (T1072, store content chat S): you chose "Wait for the
+  new set" 2026-11-24 23:06. **Start chat S now** (prompt: roadmap row S). Then, in App Store Connect: Apps → Can I Fish This? → Distribution → the "+" by
   iOS App → version 0.9.0 → Build → pick the build → paste the listing text and pictures (T1072) → App Privacy and
   the other answers → Version Release: "Manually release" and Phased Release on → Add for Review → Submit.
 - Answered 2026-11-24: the owner to-do goes markdown only, no artifact (T1080); and a ticket to audit and lean out
