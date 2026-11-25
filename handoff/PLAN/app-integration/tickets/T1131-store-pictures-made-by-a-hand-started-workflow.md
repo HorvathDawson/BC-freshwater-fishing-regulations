@@ -1,15 +1,19 @@
 # T1131 — The store pictures are made by a GitHub workflow started by hand
 
-Status: OPEN — 0.10.1 (tooling), after the repo move; step 1 is a proof on a Linux runner
+Status: OPEN — with the repo move (chat 3), after the transfer; step 1 is a proof on a Linux runner
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1131 | The store pictures are made by a GitHub workflow started by hand | OPEN — 0.10.1 (tooling), after the repo move; step 1 is a proof on a Linux runner | | owner 2026-11-25: "yes" (store chat) |
+| T1131 | The store pictures are made by a GitHub workflow started by hand | OPEN — with the repo move (chat 3), after the transfer; step 1 is a proof on a Linux runner | | owner 2026-11-25: "yes", and "can be part of new repo transfer" |
 
 Source: owner 2026-11-25 in the store content chat (relayed): he asked "should picture generation be a gha?", the
 store chat recommended it, he answered "yes". Not started. Related: T1072 (the picture set), T1076 (`site.mjs`
 builds the store-shots export), T1127 (the push list), T1128 (ends with a play-phone frame 3 reshoot, which this
 workflow could do), T1113 (the salmon scene tied to live notices), `no-github-schedules`.
+
+Owner, same day, relayed by the store chat: "can be part of new repo transfer". So the repo-move chat (roadmap row
+3) builds it after the cutover, as a step after T1120, written for the new address (canifishthis/canifishthis) and
+its standard runners; not its own release item.
 
 ## What
 A `workflow_dispatch` workflow, never on a schedule and never on PRs: it builds the store-shots web export
