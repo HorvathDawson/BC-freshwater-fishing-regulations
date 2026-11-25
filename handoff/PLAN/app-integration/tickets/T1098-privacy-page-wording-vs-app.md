@@ -1,6 +1,6 @@
 # T1098 — The privacy page says things the app does not do (Apple reads the policy at App Review)
 
-Status: IN PROGRESS (DRAFT PR, words only: a to f done, g built as a marked proposal; the owner reads `handoff/PLAN/app-integration/T1098-shots/privacy-before-after.md` and picks g; the production deploy is his). left (Claude): the 0.9.1 chat sends the owner the list, applies his pick on g, then the site deploy.
+Status: IN PROGRESS (DRAFT PR #179, words only: a to f done; g decided by the owner 2026-11-25, typed verbatim: "that behaviour change can move to 0.9.1", so option 2 (permission-gated token, unregister on revoke, about 30-day age limit) is its own ticket built by another lane and the page says it with a placeholder day count). MUST NOT GO LIVE BEFORE THAT BEHAVIOUR CHANGE DOES. left (Claude): fix the day count and merge when the behaviour ticket lands; then the site deploy.
 
 Source: iOS release chat 2026-11-24 ~23:40, its read of build 0.9.0 (45) at 65f84020c for T1071 (App Privacy and review risk). The page is built by `app/tools/seo/html.ts` (lines 219–305). None of it blocks review on
 its own, but the policy URL is part of the submission, so it should be true before the owner submits.

@@ -144,7 +144,7 @@ describe("T193 + T269 water pages (the app's own pane) and About", () => {
       + "for new data and, when a new data release is out and your download setting allows it, to start downloading it; the signal carries no words, no waters and no location. I do not receive your alerts, the waters you "
       + "watch or where you are. I do not store your IP address with it: to limit abuse I keep only a salted one-way hash of it "
       + "for a day’s counting. The token is deleted when you turn notifications off, or when Apple tells me it no longer works. "
-      + "The app sends the token when notifications are switched on inside the app, even if you tapped Don’t Allow on the phone’s own prompt (then nothing is shown to you, but the silent signal still reaches the app). A token has no age limit: I keep it until you switch notifications off or Apple tells me it no longer works. "
+      + "The app sends the token only while the phone’s own notification permission is on, and removes it if you turn that permission off. A token the app has not renewed for 30 days is deleted. "
       + "It is not linked to you or to an account and is not backed up.");
     expect(text(pv.html)).toContain("The app sends me three things: a problem report, only when you press Send; unless you switch "
       + "it off, a short error report when the app itself fails; and, on an iPhone with notifications on, a push token so I can "

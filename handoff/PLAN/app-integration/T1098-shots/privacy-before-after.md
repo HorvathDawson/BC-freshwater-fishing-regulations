@@ -2,7 +2,7 @@
 
 Page source: `app/tools/seo/html.ts` (`privacyBody`), URL `/privacy`. Words only; the app does not change.
 Pick on item a (owner 2026-11-24, "Strict: linked"): the install id stays on a report that carries an email.
-Each row was checked against the code first; the ticket was right about a to f. Item g is the owner's pick (bottom).
+Each row was checked against the code first; the ticket was right about a to f. Item g: owner's answer 2026-11-25 (bottom).
 Two rows (8, 9) go beyond the ticket's list; they are marked. Em dashes: none added.
 
 | # | Item | Section | Before | After | Code fact |
@@ -16,19 +16,19 @@ Two rows (8, 9) go beyond the ticket's list; they are marked. Em dashes: none ad
 | 7 | d | Push token, first sentence | ... (a gauge alert, "New regulations data" or "New app version"), the app sends ... | ... (a gauge alert or "New regulations data"), the app sends ... | `notify.native.ts`: `VERSION_FILE` is null for the App Store build and for an iPhone with no channel, so `appVersion: VERSION_FILE !== null` is false and the switch is not offered |
 | 8 | e | Push token | ... a silent signal telling the app to check for new data; the signal carries no words ... | ... a silent signal telling the app to check for new data and, when a new data release is out and your download setting allows it, to start downloading it; the signal carries no words ... | `wake.ts`: the wake runs the update service check with `release: true` and can start the download |
 | 9 | f | No selling, no sharing | (Cloudflare, Open-Meteo, Esri, and Apple for push only) | (Cloudflare, Open-Meteo, Esri, Apple for push and for the App Store version check, and Google Play for its update check) | follows rows 2 |
-| 10 | g | Push token | (nothing) | PROPOSAL, see below | |
+| 10 | g | Push token | (nothing) | The app sends the token only while the phone's own notification permission is on, and removes it if you turn that permission off. A token the app has not renewed for 30 days is deleted. (depends on the behaviour-change ticket; 30 is a placeholder) | owner 2026-11-25: "that behaviour change can move to 0.9.1" |
 
-## Item g: your pick (I did not decide)
+## Item g: DECIDED (owner 2026-11-25, typed, verbatim): "that behaviour change can move to 0.9.1"
 
-Fact (verified): `useNotifications` writes the switch before it asks the phone (`packages/ui/src/notify.ts` setOn / putRule: `write(...)` then `allow()`), and the registrar syncs on `notifyActive(state)` only, never on the phone's permission. So after Don't Allow the token is still registered (silent pushes need no permission). `workers/feeds/src/push.ts` has no token age limit; a token goes only on unregister or an APNs refusal.
+Option 2 is chosen: the behaviour change ships in 0.9.1 under its own ticket (another lane builds it; this PR does not): the token is registered only while the phone's permission is granted, unregistered when it is revoked, and the worker drops a token not re-registered for about 30 days.
 
-Option 1, SAY IT (built into this PR as the default, clearly a proposal): row 10 adds, in the Push token paragraph:
+Fact it rests on (verified): `useNotifications` writes the switch before it asks the phone (`packages/ui/src/notify.ts` setOn / putRule), and the registrar syncs on `notifyActive(state)` only, never on the phone's permission; `workers/feeds/src/push.ts` has no token age limit.
 
-> The app sends the token when notifications are switched on inside the app, even if you tapped Don't Allow on the phone's own prompt (then nothing is shown to you, but the silent signal still reaches the app). A token has no age limit: I keep it until you switch notifications off or Apple tells me it no longer works.
+Row 10 (Push token paragraph, new sentences):
 
-Option 2, CHANGE BEHAVIOUR (its own ticket, nothing built): the registrar also requires the phone's permission to be granted (not registering after Don't Allow, unregistering if it is later revoked), and the worker drops a token not re-registered for N days (the app re-registers every 7 days, so about 30 would be safe). Then the sentence is replaced by "The token is sent only while the phone's permission is on" and an age line.
+> The app sends the token only while the phone's own notification permission is on, and removes it if you turn that permission off. A token the app has not renewed for 30 days is deleted.
 
-If you pick option 2, delete the row-10 sentence from `html.ts` and its pin in `site.test.ts` before the page goes live.
+**Depends on the behaviour-change ticket.** The 30 is a placeholder until that lane fixes the day count (update `html.ts` and the pin in `site.test.ts` to match). This page must NOT go live before the behaviour change does: until then these two sentences are untrue.
 
 ## Not changed (checked, true as written)
 
