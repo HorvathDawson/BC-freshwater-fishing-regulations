@@ -5,7 +5,7 @@
   "playShortDescription": "Your pocket guide to BC fishing regulations. Less searching, more fishing!",
   "appStorePromotionalText": "Your pocket guide to BC fishing regulations. Less searching, more fishing!",
   "fullDescriptionFile": "full-description.txt",
-  "appStoreKeywords": "fishing,BC,regulations,rules,freshwater,river,lake,trout,salmon,steelhead,angling,license,flow,gauge",
+  "appStoreKeywords": "regulations,freshwater,river,lake,trout,salmon,steelhead,angling,license,flow,gauge,map,synopsis,dfo",
   "categories": {
     "play": {
       "primary": "Maps & Navigation",
@@ -29,7 +29,7 @@
     "appStoreLimit": 4000,
     "appStoreFirstVersionProposal": "First release for iPhone: the BC fishing regulations map, river conditions, salmon notices and saved spots."
   },
-  "featureGraphicWords": "",
+  "featureGraphicWords": "Can I Fish This? BC freshwater fishing rules, by the water",
   "limits": {
     "name": 30,
     "appStoreSubtitle": 30,
