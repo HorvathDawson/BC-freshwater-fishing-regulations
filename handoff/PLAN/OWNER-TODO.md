@@ -60,6 +60,9 @@ with the default Claude uses until you answer). Newest first inside each section
 - Answered 2026-11-24 23:55 (multiple choice, planning chat): who builds and uploads the 0.9.1 iPhone build (nobody
   was assigned; your "Newest by then" pick needs it): "0.9.1 chat". It builds it right after its Play Closed build;
   the privacy page, privacy manifest and iPhone build-number fixes (T1098, T1099, T1101) are its lane too.
+- Asked 2026-11-25 ~00:20: "in 0.9.1 we should make this page (https://canifishthis.ca/gauges) have a search
+  option ... search by place or river etc to get gauge only"; "someone found the page by search so we want it
+  usable". Ticket T1107, sent to the 0.9.1 chat; you get a picture of the page with results before it ships.
 - **Read (you): the head-lake walk, draft PR #166 (T1053)**, sent to you by the 0.9.1 chat ~23:55. The list:
   the file head-lakes-before-after.md in that PR's T1053-shots folder (22 head lakes, 42
   rules gain water, none lose). One decision inside it: Dove Creek above Anderson Lake reopens for catch and

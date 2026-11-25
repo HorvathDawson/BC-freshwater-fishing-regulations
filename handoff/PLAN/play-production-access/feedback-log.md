@@ -106,14 +106,15 @@ leave them out.
 | D11 | 2026-11-24 | in-app report (staging) | owner | 0.9.0 web | Asked whether treble hooks are allowed on a lake: the gear tab did not say | T1051 | open | — |
 | D12 | 2026-11-24 | in-app report (staging) | owner | 0.9.0 web | Ice fishing repeated the gear tab's line and hook counts | T1050 | open | — |
 | D13 | 2026-11-24 | in person | owner | 0.8.5 → 0.9.0 Android | The app announced an update while the build was on a track the phone could not install from yet | T1073 | open | — |
+| D14 | 2026-11-25 | in person | owner | web | The gauges page, found by a visitor through a web search, had no way to search for a gauge by place or river | T1107 | open | — |
 
 ## Counts (refresh before applying)
 
 As of 2026-11-24: 16 tester rows from 7 tags (T-1 … T-4, TF-1, CT-1, CT-2; some may be the same person), 10 in-app
-report rows, 18 crash rows (44 in all), plus 13 developer rows. Of the 44: 25 fixed in a shipped release, 1 fixed with
+report rows, 18 crash rows (44 in all), plus 14 developer rows. Of the 44: 25 fixed in a shipped release, 1 fixed with
 the owner's read pending (F34), 6 fixed in 0.9.0 (shipped 2026-11-24, r-0aec88ed3edb: F15, F16, F22, F24, and F21, F25 with the
 owner's read pending), 3 in progress (F06, F23, F35; F23 and F35 partly fixed in 0.9.0), 9 open (F40–F44 added 2026-11-24).
 Developer rows: D01 fixed, owner read pending; D02–D05 fixed; D06 (owner read pending) and D07 fixed in 0.9.0; D08
-answered with no change; D09–D12 open (0.9.1); D13 open (0.9.2).
+answered with no change; D09–D12 open (0.9.1); D13 open (0.9.2); D14 open (0.9.1).
 Play Console testing feedback: none came in (owner 2026-11-24: all feedback came through the app; testers did not
 know how to use the Play form). Recount before applying.

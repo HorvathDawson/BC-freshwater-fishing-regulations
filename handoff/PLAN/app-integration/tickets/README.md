@@ -349,6 +349,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1104 | Web: the salmon prefetch asked for a refused slice up to 4 times in a minute | OPEN — 0.9.2, with T1091 | | 0.9.1 chat 2026-11-24, T1029 lane |
 | T1105 | Sources "Technical detail" should show the effective value when an inherited closure yields to a nearer row | OPEN — 0.9.2 (after T1053 ships); owner picks the words | | 0.9.1 chat 2026-11-24, T1053's leftover |
 | T1106 | The head-lake walk climbs for book rules only: DFO places and licensing do not climb; list the cases, the owner rules | OPEN — 0.9.2 (the list first) | | 0.9.1 chat 2026-11-24, T1053's leftover |
+| T1107 | The web gauges page gets a search: by place, river or water, giving gauges only (nearest first) | OPEN — 0.9.1 (owner 2026-11-25); web only | | owner 2026-11-25 |
 
 ## Next after closed testing
 
