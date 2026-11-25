@@ -13,6 +13,14 @@ label is one data type ahead of the app, until this ships. Related: T1098 (priva
 manifest), T1122 (the store forms match the page), T914 and T1049 (web and cold-start speed, which this would
 measure), T333 / `no-silent-fallbacks`, `self-host-everything`.
 
+## Settled 2026-11-25 14:26 (owner, multiple choice in the iOS chat, relayed)
+"Not linked (Recommended)" for Performance Data on the App Store label. The constraint this ticket builds to:
+purpose App Functionality, NOT linked to the user, not used for tracking. The monitor sends no install id and no
+push token with its samples; item 3 below is answered. The iPhone manifest test (`app/tools/privacy-manifest.test.ts`)
+holds the manifest to the labels table in the iOS submission page: the 0.10.0 manifest has 8 types and the live
+label 9 until this ticket adds the manifest entry (`NSPrivacyCollectedDataTypePerformanceData`) and the table row
+together.
+
 ## Design first, one page, the owner picks (no build before it)
 1. What is measured. Proposed: cold start to first usable screen, a water page's load, the map's first frame, a
    data-pack download's time and size, with the app version, platform, OS major version and a coarse device class.
