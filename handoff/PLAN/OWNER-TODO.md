@@ -183,10 +183,18 @@ with the default Claude uses until you answer). Newest first inside each section
   oxbows or slough lakes etc etc ) make sense? using the process we already have".
 - T1052 the closed block's second line (shown A and B): "A: quote the river's row". The 130 waters closed for part of
   the year: "Yes, merge those too" — a follow-up PR, pictures first.
-- T1029 on the Standard map: the pictures are owed with the finished PR (#112); nothing asked yet.
+- T1029 on the Standard map: the pictures are owed with the finished PR (#112); nothing asked yet. (Built since:
+  `T1029-shots/built-q6-*`, `built-a-*`.)
 - New, typed: "we need to add a random (sometimes on launch in a reasonable amount) star rating review on launch. must
   be uninvasive. (or could be after they use a certain feature?) needs thought for 0.10 maybe? or 0.11?" — T1082
   (planning chat).
+
+## 2026-11-25: T1029 layer order, the answer (verbatim)
+
+- T1029, the one-bank stretch hid the line's own cues (bait-ban edges, the issue stripe, a closed river's dashes on the
+  other half); shown `T1029-shots/review-cues-ab-{light,dark}.png` (as built, A, B), multiple choice: "A: cues above the
+  stripe" — built in PR #112 (`built-a-*`). Still open with him (asked by the coordinator): a creek of a one-bank place
+  whose side cannot be read — kept (closed, as built: a proposal) or left out.
 
 ## 2026-11-24 12:15–12:33: staging reports and the Kitimat creeks, the answers (verbatim)
 

@@ -17,7 +17,7 @@
    "waterbodies": [{"wbk": 800000001, "from": 16000, "to": 19000, "edge_type": 1050},
                    {"wbk": 800000006, "from": 25000, "to": 27000, "edge_type": 1050}]},
   {"blk": 900000005, "gnis_id": 990001, "name": "Fixture River", "wsc": "", "order": 3, "magnitude": 4,
-   "vertices": [[32000, 0], [34000, 500], [36000, 0]], "z": [285, 320], "breaks": [], "side": "L"},
+   "vertices": [[32000, 0], [34000, 500], [36000, 0]], "z": [285, 320], "breaks": [], "side": "LEFT"},
   {"blk": 900000002, "gnis_id": 990002, "name": "Mock Creek", "wsc": "222222", "order": 2, "magnitude": 2,
    "vertices": [[10000, 0], [10000, 8000]], "z": [60, 300], "breaks": [4000]},
   {"blk": 900000003, "gnis_id": null, "name": null, "wsc": "222222-500000", "order": 1, "magnitude": 1,

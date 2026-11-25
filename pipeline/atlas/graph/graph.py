@@ -163,6 +163,7 @@ def build_stream_graph(chains: list[BlkChain], fid_rows: list[FidRow],
             stream_order=order, stream_magnitude=mag,
             member_fids=tuple(r.fid for r in frs), edge_types=_edge_types(frs),
             member_wbks=tuple(sorted({str(r.wbk) for r in frs if r.wbk})),  # wetland/river overlays
+            left_right=frs[0].left_right,   # (T1029) the blue line's own: one value along its whole length
         )
 
     # --- lake nodes (one per wbk; name = layer GNIS, else a threading river) ---
@@ -323,3 +324,52 @@ def ancestors(graph: StreamGraph, node_id: str, guarded: bool = True) -> set[str
             seen.add(src)
             stack.append(src)
     return seen
+
+
+#: (T1029 review #112) the CRS of the atlas geometries (`geometries.pkl`): BC Albers metres. `drawn_banks` reads WGS84
+#: lon/lat (its east/north scale is per degree), so every line is projected back to EPSG:4326 before it is measured.
+ATLAS_CRS = 3005
+
+
+def stamp_drawn_banks(graph: StreamGraph, geoms: dict, *, crs: int = ATLAS_CRS) -> int:
+    """(T1029) Stamp every stream piece's `drawn_banks` from its own geometry (mouth -> source, as FWA draws it): the
+    side of its line each compass bank is (`common.bank_side.drawn_banks`), measured on the line in WGS84 — the atlas
+    holds EPSG:3005 metres (`crs`), projected to EPSG:4326 in one batch first (review #112: measured on the metres, the
+    north/south answer was opposite on 19.7% of lines and lost on 48.1%). A piece with no geometry keeps "" (no answer,
+    never a guess). Returns the count stamped. Sorted iteration: the graph is deterministic."""
+    import numpy as np
+    from pyproj import Transformer
+    from shapely.geometry import LineString, MultiLineString
+    from pipeline.common.bank_side import drawn_banks
+    todo: list = []                         # (node id, [part lengths]) in sorted order
+    xs: list = []
+    ys: list = []
+    for nid in sorted(graph.nodes):
+        if graph.nodes[nid].kind != NodeKind.stream:
+            continue
+        g = geoms.get(nid)
+        if isinstance(g, LineString):
+            parts = [g]
+        elif isinstance(g, MultiLineString):
+            parts = list(g.geoms)
+        else:
+            continue
+        lens = []
+        for p in parts:
+            a = np.asarray(p.coords, dtype=float)
+            lens.append(len(a))
+            if len(a):
+                xs.append(a[:, 0])
+                ys.append(a[:, 1])
+        todo.append((nid, lens))
+    if not todo:
+        return 0
+    lon, lat = Transformer.from_crs(crs, 4326, always_xy=True).transform(np.concatenate(xs), np.concatenate(ys))
+    at = 0
+    for nid, lens in todo:
+        parts = []
+        for k in lens:
+            parts.append(np.column_stack((lon[at:at + k], lat[at:at + k])))
+            at += k
+        graph.nodes[nid] = replace(graph.nodes[nid], drawn_banks=drawn_banks(parts))
+    return len(todo)

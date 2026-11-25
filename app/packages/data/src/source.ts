@@ -161,6 +161,13 @@ export interface WaterSource {
    */
   salmonFacts(): Promise<import("@app/core").SalmonFacts | null>;
   /**
+   * (T1029 Q6) THE SALMON HEAD ALONE (`salmon`, no `salmon-<r>` slice): what is keyed by section in the head itself — the
+   * rule book's one-half closures (`bs`, @app/core `bookHalves`) — for the Standard map, which never reads the slices on
+   * the web (they wait for the first Salmon press). Its sections' chains are not in it (every section reads chain 0).
+   * Optional, as `methodFacts`; null where the release ships no salmon.
+   */
+  salmonHead?(): Promise<import("@app/core").SalmonFacts | null>;
+  /**
    * (T213) BAIT BAN AND FLY FISHING ONLY per section and day (`method`, @app/core `decodeMethod`) — what the map's
    * "Bait & fly" colouring reads. Optional, and null where the release ships none (an older release, the fixture): the
    * choice is then not offered.

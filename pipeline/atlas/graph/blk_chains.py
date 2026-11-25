@@ -23,6 +23,7 @@ _STREAM_COLUMNS = [
     "LINEAR_FEATURE_ID", "BLUE_LINE_KEY", "FWA_WATERSHED_CODE", "GNIS_ID", "GNIS_NAME",
     "WATERBODY_KEY", "STREAM_ORDER", "STREAM_MAGNITUDE", "EDGE_TYPE",
     "DOWNSTREAM_ROUTE_MEASURE", "UPSTREAM_ROUTE_MEASURE", "LENGTH_METRE", "WATERSHED_KEY",
+    "LEFT_RIGHT_TRIBUTARY",
 ]
 _SENTINEL_WSC = "999-999999"
 
@@ -66,6 +67,9 @@ class FidRow:
     #: FWA's WATERSHED_KEY: the blue line this feature's river IS. A side channel carries its main
     #: river's blk here; the river's own line carries its own (`fwa_mainstem_blks`).
     watershed_key: str = ""
+    #: (T1029) FWA's LEFT_RIGHT_TRIBUTARY: the bank of its PARENT this feature's blue line joins on, looking
+    #: downstream ("LEFT" / "RIGHT"; "NONE" on a line that joins nothing, "" where the source has no value)
+    left_right: str = ""
 
 
 def load_stream_fids(gpkg_path: str, bbox: Optional[tuple] = None,
@@ -93,8 +97,21 @@ def load_stream_fids(gpkg_path: str, bbox: Optional[tuple] = None,
                 down_m=down_m, up_m=up_m, geometry=r.geometry,
                 down_node=down_node, up_node=up_node,
                 watershed_key=str(getattr(r, "WATERSHED_KEY", "") or ""),
+                left_right=_left_right(getattr(r, "LEFT_RIGHT_TRIBUTARY", "")),
             ))
     return rows
+
+
+def _left_right(v) -> str:
+    """FWA's LEFT_RIGHT_TRIBUTARY, one of LEFT / RIGHT / NONE / UNKNOWN (FWA's own four, 188 UNKNOWN in the 2026 source),
+    or "" where the source has none (a missing column, null). Any other value is refused: a bank read wrong would put a
+    creek on the wrong side of a one-bank closure."""
+    if v is None or (isinstance(v, float) and v != v):
+        return ""
+    s = str(v).strip().upper()
+    if s not in ("", "LEFT", "RIGHT", "NONE", "UNKNOWN"):
+        raise ValueError(f"LEFT_RIGHT_TRIBUTARY {v!r}: not LEFT, RIGHT, NONE or UNKNOWN")
+    return s
 
 
 def fwa_mainstem_blks(fid_rows) -> frozenset[str]:

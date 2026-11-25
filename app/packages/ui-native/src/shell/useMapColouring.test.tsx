@@ -8,8 +8,8 @@
  * not telling the clock on return fails the foreground step (the heartbeat alone needs up to a minute).
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, renderHook } from "@testing-library/react";
-import { wallIso, type StatusIndex } from "@app/core";
+import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
+import { wallIso, type SalmonFacts, type StatusIndex } from "@app/core";
 import { parseManifest } from "@app/data";
 import { makeFixtureSource } from "@app/data/fixture";
 import type { PairingInput, StatusSource } from "@app/ui";
@@ -84,5 +84,28 @@ describe("the map's status day follows the B.C. clock (T605)", () => {
     await settle();
     await act(async () => { await vi.advanceTimersByTimeAsync(40_000); });
     expect(result.current.mapStatus?.day).toBe(picked);
+  });
+});
+
+/**
+ * (T1029 Q6) THE RULE BOOK'S ONE-HALF CLOSURES ON A COLD STANDARD MAP (the web build over a release with `bs`, 2026-11-24:
+ * the half never drew until Salmon had been visited, because its labels were built from the full salmon facts, which the
+ * web reads only on the first Salmon press). The halves come from the salmon HEAD alone: handed to the map on Standard,
+ * Salmon never chosen, and no full salmon read (no `salmon-<r>` slice) for it.
+ */
+describe("the book's closed halves on a cold Standard map (T1029 Q6)", () => {
+  afterEach(() => { cleanup(); });
+  it("are handed to the map from the salmon head alone: no Salmon press, no slice read", async () => {
+    const asked: string[] = [];
+    const head = { handles: H, chains: 1, chainOf: () => 0, payload: { bs: { "1234098": -1, "7": 1 } } } as unknown as SalmonFacts;
+    const src = { ...makeFixtureSource(),
+                  salmonHead: async () => { asked.push("salmonHead"); return head; },
+                  salmonFacts: async () => { asked.push("salmonFacts"); return head; } };
+    const { result } = renderHook(() => useMapColouring({ source: src, status: STATUS, pairing: PAIRING, tiles: TILES,
+      mapTab: "map", mapDay: null, epoch: 0, salmonOnDemand: true }));
+    await waitFor(() => expect(result.current.halvesFeed?.halves).toBeDefined());
+    expect(result.current.regsLayer).toBe("standard");
+    expect([...result.current.halvesFeed!.halves]).toEqual([[7, "R"], [1234098, "L"]]);
+    expect(asked).toEqual(["salmonHead"]);
   });
 });

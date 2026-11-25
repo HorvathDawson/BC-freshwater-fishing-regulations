@@ -88,7 +88,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   tap: TapAhead;
 }) {
   const { route, go, tab, back } = nav;
-  const { flowParam, mm, layers, imagery, cond, gauges, lakeFeed, salmonFeed, methodFeed, issueFeed, mapStatus, noteVisible, setZoomedOut,
+  const { flowParam, mm, layers, imagery, cond, gauges, lakeFeed, salmonFeed, methodFeed, issueFeed, halvesFeed, mapStatus, noteVisible, setZoomedOut,
           horizonChipsShown, pickDay, vintage } = col;
   const { searching, session, arrive, wideSearch, closeSearch } = search;
   const onRail = tabsAsRail(useLayoutClass());
@@ -233,6 +233,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                      salmon={salmonFeed}
                      method={methodFeed}
                      issue={issueFeed}
+                     halves={halvesFeed}
                      runs={col.runsFeed}
                      status={mapStatus}
                      // The dots belong to the Conditions tab — AND to the temperature

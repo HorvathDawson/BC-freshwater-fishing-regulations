@@ -9,7 +9,7 @@ import type { ComponentType, ReactNode } from "react";
 import type { ViewStyle } from "react-native";
 import type { TileEndpoints } from "./endpoints";
 import type { TraceProp } from "./trace-overlay";
-import type { IssueFeed, LakeFeed, MethodFeed, ProfileStatus, RunsFeed, SalmonFeed, StandingFeed } from "./colouring";
+import type { HalvesFeed, IssueFeed, LakeFeed, MethodFeed, ProfileStatus, RunsFeed, SalmonFeed, StandingFeed } from "./colouring";
 import type { SelectionCue } from "./paint";
 
 /** A boundary mark on a water (`MapProps.marks`). `a11y`: what a screen reader says for it. */
@@ -217,6 +217,9 @@ export interface MapProps {
   method?: MethodFeed | null;
   /** (T759) the issue stripe: the sections of waters with a shown DFO issue, labelled per tile (`gi`); drawn in the Salmon view only. */
   issue?: IssueFeed | null;
+  /** (T1029 Q6) the rule book's one-half closures: the side of the drawn line each closed half is on, labelled per tile
+   *  (`bb`) from the salmon head alone; drawn on the Standard map only. */
+  halves?: HalvesFeed | null;
   /**
    * (T199) THE RUN TIMING, for every layer in the `runs` mode — the same engine (`colouring.ts`, the `runs` channel):
    * each section's state for the chosen species and month as its tile arrives (a passing run dashed: `stream-runs-pass`).

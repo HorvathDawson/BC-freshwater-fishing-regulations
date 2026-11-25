@@ -94,6 +94,7 @@ def resolve_all(registry, graph, *, entries_dir: Optional[Path] = None, outside=
     from pipeline.atlas.reach.models import Outcome, Reason
     from pipeline.atlas.reach.outside import outside_bc
     from pipeline.regs.dfo_salmon import entries as E
+    from pipeline.regs.dfo_salmon.locations import bank_of
 
     if outside is None:
         outside = outside_bc(registry, graph)
@@ -142,6 +143,19 @@ def resolve_all(registry, graph, *, entries_dir: Optional[Path] = None, outside=
                 if binding.outcome is Outcome.bound:
                     row["mapped"] = True
                     row["sections"] = sorted(binding.sections)
+                    # (T1029) a place for ONE BANK takes only the tributaries that join its stretch on that bank
+                    word = bank_of((target.source_text or {}).get("specific_area"))
+                    if word:
+                        stem, _ = build_reach({**entry, "includes_tributaries": False},
+                                              {**rules[0], "includes_tributaries": False, "tributaries_only": False},
+                                              registry, graph, outside=outside, regional=False, tidal=lim)
+                        if set(binding.sections) - set(stem.sections):
+                            kept, why = one_bank_tributaries(binding.sections, stem.sections, graph, word)
+                            row["sections"] = sorted(kept)
+                            if diagnostics is not None:
+                                diagnostics.append({"location_id": loc.location_id, "region": slug, "kind": ONE_BANK_TRIBS,
+                                                    "payload": {"bank": word, "stem": sorted(stem.sections),
+                                                                "kept": sorted(kept - set(stem.sections)), **why}})
                 else:
                     row["reason"] = binding.reason.value if binding.reason else None
                     if binding.reason is Reason.tidal:
@@ -307,6 +321,98 @@ def dead_pieces(entry: dict, rule: dict, registry, graph, *, outside=None, tidal
         if b.outcome is not Outcome.bound or not b.sections:
             out.append(i)
     return out
+
+
+#: (T1029) the diagnostic a one-bank place's tributary walk writes (`one_bank_tributaries`)
+ONE_BANK_TRIBS = "one_bank_tributaries"
+#: why a tributary of a one-bank place is out of it, or kept with no side read
+TRIB_OTHER_BANK = "tributary_other_bank"
+TRIB_SIDE_UNDETERMINED = "tributary_side_undetermined"
+#: (review #112, W46) the atlas graph carries no bank fields: a reach run on it would keep every tributary silently
+ATLAS_LACKS_BANK_FIELDS = "atlas_lacks_bank_fields"
+
+
+def require_bank_fields(graph) -> None:
+    """(T1029, review #112) A one-bank place's tributaries are read from two atlas fields (`StreamNode.left_right`,
+    FWA's LEFT_RIGHT_TRIBUTARY, and `drawn_banks`). A graph.pkl written before them reads "" on every node, and every
+    tributary would then be "undetermined" and kept with nothing looking wrong: refused, naming the fix."""
+    # every node, whatever its kind (a lake's fields are "" by design): a stamped atlas has them on its stream pieces
+    lacks = [f for f in ("left_right", "drawn_banks") if graph.nodes and not any(getattr(n, f) for n in graph.nodes.values())]
+    if lacks:
+        raise ValueError(f"{ATLAS_LACKS_BANK_FIELDS}: no stream piece of this atlas carries {' or '.join(lacks)} "
+                         f"(a graph.pkl from before T1029): rebuild the atlas (`pipeline.atlas.build`) before the reach "
+                         "run — a one-bank place's tributaries cannot be read on it")
+
+
+def one_bank_tributaries(sections: Iterable[str], stem: Iterable[str], graph, word: str) -> tuple:
+    """(T1029, owner 2026-11-24: "No stripe on creeks and only tributaries on the one bank side get included"; on the
+    Kitimat's 12 creeks: "i think closed we need a clean way to have this calculated from extents so it fits into
+    structure nicely") A ONE-BANK PLACE'S TRIBUTARIES: of the sections its walk bound (`sections`), those not on its own
+    stretch (`stem`, the place bound without the walk) belong to it only when their system JOINS THE STRETCH ON THAT BANK.
+
+    Each tributary section is followed downstream (`graph.down_adj`) to the piece that flows INTO the stretch — its ROOT
+    (through a lake or a not-fishing-water pond on the way: the same system). The root's bank is FWA's own
+    `LEFT_RIGHT_TRIBUTARY` (`StreamNode.left_right`, looking downstream); the place's bank, in the same terms, is read
+    from the stretch piece it joins: `drawn_banks` says which side of the drawn line (mouth -> source) the compass word
+    is, so looking DOWNSTREAM it is the other hand. Returns (the sections kept: the stretch's sections the walk bound, the
+    tributaries on the bank, and those whose side cannot be read; {reason: [sections]} for the rest — `TRIB_OTHER_BANK`
+    left the place, `TRIB_SIDE_UNDETERMINED` kept and reported, never a guess). KEEPING an undetermined tributary is a
+    PROPOSAL (review #112): the owner's rule names only the tributaries on the bank side, and whether one whose side cannot
+    be read stays (closed) or leaves is his call (the T1029 ticket's question); the reach run prints every one and counts
+    them in report.json. Refuses a graph with no bank fields (`require_bank_fields`). Deterministic: sorted walks."""
+    from pipeline.common.bank_side import side_from_code
+    stem = set(stem)
+    secs = set(sections)
+    tribs = sorted(secs - stem)
+    out: Dict[str, List[str]] = {TRIB_OTHER_BANK: [], TRIB_SIDE_UNDETERMINED: []}
+    keep = stem & secs
+    if not tribs:
+        return keep, {}
+    require_bank_fields(graph)
+
+    def roots(start: str) -> set:
+        """the (root, stem piece) pairs every downstream route from `start` reaches the stretch by"""
+        found, seen, todo = set(), {start}, [start]
+        while todo:
+            n = todo.pop()
+            for ei in sorted(graph.down_adj.get(n, ())):
+                d = graph.edges[ei].to_node
+                if d in stem:
+                    found.add((n, d))
+                elif d not in seen:
+                    seen.add(d)
+                    todo.append(d)
+        return found
+
+    def bank_down(stem_piece: str) -> str:
+        s = side_from_code(graph.nodes[stem_piece].drawn_banks, word)
+        return {1: "LEFT", -1: "RIGHT"}.get(s, "")     # right of a line drawn UPSTREAM is left looking downstream
+
+    for t in tribs:
+        answers = set()
+        for r, d in roots(t):
+            lr = graph.nodes[r].left_right
+            want = bank_down(d)
+            answers.add("?" if lr not in ("LEFT", "RIGHT") or not want else ("in" if lr == want else "out"))
+        if answers == {"out"}:
+            out[TRIB_OTHER_BANK].append(t)
+            continue
+        if answers != {"in"}:
+            out[TRIB_SIDE_UNDETERMINED].append(t)
+        keep.add(t)
+    return keep, {k: v for k, v in out.items() if v}
+
+
+def one_bank_counts(diagnostics: Iterable[dict]) -> Dict[str, object]:
+    """(review #112) the reach run's one-bank tally for report.json: places walked, tributaries kept on the bank, left on
+    the other bank, and kept with no side read (each named per place: the run prints them)."""
+    rows = [d for d in diagnostics if d.get("kind") == ONE_BANK_TRIBS]
+    und = {d["location_id"]: list(d["payload"].get(TRIB_SIDE_UNDETERMINED) or []) for d in rows}
+    return {"places": len(rows),
+            "kept": sum(len(d["payload"].get("kept") or []) for d in rows),
+            TRIB_OTHER_BANK: sum(len(d["payload"].get(TRIB_OTHER_BANK) or []) for d in rows),
+            TRIB_SIDE_UNDETERMINED: sum(len(v) for v in und.values()),
+            "undetermined_by_place": {k: v for k, v in sorted(und.items()) if v}}
 
 
 def stale_bindings(ef, registry) -> List[str]:

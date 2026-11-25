@@ -9,7 +9,7 @@ import { readingDayOf, salmonDayIndex } from "@app/core";
 import { useEffect, useRef } from "react";
 import type * as maplibregl from "maplibre-gl";
 import type { WebRenderer } from "../adapters/web";
-import { LABEL_SOURCE_LAYERS, issueInput, methodInput, runsInput, runsKeyOf, salmonInput, standingInput, statusInput, stockedInput, surveyInput, withoutEngineKeys,
+import { LABEL_SOURCE_LAYERS, bankInput, halfInput, issueInput, methodInput, runsInput, runsKeyOf, salmonInput, standingInput, statusInput, stockedInput, surveyInput, withoutEngineKeys,
          type Channel, type ChannelInput, type TileRenderer, type TileSections } from "../colouring";
 import type { MapProps } from "../map-props";
 import { sourceTiles, tileIds } from "./tileIds";
@@ -18,10 +18,10 @@ import { devCost, forcePublic, whenAtlas } from "./ready";
 import type { WebMapRefs } from "./refs";
 import type { Lit } from "./useHighlight";
 
-type Channels = Pick<MapProps, "at" | "theme" | "data" | "status" | "standing" | "lakes" | "salmon" | "method" | "issue" | "runs">;
+type Channels = Pick<MapProps, "at" | "theme" | "data" | "status" | "standing" | "lakes" | "salmon" | "method" | "issue" | "halves" | "runs">;
 
 export function useChannels(refs: WebMapRefs, { wasLit, wasWater, wasCue, wasNear, wasInSeason }: Lit,
-                            { at, theme, data, status, standing, lakes, salmon, method, issue, runs }: Channels) {
+                            { at, theme, data, status, standing, lakes, salmon, method, issue, halves, runs }: Channels) {
   const { map, renderer, adapter, copy, colouring } = refs;
   const latestData = useRef(data);
   latestData.current = data;
@@ -65,6 +65,11 @@ export function useChannels(refs: WebMapRefs, { wasLit, wasWater, wasCue, wasNea
   const salmonDay = salmon ? salmonDayIndex(salmon.day) : -1;
   useEffect(() => toChannel("salmon", salmon ? salmonInput(salmon) : null, `salmon:${salmonDay}`),
             [salmon?.facts, salmonDay, salmon?.only, at.atlas]);
+  // (T1029) the one-bank cue: the salmon feed's bank places, one label per section for the facts (the day is the salmon's)
+  useEffect(() => toChannel("bank", salmon ? bankInput(salmon) : null, "bank"), [salmon?.facts, at.atlas]);
+  // (T1029 Q6) the rule book's one-half closures: from the salmon head alone (`halves`), their own label (`bb`), drawn
+  // by the Standard map
+  useEffect(() => toChannel("half", halves ? halfInput(halves) : null, "half"), [halves?.halves, at.atlas]);
   // (T213) the gear marks: profile labels once per release, the day in the gear layers' paint
   const methodDay = method ? readingDayOf(method.day) : -1;
   useEffect(() => toChannel("method", method ? methodInput(method) : null, `method:${methodDay}`),

@@ -4,7 +4,7 @@
  * share. One module, so the first frame and every frame after it are painted the same way.
  */
 import { ATLAS_MAX_ZOOM, type GearMark } from "@app/core";
-import { MAP_STYLE, NO_VALUES, STYLE_META, colorExpression, finfishOver, profileChannel, profileDay, salmonLabelIn,
+import { MAP_STYLE, NO_VALUES, SALMON_LABEL_KEY, STYLE_META, colorExpression, shadeHex, finfishOver, profileChannel, profileDay, salmonLabelIn,
          type ChannelValues, type ColorMode, type Tokens } from "./style";
 
 /**
@@ -282,9 +282,9 @@ export function rampAt(ramp: Ramp, zoom: number): number {
   return ramp[ramp.length - 1]![1];
 }
 /** The dash: the token from z11 up, a longer one below it (the line is thin; a 1.2 dash is a few pixels). */
-function gearDash(tokens: Tokens): unknown {
+function gearDash(tokens: Tokens, k = 1): unknown {
   const d = tokens["dash.gear.bait"] as number[];
-  return ["step", ["zoom"], ["literal", d.map((n) => n * 2)], 11, ["literal", d]];
+  return ["step", ["zoom"], ["literal", d.map((n) => n * 2 * k)], 11, ["literal", d.map((n) => n * k)]];
 }
 /** The modes the marks ride on: the Standard map's status mode, and (owner 2026-10-28: "bait and fly rules also apply
  *  to salmon") the Salmon map's — the provincial gear rule holds for a salmon angler too. */
@@ -462,6 +462,190 @@ export function issuePaint(part: keyof typeof ISSUE_LAYERS, mode: string, tokens
     "line-dasharray": tokens[part === "casing" ? "dash.issue.casing" : "dash.issue.stripe"],
     "line-opacity": shown === null ? 0
       : ["interpolate", ["linear"], ["zoom"], ...GEAR_RAMPS[GEAR_RAMP].opacity.flatMap(([z, o]) => [z, ["case", shown, o, 0]])],
+  };
+}
+
+/**
+ * (T1029, look B, owner 2026-11-24 on the thin v1 stripe: "Should make it more visible right now it isn't ?") THE ONE-BANK
+ * CUE: a DFO place for one bank of a river (the Kitimat's "on west bank between signs", T754) draws the stretch it stands
+ * beside WIDER (`BANK_WIDEN` × the stream's width, at least `BANK_MIN_PX`) and SPLIT DOWN THE MIDDLE: the bank's half in
+ * the bank's own answer that day, the other half in the line's own, and the closed cue (`color.cue.closed` /
+ * `dash.cue.closed`, T377) down the middle of the bank's half when the bank's answer is closed.
+ *
+ * `line-offset` is right of the line's own direction as the tiles store it, so the pipeline says per section which side
+ * the bank is (`pipeline/deliver/bank_side.py`: +1 right, -1 left, measured on the exported line) and the colouring
+ * engine labels the section once per release with "<L|R><bank chain>" ("Ls42": @app/core `salmonBankLabels`, the
+ * `bank` channel, feature-state `bk`). One fixed layer per HALF (right, left): no `line-offset` reads feature-state.
+ * A half shows where the label's first letter is its side (`BANK_SIDE`); the bank's half takes the stream's own colour
+ * expression for the mode with the chain it reads (`sp`) swapped for the bank's (`BANK_CHAIN`), the other half the
+ * stream's own unchanged — so the bank is painted by the same day, isolate and access rules as every line, never a
+ * second test. Painted with the salmon day (the adapter repaints them with the stream, as `stream-closed`): a new day is
+ * a paint change, never a relabel. MapLibre Native at the pinned commit (pin.env): `line-offset` / `line-width` /
+ * `line-color` / `line-opacity` are data-driven, `line-dasharray` is not (one fixed dash per cue layer); `slice`,
+ * `match`, `case`, `coalesce` are all there.
+ *
+ * (T1029 Q6, owner 2026-11-24: "Yes, stripe it too") THE STANDARD MAP (`profile`) DRAWS THE RULE BOOK'S ONE-HALF
+ * CLOSURES the same way (kitimat_river.r1, "No Fishing on the west half…"): its own label, feature-state `bb` ("L" / "R",
+ * the side of the drawn line the closed half is on: @app/core `bookHalves`, the `half` channel). That half wears the
+ * profile mode's own `closed` colour with closed's cue — the book closes it all year (the pipeline refuses any other
+ * side rule) — and the other half the stream's own profile colouring. Each colouring reads ONLY its own key: a section
+ * may carry both (Kitimat 1234098), the Salmon map reading `bk`, the Standard map `bb`.
+ */
+export const BANK_LAYERS = { right: "stream-bank-r", left: "stream-bank-l" } as const;
+export const BANK_CUE_LAYERS = { right: "stream-bank-cue-r", left: "stream-bank-cue-l" } as const;
+/** (owner 2026-11-24: "from zoom 13 up, the card carrying it below that") the first zoom the cue is drawn at */
+export const BANK_MINZOOM = 13;
+/** the colourings the layers are visible and drawn in: Salmon (DFO's one-bank places, `bk`) and Standard (the rule
+ *  book's one-half closures, `bb`) */
+export const BANK_MODES: readonly string[] = ["salmon", "profile"];
+const BANK_SALMON = "salmon", BANK_BOOK = "profile";
+/** the stretch's drawn width: this many times the stream's own, at least `BANK_MIN_PX` */
+export const BANK_WIDEN = 1.5;
+export const BANK_MIN_PX = 6;
+/** the closed cue's width, as a share of one half */
+const BANK_CUE_SHARE = 0.45;
+/** the feature-state the bank channel labels a section in (`colouring.ts` `bankInput`) */
+export const BANK_LABEL_KEY = "bk";
+const BANK_LABEL = ["coalesce", ["feature-state", BANK_LABEL_KEY], ""];
+/** the bank's side of the drawn line: the label's first letter ("" where there is no bank) */
+const BANK_SIDE = ["slice", BANK_LABEL, 0, 1];
+/** the bank's own chain label (`s<chain>`, what `sp` holds for a line): the label after its first letter */
+const BANK_CHAIN = ["slice", BANK_LABEL, 1];
+const SIDE_LETTER = { right: "R", left: "L" } as const;
+/** the feature-state the half channel labels a section in (`colouring.ts` `halfInput`): the closed half's side */
+export const HALF_LABEL_KEY = "bb";
+const HALF_SIDE = ["coalesce", ["feature-state", HALF_LABEL_KEY], ""];
+const bankWidth = (w: unknown) => ["max", ["*", w, BANK_WIDEN], BANK_MIN_PX];
+const bankOffset = (sign: number, w: unknown) => withinZoomCurve(w, (v) => ["*", sign, ["/", bankWidth(v), 4]]);
+
+/** the salmon day the bank is painted by in `mode`; null: no one-bank place is drawn (another mode, or no day) */
+function bankDay(mode: string, values: ChannelValues | null): NonNullable<ChannelValues["salmon"]> | null {
+  return mode === BANK_SALMON ? (values ?? NO_VALUES).salmon : null;
+}
+/** whether `mode` draws the rule book's closed halves: Standard, with its status day installed (else it is the plain map) */
+const bookDrawn = (mode: string, values: ChannelValues | null): boolean => mode === BANK_BOOK && !!(values ?? NO_VALUES).status;
+/** whether a legend isolate other than Closed greys the day's closed answers (`StatusDay.alone`): the book's closed
+ *  half follows them — the neutral grey a closed line takes, and no cue */
+const bookAway = (values: ChannelValues | null): boolean => {
+  const alone = (values ?? NO_VALUES).status?.alone;
+  return alone !== undefined && alone[0] !== "closed";
+};
+/** the Standard colouring's closed colour (its own `closed` category: the legend's swatch, satellite swaps included), or
+ *  under an isolate that greys closed (`bookAway`) its `missing` grey — what a closed line wears then */
+function bookClosed(tokens: Tokens, away: boolean): unknown {
+  const m = STYLE_META.colorModes["stream"]?.[BANK_BOOK];
+  const ref = m && "categories" in m
+    ? ((away ? m.missing : m.categories["closed"]) as { token: string; shade?: string } | undefined) : undefined;
+  if (!ref || tokens[ref.token] === undefined) throw new Error(`bank cue: the ${BANK_BOOK} colouring has no ${away ? "missing" : "closed"} colour`);
+  return ref.shade === undefined ? tokens[ref.token] : shadeHex(String(tokens[ref.token]), Number(tokens[ref.shade]));
+}
+
+/**
+ * `expr` (a stream colour) reading the bank's chain where it read the section's own (`["feature-state", "sp"]`), and
+ * every label test over it a `match` (T903: never an `in` scan over a label; `tools/paint-default.test.ts`). Throws when
+ * `expr` never read `sp`: the bank half would silently be the line's own colour.
+ */
+function onBankChain(expr: unknown): unknown {
+  let hits = 0;
+  const own = (x: unknown) => Array.isArray(x) && x[0] === "coalesce" && x.length === 3 && x[2] === ""
+    && Array.isArray(x[1]) && x[1][0] === "feature-state" && x[1][1] === SALMON_LABEL_KEY;
+  const walk = (x: unknown): unknown => {
+    if (!Array.isArray(x) || x[0] === "literal") return x;
+    if (own(x)) { hits++; return BANK_CHAIN; }
+    if (x[0] === "in" && x.length === 3 && own(x[1]) && Array.isArray(x[2]) && x[2][0] === "literal") {
+      hits++;
+      const labels = [...new Set(x[2][1] as string[])];
+      return labels.length ? ["match", BANK_CHAIN, labels, true, false] : false;
+    }
+    return x.map(walk);
+  };
+  const out = walk(expr);
+  if (!hits) throw new Error(`bank cue: the ${BANK_SALMON} colouring no longer reads ${SALMON_LABEL_KEY}; the bank's half has no chain to paint`);
+  return out;
+}
+
+/** `test` held off a no-access section (one dotted grey look there, T937: `noAccessShown`, the line's own read) */
+function offNoAccessBank(test: unknown, mode: string, values: ChannelValues | null): unknown {
+  const na = noAccessShown("stream", mode, values);
+  return na === null ? test : ["all", test, ["!", na]];
+}
+
+/** one HALF of the widened stretch (`side` of the drawn line): the bank's answer where the bank is on this side */
+export function bankHalfPaint(side: keyof typeof BANK_LAYERS, mode: string, tokens: Tokens,
+                              values: ChannelValues | null, streamWidth: unknown): Record<string, unknown> {
+  const sign = side === "right" ? 1 : -1;
+  const geometry = {
+    "line-width": withinZoomCurve(streamWidth, (w) => ["/", bankWidth(w), 2]),
+    "line-offset": bankOffset(sign, streamWidth),
+  };
+  if (bookDrawn(mode, values)) {
+    const own = colorExpression("stream", mode, tokens, values);
+    return {
+      // the book's closed half: closed, all year; the other half the line's own (`bb` alone: never the Salmon map's `bk`)
+      "line-color": ["case", ["==", HALF_SIDE, SIDE_LETTER[side]], bookClosed(tokens, bookAway(values)), own],
+      ...geometry,
+      "line-opacity": ["case", offNoAccessBank(["match", HALF_SIDE, ["L", "R"], true, false], mode, values), 1, 0],
+    };
+  }
+  if (bankDay(mode, values) === null) return { "line-color": tokens["color.water.unmapped"], ...geometry, "line-opacity": 0 };
+  const own = colorExpression("stream", mode, tokens, values);
+  return {
+    // the bank's half: the line's own colouring of the BANK's chain; a section with no bank keeps the line's own
+    "line-color": ["case", ["==", BANK_SIDE, SIDE_LETTER[side]], onBankChain(own), own],
+    ...geometry,
+    // the other half shows too (the line's own colour), so the stretch is one wider line split down the middle
+    "line-opacity": ["case", offNoAccessBank(["match", BANK_SIDE, ["L", "R"], true, false], mode, values), 1, 0],
+  };
+}
+
+/** the closed cue down the middle of the bank's half, where the bank's answer that day is closed (Salmon), or down the
+ *  book's closed half (Standard: closed all year) */
+export function bankCuePaint(side: keyof typeof BANK_CUE_LAYERS, mode: string, tokens: Tokens,
+                             values: ChannelValues | null, streamWidth: unknown): Record<string, unknown> {
+  const sign = side === "right" ? 1 : -1;
+  const day = bankDay(mode, values);
+  const closed = [...new Set(day?.closed ?? [])];
+  return {
+    "line-color": tokens["color.cue.closed"],
+    "line-dasharray": tokens["dash.cue.closed"],
+    "line-width": withinZoomCurve(streamWidth, (w) => ["*", ["/", bankWidth(w), 2], BANK_CUE_SHARE]),
+    "line-offset": bankOffset(sign, streamWidth),
+    // a `match` over the bank's chain, never an `in` scan over feature-state (T903, `tools/paint-default.test.ts`)
+    "line-opacity": bookDrawn(mode, values) ? bookAway(values) ? 0 : ["case", offNoAccessBank(["==", HALF_SIDE, SIDE_LETTER[side]], mode, values), 1, 0]
+      : day === null || !closed.length ? 0
+      : ["case", offNoAccessBank(["==", BANK_SIDE, SIDE_LETTER[side]], mode, values), ["match", BANK_CHAIN, closed, 1, 0], 0],
+  };
+}
+
+/**
+ * (T1029, owner 2026-11-25: "A: cues above the stripe") THE LINE'S OWN CUES STAY ON TOP OF THE ONE-BANK STRETCH. The bank
+ * layers draw the stretch wider (`BANK_WIDEN`), which would hide the gear edge beside the line (a wider line UNDER it,
+ * `gearPaint`); so over a bank section the edge is drawn again ABOVE the bank layers, as two thin edges just outside the
+ * widened stretch (`line-gap-width` = the stretch's width) — on the same sections and days as the edge itself
+ * (`gearShown`), only where a bank half is drawn. The closed cue and the issue stripe move above the bank layers instead
+ * (`runtime-style.ts`). One fixed dash per layer (MapLibre Native), as the edge's: the dash lengthened by
+ * `GEAR_BANK_DASH`, since the edge is thin here.
+ */
+export const GEAR_BANK_LAYERS = { fly: "stream-gear-fly-bank", bait: "stream-gear-bait-bank" } as const satisfies Record<GearMark, string>;
+const GEAR_BANK_DASH = 3;
+/** where a bank half is drawn in `mode` (the halves' own test), as a boolean expression; null: nowhere */
+function bankDrawnAt(mode: string, values: ChannelValues | null): unknown | null {
+  if (bookDrawn(mode, values)) return offNoAccessBank(["match", HALF_SIDE, ["L", "R"], true, false], mode, values);
+  if (bankDay(mode, values) === null) return null;
+  return offNoAccessBank(["match", BANK_SIDE, ["L", "R"], true, false], mode, values);
+}
+export function gearBankPaint(mode: string, mark: GearMark, tokens: Tokens, values: ChannelValues | null,
+                              streamWidth: unknown): Record<string, unknown> {
+  const shown = gearShown("stream", mode, mark, values);
+  const bank = bankDrawnAt(mode, values);
+  const ramp = GEAR_RAMPS[GEAR_RAMP];
+  return {
+    "line-color": tokens["color.gear.edge"],
+    "line-width": ["interpolate", ["linear"], ["zoom"], ...ramp.edge.flatMap(([z, f]) => [z, GEAR_EDGE_PX * f])],
+    "line-gap-width": withinZoomCurve(streamWidth, (w) => bankWidth(w)),
+    ...(mark === "bait" ? { "line-dasharray": gearDash(tokens, GEAR_BANK_DASH) } : {}),
+    "line-opacity": shown === null || bank === null ? 0
+      : ["interpolate", ["linear"], ["zoom"], ...ramp.opacity.flatMap(([z, o]) => [z, ["case", ["all", shown, bank], o, 0]])],
   };
 }
 

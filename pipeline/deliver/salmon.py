@@ -1204,8 +1204,10 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
             # T754 (owner 2026-11-22): a place for ONE BANK is read BESIDE the water's other places on its own sections
             # (AGENTS rule 49, as the book's `side`): in their chains' `u`, never `l`, so the stretch answers — and
             # paints — by the water's other rules and the card names the bank (`p[lid]["side"]`). ONLY ITS OWN RIVER'S
-            # sections (review of #61): a bank is a bank of that river, so the sections its tributary walk took (the
-            # Kitimat's 12 creeks from "(including tributaries)") carry no bank caveat and answer by their other places
+            # sections stand beside (review of #61): a bank is a bank of that river. (T1029, owner 2026-11-24: "i think
+            # closed we need a clean way to have this calculated from extents") the sections its tributary walk took —
+            # only those joining ON THAT BANK, the reach decides (`reach.dfo_salmon.one_bank_tributaries`) — are the
+            # place's whole: in their chains' `l` as any place, no bank caveat ("No stripe on creeks")
             on = {sid_of[s] for s in row["sections"] if s in sid_of}
             missing.extend(s for s in row["sections"] if s not in sid_of)
             if item_sections is None:
@@ -1214,6 +1216,9 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
             water = ef.water(loc.water_id) if loc.water_id else None
             stem = {sid for it in (water.item_ids if water else ()) for sid in item_sections.get(it, ())}
             mine = {sid for sid in on if sid in stem and binds(lid, sid)}
+            for sid in sorted(on - stem):
+                if binds(lid, sid):
+                    covering[sid].append(lid)
             unmapped_locs.append(lid)
             if mine:
                 carried_on[lid] = mine
@@ -1245,7 +1250,7 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
     verdicts(NOT_LISTED)                                     # verdicts[0]
     # chain 0: THE UNLISTED WATER — no DFO location, every species closed every day (owner 2026-10-27)
     chains: List[dict] = [{"r": [], "w": "", "l": [], **chain_calendar([], verdicts, gears)}]
-    chain_ix: Dict[tuple, int] = {((), (), ()): UNLISTED_CHAIN}
+    chain_ix: Dict[tuple, int] = {((), (), (), False): UNLISTED_CHAIN}
     # (T668 fix 4) each place's own year, for `a` (a table of its own: the release's verdicts stay as they were)
     from pipeline.deliver.salmon_who import answering_places, places_named
     from pipeline.regs.dfo_salmon import live as _live
@@ -1265,8 +1270,10 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
         # apart and the most strict answer per fish speaks
         groups = tuple(tuple(i for i, l in enumerate(key) if locs[l][1].region_number == n)
                        for n in sorted({locs[l][1].region_number for l in key})) if grouped else ()
-        if (key, uk, groups) not in chain_ix:
-            chain_ix[(key, uk, groups)] = len(chains)
+        # (T1029) `speaks` is part of the chain: a place's own chain (the card's, `n`) and a section's chain of that one
+        # place alone (a one-bank place's tributary) are two chains, or the card's would lose its `n`
+        if (key, uk, groups, speaks) not in chain_ix:
+            chain_ix[(key, uk, groups, speaks)] = len(chains)
             ties.extend(equal_place_conflicts(key, at, own_sp, after, lambda l: locs[l][1].region_number,
                                               lambda x, y: same_answer(who_v.items[x], who_v.items[y])))
             first = locs[(key or uk)[0]][1]
@@ -1283,7 +1290,7 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
             chains.append({"r": rs, "w": _label(first) if key else first.water,
                            "l": list(key), **({"u": list(uk)} if uk else {}),
                            **({"s": [list(g) for g in groups]} if groups else {}), **cal, **who})
-        return chain_ix[(key, uk, groups)]
+        return chain_ix[(key, uk, groups, speaks)]
 
     # the DFO places not drawn yet, by the items of their water, onto those items' sections — (T668 D1) the sections in
     # the place's own region only (the Fraser's Region 2 places stop at Region 2's line)

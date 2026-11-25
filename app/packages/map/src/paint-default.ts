@@ -41,7 +41,8 @@ export function labelUniverse(values: ChannelValues | null): Map<string, Readonl
     if (u.size) out.set(key, u);
   };
   // the status day carries the finfish closures' SALMON labels beside its own: they belong to `sp`
-  add("p", values.status as never, ["finfish", "finfishNone"]);
+  // (T1029 Q6) and `alone`, the isolated class's name: no label
+  add("p", values.status as never, ["finfish", "finfishNone", "alone"]);
   add("sp", values.salmon as never);
   add("gm", values.method as never);
   return out;
