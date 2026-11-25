@@ -1,6 +1,6 @@
 # T1029 — One-bank DFO places: the one-side stripe on the Salmon map (T754 option B, the rest)
 
-Status: IN PROGRESS — built on the draft PR #112, awaiting its independent review. Built: look B from z13 on the Salmon map (`bk`) and the book's west half on the Standard map (Q6, `bs` → `bb`, from the salmon head alone); the 12 creeks closed, computed from the extent by FWA's side. Gates: atlas parity IDENTICAL, reach "no binding changed", bundle: exactly the 12 creeks differ, salmon head 101,518 B gz (+38 B; gate 110,000). Left: Q4 (designed; build when a case appears), the device walk (MapLibre Native), the 0.9.1 data release (until then no `bk`/`bs`: nothing draws, the creeks stay open) and an app build.
+Status: IN PROGRESS — draft PR #112, independent review done (output correct; 1 HIGH + 3 MED + LOW); its fix round is built (fb32ed0b9, 9c561e10a, 60ed7424e). Built: look B from z13 on the Salmon map (`bk`) and the book's west half on the Standard map (Q6, `bs` → `bb`, from the salmon head alone); the 12 creeks closed, computed from the extent by FWA's side. Gates: atlas parity IDENTICAL, reach "no binding changed", bundle: exactly the 12 creeks differ, salmon head 101,518 B gz (gate 110,000); after the CRS fix the side atlas re-stamped: Kitimat "R-" → "RL", its 12 creeks unchanged. Owner questions open: an undetermined-side creek kept or dropped; the cue layering (A / B pictures). Left: Q4 (designed), the device walk, the 0.9.1 data release (its atlas rebuild re-stamps the banks) and an app build.
 
 Source: T754 (owner approved option B 2026-11-15 round 4; question 2 answered 2026-11-22 23:45, "Other bank: the water's
 other rules"). T754 built the words and the verdict (5953ef057, eeb19b4f3): a placed one-bank place stands beside the water's other
@@ -312,7 +312,11 @@ nicely'.) A one-bank place whose words take tributaries takes only the tributari
 FWA's own LEFT_RIGHT_TRIBUTARY at the root, against the stretch's drawn banks — and those take its rule across their whole
 width, with no stripe and no bank caveat; the stretch itself stays beside the water's other places. A tributary whose
 side cannot be read stays and is reported (`tributary_side_undetermined`); one on the other bank leaves the place
-(`tributary_other_bank`)."
+(`tributary_other_bank`)." (Review #112: "stays" is a PROPOSAL until the owner answers the question below.)
+
+Proposed AGENTS rule 49 amendment (with E28): after "…not placed, it is an ordinary undrawn place, never widened." add
+"Its TRIBUTARIES (a place whose words take them) are not beside: the ones joining its stretch on its bank ride their
+chains' `l` like any place, across their whole width, with no `bk` and no caveat (T1029, owner 2026-11-24)."
 
 ## Q6 built (lane L18, 2026-11-24 evening) — commits 76b8ff39e, 1c2338823, 1ba481823
 - Bundle: a synopsis rule with `side` ships its sections' side of the drawn line in the salmon head, `bs = {section: ±1}`
@@ -332,15 +336,48 @@ side cannot be read stays and is reported (`tributary_side_undetermined`); one o
   head is decoded once per loader and through `withLiveSalmon` keeps `bs` (`...P`); `bookHalves` is cached per payload, so
   the map is handed the same object and nothing relabels per render; a failed read is reported by `useAsync`. No change.
 
+## Review #112 (independent, 2026-11-24 night) and the fix round (lane L18b)
+Output correct (the 12 creeks verified independently; nothing else moves). Findings and what was done:
+- HIGH (fb32ed0b9): `stamp_drawn_banks` measured the atlas's EPSG:3005 METRES with the degrees rule (cos(lat) scaling).
+  Re-stamping the side atlas (1,237,216 stream pieces, 53 s): north/south opposite on 20.0% and missing on 48.5% before
+  the fix; east/west opposite 0.1%. Now every line is projected to EPSG:4326 in one batch, and both degree rules refuse a
+  line in metres. Test through `stamp_drawn_banks` on 3005 lines (the Kitimat, a 59° N line whose east answer needs the
+  per-degree scale); 4 mutations caught (no projection, reversed, unscaled, guard removed). Today's answers do not move:
+  the Kitimat's word is "west" (the first character, unchanged "R"), the Nakina's north place has no tributaries.
+  Re-proved on the re-stamped side graph: Kitimat 1234098 "R-" → "RL", the west-bank place keeps all 12 creeks (none
+  other-bank, none undetermined) = the side reach run. NEEDS THE ATLAS RE-STAMPED: the 0.9.1 build rebuilds the atlas,
+  which stamps with the fix; that build must show 1234098 `drawn_banks` "RL", the reach's `dfo_one_bank` in report.json
+  `{places: 1, kept: 12, tributary_other_bank: 0, tributary_side_undetermined: 0}`, and the salmon diff = the 12 creeks.
+- MED 3, W46 (9c561e10a): a graph.pkl without the bank fields read "" on every node and every tributary was kept silently:
+  `require_bank_fields` now refuses it by name (`atlas_lacks_bank_fields`), only where a one-bank place has tributaries.
+  The reach run prints every tributary kept with no side read (`!!   dfo <place> … KEPT with no side read`) and writes the
+  tally to report.json (`dfo_one_bank`). Keeping one stays as built, a PROPOSAL (owner question 1 below). The CLI's print /
+  report.json lines are not covered by a test (the tally function is).
+- MED 4 (9c561e10a, 60ed7424e): the `resolve_all` wiring (`row["sections"] = sorted(kept)`) is tested through
+  `resolve_all`; the phone's channel set is pinned to the web's (`one-colouring-engine.test.ts`; removing the phone's
+  `bank` or `half` effect is now red).
+- MED 2, a look (NOT built; owner question 2): `review-cues-ab-{light,dark}.png`.
+- LOW (9c561e10a, 60ed7424e): `keep = stem & bound`; `root_of` dropped; the bundle refuses a `bk` place whose own chain in
+  `unmapped` is not exactly one (the app's decode refusal, now caught at build); the stream and lake layers are read ONCE
+  for all one-bank places (was once per place; the book's half rules still read them once more: 2 passes, was 3).
+
+### Owner questions from the review (for the coordinator to ask)
+1. A tributary of a one-bank place whose side cannot be read (FWA says NONE / UNKNOWN for it, T1084, or it reaches the
+   stretch on both banks): keep it in the place (closed with the bank, as built), or leave it out (it answers by its other
+   places)? Today there is none; the reach run prints any it meets. His rule names only "tributaries on the one bank side".
+2. The bank layers draw last and wide, so on the stretch they hide the line's own cues: the bait-ban edges (both maps),
+   the issue stripe (Salmon, none today), and on a whole-closed river the non-bank half is red with no dashes (the
+   colour-blind cue gone). `T1029-shots/review-cues-ab-{light,dark}.png` (Kitimat; Standard and Salmon on Aug 15, Salmon
+   on Nov 15 when the whole river is closed; z14/z16): BUILT, **A** the line's cues drawn above the bank layers (closed
+   dashes and issue stripe down the middle, the bait-ban edge outside the widened stretch), **B** as built plus the line's
+   own closed dashes down the non-bank half where the line itself is closed. A and B are harness pictures, not built; B
+   does not bring back the bait-ban edges (A does). Recommendation for the coordinator to weigh: A for the gear edge and
+   issue stripe + B's dashes on a closed river, i.e. both; his call.
+
 ## Left
 Q4 polygon reaches: designed, not built (above). The device walk (above). The 0.9.1 data release carries `bk`, `bs` and
-the 12 creeks' closure; an app build carries the drawing.
-
-Seen in the Q6 proof, NOT fixed (a look; for the review and the owner): the four bank layers are the last stream layers
-(`runtime-style.ts`), drawn 1.5× the line's width, so on a bank stretch they cover the marks beside or down the line. On the
-Standard map the Kitimat's bait-ban dashes (`stream-gear-bait`, beside the line) are gone on the 746 m stretch in AFTER,
-also on its open east half (`built-q6-*`, z14/z16). On the Salmon map the issue stripe (T759, down the middle) would be
-covered the same way on a water with both (none seen today).
+the 12 creeks' closure, from an atlas the fixed stamp re-stamps (above: what it must show); an app build carries the
+drawing. The two owner questions above.
 
 ## Q4 — LEFT (coordinator 2026-11-24: do not build now; build when the first case appears)
 Owner's answer: "Along the bank edge". The measured rule (`v2-q4-bank-edge-*`, Kildala 1846283): the polygon's OUTER
