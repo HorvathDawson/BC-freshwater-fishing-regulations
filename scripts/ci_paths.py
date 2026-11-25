@@ -59,6 +59,7 @@ AREAS: dict[str, list[str]] = {
             "deploy/staging/build-apk.sh", "deploy/staging/build-ios-sim.sh", "deploy/staging/build-ios-testflight.sh",
             "deploy/staging/feeds.sh", "deploy/lib/build-links.sh", "scripts/fast-fail.sh", "scripts/heavy.sh",
             "handoff/PLAN/runbooks/release.md",
+            "handoff/PLAN/ios/APP-STORE-SUBMISSION.md",   # (T1099) app/tools/privacy-manifest.test.ts compares the manifest with its labels
             "pipeline/deliver/tiles/basemap.py", "pipeline/deliver/tiles/ladder.py", "pipeline/deliver/tiles/layers.py",
             "pipeline/deliver/tiles/tile-contract.json", "pipeline/gauges/consume/panel.py",
             "pipeline/gauges/feed/climatology.py", "pipeline/gauges/feed/publish.py", "scripts/test-full.sh",
