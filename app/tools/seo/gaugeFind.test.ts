@@ -67,8 +67,8 @@ describe("T1107 the /gauges search page", () => {
     const own = routeSearch(reduce(HOME, { type: "tab", tab: "conditions" }));
     expect(own).toBe("?browse=conditions");
     const body = gaugesIndexBody([], "2026-11-25", { index: "/i.json", script: "/s.js", cfg, conditions: `https://canifishthis.ca/${own}` });
-    const href = /<a href="([^"]*)">open the Conditions map<\/a>/.exec(body)![1]!;
-    expect(CONDITIONS_MAP_LINK).toBe("open the Conditions map");
+    const href = /<a class="app" href="([^"]*)">Open the Conditions map<\/a>/.exec(body)![1]!;
+    expect(CONDITIONS_MAP_LINK).toBe("Open the Conditions map");
     expect(href).toBe(`https://canifishthis.ca/${own}`);
     const start = parseStartLink(new URL(href).search)!;
     expect(start.route).toMatchObject({ mode: "browse", tab: "conditions" });

@@ -352,12 +352,12 @@ export const GAUGES_LEDE = "Find the river gauge nearest a town, or on a river o
   "Each gauge's page links to the fishing regulations of the waters it serves.";
 
 /** (owner 2026-11-25: "to view the conditions visually on a map go here") the line and its link text: a proposal, the owner's words are an example */
-export const CONDITIONS_MAP_WORDS = "To see the conditions of every water on a map,";
-export const CONDITIONS_MAP_LINK = "open the Conditions map";
+export const CONDITIONS_MAP_WORDS = "To see the conditions of every water on a map, open the Conditions map.";
+export const CONDITIONS_MAP_LINK = "Open the Conditions map";
 
 export function gaugesIndexBody(gs: readonly GaugeModel[], asOf: string, find: { index: string; script: string; cfg: { crash: string | null; env: string; release: string; live: string }; conditions: string } | null = null): string {
   return `<nav class="crumbs"><a href="/">Home</a> › River gauges</nav><h1>River gauges in BC</h1>` +
-    `<p>${esc(GAUGES_LEDE)}</p>` + (find ? `<p>${esc(CONDITIONS_MAP_WORDS)} <a href="${esc(find.conditions)}">${esc(CONDITIONS_MAP_LINK)}</a>.</p>` : "") + (find ? `${gaugeFindForm(find.index, find.cfg)}<script src="${esc(find.script)}" defer></script>` : "") +
+    `<p>${esc(GAUGES_LEDE)}</p>` + (find ? `<div class="card mapline"><p>${esc(CONDITIONS_MAP_WORDS)}</p><div class="opens"><a class="app" href="${esc(find.conditions)}">${esc(CONDITIONS_MAP_LINK)}</a></div></div>` : "") + (find ? `${gaugeFindForm(find.index, find.cfg)}<script src="${esc(find.script)}" defer></script>` : "") +
     `<p>${gs.length} Water Survey of Canada gauges on waters with fishing regulations: each page shows the live flow, the last ` +
     `7 days, the flow forecast where the BC River Forecast Centre runs one, and the weather at the gauge. ` +
     `List as of <time datetime="${esc(asOf)}">${esc(asOf)}</time>.</p>` +

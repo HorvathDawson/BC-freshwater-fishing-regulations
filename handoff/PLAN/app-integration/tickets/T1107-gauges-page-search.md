@@ -16,6 +16,10 @@ Owner addition 2026-11-25, typed in the planning chat (verbatim): "it should als
 something like to view the conditions visually on a map go here". Built as one line with a link to `/?browse=conditions` (the address the app
 writes for the Conditions tab); the words are a proposal.
 
+Owner answer 2026-11-25 on the pictures (verbatim): "should use mute color and text. also make the button for going to map look better and more asthetic. this page should still look professional".
+Done in v2: the current-data words are the muted `.tag` text, no dot; the Conditions line is a `.card` with the site's primary `.app` button (the gauge
+page's own "Open on the website" pattern); spacing, list borders, focus ring and hover from existing tokens. Pictures `T1107-shots/v2-*` (button option B: `v2-button-option-B-*`).
+
 ## Work
 1. A search field at the top of `/gauges`, the same component and index as the main search bar (one search, not a
    second one): typing a place, a river, a lake or a station name or number.
