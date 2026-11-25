@@ -36,6 +36,12 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 - A screen never asserts a fact about the data; it asks. Assert whole composed strings. Detail: AGENTS 32-33.
 - Anything the app cannot read or a feed could not supply is said, never guessed. Never invent an end date for an in-season notice. (owner 2026-11-20, T548)
 - "?" does not exist in the review: a row is right or wrong; unsure counts as wrong, and older wordings need a per-wording human tick. (owner 2026-11-09, T532)
+- Python decides every word, number and date; the app only draws. Where the data can be made right, change it all the way in Python so the front end needs no workaround. (owner 2026-11-16, T810)
+- Simplify wherever a limit already implies another: drop the implied line and say the implication once, everywhere; the overall limit is still stated. (owner 2026-11-18, T810)
+- The release gate: the build lists every DFO place whose latest owner save is "wrong" (no fix drawn) and refuses to ship until each is fixed and re-saved; a feed row that matches a stream but has no place yet puts DFO's words in the DFO rule section with the check style. (owner 2026-11-17, T786)
+- Crashes carry the open water's id and pane state, and the privacy page says so. (owner 2026-11-03, T352)
+- No old-link support: only the current link form is read. (owner 2026-11-03, T369)
+- A menu or screen design the owner said is "Claude's choice" is built without asking and checked by the owner on the phone. (owner 2026-11-06, T453)
 
 ## 3. Showing the rules
 
@@ -70,6 +76,16 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 - "N waters changed" counts rule changes only and is hidden at 0. (owner 2026-11-24, T1030)
 - The Stanley Park / municipal park-bylaw closed waters have a curated path; Lost Lagoon first, the rest reviewed next release. (owner 2026-11-21, T981)
 - Sheets: "Done" in sentence case, the scrim stays and fades while the sheet slides, sentence-case headings. (Claude 2026-10-22, T41)
+- A fully closed water shows no gear, method or quota; where something is still open (salmon) the page says what is in force. (owner 2026-11-12, T670, T934)
+- No province-wide banner for alien-angler closures: each water carries its own closure and price on its own Licence tab only. (owner 2026-11-17, T789)
+- The trout table's rows say where a rule came from ("this water", tributary) the way the card does. (owner 2026-11-19, T907)
+- The map paints the drawn answer: an undrawn place never paints `check`; the card keeps the answer and adds the caveat. (owner 2026-11-04, T372)
+- "To be determined" reads as that; the map still shows green if any salmon is open and yellow if closed apart from it. (owner 2026-11-18, T882)
+- A lake or thing without a meaningful map needs no gauge map; one map size. (owner 2026-11-18, T881)
+- A new app version shows a popup with the swimming fish and the update list, dismissed to the Bell, on both platforms. (owner 2026-11-18, T888)
+- The opening loader is the coho (web and app, web version much smaller); small in-app loaders keep the circling fish. (owner 2026-11-17, T844)
+- Share uses the phone's share sheet; the web uses `navigator.share` or copies the link; the same link either way. (owner 2026-11-04, T385)
+- A source row sits at the bottom of each tab and only for what that tab shows (no condition sources on regulations; the map already has attribution). (owner 2026-11-22, T991)
 
 ## 4. Waters, names and curation
 
@@ -87,6 +103,8 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 - Ponds: a pond is a lake by default; the pond domain is closed and nothing is exported for it. (owner 2026-10-30, T329)
 - Waters printed in an MU holding no registry water of that name stay unbound and listed; a same-name water elsewhere is never bound. (owner 2026-10-23, T89)
 - A lake never answers to its through-river unless the book names it; a creek-fed loop stays with its river. (owner 2026-11-15, T743)
+- Different rules on the two sides of a lake: separate pieces; the same rules: one part across any lake, named or not; one part per connected adjacent stretch. (owner 2026-11-08, T517)
+- A river's pieces (side loops, same-lake loops) are taken out of the river and given to the lake where they belong; the water map walks upstream/downstream along one line through every part, ranked by the upper end. (owner 2026-11-14 / 2026-11-15, T750, T753)
 - A lake divided into closure areas (a lake split) is deferred, not curated; its only issue marks it "later" in review. (owner 2026-10-28)
 - A continuation link ships only when listed `reviewed` in `continuations.json`; the atlas only proposes. (owner 2026-10-29)
 - A river that changes its name (Vedder/Chilliwack, Bella Coola/Atnarko) is one system for back and for its own gauge. (owner 2026-10-22, T76)
@@ -175,6 +193,9 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 - The Conditions watershed colouring starts at a slightly higher zoom; while visible the lakes and streams are hidden; one answer per zoom. (owner 2026-10-22, T130)
 - Basemap and atlas tile size: basemap to z13 with no feature lost and overzoom past it; the outside-BC mask stays out of the tiles; every size loss needs a zero-loss proof. (owner 2026-10-24 / 2026-10-27, T85, T202)
 - Wetlands are drawn only when in a registry item, stream-kind or gazetted-named. (owner 2026-10-24, T64)
+- Where a lake is hidden at a zoom, the creek's line is drawn through it. (owner 2026-11-07, T493)
+- The shoreline gets a shaded band; the colour-blind theme keeps it solid. (owner 2026-11-23, T467)
+- Production Android builds use one pinned upstream MapLibre main commit and no patch of ours; never a stock release. (owner 2026-11-22, T978)
 - A tile build and the data are versioned separately; the app keeps the last good pair on a mismatch; tiles and bundle share a vintage. (owner 2026-10-20, D27)
 - Spot pins are square, neutral ink; the selected spot is a ring in the spot colour. (owner 2026-10-24, Q134)
 - Saved spots draw on the map with a Layers switch, on by default. (owner 2026-10-22)
@@ -201,6 +222,7 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 - Gauge representativeness is the owner's policy; the default policy is drainage plus tributary gauges across a continuation link. (owner 2026-10-28, T93)
 - Silent panel members are hidden from the gauge table, drawn nowhere, and named in one line: "Not reporting: <gauge> (last <date>)". A gauge that reports but cannot be ranked stays a row. (owner 2026-10-22, T69)
 - Station datum changes are accepted only as clean, documented, easy-to-see updates (what moved, by how much, from which note); 08HD006 and 08EF001 accepted, the rest stay proposed. (owner 2026-11-24, T1047)
+- Roster changes (stations joining or leaving ECCC's list) need no manual refresh; the app picks them up from the feed. (owner 2026-11-18, T847)
 - An off-datum level reads as Capilano: today's level, "Too new to say if this is high or low.", no band. (owner 2026-11-23, T1047)
 - Under Level the estimate box says "(ranked on flow)"; a chart without a normal range scales to the year's data. (owner 2026-11-23, T1043)
 - The estimate uses the flood models combined (CLEVER and COFFEE, geometric mean, equal weights) and ELF only where no flood model reaches; weights change only on the run-archive verdict (>= 200 paired cases over >= 20 issue days). (owner 2026-10-23 / Claude 2026-10-24, T144, T177)
@@ -253,6 +275,9 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 - Regulations are never chosen per region; only the map may be. (owner 2026-10-29, T259)
 - A data update keeps downloading when the app is closed, as one packed download through the system downloader; "Wait for Wi-Fi" waits quietly. (owner 2026-11-14 / 2026-11-19, T722, T912)
 - A bad connection still answers first: low-bandwidth mode (automatic, with More-Data Automatic/On/Off), retries, resume. (owner 2026-10-29, T254)
+- Old data for old app versions is deleted automatically to stay under 10 GB of storage; a phone far outside B.C. is told location will not be useful. (owner 2026-11-18, T865, T864)
+- iPhone is portrait only; the Apple account is an individual developer account; only photos and spots need backing up. (owner 2026-11-14, T732)
+- Preview cards for shared links are drawn at the feed refresh and served as static files, never rendered per request. (owner 2026-11-08, T487)
 - Gzip everywhere; no middle-man JSON is shipped; `regs.sqlite` is not shipped. (owner 2026-10-20, D29, D30)
 - Release files: the smaller packed formats are read by 0.8.4 and on; the old readers and the switch were removed once packed formats shipped. (owner 2026-11-20 / 2026-11-21, T686, T975)
 - Size gates rise only by owner approval, with "raise now, shrink later". Detail: RULINGS O5, O9, O10; the gates live in `build.SIZE_GATES`.
@@ -295,6 +320,8 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 - Send pictures, not repo paths: the owner cannot open them. (owner 2026-11-06)
 - Repair passes are one-off tools, never wired into the parse script. (owner 2026-10-21)
 - Competitor list: add rows to `handoff/PLAN/COMPETITORS.md` when the owner names one. (owner 2026-11-21)
+- A tester's suggestion is a proposal, never taken blindly; the owner decides each. (owner 2026-11-21, T982)
+- Versions are computed from the commits (major/minor/patch); release candidates are tagged. (owner 2026-11-21, T998)
 - Conventional Commits `type(Tnnn): subject`; the app version comes from them. Detail: AGENTS W47-W48.
 - The repo moves to the `canifishthis` organisation and is renamed `canifishthis/canifishthis`; the merge queue follows. (owner 2026-11-25, T1041)
 - Before a push run the related tests; the full app suite and pipeline tier run once before opening a PR; mutation testing reports only. (owner 2026-11-23, T1041)
@@ -302,7 +329,7 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 ## 12. Unclear: owner to confirm
 
 - Mapbox: the owner said (2026-11-25) "we will be changing it to mapbox soon" (T1108, 0.11) while the stores answer for Esri as shipped. Is Esri to be dropped, and is a key then needed?
-- Run timing: 2026-10-28 says its own feed, not the release (T199); 2026-11-03 says "always synced" with the release (T373); T485 moves it off the release path. Which holds today?
-- Bottom bar in water mode: hidden (D1, 2026-10-20) while the Runs tab was later added; confirm "water mode hides the bar" still holds on tablets and the web rail.
+- Run timing: 2026-10-28 says its own feed, not the release (T199); 2026-11-03 "always synced" with the release (T373); 2026-11-05 workflow plus release in step (T412); T485 moves it off the release path. Which holds today?
+- Accounts: T223 (shared web and phone accounts, owner 2026-10-28, postponed far future 2026-11-05) would reverse "no cross-device sync" in the spots model; is that still wanted, and is it postponed or dropped?
+- Bottom bar in water mode: hidden (D1, 2026-10-20), while the Runs tab was added later; confirm "water mode hides the bar" still holds on tablets and the web rail (code: `bottomBarShown(route)`).
 - The PDF link: 2026-10-20 said open the URL (no in-app viewer); 2026-11-03 prefers `react-native-pdf`. Which is shipping on native today?
-- Esri imagery stays "as the app ships today" but 2026-11-25 says "we will be changing it to mapbox soon" (T1108, 0.11). Is Esri to be dropped, and is a key then required?
