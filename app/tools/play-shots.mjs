@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// GOOGLE PLAY SCREENSHOTS — headless Chrome (never a visible window) on the STAGING site, light theme, first-run notice /
+// GOOGLE PLAY SCREENSHOTS — headless Chrome (never a visible window) on a STORE-SHOTS web export (store-shots/site.mjs, T1076), light theme, first-run notice /
 // walkthrough / in-season sheet seeded as seen (as smoke-staging.mjs does). Phone: 360x640 CSS px at dpr 3 = 1080x1920.
 // Tablets: 7" 1200x1920 (600x960 @2), 10" 1600x2560 (800x1280 @2). App Store sizes: iphone67, iphone55, ipad13 (T319).
 //   node tools/play-shots.mjs [outDir] [--only a,b,...]
@@ -7,10 +7,15 @@
 import fs from 'node:fs'; import path from 'node:path';
 import { open } from './regs-web/cdp.mjs';
 import { checkScene } from './store-shots/checks.mjs';
+import { assertStoreShotsSite } from './store-shots/site.mjs';
 const args = process.argv.slice(2);
 const ONLY = args.includes('--only') ? args[args.indexOf('--only') + 1].split(',') : null;
 const OUT = path.resolve(args.find((a, i) => !a.startsWith('--') && args[i - 1] !== '--only') ?? '../handoff/PLAN/app-integration/store/graphics');
-const SITE = process.env.STORE_SHOTS_SITE ?? 'https://staging.canifishthis.ca';
+// (T1076) no default: the site must be a store-shots build (store-shots/site.mjs builds and serves one; store-shots.mjs / run.mjs
+// pass it). Run alone, set STORE_SHOTS_SITE to one; anything without the marker is refused before the first scene.
+if (!process.env.STORE_SHOTS_SITE) throw new Error('play-shots: STORE_SHOTS_SITE is not set. Run node app/tools/store-shots.mjs (it builds and serves the store-shots export), or serve one with node app/tools/store-shots/site.mjs serve and set STORE_SHOTS_SITE to its URL');
+const SITE = process.env.STORE_SHOTS_SITE;
+await assertStoreShotsSite(SITE);
 // (T704) THE CLOCK IS PINNED: PIN_AT (an ISO instant) is what the page's Date says when it loads, then it runs on (timers and the
 // map's animations keep their pace). Unset = the page's own clock (the old behaviour). store-shots/run.mjs always sets it.
 const PIN = process.env.PIN_AT ? Date.parse(process.env.PIN_AT) : null;
