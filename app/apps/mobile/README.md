@@ -1,53 +1,37 @@
-# apps/mobile — the Expo project (iOS, Android, and today's mobile web)
+# apps/mobile: the one app shell (iOS, Android, web)
 
-Built **first**, and **offline-first**: the device carries the only hard constraints
-(fixed storage, no round trips, no server fallback). Web is a relaxation of this.
+The Expo project that boots the app on all three platforms. It wires `@app/ui-native`'s `Shell` to the data, the map and
+the platform (back button, location, notifications, share, fonts, update checks). It holds no regulation logic: that is
+`@app/core` and `@app/ui`, and `layers.json` enforces it. The web app (phone, tablet and desktop widths) is served from
+here too: Expo web is a platform of this project, not a second app.
 
-Components come from `@app/ui-native` — the same set mobile web renders through
-react-native-web, so the two phone experiences match by construction rather than by
-discipline. Nothing in `src/` may hold regulation logic; that is `@app/core` and
-`@app/ui`, and `layers.json` enforces it.
+## Entry points
 
-## Run it
+- `index.js` -> `src/App.tsx`: the one shell for ios / android / web (`registerRootComponent`).
+- `src/*.native.ts` / `*.web.ts` / `*.d.ts`: the platform pairs (`systemBack`, `locate`, `notify`, `share`, `pickPhoto`,
+  `appUpdater`, `startLink`, `replaced`, ...), checked by `pnpm platform` (app README "Web and native code").
+- `src/config.ts` + `src/env.ts`: the data environment (local / staging / production) and its URLs; `eas.json` the build profiles.
+- `app.json` + `app.config.js` (config), `plugins/` (Expo config plugins: R8 rules, signing, backup rules, pinned MapLibre),
+  `modules/` (local native modules: `bg-download`, `exit-info`, `memory-trim`), `version-stamp.js` (run by `metro.config.js`).
+- `assets/`: fish pictures and thumbnails, icons, splash. Fish thumbs and sprites are generated (`pnpm fish`, `pnpm splash`).
+
+## Run it (from `app/`)
 
 ```bash
-pnpm dev:web       # from app/  → expo start --web
-pnpm dev:android   # from app/  → expo run:android
-pnpm dev:ios       # from app/  → expo run:ios
+pnpm dev:web       # expo start --web, the fast loop
+pnpm dev:android   # expo run:android (JDK 17+, Android SDK)
+pnpm dev:ios       # expo run:ios (Xcode, CocoaPods)
 ```
 
-One project, three platforms, one `src/App.tsx`. `expo start --web` is the fast loop:
-Metro compiles the same React Native tree through react-native-web, so what a browser
-shows is the phone UI, not a web imitation of it.
+## Rules
 
-**The web app is served from here.** Expo's web output is a *platform* of this project, not
-a separate app. Desktop is a layout class of the same components (`useLayoutClass`, T45),
-not a second shell.
+- `android/` and `ios/` are generated from `app.json` by `expo prebuild` and never committed or edited; change
+  `app.json` or add a config plugin, then `pnpm --filter @app/mobile run prebuild`.
+- The data is downloaded on first run, never shipped inside the store build (a data fix must not need an app release).
+- R8 is on for every release build (`plugins/with-r8.js`); Android release builds use the pinned MapLibre
+  (`app/tools/maplibre-android/`). Store builds and uploads are `deploy/` (`deploy/staging/build-apk.sh`).
 
-## Native directories are generated, never committed
+## Tests
 
-`android/` and `ios/` are Continuous Native Generation output, derived from `app.json`.
-`expo run:*` creates them on demand; `pnpm --filter @app/mobile run prebuild` regenerates
-them explicitly. They are gitignored on purpose: committing them re-creates the v1 problem
-where one config change had to be hand-applied in two places.
-
-Do not edit them. Edit `app.json` (or add a config plugin) and prebuild again.
-
-## What still needs a machine
-
-- **Android** needs a JDK (17+) on `PATH` and the Android SDK (`ANDROID_HOME`). The
-  generated Gradle project is complete; without a JDK `gradlew` cannot start.
-- **iOS** needs Xcode *and* CocoaPods (`brew install cocoapods`). `expo run:ios` runs
-  `pod install` first and stops there without it.
-
-Neither affects `pnpm dev:web`, which needs only Node.
-
-## Still to come
-
-The real screens wait on the packaging spike (13-build-plan step 6), which decides what
-`data-mobile` reads. `src/App.tsx` renders `PlaceholderScreen` from `@app/ui-native` — a
-wiring probe, not product UI. It calls `freshness` (`@app/core`) and prints the result, so a broken workspace link fails on screen instead of
-silently resolving to something stale.
-
-**Non-negotiable:** the bundle is downloaded on first run. It must never ship as an
-app-store asset — that is what made a v1 data fix require an app release (issue ㉛).
+`src/*.test.ts(x)` beside the code, run by `pnpm test` from `app/` (vitest, react-native-web as the renderer). `src/back.test.tsx`
+holds the Android back table in [`app/BACK.md`](../../BACK.md).

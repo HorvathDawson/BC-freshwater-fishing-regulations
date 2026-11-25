@@ -162,7 +162,7 @@ export function SpotScreen(p: SpotScreenProps) {
   // "Keep it" / "Keep editing": nothing deleted, nothing dropped
   const keep = () => { setConfirm(null); if (!confirm) p.onKeepEditing?.(); };
   /*
-   * BACK, ON A SPOT (app/HANDOFF-ui.md "Back, everywhere"): an open question is answered "keep"; an edit is left the
+   * BACK, ON A SPOT (app/BACK.md "Back, everywhere"): an open question is answered "keep"; an edit is left the
    * way Cancel leaves it — asking first when something changed, so no back ever drops an unsaved edit unasked; a spot
    * only viewed is left by the route (to the list). A draft's own steps are the capture's (SpotCapture).
    */
