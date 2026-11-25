@@ -9,6 +9,16 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 ---
 
 
+## 2026-11-24: 0.9.0 shipped
+- Production: the data (r-0aec88ed3edb, you ran it), the website and the feeds worker are on 0.9.0; the production
+  smoke test passed 18 of 18.
+- Phones: Android build 44 on Play Internal and Closed testing; iPhone build 45 uploaded to App Store Connect. The
+  Play Production rollout and the App Store submission are yours (OWNER-TODO).
+- Before shipping, the device pass found and fixed two defects (background checks never ran under the code shrinker;
+  a crash moving a frame to another water). One known issue shipped: a cold-start tab link can land short (fixed for
+  0.9.1).
+- The release branch merges back into main by PR #140. Restart page: `handoff/PLAN/NEXT-SESSION-2026-11-24-after-090.md`.
+
 ## 2026-11-22 20:15: 0.9.0 batch chat, stopped early (low credits; no release)
 - Seven, then fourteen parallel lanes worked the 0.9.0 batch plus every small open ticket (your rule: no bathymetry,
   stocking or big builds). Each PR gets a second agent's review before it merges; the reviews found real defects in

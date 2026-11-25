@@ -8,7 +8,7 @@
  */
 import { View } from "react-native";
 import { Text } from "../../Text";
-import { plain, WORDS, type FlowStepVM, type FlowVM } from "@app/core";
+import { OPEN, plain, WORDS, type FlowStepVM, type FlowVM } from "@app/core";
 import { TYPE } from "../../type";
 import type { Palette } from "../../theme";
 import { LineText, type KeepActions } from "../LineText";
@@ -24,7 +24,7 @@ function Says({ s, palette, actions }: { s: FlowStepVM; palette: Palette; action
   const words = <LineText line={s.says} style={TYPE.regsBody} color={s.tone === "won" || s.tone === "note" ? palette.ink : palette.sub} palette={palette} actions={actions} />;
   return s.rule
     ? <RegsPress accessibilityRole="button" accessibilityLabel={plain(s.says)} box={LINE}
-                 onPress={() => actions.onSheet(`rule:${s.rule}`)}>{words}</RegsPress>
+                 onPress={() => actions.onSheet(OPEN.rule(s.rule!))}>{words}</RegsPress>
     : words;
 }
 
