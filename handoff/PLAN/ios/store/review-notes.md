@@ -1,5 +1,7 @@
 # App Review notes and category (T727, PROPOSAL for the owner)
 
+**Superseded 2026-11-24 by `handoff/PLAN/ios/APP-STORE-SUBMISSION.md` (T1071), the page the owner pastes from. Where the two differ, that page is right (it was re-read against build 0.9.0 (45): push token, Precise vs Coarse, linked answers, the More menu paths). This page is kept as the evidence behind it.**
+
 A proposal. Nothing is entered. The text between the lines is ready to paste into "Notes for App Review". Facts were checked
 against the code on 2026-11-14; where I could not, it says "check" outside the paste block.
 
