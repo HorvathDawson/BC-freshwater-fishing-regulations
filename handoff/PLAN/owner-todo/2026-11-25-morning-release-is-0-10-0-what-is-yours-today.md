@@ -49,3 +49,9 @@ order: 770
 - **Answered 13:23 in the iOS chat's walk-through (relayed):** EU trader status = "Not a trader" (in T1071). On content
   rights you said "we will be changing it to mapbox soon": that is T1108 (the feature release, now 0.11); this
   submission answers for Esri as the app ships today.
+- **Answered 13:43 in the store chat (relayed 13:48), the Play pictures: "hold play p[ictures until before prods
+  release".** No Play picture upload until just before the Play production release; T1128 (the two phone-width
+  layout faults visible in frame 3) is fixed and the frame reshot first. A words-only Play update before then
+  leaves the pictures alone. The App Store pictures are not held. Also yours that day: "yes" to making the store
+  pictures in a GitHub workflow started by hand, and "can be part of new repo transfer": T1131, with the repo-move
+  chat after the transfer.

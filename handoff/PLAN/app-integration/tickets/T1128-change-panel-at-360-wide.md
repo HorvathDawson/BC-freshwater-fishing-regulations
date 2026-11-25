@@ -1,10 +1,10 @@
 # T1128 — Change panel at 360 px wide: "Steady" struck through by its tick, the day strip's last column clipped
 
-Status: OPEN — 0.10.1
+Status: OPEN — 0.10.1; must land before the Play production release (the Play pictures wait for it)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1128 | Change panel at 360 px wide: "Steady" struck through by its tick, the day strip's last column clipped | OPEN — 0.10.1 | | store chat 2026-11-25; visible in the Play phone store picture, frame 3 |
+| T1128 | Change panel at 360 px wide: "Steady" struck through by its tick, the day strip's last column clipped | OPEN — 0.10.1; must land before the Play production release (the Play pictures wait for it) | | store chat 2026-11-25; visible in the Play phone store picture, frame 3 |
 
 Source: the store content chat, 2026-11-25, seen on the phone-width reshoot of store frame 3 (the conditions map's
 Change panel; PR #209). Not checked by the planning chat. Related: T1072 (the picture set), T1115.
@@ -20,3 +20,8 @@ strip's width; a render test at 360 px that fails without the fix. Then the stor
 play-phone (one command), so the listing picture is clean.
 
 Severity: low (cosmetic; on a store picture). Release: 0.10.1. Model: Sonnet. Size: S. Owner: no.
+
+Owner 2026-11-25 13:43, in the store chat (relayed): "hold play p[ictures until before prods release". No Play
+picture upload until just before the production release; by then this ticket is fixed and play-phone frame 3 is
+reshot (the store chat's tool, or T1131's workflow). So this ticket now gates the Play listing pictures: whoever
+closes it tells the planning chat and the chat that holds the picture tool.
