@@ -15,6 +15,13 @@ Owner, same day, relayed by the store chat: "can be part of new repo transfer". 
 3) builds it after the cutover, as a step after T1120, written for the new address (canifishthis/canifishthis) and
 its standard runners; not its own release item.
 
+Owner 2026-11-25 about 13:58, asked by the repo-move chat whether it takes this after T1120, verbatim: "yes and it
+should use the android or webapp images to generate apple aspect ratio images too". Planning chat's reading (his to
+correct): the App Store sizes (6.9" and 6.5") come out of the same workflow run and the same Android / web-app
+renders as the Play ones, with no iPhone simulator or Mac runner; today's tool already draws every size from the
+web export, so the workflow keeps that and must not grow a separate iPhone path. A check in the run says each App
+Store picture has Apple's exact pixel size.
+
 ## What
 A `workflow_dispatch` workflow, never on a schedule and never on PRs: it builds the store-shots web export
 (`EXPO_PUBLIC_STORE_SHOTS=1`), runs `node app/tools/store-shots.mjs --theme light` for all targets, and opens a PR
