@@ -1,11 +1,20 @@
 # T1107 — The web gauges page gets a search: by place, river or water, giving gauges only (nearest first)
 
-Status: OPEN.
+Status: BUILT, draft PR for the owner's look (code 4816a87d4). Core's main-search index (`buildSearchIndex` / `queryIndex`) over a gauge-cut file
+(`tools/seo/gaugeSearch.ts`); place -> nearest gauges with km, river -> its gauges then nearest others, station number or name -> that gauge; no
+match said; a failed file or live index said and reported. Current data = core `donorState` on the live index (words: "Reporting now" / "Not
+reporting today" / "Not a real-time gauge"). Conditions link = `routeSearch` of the Conditions tab. Pictures: `T1107-shots/`. Owner picks open: see the PR.
 
 Source: owner 2026-11-25 ~00:20 (planning chat), verbatim: "in 0.9.1 we should make this page
 (https://canifishthis.ca/gauges) have a search option that allows search to nearest place etc like the main search bar
 it should be able to search by place or river etc to get gauge only" and "someone found the page by search so we want
 it usable". The page is reached from web search engines, so a visitor may land on it first, with no idea of the app.
+
+Owner addition 2026-11-25 (verbatim): "it should also indicate gauges without current data and ones with". The /gauges list itself
+(static, build-time) did not say it; the search results do, from the live feed index.
+Owner addition 2026-11-25, typed in the planning chat (verbatim): "it should also link to the condition map page on the webapp and say
+something like to view the conditions visually on a map go here". Built as one line with a link to `/?browse=conditions` (the address the app
+writes for the Conditions tab); the words are a proposal.
 
 ## Work
 1. A search field at the top of `/gauges`, the same component and index as the main search bar (one search, not a
