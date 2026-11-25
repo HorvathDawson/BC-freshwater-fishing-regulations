@@ -74,6 +74,14 @@ with the default Claude uses until you answer). Newest first inside each section
 - Asked 2026-11-25 ~00:20: "in 0.9.1 we should make this page (https://canifishthis.ca/gauges) have a search
   option ... search by place or river etc to get gauge only"; "someone found the page by search so we want it
   usable". Ticket T1107, sent to the 0.9.1 chat; you get a picture of the page with results before it ships.
+- Relayed 2026-11-25 ~00:50 by the 0.9.1 chat (your answers in its chat): the push token after Don't Allow: "that
+  behaviour change can move to 0.9.1" (T1116); the one-bank stripe look: "A: cues above the stripe" (T1029); the
+  gauges page: "should use mute color and text. also make the button for going to map look better and more
+  asthetic. this page should still look professional" (T1107). And a HIGH find, on production now: the book's
+  "ANDERSON" LAKE row (a lake in the Walbran, MU 1-3) is bound to Anderson Lake on Dove Creek near Courtenay, so
+  that lake and Dove Creek wrongly show fly only, bait ban, single barbless and catch and release (T1117). Your
+  answer: "Yes, fix it in 0.9.1"; it is fixed in PR #166. An audit of every such cross-unit name binding is T1118
+  (0.9.2, first lane; you review its proposals).
 - Relayed 2026-11-25 ~00:25 by the 0.9.1 chat (your words typed in ITS chat, not seen by the planning chat): "would
   you be able to walk through the full release tonight of everything?" and "i will give you permission this one
   time to do all prod commands needed". Its reading: for the 0.9.1 release only it runs the production steps itself;
