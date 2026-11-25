@@ -16,6 +16,10 @@ in the main checkout (not committed).
    (today it fails two frames later with a timeout).
 3. Rerun for the current release and deliver the set (feeds T1072 and T319).
 
+Also (iOS chat 2026-11-24): `deploy/staging/appstore-screenshots-push.py` defaults to `store/light/`, which holds only
+the 2026-11-05 set with an appstore-6.7 folder, while the script expects appstore-6.9: its default run finds no 6.9"
+pictures. Make the reshoot's output folder and size names and the push script's defaults one thing.
+
 ## Acceptance
 The runbook step followed as written produces every frame on a fresh checkout; pointing the tool at a normal build
 stops at once with the reason.

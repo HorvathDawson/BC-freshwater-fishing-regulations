@@ -1,6 +1,6 @@
 # T1050 — Methods: "Ice fishing" repeats the Gear tab's line and hook counts
 
-Status: OPEN — 0.9.1; owner: OWNER-TODO "T1050 ice fishing lines" (which words), then a pipeline change + the 0.9.1 data release.
+Status: DONE — 2c072f33d, 295bbac15 (review: Kootenay's split count kept), 9e6e45694 + d0baa5fa0 (the mini release re-cut) (0.9.1; pipeline only, the app unchanged; reaches anglers with the 0.9.1 data release. Old apps read the new frames: a way's `while` was always optional)
 
 Source: in-app report `4eedeb08d1964b44` (staging feeds worker, the owner, 2026-11-24 18:50 UTC), reason "other", on
 Dick Lake `wbk:328989582`, part 0, "Today, Nov 24", Regulations view, web, app 0.9.0 (build 43, 127bf43), release
@@ -49,3 +49,49 @@ attachment); its own content is the two duties. Whether to repeat it is a wordin
 
 Size: S. Needs: owner pick; pipeline change; the 0.9.1 data release (the gear frame ships in the release). Safe for 0.9.1.
 Depends: none. Owner: yes (the words). Default: A is the build default once the owner picks; nothing changes until then.
+
+## Owner answer (2026-11-24 ~12:33 MST, verbatim)
+
+Question: the Methods tab's Ice fishing entry repeats the same line and hook counts the Gear tab already shows... What
+should Ice fishing show?
+
+Answer: **"Only what differs (Recommended)"** (the option's text: Ice fishing shows a line or hook count only where it is
+different from the Gear tab's; on Dick Lake that leaves its own content, hut and ice-hole duties, and no repeated counts).
+
+## Done (lane L20, 2026-11-24)
+
+- `pipeline/deliver/answers/gear.py` `resolve`: the ice-fishing way's `while` leaves out a count clause whose count (max,
+  min, unlimited: what `countTxt` words) equals the slot's main count, the Gear tab's (`repeats_main_count`,
+  `SAYS_ONLY_WHAT_DIFFERS`, decision G7). The clause stays in the frame's `circumstantial` and `decides` (a pipeline
+  citation only: see "Left" below). Only
+  ice fishing: set lining's "Lines: 1." counts set lines, not the Gear tab's rods, and stays (1,186 + 931 waters
+  unchanged). The members are not compared: the ice clause names `terminal_attractor` where the Gear tab's names
+  `hook`, and the page words neither.
+- Review of #130 (295bbac15): a count is a repeat only of ONE plain Gear-tab count. Where the Gear tab splits the main
+  count into a shore count and a boat count (every circumstance beside it a boat: `_from_a_boat`), the ice count says
+  which applies on the ice and is kept. In the 0.9.0 answers that is one frame, 437: **Kootenay Lake — Main Body**
+  ("1 line (rod) from shore; no limit from a boat"); it keeps "Lines: 1." under Ice fishing and loses only "Hook, lure or
+  fly per line: 1.". Dick Lake's "1 line (2 while alone in a boat)" is one plain count with a boat exception: its ice
+  count still goes. The same commit pins the min / unlimited comparison and the spec guard (two mutants had survived).
+- Tests: `pipeline/tests/test_answers_gear.py` `test_t1050_*` (Dick Lake's rules as the 0.9.0 bundle holds them; a
+  differing count kept; a spec and a count with no main kept; set lining kept; Kootenay's shore / boat split kept; same
+  max with another min, unlimited or a spec). Mutation-proved: an empty `SAYS_ONLY_WHAT_DIFFERS`, set lining added to it,
+  no shore / boat test, the split not passed, comparing only `max`, or no spec guard: each fails them.
+- Over the whole 0.9.0 answers (`r-0aec88ed3edb`; the answers step rebuilt from its own staging inputs reproduces the
+  live answers file byte for byte, then rebuilt with the change): 590 of 1,116 gear frames change, every one ONLY by
+  the ice-fishing way losing both clauses of `zp:allowable_methods.r2b` (1 line, 1 attachment); 7,549 named waters and
+  702,682 unnamed lake / wetland sections. No frame keeps an ice count afterwards: none differs from the Gear tab in
+  this bundle. No other section of the answers file (ladder, rows, licence, display, trout) and no other gear field moves.
+  After the review fix (counted from the decoded frames, not a second rebuild): the same 590 frames change; 7,548 named
+  waters lose both counts and Kootenay Lake — Main Body loses only the hook count.
+- The mini release re-cuts (9e6e45694, d0baa5fa0): the mini corpus has no ice-fishing rule, so no answer in it changed;
+  only the card check's `code_sha` stamp (in the water shards) moved with the gear code. 9e6e45694's subject ("its
+  ice-fishing way lists no repeated count") is wrong on that point; history is left as it is.
+- Pictures (Dick Lake, Nov 24, web 390 px, the 0.9.0 release before; a side release cut from the changed answers after):
+  `T1050-shots/methods-before-light.png`, `methods-before-dark.png`, `methods-after-light.png`, `methods-after-dark.png`.
+
+## Left (for the planning chat)
+
+- The ice-fishing clauses (`zp:allowable_methods.r2b`) are reachable from no source line on the page: the Methods tab's
+  ways source line cites only each way's `by` (`app/packages/core/src/regs/methods.ts` `waysVM`, line 96). That was so
+  before this ticket for every way's `while` clause; the frame's `circumstantial` / `decides` hold it, the page does not.
