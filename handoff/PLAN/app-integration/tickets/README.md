@@ -341,7 +341,6 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1096 | Methods: the page's ice-fishing clause carries no citation (the source is in the pipeline only) | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24, T1050's leftover |
 | T1097 | Gradle daemons across lanes: `gradlew --stop` ends other lanes' builds; idle daemons hold about 2.4 GB outside heavy.sh | OPEN — 0.9.2, with T1063 | | 0.9.1 chat 2026-11-24, T1058 lane |
 | T1098 | The privacy page says things the app does not do (install id and email, Apple Maps, headers, token after Don't Allow) | OPEN — 0.9.1 site deploy, before the App Store submission (T1071); owner reads the new words | | iOS chat 2026-11-24 |
-| T1099 | iPhone: the privacy manifest does not match the App Privacy labels the owner decided | OPEN — next iPhone build (0.9.1 or 0.9.2) | | iOS chat 2026-11-24 |
 | T1100 | More > Sources and licences: open-source notices missing for the shipped libraries and fonts | OPEN — 0.9.2 | | iOS chat 2026-11-24 |
 | T1101 | iPhone: About and the version headers show the Android build number | OPEN — next iPhone build (0.9.1 or 0.9.2) | | iOS chat 2026-11-24 |
 | T1102 | `before_push --changed` skips the reach tests for a change to the DFO salmon reach step (a real break passed the hook) | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24, T1029 lane |
@@ -361,6 +360,11 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1116 | A push token is registered only while the phone's notification permission is on; the worker drops tokens not re-registered for ~30 days | DONE — 0.9.1 (owner 2026-11-25); needs the app build + feeds worker deploy | f4ef89f4c | owner via the 0.9.1 chat, T1098 item g |
 | T1117 | The book's "ANDERSON" LAKE row (MU 1-3) is bound to Anderson Lake on Dove Creek (MU 1-6): wrong rules on production | OPEN — HIGH; 0.9.1, fixed inside PR #166 (T1053) | | 0.9.1 chat 2026-11-25 |
 | T1118 | Audit every name variant whose target sits in a different management unit than the book's row; a build check | OPEN — 0.9.2, first Opus lane (HIGH until the list exists) | | 0.9.1 chat 2026-11-25, behind T1117 |
+| T1119 | Boat launches, docks and the like on the basemap, always drawn, from OpenStreetMap, through every stage | OPEN — 0.10 at the earliest (owner 2026-11-25); research and pictures first | | owner picks what "etc" covers, the look, tap or not |
+| T1120 | At the repo move, a fresh clone proves everything can be set up and rebuilt from nothing | OPEN — chat 3 (repo move), last step (owner 2026-11-25) | | the list of what lives outside git; the owner confirms the secrets list |
+| T1121 | Web gauges page search: four leftovers from the T1107 review (report class, current-data mark on the list, place cap, plural) | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-25 |
+| T1122 | The stores' data forms say what the privacy page now says (Play Data Safety, the iOS submission page) | OPEN — before the App Store submission (item 2) and the Play application (item 1) | | owner reads out the Data Safety form |
+| T1123 | iPhone may still show the "New app version" notification toggle text | OPEN — 0.9.2, with T1073 | | not checked yet |
 
 ## Next after closed testing
 

@@ -24,6 +24,17 @@ could implement that in 0.10 ?" Belongs with T79 (imagery corridor + pools), roa
    from R2 and downloaded like the data packs; Esri's offline terms; what each costs in storage and egress.
 6. One page with a recommendation and the numbers, to the owner, before chat 4c freezes its scope.
 
+## Owner's addition 2026-11-25 00:38 (planning chat)
+Verbatim: "also in 0.10 when we add offline corridors we will switch mobile to use mapbox online satellite too and
+remove esri from mobile." So if the research says go, the scope is both: Mapbox for the offline corridor imagery and
+for the online Satellite map on Android and iPhone, with Esri World Imagery removed from the phone apps. The web is
+not named, so it keeps Esri until he says otherwise (planning chat's reading). What changes with it, to be listed by
+the research: the map credits and Sources and licences (T235), the privacy page and the stores' data answers (Mapbox
+is a new third party that sees map requests; T1098, T1099), the App Store "content rights" answer that names Esri
+(T1071), the `self-host-everything` exception list (Mapbox in, Esri out on mobile), whether Mapbox's terms allow its
+satellite tiles inside MapLibre or require its own SDK for the whole map, and what the monthly-user count is counted
+on (the 25k free figure is the owner's; confirm it against the price page).
+
 ## Acceptance
 The owner has the comparison (cost, terms, app size, privacy, work) and has picked; a build ticket follows his pick.
 
