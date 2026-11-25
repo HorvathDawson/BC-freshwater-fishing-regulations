@@ -42,4 +42,5 @@ the ticket.
 2. On the 11 side-channel leads, the bundle already carries a label like "2 side channels, joining 11.6 km from the
    mouth". Should it name the part on both the Map and the Regulations tabs? Today both show the water's name, a T517
    rule, so changing it is your call.
-3. The landing (A, B or C in the ticket) is still yours to pick. This change helps whichever one you choose.
+3. You picked landing A (the Map with its parts) at 15:14. It comes as the next patch, with pictures first. This label
+   stays on the page under it.

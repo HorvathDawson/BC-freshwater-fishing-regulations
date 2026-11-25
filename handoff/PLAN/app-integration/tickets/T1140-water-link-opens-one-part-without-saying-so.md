@@ -1,10 +1,10 @@
 # T1140 — A water's plain link opens the rules of one part without saying which: the Squamish reads "Closed"
 
-Status: PARTIAL — HIGH, on production. The first speed is built (5d57ac8c2, 54e0c3e15: every head of a multi-part water says "Part n of m" and links to its other parts; the pre-rendered page too), in review; the landing and the words are the owner's: owner: OWNER-TODO "Ticket T1140, HIGH, the first patch after 0.10.0." The area's name (item 4) needs a pipeline and bundle field, not built
+Status: PARTIAL — HIGH, on production. The label fix (the first speed) is built (5d57ac8c2, 54e0c3e15: every head of a multi-part water says "Part n of m" and links to its other parts; the pre-rendered page too), in review; it ships IN 0.10.0, cherry-picked onto release/0.10.0 (owner 2026-11-25). Its words and look are proposals: owner: OWNER-TODO "Ticket T1140, HIGH, the first patch after 0.10.0." left (Claude): landing A (the Map with the parts, the owner's pick 15:14) is the next patch, pictures first; the area's name (item 4) needs a pipeline and bundle field, not built
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1140 | A water's plain link opens the rules of one part without saying which: the Squamish reads "Closed" | PARTIAL — HIGH, on production; first speed built, in review | 5d57ac8c2, 54e0c3e15 | owner: OWNER-TODO "Ticket T1140, HIGH, the first patch after 0.10.0." (pick the landing A/B/C and the words, T1140-shots/before-after.md); the area's name needs a pipeline + bundle field |
+| T1140 | A water's plain link opens the rules of one part without saying which: the Squamish reads "Closed" | PARTIAL — HIGH; label fix built, in review, ships in 0.10.0 | 5d57ac8c2, 54e0c3e15 | owner: OWNER-TODO "Ticket T1140, HIGH, the first patch after 0.10.0." (the words, T1140-shots/before-after.md); left (Claude): landing A next patch; the area's name needs a pipeline + bundle field |
 
 Source: owner 2026-11-25 14:55 (planning chat), with two pictures of the web app on production, verbatim: "big app
 bug we will want to fix asap.. basically if the user searches something liek squamish river regs and clicks the
@@ -48,6 +48,19 @@ Regulations and Conditions head of a multi-part water says "Part N of M" with th
 under it, "Other parts of this water have different rules", that opens the parts list; the five bare-name closed
 leads get their area's name. That is a wording and one-component change and can ship alone, web first. Second, the
 landing (A, B or C), after the owner's pick.
+
+## Owner's answers 2026-11-25 15:14 (multiple choice, planning chat)
+- When the label ships: "web first right after repo move and make repo move happen asdap".
+- The landing: "A: Map with the parts".
+- The transfer: "maybe we should just move now then we can build 0.10 on new repo with the merge queuew and the fix
+  for links web in the cut"; confirmed when asked with the costs: "Yes, move now, re-cut 0.10.0 after".
+How it is done (planning chat, from the 0.10.0 chat's facts): not a literal second cut. The staging run in flight
+tags v0.10.0 when it ships, and the cut refuses a tagged version; abandoning the branch would repeat four pin stops.
+So release/0.10.0 is kept (the runbook's "a fix during the release"): staging finishes, the repo moves, the label
+fix lands on main, is cherry-picked onto release/0.10.0, the staging step reruns (the data stages are reused; the
+golden pages stop once for the new heads), then production and the phone builds. The version stays 0.10.0 and it
+ships with the label. The label fix is the 0.10.0 chat's lane (steps 3 to 6 above, without the landing); landing A
+is the next patch, pictures first.
 
 ## Built 2026-11-25 (lane L28): the part label, the line, the pre-rendered page (the first speed)
 App-only: the stretch's name, its place in the list and the count after joins were already in the page's model (the

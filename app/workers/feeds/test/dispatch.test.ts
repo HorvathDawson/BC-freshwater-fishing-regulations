@@ -204,7 +204,7 @@ describe("(T413) the token check", async () => {
       return Response.json({ name: "feeds — HYDAT → climatology → R2", state: "active" });
     });
     expect(r).toEqual({ ok: true, status: 200, says: "feeds — HYDAT → climatology → R2 (active)" });
-    expect(calls).toEqual(["GET https://api.github.com/repos/HorvathDawson/BC-freshwater-fishing-regulations/actions/workflows/feeds-hydat.yml"]);
+    expect(calls).toEqual(["GET https://api.github.com/repos/canifishthis/canifishthis/actions/workflows/feeds-hydat.yml"]);
   });
   it("says why not", async () => {
     expect(await checkToken({}, async () => new Response())).toMatchObject({ ok: false, says: "GITHUB_DISPATCH_TOKEN is not set" });

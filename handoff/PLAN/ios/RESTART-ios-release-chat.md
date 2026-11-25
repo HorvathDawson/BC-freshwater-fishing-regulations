@@ -4,6 +4,27 @@ Written 2026-11-24 23:20 MST by the iOS release chat. Scope is frozen to T1071: 
 works only in a scratchpad worktree of origin/main, numbers no tickets (the planning chat does), and never types
 CONFIRM_PROD. The owner does every App Store Connect click.
 
+## HANDED OVER 2026-11-25 16:10: this chat is retired (owner's call)
+The owner retired the iOS release chat; the planning chat (or a later chat started from this page) finishes it.
+Everything in App Store Connect that needs no build is filled and saved. What is left, in order:
+1. After the owner's production site command: open `https://canifishthis.ca/privacy` and check the T1098 words are
+   live (the sentence about the install id; see section 3 of `APP-STORE-SUBMISSION.md`).
+2. When the iPhone 0.10.0 build is on TestFlight (46 expected): give the owner three clicks on the version page
+   (Distribution, iOS App, version 0.10.0): select the build and Save; **Add for Review**; **Submit for Review**.
+   If export compliance is asked: "None of the algorithms mentioned above". Section 11 has what follows (approved:
+   "Pending Developer Release", he presses Release This Version; rejected: he pastes Apple's message).
+3. Record the submission and Apple's answer in T1071 and STATUS.
+4. After the release: push proof (T996) on a second iPhone, the State table row below.
+Loose ends, none a gate:
+- The uploaded screenshots are this chat's resize of the 6.9" frames to 1206 x 2622. The native set is PR #238
+  (open, auto-merge off; frame 3's re-crop is unconfirmed, on the owner's list via T1131).
+- Header and Search Results pictures (T1134): the owner has the four files and said he would upload them; that the
+  upload happened is NOT confirmed. PR #256 is open with a failing test (`app/tools/store-shots/creative.test.ts`
+  calls ffprobe at a Homebrew path); the repo-move chat fixes it.
+- The App Privacy label carries Performance Data (App Functionality, not linked, no tracking) ahead of the app:
+  T1132 (0.10.1) owes the monitor, the manifest entry and the privacy page words.
+- `~/Desktop/AppStore-pictures/` on the owner's Mac holds the files he dragged (made by this chat, outside the repo).
+
 ## The pages
 - `handoff/PLAN/ios/APP-STORE-SUBMISSION.md`: what the owner pastes from, in App Store Connect's order. Section 0 is
   the state table; keep it true.
@@ -21,14 +42,23 @@ CONFIRM_PROD. The owner does every App Store Connect click.
 | iPhone 0.9.0 (45) | uploaded; external TestFlight state WAITING_FOR_BETA_REVIEW at 22:50 |
 
 ## Next, in order
-1. Privacy page wording (T1098) must be live before the submission; the planning chat routes it.
-2. Push proof when the owner has set the secrets: read `https://feeds.canifishthis.ca/status.json`, his phone steps,
-   then an hour of watching. Write the result in T996.
-3. When chat S says the set is ready: check the files against section 4, then walk the owner through the screens one
-   batch at a time, in the page's order (1 account, 2 App Information, 3 App Privacy, 5 age rating, 7 pricing, 4
-   version page with pictures, 8 review information, 11 submit), waiting for "done" after each.
-4. Tell the planning chat (`bc-freshwater-fishing-regulations-8e`) when it is submitted and when Apple answers; record
+Changed 2026-11-25 15:20 by the owner (relayed by the planning chat): the repo moves first and 0.10.0 ships after it,
+with the fix for T1140. So no iPhone 0.10.0 build and no privacy page on production on 11-25; probably 11-26.
+Every App Store Connect screen stays as saved.
+1. Repo transfer to `canifishthis/canifishthis`. The repo-move chat (`bc-freshwater-fishing-regulations-38`) says
+   when to update the remote; until then open no new PR from this worktree. Checked 2026-11-25: nothing entered in
+   App Store Connect names GitHub (support, marketing and privacy URLs are canifishthis.ca; the description, the
+   review notes and the live privacy and about pages hold no GitHub link), so the move changes nothing there.
+2. The T1140 fix, then staging again (the 0.10.0 chat).
+3. The owner's production commands. The site one puts the privacy page (T1098) live: read
+   `https://canifishthis.ca/privacy` afterwards and check the new words are there.
+4. The iPhone 0.10.0 build on TestFlight (number 46 expected, not confirmed; the planning chat sends it).
+5. The owner's last three clicks: select the build on the version page, Add for Review, Submit (section 11 of
+   `APP-STORE-SUBMISSION.md`). Offer him first, if on main: the native 6.3" screenshots (`appstore-6.3`, PR #238)
+   in place of the resized stopgap, and the Header and Search Results pictures (T1134); neither is a gate.
+6. Tell the planning chat (`bc-freshwater-fishing-regulations-8e`) when it is submitted and when Apple answers; record
    the release in STATUS.
+7. After the release: the push proof (T996) on a second iPhone, see the State table.
 
 ## Step 0 (reports) from a worktree
 `<main checkout>/.venv/bin/python -m pipeline reports --no-save` with the main checkout's `.env` loaded. To read the
