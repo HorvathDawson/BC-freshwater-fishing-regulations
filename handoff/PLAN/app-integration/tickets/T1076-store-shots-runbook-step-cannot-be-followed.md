@@ -1,6 +1,6 @@
 # T1076 — The release runbook's "reshoot store pictures" step cannot be followed: the tool needs a store-shots build of the site
 
-Status: IN REVIEW — left (Claude): merge PR fix/T1076-store-shots-own-export (code 6cd9531c3) after review, then one real release reshoot with the runbook line.
+Status: IN PROGRESS — merge PR fix/T1076-store-shots-own-export (code 6cd9531c3) after review, then one real release reshoot with the runbook line.
 
 Source: the 0.9.0 chat, 2026-11-24, during the 0.9.0 release. Runbook Step 7 item 8 says to reshoot the store
 pictures (`node app/tools/store-shots/run.mjs`) before the Play listing update, but the tool needs the staging site
