@@ -1,6 +1,6 @@
 # T1098 — The privacy page says things the app does not do (Apple reads the policy at App Review)
 
-Status: OPEN.
+Status: IN PROGRESS (DRAFT PR, words only: a to f done, g built as a marked proposal; the owner reads `handoff/PLAN/app-integration/T1098-shots/privacy-before-after.md` and picks g; the production deploy is his). left (Claude): the 0.9.1 chat sends the owner the list, applies his pick on g, then the site deploy.
 
 Source: iOS release chat 2026-11-24 ~23:40, its read of build 0.9.0 (45) at 65f84020c for T1071 (App Privacy and review risk). The page is built by `app/tools/seo/html.ts` (lines 219–305). None of it blocks review on
 its own, but the policy URL is part of the submission, so it should be true before the owner submits.
