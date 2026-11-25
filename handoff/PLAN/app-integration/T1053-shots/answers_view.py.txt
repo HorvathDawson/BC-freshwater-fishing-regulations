@@ -1,0 +1,96 @@
+"""T1053: what an angler reads on a water, before -> after, from two built export + answers sets.
+
+    python answers_view.py BEFORE_DIR AFTER_DIR item_id [item_id ...] > out.md
+
+Per water and part: the year's day runs with the decided status and the closing rules (the answers' `display` frames),
+and every rule of the part's rule set that is new or gone, with its title and its `applies` lines (Sources)."""
+import datetime as dt
+import json
+import sys
+from pathlib import Path
+
+from pipeline.deliver.export.codec import expand
+
+
+def load(d):
+    d = Path(d)
+    doc = expand(json.load(open(d / "ui-rules-export.json")), json.load(open(d / "ui-rules-guide.json")))
+    ans = json.load(open(d / "ui-rules-answers.json"))
+    return doc, ans
+
+
+def day(n):
+    return (dt.date(2024, 1, 1) + dt.timedelta(days=n - 1)).strftime("%b %-d")
+
+
+def view(doc, ans, item):
+    w = doc["waters"].get(item)
+    if w is None:
+        return None
+    disp = ans["sections"]["display"]
+    rid = doc["index"]["rule_ids"] if "rule_ids" in doc.get("index", {}) else list(doc["rules"])
+    out = {"name": w.get("name"), "parts": []}
+    for i, p in enumerate(w["parts"]):
+        k = ans["parts"][item][i]
+        rs = doc["rulesets"].get(p.get("ruleset")) or {}
+        rules = {r: "reach" for r in rs.get("reach") or []} | {r: "trib" for r in rs.get("trib") or []}
+        runs = []
+        if k is not None:
+            starts = ans["segments"][ans["keys"][k][9]]
+            frames = disp["at"][k]
+            for j, f in enumerate(frames):
+                fr = disp["frames"][f]
+                end = (starts[j + 1] - 1) if j + 1 < len(starts) else 366
+                closers = [disp["rules"][c]["title"] for c in fr.get("closers") or []]
+                runs.append((day(starts[j]) + "–" + day(end) if j < len(starts) else "?", fr["status"], closers))
+        dp = ((disp["waters"].get(item) or {}).get("parts") or [])
+        lab = (dp[i] or {}).get("label") if i < len(dp) else None
+        out["parts"].append({"label": lab,
+                             "rules": rules, "runs": runs})
+    return out
+
+
+def rule_lines(doc, ans, rid_):
+    disp = ans["sections"]["display"]
+    ids = list(doc["rules"])
+    if rid_ not in doc["rules"]:
+        return None
+    ix = ids.index(rid_)
+    r = disp["rules"][ix]
+    return r.get("title"), r.get("applies"), r.get("applies_trib")
+
+
+def main():
+    b_doc, b_ans = load(sys.argv[1])
+    a_doc, a_ans = load(sys.argv[2])
+    for item in sys.argv[3:]:
+        if item.startswith("rule="):
+            r = item[5:]
+            tb, ta = rule_lines(b_doc, b_ans, r), rule_lines(a_doc, a_ans, r)
+            print(f"\n#### Sources lines of `{r}`\n\n| | before | after |\n|---|---|---|")
+            print(f"| applies | {tb[1] if tb else '—'} | {ta[1] if ta else '—'} |")
+            print(f"| applies_trib | {(tb[2] if tb else None) or '—'} | {(ta[2] if ta else None) or '—'} |")
+            continue
+        b, a = view(b_doc, b_ans, item), view(a_doc, a_ans, item)
+        print(f"\n### {(a or b or {}).get('name')} (`{item}`)\n")
+        for i in range(max(len((b or {}).get("parts", [])), len((a or {}).get("parts", [])))):
+            pb = (b or {}).get("parts", [])[i] if b and i < len(b["parts"]) else None
+            pa = (a or {}).get("parts", [])[i] if a and i < len(a["parts"]) else None
+            print(f"Part {i + 1}: {(pa or pb or {}).get('label')}\n")
+            print("| | before (live release) | after (this branch) |\n|---|---|---|")
+            rb = [f"{r[0]}: {r[1]}" + (f" ({'; '.join(r[2])})" if r[2] else "") for r in (pb or {}).get("runs", [])]
+            ra = [f"{r[0]}: {r[1]}" + (f" ({'; '.join(r[2])})" if r[2] else "") for r in (pa or {}).get("runs", [])]
+            print(f"| the year | {'<br>'.join(rb) or '—'} | {'<br>'.join(ra) or '—'} |")
+            gone = sorted(set((pb or {}).get("rules", {})) - set((pa or {}).get("rules", {})))
+            new = sorted(set((pa or {}).get("rules", {})) - set((pb or {}).get("rules", {})))
+            for r in new:
+                t = rule_lines(a_doc, a_ans, r)
+                print(f"| NEW rule ({pa['rules'][r]}) | — | **{t[0]}** — {t[1]}" + (f" / {t[2]}" if t[2] else "") + " |")
+            for r in gone:
+                t = rule_lines(b_doc, b_ans, r)
+                print(f"| rule GONE | **{t[0]}** — {t[1]} | — |")
+            print()
+
+
+if __name__ == "__main__":
+    main()

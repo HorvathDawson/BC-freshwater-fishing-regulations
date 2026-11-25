@@ -6,6 +6,42 @@ code now handles belong in the code's comments, not here.
 
 ---
 
+## Which "including tributaries" rule a stream answers to (T1053, owner 2026-11-24; the all-year part is a PROPOSAL until the owner reads its list)
+
+The owner, verbatim: "make sure upstream includes tributarties still overrides lower includes tributtaries that it
+conflicts with. make sense?" and "keep earlier rule of closure always winning unless it is exempt) this does not include
+no fishiong all year rulings tho those will yield in that case. only the dated closures." and "tributary rules dont apply
+to the lake either only streams that is important too". In plain words:
+
+1. **A stream's own row, or the nearer ✱ row, wins on each thing they both speak to** (a quota, a release, gear, bait).
+   The Duncan River's tributaries keep the Duncan's "bull trout daily quota = 2", not Kootenay Lake's tributaries'
+   bull trout release (RULINGS T14); the Granby River's own "trout/char daily quota = 1" beats the Kettle's inherited
+   rainbow release (T4). Code: `read.ladder.OWN_ROW_BEATS_INHERITED`, `NEARER_ROW_BEATS_FARTHER`, `OWN_ROW_REPLACES_INHERITED`.
+2. **A DATED closure inherited from a row further down still closes**, even a stream with its own row, unless that stream
+   is exempt (a printed lift). The Granby River is closed Jul 25-Sept 15 by "Kettle River's tributaries: No Fishing
+   Jul 25-Sept 15" although it has a row of its own (T4).
+3. **An ALL-YEAR inherited "No Fishing" yields** to the stream's own row — a WATER TABLE's row (`r<region>:`), never a
+   zone line, even one ranked as a water (the Skeena/Nass winter stream closure) — or to a nearer ✱ row, and only for the
+   fish that row speaks for (it is decided per fish: Dove Creek reopens for the trout, char, kokanee and steelhead
+   Anderson Lake's ✱ release names, and stays closed for bass, perch, whitefish …). "All year" is the rule's
+   own `when`: no dates, weekdays or hours. Frosst Creek answers by its own "No Fishing Oct 15-Apr 15", not by Sweltzer
+   River's all-year ✱ "No Fishing" reaching it through Cultus Lake; Dick Creek, which has no row, still closes with Eagle
+   Creek's all-year ✱ "No Fishing". Which row counts as "speaking" is still open (a row about keeping or closing, the
+   built default, or any row at all): `read.ladder.ALL_YEAR_INHERITED_CLOSURE_YIELDS`.
+4. **Tributary rules cover streams, never lakes** (RULINGS T1). A walk climbs THROUGH a lake to reach the streams feeding
+   it, and never covers the lake: Dick Lake stays on Region 2's rules while Dick Creek above it takes Eagle Creek's.
+   The ONE exception is a pond the existing process has listed as a PIECE OF A STREAM (it belongs to the stream's
+   registry item: an unnamed widening on the creek's line, an oxbow, a slough lake — T153 / Q124's default, the
+   "process we already have"): it is the stream and takes the stream's rules, walked ones included. Bowman Slough
+   (`wbk:329103932`, a slough held as a stream) takes Williston Lake's Zone A rule with its streams. Owner 2026-11-24
+   ~15:30: "only the polygon ponds that we have listed as piece of stream. (for example oxbows or slough lakes etc etc )
+   make sense? using the process we already have". Measured: 3,657 such polygons are bound by walks in the live run
+   (3,668 with T1053), every one held by a stream item; no lake that is a water of its own is bound by any walk.
+5. **A whole-water ✱ rule climbs through its head lake** (RULINGS T18): Eagle Creek's "No Fishing" reaches Dick Creek
+   above Dick Lake. A stretch rule ("downstream of Y Lake") still stops at the lake, and so do DFO places and licensing.
+
+---
+
 ## Questions the owner will put to BC Fish and Wildlife (the book can be read two ways; we keep the stricter reading)
 
 - **Thompson River below Kamloops Lake in June** (Region 3, p.28 and p.32). The spring closure: "No Fishing in any

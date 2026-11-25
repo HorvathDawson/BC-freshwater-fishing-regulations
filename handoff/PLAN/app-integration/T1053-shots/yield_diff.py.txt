@@ -1,0 +1,20 @@
+"""Every water whose decided answer (status runs + closing rules) differs between two answers files built on ONE bundle.
+    python yield_diff.py DIR_A DIR_B OUT.json"""
+import json, sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent))
+from answers_view import load, view
+a_doc, a_ans = load(sys.argv[1]); b_doc, b_ans = load(sys.argv[2])
+out = []
+for item, w in sorted(b_doc["waters"].items()):
+    if item not in a_ans["parts"]:
+        continue
+    va, vb = view(a_doc, a_ans, item), view(b_doc, b_ans, item)
+    for i, (pa, pb) in enumerate(zip(va["parts"], vb["parts"])):
+        if pa["runs"] != pb["runs"]:
+            gone = sorted({c for r in pa["runs"] for c in r[2]} - {c for r in pb["runs"] for c in r[2]})
+            out.append({"item": item, "name": w.get("name"), "part": i, "label": pb["label"],
+                        "own_row": bool(w.get("entries")), "before": pa["runs"], "after": pb["runs"],
+                        "closers_gone": gone})
+json.dump(out, open(sys.argv[3], "w"), indent=1)
+print(len(out), "parts change on", len({o["item"] for o in out}), "waters")

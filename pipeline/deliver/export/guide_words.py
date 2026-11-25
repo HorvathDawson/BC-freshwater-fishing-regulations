@@ -1079,6 +1079,8 @@ ENTRY_TEXT = {
            "[{verbatim, unresolved}] — see `entries.pointers`",
     "authority": "(T981) on a water a LOCAL AUTHORITY closes, not the synopsis: {body, instrument, section?, url, "
                  "quote}: who closed it and the page that says so; such an entry prints on no page (`pages` empty)",
+    "includes_tributaries": "(T1053) true when the ROW covers its tributaries (the printed ✱, or a row named for "
+                            "them); a rule whose own `fields.includes_tributaries` is absent inherits it. Absent: no",
 }
 
 

@@ -1,0 +1,27 @@
+"""For each water the yield changes: which inherited all-year closure yielded, to which rule, and why (own / nearer)."""
+import json, sqlite3, sys, collections
+from pipeline.deliver.bundle import read as R
+from pipeline.deliver.bundle.read import ladder
+b, diff, out = sys.argv[1], sys.argv[2], sys.argv[3]
+ladder.ALL_YEAR_INHERITED_CLOSURE_YIELDS = sys.argv[4] if len(sys.argv) > 4 else "retention"
+db = sqlite3.connect(f"file:{b}?mode=ro", uri=True)
+cols = [r[1] for r in db.execute("pragma table_info(item)")]
+d = json.load(open(diff))
+res = []
+for o in d:
+    row = db.execute("select ord from item where item_id = ?", (o["item"],)).fetchone() if "item_id" in cols else None
+    sids = [r[0] for r in db.execute("select sid from item_section where ord = ? limit 50", (row[0],))] if row else []
+    day = next((r[0] for r in o["before"] if r[2] and r not in o["after"]), o["before"][0][0])
+    import datetime as dt
+    m, dd = day.split("–")[0].split()
+    on = (dt.datetime.strptime(m, "%b").month, int(dd))
+    whys = collections.Counter()
+    for sid in sids[:5]:
+        for fish in ("RB",):
+            for x in R.effective_rules(sid, on, fish, b, trace=True):
+                if x.get("reason") in ("own_row", "nearer_row") and "closure" not in str(x.get("type")) and x.get("take") == 0:
+                    whys[(x["entry"] + "::" + x["rule"], x.get("reason"), str(x.get("by")))] += 1
+    res.append({**o, "why": [list(k) for k in whys]})
+json.dump(res, open(out, "w"), indent=1)
+c = collections.Counter(w[1] for r in res for w in r["why"])
+print(len(res), c)

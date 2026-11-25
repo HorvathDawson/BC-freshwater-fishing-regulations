@@ -164,11 +164,21 @@ def test_a_zone_closure_and_a_walked_closure_keep_the_ladder(tmp_path):
         {"entry": "r9:creek", "rule": "creek.r2", "species": ["DV"], "take": 1, "_rank": 0,
          "dimension": "possession"}])
     assert _speaking(zone) == {"shut.r1", "creek.r2"}
+    # (T1053, owner 2026-11-24, PROPOSAL: "keep earlier rule of closure always winning unless it is exempt) this does not
+    # include no fishiong all year rulings tho those will yield in that case. only the dated closures.") A DATED closure
+    # reaching the creek by the walk still speaks beside its own quota; an ALL-YEAR one yields to the creek's own row
+    # (`ladder.ALL_YEAR_INHERITED_CLOSURE_YIELDS`).
+    dated = _tiny(tmp_path, [
+        dict(SHUT, entry="r9:river", rule="river.r1",
+             when={"dates": [{"from_month": 1, "from_day": 1, "to_month": 12, "to_day": 31}]}),
+        {"entry": "r9:creek", "rule": "creek.r2", "species": ["DV"], "take": 1, "_rank": 0,
+         "dimension": "possession"}], via={"river.r1": "trib"})
+    assert _speaking(dated) == {"river.r1", "creek.r2"}
     walked = _tiny(tmp_path, [
         dict(SHUT, entry="r9:river", rule="river.r1"),
         {"entry": "r9:creek", "rule": "creek.r2", "species": ["DV"], "take": 1, "_rank": 0,
          "dimension": "possession"}], via={"river.r1": "trib"})
-    assert _speaking(walked) == {"river.r1", "creek.r2"}
+    assert _speaking(walked) == {"creek.r2"}
 
 
 def test_off_the_synthetic_keepers_speak_again(tmp_path, monkeypatch):

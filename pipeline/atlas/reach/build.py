@@ -201,7 +201,7 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
             # `regional=False`: a designation is the water's, not the region's (`build_reach`).
             reach = (lambda r, e=e, covered=covered, clip=clip: build_reach(
                 e, r, registry, graph, covered=covered, clip=clip, outside=outside,
-                regional=False, tidal=tidal, owned=owned))
+                regional=False, tidal=tidal, owned=owned, head_lakes=LICENSING_CLIMBS_HEAD_LAKES))
             placed, diags = place_record(e, rec, reach)
             placed, parked = without_national_parks(placed, parks)
             diags = list(diags) + parked
@@ -417,7 +417,7 @@ def _bind_steelhead_waters(rules, records, known, bindings, licensing, registry,
 def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
                 clip=None, outside=None, shared=None,
                 regional: bool = True, tidal=None,
-                owned=None) -> tuple[RuleBinding, list[Diagnostic]]:
+                owned=None, head_lakes: bool = True) -> tuple[RuleBinding, list[Diagnostic]]:
     """THE public answer to "what does this rule cover" — resolve, clip, classify, expand.
 
     One call, so no caller has to remember the order, or that tributaries need expanding.
@@ -451,6 +451,9 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
     own for, which decides whether a confluence cut's joining water stays out of the walk or goes
     with the cut (`confluence_excludes`). `None` (a caller that did not compute it) knows of no
     row, so every joining water goes with the cut — the review app passes the same map.
+
+    `head_lakes=False` keeps a whole-water walk below its water's head lake (`climbs_head_lakes`): LICENSING passes it
+    (`build_reaches`), whose walk DOWN from each section already reaches the water below the lake (Li5).
     """
     if clip is not None and not clip:
         # T546 item 2: the row's scope did not resolve (`entry_scope`) — no rule of it binds
@@ -466,7 +469,7 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
     if lim:
         binding, diags = build_reach(entry, rule, registry, graph, covered=covered, clip=clip,
                                      outside=outside, shared=shared, regional=regional,
-                                     owned=owned)
+                                     owned=owned, head_lakes=head_lakes)
         # the LIMIT, not every tidal section: a row marked tidal (Nitinat Lake) keeps its own water even
         # when a tidal split elsewhere makes the limit non-empty (it lost it, 2026-10-28..29 releases)
         return _without_tidal(entry, rule, binding, diags, lim)
@@ -484,11 +487,11 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
     rest = _rest_of(rule)
     if rest is not None:
         return _build_rest(entry, rule, rest, registry, graph, covered=covered, clip=clip,
-                           outside=outside, shared=shared, regional=regional, owned=owned)
+                           outside=outside, shared=shared, regional=regional, owned=owned, head_lakes=head_lakes)
     others = _others_of(rule)
     if others is not None:
         return _build_others(entry, rule, others, registry, graph, covered=covered, clip=clip,
-                             outside=outside, shared=shared, regional=regional, owned=owned)
+                             outside=outside, shared=shared, regional=regional, owned=owned, head_lakes=head_lakes)
     region = region_limit(entry, registry, shared, graph=graph) if regional else None
 
     per: list[dict | None] = []
@@ -512,7 +515,7 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
 
     expander = _expander(
         graph, registry, covered, rule, entry, cuts=seeding_cuts(graph, per), owned=owned,
-        resolved=per,
+        resolved=per, heads=head_lakes and climbs_head_lakes(rule),
         region=region if any(_row_water(ex, entry.get("matched") or ())
                              for ex in rule.get("extents") or []) else None)
     binding, diags = classify(
@@ -554,6 +557,9 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
             continue
         seen_through.add((row["lake"], row["inlet"]))
         diags.append(Diagnostic(entry["entry_id"], rule["rule_id"], "through_river", dict(row)))
+    if getattr(expander, "heads", None):
+        # REPORTED, never silent (T1053, W46): each head lake of the whole water, climbed or not, and why not
+        diags.append(Diagnostic(entry["entry_id"], rule["rule_id"], HEAD_LAKE, {"lakes": expander.heads}))
     walked_out = getattr(expander, "out_of_region", 0)
     if out_of_region or walked_out:
         # REPORTED, never silent: what the row's own region(s) took away, before the walk and
@@ -602,7 +608,8 @@ def _others_of(rule: dict) -> dict | None:
 
 
 def _build_others(entry: dict, rule: dict, others: dict, registry, graph, *, covered, clip,
-                  outside, shared, regional, owned=None) -> tuple[RuleBinding, list[Diagnostic]]:
+                  outside, shared, regional, owned=None,
+                  head_lakes: bool = True) -> tuple[RuleBinding, list[Diagnostic]]:
     """"ALL THE OTHER PLACES ON THIS WATER" (T607, owner 2026-11-10: a DFO "all open portions of …" wording "has to
     apply to all already matched items instead"): the UNION of what the named siblings bind — each resolved by this
     same function with its OWN extents, tributary walk and carve-outs (a `rest` among them resolves against its own
@@ -621,7 +628,7 @@ def _build_others(entry: dict, rule: dict, others: dict, registry, graph, *, cov
             return RuleBinding(eid, rid, Outcome.unresolved, (), Reason.complement_unknown,
                                f"other_places sibling {sid!r} is not another placed rule of this entry"), []
         b, _d = build_reach(entry, sib, registry, graph, covered=covered, clip=clip,
-                            outside=outside, shared=shared, regional=regional, owned=owned)
+                            outside=outside, shared=shared, regional=regional, owned=owned, head_lakes=head_lakes)
         if b.outcome is not Outcome.bound:
             unbound[sid] = b.reason.value if b.reason is not None else b.outcome.value
             continue
@@ -649,7 +656,8 @@ def _rest_of(rule: dict) -> dict | None:
 
 
 def _build_rest(entry: dict, rule: dict, rest: dict, registry, graph, *, covered, clip,
-                outside, shared, regional, owned=None) -> tuple[RuleBinding, list[Diagnostic]]:
+                outside, shared, regional, owned=None,
+                head_lakes: bool = True) -> tuple[RuleBinding, list[Diagnostic]]:
     """"OTHER PARTS": the rule's water MINUS every section its named siblings bind.
 
     The water is what `whole` (with the rest extent's own item scope) selects for THIS rule —
@@ -692,7 +700,7 @@ def _build_rest(entry: dict, rule: dict, rest: dict, registry, graph, *, covered
             return unknown(f"rest sibling {sid} does not draw its place, so the rest of the "
                            f"water around it is unknown")
         b, d = build_reach(entry, sib, registry, graph, covered=covered, clip=clip,
-                           outside=outside, shared=shared, regional=regional, owned=owned)
+                           outside=outside, shared=shared, regional=regional, owned=owned, head_lakes=head_lakes)
         if _policy.COMPLEMENT_UNKNOWN_IF_A_SIBLING_DOES_NOT_BIND and (
                 b.outcome is not Outcome.bound or b.tributaries_pending):
             why = (f"{b.reason.value}: {b.detail}" if b.reason is not None
@@ -717,7 +725,7 @@ def _build_rest(entry: dict, rule: dict, rest: dict, registry, graph, *, covered
                  "cut_pick": dict(bounds.get("cut_pick") or {})}
     base, diags = build_reach(entry, {**rule, "extents": [whole]}, registry, graph,
                               covered=covered, clip=clip, outside=outside, shared=shared,
-                              regional=regional, owned=owned)
+                              regional=regional, owned=owned, head_lakes=head_lakes)
     if base.outcome is not Outcome.bound:
         return base, diags
     held = set(base.sections) & withheld
@@ -1177,7 +1185,7 @@ def _runs_down_from(graph, reach, row) -> bool:
 
 
 def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, owned=None,
-              resolved=None):
+              resolved=None, heads: bool = False):
     """A closure that expands one rule's reach to its tributaries.
 
     The rule's `tributary_excludes` are resolved to sections and passed as BLOCKED, so each
@@ -1187,6 +1195,9 @@ def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, 
 
     `region` holds a REGIONAL ROW's walk to its region(s), applied to what the walk returns — the
     walk is what leaves the region, as it is what leaves a `within_area` (`outside.region_limit`).
+
+    `heads` (`climbs_head_lakes`): the walk climbs the head lakes of the rule's own reach — never of a confluence
+    stem's, which stops at its first lake (RU-14) — and each is reported (`expand.heads`, the `head_lake` diagnostic).
     """
     detail, excluded = resolve_carve_outs(entry, rule, registry, graph, covered)
     passed = carve_out_passed(detail)
@@ -1226,7 +1237,8 @@ def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, 
         # the lake at its top stops the walk as a lake at any reach's top does. The Nass's
         # closure "from signs below the Meziadin confluence up to the Hwy 37 bridge" takes the
         # Meziadin River from the Nass to the Meziadin Lake outlet and never the 1,178 streams
-        # feeding the lake (Hanna, Tintina, Strohn …), which the Meziadin's own row stops at too.
+        # feeding the lake (Hanna, Tintina, Strohn …). (T1086) That holds for the NASS's stretch rule only: the
+        # Meziadin River's OWN ✱ row is a whole-water rule and climbs through Meziadin Lake (RULINGS T18, T1053).
         stems: set[str] = set()
         for row in expand.confluence:
             if row.get("with_cut") and row.get("own_row"):
@@ -1235,9 +1247,14 @@ def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, 
                 row["bounded_at_lake"] = True
                 row["stem"] = sorted(stem)
                 stems |= stem
+        climb = frozenset(reach) if heads else frozenset()
         got = _tribs.expand(graph, frozenset(reach) | stems, only=only, excluded=blocked,
                             passed=passed, cuts=cuts, registry=registry,
-                            own=own_water - set(reach) - stems)
+                            own=own_water - set(reach) - stems, climb_from=climb)
+        if climb:
+            expand.heads = [{**v, "name": graph.nodes[v["lake"]].display_name or "(unnamed)"}
+                            for v in _tribs.head_lake_verdicts(graph, frozenset(reach) | stems, climb_from=climb,
+                                                               blocked=blocked, own=own_water - set(reach) - stems)]
         # A JOINING WATER THAT GOES WITH THE CUT AND HAS NO ROW OF ITS OWN: its subtree joins the
         # walk on whichever side the rule is — the walk alone would find it on one side only, the
         # piece FWA hung its mouth on. Streams only, like every walk (`tributaries.expand`); a
@@ -1269,7 +1286,29 @@ def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, 
     expand.out_of_region = 0
     expand.confluence = None
     expand.through = []
+    expand.heads = []
     return expand
+
+
+#: POLICY (T1053, proposal): A LICENSING RECORD'S WALK DOES NOT CLIMB A HEAD LAKE — its walk DOWN from each section
+#: (Li5, `licensing.first_classified_downstream`) already reaches the water below the lake. True = designations climb
+#: too (the mutation pin, `test_reach_builder.test_policy_version_is_bumped_when_classify_changes`).
+LICENSING_CLIMBS_HEAD_LAKES = False
+
+#: (T1053) the diagnostic a whole-water walk writes for its head lakes (`build_reach`): `{lakes: [{lake, name, below,
+#: climbed, reason}]}`, `reason` the walk's typed refusal of a lake it did not climb
+HEAD_LAKE = "head_lake"
+
+
+def climbs_head_lakes(rule: dict) -> bool:
+    """Does this rule's walk climb its water's head lakes (`tributaries.A_WHOLE_WATERS_WALK_CLIMBS_ITS_HEAD_LAKE`,
+    T1053)? A rule of the book bound to its WHOLE water: extents, every one `whole`. A stretch ("downstream of Y Lake")
+    never does, and neither does a DFO place (`JOINING_WATER_STAYS_OUT_KEY`): DFO prints no rows to say which waters
+    are its own, so its walks stay as they were (as T743 keeps its through-rivers out)."""
+    if rule.get(JOINING_WATER_STAYS_OUT_KEY):
+        return False
+    extents = rule.get("extents") or []
+    return bool(extents) and all(isinstance(ex, dict) and ex.get("op") == "whole" for ex in extents)
 
 
 #: POLICY (T772, owner 2026-11-17 "Yes, show me the list"): A THROUGH-RIVER THAT STAYS OUT OF A LAKE'S WALK STAYS OUT

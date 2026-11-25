@@ -190,6 +190,13 @@ with the default Claude uses until you answer). Newest first inside each section
   exempt; an all-year inherited "No Fishing" yields to a stream's own row; the logic goes into
   `pipeline/docs/GOTCHAS.md` (in the T1053 PR).
 - T1053, typed: "tributary rules dont apply to the lake either only streams that is important too".
+- T1053 (11-25), does a nearer tributary rule that is NOT a closure lift an all-year closure from further downstream
+  (Dove Creek above Anderson Lake reopening for catch and release, steelhead included): "Yes, if it is the right lake
+  (Recommended)". Checked: it is the WRONG lake — the printed row (p.14, MU 1-3) is an unnamed lake in the Walbran Creek
+  watershed (BC Lakes DB 00105SANJ = FWA `wbk:329504289`), not the gazetted Anderson Lake near Comox (`wbk:329095566`,
+  MU 1-6, on Dove Creek). Rebinding is a curation proposal for you (T1053 ticket); with it nothing reopens.
+- T1117 (11-25), move the row to the unnamed Walbran lake (`wbk:329504289`)?: "Yes, fix it in 0.9.1 (Recommended)" —
+  done in PR #166 (the override and the name variant point at the Walbran lake; pinned by a test).
 - Unnamed ponds on a stream (Q124): "only the polygon ponds that we have listed as piece of stream. (for example
   oxbows or slough lakes etc etc ) make sense? using the process we already have".
 - T1052 the closed block's second line (shown A and B): "A: quote the river's row". The 130 waters closed for part of
