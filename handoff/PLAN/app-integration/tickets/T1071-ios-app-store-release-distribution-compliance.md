@@ -60,6 +60,10 @@ Owner: yes (App Store Connect entries, the submit, any legal answers).
     do you recommend?"**. This chat's recommendation: tick it now (the answer is the same with any imagery
     source). His go on the tick is still awaited. The move to Mapbox is new to this chat; sent to the planning chat.
 
+- 2026-11-25 13:48: owner said **"i did batch 1"**: Agreements checked, EU status set to not a trader, App
+  Information saved (name, subtitle, English (Canada), Navigation / Sports, content rights ticked as this chat
+  recommended, Apple's standard licence). Next: App Privacy.
+
 ## Results (iOS release chat, 2026-11-24)
 - The page: `handoff/PLAN/ios/APP-STORE-SUBMISSION.md`. Restart page: `handoff/PLAN/ios/RESTART-ios-release-chat.md`.
 - Read against the uploaded build's code (0.9.0 (45), 65f84020c, an Opus lane, read only). What changed against the
