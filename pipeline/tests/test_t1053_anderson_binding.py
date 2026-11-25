@@ -7,13 +7,13 @@ from __future__ import annotations
 
 import json
 
-from pipeline.common.curated import CURATED
+from pipeline.tests import under_test
 
 WALBRAN, COURTENAY = "329504289", "329095566"
 
 
 def _override():
-    links = json.loads(CURATED.regulations.book_name_links.read_text())
+    links = json.loads(under_test.curated().regulations.book_name_links.read_text())
     hit = [o for o in links if (o.get("criteria") or {}).get("name_verbatim") == '"ANDERSON" LAKE']
     assert len(hit) == 1, hit
     return hit[0]
@@ -27,7 +27,7 @@ def test_the_anderson_row_is_matched_to_the_walbran_lake():
 
 
 def test_the_regulation_name_sits_on_the_walbran_polygon_not_the_courtenay_lake():
-    variants = json.loads(CURATED.waters.name_variants.read_text())
+    variants = json.loads(under_test.curated().waters.name_variants.read_text())
     on = {w: [n["source"] for e in variants if w in (e["target"].get("wbks") or []) for n in e["names"]
               if n["name"].upper() == "ANDERSON LAKE"] for w in (WALBRAN, COURTENAY)}
     assert on[WALBRAN] == ["regulation"]
