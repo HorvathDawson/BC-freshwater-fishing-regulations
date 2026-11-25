@@ -4,8 +4,8 @@ Status: OPEN.
 
 Source: in-app report `0a9136aec3e19ab9` (staging worker, kind "feature"), 2026-11-24 19:32Z, verbatim: "Add a field
 for fish measurements in locations. Make it so you can add multiple per location and edit even when you revisit."
-Read by `pipeline reports`, planning chat 2026-11-24 22:20 MST. Who sent it is not known (staging; the owner's four
-reports came 40 minutes earlier): asked. Related: saved spots (T603, T674), T714 (share a saved spot).
+Read by `pipeline reports`, planning chat 2026-11-24 22:20 MST. Owner 2026-11-24 22:35 (multiple choice): sent by "A tester"; when:
+"0.10, pictures first". Related: saved spots (T603, T674), T714 (share a saved spot).
 
 ## Design first (no building until the owner picks)
 1. What a "measurement" is: length only, or length + weight + species + date + kept/released + a photo. A saved spot
@@ -20,5 +20,5 @@ reports came 40 minutes earlier): asked. Related: saved spots (T603, T674), T714
 ## Acceptance
 The owner has picked the fields and the look; then a build ticket with its own tests.
 
-Severity: feature. Release: 0.10 or later (owner decides; not in 0.9.x, which takes no features). Model: Sonnet for
+Severity: feature. Release: 0.10, pictures first (owner 2026-11-24). Model: Sonnet for
 the pictures, Opus if the size-limit reading is built. Size: M. Owner: yes (scope and look).

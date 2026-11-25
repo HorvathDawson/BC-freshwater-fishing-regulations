@@ -31,8 +31,9 @@ with the default Claude uses until you answer). Newest first inside each section
   new items, all ticketed: production, a web page whose stored data was cleared (T1092) and the first crash kind on
   0.9.0, a location request with the phone's Location off (T1093); staging, one low-memory exit on 0.8.5 (T1094) and
   a feature request for fish measurements on a saved location (T1095, design first, 0.10 or later).
-  **Ask:** was the 12:32 staging request (T1095) yours or a tester's? And: `pipeline reports` shows iPhone 0.9.0 (45)
-  external state READY_FOR_BETA_SUBMISSION, so the build is not yet with the external TestFlight testers.
+  Answered 2026-11-24 22:35 (multiple choice): the T1095 request came from "A tester"; design it in "0.10,
+  pictures first"; iPhone 0.9.0 (45), which `pipeline reports` showed as READY_FOR_BETA_SUBMISSION (not yet with the
+  external TestFlight testers): "Submit it". Passed to the 0.9.1 chat to submit for Beta App Review.
 - Store checks 2026-11-24 13:30 (planning chat, every source read): TestFlight 6 items, all T982; Play reviews none;
   production worker: one new crash kind on 0.8.5 (T1055); the four production reports of 11-21 are T985's (ids now
   written there). About 40 old items (0.7.x–0.8.2, mostly staging) show as new only because no ticket cites their id:
