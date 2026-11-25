@@ -4,7 +4,7 @@ Written 2026-11-22 for the owner (T992). The release runbook is `handoff/PLAN/ru
 are `handoff/PLAN/runbooks/release.md`. The code is `pipeline/release.py` (its `PREFLIGHT` table and its stages); this
 page follows the code as it is on this date.
 
-The 0.8.5 release stopped eight times at eight different gates (T992's list). Each gate below says what it protects,
+Each gate below says what it protects,
 why it stops, what to do, and whether going past it is ever safe. The 0.8.4 and 0.8.5 stops were traced in the T993 inventory (cut in T1081; git history).
 
 ## The shape of the release command
