@@ -95,6 +95,14 @@ water map's group, read through `useMapEntries`); no pipeline or bundle change.
   book row as before.
 - **Pictures:** `handoff/PLAN/app-integration/T1140-shots/` (`before-after.md`: the proposed words and the questions).
 
+## Owner, 2026-11-25 ~17:00, after the L28 pictures (verbatim, through the coordinator)
+- "itshould have the real name. there should be no partt x of n nameas anywhewre in the app. that is a fault. instead
+  it will say eco reserve here etc all types will have a name"
+- On the 11 side-channel leads he picked: "Hold 0.10.0 for the reserve name".
+So the "Part n of m" words built above (and the Map tab's existing "PART 1 OF 2") are NOT to ship; every part is to be
+named by what it is. L28's branch `fix/T1140-part-label` is kept, with no PR (its page-waits-for-parts gate and tests may
+carry over); the new scope comes from the coordinator.
+
 ## What the pictures show
 - `/water/squamish-river`, Regulations tab: the head says only "Squamish River". Salmon "Closed today", Game fish
   "Closed today", "Closed all year. No fishing for any game fish. Federal / parks", source B.C. Synopsis p.9
