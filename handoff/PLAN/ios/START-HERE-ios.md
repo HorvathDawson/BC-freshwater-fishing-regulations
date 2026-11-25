@@ -264,7 +264,7 @@ chat and onto the owner's row `t749-r8-phone-walk`.
   `https://data-staging.canifishthis.ca/feeds/dfo/index.json` (17 `#closed:` locations, 7 `:default:` places), and
   tell the main chat. Never production.
 - **The CI watch for the Play build** when the main chat names the build head; then **the phone walk**: the ten steps
-  in `handoff/PLAN/app-integration/tickets/T749-android-r8-code-shrinker.md` ("Phone walk for the owner") go onto the
+  in `handoff/PLAN/app-integration/tickets/archive/closed-2026.tar.gz:T749-android-r8-code-shrinker.md` ("Phone walk for the owner") go onto the
   owner's To-Do row `t749-r8-phone-walk` once you have the version code. The tested app code is 6a2dc612d plus one
   test file (0f32e4b0f); `git diff --stat 6a2dc612d <build head> -- app deploy/staging/build-apk.sh` must show only
   `app/tools/r8-config.test.ts`, otherwise the six benches re-run first (install, crash-bed, bg-install, regs-open,
@@ -908,7 +908,7 @@ real ticket in the ledger (next free number) when you start it. IOS-11 is not ap
    made. `eas.json` has `ios` only on the `development` profile and is not the release path; the scripts are.
 4. **Simulator evidence exists.** Run `ios-t313g` (0.5.0, iPhone 17, iOS 26.5): 11 of 11 scenarios passed (first open
    168 s, map, tap-water, offline, satellite, location, walkthrough 25 of 25, PDF in PDFKit, crash record, memory, perf).
-   Numbers in `handoff/PLAN/app-integration/tickets/T313-ios-simulator-basic.md` and `T363-ios-memory.md`
+   Numbers in `handoff/PLAN/app-integration/tickets/archive/closed-2026.tar.gz:T313-ios-simulator-basic.md` and `T363-ios-memory.md`
    (footprint 147 to 290 MB; a memory warning freed nothing then; `memoryTrim.native.ts` now has an iOS `memoryWarning`
    listener, so that line is out of date: re-measure).
 5. **Never on a real iPhone.** T364 (real-iPhone run) was merged into T88. Real GPU memory, the left-edge swipe back

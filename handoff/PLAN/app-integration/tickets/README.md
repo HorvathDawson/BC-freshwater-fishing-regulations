@@ -8,8 +8,8 @@ use that as the sole source of future work."
 - **Tickets are the only backlog.** Work that is not a ticket here is not planned. A progress note, a decisions.md row,
   a memory note, a REPORT "open" line or an audit item that needs doing becomes a ticket (or a line in one) before
   anyone works on it. implement_progress.md records what happened; it does not hold the queue.
-- **One file per ticket:** `tickets/Tnn-short-slug.md`, numbered in order (the next free number after the highest
-  `T*.md` here; never reuse a number). Small related items go into one ticket as numbered lines. **The file holds its
+- **One file per ticket:** `tickets/Tnn-short-slug.md`, numbered in order (`node app/tools/ledger.mjs --next` prints the
+  next free number: past every closed id, claim, open file and branch's claim; never reuse a number). Small related items go into one ticket as numbered lines. **The file holds its
   own ledger row** (T1041): the one-row table right under the Status paragraph (see "Ledger" below).
 - **Format** (as T56–T95):
   ```
@@ -35,12 +35,22 @@ use that as the sole source of future work."
   - `POSTPONED` — deliberately parked, with the owner's word.
   - `DONE` — merged into `redesign/stream-sections`, acceptance met.
   - `DROPPED` — will not be done; one line why (owner or recorded Claude call).
-- **Adding a ticket:** write the file with its row under the Status line, run `node app/tools/ledger.mjs --claim` (it
+- **Adding a ticket:** take the number from `node app/tools/ledger.mjs --next`, write the file with its row under the Status line, run `node app/tools/ledger.mjs --claim` (it
   writes `tickets/ids/Tnn`, the number's claim: two PRs that take one number collide there), add any owner call to "Owner questions" with its default,
   commit with explicit paths, the claim with them (`git commit -- <paths>`; never `-A`/`-a`/`git add .` — other lanes share the branch).
 - **Closing a ticket (the lane's last step):** set `Status: DONE — <commit hashes>` (plus one line of anything
   notable), update the row under it (status, commits, what's left "—"; the row moves to the DONE view by itself), move any answered owner question to Answered,
   commit those files with explicit paths. Anything found and not done becomes a new ticket, not a footnote.
+- **Closed tickets are archived (T1081).** A DONE / DROPPED ticket has no file, no claim and no picture folder: its row
+  is one line of `tickets/closed.tsv` (id, title, status, commits, release, left, archive, report ids / crash hashes it cited:
+  tab-separated, id order) and its full text is in `tickets/archive/closed-2026.tar.gz`. Read one with
+  `tar -xzOf handoff/PLAN/app-integration/tickets/archive/closed-2026.tar.gz T123-short-slug.md` (`tar -tzf` lists them;
+  cite one as `tickets/archive/closed-2026.tar.gz:T123-short-slug.md`). A ticket that closes stays a file until the next
+  archive pass: `node app/tools/ledger.mjs --archive [Tnnn …]` (`--dry` says what it would do) writes the line, rebuilds the tar
+  (old entries + the new ones, same bytes for the same input), checks it reads back byte for byte, then deletes the file,
+  its `ids/` claim and its `Tnnn-shots` / `-files` folders (`KEPT_ASSETS` in `ledger.mjs` lists any a test reads). Commit
+  that with explicit paths. `pipeline reports` and the commit check read `closed.tsv`, so a Tnnn in a subject or a report
+  id a closed ticket cited still resolves. Reopening: put the file back from the tar, delete its line, run `--claim`.
 - **Owner calls never block work:** every open call carries a recommended default; build with it and record it
   (owner call 11). The owner answers in one place: the "Owner questions" table below.
 - T84 adds a guard to `pnpm check` that keeps this ledger whole (T1041: it reads each file's row).
@@ -63,7 +73,9 @@ under its `Status:` line (same five cells as ever):
 or rebase, but a view MAY BE STALE (another worktree, a reset): `node app/tools/ledger.mjs --check` says so and the
 ticket guard warns. So two PRs that touch different tickets never conflict. A row's view follows its status keyword.
 A NEW ticket also claims its number: `node app/tools/ledger.mjs --claim` writes `tickets/ids/Tnnn` (the file's name);
-two PRs that take one number then collide there in git instead of both merging. `node app/tools/check-tickets.mjs`
+two PRs that take one number then collide there in git instead of both merging. A CLOSED ticket (DONE / DROPPED) is
+archived (T1081): its row is a line of `closed.tsv` beside this file and its text is in `archive/closed-<year>.tar.gz`;
+`node app/tools/ledger.mjs --archive` moves it, `--next` prints the next free number. `node app/tools/check-tickets.mjs`
 checks the rows and claims, and refuses this section holding anything but this text.
 
 ## Next after closed testing

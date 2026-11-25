@@ -18,6 +18,12 @@
  *   node app/tools/ledger.mjs --check         exit 1 when a view on disk is missing or not what the source builds
  *                                             (check-tickets.mjs prints it as a warning)
  *   node app/tools/ledger.mjs --claim         write `tickets/ids/Tnnn` (the number's claim) for each new ticket file
+ *   node app/tools/ledger.mjs --next          print the next free ticket number (closed.tsv, claims, open files, and the claims
+ *                                             on remote-tracking branches: a number once used is never reused)
+ *   node app/tools/ledger.mjs --archive [Tnnn…]  (T1081) move the CLOSED tickets (DONE / DROPPED; or only those named) out
+ *                                             of the tree: their rows go to `tickets/closed.tsv`, their text into
+ *                                             `tickets/archive/closed-<year>.tar.gz`, then the files, claims and picture
+ *                                             folders are deleted; `--dry` only says what it would do
  *   node app/tools/ledger.mjs --import        split the OLD files of this work tree (README.md's ledger, DONE.md,
  *                                             OWNER-TODO.md) into the per-item files; refuses unless the round trip
  *                                             (build(import(old)) = old, see `roundTrip`) holds; prints the counts
@@ -31,6 +37,7 @@
  */
 import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { gunzipSync, gzipSync } from "node:zlib";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 
@@ -46,6 +53,20 @@ export const HEAD_FILE = "_head.md";
 export const NOT_ITEMS = [HEAD_FILE, "README.md"];
 export const VIEWS_DIR = "handoff/PLAN/views";
 export const VIEWS = { ledger: `${VIEWS_DIR}/LEDGER.md`, done: `${VIEWS_DIR}/DONE.md`, owner: `${VIEWS_DIR}/OWNER-TODO.md` };
+
+/**
+ * (T1081) CLOSED TICKETS LIVE IN ONE INDEX AND ONE ARCHIVE, NOT AS FILES. `closed.tsv`: one line per DONE / DROPPED ticket,
+ * id order, tab-separated, no header: id, title, status, commits (the ledger row's cells), release (a `0.x.y` or
+ * `r-<12 hex>` the row names, else empty), left (the row's last cell), archive (the tar's name: `closed-2026`), tokens (every
+ * report id / crash hash / feedback id the ticket text cites, space-separated: `pipeline/reports.py` finds them here).
+ * The full text of each closed ticket is in `archive/<archive>.tar.gz` as `<file name>`; read one with
+ * `tar -xzOf handoff/PLAN/app-integration/tickets/archive/closed-2026.tar.gz T123-*.md`.
+ */
+export const CLOSED_TSV = `${TICKETS_DIR}/closed.tsv`;
+export const ARCHIVE_DIR = `${TICKETS_DIR}/archive`;
+export const archiveName = (year) => `closed-${year}`;
+export const archivePath = (name) => `${ARCHIVE_DIR}/${name}.tar.gz`;
+const TSV_COLUMNS = ["id", "title", "status", "commits", "release", "left", "archive", "tokens"];
 
 /** The row block's two fixed lines (the old ledger table's header, word for word). */
 export const ROW_HEADER = "| id | title | status | commits | what's left |";
@@ -144,6 +165,124 @@ export function byId(a, b) {
   return na - nb || sa.localeCompare(sb);
 }
 
+// ------------------------------------------------------------------------------------------- (T1081) the closed index
+
+/** The report ids / crash hashes (16 hex), TestFlight feedback ids and Play review ids a text cites (`pipeline/reports.py`). */
+export function citeTokens(text) {
+  const out = new Set();
+  for (const m of text.matchAll(/(?<![0-9A-Za-z])[0-9a-f]{16}(?![0-9A-Za-z])/g)) out.add(m[0]);
+  for (const m of text.matchAll(/(?<![0-9A-Za-z_:-])[A-Za-z0-9_-]{20,32}(?![0-9A-Za-z_-])/g))
+    if (/[A-Z]/.test(m[0]) && /[a-z]/.test(m[0]) && /\d/.test(m[0])) out.add(m[0]);
+  for (const m of text.matchAll(/(?<![0-9A-Za-z])gp:[A-Za-z0-9_-]{20,}/g)) out.add(m[0]);
+  return [...out].sort();
+}
+
+/** The release a row names (`0.10.0`, or `r-<12 hex>`), else "". */
+export const releaseOf = (row) => `${row.status} ${row.commits} ${row.left}`.match(/\br-[0-9a-f]{12}\b|(?<![\w.])0\.\d+\.\d+\b/)?.[0] ?? "";
+
+const clean = (s) => String(s).replace(/[\t\r\n]+/g, " ").trim();
+
+/** A closed.tsv line from a ledger row and its ticket text. */
+export function tsvLine(row, text, archive) {
+  return [row.id, row.title, row.status, row.commits, releaseOf(row), row.left, archive, citeTokens(text).join(" ")].map(clean).join("\t");
+}
+
+/**
+ * closed.tsv read: one `{ id, title, status, commits, release, left, archive, tokens, line }` per line, and what is wrong
+ * (a line with the wrong number of fields, an id out of order or twice, a status that is not DONE / DROPPED).
+ */
+export function parseTsv(text) {
+  const rows = [], problems = [];
+  const lines = text.split("\n");
+  if (lines.at(-1) === "") lines.pop();
+  else if (text !== "") problems.push(`${CLOSED_TSV}: the last line does not end with a newline`);
+  lines.forEach((line, i) => {
+    const f = line.split("\t");
+    const at = `${CLOSED_TSV}:${i + 1}`;
+    if (f.length !== TSV_COLUMNS.length) { problems.push(`${at}: ${f.length} fields, ${TSV_COLUMNS.length} wanted (${TSV_COLUMNS.join(", ")})`); return; }
+    const r = Object.fromEntries(TSV_COLUMNS.map((k, j) => [k, f[j]]));
+    if (!/^T\d+[a-z]?$/.test(r.id)) { problems.push(`${at}: "${r.id}" is not a ticket id`); return; }
+    if (!isClosed(r.status)) problems.push(`${at}: ${r.id} is ${r.status || "(no status)"}: only DONE / DROPPED tickets are archived`);
+    const prev = rows.at(-1);
+    if (prev && byId(prev.id, r.id) >= 0) problems.push(`${at}: ${r.id} is ${prev.id === r.id ? "listed twice" : `out of order after ${prev.id}`} (id order, once each)`);
+    rows.push({ ...r, line: rowLineOf(r) });
+  });
+  return { rows, problems };
+}
+
+/** The ledger row line a closed.tsv line stands for (the DONE view's row). */
+export const rowLineOf = (r) => `| ${r.id} | ${r.title} | ${r.status} | ${r.commits} | ${r.left} |`;
+export const tsvText = (lines) => lines.length ? lines.join("\n") + "\n" : "";
+
+// ---- a deterministic tar.gz (ustar: sorted names, mtime 0, owner 0, mode 0644; gzip with no name and mtime 0)
+
+const octal = (n, width) => n.toString(8).padStart(width - 1, "0") + "\0";
+/** `{ name, text }[]` -> tar bytes, in name order. */
+export function tarBytes(files) {
+  const parts = [];
+  for (const { name, text } of [...files].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))) {
+    const data = Buffer.from(text, "utf8");
+    if (Buffer.byteLength(name) > 100) throw new Error(`tar: file name longer than 100 bytes: ${name}`);
+    const h = Buffer.alloc(512);
+    h.write(name, 0, "utf8");
+    h.write("0000644\0", 100); h.write("0000000\0", 108); h.write("0000000\0", 116);
+    h.write(octal(data.length, 12), 124); h.write(octal(0, 12), 136);
+    h.write("        ", 148); h.write("0", 156); h.write("ustar\0", 257); h.write("00", 263);
+    h.write("0000000\0", 329); h.write("0000000\0", 337);
+    let sum = 0; for (const b of h) sum += b;
+    h.write(octal(sum, 7), 148); h.write(" ", 155);
+    parts.push(h, data, Buffer.alloc((512 - (data.length % 512)) % 512));
+  }
+  parts.push(Buffer.alloc(1024));
+  return Buffer.concat(parts);
+}
+/** tar bytes -> `{ name, text }[]` (regular files only; a header that fails its checksum throws). */
+export function tarFiles(buf) {
+  const out = [];
+  for (let at = 0; at + 512 <= buf.length;) {
+    const h = buf.subarray(at, at + 512);
+    if (h.every((b) => b === 0)) break;
+    const name = h.subarray(0, 100).toString("utf8").replace(/\0.*$/s, "");
+    const size = parseInt(h.subarray(124, 135).toString("ascii"), 8);
+    const want = parseInt(h.subarray(148, 154).toString("ascii"), 8);
+    let sum = 0; h.forEach((b, i) => { sum += i >= 148 && i < 156 ? 32 : b; });
+    if (sum !== want) throw new Error(`tar: bad checksum at byte ${at}`);
+    out.push({ name, text: buf.subarray(at + 512, at + 512 + size).toString("utf8") });
+    at += 512 + Math.ceil(size / 512) * 512;
+  }
+  return out;
+}
+export const gzipTar = (files) => gzipSync(tarBytes(files), { level: 9 });
+export const gunzipTar = (gz) => tarFiles(gunzipSync(gz));
+
+/**
+ * What archiving does, pure. `tickets`: the ticket files (`{ name, text }`); `tsv`: the rows already in closed.tsv; `tars`:
+ * the archives that exist (`{ [archive name]: { name, text }[] }`); `ids`: only these (else every closed one); `year`.
+ * @returns {{ tsvLines: string[], tars: Record<string, {name,text}[]>, moved: {name,id}[], problems: string[] }}
+ */
+export function planArchive({ tickets, tsv, tars, ids, year }) {
+  const problems = [], moved = [];
+  const archive = archiveName(year);
+  const lines = new Map(tsv.map((r) => [r.id, TSV_COLUMNS.map((k) => r[k]).join("\t")]));
+  const files = [...(tars[archive] ?? [])];
+  for (const t of tickets) {
+    const id = idOfFile(t.name);
+    if (!id || (ids && !ids.includes(id))) continue;
+    const { row, problems: p } = ticketRow(t.name, t.text);
+    if (!row) { if (ids) problems.push(...p); continue; }
+    if (!isClosed(row.status)) { if (ids) problems.push(`${id}: ${row.status}, not DONE / DROPPED: it is not archived`); continue; }
+    if (lines.has(id)) { problems.push(`${id}: already in ${CLOSED_TSV}, and the file ${t.name} is still here`); continue; }
+    lines.set(id, tsvLine(row, t.text, archive));
+    files.push({ name: t.name, text: t.text });
+    moved.push({ name: t.name, id });
+  }
+  const names = new Set(), dup = files.filter((f) => names.size === names.add(f.name).size).map((f) => f.name);
+  for (const n of dup) problems.push(`${archive}: ${n} is in the archive twice`);
+  for (const id of ids ?? []) if (!lines.has(id) && !tickets.some((t) => idOfFile(t.name) === id)) problems.push(`${id}: no such closed ticket file`);
+  const tsvLines = [...lines.entries()].sort(([a], [b]) => byId(a, b)).map(([, l]) => l);
+  return { tsvLines, tars: { ...tars, [archive]: files }, moved, problems };
+}
+
 const banner = (what) =>
   `<!-- GENERATED by \`node app/tools/ledger.mjs\` from ${what} (T1041). Not committed: an edit here is lost, change the source. ` +
   "It may be STALE (a commit, reset or rebase the hooks did not see): `node app/tools/ledger.mjs --check` says, `node app/tools/ledger.mjs` rebuilds. -->";
@@ -153,15 +292,18 @@ const table = (rows) => [ROW_HEADER, ROW_SEP, ...rows.map((r) => r.line)].join("
  * The two ledger views from the ticket files (`{ name, text }[]`): every well-formed row once, in id order, in the view
  * its status keyword names. A file whose block is wrong is left out (the ticket guard names it).
  */
-export function ledgerViews(tickets) {
-  const rows = tickets.map((t) => ticketRow(t.name, t.text).row).filter(Boolean).sort((a, b) => byId(a.id, b.id));
-  const open = rows.filter((r) => !isClosed(r.status)), closed = rows.filter((r) => isClosed(r.status));
+export function ledgerViews(tickets, archived = []) {
+  const rows = tickets.map((t) => ticketRow(t.name, t.text).row).filter(Boolean);
+  const open = rows.filter((r) => !isClosed(r.status)).sort((a, b) => byId(a.id, b.id));
+  const own = new Set(rows.map((r) => r.id));
+  // (T1081) the archived rows (closed.tsv) stand with the closed ones; a file of the same id wins (the guard names the clash)
+  const closed = [...rows.filter((r) => isClosed(r.status)), ...archived.filter((r) => !own.has(r.id))].sort((a, b) => byId(a.id, b.id));
   const ledger = [banner(`the row table in each ${TICKETS_DIR}/T*.md`), "# Ledger: the tickets in work", "",
     `${open.length} rows, in id order: every ticket that is not DONE or DROPPED. The closed ones (${closed.length}) are in`,
     "`DONE.md` beside this file. A row is edited in its ticket file, under the Status line (tickets/README.md says how).",
     "", "## Ledger", "", table(open), ""].join("\n");
-  const done = [banner(`the row table in each ${TICKETS_DIR}/T*.md`), "# Closed tickets (DONE / DROPPED)", "",
-    `${closed.length} rows, in id order. A reopened ticket's row moves to LEDGER.md by itself: its status says where.`,
+  const done = [banner(`the row table in each ${TICKETS_DIR}/T*.md and ${CLOSED_TSV}`), "# Closed tickets (DONE / DROPPED)", "",
+    `${closed.length} rows, in id order (the archived ones, from ${CLOSED_TSV}: the full text is in ${ARCHIVE_DIR}/). A reopened ticket's row moves to LEDGER.md by itself: its status says where.`,
     "", "## Ledger", "", table(closed), ""].join("\n");
   return { ledger, done, open: open.length, closed: closed.length };
 }
@@ -220,7 +362,7 @@ export function readOwnerItems(files) {
  * (T1041) What is wrong with the number claims (`tickets/ids/Tnnn`, holding the ticket file's name): a ticket file with
  * no claim or a claim naming another file, a claim with no ticket file. `claims`: `{ name, text }[]` of that folder.
  */
-export function claimProblems(tickets, claims) {
+export function claimProblems(tickets, claims, closedIds = new Set()) {
   const problems = [];
   const byId = new Map(claims.map((c) => [c.name, c.text]));
   const files = new Set(tickets.map((t) => t.name));
@@ -231,8 +373,11 @@ export function claimProblems(tickets, claims) {
     if (c === undefined) problems.push(`${id}: no number claim ${claimPath(id)} (node app/tools/ledger.mjs --claim writes it): two PRs that take one number must collide there`);
     else if (c !== `${name}\n`) problems.push(`${id}: ${claimPath(id)} claims "${c.trim()}", but the ticket file is ${name}: one number, one ticket`);
   }
-  for (const { name, text } of claims)
+  for (const { name, text } of claims) {
+    if (closedIds.has(name)) { problems.push(`${claimPath(name)}: ${name} is in ${CLOSED_TSV} (archived): its number is kept there, delete the claim`); continue; }
     if (!files.has(text.trim()) || idOfFile(text.trim()) !== name) problems.push(`${claimPath(name)}: claims "${text.trim()}", which is not a ticket file of that number`);
+  }
+  for (const { name } of tickets) { const id = idOfFile(name); if (id && closedIds.has(id)) problems.push(`${id}: ${name} is still here but ${id} is in ${CLOSED_TSV}: a number is used once`); }
   return problems.sort();
 }
 
@@ -270,7 +415,9 @@ under its \`Status:\` line (same five cells as ever):
 or rebase, but a view MAY BE STALE (another worktree, a reset): \`node app/tools/ledger.mjs --check\` says so and the
 ticket guard warns. So two PRs that touch different tickets never conflict. A row's view follows its status keyword.
 A NEW ticket also claims its number: \`node app/tools/ledger.mjs --claim\` writes \`tickets/ids/Tnnn\` (the file's name);
-two PRs that take one number then collide there in git instead of both merging. \`node app/tools/check-tickets.mjs\`
+two PRs that take one number then collide there in git instead of both merging. A CLOSED ticket (DONE / DROPPED) is
+archived (T1081): its row is a line of \`closed.tsv\` beside this file and its text is in \`archive/closed-<year>.tar.gz\`;
+\`node app/tools/ledger.mjs --archive\` moves it, \`--next\` prints the next free number. \`node app/tools/check-tickets.mjs\`
 checks the rows and claims, and refuses this section holding anything but this text.
 `;
 
@@ -638,7 +785,9 @@ export function readWorkTree(repo) {
     : null;
   const cdir = join(repo, CLAIMS_DIR);
   const claims = existsSync(cdir) ? readdirSync(cdir).filter((n) => ID.test(n)).sort().map((name) => ({ name, text: readFileSync(join(cdir, name), "utf8") })) : [];
-  return { tickets, ownerFiles, claims };
+  const tsvPath = join(repo, CLOSED_TSV);
+  const closed = existsSync(tsvPath) ? parseTsv(readFileSync(tsvPath, "utf8")) : { rows: [], problems: [] };
+  return { tickets, ownerFiles, claims, closed: closed.rows, closedProblems: closed.problems };
 }
 
 /**
@@ -654,14 +803,14 @@ export function readOwnerTodo(repo) {
 
 /** The three views as they should be on disk. */
 export function buildViews(repo) {
-  const { tickets } = readWorkTree(repo);
-  const lv = ledgerViews(tickets);
+  const { tickets, closed, closedProblems } = readWorkTree(repo);
+  const lv = ledgerViews(tickets, closed);
   const o = readOwnerTodo(repo);
   return {
     files: { [VIEWS.ledger]: lv.ledger, [VIEWS.done]: lv.done,
              [VIEWS.owner]: `${banner(`the files in ${OWNER_DIR}/`)}\n${o.text}` },
-    summary: `${lv.open} rows in work, ${lv.closed} closed, ${o.items.length} owner items`,
-    problems: [...tickets.flatMap((t) => ticketRow(t.name, t.text).problems), ...o.problems],
+    summary: `${lv.open} rows in work, ${lv.closed} closed (${closed.length} archived), ${o.items.length} owner items`,
+    problems: [...tickets.flatMap((t) => ticketRow(t.name, t.text).problems), ...closedProblems, ...o.problems],
   };
 }
 
@@ -673,19 +822,106 @@ export function staleViews(repo) {
 
 /** --claim: write the number claim of every ticket file that has none; a claim naming another file is left, and said. */
 function cliClaim(repo) {
-  const { tickets, claims } = readWorkTree(repo);
+  const { tickets, claims, closed } = readWorkTree(repo);
+  const closedIds = new Set(closed.map((r) => r.id));
   const have = new Map(claims.map((c) => [c.name, c.text]));
   mkdirSync(join(repo, CLAIMS_DIR), { recursive: true });
   let made = 0;
   for (const { name } of tickets) {
     const id = idOfFile(name);
-    if (!id || have.has(id)) continue;
+    if (!id || have.has(id) || closedIds.has(id)) continue;   // (T1081) a closed id is never claimed again: claimProblems says so
     writeFileSync(join(repo, claimPath(id)), `${name}\n`); have.set(id, `${name}\n`); made++;
   }
-  const problems = claimProblems(tickets, [...have].map(([name, text]) => ({ name, text })));
+  const problems = claimProblems(tickets, [...have].map(([name, text]) => ({ name, text })), closedIds);
   console.log(`claims: ${made} written (${CLAIMS_DIR}/); git add them with their tickets`);
   for (const p of problems) console.error(`✗ ${p}`);
   return problems.length ? 1 : 0;
+}
+
+/**
+ * (T1081) The number a new ticket takes: one past the highest number used anywhere: closed.tsv, the claims, the open files,
+ * and the claims and files on every local / remote-tracking branch (a PR not merged yet has claimed its number there).
+ * `names`: every path-or-name seen. Pure.
+ */
+export function nextNumber(names) {
+  let top = 0;
+  for (const n of names) { const m = basename(n).match(/^T(\d+)/); if (m) top = Math.max(top, Number(m[1])); }
+  return top + 1;
+}
+
+function cliNext(repo) {
+  const { tickets, claims, closed } = readWorkTree(repo);
+  const names = [...tickets.map((t) => t.name), ...claims.map((c) => c.name), ...closed.map((r) => r.id)];
+  const refs = git(repo, ["for-each-ref", "--format=%(refname)", "refs/heads", "refs/remotes"]).split("\n").filter((r) => r && !r.endsWith("/HEAD"));
+  for (const ref of refs) names.push(...git(repo, ["ls-tree", "--name-only", ref, `${TICKETS_DIR}/`, `${CLAIMS_DIR}/`]).split("\n").filter(Boolean));
+  console.log(`T${nextNumber(names)}`);
+  return 0;
+}
+
+/** Ticket-keyed picture / data entries in `dir` (`T123-shots`, `T123-files`, `T563-566-shots`, `T41-walk`, `T321-wording-baseline.txt`): the ids they belong to. */
+export function assetIds(name) {
+  const m = name.match(/^T(\d+)([a-z]?)(?:-(\d+))?-(?!\d)/);
+  if (!m || name.endsWith(".md")) return null;
+  const [, a, letter, b] = m;
+  if (!b) return [`T${a}${letter}`];
+  const out = [];
+  for (let k = Number(a); k <= Number(b); k++) out.push(`T${k}`);
+  return out;
+}
+
+/** Asset entries a surviving document or a running tool still reads: never deleted by --archive (name -> why). */
+export const KEPT_ASSETS = {
+  "app-integration/tickets/T281-files": "tests (pipeline/tests/test_t100_area_caveat.py) read sub_lake_areas.json from it",
+};
+
+const ASSET_ROOTS = ["handoff/PLAN/app-integration", TICKETS_DIR];
+
+/** What is wrong with an archive's bytes against the ticket files it must hold (empty = each one there, byte for byte). */
+export function archiveProblems(files, gz) {
+  const back = new Map(gunzipTar(gz).map((f) => [f.name, f.text]));
+  return files.filter((t) => back.get(t.name) !== t.text).map((t) => `${t.name} is not in the archive byte for byte`);
+}
+
+function cliArchive(repo, rest) {
+  const dry = rest.includes("--dry");
+  const ids = rest.filter((a) => /^T\d+[a-z]?$/.test(a));
+  const year = new Date().getFullYear();
+  const { tickets, closed, claims } = readWorkTree(repo);
+  const archive = archiveName(year);
+  const apath = join(repo, archivePath(archive));
+  const tars = existsSync(apath) ? { [archive]: gunzipTar(readFileSync(apath)) } : {};
+  const plan = planArchive({ tickets, tsv: closed, tars, ids: ids.length ? ids : null, year });
+  if (plan.problems.length) throw new Error(`nothing was archived:\n  ${plan.problems.join("\n  ")}`);
+  const movedIds = new Set(plan.moved.map((m) => m.id));
+  const assets = [], kept = [];
+  for (const root of ASSET_ROOTS) {
+    if (!existsSync(join(repo, root))) continue;
+    for (const name of readdirSync(join(repo, root))) {
+      const owners = assetIds(name);
+      if (!owners) continue;
+      const wasClosed = (id) => movedIds.has(id) || (closed.some((r) => r.id === id) && !tickets.some((t) => idOfFile(t.name) === id));
+      if (!owners.every(wasClosed)) continue;
+      const key = `${root.replace("handoff/PLAN/", "")}/${name}`;
+      if (KEPT_ASSETS[key]) kept.push(`${key}: ${KEPT_ASSETS[key]}`); else assets.push(`${root}/${name}`);
+    }
+  }
+  const claimFiles = claims.filter((c) => movedIds.has(c.name)).map((c) => claimPath(c.name));
+  console.log(`archive ${archive}: ${plan.moved.length} ticket files, ${claimFiles.length} claims, ${assets.length} picture/data folders; kept: ${kept.length}`);
+  for (const k of kept) console.log(`  kept ${k}`);
+  if (dry || !plan.moved.length) return 0;
+  // write, read back, compare byte for byte BEFORE anything is deleted
+  const gz = gzipTar(plan.tars[archive]);
+  mkdirSync(join(repo, ARCHIVE_DIR), { recursive: true });
+  writeFileSync(apath, gz);
+  writeFileSync(join(repo, CLOSED_TSV), tsvText(plan.tsvLines));
+  const wrong = archiveProblems(tickets.filter((t) => movedIds.has(idOfFile(t.name))), readFileSync(apath));
+  if (wrong.length) throw new Error(`${archivePath(archive)} does not read back: nothing was deleted:\n  ${wrong.join("\n  ")}`);
+  if (parseTsv(readFileSync(join(repo, CLOSED_TSV), "utf8")).problems.length) throw new Error(`${CLOSED_TSV} does not read back clean: nothing was deleted`);
+  for (const m of plan.moved) rmSync(join(repo, TICKETS_DIR, m.name));
+  for (const c of claimFiles) rmSync(join(repo, c), { force: true });
+  for (const a of assets) rmSync(join(repo, a), { recursive: true, force: true });
+  console.log(`✓ archived ${plan.moved.length} tickets into ${archivePath(archive)} and ${CLOSED_TSV}; deleted their files, claims and folders`);
+  return 0;
 }
 
 function writeViews(repo) {
@@ -792,6 +1028,8 @@ if (isMain) {
     else if (flag === "--resolve") { const rc = cliResolve(repo); if (rc === 0) writeViews(repo); process.exit(rc); }
     else if (flag === "--merge") process.exit(cliMerge(repo, arg));
     else if (flag === "--claim") process.exit(cliClaim(repo));
+    else if (flag === "--next") process.exit(cliNext(repo));
+    else if (flag === "--archive") { const rc = cliArchive(repo, process.argv.slice(3)); if (rc === 0 && !process.argv.includes("--dry")) console.log(`views: ${writeViews(repo).summary}`); process.exit(rc); }
     else if (flag === "--check") {
       const v = buildViews(repo);
       const stale = staleViews(repo);
@@ -806,7 +1044,7 @@ if (isMain) {
       if (flag !== "--quiet") console.log(`views (${VIEWS_DIR}/): ${v.summary}`);
       if (v.problems.length) process.exit(1);
     }
-    else throw new Error(`unknown flag ${flag} (none, --check, --claim, --import, --resolve, --merge <ref>)`);
+    else throw new Error(`unknown flag ${flag} (none, --check, --claim, --next, --archive, --import, --resolve, --merge <ref>)`);
   } catch (e) {
     console.error(`✗ ledger: ${e.message}`);
     process.exit(1);

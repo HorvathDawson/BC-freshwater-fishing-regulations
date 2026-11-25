@@ -75,14 +75,26 @@ class Section:
 
 # ------------------------------------------------------------------------------------------------ what tickets cite
 
+CLOSED_TSV_NAME = "closed.tsv"
+
+
 def ticket_texts(tickets_dir: Path = TICKETS) -> dict[str, str]:
-    """{ticket id: text} of every ticket file."""
+    """{ticket id: text} of every ticket. An OPEN ticket is its file's text. (T1081) A CLOSED ticket is archived: its file
+    is gone, and `closed.tsv` holds the report ids / crash hashes / feedback ids it cited (its last column) as its text.
+    Sorted by ticket id, as the files' names were."""
     out = {}
     for p in sorted(tickets_dir.glob("T*.md")):
         m = re.match(r"T\d+[a-z]?", p.name)
         if m:
             out[m.group(0)] = p.read_text(encoding="utf-8", errors="replace")
-    return out
+    tsv = tickets_dir / CLOSED_TSV_NAME
+    if tsv.exists():
+        for n, line in enumerate(tsv.read_text(encoding="utf-8").splitlines(), 1):
+            f = line.split("\t")
+            if len(f) != 8 or not re.fullmatch(r"T\d+[a-z]?", f[0]):
+                raise SourceError(f"{tsv}:{n} is not a closed-ticket line (8 tab-separated fields, the first a ticket id)")
+            out.setdefault(f[0], f[7])
+    return dict(sorted(out.items()))
 
 
 def cited_by(item_id: str, texts: dict[str, str]) -> list[str]:

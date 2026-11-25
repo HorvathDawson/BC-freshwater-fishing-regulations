@@ -15,7 +15,8 @@
  *      ticket cannot hide among the closed ones (T540's rule, now by construction, pinned in ledger.test.ts). A row
  *      typed the old way fails: README.md's `## Ledger` holding a row, a tickets/DONE.md, a `## ` section in
  *      OWNER-TODO.md (`ledger.mjs --resolve` carries an old-style branch's edits into the files);
- *   3. a T-number named in a commit subject (since the tickets folder began) is not in the ledger;
+ *   3. a T-number named in a commit subject (since the tickets folder began) is not in the ledger (an open ticket's row, or
+ *      (T1081) a line of `closed.tsv`, where a closed ticket lives once archived: its text is in `archive/*.tar.gz`);
  *   4. a ticket is DONE — in its file or in its ledger row — with no commit hash;
  *   5. (T437) a ticket file's leading status keyword differs from its ledger row's. Twelve had drifted (OPEN in the
  *      file, POSTPONED in the ledger; PARTIAL vs "DONE locally"): a lane closes the file AND the row in one commit.
@@ -33,7 +34,7 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { CLAIMS_DIR, LEDGER_POINTER, MARKER, OLD_DONE, OWNER_DIR, OWNER_PAGE, OWNER_PAGE_TEXT, README, claimProblems, ledgerSection,
+import { CLAIMS_DIR, CLOSED_TSV, LEDGER_POINTER, MARKER, OLD_DONE, OWNER_DIR, OWNER_PAGE, OWNER_PAGE_TEXT, README, claimProblems, ledgerSection,
          readOwnerTodo, readWorkTree, staleViews, tableRows, ticketRow } from "./ledger.mjs";
 
 /** (T540) The closed statuses: their rows are built into the DONE view (`ledger.mjs` isClosed). */
@@ -100,11 +101,20 @@ export const ledgerRows = tableRows;
  *   may cite) and ownerProblems what is wrong with those files; legacy — the old places (README.md, DONE.md or null when
  *   it is gone, OWNER-TODO.md), which must hold no row and no item (it must be given: never "nothing old to check").
  */
-export function checkLedger({ tickets, subjects, ownerTodo, ownerProblems = [], legacy, claims }) {
+export function checkLedger({ tickets, subjects, ownerTodo, ownerProblems = [], legacy, claims, closed }) {
   if (!legacy || typeof legacy.readme !== "string" || typeof legacy.ownerPage !== "string" || legacy.doneLedger === undefined)
     throw new Error(`checkLedger needs legacy: { readme, doneLedger (null when ${OLD_DONE} is gone), ownerPage } (T1041)`);
   if (!Array.isArray(claims)) throw new Error(`checkLedger needs claims (the files of ${CLAIMS_DIR}/, T1041): never "no claims to check"`);
-  const problems = [...ownerProblems, ...claimProblems(tickets, claims)];
+  if (!Array.isArray(closed)) throw new Error(`checkLedger needs closed (the parsed lines of ${CLOSED_TSV}, T1081): never "no archive to check"`);
+  const closedIds = new Set(closed.map((r) => r.id));
+  const problems = [...ownerProblems, ...claimProblems(tickets, claims, closedIds)];
+  // (T1081) an archived ticket is a closed row without a file: its status and hash are held to the same rules as a file's row
+  for (const r of closed) {
+    const kw = statusKeyword(r.status);
+    if (kw !== "DONE" && kw !== "DROPPED") problems.push(`${r.id}: ${CLOSED_TSV} holds it as "${r.status}": only DONE / DROPPED tickets are archived`);
+    if (kw === "DONE" && !HASH.test(r.commits)) problems.push(`${r.id}: ${CLOSED_TSV} row is DONE with no commit hash`);
+    if (r.left.length > LEFT_CELL_MAX) problems.push(`${r.id}: ${CLOSED_TSV} row's last cell is ${r.left.length} characters (max ${LEFT_CELL_MAX})`);
+  }
   const oldRows = tableRows(legacy.readme);
   if (oldRows.length) problems.push(`${README} holds ${oldRows.length} ledger row(s) (${oldRows.slice(0, 3).map((r) => r.id).join(", ")}…): ` +
     "a row lives in its ticket file under the Status line (T1041); `node app/tools/ledger.mjs --resolve` carries an old-style branch's rows");
@@ -153,7 +163,7 @@ export function checkLedger({ tickets, subjects, ownerTodo, ownerProblems = [], 
     if (kw && idOfFile(name)) fileKw.set(idOfFile(name), kw);
   }
 
-  const seen = new Set();
+  const seen = new Set(closedIds);
   for (const row of rows) {
     seen.add(row.id);
     const kw = statusKeyword(row.status);
@@ -170,8 +180,6 @@ export function checkLedger({ tickets, subjects, ownerTodo, ownerProblems = [], 
   }
   for (const [id, names] of namesById)
     if (names.length > 1) problems.push(`${id}: more than one ticket file (${[...names].sort().join(", ")})`);
-
-  const files = new Set(namesById.keys());
 
   const named = new Set(subjects.flatMap(ticketsIn));
   for (const id of named) if (!seen.has(id)) problems.push(`${id}: named in a commit subject but missing from the ledger`);
@@ -283,7 +291,8 @@ export function readRepo(repoRoot) {
   const owner = readOwnerTodo(repoRoot);
   const legacy = { readme: readFileSync(join(repoRoot, README), "utf8"), ownerPage: readFileSync(join(repoRoot, OWNER_PAGE), "utf8"),
                    doneLedger: existsSync(join(repoRoot, OLD_DONE)) ? readFileSync(join(repoRoot, OLD_DONE), "utf8") : null };
-  return { tickets, subjects, ownerTodo: owner.text, ownerProblems: owner.problems, legacy, claims: readWorkTree(repoRoot).claims };
+  const work = readWorkTree(repoRoot);
+  return { tickets, subjects, ownerTodo: owner.text, ownerProblems: [...owner.problems, ...work.closedProblems], legacy, claims: work.claims, closed: work.closed };
 }
 
 /**
@@ -292,8 +301,10 @@ export function readRepo(repoRoot) {
  */
 export function ledgerIds(repoRoot) {
   const dir = join(repoRoot, TICKETS_DIR);
-  return new Set(readdirSync(dir).filter((n) => /^T.*\.md$/.test(n))
+  const ids = new Set(readdirSync(dir).filter((n) => /^T.*\.md$/.test(n))
     .map((name) => ticketRow(name, readFileSync(join(dir, name), "utf8")).row?.id).filter(Boolean));
+  for (const r of readWorkTree(repoRoot).closed) ids.add(r.id);   // (T1081) the archived tickets' ids stay named
+  return ids;
 }
 
 /** The docs checkLedger's sibling reads: real files, real existence, real git-ignore. */

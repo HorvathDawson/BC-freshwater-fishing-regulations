@@ -177,5 +177,5 @@ Owner rules (handoff/PLAN/app-integration/decisions.md, memory `app-port-directi
 - Map/theme tokens: `app/packages/map/style/tokens.json` and `app/packages/map/style/themes/{light,dark,cvd}.json`
   (built by `pnpm style:build`; `color.ui.*`, `color.stock.*`, `color.survey.*`, `color.ui.imagery.*`).
 - App palette, `SPACE`, `GUTTER`: `app/packages/ui-native/src/theme.ts`. Type scale `TYPE`: `app/packages/ui-native/src/type.ts`.
-- Ticket and mapping: `handoff/PLAN/app-integration/tickets/T22-theme-type-tokens.md`, `handoff/PLAN/app-integration/tokens.md`
+- Ticket and mapping: `handoff/PLAN/app-integration/tickets/archive/closed-2026.tar.gz:T22-theme-type-tokens.md`, `handoff/PLAN/app-integration/tokens.md`
   (values from `app/design/regs-v11/port/golden/tokens.json`).

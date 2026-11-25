@@ -1,6 +1,6 @@
 # T47 — status colours you can tell apart (part 1: measure, candidates, renders · part 2: palette D, applied)
 
-Ticket: `handoff/PLAN/app-integration/tickets/T47-status-colours-distinct.md`. Part 1 measured today's palette and offered
+Ticket: `handoff/PLAN/app-integration/tickets/archive/closed-2026.tar.gz:T47-status-colours-distinct.md`. Part 1 measured today's palette and offered
 A / B / C (nothing applied). The owner answered on 2026-10-22: grey boundaries are good, but the STATUS colours must be
 more different from each other than A / B / C. **Part 2 derived palette D from B and applied it** (next section).
 

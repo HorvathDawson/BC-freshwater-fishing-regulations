@@ -10,7 +10,7 @@
  *   5. the carry (`--resolve`) of an old-style side's edits, pure and through git in a made-up repository, both ways.
  */
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -20,6 +20,7 @@ import {
   HEAD_FILE, LEDGER_POINTER, OLD_DONE, OWNER_DIR, OWNER_PAGE, README, ROW_HEADER, ROW_SEP, carry, gitMerge3, importOld,
   insertRow, itemFile, ledgerViews, ownerTodoText, readOwnerItems, roundTrip, setRow, splitOwnerTodo, stripRow, tableRows,
   ticketRow, treeAt, claimPath, claimProblems, staleViews, readWorkTree,
+  CLOSED_TSV, archivePath, assetIds, archiveProblems, archiveProblems, citeTokens, gunzipTar, gzipTar, nextNumber, parseTsv, planArchive, releaseOf, tarBytes, tarFiles, tsvLine,
 } from "./ledger.mjs";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
@@ -429,5 +430,151 @@ describe("--resolve through git, both ways (a made-up repository)", () => {
     const { dir } = repo();
     const r = resolve(dir);
     expect([r.status, r.stderr]).toEqual([1, expect.stringMatching(/no merge in progress \(MERGE_HEAD\)/)]);
+  });
+});
+
+
+// ---- T1081: closed tickets live in closed.tsv + one deterministic tar.gz; their files, claims and pictures are gone ----
+describe("T1081 the closed index and the archive", () => {
+  const done = (id: string, extra = "") => insertRow(ticket(id, "DONE — abc1234.", `Source: x ${extra}\n`), row(id, "DONE", "abc1234", `title ${id}`));
+  const names = { T3: "T3-a.md", T4: "T4-b.md", T10: "T10-c.md" };
+  it("citeTokens keeps what pipeline/reports.py matches (16 hex, TestFlight id, Play review id) and little else", () => {
+    const text = "crash c920e3c59673b7ec, report 4d51dfb38c3ae4e9. sha 0123456789abcdef0123456789abcdef01234567; fb ACeTORpC4_17LbsatW-MECg; gp:AOqpTOGabc_def-1234567890xyz; the-slug-of-a-file-name-here";
+    expect(citeTokens(text)).toEqual(["ACeTORpC4_17LbsatW-MECg", "4d51dfb38c3ae4e9", "c920e3c59673b7ec", "gp:AOqpTOGabc_def-1234567890xyz"].sort());
+  });
+  it("releaseOf reads a version or a release id the row names", () => {
+    expect(releaseOf({ status: "DONE", commits: "abc1234 (0.10.0)", left: "—" })).toBe("0.10.0");
+    expect(releaseOf({ status: "DONE", commits: "PR #12 r-71d09ad82e81", left: "—" })).toBe("r-71d09ad82e81");
+    expect(releaseOf({ status: "DONE", commits: "abc1234 1.0.0.1.2", left: "—" })).toBe("");
+  });
+  it("the tar is deterministic, lists sorted names, and reads back byte for byte (also with the system tar)", () => {
+    const files = [{ name: "T10-c.md", text: "ten ü\n" }, { name: "T3-a.md", text: "x".repeat(1000) }, { name: "T4-b.md", text: "" }];
+    const a = gzipTar(files), b = gzipTar([...files].reverse());
+    expect(a.equals(b)).toBe(true);
+    expect(gunzipTar(a).map((f: { name: string }) => f.name)).toEqual(["T10-c.md", "T3-a.md", "T4-b.md"]);
+    expect(gunzipTar(a)).toEqual([...files].sort((p, q) => (p.name < q.name ? -1 : 1)));
+    expect(gzipTar(gunzipTar(a)).equals(a)).toBe(true);
+    const dir = mkdtempSync(join(tmpdir(), "tar-t1081-"));
+    writeFileSync(join(dir, "x.tar.gz"), a);
+    expect(execFileSync("tar", ["-tzf", join(dir, "x.tar.gz")], { encoding: "utf8" }).trim().split("\n")).toEqual(["T10-c.md", "T3-a.md", "T4-b.md"]);
+    expect(execFileSync("tar", ["-xzOf", join(dir, "x.tar.gz"), "T10-c.md"], { encoding: "utf8" })).toBe("ten ü\n");
+    const raw = tarBytes(files);
+    expect(raw.subarray(100, 124).toString("latin1")).toBe("0000644\0" + "0000000\0" + "0000000\0");        // mode, owner 0
+    expect(raw.subarray(136, 148).toString("latin1")).toBe("00000000000\0");                                // mtime 0
+    expect(archiveProblems(files, a)).toEqual([]);
+    expect(archiveProblems([{ name: "T3-a.md", text: "x" }, { name: "T9-q.md", text: "" }], a)).toEqual([
+      "T3-a.md is not in the archive byte for byte", "T9-q.md is not in the archive byte for byte"]);
+    expect(() => tarFiles(Buffer.concat([tarBytes(files).subarray(0, 512).fill(65, 0, 3), Buffer.alloc(2048)]))).toThrow(/checksum/);
+    expect(() => tarBytes([{ name: "x".repeat(101), text: "" }])).toThrow(/100 bytes/);
+  });
+  it("closed.tsv: a line reads back; out-of-order, repeated, short and non-closed lines are named", () => {
+    const l = (id: string, status = "DONE") => [id, "t", status, "abc1234", "", "—", "closed-2026", ""].join("\t");
+    expect(parseTsv(`${l("T3")}\n${l("T10")}\n`).problems).toEqual([]);
+    expect(parseTsv(`${l("T10")}\n${l("T3")}\n`).problems).toEqual([`${CLOSED_TSV}:2: T3 is out of order after T10 (id order, once each)`]);
+    expect(parseTsv(`${l("T3")}\n${l("T3")}\n`).problems).toEqual([`${CLOSED_TSV}:2: T3 is listed twice (id order, once each)`]);
+    expect(parseTsv(`${l("T3", "OPEN")}\n`).problems[0]).toMatch(/only DONE \/ DROPPED/);
+    expect(parseTsv("T3\tx\n").problems[0]).toMatch(/2 fields, 8 wanted/);
+    expect(parseTsv(l("T3")).problems[0]).toMatch(/does not end with a newline/);
+    expect(parseTsv(`${l("T3")}\n`).rows[0].line).toBe("| T3 | t | DONE | abc1234 | — |");
+  });
+  it("the DONE view takes the archived rows too, in id order, and a file of the same id wins", () => {
+    const tsv = parseTsv(`${tsvLine(ticketRow(names.T3, done("T3")).row, done("T3"), "closed-2026")}\n`).rows;
+    const open = { name: "T5-e.md", text: insertRow(ticket("T5", "OPEN."), row("T5", "OPEN")) };
+    const v = ledgerViews([open], tsv);
+    expect(tableRows(v.done).map((r: { id: string }) => r.id)).toEqual(["T3"]);
+    expect(tableRows(v.ledger).map((r: { id: string }) => r.id)).toEqual(["T5"]);
+    expect([v.open, v.closed]).toEqual([1, 1]);
+  });
+  it("planArchive moves the closed tickets only, sorts the lines, appends to the year's tar, and refuses a repeat", () => {
+    const tickets = [names.T10, names.T3, names.T4].map((n) => {
+      const id = n.split("-")[0]!;
+      return { name: n, text: id === "T4" ? insertRow(ticket(id, "OPEN."), row(id, "OPEN")) : done(id, "ACeTORpC4_17LbsatW-MECg") };
+    });
+    const p = planArchive({ tickets, tsv: [], tars: {}, ids: null, year: 2026 });
+    expect(p.problems).toEqual([]);
+    expect(p.moved.map((m: { id: string }) => m.id).sort()).toEqual(["T10", "T3"]);
+    expect(p.tsvLines.map((l: string) => l.split("\t")[0])).toEqual(["T3", "T10"]);
+    expect(p.tsvLines[0]!.split("\t").at(-1)).toBe("ACeTORpC4_17LbsatW-MECg");
+    expect(p.tars["closed-2026"]!.map((f: { name: string }) => f.name).sort()).toEqual(["T10-c.md", "T3-a.md"]);
+    // a later pass adds to the same tar and the same tsv
+    const rows = parseTsv(`${p.tsvLines.join("\n")}\n`).rows;
+    const p2 = planArchive({ tickets: [{ name: "T20-z.md", text: done("T20") }], tsv: rows, tars: p.tars, ids: null, year: 2026 });
+    expect(p2.tsvLines.map((l: string) => l.split("\t")[0])).toEqual(["T3", "T10", "T20"]);
+    expect(p2.tars["closed-2026"]!.length).toBe(3);
+    // the same ticket twice, or a named one that is open or missing
+    expect(planArchive({ tickets: [tickets[1]!], tsv: rows, tars: p.tars, ids: null, year: 2026 }).problems[0]).toMatch(/T3: already in .*closed.tsv, and the file/);
+    expect(planArchive({ tickets, tsv: [], tars: {}, ids: ["T4", "T99"], year: 2026 }).problems).toEqual([
+      "T4: OPEN, not DONE / DROPPED: it is not archived", "T99: no such closed ticket file"]);
+  });
+  it("claimProblems: a claim or a file of an archived number fails, so a number is never used twice", () => {
+    expect(claimProblems([], [{ name: "T9", text: "T9-a.md\n" }], new Set(["T9"]))).toEqual([
+      "handoff/PLAN/app-integration/tickets/ids/T9: T9 is in handoff/PLAN/app-integration/tickets/closed.tsv (archived): its number is kept there, delete the claim"]);
+    expect(claimProblems([{ name: "T9-a.md", text: "" }], [{ name: "T9", text: "T9-a.md\n" }], new Set(["T9"]))).toHaveLength(2);
+    expect(claimProblems([], [], new Set(["T9"]))).toEqual([]);
+  });
+  it("nextNumber is one past the highest number anywhere (closed ids, claims, files, other branches' claims)", () => {
+    expect(nextNumber(["T3", "T10-x.md", "T1141", "handoff/PLAN/app-integration/tickets/ids/T1150", "T15b-y.md"])).toBe(1151);
+    expect(nextNumber([])).toBe(1);
+  });
+  it("assetIds: picture and data folders of a ticket, a range, never a ticket file", () => {
+    expect(["T12-shots", "T41-polish-shots", "T41-walk", "T623-pending", "T563-566-shots", "T321-wording-baseline.txt", "T15b-files", "T1-x.md", "icons-shots", "T-1"].map(assetIds)).toEqual([
+      ["T12"], ["T41"], ["T41"], ["T623"], ["T563", "T564", "T565", "T566"], ["T321"], ["T15b"], null, null, null]);
+  });
+  it("the real archive holds exactly the closed.tsv tickets: each file's row and tokens are what its line says", () => {
+    const rows = readWorkTree(ROOT).closed as { id: string; title: string; status: string; commits: string; archive: string; tokens: string }[];
+    expect(rows.length).toBeGreaterThan(800);
+    const files = new Map<string, string>();
+    for (const a of new Set(rows.map((r) => r.archive))) for (const f of gunzipTar(readFileSync(join(ROOT, archivePath(a)))) as { name: string; text: string }[]) files.set(f.name, f.text);
+    expect(files.size).toBe(rows.length);
+    for (const r of rows) {
+      const [name, text] = [...files].find(([n]) => n.startsWith(`${r.id}-`)) ?? [];
+      expect(name, r.id).toBeTruthy();
+      const got = ticketRow(name!, text!).row!;
+      expect([got.title, got.status, got.commits], r.id).toEqual([r.title, r.status, r.commits]);
+      expect(citeTokens(text!).join(" "), r.id).toBe(r.tokens);
+    }
+  });
+  it("--archive through the CLI: files, claims and picture folders go, the rest stays, a second run does nothing, the guard-read views build", () => {
+    const dir = mkdtempSync(join(tmpdir(), "archive-t1081-"));
+    const git = (...a: string[]) => execFileSync("git", ["-C", dir, ...a], { encoding: "utf8", env: cleanEnv() });
+    git("init", "-q");
+    const td = join(dir, T);
+    mkdirSync(join(td, "ids"), { recursive: true });
+    mkdirSync(join(dir, "handoff/PLAN/owner-todo"), { recursive: true });
+    writeFileSync(join(dir, "handoff/PLAN/owner-todo", HEAD_FILE), "# head\n");
+    for (const [id, n, text] of [["T3", names.T3, done("T3")], ["T4", names.T4, insertRow(ticket("T4", "OPEN."), row("T4", "OPEN"))], ["T10", names.T10, done("T10")]] as const) {
+      writeFileSync(join(td, n), text); writeFileSync(join(td, "ids", id), `${n}\n`);
+    }
+    for (const d of ["T3-shots", "T4-shots", "T10-files", "T11-shots"]) { mkdirSync(join(dir, "handoff/PLAN/app-integration", d), { recursive: true }); writeFileSync(join(dir, "handoff/PLAN/app-integration", d, "a.png"), "x"); }
+    const run = (...a: string[]) => spawnSync(process.execPath, [SCRIPT, ...a], { cwd: dir, env: cleanEnv(), encoding: "utf8" });
+    const dry = run("--archive", "--dry");
+    expect([dry.status, dry.stdout]).toEqual([0, expect.stringMatching(/2 ticket files, 2 claims, 2 picture\/data folders/)]);
+    expect(existsSync(join(td, names.T3))).toBe(true);                                      // a dry run deletes nothing
+    const r = run("--archive");
+    expect([r.status, r.stderr]).toEqual([0, ""]);
+    expect(readdirSync(td).sort()).toEqual(["T4-b.md", "archive", "closed.tsv", "ids"]);
+    expect(readdirSync(join(td, "ids"))).toEqual(["T4"]);
+    expect(readdirSync(join(dir, "handoff/PLAN/app-integration")).sort()).toEqual(["T11-shots", "T4-shots", "tickets"]);
+    const year = new Date().getFullYear();
+    expect(gunzipTar(readFileSync(join(dir, archivePath(`closed-${year}`)))).map((f: { name: string }) => f.name)).toEqual(["T10-c.md", "T3-a.md"]);
+    expect(readFileSync(join(td, "closed.tsv"), "utf8").split("\n").map((l) => l.split("\t")[0])).toEqual(["T3", "T10", ""]);
+    const bytes = readFileSync(join(dir, archivePath(`closed-${year}`)));
+    const again = run("--archive");
+    expect([again.status, again.stdout]).toEqual([0, expect.stringMatching(/0 ticket files/)]);
+    expect(readFileSync(join(dir, archivePath(`closed-${year}`))).equals(bytes)).toBe(true);
+    expect(run("--check").stdout).toMatch(/views current .*1 rows in work, 2 closed \(2 archived\)/);
+    expect(run("--claim").stdout).toMatch(/0 written/);
+    writeFileSync(join(td, "T3-again.md"), done("T3"));                                       // an archived number used again
+    const bad = run("--claim");
+    expect([bad.status, bad.stderr]).toEqual([1, expect.stringMatching(/T3: T3-again\.md is still here but T3 is in .*closed\.tsv/)]);
+    expect(existsSync(join(td, "ids", "T3"))).toBe(false);                                   // and it wrote no claim for it
+    expect(run("--next").stdout.trim()).toBe("T11");
+    rmSync(join(td, "T3-again.md"));
+    // a folder a running test reads is kept, and said
+    mkdirSync(join(td, "T281-files")); writeFileSync(join(td, "T281-files", "sub_lake_areas.json"), "{}");
+    writeFileSync(join(td, "T281-lake.md"), done("T281"));
+    const kept = run("--archive");
+    expect(kept.stdout).toMatch(/1 ticket files, 0 claims, 0 picture\/data folders; kept: 1/);
+    expect(existsSync(join(td, "T281-files", "sub_lake_areas.json"))).toBe(true);
   });
 });

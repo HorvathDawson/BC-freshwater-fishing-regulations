@@ -14,12 +14,28 @@ import { CLOSED, RUNBOOK_MAKES, LEFT_CELL_MAX, checkDocs, checkLedger, citedPath
 import { LEDGER_POINTER, OWNER_PAGE_TEXT, ROW_HEADER, ROW_SEP, ledgerViews, readOwnerItems, readWorkTree, setRow, stripRow, ticketRow } from "./ledger.mjs";
 
 type Legacy = { readme: string; doneLedger: string | null; ownerPage: string };
+type Closed = { id: string; title: string; status: string; commits: string; release: string; left: string; archive: string; tokens: string };
 type Input = { tickets: { name: string; text: string }[]; subjects: string[]; ownerTodo: string; ownerProblems: string[]; legacy: Legacy;
-  claims: { name: string; text: string }[] };
+  claims: { name: string; text: string }[]; closed: Closed[] };
 const repoRoot = new URL("../..", import.meta.url).pathname;
 /** the repo as it is: every ticket file with its row (T1041), the owner items, the old places */
 const repo = readRepo(repoRoot) as Input;
-const real = repo;
+/**
+ * (T1081) The closed tickets are archived: their files are gone, their lines are in closed.tsv. The mutation tests below
+ * need a CLOSED ticket FILE to break (a DONE one with a hash), so `real` is the repo plus two made-up ones, T84 and T02,
+ * with their claims, taken out of closed.tsv so the id is used once.
+ */
+const fixture = (id: string, slug: string, title: string) => ({
+  name: `${id}-${slug}.md`,
+  text: `# ${id} — ${title}\n\nStatus: DONE — abc1234.\n\n${ROW_HEADER}\n${ROW_SEP}\n| ${id} | ${title} | DONE | abc1234 | — |\n\nSource: made up.\n`,
+});
+const fixtures = [fixture("T84", "ticket-ledger-guard", "ticket ledger guard"), fixture("T02", "blob-codec", "blob codec (fflate dict-inflate + UTF-8 decode)")];
+const real: Input = {
+  ...repo,
+  tickets: [...repo.tickets, ...fixtures].sort((a, b) => (a.name < b.name ? -1 : 1)),
+  claims: [...repo.claims, ...fixtures.map((f) => ({ name: idOfFile(f.name)!, text: `${f.name}\n` }))],
+  closed: repo.closed.filter((r) => !["T84", "T02"].includes(r.id)),
+};
 
 const withTicket = (input: Input, id: string, edit: (text: string) => string): Input => ({
   ...input,
@@ -41,20 +57,24 @@ const noGit: Input = { ...real, subjects: [] };
 describe("the real ledger", () => {
   it("is whole", () => {
     expect(checkLedger(repo)).toEqual([]);
+    expect(checkLedger(real)).toEqual([]);
   });
 
   it("was actually read: every ticket file holds its own row, the views split it, and commit subjects were scanned", () => {
     const fileIds = repo.tickets.map((t) => idOfFile(t.name)).sort();
     const rows = repo.tickets.map((t) => ticketRow(t.name, t.text).row!);
     expect(rows.map((r) => r.id).sort()).toEqual(fileIds);
+    // (T1081) the closed ones are lines of closed.tsv, not files: none of them is both
+    expect(repo.closed.length).toBeGreaterThan(100);
+    expect(repo.closed.filter((r) => fileIds.includes(r.id))).toEqual([]);
     // the split is real: the DONE view holds rows, every one closed, and the ledger view still holds the rows in work
-    const v = ledgerViews(repo.tickets);
+    const v = ledgerViews(repo.tickets, repo.closed);
     const open = ledgerRows(v.ledger) as { status: string }[], closed = ledgerRows(v.done) as { status: string }[];
     expect(closed.length).toBeGreaterThan(100);
     expect(closed.filter((r) => !CLOSED.includes(statusKeyword(r.status)))).toEqual([]);
     expect(open.length).toBeGreaterThan(10);
     expect(open.filter((r) => CLOSED.includes(statusKeyword(r.status)))).toEqual([]);
-    expect(open.length + closed.length).toBe(fileIds.length);
+    expect(open.length + closed.length).toBe(fileIds.length + repo.closed.length);
     expect(fileIds.length).toBeGreaterThan(100);
     expect(real.subjects.some((s) => /\bT84\b|\bT56\b/.test(s))).toBe(true);
     // Scoped to the tickets era: "T3a" (an older plan, before the tickets folder) is not scanned.
@@ -137,6 +157,50 @@ describe("the guard fires (mutation)", () => {
     expect(checkLedger(withRow(noGit, "T84", withStatus(rowOf(noGit, "T84"), "MAYBE")))).toEqual([
       'T84: ledger status "MAYBE" is not one of IN PROGRESS, IN REVIEW, BLOCKED, POSTPONED, PARTIAL, DROPPED, OPEN, DONE',
     ]);
+  });
+});
+
+// ---- T1081: a closed ticket is a line of closed.tsv (its text is in archive/*.tar.gz), no file, no claim ----
+describe("T1081 archived tickets", () => {
+  const line = (id: string, over: Partial<Closed> = {}): Closed => ({ id, title: "x", status: "DONE", commits: "abc1234", release: "", left: "—", archive: "closed-2026", tokens: "", ...over });
+  const gone = (id: string) => ({ ...noGit, tickets: noGit.tickets.filter((t) => idOfFile(t.name) !== id), claims: noGit.claims.filter((c) => c.name !== id) });
+  it("a Tnnn named in a commit subject is satisfied by a closed.tsv line, and by nothing else", () => {
+    const input = { ...gone("T84"), subjects: ["T84: ticket-ledger guard"] };
+    expect(checkLedger({ ...input, closed: [line("T84")] })).toEqual([]);
+    expect(checkLedger({ ...input, closed: [] })).toEqual(["T84: named in a commit subject but missing from the ledger"]);
+  });
+  it("a number is used once: an id in closed.tsv with a file or a claim still here fails", () => {
+    expect(checkLedger({ ...noGit, closed: [line("T84")] })).toEqual([
+      "T84: T84-ticket-ledger-guard.md is still here but T84 is in handoff/PLAN/app-integration/tickets/closed.tsv: a number is used once",
+      "handoff/PLAN/app-integration/tickets/ids/T84: T84 is in handoff/PLAN/app-integration/tickets/closed.tsv (archived): its number is kept there, delete the claim"]);
+    const claimOnly = { ...gone("T84"), claims: noGit.claims };
+    expect(checkLedger({ ...claimOnly, closed: [line("T84")] })).toEqual([
+      "handoff/PLAN/app-integration/tickets/ids/T84: T84 is in handoff/PLAN/app-integration/tickets/closed.tsv (archived): its number is kept there, delete the claim"]);
+  });
+  it("a closed.tsv line is held to the closed rules: DONE / DROPPED only, a hash on DONE, a short last cell", () => {
+    const input = gone("T84");
+    expect(checkLedger({ ...input, closed: [line("T84", { status: "OPEN" })] })).toEqual([
+      'T84: handoff/PLAN/app-integration/tickets/closed.tsv holds it as "OPEN": only DONE / DROPPED tickets are archived']);
+    expect(checkLedger({ ...input, closed: [line("T84", { commits: "—" })] })).toEqual([
+      "T84: handoff/PLAN/app-integration/tickets/closed.tsv row is DONE with no commit hash"]);
+    expect(checkLedger({ ...input, closed: [line("T84", { status: "DROPPED", commits: "—" })] })).toEqual([]);
+    expect(checkLedger({ ...input, closed: [line("T84", { left: "x".repeat(LEFT_CELL_MAX + 1) })] })).toEqual([
+      `T84: handoff/PLAN/app-integration/tickets/closed.tsv row's last cell is ${LEFT_CELL_MAX + 1} characters (max ${LEFT_CELL_MAX})`]);
+  });
+  it("the closed lines must be given, never read as 'nothing archived'", () => {
+    const { closed: _none, ...without } = noGit;
+    expect(() => checkLedger(without as Input)).toThrow(/needs closed/);
+  });
+  it("the commit check sees the archived ids (ledgerIds)", async () => {
+    const { ledgerIds } = await import("./check-tickets.mjs");
+    const ids = ledgerIds(repoRoot) as Set<string>;
+    expect(repo.closed.every((r) => ids.has(r.id))).toBe(true);
+    expect(repo.tickets.every((t) => ids.has(idOfFile(t.name)!))).toBe(true);
+  });
+  it("the real closed.tsv reads clean: every ticket claimed once, in id order, with no file left", () => {
+    expect(repo.ownerProblems).toEqual([]);
+    expect(new Set(repo.closed.map((r) => r.id)).size).toBe(repo.closed.length);
+    expect(repo.closed.filter((r) => repo.claims.some((c) => c.name === r.id))).toEqual([]);
   });
 });
 
