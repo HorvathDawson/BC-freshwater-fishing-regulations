@@ -70,7 +70,8 @@ with the default Claude uses until you answer). Newest first inside each section
 - **Do (you): App Store submission of 0.9.0** (T1071), build 0.9.0 (45), uploaded to App Store Connect 2026-11-24
   ~15:30 from release/0.9.0 65f84020c (TestFlight shows it after Apple's processing). Before you click, T1071's checklist has
   to exist (App Privacy, export compliance, age rating, content rights, review notes): it is not written yet, so this
-  row waits on the iOS release chat. Then, in App Store Connect: Apps → Can I Fish This? → Distribution → the "+" by
+  row waits on the iOS release chat, AND on the new picture set (T1072, store content chat S): you chose "Wait for the
+  new set" 2026-11-24 23:06. **Start chat S now** (prompt: roadmap row S). Then, in App Store Connect: Apps → Can I Fish This? → Distribution → the "+" by
   iOS App → version 0.9.0 → Build → pick the build → paste the listing text and pictures (T1072) → App Privacy and
   the other answers → Version Release: "Manually release" and Phased Release on → Add for Review → Submit.
 - Answered 2026-11-24: the owner to-do goes markdown only, no artifact (T1080); and a ticket to audit and lean out
