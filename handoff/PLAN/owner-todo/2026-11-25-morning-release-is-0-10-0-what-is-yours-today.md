@@ -63,3 +63,14 @@ order: 770
   words: "keep ticked but next release will add to rpivacy page and add the performance monitor". Ticket T1132, in
   0.10.1. Until it ships the App Store label is one data type ahead of the app. Yours then: the picks on a one-page
   design (what is measured, a switch or not, linked to an install or not) and Play's Data safety clicks.
+- **14:50, release state (from the 0.10.0 chat):** nothing on staging yet. The staging release stopped three times on
+  checks that read the live release (all cleared; ticket T1135 so lanes see them before merge); its 4th run is in
+  the follow tests. If it goes through: staging data about 15:35, site and worker about 16:15, your production
+  commands about 16:30, Android on Closed about 17:30, iPhone on TestFlight about 18:30 (build 46 expected). Each
+  further stop adds about 45 minutes. The binding diff it accepted is exactly your head-lakes list: 46 rules, only
+  the Anderson Lake row loses sections.
+- **Answer (you), one line:** a file `data/generated/owner1028/one.py` sits untracked in the main checkout and makes
+  two scanners fail pushes from there (T1137). Is it yours and still needed? No chat deletes it.
+- **App Store (from the iOS chat, relayed):** every screen that needs no build is done and confirmed by you; App
+  Privacy is published. Left: select the 0.10.0 build, Add for Review, Submit, after the build is on TestFlight and
+  the privacy page is live on production (your site command).
