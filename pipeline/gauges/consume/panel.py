@@ -544,7 +544,7 @@ def answering(target_area: float | None, contributions: list[Contribution],
     STOOD BACK (reserve members dropped, lowest weight first, while the answer is too uncertain and a core member
     reports). `shares` (extra to the app's `Estimate`) is each kept contribution's share of the answer, by index.
 
-    The one combine every evaluation script imports (handoff/PLAN/app-data/*/scripts); app/tools/one-formula.test.ts
+    The one combine every evaluation script imports (the app-data evaluation scripts, cut in T1081); app/tools/one-formula.test.ts
     runs it beside the TypeScript over the same panels. `own_share` lets a script measure another lead floor."""
     stood: set[int] = set()
     if not contributions or not target_area or target_area <= 0:

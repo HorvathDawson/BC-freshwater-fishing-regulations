@@ -78,7 +78,7 @@ on DFO's page (read from the cached pages of 2026-11-06 with the project's table
   `entries._ensure_water` and never re-read: it is ON for 49 waters whose heading has no tributary words (Cowichan,
   Nanaimo, Kitseguecla, Sustut…), copied from a sibling place's "including tributaries". A blank place inherits it
   (`entries.to_reach_input`, lines 926 to 933): that is how all nine blank places above went ON.
-- `handoff/PLAN/curation-review/water-heading-tributaries-2026-11-15.md` labelled our merged water setting as "DFO
+- the water-heading-tributaries note (cut in T1081) labelled our merged water setting as "DFO
   flag" ("Cowichan River · yes"): it was not DFO's heading.
 
 ## Design note: derive the setting from the words, save only exceptions
