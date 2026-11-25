@@ -1,10 +1,10 @@
 # T1134 — App Store product page: the Header and Search Results pictures
 
-Status: IN PROGRESS — left (Claude): the videos land in the PR's second commit; the owner uploads by hand in App Store Connect
+Status: IN PROGRESS — left (Claude): PR #256 merges; the planning chat takes the owner's upload by hand (four files, confirm Apple's video rules on the upload screen)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1134 | App Store product page: the Header and Search Results pictures | IN PROGRESS — left (Claude): the videos land in the PR's second commit; the owner uploads by hand in App Store Connect | PR feat/T1134-appstore-creative-assets | owner uploads by hand; confirm the video codec rules on the upload screen |
+| T1134 | App Store product page: the Header and Search Results pictures | IN PROGRESS — left (Claude): PR #256 merges; the planning chat takes the owner's upload by hand (four files, confirm Apple's video rules on the upload screen) | PR feat/T1134-appstore-creative-assets | owner uploads by hand; confirm the video codec rules on the upload screen |
 
 Source: owner 2026-11-25, in the iOS chat's App Store walk-through at the version page (relayed): "i need search
 and header asset too". Related: T1072 (the picture set, direction A), T1071 (the submission), T1131 (the pictures
@@ -50,4 +50,5 @@ the water") from `app/store-listing/listing.json`. Videos are 8 s (two loops, se
 that the fish and words lie inside the art safe area. `app/tools/store-shots.json` lists them under `creative`; the T1127 push list and
 `appstore-screenshots-push.py` read only their size folders, so nothing uploads them: BY HAND. Test: `app/tools/store-shots/creative.test.ts`.
 Regenerate: `scripts/heavy.sh creative 30 -- node app/tools/store-shots/creative.mjs` (`--stills-only`, `--reuse-map`, `--web <url>`).
+Output: header video 3840x1646 h264 High yuv420p 30 fps 8 s (1.2 MB), search video 3840x2560 (1.9 MB), stills 1.8 / 2.7 MB.
 Not confirmed: the map comes from staging, which shows the released app; a PNG capture at 4800 x 3400 hangs headless Chrome, so the map is a JPEG q96 under the veil.
