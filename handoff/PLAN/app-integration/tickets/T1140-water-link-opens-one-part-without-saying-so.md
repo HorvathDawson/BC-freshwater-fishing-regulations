@@ -1,10 +1,10 @@
 # T1140 — A water's plain link opens the rules of one part without saying which: the Squamish reads "Closed"
 
-Status: OPEN — HIGH, on production; the first release on the new org repo, a patch of its own that also tries the new release steps (owner 2026-11-25)
+Status: IN PROGRESS — HIGH; the label fix ships IN 0.10.0, built on the new repo (owner 2026-11-25); the landing (A: Map with the parts) is the next patch
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1140 | A water's plain link opens the rules of one part without saying which: the Squamish reads "Closed" | OPEN — HIGH, on production; the first release on the new org repo, a patch of its own that also tries the new release steps (owner 2026-11-25) | | owner 2026-11-25 with two pictures; owner picks where a multi-part link lands |
+| T1140 | A water's plain link opens the rules of one part without saying which: the Squamish reads "Closed" | IN PROGRESS — HIGH; the label fix ships IN 0.10.0, built on the new repo (owner 2026-11-25); the landing (A: Map with the parts) is the next patch | | owner 2026-11-25 with two pictures; owner picks where a multi-part link lands |
 
 Source: owner 2026-11-25 14:55 (planning chat), with two pictures of the web app on production, verbatim: "big app
 bug we will want to fix asap.. basically if the user searches something liek squamish river regs and clicks the
@@ -48,6 +48,19 @@ Regulations and Conditions head of a multi-part water says "Part N of M" with th
 under it, "Other parts of this water have different rules", that opens the parts list; the five bare-name closed
 leads get their area's name. That is a wording and one-component change and can ship alone, web first. Second, the
 landing (A, B or C), after the owner's pick.
+
+## Owner's answers 2026-11-25 15:14 (multiple choice, planning chat)
+- When the label ships: "web first right after repo move and make repo move happen asdap".
+- The landing: "A: Map with the parts".
+- The transfer: "maybe we should just move now then we can build 0.10 on new repo with the merge queuew and the fix
+  for links web in the cut"; confirmed when asked with the costs: "Yes, move now, re-cut 0.10.0 after".
+How it is done (planning chat, from the 0.10.0 chat's facts): not a literal second cut. The staging run in flight
+tags v0.10.0 when it ships, and the cut refuses a tagged version; abandoning the branch would repeat four pin stops.
+So release/0.10.0 is kept (the runbook's "a fix during the release"): staging finishes, the repo moves, the label
+fix lands on main, is cherry-picked onto release/0.10.0, the staging step reruns (the data stages are reused; the
+golden pages stop once for the new heads), then production and the phone builds. The version stays 0.10.0 and it
+ships with the label. The label fix is the 0.10.0 chat's lane (steps 3 to 6 above, without the landing); landing A
+is the next patch, pictures first.
 
 ## What the pictures show
 - `/water/squamish-river`, Regulations tab: the head says only "Squamish River". Salmon "Closed today", Game fish
