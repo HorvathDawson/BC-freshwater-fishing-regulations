@@ -134,6 +134,10 @@ The first App Store version has no "What's New" field (Apple shows it from the s
   not in `app/tools/store-shots.json`'s list, or a listed one missing, stops every mode by name before any network call. Clear them
   (once no release is running from that checkout) or upload from a clean checkout of main; `--plan` / `--check` list exactly 7
   per size, `01-01-map` … `07-06-search`.
+- **Play pictures are HELD (owner 2026-11-25 13:43, his words: "hold play p[ictures until before prods release"):** no Play
+  picture upload until just before the production release. Reason asked: play-phone frame 3 shows two small app faults at
+  phone width ("Steady" struck through by its tick, the last day column clipped; T1128, whose fix ends with a reshoot of that
+  frame). Until then, a text-only Play push is `--no-shots` (leaves every picture slot as it is). The App Store pictures are not held.
 - Play (pictures, text, icon, feature graphic; the 7-inch and 10-inch tablet slots are CLEARED, any old tablet screenshots on the listing are deleted in the same edit, plan mode says so): `.venv/bin/python deploy/staging/play-listing-push.py --plan` to read what
   would go, then the same with `--commit`.
 - App Store (once the version exists in App Store Connect): `.venv/bin/python deploy/staging/appstore-screenshots-push.py --check`
