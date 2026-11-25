@@ -35,7 +35,7 @@ Your pocket guide to BC fishing regulations. Less searching, more fishing!
 
 ### Keywords
 ```
-fishing,BC,regulations,rules,freshwater,river,lake,trout,salmon,steelhead,angling,license,flow,gauge
+regulations,freshwater,river,lake,trout,salmon,steelhead,angling,license,flow,gauge,map,synopsis,dfo
 ```
 Notes: "fishing", "BC" and "rules" also sit in the name and subtitle; Apple indexes those fields already, so those three words may waste about 17 characters. Optional, not changed here (the owner picked this list). "license" is the US spelling; a Canadian searcher may type "licence". Both fit only if a word is dropped. Not verified how Apple weighs this.
 
