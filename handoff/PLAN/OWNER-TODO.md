@@ -47,11 +47,14 @@ with the default Claude uses until you answer). Newest first inside each section
 - **Do (you), small, only after PR #155 (T1058) has merged: remove your machine-wide Gradle workaround.** Open
   `~/.gradle/gradle.properties` and delete the Metaspace line you added for the hang (it sets the same value the repo
   now sets and overrides it; `build-apk.sh` prints a note while it is still there). Nothing breaks if you leave it.
-- **Do (you): send iPhone 0.9.0 (45) to the external TestFlight testers** (you chose "Submit it" 2026-11-24 22:35;
-  no Claude session may run it). From the main checkout, one command:
-  `node deploy/staging/testflight-distribute.mjs --version 0.9.0 --build 45`
-  It submits the build to group "testers ext" for Beta App Review (the dry run says READY_FOR_BETA_SUBMISSION). Tell
-  the planning chat when it is sent; Apple's review usually takes a day.
+- Done 2026-11-24 (seen 23:10 by the iOS chat's reports read): iPhone 0.9.0 (45) is with Apple for the external
+  testers, state WAITING_FOR_BETA_REVIEW. Nothing to do until Apple answers (usually a day).
+- **Do (you): the three push keys on the production feeds worker** (T996 step 1, still open: at 22:39 the production
+  status page listed APNS_KEY, APNS_KEY_ID and APNS_TEAM_ID as missing, so iPhone alerts cannot be sent from
+  production). From the main checkout, three commands, each asks for the value:
+  `npx --prefix app wrangler secret put APNS_KEY -c app/workers/feeds/wrangler.prod.toml`, then the same with
+  `APNS_KEY_ID`, then `APNS_TEAM_ID`. Then the phone test in T996. The iOS chat (row 5i) needs this proven before
+  the build that goes to App Review; it will ask you about it.
 - Reported 2026-11-24 22:55 (0.9.1 chat): a network outage stopped its lanes 16:15–22:15, all restarted, nothing
   lost. T1087 (the Brunette closure on the whole river) was read against the printed row: right, nothing to change.
 - **Do (you): Play Production staged rollout of 0.9.0 (build 44), once Google grants production access** (T1046,

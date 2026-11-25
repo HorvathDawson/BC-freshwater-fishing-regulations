@@ -51,6 +51,7 @@ order of 3, 2b and D after the iOS release is the planning chat's proposal; the 
 | P planning | `bc-freshwater-fishing-regulations-8e` | this file + the ledger; it alone numbers tickets (from T1055) |
 | 1 ship 0.9.0 | `bc-freshwater-fishing-regulations-37` | `handoff/PLAN/NEXT-SESSION-2026-11-24-after-090.md` (chat finished 2026-11-24) |
 | 2 0.9.1 follow-ups | `bc-freshwater-fishing-regulations-56` | `handoff/PLAN/RESTART-091-chat.md` |
+| 5i iOS full release | `bc-freshwater-fishing-regulations-06` (started 2026-11-24 23:10, beside chat 2 at the owner's ask) | its own page under `handoff/PLAN/ios/` (to come) |
 
 Build chats list new finds under "For the planning chat" on their restart page and message the planning chat; it
 replies with the Tnnn.
