@@ -339,6 +339,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1094 | Android: the system ended the app for low memory in the foreground, 0.8.5 staging (kind `9588028ebf260364`) | OPEN — 0.9.2 (watch for it on 0.9.0 first) | | planning chat 2026-11-24 |
 | T1095 | Feature request: fish measurements on a saved location, several per location, editable on a revisit (report `0a9136aec3e19ab9`) | OPEN — 0.10, pictures first (owner 2026-11-24) | | planning chat 2026-11-24 |
 | T1096 | Methods: the page's ice-fishing clause carries no citation (the source is in the pipeline only) | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24, T1050's leftover |
+| T1097 | Gradle daemons across lanes: `gradlew --stop` ends other lanes' builds; idle daemons hold about 2.4 GB outside heavy.sh | OPEN — 0.9.2, with T1063 | | 0.9.1 chat 2026-11-24, T1058 lane |
 
 ## Next after closed testing
 
