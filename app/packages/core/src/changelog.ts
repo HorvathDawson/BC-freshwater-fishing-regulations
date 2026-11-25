@@ -39,6 +39,11 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
     // (T998) opened by `python -m pipeline release --cut`: write 3-5 plain bullets for anglers (never commit
     // subjects); check-changelog refuses the entry until it has one, and the owner clears `draft`
     version: "0.10.0", date: "2026-11-25", draft: true, notes: [
+      "Regulations: a river's rule now reaches the lakes at its head, and a creek with its own line in the book keeps it where the river below is closed",
+      "Gear: a water says when treble or barbed hooks are allowed, ice fishing lists only what differs, and a fully closed water says so once",
+      "Map: a closure on one bank of a river is drawn on that bank only",
+      "Trout and char: tap a row to see every rule behind it and its rule-book pages",
+      "Links that name a river gauge or a stream by its code now open the right water",
     ],
   },
   {
