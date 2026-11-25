@@ -63,6 +63,30 @@ with the default Claude uses until you answer). Newest first inside each section
   chat"; the old owner to-do history (T1080) = "Delete it". The order and each chat's prompt to paste are in
   ROADMAP-after-0.9.0.md.
 
+## 2026-11-24 13:30–16:10: T1036, T1053, the ponds, T1052, the answers (verbatim)
+
+- T1036 the second group's head (shown both): first "I don't see the difference"; asked again pointing at the one grey
+  line: "\"Also in the fish and possession sheets\"" (as built). Its weight: "Leave it as drawn". No second group
+  where the page can open nothing more: "Yes, only what the page can open (Recommended)". T1036 is done.
+- T1053 which version of the climb (shown the list): "All 22, but a stream's own row wins". The Sources words
+  ("and its tributary streams"): "Yes, these words (Recommended)".
+- T1053, typed: "make sure upstream includes tributarties still overrides lower includes tributtaries that it
+  conflicts with. make sense?" — the nearer (upstream) tributary rule wins over a lower one it conflicts with.
+- T1053, does a stream's own row lift an inherited closure: "keep earlier rule of closure always winning unless it is
+  exempt) this does not include no fishiong all year rulings tho those will yield in that case. only the dated
+  closures. add all of this logic to gfotchas file please" — a dated inherited closure still closes unless the row is
+  exempt; an all-year inherited "No Fishing" yields to a stream's own row; the logic goes into
+  `pipeline/docs/GOTCHAS.md` (in the T1053 PR).
+- T1053, typed: "tributary rules dont apply to the lake either only streams that is important too".
+- Unnamed ponds on a stream (Q124): "only the polygon ponds that we have listed as piece of stream. (for example
+  oxbows or slough lakes etc etc ) make sense? using the process we already have".
+- T1052 the closed block's second line (shown A and B): "A: quote the river's row". The 130 waters closed for part of
+  the year: "Yes, merge those too" — a follow-up PR, pictures first.
+- T1029 on the Standard map: the pictures are owed with the finished PR (#112); nothing asked yet.
+- New, typed: "we need to add a random (sometimes on launch in a reasonable amount) star rating review on launch. must
+  be uninvasive. (or could be after they use a certain feature?) needs thought for 0.10 maybe? or 0.11?" — T1082
+  (planning chat).
+
 ## 2026-11-24 12:15–12:33: staging reports and the Kitimat creeks, the answers (verbatim)
 
 - T1029, the 12 side creeks at the Kitimat hatchery west-bank closure (shown the picture: reading 1 keep as today,
