@@ -30,7 +30,7 @@ python -m pipeline build --side DIR [--atlas]   # every stage into DIR; nothing 
 python -m pipeline build --hold-latest    # the new release named in data/release/CANDIDATE, LATEST untouched
 ```
 
-See `pipeline/build.py` and AGENTS rule 62. Heavy: run it through `scripts/heavy.sh` (one heavy job at a
+See `pipeline/build.py` and AGENTS 62. Heavy: run it through `scripts/heavy.sh` (one heavy job at a
 time; heavy.sh is re-entrant for its own lock holder). Each stage is skipped while its inputs' digests
 (atlas, corpus, curated tree, source stamps, its own code) match its last successful run
 (`data/generated/build-manifest.json`). With `--jobs 2` a stage logs to `build-logs/<run>/<stage>.log`.
