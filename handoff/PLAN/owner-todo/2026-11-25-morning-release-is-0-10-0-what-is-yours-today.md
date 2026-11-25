@@ -59,3 +59,7 @@ order: 770
   production release (the public launch), not today's 0.10.0 data release. Say so if you meant today's.
 - **Decide (you), do or drop:** two parts of T1072 were never started and keep it open: the website landing and
   share-page words, and the store video (T709). The store chat's scope is otherwise done (13:50).
+- **Answered in the iOS chat's walk-through (relayed 14:06), App Privacy:** you kept "Performance Data" ticked, your
+  words: "keep ticked but next release will add to rpivacy page and add the performance monitor". Ticket T1132, in
+  0.10.1. Until it ships the App Store label is one data type ahead of the app. Yours then: the picks on a one-page
+  design (what is measured, a switch or not, linked to an install or not) and Play's Data safety clicks.
