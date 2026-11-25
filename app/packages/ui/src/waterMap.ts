@@ -340,18 +340,11 @@ function useWaterGroups(store: GroupStore | null, item: ItemId | null, salmonKey
  */
 export function useSalmonKey(loader: SalmonLoader | null, store: Pick<RegsStore, "itemOrd" | "parts"> | null,
                              item: ItemId | null): ((sid: number) => string) | null {
-  return useSalmonKeyRead(loader, store, item).key;
-}
-
-/** `useSalmonKey` and whether its read is over (`settled`: answered, failed — reported by its `useAsync` —, or not asked). */
-function useSalmonKeyRead(loader: SalmonLoader | null, store: Pick<RegsStore, "itemOrd" | "parts"> | null,
-                          item: ItemId | null): { key: ((sid: number) => string) | null; settled: boolean } {
   const key = `water-salmon:${loader ? idOf(loader) : ""}:${store ? idOf(store) : ""}:${item ?? ""}`;
   const dfo = useFeedVersion("dfo");   // (owner 2026-10-29) a DFO feed taken: compared again, in place
-  const asks = !!loader && !!store && !!item;
   const r = useAsync(async () => (loader && store && item ? salmonKeyOf(loader, store, item) : null),
-    `${key}#${dfo}`, asks, key);
-  return { key: r.state === "ready" ? r.value : null, settled: !asks || r.state !== "loading" };
+    `${key}#${dfo}`, !!loader && !!store && !!item, key);
+  return r.state === "ready" ? r.value : null;
 }
 
 /** The map's entries of a water, as the other views read them (`useMapEntries`). */
@@ -372,23 +365,22 @@ export interface MapEntries {
  * covers or counts a part another way. `entries` is null until the group is read (a failed read is the group's,
  * reported by its `useAsync`): `headerOf` then says each part's own name and the page covers its own part.
  *
- * (T1140) And whether the reading is OVER (`settled`): the group read (or failed: reported by its
- * `useAsync`) and — on a group of several entries, the only kind a salmon reading can join — the live salmon key answered
- * (or failed, or not asked), so the count is the one the map says once it has joined its pieces, not the raw count of the
- * moment before. The Regulations view waits for it (`WaterScreen`), so no part's answer is drawn without its "Part 1 of 2"
- * — a split lake's area of one part included (its group holds the other areas). A group of one entry waits for no salmon:
- * a water of one part draws as soon as before but for its group's read. No water (an unnamed reach) is settled.
+ * (T1140) And whether the parts are READ (`settled`: the group read, or failed — reported by its `useAsync`): the
+ * Regulations view waits for it (`WaterScreen`), so no part's answer is drawn without its "Part 1 of 2" — a split lake's
+ * area of one part included (its group holds the other areas). It does NOT wait for the live salmon (T1049: the page
+ * draws while its salmon card is still coming): until the salmon is read nothing joins, so the count is the release's
+ * own, and it becomes the joined one when the salmon lands — the Map tab counts the same way at the same moment. No
+ * water (an unnamed reach) is settled.
  */
 export function useMapEntries(loader: SalmonLoader | null, store: RegsStore | null,
                               item: ItemId | null): { entries: MapEntries | null; settled: boolean } {
-  const salmon = useSalmonKeyRead(loader, store, item);
-  const { raw, g } = useWaterGroups(store, item, salmon.key);
+  const salmonKey = useSalmonKey(loader, store, item);
+  const { raw, g } = useWaterGroups(store, item, salmonKey);
   const ready = raw.state === "ready" ? g : null;
   const entries = useMemo(() => (ready && item
-    ? { names: entryNames(ready, item), pieces: entryPieces(ready, item), places: entryPlaces(ready, item, salmon.key) }
-    : null), [ready, item, salmon.key]);
-  const one = raw.state === "ready" && (raw.value?.parts.length ?? 0) < 2;
-  return { entries, settled: !store || !item || raw.state === "failed" || (raw.state === "ready" && (one || salmon.settled)) };
+    ? { names: entryNames(ready, item), pieces: entryPieces(ready, item), places: entryPlaces(ready, item, salmonKey) }
+    : null), [ready, item, salmonKey]);
+  return { entries, settled: !store || !item || raw.state !== "loading" };
 }
 
 /**
