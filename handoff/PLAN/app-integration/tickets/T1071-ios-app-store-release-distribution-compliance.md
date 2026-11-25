@@ -73,6 +73,18 @@ Owner: yes (App Store Connect entries, the submit, any legal answers).
   confirmed by him: the age rating shown, App Privacy published, the Performance Data sub-answers. Next: the
   version page (words, pictures, review information).
 
+- 2026-11-25 14:25, asked as multiple choice (the planning chat's point for T1132): Performance Data on the
+  label is **"Not linked (Recommended)"**: purpose App Functionality, not linked, no tracking. This replaces the
+  "linked" this chat first asked him to set; he changes it on the screen. T1132 must send no install id with it.
+- Same day: he saw the new Header and Search Results picture slots and said **"i need search and header asset
+  too"**. They are T1134 (store content chat); Apple calls them optional, not a gate for Submit.
+
+- 2026-11-25 14:48, confirmed by him as multiple choice: version page saved (seven screenshots in the medium display
+  slot, words, version 0.10.0, copyright, review contact and notes, manual release); App Privacy published;
+  Performance Data set to not linked; age rating shows 4+. Apple now requires the 6.1"/6.3" screenshot size
+  (1206 x 2622): he uploaded this chat's resize of the 6.9" frames as a stopgap; the native set is the store
+  chat's PR #238. Left: select the 0.10.0 build, Add for Review, Submit, after the privacy page (T1098) is live.
+
 ## Results (iOS release chat, 2026-11-24)
 - The page: `handoff/PLAN/ios/APP-STORE-SUBMISSION.md`. Restart page: `handoff/PLAN/ios/RESTART-ios-release-chat.md`.
 - Read against the uploaded build's code (0.9.0 (45), 65f84020c, an Opus lane, read only). What changed against the

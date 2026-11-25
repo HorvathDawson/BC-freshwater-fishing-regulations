@@ -56,3 +56,19 @@ at the old one). Actions minutes: a public repo is not counted, in an org as on 
   Actions settings and the token policy cannot be read with your gh scopes; your words: "I set them as listed".
 - The second collaborator account: "Drop it". You remove it, or it falls off at the transfer. Part 1 of the plan is
   done on your side; what is left is the transfer click and the new token (part 2).
+
+**15:07: when the transfer click can come (you asked to start the move sooner; both chats gave the facts).**
+- Not before or during production, and not while the Android build runs: the staging upload starts a workflow
+  through the repo's hard-coded name, production data reads the release tags on the remote, each phone build starts
+  with a CI gate that looks runs up by repo, and the Android build's version-code commit is pushed and must go green
+  before the iPhone gate.
+- **The planning chat's proposal: the click when both phone builds are uploaded (about 18:30), before the
+  merge-back PR.** Then only that PR rides on the new name. The slug flip (#217) goes to main only, never onto
+  release/0.10.0; the release checkout keeps the old name through GitHub's redirect until it is merged back.
+- An earlier window exists, about half an hour sooner, while the iPhone build compiles, if all four hold at that
+  minute: your production commands all done (the feeds worker too); no CI run in progress that a gate will read;
+  the iPhone build past its gate; no push or PR about to happen. The repo-move chat calls it workable, the 0.10.0
+  chat calls any move before the builds are uploaded a risk. If any of the four is unsure, wait.
+- At the click, in this order: the 0.10.0 chat sets the main checkout's remote (one line, no working file); you
+  make the new token; the repo-move chat puts it on staging, you run the production secret line; it compares the
+  snapshot and re-checks auto-merge on open PRs. About 20 minutes, you present.
