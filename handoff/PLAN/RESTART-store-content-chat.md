@@ -24,6 +24,9 @@ planning chat; work only in scratchpad worktrees, never the main checkout.
 4. **Listing words: merged (#170, #175).** One source `app/store-listing/listing.json` (+ `full-description.txt`);
    `play-listing-push.py --appstore` prints the App Store fields. Owner's answers (2026-11-24 ~23:55) are in T1072:
    promotional text = his short line, keywords without the name's words, Navigation / Sports, 500 MB, graphic kept.
+   Owner 2026-11-25 13:43: "hold play p[ictures until before prods release" (Play picture upload waits; play-phone frame 3
+   has two phone-width app faults, T1128, reshoot after its fix). Also his: a hand-started GitHub workflow for the pictures,
+   "can be part of new repo transfer" (sent to the planning chat to ticket).
 5. **Owner's steps (no uploads by Claude):** in the final message of the chat and in T1072. FIRST clear the 34 old
    untracked pictures from the main checkout's `store/light/` or upload from a clean checkout (the push scripts take every
    picture in a folder; `--plan` / `--check` must show 7 per size; a planning-chat ticket, PR #202, fixes the scripts). Play:
