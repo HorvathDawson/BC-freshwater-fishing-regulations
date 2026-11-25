@@ -917,8 +917,10 @@ def _yields_to(s: _Ask, k):
         return None
     for o in sorted(here):
         y = every[o]
-        if o[0] == k[0] or y["_rank"] != 0 or y.get("standing") or y.get("family") == "information" \
-                or y.get("dimension") == "lift" or o in s.undrawn:
+        # a WATER TABLE'S ROW (`r<region>:`): a zone table line can rank as a water (a watershed's stream closure,
+        # `z6:skeena_nass_winter_closure`) and is no row of the stream's
+        if o[0] == k[0] or y["_rank"] != 0 or not EID.is_water_row(str(o[0])) or y.get("standing") \
+                or y.get("family") == "information" or y.get("dimension") == "lift" or o in s.undrawn:
             continue
         if here[o] == "reach":
             why = "own_row"
