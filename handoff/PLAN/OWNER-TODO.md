@@ -44,6 +44,9 @@ with the default Claude uses until you answer). Newest first inside each section
 - Answered 2026-11-24: the release table carries a short goal per release (ROADMAP-after-0.9.0.md, "Release contents").
 - New from you 2026-11-24: iOS store distribution and compliance (T1071), better screenshots and marketing content
   before the full release (T1072), the app-update notice only when the phone can install it (T1073, 0.9.2).
+- **Do (you), small, only after PR #155 (T1058) has merged: remove your machine-wide Gradle workaround.** Open
+  `~/.gradle/gradle.properties` and delete the Metaspace line you added for the hang (it sets the same value the repo
+  now sets and overrides it; `build-apk.sh` prints a note while it is still there). Nothing breaks if you leave it.
 - **Do (you): send iPhone 0.9.0 (45) to the external TestFlight testers** (you chose "Submit it" 2026-11-24 22:35;
   no Claude session may run it). From the main checkout, one command:
   `node deploy/staging/testflight-distribute.mjs --version 0.9.0 --build 45`
