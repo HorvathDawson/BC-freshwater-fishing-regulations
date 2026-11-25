@@ -4,5 +4,5 @@
  * 2026-11-21). The Python and shell side is `scripts/ci_paths.py` `TRUNK`; `pipeline/tests/test_ci_paths.py` fails when
  * the two disagree.
  */
-export const REPO = "HorvathDawson/BC-freshwater-fishing-regulations";
+export const REPO = "canifishthis/canifishthis";
 export const TRUNK = "main";
