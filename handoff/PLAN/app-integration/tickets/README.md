@@ -314,11 +314,11 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1069 | A Kildala-style polygon route is written in 10 pieces | OPEN —  | | planning chat 2026-11-24 |
 | T1070 | Timing-dependent app tests: `chart.render.test.tsx` waits a fixed 30 ms; vitest times out under load | OPEN —  | | planning chat 2026-11-24 |
 | T1071 | iOS App Store full release: distribution and compliance information | IN PROGRESS — the paste-from page is written (`handoff/PLAN/ios/APP-STORE-SUBMISSION.md`); the submission waits on the new pictures (T1072), the privacy page words (T1098) and the push proof (T996) | | planning chat 2026-11-24 |
-| T1072 | Better store screenshots and marketing content, before the full release (both stores) | OPEN —  | | planning chat 2026-11-24 |
+| T1072 | Better store screenshots and marketing content, before the full release (both stores) | IN PROGRESS — set and words on main; the owner uploads to both stores; left: website landing words, the video | 5df48ff10 | planning chat 2026-11-24 |
 | T1073 | The "app update" notice shows only when this phone can actually install the update | OPEN —  | | planning chat 2026-11-24 |
 | T1074 | AGENTS rule 28 says map layers come only from `layers.source.json`, but every stream overlay is a runtime layer | OPEN —  | | planning chat 2026-11-24 |
 | T1075 | A lake's Gear line "Not allowed: Water insects and crayfish · Not on lakes." reads oddly | OPEN —  | | planning chat 2026-11-24 |
-| T1076 | The release runbook's "reshoot store pictures" step cannot be followed: the tool needs a store-shots build of the site | IN PROGRESS — merge PR fix/T1076-store-shots-own-export after review, then one real release reshoot | 6cd9531c3 | 0.9.0 chat 2026-11-24 |
+| T1076 | The release runbook's "reshoot store pictures" step cannot be followed: the tool needs a store-shots build of the site | DONE | 9df3a6922 | 0.9.0 chat 2026-11-24 |
 | T1077 | "All sources" lists the bait rules' source, but the bait list on the page draws no Source line | OPEN — 0.9.2 (0.9.1 only if PR #126's lane takes it in the same change) | | 0.9.1 chat 2026-11-24 |
 | T1078 | A water closed all year by two rules names only one in its banner (Kirkup Creek) | OPEN — 0.9.1 if T1052's lane can take it in the same code (it rewrites this block), else 0.9.2 | | 0.9.1 chat 2026-11-24 |
 | T1079 | The Playwright MCP writes its console logs into the main checkout, whatever worktree a lane works in | OPEN — none (tooling; with the 0.9.2 chat) | | 0.9.1 chat 2026-11-24 |
