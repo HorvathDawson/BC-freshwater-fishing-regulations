@@ -1,6 +1,6 @@
 # T1107 — The web gauges page gets a search: by place, river or water, giving gauges only (nearest first)
 
-Status: BUILT, draft PR for the owner's look (code 4816a87d4). Core's main-search index (`buildSearchIndex` / `queryIndex`) over a gauge-cut file
+Status: PARTIAL — built in a draft PR (code 4816a87d4); left (Claude): the owner looks at T1107-shots/ (questions in the PR), then merge. Core's main-search index (`buildSearchIndex` / `queryIndex`) over a gauge-cut file
 (`tools/seo/gaugeSearch.ts`); place -> nearest gauges with km, river -> its gauges then nearest others, station number or name -> that gauge; no
 match said; a failed file or live index said and reported. Current data = core `donorState` on the live index (words: "Reporting now" / "Not
 reporting today" / "Not a real-time gauge"). Conditions link = `routeSearch` of the Conditions tab. Pictures: `T1107-shots/`. Owner picks open: see the PR.
