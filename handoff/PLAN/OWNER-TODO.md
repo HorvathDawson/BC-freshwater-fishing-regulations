@@ -74,6 +74,14 @@ with the default Claude uses until you answer). Newest first inside each section
 - Asked 2026-11-25 ~00:20: "in 0.9.1 we should make this page (https://canifishthis.ca/gauges) have a search
   option ... search by place or river etc to get gauge only"; "someone found the page by search so we want it
   usable". Ticket T1107, sent to the 0.9.1 chat; you get a picture of the page with results before it ships.
+- **One-time permission, 2026-11-25 00:30 MST (clock read; the planning chat's other "~" times of this night run up to an hour fast), typed to the planning chat, for the 0.9.1 production release only:**
+  "i give you permission to create a one time workaround for prod release" and "i will be sleeping so i give you
+  permission to run it". How the planning chat uses it (told to you the same turn): it runs only an exact command
+  from `handoff/PLAN/runbooks/release-by-hand.md` that the 0.9.1 chat's permission check refused, one at a time,
+  after the 0.9.1 chat says the step's gates passed; it stops at the first failure or surprise and leaves the rest
+  for you; it edits no permission settings and wraps nothing; if its own permission check refuses, the step waits
+  for you. Not covered: the App Store submission, the Play production rollout, anything outside 0.9.1. Every
+  command it runs is listed here afterwards with its result. This ends when 0.9.1 is on production.
 - Relayed 2026-11-25 ~00:50 by the 0.9.1 chat (your answers in its chat): the push token after Don't Allow: "that
   behaviour change can move to 0.9.1" (T1116); the one-bank stripe look: "A: cues above the stripe" (T1029); the
   gauges page: "should use mute color and text. also make the button for going to map look better and more
