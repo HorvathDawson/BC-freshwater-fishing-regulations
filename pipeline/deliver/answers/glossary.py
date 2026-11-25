@@ -212,6 +212,20 @@ def t_hook(B: Book, D: Data) -> dict:
                  "definitions p.80; zp:barbless_single_hook_streams")
 
 
+def t_treble_and_barbed(B: Book, D: Data) -> dict:
+    """T1051 (review of #144): the ⓘ of the Gear tab's "Treble and barbed hooks allowed" and "Barbed hooks allowed": p.80's
+    treble note ("use of a treble hook is permitted unless 'single hook' is specified") and p.8's barbed-in-lakes sentence,
+    under a title the line does not contradict (the single barbless hook term's did)."""
+    e = D.entry("zp:barbless_single_hook_streams")
+    return _term("treble_and_barbed_hooks", "Treble and barbed hooks",
+                 "A treble hook has three points on one shank. On a lake, treble hooks and barbed hooks are allowed unless "
+                 "the lake's own rules say single hook or barbless. Every river, stream, creek and slough in B.C. needs a "
+                 "single barbless hook.",
+                 [80] + list(e["pages"]),
+                 f"single hook: {B.define('single hook')} {_clean(e['printed'])}",
+                 "definitions p.80; zp:barbless_single_hook_streams")
+
+
 def t_fly_fishing(B: Book, D: Optional[Data] = None) -> dict:
     """ROUND11 A2: the gear sentence's "Fly fishing only" (`gear.FLY_MODES`)."""
     return _term("fly_fishing", "Fly fishing only",
@@ -523,7 +537,7 @@ def t_definitions(B: Book, D: Optional[Data] = None) -> List[dict]:
     return out
 
 
-GENERATORS = (t_daily, t_possession, t_release, t_no_fishing_for, t_hook, t_fly_fishing,
+GENERATORS = (t_daily, t_possession, t_release, t_no_fishing_for, t_hook, t_treble_and_barbed, t_fly_fishing,
               t_artificial_fly, t_bait, t_tributaries, t_hatchery, t_steelhead, t_stamp, t_surcharge,
               t_classified, t_set_line, t_guided, t_under_16, t_stream, t_mu, t_year)
 

@@ -1,17 +1,3 @@
-# Store description (owner's text, 2026-11-13, fact-checked against listing.md)
-
-Written by the owner; Claude corrected four claims (share link, reserve lands, always-shown layers, "summaries"),
-small inaccuracies, added salmon and run timing (one section, to fit 4000), and the official source links (the same links the app uses).
-2026-11-19 (T319, owner 2026-11-18 "yes change all": the app speaks as "I", never "we"): "we recommend" -> "I recommend";
-every feature named was checked against the 0.8.2 code (glossary, alerts + Notifications, share link, photos, layers).
-Limits: short 80 characters, long 4000. Same text for the App Store.
-
-## Short description
-
-Your pocket guide to BC fishing regulations. Less searching, more fishing!
-
-## Long description
-
 Can I Fish This? is your pocket guide to fishing regulations across Beautiful British Columbia.
 Spend less time searching, more time fishing.
 Simply tap any lake, river or stream on an interactive map to instantly view fishing regulations, river conditions, and other information that matters before you cast your line.

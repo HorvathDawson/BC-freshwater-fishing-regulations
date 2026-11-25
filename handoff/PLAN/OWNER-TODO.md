@@ -60,6 +60,17 @@ with the default Claude uses until you answer). Newest first inside each section
 - Answered 2026-11-24 23:55 (multiple choice, planning chat): who builds and uploads the 0.9.1 iPhone build (nobody
   was assigned; your "Newest by then" pick needs it): "0.9.1 chat". It builds it right after its Play Closed build;
   the privacy page, privacy manifest and iPhone build-number fixes (T1098, T1099, T1101) are its lane too.
+- Asked 2026-11-25 ~01:10: "the spot page needs rework still it still feels very clunky and I think we should have
+  a full fresh look redesign maybe in 0.9.2" → T1115, pictures first; you will be asked what feels clunky, then pick
+  a direction. And "we shouldnt allow notifications without new data notifications" → written into T1110 (my
+  reading: no other notice can be on while new-data notices are off; confirmed with you when its words are shown).
+- Asked 2026-11-25 ~00:50–00:55, three tickets, all proposed for 0.9.2 (say if any should be sooner): the first
+  download asks before using mobile data and again if Wi-Fi drops (T1109; "this was feedback from one user"); the
+  app asks on first load to turn on new-data notifications (T1110); the More page refreshes by pulling down (T1111).
+  You pick the words of the two questions from pictures.
+- Asked 2026-11-25 ~00:40: "free offline maps for corridors we could integrate mapbox mobile sdk with no navigation
+  and it will be free until 25k users ... we could implement that in 0.10 ?" Ticket T1108, research first, with the
+  corridors chat (roadmap 4c). You pick after the comparison page.
 - Asked 2026-11-25 ~00:20: "in 0.9.1 we should make this page (https://canifishthis.ca/gauges) have a search
   option ... search by place or river etc to get gauge only"; "someone found the page by search so we want it
   usable". Ticket T1107, sent to the 0.9.1 chat; you get a picture of the page with results before it ships.
@@ -75,12 +86,15 @@ with the default Claude uses until you answer). Newest first inside each section
   - Content Rights, "I have the rights": the map's satellite layer is Esri World Imagery used without a key. Whether
     that fits Esri's terms is your call before you tick the box.
   - The privacy page has sentences the app does not match (T1098): you read the before/after list before it goes up.
-- **Do (you): the three push keys on the production feeds worker** (T996 step 1, still open: at 22:39 the production
-  status page listed APNS_KEY, APNS_KEY_ID and APNS_TEAM_ID as missing, so iPhone alerts cannot be sent from
-  production). From the main checkout, three commands, each asks for the value:
-  `npx --prefix app wrangler secret put APNS_KEY -c app/workers/feeds/wrangler.prod.toml`, then the same with
-  `APNS_KEY_ID`, then `APNS_TEAM_ID`. Then the phone test in T996. The iOS chat (row 5i) needs this proven before
-  the build that goes to App Review; it will ask you about it.
+- Done 2026-11-24 ~23:30: you set the three push keys on the production feeds worker. The proof itself failed:
+  your iPhone (0.9.0 (45)) is given no push token by the system, on Wi-Fi and on cellular (T996; the same as build 36
+  on 11-16). Signing and the app's push code were checked and no fault found; no real iPhone has registered yet.
+- **Do (you), AFTER the iPhone release (your call 2026-11-25 ~00:20: "we should move this to after iphone release
+  I think. we could fix with a patch?"): find why the iPhone gets no push token** (T996). Your Console log of 11-25 points to
+  the phone, not the app: that spare iPhone's push service holds no token at all. What is left is one step: install
+  the same TestFlight build on a second iPhone and try there. The App Store submission no longer waits on this; it waits
+  on the new pictures (T1072) and the privacy page words (T1098) only. Until push works, an iPhone learns of new
+  data only through iOS's own background check, which can be late.
 - Reported 2026-11-24 22:55 (0.9.1 chat): a network outage stopped its lanes 16:15–22:15, all restarted, nothing
   lost. T1087 (the Brunette closure on the whole river) was read against the printed row: right, nothing to change.
 - **Do (you): Play Production staged rollout of 0.9.0 (build 44), once Google grants production access** (T1046,
@@ -154,7 +168,7 @@ with the default Claude uses until you answer). Newest first inside each section
 - **T1051 treble hooks on a lake** (yes, allowed on Dick Lake: p.80 "use of a treble hook is permitted unless single
   hook is specified", p.8 barbed hooks allowed in lakes; the Gear tab says nothing). A: a second Hooks line "Treble and
   barbed hooks allowed ⓘ" wherever nothing restricts hooks. B: the same on lakes only. C: keep silent, note in the ⓘ
-  only. Recommended: A. Picture: `handoff/PLAN/app-integration/T1051-shots/report-now.png`.
+  only. Recommended: A. Picture: `handoff/PLAN/app-integration/T1051-shots/report-now.png`. ANSWERED 11-24 12:33: "Say it everywhere (Recommended)"; built (T1051).
 - **T1052 fully closed water: one statement** (Nelson Creek). A: keep both calendars; one block "Closed to all fishing
   all year, salmon included" / "The B.C. Synopsis row for Nelson Creek (and its tributaries) reads “No Fishing”." + the
   source. B: smallest change, the banner says "No fishing for any fish, salmon included" and the salmon row's sentence

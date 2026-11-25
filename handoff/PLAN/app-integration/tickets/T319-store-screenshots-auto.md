@@ -110,7 +110,7 @@ App Store: `appstore-screenshots-push.py --preview <clip>` checks it; today's cl
 6.9" slot takes 886x1920; its silent AAC track is 2 kbps, the spec says 256 kbps) and it is an Android recording (the
 owner's reading of Apple's page is footage from the iOS app). No preview is in the ASC plan.
 
-Play listing text (coordinator relayed the go, 2026-11-19): `store-description.md` checked: "we recommend" -> "I
+Play listing text (coordinator relayed the go, 2026-11-19): `app/store-listing/listing.json` checked: "we recommend" -> "I
 recommend" (owner 2026-11-18 "yes change all"); every feature it names is in the 0.8.2 code. `play-listing-push.py
 --no-shots` (new: text, icon, feature graphic only) validated on Play: en-US only, the change is the full description;
 icon and feature graphic unchanged. The `--commit` was refused by this session's permission check (an agent's relay is
