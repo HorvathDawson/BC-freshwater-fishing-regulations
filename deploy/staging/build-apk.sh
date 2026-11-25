@@ -13,10 +13,11 @@
 # key, so updates install over) and the SDK local.properties are copied in.
 # Usage: deploy/staging/build-apk.sh [--play] [--no-upload] [--no-email] [--dry-run] [--precheck] [--publish-only]
 #          [--no-fast-fail=<reason>] [--no-ci-check=<reason>] [--no-notes=<reason>] [--same-version=<reason>]
-#          [--uncommitted=<reason>]   (--dry-run prints the steps, builds nothing)
+#          [--uncommitted=<reason>] [--no-rc-check=<reason>]   (--dry-run prints the steps, builds nothing)
 # (T538) THE PRECHECK, before the heavy lock (all of it, failures listed together; `--precheck` runs only it and stops):
 # app.json's version has a changelog entry with a bullet and it is the newest (`scripts/check-changelog.mjs`;
-# `--no-notes=<reason>`); `--play`: that version is not the one Play builds already read (play.json; `--same-version=
+# `--no-notes=<reason>`); (T1062) on release/x.y.z, HEAD is the newest release candidate's tree apart from the build
+# numbers (else: tag a new rc first; `--no-rc-check=<reason>`); `--play`: that version is not the one Play builds already read (play.json; `--same-version=
 # <reason>`); the signing keystore(s) and certificate; `--play` uploading: the Play service account + one Play call;
 # uploading: the Cloudflare (wrangler) login; emailing: the run token; the pinned MapLibre AAR (exactly one, pin.env) and
 # llvm-readelf to prove it; `--play`: app.json clean; uncommitted app/ paths (a build is a clean worktree of HEAD: they
@@ -225,6 +226,7 @@ if [[ -z ${BUILD_APK_INNER:-} ]]; then
   [[ -d $ANDROID_HOME ]] && ok "Android SDK ($ANDROID_HOME)" || bad "no Android SDK at ANDROID_HOME=$ANDROID_HOME: Android Studio's SDK Manager, or set ANDROID_HOME"
   VER0=$(node -p "require('./$M/app.json').expo.version")
   build_check_changelog
+  build_check_rc
   if [[ -n $PLAY && -z $PROD ]]; then
     PUB=$(curl -fsS -A bc-fishing-build-apk "$BASE/play.json" | python3 -c 'import json,sys;print(json.load(sys.stdin)["version"])') \
       || PUB=""
@@ -294,7 +296,7 @@ if [[ -n ${BUILD_APK_INNER:-} && -z $MLN_AAR ]]; then
   echo "build-apk: no pinned MapLibre AAR in MLN_LOCAL_MAVEN=$MLN_LOCAL_MAVEN (it was there at the precheck); nothing was built" >&2; exit 1
 fi
 if [[ -z ${BUILD_APK_INNER:-} && -z $DRY ]]; then
-  export BUILD_APK_INNER=1
+  export BUILD_APK_INNER=1 BUILD_PRECHECK_SHA=$(git rev-parse HEAD)
   exec scripts/heavy.sh build-apk 20 -- "$0" "$@"
 fi
 export EXPO_PUBLIC_APP_ENV=staging EXPO_PUBLIC_ENV_SWITCH=1 EXPO_PUBLIC_CONTACT=${EXPO_PUBLIC_CONTACT:-support@canifishthis.ca}   # the store contact (T244)
@@ -335,6 +337,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>" -- "$M/app.json") || { echo "bui
   echo "committed versionCode $NEXT (app.json only)"
 }
 SHA_FULL=$(git rev-parse HEAD)
+[[ -n $DRY ]] || build_same_head build-apk "$SHA_FULL"
 echo "building committed HEAD $SHA_FULL (uncommitted working-tree edits are NOT included)"
 WT=${TMPDIR:-/tmp}/build-apk-wt-$$
 step() { if [[ -n $DRY ]]; then echo "[dry-run] $*"; else "$@"; fi; }
