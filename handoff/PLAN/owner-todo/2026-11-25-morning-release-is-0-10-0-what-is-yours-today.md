@@ -27,6 +27,9 @@ order: 770
   prompt is rewritten in the roadmap (chat 3): it prepares now and changes nothing live; the move itself comes after
   0.10.0 is on production and merged back (the planning chat's order: a move in the middle of a release would change
   the remote under the release branch, CI and the feeds workers' token). T1120, the fresh-clone proof, is its step 4.
-- **Decide (you):** 34 untracked store pictures dated Nov 5 sit in the main checkout under
-  handoff/PLAN/app-integration/store/graphics/store/light/. Not on main, nobody touched them. The store chat was
-  asked whether they are needed; nothing is deleted without your word.
+- **Do (you), before any store upload: clear 34 old pictures from the main checkout.** They sit under
+  handoff/PLAN/app-integration/store/graphics/store/light/ (dated Nov 5, the old set; the store chat confirms they
+  are not needed). The upload scripts take every picture in a folder, so from that checkout old pictures would mix
+  into the listing (T1127 fixes the scripts). When the 0.10.0 release no longer runs from that checkout: `git clean
+  -n` on that one folder to see the list, then `git clean -f` on it; or upload from a clean checkout of main. Then
+  `--plan` must show 7 pictures per size. No chat deletes them for you.
