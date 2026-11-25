@@ -27,3 +27,10 @@ for the missing-venv and missing-token messages.
 
 Severity: medium (every chat loses time; step 0 silently half-read). Release: 0.9.2, tooling. Model: Sonnet.
 Size: S. Owner: no.
+
+## Added 2026-11-25 (0.9.1 chat's lanes)
+- A fresh worktree also needs the `.venv` link and `PIPELINE_PY` set before `fast-fail.sh` runs; the setup command
+  does both.
+- The T1083 lane's push failed its own hook (a stale entry in `tools/failures.test.ts`) and the lane ended without
+  saying so; the orchestrator found it later. The lane brief template gains one line: a lane's last report states
+  the push result and the PR number, or the exact failure.

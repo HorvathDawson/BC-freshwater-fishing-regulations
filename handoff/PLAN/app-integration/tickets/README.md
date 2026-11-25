@@ -363,6 +363,9 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1118 | Audit every name variant whose target sits in a different management unit than the book's row; a build check | OPEN — 0.9.2, first Opus lane (HIGH until the list exists) | | 0.9.1 chat 2026-11-25, behind T1117 |
 | T1119 | Boat launches, docks and the like on the basemap, always drawn, from OpenStreetMap, through every stage | OPEN — 0.10 at the earliest (owner 2026-11-25); research and pictures first | | owner picks what "etc" covers, the look, tap or not |
 | T1120 | At the repo move, a fresh clone proves everything can be set up and rebuilt from nothing | OPEN — chat 3 (repo move), last step (owner 2026-11-25) | | the list of what lives outside git; the owner confirms the secrets list |
+| T1121 | Web gauges page search: four leftovers from the T1107 review (report class, current-data mark on the list, place cap, plural) | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-25 |
+| T1122 | The stores' data forms say what the privacy page now says (Play Data Safety, the iOS submission page) | OPEN — before the App Store submission (item 2) and the Play application (item 1) | | owner reads out the Data Safety form |
+| T1123 | iPhone may still show the "New app version" notification toggle text | OPEN — 0.9.2, with T1073 | | not checked yet |
 
 ## Next after closed testing
 
