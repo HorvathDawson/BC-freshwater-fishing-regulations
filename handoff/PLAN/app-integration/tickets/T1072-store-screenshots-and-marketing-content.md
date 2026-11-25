@@ -7,8 +7,10 @@ the full release". Builds on T319 (store screenshots, set 4 built, regenerated b
 
 Owner 2026-11-24 ~23:05 (in the iOS release chat, relayed), verbatim: "we want the android and iphone images to use
 the same set ideally. if it is possible. we should generate new images too." So: ONE set of frames (same scenes,
-same captions, same order) rendered in each store's sizes, and a NEW set from the 0.9.x app. Whether the App Store
-submission waits for the new set is being asked by the iOS chat.
+same captions, same order) rendered in each store's sizes, and a NEW set from the 0.9.x app. Owner 2026-11-24 23:06
+(multiple choice in the iOS chat, relayed): the App Store submission waits for it: "Wait for the new set". So this
+ticket is on the critical path of the iPhone release (T1071 depends on it). App Store pictures can change only with
+a new version, so the set that goes up with the first version stays until the next one.
 
 Found by the iOS chat 2026-11-24 (facts, not yet acted on):
 - The newest complete set is not in the repo: it is on the owner's machine at

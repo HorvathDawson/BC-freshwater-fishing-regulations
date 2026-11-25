@@ -24,7 +24,7 @@ overnight, and the repo move comes after it.
 | 1 | Ship 0.9.0 — DONE 2026-11-24 (production data, site, feeds worker; Play build 44 on Internal + Closed; iPhone build 45 uploaded; `release/0.9.0` merged back, PR #140) | Finish `runbooks/release-by-hand.md` from where the restart page says: the staging check, the emulator device pass, the owner's production commands, Play Closed, and the releases/feedback-log rows. |
 | 2 | 0.9.1 follow-ups (opens tonight, runs overnight beside chat 1) | Trout per-row source pages. T1029 (owner Q4–6 with pictures, in the morning). T1030. The T1047 follow-up: a datum-change list seeded from HYDAT `STN_REMARKS`, with owner-accepted rows for 08KH019/08MH153. The stub-polygon double outline (#81 review). The T1049 and T1041 low findings. Any 0.9.0 device-pass bugs. One file per ledger row and per OWNER-TODO item, with README/OWNER-TODO built from them. Added by the owner 2026-11-24: T905 (salmon feed back under its old size, so the gate can come back down from 110,000 B), T1027 (R8 scores past ~72%), T1016 (a tab open across a release reloads), T1036 (the "All sources" sheet matches the screen), T1021 (the hard-coded-path gate), T1020 (the licence-frame diff gap), T1048 (the cut writes the app_reads row). |
 | 5i | iOS full release (FIRST after 0.9.1; owner 2026-11-24) | T1071: the App Store distribution and compliance checklist (App Privacy, export compliance, age rating, content rights, availability, review notes), production push proved (T996), the release step list; the owner submits 0.9.x to the App Store. Docs and owner clicks, no feature work. |
-| S | Store content (beside 5i; owner approved 2026-11-24) | T1072: 2–3 screenshot directions as pictures, the owner picks, one set in every Play and App Store size, one source of listing words for both stores and the website. T1076: the reshoot tool builds its own store-shots export. With T319, T709. |
+| S | Store content (START NOW: the App Store submission waits for its new set, owner 2026-11-24 23:06) | T1072: 2–3 screenshot directions as pictures, the owner picks, one set in every Play and App Store size, one source of listing words for both stores and the website. T1076: the reshoot tool builds its own store-shots export. With T319, T709. |
 | 3 | Repo move + merge queue | T1041's "after 0.9.0" checklist: the owner moves the repo to a free GitHub org, then the slug flip, the `GITHUB_DISPATCH_TOKEN` re-issue on both feeds workers, the rulesets and the merge queue. Also T1062: the release-candidate (rc tag) plan, written for the owner to agree before anything is built (owner 2026-11-24). |
 | 2b | 0.9.2 hardening (after chat 3; owner approved 2026-11-24) | No features. T1055, T1057, T1060, T1063, T1064, T1065, T1066, T1067, T1070, T1073, T1074, T1075, T1077, T1078, T1079, T1084, T1085, T1088, T1089, T1090, T1091, T1092, T1093, T1094, T1096, T1097 (Standard map and the salmon facts: a cold-open test and a live check). Also T914 (web first load: the owner's 2026-11-24 Lighthouse run on production, 25.2 s of main-thread work and 7.1 MB first load): an Opus lane that starts when the first of the four merges, measure first. Four lanes: Opus T1060+T1073+T1091; Opus T1064+T1066+T1067+T1089; Opus T1065+T1075+T1078+T1084+T1088+T1096; Sonnet T1055+T1057+T1063+T1070+T1074+T1077+T1079+T1085+T1090+T1092+T1093+T1094+T1097. |
 | D | Docs lean-out (after 2b; owner approved 2026-11-24) | T1081: inventory of every markdown file with a verdict, the owner agrees the layout, then the cut by folder and a guard that keeps it lean. T1080 (the new short owner page) is done before it by the planning chat. |
@@ -39,8 +39,8 @@ for 14 days (from 2026-11-23, so 2026-12-07 at the earliest) and the questionnai
 (screenshots T319, the "Open in the app" link T514) and the production checklist (T240, T404). Nothing breaks while it
 waits, as long as the testers stay opted in. The feedback log and releases.md have to stay current in every chat.
 
-**Order (owner 2026-11-24, planning chat questions):** 1 ship 0.9.0 → 2 0.9.1 → 5i iOS full release, with S store
-content beside it → 3 repo move (with the rc-tag plan) → 2b 0.9.2 hardening → D docs lean-out → 4a–4c 0.10 features →
+**Order (owner 2026-11-24, planning chat questions):** 1 ship 0.9.0 → 2 0.9.1 → 5i iOS full release (started 11-24), with S store
+content beside it (the submission waits for S's new picture set, owner 11-24) → 3 repo move (with the rc-tag plan) → 2b 0.9.2 hardening → D docs lean-out → 4a–4c 0.10 features →
 5 Play launch (application from 2026-12-07; it starts whenever Google's date allows, whatever else is running). The
 order of 3, 2b and D after the iOS release is the planning chat's proposal; the owner chose only "iOS first".
 
@@ -137,7 +137,9 @@ Triage of everything ticketed since the roadmap was written. Severity / model / 
 > lanes, at most 2, one review round. First fix the reshoot tool (T1076) so it builds its own store-shots export.
 > Then show me 2–3 directions for the screenshot set as pictures, in chat, and wait for my pick. Then ONE new set
 > from the 0.9.x app, the same frames for Android and iPhone (my ask of 11-24), in every Play and App Store size, in
-> the repo where the push script looks, and one source of listing words for both stores and the website. No uploads to
+> the repo where the push script looks, and one source of listing words for both stores and the website. The iPhone
+> submission (chat 5i, session in "Who is who") waits for this set, and App Store pictures change only with a new
+> version: tell that chat when the set is ready. No uploads to
 > either store: hand me the files and the steps. New finds go to the planning chat.
 
 **2b. 0.9.2 hardening (after chat 3)**
