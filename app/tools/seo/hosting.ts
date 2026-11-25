@@ -9,7 +9,7 @@
  *
  * The host rules cannot live in a path-based `_redirects` file, so they are emitted as `redirects.json` for the edge
  * (Cloudflare Redirect Rules / a Worker / the registrar's forwarding) and mirrored by `redirectFor`, the pure function the
- * test (and a `curl -I` check after deploy) holds the edge to. Owner steps (registrar/DNS, accounts) stay in OWNER-TODO.
+ * test (and a `curl -I` check after deploy) holds the edge to. Owner steps (registrar/DNS, accounts) stay in the tickets' `## Owner` blocks.
  */
 import { APP_PACKAGE, PLAY_SIGNING_SHA256 } from "@app/core";
 import type { Site } from "./html";

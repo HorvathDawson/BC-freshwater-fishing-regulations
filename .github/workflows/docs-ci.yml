@@ -2,8 +2,8 @@ name: docs
 
 # (T993) THE TICKET LEDGER AND HANDOFF DOCS GUARD, on its own. app/tools/check-tickets.mjs (T84, T539) keeps the ledger
 # whole and reads every commit SUBJECT for a ticket id (a subject that names a Tnnn before its file and ledger row exist
-# fails), and checks the handoff docs (START-HERE, the restart page, OWNER-TODO and the runbooks cite paths that exist;
-# the restart page holds no state; AGENTS rule ids are unique). A ledger fix alone must run it, or a red run on a ledger
+# fails), and checks the handoff docs (START-HERE, the restart pages and the runbooks cite paths that exist;
+# START-HERE and each restart page stay short, a restart page holds no state; AGENTS rule ids are unique). A ledger fix alone must run it, or a red run on a ledger
 # edit stays the newest and blocks the release's CI check (scripts/ci_status.py reads this workflow too).
 #
 # It used to run inside app-ci for every push under handoff/: 210 docs-only pushes, 1,578 minutes in 30 days, to run

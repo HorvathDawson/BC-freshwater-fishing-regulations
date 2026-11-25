@@ -345,8 +345,8 @@ def render(sections: list[Section], since: str) -> str:
         lines += [f"  note: {n}" for n in s.notes]
     unread = [s.source for s in sections if s.error]
     lines.append(f"-- {total_new} NEW item(s)" + (f"; UNREAD sources: {', '.join(unread)}" if unread else "; every source read"))
-    lines.append("Ticket anything NEW (write its id in the ticket), then add a 'Store checks' item: a new file in "
-                 "handoff/PLAN/owner-todo/ (T1041).")
+    lines.append("Ticket anything NEW (write its id in the ticket) and add a row to "
+                 "handoff/PLAN/play-production-access/feedback-log.md (T1046).")
     return "\n".join(lines)
 
 

@@ -13,29 +13,32 @@
  *      ROW_HEADER), so two PRs on different tickets never touch the same line. The tables are views built from those
  *      rows (`node app/tools/ledger.mjs`, git-ignored); the view a row lands in follows its status keyword, so an open
  *      ticket cannot hide among the closed ones (T540's rule, now by construction, pinned in ledger.test.ts). A row
- *      typed the old way fails: README.md's `## Ledger` holding a row, a tickets/DONE.md, a `## ` section in
- *      OWNER-TODO.md (`ledger.mjs --resolve` carries an old-style branch's edits into the files);
+ *      typed the old way fails: README.md's `## Ledger` holding a row, a tickets/DONE.md, or the retired
+ *      OWNER-TODO.md / owner-todo/ coming back (T1081: an owner ask is a line of a ticket's `## Owner` block);
  *   3. a T-number named in a commit subject (since the tickets folder began) is not in the ledger (an open ticket's row, or
  *      (T1081) a line of `closed.tsv`, where a closed ticket lives once archived: its text is in `archive/*.tar.gz`);
  *   4. a ticket is DONE — in its file or in its ledger row — with no commit hash;
  *   5. (T437) a ticket file's leading status keyword differs from its ledger row's. Twelve had drifted (OPEN in the
  *      file, POSTPONED in the ledger; PARTIAL vs "DONE locally"): a lane closes the file AND the row in one commit.
- *   6. (T539) an IN REVIEW or PARTIAL status names its step: `owner: OWNER-TODO "<text>"` (the text must exist in
- *      an owner-todo item, handoff/PLAN/owner-todo/*.md) or `left (Claude): …`; one whose only step is Claude's is IN PROGRESS, not IN REVIEW. (The grandfather list
- *      `NO_STEP_YET` was drained and removed, 2026-11-22.)
+ *   6. (T539) an IN REVIEW or PARTIAL status names its step: `owner: see ## Owner` (T1081: the ticket's `## Owner` block
+ *      must hold an open line) or `left (Claude): …`; one whose only step is Claude's is IN PROGRESS, not IN REVIEW.
+ *   6a. (T1081) the `## Owner` blocks parse (`- [ ] YYYY-MM-DD — ask`, `- [x] …`; an open line without a date fails), so does
+ *      `tickets/OWNER-UNFILED.md`, and a DONE / DROPPED ticket holds no open owner line (`ledger.mjs --archive` refuses it too).
  *   6b. (T540) a ledger row's last cell is at most `LEFT_CELL_MAX` characters; the detail lives in the ticket file.
  *   7. (T539) the docs guard, `checkDocs`: STATUS.md starts with its title; every repo path a backticked token cites in
- *      START-HERE, the restart page, OWNER-TODO.md and the owner-todo items exists, and every path a runbook (handoff/PLAN/runbooks/*.md) cites,
- *      in backticks or in a command block (T628); the restart page holds no state (no release id, no build
- *      number: those live only in the STATUS top entry); AGENTS rule ids are unique.
+ *      START-HERE and the restart pages exists, and every path a runbook (handoff/PLAN/runbooks/*.md) cites,
+ *      in backticks or in a command block (T628); (T1081) START-HERE is at most `START_HERE_MAX` lines and links every page of
+ *      `handoff/PLAN/restart/` (one short page per live chat, at most `RESTART_MAX` lines, deleted when the chat ends) and
+ *      nothing missing; a restart page holds no state (no release id, no build number: those live only in the STATUS top
+ *      entry); a RESTART-* / NEXT-SESSION-* file anywhere else fails unless named in `LEGACY_RESTART`; AGENTS rule ids are unique.
  *
  * `checkLedger` and `checkDocs` are pure (the test feeds it mutated copies); the CLI below reads the repo and git.
  */
 import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { CLAIMS_DIR, CLOSED_TSV, LEDGER_POINTER, MARKER, OLD_DONE, OWNER_DIR, OWNER_PAGE, OWNER_PAGE_TEXT, README, claimProblems, ledgerSection,
-         readOwnerTodo, readWorkTree, staleViews, tableRows, ticketRow } from "./ledger.mjs";
+import { CLAIMS_DIR, CLOSED_TSV, LEDGER_POINTER, MARKER, OLD_DONE, OWNER_UNFILED, README, RETIRED_OWNER_PATHS, claimProblems, ledgerSection,
+         ownerAsks, readWorkTree, staleViews, tableRows, ticketRow, unfiledAsks } from "./ledger.mjs";
 
 /** (T540) The closed statuses: their rows are built into the DONE view (`ledger.mjs` isClosed). */
 export const CLOSED = ["DONE", "DROPPED"];
@@ -72,19 +75,20 @@ export function idOfFile(name) {
   return name.match(ID)?.[0] ?? null;
 }
 
-const OWNER_STEP = /owner:\s*OWNER-TODO\s+"([^"]+)"/g;
+const OWNER_STEP = /owner:\s*see ## Owner/;
+const OLD_OWNER_STEP = /owner:\s*OWNER-TODO/;
 const CLAUDE_STEP = /left \(Claude\):\s*\S/;
 
-/** What is wrong with an IN REVIEW / PARTIAL status's step (T539). */
-function stepProblems(id, kw, value, ownerTodo) {
-  const owners = [...value.matchAll(OWNER_STEP)].map((m) => m[1]);
+/** What is wrong with an IN REVIEW / PARTIAL status's step (T539; T1081: the owner's step is the ticket's own `## Owner` block). */
+function stepProblems(id, kw, value, openOwner) {
   const out = [];
-  for (const text of owners)
-    if (!(ownerTodo ?? "").includes(text)) out.push(`${id}: Status cites OWNER-TODO "${text}", which no owner-todo item holds (${OWNER_DIR}/)`);
+  const owner = OWNER_STEP.test(value);
+  if (OLD_OWNER_STEP.test(value)) out.push(`${id}: Status cites OWNER-TODO, which is retired (T1081): write \`owner: see ## Owner\` and put the ask in the ticket's "## Owner" block`);
+  if (owner && !openOwner) out.push(`${id}: Status says \`owner: see ## Owner\` but the ticket's "## Owner" block holds no open line`);
   const claude = CLAUDE_STEP.test(value);
-  if (!owners.length && !claude)
-    out.push(`${id}: ${kw} names no step: add \`owner: OWNER-TODO "<text>"\` or \`left (Claude): …\` to the Status line`);
-  else if (!owners.length && kw === "IN REVIEW") out.push(`${id}: IN REVIEW but the only step is Claude's (left (Claude)): that is IN PROGRESS`);
+  if (!owner && !claude && !OLD_OWNER_STEP.test(value))
+    out.push(`${id}: ${kw} names no step: add \`owner: see ## Owner\` (with an open line in the ticket's "## Owner" block) or \`left (Claude): …\` to the Status line`);
+  else if (!owner && !OLD_OWNER_STEP.test(value) && kw === "IN REVIEW") out.push(`${id}: IN REVIEW but the only step is Claude's (left (Claude)): that is IN PROGRESS`);
   return out;
 }
 
@@ -94,20 +98,20 @@ export const ledgerRows = tableRows;
 /**
  * Every way the ledger is not whole, as one sorted list of plain messages (empty = whole).
  *
- * @param {{ tickets: { name: string, text: string }[], subjects: string[], ownerTodo: string, ownerProblems?: string[],
- *           legacy: { readme: string, doneLedger: string | null, ownerPage: string } }} input
- *   tickets — every `T*.md` in the folder (name + contents; each holds its own row, T1041); subjects — commit subjects
- *   since the tickets folder began; ownerTodo — the owner to-do built from handoff/PLAN/owner-todo/ (the texts a status
- *   may cite) and ownerProblems what is wrong with those files; legacy — the old places (README.md, DONE.md or null when
- *   it is gone, OWNER-TODO.md), which must hold no row and no item (it must be given: never "nothing old to check").
+ * @param {{ tickets: { name: string, text: string }[], subjects: string[], unfiled: string, extraProblems?: string[],
+ *           legacy: { readme: string, doneLedger: string | null, retired: string[] } }} input
+ *   tickets — every `T*.md` in the folder (name + contents; each holds its own row, T1041, and its `## Owner` block,
+ *   T1081); subjects — commit subjects since the tickets folder began; unfiled — the text of OWNER-UNFILED.md ("" when
+ *   there is none); legacy — the old places (README.md, DONE.md or null when it is gone, and `retired`: the retired
+ *   owner to-do paths that exist, which must be none; it must be given: never "nothing old to check").
  */
-export function checkLedger({ tickets, subjects, ownerTodo, ownerProblems = [], legacy, claims, closed }) {
-  if (!legacy || typeof legacy.readme !== "string" || typeof legacy.ownerPage !== "string" || legacy.doneLedger === undefined)
-    throw new Error(`checkLedger needs legacy: { readme, doneLedger (null when ${OLD_DONE} is gone), ownerPage } (T1041)`);
+export function checkLedger({ tickets, subjects, unfiled = "", extraProblems = [], legacy, claims, closed }) {
+  if (!legacy || typeof legacy.readme !== "string" || !Array.isArray(legacy.retired) || legacy.doneLedger === undefined)
+    throw new Error(`checkLedger needs legacy: { readme, doneLedger (null when ${OLD_DONE} is gone), retired } (T1041, T1081)`);
   if (!Array.isArray(claims)) throw new Error(`checkLedger needs claims (the files of ${CLAIMS_DIR}/, T1041): never "no claims to check"`);
   if (!Array.isArray(closed)) throw new Error(`checkLedger needs closed (the parsed lines of ${CLOSED_TSV}, T1081): never "no archive to check"`);
   const closedIds = new Set(closed.map((r) => r.id));
-  const problems = [...ownerProblems, ...claimProblems(tickets, claims, closedIds)];
+  const problems = [...extraProblems, ...unfiledAsks(unfiled).problems, ...claimProblems(tickets, claims, closedIds)];
   // (T1081) an archived ticket is a closed row without a file: its status and hash are held to the same rules as a file's row
   for (const r of closed) {
     const kw = statusKeyword(r.status);
@@ -122,12 +126,7 @@ export function checkLedger({ tickets, subjects, ownerTodo, ownerProblems = [], 
     problems.push(`${README}: its "## Ledger" section is not the pointer text (ledger.mjs LEDGER_POINTER): a row lives in its ticket file (T1041), nothing is written there`);
   if (legacy.doneLedger !== null) problems.push(`${OLD_DONE} exists: closed rows live in their ticket files and are built into handoff/PLAN/views/DONE.md (T1041); ` +
     "carry its rows (`node app/tools/ledger.mjs --resolve` in a merge), then git rm it");
-  const sections = legacy.ownerPage.split("\n").filter((l) => l.startsWith("## "));
-  if (sections.length) problems.push(`${OWNER_PAGE} holds a "## " section (${sections[0].slice(0, 60)}): an owner item is a file of its own in ${OWNER_DIR}/ (T1041)`);
-  else if (legacy.ownerPage !== OWNER_PAGE_TEXT) {
-    const at = legacy.ownerPage.split("\n").findIndex((l, i) => l !== OWNER_PAGE_TEXT.split("\n")[i]);
-    problems.push(`${OWNER_PAGE} is not the pointer page (it differs at line ${at + 1}): an owner item is a file of its own in ${OWNER_DIR}/ (T1041); text added here never reaches the view`);
-  }
+  for (const p of legacy.retired) problems.push(`${p} exists: it was retired (T1081): an owner ask is a line of the "## Owner" block in its ticket (${OWNER_UNFILED} when it has none); \`node app/tools/ledger.mjs\` builds handoff/PLAN/views/OWNER.md`);
   for (const { name, text } of tickets) {
     const id = idOfFile(name);
     if (!id) { problems.push(`${name}: file name does not start with a ticket id (Tnn-slug.md)`); continue; }
@@ -139,7 +138,12 @@ export function checkLedger({ tickets, subjects, ownerTodo, ownerProblems = [], 
     const kw = statusKeyword(value);
     if (!kw) { problems.push(`${id}: Status "${value}" is not one of ${STATUSES.join(", ")}`); continue; }
     if (kw === "DONE" && !HASH.test(value)) problems.push(`${id}: Status DONE names no commit hash in ${name}`);
-    if (kw === "IN REVIEW" || kw === "PARTIAL") problems.push(...stepProblems(id, kw, value, ownerTodo));
+    const owner = ownerAsks(text, id);
+    problems.push(...owner.problems);
+    const open = owner.asks.filter((a) => a.open);
+    if ((kw === "DONE" || kw === "DROPPED") && open.length)
+      problems.push(`${id}: ${kw} but its "## Owner" block holds ${open.length} open line(s) ("${open[0].text.slice(0, 50)}"): answer or take them out (a closed ticket has no open owner line)`);
+    if (kw === "IN REVIEW" || kw === "PARTIAL") problems.push(...stepProblems(id, kw, value, open.length > 0));
   }
 
   // (T1041) every ticket file holds exactly one row, its own
@@ -188,6 +192,20 @@ export function checkLedger({ tickets, subjects, ownerTodo, ownerProblems = [], 
 }
 
 const RUNBOOKS_DIR = "handoff/PLAN/runbooks";
+/** (T1081) One short page per live chat; START-HERE links each. A page is deleted when its chat ends. */
+export const RESTART_DIR = "handoff/PLAN/restart";
+export const RESTART_MAX = 60;
+export const START_HERE_MAX = 30;
+/** (T1081) The restart pages of chats that were running when the scheme began; their chats edit them where they are, so
+ *  these four paths (and only these) are tolerated until the rename commit moves them into restart/ and this list goes. */
+export const LEGACY_RESTART = [
+  "handoff/PLAN/RESTART-091-chat.md",
+  "handoff/PLAN/RESTART-repo-move-chat.md",
+  "handoff/PLAN/RESTART-store-content-chat.md",
+  "handoff/PLAN/ios/RESTART-ios-release-chat.md",
+];
+/** Every file name that is a restart page wherever it sits (a stray one outside restart/ fails). */
+export const RESTART_NAME = /^(RESTART|NEXT-SESSION)[^/]*\.md$/;
 /** Paths a runbook's own steps CREATE (so they do not exist until it is followed), per runbook. A listed path that
  *  exists, or that its runbook no longer cites, fails: the list only holds what it must. */
 export const RUNBOOK_MAKES = {
@@ -241,18 +259,19 @@ export function ruleIds(agents) {
  *
  * `runbooks` (T628): every `handoff/PLAN/runbooks/*.md`, read with `runbookPaths` (its command blocks too).
  *
- * `ownerTodo` (T1041): the owner to-do built from handoff/PLAN/owner-todo/; `ownerPage`: OWNER-TODO.md, its pointer page.
+ * `restartPages` (T1081): every `handoff/PLAN/restart/*.md` (name + text); `restartFiles`: every repo path under
+ * handoff/PLAN whose file name is a restart page (RESTART-*.md, NEXT-SESSION-*.md), wherever it sits.
  *
- * @param {{ status: string, startHere: string, restartName: string, restart: string, ownerTodo: string, ownerPage: string, agents: string,
+ * @param {{ status: string, startHere: string, restartPages: { name: string, text: string }[], restartFiles: string[], agents: string,
  *           runbooks: { name: string, text: string }[],
  *           exists: (p: string) => boolean, isIgnored: (p: string) => boolean }} input
  */
-export function checkDocs({ status, startHere, restartName, restart, ownerTodo, ownerPage, agents, runbooks, exists, isIgnored }) {
+export function checkDocs({ status, startHere, restartPages, restartFiles, agents, runbooks, exists, isIgnored }) {
   const problems = [];
   if (!/^# /.test(status)) problems.push(`STATUS.md must start with its title ("# …"), not: ${status.split("\n")[0].slice(0, 60)}`);
-  if (typeof ownerPage !== "string") problems.push(`no text was read for ${OWNER_PAGE} (ownerPage): the dead-path guard covers it`);
-  for (const [name, text] of [["START-HERE.md", startHere], [restartName || "the restart page", restart],
-                              ["OWNER-TODO.md", ownerPage ?? ""], [`the owner to-do (${OWNER_DIR}/)`, ownerTodo]])
+  if (!Array.isArray(restartPages) || !Array.isArray(restartFiles)) problems.push("no restart pages were read (restartPages, restartFiles): never \"no restart pages to check\" (T1081)");
+  const pages = restartPages ?? [];
+  for (const [name, text] of [["START-HERE.md", startHere], ...pages.map((r) => [`${RESTART_DIR}/${r.name}`, r.text])])
     for (const p of citedPaths(text)) if (!exists(p) && !isIgnored(p)) problems.push(`${name} cites ${p}, which does not exist`);
   if (!Array.isArray(runbooks) || !runbooks.length) problems.push(`no runbook was read (${RUNBOOKS_DIR}/*.md): the dead-path guard covers them (T628)`);
   else {
@@ -264,9 +283,21 @@ export function checkDocs({ status, startHere, restartName, restart, ownerTodo, 
     }
     for (const name of Object.keys(RUNBOOK_MAKES)) if (!runbooks.some((r) => r.name === name)) problems.push(`RUNBOOK_MAKES names ${name}, which is not a runbook`);
   }
-  if (!restartName) problems.push("START-HERE.md names no restart page (handoff/PLAN/NEXT-SESSION-*.md)");
-  for (const m of restart.matchAll(/\br-[0-9a-f]{12}\b/g)) problems.push(`${restartName} holds state: release id ${m[0]} (it lives only in the STATUS top entry)`);
-  for (const m of restart.matchAll(/\b[Bb]uild \d+\b/g)) problems.push(`${restartName} holds state: "${m[0]}" (the Play build lives only in the STATUS top entry)`);
+  // (T1081) START-HERE is short and lists every live chat's restart page; a page is short and holds no state
+  const startLines = startHere.replace(/\n+$/, "").split("\n").length;
+  if (startLines > START_HERE_MAX) problems.push(`START-HERE.md is ${startLines} lines (max ${START_HERE_MAX}): it points, the restart pages and AGENTS.md hold the rest`);
+  const linked = new Set([...startHere.matchAll(/handoff\/PLAN\/restart\/([\w.-]+\.md)/g)].map((m) => m[1]));
+  for (const name of linked) if (!pages.some((r) => r.name === name)) problems.push(`START-HERE.md links ${RESTART_DIR}/${name}, which does not exist`);
+  for (const { name, text } of pages) {
+    if (!linked.has(name)) problems.push(`${RESTART_DIR}/${name} is not linked from START-HERE.md (it lists every live chat's page; delete the page when its chat ends)`);
+    const lines = text.replace(/\n+$/, "").split("\n").length;
+    if (lines > RESTART_MAX) problems.push(`${RESTART_DIR}/${name} is ${lines} lines (max ${RESTART_MAX}): a restart page is short; the ticket and STATUS hold the detail`);
+    for (const m of text.matchAll(/\br-[0-9a-f]{12}\b/g)) problems.push(`${RESTART_DIR}/${name} holds state: release id ${m[0]} (it lives only in the STATUS top entry)`);
+    for (const m of text.matchAll(/\b[Bb]uild \d+\b/g)) problems.push(`${RESTART_DIR}/${name} holds state: "${m[0]}" (the Play build lives only in the STATUS top entry)`);
+  }
+  for (const p of restartFiles ?? [])
+    if (!p.startsWith(`${RESTART_DIR}/`) && !LEGACY_RESTART.includes(p))
+      problems.push(`${p} is a restart page outside ${RESTART_DIR}/ (T1081): move it there, link it from START-HERE.md (LEGACY_RESTART names the only ones left where they are)`);
   const seen = new Map();
   for (const { id, line } of ruleIds(agents)) {
     if (seen.has(id)) problems.push(`AGENTS.md: rule id ${id} is used at lines ${seen.get(id)} and ${line}`);
@@ -275,7 +306,7 @@ export function checkDocs({ status, startHere, restartName, restart, ownerTodo, 
   return [...new Set(problems)].sort();
 }
 
-/** The repo's real inputs: the tickets folder, the owner to-do items, the old places, and commit subjects since the folder began. */
+/** The repo's real inputs: the tickets folder, the unfiled owner asks, the old places, and commit subjects since the folder began. */
 export function readRepo(repoRoot) {
   const dir = join(repoRoot, TICKETS_DIR);
   const tickets = readdirSync(dir)
@@ -288,11 +319,11 @@ export function readRepo(repoRoot) {
   if (!firsts.length) throw new Error(`no commit adds ${TICKETS_DIR}; cannot scope commit subjects`);
   const first = firsts[firsts.length - 1];
   const subjects = git("log", "--format=%s", "HEAD", "--not", `${first}^@`).split("\n").filter(Boolean);
-  const owner = readOwnerTodo(repoRoot);
-  const legacy = { readme: readFileSync(join(repoRoot, README), "utf8"), ownerPage: readFileSync(join(repoRoot, OWNER_PAGE), "utf8"),
+  const legacy = { readme: readFileSync(join(repoRoot, README), "utf8"),
+                   retired: RETIRED_OWNER_PATHS.filter((p) => existsSync(join(repoRoot, p))),
                    doneLedger: existsSync(join(repoRoot, OLD_DONE)) ? readFileSync(join(repoRoot, OLD_DONE), "utf8") : null };
   const work = readWorkTree(repoRoot);
-  return { tickets, subjects, ownerTodo: owner.text, ownerProblems: [...owner.problems, ...work.closedProblems], legacy, claims: work.claims, closed: work.closed };
+  return { tickets, subjects, unfiled: work.unfiled, extraProblems: work.closedProblems, legacy, claims: work.claims, closed: work.closed };
 }
 
 /**
@@ -311,9 +342,9 @@ export function ledgerIds(repoRoot) {
 export function readDocs(repoRoot) {
   const plan = join(repoRoot, "handoff/PLAN");
   const startHere = readFileSync(join(plan, "START-HERE.md"), "utf8");
-  const restartName = startHere.match(/handoff\/PLAN\/(NEXT-SESSION-[\w.-]+\.md)/)?.[1] ?? "";
-  const restart = restartName && existsSync(join(plan, restartName)) ? readFileSync(join(plan, restartName), "utf8") : "";
-  if (restartName && !restart) throw new Error(`START-HERE.md names ${restartName}, which does not exist`);
+  const rdir = join(repoRoot, RESTART_DIR);
+  const restartPages = existsSync(rdir) ? readdirSync(rdir).filter((n) => !n.startsWith(".")).sort().map((name) => ({ name, text: readFileSync(join(rdir, name), "utf8") })) : [];
+  const restartFiles = readdirSync(plan, { recursive: true }).map(String).filter((p) => RESTART_NAME.test(p.split("/").pop())).map((p) => `handoff/PLAN/${p}`).sort();
   // git answers 0 (ignored) or 1 (not); anything else is git itself failing, said aloud so a runner that cannot ask
   // does not read as "every ignored path is a dead path". GIT_* from a caller's environment must not point git elsewhere.
   const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith("GIT_")));
@@ -325,8 +356,8 @@ export function readDocs(repoRoot) {
   };
   const runbooks = readdirSync(join(repoRoot, RUNBOOKS_DIR)).filter((n) => n.endsWith(".md")).sort()
     .map((name) => ({ name, text: readFileSync(join(repoRoot, RUNBOOKS_DIR, name), "utf8") }));
-  return { status: readFileSync(join(plan, "STATUS.md"), "utf8"), startHere, restartName, restart, runbooks,
-           ownerTodo: readOwnerTodo(repoRoot).text, ownerPage: readFileSync(join(repoRoot, OWNER_PAGE), "utf8"), agents: readFileSync(join(repoRoot, "AGENTS.md"), "utf8"),
+  return { status: readFileSync(join(plan, "STATUS.md"), "utf8"), startHere, restartPages, restartFiles, runbooks,
+           agents: readFileSync(join(repoRoot, "AGENTS.md"), "utf8"),
            exists: (p) => existsSync(join(repoRoot, p)), isIgnored };
 }
 

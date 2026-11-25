@@ -1,18 +1,15 @@
 #!/usr/bin/env node
 /**
- * (T1041) ONE FILE PER LEDGER ROW AND PER OWNER-TODO ITEM; THE TABLES ARE BUILT FROM THEM.
- *
- * On 2026-11-23/24 a dozen lanes each edited the same three files (the ledger table in `tickets/README.md`,
- * `tickets/DONE.md`, the 3,500-line `OWNER-TODO.md`) and nearly every PR hit a merge conflict there. Now:
+ * (T1041, T1081) THE LEDGER ROWS AND THE OWNER'S OPEN ASKS, EACH IN ITS TICKET; THE PAGES ARE BUILT FROM THEM.
  *
  *   - a ticket's ledger row lives in its own file `tickets/Tnnn-*.md`, as a one-row table right under its Status
  *     paragraph (`ROW_HEADER`, `ROW_SEP`, the row: the five cells the ledger always had);
- *   - an owner item lives in its own file `handoff/PLAN/owner-todo/<slug>.md`: `order: <number>`, a blank line, then the
- *     item, which is one `## ` section of the old OWNER-TODO.md, word for word; `_head.md` holds the page's head;
+ *   - (T1081) anything only the owner can do or decide is an `## Owner` block in the ticket it belongs to: lines
+ *     `- [ ] YYYY-MM-DD — <ask>` (open) and `- [x] YYYY-MM-DD — <ask> → "<his answer>" (YYYY-MM-DD)` (answered). An ask
+ *     with no ticket yet is a `## <title>` section of `tickets/OWNER-UNFILED.md`, the same lines, until the planning chat
+ *     numbers a ticket for it. There is no owner-todo folder any more;
  *   - the combined views are BUILT, never committed (`handoff/PLAN/views/`, git-ignored): `LEDGER.md` (the rows in
- *     work), `DONE.md` (DONE / DROPPED rows), `OWNER-TODO.md` (every item, highest order first).
- *
- * Two PRs that touch different tickets or different owner items touch different files, so they cannot conflict.
+ *     work), `DONE.md` (DONE / DROPPED rows), `OWNER.md` (every open owner line, newest first, by ticket).
  *
  *   node app/tools/ledger.mjs                 build the views (the post-checkout / post-merge hooks run it)
  *   node app/tools/ledger.mjs --check         exit 1 when a view on disk is missing or not what the source builds
@@ -23,36 +20,27 @@
  *   node app/tools/ledger.mjs --archive [Tnnn…]  (T1081) move the CLOSED tickets (DONE / DROPPED; or only those named) out
  *                                             of the tree: their rows go to `tickets/closed.tsv`, their text into
  *                                             `tickets/archive/closed-<year>.tar.gz`, then the files, claims and picture
- *                                             folders are deleted; `--dry` only says what it would do
- *   node app/tools/ledger.mjs --import        split the OLD files of this work tree (README.md's ledger, DONE.md,
- *                                             OWNER-TODO.md) into the per-item files; refuses unless the round trip
- *                                             (build(import(old)) = old, see `roundTrip`) holds; prints the counts
- *   node app/tools/ledger.mjs --resolve       during a merge of an old-style side with a new-style side: carry the old
- *                                             side's edits (rows, items, README text) into the per-item files
- *   node app/tools/ledger.mjs --merge <ref>   `git merge --no-commit <ref>`, then --resolve, the ticket guard, and the
- *                                             merge commit (stops, saying what, at the first conflict left)
+ *                                             folders are deleted; `--dry` only says what it would do. A ticket with an
+ *                                             open owner line is refused: answer or drop the line first
  *
- * The pure functions (row block, views, split, import, round trip, carry) are what the tests feed; the CLI at the end
- * reads the repo and git.
+ * The pure functions (row block, owner lines, views, archive) are what the tests feed; the CLI at the end reads the repo
+ * and git.
  */
-import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { gunzipSync, gzipSync } from "node:zlib";
-import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 
 export const TICKETS_DIR = "handoff/PLAN/app-integration/tickets";
 export const README = `${TICKETS_DIR}/README.md`;
 /** The old closed-rows file (T540). It no longer exists: its rows are built into `views/DONE.md`. */
 export const OLD_DONE = `${TICKETS_DIR}/DONE.md`;
-export const OWNER_DIR = "handoff/PLAN/owner-todo";
-/** The committed pointer page that used to hold every owner item. */
-export const OWNER_PAGE = "handoff/PLAN/OWNER-TODO.md";
-export const HEAD_FILE = "_head.md";
-/** Files in OWNER_DIR that are not items. */
-export const NOT_ITEMS = [HEAD_FILE, "README.md"];
+/** (T1081) Owner asks that have no ticket yet: `## <title>` sections of owner lines; the planning chat numbers them. */
+export const OWNER_UNFILED = `${TICKETS_DIR}/OWNER-UNFILED.md`;
+/** (T1081) Paths that must not exist again: the owner to-do page and folder were replaced by `## Owner` blocks. */
+export const RETIRED_OWNER_PATHS = ["handoff/PLAN/OWNER-TODO.md", "handoff/PLAN/owner-todo"];
 export const VIEWS_DIR = "handoff/PLAN/views";
-export const VIEWS = { ledger: `${VIEWS_DIR}/LEDGER.md`, done: `${VIEWS_DIR}/DONE.md`, owner: `${VIEWS_DIR}/OWNER-TODO.md` };
+export const VIEWS = { ledger: `${VIEWS_DIR}/LEDGER.md`, done: `${VIEWS_DIR}/DONE.md`, owner: `${VIEWS_DIR}/OWNER.md` };
 
 /**
  * (T1081) CLOSED TICKETS LIVE IN ONE INDEX AND ONE ARCHIVE, NOT AS FILES. `closed.tsv`: one line per DONE / DROPPED ticket,
@@ -272,6 +260,8 @@ export function planArchive({ tickets, tsv, tars, ids, year }) {
     if (!row) { if (ids) problems.push(...p); continue; }
     if (!isClosed(row.status)) { if (ids) problems.push(`${id}: ${row.status}, not DONE / DROPPED: it is not archived`); continue; }
     if (lines.has(id)) { problems.push(`${id}: already in ${CLOSED_TSV}, and the file ${t.name} is still here`); continue; }
+    const open = ownerAsks(t.text, id).asks.filter((a) => a.open);
+    if (open.length) { problems.push(`${id}: ${open.length} open owner line(s) in its "## Owner" block ("${open[0].text.slice(0, 50)}"): answer them or take them out, then archive`); continue; }
     lines.set(id, tsvLine(row, t.text, archive));
     files.push({ name: t.name, text: t.text });
     moved.push({ name: t.name, id });
@@ -310,53 +300,100 @@ export function ledgerViews(tickets, archived = []) {
 
 const trimBlank = (lines) => { let e = lines.length; while (e > 0 && lines[e - 1].trim() === "") e--; return lines.slice(0, e); };
 
-/** The old OWNER-TODO.md as its head (the lines before the first `## `) and one item per `## ` section, in page order. */
-export function splitOwnerTodo(text) {
-  const lines = text.split("\n");
-  const first = lines.findIndex((l) => l.startsWith("## "));
-  const head = trimBlank(first < 0 ? lines : lines.slice(0, first)).join("\n");
-  const items = [];
-  if (first >= 0) for (const l of lines.slice(first)) {
-    if (l.startsWith("## ")) items.push([l]);
-    else items[items.length - 1].push(l);
-  }
-  return { head, items: items.map((c) => ({ heading: c[0], text: trimBlank(c).join("\n") })) };
-}
 
-const ORDER = /^order: (-?\d+(?:\.\d+)?)\n\n/;
-/** A merge-conflict marker line (`<<<<<<< …` / `>>>>>>> …`): a ticket or owner file holding one was `git add`ed unsettled. */
-export const MARKER = /^(<<<<<<<|>>>>>>>)( |$)/m;
-/** An item file's text from its order and its item text. */
-export const itemFile = (order, text) => `order: ${order}\n\n${text}\n`;
+// ------------------------------------------------------------------------------------------- (T1081) the owner's asks
+
+const OWNER_HEADING = /^##\s+Owner\s*$/;
+/** An owner line: `- [ ] 2026-11-25 — the ask` (open) or `- [x] 2026-11-25 — the ask → "his answer" (2026-11-26)` (answered). */
+const OWNER_LINE = /^- \[( |x)\] (.*)$/;
+const OWNER_DATED = /^(\d{4}-\d{2}-\d{2}) — (\S.*)$/;
+
+/** The lines of one owner block (`lines` from `from` up to `to`, exclusive), each `{ open, date, text }`, and what is wrong. */
+function parseOwnerRange(lines, from, to, where) {
+  const asks = [], problems = [];
+  for (let i = from; i < to; i++) {
+    const l = lines[i];
+    if (l.trim() === "") continue;
+    const m = l.match(OWNER_LINE);
+    if (!m) {
+      if (/^ {2}\S/.test(l) && asks.length) { asks.at(-1).text += ` ${l.trim()}`; continue; }
+      problems.push(`${where}: owner line "${l.slice(0, 50)}" must read "- [ ] YYYY-MM-DD — <ask>" (or "- [x] …"); a longer ask continues on lines indented two spaces`);
+      continue;
+    }
+    const d = m[2].match(OWNER_DATED);
+    if (!d || Number.isNaN(Date.parse(d[1]))) {
+      problems.push(`${where}: ${m[1] === " " ? "an open" : "an answered"} owner line has no date: "${m[2].slice(0, 50)}" (write "- [${m[1]}] YYYY-MM-DD — <ask>")`);
+      continue;
+    }
+    asks.push({ open: m[1] === " ", date: d[1], text: d[2] });
+  }
+  return { asks, problems };
+}
 
 /**
- * The owner to-do from its folder's files (`{ name, text }[]`, names without the folder): the head, the items (order,
- * heading, text) and what is wrong (a bad first line, no heading, two items in a file, a heading used twice, no head).
+ * A ticket's `## Owner` block (the lines up to the next `## `): `{ asks: { open, date, text }[], problems }`. No block is
+ * no asks. A second `## Owner` heading is a problem (one block per ticket).
  */
-export function readOwnerItems(files) {
-  const problems = [], items = [];
-  let head = null;
-  for (const { name, text } of files) {
-    const where = `${OWNER_DIR}/${name}`;
-    if (MARKER.test(text)) problems.push(`${where}: holds a merge-conflict marker line (<<<<<<< / >>>>>>>): settle it`);
-    if (name === HEAD_FILE) { head = text.replace(/\n+$/, ""); continue; }
-    if (NOT_ITEMS.includes(name) || !name.endsWith(".md")) continue;
-    const m = text.match(ORDER);
-    if (!m) { problems.push(`${where}: the first line must be "order: <number>" and the second blank`); continue; }
-    const body = text.slice(m[0].length).replace(/\n+$/, "");
-    if (!body.startsWith("## ")) { problems.push(`${where}: the item must start with its "## " heading after the order line`); continue; }
-    const more = body.split("\n").slice(1).filter((l) => l.startsWith("## "));
-    if (more.length) { problems.push(`${where}: holds more than one item (${more[0]}): one file per item`); continue; }
-    items.push({ name, order: Number(m[1]), heading: body.split("\n")[0], text: body });
-  }
-  if (head === null) problems.push(`${OWNER_DIR}/${HEAD_FILE} is missing: the owner to-do's head (title and how the page works)`);
-  const seen = new Map();
-  for (const i of items) {
-    if (seen.has(i.heading)) problems.push(`${OWNER_DIR}: "${i.heading}" is the heading of ${seen.get(i.heading)} and ${i.name}: a heading names one item`);
-    else seen.set(i.heading, i.name);
-  }
-  return { head: head ?? "", items, problems: problems.sort() };
+export function ownerAsks(text, where = "ticket") {
+  const lines = text.split("\n");
+  const heads = lines.flatMap((l, i) => (OWNER_HEADING.test(l) ? [i] : []));
+  if (!heads.length) return { asks: [], problems: [] };
+  const problems = heads.length > 1 ? [`${where}: more than one "## Owner" block (keep one)`] : [];
+  let end = heads[0] + 1;
+  while (end < lines.length && !/^##\s/.test(lines[end])) end++;
+  const got = parseOwnerRange(lines, heads[0] + 1, end, where);
+  return { asks: got.asks, problems: [...problems, ...got.problems] };
 }
+
+/** OWNER-UNFILED.md: `## <title>` sections of owner lines. `{ groups: { title, asks }[], problems }`. */
+export function unfiledAsks(text) {
+  const lines = text.split("\n");
+  const heads = lines.flatMap((l, i) => (/^##\s+\S/.test(l) ? [i] : []));
+  const groups = [], problems = [];
+  heads.forEach((h, k) => {
+    const to = k + 1 < heads.length ? heads[k + 1] : lines.length;
+    const title = lines[h].replace(/^##\s+/, "").trim();
+    const got = parseOwnerRange(lines, h + 1, to, `${basename(OWNER_UNFILED)} "${title.slice(0, 40)}"`);
+    groups.push({ title, asks: got.asks });
+    problems.push(...got.problems);
+    if (!got.asks.length && !got.problems.length) problems.push(`${basename(OWNER_UNFILED)} "${title.slice(0, 40)}": a section holds no owner line`);
+  });
+  const stray = lines.slice(0, heads[0] ?? lines.length).filter((l) => /^- \[/.test(l));
+  if (stray.length) problems.push(`${basename(OWNER_UNFILED)}: an owner line sits above the first "## <title>" section`);
+  return { groups, problems };
+}
+
+const oneLine = (s, max = 220) => (s.length > max ? `${s.slice(0, max - 1).trimEnd()}…` : s);
+
+/**
+ * The OWNER view (a page, one short line per open ask), pure: `tickets` as `{ name, text }[]`, `unfiled` the text of
+ * OWNER-UNFILED.md. Groups by ticket (id + title) and by unfiled title; the group with the newest open ask first, and in a
+ * group the newest ask first; ties by id.
+ */
+export function ownerView(tickets, unfiled = "") {
+  const groups = [];
+  for (const t of tickets) {
+    const id = idOfFile(t.name);
+    if (!id) continue;
+    const open = ownerAsks(t.text, id).asks.filter((a) => a.open);
+    if (open.length) groups.push({ key: id, title: `${id} — ${ticketRow(t.name, t.text).row?.title ?? t.text.split("\n")[0].replace(/^#\s*/, "")}`, asks: open });
+  }
+  for (const g of unfiledAsks(unfiled).groups) {
+    const open = g.asks.filter((a) => a.open);
+    if (open.length) groups.push({ key: "~", title: `(no ticket yet) ${g.title}`, asks: open });
+  }
+  const newest = (g) => g.asks.reduce((m, a) => (a.date > m ? a.date : m), "");
+  groups.sort((a, b) => (newest(a) < newest(b) ? 1 : newest(a) > newest(b) ? -1 : a.key === "~" || b.key === "~" ? (a.key === "~" ? 1 : -1) : byId(a.key, b.key)));
+  const n = groups.reduce((s, g) => s + g.asks.length, 0);
+  const body = groups.flatMap((g) => ["", `## ${oneLine(g.title, 110)}`, ...[...g.asks].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0)).map((a) => `- ${a.date} — ${oneLine(a.text)}`)]);
+  const text = [banner(`the "## Owner" block of each ${TICKETS_DIR}/T*.md and ${OWNER_UNFILED}`), "# Owner: what only you can do or decide", "",
+    `${n} open asks in ${groups.length} places, newest first. Answer in chat: the chat writes your answer into that ticket's \`## Owner\` block`,
+    "(tickets/README.md, \"Owner blocks\"). The full text of an ask, its options and pictures are in the ticket.", ...body, ""].join("\n");
+  return { text, asks: n, groups: groups.length };
+}
+
+/** A merge-conflict marker line (`<<<<<<< …` / `>>>>>>> …`): a ticket or owner file holding one was `git add`ed unsettled. */
+export const MARKER = /^(<<<<<<<|>>>>>>>)( |$)/m;
 
 /**
  * (T1041) What is wrong with the number claims (`tickets/ids/Tnnn`, holding the ticket file's name): a ticket file with
@@ -381,25 +418,6 @@ export function claimProblems(tickets, claims, closedIds = new Set()) {
   return problems.sort();
 }
 
-/** Items in page order: highest `order` first, a tie by file name. */
-export const pageOrder = (items) => [...items].sort((a, b) => b.order - a.order || a.name.localeCompare(b.name));
-
-/** The owner to-do page text (no banner): the head, then every item, one blank line between. */
-export function ownerTodoText(head, items) {
-  return [head, ...pageOrder(items).map((i) => i.text)].join("\n\n") + "\n";
-}
-
-/** A file name for an item heading, unique among `taken` (lower-case, so no clash on a case-blind disk). */
-export function itemName(heading, taken) {
-  let s = heading.replace(/^##\s+/, "").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-  if (s.length > 60) s = s.slice(0, 60).replace(/-[^-]*$/, "") || s.slice(0, 60);
-  if (!s || NOT_ITEMS.some((n) => n.toLowerCase() === `${s}.md`) || s.startsWith("_")) s = `item-${s}`.replace(/-$/, "");
-  let name = `${s}.md`;
-  for (let k = 2; taken.has(name); k++) name = `${s}-${k}.md`;
-  taken.add(name);
-  return name;
-}
-
 /** The `## Ledger` section of tickets/README.md once the rows live in the ticket files. */
 export const LEDGER_POINTER = `## Ledger
 
@@ -421,39 +439,6 @@ archived (T1081): its row is a line of \`closed.tsv\` beside this file and its t
 checks the rows and claims, and refuses this section holding anything but this text.
 `;
 
-/** OWNER-TODO.md once the items live in their own files: a pointer, never an item (the ticket guard refuses any other text). */
-export const OWNER_PAGE_TEXT = `# Owner to-do: where it lives now (T1041)
-
-The owner ticks items off in the Owner To-Do page: https://claude.ai/artifact/Lh2ougAwfxx1wNmCV18m8f (owner
-2026-11-11). Every owner item is a row there AND a file in \`handoff/PLAN/owner-todo/\`, one file per item (it used to
-be a section of this page; a dozen lanes editing this one page conflicted on nearly every PR).
-
-- **Read it:** \`node app/tools/ledger.mjs\` builds the whole page, newest first, into \`handoff/PLAN/views/OWNER-TODO.md\`
-  (git-ignored; the git hooks rebuild it, but it MAY BE STALE: \`node app/tools/ledger.mjs --check\` says so).
-- **Add an item:** a new file \`handoff/PLAN/owner-todo/<date>-<what>.md\`: first line \`order: <number>\` (higher is nearer
-  the top; one more than the current top puts it first), a blank line, then the item as a \`## \` heading and its text.
-  A ticket's \`owner: OWNER-TODO "<text>"\` must quote text one of these files holds (the ticket guard checks it).
-- **Change or close one:** edit its file; it keeps its history text. A Store checks line from \`pipeline reports\` is a new
-  file of its own (\`<date>-store-checks.md\`), never an edit of an older one.
-- The page's own head (title, how the page works) is \`handoff/PLAN/owner-todo/_head.md\`, kept word for word from before
-  T1041: where it says "this file keeps the long text" read the item files, and where it says README.md is the ledger
-  read \`handoff/PLAN/views/LEDGER.md\` (each ticket file holds its row).
-
-Nothing is written on this page: the ticket guard fails on any text here but this (an item added here would never
-reach the view).
-`;
-
-/** `readme` with its `## Ledger` section (up to the next `## `) replaced by `section`. */
-export function replaceLedgerSection(readme, section) {
-  const lines = readme.split("\n");
-  const start = lines.findIndex((l) => /^##\s+Ledger\b/.test(l));
-  if (start < 0) throw new Error("README.md has no ## Ledger section");
-  let end = start + 1;
-  while (end < lines.length && !/^##\s/.test(lines[end])) end++;
-  const tail = lines.slice(end);
-  return [...lines.slice(0, start), ...section.replace(/\n+$/, "").split("\n"), ...(tail.length ? ["", ...tail] : [""])].join("\n");
-}
-
 /** The `## Ledger` section of a README (heading to the line before the next `## `). */
 export function ledgerSection(readme) {
   const lines = readme.split("\n");
@@ -464,355 +449,41 @@ export function ledgerSection(readme) {
   return trimBlank(lines.slice(start, end)).join("\n") + "\n";
 }
 
-/**
- * Split the old files into the new ones. Pure.
- * @param {{ tickets: { name: string, text: string }[], readme: string, done: string, ownerTodo: string }} old
- * @returns {{ tickets: { name: string, text: string }[], ownerFiles: { name: string, text: string }[], readme: string,
- *            ownerPage: string, problems: string[] }}
- */
-export function importOld(old) {
-  const problems = [];
-  const rows = new Map();
-  for (const [file, text] of [["README.md", old.readme], ["DONE.md", old.done]])
-    for (const r of tableRows(text)) {
-      if (rows.has(r.id)) problems.push(`${r.id}: two old ledger rows (${rows.get(r.id).file} and ${file}): settle them before importing`);
-      else rows.set(r.id, { ...r, file });
-    }
-  const fileIds = new Set();
-  const tickets = old.tickets.map((t) => {
-    const id = idOfFile(t.name);
-    fileIds.add(id);
-    const r = rows.get(id);
-    if (rowBlocks(t.text).length) { problems.push(`${id}: ${t.name} already holds a row table (imported before?)`); return t; }
-    if (!r) { problems.push(`${id}: ${t.name} has no row in the old ledger`); return t; }
-    try { return { name: t.name, text: insertRow(t.text, r.line) }; }
-    catch (e) { problems.push(`${id}: ${t.name}: ${e.message}`); return t; }
-  });
-  for (const id of rows.keys()) if (!fileIds.has(id)) problems.push(`${id}: old ledger row with no ticket file`);
-  const { head, items } = splitOwnerTodo(old.ownerTodo);
-  const taken = new Set();
-  const ownerFiles = [{ name: HEAD_FILE, text: `${head}\n` },
-    ...items.map((it, k) => ({ name: itemName(it.heading, taken), text: itemFile((items.length - k) * 10, it.text) }))];
-  const claims = old.tickets.map((t) => ({ name: idOfFile(t.name), text: `${t.name}\n` }));
-  return { tickets, ownerFiles, claims, readme: replaceLedgerSection(old.readme, LEDGER_POINTER), ownerPage: OWNER_PAGE_TEXT,
-           problems: problems.sort() };
-}
-
-const nonBlank = (text) => text.split("\n").filter((l) => l.trim() !== "");
-
-/**
- * THE ROUND TRIP, checked WITHOUT the import's own parser: the views built from the new files hold exactly the old
- * tables' rows (the raw lines, compared as sorted lists: order and the README/DONE split are normalised), every ticket
- * file minus its row block is its old text byte for byte, and the owner to-do built from the item files holds the old
- * page's non-blank lines in the old order (blank lines are normalised: one between items, none at an item's end).
- * @returns {{ problems: string[], counts: Record<string, number> }}
- */
-export function roundTrip(old, out) {
-  const problems = [];
-  const oldReadme = tableRows(old.readme), oldDone = tableRows(old.done);
-  const was = [...oldReadme, ...oldDone].map((r) => r.line).sort();
-  const views = ledgerViews(out.tickets);
-  const now = [...tableRows(views.ledger), ...tableRows(views.done)].map((r) => r.line).sort();
-  const count = (xs) => xs.reduce((m, x) => m.set(x, (m.get(x) ?? 0) + 1), new Map());
-  const cw = count(was), cn = count(now);
-  for (const [l, n] of cw) if ((cn.get(l) ?? 0) < n) problems.push(`row dropped: ${l.slice(0, 100)}`);
-  for (const [l, n] of cn) if ((cw.get(l) ?? 0) < n) problems.push(`row added or duplicated: ${l.slice(0, 100)}`);
-  const before = new Map(old.tickets.map((t) => [t.name, t.text]));
-  for (const t of out.tickets) if (stripRow(t.text) !== before.get(t.name)) problems.push(`${t.name}: its text changed beyond the row block`);
-  if (out.tickets.length !== old.tickets.length) problems.push(`ticket files: ${old.tickets.length} in, ${out.tickets.length} out`);
-  const owner = readOwnerItems(out.ownerFiles);
-  problems.push(...owner.problems);
-  const a = nonBlank(old.ownerTodo), b = nonBlank(ownerTodoText(owner.head, owner.items));
-  const at = a.findIndex((l, i) => l !== b[i]);
-  if (at >= 0 || a.length !== b.length)
-    problems.push(`owner to-do differs at non-blank line ${at >= 0 ? at + 1 : Math.min(a.length, b.length) + 1}: ` +
-      `"${(a[at] ?? "").slice(0, 60)}" became "${(b[at] ?? "").slice(0, 60)}" (${a.length} lines in, ${b.length} out)`);
-  const sections = splitOwnerTodo(old.ownerTodo).items.length;
-  return { problems, counts: {
-    "rows in README.md": oldReadme.length, "rows in DONE.md": oldDone.length,
-    "ticket files": out.tickets.length, "rows in the LEDGER view": views.open, "rows in the DONE view": views.closed,
-    "closed rows that sat in README.md (now in the DONE view)": oldReadme.filter((r) => isClosed(r.status)).length,
-    "owner sections in": sections, "owner item files out": owner.items.length,
-    "owner non-blank lines in": a.length, "owner non-blank lines out": b.length } };
-}
-
-// ------------------------------------------------------------------------------------------- carrying old-style edits
-
-const isTicketPath = (p) => p.startsWith(`${TICKETS_DIR}/`) && /^T[^/]*\.md$/.test(p.slice(TICKETS_DIR.length + 1));
 /** (T1041) Where a ticket NUMBER is claimed: one file per number, holding the ticket file's name. Two branches that take
  *  the same number add the same path with different text, so git refuses to merge them as they are (an add/add conflict). */
 export const CLAIMS_DIR = `${TICKETS_DIR}/ids`;
 export const claimPath = (id) => `${CLAIMS_DIR}/${id}`;
-const isClaimPath = (p) => p.startsWith(`${CLAIMS_DIR}/`) && ID.test(p.slice(CLAIMS_DIR.length + 1));
-const isOwnerPath = (p) => p.startsWith(`${OWNER_DIR}/`) && !p.slice(OWNER_DIR.length + 1).includes("/") && p.endsWith(".md");
-/** The paths this tool owns: ticket files, the README, the old DONE.md, the owner page and the owner folder. */
-export const isManaged = (p) => isTicketPath(p) || isClaimPath(p) || isOwnerPath(p) || p === README || p === OLD_DONE || p === OWNER_PAGE;
-/** A tree (Map path -> text) is new-style when it holds the owner folder's head file. */
-export const isNewStyle = (tree) => tree.has(`${OWNER_DIR}/${HEAD_FILE}`);
-
-/** Conflict markers around two versions of some text (the new-style side's first, as `git merge-file` writes them). */
-export const conflictText = (ours, theirs) => ["<<<<<<< new-style side", ours.replace(/\n+$/, ""), "=======", theirs.replace(/\n+$/, ""), ">>>>>>> old-style side"].join("\n");
-const conflictRow = (ours, theirs) => ["<<<<<<< new-style side", ours ?? "(no row)", "=======", theirs ?? "(no row)", ">>>>>>> old-style side"].join("\n");
-
-/**
- * Carry what the OLD-style side changed since the base into the NEW-style side's files. Pure: three trees in (Map of
- * managed path -> text: `base` and `old` are old-style, `neu` new-style), the result out. `merge3(ours, base, theirs)`
- * is a 3-way text merge (`gitMerge3`). Per ticket file: its text merges 3-way with the row block taken out, and its row
- * is the old side's when that side changed it, else the new side's (both changed it, differently: a conflict); a ticket
- * the old side adds gets its number's claim (`tickets/ids/Tnnn`), and one the new side already claims is a conflict.
- * Per owner item (keyed by its heading, and by its place among same-named ones): the old side's edit, addition or
- * removal is applied; both sides editing one item merge 3-way. README.md: the old side's changes outside the ledger
- * merge into the new README.
- *
- * NOTHING VANISHES: every conflict names a FILE that is written with conflict markers or left for a look, and the CLI
- * marks that file unmerged in git's index (`git commit` refuses it until it is settled and `git add`ed). That covers an
- * item edited on one side and removed on the other, a row changed while its file is gone, an item the old side adds
- * under a heading already used, and a heading both sides renamed (two copies otherwise).
- * @returns {{ write: Map<string,string>, remove: Set<string>, conflicts: { path: string, why: string }[],
- *            carried: Record<string, number> }}
- */
-export function carry({ base, old, neu }, merge3) {
-  const write = new Map(), remove = new Set(), conflicts = [];
-  const clash = (path, why) => conflicts.push({ path, why: `${path}: ${why}` });
-  const carried = { "ticket files": 0, rows: 0, "owner items": 0, "README text": 0 };
-  const rowsOf = (tree) => new Map([...tableRows(tree.get(README) ?? ""), ...tableRows(tree.get(OLD_DONE) ?? "")].map((r) => [r.id, r.line]));
-  const rB = rowsOf(base), rO = rowsOf(old);
-
-  const paths = new Set([...base.keys(), ...old.keys(), ...neu.keys()].filter(isTicketPath));
-  for (const p of [...paths].sort()) {
-    const tB = base.get(p), tO = old.get(p), tN = neu.get(p);
-    const id = idOfFile(p), name = p.slice(TICKETS_DIR.length + 1);
-    const rowB = rB.get(id), rowO = rO.get(id);
-    if (tO === tB && rowO === rowB) continue;
-    const sN = tN === undefined ? undefined : stripRow(tN);
-    const rowN = tN === undefined ? undefined : rowBlocks(tN)[0]?.line;
-    if (tN === undefined && tB !== undefined && tO !== undefined) {   // gone (renamed?) on the new side, changed on the old
-      const theirs = rowO === undefined ? tO : (() => { try { return setRow(tO, rowO); } catch { return tO; } })();
-      write.set(p, conflictText("(this file is gone on the new-style side: renamed or removed there)", theirs));
-      clash(p, "changed on the old-style side (its text or its row), gone on the new-style side: carry the change to where it went, then git rm this file");
-      continue;
-    }
-    let text, hard = false;
-    if (tO === tB) text = sN;
-    else if (sN === tB || sN === tO) text = tO;
-    else if (tO === undefined) { text = conflictText(sN, "(removed on the old-style side)"); hard = true; }
-    else ({ text, conflict: hard } = merge3(sN, tB ?? "", tO));
-    if (text === undefined) {                                            // removed on the old side, untouched on the new
-      remove.add(p);
-      if (neu.get(claimPath(id)) === `${name}\n`) remove.add(claimPath(id));
-      continue;
-    }
-    let row;
-    if (rowO === rowB) row = rowN;
-    else if (rowN === rowB || rowN === rowO) { row = rowO; if (rowO !== rowN) carried.rows++; }
-    else { row = conflictRow(rowN, rowO); hard = true; }
-    let out = text;
-    if (row !== undefined) {
-      try { out = setRow(text, row); }
-      catch { out = `${text.replace(/\n*$/, "")}\n\n${ROW_HEADER}\n${ROW_SEP}\n${row}\n`; hard = true; }
-    }
-    if (out !== tN) { write.set(p, out); carried["ticket files"]++; }
-    if (hard) clash(p, "both sides changed it");
-    if (tN === undefined && tB === undefined) {                         // a ticket the old side adds: its number's claim
-      const cp = claimPath(id), have = neu.get(cp);
-      if (have === undefined) write.set(cp, `${name}\n`);
-      else if (have !== `${name}\n`) {
-        write.set(cp, conflictText(have.trimEnd(), name));
-        clash(cp, `${id} is taken on both sides (${have.trim()} and ${name}): renumber one (the next free number), then git add`);
-      }
-    }
-  }
-
-  // the owner to-do, item by item (keyed by heading; the n-th item of one heading by heading + n)
-  const keyed = (items) => { const seen = new Map(); return items.map((i) => { const k = (seen.get(i.heading) ?? 0) + 1; seen.set(i.heading, k); return { ...i, key: k > 1 ? `${i.heading}\u0000${k}` : i.heading }; }); };
-  const sB = splitOwnerTodo(base.get(OWNER_PAGE) ?? ""), sO = splitOwnerTodo(old.get(OWNER_PAGE) ?? "");
-  const kB = keyed(sB.items), kO = keyed(sO.items);
-  const nFiles = [...neu].filter(([p]) => isOwnerPath(p)).map(([p, text]) => ({ name: p.slice(OWNER_DIR.length + 1), text }));
-  const n = readOwnerItems(nFiles);
-  const mB = new Map(kB.map((i) => [i.key, i.text])), mO = new Map(kO.map((i) => [i.key, i.text]));
-  const mN = new Map(n.items.map((i) => [i.heading, i]));
-  const pathOf = (name) => `${OWNER_DIR}/${name}`;
-  if (sO.head !== sB.head) {
-    const hp = pathOf(HEAD_FILE);
-    if (n.head === sB.head) write.set(hp, `${sO.head}\n`);
-    else if (n.head !== sO.head) { const m = merge3(`${n.head}\n`, `${sB.head}\n`, `${sO.head}\n`); write.set(hp, m.text); if (m.conflict) clash(hp, "both sides changed the head"); }
-    carried["owner items"]++;
-  }
-  const taken = new Set(nFiles.map((f) => f.name));
-  const orders = new Map(n.items.map((i) => [i.heading, i.order]));
-  const used = new Set(n.items.map((i) => i.order));
-  const oKeys = kO.map((i) => i.key);
-  // an order no item holds: a new top item goes above the current top, a bottom one below the bottom
-  const place = (k) => {
-    let above, below;
-    for (let i = k - 1; i >= 0 && above === undefined; i--) above = orders.get(oKeys[i]);
-    for (let i = k + 1; i < oKeys.length && below === undefined; i++) below = orders.get(oKeys[i]);
-    const top = Math.max(0, ...used), bottom = Math.min(0, ...used);
-    let order;
-    if (above === undefined) order = (below === undefined ? top : Math.max(top, below)) + 10;
-    else if (below === undefined) order = Math.min(bottom, above) - 10;
-    else { order = (above + below) / 2; while (used.has(order)) order = (order + below) / 2; }
-    used.add(order);
-    return order;
-  };
-  const surviving = (list, at, step, other) => { for (let i = at + step; i >= 0 && i < list.length; i += step) if (other.has(list[i].key)) return list[i].key; return null; };
-  const body = (t) => t.split("\n").slice(1).join("\n");
-  // removed on BOTH sides: a rename on each side, when the old side added an item in its place (same neighbours) or
-  // with its text: two copies would remain, so the added one is a conflict
-  const goneBoth = kB.filter((i) => !mO.has(i.key) && !mN.has(i.heading));
-  // additions, in the old side's page order, so a run of new items stacks in order
-  for (const [k, item] of kO.entries()) {
-    if (mB.has(item.key)) continue;
-    const h = item.heading;
-    if (item.key === h && mN.has(h)) continue;                         // both sides added it: merged below
-    const order = place(k);
-    orders.set(item.key, order);
-    const p = pathOf(itemName(h, taken));
-    write.set(p, itemFile(order, item.text));
-    carried["owner items"]++;
-    if (item.key !== h || mN.has(h)) { clash(p, `the old-style side adds a second item headed "${h}": rename one heading, then git add`); continue; }
-    const prev = surviving(kO, k, -1, mB), next = surviving(kO, k, 1, mB);
-    const twin = goneBoth.find((g) => body(g.text) === body(item.text)
-      || (surviving(kB, kB.indexOf(g), -1, mO) === prev && surviving(kB, kB.indexOf(g), 1, mO) === next));
-    if (twin) clash(p, `the old-style side renamed "${twin.heading}" to "${h}"; the new-style side removed or renamed it too: keep one (git rm the other), then git add`);
-  }
-  for (const item of kB) {
-    const b = item.text, o = mO.get(item.key), nItem = item.key === item.heading ? mN.get(item.heading) : undefined;
-    if (o === b) continue;
-    carried["owner items"]++;
-    if (o === undefined) {                                               // removed on the old side
-      if (nItem && nItem.text === b) remove.add(pathOf(nItem.name));
-      else if (nItem) {
-        write.set(pathOf(nItem.name), itemFile(nItem.order, conflictText(nItem.text, "(removed on the old-style side)")));
-        clash(pathOf(nItem.name), "removed on the old-style side, edited on the new-style side: keep it (take out the markers) or git rm it");
-      }
-      continue;
-    }
-    if (nItem === undefined) {                                           // edited on the old side, removed on the new side
-      const p = pathOf(itemName(item.heading, taken));
-      write.set(p, itemFile(place(kO.findIndex((i) => i.key === item.key)), conflictText("(removed on the new-style side)", o)));
-      clash(p, `"${item.heading}" was edited on the old-style side and removed on the new-style side: keep it (take out the markers) or git rm it`);
-      continue;
-    }
-    if (nItem.text === b || nItem.text === o) write.set(pathOf(nItem.name), itemFile(nItem.order, o));
-    else {
-      const m = merge3(`${nItem.text}\n`, `${b}\n`, `${o}\n`);
-      write.set(pathOf(nItem.name), `order: ${nItem.order}\n\n${m.text}`);
-      if (m.conflict) clash(pathOf(nItem.name), "both sides changed the item");
-    }
-  }
-  for (const item of kO) {                                               // added on both sides under one heading
-    if (mB.has(item.key) || item.key !== item.heading || !mN.has(item.heading)) continue;
-    const nItem = mN.get(item.heading);
-    if (nItem.text === item.text) continue;
-    carried["owner items"]++;
-    const m = merge3(`${nItem.text}\n`, "", `${item.text}\n`);
-    write.set(pathOf(nItem.name), `order: ${nItem.order}\n\n${m.text}`);
-    if (m.conflict) clash(pathOf(nItem.name), "both sides added this item, differently");
-  }
-
-  // README.md: the old side's edits outside the ledger; the old pages settle to the new side's
-  const rmB = base.get(README), rmO = old.get(README), rmN = neu.get(README);
-  if (rmO !== rmB && rmN !== undefined) {
-    const sec = ledgerSection(rmN);
-    const b2 = sec && rmB !== undefined && ledgerSection(rmB) ? replaceLedgerSection(rmB, sec) : rmB;
-    const o2 = sec && rmO !== undefined && ledgerSection(rmO) ? replaceLedgerSection(rmO, sec) : rmO;
-    if (o2 === b2 || o2 === undefined) write.set(README, rmN);
-    else if (rmN === b2) { write.set(README, o2); carried["README text"]++; }
-    else { const m = merge3(rmN, b2 ?? "", o2); write.set(README, m.text); carried["README text"]++; if (m.conflict) clash(README, "both sides changed the same lines"); }
-  }
-  if (!neu.has(OLD_DONE) && (old.has(OLD_DONE) || base.has(OLD_DONE))) remove.add(OLD_DONE);
-  if (neu.has(OWNER_PAGE) && old.get(OWNER_PAGE) !== base.get(OWNER_PAGE)) write.set(OWNER_PAGE, neu.get(OWNER_PAGE));
-  return { write, remove, conflicts, carried };
-}
-
-// --------------------------------------------------------------------------------------------------------- the repo
-
-/** A 3-way text merge by `git merge-file` (ours, base, theirs); `conflict` when it left markers. */
-export function gitMerge3(ours, base, theirs) {
-  const dir = mkdtempSync(join(tmpdir(), "ledger-merge-"));
-  try {
-    const f = (n, t) => { const p = join(dir, n); writeFileSync(p, t); return p; };
-    const args = ["merge-file", "-p", "-L", "new-style side", "-L", "base", "-L", "old-style side", f("a", ours), f("b", base), f("c", theirs)];
-    const got = spawnSync("git", args, { encoding: "utf8", maxBuffer: 1 << 28 });
-    if (got.error || got.status === null || got.status < 0 || got.status > 127)
-      throw new Error(`git merge-file failed (status ${got.status}): ${got.error?.message ?? got.stderr}`);
-    return { text: got.stdout, conflict: got.status > 0 };
-  } finally { rmSync(dir, { recursive: true, force: true }); }
-}
 
 /** git without the caller's repository variables (a hook's GIT_DIR must not point this at another repository). */
 const cleanEnv = () => Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith("GIT_")));
 const git = (repo, args, opts = {}) => execFileSync("git", ["-C", repo, ...args], { encoding: "utf8", env: cleanEnv(), maxBuffer: 1 << 30, ...opts });
 
-/** The managed files of commit `ref` as a Map path -> text (one `git cat-file --batch` for all of them). */
-export function treeAt(repo, ref) {
-  const listed = git(repo, ["ls-tree", "-r", "-z", "--name-only", ref, "--", TICKETS_DIR, OWNER_DIR, OWNER_PAGE])
-    .split("\0").filter((p) => p && isManaged(p));
-  const tree = new Map();
-  if (!listed.length) return tree;
-  // A partial clone (CI: `filter: blob:none`) holds no old file contents: `cat-file --batch` would then fetch each blob
-  // in its own round trip (a thousand of them: minutes). Fetch the missing ones in ONE request first.
-  if (git(repo, ["config", "--get", "--default", "", "remote.origin.promisor"]).trim() === "true") {
-    const oids = git(repo, ["ls-tree", "-r", "-z", ref, "--", TICKETS_DIR, OWNER_DIR, OWNER_PAGE]).split("\0").filter(Boolean)
-      .map((l) => l.split("\t")).filter(([, p]) => isManaged(p)).map(([meta]) => meta.split(" ")[2]);
-    const have = git(repo, ["cat-file", "--batch-check=%(objectname) %(objecttype)", "--batch-all-objects", "--unordered"],
-      { env: { ...cleanEnv(), GIT_NO_LAZY_FETCH: "1" } }).split("\n").reduce((set, l) => { set.add(l.split(" ")[0]); return set; }, new Set());
-    const want = [...new Set(oids)].filter((o) => !have.has(o));
-    if (want.length) git(repo, ["-c", "fetch.negotiationAlgorithm=noop", "fetch", "origin", "--no-tags", "--no-write-fetch-head",
-      "--recurse-submodules=no", "--filter=blob:none", "--stdin"], { input: want.join("\n") + "\n" });
-  }
-  const out = execFileSync("git", ["-C", repo, "cat-file", "--batch"], { input: listed.map((p) => `${ref}:${p}`).join("\n") + "\n", env: cleanEnv(), maxBuffer: 1 << 30 });
-  let at = 0;
-  for (const p of listed) {
-    const nl = out.indexOf(10, at);
-    const header = out.subarray(at, nl).toString("utf8");
-    const m = header.match(/^[0-9a-f]+ blob (\d+)$/);
-    if (!m) throw new Error(`git cat-file ${ref}:${p}: ${header}`);
-    const size = Number(m[1]);
-    tree.set(p, out.subarray(nl + 1, nl + 1 + size).toString("utf8"));
-    at = nl + 1 + size + 1;
-  }
-  return tree;
-}
-
-/** The work tree's tickets, owner items and pages, as the guard and the views read them. */
+/** The work tree's tickets, owner file, claims and closed index, as the guard and the views read them. */
 export function readWorkTree(repo) {
-  const tdir = join(repo, TICKETS_DIR), odir = join(repo, OWNER_DIR);
+  const tdir = join(repo, TICKETS_DIR);
   const tickets = readdirSync(tdir).filter((n) => /^T.*\.md$/.test(n)).sort().map((name) => ({ name, text: readFileSync(join(tdir, name), "utf8") }));
-  const ownerFiles = existsSync(odir)
-    ? readdirSync(odir).filter((n) => n.endsWith(".md")).sort().map((name) => ({ name, text: readFileSync(join(odir, name), "utf8") }))
-    : null;
   const cdir = join(repo, CLAIMS_DIR);
   const claims = existsSync(cdir) ? readdirSync(cdir).filter((n) => ID.test(n)).sort().map((name) => ({ name, text: readFileSync(join(cdir, name), "utf8") })) : [];
   const tsvPath = join(repo, CLOSED_TSV);
   const closed = existsSync(tsvPath) ? parseTsv(readFileSync(tsvPath, "utf8")) : { rows: [], problems: [] };
-  return { tickets, ownerFiles, claims, closed: closed.rows, closedProblems: closed.problems };
-}
-
-/**
- * The owner to-do of a work tree: its text (head + items, as the view prints it, no banner) and what is wrong. A missing
- * folder is a problem, never an empty to-do.
- */
-export function readOwnerTodo(repo) {
-  const { ownerFiles } = readWorkTree(repo);
-  if (!ownerFiles) return { text: "", items: [], problems: [`${OWNER_DIR}/ is missing: the owner items live there (T1041)`] };
-  const o = readOwnerItems(ownerFiles);
-  return { text: ownerTodoText(o.head, o.items), items: o.items, problems: o.problems };
+  const unfiledPath = join(repo, OWNER_UNFILED);
+  const unfiled = existsSync(unfiledPath) ? readFileSync(unfiledPath, "utf8") : "";
+  return { tickets, unfiled, claims, closed: closed.rows, closedProblems: closed.problems };
 }
 
 /** The three views as they should be on disk. */
 export function buildViews(repo) {
-  const { tickets, closed, closedProblems } = readWorkTree(repo);
+  const { tickets, unfiled, closed, closedProblems } = readWorkTree(repo);
   const lv = ledgerViews(tickets, closed);
-  const o = readOwnerTodo(repo);
+  const ov = ownerView(tickets, unfiled);
   return {
-    files: { [VIEWS.ledger]: lv.ledger, [VIEWS.done]: lv.done,
-             [VIEWS.owner]: `${banner(`the files in ${OWNER_DIR}/`)}\n${o.text}` },
-    summary: `${lv.open} rows in work, ${lv.closed} closed (${closed.length} archived), ${o.items.length} owner items`,
-    problems: [...tickets.flatMap((t) => ticketRow(t.name, t.text).problems), ...closedProblems, ...o.problems],
+    files: { [VIEWS.ledger]: lv.ledger, [VIEWS.done]: lv.done, [VIEWS.owner]: ov.text },
+    summary: `${lv.open} rows in work, ${lv.closed} closed (${closed.length} archived), ${ov.asks} open owner asks`,
+    problems: [...tickets.flatMap((t) => ticketRow(t.name, t.text).problems), ...closedProblems,
+               ...tickets.flatMap((t) => ownerAsks(t.text, idOfFile(t.name) ?? t.name).problems), ...unfiledAsks(unfiled).problems],
   };
 }
+
 
 /** (T1041) The views on disk that are missing or differ from what the source builds now (empty = current). */
 export function staleViews(repo) {
@@ -931,103 +602,13 @@ function writeViews(repo) {
   return v;
 }
 
-function cliImport(repo) {
-  const tdir = join(repo, TICKETS_DIR);
-  if (existsSync(join(repo, OWNER_DIR, HEAD_FILE))) throw new Error(`${OWNER_DIR}/${HEAD_FILE} exists: this tree is imported already (after a merge with an old-style side: --resolve)`);
-  const read = (p) => readFileSync(join(repo, p), "utf8");
-  const old = { tickets: readWorkTree(repo).tickets, readme: read(README), done: read(OLD_DONE), ownerTodo: read(OWNER_PAGE) };
-  const out = importOld(old);
-  const rt = roundTrip(old, out);
-  for (const [k, v] of Object.entries(rt.counts)) console.log(`  ${k}: ${v}`);
-  const problems = [...out.problems, ...rt.problems];
-  if (problems.length) throw new Error(`the import was NOT written:\n  ${problems.join("\n  ")}`);
-  for (const t of out.tickets) writeFileSync(join(tdir, t.name), t.text);
-  mkdirSync(join(repo, OWNER_DIR), { recursive: true });
-  for (const f of out.ownerFiles) writeFileSync(join(repo, OWNER_DIR, f.name), f.text);
-  mkdirSync(join(repo, CLAIMS_DIR), { recursive: true });
-  for (const c of out.claims) writeFileSync(join(repo, claimPath(c.name)), c.text);
-  writeFileSync(join(repo, README), out.readme);
-  writeFileSync(join(repo, OWNER_PAGE), out.ownerPage);
-  rmSync(join(repo, OLD_DONE));
-  console.log(`✓ imported: round trip holds (rows compared as raw lines, sorted; owner to-do by its non-blank lines)`);
-}
-
-/** --resolve: the merge in progress has one old-style and one new-style side; carry the old side's edits. */
-function cliResolve(repo) {
-  const head = git(repo, ["rev-parse", "HEAD"]).trim();
-  const mergeHead = spawnSync("git", ["-C", repo, "rev-parse", "-q", "--verify", "MERGE_HEAD"], { encoding: "utf8", env: cleanEnv() });
-  if (mergeHead.status !== 0) throw new Error("no merge in progress (MERGE_HEAD): run `git merge <ref>` first, or `node app/tools/ledger.mjs --merge <ref>`");
-  const theirs = mergeHead.stdout.trim();
-  const baseRef = git(repo, ["merge-base", head, theirs]).trim();
-  const tHead = treeAt(repo, head), tTheirs = treeAt(repo, theirs), tBase = treeAt(repo, baseRef);
-  if (isNewStyle(tBase)) { console.log("both sides already keep one file per row (the base is new-style): nothing to carry"); return 0; }
-  const [neu, old, newRef] = isNewStyle(tHead) && !isNewStyle(tTheirs) ? [tHead, tTheirs, head]
-    : isNewStyle(tTheirs) && !isNewStyle(tHead) ? [tTheirs, tHead, theirs] : [null, null, null];
-  if (!neu) { console.log("neither side keeps one file per row (T1041): nothing to carry"); return 0; }
-  const res = carry({ base: tBase, old, neu }, gitMerge3);
-  const stage = [], conflicted = new Set(res.conflicts.map((c) => c.path).filter(Boolean));
-  for (const [p, text] of res.write) {
-    mkdirSync(join(repo, p, ".."), { recursive: true });
-    writeFileSync(join(repo, p), text);
-    if (!conflicted.has(p)) stage.push(p);
-  }
-  // every managed path git left unmerged and the carry did not write is the new side's version
-  const unmerged = git(repo, ["diff", "--name-only", "--diff-filter=U", "-z"]).split("\0").filter((p) => p && isManaged(p));
-  for (const p of unmerged) if (!res.write.has(p) && !res.remove.has(p) && !conflicted.has(p)) {
-    if (neu.has(p)) { writeFileSync(join(repo, p), neu.get(p)); stage.push(p); }
-    else res.remove.add(p);
-  }
-  for (let i = 0; i < stage.length; i += 200) git(repo, ["add", "--", ...stage.slice(i, i + 200)]);
-  for (const p of res.remove) git(repo, ["rm", "-q", "-f", "--ignore-unmatch", "--", p]);
-  // a carried conflict is marked unmerged in the index, so `git commit` refuses it until it is settled and `git add`ed:
-  // stage 2 / 3 are the two sides' versions where they have the path, else the file as written (a path only the carry
-  // makes, e.g. an item one side removed, still needs both stages for git to call it unmerged)
-  for (const p of conflicted) {
-    const blob = (ref) => spawnSync("git", ["-C", repo, "rev-parse", "-q", "--verify", `${ref}:${p}`], { encoding: "utf8", env: cleanEnv() }).stdout.trim();
-    const written = git(repo, ["hash-object", "-w", "--", p]).trim();
-    const info = [`0 ${"0".repeat(40)}\t${p}`];
-    const b1 = blob(baseRef);
-    if (b1) info.push(`100644 ${b1} 1\t${p}`);
-    info.push(`100644 ${blob(head) || written} 2\t${p}`, `100644 ${blob(theirs) || written} 3\t${p}`);
-    git(repo, ["update-index", "--index-info"], { input: info.join("\n") + "\n" });
-  }
-  console.log(`carried from the old-style side (${newRef === head ? "the branch being merged in" : "this branch"}): ` +
-    Object.entries(res.carried).map(([k, v]) => `${v} ${k}`).join(", ") + `; ${res.remove.size} removed`);
-  if (res.conflicts.length) {
-    console.error(`✗ ${res.conflicts.length} left to settle by hand (each file named is UNMERGED in git's index: settle it, take out ` +
-      `any conflict markers, then git add or git rm it; git commit refuses until then):\n  ` +
-      res.conflicts.map((c) => c.why).join("\n  "));
-    return 1;
-  }
-  return 0;
-}
-
-function cliMerge(repo, ref) {
-  if (!ref) throw new Error("--merge needs the ref to merge, e.g. --merge origin/main");
-  const m = spawnSync("git", ["-C", repo, "merge", "--no-ff", "--no-commit", ref], { encoding: "utf8", env: cleanEnv(), stdio: "inherit" });
-  if (m.status !== 0 && m.status !== 1) throw new Error(`git merge ${ref} failed (status ${m.status})`);
-  const merging = spawnSync("git", ["-C", repo, "rev-parse", "-q", "--verify", "MERGE_HEAD"], { env: cleanEnv() }).status === 0;
-  if (!merging) { console.log(`nothing to merge (${ref} is already in)`); return 0; }
-  if (cliResolve(repo) !== 0) return 1;
-  const left = git(repo, ["diff", "--name-only", "--diff-filter=U"]).trim();
-  if (left) { console.error(`✗ git left these to settle by hand (then git add them and commit):\n  ${left.split("\n").join("\n  ")}`); return 1; }
-  writeViews(repo);
-  const guard = spawnSync(process.execPath, [join(repo, "app/tools/check-tickets.mjs")], { cwd: repo, stdio: "inherit", env: cleanEnv() });
-  if (guard.status !== 0) { console.error("✗ the ticket guard fails on the merged tree: the merge is NOT committed (fix, git add, commit)"); return 1; }
-  const c = spawnSync("git", ["-C", repo, "commit", "--no-edit"], { stdio: "inherit", env: cleanEnv() });
-  return c.status === 0 ? 0 : 1;
-}
-
 const isMain = process.argv[1] && new URL(import.meta.url).pathname === process.argv[1];
 if (isMain) {
-  const [flag, arg] = process.argv.slice(2);
+  const [flag] = process.argv.slice(2);
   try {
     // the repository of the current directory (the post-checkout hook runs at its root, `pnpm` scripts in app/)
     const repo = git(process.cwd(), ["rev-parse", "--show-toplevel"]).trim();
-    if (flag === "--import") { cliImport(repo); console.log(`views: ${writeViews(repo).summary}`); }
-    else if (flag === "--resolve") { const rc = cliResolve(repo); if (rc === 0) writeViews(repo); process.exit(rc); }
-    else if (flag === "--merge") process.exit(cliMerge(repo, arg));
-    else if (flag === "--claim") process.exit(cliClaim(repo));
+    if (flag === "--claim") process.exit(cliClaim(repo));
     else if (flag === "--next") process.exit(cliNext(repo));
     else if (flag === "--archive") { const rc = cliArchive(repo, process.argv.slice(3)); if (rc === 0 && !process.argv.includes("--dry")) console.log(`views: ${writeViews(repo).summary}`); process.exit(rc); }
     else if (flag === "--check") {
@@ -1044,7 +625,7 @@ if (isMain) {
       if (flag !== "--quiet") console.log(`views (${VIEWS_DIR}/): ${v.summary}`);
       if (v.problems.length) process.exit(1);
     }
-    else throw new Error(`unknown flag ${flag} (none, --check, --claim, --next, --archive, --import, --resolve, --merge <ref>)`);
+    else throw new Error(`unknown flag ${flag} (none, --check, --claim, --next, --archive)`);
   } catch (e) {
     console.error(`✗ ledger: ${e.message}`);
     process.exit(1);
