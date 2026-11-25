@@ -75,7 +75,7 @@ The version number must equal the build's: `0.9.0` for build 45 (rename the wait
 
 | Field | Answer |
 |---|---|
-| Screenshots | READY. iPhone 6.9": the 7 files in `handoff/PLAN/app-integration/store/graphics/store/light/appstore-6.9/` (1320 x 2868), in file-name order 01 to 07. iPhone 6.5" (optional): the 7 in `appstore-6.5/` (1242 x 2688). By hand: drag them onto the screen in that order. Or by script from the main checkout: `.venv/bin/python deploy/staging/appstore-screenshots-push.py` shows the plan and sends nothing, `--check` reads App Store Connect only, `--commit` uploads and is yours to run. No iPad pictures (iPhone only). If the screen also demands another iPhone size, tell this chat. |
+| Screenshots | READY. iPhone 6.9": the 7 files in `handoff/PLAN/app-integration/store/graphics/store/light/appstore-6.9/` (1320 x 2868), in file-name order 01 to 07. iPhone 6.5" (optional): the 7 in `appstore-6.5/` (1242 x 2688). By hand: drag them onto the screen in that order. By hand is the safe way today. The script (`deploy/staging/appstore-screenshots-push.py`: no arguments shows the plan and sends nothing, `--check` reads App Store Connect only, `--commit` uploads and is yours to run) takes every PNG in a size folder, and the main checkout holds old untracked pictures in these folders (found 2026-11-25), so from there it would mix old pictures in. Use it only once T1127 (PR #202) is on main or those old files are cleared, and only when the plan shows exactly 7 per size, named 01-01-map to 07-06-search. No iPad pictures (iPhone only). If the screen also demands another iPhone size, tell this chat. |
 | App preview video | none (optional) |
 | Promotional Text (170) | PASTE block below |
 | Description (4000) | PASTE block below (3924) |
