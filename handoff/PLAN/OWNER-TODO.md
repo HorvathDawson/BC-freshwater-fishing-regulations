@@ -11,6 +11,10 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## 2026-11-24: planning chat (roadmap row P) started
 
+- Answered 2026-11-24, the build-assets bucket over R2's 10 GB free tier (11.49 GiB; one pinned source file is
+  9.7 GB): "yes compress it then we should have somethign mention hopw to rebuild it to update every so often too."
+  T1089: compressed pins plus a runbook for refreshing the sources. Yours later: confirm the delete of the old
+  uncompressed objects once the compressed ones are proven.
 - 0.9.0 release, two answers given to the 0.9.0 chat and relayed by it (recorded here by the planning chat, which
   now keeps this file):
   - ~11:30, on the stalled production Android build: "you can run it for me". The 0.9.0 chat ran command 1
@@ -39,8 +43,8 @@ with the default Claude uses until you answer). Newest first inside each section
   Production → Create new release → Add from library → pick build 44 (or the newest build then on Closed) → release
   notes → Next → set the rollout percentage (start at 20%) → Save → Publishing overview → Send for review. Raise the
   percentage from the same Production page once the crash numbers look clean.
-- **Do (you): App Store submission of 0.9.0** (T1071), once the iOS production build is on TestFlight (building
-  2026-11-24 from release/0.9.0; the build number goes here when it uploads). Before you click, T1071's checklist has
+- **Do (you): App Store submission of 0.9.0** (T1071), build 0.9.0 (45), uploaded to App Store Connect 2026-11-24
+  ~15:30 from release/0.9.0 65f84020c (TestFlight shows it after Apple's processing). Before you click, T1071's checklist has
   to exist (App Privacy, export compliance, age rating, content rights, review notes): it is not written yet, so this
   row waits on the iOS release chat. Then, in App Store Connect: Apps → Can I Fish This? → Distribution → the "+" by
   iOS App → version 0.9.0 → Build → pick the build → paste the listing text and pictures (T1072) → App Privacy and
