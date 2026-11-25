@@ -11,6 +11,10 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## 2026-11-24: planning chat (roadmap row P) started
 
+- Answered 2026-11-24, the build-assets bucket over R2's 10 GB free tier (11.49 GiB; one pinned source file is
+  9.7 GB): "yes compress it then we should have somethign mention hopw to rebuild it to update every so often too."
+  T1089: compressed pins plus a runbook for refreshing the sources. Yours later: confirm the delete of the old
+  uncompressed objects once the compressed ones are proven.
 - 0.9.0 release, two answers given to the 0.9.0 chat and relayed by it (recorded here by the planning chat, which
   now keeps this file):
   - ~11:30, on the stalled production Android build: "you can run it for me". The 0.9.0 chat ran command 1
@@ -23,6 +27,13 @@ with the default Claude uses until you answer). Newest first inside each section
     unless he says so that time.
   - The v0.9.0 tag was moved to 65f84020c (versionCode 44) on his earlier OK; the merge-back PR carries the Play
     record updates.
+- Store checks 2026-11-24 22:20 (planning chat, every source read): TestFlight nothing new; Play reviews none. Four
+  new items, all ticketed: production, a web page whose stored data was cleared (T1092) and the first crash kind on
+  0.9.0, a location request with the phone's Location off (T1093); staging, one low-memory exit on 0.8.5 (T1094) and
+  a feature request for fish measurements on a saved location (T1095, design first, 0.10 or later).
+  Answered 2026-11-24 22:35 (multiple choice): the T1095 request came from "A tester"; design it in "0.10,
+  pictures first"; iPhone 0.9.0 (45), which `pipeline reports` showed as READY_FOR_BETA_SUBMISSION (not yet with the
+  external TestFlight testers): "Submit it". Passed to the 0.9.1 chat to submit for Beta App Review.
 - Store checks 2026-11-24 13:30 (planning chat, every source read): TestFlight 6 items, all T982; Play reviews none;
   production worker: one new crash kind on 0.8.5 (T1055); the four production reports of 11-21 are T985's (ids now
   written there). About 40 old items (0.7.x–0.8.2, mostly staging) show as new only because no ticket cites their id:

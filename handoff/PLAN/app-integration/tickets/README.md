@@ -199,7 +199,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T913 | Play refuses review: the portrait lock declares a required hardware feature (owner) | DONE — shipped in 0.8.3 (staging + production 2026-11-19) | 0813cc2b1 | owner 2026-11-19 ~11:05 |
 | T907 | "Species and limits" table: no B.C./DFO tag on rows, one value column, where each answer comes from (owner) | DONE — shipped in 0.8.3 (staging + production 2026-11-19) | 07342f70b, 4adce2db0 | owner 2026-11-19 ~06:50 |
 | T912 | A regulations data update stops downloading when the app is closed (owner) | DONE — shipped in 0.8.3 (staging + production 2026-11-19) | 6a0545499, 4ebd13ecc | left (Claude): integrate (0.8.3), staging data worker deploy · prod data worker = owner · owner 2026-11-19 ~10:50 |
-| T914 | Web start: break up the first script's evaluation and the first screen's build (mobile Lighthouse) (owner) | OPEN | after 0.8.3 | owner 2026-11-19 ~12:00 |
+| T914 | Web start: break up the first script's evaluation and the first screen's build (mobile Lighthouse) (owner) | OPEN | after 0.8.3 | owner 2026-11-19 ~12:00; again 2026-11-24 (production Lighthouse: 25.2 s main thread, 7.1 MB first load): 0.9.2 |
 | T915 | Day calendar: no size jump in January; a desktop-shaped popup on wide web (owner) | DONE — shipped in 0.8.3 (staging + production 2026-11-19) | 1aeb9f3f2 | owner 2026-11-19 ~12:45 |
 | T916 | "This water in the rule book p.7" on Sweltzer River points at the wrong page (owner) | DONE — shipped in 0.8.3 (staging + production 2026-11-19) | de2cb25bb | owner 2026-11-19 ~12:55 |
 | T917 | The website's page build (build-seo) takes ~15 min per site: profile, more threads, rebuild only changed pages (owner) | DONE | 7d85dd1bc fa459e908 | owner 2026-11-19 ~15:42 "make that a future ticket" |
@@ -331,6 +331,13 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1086 | RULINGS RU-14 (the Meziadin's row stops at Meziadin Lake) is outdated by T1053's head-lake walk | OPEN — 0.9.1, with T1053 | | 0.9.1 chat 2026-11-24 |
 | T1087 | `brunette_river.r1` "No Fishing upstream of Burnaby Lake" is curated as `whole` on the Brunette itself: is the river wrongly closed? | OPEN — HIGH until traced; 0.9.1 if wrong, else 0.9.2 | | 0.9.1 chat 2026-11-24 |
 | T1088 | Lakelse r5, a "Note: the mouth … signs" rule, walks onto every tributary | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24 |
+| T1089 | The build-assets bucket is over R2's 10 GB free tier: store the big source file compressed, and a runbook for refreshing the sources | OPEN — 0.9.2, or the first free lane before it | | owner 2026-11-24 |
+| T1090 | `data.canifishthis.ca/robots.txt` answers 404 (Search Console) | OPEN — 0.9.2 | | owner 2026-11-24 |
+| T1091 | A fresh Standard map fetches only the salmon head: what is drawn from the full salmon facts is missing until the Salmon map was opened | OPEN — 0.9.2 (code reading 2026-11-24 found no missing closure; the cold-open test and a live check are left) | | 0.9.1 chat 2026-11-24 |
+| T1092 | Web: "Database deleted by request of the user" arrives as a crash report (kind `790ae7cc172f9424`) | OPEN — 0.9.2 | | planning chat 2026-11-24 |
+| T1093 | "Location request failed due to unsatisfied device settings" is an unhandled crash on 0.9.0 (kind `f7cb406a97ce7436`) | OPEN — 0.9.2 (0.9.1 if a lane is free) | | planning chat 2026-11-24 |
+| T1094 | Android: the system ended the app for low memory in the foreground, 0.8.5 staging (kind `9588028ebf260364`) | OPEN — 0.9.2 (watch for it on 0.9.0 first) | | planning chat 2026-11-24 |
+| T1095 | Feature request: fish measurements on a saved location, several per location, editable on a revisit (report `0a9136aec3e19ab9`) | OPEN — 0.10, pictures first (owner 2026-11-24) | | planning chat 2026-11-24 |
 
 ## Next after closed testing
 
