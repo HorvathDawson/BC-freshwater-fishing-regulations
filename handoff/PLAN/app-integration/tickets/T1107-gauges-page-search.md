@@ -1,11 +1,24 @@
 # T1107 — The web gauges page gets a search: by place, river or water, giving gauges only (nearest first)
 
-Status: OPEN.
+Status: PARTIAL — built in a draft PR (code 4816a87d4); left (Claude): the owner looks at T1107-shots/ (questions in the PR), then merge. Core's main-search index (`buildSearchIndex` / `queryIndex`) over a gauge-cut file
+(`tools/seo/gaugeSearch.ts`); place -> nearest gauges with km, river -> its gauges then nearest others, station number or name -> that gauge; no
+match said; a failed file or live index said and reported. Current data = core `donorState` on the live index (words: "Reporting now" / "Not
+reporting today" / "Not a real-time gauge"). Conditions link = `routeSearch` of the Conditions tab. Pictures: `T1107-shots/`. Owner picks open: see the PR.
 
 Source: owner 2026-11-25 ~00:20 (planning chat), verbatim: "in 0.9.1 we should make this page
 (https://canifishthis.ca/gauges) have a search option that allows search to nearest place etc like the main search bar
 it should be able to search by place or river etc to get gauge only" and "someone found the page by search so we want
 it usable". The page is reached from web search engines, so a visitor may land on it first, with no idea of the app.
+
+Owner addition 2026-11-25 (verbatim): "it should also indicate gauges without current data and ones with". The /gauges list itself
+(static, build-time) did not say it; the search results do, from the live feed index.
+Owner addition 2026-11-25, typed in the planning chat (verbatim): "it should also link to the condition map page on the webapp and say
+something like to view the conditions visually on a map go here". Built as one line with a link to `/?browse=conditions` (the address the app
+writes for the Conditions tab); the words are a proposal.
+
+Owner answer 2026-11-25 on the pictures (verbatim): "should use mute color and text. also make the button for going to map look better and more asthetic. this page should still look professional".
+Done in v2: the current-data words are the muted `.tag` text, no dot; the Conditions line is a `.card` with the site's primary `.app` button (the gauge
+page's own "Open on the website" pattern); spacing, list borders, focus ring and hover from existing tokens. Pictures `T1107-shots/v2-*` (button option B: `v2-button-option-B-*`).
 
 ## Work
 1. A search field at the top of `/gauges`, the same component and index as the main search bar (one search, not a

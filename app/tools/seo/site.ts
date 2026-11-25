@@ -8,7 +8,7 @@
  */
 import { createHash } from "node:crypto";
 import type { RegsStore } from "@app/data/regs";
-import { fitQuery, slugShard, SLUG_SHARDS } from "@app/ui";
+import { fitQuery, HOME, reduce, routeSearch, slugShard, SLUG_SHARDS } from "@app/ui";
 import { aboutBody, privacyBody, CSS, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, clip, descriptionOf, esc, headOf, NOT_LEGAL, notFoundBody, regionLabel, shell, titleOf, waterRegion, type Release, type Site } from "./html";
 import { aboutLd, checkJsonLd, gaugeLd, pageLd, waterLd } from "./jsonld";
 import { appPage, formerNames, listWaterOrds, managementUnits, nearestTowns, regionBox, rulesKey, waterModel, type Box, type BuildDay, type WaterModel } from "./model";
@@ -18,7 +18,9 @@ import { verifyAgainstApp } from "./verify";
 import { regionYear, yearCardHtml } from "./regionYear";
 import { pageSize, type PageSize } from "./budget";
 import { dotPicture, namesFile, regionLead } from "./regionMap";
-import { gaugeWordsProblems, chartInputsOf, chartScript, clientScript, findScript, LIVE, gaugeBody, gaugeDescription, gaugeModels, gaugesIndexBody, gaugeTitle, siteGaugeCardSvg, stationsFile, type GaugeModel, type GaugeRows } from "./gauges";
+import type { IndexPlace, IndexWater, SearchIndexData } from "@app/core";
+import { gaugeSearchFile } from "./gaugeSearch";
+import { gaugeFindScript, gaugeWordsProblems, searchGauges, chartInputsOf, chartScript, clientScript, findScript, LIVE, gaugeBody, gaugeDescription, gaugeModels, gaugesIndexBody, gaugeTitle, siteGaugeCardSvg, stationsFile, type GaugeModel, type GaugeRows } from "./gauges";
 import type { StationClim } from "@app/data";
 
 export interface PageRec {
@@ -68,6 +70,11 @@ export interface BuildOpts {
   readonly gauges?: GaugeRows | null;
   /** (T1039) each station's climatology from the same release (gauges.ts `readGaugeClim`), written into its page for the chart */
   readonly gaugeClim?: ReadonlyMap<string, readonly StationClim[]> | null;
+  /**
+   * (T1107) the release's whole search index data (`WaterSource.searchIndex`), cut for the /gauges search (gaugeSearch.ts).
+   * Absent: the unit-test shape of a build, whose /gauges page has the list alone.
+   */
+  readonly gaugeSearch?: SearchIndexData<IndexWater, IndexPlace> | null;
   /** (T1039) the app's faces as `@font-face` rules (pane.tsx `fontFaceCss`), for the chart's words; absent: no app export */
   readonly gaugeFonts?: string | null;
 }
@@ -346,11 +353,20 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
       add("gauge", g.path, shellOf(g.path, title, description, body, gaugeLd(site, g, title, asOf, gaugeCrumbs(g)),
           `/gauge/${g.station}/card.png`, false), sha(JSON.stringify(g)));   // (T908, owner 2026-11-19) no "Browse by region": it leads to the hidden site map
     }
-    const title = clip(`River gauges in BC: live flow and weather — ${site.name}`, 60);
-    const description = clip(`Live flow, this year's record, flow forecasts and the weather at ${gauges.length} BC river gauges on waters with fishing regulations.`);
+    const title = clip(`River levels and flow in BC: ${gauges.length} river gauges — ${site.name}`, 60);
+    const description = clip(`Search ${gauges.length} BC river gauges by town, river or lake for the nearest: live flow and level, this year's record, forecasts and weather, with the fishing regulations of each water.`);
+    // (T1107) the search: core's index over the gauge file, loaded by the page on first use
+    let find: Parameters<typeof gaugesIndexBody>[2] = null;
+    if (o.gaugeSearch) {
+      const file = JSON.stringify(gaugeSearchFile(o.gaugeSearch, searchGauges(gauges), release.id));
+      const indexHref = `/assets/gauges-search.${sha(file, 10)}.json`, js = await gaugeFindScript(), scriptHref = `/assets/gauges-find.${sha(js, 10)}.js`;
+      files.set(indexHref.slice(1), file); files.set(scriptHref.slice(1), js);
+      find = { index: indexHref, script: scriptHref, cfg: { crash: LIVE.crash, env: LIVE.env, release: release.id, live: `${LIVE.data}/feeds/live/index.json` },
+               conditions: `${site.origin}/${routeSearch(reduce(HOME, { type: "tab", tab: "conditions" }))}` };
+    }
     unique(titles, title, "/gauges"); unique(descriptions, description, "/gauges");
-    add("gauges", "/gauges", shellOf("/gauges", title, description, gaugesIndexBody(gauges, asOf), pageLd(site, "/gauges", title, asOf, [["Home", "/"], ["River gauges", "/gauges"]]), "/share/gauge.png"),
-        sha(JSON.stringify(gauges.map((g) => [g.station, g.name, g.path]))));
+    add("gauges", "/gauges", shellOf("/gauges", title, description, gaugesIndexBody(gauges, asOf, find), pageLd(site, "/gauges", title, asOf, [["Home", "/"], ["River gauges", "/gauges"]]), "/share/gauge.png"),
+        sha(JSON.stringify([gauges.map((g) => [g.station, g.name, g.path]), find])));
     files.set("gauge/stations.json", stationsFile(gauges, release.id));
     // (T487) the fixed card a gauge without its own is answered with; build.ts draws it as share/gauge.png
     files.set("share/gauge.svg", siteGaugeCardSvg(site));
