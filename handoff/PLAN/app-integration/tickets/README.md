@@ -313,7 +313,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1068 | T1027 leftovers: scheduled notifications across an update, the `offline` bench step, a cold-start stall | OPEN —  | | planning chat 2026-11-24 |
 | T1069 | A Kildala-style polygon route is written in 10 pieces | OPEN —  | | planning chat 2026-11-24 |
 | T1070 | Timing-dependent app tests: `chart.render.test.tsx` waits a fixed 30 ms; vitest times out under load | OPEN —  | | planning chat 2026-11-24 |
-| T1071 | iOS App Store full release: distribution and compliance information | OPEN — its own chat, before the Play launch (iOS has no 14-day wait) | | planning chat 2026-11-24 |
+| T1071 | iOS App Store full release: distribution and compliance information | IN PROGRESS — the paste-from page is written (`handoff/PLAN/ios/APP-STORE-SUBMISSION.md`); the submission waits on the new pictures (T1072), the privacy page words (T1098) and the push proof (T996) | | planning chat 2026-11-24 |
 | T1072 | Better store screenshots and marketing content, before the full release (both stores) | OPEN —  | | planning chat 2026-11-24 |
 | T1073 | The "app update" notice shows only when this phone can actually install the update | OPEN —  | | planning chat 2026-11-24 |
 | T1074 | AGENTS rule 28 says map layers come only from `layers.source.json`, but every stream overlay is a runtime layer | OPEN —  | | planning chat 2026-11-24 |
@@ -340,6 +340,15 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1095 | Feature request: fish measurements on a saved location, several per location, editable on a revisit (report `0a9136aec3e19ab9`) | OPEN — 0.10, pictures first (owner 2026-11-24) | | planning chat 2026-11-24 |
 | T1096 | Methods: the page's ice-fishing clause carries no citation (the source is in the pipeline only) | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24, T1050's leftover |
 | T1097 | Gradle daemons across lanes: `gradlew --stop` ends other lanes' builds; idle daemons hold about 2.4 GB outside heavy.sh | OPEN — 0.9.2, with T1063 | | 0.9.1 chat 2026-11-24, T1058 lane |
+| T1098 | The privacy page says things the app does not do (install id and email, Apple Maps, headers, token after Don't Allow) | OPEN — 0.9.1 site deploy, before the App Store submission (T1071); owner reads the new words | | iOS chat 2026-11-24 |
+| T1099 | iPhone: the privacy manifest does not match the App Privacy labels the owner decided | OPEN — next iPhone build (0.9.1 or 0.9.2) | | iOS chat 2026-11-24 |
+| T1100 | More > Sources and licences: open-source notices missing for the shipped libraries and fonts | OPEN — 0.9.2 | | iOS chat 2026-11-24 |
+| T1101 | iPhone: About and the version headers show the Android build number | OPEN — next iPhone build (0.9.1 or 0.9.2) | | iOS chat 2026-11-24 |
+| T1102 | `before_push --changed` skips the reach tests for a change to the DFO salmon reach step (a real break passed the hook) | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24, T1029 lane |
+| T1103 | Item id kinds are hand-kept in four places (the T1083 bug's cause); one generated source; dead `name:` ids in the fixture release | OPEN — 0.9.2 | | 0.9.1 chat 2026-11-24, T1083 lane |
+| T1104 | Web: the salmon prefetch asked for a refused slice up to 4 times in a minute | OPEN — 0.9.2, with T1091 | | 0.9.1 chat 2026-11-24, T1029 lane |
+| T1105 | Sources "Technical detail" should show the effective value when an inherited closure yields to a nearer row | OPEN — 0.9.2 (after T1053 ships); owner picks the words | | 0.9.1 chat 2026-11-24, T1053's leftover |
+| T1106 | The head-lake walk climbs for book rules only: DFO places and licensing do not climb; list the cases, the owner rules | OPEN — 0.9.2 (the list first) | | 0.9.1 chat 2026-11-24, T1053's leftover |
 
 ## Next after closed testing
 

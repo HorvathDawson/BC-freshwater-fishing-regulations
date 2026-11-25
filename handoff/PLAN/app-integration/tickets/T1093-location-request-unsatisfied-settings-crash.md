@@ -14,6 +14,9 @@ crash kind seen on 0.9.0). The message is the Android location library's refusal
    Settings"), with the same words on every way in (`one-load-path-per-screen`). No crash, no silent nothing.
 3. Class the kind `expected` in the worker (a device setting), keep the shown failure reported.
 4. Check iPhone and web for the same hole (location services off, permission granted earlier).
+   iPhone, read 2026-11-24 by the iOS chat at 65f84020c: no twin found, every iOS location caller catches the
+   refusal (`app/packages/ui/src/myLocation.ts`:93–104, 171; `mapRail.ts`:251–263; `SpotHost.tsx`:118–121;
+   `locate.native.ts`:46–49). Web is still to check.
 
 ## Acceptance
 A test makes the location call reject with this error on each caller: the message shows, nothing is thrown past the

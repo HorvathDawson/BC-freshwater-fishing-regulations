@@ -1,5 +1,7 @@
 # App Store age rating answers (T727, PROPOSAL for the owner)
 
+**Superseded 2026-11-24 by `handoff/PLAN/ios/APP-STORE-SUBMISSION.md` (T1071), the page the owner pastes from. Where the two differ, that page is right (it was re-read against build 0.9.0 (45): push token, Precise vs Coarse, linked answers, the More menu paths). This page is kept as the evidence behind it.**
+
 A proposal. Nothing is entered. Expected result: the lowest rating (4+ on the old scale; check which tiers Apple now shows,
 since Apple changed its age tiers in 2025 and the question list changed with it). Apple's question wording below is from
 memory of its categories: where a question may be worded differently on your screen, the answer still follows the "why".
