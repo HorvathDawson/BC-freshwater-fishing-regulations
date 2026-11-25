@@ -85,6 +85,7 @@ Each row is one crash kind, or one triage of many kinds. Counts and stacks are i
 | F42 | 2026-11-24 | crash report (prod) | auto | 0.9.0 Android | A location request failed because the phone's Location setting was off, and the error was not handled | T1093 | open | — |
 | F43 | 2026-11-24 | crash report (staging) | auto | 0.8.5 Android | The system ended the app for low memory while it was on screen | T1094 | open | — |
 | F44 | 2026-11-24 | in-app report (staging) | R-8 | 0.9.0 | Asked for a place to record fish measurements on a saved location, several per location, editable later | T1095 | open (feature; design first) | — |
+| F45 | 2026-11-25 | told the owner | T-5 | 0.9.0 | The first download should respect mobile data: ask before downloading on data, and ask again if Wi-Fi is lost | T1109 | open | — |
 
 ## The developer's own finds on a shipped build (not tester feedback)
 
@@ -107,14 +108,17 @@ leave them out.
 | D12 | 2026-11-24 | in-app report (staging) | owner | 0.9.0 web | Ice fishing repeated the gear tab's line and hook counts | T1050 | open | — |
 | D13 | 2026-11-24 | in person | owner | 0.8.5 → 0.9.0 Android | The app announced an update while the build was on a track the phone could not install from yet | T1073 | open | — |
 | D14 | 2026-11-25 | in person | owner | web | The gauges page, found by a visitor through a web search, had no way to search for a gauge by place or river | T1107 | open | — |
+| D15 | 2026-11-25 | in person | owner | 0.9.0 | Notifications are off after install and the app never asks to turn on new-data notices | T1110 | open | — |
+| D16 | 2026-11-25 | in person | owner | 0.9.0 | The More page does not refresh by pulling down | T1111 | open | — |
+| D17 | 2026-11-25 | in person | owner | 0.9.0 | The saved-spot page still feels clunky; a fresh redesign is wanted | T1115 | open | — |
 
 ## Counts (refresh before applying)
 
-As of 2026-11-24: 16 tester rows from 7 tags (T-1 … T-4, TF-1, CT-1, CT-2; some may be the same person), 10 in-app
-report rows, 18 crash rows (44 in all), plus 14 developer rows. Of the 44: 25 fixed in a shipped release, 1 fixed with
+As of 2026-11-24: 17 tester rows from 8 tags (T-1 … T-5, TF-1, CT-1, CT-2; some may be the same person), 10 in-app
+report rows, 18 crash rows (45 in all), plus 17 developer rows. Of the 45: 25 fixed in a shipped release, 1 fixed with
 the owner's read pending (F34), 6 fixed in 0.9.0 (shipped 2026-11-24, r-0aec88ed3edb: F15, F16, F22, F24, and F21, F25 with the
-owner's read pending), 3 in progress (F06, F23, F35; F23 and F35 partly fixed in 0.9.0), 9 open (F40–F44 added 2026-11-24).
+owner's read pending), 3 in progress (F06, F23, F35; F23 and F35 partly fixed in 0.9.0), 10 open (F40–F44 added 2026-11-24, F45 on 11-25).
 Developer rows: D01 fixed, owner read pending; D02–D05 fixed; D06 (owner read pending) and D07 fixed in 0.9.0; D08
-answered with no change; D09–D12 open (0.9.1); D13 open (0.9.2); D14 open (0.9.1).
+answered with no change; D09–D12 open (0.9.1); D13 open (0.9.2); D14 open (0.9.1); D15–D17 open (0.9.2).
 Play Console testing feedback: none came in (owner 2026-11-24: all feedback came through the app; testers did not
 know how to use the Play form). Recount before applying.

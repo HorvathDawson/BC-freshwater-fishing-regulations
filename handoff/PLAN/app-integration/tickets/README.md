@@ -293,7 +293,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1049 | A start link's scroll lands short: it jumps to the first measured section top and never re-checks | PARTIAL — 0.9.1: a slow cold start waits for the salmon card, the in-season notices and a settled page; device gear 6/6, licence 6/6, was 2/12, 0/11; #107 no different; left (Claude): review and merge of #122, then the device check on a release build | ae65ef767, a2478c6dc, d2239c54d, b3de2bbc1, 09f6346e0, eb8e2092a, 5f8a37cbc, 53e9106e2 | review of #80 (T1038), 2026-11-23; 0.9.0 device pass |
 | T1045 | Gauge pages should come up for "<river> river forecast / level / flow" (title/H1 words, water-to-gauge links, JSON-LD) | DONE | 859b10591, fc3626905, 4af1ba636, 0922cb1f3 | owner 2026-11-23 (lane L27) |
 | T1050 | Methods: "Ice fishing" repeats the Gear tab's line and hook counts (Dick Lake) | DONE — 0.9.1; needs the 0.9.1 data release | 2c072f33d, 295bbac15, 9e6e45694, d0baa5fa0 | staging report 4eedeb08d1964b44 (owner 2026-11-24); lane L19 |
-| T1051 | A lake's Gear tab says nothing about treble or barbed hooks (both allowed; Dick Lake) | OPEN — 0.9.1; owner pick of the words, then app build | | staging report 437acc75d93a4a1a (owner 2026-11-24); lane L19 |
+| T1051 | A lake's Gear tab says nothing about treble or barbed hooks (both allowed; Dick Lake) | PARTIAL — 0.9.1; app build + data release (glossary term); owner questions on the words | 5c68e2bda, 474f38bb0, 4b45d37e1 | staging report 437acc75d93a4a1a (owner 2026-11-24); lane L19 |
 | T1052 | A water closed to all fishing says it twice (a Salmon row and a game-fish "Closed all year" block; Nelson Creek) | IN REVIEW — owner: OWNER-TODO "T1052 fully closed water: one statement" | 33ecb6b96 5e2ca0048 | owner picked A 11-24 12:33; 936 waters merged; line words (A or B pictured) + part-year case are owner questions; lane L22 |
 | T1053 | Eagle Creek ✱: the walk stops at its head lake (Dick Lake), and Sources never says "tributaries" | OPEN — 0.9.1 for the Sources words; the head-lake walk waits on an owner ruling | | staging report 3eaf5ac25fc39d73 (owner 2026-11-24); lane L19 |
 | T1054 | Tides: a tide condition / forecast layer | OPEN — future (0.10 or later), unscoped | | owner 2026-11-24, relayed by the 0.9.0 chat |
@@ -301,7 +301,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1056 | Harrison Lake shows a hatchery-only lake trout rule: is it right? | DROPPED — duplicate (answered 2026-11-23, PR #85) | | — |
 | T1057 | `pipeline reports` lists about 40 old items as NEW: tie each id to a ticket or a class | OPEN —  | | planning chat 2026-11-24 |
 | T1058 | A production Android build hangs for an hour after BUILD SUCCESSFUL (Gradle daemon out of Metaspace) | OPEN —  | | planning chat 2026-11-24 |
-| T1059 | `scripts/ci_status.py --strict` says "no finished run" when the green run is on an ancestor more than 30 runs back | OPEN —  | | planning chat 2026-11-24 |
+| T1059 | `scripts/ci_status.py --strict` says "no finished run" when the green run is on an ancestor more than 30 runs back | DONE | 87e1783a3, 34c35758a | planning chat 2026-11-24 |
 | T1060 | App robustness: no React error boundary, and three one-render stale states | OPEN —  | | planning chat 2026-11-24 |
 | T1061 | A Map opened through "Flows into" shows a blank band of about 120 px (Skeena) | OPEN —  | | planning chat 2026-11-24 |
 | T1062 | Release candidates: tag `vX.Y.Z-rc.N` and promote, instead of moving the version tag after late fixes | OPEN —  | | planning chat 2026-11-24 |
@@ -318,7 +318,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1073 | The "app update" notice shows only when this phone can actually install the update | OPEN —  | | planning chat 2026-11-24 |
 | T1074 | AGENTS rule 28 says map layers come only from `layers.source.json`, but every stream overlay is a runtime layer | OPEN —  | | planning chat 2026-11-24 |
 | T1075 | A lake's Gear line "Not allowed: Water insects and crayfish · Not on lakes." reads oddly | OPEN —  | | planning chat 2026-11-24 |
-| T1076 | The release runbook's "reshoot store pictures" step cannot be followed: the tool needs a store-shots build of the site | OPEN — with the store content chat (T1072), before the next Play listing update | | 0.9.0 chat 2026-11-24 |
+| T1076 | The release runbook's "reshoot store pictures" step cannot be followed: the tool needs a store-shots build of the site | IN PROGRESS — merge PR fix/T1076-store-shots-own-export after review, then one real release reshoot | 6cd9531c3 | 0.9.0 chat 2026-11-24 |
 | T1077 | "All sources" lists the bait rules' source, but the bait list on the page draws no Source line | OPEN — 0.9.2 (0.9.1 only if PR #126's lane takes it in the same change) | | 0.9.1 chat 2026-11-24 |
 | T1078 | A water closed all year by two rules names only one in its banner (Kirkup Creek) | OPEN — 0.9.1 if T1052's lane can take it in the same code (it rewrites this block), else 0.9.2 | | 0.9.1 chat 2026-11-24 |
 | T1079 | The Playwright MCP writes its console logs into the main checkout, whatever worktree a lane works in | OPEN — none (tooling; with the 0.9.2 chat) | | 0.9.1 chat 2026-11-24 |
@@ -350,6 +350,14 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1105 | Sources "Technical detail" should show the effective value when an inherited closure yields to a nearer row | OPEN — 0.9.2 (after T1053 ships); owner picks the words | | 0.9.1 chat 2026-11-24, T1053's leftover |
 | T1106 | The head-lake walk climbs for book rules only: DFO places and licensing do not climb; list the cases, the owner rules | OPEN — 0.9.2 (the list first) | | 0.9.1 chat 2026-11-24, T1053's leftover |
 | T1107 | The web gauges page gets a search: by place, river or water, giving gauges only (nearest first) | OPEN — 0.9.1 (owner 2026-11-25); web only | | owner 2026-11-25 |
+| T1108 | Idea: the Mapbox mobile SDK (no navigation) for free offline corridor maps; research the terms, cost and the two-engine question first | OPEN — 0.10, chat 4c (research first) | | owner 2026-11-25 |
+| T1109 | The first download respects mobile data: ask before downloading on data, and ask again if Wi-Fi drops | OPEN — 0.9.2 (proposed); owner picks the words | | owner 2026-11-25, a tester's feedback |
+| T1110 | Notifications are off after install: ask the reader on first load to turn on new-data notices; no other notice without the new-data one | OPEN — 0.9.2 (proposed); owner picks the words | | owner 2026-11-25 |
+| T1111 | The More page refreshes by pulling down, like the other pages | OPEN — 0.9.2 (proposed) | | owner 2026-11-25 |
+| T1112 | A fresh worktree cannot pass the pre-push hook (no `.venv`) or read the workers' reports (no run tokens): one setup command | OPEN — 0.9.2, tooling | | store content chat 2026-11-24 |
+| T1113 | Store pictures: the salmon scene depends on one water's live DFO notices and fails out of season | OPEN — with T1072, or 0.9.2 | | store content chat 2026-11-24 |
+| T1114 | The App Store submission page carries its own copy of the listing words: print them from the one source | OPEN — before the App Store submission if cheap, else with T1081 | | store content chat 2026-11-24 |
+| T1115 | The saved-spot page: a full fresh redesign (owner: still clunky); pictures first, with T1095 | OPEN — design in 0.9.2 (owner: "maybe in 0.9.2"); build when the direction is picked | | owner 2026-11-25 |
 
 ## Next after closed testing
 

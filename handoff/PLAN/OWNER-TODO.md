@@ -60,6 +60,17 @@ with the default Claude uses until you answer). Newest first inside each section
 - Answered 2026-11-24 23:55 (multiple choice, planning chat): who builds and uploads the 0.9.1 iPhone build (nobody
   was assigned; your "Newest by then" pick needs it): "0.9.1 chat". It builds it right after its Play Closed build;
   the privacy page, privacy manifest and iPhone build-number fixes (T1098, T1099, T1101) are its lane too.
+- Asked 2026-11-25 ~01:10: "the spot page needs rework still it still feels very clunky and I think we should have
+  a full fresh look redesign maybe in 0.9.2" → T1115, pictures first; you will be asked what feels clunky, then pick
+  a direction. And "we shouldnt allow notifications without new data notifications" → written into T1110 (my
+  reading: no other notice can be on while new-data notices are off; confirmed with you when its words are shown).
+- Asked 2026-11-25 ~00:50–00:55, three tickets, all proposed for 0.9.2 (say if any should be sooner): the first
+  download asks before using mobile data and again if Wi-Fi drops (T1109; "this was feedback from one user"); the
+  app asks on first load to turn on new-data notifications (T1110); the More page refreshes by pulling down (T1111).
+  You pick the words of the two questions from pictures.
+- Asked 2026-11-25 ~00:40: "free offline maps for corridors we could integrate mapbox mobile sdk with no navigation
+  and it will be free until 25k users ... we could implement that in 0.10 ?" Ticket T1108, research first, with the
+  corridors chat (roadmap 4c). You pick after the comparison page.
 - Asked 2026-11-25 ~00:20: "in 0.9.1 we should make this page (https://canifishthis.ca/gauges) have a search
   option ... search by place or river etc to get gauge only"; "someone found the page by search so we want it
   usable". Ticket T1107, sent to the 0.9.1 chat; you get a picture of the page with results before it ships.
@@ -154,7 +165,7 @@ with the default Claude uses until you answer). Newest first inside each section
 - **T1051 treble hooks on a lake** (yes, allowed on Dick Lake: p.80 "use of a treble hook is permitted unless single
   hook is specified", p.8 barbed hooks allowed in lakes; the Gear tab says nothing). A: a second Hooks line "Treble and
   barbed hooks allowed ⓘ" wherever nothing restricts hooks. B: the same on lakes only. C: keep silent, note in the ⓘ
-  only. Recommended: A. Picture: `handoff/PLAN/app-integration/T1051-shots/report-now.png`.
+  only. Recommended: A. Picture: `handoff/PLAN/app-integration/T1051-shots/report-now.png`. ANSWERED 11-24 12:33: "Say it everywhere (Recommended)"; built (T1051).
 - **T1052 fully closed water: one statement** (Nelson Creek). A: keep both calendars; one block "Closed to all fishing
   all year, salmon included" / "The B.C. Synopsis row for Nelson Creek (and its tributaries) reads “No Fishing”." + the
   source. B: smallest change, the banner says "No fishing for any fish, salmon included" and the salmon row's sentence

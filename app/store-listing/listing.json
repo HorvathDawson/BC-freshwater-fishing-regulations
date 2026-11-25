@@ -1,0 +1,42 @@
+{
+  "_about": "THE store listing words (T1072), one source for Google Play, the App Store and the website. Read by deploy/staging/play-listing-push.py (Play text, App Store plan via --appstore), app/tools/web-shell.mjs (home page meta description) and checked by app/tools/store-listing.test.ts (every limit and forbidden word). Words are the owner's; edit them here only. Facts (not words) stay in handoff/PLAN/play/listing.md.",
+  "name": "Can I Fish This?",
+  "appStoreSubtitle": "BC fishing rules, by the water",
+  "playShortDescription": "Your pocket guide to BC fishing regulations. Less searching, more fishing!",
+  "appStorePromotionalText": "Your pocket guide to BC fishing regulations. Less searching, more fishing!",
+  "fullDescriptionFile": "full-description.txt",
+  "appStoreKeywords": "fishing,BC,regulations,rules,freshwater,river,lake,trout,salmon,steelhead,angling,license,flow,gauge",
+  "categories": {
+    "play": {
+      "primary": "Maps & Navigation",
+      "alternative": "Sports"
+    },
+    "appStore": {
+      "primary": "Navigation",
+      "secondary": "Sports"
+    }
+  },
+  "urls": {
+    "support": "https://canifishthis.ca/about",
+    "marketing": "https://canifishthis.ca",
+    "privacy": "https://canifishthis.ca/privacy"
+  },
+  "contactEmail": "support@canifishthis.ca",
+  "websiteHomeDescription": "Your pocket guide to BC fishing regulations: tap any lake, river or stream on an interactive map to view its fishing regulations and river conditions.",
+  "whatsNew": {
+    "source": "app/packages/core/src/changelog.ts, this version's bullets: core notesOn(entry, \"android\") for Play (build-apk.sh notes_json, cut to 500 characters), notesOn(entry, \"ios\") for the iPhone (build-ios-testflight.sh ios_notes, app/ios/appstore.json). Not stored here.",
+    "playLimit": 500,
+    "appStoreLimit": 4000,
+    "appStoreFirstVersionProposal": "First release for iPhone: the BC fishing regulations map, river conditions, salmon notices and saved spots."
+  },
+  "featureGraphicWords": "",
+  "limits": {
+    "name": 30,
+    "appStoreSubtitle": 30,
+    "playShortDescription": 80,
+    "appStorePromotionalText": 170,
+    "fullDescription": 4000,
+    "appStoreKeywords": 100,
+    "websiteHomeDescription": 155
+  }
+}

@@ -955,7 +955,7 @@ Store video (`app/tools/store-video`, T709/T715): Android only; T709 step 2 plan
 1200 x 1600 "when iOS opens".
 
 ### Store side
-- Shared with Play: listing text (`handoff/PLAN/play/store-description.md`, "same text for the App Store"; `listing.md`),
+- Shared with Play: listing text (`app/store-listing/listing.json`, "same text for the App Store"; `listing.md`),
   icon (`icon-1024.png`, `app/tools/build-icons.mjs`), support URL https://canifishthis.ca/about, privacy page.
 - Exists: `store/privacy-labels-draft.md` (Apple section; the Device ID row is a proposal), `handoff/PLAN/play/data-safety.md`
   (Play), the `ios.privacyManifests` block, T365 compliance pass (met / missing table), `app/tools/store-shots.json` has
