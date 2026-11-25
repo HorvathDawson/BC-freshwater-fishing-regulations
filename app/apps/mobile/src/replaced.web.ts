@@ -10,7 +10,7 @@
 import type { Manifest } from "@app/data";
 import { createReplacedProbe } from "@app/data/release";
 import { setFailureTriage } from "@app/core";
-import { replacedTriage, siteProbe, type ReplacedState } from "@app/ui";
+import { reloadOnce, replacedTriage, siteProbe, type ReplacedState } from "@app/ui";
 
 /** The entry script of this page (Expo's web export: `/_expo/static/js/web/<entry>-<hash>.js`), or null (a dev server). */
 function entryScript(doc: Pick<Document, "querySelectorAll">): string | null {
@@ -31,3 +31,9 @@ export function installReplaced(o: { state: ReplacedState; manifestUrl: string; 
 
 /** The code notice's action: the page loaded again — the new site's code, and with it the live release. */
 export function reloadPage(): void { window.location.reload(); }
+
+/** (T1016) the code verdict's automatic reload, once per page code: the marker in `sessionStorage` (reading the store
+ *  itself may throw in a blocked window: `reloadOnce` catches it, and does not reload) */
+export function autoReload(): string | null {
+  return reloadOnce({ store: () => window.sessionStorage, entry: entryScript(document), reload: reloadPage });
+}

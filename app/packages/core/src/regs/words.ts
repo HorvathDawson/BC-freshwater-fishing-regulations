@@ -458,6 +458,9 @@ export const ALL_SOURCES = Object.freeze({
   // change's own row links its page by the same name
   BOOK: SOURCE_AUTHORITIES.synopsis.name, INSEASON: SOURCE_AUTHORITIES.inseason.name, DFO: SOURCE_AUTHORITIES.dfo.name,
   LOCAL: "Local authority", PROVINCE_SITE: SOURCE_AUTHORITIES.inseason.name,
+  /** (T1036, owner 2026-11-24 "Add back but maybe have them separate?") the head of the second group: the rules the page's
+   *  fish and Possession sheets cite that no drawn line does (proposal; the other candidate: "Other rules for this water") */
+  OTHER: "Also in the fish and possession sheets",
 } as const);
 
 /** "Mon" … "Sun" (Monday first, as the calendar). */

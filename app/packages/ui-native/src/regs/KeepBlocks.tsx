@@ -7,7 +7,7 @@ import { useState, type ReactNode } from "react";
 import { Image, PixelRatio, View, useWindowDimensions } from "react-native";
 import { Text } from "../Text";
 import Svg, { Circle, Path } from "react-native-svg";
-import { GLANCE_WORDS, SALMON_ISSUE_WORDS, WORDS, daylightOffsets, lineSourcesOf, timedLineText, type BannerVM, type DaylightAt, type GlanceRowVM, type CaveatVM, type InheritedVM, type OtherFishKeyVM, type OtherFishRowVM, type PossessionVM, type WhereNotVM } from "@app/core";
+import { GLANCE_WORDS, OPEN, SALMON_ISSUE_WORDS, WORDS, daylightOffsets, lineSourcesOf, timedLineText, type BannerVM, type DaylightAt, type GlanceRowVM, type CaveatVM, type InheritedVM, type OtherFishKeyVM, type OtherFishRowVM, type PossessionVM, type WhereNotVM } from "@app/core";
 import { Icon } from "../icons";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
@@ -40,7 +40,7 @@ export function ClosedBanner({ banner, palette, actions }: { banner: BannerVM; p
           <Text style={[TYPE.regsBody, { color: palette.ink }]}>{c.text} <Text style={[TYPE.meta, { color: palette.sub }]}>{c.scope}</Text></Text>
           {/* (T1031 item 3) the closure's pages (or its local authority's page, T981) then "Who says so ›" (its rule's sheet),
               as the one Source line, where a boxed "SOURCE" chip opened the rule beside the bare links */}
-          <SourceRow vm={lineSourcesOf(c.book, c.about ?? c.text, `rule:${c.rule}`)} palette={palette} onBook={actions.onBook} onSheet={actions.onSheet}
+          <SourceRow vm={lineSourcesOf(c.book, c.about ?? c.text, OPEN.rule(c.rule))} palette={palette} onBook={actions.onBook} onSheet={actions.onSheet}
                      testID="closed-source" sheetTestID="chip:source" />
         </View>
       ))}
@@ -118,7 +118,7 @@ export function CaveatBlock({ caveat, palette, actions, inset = true }: { caveat
                     // (T208) a rule of one area of the water is set apart from the whole-water rules: a bar on the left
                     x.area && { paddingLeft: 10, borderLeftWidth: 3, borderLeftColor: palette.restricted }]}>
         {x.rule ? (
-          <RegsPress accessibilityRole="button" onPress={() => actions.onSheet(`rule:${x.rule}`)} box={ROW} style={{ minHeight: 44, justifyContent: "center" }}>
+          <RegsPress accessibilityRole="button" onPress={() => actions.onSheet(OPEN.rule(x.rule!))} box={ROW} style={{ minHeight: 44, justifyContent: "center" }}>
             {words}
           </RegsPress>
         ) : words}
@@ -201,7 +201,7 @@ export function TimedLines({ caveat, palette, actions, hoursSaid = false, daylig
         return (
           <View key={i} testID="keep-timed-item" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "baseline", columnGap: 8 }}>
             {x.rule ? (
-              <RegsPress accessibilityRole="button" onPress={() => actions.onSheet(`rule:${x.rule}`)} box={ROW} style={{ flexShrink: 1, minHeight: 32, justifyContent: "center" }}>{words}</RegsPress>
+              <RegsPress accessibilityRole="button" onPress={() => actions.onSheet(OPEN.rule(x.rule!))} box={ROW} style={{ flexShrink: 1, minHeight: 32, justifyContent: "center" }}>{words}</RegsPress>
             ) : words}
             {x.book.length > 0 && <LineText line={x.book} style={TYPE.metaBold} color={palette.accent} palette={palette} actions={actions} />}
           </View>

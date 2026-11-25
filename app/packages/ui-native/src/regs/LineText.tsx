@@ -6,7 +6,7 @@
 import { createContext, useContext } from "react";
 import { useWindowDimensions } from "react-native";
 import { Text } from "../Text";
-import { WORDS, plain, type Line, type SourceBox, type SheetKey, type Day, type Tab } from "@app/core";
+import { OPEN, WORDS, plain, type Line, type SourceBox, type SheetKey, type Day, type Tab } from "@app/core";
 import { CAPPED_SCALE, TYPE, type TextStyle } from "../type";
 import type { Palette } from "../theme";
 import { lineRun } from "./hit";
@@ -38,7 +38,7 @@ export function TermText({ ids, palette, actions }: { ids: readonly string[]; pa
   const titles = useContext(TermTitles);
   return (
     <Text accessibilityRole="button" accessibilityLabel={termLabel(ids, titles)} {...lineRun}
-          onPress={() => actions.onSheet(`gl:${ids.join(",")}`)} style={{ color: palette.accent }}>
+          onPress={() => actions.onSheet(OPEN.terms(ids))} style={{ color: palette.accent }}>
       {ids.length >= 2 ? WORDS.TERMS_MANY : WORDS.TERM_ONE}
     </Text>);
 }

@@ -6,7 +6,7 @@
  */
 import { View } from "react-native";
 import { Text } from "../../Text";
-import { plain, WORDS, type LadderStepVM } from "@app/core";
+import { OPEN, plain, WORDS, type LadderStepVM } from "@app/core";
 import { TYPE } from "../../type";
 import type { Palette } from "../../theme";
 import { LineText, type KeepActions } from "../LineText";
@@ -28,7 +28,7 @@ function LadderLine({ l, palette, actions }: { l: StepLine; palette: Palette; ac
     <View style={{ paddingVertical: 6 }}>
       {l.rule
         ? <RegsPress accessibilityRole="button" accessibilityLabel={[plain(l.text), l.tag].filter(Boolean).join(" · ")} box={LINE}
-                     onPress={() => actions.onSheet(`rule:${l.rule}`)}>{words}</RegsPress>
+                     onPress={() => actions.onSheet(OPEN.rule(l.rule!))}>{words}</RegsPress>
         : words}
       {l.applies.map((a, i) => <Text key={i} style={[TYPE.meta, { color: palette.sub }]}>{a}</Text>)}
       {l.book.length > 0 && <LineText line={l.book} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} />}
