@@ -258,3 +258,31 @@ How the built rule reads the edge cases (no build change; none yields in today's
   rows are such; none yields today);
 - "X's tributaries" rows and watershed rows count as own rows when they are bound to the stream by their own place (none
   yields today).
+
+## The owner on Dove Creek (2026-11-25, multiple choice, relayed by the coordinator), verbatim
+
+Asked: does a nearer tributary rule that is NOT a closure lift an all-year closure from further downstream (Dove Creek
+above Anderson Lake reopening for catch and release, steelhead included)?
+Answer: **"Yes, if it is the right lake (Recommended)"**
+
+## Is it the right lake? WRONG (lane L21, 2026-11-25 00:20 MST; nothing in curated data or marks changed)
+
+1. The printed row, Region 1, printed p.14 (repo PDF page 16), MU **1-3**: “ANDERSON” LAKE — "Trout and kokanee catch
+   and release … Unnamed lake in the Walbran Creek Watershed approximately 7 km west/southwest of Mt. Walbran" (the
+   name in quotes; the corpus carries the clause's tributaries mark on `anderson_lake.r4`). The Tsolum River row:
+   printed p.19 (PDF 21), MU 1-6, "No Fishing" ✱.
+2. The bound polygon `wbk:329095566` is FWA's gazetted Anderson Lake, 13.7 ha, at 49.731 N, 125.199 W, watershed group
+   COMX (MU 1-6), FWA code 920-559826-990728-321151 — on Dove Creek, draining to the Tsolum River near Comox.
+3. Five FWA lakes are named Anderson Lake; the only one on Vancouver Island is the Comox one. The printed lake is
+   unnamed in FWA. The curated note on the binding (`data/curated/waters/name_variants.json`, target `wbks:
+   ["329095566"]`, from the 2026-11-05 naming pass 73c04dbc2) itself says "Lake in MU 1-3. FWA has MU 1-6, regulation
+   has MU 1-3 (boundary issue) … BC Lakes Database: survey_id 1129, WBID 00105SANJ, watershed code 930-063200-41400":
+   that WBID is FWA's 50k key `00105SANJ`, which FWA gives to **`wbk:329504289`**, an unnamed 10.9 ha lake at 48.678 N,
+   124.604 W in the Walbran Creek watershed (group SANJ, 50k code 930063200414…, MU 1-3). The match was made by NAME
+   (a regulation name variant pinned to the wrong polygon), not a mark.
+4. **Verdict: WRONG lake.** PROPOSAL (for the owner; not applied): move the "ANDERSON LAKE" name variant's target from
+   `wbk:329095566` to `wbk:329504289` (the BC Lakes DB's own WBID), then rebuild the entry's `matched`. Effect: the
+   Comox Anderson Lake and Dove Creek lose the Walbran lake's fly-only / bait ban / barbless / trout-and-kokanee release
+   rules they carry today in the live release (a live error), and with T1053 **nothing reopens**: Dove Creek's top piece
+   and the 19 unnamed pieces stay under the Tsolum River's ✱ "No Fishing" (the yield there rests only on
+   `anderson_lake.r4`; expected from the key diff, not rerun). The owner list says so.

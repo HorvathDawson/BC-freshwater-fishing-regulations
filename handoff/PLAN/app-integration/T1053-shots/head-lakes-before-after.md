@@ -6,6 +6,12 @@ lower includes tributtaries that it conflicts with"; "keep earlier rule of closu
 this does not include no fishiong all year rulings tho those will yield in that case. only the dated closures."; and
 "tributary rules dont apply to the lake either only streams".
 
+> **2026-11-25: Dove Creek's reopening rests on a WRONG binding.** The row "“ANDERSON” LAKE" (p.14, MU 1-3) is an unnamed
+> lake in the Walbran Creek watershed (FWA `wbk:329504289`), not the gazetted Anderson Lake near Comox that it is bound to
+> today (`wbk:329095566`, MU 1-6, on Dove Creek). Rebinding it (proposal in the T1053 ticket) makes the Dove Creek /
+> Anderson Lake reopening below disappear: nothing reopens outside the head lakes, and Frosst Creek stays the only "own row
+> kept". The Comox lake and Dove Creek also lose rules they wrongly carry in the live release.
+
 **In short.**
 - The walk is unchanged from the first list: 22 head lakes pass their river's rules up to the streams above them
   (15,894 stream pieces, about 19,500 km; 39 rules climb, plus 3 B.C.-wide steelhead rules and one steelhead licence
