@@ -52,6 +52,11 @@ with the default Claude uses until you answer). Newest first inside each section
 - Answered 2026-11-24 ~23:05 (in the iOS chat, relayed; T1072): "we want the android and iphone images to use the
   same set ideally. if it is possible. we should generate new images too." Written into T1072 and the store content
   chat's prompt (roadmap row S): one new set from the 0.9.x app, the same frames for both stores.
+- Answered 2026-11-24 ~23:25 (multiple choice in the iOS chat, relayed; recorded in T1071): App Privacy "Linked to
+  you": "Strict: linked" (no code change; T1098 and T1099 follow it). Countries: "All 175 countries" (so the trader
+  status below shows on EU store pages). Build for review: "Newest by then" (0.9.1's iPhone build if it is uploaded
+  and push is proven on it when the pictures are ready, else 0.9.0 (45)). Push proof: "Soon, on build 45": your
+  three push-key commands (the Do row below), then the phone steps with the iOS chat.
 - **Decide (you), before the App Store submission; the iOS chat will bring both up** (its read of build 45, 11-24):
   - DSA trader status (App Store Connect → Business → Compliance): a legal statement about you; only you can make it.
   - Content Rights, "I have the rights": the map's satellite layer is Esri World Imagery used without a key. Whether
