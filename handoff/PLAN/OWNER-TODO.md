@@ -60,6 +60,10 @@ with the default Claude uses until you answer). Newest first inside each section
 - Answered 2026-11-24 23:55 (multiple choice, planning chat): who builds and uploads the 0.9.1 iPhone build (nobody
   was assigned; your "Newest by then" pick needs it): "0.9.1 chat". It builds it right after its Play Closed build;
   the privacy page, privacy manifest and iPhone build-number fixes (T1098, T1099, T1101) are its lane too.
+- Asked 2026-11-25 ~00:50–00:55, three tickets, all proposed for 0.9.2 (say if any should be sooner): the first
+  download asks before using mobile data and again if Wi-Fi drops (T1109; "this was feedback from one user"); the
+  app asks on first load to turn on new-data notifications (T1110); the More page refreshes by pulling down (T1111).
+  You pick the words of the two questions from pictures.
 - Asked 2026-11-25 ~00:40: "free offline maps for corridors we could integrate mapbox mobile sdk with no navigation
   and it will be free until 25k users ... we could implement that in 0.10 ?" Ticket T1108, research first, with the
   corridors chat (roadmap 4c). You pick after the comparison page.

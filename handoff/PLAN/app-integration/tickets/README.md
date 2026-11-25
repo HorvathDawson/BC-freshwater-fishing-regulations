@@ -351,6 +351,9 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T1106 | The head-lake walk climbs for book rules only: DFO places and licensing do not climb; list the cases, the owner rules | OPEN — 0.9.2 (the list first) | | 0.9.1 chat 2026-11-24, T1053's leftover |
 | T1107 | The web gauges page gets a search: by place, river or water, giving gauges only (nearest first) | OPEN — 0.9.1 (owner 2026-11-25); web only | | owner 2026-11-25 |
 | T1108 | Idea: the Mapbox mobile SDK (no navigation) for free offline corridor maps; research the terms, cost and the two-engine question first | OPEN — 0.10, chat 4c (research first) | | owner 2026-11-25 |
+| T1109 | The first download respects mobile data: ask before downloading on data, and ask again if Wi-Fi drops | OPEN — 0.9.2 (proposed); owner picks the words | | owner 2026-11-25, a tester's feedback |
+| T1110 | Notifications are off after install: ask the reader on first load to turn on new-data notices | OPEN — 0.9.2 (proposed); owner picks the words | | owner 2026-11-25 |
+| T1111 | The More page refreshes by pulling down, like the other pages | OPEN — 0.9.2 (proposed) | | owner 2026-11-25 |
 
 ## Next after closed testing
 
