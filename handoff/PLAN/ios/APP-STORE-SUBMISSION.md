@@ -12,7 +12,8 @@ exact wording, the line says "check on the screen".
 | Item | State |
 |---|---|
 | Build for review | DECIDED (owner 2026-11-24): the newest iPhone production build when the pictures are ready (section 9). 0.9.0 (45) is uploaded and is fit for review. |
-| Pictures | READY 2026-11-25 (T1072, PR #192): 7 frames, the same set as Play, in `handoff/PLAN/app-integration/store/graphics/store/light/appstore-6.9/` and `appstore-6.5/`. Checked by this chat: 6.9" all 1320 x 2868, 6.5" all 1242 x 2688, PNG, no transparency. |
+| Pictures | UPLOADED 2026-11-25 (stopgap). Apple now REQUIRES the iPhone "medium display" size, 6.1"/6.3" (1206 x 2622 or 1179 x 2556); the 6.9" and 6.5" sets are optional. The owner uploaded the seven 6.9" frames resized to 1206 x 2622 (made by this chat, outside the repo, `~/Desktop/AppStore-pictures/6.3-inch/`). The native set is `appstore-6.3` (T1072, PR #238): a re-upload is his choice. Header and Search Results pictures: T1134, optional. |
+| Screens | DONE 2026-11-25 14:48 (owner confirmed): Agreements, not a trader, App Information, App Privacy published (9 types on the label; Performance Data not linked), age rating 4+, pricing Free in all countries, version page saved as 0.10.0 with manual release. LEFT: select the build, Add for Review, Submit; first the privacy page (T1098) live on production. |
 | Production push (T996) | NOT PROVEN, and no longer a gate. Owner 2026-11-25: the proof moves to after the iPhone release; a fix, if one is needed, ships as an update. The production secrets are set; the owner's iPhone gets no push token from iOS, cause open (state in `RESTART-ios-release-chat.md`). |
 | App Privacy "linked" answers | DECIDED (owner 2026-11-24): strict, linked (section 3). |
 | Countries | DECIDED (owner 2026-11-24): all 175 countries. EU trader status: DECIDED (owner 2026-11-25): not a trader (section 1). |
@@ -83,7 +84,7 @@ The version number must equal the build's: `0.10.0` for the 0.10.0 iPhone build 
 
 | Field | Answer |
 |---|---|
-| Screenshots | READY. iPhone 6.9": the 7 files in `handoff/PLAN/app-integration/store/graphics/store/light/appstore-6.9/` (1320 x 2868), in file-name order 01 to 07. iPhone 6.5" (optional): the 7 in `appstore-6.5/` (1242 x 2688). By hand: drag them onto the screen in that order. Or by script (T1127, on main since 2026-11-25): `.venv/bin/python deploy/staging/appstore-screenshots-push.py` shows the plan and sends nothing and must show 7 per size; it stops by name on a stray or missing picture; `--commit` uploads and is yours to run. No iPad pictures (iPhone only). If the screen also demands another iPhone size, tell this chat. |
+| Screenshots | REQUIRED slot: iPhone with Dynamic Island (medium display), 1206 x 2622 or 1179 x 2556, up to 10. Seven are uploaded (see section 0). The 6.9" (1320 x 2868) and 6.5" (1242 x 2688) sets on main are optional sizes now. No iPad pictures (iPhone only). |
 | App preview video | none (optional) |
 | Promotional Text (170) | PASTE block below |
 | Description (4000) | PASTE block below (3924) |
