@@ -27,6 +27,14 @@ with the default Claude uses until you answer). Newest first inside each section
     unless he says so that time.
   - The v0.9.0 tag was moved to 65f84020c (versionCode 44) on his earlier OK; the merge-back PR carries the Play
     record updates.
+- Store checks 2026-11-24 22:20 (planning chat, every source read): TestFlight nothing new; Play reviews none. Four
+  new items, all ticketed: production, a web page whose stored data was cleared (T1092) and the first crash kind on
+  0.9.0, a location request with the phone's Location off (T1093); staging, one low-memory exit on 0.8.5 (T1094) and
+  a feature request for fish measurements on a saved location (T1095, design first, 0.10 or later).
+  Answered 2026-11-24 22:35 (multiple choice): the T1095 request came from "A tester"; design it in "0.10,
+  pictures first"; iPhone 0.9.0 (45), which `pipeline reports` showed as READY_FOR_BETA_SUBMISSION (not yet with the
+  external TestFlight testers): "Submit it". The 0.9.1 chat's real run was refused by its permission check (22:55), so
+  this is yours: see the Do row below.
 - Store checks 2026-11-24 13:30 (planning chat, every source read): TestFlight 6 items, all T982; Play reviews none;
   production worker: one new crash kind on 0.8.5 (T1055); the four production reports of 11-21 are T985's (ids now
   written there). About 40 old items (0.7.x–0.8.2, mostly staging) show as new only because no ticket cites their id:
@@ -36,6 +44,22 @@ with the default Claude uses until you answer). Newest first inside each section
 - Answered 2026-11-24: the release table carries a short goal per release (ROADMAP-after-0.9.0.md, "Release contents").
 - New from you 2026-11-24: iOS store distribution and compliance (T1071), better screenshots and marketing content
   before the full release (T1072), the app-update notice only when the phone can install it (T1073, 0.9.2).
+- **Do (you), small, only after PR #155 (T1058) has merged: remove your machine-wide Gradle workaround.** Open
+  `~/.gradle/gradle.properties` and delete the Metaspace line you added for the hang (it sets the same value the repo
+  now sets and overrides it; `build-apk.sh` prints a note while it is still there). Nothing breaks if you leave it.
+- Done 2026-11-24 (seen 23:10 by the iOS chat's reports read): iPhone 0.9.0 (45) is with Apple for the external
+  testers, state WAITING_FOR_BETA_REVIEW. Nothing to do until Apple answers (usually a day).
+- Answered 2026-11-24 ~23:05 (in the iOS chat, relayed; T1072): "we want the android and iphone images to use the
+  same set ideally. if it is possible. we should generate new images too." Written into T1072 and the store content
+  chat's prompt (roadmap row S): one new set from the 0.9.x app, the same frames for both stores.
+- **Do (you): the three push keys on the production feeds worker** (T996 step 1, still open: at 22:39 the production
+  status page listed APNS_KEY, APNS_KEY_ID and APNS_TEAM_ID as missing, so iPhone alerts cannot be sent from
+  production). From the main checkout, three commands, each asks for the value:
+  `npx --prefix app wrangler secret put APNS_KEY -c app/workers/feeds/wrangler.prod.toml`, then the same with
+  `APNS_KEY_ID`, then `APNS_TEAM_ID`. Then the phone test in T996. The iOS chat (row 5i) needs this proven before
+  the build that goes to App Review; it will ask you about it.
+- Reported 2026-11-24 22:55 (0.9.1 chat): a network outage stopped its lanes 16:15–22:15, all restarted, nothing
+  lost. T1087 (the Brunette closure on the whole river) was read against the printed row: right, nothing to change.
 - **Do (you): Play Production staged rollout of 0.9.0 (build 44), once Google grants production access** (T1046,
   T240). Build 44 is on Internal and Closed since 2026-11-24 (Google's review of the Closed release pending). Play
   will not let Production be used until the production-access application is approved; the application opens
@@ -46,7 +70,8 @@ with the default Claude uses until you answer). Newest first inside each section
 - **Do (you): App Store submission of 0.9.0** (T1071), build 0.9.0 (45), uploaded to App Store Connect 2026-11-24
   ~15:30 from release/0.9.0 65f84020c (TestFlight shows it after Apple's processing). Before you click, T1071's checklist has
   to exist (App Privacy, export compliance, age rating, content rights, review notes): it is not written yet, so this
-  row waits on the iOS release chat. Then, in App Store Connect: Apps → Can I Fish This? → Distribution → the "+" by
+  row waits on the iOS release chat, AND on the new picture set (T1072, store content chat S): you chose "Wait for the
+  new set" 2026-11-24 23:06. **Start chat S now** (prompt: roadmap row S). Then, in App Store Connect: Apps → Can I Fish This? → Distribution → the "+" by
   iOS App → version 0.9.0 → Build → pick the build → paste the listing text and pictures (T1072) → App Privacy and
   the other answers → Version Release: "Manually release" and Phased Release on → Add for Review → Submit.
 - Answered 2026-11-24: the owner to-do goes markdown only, no artifact (T1080); and a ticket to audit and lean out
@@ -55,6 +80,30 @@ with the default Claude uses until you answer). Newest first inside each section
   0.9.2 hardening, Store content, iOS full release, Docs lean-out (all four); rc tags (T1062) = "With the repo-move
   chat"; the old owner to-do history (T1080) = "Delete it". The order and each chat's prompt to paste are in
   ROADMAP-after-0.9.0.md.
+
+## 2026-11-24 13:30–16:10: T1036, T1053, the ponds, T1052, the answers (verbatim)
+
+- T1036 the second group's head (shown both): first "I don't see the difference"; asked again pointing at the one grey
+  line: "\"Also in the fish and possession sheets\"" (as built). Its weight: "Leave it as drawn". No second group
+  where the page can open nothing more: "Yes, only what the page can open (Recommended)". T1036 is done.
+- T1053 which version of the climb (shown the list): "All 22, but a stream's own row wins". The Sources words
+  ("and its tributary streams"): "Yes, these words (Recommended)".
+- T1053, typed: "make sure upstream includes tributarties still overrides lower includes tributtaries that it
+  conflicts with. make sense?" — the nearer (upstream) tributary rule wins over a lower one it conflicts with.
+- T1053, does a stream's own row lift an inherited closure: "keep earlier rule of closure always winning unless it is
+  exempt) this does not include no fishiong all year rulings tho those will yield in that case. only the dated
+  closures. add all of this logic to gfotchas file please" — a dated inherited closure still closes unless the row is
+  exempt; an all-year inherited "No Fishing" yields to a stream's own row; the logic goes into
+  `pipeline/docs/GOTCHAS.md` (in the T1053 PR).
+- T1053, typed: "tributary rules dont apply to the lake either only streams that is important too".
+- Unnamed ponds on a stream (Q124): "only the polygon ponds that we have listed as piece of stream. (for example
+  oxbows or slough lakes etc etc ) make sense? using the process we already have".
+- T1052 the closed block's second line (shown A and B): "A: quote the river's row". The 130 waters closed for part of
+  the year: "Yes, merge those too" — a follow-up PR, pictures first.
+- T1029 on the Standard map: the pictures are owed with the finished PR (#112); nothing asked yet.
+- New, typed: "we need to add a random (sometimes on launch in a reasonable amount) star rating review on launch. must
+  be uninvasive. (or could be after they use a certain feature?) needs thought for 0.10 maybe? or 0.11?" — T1082
+  (planning chat).
 
 ## 2026-11-24 12:15–12:33: staging reports and the Kitimat creeks, the answers (verbatim)
 
@@ -78,7 +127,7 @@ with the default Claude uses until you answer). Newest first inside each section
 - **T1050 ice fishing lines** (Dick Lake: "Lines: 1." and "Hook, lure or fly per line: 1." under Ice fishing repeat the
   Gear tab). A: show a count under a way only where it differs from the Gear tab (here only the hut and ice-hole duties
   stay). B: one line "Same gear as above: 1 line, 1 lure or fly". C: keep. Recommended / default once you pick: A.
-  Picture: `handoff/PLAN/app-integration/T1050-shots/report-now.png`.
+  Picture: `handoff/PLAN/app-integration/T1050-shots/report-now.png`. ANSWERED 11-24 12:33: "Only what differs (Recommended)"; built (T1050).
 - **T1051 treble hooks on a lake** (yes, allowed on Dick Lake: p.80 "use of a treble hook is permitted unless single
   hook is specified", p.8 barbed hooks allowed in lakes; the Gear tab says nothing). A: a second Hooks line "Treble and
   barbed hooks allowed ⓘ" wherever nothing restricts hooks. B: the same on lakes only. C: keep silent, note in the ⓘ
@@ -87,6 +136,17 @@ with the default Claude uses until you answer). Newest first inside each section
   all year, salmon included" / "The B.C. Synopsis row for Nelson Creek (and its tributaries) reads “No Fishing”." + the
   source. B: smallest change, the banner says "No fishing for any fish, salmon included" and the salmon row's sentence
   goes. C: A with one "All fish" calendar. Recommended: A. Picture: `handoff/PLAN/app-integration/T1052-shots/report-now.png`.
+  ANSWERED 12:33: "One block, both calendars (Recommended)". Built (lane L22, 936 waters). Left for you: the line under
+  the headline is a proposal ("The B.C. Synopsis row for Nelson Creek reads “No Fishing”." / on a tributary "Little
+  Qualicum River’s row covers its tributaries: “…”."), and a water closed to all fishing for PART of the year by one
+  rule (130 today) keeps its two statements unless you want a headline like "Closed to all fishing until Apr 30, salmon
+  included". Pictures: `handoff/PLAN/app-integration/T1052-shots/nelson-after-light.png` (and -dark, nelson-before-*,
+  skagit-two-sources-*).
+  THE REAL LINES (936 parts): own row "No Fishing" 122; own row, another line 259 (parks and reserves 144); tributary
+  "No Fishing" 163; tributary quoting the mainstem's extent 392 (Brunette 94: "No Fishing upstream of Burnaby Lake or
+  from Cariboo Dam to Salamander Creek", Squamish 88, Bulkley 34, Capilano 22, Sustut 16). Pick A (as built: quote the
+  line, `handoff/PLAN/app-integration/T1052-shots/wordings-A-light.png`) or B (a tributary says "Inherited from Brunette
+  River: its row covers its tributaries.", the line one tap away: `handoff/PLAN/app-integration/T1052-shots/wordings-B-light.png`).
 - **T1053 walk through a head lake** (Eagle Creek ✱ flows out of Dick Lake; the walk stops at the lake, so Dick Creek
   and 9 small streams above it stay under the zone rules; no written ruling covers this, it is as built). K: keep (as
   built). L: a whole-water rule's walk climbs through its head lake when that lake has no row of its own (24 such lakes:

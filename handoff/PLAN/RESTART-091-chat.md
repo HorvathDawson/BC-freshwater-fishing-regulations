@@ -1,40 +1,45 @@
 # Restart page: the 0.9.1 follow-ups chat (roadmap row 2)
 
-Rewritten 2026-11-24 13:00 MST by the 0.9.1 chat. It works beside the 0.9.0 chat and never touches the main checkout.
-Scope: `handoff/PLAN/ROADMAP-after-0.9.0.md` row 2, plus the owner's four staging reports of 11-24 (he said they go
-into 0.9.1). The name is not NEXT-SESSION-* on purpose: the guard keeps at most two of those, and they are the 0.9.0
-chat's. The planning chat owns ticket numbers since 11-24: this chat numbers nothing and sends it finds.
+Rewritten 2026-11-24 22:35 MST by the 0.9.1 chat. 0.9.0 is on production and `release/0.9.0` is merged back (#140), so
+the cut is no longer blocked by it. Scope: `handoff/PLAN/ROADMAP-after-0.9.0.md` row 2, the owner's four staging
+reports of 11-24, and the tickets the planning chat put into 0.9.1. The planning chat owns ticket numbers: this chat
+numbers nothing and sends it finds. This chat works only in scratchpad worktrees, never the main checkout.
+A network outage stopped every lane from about 16:15 to 22:15 on 11-24; all were restarted, nothing was lost.
 
 ## Where each item stands
 
 | Item | State |
 |---|---|
-| T1048, T1021, T1041 lows, T1020, T1027 (+ WorkManager keep rule), T1024 | Merged (#95 #98, #97, #99, #104, #108 #109, #111). T1024 needs the 0.9.1 tile build. The cut REFUSES while a shipped version has no `app_reads` row on main: cut only after `release/0.9.0` is merged back. |
-| T1031 trout row sources | A merged (#100), B merged (#119; owner: "Go on to B"). |
-| T1047 datum-change list | Merged (#103); 08HD006 and 08EF001 accepted and merged (#121). 07FD001, 08KH019, 08MH153 stay proposed (not asked). |
-| T905 salmon feed size | Owner: move worker state out. Merged (#120): feed 132,987 → 121,688 B. Needs a feeds worker deploy (staging: after the 0.9.0 chat says it is done with staging; production: the owner). |
-| T1030 changed-waters count | Merged (#105, and #123 hide 0). Needs the 0.9.1 data release and app build. |
-| T1049 start link | Lows merged (#107); the slow cold-start fix merged (#122), proven on the emulator. PARTIAL: a device check on a release build is left. 0.9.0 ships without it (owner's call). |
-| T1016 web tab across releases | #101 merged. Owner: "Always auto refresh": PR #125 open, review fixes in progress (a reload-loop guard across two codes, a bounded wait on the report). Needs the feeds worker deploy too. |
-| T1036 "All sources" sheet | #96 merged. Owner: "Add back but maybe have them separate?": PR #126 open, review fix in progress (collect every sheet kind). The group's heading is NOT picked: ask the owner with `T1036-shots/other-group-peace-aug1-headings-{light,dark}.png`. |
-| T1029 one-bank stripe | Draft PR #112. Owner: look B (split + closed dashes, from z13); polygon rivers along the bank edge; the book's west-half rule striped too; no stripe on creeks; the 12 Kitimat creeks closed, "calculated from extents". Being built: FWA LEFT_RIGHT_TRIBUTARY into the atlas, a bank-side filter in the reach step, delivery as an ordinary place. Gates: atlas parity, binding diff moves nothing, salmon diff = exactly the 12 creeks Open → Closed. Then a review. |
-| T1050 ice fishing, T1051 treble/barbed | Owner answered (OWNER-TODO 12:33). One lane, two PRs to come, each needs a review. T1050 needs the data release. |
-| T1052 fully closed says it twice | Owner answered. Lane running, PR to come, needs a review. |
-| T1053 head lakes | Owner: "Climb through every head lake". Lane running, DRAFT PR to come; the owner reads the before/after list before it ships. |
-| T1054 tides layer | Future (0.10 or later), ticket only. |
-| One file per ledger row / OWNER-TODO item | Built and reviewed (#114, branch `chore/T1041-one-file-per-row`). HELD: after `release/0.9.0` has merged back and the other PRs are in, run `node app/tools/ledger.mjs --merge origin/main` on that branch, check, then merge. Last. |
+| T1048, T1021, T1041 lows, T1020, T1027, T1024, T1031 A+B, T1047 (two accepted), T1030, T1049 lows + cold start, T1016, T905 | Merged. T1024, T1030 need the 0.9.1 data and tile build. T1049: a device check on a release build is left. T1047: 07FD001, 08KH019, 08MH153 stay proposed. |
+| T905 / T1016 feeds worker | Staging worker deployed from main 11-24 14:24 (version c5dc2e47). Live staging index is 129,702 B against the ticket's 121,688 B (a fixture): believed to be larger live inputs; confirm before the cut. Production deploy: the owner, with the 0.9.1 commands. |
+| T1036 "All sources" second group | DONE (#126). The owner kept the built head, weight and empty-group rule. |
+| T1050 ice fishing | #130: review fixes checked (Kootenay main body keeps its ice line count), auto-merge on. Needs the data release. |
+| T1051 treble / barbed | #144 open, independent review running. After it: ask the owner the two partial wordings ("Treble hooks allowed" / "Barbed hooks allowed") and which info sheet, with `T1051-shots/`. |
+| T1052 fully closed says it once | #131: reviewed, the owner picked wording A; a conflict with main resolved 11-24 22:25; auto-merge on. Follow-up NOT started: the 130 part-year waters (owner: "Yes, merge those too"), pictures first. |
+| T1053 head lakes (+ T1086, T1087 step 1) | Branch `feat/T1053-walk-climbs-head-lakes`, lane running, DRAFT PR to come. Owner rulings are in OWNER-TODO (13:30–16:10 section). The owner reads the before/after list (with its "own row kept" section) before it ships. T1087 step 1 verdict: the Brunette r1 binding is RIGHT. Tell the planning chat the PR number (it closes Q124). |
+| T1029 one-bank stripe | Draft #112, lane finishing (review fix, merge main, a Standard-map reshoot). Then one independent review, the owner sees the Standard-map shots, un-draft, merge. `wt-l18/side` (about 4 GB) is deleted after the review. |
+| T1058 Gradle Metaspace, T1059 strict CI run limit | Both built; PRs opening. Needed before the Play build. One review each. |
+| T1083 web start link refuses `wsc:` ids (HIGH, on production) | NOT started: the next lane. |
+| T1061 Skeena "Flows into" blank band | NOT started: after T1083. Emulator n1_pixel_b on port 5556 only. |
+| T1093 location crash kind | 0.9.2 unless an app lane is free before the build. |
+| One file per ledger row / OWNER-TODO item | Built and reviewed (#114, #143). HELD, last: on `chore/T1041-one-file-per-row` run `node app/tools/ledger.mjs --merge origin/main`, check it carries rows T1055 onward and every OWNER-TODO section, merge, tell the planning chat at once. |
 
 ## Next, in order
 
-1. Take each lane's PR through one independent review, check the fixes, auto-merge. Ask the owner the T1036 heading
-   and show him the T1053 list, with pictures, in chat; write each answer into OWNER-TODO and its ticket the same turn.
-2. Staging feeds worker deploy (T905, T1016's report class) once the 0.9.0 chat says it is done with staging.
-3. After 0.9.0 is on production AND `release/0.9.0` is merged back into main: merge #114, cut 0.9.1
-   (`python -m pipeline release --cut`), a full data and tile build (T1024, T1029, T1050, T1053), staging, Play
-   Closed, then hand the owner the production commands (`handoff/PLAN/runbooks/release-by-hand.md`). CONFIRM_PROD is
-   only ever typed by the owner.
-4. Update `handoff/PLAN/play-production-access/releases.md`, the feedback log's "Fixed in" column (D08–D12 too) and
-   the questionnaire (Q3, Q7, Q8) for 0.9.1.
+1. Take each open PR through its one independent review, check the fixes, auto-merge. Ask the owner in chat, with
+   pictures: the T1051 wordings, the T1053 list, the T1029 Standard-map look, the T1052 part-year pictures.
+2. T1083, the T1052 part-year follow-up, T1061. At most 3–4 lanes and one heavy job at a time (five lanes starved the
+   0.9.0 production builds on 11-24).
+3. Merge #114 last. Before the cut, check a release cut from main carries `minAppVersion` in its manifest.
+4. Cut 0.9.1 (`python -m pipeline release --cut`), a full data and tile build (T1024, T1029, T1050, T1053), staging,
+   Play Closed, then hand the owner the production commands (`handoff/PLAN/runbooks/release-by-hand.md`), the
+   production feeds worker deploy among them. CONFIRM_PROD is only ever typed by the owner.
+5. Update `handoff/PLAN/play-production-access/releases.md`, the feedback log's "Fixed in" column (D08–D12 too) and
+   the questionnaire (Q3, Q7, Q8) for 0.9.1. One push notification when the work is done.
+
+Owner to-do passed to the planning chat: submit iPhone 0.9.0 (45) for Beta App Review (his answer "Submit it"; the
+dry run agrees; this chat's permission check refused the real run):
+`node deploy/staging/testflight-distribute.mjs --version 0.9.0 --build 45`.
 
 ## For the planning chat (new finds; this chat makes no tickets)
 
@@ -76,3 +81,7 @@ chat's. The planning chat owns ticket numbers since 11-24: this chat numbers not
   render on a frame with no part; the app has no React error boundary, so any render throw is a full app crash.
 - Tests: `app/packages/ui/src/chart.render.test.tsx` is timing-dependent (a fixed 30 ms wait); vitest times out
   ("Timeout calling onTaskUpdate") under machine load.
+
+- 11-24 evening: T1050 the page's ice clause is uncited (`app/packages/core` `methods.ts` `waysVM`; the citation is in
+  the pipeline only). `scripts/heavy.sh` has no fair queue (T1063). A lane could not stop its own queued heavy job
+  (the permission check refused the kill). The pre-push hook's wide vitest pass times out under load (a retry passes).

@@ -81,6 +81,10 @@ Each row is one crash kind, or one triage of many kinds. Counts and stacks are i
 | F38 | 2026-11-22 | crash report (prod) | auto | web | A tab left open across two releases met missing files | T1016 | open | — |
 | F39 | 2026-11-22 | crash report (prod) | auto | web, iPhone | Two single-report defects still to locate | T1017 | open | — |
 | F40 | 2026-11-24 | crash report (prod) | auto | 0.8.5 | A new crash kind, two reports: a read of a missing value (stack not yet read) | T1055 | open | — |
+| F41 | 2026-11-24 | crash report (prod) | auto | 0.8.5 web | The browser's stored data was cleared while the page was open, and the page reported an error instead of recovering | T1092 | open | — |
+| F42 | 2026-11-24 | crash report (prod) | auto | 0.9.0 Android | A location request failed because the phone's Location setting was off, and the error was not handled | T1093 | open | — |
+| F43 | 2026-11-24 | crash report (staging) | auto | 0.8.5 Android | The system ended the app for low memory while it was on screen | T1094 | open | — |
+| F44 | 2026-11-24 | in-app report (staging) | R-8 | 0.9.0 | Asked for a place to record fish measurements on a saved location, several per location, editable later | T1095 | open (feature; design first) | — |
 
 ## The developer's own finds on a shipped build (not tester feedback)
 
@@ -105,10 +109,10 @@ leave them out.
 
 ## Counts (refresh before applying)
 
-As of 2026-11-24: 16 tester rows from 7 tags (T-1 … T-4, TF-1, CT-1, CT-2; some may be the same person), 9 in-app
-report rows, 15 crash rows (40 in all), plus 13 developer rows. Of the 40: 25 fixed in a shipped release, 1 fixed with
+As of 2026-11-24: 16 tester rows from 7 tags (T-1 … T-4, TF-1, CT-1, CT-2; some may be the same person), 10 in-app
+report rows, 18 crash rows (44 in all), plus 13 developer rows. Of the 44: 25 fixed in a shipped release, 1 fixed with
 the owner's read pending (F34), 6 fixed in 0.9.0 (shipped 2026-11-24, r-0aec88ed3edb: F15, F16, F22, F24, and F21, F25 with the
-owner's read pending), 3 in progress (F06, F23, F35; F23 and F35 partly fixed in 0.9.0), 5 open (F40 added 2026-11-24).
+owner's read pending), 3 in progress (F06, F23, F35; F23 and F35 partly fixed in 0.9.0), 9 open (F40–F44 added 2026-11-24).
 Developer rows: D01 fixed, owner read pending; D02–D05 fixed; D06 (owner read pending) and D07 fixed in 0.9.0; D08
 answered with no change; D09–D12 open (0.9.1); D13 open (0.9.2).
 Play Console testing feedback: none came in (owner 2026-11-24: all feedback came through the app; testers did not

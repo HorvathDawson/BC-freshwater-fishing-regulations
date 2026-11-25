@@ -55,3 +55,4 @@ export * from "./classBadge";
 export * from "./fish.generated";
 export * from "./credits";
 export * from "./finfish";
+export * from "./withSalmon";
