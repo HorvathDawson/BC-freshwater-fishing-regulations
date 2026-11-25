@@ -19,6 +19,9 @@ light; the Squamish in dark too.
   the Map tab with its list of parts already open.
 - On the Conditions tab the same two lines sit over the part's name.
 - A water of one part looks exactly as before.
+- On a slow line the count can change once: until the live DFO salmon arrives, like stretches are not joined yet, so the
+  Squamish can say "Part 1 of 3" for a moment and then "Part 1 of 2". The Map tab counts the same way at the same
+  moment. The page does not wait for the salmon, because it would then wait for the salmon card (T1049).
 
 ## What the 11 waters whose lead part has no name of its own now say
 

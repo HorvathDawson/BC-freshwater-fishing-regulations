@@ -1,10 +1,10 @@
 # T1140 — A water's plain link opens the rules of one part without saying which: the Squamish reads "Closed"
 
-Status: PARTIAL — HIGH, on production. The first speed is built (5d57ac8c2: every head of a multi-part water says "Part n of m" and links to its other parts; the pre-rendered page too), in review; the landing and the words are the owner's: owner: OWNER-TODO "Ticket T1140, HIGH, the first patch after 0.10.0." The area's name (item 4) needs a pipeline and bundle field, not built
+Status: PARTIAL — HIGH, on production. The first speed is built (5d57ac8c2, 54e0c3e15: every head of a multi-part water says "Part n of m" and links to its other parts; the pre-rendered page too), in review; the landing and the words are the owner's: owner: OWNER-TODO "Ticket T1140, HIGH, the first patch after 0.10.0." The area's name (item 4) needs a pipeline and bundle field, not built
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1140 | A water's plain link opens the rules of one part without saying which: the Squamish reads "Closed" | PARTIAL — HIGH, on production; first speed built, in review | 5d57ac8c2 | owner: OWNER-TODO "Ticket T1140, HIGH, the first patch after 0.10.0." (pick the landing A/B/C and the words, T1140-shots/before-after.md); the area's name needs a pipeline + bundle field |
+| T1140 | A water's plain link opens the rules of one part without saying which: the Squamish reads "Closed" | PARTIAL — HIGH, on production; first speed built, in review | 5d57ac8c2, 54e0c3e15 | owner: OWNER-TODO "Ticket T1140, HIGH, the first patch after 0.10.0." (pick the landing A/B/C and the words, T1140-shots/before-after.md); the area's name needs a pipeline + bundle field |
 
 Source: owner 2026-11-25 14:55 (planning chat), with two pictures of the web app on production, verbatim: "big app
 bug we will want to fix asap.. basically if the user searches something liek squamish river regs and clicks the
@@ -58,8 +58,10 @@ water map's group, read through `useMapEntries`); no pipeline or bundle change.
   `partWhere` uses `partOf` too). `HeaderVM.part` is set only on a water the map lists as several entries; a water of one
   part keeps its header, pinned byte for byte to origin/main (`water/fixtures/t1140-single-part.json`).
 - **Every way in:** the Regulations view (`WaterScreen`) and the Conditions view (`WaterConditions`) both read it, and the
-  Regulations view waits for the map's reading (`useMapEntries` `settled`: the group, and on a group of several the live
-  salmon that joins it), so no part's answer is drawn without its "Part n of m": a plain link, a search, a start link, a
+  Regulations view waits for the water's parts to be read (`useMapEntries` `settled`), so no part's answer is drawn
+  without its "Part n of m". It never waits for the live salmon (T1049: the page draws while its salmon card is coming):
+  until the salmon lands nothing joins, so the count is the release's own and then becomes the joined one, exactly as
+  the Map tab counts at that moment (on the Squamish "Part 1 of 3" can turn into "Part 1 of 2"). Every way in — a plain link, a search, a start link, a
   map tap, a saved spot and the step buttons all land on these two views. Web, Android and iPhone share the components.
 - **The line** "Other parts of this water have different rules" shows where another entry has another rule set, another
   water of the group, or another salmon reading (on r-71d09ad82e81 with the live salmon: all 471 waters the map lists as
