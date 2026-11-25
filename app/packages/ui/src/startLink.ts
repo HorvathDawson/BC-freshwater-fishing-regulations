@@ -15,8 +15,8 @@
  * the session's profile (D8), the sheet a `SheetKey` the page opens like any press would. A bad value throws, naming it,
  * so a typo in a test never opens some other page silently.
  */
-import { HORIZONS, parseSheetKey, type Horizon, type SheetKey, type Tab, type Who, bcNow, reportFailure } from "@app/core";
-import type { ItemId } from "@app/data";
+import { HORIZONS, parseSheetKey, type Horizon, type SheetKey, type Tab, type Who, bcNow, reportFailure, reportOnce } from "@app/core";
+import { isItemId, type ItemId } from "@app/data";
 import { openWater } from "./openWater";
 import type { StreamPlace } from "@app/data/regs/place";
 import { regionOfTile } from "@app/data/release";
@@ -87,6 +87,11 @@ export function routeSearch(r: Route, current = "", place: StreamPlace | null = 
   for (const k of ROUTE_KEYS) if (extra || (k !== "date" && k !== "horizon")) q.delete(k);
   const f = waterFrame(r);
   if (f && (f.item !== null || place)) {
+    // (T1083) the start link reads the same kinds (`ITEM_ID_KINDS`): an id it would refuse is reported here, where it
+    // is written, not only on the reload that lands on the bare map; once a run per id (the address is written on
+    // every route change, twice when a place is added)
+    if (f.item !== null && !isItemId(f.item))
+      reportOnce(`address-item:${f.item}`, new Error(`address: regs=${f.item} is not an item id the start link reads (ITEM_ID_KINDS)`));
     if (f.item !== null) q.set("regs", f.item);
     if (place) { q.set("blk", String(place.blk)); q.set("m", String(place.m)); }
     // (T369 D5) a TAPPED frame says so, and where on the water the tap landed ("you are here")
@@ -357,7 +362,6 @@ export function parseStartLink(search: string, now: Date = bcNow()): StartLink |
   const q = new URLSearchParams(search);
   const item = q.get("regs");
   const bad = (k: string, what: string): never => { throw new Error(`start link: ${k}=${q.get(k)} is not ${what}`); };
-  const ITEM = /^[a-z]+:-?\d+$/;
   // (T369) the place: both keys or neither
   const blkS = q.get("blk"), mS = q.get("m");
   if ((blkS === null) !== (mS === null)) bad(blkS === null ? "m" : "blk", `a place without ${blkS === null ? "blk" : "m"}`);
@@ -376,14 +380,14 @@ export function parseStartLink(search: string, now: Date = bcNow()): StartLink |
     const fitS = q.get("fit");
     const fit = fitS === null ? null : typeof fitOf(fitS) === "string" ? bad("fit", fitOf(fitS) as string) : (fitOf(fitS) as FitBox);
     if (show === null && fit === null && browseS === null && spot === null && day === null && !past && horizon === null) return null;
-    if (show !== null && !ITEM.test(show)) bad("show", "an item id");
+    if (show !== null && !isItemId(show)) bad("show", "an item id");
     if (show !== null && fit !== null) bad("fit", "a box beside show= (a link frames one or the other)");
     const browse = reduce(HOME, { type: "tab", tab });
     const route = spot !== null ? reduce(browse, { type: "openSpot", id: spot }) : browse;
     return { route, day, regs: { tab: "keep", sheet: null, scroll: 0 }, who: null, theme: null,
              arrive: show as ItemId | null, place: null, notice: past ? "day-past" : null, horizon, ...(fit ? { fit } : {}) };
   }
-  if (item !== null && !ITEM.test(item)) bad("regs", "an item id");
+  if (item !== null && !isItemId(item)) bad("regs", "an item id");
   // (T1010) a water's link opens on the water: a box beside it would be two places at once
   if (q.has("fit")) bad("fit", "a box beside a water (regs= or a place)");
 

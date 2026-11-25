@@ -15,6 +15,8 @@
  * they plug in and which bundle tables they will read.
  */
 export * from "./types";
+// (T1083) the kinds of item id, the one list every link's writer and reader asks
+export { ITEM_ID_KINDS, isItemId, itemIdKind } from "./itemId";
 export type { WaterSource } from "./source";
 
 /** The driver seam (`Db`: four methods), for the layers that hand one to `@app/data` (T03). */

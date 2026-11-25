@@ -15,6 +15,7 @@
 import type { WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import type { RegsStore } from "@app/data/regs";
+import { reportOnce } from "@app/core";
 import { pageRegion, parseStartLink, reportDropped, reportFailure, setRegsFirstStart, setStartRegion, WATER_PATH,
          type StartLink } from "@app/ui";
 import { placeReads, resolveStartLink } from "@app/ui/place";
@@ -53,7 +54,13 @@ export function startLink(): StartLink | null {
     if (link?.dropped) queueMicrotask(() => reportDropped(link));
     return link;
   }
-  catch (e) { console.error(e instanceof Error ? e.message : String(e)); return null; }
+  catch (e) {
+    // (T1083 review, W46) a link the app refuses opens the map AND is reported (once the crash reporter is installed), as
+    // the phone's is (`appLink.native.ts`): production lost its `wsc:` links with only a console line to say so
+    console.error(e instanceof Error ? e.message : String(e));
+    queueMicrotask(() => reportOnce("start-link-refused", e));
+    return null;
+  }
 }
 
 /** (T369) The start link resolved in the open release (`@app/ui/place`): only a link that carries a place opens `lines`. */

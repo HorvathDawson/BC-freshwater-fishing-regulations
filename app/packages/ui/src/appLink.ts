@@ -13,12 +13,11 @@
  * it throws, naming what it saw, and the caller reports it — it never opens some other page silently.
  */
 import { APP_LINK_HOSTS, bcNow, reportFailure, type Horizon, type Who } from "@app/core";
-import type { ItemId } from "@app/data";
+import { isItemId, type ItemId } from "@app/data";
 import type { View } from "./route";
 import { fitOf, linkDay, linkPage, linkWhole, pageStartOn, type FitBox, type LinkBad, type RegsStart } from "./startLink";
 
 const VIEWS: readonly View[] = ["regs", "conditions", "map"];
-const ITEM = /^[a-z]+:-?\d+$/;
 /** (T1038) the day keys: carried on every link, as the web's start link reads them on every link */
 const DAY_KEYS = ["date", "horizon"] as const;
 /** (T1038) the water page's keys: carried on a water's link (the web reads them on no other) */
@@ -83,7 +82,7 @@ export function parseAppLink(url: string, now: Date = bcNow()): AppLink | null {
   if (!(VIEWS as readonly string[]).includes(viewS)) throw new Error(`app link: view=${viewS} is not ${VIEWS.join("|")}`);
   const view = viewS as View;
   const regs = q.get("regs") ?? null;
-  if (regs !== null && !ITEM.test(regs)) throw new Error(`app link: regs=${regs} is not an item id`);
+  if (regs !== null && !isItemId(regs)) throw new Error(`app link: regs=${regs} is not an item id`);
   const slug = /^\/water\/([a-z0-9-]+)$/.exec(path)?.[1] ?? null;
   if (path !== "/" && !slug) throw new Error(`app link: ${url} is not a water page or the start link`);
   if (slug && regs) throw new Error(`app link: ${url} names a water twice (page and regs=)`);
@@ -127,7 +126,7 @@ export function parseAppLink(url: string, now: Date = bcNow()): AppLink | null {
 /** The item a water page names (`<meta name="cift:item">`). Throws when it names none: a stale or broken page. */
 export function itemOfWaterPage(html: string): ItemId {
   const tag = /<meta\s+name="cift:item"\s+content="([^"]*)"/.exec(html) ?? /<meta\s+content="([^"]*)"\s+name="cift:item"/.exec(html);
-  if (!tag || !ITEM.test(tag[1]!)) throw new Error(`app link: the water page names no item (cift:item ${tag ? `"${tag[1]}"` : "missing"})`);
+  if (!tag || !isItemId(tag[1]!)) throw new Error(`app link: the water page names no item (cift:item ${tag ? `"${tag[1]}"` : "missing"})`);
   return tag[1] as ItemId;
 }
 
