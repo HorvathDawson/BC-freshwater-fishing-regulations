@@ -17,11 +17,10 @@ planning chat; work only in scratchpad worktrees, never the main checkout.
    scenes may be shot from the website (`--web <url>`; only 07-saved-spot and 20-help need the store-shots build).
 3. **The one set: PR #192** (auto-merge set, CI running at 02:15). 35 PNGs in
    `handoff/PLAN/app-integration/store/graphics/store/light/` (`appstore-6.9`, `appstore-6.5`, `play-phone`,
-   `play-tablet7`, `play-tablet10`); both push scripts read it with no arguments (plan modes clean, nothing sent).
+   no tablet sets: dropped 2026-11-25); both push scripts read it with no arguments (plan modes clean, nothing sent).
    Regenerate: `scripts/heavy.sh store-shots 30 -- node app/tools/store-shots.mjs --theme light` (about 6 minutes;
    one frame: add `--reuse --scenes <nn> --only <target>`). One review round is spent. Known nits, owner asked:
-   the watershed name under the flow chart differs by size ("Lower Fraser" on the phone, "Lillooet" on the 6.9");
-   the tablets leave white space (phone layout on a tablet canvas).
+   both answered 2026-11-25 ("Drop tablet set. And you can get them to fix picture"): tablets dropped, frame 3's watershed name fixed (see T1072).
 4. **Listing words: merged (#170, #175).** One source `app/store-listing/listing.json` (+ `full-description.txt`);
    `play-listing-push.py --appstore` prints the App Store fields. Owner's answers (2026-11-24 ~23:55) are in T1072:
    promotional text = his short line, keywords without the name's words, Navigation / Sports, 500 MB, graphic kept.
@@ -42,7 +41,7 @@ planning chat; work only in scratchpad worktrees, never the main checkout.
   no Android system buttons, no "Google Play" or "Android" wording in the shared frames.
 - Play: no store badges, no "Best / #1 / Top / New / Free", no "Download now"; a caption takes at most 20 % of the
   picture; nothing time-bound. Apple 2.3.7: no prices in pictures or text.
-- Sizes differ only in pixels: Play phone 1080x1920 (2 to 8 pictures), tablets 7" 1200x1920 and 10" 1600x2560;
+- Sizes differ only in pixels: Play phone 1080x1920 (2 to 8 pictures), no tablet sets (the push clears the tablet slots);
   App Store 6.9" 1320x2868 (required slot) and 6.5" 1242x2688 (optional once 6.9" is given), 1 to 10, no alpha.
 - App Store pictures change only with a new version; Play's can change any day.
 

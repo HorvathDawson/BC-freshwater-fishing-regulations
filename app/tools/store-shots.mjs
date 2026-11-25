@@ -65,7 +65,7 @@ const listFor = (name) => shots.filter((s) => !s.only || s.only.includes(name));
 const usedBy = (pairs) => shots.filter((s) => pairs.some(([name]) => listFor(name).includes(s)));
 const onRaw = (raw) => usedBy(use.filter(([, t]) => t.raw === raw));
 
-const RAW_PRE = { phone: '', tablet7: 'tablet7-', tablet10: 'tablet10-', iphone69: 'iphone69-', iphone67: 'iphone67-', iphone55: 'iphone55-', ipad13: 'ipad13-' };
+const RAW_PRE = { phone: '', iphone69: 'iphone69-', iphone67: 'iphone67-', iphone55: 'iphone55-', ipad13: 'ipad13-' };
 const rawFile = (raw, scene) => path.join(RAW, `${RAW_PRE[raw] ?? `${raw}-`}${scene}.png`);
 
 // every capture the list needs: a shot's own scene, or each part of a composed one
@@ -106,7 +106,9 @@ if (!flag('--no-shoot')) {
 // (T1072) the rules that need no browser: captions' words, each target's size and count
 const ruleProblems = [...shots.flatMap(captionProblems), ...use.flatMap(([name, t]) => setProblems(name, t, listFor(name).length))];
 if (ruleProblems.length) throw new Error(`store-shots: the set breaks store rules:\n  ${ruleProblems.join('\n  ')}`);
-const missing = use.flatMap(([name, t]) => listFor(name).flatMap((s) => parts(s).map((sc) => rawFile(t.raw, sc)))).filter((f) => !fs.existsSync(f));
+// (T1072) with --scenes only the frames that use a re-shot scene are framed (the rest of each folder is left exactly as it is); otherwise every frame
+const redo = (shot) => !SCENES || parts(shot).some((sc) => needed.includes(sc));
+const missing = use.flatMap(([name, t]) => listFor(name).filter(redo).flatMap((s) => parts(s).map((sc) => rawFile(t.raw, sc)))).filter((f) => !fs.existsSync(f));
 if (missing.length) throw new Error(`store-shots: raw shots missing (run without --no-shoot):\n  ${missing.join('\n  ')}`);
 
 // 2. the frame: the app's colours and faces
@@ -168,11 +170,12 @@ html, body { margin: 0; width: ${W}px; height: ${H}px; overflow: hidden; backgro
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'store-shots-'));
 let n = 0; const shares = {};   // target -> the widest caption block's share of the height
 try {
-  for (const raw of new Set(use.map(([, t]) => t.raw))) for (const shot of onRaw(raw)) if (shot.compose) await composeRaw(raw, shot);
+  for (const raw of new Set(use.map(([, t]) => t.raw))) for (const shot of onRaw(raw)) if (shot.compose && redo(shot)) await composeRaw(raw, shot);
   for (const [name, t] of use) {
     const out = path.join(STORE, 'store', THEME, name); fs.mkdirSync(out, { recursive: true });
-    fs.rmSync(out, { recursive: true, force: true }); fs.mkdirSync(out, { recursive: true });   // a shot left out of a set must not linger
+    if (!SCENES) { fs.rmSync(out, { recursive: true, force: true }); fs.mkdirSync(out, { recursive: true }); }   // a shot left out of a set must not linger (a --scenes redo keeps the folder)
     for (const [i, shot] of listFor(name).entries()) {
+      if (!redo(shot)) continue;
       const html = path.join(tmp, `${name}-${i}.html`); fs.writeFileSync(html, page(t, shot, rawFile(t.raw, shot.scene)));
       const b = await open(`file://${html}`, { width: t.w, height: t.h, dpr: 1 });
       try {

@@ -14,7 +14,9 @@ Three modes, the default sends nothing:
 
 Sets (folders under ROOT, default handoff/PLAN/app-integration/store/graphics/store/light, as app/tools/store-shots.mjs
 writes them): appstore-6.9 -> APP_IPHONE_67 (Apple's 6.9" slot, 1320x2868 / 1290x2796 / 1260x2736) and appstore-6.5 ->
-APP_IPHONE_65 (1242x2688 / 1284x2778). No iPad set: app.json has supportsTablet false. Each set takes 1-10 PNG/JPEG files
+APP_IPHONE_65 (1242x2688 / 1284x2778). No iPad set: app.json has supportsTablet false. Each folder must hold EXACTLY the pictures app/tools/store-shots.json lists for it
+(deploy/staging/store_shots_list.py; T1127): a leftover or a missing one stops every mode by name, before any network call.
+Folders with no slot here (an old appstore-6.7, -5.5, -ipad13) are never read. Each set takes 1-10 PNG/JPEG files
 without alpha; a wrong one is refused by name, never resized. The locale must already exist on the version (the app's
 primary language is English (Canada), en-CA); it is never created here.
 --preview FILE (T709 clip): checked against Apple's app-preview rules for the 6.9" slot (886x1920 portrait, 15-30 s, at most
@@ -39,6 +41,8 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 from PIL import Image
+
+from store_shots_list import pictures
 
 API = "https://api.appstoreconnect.apple.com/v1"
 ROOT = Path(__file__).resolve().parents[2]
@@ -147,15 +151,17 @@ def main():
 
     want = {}
     for folder, (kind, sizes) in SETS.items():
-        d = a.shots / folder
-        files = sorted(p for p in d.glob("*") if p.suffix.lower() in (".png", ".jpg", ".jpeg")) if d.is_dir() else []
+        try:   # (T1127) the folder must hold exactly store-shots.json's list: a leftover or a gap stops the run, by name
+            files = pictures(a.shots / folder, folder)
+        except ValueError as e:
+            die(str(e))
         check(folder, files, sizes)
         want[kind] = files
     mode_name = "COMMIT" if a.commit else "CHECK (read-only)" if a.check else "PLAN (no network)"
     print(f"appstore-screenshots-push: {mode_name}")
     print(f"  app {a.bundle_id}, its editable iOS version, localization {a.locale}")
     for kind, files in want.items():
-        print(f"  {kind}: {len(files)} screenshots, replace the set in this order:")
+        print(f"  {kind}: {len(files)} screenshots ({', '.join(p.name for p in files)}), replace the set in this order:")
         for i, p in enumerate(files, 1):
             with Image.open(p) as im:
                 w, h = im.size

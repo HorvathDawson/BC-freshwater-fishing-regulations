@@ -18,41 +18,25 @@
       "compose": [
         {
           "scene": "11-cond-chart",
-          "from": 0.255,
-          "to": 0.985,
+          "from": 0.257,
+          "to": 0.978,
           "label": "Flow and forecast",
           "at": {
             "iphone69": [
-              0.1,
-              0.8
-            ],
-            "tablet7": [
-              0.09,
-              0.785
-            ],
-            "tablet10": [
-              0.071,
-              0.788
+              0.093,
+              0.795
             ]
           }
         },
         {
           "scene": "12-cond-change",
-          "from": 0.64,
-          "to": 0.81,
+          "from": 0.6415,
+          "to": 0.8585,
           "label": "Change, next 10 days",
           "at": {
             "iphone69": [
               0.752,
-              0.952
-            ],
-            "tablet7": [
-              0.752,
-              0.957
-            ],
-            "tablet10": [
-              0.815,
-              0.998
+              0.912
             ]
           }
         }
@@ -72,14 +56,6 @@
             "iphone69": [
               0,
               0.471
-            ],
-            "tablet7": [
-              0,
-              0.493
-            ],
-            "tablet10": [
-              0,
-              0.473
             ]
           }
         },
@@ -92,14 +68,6 @@
             "iphone69": [
               0.103,
               0.532
-            ],
-            "tablet7": [
-              0.098,
-              0.505
-            ],
-            "tablet10": [
-              0.073,
-              0.5
             ]
           }
         }
@@ -119,14 +87,6 @@
             "iphone69": [
               0,
               0.55
-            ],
-            "tablet7": [
-              0,
-              0.555
-            ],
-            "tablet10": [
-              0,
-              0.655
             ]
           }
         },
@@ -139,14 +99,6 @@
             "iphone69": [
               0.59,
               0.94
-            ],
-            "tablet7": [
-              0.6,
-              0.945
-            ],
-            "tablet10": [
-              0.7,
-              0.945
             ]
           }
         }
@@ -166,14 +118,6 @@
             "iphone69": [
               0.055,
               0.57
-            ],
-            "tablet7": [
-              0.055,
-              0.575
-            ],
-            "tablet10": [
-              0.045,
-              0.54
             ]
           }
         },
@@ -186,14 +130,6 @@
             "iphone69": [
               0.428,
               0.813
-            ],
-            "tablet7": [
-              0.428,
-              0.808
-            ],
-            "tablet10": [
-              0.44,
-              0.826
             ]
           }
         }
@@ -211,16 +147,6 @@
       "w": 1080,
       "h": 1920
     },
-    "play-tablet7": {
-      "raw": "tablet7",
-      "w": 1200,
-      "h": 1920
-    },
-    "play-tablet10": {
-      "raw": "tablet10",
-      "w": 1600,
-      "h": 2560
-    },
     "appstore-6.9": {
       "raw": "iphone69",
       "w": 1320,
@@ -232,5 +158,5 @@
       "h": 2688
     }
   },
-  "_targets": "Play phone + 7\"/10\" tablet; App Store 6.9\" (APP_IPHONE_67 slot) and 6.5\" (APP_IPHONE_65). No 5.5\" (not required once 6.9\" is given) and no iPad (app.json supportsTablet false)."
+  "_targets": "Play phone; App Store 6.9\" (APP_IPHONE_67 slot) and 6.5\" (APP_IPHONE_65). No Play tablet sets (owner 2026-11-25: \"Drop tablet set\"; Play then shows the phone pictures on tablets), no 5.5\" (not required once 6.9\" is given) and no iPad (app.json supportsTablet false)."
 }

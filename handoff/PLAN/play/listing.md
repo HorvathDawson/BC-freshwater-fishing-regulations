@@ -128,8 +128,8 @@ All files are in `handoff/PLAN/app-integration/store/graphics/`.
 |---|---|---|
 | App icon, 512 × 512 PNG | `app-icon-512.png` (the favicon fish, owner 2026-10-29; source `app/apps/mobile/assets/icon/play-512.png`, `app/tools/build-icons.mjs`) | ready |
 | Feature graphic, 1024 × 500, no alpha | `feature-graphic-1024x500.png` (the fish, the name and one line; `app/tools/build-play-graphics.mjs`) | ready. **OWNER:** its name must match the app name you pick above. If you change it, rerun `node app/tools/build-play-graphics.mjs` |
-| Phone screenshots, 2 to 8 | `03-conditions.png` (1080 × 1920), and `quick/01-map.png`, `02-regulations.png`, `03-salmon.png`, `04-runs.png`, `05-glossary.png` (all 1080 wide; four are 1080 × 2160) | drafts from the STAGING web app (`app/tools/play-shots.mjs`, headless). **OWNER:** keep them for closed testing, or retake them from the current phone build (0.7.7; the 0.5.0 named here before is stale). The shot list is in listing-draft.md. A saved spot and a share shot are not taken yet. |
-| Tablet screenshots (7", 10") | none | `play-shots.mjs` can make them at 1200 × 1920 and 1600 × 2560. Play only needs them if you list for tablets. |
+| Phone screenshots, 2 to 8 | the one committed set `store/light/play-phone/` (7 pictures, `app/tools/store-shots.json`; the old `03-conditions.png` and `quick/` drafts were deleted, T1127) | drafts from the STAGING web app (`app/tools/play-shots.mjs`, headless). **OWNER:** keep them for closed testing, or retake them from the current phone build (0.7.7; the 0.5.0 named here before is stale). The shot list is in listing-draft.md. A saved spot and a share shot are not taken yet. |
+| Tablet screenshots (7", 10") | none | Dropped by the owner 2026-11-25: `play-listing-push.py` clears both tablet slots on a push (T1072). |
 | Video | none | optional |
 
 ## Pushing the listing to Play

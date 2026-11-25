@@ -85,7 +85,7 @@ const band = async (b) => { const { data } = await b.send('Page.captureScreensho
     // a band is a run of 12+ grey rows that ENDS AT THE MAP'S FOOT (the legend panel's white rows, or the image's last rows): grey terrain elsewhere in the map is not it
     let best = null, run = 0; for (let y = 0; y <= rows.length; y++) { if (rows[y]) run++; else { if (run >= 12) { const e = y, foot = e >= rows.length - 2 || wh.slice(e, e + 8).some(Boolean); if (foot && !best) best = [e - run, e]; } run = 0; } } return best; })()`); };
 // drag the map `dy` CSS px DOWN (the camera moves north), in small steps and with a pause before the release so the map keeps no momentum
-async function dragDown(b, dy) { const z = b.size, x = Math.round(z.width * 0.3), y = Math.round(z.height * 0.3), mv = (type, yy) => b.send('Input.dispatchMouseEvent', { type, x, y: yy, button: type === 'mouseMoved' ? 'none' : 'left', buttons: type === 'mouseReleased' ? 0 : 1, clickCount: 1 });
+async function dragDown(b, dy, fy = 0.3) { const z = b.size, x = Math.round(z.width * 0.3), y = Math.round(z.height * fy), mv = (type, yy) => b.send('Input.dispatchMouseEvent', { type, x, y: yy, button: type === 'mouseMoved' ? 'none' : 'left', buttons: type === 'mouseReleased' ? 0 : 1, clickCount: 1 });
   await mv('mouseMoved', y); await mv('mousePressed', y); const steps = 12; for (let i = 1; i <= steps; i++) { await mv('mouseMoved', y + Math.round(dy * i / steps)); await sleep(25); } await sleep(250); await mv('mouseReleased', y + dy); }
 // move the camera north until the band is out of the view (the zoom stays); records the result in b.facts.band for the content check (null = none)
 async function clearBand(b) { for (let i = 0; i < 4; i++) { const bd = await band(b); if (process.env.BAND_DEBUG) console.log('band', b.size.width, i, JSON.stringify(bd)); if (!bd) { if (process.env.BAND_DEBUG) { const { data: d1 } = await b.send('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(path.join(OUT, `band-null-${b.size.width}.png`), Buffer.from(d1, 'base64')); await sleep(5000); console.log('band again after 5s', JSON.stringify(await band(b))); } b.facts.band = null; return; } await dragDown(b, Math.min(b.size.height * 0.5, bd[1] - bd[0] + 16)); await idle(b, 1500, 20000); }
@@ -130,11 +130,8 @@ const scrollTo = (b, id) => b.evaluate(`document.querySelector('[data-testid=${i
 const text = (b) => b.evaluate('document.body.innerText');
 // the Conditions map at the 20 km scale (owner 2026-11-25: one step wider than the old 10 km), after the watershed days have loaded; every scene that composes uses this camera.
 // (T319) Opened on the day's river (`river()`, store-shots/pick-river.mjs): its page closed leaves the map framed on it
-async function condMap(b, target = '20 km') {
-  await until(b, `!!document.querySelector('[data-testid=water-close]')`, 120000); await sleep(1500);
-  await click(b, `document.querySelector('[data-testid=water-close]')`);
-  await mapReady(b); await sleep(2000);
-  await click(b, find('Conditions', '[role=tab]')); await sleep(1500);
+// the scale bar's label depends on the latitude: a pan changes it, so frameWatershed calls this again after each move
+async function condScale(b, target = '20 km') {
   // (T1072) DETERMINISTIC. The scale bar's label holds for a whole zoom level (10 km: 10 <= bar < 20 km; 20 km: 20 <= bar < 30). MapLibre's
   // wheel handler piles up close events, which made the old pair-of-notches loop step over the level and swing 5 km <-> 20 km at tablet10. So
   // ONE wheel event at a time (about a fifth of a level), the map settled between. Out until the bar reads past the target, then in to the
@@ -146,7 +143,28 @@ async function condMap(b, target = '20 km') {
   for (let i = 0; i < 40 && !((km(await scale()) ?? 0) >= want * 2); i++) await notch(b, 400);
   for (let i = 0; i < 40 && (await scale()) !== target; i++) await notch(b, -400);
   if ((await scale()) !== target) throw new Error(`condMap: the map did not reach the ${target} scale, it reads ` + JSON.stringify(await scale()));
+}
+async function condMap(b, target = '20 km') {
+  await until(b, `!!document.querySelector('[data-testid=water-close]')`, 120000); await sleep(1500);
+  await click(b, `document.querySelector('[data-testid=water-close]')`);
+  await mapReady(b); await sleep(2000);
+  await click(b, find('Conditions', '[role=tab]')); await sleep(1500);
+  await condScale(b, target);
   await until(b, `!/still loading/.test(document.body.innerText) && /reaches coloured/.test(document.body.innerText)`, 90000); await idle(b, 2500, 30000);
+}
+// (T1072, owner 2026-11-25 "fix picture") the Change panel under the chart names the watershed with the LARGEST SHARE OF THE MAP in view (ui/src/basin.ts
+// `useViewBasin`, by design), so on a tall view the 20 km camera held more of the next watershed north (Lillooet) than the river's own (Lower Fraser). The
+// camera is moved (zoom kept) until the panel names the river's watershed: `STORE_WATERSHED` (default "Lower Fraser", Kanaka Creek's), recorded in b.facts.watershed.
+const WATERSHED = process.env.STORE_WATERSHED ?? 'Lower Fraser';
+const watershedName = (b) => b.evaluate(`(() => { const m = /^(.+) watershed$/m.exec(document.body.innerText); return m ? m[1].trim() : null; })()`);
+async function frameWatershed(b) {
+  const seen = [];
+  for (let i = 0; i < 8; i++) {
+    await until(b, `!/still loading/.test(document.body.innerText) && /reaches coloured/.test(document.body.innerText)`, 90000); await idle(b, 2500, 30000);
+    const n = await watershedName(b); seen.push(n); if (n === WATERSHED) { b.facts.watershed = n; return; }
+    await dragDown(b, -Math.round(b.size.height * 0.12), 0.5); await sleep(1500); await condScale(b);
+  }
+  b.facts.watershed = seen.at(-1); b.facts.watershedSeen = seen;
 }
 Object.assign(SCENES, {
   // the rules tab: the year bar and the species table in one view (scrolled so the bar sits under the water's title)
@@ -193,7 +211,7 @@ Object.assign(SCENES, {
       p.scrollTop += h.getBoundingClientRect().top - p.getBoundingClientRect().top - 4; return 'ok'; })()`);
     if (at !== 'ok') throw new Error('11-cond-chart: ' + at);
     await sleep(2000); },
-  '12-cond-change': async (b) => { await condMap(b); await click(b, `document.querySelector('[data-testid=map-horizons-change]')`); await sleep(7000); },
+  '12-cond-change': async (b) => { await condMap(b); await frameWatershed(b); await click(b, `document.querySelector('[data-testid=map-horizons-change]')`); await sleep(7000); },
   '13-cond-forecast': async (b) => { await condMap(b); await click(b, `document.querySelector('[data-testid=map-horizons-days]')`); await sleep(1500);
     // the fourth day out: far enough that the forecast differs from today
     await click(b, `[...document.querySelectorAll('[role=button],button')].filter((e) => /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun) \\d+$/.test(e.textContent.trim()) && e.getBoundingClientRect().width > 0)[3]`);

@@ -1,10 +1,10 @@
 # T1127 — The store push scripts upload every picture in a size folder, leftovers included
 
-Status: OPEN — now, the store chat (owner 2026-11-25: "we want this to be clean")
+Status: DONE (8702e420b, PR #207)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1127 | The store push scripts upload every picture in a size folder, leftovers included | OPEN — now, the store chat (owner 2026-11-25: "we want this to be clean") | | owner: "we can remove old store photos"; the 0.10.0 chat clears the main checkout |
+| T1127 | The store push scripts upload every picture in a size folder, leftovers included | DONE (8702e420b, PR #207) | 8702e420b | the 0.10.0 chat clears the 34 old pictures from the main checkout (owner 2026-11-25: "we can remove old store photos") |
 
 Source: the store content chat, 2026-11-25 12:15, after the 0.10.0 chat found 34 untracked pictures dated Nov 5 in
 the main checkout under `handoff/PLAN/app-integration/store/graphics/store/light/`. Not checked by the planning chat.
@@ -30,3 +30,12 @@ Until then (owner page): clear the 34 old pictures from the main checkout, or up
 
 Severity: medium (wrong pictures on a public listing; only on a machine that has the leftovers). Model: Sonnet.
 Size: S. Owner: no (2026-11-25 12:15: "we can remove old store photos. we want this to be clean").
+
+## Done (lane, 2026-11-25)
+- `deploy/staging/store_shots_list.py` mirrors store-shots.mjs (the 1-based `NN-<scene>.png` of each target's list) from
+  `store-shots.json`; both push scripts call it for every size folder they use. A picture not on the list, or a listed one
+  missing, stops every mode by name before any network call; `--shots`/`--tablet*` folders get the same check; `--no-shots`
+  unchanged. Plan output prints count and names per size.
+- The App Store script reads only `SETS` (appstore-6.9, -6.5): the old `-5.5`, `-6.7`, `-ipad13` folders are never opened.
+- Deleted the unread tracked leftovers `graphics/03-conditions.png` and `graphics/quick/*` (only a stale doc line named them).
+- Tests: `pipeline/tests/test_store_push_pictures.py`; the pipeline CI area now covers the committed set it reads.
