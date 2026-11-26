@@ -1,10 +1,10 @@
 # T1156 — One copy of the synopsis book; the region PDFs get a fetch command with checksums; a guard against a second copy
 
-Status: OPEN — step 1 done by the planning chat 2026-11-25 (the stale copy is deleted); steps 2 and 3 are small code
+Status: IN REVIEW — owner: see ## Owner
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1156 | One copy of the synopsis book; the region PDFs get a fetch command with checksums; a guard against a second copy | OPEN — step 1 done by the planning chat 2026-11-25 (the stale copy is deleted); steps 2 and 3 are small code | — | a build lane: the fetch command + pinned checksums for the nine region PDFs, the guard, the two doc lines; S |
+| T1156 | One copy of the synopsis book; the region PDFs get a fetch command with checksums; a guard against a second copy | IN REVIEW — owner: see ## Owner | 11ea55132, 68d3c7e4a | the owner's pick: keep the nine as pinned reference copies (default) or delete the folder |
 
 Source: the read-only synopsis spot-check of 2026-11-25 (planning chat's night agents): the repo's main checkout
 held two copies of the book. `data/source/fishing_synopsis.pdf` (tracked in git; read by the pipeline, the review
@@ -41,4 +41,11 @@ book is dropped into `data/source/official/` (mutation); the two doc lines agree
 ## Owner
 
 - [x] 2026-11-25 — The stale second copy of the book: how to fix → "you can do the 3 steps" (2026-11-25)
-- [ ] 2026-11-25 — If the lane confirms nothing reads the nine region PDFs: keep them as pinned reference copies (default) or delete the folder.
+- [ ] 2026-11-25 — Nothing reads the nine region PDFs (lane 2026-11-26: no code, test, tool or review-app reader; `quota_print` was deleted in 759bdebbd, only a stale `data/.gitignore` comment named it, now fixed). Keep them as pinned reference copies (default, the fetch and pins are built) or delete the folder.
+
+## Done (lane 2026-11-26)
+- Fetch: `python -m data.fetch_region_pdfs` (`data/fetch_region_pdfs.py`), pins `data/source/region_pdfs.pins.json`
+  (sha256, bytes, date_fetched per file; extra keys kept by a re-pin). Real fetch into a scratch folder: all nine matched.
+- Guard: `python -m pipeline.tools.one_book`, run in CI by `pipeline/tests/test_t1156_region_pdfs_and_one_book.py`.
+  A full book = named like it (synopsis/regulations) or 20+ pages with the synopsis cover; passes where `official/` is absent.
+- Docs: `data/README.md`, `fresh-machine.md` (lines 54 and 109 corrected), `data/.gitignore` comment.
