@@ -1,10 +1,10 @@
 # T1201 — Larger system text: every screen holds up ("SALMON" wrapped in the mode switch, "CONDITIONS" was cut in the tab bar)
 
-Status: OPEN — 0.10.0 re-cut (owner 2026-11-26)
+Status: DONE — 96f0c05a5, a8bf48d97 (the screens the walk could not reach: T1203)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1201 | Larger system text: every screen holds up ("SALMON" wrapped in the mode switch, "CONDITIONS" was cut in the tab bar) | OPEN — 0.10.0 re-cut | — | 1: fix the two labels (render tests at scale 1.0, 1.15, 1.3). 2: sweep every screen at larger text on web, fix what breaks; pictures to the owner before merge |
+| T1201 | Larger system text: every screen holds up ("SALMON" wrapped in the mode switch, "CONDITIONS" was cut in the tab bar) | DONE | 96f0c05a5, a8bf48d97 | — |
 
 Source: seen by the tester feedback chat, 2026-11-26, in a closed tester's pictures of the main map (app 0.9.0, a large
 Android phone; the tester did not mention either). Feedback log D21.
@@ -51,3 +51,15 @@ fix them here.
   cut or two-line fixed label.
 
 Depends: none. Size: S (the two labels) + M (the sweep). Model: Sonnet. Owner: a look at the pictures before merge.
+
+## 2026-11-26
+Built: the rule is in `type.ts` (`LABEL_SCALE`, `LABEL_PROPS`, `labelMinWidth`); the tab bar's tabs and the switch's
+cells grow to their labels. "CONDITIONS" was cut at 360 wide even at normal text size. The sweep
+(`app/tools/system-text-sweep.test.ts`, 10 screens, 360 and 412 wide, scales 1 to 2.0) also found and fixed the
+Conditions legend ("High" broken, "Normal" overlapping at 2.0), the More page's data rows and badge running off the
+edge, and the About version label. Laid out in headless Chrome with the text size emulated (the web build ignores the
+system size); not on a phone: T1203.
+
+## Owner
+
+- [x] 2026-11-26 — a look at the before / after picture of the tab bar and the switch at normal and 1.3 text → "the t1201 looks good" (2026-11-26)
