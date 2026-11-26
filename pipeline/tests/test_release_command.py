@@ -2540,3 +2540,32 @@ def test_which_runs_hold_the_mac_awake(world):
 def test_not_macos_has_nothing_to_keep_awake(world, monkeypatch):
     monkeypatch.setattr(R, "is_macos", lambda: False)
     assert R.stay_awake() == "not macOS: nothing to keep awake" and world["caffeinated"] == []
+
+
+def test_caffeinate_is_detached_from_the_releases_streams(monkeypatch):
+    """(T1161 review) the helper inherits none of the release's stdin/stdout/stderr. Mutation: drop the DEVNULLs: fails."""
+    import subprocess
+    seen = {}
+    monkeypatch.setattr(R.subprocess, "Popen", lambda cmd, **kw: seen.update(cmd=cmd, **kw))
+    R.start_caffeinate(4242)
+    assert seen["cmd"] == ["caffeinate", "-i", "-s", "-w", "4242"]
+    assert seen["stdin"] == seen["stdout"] == seen["stderr"] == subprocess.DEVNULL
+
+
+def test_a_prod_run_that_passes_its_checks_holds_the_mac_awake(staged, monkeypatch):
+    """(T1161 review) the prod hold starts inside prod(), after its checks. Mutation: drop the call: this fails."""
+    import os
+    monkeypatch.setenv("CONFIRM_PROD", NEW)
+    staged["caffeinated"].clear()
+    assert R.prod(NEW, ask=lambda _: NEW) == 0
+    assert staged["caffeinated"] == [os.getpid()]
+
+
+def test_an_unattended_prod_run_on_battery_gets_the_human_only_refusal(staged, monkeypatch, capsys):
+    """(T1161 review) no terminal on battery: prod's own refusal (rc 2), not the battery one; no hold started."""
+    monkeypatch.setenv("CONFIRM_PROD", NEW)
+    monkeypatch.setattr(R, "is_tty", lambda: False)
+    staged["pmset"] = BATT
+    staged["caffeinated"].clear()
+    assert R.main(["--prod", NEW]) == 2
+    assert "no interactive terminal" in capsys.readouterr().err and staged["caffeinated"] == []
