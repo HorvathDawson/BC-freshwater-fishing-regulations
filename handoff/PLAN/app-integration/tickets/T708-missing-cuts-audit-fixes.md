@@ -8,251 +8,71 @@ Status: PARTIAL (874bbd00a, 8937f6b73, d109408fd, 8a1ce30f1: all built and relea
 
 Source: `handoff/PLAN/research/missing-cuts-audit.md` (2026-11-13, release r-adc4e248a163) and the owner's answers
 the same day; follow-up research 2026-11-13 (this ticket, read-only, no data changed). Before closed testing.
-Pictures (Esri imagery, scratch): `deena_cut.jpg`, `mamin_cut.jpg`, `mcrae_cut.jpg` from the follow-up lane; Gagnon:
-`~/bcfish-session-backup-2026-11-12/lake-ends/gagnon_creek.jpg` (shows the old 400 m cut).
 
-## Owner decisions (2026-11-13)
+Done (built and released, r-a9914d6b25b7; wording a-c in r-f749475d0962): Pitt r2 "— in part: at Grant Narrows"; Ruby r1
+`between` (100 m piece); Gagnon r1 cut `gagnon_creek__signs_200_m_above_the_unnamed_lake` (binds the 74 m channel, the
+unnamed lake and ~200 m of creek; RULINGS P57 rewritten); Deena → crossing 2 (53.11879,-132.20619), Mamin → crossing 3
+(53.53846,-132.32589), both `low`; Kootenay dolphin re-anchored on wbk -20, r1 `between` [cpr, dolphin]; Hidden, Secret,
+Square (→ Whitton) in `name_variants.json` (11 rules bound, unresolved 29 -> 17); (a) McArthur `undrawn_part`, (b) Lakelse
+"Mouth (at the signs)" (d109408fd, `part.MOUTH_WORDS`), (c) Tlell r5 `includes_tributaries: false`; McRae closed, no change.
+Answered, no change: Haida Gwaii tidal boundary stays at the mouth for Copper, Deena, Mamin (no written boundary); Stave
+`stave_river.r1` stays on all 4 pieces.
 
-1. **Pitt River `pitt_river.r2`** "speed restriction at Grant Narrows (10 km/h)": treat it like the other vessel
-   "on parts" rules (stays on the water as they do), and its label keeps the place: "… at Grant Narrows". Today the
-   label reads only "Speed restriction (10 km/h)". The 30 "on part(s)" vessel rules stay as they are.
-2. **Ruby Creek `ruby_creek.r1`**: defect. "From Ruby Lake to signs ~100 m downstream" is a `between`
-   (Ruby Lake cut 10.59 km, sign cut 10.49 km), not `upstream_of` the sign (which also takes the creek above Ruby Lake
-   up to Ambrose Lake + 6 tributary sections). PROPOSAL; the owner has not objected.
-3. **Yakoun**: correct as placed. **McRae Creek**: check (picture). **Lakelse**: add "signs" to the mouth's name.
-   **Kootenay `kootenay_river_lower.r1`**: fine if the lower boundary carries its proper name.
-4. **Columbia River r12 "in wetlands"**: a future item to look at better (not this ticket's work).
-5. **Decided later the same day** (owner answers on the follow-up report):
-   - **Deena**: "deena proposed is good": the cut moves to crossing 2 (8.83 km on the line); stays `low`.
-   - **Mamin**: "same with mamin crossing": the cut moves to crossing 3 (16.71 km); stays `low`.
-   - **McRae**: "seems good. i think i spent time confirming before": no change, closed.
-   - **Gagnon**: "should cover a little bit above the unnamed lake too. so make it 200m above the unnamed lake or so":
-     the sign cut goes ~200 m above the unnamed lake's inlet (≈ 3,859 m on the line); the exemption covers the 74 m
-     channel, the whole unnamed lake and that ~200 m of creek (Work 3).
-   - **Unmatched lakes**: the owner goes through Hidden, Secret, Square (→ Whitton) and Frog with evidence pictures
-     (`~/bcfish-session-backup-2026-11-12/audit-cuts/`: `hidden_lake.jpg`, `secret_lake.jpg`,
-     `square_whitton_lake.jpg`, `frog_lake_leads.jpg`). Then: "add the 3 high confidence lakes. frog seems unsure
-     still … will look harder for frog and redfern later": Hidden, Secret, Square → Whitton DECIDED (Work 8).
-6. **Answered 2026-11-13** (were the open questions):
-   - **Haida Gwaii tidal boundary (audit Q1)**: stays at the mouth for Copper, Deena and Mamin unless a written
-     boundary is listed elsewhere (standing order: DFO written boundary → points-of-land line → polygon). Check
-     (read-only, `data/source/dfo_tidal_areas/2026-10-28` and `2026-11-11`, SOR/2007-77, curated
-     `waters/tidal_limits.json`, `tidal_split_authority.json`, `cuts.json`): **no written tidal boundary for any of
-     the three.** DFO lists only "The tidal portion of all streams flowing into Areas 1, 2 and 102". Near-misses, not
-     tidal boundaries: "Diina (Deena Creek): That portion of subarea 2-1 that lies inside a line commencing at
-     53° 09.415' N, 132° 06.870' W …" is a sub-area of the X̲aana K̲aahlii (Skidegate Inlet) Marine Refuge
-     (`fm-gp/rec/tidal-maree/a-s2-eng.html`); "Copper River estuary … shoreward of a straight line between two
-     boundary signs located on either side of Copper River estuary" is a gear-restriction area in the 2026-10-28
-     copy only (gone from 2026-11-11). Mamin: nothing. No change.
-   - **Stave River Ruskin channel (Q6)**: the whole described channel; `stave_river.r1` stays on all 4 pieces. No change.
-   - **McArthur Island Slough (class a item 2)**: the whole slough; the stretch stays (3 sections). The card must keep
-     the book's place words ("from westerly entrance to 12th Street entrance to Park"); today's label reads only
-     "No powered boats".
+Left as recorded, not built: the Kootenay dolphin cut is an ALIAS of the standing lake boundary (`sectionizer._coincident`),
+so the PART end name stays "Kootenay Lake — Main Body"; changing which name wins is a sectionizer policy change. Gagnon's
+cut label was OPEN for the owner (reads as a part end "Its mouth (placed 200 m above the unnamed lake)", fails
+test_part_names_unnamed_lake; proposed e.g. "fishing boundary signs (200 m above the lake below Williston)", needs another
+atlas build). Columbia River r12 "in wetlands": a future item to look at better (not this ticket's work).
 
-## Work
+## Work 8 (left): the unmatched lakes, Frog, Redfern, Squirrel
+Exactly 6 entries matched no water and held rules (21 rules, `no_sections_for_items`); Hidden, Secret, Square are done. Left
+(stay in `AWAITING_WATER_ROWS`; Owner decisions 5, 2026-11-13: "add the 3 high confidence lakes. frog seems unsure
+still … will look harder for frog and redfern later"; then "look harder", "even deeper … old map books", and for Redfern
+"might exist elsewhere": three rounds, no lake named, nothing to accept). Evidence pictures:
+`~/bcfish-session-backup-2026-11-12/audit-cuts/frog_lake_leads.jpg`. Earlier evidence:
+`handoff/PLAN/curation-review/unmatched-lakes-research.md` (2026-10-28).
+- **Frog Lake** (p.45, MU 5-6; "No Ice Fishing; trout daily quota = 1; bait ban, single barbless hook"; no locating
+  words). The Cariboo 2008 harmonization table (gov.bc.ca `RegChanges-Update05dec08.pdf`) put Frog, Hidden and Secret
+  together in suite R3, so Frog is most likely another lake of the Hidden/Secret group near Stewart Lake. 7 candidates,
+  all unnamed and unmatched, none eliminated, confidence none: A wbk 328962870, 10.9 ha, 01256ATNA, 52.1769,-125.4629
+  (1.8 km W of Charlotte Lake); B wbk 329021897, 8.6 ha, 01267ATNA, 52.1670,-125.4710; C wbk 329021982, 4.4 ha,
+  01272ATNA, 52.1622,-125.4823 (A and C on the Stewart Lake creek, B on a side creek; each only a 1994 Region 5 "LAKE
+  SURVEY DATA" record); 1993-03-12 run "UNNAMED (#2)" 00945KLIN = wbk 329238264 (9.3 ha, 51.8784,-124.9956) and "UNNAMED
+  (#3)" 00949KLIN = wbk 329238354 (4.8 ha, 51.8761,-125.0023), west of Agnus/Miner lakes; AIM 1997 unaliased "#30"
+  00907ATNA = wbk 329021857 (16.3 ha, 52.3613,-125.5859) and "#31" 00876ATNA = wbk 329021820 (32.3 ha, 52.3754,-125.5779).
+  Other unnamed lakes with 1994 records nearby: 01504ATNA (wbk 329021836, 22.1 ha; wbk 329021863, 14.1 ha), 01538ATNA
+  (wbk 329022115, 2.7 ha), 01542ATNA (wbk 329022199, 2.2 ha), all east of Whitton Lake; 01479ATNA (no FWA lake ≥ 2 ha).
+- **Redfern Lake** (p.46, MU 5-15; "Trout daily quota = 2; bait ban, single barbless hook"; no locating words). BC's only
+  Redfern Lake (gnis 28852, 498.6 ha) is in MU 7-42 (Redfern-Keily Park; Region 7B never printed a Redfern row; stocked
+  once in 1984, 00436UPRO). In the Cariboo only Ruth Redfern Creek (MU 5-15, blk 356363780) carries the name; it runs
+  through Deception Lake (its own 5-15 row, same rules: the only 5-15 row printing exactly Redfern's rules in every edition
+  2004 → 2025) and rises at unnamed lake wbk 329354762 (32.8 ha, 00034MAHD, 52.1514,-120.5416), FISS survey 5484 / EcoCat
+  51923 "Unnamed Lake (Goat Lake)": not Redfern (Goat had its own 5-15 row 2004–2008-09). Other lakes in the watershed:
+  ponds ≤ 5 ha (largest wbk 329355014, 5.1 ha, 52.1614,-120.6007, 00011MAHD; no survey); AIM 1998 00681MAHD (wbk
+  329354774, "UNNAMED (#6327)", drains to Hendrix Creek): not it. Reading: a small lake managed with Deception in the Ruth
+  Redfern Creek / Deception area of 5-15, not the 7B lake; a misprinted MU would also need a misprinted region. Not proven.
+- **Squirrel Lake** (R6 p.53 + R5 p.47 copy, MU 6-1; 2008 suite R2 with the other 6-1 lakes). BC's one Squirrel Lake
+  (gnis 38786, wbk 329354753, 43.1 ha, 01446MAHD) is in MU 5-1, bound by the Paddy Lake 5-1 row; NOT a misfile: in 2004
+  Paddy printed only "Trout daily quota = 2" while Squirrel printed the 6-1 group's "quota = 4; bait ban, single barbless
+  hook" (Toms, Chipmunk, Naglico), in both regions' tables. The 6-1 group comes from the Region 5 limnology run of
+  1993-03-03 (EUCL, MU "5-12 (6-01)"); in 6-1 four of its lakes carry a row (Toms 329126712, Chipmunk 329126718, Naglico
+  329126698, Pettry 329126727), Wolf Lake 329126708 (112 ha) is gazetted with no row, and **7 are unnamed and unmatched**:
+  #19 00863EUCL wbk 329126790 (26.5 ha, 53.0208,-125.0010), #20 00725EUCL 329126734 (53.8 ha, 53.0337,-125.0378), #21
+  00888EUCL 328967975 (34.1 ha, 53.0168,-125.0423), #22 00913EUCL 329126782 (28.9 ha, 53.0101,-125.2405), #23 00908EUCL
+  329126768 (33.0 ha, 53.0094,-125.2811), #24 00898EUCL 329126717 (77.1 ha, 53.0071,-125.3366), #25 01094EUCL 329126741
+  (48.1 ha, 52.9898,-125.3511). No sheet names Squirrel; no sole or two-way candidate, so no pictures.
 
-1. **Pitt r2**: give the rule its place words ("at Grant Narrows") so the label says it; extent as the "on parts"
-   rules have it.
-2. **Ruby Creek r1**: `between` [`ruby_creek__signs_100_m_below_ruby_lake`, `ruby_creek__ruby_lake`] (both exist);
-   diff the rule's bindings (100 m piece only).
-3. **Gagnon Creek r1** — DECIDED (owner 2026-11-13, Owner decisions 5): a sign cut ~200 m above the unnamed lake's
-   inlet (≈ 3,859 m; the inlet is 3,659 m; that stretch is the creek's own double-line polygon, wbk 328948699).
-   `downstream_of` it then binds the 74 m channel, the unnamed lake wbk 329465442 (the walk/extent must take the lake:
-   lakes are never cut) and the ~200 m of creek. Mouth stays Williston and the lake stays its own (P57). What
-   changes: RULINGS P57 (its "signs ARE the mouth … covers no water" sentences; the mouth part of it stands), the cut
-   and its note in `cuts.json` (`gagnon_creek__fishing_boundary_signs_at_the_mouth` → a point cut with the book's
-   words), `pipeline/tests/test_t89_rules_that_bind_no_water.py` (gagnon r1 leaves BY_DESIGN: 8 → 7, ALLOWED 29 → 28
-   in `test_the_allow_list_is_exact`), and the creek's part names (one part "The mouth (at Williston Lake) → Source"
-   becomes mouth → signs → Source). Atlas rebuild. The earlier options, kept for the record — facts:
-   - FWA line (blk 359565112): 0–1,761 m runs INSIDE Williston Lake's full-pool polygon (lake connector, the
-     reservoir arm; the drawdown zone has no stream piece of its own); 1,761–1,835 m a 74 m channel; 1,835–3,659 m
-     through the 58 ha unnamed lake wbk 329465442 (behind an embankment); creek above. First road crossings:
-     Finlay-Causeway FSR 5,362 m, Gagnon Creek Bridge (highway) 5,715 m. No record of where the signs stand.
-   - Before P57 the cut was `gagnon_creek__signs_400_m_above_williston_lake` at route measure ~2,161 m (Williston edge
-     + 400 m): inside the unnamed lake, so it aliased onto that lake's outlet edge (1,835 m) and the exemption held on
-     the 74 m channel only (the picture above).
-   - Options: (a) restore that cut: exemption = the 74 m channel; (b) also give the exemption the unnamed lake
-     (the 400 m point lies in it; lakes are never cut, so all or none of its 58 ha); (c) 400 m measured from the line's
-     measure 0 lies inside Williston: no creek water, nothing binds.
-   - P57 ("mouth is still Williston") to keep true: the creek's mouth stays the Williston Zone A edge (the part's
-     lower end stays "The mouth (at Williston Lake)"), the unnamed lake stays its own lake (`waters/pond_calls.json`).
-     What changes with it: RULINGS P57's "signs ARE the mouth" sentence, the cut note in `cuts.json`, and
-     `test_t89_rules_that_bind_no_water.py` BY_DESIGN (gagnon r1 then binds; the count 8 → 7).
-4. **Deena `deena_creek.r1`, Mamin `mamin_river.r3`** (owner: the cut ON A BRIDGE where one exists, old or broken
-   ones too, near the book's distance along the stream OR as the bird flies; stays low confidence). Road crossings
-   from the BC Digital Road Atlas + FTEN (all statuses) + PSCIS; distances from the FWA tidal crossing:
-
-   | water | crossing | on line | above tidal, stream | bird | road |
-   |---|---|---|---|---|---|
-   | Deena (tidal 0.31 km) | 1 | 1.52 km | 1.2 km | 0.6 km | paved resource road (OSM bridge) |
-   | | **2 — proposed** | **8.83 km** | 8.5 km | **5.3 km** | loose resource road (DRA), 53.11879,-132.20619 |
-   | | 3 | 10.27 km | 10.0 km | 6.6 km | overgrown road (DRA) |
-   | | 4 | 14.03 km | 13.7 km | 8.1 km | FTEN R13249 "121E-100 TO FORK05" |
-   | | current cut | 5.31 km | 5.0 km | 3.1 km | no road: a point at the book's distance |
-   | Mamin (tidal 2.08 km) | 1 | 4.58 km | 2.5 km | 1.9 km | Datlamen Main / "New Mainline" |
-   | | 2 = current cut | 11.16 km | 9.1 km | 5.8 km | Mamin Main |
-   | | **3 — proposed** | **16.71 km** | 14.6 km | **9.0 km** | DRA "unsigned", loose, 53.53846,-132.32589 |
-   | | 4–6 | 28.2–30.6 km | 26–29 km | 14.5–16.5 km | Mamin Main / MAMIN16 |
-
-   Counting bridges AND reading the book's km as the bird flies fit both rows (2nd crossing ~5 km, 3rd ~9 km);
-   Copper Creek, already accepted, fits the same reading (2nd crossing South Bay Main: 7.7 km stream, 5.3 km bird,
-   book "6 km"). DECIDED (owner 2026-11-13): Deena → crossing 2 (8.83 km), Mamin → crossing 3 (16.71 km), both kept
-   `low`; re-anchor `deena_creek__second_bridge_5_km_above_tidal` / `mamin_river__third_bridge_mamin_main` (new
-   labels name the crossing), atlas rebuild, diff the two rules' bindings. Unconfirmed:
-   no source says which roads have bridges vs culverts, and an unmapped crossing would change the count.
-5. **McRae Creek `mcrae_creek.r1`** ("falls ~4 km upstream of Christina Lake"): the cut is the FISS 4 m falls
-   (24834) at 2.33 km on the line = 2.05 km above the lake shore by stream, 1.4 km bird. FISS has a 2 m falls at
-   2.47 km and nothing near 4 km (4.0 km above the shore is km 4.28). CLOSED, no change (owner 2026-11-13: "seems
-   good. i think i spent time confirming before").
-6. **Tlell `tlell_river.r5`** (tidal note). App facts: the Tlell River's own page shows it nowhere (part 1, 4 sections,
-   source → tidal sign: r1, r2, licensing only; part 2, the tidal piece below the sign: no rules, the tidal guide
-   line). The note sits in one rule set (bundle set via `trib`, 13 sections): Geikie Creek's upper part (1 section,
-   searchable by name) and 12 unnamed tributary lines (map tap only). None of the 13 is tidal: none in the bundle's
-   `tidal` table, all freshwater streams 0.7–8.6 km long (11 drain to Geikie Creek, 1 joins the Tlell directly below
-   the sign). Proposal (owner's view): take the note off every one that is not fully tidal, i.e. all 13 (the rule
-   is the row's `includes_tributaries` walking from a reach that the tidal trim emptied). The tidal part already says
-   "tidal water" by itself.
-7. **End names.** Kootenay: the closure's lower end is the auto lake-edge split
-   `kootenay_river__kootenay_lake_main_body` ("Kootenay Lake — Main Body"); label "No fishing — between CPR and
-   Kootenay Lake — Main Body". The curated `kootenay_river__navigation_dolphin_2000_m_downstream` (cuts.json, anchored
-   on the retired whole-lake wbk 328974235) resolves nowhere (not in `splits.resolved.json` nor the bundle). The name
-   is set by a `cuts.json` label: re-anchor the dolphin split on Kootenay Lake — Main Body's inlet edge (wbk -20) with
-   the book's words ("navigation dolphin, 2 km below CPR Bridge") and point r1 at it; check which name wins when two
-   cuts share the place (`sectionizer._coincident`: the standing boundary keeps its name). "CPR" may become "CPR
-   Bridge near Creston". Lakelse: the lower part runs "power line crossing → mouth"; `mouth` is a fixed token worded
-   "the mouth"/"Mouth" in `pipeline/deliver/answers/display/part.py` (`end_name`, `_end_short`); no per-water mouth
-   name exists. Ways: a cut at the designated mouth with a label carrying "signs" (audit Q4; note `_SIGN_WORDS`
-   strips a LEADING "signs at/near" from short names, so the words must not start with "signs"), or a per-water
-   mouth-name field (new).
-8. **Unmatched waters** (all regions, lakes and streams): exactly 6 entries match no water and hold rules
-   (21 rules, `no_sections_for_items`): Frog, Hidden, Secret, Square (5-6, p.45–47), Redfern (5-15, p.46), Squirrel
-   (R6 6-1, p.53; the R5 copy is a `see`). Every other entry with no water is an area row, a pointer or a
-   cross-listed duplicate. Evidence pictures (Esri imagery, MU line labelled):
-   `~/bcfish-session-backup-2026-11-12/audit-cuts/hidden_lake.jpg`, `secret_lake.jpg`, `square_whitton_lake.jpg`,
-   `frog_lake_leads.jpg`.
-
-   **DECIDED (owner 2026-11-13: "add the 3 high confidence lakes")** — one `data/curated/waters/name_variants.json`
-   record each, in the file's existing form (as Cruise Lake / "Fish" Lake, the same 1997 survey series):
-   ```json
-   {"target": {"wbks": ["329021830"]}, "names": [{"name": "HIDDEN LAKE", "source": "regulation", "note": "Unnamed lake in MU 5-6, 3.2 km SW of Stewart Lake. BC Lakes Database: WBID 01338ATNA (FISS 1993-03-12 'Limnology data for Hidden Lake'; AIM 1997 'Reconnaissance Survey of Un-named (Hidden) Lake', EcoCat 32595, 32579). Owner accepted 2026-11-13 (T708).; REGION 5 - Cariboo; MU 5-6"}]}
-   {"target": {"wbks": ["329021850"]}, "names": [{"name": "SECRET LAKE", "source": "regulation", "note": "Unnamed lake in MU 5-6, 0.7 km south of Hidden Lake on the same creek. BC Lakes Database: WBID 01370ATNA (AIM 1997 'Reconnaissance Survey of Unnamed (Secret) Lake'; EcoCat 49174, charts titled 'Secret Lake'). Owner accepted 2026-11-13 (T708).; REGION 5 - Cariboo; MU 5-6"}]}
-   {"target": {"wbks": ["329021786"]}, "names": [{"name": "SQUARE LAKE", "source": "regulation", "note": "Local name of Whitton Lake (gnis 39187) in MU 5-6, above Cohen Lake. BC Lakes Database: WBID 01503ATNA (AIM 1997 'Reconnaissance Survey of Whitton (Square) Lake'; EcoCat 33962). The book has no Whitton row. Owner accepted 2026-11-13 (T708).; REGION 5 - Cariboo; MU 5-6"}], "_gnis": ["39187"]}
-   ```
-   Evidence per lake: Hidden — unnamed, 24.1 ha, 52.1132,-125.6079; Secret — unnamed, 17.5 ha, 52.1005,-125.6163;
-   Square — Whitton Lake, 237.7 ha, 52.0318,-125.5638. Each survey's 50K code equals the FWA lake's own
-   `WATERBODY_KEY_50K` + group code (an exact join, not nearest). No other FWA lake in MU 5-6 carries these names.
-   Follow-on (the lane that applies them):
-   - `data/curated/regulations/book_name_links.json`: the three `not_found: true` rows for HIDDEN / SECRET / SQUARE
-     LAKE (Region 5, MU 5-6) say "do not bind"; remove them (or the variants never reach the entries).
-   - Registry rebuild (atlas build, `--atlas` side build + parity, then promote); re-match the entries (`matched`).
-   - The reach run's unresolved rules drop by 11 (Hidden 4, Secret 4, Square 3): 29 → 18 (→ 17 with Gagnon r1, Work 3).
-   - `pipeline/tests/test_t89_rules_that_bind_no_water.py`: take the three rows out of `AWAITING_WATER_ROWS`;
-     `test_the_allow_list_is_exact` pins `len(AWAITING_WATER) == 21` → 10 and `len(ALLOWED_UNRESOLVED) == 29` → 18
-     (17 with Gagnon; `BY_DESIGN` 8 → 7). The docstring's "seven rows" text follows. No other test names these entries
-     (`fixtures/review_tiers_sample.json` is a frozen fixture). The binding diff vs the live release lists 11 rules
-     newly bound on 3 lakes.
-
-   **Still unmatched** (stay in `AWAITING_WATER_ROWS`; Frog and Redfern: owner will look harder later):
-   - **Frog Lake** (p.45, MU 5-6; "No Ice Fishing; trout daily quota = 1; bait ban, single barbless hook"; no locating
-     words, the same in the 2008-09 synopsis). The Cariboo 2008 harmonization table (gov.bc.ca
-     `RegChanges-Update05dec08.pdf`) put Frog, Hidden and Secret together in suite R3 (quota 1 was already theirs;
-     2008 added the ice closure), so Frog is most likely another lake of the Hidden/Secret group near Stewart Lake.
-     Leads (unnamed, each with only a 1994 Region 5 "LAKE SURVEY DATA" record; picture `frog_lake_leads.jpg`):
-     A wbk 328962870, 10.9 ha, 01256ATNA, 52.1769,-125.4629 (1.8 km W of Charlotte Lake); B wbk 329021897, 8.6 ha,
-     01267ATNA, 52.1670,-125.4710; C wbk 329021982, 4.4 ha, 01272ATNA, 52.1622,-125.4823 (A and C on the Stewart Lake
-     creek, B on a side creek). Other unnamed lakes with 1994 records nearby: 01504ATNA (wbk 329021836, 22.1 ha;
-     wbk 329021863, 14.1 ha), 01538ATNA (wbk 329022115, 2.7 ha), 01542ATNA (wbk 329022199, 2.2 ha), all east of
-     Whitton Lake; 01479ATNA (no FWA lake ≥ 2 ha found). Tried, nothing: FWA names province-wide (BC's Frog lakes
-     are in 1-10, 3-28/29, 7-30, 7-52), BCGNIS, FISS lake surveys + fish observations + EcoCat titles (incl.
-     "(Frog)"), every FISS/EcoCat record in the Charlotte–Stewart block, the repo's stocking records (FIDQ, 64,991
-     releases: none), the 2008 table and the 2008-09 synopsis. None of the 1997 AIM survey titles is Frog. Would
-     settle it: the 1994 survey forms for those codes or the Williams Lake fisheries office's lake file, the scanned
-     EcoCat 49174 report, or an older synopsis with a locating note.
-   - **Redfern Lake** (p.46, MU 5-15; "Trout daily quota = 2; bait ban, single barbless hook"; no locating words, same
-     row in 2008-09). BC's only Redfern Lake (gnis 28852, 498.6 ha) is in MU 7-42 (Redfern-Keily Park). In the
-     Cariboo only Ruth Redfern Creek (MU 5-15, blk 356363780) carries the name; it runs through Deception Lake (its
-     own 5-15 row, same rules) and rises at unnamed lake wbk 329354762 (32.8 ha, 00034MAHD, 52.1514,-120.5416), which
-     FISS (survey 5484) and EcoCat 51923 call "Unnamed Lake (Goat Lake)" — against Redfern. Tried: FISS/EcoCat by
-     name, every survey in the Canim/Deception/McNeil block, BCGNIS. Would settle it: the regional office, or a
-     book or gazetteer record tying "Redfern" to a lake on Ruth Redfern Creek.
-   - **Squirrel Lake** (R6 p.53 + R5 p.47 copy, MU 6-1; "Trout daily quota = 2; bait ban, single barbless hook";
-     2008 suite R2 with the other 6-1 lakes). BC's one Squirrel Lake (gnis 38786, wbk 329354753, 43.1 ha, 01446MAHD)
-     is in MU 5-1 and is already bound by the Paddy Lake 5-1 row. The other 6-1 rows (Toms, Basalt, Gatcho, Naglico,
-     Pettry, Chipmunk) came from the 1993 Region 5 winter-limnology series in EUCL, which also has unnamed "Lake
-     #19–#25"; no record names Squirrel. Tried: FISS lake records 52.88–53.2 N / 124.9–125.9 W, EcoCat EUCL /
-     Kluskus / Euchiniko titles, BCGNIS, web. Would settle it: the same office file for the 1993 series.
-
-   **Deeper search (2026-11-13, owner "look harder")** — still no lake named; nothing to accept. Sources read:
-   archived Region 5/6 synopsis tables 2004 (wlapwww.gov.bc.ca `fw/fish/pdf/region_5.pdf`, `region_6.pdf`, Wayback
-   20040405), 2005-07, 2007-08, 2008-09, 2009-11; the 2003 regulation HTML pages and Cariboo/Skeena stocking lists
-   (Wayback 2003, no lake tables / none of the names); BCGNIS all statuses (no Frog/Redfern/Squirrel lake in these
-   MUs, none rescinded); every FISS lake survey + EcoCat report inside MUs 5-6, 5-15, 6-1; the scanned report covers
-   and summary sheets of the unaliased surveys below; archive.org search (no scanned synopsis). All three rows are
-   already in the 2004 edition with the same names and no locating words (earliest table found).
-   - Frog: the 1993-03-12 Region 5 winter-limnology trip that recorded "Lake Name: HIDDEN" (EcoCat 32595 sheet) also
-     sampled "UNNAMED (#2)" 00945KLIN = wbk 329238264 (9.3 ha, 51.8784,-124.9956) and "UNNAMED (#3)" 00949KLIN = wbk
-     329238354 (4.8 ha, 51.8761,-125.0023), both just west of Agnus/Miner lakes. AIM's 1997 batch (which aliased
-     Hidden, Secret, Square, Fish, No Name, Banana, Maydoe) left two lakes unaliased: "#30" 00907ATNA = wbk 329021857
-     (16.3 ha, 52.3613,-125.5859) and "#31" 00876ATNA = wbk 329021820 (32.3 ha, 52.3754,-125.5779); their report
-     covers and summary sheets carry no alias. With leads A–C these are seven possible lakes; none is named Frog
-     anywhere. Confidence: none.
-   - Redfern: "Goat" Lake (00034MAHD, wbk 329354762) had its own 5-15 row beside Redfern in 2004–2008-09, so
-     Redfern is not Goat. The only other lakes in the Ruth Redfern Creek watershed are Deception (own row) and ponds
-     ≤ 5 ha (largest wbk 329355014, 5.1 ha, 52.1614,-120.6007, 00011MAHD; no survey). AIM's 1998 unaliased 5-15 lake
-     00681MAHD (wbk 329354774) reads "Local name: UNNAMED (#6327)" and drains to Hendrix Creek: not it. Not found.
-   - Squirrel: NOT a misfile of the 5-1 lake — in 2004 Paddy Lake (5-1, FWA "Squirrel Lake") printed only "Trout daily
-     quota = 2" while Squirrel (6-1) printed the 6-1 group's "quota = 4; bait ban, single barbless hook" (Toms,
-     Chipmunk, Naglico), in both the Region 5 and Region 6 tables. The 6-1 group comes from the Region 5 limnology run
-     of 1993-03-03 (sheets "Lake Name: TOMS", "CHIPMUNK", "#19"–"#25", MU "5-12 (6-01)"); Squirrel is likely one of
-     the numbered ones: #19 00863EUCL wbk 329126790 (26.5 ha), #20 00725EUCL wbk 329126734 (53.8 ha), #21 00888EUCL
-     wbk 328967975 (34.1 ha), #22 00913EUCL wbk 329126782 (28.9 ha), #23 00908EUCL wbk 329126768 (33.0 ha), #24
-     00898EUCL wbk 329126717 (77.1 ha), #25 01094EUCL wbk 329126741 (48.1 ha), all 52.99–53.03 N, 125.0–125.4 W. No
-     sheet names Squirrel. Not found.
-   **Elimination (2026-11-13; registry + `matched` + `name_variants.json` of the current release, FWA names):**
-   - Squirrel, 1993-03-03 run (30 lakes, EUCL; 12 lie in MU 6-1). In 6-1: 4 carry a Synopsis row (Toms wbk
-     329126712, Chipmunk 329126718, Naglico 329126698, Pettry 329126727); 1 is gazetted with no row (Wolf Lake
-     329126708, 112 ha); **7 are unnamed and unmatched**: #19 329126790 (26.5 ha, 53.0208,-125.0010), #20 329126734
-     (53.8 ha, 53.0337,-125.0378), #21 328967975 (34.1 ha, 53.0168,-125.0423), #22 329126782 (28.9 ha,
-     53.0101,-125.2405), #23 329126768 (33.0 ha, 53.0094,-125.2811), #24 329126717 (77.1 ha, 53.0071,-125.3366), #25
-     329126741 (48.1 ha, 52.9898,-125.3511). Of the 7 rows of the 6-1 group, 4 are lakes of this run (Basalt and
-     Gatcho are not; Squirrel unknown), but the run is not "the lakes that got rows": Wolf and six named 5-12 lakes
-     of the same run (Blue, Neyasri, Tsetzi, Tsilbekuz, Cluchuta, Stuyvesant) have none. Elimination leaves 7.
-   - Frog, 7 candidates: #2 329238264, #3 329238354 (1993-03-12 run), #30 329021857, #31 329021820 (AIM 1997),
-     A 328962870, B 329021897, C 329021982 — all still unnamed and unmatched; none eliminated. (The 1993-03-12 run's
-     other lakes all carry a name: Fish, McClinchy, Agnus, Davidson, Hidden, Maydoe N/S, Avalanche, Banana, plus
-     Smokey (5-12) and Moose (5-6, wbk 329238146, no row) by survey title.)
-   - "Frog" appears nowhere in the Squirrel material: no FISS lake survey in the EUCL/UEUT/KLIN/ATNA/UDEN groups, no
-     EcoCat title in MU 6-1, and none of the 11 1993 limnology sheets read carries it. No sole or two-way candidate,
-     so no pictures.
-   **Third round (2026-11-13, "even deeper … old map books"): no hit.** Searched, so nobody repeats it:
-   - Provincial stocking records, all 250 watershed groups (FIDQ, 64,991 releases, local-name `aliases` field):
-     "SQUIRREL LAKE" is only an alias of 01446MAHD (the 5-1 lake, aliases "PADDY, SQUIRREL LAKE", stocked 1987–2025);
-     "REDFERN LAKE" only the 7B lake (00436UPRO, one release 1984); no Frog in the Cariboo. None of the 14 Frog /
-     Squirrel candidates, Goat or Deception was ever stocked (EUCL/UEUT groups have no stocking at all).
-   - OpenStreetMap (Overpass, names / alt_name / old_name): around the 6-1 lakes only Wolf, Naglico, Pettry, Tsetzi,
-     Blue, Neyasri, Cluchuta, Tsilbekuz, Eliguk are named; around Ruth Redfern Creek only Deception and McNeil;
-     around the Frog candidates only Stewart, Crazy Bear (Ginny), Davidson, Little Charlotte, Charlotte, Kappan, Miner,
-     Agnus and "Old Ecks Lake" (51.8572,-125.0427): none of the 21 candidate lakes carries a name in OSM.
-   - Federal CGNDB (incl. previously official): Frog Lake(s) only at 7-30 / Thompson / Vancouver Island / Frog River;
-     Redfern Lake only 7-42; Squirrel Lake only 5-1. BCGNIS: same. GeoNames not queried (needs an account).
-   - NRCan CanMatrix 1:50,000 sheets 093C/03, 093C/05, 093F/03, 093A/02, 092N/14–15 (last printed editions,
-     scans): none of the candidates carries a name (that edition does not even label Deception or Hidden 5-15);
-     #2, #3 and #25 sit in sheet margins (adjacent sheets not read). Older editions are not in that archive.
-   - Archived synopses 2004 / 2005-07 / 2007-08 / 2008-09 / 2009-11 and the 2008 Cariboo harmonization documents (both
-     versions): same three rows, no locator. Web searches (lodges, BC Adventure lake index, Backroad Mapbooks blog,
-     Fishbrain, forums) with local qualifiers: nothing. archive.org: no scanned synopsis or stocking report found.
-     Not reached: printed Backroad Mapbooks indexes, UBC/UVic map-library scans, HathiTrust annual reports.
-   - Redfern, reading the whole MU (owner: "might exist elsewhere"): in every edition read (2004 → 2025) the only
-     5-15 row printing exactly Redfern's rules is DECEPTION LAKE (the others are trout/char rows), the lake ON Ruth
-     Redfern Creek; Region 7B has never printed a Redfern Lake row (2004, 2025; Redfern-Keily's lake follows the 7B
-     zone table) and the 7B lake was stocked once in 1984. My reading: the evidence favours a small lake managed with
-     Deception in the Ruth Redfern Creek / Deception area of 5-15 (Goat excluded: it had its own row until 2009), not
-     the 7B lake; a misprinted MU would also need a misprinted region. Not proven.
-
-   Would settle any of them: the Williams Lake (Region 5) office's lake files for the 1993 limnology runs, or an
-   edition before 2004 (not online in any archive found).
-
-   Full earlier evidence: `handoff/PLAN/curation-review/unmatched-lakes-research.md` (2026-10-28).
+Searched, nothing found (so nobody repeats it): FWA names province-wide; BCGNIS all statuses; federal CGNDB (incl.
+previously official); FISS lake surveys + fish observations + EcoCat titles (incl. "(Frog)") in MUs 5-6, 5-15, 6-1 and the
+Charlotte–Stewart, Canim/Deception/McNeil and EUCL/Kluskus/Euchiniko blocks; the 1993 limnology sheets; provincial stocking
+records (FIDQ, 64,991 releases, `aliases` field; none of the candidates was ever stocked); OpenStreetMap (none of the 21
+candidate lakes carries a name); NRCan CanMatrix 1:50,000 093C/03, 093C/05, 093F/03, 093A/02, 092N/14–15 (#2, #3, #25 sit
+in sheet margins, adjacent sheets not read); archived synopses 2004 (earliest found, same rows, no locator), 2005-07,
+2007-08, 2008-09, 2009-11, the 2003 regulation pages, the 2008 harmonization documents; web (lodges, BC Adventure, Backroad
+Mapbooks blog, Fishbrain, forums); archive.org. Not reached: GeoNames (needs an account), printed Backroad Mapbooks
+indexes, UBC/UVic map-library scans, HathiTrust annual reports. Would settle any of them: the Williams Lake (Region 5)
+office's lake files for the 1993 limnology runs / 1994 survey forms, the scanned EcoCat 49174 report, or an edition
+before 2004 (not online in any archive found).
 
 ## Acceptance
 
@@ -263,73 +83,6 @@ now bind; labels read "… at Grant Narrows", the Kootenay end in the book's wor
 Depends: atlas rebuild for new/moved cuts (Deena, Mamin, Gagnon, Kootenay, Lakelse); reach + deliver for the rest.
 Size: M. Owner: DECIDED 2026-11-13 by dialog, NOT YET IMPLEMENTED (a pipeline lane does these after the current release chain): (a) McArthur Island Slough shows the "in part" form "No powered boats — in part: from westerly entrance to 12th Street entrance to Park"; (b) Lakelse River: rename the end only, the lower stretch's end reads "Mouth (at the signs)", no new cut, no change to which water the rules cover; (c) Tlell r5: yes, take the tidal note off the 13 freshwater tributaries. Still open: Frog and Redfern (owner looks harder later), and the open
 questions in Owner decisions 5. Default: nothing changes until accepted.
-
-## Progress (2026-11-13, pipeline lane)
-
-Curated inputs changed (all through `curated_write`; backups under `data/generated/curated_writes/backups/`). Nothing
-built: every effect below needs the next atlas rebuild + reach + deliver (main schedules it).
-
-- **Pitt r2** — `undrawn_part: "at Grant Narrows"` beside `whole` (as Harrison/Powell/Mara): label "Speed restriction
-  (10 km/h) — in part: at Grant Narrows" (checked with `labels.label`). Reach + deliver only.
-- **Ruby r1** — `between` [`ruby_creek__signs_100_m_below_ruby_lake`, `ruby_creek__ruby_lake`]. Reach + deliver;
-  binding diff should show only the 100 m piece kept (Ambrose-side sections + 6 tributary sections leave).
-- **Gagnon r1** — new cut `gagnon_creek__signs_200_m_above_the_unnamed_lake` (lake anchor wbk 329465442, `offset_m` 200
-  upstream: one mechanism, no hand coordinate) replaces `…_fishing_boundary_signs_at_the_mouth`; r1 is `downstream_of`
-  it; RULINGS P57 rewritten. The unnamed lake is not given the exemption: the spring closure is a STREAM closure, so the
-  lake is not under it. Atlas rebuild.
-- **Deena / Mamin** — same ids (no reference moves), coords moved to crossing 2 (53.11879,-132.20619) and crossing 3
-  (53.53846,-132.32589); Mamin label drops "Mamin Main"; both stay `low`. Atlas rebuild; diff the two rules.
-- **Kootenay r1** — `kootenay_river__navigation_dolphin_2000_m_downstream` re-anchored on wbk -20 (Main Body) inlet,
-  label "navigation dolphin (2 km below CPR Bridge)"; `kootenay_river__cpr` label "CPR Bridge near Creston"; r1 now
-  `between` [cpr, dolphin]. The dolphin cut lands on the lake edge, so `sectionizer._coincident` makes it an ALIAS of
-  the standing lake boundary: the rule label names the dolphin (namer, by id), but the PART end name stays "Kootenay
-  Lake — Main Body". Changing which name wins is a sectionizer policy change, not done. Atlas rebuild.
-- **3 lakes** — `name_variants.json` records for Hidden, Secret, Square (→ Whitton) as decided; the three `not_found`
-  rows dropped from `book_name_links.json`. `check_curated --waters`: 0 errors (warns Hidden/Secret not in the current
-  registry, expected until the rebuild). Registry rebuild, then re-match (`matched`).
-- **Test pins to move WITH the rebuild** (left as they are: they read the live release, which still has the old
-  bindings): `test_t89_rules_that_bind_no_water.py` — gagnon r1 out of `BY_DESIGN` (8 → 7), Hidden/Secret/Square out of
-  `AWAITING_WATER_ROWS` (21 → 10), `ALLOWED_UNRESOLVED` 29 → 17, docstring "seven rows" → four.
-
-Not done (waiting):
-- **McArthur Island Slough** — owner's call: `CatalogueEntry` refuses `extent_text` beside a bare `whole` ("a part
-  nothing can draw is written as `undrawn_part` … or keeps its words with no extents … or is bound to the part"). The
-  only allowed form that keeps the words on a whole-slough rule is `undrawn_part`, which reads "in part: from westerly
-  entrance to 12th Street entrance to Park" (a note on the slough). The guard is not loosened. Owner: accept the
-  "in part" reading, or keep today's bare label (the book's sentence still shows underneath)?
-- **Lakelse mouth "signs"** — no mechanical form: a cut needs the designated mouth's place (signs 1.7 km below the
-  logging-road bridge; not located), and a per-water mouth name is a new field in `display/part.py`. Not done.
-- **Tlell r5** — Work 6 is a proposal; no owner answer recorded. Not done.
-
-**Correction (same day, after the full suite):** three of the corpus edits cannot sit in the tree before the rebuild, so
-they were taken back out and handed over as a patch, `T708-files/apply-with-rebuild.patch`:
-- Gagnon r1 → `gagnon_creek__signs_200_m_above_the_unnamed_lake` and Kootenay r1 → `…_navigation_dolphin_2000_m_downstream`:
-  `test_one_acceptance_gate.py` refuses a rule naming a cut the SERVED atlas does not have.
-- Pitt r2 `undrawn_part`: `test_t100_area_caveat.py` pins the widened rules in the corpus (`WIDENED`) AND on the
-  shipped export (`test_the_export_carries_the_caveats`), so one of them fails until a deliver.
-The patch also carries the test pins: `WIDENED` + Pitt, and the T89 moves (gagnon out of `BY_DESIGN`, Hidden / Secret /
-Square out of `AWAITING_WATER_ROWS`; 7 / 10 / 17). Order for main: atlas rebuild (cuts.json + name_variants already in)
-→ `git apply handoff/PLAN/app-integration/tickets/T708-files/apply-with-rebuild.patch` → re-match the three lakes'
-entries (`matched`) → reach + deliver → binding diff. Applied before that, the acceptance gate fails (the old Gagnon id
-is gone from cuts.json); skipped after the rebuild, the gate fails the same way, so the patch cannot be forgotten.
-Ruby r1 stays in the tree (both its cut ids exist today). Full pipeline suite (chunked, unfiltered): the 30 other chunks
-passed, and chunks 27 and 31 (the two failing files) pass after the revert (1,208 passed).
-
-**Candidate (2026-11-13, pipeline lane):** built on `data/generated/atlas/full_next` + side run
-`data/generated/side/next-rc` (NOT promoted). Every binding change attributed (`checks/ATTRIBUTION.md` there): Gagnon r1
-binds the 74 m channel, the unnamed lake and ~200 m of creek; Deena r1 -62 / Mamin r3 -29 (tributaries between old and new
-cut); Ruby r1 -7; 11 lake rules bound; Pitt r2 and Kootenay r1 unchanged in bindings. Unresolved 29 -> 17. The corpus
-edits, the 3 lakes' `matched` and the test pins are now `T708-files/apply-with-promote.patch` (supersedes
-apply-with-rebuild.patch). OPEN for the owner: Gagnon's cut label reads as a part end "Its mouth (placed 200 m above the
-unnamed lake)" (fails test_part_names_unnamed_lake); proposed label e.g. "fishing boundary signs (200 m above the lake
-below Williston)" — needs another atlas build.
-
-## Owner wording answers (a)-(c) — applied 2026-11-13 (pipeline lane)
-- (b) Lakelse: d109408fd — `part.MOUTH_WORDS`, the lowest part's end token `mouth:gnis:4903` = "Mouth (at the signs)".
-- (a) McArthur r1 `undrawn_part` (label "No powered boats — in part: from westerly entrance to 12th Street entrance to
-  Park") and (c) Tlell r5 `includes_tributaries: false` (-13 sections, unresolved `tidal`): corpus edits + T89/T100 pins
-  in `T691-files/apply-with-promote.patch` (apply at the promote; they fail against the live release before it).
-- Kootenay "(km 123)" nit: d109408fd (a lake edge and a cut at one place need no km).
 
 ## Owner
 

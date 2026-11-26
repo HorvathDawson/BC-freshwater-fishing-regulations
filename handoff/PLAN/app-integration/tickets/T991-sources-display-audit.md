@@ -19,16 +19,6 @@ Owner 2026-11-21: next release, not 0.8.5.
 Source: owner 2026-11-21, verbatim: "Add another ticket for a sources display audit (for next release we want to make
 sources much more consistent across the board) not for this release".
 
-## Work
-- Inventory every place a source is shown: the regs pane's per-section "Sources" buttons and the T990 all-sources
-  button, rule-book page links ("Rule book p.N ↗"), in-season notices (Province), DFO salmon notices, T981 local
-  authority citations, the Conditions tab (gauges, forecasts, weather), the public website pages, More → Sources and
-  licences, the first-run notice.
-- For each: its words, its look (button, link, chip, row), where it sits, what a tap opens, and whether it names the
-  authority the same way.
-- Propose ONE pattern (words, look, placement, tap target) with before/after pictures; owner picks in a dialog round.
-- Build the pick in one place in core + one component; every surface uses it.
-
 ## Inventory (2026-11-22, read off the live web app canifishthis.ca at 390 px, light + dark, and the code)
 
 Pictures: `handoff/PLAN/app-integration/T991-shots/` (`before-*-light|dark.png`). The web pane is the same component tree as the
@@ -70,39 +60,16 @@ What does not agree (the case for the audit):
 4. #10 names the site (StanleyParkVan.com), not the Park Board that made the rule.
 5. Credits text is composed in 6 places (words.ts, inseason.ts, salmon.ts, menu/sources.ts, menu/licences.ts, tools/seo/html.ts + gauges.ts): AGENTS 33 says one place.
 
-## Proposed pattern (owner picks A or B; nothing built)
-
-One table in core (`SOURCE_AUTHORITIES`: id -> short name, full name, what it is) and ONE `Source` row component. Every surface composes its
-source words from that table and nowhere else (guard test: no string literal of an authority name outside the table).
-
-Names, fixed: "B.C. Synopsis" (the rule book; page as "p.8"), "B.C. in-season changes", "DFO" (salmon notices; region in the link text only), the local
-authority by ITS name from the data ("Vancouver Park Board"), "Environment Canada" (gauges), "BC River Forecast Centre", "Open-Meteo". Full names (and
-licences) only on More -> Sources and licences, which stays the one page of full names.
-Marks: "↗" ALWAYS means "leaves the app to a document/page"; "›" ALWAYS means "opens a sheet in the app". Never the other way round.
-
-OPTION A (recommended): a "Source" line. A quiet label "Source" then accent links, 44 tall, the LAST line of the card/section it supports:
-"Source  B.C. Synopsis p.8 ↗  p.21 ↗" / "Source  B.C. in-season changes ↗" / "Source  DFO, Region 2 notice ↗" / "Source  Vancouver Park Board bylaw ↗" /
-"Source  Environment Canada ↗  BC River Forecast Centre ↗". Tap opens the document itself (PDF at the page, the notice page, the bylaw page).
-The per-section "who says so" levels (Province / Region 2) move into the section's Sources sheet, which is opened from the page-foot
-"All sources for this page ›" (T990, kept, full-width row instead of a small link). The Conditions credits (#11) keep their legally exact
-verbatim text in the fold but add the same Source line above the fold. Pictures: `after-A-light.png`, `after-A-dark.png`.
-
-OPTION B: an authority chip. The existing boxed chip (today's "RULE BOOK", "B.C.", "DFO") becomes THE source: tappable (44 hit box), named from the
-table, "B.C. Synopsis p.8 ↗", on the card's head line instead of a line at the foot. Smaller, but the chip competes with the status chip beside
-it, wraps badly at 2x text, and a section with three sources (Gear) needs three chips on the head. Pictures: `after-B-light.png`, `after-B-dark.png`.
-
-The after pictures are static mock-ups (HTML, `after-A.html`, `after-B.html` rendered at 390 px), not the app; the before pictures are the live app.
+Round 1 proposal (2026-11-22): one core table `SOURCE_AUTHORITIES` + one `Source` row; names "B.C. Synopsis", "B.C.
+in-season changes", "DFO", the local authority by ITS name from the data ("Vancouver Park Board"), "Environment
+Canada", "BC River Forecast Centre", "Open-Meteo"; full names only on More -> Sources and licences; "↗" ALWAYS leaves the
+app, "›" ALWAYS opens a sheet. Option A (a Source line, picked) over option B (a tappable authority chip). Mock-ups
+`T991-shots/after-A-*`, `after-B-*`.
 
 ## Not checked
 Android emulator (the web app is the same component tree; native-only hit boxes and 2x text unmeasured); iOS; the in-season inbox (#8) and the DFO
 bell rows (#9) were read from code, not photographed; whether the verbatim forecast notice may carry a
 link beside it (Province wording is legally exact; the Source line is proposed ABOVE it, not inside).
-
-## Acceptance
-An inventory table in this ticket; the owner's pick recorded verbatim; every surface on the one pattern; a guard test
-that no surface composes source words outside the one place.
-
-Depends: T990 (DONE). Size: M. Owner: pick the pattern.
 
 ## Owner answer 2026-11-22 23:20 (dialog with pictures: today, A, B)
 Verbatim: "One source row in bottom. But should have different ones for each tab too. Like condition sources don't need
@@ -112,19 +79,22 @@ only the sources of what that tab shows; and decide what happens to the inline p
 the row, or keep only where a rule cites a page). Next: a refined proposal with pictures (per-tab rows + the inline
 question answered with a recommendation), then the owner picks again.
 
-## Refined proposal, round 2 (2026-11-22, lane L17) — one Source row at the bottom of EACH tab, only that tab's sources
-Pictures `T991-shots/round2-<tab>-before|after-light|dark.png` and `round2-inline-before|after-*.png`: the live app (web 390 px, Skeena River) with the row put in
-by editing the page. MOCK-UPS (the picture says so in its red strip), not a build. "Before" is the live app.
-- Regulations tab, last row above "Report a problem": `Source  B.C. Synopsis p.8 ↗  B.C. in-season changes ↗  DFO notices ↗  <local authority>` (only the authorities
-  this water's answers actually use; the row replaces today's "Sources ›" link, whose sheet stays as the full list behind the row's own "All sources ›").
-- Conditions tab, replacing the fold's header line: `Source  Environment Canada ↗  BC River Forecast Centre ↗  Open-Meteo ↗` (the gauges, forecasts and weather
-  the page shows; no synopsis, no DFO). The fold below keeps its legally exact verbatim text.
-- Map tab: `Source  © OpenStreetMap ↗  Protomaps ↗  Esri imagery ↗` (the map's own credits, Esri only while satellite is drawn), above "Report a problem".
-- Never on a tab: another tab's authorities (Conditions credits are not shown on Regulations, as the owner says).
-INLINE SOURCES (the owner's question): keep the per-rule "Rule book p.N ↗" where a rule cites a page — it is a proof link beside the rule it proves, not a source
-list — and its words stay as T991's pattern names them (one spelling, one table). Remove the per-section line's LEVEL words ("Province · Region 6 · This water's ›",
-`round2-inline-*`): they say who made the rule, which is the tab row's job; the level detail moves into the Sources sheet behind "All sources ›". Salmon's origin
-line ("Rule book p.9 · Skeena River") and the in-season banner's "source ›" become "B.C. in-season changes ↗" from the same table. A card's authority chip
-(RULE BOOK / B.C. / DFO) stays a label, not a link.
-Recommendation: this per-tab row (option A of the first round, one row per tab) + inline page links kept + the section level words folded into the sheet.
-Question for the owner: take it? (Not built.)
+Round 2 (lane L17, PR #57, pictures `T991-shots/round2-*`): one Source row at the bottom of EACH tab, only that tab's
+sources; never another tab's authorities. INLINE SOURCES (the owner's question), recommended: keep the per-rule
+"Rule book p.N ↗" where a rule cites a page (a proof link beside the rule it proves), in the one table's spelling; remove
+the per-section line's LEVEL words ("Province · Region 6 · This water's ›", `round2-inline-*`), the level detail moving
+into the Sources sheet behind "All sources ›"; Salmon's origin line and the in-season banner's "source ›" become "B.C.
+in-season changes ↗" from the same table; a card's authority chip (RULE BOOK / B.C. / DFO) stays a label, not a link.
+
+## Done
+- Round 3 (lane L21, 3428dcb83 + review fixes 3e3a1e2ae): the per-tab Source row as the Status says.
+
+## Left
+- T1031 (the owner's items 3–5: one inline source format, a breakdown per species, one species sheet) and T1036 (the
+  every-source sheet's list).
+
+## Acceptance
+An inventory table in this ticket; the owner's pick recorded verbatim; every surface on the one pattern; a guard test
+that no surface composes source words outside the one place.
+
+Depends: T990 (DONE). Size: M. Owner: pick the pattern.

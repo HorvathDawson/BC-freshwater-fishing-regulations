@@ -8,219 +8,47 @@ Status: PARTIAL 2026-11-09 — 25a6b7d54, 17d5f0dc3, fe0f4e659, 2bdcc1931, 84ef4
 
 Owner 2026-11-03: "could we look into the memory footprint of the app". Evidence: the two 0.4.0 foreground native
 crashes (T351) happened at 406 MB and 435 MB in use (one SIGSEGV); background LOW_MEMORY kills at 169 MB (0.3.0, 0.4.0).
+Merged in (ticket audit 2026-11-05, owner): the leftovers of T245, T287, T317 — read each file's open items and finish them here; each closes pointing here.
 
-## Work
-1. Read-only first: where memory goes (map tiles / MapLibre caches, the bundle sqlite, salmon/regs stores held in JS,
-   images, the synopsis PDF), from code and from an emulator run (`adb shell dumpsys meminfo`) across map pan, a water
-   sheet, Conditions, Salmon, the PDF.
-2. Report the top contributors with numbers, then propose fixes as follow-up tickets.
+## Done
+- Trim (17d5f0dc3): `modules/memory-trim` (Android) answers `onTrimMemory` (RUNNING_MODERATE and up): `onLowMemory()` on
+  every MapLibre MapView + M_PURGE_ALL (`mallopt` looked up with `dlsym`, API 26+); JS (`src/memoryTrim.ts`) shrinks
+  every SQLite connection (`ReleaseLoader.trim`, `PRAGMA shrink_memory`). iOS: same shrink on `memoryWarning`. A CRITICAL trim frees ~16–40 MB.
+- PDF leak: react-native-pdf patch skips a duplicate `drawPdf` of the same path + page (`drawnKey`), `PdfViewer.native.tsx`
+  memoizes `source`; pdfium held after open+close 2.5 / 0.9 MB (was 50–77 MB). Gauges-off dots bug fixed (02433a339).
+- T287 `adoptDecoded`: an applied update keeps one copy of unchanged files (ext was 50 → 148 MB at the swap).
+- Salmon run table 20 → 8 bytes a run: 15.8 → 6.3 MB, 0 differences on r-5a5999c94588; a run or chain over 16 bits is
+  refused on decode. Owner 11-05 ("16mb seems like a lot … easy wins"): 6.3 MB is fine — salmon stays decoded at map load.
+- 84ef47b: one SQLite handle per file, `closeIdle(ms)` (trim closes those idle 60 s; an update closes the replaced set's
+  ~14); panel cache per `WaterSource` (WeakMap); `statusOf` holds the 2 newest keys; the rule book reuses `synopsis-open.pdf`.
+- Checked, not changed: MapLibre's ambient cache is DISK (no RAM win); salmonMemo is tiny.
 
-## Read-only findings (2026-11-03, code only; sizes are estimates until measured)
-1. MapLibre native GPU/tile memory, est. 150–250 MB: `nativeVariant: "vulkan"` (apps/mobile/app.json:29, fits the
-   SIGSEGV); no ambient/tile cache limit set anywhere; 49 layers over 4 sources, atlas overzoomed to z18; feature-state
-   on atlas + a copy source (Map.native.tsx:141-170, 340-342); Esri imagery tiles while satellite is on.
-2. Synopsis PDF spike, est. 100–200 MB per rule-book tap: the 24 MB file read into a JS Uint8Array
-   (synopsisPdf.native.ts:98-100), parsed by pdf-lib (highlightPdf.ts:17), a second 24 MB copy written.
-3. Decoded release data cached in JS for good, ~10–30 MB: paint (2.2 MB), flowArea, method, access, lakes, every
-   salmon shard; the salmon slice Map only grows (data/src/release/loader.ts ~115-190).
-4. ~30 SQLite files each held open (`useNewConnection: true`, never closed), ~20–60 MB page cache/mmap.
-5. JS tile bookkeeping is capped (TileHold 512) — not a leak.
+## Where it stands
+- Native heap (map + SQLite + Hermes) is the whole story; Java is small. Conditions/Salmon are the peak. 2026-11-08 gate 2:
+  Conditions 396 (native 217), after CRITICAL trim 364 MB; no growth across 32 tab switches.
+- Conditions' ~100 MB native over a water page: heapprofd sees ~28 MB live growth (Hermes ~12, MapLibre ~11), JS externals
+  +11 MB; the rest is freed MapLibre memory the allocator keeps. No app-side fix found that is not a visual/behaviour change.
+- OpenGL vs Vulkan: 5–25 MB apart on the emulator (Graphics reads 0 there: host GPU). `nativeVariant: "vulkan"`
+  (apps/mobile/app.json) was PROVISIONAL from the N1 spike, never judged on a phone; the SIGSEGV makes OpenGL the first try.
+- Round 7 (runs `app/tools/testbed/out/runs/t360-{base3,decay2}`): base3 (t512lean APK) peak Salmon **379** / 206 native;
+  decay2 (HEAD 229c464de + `mallopt(M_DECAY_TIME, 1)`) **314** / 164. Not a clean A/B: decay2 skipped the rule book
+  (~33 MB) and is a newer app; net ~−10 MB at Conditions, ~−30 MB at Salmon/after-trim, inside noise for one sample.
 
-Quick wins to try after a measurement: cap MapLibre's ambient cache + tile count; try the OpenGL variant against the
-SIGSEGV; drop imagery sources when the basemap is "map"; open the PDF by streaming (or skip highlighting above a size);
-free paint/method decodes and close unused SQLite handles on `onTrimMemory`.
+## Work (left)
+1. Decay A/B: requeue `t360-nodecay` (same worktree, decay off). Patch: `app/tools/testbed/out/t360/t360-decay.patch`
+   (also worktree `../bcfr-t360`); NOT committed, NOT in build 22.
+2. Real phone: GPU memory, and Vulkan → OpenGL on that phone (compare memory and N1's pan budget, p95 ≤ ~20 ms).
+3. Test-bed: on HEAD a search result opens the water on its MAP view, so the memory scenario's rule-book step needs a
+   tap on Regulations first; the Salmon step taps `regs-paint-salmon` (the fishery bar shows only when salmon is offered);
+   check "one viewer per trace" (the second PDF open's shot + its `drawPdf` lines). Build test-bed APKs from a clean worktree.
+4. (3) of round 7: the Cultus Map view said "The parts of this water are not available" (HEAD 229c464de) — for the T517 lane to check.
 
-Measurement (next): `adb shell dumpsys meminfo <pkg>` per step (boot, pan ×10, zoom, water sheet, Conditions, Salmon,
-rule-book PDF, then `am send-trim-memory <pkg> RUNNING_CRITICAL`), satellite on and off; compare Graphics + Native Heap
-(map) with Java/Hermes heap.
+Tools: `run.mjs memory` / `run.mjs heapprof` (`heapprof.py`), `[heap]` probe in test-bed builds (apps/mobile/index.js),
+`session.sh --opengl`; emulator `n1_pixel`, heavy jobs via `scripts/heavy.sh`.
 
-## Checked by the main session (2026-11-03) — corrections and the plan
-- **Vulkan:** `["@maplibre/maplibre-react-native", { "android": { "nativeVariant": "vulkan" } }]` (apps/mobile/app.json).
-  It was PROVISIONAL from the N1 spike ("Vulkan provisional pending a real phone", research/n2/README.md, N1-SPIKE.md)
-  and was never judged on a phone. The SIGSEGV (status 11) makes the OpenGL variant the first thing to try.
-- **Correction:** MapLibre's "ambient cache" (`OfflineManager.setMaximumAmbientCacheSize`, `setTileCountLimit`) is the
-  DISK tile cache. Capping it does not lower RAM. RAM is driven by the tiles in view, overzoom depth, layer count,
-  feature-state and imagery; measure before tuning.
-- **PDF (confirmed):** `openHighlighted` (ui-native/src/regs/synopsisPdf.native.ts) reads the whole 24 MB book with
-  `cached.bytes()` and `highlightPdf` parses it with pdf-lib (`PDFDocument.load`), then writes a second copy. A
-  plain open (`pdf <= 1`, no boxes) streams the file. Same root cause as **T354** (slow open): fix them together.
-  Options to put to the owner: (a) highlight a small extract (the cited pages only, with a "whole book" link);
-  (b) pre-build the highlighted pages at release time (pipeline), the app opens a small file; (c) skip the highlight
-  above a heap budget. Each one changes what opens, so the owner decides.
-- **Release data / SQLite (not yet verified):** loader caches (data/src/release/loader.ts) and ~30 open sqlite handles
-  — confirm with the measurement before changing anything.
-
-## RESUME (next chat)
-1. Build a debug/release APK of the current tree and install it on the `n1_pixel` AVD
-   (`~/Library/Android/sdk/emulator/emulator -avd n1_pixel`, adb at `~/Library/Android/sdk/platform-tools/adb`;
-   T255 test bed: `app/tools/testbed/README.md`). Heavy: through `scripts/heavy.sh <label> 60 -- …` in the background.
-2. Measure with `dumpsys meminfo ca.canifishthis.app` per step: boot, 10 pans, zoom in to z16, satellite on, a water
-   sheet, Conditions, Salmon, a rule-book tap (highlighted PDF), `am send-trim-memory … RUNNING_CRITICAL`. Record
-   TOTAL PSS / Graphics / Native Heap per step in this ticket.
-3. Repeat with `nativeVariant: "opengl"` (one prebuild + build). Compare memory and N1's pan budget (p95 ≤ ~20 ms).
-4. Put the PDF options (a/b/c above) and the Vulkan→OpenGL result to the owner; then fix what the numbers show.
-
-## Measured 2026-11-03 (emulator n1_pixel, Vulkan as shipped, local release r-4df5bccc9360; `run.mjs memory`)
-MB, `dumpsys meminfo` App Summary. Graphics reads 0 on the emulator (host GPU): a real phone adds its GPU memory on top.
-
-| step | PSS | Java | Native | Code | Other |
-|---|---|---|---|---|---|
-| boot (map drawn) | 255 | 13 | 155 | 40 | 35 |
-| 10 pans | 287 | 15 | 181 | 40 | 41 |
-| zoom +4 | 208 | 15 | 97 | 41 | 44 |
-| water page (Cultus) | 292 | 23 | 137 | 37 | 83 |
-| rule book open (in-app viewer) | 332 | 14 | 170 | 40 | 83 |
-| Conditions | **392** | 18 | **229** | 37 | 83 |
-| after trim RUNNING_CRITICAL | 375 | 18 | 214 | 34 | 80 |
-
-- Native heap (map + SQLite + Hermes) is the whole story; Java is small. Conditions is the peak, ~400 MB before any
-  GPU memory: the phone crashed at 406/435 MB. `onTrimMemory` frees ~17 MB only (nothing listens for it).
-- The rule book costs ~40 MB in the viewer now (was the 100–200 MB JS spike, T354): no longer the top item.
-- Next: the same with `nativeVariant: "opengl"`; then where Conditions' +100 MB native goes (its map + chart + feeds).
-
-## Measured 2026-11-03, round 2 (heap probe + Vulkan vs OpenGL; runs t360-vk / t360-gl)
-| step | Vulkan PSS | OpenGL PSS | JS heap |
-|---|---|---|---|
-| boot | 257 | 233 | 28 |
-| water page (Cultus) | 280 | 264 | 72 |
-| rule book open | 346 | 364 | 72 |
-| Conditions | 454 | 436 | 76 |
-| after trim | 414 | 411 | 72 |
-- OpenGL vs Vulkan: 5–25 MB apart on the emulator (host GPU, Graphics 0): the variant/SIGSEGV question needs a REAL phone.
-- JS: 28 MB boot → ~75 MB once a water's regs are decoded (held for good). Not the main cost.
-- Conditions adds ~150 MB NATIVE over a water page (its map + gauge layers + chart): the biggest single item. NEXT: split it.
-- The PDF viewer leaves ~60–75 MB native after it closes (react-native-pdf / pdfium not released on close). Fix: free on close.
-- RUNNING_CRITICAL frees 20–40 MB: nothing listens for trim. Fix: drop decoded caches + close idle SQLite on trim.
-- Rule-book open IN THE APP: book 3 ms (held), copy 6–39 ms, drawn in 390–680 ms. The 10 s the test bed reads is
-  Maestro's own overhead.
-Probe: `[heap]` every 2 s in test-bed builds (apps/mobile/index.js); `session.sh --opengl` builds the other variant.
-- Correction (run t360-pdf): the viewer costs ~70 MB while OPEN and keeps ~35–40 MB after it closes (273 → 345 open →
-  312 closed; a RUNNING_MODERATE trim frees nothing). Not 70 retained.
-
-## Round 3 (2026-11-03, chat 5; run t360-cond)
-- **Earlier rows were over satellite:** the `memory` scenario's second Satellite tap never turned it off (the ground
-  is a choice, not a toggle), so water page / rule book / Conditions in rounds 1–2 had Esri imagery under them. Fixed:
-  the Map base is chosen by its id after the satellite step.
-- Over the drawn map: before the rule book 278 PSS / 103 native; **Conditions 422 / 245** (+140 native); Gauges off
-  421 / 239; Gauges + arrows off 418 / 238; back on the Map tab 429 / 245 (nothing given back); Conditions again
-  411 / 198; trim 394 / 188.
-- So the cost is not the Conditions layers. JS is ~17 MB of it: the `[heap]` probe's `size` left out Hermes'
-  EXTERNAL bytes (typed arrays, 37–68 MB through the run; they count as "Native"); JS total 116 → 133 MB. The rest
-  (~120 MB) is MapLibre's. Next: heapprofd (`run.mjs heapprof`, `heapprof.py`) names it by library and function.
-- **Bug found and fixed (02433a339):** Gauges off left the dots drawn (`useAsync` keeps its last answer for an
-  unchanged key when disabled).
-- **PDF:** the app holds none of the book in JS and react-native-pdf disposes the document on detach. The scenario now
-  measures after a second open + close: not growing = a one-time pdfium cost, not a leak.
-- **Trim (item 3), in code:** `modules/memory-trim` (Android) answers `onTrimMemory` (RUNNING_MODERATE and up):
-  `onLowMemory()` on every MapLibre MapView (maplibre-react-native never forwarded it) + a `trim` event; JS
-  (`src/memoryTrim.ts`) shrinks every open SQLite connection (`ReleaseLoader.trim`, `PRAGMA shrink_memory`, through
-  the one SQL queue). iOS: the same shrink on `memoryWarning` (MLNMapView handles its own). Decoded files are not
-  dropped (the screens hold them). Emulator check: run t360-trim.
-
-## Round 4 (2026-11-03, t360-fix + t360-pdf runs)
-- **Purge works (17d5f0dc3):** a RUNNING_CRITICAL trim: 1 map view told, `purge 2` (M_PURGE_ALL), 14 databases shrunk;
-  PSS 394.8 → 378.5 MB (~16 MB). `mallopt` is declared from API 26 only: looked up with `dlsym` (first build failed).
-- **PDF leak NOT fixed:** the react-native-pdf patch's `recycle()` runs but finds 0 pages left in `pageMap`; pdfium still
-  holds 77.6 MB after two opens + closes, and only ONE recycle line was logged for the two closes — one viewer is
-  likely never released (not a page leak). The patch stays uncommitted (`app/patches/react-native-pdf@7.0.5.patch`,
-  package.json, lock). Next: log PdfView attach/detach + `PdfFile.dispose` per open; check the Modal unmounts the view.
-  (Symbols are stripped in this build, so heapprofd names no pdfium function.)
-- The memory scenario's "Salmon" layer tap no longer finds its text (label changed by the UI chat?) — fix the step.
-
-## Round 5 (2026-11-03): the PDF leak's cause
-react-native-pdf posts `drawPdf` from `setPath` AND from every props transaction (`PdfManager.onAfterUpdateTransaction`),
-and our viewer passed a new `source` object each render: one open loaded the book 2+ times. Each load recycles the view
-first; a load still decoding is only flagged cancelled — AndroidPdfViewer 4.0.1's `DecodingAsyncTask.onCancelled` sets
-`cancelled` and nothing else, so the `PdfDocument` it opened (`createDocument` → `PdfFile`) is never closed (javap). Fix
-(uncommitted until measured): the patch now skips a draw of the same path + page on a view not recycled since
-(`drawnKey`; the pageMap closing is gone — it found 0 pages), and `PdfViewer.native.tsx` memoizes `source`. Measuring:
-heapprof `t360-pdf2` (queued after the batch-3 rebuild).
-**Measured (t360-pdf3, t360-pdf4, same APK):** pdfium held after the rule book opened and closed: 2.5 MB, then 0.9 MB
-(was 50–77 MB). Log per open: one `drawPdf load`, two `drawPdf skipped` (the duplicate reloads that leaked), `detached`,
-`recycle`. Committed. Open question: logcat shows ONE viewer's life per trace though the step opens twice (the earlier
-patch also logged one recycle for two closes) — check the scenario's second open really happens (screens). t360-pdf2
-(the same fix, no logs) still held 50 MB — most likely a stale library build in that APK; not seen since.
-
-## Loose ends, 2026-11-04
-- The memory scenario's Salmon step taps the switch by id (`regs-paint-salmon`): T367 moved Standard / Salmon into the
-  legend's fishery bar, where the old `tap-text Salmon` found nothing. The bar shows only when salmon is offered: the
-  b5-before shots (staging data, pre-`n` salmon file) show no fishery bar — check on the next sitting.
-- "One viewer per trace": still to check on the emulator (the second open's shot + its `drawPdf` lines), next sitting.
-
-## Round 6 (2026-11-05; runs t287-base = before, t312-c = after the T287 change; one sample each)
-| step | PSS before | PSS after | native after | JS external after |
-|---|---|---|---|---|
-| boot | 274 | 257 | 150 | 63 |
-| water page (Cultus) | 275 | 269 | 101 | 33 |
-| rule book, closed (2nd time) | 339 | **302** | 122 | 33 |
-| Conditions | 442 | **412** | 226 | 52 |
-| Map tab after Conditions | 446 | **389** | 184 | 43 |
-| Salmon | 432 | 418 | 193 | 67 |
-| after trim (CRITICAL) | 414 | 379 | 168 | 39 |
-- JS EXTERNAL bytes (typed arrays: decoded release files; malloc'd, so inside "native") are 33–67 MB of it, now
-  recorded per step. Measured in node over r-5a5999c94588: the salmon slices decode to 15.8 MB, paint 1.5 MB; an applied
-  update used to hold the old and new sets together (ext 50 → 148 MB at the swap) — `adoptDecoded` (T287) keeps one copy
-  for unchanged files.
-- The rule book no longer grows on a second open (302 after the 2nd close, was 339): the PDF fix holds.
-- Conditions still adds ~100 MB native over a water page. heapprofd (t360-hp) sees only ~28 MB LIVE growth (Hermes 11.6,
-  MapLibre 11.3): the rest is pages the allocator keeps after MapLibre's churn, and a trim's M_PURGE_ALL gives back only
-  20–40 MB. No app-side fix found that is not a visual/behaviour change.
-- Left: a real phone's numbers (GPU memory is 0 on the emulator) and the Vulkan → OpenGL question on that phone; option
-  to put to the owner: decode salmon slices only when Salmon is chosen (−16 MB, first toggle ~0.7 s slower).
-
-## Salmon slices held compact (owner 2026-11-05: "16mb seems like a lot … easy wins")
-The release files were already split per region (~800 KB gz, 2.8 MB raw). The 15.8 MB was the in-memory run table:
-789,839 runs × 20 bytes (two f64 + an i32). Now 8 bytes a run (u32 first section, u16 length, u16 chain; max length
-8,495 and 284 chains today): **15.8 → 6.3 MB**, no file or format change, same answer for every section 0–2,000,000
-against the old decoder on r-5a5999c94588 (0 differences). A run or chain over 16 bits is refused on decode, never
-wrapped. Owner 11-05: 6.3 MB is fine for now — salmon stays decoded at map load (no lazy decode).
-
-
-## Merged in (ticket audit 2026-11-05, owner)
-This ticket now also carries the leftovers of: T245, T287, T317 — read each file's open items and finish them here; each closes pointing here.
-
-- 2026-11-08 (gate 2): same session. PSS boot 253, 10 pans 286, satellite 320, rule book 326, **Conditions 396 (native 217)**, Salmon 395, after RUNNING_CRITICAL trim 364 MB. No growth across 32 tab switches. Conditions is still the peak (~400 MB, unchanged from 11-05).
-
-## Round 7 (2026-11-09; runs `app/tools/testbed/out/runs/t360-{base3,decay2}`, normal emulator, staging, lean MapLibre)
-**Code (84ef47b), kept as clearly correct (bounded, no visual change), unit-tested:**
-- SQLite: one handle per file; `closeIdle(ms)` closes connections not mid-read, the next read reopens + rechecks meta. A
-  trim closes those idle 60 s; an applied update closes the replaced set's ~14 connections (held for the app's life before).
-- Panel cache per `WaterSource` (WeakMap): an update's new set never answers from the old numbering; old panels go with it.
-- Status index (`statusOf`): only the 2 newest keys held (every earlier release's index was kept).
-- Rule book: the same marks on the same book reuse `synopsis-open.pdf` (no 12 MB rewrite per open). The RAM spike was
-  already gone (T354: the book never enters JS); the remaining "double copy" was disk only.
-- Checked, NOT changed: salmon slices are bounded by the region count (≤ 11, 6.3 MB total, owner OK 11-05); salmonMemo is
-  per region set (tiny closures). MapLibre's ambient cache is disk (no RAM win).
-
-**Where the Conditions peak comes from (round 6 heapprofd + today):** ~28 MB live growth (Hermes ~12, MapLibre ~11);
-JS externals +11 MB (flow-area, gauges); the rest is freed MapLibre memory the allocator keeps (a CRITICAL trim's purge
-gives back 40 MB). Hence the experiment: `mallopt(M_DECAY_TIME, 1)` at start (the allocator returns freed pages ~1 s later
-instead of only on a trim). Patch: `app/tools/testbed/out/t360/t360-decay.patch` (also in worktree
-`../bcfr-t360`). NOT committed, NOT in build 22.
-
-| step (PSS / native MB) | base3: t512lean APK (11-08) | decay2: HEAD 229c464de + decay |
-|---|---|---|
-| boot | 254 / 124 | 233 / 127 |
-| 10 pans | 277 / 143 | 269 / 149 |
-| satellite on | 308 / 171 | 283 / 164 |
-| water page | 256 / 106 | 308 / 153 (opened on its Map view) |
-| rule book closed (2nd) | 289 / 122 | — (step failed: see below) |
-| Conditions | 356 / 186 | 314 / 159 |
-| map after Conditions | 377 / 204 | 313 / 162 |
-| Salmon | **379** / 206 | **314** / 164 |
-| after CRITICAL trim | 338 / 175 | 291 / 142 |
-
-Not a clean A/B: decay2 skipped the rule book (which leaves ~33 MB, base3 256 → 289) and is a newer app. Net of that,
-~−10 MB at Conditions and ~−30 MB at Salmon/after-trim: suggestive, inside run-to-run noise for one sample. The fair
-run (same worktree, decay off: `t360-nodecay`) was stopped for the T517 deliver; requeue it, then keep decay only if
-decay2 beats it by more than noise and pan frame time is unchanged.
-
-**Test-bed drift found:** (1) a fresh install opens the In-season changes sheet over the map; `appUp` now closes it by
-its Done (common.mjs). (2) On HEAD a search result opens the water on its MAP view, so the memory scenario's rule-book
-link is not on screen — the step needs a tap on Regulations first. (3) The Cultus Map view said "The parts of this
-water are not available" (HEAD 229c464de) — for the T517 lane to check. (4) The main working tree carries another
-lane's uncommitted format bumps (paint/5, water/3): a test-bed APK built from it cannot read staging ("map data could
-not be loaded"); build test-bed APKs from a clean worktree.
+## Acceptance
+Keep decay only if decay2 beats t360-nodecay by more than noise and pan frame time is unchanged; real-phone numbers and
+the Vulkan/OpenGL result recorded here.
 
 ## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
 11-09: idle/replaced SQLite closed, per-source panel cache, status index capped, rule-book copy reused; peak 379 MB (old APK) / 314 MB (HEAD+decay, not clean A/B); left: decay A/B rerun (t360-nodecay), real-phone GPU + Vulkan/OpenGL

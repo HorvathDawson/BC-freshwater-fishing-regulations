@@ -7,39 +7,29 @@ Earlier: IN PROGRESS — 2026-11-05: the build to promote is now **0.6.2, versio
 |---|---|---|---|---|
 | T371 | 0.5.0 to Play Closed testing: track, listing/app-content forms, 12 testers × 14 days → production access checklist | IN PROGRESS (build 39, 0.8.3 production, on Closed awaiting Google review; owner: testers x 14 days, production access) | e9732147f | owner 2026-11-03 (batch 7) |
 
-## Why
-Production access on Google Play for a PERSONAL developer account (created after Nov 2023) needs a closed test first:
-at least 12 testers opted in for 14 continuous days, then an application for production access (Play Console →
-Dashboard). Verify the current numbers in the Console at the time (Google has changed them). The clock starts at the
-closed track's first rollout, so 0.5.0 should go there, not only to internal testing.
+Source: owner 2026-11-03: "release 0.5.0 to closed testing from internal testing so we can start getting requirements
+for google play release" (batch 7 of RELEASE-PLAN-0.5.0). Owner 2026-11-04: start with fewer testers.
 
-## Work
-1. Play Console: create the Closed testing track (a testers list or Google Group, the opt-in link), countries.
-2. Store listing + content: the minimum Play requires before a closed rollout — app content forms (privacy policy URL:
-   the privacy page (T352 reworded it), data safety form matching what the app sends (crash/2, report/2, install id,
-   location stays on device), target audience, ads: none, content rating), listing text and graphics (T244).
-3. Roll the current internal build (0.6.2, versionCode 11 as of 11-05; same AAB, no rebuild) out to Closed testing; share the opt-in link; track 12 testers × 14 days.
-4. Write down every requirement the Console raises (a checklist here) — that list is the production-release work.
+## What
+Production access for a PERSONAL developer account (created after Nov 2023) needs a closed test first: at least 12
+testers opted in for the last 14 CONTINUOUS days (the qualifying 14 days count only once 12 are opted in; more testers
+can be added any time), then an application for production access (Play Console → Dashboard). Verify the current
+numbers in the Console at the time (Google has changed them).
 
-Owner-only steps: the Console clicks, the tester list, any form that states policy. Claude: drafts the data-safety
-answers from the code, the listing text, the checklist. Depends: T244 (store listing), T352 (privacy wording).
+## Work (left)
+1. Owner: the tester list (12 opted in × 14 continuous days), then the production-access application. Owner-only: the
+   Console clicks, the tester list, any form that states policy.
+2. Claude: write down every requirement the Console raises (a checklist here) — that list is the production-release work.
 
-## Owner 2026-11-04: start with fewer testers
-A closed track takes any number of testers and more can be added any time. Production access (a personal account) needs
-12 testers opted in for the last 14 CONTINUOUS days — the qualifying 14 days count only once 12 are opted in. Starting
-small still clears the track setup, forms and review early. Check the Console's current numbers (Dashboard).
+Done (Claude, 2026-11-04): `handoff/PLAN/play/data-safety.md` (Data safety answers from the code, file:line evidence;
+owner to confirm: Device or other IDs YES (the T352 install id); Approximate location includes the problem report's map
+centre (~100 m, since T384 often the reader's own position); App interactions (open water and screen on crash and
+report); precise location shared with Open-Meteo (a saved spot's unrounded coordinates) and Esri, both decided 10-29.
+Optional: round coordinates to 2 decimals before Open-Meteo (would be a new ticket)) and `handoff/PLAN/play/listing.md`
+(short + full description, graphics table reusing T244's `store/graphics/`; app name open: "Can I Fish?" (app.json) vs
+"Can I Fish This?" (APP_NAME) vs "canifishthis").
+Build note (2026-11-04): the Play AAB is env **staging** (`deploy/staging/build-apk.sh:42`), reports + crash reports go to the
+staging worker; an env `production` build has no report or crash endpoint (`app/apps/mobile/src/env.ts:38`). The AAB
+also has `ENV_SWITCH=1`, so testers see the environment switch.
 
-## 2026-11-04: drafts written (Claude)
-- `handoff/PLAN/play/data-safety.md` has the Data safety answers, drafted from the code, each with file:line evidence.
-  Answers the owner must confirm: Device or other IDs is now YES (the T352 install id; the 10-29 draft said No);
-  Approximate location now includes the problem report's map centre (~100 m, and since T384 often the reader's own
-  position); App interactions is new (the open water and screen on crash and report); precise location shared with
-  Open-Meteo (a saved spot's unrounded coordinates, sent when a visit is logged, when a spot's panel loads and on
-  refresh) and Esri, both decided 10-29. Optional: round coordinates to 2 decimals before Open-Meteo, so only
-  approximate location leaves the phone (would be a new ticket).
-- Build matters: the Play AAB is env **staging** (`deploy/staging/build-apk.sh:42`), so its reports and crash reports go
-  to the staging worker. An env `production` build has no report or crash endpoint (`app/apps/mobile/src/env.ts:38`)
-  and sends neither. The AAB also has `ENV_SWITCH=1`, so testers see the environment switch.
-- `handoff/PLAN/play/listing.md` has the short and full description (the one copy; the store/listing-draft.md text
-  moved there) and the graphics table, reusing T244's files in `store/graphics/`. The app name is open: "Can I Fish?"
-  (app.json) vs "Can I Fish This?" (APP_NAME) vs "canifishthis".
+Depends: T244 (store listing), T352 (privacy wording).

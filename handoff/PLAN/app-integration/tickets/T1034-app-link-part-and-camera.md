@@ -9,18 +9,11 @@ Status: PARTIAL — 77d9de76d, 2ddaa795f, 9520ae1eb (the link's `part` opens tha
 Source: lane L18, Android emulator, 2026-11-23: a `regs=` link opened while another water was on screen kept the old
 camera instead of framing the linked water/part.
 
-## Finding (lane L15, from code; not reproduced on a device)
-`parseAppLink` (`@app/ui` appLink.ts) accepts `part`, `whole`, `date`, `tab`, `sheet`, `scroll`, `age`, `res`, `horizon`
-in `READ_KEYS` but `resolveAppLink` returns only `{ item, view }`: every other key is silently dropped (no-silent-fallbacks).
-The Shell opens the water with `opener.item(item, view)`, no part, so the water map frames the default part, not the one
-the link names. Web's start link carries all of them (`parseStartLink`).
-
-## Work
-1. The link's `part` reaches the open (`opener.item(item, view, part)`): the water opens on that part, framed, through
-   the one `openWater` path search and tap use.
-2. The other read-but-dropped keys (date, tab, sheet, scroll, age, res, horizon, whole): carry them or stop listing them
-   as read (left for a follow-up ticket).
-3. Device check of the camera when another water is open.
+Cause found (lane L15, from code): `resolveAppLink` (`@app/ui` appLink.ts) returned only `{ item, view }`, so the
+link's `part` (in `READ_KEYS`) was dropped and the Shell's `opener.item(item, view)` framed the default part.
+Done: 77d9de76d, 2ddaa795f: the link's `part` reaches the open through the one `openWater` path, checked against the
+water's part count (a part not there is reported, the water opens without it). The other read-but-dropped keys (date,
+tab, sheet, scroll, age, res, horizon, whole) are T1038.
 
 Depends: none. Size: S. Owner: no.
 
@@ -30,15 +23,11 @@ Depends: none. Size: S. Owner: no.
   Repros: Zymoetz River (6 parts) on its Map, "Flows into Skeena River ›" (Skeena part 10); Vedder on Map, link
   `?regs=gnis:26216&part=2&view=map` (Sumas); Vedder on Regulations, link `?regs=gnis:2936&part=11` (Skeena). The same
   links from a cold start worked.
-- **Cause:** `useAsync` returns the last key's answer for the one render after its key changes (`async.ts`, "the last
-  answer until the effect has run"). `useFrameView` took the new frame's part from the route at once but its `navRows`
-  from that stale answer, so water B's part met water A's `part_geo`: a throw when B's part is past A's count, A's
-  middle said as B's when it is not. The same class as T444 (`useWaterGroups`).
-- **Fix (9520ae1eb):** the nav answer is tagged with the question it answers; another water's is loading ("not known
-  yet"), never paired with the frame's part. The throw stays for a part missing on its own water. useWaterMap,
-  WaterScreenBody and WaterViews all take the frame from useFrameView; place.ts, carry.ts and core waterNav.ts read
-  `navRows` for the ord they asked inside one async read, so they never mixed two waters.
-- **Test:** `app/packages/ui/src/frameView.render.test.tsx` (A of 2 parts -> B's part 4, B's nav arriving after the
-  route; every render until it arrives is loading). Fails on the unfixed code with the device's error; the mutation
-  "stale nav -> ready(null)" fails it too.
+- Cause: `useAsync` returns the last key's answer for one render after its key changes; `useFrameView` paired the new
+  route's part with water A's `navRows` (same class as T444). Fix 9520ae1eb: the nav answer is tagged with its question;
+  another water's is loading. Test `app/packages/ui/src/frameView.render.test.tsx` (fails on the unfixed code; mutation
+  "stale nav -> ready(null)" fails it too).
+
+## Work (left)
+1. Device check of the camera when another water is open.
 - Left: the three repros again on a build with 9520ae1eb.

@@ -8,40 +8,25 @@ Status: IN PROGRESS (in build 32 as first built; one behaviour changed after the
 
 Source: owner 2026-11-14, verbatim: "when you chang elvel/condition in the card it should not change cindition map layers too"
 
-## Problem
+## What
 On a water's Conditions view, the gauge card's Flow / Level toggle also set the Conditions map's Show (Flow / Level /
-Temperature). Back on the map, it was painting whatever the card was last switched to.
+Temperature): `shell/WaterModeHost.tsx` handed the card the map's own state (`parameter={flowParam}`,
+`onParameter={setFlowParam}`).
 
-## Cause
-`shell/WaterModeHost.tsx` handed the card the map's own state: `parameter={flowParam}` and
-`onParameter={setFlowParam}` (`useMapColouring`: `setLayerChoice(chooseShow(...))`, the map's Layers choice). The card
-had no state of its own; its toggle wrote the map's. The coupling was deliberate (pinned by the
-`ConditionsLayers.shell.test.tsx` case "Flow in the chart is Flow on the map").
-
-## Fix
-- `WaterConditions` (`WaterViews.tsx`) owns the card's quantity: one `useState`, read by the card (`ConditionsPanel`
-  `parameter` / `onParameter`) and the watershed days alike. The map's Flow or Level comes in as `opening`: where the
-  card starts, read only until the reader picks in the card.
-- `WaterModeHost` no longer passes `setFlowParam` anywhere; the map's Show changes only from the map's Layers sheet.
-- "Flow leads, Level auxiliary" untouched: the lead gauge is still chosen in Flow (`leadOver`), whatever the card shows.
-
-## Not changed (question for the owner)
-The other way round still holds: the map on Level opens the card on Level (the card starts on the map's layer). A
-card pick is kept while the water's Conditions view is up (a part step keeps it) and starts again from the map's
-layer when another water is opened.
+Done:
+- 6dd66973d: `WaterConditions` (`WaterViews.tsx`) owns the card's quantity (one `useState`, read by `ConditionsPanel`
+  and the watershed days); `WaterModeHost` no longer passes `setFlowParam`; the map's Show changes only from the map's
+  Layers sheet. "Flow leads, Level auxiliary" untouched (`leadOver`).
+- 81a28e7c2 (owner 2026-11-16, on the small behaviours left as built: "we should fix anything that doesnt seem
+  desirable"): a water's Conditions card always opens on Flow (his 2026-11-10 ruling: Flow leads, Level auxiliary); a
+  pick made in the card lasts while that water is open; a water with no flow reading says so and offers Level.
+- Emulator look 2026-11-20 (L4, `small-looks`): Coquitlam River -> Conditions: the card opens on Flow; Level picked;
+  back on the map nothing about the map's layer changed (shots
+  `handoff/PLAN/app-integration/L4-android-shots-2026-11-20/T728/`). The Conditions-layer map itself (its Show choice)
+  was not opened. Found: the estimate card ABOVE the gauge card also changes with the pick (headline Normal -> Below
+  normal): T971.
 
 ## Acceptance
 - `ConditionsLayers.shell.test.tsx` "THE CARD'S PICK IS THE CARD'S": map on Level, the card opens on Level; Flow in the
   card charts Flow; back on the map, Show is still Level and the map still asks level. Fails before the fix.
 - Left (Claude): the emulator look on the next APK (the emulator was another lane's on 2026-11-14).
-
-## Changed after the owner's answer, 2026-11-16 (app chat)
-Owner (question dialog in the main chat, 2026-11-16 12:08, on the list of small behaviours left as built): "we should fix anything that doesnt seem desirable". This one was left as built with an alternative on offer; the app chat judged it undesirable.
-Now, on branch `app-fix/small-looks-1116` (81a28e7c2, not merged): a water's Conditions card always opens on Flow (his 2026-11-10 ruling: Flow leads, Level auxiliary); a pick made in the card lasts while that water is open, as before; a water with no flow reading says so and offers Level, as before. Each fix has a test that failed first;
-`check:fast` passes. Left: the emulator look, then the merge with its benches.
-
-## Emulator look 2026-11-20 (L4, `small-looks`)
-Coquitlam River -> Conditions: the card opens on Flow; Level picked in the gauge card; back on the map nothing about the map's
-layer changed (shots `handoff/PLAN/app-integration/L4-android-shots-2026-11-20/T728/`). The Conditions-layer map itself (its Show choice) was not opened, so "the map keeps Flow" is
-seen only as the browse map unchanged. Found: the estimate card ABOVE the gauge card also changes with the pick (headline
-Normal -> Below normal): T971.

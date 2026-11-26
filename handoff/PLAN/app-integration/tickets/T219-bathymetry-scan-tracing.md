@@ -11,63 +11,36 @@ Source: owner 2026-10-27 on T201's research (handoff/PLAN/bathymetry/SOURCES.md,
 are already digitised. This ticket covers the rest, tiered by how much each lake is fished.
 
 ## Feasibility (measured 2026-10-27, prototype in the session scratchpad; no repo code)
-Samples: Fox L. 1988 (metres, small, also ground truth), 103 Mile L. 1975, Cottonwood L. 1950 (oldest, feet), Roche
-L. group 1959 (feet, three lakes on one sheet), Tunkwa L. 1981 (feet), and two multi-sheet sets: Pinchi L. 1 of 2
-(ground truth) and Lac la Hache 1 of 2 (large).
-
-**The PDFs are raster, not vector.** Each page is one 1-bit JBIG2 scan (CCITT/Flate on the oldest), about 8,100–9,500 ×
-5,900–6,800 px at 270–380 dpi, from Acrobat 4 "Import". The only vector paths are the frame and the disclaimer box,
-3–28 per page. No contour can be pulled out as a path. Each page does have an OCR text layer, 1.4–2.6 k chars.
-- Scan quality is good: clean black-on-white, thin continuous pen lines, little noise. The hand-drafted pre-1975
-  sheets read as well as the 1988 one.
-- Labels: contours carry inline depth labels in gaps (3, 6, 9 …) and pass through spot soundings (".12"). Units are
-  feet on pre-~1975 sheets and metres after. Intervals vary (3 m, 10 ft, 20 ft…). Some sheets are mostly
-  transects and soundings with almost no contours (Tunkwa).
-- Georeferencing aids: none of the samples has a graticule or lat/long ticks. Each has a north arrow (often rotated:
-  Fox −60°, Cottonwood +34°), a scale bar and a printed scale. Newer title blocks have one UTM point and an NTS
-  sheet. So the shoreline is the georeference.
-- The OCR text layer holds the statistics block. Fox reads max 24.7 m, mean 10.5 m and volume 12,000,000 m³, which
-  matches the digitised layer exactly. Garbled cases still need a check (feet, odd glyphs such as "10·5", "2 5 .6").
-
-**Georeferencing prototype.** Render at 100 dpi, threshold, flood the outside, open the result to cut off creeks, and
-take the candidate blob. Then fit a similarity transform (scale, rotation, shift) to the FWA polygon: a 15° rotation
-sweep followed by trimmed ICP. Fit errors are measured both ways between the boundaries:
-
-| sheet | median m | p90 m | implied vs printed scale | result |
-|---|---|---|---|---|
-| Fox 1988 | 6.1 / 5.4 | 35 / 14 | 1:3,515 vs 1:3,500 | good (p90 is the inlet creek) |
-| 103 Mile 1974/75 | 5.2 / 5.2 | 20 / 22 | 1:3,619 | good |
-| Cottonwood 1950 | 4.9 / 5.5 | 24 / 48 | 1:3,404 vs 1:3,588 | good |
-| Roche group 1959 | 11 / 13 | 92 / 187 | 1:7,233 vs 1:7,200 | good fit; the 1959 shore differs from FWA at the NE end |
-| Tunkwa 1981 | 34 / 29 | 227 / 79 | 1:11,844 vs 1:18,264 | **failed** (reservoir shore changed; creeks in the blob) |
-| Pinchi 1 of 2 | 264 / 336 | — | 1:188,646 | **failed** (a partial sheet against the whole lake) |
-| Lac la Hache 1 of 2 | 168 / 291 | — | 1:55,356 | **failed** (same) |
-
-On the single-lake sheets, 4 of 5 fit automatically, with a median error of 5–13 m and the scale within 0–5% of
-print. The 2 partial sheets both failed: they need the sheets mosaicked first, or the scale taken from the printed
-ratio and only the matching part of the shore fitted. In the full set, 363 rows (158 lakes) are multi-sheet.
-
-**Contour prototype (Fox).** Keep ink inside the lake that forms long strokes, which drops digits, soundings and
-transect dots. Skeletonise, bridge endpoint gaps, label the bands between strokes, and give each band a depth by its
-nesting distance from shore.
-- Stroke geometry is good. The digitised layer's 10 m contour lies a median 4.5 m (p90 13 m) from our nearest
-  georeferenced stroke, so georef + strokes agree with the government's own trace to about 5 m.
-- Automatic depth assignment failed: it reached 2 nesting levels, but the chart has 8. Gaps at the inline labels,
-  lines run through soundings, and contours that hug the shore leak bands into each other. Endpoint bridging at 40–120
-  px did not fix it.
-- So the depth label (which stroke is which depth) needs a person, or a vision model pass, plus snapping to close
-  the gaps.
+Samples: Fox L. 1988, 103 Mile L. 1975, Cottonwood L. 1950, Roche L. group 1959, Tunkwa L. 1981, Pinchi L. 1 of 2,
+Lac la Hache 1 of 2.
+- **The PDFs are raster, not vector:** one 1-bit JBIG2 scan per page (CCITT/Flate on the oldest), about 8,100–9,500 ×
+  5,900–6,800 px at 270–380 dpi; no contour can be pulled out as a path. Each page has an OCR text layer (1.4–2.6 k
+  chars) holding the statistics block (Fox: max 24.7 m, mean 10.5 m, volume 12,000,000 m³, matching the digitised layer
+  exactly); garbled cases still need a check (feet, odd glyphs such as "10·5", "2 5 .6"). Scan quality is good, pre-1975
+  hand-drafted sheets too.
+- Labels: inline depth labels in gaps (3, 6, 9 …), spot soundings (".12"); feet on pre-~1975 sheets, metres after;
+  intervals vary (3 m, 10 ft, 20 ft…); some sheets are mostly transects and soundings (Tunkwa).
+- No graticule or lat/long ticks; a north arrow (often rotated: Fox −60°, Cottonwood +34°), a scale bar, a printed
+  scale; newer title blocks have one UTM point and an NTS sheet. So the shoreline is the georeference.
+- **Georef prototype:** render at 100 dpi, threshold, flood the outside, open to cut creeks, take the blob; fit a
+  similarity transform to the FWA polygon (15° rotation sweep + trimmed ICP). On the single-lake sheets 4 of 5 fit
+  automatically (median error 5–13 m, scale within 0–5% of print); Tunkwa 1981 failed (reservoir shore changed; creeks
+  in the blob); the 2 partial sheets (Pinchi, Lac la Hache) failed: they need a mosaic first, or the scale from the
+  printed ratio and only the matching shore fitted. In the full set, 363 rows (158 lakes) are multi-sheet.
+- **Contour prototype (Fox):** long ink strokes inside the lake, skeletonise, bridge gaps, label bands by nesting. Stroke
+  geometry is good: the digitised 10 m contour lies a median 4.5 m (p90 13 m) from our nearest stroke. Automatic depth
+  assignment failed (2 nesting levels of the chart's 8; bridging at 40–120 px did not fix it), so the depth label needs a
+  person, or a vision model pass, plus snapping.
 
 ## Failure modes
-1. Partial or multi-sheet lakes: 158 lakes. They need a mosaic or a partial-shore fit.
-2. The shoreline changed since the survey (reservoirs, dams, a 1950s air-photo "interim" outline): Tunkwa, Roche NE.
-3. The wrong blob: creeks, islands or a title box merged in. Several lakes on one sheet (Roche group; 118 PDFs serve
-   more than one lake row).
-4. Charts with few contours (transects and soundings only), so there is nothing to trace.
-5. Units and interval: feet vs metres, irregular intervals, shoals (closed contours that get shallower).
-6. Several chart versions per lake (216 lakes; Stump L. has 4). Pick the newest, or the one whose shore fits best.
-7. Gaps in the metadata: 90 rows have no datum and 326 have no draft date. NAD27 does not matter, because the fit is
-   to FWA and not to coordinates.
+1. Partial or multi-sheet lakes: 158 lakes (mosaic or partial-shore fit).
+2. Shoreline changed since the survey (reservoirs, dams, a 1950s air-photo "interim" outline): Tunkwa, Roche NE.
+3. The wrong blob: creeks, islands or a title box merged in; several lakes on one sheet (118 PDFs serve more than one
+   lake row).
+4. Charts with few contours (transects and soundings only).
+5. Units and interval: feet vs metres, irregular intervals, shoals.
+6. Several chart versions per lake (216 lakes; Stump L. has 4): pick the newest, or the best shore fit.
+7. Metadata gaps: 90 rows no datum, 326 no draft date; NAD27 does not matter (the fit is to FWA).
 
 ## Work (stages, estimate)
 1. Index: CSV ↔ `WHSE_FISH.BATH_SURVEY_MAP_SHEETS_SVW` ↔ FWA key; one chart per lake; rank lakes by fishing

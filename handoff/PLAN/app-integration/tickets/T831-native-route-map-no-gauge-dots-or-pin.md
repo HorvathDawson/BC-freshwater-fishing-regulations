@@ -9,68 +9,28 @@ Status: IN PROGRESS — fix merged: 57d816fdb (gauge dots and the you-are-here p
 Source: found by the T826 agent 2026-11-17 while checking the owner's iPhone report (T826 part 1), on both Android
 and iOS; the web draws them.
 
-The route map's key names gauge dots and the "you are here" pin, but the native map ignores `trace`
-(`app/packages/map/src/Map.native.tsx:115`, `trace: _noTrace`). Build: carry the trace layers into the native map as
-the web adapter does, with an adapter-contract test, and prove it on both phones (shots beside the web).
+## What
+The route map's key names gauge dots and the "you are here" pin, but the native map ignored `trace`
+(`app/packages/map/src/Map.native.tsx:115`, `trace: _noTrace`). Carry the trace layers into the native map as the web
+adapter does, with an adapter-contract test, and prove it on both phones (shots beside the web).
 
-## Done (branch worktree-agent-adb875be91fae4165, 0.8.1 lane B, 2026-11-18)
+Done (fix merged, commits in the row): pins and lines into each native style (`nativeStyle` `tracePins` / `traceLines`);
+`<GeoJSONSource id="trace">` / `id="trace-pins"` handed their data only once a style has loaded (the binding ADOPTS a
+source the style declares and never pushes its mount data, `MLRNSource.addToMap`); a byte-range reader injected
+(`@app/map` `ReadRange` + `TileEndpoints.readRange`; `@app/data/release/platform` `atlasRange`, `range.native.ts`
+expo-file-system `File.open`; RN's `fetch` of a `file://` archive ignores `Range`); a phone with no reader draws no lines and
+reports why. Tests: `adapter-contract.render.test.tsx`, `trace-geometry.test.ts`, `native-style.test.ts`,
+`range.native.test.ts` ("T831 …"). Proofs:
+- Android (L4, 2026-11-20, `route-scroll`, build of 124d79efa; the step now reaches the map under the chart, T920,
+  `fromTop`): Coquitlam River PASS, "1269 accent pixels in the map (the pin)", ten fling rounds never blank. Picture:
+  `handoff/PLAN/app-integration/L4-android-shots-2026-11-20/T831/T831-route-pins.png`.
+- iPhone (lane L6, 3e8189d79, `scenarios-ios/l6-shots.mjs` `t831-ios`, pixels counted inside the `donor-route-map`
+  frame): 2 of 2 PASS, light 1,751 / dark 1,619. Shots: `handoff/PLAN/ios/shots/t831/ios-route-light.jpg`,
+  `handoff/PLAN/ios/shots/t831/ios-route-dark.jpg`.
 
-Cause: `Map.native.tsx` destructured `trace: _noTrace` and never wrote it. The phone's style already carried everything
-else (`runtimeStyle` → `traceSources()` + `traceLayers()`; the pin and pill images in `nativeImages`), so the `trace`
-and `trace-pins` sources stayed the style's empty collections. Two traps behind it:
-- the binding's `GeoJSONSource` ADOPTS a source the style declares and never pushes the data it was mounted with
-  (`MLRNSource.addToMap`, Android and iOS) — only a later `data` change reaches it;
-- the lines are copied out of the atlas by byte range (`traceOverlay`, `pmtiles`), and a phone's atlas is an installed
-  `file://` archive: RN's `fetch` of it ignores `Range` and reads the whole file (or fails on Android).
-
-Fix:
-- Pins and lines into each native style (`nativeStyle` `tracePins` / `traceLines`, read through refs: no style swap per
-  horizon change), and `<GeoJSONSource id="trace">` / `id="trace-pins"` handed their data only once a style has loaded,
-  so every later change is pushed to the adopted source.
-- A byte-range reader injected, not imported (coordinator 11-18: `layers.json` unchanged, `packages/map` free of
-  expo-file-system): `@app/map` `ReadRange` + `TileEndpoints.readRange`; `trace-geometry` `rangeSource` hands it to the
-  real `PMTiles`; `@app/data/release/platform` `atlasRange` (`range.native.ts`: expo-file-system `File.open`, the
-  install's `readAt` pattern; `range.web.ts`: null — the web keeps `pmtiles`' fetch); `apps/mobile` `App.tsx` puts it on
-  `tiles`. A phone with no reader draws no lines and reports why (never a fetch of the file).
-- The native fit frames the drawn lines too, as the web's `useFit`. Web untouched.
-
-Tests: `adapter-contract.render.test.tsx` "T831 …" (web + native pins; native lines through the injected reader over a
-real in-memory `.pmtiles` archive, a theme swap keeps lines and pins in the new style, routes cleared, no reader →
-reported and no lines; the bake and the source each fail when reverted); `trace-geometry.test.ts` "(T831) …" (a route's
-line out of a `.pmtiles` archive through the reader, only ranges ≤ 16 KiB asked, `rangeSource` hands exact bytes);
-`native-style.test.ts` "(T831) …" (pin and line sources, layers, themed pin image, baked collections);
-`packages/data` `range.native.test.ts` (range, end of file, past it, handle closed; expo-file-system faked);
-`map-props-gate.test.ts` no longer lists `trace` as a phone gap. New test fixture: `pmtiles.fixture.ts` (archive writer).
-
-Test bed (added, not run): `route-scroll` step "T831: the route map draws its lines, the gauge dots and the 'you are
-here' pin" — fails with no accent-violet pixels in the map (no pin); keeps `T831-route-pins.png` to set beside the web's
-route map: a solid line to each gauge downstream, dashed upstream, arrows along them, a dot per gauge with its share.
-
-## Not done
-
-- Phone proof (the test-bed step on Android and iOS, shots beside the web).
-
-## Android proof 2026-11-20 (L4, `route-scroll`, build of 124d79efa)
-T920 moved the route map UNDER the chart (header, headline, detail, chart, map, donors), so `route-scroll` never found it any
-more (its wait failed at 30 s): it now brings the pane to its top and drags down in the gutter until the map is on screen
-(`fromTop`). Coquitlam River: PASS, "1269 accent pixels in the map (the pin)", and ten fling rounds with the map 39-44 % its
-commonest colour every time (never blank). The picture `handoff/PLAN/app-integration/L4-android-shots-2026-11-20/T831/T831-route-pins.png` shows the lines (violet over the river,
-arrows down it, dashed upstream), a gauge dot with its share at each end (18 % orange, 82 % teal), the "you are here" pin and
-the key line under it. iOS and the web set beside it are not part of this pass.
-
-## iPhone proof (lane L6, 2026-11-20; 91d27a5a7, 2f4b492aa, 3e8189d79)
-
-- **Bench** `scenarios-ios/l6-shots.mjs` `t831-ios`: Coquitlam River (Region 2) from search → Conditions; the page is
-  scrolled until the route map's frame (`donor-route-map`, a testID added to `DonorMap.tsx`'s map box) is whole on
-  screen (the map sits under the gauge chart since T920), and the accent-violet pixels are counted inside that frame.
-- **A false pass caught on the way:** the first version counted the whole screen and passed (17,252 pixels) on the
-  page's own violet buttons while the map was below the screen. A second version stopped with the map half off the
-  bottom (it took the screen height from the scroll content). Both fixed before the run below.
-- **Run** (build 3e8189d79 `--testbed`, iPhone 17e, iOS 26.5, 13:05-13:20): 2 of 2 PASS. Light: 1,751 accent pixels
-  inside the map (frame 16,270-374,650 pt); dark: 1,619. The shots show the route line with its arrows, two gauge dots
-  with their labels ("100%", "level only") and the violet "you are here" pin with its label.
-- Shots: `handoff/PLAN/ios/shots/t831/ios-route-light.jpg`, `handoff/PLAN/ios/shots/t831/ios-route-dark.jpg`.
-- Left (Claude): the Android half (`route-scroll`'s T831 step on the emulator) and the shots beside the web's.
+## Work (left)
+- The shots beside the web's route map (iOS and the web set beside Android were not part of the Android pass), and the
+  owner's look below.
 
 ## Owner
 

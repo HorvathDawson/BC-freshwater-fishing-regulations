@@ -9,37 +9,19 @@ Status: IN PROGRESS (in build 32 as first built; one behaviour changed after the
 Source: owner 2026-11-14, phone, verbatim: "When you are in the navigate section view and you click upstream or downstream it
 is like menus briefly close at bottom and cause a flash of a resize then rerender that is a bit abraisive"
 
-## Problem
-On a water's Map view (the part-by-part view: ▼ Downstream / ▲ Upstream under the map), pressing a step made the bar
-under the map go blank for a moment (the steps, the name and "Show regulations" replaced by a spinner), the map grew into
-the room it left, then the bar came back and the map shrank again. Wanted: the step changes the part in place; the bar
-stays mounted at its height; no resize, no blank frame; the map glides to the new part.
+## What
+On a water's Map view, a step into ANOTHER water (▲ / ▼ "Upstream into …" / "Downstream into …", `onCross` → route
+`cross`; a split lake's other area) blanked the bar under the map to a spinner (`WaterMapView.tsx` drew
+`status === WATER_MAP_WORDS.loading` as a `LoadingState` in place of every control while `useWaterMap`,
+`app/packages/ui/src/waterMap.ts:532`, read the new group), so the map grew, then shrank back. A step inside one water
+was already in place.
 
-## Cause
-`app/packages/ui-native/src/water/WaterMapView.tsx` (at 203254660: line 107, the status, and line 218, the spinner drawn in the bar's place): the bar draws
-`status === WATER_MAP_WORDS.loading` as a `LoadingState` in place of every control. A step that goes on into ANOTHER water
-(▲ / ▼ "Upstream into …" / "Downstream into …", `onCross` → route `cross`; a split lake's other area, `partAction` with an
-item) moves the frame to a water whose group and frame rows are not read yet, so `useWaterMap`
-(`app/packages/ui/src/waterMap.ts:532` `useWaterMap`, `group.state === "loading" || waiting`) returns loading for that read.
-The bar was replaced by the spinner (shorter), the map (`flex: 1` above the bar) was laid out taller (on a phone the native
-map refits on a size change, `Map.native.tsx` `onLayout` → `refit`), then the new part's bar came back at full height.
-Measured in jsdom through the real Shell (Chilliwack ▼ into the Vedder): every bar control removed, `water-map-status`
-added, then all re-added. A step inside one water reads nothing new and was already drawn in place (same probe: no
-node lost), so the owner's flash is the step into the next water; a phone look on the next APK confirms whether the
-in-water step shows anything on the device (the native map's glide only, expected).
-
-Not the T716/T717 hold: a step does not change whether a water is open, so `usePaneHold` / `useBrowseKept` are not
-involved (checked against T717's uncommitted Shell.tsx / paneReveal.ts; no change needed there).
-
-## Fix
-`@app/ui` `useKeptWhilePending` (`app/packages/ui/src/async.ts`): the last answer drawn stays on screen while the next is
-read, marked `kept`; nothing kept before a first answer, and never past a limit (then the caller's own waiting state, so a
-slow read is said, never hidden). `WaterMapView` draws the bar and everything the map is handed (lit sections, water line,
-marks, fit, receiving water, in-season outline) from it with `PANE_HOLD_MS` as the limit: through a step's read the bar is
-the part stepped from, inert (`pointerEvents="none"`, map presses ignored), `aria-busy` to a screen reader, the mark pop and
-chooser not redrawn; then the new part is drawn into the same nodes and the map's fit moves to it. A first open is
-unchanged (the waiting state, held over the browse map, T508). One load path: the final frame is the same as before for
-every way in; only the in-between frame changed.
+Done: `@app/ui` `useKeptWhilePending` (`app/packages/ui/src/async.ts`): the last answer stays drawn (inert, `aria-busy`)
+while the next is read, never past `PANE_HOLD_MS`; the new part is drawn into the same nodes (b40336850). After the
+owner's 2026-11-16 12:08 answer, verbatim: "we should fix anything that doesnt seem desirable": the bottom bar keeps its
+height stepping into a one-part water (was 122 px shorter); a water opened fresh carries no empty row (8e1791c7e,
+`app-fix/small-looks-1116`, merged 265fae08a; benches 572a6957a: regs-open's two slow first taps, 160 / 154 ms, were
+the first run after an install, A/B passed). Placement later reworked by T875.
 
 ## Acceptance
 - `app/packages/ui-native/src/StepInPlace.shell.test.tsx` (real Shell, regs fixture release): ▼ Chilliwack → Vedder and ▲
@@ -54,18 +36,6 @@ every way in; only the in-between frame changed.
   (`pane-frames.py`) and FAIL on any frame where the bar under the map is missing or shorter, or the map's size changes;
   then a look at the same on the phone.
 
-## Changed after the owner's answer, 2026-11-16 (app chat)
-Owner (question dialog in the main chat, 2026-11-16 12:08, on the list of small behaviours left as built): "we should fix anything that doesnt seem desirable". This one was left as built with an alternative on offer; the app chat judged it undesirable.
-Now, on branch `app-fix/small-looks-1116` (8e1791c7e, not merged): the bottom bar keeps its height when a step leads into another water (it was 122 px shorter stepping into a one-part water); a water opened fresh carries no empty row. Each fix has a test that failed first;
-`check:fast` passes. Left: the emulator look, then the merge with its benches.
-
-## Benches for the small-fixes merge (T731, T730, T728, T800), 2026-11-16 16:48 (app chat)
-Branch `app-fix/small-looks-1116`, merged with the head after T797. `pnpm check` rc 0. Benches, `small` APK:
-install, memory, bg-install, crash-bed PASS; tap-stalls PASS; regs-open FAILED twice on the FIRST tap's cue
-(160 ms, then 154 ms; limit 150), each time in the first run after a fresh `--build`. A/B to settle it: the head APK
-(t797) twice, first taps 33–112 ms, both pass; the small APK twice more without a rebuild, first taps 40–86 ms,
-both pass. Read: the slow first taps were the first run after an install, not these changes (none is on the path
-before the cue). The regs-and-back tests after the T797 merge: 1124 pass.
 
 ## Emulator look 2026-11-20 (L4, `small-looks`, build of 124d79efa)
 Chilliwack River's Map view, part 1: down into the Vedder River and up back. The bar under the map measured 857 px before, after
