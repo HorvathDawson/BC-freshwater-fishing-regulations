@@ -3,6 +3,7 @@
  * `../engine.ts` hands the shell (`../../Map.native.tsx`). Nothing else imports this folder.
  */
 export { maplibreTiles } from "./tiles";
-export { HeldLabels } from "./HeldLabels";
 export { engineLog } from "./log";
-export { bindingRefs, useEngineRefs } from "./handle";
+export { useEngineRefs } from "./handle";
+export { EngineView } from "./View";
+export { maplibreDialect as engineDialect } from "./dialect";
