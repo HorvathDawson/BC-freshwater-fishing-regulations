@@ -460,7 +460,8 @@ def keepalive_said(url: str, ssh_command: str | None, ssh_g=None) -> str | None:
 # steps queue on one machine-wide lock, and its vitest runs take the cores the machine has free.
 
 #: the machine's push lock: fcntl.flock, so the kernel drops it when its holder dies (a crashed hook never leaves it
-#: held); the file holds the holder's details (pid, checkout, since), emptied on release. Not a heavy-job lock.
+#: held); the file holds the holder's details (pid, checkout, since), emptied on release. Not a heavy-job lock. It is
+#: in the home folder, so it is one lock per user account (every chat on this Mac pushes as the same user).
 LOCK_FILE = Path.home() / ".claude" / "before-push.lock"
 #: the longest wait for the lock, in minutes (default LOCK_WAIT_MIN); past it the hook FAILS, never runs unlocked
 LOCK_WAIT_ENV = "BEFORE_PUSH_LOCK_WAIT"
@@ -502,17 +503,20 @@ def _who(h: dict | None) -> str:
 
 
 @contextlib.contextmanager
-def machine_lock(path: Path, wait_s: float, poll_s: float = 1.0, say_every: float = 30.0, say=None):
+def machine_lock(path: Path, wait_s: float, poll_s: float = 1.0, say_every: float = 30.0, say=None, ppid=os.getppid):
     """(T1144) Hold the machine's push lock while the body runs. Free: taken at once (a last holder that died holding
     it — its details still in the file — is said, taken over). Held: says once who holds it, then every `say_every`
     seconds how long so far; after `wait_s` raises LockTimeout naming the holder. The fd is not inherited by the
-    steps (PEP 446; subprocess closes fds too), so only this process holds the lock and its death frees it."""
+    steps (PEP 446; subprocess closes fds too), so only this process holds the lock and its death frees it. A waiter
+    whose parent ended (git gave the push up: its ssh connection dropped) stops waiting and raises too: it never goes
+    on to hold the lock and run every step for a push that is already dead."""
     say = say or (lambda s: print(s, flush=True))
     path.parent.mkdir(parents=True, exist_ok=True)
     fd = os.open(path, os.O_RDWR | os.O_CREAT, 0o644)
     try:
         t0 = last = time.monotonic()
         told = False
+        parent = ppid()
         while True:
             try:
                 fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -522,11 +526,17 @@ def machine_lock(path: Path, wait_s: float, poll_s: float = 1.0, say_every: floa
             now = time.monotonic()
             if not told:
                 say(f"before-push: waiting for the machine's push lock ({path}): held by {_who(_holder(fd))}; at most "
-                    f"{round(wait_s)} s ({LOCK_WAIT_ENV}, minutes); {NO_LOCK_ENV}=\"<reason>\" runs beside it")
+                    f"{round(wait_s)} s ({LOCK_WAIT_ENV}, minutes); {NO_LOCK_ENV}=\"<reason>\" runs beside it. git "
+                    "holds its ssh connection open meanwhile (AGENTS W47, the keepalive)")
                 told = True
             elif now - last >= say_every:
                 say(f"before-push: still waiting for the push lock: {round(now - t0)} s so far")
                 last = now
+            if ppid() != parent:
+                raise LockTimeout(
+                    f"before-push: STOPPED after {round(now - t0)} s of waiting for the push lock ({path}): the git "
+                    "that started this hook has ended (its connection dropped), so the push is gone; nothing was "
+                    "checked. Push again")
             if now - t0 >= wait_s:
                 raise LockTimeout(
                     f"before-push: FAILED: the machine's push lock ({path}) was held by {_who(_holder(fd))} for the "

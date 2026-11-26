@@ -579,15 +579,31 @@ def _release(p: subprocess.Popen, after: float = 0.0) -> None:
     p.stdin.flush()
 
 
+def test_a_waiter_whose_git_ended_stops_and_never_takes_the_lock(tmp_path):
+    """(review) git dies while the hook waits (a dropped ssh connection): the waiter stops, saying so, and does not go
+    on to hold the lock and run the steps for a dead push. Mutation: drop the parent check -> it waits the whole
+    wait and this fails on the message."""
+    lock = tmp_path / "l"
+    p = _holder(lock)
+    parents = iter([100, 100, 1])                                    # the parent changes on the second poll
+    try:
+        with pytest.raises(BP.LockTimeout, match="the git that started this hook has ended"):
+            with BP.machine_lock(lock, 5, poll_s=0.02, say=lambda s: None, ppid=lambda: next(parents, 1)):
+                raise AssertionError("the lock was taken")
+    finally:
+        _release(p)
+        assert p.wait(5) == 0
+
+
 def test_a_second_push_waits_for_the_lock_and_then_runs(tmp_path):
     """Two holders: the second says once who holds it (pid, checkout, since), then how long so far, and runs when the
     first lets go. Mutation: drop the flock acquisition -> the second does not wait and this fails."""
     lock = tmp_path / "l"
     p = _holder(lock)
     said = []
-    threading.Thread(target=_release, args=(p, 0.4)).start()
-    with BP.machine_lock(lock, 10, poll_s=0.02, say_every=0.1, say=said.append) as waited:
-        assert waited >= 0.3, (waited, said)
+    threading.Thread(target=_release, args=(p, 1.0)).start()        # a second of holding: slack on a loaded machine
+    with BP.machine_lock(lock, 30, poll_s=0.02, say_every=0.1, say=said.append) as waited:
+        assert waited >= 0.5, (waited, said)
         fd = os.open(lock, os.O_RDWR)                        # while we hold it, nobody else can take it
         with pytest.raises(BlockingIOError):
             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
