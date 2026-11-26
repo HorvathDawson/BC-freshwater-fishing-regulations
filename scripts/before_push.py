@@ -252,8 +252,9 @@ ZERO = "0" * 40
 def pushed_paths(lines: list[str], trunk: str = CP.TRUNK) -> tuple[list[str], list[str]]:
     """(T995 review) THE PRE-PUSH HOOK'S CHANGE: git hands the hook one line per ref, `<local ref> <local sha> <remote
     ref> <remote sha>`. A delete (local sha zero) and a tag push check nothing; a branch checks the commits it sends —
-    `<remote sha>..<local sha>`, or, for a new branch (or a remote sha this clone does not hold), everything since its
-    merge base with origin/main. (what was pushed, one line per ref; every path those commits change)"""
+    `<remote sha>..<local sha>` (T1144: those of its paths the PR itself changes), or, for a new branch (or a remote
+    sha this clone does not hold), everything since its merge base with origin/main. (what was pushed, one line per
+    ref; every path to test)"""
     said, paths, _ = pushed(lines, trunk)
     return said, paths
 
@@ -263,7 +264,16 @@ def pushed(lines: list[str], trunk: str = CP.TRUNK) -> tuple[list[str], list[str
     (T1019) That range is `<merge base with origin/main>..<local sha>` — the branch's own commits, the range docs-ci's
     `commits` job checks on the PR — never `<remote sha>..<local sha>`: after a merge of (or a rebase onto) a newer
     trunk the remote's old tip is not the branch's base, and that range held the trunk's own commits (merge subjects,
-    history before the T998 cutover) the PR never checks. The PATHS stay the pushed change (`<remote sha>..`)."""
+    history before the T998 cutover) the PR never checks.
+
+    (T1144) THE PATHS are the pushed change that is ALSO the PR's own: changed in `<remote sha>..<local sha>` AND in
+    `<merge base>..<local sha>` (what CI's `changes` job reads for the PR, ci_paths.pr_paths). A plain follow-up push
+    tests what it changed, as before; after `git merge origin/main` the first range holds every path main changed
+    (165 for a docs-only branch, 2026-11-26: a 5 min hook re-testing main), and only the PR's own paths the merge
+    touched stay (a conflict resolution is in both). The rest are as main has them (each came with main, or the push
+    put it back to main's), so the PR and the merge queue test them, not this push: said, with their count. A stale
+    local origin/main makes the merge base older and the PR's own set WIDER (main's newer paths count as the PR's):
+    more is tested, never less. A new branch (remote sha unknown) is everything since the merge base, as before."""
     said, paths, ranges = [], set(), []
     for ln in lines:
         parts = ln.split()
@@ -279,11 +289,22 @@ def pushed(lines: list[str], trunk: str = CP.TRUNK) -> tuple[list[str], list[str
         known = rsha != ZERO and subprocess.run(["git", "cat-file", "-e", f"{rsha}^{{commit}}"], cwd=ROOT,
                                                 capture_output=True).returncode == 0
         mb = _git("merge-base", lsha, f"{CP.REMOTE}/{trunk}", trunk=trunk).strip()
-        base = rsha if known else mb
-        got = [x for x in _git("diff", "--name-only", "--no-renames", base, lsha, trunk=trunk).splitlines() if x]
-        said.append(f"{rref}: {len(got)} path(s) in {base[:12]}..{lsha[:12]}"
-                    + ("" if known else f" (since the merge base with {CP.REMOTE}/{trunk})"))
-        paths |= set(got)
+        def diff(a: str) -> set[str]:
+            return {x for x in _git("diff", "--name-only", "--no-renames", a, lsha, trunk=trunk).splitlines() if x}
+        own = diff(mb)
+        if known:
+            sent = diff(rsha)
+            got, came = sent & own, sent - own
+            said.append((f"{rref}: {len(came)} path(s) came with main and are the merge queue's: not re-tested here; "
+                         if came else f"{rref}: ")
+                        + f"{len(got)} path(s) in {rsha[:12]}..{lsha[:12]}"
+                        + (f" that the PR itself changes (since {mb[:12]}, the merge base with {CP.REMOTE}/{trunk})"
+                           if came else ""))
+        else:
+            got = own
+            said.append(f"{rref}: {len(got)} path(s) in {mb[:12]}..{lsha[:12]} (since the merge base with "
+                        f"{CP.REMOTE}/{trunk})")
+        paths |= got
         ranges.append(f"{mb}..{lsha}")
     return said, sorted(paths), ranges
 

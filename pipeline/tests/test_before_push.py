@@ -217,6 +217,65 @@ def test_the_hook_checks_the_pushed_commits_not_the_tree(tmp_path, monkeypatch, 
                    "docs: the ticket guard's tests and the start-here page (docs-ci)"]     # docs only, not the tree
 
 
+def test_the_pushed_paths_are_the_prs_own_not_what_a_merge_of_main_brought(tmp_path, monkeypatch, capsys):
+    """(T1144) a branch that merged main and pushed re-tested main's own change (165 paths for a docs-only branch, a
+    5 min hook). The paths are the pushed change that the PR itself changes (`<merge base>..<sha>`, CI's view). What
+    must still be caught: the PR's file on the first push, on a follow-up push, and after a merge whose resolution
+    changed it; a file only main changed is not tested. Mutation: the paths `<remote sha>..<sha>` alone -> the
+    main-only cases fail."""
+    import io
+    here, run = _repo(tmp_path, monkeypatch)
+    z = BP.ZERO
+
+    def commit(files: dict[str, str], msg: str) -> str:
+        for p, text in files.items():
+            (here / p).parent.mkdir(parents=True, exist_ok=True)
+            (here / p).write_text(text)
+        run("add", ".")
+        run("commit", "-qm", msg)
+        return run("rev-parse", "HEAD")
+
+    def main_moves(files: dict[str, str]) -> None:          # main gains a commit on origin; this clone fetches it
+        run("switch", "-q", "--detach", "origin/main")
+        run("push", "-q", "origin", f"{commit(files, 'main moves')}:refs/heads/main")
+        run("fetch", "-q", "origin")
+        run("switch", "-q", "lane")
+    run("switch", "-qc", "lane")
+    one = commit({"pipeline/own.py": "pr 1"}, "the PR")
+    said, paths = BP.pushed_paths([f"refs/heads/lane {one} refs/heads/lane {z}"])         # first push
+    assert paths == ["pipeline/own.py"]
+    run("push", "-q", "origin", "lane")
+    two = commit({"pipeline/own.py": "pr 2", "handoff/x.md": "x"}, "the PR again")
+    said, paths = BP.pushed_paths([f"refs/heads/lane {two} refs/heads/lane {one}"])       # a follow-up push
+    assert paths == ["handoff/x.md", "pipeline/own.py"] and said == [f"refs/heads/lane: 2 path(s) in {one[:12]}..{two[:12]}"]
+    # main changes the PR's file and one of its own; the merge's resolution is the PR's
+    main_moves({"pipeline/own.py": "main", "app/main_only.ts": "m"})
+    assert subprocess.run(["git", "merge", "-q", "origin/main"], cwd=here, capture_output=True).returncode == 1
+    (here / "pipeline" / "own.py").write_text("resolved")
+    three = commit({}, "merge main")
+    said, paths = BP.pushed_paths([f"refs/heads/lane {three} refs/heads/lane {two}"])
+    assert paths == ["pipeline/own.py"], paths                                            # app/main_only.ts: main's
+    assert said[0].startswith("refs/heads/lane: 1 path(s) came with main and are the merge queue's: not re-tested here; "
+                              f"1 path(s) in {two[:12]}..{three[:12]} that the PR itself changes"), said
+    # a push that is ONLY a merge of main, nothing of the PR's touched: the always-on cheap steps, said first
+    main_moves({"app/later.ts": "l"})
+    run("merge", "-q", "--no-edit", "origin/main")
+    four = run("rev-parse", "HEAD")
+    said, paths = BP.pushed_paths([f"refs/heads/lane {four} refs/heads/lane {three}"])
+    assert paths == [] and said[0].startswith("refs/heads/lane: 1 path(s) came with main"), said
+    monkeypatch.delenv(BP.SKIP_ENV, raising=False)
+    ran = []
+    assert BP.main(["--changed", "--pre-push", "--no-tier", "--serial"], runner=lambda s: ran.append(s.name) or 0,
+                   stdin=io.StringIO(f"refs/heads/lane {four} refs/heads/lane {three}\n")) == 0
+    assert ran == [BP.COMMITS, "ticket guard (node app/tools/check-tickets.mjs)"]
+    assert "came with main and are the merge queue's" in capsys.readouterr().out
+    # a stale origin/main (the merge came from a newer main than this clone's ref): the merge base is older, the set
+    # wider — main's newer path counts as the PR's and is tested (the safe side)
+    run("update-ref", "refs/remotes/origin/main", three + "^2")
+    said, paths = BP.pushed_paths([f"refs/heads/lane {four} refs/heads/lane {three}"])
+    assert paths == ["app/later.ts"], paths
+
+
 def test_the_commit_messages_of_what_is_pushed_are_checked_first(tmp_path, monkeypatch):
     """(T998) the hook checks the messages of the commits each pushed branch sends (`<base>..<sha>`), a tag none;
     by hand (or --changed) the branch's commits the trunk does not have."""
