@@ -112,3 +112,13 @@ prompt P and closes T1080 (delivered by `views/OWNER.md`).
 A new chat's required reading, in lines: README 64 + START-HERE 27 + AGENTS 438 + STATUS 45 + its restart page (this
 chat's: 37) + `views/OWNER.md` (about 208, built) = about 819. Review (independent, 1 blocker, 9 should-fix, 14 nits): the
 blocker and every should-fix item are done; nits applied where they were plain corrections.
+
+## 2026-11-25 evening: the owner moves the rest forward and asks for a second cut
+Owner, to the clean-up chat (relayed to the planning chat 19:27), verbatim: "Why can't we do that stuff now before
+0.10 all of it seems fine to do. Also it feels like we could remove more markdown. The ticket mark down is okay
+but we want to simplify the other files. It should be simple enough to be human resdble in not a super long period
+if time. Without an agent summarizing it." So: the rename and the review tool's move no longer wait for 0.10.0 on
+production (the planning chat's condition, overruled by him); a second cut of the non-ticket markdown, target asked
+of him as multiple choice. A new chat finishes it: roadmap prompt D2, restart page `handoff/PLAN/restart/cleanup.md`.
+The rename lands on the planning chat's word, when that evening's 0.10.0 PRs (#264, #265) are on main; after it,
+only code-only picks go onto `release/0.10.0`, and its merge back runs the rename script on that branch first.
