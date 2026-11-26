@@ -83,10 +83,8 @@ worker suite) and lists every failure. The versioned pre-push hook runs `--chang
 
 ## 2. Run it
 
-**Lid open, on power (T1161).** The long runs (`--staging`, `--prod`, `--dry-run --build` / `--rehearse-follows`) hold the
-Mac awake with `caffeinate -i -s` and refuse an unattended run on battery (`--on-battery "<why>"` goes on, printed).
-`caffeinate` is not known to stop a closed lid sleeping a MacBook without an external display (0.10.0 lost 8.3 h):
-keep the lid open.
+**Lid open, on power (T1161).** The long runs hold the Mac awake (`caffeinate`), not through a closed lid (0.10.0
+slept 8.3 h), and refuse an unattended run on battery (`--on-battery "<why>"` goes on, printed).
 
 ```bash
 .venv/bin/python -m pipeline release --staging
