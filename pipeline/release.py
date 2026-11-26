@@ -13,15 +13,18 @@ python -m pipeline release --staging --dry-run --rehearse-follows   # + (T680) r
     python -m pipeline release --cut <x.y.z> --reads-moved WHY  # (T1048) the app's formats moved since the last row, meant
     python -m pipeline release --cut --data-only              # (T998) release/data-<YYYY-MM-DD>: data, no app change
     python -m pipeline release --prod <r-id>                  # HUMAN-ONLY: re-upload THAT checked release to production
+    python -m pipeline release --final <x.y.z>                # (T1062) the final tag on the newest rc, pushed
+    python -m pipeline release --rc-check                     # (T1062) HEAD is the newest rc (the store builds ask)
 
 RELEASE BRANCHES AND TAGS (T995, owner 2026-11-21): `main` is the protected trunk. At scope lock `--cut <version>`
 makes `release/<version>` from a fresh origin/main and pushes it (nothing else moves; it says what to switch to). The
 release builds and ships from that branch: preflight requires HEAD on origin/release/<app.json's version>, the
 release's own commits go there (`--push`), and the staging upload's workflow runs that branch's copy. A bug fix lands on
 main first and is cherry-picked onto the release branch. AT SHIP (stage 7, once the staging upload and its smoke pass)
-the release tags the pushed HEAD `data/<r-id>` and, when the app version has no tag yet, `v<version>` (a data-only
-release of a tagged version tags only its data), pushes the tags, and prints the PR that merges the release branch
-back into main. `--prod` refuses a release whose tags are missing or point elsewhere.
+the release tags the shipped commit `data/<r-id>` and (T1062) the next RELEASE CANDIDATE `v<version>-rc.<N>` (a rerun
+at a new HEAD tags the next rc; a data-only release tags only its data), pushes the tags, and prints the PR that merges
+the release branch back into main. No tag is ever moved: `--final <version>` (on the owner's word, before production)
+puts `v<version>` on the newest rc's commit. `--prod` refuses a release whose tags are missing or point elsewhere.
 
 THE VERSION COMES FROM THE COMMITS (T998, owner 2026-11-21; `pipeline/release_version.py`): `--cut` reads the
 Conventional Commits on origin/main since the last `v*` tag (first run: since the cutover, 0.8.5 the base), computes
@@ -114,7 +117,7 @@ already done for this release):
                preflight, with the recorded apps a rise leaves behind), with its smoke test run on its own after it (T537:
                ledger `uploaded_at` and `smoked_at`; a rerun after a smoke-only failure runs only the smoke). It says
                when it replaces a staged release the owner was handed a production command for. (T995) Then the
-               TAGS: `data/<r-id>` and (first ship of the version) `v<version>` on the pushed HEAD, pushed, recorded
+               TAGS: `data/<r-id>` and (T1062) the next release candidate `v<version>-rc.N`, pushed, recorded
                (ledger `tags`, `ship_commit`), and the merge-back PR command printed. The success message
                lists the after-chores with their exact commands (goldens re-cut, site, feeds worker). On a RERUN (T484) the default is the min app this
                release's checks passed with (ledger `checks.min_app_version`), else the stamp of the release LATEST
@@ -459,6 +462,11 @@ def git_push() -> int:
     return run_cmd(["git", "push", GH_REMOTE, f"HEAD:{release_branch()}"], env=PUSH_ENV)
 
 
+def fetch_branch(branch: str) -> None:
+    """(T1062) a fresh origin/<branch> (a failure raises)."""
+    subprocess.run(["git", "fetch", "-q", GH_REMOTE, branch], cwd=REPO_ROOT, check=True)
+
+
 def fetch_trunk() -> None:
     """(T995) a fresh origin/main (a failure raises)."""
     subprocess.run(["git", "fetch", "-q", GH_REMOTE, TRUNK], cwd=REPO_ROOT, check=True)
@@ -625,6 +633,58 @@ def make_tag(tag: str, commit: str, message: str) -> int:
 
 def push_tags(tags: list[str]) -> int:
     return run_cmd(["git", "push", GH_REMOTE, *(f"refs/tags/{x}" for x in tags)], env=PUSH_ENV)
+
+
+def rc_tag(version: str, n: int) -> str:
+    """(T1062) the name of `version`'s release candidate `n`: `v<x.y.z>-rc.<n>`."""
+    return f"v{version}-rc.{n}"
+
+
+def remote_rcs(version: str) -> dict[int, str]:
+    """(T1062) `version`'s release candidates ON ORIGIN: {N: the commit it names (peeled)}. A local-only rc tag is not
+    one; a git failure raises."""
+    got = subprocess.run(["git", "ls-remote", GH_REMOTE, f"refs/tags/v{version}-rc.*"], cwd=REPO_ROOT,
+                         capture_output=True, text=True)
+    if got.returncode:
+        raise RuntimeError(f"git ls-remote {GH_REMOTE} refs/tags/v{version}-rc.* failed (rc={got.returncode}): "
+                           f"{got.stderr.strip()[-200:]}")
+    plain, peeled = {}, {}
+    for ln in got.stdout.splitlines():
+        sha, _, ref = ln.partition("\t")
+        n = rc_number(version, ref.removesuffix("^{}"))
+        if n:
+            (peeled if ref.endswith("^{}") else plain)[n] = sha
+    return {**plain, **peeled}
+
+
+def rc_number(version: str, ref: str) -> int | None:
+    """(T1062) N when `ref` is `refs/tags/v<version>-rc.<N>` (N from 1, no leading zero), else None."""
+    m = re.fullmatch(rf"refs/tags/v{re.escape(version)}-rc\.([1-9]\d*)", ref)
+    return int(m[1]) if m else None
+
+
+#: (T1062) app.json's store build numbers: a store build moves them (build-apk.sh --play commits the bump), never the
+#: code a release candidate names
+BUILD_NUMBERS = (("android", "versionCode"), ("ios", "buildNumber"))
+
+
+def beyond_build_numbers(a: str, b: str) -> list[str]:
+    """(T1062) what differs between commits `a` and `b` other than app.json's store build numbers: [] when `b` is `a`'s
+    tree apart from them. A commit this clone does not hold is fetched from origin first; a git failure raises."""
+    for rev in (a, b):
+        if not git_has_commit(rev):
+            subprocess.run(["git", "fetch", "-q", GH_REMOTE, rev], cwd=REPO_ROOT, check=True)
+    names = [x for x in _git("diff", "--name-only", a, b).decode().splitlines() if x]
+    out = [x for x in names if x != APP_JSON_REL]
+    if APP_JSON_REL in names:
+        def bare(rev: str) -> dict:
+            doc = json.loads(_show(rev, APP_JSON_REL) or "{}")
+            for platform, key in BUILD_NUMBERS:
+                ((doc.get("expo") or {}).get(platform) or {}).pop(key, None)
+            return doc
+        if bare(a) != bare(b):
+            out.append(f"{APP_JSON_REL} beyond its build numbers")
+    return out
 
 
 def merge_back_cmd(branch: str) -> str:
@@ -2005,51 +2065,79 @@ def handed_for_prod(led: dict, rid: str) -> list[str]:
 
 
 def tag_release(ctx: Ctx, rid: str, r: dict) -> str:
-    """(T995) AT SHIP: tag the commit THE UPLOAD SHIPPED (ledger `uploaded_commit`, recorded when `uploaded_at` is —
-    never whatever HEAD is at a rerun) `data/<r-id>` and, the first ship of this app version, `v<version>`; push them;
-    record them (ledger `tags`, `ship_commit`, `app_version`). Tags are judged ON ORIGIN (`remote_tag_commit`): a
-    local-only tag at the shipped commit is pushed, one elsewhere stops; a data tag on origin at another commit stops
-    (an id names one release); a version tag an earlier ship put on origin stays (a data-only release)."""
-    if r.get("tags"):
-        return "tagged already: " + ", ".join(f"{k} at {v[:12]}" for k, v in sorted(r["tags"].items()))
+    """(T995, T1062) AT SHIP: tag the commit THE UPLOAD SHIPPED (ledger `uploaded_commit`, recorded when `uploaded_at`
+    is) `data/<r-id>` and, for an app release, the next RELEASE CANDIDATE `v<version>-rc.<N>` (annotated, N = one past
+    the newest on origin); push them; record them (ledger `tags`, `ship_commit`, `app_version`). No tag is ever moved:
+    the final `v<version>` is put on the newest rc by `release --final`, and a late fix is a new rc. A rerun at a new
+    HEAD (a fix cherry-picked, the r-id unchanged) tags HEAD the next rc; one whose HEAD is the newest rc's tree apart
+    from the store build numbers (`beyond_build_numbers`: a Play build's versionCode commit) tags nothing new. A
+    version tagged final already gets no rc, said (0.10.0 and before: the old code tagged `v<version>` at ship).
+    Tags are judged ON ORIGIN (`remote_tag_commit`, `remote_rcs`): a local-only tag at the commit it names is pushed,
+    one elsewhere stops; a data tag on origin at another commit stops (an id names one release)."""
+    data_only = data_only_branch()
+    tags = dict(r.get("tags") or {})
+    if tags and data_only:
+        return "tagged already: " + ", ".join(f"{k} at {v[:12]}" for k, v in sorted(tags.items()))
     ship = r.get("uploaded_commit")
     if not ship:
         raise Stop("staging", f"{rid} has no recorded upload commit (it was staged before T995 recorded one): the "
                    "commit to tag is not known", f"tag it by hand at the commit you uploaded: git tag -a data/{rid} "
                    f"-m 'data release {rid}' <sha> && git push {GH_REMOTE} refs/tags/data/{rid}")
     version = app_version()
-    data_only = data_only_branch()
-    data_tag, app_tag = f"data/{rid}", f"v{version}"  # path-label: a git tag name (data/<r-id>), not a path
+    data_tag, final = f"data/{rid}", f"v{version}"  # path-label: a git tag name (data/<r-id>), not a path
     try:
-        remote = {x: remote_tag_commit(x) for x in (data_tag, app_tag)}
+        remote = {data_tag: remote_tag_commit(data_tag)}
+        final_at, rcs = (None, {}) if data_only else (remote_tag_commit(final), remote_rcs(version))
     except RuntimeError as e:
         raise Stop("staging", f"could not read the tags on {GH_REMOTE} ({e})",
                    "check the network, then rerun: the upload is done and is skipped; only the tags are left")
-    local = {x: tag_commit(x) for x in (data_tag, app_tag)}
-    if remote[data_tag] not in (None, ship):
-        raise Stop("staging", f"the tag {data_tag} exists on {GH_REMOTE} already at {remote[data_tag][:12]}, not at "
-                   f"the uploaded commit {ship[:12]}",
-                   f"read why (git ls-remote {GH_REMOTE} refs/tags/{data_tag}): a release id names one release")
-    said, make, send = [], [], []
-    for tag in (data_tag, app_tag):
-        if tag == app_tag and data_only:
-            said.append(f"{app_tag} not tagged here: a data-only release ({release_branch()}), app {version} unchanged")
+    want, said = {}, []                      # tag -> the commit it names
+    if data_tag not in tags:
+        if remote[data_tag] not in (None, ship):
+            raise Stop("staging", f"the tag {data_tag} exists on {GH_REMOTE} already at {remote[data_tag][:12]}, not at "
+                       f"the uploaded commit {ship[:12]}",
+                       f"read why (git ls-remote {GH_REMOTE} refs/tags/{data_tag}): a release id names one release")
+        want[data_tag] = ship
+    if data_only:
+        said.append(f"{final} not tagged here: a data-only release ({release_branch()}), app {version} unchanged")
+    else:
+        at = ship if not tags else git_head()    # the first tagging names the upload; a rerun, the pushed HEAD
+        newest = max(rcs, default=0)
+        local_final = None if final_at else tag_commit(final)
+        if local_final:
+            raise Stop("staging", f"a local-only tag {final} points at {local_final[:12]} (a `release --final` whose "
+                       "push failed, or one made by hand): the version is final here but not on GitHub",
+                       f"if {final} is meant: python -m pipeline release --final {version} (it pushes it when it is on "
+                       f"the newest rc); if it is stale: git tag -d {final} (a local-only tag), then rerun")
+        try:
+            same = bool(newest) and not final_at and not beyond_build_numbers(rcs[newest], at)
+        except (RuntimeError, subprocess.CalledProcessError) as e:
+            raise Stop("staging", f"could not compare {at[:12]} with {rc_tag(version, newest)} ({e})",
+                       "check the network, then rerun: the upload is done and is skipped; only the tags are left")
+        if final_at:
+            said.append(f"no release candidate made: {final} is tagged final already at {final_at[:12]} ("
+                        + ("its newest rc" if rcs else "made before release candidates, T1062")
+                        + "); a change after it ships as the next version")
+        elif same:
+            tags.setdefault(rc_tag(version, newest), rcs[newest])
+            said.append(f"{rc_tag(version, newest)} ({rcs[newest][:12]}) is {at[:12]} apart from the build numbers: "
+                        "no new rc")
+        else:
+            want[rc_tag(version, newest + 1)] = at
+    make, send = [], []
+    for tag, c in want.items():
+        if remote.get(tag) == c:
             continue
-        if tag == app_tag and remote[tag] not in (None, ship):
-            said.append(f"{app_tag} stays at {remote[tag][:12]} (the version was tagged by an earlier ship: this "
-                        "release ships data only)")
-            continue
-        if remote[tag] == ship:
-            continue
-        if local[tag] not in (None, ship):
-            raise Stop("staging", f"a local-only tag {tag} points at {local[tag][:12]}, not at the uploaded commit "
-                       f"{ship[:12]}", f"read it (git show {tag}); if it is stale: git tag -d {tag}, then rerun")
-        if local[tag] is None:
+        local = tag_commit(tag)
+        if local not in (None, c):
+            raise Stop("staging", f"a local-only tag {tag} points at {local[:12]}, not at {c[:12]}, the commit it tags",
+                       f"read it (git show {tag}); if it is stale: git tag -d {tag}, then rerun")
+        if local is None:
             make.append(tag)
         send.append(tag)
     for tag in make:
-        what = f"data release {rid}" if tag == data_tag else f"app {version}"
-        rc = make_tag(tag, ship, f"{what} (python -m pipeline release, {rid} on staging)")
+        what = f"data release {rid}" if tag == data_tag else f"app {version}, release candidate {tag.rsplit('.', 1)[1]}"
+        rc = make_tag(tag, want[tag], f"{what} (python -m pipeline release, {rid} on staging)")
         if rc:
             raise Stop("staging", f"`git tag {tag}` failed (rc={rc})", "fix what git said above, then rerun")
     if send:
@@ -2058,14 +2146,14 @@ def tag_release(ctx: Ctx, rid: str, r: dict) -> str:
             raise Stop("staging", f"pushing the tag(s) {', '.join(send)} failed (rc={rc})",
                        f"fix what git said above (git push {GH_REMOTE} " + " ".join(f"refs/tags/{x}" for x in send)
                        + "), then rerun: only the tags are left")
-    r["tags"] = {data_tag: ship} if data_only else {
-        data_tag: ship, app_tag: remote[app_tag] if remote[app_tag] not in (None, ship) else ship}
+    tags.update(want)
+    r["tags"] = tags
     r["ship_commit"], r["app_version"] = ship, version
     if data_only:
         r["data_only"] = True
     save_ledger(ctx.led)
-    return "; ".join([f"tagged {', '.join(make) or 'nothing new'} at {ship[:12]}, pushed "
-                      f"{', '.join(send) or 'nothing (on origin already)'}", *said])
+    return "; ".join([("tagged " + ", ".join(f"{t} at {want[t][:12]}" for t in make) if make else "tagged nothing new")
+                      + f", pushed {', '.join(send) or 'nothing (on origin already)'}", *said])
 
 
 def stage_staging(ctx: Ctx) -> str:
@@ -2507,7 +2595,7 @@ def dry_run(ctx: Ctx) -> int:
     try:
         rb, ver = release_branch(), app_version()
         tags = (f"data/<r-id> only (a data-only release, app {ver} unchanged)" if data_only_branch() else  # path-label: a git tag name (data/<r-id>), not a path
-                f"data/<r-id> + v{ver} (if not tagged yet)")  # path-label: a git tag name (data/<r-id>), not a path
+                f"data/<r-id> + v{ver}-rc.N, the next release candidate (T1062: none when HEAD is the newest rc)")  # path-label: a git tag name (data/<r-id>), not a path
         print(f"{P}then (T995) tags {tags} on the pushed HEAD, pushes them, and prints the merge-back PR: "
               f"{merge_back_cmd(rb)}")
     except SystemExit as e:
@@ -2675,8 +2763,11 @@ def prod_instructions(rid: str, r: dict) -> str:
 
 
 def tag_problems(rid: str, r: dict) -> list[str]:
-    """(T995) production ships only what its tags name: `data/<r-id>` exists and points at the commit the release
-    shipped from (ledger `ship_commit`), and `v<version>` exists at that commit or before it. [] when both hold."""
+    """(T995, T1062) production ships only what its tags name: `data/<r-id>` exists and points at the commit the
+    release shipped from (ledger `ship_commit`); for an app release with release candidates, the final `v<version>`
+    is at the NEWEST rc's commit (`release --final` put it there) and `data/<r-id>` is at that commit or before it.
+    A version with no rc on origin (tagged before T1062, or a data-only release) keeps the old rule: `v<version>` at
+    the ship commit or before it. [] when all hold."""
     ship = r.get("ship_commit")
     if not ship:
         return [f"{rid} was never tagged at ship (no `ship_commit` in the ledger): rerun `python -m pipeline release "
@@ -2686,6 +2777,7 @@ def tag_problems(rid: str, r: dict) -> list[str]:
     data_tag, app_tag = f"data/{rid}", f"v{version}"  # path-label: a git tag name (data/<r-id>), not a path
     try:
         at, v = remote_tag_commit(data_tag), remote_tag_commit(app_tag)
+        rcs = {} if r.get("data_only") else remote_rcs(version)
     except RuntimeError as e:
         return [f"could not read the tags on {GH_REMOTE} ({e}): check the network"]
     if at is None:
@@ -2695,12 +2787,132 @@ def tag_problems(rid: str, r: dict) -> list[str]:
                       f"refs/tags/{data_tag}"))
     elif at != ship:
         out.append(f"{data_tag} points at {at[:12]}, not at the commit {rid} shipped from ({ship[:12]})")
-    if v is None:
+    if rcs:                                  # (T1062) the final tag is on the newest rc, which holds this data
+        name, c = rc_tag(version, max(rcs)), rcs[max(rcs)]
+        if v is None:
+            out.append(f"no tag {app_tag} on {GH_REMOTE}: the final tag goes on the newest release candidate {name} "
+                       f"({c[:12]}) once the owner passed it: python -m pipeline release --final {version}")
+        elif v != c:
+            out.append(f"{app_tag} points at {v[:12]}, not at the newest release candidate {name} ({c[:12]})")
+        try:                                 # a ship from a versionCode commit after the rc is the rc's code
+            held = ship == c or is_ancestor(ship, c) or not beyond_build_numbers(c, ship)
+        except (RuntimeError, subprocess.CalledProcessError) as e:
+            return out + [f"could not compare {rid}'s commit {ship[:12]} with {name} ({e}): check the network"]
+        if not held:
+            out.append(f"{rid} shipped from {ship[:12]}, which is not {name} ({c[:12]}), nor before it, nor it apart "
+                       "from the build numbers: the newest rc does not hold the code this data release shipped with")
+    elif v is None:
         if not r.get("data_only"):         # (T998) a data-only release tags only its data (the app shipped before)
-            out.append(f"no tag {app_tag} on {GH_REMOTE}: the app version this release went up with")
-    elif v != ship and not is_ancestor(v, ship):
+            out.append(f"no tag {app_tag} and no release candidate of it on {GH_REMOTE}: rerun `python -m pipeline "
+                       "release --staging` (the staging ship tags the rc), then `python -m pipeline release --final "
+                       f"{version}`")
+    elif v != ship and not is_ancestor(v, ship):  # (T1062) no rc: a version tagged before release candidates
         out.append(f"{app_tag} points at {v[:12]}, which is not {ship[:12]} nor before it")
     return out
+
+
+def newest_rc(version: str) -> tuple[str, str] | None:
+    """(T1062) (name, commit) of `version`'s newest release candidate on origin, or None. A git failure raises."""
+    rcs = remote_rcs(version)
+    return (rc_tag(version, max(rcs)), rcs[max(rcs)]) if rcs else None
+
+
+def final(version: str) -> int:
+    """(T1062) THE FINAL TAG: annotated `v<version>` on the SAME commit as the newest release candidate, pushed — run
+    by Claude on the owner's word (after his look at staging and the chosen Internal build), before production data.
+    Refused, saying why, unless `version` is app.json's, the newest rc exists on origin, HEAD and origin's release
+    branch are that rc's tree apart from the store build numbers, and `v<version>` exists nowhere (on origin or
+    here). It never moves or deletes a tag."""
+    try:
+        here, rb = app_version(), release_branch()
+    except SystemExit as e:
+        print(f"release --final: refused: the release branch cannot be named ({e})", file=sys.stderr)
+        return 1
+    if version != here:
+        print(f"release --final: refused: {version} is not app.json's version ({here}, on {current_branch()}): name "
+              "the version being released, from its release branch", file=sys.stderr)
+        return 1
+    if data_only_branch():
+        print(f"release --final: refused: {rb} is a data-only release: it tags only data/<r-id>, there is no app "
+              "version to tag", file=sys.stderr)
+        return 1
+    tag = f"v{version}"
+    try:
+        on_origin, rc = remote_tag_commit(tag), newest_rc(version)
+        fetch_branch(rb)
+    except (RuntimeError, subprocess.CalledProcessError) as e:
+        print(f"release --final: cannot read {GH_REMOTE} ({e}): check the network; nothing was tagged", file=sys.stderr)
+        return 1
+    if on_origin:
+        print(f"release --final: refused: {tag} exists already (on {GH_REMOTE} at {on_origin[:12]}): a tag is never "
+              "moved or made twice (T1062)", file=sys.stderr)
+        return 1
+    local = tag_commit(tag)
+    if rc is None:
+        print(f"release --final: refused: no release candidate of {version} on {GH_REMOTE}: the staging ship tags "
+              "one (python -m pipeline release --staging --push)", file=sys.stderr)
+        return 1
+    name, c = rc
+    try:
+        off = {rev: beyond_build_numbers(c, rev) for rev in ("HEAD", f"{GH_REMOTE}/{rb}")}
+    except (RuntimeError, subprocess.CalledProcessError) as e:
+        print(f"release --final: cannot compare with {name} ({e}); nothing was tagged", file=sys.stderr)
+        return 1
+    bad = {rev: x for rev, x in off.items() if x}
+    if bad:
+        print(f"release --final: refused: {' and '.join(bad)} not {name} ({c[:12]}) apart from the build numbers ("
+              + "; ".join(f"{rev}: {', '.join(x[:6])}" for rev, x in bad.items()) + "): tag a new rc first (python "
+              f"-m pipeline release --staging --push), look at it, then --final {version}", file=sys.stderr)
+        return 1
+    if local not in (None, c):               # (T1062 review) a local-only final, not on the newest rc
+        print(f"release --final: refused: a local-only tag {tag} points at {local[:12]}, not at the newest release "
+              f"candidate {name} ({c[:12]}): read it (git show {tag}); it is not on {GH_REMOTE}, so: git tag -d {tag}, "
+              f"then --final {version} again", file=sys.stderr)
+        return 1
+    rc_ = 0 if local else make_tag(tag, c, f"app {version}, final: {name} (python -m pipeline release --final)")
+    if rc_:
+        print(f"release --final: `git tag {tag}` failed (rc={rc_}, above); nothing was pushed", file=sys.stderr)
+        return 1
+    rc_ = push_tags([tag])
+    if rc_:
+        print(f"release --final: {tag} was made here but the push failed (rc={rc_}, above): git push {GH_REMOTE} "
+              f"refs/tags/{tag}, or rerun --final {version}", file=sys.stderr)
+        return 1
+    print(f"release --final: {tag} at {c[:12]} (= {name}), " + ("made before, " if local else "") + "pushed. Next, the owner's: production data, "
+          "CONFIRM_PROD=<r-id> python -m pipeline release --prod <r-id>")
+    return 0
+
+
+def rc_check() -> int:
+    """(T1062) THE STORE BUILDS' PRECHECK (deploy/lib/build-links.sh `build_check_rc`): HEAD is the newest release
+    candidate's tree apart from the store build numbers. A version tagged final before release candidates is
+    compared with that tag. One line: ok (0), or what differs and the command that tags a new rc (1)."""
+    try:
+        version = app_version()
+        rc, final_at = newest_rc(version), remote_tag_commit(f"v{version}")
+    except (SystemExit, RuntimeError) as e:
+        print(f"release candidate: cannot read the tags on {GH_REMOTE} ({e}): check the network")
+        return 1
+    if rc is None and final_at:
+        rc = (f"v{version}", final_at)           # (T1062) tagged final before release candidates
+    if rc is None:
+        print(f"no release candidate of {version} on {GH_REMOTE}: tag one first, the staging ship does: python -m "
+              "pipeline release --staging --push")
+        return 1
+    name, c = rc
+    try:
+        off = beyond_build_numbers(c, "HEAD")
+    except (RuntimeError, subprocess.CalledProcessError) as e:
+        print(f"release candidate: cannot compare HEAD with {name} ({e})")
+        return 1
+    if off:
+        print(f"HEAD is not {name} ({c[:12]}) apart from the build numbers ({', '.join(off[:6])}"
+              + (" …" if len(off) > 6 else "") + "): "
+              + (f"v{version} is final already: a change after it ships as the next version" if final_at else
+                 "tag a new rc first: python -m pipeline release --staging --push"))
+        return 1
+    print(f"HEAD is {name} ({c[:12]}) apart from the build numbers")
+    return 0
 
 
 def prod(rid: str, ask=input) -> int:
@@ -2763,6 +2975,12 @@ def main(argv: list[str] | None = None) -> int:
     g.add_argument("--cut", nargs="?", const="", metavar="X.Y.Z",
                    help="(T995, T998) at scope lock: the version the commits compute (confirmed; a typed X.Y.Z must be "
                         "it), then release/X.Y.Z from origin/main with its version commit, pushed")
+    g.add_argument("--final", metavar="X.Y.Z",
+                   help="(T1062) on the owner's word, before production data: the final vX.Y.Z on the newest release "
+                        "candidate's commit, pushed (refused unless HEAD is that rc apart from the build numbers)")
+    g.add_argument("--rc-check", action="store_true",
+                   help="(T1062) the store builds' precheck: HEAD is the newest release candidate apart from the build "
+                        "numbers")
     ap.add_argument("--dry-run", action="store_true",
                     help="the rehearsal: every stage's checks; nothing is built, committed, promoted or uploaded")
     ap.add_argument("--rehearse-follows", action="store_true",
@@ -2809,6 +3027,13 @@ def main(argv: list[str] | None = None) -> int:
         ap.error("--data-only goes with a bare --cut (the version stays the shipped one)")
     if a.reads_moved is not None and (a.cut is None or a.data_only or not a.reads_moved.strip()):
         ap.error("--reads-moved WHY goes with an app --cut, and needs the reason")
+    if a.final is not None:
+        if a.dry_run:
+            ap.error("--final has no --dry-run (it would tag): `python -m pipeline release --prod <r-id> --dry-run` "
+                     "says what production's tag check wants")
+        return final(a.final)
+    if a.rc_check:
+        return rc_check()
     if a.cut is not None:
         return cut(a.cut or None, data_only=a.data_only, dry_run=a.dry_run, reads_moved=a.reads_moved)
     if a.prod:
