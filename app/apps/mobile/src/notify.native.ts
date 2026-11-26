@@ -32,7 +32,7 @@ import { platformLine } from "@app/ui-native";
 import * as BackgroundTask from "expo-background-task";
 import * as Notifications from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
-import { appUpdateChannel, appVersionFileUrl, NOTIFY_WORDS, now, reportFailure, versionHeaders } from "@app/core";
+import { appUpdateBackgroundNotice, appUpdateChannel, appVersionFileUrl, NOTIFY_WORDS, now, reportFailure, versionHeaders } from "@app/core";
 import { createCheckSources, createNotifySettings, createPushRegistrar, runBackgroundCheck, runWake, versionedFetch,
          type Notice, type NotifyData, type UpdateService } from "@app/data";
 import { openHeldCopyStore, openNotifyStore, openPushStore } from "@app/data/spots";
@@ -59,7 +59,7 @@ const OWN_VERSION_FILE = appVersionFileUrl(OWN_CHANNEL,
  *  Play (an Activity), so a Play build has no background new-version notice: Play notifies its own installs. (T888) The
  *  same for an App Store build: its `appstore.json` is written at the TestFlight upload, before the store has the
  *  version, and the App Store tells its own installs. */
-const VERSION_FILE = OWN_CHANNEL === "play" || OWN_CHANNEL === "app-store" ? null : OWN_VERSION_FILE && ENDPOINTS.channel === "test"
+const VERSION_FILE = !appUpdateBackgroundNotice(OWN_CHANNEL) ? null : OWN_VERSION_FILE && ENDPOINTS.channel === "test"
   ? `${ENDPOINTS.base}/test/app/android/${OWN_VERSION_FILE.split("/").pop()}` : OWN_VERSION_FILE;
 const FETCH = versionedFetch((u, i) => fetch(u, i),
                              versionHeaders(APP_VERSION, { platform: platformLine(), ua: true }));

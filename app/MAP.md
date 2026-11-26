@@ -25,7 +25,8 @@ data/release/r-*/ (R2 in production) -> manifest -> @app/data release loader (ph
     |- WaterSource (release/source.ts): core, near, paint, conditions, flow-area
     |- RegsStore (regs/store.ts): water + regs-<region> + regs-sid; core regs/ composes a page, ui-native regs/ draws it
     |- salmon (loader.salmon) -> ui useSalmonCard, the map's Standard/Salmon colouring
-    |- offline (release/offline.ts): More -> Offline maps
+    |- offline (release/offline.ts): More -> Offline maps; the satellite kept by region (release/offlineImagery.ts, by
+    |    the offline method of the imagery provider in use: core imagery.ts `IMAGERY`, Esri's "none")
     `-> @app/ui hooks -> @app/ui-native screens -> apps/mobile App.tsx
 feeds (served by the feeds worker; read by packages/data/src/feed/): gauge index + per-station files, in-season, salmon,
   run timing. Every index carries `minAppVersion`; core `feedGate.ts` refuses an index meant for a newer app.

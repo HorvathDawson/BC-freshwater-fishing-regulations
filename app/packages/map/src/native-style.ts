@@ -15,6 +15,7 @@
  * A style change is a whole style swap on native (≈ 225 ms measured, N1), which also drops feature-state: the map
  * re-applies status and selection when the new style has loaded (`Map.native.tsx`).
  */
+import { IMAGERY } from "@app/core";
 import { baseAdapter, type MapHandle } from "./adapters/contract";
 import { applyLook, type Look } from "./look";
 import { creditId, MAP_CREDITS_DRAWN } from "./credits";
@@ -131,10 +132,11 @@ export function nativeStyle(o: NativeStyleInput, dialect: StyleDialect): { style
     ? { ...o.areaData, [field]: { ...o.areaData?.[field], ...mergeArea(basins, runBasins) } }
     : o.areaData;
   // the ground (`o.basemap`) is part of the look: `applyLook` set it, as it does on the web map
-  // ESRI'S CREDIT ONLY WHILE ITS IMAGERY IS DRAWN. The web's control lists only sources a visible layer uses; MapLibre
-  // Native's attribution is not documented to, and a credit for imagery that is not on screen (offline, or the drawn
-  // map chosen) is a claim about the map that is false. The phone's style is rebuilt on every basemap change anyway.
-  const imagery = s.sources.imagery;
+  // THE IMAGERY'S CREDIT ONLY WHILE ITS IMAGERY IS DRAWN (the provider in use's source, `IMAGERY.source`: Esri's). The
+  // web's control lists only sources a visible layer uses; MapLibre Native's attribution is not documented to, and a
+  // credit for imagery that is not on screen (offline, or the drawn map chosen) is a claim about the map that is false.
+  // The phone's style is rebuilt on every basemap change anyway.
+  const imagery = s.sources[IMAGERY.source];
   if (imagery && o.basemap !== "satellite") delete imagery.attribution;
   // (T235) the same for a mode's or an overlay's credit: only while the look drew its layer (credits.ts)
   for (const c of MAP_CREDITS_DRAWN) {

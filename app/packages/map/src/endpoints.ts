@@ -1,7 +1,8 @@
 /**
  * WHERE THE MAP'S ARCHIVES AND ASSETS ARE SERVED FROM (`TileEndpoints`), and the satellite tile template a build uses
- * (`imageryTiles`). Read by the style composer (`runtime-style.ts`) and handed in by the app.
+ * (`imageryTiles`, of the imagery provider named). Read by the style composer (`runtime-style.ts`) and handed in by the app.
  */
+import type { ImageryProvider } from "@app/core";
 import { MAP_STYLE } from "./style";
 
 
@@ -53,19 +54,25 @@ export interface TileEndpoints {
 /** (T831) `length` bytes of the archive at `path` from `offset` — fewer only at its end. */
 export type ReadRange = (path: string, offset: number, length: number) => Promise<Uint8Array>;
 
-/** Esri's keyed World Imagery tiles (ArcGIS Location Platform), the same MapServer tile scheme under a token. */
-const ESRI_KEYED = "https://ibasemaps-api.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
+/**
+ * Each provider's keyed tiles, the same tile scheme under a token. Esri: World Imagery on the ArcGIS Location Platform.
+ */
+const KEYED: Readonly<Record<ImageryProvider["id"], string>> = {
+  esri: "https://ibasemaps-api.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+};
 
 /**
- * THE SATELLITE TILE TEMPLATE for a build: the style's own (Esri's ArcGIS Online MapServer, as the original app used)
- * with no key, or the Location Platform endpoint with the build's key (`EXPO_PUBLIC_ARCGIS_API_KEY`, set by the owner
- * in the build environment and restricted by referrer/app in the ArcGIS dashboard — never written into the code).
+ * THE SATELLITE TILE TEMPLATE for a build, of the provider named: the style's own (its source in `layers.source.json`;
+ * Esri's ArcGIS Online MapServer, as the original app used) with no key, or the provider's keyed endpoint with the
+ * build's key (Esri: `EXPO_PUBLIC_ARCGIS_API_KEY`, set by the owner in the build environment and restricted by
+ * referrer/app in the ArcGIS dashboard — never written into the code). A style with no such source is refused by name.
  */
-export function imageryTiles(key: string | null): string {
-  const own = (MAP_STYLE.sources as unknown as Record<string, { tiles?: string[] }>).imagery?.tiles?.[0] ?? "";
+export function imageryTiles(p: ImageryProvider, key: string | null): string {
+  const own = (MAP_STYLE.sources as unknown as Record<string, { tiles?: string[] }>)[p.source]?.tiles?.[0];
+  if (own === undefined) throw new Error(`imagery provider "${p.id}": the style has no tiles for its source "${p.source}"`);
   if (!key) return own;
   const query = own.includes("?") ? own.slice(own.indexOf("?")) : "";
-  return `${ESRI_KEYED}${query}${query ? "&" : "?"}token=${encodeURIComponent(key)}`;
+  return `${KEYED[p.id]}${query}${query ? "&" : "?"}token=${encodeURIComponent(key)}`;
 }
 
 /**
