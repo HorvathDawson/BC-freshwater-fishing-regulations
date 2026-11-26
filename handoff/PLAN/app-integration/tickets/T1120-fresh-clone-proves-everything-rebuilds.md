@@ -1,10 +1,10 @@
 # T1120 — At the repo move, a fresh clone proves everything can be set up and rebuilt from nothing
 
-Status: OPEN.
+Status: IN PROGRESS: light half done 2026-11-25 (clone, installs, hooks, fast tests, web app: PASS; one setup page written); the heavy half is open: fetch, data build first stage, Android and iPhone builds, deploy dry runs.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1120 | At the repo move, a fresh clone proves everything can be set up and rebuilt from nothing | OPEN — chat 3 (repo move), last step (owner 2026-11-25) | | the list of what lives outside git; the owner confirms the secrets list |
+| T1120 | At the repo move, a fresh clone proves everything can be set up and rebuilt from nothing | IN PROGRESS — chat 3 (repo move), last step (owner 2026-11-25) | | the heavy half (bootstrap fetch, data build stage 1, both phone builds, deploy dry runs) from fresh-machine.md sections 5-10; the owner confirms the secrets list and the two `.p8` keys |
 
 Source: owner 2026-11-25 (planning chat), verbatim: "and when we do repo to free org swap we want to do a fresh
 install maybe just to make sure everythign can be redone properly from fresh install still. if that makes sense."

@@ -48,9 +48,9 @@ setting but needs its own installs (T1112), or `PIPELINE_PY` for the pre-push ho
 ```bash
 git switch -c docs/something && git commit …     # commit-msg: Conventional Commits `type(Tnnn): subject`, commitlint from app/node_modules
 git push -u origin HEAD                          # pre-push: scripts/before_push.py --changed (only the areas the push touches; a docs push is seconds)
-bash scripts/heavy.sh app-suite 30 -- pnpm -C app exec vitest run                                 # the whole app suite (heavy)
+bash scripts/heavy.sh app-suite 30 -- pnpm -C app exec vitest run                                 # the whole app suite (heavy; 5 min)
 . scripts/test-env.sh && test_env_pycache; markers=$(no_data_markers)
-bash scripts/heavy.sh tier 30 -- bash scripts/pytest-chunked.sh -- -q -m "$markers"                # the pipeline's no-data tier (heavy)
+bash scripts/heavy.sh tier 30 -- bash scripts/pytest-chunked.sh -- -q -m "$markers"                # the pipeline's no-data tier (heavy; 14 min, 94 chunks)
 ```
 
 `scripts/before_pr.sh` runs the last two at once on two heavy lanes, and is what to run before opening a PR. Tests that
@@ -63,8 +63,9 @@ data release for the ones marked `needs_bundle`).
 pnpm -C app dev:web          # Expo web on http://localhost:39218 (the phone UI in a browser); needs only Node
 ```
 
-The shell opens without data; the map and the waters need a data release (section 6, or `data/release/` from staging R2)
-to show anything. Stop it with Ctrl-C.
+Proven 2026-11-25 without a data release: the page answers 200 and the web bundle builds (1295 modules, 8 s). What the
+app shows with no `data/release/` was not looked at; the map and the waters need a release (section 6, or fetch one from
+staging R2). Stop it with Ctrl-C.
 
 ## 5. The data: fetch the pinned sources (heavy: about 16 GB)
 
