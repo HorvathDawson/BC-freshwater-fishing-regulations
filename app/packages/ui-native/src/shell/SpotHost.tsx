@@ -3,12 +3,12 @@
  * (T62 3.4: out of the Shell, unchanged). The edit draft is held by the Shell (`useSpotEdit`), so leaving the screen
  * cannot strand half an edit inside an unmounted component.
  */
-import { MY_LOCATION, SPOT_WORDS, nearBC, spotBack, now } from "@app/core";
+import { spotBack, now } from "@app/core";
 import type { MutableRefObject } from "react";
 import { useState } from "react";
 import { View } from "react-native";
 import { nextRating, spotSaveFailed, useAddVisit, useBackLayer, useDayFlow, useLikeVisit, visitsView,
-         reportFailure, tabsAsRail, useLayoutClass, type AddVisitOptions, type SpotPhotos } from "@app/ui";
+         reportFailure, parkingHere, tabsAsRail, useLayoutClass, type AddVisitOptions, type SpotPhotos } from "@app/ui";
 import { photoOwner, rateVisit, removeVisit, visitSpot, withVisit, type Spot } from "@app/data/spots";
 import { VISIT_WORDS } from "@app/core";
 import { Busy, WhenScreen } from "../SpotCapture";
@@ -89,7 +89,7 @@ export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlo
     );
   }
   // an unsaved edit's added photos go with it; after a save there are none left to delete
-  const endEdit = () => { if (edit) void photoEdit.discard(); setEdit(null); };
+  const endEdit = () => { if (edit) void photoEdit.discard(); setEdit(null); setParkingNotice(null); };
   const close = () => { endEdit(); setSpotError(null); setPendingTab(null); back(); };
   const goTab = (k: TabKey) => { endEdit(); setSpotError(null); setPendingTab(null); toTab(k); };
   return (
@@ -115,10 +115,12 @@ export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlo
                     onParkingPick={edit && tiles && theme ? () => setPickingParking(edit.parking ?? null) : undefined}
                     onParkingHere={edit && locate ? () => {
                       setParkingNotice(null);
-                      // (T864) parking far outside B.C. would send directions across the continent: said, nothing set
-                      locate.here().then((f) => nearBC(f) ? setEdit({ ...edit, parking: { lat: f.lat, lon: f.lon } })
-                                                          : setParkingNotice(MY_LOCATION.far),
-                                         () => setParkingNotice(SPOT_WORDS.parkingNoFix));
+                      // (T1163 G5 / G6) a rough fix is said, a refusal says so with "Open Settings" under it (`parkingHere`)
+                      void parkingHere(locate).then((r) => {
+                        // functional: what was typed while the fix was coming is kept
+                        if (r.parking) setEdit((e) => e && { ...e, parking: r.parking });
+                        setParkingNotice(r.notice);
+                      });
                     } : undefined}
                     onParkingRemove={edit ? () => setEdit({ ...edit, parking: null }) : undefined}
                     onTitle={edit ? (t) => setEdit({ ...edit, title: t }) : undefined}
@@ -146,6 +148,7 @@ export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlo
                                                    { ...shown, notes: edit.notes, photos: [...photoEdit.refs] }));
                         photoEdit.committed();
                         setEdit(null);
+                        setParkingNotice(null);
                         setSpotError(null);
                         if (pendingTab) goTab(pendingTab);
                       } catch (e) {

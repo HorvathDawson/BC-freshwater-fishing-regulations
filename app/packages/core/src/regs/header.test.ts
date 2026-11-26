@@ -3,7 +3,8 @@
  * app/conformance/src/regs/header.parity.test.ts (retired, T439).
  */
 import { describe, expect, it } from "vitest";
-import { headerOf, partLabels, subtitleOf } from "./header";
+import { headerOf, partLabels, partsOthersOf, subtitleOf } from "./header";
+import { setFailureSink } from "../failure";
 import type { Choice, PartFacts, RegsInputs } from "./inputs";
 import type { Day } from "./model";
 
@@ -28,6 +29,8 @@ function inputs(o: { parts?: (PartFacts | null)[]; choices?: Choice[]; partIx?: 
     place: o.unnamed ? { label: "Region 5", name: "Unnamed stream" } : null,
     // (T517) the release's `display.ends`: what a part's end tokens say
     statics: { ends: ENDS },
+    // a keyed, non-tidal part (the rule key's own fields this file reads)
+    key: { kind: o.kind ?? "stream", tidal: false },
   } as unknown as RegsInputs;
 }
 const today = D(10, 10);
@@ -70,9 +73,10 @@ describe("partLabels (prototype hereLabel / shortLabel)", () => {
       { full: "Test River", short: "Test River" }, null]);
     expect(partLabels(inputs({ unnamed: true }))).toBeNull();
   });
-  it("an unkeyed part (no facts: outside B.C.) is said as its water; a part the water lacks throws", () => {
+  // (T1140, owner 2026-11-25: "\"<water> outside B.C.\" (Recommended)") it was said as its bare water
+  it("an unkeyed part (no facts: outside B.C.) is '<water> outside B.C.'; a part the water lacks throws", () => {
     expect(partLabels(inputs({ parts: [part("a", "mouth", "falls"), null], choices: [], partIx: 1 })))
-      .toEqual({ full: "Test River", short: "Test River" });
+      .toEqual({ full: "Test River outside B.C.", short: "Test River outside B.C." });
     expect(() => partLabels(inputs({ choices: [], partIx: 5 }))).toThrow("regs: gnis:1 has no part 5");
   });
 });
@@ -173,5 +177,74 @@ describe("headerOf", () => {
     expect([of("stream", "Eve River", false), of("stream", null, false)]).toEqual([
       { full: "From the mouth up to the falls", short: "Mouth → falls" },
       { full: "From the mouth up to the falls", short: "Mouth → falls" }]);
+  });
+});
+
+// (T1140, owner 2026-11-25: /water/squamish-river opened "Closed all year" on one of its parts, and nothing said it was
+// one part; then: "there should be no partt x of n nameas anywhewre in the app") THE HEAD NAMES THE PART (its place row)
+// and, where other parts have other rules, says so in one line; it never numbers a part
+describe("(T1140) headerOf: the line to the other parts, never a count", () => {
+  const side = [part("2 side channels, joining 11.6 km from the mouth", null, null), part("From the tidal boundary up to the top of the river", "mouth", "source")];
+  const sq = (partIx: number) => inputs({ name: "Squamish River", parts: side, choices: [], partIx });
+  const differ = new Map([[0, { differs: true }], [1, { differs: true }]]);
+  it("a part whose water has other parts with other rules: the line, and no number anywhere in the head", () => {
+    const h = headerOf(sq(1), { today, status: "open", places: differ });
+    expect([h.others, h.place?.short]).toEqual(["Other parts of this water have different rules", "Mouth → Source"]);
+    expect(/\bpart \d+ of \d+\b/i.test(JSON.stringify(h))).toBe(false);
+  });
+  it("a part whose others share its rules: no line", () => {
+    const same = new Map([[0, { differs: false }], [1, { differs: false }]]);
+    expect(Object.keys(headerOf(sq(1), { today, status: "open", places: same }))).not.toContain("others");
+  });
+  // (owner 2026-11-25 evening: "Drop the repeat (Recommended)") under the water's name, a part named "<water> <words>"
+  it("a part named '<water> <words>' is shown by its words under the water's name; the full name is the screen reader's", () => {
+    const names = new Map([[0, "Squamish River inside Baynes Island Ecological Reserve"], [1, "Mouth → Source"]]);
+    const h = headerOf(sq(0), { today, status: "closed", names });
+    expect([h.name, h.place]).toEqual(["Squamish River", { full: "Inside Baynes Island Ecological Reserve",
+      short: "Inside Baynes Island Ecological Reserve", aria: "Squamish River inside Baynes Island Ecological Reserve" }]);
+    // a part named by its ends is exactly as it was: no `aria` key at all
+    expect(headerOf(sq(1), { today, status: "open", names }).place).toStrictEqual({ full: "Mouth → Source", short: "Mouth → Source" });
+  });
+  it("a part with no ends of a water of several is said by the release's own words for it (before the map is read too)", () => {
+    const own = [part("x", null, null, { runs: "Side channel, joining 12 km from the mouth" }), part("From the mouth", "mouth", "source")];
+    expect(headerOf(inputs({ name: "Comox Creek", parts: own, choices: [], partIx: 0 }), { today, status: "closed" }).place)
+      .toEqual({ full: "Side channel, joining 12 km from the mouth", short: "Side channel, joining 12 km from the mouth" });
+  });
+  it("a part with no facts that is not tidal is outside B.C.: '<water> outside B.C.'", () => {
+    const out = inputs({ name: "Kettle River", parts: [part("From the mouth", "mouth", "source"), null], choices: [], partIx: 1 });
+    // under the water's name, by its words ("Drop the repeat"); the full name is the screen reader's
+    expect(headerOf(out, { today, status: "outside" }).place).toEqual({ full: "Outside B.C.", short: "Outside B.C.", aria: "Kettle River outside B.C." });
+    const tidal = { ...out, tidalPart: true } as typeof out;
+    expect(headerOf(tidal, { today, status: "tidal" }).place).toBeNull();
+  });
+  it("A WATER OF ONE PART (no places, or a map of one entry) keeps its header exactly: no new key at all", () => {
+    const one = inputs({ parts: [part("Whole river", null, null)], choices: [], partIx: 0 });
+    const before = headerOf(one, { today, status: "open" });
+    expect(headerOf(one, { today, status: "open", places: new Map() })).toStrictEqual(before);
+    expect(headerOf(one, { today, status: "open", places: null })).toStrictEqual(before);
+    expect(Object.keys(before)).not.toContain("others");
+  });
+  it("a KEYED page's part the map's places do not hold: no line, never a throw (it is drawn), and REPORTED once", () => {
+    const got: unknown[] = [];
+    const undo = setFailureSink((e) => got.push(e));
+    try {
+      const missing = new Map([[0, { differs: true }]]);
+      expect(headerOf(sq(1), { today, status: "open", places: missing }).others).toBeUndefined();
+      expect(partsOthersOf(sq(1), missing)).toBeNull();                          // the same defect again: reported once
+      expect(got.map(String)).toEqual(["Error: regs header: the map lists no part 1 of gnis:1"]);
+    } finally { undo(); }
+  });
+  it("a TIDAL stretch or a part outside B.C. (never in the map's list): no line, no throw, nothing reported", () => {
+    const got: unknown[] = [];
+    const undo = setFailureSink((e) => got.push(e));
+    try {
+      const listed = new Map([[0, { differs: true }]]);
+      const tidal = { ...sq(1), tidalPart: true } as RegsInputs;
+      const tidalKey = { ...sq(1), key: { kind: "stream", tidal: true } } as unknown as RegsInputs;
+      const outside = { ...sq(1), key: null } as RegsInputs;
+      expect([partsOthersOf(tidal, listed), partsOthersOf(tidalKey, listed), partsOthersOf(outside, listed)]).toEqual([null, null, null]);
+      expect(headerOf(tidal, { today, status: "tidal", places: listed }).others).toBeUndefined();
+      expect(got).toEqual([]);
+    } finally { undo(); }
   });
 });

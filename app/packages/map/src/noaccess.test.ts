@@ -12,6 +12,7 @@ import type { DayProfiles } from "@app/core";
 import { baseAdapter, type MapHandle } from "./adapters/contract";
 import { NOACCESS_LAYER, paintFor } from "./paint";
 import { runtimeStyle } from "./runtime-style";
+import { PMTILES } from "./tile-access";
 import { resolveTheme } from "./style";
 
 const DAY: DayProfiles = { closed: ["p1"], own: ["p2"], base: ["b"], no_access: ["n"], none: [] };
@@ -60,7 +61,7 @@ describe("no public access is a dotted grey line (T165)", () => {
 
   it("is in the style the map is given, right after the no-baseline dash, built with no dots", () => {
     for (const theme of ["light", "dark", "cvd"]) {
-      const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, theme, { stream: "profile" }) as
+      const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, theme, { stream: "profile" }, PMTILES) as
         unknown as { layers: { id: string; paint?: Record<string, unknown> }[] };
       const ids = s.layers.map((l) => l.id);
       expect([theme, ids[ids.indexOf("stream-nobaseline") + 1]]).toEqual([theme, NOACCESS_LAYER]);

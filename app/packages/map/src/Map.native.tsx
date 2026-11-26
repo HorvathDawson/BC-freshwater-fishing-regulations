@@ -2,6 +2,10 @@
  * The native map: MapLibre Native through `@maplibre/maplibre-react-native` 11.5.0 (N1 → N2), behind the SAME `<Map>`
  * contract as `Map.web.tsx` (`./Map.d.ts`, `MapProps`).
  *
+ * (T1154) THIS FILE IS THE SHELL: everything that decides. The engine draws, in `native/maplibre/` (the component tree
+ * `View.tsx`, the element refs `handle.ts`, the per-tile event `tiles.ts`, the log, the held label layers, the style
+ * dialect), reached only through `native/engine.ts`; this file names no SDK (`app/tools/check-boundaries.mjs`).
+ *
  * WHAT IS SHARED WITH THE WEB MAP, and therefore cannot drift:
  *   the style        `runtimeStyle()` (via `nativeStyle`): the same layers, paint, tokens and view logic, through the
  *                    same adapter and the same `applyLook` sequence. Only the URLs differ: `pmtiles://file:///…`
@@ -43,32 +47,29 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, Pressable, Text, View, type LayoutChangeEvent } from "react-native";
-import {
-  Camera, GeoJSONSource, Images, Layer, LogManager, Map as MLMap, VectorSource,
-  type CameraRef, type GeoJSONSourceRef, type MapRef, type VectorSourceRef,
-} from "@maplibre/maplibre-react-native";
-import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, MIN_ZOOM, fitCamera, fitZoomLimit, fitZoomOf, padBbox, refineFit, spotMarkers,
+import { fitCamera, fitZoomLimit, fitZoomOf, padBbox, refineFit, spotMarkers,
          spotsInView, spotUnder, profileLabel, unionBbox, type Bbox, type SpotMarker, type SectionKey, now as clockNow } from "@app/core";
 import { pressSpot, spotsKey } from "./spots";
-import { SPOT_SOURCE, spotBoxImage, spotBoxName, spotImages, spotsData, spotsLayers } from "./spot-marks";
-import { SALMON_CIRCLE_BEFORE, SALMON_CIRCLE_SOURCE, salmonCircleLayers, salmonCirclesData } from "./salmon-circles";
+import { spotBoxImage, spotBoxName, spotImages, spotsData, spotsLayers } from "./spot-marks";
+import { salmonCircleLayers, salmonCirclesData } from "./salmon-circles";
 import { baseAdapter } from "./adapters/contract";
 import { nativeRenderer } from "./adapters/native";
 import { mapChrome } from "./chrome";
 import { zoomStep } from "./zoom-step";
-import { nativeMapGestures } from "./gestures";
-import { areaLayer, nativeStyle } from "./native-style";
+import { nativeStyle } from "./native-style";
 import { NativeLookTracker } from "./look-drawn";
 import { liftFor, type Lift, type LiftAnswer } from "./tapLift";
 import { isTapTarget, litKey, spreadSections, TAP_GROUPS, tapBox, unsetValue, VISIBLE_LAYERS, visibleSections } from "./sections";
 import { withoutEngineKeys } from "./colouring";
 import { nativeImages } from "./images";
 import { useNativeColouring, type AtlasSource } from "./native/useColouring";
+import { EngineView, engineDialect, engineLog, engineTiles, useEngineRefs, type EngineAtlas, type EnginePress,
+         type EngineRegion } from "./native/engine";
 import { colourProbe } from "./native/probe";
 import { panProbe } from "./native/panProbe";
 import { GoneViews } from "./native/goneView";
 import { nativeLabelAnchors } from "./native/labelAnchor";
-import { MARK_BOX_IMAGE, MARK_LABEL, MARK_RING, MARK_SOURCE, PIN_SOURCE, markBox, markBoxImage, markHit, marksData,
+import { MARK_BOX_IMAGE, MARK_LABEL, MARK_RING, markBox, markBoxImage, markHit, marksData,
          marksLayers, pinDotLayer, pinsData, titledPin, PIN_DOT } from "./point-marks";
 import type { MarkLabelAnchor } from "./marks";
 import { pngDataUri } from "./png";
@@ -77,15 +78,15 @@ import { GEOMETRY, SHOW_SCALE } from "./chrome";
 import { MapCredits } from "./MapCredits";
 import { LAB_ON, labStyle, useLab } from "./lab";
 import { heldLayers } from "./label-hold";
-import { HeldLabels, holdStore, useAdoptedIds } from "./native/labelHold";
+import { holdStore, useAdoptedIds } from "./native/labelHold";
 import type { MapProps } from "./map-props";
-import { COPY_LINE, COPY_SOURCE, COPY_UNTIL, WaterCopy, copyIds, pieceGridZoom, probeZoom, zoomAround, type CopyTarget } from "./water-copy";
+import { COPY_LINE, COPY_UNTIL, WaterCopy, copyIds, pieceGridZoom, probeZoom, zoomAround, type CopyTarget } from "./water-copy";
 import { cameraMs, setReducedMotion } from "./motion";
-import { ME_SOURCE, meData, mePaint } from "./me";
+import { meData, mePaint } from "./me";
 import { camProbe } from "./native/camProbe";
 import { watchStyleAssets } from "./native/styleAssets";
 import { MAX_PIXEL_RATIO } from "./pixel-ratio";
-import { EMPTY_TRACE, pinCollection, TRACE_PINS_SOURCE, TRACE_SOURCE } from "./trace-overlay";
+import { EMPTY_TRACE, pinCollection } from "./trace-overlay";
 import { collectionBbox, traceOverlay, type TraceCollection } from "./trace-geometry";
 
 /** (T831) The route map's pins before a style has loaded (`trace-pins`): none pushed, the style holds them. */
@@ -96,27 +97,17 @@ const NO_PINS = pinCollection([]);
  *  frames missing tiles nor frame time beyond run-to-run noise (T401 ticket), so MapLibre's default stays */
 const PREFETCH_ZOOM_DELTA = -1;
 
-/** (T317) a style-spec layer as the binding's `Layer` takes it (its source is the enclosing `GeoJSONSource`) */
-type LayerSpec = React.ComponentProps<typeof Layer>;
-
 /** (T876) After the labels come back with no frame drawn for it, how long until the last full frame counts as whole. */
 const RELEASE_WHOLE_MS = 400;
 
 /** An empty source, so the gauge layers exist before the first feed tick arrives (as on the web). */
 const EMPTY_FC = '{"type":"FeatureCollection","features":[]}';
 const EMPTY_FC_OBJ = { type: "FeatureCollection" as const, features: [] as unknown[] };
-/** `CAMERA_BOUNDS` (`[[w, s], [e, n]]`) in the binding's flat `[w, s, e, n]`. */
-const MAX_BOUNDS: [number, number, number, number] =
-  [CAMERA_BOUNDS[0][0], CAMERA_BOUNDS[0][1], CAMERA_BOUNDS[1][0], CAMERA_BOUNDS[1][1]];
-/** Where the binding's own scale bar is parked: present (see the `scaleBar` prop), never seen. */
-const OFF_SCREEN = { top: -10000, left: -10000 } as const;
 /** The web's `ScaleControl({ maxWidth: 92 })`. */
 const SCALE_MAX_WIDTH = GEOMETRY.scaleMax;
 
-type PressEvent = { nativeEvent: { point: [number, number] | { x: number; y: number };
-                                   lngLat: [number, number] } | null };
-type RegionEvent = { nativeEvent: { center?: [number, number]; zoom?: number; userInteraction?: boolean;
-                                    bounds?: [number, number, number, number] } | null };
+type PressEvent = EnginePress;
+type RegionEvent = EngineRegion;
 type Data = NonNullable<MapProps["data"]>;
 
 /** What a tap's hit test answers (`MapRenderer.press`). */
@@ -141,11 +132,11 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     return () => { live = false; sub?.remove?.(); };
   }, []);
   const adapter = useRef(baseAdapter("native"));
-  const mapRef = useRef<MapRef | null>(null);
-  const camRef = useRef<CameraRef | null>(null);
-  const atlasRef = useRef<VectorSourceRef | null>(null);
-  /** (T175) The water copy's GeoJSON source, and the lines it holds — see `water-copy.ts`. */
-  const copyRef = useRef<GeoJSONSourceRef | null>(null);
+  /** (T1154) the engine's element handles (`native/engine.ts`); (T175) `copyRef`: the water copy's GeoJSON source. */
+  const engineRefs = useEngineRefs();
+  const { map: mapRef, camera: camRef, copy: copyRef } = engineRefs;
+  const atlasRef = useRef<EngineAtlas | null>(null);
+  /** (T175) The lines the water copy holds — see `water-copy.ts`. */
   const copy = useRef(new WaterCopy());
   /** The map's size, for the fit padding (the web reads its container). */
   const size = useRef({ width: 0, height: 0 });
@@ -175,7 +166,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     cb.current.onError?.(e instanceof Error ? e : new Error(String(e)));
   }, []);
   // (T418) a sprite, glyph range or source that would not load is reported once, not only logged (MapLibre's log)
-  useEffect(() => { watchStyleAssets(LogManager); }, []);
+  useEffect(() => { watchStyleAssets(engineLog); }, []);
   /** (T317) the boundary marks and their press, read by the tap (`onPress`) and the label measure (`anchorMarks`) */
   const marksNow = useRef(marks);
   marksNow.current = marks;
@@ -209,7 +200,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
    */
   const [sectionData, areaData] = useMemo(() => {
     const sec: Data = {}, area: Data = {};
-    for (const [layerId, values] of Object.entries(spreadSections(data ?? {}))) (areaLayer(layerId) ? area : sec)[layerId] = values;
+    for (const [layerId, values] of Object.entries(spreadSections(data ?? {}))) (engineDialect.areaLayer(layerId) ? area : sec)[layerId] = values;
     return [sec, area];
   }, [data]);
   const areaKey = JSON.stringify(areaData);
@@ -217,6 +208,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   /** (T74) THE COLOURING ENGINE: each tile's sections labelled as the binding requests it (`native/useColouring.ts`). */
   const colouring = useNativeColouring({
     atlas: () => atlasRef.current as unknown as AtlasSource | null,
+    tiles: engineTiles,
     copy: () => copy.current,
     toCopy: { set: (id, s) => { void copyRef.current?.setFeatureState({ id }, s as never).catch(report); },
               remove: (id, key) => { void (key === undefined ? copyRef.current?.removeFeatureState({ id })
@@ -251,7 +243,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   const look = useMemo(
     () => nativeStyle({ at, theme, view, modes, hide, show, groups, basemap: basemap ?? "map", focus: !!focus,
                         gauges: gaugesNow.current ?? EMPTY_FC, tracePins: tracePinsNow.current,
-                        traceLines: traceLinesNow.current, areaData: JSON.parse(areaKey) as Data, values: cv }),
+                        traceLines: traceLinesNow.current, areaData: JSON.parse(areaKey) as Data, values: cv }, engineDialect),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [at.atlas, at.basemap, at.glyphs, at.sprite, at.assets, at.outside, theme, view, JSON.stringify(modes ?? {}),
      JSON.stringify(hide ?? []), JSON.stringify(show ?? []), JSON.stringify(groups ?? {}), basemap, areaKey, valuesKey, !!focus]);
@@ -368,7 +360,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   // loaded); later ones are the binding re-creating its handle (`useImperativeHandle` with no deps), which must not
   // re-render this map, or each render would re-attach and render again. A style swap is `onStyle`'s business.
   const attachedOnce = useRef(false);
-  const atlasAttached = useCallback((r: VectorSourceRef | null) => {
+  const atlasAttached = useCallback((r: EngineAtlas | null) => {
     atlasRef.current = r;
     let tag: number | null = null;
     try { tag = r?.nativeTag() ?? null; } catch { /* not mounted yet: its tag is learnt on the next attach */ }
@@ -1008,91 +1000,50 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   useEffect(() => { panProbe.src("style"); }, [shown]);
   return (
     <>
-      <MLMap
-        ref={mapRef}
-        style={[{ flex: 1 }, style]}
+      <EngineView
+        refs={engineRefs}
+        atlasAttached={atlasAttached}
+        style={style}
         onLayout={onLayout}
-        mapStyle={shown as never}
-        // G1: one gesture policy for both maps — pan, pinch, double-tap zoom; no rotate, no tilt, no compass
-        {...nativeMapGestures()}
-        // (T424) the binding's own attribution "i" is OFF: the credits are `MapCredits` below, the web's own component. A
-        // bare map is an illustration: no furniture, no credits (the page that carries it credits the data, MapProps.bare)
-        attribution={false}
-        // (T448) at most 2 device pixels per dp, like the web (`pixel-ratio.ts`): the patched binding draws into a smaller
-        // surface the compositor scales up (Android) — fewer pixels filled, the same scale, gestures and taps
-        maxPixelRatio={lab.pixelCap ? MAX_PIXEL_RATIO : 0}
-        // (T401) parent tiles loaded as placeholders while a tile loads (patched binding, Android; iOS ignores it)
-        prefetchZoomDelta={LAB_ON ? lab.prefetch : PREFETCH_ZOOM_DELTA}
-        logo={false}
-        // OURS is drawn below (`metricScale`): the binding's is top-left only on Android, in the device's units. But
-        // the binding's must EXIST on Android: switched off, the map's surface left a black hole over the next screen
-        // when the map unmounted (emulator, N2 review; bisected to this one prop). So it is on, and parked off screen
-        scaleBar
-        scaleBarPosition={OFF_SCREEN}
-        onPress={onPress as never}
-        onTapUp={onPressStart && onPressFeature ? onTapUp as never : undefined}
-        onLongPress={onLongPress ? onLongPressed as never : undefined}
-        onRegionDidChange={onRegionDidChange as never}
+        mapStyle={shown}
+        // (T448) at most 2 device pixels per dp, like the web (`pixel-ratio.ts`); 0: the device's own
+        pixelRatio={lab.pixelCap ? MAX_PIXEL_RATIO : 0}
+        // (T401) parent tiles loaded as placeholders while a tile loads
+        prefetchDelta={LAB_ON ? lab.prefetch : PREFETCH_ZOOM_DELTA}
+        initial={camera0.current}
+        onPress={onPress}
+        onTapUp={onPressStart && onPressFeature ? onTapUp : undefined}
+        onLongPress={onLongPress ? onLongPressed : undefined}
+        onRegionDidChange={onRegionDidChange}
         // (T876) always: the label hold starts on it
-        onRegionWillChange={((e: RegionEvent) => { probe?.moving(); panProbe.moving(); onRegionWillChange(e); }) as never}
+        onRegionWillChange={(e: RegionEvent) => { probe?.moving(); panProbe.moving(); onRegionWillChange(e); }}
         // (T876) only while the hold is on: otherwise nothing reads a camera frame
-        onRegionIsChanging={lab.holdLabels ? onRegionIsChanging as never : undefined}
-        onDidFinishRenderingFrame={probe || PAN_PROBE || wantWhole
-          ? (() => { lastFull.current = false; probe?.frame(); if (PAN_PROBE) panProbe.frame(false); }) as never : undefined}
+        onRegionIsChanging={lab.holdLabels ? onRegionIsChanging : undefined}
+        onFrame={probe || PAN_PROBE || wantWhole
+          ? () => { lastFull.current = false; probe?.frame(); if (PAN_PROBE) panProbe.frame(false); } : undefined}
         // (T420/T401, test bed only) a frame with every tile in: the pan probe's "streams drawn"; (T508) and while someone
         // waits for this map to be drawn whole, each such frame is asked whether it is the whole one
-        onDidFinishRenderingFrameFully={PAN_PROBE || wantWhole || lookWaiting
-          ? (() => { lastFull.current = true; if (PAN_PROBE) panProbe.frame(true); if (PAN_PROBE || wantWhole) whole.current();
-                     if (looks.current.waiting()) sayLook(looks.current.fullFrame()); }) as never : undefined}
-        onDidFinishLoadingStyle={onStyle}
-        onDidFinishRenderingMapFully={onRendered}
+        onFrameFull={PAN_PROBE || wantWhole || lookWaiting
+          ? () => { lastFull.current = true; if (PAN_PROBE) panProbe.frame(true); if (PAN_PROBE || wantWhole) whole.current();
+                    if (looks.current.waiting()) sayLook(looks.current.fullFrame()); } : undefined}
+        onStyleLoaded={onStyle}
+        onRenderedFully={onRendered}
         // an empty map and a map whose tiles failed look the same: say so
-        onDidFailLoadingMap={() => report(new Error("map failed to load"))}
-      >
-        <Camera ref={camRef} initialViewState={camera0.current} minZoom={MIN_ZOOM} maxZoom={CAMERA_MAX_ZOOM}
-                maxBounds={MAX_BOUNDS} />
-        <VectorSource id="atlas" ref={atlasAttached}>
-          <HeldLabels store={hold} ids={adopted.atlas} now={heldNow.atlas} />
-        </VectorSource>
-        {/* (T876) the basemap's and the units' names, adopted by id for the hold (the style's own sources) */}
-        <VectorSource id="basemap"><HeldLabels store={hold} ids={adopted.basemap} now={heldNow.basemap} /></VectorSource>
-        <VectorSource id="mus"><HeldLabels store={hold} ids={adopted.mus} now={heldNow.mus} /></VectorSource>
-        {/* (T74) the hatches, the gauge pill and the route's pin, in this theme */}
-        <Images images={images as never} />
-        <GeoJSONSource id="gauges" data={gaugeData}>
-          <HeldLabels store={hold} ids={adopted.gauges} now={heldNow.gauges} />
-        </GeoJSONSource>
-        {/* (T831) the route map's lines, gauge dots and "you are here" pin: the style's own sources by id, as `gauges`.
-            Handed only once a style has loaded: what changes before then is in the style itself, and a change after it
-            is pushed to the source the binding adopted (it never pushes what it was mounted with) */}
-        <GeoJSONSource id={TRACE_SOURCE} data={(styled ? traceLines : EMPTY_TRACE) as never} />
-        <GeoJSONSource id={TRACE_PINS_SOURCE} data={(styled ? tracePinJson : NO_PINS) as never} />
-        {/* (T175) the water copy: the style's own source by id, its lines from the tiles (`keepCopy`) */}
-        <GeoJSONSource id={COPY_SOURCE} ref={copyRef} data={copyData as never} />
-        {/* (T812) THE CLOSED-AREA CIRCLES, under the streams: never asked for a feature, so a tap opens the lake under them */}
-        <GeoJSONSource id={SALMON_CIRCLE_SOURCE} data={circleJson as never}>
-          {circleLook.map((l) => <Layer key={l.id} {...(l as unknown as LayerSpec)} beforeId={SALMON_CIRCLE_BEFORE} />)}
-        </GeoJSONSource>
-        {/* (T303) your location: the accuracy circle, then the dot over it, above every map layer */}
-        <GeoJSONSource id={ME_SOURCE} data={meJson}>
-          <Layer id="me-accuracy" type="circle" paint={meLook.accuracy as never} />
-          <Layer id="me-dot" type="circle" paint={meLook.dot as never} />
-        </GeoJSONSource>
-        {/* (T317) the "where I tapped" marker and a panel's named points: dots drawn by the map, not view annotations */}
-        <GeoJSONSource id={PIN_SOURCE} data={pinJson as never}>
-          <Layer {...(pinLook as unknown as LayerSpec)} />
-        </GeoJSONSource>
-        {/* (T131) YOUR SPOTS: `spotMarkers` at the zoom the camera settled at — (T316) map layers, not view annotations,
-            so they move with the map; a tap is the map's (`onPress`: `spotUnder` → `pressSpot`) */}
-        <GeoJSONSource id={SPOT_SOURCE} data={spotJson as never}>
-          {spotLook.map((l) => <Layer key={l.id} {...(l as unknown as LayerSpec)} />)}
-        </GeoJSONSource>
-        {/* THE BOUNDARY MARKS (P15): the ring (filled when open) and its label above it in a box — map layers (T317), so
-            they move with the map; a tap is the layers' (`onPress`, `markHit`) */}
-        <GeoJSONSource id={MARK_SOURCE} data={markJson as never}>
-          {markLook.map((l) => <Layer key={l.id} {...(l as unknown as LayerSpec)} />)}
-        </GeoJSONSource>
-      </MLMap>
+        onFail={() => report(new Error("map failed to load"))}
+        // (T876) the label layers adopted by id under their sources, for the hold
+        held={{ store: hold, ids: adopted, now: heldNow }}
+        images={images}
+        gauges={gaugeData}
+        // (T831) handed only once a style has loaded: what changes before then is in the style itself
+        trace={styled ? traceLines : EMPTY_TRACE}
+        tracePins={styled ? tracePinJson : NO_PINS}
+        copy={copyData}
+        circles={{ data: circleJson, layers: circleLook }}
+        me={{ data: meJson, look: meLook }}
+        pins={{ data: pinJson, layer: pinLook }}
+        spots={{ data: spotJson, layers: spotLook }}
+        marks={{ data: markJson, layers: markLook }}
+      />
       {/* (T316) the spot marks' buttons, for a screen reader only, as the boundary marks' below; (T674) only for the
           marks on the map now (`spotsInView`): a spot the camera has left is neither announced nor reachable */}
       {spots && spotsSaid.length ? (

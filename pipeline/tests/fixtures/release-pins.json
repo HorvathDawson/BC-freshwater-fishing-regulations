@@ -1,0 +1,6 @@
+{
+  "about": "(T1135) values copied from a release into tests, read by pin(name, value); re-cut by node app/tools/regs-recut/sync.mjs. answers: true = words or pages an angler reads (a moved one stops the release); false = counts and ids (committed with it).",
+  "pins": {
+    "answers26.williston.applies": {"answers":true,"value":"From the Region 7B table, for Williston Lake."}
+  }
+}

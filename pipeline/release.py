@@ -101,7 +101,9 @@ already done for this release):
                `notice_waters.json` holds only the owner's matches, and the resolve only reads it). (b) the app's release-backed
                FIXTURES are re-cut (`node app/tools/regs-recut/sync.mjs --release <candidate>`): a change that only
                renumbers (ids, handles, the fixture release) is committed with the release id; a changed GOLDEN PAGE —
-               what an angler is told — STOPS, nothing committed, until `--accept-fixtures <token>` (T667 D5). (c) the
+               what an angler is told — STOPS, nothing committed, until `--accept-fixtures <token>` (T667 D5); the
+               same re-cut records the release pins (T1135, row `pins`): a moved `answers: true` pin stops with the
+               pages under the same token, a moved `answers: false` one is committed like a renumber. (c) the
                TESTS THAT ASK FOR THE RELEASE UNDER TEST (found by rule, both suites) run with RELEASE_DIR = the
                candidate, so nothing compares with LATEST before the promote, and (T680) THE WHOLE APP CHECK with
                them — the app suite, the feeds worker suite and each `check:fast` gate on its own — every one runs
@@ -1881,23 +1883,30 @@ def stage_recut(ctx: Ctx, rid: str, r: dict) -> str:
         f["recut"] = {"release": rid, "at": now(), "kind": "unchanged", "paths": 0}
         save_ledger(ctx.led)
         return f"fixtures re-cut on {rid}: nothing changed"
-    pages = RF.answer_paths(changed)
+    try:
+        pages = RF.answer_paths(changed)
+    except RF.PinsFileError as e:        # (T1135) a broken pins file: a stop naming it, never a pass or an accept
+        raise Stop("follows", f"the re-cut on {rid} left a release-pins file that is not one: {e}; nothing was "
+                   "committed", f"fix the file (re-cut: {RF.REFRESH_PINS} --release {rel(release_root() / rid)}), "
+                   "then rerun") from None
     token = recut_token(changed)
     print(f"    the re-cut changed {len(changed)} path(s): " + ", ".join(
         f"{row.name} {n}" for row in RF.FOLLOWS for n in [sum(RF.row_of(x) is row for x in changed)] if n), flush=True)
-    renumbered, note = recut_renumbered(pages) if pages else (False, "")
+    pins = [x for x in pages if RF.is_pins(x)]      # (T1135) a moved answer pin is never a renumber
+    golden = [x for x in pages if x not in pins]
+    renumbered, note = recut_renumbered(golden) if golden else (False, "")
     if renumbered:
         # (T993 item 8; 0.8.5 stop 8: nine pages whose source indexes only renumbered) the same page, its sources
         # renumbered one for one: nothing an angler reads changed — committed, said, never a stop
         print(f"    golden pages: {note} — AUTO-ACCEPTED as a renumber (T993 item 8)", flush=True)
         f["renumbered"] = note
-        pages = []
+        pages = pins
     if pages and token not in (ctx.accept_fixtures, f.get("accepted")):
         why = "" if ctx.accept_fixtures is None else f" (--accept-fixtures {ctx.accept_fixtures} is not this re-cut)"
         raise Stop("follows", f"the re-cut on {rid} changed {len(pages)} golden page(s) — what an angler is told "
-                   f"changed{why}; nothing was committed:" + "".join(f"\n    {x}" for x in pages[:20])
+                   f"changed{why}; nothing was committed:" + "".join(f"\n    {x}" for x in RF.said(pages[:20]))
                    + ("\n    …" if len(pages) > 20 else ""),
-                   "read `git diff -- " + " ".join(x for row in RF.FOLLOWS if row.answers for x in row.paths)
+                   "read `git diff -- " + " ".join(RF.answer_roots())
                    + "`; if every change is intended, "
                    f"rerun with\n    --accept-fixtures {token}\n  otherwise fix the cause, commit, and rerun")
     kind = "golden pages accepted" if pages else "renumber only (source indexes)" if renumbered else "renumber only"
@@ -1978,9 +1987,18 @@ def rehearse_follows(ctx: Ctx, cand: str) -> dict:
             if rc:
                 return {"recut_rc": rc}
             changed = recut_changed()
-            pages = RF.answer_paths(changed)
-            renumbered, note = recut_renumbered(pages) if pages else (False, "")
-            got = {"recut_rc": 0, "changed": changed, "pages": [] if renumbered else pages, "renumbered": note,
+            try:
+                pages = RF.answer_paths(changed)
+            except RF.PinsFileError as e:    # (T1135) the real run stops on it: listed as a stop, the tests still run
+                pages, broken = [], [f"a release-pins file that is not one: {e}"]
+            else:
+                broken = []
+            pins = [x for x in pages if RF.is_pins(x)]
+            golden = [x for x in pages if x not in pins]
+            renumbered, note = recut_renumbered(golden) if golden else (False, "")
+            # (T1135) said here, while the re-cut is on disk: a pins file names its moved pins
+            got = {"recut_rc": 0, "changed": changed,
+                   "pages": broken + RF.said(pins if renumbered else pages), "renumbered": note,
                    "token": recut_token(changed) if changed else None}
             got["failures"] = candidate_failures(cand, RF.test_env(release_root() / cand))
             return got
@@ -2756,6 +2774,58 @@ def is_tty() -> bool:
     return sys.stdin.isatty() and sys.stdout.isatty()
 
 
+def is_macos() -> bool:
+    return sys.platform == "darwin"
+
+
+def pmset_batt() -> str:
+    """`pmset -g batt` (macOS), raising SystemExit when it cannot be read: never a guess about the power source."""
+    try:
+        p = subprocess.run(["pmset", "-g", "batt"], capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError) as e:
+        raise SystemExit(f"release: cannot read the power source (pmset -g batt: {e}); refused") from e
+    if p.returncode != 0:
+        raise SystemExit(f"release: cannot read the power source (pmset -g batt exit {p.returncode}: "
+                         f"{(p.stderr or p.stdout).strip()[:200]}); refused")
+    return p.stdout
+
+
+def start_caffeinate(pid: int) -> None:
+    """`caffeinate -i -s -w <pid>`: no idle sleep, and no system sleep on power, until that process ends."""
+    try:
+        subprocess.Popen(["caffeinate", "-i", "-s", "-w", str(pid)], stdin=subprocess.DEVNULL,
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except OSError as e:
+        raise SystemExit(f"release: cannot start caffeinate ({e}): the Mac could sleep mid-release; refused") from e
+
+
+def stay_awake(on_battery: str | None = None) -> str:
+    """(T1161) macOS: the Mac stays awake (caffeinate, bound to this process) while the release runs. An UNATTENDED run
+    (no terminal) on battery is refused unless `--on-battery REASON` (printed); an attended one prints a warning. A
+    `pmset` that fails or prints something unparseable is a refusal, never a pass. Not macOS: nothing to keep awake.
+    Closed lid: caffeinate does not cover it on a MacBook without an external display (see the runbook): lid open."""
+    if not is_macos():
+        return "not macOS: nothing to keep awake"
+    first = (pmset_batt().splitlines() or [""])[0]
+    if "AC Power" in first:
+        battery = False
+    elif "Battery Power" in first:
+        battery = True
+    else:
+        raise SystemExit(f"release: cannot read the power source from pmset -g batt (first line: {first!r}); refused")
+    note = ""
+    if battery:
+        if on_battery:
+            note = f"; ON BATTERY, goes on (--on-battery): {on_battery}"
+        elif not is_tty():
+            raise SystemExit("release: refused on battery for an unattended run (it could drain and stop mid-release): "
+                             'plug the Mac in, or give --on-battery "<why it runs on battery>"')
+        else:
+            note = "; WARNING: on battery, plug the Mac in"
+    start_caffeinate(os.getpid())
+    return f"keeping the Mac awake while this runs (caffeinate -i -s): keep the lid open, on power{note}"
+
+
 def prod_instructions(rid: str, r: dict) -> str:
     return (f"production is HUMAN-ONLY. To publish {rid} (checked {r.get('checks', {}).get('at')}, staged "
             f"{r.get('staged_at')}), in YOUR terminal:\n"
@@ -2919,7 +2989,7 @@ def rc_check() -> int:
     return 0
 
 
-def prod(rid: str, ask=input) -> int:
+def prod(rid: str, ask=input, on_battery: str | None = None) -> int:
     led = load_ledger()
     r = led.get("releases", {}).get(rid)
     if not (release_root() / rid / "manifest.json").exists():
@@ -2959,6 +3029,7 @@ def prod(rid: str, ask=input) -> int:
     if ask(f"type the release id to publish {rid} to PRODUCTION: ").strip() != rid:
         print("release --prod: the id did not match; nothing sent", file=sys.stderr)
         return 2
+    print(f"release: {stay_awake(on_battery)}", flush=True)   # (T1161) after every human-only check, before the upload
     rc = run_cmd(prod_cmd(rid), env=PROD_UPLOAD_ENV)
     if rc:
         print(f"release --prod: publish failed (rc={rc}); see above. Rerunning it re-sends the same files.",
@@ -3026,7 +3097,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--data-only", action="store_true",
                     help="(T998) with --cut: release/data-<YYYY-MM-DD> from origin/main, a data release with no app "
                          "change (refused when an app commit bumps the app)")
+    ap.add_argument("--on-battery", default=None, metavar="REASON",
+                    help="(T1161) an unattended run on battery goes on instead of being refused; the reason is printed")
     a = ap.parse_args(argv)
+    if a.on_battery is not None and not a.on_battery.strip():
+        ap.error('--on-battery needs a reason, which is printed: --on-battery "<why it runs on battery>"')
     if a.data_only and (a.cut is None or a.cut):
         ap.error("--data-only goes with a bare --cut (the version stays the shipped one)")
     if a.reads_moved is not None and (a.cut is None or a.data_only or not a.reads_moved.strip()):
@@ -3052,7 +3127,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"staging serves: {said}\ntags (T995): " + ("ok" if not tags else "WOULD STOP: " + "; ".join(tags))
                   + f"\n{prod_instructions(a.prod, r)}")
             return 0
-        return prod(a.prod)
+        return prod(a.prod, on_battery=a.on_battery)
     if a.no_fast_fail is not None and not a.no_fast_fail.strip():
         ap.error('--no-fast-fail needs a reason, which is printed: --no-fast-fail "<why the cheap checks are skipped>"')
     if a.no_ci_check is not None and not a.no_ci_check.strip():
@@ -3071,6 +3146,10 @@ def main(argv: list[str] | None = None) -> int:
               reupload=a.reupload, no_fast_fail=a.no_fast_fail, stale_atlas=a.ship_stale_atlas,
               no_ci_check=a.no_ci_check, accept_fixtures=a.accept_fixtures, push=a.push,
               no_follow_tests=a.no_follow_tests, forget=a.forget_flags, no_fresh_copy=a.no_fresh_copy)
+    # (T1161) the long runs keep the Mac awake: --staging, --prod (in prod(), after its checks), and a rehearsal that builds (--build) or
+    # re-cuts and checks a candidate (--rehearse-follows). A bare --dry-run is the cheap checks: no hold.
+    if not a.dry_run or a.build or a.rehearse_follows:
+        print(f"release: {stay_awake(a.on_battery)}", flush=True)
     return dry_run(ctx) if a.dry_run else staging(ctx)
 
 

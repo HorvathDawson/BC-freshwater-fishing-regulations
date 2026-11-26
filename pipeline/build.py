@@ -23,7 +23,12 @@ data, so they are independent; deliver reads the reach run and the tiles (and cl
 
     [atlas --promote]  ->  clim ─────────────(content)──┐
                            reach ───────────────────────┼─> deliver -> vintage check
-                           tiles ───────────────────────┘
+                           tiles ───────────────────────┤
+                           (after reach) inseason (content)┘
+
+(T1120) `inseason` makes the in-season matches' generated resolution only where there is none (a fresh machine; or a
+first build's made on another atlas): on the live release when one is live, else `resolve --first-build` on the atlas
++ its reach run. Where a release exists the resolution is the release's, and the build never re-makes it.
 
 Every stage runs as its own process. `--jobs N` (default 2, at most 4: memory `heavy-jobs-one-at-a-time`)
 runs independent stages side by side — clim and reach start together, tiles as soon as a slot frees —
@@ -97,11 +102,16 @@ class Stage:
     reads_content: tuple[str, ...]
     code: tuple[str, ...]
     does: str
+    #: (T1120) stages this one waits for WITHOUT their run rerunning it (an order, not a key input)
+    after: tuple[str, ...] = ()
 
 
 #: THE STAGE GRAPH, in run order (T297: the one table; STAGES / CODE / DEPENDS / READS_CONTENT are views of it).
 #: TILES BEFORE DELIVER: deliver reads the tiles' polygons and section geometry for `section_access` (T54), and
 #: `pipeline.deliver all` ends with the vintage check against the shipped tiles.
+#: (T1120) INSEASON BEFORE DELIVER: deliver reads the in-season matches' generated resolution (their end tokens:
+#: `display.ends`, the export's named cuts) and keys it by content. It is made where it is missing — a fresh machine
+#: — and nowhere else (`MADE_WHEN_MISSING`): the release's follows and the review app own it once a release exists.
 STAGE_GRAPH: tuple[Stage, ...] = (
     Stage("clim", (), (), ("pipeline/gauges/feed/climatology.py", "pipeline/gauges/feed/record.py",
                            "pipeline/gauges/feed/datum.py"),
@@ -116,10 +126,20 @@ STAGE_GRAPH: tuple[Stage, ...] = (
                             # record; an atlas cut before it, the reach's resolvers
                             "pipeline/atlas/reach/outside.py", "pipeline/atlas/reach/extent.py"),
           "atlas.pmtiles + layers/ + the released tile folder"),
-    Stage("deliver", ("reach", "tiles"), ("clim",), ("pipeline",),
+    # after reach: a FIRST BUILD resolves on the atlas + its reach run (`resolve --first-build`); a reach rerun does
+    # not rerun it (`after`, not `depends`): an existing resolution belongs to the release that made it
+    Stage("inseason", (), (), ("pipeline/regs/inseason",),
+          "the in-season matches' resolution, only when there is none (or a first build's for another atlas)",
+          after=("reach",)),
+    Stage("deliver", ("reach", "tiles"), ("clim", "inseason"), ("pipeline",),
           "bundle -> verdicts -> status index -> export -> answers -> card gate -> store -> release"),
 )
 STAGES = tuple(st.name for st in STAGE_GRAPH)
+#: (T1120) stages run only when their output is missing or stale (`inseason_stale`), or forced — never because their
+#: key moved or they have no record: on a machine with a release the resolution is the release's (its follows
+#: re-resolve it on every candidate), and a build re-resolving it on an older LATEST would refuse what deliver needs
+MADE_WHEN_MISSING = ("inseason",)
+AFTER = {st.name: st.after for st in STAGE_GRAPH}
 # What each stage's CODE is before its first recorded run: a change to any file under these (tests excluded) reruns it.
 CODE = {st.name: st.code for st in STAGE_GRAPH}
 #: (T522) THE STAGES KEYED ON THE CODE THEY IMPORTED: each runs under the recorder (`pipeline/_trace.py`); the manifest
@@ -264,16 +284,68 @@ def deliver_sources(missing_ok: bool = False) -> dict:
     # (T211) the DFO salmon rules the bundle snapshots (the typed feed), by content
     out["dfo"] = dfo_feed_digest()
     # (T679 #11) the in-season notices' end tokens `display.ends` holds words for: read from the matches' GENERATED
-    # resolution (no longer in the curated digest)
-    out["inseason_ends"] = inseason_ends_digest()
+    # resolution (no longer in the curated digest). (T1120) Missing, only the PLAN gets a placeholder: the `inseason`
+    # stage is about to make it, and deliver is keyed again after it runs (`READS_CONTENT`)
+    from pipeline.regs.inseason import matches as M
+    out["inseason_ends"] = None if (missing_ok and not M.resolved_path().exists()) else inseason_ends_digest()
     return out
 
 
 def inseason_ends_digest() -> str:
     """The end tokens of the resolved in-season matches (`matches.end_tokens`, all deliver reads of them). A missing
-    resolution raises, naming the command (`matches.load`)."""
+    resolution raises, naming the command (`matches.load`). (T1120) Only the tokens: a first build's resolution and the
+    release's later one on the same atlas key deliver alike when their ends agree (their `release` stamps differ)."""
     from pipeline.regs.inseason import matches as M
     return _sha(M.end_tokens(M.load()))
+
+
+def inseason_state() -> dict:
+    """(T1120) What the in-season resolution on this machine is: `{"release": <what it names>}`, or
+    `{"release": None}` when there is none. The `inseason` stage's key (shown by the plan; the stage runs by
+    `inseason_stale`, never by its key)."""
+    from pipeline.regs.inseason import matches as M
+    p = M.resolved_path()
+    if not p.exists():
+        return {"release": None}
+    return {"release": str(json.loads(p.read_text(encoding="utf-8")).get("release") or "")}
+
+
+def inseason_stale(build_dir: Path) -> str | None:
+    """(T1120) Why the `inseason` stage must run, or None: there is no resolution, or it is a FIRST BUILD's
+    (`first-build:<handles>`) made on another atlas — its ranges name that atlas's sections. A resolution that names a
+    release is never re-made here: the release's follows and the review app own it (its vintage is theirs to check)."""
+    from pipeline.common.section_handles import digest_for
+    from pipeline.regs.inseason import matches as M
+    on = inseason_state()["release"]
+    if on is None:
+        return f"no resolution ({M.resolved_path()})"
+    if on.startswith(M.FIRST_BUILD) and on != M.FIRST_BUILD + digest_for(build_dir):
+        # (T1120 review) a release made by that first build's deliver, from that same atlas, is live: the file is that
+        # release's resolution (the two loaders give one `Release`), so it stands exactly as a release's own would
+        # after an atlas promote — kept, the release's follows re-resolve it on the next candidate. Re-resolving here
+        # on that older release would be refused (`resolve_match`: another atlas) and stop the build for nothing
+        if on == M.FIRST_BUILD + str(live_release_handles() or ""):
+            return None
+        return f"the resolution is a first build's on another atlas ({on}; this atlas {digest_for(build_dir)})"
+    return None
+
+
+def live_release_handles() -> str | None:
+    """(T1120) The atlas handles the live release was built from (its manifest's `files.core.section_handles`), or
+    None when no release is live."""
+    from pipeline.regs.inseason.resolve import release_dir, release_is_live
+    if not release_is_live():
+        return None
+    m = json.loads((release_dir(None) / "manifest.json").read_text(encoding="utf-8"))
+    return str(((m.get("files") or {}).get("core") or {}).get("section_handles") or "") or None
+
+
+def inseason_cmd(build_dir: Path, h: "Homes") -> list[str]:
+    """(T1120) The `inseason` stage's command: on the live release when one is live, else a FIRST BUILD
+    (`--first-build`, on the atlas + its reach run) — chosen here, said by the plan and by the resolve itself."""
+    from pipeline.regs.inseason.resolve import release_is_live
+    cmd = [sys.executable, "-m", "pipeline.regs.inseason.resolve"]
+    return cmd if release_is_live(h.release) else cmd + ["--first-build", "--reaches", str(h.reaches)]
 
 
 def dfo_feed_digest() -> str | None:
@@ -347,6 +419,7 @@ def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
                         sources=deliver_sources(missing_ok),
                         code=stage_code("deliver", m)),
         "tiles": tiles_key(build_dir, m),
+        "inseason": inseason_state(),
     }
 
 
@@ -444,7 +517,13 @@ def outputs(build_dir: Path) -> dict[str, list[Path]]:
                       h.reaches / "dfo_salmon.jsonl.gz"],                              # T211
             "deliver": [h.bundle_dir() / "bundle.sqlite", h.bundle_dir() / "verdicts.sqlite",
                         h.bundle_dir() / "status_index.bin", h.release / "LATEST"],
-            "tiles": [h.tiles / "atlas.pmtiles", h.tiles / "atlas.meta.json"]}
+            "tiles": [h.tiles / "atlas.pmtiles", h.tiles / "atlas.meta.json"],
+            "inseason": [_resolved_path()]}
+
+
+def _resolved_path() -> Path:
+    from pipeline.regs.inseason import matches as M
+    return M.resolved_path()
 
 
 def commands(build_dir: Path) -> dict[str, list[str]]:
@@ -460,6 +539,7 @@ def commands(build_dir: Path) -> dict[str, list[str]]:
         + (["--hold-latest"] if HOLD_LATEST else []) + (["--no-step-cache"] if FRESH_STEPS else []),
         "tiles": py + ["pipeline.deliver.tiles", "--build", str(build_dir), "--out", str(h.tiles)]
         + (["--release-root", str(h.release)] if side else []),
+        "inseason": inseason_cmd(build_dir, h),
     }
 
 
@@ -536,7 +616,13 @@ def plan(build_dir: Path, force: set[str], why: dict | None = None) -> list[tupl
         last = rec.get("key")
         missing = [p for p in out[s] if not p.exists()]
         after = [d for d in DEPENDS[s] if d in runs]
-        go = s in force or key != last or bool(missing) or bool(after)
+        stale = inseason_stale(build_dir) if s in MADE_WHEN_MISSING else None
+        go = (s in force or bool(stale)) if s in MADE_WHEN_MISSING else \
+            s in force or key != last or bool(missing) or bool(after)
+        if go and s in MADE_WHEN_MISSING and SIDE is not None:
+            # a side run touches nothing live, and deliver reads the live resolution: make it there first
+            raise SystemExit("build (side): the in-season resolution must be made in the live tree first — "
+                             f"{stale or 'forced'}:\n    {' '.join(inseason_cmd(build_dir, Homes.of(build_dir)))}")
         if go:
             runs.add(s)
         rows.append((s, key, go))
@@ -544,7 +630,12 @@ def plan(build_dir: Path, force: set[str], why: dict | None = None) -> list[tupl
             now = input_digests(k[s])
             why.setdefault("inputs", {})[s] = now
             why.setdefault("keys", {})[s] = k[s]
-            if s in force:
+            if s in MADE_WHEN_MISSING and go:
+                why[s] = "forced" if s in force else stale + (
+                    "" if "--first-build" not in inseason_cmd(build_dir, Homes.of(build_dir, SIDE)) else
+                    " — FIRST BUILD: no release is live, so it is resolved on the atlas + its reach run "
+                    "(named first-build:<atlas handles>; publish refuses it, the release re-resolves on its candidate)")
+            elif s in force:
                 why[s] = "forced"
             elif last is None:
                 why[s] = "never built"
@@ -581,7 +672,7 @@ def execute(build_dir: Path, rows, cmds: dict, run: dict, m: dict, skip=(), jobs
             for s in list(todo):
                 if len(running) >= jobs:
                     break
-                ups = set(DEPENDS.get(s, ())) | set(READS_CONTENT.get(s, ()))
+                ups = set(DEPENDS.get(s, ())) | set(READS_CONTENT.get(s, ())) | set(AFTER.get(s, ()))
                 if not ups <= done:
                     continue
                 todo.remove(s)
@@ -590,7 +681,12 @@ def execute(build_dir: Path, rows, cmds: dict, run: dict, m: dict, skip=(), jobs
                     continue
                 key, go = plan_key[s], plan_go[s] or any(d in ran for d in DEPENDS.get(s, ()))
                 if any(d in ran for d in READS_CONTENT.get(s, ())):
-                    k_now = keys(build_dir)[s]      # taken again: it reads that stage's output by content
+                    try:
+                        k_now = keys(build_dir)[s]  # taken again: it reads that stage's output by content
+                    except BaseException as ex:     # noqa: BLE001 — said in the manifest, then raised
+                        # (T1120) in this process, not a stage's: the manifest names the stage it was keying
+                        run["status"] = f"failed at {s} (taking its key): {_said(ex)}"
+                        raise
                     key = _sha(k_now)
                     if keyd is not None:
                         keyd[s] = k_now
@@ -624,6 +720,9 @@ def execute(build_dir: Path, rows, cmds: dict, run: dict, m: dict, skip=(), jobs
                     ran.add(s)
                 except BaseException as ex:  # noqa: BLE001 — SystemExit from run_stage; stop launching
                     failures.append(ex)
+                    with _LOCK:              # (T1120) raised, not a failed process: the run still names the stage
+                        if run.get("status") == "running":
+                            run["status"] = f"failed at {s}: {_said(ex)}"
     if failures:
         raise failures[0]
     return ran
@@ -745,7 +844,8 @@ def timings(run: dict) -> str:
 def graph_text() -> str:
     lines = ["the stage graph (python -m pipeline build), in run order:"]
     for st in STAGE_GRAPH:
-        reads = ", ".join([*st.depends, *(f"{d} (content)" for d in st.reads_content)]) or "the atlas + curated/source"
+        reads = ", ".join([*st.depends, *(f"{d} (content)" for d in st.reads_content),
+                           *(f"{d} (after it, order only)" for d in st.after)]) or "the atlas + curated/source"
         lines.append(f"  {st.name:<8} reads {reads}\n           does  {st.does}\n"
                      f"           code  {', '.join(st.code)}")
     lines.append("  (atlas)  only with --atlas: a side atlas <build>_next + its parity; --promote adopts it")
@@ -866,15 +966,46 @@ def main(argv: list[str] | None = None) -> int:
     run = {"started": time.strftime("%Y-%m-%dT%H:%M:%S"), "stages": [], "status": "running",
            "argv": sys.argv[1:]}
     t_start = time.time()
+    at = {"step": "plan"}
+    if a.dry_run:
+        return _build(a, build_dir, run, m, t_start, at)
+    preflight(want_tiles=not a.no_tiles)
+    m["runs"].append(run)
+    try:
+        return _build(a, build_dir, run, m, t_start, at)
+    except BaseException as ex:  # noqa: BLE001 — recorded, then raised as it was
+        close_failed(run, m, at["step"], ex, t_start)
+        raise
+
+
+def _said(ex: BaseException) -> str:
+    """An exception in one line for the manifest: its type and the first line of what it says."""
+    text = str(ex).strip().splitlines()
+    return f"{type(ex).__name__}: {text[0][:200]}" if text else type(ex).__name__
+
+
+def close_failed(run: dict, m: dict, step: str, ex: BaseException, t_start: float | None = None) -> None:
+    """(T1120) A RUN THAT RAISED IS CLOSED, never left "running": `--status` reads `failed at <step>: <why>` — the
+    stage whose process failed (`run_stage` has said so already, and that stands), else the step this process was
+    in (atlas, promote, plan, a stage's key, the vintage check)."""
+    if run.get("status") == "running":
+        run["status"] = f"failed at {step}: {_said(ex)}"
+    if t_start is not None:
+        run.setdefault("wall_seconds", round(time.time() - t_start))
+    save_manifest(m)
+
+
+def _build(a, build_dir: Path, run: dict, m: dict, t_start: float, at: dict) -> int:
+    """`main` past the preflight: `at["step"]` says where it is, for `close_failed`."""
     if not a.dry_run:
-        preflight(want_tiles=not a.no_tiles)
-        m["runs"].append(run)
         if a.atlas:
+            at["step"] = "atlas"
             if not atlas_stage(build_dir, a.promote, run, m):
                 run["status"] = "atlas built, not promoted"
                 save_manifest(m)
                 return 0
         elif a.promote:
+            at["step"] = "promote"
             nxt = build_dir.with_name(build_dir.name + "_next")
             run_stage("promote", [sys.executable, "-m", "pipeline.atlas.promote", str(nxt)], "-",
                       run, m)
@@ -890,6 +1021,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"build: no atlas at {build_dir} — " + ("--atlas builds it, then every stage RUNs" if a.atlas else
                                                       "run with --atlas --promote first"))
         return 0
+    at["step"] = "plan"
     why: dict = {}
     rows = plan(build_dir, set(a.force) | ({"tiles"} if a.labels else set()), why)
     cmds = commands(build_dir)
@@ -906,6 +1038,7 @@ def main(argv: list[str] | None = None) -> int:
     if SIDE is None and dict((s, go) for s, _k, go in rows).get("reach"):
         print(keep_live_baseline(), flush=True)
     logs = MANIFEST.parent / "build-logs" / run["started"].replace(":", "")
+    at["step"] = "stages"
     try:
         execute(build_dir, rows, cmds, run, m, skip={"tiles"} if a.no_tiles else set(), jobs=a.jobs,
                 inputs=why.get("inputs"), logs=logs, keyd=why.get("keys"))
@@ -922,6 +1055,7 @@ def main(argv: list[str] | None = None) -> int:
                          "the envelope moved; run the live clim stage first")
 
     # P07: every artifact of the delivery, not only tiles <-> bundle
+    at["step"] = "vintage check"
     from pipeline.common.vintage import Artifacts, report_all
     arts = Artifacts.canonical() if SIDE is None else Artifacts(
         h.deliver / "bundle.sqlite", h.deliver / "status_index.bin", h.deliver / "ui-rules-export.json")

@@ -274,6 +274,17 @@ set -m                      # job control: the command gets its own process grou
 "$@" &
 job=$!
 set +m
+# (T1161) the Mac stays awake while the job runs (no idle sleep; none on power either); caffeinate ends with the job
+# (-w <pid>). macOS only: Linux has no caffeinate and no such sleep to hold off, so nothing to do there. Locking,
+# queueing, the memory gates and the exit code are untouched. It is not part of the job's process group.
+if [[ $(uname -s) == Darwin ]]; then
+  if command -v caffeinate >/dev/null 2>&1; then
+    caffeinate -i -s -w "$job" >/dev/null 2>&1 &
+    echo "[heavy:$label] keeping the Mac awake while the job runs (caffeinate -i -s -w $job); keep the lid open, on power"
+  else
+    echo "[heavy:$label] WARNING: caffeinate not found: the Mac may sleep during this job" >&2
+  fi
+fi
 write_owner
 unread=0; last_fp=-$FP_EVERY; last_disk=-$DISK_EVERY; last_beat=$SECONDS; fp=""
 while alive "$job"; do

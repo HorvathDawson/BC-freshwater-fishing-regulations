@@ -9,13 +9,14 @@ import { describe, expect, it } from "vitest";
 import { createPropertyExpression, latest } from "@maplibre/maplibre-gl-style-spec";
 import { STYLE_META, resolveTheme } from "@app/map";
 import { nativeStyle } from "../packages/map/src/native-style";
+import { maplibreDialect } from "../packages/map/src/native/maplibre/dialect";
 import { deltaE } from "./cvd";
 
 const AT = { atlas: "file:///a.pmtiles", basemap: "file:///b.pmtiles", glyphs: "file:///g/{fontstack}/{range}.pbf",
              sprite: "file:///s", assets: "file:///x" } as never;
 type L = { id: string; type: string; paint?: Record<string, unknown> };
 const style = (theme: string, focus: boolean) => nativeStyle({ at: AT, theme, view: "plain",
-  modes: { stream: "plain", lake: "plain" }, basemap: "map", gauges: '{"type":"FeatureCollection","features":[]}', focus });
+  modes: { stream: "plain", lake: "plain" }, basemap: "map", gauges: '{"type":"FeatureCollection","features":[]}', focus }, maplibreDialect);
 /** (T848) the stream as drawn: the lit sections are its heavy layer's (`stream-heavy`), `stream` hidden under it there */
 const drawn = (layers: L[], id: string) => (state: Record<string, unknown>): L => {
   const own = layers.find((x) => x.id === id)!, heavy = layers.find((x) => x.id === `${id}-heavy`);

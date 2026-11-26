@@ -51,13 +51,14 @@
         "@app/ui",
         "react",
         "maplibre-gl",
-        "@maplibre/maplibre-react-native",
         "pmtiles",
         "@protomaps/basemaps",
         "react-native"
       ],
-      "banned": [],
-      "why": "the ONLY package allowed to know that maplibre-gl and maplibre-react-native differ. react-native is listed because the NATIVE half of this package renders native views; the web half renders a div. That split is the reason this package exists, so both platform imports belong here and nowhere else."
+      "banned": [
+        "@maplibre/maplibre-react-native"
+      ],
+      "why": "the ONLY package allowed to know that maplibre-gl and maplibre-react-native differ. react-native is listed because the NATIVE half of this package renders native views; the web half renders a div. That split is the reason this package exists, so both platform imports belong here and nowhere else. (T1154) The phone's map SDK is named only by its engine's own layer (`packages/map/src/native/maplibre`): the shell (`Map.native.tsx`) reaches the engine through `native/engine.ts`, and check-boundaries' engine rule holds the rest of it there."
     },
     "apps/mobile": {
       "purpose": "RN app shell. Views only.",
@@ -160,6 +161,20 @@
         "sql.js"
       ],
       "why": "expo-image-manipulator is here only for the phone backup's photo copies (T732, `backupSet.native.ts`): a copy of a spot's photo, made smaller, is part of the user's own records' backup, never the bundle's. A spot is the one thing here that cannot be re-downloaded, and it lives in a store of its own because the regulation bundle is replaced wholesale on every update. This layer may name a FILE system (that is its job) and may never touch the bundle's database — the two must not be able to share a file by accident."
+    },
+    "packages/map/src/native/maplibre": {
+      "purpose": "(T1154) MapLibre Native as the phone map's engine: its component tree, element refs, per-tile event, log, held label layers and style dialect.",
+      "mayImport": [
+        "@app/core",
+        "react",
+        "react-native",
+        "@maplibre/maplibre-react-native"
+      ],
+      "banned": [
+        "react-dom",
+        "maplibre-gl"
+      ],
+      "why": "The one place the phone's map SDK is named (`@maplibre/maplibre-react-native`, deps.md). Everything that decides stays in the engine-neutral shell around it (`packages/map/src/Map.native.tsx`), which reaches this folder only through `native/engine.ts`, so another engine is another folder beside this one, never an edit of the shell."
     }
   },
   "testOnlyImports": [

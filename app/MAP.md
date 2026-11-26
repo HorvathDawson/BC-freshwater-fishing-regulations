@@ -12,7 +12,7 @@ The one current map of `app/`. Why the layers are shaped this way: [`README.md`]
 | `packages/data` | the data seam: release loader and install (`src/release/`), regs store (`src/regs/`), `WaterSource` over the release (`release/source.ts`), SQL drivers (`src/sql/`), spots, gauge/in-season/salmon feeds (`src/feed/`), phone notifications check (`src/notify/`) | core |
 | `packages/ui` | headless React hooks (data, never elements): boot, search, water/regs/route, layout class | core, data, react |
 | `packages/ui-native` | every component and layout (RN primitives, drawn on the web by react-native-web): `Shell.tsx`, `shell/`, water, regs, sheets, panels | core, data, ui |
-| `packages/map` | the ONE `<Map/>` (`Map.web.tsx` / `Map.native.tsx`), the generated style (`style/`), the colouring engine | core, ui, the two map SDKs |
+| `packages/map` | the ONE `<Map/>` (`Map.web.tsx` / `Map.native.tsx`, the phone's an engine-neutral shell over `src/native/maplibre/`, reached through `src/native/engine.ts`), the generated style (`style/`), the colouring engine | core, ui, the two map SDKs |
 | `apps/mobile` | the one shell for native and web: `src/App.tsx`, config (`config.ts`, `env.ts`: data environment local / staging / production), platform glue, local Expo module `modules/bg-download` | all |
 | `conformance` | suites every `WaterSource` and regs store must pass: fixture releases, the live release, oracle parities | all |
 | `workers/feeds` | the Cloudflare feeds worker (gauges, DFO salmon, in-season, run timing, push, reports); not in the pnpm workspace | `core` (generated policy) |
@@ -25,7 +25,8 @@ data/release/r-*/ (R2 in production) -> manifest -> @app/data release loader (ph
     |- WaterSource (release/source.ts): core, near, paint, conditions, flow-area
     |- RegsStore (regs/store.ts): water + regs-<region> + regs-sid; core regs/ composes a page, ui-native regs/ draws it
     |- salmon (loader.salmon) -> ui useSalmonCard, the map's Standard/Salmon colouring
-    |- offline (release/offline.ts): More -> Offline maps
+    |- offline (release/offline.ts): More -> Offline maps; the satellite kept by region (release/offlineImagery.ts, by
+    |    the offline method of the imagery provider in use: core imagery.ts `IMAGERY`, Esri's "none")
     `-> @app/ui hooks -> @app/ui-native screens -> apps/mobile App.tsx
 feeds (served by the feeds worker; read by packages/data/src/feed/): gauge index + per-station files, in-season, salmon,
   run timing. Every index carries `minAppVersion`; core `feedGate.ts` refuses an index meant for a newer app.
@@ -46,6 +47,7 @@ than what is served is told so (`apps/mobile/src/replaced.web.ts`, ui `replaced.
 | `packages/data/dev/feeds/` | a gauge feed for tests | `pipeline.gauges.feed.publish` |
 | `fixtures/golden/` | release-backed regs oracles: `taps.json`, `page-oracle.json` | `node app/tools/regs-recut/sync.mjs` (the release re-cuts them, AGENTS W46) |
 | `fixtures/reference/` | page v36 (html, js) and the calendar copy, frozen: the parity oracle | `python -m pipeline.tools.emit.calendar` (calendar only) |
+| `fixtures/map-style/composed.json` | the phone's and the web's composed map styles, byte for byte (T1154) | `STYLE_GOLDEN=write pnpm exec vitest run tools/style-golden.test.ts` |
 | `fixtures/trout/`, `fixtures/reader-states.json`, `fixtures/dfo-feed-*.json` | test inputs for the trout table, the reader tool, the DFO feed | by hand |
 
 ## Gates (`pnpm check` = `check:fast` then `test`; the order is `package.json` `scripts.check`)
@@ -54,11 +56,12 @@ than what is served is told so (`apps/mobile/src/replaced.web.ts`, ui `replaced.
 `vitest` (4 shards, `tools/vitest-shards.mjs`) and the web and native `bundles`. In order: tickets, anchors, changelog,
 boundaries, platform, style, colours, spinner / coho / adipose / splash (generated art current), the Python-emitted files
 (`gauge-policy`, `fish`, `calendar`, `answers`, `pack`, `app-reads`, `feed-formats`: each `--check`s a generated file
-against `pipeline/`), deps, knip, typecheck (`tsc -b`), typecheck:worker, typecheck:seo, promises, inventories.
+against `pipeline/`), deps, knip, typecheck (`tsc -b`), typecheck:worker, typecheck:seo, promises, no-render-throw, inventories.
 - `pnpm anchors` fails a test that types a section number, release id or digest, or reads `data/` past the helpers
   (`liveRelease`, `namedRelease`, `repoData`, `openRegsFixture*`); the Python twin is `pipeline/tests/anchors.py`.
 - Failures: every catch is thrown on or reported through core `failure.ts` (`reportFailure`), shown with `ui-native`
   `ErrorState`; `tools/failures.test.ts` fails a new catch that does neither (AGENTS W46).
+- Faults: every screen is mounted through `ui-native` `ScreenBoundary` (`Shell.tsx` `screen(…)`): a throw while one draws shows that screen's line with Try again / Go back and is reported (`reportFailure`); a menu page, the block of sheets, the search bar and the map's key each have their own (a band, with Close, where it is a panel); the app itself sits under a last-resort boundary (`apps/mobile/src/rootBoundary.tsx`, `index.js`) for faults in the chrome, the boot screen and `App`; `tools/screen-boundary.test.ts` fails a screen mounted outside the first and the root outside the second, `tools/check-no-render-throw.mjs` a new `throw` in a component, hook, effect, or a same-file helper they call (listed ones carry a count and a reason).
 - One clock: core `clock.ts` is the only reader of the device clock (`now()`, `bcNow()`, `bcToday()`); `tools/clock.test.ts` enforces it.
 - `REGS_STORE_REQUIRED=1` makes the live-release suites fail instead of skip when no release is on disk
   (`scripts/test-full.sh` sets it); `tools/no-silent-skips.test.ts` counts every skip site.

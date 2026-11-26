@@ -5,8 +5,11 @@ from __future__ import annotations
 
 import importlib.util
 import os
+import subprocess
 import sys
 from pathlib import Path
+
+import pytest
 
 from pipeline.common.curated import REPO_ROOT
 
@@ -15,6 +18,24 @@ spec = importlib.util.spec_from_file_location("before_push", ROOT / "scripts" / 
 BP = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = BP           # its dataclasses look their module up by name
 spec.loader.exec_module(BP)
+
+
+@pytest.fixture(autouse=True)
+def _no_real_gh(monkeypatch):
+    """(T1144) the pre-push title check asks gh for the branch's PR: never the real gh in a test (no PR answers)."""
+    monkeypatch.setattr(BP, "_gh", lambda args: subprocess.CompletedProcess(
+        args, 1, "", 'no pull requests found for branch "x"'))
+    # and its node command is stood in for (pipeline CI has no app/node_modules): title_check_stand_in.py
+    from pipeline.tests import title_check_stand_in
+    monkeypatch.setenv("PATH", f"{title_check_stand_in.bin_dir()}{os.pathsep}{os.environ['PATH']}")
+
+
+@pytest.fixture(autouse=True)
+def _own_lock(tmp_path, monkeypatch):
+    """(T1144) a --pre-push main takes the machine's push lock: never the real one in a test."""
+    monkeypatch.setattr(BP, "LOCK_FILE", tmp_path / "before-push.lock")
+    monkeypatch.delenv(BP.NO_LOCK_ENV, raising=False)
+    monkeypatch.delenv(BP.LOCK_WAIT_ENV, raising=False)
 
 
 def test_every_pipeline_ci_run_step_is_run_or_named_with_its_reason():
@@ -207,6 +228,67 @@ def test_the_hook_checks_the_pushed_commits_not_the_tree(tmp_path, monkeypatch, 
                    "docs: the ticket guard's tests and the start-here page (docs-ci)"]     # docs only, not the tree
 
 
+def test_the_pushed_paths_are_the_prs_own_not_what_a_merge_of_main_brought(tmp_path, monkeypatch, capsys):
+    """(T1144) a branch that merged main and pushed re-tested main's own change (165 paths for a docs-only branch, a
+    5 min hook). The paths are the pushed change that the PR itself changes (`<merge base>..<sha>`, CI's view). What
+    must still be caught: the PR's file on the first push, on a follow-up push, and after a merge whose resolution
+    changed it; a file only main changed is not tested. Mutation: the paths `<remote sha>..<sha>` alone -> the
+    main-only cases fail."""
+    import io
+    here, run = _repo(tmp_path, monkeypatch)
+    z = BP.ZERO
+
+    def commit(files: dict[str, str], msg: str) -> str:
+        for p, text in files.items():
+            (here / p).parent.mkdir(parents=True, exist_ok=True)
+            (here / p).write_text(text)
+        run("add", ".")
+        run("commit", "-qm", msg)
+        return run("rev-parse", "HEAD")
+
+    def main_moves(files: dict[str, str]) -> None:          # main gains a commit on origin; this clone fetches it
+        run("switch", "-q", "--detach", "origin/main")
+        run("push", "-q", "origin", f"{commit(files, 'main moves')}:refs/heads/main")
+        run("fetch", "-q", "origin")
+        run("switch", "-q", "lane")
+    run("switch", "-qc", "lane")
+    one = commit({"pipeline/own.py": "pr 1"}, "the PR")
+    said, paths = BP.pushed_paths([f"refs/heads/lane {one} refs/heads/lane {z}"])         # first push
+    assert paths == ["pipeline/own.py"]
+    run("push", "-q", "origin", "lane")
+    two = commit({"pipeline/own.py": "pr 2", "handoff/x.md": "x"}, "the PR again")
+    said, paths = BP.pushed_paths([f"refs/heads/lane {two} refs/heads/lane {one}"])       # a follow-up push
+    assert paths == ["handoff/x.md", "pipeline/own.py"] and said == [f"refs/heads/lane: 2 path(s) in {one[:12]}..{two[:12]}"]
+    # main changes the PR's file and one of its own; the merge's resolution is the PR's
+    main_moves({"pipeline/own.py": "main", "app/main_only.ts": "m"})
+    # with an identity on the command line: a CI runner has none configured (git then exits 128, not the conflict's 1)
+    assert subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t", "merge", "-q", "origin/main"], cwd=here,
+                          capture_output=True).returncode == 1
+    (here / "pipeline" / "own.py").write_text("resolved")
+    three = commit({}, "merge main")
+    said, paths = BP.pushed_paths([f"refs/heads/lane {three} refs/heads/lane {two}"])
+    assert paths == ["pipeline/own.py"], paths                                            # app/main_only.ts: main's
+    assert said[0].startswith("refs/heads/lane: 1 path(s) came with main and are the merge queue's: not re-tested here; "
+                              f"1 path(s) in {two[:12]}..{three[:12]} that the PR itself changes"), said
+    # a push that is ONLY a merge of main, nothing of the PR's touched: the always-on cheap steps, said first
+    main_moves({"app/later.ts": "l"})
+    run("merge", "-q", "--no-edit", "origin/main")
+    four = run("rev-parse", "HEAD")
+    said, paths = BP.pushed_paths([f"refs/heads/lane {four} refs/heads/lane {three}"])
+    assert paths == [] and said[0].startswith("refs/heads/lane: 1 path(s) came with main"), said
+    monkeypatch.delenv(BP.SKIP_ENV, raising=False)
+    ran = []
+    assert BP.main(["--changed", "--pre-push", "--no-tier", "--serial"], runner=lambda s: ran.append(s.name) or 0,
+                   stdin=io.StringIO(f"refs/heads/lane {four} refs/heads/lane {three}\n")) == 0
+    assert ran == [BP.COMMITS, "ticket guard (node app/tools/check-tickets.mjs)"]
+    assert "came with main and are the merge queue's" in capsys.readouterr().out
+    # a stale origin/main (the merge came from a newer main than this clone's ref): the merge base is older, the set
+    # wider — main's newer path counts as the PR's and is tested (the safe side)
+    run("update-ref", "refs/remotes/origin/main", three + "^2")
+    said, paths = BP.pushed_paths([f"refs/heads/lane {four} refs/heads/lane {three}"])
+    assert paths == ["app/later.ts"], paths
+
+
 def test_the_commit_messages_of_what_is_pushed_are_checked_first(tmp_path, monkeypatch):
     """(T998) the hook checks the messages of the commits each pushed branch sends (`<base>..<sha>`), a tag none;
     by hand (or --changed) the branch's commits the trunk does not have."""
@@ -256,6 +338,13 @@ def test_a_step_runs_without_gits_repository_variables(tmp_path):
     assert "GIT_DIR" not in env and not (set(env) & BP._git_local_vars())
     git("init", "-q", str(tmp_path / "here2"), env=env)
     assert bare() == "false" and (tmp_path / "here2" / ".git").is_dir()
+
+
+def test_a_step_compares_the_pins_whatever_the_shell_exported():
+    """(T1135) an exported PIN_RECORD would make every `pin()` in the hook's tests record and pass: a step's env carries
+    it empty (compare), as the release's `test_env` does. Mutation: drop the line in `step_env` -> fails."""
+    assert BP.step_env({**os.environ, "PIN_RECORD": "/tmp/pins"})["PIN_RECORD"] == ""
+    assert BP.step_env({k: v for k, v in os.environ.items() if k != "PIN_RECORD"})["PIN_RECORD"] == ""
 
 
 def test_the_pre_push_hook_drops_gits_repository_variables():
@@ -380,3 +469,293 @@ def test_the_hook_warns_when_the_push_connection_has_no_keepalive():
     assert "could not read ssh's settings" in BP.keepalive_said(url, None, ssh_g=lambda h: None)
     hook = (ROOT / ".githooks" / "pre-push").read_text()
     assert '--remote-url "${2:-}"' in hook
+
+
+# (T1144) the PR title, checked with its real number on a push to a branch with an open PR. `gh` is faked, never called.
+import json  # noqa: E402
+
+
+def _title(n: int) -> str:
+    return "ci: " + "a" * (n - 4)
+
+
+def _gh(number, title, mergeable="MERGEABLE", rc=0, err="", state="OPEN", asked=None):
+    def gh(args):
+        assert args[:2] == ["pr", "view"]
+        if asked is not None:
+            asked.append(args[2])
+        out = json.dumps({"number": number, "title": title, "mergeable": mergeable, "state": state}) if rc == 0 else ""
+        return subprocess.CompletedProcess(args, rc, out, err)
+    return gh
+
+
+def _push_line(branch="lane"):
+    return [f"refs/heads/{branch} {'a' * 40} refs/heads/{branch} {BP.ZERO}"]
+
+
+def test_a_pushed_pr_title_is_checked_with_its_number_at_the_limit():
+    """3 digits: 93 passes, 94 fails; 4 digits: 92 passes, 93 fails; the failure names the over-count and gh pr edit.
+    Mutation: check the bare title (no number) -> the 94/93 cases pass and this fails."""
+    for number, limit in ((266, 93), (1000, 92)):
+        assert BP.pushed_title_check(_push_line(), _gh(number, _title(limit))) == (0, [])
+        rc, said = BP.pushed_title_check(_push_line(), _gh(number, _title(limit + 1)))
+        assert rc == 1
+        text = "\n".join(said)
+        assert f"1 over the limit of {limit}" in text and f"gh pr edit {number} --title" in text, text
+
+
+def test_a_conflicting_pr_warns_and_a_branch_without_a_pr_is_not_an_error():
+    rc, said = BP.pushed_title_check(_push_line(), _gh(266, _title(40), mergeable="CONFLICTING"))
+    assert rc == 0 and len(said) == 1 and "CONFLICTING" in said[0]
+    nopr = _gh(0, "", rc=1, err='no pull requests found for branch "lane"')
+    assert BP.pushed_title_check(_push_line(), nopr) == (0, [])
+
+
+def test_gh_unreachable_warns_that_the_title_was_not_checked_and_goes_on():
+    rc, said = BP.pushed_title_check(_push_line(), _gh(0, "", rc=1, err="error connecting to api.github.com"))
+    assert rc == 0 and len(said) == 1 and "title was not checked" in said[0] and "api.github.com" in said[0]
+
+    def missing(args):
+        raise FileNotFoundError("gh")
+    rc, said = BP.pushed_title_check(_push_line(), missing)
+    assert rc == 0 and "title was not checked" in said[0]
+    # a delete and a tag ask gh nothing
+    assert BP.pushed_title_check([f"refs/heads/x {BP.ZERO} refs/heads/x {'a' * 40}"], missing) == (0, [])
+
+
+def test_the_pre_push_hook_stops_on_a_title_over_the_limit_before_any_step(monkeypatch, capsys):
+    import io
+    monkeypatch.delenv(BP.SKIP_ENV, raising=False)
+    ran = []
+    # the pushed() git calls need a repo: drive the title step through main with pushed stubbed
+    monkeypatch.setattr(BP, "pushed", lambda lines: (["x"], ["pipeline/a.py"], []))
+    rc = BP.main(["--pre-push"], runner=lambda s: ran.append(s.name) or 0, stdin=io.StringIO("\n".join(_push_line())),
+                 gh=_gh(266, _title(94)))
+    assert rc == 1 and ran == []
+    assert "gh pr edit 266 --title" in capsys.readouterr().err
+
+
+def test_a_closed_or_merged_pr_does_not_block_a_push_but_an_open_one_does():
+    """gh pr view also answers a CLOSED or MERGED PR. Mutation: drop the state check -> the first two cases block."""
+    for state in ("MERGED", "CLOSED"):
+        assert BP.pushed_title_check(_push_line(), _gh(266, _title(94), state=state)) == (0, [])
+    assert BP.pushed_title_check(_push_line(), _gh(266, _title(94), state="OPEN"))[0] == 1
+
+
+def test_the_pr_is_looked_up_by_the_remote_ref_not_the_local_one():
+    """`git push origin local:other` pushes branch `other`. Mutation: use the local ref -> asks for `local`."""
+    asked = []
+    line = [f"refs/heads/local {'a' * 40} refs/heads/other {BP.ZERO}"]
+    BP.pushed_title_check(line, _gh(266, _title(40), asked=asked))
+    assert asked == ["other"]
+
+
+def test_a_missing_or_hung_node_warns_and_goes_on(monkeypatch):
+    """Mutation: no catch -> FileNotFoundError / TimeoutExpired is a traceback and a blocked push."""
+    for exc in (FileNotFoundError("node"), subprocess.TimeoutExpired("node", 60)):
+        def boom(*a, **k):
+            raise exc
+        monkeypatch.setattr(BP.subprocess, "run", boom)
+        rc, said = BP.pushed_title_check(_push_line(), _gh(266, _title(94)))
+        assert rc == 0 and len(said) == 1 and "title was not checked" in said[0], said
+
+
+# ── (T1144) ONE HOOK'S STEPS AT A TIME PER MACHINE; VITEST FROM THE FREE CORES ────────────────────────────────────────
+import fcntl  # noqa: E402
+import threading  # noqa: E402
+import time  # noqa: E402
+
+#: a real second process that holds the lock through BP's own machine_lock until a line arrives on its stdin
+_HOLDER = """
+import importlib.util, pathlib, sys
+spec = importlib.util.spec_from_file_location("bp", sys.argv[1])
+BP = importlib.util.module_from_spec(spec)
+sys.modules["bp"] = BP
+spec.loader.exec_module(BP)
+with BP.machine_lock(pathlib.Path(sys.argv[2]), 30, poll_s=0.02):
+    print("held", flush=True)
+    sys.stdin.readline()
+"""
+
+
+def _holder(lock: Path) -> subprocess.Popen:
+    p = subprocess.Popen([sys.executable, "-c", _HOLDER, str(ROOT / "scripts" / "before_push.py"), str(lock)],
+                         stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+    assert p.stdout.readline().strip() == "held"
+    return p
+
+
+def _release(p: subprocess.Popen, after: float = 0.0) -> None:
+    time.sleep(after)
+    p.stdin.write("\n")
+    p.stdin.flush()
+
+
+def test_a_waiter_whose_git_ended_stops_and_never_takes_the_lock(tmp_path):
+    """(review) git dies while the hook waits (a dropped ssh connection): the waiter stops, saying so, and does not go
+    on to hold the lock and run the steps for a dead push. Mutation: drop the parent check -> it waits the whole
+    wait and this fails on the message."""
+    lock = tmp_path / "l"
+    p = _holder(lock)
+    parents = iter([100, 100, 1])                                    # the parent changes on the second poll
+    try:
+        with pytest.raises(BP.LockTimeout, match="the git that started this hook has ended"):
+            with BP.machine_lock(lock, 5, poll_s=0.02, say=lambda s: None, ppid=lambda: next(parents, 1)):
+                raise AssertionError("the lock was taken")
+    finally:
+        _release(p)
+        assert p.wait(5) == 0
+
+
+def test_a_second_push_waits_for_the_lock_and_then_runs(tmp_path):
+    """Two holders: the second says once who holds it (pid, checkout, since), then how long so far, and runs when the
+    first lets go. Mutation: drop the flock acquisition -> the second does not wait and this fails."""
+    lock = tmp_path / "l"
+    p = _holder(lock)
+    said = []
+    threading.Thread(target=_release, args=(p, 1.0)).start()        # a second of holding: slack on a loaded machine
+    with BP.machine_lock(lock, 30, poll_s=0.02, say_every=0.1, say=said.append) as waited:
+        assert waited >= 0.5, (waited, said)
+        fd = os.open(lock, os.O_RDWR)                        # while we hold it, nobody else can take it
+        with pytest.raises(BlockingIOError):
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        os.close(fd)
+        assert f'"pid": {os.getpid()}' in lock.read_text()     # the holder's details, for the next one's message
+    assert p.wait(5) == 0
+    assert f"held by pid {p.pid} ({ROOT}, since " in said[0] and BP.NO_LOCK_ENV in said[0], said
+    assert sum("waiting for the machine's push lock" in s for s in said) == 1        # who holds it: said once
+    assert any("still waiting for the push lock:" in s and "s so far" in s for s in said[1:-1])
+    assert said[-1].startswith("before-push: the push lock is ours after") and not any("taken over" in s for s in said)
+    assert lock.read_text() == ""                                                     # released: the details cleared
+
+
+def test_a_dead_holders_lock_is_taken_over_and_said(tmp_path):
+    lock = tmp_path / "l"
+    p = _holder(lock)
+    p.kill()
+    p.wait(5)
+    said = []
+    with BP.machine_lock(lock, 1, poll_s=0.02, say=said.append) as waited:
+        assert waited < 0.5
+    assert len(said) == 1 and f"pid {p.pid}" in said[0] and "ended without releasing it (pid gone): taken over" in said[0]
+    said.clear()
+    with BP.machine_lock(lock, 1, say=said.append):
+        pass
+    assert said == []                                        # a clean release leaves nothing to take over
+
+
+def test_the_wait_limit_fails_saying_who_holds_it(tmp_path, monkeypatch, capsys):
+    import io
+    lock = tmp_path / "l"
+    p = _holder(lock)
+    try:
+        with pytest.raises(BP.LockTimeout) as e:
+            with BP.machine_lock(lock, 0.2, poll_s=0.02, say=lambda s: None):
+                raise AssertionError("ran without the lock")
+        msg = str(e.value)
+        assert "FAILED" in msg and f"pid {p.pid}" in msg and "nothing was checked" in msg and BP.NO_LOCK_ENV in msg
+        # through the hook: the steps never run, the hook fails with the message
+        monkeypatch.setattr(BP, "LOCK_FILE", lock)
+        monkeypatch.setattr(BP, "pushed", lambda lines: (["x"], ["handoff/x.md"], []))
+        monkeypatch.delenv(BP.SKIP_ENV, raising=False)
+        monkeypatch.setenv(BP.LOCK_WAIT_ENV, "0.005")                                 # minutes: 0.3 s
+        ran = []
+        assert BP.main(["--pre-push", "--no-tier", "--serial"], runner=lambda s: ran.append(s.name) or 0,
+                       stdin=io.StringIO("\n".join(_push_line()))) == 1
+        assert ran == [] and "push lock" in capsys.readouterr().err
+        for bad in ("0", "soon"):                            # a wait that is not minutes above 0 is refused, never 20
+            monkeypatch.setenv(BP.LOCK_WAIT_ENV, bad)
+            assert BP.main(["--pre-push", "--serial"], runner=lambda s: ran.append(s.name) or 0,
+                           stdin=io.StringIO("\n".join(_push_line()))) == 2 and ran == []
+    finally:
+        _release(p)
+        p.wait(5)
+
+
+def test_the_escape_prints_its_reason_and_runs_beside_the_holder(tmp_path, monkeypatch, capsys):
+    import io
+    lock = tmp_path / "l"
+    monkeypatch.setattr(BP, "LOCK_FILE", lock)
+    monkeypatch.setattr(BP, "pushed", lambda lines: (["x"], ["handoff/x.md"], []))
+    monkeypatch.delenv(BP.SKIP_ENV, raising=False)
+    p = _holder(lock)
+    try:
+        monkeypatch.setenv(BP.NO_LOCK_ENV, "the owner's release push")
+        ran = []
+        assert BP.main(["--pre-push", "--no-tier", "--serial"], runner=lambda s: ran.append(s.name) or 0,
+                       stdin=io.StringIO("\n".join(_push_line()))) == 0 and ran
+        assert "WITHOUT the machine's push lock (BEFORE_PUSH_NO_LOCK): the owner's release push" in capsys.readouterr().out
+        monkeypatch.setenv(BP.NO_LOCK_ENV, " ")
+        ran.clear()
+        assert BP.main(["--pre-push", "--serial"], runner=lambda s: ran.append(s.name) or 0,
+                       stdin=io.StringIO("\n".join(_push_line()))) == 2 and ran == []
+        assert "needs a reason" in capsys.readouterr().err
+    finally:
+        _release(p)
+        p.wait(5)
+
+
+def test_the_hook_holds_the_lock_and_caps_vitest_while_its_steps_run_a_hand_run_does_neither(monkeypatch, capsys):
+    import io
+    monkeypatch.setattr(BP, "pushed", lambda lines: (["x"], ["handoff/x.md"], []))
+    monkeypatch.setattr(BP, "changed_paths", lambda: ("b" * 40, ["handoff/x.md"]))
+    monkeypatch.delenv(BP.SKIP_ENV, raising=False)
+    for k in BP.VITEST_CAPS:
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.setattr(BP, "vitest_unread_caps", lambda dist: [])     # the installed vitest is not this test's
+    seen = []
+
+    def runner(s):
+        fd = os.open(BP.LOCK_FILE, os.O_RDWR | os.O_CREAT)
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            held = False
+        except BlockingIOError:
+            held = True
+        finally:
+            os.close(fd)
+        seen.append((held, BP.step_env().get("VITEST_MAX_FORKS")))
+        return 0
+    assert BP.main(["--pre-push", "--no-tier", "--serial"], runner=runner,
+                   stdin=io.StringIO("\n".join(_push_line()))) == 0
+    out = capsys.readouterr().out
+    assert seen and all(h and n and int(n) >= 2 for h, n in seen), seen
+    assert "before-push: vitest workers " in out and " cores, load " in out
+    assert BP.HOOK_ENV == {}                                  # gone once the hook's steps end
+    seen.clear()
+    assert BP.main(["--changed", "--no-tier", "--serial"], runner=runner) == 0
+    assert seen and all(h is False and n is None for h, n in seen), seen
+    assert "vitest workers" not in capsys.readouterr().out
+
+
+def test_vitest_workers_are_the_free_cores_at_least_2_at_most_the_configs(tmp_path):
+    assert BP.vitest_workers(10, 6.8, 5) == 3
+    assert BP.vitest_workers(10, 0.4, 5) == 5                 # an idle machine: the config's own
+    assert BP.vitest_workers(10, 14.2, 5) == 2                # load above the core count
+    assert BP.vitest_workers(18, 62.0, 9) == 2 and BP.vitest_workers(4, 3.5, 2) == 2
+    assert BP.config_workers(18, ci=False) == 9 and BP.config_workers(3, ci=False) == 2 and BP.config_workers(18, ci=True) == 2
+    dist = tmp_path / "dist"
+    dist.mkdir()
+    (dist / "x.js").write_text(" ".join(f"process.env.{k}" for k in BP.VITEST_CAPS))
+    env, line = BP.hook_vitest_env({}, cores=10, load=6.8, dist=dist)
+    assert env == {"VITEST_MAX_FORKS": "3", "VITEST_MAX_THREADS": "3"}
+    assert line == "before-push: vitest workers 3: 10 cores, load 6.8 (the config's own: 5)"
+    env, line = BP.hook_vitest_env({"VITEST_MAX_FORKS": "4"}, cores=10, load=6.8)
+    assert env == {} and "yours (VITEST_MAX_FORKS=4)" in line
+    # config_workers is app/vitest.config.ts's maxWorkers, word for word: a change there fails here
+    assert ("maxWorkers: process.env.CI ? 2 : Math.max(2, Math.floor(availableParallelism() / 2))"
+            in (ROOT / "app" / "vitest.config.ts").read_text())
+
+
+def test_a_vitest_that_does_not_read_the_caps_is_said_never_a_silent_number(tmp_path):
+    """VITEST_MAX_FORKS / VITEST_MAX_THREADS are read by vitest's config resolver (3.2); an upgrade that drops them
+    would make the cap a no-op, so the hook reads the installed vitest and warns. Mutation: skip the read -> fails."""
+    old, new = tmp_path / "old", tmp_path / "new"
+    (old / "chunks").mkdir(parents=True)
+    (old / "chunks" / "c.js").write_text("const a = process.env.VITEST_MAX_FORKS;")
+    (new / "chunks").mkdir(parents=True)
+    (new / "chunks" / "c.js").write_text("const a = process.env.VITEST_MAX_FORKS; const b = process.env.VITEST_MAX_THREADS;")
+    assert BP.vitest_unread_caps(new) == [] and BP.vitest_unread_caps(old) == ["VITEST_MAX_THREADS"]
+    assert BP.vitest_unread_caps(tmp_path / "none") == list(BP.VITEST_CAPS)       # not installed: nothing read
+    env, line = BP.hook_vitest_env({}, cores=10, load=6.8, dist=old)
+    assert env == {} and "WARNING: vitest workers NOT capped" in line and "VITEST_MAX_THREADS" in line

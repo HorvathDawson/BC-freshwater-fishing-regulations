@@ -83,6 +83,9 @@ worker suite) and lists every failure. The versioned pre-push hook runs `--chang
 
 ## 2. Run it
 
+**Lid open, on power (T1161).** The long runs hold the Mac awake (`caffeinate`), not through a closed lid (0.10.0
+slept 8.3 h), and refuse an unattended run on battery (`--on-battery "<why>"` goes on, printed).
+
 ```bash
 .venv/bin/python -m pipeline release --staging
 ```
@@ -155,7 +158,7 @@ never pass. Then the checks print `binding diff AUTO-ACCEPTED` with each change 
 
 The re-cut files are in the working tree, uncommitted. Read the diff. If each changed page is what the batch meant:
 rerun with the token printed. It names exactly this re-cut; another re-cut needs its own. The release then commits the
-fixtures and goes on.
+fixtures and goes on. Release pins (T1135, `release-pins.json`): a moved `answers: true` pin stops here too.
 
 Pages that differ only in **source indexes renumbered one for one** (`src` lists read through one mapping shared by
 every page, T993 item 8; 0.8.5's nine pages) are not a change in what an angler is told: they are committed as

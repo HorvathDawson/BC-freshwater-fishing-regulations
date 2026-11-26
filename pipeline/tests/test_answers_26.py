@@ -41,6 +41,7 @@ from pipeline.deliver.answers.common import AnswersError
 from pipeline.deliver.bundle import read as R
 from pipeline.tests.conftest import need, part_at, BUNDLE_HINT, EXPORT_HINT
 from pipeline.tests import under_test
+from pipeline.tests.pins import pin
 
 BUNDLE = under_test.path("bundle")
 EXPORT_DIR = under_test.path("export_dir")
@@ -363,7 +364,7 @@ def test_every_rule_carries_its_book_pages_and_why_it_applies(built):
     assert r5["applies"] == ("This water’s own row in the 2025–2027 BC Freshwater Fishing Regulations Synopsis: "
                             "Cowichan River.")             # ROUND13 P: the book by its title
     g5 = rules[ix["z7b:daily_quotas::arctic_grayling.r5"]]
-    assert g5["applies"] == "From the Region 7B table, for Williston Lake."
+    pin("answers26.williston.applies", g5["applies"])      # (T1135) the wording moves with the release: a release pin
     assert g5["applies_trib"] == ("Inherited from Williston Lake: the Region 7B table covers its "
                                   "tributaries.")
     assert rules[ix["z2:daily_quotas::trout_char_quota.r1"]]["applies"] == \
