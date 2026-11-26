@@ -97,10 +97,10 @@ export function rgbOf(hex: string): string {
  *  faint, LIGHT onAccent == card). Only the palette's single colours (not the ramps, the radii or the shadow). */
 export function tokenOf(palette: Palette, rgb: string): (keyof Palette)[] {
   const want = rgb.replace(/\s+/g, "").toLowerCase();
-  return (Object.keys(palette) as (keyof Palette)[]).filter((k) => {
-    const v = palette[k];
-    return typeof v === "string" && rgbOf(v).replace(/\s+/g, "").toLowerCase() === want;
-  });
+  const same = (v: string) => rgbOf(v).replace(/\s+/g, "").toLowerCase() === want;
+  const keys = (Object.keys(palette) as (keyof Palette)[]).filter((k) => { const v = palette[k]; return typeof v === "string" && same(v); });
+  // (T1145) `palette.salmon.open` is the one OPEN colour on a card (the game-fish bar wears it too): the status token `open`
+  return same(palette.salmon.open) && !keys.includes("open") ? [...keys, "open"] : keys;
 }
 
 /** The preferred name among keys sharing a value: the text tokens first, in TEXT_TOKENS order. */
