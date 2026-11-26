@@ -14,6 +14,7 @@ step (`answers.display.builders._names`):
 
 Synthetic shapes (EPSG:3005 metres) through the real functions; every guard has a test that fails without it."""
 import sqlite3
+import sys
 
 import pytest
 from shapely.geometry import LineString, Polygon, box
@@ -94,11 +95,11 @@ def _how(db, sid):
     return got[0] if got else None
 
 
-def _write(db, geo, tmp_path, monkeypatch):
+def _write(db, geo, tmp_path, monkeypatch, unnamed=None):
     monkeypatch.setattr(sc, "inside_rows", lambda *_a, **_k: [])
     monkeypatch.setattr(sc, "own_name_rows", lambda *_a, **_k: [])
     log = []
-    sc.write(db, geo, tmp_path, _Cov(), log=log.append, added={}, unnamed=UNNAMED.get(id(db), {}))
+    sc.write(db, geo, tmp_path, _Cov(), log=log.append, added={}, unnamed=unnamed or {})
     assert dict(db.execute("SELECT sid, lo_m FROM section_span WHERE sid = 3")) in ({3: None}, {})   # never written
     return {**{s: None for (s,) in db.execute("SELECT sid FROM section_span")},
             **dict(db.execute("SELECT sid, m FROM section_join WHERE m IS NOT NULL"))}, log
@@ -171,18 +172,14 @@ def _touch_db(body: str):
     return db, geo
 
 
-#: per test db: the unnamed lakes `write` is handed (id(db) -> {handle: polygon})
-UNNAMED: dict = {}
-
-
 def test_a_channel_touching_an_unnamed_lake_on_its_main_line_joins_there(tmp_path, monkeypatch):
     db, geo = _touch_db("none")
-    UNNAMED[id(db)] = {"lake:1": Polygon([(600, -10), (800, -10), (800, 300), (600, 300)])}
-    lo, log = _write(db, geo, tmp_path, monkeypatch)
+    lakes = {"lake:1": Polygon([(600, -10), (800, -10), (800, 300), (600, 300)])}   # handed in, never kept in a global
+    lo, log = _write(db, geo, tmp_path, monkeypatch, unnamed=lakes)
     assert lo[3] == 700 and _how(db, 3) == "join" and any("unnamed lake on its main line lake:1" in x for x in log)
     db, geo = _touch_db("none")                                   # an unnamed lake away from the main line: nothing
-    UNNAMED[id(db)] = {"lake:2": Polygon([(2100, -50), (2200, -50), (2200, 300), (600, 300), (600, 250), (2100, 250)])}
-    lo, _ = _write(db, geo, tmp_path, monkeypatch)
+    lakes = {"lake:2": Polygon([(2100, -50), (2200, -50), (2200, 300), (600, 300), (600, 250), (2100, 250)])}
+    lo, _ = _write(db, geo, tmp_path, monkeypatch, unnamed=lakes)
     assert _how(db, 3) == "nearest"
 
 
@@ -232,6 +229,17 @@ def test_a_channel_into_a_named_lake_on_its_main_line_is_named_by_it(tmp_path, m
     lo, log = _write(db, geo, tmp_path, monkeypatch)
     assert lo[3] is None and _lo_token(db, 3) == "lake_inlet:gnis:3"     # rule A: "side channel into Olsen Lake"
     assert any("flows into gnis:3" in x for x in log)
+
+
+def test_unnamed_lakes_handed_to_one_write_are_not_remembered_for_the_next(tmp_path, monkeypatch):
+    # T1140: the lakes were once kept in a module dict keyed by id(db); a later db reusing a freed id inherited them
+    assert not hasattr(sys.modules[__name__], "UNNAMED"), "unnamed lakes must be passed to _write, never kept in a global"
+    db, geo = _touch_db("none")
+    _write(db, geo, tmp_path, monkeypatch, unnamed={"lake:1": Polygon([(600, -10), (800, -10), (800, 300), (600, 300)])})
+    assert _how(db, 3) == "join"
+    db, geo = _touch_db("none")
+    _write(db, geo, tmp_path, monkeypatch)
+    assert _how(db, 3) == "nearest"
 
 
 def test_a_lake_with_no_flow_pointer_to_say_the_direction_never_names_the_channel(tmp_path, monkeypatch):
