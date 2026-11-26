@@ -56,11 +56,12 @@ than what is served is told so (`apps/mobile/src/replaced.web.ts`, ui `replaced.
 `vitest` (4 shards, `tools/vitest-shards.mjs`) and the web and native `bundles`. In order: tickets, anchors, changelog,
 boundaries, platform, style, colours, spinner / coho / adipose / splash (generated art current), the Python-emitted files
 (`gauge-policy`, `fish`, `calendar`, `answers`, `pack`, `app-reads`, `feed-formats`: each `--check`s a generated file
-against `pipeline/`), deps, knip, typecheck (`tsc -b`), typecheck:worker, typecheck:seo, promises, inventories.
+against `pipeline/`), deps, knip, typecheck (`tsc -b`), typecheck:worker, typecheck:seo, promises, no-render-throw, inventories.
 - `pnpm anchors` fails a test that types a section number, release id or digest, or reads `data/` past the helpers
   (`liveRelease`, `namedRelease`, `repoData`, `openRegsFixture*`); the Python twin is `pipeline/tests/anchors.py`.
 - Failures: every catch is thrown on or reported through core `failure.ts` (`reportFailure`), shown with `ui-native`
   `ErrorState`; `tools/failures.test.ts` fails a new catch that does neither (AGENTS W46).
+- Faults: every screen is mounted through `ui-native` `ScreenBoundary` (`Shell.tsx` `screen(…)`): a throw while one draws shows that screen's line with Try again / Go back and is reported (`reportFailure`); a menu page, the block of sheets, the search bar and the map's key each have their own (a band, with Close, where it is a panel); the app itself sits under a last-resort boundary (`apps/mobile/src/rootBoundary.tsx`, `index.js`) for faults in the chrome, the boot screen and `App`; `tools/screen-boundary.test.ts` fails a screen mounted outside the first and the root outside the second, `tools/check-no-render-throw.mjs` a new `throw` in a component, hook, effect, or a same-file helper they call (listed ones carry a count and a reason).
 - One clock: core `clock.ts` is the only reader of the device clock (`now()`, `bcNow()`, `bcToday()`); `tools/clock.test.ts` enforces it.
 - `REGS_STORE_REQUIRED=1` makes the live-release suites fail instead of skip when no release is on disk
   (`scripts/test-full.sh` sets it); `tools/no-silent-skips.test.ts` counts every skip site.
