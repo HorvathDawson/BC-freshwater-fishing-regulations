@@ -7,12 +7,13 @@ import { HELD_WHILE_ZOOMING, heldLayers, HOLD_SOURCES, labelGroup, LabelHold, LO
          type HoldTimers } from "./label-hold";
 import { LAB_DEFAULT, LABEL_SWITCH, labStyle } from "./lab";
 import { nativeStyle } from "./native-style";
+import { maplibreDialect } from "./native/maplibre/dialect";
 
 type L = { id: string; type: string; source?: string; layout?: Record<string, unknown> };
 const AT = { atlas: "file:///d/a.pmtiles", basemap: "file:///d/b.pmtiles", outside: "file:///d/o.geojson", assets: "file:///d/m/" };
 const style = (p: Record<string, unknown> = {}) => nativeStyle({
   at: AT, theme: "light", view: "plain", modes: {}, hide: [], groups: {}, basemap: "map",
-  gauges: '{"type":"FeatureCollection","features":[]}', ...p } as never).style as unknown as { layers: L[]; sources: Record<string, unknown> };
+  gauges: '{"type":"FeatureCollection","features":[]}', ...p } as never, maplibreDialect).style as unknown as { layers: L[]; sources: Record<string, unknown> };
 
 /** A clock the test turns by hand. */
 function clock() {

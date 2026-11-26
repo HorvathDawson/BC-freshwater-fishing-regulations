@@ -18,6 +18,7 @@ import { CLOSED_CUE_LAYER, GEAR_LAYERS, ISSUE_LAYERS, SALMON_CASING_LAYER, NOACC
          STREAM_HEAVY, casingPaint, closedCuePaint, gearPaint, issuePaint, markShownIn, markWidth, paintFor, runsPassPaint,
          splitStream, streamWidths, type StreamMark } from "../packages/map/src/paint";
 import { runtimeStyle } from "../packages/map/src/runtime-style";
+import { PMTILES } from "../packages/map/src/tile-access";
 import { resolveTheme, type ChannelValues } from "../packages/map/src/style";
 
 const DAY: DayProfiles = { closed: ["p1"], own: ["p2"], base: ["b"], no_access: ["n"], none: ["p3"] };
@@ -130,7 +131,7 @@ describe("(T848) what the adapter hands the map", () => {
       const got = Object.fromEntries(Object.keys(want(mode)).map((l) => [l, shown[l]]));
       expect([mode, got]).toEqual([mode, want(mode)]);
       // the first frame agrees with the adapter
-      const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, "light", { stream: mode }) as
+      const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, "light", { stream: mode }, PMTILES) as
         { layers: { id: string; layout?: { visibility?: string } }[] };
       const first = Object.fromEntries(Object.keys(want(mode)).map((l) =>
         [l, s.layers.find((x) => x.id === l)?.layout?.visibility !== "none"]));
@@ -139,7 +140,7 @@ describe("(T848) what the adapter hands the map", () => {
   });
 
   it("the heavy line sits directly over the stream on the first frame, and follows its zoom floor", () => {
-    const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, "light") as { layers: { id: string }[] };
+    const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, "light", {}, PMTILES) as { layers: { id: string }[] };
     const ids = s.layers.map((l) => l.id);
     expect(ids.indexOf(STREAM_HEAVY)).toBe(ids.indexOf("stream") + 1);
     const ranges: Record<string, number> = {};
