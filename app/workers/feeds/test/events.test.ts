@@ -439,6 +439,14 @@ describe("the published in-season feed (feeds/inseason/index.json, inseason-feed
       .toEqual([true, "1 in-season row has an effective date the feed cannot read (shown as in force now)", 1]);
     expect(parseChange("Trout/char daily quota = 1 (none under 30 cm) and bait ban")).toMatchObject({ kinds: ["limit", "bait"], dailyQuota: 1, species: ["trout", "char"] });
     expect(parseChange("Something new")).toBeUndefined();
+    // (T1167) the range a notice states is read whole whatever time of day follows it (core `inSeasonDating` dates it
+    // from this window): "from 12:00 pm to midnight", "from noon to midnight", a dash and a short month
+    const SUMMER = { from_month: 7, from_day: 30, to_month: 9, to_day: 15 };
+    for (const t of ["No fishing July 30 to September 15 from 12:00 pm to midnight.", "No fishing July 30-Sept 15 from 12:00 pm to midnight.",
+                     "No fishing July 30 to September 15 from noon to midnight.", "No fishing July 30 to September 15, 2026, including tributaries."])
+      expect([t, parseChange(t)?.window]).toEqual([t, SUMMER]);
+    // two ranges in one text: no window (the app reads it as undated, never one of the two)
+    expect(parseChange("No Fishing September 1 to October 31 Trout/char daily quota = 1 and bait ban, June 15 to August 31")?.window).toBeUndefined();
     const f = buildFeed([{ section: "Region 2 - Lower Mainland", water: "A", change: "No fishing", effective: "" }], null, "2026-10-28T00:00:00Z", "h", true);
     expect(f.rows[0]!.status).toBe("unchanged"); // the first feed has no "new"
   });

@@ -320,15 +320,68 @@ def problems(doc: Matches, *, feed_ids: Iterable[str] | None = None,
     return out
 
 
-def span(row: dict, effective: Optional[Effective] = None) -> tuple[Optional[str], Optional[str]]:
-    """WHEN A ROW IS IN FORCE — `@app/core` `inSeasonSpan`, the one rule (T520): the curated override, else the feed's
-    own dates. NEVER AN END INFERRED (owner 2026-11-11, T548: "Never invent an end date"): a printed window in the change
-    is the notice's words, not its end; the row is in force until the page drops it or a printed / curated `to` passes.
-    ONE case file pins both: `app/packages/core/src/inseason-span.parity.json`, read by `inseason.test.ts` and
-    `test_inseason_publish.py`."""
-    frm = (effective.from_ if effective and effective.from_ else None) or row.get("from") or None
-    to = (effective.to if effective and effective.to else None) or row.get("to") or None
-    return frm, to
+def dating(row: dict) -> tuple[str, Optional[str], Optional[str]]:
+    """(T1167, owner 2026-11-25) THE RANGE A NOTICE STATES IN ITS OWN TEXT, read with its year — `@app/core`
+    `inSeasonDating`, the one rule: `("dated", first, last)`, `("undated", None, None)` or `("unreadable", None, None)`
+    (why, in words, is the app's report alone: core `INSEASON_UNDATED`).
+
+    The text's one range is the feeds worker's `parsed.window` (month and day, `parseChange`; a text with no range, or
+    several, has none). Its YEAR is read, never guessed: the range must open on the notice's own effective day (`from`:
+    "July 30, 2026" with "No fishing July 30 to September 15"), and its last day is the next one on or after it (a range
+    over the new year ends the year after). A rescind's quoted range is the rescinded rule's, not the notice's: undated.
+    Anything else that prints a range (no start day, a day the month does not have, no effective day, or a range that
+    does not open on it — "August 15 to December 31" posted Sept 16, a yearly closure) is UNREADABLE: shown as undated
+    and reported, never guessed. One case file pins this here and in core (`inseason-span.parity.json`)."""
+    import datetime as _dt
+    parsed = row.get("parsed") or {}
+    w = parsed.get("window")
+    if not w:
+        return "undated", None, None
+    if "rescind" in (parsed.get("kinds") or []):
+        return "undated", None, None
+    keys = ("from_month", "from_day", "to_month", "to_day")
+    if not all(isinstance(w.get(k), int) for k in keys):
+        return "unreadable", None, None
+    frm = row.get("from")
+    if not frm or not DATE_RE.match(frm):
+        return "unreadable", None, None
+    year = int(frm[:4])
+    try:
+        first = _dt.date(year, w["from_month"], w["from_day"])
+        last = _dt.date(year, w["to_month"], w["to_day"])
+        if last < first:
+            last = _dt.date(year + 1, w["to_month"], w["to_day"])
+    except ValueError:
+        return "unreadable", None, None
+    if first.isoformat() != frm:
+        return "unreadable", None, None
+    return "dated", first.isoformat(), last.isoformat()
+
+
+def span(row: dict, effective: Optional[Effective] = None) -> tuple[Optional[str], Optional[str], bool]:
+    """WHEN A ROW IS IN FORCE — `@app/core` `inSeasonSpan`, the one rule (T520): `(from, to, dated)`. The curated
+    override first, then (T1167) the range the notice states in its own text (`dating`), then the feed's own dates.
+    A row with no readable range keeps the rule of 2026-11-11 (T548): in force from its `from` until the page drops it
+    or a printed / curated `to` passes. ONE case file pins both: `app/packages/core/src/inseason-span.parity.json`, read
+    by `inseason.test.ts` and `test_inseason_publish.py`."""
+    kind, first, last = dating(row)
+    dated = kind == "dated"
+    frm = (effective.from_ if effective and effective.from_ else None) or (first if dated else row.get("from")) or None
+    to = (effective.to if effective and effective.to else None) or (last if dated else row.get("to")) or None
+    return frm, to, dated
+
+
+def on(frm: Optional[str], to: Optional[str], dated: bool, day: str) -> Optional[str]:
+    """(T1167) A row's banner on `day` — `@app/core` `inSeasonOn`: "in force" from its first day through its last,
+    "upcoming" in the `INSEASON_LEAD_DAYS` before the first day of a DATED row, None otherwise (not yet, or over)."""
+    import datetime as _dt
+    from pipeline.common.feed_formats import INSEASON_LEAD_DAYS
+    if to and to < day:
+        return None
+    if frm and frm > day:
+        lead = (_dt.date.fromisoformat(frm) - _dt.timedelta(days=INSEASON_LEAD_DAYS)).isoformat()
+        return "upcoming" if dated and lead <= day else None
+    return "in force"
 
 
 def stamp_of(m: Match, release: str) -> str:

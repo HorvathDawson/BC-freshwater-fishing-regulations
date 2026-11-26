@@ -71,6 +71,26 @@ describe("httpInSeason", () => {
     await src.latest();
     expect(asked).toBe(4);                              // taken: the pair is fetched again
   });
+  it("(T1167) a notice whose range cannot be dated: kept (undated) and reported once per set; a curated date silences it", async () => {
+    const seen: unknown[] = [];
+    const undo = setFailureSink((e) => seen.push(e));
+    try {
+      const fraser = { id: "is-8cd37f6e5bf9", region: "2", water: "Fraser River", effective: "September 16, 2025", from: "2025-09-16", to: null,
+                       change: "No fishing for steelhead downstream of Spuzzum Creek confluence with the Fraser River (mainstem) August 15 to December 31.",
+                       parsed: { kinds: ["closure"], window: { from_month: 8, from_day: 15, to_month: 12, to_day: 31 } } };
+      const index = { ...FEED, rows: [...FEED.rows, fraser] };
+      const src = httpInSeason("http://x", mem(), serve({ "index.json": index, "matches.json": LINKS }),
+                              { ttlMs: 1, now: (() => { let t = 0; return () => (t += 10); })() });   // every ask fetches again
+      const got = await src.latest();
+      expect(got?.feed.rows.map((r) => r.id)).toEqual(["is-a", "is-8cd37f6e5bf9"]);
+      await src.latest();
+      expect(seen.map(String)).toEqual(["Error: in-season index.json: 1 notice prints a range this app could not date (is-8cd37f6e5bf9: its range does not open on its effective day, so its year cannot be read) — shown until the page drops it, never ended by a guess"]);
+      seen.length = 0;
+      const dated = { ...LINKS, notices: { ...LINKS.notices, "is-8cd37f6e5bf9": { to: "2025-12-31", waters: { "gnis:2": { all: true } } } } };
+      await httpInSeason("http://x", mem(), serve({ "index.json": index, "matches.json": dated })).latest();
+      expect(seen).toEqual([]);
+    } finally { undo(); }
+  });
   it("(T548 item 4) one row it cannot read: dropped and reported once per fresh read, every other change shown and kept", async () => {
     const seen: unknown[] = [];
     const undo = setFailureSink((e) => seen.push(e));

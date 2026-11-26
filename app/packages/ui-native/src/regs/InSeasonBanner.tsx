@@ -13,6 +13,10 @@
  *
  * (T899, owner 2026-11-19: "in season notices should default open") OPEN BY DEFAULT: every open of the page shows each
  * notice under the line; a press on the line still folds them, a second opens them again.
+ *
+ * (T1167, owner 2026-11-25 "Banner only, but louder") A notice IN FORCE wears the attention bar, and the Keep strip's
+ * status line points at it (`InSeasonYear`); one in the two weeks before its stated range reads "Upcoming …" with its
+ * dates (core `inSeasonBanner`) and wears the quiet bar. First on the page, above the answer, either way.
  */
 import { useEffect, useState } from "react";
 import { View } from "react-native";
@@ -33,12 +37,14 @@ export function InSeasonBanners({ banners: all, palette }: { banners: readonly I
   useEffect(() => { if (focused) setOpen(true); }, [focused]);
   const summary = inSeasonSummary(banners);
   if (!summary) return null;
+  const bar = (upcoming: boolean) => (upcoming ? palette.sub : palette.attention);
+  const allUpcoming = banners.every((b) => b.phase === "upcoming");
   return (
     <View testID="inseason-banners">
       <Pressable testID="inseason-line" onPress={() => setOpen((o) => !o)} accessibilityRole="button" aria-expanded={open}
                  accessibilityLabel={summary}
                  style={{ marginTop: 10, marginBottom: 2, marginHorizontal: GUTTER, borderRadius: RADIUS.box,
-                          backgroundColor: palette.tint, borderLeftWidth: 6, borderLeftColor: palette.attention,
+                          backgroundColor: palette.tint, borderLeftWidth: 6, borderLeftColor: bar(allUpcoming),
                           minHeight: 44, paddingVertical: 8, paddingLeft: 12, paddingRight: 14, justifyContent: "center" }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Text testID="inseason-summary" style={[TYPE.regsBodyBold, { color: palette.ink, flex: 1 }]}>{summary}</Text>
@@ -48,7 +54,7 @@ export function InSeasonBanners({ banners: all, palette }: { banners: readonly I
       {open && banners.map((b) => (
         <View key={b.id} testID="inseason-banner"
               style={{ marginTop: 10, marginBottom: 2, marginHorizontal: GUTTER, borderRadius: RADIUS.box,
-                       backgroundColor: palette.tint, borderLeftWidth: 6, borderLeftColor: palette.attention,
+                       backgroundColor: palette.tint, borderLeftWidth: 6, borderLeftColor: bar(b.phase === "upcoming"),
                        paddingTop: 10, paddingBottom: 4, paddingLeft: 12, paddingRight: 14 }}>
           {b.mark && (
             <Text testID="inseason-mark" style={[TYPE.metaBold, { color: palette.ink, marginBottom: 2 }]}>{b.mark}</Text>
