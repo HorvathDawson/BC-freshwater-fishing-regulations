@@ -7,7 +7,7 @@
  * boundary check nobody maintains.
  */
 import { readFileSync, readdirSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { dirname, join, relative } from "node:path";
 
 // The app root by default. `CHECK_ROOT` points the gate at another tree: its own tests write their fixtures into a
 // scratch copy OUTSIDE the app, never into packages/ where every other tree-scanning test walks (T156: a `_plat.ts`
@@ -136,5 +136,49 @@ for (const { layer, rules, dir } of layerRoots) {
     }
   }
 }
+
+/*
+ * (T1154) THE MAP ENGINE STAYS IN ITS FOLDER. The phone's map is a shell (`packages/map/src/Map.native.tsx`) over an
+ * engine in `packages/map/src/native/<engine>/` (today `maplibre/`), and the shell reaches it through ONE file,
+ * `native/engine.ts` (a build-time alias later, T1154 L4). layers.json keeps the SDK's import inside the engine's own
+ * layer; this keeps the rest of the engine there too, which an import rule cannot see: outside an engine folder no
+ * source file of packages/map/src may name a map SDK (in any string: an import, a require, a lazy load), a binding's
+ * native name (`"MLRN…`), or React Native's device event bus (the binding's events), and none but `native/engine.ts`
+ * may import from an engine folder. Comments are stripped first. Test files are the engine table's own harness (they
+ * mock each SDK at its boundary and fire its events) and are not read. The web map (maplibre-gl) is out of scope.
+ */
+const MAP_SRC = join(root, "packages/map/src");
+const ENGINE_HOME = join(MAP_SRC, "native");
+const GATEWAY = join(ENGINE_HOME, "engine.ts");
+const ENGINE_SDKS = ["@maplibre/maplibre-react-native", "@rnmapbox/maps"];
+const ENGINE_WORDS = [
+  ...ENGINE_SDKS.map((sdk) => ({ re: new RegExp(`["'\`]${sdk.replace(/[/.]/g, "\\$&")}`), what: `names the map SDK "${sdk}"` })),
+  { re: /["']MLRN/, what: 'names a binding\'s native name ("MLRN…")' },
+  { re: /\bDeviceEventEmitter\b/, what: "uses DeviceEventEmitter (the binding's events)" },
+];
+let engines = [];
+try { engines = readdirSync(ENGINE_HOME).map((n) => join(ENGINE_HOME, n)).filter((p) => statSync(p).isDirectory()); }
+catch { /* no native map in this tree (a gate fixture): nothing to hold */ }
+const inEngine = (p) => engines.some((e) => p === e || p.startsWith(e + "/"));
+let engineFiles = [];
+try { engineFiles = walk(MAP_SRC); } catch { /* no map package in this tree (a gate fixture) */ }
+for (const file of engineFiles) {
+  if (inEngine(file) || /\.(test|spec)\.[tj]sx?$/.test(file)) continue;
+  const src = stripComments(readFileSync(file, "utf8"));
+  const bad = ENGINE_WORDS.filter((w) => w.re.test(src)).map((w) => w.what);
+  for (const m of src.matchAll(IMPORT_RE)) {
+    const dep = m.slice(1).find((g) => g !== undefined);
+    if (dep?.startsWith(".") && file !== GATEWAY && inEngine(join(dirname(file), dep)))
+      bad.push(`imports "${dep}" from an engine folder`);
+  }
+  for (const what of bad) {
+    console.error(
+      `✗ ${relative(root, file)}\n    ${what}\n` +
+      `    the map engine stays in packages/map/src/native/<engine>/; the shell reaches it only through native/engine.ts (T1154)\n`
+    );
+    failed++;
+  }
+}
+
 if (failed) { console.error(`\n${failed} boundary violation(s). See layers.json.`); process.exit(1); }
 console.log("✓ layer boundaries clean");

@@ -122,6 +122,45 @@ describe("nested layers", () => {
   });
 });
 
+describe("(T1154) the map engine stays in its folder", () => {
+  // the engine's folder exists in each tree, as in the app: the rule learns the engine folders from native/
+  const ENGINE = { "packages/map/src/native/maplibre/View.tsx": "export const View = 1;\n" };
+  const shell = (file: string, src: string): number => gate("check-boundaries.mjs", { ...ENGINE, [file]: src });
+
+  it.each([
+    // the three mutations the ticket names, each a rule of its own
+    ["the SDK imported by the shell", "packages/map/src/Map.native.tsx",
+      'import { Layer } from "@maplibre/maplibre-react-native";\nexport const x = Layer;\n'],
+    ["a binding's native name in a native helper", "packages/map/src/native/useColouring.ts",
+      'export const ev = "MLRNTileIds";\n'],
+    ["the shell reaching past native/engine.ts into an engine folder", "packages/map/src/Map.native.tsx",
+      'import "./native/maplibre/View";\n'],
+    ["the SDK named in a lazy load", "packages/map/src/native/probe.ts",
+      'export const sdk = () => require("@maplibre/maplibre-react-native");\n'],
+    ["the binding's event bus", "packages/map/src/native/useColouring.ts",
+      'import { DeviceEventEmitter } from "react-native";\nexport const e = DeviceEventEmitter;\n'],
+    ["another engine's SDK", "packages/map/src/Map.native.tsx", 'export const sdk = "@rnmapbox/maps";\n'],
+    ["a helper beside the engine reaching into it", "packages/map/src/native-style.ts",
+      'export { View } from "./native/maplibre/View";\n'],
+  ])("rejects: %s", (_name, file, src) => {
+    expect(shell(file, src)).toBe(1);
+  });
+
+  it.each([
+    ["the SDK inside its engine folder", "packages/map/src/native/maplibre/Tree.tsx",
+      'import { Map } from "@maplibre/maplibre-react-native";\nimport { useRef } from "react";\nexport const x = [Map, useRef];\n'],
+    ["the one way in", "packages/map/src/native/engine.ts", 'export { View } from "./maplibre/View";\n'],
+    ["the shell through the one way in", "packages/map/src/Map.native.tsx", 'export { View } from "./native/engine";\n'],
+    ["a test mocking the SDK at its boundary", "packages/map/src/_bnd.render.test.tsx",
+      'import { it, vi } from "vitest";\nvi.mock("@maplibre/maplibre-react-native", () => ({}));\nit("", () => {});\n'],
+    ["the SDK and the event named in a comment", "packages/map/src/native/useColouring.ts",
+      '/** `MLRNTileIds` on DeviceEventEmitter, from "@maplibre/maplibre-react-native" */\nexport const x = 1;\n'],
+    ["the web map's own SDK", "packages/map/src/web/_bnd.ts", 'import maplibregl from "maplibre-gl";\nexport const x = maplibregl;\n'],
+  ])("allows: %s", (_name, file, src) => {
+    expect(shell(file, src)).toBe(0);
+  });
+});
+
 describe("the release drivers (P11)", () => {
   it("may name a platform database and file system; the loader around them may not", () => {
     expect(check("packages/data/src/release/drivers/_bnd.web.ts",

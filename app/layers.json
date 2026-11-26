@@ -51,13 +51,28 @@
         "@app/ui",
         "react",
         "maplibre-gl",
-        "@maplibre/maplibre-react-native",
         "pmtiles",
         "@protomaps/basemaps",
         "react-native"
       ],
-      "banned": [],
-      "why": "the ONLY package allowed to know that maplibre-gl and maplibre-react-native differ. react-native is listed because the NATIVE half of this package renders native views; the web half renders a div. That split is the reason this package exists, so both platform imports belong here and nowhere else."
+      "banned": [
+        "@maplibre/maplibre-react-native"
+      ],
+      "why": "the ONLY package allowed to know that maplibre-gl and maplibre-react-native differ. react-native is listed because the NATIVE half of this package renders native views; the web half renders a div. That split is the reason this package exists, so both platform imports belong here and nowhere else. (T1154) The phone's map SDK is named only by its engine's own layer (`packages/map/src/native/maplibre`): the shell (`Map.native.tsx`) reaches the engine through `native/engine.ts`, and check-boundaries' engine rule holds the rest of it there."
+    },
+    "packages/map/src/native/maplibre": {
+      "purpose": "(T1154) MapLibre Native as the phone map's engine: its component tree, element refs, per-tile event, log, held label layers and style dialect.",
+      "mayImport": [
+        "@app/core",
+        "react",
+        "react-native",
+        "@maplibre/maplibre-react-native"
+      ],
+      "banned": [
+        "react-dom",
+        "maplibre-gl"
+      ],
+      "why": "The one place the phone's map SDK is named (`@maplibre/maplibre-react-native`, deps.md). Everything that decides stays in the engine-neutral shell around it (`packages/map/src/Map.native.tsx`), which reaches this folder only through `native/engine.ts`, so another engine is another folder beside this one, never an edit of the shell."
     },
     "apps/mobile": {
       "purpose": "RN app shell. Views only.",
