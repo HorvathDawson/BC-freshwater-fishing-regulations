@@ -1,10 +1,10 @@
 # T1164 — First patch: the low findings of the two independent 0.10.0 audits (walk outflow guard, distance words, privacy list, an error boundary)
 
-Status: OPEN — the first patch after 0.10.0
+Status: PARTIAL — item 1 built (0e63889ef, PR open for review); left (Claude): items 2-5
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1164 | First patch: the low findings of the two independent 0.10.0 audits (walk outflow guard, distance words, privacy list, an error boundary) | OPEN — the first patch after 0.10.0 | — | a build lane after 0.10.0 ships: the items below, each with a test; S–M |
+| T1164 | First patch: the low findings of the two independent 0.10.0 audits (walk outflow guard, distance words, privacy list, an error boundary) | PARTIAL — item 1 built (0e63889ef), in review | 0e63889ef | items 2-5 (walk outflow guard, distance words, in-season in the diff, privacy list), each with a test; S–M |
 
 Source: the two independent read-only audits of 0.10.0 on 2026-11-25 night (notes: `tickets/archive/night-notes-2026-11-25.tar.gz`
 `audit-0100-app.md`, `audit-0100-pipeline.md`). Their HIGH and MED findings were handled in the release that
@@ -15,7 +15,7 @@ night (the tidal-stretch crash in the part-names change, fixed in its lane befor
 reads the 0.10.0 formats and the reverse. These are what was left:
 
 ## Work
-1. The app has no React error boundary, so any throw in a render path is a full crash (the tidal-stretch case
+1. BUILT 0e63889ef (`ScreenBoundary`, `Shell.tsx` `screen(…)`, `check-no-render-throw.mjs`; one listed throw, KeepTab's trout-sources contract). The app had no React error boundary, so any throw in a render path is a full crash (the tidal-stretch case
    showed it): a boundary per screen with a shown message and a report; a lint or test that new render-path code
    does not `throw`.
 2. T1146's walk has no outflow guard (`tributaries.py:1154-1159`): a channel that drains into another basin can
