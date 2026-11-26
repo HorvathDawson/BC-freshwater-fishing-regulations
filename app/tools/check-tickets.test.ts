@@ -399,6 +399,11 @@ describe("T628 the docs guard covers the runbooks", () => {
     expect(runbookPaths(annual().text)).toContain(synopsis);                               // only ever inside a ```bash block
     expect(citedPaths(annual().text)).not.toContain(synopsis);
   });
+  it("(T1081) a branch name (docs/T1081-cut: one segment, no dot) is not a cited path; a file under it still is", () => {
+    // the rename makes `docs/` a repo root, where a cited branch would read as a dead path (found in the rehearsal)
+    expect(citedPaths("branch `docs/T1081-cut`, `ci/T1081-size-guard`, and `scripts/fast-fail.sh`")).toEqual(["scripts/fast-fail.sh"]);
+    expect(runbookPaths("```bash\ngit switch docs/T1081-cut\nbash scripts/fast-fail.sh\n```\n")).toEqual(["scripts/fast-fail.sh"]);
+  });
   it("fails on a dead path in a command block (the T553 case: a renamed curated folder) and in backticks", () => {
     const block = checkDocs(withAnnual(`${annual().text}\n\`\`\`bash\nOLD=data/curated/regulations/entries/catalogue\ncp $W/book/region-*.json $OLD/\n\`\`\`\n`));
     expect(block).toEqual(["handoff/PLAN/runbooks/annual-synopsis.md cites data/curated/regulations/entries/catalogue, which does not exist"]);

@@ -217,6 +217,9 @@ export const RUNBOOK_MAKES = {
 };
 const CITED_ROOTS = /^(app|pipeline|data|deploy|scripts|handoff|curation-review|\.github)\//;
 const TOP_FILES = /^(AGENTS|CLAUDE)\.md$/;
+/** (T1081) A branch name is not a repo path: `docs/T1081-cut` (one segment, no dot, a conventional-commit type before the slash).
+ *  The folder `docs/` is a repo root after the rename, so a cited branch would read as a dead path without this. */
+const BRANCH_LIKE = /^(docs|chore|ci|feat|fix|test|refactor|perf|build)\/[^/.]+$/;
 
 /** The repo paths a document cites in backticks (globs, placeholders and `path:line` / `path#anchor` tails are cut). */
 export function citedPaths(text) {
@@ -225,7 +228,7 @@ export function citedPaths(text) {
     const tok = m[1];
     if (/[*<>{}$|()=]/.test(tok)) continue;
     const p = tok.replace(/[:#].*$/, "").replace(/[.,;]+$/, "");
-    if (CITED_ROOTS.test(p) || TOP_FILES.test(p)) out.add(p);
+    if ((CITED_ROOTS.test(p) || TOP_FILES.test(p)) && !BRANCH_LIKE.test(p)) out.add(p);
   }
   return [...out].sort();
 }
@@ -243,7 +246,7 @@ export function runbookPaths(text) {
     for (const tok of part.split(/[\s"'=;,]+/)) {
       if (/[*<>{}$|()\[\]`]/.test(tok)) continue;
       const p = tok.replace(/[:#].*$/, "").replace(/[.]+$/, "");
-      if (CITED_ROOTS.test(p) || TOP_FILES.test(p)) out.add(p);
+      if ((CITED_ROOTS.test(p) || TOP_FILES.test(p)) && !BRANCH_LIKE.test(p)) out.add(p);
     }
   });
   for (const p of citedPaths(prose.join("\n"))) out.add(p);
