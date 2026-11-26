@@ -1,10 +1,10 @@
 # T1201 — Larger system text: every screen holds up ("SALMON" wrapped in the mode switch, "CONDITIONS" was cut in the tab bar)
 
-Status: DONE — 96f0c05a5, a8bf48d97 (the screens the walk could not reach: T1203)
+Status: DONE — 96f0c05a5, a8bf48d97, 9a395059d (the screens the walk could not reach: T1203)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1201 | Larger system text: every screen holds up ("SALMON" wrapped in the mode switch, "CONDITIONS" was cut in the tab bar) | DONE | 96f0c05a5, a8bf48d97 | — |
+| T1201 | Larger system text: every screen holds up ("SALMON" wrapped in the mode switch, "CONDITIONS" was cut in the tab bar) | DONE | 96f0c05a5, a8bf48d97, 9a395059d | — |
 
 Source: seen by the tester feedback chat, 2026-11-26, in a closed tester's pictures of the main map (app 0.9.0, a large
 Android phone; the tester did not mention either). Feedback log D21.
@@ -59,6 +59,8 @@ cells grow to their labels. "CONDITIONS" was cut at 360 wide even at normal text
 Conditions legend ("High" broken, "Normal" overlapping at 2.0), the More page's data rows and badge running off the
 edge, and the About version label. Laid out in headless Chrome with the text size emulated (the web build ignores the
 system size); not on a phone: T1203.
+Review (9a395059d): at normal text size nothing moves from 0.9.0 (the switch is 44 wide, the tabs equal at 412); at
+1.3 the switch is about 55 wide and stands about 11 px left of the two buttons above it.
 
 ## Owner
 
