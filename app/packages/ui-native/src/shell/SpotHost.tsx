@@ -89,7 +89,7 @@ export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlo
     );
   }
   // an unsaved edit's added photos go with it; after a save there are none left to delete
-  const endEdit = () => { if (edit) void photoEdit.discard(); setEdit(null); };
+  const endEdit = () => { if (edit) void photoEdit.discard(); setEdit(null); setParkingNotice(null); };
   const close = () => { endEdit(); setSpotError(null); setPendingTab(null); back(); };
   const goTab = (k: TabKey) => { endEdit(); setSpotError(null); setPendingTab(null); toTab(k); };
   return (
@@ -117,7 +117,8 @@ export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlo
                       setParkingNotice(null);
                       // (T1163 G5 / G6) a rough fix is said, a refusal says so with "Open Settings" under it (`parkingHere`)
                       void parkingHere(locate).then((r) => {
-                        if (r.parking) setEdit({ ...edit, parking: r.parking });
+                        // functional: what was typed while the fix was coming is kept
+                        if (r.parking) setEdit((e) => e && { ...e, parking: r.parking });
                         setParkingNotice(r.notice);
                       });
                     } : undefined}
@@ -147,6 +148,7 @@ export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlo
                                                    { ...shown, notes: edit.notes, photos: [...photoEdit.refs] }));
                         photoEdit.committed();
                         setEdit(null);
+                        setParkingNotice(null);
                         setSpotError(null);
                         if (pendingTab) goTab(pendingTab);
                       } catch (e) {
