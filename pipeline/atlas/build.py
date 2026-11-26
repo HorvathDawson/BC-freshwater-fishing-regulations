@@ -519,12 +519,12 @@ def main(argv: list[str] | None = None) -> None:
     write_sidecars(b)
     # (T1171) every module, code file and config value is read by now; `pipeline release` refuses an atlas whose code
     # moved since, as it refuses one behind a curated input
-    code = _inputs.record_code(b.out, Path(_CODE_TRACE[0]) if _CODE_TRACE else None, git_at_start)
-    print(f"  code recorded: {len(code['modules'])} modules, {len(code['reads'])} code files, {len(code['packages'])} "
-          f"packages, {len(code['config'])} config values"
-          + (f", at {code['git']['commit'][:12]}{' (with uncommitted edits)' if code['git']['dirty'] else ''}"
-             if code.get("git") else "") if "modules" in code
-          else f"  code NOT recorded ({code['unrecorded']}): `pipeline release` refuses this atlas — rebuild it")
+    rec = _inputs.record_code(b.out, Path(_CODE_TRACE[0]) if _CODE_TRACE else None, git_at_start)
+    git = rec.get("git") or {}
+    at = f", at {git['commit'][:12]}{' (with uncommitted edits)' if git['dirty'] else ''}" if git else ""
+    print(f"  code recorded: {len(rec['modules'])} modules, {len(rec['reads'])} code files, {len(rec['packages'])} "
+          f"packages, {len(rec['config'])} config values{at}" if "modules" in rec
+          else f"  code NOT recorded ({rec['unrecorded']}): `pipeline release` refuses this atlas — rebuild it")
     _inputs.write_complete(b.out, b.input_hashes)   # T547 §4: LAST — promote refuses a candidate without it
 
 
