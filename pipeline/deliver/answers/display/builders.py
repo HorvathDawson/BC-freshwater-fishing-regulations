@@ -369,6 +369,18 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
             for i in range(len(W.parts))]
 
 
+def reviewed_still_said(out: Dict[str, dict]) -> None:
+    """(T1140) every reviewed "inside" / "at" part of the waters built is still said so (`part.REVIEWED_INSIDE`): one that
+    stops being inside is looked at again too — the tripwire's other way."""
+    from pipeline.deliver.answers.display.part import AREA_HEAD, REVIEWED_INSIDE
+    said_in = {(i, str(f["lo"])[len(head) + len("area:"):], how) for i, v in out.items() for f in v["parts"] if f
+               for how, head in AREA_HEAD.items() if str(f.get("lo") or "").startswith(head + "area:")}
+    gone = sorted({r for r in REVIEWED_INSIDE if r[0] in out} - said_in)
+    if gone:
+        raise AnswersError(f"display: reviewed inside parts no longer said inside: {gone} (T1140: look at them again, "
+                           f"then update `part.REVIEWED_INSIDE`)")
+
+
 def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
                   rule_ref=None, lic_ref=None, log=print, store=None) -> Dict[str, dict]:
     """PURE: every named water's part facts, `{item_id: {"parts": [facts | null per EXPORT part],
@@ -428,14 +440,7 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
                             k for e in w.get("entries") or [] for k in unresolved.get(e, []))]}
     if stops:
         raise AnswersError("display: parts the names cannot say —\n  " + "\n  ".join(stops))
-    # (T1140) the reviewed "inside" pairs, every one still said: one that stops being inside is looked at again too
-    from pipeline.deliver.answers.display.part import AREA_HEAD, REVIEWED_INSIDE
-    said_in = {(i, str(f["lo"])[len(head) + len("area:"):], how) for i, v in out.items() for f in v["parts"] if f
-               for how, head in AREA_HEAD.items() if str(f.get("lo") or "").startswith(head + "area:")}
-    gone = sorted({r for r in REVIEWED_INSIDE if r[0] in out} - said_in)
-    if gone:
-        raise AnswersError(f"display: reviewed inside parts no longer said inside: {gone} (T1140: look at them again, "
-                           f"then update `part.REVIEWED_INSIDE`)")
+    reviewed_still_said(out)
     log(f"  parts: {sum(1 for v in out.values() for f in v['parts'] if f)} parts of {len(out)} "
         f"waters; {sum(closed_memo.values())} of {len(closed_memo)} rule keys closed all year")
     return out

@@ -19,7 +19,7 @@ import pytest
 from shapely.geometry import LineString, Polygon, box
 
 from pipeline.deliver.answers.common import AnswersError
-from pipeline.deliver.answers.display.builders import _names
+from pipeline.deliver.answers.display.builders import _flows_into, _names, reviewed_still_said
 from pipeline.deliver.answers.display.part import AT, INSIDE, SIDE, Water, end_words, side_channels
 from pipeline.deliver.bundle import side_channels as sc
 
@@ -141,14 +141,15 @@ def _touch_db(body: str):
     db.execute("INSERT INTO span_end VALUES (1, 'mouth')")
     db.execute("UPDATE section_span SET lo = 1, hi = 1")
     db.execute("INSERT INTO item VALUES (3, 'gnis:3', 'Olsen Lake', 'lake')")
-    poly = Polygon([(600, 200), (800, 200), (800, 300), (600, 300)])         # its top edge holds the channel's end
     if body == "own":
         db.execute("INSERT INTO item_section VALUES (1, 4)")
         db.execute("INSERT INTO section_span VALUES (4, 0, 1000, 1, 1, 0, 1)")
         geo[4] = Polygon([(600, -10), (800, -10), (800, 300), (600, 300)])
     elif body in ("lake", "lake_off"):
         db.execute("INSERT INTO item_section VALUES (3, 5)")
-        geo[5] = Polygon([(600, -10), (800, -10), (800, 300), (600, 300)]) if body == "lake" else poly
+        # `lake_off`: its box spans the main line's, but the lake meets the line's level only past the river's top (x 2100)
+        geo[5] = Polygon([(600, -10), (800, -10), (800, 300), (600, 300)]) if body == "lake" else \
+            Polygon([(2100, -50), (2200, -50), (2200, 300), (600, 300), (600, 250), (2100, 250)])
     elif body == "other":
         db.execute("INSERT INTO item_section VALUES (2, 6)")
         db.execute("INSERT INTO section_span VALUES (6, 0, 1000, 1, 1, 0, 1)")
@@ -364,6 +365,19 @@ def test_one_named_channel_and_one_bare_one_say_the_bare_ones_join():
     assert _said(W)[1] == "Snehumption Creek side channels: one up to the B.C. border; one joining 3.6 km from the mouth"
 
 
+def test_a_channel_with_no_named_end_and_no_distance_stops_a_named_part():
+    # the Okanagan River Oxbows, were it not "at" its reserve: one channel to the boundary, one with no join
+    hl = "area:HAYNE'S LEASE ECOLOGICAL RESERVE"
+    SPLITS[hl] = {"name": "Hayne's Lease Ecological Reserve boundary", "kind": "area"}
+    try:
+        W = _water([MAIN, [_run("source", hl, None, None, branch=True), _run("source", "mouth", None, None, branch=True)]],
+                   iid="wsc:300-432687-459615", name="Okanagan River Oxbows")
+        with pytest.raises(AnswersError, match="no named end and no join"):
+            _names(W, {})
+    finally:
+        del SPLITS[hl]
+
+
 def test_a_part_said_by_its_label_must_have_every_channels_distance():
     W = _water([MAIN, [_run("source", "mouth", None, None, branch=True)]], iid="gnis:23366", name="Noons Creek")
     with pytest.raises(AnswersError, match="no join to say"):
@@ -377,3 +391,36 @@ def test_several_parts_with_no_main_stem_count_only_parts_with_no_ends():
     W = _water([MAIN, LOOSE, [_run("source", "mouth", 20.0, 20.0, branch=True)]])
     with pytest.raises(AnswersError, match="one of several parts with no main stem"):
         _names(W, {("gnis:25671", "inside", 1): ("BAYNES ISLAND ECOLOGICAL RESERVE", "inside")})
+
+
+def test_a_reviewed_part_no_longer_said_inside_stops_the_build():
+    sq = "near:inside:area:BAYNES ISLAND ECOLOGICAL RESERVE"
+    reviewed_still_said({"gnis:25671": {"parts": [None, {"lo": sq, "hi": sq}]}})          # still said: passes
+    with pytest.raises(AnswersError, match="no longer said inside"):
+        reviewed_still_said({"gnis:25671": {"parts": [None, {"lo": None, "hi": None}]}})
+    with pytest.raises(AnswersError, match="no longer said inside"):                        # said, but "at" not "inside"
+        reviewed_still_said({"gnis:25671": {"parts": [None, {"lo": "near:at:area:BAYNES ISLAND ECOLOGICAL RESERVE"}]}})
+    reviewed_still_said({"gnis:1": {"parts": [None]}})                                     # a water not built: no check
+
+
+def test_the_flow_pointer_names_the_one_water_a_part_of_side_channels_flows_into():
+    db = sqlite3.connect(":memory:")
+    db.executescript("""
+        CREATE TABLE item (ord INTEGER PRIMARY KEY, item_id TEXT, kind TEXT);
+        CREATE TABLE item_section (ord INTEGER, sid INTEGER);
+        CREATE TABLE part_section (ord INTEGER, sid INTEGER, part_ix INTEGER);
+        CREATE TABLE section_span (sid INTEGER PRIMARY KEY, off_stem INTEGER);
+        CREATE TABLE section_down (sid INTEGER PRIMARY KEY, down_sid INTEGER);
+    """)
+    db.executemany("INSERT INTO item VALUES (?,?,?)", [(1, "gnis:21687", "stream"), (2, "gnis:8", "lake"),
+                                                      (3, "gnis:9", "stream")])
+    # Theodosia: stem 1; part 1 = channel 10 → 11 → Olsen Lake (20); part 2 = channel 12 → stream 30 and lake 20 (two)
+    # part 3 = stem 14 and channel 15 → the lake: a part WITH a main stem is said by its ends, never this
+    db.executemany("INSERT INTO item_section VALUES (?,?)", [(1, 1), (1, 10), (1, 11), (1, 12), (1, 13), (1, 14), (1, 15),
+                                                             (2, 20), (3, 30)])
+    db.executemany("INSERT INTO part_section VALUES (1, ?, ?)", [(1, 0), (10, 1), (11, 1), (12, 2), (13, 2), (14, 3), (15, 3)])
+    db.executemany("INSERT INTO section_span VALUES (?, ?)", [(1, 0), (10, 1), (11, 1), (12, 1), (13, 1), (14, 0), (15, 1)])
+    db.executemany("INSERT INTO section_down VALUES (?, ?)", [(10, 11), (11, 20), (12, 30), (13, 20), (1, 20), (15, 20)])
+    got = _flows_into(db)
+    assert got == {("gnis:21687", "flows_into", 1): "lake_inlet:gnis:8"}       # part 2 reaches two waters: none; part 0
+    # has a main stem: none
