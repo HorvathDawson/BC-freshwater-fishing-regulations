@@ -248,6 +248,7 @@ def test_a_lake_with_no_flow_pointer_to_say_the_direction_never_names_the_channe
 
 def test_a_lake_the_main_line_does_not_run_through_never_counts(tmp_path, monkeypatch):
     db, geo = _touch_db("lake_off")
+    db.execute("INSERT INTO section_down VALUES (3, 5, 0, 1)")          # into it, but the river does not run through it
     lo, _ = _write(db, geo, tmp_path, monkeypatch)
     assert _how(db, 3) == "nearest" and _lo_token(db, 3) == "mouth"
 
