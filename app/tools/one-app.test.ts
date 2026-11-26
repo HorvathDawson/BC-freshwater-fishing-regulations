@@ -20,6 +20,8 @@ describe("one app shell", () => {
     expect(Object.keys(spec.layers)).toEqual([
       "packages/core", "packages/data", "packages/ui", "packages/map", "apps/mobile", "packages/ui-native",
       "packages/data/src/sql/drivers", "packages/data/src/release/drivers", "packages/data/src/spots",
+      // (T1154) the phone map's engine: the one place its SDK is named
+      "packages/map/src/native/maplibre",
     ]);
   });
 });
