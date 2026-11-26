@@ -1,0 +1,894 @@
+=== PDF p.2: 26 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-Last year, the detection of whirling disease meant watercraft and angling closures of all waterbodies in Yoho and Kootenay 
+-national parks until March 31, 2025, to reduce the spread of aquatic invasive species. In May 2024, B.C.’s chief veterinarian 
+-issued a “Pull the Plug” order, making it mandatory for all boat or other watercraft operators to pull the plug before moving 
+-any watercraft between water bodies to ensure aquatic invasive species do not spread through human error or negligence. 
+-Additionally, it’s important to follow the responsible practice of “Clean, Drain, Dry” on your watercraft, trailers and gear—
+-anything that’s been in contact with the water—after leaving the water. This measure will help prevent the spread of aquatic 
+-invasive species that threaten native fish like trout, their ecosystems and the recreational fishing they support.
+-Every two years, we review and publish the Province’s freshwater fishing regulations. The 2025 regulations in this 
+-publication are valid from April 1, 2025, to March 31, 2027.
+-Here’s to a great season! “Gone fishing” may be a sign you’ll see more often in your communities, with more than 300,000 
+-anglers buying licences in B.C in the past year.
++PHOTO: Hooked On at Quesnel Lake, Cariboo Region, BC, by Jeremy Koreski
++Last year, the detection of whirling disease meant watercraft and angling closures of all waterbodies 
++in Yoho and Kootenay national parks until March 31, 2025, to reduce the spread of aquatic 
++invasive species. In May 2024, B.C.’s chief veterinarian issued a “Pull the Plug” order, making it 
++mandatory for all boat or other watercraft operators to pull the plug before moving any watercraft 
++between water bodies to ensure aquatic invasive species do not spread through human error or 
++negligence. Additionally, it’s important to follow the responsible practice of “Clean, Drain, Dry” on 
++your watercraft, trailers and gear—anything that’s been in contact with the water—after leaving the 
++water. This measure will help prevent the spread of aquatic invasive species that threaten native fish 
++like trout, their ecosystems and the recreational fishing they support.
++Every two years, we review and publish the Province’s freshwater fishing regulations. The 2025 
++regulations in this publication are valid from April 1, 2025, to March 31, 2027.
++Here’s to a great season! “Gone fishing” may be a sign you’ll see more often in your communities, 
++with more than 300,000 anglers buying licences in B.C in the past year.
+-PHOTO: Hooked On at Quesnel Lake, Cariboo Region, BC, by Jeremy Koreski
+=== PDF p.3: 61 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-each Regional chapter.
++each regional chapter.
+-These will be:
+-• posted on the Ministry of Water, Land and 
+-Resource Stewardships/Freshwater fishing 
+-regulations in B.C. website, www.gov.
++Changes will be posted on the Freshwater 
++fishing regulations in B.C. website, gov.
+-- will be listed under "Regional Synopsis 
+-Information and In-Season Changes”
+-- click on the appropriate Region, any in￾season changes will be listed in the table 
+-for that particular region.
+-Receive Notifications of 
+-Regulation Changes
+-To receive notifications about in￾season regulation changes as well 
+-as other important notices about 
+-fishing in B.C., visit www.gov.bc.ca/
+-FishingRegulations and subscribe to 
+-the page(s) you are interested in. The 
+-RSS feed is no longer being used.
++Receive Notifications of Regulation 
++Changes
++To receive notifications about in-season 
++regulation changes as well as other 
++important notices about fishing in B.C., 
++visit gov.bc.ca/FishingRegulations and 
++subscribe.
+-The public can review and provide 
+-feedback on proposed changes 
+-to angling, hunting, or trapping 
+-regulations through the provincial 
++The public can review and provide feedback 
++on proposed changes to angling, hunting, or 
++trapping regulations through the provincial 
+-Engagement Website, online at apps.
+-nrs.gov.bc.ca/ahte/.
++Engagement website, online at https://
++www2.gov.bc.ca/gov/content/sports￾culture/recreation/fishing-hunting/ahte
++YOU AND THE LAW
++The British Columbia Freshwater 
++Fishing Regulations Synopsis is for 
++general information purposes only. 
++Where there is a discrepancy between 
++this Synopsis and the Regulations, the 
++Regulations are the final authority. 
++Regulations are subject to change, 
++such as in-season regulation changes 
++described above, and it is the 
++responsibility of an individual to be 
++informed of the current regulations.
+-YOU AND THE LAW
+-The British Columbia Freshwater Fishing 
+-Regulations Synopsis is for general 
+-information purposes only. Where there is a 
+-discrepancy between this Synopsis and the 
+-Regulations, the Regulations are the final 
+-authority. Regulations are subject to change, 
+-such as in-season regulation changes 
+-described above, and it is the responsibility 
+-of an individual to be informed of the current 
+-regulations.
+=== PDF p.4: 22 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
++PROVINCE WIDE
++Regulations have been updated 
++to simplify how anglers prove they 
++are licensed.
++• Effective April 1, 2026 when 
++fishing or transporting dead 
++fish, anglers can state their 
++Fish and Wildlife ID (FWID) 
++number to show they hold (or 
++previously held) the following 
++authorizations*:
++• Basic angling licence
++• Classified water licence
++• White sturgeon 
++conservation licence 
++(applies to fishing only)
++*Anglers must still carry and produce 
++their licence (paper or digital copy) 
++as proof of Conservation Surcharge 
++Stamps. When a retention record is 
++required, anglers must carry a paper 
++copy.
+=== PDF p.5: 6 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-Licencing and Fees 5-6
++Licensing and Fees 5-6
+-www.gov.bc.ca/FishingRegulations
++gov.bc.ca/FishingRegulations
+-The Synopsis, Wildlife Branch 
++The Synopsis, Wildlife and Ecosystems Branch 
+=== PDF p.7: 2 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-license sales revenue goes to the Freshwater Fisheries Society of B.C. and the Habitat 
++licence sales revenue goes to the Freshwater Fisheries Society of B.C. and the Habitat 
+=== PDF p.8: 140 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
++Fishing Licensing in WILD
++Freshwater fishing licensing will be issued 
++through the Wildlife Information and 
++Licensing Data system (WILD) as of the 2026-
++27 licence year which starts April 1, 2026.
++WILD is the system used for fishing and 
++hunting licensing services in B.C. Visit gov.
++bc.ca/wild to access WILD. 
++Fish and Wildlife ID (FWID):
++An FWID is a permanent number linked to 
++your electronic profile in WILD. You need 
++an FWID to access WILD and buy fishing 
++licences. There is no cost to obtain an 
++FWID. You must only have one FWID. 
++• If you already have an FWID (for 
++hunting etc.) use your existing FWID to 
++buy fishing licences in WILD.
++• If you previously had a B.C. Resident 
++Hunter Number, an FWID has already 
++been assigned to you. To find your 
++FWID number, log in to WILD using 
++your Hunter Number, last name and 
++date of birth, or provide these details 
++to an agent (in person) at Service BC, 
++FrontCounter BC or a participating 
++vendor location. You may also call the 
++FrontCounter BC Contact Centre at 
++1-877-855-3222.
++• If you do not have an FWID or Hunter 
++Number, register for an FWID online 
++in WILD or in person at Service BC, 
++FrontCounter BC or a participating 
++vendor location. Once registered, you 
++will recieve your FWID immediately and 
++you can purchase fishing licences.
+-licence and photo ID, on the request of an 
+-officer. Electronic licences are acceptable 
+-however paper licences are required when 
+-retaining hatchery steelhead, chinook, 
+-Shuswap Lake char or rainbow trout, or 
+-Kootenay Lake rainbow trout.
++licence and photo ID, on request of an officer. 
++For basic angling licences, classified waters 
++licences and white sturgeon conservation 
++licences, you may either:
++• state your FWID, or 
++• produce your licence (paper or 
++electronic). 
++For conservation surcharge stamps, paper or
++electronic licences are acceptable however a 
++paper licence is required when retaining: 
++• hatchery steelhead
++• chinook
++• Shuswap Lake char or rainbow trout
++• Kootenay Lake rainbow trout
+-• You must carry your licence while sport 
+-fishing and, if asked, produce it for 
++• You must carry your paper licence 
++while sport fishing when a conservation 
++surcharge stamp retention record is 
++required and, if asked, produce it for 
+-Purchasing a Licence
+-Non-Tidal Angling Licences are available 
+-online. The online system lets anglers 
+-register for and purchase angling licences at 
+-any time. 
+-Where To Buy A Licence
+-To purchase your non-tidal angling licence 
+-online or for further information, please go to 
+-www.gov.bc.ca/fish-licence.
+-Anglers may also purchase their licence from 
+-a Service BC or FrontCounter BC office, or 
+-participating licence vendor. For a listing of 
+-Service BC, FrontCounter BC, and licence 
+-vendors locations, go to www.gov.bc.ca/
+-fish-licence.
++Where to Buy a Licence
++Freshwater Angling Licences are available 
++online. WILD lets anglers register for and 
++purchase angling licences online at any time.
++To buy your licence online in WILD, go to 
++www.gov.bc.ca/wild
++Licences can also be purchased in person 
++at a Service BC, FrontCounter BC, or licence 
++vendor locations. For a list of locations, go 
++to www.gov.bc.ca/buy-hunting-fishing￾licences.
+-• Do not buy a new licence. You are only 
+-permitted one annual angling licence per 
++• If you already have a valid licence do not 
++buy a new licence. You are only permitted 
++one annual angling licence per licence 
+-• If you lose the licence, you can:
+-- Reprint or download it from your 
++• To get a copy of your existing licence, you 
++can:
++- Log in to WILD with your FWID to 
++reprint or save a copy from your 
+-• Your retention record (see below) must be 
+-transferred to the new copy.
+-Conservation Surcharges
+-Your basic angling licence can be validated 
+-with up to five annual Conservation 
+-Surcharge Stamps described in detail below, 
+-plus a White Sturgeon Conservation Licence.
+-The stamps are valid for the licence year 
+-(April 1 to March 31).
+-If a copy of your basic licence is reprinted, all 
+-your retention records must be transferred to 
+-the new copy.
+-Steelhead
+-Your basic licence must be validated with 
+-a Conservation Surcharge Stamp if you fish 
+-for steelhead anywhere in B.C. (whether you 
+-keep or release your catch). In addition, a 
+-Steelhead Stamp is mandatory when fishing 
+-on most Classified Waters during certain 
+-specified periods, even when fishing for 
+-species other than steelhead. Refer to the 
+-regional tables for dates and exceptions. 
+-This stamp is available with all annual and 
+-short-term basic licences. The steelhead 
+-stamp is valid for a licence year. You must 
+-immediately record your retention of 
+-hatchery steelhead on your basic angling 
+-licence. Please retain your basic licence 
+-for the entire licence year as you may be 
+-requested to complete an annual steelhead 
+-survey. 
+-NOTE: The annual province-wide quota for 
+-hatchery steelhead is 10. All wild steelhead 
+-must be released. See definition of "hatchery 
+-trout" and "wild trout" on page 80.
+-Non-Tidal Salmon
+-Your basic licence must be validated with 
+-a Conservation Surcharge Stamp to keep a 
+-salmon of any legal size or species (other 
++• If you reprint your licence, your current 
++licence years retention record (see next 
++page) must be transferred to the new 
++copy.
+=== PDF p.9: 259 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-B.C. at https://www2.gov.bc.ca/assets/
+-gov/sports-recreation-arts-and-culture/
+-outdoor-recreation/fishing-and-hunting/
+-freshwater-fishing/ws_guidelines.pdf
+-Please note that this is the only white 
+-sturgeon fishery in the province’s non-tidal 
+-waters. 
+-Classified Waters Licences
+-The classified waters of B.C. are highly 
+-productive trout streams. These streams are 
+-classified as either Class I or Class II and 
+-are listed in the Water-Specific Tables for 
+-each Region. The Classified Waters Licensing 
+-System was created to protect the unique 
+-fishing opportunities provided by these 
+-waters, which contribute significantly to the 
+-province’s reputation as a world-class fishing 
+-destination.
+-All anglers required to buy a basic angling 
+-licence must also purchase a Classified 
+-Waters Licence before fishing on a stream 
+-during the period when it is classified.
+-This licence is required in addition to the 
+-basic angling licence and any other stamps 
+-required by regulation. Also note that a 
+-Steelhead Conservation Surcharge Stamp
+-is required at all times when fishing for 
+-steelhead, or when fishing classified waters 
+-during the period when steelhead are known 
+-to be present. The specific times when a 
+-Steelhead Stamp is mandatory are listed in 
+-the Water-Specific Tables for each Region.
+-If you are a B.C. resident: 
+-Your Classified Waters Licence is valid for the 
+-licencing year. This means you can fish on 
+-any Class I or Class II water in the province 
+-during the year.
+-If you are a NON-GUIDED “Non-Resident” 
+-or NON-GUIDED “Non-Resident Alien”:
+-Your Classified Waters Licence for Class I or 
+-Class II waters is sold on a per day basis and 
+-is date and water-specific. Although anglers 
+-may purchase as many Classified Waters 
+-Licences as they wish, each licence may not 
+-exceed 8 consecutive days. A first-come￾first-serve booking system is in place for 
+-these Kootenay Class II waters: Michel 
+-Creek, Skookumchuck Creek, and the 
+-Wigwam River.
+-If you are a GUIDED “Non-Resident” or a 
+-GUIDED “Non-Resident Alien”: 
+-Your Classified Waters Licence for Class I or 
+-Class II waters is sold on a per day basis and 
+-is date and water-specific. If guided confirm 
+-with your angling guide before purchasing 
+-your licence. Although anglers may purchase 
+-as many Classified Waters Licences as 
+-they wish, each licence may not exceed 8 
+-consecutive days. 
+-EXCEPTION: Non-Resident Aliens (whether 
+-GUIDED or NON-GUIDED) may only purchase 
+-one Classified Waters Licence for the Dean 
+-River per licence year.
+-NOTE: Non-guided Non-Resident Aliens 
+-wishing to fish the Class I - Main Section of 
+-the Dean River should refer to pages 42 and 
+-44 for details.
+-Is Your Angling Guide Licensed?
+-Anglers who use the services of an 
+-unlicensed angling guide risk being 
+-convicted of an offence.
+-Anglers securing the services of an Angling 
+-Guide can be certain that person is licensed by:
+-• Asking to see their current Angling Guide 
+-Licence (or Assistant Angling Guide 
+-Licence); OR 
+-• Confirming their status by contacting 
+-FrontCounter BC (FCBC) at one of the 
+-following:
+-- By Phone: Toll free at 1-877-855-
+-3222, from outside North America 
+-++1-778-372-0729
+-- By Email: FrontCounterBC@gov.bc.ca
+-Family Fishing Weekend 
+-An annual celebration of fishing that 
+-coincides with Father’s Day weekend each 
+-year. The provincial government waives the 
+-requirement for residents of Canada to buy 
+-or carry a non-tidal (freshwater) basic licence 
+-during the Father's Day weekend in June, 
+-and the Friday immediately prior. The federal 
+-Department of Fisheries and Oceans Canada, 
+-which manages tidal waters, also offers the 
+-opportunity to go saltwater fishing for free. 
+-This is a great opportunity to get together 
+-with family and friends and try fishing!
+-Anglers must still adhere to catch quotas and 
+-regulations. And if you plan to fish for species 
+-that require a conservation surcharge stamp 
+-(steelhead, Shuswap Lake rainbow trout 
+-and char, Kootenay Lake rainbow trout, 
+-white sturgeon, and salmon in both tidal and 
+-non-tidal waters); or angle Classified Waters 
+-(highly productive trout streams; listed as 
+-Class I or Class II waters in the water-specific 
+-tables of the fishing regulations) you are 
+-still required to purchase the appropriate 
+-licence(s) and conservation surcharge 
+-stamps. 
+-than kokanee) from non-tidal waters. A stamp 
+-is not required if you release all salmon 
+-caught. You must immediately record your 
+-retention of adult chinook salmon on your 
+-basic angling licence.
+-For definition of adult chinook see page 77.
+-For regulations related to angling for salmon 
+-in B.C. visit the Fisheries and Oceans Canada 
+-website at https://www.dfo-mpo.gc.ca/
+-index-eng.htm or by email: info@dfo-mpo.
+-gc.ca.
+-Kootenay Lake Rainbow Trout
+-Your basic licence must be validated with 
+-a Conservation Surcharge Stamp to keep 
+-rainbow trout over 50 cm from the main body 
+-of Kootenay Lake. You must immediately 
+-record your retention on your basic 
+-angling licence. 
+-No Conservation Surcharge Stamp is required 
+-if you release all Kootenay Lake rainbow 
+-trout over 50 cm.
+-Guidelines for Angling White Sturgeon in 
++Guidelines for Angling White Sturgeon in B.C. 
++at https://www2.gov.bc.ca/gov/content/
++sports-culture/recreation/fishing-hunting/
++fishing/recreational-freshwater-fishing￾licence/conservation-surcharges. Please 
++note that this is the only white sturgeon 
++fishery in the province’s non-tidal waters. 
++Classified Waters Licences
++The classified waters of B.C. are highly 
++productive trout streams. These streams are 
++classified as either Class I or Class II and 
++are listed in the Water-Specific Tables for 
++each Region. The Classified Waters Licensing 
++System was created to protect the unique 
++fishing opportunities provided by these 
++waters, which contribute significantly to the 
++province’s reputation as a world-class fishing 
++destination.
++Anglers are required to hold a basic 
++angling licence and a Classified Waters 
++Licence when fishing on a stream during 
++the period when it is classified.
++This licence is required in addition to the 
++basic angling licence and any other stamps 
++required by regulation. Also note that a 
++Steelhead Conservation Surcharge Stamp
++is required at all times when fishing for 
++steelhead, or when fishing classified waters 
++during the period when steelhead are known 
++to be present. The specific times when a 
++Steelhead Stamp is mandatory are listed in 
++the Water-Specific Tables for each Region.
++If you are a B.C. resident: 
++Your Classified Waters Licence permits you to 
++angle in all classifed waters throughout the 
++licence year. This means you can fish on any 
++Class I or Class II water in the province during 
++the year.
++If you are a NON-GUIDED “Non-Resident” 
++or NON-GUIDED “Non-Resident Alien”:
++Your Classified Waters Licence for Class I or 
++Class II waters is sold on a per day basis and 
++is date and water-specific. Although anglers 
++may purchase as many Classified Waters 
++Licences as they wish, each licence may not 
++exceed 8 consecutive days. A first-come￾first-serve booking system is in place for 
++these Kootenay Class II waters: Michel 
++Creek, Skookumchuck Creek, and the 
++Wigwam River.
++If you are a GUIDED “Non-Resident” or a 
++GUIDED “Non-Resident Alien”: 
++Your Classified Waters Licence for Class I or 
++Class II waters is sold on a per day basis and 
++is date and water-specific. If guided check 
++with your angling guide before purchasing 
++your licence as a valid angling guide number 
++must be entered to purchase a guided 
++licence. Although anglers may purchase as 
++many Classified Waters Licences as they 
++wish, each licence may not exceed 8 
++consecutive days. 
++EXCEPTION: Non-Resident Aliens (whether 
++GUIDED or NON-GUIDED) may only purchase 
++one Classified Waters Licence for the Dean 
++River per licence year.
++NOTE: Non-guided Non-Resident Aliens 
++wishing to fish the Class I - Main Section of 
++the Dean River should refer to pages 42 and 
++44 for details.
++Is Your Angling Guide Licensed?
++Anglers who use the services of an 
++unlicensed angling guide risk being 
++convicted of an offence.
++Conservation Surcharges
++Your basic angling licence can be validated 
++with up to five annual Conservation 
++Surcharge Stamps described in detail below, 
++plus a White Sturgeon Conservation Licence.
++The stamps are valid for the licence year 
++(April 1 to March 31).
++If a copy of your basic licence is reprinted, all 
++your retention records must be transferred to 
++the new copy.
++Steelhead
++Your basic licence must be validated with 
++a Conservation Surcharge Stamp if you fish 
++for steelhead anywhere in B.C. (whether you 
++keep or release your catch). In addition, a 
++Steelhead Stamp is mandatory when fishing 
++on most Classified Waters during certain 
++specified periods, even when fishing for 
++species other than steelhead. Refer to the 
++regional tables for dates and exceptions. 
++This stamp is available with all annual and 
++short-term basic licences. The steelhead 
++stamp is valid for a licence year. You must 
++immediately record your retention of 
++hatchery steelhead on your basic angling 
++licence. Please retain your basic licence 
++for the entire licence year as you may be 
++requested to complete an annual steelhead 
++survey. 
++NOTE: The annual province-wide quota for 
++hatchery steelhead is 10. All wild steelhead 
++must be released. See definition of "hatchery 
++trout" and "wild trout" on page 80.
++Non-Tidal Salmon
++Your basic licence must be validated with 
++a Conservation Surcharge Stamp to keep a 
++salmon of any legal size or species (other 
++than kokanee) from non-tidal waters. A stamp 
++is not required if you release all salmon 
++caught. You must immediately record your 
++retention of adult chinook salmon on your 
++basic angling licence.
++For definition of adult chinook see page 77.
++For regulations related to angling for salmon 
++in B.C. visit the Fisheries and Oceans Canada 
++website at www.dfo-mpo.gc.ca/index-eng.
++htm or by email: info@dfo-mpo.gc.ca.
++Kootenay Lake Rainbow Trout
++Your basic licence must be validated with 
++a Conservation Surcharge Stamp to keep 
++rainbow trout over 50 cm from the main body 
++of Kootenay Lake. You must immediately 
++record your retention on your basic 
++angling licence. 
++No Conservation Surcharge Stamp is required 
++if you release all Kootenay Lake rainbow 
++trout over 50 cm.
+=== PDF p.10: 65 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
++Anglers securing the services of an Angling 
++Guide can be certain that person is licensed by:
++• Asking to see their current Angling Guide 
++Licence (or Assistant Angling Guide 
++Licence); OR 
++• Confirming their status by contacting 
++FrontCounter BC (FCBC) at one of the 
++following:
++- By Phone: Toll free at 1-877-855-
++3222, from outside North America 
++- By Email: FrontCounterBC@gov.bc.ca
++Family Fishing Weekend 
++An annual celebration of fishing that 
++coincides with Father’s Day weekend each 
++year. The provincial government waives the 
++requirement for residents of Canada to buy 
++or carry a non-tidal (freshwater) basic licence 
++during the Father's Day weekend in June, 
++and the Friday immediately prior. The federal 
++Department of Fisheries and Oceans Canada, 
++which manages tidal waters, also offers the 
++opportunity to go saltwater fishing for free. 
++This is a great opportunity to get together 
++with family and friends and try fishing!
++Anglers must still adhere to catch quotas and 
++regulations. And if you plan to fish for species 
++that require a conservation surcharge stamp 
++(steelhead, Shuswap Lake rainbow trout 
++and char, Kootenay Lake rainbow trout, 
++white sturgeon, and salmon in both tidal and 
++non-tidal waters); or angle Classified Waters 
++(highly productive trout streams; listed as 
++Class I or Class II waters in the water-specific 
++tables of the fishing regulations) you are 
++still required to purchase the appropriate 
++licence(s) and conservation surcharge 
++stamps. 
+-nymphs or caddisfly larvae) at a lake. 
+-Chumming… attempting to attract fish by 
+-depositing any substance in the water, is 
+-prohibited.
+-Fin fish… means all fish other than 
+-crustaceans, echinoderms, molluscs, 
+-shellfish, and marine mammals. The use 
+-of fin fish (dead or alive) or parts of fin fish 
+-other than roe is prohibited throughout the 
+-province, with the following exceptions: You 
+-may use the head of fin fish or the headless 
+-body of fin fish as bait, only:
+-(a) when sport fishing for sturgeon in Region 
+-2 only on the Fraser River, Lower Pitt River 
+-(CPR Bridge upstream to Pitt Lake), Lower 
+-Harrison River (Fraser River upstream to 
+-Harrison Lake), or 
+-(b) when set lining in lakes of Region 6 or in 
+-lakes of Zone A of Region 7.
+-Quotas
+-For all game fish, there is a quota or limit on 
+-the number of fish you may retain.
+-Refer to the Regional Chapters for additional 
+-information on regional and water-specific 
+-quotas.
+-Daily quota… the maximum number of fish 
+-of a given species, group of species, or size 
+-class that you may retain in one calendar day.
+=== PDF p.11: 63 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
++nymphs or caddisfly larvae) at a lake. 
++Chumming… attempting to attract fish by 
++depositing any substance in the water, is 
++prohibited.
++Fin fish… means all fish other than 
++crustaceans, echinoderms, molluscs, 
++shellfish, and marine mammals. The use 
++of fin fish (dead or alive) or parts of fin fish 
++other than roe is prohibited throughout the 
++province, with the following exceptions: You 
++may use the head of fin fish or the headless 
++body of fin fish as bait, only:
++(a) when sport fishing for sturgeon in Region 
++2 only on the Fraser River, Lower Pitt River 
++(CPR Bridge upstream to Pitt Lake), Lower 
++Harrison River (Fraser River upstream to 
++Harrison Lake), or 
++(b) when set lining in lakes of Region 6 or in 
++lakes of Zone A of Region 7.
++Quotas
++For all game fish, there is a quota or limit on 
++the number of fish you may retain.
++Refer to the Regional Chapters for additional 
++information on regional and water-specific 
++quotas.
++Daily quota… the maximum number of fish 
++of a given species, group of species, or size 
++class that you may retain in one calendar day.
+-https://www.canada.ca/en/environment￾climate-change/services/species-risk￾public-registry.html.
++www.canada.ca/en/environment-climate￾change/services/species-risk-public￾registry.html.
+-https://bcparks.ca/conservation/
+-ecological-reserves/.
++bcparks.ca/conservation/ecological￾reserves/.
+-regulations in this Synopsis. 
+-NOTE: The use of horses, motor vehicles, 
+-motorcycles, snowmobiles, other self￾propelled vehicles, or bicycles is generally 
+-prohibited in Provincial Parks, Conservancies, 
+-and Recreation Areas except where 
+-specifically authorized. All motorized vehicles 
+-on park roads must be licensed. The use 
+-of aircraft to arrive or depart from some 
+-parks is restricted. Activities in parks may 
+-be regulated by signs posted on site. More 
+-information can be found at BC Parks website 
+-https://bcparks.ca/
+-National Parks
+-The seven National Parks within British 
+-Columbia are: Kootenay, Yoho, Glacier, 
+-Mount Revelstoke, Pacific Rim, Gwaii Haanas 
+-and Gulf Islands.
+-Freshwater fishing is prohibited in 
+-National Parks unless opened under the 
+-National Parks Fishing Regulations. Where 
+-open, anglers require a National Park Fishing 
+-Permit to fish in park waters.
+-A provincial angling licence is not valid unless 
+-otherwise stated for any fresh water within 
+-National Parks or National Park Reserves.
+-National Park Fishing Permits and 
+-Regulations are available at park visitor 
+-centres and at some local commercial 
+-outlets. The National Parks Fishing 
+-Regulations may also be viewed at 
+=== PDF p.12: 44 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
++regulations in this Synopsis. 
++NOTE: The use of horses, motor vehicles, 
++motorcycles, snowmobiles, other self￾propelled vehicles, or bicycles is generally 
++prohibited in Provincial Parks, Conservancies, 
++and Recreation Areas except where 
++specifically authorized. All motorized vehicles 
++on park roads must be licensed. The use 
++of aircraft to arrive or depart from some 
++parks is restricted. Activities in parks may 
++be regulated by signs posted on site. More 
++information can be found at BC Parks website 
++bcparks.ca/
++National Parks
++The seven National Parks within British 
++Columbia are: Kootenay, Yoho, Glacier, 
++Mount Revelstoke, Pacific Rim, Gwaii Haanas 
++and Gulf Islands.
++Freshwater fishing is prohibited in 
++National Parks unless opened under the 
++National Parks Fishing Regulations. Where 
++open, anglers require a National Park Fishing 
++Permit to fish in park waters.
++A provincial angling licence is not valid unless 
++otherwise stated for any fresh water within 
++National Parks or National Park Reserves.
++National Park Fishing Permits and 
++Regulations are available at park visitor 
++centres and at some local commercial 
++outlets. The National Parks Fishing 
++Regulations may also be viewed at 
+-travelling.
++travelling - FWID and ID are acceptable if a 
++Conservation Surcharge Stamp and catch 
++retantion record were not required for 
++your catch.
+-Information on basic eligibility, the Angling 
+-Guide Exam, and the subsequent steps to 
+-obtaining a new Angling Guide Licence is 
+-available on the FrontCounter BC website 
+-www.frontcounterbc.gov.bc.ca/info/.
++Review information on basic eligibility, the 
++Angling Guide Exam, and the subsequent 
++steps to obtaining an Angling Guide Licence 
++at: www.gov.bc.ca/angling-guide-licence
+=== PDF p.14: 2 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-For detailed maps visit gov.bc.ca/WildlifeManagementUnits.
++For detailed maps visit www.gov.bc.ca/WildlifeManagementUnits
+=== PDF p.17: 11 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-PUNTLEDGE RIVER 1-6
+-Exempt from July 15-August 31 summer closure
+-No Fishing downstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake) to the base of Stotan Falls 
+-(approximately 450 m downstream of the Duncan Bay Mainline logging road)
+-No Fishing between fishing boundary signs approximately 100 m upstream and downstream of the confluence with Morrison Creek
+-No Fishing from fishing boundary signs located 50 m upstream of the BC Hydro generating station tailrace to signs located 75 m 
+-downstream of the Puntledge River hatchery fence (total distance approximately 500 m)
+-No Fishing tributaries
+-Fly fishing only upstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake), including tributaries
+-No Fishing July 4-July 14
++FORBUSH LAKE 1-6 No trout over 50 cm; bait ban, single barbless hook
+=== PDF p.18: 5 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-FORBUSH LAKE 1-6 No trout over 50 cm; bait ban, single barbless hook
+-No Fishing upstream of top of lower canyon, located 1.3km upstream of the Gold River confluence Nov 1-Sept 14 
+-No Fishing downstream of top of lower canyon, located 1.3km upstream of the Gold River confluence
++No Fishing upstream of top lower canyon, located 1.3km upstream of the Gold River confluence Nov 1-Aug 31
++No Fishing downstream of top lower canyon, located 1.3km upstream of the Gold River confluence Jan 1-Dec 31
+=== PDF p.19: 16 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-LITTLE QUALICUM RIVER 1-6
+-No Fishing July 15-Aug 31, No Fishing - All tributaries 
+-No Fishing from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence, Dec 1-May 31 
+-The standard 100 m closure around a fish rearing facility has been reduced to a no fishing area from the hatchery fence to signs 
+-approximately 35 m downstream
+-Fly fishing only, Sept 1-Nov 30 (where open)
+-LIZARD LAKE 1-3 electric motor only - max 7.5 kW
++PUNTLEDGE RIVER 1-6
++Exempt from July 15-August 31 summer closure
++No Fishing downstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake) to the base of Stotan Falls 
++(approximately 450 m downstream of the Duncan Bay Mainline logging road)
++No Fishing between fishing boundary signs approximately 100 m upstream and downstream of the confluence with Morrison Creek
++No Fishing from fishing boundary signs located 50 m upstream of the BC Hydro generating station tailrace to signs located 75 m 
++downstream of the Puntledge River hatchery fence (total distance approximately 500 m)
++No Fishing tributaries
++Fly fishing only upstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake), including tributaries
+=== PDF p.22: 2 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-For detailed maps visit gov.bc.ca/WildlifeManagementUnits.
++For detailed maps visit www.gov.bc.ca/WildlifeManagementUnits
+=== PDF p.23: 3 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-https://nrc.canada.ca/en/ for a sunrise￾sunset calculator.
++nrc.canada.ca/en/ for a sunrise-sunset 
++calculator.
+=== PDF p.26: 2 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-Creek
++Creek 
+=== PDF p.29: 2 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-For detailed maps visit gov.bc.ca/WildlifeManagementUnits.
++For detailed maps visit www.gov.bc.ca/WildlifeManagementUnits
+=== PDF p.34: 6 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-SALMON RIVER 3-26 Rainbow trout and char catch and release, bait ban downstream of Hwy 97 bridge at Falkland
++SALMON RIVER 3-26 No Fishing July 30-Sept 15 including tributaries
++Rainbow trout and char catch and release, bait ban downstream of Hwy 97 bridge at Falkland
+-FishingRegulations.
+-2025-2027 BC Freshwater Fishing Regulations Synopsis
++FishingRegulations. 2025-2027 BC Freshwater Fishing Regulations Synopsis
+=== PDF p.35: 2 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-For detailed maps visit gov.bc.ca/WildlifeManagementUnits.
++For detailed maps visit www.gov.bc.ca/WildlifeManagementUnits
+=== PDF p.36: 7 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-and information about recovery actions 
+-and updated bulletins at https://www2.
+-gov.bc.ca/gov/content/environment/
+-plants-animals-ecosystems/fish/fish￾management/region-4-kootenay.
++and information about recovery actions and 
++updated bulletins at www2.gov.bc.ca/gov/
++content/environment/plants-animals￾ecosystems/fish/fish-management/region￾4-kootenay.
+=== PDF p.47: 2 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-For detailed maps visit gov.bc.ca/WildlifeManagementUnits.
++For detailed maps visit www.gov.bc.ca/WildlifeManagementUnits
+=== PDF p.48: 4 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-visit our website at https://www2.gov.bc.ca/
+-gov/content/sports-culture/recreation/
+-fishing-hunting/fishing/recreational￾freshwater-fishing-licence.
++visit our website at www.gov.bc.ca/fish￾licence.
+=== PDF p.54: 2 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-For detailed maps visit gov.bc.ca/WildlifeManagementUnits.
++For detailed maps visit www.gov.bc.ca/WildlifeManagementUnits
+=== PDF p.55: 8 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-For more information visit http://www.env.
+-gov.bc.ca/skeena/qws/
++For more information visit www.env.gov.
++bc.ca/skeena/qws/
+-environment/plants-animals-ecosystems/fish/
+-fish-management/region-6
++environment/plants-animals-ecosystems/
++fish/fish-management/region-6
+=== PDF p.63: 10 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-For detailed maps visit gov.bc.ca/WildlifeManagementUnits.
++For detailed maps visit www.gov.bc.ca/WildlifeManagementUnits
+-information, please see the Mercury in 
+-Fish fact sheet on the HealthLinkBC Files 
+-website at https://www.healthlinkbc.ca/
+-healthwise/avoiding-mercury-fish.
++information, please see the Mercury in Fish 
++fact sheet on the HealthLinkBC Files website 
++at www.healthlinkbc.ca/healthwise/
++avoiding-mercury-fish.
+=== PDF p.69: 2 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-For detailed maps visit gov.bc.ca/WildlifeManagementUnits.
++For detailed maps visit www.gov.bc.ca/WildlifeManagementUnits
+=== PDF p.70: 4 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-See https://www.sitecproject.com/boating
+-for details.
++See www.sitecproject.com/boating for 
++details.
+=== PDF p.73: 2 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-For detailed maps visit gov.bc.ca/WildlifeManagementUnits.
++For detailed maps visit www.gov.bc.ca/WildlifeManagementUnits
+=== PDF p.75: 9 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
++BESSETTE CREEK  8-22 No Fishing July 30-Sept 15
+-GRANBY RIVER 8-15 Upstream of Burrell Creek: exempt from spring closure; bait ban Apr 1-Oct 31; trout/char daily quota = 1
++GRANBY RIVER 8-15
++No Fishing July 30-Sept 15 from 12 pm to midnight
++Upstream of Burrell Creek: exempt from spring closure; bait ban Apr 1-Oct 31; trout/char daily quota = 1
+-GRANBY RIVER’S TRIBUTARIES 8-15 Bait ban
++GRANBY RIVER’S TRIBUTARIES 8-15 No Fishing July 30-Sept 15 from 12 pm to midnight
++Bait ban
+-JEWEL CREEK 8-14 No Fishing from Jewel Lake downstream approximately 1.5 km to fishing boundary signs
+=== PDF p.76: 7 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
++JEWEL CREEK 8-14 No Fishing from Jewel Lake downstream approximately 1.5 km to fishing boundary signs
++No Fishing July 30-Sept 15
+-OKANAGAN RIVER OXBOWS 8-1 These isolated oxbows adjacent to Okanagan River downstream of the McIntyre Dam and upstream of Vaseux Lake are EXEMPT from the 
++OKANAGAN RIVER OXBOWS 8-1
++No Fishing July 30-Sept 15
++These isolated oxbows adjacent to Okanagan River downstream of the McIntyre Dam and upstream of Vaseux Lake are EXEMPT from the 
+-SATURDAY LAKE 8-6 Electric motor only - max 7.5 kW
+=== PDF p.77: 7 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
++SATURDAY LAKE 8-6 Electric motor only - max 7.5 kW
++No Fishing July 30-Sept 15
+-NOTE: If a lake or stream is NOT listed here, then only the Provincial Regulations (pages 8-10) and the Regional Regulations (page 68) apply. Regulations that 
+-have changed from the previous published version of the synopsis are no longer highlighted in colour. Check for any in-season changes at: www.gov.bc.ca/
+-FishingRegulations.
++NOTE: If a lake or stream is NOT listed here, then only the Provincial Regulations (pages 8-10) and the Regional Regulations (page 68) apply. Regulations that have changed 
++from the previous published version of the synopsis are no longer highlighted in colour. Check for any in-season changes at: www.gov.bc.ca/FishingRegulations.
+=== PDF p.80: 19 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-Please visit the whirling disease 
+-website: www.gov.bc.ca/whirlingdisease 
++Please visit the whirling disease website:
++www.gov.bc.ca/whirlingdisease
+-invasive mussels: https://www2.gov.bc.ca/
+-gov/content/invasive-mussels
++invasive mussels: www2.gov.bc.ca/gov/
++content/invasive-mussels
+-aquatic species into a body of water 
+-where it is not native, unless authorized 
+-under federal, provincial or territorial 
+-law. For more information: https://www.
+-dfo-mpo.gc.ca/species-especes/ais-eae/
+-regulations-reglements/index-eng.html
++aquatic species into a body of water where 
++it is not native, unless authorized under 
++federal, provincial or territorial law. For 
++more information: www.dfo-mpo.gc.ca/
++species-especes/ais-eae/regulations￾reglements/index-eng.html
+=== PDF p.81: 8 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-Invasive species on the provincial priority 
+-list can be viewed at gov.bc.ca/gov/content/
++Invasive species on the provincial priority list 
++can be viewed at gov.bc.ca/gov/content/
+-for consumption of fish, please visit https://
+-www.healthlinkbc.ca/healthwise/avoiding￾mercury-fish.
++for consumption of fish, please visit www.
++healthlinkbc.ca/healthwise/avoiding￾mercury-fish.
+=== PDF p.82: 2 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-Website: https://tc.canada.ca/en/marine￾transportation/marine-safety/boating￾safety
++Website: tc.canada.ca/en/marine￾transportation/marine-safety/boating￾safety
+=== PDF p.83: 21 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-Non-tidal salmon fishing regulations: 
+-The regulations for salmon fishing in fresh 
+-water are not included in this Synopsis but 
+-are available at https://www.pac.dfo-mpo.
+-gc.ca/fm-gp/rec/salmon-saumon-eng.
+-html. Please note that when fresh waters are 
+-closed to fishing, or have gear restrictions 
+-outlined in this Synopsis, the regulations 
+-apply to fishing for salmon as well as for non￾salmon species.
++Non-tidal salmon fishing regulations: The 
++regulations for salmon fishing in fresh water 
++are not included in this Synopsis but are 
++available at www.pac.dfo-mpo.gc.ca/fm￾gp/rec/salmon-saumon-eng.html. Please 
++note that when fresh waters are closed to 
++fishing, or have gear restrictions outlined in 
++this Synopsis, the regulations apply to fishing 
++for salmon as well as for non-salmon species.
+-Contact Fisheries and Oceans Canada at 
+-https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/
++Contact Fisheries and Oceans Canada 
++at www.pac.dfo-mpo.gc.ca/fm-gp/rec/
+=== PDF p.85: 4 changed lines (- repo copy, + gov.bc.ca 2026-11-25)
+-Wildlife Branch
++Wildlife and Ecosystems Branch
+-Website address: https://parks.canada.ca/
++Website address: parks.canada.ca/
