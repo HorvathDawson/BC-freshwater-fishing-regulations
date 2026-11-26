@@ -3,7 +3,7 @@
  * reported, `failure.ts`), never the end of the app; each screen says which it is. Whole sentences, one per screen,
  * so a test pins the line the reader sees.
  */
-export type ScreenName = "map" | "conditions" | "runs" | "spots" | "more" | "water" | "spot" | "newSpot";
+export type ScreenName = "map" | "conditions" | "runs" | "spots" | "more" | "water" | "spot" | "newSpot" | "app";
 
 const LINES: Readonly<Record<ScreenName, string>> = {
   map: "The map hit a problem and could not be drawn.",
@@ -14,6 +14,8 @@ const LINES: Readonly<Record<ScreenName, string>> = {
   water: "This water hit a problem and could not be drawn.",
   spot: "This spot hit a problem and could not be drawn.",
   newSpot: "Adding a spot hit a problem and could not be drawn.",
+  // the last resort: the shell's own chrome (bars, rail, sheets), the boot screen, or the app's top level
+  app: "The app hit a problem and could not be drawn.",
 };
 
 /** What a screen says when it could not be drawn. */

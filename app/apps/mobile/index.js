@@ -56,9 +56,12 @@ if (process.env.EXPO_PUBLIC_REGS_ONE_BY_ONE === "1") globalThis.__regsOneByOne =
 import App from "./src/App";
 import { holdSplash } from "./src/splash";
 import { withGestureRoot } from "./src/gestureRoot";
+import { withRootBoundary } from "./src/rootBoundary";
 
 // (T244) keep the native splash (the loading fish) up until the boot screen's spinner is drawn: src/splash.ts
 holdSplash();
 
 // Gestures (G1) need their root view above everything.
-registerRootComponent(withGestureRoot(App));
+// (T1164) the last resort under the gestures: a fault in the app's top level, the shell's own chrome or the boot screen
+// shows the app's line with Try again, and is reported; the screens have their own boundaries inside (`Shell.tsx`)
+registerRootComponent(withGestureRoot(withRootBoundary(App)));

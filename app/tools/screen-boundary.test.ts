@@ -40,3 +40,22 @@ describe("every screen is mounted through a ScreenBoundary", () => {
     expect(m!.line).not.toMatch(/screen\([^<]*<NewThingScreen\b/);
   });
 });
+
+describe("the app root is mounted inside the last-resort boundary", () => {
+  const INDEX = readFileSync(join(APP, "apps/mobile/index.js"), "utf8")
+    .replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[\s;{}),])\/\/.*$/gm, "$1");
+
+  it("index.js registers App only through withRootBoundary (inside the gesture root)", () => {
+    expect(INDEX).toContain("registerRootComponent(withGestureRoot(withRootBoundary(App)));");
+    expect(INDEX.match(/registerRootComponent\(/g)).toHaveLength(1);
+  });
+
+  it("the root boundary is a ScreenBoundary of the app's own line", () => {
+    const src = readFileSync(join(APP, "apps/mobile/src/rootBoundary.tsx"), "utf8");
+    expect(src).toContain('<ScreenBoundary screen="app" resetKey="app" palette={THEMES.light}>');
+  });
+
+  it("an App registered bare is caught by the scan (a fixture)", () => {
+    expect("registerRootComponent(withGestureRoot(App));").not.toContain("withRootBoundary(App)");
+  });
+});
