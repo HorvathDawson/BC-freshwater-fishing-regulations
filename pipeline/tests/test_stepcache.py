@@ -372,8 +372,8 @@ def test_a_traced_stage_keys_on_the_files_it_imported(scratch):
     mod.write_text("x = 1\n")
     other = scratch / "other.py"
     other.write_text("y = 1\n")
-    m = {"stages": {"reach": {"code_files": {rel(mod): "x"}, "code_reads": {}, "code_packages": [], "code_config": {}}},
-         "runs": []}
+    m = {"stages": {"reach": {"code_files": {rel(mod): "x"}, "code_reads": {}, "code_packages": ["pyyaml"],
+                              "code_config": {"curated": "x"}}}, "runs": []}     # (an empty set is refused)
     k1 = B.stage_code("reach", m)
     assert {k: k1[k] for k in ("python", "sqlite")} == SC.stage_env()
     other.write_text("y = 2\n")

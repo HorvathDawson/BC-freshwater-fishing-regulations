@@ -171,7 +171,9 @@ def test_hole1_the_untraced_fallback_holds_every_file_under_the_roots(scratch):
 # ------------------------------------------------- hole 2 + owner pick A: the packages it imports, the config it reads
 
 def test_hole2_every_stage_is_traced():
-    assert set(B.TRACED) == set(B.STAGES)
+    """Every stage a key decides; (T1120, merged from main) the in-season resolution is made only when it is missing or
+    stale (`MADE_WHEN_MISSING`), never because its key moved, so no code key of it decides anything."""
+    assert set(B.TRACED) == set(B.STAGES) - set(B.MADE_WHEN_MISSING) and B.MADE_WHEN_MISSING == ("inseason",)
 
 
 def test_pick_a_only_a_package_the_stage_imports_moves_its_key(scratch, config_copy, monkeypatch):
@@ -208,6 +210,68 @@ def test_pick_a_config_read_with_no_value_recorded_stops_the_build(scratch):
     (tr / "1.trace").write_text(f"R\t{REPO_ROOT / 'config.yaml'}\t1:1\n")
     with pytest.raises(SystemExit, match=r"build: reach: reach read config.yaml but recorded no value"):
         B._traced_key("reach", tr, {"x": 1})
+
+
+#: (second review of #286, BLOCKER) the REAL recorder over REAL Cython packages: pandas 3.0.3 registers
+#: `pandas._libs._cyutility` under the bare `sys.modules` key `_cyutility`, scipy its `_csparsetools`, `_moduleTNC`,
+#: `_ni_label` — no distribution owns those names, and keying the sys.modules KEY stopped every real build after the
+#: stage had run. The child also says which bare keys it saw, so the test proves it still exercises the case.
+REAL_CYTHON = textwrap.dedent("""
+    import json, sys
+    import pipeline                                  # installs the recorder (PIPELINE_TRACE), as every stage does
+    from pipeline.common import curated              # what every stage imports first: PyYAML and its config values
+    curated.GENERATED.bundle                         # (read on first use, as every stage takes its paths)
+    import pandas, scipy.sparse, scipy.optimize, scipy.ndimage
+    print(json.dumps(sorted(k for k, m in sys.modules.items()
+                            if "." not in k and getattr(getattr(m, "__spec__", None), "name", k) != k)))
+""")
+
+
+def test_finding1_real_pandas_and_scipy_imports_key_under_the_real_recorder(scratch):
+    tr = scratch / "tr"
+    got = subprocess.run([PY, "-c", REAL_CYTHON], check=True, cwd=REPO_ROOT, capture_output=True, text=True,
+                         env=_env(scratch, PIPELINE_TRACE=str(tr)))
+    bare = set(json.loads(got.stdout.strip().splitlines()[-1]))
+    assert bare & {"_cyutility", "_csparsetools", "_moduleTNC", "_ni_label"}, \
+        f"pandas / scipy no longer register a module under a bare key ({sorted(bare)}): this test tests nothing"
+    t = SC.Trace(tr)
+    assert not t.packages & bare                     # the module's own name (its spec), never the bare key
+    key, _inputs, code, note = B._traced_key("reach", tr, {"x": 1})       # raised SystemExit before the fix
+    assert key is not None, note
+    assert {"pandas", "scipy", "numpy", "pyyaml"} <= set(code["packages"]) and code["config"]
+
+
+def test_finding2_an_empty_package_or_config_set_is_refused_never_none(scratch, monkeypatch):
+    """A run of repo code that recorded no package or no config value is a recorder miss: the build stops, naming the
+    stage; a manifest record or an atlas record holding the empty set is refused (the stage runs; the atlas is behind)
+    — never read as "this stage imports nothing" and kept "up to date"."""
+    init = REPO_ROOT / "pipeline" / "__init__.py"
+    m_line = f"M\t{init}\t{SC.code_now(['pipeline/__init__.py'])['pipeline/__init__.py']}\n"
+    for name, lines, says in (("nopkg", m_line + "C\tcurated\tc0ffee\n", "no package"),
+                              ("nocfg", m_line + "P\tyaml\t\n", "no config value")):
+        tr = scratch / name
+        tr.mkdir()
+        (tr / "1.trace").write_text(lines)
+        with pytest.raises(SystemExit, match=rf"build: deliver: deliver recorded {says}: .*recorder miss"):
+            B._traced_key("deliver", tr, {"x": 1})
+    # the manifest record: refused, keyed as never recorded, and the plan says why
+    rec = {"key": "k", "code_files": {"pipeline/__init__.py": "x"}, "code_reads": {}, "code_packages": [],
+           "code_config": {"curated": "c0ffee"}}
+    m = {"stages": {"reach": rec}, "runs": []}
+    fallback = {"roots": B.code_digest(B.CODE["reach"]), "env": SC.env_fingerprint(), "config": SC.config_now(["*"])}
+    assert B.stage_code("reach", m) == fallback
+    assert "names no package (a recorder miss): refused" in B.refused_record("reach", rec)
+    assert "no config value" in B.refused_record("reach", dict(rec, code_packages=["pyyaml"], code_config={}))
+    assert B.refused_record("reach", dict(rec, code_packages=["pyyaml"])) is None
+    # the atlas record: behind, so `pipeline release` refuses it
+    monkeypatch.setattr(I, "ATLAS_INPUTS", {"k": "a stand-in input"})
+    atlas = scratch / "atlas"
+    atlas.mkdir()
+    code = {"modules": {"pipeline/__init__.py": SC.code_now(["pipeline/__init__.py"])["pipeline/__init__.py"]},
+            "reads": {}, "packages": {}, "config": SC.config_now(["curated"]), **SC.stage_env()}   # all else current
+    I.write_meta(atlas, {"input_hashes": {"k": "v"}, I.CODE: code})
+    got = I.behind(atlas, {"k": "v"})
+    assert len(got) == 1 and "its code record names no package" in got[0] and I.REBUILD in got[0]
 
 
 def test_pick_a_config_yaml_is_loaded_only_by_the_two_recording_loaders():

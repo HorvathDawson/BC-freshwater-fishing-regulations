@@ -183,6 +183,20 @@ def is_machinery(rel: str) -> bool:
     return p.is_file() and re.search(r"^RECORD_MACHINERY = True\b", p.read_text(encoding="utf-8"), re.M) is not None
 
 
+#: (T1171, second review of #286) WHY AN EMPTY PACKAGE OR CONFIG SET IS REFUSED, never read as "none": every stage (and
+#: the atlas build) imports `pipeline.common.curated`, which imports PyYAML, and takes its paths from config.yaml through
+#: it (or `project_config`) — so a run that recorded no package or no config value is a recorder that missed them, and a
+#: key or an atlas record holding the empty set would leave every package upgrade or config edit out of it ("up to
+#: date"). Measured on the real imports (2026-11-26): clim 6 distributions and 3 config blocks, the others more.
+EMPTY_IS_A_MISS = ("every stage imports PyYAML and takes its paths from config.yaml (`pipeline.common.curated`), so "
+                   "an empty set is a recorder miss, never \"none\" — it would key no package upgrade or config edit")
+
+
+def empty_parts(packages, config) -> list[str]:
+    """The parts of a code record that are EMPTY where a real run always has some (`EMPTY_IS_A_MISS`), in words."""
+    return [w for w, v in (("no package", packages), ("no config value", config)) if not v]
+
+
 def code_reads_now(files) -> dict[str, str]:
     """{file: sha256 now} for recorded code reads (its kind, "missing" / "dir", for one that is no file now)."""
     out = {}
@@ -253,14 +267,17 @@ def traced_code(trace: "Trace", stage: str = "the run") -> dict:
     (`is_code_read`): sha256}, "packages": [the distributions owning what it imported], "config": {config key read:
     digest}, "moved": [...]}. `moved` names each module, code file or config value that changed while it ran — imported
     with two contents, read with two stamps or values, or different now — and a run with any cannot be keyed honestly
-    (its caller keys nothing). Raises `Untraceable` (never an empty set) for a package no distribution owns, or
-    config.yaml read with no value recorded."""
+    (its caller keys nothing). Raises `Untraceable` (never an empty set) for a package no distribution owns,
+    config.yaml read with no value recorded, or a run of repo code that recorded no package or no config value at all
+    (`EMPTY_IS_A_MISS`)."""
     reads = {r: s for r, s in sorted(trace.reads.items()) if is_code_read(r)}
     now = code_reads_now(reads)
     if CONFIG_FILE in trace.reads and not trace.config:
         raise Untraceable(f"{stage} read {CONFIG_FILE} but recorded no value of it: a reader outside the two config "
                           "loaders (`curated`, `project_config`), whose reads cannot be keyed")
     dists = distributions_of(trace.packages, stage)
+    if trace.modules and (gone := empty_parts(dists, trace.config)):
+        raise Untraceable(f"{stage} recorded {' and '.join(gone)}: {EMPTY_IS_A_MISS}")
     # AFTER the content is hashed: each code file still as it was when it was read (else the hash may be of bytes the
     # run never saw), each module as imported, each config value as read
     cfg = config_now(trace.config) if trace.config else {}

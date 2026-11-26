@@ -17,7 +17,8 @@ between that moment and the end of the run — the output came from what was rea
     P <name>            (T1171) a THIRD-PARTY top-level package imported (not this repo, not the standard library): the
                         consumer keys the installed distribution that owns it, by version (`stepcache.package_versions`)
                         — so only what a stage imports moves its key, never pytest or vulture; one no distribution
-                        owns is a raise, never an empty set. Also swept from `sys.modules` at install and at exit.
+                        owns is a raise, never an empty set. Also swept from `sys.modules` at install and at exit,
+                        each module named by its SPEC (pandas' `_cyutility` key is `pandas._libs._cyutility`).
     C <key> <digest>    (T1171) a config.yaml value read (`config_read`, called by the two config loaders): its dotted
                         key (`*` = the whole file) and the digest of its value — so a stage is keyed on the config
                         values it reads, not on the whole file
@@ -234,6 +235,13 @@ def _third_party(name: str, origin, locations) -> str | None:
     return top
 
 
+def _own_name(key: str, spec) -> str:
+    """The dotted name a module was imported as: its spec's `name` (what the import system found it under), else its
+    `sys.modules` key (a module with no spec: only one built by hand)."""
+    n = getattr(spec, "name", None) if spec is not None else None
+    return n if isinstance(n, str) and n else key
+
+
 def _sweep() -> None:
     """M for every repo module in `sys.modules` not yet named, P for every third-party package (once each)."""
     if _fd < 0:
@@ -249,7 +257,12 @@ def _sweep() -> None:
                         _emit("M", os.path.abspath(f), hashlib.sha256(fh.read()).hexdigest())
                 continue
             spec = getattr(mod, "__spec__", None)
-            top = _third_party(name, f, getattr(spec, "submodule_search_locations", None) if spec else None)
+            # (T1171, second review of #286) the module's OWN name, from its spec — never its `sys.modules` key: a
+            # Cython / C module may register itself under a bare key (pandas 3.0.3: `_cyutility` is
+            # `pandas._libs._cyutility`; scipy 1.18: `_csparsetools`, `_moduleTNC`, `_ni_label`), and no distribution
+            # owns that bare name, so keying it stopped every real build after the stage had run
+            top = _third_party(_own_name(name, spec), f,
+                               getattr(spec, "submodule_search_locations", None) if spec else None)
             if top is not None and (f is not None or spec is not None):
                 _emit("P", top)
     finally:

@@ -263,6 +263,10 @@ def code_behind(build_dir: Path) -> list[str]:
                 f"`{BACKFILL_CODE}`, or rebuild: {REBUILD}"]
     if "unrecorded" in code:
         return [f"{build_dir.name}/{META} ({CODE}): its code was not recorded ({code['unrecorded']}) — rebuild: {REBUILD}"]
+    # (second review of #286) an empty package or config set is a recorder miss, never "none": refused, not current
+    if gone := stepcache.empty_parts(code.get("packages"), code.get("config")):
+        return [f"{build_dir.name}/{META} ({CODE}): its code record names {' and '.join(gone)} "
+                f"({stepcache.EMPTY_IS_A_MISS}) — rebuild: {REBUILD}"]
     out = []
 
     def line(moved: list[str], what: str) -> None:
@@ -274,7 +278,7 @@ def code_behind(build_dir: Path) -> list[str]:
     line(sorted(k for k in was if now[k] != was[k]), "")
     pk = stepcache.package_versions(code["packages"])
     line([f"{d} {code['packages'][d]} -> {pk[d]}" for d in sorted(pk) if pk[d] != code["packages"][d]], ": packages")
-    cf = stepcache.config_now(code["config"]) if code["config"] else {}
+    cf = stepcache.config_now(code["config"])
     line([f"config.yaml {k}" for k in sorted(cf) if cf[k] != code["config"][k]], ": config")
     env = stepcache.stage_env()
     line([k for k in sorted(env) if code.get(k) != env[k]], ": env")

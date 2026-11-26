@@ -50,8 +50,9 @@ def _atlas(tmp_path: Path, hashes: dict) -> Path:
     d.mkdir(exist_ok=True)
     write_artifact({"g": 1}, str(d / "graph.pkl"), input_hashes=hashes)
     meta = I.read_meta(d)
-    meta[I.CODE] = {"modules": SC.code_now(["pipeline/atlas/graph/graph.py"]), "reads": {}, "packages": {}, "config": {},
-                    **SC.stage_env()}
+    # (a real record always names a package and a config value: an empty set is refused, test_build_key_holes.py)
+    meta[I.CODE] = {"modules": SC.code_now(["pipeline/atlas/graph/graph.py"]), "reads": {},
+                    "packages": SC.package_versions(["pyyaml"]), "config": SC.config_now(["curated"]), **SC.stage_env()}
     I.write_meta(d, meta)
     return d
 

@@ -378,13 +378,29 @@ def stage_code(stage: str, m: dict | None = None) -> dict:
     """(T522) A stage's code input: for a TRACED stage with a recorded run, `stepcache.code_key` of what that run used
     (T1171: its modules, code files, packages and config values, now, and the interpreter + SQLite); else (no record
     yet: the stage runs) {"roots": the digest of its `CODE` roots, "env": every installed distribution, "config": the
-    whole config.yaml}. A record from before T1171 (no `code_packages`) is keyed as no record: the stage runs once."""
+    whole config.yaml}. A record from before T1171 (no `code_packages`) is keyed as no record: the stage runs once.
+    (Second review of #286) So is a record whose package or config set is EMPTY (`refused_record`): never "none"."""
     from pipeline.common import stepcache
     rec = ((m if m is not None else load_manifest())["stages"].get(stage) or {})
-    if stage in TRACED and rec.get("code_files") and "code_packages" in rec:
+    if stage in TRACED and rec.get("code_files") and "code_packages" in rec and refused_record(stage, rec) is None:
         return stepcache.code_key(rec["code_files"], rec.get("code_reads") or {}, rec["code_packages"],
-                                  rec.get("code_config") or {})
+                                  rec["code_config"])
     return {"roots": code_digest(CODE[stage]), "env": stepcache.env_fingerprint(), "config": stepcache.config_now(["*"])}
+
+
+def refused_record(stage: str, rec: dict) -> str | None:
+    """(T1171, second review of #286) Why a traced stage's manifest record cannot key it, or None: one with modules but
+    an EMPTY package or config set (or none at all) is a recorder miss (`stepcache.EMPTY_IS_A_MISS`) — taken as "no
+    packages", every upgrade and config edit would leave the stage "up to date". The record is REFUSED: the stage is
+    keyed as never recorded, so it runs, and the plan prints this reason (`plan`); a run that records an empty set again
+    stops the build (`_traced_key`). A record from before T1171 (no `code_packages` at all) is not refused here: it is
+    the planned rerun-once."""
+    from pipeline.common import stepcache
+    if stage not in TRACED or not rec.get("code_files") or "code_packages" not in rec:
+        return None
+    gone = stepcache.empty_parts(rec.get("code_packages"), rec.get("code_config"))
+    return (f"its record names {' and '.join(gone)} (a recorder miss): refused as a record — it runs, and a run that "
+            "records an empty set again stops the build") if gone else None
 
 
 def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
@@ -618,7 +634,7 @@ def plan(build_dir: Path, force: set[str], why: dict | None = None) -> list[tupl
         after = [d for d in DEPENDS[s] if d in runs]
         stale = inseason_stale(build_dir) if s in MADE_WHEN_MISSING else None
         go = (s in force or bool(stale)) if s in MADE_WHEN_MISSING else \
-            s in force or key != last or bool(missing) or bool(after)
+            s in force or key != last or bool(missing) or bool(after) or refused_record(s, rec) is not None
         if go and s in MADE_WHEN_MISSING and SIDE is not None:
             # a side run touches nothing live, and deliver reads the live resolution: make it there first
             raise SystemExit("build (side): the in-season resolution must be made in the live tree first — "
@@ -637,6 +653,8 @@ def plan(build_dir: Path, force: set[str], why: dict | None = None) -> list[tupl
                     "(named first-build:<atlas handles>; publish refuses it, the release re-resolves on its candidate)")
             elif s in force:
                 why[s] = "forced"
+            elif (refused := refused_record(s, rec)) is not None:
+                why[s] = refused
             elif last is None:
                 why[s] = "never built"
             elif key != last:
