@@ -89,4 +89,27 @@ describe("ScreenBoundary", () => {
     expect(screen.getByTestId("body-Spots").textContent).toBe("Spots is drawn");
     expect(reports).toHaveLength(0);
   });
+
+  it("a panel (placing bottom) is a band, not a screen: its line, Try again, and Close, which calls goBack and draws it again", () => {
+    broken = true;
+    const close = vi.fn(() => { broken = false; });
+    render(
+      <ScreenBoundary screen="sheet" resetKey="s" palette={LIGHT} goBack={close} placing="bottom"><Screen name="Spots" /></ScreenBoundary>);
+    expect(screen.getByRole("alert").textContent).toBe("A panel hit a problem and could not be drawn.");
+    expect(getComputedStyle(screen.getByTestId("screen-fault-sheet")).position).toBe("absolute");
+    expect(screen.queryByTestId("screen-fault-back")).toBeNull();
+    expect(reports).toHaveLength(1);
+    fireEvent.click(screen.getByTestId("screen-fault-close"));
+    expect(close).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("body-Spots").textContent).toBe("Spots is drawn");
+    expect(reports).toHaveLength(1);
+  });
+
+  it("a panel with no way to close it offers Try again only", () => {
+    broken = true;
+    render(<ScreenBoundary screen="key" resetKey="k" palette={LIGHT} placing="bottom"><Screen name="Spots" /></ScreenBoundary>);
+    expect(screen.getByRole("alert").textContent).toBe("The map key hit a problem and could not be drawn.");
+    expect(screen.queryByTestId("screen-fault-close")).toBeNull();
+    expect(screen.getByTestId("screen-fault-retry").textContent).toBe("Try again");
+  });
 });

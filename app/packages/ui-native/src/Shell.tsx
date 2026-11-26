@@ -539,8 +539,13 @@ export function Shell(p: ShellProps) {
    * Go back; reported), and the shell around it stays whole. `tools/screen-boundary.test.ts` fails a screen mounted
    * without it. `key` resets the screen when the tab or the water changes.
    */
-  const screen = (name: ScreenName, key: string, node: React.ReactNode, goBack?: () => void) => (
-    <ScreenBoundary screen={name} resetKey={key} palette={palette} goBack={goBack}>{node}</ScreenBoundary>);
+  const screen = (name: ScreenName, key: string, node: React.ReactNode, goBack?: () => void, placing?: "top" | "bottom") => (
+    <ScreenBoundary screen={name} resetKey={key} palette={palette} goBack={goBack} placing={placing}>{node}</ScreenBoundary>);
+  /** (T1164) the sheet block's Close, when a sheet's own fault is shown: every sheet the Shell holds open is put away */
+  const closeSheets = () => {
+    setLayersOpen(false); setDayOpen(false); setObstacle(null); setNotFishing(undefined); setRunsAt(null);
+    setSyncErrorOpen(false); setBellOpen(false); inbox.close(); menu.closePage(); rail.cancelDrop();
+  };
   useEffect(() => { browseShown.current = browseNow; });
   if (viewing)
     return layered(withGuide(
@@ -629,7 +634,7 @@ export function Shell(p: ShellProps) {
         || (t === "map" && (c.layers.water.drawn !== "regulations" || c.statusOk)));
 
   const chromeLive = {
-    top: (
+    top: screen("search", "top", (
       <>
         {topBar && (
           <TopBar ref={field} palette={palette} placeholder={placeholder} sync={sync} onSync={onSync}
@@ -659,8 +664,8 @@ export function Shell(p: ShellProps) {
                        active={search.keys.active} />
         )}
       </>
-    ),
-    foot: (
+    ), search.closeToField, "top"),
+    foot: screen("key", "foot", (
       <>
           {/* (T566) the key the map is drawn in (`look`): a tab or colouring the map has not drawn yet keeps the last one */}
           <HeldKey store={lookStore}>{({ col: keyCol, tab: keyTab }) => <>
@@ -675,7 +680,7 @@ export function Shell(p: ShellProps) {
           {route.mode === "browse" && mapTabShown && keyTab === "runs" && !searching && <RunsLegend col={keyCol} palette={palette} theme={theme} fishImages={p.fishImages} />}
           </>}</HeldKey>
       </>
-    ),
+    ), undefined, "bottom"),
     tabs: bottomBarShown(route)
       ? (tabsRail ? <NavRail active={tab} palette={palette} onChange={nav.toTab} />
                   : <TabBar active={tab} palette={palette} onChange={nav.toTab} />)
@@ -758,6 +763,9 @@ export function Shell(p: ShellProps) {
       {/* A tab change is a change of subject: the remembered reach goes with it. Hidden in water mode (P13/P14). */}
       {chrome.tabs && !tabsRail && <View collapsable={false} pointerEvents={held ? "none" : "auto"}
                             onLayout={(e) => setTabsH(Math.round(e.nativeEvent.layout.height))}>{chrome.tabs}</View>}
+      {/* (T1164) every sheet and card over the screens is in ONE boundary: a fault in one shows a band at the foot (Try again,
+          Close: every sheet put away) and leaves the map and the tab bar working; a menu page has its own, inside MenuHost */}
+      {screen("sheet", "sheets", (<>
       {/* (T215) the synopsis PDF is loading / failed: progress, Cancel, Retry */}
       <SynopsisLoading palette={palette} floating />
       {/* (T354) the rule book itself, in the app (native; the web opens the browser's tab) */}
@@ -815,6 +823,7 @@ export function Shell(p: ShellProps) {
       {/* (T231) the sync icon's red badge: what could not be updated, when each last succeeded, Retry */}
       <SyncErrorSheet open={syncErrorOpen && syncState.failed.length > 0} failed={syncState.failed} palette={palette}
                       checking={syncState.checking} onRetry={syncState.refresh} onClose={() => setSyncErrorOpen(false)} />
+      </>), closeSheets, "bottom")}
       {/* (T746) a downloaded release being put in use: the curtain over everything, taking every tap and the back */}
       {p.applyCurtain && <ApplyCurtain palette={palette} applying={p.applyCurtain.applying} failed={p.applyCurtain.failed}
                                        onClose={p.applyCurtain.close} line={p.applyCurtain.line} />}
