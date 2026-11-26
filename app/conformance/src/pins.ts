@@ -47,6 +47,7 @@ export function makePin(file: string, record: string | undefined): (name: string
       mkdirSync(dir, { recursive: true });
       if (existsSync(out) && readFileSync(out, "utf8") !== body) throw new Error(`pin ${name}: recorded twice with different values (${out})`);
       writeFileSync(out, body);
+      process.stderr.write(`pin ${name}: RECORDED, not compared (PIN_RECORD=${record})\n`);   // record mode is never silent
       return;
     }
     pins ??= readPins(file);

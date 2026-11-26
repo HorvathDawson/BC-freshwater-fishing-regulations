@@ -5,7 +5,7 @@
 import { mkdtempSync, readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { makePin, readPins } from "../../conformance/src/pins";
 import { SUITES, format, merge, pinTests, recorded } from "./pins.mjs";
 
@@ -44,6 +44,19 @@ describe("pin(name, actual), the app helper", () => {
     expect(recorded(join(rec, "app"))).toEqual({ "a.count": { n: 68, v: 5 }, "a.new": [1, 2] });
     expect(() => pin("a.count", { v: 5, n: 69 })).toThrow(/recorded twice with different values/);
     expect(readPins(join(d, "release-pins.json"))).toEqual(PINS);   // the file itself is never touched by a test
+  });
+});
+
+describe("record mode is never silent (T1135 review)", () => {
+  it("writes one stderr line per recorded pin", () => {
+    const d = scratch(), rec = join(d, "rec");
+    const err = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    try {
+      makePin(pinsFile(d, { "a.count": { answers: false, value: 1 } }), rec)("a.count", 2);
+      expect(err).toHaveBeenCalledWith(`pin a.count: RECORDED, not compared (PIN_RECORD=${rec})\n`);
+    } finally {
+      err.mockRestore();
+    }
   });
 });
 

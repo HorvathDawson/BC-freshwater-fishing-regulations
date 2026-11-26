@@ -258,6 +258,13 @@ def test_a_step_runs_without_gits_repository_variables(tmp_path):
     assert bare() == "false" and (tmp_path / "here2" / ".git").is_dir()
 
 
+def test_a_step_compares_the_pins_whatever_the_shell_exported():
+    """(T1135) an exported PIN_RECORD would make every `pin()` in the hook's tests record and pass: a step's env carries
+    it empty (compare), as the release's `test_env` does. Mutation: drop the line in `step_env` -> fails."""
+    assert BP.step_env({**os.environ, "PIN_RECORD": "/tmp/pins"})["PIN_RECORD"] == ""
+    assert BP.step_env({k: v for k, v in os.environ.items() if k != "PIN_RECORD"})["PIN_RECORD"] == ""
+
+
 def test_the_pre_push_hook_drops_gits_repository_variables():
     """The hook itself unsets them before it starts before_push.py (the same set, git's own list)."""
     hook = (Path(__file__).resolve().parents[2] / ".githooks" / "pre-push").read_text()

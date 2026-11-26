@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import sys
 from pathlib import Path
 
 from pipeline.common.curated import REPO_ROOT
@@ -68,6 +69,7 @@ def make_pin(file: Path, record: str | None):
             if out.is_file() and out.read_text(encoding="utf-8") != body:
                 raise AssertionError(f"pin {name}: recorded twice with different values ({out})")
             out.write_text(body, encoding="utf-8")
+            print(f"pin {name}: RECORDED, not compared (PIN_RECORD={record})", file=sys.stderr)   # never silent
             return
         if "pins" not in cache:
             cache["pins"] = read(file)
