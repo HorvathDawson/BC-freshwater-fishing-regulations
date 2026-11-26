@@ -85,5 +85,16 @@ Model: Opus for the style work, Sonnet for the research page. Owner: yes (the pi
 - [x] 2026-11-26 — zoomed-out names and towns: what to build? → "could we look at the standard for how to do this neatly? we can generate picture of a few different options then offer them as propsoals to the reviewer and see what they think? we could also try other changes to see if it make it neater too. like making it clear those are the region boundaries. also we can clean up the legend and make it use less space somehow? use industry standard. and make sure it is compatible with future move to mapbox. prototype all of this stuff using the webapp because it is way faster then emulating app changes" (2026-11-26)
 - [x] 2026-11-26 — how far to go on the map's look (lines read as roads, the tapped water, a softer base)? → "do the full monty and we can see what feels best after and send options to the reviewer." (2026-11-26)
 - [x] 2026-11-26 — which release takes this batch? → "we will put all changes from this on it" (the held 0.10.0 re-cut) (2026-11-26)
-- [ ] 2026-11-26 — pick from the option pictures (names, towns, boundaries, rule lines, the tapped water, the base,
-  the legend, the search hint) when the chat sends them. Default until then: nothing changes in the app.
+- [x] 2026-11-26 — which package to build from (today / light touch / recommended / full, the packages sheet)? → "Recommended (Recommended)" (2026-11-26)
+  That is: names at the middle density (a2), our towns with a hand-picked second tier (b3), dashed boundaries with a
+  soft band and "Region n" labels (c2), fewer and thinner rule lines zoomed out (d1, d2), the softer base with one
+  water blue (f1), the one-line legend (g1), "Search waters and towns" (h1). The tapped look is the next line.
+- [x] 2026-11-26 — how should a tapped water stand out (sheet e)? → "it opens the page right over it after the click so i dont see why it is needed toi be to crazy highlighted?" (2026-11-26)
+  So: no change to the tapped look (e dropped). The reply asks the tester what "the system i have highlighted" was.
+- [x] 2026-11-26 — hillshade: now, later or never? → "Later, own ticket (Recommended)" (2026-11-26). It is T1204.
+- [x] 2026-11-26 — what goes to the tester as proposals? → "let me pick the options i want to send give me a bunch of options then i will pick the ones i think have a chance of being good. then we can send them to the reviewer and see what they think while we choose our favourite in the mean time. also the legend rework i think is one of the bigger wins maybe?" (2026-11-26)
+- [ ] 2026-11-26 — pick which numbered option pictures go to the tester (the second round: single, sendable pictures,
+  more legend designs). Default until then: nothing is sent and the recommended package is what gets built.
+- [ ] 2026-11-26 — the second tier of towns (from zoom 6) is a list we choose, since the basemap cannot rank them
+  (Vanderhoof, Fort St. James, Mackenzie, Houston and about 30 more in the prototype). Default: the prototype's list,
+  shown to you as a picture before it merges.
