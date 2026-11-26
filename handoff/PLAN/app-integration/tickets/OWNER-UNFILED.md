@@ -24,3 +24,6 @@ block and deletes the section here. `node app/tools/ledger.mjs` lists the open l
 
 ## The game-fish bar's open colour (T1145 follow-up)
 - [ ] 2026-11-25 — T1145 is merged (#260): look at the Capilano before/after pictures of the open colour (`handoff/PLAN/app-integration/T1145-shots/`); say if it is wrong.
+
+## Re-issue the feeds worker's GitHub token before it expires (2027-11-25)
+- [ ] 2026-11-25 — The worker's GitHub token on the new org expires 2027-11-25 (your words: "365 days away is expiry"). Two weeks before: re-issue it on the org, `wrangler secret put` on staging and production, run check-github on each.
