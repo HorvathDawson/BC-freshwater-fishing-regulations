@@ -8,6 +8,7 @@ import subprocess
 from pathlib import Path
 
 from pipeline.common.curated import REPO_ROOT
+from pipeline.tests import title_check_stand_in
 
 SCRIPT = Path(REPO_ROOT) / "scripts" / "before_pr.sh"
 
@@ -21,6 +22,8 @@ def title_of(n: int) -> str:
 
 def _run(codes: str, title: str = "ci: a title", *extra: str, env: dict | None = None) -> subprocess.CompletedProcess:
     env = {**os.environ, "BEFORE_PR_SELFTEST": codes, **(env or {})}
+    # the title check's node command is stood in for (pipeline CI has no app/node_modules): title_check_stand_in.py
+    env["PATH"] = f"{title_check_stand_in.bin_dir()}{os.pathsep}{env['PATH']}"
     return subprocess.run(["bash", str(SCRIPT), "--title", title, *extra], cwd=REPO_ROOT, env=env,
                           capture_output=True, text=True, timeout=60)
 

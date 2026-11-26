@@ -25,6 +25,9 @@ def _no_real_gh(monkeypatch):
     """(T1144) the pre-push title check asks gh for the branch's PR: never the real gh in a test (no PR answers)."""
     monkeypatch.setattr(BP, "_gh", lambda args: subprocess.CompletedProcess(
         args, 1, "", 'no pull requests found for branch "x"'))
+    # and its node command is stood in for (pipeline CI has no app/node_modules): title_check_stand_in.py
+    from pipeline.tests import title_check_stand_in
+    monkeypatch.setenv("PATH", f"{title_check_stand_in.bin_dir()}{os.pathsep}{os.environ['PATH']}")
 
 
 def test_every_pipeline_ci_run_step_is_run_or_named_with_its_reason():
