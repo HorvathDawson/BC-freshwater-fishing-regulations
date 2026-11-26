@@ -68,4 +68,4 @@ stocking / depth lines (`menu/licences.ts:144`, `sources.ts:121`) stay, by the s
 
 - [ ] 2026-11-25 — When the lane has the shipped-feature list and the proposed words (home block, store listing lines): read them and say yes or change them. Default: nothing ships to the site until you have.
 - [x] 2026-11-25 — Stocked lakes and depth are not fed with data yet: how to claim them → "Claim them now as features" (2026-11-25)
-- [ ] 2026-11-25 — The store listings (Play, App Store): name stocked lakes and depth now too, or only with the build that ships them (the review-rejection risk is on the stores, not the site). Default: the site now, the stores with the build.
+- [x] 2026-11-25 — The store listings (Play, App Store): name stocked lakes and depth now too, or only with the build that ships them (the review-rejection risk is on the stores, not the site). Default: the site now, the stores with the build. → "Stores now too" (2026-11-26 01:01; his call, the review-rejection risk recorded)

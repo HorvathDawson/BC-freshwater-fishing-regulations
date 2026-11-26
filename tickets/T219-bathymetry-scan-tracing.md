@@ -65,3 +65,8 @@ recorded, plus the tile size delta.
 
 Depends: T218 (contour drawing, ground truth), T200 (stocked list for ranking). Size: L. Owner: yes (the tier size N;
 whether to use a vision model for pre-labelling). Default: top 100 lakes, human labelling only.
+
+## 2026-11-26
+The study (T201, planning chat notes `bathymetry-pdf-to-vector`): tracing is doable but slow; the hard part is which
+line is which depth (the prototype got 2 of 8 levels). About 400 lakes have vector data already (T201, T218). No bulk
+tracing: a 3-lake pilot comes last, after the vector sources, and gives real minutes per lake.

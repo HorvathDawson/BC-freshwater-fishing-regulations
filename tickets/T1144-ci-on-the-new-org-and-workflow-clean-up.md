@@ -82,8 +82,19 @@ Notes: `tickets/archive/night-notes-2026-11-25.tar.gz` `ci-speed-build-plan.md` 
   to the main checkout's): about 5 min lost per new worktree; build-coho should take `PIPELINE_PY` like the hook.
 - A docs-guard test assumed a single restart page (`app/tools/check-tickets.test.ts`; fixed in PR #275).
 
+## 2026-11-26: a new PR's title is first checked by CI
+- The hook from #276 checks the title only on a push to a branch that already HAS a PR. The title is set at
+  `gh pr create`, after the first push, so a new PR's title is first checked by CI (the planning chat's reading, not
+  verified in code). The limit is 93 characters INCLUDING " (#NNN)", so 86 for the title; #297 sat red all night at 100.
+- New item: on the first push, the pre-push hook checks the head commit's subject (it becomes the title) against 86.
+  Until it lands, every agent brief says "86 or fewer".
+- From the night (speed chat): #279 added pytest-xdist to `requirements.txt` and the stage keys hash every installed
+  package, so the first build after a venv reinstall reruns reach and deliver with the same output; #286 (T1171)
+  landing first avoids it. A merge-of-main push still takes 250-350 s (the fixed steps): the next cut.
+
 ## Owner
 
-- [ ] 2026-11-25 — After 0.10.0 is out: turn Dependabot security updates back on (the repo switch, yours) and CodeQL back on (one field on the org security configuration); the planning chat reminds you (T1141).
+- [x] 2026-11-25 — After 0.10.0 is out: turn Dependabot security updates back on (the repo switch, yours) and CodeQL back on (one field on the org security configuration); the planning chat reminds you (T1141). → "you can do it for me" (2026-11-26; done early: Dependabot 02:07, CodeQL 11:32 MST on his pick; T1141)
 - [x] 2026-11-25 — "clean up workflows after too. can delete bloat as part of cleanup" (2026-11-25 15:44).
-- [ ] 2026-11-25 — Picks for CI (defaults first): pytest-xdist on the same runner / shards / a larger runner; the queue skips unchanged areas / re-runs everything; drop main from on-push / keep; one required check / four; no docs-PR limit and at most two code PRs in CI / one docs PR at a time; no Team plan yet / Team; no self-hosted runner on the Mac.
+- [x] 2026-11-25 — Picks for CI (defaults first): pytest-xdist on the same runner / shards / a larger runner; the queue skips unchanged areas / re-runs everything; drop main from on-push / keep; one required check / four; no docs-PR limit and at most two code PRs in CI / one docs PR at a time; no Team plan yet / Team; no self-hosted runner on the Mac. → "Yes, the recommended set" (2026-11-25 23:23); shards → "Measure shards, then decide (Recommended)" (2026-11-26)
+- [x] 2026-11-26 — The title length, pre-checked better → "Check the commit subject on push" (2026-11-26; not a separate open-PR script)

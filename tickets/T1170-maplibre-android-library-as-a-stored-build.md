@@ -32,4 +32,5 @@ the store pick below.
 
 ## Owner
 
-- [ ] 2026-11-25 — Where the built library is kept: a GitHub Release file (default) or R2.
+- [x] 2026-11-25 — Where the built library is kept: a GitHub Release file (default) or R2. → "Yes to all four" (2026-11-26: a public GitHub Release file)
+- [x] 2026-11-26 — The four speed items (the web-only release path and the data floor check, T1165; the pre-cut gate, T1159; the first steps of T1133; the public GitHub Release file for the MapLibre library, T1170) → "Yes to all four" (2026-11-26; also "Yes to all four; relay it", 2026-11-26 01:54)

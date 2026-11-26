@@ -260,7 +260,8 @@ export function keptProblems({ paths, kept = KEPT_ASSETS, readers = KEPT_READERS
   const problems = [];
   const have = new Set(paths);
   for (const key of Object.keys(kept)) {
-    const full = `${DOCS_DIR}/${key}`;   // ledger.mjs keys by the path under the docs folder
+    // ledger.mjs keys by the path under the docs folder; the tickets folder is top-level, its keys are repo paths
+    const full = under(key, TICKETS_DIR) ? key : `${DOCS_DIR}/${key}`;
     if (!paths.some((p) => p === full || p.startsWith(`${full}/`))) problems.push(`KEPT_ASSETS lists ${key}, which is not tracked: take it off the list`);
     const who = readers[key];
     if (!who?.length) { problems.push(`KEPT_ASSETS lists ${key} with no KEPT_READERS entry: name the file that still reads it, or take it off the list`); continue; }

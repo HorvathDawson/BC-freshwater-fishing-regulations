@@ -46,4 +46,4 @@ ledger). The replacement text for this ticket is in the notes; in short:
 
 ## Owner
 
-- [ ] 2026-11-25 — Picks (defaults first): the data tier in parallel / only add resume / split part of it to weekly; the fresh-copy run: drop it and require green CI on the shipped commit / run it once / keep; release literals: one pins file plus properties / properties only / as today; the side release before merge: app and pipeline tests first / all / not before merge; the 4 minutes of CI repeats inside the follows: keep / drop.
+- [x] 2026-11-25 — Picks (defaults first): the data tier in parallel / only add resume / split part of it to weekly; the fresh-copy run: drop it and require green CI on the shipped commit / run it once / keep; release literals: one pins file plus properties / properties only / as today; the side release before merge: app and pipeline tests first / all / not before merge; the 4 minutes of CI repeats inside the follows: keep / drop. → "Yes, the recommended set" (2026-11-25 23:23)

@@ -16,3 +16,12 @@ Source: the 0.9.1 chat, 2026-11-24, PR #130 (T1050): clause `zp:allowable_method
 before/after picture; a wording test.
 
 Severity: low (wording). Release: 0.9.2. Model: Sonnet (Opus if the wording comes from the cascade). Size: S. Owner: no.
+
+## 2026-11-26
+Built by the hardening chat on a local branch of the main checkout, not pushed: the pre-push hook refused it because
+`pipeline/deliver/answers/gear.py` changed and the mini release was not re-cut. Next: the re-cut under the lock (the
+owner's yes below), push, review.
+
+## Owner
+
+- [x] 2026-11-26 — A build chat runs `python -m pipeline.tools.mini_release --write` (the fixture re-cut) once per branch, under the lock → "Yes" (2026-11-26; T1085, T1096, T1168)
