@@ -12,7 +12,6 @@ is the port tooling in `app/design/regs-v11/port/` (committed, run, outputs in `
 | `tests.md` | every check.mjs check → its unit / render test or manual gate; the golden parity harness; the reader gate |
 | `decisions.md` | the owner's binding decisions in force, by subject, one line each (his date and the ticket) |
 | `tickets/NN-*.md` | the ordered backlog, ≤ ~1 day each |
-| `self-check.md` | three tickets dry-run against the real code |
 
 ## 0. Prerequisites: app prep + the minimal release (added 2026-10-20)
 

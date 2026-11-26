@@ -4,9 +4,9 @@ Status: PARTIAL (item 1 merged 7c077fdef (e39bcfed6); items 2 and 4 landed 45fff
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T797 | Printed rules the page never shows: "No angling from powered boats" (7 rules), dead fin fish as sturgeon bait, the Shuswap pier exemptions, "wild" on the Pitt Lake caveat | PARTIAL (items 1-4 landed: 7c077fdef, 45fff5e63, 6c82b6d53, dbaa009b9 (T789 K8); left (Claude): item 5) | e39bcfed6, 8d7f17709, 6c82b6d53 | general audit 2026-11-16, answers checker D1, B2, B3, B4, E5, E6 (`handoff/PLAN/audit-2026-11-16/answers.md`) |
+| T797 | Printed rules the page never shows: "No angling from powered boats" (7 rules), dead fin fish as sturgeon bait, the Shuswap pier exemptions, "wild" on the Pitt Lake caveat | PARTIAL (items 1-4 landed: 7c077fdef, 45fff5e63, 6c82b6d53, dbaa009b9 (T789 K8); left (Claude): item 5) | e39bcfed6, 8d7f17709, 6c82b6d53 | general audit 2026-11-16, answers checker D1, B2, B3, B4, E5, E6 (its text: git history, the 2026-11-16 audit folder, a6d3bfcf6 (answers.md)) |
 
-Source: general audit 2026-11-16, answers checker D1, B2, B3, B4, E5, E6 (`handoff/PLAN/audit-2026-11-16/answers.md`).
+Source: general audit 2026-11-16, answers checker D1, B2, B3, B4, E5, E6 (its text: git history, the 2026-11-16 audit folder, a6d3bfcf6 (answers.md)).
 Owner 2026-11-16 go-ahead card: "Go on all (Recommended)". 2026-11-17 ~15:52, owner on item 2: "Show it (Recommended)" (the
 dead-fin-fish-for-sturgeon allowance shows on sturgeon waters; reverses D18 a). 2026-11-17 ~16:30, item 2 follow-up (the
 set-lining allowance in the same `also_allowed` field), verbatim label: "Show both (Recommended)": every allowance the book

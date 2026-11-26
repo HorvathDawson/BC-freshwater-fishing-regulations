@@ -4,9 +4,9 @@ Status: PARTIAL (docs and small tickets; main chat; items 1 and 7 DONE 2b4e0d826
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T790 | Records to put right: answers shown as open, stale ledger rows, stalled tickets, readings missing from the rulings file, lost follow-ups | PARTIAL (items 1, 7 and item 4's ledger half done: 2b4e0d826, c0f8da79c; left (Claude): 2, 3, 4 rest, 5, 6, 8, 9) | c0f8da79c, 2b4e0d826 | general audit 2026-11-16, decisions checker (`handoff/PLAN/audit-2026-11-16/decisions.md`) |
+| T790 | Records to put right: answers shown as open, stale ledger rows, stalled tickets, readings missing from the rulings file, lost follow-ups | PARTIAL (items 1, 7 and item 4's ledger half done: 2b4e0d826, c0f8da79c; left (Claude): 2, 3, 4 rest, 5, 6, 8, 9) | c0f8da79c, 2b4e0d826 | general audit 2026-11-16, decisions checker (its text: git history, the 2026-11-16 audit folder, a6d3bfcf6 (decisions.md)) |
 
-Source: general audit 2026-11-16, decisions checker (`handoff/PLAN/audit-2026-11-16/decisions.md`).
+Source: general audit 2026-11-16, decisions checker (its text: git history, the 2026-11-16 audit folder, a6d3bfcf6 (decisions.md)).
 
 Done: item 1 (T754 says the owner's answer "Build it this way (Recommended)", 2026-11-15 round 4) and item 7 (the two
 out-of-date production command blocks r-f749475d0962, r-a178299f6005 removed; `release/PRODUCTION.md`: the feeds worker

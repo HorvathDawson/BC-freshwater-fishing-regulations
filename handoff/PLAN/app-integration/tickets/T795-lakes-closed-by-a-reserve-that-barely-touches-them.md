@@ -4,9 +4,9 @@ Status: PARTIAL (data fix DONE 46c13b267: `zp:superior_closures.r3` takes six la
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T795 | Fraser Lake, Kotcho Lake and Cold Fish Lake read closed all year because an ecological reserve covers 0.1 % of the lake | PARTIAL (six lakes fixed 46c13b267; left (Claude): the half-inside build check) | 46c13b267 | general audit 2026-11-16, answers checker B1 (`handoff/PLAN/audit-2026-11-16/answers.md`) |
+| T795 | Fraser Lake, Kotcho Lake and Cold Fish Lake read closed all year because an ecological reserve covers 0.1 % of the lake | PARTIAL (six lakes fixed 46c13b267; left (Claude): the half-inside build check) | 46c13b267 | general audit 2026-11-16, answers checker B1 (its text: git history, the 2026-11-16 audit folder, a6d3bfcf6 (answers.md)) |
 
-Source: general audit 2026-11-16, answers checker B1 (`handoff/PLAN/audit-2026-11-16/answers.md`).
+Source: general audit 2026-11-16, answers checker B1 (its text: git history, the 2026-11-16 audit folder, a6d3bfcf6 (answers.md)).
 
 ## What is wrong
 A `within(area)` rule holds every lake the area's polygon touches (AGENTS rule 13). "Fishing is prohibited in

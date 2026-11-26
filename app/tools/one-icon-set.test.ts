@@ -13,7 +13,7 @@
  *   the table    every icon is used somewhere; the version is recorded once (`@app/core` ICON_SET) and the licence
  *                file and the credit say the same (each icon's drawing: packages/ui-native/src/icons.test.tsx)
  *
- * The scan is a net, not a proof: how the bar and rail look is in the shots (handoff/PLAN/app-integration/icons-shots/).
+ * The scan is a net, not a proof: how the bar and rail look is in a screenshot pass, not here.
  */
 import { describe, expect, it } from "vitest";
 import { readFileSync, readdirSync, statSync } from "node:fs";
