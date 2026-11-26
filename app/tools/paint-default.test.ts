@@ -15,6 +15,7 @@ import { describe, expect, it } from "vitest";
 import { createPropertyExpression, latest } from "@maplibre/maplibre-gl-style-spec";
 import { LAB_DEFAULT, labStyle } from "../packages/map/src/lab";
 import { nativeStyle } from "../packages/map/src/native-style";
+import { maplibreDialect } from "../packages/map/src/native/maplibre/dialect";
 import { labelUniverse, paintDefaultStyle } from "../packages/map/src/paint-default";
 import type { ChannelValues } from "../packages/map/src/style";
 
@@ -32,7 +33,7 @@ const AT = { atlas: "file:///d/release/tiles/v/atlas-v.pmtiles", basemap: "file:
 type L = { id: string; type: string; paint?: Record<string, unknown>; filter?: unknown };
 type S = { layers: L[] };
 const style = (mode: string, theme: string) => nativeStyle({ at: AT, theme, view: "plain", modes: { stream: mode }, hide: [],
-  groups: {}, basemap: "map" as const, gauges: '{"type":"FeatureCollection","features":[]}', values: VALUES } as never).style as unknown as S;
+  groups: {}, basemap: "map" as const, gauges: '{"type":"FeatureCollection","features":[]}', values: VALUES } as never, maplibreDialect).style as unknown as S;
 
 const spec = (type: string, prop: string) =>
   ((latest as unknown as Record<string, Record<string, unknown>>)[`paint_${type}`] ?? {})[prop];

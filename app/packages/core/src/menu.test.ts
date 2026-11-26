@@ -179,7 +179,8 @@ describe("sources and credits (T167: references apart — no dates, no freshness
         from: "BC River Forecast Centre. The CLEVER, COFFEE and ELF river forecasts, used with permission.", detail: null },
       { k: "weather", name: "Weather", from: "Weather data by Open-Meteo.com, CC BY 4.0.", detail: null },
       { k: "imagery", name: "Satellite imagery", from: "Powered by Esri · Source: Esri, Vantor, Earthstar Geographics, "
-        + "and the GIS User Community. Shown only while online, never stored.", detail: null },
+        + "and the GIS User Community. Shown only while online. "
+        + "Pictures you have viewed may be kept on this device so they load faster.", detail: null },
     ]);
   });
 

@@ -1,10 +1,10 @@
 # T1148 — Satellite tiles are very likely kept on the phone; the privacy page says "not stored"
 
-Status: OPEN — the hardening release; verify first, then reword (owner: keep the cache)
+Status: PARTIAL — the words are reworded (PR of 2026-11-26); left (Claude): the look inside the cache on an Android phone and an iPhone, and T1122's store-form table
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1148 | Satellite tiles are very likely kept on the phone; the privacy page says "not stored" | OPEN — the hardening release; verify first, then reword (owner: keep the cache) | | owner 2026-11-25: "Keep cache, reword the page"; "Only the cache rewording" |
+| T1148 | Satellite tiles are very likely kept on the phone; the privacy page says "not stored" | PARTIAL — the words are reworded (PR of 2026-11-26); left (Claude): the look inside the cache on an Android phone and an iPhone, and T1122's store-form table | | the device check (step 1: what MapLibre's cache holds on an Android phone and an iPhone, how long, how big) when the Mac and phones are free; T1122's table (planning chat) |
 
 Source: T1108's second scoping pass, 2026-11-25 (read-only). MapLibre Native keeps an ambient tile cache on disk, 50 MB
 by default (upstream `include/mln/util/constants.hpp:53`), and the app never sets it (no call in `app/packages`
@@ -26,7 +26,15 @@ the other. Esri's terms do not say whether a device cache is allowed (see T1108)
 Severity: low to medium (a privacy page that is not exactly true). Model: Sonnet (Opus for the device check).
 Size: S. Owner: clears the sentence.
 
+## Built 2026-11-26 (map engine chat; the words only, nothing checked on a phone)
+The privacy page, More > Sources ("Shown only while online. Pictures you have viewed may be kept on this device so
+they load faster.") and the licences table ("The Satellite ground, online only.") read core's `IMAGERY_KEPT_*`
+(`app/packages/core/src/imagery.ts`); the style comment is reworded. `app/tools/imagery-cache.test.ts` holds the
+words whole and fails when any source of ours names the engine's cache controls (step 4). Also in the PR, asked
+by the planning chat: the privacy page's script list names the /gauges search and the gauge page's chart script.
+Owed: step 1 on real phones (the sentence says "may be kept" until then); step 3, T1122's table.
+
 ## Owner
 
 - [x] 2026-11-25 — Satellite tile cache → "Keep cache, reword the page" and "Only the cache rewording" (2026-11-25).
-- [ ] 2026-11-25 — Clear the reworded privacy sentence about the satellite tile cache when it is drafted.
+- [x] 2026-11-25 — Clear the reworded privacy sentence about the satellite tile cache when it is drafted. → "Shortest": "Imagery is shown only while online. Satellite pictures you have looked at may be kept on your device so they load faster; they are not sent anywhere else."; the two app lines that said "never stored" → "Fix both now (Recommended)" (2026-11-26, map engine chat dialog).
