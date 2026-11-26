@@ -10,7 +10,9 @@ stage while the named sections' shapes are in hand (`topology.keep_named`, EPSG:
    a shape (the two ends cannot then be told apart), the END NEARER THE MAIN LINE; measured along the main line from the mouth as every
    other span is. Guards: the main line is the same water's (`item_section`); the snap is at most `MAX_SNAP_M`; the main
    line section it lands on must be orientable (its downstream or upstream neighbour on the stem says which end is the
-   mouth's). (T1140 proposal, coordinator 2026-11-25, "a consistent way to handle this") A channel whose downstream end
+   mouth's; a main line of ONE section has neither, and its own flow pointer says it: the end touching the section it
+   flows into, `section_down`: the Old Kootenay River Channel, 2026-11-26; touching neither end or both, no join).
+   (T1140 proposal, coordinator 2026-11-25, "a consistent way to handle this") A channel whose downstream end
    TOUCHES a water body of its own river joins the river AT it: a named lake its main line runs through names the
    channel's lower end (only where its flow pointer says that end is the downstream one: never a lake it leaves) (`section_span.lo` = `lake_inlet:<lake>`: "side channel into <Lake>"); its own polygon (a wide
    reach) or an unnamed lake its main line runs through is measured at the main line's point nearest the touch,
@@ -60,7 +62,8 @@ NOT_A_PLACE = ("region", "mu_group", "sign_zone")
 
 
 class SideChannelError(SystemExit):
-    """What the rules cannot measure (a main line of one section; no area catalogue): never a guessed answer."""
+    """What the rules cannot measure (a main line of one section its flow pointer does not orient; no area catalogue):
+    never a guessed answer."""
 
 
 def _components(sids: List[int], touch: Dict[int, set]) -> List[List[int]]:
@@ -137,13 +140,16 @@ def touched(ends: List[object], own: List[Tuple[int, object]], lakes: List[Tuple
 
 
 def join_measure(channel: List[object], stem: List[Tuple[int, int, object]],
-                 down: Optional[object] = None, end: Optional[object] = None) -> Tuple[float, float, int]:
+                 down: Optional[object] = None, end: Optional[object] = None,
+                 mouth_at: Optional[object] = None) -> Tuple[float, float, int]:
     """(the join's metres from the mouth along the main line, the snap in metres, the stem section it lands on) for a
     channel (its sections' shapes) against its water's main line (`stem`: [(lo_m, hi_m, shape)] of its stem sections).
     The end of the channel nearer the main line, snapped to the nearest stem section, placed between that section's
     measures from the end its downstream neighbour (else upstream neighbour) touches. Ties go to the lower measure.
     `down`: the shape the channel's flow leaves it for — its end nearest that is its downstream end, the one snapped;
-    `end`: the end to snap, given (the end that touches a water body of the river)."""
+    `end`: the end to snap, given (the end that touches a water body of the river); `mouth_at`: for a main line of ONE
+    section, the shape its own flow pointer leaves it for (`section_down`) — the end touching it, and only it, is the
+    mouth's."""
     from shapely.ops import nearest_points
     best = None
     ends = [end] if end is not None else _ends(channel)
@@ -160,7 +166,8 @@ def join_measure(channel: List[object], stem: List[Tuple[int, int, object]],
     lo, hi, g = stem[k]
     on = nearest_points(e, g)[1]
     # which end of this stem section is downstream: the one nearer the stem sections below it, else farther from those
-    # above it; a stem of one section cannot be oriented (the caller stops)
+    # above it; a stem of one section, the one touching what its flow pointer leaves it for — else it cannot be
+    # oriented (the caller stops)
     below = [s for s in stem if s[1] <= lo + 1 and s[2] is not g]
     above = [s for s in stem if s[0] >= hi - 1 and s[2] is not g]
     from shapely.geometry import Point
@@ -172,8 +179,13 @@ def join_measure(channel: List[object], stem: List[Tuple[int, int, object]],
     elif above:
         ref = min(above, key=lambda s: (s[2].distance(p0) + s[2].distance(p1), s[0]))[2]
         down0 = ref.distance(p0) > ref.distance(p1)
+    elif mouth_at is not None and sorted((mouth_at.distance(p0) <= TOUCH_M, mouth_at.distance(p1) <= TOUCH_M)) == \
+            [False, True]:
+        down0 = mouth_at.distance(p0) <= TOUCH_M
     else:
-        raise SideChannelError("side channel: its water's main line is one section — which end is the mouth's is not known")
+        raise SideChannelError("side channel: its water's main line is one section — which end is the mouth's is not known"
+                               + (" (what its flow pointer leaves it for touches neither end, or both)"
+                                  if mouth_at is not None else " (no flow pointer leaves it for a section with a shape)"))
     t = line.project(on) / line.length if line.length else 0.0
     frac = t if down0 else 1.0 - t
     return lo + (hi - lo) * frac, float(e.distance(g)), k
@@ -246,10 +258,13 @@ def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, 
         loose = [s for s in secs[o] if s in stemless and span[s][0] is None]
         if not loose:
             continue
-        stem = sorted((span[s][0], span[s][1], geo[s]) for s in secs[o]
-                      if s in span and span[s][2] == 0 and span[s][3] == 0 and span[s][0] is not None and s in geo)
+        stem_sids = [s for s in secs[o]
+                     if s in span and span[s][2] == 0 and span[s][3] == 0 and span[s][0] is not None and s in geo]
+        stem = sorted((span[s][0], span[s][1], geo[s]) for s in stem_sids)
         if not stem:
             continue
+        # a main line of ONE section has no neighbour on it to say which end is the mouth's: its own flow pointer does
+        mouth_at = geo.get(down.get(stem_sids[0])) if len(stem_sids) == 1 else None
         # this river's water bodies: its own polygon sections, and the named lakes its main line runs through
         own = [(s, geo[s]) for s in secs[o] if s in span and span[s][3] == 1 and s in geo]
         lakes: List[Tuple[str, object]] = []
@@ -285,7 +300,7 @@ def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, 
                 log(f"     side channel: {iid} {name} sections {comp[0]}…({len(comp)}): flows into {hit[1]} (touches it)")
                 continue
             try:
-                m, snap, _k = join_measure(shapes, stem, dn, hit[2] if hit else None)
+                m, snap, _k = join_measure(shapes, stem, dn, hit[2] if hit else None, mouth_at=mouth_at)
             except SideChannelError as e:
                 stop(f"{e} ({iid} {name}, sections {comp})")
                 continue

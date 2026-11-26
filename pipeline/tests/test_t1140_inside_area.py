@@ -54,6 +54,115 @@ def test_a_main_line_of_one_section_cannot_be_oriented():
         sc.join_measure([LineString([(400, 30), (600, 500)])], STEM[:1])
 
 
+# a main line of ONE section (the Old Kootenay River Channel's 317222, 0–11,375 m): no neighbour on it says which end
+# is the mouth's; its own flow pointer (`section_down`) does — the end touching the section it flows into
+AT_X0 = LineString([(0, 0), (-200, 0)])                       # what the flow leaves it for, at x 0
+AT_X1000 = LineString([(1000, 0), (1200, 0)])                 # … at x 1000
+
+
+def test_a_main_line_of_one_section_is_oriented_by_its_own_flow_pointer():
+    ch = [LineString([(400, 30), (600, 500)])]
+    flipped = [(0, 1000, LineString([(1000, 0), (0, 0)]))]
+    for stem in (STEM[:1], flipped):                          # whichever way the section is drawn
+        assert round(sc.join_measure(ch, stem, mouth_at=AT_X0)[0]) == 400
+        assert round(sc.join_measure(ch, stem, mouth_at=AT_X1000)[0]) == 600
+
+
+def test_a_flow_pointer_that_cannot_say_the_mouth_still_stops():
+    # it touches both ends (a loop) or neither: the mouth end is not known — never guessed
+    ch = [LineString([(400, 30), (600, 500)])]
+    both = LineString([(0, 0), (0, 80), (1000, 80), (1000, 0)])
+    with pytest.raises(sc.SideChannelError, match="one section .* touches neither end, or both"):
+        sc.join_measure(ch, STEM[:1], mouth_at=both)
+    with pytest.raises(sc.SideChannelError, match="one section .* touches neither end, or both"):
+        sc.join_measure(ch, STEM[:1], mouth_at=LineString([(500, 300), (500, 400)]))
+
+
+def _one_section_db(pointer: str = "mouth"):
+    """Water 1: a main line of ONE section (sid 1, 0–1000 m) drawn from its source at x 1000 to its mouth at x 0; one
+    listed part (1) of two side channels the flow never joins, sid 3 (from x 300) and sid 4 (from x 600), each 0 m off
+    the main line. `pointer`: "mouth" — sid 1's flow pointer leads to sid 9, which touches its mouth end; "none" — no
+    pointer; "unowned" — it leads to a section no water owns (no shape)."""
+    db, geo = _db()
+    db.execute("DELETE FROM item_section WHERE sid = 2")
+    db.execute("DELETE FROM section_span WHERE sid = 2")
+    db.execute("DELETE FROM part_section WHERE sid = 2")
+    db.execute("INSERT INTO item_section VALUES (1, 4)")
+    db.execute("INSERT INTO section_span VALUES (4, NULL, NULL, 0, 0, 1, 0)")
+    db.execute("INSERT INTO part_section VALUES (1, 4, 1, NULL)")
+    db.executemany("INSERT INTO section_touch VALUES (?, ?)", [(1, 3), (1, 4)])
+    geo.pop(2)
+    geo[1] = LineString([(1000, 0), (0, 0)])
+    geo[3] = LineString([(300, 0), (350, 300)])
+    geo[4] = LineString([(600, 0), (650, 300)])
+    if pointer == "mouth":
+        db.execute("INSERT INTO item VALUES (5, 'gnis:5', 'Five River', 'stream')")
+        db.execute("INSERT INTO item_section VALUES (5, 9)")
+        geo[9] = LineString([(0, 0), (-500, 0)])
+        db.execute("INSERT INTO section_down VALUES (1, 9, 0, 0)")
+    elif pointer == "unowned":
+        db.execute("INSERT INTO section_down VALUES (1, 77, 0, 0)")
+    return db, geo
+
+
+def test_a_one_section_main_line_measures_both_channels_joins(tmp_path, monkeypatch):
+    db, geo = _one_section_db()
+    lo, log = _write(db, geo, tmp_path, monkeypatch)
+    assert (lo[3], lo[4], _how(db, 3), _how(db, 4)) == (300, 600, "join", "join")
+    assert not any("NO JOIN" in x for x in log)
+    W = _water([MAIN, [_run("source", "mouth", lo[3] / 1000, lo[3] / 1000, branch=True),
+                       _run("source", "mouth", lo[4] / 1000, lo[4] / 1000, branch=True)]],
+               iid="gnis:1", name="One River")
+    from pipeline.deliver.answers.display.part import runs_label
+    assert runs_label(W.doc, W.parts[1]) == "2 side channels, joining 0.3–0.6 km from the mouth"
+
+
+@pytest.mark.parametrize("pointer", ["none", "unowned"])
+def test_a_one_section_main_line_with_no_pointer_to_say_its_mouth_is_still_no_join(tmp_path, monkeypatch, pointer):
+    db, geo = _one_section_db(pointer)
+    lo, log = _write(db, geo, tmp_path, monkeypatch)
+    assert lo[3] is None and lo[4] is None and _how(db, 3) is None and _how(db, 4) is None
+    nojoin = [x for x in log if "NO JOIN" in x]
+    assert len(nojoin) == 2 and all("one section" in x and "One River" in x for x in nojoin)
+
+
+def test_the_old_kootenay_river_channel_names_itself(tmp_path, monkeypatch):
+    """gnis:2123 on r-71d09ad82e81 + #264: a main line of one section (317222) whose flow pointer leads into channel 1
+    (317223); ONE part of two side channels: channel 1 (317223 + 317226) runs on into Leach Lake, which its main line
+    never touches; channel 2 (317225) drains to a section no water owns. Before: both NO JOIN, and the answers step
+    stopped ("a side channel with no named end and no join to say")."""
+    db, geo = _db()
+    db.execute("DELETE FROM item_section WHERE sid IN (2, 3)")
+    db.execute("DELETE FROM section_span WHERE sid IN (2, 3)")
+    db.execute("DELETE FROM part_section WHERE sid IN (2, 3)")
+    db.execute("UPDATE item SET item_id = 'gnis:2123', name = 'Old Kootenay River Channel' WHERE ord = 1")
+    db.execute("INSERT INTO item VALUES (3, 'gnis:3', 'Leach Lake', 'lake')")
+    db.executemany("INSERT INTO item_section VALUES (?, ?)", [(1, 3), (1, 4), (1, 6), (3, 5)])
+    db.executemany("INSERT INTO section_span VALUES (?, NULL, NULL, 0, 0, 1, 0)", [(3,), (4,), (6,)])
+    db.executemany("INSERT INTO part_section VALUES (1, ?, 1, NULL)", [(3,), (4,), (6,)])
+    db.executemany("INSERT INTO section_touch VALUES (?, ?)", [(1, 3), (1, 4), (3, 6)])
+    # the flow: main line → channel 1 → Leach Lake; channel 1's other piece and channel 2 → sections no water owns
+    db.executemany("INSERT INTO section_down VALUES (?, ?, 0, ?)", [(1, 3, 0), (3, 5, 1), (6, 98, 1), (4, 99, 0)])
+    geo.pop(2)
+    geo[1] = LineString([(1000, 0), (0, 0)])                   # drawn from its source: its mouth is at x 0
+    geo[3] = LineString([(0, 0), (-300, 0)])                   # channel 1, on from the mouth into the lake
+    geo[6] = LineString([(-150, 0), (-150, -200)])             # channel 1's other piece
+    geo[5] = Polygon([(-400, -50), (-300, -50), (-300, 50), (-400, 50)])   # Leach Lake, 300 m off the main line
+    geo[4] = LineString([(600, 0), (650, 40)])                 # channel 2, 170 m, on the main line at 0.6 km
+    lo, log = _write(db, geo, tmp_path, monkeypatch)
+    assert not any("NO JOIN" in x for x in log)
+    assert (lo[3], lo[6], lo[4]) == (0, 0, 600) and (_how(db, 3), _how(db, 4)) == ("nearest", "join")
+    from pipeline.deliver.answers.display.builders import _flows_into
+    flows = _flows_into(db)
+    assert flows == {("gnis:2123", "flows_into", 1): "lake_inlet:gnis:3"}
+    # the export's runs: one per channel, at its join (`export.read.with_joins`)
+    W = _water([MAIN, [_run("source", "mouth", 0.0, 0.0, branch=True), _run("source", "mouth", 0.6, 0.6, branch=True)]],
+               iid="gnis:2123", name="Old Kootenay River Channel")
+    W.doc["waters"]["gnis:3"] = {"name": "Leach Lake", "kind": "lake", "parts": []}
+    assert _said(W, {**flows, ("gnis:2123", "nearest", 1): True})[1] == \
+        "Old Kootenay River Channel side channels: one into Leach Lake; one joining 0.6 km from the mouth"
+
+
 def _db(channel_far: float = 20.0, other_item_stem: bool = False):
     """Water 1 (a stream): main line sids 1, 2; one listed part (1) of side channel sid 3 the flow never joins; part 0 is
     the main line. With `other_item_stem` the main line belongs to water 2 instead (never measured against)."""
