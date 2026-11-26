@@ -56,7 +56,8 @@ export function AboutPage({ vm, palette, onSources, onReport, onChangelog }: { v
         {vm.versions.map((v) => (
           <View key={v.label} style={{ flexDirection: "row", gap: SPACE.s3, paddingVertical: 6,
                                        borderTopWidth: 1, borderTopColor: palette.line }}>
-            <Text style={{ ...TYPE.small, color: palette.sub, width: 104 }}>{v.label}</Text>
+            {/* (T1201) 104 wide at the default size; a larger text size widens it so "Regulations" is never broken in two */}
+            <Text style={{ ...TYPE.small, color: palette.sub, minWidth: 104, flexShrink: 0 }}>{v.label}</Text>
             <Text selectable testID={`about-version-${v.label}`}
                   style={{ ...TYPE.figure, fontSize: 12.5, color: palette.ink, flex: 1 }}>{v.value}</Text>
           </View>
