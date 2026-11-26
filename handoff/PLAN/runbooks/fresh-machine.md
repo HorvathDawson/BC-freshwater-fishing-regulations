@@ -53,7 +53,7 @@ bash scripts/heavy.sh app-suite 30 -- pnpm -C app exec vitest run               
 bash scripts/heavy.sh tier 30 -- bash scripts/pytest-chunked.sh -- -q -m "$markers"                # the pipeline's no-data tier (heavy; 14 min, 94 chunks)
 ```
 
-`scripts/before_pr.sh` runs the last two at once on two heavy lanes, and is what to run before opening a PR. Tests that
+`scripts/before_pr.sh --title "<the PR title>"` checks the title with its ` (#N)` suffix, then runs the last two at once on two heavy lanes, and is what to run before opening a PR. Tests that
 need a file outside git skip with a message naming it (`data/source/official/` region PDFs for the quota print checks; a
 data release for the ones marked `needs_bundle`).
 
