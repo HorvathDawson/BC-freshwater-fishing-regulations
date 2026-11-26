@@ -4,7 +4,7 @@ Status: PARTIAL — owner: see ## Owner (built, store-gated notice; left: run-ti
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1073 | The "app update" notice shows only when this phone can actually install the update | PARTIAL | 0e10879e8, 4e017213d | TestFlight install cannot be told at run time (needs native + phone build; follow-up); owner: device check on Play Internal one build behind |
+| T1073 | The "app update" notice shows only when this phone can actually install the update | PARTIAL | 0e10879e8, 3ab7492ec | TestFlight install cannot be told at run time (needs native + phone build; follow-up); owner: device check on Play Internal one build behind |
 
 Source: owner 2026-11-24 (planning chat), verbatim: "inside the app (for someone on closed and internal) got a
 notification for the app update when it went onto internal but it wont let install happen then so the notification is
