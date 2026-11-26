@@ -18,10 +18,10 @@ const flush = () => act(async () => { await new Promise((r) => setTimeout(r, 0))
 
 function port(o: { check?: () => Promise<{ available: boolean; version: string | null }>;
                    start?: (x: { immediate: boolean }) => Promise<"downloading" | "opened" | "listing" | "none">;
-                   installed?: string } = {}) {
+                   installed?: string; channel?: AppUpdatePort["channel"] } = {}) {
   const calls = { check: 0, start: [] as boolean[] };
   const p: AppUpdatePort = {
-    channel: "play", installed: o.installed ?? "0.5.0",
+    channel: o.channel ?? "play", installed: o.installed ?? "0.5.0",
     check: () => { calls.check++; return o.check ? o.check() : Promise.resolve({ available: true, version: "0.6.0" }); },
     start: (x) => { calls.start.push(x.immediate); return o.start ? o.start(x) : Promise.resolve("downloading"); },
   };
@@ -42,7 +42,7 @@ describe("useAppUpdate", () => {
     await flush();
     expect(calls.check).toBe(1);
     expect(out.c!.vm).toMatchObject({ strength: "gentle", text: "Version 0.6.0 of the app is available." });
-    expect(JSON.parse(store.read()!)).toEqual({ day: today, available: true, version: "0.6.0", notes: null, popped: null });
+    expect(JSON.parse(store.read()!)).toEqual({ day: today, available: true, version: "0.6.0", notes: null, popped: null, installed: "0.5.0" });
     first.unmount();
     const second = render(<Probe p={p} store={store} out={out} />);
     expect(out.c!.vm?.strength).toBe("gentle");   // the kept answer, before the new ask lands
@@ -54,7 +54,7 @@ describe("useAppUpdate", () => {
     expect(calls.check).toBe(3);
   });
   it("offline: never asked, nothing said; back online it asks", async () => {
-    const store = mem(JSON.stringify({ day: "2020-01-01", available: true, version: "0.6.0" })), { p, calls } = port();
+    const store = mem(JSON.stringify({ day: "2020-01-01", available: true, version: "0.6.0", installed: "0.5.0" })), { p, calls } = port();
     const out: { c?: AppUpdateControl | null } = {};
     const r = render(<Probe p={p} store={store} offline out={out} />);
     await flush();
@@ -63,7 +63,7 @@ describe("useAppUpdate", () => {
     await flush();
     expect(calls.check).toBe(1);
   });
-  it("a failed check is said and reported; a dropped line is neither; nothing is kept for either", async () => {
+  it("a failed check shows no notice and is reported once; a dropped line is neither; nothing is kept for either", async () => {
     const got: unknown[] = [];
     const undo = setFailureSink((e) => got.push(e));
     try {
@@ -71,7 +71,8 @@ describe("useAppUpdate", () => {
       const { p } = port({ check: () => Promise.reject(new Error("ERR_CHECK_FOR_UPDATE")) });
       render(<Probe p={p} store={store} out={out} />);
       await flush();
-      expect(out.c!.vm).toMatchObject({ text: "Could not check for a newer version of the app.", failed: true, button: null });
+      expect(out.c!.vm).toBeNull();
+      expect(out.c!.popup).toBeNull();
       expect(got).toHaveLength(1);
       expect(store.read()).toBeNull();
       cleanup();
@@ -100,7 +101,7 @@ describe("useAppUpdate", () => {
     const undo = setFailureSink((e) => got.push(e));
     try {
       const store = mem(), out: { c?: AppUpdateControl | null } = {};
-      const ok = port({ check: () => Promise.resolve({ available: false, version: null }) });
+      const ok = port({ check: () => Promise.resolve({ available: true, version: null }) });
       const r = render(<Probe p={ok.p} store={store} tooOld out={out} />);
       await flush();
       expect(out.c!.vm).toMatchObject({ strength: "strong", button: { immediate: true } });
@@ -114,6 +115,24 @@ describe("useAppUpdate", () => {
       act(() => out.c!.update());
       await flush();
       expect(out.c!.vm).toMatchObject({ said: "The update could not start.", failed: true, button: { label: "Update" } });
+      expect(got).toHaveLength(1);
+    } finally { undo(); }
+  });
+  it("(T1073) the strong prompt, the store not offering the app, or its check failing: no Update button; the failure reported once", async () => {
+    const got: unknown[] = [];
+    const undo = setFailureSink((e) => got.push(e));
+    try {
+      const no = port({ check: () => Promise.resolve({ available: false, version: null }) });
+      const out: { c?: AppUpdateControl | null } = {};
+      const r = render(<Probe p={no.p} store={mem()} tooOld out={out} />);
+      await flush();
+      expect(out.c!.vm).toMatchObject({ strength: "strong", button: null, offered: false });
+      expect(got).toEqual([]);
+      r.unmount();
+      const bad = port({ check: () => Promise.reject(new Error("ERR_CHECK_FOR_UPDATE")) });
+      render(<Probe p={bad.p} store={mem()} tooOld out={out} />);
+      await flush();
+      expect(out.c!.vm).toMatchObject({ strength: "strong", button: null, offered: false });
       expect(got).toHaveLength(1);
     } finally { undo(); }
   });
@@ -197,7 +216,7 @@ describe("(T888) the popup on opening", () => {
   });
   it("the strong prompt (new data needs this app) comes up on every opening; Not now hides it for this run only", async () => {
     const store = mem(), out: { c?: AppUpdateControl | null } = {};
-    const { p } = port({ check: () => Promise.resolve({ available: false, version: null }) });
+    const { p } = port({ check: () => Promise.resolve({ available: true, version: null }) });
     const first = render(<Probe p={p} store={store} tooOld out={out} />);
     await flush();
     expect(out.c!.popup).toMatchObject({ strength: "strong", title: "New data needs the latest app",
@@ -224,8 +243,56 @@ describe("(T888) the popup on opening", () => {
     // a kept check for a version still above the installed one is shown at once, as before
     cleanup();
     render(<Probe p={port({ installed: "0.8.1", check: () => new Promise(() => {}) }).p}
-                  store={mem(JSON.stringify({ day: today, available: true, version: "0.8.2" }))} out={out} />);
+                  store={mem(JSON.stringify({ day: today, available: true, version: "0.8.2", installed: "0.8.1" }))} out={out} />);
     expect(out.c!.popup).toMatchObject({ key: "0.8.2", title: "Version 0.8.2 is out" });
+  });
+  it("(T1073) a kept 'available' from version X, now running Y: nothing shows before the fresh check, even with no version named", async () => {
+    // updated through the Play Store app: the kept answer named no version, so only the asking version can say it is stale
+    const store = mem(JSON.stringify({ day: today, available: true, version: null, notes: null, popped: null, installed: "0.8.1" }));
+    const out: { c?: AppUpdateControl | null } = {};
+    render(<Probe p={port({ installed: "0.8.2", check: () => new Promise(() => {}) }).p} store={store} out={out} />);
+    await flush();
+    expect([out.c!.vm, out.c!.popup]).toEqual([null, null]);
+    cleanup();
+    // the same file on the version that asked is shown at once
+    render(<Probe p={port({ installed: "0.8.1", check: () => new Promise(() => {}) }).p} store={store} out={out} />);
+    expect(out.c!.vm).toMatchObject({ strength: "gentle", text: "A new version of the app is available." });
+  });
+  it("(T1073) the strong prompt: no popup while the check is pending; Not now once the store said no does not hide the popup with Update when it offers it", async () => {
+    const out: { c?: AppUpdateControl | null } = {};
+    let answer: { available: boolean; version: string | null } = { available: false, version: null };
+    // pending: nothing to say yet, so no popup (and so nothing to dismiss)
+    const pending = port({ check: () => new Promise(() => {}) });
+    const r0 = render(<Probe p={pending.p} store={mem()} tooOld out={out} />);
+    await flush();
+    expect(out.c!.popup).toBeNull();
+    expect(out.c!.vm).toMatchObject({ strength: "strong", text: "New data needs a newer app.", button: null });
+    r0.unmount();
+    // the store says no: the not-offered popup; Not now
+    const { p } = port({ check: () => Promise.resolve(answer) });
+    const store = mem();
+    const r = render(<Probe p={p} store={store} tooOld out={out} />);
+    await flush();
+    expect(out.c!.popup).toMatchObject({ key: "needed-wait", title: "New data needs a newer app", button: null });
+    act(() => out.c!.dismiss());
+    expect(out.c!.popup).toBeNull();
+    // the app is shown again later in the same run and Play now offers it: the popup with Update is there
+    answer = { available: true, version: null };
+    r.rerender(<Probe p={p} store={store} tooOld resume={1} out={out} />);
+    await flush();
+    expect(out.c!.popup).toMatchObject({ key: "needed", title: "New data needs the latest app", button: { label: "Update", immediate: true } });
+  });
+  it("(T1073) the staging APK's failed check is still said and reported; a store's is not said", async () => {
+    const got: unknown[] = [];
+    const undo = setFailureSink((e) => got.push(e));
+    try {
+      const out: { c?: AppUpdateControl | null } = {};
+      const { p } = port({ channel: "apk-page", check: () => Promise.reject(new Error("HTTP 404 for latest.json")) });
+      render(<Probe p={p} store={mem()} out={out} />);
+      await flush();
+      expect(out.c!.vm).toMatchObject({ text: "Could not check for a newer version of the app.", failed: true, button: null });
+      expect(got).toHaveLength(1);
+    } finally { undo(); }
   });
   it("(finding 3) the bell's sheet shown while the version is due answers it: closing the bell pops nothing", async () => {
     const store = mem(), out: { c?: AppUpdateControl | null } = {};
