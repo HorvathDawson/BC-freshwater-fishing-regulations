@@ -103,6 +103,12 @@ Theodosia 13.1 km are now "joining" rather than nearest-point. Thelwood p0 now r
 Strathcona - Westmin Park". Also: L1 docstring, L2 any-backwards rule, L3 one area per name. Clean clone release
 r-216c6f000d0b, rc=0 (deliver only, 13m34s). Still awaiting the owner's look at the words table in the PR before merge.
 Left (owner, "fix generally"): parks that bind channels but not their river (T1149).
+2026-11-26 round 3, the owner's rulings on the words, built on PR #312: a side-channel-only part shows a distance only
+when its water has more than one such part. No water has two today, so none shows a distance. There is no verb ("N km
+from the mouth"). The name uses the short area form ("inside Creston Valley WMA"). The subtitle names the area for every
+part the bundle measures inside or at one, reviewed or not: the bundle measures every cut and membership-only area
+(`part_inside.cut`), and REVIEWED_INSIDE is now only the name's gate. Clean clone release r-6f59a36e1f1e, rc=0
+(deliver only, 14m29s). The words table and the owner's questions are in the PR; it waits for his look before merge.
 
 ## Acceptance
 The clean clone makes a release directory from nothing, with no copied file; deliver passes on gnis:2123, with a
