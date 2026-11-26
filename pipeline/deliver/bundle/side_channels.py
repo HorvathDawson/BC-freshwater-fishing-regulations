@@ -16,7 +16,9 @@ stage while the named sections' shapes are in hand (`topology.keep_named`, EPSG:
    reach) or an unnamed lake its main line runs through is measured at the main line's point nearest the touch,
    whatever the distance
    — the snap limit holds only where the end touches NO water body of its river. A channel failing one gets NO join (never a guessed distance), logged here; a part whose NAME then lacks a
-   distance stops the build at the answers step, named (`answers.display.builders._names`). Written as the
+   distance stops the build at the answers step, named. (Coordinator's proposal 2026-11-25) one beyond the snap limit
+   that touches no water body still gets the main line's NEAREST point, said "N km from the mouth", never "joining"
+   (`section_join.how` = 'nearest'); the stop is left for a channel with no main line to measure against (`answers.display.builders._names`). Written as the
    join of every section of that channel (`section_join`): the export then says "joining N km from the mouth" by its
    one rule (`display.part.runs_label`). Never into `section_span`: the parts were
    numbered in river order from the flow's own measures (`derived.part_rows`, asserted by `topology.part_geo`), and only
@@ -36,6 +38,7 @@ stage while the named sections' shapes are in hand (`topology.keep_named`, EPSG:
 """
 from __future__ import annotations
 
+import re
 import sqlite3
 from collections import defaultdict
 from pathlib import Path
@@ -273,7 +276,8 @@ def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, 
             if hit and hit[0] == "lake":
                 # into a named lake on its river's main line: that is its lower end (rule A names it)
                 # on the channel's lowest piece, whose lower end its run says (`spans.compose_runs`)
-                db.execute("INSERT INTO section_join (sid, m, lo) VALUES (?, NULL, ?)", (comp[0], f"lake_inlet:{hit[1]}"))
+                db.execute("INSERT INTO section_join (sid, m, lo, how) VALUES (?, NULL, ?, NULL)",
+                           (comp[0], f"lake_inlet:{hit[1]}"))
                 log(f"     side channel: {iid} {name} sections {comp[0]}…({len(comp)}): flows into {hit[1]} (touches it)")
                 continue
             try:
@@ -286,11 +290,15 @@ def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, 
                    f"from its {'downstream' if len(leave) == 1 else 'nearer'} end")
             log(f"     side channel: {iid} {name} sections {comp[0]}…({len(comp)}): joins at {m / 1000:.1f} km, "
                 f"snap {snap:.0f} m {how}")
+            how = "join"
             if snap > MAX_SNAP_M and not hit:
-                stop(f"side channel: {iid} ({name}) sections {comp}: its joining end is {snap:.0f} m from "
-                     f"the main line, beyond {MAX_SNAP_M:.0f} m — no join to say (T1140: never a guess)")
-                continue
-            db.executemany("INSERT INTO section_join (sid, m, lo) VALUES (?, ?, NULL)", [(s, round(m)) for s in comp])
+                # (coordinator's proposal 2026-11-25, under "They should always have the cut names or distance it is
+                # impossible not to") no join to say: its NEAREST point on the main line, said without "joining"
+                how = "nearest"
+                log(f"     side channel NEAREST: {iid} ({name}) sections {comp}: its end is {snap:.0f} m from the main line, "
+                    f"beyond {MAX_SNAP_M:.0f} m and touching no water body of it: said {m / 1000:.1f} km from the mouth")
+            db.executemany("INSERT INTO section_join (sid, m, lo, how) VALUES (?, ?, NULL, ?)",
+                           [(s, round(m), how) for s in comp])
             filled += len(comp)
     log(f"     side channel: {filled} sections given the join their flow does not say")
     # 2. inside an area
@@ -310,6 +318,16 @@ def added_stream_names(path: Optional[Path] = None) -> Dict[int, str]:
         path = CURATED.waters.added_streams
     data = json.loads(Path(path).read_text(encoding="utf-8"))
     return {int(r["blk"]): str(r["name"]).strip() for r in data.get("streams") or [] if str(r.get("name") or "").strip()}
+
+
+_MUNICIPALITY = re.compile(r"^(?:City|District|Town|Township|Village|Municipality) of (.+?)(?: (?:ESA )?(?:streams?|waterways|"
+                           r"watercourses?|creeks?)\b.*)?$")
+
+
+def municipality(label: str) -> Optional[str]:
+    """The municipality a city layer's label names ("City of Port Moody ESA streams layer" → "Port Moody"), else None."""
+    m = _MUNICIPALITY.match(label.strip())
+    return m.group(1).strip() if m else None
 
 
 def own_name_rows(db: sqlite3.Connection, names: Dict[int, str]) -> List[tuple]:
@@ -338,7 +356,10 @@ def own_name_rows(db: sqlite3.Connection, names: Dict[int, str]) -> List[tuple]:
         iid, water = item[o]
         if nm.casefold() == water.casefold() or (iid, nm) not in label:
             continue
-        out.append((o, p, nm, label[(iid, nm)]))
+        place = municipality(label[(iid, nm)])
+        if place is None:
+            continue
+        out.append((o, p, nm, place))
     return out
 
 

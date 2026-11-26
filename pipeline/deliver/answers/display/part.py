@@ -256,8 +256,8 @@ def end_name(doc: dict, e: Optional[str], side: str = "") -> str:
     if str(e).startswith(OWN):
         # T1140 PROPOSAL: a part of added city lines said by its own name and that name's source
         import json as _json
-        nm, lb = _json.loads(str(e)[len(OWN):])
-        return f"— {nm} ({lb})"
+        nm, place = _json.loads(str(e)[len(OWN):])
+        return f": {nm} ({place})"
     if str(e).startswith(AT):
         # T1140 (owner 2026-11-25, the Okanagan River Oxbows: "at Hayne's Lease Ecological Reserve"): its lines inside one
         # area while a polygon of it straddles the edge (`bundle.side_channels.inside_rows`), said "at <area>"
@@ -554,7 +554,8 @@ INSIDE = "near:inside:"
 #: said "<water> at <Area>"
 AT = "near:at:"
 #: T1140 PROPOSAL: a part made only of added city lines with their own name (`bundle.side_channels.own_name_rows`):
-#: "near:own:" + JSON [name, its source's words], said "<water> — <name> (<source>)"
+#: "near:own:" + JSON [name, its municipality], said "<water>: <name> (<municipality>)" ("Noons Creek: Turner Creek (Port
+#: Moody)"; the composers join a word beginning ":" with no space); the layer's full label stays the water's source
 OWN = "near:own:"
 #: the token head of each `part_inside.how`
 AREA_HEAD = {"inside": INSIDE, "at": AT}

@@ -70,7 +70,7 @@ def _db(channel_far: float = 20.0, other_item_stem: bool = False):
                                   PRIMARY KEY (ord, part_ix));
         CREATE TABLE span_end (eid INTEGER PRIMARY KEY, token TEXT);
         CREATE TABLE part_own_name (ord INTEGER, part_ix INTEGER, name TEXT, label TEXT);
-        CREATE TABLE section_join (sid INTEGER PRIMARY KEY, m INTEGER, lo TEXT);
+        CREATE TABLE section_join (sid INTEGER PRIMARY KEY, m INTEGER, lo TEXT, how TEXT);
     """)
     db.executemany("INSERT INTO item VALUES (?,?,?,?)", [(1, "gnis:1", "One River", "stream"),
                                                         (2, "gnis:2", "Two River", "stream")])
@@ -89,6 +89,11 @@ class _Cov:
         pass
 
 
+def _how(db, sid):
+    got = db.execute("SELECT how FROM section_join WHERE sid = ?", (sid,)).fetchone()
+    return got[0] if got else None
+
+
 def _write(db, geo, tmp_path, monkeypatch):
     monkeypatch.setattr(sc, "inside_rows", lambda *_a, **_k: [])
     monkeypatch.setattr(sc, "own_name_rows", lambda *_a, **_k: [])
@@ -100,17 +105,21 @@ def _write(db, geo, tmp_path, monkeypatch):
 
 
 def test_a_loose_channel_gets_its_join_written_on_its_sections(tmp_path, monkeypatch):
-    lo, log = _write(*_db(), tmp_path, monkeypatch)
-    assert lo[3] == 700
+    db, geo = _db()
+    lo, log = _write(db, geo, tmp_path, monkeypatch)
+    assert lo[3] == 700 and _how(db, 3) == "join"
     assert any("joins at 0.7 km, snap 20 m from its nearer end" in x for x in log)
 
 
-def test_beyond_the_snap_limit_there_is_no_join(tmp_path, monkeypatch):
-    lo, log = _write(*_db(channel_far=sc.MAX_SNAP_M + 1), tmp_path, monkeypatch)
-    assert lo[3] is None
-    assert any("NO JOIN" in x and f"beyond {sc.MAX_SNAP_M:.0f} m" in x for x in log)
-    lo, _ = _write(*_db(channel_far=sc.MAX_SNAP_M - 1), tmp_path, monkeypatch)
-    assert lo[3] == 700
+def test_beyond_the_snap_limit_it_is_said_at_its_nearest_point_not_joining(tmp_path, monkeypatch):
+    # (coordinator's proposal) no join to say, but never no distance: the main line's nearest point, `how` 'nearest'
+    db, geo = _db(channel_far=sc.MAX_SNAP_M + 1)
+    lo, log = _write(db, geo, tmp_path, monkeypatch)
+    assert lo[3] == 700 and _how(db, 3) == "nearest"
+    assert any("NEAREST" in x and f"beyond {sc.MAX_SNAP_M:.0f} m" in x for x in log)
+    db, geo = _db(channel_far=sc.MAX_SNAP_M - 1)
+    lo, _ = _write(db, geo, tmp_path, monkeypatch)
+    assert lo[3] == 700 and _how(db, 3) == "join"
 
 
 def test_never_measured_against_another_waters_main_line(tmp_path, monkeypatch):
@@ -170,11 +179,11 @@ def test_a_channel_touching_an_unnamed_lake_on_its_main_line_joins_there(tmp_pat
     db, geo = _touch_db("none")
     UNNAMED[id(db)] = {"lake:1": Polygon([(600, -10), (800, -10), (800, 300), (600, 300)])}
     lo, log = _write(db, geo, tmp_path, monkeypatch)
-    assert lo[3] == 700 and any("unnamed lake on its main line lake:1" in x for x in log)
+    assert lo[3] == 700 and _how(db, 3) == "join" and any("unnamed lake on its main line lake:1" in x for x in log)
     db, geo = _touch_db("none")                                   # an unnamed lake away from the main line: nothing
     UNNAMED[id(db)] = {"lake:2": Polygon([(2100, -50), (2200, -50), (2200, 300), (600, 300), (600, 250), (2100, 250)])}
     lo, _ = _write(db, geo, tmp_path, monkeypatch)
-    assert lo[3] is None
+    assert _how(db, 3) == "nearest"
 
 
 def test_a_polygon_end_never_breaks_the_tie():
@@ -189,8 +198,9 @@ def _lo_token(db, sid):
 
 
 def test_a_channel_touching_its_rivers_own_polygon_joins_there_whatever_the_distance(tmp_path, monkeypatch):
-    lo, log = _write(*_touch_db("own"), tmp_path, monkeypatch)
-    assert lo[3] == 700                                        # 300 m off the centre line, beyond the 50 m limit
+    db, geo = _touch_db("own")
+    lo, log = _write(db, geo, tmp_path, monkeypatch)
+    assert lo[3] == 700 and _how(db, 3) == "join"              # 300 m off the centre line, beyond the 50 m limit
     assert any("touching its own polygon 4" in x for x in log)
 
 
@@ -205,13 +215,15 @@ def test_two_ends_touching_two_bodies_pick_one_by_rule():
 
 
 def test_a_channel_touching_nothing_keeps_the_snap_limit(tmp_path, monkeypatch):
-    lo, _ = _write(*_touch_db("none"), tmp_path, monkeypatch)
-    assert lo[3] is None
+    db, geo = _touch_db("none")
+    lo, _ = _write(db, geo, tmp_path, monkeypatch)
+    assert _how(db, 3) == "nearest"
 
 
 def test_another_waters_polygon_never_counts(tmp_path, monkeypatch):
-    lo, _ = _write(*_touch_db("other"), tmp_path, monkeypatch)
-    assert lo[3] is None
+    db, geo = _touch_db("other")
+    lo, _ = _write(db, geo, tmp_path, monkeypatch)
+    assert _how(db, 3) == "nearest"
 
 
 def test_a_channel_into_a_named_lake_on_its_main_line_is_named_by_it(tmp_path, monkeypatch):
@@ -224,7 +236,7 @@ def test_a_channel_into_a_named_lake_on_its_main_line_is_named_by_it(tmp_path, m
 def test_a_lake_the_main_line_does_not_run_through_never_counts(tmp_path, monkeypatch):
     db, geo = _touch_db("lake_off")
     lo, _ = _write(db, geo, tmp_path, monkeypatch)
-    assert lo[3] is None and _lo_token(db, 3) == "mouth"
+    assert _how(db, 3) == "nearest" and _lo_token(db, 3) == "mouth"
 
 
 # --- the bundle step: inside an area -------------------------------------------------------------------------------
@@ -328,8 +340,9 @@ def _said(W, crossings=None):
         if n["lo"] is None:
             out.append(None)
         elif n["lo"] == n["hi"] and n["lo"].startswith("near:"):
-            w = end_words(W.doc, n["lo"], "from")                 # as a shipped app composes it (`spanName`)
-            out.append(f"{W.w['name']} {w[:1].lower() + w[1:]}")
+            w = end_words(W.doc, n["lo"], "from")                 # as the app composes it (`spanName`)
+            from pipeline.deliver.answers.display.name_check import near_name
+            out.append(near_name(W.w["name"], w))
         else:
             out.append(f"{end_words(W.doc, n['lo'], 'to')} → {end_words(W.doc, n['hi'], 'from')}")
     return out
@@ -492,7 +505,7 @@ NAMES = {-2200000392: "Turner Creek", -2200000393: "Turner Creek Trib.1", -22000
 
 def test_a_part_of_added_lines_with_its_own_name_is_named_by_it():
     assert sc.own_name_rows(_added_db([(22, -2200000392)]), NAMES) == \
-        [(1, 1, "Turner Creek", "City of Port Moody ESA streams layer")]
+        [(1, 1, "Turner Creek", "Port Moody")]
     assert sc.own_name_rows(_added_db([(22, -2200000392), (23, -2200000392)]), NAMES)[0][2] == "Turner Creek"
 
 
@@ -524,10 +537,10 @@ def test_the_added_names_are_read_from_the_streams_by_blk(tmp_path):
 
 def test_the_part_is_said_by_its_own_name_and_source():
     W = _water([MAIN, [_run("source", "mouth", None, None, branch=True)]], iid="gnis:23366", name="Noons Creek")
-    cr = {("gnis:23366", "own", 1): ("Turner Creek", "City of Port Moody ESA streams layer")}
+    cr = {("gnis:23366", "own", 1): ("Turner Creek", "Port Moody")}
     n = _names(W, cr)[1]
     assert n["lo"] == n["hi"] and n["lo"].startswith(OWN)
-    assert _said(W, cr)[1] == "Noons Creek — Turner Creek (City of Port Moody ESA streams layer)"
+    assert _said(W, cr)[1] == "Noons Creek: Turner Creek (Port Moody)"
     with pytest.raises(AnswersError, match="no join to say"):           # with no own name it is a named STOP
         _names(W, {})
 
@@ -539,3 +552,21 @@ def test_the_export_lays_the_joins_over_the_flows_spans():
     assert got[3] == (700, 700, "mouth", "source", 1, 0)
     assert got[4] == (5, 9, "lake_inlet:gnis:8", "source", 1, 0)
     assert got[1] == span[1] and 99 not in got and span[3][0] is None             # the input is left as it was
+
+
+def test_a_city_layers_label_gives_its_municipality():
+    assert sc.municipality("City of Port Moody ESA streams layer") == "Port Moody"
+    assert sc.municipality("City of Burnaby waterways layer") == "Burnaby"
+    assert sc.municipality("District of North Vancouver watercourses") == "North Vancouver"
+    assert sc.municipality("OpenStreetMap") is None                                  # names no municipality: no own name
+
+
+def test_one_side_channel_at_its_nearest_point_is_not_said_joining():
+    from pipeline.deliver.answers.display.builders import said_nearest
+    one = {"runs": [_run("source", "mouth", 5.7, 5.7, branch=True)]}
+    assert said_nearest("Side channel, joining 5.7 km from the mouth", one, True) == "Side channel, 5.7 km from the mouth"
+    assert said_nearest("Side channel, joining 5.7 km from the mouth", one, False) == \
+        "Side channel, joining 5.7 km from the mouth"
+    two = {"runs": [_run("source", "mouth", 5.7, 5.7, branch=True), _run("source", "mouth", 6.0, 6.0, branch=True)]}
+    assert said_nearest("2 side channels, joining 5.7–6 km from the mouth", two, True) == \
+        "2 side channels, joining 5.7–6 km from the mouth"                           # the range simply includes it

@@ -51,6 +51,9 @@ export function spanName(ends: EndsTable, water: string, span: SpanEnds, last?: 
   // "near:<token>" — "Old Kootenay River Channel near Six Mile Lake"
   if (!last && lo === hi && lo.startsWith(NEAR)) {
     const w = endWords(ends, hi, "hi");
+    // (T1140 proposal) words beginning ":" follow the water's name with no space: "Noons Creek: Turner Creek (Port Moody)"
+    // (a 0.9.0 app says "Noons Creek : Turner Creek (Port Moody)")
+    if (w.startsWith(":")) return `${water}${w}`;
     return `${water} ${w.slice(0, 1).toLowerCase()}${w.slice(1)}`;
   }
   return `${endWords(ends, lo, "lo")} → ${endWords(ends, hi, "hi")}`;
