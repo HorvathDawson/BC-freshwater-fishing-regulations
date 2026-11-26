@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { execFileSync } from "node:child_process";
-import { BUDGETS, DOCS_DIR, checkRepo, checkSize, lineCount, packageDirs } from "./check-size.mjs";
+import { BUDGETS, DOCS_DIR, checkRepo, checkSize, keptProblems, lineCount, packageDirs } from "./check-size.mjs";
 import { TICKETS_DIR } from "./ledger.mjs";
 
 type F = { path: string; lines?: number; bytes?: number };
@@ -186,6 +186,23 @@ describe("closed tickets' picture folders", () => {
   it("a range folder (T5-7-shots) is closed only when every ticket in it is", () => {
     expect(run([...lean(), pic("T5-7-shots")], { closedIds: ["T5", "T6"] })).toEqual([]);
     expect(run([...lean(), pic("T5-7-shots")], { closedIds: ["T5", "T6", "T7"] }).join("\n")).toContain("T5-7-shots: its ticket");
+  });
+});
+
+describe("KEPT_ASSETS cannot rot (keptProblems)", () => {
+  const kept = { "app-integration/T9-shots": "why" };
+  const readers = { "app-integration/T9-shots": ["docs/a.md"] };
+  const paths = [`${DOCS_DIR}/app-integration/T9-shots/x.png`, "docs/a.md"];
+  const read = (t: string) => () => t;
+  it("passes when the asset is tracked and its reader names it", () => {
+    expect(keptProblems({ paths, kept, readers, read: read("see T9-shots/x.png") })).toEqual([]);
+  });
+  it("mutation: the asset gone, the reader gone, the citation gone, no reader, a stray reader entry each fail", () => {
+    expect(keptProblems({ paths: ["docs/a.md"], kept, readers, read: read("T9-shots") }).join()).toContain("which is not tracked");
+    expect(keptProblems({ paths: [paths[0]], kept, readers, read: read("T9-shots") }).join()).toContain("names docs/a.md");
+    expect(keptProblems({ paths, kept, readers, read: read("nothing here") }).join()).toContain("no longer names T9-shots");
+    expect(keptProblems({ paths, kept, readers: {}, read: read("T9-shots") }).join()).toContain("no KEPT_READERS entry");
+    expect(keptProblems({ paths, kept: {}, readers, read: read("T9-shots") }).join()).toContain("not in KEPT_ASSETS");
   });
 });
 

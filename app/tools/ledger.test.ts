@@ -18,7 +18,7 @@ import { describe, expect, it } from "vitest";
 import {
   ROW_HEADER, ROW_SEP, insertRow, ledgerViews, ownerAsks, ownerView, setRow, stripRow, tableRows, unfiledAsks,
   ticketRow, claimProblems, readWorkTree,
-  CLOSED_TSV, archivePath, assetIds, archiveProblems, citeTokens, gunzipTar, gzipTar, nextNumber, parseTsv, planArchive, releaseOf, tarBytes, tarFiles, tsvLine,
+  CLOSED_TSV, KEPT_ASSETS, KEPT_READERS, archivePath, assetIds, archiveProblems, citeTokens, gunzipTar, gzipTar, nextNumber, parseTsv, planArchive, releaseOf, tarBytes, tarFiles, tsvLine,
 } from "./ledger.mjs";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
@@ -312,5 +312,12 @@ describe("T1081 the closed index and the archive", () => {
     const kept = run("--archive");
     expect(kept.stdout).toMatch(/1 ticket files, 0 claims, 0 picture\/data folders; kept: 1/);
     expect(existsSync(join(td, "T281-files", "sub_lake_areas.json"))).toBe(true);
+    // (review B1) every closed ticket's folder a surviving file still cites is in KEPT_ASSETS, so a real --archive spares it
+    for (const k of Object.keys(KEPT_ASSETS)) expect(KEPT_READERS[k]?.length, k).toBeGreaterThan(0);
+    mkdirSync(join(dir, "handoff/PLAN/app-integration/T244-shots"), { recursive: true }); writeFileSync(join(dir, "handoff/PLAN/app-integration/T244-shots/icons-preview.png"), "x");
+    writeFileSync(join(td, "T244-icon.md"), done("T244"));
+    const spared = run("--archive");
+    expect(spared.stdout).toMatch(/0 picture\/data folders; kept: 2/);
+    expect(existsSync(join(dir, "handoff/PLAN/app-integration/T244-shots/icons-preview.png"))).toBe(true);
   });
 });

@@ -13,7 +13,7 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { KEPT_ASSETS, TICKETS_DIR, assetIds, readWorkTree } from "./ledger.mjs";
+import { KEPT_ASSETS, KEPT_READERS, TICKETS_DIR, assetIds, readWorkTree } from "./ledger.mjs";
 
 /** The docs folder (the planning pages, runbooks, restart pages). The tickets folder (ledger.mjs) sits inside it today. */
 export const DOCS_DIR = "handoff/PLAN";
@@ -198,6 +198,27 @@ export function checkSize({ files, closedIds, kept = KEPT_ASSETS, readmeLong = R
   return [...new Set(problems)].sort();
 }
 
+/**
+ * (T1081) KEPT_ASSETS cannot rot: every entry is a tracked folder or file, has a named reader, and each reader is tracked and
+ * still names the asset (its last path segment). Pure: `read(path)` returns a file's text.
+ */
+export function keptProblems({ paths, kept = KEPT_ASSETS, readers = KEPT_READERS, read }) {
+  const problems = [];
+  const have = new Set(paths);
+  for (const key of Object.keys(kept)) {
+    const full = `${DOCS_DIR}/${key}`;   // ledger.mjs keys by the path under the docs folder
+    if (!paths.some((p) => p === full || p.startsWith(`${full}/`))) problems.push(`KEPT_ASSETS lists ${key}, which is not tracked: take it off the list`);
+    const who = readers[key];
+    if (!who?.length) { problems.push(`KEPT_ASSETS lists ${key} with no KEPT_READERS entry: name the file that still reads it, or take it off the list`); continue; }
+    for (const r of who) {
+      if (!have.has(r)) problems.push(`KEPT_READERS names ${r} for ${key}, which is not tracked: fix the reader, or delete the asset and take it off KEPT_ASSETS`);
+      else if (!read(r).includes(base(key))) problems.push(`${r} no longer names ${base(key)} (KEPT_ASSETS): delete the asset and take it off the list, or restore the citation`);
+    }
+  }
+  for (const key of Object.keys(readers)) if (!kept[key]) problems.push(`KEPT_READERS lists ${key}, which is not in KEPT_ASSETS: take it off`);
+  return problems;
+}
+
 /** The repo's tracked files, each with the size the budgets need (markdown: lines; a picture under the docs tree: bytes). */
 export function readTree(repoRoot) {
   const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith("GIT_")));
@@ -220,7 +241,9 @@ export function readTree(repoRoot) {
 /** The guard on the real repo. */
 export function checkRepo(repoRoot) {
   const closedIds = readWorkTree(repoRoot).closed.map((r) => r.id);
-  return checkSize({ files: readTree(repoRoot), closedIds });
+  const files = readTree(repoRoot);
+  const kept = keptProblems({ paths: files.map((f) => f.path), read: (p) => readFileSync(join(repoRoot, p), "utf8") });
+  return [...checkSize({ files, closedIds }), ...kept].sort();
 }
 
 /** Today's sizes, as the numbers and maps to paste into BUDGETS / the exception maps (+10% headroom on the totals). */

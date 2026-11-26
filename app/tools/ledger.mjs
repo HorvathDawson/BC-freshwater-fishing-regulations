@@ -546,6 +546,19 @@ export function assetIds(name) {
 /** Asset entries a surviving document or a running tool still reads: never deleted by --archive (name -> why). */
 export const KEPT_ASSETS = {
   "app-integration/tickets/T281-files": "tests (pipeline/tests/test_t100_area_caveat.py) read sub_lake_areas.json from it",
+  "app-integration/T1047-shots": "the datum-change pictures: data/curated/gauges/datum_change_stations.json and GAUGE-DATUM-CHANGES.md name them",
+  "app-integration/T244-shots": "the icon preview: store/listing-draft.md and open T447 name it",
+  "app-integration/tickets/T928-shots": "open T938 names its shot",
+  "app-integration/T665-main-rivers-map.html": "open T677 and next-rebuild.md name the held-lines map",
+};
+
+/** KEPT_ASSETS key -> the tracked files that still name it (check-size.mjs fails when a key is gone or no reader names it). */
+export const KEPT_READERS = {
+  "app-integration/tickets/T281-files": ["pipeline/tests/test_t100_area_caveat.py"],
+  "app-integration/T1047-shots": ["data/curated/gauges/datum_change_stations.json", "pipeline/docs/GAUGE-DATUM-CHANGES.md"],
+  "app-integration/T244-shots": ["handoff/PLAN/app-integration/store/listing-draft.md", `${TICKETS_DIR}/T447-artist-app-icon.md`],
+  "app-integration/tickets/T928-shots": [`${TICKETS_DIR}/T938-ios-browse-map-half-drawn-after-back.md`],
+  "app-integration/T665-main-rivers-map.html": [`${TICKETS_DIR}/T677-next-rebuild-leftovers.md`, "handoff/PLAN/app-integration/next-rebuild.md"],
 };
 
 const ASSET_ROOTS = ["handoff/PLAN/app-integration", TICKETS_DIR];
