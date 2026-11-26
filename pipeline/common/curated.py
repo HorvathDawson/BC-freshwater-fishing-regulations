@@ -518,6 +518,14 @@ def load_repo(config: Path | None = None) -> Curated:
     return _load(config, None)
 
 
+def _config_read(path: Path, key: str, value) -> None:
+    """(T1171) The build's stage keys hold the config.yaml VALUES a stage reads, not the file: each loader here names the
+    block it consumed (`pipeline._trace.config_read`). Another config file (a test's) is no config.yaml value."""
+    if Path(path).resolve() == CONFIG.resolve():
+        from pipeline import _trace
+        _trace.config_read(key, value)
+
+
 @functools.lru_cache(maxsize=8)
 def _load(config: Path | None, root: Path | None) -> Curated:
     path = config or CONFIG
@@ -525,6 +533,7 @@ def _load(config: Path | None, root: Path | None) -> Curated:
     if "curated" not in blob:
         raise KeyError(f"{path} has no `curated:` tree — see the restructure plan")
     cur = blob["curated"]
+    _config_read(path, "curated", cur)
     if root is not None:
         cur = _rebase(cur, Path(_absolute(cur["base"])), root)
     return Curated.model_validate(cur)
@@ -552,6 +561,7 @@ def load_data_tree(config: Path | None = None) -> DataTree:
     blob = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     if "data_tree" not in blob:
         raise KeyError(f"{path} has no `data_tree:` — see the restructure plan")
+    _config_read(path, "data_tree", blob["data_tree"])
     return DataTree.model_validate(blob["data_tree"])
 
 
@@ -563,6 +573,8 @@ def load_generated(config: Path | None = None) -> Generated:
     blob = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     if "generated" not in blob:
         raise KeyError(f"{path} has no `generated:` tree — `output:` was retired into it")
+    _config_read(path, "generated", blob["generated"])
+    _config_read(path, "data_tree", blob.get("data_tree"))
     got = Generated.model_validate(blob["generated"])
     root = DataTree.model_validate(blob["data_tree"]).generated
     if got.base != root:

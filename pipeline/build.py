@@ -123,11 +123,13 @@ STAGES = tuple(st.name for st in STAGE_GRAPH)
 # What each stage's CODE is before its first recorded run: a change to any file under these (tests excluded) reruns it.
 CODE = {st.name: st.code for st in STAGE_GRAPH}
 #: (T522) THE STAGES KEYED ON THE CODE THEY IMPORTED: each runs under the recorder (`pipeline/_trace.py`); the manifest
-#: keeps the modules its last run imported (`code_files`) and (T1171) the code files it read (`code_reads`: schema.sql,
-#: tile-contract.json, config.yaml — `stepcache.is_code_read`), and its code key is those files' bytes NOW plus the
-#: environment (`stepcache.env_fingerprint`) — so an edit to the review app, an audit tool or the DFO suggester reruns
-#: none, and a package or SQLite upgrade reruns all. Before a stage's first recorded run it keys on `CODE` (its broad
-#: roots, every file) and the environment.
+#: keeps the modules its last run imported (`code_files`) and (T1171, owner pick A 2026-11-26 "only what a stage
+#: imports") the code files it read (`code_reads`: schema.sql, tile-contract.json — `stepcache.is_code_read`), the
+#: distributions owning the packages it imported (`code_packages`) and the config.yaml values it read (`code_config`);
+#: its code key is all of them NOW (`stepcache.code_key`) — so an edit to the review app, an audit tool or the DFO
+#: suggester reruns none, an upgrade of a package a stage imports reruns it (pytest, vulture or playwright reruns none),
+#: and an edit to a config value only the stages that read it. Before a stage's first recorded run it keys on `CODE`
+#: (its broad roots, every file), the whole environment and the whole config.yaml.
 #: (T1171) tiles and clim are traced too: their hand-picked .py roots left out `pipeline/common`, every non-.py file and
 #: every installed package (a shapely / pyogrio upgrade changes the geometry and left the tiles "up to date"). P18 is
 #: unchanged: it is about DATA (the registry, the corpus and place names are in no tiles key part); the tiles' code is
@@ -301,16 +303,16 @@ def clim_key(m: dict | None = None) -> dict:
 
 
 def stage_code(stage: str, m: dict | None = None) -> dict:
-    """(T522) A stage's code input: for a TRACED stage with a recorded run, {"traced": the bytes now of the modules that
-    run imported, "reads": (T1171) the bytes now of the code files it read, "env": the interpreter, SQLite and the
-    installed distributions}; else {"roots": the digest of its `CODE` roots, "env": …} (T1171: the environment in both)."""
+    """(T522) A stage's code input: for a TRACED stage with a recorded run, `stepcache.code_key` of what that run used
+    (T1171: its modules, code files, packages and config values, now, and the interpreter + SQLite); else (no record
+    yet: the stage runs) {"roots": the digest of its `CODE` roots, "env": every installed distribution, "config": the
+    whole config.yaml}. A record from before T1171 (no `code_packages`) is keyed as no record: the stage runs once."""
     from pipeline.common import stepcache
     rec = ((m if m is not None else load_manifest())["stages"].get(stage) or {})
-    if stage in TRACED and rec.get("code_files"):
-        return {"traced": stepcache.code_digest(stepcache.code_now(rec["code_files"])),
-                "reads": stepcache.code_digest(stepcache.code_reads_now(rec.get("code_reads") or {})),
-                "env": stepcache.env_fingerprint()}
-    return {"roots": code_digest(CODE[stage]), "env": stepcache.env_fingerprint()}
+    if stage in TRACED and rec.get("code_files") and "code_packages" in rec:
+        return stepcache.code_key(rec["code_files"], rec.get("code_reads") or {}, rec["code_packages"],
+                                  rec.get("code_config") or {})
+    return {"roots": code_digest(CODE[stage]), "env": stepcache.env_fingerprint(), "config": stepcache.config_now(["*"])}
 
 
 def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
@@ -375,20 +377,28 @@ def tiles_key(build_dir: Path, m: dict | None = None) -> dict:
 
 
 #: (T1171) THE OUTSIDE PROGRAMS THE TILES STAGE RUNS (`tiles.tippe`: tippecanoe draws every pass, tile-join merges them)
-#: and the argument each names its version with. A `brew upgrade tippecanoe` changes the tiles; the recorder sees only
-#: Python, so the version is in the key. (pmtiles is run by the basemap tools only, which are no build stage.)
-TILE_TOOLS = (("tippecanoe", "--version"), ("tile-join", "--version"))
+#: and how each is named in the key. The recorder sees only Python, so a `brew upgrade tippecanoe` must move the key:
+#:   * tippecanoe by what `--version` prints (v2.79.0 on the build Mac): readable, and the same on another machine with
+#:     the same release;
+#:   * tile-join by the sha256 of its resolved binary: 2.79.0 has NO version flag (`--version`: rc 101, "unrecognized
+#:     option", review of #286), and the binary's bytes change with every install of another build.
+#: (pmtiles is run by the basemap tools only, which are no build stage.)
+TILE_TOOLS = (("tippecanoe", "--version"), ("tile-join", None))
 
 
 def tool_versions() -> dict[str, str]:
-    """{tool: the first line it prints for its version} for each of `TILE_TOOLS`. A tool not on $PATH is "missing" in
-    the key — the stage then runs, and the preflight refuses it by name (`tiles.tippe.check`) — never a guess. A tool
-    on $PATH that cannot say its version stops the build, naming the command."""
+    """{tool: its identity} for each of `TILE_TOOLS`: the first line of its version output, or `sha256:<16 hex>` of its
+    resolved binary for a tool with no version flag. A tool not on $PATH is "missing" in the key — the stage then runs,
+    and the preflight refuses it by name (`tiles.tippe.check`) — never a guess. A tool on $PATH that cannot say its
+    version stops the build, naming the command."""
     out: dict[str, str] = {}
     for tool, flag in TILE_TOOLS:
         exe = shutil.which(tool)
         if exe is None:
             out[tool] = "missing"
+            continue
+        if flag is None:
+            out[tool] = "sha256:" + hashlib.sha256(Path(os.path.realpath(exe)).read_bytes()).hexdigest()[:16]
             continue
         r = subprocess.run([exe, flag], capture_output=True, text=True, timeout=60)
         said = [ln.strip() for ln in (r.stdout + "\n" + r.stderr).splitlines() if ln.strip()]
@@ -693,30 +703,34 @@ def run_stage(stage: str, cmd: list[str], key: str, run: dict, m: dict, *, input
             tail = ("\n" + "".join(log.read_text(encoding="utf-8", errors="replace").splitlines(True)[-30:])
                     if log is not None and log.exists() else "")
             raise SystemExit(f"build: {stage} failed (rc={rc}); the manifest says so: {MANIFEST}{tail}")
-        code_reads = None
+        code = None
         if traced is not None:
-            key, inputs, code_files, code_reads, note = traced
+            key, inputs, code, note = traced
             print(f"=== {stage}: {note}", flush=True)
         m["stages"][stage] = {"key": key, "at": run["started"], **({"inputs": inputs} if inputs else {}),
-                              **({"code_files": code_files} if traced is not None and code_files else {}),
-                              **({"code_reads": code_reads} if traced is not None and code_files else {})}
+                              **({"code_files": code["modules"], "code_reads": code["reads"],
+                                  "code_packages": code["packages"], "code_config": code["config"]} if code else {})}
         save_manifest(m)
 
 
 def _traced_key(stage: str, tdir: Path, keyd: dict):
-    """(T522) (key, inputs, code_files, code_reads, note) for a traced stage that just ran: its key with the code part
-    re-taken on the modules its processes imported, as they were imported, and (T1171) on the code files they read
-    (`stepcache.is_code_read`), by content. A module or code file edited while it ran (imported twice with two contents,
-    read with two stamps, or changed on disk since) cannot key the run honestly: the key is None, so the next build runs
-    it again."""
+    """(T522) (key, inputs, code, note) for a traced stage that just ran: its key with the code part re-taken on what its
+    processes used (`stepcache.traced_code`: the modules as imported and, T1171, the code files, packages and config
+    values), `code` the record the manifest keeps. Something edited while it ran cannot key the run honestly: the key is
+    None, so the next build runs it again. (T1171) Imports or config reads that cannot be keyed STOP the build, naming
+    the stage — never an empty set."""
     from pipeline.common import stepcache
-    modules, code_reads, moved = stepcache.traced_code(stepcache.Trace(tdir))
-    if moved:
-        return None, None, None, None, f"NOT keyed — {moved[0]} changed while it ran; the next build runs it again"
-    k2 = dict(keyd, code={"traced": stepcache.code_digest(modules), "reads": stepcache.code_digest(code_reads),
-                          "env": stepcache.env_fingerprint()})
-    return _sha(k2), input_digests(k2), modules, code_reads, \
-        f"keyed on the {len(modules)} modules it imported and the {len(code_reads)} code files it read"
+    try:
+        code = stepcache.traced_code(stepcache.Trace(tdir), stage)
+    except stepcache.Untraceable as e:
+        raise SystemExit(f"build: {stage}: {e}") from e
+    if code["moved"]:
+        return None, None, None, f"NOT keyed — {code['moved'][0]} changed while it ran; the next build runs it again"
+    del code["moved"]
+    k2 = dict(keyd, code=stepcache.code_key(code["modules"], code["reads"], code["packages"], code["config"]))
+    return _sha(k2), input_digests(k2), code, \
+        (f"keyed on the {len(code['modules'])} modules, {len(code['reads'])} code files, {len(code['packages'])} "
+         f"packages and {len(code['config'])} config values it used")
 
 
 def timings(run: dict) -> str:

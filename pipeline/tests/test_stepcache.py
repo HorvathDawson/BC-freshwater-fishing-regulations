@@ -364,23 +364,28 @@ def test_step_declared_keys_c_level_inputs_and_the_reach_pick(scratch, monkeypat
 # ---------------------------------------------------------------------------------------------------- the stages
 
 def test_a_traced_stage_keys_on_the_files_it_imported(scratch):
-    """`pipeline build`: with `code_files` recorded, the reach/deliver code key is those files now (and the env) —
-    an edit to a module it imported moves it, an edit elsewhere does not; before the first recorded run it is the
-    broad roots and the env (T1171: every stage is traced; test_build_key_holes.py pins the holes)."""
+    """`pipeline build`: with `code_files` recorded, the stage's code key is those files now (with, T1171, its code
+    reads, packages, config values, Python and SQLite) — an edit to a module it imported moves it, an edit elsewhere
+    does not; before the first recorded run (or a record from before T1171) it is the broad roots, the whole env and
+    the whole config.yaml (test_build_key_holes.py pins the holes)."""
     mod = scratch / "mod.py"
     mod.write_text("x = 1\n")
     other = scratch / "other.py"
     other.write_text("y = 1\n")
-    m = {"stages": {"reach": {"code_files": {rel(mod): "x"}}}, "runs": []}
+    m = {"stages": {"reach": {"code_files": {rel(mod): "x"}, "code_reads": {}, "code_packages": [], "code_config": {}}},
+         "runs": []}
     k1 = B.stage_code("reach", m)
-    assert k1["env"] == SC.env_fingerprint()
+    assert {k: k1[k] for k in ("python", "sqlite")} == SC.stage_env()
     other.write_text("y = 2\n")
     assert B.stage_code("reach", m) == k1
     mod.write_text("x = 2\n")
     assert B.stage_code("reach", m) != k1
-    env = SC.env_fingerprint()
-    assert B.stage_code("deliver", {"stages": {}, "runs": []}) == {"roots": B.code_digest(B.CODE["deliver"]), "env": env}
-    assert B.stage_code("tiles", m) == {"roots": B.code_digest(B.CODE["tiles"]), "env": env}
+    fallback = lambda s: {"roots": B.code_digest(B.CODE[s]), "env": SC.env_fingerprint(),      # noqa: E731
+                          "config": SC.config_now(["*"])}
+    assert B.stage_code("deliver", {"stages": {}, "runs": []}) == fallback("deliver")
+    assert B.stage_code("tiles", m) == fallback("tiles")
+    old = {"stages": {"reach": {"code_files": {rel(mod): "x"}}}, "runs": []}          # recorded before T1171
+    assert B.stage_code("reach", old) == fallback("reach")
 
 
 # ---------------------------------------------------------------------------------------------------- the read set

@@ -62,7 +62,9 @@ already done for this release):
                and closed.json may be dirty: no stage reads them, `build.NOT_BUILD_INPUTS`); the atlas is not behind
                a curated input it was built from (T547, `atlas.inputs.behind`: a cut, name, area, added water, tidal
                limit or slough call edited after the atlas build is named — and (T1171) a module or code file it
-               was built from, or the interpreter / SQLite / a package, `atlas.inputs.code_behind` — and the run stops unless
+               was built from, a package it imported, a config value it read, Python or SQLite,
+               `atlas.inputs.code_behind`; an atlas built before it is proven once by `atlas.inputs --backfill-code` —
+               and the run stops unless
                `--ship-stale-atlas REASON`); every review mark in
                force landed in its curated file (T545, `review.apply --check`; not skipped by --no-fast-fail); no place's
                latest review save is "wrong" / "unsure" with no extent fix (T786, `review.wrong_saves`; only a dated
@@ -1236,7 +1238,8 @@ def check_atlas(ctx: Ctx) -> Finding:
         return Finding(False, f"the atlas is behind {len(behind)} input(s) it was built from (T547):\n    "
                        + "\n    ".join(behind),
                        "rebuild the atlas (`python -m pipeline build --atlas --promote`); or ship the old atlas with "
-                       "--ship-stale-atlas REASON")
+                       "--ship-stale-atlas REASON; (T1171) an atlas that records no code: prove it once with "
+                       "`python -m pipeline.atlas.inputs --backfill-code`")
     if behind:
         return Finding(True, f"atlas behind {len(behind)} input(s), SHIPPED ANYWAY (--ship-stale-atlas): {ctx.stale_atlas}")
     return Finding(True, "the atlas is current with its curated inputs")

@@ -9,6 +9,19 @@ summary.txt. The blue-line chains are built and used in memory only (P21: their 
 """
 
 from __future__ import annotations
+
+# (T1171) THE RECORDER FIRST, before any import below reads a file (importing `pipeline.common.curated` reads
+# config.yaml, `project_config` the .env): the atlas's code record (`graph.pkl.meta.json` `code`, `atlas.inputs.
+# record_code`) is what this process imported, read and took from config.yaml. `_trace` is the standard library only.
+if __name__ == "__main__":
+    from pipeline import _trace as _rec
+    _CODE_TRACE: tuple[str, bool] | None = _rec.start_own("atlas-code-", __file__)
+    if _CODE_TRACE[1]:              # its own trace is scratch: removed at exit (a SIGKILL leaves it in $TMPDIR)
+        import atexit as _atexit
+        import shutil as _sh
+        _atexit.register(_sh.rmtree, _CODE_TRACE[0], True)
+else:
+    _CODE_TRACE = None              # imported, not run: `main` records no code (it says so; the release refuses it)
 from pipeline.common.utils import wsc as _wsc
 
 import argparse
@@ -486,15 +499,7 @@ def main(argv: list[str] | None = None) -> None:
     """THE ORCHESTRATOR: FWA + curated inputs -> graph -> sections -> registry -> sidecars, one
     named phase at a time. The order is load-bearing; each phase says why it sits where it does."""
     args = _parse_args(argv)
-    # (T1171) FIRST: the build runs under the recorder, so the code it imports and the code files it reads are recorded
-    # as they were used (`graph.pkl.meta.json` `code`, `atlas.inputs.record_code`); `pipeline release` refuses an atlas
-    # whose code moved since, as it refuses one behind a curated input
     from pipeline.atlas import inputs as _inputs
-    code_trace, own_trace = _inputs.start_code_record()
-    if own_trace:                                   # its trace is scratch: gone when the process ends, however it ends
-        import atexit
-        import shutil as _shutil
-        atexit.register(_shutil.rmtree, code_trace, True)
     _refuse_promoted(args)
     fwa = FWADataAccessor(args.gpkg)
     b = _Build(args, fwa, _bbox(args, fwa))
@@ -511,7 +516,9 @@ def main(argv: list[str] | None = None) -> None:
     build_registry(b)
     write_graph(b)          # T678 plan 5: after the registry, so graph.pkl carries the tidal owner on its nodes
     write_sidecars(b)
-    code = _inputs.record_code(b.out, Path(code_trace))     # T1171: every module and code file is read by now
+    # (T1171) every module, code file and config value is read by now; `pipeline release` refuses an atlas whose code
+    # moved since, as it refuses one behind a curated input
+    code = _inputs.record_code(b.out, Path(_CODE_TRACE[0]) if _CODE_TRACE else None)
     print(f"  code recorded: {len(code['modules'])} modules, {len(code['reads'])} code files" if "modules" in code
           else f"  code NOT recorded ({code['unrecorded']}): `pipeline release` refuses this atlas — rebuild it")
     _inputs.write_complete(b.out, b.input_hashes)   # T547 §4: LAST — promote refuses a candidate without it

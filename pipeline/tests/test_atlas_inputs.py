@@ -50,7 +50,8 @@ def _atlas(tmp_path: Path, hashes: dict) -> Path:
     d.mkdir(exist_ok=True)
     write_artifact({"g": 1}, str(d / "graph.pkl"), input_hashes=hashes)
     meta = I.read_meta(d)
-    meta[I.CODE] = {"modules": SC.code_now(["pipeline/atlas/inputs.py"]), "reads": {}, "env": SC.env_fingerprint()}
+    meta[I.CODE] = {"modules": SC.code_now(["pipeline/atlas/graph/graph.py"]), "reads": {}, "packages": {}, "config": {},
+                    **SC.stage_env()}
     I.write_meta(d, meta)
     return d
 

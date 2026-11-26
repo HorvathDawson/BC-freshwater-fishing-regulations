@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import contextlib
 import fcntl
+import re
 import hashlib
 import json
 import os
@@ -43,6 +44,9 @@ from pathlib import Path
 
 from pipeline import _trace
 from pipeline.common.curated import REPO_ROOT
+
+#: (T1171) the build-record machinery (`_trace.RECORD_MACHINERY`): left out of the atlas's code record
+RECORD_MACHINERY = True
 
 _TRANSIENT = ("-journal", "-wal", "-shm")
 _PARTS = ("modules", "reads", "lists", "probes")
@@ -94,17 +98,89 @@ def env_fingerprint() -> dict:
 
 
 #: (T1171) CODE THAT IS NOT A MODULE: a file a stage reads under these is part of its code key, by content (the bundle's
-#: `schema.sql` / `indexes.sql`, the tiles' `tile-contract.json`, the settings in `config.yaml`). The recorder's M lines
-#: are `.py` files only; without this a commit that changed only `schema.sql` left deliver "up to date". The data a
-#: stage reads (curated, source, generated) is keyed by the stage's own key parts, not here.
+#: `schema.sql` / `indexes.sql`, the tiles' `tile-contract.json`). The recorder's M lines are `.py` files only; without
+#: this a commit that changed only `schema.sql` left deliver "up to date". The data a stage reads (curated, source,
+#: generated) is keyed by the stage's own key parts, and config.yaml by the VALUES it reads (C lines, `config_now`).
 CODE_READ_ROOTS = ("pipeline/",)
-CODE_READ_FILES = ("config.yaml",)
+#: the settings file: keyed by the values read from it, never by its bytes
+CONFIG_FILE = "config.yaml"
 
 
 def is_code_read(rel: str) -> bool:
-    """Whether a recorded read (repo-relative, as `Trace` keys it) is code: under `CODE_READ_ROOTS` or one of
-    `CODE_READ_FILES`. An absolute path (outside the repo) never is."""
-    return rel.startswith(CODE_READ_ROOTS) or rel in CODE_READ_FILES
+    """Whether a recorded read (repo-relative, as `Trace` keys it) is code: under `CODE_READ_ROOTS`. An absolute path
+    (outside the repo) never is."""
+    return rel.startswith(CODE_READ_ROOTS)
+
+
+class Untraceable(RuntimeError):
+    """(T1171) A run whose imports or config reads cannot be keyed: a package no installed distribution owns, or
+    config.yaml read with no value recorded. Never an empty set: the caller raises, naming the stage."""
+
+
+def stage_env() -> dict:
+    """(T1171) What a stage key holds of the interpreter beside its packages: the Python build and the SQLite library
+    (`sys.version` does not name it; a conda / brew `sqlite` upgrades it under the same interpreter). No install path."""
+    import sqlite3
+    return {"python": sys.version, "sqlite": sqlite3.sqlite_version}
+
+
+def distributions_of(tops, stage: str = "the run") -> list[str]:
+    """The installed distributions that own each imported top-level package (`P` lines), sorted, lower-case. One no
+    distribution owns raises `Untraceable`, naming it."""
+    from importlib import metadata
+    owners = metadata.packages_distributions()
+    out: set[str] = set()
+    for top in sorted(tops):
+        dists = owners.get(top)
+        if not dists:
+            raise Untraceable(f"{stage} imported `{top}`, which no installed distribution owns: its version cannot be "
+                              "keyed (install it as a package, or move it into the repo)")
+        out |= {re.sub(r"[-_.]+", "-", d).lower() for d in dists}      # PEP 503: one spelling everywhere
+    return sorted(out)
+
+
+def package_versions(dists) -> dict[str, str]:
+    """{distribution: its installed version NOW} ("missing" for one no longer installed: the key moves)."""
+    from importlib import metadata
+    out = {}
+    for d in sorted(dists):
+        try:
+            out[d] = metadata.version(d)
+        except metadata.PackageNotFoundError:
+            out[d] = "missing"
+    return out
+
+
+def config_path() -> Path:
+    return REPO_ROOT / CONFIG_FILE
+
+
+def config_now(keys) -> dict[str, str]:
+    """{config key: digest of its value in config.yaml NOW} for recorded keys (`*` = the whole file; "missing" for a
+    key that is gone)."""
+    import yaml
+    blob = yaml.safe_load(config_path().read_text(encoding="utf-8")) or {}
+    out = {}
+    for key in sorted(keys):
+        v = blob
+        if key != "*":
+            for part in key.split("."):
+                if not isinstance(v, dict) or part not in v:
+                    v = _MISSING
+                    break
+                v = v[part]
+        out[key] = _trace.CONFIG_MISSING if v is _MISSING else _trace.config_digest(v)
+    return out
+
+
+_MISSING = object()
+
+
+def is_machinery(rel: str) -> bool:
+    """(T1171) Whether a repo module is the build-record machinery: it assigns `RECORD_MACHINERY = True` at top level
+    (`_trace`, this module, `atlas.inputs`). A rule read from the file, so a new machinery module says so where it is."""
+    p = _abs(rel)
+    return p.is_file() and re.search(r"^RECORD_MACHINERY = True\b", p.read_text(encoding="utf-8"), re.M) is not None
 
 
 def code_reads_now(files) -> dict[str, str]:
@@ -129,6 +205,8 @@ class Trace:
         self.moved: list[str] = []            # an input stamped differently by two processes
         self.unkeyable: list[str] = []        # X lines
         self.interpreters: set[tuple[str, str]] = set()
+        self.packages: set[str] = set()       # (T1171) P lines: third-party top-level packages imported
+        self.config: dict[str, str] = {}      # (T1171) C lines: config key -> digest of the value read
         files = sorted(Path(directory).rglob("*.trace")) if Path(directory).is_dir() else []
         if not files:
             raise FileNotFoundError(f"stepcache: no trace under {directory} — was PIPELINE_TRACE passed to the step?")
@@ -141,6 +219,14 @@ class Trace:
                     continue
                 if kind == "X":
                     self.unkeyable.append(path)
+                    continue
+                if kind == "P":
+                    self.packages.add(path)
+                    continue
+                if kind == "C":
+                    if self.config.get(path, extra) != extra:
+                        self.moved.append(f"config {path} (two values)")
+                    self.config[path] = extra
                     continue
                 rel = _rel(path)
                 if kind == "M":
@@ -162,18 +248,36 @@ def code_now(files) -> dict[str, str]:
     return out
 
 
-def traced_code(trace: "Trace") -> tuple[dict[str, str], dict[str, str], list[str]]:
-    """(T1171) The code a traced run ran on: ({module: sha256 as imported}, {code file it read (`is_code_read`): sha256},
-    moved). `moved` names each module or code file that changed while it ran — imported with two contents, read with
-    two stamps, or different on disk now — and a run with any cannot be keyed honestly (its caller keys nothing)."""
+def traced_code(trace: "Trace", stage: str = "the run") -> dict:
+    """(T1171) The code a traced run ran on: {"modules": {module: sha256 as imported}, "reads": {code file it read
+    (`is_code_read`): sha256}, "packages": [the distributions owning what it imported], "config": {config key read:
+    digest}, "moved": [...]}. `moved` names each module, code file or config value that changed while it ran — imported
+    with two contents, read with two stamps or values, or different now — and a run with any cannot be keyed honestly
+    (its caller keys nothing). Raises `Untraceable` (never an empty set) for a package no distribution owns, or
+    config.yaml read with no value recorded."""
     reads = {r: s for r, s in sorted(trace.reads.items()) if is_code_read(r)}
     now = code_reads_now(reads)
+    if CONFIG_FILE in trace.reads and not trace.config:
+        raise Untraceable(f"{stage} read {CONFIG_FILE} but recorded no value of it: a reader outside the two config "
+                          "loaders (`curated`, `project_config`), whose reads cannot be keyed")
+    dists = distributions_of(trace.packages, stage)
     # AFTER the content is hashed: each code file still as it was when it was read (else the hash may be of bytes the
-    # run never saw), each module as imported
+    # run never saw), each module as imported, each config value as read
+    cfg = config_now(trace.config) if trace.config else {}
     moved = list(trace.conflicts) + sorted(k for k, v in code_now(trace.modules).items() if trace.modules[k] != v) \
-        + [x for x in trace.moved if is_code_read(x.split(" (")[0])] \
-        + [r for r, s in reads.items() if _trace.stamp(str(_abs(r))) != s]
-    return dict(sorted(trace.modules.items())), now, moved
+        + [x for x in trace.moved if is_code_read(x.split(" (")[0]) or x.startswith("config ")] \
+        + [r for r, s in reads.items() if _trace.stamp(str(_abs(r))) != s] \
+        + [f"config {k}" for k, d in trace.config.items() if cfg.get(k) != d]
+    return {"modules": dict(sorted(trace.modules.items())), "reads": now, "packages": dists,
+            "config": dict(sorted(trace.config.items())), "moved": moved}
+
+
+def code_key(modules, reads, packages, config) -> dict:
+    """(T1171) A stage's code key from what its record names, all taken NOW: the modules' and code files' bytes, the
+    versions of the distributions it imported, the config values it read, and `stage_env`. The same function keys a
+    run that just finished and the next plan, so an unchanged tree gives the same key."""
+    return {"traced": code_digest(code_now(modules)), "reads": code_digest(code_reads_now(reads)),
+            "packages": package_versions(packages), "config": config_now(config) if config else {}, **stage_env()}
 
 
 def code_digest(files: dict[str, str]) -> str:
@@ -293,6 +397,8 @@ class StepCache:
         rec = json.loads(rp.read_text(encoding="utf-8"))
         if rec.get("argv") != argv:
             return None, "its arguments changed"
+        if "packages" not in (rec.get("paths") or {}):
+            return None, "its record predates T1171 (it names no packages for the stage key)"
         if rec.get("env") != env_fingerprint():
             return None, "the interpreter or an installed package changed"
         if rec.get("declared") != declared:
@@ -326,7 +432,9 @@ class StepCache:
                 paths = {"modules": sorted(trace.modules),
                          "reads": sorted(filter(outside, trace.reads)),
                          "lists": sorted(filter(outside, trace.lists)),
-                         "probes": sorted(filter(outside, trace.probes))}
+                         "probes": sorted(filter(outside, trace.probes)),
+                         # (T1171) what a reuse hands the enclosing stage's key (`write_modules_trace`)
+                         "packages": sorted(trace.packages), "config": dict(sorted(trace.config.items()))}
                 fp = fingerprint(paths, self.memo)
                 # AFTER the content is hashed: every input still as it was when the step read it (else the hash may
                 # be of bytes the step never saw), every module as imported
@@ -382,11 +490,15 @@ def _place(src: Path, dst: Path) -> None:
     shutil.copyfile(src, dst)
 
 
-def write_modules_trace(directory: Path, modules: dict[str, str], name: str, reads=()) -> None:
+def write_modules_trace(directory: Path, modules: dict[str, str], name: str, reads=(), packages=(),
+                        config: dict | None = None) -> None:
     """A reused step's code, written as a trace so the enclosing stage's code key still holds it (the stage key must
     name the code of every step, run or reused): its modules, and (T1171) the code files it read (`is_code_read`;
-    `reads`: the record's read paths), stamped now — `reuse` has just matched them by content."""
+    `reads`: the record's read paths), stamped now — `reuse` has just matched them by content — the packages it imported
+    and the config values it read."""
     Path(directory).mkdir(parents=True, exist_ok=True)
     lines = "".join(f"M\t{_abs(rel)}\t{d}\n" for rel, d in sorted(modules.items()))
     lines += "".join(f"R\t{_abs(rel)}\t{_trace.stamp(str(_abs(rel)))}\n" for rel in sorted(reads) if is_code_read(rel))
+    lines += "".join(f"P\t{top}\t\n" for top in sorted(packages))
+    lines += "".join(f"C\t{k}\t{d}\n" for k, d in sorted((config or {}).items()))
     (Path(directory) / f"reused-{name}.trace").write_text(lines, encoding="utf-8")

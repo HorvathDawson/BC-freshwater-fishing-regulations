@@ -50,7 +50,10 @@ class ProjectConfig:
 
     @property
     def config(self) -> Dict[str, Any]:
-        """Get the full configuration dictionary."""
+        """Get the full configuration dictionary. (T1171) A build stage that takes the whole dictionary is keyed on the
+        whole file (`*`)."""
+        from pipeline import _trace
+        _trace.config_read("*", self._config)
         return self._config
 
     # ========================================================================
@@ -72,12 +75,18 @@ class ProjectConfig:
             KeyError: (T435) the keys name no string and no default is given — never `Path()` (the cwd)
         """
         value = self._config
+        found = True
         for key in keys:
             if isinstance(value, dict):
+                found = found and key in value
                 value = value.get(key, {})
             else:
                 value = None
+                found = False
                 break
+        # (T1171) a build stage is keyed on the config values it reads, an absent one as absent (`_trace.config_read`)
+        from pipeline import _trace
+        _trace.config_read(".".join(keys), value, missing=not found)
 
         if isinstance(value, str):
             path = Path(value)

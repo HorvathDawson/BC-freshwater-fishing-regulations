@@ -32,9 +32,11 @@ python -m pipeline build --side DIR       # every stage into DIR; nothing live (
 A stage is skipped while its inputs' digests (atlas, corpus, curated tree, source stamps, its own code) match its
 last successful run (`data/generated/build-manifest.json`). Two caches, both keyed on content
 (`pipeline/common/stepcache.py`, recorder `pipeline/_trace.py`): every stage keys on the modules it really imported,
-the code files it read (`schema.sql`, `tile-contract.json`, `config.yaml`), the interpreter, SQLite and the installed
-packages, and the tiles also on the tippecanoe and tile-join versions (T1171); the atlas records the same code stamp
-in its meta, and `pipeline release` refuses an atlas whose code moved. And each `pipeline.deliver all` step is reused when its arguments, inputs and reads are unchanged
+the code files it read (`schema.sql`, `tile-contract.json`), the versions of the packages it imported (not every
+installed one), the config.yaml values it read (not the whole file), Python and SQLite, and the tiles also on
+tippecanoe's version and tile-join's binary (T1171); imports or config reads that cannot be traced stop the build. The
+atlas records the same code stamp in its meta, and `pipeline release` refuses an atlas whose code moved (an atlas built
+before T1171 is proven once by `python -m pipeline.atlas.inputs --backfill-code`). And each `pipeline.deliver all` step is reused when its arguments, inputs and reads are unchanged
 (`data/generated/deliver-cache/`). So a rule edit reruns reach and deliver; an answers or wording edit reruns
 answers onward, not the bundle. `build --force deliver` runs every delivery step afresh.
 
