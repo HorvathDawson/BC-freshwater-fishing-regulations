@@ -19,12 +19,14 @@ One-time SDK parts (the NDK and CMake that `platform/android/buildSrc/src/main/k
 ```bash
 JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" \
   ~/Library/Android/sdk/cmdline-tools/latest/bin/sdkmanager --install "ndk;28.2.13676358" "cmake;3.31.6"
-scripts/heavy.sh mln-aar 30 -- bash app/tools/maplibre-android/build.sh <work dir outside the repo>
+scripts/heavy.sh mln-aar 30 -- bash app/tools/maplibre-android/build.sh --compile <work dir outside the repo>
 ```
 
 The AAR lands at `cache/maplibre/<MLN_VERSION>/org/maplibre/gl/android-sdk-vulkan/<MLN_VERSION>/`, with `SOURCE.txt`
 naming the commit. A full build takes about 12 minutes. A worktree without the repo links the main checkout's
 (`deploy/lib/build-links.sh` prints the command).
+(T1170) Without `--compile`, `build.sh` downloads the stored build `maplibre-android.lock.json` records (built by the
+hand-started `maplibre-android.yml`), checks sha256 and size, unpacks it, and refuses an unpublished or stale record.
 
 ## How a build uses it
 
