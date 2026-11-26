@@ -1,10 +1,10 @@
 # T1167 — In-season notices: a dated notice's banner shows from two weeks before to its last day; the banner is louder; the answer stays the book's
 
-Status: IN REVIEW — owner: see ## Owner (built, code 3a58e77c0, not pushed; pictures in T1167-shots/: before / inside / after, light and dark)
+Status: IN REVIEW — owner: see ## Owner (built, code 3a58e77c0 3dc579337; pictures in T1167-shots/: before / inside / after, light and dark)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1167 | In-season notices: a dated notice's banner shows from two weeks before to its last day; the banner is louder; the answer stays the book's | IN REVIEW | 3a58e77c0 | owner: look at T1167-shots/ (before / inside / after, light and dark); then the PR and an independent review; ships in the first patch after 0.10.0 |
+| T1167 | In-season notices: a dated notice's banner shows from two weeks before to its last day; the banner is louder; the answer stays the book's | IN REVIEW | 3a58e77c0 3dc579337 | owner: look at T1167-shots/ (before / inside / after, light and dark); then the PR and an independent review; ships in the first patch after 0.10.0 |
 
 Source: T1157's finding and the owner's answers, 2026-11-25 night. Seven provincial in-season closures of
 July 30-Sept 15, 2026 (Salmon River 3-26, Bessette Creek 8-22, Granby River and its tributaries 8-15 from noon to
@@ -31,22 +31,24 @@ Tests for the three states and for an unreadable range, each failing without the
 show nothing today. Severity: medium (an angler could fish a closed water under an "open" answer during a
 window). Model: Sonnet (Opus for the date reading). Size: S–M. Owner: the look.
 
-## Built (3a58e77c0)
+## Built (3a58e77c0, review fixes 3dc579337)
 
-- The window rule lives in ONE place per language, pinned by one case file: core `inSeasonDating` / `inSeasonSpan` /
-  `inSeasonOn` (`app/packages/core/src/inseason.ts`) and `pipeline.regs.inseason.matches.dating` / `span` / `on`, both
-  read `app/packages/core/src/inseason-span.parity.json`; the 14 days are `INSEASON_LEAD_DAYS`
-  (`pipeline/common/feed_formats.py`, emitted to `feedFormats.generated.ts`).
-- Dates: the feeds worker's one printed range (`parsed.window`, month and day; a time of day after it does not break it,
-  pinned in the worker's `events.test.ts`) with its year from the notice's effective day: read only when the range opens
-  on that day; it ends on the next last day (over the new year: the year after). A rescind's quoted range is undated.
-  No start, a day the month lacks, no effective day, or a range not opening on it ("August 15 to December 31" posted
-  Sept 16) is undated and reported once per set (`INSEASON_FAILURES.unreadRanges`); a curated `effective` dates one.
-- Words: before "Upcoming in-season change (Jul 30–Sep 15)", inside "In-season change (Jul 30–Sep 15)" with the Keep
-  strip's line "See the in-season notice above", after: nothing. Year bars (game fish, salmon, trout) carry a band over
-  the range and the legend "In-season notice, Jul 30–Sep 15". Upcoming cards wear the quiet bar.
-- Pictures: `app/tools/inseason-shots.test.ts` (`T1167_SHOTS=1`), the real RegsScreen over the trout fixture's Vedder River
-  page with the real Okanagan notice row, on Jul 20 / Aug 15 / Sep 20, 2026.
+- The rule lives in ONE place per language, pinned by one case file: core `app/packages/core/src/inseasonWindow.ts`
+  (`inSeasonDating` / `inSeasonSpan` / `inSeasonOn`; the feeds worker reads it too) and
+  `pipeline.regs.inseason.matches.dating` / `span` / `on`, both reading `inseason-span.parity.json` (30 cases); the 14
+  days are `INSEASON_LEAD_DAYS` (`pipeline/common/feed_formats.py`, emitted).
+- DATED: the text's one range (`parsed.window`) with its year from the effective day, read only when the range opens
+  on that day (over the new year it ends the year after; Feb 29 reads in the leap year); or an effective cell printing
+  both ends. Text and cell ends: the later. A rescind's quoted range: undated. The worker never takes a time of day
+  or a day with its month after it as a range's end. Unreadable (no whole start and end, a same-month range ending
+  before it starts, a day the month lacks, no effective day, a range not opening on it) or dates read as no one
+  range: shown as undated, told to the owner ONCE per set by the feeds worker (`undatableEvent`); the app reports none.
+- Words: before "Upcoming in-season change (Jul 30–Sep 15)" (inbox: "Upcoming", its range, never opening the bell by
+  itself), inside "In-season change (Jul 30–Sep 15)" with "See the in-season notice above" on the game-fish strip's
+  status line, or at the top of the Keep tab on a page with no strip (core `inSeasonKeepOf`); after: nothing. Year
+  bars (game fish, salmon, trout) carry a band and "In-season notice, Jul 30–Sep 15".
+- Pictures: `app/tools/inseason-shots.test.ts` (`T1167_SHOTS=1`), the real RegsScreen over the trout fixture's Vedder
+  River page with the real Okanagan notice row, on Jul 20 / Aug 15 / Sep 20, 2026.
 
 ## Owner
 
