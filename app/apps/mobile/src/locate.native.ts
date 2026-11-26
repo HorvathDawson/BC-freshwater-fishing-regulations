@@ -9,8 +9,11 @@
  */
 import * as Location from "expo-location";
 import { AppState } from "react-native";
-import { environmentError } from "@app/core";
+import { environmentError, isLocationSettingsOff } from "@app/core";
 import type { Locate, LocatePermission } from "@app/ui";
+
+/** (T1093) the phone's Location is off: marked the environment's where it is thrown (shown, never reported) */
+const deviceOff = (e: unknown): unknown => isLocationSettingsOff(e) ? environmentError(e instanceof Error ? e : new Error(String(e))) : e;
 
 export const locate: Locate | null = {
   permission: async (): Promise<LocatePermission> => {
@@ -27,7 +30,7 @@ export const locate: Locate | null = {
     // (T368) a refusal is the environment's: shown (the rail's line), never reported
     if (!p.granted) throw environmentError(new Error("location permission refused"));
     // a recent fix is good enough to pin a spot by (as the web's maximumAge 60 s); otherwise a fresh one
-    const last = await Location.getLastKnownPositionAsync({ maxAge: 60_000, requiredAccuracy: 100 });
+    const last = await Location.getLastKnownPositionAsync({ maxAge: 60_000, requiredAccuracy: 100 }).catch((e: unknown) => { throw deviceOff(e); });
     // (T1163) no fix (services off, no signal, timed out) is the environment's, as the web half's: shown, never reported
     const fix = last ?? await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High })
       .catch((e: unknown) => { throw environmentError(e instanceof Error ? e : new Error(String(e))); });
@@ -47,8 +50,8 @@ export const locate: Locate | null = {
       const mine = gen;
       Location.watchPositionAsync({ accuracy: Location.Accuracy.High, timeInterval: 2_000, distanceInterval: 2 },
         (p) => { if (mine === gen) on({ lat: p.coords.latitude, lon: p.coords.longitude, accuracy: p.coords.accuracy ?? undefined }); },
-        (reason) => { if (mine === gen) failed(new Error(reason)); })
-        .then((s) => { if (mine === gen) sub = s; else s.remove(); }, (e) => { if (mine === gen) failed(e); });
+        (reason) => { if (mine === gen) failed(deviceOff(new Error(reason))); })
+        .then((s) => { if (mine === gen) sub = s; else s.remove(); }, (e) => { if (mine === gen) failed(deviceOff(e)); });
     };
     const app = AppState.addEventListener("change", (st) => { if (st === "active") start(); else if (st === "background") pause(); });
     start();

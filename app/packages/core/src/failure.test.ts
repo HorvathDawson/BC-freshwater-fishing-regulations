@@ -17,7 +17,9 @@ describe("the environment is shown, never reported (T368, owner Q1)", () => {
     expect(isEnvironment(Object.assign(new Error("HTTP 500"), { environment: false }))).toBe(false);
     // (T1093) the phone's Location setting off: expo-location's refusal, as it arrives (message and code)
     expect(isEnvironment(new Error("Location request failed due to unsatisfied device settings."))).toBe(true);
-    expect(isEnvironment(Object.assign(new Error("x"), { code: "E_LOCATION_SETTINGS_UNSATISFIED" }))).toBe(true);
+    expect(isEnvironment(Object.assign(new Error("x"), { code: "ERR_LOCATION_SETTINGS_UNSATISFIED" }))).toBe(true);
+    expect(isEnvironment(Object.assign(new Error("x"), { code: "E_LOCATION_SETTINGS_UNSATISFIED" }))).toBe(false);    // the old name never arrives
+    expect(isEnvironment(new Error("Location is currently unavailable."))).toBe(true);
     expect(isEnvironment(new Error("Location request failed"))).toBe(false);
     expect(isEnvironment(null)).toBe(false);
     expect(isEnvironment("offline")).toBe(false);

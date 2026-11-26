@@ -22,7 +22,7 @@
  * dot is on, a far reading from the watch (a GPS glitch) is dropped and the dot stays at the last good one.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { isLocationSettingsOff, MY_LOCATION, nearBC, reportFailure, type LatLon } from "@app/core";
+import { isLocationSettingsOff, MY_LOCATION, nearBC, reportFailure, reportOnce, type LatLon } from "@app/core";
 import type { Locate } from "./mapRail";
 import type { Route } from "./route";
 
@@ -61,8 +61,8 @@ export interface MyLocation {
 }
 
 export const refusedLine = (e: unknown): string =>
-  // (T1093) the phone's Location setting is off though the app holds the permission: the same line, with its Settings action
-  isLocationSettingsOff(e) ? MY_LOCATION.denied
+  // (T1093) the phone's Location is off though the app holds the permission: its own line, no app-Settings action
+  isLocationSettingsOff(e) ? MY_LOCATION.deviceOff
   : e instanceof Error && /refused|denied|permission/i.test(e.message) ? MY_LOCATION.denied
   : typeof e === "object" && e !== null && (e as { code?: number }).code === 1 ? MY_LOCATION.denied
   : MY_LOCATION.noFix;
@@ -84,8 +84,14 @@ export function useMyLocation(locate: Locate | null): MyLocation | null {
   const watchNow = () => {
     unwatch();
     stop.current = locate?.watch?.((f) => { if (alive.current && nearBC(f)) setFix(f); },
-                                   // a missed reading while following is not worth a line (the dot stays at the last one); a refusal is
-                                   (e) => { if (alive.current && refusedLine(e) === MY_LOCATION.denied) setNotice(MY_LOCATION.denied); }) ?? null;
+                                   // a missed reading while following is not worth a line (the dot stays at the last one); a refusal, or
+                                   // Location switched off (T1093), is said; any other failure of the watch is reported, once (W46)
+                                   (e) => {
+                                     if (!alive.current) return;
+                                     const line = refusedLine(e);
+                                     if (line === MY_LOCATION.denied || line === MY_LOCATION.deviceOff) setNotice(line);
+                                     else reportOnce("location-watch", e);
+                                   }) ?? null;
   };
 
   /** off → on: read the fix (the platform may ask), centre on it at `z` (null: a press's zoom), then keep the dot moving */

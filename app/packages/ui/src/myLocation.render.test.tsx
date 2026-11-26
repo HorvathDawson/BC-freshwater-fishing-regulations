@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { MY_LOCATION } from "@app/core";
+import { MY_LOCATION, setFailureSink } from "@app/core";
 import type { Locate } from "./mapRail";
 import { useMyLocation, useOpenAtMe } from "./myLocation";
 
@@ -63,16 +63,30 @@ describe("(T303) my location", () => {
   });
 
   it("the phone's Location setting off (T1093): the press and the following both say how to turn it on, nothing is thrown", async () => {
-    const off = new Error("Location request failed due to unsatisfied device settings.");
+    const off = Object.assign(new Error("Location request failed due to unsatisfied device settings"), { code: "ERR_LOCATION_SETTINGS_UNSATISFIED" });
     const { result } = renderHook(() => useMyLocation(make(async () => { throw off; })));
     await act(async () => { result.current!.press(); });
-    expect(result.current).toMatchObject({ on: false, notice: "Location is off for this app. Turn it on in your device settings, then tap again." });
+    expect(result.current).toMatchObject({ on: false, notice: "Your phone could not get a location. Check that Location is turned on in its settings, then tap again." });
     let fail: (e: unknown) => void = () => {};
     const loc: Locate = { ...make(async () => fix), watch: vi.fn((_on, failed) => { fail = failed; return () => {}; }) };
     const again = renderHook(() => useMyLocation(loc));
     await act(async () => { again.result.current!.press(); });
     act(() => { fail(off); });
-    expect(again.result.current!.notice).toBe("Location is off for this app. Turn it on in your device settings, then tap again.");
+    expect(again.result.current!.notice).toBe("Your phone could not get a location. Check that Location is turned on in its settings, then tap again.");
+  });
+
+  it("(T1093) a watch that fails for any other reason is reported, once (W46); a refusal is said, not reported", async () => {
+    const seen: unknown[] = [];
+    const undo = setFailureSink((e) => seen.push(e));
+    let fail: (e: unknown) => void = () => {};
+    const loc: Locate = { ...make(async () => fix), watch: vi.fn((_on, failed) => { fail = failed; return () => {}; }) };
+    const { result } = renderHook(() => useMyLocation(loc));
+    await act(async () => { result.current!.press(); });
+    act(() => { fail(new Error("the watch broke")); fail(new Error("the watch broke again")); });
+    const quiet = result.current!.notice;
+    act(() => { fail(new Error("location permission refused")); });
+    undo();
+    expect([seen.map((e) => (e as Error).message), quiet, result.current!.notice]).toEqual([["the watch broke"], null, "Location is off for this app. Turn it on in your device settings, then tap again."]);
   });
 
   it("no fix (timeout) is said differently from a refusal", async () => {

@@ -259,7 +259,7 @@ export function useMapRail(go: (a: RouteAction) => void, locate: Locate | null =
         // (T723 G6) a refusal says so (with "Open Settings" under it) and is not a defect; anything else is reported
         reportFailure(e);
         const refused = refusedLine(e);
-        setError(refused === MY_LOCATION.denied ? refused : SPOTS_MENU.noLocation);
+        setError(refused === MY_LOCATION.noFix ? SPOTS_MENU.noLocation : refused);
       }
     },
     show: (spot) => {

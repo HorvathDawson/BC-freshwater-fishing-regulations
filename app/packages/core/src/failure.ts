@@ -29,15 +29,25 @@ export function setFailureSink(s: ((e: unknown) => void) | null, sent?: () => Pr
 /** Browser and React Native words for a fetch that never reached a server (no connection), by engine. */
 const NO_LINE = /^(?:Network request failed|Failed to fetch|Load failed|NetworkError when attempting to fetch resource\.?)$/;
 
+/** expo-location's codes (a CodedException's code is its class name: `LocationSettingsUnsatisfiedException` is `ERR_LOCATION_SETTINGS_UNSATISFIED`) for "the phone's Location is off". */
+const LOCATION_OFF_CODES: readonly string[] = [
+  "ERR_LOCATION_SETTINGS_UNSATISFIED", "ERR_LOCATION_UNAVAILABLE", "ERR_CURRENT_LOCATION_IS_UNAVAILABLE",
+  "ERR_LOCATION_SERVICES_DISABLED", "ERR_LOCATION_SERVICES_DISABLED_GLOBALLY",
+];
+/** The same conditions in the words a watch's error callback hands over (a bare string, no code). */
+const LOCATION_OFF_WORDS =
+  /unsatisfied device settings|Location is (currently )?unavailable|Current location is unavailable|Location Services are turned off for the whole device/i;
+
 /**
- * (T1093) The phone's own refusal when its Location setting is off (or not on high accuracy) though the app holds the
- * permission: expo-location's `E_LOCATION_SETTINGS_UNSATISFIED`, "Location request failed due to unsatisfied device
- * settings." A condition of the device, from any call that asks for a position (a fix, a watch): never a defect.
+ * (T1093) The phone's Location (or its accuracy mode) is off though the app holds the permission: a condition of the
+ * device, from any call that asks for a position (a fix, a watch): never a defect. The thrower marks it
+ * (`locate.native.ts` `environmentError`); `isEnvironment` also knows it by code or words, as a BACKSTOP for the one
+ * path no caller owns (an unhandled rejection from the platform's own watch).
  */
 export function isLocationSettingsOff(e: unknown): boolean {
   if (!e || typeof e !== "object") return false;
   const x = e as { code?: unknown; message?: unknown };
-  return x.code === "E_LOCATION_SETTINGS_UNSATISFIED" || (typeof x.message === "string" && /unsatisfied device settings/i.test(x.message));
+  return (typeof x.code === "string" && LOCATION_OFF_CODES.includes(x.code)) || (typeof x.message === "string" && LOCATION_OFF_WORDS.test(x.message));
 }
 
 /**

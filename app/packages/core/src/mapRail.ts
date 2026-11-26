@@ -28,6 +28,12 @@ export const MY_LOCATION = {
   labelFollowing: "Stop following my location",
   /** said when it was refused, or location is switched off: how to turn it on; the button stays usable to retry */
   denied: "Location is off for this app. Turn it on in your device settings, then tap again.",
+  /**
+   * (T1093; PROPOSAL, the owner picks the words) the phone's Location (or its accuracy mode) is off though the app holds the
+   * permission: the app's own settings page would show Location already allowed, so no "Open Settings" action (not in
+   * `needsSettings`), and no claim beyond what is known (Android without Google services refuses the same way with Location on).
+   */
+  deviceOff: "Your phone could not get a location. Check that Location is turned on in its settings, then tap again.",
   /** a fix did not arrive (no signal, timed out) */
   noFix: "Your location could not be found. Try again outside, or check location is on.",
   /**

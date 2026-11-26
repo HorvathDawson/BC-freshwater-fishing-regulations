@@ -11,10 +11,14 @@ describe("needsSettings", () => {
       needsSettings("The photo was not added (the camera was not allowed). Nothing else changed."),
       needsSettings(SPOTS_MENU.noLocation),
       needsSettings(MY_LOCATION.noFix),
+      needsSettings(MY_LOCATION.deviceOff),     // (T1093) the app's own settings page would show Location allowed: no action
       needsSettings("The photo was not added (disk full). Nothing else changed."),
       needsSettings(null), needsSettings(undefined),
-    ]).toEqual([true, true, true, false, false, false, false, false]);
+    ]).toEqual([true, true, true, false, false, false, false, false, false]);
     expect(CAMERA_REFUSED).toBe("the camera was not allowed");
+  });
+  it("(T1093) the phone's Location off says so whole, and is not the app's refusal", () => {
+    expect(MY_LOCATION.deviceOff).toBe("Your phone could not get a location. Check that Location is turned on in its settings, then tap again.");
   });
   it("the action's words", () => {
     expect(OPEN_SETTINGS.label).toBe("Open Settings");

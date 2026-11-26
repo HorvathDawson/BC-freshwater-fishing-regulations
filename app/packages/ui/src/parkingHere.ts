@@ -26,6 +26,6 @@ export async function parkingHere(locate: Locate): Promise<ParkingHere> {
     return { parking: { lat: f.lat, lon: f.lon }, notice: roughFixLine(f.accuracy) };
   } catch (e) {
     reportFailure(e);
-    return { parking: null, notice: refusedLine(e) === MY_LOCATION.denied ? MY_LOCATION.denied : SPOT_WORDS.parkingNoFix };
+    return { parking: null, notice: refusedLine(e) === MY_LOCATION.noFix ? SPOT_WORDS.parkingNoFix : refusedLine(e) };
   }
 }
