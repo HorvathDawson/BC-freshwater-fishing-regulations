@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { LAB_DEFAULT, LABEL_SWITCH, labStyle, type Lab } from "./lab";
 import { LABEL_GROUPS, labelGroup } from "./label-hold";
 import { nativeStyle } from "./native-style";
+import { maplibreDialect } from "./native/maplibre/dialect";
 
 type L = { id: string; type: string; source?: string; "source-layer"?: string; filter?: unknown;
            minzoom?: number; maxzoom?: number; layout?: Record<string, unknown> };
@@ -15,7 +16,7 @@ const AT = { atlas: "file:///d/release/tiles/v/atlas-v.pmtiles", basemap: "file:
              outside: "file:///d/release/tiles/v/bc_outside.geojson", assets: "file:///d/release/tiles/v/map-assets-1/" };
 const base = { at: AT, theme: "light", view: "plain", modes: {}, hide: [], groups: {}, basemap: "map" as const,
                gauges: '{"type":"FeatureCollection","features":[]}' };
-const today = () => nativeStyle(base).style as unknown as S;
+const today = () => nativeStyle(base, maplibreDialect).style as unknown as S;
 const lab = (change: Partial<Lab>) => labStyle(today(), { ...LAB_DEFAULT, ...change });
 
 /** What MapLibre groups into one bucket: same source, source-layer, zoom range, filter and layout. */

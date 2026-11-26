@@ -21,7 +21,7 @@
  *
  * One sequence for both maps: `applyLook` sets these layers' visibility with everything else.
  */
-import { IMAGERY_ATTRIBUTION } from "@app/core";
+import { IMAGERY } from "@app/core";
 import type { Look } from "./look";
 
 /** The licences, linked once. */
@@ -68,8 +68,9 @@ export const ATLAS_CREDIT = partsHtml(ATLAS_LINE.parts);
 
 /** The gauge dots' source (`gaugeDots.ts`): always on every view. */
 export const GAUGES_LINE: CreditLine = { id: "gauges", label: "Gauges", parts: ["Environment and Climate Change Canada"] };
-/** Esri's required wording while its imagery is the ground: "Powered by Esri" and the service's copyright text. */
-export const IMAGERY_LINE: CreditLine = { id: "imagery", label: "Imagery", parts: [IMAGERY_ATTRIBUTION] };
+/** The imagery provider's required wording while its imagery is the ground (`IMAGERY`; Esri's: "Powered by Esri" and the
+ *  service's copyright text). */
+export const IMAGERY_LINE: CreditLine = { id: "imagery", label: "Imagery", parts: [IMAGERY.attribution] };
 
 export interface MapCredit extends CreditLine {
   /** the credit, as a source would carry it (HTML: a link where the licence asks for one) */

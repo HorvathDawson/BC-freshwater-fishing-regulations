@@ -15,14 +15,17 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
-import { IMAGERY_CREDIT } from "@app/core";
+import { IMAGERY, IMAGERY_CREDIT } from "@app/core";
 import { runtimeStyle } from "@app/map";
+import { MAP_STYLE } from "../packages/map/src/style";
+import { PMTILES } from "../packages/map/src/tile-access";
 import { imageryTiles } from "../packages/map/src/endpoints";
 import { nativeStyle } from "../packages/map/src/native-style";
+import { maplibreDialect } from "../packages/map/src/native/maplibre/dialect";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const read = (p: string) => readFileSync(join(ROOT, p), "utf8");
-const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+const ESRI_TILES = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
   + "?blankTile=false";
 const AT = { atlas: "https://example.invalid/atlas.pmtiles", basemap: "https://example.invalid/basemap.pmtiles" };
 type Src = { tiles?: string[]; attribution?: string; maxzoom?: number; tileSize?: number; type?: string };
@@ -30,26 +33,31 @@ const text = (html: string) => html.replace(/<[^>]+>/g, "");
 
 describe("the satellite source", () => {
   it("is Esri World Imagery, to z19, credited as Esri requires — on both maps", () => {
-    const web = runtimeStyle(AT, "light").sources.imagery as Src;
-    const phone = nativeStyle({ at: AT, theme: "light", view: "plain", basemap: "satellite", gauges: "" })
+    const web = runtimeStyle(AT, "light", {}, PMTILES).sources.imagery as Src;
+    const phone = nativeStyle({ at: AT, theme: "light", view: "plain", basemap: "satellite", gauges: "" }, maplibreDialect)
       .style.sources.imagery as Src;
-    const want = { type: "raster", tiles: [ESRI], tileSize: 256, maxzoom: 19,
+    const want = { type: "raster", tiles: [ESRI_TILES], tileSize: 256, maxzoom: 19,
                    attribution: 'Powered by <a href="https://www.esri.com">Esri</a> · Source: Esri, Vantor, '
                      + "Earthstar Geographics, and the GIS User Community" };
     expect({ web, phone }).toEqual({ web: want, phone: want });
   });
 
+  it("(T1154) the provider in use is drawn by the style source it names, and its credit is that source's, whole", () => {
+    const src = (MAP_STYLE.sources as unknown as Record<string, Src>)[IMAGERY.source];
+    expect([IMAGERY.source, text(src!.attribution!)]).toEqual(["imagery", IMAGERY.attribution]);
+  });
+
   it("its map credit and the app's credit line are the same words", () => {
-    const style = runtimeStyle(AT, "light").sources.imagery as Src;
+    const style = runtimeStyle(AT, "light", {}, PMTILES).sources.imagery as Src;
     expect(`Satellite imagery: ${text(style.attribution!)}`).toBe(IMAGERY_CREDIT);
   });
 
   it("a Location Platform key swaps the template whole (EXPO_PUBLIC_ARCGIS_API_KEY); none keeps Esri's own URL", () => {
-    expect(imageryTiles(null)).toBe(ESRI);
-    expect(imageryTiles("k-123")).toBe("https://ibasemaps-api.arcgis.com/arcgis/rest/services/World_Imagery/MapServer"
+    expect(imageryTiles(IMAGERY, null)).toBe(ESRI_TILES);
+    expect(imageryTiles(IMAGERY, "k-123")).toBe("https://ibasemaps-api.arcgis.com/arcgis/rest/services/World_Imagery/MapServer"
       + "/tile/{z}/{y}/{x}?blankTile=false&token=k-123");
-    const keyed = runtimeStyle({ ...AT, imagery: imageryTiles("k-123") }, "light").sources.imagery as Src;
-    expect(keyed.tiles).toEqual([imageryTiles("k-123")]);
+    const keyed = runtimeStyle({ ...AT, imagery: imageryTiles(IMAGERY, "k-123") }, "light", {}, PMTILES).sources.imagery as Src;
+    expect(keyed.tiles).toEqual([imageryTiles(IMAGERY, "k-123")]);
   });
 
   it("EOX and the BC 'Access Only' imagery are gone from the style, the runtime and the app", () => {
@@ -62,7 +70,7 @@ describe("the satellite source", () => {
 
 describe("the phone's credit follows the ground drawn", () => {
   const credit = (basemap: "map" | "satellite") =>
-    (nativeStyle({ at: AT, theme: "light", view: "plain", basemap, gauges: "" }).style.sources.imagery as Src)
+    (nativeStyle({ at: AT, theme: "light", view: "plain", basemap, gauges: "" }, maplibreDialect).style.sources.imagery as Src)
       .attribution ?? null;
   it("Esri's credit while satellite is drawn; none on the drawn map", () => {
     expect({ satellite: credit("satellite") !== null, map: credit("map") }).toEqual({ satellite: true, map: null });

@@ -4,7 +4,8 @@
  * is on any more (the web's HTML one and the binding's "i" differed in what they listed and how), so the wording, order
  * and look are the same on the web and the phone, and the licences' wording is ours to keep right: ODbL's
  * "© OpenStreetMap contributors" is linked in the card's Basemap and Streams-and-rules lines, one tap from the map;
- * Esri's "Powered by Esri" stays visible beside the chip while its imagery is the ground (Esri's own requirement).
+ * the imagery provider's badge (`IMAGERY.badge`; Esri's "Powered by Esri") stays visible beside the chip while its imagery
+ * is the ground (Esri's own requirement).
  *
  * THE OPEN CARD is a Modal (T729), centred over everything, never under the legend. WHERE (the chip): bottom-right, `GEOMETRY.right` from the edge and `insetBottom` over the foot block (the legend and its bar, a
  * sheet). The scale bar is bottom-LEFT (`GEOMETRY.scaleLeft`), so the two can never meet: `GEOMETRY` is what a test checks
@@ -18,7 +19,8 @@
  */
 import { useEffect, useState, type ComponentType, type ReactNode } from "react";
 import { Modal, Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
-import { ESRI_BADGE, GEOMETRY } from "./chrome";
+import { IMAGERY } from "@app/core";
+import { GEOMETRY } from "./chrome";
 import { creditLines, type CreditPart } from "./credits";
 import type { Look } from "./look";
 import type { MapChrome } from "./map-props";
@@ -82,11 +84,11 @@ export function MapCredits({ look, chrome, insetBottom = 0, onOpenLink, onLongPr
     <>
       <View testID="map-credits" pointerEvents="box-none"
             style={{ position: "absolute", right: G.right, bottom, flexDirection: "row", alignItems: "flex-end", gap: G.gap }}>
-        {look.basemap === "satellite" && (
+        {look.basemap === "satellite" && IMAGERY.badge !== null && (
           <View testID="esri-badge" pointerEvents="none"
                 style={{ height: G.chip, justifyContent: "center", paddingHorizontal: 6, backgroundColor: chrome.card,
                          borderWidth: 1, borderColor: chrome.ink }}>
-            <Text style={{ color: chrome.ink, fontFamily: TEXT, fontSize: 11, lineHeight: 14 }}>{ESRI_BADGE}</Text>
+            <Text style={{ color: chrome.ink, fontFamily: TEXT, fontSize: 11, lineHeight: 14 }}>{IMAGERY.badge}</Text>
           </View>
         )}
         <Pressable testID="map-credits-chip" accessibilityRole="button" accessibilityLabel="Map credits"

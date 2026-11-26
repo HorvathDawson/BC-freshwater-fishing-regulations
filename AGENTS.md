@@ -78,7 +78,8 @@ W47. **`main` is the protected trunk; every change reaches it through a pull req
     - Hooks live in `.githooks/` (`git config core.hooksPath .githooks` once per clone); the pre-push hook runs the
       tests the change reaches. `--no-verify` is an emergency skip only, said in the commit or PR. A long hook needs
       an ssh keepalive (`ServerAliveInterval`) or GitHub drops the push.
-    - **Once before opening a PR** (and before a push of substance to it) run `scripts/before_pr.sh`; open the PR
+      Hooks queue on one machine lock; `BEFORE_PUSH_NO_LOCK="<reason>"` runs beside it, the reason printed.
+    - **Once before opening a PR** (and before a push of substance to it) run `scripts/before_pr.sh --title "<the PR title>"`; open the PR
       only on its `before-pr: PASS` line. Read the PR's mutation report (report-only) before asking for review.
     - A release is cut (`python -m pipeline release --cut <version>`) to `release/<version>` and ships from there. A
       fix lands on `main` first, then is cherry-picked onto the release branch, which merges back into `main` by PR.
@@ -86,7 +87,8 @@ W48. **Commits follow Conventional Commits, and the app version comes from them.
     - `<type>(<scope>)!: <subject>`, header at most 100 characters, the scope the ticket id. `feat` (a change
       anglers notice), `fix`, `perf` bump the app; `docs`, `chore`, `ci`, `test`, `refactor`, `build`, `style` do
       not (`app/tools/versioning.json`). `!` marks a change an installed app cannot take without updating. A PR
-      title follows the same format, at most 93 characters. commitlint checks it in the hook, before push and in CI.
+      title follows the same format and, with its merge-commit suffix ` (#N)`, fits 100: at most 93 characters while PR
+      numbers have three digits, 92 from #1000. Checked by `before_pr.sh --title`, on a push to an open PR, and in CI.
     - `release --cut` computes the bump from the commits since the last `v*` tag and the owner confirms it. Never
       edit app.json's version by hand. A data-only release ships from `release/data-<date>` (`--cut --data-only`).
       Build numbers only go up. 1.0.0 is the owner's call.

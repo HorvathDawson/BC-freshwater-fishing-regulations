@@ -161,7 +161,7 @@ export const LICENCE_ROWS: readonly LicenceRow[] = [
     url: "https://www.salmonexplorer.ca" },
   { k: "weather", name: "Weather", from: "Open-Meteo.com", shows: "The weather on a saved spot.", licence: "ccBy",
     wording: "Weather data by Open-Meteo.com", url: "https://open-meteo.com" },
-  { k: "imagery", name: "Satellite imagery", from: "Esri", shows: "The Satellite ground, online only, never stored.",
+  { k: "imagery", name: "Satellite imagery", from: "Esri", shows: "The Satellite ground, online only.",
     licence: "esri", wording: "Powered by Esri · Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community",
     url: "https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9" },
   { k: "icons", name: "Lucide icons", from: "Lucide Contributors", shows: "The app's icons.", licence: "isc",

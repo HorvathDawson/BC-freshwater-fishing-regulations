@@ -52,6 +52,11 @@ each step's output printed whole when it ends, so the hook takes the longer lane
 --changed) runs no related step: its whole set is the suites. `scripts/before_pr.sh` (T1041) is the once-before-the-PR
 half: the whole app suite and the no-data tier through heavy.sh.
 
+(T1144) `--pre-push` (the hook) QUEUES: its steps run under one machine-wide lock (`~/.claude/before-push.lock`,
+fcntl.flock: a dead holder frees it), a second push waits saying who holds it, and fails after BEFORE_PUSH_LOCK_WAIT
+minutes (20); `BEFORE_PUSH_NO_LOCK="<reason>"` runs beside it, the reason printed. Its vitest runs take the free cores
+(`vitest_workers`: cores minus the load, 2 to the config's own), through vitest's VITEST_MAX_FORKS / _THREADS.
+
 THE HOOKS ARE VERSIONED (T995, owner 2026-11-21): `.githooks/pre-push` runs `--changed`, `.githooks/commit-msg` checks the
 message (T998: Conventional Commits, `app/tools/check-commits.mjs --edit`).
 They are on once a clone says `git config core.hooksPath .githooks` (`--hook` prints it; nothing is installed here).
@@ -61,6 +66,10 @@ reported false passes).
 from __future__ import annotations
 
 import argparse
+import contextlib
+import fcntl
+import json
+import math
 import os
 import re
 import subprocess
@@ -124,6 +133,84 @@ class Step:
     note: tuple[str, ...] = ()      # (T1041) what the step chose and why, printed above its output
 
 
+def title_limit(number: int | str) -> int:
+    """(T1144) the longest PR title for this PR number: the merge commit `<title> (#N)` must fit `headerMax`."""
+    import json
+    header_max = json.loads((ROOT / "app" / "tools" / "versioning.json").read_text())["headerMax"]
+    return header_max - len(f" (#{number})")
+
+
+class TitleNotChecked(Exception):
+    """(T1144) the title check could not run (no node, a timeout): said as a warning, the push goes on."""
+
+
+def title_verdict(title: str, number: int | str) -> str | None:
+    """(T1144) None when the PR title, as its merge commit `<title> (#N)`, follows Conventional Commits and fits;
+    otherwise what to fix. CI's check, run through the same command (`check-commits.mjs --title --number`)."""
+    try:
+        got = subprocess.run(["node", "app/tools/check-commits.mjs", "--title", title, "--number", str(number)],
+                             cwd=ROOT, capture_output=True, text=True, timeout=60)
+    except (OSError, subprocess.SubprocessError) as e:
+        raise TitleNotChecked(f"node could not run the check ({e})") from e
+    if got.returncode == 2:                                   # check-commits: the check could not run
+        raise TitleNotChecked(f"the check could not run ({(got.stderr or got.stdout).strip()[:200]})")
+    if got.returncode == 0:
+        return None
+    limit = title_limit(number)
+    over = len(title) - limit
+    head = (f"the title is {len(title)} characters, {over} over the limit of {limit} for a {len(str(number))}-digit "
+            f"number (its merge commit is \"{title} (#{number})\", at most 100)" if over > 0
+            else f"the title ({len(title)}/{limit}) does not pass the commit check")
+    return f"{head}\n{got.stdout}{got.stderr}".rstrip()
+
+
+def _gh(args: list[str]) -> subprocess.CompletedProcess:
+    return subprocess.run(["gh", *args], cwd=ROOT, capture_output=True, text=True, timeout=60)
+
+
+def pushed_title_check(lines: list[str], gh=None) -> tuple[int, list[str]]:
+    """(T1144) THE PR TITLE, before the push: CI checks the merge commit `<title> (#N)`, and nothing local did (#266
+    failed five pushes at 96 + 7 = 103). For each pushed branch with an open PR, check its title with its real
+    number. (rc, messages): rc 1 a title to fix (with the `gh pr edit` command); a CONFLICTING PR and an unreachable
+    `gh` are warnings, said, never silent."""
+    import json
+    gh = gh or _gh
+    rc, out = 0, []
+    for ln in lines:
+        parts = ln.split()
+        if len(parts) != 4 or not parts[0].startswith("refs/heads/") or parts[1] == ZERO:
+            continue
+        if not parts[2].startswith("refs/heads/"):
+            continue
+        branch = parts[2][len("refs/heads/"):]                # the REMOTE ref: `git push origin local:other` pushes `other`
+        try:
+            got = gh(["pr", "view", branch, "--json", "number,title,mergeable,state"])
+        except (OSError, subprocess.SubprocessError) as e:
+            out.append(f"WARNING: the PR title was not checked: gh could not run ({e})")
+            continue
+        if got.returncode != 0:
+            if "no pull requests found" in (got.stderr or ""):
+                continue                                      # no PR yet: before_pr.sh --title checks it at opening
+            why = ((got.stderr or got.stdout).strip().splitlines() or [f"rc {got.returncode}"])[0]
+            out.append(f"WARNING: the PR title was not checked: gh could not answer ({why})")
+            continue
+        pr = json.loads(got.stdout)
+        if pr.get("state") != "OPEN":                         # gh pr view also answers a CLOSED or MERGED PR
+            continue
+        if pr.get("mergeable") == "CONFLICTING":
+            out.append(f"WARNING: PR #{pr['number']} conflicts with main (mergeable: CONFLICTING); CI will not run on it")
+        try:
+            bad = title_verdict(pr["title"], pr["number"])
+        except TitleNotChecked as e:
+            out.append(f"WARNING: the PR title was not checked: {e}")
+            continue
+        if bad:
+            rc = 1
+            out.append(f"the title of PR #{pr['number']} fails CI's merge-commit check: {bad}\n  fix it: gh pr edit "
+                       f"{pr['number']} --title \"<a shorter title>\"")
+    return rc, out
+
+
 def py() -> str:
     """The pipeline's interpreter (`scripts/test-env.sh`: PIPELINE_PY, else the repo's .venv)."""
     return os.environ.get("PIPELINE_PY") or str(ROOT / ".venv" / "bin" / "python")
@@ -174,8 +261,9 @@ ZERO = "0" * 40
 def pushed_paths(lines: list[str], trunk: str = CP.TRUNK) -> tuple[list[str], list[str]]:
     """(T995 review) THE PRE-PUSH HOOK'S CHANGE: git hands the hook one line per ref, `<local ref> <local sha> <remote
     ref> <remote sha>`. A delete (local sha zero) and a tag push check nothing; a branch checks the commits it sends —
-    `<remote sha>..<local sha>`, or, for a new branch (or a remote sha this clone does not hold), everything since its
-    merge base with origin/main. (what was pushed, one line per ref; every path those commits change)"""
+    `<remote sha>..<local sha>` (T1144: those of its paths the PR itself changes), or, for a new branch (or a remote
+    sha this clone does not hold), everything since its merge base with origin/main. (what was pushed, one line per
+    ref; every path to test)"""
     said, paths, _ = pushed(lines, trunk)
     return said, paths
 
@@ -185,7 +273,16 @@ def pushed(lines: list[str], trunk: str = CP.TRUNK) -> tuple[list[str], list[str
     (T1019) That range is `<merge base with origin/main>..<local sha>` — the branch's own commits, the range docs-ci's
     `commits` job checks on the PR — never `<remote sha>..<local sha>`: after a merge of (or a rebase onto) a newer
     trunk the remote's old tip is not the branch's base, and that range held the trunk's own commits (merge subjects,
-    history before the T998 cutover) the PR never checks. The PATHS stay the pushed change (`<remote sha>..`)."""
+    history before the T998 cutover) the PR never checks.
+
+    (T1144) THE PATHS are the pushed change that is ALSO the PR's own: changed in `<remote sha>..<local sha>` AND in
+    `<merge base>..<local sha>` (what CI's `changes` job reads for the PR, ci_paths.pr_paths). A plain follow-up push
+    tests what it changed, as before; after `git merge origin/main` the first range holds every path main changed
+    (165 for a docs-only branch, 2026-11-26: a 5 min hook re-testing main), and only the PR's own paths the merge
+    touched stay (a conflict resolution is in both). The rest are as main has them (each came with main, or the push
+    put it back to main's), so the PR and the merge queue test them, not this push: said, with their count. A stale
+    local origin/main makes the merge base older and the PR's own set WIDER (main's newer paths count as the PR's):
+    more is tested, never less. A new branch (remote sha unknown) is everything since the merge base, as before."""
     said, paths, ranges = [], set(), []
     for ln in lines:
         parts = ln.split()
@@ -201,11 +298,22 @@ def pushed(lines: list[str], trunk: str = CP.TRUNK) -> tuple[list[str], list[str
         known = rsha != ZERO and subprocess.run(["git", "cat-file", "-e", f"{rsha}^{{commit}}"], cwd=ROOT,
                                                 capture_output=True).returncode == 0
         mb = _git("merge-base", lsha, f"{CP.REMOTE}/{trunk}", trunk=trunk).strip()
-        base = rsha if known else mb
-        got = [x for x in _git("diff", "--name-only", "--no-renames", base, lsha, trunk=trunk).splitlines() if x]
-        said.append(f"{rref}: {len(got)} path(s) in {base[:12]}..{lsha[:12]}"
-                    + ("" if known else f" (since the merge base with {CP.REMOTE}/{trunk})"))
-        paths |= set(got)
+        def diff(a: str) -> set[str]:
+            return {x for x in _git("diff", "--name-only", "--no-renames", a, lsha, trunk=trunk).splitlines() if x}
+        own = diff(mb)
+        if known:
+            sent = diff(rsha)
+            got, came = sent & own, sent - own
+            said.append((f"{rref}: {len(came)} path(s) came with main and are the merge queue's: not re-tested here; "
+                         if came else f"{rref}: ")
+                        + f"{len(got)} path(s) in {rsha[:12]}..{lsha[:12]}"
+                        + (f" that the PR itself changes (since {mb[:12]}, the merge base with {CP.REMOTE}/{trunk})"
+                           if came else ""))
+        else:
+            got = own
+            said.append(f"{rref}: {len(got)} path(s) in {mb[:12]}..{lsha[:12]} (since the merge base with "
+                        f"{CP.REMOTE}/{trunk})")
+        paths |= got
         ranges.append(f"{mb}..{lsha}")
     return said, sorted(paths), ranges
 
@@ -346,6 +454,184 @@ def keepalive_said(url: str, ssh_command: str | None, ssh_g=None) -> str | None:
             f"(or ServerAliveInterval 15 under `Host {host}` in ~/.ssh/config)")
 
 
+# ── (T1144) ONE HOOK'S STEPS AT A TIME PER MACHINE, AND VITEST FROM THE FREE CORES ───────────────────────────────────────
+# 2026-11-26: with several chats pushing at once the hook failed on LOAD, not on tests (vitest "Timeout calling
+# onTaskUpdate" with every test passed; WaterScreen.sources.test.tsx 2 x 40 s): six pushes that night. Now the hook's
+# steps queue on one machine-wide lock, and its vitest runs take the cores the machine has free.
+
+#: the machine's push lock: fcntl.flock, so the kernel drops it when its holder dies (a crashed hook never leaves it
+#: held); the file holds the holder's details (pid, checkout, since), emptied on release. Not a heavy-job lock. It is
+#: in the home folder, so it is one lock per user account (every chat on this Mac pushes as the same user).
+LOCK_FILE = Path.home() / ".claude" / "before-push.lock"
+#: the longest wait for the lock, in minutes (default LOCK_WAIT_MIN); past it the hook FAILS, never runs unlocked
+LOCK_WAIT_ENV = "BEFORE_PUSH_LOCK_WAIT"
+LOCK_WAIT_MIN = 20.0
+#: the logged escape: its reason is printed and the steps run without the lock (an empty reason is refused)
+NO_LOCK_ENV = "BEFORE_PUSH_NO_LOCK"
+
+
+class LockTimeout(Exception):
+    """The push lock was not free within the wait: the hook fails, saying who holds it."""
+
+
+def _alive(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:                  # another user's live process
+        return True
+    return True
+
+
+def _holder(fd: int) -> dict | None:
+    raw = os.pread(fd, 4096, 0).decode("utf-8", "replace").strip()
+    if not raw:
+        return None
+    try:
+        return json.loads(raw)
+    except ValueError:
+        return {"raw": raw[:200]}
+
+
+def _who(h: dict | None) -> str:
+    if h is None:
+        return "a holder that has not written its details yet"
+    if "pid" not in h:
+        return f"an unreadable holder ({h.get('raw')!r})"
+    return f"pid {h['pid']} ({h.get('checkout')}, since {h.get('since')})"
+
+
+@contextlib.contextmanager
+def machine_lock(path: Path, wait_s: float, poll_s: float = 1.0, say_every: float = 30.0, say=None, ppid=os.getppid):
+    """(T1144) Hold the machine's push lock while the body runs. Free: taken at once (a last holder that died holding
+    it — its details still in the file — is said, taken over). Held: says once who holds it, then every `say_every`
+    seconds how long so far; after `wait_s` raises LockTimeout naming the holder. The fd is not inherited by the
+    steps (PEP 446; subprocess closes fds too), so only this process holds the lock and its death frees it. A waiter
+    whose parent ended (git gave the push up: its ssh connection dropped) stops waiting and raises too: it never goes
+    on to hold the lock and run every step for a push that is already dead."""
+    say = say or (lambda s: print(s, flush=True))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd = os.open(path, os.O_RDWR | os.O_CREAT, 0o644)
+    try:
+        t0 = last = time.monotonic()
+        told = False
+        parent = ppid()
+        while True:
+            try:
+                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except BlockingIOError:
+                pass
+            now = time.monotonic()
+            if not told:
+                say(f"before-push: waiting for the machine's push lock ({path}): held by {_who(_holder(fd))}; at most "
+                    f"{round(wait_s)} s ({LOCK_WAIT_ENV}, minutes); {NO_LOCK_ENV}=\"<reason>\" runs beside it. git "
+                    "holds its ssh connection open meanwhile (AGENTS W47, the keepalive)")
+                told = True
+            elif now - last >= say_every:
+                say(f"before-push: still waiting for the push lock: {round(now - t0)} s so far")
+                last = now
+            if ppid() != parent:
+                raise LockTimeout(
+                    f"before-push: STOPPED after {round(now - t0)} s of waiting for the push lock ({path}): the git "
+                    "that started this hook has ended (its connection dropped), so the push is gone; nothing was "
+                    "checked. Push again")
+            if now - t0 >= wait_s:
+                raise LockTimeout(
+                    f"before-push: FAILED: the machine's push lock ({path}) was held by {_who(_holder(fd))} for the "
+                    f"whole {round(wait_s)} s wait ({LOCK_WAIT_ENV} minutes); nothing was checked. Push again when it "
+                    f"is free, or {NO_LOCK_ENV}=\"<reason>\" git push to run beside it (git holds its ssh connection "
+                    "open while the hook waits: AGENTS W47, the keepalive)")
+            time.sleep(poll_s)
+        waited = time.monotonic() - t0
+        prev = _holder(fd)
+        if prev is not None:
+            pid = prev.get("pid")
+            state = "gone" if isinstance(pid, int) and not _alive(pid) else "not holding it"
+            say(f"before-push: the push lock's last holder, {_who(prev)}, ended without releasing it (pid {state}): "
+                "taken over")
+        if told:
+            say(f"before-push: the push lock is ours after {round(waited)} s")
+        os.ftruncate(fd, 0)
+        os.pwrite(fd, json.dumps({"pid": os.getpid(), "checkout": str(ROOT),
+                                  "since": time.strftime("%Y-%m-%d %H:%M:%S %Z")}).encode(), 0)
+        try:
+            yield waited
+        finally:
+            os.ftruncate(fd, 0)
+            fcntl.flock(fd, fcntl.LOCK_UN)
+    finally:
+        os.close(fd)
+
+
+def lock_wait_s(environ=os.environ) -> float:
+    """The lock's wait, in seconds, from LOCK_WAIT_ENV (minutes). A value that is not a number above 0 is refused
+    (ValueError), never read as the default."""
+    raw = environ.get(LOCK_WAIT_ENV)
+    if raw is None:
+        return LOCK_WAIT_MIN * 60
+    try:
+        m = float(raw)
+    except ValueError:
+        m = -1.0
+    if not m > 0:
+        raise ValueError(f"before-push: {LOCK_WAIT_ENV}={raw!r} is not a number of minutes above 0")
+    return m * 60
+
+
+def config_workers(cores: int, ci: bool) -> int:
+    """What app/vitest.config.ts's `maxWorkers` comes to (test_before_push.py pins the config's line to this)."""
+    return 2 if ci else max(2, cores // 2)
+
+
+def vitest_workers(cores: int, load: float, config: int) -> int:
+    """(T1144) the hook's vitest workers: the cores the machine has free (cores minus the 1-minute load average), at
+    least 2, at most what the config would use."""
+    return min(config, max(2, math.floor(cores - load)))
+
+
+#: (T1144) the variables the hook gives its steps: vitest's own worker caps (it reads them over the config's
+#: maxWorkers, for the forks and the threads pools), so `pnpm check:fast`'s vitest and the hook's vitest steps all take
+#: them; CI and a hand `pnpm test` never see them
+VITEST_CAPS = ("VITEST_MAX_FORKS", "VITEST_MAX_THREADS")
+HOOK_ENV: dict[str, str] = {}
+
+
+def vitest_unread_caps(dist: Path) -> list[str]:
+    """The VITEST_CAPS the installed vitest (its dist) does not read: an upgrade that dropped them would make the cap
+    a no-op, so the hook says so instead of printing a number vitest ignores."""
+    files = list(dist.rglob("*.js")) if dist.is_dir() else []
+    text = "".join(p.read_text(encoding="utf-8", errors="replace") for p in files)
+    return [k for k in VITEST_CAPS if f"process.env.{k}" not in text]
+
+
+def hook_vitest_env(environ=os.environ, cores: int | None = None, load: float | None = None,
+                    dist: Path | None = None) -> tuple[dict, str]:
+    """(the variables for the hook's steps, the line saying the number and why)."""
+    mine = [k for k in VITEST_CAPS if k in environ]
+    if mine:
+        return {}, f"before-push: vitest workers: yours ({', '.join(f'{k}={environ[k]}' for k in mine)})"
+    dist = ROOT / "app" / "node_modules" / "vitest" / "dist" if dist is None else dist
+    unread = vitest_unread_caps(dist)
+    if unread:
+        return {}, (f"before-push: WARNING: vitest workers NOT capped: the vitest in {dist} does not read "
+                    f"{', '.join(unread)} (the config's own count runs)")
+    if cores is None:
+        cores = os.process_cpu_count() if hasattr(os, "process_cpu_count") else os.cpu_count()
+    if load is None:
+        try:
+            load = os.getloadavg()[0]
+        except OSError as e:                 # said, and vitest keeps the config's own count
+            return {}, f"before-push: vitest workers: the config's own (the load average could not be read: {e})"
+    if not cores:
+        return {}, "before-push: vitest workers: the config's own (the core count could not be read)"
+    cfg = config_workers(cores, bool(environ.get("CI")))
+    n = vitest_workers(cores, load, cfg)
+    return ({k: str(n) for k in VITEST_CAPS},
+            f"before-push: vitest workers {n}: {cores} cores, load {load:.1f} (the config's own: {cfg})")
+
+
 def _git_local_vars() -> set[str]:
     """git's own list of the variables that tie a process to ONE repository (`git rev-parse --local-env-vars`)."""
     out = subprocess.run(["git", "rev-parse", "--local-env-vars"], capture_output=True, text=True, check=True).stdout
@@ -362,6 +648,7 @@ def step_env(environ: dict[str, str] | None = None) -> dict[str, str]:
     for k in _git_local_vars():
         environ.pop(k, None)
     environ["PATH"] = f"{Path(py()).parent}{os.pathsep}{environ.get('PATH', '')}"
+    environ.update(HOOK_ENV)                 # (T1144) the hook's vitest worker caps; empty outside the hook
     return environ
 
 
@@ -444,7 +731,7 @@ def run_all(steps: list[Step], runner, parallel: bool) -> dict[str, int]:
     return rcs
 
 
-def main(argv=None, runner=run_step, stdin=sys.stdin) -> int:
+def main(argv=None, runner=run_step, stdin=sys.stdin, gh=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--only", default=None, metavar="REGEX")
@@ -477,12 +764,18 @@ def main(argv=None, runner=run_step, stdin=sys.stdin) -> int:
         if warn:
             print(warn, file=sys.stderr)
     if a.pre_push:
-        said, paths, ranges = pushed(stdin.read().splitlines())
+        stdin_lines = stdin.read().splitlines()
+        said, paths, ranges = pushed(stdin_lines)
         for ln in said:
             print(f"before-push --pre-push: {ln}")
         if not paths and all(("a delete" in x or "a tag" in x) for x in said):
             print("before-push --pre-push: only tags / deletes pushed: nothing to check")
             return 0
+        trc, tsaid = pushed_title_check(stdin_lines, gh)
+        for ln in tsaid:
+            print(f"before-push --pre-push: {ln}", file=sys.stderr)
+        if trc:
+            return 1
         a.changed = True
         areas = CP.areas_of(paths)
         print(f"before-push --pre-push: {len(paths)} path(s) pushed; areas: "
@@ -505,8 +798,35 @@ def main(argv=None, runner=run_step, stdin=sys.stdin) -> int:
         for name, why in SKIP.items():
             print(f"  (not run) CI: {name}: {why}")
         return 0
-    t0 = time.time()
-    rcs = run_all(steps, runner, parallel=not a.serial)
+    # (T1144) the hook only: its steps queue on the machine's lock (a hand run is the caller's own choice, unchanged)
+    lock = contextlib.nullcontext()
+    if a.pre_push:
+        nolock = os.environ.get(NO_LOCK_ENV)
+        if nolock is not None:
+            if not nolock.strip():
+                print(f"before-push: {NO_LOCK_ENV} needs a reason, which is printed", file=sys.stderr)
+                return 2
+            print(f"before-push: WITHOUT the machine's push lock ({NO_LOCK_ENV}): {nolock}", flush=True)
+        else:
+            try:
+                lock = machine_lock(LOCK_FILE, lock_wait_s())
+            except ValueError as e:
+                print(e, file=sys.stderr)
+                return 2
+    HOOK_ENV.clear()
+    try:
+        with lock:
+            if a.pre_push and any("vitest" in s.cmd or s.cmd[-1:] == ("check:fast",) for s in steps):
+                env, line = hook_vitest_env()     # measured once the lock is ours: the load the steps meet
+                HOOK_ENV.update(env)
+                print(line, flush=True)
+            t0 = time.time()
+            rcs = run_all(steps, runner, parallel=not a.serial)
+    except LockTimeout as e:
+        print(e, file=sys.stderr)
+        return 1
+    finally:
+        HOOK_ENV.clear()
     failed = [s.name for s in steps if rcs.get(s.name, 1)]
     secs = round(time.time() - t0)
     tail = ("\nnot run here: app-ci's web and native bundle exports"

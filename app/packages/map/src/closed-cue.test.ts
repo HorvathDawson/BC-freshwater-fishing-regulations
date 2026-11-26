@@ -8,6 +8,7 @@ import { isolateDay, type DayProfiles } from "@app/core";
 import { baseAdapter, type MapHandle } from "./adapters/contract";
 import { CLOSED_CUE_LAYER, CLOSED_CUE_SHARE } from "./paint";
 import { runtimeStyle } from "./runtime-style";
+import { PMTILES } from "./tile-access";
 import { closedCueColour, resolveTheme } from "./style";
 
 const DAY: DayProfiles = { closed: ["p1"], own: ["p2"], base: ["b"], no_access: ["n"], none: [] };
@@ -62,7 +63,7 @@ describe("(T377) closed is striped as well as red", () => {
 
   it("is in the style the map is given, over the stream line, built with no stripe", () => {
     for (const theme of ["light", "dark", "cvd"]) {
-      const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, theme, { stream: "profile" }) as
+      const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, theme, { stream: "profile" }, PMTILES) as
         unknown as { layers: { id: string; paint?: Record<string, unknown> }[] };
       const ids = s.layers.map((l) => l.id);
       expect(ids.indexOf(CLOSED_CUE_LAYER)).toBeGreaterThan(ids.indexOf("stream"));
