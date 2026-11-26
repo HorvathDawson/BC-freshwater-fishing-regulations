@@ -793,7 +793,7 @@ def read(bundle: Path) -> dict:
         "JOIN part_section ps ON ps.sid = s.sid "
         "JOIN span_end a ON a.eid = s.lo JOIN span_end b ON b.eid = s.hi")}
     # (T1140) where a side channel joins its river, measured where the flow does not say it (`bundle.side_channels`)
-    span = with_joins(span, db.execute("SELECT sid, m, lo FROM section_join"))
+    span = with_joins(span, db.execute("SELECT sid, m, lo FROM section_join"))      # `how`: the answers step reads it
     touch_of: dict[int, set[int]] = defaultdict(set)
     for a, b in db.execute("SELECT a, b FROM section_touch"):
         touch_of[a].add(b)

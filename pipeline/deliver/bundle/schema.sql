@@ -1280,15 +1280,18 @@ CREATE TABLE salmon_section (sid INTEGER PRIMARY KEY, chain INTEGER NOT NULL) WI
 CREATE TABLE part_inside (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, area TEXT NOT NULL, share REAL NOT NULL,
                           how TEXT NOT NULL CHECK (how IN ('inside', 'at')),
                           PRIMARY KEY (ord, part_ix)) WITHOUT ROWID;
--- (T1140 proposal, coordinator 2026-11-25, under the owner's "do whatever makes our current state decent until this is
--- fixed in hardening") a part made ONLY of added-stream lines (negative blk, `section_measure`) that carry their OWN name,
--- one name, not the water's: that name (`added_streams.json` `streams[].name` by blk) and the words of its source (the
--- water's `name_source.label` for that name). `answers.display` names it "<water> — <name> (<label>)": Noons Creek's
--- part that is the City of Port Moody's Turner Creek, filed with it until the refile.
 -- (T1140) WHERE A SIDE CHANNEL JOINS ITS RIVER, measured on the shapes where the flow does not say it
 -- (`side_channels.write`): `m` the main stem's measure from the mouth (both ends of the section, as `section_span` holds a
 -- side channel's), `lo` a named lake its lower end flows into (`lake_inlet:<item>`). Read by the export's runs only
 -- (`export.read.with_joins`); `section_span` keeps the flow's own measures, which number the parts in river order.
-CREATE TABLE section_join (sid INTEGER PRIMARY KEY, m INTEGER, lo TEXT) WITHOUT ROWID;
+-- `how` 'join' where the channel's end meets the main line (within the snap limit, or touching a water body of the river);
+-- 'nearest' (coordinator's proposal 2026-11-25) for one that meets neither: the main line's nearest point, said "N km from
+-- the mouth", never "joining". NULL for a lake end alone.
+CREATE TABLE section_join (sid INTEGER PRIMARY KEY, m INTEGER, lo TEXT, how TEXT) WITHOUT ROWID;
+-- (T1140 proposal, coordinator 2026-11-25, under the owner's "do whatever makes our current state decent until this is
+-- fixed in hardening") a part made ONLY of added-stream lines (negative blk, `section_measure`) that carry their OWN name,
+-- one name, not the water's: that name (`added_streams.json` `streams[].name` by blk) and the municipality its source
+-- names (from the water's `name_source.label` for it; column `label`). `answers.display` names it "<water>: <name>
+-- (<municipality>)": Noons Creek's part that is Port Moody's Turner Creek, filed with it until the refile.
 CREATE TABLE part_own_name (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, name TEXT NOT NULL, label TEXT NOT NULL,
                             PRIMARY KEY (ord, part_ix)) WITHOUT ROWID;

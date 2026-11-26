@@ -202,6 +202,11 @@ def _crossings(path: str) -> Dict[tuple, list]:
         for iid, p, nm, lb in db.execute("SELECT i.item_id, n.part_ix, n.name, n.label FROM part_own_name n JOIN item i "
                                          "ON i.ord = n.ord ORDER BY i.item_id, n.part_ix"):
             out[(iid, "own", p)] = (nm, lb)
+        # (coordinator's proposal) the parts with a side channel said at its NEAREST point, not where it joins
+        for iid, p in db.execute("SELECT DISTINCT i.item_id, ps.part_ix FROM section_join j JOIN part_section ps "
+                                 "ON ps.sid = j.sid JOIN item i ON i.ord = ps.ord WHERE j.how = 'nearest' "
+                                 "ORDER BY i.item_id, ps.part_ix"):
+            out[(iid, "nearest", p)] = True
         out.update(_flows_into(db))
         return out
     finally:
@@ -318,7 +323,8 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
             return water
         if ends[i][0] == ends[i][1] and ends[i][0].startswith("near:"):
             w = end_words(W.doc, ends[i][0], "from")
-            return f"{water} {w[:1].lower() + w[1:]}"
+            from pipeline.deliver.answers.display.name_check import near_name
+            return near_name(water, w)
         return end_name_of(W.doc, *ends[i])
 
     def base(e: str) -> str:
@@ -380,6 +386,15 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
             for i in range(len(W.parts))]
 
 
+def said_nearest(label: str, part: dict, nearest: bool) -> str:
+    """(Coordinator's proposal 2026-11-25) a part of ONE side channel said at its main line's nearest point, not where it
+    joins: "Side channel, 5.7 km from the mouth", never "joining" (several channels: the range includes it, as is)."""
+    side = [r for r in part.get("runs") or [] if r.get("branch")]
+    if nearest and len(side) == 1 and all(r.get("branch") for r in part.get("runs") or []):
+        return label.replace("Side channel, joining ", "Side channel, ", 1)
+    return label
+
+
 def reviewed_still_said(out: Dict[str, dict]) -> None:
     """(T1140) every reviewed "inside" / "at" part of the waters built is still said so (`part.REVIEWED_INSIDE`): one that
     stops being inside is looked at again too — the tripwire's other way."""
@@ -437,7 +452,9 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
             closed.append(closed_memo[rk])
             k = gi[p["grp"]]
             facts[ex] = {
-                "order": i, "label": labels[i], **names[i], "runs": runs_label(doc, p, water_ends_km(w)),
+                "order": i, "label": labels[i], **names[i],
+                "runs": said_nearest(runs_label(doc, p, water_ends_km(w)), p,
+                                     crossings.get((item_id, "nearest", ex), False)),
                 "place": part_place(Wg, k) or None,          # null: no entry heading
                 "km": part_km(p),
                 "closed_all_year": closed[-1],

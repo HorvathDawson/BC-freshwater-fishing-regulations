@@ -580,9 +580,10 @@ export const WATER_MAP_WORDS = {
  * one whose first end begins with the water's name ("Skeena River Ecological Reserve boundary → …" is a place, not a repeat).
  */
 export function nameUnder(water: string, name: string): string {
+  // (T1140 proposal) "Noons Creek: Turner Creek (Port Moody)": under the water, "Turner Creek (Port Moody)"
+  if (water && name.startsWith(`${water}: `)) return name.slice(water.length + 2);
   if (!water || !name.startsWith(`${water} `) || name.includes(" → ")) return name;
-  // (T1140 proposal) "Noons Creek — Turner Creek (City of Port Moody ESA streams layer)": under the water, the dash goes too
-  const rest = name.slice(water.length + 1).replace(/^— /, "");
+  const rest = name.slice(water.length + 1);
   return rest ? rest[0]!.toUpperCase() + rest.slice(1) : name;
 }
 
