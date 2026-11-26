@@ -1,10 +1,10 @@
 # T1131 — The store pictures are made by a GitHub workflow started by hand
 
-Status: OPEN — with the repo move (chat 3), after the transfer; step 1 is a proof on a Linux runner
+Status: IN PROGRESS — the workflow is written; the Linux render proof is the next step
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1131 | The store pictures are made by a GitHub workflow started by hand | OPEN — with the repo move (chat 3), after the transfer; step 1 is a proof on a Linux runner | | owner 2026-11-25: "yes", and "can be part of new repo transfer" |
+| T1131 | The store pictures are made by a GitHub workflow started by hand | IN PROGRESS — the workflow is written; the Linux render proof is the next step | | owner 2026-11-25: "yes", and "can be part of new repo transfer" |
 
 Source: owner 2026-11-25 in the store content chat (relayed): he asked "should picture generation be a gha?", the
 store chat recommended it, he answered "yes". Not started. Related: T1072 (the picture set), T1076 (`site.mjs`

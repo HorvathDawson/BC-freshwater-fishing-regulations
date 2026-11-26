@@ -14,6 +14,7 @@ import { paintFor } from "../packages/map/src/paint";
 import { NO_VALUES, STYLE_META, colorExpression, resolveTheme, shadeHex, themeNames, type ChannelValues }
   from "../packages/map/src/style";
 import { runtimeStyle } from "../packages/map/src/runtime-style";
+import { PMTILES } from "../packages/map/src/tile-access";
 
 const DAY: DayProfiles = { closed: ["p1"], own: ["p2", "p7"], base: ["b", "p0"], no_access: ["n"], none: ["p3"] };
 const NO_CLOSURES: DayProfiles = { closed: [], own: ["p2"], base: ["b", "p0", "p1"], no_access: ["n"], none: [] };
@@ -95,7 +96,7 @@ describe("the profile colour mode", () => {
         const modes = { stream: "profile", lake: "profile", lake_flowing: "profile", wetland_flowing: "profile" };
         for (const [l, m] of Object.entries(modes)) a.setLayerMode(h, l, m, theme);
         a.setChannel(h, "status", d, theme);
-        const style = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" }, theme, modes) as
+        const style = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" }, theme, modes, PMTILES) as
           unknown as { layers: { id: string; paint?: Record<string, unknown> }[] };
         let patched = 0;
         for (const l of style.layers) if (paint[l.id]) { l.paint = { ...l.paint, ...paint[l.id] }; patched++; }

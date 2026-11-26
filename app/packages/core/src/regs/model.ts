@@ -60,11 +60,17 @@ export interface HeaderVM {
   readonly date: string;                    // golden header.date
   readonly dateAria: string;                // golden header.dateAria
   readonly dot: "open" | "closed" | "faint";// status colour of the pill dot                         golden header.dot
-  readonly place: { full: string; short: string } | null;  // two candidates; the component shows full if ≤2 lines else short (fitLabel)
+  readonly place: { full: string; short: string;
+                    /** (T1140) the full name for a screen reader where the row shows it under the water's ("Drop the repeat") */
+                    aria?: string } | null;  // two candidates; the component shows full if ≤2 lines else short (fitLabel)
   // no action: golden header.action (Map, Parts) is dropped — owner call 3 (T71 Map, T150 Parts); the Map view lists parts
   readonly tabs: readonly { tab: Tab; label: string }[];   // golden header.tabs; (T42) outside B.C. the Keep tab alone
   /** (T841) the classified-water badge ("Class II"), `classBadge.ts`; absent: none (not classified, or look A out of period) */
   readonly classed?: ClassBadgeVM;
+  /** (T1140) on a part of a water the map lists as several, where another part has other rules (`header.ts`
+   *  `partsOthersOf`): "Other parts of this water have different rules", the line that opens the list of parts. Absent:
+   *  a water of one part (its header is unchanged), or no other part with other rules. Never a part count. */
+  readonly others?: string;
 }
 
 // ── 2.2 Keep tab (prototype buildKeep) ─────────────────────────────────────────────────────────────────────────────

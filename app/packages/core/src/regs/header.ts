@@ -18,6 +18,8 @@ import { fmtDay, isTodayOf } from "./strip";
 import { WD3, WORDS } from "./words";
 import { WEEKDAYS } from "../calendar.generated";
 import { classBadgeOf } from "./classBadge";
+import { nameUnder, WATER_MAP_WORDS, type PartPlaces } from "../waterNav";
+import { reportOnce } from "../failure";
 
 /** (T517) Each part's name as the water map names the entry holding it, by part index: `@app/core` `entryNames` over
  *  the SAME `mergeNav(group, live salmon key)` the map draws (`@app/ui` `useMapEntries`), so the header, the Parts sheet
@@ -35,12 +37,16 @@ export function partNameOf(inp: RegsInputs, partIx: number, names: PartNames | n
   if (!it) throw new Error(`regs: a part name asked of a page with no named water (part ${partIx})`);
   const p = it.parts[partIx];
   if (p === undefined) throw new Error(`regs: ${it.id} has no part ${partIx}`);
-  if (p === null) return it.name;
+  // (T1140, owner 2026-11-25) a part with no facts: a tidal piece is its water's; any other is outside B.C.
+  if (p === null) return inp.tidalPart ? it.name : WATER_MAP_WORDS.outside(it.name);
   if (names) {
     const own = names.get(partIx);
     if (own === undefined) throw new Error(`regs: the map names no part ${partIx} of ${it.id}`);
     return own;
   }
+  // (T1140, owner 2026-11-25 17:31: "The data's own label") a part with no ends of a water of several: the release's
+  // own words for it, as the map names it (`waterNav` `partName`); a water of one part is its water
+  if (p.lo === null && p.hi === null && p.runs && nParts(inp) > 1) return p.runs;
   return spanName(inp.statics.ends, it.name, p);
 }
 const SUB_MAX = 150;
@@ -97,6 +103,34 @@ export function downstreamLabel(inp: RegsInputs, downstream: string | null | und
   return inp.key?.kind === "stream" ? WORDS.TRIBUTARY_OF(downstream) : WORDS.FLOWS_INTO(downstream);
 }
 
+/**
+ * (T1140) THE LINE TO THE OTHER PARTS, said on the head of a part whose water the map lists as several where another
+ * entry has other rules (`entryPlaces` `differs`): "Other parts of this water have different rules" — the part itself is
+ * said by its NAME (the place row; owner 2026-11-25: no "Part x of n" anywhere). Null where there is nothing to say: no
+ * named water, a group the map shows as one entry, no places yet (the group not read: the Regulations view waits for it,
+ * `@app/ui` `useMapEntries`), or no other part with other rules; none either on a piece the map never lists (a TIDAL
+ * stretch, a part outside B.C. or with no rule set: `inp.key` null). NEVER A THROW (it runs while the head is drawn): a
+ * KEYED part the places do not hold, on a water they list, is a real inconsistency — no line, and REPORTED once per part
+ * (`reportOnce`, W46: no silent fallback).
+ */
+export function partsOthersOf(inp: RegsInputs, places: PartPlaces | null | undefined): string | null {
+  if (!inp.item || !places || places.size === 0 || inp.key == null || inp.tidalPart || inp.key.tidal) return null;
+  const p = places.get(inp.partIx);
+  if (!p) {
+    reportOnce(`regs-parts-others:${inp.item.id}:${inp.partIx}`,
+               new Error(`regs header: the map lists no part ${inp.partIx} of ${inp.item.id}`));
+    return null;
+  }
+  return p.differs ? WATER_MAP_WORDS.partsOthers : null;
+}
+
+/** (T1140) the place row under the water's name: each candidate by `nameUnder`; `aria` the full name, set only where a
+ *  candidate changed (a part named by its ends, or with no repeat, keeps exactly the shape it had). */
+function underWater(water: string, p: { full: string; short: string }): NonNullable<HeaderVM["place"]> {
+  const full = nameUnder(water, p.full), short = nameUnder(water, p.short);
+  return full === p.full && short === p.short ? p : { full, short, aria: p.full };
+}
+
 /** The header of the tapped part on `inp.day`. `status` is the day's as the strip read it (T13; null strip → tidal or
  *  outside); `downstream` (T53, an unnamed section only) the named water it flows into.
  *
@@ -107,7 +141,9 @@ export function downstreamLabel(inp: RegsInputs, downstream: string | null | und
 export function headerOf(inp: RegsInputs, o: { today: Day; status: "open" | "closed" | "tidal" | "outside" | "unknown";
                                                downstream?: string | null;
                                                /** (T517) the map's names of the parts (`PartNames`) */
-                                               names?: PartNames | null }): HeaderVM {
+                                               names?: PartNames | null;
+                                               /** (T1140) where each part sits in the map's list (`entryPlaces`) */
+                                               places?: PartPlaces | null }): HeaderVM {
   // a named water's name, or an unnamed reach's (its place); a handle OUTSIDE B.C. has neither (T09: no key, no place,
   // no item) and the header says no name — a documented rule, pinned by edge.test.ts
   const name = inp.item ? inp.item.name : inp.place ? inp.place.name : "";
@@ -120,17 +156,22 @@ export function headerOf(inp: RegsInputs, o: { today: Day; status: "open" | "clo
   const dayWord = isTodayOf(inp, o.today) ? WORDS.TODAY : WD3[WEEKDAYS.indexOf(inp.weekday)]!;
   // (T841) the classified-water badge, set only on a classified part (the frozen headers carry no key for it)
   const classed = classBadgeOf(inp);
+  // (T1140) set only on a part of a water the map lists as several: a water of one part keeps the header it had
+  const others = partsOthersOf(inp, o.places);
   return {
     name,
     dayWord,
     date, dateAria: WORDS.DATE_ARIA(dayWord, date),
     dot: o.status === "closed" ? "closed" : o.status === "open" ? "open" : "faint",
-    place: lbl ? { full: lab!.full || lbl, short: lbl } : null,
+    // (T1140, owner 2026-11-25 evening: "Drop the repeat") under the water's name, a part named "<water> <words>" by its
+    // words; the full name stays the label a screen reader says (`aria`)
+    place: lbl ? underWater(name, { full: lab!.full || lbl, short: lbl }) : null,
     // (T42) outside B.C. the page has no Gear, Methods or Licence section (no key): only the Keep tab is listed — as on
     // a key-less tidal piece (T672: `inp.tidalPart`, no frames either);
     // (owner 2026-11-04) on a closed day no Licence section (`buildLicence`), so no Licence tab
     tabs: (o.status === "outside" || inp.tidalPart ? tabs.slice(0, 1) : o.status === "closed" ? tabs.filter(([t]) => t !== "licence") : tabs)
       .map(([tab, label]) => ({ tab, label })),
     ...(classed ? { classed } : {}),
+    ...(others ? { others } : {}),
   };
 }

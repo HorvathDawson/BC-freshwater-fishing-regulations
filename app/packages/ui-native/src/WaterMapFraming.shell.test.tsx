@@ -12,7 +12,8 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import { useRef } from "react";
 import { Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { SEARCH_BAR } from "@app/core";
+import { partName, SEARCH_BAR } from "@app/core";
+import { loadWaterGroup, openRegsStore } from "@app/data/regs";
 import type { ItemId } from "@app/data";
 import { makeFixtureSource } from "@app/data/fixture";
 import { HOME, LayoutWidthContext, openWater, reduce, type Route } from "@app/ui";
@@ -61,8 +62,8 @@ async function drawn() {
   await waitFor(() => expect(screen.queryByTestId("water-map-whole")).not.toBeNull(), { timeout: 20_000 });
   await settle();
   const fit = seen.fits.filter((f) => f.key.startsWith(`${CHILLIWACK}:`)).at(-1) ?? null;
-  return { where: screen.getByTestId("water-map-where").textContent, button: screen.getByTestId("water-map-whole").textContent,
-           fit };
+  return { where: screen.getByTestId("water-map-where").textContent, name: screen.getByTestId("water-map-name").textContent,
+           button: screen.getByTestId("water-map-whole").textContent, fit };
 }
 
 const ways = {
@@ -92,9 +93,11 @@ describe("(T747) the water's Map frames the part its bar names, on every way in"
       const got: Record<string, unknown> = {};
       for (const [way, run] of Object.entries(ways)) { got[way] = await run(); cleanup(); seen.fits.length = 0; }
       // the part the bar names, opened by its own frame (a link's place or a tap opens at its part)
-      const named = /^Part (\d+) of/.exec((got["search, the result's Open"] as { where: string }).where);
-      expect(named).not.toBeNull();
-      mount(reduce(HOME, openWater({ item: CHILLIWACK, part: Number(named![1]) - 1, view: "map" })));
+      // (T1140: the bar numbers no part) found by the NAME the bar says, in the water's own group
+      const g = await loadWaterGroup(await openRegsStore(openRegsFixtureWithLines()), CHILLIWACK);
+      const named = g.parts.findIndex((_, i) => partName(g, i) === (got["search, the result's Open"] as { name: string }).name);
+      expect(named).toBeGreaterThanOrEqual(0);
+      mount(reduce(HOME, openWater({ item: CHILLIWACK, part: g.parts[named]!.partIx, view: "map" })));
       const own = await drawn();
       expect(own.button).toBe("⤢ Whole river");
       expect(own.fit?.key.endsWith(":whole")).toBe(false);

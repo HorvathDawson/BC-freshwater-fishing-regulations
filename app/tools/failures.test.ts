@@ -201,7 +201,6 @@ export const FINE: Record<string, { n: number; why: string }> = {
   "packages/ui-native/src/regs/synopsisPdf.native.ts": { n: 3, why: "held check / bounded retry, thrown at the end (the alternate path reports, T994); T360: the next open waits for this one to END (its failure is its own caller's)" },
   "packages/ui-native/src/regs/synopsisPdf.web.ts": { n: 1, why: "a label write, then close and rethrow" },
   "packages/ui-native/src/regs/useAnchors.ts": { n: 1, why: "not laid out yet" },
-  "packages/ui-native/src/shell/SpotHost.tsx": { n: 1, why: `no fix for parking: said (parkingNoFix); ${ENV}` },
   "packages/ui-native/src/shell/prewarm.native.ts": { n: 1, why: WARM },
   "packages/ui/src/chart.ts": { n: 2, why: `${WARM} (askOnce keeps no failure; the chart's own ask shows and reports)` },
   "packages/ui/src/crashReport.ts": { n: 15, why: "the reporter's own guards: reporting cannot report itself" },

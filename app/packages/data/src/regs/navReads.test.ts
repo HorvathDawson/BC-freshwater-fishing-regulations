@@ -110,8 +110,9 @@ describe("the water map's reads", () => {
   });
 });
 
-describe("(T517) the group's rows: an UNKEYED part is said as its water — the one deliberate name (owner 2026-11-09)", () => {
-  it("a keyed part keeps its end tokens; an unkeyed one (no facts: outside B.C.) is its water's name; a tidal piece is left out", async () => {
+// (T1140, owner 2026-11-25: "\"<water> outside B.C.\" (Recommended)") the unkeyed part was said as its bare water
+describe("(T517, T1140) the group's rows: an UNKEYED part is '<water> outside B.C.'", () => {
+  it("a keyed part keeps its end tokens; an unkeyed one (no facts: outside B.C.) is '<water> outside B.C.'; a tidal piece is left out", async () => {
     const facts = (lo: string, hi: string) => ({ order: 0, label: `${lo}-${hi}`, lo, hi, runs: "", place: null, km: 1,
                                                  closed_all_year: false, paper_licence: [] });
     const part = (partIx: number, f: ReturnType<typeof facts> | null, tidal = false) =>
@@ -128,7 +129,7 @@ describe("(T517) the group's rows: an UNKEYED part is said as its water — the 
       statics: async () => ({ ends: { bc: ["B.C. border"], bc2: ["B.C. border (km 9)"] } }) as never,
     };
     const g = await loadRawWaterGroup(store, "gnis:1");
-    expect(g.parts.map((_, i) => partName(g, i))).toEqual(["Blanchard River", "B.C. border → B.C. border (km 9)"]);
+    expect(g.parts.map((_, i) => partName(g, i))).toEqual(["Blanchard River outside B.C.", "B.C. border → B.C. border (km 9)"]);
     expect(g.marks.map((m) => markLabel(g, m))).toEqual(["B.C. border"]);
   });
 });

@@ -5,8 +5,11 @@ from __future__ import annotations
 
 import importlib.util
 import os
+import subprocess
 import sys
 from pathlib import Path
+
+import pytest
 
 from pipeline.common.curated import REPO_ROOT
 
@@ -15,6 +18,16 @@ spec = importlib.util.spec_from_file_location("before_push", ROOT / "scripts" / 
 BP = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = BP           # its dataclasses look their module up by name
 spec.loader.exec_module(BP)
+
+
+@pytest.fixture(autouse=True)
+def _no_real_gh(monkeypatch):
+    """(T1144) the pre-push title check asks gh for the branch's PR: never the real gh in a test (no PR answers)."""
+    monkeypatch.setattr(BP, "_gh", lambda args: subprocess.CompletedProcess(
+        args, 1, "", 'no pull requests found for branch "x"'))
+    # and its node command is stood in for (pipeline CI has no app/node_modules): title_check_stand_in.py
+    from pipeline.tests import title_check_stand_in
+    monkeypatch.setenv("PATH", f"{title_check_stand_in.bin_dir()}{os.pathsep}{os.environ['PATH']}")
 
 
 def test_every_pipeline_ci_run_step_is_run_or_named_with_its_reason():
@@ -380,3 +393,92 @@ def test_the_hook_warns_when_the_push_connection_has_no_keepalive():
     assert "could not read ssh's settings" in BP.keepalive_said(url, None, ssh_g=lambda h: None)
     hook = (ROOT / ".githooks" / "pre-push").read_text()
     assert '--remote-url "${2:-}"' in hook
+
+
+# (T1144) the PR title, checked with its real number on a push to a branch with an open PR. `gh` is faked, never called.
+import json  # noqa: E402
+
+
+def _title(n: int) -> str:
+    return "ci: " + "a" * (n - 4)
+
+
+def _gh(number, title, mergeable="MERGEABLE", rc=0, err="", state="OPEN", asked=None):
+    def gh(args):
+        assert args[:2] == ["pr", "view"]
+        if asked is not None:
+            asked.append(args[2])
+        out = json.dumps({"number": number, "title": title, "mergeable": mergeable, "state": state}) if rc == 0 else ""
+        return subprocess.CompletedProcess(args, rc, out, err)
+    return gh
+
+
+def _push_line(branch="lane"):
+    return [f"refs/heads/{branch} {'a' * 40} refs/heads/{branch} {BP.ZERO}"]
+
+
+def test_a_pushed_pr_title_is_checked_with_its_number_at_the_limit():
+    """3 digits: 93 passes, 94 fails; 4 digits: 92 passes, 93 fails; the failure names the over-count and gh pr edit.
+    Mutation: check the bare title (no number) -> the 94/93 cases pass and this fails."""
+    for number, limit in ((266, 93), (1000, 92)):
+        assert BP.pushed_title_check(_push_line(), _gh(number, _title(limit))) == (0, [])
+        rc, said = BP.pushed_title_check(_push_line(), _gh(number, _title(limit + 1)))
+        assert rc == 1
+        text = "\n".join(said)
+        assert f"1 over the limit of {limit}" in text and f"gh pr edit {number} --title" in text, text
+
+
+def test_a_conflicting_pr_warns_and_a_branch_without_a_pr_is_not_an_error():
+    rc, said = BP.pushed_title_check(_push_line(), _gh(266, _title(40), mergeable="CONFLICTING"))
+    assert rc == 0 and len(said) == 1 and "CONFLICTING" in said[0]
+    nopr = _gh(0, "", rc=1, err='no pull requests found for branch "lane"')
+    assert BP.pushed_title_check(_push_line(), nopr) == (0, [])
+
+
+def test_gh_unreachable_warns_that_the_title_was_not_checked_and_goes_on():
+    rc, said = BP.pushed_title_check(_push_line(), _gh(0, "", rc=1, err="error connecting to api.github.com"))
+    assert rc == 0 and len(said) == 1 and "title was not checked" in said[0] and "api.github.com" in said[0]
+
+    def missing(args):
+        raise FileNotFoundError("gh")
+    rc, said = BP.pushed_title_check(_push_line(), missing)
+    assert rc == 0 and "title was not checked" in said[0]
+    # a delete and a tag ask gh nothing
+    assert BP.pushed_title_check([f"refs/heads/x {BP.ZERO} refs/heads/x {'a' * 40}"], missing) == (0, [])
+
+
+def test_the_pre_push_hook_stops_on_a_title_over_the_limit_before_any_step(monkeypatch, capsys):
+    import io
+    monkeypatch.delenv(BP.SKIP_ENV, raising=False)
+    ran = []
+    # the pushed() git calls need a repo: drive the title step through main with pushed stubbed
+    monkeypatch.setattr(BP, "pushed", lambda lines: (["x"], ["pipeline/a.py"], []))
+    rc = BP.main(["--pre-push"], runner=lambda s: ran.append(s.name) or 0, stdin=io.StringIO("\n".join(_push_line())),
+                 gh=_gh(266, _title(94)))
+    assert rc == 1 and ran == []
+    assert "gh pr edit 266 --title" in capsys.readouterr().err
+
+
+def test_a_closed_or_merged_pr_does_not_block_a_push_but_an_open_one_does():
+    """gh pr view also answers a CLOSED or MERGED PR. Mutation: drop the state check -> the first two cases block."""
+    for state in ("MERGED", "CLOSED"):
+        assert BP.pushed_title_check(_push_line(), _gh(266, _title(94), state=state)) == (0, [])
+    assert BP.pushed_title_check(_push_line(), _gh(266, _title(94), state="OPEN"))[0] == 1
+
+
+def test_the_pr_is_looked_up_by_the_remote_ref_not_the_local_one():
+    """`git push origin local:other` pushes branch `other`. Mutation: use the local ref -> asks for `local`."""
+    asked = []
+    line = [f"refs/heads/local {'a' * 40} refs/heads/other {BP.ZERO}"]
+    BP.pushed_title_check(line, _gh(266, _title(40), asked=asked))
+    assert asked == ["other"]
+
+
+def test_a_missing_or_hung_node_warns_and_goes_on(monkeypatch):
+    """Mutation: no catch -> FileNotFoundError / TimeoutExpired is a traceback and a blocked push."""
+    for exc in (FileNotFoundError("node"), subprocess.TimeoutExpired("node", 60)):
+        def boom(*a, **k):
+            raise exc
+        monkeypatch.setattr(BP.subprocess, "run", boom)
+        rc, said = BP.pushed_title_check(_push_line(), _gh(266, _title(94)))
+        assert rc == 0 and len(said) == 1 and "title was not checked" in said[0], said
