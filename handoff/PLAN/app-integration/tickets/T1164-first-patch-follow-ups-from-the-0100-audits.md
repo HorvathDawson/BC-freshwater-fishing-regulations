@@ -4,7 +4,7 @@ Status: PARTIAL — item 1 built (0e63889ef, PR open for review); left (Claude):
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1164 | First patch: the low findings of the two independent 0.10.0 audits (walk outflow guard, distance words, privacy list, an error boundary) | PARTIAL — item 1 built (0e63889ef), in review | 0e63889ef | items 2-5 (walk outflow guard, distance words, in-season in the diff, privacy list), each with a test; S–M |
+| T1164 | First patch: the low findings of the two independent 0.10.0 audits (walk outflow guard, distance words, privacy list, an error boundary) | PARTIAL — item 1 built (0e63889ef), in review | 0e63889ef | items 2-5 (walk guard, distance words, in-season diff, privacy list); item 1 follow-up: the gate misses throws in core presenters; S–M |
 
 Source: the two independent read-only audits of 0.10.0 on 2026-11-25 night (notes: `tickets/archive/night-notes-2026-11-25.tar.gz`
 `audit-0100-app.md`, `audit-0100-pipeline.md`). Their HIGH and MED findings were handled in the release that
@@ -29,6 +29,13 @@ reads the 0.10.0 formats and the reverse. These are what was left:
    diff: the comparer written that night (`inseason_diff.py`, in the notes archive) becomes part of the diff tool.
 5. The privacy page's list of website scripts leaves out the /gauges search (`app/tools/seo/html.ts:302`; with
    T1148); the owner's list in `T1098-shots` still reads 0.9.1.
+
+Item 1, left (Claude), added after the build (root boundary: ec748430d):
+- The throw gate (`app/tools/check-no-render-throw.mjs`) sees only a `throw` written straight into a component, hook or
+  render-time callback. It does not see a throw inside a core presenter (or any helper) that a component calls: that still
+  reaches the boundary at run time, and no gate names it. A follow-up would walk calls from components into `packages/core`.
+- The real Shell IS rendered with a throwing screen now (`ScreenBoundary.shell.test.tsx`, the Spots tab, on NavRail.shell's setup:
+  fixture source and regs loader, map stub). Not covered: a throwing screen inside a water's page (WaterModeHost) or a spot.
 
 ## Acceptance
 Each item has a test that fails without it. Severity: low each; item 1 medium. Model: Opus (1-4). Owner: no.
