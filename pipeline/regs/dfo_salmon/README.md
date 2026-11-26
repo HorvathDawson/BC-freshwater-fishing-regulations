@@ -42,7 +42,7 @@ Each is a module run from the repo root as `.venv/bin/python -m pipeline.regs.df
 | `refresh` | what a fetch would change against the typed rows in use | nothing |
 
 Curation helpers suggest and never apply (the owner marks, AGENTS A8): `match` (exact registry hits only),
-`suggest`, `preverify`, `coverage`, `splitwork`, `dossier`, `edge_gaps`, `cascade`. Measuring: `stability`,
+`suggest`, `preverify`, `coverage`, `splitwork`, `dossier`, `edge_gaps`, `cascade`. Measuring: `stability` (`python -m pipeline.regs.dfo_salmon.stability --burst`: does the fetch hold up),
 `churn`, `validate`.
 
 ```bash
