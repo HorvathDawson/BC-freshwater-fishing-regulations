@@ -70,6 +70,9 @@ of reserve, and on 156 waters the lead part is open while another is closed. It 
    listed; a link that names a part still opens that part. Next patch, pictures first.
 2. The closure block names the area too ("Closed all year: Baynes Island Ecological Reserve"), not only "Federal / parks".
 3. Later, the owner's thoughts (planning chat to ticket): simpler braids, especially at the mouth; cleaner section splits.
+4. First patch (audit of #265, pipeline): `side_channels.join_measure` orients the main-line section it lands on by the
+   NEAREST section below it by distance, not the one its flow pointer says is directly below; adjacent sections touch, so
+   every real join measured today lands right, but the flow pointer is the sounder rule.
 
 ## Acceptance
 From a search result for the Squamish River nobody can read "closed" without also reading that it is the reserve reach,
@@ -89,5 +92,5 @@ Severity HIGH. Size M. Owner: yes (pictures; the touch rule).
 - [x] 2026-11-25 — Noons p4 / Seymour p3, now known as the cities' Turner Creek and Tunnel Creek → "just add all to hardening release"; for now: "do whatever makes our current state decent until this is fixed in hardening" (2026-11-25 ~19:55, through the coordinator).
 - [ ] 2026-11-25 — Say yes to the OWN-NAME words (a proposal): "Noons Creek: Turner Creek (Port Moody)"; under the head "Turner Creek (Port Moody)". Default: as built until the hardening refile. Pictures: T1140-shots/round3-noons-*.
 - [ ] 2026-11-25 — Say yes to NEAREST (a proposal): a side channel that meets its river nowhere is said at the main line's nearest point, "N km from the mouth", without "joining" (Halfway p2, Manson p0; snap distances in before-after.md). Default: as built.
-- [ ] 2026-11-25 — Say yes to the TOUCH rule (a proposal, built for Halfway p2 and Manson p0): a side channel whose downstream end touches its own river's polygon or a named lake on its main line joins there ("into <Lake>", or measured at the main line's nearest point whatever the distance). Default: as built. Every named-lake lower end says "into <Lake>" (Stirling "into Acme Lake", was "from Acme Lake"; Thelwood and Robertson by touch), as Theodosia. Pictures: T1140-shots/round3-*.
+- [ ] 2026-11-25 — Say yes to the TOUCH rule (a proposal, built for Halfway p2 and Manson p0): a side channel whose downstream end touches its own river's polygon or a named lake on its main line joins there ("into <Lake>", or measured at the main line's nearest point whatever the distance). Default: as built. Every named-lake lower end says "into <Lake>" only where a flow pointer leads into the lake (Theodosia into Olsen Lake, Stirling into Acme Lake, was "from Acme Lake"); with no pointer the direction is unknown and no lake is named (Robertson's channel LEAVES Boot Lagoon; Thelwood has none). Pictures: T1140-shots/round3-*.
 - [ ] 2026-11-25 — Look at the pictures before the naming merges (T1140-shots/before-after.md: Skeena p4, Oxbows p1, Theodosia, Halfway p2, a derived-distance part, the other-parts line crop), then say go. Nothing merges before you have seen them.
