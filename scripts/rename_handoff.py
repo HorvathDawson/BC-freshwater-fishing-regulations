@@ -15,6 +15,8 @@ What it does, in this order (stdlib only; idempotent: a second run finds nothing
      (also the `\\/` spelling inside JS regex literals), the explicit edits (path constants BUILT by joins, which no
      string search finds: EDITS below), a relative `app-integration/tickets` -> `tickets`, and the relative markdown links
      of every moved page (re-pointed from where the page now sits);
+     A line marked `rename_handoff: keep` names the old path on purpose (ledger.mjs LEGACY_TICKETS_DIR: the folder's git
+     history, and branches not yet rebased) and is left alone.
   5. NEVER rewrites: anything under data/ (the owner's review data), binary files, tickets/closed.tsv (history: its titles
      and its tar), CHANGELOG.md (past entries), this script;
   6. prints every remaining `handoff` in tracked text outside that set, for a human to judge, and the sites where a bare
@@ -72,6 +74,8 @@ EDITS = [
     ("app/tools/check-tickets.mjs", r'scripts|handoff|curation-review', r'scripts|docs|tickets|curation-review', False),
     # a key that is a path RELATIVE to the planning folder: the tickets folder no longer sits inside it
     ("app/tools/ledger.mjs", '"app-integration/tickets/T281-files"', '"tickets/T281-files"', False),
+    # a listing of the planning folder that held the tickets folder
+    ("app/tools/ledger.test.ts", '.toEqual(["T11-shots", "T4-shots", "tickets"])', '.toEqual(["T11-shots", "T4-shots"])', False),
     # prose that now needs both folders
     ("README.md", "| `handoff/` | the work: tickets and their ledger, runbooks, plans, owner to-do |",
      "| `docs/` | the plans, runbooks, restart pages and decisions |\n| `tickets/` | the open tickets, and the index of the closed ones |", False),
@@ -154,19 +158,28 @@ def fix_links(text: str, old: str, new: str, files: set[str]) -> str:
     return MD_LINK.sub(one, text)
 
 
+#: a line carrying this marker names the OLD path on purpose (git history of the folder, branches not yet rebased): never rewritten
+KEEP = "rename_handoff: keep"
+
+
 def rewrite(text: str, old: str, new: str, files: set[str], bare_hits: list[str]) -> str:
     for f, a, b, every in EDITS:
         if f == old:
             text = text.replace(a, b) if every else text.replace(a, b, 1)
-    if new.endswith(".md") and old != new:
-        text = fix_links(text, old, new, files)
-    for rx, to in RULES:
-        text = rx.sub(to, text)
-    for rx, to in BARE:
-        if rx.search(text):
-            bare_hits.append(old)
-        text = rx.sub(to, text)
-    return RELATIVE[0].sub(RELATIVE[1], text)
+    out = []
+    for line in text.split("\n"):
+        if KEEP not in line:
+            if new.endswith(".md") and old != new:
+                line = fix_links(line, old, new, files)
+            for rx, to in RULES:
+                line = rx.sub(to, line)
+            for rx, to in BARE:
+                if rx.search(line):
+                    bare_hits.append(old)
+                line = rx.sub(to, line)
+            line = RELATIVE[0].sub(RELATIVE[1], line)
+        out.append(line)
+    return "\n".join(out)
 
 
 def preflight(dry: bool) -> list[str]:
@@ -252,7 +265,7 @@ def main() -> int:
         if args.dry_run:
             text = rewrite(text, old, new, files, [])
         for i, line in enumerate(text.split("\n"), 1):
-            if re.search(r"handoff", line, re.I):
+            if re.search(r"handoff", line, re.I) and KEEP not in line:
                 n += 1
                 print(f"  {new}:{i}: {line.strip()[:140]}")
     print(f"  ({n} line(s))")

@@ -32,6 +32,9 @@ import { gunzipSync, gzipSync } from "node:zlib";
 import { basename, join } from "node:path";
 
 export const TICKETS_DIR = "handoff/PLAN/app-integration/tickets";
+/** (T1081) Where the tickets folder sat before the rename to docs/ + tickets/: the folder's git history is under it, and a branch
+ *  not yet rebased still holds its tickets and claims there. The rename script leaves a line marked as below alone. */
+export const LEGACY_TICKETS_DIR = "handoff/PLAN/app-integration/tickets";   // rename_handoff: keep
 export const README = `${TICKETS_DIR}/README.md`;
 /** The old closed-rows file (T540). It no longer exists: its rows are built into `views/DONE.md`. */
 export const OLD_DONE = `${TICKETS_DIR}/DONE.md`;
@@ -524,7 +527,7 @@ function cliNext(repo) {
   const { tickets, claims, closed } = readWorkTree(repo);
   const names = [...tickets.map((t) => t.name), ...claims.map((c) => c.name), ...closed.map((r) => r.id)];
   const refs = git(repo, ["for-each-ref", "--format=%(refname)", "refs/heads", "refs/remotes"]).split("\n").filter((r) => r && !r.endsWith("/HEAD"));
-  for (const ref of refs) names.push(...git(repo, ["ls-tree", "--name-only", ref, `${TICKETS_DIR}/`, `${CLAIMS_DIR}/`]).split("\n").filter(Boolean));
+  for (const ref of refs) names.push(...git(repo, ["ls-tree", "--name-only", ref, `${TICKETS_DIR}/`, `${CLAIMS_DIR}/`, `${LEGACY_TICKETS_DIR}/`, `${LEGACY_TICKETS_DIR}/ids/`]).split("\n").filter(Boolean));
   console.log(`T${nextNumber(names)}`);
   return 0;
 }

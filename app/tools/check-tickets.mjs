@@ -40,7 +40,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { BUDGETS, checkRepo as checkSizes } from "./check-size.mjs";
-import { CLAIMS_DIR, CLOSED_TSV, LEDGER_POINTER, MARKER, OLD_DONE, OWNER_UNFILED, README, RETIRED_OWNER_PATHS, claimProblems, ledgerSection,
+import { CLAIMS_DIR, CLOSED_TSV, LEGACY_TICKETS_DIR, LEDGER_POINTER, MARKER, OLD_DONE, OWNER_UNFILED, README, RETIRED_OWNER_PATHS, claimProblems, ledgerSection,
          ownerAsks, readWorkTree, staleViews, tableRows, ticketRow, unfiledAsks } from "./ledger.mjs";
 
 /** (T540) The closed statuses: their rows are built into the DONE view (`ledger.mjs` isClosed). */
@@ -321,8 +321,9 @@ export function readRepo(repoRoot) {
     .sort()
     .map((name) => ({ name, text: readFileSync(join(dir, name), "utf8") }));
   const git = (...args) => execFileSync("git", ["-C", repoRoot, ...args], { encoding: "utf8" });
+  // (T1081) the folder moved (handoff/... to tickets/): its history began at the old path, so both are asked
   // Subjects before the tickets folder used T-numbers of an older plan (e.g. "T3a"); they are not tickets.
-  const firsts = git("log", "--diff-filter=A", "--format=%H", "--", TICKETS_DIR).trim().split("\n").filter(Boolean);
+  const firsts = git("log", "--diff-filter=A", "--format=%H", "--", TICKETS_DIR, LEGACY_TICKETS_DIR).trim().split("\n").filter(Boolean);
   if (!firsts.length) throw new Error(`no commit adds ${TICKETS_DIR}; cannot scope commit subjects`);
   const first = firsts[firsts.length - 1];
   const subjects = git("log", "--format=%s", "HEAD", "--not", `${first}^@`).split("\n").filter(Boolean);
