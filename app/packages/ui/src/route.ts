@@ -70,6 +70,12 @@ export interface WaterFrame {
   group?: readonly ItemId[];
   /** (T203) The water Map opens on the WHOLE water (a search result's: the reader picks the section there). A step to another part drops it. */
   whole?: boolean;
+  /**
+   * (T1140) The water Map opens with its list of parts OPEN: the Regulations or Conditions head's "Other parts of this water
+   * have different rules" (`{type: "view", view: "map", parts: true}`). Any other move drops it (a pick, a step, another
+   * view); never in the address — a reload opens the map as a plain switch to it does.
+   */
+  parts?: true;
 }
 /** A spot being added: at the point the reader gave (a long press, a tap in pick mode, their location), or none yet. */
 /** `accuracy` (metres) rides on a point that came from the phone's location: the capture says so when it is rough (T723 G5). */
@@ -120,7 +126,8 @@ export type RouteAction =
       whole?: boolean }
   /** (T48) Open or close search over the map on screen. */
   | { type: "search"; open: boolean }
-  | { type: "view"; view: View }
+  /** `parts` (T1140): onto the Map with its list of parts open (`WaterFrame.parts`; on another view it means nothing). */
+  | { type: "view"; view: View; parts?: true }
   /**
    * The frame's part (the water map's step, "Show regulations for this part"). `item`: a split lake's OTHER closure
    * area — a sibling of the same water — which becomes the frame's water; the tap it was opened by was on another water,
@@ -255,7 +262,8 @@ export function reduce(r: Route, a: RouteAction): Route {
   }
   switch (a.type) {
     case "openSpot": return { ...r, spot: a.id };
-    case "view": return frameViews(top(r)).includes(a.view) ? withTop(r, { view: a.view, whole: undefined }) : r;
+    case "view": return frameViews(top(r)).includes(a.view)
+      ? withTop(r, { view: a.view, whole: undefined, parts: a.parts && a.view === "map" ? true : undefined }) : r;
     case "part": {
       const t = top(r);
       if (t.item === null) return r;
@@ -263,8 +271,8 @@ export function reduce(r: Route, a: RouteAction): Route {
       // the new part is that part's (its middle, the release's), exactly as a reload of its address draws it
       const tap = a.part !== t.part ? { tapSid: null, at: null } : {};
       return a.item === undefined || a.item === t.item
-        ? withTop(r, { part: a.part, whole: undefined, ...tap })
-        : withTop(r, { item: a.item, part: a.part, tapSid: null, at: null, whole: undefined });
+        ? withTop(r, { part: a.part, whole: undefined, parts: undefined, ...tap })
+        : withTop(r, { item: a.item, part: a.part, tapSid: null, at: null, whole: undefined, parts: undefined });
     }
     case "whole": {
       const t = top(r);

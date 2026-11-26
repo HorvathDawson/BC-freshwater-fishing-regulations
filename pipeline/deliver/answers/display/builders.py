@@ -194,9 +194,53 @@ def _crossings(path: str) -> Dict[tuple, list]:
         for iid, p, near in db.execute("SELECT i.item_id, n.part_ix, n.near FROM part_near n JOIN item i "
                                        "ON i.ord = n.ord ORDER BY i.item_id, n.part_ix"):
             out[(iid, "part", p)] = near
+        # (T1140) the area a part with no main stem lies inside (`bundle.side_channels.inside_rows`)
+        for iid, p, area, how in db.execute("SELECT i.item_id, n.part_ix, n.area, n.how FROM part_inside n JOIN item i "
+                                            "ON i.ord = n.ord ORDER BY i.item_id, n.part_ix"):
+            out[(iid, "inside", p)] = (area, how)
+        # (T1140 proposal) the own name of a part of added city lines (`bundle.side_channels.own_name_rows`)
+        for iid, p, nm, lb in db.execute("SELECT i.item_id, n.part_ix, n.name, n.label FROM part_own_name n JOIN item i "
+                                         "ON i.ord = n.ord ORDER BY i.item_id, n.part_ix"):
+            out[(iid, "own", p)] = (nm, lb)
+        # (coordinator's proposal) the parts with a side channel said at its NEAREST point, not where it joins
+        for iid, p in db.execute("SELECT DISTINCT i.item_id, ps.part_ix FROM section_join j JOIN part_section ps "
+                                 "ON ps.sid = j.sid JOIN item i ON i.ord = ps.ord WHERE j.how = 'nearest' "
+                                 "ORDER BY i.item_id, ps.part_ix"):
+            out[(iid, "nearest", p)] = True
+        out.update(_flows_into(db))
         return out
     finally:
         db.close()
+
+
+def _flows_into(db) -> Dict[tuple, str]:
+    """(T1140) {(item id, "flows_into", part_ix): the end token of the named water a part of side channels only flows into}
+    where its flow pointer (`section_down`) leaves the water for ONE named lake (`lake_inlet:<item>`) or stream
+    (`confluence:<item>`): Theodosia River's channel into Olsen Lake. A part reaching none, or two, has no row."""
+    secs: Dict[tuple, List[int]] = {}
+    for iid, p, sid in db.execute("SELECT i.item_id, ps.part_ix, ps.sid FROM part_section ps JOIN item i ON i.ord = ps.ord "
+                                  "JOIN section_span sp ON sp.sid = ps.sid WHERE sp.off_stem = 1 "
+                                  "ORDER BY i.item_id, ps.part_ix, ps.sid"):
+        secs.setdefault((iid, p), []).append(sid)
+    stemful = {(iid, p) for iid, p in db.execute(
+        "SELECT DISTINCT i.item_id, ps.part_ix FROM part_section ps JOIN item i ON i.ord = ps.ord "
+        "JOIN section_span sp ON sp.sid = ps.sid WHERE sp.off_stem = 0")}
+    down = dict(db.execute("SELECT sid, down_sid FROM section_down"))
+    owner: Dict[int, List[tuple]] = {}
+    for sid, iid, kind in db.execute("SELECT s.sid, i.item_id, i.kind FROM item_section s JOIN item i ON i.ord = s.ord "
+                                     "ORDER BY s.sid, i.item_id"):
+        owner.setdefault(sid, []).append((iid, kind))
+    out: Dict[tuple, str] = {}
+    for (iid, p), ss in secs.items():
+        if (iid, p) in stemful:
+            continue
+        mine = set(ss)
+        got = {(w, k) for s in ss if s in down and down[s] not in mine for w, k in owner.get(down[s], ()) if w != iid}
+        if len(got) == 1:
+            w, k = next(iter(got))
+            out[(iid, "flows_into", p)] = (f"lake_inlet:{w}" if k in ("lake", "reservoir", "wetland")
+                                           else f"confluence:{w}")
+    return out
 
 
 def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[dict]:
@@ -209,8 +253,9 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
     feature, at the border the nearest B.C. town) — else at its km — wherever the part's two ends say the same words
     or its name is another part's; the part across that place says the same token (the mark there names it).
     Anything still said twice stops the build (`name_check`)."""
-    from pipeline.deliver.answers.display.part import NEAR, PLACE, at_place, branch_end_tokens, end_name_of, \
-        end_tokens, end_words
+    import json as _json
+    from pipeline.deliver.answers.display.part import AREA_HEAD, NEAR, OWN, PLACE, REVIEWED_INSIDE, SIDE, at_place, \
+        branch_end_tokens, end_name_of, end_tokens, end_words, side_channels, side_words
     from pipeline.deliver.bundle.topology import is_crossing
     toks = [end_tokens(W.doc, p) for p in W.parts]
     # a part with no main stem says its water's name — unless the water has several such parts, or it is a piece of a
@@ -218,20 +263,59 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
     run_n: Dict[tuple, int] = {}
     for p in W.parts:
         run_n[(p["grp"], p["run"])] = run_n.get((p["grp"], p["run"]), 0) + 1
+    # (T1140, owner 2026-11-25: "itshould have the real name … it will say eco reserve here") a part with no main stem
+    # lying at least 95 % inside one area, measured on its shapes (the bundle's `part_inside`), is said by it: "Squamish
+    # River inside Baynes Island Ecological Reserve" (the token `part.INSIDE`, the same as both its ends)
     several = sum(1 for t in toks if t is None) > 1
-    toks = [t if t is not None or run_n[(p["grp"], p["run"])] < 2 else branch_end_tokens(p)
-            for p, t in zip(W.parts, toks)]
-    ends: List[Optional[list]] = [[t[0], t[1]] if t else None for t in toks]
+    inside = [crossings.get((W.id, "inside", W.export_ix[i])) if t is None else None for i, t in enumerate(toks)]
+    toks = [t if t is not None or a is not None or run_n[(p["grp"], p["run"])] < 2 else branch_end_tokens(p)
+            for p, t, a in zip(W.parts, toks, inside)]
+    ends: List[Optional[list]] = [[t[0], t[1]] if t else [f"{AREA_HEAD[a[1]]}area:{a[0]}"] * 2 if a else None
+                                  for t, a in zip(toks, inside)]
+    # (T1140 PROPOSAL, coordinator 2026-11-25, under the owner's "do whatever makes our current state decent until this is
+    # fixed in hardening") a part of added city lines with its own name: "Noons Creek — Turner Creek (City of Port Moody
+    # ESA streams layer)" (`part.OWN`, both ends)
+    for i, t in enumerate(toks):
+        own = crossings.get((W.id, "own", W.export_ix[i])) if t is None and ends[i] is None else None
+        if own:
+            ends[i] = [OWN + _json.dumps(list(own), separators=(",", ":"), ensure_ascii=False)] * 2
+    if not several:
+        # (T1140, owner 2026-11-25: "Named by its ends", "They should always have the cut names or distance") the ONE part
+        # of side channels only of a water, where a channel has a named end: said by them ("Side channel from the
+        # Exchamsiks River confluence up to the Skeena River Ecological Reserve boundary"; `part.SIDE`), a channel with
+        # none by where it joins; one whose run names only its own mouth takes the named water its flow reaches
+        for i, (p, t) in enumerate(zip(W.parts, toks)):
+            if t is None and ends[i] is None:
+                chans = side_channels(p, crossings.get((W.id, "flows_into", W.export_ix[i])))
+                if chans:
+                    tok = SIDE + _json.dumps(chans, separators=(",", ":"))
+                    try:
+                        side_words(W.doc, chans)
+                    except AnswersError as e:
+                        raise AnswersError(f"display: {W.id} part {W.export_ix[i]}: {e} ({chans})") from None
+                    ends[i] = [tok, tok]
     if several:
         # several parts with no main stem: each said "<water> near <what it lies nearest>" (`topology.part_near`;
         # lo = hi = "near:<token>"), the one thing that tells two side channels of unmeasured ends apart
         for i, (p, t) in enumerate(zip(W.parts, toks)):
-            if t is None:
+            if t is None and ends[i] is None:
                 near = crossings.get((W.id, "part", W.export_ix[i]))
                 if near is None:
                     raise AnswersError(f"display: {W.id} part {W.export_ix[i]}: one of several parts with no main "
                                        f"stem, and no named water or B.C. town near it to tell it apart")
                 ends[i] = [f"near:{near}", f"near:{near}"]
+    for i, (p, t, a) in enumerate(zip(W.parts, toks, inside)):
+        if a is not None and (W.id, *a) not in REVIEWED_INSIDE:
+            raise AnswersError(f"display: {W.id} part {W.export_ix[i]} would be said {a[1]} {a[0]!r}, a pair no reviewer has "
+                               f"looked at: check its picture, then add it to `part.REVIEWED_INSIDE` (T1140)")
+        if t is None and ends[i] is None and len(W.parts) > 1:
+            # (T1140, owner 2026-11-25: "They should always have the cut names or distance it is impossible not to") a
+            # part said by its label ("Side channel, joining 3.7 km from the mouth") must have every channel's join
+            bare = [r for r in p.get("runs") or [] if r.get("branch") and r.get("km_from") is None]
+            if bare:
+                raise AnswersError(f"display: {W.id} part {W.export_ix[i]}: {len(bare)} side channel(s) with no named "
+                                   f"end and no join to say (runs {[(r.get('from'), r.get('to')) for r in bare]}) — T1140: "
+                                   f"never a part named without its distance")
     water = W.w["name"]
 
     def name(i: int) -> str:
@@ -239,7 +323,8 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
             return water
         if ends[i][0] == ends[i][1] and ends[i][0].startswith("near:"):
             w = end_words(W.doc, ends[i][0], "from")
-            return f"{water} {w[:1].lower() + w[1:]}"
+            from pipeline.deliver.answers.display.name_check import near_name
+            return near_name(water, w)
         return end_name_of(W.doc, *ends[i])
 
     def base(e: str) -> str:
@@ -256,7 +341,7 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
         new = place(ends[i][side], km)
         b = base(ends[i][side])
         for j, t in enumerate(toks):
-            if ends[j] is None:
+            if ends[j] is None or t is None:          # (T1140) an inside part has no ends of its own to meet
                 continue
             for s2, k2 in ((0, t[2]), (1, t[3])):
                 if base(ends[j][s2]) == b and k2 is not None and abs(k2 - km) <= 0.05:
@@ -301,6 +386,26 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
             for i in range(len(W.parts))]
 
 
+def said_nearest(label: str, part: dict, nearest: bool) -> str:
+    """(Coordinator's proposal 2026-11-25) a part of ONE side channel said at its main line's nearest point, not where it
+    joins: "Side channel, 5.7 km from the mouth", never "joining" (several channels: the range includes it, as is)."""
+    if nearest and all(r.get("branch") for r in part.get("runs") or []):
+        return label.replace("Side channel, joining ", "Side channel, ", 1)
+    return label
+
+
+def reviewed_still_said(out: Dict[str, dict]) -> None:
+    """(T1140) every reviewed "inside" / "at" part of the waters built is still said so (`part.REVIEWED_INSIDE`): one that
+    stops being inside is looked at again too — the tripwire's other way."""
+    from pipeline.deliver.answers.display.part import AREA_HEAD, REVIEWED_INSIDE
+    said_in = {(i, str(f["lo"])[len(head) + len("area:"):], how) for i, v in out.items() for f in v["parts"] if f
+               for how, head in AREA_HEAD.items() if str(f.get("lo") or "").startswith(head + "area:")}
+    gone = sorted({r for r in REVIEWED_INSIDE if r[0] in out} - said_in)
+    if gone:
+        raise AnswersError(f"display: reviewed inside parts no longer said inside: {gone} (T1140: look at them again, "
+                           f"then update `part.REVIEWED_INSIDE`)")
+
+
 def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
                   rule_ref=None, lic_ref=None, log=print, store=None) -> Dict[str, dict]:
     """PURE: every named water's part facts, `{item_id: {"parts": [facts | null per EXPORT part],
@@ -319,6 +424,7 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
         if x.get("placement") == "unresolved":
             unresolved.setdefault(x["entry_id"], []).append(k)
     crossings = _crossings(B.path)
+    stops: List[str] = []
     for item_id in sorted(parts):
         w = doc["waters"][item_id]
         W = Water(item_id, w, doc)
@@ -331,7 +437,11 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
         gi = {g: k for k, g in enumerate(Wg.export_ix)}
         labels = [labels_g[gi[p["grp"]]] for p in W.parts]
         # T517 (owner 2026-11-09): a part's name is its two end tokens; the app composes the words of any span shown
-        names = _names(W, crossings)
+        try:
+            names = _names(W, crossings)
+        except AnswersError as e:              # (T1140) every part the rules cannot name, together, then stop
+            stops.append(str(e))
+            continue
         closed = []
         facts: List[Optional[dict]] = [None] * len(w["parts"])
         for i, (ex, p) in enumerate(zip(W.export_ix, W.parts)):
@@ -340,8 +450,10 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
                 closed_memo[rk] = closed_all_year(store, B.key_ix[rk])
             closed.append(closed_memo[rk])
             k = gi[p["grp"]]
+            near = crossings.get((item_id, "nearest", ex), False)     # (T1140 proposal) said at its nearest point
             facts[ex] = {
-                "order": i, "label": labels[i], **names[i], "runs": runs_label(doc, p, water_ends_km(w)),
+                "order": i, "label": said_nearest(labels[i], p, near), **names[i],
+                "runs": said_nearest(runs_label(doc, p, water_ends_km(w)), p, near),
                 "place": part_place(Wg, k) or None,          # null: no entry heading
                 "km": part_km(p),
                 "closed_all_year": closed[-1],
@@ -353,6 +465,9 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
         out[item_id] = {"parts": facts, "picker": pk,
                         "unresolved_licensing": [lic_ref(k) for k in sorted(
                             k for e in w.get("entries") or [] for k in unresolved.get(e, []))]}
+    if stops:
+        raise AnswersError("display: parts the names cannot say —\n  " + "\n  ".join(stops))
+    reviewed_still_said(out)
     log(f"  parts: {sum(1 for v in out.values() for f in v['parts'] if f)} parts of {len(out)} "
         f"waters; {sum(closed_memo.values())} of {len(closed_memo)} rule keys closed all year")
     return out

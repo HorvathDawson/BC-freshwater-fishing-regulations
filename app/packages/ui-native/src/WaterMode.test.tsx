@@ -64,7 +64,7 @@ beforeAll(() => {
 });
 
 const CHILLIWACK = "gnis:8634" as ItemId;
-const { partName, partRowAria, partWhere } = await import("@app/core");
+const { partName, partRowAria, partWhere, WATER_MAP_WORDS } = await import("@app/core");
 const { loadWaterGroup, openRegsStore } = await import("@app/data/regs");
 /** (T768) What the map's bar says for the group's part `i` (`"top"`: the last): its place and its name, from the water's
  *  own group — the one content pin is conformance waterGroup.fixture.test.ts, so a new part end moves no line here. */
@@ -355,11 +355,15 @@ describe("ONE MAP ENTRY (T71, owner call 3, 2026-10-22: \"Keep only one Map entr
     await waitFor(() => expect(screen.getByTestId("regs-header")).toBeTruthy(), { timeout: 20_000 });
     const leaving = [screen.getByLabelText(BACK).textContent, screen.getByTestId("water-close").getAttribute("aria-label")];
     const seen: unknown[] = [leaving, mapEntries(), screen.queryByTestId("regs-action"),
-                             within(screen.getByTestId("regs-header")).queryAllByRole("button", { name: /parts/i }).length];
+                             // (T1140) the one press in the header that names parts is the line to the other parts (it
+                             // opens THIS water's Map with its list open: Shell.partsLine.test.tsx), never a Parts sheet
+                             within(screen.getByTestId("regs-header")).queryAllByRole("button", { name: /parts/i })
+                               .map((b) => b.getAttribute("aria-label"))];
     fireEvent.click(screen.getByRole("tab", { name: "Map" }));
     await waitFor(() => expect(screen.getByTestId("water-map-where")).toBeTruthy(), { timeout: 20_000 });
     seen.push(screen.getByTestId("water-map-where").textContent);
-    expect(seen).toEqual([["Map", "Close, back to Map"], [["tab", "Map"]], null, 0, partWhere(await group(CHILLIWACK), 1)]);
+    expect(seen).toEqual([["Map", "Close, back to Map"], [["tab", "Map"]], null, [WATER_MAP_WORDS.partsOthers],
+                          partWhere(await group(CHILLIWACK), 1)]);
   }, 40_000);
 });
 
