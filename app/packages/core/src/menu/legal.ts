@@ -8,6 +8,14 @@ import { agoWords } from "../freshness";
 import { isoDayWords } from "./freshness";
 import { byCadence } from "../staleness";
 
+/**
+ * (T1163 G15) THE NON-AFFILIATION SENTENCE, one source: the words the Play description already carries
+ * (`store-listing/full-description.txt`) and the App Store review notes, said on the first-run notice too.
+ */
+export const NOT_AFFILIATED =
+  "This app is not affiliated with, endorsed by, or sponsored by the Province of British Columbia or Fisheries and "
+  + "Oceans Canada (DFO).";
+
 export const LEGAL_WORDS = {
   /** the Regulations page's foot, every page */
   footer: "Not legal advice — the B.C. synopsis and DFO notices are the authority.",
@@ -19,7 +27,7 @@ export const LEGAL_WORDS = {
     points: [
       { title: "Not the official regulations",
         body: "This app reads the B.C. Freshwater Fishing Regulations Synopsis, the Province's in-season changes and DFO's "
-          + "salmon notices onto a map. It is not legal advice." },
+          + "salmon notices onto a map. It is not legal advice. " + NOT_AFFILIATED },
       { title: "The official sources decide",
         body: "The synopsis, the Province's in-season changes and DFO's notices are the authority. Check them before you fish." },
       { title: "Regulations change in season",
