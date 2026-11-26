@@ -5,13 +5,15 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs'; import os from 'node:os'; import path from 'node:path';
 
 export const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+/** (T1131) extra Chrome flags from CHROME_FLAGS (space-separated), e.g. software GL on a runner with no GPU; empty by default */
+export const extraFlags = (env = process.env) => (env.CHROME_FLAGS ?? '').split(/\s+/).filter((f) => f.startsWith('--'));
 
 // T254: `setup(send)` runs before the page is navigated (network throttling must be in force from the first byte);
 // `onEvent(m)` sees every other DevTools event (the bad-network harness answers `Fetch.requestPaused` with it).
 export async function open(url, { width = 440, height = 900, init = '', offline = false, dpr = 1, mobile = false, network = false, setup = null, onEvent = null } = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'regs-web-'));
   const proc = spawn(CHROME, ['--headless=new', ...(process.env.CI ? ['--no-sandbox'] : []), '--remote-debugging-port=0', `--user-data-dir=${dir}`, '--no-first-run',
-    '--allow-file-access-from-files', `--window-size=${width},${height}`, 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
+    '--allow-file-access-from-files', ...extraFlags(), `--window-size=${width},${height}`, 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
   const wsBrowser = await new Promise((res, rej) => { let buf = '';
     proc.stderr.on('data', d => { buf += d; const m = buf.match(/DevTools listening on (ws:\/\/\S+)/); if (m) res(m[1]); });
     proc.on('exit', c => rej(new Error('chrome exited ' + c))); });

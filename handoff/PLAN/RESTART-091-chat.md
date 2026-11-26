@@ -22,7 +22,7 @@ waits for the release-speed work (T1165, T1144, T1161, T1135, T1133).
 
 #155, #164, #185, #187, #189, #112, #194, #179, #166, #114, #212, #218, #260 (T1145 open colour), #264 (T1146 side
 channels go with their water), #270 (privacy page names 0.10.0: revisit the version at the next cut), and #265
-(T1140 part names) once main's pipeline tier is green again.
+(T1140 part names).
 
 ## What the next cut must do
 
@@ -43,7 +43,8 @@ channels go with their water), #270 (privacy page names 0.10.0: revisit the vers
    every re-cut: regenerate it by the test's own render and check only data lines changed).
 4. A release branch needs the ticket files of every ticket its commits name, or fast-fail's ledger check stops the
    preflight.
-5. After the build's in-season step, run the in-season comparer; on the candidate re-check: Forsyth Creek's 991 m
+5. After the build's in-season step, run the in-season comparer (`tar -xzOf
+   handoff/PLAN/app-integration/tickets/archive/night-notes-2026-11-25.tar.gz inseason_diff.py`; read it first); on the candidate re-check: Forsyth Creek's 991 m
    side channel is no longer open Sep 1–Oct 31; the Shelagyote channel carries the Babine Class I licence.
 6. `minAppVersion` must not rise to the new version (the rehearsal derived 0.8.4).
 
@@ -64,3 +65,12 @@ unattended run (T1139). Pushes from the main checkout fail on a stray untracked 
   nothing shows on screen; no test runs the real v0.9.0 code (0.9.0 shows "Noons Creek : Turner Creek (Port
   Moody)" with a stray space); a city stream with an OSM or excluded-FWA name gets no own-name row.
 - Owner's, unchanged: TestFlight 0.9.0 (45) external submit; every CONFIRM_PROD command.
+
+## This chat is closed; the re-cut is a new chat
+
+The re-cut starts from this page with none of this chat's context. The stale candidate r-71d09ad82e81 stays on disk
+until the owner says delete. This chat's scratchpad (11 GB of lane folders and logs) and its four worktrees
+(`main-read`, `wt-docs`, `wt-l12`, `wt-l28`, under
+`/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/b9022cdd-2bf4-4abc-bffc-e3e417af1b95/scratchpad/`)
+hold nothing that is not on main or in the planning chat's notes: the planning chat removes them on the owner's
+word (worktrees with `git worktree remove`). The run logs behind the timings above are in the planning chat's notes.
