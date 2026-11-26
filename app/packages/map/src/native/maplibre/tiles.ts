@@ -15,6 +15,7 @@ const TILE_IDS_EVENT = "MLRNTileIds";
 
 export const maplibreTiles: EngineTiles = {
   sentMax: NATIVE_SENT_MAX,
+  event: TILE_IDS_EVENT,
   onTileIds: (listener) => {
     const sub = DeviceEventEmitter.addListener(TILE_IDS_EVENT, listener);
     return () => sub.remove();

@@ -29,10 +29,14 @@ const ROOT = new URL("..", import.meta.url).pathname;
  * under the OS temp dir — the app's `layers.json` and the fixture, nothing else — and the real gate runs on it through
  * `CHECK_ROOT`. The real tree is checked as is by each gate's "passes on a clean tree".
  */
-function inScratch<T>(files: Record<string, string>, run: (root: string) => T): T {
+/** (T1154) The map's engine folder, as the app has it: the engine rule fails a tree without it (W46). */
+const ENGINE_DIR = "packages/map/src/native/maplibre";
+
+function inScratch<T>(files: Record<string, string>, run: (root: string) => T, { engine = true } = {}): T {
   const root = mkdtempSync(join(tmpdir(), "app-gate-"));
   try {
     copyFileSync(`${ROOT}layers.json`, join(root, "layers.json"));
+    if (engine) mkdirSync(join(root, ENGINE_DIR), { recursive: true });
     for (const [f, src] of Object.entries(files)) {
       mkdirSync(dirname(join(root, f)), { recursive: true });
       writeFileSync(join(root, f), src);
@@ -142,6 +146,17 @@ describe("(T1154) the map engine stays in its folder", () => {
     ["another engine's SDK", "packages/map/src/Map.native.tsx", 'export const sdk = "@rnmapbox/maps";\n'],
     ["a helper beside the engine reaching into it", "packages/map/src/native-style.ts",
       'export { View } from "./native/maplibre/View";\n'],
+    // (review) a binding's name in a template literal, and React Native's other ways to reach a native module by name
+    ["a binding's native name in a template literal", "packages/map/src/native/useColouring.ts",
+      'export const msg = (z: number) => `MLRNTileIds: tile ${z}`;\n'],
+    ["NativeEventEmitter", "packages/map/src/native/probe.ts",
+      'import { NativeEventEmitter } from "react-native";\nexport const e = NativeEventEmitter;\n'],
+    ["NativeModules", "packages/map/src/Map.native.tsx", 'import { NativeModules } from "react-native";\nexport const m = NativeModules;\n'],
+    ["requireNativeComponent", "packages/map/src/native/labelHold.tsx",
+      'import { requireNativeComponent } from "react-native";\nexport const v = requireNativeComponent("X");\n'],
+    // a folder of native/ that is not a named engine is scanned like any other
+    ["a helper folder beside the engine", "packages/map/src/native/helpers/events.ts",
+      'import { DeviceEventEmitter } from "react-native";\nexport const e = DeviceEventEmitter;\n'],
   ])("rejects: %s", (_name, file, src) => {
     expect(shell(file, src)).toBe(1);
   });
@@ -158,6 +173,12 @@ describe("(T1154) the map engine stays in its folder", () => {
     ["the web map's own SDK", "packages/map/src/web/_bnd.ts", 'import maplibregl from "maplibre-gl";\nexport const x = maplibregl;\n'],
   ])("allows: %s", (_name, file, src) => {
     expect(shell(file, src)).toBe(0);
+  });
+
+  it("fails, by name, a tree without the engine folder it names (never a silent pass)", () => {
+    const run = inScratch({ "packages/map/src/Map.native.tsx": "export const x = 1;\n" },
+      (root) => runGate("check-boundaries.mjs", root), { engine: false });
+    expect([run.status, run.stderr.split("\n")[0]]).toEqual([1, `✗ ${ENGINE_DIR}`]);
   });
 });
 

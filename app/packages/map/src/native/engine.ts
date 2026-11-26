@@ -56,6 +56,8 @@ export interface EngineRefs {
 export interface EngineTiles {
   /** How many tiles the engine remembers sending (a repeat of one of them comes without its ids): `TileHold` keeps more. */
   sentMax: number;
+  /** The tile event's own name, as a report about it says it (MapLibre Native's: `MLRNTileIds`). */
+  event: string;
   /** Listen for each atlas tile the engine requests, with its ids (or a repeat without them); returns the unsubscribe. */
   onTileIds(listener: (e: TileIdsEvent) => void): () => void;
 }

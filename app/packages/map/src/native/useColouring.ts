@@ -229,7 +229,7 @@ export function useNativeColouring(o: {
         // just after the hold was emptied (a new archive, a re-watch) a repeat already on its way is expected to miss;
         // the binding forgets what it sent with the same step, so the tile comes whole on its next request
         if (resyncing.current) return;
-        ref.current.report(new Error(`MLRNTileIds: repeat of tile ${e.z}/${e.x}/${e.y} not held (${hold.current.size} held); re-watching`));
+        ref.current.report(new Error(`${ref.current.tiles.event}: repeat of tile ${e.z}/${e.x}/${e.y} not held (${hold.current.size} held); re-watching`));
         rewatch();
         return;
       }

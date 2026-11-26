@@ -6,7 +6,7 @@
  * Deliberately dependency-free and ~60 lines: a boundary check nobody can read is a
  * boundary check nobody maintains.
  */
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 
 // The app root by default. `CHECK_ROOT` points the gate at another tree: its own tests write their fixtures into a
@@ -146,22 +146,37 @@ for (const { layer, rules, dir } of layerRoots) {
  * native name (`"MLRN…`), or React Native's device event bus (the binding's events), and none but `native/engine.ts`
  * may import from an engine folder. Comments are stripped first. Test files are the engine table's own harness (they
  * mock each SDK at its boundary and fire its events) and are not read. The web map (maplibre-gl) is out of scope.
+ *
+ * The engine folders are NAMED (`ENGINES`), never guessed from what `native/` holds: a helper folder beside them is
+ * scanned like any other file. An engine folder or the map's source that is missing FAILS the gate, by name: a rule
+ * with nothing to read must never pass for clean (W46).
  */
 const MAP_SRC = join(root, "packages/map/src");
 const ENGINE_HOME = join(MAP_SRC, "native");
 const GATEWAY = join(ENGINE_HOME, "engine.ts");
 const ENGINE_SDKS = ["@maplibre/maplibre-react-native", "@rnmapbox/maps"];
+/** The phone map's engines, each a folder of `native/` (T1155 would add "mapbox"). */
+const ENGINES = ["maplibre"];
 const ENGINE_WORDS = [
   ...ENGINE_SDKS.map((sdk) => ({ re: new RegExp(`["'\`]${sdk.replace(/[/.]/g, "\\$&")}`), what: `names the map SDK "${sdk}"` })),
-  { re: /["']MLRN/, what: 'names a binding\'s native name ("MLRN…")' },
+  { re: /["'`]MLRN/, what: 'names a binding\'s native name ("MLRN…")' },
   { re: /\bDeviceEventEmitter\b/, what: "uses DeviceEventEmitter (the binding's events)" },
+  { re: /\bNativeEventEmitter\b/, what: "uses NativeEventEmitter (a native module's events)" },
+  { re: /\bNativeModules\b/, what: "uses NativeModules (a native module by name)" },
+  { re: /\brequireNativeComponent\b/, what: "uses requireNativeComponent (a native view by name)" },
 ];
-let engines = [];
-try { engines = readdirSync(ENGINE_HOME).map((n) => join(ENGINE_HOME, n)).filter((p) => statSync(p).isDirectory()); }
-catch { /* no native map in this tree (a gate fixture): nothing to hold */ }
+const engines = ENGINES.map((n) => join(ENGINE_HOME, n));
+for (const e of engines) {
+  if (existsSync(e) && statSync(e).isDirectory()) continue;
+  console.error(`✗ ${relative(root, e)}\n    the engine folder check-boundaries.mjs names (ENGINES) is missing: the engine rule cannot hold it (T1154)\n`);
+  failed++;
+}
 const inEngine = (p) => engines.some((e) => p === e || p.startsWith(e + "/"));
-let engineFiles = [];
-try { engineFiles = walk(MAP_SRC); } catch { /* no map package in this tree (a gate fixture) */ }
+const engineFiles = existsSync(MAP_SRC) ? walk(MAP_SRC) : [];
+if (!existsSync(MAP_SRC)) {
+  console.error(`✗ ${relative(root, MAP_SRC)}\n    the map's source is missing: the engine rule has nothing to read (T1154)\n`);
+  failed++;
+}
 for (const file of engineFiles) {
   if (inEngine(file) || /\.(test|spec)\.[tj]sx?$/.test(file)) continue;
   const src = stripComments(readFileSync(file, "utf8"));
