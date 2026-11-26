@@ -54,9 +54,9 @@ export function RunRect({ x, w, bits, palette }: { x: number; w: number; bits: n
     );
   }
   const base = f & 2 ? <Stripes x={x} w={w} set={UPRIGHT_STRIPES} fill={palette.restricted} />
-    : f & 4 ? <><Rect x={x} y={0} width={w} height={H} fill={palette.card} /><Stripes x={x} w={w} set={UPRIGHT_STRIPES} fill={palette.open} /></>
-    : f & 8 ? <><Rect x={x} y={0} width={w} height={H} fill={palette.card} /><Stripes x={x} w={w} set={FLIES_STRIPES} fill={palette.open} /></>
-    : <Rect x={x} y={0} width={w} height={H} fill={palette.open} />;
+    : f & 4 ? <><Rect x={x} y={0} width={w} height={H} fill={palette.card} /><Stripes x={x} w={w} set={UPRIGHT_STRIPES} fill={palette.salmon.open} /></>
+    : f & 8 ? <><Rect x={x} y={0} width={w} height={H} fill={palette.card} /><Stripes x={x} w={w} set={FLIES_STRIPES} fill={palette.salmon.open} /></>
+    : <Rect x={x} y={0} width={w} height={H} fill={palette.salmon.open} />;
   return (
     <>
       {base}
@@ -82,7 +82,8 @@ export function YearStrip({ strip, dateLabel, palette, title = null, hours = nul
   const room = Math.max(0, w - GAP * (strip.runs.length - 1));
   let x = 0;
   const rects = strip.runs.map((r, i) => { const rw = (room * r.days) / total, at = x; x += rw + GAP; return { at, rw, bits: r.bits, i }; });
-  const tone = strip.status === "open" ? palette.open : palette.closed;
+  // (owner 2026-11-25) the game-fish block's OPEN is the salmon block's open (`palette.salmon.open`): one "open" on both bars, word and swatch
+  const tone = strip.status === "open" ? palette.salmon.open : palette.closed;
   const [status, ...rest] = strip.line;
   const coach = useCoachTarget("regs:answer");   // (T293) the walkthrough: today's answer and the year
   return (
@@ -93,7 +94,7 @@ export function YearStrip({ strip, dateLabel, palette, title = null, hours = nul
         {rest.map((l, i) => l.kind === "when"
           ? <Text key={i} style={[TYPE.meta, { color: palette.sub }]}>{l.text}</Text>
           : <Text key={i} testID={l.kind === "soonOpen" ? "st:open" : "st:closed"} style={[TYPE.metaBold, { marginLeft: "auto", paddingVertical: 2, paddingHorizontal: 8, borderWidth: 1.5,
-              color: l.kind === "soonOpen" ? palette.open : palette.closed, borderColor: l.kind === "soonOpen" ? palette.open : palette.closed }]}>{l.text}</Text>)}
+              color: l.kind === "soonOpen" ? palette.salmon.open : palette.closed, borderColor: l.kind === "soonOpen" ? palette.salmon.open : palette.closed }]}>{l.text}</Text>)}
       </View>
       {!!hours && <Text testID="keep-daylight" style={[TYPE.metaBold, { color: palette.ink, marginTop: 2 }]}>{hours}</Text>}
       {/* (T40) the bar is one picture to a screen reader, named by the status line ("Open today"); the marker's date is the

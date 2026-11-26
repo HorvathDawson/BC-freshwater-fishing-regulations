@@ -49,47 +49,46 @@ The prepared material is `handoff/PLAN/repo-move/PREP.md` (+ `snapshot-before/`)
 - Release timing: staging about 15:45, the owner's production commands about 16:00 or later, then the phone builds.
   The planning chat says when production is done and `release/0.10.0` is merged back.
 
-## State (2026-11-25 14:00)
+## State (2026-11-25 17:10 MST by the clock)
 
-Step 1 (prepare, nothing live changes): **done 2026-11-25 ~13:50.** Waiting for the planning chat's word on 0.10.0.
-1. Snapshot: done (`repo-move/snapshot-before/`, PREP section 1).
-2. The list of what names the repo or the account: done (PREP section 2).
-3. Slug-flip draft PR: **#217** (branch `chore/T1041-slug-flip`, worktree `scratchpad/slug-flip`), draft, no
-   auto-merge; 5 files; targeted tests green; `before_pr.sh` not run (heavy, a release was building).
-4. Token and wrangler commands: done (PREP section 4, with the order for step 3 and the two proofs).
-5. Ruleset and merge-queue change: written (PREP section 5); the timeout value to confirm against recent runs.
-6. Worktrees: done; one `git remote set-url` covers all (PREP section 3).
-7. T1120's outside-git list: done (`repo-move/OUTSIDE-GIT.md`, 17 finds; they are step 4's work list, T1120 step 2).
-8. Standard runners: checked, all `ubuntu-latest` (PREP section 6).
-9. Org settings walk-through: done by the owner (answers above).
+**Done.**
+1. Prepare (PR #221): snapshot, name list, token path, merge-queue rule, outside-git list.
+2. **The move: the repo is `canifishthis/canifishthis`** (owner's click ~15:16). Every check passed; what it showed
+   is `repo-move/PREP.md` section 9. Slug flip on main: a85dec393 (#217).
+3. Merge queue on (ruleset 14082789; `gh pr merge --merge --auto` enqueues).
+4. T1062, the plan (agreed, #229) AND the build: **on main, PR #257**, commits 5ac3d67f3 (code + tests) and
+   fad6911e8 (runbooks), merge 7139d1ae2. One independent review (four findings, all fixed, real-git tests). The
+   0.10.0 chat cherry-picks a85dec393, 5ac3d67f3, fad6911e8 onto `release/0.10.0`; its staging ship then tags
+   `v0.10.0-rc.1`; `release --final 0.10.0` is run by a chat on the owner's word. The planning chat flips T1062's row
+   when 0.10.0 has shipped through an rc.
+5. PR #256 (T1134, another chat's, closed): its two video tests find `ffprobe` on PATH and skip by name where there
+   is none (3192f957b); main merged into it to clear a conflict in `app/tools/store-shots.json` (9cfe92673). The
+   owner said yes to this job here. Tell the planning chat its merge commit when it lands.
 
-## What happens next (written 2026-11-25 15:07 MST by the clock)
+**Owner's later answers (dialogs and chat, all 2026-11-25):** the main ruleset: "Queue + restore bypass
+(Recommended)"; Dependabot and CodeQL appearing: "I turned them on, keep", then for the runner backlog "Pause both
+until 0.10.0 is out (Recommended)", and for CodeQL "you can change it" (the org configuration, PREP section 9);
+the order: "yes the release candidate structure is first then 0.10.0 happens right after. with other items";
+the Contributors list (two old commit authors): "it is a future thing to write. yes. like afgter 0.11" (the
+planning chat's T1143); "clean up workflows after too. can delete bloat as part of cleanup" (to the planning chat);
+the #256 job: "yes it can fix ti". Token: production check ok, "the expire is 1 year", old token deleted. The exact
+expiry date is still owed to the planning chat (the owner reads it off the token page).
 
-Relayed by the planning chat, the owner's decisions; **not yet confirmed to this chat by the owner himself**: ask him
-before acting on the two marked (ask).
+**Next, in order.**
+1. **T1120**, the fresh clone. Work list: the 17 finds in `repo-move/OUTSIDE-GIT.md`. Heavy steps through
+   `scripts/heavy.sh`, never while a release build runs; the disk had 31 GB free at 17:07 and `heavy.sh` refuses
+   under 20 GB, the sources alone are about 16 GB: free space first (the planning chat has a disk ticket), and ask
+   the 0.10.0 chat before any heavy step. The light half (clone, hooks, installs, fast tests, the doc fixes) needs
+   neither. No production step, no parser run. The owner confirms the secrets list (about 10 minutes).
+2. **T1131**, the store pictures by a hand-started workflow; the iPhone-ratio pictures from the Android or web
+   captures (his words); step 1 = the proof that the map frames render on a Linux runner; stop and report if not.
+3. After 0.10.0 is out (the planning chat keeps these on the owner's list): Dependabot security updates and CodeQL
+   back on; the tag ruleset (`v*`, `data/*`) after the first rc release.
 
-1. **The transfer click** (the planning chat's proposal to the owner, his decision open): when BOTH 0.10.0 phone
-   builds are uploaded and before the merge-back PR (the planning chat says "about 18:30" and "be ready from about
-   18:00"; its clock has read about 20 minutes ahead of this Mac's). An earlier window (during the iPhone compile)
-   only if all four hold at that minute: every production command done including the last `upload.sh` and the
-   production feeds deploy; no CI run in progress that a gate will read; the remote set straight after the click and
-   the token work done at once; no versionCode push or merge-back PR about to happen. Wait for the planning chat's word.
-2. At the click: the owner transfers to `canifishthis` and renames to `canifishthis`; the 0.10.0 chat sets the main
-   checkout's remote (it holds that checkout); then this chat: the owner's new token -> staging `secret put` ->
-   `check-github` -> snapshot compare -> auto-merge re-checked on open PRs -> the owner's production `secret put` and
-   `check-github`. **Hold the staging proof run (`/run/runtiming`) until the 0.10.0 chat says staging is free.**
-   #217 merges to main only, never onto `release/0.10.0`.
-3. The merge queue (the owner's OK on the ruleset change, PREP section 5).
-4. (ask) **The build half of T1062 comes to this chat right after the cutover**, so the T1140 patch release (a HIGH
-   bug on production, its own patch) can be the first release through a release candidate. One Opus lane for
-   `pipeline/release.py`, Sonnet for the docs, one review. First trace the release ledger and how 0.9.0 passed
-   `tag_problems`. Only after 0.10.0's phone builds are finished (it edits the two build scripts). The fix does not
-   wait: if the build is not merged when the fix is reviewed, the patch ships by the runbook as today.
-5. T1120 (fresh clone; work list = the 17 finds in `repo-move/OUTSIDE-GIT.md`), then T1131 (the owner confirmed it
-   to this chat; the iPhone-ratio pictures from the Android or web captures; step 1 = the Linux render proof).
-
-Done: step 1 (prepare, PR #221), the T1062 plan (agreed, PR #229).
+Until 0.10.0's PRs are through: batch docs pushes (few runners), one push per PR.
 
 ## For the planning chat
 
-- (none numbered yet)
+- All sent and answered: T1130 (the worker's 204), T1143 (Contributors list), the CI ticket (runners, five workflows
+  per docs PR, the workflow clean-up), the two #257 review leftovers (the rc check decides by branch name; a
+  misleading message when the clone lacks the rc commit), the Dependabot/CodeQL re-enable item.
