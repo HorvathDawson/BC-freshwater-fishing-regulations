@@ -42,8 +42,8 @@ describe.skipIf(!at.dir)("(T1140) a part of a water of several is named, never n
     if (t.kind !== "part") throw new Error(`${item}: its plain link opens no part`);
     const inp = await loadRegsInputs(st, t, DAY.day, DAY.weekday, DAY.year);
     const h = headerOf(inp, { today: DAY.day, status: "unknown", names: entryNames(g, item), places: entryPlaces(g, item, key) });
-    const at = partAt(g, item, t.partIx), places = entryPlaces(g, item, key);
-    return { g, partIx: t.partIx, h, map: partName(g, at), differs: places.get(t.partIx)?.differs ?? false };
+    const ix = partAt(g, item, t.partIx), places = entryPlaces(g, item, key);
+    return { g, partIx: t.partIx, h, map: partName(g, ix), differs: places.get(t.partIx)?.differs ?? false };
   }
 
   it("the Squamish and the Gordon: their side channels named by the area they lie inside, head and map alike", async () => {
