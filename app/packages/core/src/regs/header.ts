@@ -18,7 +18,7 @@ import { fmtDay, isTodayOf } from "./strip";
 import { WD3, WORDS } from "./words";
 import { WEEKDAYS } from "../calendar.generated";
 import { classBadgeOf } from "./classBadge";
-import { WATER_MAP_WORDS, type PartPlaces } from "../waterNav";
+import { nameUnder, WATER_MAP_WORDS, type PartPlaces } from "../waterNav";
 
 /** (T517) Each part's name as the water map names the entry holding it, by part index: `@app/core` `entryNames` over
  *  the SAME `mergeNav(group, live salmon key)` the map draws (`@app/ui` `useMapEntries`), so the header, the Parts sheet
@@ -117,6 +117,13 @@ export function partsOthersOf(inp: RegsInputs, places: PartPlaces | null | undef
   return p.differs ? WATER_MAP_WORDS.partsOthers : null;
 }
 
+/** (T1140) the place row under the water's name: each candidate by `nameUnder`; `aria` the full name, set only where a
+ *  candidate changed (a part named by its ends, or with no repeat, keeps exactly the shape it had). */
+function underWater(water: string, p: { full: string; short: string }): NonNullable<HeaderVM["place"]> {
+  const full = nameUnder(water, p.full), short = nameUnder(water, p.short);
+  return full === p.full && short === p.short ? p : { full, short, aria: p.full };
+}
+
 /** The header of the tapped part on `inp.day`. `status` is the day's as the strip read it (T13; null strip → tidal or
  *  outside); `downstream` (T53, an unnamed section only) the named water it flows into.
  *
@@ -149,7 +156,9 @@ export function headerOf(inp: RegsInputs, o: { today: Day; status: "open" | "clo
     dayWord,
     date, dateAria: WORDS.DATE_ARIA(dayWord, date),
     dot: o.status === "closed" ? "closed" : o.status === "open" ? "open" : "faint",
-    place: lbl ? { full: lab!.full || lbl, short: lbl } : null,
+    // (T1140, owner 2026-11-25 evening: "Drop the repeat") under the water's name, a part named "<water> <words>" by its
+    // words; the full name stays the label a screen reader says (`aria`)
+    place: lbl ? underWater(name, { full: lab!.full || lbl, short: lbl }) : null,
     // (T42) outside B.C. the page has no Gear, Methods or Licence section (no key): only the Keep tab is listed — as on
     // a key-less tidal piece (T672: `inp.tidalPart`, no frames either);
     // (owner 2026-11-04) on a closed day no Licence section (`buildLicence`), so no Licence tab

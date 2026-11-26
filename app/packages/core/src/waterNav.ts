@@ -571,6 +571,20 @@ export const WATER_MAP_WORDS = {
   unavailable: "The parts of this water are not available",
 } as const;
 
+/**
+ * (T1140, owner 2026-11-25 evening: "Drop the repeat (Recommended)") A PART'S NAME UNDER ITS WATER'S: where the water's
+ * name is already said just above it (the Regulations and Conditions heads' name row, the map bar's line), a part named
+ * "<water> <words>" ("Squamish River inside Baynes Island Ecological Reserve") is shown by its words alone, capitalised
+ * ("Inside Baynes Island Ecological Reserve"); the full name stays in lists and for screen readers. Any other name is returned
+ * as it is: the data's own label, the water's own name, and EVERY part named by its two ends ("<lower> → <upper>") — even
+ * one whose first end begins with the water's name ("Skeena River Ecological Reserve boundary → …" is a place, not a repeat).
+ */
+export function nameUnder(water: string, name: string): string {
+  if (!water || !name.startsWith(`${water} `) || name.includes(" → ")) return name;
+  const rest = name.slice(water.length + 1);
+  return rest ? rest[0]!.toUpperCase() + rest.slice(1) : name;
+}
+
 /** The line over the part's name on the map's bar: the water the part is of ("Chilliwack River"; a split lake's area,
  *  its own water). (T925, owner 2026-11-20: "It says part 1 of 1 should just say whole water") a water of one part is the
  *  whole water. (T1140, owner 2026-11-25: "there should be no partt x of n nameas anywhewre in the app") NO COUNT: a part
