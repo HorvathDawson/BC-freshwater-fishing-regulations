@@ -30,6 +30,23 @@ the memory notes `braids-paused`, `braid-edge-direction-defect`, `stretches-auto
 Set with his pick. At least: no part exists only because of a braid under the agreed size, and a build-time check
 says so. Severity: medium. Model: Opus. Size: M for the scoping; the build is L (atlas). Owner: the pick.
 
+## Scoped 2026-11-25 night (read-only; counts from candidate r-71d09ad82e81, before the T1146 fix)
+Notes: `tickets/archive/night-notes-2026-11-25.tar.gz` `T1151-scoping.md`.
+- **Braids are not why waters have extra parts.** Named rivers have 15,782 side-channel groups and 95% already
+  sit in the same part as the river beside them. Only 29 parts are side channel alone (T1140's 26 plus 3 named);
+  about 22 stay after T1146.
+- Those parts come from RULES, not size: an area judged by overlap (T1149), a river that is a region or unit
+  line, a canal piece the walk will not enter, a licensing or salmon cut placed differently on the braid, and
+  real closures. Deleting by size would delete closures: the Gordon's closed national-park channel is 46 m.
+- The map clutter is a LOOK problem: the Halfway River has 299 side-channel sections against 16 on its main
+  line; side channels are 1.2% of the stream tile bytes, so tile size is no reason to act.
+- The join rule 0.10.0 ships (T1140, a proposal) names parts but breaks on channels that leave and never return
+  (MacMillan, Theodosia), and it lives only in the naming step while rule binding uses a different notion.
+- Recommendation: compute ONE join point per channel in the atlas; a channel takes its river's rules there unless
+  an area covers it or a rule names it (only after T1149); improve the look in the app (fold and thin side
+  channels by zoom), never by deleting lines.
+
 ## Owner
 
 - [ ] 2026-11-25 — After the scoping pass: pick how braids and small side channels are simplified (options with pictures come then), and confirm or change the "channel joins where it touches its river's water body" rule that 0.10.0 ships as a proposal. Default until then: the proposal stands.
+- [ ] 2026-11-25 — Picks from the scoping (defaults first): a channel takes its river's rules / small braids are deleted / stay parts; a canal piece goes with its river / stays a part; a channel on a region-line river follows the river / keeps its own side; the look: app-only fold and hide / also a prune trial / nothing; the join rule: plus "joins where it leaves" / as shipped / no distance.

@@ -84,6 +84,27 @@ chat keeps them or attaches them to its restart page. Stopgap in 0.10.0 (T1140, 
 a part made only of added city lines that carry their own name reads that name (Noons p4 as Turner Creek, Seymour
 p3 as Tunnel Creek), with no distance and no "side channel".
 
+## Scoped 2026-11-25 night (read-only)
+Notes: `tickets/archive/night-notes-2026-11-25.tar.gz` `T1150-scoping.md` (the earlier lane's row diffs are copied there).
+- The finding holds and is complete: exactly 11 lines (12 rows) share an FWA code; none elsewhere in B.C., none
+  among the non-coastal rows. Two holes: `estimate_coastal_wsc` (`coastal.py:46`) and `_bump_wsc`
+  (`build_dataset.py:823`) check only city codes.
+- **No rule is wrong today**: every affected line shows only the regional base rules. The defect is the wrong
+  water: extra parts on the Seymour and Noons, searches that open a neighbouring water, "Schoolhouse Creek North"
+  as 10 separate items.
+- His name-variant question: none of the 11 is a local name for the FWA river it was filed under. OpenStreetMap
+  (one read-only query) names Turner, Village, Wilkes and Rainbow creeks on the city lines themselves; a 2012
+  Burnaby council report proposes the name Tunnel Creek. One open name: FWA line 360767895 is "Logger's Lane
+  Creek" to the city and partly "Mamquam Blind Channel" in OpenStreetMap.
+- Item ids follow the code, so codes must not cascade: the plain bump re-points 33 ids, the no-cascade draft 6
+  (and wrongly moves Sheldens Creek). **Recommended third variant**: no cascade, Sheldens exempt, earlier codes
+  kept, no old code reused: about 29 rows change and 3 ids re-point, all unavoidable. Designed, NOT run: the
+  numbers are estimates.
+- Found beside it: the public slug map has 11 creek URLs pointing at a neighbour since a code cascade on
+  2026-10-29; an owner-reviewed Aliceville continuation has been stale (held) since then.
+- The build check belongs at `atlas/build.py:559` with a twin in the generator; simulated on today's file it
+  refuses exactly the 11 lines and passes Sheldens.
+
 ## Owner
 
 - [x] 2026-11-25 — Noons p4 and Seymour p3 cannot be named (misfiled added streams): what to do → "We want them to be refiled properly so let's take the fwa version for now but add a gotcha to check on which one is the real stream line." (2026-11-25)
@@ -92,3 +113,4 @@ p3 as Tunnel Creek), with no distance and no "side channel".
 - [x] 2026-11-25 — The fix touches 11 lines and regenerates a curated file: scope → "just add all to hardening release" (2026-11-25)
 - [x] 2026-11-25 — Your two accepted "leave out" rows would go stale → "do whatever makes our current state decent until this is fixed in hardening" (2026-11-25)
 - [ ] 2026-11-25 — Hardening release: after the scoping pass, pick the variant (83 rows change, or 31 with no cascade) and say what happens to your two "leave out" rows. Default: the no-cascade variant; your rows are kept until you say.
+- [ ] 2026-11-25 — Picks for the hardening release (defaults first): the third variant / no-cascade / plain bump; your two "leave out" rows: remove in the same change / keep; Kyle, Wilkes, Aliceville and Rainbow: fix too / leave; line 360767895: look first / Logger's Lane Creek / Mamquam Blind Channel; the stale Aliceville continuation: re-key / leave held.
