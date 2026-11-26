@@ -142,13 +142,6 @@ See the principle above (one tributary logic). Build: T1177.
 ### T1084: creeks with no bank in the data
 "Record the method, build nothing (Recommended)". The 98 %-accurate geometry method is kept for the day a case appears.
 
-### Lake zones: direction (picks OPEN)
-"yes to app fix and draw the ones we can but the closed p[arts we need to handle properly. like i dont think we should
-split up lakes super tiny for example the babine circles of closure and juyst visual and have a text reference saying to
-look at map or whatever. could we look into this more to make sure it is cvlean". Direction: the app fix yes (year bar and
-"Closed from"); draw what we can; small closures as an overlay plus words, never tiny cuts. The design's seven picks
-(overlay, Babine, timing, off-day, sign-only zones, Shuswap map A, search words) are NOT ruled (T1180).
-
 ### Side-channel labels
 "all of them now. also we need to make sure th ui still says if it is in an area in the subtitle in the app so a user
 knows eco reserve or park or whatever in those cases. (like how sections use start and end to create subtitle. we need
@@ -180,21 +173,36 @@ park-rule fix (Recommended)" (T1149).
 - **O14 Maka Creek:** "keep on both because they are same MU and everything make sure the gotcha is there for this". Build: none; GOTCHAS.
 - **O15 Tamihi Creek:** "Our cut is the falls". Build: none (0.66 km stays); on the Province list.
 - **O16 Shuswap above Sugar Lake:** "it is a better more cautious reading to limit it so that it is not exempoting the
-  whole river so exempt here". Read as: the spring-closure exemption is limited to Mara Bridge-Sugar Lake and catch and
-  release stays on the whole river. This reading is Claude's: confirm.
+  whole river so exempt here". Confirmed (below): no data change.
 - **O17 Nanaimo River:** "it is probably a format issue and is okay add to gotchas." Build: none (Oct 15 stays); GOTCHAS.
 
+### P7b: Region 5 "other streams listed in the tables": the strictest reading (RULED, 16:00)
+"i think the other streams listed means the entries with exemptions on a partt or open all year on whole or part etc. we
+should be strict here so lets take the strictest reading add it to gotchas with explicit ask of what we are confuysed
+about here (what is lifted items etc)". Build (T1177, option C of the P7b audit): the spring closure is lifted ONLY where
+a row prints its own exemption or "open all year" (whole or part); rows with only gear or quota rules keep the closure.
+Closes 330.9 km in spring (Cariboo 143.7, Moffat 88.1, McKinley 38.5, Blue Lead 18.2, Little Horsefly 17.8, Mitchell
+15.4, Canim 9.2). GOTCHAS entry and the Province question (BOOK-ERRORS entry 22) spell out what we are unsure of.
+
+### O16 confirmed; the Oxbows label (16:00)
+O16: "Yes, that is right": catch and release on the whole Shuswap River; the spring exemption only Mara Bridge-Sugar
+Lake; no data change. Oxbows label: "Follow the rule, show me in the final table (Recommended)", i.e. the general label rule.
+
+### Lake zones: build nothing now (16:10)
+Zone leanings (verbatim, INPUTS not decisions): "i think a mix of cuts and overlays maybe? like cuts for the larger
+divisions liek gullwing with full closure but overlays for smaller ones like the stream mouth closures. then we just need
+to make the ui map for the card show this better and make it clear to users who open it from map or from a website
+link"; year bar: "in recut but we should add a new line type for paretial closure where it can be half red half other
+type maybe?"; off-day zones: "not drawn until getting close to regulation change then maybe it could have a. new color
+indicating changing soon? im not sure."; Shuswap A: "i think a real cut but (same thing ...)". And: "i think all this
+lake stuff we need to just leave it how it is now and really have a few agents look into a clean way to do this and plan
+it out and figure out the best way so it isnt janky." So: nothing is built; a separate design chat researches and brings
+proposals with pictures of options (T1180). Still OPEN: every zone pick.
+
 ### OPEN, not ruled
-- **P7b, Region 5 "other streams listed in the tables":** "it should lift the stream global scoep so the scope fromt
-  hrename + locator in the name not the scope in the regs itself. unless it means only ones in the region that say open
-  all year or exempt from? bercause the example that line in the synopsis gives is the fraser which lisats mainstem as
-  open all year? can you think about it?" His lean: a listed row lifts the closure on the stream as its name and locator
-  scope it; not park rows; not the tributaries of those rows. The audit (`P7b`): whole stream names (opens Chimney above
-  Brunson Lake, 26.1 km) against only the stretch described (closes upper Moffat, Blue Lead, Mitchell). Asked, not answered.
 - **O10 Goat River:** "add to gotchas and could it be boundaries? maybe it means between 2 confluences? we need to decide
   on best interpretation". An agent checks where Leadville and Cameron creeks join the Goat. Until he decides: as built.
 - **O11 Mine Lake:** "Show me the map first".
-- **The Oxbows label:** "Other" (no text given); asked again.
 - **The lake-zones picks** (above). **Licence wording (FWID, WILD):** no answer recorded in this chat.
 
 ## Known, not new (the audit's finds he had already ruled on)

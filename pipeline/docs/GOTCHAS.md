@@ -92,6 +92,15 @@ The row prints "No Fishing Nov 15-May 14"; the neighbours print "Nov 15-June 30"
 for the spring closure. Owner: "yes to open since it seems to be a replacement closure time to the springf closure."
 The Fraser-watershed (Region 6) and Zone A (7A) closures lift from May 15. Built in T1177; check the lift on both parts.
 
+## Region 5's spring closure is lifted only by a row's own exemption or "open all year" (P7b)
+
+The closure (p.42) excepts "the mainstem of the Fraser River and other streams listed in the tables". We do not know which
+rows count: the tables print no "exempt" line. Owner, strictest reading: lifted ONLY where a row prints its own exemption or
+"open all year" (whole or part); a row with only gear or quota rules keeps the closure, so Cariboo, Moffat, McKinley, Blue Lead,
+Little Horsefly, Mitchell and Canim are closed Apr 1-Jun 30 (330.9 km). What we are unsure of, asked of the Region 5 office
+(BOOK-ERRORS entry 22): whole stream or only the stretch the row describes; park and chain-of-lakes rows; tributaries of a
+listed stream. Looks like a wrong closure on a listed stream: it is the strict reading, not a bug.
+
 ## Hevenor, Station and Two Mile creeks: trout 1 all year, and the Nov 1-Jun 30 release stays (P7c)
 
 "Open all year; trout daily quota = 1 (no minimum size)" sits under Region 6's "release trout from streams Nov 1-Jun 30".

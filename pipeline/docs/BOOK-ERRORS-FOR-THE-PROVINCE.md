@@ -74,6 +74,18 @@ Vessel Operation Restriction Regulations, SOR/2008-120 (Transport Canada TP 1558
     print "Nov 15-June 30". Meanwhile: the row's dates replace the spring closure; open May 15 (owner P7a; GOTCHAS).
     Found 2026-11-26. To send: is May 14 intended?
 
+22. **R5, spring closure "except ... other streams listed in the tables", p.42.** Printed: "No fishing in any stream in Fraser River
+    Watershed of Region 5 (including the Thompson River Watershed) from Apr 1-June 30, EXCEPT the mainstem of the Fraser River
+    and other streams listed in the tables." The tables never print "exempt from spring closure", only "Open all year" and
+    similar. Unclear: (1) where a row names a stream but its words describe only a stretch (Moffat Creek "downstream of falls 8 km
+    from Horsefly River"; Blue Lead Creek "downstream of falls ~2 km from Quesnel Lake"; Chimney Creek "Open all year downstream
+    of Brunson Lake"; Mitchell River upstream of Mitchell Lake), is the whole stream excepted, or only that stretch? (2) Are the
+    streams inside Bowron Lake Park ("Bowron Lake Park waters other than Bowron Lake") and Beaver Creek ("Beaver Creek chain
+    of lakes") "listed"? (3) Does the exception extend to the tributaries of a listed stream marked with the tributaries symbol, such
+    as Mitchell River? Meanwhile: the strictest reading (owner 2026-11-26): lifted only where a row prints its own exemption or
+    "open all year", whole or part; closes 330.9 km in spring (Cariboo 143.7, Moffat 88.1, McKinley 38.5, Blue Lead 18.2, Little
+    Horsefly 17.8, Mitchell 15.4, Canim 9.2). Evidence: audit note `P7b-region5-spring-closure`. Found 2026-11-26. To send to the Region 5 office.
+
 ## D. Already known and tracked in the gotchas or questions (cross-links, not copies)
 18. **R4, Mackenzie Creek, p.38.** Printed "4-21"; the only one is 4-31. Built: 4-31 (GOTCHAS "Book errata"). To send; the
     printing has been wrong since at least 2015-17.

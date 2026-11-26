@@ -4,7 +4,7 @@ Status: OPEN — inside the 0.10.0 re-cut (owner 2026-11-26); owner: see ## Owne
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1177 | Audit data build, inside the 0.10.0 re-cut: the rulings P5-P11 and O1-O17 | OPEN — inside the 0.10.0 re-cut (owner 2026-11-26); owner: see ## Owner | — | a build lane (Opus): apply the rulings below with an answers diff per change; the re-cut waits for it; five asks are open |
+| T1177 | Audit data build, inside the 0.10.0 re-cut: the rulings P5-P11 and O1-O17 | OPEN — inside the 0.10.0 re-cut (owner 2026-11-26); owner: see ## Owner | — | a build lane (Opus): apply the rulings below with an answers diff per change; the re-cut waits for it; three asks are open |
 
 Source: the owner's audit rulings of 2026-11-26, verbatim in `docs/OWNER-RULINGS.md` ("Audit rulings, batch 2"); the
 planning chat's notes `AUDIT-REVIEW-for-the-owner` (the items), `T1106-T1088-T1084-case-lists`. Timing, his pick: "Inside
@@ -30,11 +30,15 @@ diff where a binding moves), listed for his look before the build ships. Related
    Muncho: the zone's limit is kept. O8 Robb Lake: the zone's dates are kept. **O7: a "X Lake's tributaries" row binds
    ALL the lake's inflows**; sweep every such row province-wide (Connor Lake's tributaries bind to Forsyth Creek above
    the lakes). **O13: the closure below Healy Lake, as a GLOBAL extent on the water, not rule-level.** O16 Shuswap above
-   Sugar Lake: the exemption limited to Mara Bridge-Sugar Lake (his reading is unconfirmed, see Owner).
+   Sugar Lake: the exemption limited to Mara Bridge-Sugar Lake (confirmed: "Yes, that is right"; no data change).
 6. Kept, no change (recorded in the rulings page): O6, O9, O12, O14, O15, O17; their errors are on
    `pipeline/docs/BOOK-ERRORS-FOR-THE-PROVINCE.md`.
 7. The D6 rebinds of T1118 ride the same build (Mosquito, Bear, Twin, Hall, McDonnel, Panther, McLennan).
-8. Not in this build: P7b, O10, O11 (open), lake zones (T1180), the August 2026 book (T1179), the Nation Arm reach (T1178).
+8. **P7b (ruled, the strictest reading):** the Region 5 spring closure is lifted only where a row prints its own exemption or "open
+   all year" (whole or part); gear or quota rows keep it. Closes 330.9 km in spring (Cariboo 143.7, Moffat 88.1, McKinley 38.5, Blue Lead 18.2,
+   Little Horsefly 17.8, Mitchell 15.4, Canim 9.2); opens nothing. GOTCHAS entry written; the Region 5 question is BOOK-ERRORS entry 22.
+9. O16 is confirmed (no change). The Oxbows label follows the general label rule (the final table goes to him).
+10. Not in this build: O10, O11 (open), lake zones (T1180; nothing is built), the August 2026 book (T1179), the Nation Arm reach (T1178).
 
 ## Acceptance
 Each change has its answers diff and every moved binding is explained; unchanged items are proved unchanged; he has seen
@@ -42,8 +46,6 @@ the lists before the re-cut ships. Severity: medium (several are "A": an angler 
 
 ## Owner
 
-- [ ] 2026-11-26 — P7b, Region 5 "other streams listed in the tables": your rule (a listed row lifts the closure as its name and locator scope it) against only rows that say open all year or exempt. Not ruled; the audit note `P7b-region5-spring-closure` has the numbers. Default: as built.
 - [ ] 2026-11-26 — O10 Goat River: an agent checks whether Leadville and Cameron creeks join the Goat so "the main stem between the two confluences" fits; then you decide the reading. Default: as built.
 - [ ] 2026-11-26 — O11 Mine Lake: you asked to see the map first; the picture is sent to you. Default: as built.
-- [ ] 2026-11-26 — O16 Shuswap above Sugar Lake: confirm "it is a better more cautious reading to limit it so that it is not exempoting the whole river so exempt here" means the exemption only, with catch and release on the whole river. Default: that reading.
-- [ ] 2026-11-26 — The Okanagan River Oxbows label: you said "Other" with no text; what should it say? Default: the plain "side channels" label of the label rule.
+- [ ] 2026-11-26 — The Oxbows label follows the general label rule: look at it in the final label table before #312 merges ("Follow the rule, show me in the final table (Recommended)"). Default: the rule's words.
