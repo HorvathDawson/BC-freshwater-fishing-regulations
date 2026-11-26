@@ -614,6 +614,9 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     _home = _regions.home_view(graph)
     # P09: the named sections' shapes, kept until the parts exist (part_geo / part_mark / water_exit)
     named_geo = _topology.keep_named(db, build_dir, geoms)
+    # (T1140) the added city lines' own names, kept past the graph (`side_channels.own_name_rows`)
+    from pipeline.deliver.bundle import side_channels as _side_channels
+    _added_names = _side_channels.added_stream_names(graph)
     del graph, geoms, registry_items
     # ACCESS (T54): the no-access, permit, reserve and private land each section runs through, and how much of it —
     # measured against the TILES' OWN polygons and section geometry (`tiles`, default GENERATED.tiles), refused when the
@@ -762,6 +765,9 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
                             grades={(x["entry_id"], x["rule_id"]): _closure_grade(x) for x in _rules_from(db)})
         _derived.write(db, cov, places=places)
         _continuation.write(db, _continues, cov, built_with=_settled)
+        # (T1140) a part with no main stem: its channels' joins the flow does not say, and the area it lies inside —
+        # measured on the shapes, before the marks and names are read from the spans
+        _side_channels.write(db, named_geo, build_dir, cov, added=_added_names)
         _topology.write(db, named_geo, cov, mouths=_mouths, codes=_codes,
                         dfo_places=(_place_words, _chain_places) if _reaches is not None else None)
         del named_geo

@@ -209,18 +209,19 @@ describe("the group's parts, mouth first (the release's `part_ix`)", () => {
       "3: Chilliwack River Ecological Reserve boundary → Source",
     ]);
     expect(g.parts.map((p) => [p.partIx, p.pieces])).toEqual([[0, [0]], [1, [1]], [2, [2]], [3, [3]]]);
-    // (T768) the count is the group's own (the local rows above pin the parts); the test holds the words around it
+    // (T1140, owner 2026-11-25: no "Part x of n" anywhere) the line over each part's name is its water's, never a count
     const n = g.parts.length;
-    expect([partWhere(g, 0), partWhere(g, n - 1)]).toEqual([`Part 1 of ${n} · Chilliwack River`, `Part ${n} of ${n} · Chilliwack River`]);
+    expect([partWhere(g, 0), partWhere(g, n - 1)]).toEqual(["Chilliwack River", "Chilliwack River"]);
   });
 
   it("(T150 review) a parts-list row as a screen reader says it, whole; the list's title is the one PARTS_TITLE", () => {
     const g = waterGroup([CHILLIWACK], NO_ENDS);
     const n = g.parts.length;   // (T768) the group's own count, not a typed one
+    // (T1140) the row says its name, never a number; the list's own title says whose parts they are
     expect([partRowAria(g, 0), partRowAria(g, n - 1), partRowAria(waterGroup([VEDDER], NO_ENDS), 0)]).toEqual([
-      `Vedder Crossing Bridge → Tamihi Rapids Bridge, part 1 of ${n} · Chilliwack River`,
-      `Chilliwack River Ecological Reserve boundary → Source, part ${n} of ${n} · Chilliwack River`,
-      "Vedder River, whole water"]);
+      "Vedder Crossing Bridge → Tamihi Rapids Bridge",
+      "Chilliwack River Ecological Reserve boundary → Source",
+      "Vedder River"]);
     // one copy of "Parts of this water" (that it is SPELLED once, in regs/words.ts, is a source scan:
     // tools/one-parts-list.test.ts — core may not read files; the Parts sheet that also read it is removed, T698)
     expect([WATER_MAP_WORDS.parts, WORDS.PARTS_TITLE]).toEqual(["Parts of this water", "Parts of this water"]);

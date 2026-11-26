@@ -114,8 +114,12 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   const sun = useSunLine(source, item, sunAt, sunDay);
   const daylight = useDaylight(source, item, sunAt, sunDay);   // (T473) the hours a daylight-only closure leaves open
   // (T517) the header and the Parts sheet name a part as the water's map does: the same group, the same live salmon
-  const entries = useMapEntries(loader, store.value ?? null, item);
-  const regs = useRegsPage(inputs.value ?? null, who, d.today, down.value?.name ?? null, entries?.names ?? null);
+  // (T1140) and name the part: the page waits for the water's parts to be read (`settled`), so no part's
+  // answer is drawn before its parts are read (never for the salmon: like stretches join when it lands, as the Map's do)
+  const mapRead = useMapEntries(loader, store.value ?? null, item);
+  const entries = mapRead.entries;
+  const regs = useRegsPage(inputs.value ?? null, who, d.today, down.value?.name ?? null, entries?.names ?? null,
+                           entries?.places ?? null);
   const waterPages = useMemo(() => (inputs.value ? waterPagesOf(inputs.value) : []), [inputs.value]);   // (T474, T991: in the Source row)
   const regsError = store.error ?? found.error ?? inputs.error;
   // (T254) a refusal (a release that cannot answer) is not a dead line: no Try again for it
@@ -124,7 +128,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   regsErrorNow.current = !!regsError || sheet.state === "failed";
   // (T257) the waits, on the one timing: no spinner for a quick load, and one shown stays up its short hold
   const sheetWait = useDelayedShow(item !== null && sheet.state === "loading");
-  const regsWait = useDelayedShow(!!loader && !regsError && !regs);
+  const regsWait = useDelayedShow(!!loader && !regsError && (!regs || !mapRead.settled));
   // (T54, T147, T367) the access notices: the no-access banner and the gentle note; (T387) THE PART'S — asked by the
   // page's subject (its part; an unnamed reach's section), never the tapped section, so every tap on a part says the same
   const pageItem = inputs.value?.item ?? null;
@@ -279,6 +283,8 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
                   // (T1049 cold start) the salmon card above the sections still on its way: a start link waits for it to land
                   // (T1049 review) and the page's in-season notices, drawn first on the page, still on their way
                   coming={salmonComing || inSeasonComing}
+                  // (T1140) the header's line to the other parts: the water's Map, its list of parts open
+                  onParts={views?.onParts}
                   // past the release's last day in force, the page leads with core's out-of-date sentence (none unstamped)
                   lapsed={regsLapsedNote(loader.manifest?.regulations?.valid_until, clockNow())}
                   // (T54, T367) the access notices: pinned strips under the header
