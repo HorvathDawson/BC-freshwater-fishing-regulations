@@ -91,3 +91,10 @@ order: 770
   on the same release branch, not a second cut (a second cut would collide with the 0.10.0 tag): same result,
   version 0.10.0, with the label in it. Yours on the way: the transfer and the token; the merge-queue OK; a yes on
   the label's words from pictures; then the production commands.
+- **15:29, the order after your word to the repo-move chat ("the release candidate structure is first then 0.10.0
+  happens right after. with other items"):** the staging run was stopped clean before it could tag 0.10.0 (nothing
+  uploaded, nothing lost; what it proved is kept). The release-candidate build goes to main first, then the release
+  branch takes it with the link-label fix and the repo's new name, staging ships as 0.10.0-rc.1, and then come your
+  production commands, the phone builds and the App Store submit, probably tomorrow. Yours meanwhile: the exact
+  expiry date of the new worker token (from your token page), a yes on the label's words from pictures, and the
+  clean-up chat's prompt when the planning chat sends it. Disk: 37 GB free on the Mac (T1142).

@@ -711,8 +711,11 @@ def gate_tree(tmp_path):
     _exe(t / "scripts/fast-fail.sh", f'#!/usr/bin/env bash\necho "fast-fail base=${{FAST_FAIL_BASE:-}}" >> "{log}"\n'
                                      'exit ${FF_RC:-0}\n')
     _exe(t / "scripts/heavy.sh", f'#!/usr/bin/env bash\necho "heavy $1" >> "{log}"\n')
-    _exe(t / ".venv/bin/python", f'#!/usr/bin/env bash\n[[ $1 == -c ]] && exit 0\necho "ci $*" >> "{log}"\n'
-                                 'exit ${CI_RC:-0}\n')
+    _exe(t / ".venv/bin/python", f'#!/usr/bin/env bash\n[[ $1 == -c ]] && exit 0\n'
+                                 # (T1062) the release-candidate precheck: what it says (RC_SAID), rc RC_RC
+                                 f'[[ $3 == release ]] && {{ echo "rc-check" >> "{log}"; echo "$RC_SAID"; '
+                                 'exit ${RC_RC:-0}; }\n'
+                                 f'echo "ci $*" >> "{log}"\nexit ${{CI_RC:-0}}\n')
     _exe(tmp_path / "bin/node", "#!/usr/bin/env bash\ncase $1 in\n"
          '  -p) if [[ $2 == *key_path* ]]; then echo "$HOME/key.p8"; else echo 9.9.9; fi ;;\n'
          '  scripts/check-changelog.mjs) [[ ${CL_RC:-0} == 1 ]] && { echo "changelog: 9.9.9 has no entry" >&2; exit 1; }\n'
@@ -787,6 +790,46 @@ def test_a_store_builds_escapes_print_their_reason_and_a_bare_one_is_refused(gat
     for bare in ("--no-fast-fail", "--no-ci-check", "--no-notes", "--no-fast-fail= "):
         r, log = gate_tree(build, bare)
         assert r.returncode == 2 and "needs a reason" in r.stderr and log == [], (bare, r.stderr, log)
+
+
+@pytest.mark.parametrize("build", sorted(GATED))
+def test_a_store_build_on_a_release_branch_is_the_newest_release_candidate(gate_tree, build):
+    """(T1062) on release/x.y.z the precheck asks `release --rc-check` (HEAD is the newest rc apart from the build
+    numbers): a refusal is a precheck failure naming its command, `--no-rc-check=<why>` goes on and prints why, a bare
+    one is refused; on any other branch it says none is asked. Mutation: drop build_check_rc from either script, or
+    its `bad`: this fails."""
+    r, log = gate_tree(build)
+    assert r.returncode == 0 and "rc-check" not in log
+    assert "  ok   release candidate: not asked on " in r.stdout and "(only on an app release branch, T1062)" in r.stdout
+    subprocess.run(["git", "checkout", "-q", "-b", "release/9.9.9"], cwd=gate_tree.tree, check=True)
+    said = "HEAD is v9.9.9-rc.2 (abc) apart from the build numbers"
+    r, log = gate_tree(build, RC_SAID=said)
+    assert r.returncode == 0 and log[0] == "rc-check" and f"  ok   release candidate: {said}" in r.stdout, r.stdout
+    said = "HEAD is not v9.9.9-rc.2 (abc) apart from the build numbers (x.ts): tag a new rc first: python -m x"
+    r, log = gate_tree(build, RC_SAID=said, RC_RC="1")
+    assert r.returncode == 1 and f"  FAIL release candidate: {said} (--no-rc-check=<reason> goes on)" in r.stdout
+    assert "precheck FAILED (1)" in r.stderr and log == ["rc-check"], log
+    r, log = gate_tree(build, "--no-rc-check=the owner's hotfix", RC_SAID=said, RC_RC="1")
+    assert r.returncode == 0 and f"release candidate: SKIPPED (--no-rc-check): the owner's hotfix — {said}" in r.stdout
+    r, log = gate_tree(build, "--no-rc-check")
+    assert r.returncode == 2 and "needs a reason" in r.stderr and log == []
+
+
+def test_the_inner_build_refuses_a_head_other_than_the_prechecked_one(gate_tree):
+    """(T1062 review) the precheck (the rc check) runs before the heavy lock, the build after it: HEAD may move while the
+    lock is waited for. The precheck exports BUILD_PRECHECK_SHA and the inner run refuses any other HEAD, before a
+    worktree is made; both scripts call it there. Mutation: drop the build_same_head call: this fails."""
+    t = gate_tree.tree
+    head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=t, capture_output=True, text=True, check=True).stdout.strip()
+    for sha, want in (("0" * 40, f"HEAD is {head[:12]}, not 000000000000 the precheck checked"),
+                      ("", "no BUILD_PRECHECK_SHA: the inner run was started by hand")):
+        r, log = gate_tree("build-apk", BUILD_APK_INNER="1", BUILD_PRECHECK_SHA=sha)
+        assert r.returncode == 1 and want in r.stderr and "building committed HEAD" not in r.stdout, r.stdout + r.stderr
+    for script in ("deploy/staging/build-apk.sh", "deploy/staging/build-ios-testflight.sh"):
+        code = _no_comments(script)
+        at = code.index("SHA_FULL=$(git rev-parse HEAD)")
+        assert at < code.index("build_same_head", at) < code.index("git worktree add", at), script
+        assert "BUILD_PRECHECK_SHA=$(git rev-parse HEAD)" in code[:code.index("exec scripts/heavy.sh")], script
 
 
 @pytest.mark.parametrize("build", sorted(GATED))

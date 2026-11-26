@@ -166,7 +166,7 @@ export function DatePill({ h, palette, onDate, onDateInset }: { h: HeaderVM; pal
   /** (T878) where the date's ("Nov 18") right edge is, in px from the pill's right edge — for the sun line under it */
   onDateInset?: (px: number) => void;
 }) {
-  const dot = h.dot === "open" ? palette.open : h.dot === "closed" ? palette.closed : palette.sub;
+  const dot = h.dot === "open" ? palette.salmon.open : h.dot === "closed" ? palette.closed : palette.sub;
   // (T878) layout only: the words column's width and the date's own box (it hugs its words), so the inset is the column's
   // spare room right of the date plus the pill's own padding
   const [col, setCol] = useState<number | null>(null);
