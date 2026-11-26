@@ -16,3 +16,6 @@ Source: the 0.9.1 chat, 2026-11-24 (T1029 ticket, draft PR #112): T1029 carries 
 the count that matters is in the ticket; each has a proposed side or a written reason; none is silently treated as either bank.
 
 Severity: low. Release: 0.9.2, or with T1029 if its build needs one of them. Model: Opus. Size: S–M. Owner: yes if any proposed side needs review.
+
+## 2026-11-26: the owner's ruling
+"Record the method, build nothing (Recommended)" (`docs/OWNER-RULINGS.md`). 0 of the 188 streams sit on a one-bank rule today; the 98 %-accurate geometry method (which side of the mainstem's direction the mouth joins) is kept in the audit notes for the day a case appears. Nothing is built; close this ticket when the method is written here.

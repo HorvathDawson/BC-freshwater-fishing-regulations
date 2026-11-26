@@ -14,7 +14,7 @@ Work in a scratchpad worktree of `origin/main`, never the main checkout.
 
 ## Left, in order
 
-1. **Land the second cut** if its PR is not on main yet (review findings fixed, `scripts/before_pr.sh`, queue on the
+1. **Land the second cut** if its PR is not on main yet (review findings fixed, `scripts/before_pr.sh --title "<title>"`, queue on the
    planning chat's word).
 2. **The rename is done** (#310, 2026-11-26 11:31 MST): tickets are top-level `tickets/`, the rest is `docs/`. Each
    open branch (#286, `release/0.10.0`, the parked hardening branches) runs `python3 scripts/rename_handoff.py

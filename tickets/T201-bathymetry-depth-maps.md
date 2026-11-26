@@ -69,3 +69,6 @@ yet becausde it will involve a lot of checks on the matching. update the ticket 
 - [x] 2026-11-26 — The licence for the Province's vector lake maps, and when → "we have the license permission for this all vector lake maps. so that is not an issue. ... update the ticket and set it to start soon." (2026-11-26; full words above)
 - [ ] 2026-11-26 — Where the permission for the vector lake maps is written, so the credits page can cite it. You said "I will find it later" (2026-11-26).
 - [x] 2026-11-26 — A refit trial of the poor and loose placings → "Start it now" (2026-11-26)
+
+## 2026-11-26: the fitter work is T1188
+The owner's reorientation idea and "no stretch except small ones" are T1188 (wider rigid search, two-lake fit, flagged small stretches); T201 keeps the order, the licence and the ship decision.

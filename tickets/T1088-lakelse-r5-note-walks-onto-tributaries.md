@@ -16,3 +16,6 @@ Source: the 0.9.1 chat's T1053 lane, 2026-11-24. Evidence: the T1053 lane's befo
 the count of note rows that walked before and after; Lakelse's tributaries no longer quote the note.
 
 Severity: low (a note, not a restriction). Release: 0.9.2. Model: Opus. Size: S. Owner: no.
+
+## 2026-11-26: the owner's rulings
+P6a "Facilities and 'please note' lines (Recommended)": they stop inheriting the tributaries mark (Lakelse, Lillooet, Quinsam stop; Swift, Rancheria, Pend d'Oreille, Lonzo keep walking). P6b "yes to recommended but please only change extents to make it happen": spot rules stay in the spot, boat rules keep walking, by extents only. Built in T1177.
