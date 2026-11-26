@@ -792,3 +792,70 @@ def test_owner_the_check_writes_nothing(repo, monkeypatch):
     status = _git(root, "status", "--porcelain")
     I.check(atlas, log=lambda *_: None)
     assert {p: p.read_bytes() for p in atlas.iterdir()} == before and _git(root, "status", "--porcelain") == status
+
+
+# ------------------------------------------------------------- re-check of #286: "cannot tell" is rc 2, never rc 1
+
+def test_recheck_a_check_that_cannot_answer_is_rc_2_never_needs_rebuilding(repo, capsys, monkeypatch):
+    """A broken config.yaml (`yaml.YAMLError`) or a malformed meta (KeyError) escaped as a traceback, whose exit 1 read
+    as "needs rebuilding": each is rc 2 with its reason; the build's warning and `--status` line and the release say
+    "cannot tell" too (the release still refuses)."""
+    root, tr, atlas = repo
+    monkeypatch.setattr(I, "digests", lambda paths=None: {"k": "v"})
+    I.record_code(atlas, tr, I.git_state())
+    (root / "config.yaml").write_text("a: [1\n")                       # an unclosed `[`
+    assert I.main(["--build", str(atlas)]) == 2
+    out = capsys.readouterr().out
+    assert "cannot tell whether the atlas" in out and ("ScannerError" in out or "ParserError" in out), out
+    assert "cannot tell" in B.atlas_inputs_warning(atlas) and "cannot tell" in B.atlas_status_line(atlas)
+    (root / "config.yaml").write_text("a: 1\n")
+    meta = I.read_meta(atlas)
+    del meta[I.CODE]["reads"]                                          # a malformed record
+    I.write_meta(atlas, meta)
+    assert I.main(["--build", str(atlas)]) == 2
+    assert "KeyError" in capsys.readouterr().out
+    assert I.main(["--build", str(atlas.parent / "nowhere")]) == 2   # no atlas: still rc 2
+    from types import SimpleNamespace
+    from pipeline import release as R
+    monkeypatch.setattr(R, "atlas_behind", lambda: I.behind(atlas))
+    got = R.check_atlas(SimpleNamespace(stale_atlas=None))
+    assert got.ok is False and "cannot tell whether the atlas needs rebuilding: KeyError" in got.said
+
+
+def test_recheck_a_module_imported_with_two_contents_is_moved_in_the_atlas_record(repo, monkeypatch):
+    """(Re-check of #286) two processes of the atlas build imported one module with two contents: the record cannot say
+    which it was built from, so it is `MOVED` and a reason."""
+    root, tr, atlas = repo
+    helper = root / "pipeline" / "atlas" / "helper.py"
+    (tr / "2.trace").write_text(f"M\t{helper}\t{'0' * 64}\n")
+    code = I.record_code(atlas, tr, I.git_state())
+    assert code["modules"]["pipeline/atlas/helper.py"] == I.MOVED
+    assert I.behind(atlas, {"k": "v"}) == [f"pipeline/atlas/helper.py (code): {I.MOVED}"]
+
+
+def test_recheck_an_unowned_package_directory_keys_by_content_wherever_it_is(tmp_path):
+    """(Re-check of #286) the key holds an unowned package's bytes, not its path: the same package at two paths keys
+    the same; an edit to a submodule (not its `__init__`) moves it."""
+    a, b = tmp_path / "one" / "lonepkg", tmp_path / "two" / "lonepkg"
+    for d in (a, b):
+        (d / "sub").mkdir(parents=True)
+        (d / "__init__.py").write_text("")
+        (d / "sub" / "core.py").write_text("A = 1\n")
+    ka = SC.code_key({}, {}, [SC.unowned_entry("lonepkg", str(a))], {})
+    kb = SC.code_key({}, {}, [SC.unowned_entry("lonepkg", str(b))], {})
+    assert ka == kb and str(a) not in json.dumps(ka)
+    (b / "sub" / "core.py").write_text("A = 2\n")
+    assert SC.code_key({}, {}, [SC.unowned_entry("lonepkg", str(b))], {}) != ka
+
+
+def test_recheck_the_tiles_preflight_refuses_a_missing_pmtiles(tmp_path, monkeypatch):
+    """(Re-check of #286) the tiles stage runs pmtiles (`tiles.version.stamp`): the preflight refuses it missing before
+    the 15-minute stage, not when the stamp step fails."""
+    from pipeline.deliver.tiles import tippe
+    bin_ = tmp_path / "bin"
+    _fake_tools(bin_, "tippecanoe v2.79.0")
+    monkeypatch.setenv("PATH", str(bin_))
+    tippe.check()                                                       # all three there
+    (bin_ / "pmtiles").unlink()
+    with pytest.raises(FileNotFoundError, match="pmtiles is not on"):
+        tippe.check()

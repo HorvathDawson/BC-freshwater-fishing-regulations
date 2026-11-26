@@ -1233,8 +1233,8 @@ def check_committed(ctx: Ctx) -> Finding:
 def check_atlas(ctx: Ctx) -> Finding:
     try:
         behind = atlas_behind()
-    except (OSError, ValueError) as e:
-        return Finding(False, f"cannot tell whether the atlas is current with its curated inputs: {e}",
+    except Exception as e:                          # noqa: BLE001 — (re-check of #286) any failure: a refusal
+        return Finding(False, f"cannot tell whether the atlas needs rebuilding: {type(e).__name__}: {e}",
                        "run `python -m pipeline.atlas.inputs` and fix what it says")
     if behind and ctx.stale_atlas is None:
         return Finding(False, f"the atlas NEEDS REBUILDING: {len(behind)} reason(s), an input or its code moved since "

@@ -319,9 +319,9 @@ def code_behind(build_dir: Path) -> list[str]:
         for f in files:
             how[f] = (f"; git: commit {short} is not in this clone" if committed is None else
                       f"; git: committed since {short}" if f in committed else f"; git: an uncommitted edit since {short}")
-    for f in files:
-        said = MOVED if was[f] == MOVED else "changed since the atlas was built"
-        out.append(f"{f} (code): {said}{how.get(f, '')}")
+    for f in files:                     # a MOVED one changed during the build: git cannot say against what
+        out.append(f"{f} (code): {MOVED}" if was[f] == MOVED else
+                   f"{f} (code): changed since the atlas was built{how.get(f, '')}")
     pk = stepcache.package_versions(code["packages"])
     for d in sorted(pk):
         if pk[d] != code["packages"][d]:
@@ -461,11 +461,15 @@ def main(argv: list[str] | None = None) -> int:
 def check(build: Path, *, log=print) -> int:
     """(T1171, owner 2026-11-26) THE CHECK (`CHECK`): does the atlas need rebuilding, and why — every reason on its own
     line (an input behind, a code file behind by name, a package or Python / SQLite behind, no code record). Returns
-    0 when current, 1 when it needs rebuilding, 2 when it cannot tell (no meta). Read only: it writes nothing."""
+    0 when current, 1 when it needs rebuilding, 2 when it cannot tell. Read only: it writes nothing.
+    (Re-check of #286) ANY failure to answer is rc 2 with its reason — no meta, a malformed meta (KeyError /
+    TypeError), a broken config.yaml (`yaml.YAMLError`) — never a traceback, whose exit 1 would read as "needs
+    rebuilding"."""
     try:
         bad = behind(build)
-    except (OSError, ValueError) as e:
-        log(f"inputs: cannot tell whether the atlas {build} needs rebuilding: {e}")
+        code = {} if bad else (read_meta(build).get(CODE) or {})
+    except Exception as e:                          # noqa: BLE001 — said, then rc 2 ("cannot tell")
+        log(f"inputs: cannot tell whether the atlas {build} needs rebuilding: {type(e).__name__}: {e}")
         return 2
     if bad:
         log(f"inputs: the atlas {build} NEEDS REBUILDING — {len(bad)} reason(s):")
@@ -473,7 +477,6 @@ def check(build: Path, *, log=print) -> int:
             log("  " + b)
         log(f"inputs: rebuild: {REBUILD}")
         return 1
-    code = read_meta(build).get(CODE) or {}
     log(f"inputs: the atlas {build} is current: its {len(ATLAS_INPUTS)} inputs, {len(code.get('modules', {}))} modules, "
         f"{len(code.get('reads', {}))} code files, {len(code.get('packages', {}))} packages, "
         f"{len(code.get('config', {}))} config values, Python and SQLite as built")

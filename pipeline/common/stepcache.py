@@ -102,8 +102,9 @@ def env_fingerprint() -> dict:
 #: this a commit that changed only `schema.sql` left deliver "up to date". The data a stage reads (curated, source,
 #: generated) is keyed by the stage's own key parts, and config.yaml by the VALUES it reads (C lines, `config_now`).
 #: (Third review of #286) The map style is code the tiles stage reads too: `tiles.assets.wanted` takes every font the
-#: style names (`style_fonts`, through `version.to_release` -> `assets.write`), so a font added to it changes the shipped
-#: assets and must move the tiles key.
+#: style names (`style_fonts`, through `version.to_release` -> `assets.write`), so a font added to it reruns the tiles
+#: stage. That alone does not refresh the shipped assets: an existing tile version folder whose tile bytes are unchanged
+#: is reused, assets and all (a follow-up ticket: the assets need their own key).
 CODE_READ_ROOTS = ("pipeline/", "app/packages/map/style/")
 #: the settings file: keyed by the values read from it, never by its bytes
 CONFIG_FILE = "config.yaml"

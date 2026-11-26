@@ -486,7 +486,8 @@ TILE_TOOLS = (("tippecanoe", "--version"), ("tile-join", None), ("pmtiles", None
 def tool_versions() -> dict[str, str]:
     """{tool: its identity} for each of `TILE_TOOLS`: the first line of its version output, or `sha256:<16 hex>` of its
     resolved binary for a tool with no version flag. A tool not on $PATH is "missing" in the key — the stage then runs,
-    and the preflight refuses it by name (`tiles.tippe.check`) — never a guess. A tool on $PATH that cannot say its
+    and the preflight (`tiles.tippe.check`, which names all three, pmtiles since the re-check of #286) refuses it by
+    name before the tiles stage starts — never a guess. A tool on $PATH that cannot say its
     version stops the build, naming the command."""
     out: dict[str, str] = {}
     for tool, flag in TILE_TOOLS:
@@ -912,8 +913,8 @@ def atlas_inputs_warning(build_dir: Path) -> str | None:
     from pipeline.atlas.inputs import REBUILD, behind
     try:
         bad = behind(build_dir)
-    except (OSError, ValueError) as e:
-        return f"build: WARNING — cannot tell whether the atlas needs rebuilding: {e}"
+    except Exception as e:                          # noqa: BLE001 — (re-check of #286) any failure: "cannot tell"
+        return f"build: WARNING — cannot tell whether the atlas needs rebuilding: {type(e).__name__}: {e}"
     if not bad:
         return None
     return (f"build: WARNING — the atlas NEEDS REBUILDING ({len(bad)} reason(s): an input or its code moved since it was "
@@ -928,8 +929,8 @@ def atlas_status_line(build_dir: Path) -> str:
     from pipeline.atlas import inputs as I
     try:
         bad = I.behind(build_dir)
-    except (OSError, ValueError) as e:
-        return f"atlas {build_dir}: cannot tell whether it needs rebuilding: {e}"
+    except Exception as e:                          # noqa: BLE001 — (re-check of #286) any failure: "cannot tell"
+        return f"atlas {build_dir}: cannot tell whether it needs rebuilding: {type(e).__name__}: {e}"
     if not bad:
         return f"atlas {build_dir}: current (its inputs and its code as built)"
     return (f"atlas {build_dir}: NEEDS REBUILDING — {len(bad)} reason(s), each listed by `{I.CHECK}` (rc 1); "
