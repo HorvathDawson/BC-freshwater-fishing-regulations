@@ -521,6 +521,12 @@ def test_no_own_name_no_row():
     assert sc.own_name_rows(_added_db([(22, -2200000393)]), NAMES) == []          # no source words for the name
 
 
+def test_a_label_naming_no_municipality_gives_no_own_name():
+    db = _added_db([(22, -2200000392)])
+    db.execute("UPDATE name_source SET label = 'OpenStreetMap' WHERE name = 'Turner Creek'")
+    assert sc.own_name_rows(db, NAMES) == []
+
+
 def test_a_mixed_part_never_takes_the_name():
     assert sc.own_name_rows(_added_db([(22, -2200000392), (23, 360000002)]), {**NAMES, 360000002: "Turner Creek"}) == []
     # an FWA line too, even one a names file listed
@@ -570,3 +576,33 @@ def test_one_side_channel_at_its_nearest_point_is_not_said_joining():
     two = {"runs": [_run("source", "mouth", 5.7, 5.7, branch=True), _run("source", "mouth", 6.0, 6.0, branch=True)]}
     assert said_nearest("2 side channels, joining 5.7–6 km from the mouth", two, True) == \
         "2 side channels, joining 5.7–6 km from the mouth"                           # the range simply includes it
+
+
+def test_the_answers_step_reads_the_bundles_new_tables(tmp_path):
+    from pipeline.deliver.answers.display.builders import _crossings
+    p = tmp_path / "b.sqlite"
+    db = sqlite3.connect(p)
+    db.executescript("""
+        CREATE TABLE item (ord INTEGER PRIMARY KEY, item_id TEXT, name TEXT, kind TEXT);
+        CREATE TABLE crossing_near (ord INTEGER, token TEXT, km REAL, near TEXT);
+        CREATE TABLE part_near (ord INTEGER, part_ix INTEGER, near TEXT);
+        CREATE TABLE part_inside (ord INTEGER, part_ix INTEGER, area TEXT, share REAL, how TEXT);
+        CREATE TABLE part_own_name (ord INTEGER, part_ix INTEGER, name TEXT, label TEXT);
+        CREATE TABLE section_join (sid INTEGER PRIMARY KEY, m INTEGER, lo TEXT, how TEXT);
+        CREATE TABLE part_section (ord INTEGER, sid INTEGER, part_ix INTEGER, m INTEGER);
+        CREATE TABLE section_span (sid INTEGER PRIMARY KEY, lo_m INTEGER, hi_m INTEGER, lo INTEGER, hi INTEGER,
+                                   off_stem INTEGER, shape INTEGER);
+        CREATE TABLE section_down (sid INTEGER PRIMARY KEY, down_sid INTEGER);
+        CREATE TABLE item_section (ord INTEGER, sid INTEGER);
+        INSERT INTO item VALUES (1, 'gnis:36111', 'Halfway River', 'stream'), (2, 'gnis:23366', 'Noons Creek', 'stream');
+        INSERT INTO part_inside VALUES (1, 0, 'X RESERVE', 1.0, 'at');
+        INSERT INTO part_own_name VALUES (2, 4, 'Turner Creek', 'Port Moody');
+        INSERT INTO part_section VALUES (1, 10, 2, NULL), (1, 11, 2, NULL), (1, 12, 1, NULL);
+        INSERT INTO section_join VALUES (10, 1000, NULL, 'join'), (11, 2000, NULL, 'nearest'), (12, 5, NULL, 'join');
+    """)
+    db.commit()
+    db.close()
+    got = _crossings(str(p))
+    assert got[("gnis:36111", "inside", 0)] == ("X RESERVE", "at")
+    assert got[("gnis:23366", "own", 4)] == ("Turner Creek", "Port Moody")
+    assert got.get(("gnis:36111", "nearest", 2)) is True and ("gnis:36111", "nearest", 1) not in got
