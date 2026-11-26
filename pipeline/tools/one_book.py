@@ -3,6 +3,9 @@ red in-season corrections, so a check against it shows false differences).
 
     python -m pipeline.tools.one_book        # exit 1, naming each offender, when a second book is under source/
 
+THE BOOK is `source/fishing_synopsis.pdf`; validate against nothing else. gov.bc.ca's per-region chapter PDFs are not
+kept (owner 2026-11-26); one lying around is a small file this guard passes, not a second book.
+
 ALLOWED: `fishing_synopsis.pdf` (the book) and `fishing_synopsis.<yyyy-yy>.pdf` (the dated archive copy the annual
 runbook makes on purpose, e.g. `fishing_synopsis.2025-27.pdf`), directly in `source/`. A STALE copy renamed that way
 passes BY DESIGN: the annual runbook is what makes those, and a name cannot tell last year's book from a copy of it.
@@ -14,7 +17,7 @@ in any case is judged, found through symlinked folders too (a broken link is an 
      (4-9 pages); the many bathymetry maps are far smaller, so they are never opened.
   3. 5 MiB or more and 60 or more pages: a book, whatever its text says (an image-only cover or no cover is caught).
   4. otherwise 20 or more pages AND FRESHWATER and SYNOPSIS on one of its first 3 pages: a book (the cover rule).
-The nine region PDFs (1.7 MB and under, 4-9 pages) and the two tracked DFO evidence PDFs under `source/dfo_tidal_areas/`
+A region chapter (gov.bc.ca's per-region PDFs: 1.7 MB and under, 4-9 pages; not kept in this repo) and the two tracked DFO evidence PDFs under `source/dfo_tidal_areas/`
 (1.7 MB, 74 pages, no cover words) pass by these rules, not by a path list. Known gap: an unnamed copy under 5 MiB with an
 image-only cover passes. A PDF that is opened and cannot be is an error naming it, never a pass.
 

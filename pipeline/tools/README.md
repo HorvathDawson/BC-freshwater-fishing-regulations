@@ -11,7 +11,7 @@ Utilities that are run on purpose and never by a build stage (apart from the che
 | `slough_calls.py`, `mined_names.py`, `tidal_limits.py` | the write-through writers: owner marks to `data/curated/waters/{slough_calls,found_names,tidal_limits}.json` (AGENTS 66, via `regs/review/apply.py`) | called by the review app |
 | `synopsis_book.py`, `synopsis_diff.py` | the annual synopsis update: carry unchanged rows, diff two books (runbook `annual-synopsis.md`) | `python -m pipeline.tools.synopsis_diff OLD NEW` |
 | `source_pins.py` | the pinned `data/source/` files mirrored to the build-assets bucket (`pins.json`) | `python -m pipeline.tools.source_pins pin PATH` (the owner's step) |
-| `one_book.py` | the guard (T1156): fails when a second full synopsis PDF is under `data/source/` besides `fishing_synopsis.pdf` and the dated archive copies (rules in its docstring; CI checks the tracked files only); run by `pipeline/tests/test_t1156_region_pdfs_and_one_book.py` (CI) | `python -m pipeline.tools.one_book` |
+| `one_book.py` | the guard (T1156): fails when a second full synopsis PDF is under `data/source/` besides `fishing_synopsis.pdf` and the dated archive copies (the book is `fishing_synopsis.pdf`; validate against nothing else; the region PDFs are not kept; rules in its docstring; CI checks the tracked files only); run by `pipeline/tests/test_one_book.py` (CI) | `python -m pipeline.tools.one_book` |
 | `electric_kw.py` | a one-off pass (T209) that stored the kW number of electric-motor rules | done; unclear whether it should stay |
 
 - Rules: an audit prints or writes a report under `data/generated/`; it never writes curated data (the writers above are the exception and only
