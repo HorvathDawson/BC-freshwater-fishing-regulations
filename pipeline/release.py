@@ -98,7 +98,9 @@ already done for this release):
                `notice_waters.json` holds only the owner's matches, and the resolve only reads it). (b) the app's release-backed
                FIXTURES are re-cut (`node app/tools/regs-recut/sync.mjs --release <candidate>`): a change that only
                renumbers (ids, handles, the fixture release) is committed with the release id; a changed GOLDEN PAGE —
-               what an angler is told — STOPS, nothing committed, until `--accept-fixtures <token>` (T667 D5). (c) the
+               what an angler is told — STOPS, nothing committed, until `--accept-fixtures <token>` (T667 D5); the
+               same re-cut records the release pins (T1135, row `pins`): a moved `answers: true` pin stops with the
+               pages under the same token, a moved `answers: false` one is committed like a renumber. (c) the
                TESTS THAT ASK FOR THE RELEASE UNDER TEST (found by rule, both suites) run with RELEASE_DIR = the
                candidate, so nothing compares with LATEST before the promote, and (T680) THE WHOLE APP CHECK with
                them — the app suite, the feeds worker suite and each `check:fast` gate on its own — every one runs
@@ -1891,9 +1893,9 @@ def stage_recut(ctx: Ctx, rid: str, r: dict) -> str:
     if pages and token not in (ctx.accept_fixtures, f.get("accepted")):
         why = "" if ctx.accept_fixtures is None else f" (--accept-fixtures {ctx.accept_fixtures} is not this re-cut)"
         raise Stop("follows", f"the re-cut on {rid} changed {len(pages)} golden page(s) — what an angler is told "
-                   f"changed{why}; nothing was committed:" + "".join(f"\n    {x}" for x in pages[:20])
+                   f"changed{why}; nothing was committed:" + "".join(f"\n    {x}" for x in RF.said(pages[:20]))
                    + ("\n    …" if len(pages) > 20 else ""),
-                   "read `git diff -- " + " ".join(x for row in RF.FOLLOWS if row.answers for x in row.paths)
+                   "read `git diff -- " + " ".join(RF.answer_roots())
                    + "`; if every change is intended, "
                    f"rerun with\n    --accept-fixtures {token}\n  otherwise fix the cause, commit, and rerun")
     kind = "golden pages accepted" if pages else "renumber only (source indexes)" if renumbered else "renumber only"
@@ -1976,7 +1978,8 @@ def rehearse_follows(ctx: Ctx, cand: str) -> dict:
             changed = recut_changed()
             pages = RF.answer_paths(changed)
             renumbered, note = recut_renumbered(pages) if pages else (False, "")
-            got = {"recut_rc": 0, "changed": changed, "pages": [] if renumbered else pages, "renumbered": note,
+            # (T1135) said here, while the re-cut is on disk: a pins file names its moved pins
+            got = {"recut_rc": 0, "changed": changed, "pages": [] if renumbered else RF.said(pages), "renumbered": note,
                    "token": recut_token(changed) if changed else None}
             got["failures"] = candidate_failures(cand, RF.test_env(release_root() / cand))
             return got

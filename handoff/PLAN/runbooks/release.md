@@ -155,7 +155,8 @@ never pass. Then the checks print `binding diff AUTO-ACCEPTED` with each change 
 
 The re-cut files are in the working tree, uncommitted. Read the diff. If each changed page is what the batch meant:
 rerun with the token printed. It names exactly this re-cut; another re-cut needs its own. The release then commits the
-fixtures and goes on.
+fixtures and goes on. The re-cut also records the release pins (T1135, `release-pins.json` in both suites): a moved
+`answers: true` pin is listed here with the pages, under the same token; a moved `answers: false` one is committed.
 
 Pages that differ only in **source indexes renumbered one for one** (`src` lists read through one mapping shared by
 every page, T993 item 8; 0.8.5's nine pages) are not a change in what an angler is told: they are committed as
