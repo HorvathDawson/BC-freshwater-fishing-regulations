@@ -1,10 +1,10 @@
 # T1156 — One copy of the synopsis book; the region PDFs get a fetch command with checksums; a guard against a second copy
 
-Status: PARTIAL — the guard and the data docs are done; left: `fresh-machine.md` lines 54 and 109 (the repo-move chat's page)
+Status: PARTIAL — left (Claude): `fresh-machine.md` lines 54 and 109 (the repo-move chat's page); the guard and the data docs are done
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1156 | One copy of the synopsis book; the region PDFs get a fetch command with checksums; a guard against a second copy | PARTIAL — guard + data docs done | 11ea55132, 8635bebd6, 7516341b7 | `fresh-machine.md` lines 54 and 109 still call the region PDFs read by "quota print checks"; the repo-move chat owns that page: say they are not kept and nothing reads them |
+| T1156 | One copy of the synopsis book; the region PDFs get a fetch command with checksums; a guard against a second copy | PARTIAL — left (Claude): `fresh-machine.md` lines 54 and 109 (the repo-move chat's page); guard + data docs done | 11ea55132, 8635bebd6, 7516341b7 | `fresh-machine.md` lines 54 and 109 still call the region PDFs read by "quota print checks"; the repo-move chat owns that page: say they are not kept and nothing reads them |
 
 Source: the read-only synopsis spot-check of 2026-11-25 (planning chat's night agents): the repo's main checkout
 held two copies of the book. `data/source/fishing_synopsis.pdf` (tracked in git; read by the pipeline, the review
