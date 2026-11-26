@@ -419,7 +419,7 @@ describe("a page", () => {
       "River forecastsBC River Forecast Centre. The CLEVER, COFFEE and ELF river forecasts, used with permission.",
       "WeatherWeather data by Open-Meteo.com, CC BY 4.0.",
       "Satellite imageryPowered by Esri · Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community. "
-        + "Shown only while online, never stored.",
+        + "Shown only while online. Pictures you have viewed may be kept on this device so they load faster.",
     ]);
     // references only: the More tab's dates and dots are not drawn a second time here
     expect([page.querySelectorAll("[data-testid^=fresh-]").length,

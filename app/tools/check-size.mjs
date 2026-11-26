@@ -35,7 +35,10 @@ export const BUDGETS = {
   anyMarkdown:  [700, "past this no one reads a markdown file whole (generated / reference files are listed below)"],
   // (owner 2026-11-25, the second cut) the standards for every page outside the tickets folder
   page:         [150, "one page per subject, read in ten minutes: cut it to what is built, or split it by subject"],
-  readingLines: [11129, "every markdown line outside the tickets folder and the look-up files (LOOKUP): what a person reads to know the repo"],
+  // (T1144, 2026-11-26; the owner confirms) the restart pages are NOT in this total: each live chat adds one, so with about
+  // 112 lines of room the third chat to save its state failed docs-ci and its push the night credits ran short. They keep
+  // their own cap (`restart`, 60 lines each) and are deleted when their chat ends.
+  readingLines: [11129, "every markdown line outside the tickets folder, the look-up files (LOOKUP) and the restart pages: what a person reads to know the repo"],
   // the docs tree (handoff/ today; docs/ + tickets/ after the rename): set at today's value + 10%, re-set with --measure
   treeLines:    [23000, "tracked markdown lines in the docs tree (19,850 on 2026-11-25 after the second cut; the room is for new tickets, the pages are held by readingLines)"],
   treeFiles:    [1600, "tracked files in the docs tree"],
@@ -77,9 +80,9 @@ export const PAGE_LONG = {
   "handoff/PLAN/repo-move/OUTSIDE-GIT.md": 243,                            // the repo-move chat's record, until that chat ends
   "handoff/PLAN/repo-move/PREP.md": 262,                                   // the same
   // held as they are while 0.10.0 ships from them (planning chat 2026-11-25): one release.md + a short by-hand page after its merge back
-  "handoff/PLAN/runbooks/release-by-hand.md": 493,
+  "handoff/PLAN/runbooks/release-by-hand.md": 495,   // +2 (T1161): "lid open, on power", the line that would have saved 0.10.0 its 8.3 h asleep
   "handoff/PLAN/runbooks/release-gates-explained.md": 366,
-  "handoff/PLAN/runbooks/release.md": 216,
+  "handoff/PLAN/runbooks/release.md": 219,   // +3 (T1161): the same line, with the battery refusal and its flag
   // long files in an open ticket's folder (the T1140 one is in MARKDOWN_LONG)
   "handoff/PLAN/app-integration/T1053-shots/head-lakes-before-after.md": 272,
   "handoff/PLAN/app-integration/T1108-files/handoff-2026-11-25-offline-satellite-and-reversible-engine.md": 209,
@@ -99,6 +102,8 @@ export const LOOKUP = [
   "pipeline/tests/fixtures/",                  // fixtures
 ];
 const isLookup = (p) => LOOKUP.some((l) => (l.endsWith("/") ? p.startsWith(l) : p === l));
+/** A live chat's restart page: held by BUDGETS.restart each, left out of BUDGETS.readingLines (see there). */
+const isRestartPage = (p) => p.startsWith(`${DOCS_DIR}/restart/`) && /\.md$/i.test(p);
 
 /** A page named for a day (…-2026-11-15.md) is a record of that day: history, which git keeps. */
 const DATED_NAME = /(^|[-_./])20\d\d-\d\d-\d\d[^/]*(\/|\.md$)/;
@@ -218,7 +223,7 @@ export function checkSize({ files, closedIds, kept = KEPT_ASSETS, readmeLong = R
     else if (max > lines(p) && !PAGE_ROOM.has(p)) problems.push(`PAGE_LONG holds ${p} at ${max} but it is ${lines(p)} lines: lower the entry to ${lines(p)} (it only shrinks)`);
   }
   for (const p of Object.keys(workingPages)) if (!byPath.has(p)) problems.push(`WORKING_PAGES lists ${p}, which is not tracked: take it off the list`);
-  const readingLines = pages.reduce((n, f) => n + (f.lines ?? 0), 0);
+  const readingLines = pages.reduce((n, f) => n + (isRestartPage(f.path) ? 0 : f.lines ?? 0), 0);
   if (readingLines > readingBudget) problems.push(over("markdown outside the tickets folder", readingLines, "lines", readingBudget, why("readingLines")));
 
   // totals for the docs tree
@@ -303,7 +308,7 @@ export function measure(repoRoot) {
   const pics = tree.reduce((n, f) => n + (PICTURE.test(f.path) ? f.bytes : 0), 0);
   const plus = (n) => Math.ceil(n * 1.1);
   const pages = files.filter((f) => MARKDOWN.test(f.path) && !under(f.path, TICKETS_DIR) && !isLookup(f.path));
-  const reading = pages.reduce((n, f) => n + f.lines, 0);
+  const reading = pages.reduce((n, f) => n + (isRestartPage(f.path) ? 0 : f.lines), 0);
   const own = new Set(["README.md", "AGENTS.md", `${DOCS_DIR}/START-HERE.md`, `${DOCS_DIR}/STATUS.md`, `${DOCS_DIR}/app-integration/decisions.md`]);
   const long = pages.filter((f) => f.lines > BUDGETS.page[0] && !own.has(f.path) && !(f.path in MARKDOWN_LONG) && !(base(f.path) === "README.md" && /^(app|pipeline)\//.test(f.path)));
   const out = [`readingLines: [${Math.ceil(reading * 1.05)}, …]   // today ${reading}`, "PAGE_LONG = {", ...long.map((f) => `  "${f.path}": ${PAGE_ROOM.has(f.path) ? PAGE_LONG[f.path] ?? f.lines : f.lines},   // + the reason it stays long`), "}", `treeLines: [${plus(mdLines)}, …]   // today ${mdLines}`, `treeFiles: [${plus(tree.length)}, …]   // today ${tree.length}`,

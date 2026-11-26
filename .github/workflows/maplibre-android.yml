@@ -1,0 +1,176 @@
+name: maplibre android library
+
+# (T1170) THE PINNED MAPLIBRE ANDROID LIBRARY, BUILT ONCE PER KEY ON A RUNNER AND STORED. Started by hand only: Actions
+# tab -> "maplibre android library" -> Run workflow, or `gh workflow run maplibre-android.yml --ref main -f publish=false`.
+# Never on a push, a pull request or a schedule: it adds nothing to a PR (an ~15-minute native build).
+#
+#   build    the KEY (app/tools/maplibre-android/stored.py key: the pin + build.sh's and jobpool.init.gradle's code +
+#            NDK, CMake, Gradle, JDK, ABIs + the pack format). When this key's release asset already exists it stops
+#            there (said in the summary). Else: app/tools/maplibre-android/build.sh --compile, the SAME script and
+#            settings the Mac uses; its maven folder packed as one deterministic tar (stored.py pack); sha256 + size
+#            printed; the tar and its lock record uploaded as a workflow artifact (7 days: a look, never the store).
+#   publish  only from main, when the input `publish` is true AND the key's asset is missing: attaches the tar to the GitHub
+#            Release `maplibre-android-<key 16>` (never a v* tag: those are the app's). The only job with write access.
+#            Then a person commits the record (the artifact's maplibre-android.lock.json, "published": true) beside
+#            pin.env; build.sh downloads and verifies the file from then on.
+# NO SECRETS: the default GITHUB_TOKEN only (read everywhere, contents: write in `publish`). No keystore, no signing.
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "attach the built file to its GitHub Release (false = build it and keep it as an artifact only)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: maplibre-android
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash          # bash -eo pipefail: a failed command in a pipe fails the step
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    outputs:
+      key: ${{ steps.key.outputs.key }}
+      tag: ${{ steps.key.outputs.tag }}
+      file: ${{ steps.key.outputs.file }}
+      stored: ${{ steps.stored.outputs.stored }}
+      sha256: ${{ steps.pack.outputs.sha256 }}
+      size: ${{ steps.pack.outputs.size }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v5
+        with: { persist-credentials: false }
+      - name: Key
+        id: key
+        run: |
+          { echo "WORK=$RUNNER_TEMP/mln-work"; echo "MLN_OUT=$RUNNER_TEMP/mln-out"; echo "TIMES=$RUNNER_TEMP/times.md"; } >> "$GITHUB_ENV"
+          python3 app/tools/maplibre-android/stored.py key --github-output "$GITHUB_OUTPUT" | tee "$RUNNER_TEMP/key.json"
+          printf '| step | seconds |\n|---|---|\n' > "$RUNNER_TEMP/times.md"
+      - name: Is this key stored already
+        id: stored
+        env:
+          TAG: ${{ steps.key.outputs.tag }}
+          FILE: ${{ steps.key.outputs.file }}
+        run: |
+          # a missing release is a 404; any other failure stops the run (never read as "missing")
+          if out=$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" --jq '.assets[].name' 2>&1); then
+            if grep -qxF "$FILE" <<<"$out"; then stored=true; else stored=false; fi
+          elif grep -q 'HTTP 404' <<<"$out"; then stored=false
+          else echo "cannot read release $TAG: $out"; exit 1; fi
+          echo "stored=$stored" >> "$GITHUB_OUTPUT"
+          echo "release $TAG asset $FILE: stored=$stored"
+          if [ "$stored" = true ]; then
+            echo "Stored already: https://github.com/$GITHUB_REPOSITORY/releases/tag/$TAG ($FILE). Nothing built." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Free disk (the native build of two ABIs)
+        if: steps.stored.outputs.stored == 'false'
+        run: |
+          t0=$(date +%s); df -h /
+          sudo rm -rf /usr/share/dotnet /usr/local/.ghcup /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /; echo "| free disk | $(( $(date +%s) - t0 )) |" >> "$TIMES"
+      - uses: actions/setup-java@v5
+        if: steps.stored.outputs.stored == 'false'
+        with: { distribution: temurin, java-version: "21" }
+      - name: NDK and CMake (build.sh's NDK= and CMAKE= lines)
+        if: steps.stored.outputs.stored == 'false'
+        run: |
+          t0=$(date +%s)
+          sh=app/tools/maplibre-android/build.sh
+          ndk=$(sed -n 's/^NDK=\([^ ]*\).*/\1/p' "$sh"); cmake=$(sed -n 's/^CMAKE=\([^ ]*\).*/\1/p' "$sh")
+          [ -n "$ndk" ] && [ -n "$cmake" ] || { echo "no NDK= / CMAKE= line in $sh"; exit 1; }
+          # licence prompts answered from a here-string (`yes |` dies of SIGPIPE under pipefail)
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "ndk;$ndk" "cmake;$cmake" \
+            <<<"$(printf 'y\n%.0s' 1 2 3 4 5 6 7 8)" > "$RUNNER_TEMP/sdkmanager.log" || { tail -30 "$RUNNER_TEMP/sdkmanager.log"; exit 1; }
+          ls "$ANDROID_HOME/ndk" "$ANDROID_HOME/cmake"
+          echo "| NDK + CMake install | $(( $(date +%s) - t0 )) |" >> "$TIMES"
+      - name: Build (build.sh --compile)
+        if: steps.stored.outputs.stored == 'false'
+        run: |
+          t0=$(date +%s)
+          bash app/tools/maplibre-android/build.sh --compile "$WORK"
+          echo "| build.sh --compile (clone, submodules, gradle) | $(( $(date +%s) - t0 )) |" >> "$TIMES"
+          df -h /; du -sh "$WORK" "$MLN_OUT"
+      - name: Pack, sha256, size, record
+        id: pack
+        if: steps.stored.outputs.stored == 'false'
+        env:
+          FILE: ${{ steps.key.outputs.file }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          t0=$(date +%s)
+          mkdir -p "$RUNNER_TEMP/store"
+          python3 app/tools/maplibre-android/stored.py pack "$MLN_OUT" "$RUNNER_TEMP/store/$FILE"
+          python3 app/tools/maplibre-android/stored.py record "$RUNNER_TEMP/store/$FILE" "$RUN_URL" > "$RUNNER_TEMP/store/maplibre-android.lock.json"
+          cat "$RUNNER_TEMP/store/maplibre-android.lock.json"
+          sha=$(sha256sum "$RUNNER_TEMP/store/$FILE" | cut -d' ' -f1); size=$(stat -c %s "$RUNNER_TEMP/store/$FILE")
+          aar=$(find "$MLN_OUT" -name 'android-sdk-vulkan-*.aar')
+          echo "sha256=$sha" >> "$GITHUB_OUTPUT"; echo "size=$size" >> "$GITHUB_OUTPUT"
+          echo "| pack + record | $(( $(date +%s) - t0 )) |" >> "$TIMES"
+          { echo "**$FILE**: sha256 \`$sha\`, $size bytes"; echo
+            echo "AAR \`$(basename "$aar")\`: sha256 \`$(sha256sum "$aar" | cut -d' ' -f1)\`, $(stat -c %s "$aar") bytes"; echo; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v6
+        if: steps.stored.outputs.stored == 'false'
+        with:
+          name: ${{ steps.key.outputs.tag }}
+          path: ${{ runner.temp }}/store/
+          retention-days: 7
+          if-no-files-found: error
+      - name: The build log, when the build failed
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: build-log
+          path: ${{ runner.temp }}/mln-work/build.log
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Timings (job summary)
+        if: always()
+        run: |
+          [ -f "$TIMES" ] && { echo; echo "Runner: $RUNNER_OS $RUNNER_ARCH, $(nproc) cores"; echo; cat "$TIMES"; } >> "$GITHUB_STEP_SUMMARY"
+          cat "$TIMES" || echo "no timings (the key step failed)"
+
+  publish:
+    needs: build
+    # main only: a dispatch from another branch (an altered build.sh, main's key) must never take the key's release,
+    # which publish never replaces
+    if: github.ref == 'refs/heads/main' && inputs.publish && needs.build.outputs.stored == 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ needs.build.outputs.tag }}
+      FILE: ${{ needs.build.outputs.file }}
+      SHA: ${{ needs.build.outputs.sha256 }}
+      SIZE: ${{ needs.build.outputs.size }}
+    steps:
+      - uses: actions/download-artifact@v6
+        with:
+          name: ${{ needs.build.outputs.tag }}
+          path: store
+      - name: The file is the one the build job measured
+        run: |
+          got=$(sha256sum "store/$FILE" | cut -d' ' -f1); size=$(stat -c %s "store/$FILE")
+          [ "$got" = "$SHA" ] && [ "$size" = "$SIZE" ] || { echo "store/$FILE is sha256 $got size $size, the build job measured $SHA size $SIZE"; exit 1; }
+      - name: Attach it to the release (refused when the asset appeared since the build)
+        run: |
+          if out=$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" --jq '.assets[].name' 2>&1); then
+            if grep -qxF "$FILE" <<<"$out"; then echo "$TAG already has $FILE: not replaced"; exit 1; fi
+            gh release upload "$TAG" "store/$FILE" --repo "$GITHUB_REPOSITORY"
+          elif grep -q 'HTTP 404' <<<"$out"; then
+            gh release create "$TAG" "store/$FILE" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --latest=false \
+              --title "MapLibre Android library $TAG" \
+              --notes "The pinned MapLibre Native Android library (T1170): app/tools/maplibre-android/pin.env at $GITHUB_SHA. sha256 $SHA, $SIZE bytes. Built by $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. Not an app release."
+          else echo "cannot read release $TAG: $out"; exit 1; fi
+          echo "attached: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/$TAG/$FILE" | tee -a "$GITHUB_STEP_SUMMARY"

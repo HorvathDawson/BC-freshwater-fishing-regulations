@@ -405,7 +405,7 @@ export interface MapProps {
   basemap?: "map" | "satellite";
   /**
    * AN IMAGERY TILE FAILED, with its HTTP status (undefined: no response — the network). Satellite is online-only
-   * (owner 2026-10-21): the caller decides whether that is an outage (`isImageryOutage`; GL JS never reports a 404)
+   * (owner 2026-10-21): the caller decides whether that is an outage (the provider's `outage`; GL JS never reports a 404)
    * and hands the map the drawn ground instead. Routed here INSTEAD of `onError` when given, because an offline
    * device fails every imagery tile and that is handled, not a renderer fault.
    *

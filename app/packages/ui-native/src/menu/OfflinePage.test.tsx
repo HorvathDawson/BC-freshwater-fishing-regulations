@@ -2,12 +2,14 @@
  * (T238, owner 2026-10-29: regulations never per region) THE OFFLINE MAPS PAGE, drawn: on the web over the real release
  * source and a Cache Storage stand-in — the regulations' fixed row with what the browser holds, no Save / Remove; on a
  * phone the regulations always on it, the regions part of the province map, the release download's progress and Resume, the Wi-Fi-only switch (T231's setting,
- * inverted). Every press named and reaching 44 × 44 (the T40 audits).
+ * inverted). Every press named and reaching 44 × 44 (the T40 audits). (T1154) The satellite imagery kept by region: no
+ * row while the device lists none (Esri's, always), a whole row when it lists one.
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { parseManifest, sha256Hex, type UpdateSnapshot } from "@app/data";
-import { releaseLoader, type ReleaseLoader } from "@app/data/release";
+import { IMAGERY, type ImageryRegion, type OfflineImagery } from "@app/core";
+import { offlineImagery, releaseLoader, type ReleaseLoader } from "@app/data/release";
 import { useOfflineMaps } from "@app/ui";
 import { releaseCache, releaseSource } from "@app/data/release/platform";
 import { LIGHT } from "../theme";
@@ -46,8 +48,10 @@ async function webLoader(): Promise<ReleaseLoader> {
                                                            fetch: fetchImpl }), async () => { throw new Error("no"); });
 }
 
-function Harness(p: Parameters<typeof useOfflineMaps>[0]) {
-  const c = useOfflineMaps(p);
+/** the provider in use's offline imagery (Esri's: none) unless a test hands its own */
+const NONE = offlineImagery(IMAGERY);
+function Harness({ imagery = NONE, ...p }: Omit<Parameters<typeof useOfflineMaps>[0], "imagery"> & { imagery?: OfflineImagery }) {
+  const c = useOfflineMaps({ ...p, imagery });
   return c ? <OfflinePage c={c} palette={LIGHT} /> : null;
 }
 const text = (id: string) => screen.getByTestId(id).textContent;
@@ -99,5 +103,31 @@ describe("the phone: the installed set", () => {
       updates={snap({ ...status, phase: "waiting-wifi", progress: null })} />);
     fireEvent.click(screen.getByLabelText("Resume now"));
     expect(checked).toBe(1);
+  });
+});
+
+describe("(T1154) the satellite imagery kept by region", () => {
+  const listing = (regions: readonly ImageryRegion[]) => {
+    const asked = { n: 0 };
+    const fake: OfflineImagery = { ...NONE, list: async () => { asked.n++; return regions; } };
+    return { asked, fake };
+  };
+
+  it("the device lists none (Esri's, today): no heading and no row; the page as it was", async () => {
+    const { asked, fake } = listing([]);
+    render(<Harness loader={await webLoader()} open platform="phone" imagery={fake} />);
+    await waitFor(() => expect(asked.n).toBe(1));
+    expect([screen.queryByTestId("offline-imagery"), screen.queryByText("Satellite by area"), text("offline-total")])
+      .toEqual([null, null, "Storage used459.9 MB"]);
+  });
+
+  it("a fake lists one: its heading and its row whole, counted in storage, no action", async () => {
+    const { fake } = listing([{ id: "c1", name: "Cowichan River", bytes: 12_300_000, state: "kept" }]);
+    render(<Harness loader={await webLoader()} open platform="phone" imagery={fake} />);
+    await waitFor(() => expect(screen.queryByTestId("offline-imagery")).not.toBeNull());
+    expect([text("offline-imagery"), screen.getByTestId("offline-row-imagery-c1").getAttribute("aria-label"),
+            text("offline-total"), screen.queryAllByRole("button")])
+      .toEqual(["Satellite by areaCowichan River12.3 MBKept on this device", "Cowichan River: 12.3 MB. Kept on this device.",
+                "Storage used472.2 MB", []]);
   });
 });

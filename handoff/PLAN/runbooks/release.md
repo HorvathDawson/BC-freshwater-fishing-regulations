@@ -83,6 +83,9 @@ worker suite) and lists every failure. The versioned pre-push hook runs `--chang
 
 ## 2. Run it
 
+**Lid open, on power (T1161).** The long runs hold the Mac awake (`caffeinate`), not through a closed lid (0.10.0
+slept 8.3 h), and refuse an unattended run on battery (`--on-battery "<why>"` goes on, printed).
+
 ```bash
 .venv/bin/python -m pipeline release --staging
 ```
