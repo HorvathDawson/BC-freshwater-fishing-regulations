@@ -45,7 +45,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, Pressable, Text, View, type LayoutChangeEvent } from "react-native";
 import {
   Camera, GeoJSONSource, Images, Layer, Map as MLMap, VectorSource,
-  type CameraRef, type GeoJSONSourceRef, type MapRef, type VectorSourceRef,
 } from "@maplibre/maplibre-react-native";
 import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, MIN_ZOOM, fitCamera, fitZoomLimit, fitZoomOf, padBbox, refineFit, spotMarkers,
          spotsInView, spotUnder, profileLabel, unionBbox, type Bbox, type SpotMarker, type SectionKey, now as clockNow } from "@app/core";
@@ -65,7 +64,7 @@ import { isTapTarget, litKey, spreadSections, TAP_GROUPS, tapBox, unsetValue, VI
 import { withoutEngineKeys } from "./colouring";
 import { nativeImages } from "./images";
 import { useNativeColouring, type AtlasSource } from "./native/useColouring";
-import { HeldLabels, engineLog, engineTiles } from "./native/engine";
+import { HeldLabels, bindingRefs, engineLog, engineTiles, useEngineRefs, type EngineAtlas } from "./native/engine";
 import { colourProbe } from "./native/probe";
 import { panProbe } from "./native/panProbe";
 import { GoneViews } from "./native/goneView";
@@ -143,11 +142,11 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     return () => { live = false; sub?.remove?.(); };
   }, []);
   const adapter = useRef(baseAdapter("native"));
-  const mapRef = useRef<MapRef | null>(null);
-  const camRef = useRef<CameraRef | null>(null);
-  const atlasRef = useRef<VectorSourceRef | null>(null);
-  /** (T175) The water copy's GeoJSON source, and the lines it holds — see `water-copy.ts`. */
-  const copyRef = useRef<GeoJSONSourceRef | null>(null);
+  /** (T1154) the engine's element handles (`native/engine.ts`); (T175) `copyRef`: the water copy's GeoJSON source. */
+  const engineRefs = useEngineRefs();
+  const { map: mapRef, camera: camRef, copy: copyRef } = engineRefs;
+  const atlasRef = useRef<EngineAtlas | null>(null);
+  /** (T175) The lines the water copy holds — see `water-copy.ts`. */
   const copy = useRef(new WaterCopy());
   /** The map's size, for the fit padding (the web reads its container). */
   const size = useRef({ width: 0, height: 0 });
@@ -371,7 +370,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   // loaded); later ones are the binding re-creating its handle (`useImperativeHandle` with no deps), which must not
   // re-render this map, or each render would re-attach and render again. A style swap is `onStyle`'s business.
   const attachedOnce = useRef(false);
-  const atlasAttached = useCallback((r: VectorSourceRef | null) => {
+  const atlasAttached = useCallback((r: EngineAtlas | null) => {
     atlasRef.current = r;
     let tag: number | null = null;
     try { tag = r?.nativeTag() ?? null; } catch { /* not mounted yet: its tag is learnt on the next attach */ }
@@ -1009,10 +1008,11 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   useEffect(() => { panProbe.src("marks"); }, [markJson]);
   useEffect(() => { panProbe.src("images"); }, [images]);
   useEffect(() => { panProbe.src("style"); }, [shown]);
+  const binding = bindingRefs(engineRefs);
   return (
     <>
       <MLMap
-        ref={mapRef}
+        ref={binding.map}
         style={[{ flex: 1 }, style]}
         onLayout={onLayout}
         mapStyle={shown as never}
@@ -1052,7 +1052,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         // an empty map and a map whose tiles failed look the same: say so
         onDidFailLoadingMap={() => report(new Error("map failed to load"))}
       >
-        <Camera ref={camRef} initialViewState={camera0.current} minZoom={MIN_ZOOM} maxZoom={CAMERA_MAX_ZOOM}
+        <Camera ref={binding.camera} initialViewState={camera0.current} minZoom={MIN_ZOOM} maxZoom={CAMERA_MAX_ZOOM}
                 maxBounds={MAX_BOUNDS} />
         <VectorSource id="atlas" ref={atlasAttached}>
           <HeldLabels store={hold} ids={adopted.atlas} now={heldNow.atlas} />
@@ -1071,7 +1071,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         <GeoJSONSource id={TRACE_SOURCE} data={(styled ? traceLines : EMPTY_TRACE) as never} />
         <GeoJSONSource id={TRACE_PINS_SOURCE} data={(styled ? tracePinJson : NO_PINS) as never} />
         {/* (T175) the water copy: the style's own source by id, its lines from the tiles (`keepCopy`) */}
-        <GeoJSONSource id={COPY_SOURCE} ref={copyRef} data={copyData as never} />
+        <GeoJSONSource id={COPY_SOURCE} ref={binding.copy} data={copyData as never} />
         {/* (T812) THE CLOSED-AREA CIRCLES, under the streams: never asked for a feature, so a tap opens the lake under them */}
         <GeoJSONSource id={SALMON_CIRCLE_SOURCE} data={circleJson as never}>
           {circleLook.map((l) => <Layer key={l.id} {...(l as unknown as LayerSpec)} beforeId={SALMON_CIRCLE_BEFORE} />)}

@@ -10,7 +10,42 @@
  * engine rule; `app/layers.json`, the `packages/map/src/native/maplibre` layer). The types here are engine-neutral; the
  * one line that picks the engine is the re-export at the end.
  */
+import type { RefObject } from "react";
+import type { NativeRefs } from "../adapters/native";
 import type { TileIdsEvent } from "../tile-hold";
+import type { AtlasSource } from "./useColouring";
+
+/** A feature as the engine's queries hand it back. */
+export interface EngineFeature { id?: string | number; geometry?: unknown; properties?: Record<string, unknown> | null }
+type Box = [[number, number], [number, number]];
+/** The map view's handle: what is drawn under a box or on screen, the bounds, a place's point on screen. */
+export interface EngineMap {
+  queryRenderedFeatures(box: Box, options?: { layers?: string[] }): Promise<EngineFeature[]>;
+  queryRenderedFeatures(options?: { layers?: string[] }): Promise<EngineFeature[]>;
+  getBounds(): Promise<readonly number[]>;
+  project(lngLat: [number, number]): Promise<readonly number[]>;
+}
+/** The camera's handle (`adapters/native.ts` moves it). */
+export type EngineCamera = NonNullable<ReturnType<NativeRefs["camera"]>>;
+/**
+ * The atlas vector source's handle: feature-state one by one (`adapters/native.ts`) and per tile in batches
+ * (`useColouring.ts`), and read back for the water copy.
+ */
+export type EngineAtlas = NonNullable<ReturnType<NativeRefs["atlas"]>> & AtlasSource & {
+  getFeatureState(f: { id: string | number; sourceLayer: string }): Promise<Record<string, unknown> | null>;
+};
+/** The water copy's GeoJSON source handle (T175). */
+export interface EngineCopySource {
+  setFeatureState(f: { id: string | number }, s: Record<string, unknown>): Promise<void>;
+  removeFeatureState(f: { id: string | number }, key?: string): Promise<void>;
+  removeFeatureState(): Promise<void>;
+}
+/** The element handles the shell reads (`useEngineRefs`), each null until the engine has mounted it. */
+export interface EngineRefs {
+  map: RefObject<EngineMap | null>;
+  camera: RefObject<EngineCamera | null>;
+  copy: RefObject<EngineCopySource | null>;
+}
 
 /** An engine's per-tile ids (the colouring's tile source, `useColouring.ts`). */
 export interface EngineTiles {
@@ -20,4 +55,4 @@ export interface EngineTiles {
   onTileIds(listener: (e: TileIdsEvent) => void): () => void;
 }
 
-export { HeldLabels, engineLog, maplibreTiles as engineTiles } from "./maplibre";
+export { HeldLabels, bindingRefs, engineLog, maplibreTiles as engineTiles, useEngineRefs } from "./maplibre";
