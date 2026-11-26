@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { execFileSync } from "node:child_process";
-import { BUDGETS, DOCS_DIR, checkRepo, checkSize, keptProblems, lineCount, packageDirs } from "./check-size.mjs";
+import { BUDGETS, DOCS_DIR, LOOKUP, checkRepo, checkSize, keptProblems, lineCount, packageDirs } from "./check-size.mjs";
 import { TICKETS_DIR } from "./ledger.mjs";
 
 type F = { path: string; lines?: number; bytes?: number };
@@ -157,7 +157,9 @@ describe("the page standards outside the tickets folder (the second cut)", () =>
     expect(run(lean(), { pageLong }).join("\n")).toContain(`PAGE_LONG lists ${page}, which is not tracked`);
   });
   it("tickets, look-up files and pages with their own budget are not held to the page budget", () => {
-    expect(run([...lean(), md("CHANGELOG.md", 600), md("data/curated/regulations/reference/region-1.md", 600), md("pipeline/tests/fixtures/mini/x.md", 600)])).toEqual([]);
+    // every LOOKUP entry (a file, or a folder ending in "/"), read from the guard's own table
+    expect(LOOKUP.length).toBeGreaterThan(3);
+    expect(run([...lean(), ...LOOKUP.map((l: string) => md(l.endsWith("/") ? `${l}x.md` : l, 600))])).toEqual([]);
     expect(run(grow(lean(), "AGENTS.md", max("agents")))).toEqual([]);
   });
   it("a page named for a day fails, in the docs folder only", () => {
