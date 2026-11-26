@@ -24,7 +24,7 @@ then re-pin what changed with `python -m pipeline.tools.source_pins pin PATH` (i
 
 ## Notes on `source/`
 
-The book is `source/fishing_synopsis.pdf`; validate against nothing else (`python -m pipeline.tools.one_book` fails on a second copy). The nine region PDFs in `source/official/` are pinned reference copies that nothing reads: `python -m data.fetch_region_pdfs` fetches them and checks `source/region_pdfs.pins.json` (T1156).
+The book is `source/fishing_synopsis.pdf`; validate against nothing else (`python -m pipeline.tools.one_book` fails on a second full book anywhere under `source/`, even renamed: by name, or by size and pages; CI holds the tracked files only, so there it checks those, and a machine with `source/official/` filled is checked on the whole folder). The nine region PDFs in `source/official/` are pinned reference copies that nothing reads: `python -m data.fetch_region_pdfs` fetches them and checks `source/region_pdfs.pins.json` (T1156).
 
 
 `source/dfo_tidal_areas/` is 380 saved DFO web pages in dated folders (snapshots of the tidal-area descriptions the tidal boundary was read

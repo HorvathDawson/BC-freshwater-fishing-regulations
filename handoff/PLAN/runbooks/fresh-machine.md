@@ -51,8 +51,8 @@ bash scripts/heavy.sh tier 30 -- bash scripts/pytest-chunked.sh -- -q -m "$marke
 ```
 
 `scripts/before_pr.sh` runs the last two at once on two heavy lanes, and is what to run before opening a PR. Tests that
-need a file outside git fail naming it (a data release for `needs_bundle`). The book is `data/source/fishing_synopsis.pdf`;
-validate against nothing else. Region PDFs (pinned reference copies, nothing reads them): `.venv/bin/python -m data.fetch_region_pdfs`.
+need a file outside git skip with a message naming it (`data/source/official/` region PDFs for the quota print checks; a
+data release for the ones marked `needs_bundle`).
 
 ## 4. The web app
 
@@ -106,7 +106,7 @@ The pins are the exact bytes the live release was built from. To move to newer u
 between fetches, so a refreshed gpkg gives a slightly different release: a data update, reviewed through the binding diff.
 
 Not mirrored on purpose: `data/source/steelhead/` (6.6 GB; only `known_waters` reads it, to propose the curated list),
-`data/source/official/` (region PDFs; nothing reads them: `python -m data.fetch_region_pdfs` fetches the pinned copies),
+`data/source/official/` (region PDFs; only the quota print tests read them, and they skip naming the file),
 `data/source/runtiming/cu_tiles/` (the run-timing workflow fetches its own), `bathymetry_pdfs/` (served from R2).
 
 ## 8. Android debug build (heavy; prerequisites written from the scripts, T1120)
