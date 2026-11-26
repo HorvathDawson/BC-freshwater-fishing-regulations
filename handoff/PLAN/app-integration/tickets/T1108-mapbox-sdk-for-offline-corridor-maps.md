@@ -1,10 +1,10 @@
 # T1108 — Idea: the Mapbox mobile SDK (no navigation) for free offline corridor maps. Research first.
 
-Status: OPEN — 0.11 shrinks to nothing built: phones stay on MapLibre with keyless Esri, no Mapbox, no offline imagery (owner 2026-11-25, after four scoping passes)
+Status: OPEN — reopened by the owner 2026-11-25 evening: first the engine seam (T1154), then a Mapbox trial on the apps (T1155); he decides after the trial
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1108 | Idea: the Mapbox mobile SDK (no navigation) for free offline corridor maps; research the terms, cost and the two-engine question first | OPEN — 0.11 shrinks to nothing built: phones stay on MapLibre with keyless Esri, no Mapbox, no offline imagery (owner 2026-11-25, after four scoping passes) | | the research is recorded below; reopen when a provider allows offline corridors through MapLibre |
+| T1108 | Idea: the Mapbox mobile SDK (no navigation) for free offline corridor maps; research the terms, cost and the two-engine question first | OPEN — reopened by the owner 2026-11-25 evening: first the engine seam (T1154), then a Mapbox trial on the apps (T1155); he decides after the trial | | the research is recorded below; reopen when a provider allows offline corridors through MapLibre |
 
 Source: owner 2026-11-25 ~00:40 (planning chat), verbatim: "i got an idea for free offline maps for corridors we could
 integrate mapbox mobile sdk with no navigation and it will be free until 25k users which should be more then good. we
@@ -27,6 +27,36 @@ could implement that in 0.10 ?" Belongs with T79 (imagery corridor + pools), roa
 5. The alternatives on the same table: our own corridor imagery tiles from an open source (the T79 line) served
    from R2 and downloaded like the data packs; Esri's offline terms; what each costs in storage and egress.
 6. One page with a recommendation and the numbers, to the owner, before chat 4c freezes its scope.
+
+
+## Reopened 2026-11-25 evening: a research handoff and a two-step plan (owner)
+The owner pasted a research handoff ("offline satellite imagery + a reversible Mapbox engine"), kept whole at
+`handoff/PLAN/app-integration/T1108-files/handoff-2026-11-25-offline-satellite-and-reversible-engine.md` (market
+survey with prices, the current map stack, an imagery provider and offline-imagery interface, the engine split
+behind the existing adapter contract, a local tile server for our PMTiles, what of the MapLibre patch Mapbox would
+replace, an order of work, the downsides, open questions, sources). Its direction: the web stays on MapLibre +
+PMTiles; the phone app may move to the Mapbox SDK for the basemap and imagery only; our PMTiles layers stay;
+switching back to MapLibre must stay easy; provincial orthophotos later if GeoBC grants a licence.
+
+His words, verbatim: "i feel like this is an important thing to nail down and the first step could be figuring out
+how we can restructure things under the hood to make it so a engine switch like this would be easy. then we could
+have. the next ticket after that be a testing it out for the apps. basically we can get a free token figure out
+how to properly have it in the map being public repo and then test it with corridor downloading and mobile
+satellite online using it since it is mau based. then we can gauge how similar it is to what we had (space
+requirements and performance) and also we can make sure our pmtile thing we get working well and the painting etc
+still happens well and is performant."
+
+So his picks of earlier today ("Stay on MapLibre (Recommended)", offline imagery "Nothing now") are replaced by:
+**T1154** (the seam: imagery provider, engine split, one way to read our tiles; no change the user sees), then
+**T1155** (the Mapbox trial on test builds: token in a public repo, online satellite, corridor downloads, our
+layers and painting, measured against today), then his go / no-go. This ticket stays the record of the idea and
+the research. Where the handoff and the four passes above differ, the trial settles it: the handoff reads
+Mapbox's help page as "offline is included in monthly-user billing" (to confirm with Mapbox in writing); the
+passes found the SDK reads no PMTiles (the handoff agrees: a local tile server), telemetry is on by default
+(opt-out), and a full move was sized at 8-12 lane-weeks before any seam existed. Still open from the handoff and
+not in T1154 / T1155: our own corridor imagery (Sentinel-2 + a LidarBC hillshade as PMTiles; the owner called
+10 m imagery "useless" earlier, the hillshade is new), the letter to GeoBC for orthophoto redistribution on river
+corridors, the keyless Esri question. Each becomes a ticket when he asks for it.
 
 ## Owner's addition 2026-11-25 00:38 (planning chat)
 Verbatim: "also in 0.10 when we add offline corridors we will switch mobile to use mapbox online satellite too and
@@ -100,5 +130,6 @@ built Esri imagery plus the corridor research).
 
 ## Owner
 
-- [ ] 2026-11-25 — Pick after the research page compares the Mapbox mobile SDK (free offline corridors, free until 25k users) with the alternatives; mobile would also switch to Mapbox online satellite and drop Esri (the web keeps Esri unless you say otherwise). The scoping above (planning chat dialogs, same day) already records: web "Web keeps Esri (Recommended)"; engine "Stay on MapLibre (Recommended)"; Esri key "Stay keyless for now"; offline imagery "Nothing now"; this line stays open until you confirm the Mapbox switch is off for now.
+- [x] 2026-11-25 — Pick after the research page compares the Mapbox mobile SDK (free offline corridors, free until 25k users) with the alternatives; mobile would also switch to Mapbox online satellite and drop Esri (the web keeps Esri unless you say otherwise) → "Stay on MapLibre (Recommended)"; offline imagery "Nothing now" (2026-11-25 afternoon); replaced that evening by the two-step plan: T1154 then T1155, his go / no-go is T1155's line (2026-11-25). The scoping above (planning chat dialogs, same day) already records: web "Web keeps Esri (Recommended)"; engine "Stay on MapLibre (Recommended)"; Esri key "Stay keyless for now"; offline imagery "Nothing now"; this line stays open until you confirm the Mapbox switch is off for now.
 - [x] 2026-11-25 — Spend if a keyed provider is used → "$0 overage + kill switch (Recommended)"; tile cache → "Keep cache, reword the page" and "Only the cache rewording" (T1148) (2026-11-25).
+- [ ] 2026-11-25 — From the handoff, not ticketed yet, say when you want each: (a) our own corridor imagery (Sentinel-2 + LidarBC hillshade, offline, any engine); (b) a letter to GeoBC asking for orthophoto redistribution on river corridors (I draft, you send); (c) an application to Mapbox's nonprofit program. Default: none until the T1155 trial reports.

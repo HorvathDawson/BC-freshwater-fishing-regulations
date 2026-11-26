@@ -40,6 +40,9 @@ disagree with it or name a feature marked not shipped; the pages validate as str
 the words. Severity: medium (people are told to use a paid app for things this one does free). Model: Sonnet
 (Opus for the claims list). Size: S–M. Owner: the words.
 
+Owner, 2026-11-25 (planning chat), on fish identification, verbatim: "we have id with pictures and words
+desacribing how to id." So the claim is a fish ID guide with pictures and words (shipped), not photo recognition.
+
 ## Owner
 
 - [ ] 2026-11-25 — When the lane has the shipped-feature list and the proposed words (home block, store listing lines): read them and say yes or change them. Default: nothing ships to the site until you have.
