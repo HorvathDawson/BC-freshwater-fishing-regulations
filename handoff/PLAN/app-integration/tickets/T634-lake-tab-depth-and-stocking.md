@@ -87,7 +87,7 @@ ticked against the PDFs; FIDQ alias lists split on commas only (some use ";").
 ### Next after closed testing (owner 2026-11-13)
 Owner, 2026-11-13: "after the closed release we will do stocking and depth maps next." This ticket's "Path to ship"
 runs under **T200** (stocking, first) then **T201** (depth maps, second); each has the feasibility note's first step,
-matcher and owner questions: `handoff/PLAN/research/stocking-feasibility.md`, `handoff/PLAN/research/bathymetry-feasibility.md`.
+matcher and owner questions: `handoff/PLAN/research/stocking.md`, `handoff/PLAN/research/bathymetry.md`.
 
 Related: T200, T201, T218, T219 (postponed 2026-11-05; this ticket restarts the data half on the owner's word).
 Depends: none. Size: L.

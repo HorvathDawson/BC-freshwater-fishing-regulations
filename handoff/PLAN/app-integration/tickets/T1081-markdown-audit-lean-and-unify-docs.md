@@ -122,3 +122,26 @@ production (the planning chat's condition, overruled by him); a second cut of th
 of him as multiple choice. A new chat finishes it: roadmap prompt D2, restart page `handoff/PLAN/restart/cleanup.md`.
 The rename lands on the planning chat's word, when that evening's 0.10.0 PRs (#264, #265) are on main; after it,
 only code-only picks go onto `release/0.10.0`, and its merge back runs the rename script on that branch first.
+
+## The second cut (branch `docs/T1081-second-cut`, 2026-11-25 night)
+
+The owner's picks (dialog): (1) target "6,000 lines", offered as about 3,700 lines of reading plus look-up files; the
+chat's look-up figure was wrong (about 4,200 lines cannot shrink: the book's reference text and its fixture copy, the
+parser prompts, the generated route table, the changelog), so the reading part was cut as far as picks 2 to 4 take
+it; (2) working pages of open tickets outside the tickets folder: "Delete them", what is still open as a short list
+in the ticket; (3) research, design, iOS, SEO, verbatim: "we should just simplify to what is currently built and
+explaining it we could add auxillary research from other tabs but unifying all content about the same thing for
+example is good"; (4) reference pages: "One page per subject, 150 lines"; RULINGS and the data READMEs excepted.
+Later that night: "we should also add ci/cd that enforces documentation standards and prevents bloat."
+
+| markdown outside tickets | before | after |
+|---|---|---|
+| files | 190 | 150 |
+| lines | 27,442 | 14,556 |
+| lines without the look-up files (the reading) | about 23,200 | 10,350 |
+
+Held as they are, for a later small PR: the three release runbooks and `release/PRODUCTION.md` (1,163 lines; 0.10.0
+ships from them), the T1140 page (763; PR #265), the T1053 head-lake list (272; his open line asks him to read it).
+The guard (`check-size.mjs`) now also holds: a page outside tickets is 150 lines at most unless listed (`PAGE_LONG`,
+only shrinks); one total for the reading (`readingLines`); no page named for a day; no ticket working page outside
+the tickets folder unless listed with its reason (`WORKING_PAGES`).

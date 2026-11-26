@@ -1,12 +1,17 @@
 # Request indexing: the top 100 pages to submit by hand
 
-Written 2026-11-22. This is the order to paste URLs into Google Search Console's URL Inspection box and press **Request indexing**. Each row is ranked by how much people in BC search online for fishing that water, or for that river's or lake's water level (gauge pages). **How it was measured:** about 290 waters were collected from 18 "best fishing in BC" lists (guides, BC Parks, GoFishBC, BC Outdoors, Backroad Mapbooks, DFO's angler survey, and others; see Sources), plus well-known waters added by hand. Each water was then checked in **Google Trends**: BC, past 12 months, `"<water>" fishing` as an exact phrase, compared four at a time against one shared anchor term so every score is on one scale. Gauge pages were scored the same way on `<river> level` or `<river> levels`. The scale is **Vedder River fishing = 100**. A score of 30 means about 30% as many BC searches as "Vedder River fishing" over the year. The guide-list count is shown next to each score as a second signal. **Caveats:** no keyword-volume tool was used (there is no account), so these are relative interest scores, not monthly search counts. Below a score of about 10 the gaps are inside Trends' rounding, so treat ranks 80 to 100 as roughly tied. A name that several waters share (Trout Lake, Deer Lake, Elk River…) collects searches for all of them, and those rows say so. Once the site has impressions, Search Console's own **Performance** report (Queries and Pages) is a better source than this list, and the list should be redone from it.
+The order to paste URLs into Google Search Console's URL Inspection box and press **Request indexing** (still to be made:
+OWNER.md lists it). Ranked by relative BC search interest from Google Trends (BC, past 12 months, `"<water>" fishing`, or
+`<river> level` for gauge pages), scale Vedder River fishing = 100, plus how many of 18 "best fishing in BC" guide lists
+name the water. Below a score of about 10 the ranks are roughly tied; a name several waters share (Trout Lake, Deer Lake,
+Elk River) collects all their searches. Once Search Console has impressions, its Performance report is a better source and
+the list should be redone from it (open ticket T1011 part 3).
 
-**How to use it.** Request indexing has a small daily quota per property, about 10 a day. Google publishes no number. The 10-a-day figure comes from Google's 2018 change and from current user reports. So work down the list over about 10 days, in order. For bulk discovery, use the sitemap. It should be submitted under Search Console, Sitemaps, and Google crawls everything in it on its own schedule. For Bing (and Yandex), **IndexNow** pushes many URLs in one call. A manual request does not guarantee indexing, and requesting the same URL again does not speed it up.
-
-**Hubs (ranks 1 to 3).** These three pages are not water pages. They are here because a crawler can follow their plain links to many other pages: `/gauges` links all 452 gauge pages, and each region page links its A to Z water lists. The home page `/` is left out because it is the JavaScript map: its HTML has no plain links to regions, waters or gauges, so it leads Google nowhere. Google finds the site's pages only through the sitemap and these hub pages. A crawlable link from `/` to `/gauges` and to the regions would help.
-
-Every URL below is in the live sitemap (fetched 2026-11-22) and returned HTTP 200 with a full page body when checked on 2026-11-22.
+**Use.** The quota is about 10 requests a day per property (Google publishes no number): work down the list over about 10
+days. Bulk discovery is the sitemap (Search Console, Sitemaps) and, for Bing and Yandex, IndexNow. A request does not
+guarantee indexing and repeating it does not speed it up. Ranks 1 to 3 are hubs: `/gauges` links all 452 gauge pages and each
+region page links its A to Z lists (the home page `/` is the JavaScript map, with no plain links). Every URL is in the sitemap
+and answered 200 with a full body when checked on 2026-11-22.
 
 | # | URL | Name (as anglers say it) | Type | Demand signal |
 |---|---|---|---|---|
@@ -111,68 +116,12 @@ Every URL below is in the live sitemap (fetched 2026-11-22) and returned HTTP 20
 | 99 | https://canifishthis.ca/water/vaseux-lake | Vaseux Lake | water | Trends 9; in no guide list (added as a well-known water) |
 | 100 | https://canifishthis.ca/water/weaver-lake | Weaver Lake | water | Trends 9; in no guide list (added as a well-known water) |
 
-### Next 15, if the list gets used up
-
-- https://canifishthis.ca/water/lundbom-lake — Lundbom Lake (water, Trends 9)
-- https://canifishthis.ca/water/quesnel-lake — Quesnel Lake (water, Trends 8)
-- https://canifishthis.ca/water/silver-lake-r2 — Silver Lake (water, Trends 8)
-- https://canifishthis.ca/water/nicola-lake — Nicola Lake (water, Trends 8)
-- https://canifishthis.ca/water/wahleach-lake — Jones Lake (water, Trends 8)
-- https://canifishthis.ca/water/charlie-lake — Charlie Lake (water, Trends 8)
-- https://canifishthis.ca/water/spider-lake — Spider Lake (water, Trends 8)
-- https://canifishthis.ca/water/dragon-lake-r5 — Dragon Lake (water, Trends 7)
-- https://canifishthis.ca/water/osoyoos-lake — Osoyoos Lake (water, Trends 7)
-- https://canifishthis.ca/water/sugar-lake — Sugar Lake (water, Trends 7)
-- https://canifishthis.ca/gauge/08NN026/kettle-river-near-westbridge — Kettle River near Westbridge — water level (gauge, Trends 7)
-- https://canifishthis.ca/water/comox-lake — Comox Lake (water, Trends 7)
-- https://canifishthis.ca/water/adams-river — Adams River (water, Trends 7)
-- https://canifishthis.ca/water/campbell-lake-r1 — Campbell Lake (water, Trends 7)
-- https://canifishthis.ca/water/alta-lake-r2 — Alta Lake (water, Trends 7)
-
 ## Left out
 
-**Popular waters with no water page on the site** (each has a gauge page except where noted):
-- **Columbia River**: Trends 33 for `"columbia river" fishing`, but much of that is probably the US Columbia. No `/water/` page exists. There are gauge pages, for example `/gauge/08NE049/columbia-river-at-birchbank`, but `columbia river level` is mixed up with "British Columbia river levels", so the gauge was left off too.
-- **Kettle River** (Trends 16), **Kootenay River** (8), **Similkameen River** (8): no water page. Each has gauge pages (08NN026, 08NG065, 08NL038).
-- **Peace River**, **Blackwater River**, **Wigwam River**, **Sumas River**, **Chilko Lake**, **Alces Lake**, **Puntzi Lake**, **Quartz Lake**: named in guide lists or well known, but no matching water page was found. Chilko River has one. Puntzi has only `puntzi-creek`. Alces has only `alces-river`.
-- **Green Lake at 70 Mile House** (a well-known Cariboo lake): none of the seven `green-lake-*` pages is near 70 Mile House. Worth a check that it is not missing.
-
-**Measured but excluded:** Fish Lake (the words match every "lake fishing" search), Salmon River (one name, many rivers in BC and the US), Williams Lake (searches are about fishing near the city), Columbia Lake (matches "British Columbia lake fishing"), and the Salmon River gauge at Salmon Arm (same name problem). "Chilliwack River level" searches were credited to the Vedder Crossing gauge, since that is the station Vedder and Chilliwack anglers use. They were not given to 08MH103 upstream.
-
-**Tidal:** none of the listed pages is tidal. The Fraser River page covers the non-tidal river, but its score includes searches for sturgeon and salmon fishing in the lower Fraser. Campbell River's raw score (233) is mostly ocean fishing off the town, so its row uses a score of 25 from DFO angler days instead.
-
-**Famous with little BC search volume:** Babine, Kispiox, Dean (Trends 6), Copper (Zymoetz), Slocan Lake and Whiteswan Lake scored 0 to 6 in BC. Many of their anglers search from outside BC, so they fall below the cut even though the guides rank them highly. Gauge pages for Skeena (Trends 6), Thompson (5), Harrison (6) and Seymour (6) also fell just below the cut.
-
-## Sources
-
-Demand:
-- Google Trends, BC, past 12 months, region-aggregated comparison in batches of 5 with a shared anchor, `"<water>" fishing` and `<river> level + <river> levels`, run 2026-11-22: https://trends.google.com/trends/explore?geo=CA-BC. The "top related queries" for `river fishing`, `lake fishing`, `fishing report`, `river level` and `lake water level` were also used to find candidates.
-- DFO, Results of the BC freshwater recreational fishing survey, 2023 and 2024 (top waterbodies by angling days): https://www.pac.dfo-mpo.gc.ca/analyses-econom-analysis/fisheries-peches/rec/fresh-douce-2024-eng.html and https://www.pac.dfo-mpo.gc.ca/analyses-econom-analysis/fisheries-peches/rec/fresh-douce-2023-eng.html
-
-Candidate lists (the "guide lists" counted in the table):
-- 20 Best Steelhead Rivers in British Columbia (Salmon & Steelhead Journal): https://salmonandsteelheadjournal.com/20-best-steelhead-rivers-in-british-columbia/
-- Top 10 Steelhead Rivers in British Columbia (BC Outdoors): https://www.bcoutdoorsmagazine.com/top-10-steelhead-rivers-in-british-columbia/
-- The Best BC Lower Mainland Fishing Lakes & Streams (Backroad Mapbooks): https://backroadmapbooks.com/blogs/default-blog/the-best-bc-lower-mainland-fishing-lakes-streams
-- The Best Vancouver Island Fishing Lakes & Streams (Backroad Mapbooks): https://backroadmapbooks.com/blogs/default-blog/the-best-vancouver-island-fishing-lakes-streams
-- The 12 Best Fishing Spots in Northern BC (Backroad Mapbooks): https://backroadmapbooks.com/blogs/default-blog/the-12-best-fishing-spots-in-northern-bc
-- Best Fishing Lakes Near Kamloops (Backroad Mapbooks): https://backroadmapbooks.com/blogs/default-blog/fishing-lakes-near-kamloops-bc
-- Top Ten Urban Fisheries (BC Outdoors): https://bcoutdoorsmagazine.com/?p=109
-- May Long Weekend Fishing Favourites (GoFishBC / FFSBC): https://www.gofishbc.com/learn/fishing-tips/where-to-fish/may-long-weekend-fishing-favourites/
-- Best Fishing in British Columbia (Outdoors International): https://outdoors-international.com/british-columbia-fishing/
-- Best Salmon Rivers in BC (Bead n Float): https://beadnfloat.com/best-salmon-rivers-in-bc
-- 6 fly fishing hot spots in B.C.'s Lower Mainland and beyond (Outdoor Canada): https://www.outdoorcanada.ca/6-fly-fishing-hot-spots-in-bcs-lower-mainland-and-beyond/
-- 5 great places to fish within a 4-hour drive of Vancouver (Destination BC): https://www.supernaturalbc.com/stories/5-great-places-to-fish-within-a-4-hour-drive-of-vancouver
-- Top 10 Best BC Fishing Lakes (Backroad Mapbooks): https://backroadmapbooks.com/blogs/default-blog/top-10-best-bc-fishing-lakes
-- The Best Thompson Okanagan Fishing Lakes (Backroad Mapbooks): https://backroadmapbooks.com/blogs/default-blog/the-best-thompson-okanagan-fishing-lakes
-- The Best Kootenay Rockies Fishing Lakes & Streams (Backroad Mapbooks): https://backroadmapbooks.com/blogs/default-blog/the-best-kootenay-rockies-fishing-lakes-streams
-- Top Ten Fishing Spots in the Cariboo Chilcotin Coast Region (BC Outdoors): https://bcoutdoorsmagazine.com/?p=4488
-- Freshwater fishing (BC Parks): https://bcparks.ca/plan-your-trip/things-to-do/freshwater-fishing
-
-The Request indexing quota and the bulk routes:
-- Google, URL Inspection tool help ("there is a daily limit"): https://support.google.com/webmasters/answer/9012289
-- Search Engine Land, "Google changes request recrawl limits" (up to 10 individual URLs a day, 2018): https://searchengineland.com/google-changes-request-recrawl-limits-noting-daily-limits-versus-monthly-quotas-292371
-- Search Engine Roundtable, "Google Unlikely To Increase Request Indexing Quota In Search Console" (2023): https://www.seroundtable.com/google-unlikely-to-increase-request-indexing-quota-34742.html
-- Google Search Central help thread, "Indexing request results in quota exceeded" (use sitemaps for bulk): https://support.google.com/webmasters/thread/76080485/indexing-request-results-in-quota-exceeded?hl=en
-- IndexNow (Bing, Yandex and others): https://www.indexnow.org/
-
-Working files (Trends results, candidate list, page checks) are in the session scratch folder and are not kept in the repo.
+- No water page on the site: Columbia River (Trends 33, mostly the US river; gauge `08NE049`), Kettle (16), Kootenay (8) and
+  Similkameen (8) rivers (gauges 08NN026, 08NG065, 08NL038), Peace, Blackwater, Wigwam and Sumas rivers, Chilko, Alces,
+  Puntzi and Quartz lakes. Green Lake at 70 Mile House: none of the seven `green-lake-*` pages is near it; check it is not
+  missing.
+- Excluded as ambiguous: Fish Lake, Salmon River, Williams Lake, Columbia Lake. Not tidal: Campbell River's raw score (233)
+  is mostly ocean fishing off the town.
+- Famous but little BC search volume (0 to 6): Babine, Kispiox, Dean, Copper (Zymoetz), Slocan and Whiteswan lakes.

@@ -13,10 +13,10 @@ updates needed every time."
 ## What
 Tests pinned section handles and counts that move with every atlas, frozen references ("page v36" oracles) needed a
 hand amendment per approved rule change, live-release tests were red from build to promote, and runners disagreed
-(fast-fail's no-build plugin, the chunked runner, a fresh clone). Audit + design: `app-integration/T667-audit.md`
-(§4 the slices); the offender list and batches: `app-integration/T667-offenders.md`.
+(fast-fail's no-build plugin, the chunked runner, a fresh clone). Audit + design: T667-audit.md (git history)
+(§4 the slices); the offender list and batches: T667-offenders.md (git history).
 
-## Owner decisions 2026-11-11 (on `app-integration/T667-audit.md` D1–D6)
+## Owner decisions 2026-11-11 (on the audit, git history, D1–D6)
 - D1: retire the page v36 reference suite by suite, after the inventory shows nothing is lost.
 - D2: yes, logic tests run on a small invented release built by the real pipeline; about ten real-water walks stay.
 - D3: live counts stop being tests and are printed in the release diff.
@@ -95,3 +95,11 @@ hand amendment per approved rule change, live-release tests were red from build 
 - An approved rule change needs one edit at the source and a reviewed diff, not per-test amendments.
 
 Depends: T666. Size: L. Fable for audit and design (owner). Part of the closed-testing run.
+
+## Still open (from the deleted T667-audit.md and T667-offenders.md, 2026-11-25)
+The audit and offender list are in git history; the offender count is 0 now (scanners `pipeline/tests/anchors.py`, `app/tools/check-test-anchors.mjs`). Rules for new tests the scanners enforce or assume:
+- One anchor per test: data it builds, the small frozen release, the release under test through one helper, or a generated expectations file.
+- No positions as names (section handle, part number, release id, digest, build-derived count): name by blue line + metre, water + landmark, entry id + rule id, resolved at run time.
+- A value that follows the release lives in a generated file the re-cut step writes; on live data assert rules, not samples.
+- A ruling is recorded once, in a table both languages read; no number typed twice; a new test file needs no edit elsewhere.
+The work left is the "Work (left)" list above (slice 8 step 4's rest).

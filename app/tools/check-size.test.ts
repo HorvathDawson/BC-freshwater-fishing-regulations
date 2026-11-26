@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { execFileSync } from "node:child_process";
-import { BUDGETS, DOCS_DIR, checkRepo, checkSize, keptProblems, lineCount, packageDirs } from "./check-size.mjs";
+import { BUDGETS, DOCS_DIR, LOOKUP, checkRepo, checkSize, keptProblems, lineCount, packageDirs } from "./check-size.mjs";
 import { TICKETS_DIR } from "./ledger.mjs";
 
 type F = { path: string; lines?: number; bytes?: number };
@@ -24,11 +24,13 @@ const lean = (): F[] => [
   md(`${TICKETS_DIR}/T9-small.md`, 100), md(`${TICKETS_DIR}/README.md`, 90), { path: `${TICKETS_DIR}/closed.tsv` },
   { path: `${DOCS_DIR}/shots/a.png`, bytes: 1000 },
 ];
-type Maps = { readmeLong?: Record<string, number>; ticketOver?: Record<string, number>; markdownLong?: Record<string, number> };
+type Maps = { readmeLong?: Record<string, number>; ticketOver?: Record<string, number>; markdownLong?: Record<string, number>;
+              pageLong?: Record<string, number>; workingPages?: Record<string, string>; readingBudget?: number };
 /** the guard on a made-up tree, with no exception maps unless the test gives its own (the real ones name real files) */
 const run = (files: F[], extra: { closedIds?: string[]; kept?: Record<string, string> } & Maps = {}) =>
   checkSize({ files, closedIds: extra.closedIds ?? [], kept: extra.kept ?? {}, readmeLong: extra.readmeLong ?? {}, ticketOver: extra.ticketOver ?? {},
-             markdownLong: extra.markdownLong ?? {} });
+             markdownLong: extra.markdownLong ?? {}, pageLong: extra.pageLong ?? {}, workingPages: extra.workingPages ?? {},
+             readingBudget: extra.readingBudget ?? 1e9 });
 const grow = (files: F[], path: string, lines: number) => files.map((f) => (f.path === path ? { ...f, lines } : f));
 const without = (files: F[], path: string) => files.filter((f) => f.path !== path);
 /** the message names the file, its size, the budget and the way out */
@@ -84,7 +86,7 @@ describe("READMEs under app/ and pipeline/", () => {
     expect(run([...lean(), md(path, 30)], { readmeLong: { [path]: 30 } }).join("\n")).toContain("take it off the list");
   });
   it("a README outside app/ and pipeline/ is not this budget's", () => {
-    expect(run([...lean(), md("deploy/README.md", 500)])).toEqual([]);
+    expect(run([...lean(), md("deploy/README.md", max("page"))])).toEqual([]);
   });
 });
 
@@ -125,9 +127,10 @@ describe("open tickets", () => {
 });
 
 describe("any markdown file", () => {
-  it(`${max("anyMarkdown")} lines pass, one more fails, anywhere in the repo`, () => {
-    expect(run([...lean(), md("data/notes.md", max("anyMarkdown"))])).toEqual([]);
-    says(run([...lean(), md("data/notes.md", max("anyMarkdown") + 1)]), "data/notes.md", max("anyMarkdown") + 1, max("anyMarkdown"));
+  it(`${max("anyMarkdown")} lines pass, one more fails (a page in the tickets folder: outside it the page budget is the lower one)`, () => {
+    const notes = `${TICKETS_DIR}/notes.md`;
+    expect(run([...lean(), md(notes, max("anyMarkdown"))])).toEqual([]);
+    says(run([...lean(), md(notes, max("anyMarkdown") + 1)]), notes, max("anyMarkdown") + 1, max("anyMarkdown"));
   });
   it("a listed file holds its own budget; a stale or lowered entry fails", () => {
     const path = "data/ref/API.md", own = 900, markdownLong = { [path]: own };
@@ -138,9 +141,55 @@ describe("any markdown file", () => {
   });
 });
 
+describe("the page standards outside the tickets folder (the second cut)", () => {
+  const page = `${DOCS_DIR}/runbooks/thing.md`;
+  it(`a page of ${max("page")} lines passes, one more fails, in the docs folder or anywhere else`, () => {
+    expect(run([...lean(), md(page, max("page")), md("deploy/NOTES.md", max("page"))])).toEqual([]);
+    says(run([...lean(), md(page, max("page") + 1)]), page, max("page") + 1, max("page"));
+    says(run([...lean(), md("deploy/NOTES.md", max("page") + 1)]), "deploy/NOTES.md", max("page") + 1, max("page"));
+  });
+  it("a listed page holds its size and only shrinks; a stale entry fails", () => {
+    const pageLong = { [page]: 300 };
+    expect(run([...lean(), md(page, 300)], { pageLong })).toEqual([]);
+    says(run([...lean(), md(page, 301)], { pageLong }), page, 301, 300);
+    expect(run([...lean(), md(page, 200)], { pageLong }).join("\n")).toContain(`PAGE_LONG holds ${page} at 300 but it is 200 lines`);
+    expect(run([...lean(), md(page, max("page"))], { pageLong }).join("\n")).toContain(`PAGE_LONG lists ${page}, now ${max("page")} lines`);
+    expect(run(lean(), { pageLong }).join("\n")).toContain(`PAGE_LONG lists ${page}, which is not tracked`);
+  });
+  it("tickets, look-up files and pages with their own budget are not held to the page budget", () => {
+    // every LOOKUP entry (a file, or a folder ending in "/"), read from the guard's own table
+    expect(LOOKUP.length).toBeGreaterThan(3);
+    expect(run([...lean(), ...LOOKUP.map((l: string) => md(l.endsWith("/") ? `${l}x.md` : l, 600))])).toEqual([]);
+    expect(run(grow(lean(), "AGENTS.md", max("agents")))).toEqual([]);
+  });
+  it("a page named for a day fails, in the docs folder only", () => {
+    expect(run([...lean(), md(`${DOCS_DIR}/research/review-2026-11-15.md`)]).join("\n")).toContain("a page named for a day is history");
+    expect(run([...lean(), md(`${DOCS_DIR}/research/review.md`), md(`${DOCS_DIR}/ROADMAP-after-0.9.0.md`)])).toEqual([]);
+    expect(run([...lean(), md(`${TICKETS_DIR}/T9-files/notes-2026-11-15.md`)])).toEqual([]);
+    expect(run([...lean(), md(`${DOCS_DIR}/research/2026-11-15/notes.md`)]).join("\n")).toContain("a page named for a day is history");
+  });
+  it("a ticket's page outside its ticket's folder fails unless listed; in the folder it is the ticket's (held to the page budget)", () => {
+    const loose = `${DOCS_DIR}/app-integration/T9-findings.md`, inFolder = `${DOCS_DIR}/app-integration/T9-shots/before-after.md`;
+    expect(run([...lean(), md(loose)]).join("\n")).toContain(`${loose}: a ticket's page outside its ticket's folder`);
+    expect(run([...lean(), md(loose)], { workingPages: { [loose]: "the owner reads it" } })).toEqual([]);
+    expect(run(lean(), { workingPages: { [loose]: "gone" } }).join("\n")).toContain(`WORKING_PAGES lists ${loose}, which is not tracked`);
+    expect(run([...lean(), md(inFolder), md(`${DOCS_DIR}/app-integration/T9-files/pasted-2026-11-25.md`)])).toEqual([]);
+    says(run([...lean(), md(inFolder, max("page") + 1)]), inFolder, max("page") + 1, max("page"));
+    expect(run([...lean(), { path: `${DOCS_DIR}/app-integration/T9-shots/a.png`, bytes: 10 }])).toEqual([]);
+    // a folder keyed to a ticket but not named as a ticket's folder outlives the ticket
+    expect(run([...lean(), md(`${DOCS_DIR}/research/t9-hard-cases/NOTES.md`)]).join("\n")).toContain("a ticket's page outside its ticket's folder");
+  });
+  it("the reading total: every markdown line outside tickets and look-up files, at the budget passes, one over fails", () => {
+    const total = lean().filter((f) => f.path.endsWith(".md") && !f.path.startsWith(`${TICKETS_DIR}/`)).reduce((n, f) => n + (f.lines ?? 0), 0);
+    expect(run([...lean(), md("CHANGELOG.md", 500)], { readingBudget: total })).toEqual([]);
+    says(run([...lean(), md("deploy/NOTES.md", 1)], { readingBudget: total }), "markdown outside the tickets folder", total + 1, total);
+  });
+  it("the real budget is set (never the 0 it is written with before a measure)", () => expect(max("readingLines")).toBeGreaterThan(1000));
+});
+
 describe("the docs tree's totals", () => {
-  /** `total` markdown lines in files of 600 (under the one-file budget) */
-  const many = (_n: number, total: number): F[] => Array.from({ length: Math.ceil(total / 600) }, (_, i) => md(`${DOCS_DIR}/pages/p${i}.md`, Math.min(600, total - i * 600)));
+  /** `total` markdown lines in files of 600 (under the one-file budget), in the tickets folder (outside it a page is 150 at most) */
+  const many = (_n: number, total: number): F[] => Array.from({ length: Math.ceil(total / 600) }, (_, i) => md(`${TICKETS_DIR}/pages/p${i}.md`, Math.min(600, total - i * 600)));
   it("markdown lines: at the budget passes, one over fails, and it counts docs + tickets once", () => {
     const base = lean();
     const have = base.filter((f) => [DOCS_DIR, TICKETS_DIR].some((d) => f.path.startsWith(`${d}/`))).reduce((n, f) => n + (f.lines ?? 0), 0);

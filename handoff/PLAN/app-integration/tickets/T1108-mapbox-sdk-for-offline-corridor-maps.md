@@ -125,8 +125,8 @@ for sizing the engine question. Size: S (research). Owner: yes (the pick).
 fix when wanted is small (he creates an ArcGIS Location Platform account and key; a usage alert and a kill switch
 to the drawn map with a shown reason). Offline imagery reopens when a provider's terms allow it through MapLibre
 (candidates to ask in writing, drafts on request: Stadia s8.4, the Province for corridor rights, Esri on the
-device cache). The earlier research: `handoff/PLAN/research/satellite/README.md` and
-`handoff/PLAN/research/stream-imagery/SPEC.md`.
+device cache). The earlier research: `handoff/PLAN/research/satellite/README.md` (one page now,
+built Esri imagery plus the corridor research).
 
 ## Owner
 
