@@ -87,6 +87,16 @@ no join to say (T1140)" (Old Kootenay River Channel; `part.py`, the side words, 
 3. Find 1 (bc.pmtiles), as above.
 4. The setup-page leftovers.
 
+2026-11-26 the owner's pick ("Yes, but name it by the area") built: fix in PR #312 (no auto-merge), awaiting the
+independent review and the owner's look at the words. A one-section main line's mouth is its first vertex, with a
+stem-order guard on every build (3,916 of 3,916 start at the section below; 29,564 lowest pieces agree with FWA
+junction measures, 0 backwards, 2,509 uncheckable). Membership-only parks/WMAs/ERs are offered for a reviewed pair only.
+Old Kootenay p1 reads "Old Kootenay River Channel inside Creston Valley Wildlife Management Area". The clean clone made
+release r-c8dc7712a9c0, rc=0 (reach 11m22s, tiles 16m13s, deliver 14m52s; reach and tiles reran on the rename's
+comment edits). Only gnis:2123 and the Okanagan River Oxbows changed (Oxbows' name kept; its subtitle label gained
+"joining 0.2–0.3 km"). Waiting for the owner's review: Thelwood Creek p0 is 100 % inside STRATHCONA - WESTMIN PARK,
+logged as an INSIDE candidate and not offered.
+
 ## Acceptance
 The clean clone makes a release directory from nothing, with no copied file; deliver passes on gnis:2123, with a
 test of a one-section main line and its side channel that fails without the fix; a fresh release names its basemap
