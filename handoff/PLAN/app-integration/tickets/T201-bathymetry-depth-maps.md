@@ -34,3 +34,12 @@ no-access-vs-contour rules; tests + size diff; owner look).
   (derivative contours with CHS notice); (3) Okanagan/Kootenay/Shuswap: CHS licences, trace scans, or PDF-only; (4)
   emails to OBWB, Hakai, UNBC; (5) bulk-tick classes A/B after a sample of 50?; (6) modelled depth (GLOBathy) at all.
   Defaults to build with: ask for the link, no NONNA, PDF-only, no emails sent, bulk-tick with sample, no modelled depth.
+
+## Plan 2026-11-25 night
+See T200's section of the same date (one plan for both; notes `tickets/archive/night-notes-2026-11-25.tar.gz` `stocking-depth-plan.md`): the
+bathymetric PDFs are OGL-BC and can ship now; the first slice is a "Depth chart" card with the official PDF plus a
+tint on the map; contours later (placed contours are still "Access Only"); the Lake tab is built once, with T200.
+
+## Owner
+
+- [ ] 2026-11-25 — Picks (defaults first): depth v1 = the PDF card plus a tint / add max and mean depth (needs the licence) / contours; the look: chart card plus tint.

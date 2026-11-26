@@ -41,3 +41,23 @@ distance cap; code only a late fallback; 550 unnamed rows matched unchecked). He
 
 ## Ledger detail (moved out of the ledger row, T540, 2026-11-22)
 owner 2026-11-13: "after the closed release we will do stocking and depth maps next"; starts once Play closed testing is running; owner: licence link, class B, streams, history depth, lag (questions in the ticket); with T634 items 4-5
+
+## Plan 2026-11-25 night (read-only; both features)
+Notes: `tickets/archive/night-notes-2026-11-25.tar.gz` `stocking-depth-plan.md`.
+- What ships today: the Stocked and Depth colour modes, legends and the `lakes/1` reader exist (`layers.ts:150-160`,
+  `lakeFacts.ts:1-101`, `mapModes.ts:126`) but NOTHING feeds them: both toggles show "Coming soon / No data yet".
+  There is no Lake tab, stocking card or depth card (the old site had both). The credits page already claims
+  stocking and depth under OGL (`menu/licences.ts:144`, `sources.ts:121`) and the About page lists "stocking
+  records" (`html.ts:211`); the owner chose on 2026-11-25 to claim both features now (T1152).
+- Licences read 2026-11-25: bathymetric PDFs are OGL-BC (free to ship now); Stocking Reports and placed contours
+  are still "Access Only" (the owner's OGL link is still owed); open fallback: FISS release points (OGL, no counts
+  or strain); the GoFishBC report is richest and freshest but "All Rights Reserved".
+- Competitors: River Atlas has stocking reports with "follow"; BetterFish a stocked-lakes layer (third-party
+  listing only); depth contours in B.C. are paid (Fishbrain Pro, Navionics); nobody confirmed stocking alerts.
+- First slices: stocking = FISS only, lakes, 5 years, a Stocking card plus the Stocked colour through the T412
+  feed pattern; depth = the OGL PDF as a "Depth chart" card plus a tint, contours later; build the Lake tab once,
+  in the stocking release.
+
+## Owner
+
+- [ ] 2026-11-25 — Picks (defaults first): stocking v1 from open FISS records only / wait for the licence / ask the Society; the look: a card plus the map colour; alerts: later with T234 / now / never; a source lag is fine if the card says "records to <date>": yes / no.
