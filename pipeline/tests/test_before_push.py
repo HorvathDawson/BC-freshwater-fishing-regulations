@@ -261,7 +261,9 @@ def test_the_pushed_paths_are_the_prs_own_not_what_a_merge_of_main_brought(tmp_p
     assert paths == ["handoff/x.md", "pipeline/own.py"] and said == [f"refs/heads/lane: 2 path(s) in {one[:12]}..{two[:12]}"]
     # main changes the PR's file and one of its own; the merge's resolution is the PR's
     main_moves({"pipeline/own.py": "main", "app/main_only.ts": "m"})
-    assert subprocess.run(["git", "merge", "-q", "origin/main"], cwd=here, capture_output=True).returncode == 1
+    # with an identity on the command line: a CI runner has none configured (git then exits 128, not the conflict's 1)
+    assert subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t", "merge", "-q", "origin/main"], cwd=here,
+                          capture_output=True).returncode == 1
     (here / "pipeline" / "own.py").write_text("resolved")
     three = commit({}, "merge main")
     said, paths = BP.pushed_paths([f"refs/heads/lane {three} refs/heads/lane {two}"])
