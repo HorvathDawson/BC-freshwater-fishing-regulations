@@ -78,6 +78,7 @@ W47. **`main` is the protected trunk; every change reaches it through a pull req
     - Hooks live in `.githooks/` (`git config core.hooksPath .githooks` once per clone); the pre-push hook runs the
       tests the change reaches. `--no-verify` is an emergency skip only, said in the commit or PR. A long hook needs
       an ssh keepalive (`ServerAliveInterval`) or GitHub drops the push.
+      Hooks queue on one machine lock; `BEFORE_PUSH_NO_LOCK="<reason>"` runs beside it, the reason printed.
     - **Once before opening a PR** (and before a push of substance to it) run `scripts/before_pr.sh --title "<the PR title>"`; open the PR
       only on its `before-pr: PASS` line. Read the PR's mutation report (report-only) before asking for review.
     - A release is cut (`python -m pipeline release --cut <version>`) to `release/<version>` and ships from there. A
