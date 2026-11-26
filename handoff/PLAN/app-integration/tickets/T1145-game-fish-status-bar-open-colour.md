@@ -22,4 +22,3 @@ Capilano before/after pictures to the owner. Severity: low. Model: Sonnet. Size:
 ## Owner
 
 - [x] 2026-11-25 — "also the calendar bar colors still do not match for open" (2026-11-25 about 16:55, the T1140 conversation).
-- [ ] 2026-11-25 — Look at the Capilano before/after pictures of the open colour.

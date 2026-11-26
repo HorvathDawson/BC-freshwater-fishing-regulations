@@ -16,3 +16,6 @@ block and deletes the section here. `node app/tools/ledger.mjs` lists the open l
 
 ## Cloudflare Bots / JavaScript Detections (optional)
 - [ ] 2026-11-22 — The Chrome "StorageType.persistent" warning on the site comes from Cloudflare's injected bot script: turn off Cloudflare Bots / JavaScript Detections to silence it.
+
+## The game-fish bar's open colour (T1145 follow-up)
+- [ ] 2026-11-25 — T1145 is merged (#260): look at the Capilano before/after pictures of the open colour (`handoff/PLAN/app-integration/T1145-shots/`); say if it is wrong.
