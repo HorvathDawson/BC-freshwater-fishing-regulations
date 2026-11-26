@@ -1,10 +1,10 @@
 # T1145 — The game-fish status bar and its "Open" word take the same open colour as the salmon bar
 
-Status: OPEN — 0.10.0 (the release is held anyway); app-only, small
+Status: DONE — game-fish bar, word, pill, legend swatch and date dot use palette.salmon.open (code 1052c20af; pictures in T1145-shots/, owner to look)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1145 | The game-fish status bar and its "Open" word take the same open colour as the salmon bar | OPEN — 0.10.0 (the release is held anyway); app-only, small | | owner 2026-11-25; T1028 leftover; Capilano before/after picture |
+| T1145 | The game-fish status bar and its "Open" word take the same open colour as the salmon bar | DONE — game-fish bar, word, pill, legend swatch and date dot use palette.salmon.open (code 1052c20af; pictures in T1145-shots/, owner to look) | 1052c20af | owner looks at T1145-shots; other palette.open users (YesNoList, OfflinePage, LayersSheet) left as found |
 
 Source: owner, 2026-11-25, in the 0.10.0 chat while looking at the T1140 pictures, verbatim: "also the calendar bar
 colors still do not match for open". T1028 (owner 2026-11-23: "the schedule bar for trout should have same open
