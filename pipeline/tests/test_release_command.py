@@ -258,6 +258,12 @@ def world(tmp_path: Path, monkeypatch):
     w["staging_serves"] = NEW
     monkeypatch.setattr(R, "staging_release", lambda: w["staging_serves"])
     monkeypatch.setattr(R, "after_chores", lambda rid: f"after the release: chores for {rid}")
+    # (T1161) the Mac: macOS on power, a fake pmset and a fake caffeinate that only records its pid (nothing here
+    # reads the real power source or holds the real Mac awake)
+    w["pmset"], w["caffeinated"] = "Now drawing from 'AC Power'\n -InternalBattery-0 (id=1)\t100%; charged; 0:00 remaining", []
+    monkeypatch.setattr(R, "is_macos", lambda: True)
+    monkeypatch.setattr(R, "pmset_batt", lambda: w["pmset"])
+    monkeypatch.setattr(R, "start_caffeinate", lambda pid: w["caffeinated"].append(pid))
     return w
 
 
@@ -2458,3 +2464,108 @@ def test_a_comparison_that_fails_at_the_ship_is_a_stop_not_a_traceback(world, ca
     assert _staging() == 1
     err = capsys.readouterr().err
     assert "could not compare abc123 with v0.9.0-rc.1" in err and "only the tags are left" in err
+
+
+BATT = "Now drawing from 'Battery Power'\n -InternalBattery-0 (id=1)\t80%; discharging; 3:00 remaining"
+
+
+def test_a_long_run_keeps_the_mac_awake_on_power(world, capsys):
+    """(T1161) --staging on AC starts caffeinate bound to this process's pid and says so, lid open. Mutation: drop the
+    start_caffeinate call in stay_awake: this fails."""
+    import os
+    assert _staging() == 0
+    assert world["caffeinated"] == [os.getpid()]
+    assert "keeping the Mac awake while this runs (caffeinate -i -s): keep the lid open, on power" in capsys.readouterr().out
+
+
+def test_an_unattended_run_on_battery_is_refused(world, monkeypatch, capsys):
+    """(T1161) no terminal + battery: refused before any stage, caffeinate not started, nothing built. Mutation: drop the
+    battery refusal in stay_awake: this fails."""
+    world["pmset"] = BATT
+    monkeypatch.setattr(R, "is_tty", lambda: False)
+    with pytest.raises(SystemExit) as e:
+        _staging()
+    assert "refused on battery for an unattended run" in str(e.value) and "--on-battery" in str(e.value)
+    assert world["caffeinated"] == [] and not world["calls"]
+
+
+def test_on_battery_with_a_reason_goes_on_and_prints_it(world, monkeypatch, capsys):
+    monkeypatch.setattr(R, "is_tty", lambda: False)
+    world["pmset"] = BATT
+    assert _staging(on_battery="the AC adapter is in the car") == 0
+    assert len(world["caffeinated"]) == 1
+    assert "ON BATTERY, goes on (--on-battery): the AC adapter is in the car" in capsys.readouterr().out
+
+
+def test_an_attended_run_on_battery_warns_and_goes_on(world, monkeypatch, capsys):
+    monkeypatch.setattr(R, "is_tty", lambda: True)
+    world["pmset"] = BATT
+    assert _staging() == 0
+    assert "WARNING: on battery" in capsys.readouterr().out and len(world["caffeinated"]) == 1
+
+
+def test_an_empty_on_battery_reason_is_refused(world):
+    with pytest.raises(SystemExit):
+        _staging(on_battery="  ")
+
+
+@pytest.mark.parametrize("said", ["", "pmset: something new\n", "Now drawing from 'UPS Power'\n"])
+def test_an_unreadable_pmset_is_refused_not_passed(world, monkeypatch, said):
+    """(T1161) a first line that is neither AC nor Battery Power is a refusal, attended or not (never a silent pass)."""
+    world["pmset"] = said
+    monkeypatch.setattr(R, "is_tty", lambda: True)
+    with pytest.raises(SystemExit) as e:
+        _staging()
+    assert "cannot read the power source" in str(e.value) and world["caffeinated"] == []
+
+
+def test_a_failing_pmset_is_refused(monkeypatch):
+    import subprocess
+    monkeypatch.setattr(R.subprocess, "run", lambda *a, **k: subprocess.CompletedProcess(a, 1, "", "pmset: boom"))
+    with pytest.raises(SystemExit) as e:
+        R.pmset_batt()
+    assert "cannot read the power source" in str(e.value) and "boom" in str(e.value)
+
+
+def test_which_runs_hold_the_mac_awake(world):
+    """(T1161) --staging, --prod and a rehearsal that builds or re-cuts hold it; a bare --dry-run (cheap checks) does not."""
+    assert R.main(["--staging", "--dry-run"]) == 0 and world["caffeinated"] == []
+    assert R.main(["--staging", "--dry-run", "--build"]) == 0 and len(world["caffeinated"]) == 1
+    R.main(["--staging", "--dry-run", "--rehearse-follows"])
+    assert len(world["caffeinated"]) == 2
+    R.main(["--prod", NEW, "--dry-run"])                                   # prod's dry run only reads: no hold
+    assert len(world["caffeinated"]) == 2
+
+
+def test_not_macos_has_nothing_to_keep_awake(world, monkeypatch):
+    monkeypatch.setattr(R, "is_macos", lambda: False)
+    assert R.stay_awake() == "not macOS: nothing to keep awake" and world["caffeinated"] == []
+
+
+def test_caffeinate_is_detached_from_the_releases_streams(monkeypatch):
+    """(T1161 review) the helper inherits none of the release's stdin/stdout/stderr. Mutation: drop the DEVNULLs: fails."""
+    import subprocess
+    seen = {}
+    monkeypatch.setattr(R.subprocess, "Popen", lambda cmd, **kw: seen.update(cmd=cmd, **kw))
+    R.start_caffeinate(4242)
+    assert seen["cmd"] == ["caffeinate", "-i", "-s", "-w", "4242"]
+    assert seen["stdin"] == seen["stdout"] == seen["stderr"] == subprocess.DEVNULL
+
+
+def test_a_prod_run_that_passes_its_checks_holds_the_mac_awake(staged, monkeypatch):
+    """(T1161 review) the prod hold starts inside prod(), after its checks. Mutation: drop the call: this fails."""
+    import os
+    monkeypatch.setenv("CONFIRM_PROD", NEW)
+    staged["caffeinated"].clear()
+    assert R.prod(NEW, ask=lambda _: NEW) == 0
+    assert staged["caffeinated"] == [os.getpid()]
+
+
+def test_an_unattended_prod_run_on_battery_gets_the_human_only_refusal(staged, monkeypatch, capsys):
+    """(T1161 review) no terminal on battery: prod's own refusal (rc 2), not the battery one; no hold started."""
+    monkeypatch.setenv("CONFIRM_PROD", NEW)
+    monkeypatch.setattr(R, "is_tty", lambda: False)
+    staged["pmset"] = BATT
+    staged["caffeinated"].clear()
+    assert R.main(["--prod", NEW]) == 2
+    assert "no interactive terminal" in capsys.readouterr().err and staged["caffeinated"] == []

@@ -16,7 +16,7 @@
  *   Map         the water framed and lit on the map (`focusFor`, the search's framing); the parts and their steps
  *               are P15's. The canvas pans, so here the swipe listens on the header only.
  */
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { View } from "react-native";
 import { conditionsOpening, WATER_SCREEN_WORDS, waterReportWhere } from "@app/core";
 import type { ItemId, Parameter, WaterSource, SectionId } from "@app/data";
@@ -28,7 +28,8 @@ import type { ReleaseLoader } from "@app/data/release";
 import { ConditionsPanel } from "./ConditionsPanel";
 import { Selectable } from "./Text";
 import { AccessNoticeBlock } from "./regs/AccessNoticeBlock";
-import { Place } from "./regs/RegsHeader";
+import { PartsOthers, Place } from "./regs/RegsHeader";
+import { WaterViewsContext } from "./ViewSwipe";
 import { LoadingState } from "./LoadingState";
 import { ErrorState } from "./ErrorState";
 import { type Palette } from "./theme";
@@ -113,8 +114,11 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, o
   // (T367, owner 2026-11-04: "just like regs") the part's place label and the page's access notices — the banner and
   // the gentle note — as the Regulations view says them
   // (T517) the part named as the water's map names it (one name, every view)
-  const entries = useMapEntries(loader, store.value ?? null, item);
-  const where = useWaterPlace(loader, source, item, section, entries?.names ?? null);
+  const mapRead = useMapEntries(loader, store.value ?? null, item);
+  const entries = mapRead.entries;
+  const where = useWaterPlace(loader, source, item, section, entries?.names ?? null, entries?.places ?? null);
+  // (T1140) the line to the other parts, as on the Regulations head: the water's Map, its list of parts open
+  const views = useContext(WaterViewsContext);
   // (T377) THE WATER'S OWN WATERSHED GROUP and its days — its tap, else its own point; never the map's centre. The
   // quantity is the card's (T728: this view's pick, opening on the map's Flow or Level); a tap on a day is the panel's horizon pick.
   const basin = useWaterBasin(source, frameBasinAsk({ item, tapSid, at: from ?? null }, here), section !== null);
@@ -123,7 +127,8 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, o
 
   // (T508) DRAWN WHOLE, this view's own part: the reach known (or why not), the place label and the access notices, the
   // watershed group's days — the panel says its own (`ConditionsPanel`), and its maps theirs (`MiniMap`)
-  usePaneReady(section === null ? !waiting : where.settled && days.state !== "loading" && (measured !== null || measures.state === "failed"));
+  // (T1140) and the head's name and line to the other parts: the map's reading of the water's parts
+  usePaneReady(section === null ? !waiting : where.settled && mapRead.settled && days.state !== "loading" && (measured !== null || measures.state === "failed"));
 
   return (
     <WaterFrame palette={palette} face="conditions" title={<WaterTitle name={name} palette={palette} />}>
@@ -137,6 +142,8 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, o
         <>
           {/* (T367) where on the water, and what land, as the Regulations view heads with them */}
           {where.place && <Place place={where.place} palette={palette} coach={null} />}
+          {/* (T1140) a part of a water of several whose other parts have other rules: the line to them */}
+          {where.others && <PartsOthers words={where.others} palette={palette} onParts={views?.onParts} />}
           <AccessNoticeBlock notices={where.access} palette={palette} />
           <ConditionsPanel source={source} section={section} palette={palette}
                            tiles={tiles} theme={theme} feed={feed}

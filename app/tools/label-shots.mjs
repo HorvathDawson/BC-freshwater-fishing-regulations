@@ -79,10 +79,11 @@ function assetsDir() {
 async function styles(themes) {
   const runner = await makeRunner();
   const { runtimeStyle } = await runner.run(join(APP, "packages/map/src/runtime-style.ts"));
+  const { PMTILES } = await runner.run(join(APP, "packages/map/src/tile-access.ts"));
   await runner.close();
   const AT = { atlas: "ORIGIN/atlas.pmtiles", basemap: "ORIGIN/basemap.pmtiles", outside: "ORIGIN/outside.geojson",
     assets: "ORIGIN/assets/", gauges: '{"type":"FeatureCollection","features":[]}' };
-  return Object.fromEntries(themes.map((t) => [t, runtimeStyle(AT, t)]));
+  return Object.fromEntries(themes.map((t) => [t, runtimeStyle(AT, t, {}, PMTILES)]));
 }
 
 function sendFile(req, res, path, type) {

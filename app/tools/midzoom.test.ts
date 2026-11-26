@@ -24,6 +24,7 @@ import { createPropertyExpression, latest } from "@maplibre/maplibre-gl-style-sp
 import type { DayProfiles, MethodDay } from "@app/core";
 import { baseAdapter, type MapHandle } from "../packages/map/src/adapters/contract";
 import { runtimeStyle } from "../packages/map/src/runtime-style";
+import { PMTILES } from "../packages/map/src/tile-access";
 import ENCODED from "./midzoom-today.fixture.json";
 
 type Paint = Record<string, Record<string, unknown>>;
@@ -45,7 +46,7 @@ function midzoomPaint(theme: string): Record<string, Record<string, unknown>> {
   for (const l of ["stream", "lake", "lake_flowing"]) a.setLayerMode(h, l, "profile", theme);
   a.setChannel(h, "status", MIDZOOM_DAY, theme);
   a.setChannel(h, "method", MIDZOOM_METHOD, theme);
-  const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles", outside: "o.geojson" } as never, theme) as
+  const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles", outside: "o.geojson" } as never, theme, {}, PMTILES) as
     { layers: { id: string; paint?: Record<string, unknown> }[] };
   paint["outside"] = s.layers.find((l) => l.id === "outside")!.paint!;
   return { ...Object.fromEntries(MIDZOOM_LAYERS.map((l) => [l, paint[l] ?? {}])), "stream-heavy": paint["stream-heavy"] ?? {} };

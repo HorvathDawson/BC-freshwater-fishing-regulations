@@ -20,6 +20,7 @@ import {
   toggleableGroups,
 } from "./style";
 import { runtimeStyle } from "./runtime-style";
+import { PMTILES } from "./tile-access";
 import { colour } from "./chrome";
 
 /** Records every call, so an adapter can be checked on what it DOES. */
@@ -383,7 +384,7 @@ describe("the style adapter (platform-free: one implementation, tested for what 
   });
 
   it("…and is OUTLINED: a casing under the stream line, a ring on a lake or wetland, in `color.highlight`, by feature-state", () => {
-    const style = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, "light", { stream: "profile" });
+    const style = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, "light", { stream: "profile" }, PMTILES);
     const ids = style.layers.map((l: { id: string }) => l.id);
     const at = (id: string) => ids.indexOf(id);
     // under the stream line (its colour on top), over the lakes; each ring over its own polygons' last layer (the lake's
@@ -401,7 +402,7 @@ describe("the style adapter (platform-free: one implementation, tested for what 
                    ["boolean", ["feature-state", "part"], false], 1, inseason, 1, 0];
     for (const theme of ["light", "dark", "cvd"]) {
       const tk = resolveTheme(theme);
-      const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, theme, {});
+      const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, theme, {}, PMTILES);
       const casing = s.layers.find((l: { id: string }) => l.id === SELECTION_CASING) as unknown as { paint: Record<string, unknown> };
       // (T735) dark wears look C (src/selection-look.test.ts pins it whole); light and cvd are today's
       if (theme === "dark") continue;
@@ -552,7 +553,7 @@ describe("the flow ramp's units", () => {
     expect(sentinel[1].token).toBe("color.water.ungauged");
 
     const dashed = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never,
-                                "light", { stream: "standing" })
+                                "light", { stream: "standing" }, PMTILES)
       .layers.find((l: { id: string }) => l.id === "stream-nobaseline") as
         { paint: Record<string, unknown> } | undefined;
     expect(dashed).toBeDefined();

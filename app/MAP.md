@@ -46,6 +46,7 @@ than what is served is told so (`apps/mobile/src/replaced.web.ts`, ui `replaced.
 | `packages/data/dev/feeds/` | a gauge feed for tests | `pipeline.gauges.feed.publish` |
 | `fixtures/golden/` | release-backed regs oracles: `taps.json`, `page-oracle.json` | `node app/tools/regs-recut/sync.mjs` (the release re-cuts them, AGENTS W46) |
 | `fixtures/reference/` | page v36 (html, js) and the calendar copy, frozen: the parity oracle | `python -m pipeline.tools.emit.calendar` (calendar only) |
+| `fixtures/map-style/composed.json` | the phone's and the web's composed map styles, byte for byte (T1154) | `STYLE_GOLDEN=write pnpm exec vitest run tools/style-golden.test.ts` |
 | `fixtures/trout/`, `fixtures/reader-states.json`, `fixtures/dfo-feed-*.json` | test inputs for the trout table, the reader tool, the DFO feed | by hand |
 
 ## Gates (`pnpm check` = `check:fast` then `test`; the order is `package.json` `scripts.check`)
