@@ -195,3 +195,50 @@ Names only. For each: can you get it back if this Mac is gone?
 - `~/.ssh/id_ed25519_personal` and the `github.com-personal` entry in `~/.ssh/config`.
 - Root `.env`: what is in it, and does anything still read it?
 - Accounts: Play Console, App Store Connect and Apple Developer, Cloudflare, Google Cloud, GitHub, the registrar.
+
+## Fresh clone, light half (2026-11-25): what happened
+
+T1120 lane, step 2 of the ticket, the half that needs little disk. A new folder (`canifishthis-fresh`, beside the main
+checkout, which was not touched: no link, copy or read from it to make a step pass). Branch `docs/T1120-fresh-clone-setup`.
+Nothing from `~/.canifishthis/`, `.env` or a token file was opened. Not run (heavy half, see the list in
+`fresh-machine.md` sections 5-10): bootstrap's fetch, the data build, Android, iPhone, deploy dry runs.
+
+| step | doc line followed | command | result | time | missing or wrong |
+|---|---|---|---|---|---|
+| 1 clone | fresh-machine.md: `git clone --branch main git@github.com:canifishthis/canifishthis.git` | that, then (after 8 minutes at about 100 KB/s, 20 MB of 1.7 GB) https | ssh: too slow to finish, stopped; https PASS | https 3 min 18 s; 2.8 GB with the checkout | the page said nothing of the size (1.7 GB history, 2.8 GB on disk); the ssh clone from this Mac crawled while https and a plain download ran at 20 MB/s (cause unknown; the alias form timed out at 40 s with nothing) |
+| 1 hooks | AGENTS.md / README: `git config core.hooksPath .githooks` | that | PASS | 0 s | fresh-machine.md did not say it; `bootstrap.sh` did not do it (now does) |
+| 2 Python | bootstrap.sh: `PYTHON=python3.13`, venv, `pip install -r requirements.txt -c constraints.txt` | (by hand, then the new `bootstrap.sh --setup-only`) | PASS | 30 s | no doc says where Python 3.13 comes from (here: miniconda's, the only one; no brew python); the shell had the main checkout's `VIRTUAL_ENV` and `.venv/bin` first on PATH, so `python3.13` was that checkout's (a clean PATH was needed: now said in section 2) |
+| 3 JS | README: `pnpm -C app install --frozen-lockfile`; `app/.nvmrc` 25.9.0, `packageManager` pnpm 9.12.0, engines node >=22.18 | same, inside bootstrap | PASS (node 25.9.0, pnpm 9.12.0 were already here) | 4 s | bootstrap did not install or check; pnpm reused 692 of 716 packages from the machine-wide pnpm store, so this was not a cold install (a find: a machine with an empty store downloads them) |
+| 4 commit and push | AGENTS.md: hooks | commit with the hooks on | commit PASS (commit-msg ran); the push is in the PR section below | 2 s | none |
+| 5 tests | scripts/before_pr.sh names the two suites | `heavy.sh -- pnpm -C app exec vitest run`; `heavy.sh -- bash scripts/pytest-chunked.sh -- -q -m "$markers"` (one at a time, not before_pr.sh, which runs both at once) | pipeline no-data tier PASS (94 chunks, 14 min, peak 1.4 GB); app suite: 826 files and 8818 tests passed, 20 files and 1005 tests skipped, but exit code 1: one unhandled `[vitest-worker]: Timeout calling "onTaskUpdate"` (the Mac was also running another chat's heavy job and my dev server); a rerun was not possible (disk fell to 22 GB, under the 25 GB floor) | 4 min 55 s; 14 min | the skips are "no release on this machine (data/release/r-*)" and the LIVE gates; pytest -q hides pytest skip reasons |
+| 6 web app | app/README: `pnpm -C app dev:web` | that; `curl http://localhost:39218/` and the web bundle; stopped by PID | PASS: 200, 1266 bytes of HTML; bundle 200, 10.7 MB, "Web Bundled 7663 ms (1295 modules)" | 45 s start | what the app shows with no data release was not looked at |
+| 7 heavy half | | read only | the command list is fresh-machine.md sections 5-10 | | see the finds below |
+
+Disk: the clone is 4.2 GB after the installs and the two suites (`.venv` 0.9 GB, `app/node_modules` 1 GB).
+
+### The 17 finds
+
+- Fixed here: 3 (installs, hooks, versions: `bootstrap.sh --setup-only`, fresh-machine.md sections 1-2), 4 and 5 (the mobile
+  toolchain and the MapLibre AAR are in sections 8-9), 6 (gh install and login, section 0), 8 (secrets.md: `.run-token.prod`,
+  `app-store-url`, the APNs line, the `.env` wording), 10 (the page now has Android, iPhone and deploy sections and the https
+  clone URL), 16 (the clone command says the ssh alias and the https route).
+- Confirmed, still open: 1 (`CLAUDE.md` and `.claude/` are absent in the fresh clone, so the human-only parser rule lives in
+  AGENTS.md A1 only), 2 (`pins.json` has no coast entry, bootstrap fetches no `fwa_coast.gpkg`), 9 (the two extra `.p8` keys:
+  the owner says which is APNs), 13 (`data/source/official/` has no fetch command; the app suite skips with a message
+  naming the release, and `pytest -q` hides the pipeline's), 14 (root `node_modules` was not made by anything in setup,
+  tests or the web app: it is a stray; `.test-scratch/` is made by the tests and is ignored), 7 (shellcheck: nothing runs
+  it, only `# shellcheck` comments exist: not needed, closed), 17 (a worktree build still copies from a main checkout).
+- Not reached (heavy half): 11 (local-only state), 12 (`fixtures-full`), 15 (Maestro).
+
+### New finds for the planning chat (not numbered)
+
+- The ssh clone from this Mac ran at about 100 KB/s (https 20 MB/s): cause not known; the doc's `git@github.com:` URL did not finish.
+- A clone is 2.8 GB on disk (1.7 GB of history): worth saying on the page, or a smaller history.
+- `python3.13` on PATH was the main checkout's venv (the shell inherited `VIRTUAL_ENV`); a worktree or second clone run
+  from such a shell borrows the other venv silently. `bootstrap.sh` should refuse a `VIRTUAL_ENV` that is not its own.
+- The pnpm store is machine-wide: a fresh clone here was not cold, so the install time and the `--offline` builds are not
+  proven for a machine with an empty store.
+- The app vitest suite exited 1 with every test passed (one worker RPC timeout under load): is it flaky in CI too?
+- `pre-push` finds `.venv` through the git common dir, which works for a clone and for worktrees (T1112), but nothing makes
+  it for a worktree's own installs.
+
