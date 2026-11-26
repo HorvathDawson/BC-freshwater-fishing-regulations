@@ -92,7 +92,7 @@ def _write(db, geo, tmp_path, monkeypatch):
     monkeypatch.setattr(sc, "inside_rows", lambda *_a, **_k: [])
     monkeypatch.setattr(sc, "own_name_rows", lambda *_a, **_k: [])
     log = []
-    sc.write(db, geo, tmp_path, _Cov(), log=log.append, added={})
+    sc.write(db, geo, tmp_path, _Cov(), log=log.append, added={}, unnamed=UNNAMED.get(id(db), {}))
     return dict(db.execute("SELECT sid, lo_m FROM section_span")), log
 
 
@@ -157,6 +157,26 @@ def _touch_db(body: str):
         db.execute("INSERT INTO section_span VALUES (6, 0, 1000, 1, 1, 0, 1)")
         geo[6] = Polygon([(600, -10), (800, -10), (800, 300), (600, 300)])
     return db, geo
+
+
+#: per test db: the unnamed lakes `write` is handed (id(db) -> {handle: polygon})
+UNNAMED: dict = {}
+
+
+def test_a_channel_touching_an_unnamed_lake_on_its_main_line_joins_there(tmp_path, monkeypatch):
+    db, geo = _touch_db("none")
+    UNNAMED[id(db)] = {"lake:1": Polygon([(600, -10), (800, -10), (800, 300), (600, 300)])}
+    lo, log = _write(db, geo, tmp_path, monkeypatch)
+    assert lo[3] == 700 and any("unnamed lake on its main line lake:1" in x for x in log)
+    db, geo = _touch_db("none")                                   # an unnamed lake away from the main line: nothing
+    UNNAMED[id(db)] = {"lake:2": Polygon([(2100, -50), (2200, -50), (2200, 300), (600, 300), (600, 250), (2100, 250)])}
+    lo, _ = _write(db, geo, tmp_path, monkeypatch)
+    assert lo[3] is None
+
+
+def test_a_polygon_end_never_breaks_the_tie():
+    poly = box(0, 0, 2, 2)
+    assert sc.touched([poly], [(4, box(1, 1, 3, 3)), (2, box(1, 1, 3, 3))], [])[:2] == ("own", 2)
 
 
 def _lo_token(db, sid):
