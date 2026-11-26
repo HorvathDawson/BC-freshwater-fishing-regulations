@@ -16,7 +16,7 @@ screen code, not a run of the app).
 1. "find it tough to find exact rivers and systems. Limited names when im zoomed out. Tough balance between too cluttered
    with names vs no names." / "i could barely landmark where babine is".
    Found: no lake or river name is drawn below zoom 8. `lake__label` and `stream__label` both have minzoom 8
-   (`app/packages/map/style/layers.source.json`); the basemap's own water names are removed on purpose
+   (`app/packages/map/style/style.json`, the built style); the basemap's own water names are removed on purpose
    (`app/packages/map/src/runtime-style.ts`). The names are in our tiles; it is a style choice (closed T299 thinned the
    labels).
 2. "And show a few more main cities? Doesnt have to be too many more just to help distinguish where the waters are."
@@ -36,8 +36,8 @@ screen code, not a run of the app).
 6. "Heres my gaia maps setup which is easier on the eyes (for me anyways) and easier to read where the water systems
    are, but also lacks any labels". That map has terrain shading, one bright water blue and a soft ground. Ours has no
    hillshade layer and three blues (basemap water `#80deea`, lake `#64B5F6`, water `#4A90E2`).
-7. "the way i use these is usually chatting with a friend around the table, we talk about a lake, then i scroll around
-   and zoom in until i find it". The tester browses the map and did not use search. The search box's rotating hint in
+7. The tester finds a lake someone mentions by scrolling and zooming until it shows ("i scroll around and zoom in until
+   i find it"): browsing the map, not search. The search box's rotating hint in
    the picture reads "Tackle a town or lake" (`SEARCH_BAR.placeholders`, `app/packages/core/src/search.ts`): intended,
    but it does not plainly say "search". Items 1 and 2 serve the browsing; the hint wording is an option to show.
 
