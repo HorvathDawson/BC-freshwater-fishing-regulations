@@ -362,6 +362,7 @@ def backfill_code(build_dir: Path, *, entry: str = ATLAS_ENTRY, log=print) -> di
     except stepcache.Untraceable as e:
         raise SystemExit(f"inputs: --backfill-code refused: {e}") from e
     head = _git("rev-parse", "HEAD").strip()
+    at = head[:12]                                  # the commit, as the messages print it
     import yaml
     whole = yaml.safe_load(stepcache.config_path().read_text(encoding="utf-8")) or {}
     from pipeline import _trace
@@ -370,12 +371,12 @@ def backfill_code(build_dir: Path, *, entry: str = ATLAS_ENTRY, log=print) -> di
             **stepcache.stage_env(),
             "backfilled": {"at": time.strftime("%Y-%m-%dT%H:%M:%S"), "commit": head,
                            "proof": f"git: {len(files)} files tracked, clean, last committed before build_ts "
-                                    f"{meta['build_ts']} (checked at {head[:12]})",
+                                    f"{meta['build_ts']} (checked at {at})",
                            "closure": f"static import closure of {entry}",
                            "adopted": ["packages", "python", "sqlite"]}}
     meta[CODE] = code
     write_meta(build_dir, meta)
-    log(f"inputs: PROVEN by git at {head[:12]}: {len(modules)} modules, {len(reads)} code files and config.yaml "
+    log(f"inputs: PROVEN by git at {at}: {len(modules)} modules, {len(reads)} code files and config.yaml "
         f"unchanged since the atlas was built ({meta['build_ts']})")
     log(f"inputs: ADOPTED, NOT PROVEN — git cannot say what was installed when it was built; today's are recorded as "
         f"the atlas's: {len(code['packages'])} packages ({', '.join(f'{d}=={v}' for d, v in code['packages'].items())}), "
