@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SELF = "pipeline/tests/test_no_orphan_modules.py"
 #: where a module may be named from (tracked files only)
 WHERE = ("pipeline", "scripts", "curation-review", ".github", "app/tools", "app/workers", "deploy", "conftest.py",
-         "handoff/PLAN/runbooks")
+         "docs/runbooks")
 SUFFIXES = (".py", ".sh", ".yml", ".yaml", ".mjs", ".ts", ".toml", ".json", ".md")
 
 #: module (repo-relative) -> why it is kept although nothing names it

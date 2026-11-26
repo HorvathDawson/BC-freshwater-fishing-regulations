@@ -8,7 +8,7 @@
  *     `- [ ] YYYY-MM-DD — <ask>` (open) and `- [x] YYYY-MM-DD — <ask> → "<his answer>" (YYYY-MM-DD)` (answered). An ask
  *     with no ticket yet is a `## <title>` section of `tickets/OWNER-UNFILED.md`, the same lines, until the planning chat
  *     numbers a ticket for it. There is no owner-todo folder any more;
- *   - the combined views are BUILT, never committed (`handoff/PLAN/views/`, git-ignored): `LEDGER.md` (the rows in
+ *   - the combined views are BUILT, never committed (`docs/views/`, git-ignored): `LEDGER.md` (the rows in
  *     work), `DONE.md` (DONE / DROPPED rows), `OWNER.md` (every open owner line, newest first, by ticket).
  *
  *   node app/tools/ledger.mjs                 build the views (the post-checkout / post-merge hooks run it)
@@ -31,7 +31,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync
 import { gunzipSync, gzipSync } from "node:zlib";
 import { basename, join } from "node:path";
 
-export const TICKETS_DIR = "handoff/PLAN/app-integration/tickets";
+export const TICKETS_DIR = "tickets";
 /** (T1081) Where the tickets folder sat before the rename to docs/ + tickets/: the folder's git history is under it, and a branch
  *  not yet rebased still holds its tickets and claims there. The rename script leaves a line marked as below alone. */
 export const LEGACY_TICKETS_DIR = "handoff/PLAN/app-integration/tickets";   // rename_handoff: keep
@@ -41,8 +41,8 @@ export const OLD_DONE = `${TICKETS_DIR}/DONE.md`;
 /** (T1081) Owner asks that have no ticket yet: `## <title>` sections of owner lines; the planning chat numbers them. */
 export const OWNER_UNFILED = `${TICKETS_DIR}/OWNER-UNFILED.md`;
 /** (T1081) Paths that must not exist again: the owner to-do page and folder were replaced by `## Owner` blocks. */
-export const RETIRED_OWNER_PATHS = ["handoff/PLAN/OWNER-TODO.md", "handoff/PLAN/owner-todo"];
-export const VIEWS_DIR = "handoff/PLAN/views";
+export const RETIRED_OWNER_PATHS = ["docs/OWNER-TODO.md", "docs/owner-todo"];
+export const VIEWS_DIR = "docs/views";
 export const VIEWS = { ledger: `${VIEWS_DIR}/LEDGER.md`, done: `${VIEWS_DIR}/DONE.md`, owner: `${VIEWS_DIR}/OWNER.md` };
 
 /**
@@ -51,7 +51,7 @@ export const VIEWS = { ledger: `${VIEWS_DIR}/LEDGER.md`, done: `${VIEWS_DIR}/DON
  * `r-<12 hex>` the row names, else empty), left (the row's last cell), archive (the tar's name: `closed-2026`), tokens (every
  * report id / crash hash / feedback id the ticket text cites, space-separated: `pipeline/reports.py` finds them here).
  * The full text of each closed ticket is in `archive/<archive>.tar.gz` as `<file name>`; read one with
- * `tar -xzOf handoff/PLAN/app-integration/tickets/archive/closed-2026.tar.gz T123-*.md`.
+ * `tar -xzOf tickets/archive/closed-2026.tar.gz T123-*.md`.
  */
 export const CLOSED_TSV = `${TICKETS_DIR}/closed.tsv`;
 export const ARCHIVE_DIR = `${TICKETS_DIR}/archive`;
@@ -431,8 +431,8 @@ under its \`Status:\` line (same five cells as ever):
     |---|---|---|---|---|
     | Tnnn | the ticket's title | OPEN | — | what's left, a pointer (240 characters at most) |
 
-\`node app/tools/ledger.mjs\` builds the tables into \`handoff/PLAN/views/LEDGER.md\` (every row not DONE / DROPPED) and
-\`handoff/PLAN/views/DONE.md\` (the closed ones), git-ignored; the git hooks rebuild them after a checkout, merge, commit
+\`node app/tools/ledger.mjs\` builds the tables into \`docs/views/LEDGER.md\` (every row not DONE / DROPPED) and
+\`docs/views/DONE.md\` (the closed ones), git-ignored; the git hooks rebuild them after a checkout, merge, commit
 or rebase, but a view MAY BE STALE (another worktree, a reset): \`node app/tools/ledger.mjs --check\` says so and the
 ticket guard warns. So two PRs that touch different tickets never conflict. A row's view follows its status keyword.
 A NEW ticket also claims its number: \`node app/tools/ledger.mjs --claim\` writes \`tickets/ids/Tnnn\` (the file's name);
@@ -545,23 +545,23 @@ export function assetIds(name) {
 
 /** Asset entries a surviving document or a running tool still reads: never deleted by --archive (name -> why). */
 export const KEPT_ASSETS = {
-  "app-integration/tickets/T281-files": "tests (pipeline/tests/test_t100_area_caveat.py) read sub_lake_areas.json from it",
+  "tickets/T281-files": "tests (pipeline/tests/test_t100_area_caveat.py) read sub_lake_areas.json from it",
   "app-integration/T1047-shots": "the datum-change pictures: data/curated/gauges/datum_change_stations.json and GAUGE-DATUM-CHANGES.md name them",
   "app-integration/T244-shots": "the icon preview: store/listing-draft.md and open T447 name it",
-  "app-integration/tickets/T928-shots": "open T938 names its shot",
+  "tickets/T928-shots": "open T938 names its shot",
   "app-integration/T665-main-rivers-map.html": "open T677 and next-rebuild.md name the held-lines map",
 };
 
 /** KEPT_ASSETS key -> the tracked files that still name it (check-size.mjs fails when a key is gone or no reader names it). */
 export const KEPT_READERS = {
-  "app-integration/tickets/T281-files": ["pipeline/tests/test_t100_area_caveat.py"],
+  "tickets/T281-files": ["pipeline/tests/test_t100_area_caveat.py"],
   "app-integration/T1047-shots": ["data/curated/gauges/datum_change_stations.json", "pipeline/docs/GAUGE-DATUM-CHANGES.md"],
-  "app-integration/T244-shots": ["handoff/PLAN/app-integration/store/listing-draft.md", `${TICKETS_DIR}/T447-artist-app-icon.md`],
-  "app-integration/tickets/T928-shots": [`${TICKETS_DIR}/T938-ios-browse-map-half-drawn-after-back.md`],
-  "app-integration/T665-main-rivers-map.html": [`${TICKETS_DIR}/T677-next-rebuild-leftovers.md`, "handoff/PLAN/app-integration/next-rebuild.md"],
+  "app-integration/T244-shots": ["docs/app-integration/store/listing-draft.md", `${TICKETS_DIR}/T447-artist-app-icon.md`],
+  "tickets/T928-shots": [`${TICKETS_DIR}/T938-ios-browse-map-half-drawn-after-back.md`],
+  "app-integration/T665-main-rivers-map.html": [`${TICKETS_DIR}/T677-next-rebuild-leftovers.md`, "docs/app-integration/next-rebuild.md"],
 };
 
-const ASSET_ROOTS = ["handoff/PLAN/app-integration", TICKETS_DIR];
+const ASSET_ROOTS = ["docs/app-integration", TICKETS_DIR];
 
 /** What is wrong with an archive's bytes against the ticket files it must hold (empty = each one there, byte for byte). */
 export function archiveProblems(files, gz) {
@@ -588,7 +588,7 @@ function cliArchive(repo, rest) {
       if (!owners) continue;
       const wasClosed = (id) => movedIds.has(id) || (closed.some((r) => r.id === id) && !tickets.some((t) => idOfFile(t.name) === id));
       if (!owners.every(wasClosed)) continue;
-      const key = `${root.replace("handoff/PLAN/", "")}/${name}`;
+      const key = `${root.replace("docs/", "")}/${name}`;
       if (KEPT_ASSETS[key]) kept.push(`${key}: ${KEPT_ASSETS[key]}`); else assets.push(`${root}/${name}`);
     }
   }

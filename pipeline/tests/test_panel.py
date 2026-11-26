@@ -226,7 +226,7 @@ def test_answering_is_the_apps_answer_shape_and_refusals():
 def test_reserve_at_mirrors_the_apps_reserve_rule():
     """The app's `contributionsOf` (app/packages/data/src/panel.ts) marks a member past `CORE_MEMBERS` by panel rank
     as reserve, and `answering` stands it back; `reserve_at` is the Python side of that rule. (T1081 retired the two
-    tests that scanned the cut evaluation scripts under handoff/PLAN; this half never read them.)"""
+    tests that scanned the cut evaluation scripts under docs; this half never read them.)"""
     from pathlib import Path
     from pipeline.gauges.consume.panel import CORE_MEMBERS, reserve_at
     assert [reserve_at(i) for i in range(CORE_MEMBERS + 2)] == [False] * CORE_MEMBERS + [True, True]

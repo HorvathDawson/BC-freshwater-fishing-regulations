@@ -23,7 +23,7 @@ from PIL import Image
 API = "https://androidpublisher.googleapis.com/androidpublisher/v3/applications"
 UPLOAD = "https://androidpublisher.googleapis.com/upload/androidpublisher/v3/applications"
 SCOPE = ["https://www.googleapis.com/auth/androidpublisher"]
-GRAPHICS = Path(__file__).resolve().parents[2] / "handoff/PLAN/app-integration/store/graphics"
+GRAPHICS = Path(__file__).resolve().parents[2] / "docs/app-integration/store/graphics"
 
 #: Play's image type -> (size, alpha allowed)
 RULES = {"icon": ((512, 512), True), "featureGraphic": ((1024, 500), False)}

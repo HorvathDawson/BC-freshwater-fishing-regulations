@@ -4,7 +4,7 @@
  * sheet of the FROZEN vedder_1010 page (packages/ui-native/src/regs/fixtures), drawn by the real SheetHost with the
  * app's two drawings (T886: each theme's own, packages/ui-native/src/adipose/, tools/build-adipose.mjs), laid out and
  * photographed by headless Chrome (`wide-measure.mjs`) at 390 (phone, light and dark), 1024 (tablet) and 1440 (desktop),
- * into handoff/PLAN/app-integration/T38-shots/ (or `T38_OUT`).
+ * into docs/app-integration/T38-shots/ (or `T38_OUT`).
  *
  *   T38_SHOTS=1 [T38_OUT=dir] pnpm vitest run tools/adipose-shots.test.ts
  */
@@ -25,7 +25,7 @@ import vedder1010 from "../packages/ui-native/src/regs/fixtures/vedder_1010.json
 import { snapshot } from "./wide-snapshot";
 
 const ON = process.env.T38_SHOTS === "1";
-const OUT = process.env.T38_OUT ?? join(process.cwd(), "..", "handoff", "PLAN", "app-integration", "T38-shots");
+const OUT = process.env.T38_OUT ?? join(process.cwd(), "..", "docs", "app-integration", "T38-shots");
 type Frozen = Omit<RegsPage, "sheet"> & { sheets: Record<string, SheetVM | null> };
 const PAGE = (() => { const p = vedder1010 as unknown as Frozen; return { ...p, sheet: (k: SheetKey) => p.sheets[k] ?? null } as RegsPage; })();
 const SIZES: [LayoutClass, number, number][] = [["phone", 390, 844], ["tablet", 1024, 768], ["desktop", 1440, 900]];

@@ -2,7 +2,7 @@
 // APP STORE CREATIVE ASSETS (T1134) — the product page HEADER and SEARCH RESULTS pictures, as stills (PNG) and short loops (MP4).
 //   scripts/heavy.sh creative 30 -- node app/tools/store-shots/creative.mjs [--stills-only] [--reuse-map] [--web URL]
 //   (on a lane another job holds: HEAVY_LOCK=$HOME/.claude/heavy-job-3.lock scripts/heavy.sh creative 30 -- node app/tools/store-shots/creative.mjs)
-// Writes handoff/PLAN/app-integration/store/graphics/store/light/appstore-creative/:
+// Writes docs/app-integration/store/graphics/store/light/appstore-creative/:
 //   header-3840x1646.png  header-3840x1646.mp4   (21:9)    search-3840x2560.png  search-3840x2560.mp4   (3:2)
 // THE DESIGN (owner 2026-11-25: "i like the gif coho with the map behind cream. search result will use the same"): the app's COHO LOADER FISH,
 // swimming, centred over the app's coloured MAP, faded behind a CREAM veil; the name and one line under the fish. Apple takes no GIF, so the
@@ -31,7 +31,7 @@ const HERE = path.dirname(new URL(import.meta.url).pathname), APP = path.resolve
 const args = process.argv.slice(2), flag = (k) => args.includes(k), val = (k, d) => (args.includes(k) ? args[args.indexOf(k) + 1] : d);
 for (const a of args) if (a.startsWith('--') && !['--stills-only', '--reuse-map', '--web', '--check'].includes(a)) throw new Error(`creative: unknown flag ${a}`);
 const WEB = val('--web', process.env.STORE_SHOTS_WEB ?? 'https://staging.canifishthis.ca').replace(/\/$/, '');
-const GRAPHICS = path.join(ROOT, 'handoff/PLAN/app-integration/store/graphics');
+const GRAPHICS = path.join(ROOT, 'docs/app-integration/store/graphics');
 export const OUT = path.join(GRAPHICS, 'store/light/appstore-creative');
 const RAW = path.join(GRAPHICS, 'raw');   // ignored by git
 const FFMPEG = process.env.FFMPEG ?? 'ffmpeg', FFPROBE = process.env.FFPROBE ?? 'ffprobe';

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * GOOGLE PLAY FEATURE GRAPHIC (1024x500, opaque RGB PNG, no alpha) — the app icon's mark + the name + one line.
- *   node tools/build-play-graphics.mjs   -> writes handoff/PLAN/app-integration/store/graphics/feature-graphic-1024x500.png
+ *   node tools/build-play-graphics.mjs   -> writes docs/app-integration/store/graphics/feature-graphic-1024x500.png
  * Art: apps/mobile/assets/icon/foreground.svg (the launcher mark, owner 2026-11-08) on the icon's own ground
  * (assets/icon/icon-ground.txt). Text colours: light theme tokens (ink, sub). Fonts: the app's own (Bricolage Grotesque 800 title, Archivo 500 line, from @expo-google-fonts).
  * Text stays inside x 400..940, y 150..350 (Play crops the edges on some surfaces).
@@ -26,7 +26,7 @@ const src = `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" v
 <text x="402" y="290" font-family="Archivo" font-weight="500" font-size="29" fill="${sub}">BC freshwater fishing rules,</text>
 <text x="402" y="328" font-family="Archivo" font-weight="500" font-size="29" fill="${sub}">by the water</text></svg>`;
 const rgba = PNG.sync.read(Buffer.from(new Resvg(src, { font: { fontFiles: fonts, loadSystemFonts: false } }).render().asPng()));
-const dir = here("../../handoff/PLAN/app-integration/store/graphics/");
+const dir = here("../../docs/app-integration/store/graphics/");
 mkdirSync(dir, { recursive: true });
 writeFileSync(dir + "feature-graphic-1024x500.png", PNG.sync.write(rgba, { colorType: 2, inputColorType: 6, inputHasAlpha: true }));
 console.log("wrote feature-graphic-1024x500.png");

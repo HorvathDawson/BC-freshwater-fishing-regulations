@@ -1703,7 +1703,7 @@ def test_a_rerun_does_not_rebuild_what_this_release_built(world, capsys):
     world["commits"] = {"abc123"}
     world["recut_changed"] = ["app/packages/ui-native/src/regs/fixtures/glenn_501.json"]
     assert _staging() == 1 and [c for c, _ in world["calls"]].count("build") == 1     # stopped at the golden page
-    world["committed_since"] = {"app/fixtures/golden/taps.json", "handoff/PLAN/STATUS.md"}
+    world["committed_since"] = {"app/fixtures/golden/taps.json", "docs/STATUS.md"}
     capsys.readouterr()
     assert _staging(accept_fixtures="tok-1") == 1 and [c for c, _ in world["calls"]].count("build") == 1
     assert "nothing a build reads was committed since — not rebuilt (T788 #10" in capsys.readouterr().out

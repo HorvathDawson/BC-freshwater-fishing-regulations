@@ -4,7 +4,7 @@
 //
 //   cd app/apps/mobile && EXPO_PUBLIC_APP_ENV=staging EXPO_PUBLIC_UPDATE_CHANNEL=test EXPO_PUBLIC_RELEASE_GATE=1 \
 //     npx expo start --web --port 39251
-//   node app/tools/updates-e2e.mjs [--url http://localhost:39251] [--shots handoff/PLAN/app-integration/T251-shots]
+//   node app/tools/updates-e2e.mjs [--url http://localhost:39251] [--shots docs/app-integration/T251-shots]
 //   → exit 1 on any FAIL
 //
 // Scenarios, in order (each builds on what the app then holds): boot (every source read) · unchanged (304 ×4) · feed

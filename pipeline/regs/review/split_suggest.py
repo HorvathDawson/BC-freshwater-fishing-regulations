@@ -109,7 +109,7 @@ RESEARCH[("r1:campbell_river@1-10", "campbell_river.r5")] = {
               "owner's tick of both cuts",
     "evidence": _JH_EVID + [f"{OVERPASS}: the only power lines crossing the Campbell are 1L104 at 5437 m and "
                             "1L103 at 5584 m (both at the switchyard); Quinsam mouth snaps to 4200 m",
-                            "handoff/PLAN/app-integration/T623-shots/F9-campbell-quinsam-powerline.png: a cleared "
+                            "docs/app-integration/T623-shots/F9-campbell-quinsam-powerline.png: a cleared "
                             "strip meets the river about 320 m up from the Quinsam mouth (imagery reading); "
                             "Quinsam mouth on blk 354154635 at 4199 m (FWA streams layer), +320 m = 4519 m, "
                             "interpolated on the same line"],

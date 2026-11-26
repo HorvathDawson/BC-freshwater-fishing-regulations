@@ -13,7 +13,7 @@
 //
 // STAGING by default: every host is a staging one and the script refuses any other. (T404) `--production` checks
 // production instead (canifishthis.ca, data.canifishthis.ca, the bc-fishing-feeds worker) — read-only GETs, run by the
-// OWNER after a prod step (handoff/PLAN/release/PRODUCTION.md); there a page must NOT say noindex.
+// OWNER after a prod step (docs/release/PRODUCTION.md); there a page must NOT say noindex.
 // `--slug nope` is the deliberate break (the /water/ page check then FAILs). Runs at the end of deploy/staging/site.sh
 // and upload.sh (SMOKE=0 skips), and by hand (the GitHub workflow was deleted 2026-11-21, owner).
 import fs from 'node:fs';
@@ -339,7 +339,7 @@ async function desktop() {
 // after the map paints, then again after a pan to Lillooet (Region 3). Each tap is timed to READABLE (the Regulations
 // header on screen and on top, not merely in the page: the held pane is in the DOM, hidden) and to COMPLETE (every
 // release file / picture of the page in, quiet for 1.5 s); over 4 s to readable WARNs and over 10 s FAILs; the complete time is printed.
-// These are the first-click numbers of handoff/PLAN/app-integration/tickets/T737-web-first-tap-waits-for-prefetch.md.
+// These are the first-click numbers of tickets/T737-web-first-tap-waits-for-prefetch.md.
 const FIRST_TAP_MS = 4000;        // the goal: a WARN above it
 const FIRST_TAP_FAIL_MS = 10000;  // the loose cap: a FAIL above it (a slow line is not a broken page)
 // vertices of the Fraser River's own line (stream_name layer, name "Fraser River"), clear of any mouth

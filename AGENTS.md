@@ -103,7 +103,7 @@ W49. **Tickets are the only work list, and `node app/tools/check-tickets.mjs` mu
     - An owner step is written into its ticket the same turn it comes up or he answers; a decision goes in the
       decisions page by subject; a ruling on how the book is read goes to `pipeline/docs/RULINGS.md`.
     - Each live chat keeps one short restart page, holding no release id or build number (state is the top entry of
-      `handoff/PLAN/STATUS.md`). Every path a start, restart or owner page cites must exist.
+      `docs/STATUS.md`). Every path a start, restart or owner page cites must exist.
 
 ## Builds and tests
 
@@ -395,7 +395,7 @@ W49. **Tickets are the only work list, and `node app/tools/check-tickets.mjs` mu
     - A test reading generated or fetched data carries a `needs_*` marker and FAILS when the data is missing
       (`test_no_silent_skips.py`). The bundle refuses a reach run made from another corpus or registry.
       `marks.jsonl` is no build input (`build.NOT_BUILD_INPUTS`).
-    - `python -m pipeline release --staging` is the one release path (runbook `handoff/PLAN/runbooks/release.md`);
+    - `python -m pipeline release --staging` is the one release path (runbook `docs/runbooks/release.md`);
       a binding diff stops it until `--accept-diff`. Anything that must follow a release is a row in
       `pipeline/release_follows.py`, never a hand step. It pushes only with `--push`, only to its release branch.
     - Promote and preflight refusals (a moved boundary, a stale atlas, a lost boundary) are passed only by their
