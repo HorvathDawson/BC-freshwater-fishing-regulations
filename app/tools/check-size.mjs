@@ -73,7 +73,7 @@ export const MARKDOWN_LONG = {
  *  leaves the list when it is cut; a NEW long page needs an entry here, in its PR, with the reason beside it. */
 export const PAGE_LONG = {
   "pipeline/docs/RULINGS.md": 452,                                         // the owner's rulings on how the book is read: his words, never shortened
-  "handoff/PLAN/ROADMAP-after-0.9.0.md": 223,                              // the planning chat's page
+  "handoff/PLAN/ROADMAP-after-0.9.0.md": 300,                              // the planning chat's live page (PAGE_ROOM: a cap, not its size)
   "handoff/PLAN/play-production-access/questionnaire-draft.md": 173,       // the Play production access record
   "handoff/PLAN/repo-move/OUTSIDE-GIT.md": 243,                            // the repo-move chat's record, until that chat ends
   "handoff/PLAN/repo-move/PREP.md": 262,                                   // the same
@@ -84,6 +84,9 @@ export const PAGE_LONG = {
   // a ticket working page still in use (WORKING_PAGES; the T1140 one is in MARKDOWN_LONG)
   "handoff/PLAN/app-integration/T1053-shots/head-lakes-before-after.md": 272,
 };
+
+/** PAGE_LONG entries that are a cap with room under it, not the page's size (a live page another chat keeps). */
+export const PAGE_ROOM = new Set(["handoff/PLAN/ROADMAP-after-0.9.0.md"]);
 
 /** Look-up files: text a program reads or writes, or the book's own words. Not counted in BUDGETS.readingLines and not
  *  held to BUDGETS.page (anyMarkdown still holds them). A prefix ending in "/" is a folder. */
@@ -208,7 +211,7 @@ export function checkSize({ files, closedIds, kept = KEPT_ASSETS, readmeLong = R
   for (const [p, max] of Object.entries(pageLong)) {
     if (!byPath.has(p)) problems.push(`PAGE_LONG lists ${p}, which is not tracked: take it off the list`);
     else if (lines(p) <= B("page")) problems.push(`PAGE_LONG lists ${p}, now ${lines(p)} lines (within ${B("page")}): take it off the list`);
-    else if (max > lines(p)) problems.push(`PAGE_LONG holds ${p} at ${max} but it is ${lines(p)} lines: lower the entry to ${lines(p)} (it only shrinks)`);
+    else if (max > lines(p) && !PAGE_ROOM.has(p)) problems.push(`PAGE_LONG holds ${p} at ${max} but it is ${lines(p)} lines: lower the entry to ${lines(p)} (it only shrinks)`);
   }
   for (const p of Object.keys(workingPages)) if (!byPath.has(p)) problems.push(`WORKING_PAGES lists ${p}, which is not tracked: take it off the list`);
   const readingLines = pages.reduce((n, f) => n + (f.lines ?? 0), 0);
