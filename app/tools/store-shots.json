@@ -195,5 +195,23 @@
       "h": 2622
     }
   },
-  "_targets": "Play phone; App Store 6.9\" (APP_IPHONE_67 slot), 6.5\" (APP_IPHONE_65) and 6.3\" 1206x2622 (iPhone with Dynamic Island, medium display; rendered natively, added 2026-11-25 because App Store Connect refused the 6.9\" files in that slot; API display type unconfirmed, APP_IPHONE_61). No Play tablet sets (owner 2026-11-25: \"Drop tablet set\"; Play then shows the phone pictures on tablets), no 5.5\" (not required once 6.9\" is given) and no iPad (app.json supportsTablet false)."
+  "_targets": "Play phone; App Store 6.9\" (APP_IPHONE_67 slot), 6.5\" (APP_IPHONE_65) and 6.3\" 1206x2622 (iPhone with Dynamic Island, medium display; rendered natively, added 2026-11-25 because App Store Connect refused the 6.9\" files in that slot; API display type unconfirmed, APP_IPHONE_61). No Play tablet sets (owner 2026-11-25: \"Drop tablet set\"; Play then shows the phone pictures on tablets), no 5.5\" (not required once 6.9\" is given) and no iPad (app.json supportsTablet false).",
+  "creative": {
+    "_": "T1134 App Store creative assets (product page Header and Search Results), made by app/tools/store-shots/creative.mjs into store/light/appstore-creative/. Uploaded BY HAND in App Store Connect: no push script reads this key, and the target lists above never include it.",
+    "folder": "appstore-creative",
+    "files": {
+      "header": {
+        "png": "header-3840x1646.png",
+        "mp4": "header-3840x1646.mp4",
+        "w": 3840,
+        "h": 1646
+      },
+      "search": {
+        "png": "search-3840x2560.png",
+        "mp4": "search-3840x2560.mp4",
+        "w": 3840,
+        "h": 2560
+      }
+    }
+  }
 }

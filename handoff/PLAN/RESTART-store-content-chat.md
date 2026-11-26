@@ -32,6 +32,7 @@ planning chat; work only in scratchpad worktrees, never the main checkout.
   clipped). Whoever closes T1128 tells the planning chat; the reshoot is the one-frame command above, then a PR.
 - **The 34 old untracked pictures in the main checkout:** the 0.10.0 chat clears them (owner: "we can remove old store
   photos. we want this to be clean"). Until then an upload from that checkout stops by name.
+- **T1134 App Store creative assets** (Header + Search Results, stills and 8 s videos in `store/light/appstore-creative/`, made by `app/tools/store-shots/creative.mjs`): the owner uploads them by hand in App Store Connect; Apple's codec rules for the videos are unconfirmed (see the ticket).
 - **T1131:** a hand-started GitHub workflow that makes the pictures; with the repo-move chat, after the transfer (owner:
   "can be part of new repo transfer").
 - **T1072 items not done (the owner's call):** website landing and share-page words (only the home meta description reads
