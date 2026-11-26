@@ -1,5 +1,5 @@
 {
-  "_about": "T1156: the nine region PDFs (gov.bc.ca's copies of the synopsis chapters), as served 2026-11-25. Read by data/fetch_region_pdfs.py; a changed checksum is a shown stop, re-pinned only by its --repin. Keys on a row beyond sha256/bytes/date_fetched are kept by a re-pin (T1166 adds text hashes).",
+  "_about": "T1156: the nine region PDFs (gov.bc.ca's copies of the synopsis chapters), as served 2026-11-25. Read by data/fetch_region_pdfs.py; a changed checksum is a shown stop, re-pinned only by its --repin. A re-pin drops any key on a row beyond sha256/bytes/date_fetched (it described the old bytes) and says which.",
   "pdfs": {
     "region_1_vancouver_island.pdf": {
       "sha256": "74b37288eeea094f11db62dbadb52bc8b3f4373c8bbb9fe06e06364a322554a6",
