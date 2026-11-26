@@ -450,10 +450,10 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
                 closed_memo[rk] = closed_all_year(store, B.key_ix[rk])
             closed.append(closed_memo[rk])
             k = gi[p["grp"]]
+            near = crossings.get((item_id, "nearest", ex), False)     # (T1140 proposal) said at its nearest point
             facts[ex] = {
-                "order": i, "label": labels[i], **names[i],
-                "runs": said_nearest(runs_label(doc, p, water_ends_km(w)), p,
-                                     crossings.get((item_id, "nearest", ex), False)),
+                "order": i, "label": said_nearest(labels[i], p, near), **names[i],
+                "runs": said_nearest(runs_label(doc, p, water_ends_km(w)), p, near),
                 "place": part_place(Wg, k) or None,          # null: no entry heading
                 "km": part_km(p),
                 "closed_all_year": closed[-1],
