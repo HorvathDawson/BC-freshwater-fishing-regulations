@@ -56,3 +56,6 @@ T1118-shots folder of that PR. No verdict per row yet: that is this ticket's fir
 - The first-pass list (98 rows: file, printed name, bound water, printed MU, the target's MUs, why listed, note) is in git history (T1118-shots/mu-mismatch-bindings.md); regenerate it from the curated name files and the registry's item MUs instead of trusting it.
 - Every row still needs a verdict (a water straddling MUs, or an MU line drawn differently from the book's, can be listed and be right).
 - The build check (item 3) is not built.
+
+## 2026-11-26 afternoon: the seven out-of-unit rows stay (P10)
+Owner: "i agree with the 7 items can you add all the info to the notes? so we dont have to refined it." Lynx, Chubb, Bridal, Hiawatha, Emerald, Nation River and Ellison keep their bindings; each override's note in `book_name_links.json` now carries its evidence (federal vessel schedule item and coordinates, the stocking record, the Province's proposal page, the Kootenay 2009-10 review); the errors are entries 1-7 of `pipeline/docs/BOOK-ERRORS-FOR-THE-PROVINCE.md`. The build check (item 3) is report-only first (P10b: "Yes, report only (Recommended)"), built in T1177. The Nation Arm reach is T1178.

@@ -87,7 +87,7 @@ Notes: `tickets/archive/night-notes-2026-11-25.tar.gz` `ci-speed-build-plan.md` 
   `gh pr create`, after the first push, so a new PR's title is first checked by CI (the planning chat's reading, not
   verified in code). The limit is 93 characters INCLUDING " (#NNN)", so 86 for the title; #297 sat red all night at 100.
 - New item: on the first push, the pre-push hook checks the head commit's subject (it becomes the title) against 86.
-  Until it lands, every agent brief says "86 or fewer".
+  Until it lands, every agent brief says "86 or fewer". (2026-11-26, T1177 batch: the pages that still said the bare `scripts/before_pr.sh` now say `--title`; the owner's pick, "Check the commit subject on push", is this item; no separate ticket.)
 - From the night (speed chat): #279 added pytest-xdist to `requirements.txt` and the stage keys hash every installed
   package, so the first build after a venv reinstall reruns reach and deliver with the same output; #286 (T1171)
   landing first avoids it. A merge-of-main push still takes 250-350 s (the fixed steps): the next cut.

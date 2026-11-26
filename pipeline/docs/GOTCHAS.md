@@ -25,6 +25,7 @@ The RULINGS T4, T14 and T18 amendments (T1053; the all-year part is proposed unt
 ## Questions the owner will put to BC Fish and Wildlife
 
 The questions (the book read two ways; the app is built on the stricter reading) are `pipeline/docs/BOOK-QUESTIONS.md`.
+The printed errors are `pipeline/docs/BOOK-ERRORS-FOR-THE-PROVINCE.md`.
 
 ## Harrison Lake's lake trout show "hatchery only" (a bare "trout" line covers char)
 
@@ -70,11 +71,70 @@ the entry id keeps the printed MU (`r4:mackenzie_creek@4-21`). Do not "correct" 
 errata: **Mackenzie Creek MU 4-21 -> 4-31.** Not found and not errata (`not_found` overrides): Frog Lake (MU 5-6),
 Redfern Lake (MU 5-15), Squirrel Lake (MU 6-1).
 
-## Two rows the province's newer book lost (Little Qualicum River, Lizard Lake), T1168
+## Two rows the province's newer book lost (Little Qualicum River, Lizard Lake): dropped, T1168, T1179
 
 Our copy (2025-11-18) prints LITTLE QUALICUM RIVER (1-6) and LIZARD LAKE (1-3); the gov.bc.ca copy edited 2026-08-25
-does not (rendered pp. 18-20; no notice says why) and prints PUNTLEDGE RIVER twice (pp. 19, 20). We keep both rows: a
-re-parse of the new copy must not drop them or make a second Puntledge. Sent to the province with the other questions.
+does not (rendered pp. 18-20; no notice says why) and prints PUNTLEDGE RIVER twice (pp. 19, 20). Owner, 2026-11-26: adopt
+the new book by hand, "drop the dropped rows by adding a drop boolean to the entries witrh a note why". So the two
+entries stay in the corpus with `drop: true` and a note (when the row was last printed, which book lost it); nothing
+deletes them and a re-read must not mint a second Puntledge. Until T1179 lands they are still live. The Province is
+asked in `BOOK-ERRORS-FOR-THE-PROVINCE.md` (entry 17).
+
+## Book errors we found, for the Province
+
+Every printed error or loose print is one entry of `pipeline/docs/BOOK-ERRORS-FOR-THE-PROVINCE.md` (region, row, page,
+what is printed, what is wrong, what we do meanwhile, evidence, date, status). Add one there first; the entries below
+say how the DATA treats the ones that look like a bug.
+
+## Stellako River opens May 15 (its dates replace the spring closure), P7a
+
+The row prints "No Fishing Nov 15-May 14"; the neighbours print "Nov 15-June 30", so May 14 is read as a replacement
+for the spring closure. Owner: "yes to open since it seems to be a replacement closure time to the springf closure."
+The Fraser-watershed (Region 6) and Zone A (7A) closures lift from May 15. Built in T1177; check the lift on both parts.
+
+## Region 5's spring closure is lifted only by a row's own exemption or "open all year" (P7b)
+
+The closure (p.42) excepts "the mainstem of the Fraser River and other streams listed in the tables". We do not know which
+rows count: the tables print no "exempt" line. Owner, strictest reading: lifted ONLY where a row prints its own exemption or
+"open all year" (whole or part); a row with only gear or quota rules keeps the closure, so Cariboo, Moffat, McKinley, Blue Lead,
+Little Horsefly, Mitchell and Canim are closed Apr 1-Jun 30 (330.9 km). What we are unsure of, asked of the Region 5 office
+(BOOK-ERRORS entry 19): whole stream or only the stretch the row describes; park and chain-of-lakes rows; tributaries of a
+listed stream. Looks like a wrong closure on a listed stream: it is the strict reading, not a bug.
+
+## Hevenor, Station and Two Mile creeks: trout 1 all year, and the Nov 1-Jun 30 release stays (P7c)
+
+"Open all year; trout daily quota = 1 (no minimum size)" sits under Region 6's "release trout from streams Nov 1-Jun 30".
+On Jan 1 both "keep 1" and "release all" speak. Owner: "keep release add to gotchas". The release holds Nov 1-Jun 30.
+
+## Goat River's garbled catch-and-release line is read as the stretch between two creeks (O10)
+
+The row prints "Trout/char catch and release (mainstem only) Leadville Creek Cameron Creek" (Region 4, p.37) with no linking word; the
+Findlay Creek row prints "(mainstem only) from ... to ...". Owner: "between the 2 only with a gotcha added". Built (T1177): catch and release
+ONLY on the main stem between Leadville Creek (km 33.1) and Cameron Creek (km 42.6); the rest of the main stem takes the regional quota; the
+creeks get nothing extra. Before this the whole main stem (86 km) was catch and release. A reading, not the book's words: asked of the Province
+(BOOK-ERRORS entry 11); evidence `one-offs-evidence/A-goat-river.md`.
+
+## Mine Lake takes Main Lake's rules because FWA calls it Main Lake (O11)
+
+On Quadra Island FWA gives the Mine Lake polygon (wbk:329095512) the name "Main Lake" and the same GNIS id (12126) as Main Lake proper; the gazette's
+Mine Lake is an alternate name for that part of Main Lake. So the Main Lake row (bait ban, single barbless hook Nov 1-Apr 30, engine 7.5 kW) binds
+both polygons, plus Mine Lake's own engine row. Owner: "keep on both add to gotchas". Not a bug (`test_haynes_and_mine_show_the_engine_limit_once` pins it).
+
+## Hay River basin keeps the stricter rule against the p.63 map (O12)
+
+The Region 7B Liard row says "see map p.63", and that map puts the Hay basin (Kotcho Lake, the Hay, Kotcho and Shekilie
+rivers) in the "Liard River Watershed". Data uses the true river basin, so all bull trout are released there. Owner: "we
+will not add hay basin in for now. leave it stricter". Not an error in the data.
+
+## Two Maka creeks, one rule on both (O14)
+
+"No trout under 25 cm" (Region 3) is bound to both Maka creeks, which are in the same MU. The curated "most likely" is
+the Spius Creek one. Owner: "keep on both because they are same MU and everything". Do not remove it from the other.
+
+## Nanaimo River's struck-through "15" (O17)
+
+The row prints "Sept 1-Oct ~~15~~" with the 15 struck through and nothing in its place. Data: Oct 15. Owner: "it is
+probably a format issue and is okay". A real end date from the Province would replace it.
 
 ## A water's undated hatchery-steelhead quota does not lift the zone's Nov-Jun release (the Kitimat)
 

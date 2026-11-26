@@ -29,6 +29,9 @@ about it when it was there and how it isnt there now. then later we will send th
 4. Adopting the new copy as `data/source/fishing_synopsis.pdf` goes through `runbooks/annual-synopsis.md`, with
    the two lost rows kept by hand; the pins of T1166 move with it.
 
+## 2026-11-26: items 3 and 4 are now T1179
+Owner (P11): "adopt it eexcept we dont need a parser run you can run a subagent to produce the changes then youi can audit it and make sure it parsed it right. drop the dropped rows by adding a drop boolean to the entries witrh a note why. also can we add gotchas for them being dropped with info." The hand adoption (Cowichan, Heber, the dropped Little Qualicum River and Lizard Lake rows) is T1179; the GOTCHAS entry is written; this ticket keeps the licence wording (item 1). Item 2 changed from "we keep both rows" to "dropped with a `drop` flag".
+
 ## Acceptance
 The licence words match the current book and he has seen them; the gotcha entry exists; the two stale rows are
 corrected by his reviewed marks or each is a recorded decision. Severity: medium. Size: S (1, 2), M (3, 4).
