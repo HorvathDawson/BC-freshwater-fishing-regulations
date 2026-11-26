@@ -36,12 +36,16 @@ export function partNameOf(inp: RegsInputs, partIx: number, names: PartNames | n
   if (!it) throw new Error(`regs: a part name asked of a page with no named water (part ${partIx})`);
   const p = it.parts[partIx];
   if (p === undefined) throw new Error(`regs: ${it.id} has no part ${partIx}`);
-  if (p === null) return it.name;
+  // (T1140, owner 2026-11-25) a part with no facts: a tidal piece is its water's; any other is outside B.C.
+  if (p === null) return inp.tidalPart ? it.name : WATER_MAP_WORDS.outside(it.name);
   if (names) {
     const own = names.get(partIx);
     if (own === undefined) throw new Error(`regs: the map names no part ${partIx} of ${it.id}`);
     return own;
   }
+  // (T1140, owner 2026-11-25 17:31: "The data's own label") a part with no ends of a water of several: the release's
+  // own words for it, as the map names it (`waterNav` `partName`); a water of one part is its water
+  if (p.lo === null && p.hi === null && p.runs && nParts(inp) > 1) return p.runs;
   return spanName(inp.statics.ends, it.name, p);
 }
 const SUB_MAX = 150;
@@ -99,17 +103,18 @@ export function downstreamLabel(inp: RegsInputs, downstream: string | null | und
 }
 
 /**
- * (T1140) WHICH PART OF HOW MANY, said on the head of a part whose water the map lists as several: "Part 1 of 2" (the
- * Map tab's own words and count, `WATER_MAP_WORDS.partOf` over `entryPlaces`), and — where another entry has other rules
- * — the line that opens the list of parts. Null where there is nothing to say: no named water, a group the map shows as
- * one entry, or no places yet (the group not read: the screens wait for it on a water of several parts, `@app/ui`
- * `useMapEntries`). A page's part that the places do not hold, on a water they list, is a caller's defect: throws.
+ * (T1140) THE LINE TO THE OTHER PARTS, said on the head of a part whose water the map lists as several where another
+ * entry has other rules (`entryPlaces` `differs`): "Other parts of this water have different rules" — the part itself is
+ * said by its NAME (the place row; owner 2026-11-25: no "Part x of n" anywhere). Null where there is nothing to say: no
+ * named water, a group the map shows as one entry, no places yet (the group not read: the Regulations view waits for it,
+ * `@app/ui` `useMapEntries`), or no other part with other rules. A page's part that the places do not hold, on a water
+ * they list, is a caller's defect: throws.
  */
-export function partWhereOf(inp: RegsInputs, places: PartPlaces | null | undefined): HeaderVM["part"] | null {
+export function partsOthersOf(inp: RegsInputs, places: PartPlaces | null | undefined): string | null {
   if (!inp.item || !places || places.size === 0) return null;
   const p = places.get(inp.partIx);
   if (!p) throw new Error(`regs header: the map lists no part ${inp.partIx} of ${inp.item.id}`);
-  return { where: WATER_MAP_WORDS.partOf(p.n, p.of), others: p.differs ? WATER_MAP_WORDS.partsOthers : null };
+  return p.differs ? WATER_MAP_WORDS.partsOthers : null;
 }
 
 /** The header of the tapped part on `inp.day`. `status` is the day's as the strip read it (T13; null strip → tidal or
@@ -138,7 +143,7 @@ export function headerOf(inp: RegsInputs, o: { today: Day; status: "open" | "clo
   // (T841) the classified-water badge, set only on a classified part (the frozen headers carry no key for it)
   const classed = classBadgeOf(inp);
   // (T1140) set only on a part of a water the map lists as several: a water of one part keeps the header it had
-  const part = partWhereOf(inp, o.places);
+  const others = partsOthersOf(inp, o.places);
   return {
     name,
     dayWord,
@@ -151,6 +156,6 @@ export function headerOf(inp: RegsInputs, o: { today: Day; status: "open" | "clo
     tabs: (o.status === "outside" || inp.tidalPart ? tabs.slice(0, 1) : o.status === "closed" ? tabs.filter(([t]) => t !== "licence") : tabs)
       .map(([tab, label]) => ({ tab, label })),
     ...(classed ? { classed } : {}),
-    ...(part ? { part } : {}),
+    ...(others ? { others } : {}),
   };
 }

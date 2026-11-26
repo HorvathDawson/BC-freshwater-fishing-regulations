@@ -209,8 +209,8 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
     feature, at the border the nearest B.C. town) — else at its km — wherever the part's two ends say the same words
     or its name is another part's; the part across that place says the same token (the mark there names it).
     Anything still said twice stops the build (`name_check`)."""
-    from pipeline.deliver.answers.display.part import NEAR, PLACE, at_place, branch_end_tokens, end_name_of, \
-        end_tokens, end_words
+    from pipeline.deliver.answers.display.part import INSIDE, NEAR, PLACE, at_place, branch_end_tokens, end_name_of, \
+        end_tokens, end_words, inside_area
     from pipeline.deliver.bundle.topology import is_crossing
     toks = [end_tokens(W.doc, p) for p in W.parts]
     # a part with no main stem says its water's name — unless the water has several such parts, or it is a piece of a
@@ -218,15 +218,20 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
     run_n: Dict[tuple, int] = {}
     for p in W.parts:
         run_n[(p["grp"], p["run"])] = run_n.get((p["grp"], p["run"]), 0) + 1
-    several = sum(1 for t in toks if t is None) > 1
-    toks = [t if t is not None or run_n[(p["grp"], p["run"])] < 2 else branch_end_tokens(p)
-            for p, t in zip(W.parts, toks)]
-    ends: List[Optional[list]] = [[t[0], t[1]] if t else None for t in toks]
+    # (T1140, owner 2026-11-25: "itshould have the real name … it will say eco reserve here") a part with no main stem
+    # whose side channels lie wholly inside one area is said by it: "Squamish River inside Baynes Island Ecological
+    # Reserve" (`part.inside_area`, the token `part.INSIDE`, the same as both its ends)
+    inside = [inside_area(p) if t is None else None for p, t in zip(W.parts, toks)]
+    several = sum(1 for t, a in zip(toks, inside) if t is None and a is None) > 1
+    toks = [t if t is not None or a is not None or run_n[(p["grp"], p["run"])] < 2 else branch_end_tokens(p)
+            for p, t, a in zip(W.parts, toks, inside)]
+    ends: List[Optional[list]] = [[t[0], t[1]] if t else [INSIDE + a, INSIDE + a] if a else None
+                                  for t, a in zip(toks, inside)]
     if several:
         # several parts with no main stem: each said "<water> near <what it lies nearest>" (`topology.part_near`;
         # lo = hi = "near:<token>"), the one thing that tells two side channels of unmeasured ends apart
         for i, (p, t) in enumerate(zip(W.parts, toks)):
-            if t is None:
+            if t is None and ends[i] is None:
                 near = crossings.get((W.id, "part", W.export_ix[i]))
                 if near is None:
                     raise AnswersError(f"display: {W.id} part {W.export_ix[i]}: one of several parts with no main "
@@ -256,7 +261,7 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
         new = place(ends[i][side], km)
         b = base(ends[i][side])
         for j, t in enumerate(toks):
-            if ends[j] is None:
+            if ends[j] is None or t is None:          # (T1140) an inside part has no ends of its own to meet
                 continue
             for s2, k2 in ((0, t[2]), (1, t[3])):
                 if base(ends[j][s2]) == b and k2 is not None and abs(k2 - km) <= 0.05:

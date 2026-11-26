@@ -19,7 +19,7 @@ import type { Spot } from "@app/data/spots";
 import type { ReleaseLoader } from "@app/data/release";
 import { openRegsFixture, openRegsFixtureWithLines, sectionNames } from "@app/data/release/node";
 import { loadWaterGroup, openRegsStore } from "@app/data/regs";
-import { partWhere } from "@app/core";
+import { partName } from "@app/core";
 import { HOME, type RegsStart, type Route, type SystemBack } from "@app/ui";
 
 /** Android's BackHandler, as Android drives it: listeners newest first; a press none handles goes to Android. */
@@ -144,7 +144,7 @@ function where(): string {
   if (strip) {
     const on = [...strip.querySelectorAll("[role=tab]")].find((t) => t.getAttribute("aria-selected") === "true");
     const name = ["Chilliwack River", "Jeperson Side Channel", "Vedder River", ...Object.values(KLWA)]
-      .find((n) => screen.queryByText(n)) ?? "?";
+      .find((n) => screen.queryAllByText(n).length > 0) ?? "?";
     parts.push(`water ${name} on ${on?.getAttribute("aria-label")}`);
   }
   if (screen.queryByLabelText("Edit spot") || screen.queryByLabelText("Cancel editing"))
@@ -212,7 +212,8 @@ const view = async (name: string) => { await act(async () => { fireEvent.click(s
 const press = async (name: string) => { await act(async () => { fireEvent.click(screen.getByRole("button", { name })); }); };
 /** (T498) a water opened over the map is built hidden and shown whole: its view strip is reachable once it is shown */
 const paneShown = () => screen.queryByRole("tablist", { name: "Views of this water" }) !== null;
-const mapWhere = () => screen.queryByTestId("water-map-where")?.textContent ?? "no water map";
+// (T1140) the part the map is on, by its NAME (the bar numbers no part any more)
+const mapWhere = () => screen.queryByTestId("water-map-name")?.textContent ?? "no water map";
 const onWaterMap = () => waitFor(() => expect(screen.getByTestId("water-map-where")).toBeTruthy(), { timeout: 20_000 });
 const JEPERSON = "gnis:11481" as ItemId;
 
@@ -225,7 +226,7 @@ async function movesInsideChilliwack(extra: () => string = () => ""): Promise<st
   const out: string[] = [];
   const note = (s: string) => out.push(`${s}${extra()}`);
   await click("tap the map");
-  await until(() => screen.queryByText("Chilliwack River") !== null && paneShown());
+  await until(() => screen.queryAllByText("Chilliwack River").length > 0 && paneShown());
   note(where());
   await view("Conditions"); note(where());
   await view("Map"); await onWaterMap(); note(`${where()} · ${mapWhere()}`);
@@ -237,13 +238,13 @@ async function movesInsideChilliwack(extra: () => string = () => ""): Promise<st
   await view("Map"); await onWaterMap(); note(`${where()} · ${mapWhere()}`);
   return out;
 }
-// (T768) where the map says it is comes from each water's own group, never a typed "Part 2 of 5": a new part end on
+// (T768) where the map says it is comes from each water's own group, never a typed part name: a new part end on
 // the water moves no line here (the one content pin is conformance waterGroup.fixture.test.ts)
 const FIXTURE_STORE = await openRegsStore(openRegsFixtureWithLines());
 const CHW_GROUP = await loadWaterGroup(FIXTURE_STORE, "gnis:8634");
 const VEDDER_GROUP = await loadWaterGroup(FIXTURE_STORE, "gnis:3062");
-const CHW_AT = (i: number) => partWhere(CHW_GROUP, i);
-const VEDDER_TOP = partWhere(VEDDER_GROUP, VEDDER_GROUP.parts.length - 1);
+const CHW_AT = (i: number) => partName(CHW_GROUP, i);
+const VEDDER_TOP = partName(VEDDER_GROUP, VEDDER_GROUP.parts.length - 1);
 const MOVES_SEEN = [
   "tab Map",
   "water Chilliwack River on Regulations · no bar",
@@ -265,14 +266,14 @@ async function openFromSearch(): Promise<void> {
   await act(async () => { fireEvent.click(screen.getAllByRole("button", { name: /^Show Chilliwack River/ })[0]!); });
   await until(() => screen.queryAllByRole("button", { name: /^Open Chilliwack River/ }).length > 0);
   await act(async () => { fireEvent.click(screen.getAllByRole("button", { name: /^Open Chilliwack River/ })[0]!); });
-  await until(() => screen.queryByText("Chilliwack River") !== null && !screen.queryByLabelText("Close search"));
+  await until(() => screen.queryAllByText("Chilliwack River").length > 0 && !screen.queryByLabelText("Close search"));
 }
 
 /** The tributary chain: tap the Chilliwack open, its Map, then a tap there on the Jeperson Side Channel (another water). */
 async function openTributary(): Promise<void> {
   TAP.sid = (await makeFixtureSource().water(CHILLIWACK))!.sections[1]!;
   await click("tap the map");
-  await until(() => screen.queryByText("Chilliwack River") !== null && paneShown());
+  await until(() => screen.queryAllByText("Chilliwack River").length > 0 && paneShown());
   await view("Map"); await onWaterMap();
   TAP.sid = (await makeFixtureSource().water(JEPERSON))!.sections[0]!;
   await click("tap the map");
@@ -288,7 +289,7 @@ async function acrossChilliwackVedder(extra: () => string = () => ""): Promise<s
   const out: string[] = [];
   const note = (s: string) => out.push(`${s}${extra()}`);
   await click("tap the map");
-  await until(() => screen.queryByText("Chilliwack River") !== null && paneShown());
+  await until(() => screen.queryAllByText("Chilliwack River").length > 0 && paneShown());
   await view("Map"); await onWaterMap();
   // (T517) it opens on part 0, the mouth (river order): already the lowest part, where ▼ goes into the Vedder; the
   // Vedder is two parts (a salmon-cut run), and the Chilliwack meets its upper one
@@ -347,7 +348,7 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
     for (const view of ["regs", "conditions", "map"] as const) {
       await mount({ mode: "water", from: { ...HOME, tab: view === "conditions" ? "conditions" : "map" },
                     stack: [{ item: CHILLIWACK, part: null, tapSid: null, at: null, view }] });
-      await until(() => screen.queryByText("Chilliwack River") !== null);
+      await until(() => screen.queryAllByText("Chilliwack River").length > 0);
       seen.push(backs(1).join(" | "));
       cleanup();
     }
@@ -375,7 +376,7 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
     const frame = { part: null, tapSid: null, at: null, view: "regs" as const };
     await mount({ mode: "water", from: HOME, stack: [{ ...frame, item: "gnis:11481" as ItemId },
                                                        { ...frame, item: CHILLIWACK }] });
-    await until(() => screen.queryByText("Chilliwack River") !== null);
+    await until(() => screen.queryAllByText("Chilliwack River").length > 0);
     const first = where();
     const h = hardwareBack();
     await until(() => screen.queryByText("Jeperson Side Channel") !== null);
@@ -406,7 +407,7 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
     await openTributary();
     const chain = [where()];
     const h = hardwareBack();
-    await until(() => screen.queryByText("Chilliwack River") !== null);   // its map reads the release again
+    await until(() => screen.queryAllByText("Chilliwack River").length > 0);   // its map reads the release again
     chain.push(`${h ? "handled" : "ANDROID"} -> ${where()}`, ...backs(1).slice(1));
     cleanup();
     await mount(HOME, nativeBack, openRegsFixture());
@@ -638,7 +639,7 @@ describe("the browser's back (systemBack.web: the History API) does the same", (
     await click("Layers"); seen.push(where());
     await browserBack(); seen.push(where());
     await click("tap the map");
-    await until(() => screen.queryByText("Chilliwack River") !== null && paneShown());
+    await until(() => screen.queryAllByText("Chilliwack River").length > 0 && paneShown());
     seen.push(where());
     await browserBack(); seen.push(where());
     await click("Spots"); seen.push(where());
@@ -663,7 +664,7 @@ describe("the browser's back (systemBack.web: the History API) does the same", (
 
     await openTributary(); const chain = [`${where()}${entry()}`];
     await browserBack();
-    await until(() => screen.queryByText("Chilliwack River") !== null); chain.push(`${where()}${entry()}`);
+    await until(() => screen.queryAllByText("Chilliwack River").length > 0); chain.push(`${where()}${entry()}`);
     await browserBack(); chain.push(`${where()}${entry()}`);
 
     await openTributary(); const close = [`${where()}${entry()}`];

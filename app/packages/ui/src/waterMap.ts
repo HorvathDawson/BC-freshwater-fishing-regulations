@@ -354,7 +354,7 @@ export interface MapEntries {
   /** each part → the pieces of the entry holding it (`entryPieces`): a page's in-season coverage */
   readonly pieces: ReadonlyMap<number, readonly number[]>;
   /** (T1140) each part → where its entry sits in the map's list and whether another has other rules (`entryPlaces`):
-   *  the heads' "Part 1 of 2"; empty where the map shows one entry */
+   *  the heads' line to the other parts; empty where the map shows one entry */
   readonly places: PartPlaces;
 }
 
@@ -366,11 +366,11 @@ export interface MapEntries {
  * reported by its `useAsync`): `headerOf` then says each part's own name and the page covers its own part.
  *
  * (T1140) And whether the parts are READ (`settled`: the group read, or failed — reported by its `useAsync`): the
- * Regulations view waits for it (`WaterScreen`), so no part's answer is drawn without its "Part 1 of 2" — a split lake's
+ * Regulations view waits for it (`WaterScreen`), so no part's answer is drawn before its parts are read — a split lake's
  * area of one part included (its group holds the other areas). It does NOT wait for the live salmon (T1049: the page
- * draws while its salmon card is still coming): until the salmon is read nothing joins, so the count is the release's
- * own, and it becomes the joined one when the salmon lands — the Map tab counts the same way at the same moment. No
- * water (an unnamed reach) is settled.
+ * draws while its salmon card is still coming): until the salmon is read nothing joins, so a part is named by its own
+ * ends, and by its joined span's once the salmon lands — the Map tab names it the same way at the same moment. No water
+ * (an unnamed reach) is settled.
  */
 export function useMapEntries(loader: SalmonLoader | null, store: RegsStore | null,
                               item: ItemId | null): { entries: MapEntries | null; settled: boolean } {

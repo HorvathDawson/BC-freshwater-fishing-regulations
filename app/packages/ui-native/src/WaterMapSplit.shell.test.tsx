@@ -46,7 +46,8 @@ async function open(w: number, h: number, part = 1) {
   await waitFor(() => expect(screen.queryByTestId("water-map-bar")).not.toBeNull(), { timeout: 20_000 });
   await settle();
 }
-const where = () => screen.getByTestId("water-map-where").textContent;
+// (T1140) the part the bar is on, by its NAME (the line over it is the water's, no count)
+const where = () => screen.getByTestId("water-map-name").textContent;
 
 describe("(T752) the water's Map tab is a split from the tablet breakpoint up", () => {
   it("899 px is the phone's layout; 900 px is the split", async () => {

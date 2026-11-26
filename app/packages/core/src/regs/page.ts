@@ -39,7 +39,7 @@ export interface RegsPageOpts {
    *  sheet's part names */
   readonly names?: PartNames | null;
   /** (T1140) where each part sits in the map's list (`@app/core` `entryPlaces`, `@app/ui` `useMapEntries`): the header's
-   *  "Part 1 of 2" and its line to the list of parts */
+   *  line to the list of parts */
   readonly places?: PartPlaces | null;
   /** test-harness page id only — sheet keys never embed it (contracts §6 #1) */
   readonly pid?: string;

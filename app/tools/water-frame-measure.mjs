@@ -15,7 +15,7 @@ process.env.CHROME ??= existsSync(MAC_CHROME) ? MAC_CHROME : "google-chrome";
 const { open } = await import("./regs-web/cdp.mjs");
 
 /** Each box's left/top; the content's left edge is the leftmost line of text under the water's name row. (T1140) The
- *  part's head — "Part 1 of 2", its name (`regs-place`) and the line to the other parts — is drawn at the frame's gutter
+ *  part's head — its name (`regs-place`) and the line to the other parts — is drawn at the frame's gutter
  *  on Regulations and Conditions alike and is left out here: on a part of a water of several it is the leftmost text at
  *  every size, and would hide a view body's own gutter (the MUTATION in water-frame-layout.test.ts). */
 const MEASURE = `(() => {
@@ -26,7 +26,7 @@ const MEASURE = `(() => {
   const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   for (let n; (n = walk.nextNode());) {
     if (!n.textContent.trim() || n.parentElement.closest('[aria-hidden=true]')) continue;
-    if (n.parentElement.closest('[data-testid=regs-part-where],[data-testid=regs-place],[data-testid=regs-parts-others]')) continue;
+    if (n.parentElement.closest('[data-testid=regs-place],[data-testid=regs-parts-others]')) continue;
     const range = document.createRange(); range.selectNodeContents(n);
     for (const r of range.getClientRects())
       if (r.width > 0 && r.top >= below && r.top < innerHeight) left = Math.min(left, r.left);

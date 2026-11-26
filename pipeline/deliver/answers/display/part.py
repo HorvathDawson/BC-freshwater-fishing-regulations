@@ -253,6 +253,11 @@ def end_name(doc: dict, e: Optional[str], side: str = "") -> str:
         if iid not in MOUTH_WORDS:
             raise AnswersError(f"run end {e!r}: no mouth words for {iid} (`part.MOUTH_WORDS`)")
         return f"the mouth ({MOUTH_WORDS[iid]})"
+    if str(e).startswith(INSIDE):
+        # T1140 (owner 2026-11-25: "itshould have the real name … it will say eco reserve here"): a part whose side
+        # channels lie wholly inside one area (`inside_area`), said by that area's name as every area end is
+        # ("Baynes Island Ecological Reserve boundary" less " boundary": the export's split name, cased by `area_display`)
+        return "inside " + re.sub(r" boundary$", "", end_name(doc, str(e)[len(INSIDE):], side))
     if NEAR in str(e):
         # T517 (owner 2026-11-09): a crossing two parts of one water would otherwise name alike (a border, an area's
         # boundary, an unnamed lake, a river polygon), said near what stands there (`topology.crossing_near`)
@@ -523,6 +528,23 @@ def end_variants(doc: dict, e: Optional[str], side: str) -> List[str]:
 PLACE = "@km"
 #: T517: the separator of an end token said near what stands there: "<token>@near:<token>"
 NEAR = "@near:"
+#: T1140: the end token of a part whose side channels lie wholly inside one area: "near:inside:<area token>", shipped as
+#: BOTH its ends. The `near:` head is the one the app already composes as "<water> <words>" (`spanName`: lo = hi =
+#: "near:…"), so a shipped app says "Squamish River inside Baynes Island Ecological Reserve" with no change of its own.
+INSIDE = "near:inside:"
+
+
+def inside_area(part: dict) -> Optional[str]:
+    """T1140 (owner 2026-11-25) THE AREA A PART WITH NO MAIN STEM LIES WHOLLY INSIDE: every one of its side-channel runs
+    runs from one area's cut to the same area's cut (the export's `area:` split at both ends — the run `_run_txt` says
+    "Within <area>"), all of them one area. None otherwise: a channel with a single end at an area's boundary (it runs to
+    it, from outside: the Skeena's below its reserve) or with ends of two areas is not said inside anything."""
+    runs = [r for r in part.get("runs") or [] if r.get("branch")]
+    if not runs or any(not _js(r.get("from")) or r.get("from") != r.get("to") or not str(r["from"]).startswith("area:")
+                       for r in runs):
+        return None
+    areas = {r["from"] for r in runs}
+    return next(iter(areas)) if len(areas) == 1 else None
 
 
 def at_place(token: str, km: Optional[float]) -> str:

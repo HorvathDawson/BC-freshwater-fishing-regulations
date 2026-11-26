@@ -152,7 +152,7 @@ describe("T44 the water frame: a view switch moves nothing the views share", () 
     try {
       const m = measure(await shoot());
       // (T367) the part's place row and the access notices head the Conditions view as they head Regulations, drawn by
-      // the frame outside the body. (T1140) The part's head ("Part 1 of 2", its name, the line to the other parts) is left
+      // the frame outside the body. (T1140) The part's head (its name, the line to the other parts) is left
       // out of "left" (water-frame-measure.mjs): it was the leftmost text at some sizes and hid the body's gutter; now the
       // body's own gutter shows at every size
       expect(disagreements(m)).toEqual([
