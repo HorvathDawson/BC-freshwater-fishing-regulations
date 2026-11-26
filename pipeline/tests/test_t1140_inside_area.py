@@ -617,7 +617,8 @@ def test_the_old_kootenay_river_channel_unreviewed_goes_to_the_next_rung_but_its
                iid="gnis:2123", name="Old Kootenay River Channel")
     W.doc["waters"]["gnis:3"] = {"name": "Leach Lake", "kind": "lake", "parts": []}
     cr[("gnis:2123", "flows_into", 1)] = "lake_inlet:gnis:3"           # (synthetic: the lower channel's flow, into the lake)
-    assert _said(W, cr)[1] == "Old Kootenay River Channel side channels: one into Leach Lake; one other"   # the next rung
+    # the next rung: one channel into Leach Lake, the other with no named end — (round 4) the plain count, its label
+    assert _names(W, cr)[1] == {"lo": None, "hi": None}
     assert _sub(W, cr)[1] == "2 side channels inside Creston Valley WMA"
     assert inside_candidates("gnis:2123", W.w, cr) == ["gnis:2123 part 1 inside 'CRESTON VALLEY WILDLIFE MANAGEMENT AREA'"]
 
@@ -675,8 +676,9 @@ def test_the_squamish_channels_inside_baynes_island_are_said_inside_it():
     cr = {("gnis:25671", "inside", 1): ("BAYNES ISLAND ECOLOGICAL RESERVE", "inside", True)}
     got = _names(W, cr)
     assert got[1] == {"lo": INSIDE + BAYNES, "hi": INSIDE + BAYNES}
-    assert _said(W, cr)[1] == "Squamish River inside Baynes Island Ecological Reserve"
-    assert _sub(W, cr)[1] == "Side channel inside Baynes Island Ecological Reserve"
+    # (T1172 round 4, owner 2026-11-26) "Ecological Reserve" in its short form
+    assert _said(W, cr)[1] == "Squamish River inside Baynes Island Eco Reserve"
+    assert _sub(W, cr)[1] == "Side channel inside Baynes Island Eco Reserve"
 
 
 def test_an_inside_pair_no_reviewer_looked_at_stops_the_build():
@@ -701,8 +703,8 @@ def test_the_oxbows_are_said_at_hayne_s_lease():
                    iid="wsc:300-432687-459615", name="Okanagan River Oxbows")
         cr = {("wsc:300-432687-459615", "inside", 1): ("HAYNE'S LEASE ECOLOGICAL RESERVE", "at", True)}
         assert _names(W, cr)[1] == {"lo": AT + hl, "hi": AT + hl}
-        assert _said(W, cr)[1] == "Okanagan River Oxbows at Hayne's Lease Ecological Reserve"
-        assert _sub(W, cr)[1] == "2 side channels at Hayne's Lease Ecological Reserve"
+        assert _said(W, cr)[1] == "Okanagan River Oxbows at Hayne's Lease Eco Reserve"
+        assert _sub(W, cr)[1] == "2 side channels at Hayne's Lease Eco Reserve"
     finally:
         del SPLITS[hl]
 
@@ -729,29 +731,38 @@ def test_a_channel_that_names_only_its_own_mouth_takes_the_water_its_flow_reache
         "Theodosia River side channel into Olsen Lake"
 
 
-def test_one_named_channel_and_one_bare_one_say_the_bare_ones_join():
-    # Snehumption Creek p1: one channel from the B.C. border, the other joining at its derived km
-    chans = side_channels({"runs": [_run("bc_border", "mouth", 2.0, 2.0, branch=True),
-                                    _run("source", "mouth", 3.6, 3.6, branch=True)]})
-    assert chans == [["", "bc_border", 2.0], ["", "", 3.6]]
-    W = _water([MAIN, [_run("bc_border", "mouth", 2.0, 2.0, branch=True), _run("source", "mouth", 3.6, 3.6, branch=True)]],
-               iid="gnis:27390", name="Snehumption Creek")
-    # (T1172, owner 2026-11-26: "Distance only to tell parts apart") the one such part of its water: the bare channel is
-    # counted, never placed
-    assert _said(W)[1] == "Snehumption Creek side channels: one up to the B.C. border; one other"
+def test_a_part_whose_channels_are_not_all_named_takes_the_plain_count():
+    # Snehumption Creek p1: one channel from the B.C. border, the other with no named end — (T1172 round 4, owner
+    # 2026-11-26) the plain count, "2 side channels", as every such part: never "one up to …; one other"
+    runs = [_run("bc_border", "mouth", 2.0, 2.0, branch=True), _run("source", "mouth", 3.6, 3.6, branch=True)]
+    assert side_channels({"runs": runs}) is None
+    W = _water([MAIN, runs], iid="gnis:27390", name="Snehumption Creek")
+    assert _names(W, {})[1] == {"lo": None, "hi": None}
     assert _sub(W)[1] == "2 side channels"
+    # every channel named: still said by its ends
+    both = [_run("bc_border", "mouth", 2.0, 2.0, branch=True), _run("source", "confluence:gnis:9", 3.6, 3.6, branch=True)]
+    assert side_channels({"runs": both}) == [["", "bc_border", 2.0], ["confluence:gnis:9", "", 3.6]]
+    W = _water([MAIN, both], iid="gnis:27390", name="Snehumption Creek")
+    assert _said(W)[1] == "Snehumption Creek side channels: one up to the B.C. border; one from the Exchamsiks River " \
+                          "confluence"
+    from pipeline.deliver.answers.display.part import side_words
+    with pytest.raises(AnswersError, match="no named end"):
+        side_words(W.doc, [["", "bc_border", 2.0], ["", "", 3.6]])
 
 
-def test_a_channel_with_no_named_end_and_no_distance_is_counted_in_a_named_part():
+def test_a_channel_with_no_named_end_and_no_distance_gives_the_plain_count_and_is_listed():
     # the Okanagan River Oxbows, were it not "at" its reserve: one channel to the boundary, one with no join — (T1172)
-    # no distance is said on the one such part of a water, so none is needed (before: a stop)
+    # its label, "2 side channels", no stop; (round 4: "make it LOUD") listed, never silent
+    from pipeline.deliver.answers.display.builders import side_facts, unmeasured_side_parts
     hl = "area:HAYNE'S LEASE ECOLOGICAL RESERVE"
     SPLITS[hl] = {"name": "Hayne's Lease Ecological Reserve boundary", "kind": "area"}
     try:
         W = _water([MAIN, [_run("source", hl, None, None, branch=True), _run("source", "mouth", None, None, branch=True)]],
                    iid="wsc:300-432687-459615", name="Okanagan River Oxbows")
-        assert _said(W)[1] == "Okanagan River Oxbows side channels: one from Hayne's Lease Ecological Reserve boundary; " \
-                              "one other"
+        names = _names(W, {})
+        assert names[1] == {"lo": None, "hi": None} and _sub(W)[1] == "2 side channels"
+        Wf = Water(W.id, side_facts(W.id, W.w, {}), W.doc)
+        assert unmeasured_side_parts(Wf, names) == ["wsc:300-432687-459615 part 1: 2 of 2 channel(s) with no measure"]
     finally:
         del SPLITS[hl]
 
@@ -932,7 +943,8 @@ def test_the_area_short_form_in_name_and_subtitle_alike():
     from pipeline.deliver.answers.display.part import area_short
     assert area_short("Creston Valley Wildlife Management Area") == "Creston Valley WMA"
     assert area_short("Strathcona - Westmin Park") == "Strathcona - Westmin Park"       # the parks source's own hyphen
-    assert area_short("Baynes Island Ecological Reserve") == "Baynes Island Ecological Reserve"
+    assert area_short("Baynes Island Ecological Reserve") == "Baynes Island Eco Reserve"        # (round 4)
+    assert area_short("Pacific Rim National Park Reserve") == "Pacific Rim National Park Reserve"     # stays in full
     # a cut WMA (said by its split) takes it too
     SPLITS["area:X WILDLIFE MANAGEMENT AREA"] = {"name": "X Wildlife Management Area boundary", "kind": "area"}
     try:
@@ -946,7 +958,7 @@ def test_the_area_short_form_in_name_and_subtitle_alike():
 def test_the_subtitle_says_the_area_with_its_distance_when_told_apart():
     W = _water([MAIN, LOOSE, [_run("source", "mouth", 20.0, 20.0, branch=True)]])
     cr = {("gnis:25671", "inside", 1): ("BAYNES ISLAND ECOLOGICAL RESERVE", "inside", True)}
-    assert _sub(W, cr)[1:] == ["Side channel inside Baynes Island Ecological Reserve, 11.6 km from the mouth",
+    assert _sub(W, cr)[1:] == ["Side channel inside Baynes Island Eco Reserve, 11.6 km from the mouth",
                                "Side channel, 20 km from the mouth"]
 
 

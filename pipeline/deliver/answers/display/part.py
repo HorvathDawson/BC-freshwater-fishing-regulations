@@ -231,7 +231,9 @@ def _crossing_words(doc: dict, base: str, side: str) -> str:
 
 
 #: (T1172, owner 2026-11-26: "inside Creston Valley WMA") the short form an area's kind takes in a part's name and subtitle
-AREA_SHORT = ((re.compile(r"\bWildlife Management Area\b", re.I), "WMA"),)
+#: ("Squamish River inside Baynes Island Eco Reserve", round 4); a national park reserve and a park stay in full
+AREA_SHORT = ((re.compile(r"\bWildlife Management Area\b", re.I), "WMA"),
+              (re.compile(r"\bEcological Reserve\b", re.I), "Eco Reserve"))
 
 
 def area_short(words: str) -> str:
@@ -606,7 +608,8 @@ AREA_HEAD = {"inside": INSIDE, "at": AT}
 #: to") the end token of a part of side channels only that is named by its channels' NAMED ends (`side_channels`): shipped
 #: as both its ends, "near:side:" + JSON [[lower end, upper end, km]…], each end a named token or "" and km the channel's
 #: join where neither end is named. Said "Side channel from <lower> up to <upper>" (one channel) or "Side channels: one
-#: …; one other" (`side_words`: no distance, T1172); the `near:` head is what a shipped app composes as "<water> <words>".
+#: …; one up to …" (`side_words`: every channel named, no distance, T1172); the `near:` head is what a shipped app composes
+#: as "<water> <words>".
 SIDE = "near:side:"
 #: The run ends that name nothing on a side channel: its own two ends where it leaves and rejoins its river ("mouth",
 #: "source" on a channel's run are the CHANNEL's), an unnamed lake, the water's own polygon.
@@ -638,9 +641,11 @@ def named_end(tok: Optional[str]) -> Optional[str]:
 
 
 def side_channels(part: dict, flows_into: Optional[str] = None) -> Optional[list]:
-    """T1140 THE CHANNELS OF A PART WITH NO MAIN STEM, as `SIDE` carries them, or None when none has a named end (the part
-    is then said by its label: `runs_label`). `flows_into`: the named water the part's lowest channel flows into where its
-    run says only its own mouth (the bundle's flow pointers, `builders._flows_into`): that channel's lower end."""
+    """T1140 THE CHANNELS OF A PART WITH NO MAIN STEM, as `SIDE` carries them, or None — the part is then said by its
+    label, the plain count (`runs_label`) — unless EVERY channel has a named end (T1172 round 4, owner 2026-11-26:
+    Snehumption's "one up to the B.C. border; one other" reads "2 side channels"). `flows_into`: the named water the
+    part's lowest channel flows into where its run says only its own mouth (the bundle's flow pointers,
+    `builders._flows_into`): that channel's lower end."""
     runs = sorted((r for r in part.get("runs") or [] if r.get("branch")),
                   key=lambda r: (r.get("km_from") is None, r.get("km_from") or 0, str(r.get("from")), str(r.get("to"))))
     if not runs:
@@ -652,26 +657,22 @@ def side_channels(part: dict, flows_into: Optional[str] = None) -> Optional[list
             lo = flows_into
         km = round(float(r["km_from"]), 1) if r.get("km_from") is not None else None
         out.append([lo or "", hi or "", km])
-    return out if any(c[0] or c[1] for c in out) else None
+    return out if all(c[0] or c[1] for c in out) else None
 
 
 def side_words(doc: dict, chans: list) -> str:
-    """The words of a `SIDE` token: each channel by its named ends; one with none is counted, never placed (T1172, owner
-    2026-11-26: "Distance only to tell parts apart" — a `SIDE` part is the one such part of its water, so no channel of it
-    says a distance: "Snehumption Creek side channels: one up to the B.C. border; one other")."""
+    """The words of a `SIDE` token: each channel by its named ends, never a distance (T1172, owner 2026-11-26: a `SIDE`
+    part is the one such part of its water). Every channel has a named end (`side_channels`); one without STOPS."""
     def one(lo: str, hi: str) -> str:
         # (owner 2026-11-25: "The clearer one") a channel that flows into a lake says so: "into Olsen Lake"
         low = f"{'into' if lo.startswith('lake_inlet:') else 'from'} {end_name(doc, lo, 'to')}" if lo else ""
         return " ".join(x for x in (low, (f"up to {end_name(doc, hi, 'from')}" if hi else "")) if x)
-    named = [one(c[0], c[1]) for c in chans if c[0] or c[1]]
-    if not named:
-        raise AnswersError("display: a SIDE token with no named end (T1140: `side_channels` gives none)")
+    if not chans or any(not (c[0] or c[1]) for c in chans):
+        raise AnswersError(f"display: a SIDE token with a channel of no named end ({chans}): `side_channels` gives none")
     if len(chans) == 1:
-        return f"Side channel {named[0]}"
-    bare = len(chans) - len(named)
-    tail = [] if not bare else ["one other" if bare == 1 else f"{bare} others"]
-    # (owner 2026-11-25: "The clearer one") "Snehumption Creek side channels: one up to the B.C. border; one other"
-    return "Side channels: " + "; ".join([f"one {w}" for w in named] + tail)
+        return f"Side channel {one(chans[0][0], chans[0][1])}"
+    # (owner 2026-11-25: "The clearer one") "<water> side channels: one from …; one up to …"
+    return "Side channels: " + "; ".join(f"one {one(c[0], c[1])}" for c in chans)
 
 
 def at_place(token: str, km: Optional[float]) -> str:

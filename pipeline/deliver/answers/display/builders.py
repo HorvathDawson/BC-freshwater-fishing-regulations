@@ -284,10 +284,10 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
         if own:
             ends[i] = [OWN + _json.dumps(list(own), separators=(",", ":"), ensure_ascii=False)] * 2
     if not several:
-        # (T1140, owner 2026-11-25: "Named by its ends", "They should always have the cut names or distance") the ONE part
-        # of side channels only of a water, where a channel has a named end: said by them ("Side channel from the
-        # Exchamsiks River confluence up to the Skeena River Ecological Reserve boundary"; `part.SIDE`), a channel with
-        # none by where it joins; one whose run names only its own mouth takes the named water its flow reaches
+        # (T1140, owner 2026-11-25: "Named by its ends") the ONE part of side channels only of a water, where EVERY channel
+        # has a named end (T1172 round 4): said by them ("Side channel from the Exchamsiks River confluence up to the Skeena
+        # River Ecological Reserve boundary"; `part.SIDE`); one whose run names only its own mouth takes the named water its
+        # flow reaches. Else its label, the plain count
         for i, (p, t) in enumerate(zip(W.parts, toks)):
             if t is None and ends[i] is None:
                 chans = side_channels(p, crossings.get((W.id, "flows_into", W.export_ix[i])))
@@ -399,6 +399,20 @@ def side_facts(item_id: str, w: dict, crossings: Dict[tuple, object]) -> dict:
     return {**w, "parts": parts}
 
 
+def unmeasured_side_parts(W: "Water", names: List[dict]) -> List[str]:
+    """(T1172 round 4, owner 2026-11-26: "make it LOUD") the parts said by their label, the one such part of their water,
+    with a channel no measure places: no stop (the label says no distance), but listed — such a part sorts last among its
+    water's parts (`part_km`)."""
+    out = []
+    for i, (p, n) in enumerate(zip(W.parts, names)):
+        if side_only(p) and n["lo"] is None and not p.get(SIDE_APART):
+            bare = [r for r in p.get("runs") or [] if r.get("branch") and r.get("km_from") is None]
+            if bare:
+                out.append(f"{W.id} part {W.export_ix[i]}: {len(bare)} of "
+                           f"{sum(1 for r in p.get('runs') or [] if r.get('branch'))} channel(s) with no measure")
+    return out
+
+
 def inside_candidates(item_id: str, w: dict, crossings: Dict[tuple, object]) -> List[str]:
     """(T1172) the parts the bundle measures inside a membership-only area no reviewer has looked at
     (`part.REVIEWED_INSIDE`): their subtitles say the area, their names wait for the look — listed, never silent."""
@@ -462,6 +476,8 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
         except AnswersError as e:              # (T1140) every part the rules cannot name, together, then stop
             stops.append(str(e))
             continue
+        for u in unmeasured_side_parts(W, names):
+            log(f"  side part said by its label with no measure (no stop; it sorts last among its water's parts): {u}")
         closed = []
         facts: List[Optional[dict]] = [None] * len(w["parts"])
         for i, (ex, p) in enumerate(zip(W.export_ix, W.parts)):
