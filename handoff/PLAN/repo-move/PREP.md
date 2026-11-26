@@ -1,4 +1,6 @@
-# Repo move: what was prepared before the transfer (T1041; repo-move chat, 2026-11-25)
+# Repo move: what was prepared, and what the cutover showed (T1041; repo-move chat, 2026-11-25)
+
+**The move is done: the repo is `canifishthis/canifishthis` since 2026-11-25 15:16 MST. Section 9 says how it went.**
 
 From `HorvathDawson/BC-freshwater-fishing-regulations` to **`canifishthis/canifishthis`** (owner 2026-11-25 13:25:
 "Rename now": the transfer and the rename happen in the same cutover). The repo is public and stays public. Nothing
@@ -222,3 +224,39 @@ The ones most likely to stop the fresh clone (T1120 step 2): `data/source/fwa_co
 is neither pinned nor fetched by `bootstrap.sh`; bootstrap does no `pnpm install` and sets no hooks; no page lists
 the phone toolchain (JDK, SDK, NDK, Xcode, CocoaPods); the pinned MapLibre AAR is built, not fetched. The page ends
 with the secrets the owner confirms he can restore.
+
+## 9. What the cutover showed (2026-11-25, times MST by the clock)
+
+The owner transferred and renamed the repo himself at about 15:16, before the planned minute (a staging run of the
+0.10.0 release was in flight; it was stopped clean before any tag or upload, and nothing was lost).
+
+| Check | Result |
+|---|---|
+| Address | `canifishthis/canifishthis`, repo id 1124297111; the old address redirects (git, web, API) |
+| Rulesets | all 3 moved with their ids. **The "main trunk" ruleset lost its bypass entry in the transfer** (admin, pull-request mode): put back by hand, with the owner's OK |
+| Required checks, Actions secrets (4), Actions permissions, branches, tags | the same (`snapshot-before/` against `snapshot-after/`) |
+| Collaborators | only the owner; the second account fell off at the transfer (wanted) |
+| Open PRs | moved, auto-merge still set on each |
+| Old dispatch token | dead at once: the staging worker's `check-github` answered 404 |
+| New token | made by the owner on the org (expires about 2027-11-25), set by him on both workers; staging `check-github` ok 15:23, production ok (his run); the old token deleted |
+| A worker-started workflow | `/run/runtiming` on the staging worker at 15:29 started `feeds-runtiming` run 45713592821 on `main`; green 15:36. The worker still had the OLD address compiled in: **GitHub's redirect carries the worker's POST**, body and token included |
+| Slug flip | #217, change commit a85dec393, merged through the queue 15:52 |
+| Remotes | one `git remote set-url` on the main checkout (run by the 0.10.0 chat) covered every worktree |
+| Merge queue | on since 15:20 (section 5's rule as written, in the same PUT that restored the bypass). First PR through: #217 |
+
+Things nobody planned for:
+- **Runners.** The new org ran only two or three jobs at once for the first half hour (32 runs queued, 2 running at
+  15:31); #217 waited 32 minutes in the queue for runners, none of it the queue's own doing. By 15:43 five ran at once.
+- **Dependabot and CodeQL** were on after the transfer (the owner turned them on): Dependabot opened three PRs
+  (vite 5 to 8 among them), each push starting five workflows and a CodeQL scan. Paused with the owner's OK until
+  0.10.0 is out: Dependabot security updates off (the repo switch), CodeQL default setup off. **CodeQL is not a repo
+  switch here: the org's security configuration `canifishthis-org-config-1` (id 303766, enforced) sets it**, so it is
+  that configuration's `code_scanning_default_setup` field (now `disabled`; back to `enabled` to turn it on).
+- **Every pull request starts all five workflows**, a docs-only one too (each required check's workflow has a bare
+  `pull_request:` trigger and its own `changes` job; `mutation.yml` as well). About ten short jobs per docs push.
+  The planning chat has the proposal: a `paths:` filter on `mutation.yml`, and one gate workflow that reports the
+  four required checks and calls the heavy workflows only for the areas that changed.
+- **A PR with a merge conflict starts no workflow at all** and says nothing: #256 sat with "no checks reported"
+  until main was merged into it.
+- A fresh worktree cannot commit or push until `pnpm -C app install` has run and `.venv` exists (the hooks need
+  both): T1112's ground.
