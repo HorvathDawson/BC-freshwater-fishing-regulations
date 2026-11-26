@@ -168,6 +168,16 @@ def test_a_channel_touching_its_rivers_own_polygon_joins_there_whatever_the_dist
     assert any("touching its own polygon 4" in x for x in log)
 
 
+def test_two_ends_touching_two_bodies_pick_one_by_rule():
+    # both ends touch (no flow pointer tells them apart): the lowest id wins, ties on the point's place, never on a Point
+    from shapely.geometry import Point
+    e1, e2 = Point(0, 0), Point(5, 0)
+    own = [(7, box(-1, -1, 1, 1)), (4, box(4, -1, 6, 1))]
+    assert sc.touched([e1, e2], own, [])[:2] == ("own", 4)
+    assert sc.touched([e1, e2], [(4, box(-1, -1, 6, 1))], [])[2] == e1
+    assert sc.touched([e1, e2], own, [("gnis:3", box(4, -1, 6, 1))])[:2] == ("lake", "gnis:3")
+
+
 def test_a_channel_touching_nothing_keeps_the_snap_limit(tmp_path, monkeypatch):
     lo, _ = _write(*_touch_db("none"), tmp_path, monkeypatch)
     assert lo[3] is None

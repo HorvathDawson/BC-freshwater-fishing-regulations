@@ -101,10 +101,10 @@ def touched(ends: List[object], own: List[Tuple[int, object]], lakes: List[Tuple
     end) for a named lake its main line runs through — first, a lake beats the river's own polygon it lies in — else
     ("own", sid, the end) for the river's own polygon section; None when it touches neither. Ties: the lowest id."""
     for kind, bodies in (("lake", lakes), ("own", own)):
-        hits = sorted((key, e) for e in ends for key, g in bodies if e.distance(g) <= TOUCH_M)
+        hits = sorted(((key, e) for e in ends for key, g in bodies if e.distance(g) <= TOUCH_M),
+                      key=lambda h: (h[0], h[1].x, h[1].y))
         if hits:
-            key, e = hits[0][0], hits[0][1]
-            return kind, key, e
+            return kind, hits[0][0], hits[0][1]
     return None
 
 
