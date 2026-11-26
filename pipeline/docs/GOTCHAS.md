@@ -468,7 +468,7 @@ another guess; replace it only with a stated position. (Same family as "Sheldens
 
 ## DFO place words that do not fit the ground, kept as they are on the owner's word
 
-**2026-11-16 · owner re-checked each by map picture · DFO salmon places · answers verbatim in `handoff/PLAN/OWNER-TODO.md` ("Answers by batch", "Re-check of saves"), tickets T803 / T806**
+**2026-11-16 · owner re-checked each by map picture · DFO salmon places · answers verbatim in the retired `handoff/PLAN/OWNER-TODO.md` ((in git history at 03be2862e): "Answers by batch", "Re-check of saves"), tickets T803 / T806**
 
 Each of these looks like a labelling mistake when measured or read closely. Each was shown to the owner and kept.
 Do not "fix" one from a measurement or a closer reading of DFO's words; a change needs a new source (a sign

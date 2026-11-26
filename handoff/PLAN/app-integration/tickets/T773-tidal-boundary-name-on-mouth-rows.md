@@ -4,7 +4,7 @@ Status: OPEN (pipeline + review app; small).
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T773 | A tidal boundary cut written from a mark always reads "tidal boundary"; the owner's name for the Kitsault one could not be saved | OPEN | — | owner note on mark 2682; second look at the DFO labels, 2026-11-15 night (`second-look-fixes-2026-11-15.md`) |
+| T773 | A tidal boundary cut written from a mark always reads "tidal boundary"; the owner's name for the Kitsault one could not be saved | OPEN | — | owner note on mark 2682; second look at the DFO labels, 2026-11-15 night (`handoff/PLAN/research/second-look-fixes-2026-11-15.md`) |
 
 Source: owner note on mark 2682 (Kitsault River); second-look fix lane B, 2026-11-15 night ("Stopped or held").
 

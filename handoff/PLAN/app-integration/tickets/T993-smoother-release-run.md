@@ -30,7 +30,7 @@ remembering: each one either does the step or says exactly what to do next. Evid
 nine times, each found only by the run before it (stale mini release, `water` over its gate by 85 KB after a 25-minute
 build, `--min-app-version` not passed, worker suite not in `pnpm check`, staging site under the minimum app, fast-fail
 handing worker files to vitest, binding diff, renumbered golden pages, release-backed tests pinned to the old release).
-Inventory: `handoff/PLAN/audit-2026-11-21/t993-inventory.md` (17-item ranked plan; the lanes below are its item numbers).
+Inventory: `handoff/PLAN/research/t993-inventory.md` (17-item ranked plan; the lanes below are its item numbers).
 
 Done:
 - GitHub Actions cleanup (2026-11-21): 8,399 runs of removed workflows deleted; 36 stale caches (10.4 GB → 1.24 GB);

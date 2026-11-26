@@ -1,6 +1,6 @@
 # T55 — Find the sloughs and canals still drawn as lakes (POSTPONED)
 
-Status: BLOCKED (owner) — shrunk (owner 2026-11-03): what is left here is the owner confirming slough marks in the review app; the fold, side build and gate are T322, the lock T328. Was: IN PROGRESS — 2026-10-28: the review app (:5183, "Sloughs" tab, `#sloughs/`) shows every v2 candidate (2,424) with its PRE-MARK; ★ OWNER confirms there (one, or "accept all visible"), each a mark (scope `slough`, `call` stream / not stream). Next: confirmed streams → registry fold → reach + deliver + binding diff, as a side build. The tab is the ONLY slough review place (owner 10-28): the old review page (artifact, retired) is fully carried — 150 verdicts as `page_verdict`, 8 free-text notes as `page_note`, its database saved in `handoff/PLAN/sloughs/marks-final-2026-10-28.json` (151 verdicts + 58 spot checks). Earlier: finder v2 + that page (read into the automark), automark d4a22561. Prior fec02c29, 96b0eb73, 669fd065, a59f3dc3, ac8a0e1c.
+Status: BLOCKED (owner) — shrunk (owner 2026-11-03): what is left here is the owner confirming slough marks in the review app; the fold, side build and gate are T322, the lock T328. Was: IN PROGRESS — 2026-10-28: the review app (:5183, "Sloughs" tab, `#sloughs/`) shows every v2 candidate (2,424) with its PRE-MARK; ★ OWNER confirms there (one, or "accept all visible"), each a mark (scope `slough`, `call` stream / not stream). Next: confirmed streams → registry fold → reach + deliver + binding diff, as a side build. The tab is the ONLY slough review place (owner 10-28): the old review page (artifact, retired) is fully carried — 150 verdicts as `page_verdict`, 8 free-text notes as `page_note`, its database saved in `sloughs/marks-final-2026-10-28.json` (in git history at 03be2862e) (151 verdicts + 58 spot checks). Earlier: finder v2 + that page (read into the automark), automark d4a22561. Prior fec02c29, 96b0eb73, 669fd065, a59f3dc3, ac8a0e1c.
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
@@ -33,7 +33,7 @@ review-app tab + pre-marks (`pipeline/regs/review/slough.py`, `curation-review/b
 `frontend/src/components/SloughReview.tsx`, `pipeline/tests/test_curation_review_slough.py`; shot
 `handoff/PLAN/app-integration/T55-shots/`); 811 confirmed (`data/curated/decided/sloughs.json`: 801 "accept all
 visible" + 10 single) folded by T322; old inputs archived by T328. The old review page's 150 verdicts are carried as
-`page_verdict`, 8 notes as `page_note` (`handoff/PLAN/sloughs/marks-final-2026-10-28.json`).
+`page_verdict`, 8 notes as `page_note` (`sloughs/marks-final-2026-10-28.json` (in git history at 03be2862e)).
 
 ## Acceptance
 - Each accepted one becomes part of its stream item; its section then paints with the stream's flow colour in every

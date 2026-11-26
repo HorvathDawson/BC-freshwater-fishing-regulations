@@ -6,7 +6,7 @@ Status: OPEN — production went live 2026-11-18/19 (old owner to-do record 2026
 |---|---|---|---|---|
 | T240 | production launch checklist (updated 2026-10-29: section 11 = map-assets, HYDAT, report purge, SEO build --app, privacy page, store; data-worker fix, prod R2, feeds prod + crons, retire old cron/workflows, DNS 301s, Search Console, noindex off, CF bot/robots, secrets, smoke, env) | OPEN | — | production live 11-18/19; Cloudflare + v1 switch done 11-18 (T865); open: GitHub prod option + PROD_R2 secrets, prod run-timing publish (T404); branch structure (owner 11-18 … (detail: ticket file) |
 
-Source: owner 2026-10-28 — approved proposal P6 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
+Source: owner 2026-10-28 — approved proposal P6 in proposed-tickets-2026-10-28.md (in git history at 03be2862e) ("approved ALL 16").
 Pulls together what T86 (hosting), T198 (SEO redirects / Search Console), T225 (feeds), T232 (environments),
 handoff/PLAN/seo/staging.md "Findings (owner / prod)" and the old owner to-do page say prod needs.
 Scope, owner 2026-11-04 (superseded by the 11-18/19 launch): "we could work on a checklist but we arent going to

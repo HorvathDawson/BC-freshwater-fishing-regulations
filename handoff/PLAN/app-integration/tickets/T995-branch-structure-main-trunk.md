@@ -34,7 +34,7 @@ recommended options): "main is the trunk", "Release branch at lock", "Merge comm
 ## Left (Claude)
 - After the 0.9.0 production feeds worker redeploys from `main`: delete `redesign/stream-sections` and
   `cache/maplibre/fslean-m2`.
-- `handoff/PLAN/PARKED-TICKETS.md` and `ios/START-HERE-ios.md` still name the old branch (history pages, left as is).
+- `ios/START-HERE-ios.md` still names (and PARKED-TICKETS.md, since removed by T1081, did) the old branch (history pages, left as is).
   actionlint was not run (not installed). Open question for T998: a data-only release after the merge-back runs from
   which branch (app.json's version names an already-merged `release/<v>`)?
 

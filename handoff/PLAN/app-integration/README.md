@@ -15,7 +15,7 @@ is the port tooling in `app/design/regs-v11/port/` (committed, run, outputs in `
 
 ## 0. Prerequisites: app prep + the minimal release (added 2026-10-20)
 
-This spec now depends on `handoff/PLAN/app-data/` (revision 2, 2026-10-20):
+This spec depended on `handoff/PLAN/app-data/` (revision 2, 2026-10-20; removed by T1081, in git history at 03be2862e):
 - `DATA-MAP.md`: every data product, from source to screen.
 - `MINIMAL-PACKAGING.md` (revision 3): a few small gzip files in `data/release/`, separate from the build artifacts
   in `data/generated/`:
@@ -128,7 +128,7 @@ except the version line — the tickets cite golden paths.
 ## 2. Order
 
 ```
-Prep (app-data/APP-PREP.md)   N1 → N2 ; P01–P07 (parallel) → P18 → P08 → P09 → P10 → P11 ; P12 ; P13 → P14 → P15 ; P16 P17 ; P20 P21
+Prep (app-data/APP-PREP.md, in git history)   N1 → N2 ; P01–P07 (parallel) → P18 → P08 → P09 → P10 → P11 ; P12 ; P13 → P14 → P15 ; P16 P17 ; P20 P21
                                phase 0 waits for P03 P06 P08 P11; T16/T23/T29 wait for N2 P13 P14 P15 (§0)
 Phase 0  data + decoder        T00 → T01 → T02 → T03 → T04 → T05 → T06 → T09 → T07 → T08 → T10 → T11 → T12
                                (T09 before T07/T08: their parity tests need loadRegsInputs; T05 starts conformance/src/regs/golden.ts,

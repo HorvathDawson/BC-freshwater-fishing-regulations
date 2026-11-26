@@ -6,7 +6,7 @@ Status: IN PROGRESS — items 1 and 2 decided as measured gaps in the scanner he
 |---|---|---|---|---|
 | T1002 | Test-anchor scanners: an `absent` rule for pipeline/tests/anchors.py; the record-equality and toBeUndefined gaps; part numbers after short template slots | IN PROGRESS — items 1, 2 decided as measured gaps (scanner headers); left (Claude): items 3, 4, 5 | T768 | T768's lane, 2026-11-22 |
 
-Source: T768 / T993 plan item 10 (`audit-2026-11-21/t993-inventory.md`, 0.8.5 stop 9). The app scanner
+Source: T768 / T993 plan item 10 (`handoff/PLAN/research/t993-inventory.md`, 0.8.5 stop 9). The app scanner
 (`app/tools/check-test-anchors.mjs`) gained an `absent` kind in ff946c86e; three gaps were left, each measured there.
 
 Done (lane L6, 2026-11-22), both DECIDED GAPS stated and measured in the scanner headers:

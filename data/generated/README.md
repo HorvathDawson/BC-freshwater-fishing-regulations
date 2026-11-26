@@ -27,7 +27,7 @@ construction.
 | `stocking/`, `bathymetry/` | the domain audits | identifier audits awaiting a matcher |
 | `municipal/` | `added_streams` cleaning | cleaned source layers |
 | `added_streams/` | `pipeline.atlas.waters.added_streams` | mapcheck / verify html, demo gpkg |
-| `sloughs/` | the T148 finder (`handoff/PLAN/sloughs/v2/revise.py`) / automark (`…/v2/automark/automark.py`) | `candidates_v2.json.gz`, `slough-automark.json`: the Sloughs tab's candidates and pre-marks (committed; read by `pipeline.regs.review.slough`) |
+| `sloughs/` | the T148 finder (`sloughs/v2/revise.py`) / automark (`sloughs/v2/automark/automark.py`; both removed from the tree by T1081, in git history at 03be2862e) | `candidates_v2.json.gz`, `slough-automark.json`: the Sloughs tab's candidates and pre-marks (committed; read by `pipeline.regs.review.slough`) |
 | `scratch/` | one-off audits (`pipeline/tools`) | one-shot candidate dumps; nothing reads these |
 
 ## Addressing it

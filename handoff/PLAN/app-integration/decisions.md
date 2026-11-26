@@ -310,7 +310,7 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 
 ## 11. Process (beyond AGENTS)
 
-- Tickets are the only work list; owner to-dos live in `handoff/PLAN/OWNER-TODO.md` (markdown only), and questions go to the owner as multiple choice in chat with a push notification. (owner 2026-10-22 / 2026-11-21 / 2026-11-24)
+- Tickets are the only work list; an owner ask is a line in the `## Owner` block of its ticket (`tickets/OWNER-UNFILED.md` when it has none yet; `handoff/PLAN/views/OWNER.md` is built from them, never edited; no owner to-do file or folder), and questions go to the owner as multiple choice in chat with a push notification. (owner 2026-10-22 / 2026-11-21 / 2026-11-24)
 - An answer is recorded in its ticket and the owner to-do in the same turn; search the transcript before asking again. (owner 2026-11-13)
 - Decisions are batched to the end of a piece of work; only urgent ones interrupt. (owner 2026-11-11)
 - Parallel agents are fine whenever their files do not collide; a second independent agent reviews worker output before merge, and one combined review beats one each when credits are low. (owner 2026-11-10 / 2026-11-17 / 2026-11-20)

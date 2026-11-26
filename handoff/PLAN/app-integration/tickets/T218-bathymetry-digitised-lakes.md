@@ -6,7 +6,7 @@ Status: POSTPONED (deferred, owner 2026-11-05; T437 aligned with the ledger) —
 |---|---|---|---|---|
 | T218 | bathymetry: ship depth figures + contours for the 28 already-digitised lakes (OGL-BC layer) | POSTPONED (deferred, owner 2026-11-05) | — | not yet (owner 2026-10-27); after T201/T158 |
 
-Source: owner 2026-10-27 on T201's research (handoff/PLAN/bathymetry/SOURCES.md). The "Bathymetric Maps of Surveyed
+Source: owner 2026-10-27 on T201's research (handoff/PLAN/research/bathymetry/SOURCES.md). The "Bathymetric Maps of Surveyed
 Lakes" layer is in the BC Data Catalogue, so it is OGL-BC; no licence email needed.
 
 ## Work

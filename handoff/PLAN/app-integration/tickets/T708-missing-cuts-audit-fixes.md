@@ -30,7 +30,7 @@ Exactly 6 entries matched no water and held rules (21 rules, `no_sections_for_it
 still … will look harder for frog and redfern later"; then "look harder", "even deeper … old map books", and for Redfern
 "might exist elsewhere": three rounds, no lake named, nothing to accept). Evidence pictures:
 `~/bcfish-session-backup-2026-11-12/audit-cuts/frog_lake_leads.jpg`. Earlier evidence:
-`handoff/PLAN/curation-review/unmatched-lakes-research.md` (2026-10-28).
+`handoff/PLAN/research/unmatched-lakes-research.md` (2026-10-28).
 - **Frog Lake** (p.45, MU 5-6; "No Ice Fishing; trout daily quota = 1; bait ban, single barbless hook"; no locating
   words). The Cariboo 2008 harmonization table (gov.bc.ca `RegChanges-Update05dec08.pdf`) put Frog, Hidden and Secret
   together in suite R3, so Frog is most likely another lake of the Hidden/Secret group near Stewart Lake. 7 candidates,

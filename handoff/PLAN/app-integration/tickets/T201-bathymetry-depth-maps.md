@@ -4,7 +4,7 @@ Status: OPEN — NEXT AFTER CLOSED TESTING (second, after T200). Was POSTPONED (
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T201 | bathymetry: feed the prepared Depth mode, depth charts in the Lake tab; NEXT AFTER CLOSED TESTING, second (plan: research/bathymetry-feasibility.md; reuse bathymetry/propose.py, PDFs first, vector contours later) | OPEN | — | owner 2026-11-13 (same words); starts once Play closed testing is running; owner: licence link, NONNA, CHS/Okanagan, emails, review lanes, modelled depth (questions in the … (detail: ticket file) |
+| T201 | bathymetry: feed the prepared Depth mode, depth charts in the Lake tab; NEXT AFTER CLOSED TESTING, second (plan: handoff/PLAN/research/bathymetry-feasibility.md; reuse bathymetry/propose.py, PDFs first, vector contours later) | OPEN | — | owner 2026-11-13 (same words); starts once Play closed testing is running; owner: licence link, NONNA, CHS/Okanagan, emails, review lanes, modelled depth (questions in the … (detail: ticket file) |
 
 Source: owner 2026-10-25 ("at the end, alongside the stocked and bathy maps"); decisions.md "OWNER 2026-10-21 — lake
 Stocked / Depth modes: prepared, not fed yet"; T158 (tiles carry no contour layer — a follow-up of its own).
