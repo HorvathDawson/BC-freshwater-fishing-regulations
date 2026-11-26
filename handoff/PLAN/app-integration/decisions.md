@@ -325,11 +325,8 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 - Conventional Commits `type(Tnnn): subject`; the app version comes from them. Detail: AGENTS W47-W48.
 - The repo moves to the `canifishthis` organisation and is renamed `canifishthis/canifishthis`; the merge queue follows. (owner 2026-11-25, T1041)
 - Before a push run the related tests; the full app suite and pipeline tier run once before opening a PR; mutation testing reports only. (owner 2026-11-23, T1041)
-
-## 12. Unclear: owner to confirm
-
-- Mapbox: the owner said (2026-11-25) "we will be changing it to mapbox soon" (T1108, 0.11) while the stores answer for Esri as shipped. Is Esri to be dropped, and is a key then needed?
-- Run timing: 2026-10-28 says its own feed, not the release (T199); 2026-11-03 "always synced" with the release (T373); 2026-11-05 workflow plus release in step (T412); T485 moves it off the release path. Which holds today?
-- Accounts: T223 (shared web and phone accounts, owner 2026-10-28, postponed far future 2026-11-05) would reverse "no cross-device sync" in the spots model; is that still wanted, and is it postponed or dropped?
-- Bottom bar in water mode: hidden (D1, 2026-10-20), while the Runs tab was added later; confirm "water mode hides the bar" still holds on tablets and the web rail (code: `bottomBarShown(route)`).
-- The PDF link: 2026-10-20 said open the URL (no in-app viewer); 2026-11-03 prefers `react-native-pdf`. Which is shipping on native today?
+- Run timing ships with the data release; a check for new source data is fine, a separate feed is not needed: "it doesnt need a feed since we only update it infrequently like hydat. so we could have a feed check for new data but ultimately it will be shipped with instead." (owner 2026-11-25). Code today is not there yet: it is still its own slow feed (`app/workers/feeds/src/runtiming.ts`, `feeds-runtiming.yml`, R2 `runtiming/index.json`).
+- The bottom bar in water mode is as shipped: `bottomBarShown(route)` (`app/packages/ui/src/route.ts:306`) is true only in browse mode with no spot being added, so a water's page (regs mode) and the add-a-spot flow have no bar, on phones, tablets and the web rail alike (`Shell.tsx:180,466,671`, `NavRail.tsx`). (owner 2026-11-25: as shipped)
+- The synopsis PDF on the phone apps is as shipped: an in-app viewer, `react-native-pdf` 7.0.5 (`app/packages/ui-native/package.json:15`, `regs/PdfViewer.native.tsx`, mounted by `Shell.tsx:756`); the web opens the PDF in a browser tab (`synopsisPdf.web.ts`). (owner 2026-11-25: as shipped)
+- Accounts and cross-device sync (T223): postponed, not dropped. No sync now; accounts stay a far-future idea and the ticket stays. (owner 2026-11-25)
+- Satellite: Esri World Imagery is the source today on the web and the phones. The phone apps move to Mapbox when T1108's research is done and the owner picks; the web keeps Esri unless he says otherwise. (owner 2026-11-25)

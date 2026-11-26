@@ -27,7 +27,8 @@ A5. **Kill only what you started** (its PID, its port); never `pkill` / `killall
     owner's tile server). **Heavy jobs go only through `scripts/heavy.sh`** (rule 18).
 A6. **Commit only your own paths: `git commit -- <paths>`.** Several agents share a checkout; `git add -A` or a bare
     `git commit` takes another lane's half-done edits. Never commit store images.
-A7. **`CONFIRM_PROD` is typed only by the owner.** No agent sets it, in any form (`<r-id>` for
+A7. **`CONFIRM_PROD` is typed only by the owner, unless he says so in that chat, that time only, for one named step**
+    (owner 2026-11-22, confirmed 2026-11-25). No agent sets it otherwise, in any form (`<r-id>` for
     `pipeline release --prod`, `canifishthis.ca` for the deploy scripts), for anything production: site, data,
     feeds worker, store builds, the Play production track.
 A8. **Never touch the owner's review marks** (`data/curated/review/marks.jsonl`): only the review app appends to them.
@@ -72,8 +73,7 @@ W46. **The guards stay in. A change that trips one fixes the cause; it never loo
 W47. **`main` is the protected trunk; every change reaches it through a pull request. Never push to `main`.** The
     trunk's name is typed once: `scripts/ci_paths.py` `TRUNK` (TypeScript: `app/packages/core/src/repo.ts`).
     - Branch from a fresh `origin/main` (`feat/`, `fix/`, `perf/`, `ci/`, `docs/`, `chore/`, `test/` + ticket id),
-      open the PR with auto-merge (`gh pr merge --auto --merge`); once the ruleset turns the merge queue on, PRs
-      merge through it. Merge commits only: tickets cite lane commit hashes, which must survive.
+      open the PR and enqueue it (`gh pr merge --merge --auto`); PRs land through the merge queue. Merge commits only: tickets cite lane commit hashes, which must survive.
     - Required checks are each workflow's last job (`scripts/ci_paths.py` `REQUIRED`); a skipped area is a pass.
     - Hooks live in `.githooks/` (`git config core.hooksPath .githooks` once per clone); the pre-push hook runs the
       tests the change reaches. `--no-verify` is an emergency skip only, said in the commit or PR. A long hook needs
