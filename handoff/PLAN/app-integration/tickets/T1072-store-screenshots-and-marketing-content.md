@@ -162,4 +162,4 @@ Model: Sonnet. Size: M. Owner: yes (picks the look and the words).
 - [ ] 2026-11-25 — Decide, do or drop: the website landing and share-page words, and the store video (T709) — the two parts never started that keep this ticket open.
 - [ ] 2026-11-25 — One word: "before prods release" for the Play pictures means the Play production release (the public launch), not the 0.10.0 data release. Correct?
 - [x] 2026-11-25 — Store pictures → "Drop tablet set. And you can get them to fix picture" (12:33); "hold play p[ictures until before prods release" (13:43); store pictures made by a hand-started GitHub workflow → "yes", "can be part of new repo transfer" (T1131).
-- [ ] 2026-11-25 — PR #238, frame 3 of the native 6.3" iPhone set: look, then say merge or redo (not a gate; the resized set is already uploaded to App Store Connect).
+- [ ] 2026-11-25 — PR #238 (the native 6.3" iPhone set) merged 2026-11-25 16:15: look at frame 3, redo only if wrong (not a gate; the resized set is already uploaded to App Store Connect).
