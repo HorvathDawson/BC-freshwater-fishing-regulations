@@ -1,8 +1,9 @@
 /**
  * SATELLITE IS ONLINE-ONLY (owner 2026-10-21, `handoff/PLAN/app-integration/decisions.md`).
  *
- * The satellite ground is Esri World Imagery, fetched live and never stored (its terms forbid exporting tiles for
- * offline use outside Esri's own software; see "Esri terms" below). So a reader who chose
+ * The satellite ground is Esri World Imagery, fetched live and never packaged or drawn offline (its terms forbid
+ * exporting tiles for offline use outside Esri's own software; see "Esri terms" below; what the map engine's own
+ * cache keeps on the device is `IMAGERY_KEPT_PRIVACY`, T1148). So a reader who chose
  * Satellite and lost the connection must see the DRAWN map, told why, with the choice kept: when the imagery can be
  * reached again it comes back by itself.
  *
@@ -15,8 +16,8 @@
  *    `blankTile=false` so a place with no imagery answers 404 and MapLibre overzooms the parent (without it Esri serves
  *    its grey "Map data not yet available" tile). Below z12 it is 15 m Earthstar TerraColor; rural BC is 0.3-0.5 m to z17-18.
  *  - Licence: the Esri Master License Agreement and Product-Specific Terms (item 10df2279f9684e4a9f6a7f08febac2a9). The item
- *    "is not intended to be used to export tiles for offline", so nothing is cached or packaged (`no-store` probe,
- *    external source). Credit: "Powered by Esri" plus the service's copyrightText ("Source: Esri, Vantor, Earthstar
+ *    "is not intended to be used to export tiles for offline", so nothing is packaged and the app adds no cache of its
+ *    own (`no-store` probe, external source; the engine's ambient cache is T1148, above `IMAGERY_KEPT_PRIVACY`). Credit: "Powered by Esri" plus the service's copyrightText ("Source: Esri, Vantor, Earthstar
  *    Geographics, and the GIS User Community"); both copies are held equal by tools/imagery.test.ts.
  *  - The token-free `server.arcgisonline.com` URL is not, by Esri's terms, a licensed path for a non-Esri app (the licensed
  *    route is ArcGIS Location Platform). The owner chose it anyway, as the original app ran ("this is a non profit app").
@@ -84,6 +85,17 @@ export const SATELLITE_OFFLINE =
 export const IMAGERY_ATTRIBUTION =
   "Powered by Esri · Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community";
 export const IMAGERY_CREDIT = `Satellite imagery: ${IMAGERY_ATTRIBUTION}`;
+
+/**
+ * (T1148, owner 2026-11-26) WHAT THE PHONE KEEPS. MapLibre Native keeps the tiles it fetched over http in its own
+ * ambient cache on the device (50 MB by default; the app never sets or clears it, held by tools/imagery-cache.test.ts),
+ * so satellite pictures a reader has looked at may stay on the phone; a browser's own cache does the same on the web.
+ * Owner: "Keep cache, reword the page". Nothing is packaged, exported or drawn while offline (the terms below). These
+ * are the words for it: the privacy page (tools/seo/html.ts) and the Sources line (menu/words.ts) read them from here.
+ */
+export const IMAGERY_KEPT_PRIVACY =
+  "Satellite pictures you have looked at may be kept on your device so they load faster; they are not sent anywhere else.";
+export const IMAGERY_KEPT_SOURCES = "Pictures you have viewed may be kept on this device so they load faster.";
 
 /** The app's credit lines for the ground drawn: Esri's added only while satellite is. */
 export const withImageryCredit = (lines: readonly string[], drawn: Basemap): readonly string[] =>
