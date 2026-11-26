@@ -133,6 +133,14 @@ describe("the CLI and the commit-msg hook", () => {
     expect(bad.stderr).toContain("the PR title: T994 fix x");
     expect(bad.stderr).toContain("type may not be empty [type-empty]");
     expect(node("--title", "fix(T994): x", "--number", "8").status).toBe(0);
+    // (T1144) a PR title at the limit of its merge commit: the contract pipeline/tests/title_check_stand_in.py keeps
+    for (const [number, limit] of [["266", versioning.headerMax - 7], ["1000", versioning.headerMax - 8]] as const) {
+      const at = "ci(T1144): " + "x".repeat(limit - 11);
+      expect(node("--title", at, "--number", number).status).toBe(0);
+      const over = node("--title", at + "x", "--number", number);
+      expect(over.status).toBe(1);
+      expect(over.stderr).toContain("header-max-length");
+    }
     expect(node("--range", "nope").status).toBe(2);
     expect(node("--bogus").status).toBe(2);
   });

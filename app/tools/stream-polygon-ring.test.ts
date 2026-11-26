@@ -18,6 +18,7 @@
 import { describe, expect, it } from "vitest";
 import { createPropertyExpression, latest } from "@maplibre/maplibre-gl-style-spec";
 import { runtimeStyle } from "../packages/map/src/runtime-style";
+import { PMTILES } from "../packages/map/src/tile-access";
 import { SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS } from "../packages/map/src/paint";
 
 type Layer = { id: string; type: string; "source-layer"?: string; filter?: unknown; paint?: Record<string, unknown> };
@@ -25,7 +26,7 @@ const THEMES = ["light", "dark", "cvd"] as const;
 const STATES = [{ selected: true }, { part: true }, { inseason: true }] as const;
 
 const layersOf = (theme: string) =>
-  (runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles", outside: "o.geojson" } as never, theme, {}) as { layers: Layer[] }).layers;
+  (runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles", outside: "o.geojson" } as never, theme, {}, PMTILES) as { layers: Layer[] }).layers;
 const layer = (layers: Layer[], id: string) => {
   const l = layers.find((x) => x.id === id);
   if (!l) throw new Error(`no layer ${id} in the runtime style`);

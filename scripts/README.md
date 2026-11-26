@@ -7,7 +7,7 @@ library only.
 |---|---|
 | `bootstrap.sh` | a fresh clone to a machine that can build: tools check, `.venv`, the pinned source data (`data/source/pins.json`) |
 | `heavy.sh` | run ONE memory-heavy job at a time per lane, with a free-memory guard: every build goes through it (AGENTS 18, A5) |
-| `before_push.py` | what the PR's required checks ask, asked here first (`--list`, `--changed`); the pre-push hook runs it. `before_pr.sh` the two suites left to the PR |
+| `before_push.py` | what the PR's required checks ask, asked here first (`--list`, `--changed`); the pre-push hook runs it. `before_pr.sh --title "<title>"` the PR title with its suffix, then the two suites left to the PR |
 | `ci_paths.py`, `ci_status.py` | the branches and CI's areas, typed once (the workflows' `changes` jobs run it); the status of a commit's checks |
 | `fast-fail.sh` | the cheap checks that stop a doomed long job in a minute or two |
 | `test-smoke.sh`, `test-full.sh`, `pytest-chunked.sh`, `fresh-copy-tests.sh`, `test-env.sh` | the test tiers (AGENTS 18): smoke per commit, full before a merge, chunked and fresh-copy runs |

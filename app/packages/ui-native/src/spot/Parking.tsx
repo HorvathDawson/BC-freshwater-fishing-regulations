@@ -8,6 +8,7 @@ import { latLon, SPOT_WORDS as W } from "@app/core";
 import { TYPE } from "../type";
 import type { Palette } from "../theme";
 import { Button } from "../Button";
+import { OpenSettings } from "../OpenSettings";
 import { Block } from "./parts";
 
 export function ParkingBlock({ palette, parking, editable, notice, onHere, onPick, onRemove, onDirections }: {
@@ -30,6 +31,8 @@ export function ParkingBlock({ palette, parking, editable, notice, onHere, onPic
         </View>
         {parking && <Text selectable testID="spot-parking-place" style={{ ...TYPE.caption, color: palette.faint }}>{latLon(parking)}</Text>}
         {notice && <Text style={{ ...TYPE.small, color: palette.sub }}>{notice}</Text>}
+        {/* (T1163 G6) a refused location: the way out is Settings (the phone's draws the button, the browser's nothing) */}
+        <OpenSettings palette={palette} line={notice} inset={0} />
         {editable && (
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
             {onHere && <Button palette={palette} kind="ghost" grow={false} label={W.parkingHere} onPress={onHere} />}

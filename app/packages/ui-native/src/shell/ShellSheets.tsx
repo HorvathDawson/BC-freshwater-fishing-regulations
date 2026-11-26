@@ -5,9 +5,9 @@
  * back-layers gate sees each open state handed to its registered sheet.
  */
 import { Platform } from "react-native";
-import type { ReleaseLoader } from "@app/data/release";
+import { offlineImagery, type ReleaseLoader } from "@app/data/release";
 import type { WaterSource } from "@app/data";
-import type { ReportMap } from "@app/core";
+import { IMAGERY, type ReportMap } from "@app/core";
 import type { Camera } from "@app/map";
 import { useOfflineMaps, type MapRail, type MenuControls, type SyncState } from "@app/ui";
 import { SpotDropSheet } from "../SpotDropSheet";
@@ -17,6 +17,8 @@ import type { MapColouring } from "./useMapColouring";
 import type { ShellNav } from "./useShellNav";
 import { part } from "../part";
 
+/** (T1154) the satellite imagery kept offline, by the offline method of the provider in use (Esri's: none) */
+const OFFLINE_IMAGERY = offlineImagery(IMAGERY);
 // (T282) loaded later on the web (`part`): not on the first screen's path
 const MenuHost = part(() => import("../later").then((m) => m.MenuHost), (p) => p.menu.state.page !== null);
 
@@ -48,6 +50,7 @@ export function ShellSheets({ nav, col, rail, menu, palette, loader, menuInfo, m
   const { route } = nav;
   // (T238) More → Offline maps: the web's release cache region by region, a phone's installed set and its downloads
   const offline = useOfflineMaps({ loader, open: menu.state.page === "offline", platform: Platform.OS === "web" ? "web" : "phone",
+                                   imagery: OFFLINE_IMAGERY,
                                    updates: sync?.updates ?? null, check: sync?.refresh ?? null,
                                    allowMetered: sync?.allowMetered ?? null });
   return (

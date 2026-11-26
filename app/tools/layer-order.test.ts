@@ -21,6 +21,7 @@
 import { describe, expect, it } from "vitest";
 import { GEAR_LAYERS, SALMON_CASING_LAYER, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS } from "../packages/map/src/paint";
 import { runtimeStyle } from "../packages/map/src/runtime-style";
+import { PMTILES } from "../packages/map/src/tile-access";
 import { MAP_STYLE } from "../packages/map/src/style";
 import { COPY_CASING, COPY_FILL, COPY_LINE } from "../packages/map/src/water-copy";
 
@@ -59,7 +60,7 @@ describe("boundaries sit under the water's status lines and over its fills (T83)
 
   it("the style the map is actually given — with the selection outlines, the no-baseline dash and the no-access dots — in every theme", () => {
     for (const theme of ["light", "dark", "cvd"]) {
-      const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, theme) as unknown as
+      const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, theme, {}, PMTILES) as unknown as
         { layers: { id: string; type: string }[] };
       const ids = geometry(s.layers);
       expect([theme, faults(ids)]).toEqual([theme, []]);

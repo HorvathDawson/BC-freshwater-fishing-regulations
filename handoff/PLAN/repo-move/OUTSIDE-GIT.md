@@ -68,7 +68,7 @@ copied; the repo is public. Sources: the repo's scripts and docs read from `main
 | `fwa_coast.gpkg` (559 MB) | `data/source/` | atlas coast cut (T678) | `fetch_data.py` (fwa_rivers, land layers) | NO: not pinned, not in bootstrap |
 | DFO salmon pages, typed | `data/generated/` (ignored) | bundle | bootstrap runs `pipeline.regs.dfo_salmon.live` | yes: bootstrap.sh |
 | Map glyphs and sprites | `data/source/map-assets/` | tiles stage | the tiles stage, pinned to a commit | yes: fresh-machine.md |
-| Pinned MapLibre AAR (423 MB) | `cache/maplibre/13.7.1-main.3a6b955/` | every Android build | `scripts/heavy.sh mln-aar 30 -- bash app/tools/maplibre-android/build.sh <dir>` (12 min) | yes: maplibre README, precheck |
+| Pinned MapLibre AAR (423 MB) | `cache/maplibre/13.7.1-main.3a6b955/` | every Android build | `bash app/tools/maplibre-android/build.sh <dir>` downloads it when `maplibre-android.lock.json` has `"published": true`; until then `scripts/heavy.sh mln-aar 30 -- bash app/tools/maplibre-android/build.sh --compile <dir>` (12 min) | yes: maplibre README, precheck |
 | Steelhead model (6.6 GB) | `data/source/steelhead/` | `known_waters` proposals only | the script re-fetches when missing | yes: fresh-machine.md (not mirrored) |
 | Official region PDFs, print check | `data/source/official/` | quota print tests (they skip) | gov.bc.ca; no fetch command found | partly: fresh-machine.md says nothing reads them |
 | Run-timing pages and tiles | `data/source/runtiming/*.html`, `cu_tiles/` | run-timing refresh only | `pipeline.runtiming.fetch` | yes: data/.gitignore |

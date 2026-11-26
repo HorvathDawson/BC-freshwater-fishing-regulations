@@ -5,13 +5,14 @@ declare const __DEV__: boolean | undefined;
  */
 import { useEffect, useRef } from "react";
 import * as maplibregl from "maplibre-gl";
-import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, isNoWebGL, MIN_ZOOM, noWebGLError, reportFailure } from "@app/core";
+import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, IMAGERY, isNoWebGL, MIN_ZOOM, noWebGLError, reportFailure } from "@app/core";
 import { webRenderer } from "../adapters/web";
 import { Colouring, LABEL_SOURCE_LAYERS } from "../colouring";
 import { compassShown, keyboardRotation, maplibreGestures, touchRotation } from "../gestures";
 import type { MapProps } from "../map-props";
 import { GEOMETRY, SHOW_SCALE } from "../chrome";
 import { runtimeStyle } from "../runtime-style";
+import { PMTILES } from "../tile-access";
 import { followSize } from "../size";
 import { sourceTiles, tileIds } from "./tileIds";
 import { atlasTarget, copyTarget, publicSections } from "./handles";
@@ -48,7 +49,7 @@ export function useMapInstance(refs: WebMapRefs,
       // its contents are then replaced imperatively below. Declaring it later would mean
       // rebuilding the whole style every half hour to move a few hundred dots.
       style: runtimeStyle({ ...at, gauges: gauges ?? EMPTY_FC }, theme,
-                          modes) as unknown as maplibregl.StyleSpecification,
+                          modes, PMTILES) as unknown as maplibregl.StyleSpecification,
       center: [initial.lon, initial.lat],
       zoom: initial.zoom,
       // The atlas has nothing below z4 and the basemap is clipped to the province: past
@@ -125,7 +126,7 @@ export function useMapInstance(refs: WebMapRefs,
     // travels (GL JS's AJAXError carries it; a network failure has none).
     m.on("error", (e) => {
       const ev = e as { sourceId?: string; error?: Error & { status?: number } };
-      if (ev.sourceId === "imagery" && imageryError.current) {
+      if (ev.sourceId === IMAGERY.source && imageryError.current) {
         imageryError.current(typeof ev.error?.status === "number" ? ev.error.status : undefined);
         return;
       }

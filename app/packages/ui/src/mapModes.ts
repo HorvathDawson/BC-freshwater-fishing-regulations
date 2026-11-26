@@ -8,7 +8,7 @@
  * The reasons each rule reads as it does are kept beside the rule below; they were the Shell's comments.
  */
 import { useMemo, useRef } from "react";
-import { basemapInUse, SATELLITE_OFFLINE, type Basemap, type StatusIndex, type WaterColour } from "@app/core";
+import { basemapInUse, IMAGERY, type Basemap, type StatusIndex, type WaterColour } from "@app/core";
 import type { Horizon, Parameter } from "@app/data";
 import type { GaugeQuantity } from "./gaugePoints";
 import type { BrowseTab } from "./route";
@@ -170,6 +170,9 @@ export function mapModes(i: MapModeInput): MapModesVM {
       : runsOn && i.runsField ? "runs" : "plain",
   };
   const activeGroups = { ...i.groups };
+  // THE GROUND DRAWN, of the provider in use (`IMAGERY`). No region of its imagery is held on this device: it keeps none
+  // offline (`IMAGERY.offline` "none"), and the file method lists none (T1154).
+  const basemap = basemapInUse(i.basemap, i.imageryUp, IMAGERY, false);
   return {
     onConditions, quantity, standingParam,
     standingHorizon: temperature ? 0 : i.horizon,
@@ -178,8 +181,8 @@ export function mapModes(i: MapModeInput): MapModesVM {
     asksVisible: onConditions,
     modes, activeGroups,
     // THE GROUND IS NOT A COLOURING: it moves no mode and no group (one colouring pathway), only what is under them
-    basemap: basemapInUse(i.basemap, i.imageryUp),
-    basemapNote: i.basemap === "satellite" && !i.imageryUp ? SATELLITE_OFFLINE : null,
+    basemap,
+    basemapNote: i.basemap === "satellite" && basemap !== "satellite" ? IMAGERY.words.offline : null,
   };
 }
 
