@@ -1,4 +1,4 @@
-"""The curation-review tool is SAFE to sit a reviewer in front of (T96, curation-review/PLAN.md Phase 0).
+"""The curation-review tool is SAFE to sit a reviewer in front of (T96, tools/curation-review/PLAN.md Phase 0).
 
   no process    no endpoint starts a subprocess: the in-app "Rebuild graph" / "Promote" started an
                 18-minute, 9 GB atlas build outside `scripts/heavy.sh`, beside the review buttons; ONE named exception
@@ -32,7 +32,7 @@ from pipeline.common.curated import CURATED
 from pipeline.tests.conftest import curated_root
 
 REPO = Path(__file__).resolve().parents[2]
-TOOL = REPO / "curation-review"
+TOOL = REPO / "tools" / "curation-review"
 BACKEND = TOOL / "backend"
 _MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes", "dfo",
                 "review", "evidence", "inseason")
@@ -417,7 +417,7 @@ def test_the_landed_check_is_served_once_in_the_background_and_a_failure_is_said
     import sys
     import time
     from pathlib import Path
-    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "curation-review" / "backend"))
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "tools" / "curation-review" / "backend"))
     import app as A
     from fastapi.testclient import TestClient
     from pipeline.regs.review import apply as AP

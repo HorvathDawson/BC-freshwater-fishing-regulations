@@ -176,7 +176,7 @@ def _app(a):
                    ("CURATION_RELEASE_ROOT", a.release)):
         if v is not None:
             os.environ[env] = str(v)
-    sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "curation-review" / "backend"))
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools" / "curation-review" / "backend"))
     import reuse                                               # noqa: E402
     return reuse
 

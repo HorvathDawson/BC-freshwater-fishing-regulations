@@ -1,6 +1,6 @@
 """Curation review phase 2 (T133) THROUGH THE REVIEW APP: one vintage on screen, with no restart.
 
-The FastAPI app (curation-review/backend) runs with `TestClient` over a TEMP COPY of the catalogue,
+The FastAPI app (tools/curation-review/backend) runs with `TestClient` over a TEMP COPY of the catalogue,
 of splits.json and of the marks store, the real atlas's registry and section handles, and a reach
 run, bundle and release written into a temp dir the way `pipeline build` would leave them (the
 reach report's and the bundle's digests, a release manifest cut by `release.build.ship`). Every
@@ -35,7 +35,7 @@ from pipeline.tests import under_test
 from pipeline.tests.conftest import ATLAS_HINT, curated_root, need
 
 REPO = Path(__file__).resolve().parents[2]
-BACKEND = REPO / "curation-review" / "backend"
+BACKEND = REPO / "tools" / "curation-review" / "backend"
 SCHEMA = REPO / "pipeline" / "deliver" / "bundle" / "schema.sql"
 BULL = "r4:bull_river@4-22"
 ALL_Y = {"T": "y", "R": "y", "P": "y", "A": "y"}

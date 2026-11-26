@@ -35,7 +35,7 @@ from pathlib import Path
 import reuse
 
 DEFAULT_URL = "https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/reports"
-_TOKEN_FILE = Path(__file__).resolve().parents[2] / "app" / "workers" / "feeds" / ".run-token"
+_TOKEN_FILE = Path(__file__).resolve().parents[3] / "app" / "workers" / "feeds" / ".run-token"
 
 
 class ReportsUnavailable(Exception):
@@ -64,7 +64,7 @@ def fetch(since: str | None = None, opener=None) -> list[dict]:
     if not tok:
         raise ReportsUnavailable(f"no run token (set CURATION_REPORTS_TOKEN or write {_TOKEN_FILE})")
     req = urllib.request.Request(f"{_url()}?since={since}&test=1", headers={"Authorization": f"Bearer {tok}",
-                                                                     "User-Agent": "curation-review/reports"})
+                                                                     "User-Agent": "tools/curation-review/reports"})
     try:
         with (opener or urllib.request.urlopen)(req, timeout=30) as r:
             body = json.loads(r.read().decode("utf-8"))

@@ -41,7 +41,7 @@ No part index, label or section id (AGENTS 5): a range survives a renumbering of
 whole or not at all (it has no line). Each range set is proved on the spot: read back by the device's rule over the
 release's own `lines` file it must give exactly the resolved sections, or the match is refused.
 
-Who runs it: the review app on save (`curation-review/backend/inseason.py`, one match) and its Re-resolve, the release
+Who runs it: the review app on save (`tools/curation-review/backend/inseason.py`, one match) and its Re-resolve, the release
 command's `follows` stage (`pipeline/release.py`, every match, `--release` the candidate). `publish` only formats the
 result (no atlas).
 

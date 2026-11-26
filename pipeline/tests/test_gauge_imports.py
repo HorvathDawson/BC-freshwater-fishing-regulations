@@ -32,7 +32,7 @@ def _imports(path: Path) -> set[str]:
 
 def _offenders() -> list[str]:
     bad = []
-    for root in ("pipeline", "curation-review", "scripts", "data"):
+    for root in ("pipeline", "tools/curation-review", "scripts", "data"):
         for p in sorted((ROOT / root).rglob("*.py")):
             rel = p.relative_to(ROOT)
             if "tests" in rel.parts or "__pycache__" in rel.parts or ".venv" in rel.parts:

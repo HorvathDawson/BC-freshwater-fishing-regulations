@@ -2,7 +2,7 @@
 
 Run it via the helper (sets PYTHONPATH to the repo root so `import pipeline...` works, and runs from
 this dir so `import reuse` works — the folder name has a hyphen so it can't be a package):
-    bash curation-review/backend/run.sh          # -> http://127.0.0.1:8787
+    bash tools/curation-review/backend/run.sh          # -> http://127.0.0.1:8787
 
 Makes NO LLM calls — pure local file review. Safe to run any time, including out of parsing credits.
 

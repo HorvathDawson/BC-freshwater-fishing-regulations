@@ -22,7 +22,7 @@ from types import SimpleNamespace as NS
 
 import pytest
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "curation-review" / "backend"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "curation-review" / "backend"))
 
 from pipeline.regs.review import audit as A  # noqa: E402
 
@@ -254,7 +254,7 @@ def test_every_stored_place_converts_or_says_why(no_walk):
 
 def test_the_editor_and_the_checklist_show_it(tmp_path):
     """the screen side: `cannotEditOf` is what CheckReview / DfoReview / the cascade render (`CannotEditNote`)"""
-    src = (ROOT / "curation-review/frontend/src")
+    src = (ROOT / "tools/curation-review/frontend/src")
     check = (src / "components/CheckReview.tsx").read_text(encoding="utf-8")
     assert "!onEdit && cannotEditOf(d.extent_now)" in check and "<CannotEditNote" in check
     assert "cannotEditOf(now)" in (src / "components/DfoReview.tsx").read_text(encoding="utf-8")

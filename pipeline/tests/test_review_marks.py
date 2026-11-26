@@ -694,13 +694,13 @@ def test_the_checked_in_store_loads():
 
 def _py_sources():
     for p in sorted(list((REPO / "pipeline").rglob("*.py")) +
-                    list((REPO / "curation-review" / "backend").rglob("*.py"))):
+                    list((REPO / "tools" / "curation-review" / "backend").rglob("*.py"))):
         if "tests" not in p.parts:
             yield p, p.read_text(encoding="utf-8")
 
 
 def test_no_second_copy_of_the_fingerprint_the_split_targets_or_the_override_pick():
-    assert not (REPO / "curation-review" / "backend" / "verification.py").exists()
+    assert not (REPO / "tools" / "curation-review" / "backend" / "verification.py").exists()
     hits = {"entry_hash": [], "def applies_keys": [], "def _applies_keys": [],
             "_pick_override(": [], "def stale_reasons": [], "def entry_fingerprints(": [],
             "def match_records(": [], "flock(": [], "def moved(": []}
@@ -722,7 +722,7 @@ def test_no_second_copy_of_the_fingerprint_the_split_targets_or_the_override_pic
 
 
 def test_the_app_has_no_verification_endpoint_left():
-    app = (REPO / "curation-review" / "backend" / "app.py").read_text(encoding="utf-8")
+    app = (REPO / "tools" / "curation-review" / "backend" / "app.py").read_text(encoding="utf-8")
     assert "/api/verification" not in app and "/verify" not in app
     assert '@app.post("/api/marks")' in app
 

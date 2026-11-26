@@ -1,7 +1,7 @@
 # Curation Review — HTTP API contract
 
 Backend base URL (dev): `http://127.0.0.1:8787`. All responses JSON. No auth. Start with
-`bash curation-review/backend/run.sh`. Makes **no LLM calls** — pure local file review, safe to run
+`bash tools/curation-review/backend/run.sh`. Makes **no LLM calls** — pure local file review, safe to run
 out of parsing credits.
 
 **Write model: two write routes, then the write-through** (T134, T185, T325, T434). The app reads the catalogue region
@@ -469,7 +469,7 @@ Serves `data/bc.pmtiles`, honouring HTTP Range requests (the pmtiles protocol ne
 
 ## Every route (generated)
 
-<!-- routes:start (curation-review/api_routes.py --write) -->
+<!-- routes:start (tools/curation-review/api_routes.py --write) -->
 | method | path | what |
 |---|---|---|
 | GET | `/api/answer` | The EFFECTIVE answer an angler gets: `read.effective_rules` on one bundle section, one day, |

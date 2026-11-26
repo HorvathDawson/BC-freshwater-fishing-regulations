@@ -2,7 +2,7 @@
 # STAGING ONLY (T225 Phase A, owner 2026-10-28): put the feeds Worker's curated inputs and the app's in-season links into
 # bc-fishing-regulations-staging, writing only what differs (rclone --checksum). THE ONE PUBLISH PATH (T520, owner
 # 2026-11-08: from the Mac only; the GitHub workflow is gone): upload.sh calls it after a release upload, and the review
-# app runs it after saving any input it stages (curation-review/backend/inputs_sync.py). Production: deploy/prod/
+# app runs it after saving any input it stages (tools/curation-review/backend/inputs_sync.py). Production: deploy/prod/
 # sync-inputs.sh, the owner's CONFIRM_PROD step. Never touches git.
 #   1. ONE AT A TIME: a lock shared by every caller (by hand, upload.sh, the review app), waited for
 #   2. VERIFY (T537): matches resolved on another release than LATEST are REFUSED, never re-resolved here (it ran

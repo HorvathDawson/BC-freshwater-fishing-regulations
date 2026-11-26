@@ -197,7 +197,7 @@ step "no silent skips (a pipeline test file changed)" silent_skips
 # file, unclassified; its lane ran only the tests of the files it changed. A changed pipeline / review-app Python file
 # runs the one-writer scan (AGENTS 36b, ~2 s)
 curated_writer() {
-  grep -qE '^(pipeline|curation-review/backend)/.*\.py$' <<<"$CHANGED" \
+  grep -qE '^(pipeline|tools/curation-review/backend)/.*\.py$' <<<"$CHANGED" \
     || { echo "   (no pipeline Python file changed)"; return 0; }
   "$PY" -m pytest -q -p no:cacheprovider pipeline/tests/test_curated_writer.py
 }
@@ -206,7 +206,7 @@ step "one writer for curated data (a pipeline Python file changed)" curated_writ
 # caught 2026-11-14 (CI red on acd561469): pipeline/tools/mini_release.py split and joined watershed codes by hand
 # (`"-".join`, `.split("-")`) where pipeline.common.utils.wsc owns them. A changed pipeline Python file runs the scan (~1 s)
 wsc_scan() {
-  grep -qE '^(pipeline|curation-review)/.*\.py$' <<<"$CHANGED" \
+  grep -qE '^(pipeline|tools/curation-review)/.*\.py$' <<<"$CHANGED" \
     || { echo "   (no pipeline Python file changed)"; return 0; }
   "$PY" -m pytest -q -p no:cacheprovider pipeline/tests/test_wsc_relation.py
 }
@@ -274,11 +274,11 @@ step "every source scanner (a pipeline Python file changed)" source_scanners
 # module (pipeline/regs/review, the review app's backend) runs EVERY test file that reads review code (found by the
 # same grep each time, so a new one joins by itself) under CI's markers, which hide this machine's builds (tiers.py)
 review_tests() {
-  grep -qE '^(pipeline/regs/review|curation-review/backend)/.*\.py$' <<<"$CHANGED" \
+  grep -qE '^(pipeline/regs/review|tools/curation-review/backend)/.*\.py$' <<<"$CHANGED" \
     || { echo "   (no review module changed)"; return 0; }
   fresh_copy_next && return 0
   local files markers
-  files=$(git grep -l -E 'pipeline\.regs\.review|regs\.review import|curation-review' -- 'pipeline/tests/test_*.py')
+  files=$(git grep -l -E 'pipeline\.regs\.review|regs\.review import|tools/curation-review' -- 'pipeline/tests/test_*.py')
   markers=$(no_data_markers) || return 1
   # shellcheck disable=SC2086
   "$PY" -m pytest -q -p no:cacheprovider -m "$markers" $files
@@ -428,21 +428,21 @@ changes_budget() {
 step "data: /changes within budget (LATEST vs kept snapshot)" changes_budget
 
 # (T535) the review app was outside every gate: a frontend break was found when the owner restarted the app. Its
-# frontend typechecks (tsc --noEmit, ~2.5 s) when a curation-review/frontend file changed
+# frontend typechecks (tsc --noEmit, ~2.5 s) when a tools/curation-review/frontend file changed
 review_frontend() {
-  grep -qE '^curation-review/frontend/.*\.(ts|tsx)$|^curation-review/frontend/(package\.json|tsconfig[^/]*\.json)$' <<<"$CHANGED" \
+  grep -qE '^tools/curation-review/frontend/.*\.(ts|tsx)$|^tools/curation-review/frontend/(package\.json|tsconfig[^/]*\.json)$' <<<"$CHANGED" \
     || { echo "   (no review frontend file changed)"; return 0; }
   # (T978) a worktree has no node_modules of its own: said with the fix, never a bare "No such file"
-  [[ -x curation-review/frontend/node_modules/.bin/tsc ]] || {
-    echo "fast-fail: no curation-review/frontend/node_modules (a worktree or fresh clone): (cd curation-review/frontend && npm ci)" >&2; return 1; }
-  curation-review/frontend/node_modules/.bin/tsc --noEmit -p curation-review/frontend
+  [[ -x tools/curation-review/frontend/node_modules/.bin/tsc ]] || {
+    echo "fast-fail: no tools/curation-review/frontend/node_modules (a worktree or fresh clone): (cd tools/curation-review/frontend && npm ci)" >&2; return 1; }
+  tools/curation-review/frontend/node_modules/.bin/tsc --noEmit -p tools/curation-review/frontend
 }
 step "review app frontend typechecks (a frontend file changed)" review_frontend
 
-# (T535) ... and its backend's tests run as CI runs them when a curation-review/backend file changed: the
+# (T535) ... and its backend's tests run as CI runs them when a tools/curation-review/backend file changed: the
 # test_curation_review_* files, one process each (~30 s; scripts/pytest-chunked.sh, T638: one process grew to 60 GB)
 review_backend() {
-  grep -qE '^curation-review/backend/' <<<"$CHANGED" || { echo "   (no review backend file changed)"; return 0; }
+  grep -qE '^tools/curation-review/backend/' <<<"$CHANGED" || { echo "   (no review backend file changed)"; return 0; }
   bash scripts/pytest-chunked.sh --only '/test_curation_review' -- -m "$CI_MARKERS"
 }
 step "review app backend tests (a backend file changed)" review_backend

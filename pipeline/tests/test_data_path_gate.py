@@ -66,7 +66,7 @@ PLANTED = [
 ]
 
 
-@pytest.mark.parametrize("where", ["pipeline", "pipeline/regs/dfo_salmon", "curation-review/backend"])
+@pytest.mark.parametrize("where", ["pipeline", "pipeline/regs/dfo_salmon", "tools/curation-review/backend"])
 def test_the_gate_refuses_a_planted_data_or_cache_literal(tmp_path, where):
     """Each planted line in a file of its own, under a top folder and nested. Mutations: narrow the pattern, exempt a
     file or a folder, drop the bare-name rule, take a marker without a reason, or exempt backtick lines: one plant

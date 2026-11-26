@@ -1,6 +1,6 @@
 """The curation-review app reviews the CURRENT catalogue model, end to end, through its HTTP API.
 
-Runs the FastAPI app (curation-review/backend) with `TestClient` against a TEMP COPY of the
+Runs the FastAPI app (tools/curation-review/backend) with `TestClient` against a TEMP COPY of the
 curated tree (`conftest.curated_root`, `CURATED_ROOT`: the catalogue region files, the cuts and the marks
 store) — never the real ones. It proves:
 
@@ -27,7 +27,7 @@ from pipeline.tests import under_test
 from pipeline.tests.conftest import ATLAS_HINT, BUNDLE_HINT, curated_root, need
 
 REPO = Path(__file__).resolve().parents[2]
-BACKEND = REPO / "curation-review" / "backend"
+BACKEND = REPO / "tools" / "curation-review" / "backend"
 
 #: the review app serves the built registry (data/generated/atlas/full)
 pytestmark = pytest.mark.needs_atlas

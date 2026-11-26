@@ -95,7 +95,7 @@ export const PAGE_ROOM = new Set(["docs/ROADMAP-after-0.9.0.md"]);
  *  held to BUDGETS.page (anyMarkdown still holds them). A prefix ending in "/" is a folder. */
 export const LOOKUP = [
   "CHANGELOG.md",                              // written by the release from the commits
-  "curation-review/API.md",                    // generated: curation-review/api_routes.py --write
+  "tools/curation-review/API.md",                    // generated: tools/curation-review/api_routes.py --write
   "data/LICENSE-ODbL.md",                      // a licence text
   "data/curated/regulations/reference/",       // the book's words, read by the parser
   "pipeline/regs/parsing/prompts/",            // the parser's prompts
