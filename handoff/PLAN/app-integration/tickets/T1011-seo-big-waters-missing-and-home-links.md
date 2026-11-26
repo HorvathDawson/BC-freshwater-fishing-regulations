@@ -37,3 +37,8 @@ The home page's crawlable link row (`#site-links`: `withHomeLinks`, `homeLinkPro
 the app's root and was `inert` with script: links meant only for crawlers, which Google's spam policies ("Hidden text and links",
 developers.google.com/search/docs/essentials/spam-policies#hidden-text-and-links) name. The sitemap already lists the gauges, regions,
 About and Privacy; the pages stay reachable that way.
+
+## Owner
+
+- [ ] 2026-11-22 — Request indexing for the pages in `handoff/PLAN/seo/index-requests-top-100.md` in Search Console, about 10 a day.
+- [ ] 2026-10-27 — Add the new sitemap beside the old one once the site is live, and for two months watch Pages > Not found (404) and Redirect error (the 19,331 old `/waterbody/` URLs should show as "Page with redirect").

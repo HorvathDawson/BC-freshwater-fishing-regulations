@@ -12,8 +12,8 @@ A new chat reads, in order:
 2. Your chat's restart page: one short page per live chat (60 lines at most, deleted when its chat ends):
    - `handoff/PLAN/restart/cleanup.md`: the clean-up chat (T1081).
    - Not yet moved into `restart/` (their chats edit them where they are): `handoff/PLAN/RESTART-091-chat.md`,
-     `handoff/PLAN/RESTART-repo-move-chat.md`, `handoff/PLAN/RESTART-store-content-chat.md`,
-     `handoff/PLAN/ios/RESTART-ios-release-chat.md`.
+     `handoff/PLAN/RESTART-repo-move-chat.md`, `handoff/PLAN/RESTART-store-content-chat.md`;
+     the iOS release chat is retired (2026-11-25), its hand-over is `handoff/PLAN/ios/RESTART-ios-release-chat.md`.
 3. What changed last: the top entry of `handoff/PLAN/STATUS.md`.
 4. The work: `handoff/PLAN/views/LEDGER.md` (rows in work; closed rows `views/DONE.md`) and `handoff/PLAN/views/OWNER.md`
    (what only the owner can do), both built by `node app/tools/ledger.mjs` (`--check` says if stale; `--next` / `--claim`

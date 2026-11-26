@@ -183,7 +183,9 @@ upload. The build skips any stage whose inputs did not change, so after a `--bui
 **Done** when it prints `release: r-… is LATEST and on staging`. At that moment it has also:
 
 - run the staging smoke test;
-- tagged the shipped commit `data/<r-id>` and, on the version's first ship, `v<x.y.z>`, and pushed the tags;
+- tagged the shipped commit `data/<r-id>` and the next **release candidate** `v<x.y.z>-rc.N` (rc.1 on the first
+  ship), and pushed the tags (T1062). A rerun at the same commit tags nothing; a rerun after a fix tags the next rc.
+  No tag is ever moved, and `v<x.y.z>` itself is made only by the final-tag step (Step 7);
 - printed the after-release list and the merge-back command (Step 8).
 
 Note the `r-…` id: production needs it.
@@ -246,6 +248,9 @@ If something reads wrong, stop here. Production waits; the next release fixes st
 
 Only for an app release. Both builds use the committed code of the release branch, never uncommitted edits. Each runs
 the same gates first (the precheck list, CI, fast-fail), so a missing secret or a red CI stops it before the long build.
+On `release/<x.y.z>` the precheck also wants HEAD to be the newest release candidate apart from app.json's build numbers
+(T1062: the versionCode commits are fine); anything more stops it with "tag a new rc first":
+`.venv/bin/python -m pipeline release --staging --push`, then look at staging again and build.
 
 ### Android: Play Internal, then Closed testing
 
@@ -325,24 +330,35 @@ that time").
 
    The first says whether staging still serves `<r-id>` and whether its tags are right. The second walks the upload.
    The third runs the worker's tests and builds its bundle.
-2. **Only if the release needs it first:**
+2. **The final tag** **[you, or Claude on your word]** (T1062), once you have passed staging and the Internal build:
+
+   ```
+   .venv/bin/python -m pipeline release --final <x.y.z>
+   ```
+
+   It puts `v<x.y.z>` on the newest release candidate's commit and pushes it. It refuses when there is no rc, when
+   HEAD or `origin/release/<x.y.z>` hold more than that rc (beyond the build numbers: tag a new rc first), or when
+   `v<x.y.z>` exists on GitHub. A push that failed leaves the tag here: run it again and it pushes it (a local one
+   on an older rc is refused, naming `git tag -d v<x.y.z>`). The data step below refuses until this tag is there.
+3. **Only if the release needs it first:**
    - **The website first** **[you]**, when the release's minimum app is newer than the production site. The data
-     upload refuses with "the production site is app X, older than Y". Item 5, then come back.
+     upload refuses with "the production site is app X, older than Y". Item 6, then come back.
    - **The feeds worker first** **[you]**, when the release adds closed-area pieces the production worker does not
      serve yet. The data upload's pieces gate refuses otherwise. `CONFIRM_PROD=bc-fishing-feeds deploy/prod/feeds.sh`.
-3. **The data** **[you]**, in your own terminal (it refuses inside a Claude session):
+4. **The data** **[you]**, in your own terminal (it refuses inside a Claude session):
 
    ```
    CONFIRM_PROD=<r-id> .venv/bin/python -m pipeline release --prod <r-id>
    ```
 
    Type the id again when asked. It refuses unless the release passed its checks, reached staging, is unchanged on
-   disk, staging still serves it, and its `data/<r-id>` / `v<x.y.z>` tags are on GitHub at the shipped commit. Then it
+   disk, staging still serves it, `data/<r-id>` is on GitHub at the shipped commit, and `v<x.y.z>` at the newest rc's
+   commit, which holds it (a version with no rc, tagged before T1062: `v<x.y.z>` at the shipped commit or before). Then it
    copies staging's files to production, keeps the old pointer for rollback, writes the pointer last and
    `data/release/PUBLISHED`, and prunes releases neither pointer names. Done when it prints
    `release: <r-id> published to production`.
-4. **Smoke test** **[Claude]**: `node app/tools/smoke-staging.mjs --production`.
-5. **The website**, with each app version so the two match (skip if item 2 did it):
+5. **Smoke test** **[Claude]**: `node app/tools/smoke-staging.mjs --production`.
+6. **The website**, with each app version so the two match (skip if item 3 did it):
    - **[Claude]** after the full test tier and the staging smoke pass, builds both halves on the same release and
      rehearses the deploy:
 
@@ -362,24 +378,24 @@ that time").
 
    - **[you]** deploy it: `CONFIRM_PROD=canifishthis.ca deploy/prod/site.sh`. It refuses uncommitted changes under
      `app/`.
-6. **The feeds worker** **[you]**, after the data and the matching website, when its code changed (skip if item 2 did
+7. **The feeds worker** **[you]**, after the data and the matching website, when its code changed (skip if item 3 did
    it): `CONFIRM_PROD=bc-fishing-feeds deploy/prod/feeds.sh`.
-7. **The data worker** **[you]**, only when `deploy/staging/data-worker.js` changed:
+8. **The data worker** **[you]**, only when `deploy/staging/data-worker.js` changed:
    `npx --prefix app wrangler deploy -c deploy/prod/data.wrangler.toml`.
-8. **The phones** **[you]**: Play Production (Step 6, Android 5) and the App Store (Step 6, iPhone 3). Before you
+9. **The phones** **[you]**: Play Production (Step 6, Android 5) and the App Store (Step 6, iPhone 3). Before you
    update the Play listing, **[Claude]** re-shoots the store pictures from a store-shots web build of the checkout (the
    tool builds and serves its own; staging is not used): `scripts/heavy.sh store-shots 30 -- node app/tools/store-shots/run.mjs`
    (it fails, naming the scene, when a shot is missing its content, and stops at once when pointed at a site that is not a
    store-shots build; details in `handoff/PLAN/release/PRODUCTION.md`).
-9. **Watch for a day** **[you]**: `node app/tools/smoke-staging.mjs --production`,
+10. **Watch for a day** **[you]**: `node app/tools/smoke-staging.mjs --production`,
    `curl -s https://feeds.canifishthis.ca/status`, and the `[production]` emails (crashes, feed health).
 
 ## Step 8: tags and the merge back
 
 **[Claude]**
 
-- **Tags** are made by Step 3 (`data/<r-id>`, and `v<x.y.z>` on the version's first ship). Nothing to do unless it
-  stopped there; then rerun Step 3's command: everything done is skipped and only the tags are left.
+- **Tags** are made by Step 3 (`data/<r-id>`, `v<x.y.z>-rc.N`) and Step 7 item 2 (`v<x.y.z>`). Nothing to do unless one
+  stopped there; then rerun its command: everything done is skipped and only the tags are left.
 - **Merge the release branch back into `main`** by a pull request, so its own commits (fixtures, matches, the
   versionCode, the changelog) reach the trunk. Step 3 prints the first command; the second turns on auto-merge:
 
@@ -411,7 +427,11 @@ git cherry-pick -x <the fix's commit on main>
 git push origin release/<x.y.z>
 ```
 
-Then run Step 3's command again. Nothing is committed straight to `main`; pushes to `main` are refused.
+Then run Step 3's command again. It tags the next release candidate (`v<x.y.z>-rc.2`, …) on the new HEAD; no rc is
+touched. Redo what the fix touched: app code, the staging site (Step 4) and the phone builds (Step 6, new build
+numbers; their precheck refuses a build that is not the newest rc); the feeds worker, its deploy. The data release
+reruns only when the fix changes the data (a new r-id). A fix after `v<x.y.z>` (Step 7 item 2) ships as the next
+version. Nothing is committed straight to `main`; pushes to `main` are refused.
 
 ## A data-only release
 
@@ -465,7 +485,8 @@ Staging has no rollback. The next release replaces it.
 - [ ] Step 5: check web and phone on staging
 - [ ] Step 6: Android production build → Internal → Closed (`play-upload.py --promote`); iPhone production build
       (external group automatic)
-- [ ] Step 7: rehearse (Claude); data, website, feeds worker (you, with the commands Claude hands you); smoke;
+- [ ] Step 7: rehearse (Claude); `release --final <x.y.z>` (Claude, on your word); data, website, feeds worker (you,
+      with the commands Claude hands you); smoke;
       phones (you); watch a day
 - [ ] Step 8: merge the release branch back by PR; `git switch main && git pull --ff-only`
 - [ ] Step 8: `play-production-access/releases.md` row added; "Fixed in" set on the feedback rows it closes

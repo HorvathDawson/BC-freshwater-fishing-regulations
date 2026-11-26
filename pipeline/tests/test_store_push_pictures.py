@@ -20,7 +20,7 @@ sys.path.insert(0, str(STAGING))
 import store_shots_list  # noqa: E402
 
 PLAY, ASC = STAGING / "play-listing-push.py", STAGING / "appstore-screenshots-push.py"
-TARGETS = ["play-phone", "appstore-6.9", "appstore-6.5"]
+TARGETS = ["play-phone", "appstore-6.9", "appstore-6.5", "appstore-6.3"]
 
 
 def _run(script: Path, *args: str) -> subprocess.CompletedProcess:
@@ -67,7 +67,7 @@ def test_the_real_set_passes_and_prints_counts(script):
 
 
 @pytest.mark.parametrize("script,folder", [(PLAY, "play-phone"),
-                                           (ASC, "appstore-6.9"), (ASC, "appstore-6.5")])
+                                           (ASC, "appstore-6.9"), (ASC, "appstore-6.5"), (ASC, "appstore-6.3")])
 def test_a_stray_picture_stops_the_run_by_name(script, folder, tmp_path):
     root = _set_copy(tmp_path)
     shutil.copy(root / folder / "01-01-map.png", root / folder / "02-06-search-OLD.png")

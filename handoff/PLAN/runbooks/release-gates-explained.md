@@ -291,7 +291,8 @@ live counts.
 - **Tags**: `data/<r-id>` already exists on GitHub at another commit, or a local-only tag points elsewhere. Read why
   (a release id names one release; a stale local tag: `git tag -d <tag>`), then rerun: only the tags are left. A
   release staged before the upload commit was recorded cannot be tagged by the command: it prints the `git tag`
-  command to run by hand. A `v<version>` an earlier ship already put on GitHub is left as it is (a data-only ship).
+  command to run by hand. (T1062) A version tagged final already (`v<version>` on GitHub) gets no new rc, said; a
+  change after the final tag ships as the next version.
 
 ### Production (`release --prod` and `deploy/prod/upload.sh`)
 
@@ -300,7 +301,11 @@ owner's (2026-11-22: "only me unless i say otherwise that time"); the rehearsals
 
 - The release passed its checks and reached staging (the ledger), and is unchanged on disk since (its fingerprint).
 - Staging still serves it (a later staging release replaced it: ship that one instead).
-- Its tags are on GitHub at the shipped commit (missing: rerun `release --staging`, which tags and skips the rest).
+- Its tags are on GitHub: `data/<r-id>` at the shipped commit (missing: rerun `release --staging`, which tags and skips
+  the rest); (T1062) `v<version>` AT the newest rc's commit (missing: `release --final <version>`), and the shipped
+  commit is that rc, before it, or it plus only versionCode commits (a data release shipped after a Play build). A
+  shipped commit with code the rc does not hold cannot pass: its own ship tagged a newer rc, so the final belongs
+  there. With no rc of the version (tagged before T1062): `v<version>` at the shipped commit or before it.
 - `CONFIRM_PROD=<r-id>`, an interactive terminal, the id typed again, no agent session.
 - The upload itself: staging's live manifest is byte-identical; the app gate; the **pieces gate against the production
   feeds worker** (deploy it first); the **site gate against canifishthis.ca** (deploy the site first;
@@ -311,6 +316,14 @@ owner's (2026-11-22: "only me unless i say otherwise that time"); the rehearsals
 - A commit not in the format joined before the check: add it to `exempt` in `app/tools/versioning.json`, with why.
 - The typed version disagrees with the computed one: refused, naming both. Only 1.0.0 may be typed over.
 - The branch exists already: switch to it. The version is tagged already: cut the next one.
+
+### The final tag and the phone builds (T1062)
+
+- **`release --final <version>`** refuses: no rc on GitHub (the staging ship tags one); HEAD or
+  `origin/release/<version>` differ from the newest rc beyond app.json's build numbers (tag a new rc: rerun
+  `--staging --push`, look again); `v<version>` exists already (never moved or made twice). No escape.
+- **The phone builds' rc check** (on `release/x.y.z`): HEAD must be the newest rc apart from the build numbers;
+  otherwise tag a new rc first (`release --staging --push`). `--no-rc-check=<reason>` goes on and prints it.
 
 ## Accepts and escapes at a glance
 
@@ -328,6 +341,7 @@ owner's (2026-11-22: "only me unless i say otherwise that time"); the rehearsals
 | `--no-follow-tests REASON` | no | almost never | a real failure (it comes back) |
 | `NOT_LANDED_OK` / `WRONG_SAVE_OK` row | (a code row) | you say this mark or save waits / ships as is | — |
 | `SITE_CHECK_SKIP` / `PROD_SITE_CHECK_SKIP` | no | never for a site that serves the release | — |
+| `--no-rc-check=REASON` (phone builds) | no | an emergency build the owner asked for off the newest rc | a store build that will be promoted |
 
 ## Simplification ideas (proposals, not built)
 

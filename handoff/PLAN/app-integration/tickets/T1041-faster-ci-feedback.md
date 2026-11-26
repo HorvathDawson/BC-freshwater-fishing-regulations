@@ -315,8 +315,10 @@ killed; 14 of `check-tickets.mjs`, all killed. Round trip re-run on today's main
 
 ## Owner
 
-- [ ] 2026-11-25 — Repo move to `canifishthis/canifishthis` (org made 2026-11-25 13:11): the transfer click, when the planning chat says go (after both 0.10.0 phone builds are uploaded; about 20 minutes with the repo-move chat). Then issue the new `GITHUB_DISPATCH_TOKEN` on the org (this repository, Actions read and write, 366 days at most; the chat writes the expiry date here), let the chat put it on staging, run the production `wrangler secret put` line yourself, revoke the old token.
-- [ ] 2026-11-25 — After the move: your OK on the merge-queue ruleset change.
+- [x] 2026-11-25 — Repo move to `canifishthis/canifishthis` (org made 2026-11-25 13:11) → done by you, the transfer and the rename at about 15:15, before the staging run ended (repo-move chat's 15:25 report); the new `GITHUB_DISPATCH_TOKEN` is set on both workers and staging answers ok.
+- [ ] 2026-11-25 — Tell the repo-move chat the production worker's check result with the new token (still owed since 15:25), and revoke the old token.
+- [ ] 2026-11-25 — The worker token `GITHUB_DISPATCH_TOKEN` expires 2027-11-25 (you: "365 days away is expiry"; your token page says 1 year): re-issue it on the org and put it on both workers before then; the planning chat reminds you two weeks before.
+- [x] 2026-11-25 — After the move: your OK on the merge-queue ruleset change → "Queue + restore bypass" (your pick in the dialog; the merge queue is ON, the main ruleset's admin bypass put back, 2026-11-25 about 15:24).
 - [ ] 2026-11-23 — Keep the push connection alive: in the main checkout `git config core.sshCommand "ssh -i ~/.ssh/id_ed25519_personal -o ServerAliveInterval=15 -o ServerAliveCountMax=8"` (or `ServerAliveInterval 15` under `Host github.com-personal` in ~/.ssh/config).
 - [x] 2026-11-25 — Rename the repo too → "Rename now (Recommended)" (2026-11-25); second collaborator account → "Drop it"; org settings → "I set them as listed".
 - [x] 2026-11-25 — When to move → "Yes, move now, re-cut 0.10.0 after" (2026-11-25 15:14). Earlier (2026-11-23): merge queue "Merge queue (Recommended)", free org "Move to a free org (Recommended)", "i think we should do repo move after m0.9.0".
