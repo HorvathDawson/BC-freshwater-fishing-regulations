@@ -6,7 +6,7 @@
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { GEOMETRY, ESRI_BADGE, mapChrome } from "./chrome";
+import { GEOMETRY, mapChrome } from "./chrome";
 import { creditLines, lineText, partsHtml, MAP_CREDITS_DRAWN, ATLAS_CREDIT, BASEMAP_CREDIT } from "./credits";
 import { MapCredits, STARTUP_CREDIT, STARTUP_MS, resetStartupCredit } from "./MapCredits";
 
@@ -83,7 +83,7 @@ describe("the credits chip and card (T424)", () => {
     const { rerender } = render(<MapCredits look={PLAIN} chrome={chrome} />);
     expect(screen.queryByTestId("esri-badge")).toBeNull();
     rerender(<MapCredits look={{ ...PLAIN, basemap: "satellite" }} chrome={chrome} />);
-    expect(screen.getByTestId("esri-badge").textContent).toBe(ESRI_BADGE);
+    expect(screen.getByTestId("esri-badge").textContent).toBe("Powered by Esri");
   });
 
   it("sits bottom-right, over the foot block", () => {

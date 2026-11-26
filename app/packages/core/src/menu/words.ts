@@ -1,5 +1,5 @@
 /** THE MENU'S WORDS — every word its pages draw, in one table (AGENTS 33: a test pins the finished strings). */
-import { IMAGERY_ATTRIBUTION, IMAGERY_KEPT_SOURCES } from "../imagery";
+import { IMAGERY, IMAGERY_KEPT_SOURCES } from "../imagery";
 import { SOURCE_AUTHORITIES } from "../sourceNames";
 
 /**
@@ -153,7 +153,7 @@ export const MENU_WORDS = {
         + "Canada.",
       forecast: `${P.rfc}. The CLEVER, COFFEE and ELF river forecasts, used with permission.`,
       weather: `Weather data by ${P.openMeteo}, ${P.ccBy}.`,
-      imagery: `${IMAGERY_ATTRIBUTION}. Shown only while online. ${IMAGERY_KEPT_SOURCES}`,
+      imagery: `${IMAGERY.attribution}. ${IMAGERY.words.sources} ${IMAGERY_KEPT_SOURCES}`,
     },
     /** the map tiles' build, exact — here and nowhere else (the More tab gives the tiles' state, never the hash) */
     version: (v: string) => `Version ${v}`,

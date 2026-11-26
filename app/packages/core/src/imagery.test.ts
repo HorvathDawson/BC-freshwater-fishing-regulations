@@ -3,8 +3,8 @@
  * and the drawn map shows otherwise, with the reader's choice kept. The reachability rule and the words are pure, here.
  */
 import { describe, expect, it } from "vitest";
-import { basemapInUse, IMAGERY_CREDIT, IMAGERY_START, imageryProbeUrl, imageryReach, imageryUp,
-         isImageryOutage, SATELLITE_OFFLINE, withImageryCredit, type ImageryEvent } from "./imagery";
+import { basemapInUse, IMAGERY, IMAGERY_CREDIT, IMAGERY_START, imageryProbeUrl, imageryReach, imageryUp,
+         withImageryCredit, type ImageryEvent, type ImageryProvider } from "./imagery";
 
 const run = (events: ImageryEvent[], start = IMAGERY_START) => events.reduce(imageryReach, start);
 
@@ -30,20 +30,27 @@ describe("imagery reachability", () => {
   });
 
   it("a 404 is a hole in the imagery (blankTile=false), not an outage; anything else is", () => {
-    expect([404, 0, undefined, 401, 403, 500, 503].map(isImageryOutage))
+    expect([404, 0, undefined, 401, 403, 500, 503].map(IMAGERY.outage))
       .toEqual([false, true, true, true, true, true, true]);
   });
 });
 
 describe("the basemap actually drawn", () => {
   it("satellite only while it is reachable; the drawn map otherwise; the drawn map whatever the reach", () => {
-    expect([basemapInUse("satellite", true), basemapInUse("satellite", false),
-            basemapInUse("map", true), basemapInUse("map", false)])
+    expect([basemapInUse("satellite", true, IMAGERY, false), basemapInUse("satellite", false, IMAGERY, false),
+            basemapInUse("map", true, IMAGERY, false), basemapInUse("map", false, IMAGERY, false)])
       .toEqual(["satellite", "map", "map", "map"]);
   });
 
+  it("(T1154) a provider that keeps nothing offline is not drawn unreached, even said to be held; one kept as files is, where held", () => {
+    const file: ImageryProvider = { ...IMAGERY, offline: "file" };
+    expect([basemapInUse("satellite", false, IMAGERY, true), basemapInUse("satellite", false, file, true),
+            basemapInUse("satellite", false, file, false), basemapInUse("map", false, file, true)])
+      .toEqual(["map", "satellite", "map", "map"]);
+  });
+
   it("the Layers sheet's reason line, whole", () => {
-    expect(SATELLITE_OFFLINE).toBe(
+    expect(IMAGERY.words.offline).toBe(
       "Satellite needs a connection. Showing the map until you are back online; satellite returns by itself.");
   });
 });
@@ -56,8 +63,17 @@ describe("the imagery credit", () => {
 
   it("is listed while satellite is drawn, and not otherwise", () => {
     const base = ["Basemap © OpenStreetMap contributors · © Protomaps", "Weather from Open-Meteo.com (CC BY 4.0)"];
-    expect(withImageryCredit(base, "satellite")).toEqual([...base, IMAGERY_CREDIT]);
-    expect(withImageryCredit(base, "map")).toEqual(base);
+    expect(withImageryCredit(base, "satellite", IMAGERY)).toEqual([...base, IMAGERY_CREDIT]);
+    expect(withImageryCredit(base, "map", IMAGERY)).toEqual(base);
+  });
+});
+
+describe("(T1154) the imagery provider", () => {
+  it("the provider in use is Esri's: drawn by both map engines from the style's `imagery` source, kept for no offline use, its badge and words whole", () => {
+    expect({ id: IMAGERY.id, engines: IMAGERY.engines, source: IMAGERY.source, offline: IMAGERY.offline, badge: IMAGERY.badge,
+             note: IMAGERY.words.note, sources: IMAGERY.words.sources })
+      .toEqual({ id: "esri", engines: ["maplibre-native", "maplibre-gl"], source: "imagery", offline: "none",
+                 badge: "Powered by Esri", note: "Photo map · needs internet", sources: "Shown only while online." });
   });
 });
 
