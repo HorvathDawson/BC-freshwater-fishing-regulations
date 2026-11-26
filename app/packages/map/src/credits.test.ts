@@ -9,6 +9,7 @@ import { ATLAS_CREDIT, BASEMAP_CREDIT, creditId, MAP_CREDITS_DRAWN } from "./cre
 import { nativeStyle } from "./native-style";
 import { maplibreDialect } from "./native/maplibre/dialect";
 import { runtimeStyle } from "./runtime-style";
+import { PMTILES } from "./tile-access";
 
 type S = { layers: { id: string; layout?: Record<string, unknown>; paint?: Record<string, unknown> }[];
            sources: Record<string, { attribution?: string }> };
@@ -19,7 +20,7 @@ const credited = (s: S) => Object.entries(s.sources).filter(([, v]) => v.attribu
 
 describe("the map's credits (T235)", () => {
   it("credits OpenStreetMap (ODbL wording, linked) and the Province on the always-drawn sources", () => {
-    const s = runtimeStyle(AT, "light") as unknown as S;
+    const s = runtimeStyle(AT, "light", {}, PMTILES) as unknown as S;
     expect(s.sources.basemap!.attribution).toBe(BASEMAP_CREDIT);
     expect(BASEMAP_CREDIT).toContain("© OpenStreetMap contributors");
     expect(BASEMAP_CREDIT).toContain("https://www.openstreetmap.org/copyright");
@@ -31,7 +32,7 @@ describe("the map's credits (T235)", () => {
   });
 
   it("gives each mode/overlay credit its own source and a layer that draws nothing, hidden by default", () => {
-    const s = runtimeStyle(AT, "light") as unknown as S;
+    const s = runtimeStyle(AT, "light", {}, PMTILES) as unknown as S;
     for (const c of MAP_CREDITS_DRAWN) {
       expect(s.sources[creditId(c)]!.attribution).toBe(c.html);
       const l = s.layers.find((x) => x.id === creditId(c))!;

@@ -19,7 +19,7 @@ import { layers as basemapLayers, namedFlavor } from "@protomaps/basemaps";
 import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM, GEAR_LEGEND } from "@app/core";
 import { MAP_STYLE, NO_VALUES, STYLE_META, defaultView, resolveTheme, withFollowers, type Tokens } from "./style";
 import { NO_ASSETS, type TileEndpoints } from "./endpoints";
-import { PMTILES, type TileAccess } from "./tile-access";
+import type { TileAccess } from "./tile-access";
 import { gaugeLayers, gaugeSource } from "./gaugeDots";
 import { landOutline } from "./on-imagery";
 import { BANK_CUE_LAYERS, BANK_LAYERS, BANK_MINZOOM, BANK_MODES, bankCuePaint, bankHalfPaint, GEAR_BANK_LAYERS, gearBankPaint, SALMON_CASING_LAYER, salmonCasingPaint, ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, hasGlow, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, markShownIn, markWidth, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS, splitStream, STREAM_HEAVY, streamWidths } from "./paint";
@@ -140,11 +140,11 @@ const lastDrawing = (sourceLayer: string): string | undefined =>
     .filter((l) => l["source-layer"] === sourceLayer && l.type !== "symbol").at(-1)?.id;
 
 /**
- * `tiles`: how the sources address the archives (`tile-access.ts`). `PMTILES` is the one access either MapLibre renderer
- * has; the web map takes it as given, and the phone's style passes its engine's own (`nativeStyle`'s dialect).
+ * `tiles`: how the sources address the archives (`tile-access.ts`), always named by the caller: the web map passes
+ * `PMTILES`, the phone's style its engine's own (`nativeStyle`'s dialect).
  */
 export function runtimeStyle(at: TileEndpoints, theme: string,
-                             modes: Record<string, string> = {}, tiles: TileAccess = PMTILES) {
+                             modes: Record<string, string> = {}, tiles: TileAccess) {
     // The BASEMAP has two flavours; ours has three. A colour-blind reader needs our outcome
   // hues changed, not the ground under them, so cvd rides on the light ground.
   const flavor = namedFlavor(theme === "dark" ? "black" : "light");

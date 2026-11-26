@@ -12,6 +12,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { STYLE_META, runtimeStyle } from "@app/map";
+import { PMTILES } from "../packages/map/src/tile-access";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const SRC = readFileSync(join(ROOT, "pipeline/deliver/tiles/basemap.py"), "utf8");
@@ -38,7 +39,7 @@ const kinds = (f: unknown): string[] =>
 
 describe("the basemap filter keeps every kind the style draws", () => {
   for (const theme of Object.keys(STYLE_META.themes)) {
-    const layers = (runtimeStyle(AT, theme).layers as Layer[]).filter((l) => l.source === "basemap");
+    const layers = (runtimeStyle(AT, theme, {}, PMTILES).layers as Layer[]).filter((l) => l.source === "basemap");
 
     it(`landuse (${theme})`, () => {
       const keep = new Set([...pyTuple("LANDUSE_DRAWN"), ...pyTuple("LANDUSE_STANDIN")]);
@@ -57,7 +58,7 @@ describe("the basemap filter keeps every kind the style draws", () => {
 
   // T202: the build also drops lake/river label points, earth lines and `sort_rank` — none of which a layer may read.
   for (const theme of Object.keys(STYLE_META.themes)) {
-    const layers = (runtimeStyle(AT, theme).layers as Layer[]).filter((l) => l.source === "basemap");
+    const layers = (runtimeStyle(AT, theme, {}, PMTILES).layers as Layer[]).filter((l) => l.source === "basemap");
 
     it(`no drawn water label reads a dropped point kind, and nothing draws earth lines (${theme})`, () => {
       const dropped = new Set(pyTuple("WATER_POINTS_DROPPED"));

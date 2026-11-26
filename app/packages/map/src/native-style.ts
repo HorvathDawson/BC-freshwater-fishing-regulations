@@ -39,6 +39,11 @@ export interface StyleDialect {
   readonly id: string;
   /** How its sources address the archives (`runtimeStyle`'s `tiles`). */
   readonly tiles: TileAccess;
+  /**
+   * Does this layer take its per-feature values IN THE STYLE (`areaData`) rather than by feature-state? The phone's map
+   * sorts `MapProps.data` by it (`Map.native.tsx`): an engine that cannot address the layer's features answers true.
+   */
+  areaLayer(layerId: string): boolean;
   /** Its pass over the composed style, after the look, the values and the credits; it writes `s` in place. */
   finish(s: { sources: Record<string, Json>; layers: StyleLayer[] },
          o: { theme: string; areaData: AreaData | undefined }): void;

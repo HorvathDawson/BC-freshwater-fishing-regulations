@@ -10,6 +10,7 @@ import { paintFor } from "./paint";
 import { nativeStyle } from "./native-style";
 import { maplibreDialect } from "./native/maplibre/dialect";
 import { runtimeStyle } from "./runtime-style";
+import { PMTILES } from "./tile-access";
 import { firstNotFishing, NOT_FISHING_LAYERS, SECTION_LAYERS, TAP_GROUPS, VISIBLE_LAYERS } from "./sections";
 import { STYLE_META, resolveTheme } from "./style";
 
@@ -40,7 +41,7 @@ describe("not fishing water (Q125)", () => {
 
   it.each(["web", "native"] as const)("draws on the %s map as a fill, never the lake's colour", (platform) => {
     for (const theme of ["light", "dark"]) {
-      const s = (platform === "web" ? runtimeStyle(AT, theme)
+      const s = (platform === "web" ? runtimeStyle(AT, theme, {}, PMTILES)
                                     : nativeStyle({ ...base, theme }, maplibreDialect).style) as unknown as S;
       const l = s.layers.find((x) => x.id === ID)!;
       expect(l, `${platform} ${theme}`).toBeDefined();
@@ -60,7 +61,7 @@ describe("not fishing water (Q125)", () => {
     expect(SECTION_LAYERS).not.toContain(ID);
     expect(VISIBLE_LAYERS).not.toContain(ID);
     expect(TAP_GROUPS.flatMap((g) => g.layers)).not.toContain(ID);
-    const web = runtimeStyle(AT, "light") as unknown as S;
+    const web = runtimeStyle(AT, "light", {}, PMTILES) as unknown as S;
     expect(Object.keys(web.sources.atlas!.promoteId ?? {})).not.toContain(ID);
   });
 

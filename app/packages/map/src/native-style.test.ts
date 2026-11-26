@@ -10,6 +10,7 @@ import { paintFor } from "./paint";
 import { nativeStyle } from "./native-style";
 import { maplibreDialect } from "./native/maplibre/dialect";
 import { runtimeStyle } from "./runtime-style";
+import { PMTILES } from "./tile-access";
 import { MAP_STYLE, NO_VALUES, resolveTheme } from "./style";
 
 type L = { id: string; type: string; paint?: Record<string, unknown>; layout?: Record<string, unknown>;
@@ -54,7 +55,7 @@ describe("the native style", () => {
   });
 
   it("promotes nothing: MapLibre Native ignores promoteId, a section is its MVT id", () => {
-    const web = runtimeStyle(AT, "light") as unknown as S;
+    const web = runtimeStyle(AT, "light", {}, PMTILES) as unknown as S;
     expect(web.sources.atlas!.promoteId).toBeUndefined();        // T202: the web promotes nothing on the atlas either
     const s = nativeStyle(base, maplibreDialect).style as unknown as S;
     expect(Object.keys(s.sources.atlas!).includes("promoteId")).toBe(false);

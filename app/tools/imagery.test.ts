@@ -17,6 +17,7 @@ import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { IMAGERY_CREDIT } from "@app/core";
 import { runtimeStyle } from "@app/map";
+import { PMTILES } from "../packages/map/src/tile-access";
 import { imageryTiles } from "../packages/map/src/endpoints";
 import { nativeStyle } from "../packages/map/src/native-style";
 import { maplibreDialect } from "../packages/map/src/native/maplibre/dialect";
@@ -31,7 +32,7 @@ const text = (html: string) => html.replace(/<[^>]+>/g, "");
 
 describe("the satellite source", () => {
   it("is Esri World Imagery, to z19, credited as Esri requires — on both maps", () => {
-    const web = runtimeStyle(AT, "light").sources.imagery as Src;
+    const web = runtimeStyle(AT, "light", {}, PMTILES).sources.imagery as Src;
     const phone = nativeStyle({ at: AT, theme: "light", view: "plain", basemap: "satellite", gauges: "" }, maplibreDialect)
       .style.sources.imagery as Src;
     const want = { type: "raster", tiles: [ESRI], tileSize: 256, maxzoom: 19,
@@ -41,7 +42,7 @@ describe("the satellite source", () => {
   });
 
   it("its map credit and the app's credit line are the same words", () => {
-    const style = runtimeStyle(AT, "light").sources.imagery as Src;
+    const style = runtimeStyle(AT, "light", {}, PMTILES).sources.imagery as Src;
     expect(`Satellite imagery: ${text(style.attribution!)}`).toBe(IMAGERY_CREDIT);
   });
 
@@ -49,7 +50,7 @@ describe("the satellite source", () => {
     expect(imageryTiles(null)).toBe(ESRI);
     expect(imageryTiles("k-123")).toBe("https://ibasemaps-api.arcgis.com/arcgis/rest/services/World_Imagery/MapServer"
       + "/tile/{z}/{y}/{x}?blankTile=false&token=k-123");
-    const keyed = runtimeStyle({ ...AT, imagery: imageryTiles("k-123") }, "light").sources.imagery as Src;
+    const keyed = runtimeStyle({ ...AT, imagery: imageryTiles("k-123") }, "light", {}, PMTILES).sources.imagery as Src;
     expect(keyed.tiles).toEqual([imageryTiles("k-123")]);
   });
 

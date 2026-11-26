@@ -23,6 +23,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { STYLE_META, runtimeStyle } from "@app/map";
+import { PMTILES } from "../packages/map/src/tile-access";
 import { nativeStyle, type NativeStyleInput } from "../packages/map/src/native-style";
 import { maplibreDialect } from "../packages/map/src/native/maplibre/dialect";
 import { NO_VALUES } from "../packages/map/src/style";
@@ -77,11 +78,11 @@ const NATIVE: Record<string, NativeStyleInput> = {
 };
 /** The web's: every theme with no modes given (the default view's), every view × theme, and a keyed imagery template. */
 const RUNTIME: Record<string, () => unknown> = {
-  ...Object.fromEntries(THEMES.map((t) => [`web · ${t} · no modes`, () => runtimeStyle(WEB, t)])),
+  ...Object.fromEntries(THEMES.map((t) => [`web · ${t} · no modes`, () => runtimeStyle(WEB, t, {}, PMTILES)])),
   ...Object.fromEntries(VIEWS.flatMap((v) => THEMES.map((t) =>
-    [`web · ${v} · ${t}`, () => runtimeStyle(WEB, t, view(v).modes)]))),
+    [`web · ${v} · ${t}`, () => runtimeStyle(WEB, t, view(v).modes, PMTILES)]))),
   "web · light · keyed imagery template": () =>
-    runtimeStyle({ ...WEB, imagery: "https://imagery.example.invalid/tile/{z}/{y}/{x}?token=k" }, "light"),
+    runtimeStyle({ ...WEB, imagery: "https://imagery.example.invalid/tile/{z}/{y}/{x}?token=k" }, "light", {}, PMTILES),
 };
 const compose = (name: string): Record<string, unknown> => {
   const s = NATIVE[name] ? nativeStyle(NATIVE[name], maplibreDialect).style : RUNTIME[name]!();

@@ -19,6 +19,7 @@ import { join, resolve } from "node:path";
 import { createPropertyExpression, latest } from "@maplibre/maplibre-gl-style-spec";
 import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM } from "@app/core";
 import { STYLE_META, runtimeStyle } from "@app/map";
+import { PMTILES } from "../packages/map/src/tile-access";
 import { nativeStyle } from "../packages/map/src/native-style";
 import { maplibreDialect } from "../packages/map/src/native/maplibre/dialect";
 
@@ -54,7 +55,7 @@ describe("each source stops where its archive stops", () => {
 
   for (const theme of THEMES)
     it(`every tiled source declares a maxzoom short of the camera's, on both maps (${theme})`, () => {
-      const web = runtimeStyle(AT, theme).sources as Record<string, Src>;
+      const web = runtimeStyle(AT, theme, {}, PMTILES).sources as Record<string, Src>;
       const phone = nativeStyle({ at: AT, theme, view: "plain", modes: {}, basemap: "satellite",
                                   gauges: AT.gauges }, maplibreDialect).style.sources as Record<string, Src>;
       const tiled = (s: Record<string, Src>) => Object.fromEntries(Object.entries(s)
@@ -105,7 +106,7 @@ describe.skipIf(!TILES || !existsSync(TILES!))("the live archives' headers (Tier
 describe("what z14 draws, z15-18 draws too", () => {
   for (const theme of THEMES)
     it(`no layer drawn at z14 stops before the camera's ceiling (${theme})`, () => {
-      const layers = runtimeStyle(AT, theme).layers as Layer[];
+      const layers = runtimeStyle(AT, theme, {}, PMTILES).layers as Layer[];
       const cut = layers.filter((l) => (l.minzoom ?? 0) <= ATLAS_MAX_ZOOM && l.maxzoom !== undefined
                                        && l.maxzoom > ATLAS_MAX_ZOOM && l.maxzoom <= CAMERA_MAX_ZOOM)
         .map((l) => `${l.id} maxzoom ${l.maxzoom}`);
@@ -113,7 +114,7 @@ describe("what z14 draws, z15-18 draws too", () => {
     });
 
   it("none of OUR layers waits for a zoom past the tiles (the basemap's own styling may)", () => {
-    const ours = (runtimeStyle(AT, "light").layers as Layer[]).filter((l) => l.source !== "basemap");
+    const ours = (runtimeStyle(AT, "light", {}, PMTILES).layers as Layer[]).filter((l) => l.source !== "basemap");
     expect(ours.filter((l) => (l.minzoom ?? 0) > ATLAS_MAX_ZOOM).map((l) => l.id)).toEqual([]);
   });
 
@@ -133,7 +134,7 @@ describe("what z14 draws, z15-18 draws too", () => {
 
   for (const theme of THEMES)
     it(`sizes are defined to z${CAMERA_MAX_ZOOM} and none shrinks past z14 (${theme})`, () => {
-      const layers = (runtimeStyle(AT, theme).layers as Layer[]).filter((l) => l.source !== "basemap");
+      const layers = (runtimeStyle(AT, theme, {}, PMTILES).layers as Layer[]).filter((l) => l.source !== "basemap");
       const bad: string[] = [];
       let checked = 0;
       for (const l of layers)

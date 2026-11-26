@@ -10,6 +10,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { runtimeStyle } from "@app/map";
+import { PMTILES } from "../packages/map/src/tile-access";
 import { nativeStyle } from "../packages/map/src/native-style";
 import { maplibreDialect } from "../packages/map/src/native/maplibre/dialect";
 import { GAUGE_ONLY_RING_PX } from "../packages/map/src/gaugeDots";
@@ -42,7 +43,7 @@ describe("a gauge reporting only the other quantity: a ringed grey dot, no words
   for (const th of THEMES) {
     it(`${th}: both maps ring the muted dot and keep the paper stroke on the coloured ones; no label without words`, () => {
       const t = resolveTheme(th) as Record<string, unknown>;
-      for (const style of [runtimeStyle(AT as never, th, { gauges: "standing" }),
+      for (const style of [runtimeStyle(AT as never, th, { gauges: "standing" }, PMTILES),
                            nativeStyle({ at: AT as never, theme: th, view: "conditions", modes: { gauges: "standing" },
                                          basemap: "satellite", gauges: AT.gauges }, maplibreDialect).style]) {
         const dot = layer(style, "gauge-dot").paint!;

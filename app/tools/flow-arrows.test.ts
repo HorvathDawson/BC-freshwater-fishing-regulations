@@ -23,6 +23,7 @@ import { applyLook } from "../packages/map/src/look";
 import { nativeStyle } from "../packages/map/src/native-style";
 import { maplibreDialect } from "../packages/map/src/native/maplibre/dialect";
 import { runtimeStyle } from "../packages/map/src/runtime-style";
+import { PMTILES } from "../packages/map/src/tile-access";
 import { MAP_STYLE, STYLE_META, colorExpression, resolveTheme, shownLayers } from "../packages/map/src/style";
 
 const ARROWS = "stream__arrows";
@@ -112,7 +113,7 @@ describe("an arrow points downstream", () => {
 
   it("every arrow on the map — the Conditions arrows, the route overlay's, the highlighted route's — agrees", () => {
     const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles", gauges: '{"type":"FeatureCollection","features":[]}' },
-                           "light") as unknown as { layers: L[] };
+                           "light", {}, PMTILES) as unknown as { layers: L[] };
     const arrowsOn = (id: string) => {
       const l = s.layers.find((x) => x.id === id)!.layout!;
       return { arrow: arrowInLineFrame(l), font: l["text-font"], keepUpright: l["text-keep-upright"],

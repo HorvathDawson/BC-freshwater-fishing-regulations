@@ -29,7 +29,7 @@ type Json = Record<string, unknown>;
  * A style layer whose features have no id on a phone: an atlas layer keyed by a property that is not a section's.
  * Its per-feature values go into the style (`areaData`), never to feature-state, which would address nothing.
  */
-export function areaLayer(layerId: string): boolean {
+function areaLayer(layerId: string): boolean {
   const prop = areaKey(layerId);
   if (prop === undefined || prop === "section_id") return false;
   const t = stateTarget(layerId);
@@ -51,6 +51,7 @@ function withoutFeatureState(expr: unknown, lookup: (key: string) => unknown): u
 export const maplibreDialect: StyleDialect = {
   id: "maplibre-native",
   tiles: PMTILES,
+  areaLayer,
   finish(s, { theme, areaData }) {
     for (const id of ATLAS_SOURCES) if (s.sources[id]) delete s.sources[id]!.promoteId;
     for (const l of s.layers) {

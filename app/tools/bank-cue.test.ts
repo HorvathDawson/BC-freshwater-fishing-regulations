@@ -16,6 +16,7 @@ import { statusInput } from "../packages/map/src/colouring";
 import { nativeStyle } from "../packages/map/src/native-style";
 import { maplibreDialect } from "../packages/map/src/native/maplibre/dialect";
 import { runtimeStyle } from "../packages/map/src/runtime-style";
+import { PMTILES } from "../packages/map/src/tile-access";
 import { resolveTheme, type ChannelValues } from "../packages/map/src/style";
 
 type Layer = { id: string; type: string; "source-layer"?: string; paint?: Record<string, unknown>; layout?: Record<string, unknown>; minzoom?: number };
@@ -43,7 +44,7 @@ function handed(theme: string, mode: string, values: ChannelValues = VALUES): La
   return (style as unknown as { layers: Layer[] }).layers;
 }
 const firstFrame = (theme: string, mode: string) =>
-  (runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles", outside: "o.geojson" } as never, theme, { stream: mode }) as { layers: Layer[] }).layers;
+  (runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles", outside: "o.geojson" } as never, theme, { stream: mode }, PMTILES) as { layers: Layer[] }).layers;
 
 const WEST = { bk: "Ls1", sp: "s0", p: "p1" };
 const ORD7 = { ord: 7 };

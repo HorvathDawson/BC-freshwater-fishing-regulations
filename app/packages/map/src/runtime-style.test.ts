@@ -4,20 +4,21 @@
  */
 import { describe, expect, it } from "vitest";
 import { runtimeStyle } from "./runtime-style";
+import { PMTILES } from "./tile-access";
 
 const AT = { atlas: "a.pmtiles", basemap: "b.pmtiles" };
 
 describe("runtimeStyle: glyphs and sprites", () => {
   it("reads them from the release's assets folder, the sprite following the theme", () => {
     const at = { ...AT, assets: "file:///doc/release/tiles/v1/map-assets-1/" };
-    const light = runtimeStyle(at, "light"), dark = runtimeStyle(at, "dark");
+    const light = runtimeStyle(at, "light", {}, PMTILES), dark = runtimeStyle(at, "dark", {}, PMTILES);
     expect(light.glyphs).toBe("file:///doc/release/tiles/v1/map-assets-1/fonts/{fontstack}/{range}.pbf");
     expect(light.sprite).toBe("file:///doc/release/tiles/v1/map-assets-1/sprites/v4/light");
     expect(dark.sprite).toBe("file:///doc/release/tiles/v1/map-assets-1/sprites/v4/dark");
   });
 
   it("(T404) names NO host when no assets folder is given — never another environment's, never a third-party CDN", () => {
-    const s = runtimeStyle(AT, "dark");
+    const s = runtimeStyle(AT, "dark", {}, PMTILES);
     expect(s.glyphs).toBe("/map-assets/v1/fonts/{fontstack}/{range}.pbf");
     expect(s.sprite).toBe("/map-assets/v1/sprites/v4/dark");
   });
@@ -68,7 +69,7 @@ describe("the flow dots", () => {
  * ours keep theirs */
 describe("the basemap's fills (T420)", () => {
   it("draw without the antialias outline pass; our own fills keep the default", () => {
-    const layers = runtimeStyle(AT, "light").layers as { id: string; type?: string; source?: string; paint?: Record<string, unknown> }[];
+    const layers = runtimeStyle(AT, "light", {}, PMTILES).layers as { id: string; type?: string; source?: string; paint?: Record<string, unknown> }[];
     const ground = layers.filter((l) => l.type === "fill" && l.source === "basemap");
     expect(ground.length).toBeGreaterThan(5);
     for (const l of ground) expect([l.id, l.paint?.["fill-antialias"]]).toEqual([l.id, false]);
@@ -85,7 +86,7 @@ describe("the basemap's fills (T420)", () => {
 describe("(T923) the satellite casings on the first frame", () => {
   it("are at line-opacity 0 in every theme (the drawn map)", () => {
     for (const theme of ["light", "dark", "cvd"]) {
-      const layers = runtimeStyle(AT, theme).layers as { id: string; paint?: Record<string, unknown> }[];
+      const layers = runtimeStyle(AT, theme, {}, PMTILES).layers as { id: string; paint?: Record<string, unknown> }[];
       const casings = layers.filter((l) => l.id.endsWith("__casing"));
       expect(casings.map((l) => l.id).sort(), theme).toEqual(["indigenous_land__casing", "parcel_private__casing"]);
       for (const c of casings) expect(c.paint?.["line-opacity"], `${theme} ${c.id}`).toBe(0);

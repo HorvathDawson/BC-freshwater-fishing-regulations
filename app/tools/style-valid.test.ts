@@ -24,6 +24,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { STYLE_META, runtimeStyle } from "@app/map";
+import { PMTILES } from "../packages/map/src/tile-access";
 import { nativeStyle } from "../packages/map/src/native-style";
 import { maplibreDialect } from "../packages/map/src/native/maplibre/dialect";
 import { statusInput } from "../packages/map/src/colouring";
@@ -55,7 +56,7 @@ describe("MapLibre will accept what we hand it", () => {
     it(`validates in the ${theme} theme, in every colour mode`, () => {
       const problems: string[] = [];
       for (const modes of modeMatrix()) {
-        const style = runtimeStyle(AT, theme, modes) as unknown as Record<string, unknown>;
+        const style = runtimeStyle(AT, theme, modes, PMTILES) as unknown as Record<string, unknown>;
         for (const e of validateStyleMin(style as never))
           problems.push(`${JSON.stringify(modes)}: ${e.message}`);
       }

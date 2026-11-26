@@ -58,7 +58,7 @@ import { mapChrome } from "./chrome";
 import { zoomStep } from "./zoom-step";
 import { nativeMapGestures } from "./gestures";
 import { nativeStyle } from "./native-style";
-import { areaLayer, maplibreDialect } from "./native/maplibre/dialect";
+import { maplibreDialect } from "./native/maplibre/dialect";
 import { NativeLookTracker } from "./look-drawn";
 import { liftFor, type Lift, type LiftAnswer } from "./tapLift";
 import { isTapTarget, litKey, spreadSections, TAP_GROUPS, tapBox, unsetValue, VISIBLE_LAYERS, visibleSections } from "./sections";
@@ -210,7 +210,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
    */
   const [sectionData, areaData] = useMemo(() => {
     const sec: Data = {}, area: Data = {};
-    for (const [layerId, values] of Object.entries(spreadSections(data ?? {}))) (areaLayer(layerId) ? area : sec)[layerId] = values;
+    for (const [layerId, values] of Object.entries(spreadSections(data ?? {}))) (maplibreDialect.areaLayer(layerId) ? area : sec)[layerId] = values;
     return [sec, area];
   }, [data]);
   const areaKey = JSON.stringify(areaData);
