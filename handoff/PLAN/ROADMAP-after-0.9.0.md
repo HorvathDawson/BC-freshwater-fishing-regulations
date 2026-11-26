@@ -76,7 +76,7 @@ order of 3, 2b and D after the iOS release is the planning chat's proposal; the 
 | 5i iOS full release | RETIRED 2026-11-25 by the owner; its leftovers (the privacy page check, his three submit clicks, the T1071 record, the T996 push proof) are the planning chat's. Was `bc-freshwater-fishing-regulations-06` (started 2026-11-24 23:10) | `handoff/PLAN/ios/RESTART-ios-release-chat.md`; the paste-from page is `handoff/PLAN/ios/APP-STORE-SUBMISSION.md` |
 | S store content | CLOSED 2026-11-25 by the owner; PR #256 (T1134) is finished by the repo-move chat, PR #238 (T1072) waits for his look at frame 3. Was `bc-freshwater-fishing-regulations-a1` (started 2026-11-24 ~23:30) | `handoff/PLAN/RESTART-store-content-chat.md` |
 | 3 repo move | `bc-freshwater-fishing-regulations-38` (started 2026-11-25 13:12; the move is DONE and checked 2026-11-25 15:55, the merge queue is on, T1062 is built; left: PR #256's fix, then T1120 and T1131) | `handoff/PLAN/RESTART-repo-move-chat.md`; prep in the repo-move folder beside it |
-| D clean-up (T1081) | `bc-freshwater-fishing-regulations-77` (started 2026-11-25 about 15:30; the owner's layout picks are in T1081; works on local branches, its cut PR opens on the planning chat's word, the rename after 0.10.0) | its restart page comes with its PR |
+| D clean-up (T1081) | first chat `bc-freshwater-fishing-regulations-77` STOPPED 2026-11-25 19:27 (its cut is PR #262, on main 18:56); a NEW chat finishes it from prompt D2 | `handoff/PLAN/restart/cleanup.md` (PR #267) |
 
 Build chats list new finds under "For the planning chat" on their restart page and message the planning chat; it
 replies with the Tnnn.
@@ -211,6 +211,28 @@ Triage of everything ticketed since the roadmap was written. Severity / model / 
 > T1120 (the fresh-clone check) is the repo-move chat's; when it runs, anything it trips on in the docs is yours to
 > fix. Ask me as multiple choice in chat. New finds go to the planning chat, which numbers the tickets. Keep your
 > own restart page.
+
+**D2. Finish the clean-up** (owner 2026-11-25 evening, relayed by the first clean-up chat: "Why can't we do that stuff now before 0.10 all of it seems fine to do. Also it feels like we could remove more markdown. The ticket mark down is okay but we want to simplify the other files. It should be simple enough to be human resdble in not a super long period if time. Without an agent summarizing it."). The prompt above (D) is done: its cut is PR #262.
+> First make a scratchpad worktree of origin/main of canifishthis/canifishthis and read from it; never touch the
+> main checkout (the 0.10.0 release runs from it). Read handoff/PLAN/restart/cleanup.md (your restart page: what is
+> done, what is left, what never to touch), AGENTS.md, and T1081. You finish T1081. You orchestrate on Fable;
+> Sonnet lanes, at most 3, by folder; Opus only where a rule or contract is judged; lanes spawn no sub-agents; one
+> review round; every PR through the merge queue, one docs PR at a time (few runners). No code is cut; code
+> candidates and new finds go to the planning chat, which alone numbers tickets. Never my review files or marks.
+> Step 1, the second markdown cut: everything OUTSIDE the tickets (189 files, 27,416 lines on 2026-11-25); tickets
+> stay as they are. The goal in my words: simple enough that a human reads it in not a super long time, without an
+> agent summarising it. First ask me the target as multiple choice (lines, or minutes to read), with the biggest
+> groups and what you would do to each; then cut, move the citers of pinned pages first, and lower the budgets in
+> app/tools/check-size.mjs in the same PR.
+> Step 2, the rename (handoff/PLAN to docs/, tickets at the top), now, not after the release: prepare it, then ask
+> the planning chat for the word before `python3 scripts/rename_handoff.py --commit`. The planning chat gives it
+> when the 0.10.0 PRs open that evening (#264, #265 and its own docs PR) are on main. Before the commit agree with
+> the 0.10.0 chat: after the rename only code-only picks go onto release/0.10.0, and the merge back of the release
+> branch runs the same script on that branch first. Hand me the lines for my git-ignored CLAUDE.md and the memory
+> notes that spell the old paths.
+> Step 3: the curation review tool gets one home, with a saved-mark write-through test proven before and after.
+> Step 4: close T1081 with the final counts; fix what T1120 (the fresh-clone check) tripped on in the docs.
+> Ask me as multiple choice in chat. Keep handoff/PLAN/restart/cleanup.md current (60 lines at most).
 
 **4a / 4b / 4c. A 0.10 feature** (one chat per feature)
 > Start at handoff/PLAN/START-HERE.md and ROADMAP-after-0.9.0.md row 4a (or 4b, 4c). Feature chat for 0.10. Research
