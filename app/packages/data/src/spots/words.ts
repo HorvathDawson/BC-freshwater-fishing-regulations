@@ -9,6 +9,7 @@ import { bandWord, bcMidnight, CONDITIONS_WORDS, spotDay, standing, traceSentenc
 import { spotLabel, type DailyGauge, type DailyWeather, type DayPlace, type Spot, type SpotReading, type WeatherWindow } from "./model";
 import { OPEN_METEO_ATTRIBUTION } from "./weather";
 import { isBackdated, readingIsTheDays } from "./dayFlow";
+import { isCleared } from "./idbCleared";
 
 /* ---- S1: the week before the visit ------------------------------------------------------------------------------ */
 
@@ -310,6 +311,8 @@ export function photoCounter(n: number, of: number): string {
 
 /** A photo that could not be added, said whole. The spot and its other photos are untouched. */
 export function photoFailed(e: unknown): string {
+  // (T1092) the browser cleared the site's data: that line is whole, and "nothing else changed" would not be true
+  if (isCleared(e)) return (e as Error).message;
   const why = e instanceof Error ? e.message : String(e);
   return `The photo was not added (${why}). Nothing else changed.`;
 }

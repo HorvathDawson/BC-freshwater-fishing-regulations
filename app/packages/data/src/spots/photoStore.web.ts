@@ -8,15 +8,10 @@
  * (`createImageBitmap` + a canvas). Where it cannot, or anything fails, the original is kept as it is: a big photo is
  * better than a lost one. The rules are `./photos`'s.
  */
-import { clearedOr, isCleared } from "./idbCleared";
+import { clearedOr, done, keptConnection } from "./idbCleared";
 import { openPhotosWith, PHOTO_MAX_EDGE, type PhotoFiles, type PhotoStore, type PickedPhoto } from "./photos";
 
 const DB = "canifishthis.photos", STORE = "photos";
-
-const done = <T>(r: IDBRequest<T>): Promise<T> => new Promise((res, rej) => {
-  r.onsuccess = () => res(r.result);
-  r.onerror = () => rej(clearedOr(r.error ?? new Error("IndexedDB refused the request")));
-});
 
 const URLS = new WeakMap<IDBFactory, Map<string, string>>();
 const urlsOf = (idb: IDBFactory): Map<string, string> => {
@@ -27,30 +22,23 @@ const urlsOf = (idb: IDBFactory): Map<string, string> => {
 
 /** Bytes by reference in one IndexedDB object store. A browser with no IndexedDB says so when it is used. */
 export function photoFiles(idb: IDBFactory | undefined = globalThis.indexedDB): PhotoFiles {
-  let db: Promise<IDBDatabase> | null = null;
-  const open = (): Promise<IDBDatabase> => (db ??= (() => {
-    if (!idb) return Promise.reject(new Error("This browser is not letting the app store photos."));
-    const r = idb.open(DB, 1);
-    r.onupgradeneeded = () => {
-      if (!r.result.objectStoreNames.contains(STORE)) r.result.createObjectStore(STORE);
-    };
-    return done(r);
-  })().catch((e) => { db = null; throw e; }));
-  // (T1092) a connection the browser cleared is dropped, so the next request opens a fresh database
-  const gone = (e: unknown): never => { if (isCleared(e)) db = null; throw e; };
-  const write = async <T>(job: (s: IDBObjectStore) => IDBRequest<T>): Promise<void> => {
-    const tx = (await open()).transaction(STORE, "readwrite");
+  // One object URL per photo for as long as the page is open; revoked when the photo is deleted. Shared by every
+  // instance over the same IndexedDB: the app draws through one and the spots store deletes through another, and a
+  // delete there must revoke the URL drawn here and stop handing it out (T80 1).
+  const urls = idb ? urlsOf(idb) : new Map<string, string>();
+  // (T1092) the browser cleared its data: no picture drawn from a cleared photo is kept as if saved
+  const conn = keptConnection({ idb, name: DB, none: () => new Error("This browser is not letting the app store photos."),
+    setup: (d) => { if (!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE); },
+    onCleared: () => { for (const u of urls.values()) URL.revokeObjectURL(u); urls.clear(); } });
+  const write = <T>(job: (s: IDBObjectStore) => IDBRequest<T>): Promise<void> => conn.run(async (d) => {
+    const tx = d.transaction(STORE, "readwrite");
     const committed = new Promise<void>((res, rej) => {
       tx.oncomplete = () => res();
       tx.onerror = () => rej(clearedOr(tx.error ?? new Error("IndexedDB refused the write")));
       tx.onabort = () => rej(clearedOr(tx.error ?? new Error("IndexedDB aborted the write")));
     });
-    await Promise.all([done(job(tx.objectStore(STORE))), committed]).catch(gone);
-  };
-  // One object URL per photo for as long as the page is open; revoked when the photo is deleted. Shared by every
-  // instance over the same IndexedDB: the app draws through one and the spots store deletes through another, and a
-  // delete there must revoke the URL drawn here and stop handing it out (T80 1).
-  const urls = idb ? urlsOf(idb) : new Map<string, string>();
+    await Promise.all([done(job(tx.objectStore(STORE))), committed]);
+  });
 
   return {
     async keep(ref, picked) {
@@ -67,8 +55,7 @@ export function photoFiles(idb: IDBFactory | undefined = globalThis.indexedDB): 
     async uri(ref) {
       const had = urls.get(ref);
       if (had) return had;
-      const tx = (await open()).transaction(STORE, "readonly");
-      const blob = await done(tx.objectStore(STORE).get(ref)).catch(gone) as Blob | undefined;
+      const blob = await conn.run((d) => done(d.transaction(STORE, "readonly").objectStore(STORE).get(ref))) as Blob | undefined;
       if (!blob) return null;
       const url = URL.createObjectURL(blob);
       urls.set(ref, url);

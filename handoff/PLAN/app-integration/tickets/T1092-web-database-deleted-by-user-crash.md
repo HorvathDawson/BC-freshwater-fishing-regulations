@@ -4,7 +4,7 @@ Status: PARTIAL — proof: kind `790ae7cc172f9424` stops arriving from web build
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1092 | Web: "Database deleted by request of the user" arrives as a crash report (kind `790ae7cc172f9424`) | PARTIAL — kind 790ae7cc172f9424 stops arriving | (this branch) | proof is the kind not arriving; no real-browser clear was run |
+| T1092 | Web: "Database deleted by request of the user" arrives as a crash report (kind `790ae7cc172f9424`) | PARTIAL — fix built, not yet merged or seen in the field | (this branch) | proof still to come: kind 790ae7cc172f9424 not arriving from builds with the fix; no real-browser clear was run |
 
 Source: production feeds worker, crash kind `790ae7cc172f9424`, 1 report, 2026-11-25 01:24Z, app 0.8.5 (web, by the
 message: it is the browser's IndexedDB error when the site's stored data is cleared while a tab is open). Read by
@@ -28,8 +28,13 @@ Severity: low (one report; the user cleared the data). Release: 0.9.2. Model: So
 ## Built (hardening lane, 2026-11-26)
 - Stack not read (no worker access from the lane). By code reading the open connections are the two IndexedDB stores
   (`gaugeHistory` write in `store.web.ts`, which reported it via `reportOnce`, and the photos in `photoStore.web.ts`).
-- `spots/idbCleared.ts`: the browser's words become the environment's plain error ("Your browser cleared this site's saved
-  data while the page was open. Try that again."): shown by the photo caller, never reported; both stores drop the dead
-  connection so the next request reopens and works. The gauge week is a cache: nothing visible is lost.
-- Worker: `EXPECTED` in `workers/feeds/src/crashes.ts` classes the old builds' kind.
+- `spots/idbCleared.ts` `keptConnection`: one kept connection per store that listens for the browser's `close` event (the
+  idle case: a later `transaction()` throws InvalidStateError, retried once on a fresh connection), drops the dead
+  connection, revokes the photo pictures drawn from it, and says ONCE, as the environment's (shown, never reported):
+  "Your browser cleared this site's saved data: the spots and photos kept in this browser are gone, and the app's settings
+  are back to their defaults." (what clearing site data removes: localStorage = spots, notes, settings; IndexedDB = photos,
+  the gauges' kept week; Cache Storage = the downloaded data copy, fetched again). `photoFailed` says that line whole.
+- The line is seen where the next photo or gauge request meets it; the Spots list itself shows no line (left: a page-level
+  notice, which needs a place for it: the owner's call).
+- Worker: `EXPECTED` in `workers/feeds/src/crashes.ts` classes the old builds' kind (with a negative case).
 - Left: a real-browser check (clear site data under an open tab); the stack of the kind was not read.

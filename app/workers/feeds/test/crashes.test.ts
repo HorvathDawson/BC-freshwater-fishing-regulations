@@ -301,6 +301,7 @@ describe("(T595) a class on each kind: defect / network / expected", () => {
     expect(c("Error", "names file 500")).toBe("defect");
     expect(c("Error", "Failed to initialize WebGL")).toBe("expected");
     expect(c("UnknownError", "Database deleted by request of the user")).toBe("expected");    // (T1092) the browser cleared the site's data
+    expect(c("UnknownError", "Database deleted by a bug in the app")).toBe("defect");          // (T1092) an unrelated message is still a defect
     expect(c("MapUnavailable", "Failed to initialize WebGL")).toBe("expected");
     expect(c("Error", "an exit record was refused by the crash server: HTTP 429 (too many reports today)")).toBe("expected");
     expect(c("Error", "an exit record was refused by the crash server: HTTP 429 (too many new error kinds today)")).toBe("expected");
