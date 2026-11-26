@@ -60,7 +60,6 @@ export const TICKET_OVER = {
   "T1041-faster-ci-feedback.md": 324,
   "T1053-walk-stops-at-head-lake.md": 306,
   "T1072-store-screenshots-and-marketing-content.md": 165,
-  "T1140-water-link-opens-one-part-without-saying-so.md": 162,
 };
 
 /** Markdown files allowed over BUDGETS.anyMarkdown: path -> its own budget (today's size + 10%). */
@@ -78,9 +77,9 @@ export const PAGE_LONG = {
   "handoff/PLAN/repo-move/OUTSIDE-GIT.md": 243,                            // the repo-move chat's record, until that chat ends
   "handoff/PLAN/repo-move/PREP.md": 262,                                   // the same
   // held as they are while 0.10.0 ships from them (planning chat 2026-11-25): one release.md + a short by-hand page after its merge back
-  "handoff/PLAN/runbooks/release-by-hand.md": 493,
+  "handoff/PLAN/runbooks/release-by-hand.md": 495,   // +2 (T1161): "lid open, on power", the line that would have saved 0.10.0 its 8.3 h asleep
   "handoff/PLAN/runbooks/release-gates-explained.md": 366,
-  "handoff/PLAN/runbooks/release.md": 216,
+  "handoff/PLAN/runbooks/release.md": 219,   // +3 (T1161): the same line, with the battery refusal and its flag
   // long files in an open ticket's folder (the T1140 one is in MARKDOWN_LONG)
   "handoff/PLAN/app-integration/T1053-shots/head-lakes-before-after.md": 272,
   "handoff/PLAN/app-integration/T1108-files/handoff-2026-11-25-offline-satellite-and-reversible-engine.md": 209,

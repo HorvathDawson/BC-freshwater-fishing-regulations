@@ -275,18 +275,21 @@ describe("<WaterMapView>", () => {
     const where = () => screen.getByTestId("water-map-where").textContent;
     expect(name()).toBe(
       "Skeena River Ecological Reserve boundary (km 63.5) → Skeena River Ecological Reserve boundary near the Exchamsiks River confluence");
-    // (T768) "Part k of N" is the group's own for the Reserve and the entries one and two steps above it
+    // (T768) what the bar says is the group's own for the Reserve and the entries one and two steps above it
     const [reserve, stem, side] = await Promise.all([said("skeenaReserve"), said("skeenaReserve", 1), said("skeenaReserve", 2)]);
     expect(where()).toBe(reserve.where);
     fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
     expect([screen.queryByRole("dialog"), name(), where()]).toEqual([null,
       "Skeena River Ecological Reserve boundary near the Exchamsiks River confluence → Exchamsiks River confluence", stem.where]);
     fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
-    expect([screen.queryByRole("dialog"), name(), where()]).toEqual([null, "Skeena River", side.where]);
+    // (T1140, owner 2026-11-25 17:31) the side channel, with no ends of its own, by the release's own words for it
+    expect([screen.queryByRole("dialog"), name(), where()]).toEqual([null, side.name, side.where]);
+    expect(side.name).toMatch(/^Side channel \(/);
     fireEvent.click(screen.getByRole("button", { name: "Downstream" }));
     fireEvent.click(screen.getByRole("button", { name: "Downstream" }));
     expect([screen.queryByRole("dialog"), where()]).toEqual([null, reserve.where]);
-    expect(new Set([reserve.where, stem.where, side.where]).size).toBe(3);   // three different parts, one per press
+    // three different parts, one per press — told apart by their NAMES (T1140: the line over them is the water's, no count)
+    expect(new Set([reserve.name, stem.name, side.name]).size).toBe(3);
   }, 30_000);
 
   it("Android's back closes an open mark before it leaves the water (back, everywhere)", async () => {
@@ -615,10 +618,10 @@ describe("<WaterMapView>", () => {
     it("(T517) the Zymoetz's source part above its lake part: ▲ into it and its URL reloaded draw the same", async () => {
       const Z = "gnis:3137" as ItemId;
       // the lake part is "McDonell Lake (3000 m downstream) → McDonell Lake outlet", by its ends; ▲ is the source part,
-      // the highest: (T768) its "Part N of N" is the group's
+      // the highest: (T1140) the bar's line over its name is its water's, never a count
       const [stepped, reloaded] = await wayIn(open({ item: Z, part: await partOf("zymoetzLake"), view: "map" }), [up]);
       const source = await said("zymoetzSource");
-      expect(source.where).toMatch(/^Part (\d+) of \1 · Zymoetz River$/);
+      expect(source.where).toBe("Zymoetz River");
       expect(JSON.parse(stepped)).toMatchObject({ where: source.where, name: "McDonell Lake → Source" });
       expect(reloaded).toEqual(stepped);
     }, 60_000);

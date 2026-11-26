@@ -192,7 +192,8 @@ describe("(T150) the parts of this water, listed under the map — the header's 
     const l = view(g, waterMapStart(at)).list!;
     expect([l.rows.length > 1, l.rows.filter((r) => r.here).map((r) => r.item), l.toggle])
       .toEqual([true, ["wbk:-20"], `Show all ${g.parts.length} parts`]);
-    expect(l.rows.every((r) => r.aria === `${r.name}, part ${r.ix + 1} of ${g.parts.length}${r.note ? ` · ${r.note}` : ""}`)).toBe(true);
+    // (T1140) each row by its name and its own water (several waters in one list), never a number
+    expect(l.rows.every((r) => r.aria === (r.note && r.note !== r.name ? `${r.name}, ${r.note}` : r.name))).toBe(true);
   });
 
   it("a water of one part has no list, and the toggle action is a no-op there", async () => {
@@ -223,8 +224,10 @@ describe("(T750) no fork: the Skeena's Ecological Reserve steps up one line", ()
     expect(ups).toEqual([waterMapStart(ix(SK_RESERVE_UP)), waterMapStart(ix(SK_SIDE)), waterMapStart(ix(SK_EXCHAMSIKS_UP))]);
     expect(ups.map((s) => view(g, s).current.name)).toEqual([
       "Skeena River Ecological Reserve boundary near the Exchamsiks River confluence → Exchamsiks River confluence",
-      // (T768) the third is the run above the Exchamsiks, whatever part end it runs up to in this release
-      "Skeena River", partName(g, ix(SK_EXCHAMSIKS_UP))]);
+      // (T1140, owner 2026-11-25 17:31: "The data's own label") the side channel, which has no ends of its own, by the
+      // release's own words for it; (T768) the third is the run above the Exchamsiks, whatever part end it runs up to
+      "Side channel (from the Exchamsiks River confluence up to Skeena River Ecological Reserve boundary)",
+      partName(g, ix(SK_EXCHAMSIKS_UP))]);
     expect(partName(g, ix(SK_EXCHAMSIKS_UP))).toMatch(/^Exchamsiks River confluence → /);
     // and back down the same line
     expect(run(g, ups[2]!, { type: "down" }, { type: "down" }, { type: "down" })).toEqual(reserve);
@@ -354,7 +357,7 @@ describe("Cowichan, Vedder and the Kootenay Lake West Arm", () => {
     const g = await loadWaterGroup(st, "gnis:12227"), n = g.parts.length;
     expect(n).toBeGreaterThanOrEqual(5);
     expect(g.parts.map((_, i) => bar(g, waterMapStart(i)))).toEqual(g.parts.map((_, i) =>
-      `Part ${i + 1} of ${n} · Cowichan River | ${partName(g, i)} | ${i === 0 ? "Lowest part (off)" : "Downstream"} | `
+      `Cowichan River | ${partName(g, i)} | ${i === 0 ? "Lowest part (off)" : "Downstream"} | `
       + (i === n - 1 ? "Highest part (off)" : "Upstream")));
     expect([g.parts[0]!.lo, g.parts[n - 1]!.hi, g.parts.slice(1).map((p, i) => p.lo === g.parts[i]!.hi)])
       .toEqual(["mouth", "lake_outlet:wbk:329101302", g.parts.slice(1).map(() => true)]);

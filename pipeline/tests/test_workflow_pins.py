@@ -63,6 +63,14 @@ def test_ci_jobs_have_timeouts_and_the_ci_workflows_cancel_superseded_runs():
     assert pipe["jobs"]["check"]["timeout-minutes"] == 30
     # the slowest tests are printed, so a slow run names its tests (a 2x slower runner and a slow test look alike)
     assert any("--durations=" in (st.get("run") or "") for st in pipe["jobs"]["check"]["steps"])
+    # (T1144) the no-data tier on every core, one test FILE per worker: `--dist loadfile` keeps a file's tests in order
+    # in one process (its module fixtures made once). `--dist load` splits a file across workers and breaks the
+    # order-dependent ones, so a switch is a deliberate change here too. Mutation: drop `-n auto`, or say `--dist load`
+    # (or add a second `--dist` after it) -> fails.
+    tests = [st["run"] for st in pipe["jobs"]["check"]["steps"] if st.get("name") == "Tests"]
+    assert len(tests) == 1, tests
+    assert re.findall(r"(?:^|\s)(?:-n|--numprocesses)[\s=](\S+)", tests[0]) == ["auto"], tests[0]
+    assert re.findall(r"--dist[\s=](\S+)", tests[0]) == ["loadfile"], tests[0]
     for name in ("app-ci.yml", "docs-ci.yml", "feeds-worker-ci.yml"):
         assert _load(name)["concurrency"]["cancel-in-progress"] is True, name
     for f in sorted(WF.glob("*.yml")):
