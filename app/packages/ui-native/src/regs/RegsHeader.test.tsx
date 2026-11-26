@@ -79,7 +79,7 @@ describe("<RegsHeader>", () => {
       place: "Mouth → Cable car crossing (200 m downstream of Vedder Crossing bridge)",
       tabs: [["What you can keep", "true"], ["Gear", "false"], ["Methods", "false"], ["Licence", "false"]],
     });
-    expect(screen.getByTestId("regs-dot").style.backgroundColor).toBe(rgb(LIGHT.open));
+    expect(screen.getByTestId("regs-dot").style.backgroundColor).toBe(rgb(LIGHT.salmon.open));   // (owner 2026-11-25) the open dot is the salmon block's open
     expect(screen.getByRole("tablist", { name: "Section" })).toBeTruthy();
   });
 
