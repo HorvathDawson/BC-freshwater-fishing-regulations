@@ -19,6 +19,7 @@ import { WD3, WORDS } from "./words";
 import { WEEKDAYS } from "../calendar.generated";
 import { classBadgeOf } from "./classBadge";
 import { nameUnder, WATER_MAP_WORDS, type PartPlaces } from "../waterNav";
+import { reportOnce } from "../failure";
 
 /** (T517) Each part's name as the water map names the entry holding it, by part index: `@app/core` `entryNames` over
  *  the SAME `mergeNav(group, live salmon key)` the map draws (`@app/ui` `useMapEntries`), so the header, the Parts sheet
@@ -107,13 +108,19 @@ export function downstreamLabel(inp: RegsInputs, downstream: string | null | und
  * entry has other rules (`entryPlaces` `differs`): "Other parts of this water have different rules" — the part itself is
  * said by its NAME (the place row; owner 2026-11-25: no "Part x of n" anywhere). Null where there is nothing to say: no
  * named water, a group the map shows as one entry, no places yet (the group not read: the Regulations view waits for it,
- * `@app/ui` `useMapEntries`), or no other part with other rules. A page's part that the places do not hold, on a water
- * they list, is a caller's defect: throws.
+ * `@app/ui` `useMapEntries`), or no other part with other rules; none either on a piece the map never lists (a TIDAL
+ * stretch, a part outside B.C. or with no rule set: `inp.key` null). NEVER A THROW (it runs while the head is drawn): a
+ * KEYED part the places do not hold, on a water they list, is a real inconsistency — no line, and REPORTED once per part
+ * (`reportOnce`, W46: no silent fallback).
  */
 export function partsOthersOf(inp: RegsInputs, places: PartPlaces | null | undefined): string | null {
-  if (!inp.item || !places || places.size === 0) return null;
+  if (!inp.item || !places || places.size === 0 || inp.key == null || inp.tidalPart || inp.key.tidal) return null;
   const p = places.get(inp.partIx);
-  if (!p) throw new Error(`regs header: the map lists no part ${inp.partIx} of ${inp.item.id}`);
+  if (!p) {
+    reportOnce(`regs-parts-others:${inp.item.id}:${inp.partIx}`,
+               new Error(`regs header: the map lists no part ${inp.partIx} of ${inp.item.id}`));
+    return null;
+  }
   return p.differs ? WATER_MAP_WORDS.partsOthers : null;
 }
 
