@@ -39,7 +39,17 @@ describe("(T150) one list of a water's parts", () => {
   it("no app surface opens the Parts sheet or draws a Parts button (the Map view's list is the one picker by name)", () => {
     const ui = ["apps/mobile/src", "packages/ui/src", "packages/ui-native/src"];
     expect([where(ui, /["'`]parts["'`]\s*(as\s+SheetKey|\))|sheet:\s*["']parts["']|openSheet\(\s*["']parts/),
-            where(ui, /\bonParts\b|PARTS_ARIA|WORDS\.PARTS\b/)]).toEqual([[], []]);
+            where(ui, /PARTS_ARIA|WORDS\.PARTS\b/)]).toEqual([[], []]);
+  });
+
+  // (T1140, owner 2026-11-25 through the planning chat) THE HEADS' LINE "Other parts of this water have different rules" is
+  // the one way from a part's page to its other parts, and it opens THE MAP VIEW'S LIST (the one picker), never a sheet
+  // or a picker of its own: its handler (`onParts`) is made in ONE place, as exactly that move
+  it("(T1140) the heads' line to the other parts is made once, as the move onto the Map with its list open", () => {
+    const ui = ["apps/mobile/src", "packages/ui/src", "packages/ui-native/src"];
+    const made = where(ui, /onParts:\s*\(\)\s*=>/);
+    expect(made).toEqual(["packages/ui-native/src/shell/useShellNav.ts"]);
+    expect(/onParts: \(\) => go\(\{ type: "view", view: "map", parts: true \}\)/.test(read(made[0]!))).toBe(true);
   });
 
   it("(T698) the Parts sheet is gone: no key, no sheet builder, no row component, no 'choice' block", () => {

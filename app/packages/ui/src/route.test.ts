@@ -399,3 +399,25 @@ describe("(T925) EVERY named water offers its Map view — a water of one part t
     expect([frameViews({ item: W }), frameViews({ item: null })]).toEqual([["regs", "conditions", "map"], ["regs", "conditions"]]);
   });
 });
+
+// (T1140) the Regulations / Conditions head's "Other parts of this water have different rules": the Map, its list open
+describe("(T1140) view with parts: the Map opens with its list of parts open, and any other move drops it", () => {
+  const CH = "gnis:8634" as ItemId;
+  const water = reduce(HOME, { type: "openWater", item: CH, part: 1, view: "regs" });
+  it("onto the Map with `parts`: the frame says so; the part and the water stay", () => {
+    const r = reduce(water, { type: "view", view: "map", parts: true });
+    expect(waterFrame(r)).toMatchObject({ item: CH, part: 1, view: "map", parts: true });
+  });
+  it("a pick from the list (the frame's part), a switch of view, or a plain switch to the Map drop it", () => {
+    const open = reduce(water, { type: "view", view: "map", parts: true });
+    expect(waterFrame(reduce(open, { type: "part", part: 2 }))!.parts).toBeUndefined();
+    expect(waterFrame(reduce(open, { type: "view", view: "regs" }))!.parts).toBeUndefined();
+    expect(waterFrame(reduce(water, { type: "view", view: "map" }))!.parts).toBeUndefined();
+    // `parts` on another view means nothing
+    expect(waterFrame(reduce(water, { type: "view", view: "conditions", parts: true }))!.parts).toBeUndefined();
+  });
+  it("an unnamed reach has no Map: `view map` with parts changes nothing", () => {
+    const reach = reduce(HOME, { type: "openWater", item: null, tapSid: 7 as SectionId, view: "regs" });
+    expect(reduce(reach, { type: "view", view: "map", parts: true })).toBe(reach);
+  });
+});

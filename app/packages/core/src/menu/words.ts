@@ -1,6 +1,15 @@
 /** THE MENU'S WORDS — every word its pages draw, in one table (AGENTS 33: a test pins the finished strings). */
-import { IMAGERY_ATTRIBUTION } from "../imagery";
+import { IMAGERY_ATTRIBUTION, IMAGERY_KEPT_SOURCES } from "../imagery";
 import { SOURCE_AUTHORITIES } from "../sourceNames";
+
+/**
+ * (T1163 G15) THE NON-AFFILIATION SENTENCE: said on About (`about.notOfficial`) and on the first-run notice
+ * (`LEGAL_WORDS.firstRun`). The store listing (`store-listing/full-description.txt`) says the same with the app's name as
+ * the subject; `tools/not-affiliated.test.ts` holds the two together.
+ */
+export const NOT_AFFILIATED =
+  "This app is not affiliated with, endorsed by, or sponsored by the Province of British Columbia or Fisheries and "
+  + "Oceans Canada (DFO).";
 
 /** The pages that open OVER the More tab. Display and Contact are drawn on the tab itself (owner 2026-10-22). */
 export type MenuPageKey = "offline" | "notifications" | "help" | "glossary" | "sources" | "about" | "report"
@@ -95,7 +104,7 @@ export const MENU_WORDS = {
       + "lake and it says what the regulations allow there on the day you choose, alongside what the water is doing.",
     notOfficial: "This app is not the official regulations. It is built from the B.C. Freshwater Fishing Regulations "
       + "Synopsis and other public sources, and it can be wrong or out of date. The Synopsis, the Province's in-season "
-      + "changes and federal notices are the law: check them before you fish. Nothing in this app is legal advice.",
+      + "changes and federal notices are the law: check them before you fish. Nothing in this app is legal advice. " + NOT_AFFILIATED,
     official: "Open the official Synopsis",
     versions: "Versions",
     app: "Version",
@@ -144,7 +153,7 @@ export const MENU_WORDS = {
         + "Canada.",
       forecast: `${P.rfc}. The CLEVER, COFFEE and ELF river forecasts, used with permission.`,
       weather: `Weather data by ${P.openMeteo}, ${P.ccBy}.`,
-      imagery: `${IMAGERY_ATTRIBUTION}. Shown only while online, never stored.`,
+      imagery: `${IMAGERY_ATTRIBUTION}. Shown only while online. ${IMAGERY_KEPT_SOURCES}`,
     },
     /** the map tiles' build, exact — here and nowhere else (the More tab gives the tiles' state, never the hash) */
     version: (v: string) => `Version ${v}`,

@@ -5,6 +5,7 @@
 import { describe, expect, it } from "vitest";
 import { pinCollection, traceLayers, tracePaint, TRACE_LAYER_IDS } from "./trace-overlay";
 import { runtimeStyle } from "./runtime-style";
+import { PMTILES } from "./tile-access";
 import { hereImage, HERE_H, HERE_W } from "./here-mark";
 import { SCALE } from "./raster";
 import { colour } from "./chrome";
@@ -14,7 +15,7 @@ const AT = { atlas: "a", basemap: "b", gauges: '{"type":"FeatureCollection","fea
 
 describe("the route overlay's layers", () => {
   it("draws last of all, over every river and gauge dot, in the order it declares", () => {
-    const ids = (runtimeStyle(AT, "light").layers as { id: string }[]).map((l) => l.id);
+    const ids = (runtimeStyle(AT, "light", {}, PMTILES).layers as { id: string }[]).map((l) => l.id);
     expect(ids.slice(-TRACE_LAYER_IDS.length)).toEqual([...TRACE_LAYER_IDS]);
     expect(traceLayers("light").map((l) => l.id)).toEqual([...TRACE_LAYER_IDS]);
   });

@@ -7,8 +7,10 @@ import { describe, expect, it } from "vitest";
 import { baseAdapter, type MapHandle } from "./adapters/contract";
 import { ENGINE_KEYS, issueInput } from "./colouring";
 import { nativeStyle } from "./native-style";
+import { maplibreDialect } from "./native/maplibre/dialect";
 import { GEAR_RAMPS, GEAR_RAMP, ISSUE_LAYERS, ISSUE_MODE, issuePaint, issueShown } from "./paint";
 import { runtimeStyle } from "./runtime-style";
+import { PMTILES } from "./tile-access";
 import { resolveTheme } from "./style";
 
 const SHOWN = ["==", ["coalesce", ["feature-state", "gi"], ""], "1"];
@@ -63,7 +65,7 @@ describe("(T759) the issue stripe's layers", () => {
   it("in the style the map is given: over the line and closed's stripe, casing under ink, none showing in a style built for another view", () => {
     for (const theme of ["light", "dark", "cvd"])
       for (const mode of ["salmon", "profile"]) {
-        const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, theme, { stream: mode }) as
+        const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, theme, { stream: mode }, PMTILES) as
           unknown as { layers: { id: string; paint?: Record<string, unknown> }[] };
         const ids = s.layers.map((l) => l.id);
         expect(ids.indexOf(ISSUE_LAYERS.casing), mode).toBeGreaterThan(ids.indexOf("stream-closed"));
@@ -91,10 +93,10 @@ describe("(T759) the issue channel labels every section of an issue water, once,
 describe("(T759) the native map draws the same stripe from the same style", () => {
   it("the native style JSON holds both layers with the web's paint, in the Salmon view only", () => {
     const AT = { atlas: "file:///d/a.pmtiles", basemap: "file:///d/b.pmtiles", outside: "file:///d/o.geojson", assets: "file:///d/m/" };
-    const web = runtimeStyle(AT, "light", { stream: "salmon" }) as unknown as { layers: { id: string; paint: Record<string, unknown> }[] };
+    const web = runtimeStyle(AT, "light", { stream: "salmon" }, PMTILES) as unknown as { layers: { id: string; paint: Record<string, unknown> }[] };
     for (const mode of ["salmon", "profile"]) {
       const n = nativeStyle({ at: AT, theme: "light", view: "plain", modes: { stream: mode }, hide: [], groups: {}, basemap: "map" as const,
-                              gauges: '{"type":"FeatureCollection","features":[]}' }).style as unknown as
+                              gauges: '{"type":"FeatureCollection","features":[]}' }, maplibreDialect).style as unknown as
         { layers: { id: string; paint: Record<string, unknown> }[] };
       for (const part of PARTS) {
         const l = n.layers.find((x) => x.id === ISSUE_LAYERS[part])!;

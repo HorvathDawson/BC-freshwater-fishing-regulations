@@ -8,7 +8,10 @@ the same generated style and are held to the same call sequence by `src/parity.t
 - `style/`: `layers.source.json` (authored) + `tokens.json` + `themes/` build `style.json` and `style.meta.json`
   (`pnpm style:build` in `app/`; `pnpm style` fails on a stale or hand-edited output). Schema: `style/schema/`.
 - `src/colouring.ts` + `native/useColouring.ts` / `web/useChannels.ts`: the one colouring engine (per-tile feature ids to feature-state).
-- Reads: `atlas.pmtiles` and `basemap.pmtiles` by byte range (`pmtiles://`), from R2 or local files.
+- Reads: `atlas.pmtiles` and `basemap.pmtiles` by byte range (`pmtiles://`), from R2 or local files. How a style addresses
+  them is `src/tile-access.ts`, apart from the paths (`TileEndpoints`).
+- The phone's style: `src/native-style.ts` composes it engine-neutrally and the engine's dialect finishes it
+  (`src/native/maplibre/dialect.ts`); `tools/style-golden.test.ts` holds both composed styles byte for byte.
 
 ## Rules
 

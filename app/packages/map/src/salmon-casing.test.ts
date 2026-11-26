@@ -7,6 +7,7 @@
 import { describe, expect, it } from "vitest";
 import { GEAR_LAYERS, SALMON_CASING_LAYER, gearPaint, salmonCasingPaint, streamWidths } from "./paint";
 import { runtimeStyle } from "./runtime-style";
+import { PMTILES } from "./tile-access";
 import { NO_VALUES, resolveTheme, type ChannelValues } from "./style";
 
 const tk = resolveTheme("light");
@@ -56,7 +57,7 @@ function evaluate(e: unknown, state: Record<string, string>, zoom: number): unkn
 describe("(T887) the keep casing never hides a gear mark", () => {
   it("light has a casing (option B): the layer is under both gear edges, which are under the line", () => {
     expect(Number(tk["width.salmon.casing"])).toBeGreaterThan(0);
-    const ids = (runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, "light", { stream: "salmon" }) as
+    const ids = (runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, "light", { stream: "salmon" }, PMTILES) as
       { layers: { id: string }[] }).layers.map((l) => l.id);
     const at = (id: string) => ids.indexOf(id);
     expect(at(SALMON_CASING_LAYER) < at(GEAR_LAYERS.stream.fly) && at(SALMON_CASING_LAYER) < at(GEAR_LAYERS.stream.bait)

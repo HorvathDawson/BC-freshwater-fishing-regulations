@@ -80,7 +80,7 @@ describe("(T676 item 2) a format bump on staging, the previous app", () => {
       expect((await salmon.latest())?.at).toBe(DFO.at);
       expect(JSON.parse(store.t!).at).toBe(DFO.at);
       // the strong prompt, the release gate's own
-      const vm = appUpdateVM({ channel: "play", check: { state: "current" }, tooOld: appTooOld(snap), start: "idle" });
+      const vm = appUpdateVM({ channel: "play", check: { state: "available", version: "0.9.0" }, tooOld: appTooOld(snap), start: "idle" });
       expect([vm?.strength, vm?.text, vm?.button?.immediate]).toEqual(["strong", APP_UPDATE_WORDS.needed, true]);
       // a known state, not a failure: nothing reported, no error on the sync badge
       expect(reported).toEqual([]);

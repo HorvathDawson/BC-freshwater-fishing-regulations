@@ -147,6 +147,9 @@ export interface WaterViews {
   share?: import("@app/ui").ShareControl | null;
   swipe: ViewSwipeState | null;
   bodySwipe: ViewSwipeState | null;
+  /** (T1140) the Regulations and Conditions heads' line to the list of parts: the Map view, its list open. Absent: a frame
+   *  with no Map (an unnamed reach) — the line is then said, not pressed */
+  onParts?: () => void;
 }
 
 export const WaterViewsContext = createContext<WaterViews | null>(null);
