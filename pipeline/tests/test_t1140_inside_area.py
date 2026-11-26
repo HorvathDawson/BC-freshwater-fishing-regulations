@@ -3,14 +3,14 @@
 STEM is named by what it is, measured on the ground in the bundle stage (`bundle.side_channels`) and said by the answers
 step (`answers.display.builders._names`):
 
-- INSIDE: at least 95 % of it (lines by length, polygons by area, every section measured) in ONE cut area →
-  `near:inside:area:<name>` as both ends, "<water> inside <Area>" — only for a pair a reviewer has looked at
-  (`part.REVIEWED_INSIDE`, a tripwire both ways);
+- INSIDE: at least 95 % of it (lines by length, polygons by area, every section measured) in ONE area →
+  `near:inside:area:<name>` as both ends, "<water> inside <Area>" — the NAME only for a pair a reviewer has looked at
+  (`part.REVIEWED_INSIDE`, a tripwire both ways); (T1172) the SUBTITLE for every such part, reviewed or not;
 - NAMED ENDS: the ONE such part of a water whose channels have a named end → `near:side:[[lower, upper, km]…]`, "Side
   channel from <lower> up to <upper>"; a run that names only its own mouth takes the named water its flow reaches;
 - JOIN DISTANCE: a channel the flow pointers never walk to the main line gets the measure of the main line's nearest
   point to its downstream end (else its end nearer the main line): its OWN water's main line, within `MAX_SNAP_M`, else
-  no distance — and a part whose label then lacks one stops the build, named.
+  its nearest point — (T1172) said, with no verb, only where its water has more than one such part.
 
 Synthetic shapes (EPSG:3005 metres) through the real functions; every guard has a test that fails without it."""
 import sqlite3
@@ -113,7 +113,7 @@ def _db(channel_far: float = 20.0, other_item_stem: bool = False):
         CREATE TABLE section_down (sid INTEGER PRIMARY KEY, down_sid INTEGER, len INTEGER, lake INTEGER);
         CREATE TABLE part (ord INTEGER, part_ix INTEGER, key_ix INTEGER, tidal INTEGER);
         CREATE TABLE part_section (ord INTEGER, sid INTEGER, part_ix INTEGER, m INTEGER);
-        CREATE TABLE part_inside (ord INTEGER, part_ix INTEGER, area TEXT, share REAL, how TEXT,
+        CREATE TABLE part_inside (ord INTEGER, part_ix INTEGER, area TEXT, share REAL, how TEXT, cut INTEGER,
                                   PRIMARY KEY (ord, part_ix));
         CREATE TABLE span_end (eid INTEGER PRIMARY KEY, token TEXT);
         CREATE TABLE part_own_name (ord INTEGER, part_ix INTEGER, name TEXT, label TEXT);
@@ -406,7 +406,7 @@ def _catalog(tmp_path, areas):
                                                                               layer="areas")
 
 
-def _inside(tmp_path, shapes, areas, iid="gnis:1", candidates=None, log=None):
+def _inside(tmp_path, shapes, areas, iid="gnis:1", log=None):
     """One water (`iid`), one listed part of side channels only (sids 10…), shapes {sid: geometry}."""
     db, _ = _db()
     db.execute("UPDATE item SET item_id = ? WHERE ord = 1", (iid,))
@@ -418,7 +418,7 @@ def _inside(tmp_path, shapes, areas, iid="gnis:1", candidates=None, log=None):
         "SELECT sid, lo_m, hi_m, off_stem, shape FROM section_span")}
     _catalog(tmp_path, areas)
     return sc.inside_rows(db, {**{1: STEM[0][2], 2: STEM[1][2]}, **shapes}, tmp_path, span,
-                          log=(log.append if log is not None else lambda *_: None), candidates=candidates)
+                          log=(log.append if log is not None else lambda *_: None))
 
 
 RESERVE = ("BAYNES ISLAND ECOLOGICAL RESERVE", "ecological_reserves", box(0, 0, 100, 100))
@@ -426,7 +426,7 @@ RESERVE = ("BAYNES ISLAND ECOLOGICAL RESERVE", "ecological_reserves", box(0, 0, 
 
 def test_a_part_wholly_inside_one_area_is_said_inside_it(tmp_path):
     assert _inside(tmp_path, {10: LineString([(10, 10), (90, 90)])}, [RESERVE]) == \
-        [(1, 1, "BAYNES ISLAND ECOLOGICAL RESERVE", 1.0, "inside")]
+        [(1, 1, "BAYNES ISLAND ECOLOGICAL RESERVE", 1.0, "inside", 1)]
 
 
 def test_lines_by_length_at_95_percent(tmp_path):
@@ -439,9 +439,10 @@ def test_polygons_by_area_and_a_straddling_polygon_is_at_the_area(tmp_path):
     # the Okanagan River Oxbows: its lines all inside, its lake polygon 31.9 % inside — "at" the reserve, not inside it
     lines = {10: LineString([(10, 10), (90, 10)])}
     half = {11: Polygon([(50, 20), (150, 20), (150, 80), (50, 80)])}                     # 50 % of its area inside
-    assert _inside(tmp_path, {**lines, **half}, [RESERVE]) == [(1, 1, "BAYNES ISLAND ECOLOGICAL RESERVE", 1.0, "at")]
+    assert _inside(tmp_path, {**lines, **half}, [RESERVE]) == [(1, 1, "BAYNES ISLAND ECOLOGICAL RESERVE", 1.0, "at", 1)]
     whole = {11: Polygon([(20, 20), (80, 20), (80, 80), (20, 80)])}
-    assert _inside(tmp_path, {**lines, **whole}, [RESERVE])[0][2:] == ("BAYNES ISLAND ECOLOGICAL RESERVE", 1.0, "inside")
+    assert _inside(tmp_path, {**lines, **whole}, [RESERVE])[0][2:] == \
+        ("BAYNES ISLAND ECOLOGICAL RESERVE", 1.0, "inside", 1)
 
 
 def test_never_at_an_area_its_lines_leave_or_its_polygon_misses(tmp_path):
@@ -457,7 +458,11 @@ def test_never_at_an_area_its_lines_leave_or_its_polygon_misses(tmp_path):
 def test_never_a_region_or_two_areas(tmp_path):
     ch = {10: LineString([(10, 10), (90, 90)])}
     assert _inside(tmp_path, ch, [("Region 2", "region", box(-10, -10, 200, 200))]) == []
-    assert _inside(tmp_path, ch, [RESERVE, ("PARK", "parks", box(-10, -10, 200, 200))]) == []
+    log = []
+    assert _inside(tmp_path, ch, [RESERVE, ("PARK", "parks", box(-10, -10, 200, 200))], log=log) == []   # two cut areas
+    assert any("INSIDE two areas: gnis:1 part 1" in x for x in log)
+    two = [("A PARK", "park", box(0, 0, 100, 100), False), ("B WMA", "wma", box(-10, -10, 200, 200), False)]
+    assert _inside(tmp_path, ch, two) == []                                     # two membership-only areas, no cut one
 
 
 def test_an_unmeasured_section_means_not_inside(tmp_path):
@@ -471,30 +476,26 @@ def test_an_unmeasured_section_means_not_inside(tmp_path):
     assert sc.inside_rows(db, geo, tmp_path, span) == []
 
 
-# (T1172, owner 2026-11-26: "Yes, but name it by the area") a MEMBERSHIP-ONLY area (`cut` 0) is offered for a reviewed
-# pair only; never Indigenous land
+# (T1172, owner 2026-11-26: "Yes, but name it by the area"; "The area shows in the app SUBTITLE, universally") a
+# MEMBERSHIP-ONLY area (`cut` 0) is measured for every part, reviewed or not (the answers step gates the name); never
+# Indigenous land
 WMA = ("CRESTON VALLEY WILDLIFE MANAGEMENT AREA", "wma", box(0, 0, 100, 100), False)
 CH = {10: LineString([(10, 10), (90, 90)])}
 
 
-def test_a_membership_only_area_names_a_reviewed_part_only(tmp_path):
-    assert _inside(tmp_path, CH, [WMA], iid="gnis:2123") == \
-        [(1, 1, "CRESTON VALLEY WILDLIFE MANAGEMENT AREA", 1.0, "inside")]                 # the reviewed pair
-    got, log = [], []
-    assert _inside(tmp_path, CH, [WMA], iid="gnis:1", candidates=got, log=log) == []      # nobody has looked at it
-    assert got == [("gnis:1", 1, "CRESTON VALLEY WILDLIFE MANAGEMENT AREA", 1.0, "inside")]
-    assert any("INSIDE candidate: gnis:1 part 1" in x and "not offered" in x for x in log)
-    # a park the same: Thelwood Creek in Strathcona-Westmin Park, reviewed (owner 2026-11-26: "yes name it"); the same
-    # park for a water nobody looked at waits
+def test_a_membership_only_area_is_measured_for_every_part_reviewed_or_not(tmp_path):
+    for iid in ("gnis:2123", "gnis:1"):                                     # a reviewed pair, and one nobody looked at
+        assert _inside(tmp_path, CH, [WMA], iid=iid) == [(1, 1, "CRESTON VALLEY WILDLIFE MANAGEMENT AREA", 1.0, "inside", 0)]
     park = ("STRATHCONA - WESTMIN PARK", "park", box(0, 0, 100, 100), False)
-    assert _inside(tmp_path, CH, [park], iid="gnis:21681") == [(1, 1, "STRATHCONA - WESTMIN PARK", 1.0, "inside")]
-    assert _inside(tmp_path, CH, [park], iid="gnis:1") == []
+    for iid in ("gnis:21681", "gnis:1"):
+        assert _inside(tmp_path, CH, [park], iid=iid) == [(1, 1, "STRATHCONA - WESTMIN PARK", 1.0, "inside", 0)]
 
 
 def test_thelwood_creek_is_said_inside_its_park():
     W = _water([MAIN, LOOSE], iid="gnis:21681", name="Thelwood Creek")
-    assert _said(W, {("gnis:21681", "inside", 1): ("STRATHCONA - WESTMIN PARK", "inside")})[1] == \
-        "Thelwood Creek inside Strathcona - Westmin Park"
+    cr = {("gnis:21681", "inside", 1): ("STRATHCONA - WESTMIN PARK", "inside", False)}
+    assert _said(W, cr)[1] == "Thelwood Creek inside Strathcona - Westmin Park"      # the park's own spaced hyphen
+    assert _sub(W, cr)[1] == "Side channel inside Strathcona - Westmin Park"
 
 
 def test_two_rows_of_one_area_are_one_area(tmp_path):
@@ -502,28 +503,25 @@ def test_two_rows_of_one_area_are_one_area(tmp_path):
     a = ("CRESTON VALLEY WILDLIFE MANAGEMENT AREA", "wma", box(0, 0, 100, 100), False)
     b = ("CRESTON VALLEY WILDLIFE MANAGEMENT AREA", "wma", box(-10, -10, 200, 200), False)
     assert _inside(tmp_path, CH, [a, b], iid="gnis:2123") == \
-        [(1, 1, "CRESTON VALLEY WILDLIFE MANAGEMENT AREA", 1.0, "inside")]
-    other = ("BAYNES ISLAND ECOLOGICAL RESERVE", "ecological_reserves", box(-10, -10, 200, 200))
-    assert _inside(tmp_path, CH, [a, b, other], iid="gnis:2123") == []
+        [(1, 1, "CRESTON VALLEY WILDLIFE MANAGEMENT AREA", 1.0, "inside", 0)]
+    other = ("SOME OTHER PARK", "park", box(-10, -10, 200, 200), False)
+    assert _inside(tmp_path, CH, [a, b, other], iid="gnis:2123") == []          # two names: two areas, no row
 
 
 def test_indigenous_land_and_other_membership_kinds_never_name_a_part(tmp_path, monkeypatch):
     from pipeline.deliver.answers.display import part as P
     for kind in ("indigenous_land", "permit_land_access", "watershed"):
         monkeypatch.setattr(P, "REVIEWED_INSIDE", P.REVIEWED_INSIDE | {("gnis:1", "HAIDA NATION", "inside")})
-        got = []
-        assert _inside(tmp_path, CH, [("HAIDA NATION", kind, box(0, 0, 100, 100), False)], candidates=got) == []
-        assert got == []                                       # not even a candidate: never offered, even reviewed
+        assert _inside(tmp_path, CH, [("HAIDA NATION", kind, box(0, 0, 100, 100), False)]) == []   # never, even reviewed
 
 
-def test_an_unreviewed_membership_area_never_moves_a_cut_areas_name(tmp_path):
-    # Baynes Island inside a park the atlas does not cut at: still said inside the reserve (one area offered), never
-    # dropped for two; the reserve unreviewed stops the build at the answers step, as before
+def test_a_membership_area_never_moves_a_cut_areas_name(tmp_path):
+    # Baynes Island inside a park the atlas does not cut at: still said inside the reserve (the atlas's own line first),
+    # never dropped for two; the reserve unreviewed stops the build at the answers step, as before
     park = ("SOME PARK", "park", box(-10, -10, 200, 200), False)
-    assert _inside(tmp_path, CH, [RESERVE, park], iid="gnis:25671") == \
-        [(1, 1, "BAYNES ISLAND ECOLOGICAL RESERVE", 1.0, "inside")]
-    assert _inside(tmp_path, CH, [RESERVE, park], iid="gnis:1") == \
-        [(1, 1, "BAYNES ISLAND ECOLOGICAL RESERVE", 1.0, "inside")]
+    for iid in ("gnis:25671", "gnis:1"):
+        assert _inside(tmp_path, CH, [RESERVE, park], iid=iid) == \
+            [(1, 1, "BAYNES ISLAND ECOLOGICAL RESERVE", 1.0, "inside", 1)]
 
 
 def test_a_membership_only_area_keeps_the_95_percent_rule(tmp_path):
@@ -575,8 +573,8 @@ def test_the_old_kootenay_river_channel_is_measured_and_named_by_its_area(tmp_pa
     assert (joins[4], _how(db, 4)) == (379, "join") and (joins[3], joins[6], _how(db, 3)) == (588, 588, "join")
     assert any("sections 3…(2): joins at 0.6 km, snap 0 m where it leaves the main line" in x for x in log)
     assert any("1 with none below agree with their junctions' FWA measures" in x for x in log)
-    assert db.execute("SELECT ord, part_ix, area, how FROM part_inside").fetchall() == \
-        [(1, 1, "CRESTON VALLEY WILDLIFE MANAGEMENT AREA", "inside")]
+    assert db.execute("SELECT ord, part_ix, area, how, cut FROM part_inside").fetchall() == \
+        [(1, 1, "CRESTON VALLEY WILDLIFE MANAGEMENT AREA", "inside", 0)]
     # the answers step: the area wins over the joins (as the Okanagan River Oxbows' reserve does)
     from pipeline.deliver.answers.display.builders import _crossings
     p = tmp_path / "b.sqlite"
@@ -586,28 +584,42 @@ def test_the_old_kootenay_river_channel_is_measured_and_named_by_its_area(tmp_pa
     db.backup(disk)
     disk.close()
     cr = _crossings(str(p))
-    assert ("gnis:2123", "nearest", 1) not in cr
     W = _water([MAIN, [_run("source", "mouth", joins[3] / 1000, joins[3] / 1000, branch=True),
                        _run("source", "mouth", joins[4] / 1000, joins[4] / 1000, branch=True)]],
                iid="gnis:2123", name="Old Kootenay River Channel")
     W.doc["waters"]["gnis:3"] = {"name": "Leach Lake", "kind": "lake", "parts": []}
-    assert _said(W, cr)[1] == "Old Kootenay River Channel inside Creston Valley Wildlife Management Area"
-    # its label (the Regulations subtitle): both channels where they meet the main line
-    from pipeline.deliver.answers.display.part import runs_label
-    assert runs_label(W.doc, W.parts[1]) == "2 side channels, joining 0.4–0.6 km from the mouth"
+    # (T1172, owner 2026-11-26: "inside Creston Valley WMA") the area's short form
+    assert _said(W, cr)[1] == "Old Kootenay River Channel inside Creston Valley WMA"
+    # its subtitle says the area too, in the name's words; the one such part of its water says no distance
+    assert _sub(W, cr)[1] == "2 side channels inside Creston Valley WMA"
 
 
-def test_the_old_kootenay_river_channel_unreviewed_goes_to_the_next_rung(tmp_path, monkeypatch):
-    # without its REVIEWED_INSIDE entry the WMA is never offered: the part is said by its channels (no stop for the area)
+def test_the_old_kootenay_river_channel_unreviewed_goes_to_the_next_rung_but_its_subtitle_says_the_area(tmp_path,
+                                                                                                        monkeypatch):
+    # (T1172) without its REVIEWED_INSIDE entry the WMA is still measured; the NAME takes the next rung (no stop for a
+    # membership-only area), the SUBTITLE says the area all the same, and the part is listed
     from pipeline.deliver.answers.display import part as P
+    from pipeline.deliver.answers.display.builders import _crossings, inside_candidates
     monkeypatch.setattr(P, "REVIEWED_INSIDE", P.REVIEWED_INSIDE - {("gnis:2123", "CRESTON VALLEY WILDLIFE MANAGEMENT AREA",
                                                                      "inside")})
     db, geo, marks = _old_kootenay(tmp_path)
     monkeypatch.setattr(sc, "own_name_rows", lambda *_a, **_k: [])
-    log = []
-    sc.write(db, geo, tmp_path, _Cov(), log=log.append, added={}, unnamed={}, marks=marks)
-    assert db.execute("SELECT * FROM part_inside").fetchall() == []
-    assert any("INSIDE candidate: gnis:2123 part 1" in x for x in log)
+    sc.write(db, geo, tmp_path, _Cov(), log=lambda *_: None, added={}, unnamed={}, marks=marks)
+    assert db.execute("SELECT area, cut FROM part_inside").fetchall() == [("CRESTON VALLEY WILDLIFE MANAGEMENT AREA", 0)]
+    p = tmp_path / "b.sqlite"
+    db.executescript("CREATE TABLE crossing_near (ord INTEGER, token TEXT, km REAL, near TEXT);"
+                     "CREATE TABLE part_near (ord INTEGER, part_ix INTEGER, near TEXT);")
+    disk = sqlite3.connect(p)
+    db.backup(disk)
+    disk.close()
+    cr = _crossings(str(p))
+    W = _water([MAIN, [_run("source", "mouth", 0.379, 0.379, branch=True), _run("source", "mouth", 0.588, 0.588, branch=True)]],
+               iid="gnis:2123", name="Old Kootenay River Channel")
+    W.doc["waters"]["gnis:3"] = {"name": "Leach Lake", "kind": "lake", "parts": []}
+    cr[("gnis:2123", "flows_into", 1)] = "lake_inlet:gnis:3"           # (synthetic: the lower channel's flow, into the lake)
+    assert _said(W, cr)[1] == "Old Kootenay River Channel side channels: one into Leach Lake; one other"   # the next rung
+    assert _sub(W, cr)[1] == "2 side channels inside Creston Valley WMA"
+    assert inside_candidates("gnis:2123", W.w, cr) == ["gnis:2123 part 1 inside 'CRESTON VALLEY WILDLIFE MANAGEMENT AREA'"]
 
 
 # --- the answers step: the names ---------------------------------------------------------------------------------
@@ -646,25 +658,39 @@ def _said(W, crossings=None):
     return out
 
 
+def _sub(W, crossings=None):
+    """Each part's subtitle (`runs`, what the app's `subtitleOf` shows), as `produce_parts` makes it (`side_facts`)."""
+    from pipeline.deliver.answers.display.builders import side_facts
+    from pipeline.deliver.answers.display.part import runs_label, water_ends_km
+    w = side_facts(W.id, W.w, crossings or {})
+    return [runs_label(W.doc, p, water_ends_km(w)) for p in Water(W.id, w, W.doc).parts]
+
+
 MAIN = [_run("squamish__tidal", "mouth", 3.0, 0.0), _run("source", "squamish__tidal", 90.0, 3.0)]
 LOOSE = [_run("source", "mouth", 11.6, 11.6, branch=True)]
 
 
 def test_the_squamish_channels_inside_baynes_island_are_said_inside_it():
     W = _water([MAIN, LOOSE])
-    got = _names(W, {("gnis:25671", "inside", 1): ("BAYNES ISLAND ECOLOGICAL RESERVE", "inside")})
+    cr = {("gnis:25671", "inside", 1): ("BAYNES ISLAND ECOLOGICAL RESERVE", "inside", True)}
+    got = _names(W, cr)
     assert got[1] == {"lo": INSIDE + BAYNES, "hi": INSIDE + BAYNES}
-    assert _said(W, {("gnis:25671", "inside", 1): ("BAYNES ISLAND ECOLOGICAL RESERVE", "inside")})[1] == \
-        "Squamish River inside Baynes Island Ecological Reserve"
+    assert _said(W, cr)[1] == "Squamish River inside Baynes Island Ecological Reserve"
+    assert _sub(W, cr)[1] == "Side channel inside Baynes Island Ecological Reserve"
 
 
 def test_an_inside_pair_no_reviewer_looked_at_stops_the_build():
     W = _water([MAIN, LOOSE], iid="gnis:777")
     with pytest.raises(AnswersError, match="no reviewer has looked at"):
-        _names(W, {("gnis:777", "inside", 1): ("BAYNES ISLAND ECOLOGICAL RESERVE", "inside")})
+        _names(W, {("gnis:777", "inside", 1): ("BAYNES ISLAND ECOLOGICAL RESERVE", "inside", True)})
     W = _water([MAIN, LOOSE])                              # a reviewed water and area, but said another way
     with pytest.raises(AnswersError, match="no reviewer has looked at"):
-        _names(W, {("gnis:25671", "inside", 1): ("BAYNES ISLAND ECOLOGICAL RESERVE", "at")})
+        _names(W, {("gnis:25671", "inside", 1): ("BAYNES ISLAND ECOLOGICAL RESERVE", "at", True)})
+    # (T1172) an unreviewed MEMBERSHIP-ONLY area never stops it: the name takes its next rung, the subtitle says it
+    W = _water([MAIN, LOOSE], iid="gnis:777")
+    cr = {("gnis:777", "inside", 1): ("SOME PARK", "inside", False)}
+    assert _names(W, cr)[1] == {"lo": None, "hi": None}
+    assert _sub(W, cr)[1] == "Side channel inside Some Park"
 
 
 def test_the_oxbows_are_said_at_hayne_s_lease():
@@ -673,9 +699,10 @@ def test_the_oxbows_are_said_at_hayne_s_lease():
     try:
         W = _water([MAIN, [_run("source", hl, None, None, branch=True), _run("source", "mouth", None, None, branch=True)]],
                    iid="wsc:300-432687-459615", name="Okanagan River Oxbows")
-        cr = {("wsc:300-432687-459615", "inside", 1): ("HAYNE'S LEASE ECOLOGICAL RESERVE", "at")}
+        cr = {("wsc:300-432687-459615", "inside", 1): ("HAYNE'S LEASE ECOLOGICAL RESERVE", "at", True)}
         assert _names(W, cr)[1] == {"lo": AT + hl, "hi": AT + hl}
         assert _said(W, cr)[1] == "Okanagan River Oxbows at Hayne's Lease Ecological Reserve"
+        assert _sub(W, cr)[1] == "2 side channels at Hayne's Lease Ecological Reserve"
     finally:
         del SPLITS[hl]
 
@@ -709,35 +736,39 @@ def test_one_named_channel_and_one_bare_one_say_the_bare_ones_join():
     assert chans == [["", "bc_border", 2.0], ["", "", 3.6]]
     W = _water([MAIN, [_run("bc_border", "mouth", 2.0, 2.0, branch=True), _run("source", "mouth", 3.6, 3.6, branch=True)]],
                iid="gnis:27390", name="Snehumption Creek")
-    assert _said(W)[1] == "Snehumption Creek side channels: one up to the B.C. border; one joining 3.6 km from the mouth"
+    # (T1172, owner 2026-11-26: "Distance only to tell parts apart") the one such part of its water: the bare channel is
+    # counted, never placed
+    assert _said(W)[1] == "Snehumption Creek side channels: one up to the B.C. border; one other"
+    assert _sub(W)[1] == "2 side channels"
 
 
-def test_a_channel_with_no_named_end_and_no_distance_stops_a_named_part():
-    # the Okanagan River Oxbows, were it not "at" its reserve: one channel to the boundary, one with no join
+def test_a_channel_with_no_named_end_and_no_distance_is_counted_in_a_named_part():
+    # the Okanagan River Oxbows, were it not "at" its reserve: one channel to the boundary, one with no join — (T1172)
+    # no distance is said on the one such part of a water, so none is needed (before: a stop)
     hl = "area:HAYNE'S LEASE ECOLOGICAL RESERVE"
     SPLITS[hl] = {"name": "Hayne's Lease Ecological Reserve boundary", "kind": "area"}
     try:
         W = _water([MAIN, [_run("source", hl, None, None, branch=True), _run("source", "mouth", None, None, branch=True)]],
                    iid="wsc:300-432687-459615", name="Okanagan River Oxbows")
-        with pytest.raises(AnswersError, match="no named end and no join"):
-            _names(W, {})
+        assert _said(W)[1] == "Okanagan River Oxbows side channels: one from Hayne's Lease Ecological Reserve boundary; " \
+                              "one other"
     finally:
         del SPLITS[hl]
 
 
-def test_a_part_said_by_its_label_must_have_every_channels_distance():
-    W = _water([MAIN, [_run("source", "mouth", None, None, branch=True)]], iid="gnis:23366", name="Noons Creek")
-    with pytest.raises(AnswersError, match="no join to say"):
-        _names(W, {})
-    W = _water([MAIN, [_run("source", "mouth", 0.7, 0.7, branch=True)]], iid="gnis:23366", name="Noons Creek")
-    assert _names(W, {})[1] == {"lo": None, "hi": None}       # said by its label: "Side channel, joining 0.7 km …"
+def test_a_part_said_by_its_label_needs_no_distance_when_it_is_its_waters_only_one():
+    # (T1172, owner 2026-11-26: "A unique one is plain") before: "never a part named without its distance", a stop
+    for km in (None, 0.7):
+        W = _water([MAIN, [_run("source", "mouth", km, km, branch=True)]], iid="gnis:23366", name="Noons Creek")
+        assert _names(W, {})[1] == {"lo": None, "hi": None}       # said by its label
+        assert _sub(W)[1] == "Side channel"
 
 
 def test_several_parts_with_no_main_stem_count_only_parts_with_no_ends():
     # two stemless parts → each said near what it lies nearest (`part_near`); an inside part is one of them
     W = _water([MAIN, LOOSE, [_run("source", "mouth", 20.0, 20.0, branch=True)]])
     with pytest.raises(AnswersError, match="one of several parts with no main stem"):
-        _names(W, {("gnis:25671", "inside", 1): ("BAYNES ISLAND ECOLOGICAL RESERVE", "inside")})
+        _names(W, {("gnis:25671", "inside", 1): ("BAYNES ISLAND ECOLOGICAL RESERVE", "inside", True)})
 
 
 def test_a_reviewed_part_no_longer_said_inside_stops_the_build():
@@ -854,8 +885,7 @@ def test_the_part_is_said_by_its_own_name_and_source():
     n = _names(W, cr)[1]
     assert n["lo"] == n["hi"] and n["lo"].startswith(OWN)
     assert _said(W, cr)[1] == "Noons Creek: Turner Creek (Port Moody)"
-    with pytest.raises(AnswersError, match="no join to say"):           # with no own name it is a named STOP
-        _names(W, {})
+    assert _names(W, {})[1] == {"lo": None, "hi": None}       # (T1172) with no own name: its label, "Side channel"
 
 
 def test_the_export_lays_the_joins_over_the_flows_spans():
@@ -874,15 +904,65 @@ def test_a_city_layers_label_gives_its_municipality():
     assert sc.municipality("OpenStreetMap") is None                                  # names no municipality: no own name
 
 
-def test_one_side_channel_at_its_nearest_point_is_not_said_joining():
-    from pipeline.deliver.answers.display.builders import said_nearest
-    one = {"runs": [_run("source", "mouth", 5.7, 5.7, branch=True)]}
-    assert said_nearest("Side channel, joining 5.7 km from the mouth", one, True) == "Side channel, 5.7 km from the mouth"
-    assert said_nearest("Side channel, joining 5.7 km from the mouth", one, False) == \
-        "Side channel, joining 5.7 km from the mouth"
-    two = {"runs": [_run("source", "mouth", 5.7, 5.7, branch=True), _run("source", "mouth", 6.0, 6.0, branch=True)]}
-    assert said_nearest("2 side channels, joining 5.7–6 km from the mouth", two, True) == \
-        "2 side channels, joining 5.7–6 km from the mouth"                           # the range simply includes it
+# --- (T1172, owner 2026-11-26) the subtitle: distance only to tell parts apart, no verb, the area always -----------------
+
+def test_a_distance_only_where_the_water_has_more_than_one_such_part():
+    # two parts of side channels only: each says its distance (it tells them apart); a water of one: none — one rule
+    two = _water([MAIN, [_run("source", "mouth", 5.7, 5.7, branch=True)],
+                  [_run("source", "mouth", 6.04, 6.04, branch=True), _run("source", "mouth", 7.0, 7.0, branch=True)]])
+    assert _sub(two)[1:] == ["Side channel, 5.7 km from the mouth", "2 side channels, 6–7 km from the mouth"]
+    one = _water([MAIN, [_run("source", "mouth", 5.7, 5.7, branch=True)]])
+    assert _sub(one)[1] == "Side channel"
+    # a part with a main stem, or one outside B.C. (no rule set), is never counted
+    out = _water([MAIN, [_run("source", "mouth", 5.7, 5.7, branch=True)], [_run("source", "mouth", 9.0, 9.0, branch=True)]])
+    out.w["parts"][2]["ruleset"] = None
+    from pipeline.deliver.answers.display.builders import side_facts
+    assert side_facts(out.id, out.w, {})["parts"][1]["side_apart"] is False
+
+
+def test_no_verb_whether_a_channel_joins_leaves_or_is_measured_at_its_nearest_point():
+    # the measure is where it joins, where it leaves, or the nearest point (`section_join.how`): one shape for all three
+    two = _water([MAIN, [_run("source", "mouth", 5.7, 5.7, branch=True)], [_run("source", "mouth", 9.0, 9.0, branch=True)]])
+    assert all("joining" not in t and "leaving" not in t for t in _sub(two)[1:])
+    from pipeline.deliver.answers.display import part as P
+    assert P._from_mouth([_run("source", "mouth", 1.12, 1.12, branch=True)]) == "1.1 km from the mouth"
+
+
+def test_the_area_short_form_in_name_and_subtitle_alike():
+    from pipeline.deliver.answers.display.part import area_short
+    assert area_short("Creston Valley Wildlife Management Area") == "Creston Valley WMA"
+    assert area_short("Strathcona - Westmin Park") == "Strathcona - Westmin Park"       # the parks source's own hyphen
+    assert area_short("Baynes Island Ecological Reserve") == "Baynes Island Ecological Reserve"
+    # a cut WMA (said by its split) takes it too
+    SPLITS["area:X WILDLIFE MANAGEMENT AREA"] = {"name": "X Wildlife Management Area boundary", "kind": "area"}
+    try:
+        W = _water([MAIN, LOOSE], iid="gnis:888", name="X Creek")
+        cr = {("gnis:888", "inside", 1): ("X WILDLIFE MANAGEMENT AREA", "inside", True)}
+        assert _sub(W, cr)[1] == "Side channel inside X WMA"
+    finally:
+        del SPLITS["area:X WILDLIFE MANAGEMENT AREA"]
+
+
+def test_the_subtitle_says_the_area_with_its_distance_when_told_apart():
+    W = _water([MAIN, LOOSE, [_run("source", "mouth", 20.0, 20.0, branch=True)]])
+    cr = {("gnis:25671", "inside", 1): ("BAYNES ISLAND ECOLOGICAL RESERVE", "inside", True)}
+    assert _sub(W, cr)[1:] == ["Side channel inside Baynes Island Ecological Reserve, 11.6 km from the mouth",
+                               "Side channel, 20 km from the mouth"]
+
+
+def test_a_rule_set_group_of_side_parts_says_its_area_only_if_all_share_it():
+    from pipeline.deliver.answers.display.builders import _by_grp, side_facts
+    W = _water([MAIN, LOOSE, [_run("source", "mouth", 20.0, 20.0, branch=True)]])
+    for p in W.w["parts"][1:]:
+        p["grp"] = 1
+    W.w["parts"][2]["run"] = 1
+    a = ("BAYNES ISLAND ECOLOGICAL RESERVE", "inside", True)
+    def grp1(w):
+        Wg = _by_grp(W.id, {**w, "grp_runs": [MAIN, LOOSE + w["parts"][2]["runs"]]}, W.doc)[0]
+        return Wg.parts[Wg.export_ix.index(1)]
+    one = grp1(side_facts(W.id, W.w, {(W.id, "inside", 1): a}))
+    assert one["side_apart"] is True and one["side_area"] is None
+    assert grp1(side_facts(W.id, W.w, {(W.id, "inside", 1): a, (W.id, "inside", 2): a}))["side_area"] == list(a)
 
 
 def test_the_answers_step_reads_the_bundles_new_tables(tmp_path):
@@ -893,7 +973,7 @@ def test_the_answers_step_reads_the_bundles_new_tables(tmp_path):
         CREATE TABLE item (ord INTEGER PRIMARY KEY, item_id TEXT, name TEXT, kind TEXT);
         CREATE TABLE crossing_near (ord INTEGER, token TEXT, km REAL, near TEXT);
         CREATE TABLE part_near (ord INTEGER, part_ix INTEGER, near TEXT);
-        CREATE TABLE part_inside (ord INTEGER, part_ix INTEGER, area TEXT, share REAL, how TEXT);
+        CREATE TABLE part_inside (ord INTEGER, part_ix INTEGER, area TEXT, share REAL, how TEXT, cut INTEGER);
         CREATE TABLE part_own_name (ord INTEGER, part_ix INTEGER, name TEXT, label TEXT);
         CREATE TABLE section_join (sid INTEGER PRIMARY KEY, m INTEGER, lo TEXT, how TEXT);
         CREATE TABLE part_section (ord INTEGER, sid INTEGER, part_ix INTEGER, m INTEGER);
@@ -902,7 +982,7 @@ def test_the_answers_step_reads_the_bundles_new_tables(tmp_path):
         CREATE TABLE section_down (sid INTEGER PRIMARY KEY, down_sid INTEGER);
         CREATE TABLE item_section (ord INTEGER, sid INTEGER);
         INSERT INTO item VALUES (1, 'gnis:36111', 'Halfway River', 'stream'), (2, 'gnis:23366', 'Noons Creek', 'stream');
-        INSERT INTO part_inside VALUES (1, 0, 'X RESERVE', 1.0, 'at');
+        INSERT INTO part_inside VALUES (1, 0, 'X RESERVE', 1.0, 'at', 1);
         INSERT INTO part_own_name VALUES (2, 4, 'Turner Creek', 'Port Moody');
         INSERT INTO part_section VALUES (1, 10, 2, NULL), (1, 11, 2, NULL), (1, 12, 1, NULL);
         INSERT INTO section_join VALUES (10, 1000, NULL, 'join'), (11, 2000, NULL, 'nearest'), (12, 5, NULL, 'join');
@@ -910,6 +990,5 @@ def test_the_answers_step_reads_the_bundles_new_tables(tmp_path):
     db.commit()
     db.close()
     got = _crossings(str(p))
-    assert got[("gnis:36111", "inside", 0)] == ("X RESERVE", "at")
+    assert got[("gnis:36111", "inside", 0)] == ("X RESERVE", "at", True)
     assert got[("gnis:23366", "own", 4)] == ("Turner Creek", "Port Moody")
-    assert got.get(("gnis:36111", "nearest", 2)) is True and ("gnis:36111", "nearest", 1) not in got

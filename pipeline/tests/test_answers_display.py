@@ -131,14 +131,19 @@ def test_rule_kind_bands_and_plain_match_the_page(page):
 
 
 def test_part_labels_match_the_page(page, monkeypatch):
-    # review C2 (answers 2.1): a part of side channels only now says where they join the river;
-    # the page's own words (the golden) said only "N side channels" — read as the page did here,
-    # and the new words are pinned in `test_side_channel_parts_say_where_they_join`
-    monkeypatch.setattr(X.part, "_joining", lambda side: "")
+    # review C2 (answers 2.1): the page's own words (the golden) said only "N side channels"; a part of side channels
+    # only is read as the answers step reads it (`side_facts`: no bundle here, so no area). (T1172, owner 2026-11-26:
+    # "Distance only to tell parts apart") the ONE such part of a water says "Side channel" where the page said its lone
+    # channel's own ends ("Side channel (from the mouth up to …)"); a water of several keeps the page's words. The
+    # distances (which the page never said: read as it did here) are pinned in `test_side_channel_parts_say_where_they_join`
+    monkeypatch.setattr(X.part, "_from_mouth", lambda side: "")
+    from pipeline.deliver.answers.display.builders import side_facts
     doc, ws = page_doc(page)
     bad = []
     for want in page["expect"]["waters"]:
-        W = X.Water(want["id"], ws[want["id"]], doc)
+        wf = side_facts(want["id"], ws[want["id"]], {})
+        W = X.Water(want["id"], wf, doc)
+        lone = sum(1 for p in W.parts if X.part.side_only(p)) == 1
         got = {"labels": X.part_labels(W), "runs": [X.runs_label(doc, p) for p in W.parts],
                "place": [X.part_place(W, i) for i in range(len(W.parts))],
                "hint": [X.part_label(W, i) for i in range(len(W.parts))],
@@ -148,6 +153,9 @@ def test_part_labels_match_the_page(page, monkeypatch):
         # W3: a hint the page cut at 60 characters ("including Six Mile…") is said whole now
         want = {**want, **{f: [re.sub(r" and \d+ side channels?\b", "", t) for t in want[f]]
                            for f in ("labels", "runs")}}
+        if lone:
+            want = {**want, **{f: [re.sub(r"^Side channel \(from [^)]*\)", "Side channel", t) for t in want[f]]
+                               for f in ("labels", "runs")}}
         want["labels"] = [g if w.endswith("…") and g.startswith(w[:-1]) and len(g) > len(w) else w
                           for g, w in zip(got["labels"], want["labels"])]
         bad += [(want["name"], f, got[f], want[f]) for f in got if got[f] != want[f]]
@@ -284,12 +292,20 @@ def test_every_export_part_has_one_key_and_closed_all_year_is_the_status_index(l
 
 
 def test_side_channel_parts_say_where_they_join():
-    """Review C2: "5 side channels" gave no place; the branch runs' `km_from` (the main stem's
-    measure where each leaves, from the mouth) now says where."""
+    """Review C2: "5 side channels" gave no place; the branch runs' `km_from` (the main stem's measure where each
+    meets it, from the mouth) says where — (T1172, owner 2026-11-26: "Distance only to tell parts apart", "No verb for
+    a leaving channel") only on a water with more than one such part (`SIDE_APART`), and with no verb."""
     doc = {"waters": {}}
     side = [{"from": "source", "to": "mouth", "km_from": k, "km_to": k, "branch": True}
             for k in (5.46, 4.08, 1.12)]
-    assert X.runs_label(doc, {"runs": side}) == "3 side channels, joining 1.1–5.5 km from the mouth"
-    assert X.runs_label(doc, {"runs": side[:1]}) == "Side channel, joining 5.5 km from the mouth"
+    apart = {X.part.SIDE_APART: True}
+    assert X.runs_label(doc, {"runs": side, **apart}) == "3 side channels, 1.1–5.5 km from the mouth"
+    assert X.runs_label(doc, {"runs": side[:1], **apart}) == "Side channel, 5.5 km from the mouth"
+    # the one such part of its water: no distance
+    assert X.runs_label(doc, {"runs": side}) == "3 side channels"
+    assert X.runs_label(doc, {"runs": side[:1]}) == "Side channel"
+    assert X.runs_label(doc, {"runs": side[:1], X.part.SIDE_APART: False}) == "Side channel"
     none = [dict(r, km_from=None) for r in side]
-    assert X.runs_label(doc, {"runs": none}) == "3 side channels"
+    assert X.runs_label(doc, {"runs": none, **apart}) == "3 side channels"
+    # a lone channel with no measure, told apart: its run's words
+    assert X.runs_label(doc, {"runs": none[:1], **apart}).startswith("Side channel (from ")

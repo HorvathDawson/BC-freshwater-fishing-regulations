@@ -23,8 +23,7 @@ stage while the named sections' shapes are in hand (`topology.keep_named`, EPSG:
    two readings apart is TRUSTED, counted in the log, never stopped (2026-11-26: 2,509 lowest pieces; of the
    one-section main lines with side channels, 5 — none measured by this module today). (T1172, owner 2026-11-26: "Fix
    the measure in this PR") a channel whose downstream end lies beyond `MAX_SNAP_M` of its main line while another end
-   lies on it LEAVES the main line there, and is measured there (`join_measure`, "leaves"; said "joining", the words a
-   shipped app already shows).
+   lies on it LEAVES the main line there, and is measured there (`join_measure`, "leaves").
    (T1140 proposal, coordinator 2026-11-25, "a consistent way to handle this") A channel whose downstream end
    TOUCHES a water body of its own river joins the river AT it: a named lake its main line runs through names the
    channel's lower end (only where its flow pointer says that end is the downstream one: never a lake it leaves) (`section_span.lo` = `lake_inlet:<lake>`: "side channel into <Lake>"); its own polygon (a wide
@@ -32,10 +31,11 @@ stage while the named sections' shapes are in hand (`topology.keep_named`, EPSG:
    whatever the distance
    — the snap limit holds only where the end touches NO water body of its river. A channel failing one gets NO join (never a guessed distance), logged here; a part whose NAME then lacks a
    distance stops the build at the answers step, named. (Coordinator's proposal 2026-11-25) one beyond the snap limit
-   that touches no water body still gets the main line's NEAREST point, said "N km from the mouth", never "joining"
-   (`section_join.how` = 'nearest'); the stop is left for a channel with no main line to measure against (`answers.display.builders._names`). Written as the
-   join of every section of that channel (`section_join`): the export then says "joining N km from the mouth" by its
-   one rule (`display.part.runs_label`). Never into `section_span`: the parts were
+   that touches no water body still gets the main line's NEAREST point (`section_join.how` = 'nearest'); the stop is left for a channel with no main line to measure against (`answers.display.builders._names`). Written as the
+   join of every section of that channel (`section_join`): the export's runs carry it (`km_from`), which orders the
+   part in its river; (T1172, owner 2026-11-26: "Distance only to tell parts apart", "No verb for a leaving channel")
+   its label says "N km from the mouth", with no verb, only where its water has more than one such part
+   (`display.part.runs_label`). Never into `section_span`: the parts were
    numbered in river order from the flow's own measures (`derived.part_rows`, asserted by `topology.part_geo`), and only
    the export's runs read the join (`export.read.with_joins`).
 2. WHICH AREA A PART LIES INSIDE, OR AT (`part_inside`): a part with no main stem whose every section is measured and
@@ -46,11 +46,13 @@ stage while the named sections' shapes are in hand (`topology.keep_named`, EPSG:
    <area>" (owner 2026-11-25, the Okanagan River Oxbows at Hayne's Lease Ecological Reserve). (T1172, owner 2026-11-26:
    "Yes, but name it by the area") an area the atlas does NOT cut at (`cut` = 0: it binds whole sections by overlap)
    is a place too where it is a park, a wildlife management area, an ecological reserve or a national park
-   (`MEMBERSHIP_PLACES`; never Indigenous land, permit land or a watershed) — but it is OFFERED only for a pair a
-   reviewer has looked at (`answers.display.part.REVIEWED_INSIDE`), so no new area can stop a build: one that would
-   qualify unreviewed is logged ("INSIDE candidate") and named by the next rung. The Old Kootenay River Channel's side
-   part, 99.4 % inside the Creston Valley Wildlife Management Area (whose two rules and permit are all that tell it
-   from its main line). A cut area unreviewed still stops the build at the answers step, as before.
+   (`MEMBERSHIP_PLACES`; never Indigenous land, permit land or a watershed). (T1172, owner 2026-11-26: "The area shows
+   in the app SUBTITLE, universally") EVERY part is measured against EVERY such area, reviewed or not: this module
+   says the fact (with `cut`, whether the atlas cuts at the area), the answers step decides the words — the subtitle
+   says the area always, the NAME only for a reviewed pair (`answers.display.part.REVIEWED_INSIDE`: an unreviewed cut
+   area stops the build there, an unreviewed membership-only one is listed and the name takes its next rung). The Old
+   Kootenay River Channel's side part, 99.4 % inside the Creston Valley Wildlife Management Area (whose two rules and
+   permit are all that tell it from its main line).
 3. (PROPOSAL, coordinator 2026-11-25, under the owner's "do whatever makes our current state decent until this is fixed
    in hardening") A PART OF ADDED LINES WITH ITS OWN NAME (`part_own_name`): every section an added-stream line (a
    negative blk in `section_measure`), all one added stream's name (the atlas graph's name tuple for it,
@@ -467,8 +469,6 @@ def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, 
             except SideChannelError as e:
                 stop(f"{e} ({iid} {name}, sections {comp})")
                 continue
-            # (T1172) a channel measured where it LEAVES the main line keeps the words "joining": it meets its river
-            # there, and the words stay those a shipped app already shows (the label is release text)
             how = (f"touching {'its own polygon' if hit[0] == 'own' else 'an unnamed lake on its main line'} {hit[1]}"
                    if hit else
                    "where it leaves the main line (its downstream end lies away from it)" if which == "leaves" else
@@ -478,7 +478,7 @@ def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, 
             how = "join"
             if snap > MAX_SNAP_M and not hit:
                 # (coordinator's proposal 2026-11-25, under "They should always have the cut names or distance it is
-                # impossible not to") no join to say: its NEAREST point on the main line, said without "joining"
+                # impossible not to") no join to say: its NEAREST point on the main line
                 how = "nearest"
                 log(f"     side channel NEAREST: {iid} ({name}) sections {comp}: its end is {snap:.0f} m from the main line, "
                     f"beyond {MAX_SNAP_M:.0f} m and touching no water body of it: said {m / 1000:.1f} km from the mouth")
@@ -491,7 +491,7 @@ def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, 
     db.executemany("INSERT INTO part_own_name (ord, part_ix, name, label) VALUES (?,?,?,?)", named)
     cov.filled("part_own_name", len(named))
     rows = inside_rows(db, geo, build_dir, span, log=log)
-    db.executemany("INSERT INTO part_inside (ord, part_ix, area, share, how) VALUES (?,?,?,?,?)", rows)
+    db.executemany("INSERT INTO part_inside (ord, part_ix, area, share, how, cut) VALUES (?,?,?,?,?,?)", rows)
     cov.filled("part_inside", len(rows))
 
 
@@ -555,17 +555,16 @@ def own_name_rows(db: sqlite3.Connection, names: Dict[int, str]) -> List[tuple]:
 
 
 def inside_rows(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path,
-                span: Dict[int, tuple], *, log=print, candidates: Optional[List[tuple]] = None) -> List[tuple]:
-    """(ord, part_ix, the area's catalogue name, the lines' share, "inside" | "at") for every stream part with no main
-    stem lying at least `INSIDE_SHARE` in one area ("inside"), or its lines so while a polygon section of it straddles
-    the area's edge ("at") — every section measured (a section with no shape: neither) — and ONE area so: two, none.
-    The areas: every cut area that is a place (not `NOT_A_PLACE`), and (T1172) a membership-only one of the
-    `MEMBERSHIP_PLACES` kinds for a pair a reviewer has looked at (`part.REVIEWED_INSIDE`) only; an unreviewed one that
-    would qualify is logged ("INSIDE candidate") and collected in `candidates` [(item id, part, area, share, how)], and
-    the part goes on to the next rung of its name."""
+                span: Dict[int, tuple], *, log=print) -> List[tuple]:
+    """(ord, part_ix, the area's catalogue name, the lines' share, "inside" | "at", 1 if the atlas cuts at the area else
+    0) for every stream part with no main stem lying at least `INSIDE_SHARE` in one area ("inside"), or its lines so
+    while a polygon section of it straddles the area's edge ("at") — every section measured (a section with no shape:
+    neither). The areas, reviewed or not (T1172): every cut area that is a place (not `NOT_A_PLACE`), and every
+    membership-only one of the `MEMBERSHIP_PLACES` kinds. ONE AREA: a part in two cut areas, or in no cut area and two
+    membership-only ones, has no row (logged); a part in one cut area is said by it, whatever membership-only areas
+    hold it too (the atlas's own line before an area it does not cut at)."""
     import pyogrio
     from shapely.ops import unary_union
-    from pipeline.deliver.answers.display.part import REVIEWED_INSIDE
     kind = dict(db.execute("SELECT ord, kind FROM item"))
     iid_of = dict(db.execute("SELECT ord, item_id FROM item"))
     sids: Dict[Tuple[int, int], List[int]] = defaultdict(list)
@@ -606,21 +605,19 @@ def inside_rows(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path,
                 how = "at"                                         # every polygon in it, not all of it: straddling
             else:
                 continue
-            if not cut and (iid_of[o], name, how) not in REVIEWED_INSIDE:
-                # (T1172) a membership-only area is offered only for a reviewed pair: this one waits for a look
-                log(f"     side channel INSIDE candidate: {iid_of[o]} part {p} {round(share_l, 4):.2%} {how} {name!r} "
-                    f"(membership-only, no reviewer has looked at it: not offered; `part.REVIEWED_INSIDE`)")
-                if candidates is not None:
-                    candidates.append((iid_of[o], p, name, round(share_l, 4), how))
-                continue
-            hits.append((round(share_l, 4), name, how))
+            hits.append((round(share_l, 4), name, how, int(cut)))
         # (T1172, review L3) ONE AREA is one name: two catalogue rows of one name (an area kept in pieces) are one area
-        # — its best row says it ("inside" before "at", then the larger share); two names are two areas, and no row
+        # — its best row says it ("inside" before "at", then the larger share); two names are two areas
         by_name: Dict[str, tuple] = {}
         for h in hits:
             if h[1] not in by_name or (h[2] == "inside", h[0]) > (by_name[h[1]][2] == "inside", by_name[h[1]][0]):
                 by_name[h[1]] = h
-        if len(by_name) == 1:
-            share, name, how = next(iter(by_name.values()))
-            out.append((o, p, name, share, how))
+        # the atlas's own cut areas first; a membership-only area only where no cut area holds the part
+        cut_names = [h for h in by_name.values() if h[3]]
+        pick = cut_names if cut_names else list(by_name.values())
+        if len(pick) == 1:
+            share, name, how, cut = pick[0]
+            out.append((o, p, name, share, how, cut))
+        elif len(pick) > 1:
+            log(f"     side channel INSIDE two areas: {iid_of[o]} part {p} in {sorted(h[1] for h in pick)}: no row")
     return out
