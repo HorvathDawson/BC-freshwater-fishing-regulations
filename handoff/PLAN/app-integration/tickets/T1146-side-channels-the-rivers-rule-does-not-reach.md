@@ -1,10 +1,10 @@
 # T1146 — Side channels with no main stem that the river's own rule does not reach become nameless parts
 
-Status: OPEN — 0.10.0 by the owner's pick; a read-only finding first (one cause or 15 cases)
+Status: DONE — 9f0856154 (the mechanical cause; the curation groups C/D/E stay open below, for T1140 / the planning chat)
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1146 | Side channels with no main stem that the river's own rule does not reach become nameless parts | OPEN — 0.10.0 by the owner's pick; a read-only finding first (one cause or 15 cases) | | owner 2026-11-25: "Fix the binding in 0.10.0"; 0.10.0 chat |
+| T1146 | Side channels with no main stem that the river's own rule does not reach become nameless parts | DONE | 9f0856154 | needs the reach + tiles + deliver rerun; groups C/D/E (curation) to T1140 / the owner |
 
 Source: the 0.10.0 chat's read-only investigation for T1140, 2026-11-25, on the candidate r-71d09ad82e81. Of 1,476 parts
 over the 478 multi-part waters, 26 have no name and show the bare water name; all 26 are side channels with no
@@ -30,3 +30,77 @@ Acceptance: the count of bare-name parts before and after, by cause; the binding
 the tiles and bundle of one vintage (rule: tiles and bundle share a vintage). Severity: high (a part with the
 wrong rule set, the Squamish case's family). Model: Opus. Size: S if mechanical, otherwise unknown. Owner: the
 marks if step 3.
+
+## Finding and fix (L30, 2026-11-25)
+
+There is not one cause. There are four kinds of cause, and only one of them is mechanical.
+
+| # | cause | where | verdict |
+|---|---|---|---|
+| A | The tributary walk climbs only UP (`up_adj`). A side channel that LEAVES a collected piece of its own water and never flows back into a collected piece (a distributary, dead end, or a channel into a pond) is never reached. The dead-end net fires only when the WHOLE watershed code was collected, so it fails when any piece of the code is carved out or refused | `pipeline/atlas/graph/tributaries.py` (`tributaries_of_reach`, `_dead_end_seeds`) | MECHANICAL: fixed |
+| B | The Strahler guard refuses an equal-code side channel whose FWA order is bigger than the piece of its own river it flows into (`bigger_river`) | `tributaries._refusal` | MECHANICAL: fixed (same fix) |
+| C | 2300 connector (canal) pieces: the walk's barrier | `tributaries.may_enter` | CURATION/policy (the guard is kept): OPEN |
+| D | Area/region membership is by overlap. A straddling main-stem section that is not cut takes the area's rule along its whole length. The side channel lies wholly outside the area, so it correctly does not take the rule | `pipeline/atlas/splits/border.py` `mark_inside_areas`; parks `cut: false` in `data/curated/waters/area_closures.json` | CURATION (owner: cut the park?): OPEN |
+| E | Rules differ for a real reason: inside an area closure, a rule only on the channel, a region straddle (T183), added streams the owner left out, a licensing stretch cut | — | NOT A DEFECT, or curation: OPEN |
+
+**The fix (9f0856154).** `tributaries.A_SIDE_CHANNEL_GOES_WITH_ITS_WATER` (`_side_channel_seeds`; `expand` passes
+the registry). A walk that collects a stream item now also collects that item's no-main-flow pieces, grouped by
+connection, when EVERY piece of the same item they touch was walked. It never collects a barrier, a carved-out
+piece, the entry's own water or the reach, and the walk climbs on from what it adds. Because `expand` serves every
+walked binding, this covers rules, licensing designations, DFO places, in-season points and the review app.
+POLICY_VERSION is 51. There are 12 tests in `pipeline/tests/test_walk_dead_ends.py`, and every guard is
+mutation-proven. Turning the flag off fails 5 tests. Removing the barrier, carved-out, own-water,
+all-neighbours-walked, needs-a-neighbour, no-main-flow, this-item-only or never-the-reach guard fails 1 test
+each. Not climbing on from an added piece fails 2.
+
+**The real binding diff.** A side reach run on the promoted atlas, against the candidate's
+`data/generated/reaches/full`, with `pipeline.atlas.reach.binding_diff`. 12 rules, 1 licensing record and 1 DFO
+place gain 56 sections (47.7 km). Nothing is lost or rescoped, and no unresolved, diagnostic, tidal or
+outside-B.C. table changed. Every section is listed in `../T1146-files/diff-attribution.txt`, and
+`../T1146-files/what-changes.md` says the same in an angler's words.
+- As predicted: the 19 channel sections of Forsyth, Koksilah, Halfway, MacMillan, Manson, Omineca and
+  Shelagyote. The Babine designation reaches Shelagyote's channel, and the DFO place
+  "1:cowichan-river:including-tributaries-and-cowichan" reaches Koksilah's 5 channel pieces.
+- Beyond the prediction, accepted as the fix's intended behaviour for review:
+  - (a) 34 unnamed feeder creek sections that flow only into those channels. The walk climbs on from the
+    channel: Shelagyote 19, Manson/Omineca 8, Koksilah 4, Halfway 3.
+  - (b) Manson's two stubs between lakes (359006963:0 and :920), reached through the lakes.
+  - (c) Old Kootenay River Channel (gnis:2123). Its 170 m piece 356365662:1210 gains `kootenay_river_lower.r4`
+    (burbot catch and release), which its other 3 pieces already carry.
+- The Nechako did NOT change, against the prediction. Channel 355995054:0 (735 m) lies wholly in Region 7A, and
+  the DFO place `6:f:closure` (Fraser River watershed) is clipped to Region 6. The only Nechako piece it touches
+  straddles 6/7A and is the place's direct extent, which is not walked, so the channel stays out. That is right.
+
+**The 26 nameless parts.** Six join the part beside them: Forsyth p1, Koksilah p1, MacMillan p2, Shelagyote p0,
+Omineca p0 and Manson p0. Halfway p2 shrinks from 12 sections to 3: the 2300 piece 359004004:502 and two stubs
+touching ponds. The other 19 are unchanged. The part merges are predicted from the rule sets; this lane did not
+run tiles or deliver.
+
+**Still open (C, D, E).** Copied word for word from the finding's per-part table:
+
+| part | rules the siblings have that it lacks (or what differs) | cause | verdict |
+|---|---|---|---|
+| Mahood Creek p1 | serpentine r2-r4, bear_mahood_creek.r1 | C: 2300+1450 ditch grid, still in the item (`registry.build.is_ditch` keeps it: name source not side_channel?) | CURATION |
+| Stirling Creek p1 | kettle/west kettle tributaries | C: 1100+1150+2300 piece into Acme Lake | CURATION |
+| Robertson Creek p1 | stamp_river r2,r3 | drains Boot Lagoon into Great Central Lake, above the top of both Stamp stretches (only whole rules climb head lakes, T1053) | CURATION/policy |
+| Cottonwood River p1 | z5 base (main stem straddles 5/7A, channel wholly 7A) | D/E: region straddle by design (T183) | NOT A DEFECT |
+| West Road p3 | z5 base (river is the 5/6 line, channel wholly in 6) | D/E: same | NOT A DEFECT |
+| Noons Creek p4 | its own and region rules | E: added stream -2200000392, unplaced; owner accepted "leave out" 2026-11-11 (unplaced_piece_calls.json) but it is still in the item | CURATION |
+| Seymour River p3 | no rule difference from p2. Separate only because p2 is in no-access land. It lacks seymour_river.r1 | E: added stream -2000000390, the same owner call | CURATION |
+| Skeena River p4 | NO rule gap (ruleset 994 = p2). Licensing set 72 vs 0: the Classified Waters stretch `skeena_river_2` cuts the braid at 1017 m, not where it cuts the main stem | E: placement of the licensing stretch on the braid | CURATION |
+| Burman River p0 | strathcona_park_waters.r1 | D: channels 1.4-2.9 km outside the park. Main section 354155253:0 is 22.4 km with only 13.0 km inside | CURATION |
+| Bedwell River p0 | strathcona_park_waters.r1 | D: channels 1.5-5.0 km outside | CURATION |
+| Rees Creek p0 | strathcona_park_waters.r1 | D: channel 2.9 km outside. Main section 354150445:0 is 9.6 km with **31 m** inside | CURATION |
+| Comox Creek p0 | strathcona_park_waters.r1 | D: channel 261 m outside. Main 14.2 km with 1.8 km inside | CURATION |
+| Thelwood Creek p0 | strathcona_park_waters.r1 | D: channels lie in STRATHCONA-WESTMIN park, 718-751 m outside Strathcona Park | CURATION (owner: is Westmin "Strathcona Park waters"?) |
+| Campbell River p6 | z1 summer_stream_closure (within MU group 1-1..1-6) | D: main 354154635:14945 straddles MU 1-6/1-10; the channel is not a member | CURATION |
+| Squamish p1, Gordon p0, Okanagan Oxbows p1 | carry extra area-closure rules | E: inside a cut ER or national park | NOT A DEFECT |
+| Theodosia p1, Snehumption p1 | carry an extra rule (Powell Lake, Similkameen) | E: the channel flows into that water | NOT A DEFECT |
+
+Strathcona (D), word for word: "The park rule should NOT reach these channels: by the park polygon
+(area_catalog.gpkg) they are outside it. The fault runs the other way. Parks are membership-only (`cut: false`),
+so 365 Strathcona Park sections that straddle the boundary carry the park rule along ~478 km outside the park (my
+measure: FWA lines against the polygon; approximate). Rees Creek carries it on 9.6 km from a 31 m overlap. If the
+owner cuts the park (curated, atlas rebuild ~32 min, all 365 sections change), the lower main stems of Burman,
+Bedwell and Rees, and probably Comox, lose the rule and the channels merge into them. Thelwood stays apart unless
+"Strathcona Park waters" includes Strathcona-Westmin."
