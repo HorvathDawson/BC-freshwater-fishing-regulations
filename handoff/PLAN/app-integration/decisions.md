@@ -330,3 +330,16 @@ struck out; the tickets and git hold the history. Verbatim words appear only whe
 - The synopsis PDF on the phone apps is as shipped: an in-app viewer, `react-native-pdf` 7.0.5 (`app/packages/ui-native/package.json:15`, `regs/PdfViewer.native.tsx`, mounted by `Shell.tsx:756`); the web opens the PDF in a browser tab (`synopsisPdf.web.ts`). (owner 2026-11-25: as shipped)
 - Accounts and cross-device sync (T223): postponed, not dropped. No sync now; accounts stay a far-future idea and the ticket stays. (owner 2026-11-25)
 - Satellite: Esri World Imagery (the keyless address) is the source on the web and the phones, drawn by MapLibre. No Mapbox and no offline imagery for now; T1108 holds the research and reopens when a provider allows offline corridors through MapLibre. (owner 2026-11-25, T1108)
+
+## 12. Data flow (owner walkthrough 2026-11-05, T408; the map is `handoff/PLAN/data-flow.md`)
+
+- A review mark makes one hop: appended to `marks.jsonl`, written through to its final curated file; no middle `decided/` copy. The build reads only final files. (owner 2026-11-05, T325)
+- Curated holds only the owner's decisions and the files the build reads: machine output and proposals live in `data/generated/` (gauge candidates, `review/dfo_fix_proposals.json`), and the app reads proposals there. (owner 2026-11-05, T324)
+- Hand-edited waters files stay hand-edited, with a fast schema-and-reference check as the build's first step. (owner 2026-11-05, T324)
+- Accepting a regenerated steelhead list is a decision: one command prints the diff (added, dropped) and writes the curated file. (owner 2026-11-05)
+- Every build checks each saved DFO match id still exists in that build's registry and fails otherwise; a new DFO name with no match is held unplaced and a human matches it. (owner 2026-11-05, T337)
+- The worker has one copy of the DFO wording (R2); missing or invalid fails the job and reports, the app keeps the last good feed. (owner 2026-11-05, T324)
+- Run timing is a slow feed: its own R2 folder and `index.json`, started by a button or the worker, never a GitHub schedule. (owner 2026-11-05, T413)
+- One command ships, "build once, promote the same artifact": `pipeline release --staging` = build, checks, promote LATEST, staging upload, stop at the first failure. The same command is the human's; a short runbook. (owner 2026-11-05, T408)
+- Claude batches rebuilds after curated changes (one build via `heavy.sh`, diff summarized). (owner 2026-11-05)
+- Curated file names are accurate and consistent: `*_calls.json` per-item decisions, `*_waters.json` lists of waters, `*_stations.json` lists of gauges; every JSON keeps an `_about` header and every curated folder a README. (owner 2026-11-05)

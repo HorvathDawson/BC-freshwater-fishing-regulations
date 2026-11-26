@@ -1,8 +1,7 @@
 # Google Play: Data safety form answers (draft, T371)
 
-Drafted 2026-11-04 from the code on `redesign/stream-sections`. Nothing has been submitted. This replaces the Play part of
-`handoff/PLAN/app-integration/store/privacy-labels-draft.md` (2026-10-29), which is now out of date in two places: the
-install id (T352) and the map centre on a problem report (T352 + T384).
+The answers for Play's Data safety form, drafted from the code. Nothing here is the live form: check each against the
+Play Console screen.
 
 **OWNER** marks an answer you need to confirm. These are judgement calls, or depend on how the build is made.
 Paths are under `app/` unless they say otherwise.
@@ -13,8 +12,7 @@ The form has to describe the build you actually upload.
   (`deploy/staging/build-apk.sh:42`). In that build, problem reports and crash reports go to the staging feeds worker
   (`apps/mobile/src/env.ts:41-45`, `:53-62`), and the data comes from `data-staging.canifishthis.ca` (`env.ts:25`).
 - A `production` build (`apps/mobile/eas.json:15-16`) also sends them: problem reports and crash reports go to the
-  production feeds worker, `https://feeds.canifishthis.ca/report` (`env.ts:44`, T404) and its `/crash`. (Corrected
-  2026-11-14: this page used to say a production build sends none; that was true before T404.)
+  production feeds worker, `https://feeds.canifishthis.ca/report` (`env.ts:44`, T404) and its `/crash`.
 - **OWNER:** the answers below hold for both the staging-env AAB you upload today and a later production build; both
   send reports.
 - Aside: `ENV_SWITCH=1` gives testers the environment switch on About. Decide whether closed testers should have it.

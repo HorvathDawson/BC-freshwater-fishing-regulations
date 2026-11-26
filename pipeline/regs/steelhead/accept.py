@@ -5,7 +5,7 @@
 
 The generator (`python -m pipeline.regs.steelhead.known_waters`) writes `data/generated/steelhead/steelhead_waters.json`;
 the curated list (`CURATED.waters.steelhead_waters`) is what the reach run reads. Accepting a new generated list is a
-DECISION (owner 2026-11-05, data-flow-decisions.md "Regulations"), so a rerun of the generator never changes the curated
+DECISION (owner 2026-11-05, decisions.md "Data flow"), so a rerun of the generator never changes the curated
 list by itself: this prints what accepting it would change — every water added and every water dropped, by item id with
 its note, plus the notes that moved — and only `--write` writes the curated file.
 

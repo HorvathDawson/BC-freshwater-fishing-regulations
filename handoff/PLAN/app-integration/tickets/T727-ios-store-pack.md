@@ -18,7 +18,7 @@ for analytics and bug report etc etc choose best category"
 screenshots, the iOS store video (T709 step 2), App Privacy answers, review notes, age-rating answers, the name applied.
 
 Done (docs lane, 2026-11-14, all PROPOSALS, nothing entered in App Store Connect): `handoff/PLAN/ios/store/`
-`app-privacy-answers.md`, `age-rating-answers.md`, `review-notes.md`, `checklist.md`, `listing.md` (each App Store Connect
+`listing.md` and, in git history since 2026-11-25 (superseded by `handoff/PLAN/ios/APP-STORE-SUBMISSION.md`), `app-privacy-answers.md`, `age-rating-answers.md`, `review-notes.md`, `checklist.md` (each App Store Connect
 field from the Play texts; name, subtitle, keywords exactly 30/30/100; description 3924 of 4000). Decided: home-screen label
 "Can I Fish?" stays (`expo.name`), "Can I Fish This?" everywhere else (no app.json change); Precise (and Coarse) location;
 install id = Analytics + App Functionality; category Navigation then Sports (Claude's call, matching Play's "Maps &
@@ -42,7 +42,7 @@ release, `app/apps/mobile/src/notify.native.ts:8-9`); review notes use the corre
 5. **G15.** OWNER ANSWER (coordinator, 2026-11-14): sentence on About only, no FIRST_RUN_VERSION bump. The sentence: " It is
    not made by, affiliated with or endorsed by the Province of British Columbia or Fisheries and Oceans Canada." under
    `MENU_WORDS.about.notOfficial` (`menu/words.ts:95`). Already said in the Play description
-   (`app/store-listing/listing.json:65`), the review notes (`handoff/PLAN/ios/store/review-notes.md:21`) and two Sources
+   (`app/store-listing/listing.json:65`), the review notes (now in `handoff/PLAN/ios/APP-STORE-SUBMISSION.md`) and two Sources
    lines (`core/src/menu/licences.ts:91,98`). The privacy page text (`tools/seo/html.ts`): next to `NOT_LEGAL` if wanted.
    Tests pin the whole strings. G14 is T732.
 6. Owner needs: Apple account, App Store Connect entries, production data (T86) before the review build.

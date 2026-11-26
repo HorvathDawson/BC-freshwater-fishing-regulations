@@ -1,65 +1,99 @@
 # pipeline/regs/dfo_salmon: DFO salmon limits, openings and closures (Regions 1-8)
 
-The federal salmon rules for BC's eight freshwater regions, from `pac.dfo-mpo.gc.ca`: scraped, typed, bound to waters
-and published as a live feed the app lays over the release's salmon chains. Design and the reasons: [`DESIGN.md`](DESIGN.md).
+The federal salmon rules for BC's eight freshwater regions, from `pac.dfo-mpo.gc.ca`: scraped, typed, bound to
+waters and published as a live feed the app lays over the release's salmon chains. Salmon in non-tidal water is
+DFO's; everything else is the provincial Synopsis. The two overlay and never merge.
 
-**A different authority from the Synopsis.** Salmon in non-tidal BC water is DFO's; everything else is the provincial
-Synopsis. The two rule sets overlay, they never merge: a reach can carry a provincial trout rule and a federal salmon
-rule at once, and neither overrides the other. Every DFO page says so ("This table refers to fishing for salmon only").
+## The design in one measurement
 
-## The stages (each a module with a `__main__`; run from the repo root with `.venv/bin/python -m pipeline.regs.dfo_salmon.<module>`)
+Re-parsing archived DFO pages (`python -m pipeline.regs.dfo_salmon.churn --regions 1 2 6 --detail`): Region 6's
+waters were 77 of 77 present over 2.3 years, while the rules turned over by about half. The geography never
+moves, the rules do. So the expensive half (which registry item a name is, where the cuts sit, whether
+tributaries are in) is curated once; the cheap half is re-scraped every run and thrown away.
+
+```
+page -> fetch -> parse -> untangle -> locations --+--> typed -> feed      (scraped, disposable)
+                                                  | fingerprint
+                                                  v
+                          entries seed / reconcile -> curated locators    (human, durable)
+                                                  | join at read time
+                                                  v
+                  atlas/reach/dfo_salmon.py -> deliver/salmon.py -> release `salmon`
+```
+
+A locator is a place a rule attaches to (a named water's reach, or a cascade default); a rule record is
+species x dates x limits keyed only by its locator's fingerprint (sha256[:16] of section, water, specific area).
+
+## Stages
+
+Each is a module run from the repo root as `.venv/bin/python -m pipeline.regs.dfo_salmon.<module>`.
 
 | module | job | writes |
 |---|---|---|
-| `fetch` | snapshot each page, validate it, hash it, never overwrite good with bad | `cache/dfo_salmon/` (`cache.dfo_salmon` in `config.yaml`; `manifest.json`, `history/`) |
-| `parse` | faithful transcription: every `<tr>` is a row, nothing read from the cells | `data/generated/regs/dfo_salmon/regionN.json` |
-| `untangle` | regroup into waters, reaches, rules and the defaults; `verify()` proves no row is lost | `--print` / `--out` |
-| `locations` | split each place into a LOCATOR (curated half) and RULE RECORDS (scraped half) | `data/generated/regs/dfo_salmon/{locations,rules}/` |
-| `typed` + `feed` | the whole decode of limits and dates, once: typed rules keyed by locator fingerprint | `data/generated/regs/dfo_salmon/typed/` |
-| `quota`, `wording`, `header` | the salmon bucket (per-species numbers, the region total, a header closure that wins), DFO's limits wording as a closed registry (`data/curated/dfo_salmon/wording.json`), the region header rules | read by `typed` / the release |
-| `side_streams` | a named-water place's side streams, derived from DFO's own words (an exact heading, else river only) | read by `entries.to_reach_input` |
-| `entries` | the CURATED locators: `seed` adds places new to the page, `reconcile` classifies drift and never mutates | `data/curated/dfo_salmon/places/` (`CURATED.dfo_salmon.places`) |
-| `closures`, `closure_mouths` | a closed area inside a place is a location of its own (AGENTS 68) | read by the reach run |
-| `live` | THE LIVE FEED: fetch, type, join, write the file the app reads; places nobody curated are held and the owner told | `data/generated/regs/dfo_salmon/feed/index.json` (`dfo-feed/3`) |
-| `refresh` | what a fetch would change against the typed rows in use (`live run --dry-run` prints it) | nothing |
+| `fetch` | snapshot each page, validate, hash; never overwrite good with bad | `cache/dfo_salmon/` |
+| `parse` | faithful transcription: every `<tr>` a row, nothing read from the cells | `data/generated/regs/dfo_salmon/regionN.json` |
+| `untangle` | regroup into waters, reaches, rules; `verify()` proves no row is lost | `--print` / `--out` |
+| `locations` | split each place into a locator and rule records | `.../{locations,rules}/` |
+| `typed` + `feed` | the whole decode of limits and dates, once | `.../typed/` |
+| `quota`, `wording`, `header` | the salmon bucket, the closed limits-wording registry (`data/curated/dfo_salmon/wording.json`), region header rules | read by `typed` |
+| `entries` | the curated locators: `seed` adds new places, `reconcile` classifies drift and never mutates | `data/curated/dfo_salmon/places/` |
+| `closures`, `closure_mouths`, `side_streams` | a closed area inside a place is its own location (AGENTS 68); side streams from DFO's own words | read by the reach run |
+| `live` | fetch, type, join, write the one feed file the app reads; uncurated places are held | `.../feed/index.json` (`dfo-feed/3`) |
+| `refresh` | what a fetch would change against the typed rows in use | nothing |
 
-Curation helpers (suggest only, never apply; the owner marks, AGENTS A8): `match` (exact registry hits only), `suggest`,
-`preverify`, `coverage`, `splitwork`, `dossier`, `edge_gaps`, `cascade`. Measuring tools: `stability` (`python -m pipeline.regs.dfo_salmon.stability --burst`: fetch stability),
-`churn` (how the pages changed across archived versions), `validate`.
+Curation helpers suggest and never apply (the owner marks, AGENTS A8): `match` (exact registry hits only),
+`suggest`, `preverify`, `coverage`, `splitwork`, `dossier`, `edge_gaps`, `cascade`. Measuring: `stability` (`python -m pipeline.regs.dfo_salmon.stability --burst`: does the fetch hold up),
+`churn`, `validate`.
 
 ```bash
-.venv/bin/python -m pipeline.regs.dfo_salmon.fetch                       # snapshot -> cache/dfo_salmon/
-.venv/bin/python -m pipeline.regs.dfo_salmon.parse                       # faithful rows
-.venv/bin/python -m pipeline.regs.dfo_salmon.untangle --regions 6 --print
-.venv/bin/python -m pipeline.regs.dfo_salmon.entries reconcile           # what changed, and how bad
-.venv/bin/python -m pipeline.regs.dfo_salmon.live run --regions 2 --dry-run   # fetch + parse, write nothing, print the changes
-.venv/bin/python -m pipeline.regs.dfo_salmon.live queue --regions 6      # put held new / reworded places in DFO mode
+.venv/bin/python -m pipeline.regs.dfo_salmon.fetch
+.venv/bin/python -m pipeline.regs.dfo_salmon.parse
+.venv/bin/python -m pipeline.regs.dfo_salmon.entries reconcile
+.venv/bin/python -m pipeline.regs.dfo_salmon.live run --regions 2 --dry-run   # writes nothing, prints the changes
+.venv/bin/python -m pipeline.regs.dfo_salmon.live queue --regions 6           # held places into DFO mode
 ```
 
-The release side: `atlas/reach/dfo_salmon.py` places every location that has an extent (`dfo_salmon.jsonl.gz` in the reach
-run) and `deliver/salmon.py` precomputes each chain's answers per day into the release's `salmon` file. The feeds worker
-(`app/workers/feeds/src/dfo/`) is the TypeScript twin of `live`; `app/workers/feeds/parity/` holds them to the same output.
-The review app marks DFO places (`pipeline/regs/review/`, `curation-review/README.md`; AGENTS 65-68).
+The release side: `atlas/reach/dfo_salmon.py` places each location that has an extent, and
+`deliver/salmon.py` precomputes each chain's answers per day into the release's `salmon` file. The feeds
+worker (`app/workers/feeds/src/dfo/`) is the TypeScript twin of `live`; `app/workers/feeds/parity/` holds them
+to the same output. Nothing needs credits or secrets; never a GitHub schedule (the worker's cron starts it).
+
+## Identity and reconcile
+
+- `fingerprint` is the join key; `location_id` is assigned once and derived from nothing; `section` is an
+  attribute, never part of the id; `fingerprints` is a list so wording drift costs nothing.
+- A locator is `status: dormant` when its fishery closes, never deleted: these pages list openings.
+- A human supplies per locator what nothing can re-derive: `WaterBinding.item_ids` (an exact registry hit or a
+  curator, never heuristic), `Binding.extents`, `Binding.tributaries` (three-valued, AGENTS 9), notes.
+- `reconcile` outcomes by severity: `ok`, `dormant`, `revived` 0; `drift` 1 (confirm the rebind); `new` 2;
+  `section_moved` 3; `structural` 4 (banner set changed, locator count moved over 20%, or over 25% unbound:
+  hold the region). A held locator keeps its last binding and only that water is withheld.
+
+## Region 6 is a cascade
+
+Every other region is a flat list. Region 6 is nested boxes where the smallest one containing the water wins:
+A (all), B Skeena (B(i) above the CNR Railway Bridge at Terrace, B(ii) below), C Nass, D Haida Gwaii, F (Fraser,
+banner only), and E, everything else (a set difference), with tidal-Area children. `cascade.build_scopes()`
+derives the tree and `chain_for(scope)` gives the lookup order, narrowest first. Precedence (3 named water, 2
+area, 1 section, 0 region default) belongs to the locator, so the feed carries none and the join may never
+drop it (`test_the_skeena_cascade_resolves_through_the_join`). The tidal-Area rows belong to E alone. Section F
+has no rows; its closure is synthesised with `source: "section_banner"`. Waters key on `(section, name)`.
 
 ## Rules a newcomer must know
 
-- **The transcription reads nothing out of the Limits/Gear or Dates cells** (`parse.py`, `locations.py`); `typed.py` owns
-  every reading, so a wording is fixed in one place. Only `fishery_notices` (links) comes from the HTML.
-- **Never hand the whole page to a DOM parser.** Regions 4, 5a and 7 carry an unterminated `<!--` above the table, so
-  `find("table")` returns `None` silently; the table is sliced out of the raw HTML by regex. `test_dfo_salmon.py` pins it.
-- **Rules are a feed, locators are curated** (`feed.py` takes no curated input; a test asserts it). They meet at read time
-  by the locator FINGERPRINT, never by a text key a reword would break.
-- **Binding is exact or human.** A name becomes a water only by an exact registry hit or a curator; a near spelling is a
-  suggestion (`match.py`). Nothing here widens an extent or guesses a month (`dates.py`: an explicit variants table, never fuzzy).
-- **`take=0` does not mean closed:** `no_fishing` and `non_retention` are separate; a bare "0 per day" is flagged for review.
-- **Region 6 is a cascade** of eight lettered scope bands, not a list; read flat it says the opposite of what it means
-  (see DESIGN.md "Region 6").
-- Fishery Notice rows (`FN0679`, ...) are live variation orders that supersede the printed season and change without the
-  page's `dateModified` moving: that is the volatile part.
-- Region 5 is three pages (`5` is a 2016 stub; the rules are on `5a` and `5b`); pages are keyed by slug, not region number.
+- The transcription reads nothing out of the Limits or Dates cells; `typed.py` owns every reading.
+- Never hand the whole page to a DOM parser: Regions 4, 5a and 7 carry an unterminated `<!--`, so the table is
+  sliced out of the raw HTML by regex (`test_dfo_salmon.py` pins it). Region 5 is three pages (`5a`, `5b`); pages
+  key by slug.
+- Rules are a feed, locators are curated: `feed.py` takes no curated input; they meet at read time.
+- `take=0` is not closed: `no_fishing` and `non_retention` differ; a bare "0 per day" is flagged. A size
+  sub-limit is its own rule with `within`; a gear rule scopes by `when_targeting`. An unreadable season goes
+  to review; an empty dates cell means all year.
+- Early exit on the page hash, never `dateModified`. Fishery Notice rows (`FN0679`) change without it moving.
+- Reach `kind` (`whole_water`, `upstream_of`, `between`, `sign_bounded_zone`, ...) says how a scope becomes
+  geometry; anchors keep the boundary phrase verbatim (`atlas/splits/anchors.py`, the curated cuts).
 
 ## Tests
 
-`pipeline/tests/test_dfo_*.py`, `test_salmon_*.py`, `test_t668_salmon_*.py`, `test_t671_salmon_*.py`, `test_review_dfo*.py`
-(the core is `test_dfo_salmon.py`: parser fixtures including the 2017 and 2018 archived pages, the unbalanced-comment pin,
-the cascade resolving through the join). The feeds worker's twin is tested under `app/workers/feeds/test/`.
+`pipeline/tests/test_dfo_*.py`, `test_salmon_*.py`, `test_t668_salmon_*.py`, `test_t671_salmon_*.py`,
+`test_review_dfo*.py`; the core is `test_dfo_salmon.py`. The worker's twin: `app/workers/feeds/test/`.

@@ -1,127 +1,75 @@
-# pipeline — main commands
+# pipeline: main commands
 
-Run everything with the venv: `.venv/bin/python`. The whole rebuild is one command; the steps below
-are what it runs, for when you need one alone.
+Run everything with the venv (`.venv/bin/python`) from the repo root. The stages and modules are mapped in
+`pipeline/docs/MAP.md`; the rules for this repo are in `AGENTS.md`; how the book is read is
+`pipeline/docs/RULINGS.md`.
 
-## A release (T408): build once, promote the same artifact
+## A release: build once, promote the same artifact
 
 ```bash
 python -m pipeline release --staging --dry-run   # the plan: preflight, baseline, build plan, checks, promote, upload
-python -m pipeline release --staging             # build -> checks -> promote LATEST -> deploy/staging/upload.sh
+python -m pipeline release --staging             # build, checks, promote LATEST, deploy/staging/upload.sh
 python -m pipeline release --staging --accept-diff data/generated/release/checks/<r-id>/binding_diff.json
 python -m pipeline release --prod <r-id>         # HUMAN-ONLY: the same release to production (refuses an agent)
+python -m pipeline release --cut [X.Y.Z]         # version and branch (release_version.py; --data-only for data-<date>)
 ```
 
-`pipeline/release.py`; the runbook is `handoff/PLAN/runbooks/release.md`. The build runs with `--hold-latest`: the new
-release waits in `data/release/CANDIDATE` and LATEST moves only after the checks pass. This replaces the hand steps
-(build, binding diff, upload guard, `upload.sh`).
+`pipeline/release.py`; the runbook is `handoff/PLAN/runbooks/release.md`. The build runs with `--hold-latest`:
+the new release waits in `data/release/CANDIDATE` and LATEST moves only after the checks pass.
 
 ## The rebuild
 
 ```bash
 python -m pipeline build --graph          # the stage graph: what each stage reads, runs, writes
-python -m pipeline build --dry-run        # each stage, its key, run or up to date — and WHY it runs
-python -m pipeline build                  # every stage out of date (--jobs 2; the stage order is docs/MAP.md)
-python -m pipeline build --jobs 1         # one stage after another, output on the console
+python -m pipeline build --dry-run        # each stage, run or up to date, and why
+python -m pipeline build                  # every stage out of date (--jobs 2 by default; --jobs 1 for one at a time)
 python -m pipeline build --status         # the last run: per-stage time, peak memory, status, logs
-python -m pipeline build --atlas          # + a side atlas data/generated/atlas/<build>_next and its parity
-python -m pipeline build --promote        # adopt <build>_next, then rebuild against it
-python -m pipeline build --side DIR [--atlas]   # every stage into DIR; nothing live, no LATEST (a proof run)
-python -m pipeline build --hold-latest    # the new release named in data/release/CANDIDATE, LATEST untouched
+python -m pipeline build --atlas          # plus a side atlas <build>_next and its parity; --promote adopts it
+python -m pipeline build --side DIR       # every stage into DIR; nothing live (a proof run)
 ```
 
-See `pipeline/build.py` and AGENTS 62. Heavy: run it through `scripts/heavy.sh` (one heavy job at a
-time; heavy.sh is re-entrant for its own lock holder). Each stage is skipped while its inputs' digests
-(atlas, corpus, curated tree, source stamps, its own code) match its last successful run
-(`data/generated/build-manifest.json`). With `--jobs 2` a stage logs to `build-logs/<run>/<stage>.log`.
-
-### The fast path: rules, parts, names or wording changed (T522)
-
-```bash
-python -m pipeline build --dry-run                                            # what will run, and why
-scripts/heavy.sh build 50 -- .venv/bin/python -m pipeline build [--side DIR]   # only what changed runs
-```
-
-The same command as a full build; nothing to choose. Two caches make it fast, both keyed on CONTENT
-(`pipeline/common/stepcache.py`, recorder `pipeline/_trace.py`):
-
-- **Stages key on the code they imported.** reach and deliver run under the recorder; the manifest keeps the
-  modules each really imported, and only those files' bytes are their code key. An edit to the review app, an
-  audit tool, the DFO suggester or a test reruns neither (it used to rerun both).
-- **Delivery steps are reused.** Inside `pipeline.deliver all`, each step (bundle, verdicts, status index,
-  export, answers, card gate, store) is reused when its arguments, its staging inputs, the files it read (its
-  code as imported included), the directories it listed, the paths it probed and the declared inputs (source
-  tree and atlas stamps; for the bundle also the curated tree) are unchanged. An answers or wording edit
-  reruns answers → card gate → store → release, not the bundle. The cache is
-  `data/generated/deliver-cache/` (a side run: `DIR/deliver-cache/`).
-
-What needs which stages: a rule edit (curated regulations) → reach + deliver; a parts / naming change in
-`pipeline/deliver/bundle` → deliver from the bundle on; answers / export / store / release code → deliver from
-that step on; a registry name (atlas sidecar) → reach + deliver; tile labels → `--labels`. `--force deliver`
-runs every step afresh (`deliver all --no-step-cache`).
-
-`pipeline release` builds WITH the step cache (`build --hold-latest`, `pipeline/release.py` `build_cmd`): the bundle's
-varying read count was the import system's reads, fixed in 30d36b7e8 (T522: same reads on identical inputs). To rule
-the cache out, `python -m pipeline build --force deliver --hold-latest` runs every delivery step afresh.
-
-## Review marks → curated files (T266, T408)
-
-```bash
-python -m pipeline.regs.review.apply             # every open domain: marks.jsonl -> its final curated file
-python -m pipeline.regs.review.apply --dry-run   # what would land; writes nothing
-python -m pipeline.regs.review.export            # print the decisions in force per domain (in memory, no files)
-```
-
-The writers compute the marks' decisions in memory (`review.export.load`); there is no intermediate
-`decided/` copy. No build stage reads `marks.jsonl`; they read the curated files the apply paths write.
+`pipeline/build.py`, AGENTS 62. It is heavy: run it through `scripts/heavy.sh` (one heavy job at a time).
+A stage is skipped while its inputs' digests (atlas, corpus, curated tree, source stamps, its own code) match its
+last successful run (`data/generated/build-manifest.json`). Two caches, both keyed on content
+(`pipeline/common/stepcache.py`, recorder `pipeline/_trace.py`): a stage keys on the modules it really imported,
+and each `pipeline.deliver all` step is reused when its arguments, inputs and reads are unchanged
+(`data/generated/deliver-cache/`). So a rule edit reruns reach and deliver; an answers or wording edit reruns
+answers onward, not the bundle. `build --force deliver` runs every delivery step afresh.
 
 ## The stages alone
 
 ```bash
-# Atlas: graph, sections, registry (the whole province). Never into a promoted build.
-python -m pipeline.atlas.build --full --out data/generated/atlas/full_next
-python -m pipeline.atlas.promote data/generated/atlas/full_next --dry-run   # parity report only
-python -m pipeline.atlas.promote data/generated/atlas/full_next             # full -> full.prev
-
-# A small area, for checking a change fast
-python -m pipeline.atlas.build --gnis "Campbell River" --out data/generated/atlas/validate
-
-# Reach: bind every rule to its sections (deterministic)
+python -m pipeline.atlas.build --full --out data/generated/atlas/full_next    # never into a promoted build
+python -m pipeline.atlas.promote data/generated/atlas/full_next [--dry-run]
+python -m pipeline.atlas.build --gnis "Campbell River" --out data/generated/atlas/validate   # a small area
 python -m pipeline.atlas.reach.cli --build data/generated/atlas/full --out data/generated/reaches/full
-
-# Deliver: bundle → verdicts → status index → UI export → answers
 python -m pipeline.deliver all --build data/generated/atlas/full
-
-# Tiles (writes atlas.pmtiles, atlas.meta.json and layers/ — never the basemap)
-python -m pipeline.deliver.tiles --build data/generated/atlas/full
+python -m pipeline.deliver.tiles --build data/generated/atlas/full            # never the basemap
 ```
 
-## Regulations (⛔ HUMAN-ONLY — the parse spends credits)
+## Regulations (HUMAN-ONLY: the parse spends credits)
 
 ```bash
-python -m pipeline.regs.extraction.extract_synopsis       # PDF → synopsis rows
+python -m pipeline.regs.extraction.extract_synopsis       # PDF to synopsis rows
 bash pipeline/regs/parsing/run_parse.sh status            # where you left off (no credits)
 bash pipeline/regs/parsing/run_parse.sh parse-dry         # export batches only (no credits)
-bash pipeline/regs/parsing/run_parse.sh all               # parse, then review (spends credits)
 ```
 
-Entries land in `data/curated/regulations/synopsis/region-*.json`. An agent never runs
-`parse`, `all`, `review` or `repass`: hand the command to a person.
+`run_parse.sh all` spends credits: an agent hands the command to a person (A1). Entries land in
+`data/curated/regulations/synopsis/region-*.json`.
 
-## Curation
+## Review marks and curation
 
 ```bash
-bash curation-review/run.sh               # the review app: reads, and one write, a mark (curation-review/README.md)
-python -m pipeline.tools.audit.check_curated    # are the committed match artifacts fresh?
+python -m pipeline.regs.review.apply [--dry-run]   # every open domain: marks.jsonl to its final curated file
+python -m pipeline.regs.review.export              # the decisions in force per domain, in memory
+bash curation-review/run.sh                        # the review app (curation-review/README.md)
+python -m pipeline.tools.audit.check_curated       # are the committed match artifacts fresh?
 ```
+
+No build stage reads `marks.jsonl`; they read the curated files the apply paths write.
 
 ## Notes
 
-- `data/source/bc_fisheries_data.gpkg` (the FWA source, a pinned input: `bash scripts/bootstrap.sh` fetches it) must be
-  present for the atlas and tiles. How long each stage took and its peak memory: `python -m pipeline build --status`.
-- How the book is read: `pipeline/docs/RULINGS.md`. Rules for this repo: `AGENTS.md`. The stages and modules:
-  `pipeline/docs/MAP.md`.
-- The release version and branch: `python -m pipeline release --cut [X.Y.Z]` (`pipeline/release_version.py` computes
-  the SemVer from the Conventional Commits since the last `v*` tag; a typed X.Y.Z must equal it; `--cut --data-only`
-  makes `release/data-<date>`; root `README.md` "Contributing").
-- After editing code, `graphify update .` keeps the knowledge graph current.
+`data/source/bc_fisheries_data.gpkg` (the FWA source; `bash scripts/bootstrap.sh` fetches it) must be present
+for the atlas and tiles. After editing code, `graphify update .` keeps the knowledge graph current.

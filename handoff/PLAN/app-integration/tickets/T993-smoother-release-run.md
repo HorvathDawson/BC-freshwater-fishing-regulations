@@ -30,7 +30,7 @@ remembering: each one either does the step or says exactly what to do next. Evid
 nine times, each found only by the run before it (stale mini release, `water` over its gate by 85 KB after a 25-minute
 build, `--min-app-version` not passed, worker suite not in `pnpm check`, staging site under the minimum app, fast-fail
 handing worker files to vitest, binding diff, renumbered golden pages, release-backed tests pinned to the old release).
-Inventory: `handoff/PLAN/research/t993-inventory.md` (17-item ranked plan; the lanes below are its item numbers).
+Inventory: git history (handoff/PLAN/research/t993-inventory.md, 17-item ranked plan; the lanes below are its item numbers).
 
 Done:
 - GitHub Actions cleanup (2026-11-21): 8,399 runs of removed workflows deleted; 36 stale caches (10.4 GB → 1.24 GB);
@@ -81,3 +81,10 @@ Depends: T992 (the explanation) folds into the runbook. Size: L. Owner: reads an
 ## Owner
 
 - [ ] 2026-11-21 — Pick or drop the eight simplification ideas at the end of `handoff/PLAN/runbooks/release-gates-explained.md`.
+
+## Still open (from the deleted research/t993-inventory.md, 2026-11-25)
+The inventory is in git history (handoff/PLAN/research/t993-inventory.md); items 1 to 5, 7 to 16 are built (see Done above), the gate glossary lives in `handoff/PLAN/runbooks/release-gates-explained.md`.
+- Plan 6: tests never read machine state (autouse sandbox for the curated and generated roots; data tests by marker; data checks move from the app build's fast-fail to the release preflight). Lanes T777, T792 B.
+- Plan 17: run timing off the release path (monthly worker-started refresh, `feeds-runtiming.yml`) and the smoke's slow-connection prompt (`app/tools/smoke-staging.mjs`). With T485 step 3 and T736.
+- Plan 7's hook (the versioned pre-push hook) is the owner's call; plan 4 real-data rehearsal not run.
+- Never measured: local durations of fast-fail, the fresh copy and `pnpm check`; whether pytest-xdist or vitest sharding is safe; the partial-clone saving.

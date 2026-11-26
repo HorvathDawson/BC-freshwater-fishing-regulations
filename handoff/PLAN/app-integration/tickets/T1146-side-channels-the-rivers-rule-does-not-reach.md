@@ -62,7 +62,7 @@ each. Not climbing on from an added piece fails 2.
 `data/generated/reaches/full`, with `pipeline.atlas.reach.binding_diff`. 12 rules, 1 licensing record and 1 DFO
 place gain 56 sections (47.7 km). Nothing is lost or rescoped, and no unresolved, diagnostic, tidal or
 outside-B.C. table changed. Every section is listed in `../T1146-files/diff-attribution.txt`, and
-`../T1146-files/what-changes.md` says the same in an angler's words.
+the angler-words summary (T1146-files/what-changes.md) is in git history.
 - As predicted: the 19 channel sections of Forsyth, Koksilah, Halfway, MacMillan, Manson, Omineca and
   Shelagyote. The Babine designation reaches Shelagyote's channel, and the DFO place
   "1:cowichan-river:including-tributaries-and-cowichan" reaches Koksilah's 5 channel pieces.

@@ -66,6 +66,28 @@ content beside it (the submission waits for S's new picture set, owner 11-24) â†
 5 Play launch (application from 2026-12-07; it starts whenever Google's date allows, whatever else is running). The
 order of 3, 2b and D after the iOS release is the planning chat's proposal; the owner chose only "iOS first".
 
+## Order from here, as of 2026-11-25 late (the owner's hold; this replaces every earlier order on this page)
+
+0.10.0 was NOT released: the owner held it to speed up development and releases first ("lets hold off on web
+release then until we speed this up"; "we can redo release later and also add on other changes to the release.
+like hardening items and patches."). Its fixes are on main; `release/0.10.0` is retired as a release. T1165 holds
+the strategy and his words. In order:
+1. **Finish what is open** (tonight): the clean-up chat (second markdown cut #273, then the folder rename, the
+   review tool's home, close T1081) and the repo-move chat (T1131 Linux render proof, T1120 fresh-clone proof).
+2. **Speed** (the speed build chat, `handoff/PLAN/restart/speed.md`): T1144 (CI: one test run not three, in
+   parallel), T1161 (the Mac awake, stage times), T1135 (the checks after a build: 48 to about 21 min, pins in one
+   file, resume), T1171 (data build cache holes, then a hashed store), T1063 + T1170 (phone builds: lock,
+   watchdogs, the MapLibre library as a stored build), T1159 (the pre-cut owner pack and gate), T1165 (a web-only
+   release path, build-time flags, the data floor), T1133 + T1160 (one ship workflow from GitHub; agents' own
+   identity; scoped keys).
+3. **Hardening and patches**, added to the same release: T1149 (Creston first), T1164, T1167, T1168 (licence
+   wording), T1166, T1156, T1150, T1163, T1073, and the older hardening rows of 2b below.
+4. **The re-cut release** from main on the faster path, with the pre-cut owner pack; then the App Store submit
+   (T1071) and the Play build. Its cut-to-production time is compared with 0.9.0's.
+5. After it: three trains (data any day, web often, native builds every three to four weeks); features: T1152 /
+   T1153, stocking and depth (T200, T201), the engine seam and the Mapbox trial (T1154, T1155), boat launches
+   (T1119), T1162; launch (Play production: apply from 2026-12-07).
+
 ## Who is who (2026-11-24; `ListAgents` shows the live names)
 
 | Chat | Session | Restart page |
@@ -76,7 +98,8 @@ order of 3, 2b and D after the iOS release is the planning chat's proposal; the 
 | 5i iOS full release | RETIRED 2026-11-25 by the owner; its leftovers (the privacy page check, his three submit clicks, the T1071 record, the T996 push proof) are the planning chat's. Was `bc-freshwater-fishing-regulations-06` (started 2026-11-24 23:10) | `handoff/PLAN/ios/RESTART-ios-release-chat.md`; the paste-from page is `handoff/PLAN/ios/APP-STORE-SUBMISSION.md` |
 | S store content | CLOSED 2026-11-25 by the owner; PR #256 (T1134) is finished by the repo-move chat, PR #238 (T1072) waits for his look at frame 3. Was `bc-freshwater-fishing-regulations-a1` (started 2026-11-24 ~23:30) | `handoff/PLAN/RESTART-store-content-chat.md` |
 | 3 repo move | `bc-freshwater-fishing-regulations-38` (started 2026-11-25 13:12; the move is DONE and checked 2026-11-25 15:55, the merge queue is on, T1062 is built; left: PR #256's fix, then T1120 and T1131) | `handoff/PLAN/RESTART-repo-move-chat.md`; prep in the repo-move folder beside it |
-| D clean-up (T1081) | first chat `bc-freshwater-fishing-regulations-77` STOPPED 2026-11-25 19:27 (its cut is PR #262, on main 18:56); a NEW chat finishes it from prompt D2 | `handoff/PLAN/restart/cleanup.md` (PR #267) |
+| D clean-up (T1081) | `bc-freshwater-fishing-regulations-c8` (second cut PR #273; the rename on the planning chat's word; the first chat -77 stopped 2026-11-25 19:27) | `handoff/PLAN/restart/cleanup.md` |
+| Speed build | `bc-freshwater-fishing-regulations-ae` (started 2026-11-25 late by the owner; CI and release speed, no Mac builds) | `handoff/PLAN/restart/speed.md` |
 
 Build chats list new finds under "For the planning chat" on their restart page and message the planning chat; it
 replies with the Tnnn.

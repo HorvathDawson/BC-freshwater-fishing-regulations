@@ -1,6 +1,6 @@
 """TEST ANCHORS, the pipeline half (T667 work item 4; the app half is `app/tools/check-test-anchors.mjs`).
 
-A test stands on ONE of four anchors (T667-audit §3 "Rules for new tests"): (a) data it builds itself, (b) a frozen
+A test stands on ONE of four anchors (ticket T667, "Rules for new tests"): (a) data it builds itself, (b) a frozen
 committed fixture, (c) THE DATA UNDER TEST read through `pipeline/tests/under_test.py`, (d) a generated expectations
 file. This scanner finds the test files that stand on something else, or that name a position of one build. It reads
 the AST, so a comment or a docstring is never an offender: only code is.
