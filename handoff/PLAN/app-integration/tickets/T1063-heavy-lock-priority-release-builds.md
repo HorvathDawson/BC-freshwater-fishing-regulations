@@ -26,3 +26,22 @@ feeds `--status` (`scripts/heavy.sh` lines 226–253), so the lock goes to whoev
 a test of the queue order; the runbook names the flag.
 
 Severity: medium (a release build waited 70 minutes; false-red hooks). Release: 0.9.2. Model: Sonnet. Size: S. Owner: no.
+
+## Deep look 2026-11-25 night: the phone builds, measured from logs
+Notes: `tickets/archive/night-notes-2026-11-25.tar.gz` `phone-builds-deep-look.md` (the replacement text for this ticket is there).
+- The builds are short: Android Gradle 56 s to 6 m 3 s (45 builds in Gradle's logs); iPhone archive 81-131 s (7
+  builds), export plus upload 82 s. MapLibre is not rebuilt each time (once per pin; T1170).
+- The hours are four causes: (1) Gradle hung after it said done (T1058 removes the trigger and caps THAT hang at
+  about 2 min; hangs in other steps are not watched, and Xcode has no watchdog at all); (2) the "fast" pre-check
+  reruns the whole pipeline test tier on a tree CI and the follows already tested, outside the lock
+  (`fast-fail.sh:399-409`): the 30 min; (3) the machine lock is first-come-first-grabbed (the 70-min iPhone
+  wait), and the iPhone build holds it up to 45 min while only polling Apple; (4) T1059 reads only the newest
+  1,000 runs per workflow and app-ci already has 1,330, so the CI "cannot tell" can come back.
+- "Build overnight, upload in the morning" has no command: `--publish-only` does not upload the Android bundle to
+  Play, and an iPhone `--no-upload` build is uploaded by hand.
+- Estimate (from logs and guesses, not timed): the phones' part of a release morning from about 2.5-3 h to 20-30
+  min after the lock, pre-check and watchdog fixes, and to 5-10 min of the owner's time with overnight builds.
+
+## Owner
+
+- [ ] 2026-11-25 — Picks (defaults first): the lock: a priority lane for release builds, no holding it while idle, a lighter pre-check for store builds; phones built on the release candidate overnight once "upload what was built" exists; stay on the Mac, Android to GitHub after T1170; a bundle is kept after a stopped Gradle client if its signature, MapLibre and R8 checks pass; the external TestFlight submit is run by Claude on your word.

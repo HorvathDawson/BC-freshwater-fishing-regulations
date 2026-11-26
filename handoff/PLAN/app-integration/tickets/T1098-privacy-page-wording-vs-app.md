@@ -44,3 +44,8 @@ Severity: medium (a public legal statement that is partly untrue; Apple reads it
 submission (T1071): a site-only change, routed to the 0.9.1 chat for its site deploy (the iOS chat does not take
 it: website code with pinned-string tests). Model: Sonnet (Opus not needed: the
 code facts are listed). Size: S. Owner: yes (reads the new words; item 2 and 3 picks; the production deploy).
+
+## Still open (from the deleted T1098-shots/privacy-before-after.md, 2026-11-25)
+- The owner reads the new words on the page itself (`/privacy`, built from `privacyBody` in `app/tools/seo/html.ts`); the before/after list is in git history (T1098-shots/privacy-before-after.md).
+- Item (a), owner pick "Strict: linked": the install id stays on a report that carries an email; the page says when it can be connected to a person.
+- Item (g) moved to T1116 (30-day token age confirmed); the page must go live with or after that app and the feeds worker deploy.

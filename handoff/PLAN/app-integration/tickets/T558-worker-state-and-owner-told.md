@@ -9,7 +9,7 @@ Status: PARTIAL — afbdaf2d2 (W3 reads), 924221934 (W8 + item 5), dd7032d6c (W9
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 14 of 17; highest severity 3 of 5.
 
 Line numbers are the reviewers' and may be off by a few. Fixes are proposals: re-read the code before building. Also
-covers T608C W3, W8, W9, W13 (`handoff/PLAN/app-integration/T608C-findings.md`).
+covers T608C W3, W8, W9, W13 (the T608 part C audit, git history: T608C-findings.md).
 
 Done: 1 failed read never written back empty (afbdaf2d2 W3, 026ca775b W13 etag); 2 daily jobs watched (e777f33e8); 3
 email channel (069d61d45); 4 worker half (306056ce9); 5 status before notify + cron logs (924221934, W8); 6 no date

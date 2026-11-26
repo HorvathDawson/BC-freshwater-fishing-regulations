@@ -6,7 +6,7 @@ Status: OPEN.
 |---|---|---|---|---|
 | T1088 | Lakelse r5, a "Note: the mouth … signs" rule, walks onto every tributary | OPEN — 0.10.1 | | 0.9.1 chat 2026-11-24 |
 
-Source: the 0.9.1 chat's T1053 lane, 2026-11-24. Evidence: the T1053 lane's before/after list, `head-lakes-before-after.md` in the T1053-shots folder on branch feat/T1053-walk-climbs-head-lakes (not pushed when reported).
+Source: the 0.9.1 chat's T1053 lane, 2026-11-24. Evidence: the T1053 lane's before/after list, `handoff/PLAN/app-integration/T1053-shots/head-lakes-before-after.md` on branch feat/T1053-walk-climbs-head-lakes (not pushed when reported).
 
 ## Work
 1. A note about where the mouth is marked belongs to the mainstem's mouth, not its tributaries: find why it walks (a `tributaries` flag on a note row?) and how many other note rows do the same.

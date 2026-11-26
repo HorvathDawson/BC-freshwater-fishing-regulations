@@ -8,7 +8,7 @@
  * The native fake answers like Android does (N1): ids are STRINGS, a feature with no id is "", and the press event's
  * `nativeEvent` is gone once the handler yields — so reading it after an `await` fails here as it does on a phone.
  *
- * Not proven here: the renderers themselves (no WebGL, no MapLibre Native). That is the emulator run (n2/README.md).
+ * Not proven here: the renderers themselves (no WebGL, no MapLibre Native). That is the emulator run (a device or emulator walk).
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";

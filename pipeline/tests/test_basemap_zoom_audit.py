@@ -9,7 +9,7 @@ tests run it on a tiny fixture archive made with tippecanoe, never on the 4 GB s
   - an accepted urban kind is reported as accepted, not lost;
   - a feature the filter drops does not count;
   - a clean cap passes.
-The live measurement is in `basemap.py` beside `AUDIT_EXTENTS` and in T202-basemap-audit.md.
+The live measurement is in `basemap.py` beside `AUDIT_EXTENTS`.
 """
 
 from __future__ import annotations

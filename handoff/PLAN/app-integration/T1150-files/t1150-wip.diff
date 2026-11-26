@@ -1,0 +1,59 @@
+diff --git a/pipeline/atlas/waters/added_streams/build_dataset.py b/pipeline/atlas/waters/added_streams/build_dataset.py
+index 610b4353b..8c71192b3 100644
+--- a/pipeline/atlas/waters/added_streams/build_dataset.py
++++ b/pipeline/atlas/waters/added_streams/build_dataset.py
+@@ -1104,12 +1104,17 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
+     add_geom_wsc: dict[str, tuple[LineString, str, float]] = {}   # added blk -> (geom, wsc, length)
+     lake_outlet_blks: set[int] = set()                            # streams run THROUGH a lake as its spine
+     lake_stub_fixed: list[int] = []                               # T289: connectors re-joined inside a lake
++    # the tidal codes first, in minting order, then off every FWA stream's own code (T1150, `coastal.off_fwa`)
++    tidal_wsc = coastal.off_fwa(
++        {ch.blk: coastal.estimate_coastal_wsc(Point(geom[ch.blk].coords[0]), coastal_streams, used_coastal)
++         for ch in order_topo if receiver[ch.blk][0] == "tidal"},
++        {trim_wsc(w or "") for _, w in coastal_streams})
+     for ch in order_topo:
+         kind, rblk = receiver[ch.blk]
+         line = geom[ch.blk]
+         mouth = Point(line.coords[0])
+         if kind == "tidal":
+-            wsc = coastal.estimate_coastal_wsc(mouth, coastal_streams, used_coastal)
++            wsc = tidal_wsc[ch.blk]
+             proj_of[ch.blk] = 0.0; connector_of[ch.blk] = None
+         else:
+             to_blk = rblk
+diff --git a/pipeline/atlas/waters/added_streams/coastal.py b/pipeline/atlas/waters/added_streams/coastal.py
+index 75fed0a79..2314faf01 100644
+--- a/pipeline/atlas/waters/added_streams/coastal.py
++++ b/pipeline/atlas/waters/added_streams/coastal.py
+@@ -48,3 +48,31 @@ def estimate_coastal_wsc(mouth: Point, coastal: list[tuple[Point, str]], used: s
+         code = f"{l1}-{n:06d}"
+     used.add(code)
+     return code
++
++
++#: T1150 (owner 2026-11-25 "Fix the cause"): A CITY LINE NEVER TAKES AN FWA RIVER'S OWN CODE. `estimate_coastal_wsc`
++#: keeps the added tidal streams apart from each other only, so a city line could inherit its nearest FWA stream's
++#: exact code (Tunnel Creek took the Seymour River's 900-078372) and the atlas filed it as a piece of that water.
++#: False = the mutation pin.
++NEVER_AN_FWA_CODE = True
++
++
++def off_fwa(codes: dict, fwa_codes) -> dict:
++    """`codes` ({blk: minted tidal code}, in minting order) with every code that IS an FWA stream's (`fwa_codes`,
++    trimmed) moved to the nearest free Level-2 above it — free of every FWA code and of every other minted code, so
++    no other stream's code moves (the bump in `estimate_coastal_wsc` would shift every code after it)."""
++    if not NEVER_AN_FWA_CODE:
++        return dict(codes)
++    fwa = set(fwa_codes)
++    taken = fwa | set(codes.values())
++    out = {}
++    for blk, code in codes.items():
++        if code in fwa:
++            l1, _, l2 = code.partition("-")
++            n = int(l2)
++            while code in taken:
++                n = (n + 1) % 1_000_000
++                code = f"{l1}-{n:06d}"
++            taken.add(code)
++        out[blk] = code
++    return out

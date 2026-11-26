@@ -70,6 +70,18 @@ Notes: `tickets/archive/night-notes-2026-11-25.tar.gz` `ci-speed-build-plan.md` 
   (T1161).
 - Order: the title check, `caffeinate`, parallel tests, then dropping the main push run.
 
+## Finds 2026-11-25 late (from the chats)
+- A docs-only PR can break a pipeline test that nothing runs on it: the planning chat's PR #272 added a notes
+  archive under `tickets/archive/`, and `pipeline/tests/test_reports_cmd.py` reads every archive there as closed
+  tickets; docs PRs skip the pipeline tier, so main went red unseen until PR #273's queue run (fixed there: the
+  test globs `closed-*.tar.gz`). The path filter must send `tickets/archive/**` (and any docs path a pipeline
+  test reads) to the pipeline tier, or that test belongs to the docs tier (the speed chat fixes it in its
+  "no third run" PR).
+- A fresh worktree cannot commit or push until it has `app/node_modules` and a `.venv` (the commit hook:
+  "commitlint is not installed"; pre-push: build-coho needs `<worktree>/.venv`, though the hook itself falls back
+  to the main checkout's): about 5 min lost per new worktree; build-coho should take `PIPELINE_PY` like the hook.
+- A docs-guard test assumed a single restart page (`app/tools/check-tickets.test.ts`; fixed in PR #275).
+
 ## Owner
 
 - [ ] 2026-11-25 — After 0.10.0 is out: turn Dependabot security updates back on (the repo switch, yours) and CodeQL back on (one field on the org security configuration); the planning chat reminds you (T1141).

@@ -19,13 +19,9 @@
  * Both are one `Animated.Value` on `useNativeDriver`. Parsing a 10 MB bundle on the JS
  * thread cannot touch either.
  *
- * ON WEB THAT IS ONLY HALF TRUE, and the browser says so out loud: react-native-web has no
- * native animated module, so it warns and falls back to a JS-driven loop. The baked frames
- * still buy the larger half — a spine, two fins, a curved tail and five bubbles are no
- * longer recomputed per frame, only a translate and a rotate are — but the transform
- * interpolation itself is JS there. Closing that gap means a `FishSpinner.web.tsx` running
- * a CSS `steps()` keyframe over the same strip, which the sprite is already shaped for.
- * Not done; see RENDER-TESTS.md.
+ * On web react-native-web has no native animated module, so the web build is
+ * `FishSpinner.web.tsx` (CSS keyframes over the same strip, no JS loop); see
+ * packages/ui-native/RENDER-TESTS.md.
  *
  * The strip is grayscale+alpha and tinted at runtime, so one baked file serves the light,
  * dark and colour-blind palettes and cannot drift from them.
