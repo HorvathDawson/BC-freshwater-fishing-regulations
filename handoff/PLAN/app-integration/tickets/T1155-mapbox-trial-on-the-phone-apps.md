@@ -42,6 +42,12 @@ The owner has the numbers and pictures and has decided. Nothing ships to testers
 the MapLibre build still builds and passes its tests at the end (switching back is one setting). Severity:
 feature trial. Model: Opus. Size: M–L. Owner: the Mapbox account and token, the letter to Mapbox, the decision.
 
+## 2026-11-25 night: from T1154's scoping
+The local tile server for our PMTiles is built HERE, for the Mapbox engine only (MapLibre stays on
+`pmtiles://file://`: moving it would blank the map offline on Android and drop the colours; see T1154). So the
+trial also has to prove on Mapbox what MapLibre gets from the file path: the map offline in airplane mode, the
+per-tile feature ids for colouring, and that the server's tiles do not evict the satellite cache.
+
 ## Owner
 
 - [ ] 2026-11-25 — When T1154 is done: create a free Mapbox account and a restricted public token for the trial builds (steps will be handed to you), and send the confirmation questions to Mapbox (a draft comes with them).

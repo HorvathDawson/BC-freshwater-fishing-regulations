@@ -63,8 +63,30 @@ Not this ticket, by the owner's ruling of the same night: a river that is the LI
 or regions is in both and takes either's closure (Campbell River: "campbell river is correct it straddles so is
 included in mu 1-10 and 1-6 so is in closure"). That data is right.
 
+## First-patch plan 2026-11-25 night (read-only; build-ready)
+Notes: `tickets/archive/night-notes-2026-11-25.tar.gz` `T1149-first-patch-plan.md` (pictures and scripts beside it in the planning chat's scratchpad).
+- **Fix Creston with the clean cut national parks already use, not with "mostly inside" binding.** Majority
+  binding moves the error inside the parks: Bowron, 26.4 km inside would show the looser regional quota and allow
+  bait; Strathcona, 102.5 km inside would lose its rule and 19 sections would still reach more than 1 km outside;
+  Creston alone, 9.5 km would still say "bass: no limit" outside (the Kootenay River's 3.4 km is named by the
+  book as included) and 16.3 km inside would lose the permit line. PR #265 has no "inside length" measure to
+  reuse (`part.inside_area` tests only where a part's runs start and end); `regions.region_shares` is the one
+  that exists.
+- The cut is small: ONE curated edit, a proposal for the owner: Creston gets its own WMA entry with
+  `cut: "clean"`, rejoin 1,000 m; the area id stays; no new cutter code. About 66 new sections; section ids
+  change, item ids do not (no entry resync); 0 owner marks on the Creston entry. One atlas side build (32 min,
+  20 GB peak) and the tiles; the release can reuse the proof's atlas. A bug the lane must fix:
+  `lake_loops.py:94-99` treats every `area:wma:` area as uncut. Cutting ALL parks and WMAs is not worth it
+  (about 18,000 new sections that no rule reads).
+- The build check: the longest UNBROKEN run outside an area is at most 1,000 m, counted only inside B.C. (a
+  total-length limit would refuse Yoho's Beaverfoot River, which is the park's boundary; today's national parks
+  pass, longest run 976 m). It starts with a list of known exceptions that may only shrink: Strathcona's 114 and
+  Bowron's 17 sections (the hardening release).
+- Estimated: about 26-28 h on the clock, 11-12 h of work.
+
 ## Owner
 
 - [x] 2026-11-25 — When to fix it: next patch scoped first / hold 0.10.0 / the hardening release → "what is the issue here if they are straddling they can get the rule? but if it needs fix (we can scoper the issue when we do it) with hardening release" (2026-11-25)
 - [x] 2026-11-25 — The Creston Valley WMA rule shows on 190 km outside the area (illegal bass retention shown as allowed): when → "first patch so that it has hopefully improved cycle time from the audit" (2026-11-25)
 - [ ] 2026-11-25 — After the first-patch plan: pick the fix (a clean cut of Creston, Bowron and Strathcona with a build check, recommended; or mostly-inside binding with no atlas rebuild) and the length allowed outside an area (default 1,000 m); Liard is left as it is unless you say.
+- [ ] 2026-11-25 — Picks for the first patch (defaults first): Creston by the cut / majority for WMAs only / majority for every area; Strathcona and Bowron in the hardening release / in this patch too; the check: 1,000 m unbroken run / 1,000 m total / 250 m, starting with a shrinking exceptions list / strict from day one; the four new 10-14 m pieces at the WMA edge: accept / pictures first. The curated edit comes to you as a proposal with before / after pictures of Goat River and Corn Creek.

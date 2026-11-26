@@ -1,10 +1,10 @@
 # T1157 — The synopsis on gov.bc.ca has changed since the repo's copy: 37 of 88 pages differ in text; find what the data is missing
 
-Status: OPEN — HIGH until read: a row-by-row comparison first (read-only), then the annual runbook's steps for what changed
+Status: PARTIAL — step 1 done (the comparison); the work moved to T1166, T1167, T1168; owner: see ## Owner
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1157 | The synopsis on gov.bc.ca has changed since the repo's copy: 37 of 88 pages differ in text; find what the data is missing | OPEN — HIGH until read: a row-by-row comparison first (read-only), then the annual runbook's steps for what changed | — | planning chat 2026-11-25: a read-only pass classifies every changed line (wording / layout / a rule); rule changes go to the owner; parser runs are his |
+| T1157 | The synopsis on gov.bc.ca has changed since the repo's copy: 37 of 88 pages differ in text; find what the data is missing | PARTIAL — step 1 done (the comparison); the work moved to T1166, T1167, T1168; owner: see ## Owner | — | planning chat 2026-11-25: a read-only pass classifies every changed line (wording / layout / a rule); rule changes go to the owner; parser runs are his |
 
 Source: the planning chat, 2026-11-25 21:44, while fixing T1156. Today's
 `https://www2.gov.bc.ca/…/freshwater-fishing/fishing_synopsis.pdf` (25,149,573 bytes, sha256 a83fc5995b29…) was
@@ -47,6 +47,23 @@ rows; the data matches the current book or each difference is a recorded decisio
 Severity: HIGH until step 1 says otherwise (the app may be showing last spring's book). Release: step 1 now; the
 rule changes in the first patch they fit. Model: Opus. Size: M (step 1), then by what it finds. Owner: the rows.
 
+## Step 1 done 2026-11-25 night (read-only; rendered pages compared pixel by pixel)
+Notes: `tickets/archive/night-notes-2026-11-25.tar.gz` `T1157-changed-book.md`. The gov.bc.ca copy is the NEWER one (metadata: made 2026-07-29, edited
+2026-08-25; the repo copy 2025-11-18). Of the 37 pages: 23 wording only, 3 layout only, 4 licensing, 6 rules,
+1 lost rows. The raw text diff put some rules on the wrong waters and missed the Similkameen (hidden text layer).
+- Stale in our data (told closed when open; both passed for 2026, next summer 2027): Cowichan River (1-4)
+  "No Fishing July 4-July 14" was a 2025-only closure stored as every-year; Heber River (1-9) above the canyon
+  now ends Aug 31, the data says Sept 14.
+- Seven closures of July 30-Sept 15, 2026 (Salmon River 3-26, Bessette Creek, Granby River and tributaries,
+  Okanagan River and Oxbows, Similkameen River) are the province's in-season notices: in the app as banners only
+  (the answer said "open" in the window); over now, banners still showing.
+- The province's copy has errors: Little Qualicum River and Lizard Lake rows are missing, Puntledge is printed
+  twice; a blind re-parse would drop real rules.
+- Licensing: FWID may be stated instead of showing a licence since 2026-04-01; WILD; fees unchanged.
+What follows, by the owner's answers of the same night: T1166 (a feed that notices the next change), T1167 (the
+banner window and a louder banner), T1168 (the licence wording, the gotcha entry, the stale rows later).
+
 ## Owner
 
 - [ ] 2026-11-25 — After the read-only comparison: look at the list of rule and licensing changes in the current book and say how each comes in (your parser run and review for changed rows). Default: nothing changes in the data until you have seen the list.
+- [x] 2026-11-25 — The list of rule and licensing changes → answered the same night, recorded in T1166, T1167, T1168 (2026-11-25)
