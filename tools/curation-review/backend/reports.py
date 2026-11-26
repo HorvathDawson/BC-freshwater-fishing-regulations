@@ -64,7 +64,7 @@ def fetch(since: str | None = None, opener=None) -> list[dict]:
     if not tok:
         raise ReportsUnavailable(f"no run token (set CURATION_REPORTS_TOKEN or write {_TOKEN_FILE})")
     req = urllib.request.Request(f"{_url()}?since={since}&test=1", headers={"Authorization": f"Bearer {tok}",
-                                                                     "User-Agent": "tools/curation-review/reports"})
+                                                                     "User-Agent": "curation-review/reports"})
     try:
         with (opener or urllib.request.urlopen)(req, timeout=30) as r:
             body = json.loads(r.read().decode("utf-8"))
