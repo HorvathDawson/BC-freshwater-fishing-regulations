@@ -44,16 +44,20 @@ class Follow:
     """One thing that follows the release. `paths`: the committed paths its refresh rewrites (repo-relative; a folder
     means everything under it). `refresh`: the key of the command that re-makes it (`REFRESH`), or None when the
     release keeps it without a command. `answers`: a change here is a change in what an angler is told (the release
-    stops and shows it; every other row's change is committed with the release id)."""
+    stops and shows it; every other row's change is committed with the release id). `pins` (T1135): the paths are
+    release-pins files, judged pin by pin (`moved_answer_pins`): only a moved `answers: true` pin is an answer change."""
     name: str
     what: str
     paths: tuple[str, ...]
     refresh: str | None
     answers: bool = False
+    pins: bool = False
 
 
 #: the app's release-backed fixtures, all re-cut by ONE command (`app/tools/regs-recut/sync.mjs`, T441), in its order
 RECUT = "recut"
+#: (T1135) the command that writes the release-pins files (the re-cut's last step)
+REFRESH_PINS = "node app/tools/regs-recut/sync.mjs"
 #: the in-season notice matches, re-resolved on the release (T537)
 INSEASON = "inseason"
 #: (T791 #4, T993 item 16) the pipeline's live-data tier, run on the release
@@ -69,6 +73,10 @@ FOLLOWS: tuple[Follow, ...] = (
            ("app/packages/data/dev/regs-release", "app/packages/data/dev/section-lines.json"), RECUT),
     Follow("golden-pages", "the frozen golden pages (the words of each golden state's page)",
            ("app/packages/ui-native/src/regs/fixtures",), RECUT, answers=True),
+    # (T1135) values copied from a release into tests (`pin(name, value)`), recorded on the release by the re-cut's last
+    # step (`app/tools/regs-recut/pins.mjs`): a moved `answers: true` pin stops with the golden pages, under one token
+    Follow("pins", "the release pins: each value a release-backed test compares with, recorded on the release",
+           ("app/fixtures/golden/release-pins.json", "pipeline/tests/fixtures/release-pins.json"), RECUT, pins=True),
     Follow("inseason", "the in-season notice matches, their ranges re-derived on the release (T679 #11: into the "
            "generated resolution, data/generated/inseason/resolved.json; not in git — the curated matches are only read)",
            (), INSEASON),
@@ -124,9 +132,77 @@ def row_of(path: str) -> Follow | None:
 
 
 def answer_paths(changed: list[str]) -> list[str]:
-    """The changed paths that are a change in what an angler is told (rows with `answers`). Empty: the change only
-    renumbers — ids, handles, the fixture release's files (T667 D5: committed without a stop)."""
-    return sorted(p for p in changed if (row_of(p) or Follow("", "", (), None)).answers)
+    """The changed paths that are a change in what an angler is told (rows with `answers`; a pins file whose
+    `answers: true` pins moved, T1135). Empty: the change only renumbers — ids, handles, counts, the fixture release's
+    files (T667 D5: committed without a stop)."""
+    def answers(p: str) -> bool:
+        row = row_of(p)
+        return bool(row and (row.answers or (row.pins and moved_answer_pins(p))))
+    return sorted(p for p in changed if answers(p))
+
+
+def answer_roots() -> list[str]:
+    """Every path whose change can stop the release: what its stop tells you to `git diff`."""
+    return [p for f in FOLLOWS if f.answers or f.pins for p in f.paths]
+
+
+class PinsFileError(ValueError):
+    """(T1135) a release-pins file that is not one (bad JSON, no "pins" object, an entry that is not
+    {"answers": bool, "value": ...}): the release STOPS on it, naming the file and the entry — never a pass, never an
+    accept (a token covers a re-cut's content, not a broken file)."""
+
+
+def is_pins(path: str) -> bool:
+    row = row_of(path)
+    return bool(row and row.pins)
+
+
+def _pins_at(path: str, rev: str | None) -> dict:
+    """{name: {value, answers}} of the pins file `path` at `rev` (None: on disk); {} when it is not there. Raises
+    PinsFileError naming the file (and the entry) when it is not a pins file."""
+    where = path if rev is None else f"{path} at {rev}"
+    fix = f"it is written by `{REFRESH_PINS}` (its pins step), never by hand: re-cut, or restore it from git"
+    if rev is None:
+        f = Path(REPO_ROOT) / path
+        try:
+            text = f.read_text(encoding="utf-8") if f.is_file() else None
+        except OSError as e:
+            raise PinsFileError(f"{where}: cannot be read ({e}); {fix}") from None
+    else:
+        got = subprocess.run(["git", "show", f"{rev}:{path}"], cwd=REPO_ROOT, capture_output=True, text=True)
+        text = None if got.returncode else got.stdout
+    if text is None:
+        return {}
+    try:
+        doc = json.loads(text)
+    except ValueError as e:
+        raise PinsFileError(f"{where}: not JSON ({e}); {fix}") from None
+    pins = doc.get("pins") if isinstance(doc, dict) else None
+    if not isinstance(pins, dict):
+        raise PinsFileError(f"{where}: no \"pins\" object; {fix}")
+    for n, p in pins.items():
+        if not (isinstance(p, dict) and isinstance(p.get("answers"), bool) and "value" in p):
+            raise PinsFileError(f"{where}: pin {n!r} is {json.dumps(p)[:80]}, not {{\"answers\": true|false, "
+                                f"\"value\": ...}}; {fix}")
+    return pins
+
+
+def moved_answer_pins(path: str, rev: str = "HEAD") -> list[str]:
+    """(T1135) the `answers: true` pins (words or pages an angler reads) that the pins file `path` adds, drops or moves
+    between `rev` and the working tree, sorted. A pin with `answers: false` (a count, an id) never stops. A file that
+    is not a pins file raises PinsFileError (the release stops on it: `stage_recut`)."""
+    old, new = _pins_at(path, rev), _pins_at(path, None)
+    return sorted(n for n in set(old) | set(new)
+                  if (old.get(n) or {}).get("answers") or (new.get(n) or {}).get("answers")
+                  if old.get(n) != new.get(n))
+
+
+def said(pages: list[str]) -> list[str]:
+    """Each answer path as a stop shows it: a pins file with the moved pins it holds."""
+    out = []
+    for p in pages:
+        out.append(p + (f" — answer pin(s) moved: {', '.join(moved_answer_pins(p))}" if is_pins(p) else ""))
+    return out
 
 
 #: (T993 item 8) the keys whose int lists are SOURCE INDEXES on a golden page (`src`: rows of the release's own source
@@ -189,6 +265,8 @@ def renumbered_only(paths: list[str], rev: str = "HEAD", rules=None) -> tuple[bo
     at new on disk (`fixture_rules`; `rules` = (before, after) tables stands in). (True, the note naming the mapping)
     or (False, the first difference). A page added or removed is never a renumber; a table that cannot be read is
     never one either."""
+    if any(is_pins(p) for p in paths):     # (T1135) a pin's value is what a test compares, never a source index
+        return False, f"{next(p for p in paths if is_pins(p))}: a release-pins file is never a renumber"
     mapping: dict[int, int] = {}
     diff: list[str] = []
 
@@ -307,8 +385,9 @@ def app_tests(root: Path | None = None) -> list[str]:
 
 def test_env(release_dir: Path) -> dict:
     """The environment that points both suites at `release_dir`. REGS_STORE_REQUIRED: a parity suite that cannot pair
-    with that release FAILS (a skip would read as green)."""
-    return {RELEASE_ENV: str(release_dir), "REGS_STORE_REQUIRED": "1"}
+    with that release FAILS (a skip would read as green). PIN_RECORD empty (T1135): the pins COMPARE here, whatever the
+    shell exported — record mode belongs to the re-cut alone."""
+    return {RELEASE_ENV: str(release_dir), "REGS_STORE_REQUIRED": "1", "PIN_RECORD": ""}
 
 
 def pipeline_tests_cmd(files: list[str], junit: Path | None = None) -> list[str]:
@@ -391,6 +470,7 @@ def main() -> int:
     for f in FOLLOWS:
         print(f"  {f.name:13} {f.what}\n{'':16}refresh: {f.refresh or '(kept by the release, no command)'}"
               + ("  — a change STOPS the release (an answer changed)" if f.answers else "")
+              + ("  — a moved `answers: true` pin STOPS the release" if f.pins else "")
               + "".join(f"\n{'':16}{p}" for p in f.paths))
     py, app = pipeline_tests(), app_tests()
     print(f"\ntests that ask for the release under test ({RELEASE_ENV}; found by rule):")

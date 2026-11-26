@@ -31,7 +31,9 @@ describe("the web map applies the gesture policy", () => {
  */
 describe("the native map applies the gesture policy and feature-state by id", () => {
   const src = readFileSync(new URL("../packages/map/src/Map.native.tsx", import.meta.url), "utf8");
-  const mapEl = src.slice(src.indexOf("<MLMap"), src.indexOf("</MLMap>"));
+  // (T1154) the map element and its children are the engine's tree (`native/maplibre/View.tsx`); the shell decides
+  const view = readFileSync(new URL("../packages/map/src/native/maplibre/View.tsx", import.meta.url), "utf8");
+  const mapEl = view.slice(view.indexOf("<MLMap"), view.indexOf("</MLMap>"));
   it("spreads the policy onto the map element (no switch set beside it), and says the tap slop is MapLibre's own", () => {
     expect([mapEl.includes("{...nativeMapGestures()}"), /touchRotate|touchPitch|compass=|dragPan|touchZoom/.test(mapEl),
             src.includes("The 8 px TAP SLOP is MapLibre Native's own here")]).toEqual([true, false, true]);
@@ -51,7 +53,7 @@ describe("the native map applies the gesture policy and feature-state by id", ()
             adapter.includes("SECTION_SOURCE_LAYERS.includes(t.sourceLayer)"),
             src.includes("areaLayer(layerId) ? area : sec"),
             // (T876) the atlas source element now holds the adopted label layers: the same source by id, the same ref
-            /<VectorSource id="atlas" ref=\{atlasAttached\}\s*\/?>/.test(src),
+            /<VectorSource id="atlas" ref=\{atlasAttached\}\s*\/?>/.test(view),
             src.includes("nativeStyle({")]).toEqual([true, true, true, true, true, true, true, true, true]);
   });
   it("draws the web's metric scale bar, not the binding's", () => {
