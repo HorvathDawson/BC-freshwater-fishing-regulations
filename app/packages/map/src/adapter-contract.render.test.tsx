@@ -1298,7 +1298,8 @@ describe("(T1154) native: the patched binding's still tap and per-tile ids", () 
   const STREAM_TAP = "query [[88,188],[112,212]] stream,lake_flowing,wetland_flowing";
   const lift = (x: number, y: number, lon: number, lat: number) => {
     const e: Press = { nativeEvent: { point: [x, y], lngLat: [lon, lat] } };
-    act(() => { (native.props!.onTapUp as ((e: Press) => void) | undefined)?.(e); });
+    // called outright: a map that hands the binding no `onTapUp` fails here at once
+    act(() => { (native.props!.onTapUp as (e: Press) => void)(e); });
     e.nativeEvent = null;                // recycled once the handler yields, as a press is
   };
 
@@ -1320,12 +1321,44 @@ describe("(T1154) native: the patched binding's still tap and per-tile ids", () 
     PLATFORMS.native.tap(100, 200, -122.3, 49.1);
     await waitFor(() => expect(press.mock.calls.length).toBe(1));
     await act(async () => {});
-    expect({ atLift, start: start.mock.calls, press: press.mock.calls, point: point.mock.calls, log }).toEqual({
+    const atClick = [...log];
+    // the click used the lift up: another click on the same spot (no lift of its own) asks for itself
+    PLATFORMS.native.tap(100, 200, -122.3, 49.1);
+    await waitFor(() => expect(press.mock.calls.length).toBe(2));
+    expect({ atLift, atClick, start: start.mock.calls, press: press.mock.calls, point: point.mock.calls, log }).toEqual({
       atLift: { log: [STREAM_TAP], press: 0 },
+      atClick: [STREAM_TAP],
       start: [["stream", 311274, 49.1, -122.3]],
-      press: [["stream", 311274, 49.1, -122.3]],
-      point: [[49.1, -122.3]],
-      log: [STREAM_TAP],
+      press: [["stream", 311274, 49.1, -122.3], ["lake", 1566515, 49.1, -122.3]],
+      point: [[49.1, -122.3], [49.1, -122.3]],
+      log: [STREAM_TAP, STREAM_TAP, "query [[88,188],[112,212]] lake,wetland"],
+    });
+  });
+
+  it("(T716) a fish obstacle under the lift is the obstacle's: no water is said, and the click opens the obstacle", async () => {
+    const start = vi.fn();
+    const press = vi.fn();
+    const obstacle = vi.fn();
+    answer = (layers) => (layers.includes("obstacle") ? [{ properties: { kind: "falls", name: "Tamihi Falls" } }]
+      : layers.includes("stream") ? [{ id: "311274" }] : []);
+    render(<NativeMap {...base({ data: undefined, highlight: undefined, onPressStart: start, onPressFeature: press,
+                                 onPressObstacle: obstacle })} />);
+    await waitFor(() => expect(native.props).toBeTruthy());
+    await act(async () => {});
+    log.length = 0;
+    lift(100, 200, -122.3, 49.1);
+    await act(async () => { await new Promise((d) => setTimeout(d, 20)); });
+    const atLift = [...log];
+    PLATFORMS.native.tap(100, 200, -122.3, 49.1);
+    await waitFor(() => expect(obstacle.mock.calls.length).toBe(1));
+    await act(async () => {});
+    // the lift did not decide (`ask` → null), so the click asked the obstacle layer for itself, and stopped there
+    expect({ atLift, start: start.mock.calls, press: press.mock.calls, obstacle: obstacle.mock.calls, log }).toEqual({
+      atLift: ["query [[88,188],[112,212]] obstacle", STREAM_TAP],
+      start: [],
+      press: [],
+      obstacle: [[{ kind: "falls", name: "Tamihi Falls" }]],
+      log: ["query [[88,188],[112,212]] obstacle", STREAM_TAP, "query [[88,188],[112,212]] obstacle"],
     });
   });
 
@@ -1367,18 +1400,22 @@ describe("(T1154) native: the patched binding's still tap and per-tile ids", () 
     await waitFor(() => expect(native.watches!.length).toBeGreaterThan(0));
     await act(async () => { await new Promise((d) => setTimeout(d, 20)); });
     log.length = 0;
+    return native.watches!.map((w) => [...w]);       // the watches the mount asked for
   };
 
   it("(T74) a tile's ids label its sections at once, through the batched call; another map's tile labels nothing", async () => {
-    await mounted();
-    tileIds({ tag: 8, z: 9, x: 81, y: 172, layers: { stream: [10] } });
+    const atMount = await mounted();
+    // another map's source (tag 8), with sections this map's tile does not carry: a lost tag filter labels them here
+    tileIds({ tag: 8, z: 9, x: 90, y: 170, layers: { stream: [14], lake: [15] } });
     tileIds({ tag: 7, z: 9, x: 81, y: 172, layers: { stream: [10, 11, 13], lake: [12] } });
-    await waitFor(() => expect(atlasLog().length).toBe(4));
+    await waitFor(() => expect(atlasLog().length).toBeGreaterThanOrEqual(4));
     await act(async () => { await new Promise((d) => setTimeout(d, 20)); });
-    expect(atlasLog()).toEqual([
-      'set atlas/stream 10 {"p":"p0"}', 'set atlas/stream 11 {"p":"p1"}', 'set atlas/stream 13 {"p":"b"}',
-      'set atlas/lake 12 {"p":"b"}',
-    ]);
+    // the attach asks for the tiles ONCE (a watch per render re-sent every tile's ids, T420)
+    expect({ atMount, sent: atlasLog() }).toEqual({
+      atMount: [["stream", "lake", "wetland"]],
+      sent: ['set atlas/stream 10 {"p":"p0"}', 'set atlas/stream 11 {"p":"p1"}', 'set atlas/stream 13 {"p":"b"}',
+             'set atlas/lake 12 {"p":"b"}'],
+    });
   });
 
   it("(T420) a repeat of a tile held sends nothing; a repeat of one not held is reported and the binding re-watched", async () => {
@@ -1389,6 +1426,8 @@ describe("(T1154) native: the patched binding's still tap and per-tile ids", () 
     log.length = 0;
     const before = native.watches!.length;
     tileIds({ tag: 7, z: 9, x: 81, y: 172 });
+    // another map's repeat of a tile this map never held: not this map's business, so no report and no re-watch
+    tileIds({ tag: 8, z: 9, x: 83, y: 172 });
     await act(async () => { await new Promise((d) => setTimeout(d, 20)); });
     const heldRepeat = { log: [...log], errors: [...errors], watches: native.watches!.length - before };
     tileIds({ tag: 7, z: 9, x: 82, y: 172 });
