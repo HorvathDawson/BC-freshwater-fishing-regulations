@@ -53,10 +53,6 @@ def test_every_pip_install_of_the_project_takes_constraints():
 
 
 def test_no_workflow_has_a_schedule():
-    # (T1144, PLANTED FAILURE: reverted by the next commit) fires only inside an xdist worker, so CI's Tests step must
-    # go red naming this test while the Mac's serial pre-push run passes
-    assert "PYTEST_XDIST_WORKER" not in os.environ, "T1144 planted failure inside xdist worker " + os.environ.get(
-        "PYTEST_XDIST_WORKER", "")
     assert [f.name for f in WF.glob("*.yml") if "schedule" in _on(_load(f.name))] == []
 
 
