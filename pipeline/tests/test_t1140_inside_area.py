@@ -70,6 +70,7 @@ def _db(channel_far: float = 20.0, other_item_stem: bool = False):
                                   PRIMARY KEY (ord, part_ix));
         CREATE TABLE span_end (eid INTEGER PRIMARY KEY, token TEXT);
         CREATE TABLE part_own_name (ord INTEGER, part_ix INTEGER, name TEXT, label TEXT);
+        CREATE TABLE section_join (sid INTEGER PRIMARY KEY, m INTEGER, lo TEXT);
     """)
     db.executemany("INSERT INTO item VALUES (?,?,?,?)", [(1, "gnis:1", "One River", "stream"),
                                                         (2, "gnis:2", "Two River", "stream")])
@@ -93,7 +94,9 @@ def _write(db, geo, tmp_path, monkeypatch):
     monkeypatch.setattr(sc, "own_name_rows", lambda *_a, **_k: [])
     log = []
     sc.write(db, geo, tmp_path, _Cov(), log=log.append, added={}, unnamed=UNNAMED.get(id(db), {}))
-    return dict(db.execute("SELECT sid, lo_m FROM section_span")), log
+    assert dict(db.execute("SELECT sid, lo_m FROM section_span WHERE sid = 3")) in ({3: None}, {})   # never written
+    return {**{s: None for (s,) in db.execute("SELECT sid FROM section_span")},
+            **dict(db.execute("SELECT sid, m FROM section_join WHERE m IS NOT NULL"))}, log
 
 
 def test_a_loose_channel_gets_its_join_written_on_its_sections(tmp_path, monkeypatch):
@@ -180,8 +183,9 @@ def test_a_polygon_end_never_breaks_the_tie():
 
 
 def _lo_token(db, sid):
-    return db.execute("SELECT e.token FROM section_span s JOIN span_end e ON e.eid = s.lo WHERE s.sid = ?",
-                      (sid,)).fetchone()[0]
+    got = db.execute("SELECT lo FROM section_join WHERE sid = ? AND lo IS NOT NULL", (sid,)).fetchone()
+    return got[0] if got else db.execute("SELECT e.token FROM section_span s JOIN span_end e ON e.eid = s.lo "
+                                         "WHERE s.sid = ?", (sid,)).fetchone()[0]
 
 
 def test_a_channel_touching_its_rivers_own_polygon_joins_there_whatever_the_distance(tmp_path, monkeypatch):
@@ -498,7 +502,9 @@ def test_no_own_name_no_row():
     db.execute("INSERT INTO name_source VALUES ('gnis:23366', 'Noons Creek', 'municipal', 'City of Port Moody ESA streams layer')")
     assert sc.own_name_rows(db, NAMES) == []                                       # its name is the water's own
     assert sc.own_name_rows(_added_db([(22, -2200000392), (23, -2200000999)]), NAMES) == []   # one line with no name
-    assert sc.own_name_rows(_added_db([(22, -2200000392), (23, -2200000393)]), NAMES) == []    # two names
+    db = _added_db([(22, -2200000392), (23, -2200000393)])                        # two names, both with words
+    db.execute("INSERT INTO name_source VALUES ('gnis:23366', 'Turner Creek Trib.1', 'municipal', 'City of Port Moody')")
+    assert sc.own_name_rows(db, NAMES) == []
     assert sc.own_name_rows(_added_db([(22, -2200000393)]), NAMES) == []          # no source words for the name
 
 
@@ -524,3 +530,12 @@ def test_the_part_is_said_by_its_own_name_and_source():
     assert _said(W, cr)[1] == "Noons Creek — Turner Creek (City of Port Moody ESA streams layer)"
     with pytest.raises(AnswersError, match="no join to say"):           # with no own name it is a named STOP
         _names(W, {})
+
+
+def test_the_export_lays_the_joins_over_the_flows_spans():
+    from pipeline.deliver.export.read import with_joins
+    span = {3: (None, None, "mouth", "source", 1, 0), 4: (5, 9, "mouth", "source", 1, 0), 1: (0, 1000, "mouth", "x", 0, 0)}
+    got = with_joins(span, [(3, 700, None), (4, None, "lake_inlet:gnis:8"), (99, 5, None)])
+    assert got[3] == (700, 700, "mouth", "source", 1, 0)
+    assert got[4] == (5, 9, "lake_inlet:gnis:8", "source", 1, 0)
+    assert got[1] == span[1] and 99 not in got and span[3][0] is None             # the input is left as it was
