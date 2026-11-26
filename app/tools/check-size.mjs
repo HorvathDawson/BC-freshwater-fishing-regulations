@@ -58,7 +58,6 @@ export const TICKET_OVER = {
   "T1041-faster-ci-feedback.md": 324,
   "T1053-walk-stops-at-head-lake.md": 306,
   "T1072-store-screenshots-and-marketing-content.md": 165,
-  "T1140-water-link-opens-one-part-without-saying-so.md": 162,
 };
 
 /** Markdown files allowed over BUDGETS.anyMarkdown: path -> its own budget (today's size + 10%). */
