@@ -7,14 +7,7 @@
 import { agoWords } from "../freshness";
 import { isoDayWords } from "./freshness";
 import { byCadence } from "../staleness";
-
-/**
- * (T1163 G15) THE NON-AFFILIATION SENTENCE, one source: the words the Play description already carries
- * (`store-listing/full-description.txt`) and the App Store review notes, said on the first-run notice too.
- */
-export const NOT_AFFILIATED =
-  "This app is not affiliated with, endorsed by, or sponsored by the Province of British Columbia or Fisheries and "
-  + "Oceans Canada (DFO).";
+import { NOT_AFFILIATED } from "./words";
 
 export const LEGAL_WORDS = {
   /** the Regulations page's foot, every page */
