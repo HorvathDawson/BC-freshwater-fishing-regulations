@@ -189,11 +189,13 @@ TOP_DETAIL = 10
 
 
 def check() -> None:
-    for tool in ("tippecanoe", "tile-join"):
+    """The build preflight: every outside program the tiles stage runs is on $PATH (`build.TILE_TOOLS`) — (T1171,
+    re-check of #286) pmtiles too (`tiles.version.stamp`), refused here, not after 15 minutes of tiles."""
+    for tool, how in (("tippecanoe", "brew install tippecanoe, or see https://github.com/felt/tippecanoe"),
+                      ("tile-join", "brew install tippecanoe, or see https://github.com/felt/tippecanoe"),
+                      ("pmtiles", "brew install pmtiles, or see https://github.com/protomaps/go-pmtiles")):
         if shutil.which(tool) is None:
-            raise FileNotFoundError(
-                f"{tool} is not on $PATH. brew install tippecanoe, or see "
-                "https://github.com/felt/tippecanoe")
+            raise FileNotFoundError(f"{tool} is not on $PATH. {how}")
 
 
 def _common(minzoom: int, maxzoom: int, simplify_at_max: float, verbose: bool, *,

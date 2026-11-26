@@ -386,10 +386,13 @@ def test_the_tiles_stage_key_is_geometry_only(tmp_path, monkeypatch):
     monkeypatch.setattr(B, "sources", lambda: {"gpkg": gpkg})
     obstacles = tmp_path / "fish_obstacles.gpkg"
     monkeypatch.setattr(B, "obstacles_source", lambda: obstacles)
+    # (T1171) the tool versions and the manifest are the test's own (test_build_key_holes.py pins the tools part)
+    monkeypatch.setattr(B, "tool_versions", lambda: {"tippecanoe": "tippecanoe v0 (fake)"})
+    monkeypatch.setattr(B, "MANIFEST", tmp_path / "build-manifest.json")
     assert B.tiles_key(build)["obstacles"] is None          # (T173) not fetched: the stage runs and names the fetch
     obstacles.write_bytes(b"x")
     before = B.tiles_key(build)
-    assert set(before) == {"handles", "gpkg", "areas", "code", "obstacles", "tidal_record"}
+    assert set(before) == {"handles", "gpkg", "areas", "code", "tools", "obstacles", "tidal_record"}
     (build / "registry.json").write_text('{"items": {"renamed": 1}}')
     assert B.tiles_key(build) == before
     # (T166 -> T678) a new tidal section in the atlas's record takes a piece off the map: the tiles rerun

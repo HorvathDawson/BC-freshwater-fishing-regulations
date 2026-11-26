@@ -14,11 +14,23 @@ between that moment and the end of the run — the output came from what was rea
                         access) — an OPTIONAL input: its appearing or going away must change the key; kind = `kind()`
     X <what>            an event that names no path this recorder can key (a directory fd, a `dir_fd=` relative path):
                         the run is NOT keyable and the consumer keeps no record — never a silent drop
+    P <name> <where>    (T1171) a THIRD-PARTY top-level package imported (not this repo, not the standard library): the
+                        consumer keys the installed distribution that owns it, by version (`stepcache.package_versions`)
+                        — so only what a stage imports moves its key, never pytest or vulture. `where` is the file (a
+                        module) or directory (a package) it was loaded from: one that NO distribution owns (a uv /
+                        virtualenv `_virtualenv.py`, an entry script outside the repo as `__main__` / `__mp_main__`, an
+                        editable or conda install with no ownership record) is keyed by those bytes instead, as
+                        tile-join is keyed by its binary (third review of #286). Also swept from `sys.modules` at
+                        install and at exit, each module named by its SPEC (pandas' `_cyutility` key is
+                        `pandas._libs._cyutility`).
+    C <key> <digest>    (T1171) a config.yaml value read (`config_read`, called by the two config loaders): its dotted
+                        key (`*` = the whole file) and the digest of its value — so a stage is keyed on the config
+                        values it reads, not on the whole file
 
 Each line is written straight to the file descriptor (no buffer), so a worker killed by its pool still left its lines.
 
 NOT RECORDED, by design, and covered elsewhere: paths under the interpreter (`sys.prefix`: the venv — the consumer keys
-the interpreter and every installed distribution, `stepcache.env_fingerprint`), the temp dir (a step's own scratch;
+the interpreter and the distributions of the P lines), the temp dir (a step's own scratch;
 no build input lives there), `/dev` and the system — EXCEPT the repo itself: a skipped root that holds the repo (a
 lane worktree under `/private/tmp` or the temp dir) skips only what is outside the repo, so a checkout anywhere is
 traced (T799/T835: a worktree under /tmp recorded 0 modules and 0 reads, and the cache reused a stale bundle); `shutil.rmtree`'s fd-relative scans (a deletion, not an input);
@@ -32,11 +44,17 @@ set depend on whether a `.pyc` existed: a fresh checkout's first run read each m
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import stat as _st
 import sys
 import tempfile
 import threading
+
+#: (T1171) THIS MODULE IS THE RECORDER'S OWN MACHINERY: what decides what is recorded, never what a build makes. The
+#: atlas's code record leaves out every module that declares this (`stepcache.is_machinery`), so a change to the cache
+#: tooling never makes the atlas "behind".
+RECORD_MACHINERY = True
 
 #: the repo root: the directory holding the `pipeline` package this file is in
 _REPO = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "")
@@ -46,6 +64,12 @@ _REPOS = tuple(sorted({_REPO, os.path.join(os.path.realpath(_REPO), "")}))
 _state = threading.local()
 _seen: set = set()
 _fd = -1
+_dir: str | None = None    # where this process's trace goes (`directory`)
+#: (T1171) {config key: digest} read in this process, kept even before a recorder is installed (a config loader that ran
+#: at import time, before `install`, is still written out by it: never lost to the order of imports)
+_config_seen: dict[str, str] = {}
+_site: tuple = ()          # the installed-package roots (site-packages): a module there is a P line
+_stdlib: tuple = ()        # the interpreter's own library roots
 _skip: tuple = ()          # roots skipped wherever the path is (the venv, /dev, a system dir that does not hold the repo)
 _skip_outside: tuple = ()  # roots that HOLD the repo (the temp dir, /private/tmp): skipped only outside the repo
 _real_stat = os.stat
@@ -95,6 +119,16 @@ def _emit(k: str, path: str, extra: str = "") -> None:
         return
     _seen.add(key)
     os.write(_fd, f"{k}\t{path}\t{extra}\n".encode("utf-8", "surrogateescape"))
+
+
+def _package(top: str, where: str) -> None:
+    """A P line: once per package, and once more when its `where` is first known (a submodule swept before its package
+    names no file; the consumer takes the first non-empty one)."""
+    key = ("P+" if where else "P", top)
+    if key in _seen:
+        return
+    _seen.add(key)
+    os.write(_fd, f"P\t{top}\t{where}\n".encode("utf-8", "surrogateescape"))
 
 
 def _unkeyable(what: str) -> None:
@@ -182,6 +216,82 @@ def _record(event: str, args) -> None:
             _emit("L", p, listing(p))
 
 
+def _library_roots() -> tuple[tuple, tuple]:
+    """(site-packages roots, standard-library roots), each spelled as written and resolved."""
+    import site
+    import sysconfig
+    paths = sysconfig.get_paths()
+    sites = set(site.getsitepackages()) | {paths.get("purelib"), paths.get("platlib")}
+    try:
+        sites.add(site.getusersitepackages())
+    except (AttributeError, OSError):
+        pass
+    libs = {paths.get("stdlib"), paths.get("platstdlib")}
+
+    def spell(roots):
+        return tuple(sorted({os.path.join(x, "") for r in roots if r for x in (r, os.path.realpath(r))}))
+    return spell(sites), spell(libs)
+
+
+def _where(origin, locations) -> str:
+    """(T1171, third review of #286) What a P line names to key a package no distribution owns: the package's directory
+    (its first search location), else the module's own file; "" when it has neither (the consumer says it is unkeyed)."""
+    locs = [x for x in (locations or []) if x]
+    if locs:
+        return os.path.abspath(locs[0])
+    return os.path.abspath(origin) if origin and origin not in ("built-in", "frozen") else ""
+
+
+def _third_party(name: str, origin, locations) -> str | None:
+    """The top-level package to name in a P line, or None for a module of this repo or of the standard library."""
+    top = name.partition(".")[0]
+    if top in sys.stdlib_module_names or top in sys.builtin_module_names:
+        return None
+    paths = [os.path.abspath(p) for p in ([origin] if origin and origin not in ("built-in", "frozen") else [])
+             + list(locations or [])]
+    if not paths:
+        return None if origin in ("built-in", "frozen") else top
+    if all(p.startswith(_REPOS) and not p.startswith(_site) for p in paths):
+        return None                                   # this repo (its modules are M lines)
+    if all(p.startswith(_stdlib) and not p.startswith(_site) for p in paths):
+        return None                                   # the interpreter's own (`_sysconfigdata_*`)
+    return top
+
+
+def _own_name(key: str, spec) -> str:
+    """The dotted name a module was imported as: its spec's `name` (what the import system found it under), else its
+    `sys.modules` key (a module with no spec: only one built by hand)."""
+    n = getattr(spec, "name", None) if spec is not None else None
+    return n if isinstance(n, str) and n else key
+
+
+def _sweep() -> None:
+    """M for every repo module in `sys.modules` not yet named, P for every third-party package (once each)."""
+    if _fd < 0:
+        return
+    busy = getattr(_state, "busy", False)
+    _state.busy = True
+    try:
+        for name, mod in sorted(sys.modules.items(), key=lambda kv: kv[0]):
+            f = getattr(mod, "__file__", None)
+            if f and _is_repo_module(f):
+                if ("M", os.path.abspath(f)) not in _seen:
+                    with open(f, "rb") as fh:
+                        _emit("M", os.path.abspath(f), hashlib.sha256(fh.read()).hexdigest())
+                continue
+            spec = getattr(mod, "__spec__", None)
+            # (T1171, second review of #286) the module's OWN name, from its spec — never its `sys.modules` key: a
+            # Cython / C module may register itself under a bare key (pandas 3.0.3: `_cyutility` is
+            # `pandas._libs._cyutility`; scipy 1.18: `_csparsetools`, `_moduleTNC`, `_ni_label`), and no distribution
+            # owns that bare name, so keying it stopped every real build after the stage had run
+            locs = getattr(spec, "submodule_search_locations", None) if spec else None
+            top = _third_party(_own_name(name, spec), f, locs)
+            if top is not None and (f is not None or spec is not None):
+                _package(top, _where(f, locs) if top == _own_name(name, spec) else "")
+    finally:
+        _state.busy = busy
+
+
 class _ModuleRecorder:
     """A finder that finds nothing: it records where the real finders will load a repo module from, and its bytes."""
 
@@ -197,6 +307,10 @@ class _ModuleRecorder:
             if origin and _is_repo_module(origin):
                 with open(origin, "rb") as fh:
                     _emit("M", os.path.abspath(origin), hashlib.sha256(fh.read()).hexdigest())
+            elif spec is not None:          # (T1171) found: a third-party package is a P line (a failed optional
+                top = _third_party(name, origin, spec.submodule_search_locations)   # import names nothing)
+                if top is not None:
+                    _package(top, _where(origin, spec.submodule_search_locations) if top == name else "")
         finally:
             _state.busy = False
         return None
@@ -247,26 +361,73 @@ def split_roots(roots, repo: str = _REPO) -> tuple[tuple, tuple, tuple]:
     return (tuple(r for r in roots if not holds(r)), tuple(r for r in roots if holds(r)), tuple(sorted(repos)))
 
 
+def config_digest(value) -> str:
+    """A config value's digest: canonical JSON (sorted keys), 16 hex. The one definition: the loaders' C lines and the
+    consumer's value NOW (`stepcache.config_now`) both use it."""
+    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), default=str)
+                          .encode("utf-8")).hexdigest()[:16]
+
+
+#: the digest of a config key that is not in the file (`config_read(missing=True)`, `stepcache.config_now`)
+CONFIG_MISSING = "missing"
+
+
+def config_read(key: str, value, missing: bool = False) -> None:
+    """(T1171) A config loader read `key` (dotted; `*` the whole file) with `value` (`missing`: the key is not there): a
+    C line when recording; kept for a recorder installed later. The loaders call it (`pipeline.common.curated`,
+    `project_config`); nothing else reads config.yaml (`test_build_key_holes` pins that)."""
+    d = CONFIG_MISSING if missing else config_digest(value)
+    _config_seen[key] = d
+    if _fd >= 0:
+        _emit("C", key, d)
+
+
+def start_own(prefix: str, caller: str) -> tuple[str, bool]:
+    """(T1171) Record THIS process from here on, as early as its caller can call this (the atlas build: the first
+    statement of its module, before any import that reads a file); `caller` is that module's `__file__`, named as a
+    module of the run whichever way it was started (`python -m`, runpy). Returns (the trace directory, whether this call
+    made it — the caller removes it): an installed recorder is used as it is. PIPELINE_TRACE is set too, so a Python
+    process it starts records into the same directory."""
+    own = _fd < 0
+    if own:
+        d = tempfile.mkdtemp(prefix=prefix)
+        os.environ["PIPELINE_TRACE"] = d
+        install(d)
+    if _is_repo_module(caller):
+        with open(caller, "rb") as fh:
+            _emit("M", os.path.abspath(caller), hashlib.sha256(fh.read()).hexdigest())
+    return _dir, own
+
+
+def directory() -> str | None:
+    """(T1171) The directory this process's recorder writes to, or None when none is installed: a process that records
+    its own code (the atlas build, `start_own`) reads the trace back from here."""
+    return _dir if _fd >= 0 else None
+
+
 def install(directory: str) -> None:
-    global _fd, _skip, _skip_outside, _REPOS
+    global _fd, _dir, _skip, _skip_outside, _REPOS, _site, _stdlib
     if _fd >= 0:
         return
     _state.busy = True
     try:
         os.makedirs(directory, exist_ok=True)
+        _dir = os.path.abspath(directory)
         _fd = os.open(os.path.join(directory, f"{os.getpid()}.trace"), os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o644)
         roots = {sys.prefix, sys.base_prefix, sys.exec_prefix, tempfile.gettempdir(), os.path.realpath(tempfile.gettempdir()),
                  "/dev", "/System", "/usr", "/Library", "/private/var/folders", "/private/tmp", "/tmp", "/etc", "/private/etc"}
         _skip, _skip_outside, _REPOS = split_roots(roots)
         _emit("V", sys.version.replace("\n", " "), os.path.realpath(sys.executable))
-        # the modules loaded before this hook: `pipeline/__init__.py` (and any repo module a caller imported first)
-        for name, mod in list(sys.modules.items()):
-            f = getattr(mod, "__file__", None)
-            if f and _is_repo_module(f):
-                with open(f, "rb") as fh:
-                    _emit("M", os.path.abspath(f), hashlib.sha256(fh.read()).hexdigest())
+        _site, _stdlib = _library_roots()
+        # the modules loaded before this hook: `pipeline/__init__.py` (and any repo module a caller imported first), and
+        # (T1171) the third-party packages already imported; the config values already read
+        _sweep()
+        for key, d in sorted(_config_seen.items()):
+            _emit("C", key, d)
     finally:
         _state.busy = False
+    import atexit
+    atexit.register(_sweep)                 # a package imported by a finder this hook does not see is still named
     sys.meta_path.insert(0, _ModuleRecorder)
     sys.addaudithook(_audit)
     os.stat = _probe_recorder(os.stat, "stat")

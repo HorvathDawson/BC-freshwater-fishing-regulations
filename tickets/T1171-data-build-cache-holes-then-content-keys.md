@@ -44,7 +44,19 @@ modules, 62% of the pipeline). A planning-chat sub-agent is fixing it (main merg
 test with real pandas; no auto-merge); a third, independent review follows before it merges. Until it lands, a venv
 reinstalled from `requirements.txt` reruns reach and deliver once (#279 added pytest-xdist).
 
+## 2026-11-26: #286 after the third review; the owner's word on the live atlas
+The third independent review (fix first) found: a module no distribution owns (a uv / virtualenv `_virtualenv.py`, an
+entry script outside the repo as `__main__` / `__mp_main__`, an editable or conda install with no ownership record)
+still stopped the build after the stage ran; the tiles key missed the map style and `pmtiles`; `--ship-stale-atlas`
+printed a count; the `--backfill-code` git proof could not succeed today. Fixed on #286: such a module is keyed by its
+file's bytes; the style and pmtiles are in the tiles key; every behind line is printed; the backfill is gone, and the
+atlas records the commit it was built from. Owner, 2026-11-26: "yes to rebuild but also we should have a way to know if
+the atlas needs rebuilding programatically". So the live atlas is rebuilt at the next release cut (no backfill), and
+`python -m pipeline.atlas.inputs` says whether it needs rebuilding and why (rc 0 current, 1 rebuild, 2 cannot tell);
+`pipeline build --status`, `--dry-run` and `pipeline release` say the same.
+
 ## Owner
 
 - [x] 2026-11-25 — Picks (defaults first): order: the holes, then content keys, then provenance, then speed; the atlas build names code changes and a person starts it; a no-cache verify once per release night; store cap 20 GB; no R2 remote cache yet; an app-only release says "data unchanged" and proves it. → "Yes, that order" (2026-11-25 23:23)
 - [x] 2026-11-26 — #286: the live atlas on first sight → "One-time backfill (Recommended)"; what a stage key holds → "Only what a stage imports (Recommended)" (2026-11-26 01:54; they stand after the second review)
+- [x] 2026-11-26 — #286 third review: the live atlas → "yes to rebuild but also we should have a way to know if the atlas needs rebuilding programatically" (supersedes the one-time backfill: rebuilt at the next cut; `python -m pipeline.atlas.inputs` is the check)

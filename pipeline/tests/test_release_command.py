@@ -406,15 +406,19 @@ def test_an_atlas_behind_its_curated_inputs_stops_naming_the_file(world, capsys)
     assert world["calls"] == [] and _latest(world) == LIVE
     with pytest.raises(SystemExit):
         _staging(ship_stale_atlas=" ")
+    world["atlas_behind"].append("pipeline/atlas/graph/names.py (code): changed since the atlas was built")
     assert _staging(ship_stale_atlas="owner: names only, rebuild next week") == 0
-    assert "SHIPPED ANYWAY (--ship-stale-atlas): owner: names only, rebuild next week" in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert "SHIPPED ANYWAY (--ship-stale-atlas): owner: names only, rebuild next week" in out
+    # (T1171, third review of #286, M3) every reason it shipped behind is printed, not a count
+    assert "cuts.json (curated:waters.cuts): changed" in out and "pipeline/atlas/graph/names.py (code): changed" in out
 
 
 def test_the_dry_run_says_whether_the_atlas_is_behind(world, capsys):
     world["atlas_behind"] = ["slough_calls.json (curated:waters.slough_calls): changed since the atlas was built"]
     assert R.main(["--staging", "--dry-run"]) == 0
     out = capsys.readouterr().out
-    assert "WOULD STOP: the atlas is behind 1 input(s)" in out and "slough_calls.json" in out
+    assert "WOULD STOP: the atlas NEEDS REBUILDING: 1 reason(s)" in out and "slough_calls.json" in out
     world["atlas_behind"] = []
     assert R.main(["--staging", "--dry-run"]) == 0
     assert "ok: the atlas is current with its curated inputs" in capsys.readouterr().out
