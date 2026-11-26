@@ -86,3 +86,4 @@ export * from "./notify";
 export * from "./startLink";
 export * from "./appLink";
 export * from "./myLocation";
+export * from "./parkingHere";
