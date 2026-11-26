@@ -79,8 +79,8 @@ generated/gauges/*
 # The tree's own documentation — the map of what each subdirectory is and who writes it.
 # It belongs beside the thing it describes, not only in pipeline/docs/.
 !generated/README.md
-# gov.bc.ca's own copies of the synopsis chapters, fetched for the print cross-check;
-# the tests skip (naming the file) when they are absent. See quota_print.OFFICIAL_DIR.
+# gov.bc.ca's own copies of the synopsis chapters: pinned reference copies, nothing reads them (T1156);
+# fetched and checked by `python -m data.fetch_region_pdfs`.
 source/official/
 
 # BC outline cache (pipeline/atlas/splits/bc_boundary.py): derived from the gpkg, rebuilt on demand
