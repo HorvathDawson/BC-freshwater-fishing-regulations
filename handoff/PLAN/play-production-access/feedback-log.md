@@ -84,6 +84,7 @@ Each row is one crash kind, or one triage of many kinds. Counts and stacks are i
 | F41 | 2026-11-24 | crash report (prod) | auto | 0.8.5 web | The browser's stored data was cleared while the page was open, and the page reported an error instead of recovering | T1092 | open | — |
 | F42 | 2026-11-24 | crash report (prod) | auto | 0.9.0 Android | A location request failed because the phone's Location setting was off, and the error was not handled | T1093 | open | — |
 | F43 | 2026-11-24 | crash report (staging) | auto | 0.8.5 Android | The system ended the app for low memory while it was on screen | T1094 | open | — |
+| F46 | 2026-11-25 | crash report (prod) | auto | 0.9.0 iPhone | No push token arrived within 30 seconds while the developer was testing notifications on TestFlight | T996 | open (the push proof is owed after the App Store release) | — |
 | F44 | 2026-11-24 | in-app report (staging) | R-8 | 0.9.0 | Asked for a place to record fish measurements on a saved location, several per location, editable later | T1095 | open (feature; design first) | — |
 | F45 | 2026-11-25 | told the owner | T-5 | 0.9.0 | The first download should respect mobile data: ask before downloading on data, and ask again if Wi-Fi is lost | T1109 | open | — |
 
@@ -112,6 +113,8 @@ leave them out.
 | D16 | 2026-11-25 | in person | owner | 0.9.0 | The More page does not refresh by pulling down | T1111 | open | — |
 | D17 | 2026-11-25 | in person | owner | 0.9.0 | The saved-spot page still feels clunky; a fresh redesign is wanted | T1115 | open | — |
 | D18 | 2026-11-25 | found in development | owner | 0.9.0 data | A lake and its creek showed another, same-named lake's stricter rules (a name bound across management units) | T1117 (audit: T1118) | open | — |
+| D19 | 2026-11-25 | in person | owner | 0.9.0 web | A river's plain link opened the rules of one unnamed part (an ecological reserve side channel) and read "Closed"; parts were numbered instead of named | T1140 (T1146, T1149) | open | 0.10.0 (names); the landing in the next patch |
+| D20 | 2026-11-25 | in person | owner | 0.10.0 candidate | The game-fish status bar showed "open" in a different colour from the salmon bar | T1145 | open | 0.10.0 |
 
 ## Counts (refresh before applying)
 

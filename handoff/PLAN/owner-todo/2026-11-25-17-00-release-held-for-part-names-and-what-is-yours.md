@@ -21,7 +21,7 @@ Yours, in order:
    Review; Submit for Review. Export compliance, if asked: "None of the algorithms mentioned above". Approved: you
    press Release This Version. Rejected: paste Apple's message to the planning chat. The Header and Search
    pictures are uploaded (your "yes i uploaded them to the ios").
-6. **The new worker token's exact expiry date** (your token page says "1 year"; about 2027-11-25).
+6. DONE: the worker token expires **2027-11-25** (your words: "365 days away is expiry"). Yours two weeks before: re-issue it on the org, `wrangler secret put` on staging and production, check-github on each.
 7. **PR #238, frame 3** of the native 6.3" iPhone set: look, then say merge or redo (not a gate; the resized
    set is uploaded).
 8. **After 0.10.0 is out:** Dependabot security updates back on (the repo switch, yours); CodeQL back on is one
@@ -33,3 +33,8 @@ launches and docks: launches, marinas and named piers, private hidden, all of BC
 (T1119); the performance monitor: the fullest set, under the crash switch, 30 days, memory band and cores
 (T1132); the curation review tool stays in this repo (T1081); a new competitor row, River Atlas
 (`handoff/PLAN/COMPETITORS.md`).
+
+**Added 17:32** (your answers, recorded in T1140, T1146, T1149): the 18 parts with no real-world name read the
+data's own label; the release candidate goes to staging tonight and production is tomorrow, after your look at
+the T1146 binding diff and the naming pictures; the park rule reaching outside Strathcona Park is T1149, in the
+hardening release, scoped then (your question is its first step). Items 1 and 2 above are answered.

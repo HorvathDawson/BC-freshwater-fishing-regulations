@@ -135,3 +135,9 @@ connection and no registration, and identityservicesd logged "asked for publicTo
 service holds no APNs token at all, so iOS has nothing to answer the app with: exactly the silence the app reports.
 The phone is an older spare iPhone (XR, iOS 18.5), in airplane mode on Wi-Fi during the tests. Not yet proven: that
 the app registers on a healthy iPhone; the second-iPhone test decides it. No app change indicated, no new ticket.
+
+## 2026-11-25: a crash kind from the owner's push proof attempt
+Crash `67a5a3a112caf554` (0.9.0 iPhone, 2026-11-25 06:39Z): no push token arrived within 30 s. It is the owner's own
+push proof attempt on TestFlight, not a tester's. It is cited here so `pipeline reports` no longer lists it as
+NEW; the push proof on a second iPhone is still owed after the App Store release (the iOS chat was retired
+2026-11-25; the planning chat holds this). Feedback log row F46.

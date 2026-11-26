@@ -152,3 +152,10 @@ and deliver about 33 minutes, follows about 45; accepts mechanical (golden pages
 part is named from its area cut in deliver; the Map bar shows the part's real name; outside-B.C. parts read
 "<water> outside B.C."; the gate that holds the page until the water's parts are read and the single-part pin
 stay (branch `fix/T1140-part-label`). T1146 runs first. The owner sees pictures before anything merges.
+
+## 2026-11-25 about 17:30: the last answers; timing
+Owner (planning chat dialog): the 18 parts with no real-world name read **"The data's own label (Recommended)"**
+(for example "Side channel, joining 12 km from the mouth"); this covers the Strathcona six too. Timing: **"Yes,
+production tomorrow (Recommended)"**: the release candidate goes to staging tonight as rc.1 with T1146 in it; he
+looks in the morning (the T1146 binding diff and the naming pictures first), then his production commands. The
+park rule reaching outside Strathcona Park is T1149, the hardening release.

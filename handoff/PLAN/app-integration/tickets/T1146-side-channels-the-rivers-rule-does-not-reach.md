@@ -1,10 +1,10 @@
 # T1146 — Side channels with no main stem that the river's own rule does not reach become nameless parts
 
-Status: OPEN — 0.10.0 by the owner's pick; a read-only finding first (one cause or 15 cases)
+Status: IN PROGRESS — 0.10.0 (the 0.10.0 chat): the mechanical part only, a side reach run proves the diff first
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1146 | Side channels with no main stem that the river's own rule does not reach become nameless parts | OPEN — 0.10.0 by the owner's pick; a read-only finding first (one cause or 15 cases) | | owner 2026-11-25: "Fix the binding in 0.10.0"; 0.10.0 chat |
+| T1146 | Side channels with no main stem that the river's own rule does not reach become nameless parts | IN PROGRESS — 0.10.0 (the 0.10.0 chat): the mechanical part only, a side reach run proves the diff first | | the real binding diff to the owner before merge; C, D, E causes are not this ticket |
 
 Source: the 0.10.0 chat's read-only investigation for T1140, 2026-11-25, on the candidate r-71d09ad82e81. Of 1,476 parts
 over the 478 multi-part waters, 26 have no name and show the bare water name; all 26 are side channels with no
@@ -30,3 +30,24 @@ Acceptance: the count of bare-name parts before and after, by cause; the binding
 the tiles and bundle of one vintage (rule: tiles and bundle share a vintage). Severity: high (a part with the
 wrong rule set, the Squamish case's family). Model: Opus. Size: S if mechanical, otherwise unknown. Owner: the
 marks if step 3.
+
+## 2026-11-25 about 17:25: the finding (0.10.0 chat, read-only): not one cause; the mechanical part is small
+- **A (mechanical):** the tributary walk only climbs upstream (`pipeline/atlas/graph/tributaries.py:1052`): a side
+  channel that leaves its river and does not flow back in is never reached. **B (mechanical, same fix):** the
+  stream-order guard (`:1247`) refuses a channel of the river's own water when FWA gives it a bigger order than
+  the piece it joins. **C (curation):** canal and ditch pieces are the walk's barrier by design (Mahood p1,
+  Stirling p1). **D (curation):** area and region membership by overlap, parks not cut (the five Strathcona parts
+  and Campbell p6: T1149; Cottonwood p1 and West Road p3 are region straddles, as designed). **E (real
+  differences):** Squamish, Gordon, Okanagan Oxbows (real names, T1140); Theodosia, Snehumption; Noons p4, Seymour
+  p3 (added city streams the owner accepted as "leave out"); Robertson p1; Skeena p4.
+- **A/B waters:** Forsyth p1, Koksilah p1, MacMillan p2, Shelagyote p0, Omineca p0; partly Halfway p2, Manson p0.
+- **Measured reach of the fix** (all 15,244 side-channel groups, all 478 walked rules): rules change on 14 groups,
+  19 sections, 7 waters, all among the 26 (Forsyth: elk_river_s_tributaries r1-r4; Koksilah: cowichan_river.r2;
+  Halfway: peace_river r2, r3; MacMillan: skeena_river.r1; Manson, Omineca: williston_lake.r4; Shelagyote:
+  babine_river r6, r7 and skeena_river.r1); one licensing change (the Babine designation on Shelagyote); DFO
+  salmon: the Cowichan place on Koksilah's channels, and ONE change outside the 26: a 735 m Nechako channel gains
+  `6:f:closure`. Reach, tiles and deliver rerun, about 33 minutes; no atlas.
+- **After it:** 5 of the 26 nameless parts go, Halfway and Manson shrink, 21 stay (3 get real area names; 18 read
+  the data's own label, the owner's pick in T1140).
+- **Scope of this ticket:** A and B only, one Opus lane, mutation-proven tests, a side reach run compared with the
+  list above before any PR; anything beyond the list stops it. No curated row, no mark, no park cut.
