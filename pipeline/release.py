@@ -2752,6 +2752,57 @@ def is_tty() -> bool:
     return sys.stdin.isatty() and sys.stdout.isatty()
 
 
+def is_macos() -> bool:
+    return sys.platform == "darwin"
+
+
+def pmset_batt() -> str:
+    """`pmset -g batt` (macOS), raising SystemExit when it cannot be read: never a guess about the power source."""
+    try:
+        p = subprocess.run(["pmset", "-g", "batt"], capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError) as e:
+        raise SystemExit(f"release: cannot read the power source (pmset -g batt: {e}); refused") from e
+    if p.returncode != 0:
+        raise SystemExit(f"release: cannot read the power source (pmset -g batt exit {p.returncode}: "
+                         f"{(p.stderr or p.stdout).strip()[:200]}); refused")
+    return p.stdout
+
+
+def start_caffeinate(pid: int) -> None:
+    """`caffeinate -i -s -w <pid>`: no idle sleep, and no system sleep on power, until that process ends."""
+    try:
+        subprocess.Popen(["caffeinate", "-i", "-s", "-w", str(pid)])
+    except OSError as e:
+        raise SystemExit(f"release: cannot start caffeinate ({e}): the Mac could sleep mid-release; refused") from e
+
+
+def stay_awake(on_battery: str | None = None) -> str:
+    """(T1161) macOS: the Mac stays awake (caffeinate, bound to this process) while the release runs. An UNATTENDED run
+    (no terminal) on battery is refused unless `--on-battery REASON` (printed); an attended one prints a warning. A
+    `pmset` that fails or prints something unparseable is a refusal, never a pass. Not macOS: nothing to keep awake.
+    Closed lid: caffeinate does not cover it on a MacBook without an external display (see the runbook): lid open."""
+    if not is_macos():
+        return "not macOS: nothing to keep awake"
+    first = (pmset_batt().splitlines() or [""])[0]
+    if "AC Power" in first:
+        battery = False
+    elif "Battery Power" in first:
+        battery = True
+    else:
+        raise SystemExit(f"release: cannot read the power source from pmset -g batt (first line: {first!r}); refused")
+    note = ""
+    if battery:
+        if on_battery:
+            note = f"; ON BATTERY, goes on (--on-battery): {on_battery}"
+        elif not is_tty():
+            raise SystemExit("release: refused on battery for an unattended run (it could drain and stop mid-release): "
+                             'plug the Mac in, or give --on-battery "<why it runs on battery>"')
+        else:
+            note = "; WARNING: on battery, plug the Mac in"
+    start_caffeinate(os.getpid())
+    return f"keeping the Mac awake while this runs (caffeinate -i -s): keep the lid open, on power{note}"
+
+
 def prod_instructions(rid: str, r: dict) -> str:
     return (f"production is HUMAN-ONLY. To publish {rid} (checked {r.get('checks', {}).get('at')}, staged "
             f"{r.get('staged_at')}), in YOUR terminal:\n"
@@ -3022,7 +3073,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--data-only", action="store_true",
                     help="(T998) with --cut: release/data-<YYYY-MM-DD> from origin/main, a data release with no app "
                          "change (refused when an app commit bumps the app)")
+    ap.add_argument("--on-battery", default=None, metavar="REASON",
+                    help="(T1161) an unattended run on battery goes on instead of being refused; the reason is printed")
     a = ap.parse_args(argv)
+    if a.on_battery is not None and not a.on_battery.strip():
+        ap.error('--on-battery needs a reason, which is printed: --on-battery "<why it runs on battery>"')
     if a.data_only and (a.cut is None or a.cut):
         ap.error("--data-only goes with a bare --cut (the version stays the shipped one)")
     if a.reads_moved is not None and (a.cut is None or a.data_only or not a.reads_moved.strip()):
@@ -3048,6 +3103,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"staging serves: {said}\ntags (T995): " + ("ok" if not tags else "WOULD STOP: " + "; ".join(tags))
                   + f"\n{prod_instructions(a.prod, r)}")
             return 0
+        print(f"release: {stay_awake(a.on_battery)}", flush=True)
         return prod(a.prod)
     if a.no_fast_fail is not None and not a.no_fast_fail.strip():
         ap.error('--no-fast-fail needs a reason, which is printed: --no-fast-fail "<why the cheap checks are skipped>"')
@@ -3067,6 +3123,10 @@ def main(argv: list[str] | None = None) -> int:
               reupload=a.reupload, no_fast_fail=a.no_fast_fail, stale_atlas=a.ship_stale_atlas,
               no_ci_check=a.no_ci_check, accept_fixtures=a.accept_fixtures, push=a.push,
               no_follow_tests=a.no_follow_tests, forget=a.forget_flags, no_fresh_copy=a.no_fresh_copy)
+    # (T1161) the long runs keep the Mac awake: --staging, --prod (above), and a rehearsal that builds (--build) or
+    # re-cuts and checks a candidate (--rehearse-follows). A bare --dry-run is the cheap checks: no hold.
+    if not a.dry_run or a.build or a.rehearse_follows:
+        print(f"release: {stay_awake(a.on_battery)}", flush=True)
     return dry_run(ctx) if a.dry_run else staging(ctx)
 
 
