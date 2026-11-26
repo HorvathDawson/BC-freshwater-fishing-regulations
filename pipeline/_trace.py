@@ -46,6 +46,7 @@ _REPOS = tuple(sorted({_REPO, os.path.join(os.path.realpath(_REPO), "")}))
 _state = threading.local()
 _seen: set = set()
 _fd = -1
+_dir: str | None = None    # where this process's trace goes (`directory`)
 _skip: tuple = ()          # roots skipped wherever the path is (the venv, /dev, a system dir that does not hold the repo)
 _skip_outside: tuple = ()  # roots that HOLD the repo (the temp dir, /private/tmp): skipped only outside the repo
 _real_stat = os.stat
@@ -247,13 +248,20 @@ def split_roots(roots, repo: str = _REPO) -> tuple[tuple, tuple, tuple]:
     return (tuple(r for r in roots if not holds(r)), tuple(r for r in roots if holds(r)), tuple(sorted(repos)))
 
 
+def directory() -> str | None:
+    """(T1171) The directory this process's recorder writes to, or None when none is installed: a process that records
+    its own code (the atlas build, `atlas.inputs.start_code_record`) reads the trace back from here."""
+    return _dir if _fd >= 0 else None
+
+
 def install(directory: str) -> None:
-    global _fd, _skip, _skip_outside, _REPOS
+    global _fd, _dir, _skip, _skip_outside, _REPOS
     if _fd >= 0:
         return
     _state.busy = True
     try:
         os.makedirs(directory, exist_ok=True)
+        _dir = os.path.abspath(directory)
         _fd = os.open(os.path.join(directory, f"{os.getpid()}.trace"), os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o644)
         roots = {sys.prefix, sys.base_prefix, sys.exec_prefix, tempfile.gettempdir(), os.path.realpath(tempfile.gettempdir()),
                  "/dev", "/System", "/usr", "/Library", "/private/var/folders", "/private/tmp", "/tmp", "/etc", "/private/etc"}

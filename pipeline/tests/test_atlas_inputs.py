@@ -44,9 +44,14 @@ def _src(gpkg) -> dict:
 
 
 def _atlas(tmp_path: Path, hashes: dict) -> Path:
+    """An atlas recording `hashes` and (T1171) a code stamp that is current (test_build_key_holes.py moves it)."""
+    from pipeline.common import stepcache as SC
     d = tmp_path / "atlas"
     d.mkdir(exist_ok=True)
     write_artifact({"g": 1}, str(d / "graph.pkl"), input_hashes=hashes)
+    meta = I.read_meta(d)
+    meta[I.CODE] = {"modules": SC.code_now(["pipeline/atlas/inputs.py"]), "reads": {}, "env": SC.env_fingerprint()}
+    I.write_meta(d, meta)
     return d
 
 

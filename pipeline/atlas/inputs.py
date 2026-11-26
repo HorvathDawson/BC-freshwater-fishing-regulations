@@ -200,6 +200,78 @@ def behind(build_dir: Path, now: dict[str, str] | None = None) -> list[str]:
             out.append(f"{name} ({key}): the atlas was built without it, {have} — rebuild: {how}")
         else:
             out.append(f"{name} ({key}): changed since the atlas was built — rebuild: {how}")
+    return out + code_behind(build_dir)
+
+
+# -------------------------------------------------------------------------------------------------------------- code
+
+#: (T1171) THE CODE AN ATLAS WAS BUILT FROM, beside its inputs in the meta: {"modules": {file: sha256 as imported},
+#: "reads": {code file it read (`stepcache.is_code_read`): sha256}, "env": `stepcache.env_fingerprint()`}, or
+#: {"unrecorded": why} when the build could not record it honestly. The other stages key on the same three parts
+#: (`pipeline.build.stage_code`); the atlas is never rebuilt by a key (a person starts it), so a moved part is a line of
+#: `behind`: `pipeline build` warns and `pipeline release` refuses, as for a curated input.
+CODE = "code"
+
+
+def start_code_record() -> tuple[str, bool]:
+    """(T1171) From here on this process runs under the recorder (`pipeline/_trace.py`), unless one already does (a
+    caller set PIPELINE_TRACE). Returns (the directory it writes to, whether this call made it: the caller removes it).
+    Called first thing by the atlas build, so every module it imports is recorded as imported and every code file it
+    opens is recorded; PIPELINE_TRACE is set too, so a Python process it starts records into the same directory."""
+    import tempfile
+    from pipeline import _trace
+    have = _trace.directory()
+    if have is not None:
+        return have, False
+    d = tempfile.mkdtemp(prefix="atlas-code-")
+    os.environ["PIPELINE_TRACE"] = d
+    _trace.install(d)
+    return d, True
+
+
+def code_stamp(trace_dir: Path) -> dict:
+    """The `CODE` record of a build whose recorder wrote to `trace_dir` (`stepcache.traced_code`)."""
+    from pipeline.common import stepcache
+    modules, reads, moved = stepcache.traced_code(stepcache.Trace(Path(trace_dir)))
+    if moved:
+        return {"unrecorded": f"{moved[0]} changed while the atlas was built"}
+    if not modules:
+        return {"unrecorded": "the recorder saw no module of this repo"}
+    return {"modules": modules, "reads": reads, "env": stepcache.env_fingerprint()}
+
+
+def record_code(build_dir: Path, trace_dir: Path) -> dict:
+    """Write the build's `CODE` record into its meta (atomically, beside `input_hashes`); returns it."""
+    meta = read_meta(build_dir)
+    meta[CODE] = code_stamp(trace_dir)
+    write_meta(build_dir, meta)
+    return meta[CODE]
+
+
+def code_behind(build_dir: Path) -> list[str]:
+    """The atlas's code lines of `behind`: none when every module and code file it recorded has the same bytes now and
+    the environment is the same; else one line for the files (the first named, the rest counted) and one for the env.
+    An atlas built before T1171 records no code: what it was built from cannot be told, so it is behind (rebuild, or
+    `pipeline release --ship-stale-atlas REASON`). Backfill cannot prove code: the modules a past build imported are not
+    known."""
+    from pipeline.common import stepcache
+    build_dir = Path(build_dir)
+    code = read_meta(build_dir).get(CODE)
+    if code is None:
+        return [f"{build_dir.name}/{META} ({CODE}): records no code (an atlas built before T1171), so the code it was "
+                f"built from cannot be told — rebuild: {REBUILD}"]
+    if "unrecorded" in code:
+        return [f"{build_dir.name}/{META} ({CODE}): its code was not recorded ({code['unrecorded']}) — rebuild: {REBUILD}"]
+    now = {**stepcache.code_now(code["modules"]), **stepcache.code_reads_now(code["reads"])}
+    was = {**code["modules"], **code["reads"]}
+    moved = sorted(k for k in was if now[k] != was[k])
+    out = []
+    if moved:
+        more = f" (+{len(moved) - 1} more)" if len(moved) > 1 else ""
+        out.append(f"{moved[0]}{more} ({CODE}): changed since the atlas was built — rebuild: {REBUILD}")
+    if code.get("env") != stepcache.env_fingerprint():
+        out.append(f"the interpreter, SQLite or an installed package ({CODE}: env) changed since the atlas was built — "
+                   f"rebuild: {REBUILD}")
     return out
 
 

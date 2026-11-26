@@ -486,12 +486,20 @@ def main(argv: list[str] | None = None) -> None:
     """THE ORCHESTRATOR: FWA + curated inputs -> graph -> sections -> registry -> sidecars, one
     named phase at a time. The order is load-bearing; each phase says why it sits where it does."""
     args = _parse_args(argv)
+    # (T1171) FIRST: the build runs under the recorder, so the code it imports and the code files it reads are recorded
+    # as they were used (`graph.pkl.meta.json` `code`, `atlas.inputs.record_code`); `pipeline release` refuses an atlas
+    # whose code moved since, as it refuses one behind a curated input
+    from pipeline.atlas import inputs as _inputs
+    code_trace, own_trace = _inputs.start_code_record()
+    if own_trace:                                   # its trace is scratch: gone when the process ends, however it ends
+        import atexit
+        import shutil as _shutil
+        atexit.register(_shutil.rmtree, code_trace, True)
     _refuse_promoted(args)
     fwa = FWADataAccessor(args.gpkg)
     b = _Build(args, fwa, _bbox(args, fwa))
     # T547: a digest of every curated input, taken BEFORE any is read (an edit made during the build is not recorded as
     # built); written with graph.pkl (`graph.pkl.meta.json` `input_hashes`), checked by `pipeline release`
-    from pipeline.atlas import inputs as _inputs
     b.input_hashes = _inputs.digests(_inputs.build_paths(args))
     _inputs.clear_complete(args.out)                # T547 §4: a build that dies here leaves no marker
     load_fwa(b)
@@ -503,6 +511,9 @@ def main(argv: list[str] | None = None) -> None:
     build_registry(b)
     write_graph(b)          # T678 plan 5: after the registry, so graph.pkl carries the tidal owner on its nodes
     write_sidecars(b)
+    code = _inputs.record_code(b.out, Path(code_trace))     # T1171: every module and code file is read by now
+    print(f"  code recorded: {len(code['modules'])} modules, {len(code['reads'])} code files" if "modules" in code
+          else f"  code NOT recorded ({code['unrecorded']}): `pipeline release` refuses this atlas — rebuild it")
     _inputs.write_complete(b.out, b.input_hashes)   # T547 §4: LAST — promote refuses a candidate without it
 
 

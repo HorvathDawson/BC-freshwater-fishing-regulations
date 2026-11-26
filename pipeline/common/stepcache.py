@@ -9,8 +9,10 @@ a matching step's recorded outputs are its outputs.
 
 Two users:
 
-  * `pipeline build` keys the reach and deliver STAGES on the modules they really imported (`build.TRACED`), instead
-    of every .py under broad roots: an edit to the review app, an audit tool or the DFO suggester reruns neither.
+  * `pipeline build` keys every STAGE on the modules it really imported and (T1171) the code files it read
+    (`build.TRACED`, `is_code_read`), instead of every .py under broad roots: an edit to the review app, an audit tool
+    or the DFO suggester reruns none, and an edit to `schema.sql` reruns deliver. The atlas build records the same
+    stamp in its meta (`atlas.inputs.record_code`).
   * `pipeline.deliver all` reuses a STEP (bundle, verdicts, answers, …) whose fingerprint, staging files and declared
     inputs all match its last run (`StepCache`).
 
@@ -76,12 +78,43 @@ def _abs(r: str) -> Path:
 
 @lru_cache(maxsize=1)
 def env_fingerprint() -> dict:
-    """The interpreter and every installed distribution (name==version): what the recorder leaves out (`sys.prefix`)
-    and what a step's third-party code is. A package upgrade, a new interpreter or a different venv reruns every step."""
+    """The interpreter, the SQLite library and every installed distribution (name==version): what the recorder leaves
+    out (`sys.prefix`) and what a step's third-party code is. A package upgrade, a new interpreter or a new SQLite reruns
+    every step.
+
+    (T1171) THE SQLITE LIBRARY BY ITS OWN VERSION: `sys.version` does not name it, it can be upgraded under the same
+    interpreter (a conda / brew `sqlite`), and the bundle's bytes are SQLite's pages. NO INSTALL PATH: the interpreter's
+    location is not what it computes (the same version and packages in another venv make the same bytes), and a key
+    holding a path could never match on another machine."""
+    import sqlite3
     from importlib import metadata
     dists = sorted({f"{(d.metadata['Name'] or '?').lower()}=={d.version}" for d in metadata.distributions()})
-    return {"python": sys.version, "executable": os.path.realpath(sys.executable),
+    return {"python": sys.version, "sqlite": sqlite3.sqlite_version,
             "distributions": hashlib.sha256("\n".join(dists).encode()).hexdigest()[:16], "count": len(dists)}
+
+
+#: (T1171) CODE THAT IS NOT A MODULE: a file a stage reads under these is part of its code key, by content (the bundle's
+#: `schema.sql` / `indexes.sql`, the tiles' `tile-contract.json`, the settings in `config.yaml`). The recorder's M lines
+#: are `.py` files only; without this a commit that changed only `schema.sql` left deliver "up to date". The data a
+#: stage reads (curated, source, generated) is keyed by the stage's own key parts, not here.
+CODE_READ_ROOTS = ("pipeline/",)
+CODE_READ_FILES = ("config.yaml",)
+
+
+def is_code_read(rel: str) -> bool:
+    """Whether a recorded read (repo-relative, as `Trace` keys it) is code: under `CODE_READ_ROOTS` or one of
+    `CODE_READ_FILES`. An absolute path (outside the repo) never is."""
+    return rel.startswith(CODE_READ_ROOTS) or rel in CODE_READ_FILES
+
+
+def code_reads_now(files) -> dict[str, str]:
+    """{file: sha256 now} for recorded code reads (its kind, "missing" / "dir", for one that is no file now)."""
+    out = {}
+    for rel in sorted(files):
+        p = _abs(rel)
+        k = _trace.kind(str(p))
+        out[rel] = hashlib.sha256(p.read_bytes()).hexdigest() if k == "file" else k
+    return out
 
 
 class Trace:
@@ -127,6 +160,20 @@ def code_now(files) -> dict[str, str]:
         p = _abs(rel)
         out[rel] = hashlib.sha256(p.read_bytes()).hexdigest() if p.is_file() else "missing"
     return out
+
+
+def traced_code(trace: "Trace") -> tuple[dict[str, str], dict[str, str], list[str]]:
+    """(T1171) The code a traced run ran on: ({module: sha256 as imported}, {code file it read (`is_code_read`): sha256},
+    moved). `moved` names each module or code file that changed while it ran — imported with two contents, read with
+    two stamps, or different on disk now — and a run with any cannot be keyed honestly (its caller keys nothing)."""
+    reads = {r: s for r, s in sorted(trace.reads.items()) if is_code_read(r)}
+    now = code_reads_now(reads)
+    # AFTER the content is hashed: each code file still as it was when it was read (else the hash may be of bytes the
+    # run never saw), each module as imported
+    moved = list(trace.conflicts) + sorted(k for k, v in code_now(trace.modules).items() if trace.modules[k] != v) \
+        + [x for x in trace.moved if is_code_read(x.split(" (")[0])] \
+        + [r for r, s in reads.items() if _trace.stamp(str(_abs(r))) != s]
+    return dict(sorted(trace.modules.items())), now, moved
 
 
 def code_digest(files: dict[str, str]) -> str:
@@ -335,9 +382,11 @@ def _place(src: Path, dst: Path) -> None:
     shutil.copyfile(src, dst)
 
 
-def write_modules_trace(directory: Path, modules: dict[str, str], name: str) -> None:
-    """A reused step's modules, written as a trace so the enclosing stage's code key still holds them (the stage
-    key must name the code of every step, run or reused)."""
+def write_modules_trace(directory: Path, modules: dict[str, str], name: str, reads=()) -> None:
+    """A reused step's code, written as a trace so the enclosing stage's code key still holds it (the stage key must
+    name the code of every step, run or reused): its modules, and (T1171) the code files it read (`is_code_read`;
+    `reads`: the record's read paths), stamped now — `reuse` has just matched them by content."""
     Path(directory).mkdir(parents=True, exist_ok=True)
     lines = "".join(f"M\t{_abs(rel)}\t{d}\n" for rel, d in sorted(modules.items()))
+    lines += "".join(f"R\t{_abs(rel)}\t{_trace.stamp(str(_abs(rel)))}\n" for rel in sorted(reads) if is_code_read(rel))
     (Path(directory) / f"reused-{name}.trace").write_text(lines, encoding="utf-8")

@@ -366,7 +366,7 @@ def test_step_declared_keys_c_level_inputs_and_the_reach_pick(scratch, monkeypat
 def test_a_traced_stage_keys_on_the_files_it_imported(scratch):
     """`pipeline build`: with `code_files` recorded, the reach/deliver code key is those files now (and the env) —
     an edit to a module it imported moves it, an edit elsewhere does not; before the first recorded run it is the
-    broad roots, as before; tiles keep their narrow roots."""
+    broad roots and the env (T1171: every stage is traced; test_build_key_holes.py pins the holes)."""
     mod = scratch / "mod.py"
     mod.write_text("x = 1\n")
     other = scratch / "other.py"
@@ -378,8 +378,9 @@ def test_a_traced_stage_keys_on_the_files_it_imported(scratch):
     assert B.stage_code("reach", m) == k1
     mod.write_text("x = 2\n")
     assert B.stage_code("reach", m) != k1
-    assert B.stage_code("deliver", {"stages": {}, "runs": []}) == B.code_digest(B.CODE["deliver"])
-    assert B.stage_code("tiles", m) == B.code_digest(B.CODE["tiles"])
+    env = SC.env_fingerprint()
+    assert B.stage_code("deliver", {"stages": {}, "runs": []}) == {"roots": B.code_digest(B.CODE["deliver"]), "env": env}
+    assert B.stage_code("tiles", m) == {"roots": B.code_digest(B.CODE["tiles"]), "env": env}
 
 
 # ---------------------------------------------------------------------------------------------------- the read set

@@ -118,7 +118,9 @@ def _step(args: list, steps: "_Steps | None" = None) -> None:
     rec, why = cache.reuse(name, argv, d, declared)      # lookup + restore under the step's lock, re-verified
     if rec is not None:
         if steps.stage_trace:
-            stepcache.write_modules_trace(Path(steps.stage_trace), rec["fingerprint"]["modules"], name)
+            # (T1171) and the code files it read (schema.sql): a reused bundle must still name them to the stage key
+            stepcache.write_modules_trace(Path(steps.stage_trace), rec["fingerprint"]["modules"], name,
+                                          reads=rec["paths"]["reads"])
         print(f"pipeline.deliver: {name} REUSED in {time.time() - t0:.0f}s ({why}; "
               f"{len(rec['outputs'])} output(s) from {cache.root / name})", flush=True)
         return

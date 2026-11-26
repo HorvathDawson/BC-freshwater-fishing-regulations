@@ -31,8 +31,10 @@ python -m pipeline build --side DIR       # every stage into DIR; nothing live (
 `pipeline/build.py`, AGENTS 62. It is heavy: run it through `scripts/heavy.sh` (one heavy job at a time).
 A stage is skipped while its inputs' digests (atlas, corpus, curated tree, source stamps, its own code) match its
 last successful run (`data/generated/build-manifest.json`). Two caches, both keyed on content
-(`pipeline/common/stepcache.py`, recorder `pipeline/_trace.py`): a stage keys on the modules it really imported,
-and each `pipeline.deliver all` step is reused when its arguments, inputs and reads are unchanged
+(`pipeline/common/stepcache.py`, recorder `pipeline/_trace.py`): every stage keys on the modules it really imported,
+the code files it read (`schema.sql`, `tile-contract.json`, `config.yaml`), the interpreter, SQLite and the installed
+packages, and the tiles also on the tippecanoe and tile-join versions (T1171); the atlas records the same code stamp
+in its meta, and `pipeline release` refuses an atlas whose code moved. And each `pipeline.deliver all` step is reused when its arguments, inputs and reads are unchanged
 (`data/generated/deliver-cache/`). So a rule edit reruns reach and deliver; an answers or wording edit reruns
 answers onward, not the bundle. `build --force deliver` runs every delivery step afresh.
 

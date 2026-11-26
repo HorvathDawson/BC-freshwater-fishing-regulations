@@ -61,7 +61,8 @@ already done for this release):
                code and data/curated committed (the review log marks.jsonl
                and closed.json may be dirty: no stage reads them, `build.NOT_BUILD_INPUTS`); the atlas is not behind
                a curated input it was built from (T547, `atlas.inputs.behind`: a cut, name, area, added water, tidal
-               limit or slough call edited after the atlas build is named, and the run stops unless
+               limit or slough call edited after the atlas build is named — and (T1171) a module or code file it
+               was built from, or the interpreter / SQLite / a package, `atlas.inputs.code_behind` — and the run stops unless
                `--ship-stale-atlas REASON`); every review mark in
                force landed in its curated file (T545, `review.apply --check`; not skipped by --no-fast-fail); no place's
                latest review save is "wrong" / "unsure" with no extent fix (T786, `review.wrong_saves`; only a dated
