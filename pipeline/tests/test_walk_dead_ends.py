@@ -99,7 +99,7 @@ def _forsyth():
     never meets it (Forsyth, MacMillan); D leaves T2 and rejoins T1 at order 4 > 3 — refused `bigger_river`
     (Shelagyote), fed by an unnamed creek F; B a canal (2300) off T2 into P; E off T3 into P; U between T2 and M, a
     main-flow piece of T no walk reaches; X a piece of T touching nothing; Q a big (order 4) channel off T2
-    into P; O a channel off T2 into P owned by another
+    into P; G off T2 into P, fed by W, another basin's water (200); J off T2, rejoining at M (not walked); O a channel off T2 into P owned by another
     item."""
     side = ("1100",)
     nodes = [_line("R:0", order=6, wsc="100"), _line("T1:0", order=3, wsc="100-1"), _line("T2:0", order=3, wsc="100-1"),
@@ -109,6 +109,8 @@ def _forsyth():
              _line("E:0", order=1, wsc="100-1", types=side), _line("U:0", order=1, wsc="100-1", types=side),
              _line("O:0", order=1, wsc="100-1", types=side), _line("X:0", order=1, wsc="100-1", types=side),
              _line("Q:0", order=4, wsc="100-1", types=side),
+             _line("G:0", order=1, wsc="100-1", types=side), _line("W:0", order=1, wsc="200"),
+             _line("J:0", order=1, wsc="100-1", types=side),
              _lake("lake:P", wsc="900")]
     edges = [("T1:0", "R:0", "confluence"), ("T2:0", "T1:0", "continuation"), ("T3:0", "T2:0", "continuation"),
              ("T2:0", "C:0", "confluence"), ("C:0", "lake:P", "lake_in"),
@@ -117,9 +119,12 @@ def _forsyth():
              ("T3:0", "E:0", "confluence"), ("E:0", "lake:P", "lake_in"),
              ("T2:0", "U:0", "confluence"), ("M:0", "U:0", "confluence"), ("U:0", "lake:P", "lake_in"),
              ("T2:0", "O:0", "confluence"), ("O:0", "lake:P", "lake_in"),
-             ("T2:0", "Q:0", "confluence"), ("Q:0", "lake:P", "lake_in")]
+             ("T2:0", "Q:0", "confluence"), ("Q:0", "lake:P", "lake_in"),
+             ("T2:0", "G:0", "confluence"), ("W:0", "G:0", "confluence"), ("G:0", "lake:P", "lake_in"),
+             ("T2:0", "J:0", "confluence"), ("J:0", "M:0", "confluence")]
     reg = {"gnis:T": SimpleNamespace(kind="stream", section_ids=["T1:0", "T2:0", "T3:0", "M:0", "C:0", "D:0", "B:0",
-                                                                  "E:0", "U:0", "X:0", "Q:0"]),
+                                                                  "E:0", "U:0", "X:0", "Q:0", "G:0",
+                                                                  "J:0"]),
            "gnis:R": SimpleNamespace(kind="stream", section_ids=["R:0"]),
            "gnis:O": SimpleNamespace(kind="stream", section_ids=["O:0"])}
     return _g(nodes, edges), reg
@@ -207,3 +212,21 @@ def test_never_returns_the_reach_itself():
     g, reg = _forsyth()
     got = T.tributaries_of_reach(g, {"Q:0"}, registry=reg)
     assert {"T2:0", "T3:0"} <= got and "Q:0" not in got
+
+
+def test_never_a_channel_another_water_flows_into():
+    """G is T's and touches only the walked T2, but W (another basin's code) flows into it: G is not seeded, so the
+    walk never climbs from it into W (the Pitt into Widgeon Slough, the Williamson into a Fraser slough)."""
+    got = _walk()
+    assert not {"G:0", "W:0"} & got and "C:0" in got
+
+
+def test_a_walked_past_piece_is_not_walked_water():
+    """T3 walked past (`passed`: traversed, never the rule's): E, leaving T3, is not taken."""
+    got = _walk(passed={"T3:0"})
+    assert "E:0" not in got and "C:0" in got
+
+
+def test_a_channel_whose_lower_end_rejoins_an_unwalked_piece_stays_out():
+    """J leaves the walked T2 but flows on into M, a piece of T no walk reached: its DOWNSTREAM neighbour counts."""
+    assert "J:0" not in _walk()

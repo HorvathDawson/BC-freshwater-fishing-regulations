@@ -1092,7 +1092,8 @@ def tributaries_of_reach(
 #: (`fwa_edge_types.is_main_flow`), not a barrier, not carved out, not the entry's own water, is collected with every
 #: such piece it touches when EVERY other piece of the same item it touches was collected by this walk; the walk then
 #: climbs on from it. The registry already says the channel is that water; a channel touching the reach, a carve-out or
-#: any uncollected piece of its item stays out. False = the mutation pin.
+#: any uncollected piece of its item stays out, and so does one another water flows into (an inflow whose watershed
+#: code is neither the channel's nor under it, or is missing). False = the mutation pin.
 A_SIDE_CHANNEL_GOES_WITH_ITS_WATER = True
 
 #: ONE SLOT, keyed by the registry object itself (held, so its id stays unique): {section: (stream items owning it)}
@@ -1119,6 +1120,12 @@ def _touching(graph: StreamGraph, nid: str):
         yield graph.edges[ei].to_node
 
 
+def _same_water(graph: StreamGraph, nid: str, codes: set[str]) -> bool:
+    """Is `nid`'s watershed code one of `codes` or under one of them (missing: no)?"""
+    a = getattr(graph.nodes.get(nid), "wsc", "")
+    return any(wsc.relation(a, c) in (wsc.SAME, wsc.BELOW) for c in codes)
+
+
 def _side_channel_seeds(ctx: "Reach", registry, seen: set[str], kept: set[str]) -> list[str]:
     """`A_SIDE_CHANNEL_GOES_WITH_ITS_WATER`: the unwalked no-main-flow pieces of every stream item the walk collected
     (`kept`) whose every touching piece of that item is in `kept`."""
@@ -1141,6 +1148,13 @@ def _side_channel_seeds(ctx: "Reach", registry, seen: set[str], kept: set[str]) 
                         comp.add(y)
                         todo.append(y)
             done |= comp
+            # never a channel another water flows into (a code neither equal to nor under the channel's: the
+            # Pitt into Widgeon Slough, the Williamson into a Fraser slough): the walk climbs on from what it adds,
+            # and a channel refused as `bigger_river` must not lower the bar for a different water feeding it
+            codes = {g.nodes[x].wsc for x in comp if g.nodes[x].wsc}
+            if any(not _same_water(g, g.edges[ei].from_node, codes)
+                   for x in comp for ei in g.up_adj.get(x, ()) if g.edges[ei].from_node not in comp):
+                continue
             touch = {y for x in comp for y in _touching(g, x) if y in mine and y not in comp}
             if touch and touch <= kept:
                 out |= comp
