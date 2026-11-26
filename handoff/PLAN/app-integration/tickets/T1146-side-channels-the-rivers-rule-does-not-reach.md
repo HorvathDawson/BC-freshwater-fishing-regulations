@@ -61,7 +61,9 @@ outside-B.C. table changed. Every section is listed in `../T1146-files/diff-attr
 - As predicted: the 19 channel sections of Forsyth, Koksilah, Halfway, MacMillan, Manson, Omineca and
   Shelagyote. The Babine designation reaches Shelagyote's channel, and the DFO place
   "1:cowichan-river:including-tributaries-and-cowichan" reaches Koksilah's 5 channel pieces.
-- Beyond the prediction, accepted as the fix's intended behaviour for review:
+- Beyond the prediction. The owner answered 2026-11-25 18:06 in the planning chat dialog, to "accept, they are
+  tributaries / stop at the channel / show me the list first": **"Accept: they are tributaries (Recommended)"**. So
+  all three stand:
   - (a) 34 unnamed feeder creek sections that flow only into those channels. The walk climbs on from the
     channel: Shelagyote 19, Manson/Omineca 8, Koksilah 4, Halfway 3.
   - (b) Manson's two stubs between lakes (359006963:0 and :920), reached through the lakes.
