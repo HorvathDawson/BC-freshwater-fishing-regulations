@@ -1,10 +1,10 @@
 # T1140 — A water's plain link opens the rules of one part without saying which: the Squamish reads "Closed"
 
-Status: PARTIAL — HIGH, on production. The label fix (the first speed) is built (5d57ac8c2, 54e0c3e15: every head of a multi-part water says "Part n of m" and links to its other parts; the pre-rendered page too), in review; it ships IN 0.10.0, cherry-picked onto release/0.10.0 (owner 2026-11-25). Its words and look are proposals: owner: OWNER-TODO "Ticket T1140, HIGH, the first patch after 0.10.0." left (Claude): landing A (the Map with the parts, the owner's pick 15:14) is the next patch, pictures first; the area's name (item 4) needs a pipeline and bundle field, not built
+Status: PARTIAL — HIGH, on production. The names are built (5d57ac8c2, 54e0c3e15, 82e6de1f4: no part is numbered anywhere; a side-channel part inside one area is "<water> inside <area>", one with no real-world name the data's own label, one outside B.C. "<water> outside B.C."; the page waits for the water's parts), in review, for 0.10.0. The line under the head is a proposal: owner: OWNER-TODO "Ticket T1140, HIGH, the first patch after 0.10.0." left (Claude): landing A (the Map with the parts) is the next patch, pictures first
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T1140 | A water's plain link opens the rules of one part without saying which: the Squamish reads "Closed" | PARTIAL — HIGH; label fix built, in review, ships in 0.10.0 | 5d57ac8c2, 54e0c3e15 | owner: OWNER-TODO "Ticket T1140, HIGH, the first patch after 0.10.0." (the words, T1140-shots/before-after.md); left (Claude): landing A next patch; the area's name needs a pipeline + bundle field |
+| T1140 | A water's plain link opens the rules of one part without saying which: the Squamish reads "Closed" | PARTIAL — HIGH; part names built, in review, for 0.10.0 | 5d57ac8c2, 54e0c3e15, 82e6de1f4 | owner: OWNER-TODO "Ticket T1140, HIGH, the first patch after 0.10.0." (the line and the ring label, T1140-shots/before-after.md); left (Claude): landing A next patch |
 
 Source: owner 2026-11-25 14:55 (planning chat), with two pictures of the web app on production, verbatim: "big app
 bug we will want to fix asap.. basically if the user searches something liek squamish river regs and clicks the
@@ -62,7 +62,7 @@ golden pages stop once for the new heads), then production and the phone builds.
 ships with the label. The label fix is the 0.10.0 chat's lane (steps 3 to 6 above, without the landing); landing A
 is the next patch, pictures first.
 
-## Built 2026-11-25 (lane L28): the part label, the line, the pre-rendered page (the first speed)
+## Built 2026-11-25 (lane L28), round 1 — SUPERSEDED by round 2 below (the owner refused "Part n of m")
 App-only: the stretch's name, its place in the list and the count after joins were already in the page's model (the
 water map's group, read through `useMapEntries`); no pipeline or bundle change.
 - **Where the label is made (one place):** `app/packages/core/src/regs/header.ts` `partWhereOf`, from
@@ -102,6 +102,34 @@ water map's group, read through `useMapEntries`); no pipeline or bundle change.
 So the "Part n of m" words built above (and the Map tab's existing "PART 1 OF 2") are NOT to ship; every part is to be
 named by what it is. L28's branch `fix/T1140-part-label` is kept, with no PR (its page-waits-for-parts gate and tests may
 carry over); the new scope comes from the coordinator.
+
+## Owner, 2026-11-25 ~17:05 and 17:31 (verbatim, through the coordinator)
+- The Map bar with the count gone: "The part's real name (Recommended)" (the example shown to him: "SQUAMISH RIVER ·
+  INSIDE BAYNES ISLAND ECOLOGICAL RESERVE").
+- Parts outside B.C.: "\"<water> outside B.C.\" (Recommended)".
+- The 15 rule-gap side channels: "Fix the binding in 0.10.0" (another lane: the walk, not the names).
+- The Strathcona ones: "outside strathcona park sounds bad maybe a different name could be worked in?"
+- 17:31, the 18 parts with no real-world name: "The data's own label (Recommended)".
+
+## Built 2026-11-25 (lane L28), round 2: every part named, none numbered
+- **No "Part n of m" anywhere:** `app/packages/core/src/waterNav.ts` `partWhere` (the Map bar's line over the name: the
+  water's) and `partRowAria` (a list row: its name); the round-1 head line is gone. The line "Other parts of this water have
+  different rules" stays, unnumbered (`regs/header.ts` `partsOthersOf`), a proposal.
+- **Inside an area (deliver, no format change):** `pipeline/deliver/answers/display/part.py` `inside_area` / `INSIDE` and
+  `builders.py` `_names`. A part with no main stem whose side channels ALL run from one area's cut to the same cut ships
+  `near:inside:<area token>` as both ends. Its words are the export's split name for the area, cased by `area_display` like
+  every area end. Verified: Squamish p1 → "Squamish River inside Baynes Island Ecological Reserve"; Gordon p0 → "Gordon
+  River inside Pacific Rim National Park Reserve". NOT the Okanagan River Oxbows p1: one channel runs from its source to
+  the reserve's boundary, the other from its source to its mouth, so it is not provably inside and keeps the data's label.
+  The shipped app (v0.9.0 `ends.ts` `spanName`, unchanged since T517) composes `near:` tokens already: run on the side
+  release it says the same two names.
+- **No real-world name:** the release's own words for the part (`PartFacts.runs`, e.g. "Side channel, joining 12 km from
+  the mouth"), in `waterNav` `entryName` and `regs/header.ts` `partNameOf`. It is app-side, so a shipped app keeps the
+  water's name until it updates. It names a part by what it is, so it holds whether or not the walk fix merges 5 of them
+  away.
+- **Outside B.C.:** "<water> outside B.C." (`WATER_MAP_WORDS.outside`; a part with no facts that is not tidal).
+- **What each of the 26 reads:** the table in `handoff/PLAN/app-integration/T1140-shots/before-after.md`.
+- **The mini release was re-cut** (`python -m pipeline.tools.mini_release --write`): only the deliver code stamp moved.
 
 ## What the pictures show
 - `/water/squamish-river`, Regulations tab: the head says only "Squamish River". Salmon "Closed today", Game fish

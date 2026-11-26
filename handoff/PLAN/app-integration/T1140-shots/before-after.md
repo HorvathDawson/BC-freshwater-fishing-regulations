@@ -1,46 +1,74 @@
-# T1140 part label: before and after (a proposal for the owner)
+# T1140 part names: before and after (round 2, after the owner's 17:00–17:31 answers)
 
-Web app, candidate release r-71d09ad82e81, Nov 25 2026, each water opened by its plain link (`?regs=<item>`, the way
-`/water/<slug>` opens it). "before" is origin/main 7eff4717a; "after" is this branch. Phone 390 px and desktop 1440 px,
-light; the Squamish in dark too.
+Web app, Nov 25 2026, each water opened by its plain link (`?regs=<item>`, the way `/water/<slug>` opens it).
 
-| water | 390 px | desktop |
+- **before:** origin/main a5f404c2c on the candidate release r-71d09ad82e81.
+- **after:** this branch on a side release built from the same bundle with this branch's deliver code (r-2617d36e2bf9:
+  answers, card check, store and release reran; atlas, reach and tiles did not).
+
+Each picture is `<before|after>-<water>-<size>-<theme>[-map].png`; `-map` is the Map tab with its list of parts open.
+
+| what | pictures |
+|---|---|
+| Squamish River (a side-channel part inside an ecological reserve) | `*-squamish-web390-light.png`, `*-squamish-web390-light-map.png`, dark: `*-squamish-web390-dark.png`, desktop: `*-squamish-desktop-light.png` |
+| Gordon River (a side-channel part inside a national park reserve) | `*-gordon-web390-light.png`, `*-gordon-web390-light-map.png` |
+| Comox Creek and Rees Creek (two of the 18 parts with no real-world name: the data's own label) | `*-comox-web390-light(-map).png`, `*-rees-web390-light(-map).png` |
+| Capilano River (unchanged apart from the count gone) | `*-capilano-web390-light(-map).png` |
+| Bella Coola River (one part: unchanged) | `*-bella-coola-one-part-web390-light(-map).png` |
+
+## What changed
+
+- **No part is numbered anywhere.** On the Map tab, "PART 1 OF 2 · SQUAMISH RIVER" now reads "SQUAMISH RIVER", over the
+  part's name. The screen reader's list rows give names, not numbers.
+- **Every part has a real name.**
+  - Inside an area: "Squamish River inside Baynes Island Ecological Reserve", "Gordon River inside Pacific Rim National
+    Park Reserve".
+  - No real-world name: the data's own label, e.g. "Side channel, joining 12 km from the mouth".
+  - Outside B.C.: "Kettle River outside B.C."
+- **The line "Other parts of this water have different rules" stays**, without a number, under the part's name on the
+  Regulations and Conditions tabs. It opens the Map tab with its list of parts open. It is still a proposal (your call):
+  it is the one thing that says other parts exist.
+- **New on the Squamish and Gordon maps:** the ring where the reserve's channels meet the main stem is labelled
+  "Inside Baynes Island Ecological Reserve". Before, there was no label there. It is the part's own lower end, said the
+  way its name says it.
+
+## What each of the 26 parts with no name of its own now reads (r-2617d36e2bf9)
+
+| water, part | now | why |
 |---|---|---|
-| Squamish River (lead part closed all year, rest open) | `before-squamish-web390-light.png` / `after-squamish-web390-light.png` (dark: `*-squamish-web390-dark.png`) | `before-squamish-desktop-light.png` / `after-squamish-desktop-light.png` |
-| Capilano River (lead part open, parts 2 and 3 closed all year) | `before-capilano-web390-light.png` / `after-capilano-web390-light.png` | `before-capilano-desktop-light.png` / `after-capilano-desktop-light.png` |
-| Fraser River (22 parts) | `before-fraser-web390-light.png` / `after-fraser-web390-light.png` | `before-fraser-desktop-light.png` / `after-fraser-desktop-light.png` |
-| where the line goes | `after-squamish-web390-light-line-pressed-map.png`: the Map tab, its list of parts open | |
+| Squamish River p1 | Squamish River inside Baynes Island Ecological Reserve | its channels run reserve cut to reserve cut |
+| Gordon River p0 | Gordon River inside Pacific Rim National Park Reserve | same, the park reserve |
+| Okanagan River Oxbows p1 | 2 side channels | one channel runs from its source to the reserve's boundary, the other from source to mouth: not provably inside, so the data's label |
+| Burman River p0 | 5 side channels, joining 1.1–5.5 km from the mouth | data's label |
+| Bedwell River p0 | 3 side channels, joining 4.4 km from the mouth | data's label |
+| Thelwood Creek p0 | 2 side channels, joining 0.4 km from the mouth | data's label |
+| Rees Creek p0 | 4 side channels, joining 1.4 km from the mouth | data's label |
+| Comox Creek p0 | Side channel, joining 12 km from the mouth | data's label |
+| Campbell River p6 | Side channel, joining 16.9 km from the mouth | data's label |
+| Forsyth Creek p1 | Side channel (from the mouth up to the top of the river) | data's label (another lane's walk fix may merge it away) |
+| Mahood Creek p1 | Side channel (from the mouth up to the top of the river) | data's label |
+| Cottonwood River p1 | Side channel, joining 5.7 km from the mouth | data's label |
+| Koksilah River p1 | Side channel (from the mouth up to the top of the river) | data's label (may merge away) |
+| Stirling Creek p1 | Side channel (from Acme Lake up to the top of the river) | data's label |
+| Theodosia River p1 | Side channel (from the mouth up to the top of the river) | data's label |
+| Noons Creek p4 | Side channel (from the mouth up to the top of the river) | data's label |
+| Robertson Creek p1 | Side channel (from the mouth up to the Boot Lagoon outlet) | data's label |
+| West Road (Blackwater) River p3 | 2 side channels, joining 227.4–234.4 km from the mouth | data's label |
+| Snehumption Creek p1 | 2 side channels | data's label |
+| Skeena River p4 | Side channel (from the Exchamsiks River confluence up to Skeena River Ecological Reserve boundary) | data's label; it runs TO the reserve, not inside it |
+| Halfway River p2 | 11 side channels | data's label |
+| MacMillan Creek p2 | Side channel (from the mouth up to the top of the river) | data's label (may merge away) |
+| Seymour River p3 | Side channel (from the mouth up to the top of the river) | data's label |
+| Manson River p0 | 3 side channels, joining 86 km from the mouth | data's label |
+| Shelagyote River p0 | Side channel, joining 48.6 km from the mouth | data's label (may merge away) |
+| Omineca River p0 | Side channel, joining 134.4 km from the mouth | data's label (may merge away) |
 
-## Proposed words (yours to change)
-
-- Over the part's name: **"Part 1 of 2"** (drawn in capitals, like the Map tab's "PART 1 OF 2"). The same words and the
-  same count as the Map tab for that moment, after it joins like stretches (T517).
-- One line under it: **"Other parts of this water have different rules"**, with the parts icon and a ›. Pressing it opens
-  the Map tab with its list of parts already open.
-- On the Conditions tab the same two lines sit over the part's name.
-- A water of one part looks exactly as before.
-- On a slow line the count can change once: until the live DFO salmon arrives, like stretches are not joined yet, so the
-  Squamish can say "Part 1 of 3" for a moment and then "Part 1 of 2". The Map tab counts the same way at the same
-  moment. The page does not wait for the salmon, because it would then wait for the salmon card (T1049).
-
-## What the 11 waters whose lead part has no name of its own now say
-
-These leads are side channels with no ends to name them, so before they showed only the water's name. Now each says
-"Part n of m" and the line, but still no area name (see below).
-
-Burman, Bedwell, Thelwood, Rees, Squamish, Comox, Manson, Shelagyote, Omineca: "Part 1 of 2". Gordon: "Part 1 of 3".
-Snehumption: "Part 2 of 3". All 11 have the line.
-
-The reserve's name ("inside Baynes Island Ecological Reserve") is NOT shown: the bundle does not carry it for any of
-the 11. Only the basemap's label names it (the map picture). The closure block reads the book row ("Fishing is
-prohibited in Ecological Reserves in B.C.", Federal / parks). Showing the name needs a pipeline and bundle change; see
-the ticket.
+Parts outside B.C. (56) read "<water> outside B.C.", e.g. "International Creek outside B.C.". Tidal pieces are never
+listed.
 
 ## Your questions
 
-1. Words and look of the two lines: keep, or change?
-2. On the 11 side-channel leads, the bundle already carries a label like "2 side channels, joining 11.6 km from the
-   mouth". Should it name the part on both the Map and the Regulations tabs? Today both show the water's name, a T517
-   rule, so changing it is your call.
-3. You picked landing A (the Map with its parts) at 15:14. It comes as the next patch, with pictures first. This label
-   stays on the page under it.
+1. Keep the line "Other parts of this water have different rules" (no number)?
+2. The new ring label "Inside Baynes Island Ecological Reserve" on the Squamish and Gordon maps: keep it?
+3. Five labels say only "Side channel (from the mouth up to the top of the river)", e.g. Seymour p3, which is next to
+   its river's own part. Is that enough? The data has nothing more specific.
