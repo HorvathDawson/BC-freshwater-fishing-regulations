@@ -814,6 +814,34 @@ def test_a_moved_sentence_pin_stops_until_its_token(world, capsys, monkeypatch):
     assert _staging(accept_fixtures="tok-2") == 1 and world["recuts_committed"] == [(NEW, "golden pages accepted")]
 
 
+def test_a_moved_answer_pin_still_stops_when_the_golden_pages_only_renumbered(world, capsys, monkeypatch):
+    """(T1135 review) the renumber auto-accept covers golden pages only: a moved answer pin beside them still stops."""
+    pins, page = "app/fixtures/golden/release-pins.json", "app/packages/ui-native/src/regs/fixtures/glenn_501.json"
+    monkeypatch.setattr(R.RF, "moved_answer_pins", lambda p, rev="HEAD": ["sourceLine.rowPages.glenn_501"] if p == pins else [])
+    asked = []
+    monkeypatch.setattr(R, "recut_renumbered", lambda pages: asked.append(list(pages)) or (True, "1 page renumbered"))
+    world["recut_changed"] = [pins, page]
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert asked == [[page]] and f"{pins} — answer pin(s) moved: sourceLine.rowPages.glenn_501" in err
+    assert "STOPPED at follows" in err and world["recuts_committed"] == []
+
+
+def test_a_broken_pins_file_is_a_stop_never_a_traceback_or_an_accept(world, capsys, monkeypatch):
+    pins = "pipeline/tests/fixtures/release-pins.json"
+
+    def broken(p, rev="HEAD"):
+        raise R.RF.PinsFileError(f"{p}: pin 'x' is \"y\", not {{...}}; it is written by `{R.RF.REFRESH_PINS}`")
+    monkeypatch.setattr(R.RF, "moved_answer_pins", broken)
+    world["recut_changed"] = [pins]
+    for kw in ({}, {"accept_fixtures": "tok-1"}):
+        assert _staging(**kw) == 1
+        err = capsys.readouterr().err
+        assert "STOPPED at follows" in err and "a release-pins file that is not one" in err and "pin 'x'" in err
+        assert "node app/tools/regs-recut/sync.mjs --release" in err and "Traceback" not in err
+        assert world["recuts_committed"] == []
+
+
 def test_push_never_pushes_a_commit_the_release_did_not_make(world, capsys):
     world["recut_changed"] = ["app/fixtures/golden/taps.json"]
     world["unpushed"] = ["0ther" + "0" * 35]                                 # another lane committed during the build

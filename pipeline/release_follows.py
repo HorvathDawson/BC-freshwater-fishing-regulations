@@ -56,6 +56,8 @@ class Follow:
 
 #: the app's release-backed fixtures, all re-cut by ONE command (`app/tools/regs-recut/sync.mjs`, T441), in its order
 RECUT = "recut"
+#: (T1135) the command that writes the release-pins files (the re-cut's last step)
+REFRESH_PINS = "node app/tools/regs-recut/sync.mjs"
 #: the in-season notice matches, re-resolved on the release (T537)
 INSEASON = "inseason"
 #: (T791 #4, T993 item 16) the pipeline's live-data tier, run on the release
@@ -144,30 +146,52 @@ def answer_roots() -> list[str]:
     return [p for f in FOLLOWS if f.answers or f.pins for p in f.paths]
 
 
+class PinsFileError(ValueError):
+    """(T1135) a release-pins file that is not one (bad JSON, no "pins" object, an entry that is not
+    {"answers": bool, "value": ...}): the release STOPS on it, naming the file and the entry — never a pass, never an
+    accept (a token covers a re-cut's content, not a broken file)."""
+
+
+def is_pins(path: str) -> bool:
+    row = row_of(path)
+    return bool(row and row.pins)
+
+
 def _pins_at(path: str, rev: str | None) -> dict:
-    """{name: {value, answers}} of the pins file `path` at `rev` (None: on disk); {} when it is not there."""
+    """{name: {value, answers}} of the pins file `path` at `rev` (None: on disk); {} when it is not there. Raises
+    PinsFileError naming the file (and the entry) when it is not a pins file."""
+    where = path if rev is None else f"{path} at {rev}"
+    fix = f"it is written by `{REFRESH_PINS}` (its pins step), never by hand: re-cut, or restore it from git"
     if rev is None:
         f = Path(REPO_ROOT) / path
-        text = f.read_text(encoding="utf-8") if f.is_file() else None
+        try:
+            text = f.read_text(encoding="utf-8") if f.is_file() else None
+        except OSError as e:
+            raise PinsFileError(f"{where}: cannot be read ({e}); {fix}") from None
     else:
         got = subprocess.run(["git", "show", f"{rev}:{path}"], cwd=REPO_ROOT, capture_output=True, text=True)
         text = None if got.returncode else got.stdout
     if text is None:
         return {}
-    pins = json.loads(text).get("pins")
+    try:
+        doc = json.loads(text)
+    except ValueError as e:
+        raise PinsFileError(f"{where}: not JSON ({e}); {fix}") from None
+    pins = doc.get("pins") if isinstance(doc, dict) else None
     if not isinstance(pins, dict):
-        raise ValueError(f"{path}{'' if rev is None else ' at ' + rev}: no \"pins\" object")
+        raise PinsFileError(f"{where}: no \"pins\" object; {fix}")
+    for n, p in pins.items():
+        if not (isinstance(p, dict) and isinstance(p.get("answers"), bool) and "value" in p):
+            raise PinsFileError(f"{where}: pin {n!r} is {json.dumps(p)[:80]}, not {{\"answers\": true|false, "
+                                f"\"value\": ...}}; {fix}")
     return pins
 
 
 def moved_answer_pins(path: str, rev: str = "HEAD") -> list[str]:
     """(T1135) the `answers: true` pins (words or pages an angler reads) that the pins file `path` adds, drops or moves
     between `rev` and the working tree, sorted. A pin with `answers: false` (a count, an id) never stops. A file that
-    cannot be read is never "nothing moved": its one line names the cause, so the stop stands."""
-    try:
-        old, new = _pins_at(path, rev), _pins_at(path, None)
-    except (ValueError, OSError) as e:
-        return [f"(unreadable: {type(e).__name__}: {e})"]
+    is not a pins file raises PinsFileError (the release stops on it: `stage_recut`)."""
+    old, new = _pins_at(path, rev), _pins_at(path, None)
     return sorted(n for n in set(old) | set(new)
                   if (old.get(n) or {}).get("answers") or (new.get(n) or {}).get("answers")
                   if old.get(n) != new.get(n))
@@ -177,8 +201,7 @@ def said(pages: list[str]) -> list[str]:
     """Each answer path as a stop shows it: a pins file with the moved pins it holds."""
     out = []
     for p in pages:
-        row = row_of(p)
-        out.append(p + (f" — answer pin(s) moved: {', '.join(moved_answer_pins(p))}" if row and row.pins else ""))
+        out.append(p + (f" — answer pin(s) moved: {', '.join(moved_answer_pins(p))}" if is_pins(p) else ""))
     return out
 
 
@@ -242,6 +265,8 @@ def renumbered_only(paths: list[str], rev: str = "HEAD", rules=None) -> tuple[bo
     at new on disk (`fixture_rules`; `rules` = (before, after) tables stands in). (True, the note naming the mapping)
     or (False, the first difference). A page added or removed is never a renumber; a table that cannot be read is
     never one either."""
+    if any(is_pins(p) for p in paths):     # (T1135) a pin's value is what a test compares, never a source index
+        return False, f"{next(p for p in paths if is_pins(p))}: a release-pins file is never a renumber"
     mapping: dict[int, int] = {}
     diff: list[str] = []
 

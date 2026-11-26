@@ -98,12 +98,38 @@ def test_a_moved_count_is_committed_a_moved_sentence_stops(repo):
     assert APP_PINS in RF.answer_roots() and page.rsplit("/", 1)[0] in RF.answer_roots()
 
 
-def test_an_answer_pin_dropped_or_added_stops_and_an_unreadable_file_never_passes(repo):
+def test_an_answer_pin_dropped_or_added_stops(repo):
     _put(repo, {"a.count": PINS["a.count"]})                                   # the sentence pin dropped (stale)
     assert RF.moved_answer_pins(APP_PINS) == ["a.words"]
     _put(repo, {**PINS, "b.new": {"answers": True, "value": "x"}, "c.id": {"answers": False, "value": 3}})
     assert RF.moved_answer_pins(APP_PINS) == ["b.new"]
-    (repo / APP_PINS).write_text("{not json", encoding="utf-8")
-    moved = RF.moved_answer_pins(APP_PINS)
-    assert len(moved) == 1 and moved[0].startswith("(unreadable: JSONDecodeError")
+
+
+def test_a_pin_holding_source_indexes_is_never_a_renumber(repo):
+    """(T1135 review) a pin value shaped like a golden page's `src` list moved one for one: still a moved answer pin."""
+    _put(repo, {**PINS, "a.words": {"answers": True, "value": {"src": [1, 2]}}})
+    _git(repo, "commit", "-qam", "src pin")
+    _put(repo, {**PINS, "a.words": {"answers": True, "value": {"src": [2, 3]}}})
     assert RF.answer_paths([APP_PINS]) == [APP_PINS]
+    ok, note = RF.renumbered_only([APP_PINS], rules=({}, {}))
+    assert not ok and "a release-pins file is never a renumber" in note
+
+
+@pytest.mark.parametrize("body, said", [
+    ("{not json", "not JSON"),
+    (json.dumps({"pins": {"a.words": "From the table."}}), "pin 'a.words' is \"From the table.\""),
+    (json.dumps({"pins": {"a.words": {"value": 1}}}), "pin 'a.words' is"),
+    (json.dumps({"pinz": {}}), 'no "pins" object'),
+])
+def test_a_broken_pins_file_raises_naming_the_file_the_entry_and_the_recut(repo, body, said):
+    """(T1135 review) never a traceback from deep inside, never "nothing moved": a PinsFileError the release stops on."""
+    (repo / APP_PINS).write_text(body, encoding="utf-8")
+    with pytest.raises(RF.PinsFileError) as e:
+        RF.answer_paths([APP_PINS])
+    assert APP_PINS in str(e.value) and said in str(e.value) and RF.REFRESH_PINS in str(e.value)
+
+
+def test_record_mode_says_each_pin_it_recorded(tmp_path, capsys):
+    """(T1135 review) record mode is never silent: one stderr line per pin."""
+    make_pin(_file(tmp_path), str(tmp_path / "rec"))("a.count", {"v": 5, "n": 68})
+    assert f"pin a.count: RECORDED, not compared (PIN_RECORD={tmp_path / 'rec'})" in capsys.readouterr().err

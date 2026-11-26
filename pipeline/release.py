@@ -1879,17 +1879,24 @@ def stage_recut(ctx: Ctx, rid: str, r: dict) -> str:
         f["recut"] = {"release": rid, "at": now(), "kind": "unchanged", "paths": 0}
         save_ledger(ctx.led)
         return f"fixtures re-cut on {rid}: nothing changed"
-    pages = RF.answer_paths(changed)
+    try:
+        pages = RF.answer_paths(changed)
+    except RF.PinsFileError as e:        # (T1135) a broken pins file: a stop naming it, never a pass or an accept
+        raise Stop("follows", f"the re-cut on {rid} left a release-pins file that is not one: {e}; nothing was "
+                   "committed", f"fix the file (re-cut: {RF.REFRESH_PINS} --release {rel(release_root() / rid)}), "
+                   "then rerun") from None
     token = recut_token(changed)
     print(f"    the re-cut changed {len(changed)} path(s): " + ", ".join(
         f"{row.name} {n}" for row in RF.FOLLOWS for n in [sum(RF.row_of(x) is row for x in changed)] if n), flush=True)
-    renumbered, note = recut_renumbered(pages) if pages else (False, "")
+    pins = [x for x in pages if RF.is_pins(x)]      # (T1135) a moved answer pin is never a renumber
+    golden = [x for x in pages if x not in pins]
+    renumbered, note = recut_renumbered(golden) if golden else (False, "")
     if renumbered:
         # (T993 item 8; 0.8.5 stop 8: nine pages whose source indexes only renumbered) the same page, its sources
         # renumbered one for one: nothing an angler reads changed — committed, said, never a stop
         print(f"    golden pages: {note} — AUTO-ACCEPTED as a renumber (T993 item 8)", flush=True)
         f["renumbered"] = note
-        pages = []
+        pages = pins
     if pages and token not in (ctx.accept_fixtures, f.get("accepted")):
         why = "" if ctx.accept_fixtures is None else f" (--accept-fixtures {ctx.accept_fixtures} is not this re-cut)"
         raise Stop("follows", f"the re-cut on {rid} changed {len(pages)} golden page(s) — what an angler is told "
@@ -1976,10 +1983,18 @@ def rehearse_follows(ctx: Ctx, cand: str) -> dict:
             if rc:
                 return {"recut_rc": rc}
             changed = recut_changed()
-            pages = RF.answer_paths(changed)
-            renumbered, note = recut_renumbered(pages) if pages else (False, "")
+            try:
+                pages = RF.answer_paths(changed)
+            except RF.PinsFileError as e:    # (T1135) the real run stops on it: listed as a stop, the tests still run
+                pages, broken = [], [f"a release-pins file that is not one: {e}"]
+            else:
+                broken = []
+            pins = [x for x in pages if RF.is_pins(x)]
+            golden = [x for x in pages if x not in pins]
+            renumbered, note = recut_renumbered(golden) if golden else (False, "")
             # (T1135) said here, while the re-cut is on disk: a pins file names its moved pins
-            got = {"recut_rc": 0, "changed": changed, "pages": [] if renumbered else RF.said(pages), "renumbered": note,
+            got = {"recut_rc": 0, "changed": changed,
+                   "pages": broken + RF.said(pins if renumbered else pages), "renumbered": note,
                    "token": recut_token(changed) if changed else None}
             got["failures"] = candidate_failures(cand, RF.test_env(release_root() / cand))
             return got
