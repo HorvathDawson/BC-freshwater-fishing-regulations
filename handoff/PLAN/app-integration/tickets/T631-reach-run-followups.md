@@ -11,7 +11,7 @@ Source: T546 report 2026-11-11.
 Done: item 1 (`pipeline/release.py` `stage_checks` keys the binding diff by the run files' content, `run_content` /
 `run_diff_key`; a DFO-only change is diffed and stops for `--accept-diff`), item 3 (a3518f5d2: `pipeline.atlas.promote`
 runs the id dry run, `GONE` / `ABSORBED`, refuses without `--accept-dead-ids`; first use
-`handoff/PLAN/app-integration/next-rebuild-results.md`). Item 5 answered: owner asked "If it is just braids then it should
+the side-build results, git history: next-rebuild-results.md). Item 5 answered: owner asked "If it is just braids then it should
 be split like normal braid items?"; answer A stands (the three Skeena channels 360220078, 360220098, 360220099 stay outside
 the DFO place, ACCEPTED in `waters/unplaced_piece_calls.json`; by geometry every junction is at Skeena m 125,470–128,641,
 above the cut at m 123,961). Root cause, its own ticket (D): graph edge 778568 joins …099's mouth to the Skeena with x/y AT

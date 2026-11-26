@@ -259,7 +259,7 @@ def source_meta(provenance: dict | None) -> dict:
 # silently dropped.
 #
 # MEASURED 2026-10-24, plain z13 cap: Squamish lost 6 kinds and 426 names, Lac Le Jeune 75 names (its FSRs).
-# MEASURED 2026-10-27 with the roads rebuild: 0 unaccepted losses on all six extents (T202-basemap-audit.md).
+# MEASURED 2026-10-27 with the roads rebuild: 0 unaccepted losses on all six extents.
 AUDIT_EXTENTS = {
     "squamish (town)": (-123.18, 49.68, -123.10, 49.74),
     "lac le jeune (rural)": (-120.52, 50.44, -120.42, 50.50),

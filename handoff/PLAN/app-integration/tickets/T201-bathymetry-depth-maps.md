@@ -4,7 +4,7 @@ Status: OPEN — NEXT AFTER CLOSED TESTING (second, after T200). Was POSTPONED (
 
 | id | title | status | commits | what's left |
 |---|---|---|---|---|
-| T201 | bathymetry: feed the prepared Depth mode, depth charts in the Lake tab; NEXT AFTER CLOSED TESTING, second (plan: handoff/PLAN/research/bathymetry-feasibility.md; reuse bathymetry/propose.py, PDFs first, vector contours later) | OPEN | — | owner 2026-11-13 (same words); starts once Play closed testing is running; owner: licence link, NONNA, CHS/Okanagan, emails, review lanes, modelled depth (questions in the … (detail: ticket file) |
+| T201 | bathymetry: feed the prepared Depth mode, depth charts in the Lake tab; NEXT AFTER CLOSED TESTING, second (plan: handoff/PLAN/research/bathymetry.md; reuse bathymetry/propose.py, PDFs first, vector contours later) | OPEN | — | owner 2026-11-13 (same words); starts once Play closed testing is running; owner: licence link, NONNA, CHS/Okanagan, emails, review lanes, modelled depth (questions in the … (detail: ticket file) |
 
 Source: owner 2026-10-25 ("at the end, alongside the stocked and bathy maps"); decisions.md "OWNER 2026-10-21 — lake
 Stocked / Depth modes: prepared, not fed yet"; T158 (tiles carry no contour layer — a follow-up of its own).
@@ -13,7 +13,7 @@ Stocked / Depth modes: prepared, not fed yet"; T158 (tiles carry no contour laye
 Owner, 2026-11-13, verbatim: "after the closed release we will do stocking and depth maps next. so add that to next after
 closed tickets." Starts once Play closed testing is running, after T200. Carried with T634 (items 1-3, 5-6). T218 and T219
 stay postponed behind it.
-Feasibility note: [`handoff/PLAN/research/bathymetry-feasibility.md`](../../research/bathymetry-feasibility.md).
+Feasibility note: [`handoff/PLAN/research/bathymetry.md`](../../research/bathymetry.md).
 
 **The note supersedes the old Work (pick a source, contours first) and main's name-first matcher** (name picks the nearest same-named lake, no
 distance cap, nobody reviews; 252 titles shared by 587 codes). Here the chart's lake code picks; name, position and

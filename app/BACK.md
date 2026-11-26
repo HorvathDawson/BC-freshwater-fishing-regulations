@@ -1,8 +1,6 @@
 # Back, everywhere (the one back)
 
-Cited from code and tests as "app/BACK.md". Owner rule 2026-10-21: Android's back works everywhere a user expects it to.
-
-Owner 2026-10-21: "make sure android back button works for entire app where a user expects it to." One rule:
+Cited from code and tests as "app/BACK.md". Android's back works everywhere a user expects it to. One rule:
 **the innermost thing closes first** — sheet/menu/dialog > overlay or in-screen step > water (its views are lateral)
 > tab > the app. Every input is the same back: the ‹ links, Android's system back (button and edge gesture),
 the browser's back button and a phone browser's swipe-back, and the iOS edge swipe.
@@ -28,11 +26,11 @@ A `<Sheet>`'s Modal `onRequestClose` (Android delivers back there while a Modal 
 | Water screen, any view (Regulations · Conditions · Map) | leaves the water for the map it was tapped on (views are lateral: back never walks the strip) | route | back.test "water screen" |
 | A water flowed into (stack > 1) | back to the water it came from, at its part | route | back.test "flowed into" |
 | Moves inside one water (a part step, ▲ / ▼, a view, "Show regulations for this part", a split lake's other area) | none of them is a back step: they REPLACE the frame, so back still leaves the water; a water already held (A → B → A) is gone back to, not stacked | route (`enter`) | back-layers "back steps out one layer", back.test "N moves", "the same walks" |
-| ▲ / ▼ across a name change into the water this one continues as / from (`water_continue`: Vedder ↔ Chilliwack) | ONE system (owner 2026-10-22 late): the cross REPLACES the water on screen, so one back leaves the system for where it was opened from; "Flows into" from a tributary stays a layer | route `cross` (`crossAction`) | back-layers "cross", "system"; back.test "one system" (Android + browser); WaterMode "across waters" |
+| ▲ / ▼ across a name change into the water this one continues as / from (`water_continue`: Vedder ↔ Chilliwack) | ONE system: the cross REPLACES the water on screen, so one back leaves the system for where it was opened from; "Flows into" from a tributary stays a layer | route `cross` (`crossAction`) | back-layers "cross", "system"; back.test "one system" (Android + browser); WaterMode "across waters" |
 | The water header's × (every water view) | leaves EVERY water at once, for where the first was opened from | route `close` | back.test "tributary chain", "the same walks" |
 | Water map: a boundary mark open | closes the mark (the map stays) | WaterMapView `MarkPop` `useBackLayer` | WaterMapView.test |
 | Water map: the fork chooser | closes it, no way taken | WaterMapView `Chooser` `useBackLayer` | WaterMapView.test |
-| Pick on the map (pick mode's banner, owner 2026-10-22) | leaves pick mode, nothing made (= its Cancel; Escape on the web); the next back is the tab rule | SpotPickBanner `useBackLayer` | MapRail.shell "pick mode is a back layer" |
+| Pick on the map (pick mode's banner) | leaves pick mode, nothing made (= its Cancel; Escape on the web); the next back is the tab rule | SpotPickBanner `useBackLayer` | MapRail.shell "pick mode is a back layer" |
 | Layers sheet (and every `<Sheet>`) | closes the sheet | Sheet `useBackLayer` | back.test "Layers", gestures.render |
 | Regulations page: "Which day?" (the date pill's DaySheet) | closes the sheet, the day kept; the next back leaves the water | DaySheet → `<Sheet>` | back.test "day sheet" |
 | A spot (viewed) | back to the tab it was opened over (the Spots tab, or a map) | route | back.test "a spot", MapRail.shell |
@@ -60,16 +58,8 @@ A `<Sheet>`'s Modal `onRequestClose` (Android delivers back there while a Modal 
    double back.
 5. Add a row to this table and a case to `apps/mobile/src/back.test.tsx` (mount the Shell, open it, `hardwareBack()`).
 
-`tools/back-layers.test.ts` checks **each component** (not each file — a registered neighbour clears nothing) that
-draws a Modal or a `role="dialog"`/`aria-modal`; takes a close or back prop (`onClose`/`onDismiss`/`onCancel`/
-`onBack`/`onHide`/`onDiscard`/`onExit`, as `onX:` or `onX(): void`, on itself or on a props interface it names, or a
-bare `close`/`hide`/`dismiss`/`cancel` function); is named `…Sheet|Menu|Drawer|Dialog|Popover|Popup|Overlay|Viewer|
-Lightbox|Gallery|Picker|Pop|Confirm|Prompt|Page`; or keeps open state (`const [menuOpen, setMenuOpen] = useState`)
-for something drawn inline. Each must call `useBackLayer(` or draw a `<Sheet>`; open state must be handed to
-`useBackLayer(` or to a registered surface's element (`<LayersSheet open={layersOpen}>`). So a hamburger page
-`AboutPage({ onBack })`, a `SpotsPanel({ onHide })`, an inline `menuOpen` menu in the Shell all fail until they
-register. A component whose back another layer already takes (an on-screen ‹ the Shell's route layer answers; a
-step or confirm its parent's layer steps back from) goes in the test's `COVERED` map, keyed `path#Component: why`,
-with the reason — and a stale entry fails too. The test also lists every surface it finds today by name: a new one
-is added there, on purpose.
-
+`tools/back-layers.test.ts` checks each component (not each file) that draws a Modal or a `role="dialog"`, takes a
+close or back prop, has a surface-like name (`...Sheet`, `...Menu`, `...Page`, ...) or keeps inline open state: it must
+call `useBackLayer(` or draw a `<Sheet>`, and open state must reach one. A component whose back another layer already
+takes goes in the test's `COVERED` map (`path#Component: why`; a stale entry fails). The test also lists every surface
+it finds by name: a new one is added there, on purpose.

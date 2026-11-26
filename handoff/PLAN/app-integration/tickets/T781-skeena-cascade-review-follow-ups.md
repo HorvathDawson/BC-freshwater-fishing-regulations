@@ -6,7 +6,7 @@ Status: OPEN (owner answered 2026-11-16, batches 5 and 6 in old owner to-do "Ans
 |---|---|---|---|---|
 | T781 | Skeena cascade review on the built release: Babine Lake reads open inside its 13 unconfirmed closed areas, Gosnell Creek and the Thautil closed by the Morice row, Gitnadoix coho open below the powerline, the eulachon line missing | OPEN (owner answered 2026-11-16; items carried by T812, T804, T803/T833, T770 (done), T754) | — | `curation-review/skeena-cascade-review-2026-11-15.md` |
 
-Source: `handoff/PLAN/curation-review/skeena-cascade-review-2026-11-15.md` (Part 2: 11 of 13 checks pass, one passes
+Source: the 2026-11-15 Skeena cascade review (git history: handoff/PLAN/curation-review/skeena-cascade-review-2026-11-15.md; Part 2: 11 of 13 checks pass, one passes
 with three exceptions, one fails).
 
 ## Items (each waits on the owner's answer; the recommended answer is in the review)
@@ -36,3 +36,7 @@ with three exceptions, one fails).
 
 - [x] 2026-11-16 — Babine Lake in August, 13 closed areas → "i think you can confirm them. it is just confluences and unless the names dont match they are easy to auto confirm" (2026-11-16 11:03).
 - [x] 2026-11-16 — Gosnell Creek and the Thautil River inside the Morice closure → "yes they are out but please make sure this rule doesnt break other stuff. we need a trigger for why they are out? why does this tributary rule not apply? what is the condition just so it is a universal rule."; Gitnadoix, coho "upstream of powerline" → "the powerline is. the mouth essentially so maybe you could add the cut for powerline to the mouth then it is all good?" (2026-11-16 11:03).
+
+## Still open (from the deleted skeena-cascade-review-2026-11-15.md, 2026-11-25)
+- The items above are the review's open findings; the review (Part 1 expected answers, Part 2 checks) is in git history.
+- A dormant place, "from the confluence with the Babine River downstream to the CNR Railway Bridge" (53 sections), sits ahead of the sockeye openings (54) in the chain: no rules today; if DFO re-lists that wording it answers first.

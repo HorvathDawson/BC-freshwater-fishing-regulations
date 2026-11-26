@@ -27,7 +27,7 @@ iOS 26.5). Tests: `SpotScreen.keyboard.test.tsx` (5), `ConditionsPanel.keyboard.
 `after-l6-spot-drag-keyboard-away.jpg`, `after-l6-cond-alert-value.jpg` (before: `before-l6-*`).
 
 ## Left
-- The owner's look at the Save bar (below). Audit table: `handoff/PLAN/ios/parity-audit.md`.
+- The owner's look at the Save bar (below). Audit table: git history, `handoff/PLAN/ios/parity-audit.md`, deleted 2026-11-25.
 - Not done, stay-out file `shell/SpotHost.tsx`: G6 parking "Use my location" still says "Could not find your location."
   with no button and reports nothing (proposed: `locate.here().then(..., (e) => { reportFailure(e); setParkingNotice(refusedLine(e) === MY_LOCATION.denied ? MY_LOCATION.denied : SPOT_WORDS.parkingNoFix); })`,
   then `<OpenSettings palette={palette} line={parkingNotice} />` under the notice in `SpotScreen`); G5 the parking pin

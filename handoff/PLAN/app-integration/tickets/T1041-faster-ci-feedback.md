@@ -159,7 +159,7 @@ What names the owner or the repo, or depends on the personal account:
   `scripts/ci_paths.py` `REPO` (`ci_paths.py repo`: `deploy/staging/upload.sh`, `scripts/start-workflow.sh`),
   their tests `app/packages/core/src/menu/legal.test.ts`, `app/workers/feeds/test/dispatch.test.ts`. Stay as they are
   (history): `app/tools/check-commits.test.ts` and `app/tools/commits-contract.json` quote old merge subjects
-  ("Merge pull request #12 from HorvathDawson/…"), `app/tools/maplibre-android/archive-t420/upstream/README.md`
+  ("Merge pull request #12 from HorvathDawson/…"), `app/tools/maplibre-android/archive-t420/` (the former upstream README)
   (a fork branch on the personal account). Docs: `handoff/PLAN/runbooks/fresh-machine.md` (the clone URL),
   `T162` (a mention).
 - **The feeds worker's GitHub token**: `GITHUB_DISPATCH_TOKEN`, a Cloudflare secret on BOTH feeds workers,

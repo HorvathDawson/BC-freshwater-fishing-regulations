@@ -6,7 +6,7 @@ Status: PARTIAL — items 4–7 closed (by T678/T685, RULINGS E21; below); item 
 |---|---|---|---|---|
 | T677 | Next rebuild leftovers: item names follow piece count, a park rule gained 33 m, binding diff by place, the 32 new held lines on a map page, lines ending at the sea | PARTIAL — left (Claude): items 1, 3 | — | items 4–7 closed by T678/T685 (RULINGS E21); item 2 answered 2026-11-12 (keep the Ucona 33 m as built) |
 
-Source: the rebuild lane, 2026-11-11 (`handoff/PLAN/app-integration/next-rebuild-results.md`).
+Source: the rebuild lane, 2026-11-11 (the side-build results, git history: next-rebuild-results.md).
 
 Done: item 2 kept as built (owner 2026-11-12: `strathcona_park_waters.r1` covers the first 33 m of the Ucona River
 (354153463)); item 4 (the 32 new held lines on `T665-main-rivers-map.html`) superseded by the T678 coast rule and its owner list (`coast_owner.json`, `shore_held.json`); item 5
@@ -31,3 +31,9 @@ dropped them (16 at least 95% inside the polygon). Line 356337576 is still to lo
 - Each item done, or closed with the owner's answer.
 
 Depends: T664, T665. Size: M.
+
+## Still open (from the deleted next-rebuild-results.md, 2026-11-25)
+The results page (2026-11-11 side build) is in git history; its owner items are mostly settled by T678's coast rule. Left:
+- Brem River 360854323 (102 m) and three unnamed creeks into it (360743108, 360827624, 360883856), and 360802896: not cut; the Brem's line ends at the sea with no water mapped below it.
+- Four creeks newly cut into Fraser side channels (354135384 252 m, 356070273 6 m, Crescent Slough 356326465 27 m, 356349946 195 m): the owner says if any is held.
+- Standing: the `mouth`-rows patch (`T665-tidal-limits-mouth-rows.patch`, never applied), the Nakina half-width (a mark cannot say "centre line to the northern bank").
