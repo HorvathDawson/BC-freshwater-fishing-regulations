@@ -572,10 +572,14 @@ SIDE = "near:side:"
 UNNAMED_ENDS = ("mouth", "source", "polygon", "lake_inlet", "lake_outlet")
 #: T1140: the parts the build may name "<water> inside <area>" / "<water> at <area>", each checked by a reviewer on its
 #: picture (item id, the area's catalogue name, how). A new one stops the build until it is looked at and added here; one that stops being inside
-#: stops it too.
+#: stops it too. (T1172) A membership-only area (a park or WMA the atlas does not cut at) is offered by the bundle ONLY
+#: for a pair listed here (`bundle.side_channels.inside_rows`), so its entry is what admits it.
 REVIEWED_INSIDE = frozenset({("gnis:25671", "BAYNES ISLAND ECOLOGICAL RESERVE", "inside"),
                              ("gnis:18167", "Pacific Rim National Park Reserve of Canada", "inside"),
-                             ("wsc:300-432687-459615", "HAYNE'S LEASE ECOLOGICAL RESERVE", "at")})
+                             ("wsc:300-432687-459615", "HAYNE'S LEASE ECOLOGICAL RESERVE", "at"),
+                             # (T1172, owner 2026-11-26: "Yes, but name it by the area") the Old Kootenay River
+                             # Channel's side part: 99.40 % inside the WMA, which alone tells it from its main line
+                             ("gnis:2123", "CRESTON VALLEY WILDLIFE MANAGEMENT AREA", "inside")})
 
 
 def named_end(tok: Optional[str]) -> Optional[str]:

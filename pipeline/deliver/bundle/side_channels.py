@@ -10,7 +10,15 @@ stage while the named sections' shapes are in hand (`topology.keep_named`, EPSG:
    a shape (the two ends cannot then be told apart), the END NEARER THE MAIN LINE; measured along the main line from the mouth as every
    other span is. Guards: the main line is the same water's (`item_section`); the snap is at most `MAX_SNAP_M`; the main
    line section it lands on must be orientable (its downstream or upstream neighbour on the stem says which end is the
-   mouth's). (T1140 proposal, coordinator 2026-11-25, "a consistent way to handle this") A channel whose downstream end
+   mouth's; (T1172, owner 2026-11-26) a main line of ONE section has neither: its mouth is its FIRST VERTEX, FWA's own
+   order — measure 0, the downstream end, which the atlas keeps (`blk_chains.build_blk_chains` sorts a blue line's
+   pieces by `down_m`, `cutting.merge_ordered` never reverses one, and the graph's flow is read from that order,
+   `cutting.blk_endpoints`) — never a flow pointer (`section_down` is the gauges' route pointer and lands mid-line: the
+   Old Kootenay River Channel's at 588 m); one drawn in pieces that do not join has no first vertex to say it: NO
+   JOIN). THE ORDER IS CHECKED ON EVERY BUILD, never trusted (`check_stem_order`): every stem section with a stem
+   section below it starts at that section, and a stem section with none below it agrees with the FWA measures of the
+   tributaries the graph joins to it (`stem_marks`); either drawn backwards stops the build, named.
+   (T1140 proposal, coordinator 2026-11-25, "a consistent way to handle this") A channel whose downstream end
    TOUCHES a water body of its own river joins the river AT it: a named lake its main line runs through names the
    channel's lower end (only where its flow pointer says that end is the downstream one: never a lake it leaves) (`section_span.lo` = `lake_inlet:<lake>`: "side channel into <Lake>"); its own polygon (a wide
    reach) or an unnamed lake its main line runs through is measured at the main line's point nearest the touch,
@@ -28,7 +36,14 @@ stage while the named sections' shapes are in hand (`topology.keep_named`, EPSG:
    areas the atlas cuts streams at — reserves, national parks, restricted land; never a region, an MU group or a sign
    zone): its lines by length, its polygon sections by area. `answers.display` names it "<water> inside <area>". Its
    lines that far inside while a polygon section of it straddles the area's edge (in it, but not that far): "<water> at
-   <area>" (owner 2026-11-25, the Okanagan River Oxbows at Hayne's Lease Ecological Reserve).
+   <area>" (owner 2026-11-25, the Okanagan River Oxbows at Hayne's Lease Ecological Reserve). (T1172, owner 2026-11-26:
+   "Yes, but name it by the area") an area the atlas does NOT cut at (`cut` = 0: it binds whole sections by overlap)
+   is a place too where it is a park, a wildlife management area, an ecological reserve or a national park
+   (`MEMBERSHIP_PLACES`; never Indigenous land, permit land or a watershed) — but it is OFFERED only for a pair a
+   reviewer has looked at (`answers.display.part.REVIEWED_INSIDE`), so no new area can stop a build: one that would
+   qualify unreviewed is logged ("INSIDE candidate") and named by the next rung. The Old Kootenay River Channel's side
+   part, 99.4 % inside the Creston Valley Wildlife Management Area (whose two rules and permit are all that tell it
+   from its main line). A cut area unreviewed still stops the build at the answers step, as before.
 3. (PROPOSAL, coordinator 2026-11-25, under the owner's "do whatever makes our current state decent until this is fixed
    in hardening") A PART OF ADDED LINES WITH ITS OWN NAME (`part_own_name`): every section an added-stream line (a
    negative blk in `section_measure`), all one added stream's name (the atlas graph's name tuple for it,
@@ -57,10 +72,18 @@ TOUCH_M = 1.0
 LAKE_KINDS = ("lake", "reservoir")
 #: Area kinds of the catalogue that are never a part's name (a region, an MU group, a sign zone: lines, not places).
 NOT_A_PLACE = ("region", "mu_group", "sign_zone")
+#: (T1172, owner 2026-11-26) the kinds of a MEMBERSHIP-ONLY area (`cut` = 0) that may name a part, for a reviewed pair
+#: only: places with a name of their own. Never Indigenous land (`indigenous_land`) without the owner's word, never
+#: permit land or a watershed.
+MEMBERSHIP_PLACES = ("park", "wma", "ecological_reserves", "national_parks")
+#: (T1172) how far (metres) a tributary's junction may lie from where its FWA measure puts it along a stem section, for
+#: the junction to say which way the section is drawn (`check_stem_order`); a junction where the two ways lie within
+#: twice this of each other says nothing.
+MARK_M = 5.0
 
 
 class SideChannelError(SystemExit):
-    """What the rules cannot measure (a main line of one section; no area catalogue): never a guessed answer."""
+    """What the rules cannot measure (no area catalogue), or a stem section drawn backwards: never a guessed answer."""
 
 
 def _components(sids: List[int], touch: Dict[int, set]) -> List[List[int]]:
@@ -136,14 +159,130 @@ def touched(ends: List[object], own: List[Tuple[int, object]], lakes: List[Tuple
     return None
 
 
+def first_line(g) -> Optional[object]:
+    """A stem section's shape as ONE line in its drawn order (its pieces joined head to tail, never turned round:
+    `line_merge(directed=True)`), else None — pieces that do not join have no one first vertex."""
+    import shapely
+    if g.geom_type == "LineString":
+        return g
+    if g.geom_type != "MultiLineString":
+        return None
+    m = shapely.line_merge(g, directed=True)
+    return m if m.geom_type == "LineString" else None
+
+
+def stem_marks(db: sqlite3.Connection, graph, ids: Sequence[str]) -> Dict[int, List[Tuple[float, float, float, float]]]:
+    """(T1172) {sid: [(the junction's metres from the section's lower end by FWA's measures, the same from its upper end,
+    x, y)]} for every stem section of a stream with NO stem section below it (a main line's lowest piece; the whole of a
+    one-section main line): each graph edge INTO its piece, whose `at_measure` is FWA's route measure on the piece's own
+    blue line (`FlowEdge`), and whose point is where the joining line meets it. Read while the graph is loaded; the
+    measures come from FWA's attributes, not from the order the shape is drawn in, so `check_stem_order` can test that
+    order against them. A section that is no graph piece (an added city line) has no row."""
+    from pipeline.common.section_handles import id_at
+    kind = dict(db.execute("SELECT ord, kind FROM item"))
+    span = {s: (a, b) for s, a, b in db.execute(
+        "SELECT sid, lo_m, hi_m FROM section_span WHERE off_stem = 0 AND shape = 0 AND lo_m IS NOT NULL")}
+    stems: Dict[int, List[int]] = defaultdict(list)
+    for o, s in db.execute("SELECT ord, sid FROM item_section ORDER BY ord, sid"):
+        if kind.get(o) == "stream" and s in span:
+            stems[o].append(s)
+    out: Dict[int, List[Tuple[float, float, float, float]]] = {}
+    for o, ss in stems.items():
+        his = {span[s][1] for s in ss}
+        for s in ss:
+            if span[s][0] in his or s < 1 or s > len(ids):
+                continue                          # a stem section below it says its order; or no graph piece
+            nid = id_at(ids, s)
+            node = graph.nodes.get(nid)
+            if node is None or getattr(node, "down_m", None) is None or getattr(node, "up_m", None) is None:
+                continue
+            got = []
+            for ix in graph.up_adj.get(nid, ()):
+                e = graph.edges[ix]
+                if e.x or e.y:
+                    got.append((float(e.at_measure) - node.down_m, node.up_m - float(e.at_measure),
+                                float(e.x), float(e.y)))
+            out[s] = sorted(got)
+    return out
+
+
+def check_stem_order(db: sqlite3.Connection, geo: Dict[int, object], marks: Dict[int, list], *, log=print) -> dict:
+    """(T1172) THE ORDER A MAIN LINE IS DRAWN IN, CHECKED, never trusted — `join_measure` reads a one-section main
+    line's mouth from its first vertex. Every stem section (`off_stem` 0, a line, with a span) of every stream: one with
+    a stem section below it must START there (its first vertex within `TOUCH_M` of that section); one with none below
+    it is held to the FWA measures of the tributaries joined to it (`stem_marks`): a junction is said `MARK_M` from
+    where its measure puts it counted from the first vertex — or, drawn backwards, from the last. Any section drawn
+    backwards stops the build, every one named. A section neither test can reach (no stem section below, no junction
+    whose two readings differ) is counted, never guessed. Returns the counts."""
+    from shapely.geometry import Point
+    item = {o: (i, n, k) for o, i, n, k in db.execute("SELECT ord, item_id, name, kind FROM item")}
+    span = {s: (a, b) for s, a, b in db.execute(
+        "SELECT sid, lo_m, hi_m FROM section_span WHERE off_stem = 0 AND shape = 0 AND lo_m IS NOT NULL")}
+    stems: Dict[int, List[int]] = defaultdict(list)
+    for o, s in db.execute("SELECT ord, sid FROM item_section ORDER BY ord, sid"):
+        if item[o][2] == "stream" and s in span and s in geo:
+            stems[o].append(s)
+    n = {"below": 0, "marks": 0, "unchecked": 0, "pieces": 0}
+    bad: List[str] = []
+    for o, ss in sorted(stems.items()):
+        iid, name, _k = item[o]
+        by_hi: Dict[int, List[int]] = defaultdict(list)
+        for s in ss:
+            by_hi[span[s][1]].append(s)
+        for s in ss:
+            line = first_line(geo[s])
+            if line is None:
+                n["pieces"] += 1                  # no one first vertex: `join_measure` refuses it (NO JOIN)
+                continue
+            p0, p1 = Point(line.coords[0]), Point(line.coords[-1])
+            below = sorted(b for b in by_hi.get(span[s][0], ()) if b != s)
+            if below:
+                d0 = min(geo[b].distance(p0) for b in below)
+                if d0 > TOUCH_M:
+                    d1 = min(geo[b].distance(p1) for b in below)
+                    bad.append(f"{iid} ({name}) section {s}: its first vertex is {d0:.0f} m from the stem section below "
+                               f"it {below} (its last {d1:.0f} m)")
+                else:
+                    n["below"] += 1
+                continue
+            fwd = bwd = 0
+            for m_lo, m_hi, x, y in marks.get(s, ()):
+                if abs(m_lo - m_hi) <= 2 * MARK_M:
+                    continue                      # mid-line: both readings agree, it says nothing
+                t = line.project(Point(x, y))
+                if abs(t - m_lo) <= MARK_M:
+                    fwd += 1
+                elif abs(t - m_hi) <= MARK_M:
+                    bwd += 1
+                else:
+                    n["odd"] = n.get("odd", 0) + 1    # off its own measure either way: it says nothing (counted)
+            if bwd:
+                bad.append(f"{iid} ({name}) section {s}: drawn backwards — {bwd} junction(s) lie where their FWA measure "
+                           f"puts them counted from its LAST vertex ({fwd} from its first)")
+            elif fwd:
+                n["marks"] += 1
+            else:
+                n["unchecked"] += 1
+    log(f"     stem order: {n['below']} stem sections start at the section below them; {n['marks']} with none below agree "
+        f"with their junctions' FWA measures; {n['unchecked']} with none below and no junction to say (FWA's order "
+        f"taken); {n['pieces']} in pieces that do not join (never oriented); {n.get('odd', 0)} junctions off their "
+        f"measure either way; {len(bad)} drawn backwards")
+    if bad:
+        raise SideChannelError("side channel: stem sections drawn backwards — a main line's mouth is its first vertex "
+                               "only while the atlas keeps FWA's order (T1172):\n  " + "\n  ".join(bad))
+    return n
+
+
 def join_measure(channel: List[object], stem: List[Tuple[int, int, object]],
                  down: Optional[object] = None, end: Optional[object] = None) -> Tuple[float, float, int]:
     """(the join's metres from the mouth along the main line, the snap in metres, the stem section it lands on) for a
     channel (its sections' shapes) against its water's main line (`stem`: [(lo_m, hi_m, shape)] of its stem sections).
     The end of the channel nearer the main line, snapped to the nearest stem section, placed between that section's
-    measures from the end its downstream neighbour (else upstream neighbour) touches. Ties go to the lower measure.
-    `down`: the shape the channel's flow leaves it for — its end nearest that is its downstream end, the one snapped;
-    `end`: the end to snap, given (the end that touches a water body of the river)."""
+    measures from the end its downstream neighbour (else upstream neighbour) touches; (T1172) a main line of ONE
+    section from its first vertex, FWA's measure 0 (`check_stem_order` checks that order on every build); one of
+    pieces that do not join into one line has no first vertex to say it: `SideChannelError` (NO JOIN). Ties go to the
+    lower measure. `down`: the shape the channel's flow leaves it for — its end nearest that is its downstream end, the
+    one snapped; `end`: the end to snap, given (the end that touches a water body of the river)."""
     from shapely.ops import nearest_points
     best = None
     ends = [end] if end is not None else _ends(channel)
@@ -160,11 +299,17 @@ def join_measure(channel: List[object], stem: List[Tuple[int, int, object]],
     lo, hi, g = stem[k]
     on = nearest_points(e, g)[1]
     # which end of this stem section is downstream: the one nearer the stem sections below it, else farther from those
-    # above it; a stem of one section cannot be oriented (the caller stops)
+    # above it; (T1172) a stem of one section: its first vertex (FWA's measure 0)
     below = [s for s in stem if s[1] <= lo + 1 and s[2] is not g]
     above = [s for s in stem if s[0] >= hi - 1 and s[2] is not g]
     from shapely.geometry import Point
-    line = g if g.geom_type == "LineString" else max(getattr(g, "geoms", [g]), key=lambda x: x.length)
+    if below or above:
+        line = g if g.geom_type == "LineString" else max(getattr(g, "geoms", [g]), key=lambda x: x.length)
+    else:
+        line = first_line(g)
+        if line is None:
+            raise SideChannelError("side channel: its water's main line is one section drawn in pieces that do not join "
+                                   "— it has no first vertex to say which end is the mouth's")
     p0, p1 = Point(line.coords[0]), Point(line.coords[-1])
     if below:
         ref = min(below, key=lambda s: (s[2].distance(p0) + s[2].distance(p1), s[0]))[2]
@@ -173,7 +318,7 @@ def join_measure(channel: List[object], stem: List[Tuple[int, int, object]],
         ref = min(above, key=lambda s: (s[2].distance(p0) + s[2].distance(p1), s[0]))[2]
         down0 = ref.distance(p0) > ref.distance(p1)
     else:
-        raise SideChannelError("side channel: its water's main line is one section — which end is the mouth's is not known")
+        down0 = True                    # FWA draws a blue line from its mouth: the first vertex is measure 0
     t = line.project(on) / line.length if line.length else 0.0
     frac = t if down0 else 1.0 - t
     return lo + (hi - lo) * frac, float(e.distance(g)), k
@@ -181,14 +326,20 @@ def join_measure(channel: List[object], stem: List[Tuple[int, int, object]],
 
 def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, *, log=print,
           problems: Optional[List[str]] = None, added: Optional[Dict[int, str]] = None,
-          unnamed: Optional[Dict[str, object]] = None) -> None:
+          unnamed: Optional[Dict[str, object]] = None, marks: Optional[Dict[int, list]] = None) -> None:
     """Fill the join measures `spans.compute` could not walk to, and write `part_inside` (the module's two rules).
     A channel the join rule cannot say is left without one and logged ("no join"; `problems` collects them too): only
-    a part whose name needs that distance stops the build (`answers.display.builders._names`)."""
+    a part whose name needs that distance stops the build (`answers.display.builders._names`). First the order every
+    main line is drawn in is checked (`check_stem_order`, against `marks`: `stem_marks`, read from the graph)."""
     def stop(msg: str) -> None:
         if problems is not None:
             problems.append(msg)
         log(f"     side channel NO JOIN: {msg}")
+    if added is None:
+        raise SideChannelError("side_channels.write: the added streams' own names are not given (`added_stream_names`)")
+    if marks is None:
+        raise SideChannelError("side_channels.write: the stems' junction measures are not given (`stem_marks`)")
+    check_stem_order(db, geo, marks, log=log)
     item = {o: (i, n, k) for o, i, n, k in db.execute("SELECT ord, item_id, name, kind FROM item")}
     secs: Dict[int, List[int]] = defaultdict(list)
     for o, s in db.execute("SELECT ord, sid FROM item_section ORDER BY ord, sid"):
@@ -246,10 +397,16 @@ def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, 
         loose = [s for s in secs[o] if s in stemless and span[s][0] is None]
         if not loose:
             continue
-        stem = sorted((span[s][0], span[s][1], geo[s]) for s in secs[o]
-                      if s in span and span[s][2] == 0 and span[s][3] == 0 and span[s][0] is not None and s in geo)
+        stem_sids = [s for s in secs[o]
+                     if s in span and span[s][2] == 0 and span[s][3] == 0 and span[s][0] is not None and s in geo]
+        stem = sorted((span[s][0], span[s][1], geo[s]) for s in stem_sids)
         if not stem:
             continue
+        if len(stem_sids) == 1:
+            # (T1172) its mouth is its first vertex; said in the log how far that was checked (`check_stem_order`)
+            n_marks = len(marks.get(stem_sids[0], ()))
+            log(f"     side channel: {iid} {name}: main line of one section ({stem_sids[0]}): its mouth is its first "
+                f"vertex (FWA's order; {n_marks} junction measure(s) on it for the stem-order check)")
         # this river's water bodies: its own polygon sections, and the named lakes its main line runs through
         own = [(s, geo[s]) for s in secs[o] if s in span and span[s][3] == 1 and s in geo]
         lakes: List[Tuple[str, object]] = []
@@ -306,12 +463,10 @@ def write(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path, cov, 
             filled += len(comp)
     log(f"     side channel: {filled} sections given the join their flow does not say")
     # 2. inside an area
-    if added is None:
-        raise SideChannelError("side_channels.write: the added streams' own names are not given (`added_stream_names`)")
     named = own_name_rows(db, added)
     db.executemany("INSERT INTO part_own_name (ord, part_ix, name, label) VALUES (?,?,?,?)", named)
     cov.filled("part_own_name", len(named))
-    rows = inside_rows(db, geo, build_dir, span)
+    rows = inside_rows(db, geo, build_dir, span, log=log)
     db.executemany("INSERT INTO part_inside (ord, part_ix, area, share, how) VALUES (?,?,?,?,?)", rows)
     cov.filled("part_inside", len(rows))
 
@@ -376,14 +531,19 @@ def own_name_rows(db: sqlite3.Connection, names: Dict[int, str]) -> List[tuple]:
 
 
 def inside_rows(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path,
-                span: Dict[int, tuple]) -> List[tuple]:
+                span: Dict[int, tuple], *, log=print, candidates: Optional[List[tuple]] = None) -> List[tuple]:
     """(ord, part_ix, the area's catalogue name, the lines' share, "inside" | "at") for every stream part with no main
-    stem lying at least `INSIDE_SHARE` in one cut area ("inside"), or its lines so while a polygon section of it straddles
-    the area's edge ("at") — every section measured (a section with no shape: neither)."""
+    stem lying at least `INSIDE_SHARE` in one area ("inside"), or its lines so while a polygon section of it straddles
+    the area's edge ("at") — every section measured (a section with no shape: neither) — and ONE area so: two, none.
+    The areas: every cut area that is a place (not `NOT_A_PLACE`), and (T1172) a membership-only one of the
+    `MEMBERSHIP_PLACES` kinds for a pair a reviewer has looked at (`part.REVIEWED_INSIDE`) only; an unreviewed one that
+    would qualify is logged ("INSIDE candidate") and collected in `candidates` [(item id, part, area, share, how)], and
+    the part goes on to the next rung of its name."""
     import pyogrio
-    from shapely import wkb
     from shapely.ops import unary_union
+    from pipeline.deliver.answers.display.part import REVIEWED_INSIDE
     kind = dict(db.execute("SELECT ord, kind FROM item"))
+    iid_of = dict(db.execute("SELECT ord, item_id FROM item"))
     sids: Dict[Tuple[int, int], List[int]] = defaultdict(list)
     # a LISTED part only: keyed (in B.C., with rules) and not a tidal piece (never on the map, never named)
     for o, s, p in db.execute("SELECT ps.ord, ps.sid, ps.part_ix FROM part_section ps JOIN part pt ON pt.ord = ps.ord "
@@ -397,17 +557,19 @@ def inside_rows(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path,
     cat = Path(build_dir) / "area_catalog.gpkg"
     if not cat.exists():
         raise SideChannelError(f"part_inside: {cat} not found — an atlas build writes it")
-    df = pyogrio.read_dataframe(cat, layer="areas", where="cut = 1")
-    areas = [(n, g) for n, k, g in zip(df["name"], df["kind"], df.geometry) if k not in NOT_A_PLACE and g is not None]
+    df = pyogrio.read_dataframe(cat, layer="areas")
+    # (name, shape, cut) of every place: a cut area not a line; a membership-only area of a named-place kind
+    areas = [(n, g, bool(c)) for n, k, c, g in zip(df["name"], df["kind"], df["cut"], df.geometry)
+             if g is not None and ((bool(c) and k not in NOT_A_PLACE) or (not c and k in MEMBERSHIP_PLACES))]
     from shapely.strtree import STRtree
-    tree = STRtree([g for _, g in areas])
+    tree = STRtree([g for _, g, _c in areas])
     out = []
     for (o, p), ss in sorted(want.items()):
         shapes = [geo[s] for s in ss]
         whole = unary_union(shapes)
         hits = []
         for i in sorted(tree.query(whole)):
-            name, poly = areas[int(i)]
+            name, poly, cut = areas[int(i)]
             lines = [g for g in shapes if g.geom_type in ("LineString", "MultiLineString")]
             polys = [g for g in shapes if g.geom_type in ("Polygon", "MultiPolygon")]
             share_l = (sum(g.intersection(poly).length for g in lines) / sum(g.length for g in lines)) if lines else 1.0
@@ -415,9 +577,19 @@ def inside_rows(db: sqlite3.Connection, geo: Dict[int, object], build_dir: Path,
             if share_l < INSIDE_SHARE:
                 continue
             if share_a >= INSIDE_SHARE:
-                hits.append((round(share_l, 4), name, "inside"))
+                how = "inside"
             elif lines and all(g.intersection(poly).area > 0 for g in polys):
-                hits.append((round(share_l, 4), name, "at"))       # every polygon in it, not all of it: straddling
+                how = "at"                                         # every polygon in it, not all of it: straddling
+            else:
+                continue
+            if not cut and (iid_of[o], name, how) not in REVIEWED_INSIDE:
+                # (T1172) a membership-only area is offered only for a reviewed pair: this one waits for a look
+                log(f"     side channel INSIDE candidate: {iid_of[o]} part {p} {round(share_l, 4):.2%} {how} {name!r} "
+                    f"(membership-only, no reviewer has looked at it: not offered; `part.REVIEWED_INSIDE`)")
+                if candidates is not None:
+                    candidates.append((iid_of[o], p, name, round(share_l, 4), how))
+                continue
+            hits.append((round(share_l, 4), name, how))
         if len(hits) == 1:
             out.append((o, p, hits[0][1], hits[0][0], hits[0][2]))
     return out
