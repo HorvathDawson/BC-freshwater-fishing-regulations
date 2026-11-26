@@ -8,13 +8,14 @@
  * (`createImageBitmap` + a canvas). Where it cannot, or anything fails, the original is kept as it is: a big photo is
  * better than a lost one. The rules are `./photos`'s.
  */
+import { clearedOr, isCleared } from "./idbCleared";
 import { openPhotosWith, PHOTO_MAX_EDGE, type PhotoFiles, type PhotoStore, type PickedPhoto } from "./photos";
 
 const DB = "canifishthis.photos", STORE = "photos";
 
 const done = <T>(r: IDBRequest<T>): Promise<T> => new Promise((res, rej) => {
   r.onsuccess = () => res(r.result);
-  r.onerror = () => rej(r.error ?? new Error("IndexedDB refused the request"));
+  r.onerror = () => rej(clearedOr(r.error ?? new Error("IndexedDB refused the request")));
 });
 
 const URLS = new WeakMap<IDBFactory, Map<string, string>>();
@@ -35,15 +36,16 @@ export function photoFiles(idb: IDBFactory | undefined = globalThis.indexedDB): 
     };
     return done(r);
   })().catch((e) => { db = null; throw e; }));
+  // (T1092) a connection the browser cleared is dropped, so the next request opens a fresh database
+  const gone = (e: unknown): never => { if (isCleared(e)) db = null; throw e; };
   const write = async <T>(job: (s: IDBObjectStore) => IDBRequest<T>): Promise<void> => {
     const tx = (await open()).transaction(STORE, "readwrite");
     const committed = new Promise<void>((res, rej) => {
       tx.oncomplete = () => res();
-      tx.onerror = () => rej(tx.error ?? new Error("IndexedDB refused the write"));
-      tx.onabort = () => rej(tx.error ?? new Error("IndexedDB aborted the write"));
+      tx.onerror = () => rej(clearedOr(tx.error ?? new Error("IndexedDB refused the write")));
+      tx.onabort = () => rej(clearedOr(tx.error ?? new Error("IndexedDB aborted the write")));
     });
-    await done(job(tx.objectStore(STORE)));
-    await committed;
+    await Promise.all([done(job(tx.objectStore(STORE))), committed]).catch(gone);
   };
   // One object URL per photo for as long as the page is open; revoked when the photo is deleted. Shared by every
   // instance over the same IndexedDB: the app draws through one and the spots store deletes through another, and a
@@ -66,7 +68,7 @@ export function photoFiles(idb: IDBFactory | undefined = globalThis.indexedDB): 
       const had = urls.get(ref);
       if (had) return had;
       const tx = (await open()).transaction(STORE, "readonly");
-      const blob = await done(tx.objectStore(STORE).get(ref)) as Blob | undefined;
+      const blob = await done(tx.objectStore(STORE).get(ref)).catch(gone) as Blob | undefined;
       if (!blob) return null;
       const url = URL.createObjectURL(blob);
       urls.set(ref, url);

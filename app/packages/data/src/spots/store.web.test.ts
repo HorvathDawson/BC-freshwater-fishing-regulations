@@ -8,7 +8,8 @@ import { isEnvironment, setFailureSink } from "@app/core";
 import { gaugeHistory } from "../feed/history";
 import { openGaugeHistoryStore } from "./store.web";
 
-function fakeIdb(o: { refusePut?: boolean } = {}) {
+function fakeIdb(o: { refusePut?: boolean; clearedOnce?: boolean } = {}) {
+  let opens = 0;
   const data = new Map<string, Map<IDBValidKey, unknown>>();
   const later = (f: () => void) => queueMicrotask(f);
   const request = <T>(fn: () => T) => {
@@ -21,15 +22,16 @@ function fakeIdb(o: { refusePut?: boolean } = {}) {
     createObjectStore: (s: string) => { data.set(s, new Map()); },
     transaction: () => ({ objectStore: (n: string) => ({
       get: (k: IDBValidKey) => request(() => data.get(n)!.get(k)),
-      put: (v: unknown, k: IDBValidKey) => request(() => { if (o.refusePut) throw new Error("QuotaExceededError"); data.get(n)!.set(k, v); return k; }),
+      put: (v: unknown, k: IDBValidKey) => request(() => { if (o.clearedOnce && opens === 1) { o.clearedOnce = false; throw Object.assign(new Error("Database deleted by request of the user"), { name: "UnknownError" }); } if (o.refusePut) throw new Error("QuotaExceededError"); data.get(n)!.set(k, v); return k; }),
     }) }),
   };
   const factory = { open: () => {
+    opens++;
     const r = {} as { result?: unknown; onupgradeneeded?: () => void; onsuccess?: () => void };
     later(() => { r.result = db; r.onupgradeneeded?.(); r.onsuccess?.(); });
     return r;
   } };
-  return { factory: factory as unknown as IDBFactory, data };
+  return { factory: factory as unknown as IDBFactory, data, opens: () => opens };
 }
 const settle = () => new Promise((r) => setTimeout(r, 5));
 const NOW = Date.parse("2026-10-30T21:00:00Z");
@@ -76,5 +78,18 @@ describe("the gauges' kept week in a browser (T633 item 6)", () => {
     await settle();
     undo();
     expect(seen.map((e) => (e as Error).message)).toEqual(["QuotaExceededError"]);
+  });
+
+  it("the browser clearing its saved data mid-session (T1092): said plainly, not reported, and the next write opens afresh and works", async () => {
+    const seen: unknown[] = [];
+    const undo = setFailureSink((e) => seen.push(e));
+    const { factory, data, opens } = fakeIdb({ clearedOnce: true });
+    const store = openGaugeHistoryStore(factory);
+    store.write("first");        // the connection is the browser's to clear: this write meets "Database deleted by request of the user"
+    await settle();
+    store.write("second");
+    await settle();
+    undo();
+    expect([seen, opens(), data.get("kept")!.get("week")]).toEqual([[], 2, "second"]);
   });
 });

@@ -177,6 +177,7 @@ const EXPECTED = [
   /is not one this app reads/i,
   /SecurityException: Unsupported path \/data\/local\/tmp\//i,   // an emulator-only path the OS refuses (T603 item 6, T595)
   /names file out of date \(HTTP 404\)/,            // (T1010) a region page older than the release it sits on: its names file was replaced (the page says "reload it")
+  /Database deleted by request of the user/,       // (T1092, kind 790ae7cc172f9424) the browser cleared this site's saved data under an open tab: the reader's own act
   /Failed to initialize WebGL/,                     // (T1005) a browser with no WebGL: the app says the map cannot draw (MapUnavailable)
   // (T1016) a browser tab older than what the server serves: a file of a release the live pointer no longer names (404),
   // or a code chunk gone after a site deploy. The app tells these from a defect (a file the LIVE release names stays a

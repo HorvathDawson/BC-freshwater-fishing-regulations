@@ -12,6 +12,7 @@
 import { environmentError, now, reportOnce } from "@app/core";
 import type { HistoryText } from "../feed/history";
 import { openSpotsWith, type SpotsFs, type SpotsStore } from "./core";
+import { clearedOr, isCleared } from "./idbCleared";
 import { openPhotos } from "./photoStore.web";
 
 const KEY = "canifishthis.spots.v1";
@@ -70,9 +71,11 @@ export function openGaugeHistoryStore(idb: IDBFactory | undefined = globalThis.i
   const DB = "canifishthis.gaugeHistory", STORE = "kept", KEY = "week";
   const done = <T>(r: IDBRequest<T>): Promise<T> => new Promise((res, rej) => {
     r.onsuccess = () => res(r.result);
-    r.onerror = () => rej(r.error ?? new Error("IndexedDB refused the request"));
+    r.onerror = () => rej(clearedOr(r.error ?? new Error("IndexedDB refused the request")));
   });
   let db: Promise<IDBDatabase> | null = null;
+  // (T1092) a connection the browser cleared is dropped, so the next request opens a fresh database
+  const gone = (e: unknown): never => { if (isCleared(e)) db = null; throw e; };
   const open = (): Promise<IDBDatabase> => (db ??= (() => {
     if (!idb) return Promise.reject(environmentError(new Error("This browser is not letting the app keep the gauges' week.")));
     const r = idb.open(DB, 1);
@@ -82,11 +85,11 @@ export function openGaugeHistoryStore(idb: IDBFactory | undefined = globalThis.i
   return {
     read: () => null,
     load: async () => {
-      const text = await done((await open()).transaction(STORE, "readonly").objectStore(STORE).get(KEY) as IDBRequest<unknown>);
+      const text = await done((await open()).transaction(STORE, "readonly").objectStore(STORE).get(KEY) as IDBRequest<unknown>).catch(gone);
       return typeof text === "string" ? text : null;
     },
     write: (text) => {
-      void open().then((d) => done(d.transaction(STORE, "readwrite").objectStore(STORE).put(text, KEY)))
+      void open().then((d) => done(d.transaction(STORE, "readwrite").objectStore(STORE).put(text, KEY)).catch(gone))
         .catch((e: unknown) => reportOnce("gauge-history-write", e));
     },
   };
