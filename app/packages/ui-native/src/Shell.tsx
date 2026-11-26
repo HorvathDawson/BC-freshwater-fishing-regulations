@@ -24,7 +24,7 @@
  * The Shell holds only the state more than one of these needs (the camera, the day, which sheet is open) and hands it
  * down. Every answer on every screen comes from a hook (rule 25).
  */
-import { WATER_SCREEN_WORDS, appTooOld, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM, type NotFishingKind, bcNow, now as clockNow, reportFailure } from "@app/core";
+import { WATER_SCREEN_WORDS, appTooOld, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM, type NotFishingKind, bcNow, now as clockNow, reportFailure, type ScreenName } from "@app/core";
 import { openProbe, type ItemId, type SectionId } from "@app/data";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
@@ -49,6 +49,7 @@ import { WaterViewsContext } from "./ViewSwipe";
 import { SharePortContext } from "./SharePortContext";
 import { MenuContext } from "./menu/MenuContext";
 import { BrowseHost } from "./shell/BrowseHost";
+import { ScreenBoundary } from "./ScreenBoundary";
 import { GaugeOnlyKey, MapLegend, mapFootInset, PairBanner, RunsKey, RunsLegend } from "./shell/MapLegend";
 import { HeldKey } from "./shell/HeldKey";
 import { NetBanner } from "./NetBanner";
@@ -533,21 +534,28 @@ export function Shell(p: ShellProps) {
   const lastBrowse = useRef<{ map: React.ReactNode; top: React.ReactNode; foot: React.ReactNode; tabs: React.ReactNode;
                               railOver: boolean } | null>(null);
   const browseNow = frame === null && !viewing && !(adding && onSaveSpot);
+  /**
+   * (T1164) EVERY SCREEN IS MOUNTED THROUGH THIS: a fault while one is drawn ends that screen only (its own line, Try again,
+   * Go back; reported), and the shell around it stays whole. `tools/screen-boundary.test.ts` fails a screen mounted
+   * without it. `key` resets the screen when the tab or the water changes.
+   */
+  const screen = (name: ScreenName, key: string, node: React.ReactNode, goBack?: () => void) => (
+    <ScreenBoundary screen={name} resetKey={key} palette={palette} goBack={goBack}>{node}</ScreenBoundary>);
   useEffect(() => { browseShown.current = browseNow; });
   if (viewing)
     return layered(withGuide(
-      <SpotHost viewing={viewing} spotEdit={spotEdit} nav={nav} palette={palette} camera={camera} like={like}
+      screen("spot", viewing.id, <SpotHost viewing={viewing} spotEdit={spotEdit} nav={nav} palette={palette} camera={camera} like={like}
                 dayFlow={dayFlow} photos={photos} onSaveSpot={onSaveSpot} onDeleteSpot={p.onDeleteSpot}
                 onRefreshSpots={p.onRefreshSpots} refreshing={p.refreshing} show={rail.show}
                 tiles={tiles} theme={theme} locate={locate} names={stationNames}
                 // (T294) "Add a visit" reads the water the way adding a spot does
                 visitSources={{ source, weather, feed,
                                 history: { ...(hydat ? { hydat } : {}),
-                                           ...(connectivity.watches ? { online: connectivity.online } : {}) } }} />));
+                                           ...(connectivity.watches ? { online: connectivity.online } : {}) } }} />, back)));
 
   if (adding && onSaveSpot)
     return layered(withGuide(
-      <SpotCapture contact={menuInfo?.contact ?? null} source={source} weather={weather} tiles={tiles} palette={palette} photos={photos}
+      screen("newSpot", "add", <SpotCapture contact={menuInfo?.contact ?? null} source={source} weather={weather} tiles={tiles} palette={palette} photos={photos}
                    // started at a point (a long press, a tap in pick mode, your location): the pin is already down
                    at={adding.at}
                    // So the spot freezes the ESTIMATE the reader was looking at,
@@ -563,7 +571,7 @@ export function Shell(p: ShellProps) {
                    onSaved={async (s) => {
                      await onSaveSpot(s);
                      go({ type: "savedSpot", id: s.id });
-                   }} />
+                   }} />, back)
     ));
 
   // (T369 D8) a new release applied with a water open: the water says it is updating while it is carried to the same
@@ -572,10 +580,10 @@ export function Shell(p: ShellProps) {
     ? <LoadingState palette={palette} size={110} label={WATER_SCREEN_WORDS.updating} shown
                     style={{ flex: 1, alignItems: "center", justifyContent: "center" }} />
     : frame !== null
-    ? <WaterModeHost frame={frame} nav={nav} col={col} source={source} palette={palette} loader={loader} tiles={tiles}
+    ? screen("water", String(frame.item), <WaterModeHost frame={frame} nav={nav} col={col} source={source} palette={palette} loader={loader} tiles={tiles}
                      theme={theme} feed={feed} rail={rail} spotLayer={spotLayer} camera={camera}
                      waterCamera={waterCamera} fishImages={p.fishImages}
-                     mapDay={mapDay} onDay={setMapDay} start={startForFrame(start, startFor, frame.item)} onStarted={(spent) => setStart((held) => startSpent(held, spent))} />
+                     mapDay={mapDay} onDay={setMapDay} start={startForFrame(start, startFor, frame.item)} onStarted={(spent) => setStart((held) => startSpent(held, spent))} />, back)
     : null;
   /*
    * (owner 2026-10-29) THE MAP MADE READY BEHIND A LANDING: a page that started on a water (a `/water/<slug>` page) has
@@ -594,7 +602,7 @@ export function Shell(p: ShellProps) {
   if (frame === null) browseLook.current = { col, lookKey };
   const look = frame === null ? { col, lookKey } : browseLook.current ?? { col, lookKey };
   const browseLive = frame === null || (landed && warm) || browseKept
-    ? <BrowseHost nav={nav} col={look.col} search={search} rail={rail} palette={palette} theme={theme}
+    ? screen(tab, tab, <BrowseHost nav={nav} col={look.col} search={search} rail={rail} palette={palette} theme={theme}
                   themeName={p.themeName} onTheme={p.onTheme} tiles={tiles} camera={camera} insetTop={barBottom} insetBottom={footInset}
                   spots={spots} spotsShown={spotsShown} spotLayer={spotLayer} spotsError={p.spotsError}
                   onRefreshSpots={p.onRefreshSpots} refreshing={p.refreshing} locate={locate} me={me} photos={photos}
@@ -607,7 +615,7 @@ export function Shell(p: ShellProps) {
                   fishImages={p.fishImages}
                   lookKey={look.lookKey} look={lookStore as HeldLookStore<unknown>} cue={tapCue} tap={tapOpen}
                   // (T856) the map kept under a page keeps the inset it was left with (T717), so Back moves nothing
-                  railOver={frame === null ? railOverLive : lastBrowse.current?.railOver ?? railOverLive} />
+                  railOver={frame === null ? railOverLive : lastBrowse.current?.railOver ?? railOverLive} />)
     : null;
 
   /** (T48) The top bar — the search field, the sync icon and the bell — is the maps': on Map, Conditions and (T261)

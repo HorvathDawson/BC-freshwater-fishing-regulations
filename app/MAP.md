@@ -54,11 +54,12 @@ than what is served is told so (`apps/mobile/src/replaced.web.ts`, ui `replaced.
 `vitest` (4 shards, `tools/vitest-shards.mjs`) and the web and native `bundles`. In order: tickets, anchors, changelog,
 boundaries, platform, style, colours, spinner / coho / adipose / splash (generated art current), the Python-emitted files
 (`gauge-policy`, `fish`, `calendar`, `answers`, `pack`, `app-reads`, `feed-formats`: each `--check`s a generated file
-against `pipeline/`), deps, knip, typecheck (`tsc -b`), typecheck:worker, typecheck:seo, promises, inventories.
+against `pipeline/`), deps, knip, typecheck (`tsc -b`), typecheck:worker, typecheck:seo, promises, no-render-throw, inventories.
 - `pnpm anchors` fails a test that types a section number, release id or digest, or reads `data/` past the helpers
   (`liveRelease`, `namedRelease`, `repoData`, `openRegsFixture*`); the Python twin is `pipeline/tests/anchors.py`.
 - Failures: every catch is thrown on or reported through core `failure.ts` (`reportFailure`), shown with `ui-native`
   `ErrorState`; `tools/failures.test.ts` fails a new catch that does neither (AGENTS W46).
+- Faults: every screen is mounted through `ui-native` `ScreenBoundary` (`Shell.tsx` `screen(…)`): a throw while one draws shows that screen's line with Try again / Go back and is reported (`reportFailure`); `tools/screen-boundary.test.ts` fails a screen mounted outside it, `tools/check-no-render-throw.mjs` a new `throw` in a component or hook.
 - One clock: core `clock.ts` is the only reader of the device clock (`now()`, `bcNow()`, `bcToday()`); `tools/clock.test.ts` enforces it.
 - `REGS_STORE_REQUIRED=1` makes the live-release suites fail instead of skip when no release is on disk
   (`scripts/test-full.sh` sets it); `tools/no-silent-skips.test.ts` counts every skip site.
